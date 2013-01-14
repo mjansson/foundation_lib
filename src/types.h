@@ -23,3 +23,6 @@ typedef uint64_t         tick_t;
 
 //! Deltatime type
 typedef real             deltatime_t;
+
+//! Assert handler callback
+typedef int           (* assert_handler_fn )( const char* condition, const char* file, int line, const char* msg );

@@ -18,7 +18,12 @@
 
 	BUILD_DEBUG   - Debug build
 	BUILD_RELEASE - Release build
+
+	You can also in the build configurations #define BUILD_DEPLOY 1 for making a final build for deployment,
+	which will disable asserts, most debug output (all output for some platforms) and enable final optimizations
 	
+	Other configurations can be made with various BUILD_ENABLE_[...] at the end of this file
+
 	*/
 
 #include <platform.h>
@@ -38,6 +43,11 @@
 #  undef NDEBUG
 #  undef BUILD_DEBUG
 #  undef BUILD_RELEASE
+#  undef BUILD_DEPLOY
 
 #  define BUILD_DEBUG 1
 #endif
+
+
+//Configurable choises
+#define BUILD_ENABLE_RELEASE_ASSERT           1
