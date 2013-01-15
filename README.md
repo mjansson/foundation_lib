@@ -18,5 +18,5 @@ https://github.com/rampantpixels/profile_lib
 
 VERSION HISTORY
 
- 0.1.1  (2013-01-15)  Adding assert and error handling
+ 0.1.1  (2013-01-15)  Adding assert and error handling, array, utf strings and hashing
  0.1    (2013-01-14)  Initial code drop

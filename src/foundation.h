@@ -19,11 +19,16 @@
 
 #include <build.h>
 #include <types.h>
-#include <memory.h>
+#include <bits.h>
 #include <assert.h>
+#include <memory.h>
 #include <error.h>
 
+#include <hash.h>
+#include <base64.h>
 #include <array.h>
+#include <utf.h>
+
 #include <timer.h>
 
 

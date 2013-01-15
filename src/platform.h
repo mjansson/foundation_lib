@@ -344,12 +344,19 @@
 #    define PLATFORM_ARCH_IA64 1
 #    define PLATFORM_DESCRIPTION "Windows IA-64"
 
-#    else
-#      error Unknown architecture
-#    endif
+#  else
+#    error Unknown architecture
+#  endif
 
-#    undef  PLATFORM_FAMILY_DESKTOP
-#    define PLATFORM_FAMILY_DESKTOP 1
+#  undef  PLATFORM_ENDIAN_LITTLE
+#  define PLATFORM_ENDIAN_LITTLE 1
+
+#  undef  PLATFORM_FAMILY_DESKTOP
+#  define PLATFORM_FAMILY_DESKTOP 1
+
+#  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
+#    define _CRT_SECURE_NO_WARNINGS 1
+#  endif
 
 #else
 #  error Unknown platform
@@ -379,10 +386,16 @@
 #  define RESTRICT restrict
 #  define THREADLOCAL __thread
 
-#  define DEPRECATED __attribute__((deprecated))
-#  define FORCEINLINE inline __attribute__((always_inline))
-#  define NOINLINE __attribute__((noinline))
-#  define PURE __attribute__((pure))
+#  define ATTRIBUTE(x) __attribute__((__##x##__))
+#  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
+#  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+
+#  define DEPRECATED ATTRIBUTE(deprecated)
+#  define FORCEINLINE inline ATTRIBUTE(always_inline)
+#  define NOINLINE ATTRIBUTE(noinline)
+#  define PURECALL ATTRIBUTE(pure)
+#  define CONSTCALL ATTRIBUTE(const)
+#  define ALIGN(x) ATTRIBUTE2(aligned,x)
 
 // GCC
 #elif defined( __GNUC__ )
@@ -396,10 +409,16 @@
 #  define RESTRICT restrict
 #  define THREADLOCAL __thread
 
-#  define DEPRECATED __attribute__((deprecated))
-#  define FORCEINLINE inline __attribute__((always_inline))
-#  define NOINLINE __attribute__((noinline))
-#  define PURE __attribute__((pure))
+#  define ATTRIBUTE(x) __attribute__((__##x##__))
+#  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
+#  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+
+#  define DEPRECATED ATTRIBUTE(deprecated)
+#  define FORCEINLINE inline ATTRIBUTE(always_inline)
+#  define NOINLINE ATTRIBUTE(noinline)
+#  define PURECALL ATTRIBUTE(pure)
+#  define CONSTCALL ATTRIBUTE(const)
+#  define ALIGN(x) ATTRIBUTE2(aligned,x)
 
 // Intel
 #elif defined( __ICL ) || defined( __ICC )
@@ -417,10 +436,16 @@
 #  define RESTRICT restrict
 #  define THREADLOCAL __thread
 
-#  define DEPRECATED __attribute__((deprecated))
-#  define FORCEINLINE inline __attribute__((always_inline))
-#  define NOINLINE __attribute__((noinline))
-#  define PURE __attribute__((pure))
+#  define ATTRIBUTE(x) __attribute__((__##x##__))
+#  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
+#  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+
+#  define DEPRECATED ATTRIBUTE(deprecated)
+#  define FORCEINLINE inline ATTRIBUTE(always_inline)
+#  define NOINLINE ATTRIBUTE(noinline)
+#  define PURECALL ATTRIBUTE(pure)
+#  define CONSTCALL ATTRIBUTE(const)
+#  define ALIGN(x) ATTRIBUTE2(aligned,x)
 
 // Microsoft
 #elif defined( _MSC_VER )
@@ -437,7 +462,17 @@
 #  define DEPRECATED __declspec(deprecated)
 #  define FORCEINLINE __forceinline
 #  define NOINLINE __declspec(noinline)
-#  define PURE
+#  define PURECALL
+#  define CONSTCALL
+#  define ALIGN(x) __declspec(align(x))
+
+#  ifndef __cplusplus
+typedef enum
+{
+	false = 0,
+	true  = 1
+} bool;
+#endif
 
 #else
 #  error Unknown compiler
@@ -458,6 +493,14 @@
 
 typedef float          float32_t;
 typedef double         float64_t;
+
+typedef struct {
+	uint64_t word[2];
+} uint128_t;
+
+typedef struct {
+	uint64_t word[4];
+} uint256_t;
 
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
@@ -482,6 +525,17 @@ typedef   float32_t         real;
 #  undef  PLATFORM_REALSIZE
 #  define PLATFORM_REALSIZE 32
 #endif
+
+static FORCEINLINE CONSTCALL uint128_t uint128_make( const uint64_t w0, const uint64_t w1 ) { uint128_t u = { w0, w1 }; return u; }
+static FORCEINLINE CONSTCALL bool      uint128_equal( const uint128_t u0, const uint128_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1]; }
+static FORCEINLINE CONSTCALL uint128_t uint128_null( void ) { return uint128_make( 0, 0 ); }
+static FORCEINLINE CONSTCALL bool      uint128_is_null( const uint128_t u0 ) { return !u0.word[0] && !u0.word[1]; }
+
+static FORCEINLINE CONSTCALL uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 ) { uint256_t u = { w0, w1, w2, w3 }; return u; }
+static FORCEINLINE CONSTCALL bool      uint256_equal( const uint256_t u0, const uint256_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] && u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3]; }
+static FORCEINLINE CONSTCALL uint256_t uint256_null( void ) { return uint256_make( 0, 0, 0, 0 ); }
+static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
+
 
 // Wrappers for platforms that not yet support thread-local storage declarations
 // For maximum portability use wrapper macros DECLARE_THREAD_LOCAL / DECLARE_THREAD_LOCAL_ARRAY

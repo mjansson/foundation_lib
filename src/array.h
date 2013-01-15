@@ -60,10 +60,10 @@
 #else
 #  define _array_verify(a)           (a)
 #endif
-#define _array_raw(a)                ( (int*)(a)-_array_header_size )
+#define _array_raw(a)                ( (int32_t*)(a)-_array_header_size )
 #define _array_rawcapacity(a)        _array_raw(a)[0]
 #define _array_rawsize(a)            _array_raw(a)[1]
-#define _array_raw_const(a)          ( (const int*)(a)-_array_header_size )
+#define _array_raw_const(a)          ( (const int32_t*)(a)-_array_header_size )
 #define _array_rawcapacity_const(a)  _array_raw_const(a)[0]
 #define _array_rawsize_const(a)      _array_raw_const(a)[1]
 

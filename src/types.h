@@ -54,6 +54,12 @@ typedef enum
 	MEMORY_PERSISTENT
 } memory_hint_t;
 
+//! GUID
+typedef uint128_t        guid_t;
+
+//! Hash value
+typedef uint64_t         hash_t;
+
 //! Tick type
 typedef uint64_t         tick_t;
 
