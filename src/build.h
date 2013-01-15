@@ -51,3 +51,6 @@
 
 //Configurable choises
 #define BUILD_ENABLE_RELEASE_ASSERT           1
+#define BUILD_ENABLE_DEPLOY_ASSERT            0
+
+#define BUILD_ENABLE_DEPLOY_ERROR             0

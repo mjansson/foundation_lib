@@ -12,13 +12,20 @@
 
 #include <foundation.h>
 
+
 // Internals
+extern int _memory_initialize( const memory_system_t memory );
+extern void _memory_shutdown( void );
+
 extern int _timer_initialize( void );
 extern void _timer_shutdown( void );
 
 
-int foundation_initialize()
+int foundation_initialize( const memory_system_t memory )
 {
+	if( _memory_initialize( memory ) < 0 )
+		return -1;
+
 	if( _timer_initialize() < 0 )
 		return -1;
 
@@ -26,7 +33,8 @@ int foundation_initialize()
 }
 
 
-void foundation_shutdown()
+void foundation_shutdown( void )
 {
 	_timer_shutdown();
+	_memory_shutdown();
 }

@@ -16,15 +16,19 @@
     Wrapper for foundation library headers */
 
 #include <platform.h>
+
 #include <build.h>
 #include <types.h>
+#include <memory.h>
 #include <assert.h>
+#include <error.h>
 
+#include <array.h>
 #include <timer.h>
 
 
 //! Entry point
-FOUNDATION_API int         foundation_initialize( void );
+FOUNDATION_API int         foundation_initialize( const memory_system_t memory );
 
 //! Exit point
 FOUNDATION_API void        foundation_shutdown( void );
