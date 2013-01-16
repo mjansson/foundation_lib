@@ -20,6 +20,9 @@ extern void _memory_shutdown( void );
 extern int _timer_initialize( void );
 extern void _timer_shutdown( void );
 
+extern int _thread_initialize( void );
+extern void _thread_shutdown( void );
+
 
 int foundation_initialize( const memory_system_t memory )
 {
@@ -29,12 +32,16 @@ int foundation_initialize( const memory_system_t memory )
 	if( _timer_initialize() < 0 )
 		return -1;
 
+	if( _thread_initialize() < 0 )
+		return -1;
+
 	return 0;
 }
 
 
 void foundation_shutdown( void )
 {
+	_thread_shutdown();
 	_timer_shutdown();
 	_memory_shutdown();
 }

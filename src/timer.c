@@ -28,6 +28,7 @@ static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) {
 
 static tick_t _timerlib_freq    = 0;
 static double _timerlib_oofreq  = 0;
+static tick_t _timerlib_startup = 0;
 
 
 int _timer_initialize( void )
@@ -48,7 +49,8 @@ int _timer_initialize( void )
 	_timerlib_freq = 1000000000ULL;
 #endif
 
-	_timerlib_oofreq = REAL_C(1.0) / (double)_timerlib_freq;
+	_timerlib_oofreq  = REAL_C(1.0) / (double)_timerlib_freq;
+	_timerlib_startup = timer_current();
 
 	return 0;
 }
@@ -80,6 +82,12 @@ tick_t timer_current( void )
 	return ( (uint64_t)ts.tv_sec * 1000000000ULL ) + ts.tv_nsec;
 
 #endif
+}
+
+
+tick_t timer_startup( void )
+{
+	return _timerlib_startup;
 }
 
 

@@ -34,26 +34,26 @@ FOUNDATION_API void       error_set_callback( error_callback_fn callback );
 
 #if !BUILD_DEPLOY || BUILD_ENABLE_DEPLOY_ERROR
 
-#define error_context_push( name, data ) do { _error_context_push( (name), (data) ); } while(0)
-#define error_context_pop() do { _error_context_pop(); } while(0)
-#define error_context_buffer( buffer, size ) do { _error_context_buffer( buffer, size ); } while(0)
-#define error_context_local( decl ) decl
+#define error_context_push( name, data )      do { _error_context_push( (name), (data) ); } while(0)
+#define error_context_pop()                   do { _error_context_pop(); } while(0)
+#define error_context_buffer( buffer, size )  do { _error_context_buffer( buffer, size ); } while(0)
+#define error_context()                       _error_context()
+#define error_context_declare_local( decl )   decl
+#define error_context_thread_deallocate()     do { _error_context_thread_deallocate(); } while(0)
 
-#define error_context_thread_deallocate() do { _error_context_thread_deallocate(); } while(0)
-
-FOUNDATION_API void       _error_context_push( const char* name, const char* data );
-FOUNDATION_API void       _error_context_pop( void );
-FOUNDATION_API void       _error_context_buffer( char* buffer, unsigned int size );
-
-FOUNDATION_API void       _error_context_thread_deallocate( void );
+FOUNDATION_API void                          _error_context_push( const char* name, const char* data );
+FOUNDATION_API void                          _error_context_pop( void );
+FOUNDATION_API void                          _error_context_buffer( char* buffer, unsigned int size );
+FOUNDATION_API error_context_t*              _error_context( void );
+FOUNDATION_API void                          _error_context_thread_deallocate( void );
 
 #else
 
-#define error_context_push( name, data ) /*lint -save -e506 -e751 */ do { (void)sizeof( name ); (void)sizeof( data ); } while(0) /*lint -restore -e506 -e751 */
-#define error_context_pop() do { /* */ } while(0)
-#define error_context_buffer( buffer, size ) /*lint -save -e506 -e751 */ do { (void)sizeof( buffer ); (void)sizeof( size ); } while(0) /*lint -restore -e506 -e751 */
-#define error_context_local( decl ) do { /* */ } while(0)
-
-#define error_context_thread_deallocate() do { /* */ } while(0)
+#define error_context_push( name, data )      /*lint -save -e506 -e751 */ do { (void)sizeof( name ); (void)sizeof( data ); } while(0) /*lint -restore -e506 -e751 */
+#define error_context_pop()                   do { /* */ } while(0)
+#define error_context_buffer( buffer, size )  /*lint -save -e506 -e751 */ do { (void)sizeof( buffer ); (void)sizeof( size ); } while(0) /*lint -restore -e506 -e751 */
+#define error_context()                       0
+#define error_context_declare_local( decl )   do { /* */ } while(0)
+#define error_context_thread_deallocate()     do { /* */ } while(0)
 
 #endif

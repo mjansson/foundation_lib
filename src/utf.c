@@ -1236,13 +1236,7 @@ int string_to_int( const char* val )
 {
 	int ret = 0;
 	if( val )
-	{
-#if NEO_COMPILER_MSVC || NEO_COMPILER_INTEL
-		sscanf_s( val, "%d", &ret );
-#else
 		sscanf( val, "%d", &ret );
-#endif
-	}
 	return ret;
 }
 
@@ -1251,13 +1245,7 @@ unsigned int string_to_uint( const char* val, bool hex )
 {
 	unsigned int ret = 0;
 	if( val )
-	{
-#if NEO_COMPILER_MSVC || NEO_COMPILER_INTEL
-		sscanf_s( val, hex ? "%x" : "%u", &ret );
-#else
 		sscanf( val, hex ? "%x" : "%u", &ret );
-#endif
-	}
 	return ret;
 }
 

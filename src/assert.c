@@ -60,7 +60,7 @@ int assert_report( const char* condition, const char* file, int line, const char
 
 	snprintf( _assert_box_buffer, ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg );
 
-	//debug_message_box( "Assert Failure", _assert_box_buffer, false );
+	debug_message_box( "Assert Failure", _assert_box_buffer, false );
 
 	return 0;
 }

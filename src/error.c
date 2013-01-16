@@ -52,19 +52,6 @@ void error_set_callback( error_callback_fn callback )
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #endif
 
-#define ERROR_CONTEXT_MAX_DEPTH  32
-
-typedef struct _error_frame
-{
-	const char*        name;
-	const char*        data;
-} error_frame_t;
-
-typedef struct _error_context
-{
-	error_frame_t      frame[ERROR_CONTEXT_MAX_DEPTH];
-	int                depth;
-} error_context_t;
 
 DECLARE_THREAD_LOCAL( error_context_t*, error_context, 0 )
 
@@ -77,7 +64,7 @@ void _error_context_push( const char* name, const char* data )
 		context = memory_allocate_zero( sizeof( error_context_t ), 0, MEMORY_PERSISTENT );
 		set_thread_error_context( context );
 	}
-	FOUNDATION_ASSERT_MSG( context->depth < ERROR_CONTEXT_MAX_DEPTH, "Error context stack overflow" );
+	FOUNDATION_ASSERT_MSG( context->depth < BUILD_ERROR_CONTEXT_MAX_DEPTH, "Error context stack overflow" );
 	context->frame[ context->depth ].name = name;
 	context->frame[ context->depth ].data = data;
 	++context->depth;
@@ -114,6 +101,12 @@ void _error_context_buffer( char* buffer, unsigned int size )
 				break;
 		}
 	}
+}
+
+
+error_context_t* _error_context( void )
+{
+	return get_thread_error_context();
 }
 
 

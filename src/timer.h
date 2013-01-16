@@ -43,6 +43,10 @@ FOUNDATION_API tick_t         timer_ticks_per_second( void );
     \return                   Deltatime in seconds */
 FOUNDATION_API deltatime_t    timer_ticks_to_seconds( const tick_t dt );
 
+/*! Get startup timestamp
+    \return                   Startup timestamp */
+FOUNDATION_API tick_t         timer_startup( void );
+
 /*! Get system time, in milliseconds since the epoch (UNIX time)
     \return  Current timestamp, in milliseconds */
 FOUNDATION_API tick_t         timer_system( void );

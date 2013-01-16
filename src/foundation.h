@@ -22,13 +22,19 @@
 #include <bits.h>
 #include <assert.h>
 #include <memory.h>
+#include <atomic.h>
 #include <error.h>
+#include <thread.h>
+#include <log.h>
 
 #include <hash.h>
 #include <base64.h>
 #include <array.h>
 #include <utf.h>
 
+#include <mathcore.h>
+
+#include <objectmap.h>
 #include <timer.h>
 
 
