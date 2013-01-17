@@ -16,7 +16,7 @@
 #include <stdarg.h>
 
 #if PLATFORM_WINDOWS
-#include <Windows.h>
+#include <safewindows.h>
 #  define va_copy(d,s) ((d)=(s))
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
@@ -33,7 +33,8 @@ __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
 #  include <sys/wait.h>
 #endif
 
-static bool _log_stdout = true;
+static bool             _log_stdout   = true;
+static log_callback_fn  _log_callback = 0;
 
 #define make_timestamp()  ((float32_t)( (real)( timer_current() - timer_startup() ) / (real)timer_ticks_per_second() ))
 
@@ -74,6 +75,9 @@ static void _output_logf( int severity, const char* prefix, const char* format, 
 			if( _log_stdout && std )
 				fprintf( std, "%s", buffer );
 #endif
+
+			if( _log_callback )
+				_log_callback( severity, buffer );
 
 			break;
 		}
@@ -162,7 +166,6 @@ void error_log_context( error_level_t error_level )
 	}
 }
 
-
 #endif
 
 #if BUILD_ENABLE_DEBUG_LOG || BUILD_DEBUG || ( BUILD_RELEASE && !BUILD_DEPLOY && BUILD_ENABLE_RELEASE_ASSERT )
@@ -214,6 +217,12 @@ bool debug_message_box( const char* title, const char* message, bool cancel_butt
 void log_stdout( bool enable )
 {
 	_log_stdout = enable;
+}
+
+
+void log_set_callback( log_callback_fn callback )
+{
+	_log_callback = callback;
 }
 
 #endif

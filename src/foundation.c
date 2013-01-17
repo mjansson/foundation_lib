@@ -23,8 +23,14 @@ extern void _timer_shutdown( void );
 extern int _thread_initialize( void );
 extern void _thread_shutdown( void );
 
+extern int _environment_initialize( const application_t application );
+extern void _environment_shutdown( void );
 
-int foundation_initialize( const memory_system_t memory )
+extern int _config_initialize( void );
+extern void _config_shutdown( void );
+
+
+int foundation_initialize( const memory_system_t memory, const application_t application )
 {
 	if( _memory_initialize( memory ) < 0 )
 		return -1;
@@ -35,12 +41,20 @@ int foundation_initialize( const memory_system_t memory )
 	if( _thread_initialize() < 0 )
 		return -1;
 
+	if( _environment_initialize( application ) < 0 )
+		return -1;
+
+	if( _config_initialize() < 0 )
+		return -1;
+
 	return 0;
 }
 
 
 void foundation_shutdown( void )
 {
+	_config_shutdown();
+	_environment_shutdown();
 	_thread_shutdown();
 	_timer_shutdown();
 	_memory_shutdown();

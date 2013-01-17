@@ -108,6 +108,7 @@
 
 #define PLATFORM_FAMILY_MOBILE 0
 #define PLATFORM_FAMILY_DESKTOP 0
+#define PLATFORM_FAMILY_CONSOLE 0
 
 //Compilers
 #define COMPILER_CLANG 0
@@ -152,8 +153,12 @@
 // Traits
 #  undef  PLATFORM_ENDIAN_LITTLE
 #  define PLATFORM_ENDIAN_LITTLE 1
+
 #  undef  PLATFORM_FAMILY_MOBILE
 #  define PLATFORM_FAMILY_MOBILE 1
+
+#  undef  PLATFORM_FAMILY_CONSOLE
+#  define PLATFORM_FAMILY_CONSOLE 1
 
 
 // MacOS X and iOS
@@ -185,8 +190,12 @@
 
 #    undef  PLATFORM_ENDIAN_LITTLE
 #    define PLATFORM_ENDIAN_LITTLE 1
+
 #    undef  PLATFORM_FAMILY_MOBILE
 #    define PLATFORM_FAMILY_MOBILE 1
+
+#    undef  PLATFORM_FAMILY_CONSOLE
+#    define PLATFORM_FAMILY_CONSOLE 1
 
 #  elif defined( __MACH__ ) || PLATFORM_MACOSX
 
@@ -535,6 +544,11 @@ static FORCEINLINE CONSTCALL uint256_t uint256_make( const uint64_t w0, const ui
 static FORCEINLINE CONSTCALL bool      uint256_equal( const uint256_t u0, const uint256_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] && u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3]; }
 static FORCEINLINE CONSTCALL uint256_t uint256_null( void ) { return uint256_make( 0, 0, 0, 0 ); }
 static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
+
+
+// Base limits
+
+#define FOUNDATION_MAX_PATHLEN    512
 
 
 // Wrappers for platforms that not yet support thread-local storage declarations

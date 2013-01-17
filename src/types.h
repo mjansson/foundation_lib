@@ -73,6 +73,32 @@ typedef enum
 	MEMORY_PERSISTENT
 } memory_hint_t;
 
+//! Machine byte order identifiers
+typedef enum
+{
+	BYTEORDER_LITTLEENDIAN = 0,
+	BYTEORDER_BIGENDIAN    = 1
+} byteorder_t;
+
+//! Open modes for streams
+typedef enum
+{
+	STREAM_IN                  = 0x0001,
+	STREAM_OUT                 = 0x0002,
+	STREAM_TRUNCATE            = 0x0010,
+	STREAM_ATEND               = 0x0020,
+	STREAM_BINARY              = 0x0100,
+	STREAM_SYNC                = 0x0200
+} stream_mode_t;
+
+//! Stream seek directions
+typedef enum
+{
+	STREAM_SEEK_BEGIN          = 0x0000,
+	STREAM_SEEK_CURRENT        = 0x0001,
+	STREAM_SEEK_END            = 0x0002
+} stream_seek_mode_t;
+
 //! GUID
 typedef uint128_t        guid_t;
 
@@ -89,10 +115,13 @@ typedef real             deltatime_t;
 typedef uint64_t         object_t;
 
 //! Error handler callback
-typedef int           (* error_callback_fn )( error_level_t, error_t );
+typedef int           (* error_callback_fn )( error_level_t level, error_t error );
 
 //! Assert handler callback
 typedef int           (* assert_handler_fn )( const char* condition, const char* file, int line, const char* msg );
+
+//! Log output callback
+typedef void          (* log_callback_fn )( int severity, const char* msg );
 
 typedef void*         (* memory_allocate_fn )( uint64_t size, unsigned int align, memory_hint_t hint );
 typedef void*         (* memory_allocate_zero_fn )( uint64_t size, unsigned int align, memory_hint_t hint );
@@ -110,6 +139,14 @@ typedef struct _foundation_memory_system
 	memory_reallocate_fn            reallocate;
 	memory_deallocate_fn            deallocate;
 } memory_system_t;
+
+//! Application declaration
+typedef struct _foundation_application
+{
+	const char*                     name;
+	const char*                     short_name;
+	const char*                     config_dir;
+} application_t;
 
 typedef struct _foundation_error_frame
 {
@@ -139,3 +176,4 @@ typedef struct _foundation_objectmap
 
 // OPAQUE COMPLEX TYPES
 
+typedef struct _foundation_stream           stream_t;

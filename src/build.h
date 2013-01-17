@@ -48,6 +48,10 @@
 #  define BUILD_DEBUG 1
 #endif
 
+#ifndef BUILD_DEPLOY
+#  define BUILD_DEPLOY 0
+#endif
+
 
 //Configurable choises
 #define BUILD_ENABLE_RELEASE_ASSERT           1

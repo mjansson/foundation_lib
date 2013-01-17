@@ -32,6 +32,7 @@
 #define near
 #define FAR
 #define NEAR
+#define STREAM_SEEK_END _STREAM_SEEK_END
 
 #include <windows.h>
 //#include <winsock2.h>
@@ -44,10 +45,10 @@
 #  include <dbghelp.h>
 #  include <stdlib.h>
 //From shlobj.h
-//EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE SHGetFolderPathW(__reserved HWND hwnd, __in int csidl, __in_opt HANDLE hToken, __in DWORD dwFlags, __out_ecount(MAX_PATH) LPWSTR pszPath);
-//#  define CSIDL_LOCAL_APPDATA             0x001c        // <user name>\Local Settings\Application Data (non roaming)
+EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE SHGetFolderPathW(__reserved HWND hwnd, __in int csidl, __in_opt HANDLE hToken, __in DWORD dwFlags, __out_ecount(MAX_PATH) LPWSTR pszPath);
+#  define CSIDL_LOCAL_APPDATA             0x001c        // <user name>\Local Settings\Application Data (non roaming)
 #else
-//#  include <shlobj.h>
+#  include <shlobj.h>
 #endif
 
 #include <crtdbg.h>
@@ -64,4 +65,5 @@
 #undef BINARY
 #undef LITTLEENDIAN
 #undef BIGENDIAN
+#undef STREAM_SEEK_END
 

@@ -28,18 +28,24 @@
 #include <log.h>
 
 #include <hash.h>
+#include <hashstrings.h>
 #include <base64.h>
 #include <array.h>
 #include <utf.h>
+#include <path.h>
 
 #include <mathcore.h>
 
 #include <objectmap.h>
 #include <timer.h>
 
+#include <environment.h>
+#include <config.h>
+#include <stream.h>
+
 
 //! Entry point
-FOUNDATION_API int         foundation_initialize( const memory_system_t memory );
+FOUNDATION_API int         foundation_initialize( const memory_system_t memory, const application_t application );
 
 //! Exit point
 FOUNDATION_API void        foundation_shutdown( void );

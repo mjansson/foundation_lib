@@ -1,0 +1,7 @@
+
+_HASH_ENGINE                             engine
+_HASH_DEFAULT                            default
+_HASH_NULL                               null
+_HASH_LOCALE                             locale
+_HASH_APPLICATION                        application
+_HASH_USER                               user

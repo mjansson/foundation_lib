@@ -390,7 +390,7 @@ static FORCEINLINE int      math_trunc( real x ) { return (int)__builtin_truncf(
 #endif
 
 
-#if REAL_64BIT
+#if PLATFORM_REALSIZE == 64
 
 
 typedef union { int64_t ival; real rval; } __real_convert;
