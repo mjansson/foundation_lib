@@ -108,7 +108,7 @@ char* string_vformat( const char* format, va_list list )
 
 	while( 1 )
 	{
-#if FOUNDATION_PLATFORM_WINDOWS && COMPILER_MSVC
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC
 #  define va_copy(dst, src) dst = src
 #endif
 		va_copy( copy_list, list );
@@ -1063,7 +1063,7 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 }
 
 
-DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, 128 )
+FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, 128 )
 
 
 char* int_to_string( int64_t val, unsigned int width, char fill )

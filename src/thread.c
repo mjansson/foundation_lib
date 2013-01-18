@@ -167,7 +167,7 @@ void thread_cleanup( void )
 
 #include <android/native_activity.h>
 
-DECLARE_THREAD_LOCAL( bool, jvm_attached, false )
+FOUNDATION_DECLARE_THREAD_LOCAL( bool, jvm_attached, false )
 
 
 void thread_attach_jvm( void )

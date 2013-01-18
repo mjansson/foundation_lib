@@ -12,10 +12,10 @@
 
 #include <foundation.h>
 
-#if COMPILER_MSVC
+#if FOUNDATION_COMPILER_MSVC
 #  pragma intrinsic(_rotl)
 #  pragma intrinsic(_rotl64)
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 #  define _rotl64(a, bits) (((a) << (bits)) | ((a) >> (64 - (bits))))
 #endif
 

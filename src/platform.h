@@ -24,18 +24,19 @@
 	#ifdef macro will just resolve to false)
 
 	This header also defines a bunch of other preprocessor macros:
+	FOUNDATION_FOUNDATION_COMPILER_[...]
+	FOUNDATION_PREPROCESSOR_TOSTRING
+	FOUNDATION_PREPROCESSOR_JOIN
+	FOUNDATION_DECLARE_THREAD_LOCAL
+	FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY
 
-	COMPILER_[...]
-	PREPROCESSOR_TOSTRING
-	PREPROCESSOR_JOIN
+	And some short-form type/function attributes as well:
 	RESTRICT
 	THREADLOCAL
 	DEPRECATED
 	FORCEINLINE
 	NOINLINE
 	PURE
-	DECLARE_THREAD_LOCAL
-	DECLARE_THREAD_LOCAL_ARRAY
 
 	*/
 
@@ -111,10 +112,10 @@
 #define FOUNDATION_PLATFORM_FAMILY_CONSOLE 0
 
 //Compilers
-#define COMPILER_CLANG 0
-#define COMPILER_GCC 0
-#define COMPILER_MSVC 0
-#define COMPILER_INTEL 0
+#define FOUNDATION_COMPILER_CLANG 0
+#define FOUNDATION_COMPILER_GCC 0
+#define FOUNDATION_COMPILER_MSVC 0
+#define FOUNDATION_COMPILER_INTEL 0
 
 
 //First, platforms and architectures
@@ -373,12 +374,12 @@
 
 
 //Utility macros
-#define PREPROCESSOR_TOSTRING( x )    _PREPROCESSOR_TOSTRING(x)
-#define _PREPROCESSOR_TOSTRING( x )   #x
+#define FOUNDATION_PREPROCESSOR_TOSTRING( x )          _FOUNDATION_PREPROCESSOR_TOSTRING(x)
+#define _FOUNDATION_PREPROCESSOR_TOSTRING( x )         #x
 
-#define PREPROCESSOR_JOIN( a, b )           _PREPROCESSOR_JOIN( a, b )
-#define _PREPROCESSOR_JOIN( a, b )          _PREPROCESSOR_JOIN_INTERNAL( a, b )
-#define _PREPROCESSOR_JOIN_INTERNAL( a, b ) a##b
+#define FOUNDATION_PREPROCESSOR_JOIN( a, b )           _FOUNDATION_PREPROCESSOR_JOIN( a, b )
+#define _FOUNDATION_PREPROCESSOR_JOIN( a, b )          _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b )
+#define _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b ) a##b
 
 
 //Compilers
@@ -386,11 +387,11 @@
 // CLang
 #if defined( __clang__ )
 
-#  undef  COMPILER_CLANG
-#  define COMPILER_CLANG 1
+#  undef  FOUNDATION_COMPILER_CLANG
+#  define FOUNDATION_COMPILER_CLANG 1
 
-#  define COMPILER_NAME "clang"
-#  define COMPILER_DESCRIPTION COMPILER_NAME " " __clang_version__
+#  define FOUNDATION_COMPILER_NAME "clang"
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " __clang_version__
 
 #  define RESTRICT restrict
 #  define THREADLOCAL __thread
@@ -409,11 +410,11 @@
 // GCC
 #elif defined( __GNUC__ )
 
-#  undef  COMPILER_GCC
-#  define COMPILER_GCC 1
+#  undef  FOUNDATION_COMPILER_GCC
+#  define FOUNDATION_COMPILER_GCC 1
 
-#  define COMPILER_NAME "gcc"
-#  define COMPILER_DESCRIPTION COMPILER_NAME " v" PREPROCESSOR_TOSTRING( __GNUC__ ) "." PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
+#  define FOUNDATION_COMPILER_NAME "gcc"
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
 
 #  define RESTRICT restrict
 #  define THREADLOCAL __thread
@@ -432,14 +433,14 @@
 // Intel
 #elif defined( __ICL ) || defined( __ICC )
 
-#  undef  COMPILER_INTEL
-#  define COMPILER_INTEL 1
+#  undef  FOUNDATION_COMPILER_INTEL
+#  define FOUNDATION_COMPILER_INTEL 1
 
-#  define COMPILER_NAME "intel"
+#  define FOUNDATION_COMPILER_NAME "intel"
 #  if defined( __ICL )
-#    define COMPILER_DESCRIPTION COMPILER_NAME " v" PREPROCESSOR_TOSTRING( __ICL )
+#    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __ICL )
 #  elif defined( __ICC )
-#    define COMPILER_DESCRIPTION COMPILER_NAME " v" PREPROCESSOR_TOSTRING( __ICC )
+#    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __ICC )
 #  endif
 
 #  define RESTRICT restrict
@@ -459,11 +460,11 @@
 // Microsoft
 #elif defined( _MSC_VER )
 
-#  undef  COMPILER_MSVC
-#  define COMPILER_MSVC 1
+#  undef  FOUNDATION_COMPILER_MSVC
+#  define FOUNDATION_COMPILER_MSVC 1
 
-#  define COMPILER_NAME "msvc"
-#  define COMPILER_DESCRIPTION COMPILER_NAME " v" PREPROCESSOR_TOSTRING( _MSC_VER )
+#  define FOUNDATION_COMPILER_NAME "msvc"
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( _MSC_VER )
 
 #  define RESTRICT __restrict
 #  define THREADLOCAL __declspec(thread)
@@ -552,10 +553,10 @@ static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { r
 
 
 // Wrappers for platforms that not yet support thread-local storage declarations
-// For maximum portability use wrapper macros DECLARE_THREAD_LOCAL / DECLARE_THREAD_LOCAL_ARRAY
+// For maximum portability use wrapper macros FOUNDATION_DECLARE_THREAD_LOCAL / FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY
 // Only works for types that can be safely cast through a uintptr_t (integers, pointers...)
-//   DECLARE_THREAD_LOCAL( int, profile_block, 0 );
-//   DECLARE_THREAD_LOCAL_ARRAY( void*, profile_free, 32 );
+//   FOUNDATION_DECLARE_THREAD_LOCAL( int, profile_block, 0 );
+//   FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( void*, profile_free, 32 );
 //   set_thread_profile_block( 1 ); // Assigns 1 to thread-local variable "profile_block"
 //   get_thread_profile_free()[0] = some_ptr; // Assigns some_ptr to slot 0 in thread-local array "profile_free"
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
@@ -572,25 +573,25 @@ FOUNDATION_EXTERN void* pthread_getspecific( _pthread_key_t );
 
 FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 
-#define DECLARE_THREAD_LOCAL( type, name, init ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static _pthread_key_t _##name##_key = 0; \
 static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, init ); return _##name##_key; } \
 static FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
 static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (void*)val ); }
 
-#define DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
 static _pthread_key_t _##name##_key = 0; \
 static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, 0 ); return _##name##_key; } \
 static FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); pthread_setspecific( key, arr ); } return arr; }
 
 #else
 
-#define DECLARE_THREAD_LOCAL( type, name, init ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static THREADLOCAL type _thread_##name = init; \
 static FORCEINLINE void set_thread_##name( type val ) { _thread_##name = val; } \
 static FORCEINLINE type get_thread_##name( void ) { return _thread_##name; }
 
-#define DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
 static THREADLOCAL type _thread_##name [arrsize] = {0}; \
 static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 

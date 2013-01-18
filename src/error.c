@@ -13,8 +13,8 @@
 #include <foundation.h>
 
 
-DECLARE_THREAD_LOCAL( error_t, error, ERROR_NONE )
-DECLARE_THREAD_LOCAL( error_callback_fn, error_callback, 0 )
+FOUNDATION_DECLARE_THREAD_LOCAL( error_t, error, ERROR_NONE )
+FOUNDATION_DECLARE_THREAD_LOCAL( error_callback_fn, error_callback, 0 )
 
 
 error_t error( void )
@@ -53,7 +53,7 @@ void error_set_callback( error_callback_fn callback )
 #endif
 
 
-DECLARE_THREAD_LOCAL( error_context_t*, error_context, 0 )
+FOUNDATION_DECLARE_THREAD_LOCAL( error_context_t*, error_context, 0 )
 
 
 void _error_context_push( const char* name, const char* data )

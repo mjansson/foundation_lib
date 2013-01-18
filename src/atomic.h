@@ -93,7 +93,7 @@ static FORCEINLINE bool         atomic_cas64( volatile int64_t* dst, int64_t val
     \param val                  Value to set
     \param ref                  Reference value
     \return                     true if operation was successful (new value stored), false if not */
-#if FOUNDATION_PLATFORM_WINDOWS && ( COMPILER_MSVC || COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_PLATFORM_ARCH_X86
 #    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchange( (long volatile*)dst, (long)val, (long)ref  ) == (long)ref ) ? true : false )
 #  else
@@ -101,7 +101,7 @@ static FORCEINLINE bool         atomic_cas64( volatile int64_t* dst, int64_t val
 #  endif
 #elif FOUNDATION_PLATFORM_IOS
 #  define                       atomic_cas_ptr( dst, val, ref ) OSAtomicCompareAndSwapPtr( ref, val, (void* volatile*)dst )
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 #  define                       atomic_cas_ptr( dst, val, ref ) __sync_bool_compare_and_swap( dst, ref, val )
 #else
 static FORCEINLINE bool         atomic_cas_ptr( void** dst, void* val, void* ref );
@@ -111,9 +111,9 @@ static FORCEINLINE bool         atomic_cas_ptr( void** dst, void* val, void* ref
 
 static FORCEINLINE int32_t atomic_exchange_and_add32( volatile int32_t* val, int32_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( COMPILER_MSVC || COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return _InterlockedExchangeAdd( (volatile long*)val, add );
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_fetch_and_add( val, add );
 #else
 #  error Not implemented
@@ -123,12 +123,12 @@ static FORCEINLINE int32_t atomic_exchange_and_add32( volatile int32_t* val, int
 
 static FORCEINLINE int atomic_add32( volatile int32_t* val, int32_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( COMPILER_MSVC || COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	int32_t old = (int32_t)_InterlockedExchangeAdd( (volatile long*)val, add );
 	return ( old + add );
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	return OSAtomicAdd32( add, val );
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( val, add );
 #else 
 #  error Not implemented
@@ -141,7 +141,7 @@ static FORCEINLINE int atomic_decr32( volatile int32_t* val ) { return atomic_ad
 
 static FORCEINLINE int64_t atomic_exchange_and_add64( volatile int64_t* val, int64_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( COMPILER_MSVC || COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_PLATFORM_ARCH_X86
 	long long ref;
 	do { ref = *val; } while( _InterlockedCompareExchange64( (volatile long long*)val, ref + add, ref ) != ref );
@@ -153,7 +153,7 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( volatile int64_t* val, int
 	int64_t ref;
 	do { ref = *val; } while( !OSAtomicCompareAndSwap64( ref, ref + add, val ) );
 	return ref;
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_fetch_and_add( val, add );
 #else 
 #  error Not implemented
@@ -163,7 +163,7 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( volatile int64_t* val, int
 
 static FORCEINLINE int64_t atomic_add64( volatile int64_t* val, int64_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( COMPILER_MSVC || COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_PLATFORM_ARCH_X86
 	return atomic_exchange_and_add64( val, add ) + add;
 #  else
@@ -171,7 +171,7 @@ static FORCEINLINE int64_t atomic_add64( volatile int64_t* val, int64_t add )
 #endif
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	return OSAtomicAdd64( add, val );
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( val, add );
 #else 
 #  error Not implemented
@@ -184,11 +184,11 @@ static FORCEINLINE int64_t atomic_decr64( volatile int64_t* val ) { return atomi
 
 static FORCEINLINE bool atomic_cas32( volatile int32_t* dst, int32_t val, int32_t ref )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( COMPILER_MSVC || COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return ( _InterlockedCompareExchange( (volatile long*)dst, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_IOS
 	return OSAtomicCompareAndSwap32( ref, val, dst );
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( dst, ref, val );
 #else 
 #  error Not implemented
@@ -198,11 +198,11 @@ static FORCEINLINE bool atomic_cas32( volatile int32_t* dst, int32_t val, int32_
 
 static FORCEINLINE bool atomic_cas64( volatile int64_t* dst, int64_t val, int64_t ref )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( COMPILER_MSVC || COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return ( _InterlockedCompareExchange64( dst, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_IOS
 	return OSAtomicCompareAndSwap64( ref, val, dst );
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( dst, ref, val );
 #else 
 #  error Not implemented
@@ -210,7 +210,7 @@ static FORCEINLINE bool atomic_cas64( volatile int64_t* dst, int64_t val, int64_
 }
 
 
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || COMPILER_GCC || COMPILER_CLANG
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 //atomic_cas_ptr defined above
 #else
 static FORCEINLINE bool atomic_cas_ptr( void** dst, void* val, void* ref )

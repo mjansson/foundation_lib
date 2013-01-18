@@ -22,7 +22,7 @@
 //! Swap byte order, 16 bit
 static FORCEINLINE CONSTCALL uint16_t swap_byteorder16( uint16_t arg )
 {
-#if COMPILER_MSVC
+#if FOUNDATION_COMPILER_MSVC
 	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
 	u16cast in, out;
 	in.u16=arg;
@@ -39,13 +39,13 @@ static FORCEINLINE CONSTCALL uint16_t swap_byteorder16( uint16_t arg )
 //! Swap byte order, 32 bit
 static FORCEINLINE CONSTCALL uint32_t swap_byteorder32( uint32_t arg )
 {
-#if COMPILER_GCC || COMPILER_CLANG
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __builtin_bswap32( arg );
-#elif COMPILER_INTEL
+#elif FOUNDATION_COMPILER_INTEL
 	/*lint -save -e732 */
 	return _bswap( arg );
 	/*lint -restore */
-#elif COMPILER_MSVC
+#elif FOUNDATION_COMPILER_MSVC
 	typedef union { uint32_t u32; uint8_t u8[4]; } u32cast;
 	u32cast in, out;
 	in.u32=arg;
@@ -62,13 +62,13 @@ static FORCEINLINE CONSTCALL uint32_t swap_byteorder32( uint32_t arg )
 //! Swap byte order, 64 bit
 static FORCEINLINE CONSTCALL uint64_t swap_byteorder64( uint64_t arg )
 {
-#if COMPILER_GCC || COMPILER_CLANG
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __builtin_bswap64( arg );
-#elif COMPILER_INTEL
+#elif FOUNDATION_COMPILER_INTEL
 	/*lint -save -e732 */
 	return _bswap64( arg );
 	/*lint -restore */
-#elif COMPILER_MSVC
+#elif FOUNDATION_COMPILER_MSVC
 	typedef union { uint64_t u64; uint8_t u8[8]; } u64cast;
 	u64cast in, out;
 	in.u64=arg;

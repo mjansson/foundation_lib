@@ -41,7 +41,7 @@
 //#include <mmsystem.h>
 //#include <mmreg.h>
 //#include <share.h>
-#if COMPILER_MSVC
+#if FOUNDATION_COMPILER_MSVC
 #  include <dbghelp.h>
 #  include <stdlib.h>
 //From shlobj.h
