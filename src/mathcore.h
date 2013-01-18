@@ -18,6 +18,8 @@
 #include <platform.h>
 #include <types.h>
 
+#include <math.h>
+
 
 #if FOUNDATION_PLATFORM_REALSIZE == 64
 

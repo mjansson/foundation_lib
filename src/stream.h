@@ -21,7 +21,7 @@
 
 /*! Open stream
     \param path                  Path */
-FOUNDATION_API stream_t*         stream_open( const char* path, unsigned int flags );
+FOUNDATION_API stream_t*         stream_open( const char* path, unsigned int mode );
 
 /*! Clone a stream (if supported by stream type)
     \param stream                Stream

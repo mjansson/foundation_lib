@@ -28,6 +28,12 @@ void _stream_initialize( stream_t* stream )
 }
 
 
+stream_t* stream_open( const char* path, unsigned int mode )
+{
+	return 0;
+}
+
+
 void stream_deallocate( stream_t* stream )
 {
 	if( !stream )

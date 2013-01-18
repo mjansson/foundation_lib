@@ -19,7 +19,9 @@
 #include <types.h>
 
 
-FOUNDATION_API void*         memory_allocate( uint64_t size, unsigned int align, memory_hint_t hint );
-FOUNDATION_API void*         memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hint );
-FOUNDATION_API void*         memory_reallocate( void* p, uint64_t size, unsigned int align );
-FOUNDATION_API void          memory_deallocate( void* p );
+FOUNDATION_API void*             memory_allocate( uint64_t size, unsigned int align, memory_hint_t hint );
+FOUNDATION_API void*             memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hint );
+FOUNDATION_API void*             memory_reallocate( void* p, uint64_t size, unsigned int align );
+FOUNDATION_API void              memory_deallocate( void* p );
+
+FOUNDATION_API memory_system_t   memory_system_malloc( void );

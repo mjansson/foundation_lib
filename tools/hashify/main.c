@@ -15,6 +15,16 @@
 
 int main()
 {
+	application_t application;
+	application.name = "hashify";
+	application.short_name = "hashify";
+	application.config_dir = "hashify";
+
+	if( foundation_initialize( memory_system_malloc(), application ) < 0 )
+		return -1;
 
 
+	foundation_shutdown();
+
+	return 0;
 }

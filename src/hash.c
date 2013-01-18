@@ -73,7 +73,7 @@ static FORCEINLINE uint64_t fmix64( uint64_t k )
 }
 
 
-hash_t hash( const void* key, const unsigned int len )
+hash_t hash( alignedconstptr64_t key, const unsigned int len )
 {
 	const uint8_t* data = (const uint8_t*)key;
 	const unsigned int nblocks = len / 16;
@@ -92,7 +92,7 @@ hash_t hash( const void* key, const unsigned int len )
 
 	//----------
 	// body
-	FOUNDATION_ASSERT_ALIGNMENT( key, 8 );
+	FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( key, 8 );
 
 	blocks = (const uint64_t*)data; /*lint !e826 Ok, loop below will not access data outside scope*/
 
@@ -203,7 +203,7 @@ void _static_hash_cleanup( void )
 }
 
 
-void _static_hash_store( const void* key, const unsigned int len, const hash_t value )
+void _static_hash_store( alignedconstptr64_t key, const unsigned int len, const hash_t value )
 {
 	hash_string_t new_string;
 	hash_string_bucket_t* bucket;

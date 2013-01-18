@@ -54,6 +54,12 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_ASSERT_RETURN( cond ) /*lint -save -e717 */ do { if( ( !(cond) ) && assert_report( #cond, __FILE__, __LINE__, 0 ) ) FOUNDATION_BREAKPOINT(); return; } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { FOUNDATION_ASSERT_MSG( ( (uintptr_t)(addr) % (uintptr_t)(alignment) ) == 0, "Mis-aligned memory" ); } while(0) /*lint -restore */
 
+#  if FOUNDATION_PLATFORM_ARCH_ARM
+#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ); } while(0) /*lint -restore */
+#else
+#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0) /*lint -restore */
+#endif
+
 #else
 
 #  define FOUNDATION_ASSERT( cond ) /*lint -save -e717 */ do { (void)sizeof( cond ); } while(0) /*lint -restore */
@@ -63,6 +69,7 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_RETURN( cond ) /*lint -save -e717 */ do { if( !(cond) ) return; } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0) /*lint -restore */
+#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0) /*lint -restore */
 
 #endif
 

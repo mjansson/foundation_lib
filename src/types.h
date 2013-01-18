@@ -143,8 +143,6 @@ typedef enum
 	STREAM_SEEK_END            = 0x0002
 } stream_seek_mode_t;
 
-//! GUID
-typedef uint128_t        guid_t;
 
 //! Hash value
 typedef uint64_t         hash_t;

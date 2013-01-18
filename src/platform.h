@@ -572,6 +572,44 @@ static FORCEINLINE CONSTCALL uint256_t uint256_null( void ) { return uint256_mak
 static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
 
 
+// Aligned types
+#if FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64
+
+typedef ALIGN(8)  void*       alignedptr16_t;
+typedef ALIGN(8)  void*       alignedptr32_t;
+typedef ALIGN(8)  void*       alignedptr64_t;
+typedef ALIGN(16) void*       alignedptr128_t;
+
+typedef ALIGN(8)  const void* alignedconstptr16_t;
+typedef ALIGN(8)  const void* alignedconstptr32_t;
+typedef ALIGN(8)  const void* alignedconstptr64_t;
+typedef ALIGN(16) const void* alignedconstptr128_t;
+
+typedef ALIGN(8)  uint8_t     uint8_aligned16_t;
+typedef ALIGN(8)  uint8_t     uint8_aligned32_t;
+typedef ALIGN(8)  uint8_t     uint8_aligned64_t;
+typedef ALIGN(16) uint8_t     uint8_aligned128_t;
+
+#else
+
+typedef ALIGN(2)  void*       alignedptr16_t;
+typedef ALIGN(4)  void*       alignedptr32_t;
+typedef ALIGN(8)  void*       alignedptr64_t;
+typedef ALIGN(16) void*       alignedptr128_t;
+
+typedef ALIGN(2)  const void* alignedconstptr16_t;
+typedef ALIGN(4)  const void* alignedconstptr32_t;
+typedef ALIGN(8)  const void* alignedconstptr64_t;
+typedef ALIGN(16) const void* alignedconstptr128_t;
+
+typedef ALIGN(2)  uint8_t     uint8_aligned16_t;
+typedef ALIGN(4)  uint8_t     uint8_aligned32_t;
+typedef ALIGN(8)  uint8_t     uint8_aligned64_t;
+typedef ALIGN(16) uint8_t     uint8_aligned128_t;
+
+#endif
+
+
 // Base limits
 
 #define FOUNDATION_MAX_PATHLEN    512
