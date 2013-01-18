@@ -23,6 +23,11 @@
     \param path                  Path */
 FOUNDATION_API stream_t*         stream_open( const char* path, unsigned int flags );
 
+/*! Clone a stream (if supported by stream type)
+    \param stream                Stream
+    \return                      Cloned stream */
+FOUNDATION_API stream_t*         stream_clone( stream_t* stream );
+
 /*! Deallocate stream */
 FOUNDATION_API void              stream_deallocate( stream_t* stream );
 
@@ -79,8 +84,8 @@ FOUNDATION_API bool              stream_is_open( const stream_t* stream );
 /*! \return                      Current byte order of stream data */
 FOUNDATION_API byteorder_t       stream_byteorder( const stream_t* stream );
 
-/*! \return                      Stream name */
-FOUNDATION_API const char*       stream_name( const stream_t* stream );
+/*! \return                      Stream path */
+FOUNDATION_API const char*       stream_path( const stream_t* stream );
 
 /*! \return                      Last modified timestamp, 0 if not open or date not meaningful for stream type */
 FOUNDATION_API uint64_t          stream_last_modified( const stream_t* stream );
@@ -111,12 +116,6 @@ FOUNDATION_API uint64_t          stream_size( stream_t* stream );
 /*! Try to determine if stream is in binary or ASCII mode by reading the given number of bytes and checking if all bytes are in printable ASCII range (byte values [0x20,0x7e] and linefeed/tab). The method will restore the stream position with a call to seek, so using this on a sequential stream is not supported
 	\param num                   Number of bytes to read */
 FOUNDATION_API void              stream_determine_binary_mode( stream_t* stream, unsigned int num );
-
-/*! \return                      Checksum, 0 if not open for reading */
-FOUNDATION_API unsigned int      stream_crc32( stream_t* stream );
-
-/*! \return                      Stream digest, 0 if not available */
-FOUNDATION_API uint128_t         stream_md5( stream_t* stream );
 
 /*! Get boolean value from stream
 	\return                      Boolean value read, false if error */

@@ -12,14 +12,14 @@
 
 #include <foundation.h>
 
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 #  include <safewindows.h>
 typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 DWORD WINAPI GetCurrentProcessorNumberFallback(VOID) { return 0; }
 GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
 #endif
 
-#if PLATFORM_MACOSX || PLATFORM_IOS || PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 
 typedef struct _foundation_thread_local_block
 {
@@ -55,7 +55,7 @@ void* _allocate_thread_local_block( unsigned int size )
 
 int _thread_initialize( void )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	//TODO: look into GetCurrentProcessorNumberEx for 64+ core support
 	GetCurrentProcessorNumberFn getprocidfn = (GetCurrentProcessorNumberFn)GetProcAddress( GetModuleHandleA( "kernel32" ), "GetCurrentProcessorNumber" );
 	if( getprocidfn )
@@ -67,7 +67,7 @@ int _thread_initialize( void )
 
 void _thread_shutdown( void )
 {
-#if PLATFORM_MACOSX || PLATFORM_IOS
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	for( int i = 0; i < 1024; ++i )
 	{
 		if( _thread_local_blocks[i].block )
@@ -81,9 +81,9 @@ void _thread_shutdown( void )
 
 void thread_sleep( int milliseconds )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	SleepEx( milliseconds, 1 );
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_ANDROID || PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 	struct timespec t;
 	t.tv_sec  = milliseconds / 1000;
 	t.tv_nsec = (long)( milliseconds % 1000 ) * 1000000L;
@@ -96,9 +96,9 @@ void thread_sleep( int milliseconds )
 
 void thread_yield( void )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	Sleep(0);
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_ANDROID || PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 	sched_yield();
 #else
 #  error Not implemented
@@ -108,11 +108,11 @@ void thread_yield( void )
 
 uint64_t thread_id( void )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	return GetCurrentThreadId();
-#elif PLATFORM_LINUX || PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	return pthread_self();
-#elif PLATFORM_MACOSX || PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	return pthread_mach_thread_np( pthread_self() );
 #else
 #  error Not implemented
@@ -122,9 +122,9 @@ uint64_t thread_id( void )
 
 unsigned int thread_hardware( void )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	return _fnGetCurrentProcessorNumber();
-#elif PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX
 	return sched_getcpu();
 #else
 	//TODO: Implement for other platforms
@@ -140,13 +140,13 @@ void thread_set_hardware( unsigned int hw_thread )
 
 void thread_cleanup( void )
 {
-#if PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID
 	thread_detach_jvm();
 #endif
 
 	error_context_thread_deallocate();
 	
-#if PLATFORM_MACOSX || PLATFORM_IOS
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	uint64_t curid = thread_id();
 	for( int i = 0; i < 1024; ++i )
 	{
@@ -161,7 +161,7 @@ void thread_cleanup( void )
 }
 
 
-#if PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID
 
 #include <android_native_app_glue.h>
 

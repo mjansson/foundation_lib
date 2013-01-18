@@ -15,18 +15,18 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 #include <safewindows.h>
 #  define va_copy(d,s) ((d)=(s))
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
 #endif
 
-#if PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID
 #  include <android/log.h>
 #endif
 
-#if PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS || PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 #  include <unistd.h>
 #  include <stdarg.h>
 #  include <sys/types.h>
@@ -64,11 +64,11 @@ static void _output_logf( int severity, const char* prefix, const char* format, 
 			buffer[need+more] = '\n';
 			buffer[need+more+1] = 0;
 
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 			OutputDebugStringA( buffer );
 #endif
 
-#if PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID
 			if( _log_stdout )
 				__android_log_write( ANDROID_LOG_DEBUG + severity, app_name(), buffer );
 #else
@@ -172,11 +172,11 @@ void error_log_context( error_level_t error_level )
 
 bool debug_message_box( const char* title, const char* message, bool cancel_button )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	return ( MessageBoxA( 0, message, title, cancel_button ? MB_OKCANCEL : MB_OK ) == IDOK );
-#elif PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOSX
 	return _objc_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
-#elif PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format( "%s\n\n%s\n", title, message );
 	pid_t pid = fork();
 

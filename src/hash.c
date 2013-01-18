@@ -32,7 +32,7 @@ static FORCEINLINE CONSTCALL uint64_t fmix64( uint64_t k );
 
 static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned int i )
 {
-#if PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
 	return p[i];
 #else
 	return swap_byteorder64( p[i] );
@@ -154,7 +154,7 @@ hash_t hash( const void* key, const unsigned int len )
 }
 
 
-#if !BUILD_DEPLOY && PLATFORM_FAMILY_DESKTOP
+#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
 
 #include <array.h>
 #include <utf.h>

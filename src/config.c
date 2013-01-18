@@ -216,22 +216,22 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	paths[2] = abs_exe_parent_path;
 	paths[3] = abs_exe_grandparent_path;
 
-#if PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
+#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
 	paths[4] = environment_initial_working_directory();
 #else
 	paths[4] = 0;
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_FOUNDATION_PLATFORM_MACOSX || FOUNDATION_FOUNDATION_PLATFORM_IOS
 	bundle_path = path_merge( environment_executable_directory(), "../Resources/config" );
 	paths[5] = bundle_path;
-#elif FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_FOUNDATION_PLATFORM_ANDROID
 	paths[5] = "/config";
 #else
 	paths[5] = 0;
 #endif
 
-#if PLATFORM_FAMILY_DESKTOP
+#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
 	paths[6] = environment_current_working_directory();
 #else
 	paths[6] = 0;
@@ -243,7 +243,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	string_deallocate( exe_parent_path );
 	string_deallocate( exe_grandparent_path );
 
-#if PLATFORM_FAMILY_DESKTOP
+#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
 	cwd_config_path = path_merge( environment_current_working_directory(), "config" );
 	paths[7] = cwd_config_path;
 
@@ -267,9 +267,9 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	start_path = 0;
 	if( !built_in )
 	{
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 		home_dir = path_merge( environment_home_directory(), environment_application()->config_dir );
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 		home_dir = string_append( path_merge( environment_home_directory(), "." ), environment_application()->config_dir );
 #endif
 		if( home_dir )
@@ -300,7 +300,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
 		filename = string_append( path_merge( paths[i], name ), ".ini" );
 		istream = 0;
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_FOUNDATION_PLATFORM_ANDROID
 		if( i == ANDROID_ASSET_PATH_INDEX )
 			istream = asset_stream_open( filename, STREAM_IN );
 		else
@@ -315,25 +315,25 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 
 		if( built_in )
 		{
-			const char* platform_name =
-#if PLATFORM_WINDOWS
+			const char* FOUNDATION_PLATFORM_name =
+#if FOUNDATION_PLATFORM_WINDOWS
 				"windows";
-#elif PLATFORM_LINUX_RASPBERRYPI
+#elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 				"raspberrypi";
-#elif PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX
 				"linux";
-#elif PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOSX
 				"osx";
-#elif PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_IOS
 				"ios";
-#elif PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_ANDROID
 				"android";
 #else
 #  error Insert platform name
 				"unknown";
 #endif
-			filename = string_append( path_append( path_merge( paths[i], platform_name ), name ), ".ini" );
-#if FOUNDATION_PLATFORM_ANDROID
+			filename = string_append( path_append( path_merge( paths[i], FOUNDATION_PLATFORM_name ), name ), ".ini" );
+#if FOUNDATION_FOUNDATION_PLATFORM_ANDROID
 			if( i == ANDROID_ASSET_PATH_INDEX )
 				istream = asset_stream_open( filename, STREAM_IN );
 			else
@@ -586,7 +586,7 @@ void config_parse( stream_t* stream, hash_t filter_section )
 	unsigned int line = 0;
 
 #if BUILD_CONFIG_DEBUG
-	debug_logf( "Parsing config file: %s", stream_name( stream ) );
+	debug_logf( "Parsing config stream: %s", stream_path( stream ) );
 #endif
 	buffer = memory_allocate_zero( 1024, 0, MEMORY_TEMPORARY );
 	while( !stream_eos( stream ) )
@@ -602,7 +602,7 @@ void config_parse( stream_t* stream, hash_t filter_section )
 			unsigned int endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
 			if( ( endpos == STRING_NPOS ) || ( endpos < 1 ) )
 			{
-				warn_logf( WARNING_BAD_DATA, "Invalid section declaration on line %d in config file '%s'", line, stream_name( stream ) );
+				warn_logf( WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
 				continue;
 			}
 			buffer[endpos] = 0;
@@ -619,7 +619,7 @@ void config_parse( stream_t* stream, hash_t filter_section )
 			unsigned int separator = string_find( buffer, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
-				warn_logf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config file '%s', missing assignment operator '=': %s", line, stream_name( stream ), buffer );
+				warn_logf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
 				continue;
 			}
 			
@@ -627,7 +627,7 @@ void config_parse( stream_t* stream, hash_t filter_section )
 			value = string_strip( buffer + separator + 1, " \t" );
 			if( !string_length( name ) )
 			{
-				warn_logf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config file '%s', empty name string", line, stream_name( stream ) );
+				warn_logf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
 				continue;
 			}
 
@@ -700,7 +700,7 @@ void config_write( stream_t* stream, hash_t filter_section )
 						break;
 
 					case CONFIGVALUE_REAL:
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 						stream_write_float64( stream, bucket[ib].rval );
 #else
 						stream_write_float32( stream, bucket[ib].rval );

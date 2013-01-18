@@ -73,6 +73,40 @@ typedef enum
 	MEMORY_PERSISTENT
 } memory_hint_t;
 
+//! \Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
+typedef enum
+{
+	PLATFORM_WINDOWS   = 1,
+	PLATFORM_LINUX,
+	PLATFORM_MACOSX,
+	PLATFORM_IOS,
+	PLATFORM_ANDROID,
+	PLATFORM_RASPBERRYPI
+} platform_t;
+
+/*! Architecture identifiers for all architectures the engine supports. For compile-time selection of
+    architecture, use the FOUNDATION_PLATFORM_ARCH_[...] preprocessor macros. */
+typedef enum
+{
+	/*! x86 (Classic 32-bit x86 compatible CPUs) */
+	ARCHITECTURE_X86          = 0,
+
+	/*! x86-64 (x86 with 64-bit extensions) */
+	ARCHITECTURE_X86_64       = 1,
+
+	/*! PowerPC 32-bit */
+	ARCHITECTURE_PPC          = 2,
+	
+	/*! PowerPC 64-bit */
+	ARCHITECTURE_PPC_64       = 3,
+
+	/*! ARM 6 */
+	ARCHITECTURE_ARM6         = 6,
+
+	/*! ARM 7 */
+	ARCHITECTURE_ARM7         = 7
+} architecture_t;
+
 //! Machine byte order identifiers
 typedef enum
 {
@@ -90,6 +124,16 @@ typedef enum
 	STREAM_BINARY              = 0x0100,
 	STREAM_SYNC                = 0x0200
 } stream_mode_t;
+
+typedef enum
+{
+	STREAMTYPE_INVALID         = 0,
+	STREAMTYPE_MEMORY,
+	STREAMTYPE_FILE,
+	STREAMTYPE_SOCKET,
+	STREAMTYPE_RINGBUFFER,
+	STREAMTYPE_ASSET
+} stream_type_t;
 
 //! Stream seek directions
 typedef enum

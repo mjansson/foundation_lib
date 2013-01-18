@@ -20,7 +20,7 @@ static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN] = {0};
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 static char    _environment_var[FOUNDATION_MAX_PATHLEN] = {0};
 #  include <safewindows.h>
 #endif
@@ -62,7 +62,7 @@ const char* environment_current_working_directory( void )
 {
 	if( _environment_current_working_dir[0] )
 		return _environment_current_working_dir;
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
 		wchar_t* wd = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
@@ -72,7 +72,7 @@ const char* environment_current_working_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wd );
 	}
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS || PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	char* path = memory_allocate_zero( FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
 	{
@@ -94,14 +94,14 @@ void environment_set_current_working_directory( const char* path )
 	if( !path )
 		return;
 	debug_logf( "Setting current working directory to: %s", path );
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string( path, 0 );
 		if( !SetCurrentDirectoryW( wpath ) )
 			warn_logf( WARNING_SUSPICIOUS, "Unable to set working directory: %ls", wpath );
 		wstring_deallocate( wpath );
 	}
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS || PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	if( chdir( path ) < 0 )
 		warn_logf( WARNING_SUSPICIOUS, "Unable to set working directory: %s", path );
 #else
@@ -115,7 +115,7 @@ const char* environment_home_directory( void )
 {
 	if( _environment_home_dir[0] )
 		return _environment_home_dir;
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
 		wchar_t* wpath = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
@@ -125,9 +125,9 @@ const char* environment_home_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wpath );
 	}
-#elif PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX
 	string_copy( _environment_home_dir, environment_variable( "HOME" ), FOUNDATION_MAX_PATHLEN );
-#elif PLATFORM_MACOSX || PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	ENTER_AUTORELEASE();
 	CFStringRef home = NSHomeDirectory();
 	CFStringGetCString( home, _environment_home_dir, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
@@ -142,7 +142,7 @@ const char* environment_home_directory( void )
 		string_copy( _environment_home_dir, path, FOUNDATION_MAX_PATHLEN );
 		string_deallocate( path );
 	}
-#elif PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_ANDROID
 	string_copy( _environment_home_dir, _global_app->activity->internalDataPath, FOUNDATION_MAX_PATHLEN );
 #else
 #  error Not implemented
@@ -155,7 +155,7 @@ const char* environment_temporary_directory( void )
 {
 	if( _environment_temp_dir[0] )
 		return _environment_temp_dir;
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
 		wchar_t* wpath = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
@@ -165,7 +165,7 @@ const char* environment_temporary_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wpath );
 	}
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS || PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	string_copy( _environment_temp_dir, P_tmpdir, FOUNDATION_MAX_PATHLEN );
 	unsigned int len = string_length( _environment_temp_dir );
 	if( ( len > 1 ) && ( _environment_temp_dir[ len - 1 ] == '/' ) )
@@ -179,7 +179,7 @@ const char* environment_temporary_directory( void )
 
 const char* environment_environment_variable( const char* var )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	char* cval;
 	wchar_t* key = wstring_allocate_from_string( var, 0 );
 	wchar_t val[512]; val[0] = 0;
@@ -189,7 +189,7 @@ const char* environment_environment_variable( const char* var )
 	string_copy( _environment_var, cval, 512 );
 	string_deallocate( cval );
 	return _environment_var;
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS || PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	return getenv( var );
 #else
 #  error Not implemented

@@ -17,7 +17,7 @@
 #include <string.h>
 #include <time.h>
 
-#if PLATFORM_MACOSX || PLATFORM_IOS
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 #endif
 
@@ -108,7 +108,7 @@ char* string_vformat( const char* format, va_list list )
 
 	while( 1 )
 	{
-#if PLATFORM_WINDOWS && COMPILER_MSVC
+#if FOUNDATION_PLATFORM_WINDOWS && COMPILER_MSVC
 #  define va_copy(dst, src) dst = src
 #endif
 		va_copy( copy_list, list );
@@ -1147,7 +1147,7 @@ char* real_to_string( real val, unsigned int precision, unsigned int width, char
 char* real_to_string_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char fill )
 {
 	unsigned int len;
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 	if( precision )
 		len = (unsigned int)sprintf( buffer, "%.*lf", precision, val );
 	else
@@ -1205,17 +1205,17 @@ char* time_to_string( uint64_t t )
 
 char* time_to_string_buffer( char* buffer, uint64_t t )
 {
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	time_t timet = t / 1000ULL;
 	buffer[0] = 0;
 	_ctime64_s( buffer, 64, &timet );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	buffer[0] = 0;
 	time_t ts = t / 1000ULL;
 	ctime_r( &ts, buffer );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_ANDROID
 	time_t ts = t / 1000ULL;
 	strcpy( buffer, ctime( &ts ) );
 	return string_strip( buffer, STRING_WHITESPACE );
@@ -1279,14 +1279,14 @@ uint128_t string_to_uint128( const char* val )
 
 real string_to_real( const char* val )
 {
-#if ( PLATFORM_LINUX || PLATFORM_MACOSX || PLATFORM_IOS ) && ( PLATFORM_REALSIZE == 64 )
+#if ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS ) && ( FOUNDATION_PLATFORM_REALSIZE == 64 )
 	long double ret = 0.0f;
 #else
 	real ret = 0.0f;
 #endif
 	if( val )
 	{
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 		sscanf( val, "%Lf", &ret );
 #else
 		sscanf( val, "%f", &ret );

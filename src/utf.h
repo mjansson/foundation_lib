@@ -163,7 +163,7 @@ FOUNDATION_API bool           string_is_valid_email_address( const char* address
 
 #define STRING_NPOS 0xFFFFFFFFU
 
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 #  define REAL_FORMAT  "llf"
 #else
 #  define REAL_FORMAT  "f"

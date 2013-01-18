@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #  define vsnprintf( p, s, ... ) _vsnprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #endif

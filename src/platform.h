@@ -16,10 +16,10 @@
     Platform abstractions
 	
 	This file tries to unify platform definitions and data types across supported platforms and compilers.
-	If you need to override platform or architecture, predefine one of PLATFORM_[...] and PLATFORM_ARCH_[...] to 1
+	If you need to override platform or architecture, predefine one of FOUNDATION_PLATFORM_[...] and FOUNDATION_PLATFORM_ARCH_[...] to 1
 
 	All preprocessor macros are designed to be always defined and used by value, i.e a check should be performed like
-	"#if PLATFORM_[...]" rather than "#ifdef PLATFORM_[...]", since this solves the potential problem of typos in
+	"#if FOUNDATION_PLATFORM_[...]" rather than "#ifdef FOUNDATION_PLATFORM_[...]", since this solves the potential problem of typos in
 	preprocessor checks (the #if test will most likely catch the typo with an not defined error, whereas the
 	#ifdef macro will just resolve to false)
 
@@ -57,58 +57,58 @@
 #endif
 
 //Platforms
-#ifndef PLATFORM_ANDROID
-#  define PLATFORM_ANDROID 0
+#ifndef FOUNDATION_PLATFORM_ANDROID
+#  define FOUNDATION_PLATFORM_ANDROID 0
 #endif
-#ifndef PLATFORM_IOS
-#  define PLATFORM_IOS 0
+#ifndef FOUNDATION_PLATFORM_IOS
+#  define FOUNDATION_PLATFORM_IOS 0
 #endif
-#ifndef PLATFORM_IOS_SIMULATOR
-#  define PLATFORM_IOS_SIMULATOR 0
+#ifndef FOUNDATION_PLATFORM_IOS_SIMULATOR
+#  define FOUNDATION_PLATFORM_IOS_SIMULATOR 0
 #endif
-#ifndef PLATFORM_MACOSX
-#  define PLATFORM_MACOSX 0
+#ifndef FOUNDATION_PLATFORM_MACOSX
+#  define FOUNDATION_PLATFORM_MACOSX 0
 #endif
-#ifndef PLATFORM_LINUX
-# define PLATFORM_LINUX 0
+#ifndef FOUNDATION_PLATFORM_LINUX
+# define FOUNDATION_PLATFORM_LINUX 0
 #endif
-#ifndef PLATFORM_BSD
-#  define PLATFORM_BSD 0
+#ifndef FOUNDATION_PLATFORM_BSD
+#  define FOUNDATION_PLATFORM_BSD 0
 #endif
-#ifndef PLATFORM_WINDOWS
-#  define PLATFORM_WINDOWS 0
+#ifndef FOUNDATION_PLATFORM_WINDOWS
+#  define FOUNDATION_PLATFORM_WINDOWS 0
 #endif
 
 //Architectures
-#ifndef  PLATFORM_ARCH_ARM
-#  define PLATFORM_ARCH_ARM 0
+#ifndef  FOUNDATION_PLATFORM_ARCH_ARM
+#  define FOUNDATION_PLATFORM_ARCH_ARM 0
 #endif
-#ifndef  PLATFORM_ARCH_X86
-#  define PLATFORM_ARCH_X86 0
+#ifndef  FOUNDATION_PLATFORM_ARCH_X86
+#  define FOUNDATION_PLATFORM_ARCH_X86 0
 #endif
-#ifndef  PLATFORM_ARCH_X86_64
-#  define PLATFORM_ARCH_X86_64 0
+#ifndef  FOUNDATION_PLATFORM_ARCH_X86_64
+#  define FOUNDATION_PLATFORM_ARCH_X86_64 0
 #endif
-#ifndef  PLATFORM_ARCH_PPC
-#  define PLATFORM_ARCH_PPC 0
+#ifndef  FOUNDATION_PLATFORM_ARCH_PPC
+#  define FOUNDATION_PLATFORM_ARCH_PPC 0
 #endif
-#ifndef  PLATFORM_ARCH_PPC_64
-#  define PLATFORM_ARCH_PPC_64 0
+#ifndef  FOUNDATION_PLATFORM_ARCH_PPC_64
+#  define FOUNDATION_PLATFORM_ARCH_PPC_64 0
 #endif
-#ifndef PLATFORM_ARCH_IA64
-#  define PLATFORM_ARCH_IA64 0
+#ifndef FOUNDATION_PLATFORM_ARCH_IA64
+#  define FOUNDATION_PLATFORM_ARCH_IA64 0
 #endif
 
 //Platform traits
-#define PLATFORM_APPLE 0
-#define PLATFORM_POSIX 0
+#define FOUNDATION_PLATFORM_APPLE 0
+#define FOUNDATION_PLATFORM_POSIX 0
 
-#define PLATFORM_ENDIAN_LITTLE 0
-#define PLATFORM_ENDIAN_BIG 0
+#define FOUNDATION_PLATFORM_ENDIAN_LITTLE 0
+#define FOUNDATION_PLATFORM_ENDIAN_BIG 0
 
-#define PLATFORM_FAMILY_MOBILE 0
-#define PLATFORM_FAMILY_DESKTOP 0
-#define PLATFORM_FAMILY_CONSOLE 0
+#define FOUNDATION_PLATFORM_FAMILY_MOBILE 0
+#define FOUNDATION_PLATFORM_FAMILY_DESKTOP 0
+#define FOUNDATION_PLATFORM_FAMILY_CONSOLE 0
 
 //Compilers
 #define COMPILER_CLANG 0
@@ -120,248 +120,248 @@
 //First, platforms and architectures
 
 // Android
-#if defined( __ANDROID__ ) || PLATFORM_ANDROID
+#if defined( __ANDROID__ ) || FOUNDATION_PLATFORM_ANDROID
 
-#  undef  PLATFORM_ANDROID
-#  define PLATFORM_ANDROID 1
+#  undef  FOUNDATION_PLATFORM_ANDROID
+#  define FOUNDATION_PLATFORM_ANDROID 1
 
 // Compatibile platforms
-#  undef  PLATFORM_LINUX
-#  define PLATFORM_LINUX 1
-#  undef  PLATFORM_POSIX
-#  define PLATFORM_POSIX 1
+#  undef  FOUNDATION_PLATFORM_LINUX
+#  define FOUNDATION_PLATFORM_LINUX 1
+#  undef  FOUNDATION_PLATFORM_POSIX
+#  define FOUNDATION_PLATFORM_POSIX 1
 
-#  define PLATFORM_NAME "Android"
+#  define FOUNDATION_PLATFORM_NAME "Android"
 
 // Architecture and detailed description
-#  if defined( __arm__ ) || PLATFORM_ARCH_ARM
-#    undef  PLATFORM_ARCH_ARM
-#    define PLATFORM_ARCH_ARM 1
-#    define PLATFORM_DESCRIPTION "Android ARM"
-#  elif defined( __i386__ ) || PLATFORM_ARCH_X86
-#    undef  PLATFORM_ARCH_X86
-#    define PLATFORM_ARCH_X86 1
-#    define PLATFORM_DESCRIPTION "Android x86"
-#  elif defined( __x86_64__ ) || PLATFORM_ARCH_X86_64
-#    undef  PLATFORM_ARCH_X86_64
-#    define PLATFORM_ARCH_X86_64 1
-#    define PLATFORM_DESCRIPTION "Android x86-64"
+#  if defined( __arm__ ) || FOUNDATION_PLATFORM_ARCH_ARM
+#    undef  FOUNDATION_PLATFORM_ARCH_ARM
+#    define FOUNDATION_PLATFORM_ARCH_ARM 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Android ARM"
+#  elif defined( __i386__ ) || FOUNDATION_PLATFORM_ARCH_X86
+#    undef  FOUNDATION_PLATFORM_ARCH_X86
+#    define FOUNDATION_PLATFORM_ARCH_X86 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Android x86"
+#  elif defined( __x86_64__ ) || FOUNDATION_PLATFORM_ARCH_X86_64
+#    undef  FOUNDATION_PLATFORM_ARCH_X86_64
+#    define FOUNDATION_PLATFORM_ARCH_X86_64 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Android x86-64"
 #  else
 #    error Unknown architecture
 #  endif
 
 // Traits
-#  undef  PLATFORM_ENDIAN_LITTLE
-#  define PLATFORM_ENDIAN_LITTLE 1
+#  undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#  define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
 
-#  undef  PLATFORM_FAMILY_MOBILE
-#  define PLATFORM_FAMILY_MOBILE 1
+#  undef  FOUNDATION_PLATFORM_FAMILY_MOBILE
+#  define FOUNDATION_PLATFORM_FAMILY_MOBILE 1
 
-#  undef  PLATFORM_FAMILY_CONSOLE
-#  define PLATFORM_FAMILY_CONSOLE 1
+#  undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
+#  define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
 
 
 // MacOS X and iOS
-#elif ( defined( __APPLE__ ) && __APPLE__ ) || PLATFORM_IOS || PLATFORM_MACOSX
+#elif ( defined( __APPLE__ ) && __APPLE__ ) || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
 
-#define PLATFORM_APPLE 1
-#define PLATFORM_POSIX 1
+#define FOUNDATION_PLATFORM_APPLE 1
+#define FOUNDATION_PLATFORM_POSIX 1
 
-#  if defined( __IPHONE__ ) || ( defined( TARGET_OS_IPHONE ) && TARGET_OS_IPHONE ) || ( defined( TARGET_IPHONE_SIMULATOR ) && TARGET_IPHONE_SIMULATOR ) || PLATFORM_IOS
+#  if defined( __IPHONE__ ) || ( defined( TARGET_OS_IPHONE ) && TARGET_OS_IPHONE ) || ( defined( TARGET_IPHONE_SIMULATOR ) && TARGET_IPHONE_SIMULATOR ) || FOUNDATION_PLATFORM_IOS
 
-#    undef  PLATFORM_IOS
-#    define PLATFORM_IOS 1
+#    undef  FOUNDATION_PLATFORM_IOS
+#    define FOUNDATION_PLATFORM_IOS 1
 
-#    define PLATFORM_NAME "iOS"
+#    define FOUNDATION_PLATFORM_NAME "iOS"
 
-#    if defined( __arm__ ) || PLATFORM_ARCH_ARM
-#      undef  PLATFORM_ARCH_ARM
-#      define PLATFORM_ARCH_ARM 1
-#      define PLATFORM_DESCRIPTION "iOS ARM"
-#    elif defined( __i386__ ) || PLATFORM_ARCH_X86
-#      undef  PLATFORM_IOS_SIMULATOR
-#      define PLATFORM_IOS_SIMULATOR 1
-#      undef  PLATFORM_ARCH_X86
-#      define PLATFORM_ARCH_X86 1
-#      define PLATFORM_DESCRIPTION "iOS x86 (simulator)"
+#    if defined( __arm__ ) || FOUNDATION_PLATFORM_ARCH_ARM
+#      undef  FOUNDATION_PLATFORM_ARCH_ARM
+#      define FOUNDATION_PLATFORM_ARCH_ARM 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARM"
+#    elif defined( __i386__ ) || FOUNDATION_PLATFORM_ARCH_X86
+#      undef  FOUNDATION_PLATFORM_IOS_SIMULATOR
+#      define FOUNDATION_PLATFORM_IOS_SIMULATOR 1
+#      undef  FOUNDATION_PLATFORM_ARCH_X86
+#      define FOUNDATION_PLATFORM_ARCH_X86 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "iOS x86 (simulator)"
 #    else
 #      error Unknown architecture
 #    endif
 
-#    undef  PLATFORM_ENDIAN_LITTLE
-#    define PLATFORM_ENDIAN_LITTLE 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#    define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
 
-#    undef  PLATFORM_FAMILY_MOBILE
-#    define PLATFORM_FAMILY_MOBILE 1
+#    undef  FOUNDATION_PLATFORM_FAMILY_MOBILE
+#    define FOUNDATION_PLATFORM_FAMILY_MOBILE 1
 
-#    undef  PLATFORM_FAMILY_CONSOLE
-#    define PLATFORM_FAMILY_CONSOLE 1
+#    undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
+#    define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
 
-#  elif defined( __MACH__ ) || PLATFORM_MACOSX
+#  elif defined( __MACH__ ) || FOUNDATION_PLATFORM_MACOSX
 
-#    undef  PLATFORM_MACOSX
-#    define PLATFORM_MACOSX 1
+#    undef  FOUNDATION_PLATFORM_MACOSX
+#    define FOUNDATION_PLATFORM_MACOSX 1
 
-#    undef  PLATFORM_POSIX
-#    define PLATFORM_POSIX 1
+#    undef  FOUNDATION_PLATFORM_POSIX
+#    define FOUNDATION_PLATFORM_POSIX 1
 
-#    define PLATFORM_NAME "MacOSX"
+#    define FOUNDATION_PLATFORM_NAME "MacOSX"
 
-#    if defined( __x86_64__ ) ||  defined( __x86_64 ) || defined( __amd64 ) || PLATFORM_ARCH_X86_64
-#      undef  PLATFORM_ARCH_X86_64
-#      define PLATFORM_ARCH_X86_64 1
-#      undef  PLATFORM_ENDIAN_LITTLE
-#      define PLATFORM_ENDIAN_LITTLE 1
-#      define PLATFORM_DESCRIPTION "MacOSX x86-64"
-#    elif defined( __i386__ ) || defined( __intel__ ) || PLATFORM_ARCH_X86
-#      undef  PLATFORM_ARCH_X86
-#      define PLATFORM_ARCH_X86 1
-#      undef  PLATFORM_ENDIAN_LITTLE
-#      define PLATFORM_ENDIAN_LITTLE 1
-#      define PLATFORM_DESCRIPTION "MacOSX x86"
+#    if defined( __x86_64__ ) ||  defined( __x86_64 ) || defined( __amd64 ) || FOUNDATION_PLATFORM_ARCH_X86_64
+#      undef  FOUNDATION_PLATFORM_ARCH_X86_64
+#      define FOUNDATION_PLATFORM_ARCH_X86_64 1
+#      undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#      define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX x86-64"
+#    elif defined( __i386__ ) || defined( __intel__ ) || FOUNDATION_PLATFORM_ARCH_X86
+#      undef  FOUNDATION_PLATFORM_ARCH_X86
+#      define FOUNDATION_PLATFORM_ARCH_X86 1
+#      undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#      define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX x86"
 
-#    elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || PLATFORM_ARCH_PPC_64
-#      undef  PLATFORM_ARCH_PPC_64
-#      define PLATFORM_ARCH_PPC_64 1
-#      undef  PLATFORM_ENDIAN_BIG
-#      define PLATFORM_ENDIAN_BIG 1
-#      define PLATFORM_DESCRIPTION "MacOSX PPC64"
-#    elif defined( __powerpc__ ) || defined( __POWERPC__ ) || PLATFORM_ARCH_PPC
-#      undef  PLATFORM_ARCH_PPC
-#      define PLATFORM_ARCH_PPC 1
-#      undef  PLATFORM_ENDIAN_BIG
-#      define PLATFORM_ENDIAN_BIG 1
-#      define PLATFORM_DESCRIPTION "MacOSX PPC"
+#    elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || FOUNDATION_PLATFORM_ARCH_PPC_64
+#      undef  FOUNDATION_PLATFORM_ARCH_PPC_64
+#      define FOUNDATION_PLATFORM_ARCH_PPC_64 1
+#      undef  FOUNDATION_PLATFORM_ENDIAN_BIG
+#      define FOUNDATION_PLATFORM_ENDIAN_BIG 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX PPC64"
+#    elif defined( __powerpc__ ) || defined( __POWERPC__ ) || FOUNDATION_PLATFORM_ARCH_PPC
+#      undef  FOUNDATION_PLATFORM_ARCH_PPC
+#      define FOUNDATION_PLATFORM_ARCH_PPC 1
+#      undef  FOUNDATION_PLATFORM_ENDIAN_BIG
+#      define FOUNDATION_PLATFORM_ENDIAN_BIG 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX PPC"
 
 #    else
 #      error Unknown architecture
 #    endif
 
-#    undef  PLATFORM_FAMILY_DESKTOP
-#    define PLATFORM_FAMILY_DESKTOP 1
+#    undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#    define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
 #  else
 #    error Unknown Apple Platform
 #  endif
 
 // Linux
-#elif ( defined( __linux__ ) || defined( __linux ) ) || PLATFORM_LINUX
+#elif ( defined( __linux__ ) || defined( __linux ) ) || FOUNDATION_PLATFORM_LINUX
 
-#  undef  PLATFORM_LINUX
-#  define PLATFORM_LINUX 1
+#  undef  FOUNDATION_PLATFORM_LINUX
+#  define FOUNDATION_PLATFORM_LINUX 1
 
-#  undef  PLATFORM_POSIX
-#  define PLATFORM_POSIX 1
+#  undef  FOUNDATION_PLATFORM_POSIX
+#  define FOUNDATION_PLATFORM_POSIX 1
 
-#  define PLATFORM_NAME "Linux"
+#  define FOUNDATION_PLATFORM_NAME "Linux"
 
-#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 ) || PLATFORM_ARCH_X86_64
-#    undef  PLATFORM_ARCH_X86_64
-#    define PLATFORM_ARCH_X86_64 1
-#    undef  PLATFORM_ENDIAN_LITTLE
-#    define PLATFORM_ENDIAN_LITTLE 1
-#    define PLATFORM_DESCRIPTION "Linux x86-64"
-#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 ) || PLATFORM_ARCH_X86
-#    undef  PLATFORM_ARCH_X86
-#    define PLATFORM_ARCH_X86 1
-#    undef  PLATFORM_ENDIAN_LITTLE
-#    define PLATFORM_ENDIAN_LITTLE 1
-#    define PLATFORM_DESCRIPTION "Linux x86"
+#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 ) || FOUNDATION_PLATFORM_ARCH_X86_64
+#    undef  FOUNDATION_PLATFORM_ARCH_X86_64
+#    define FOUNDATION_PLATFORM_ARCH_X86_64 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#    define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Linux x86-64"
+#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 ) || FOUNDATION_PLATFORM_ARCH_X86
+#    undef  FOUNDATION_PLATFORM_ARCH_X86
+#    define FOUNDATION_PLATFORM_ARCH_X86 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#    define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Linux x86"
 
-#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || PLATFORM_ARCH_PPC_64
-#    undef  PLATFORM_ARCH_PPC_64
-#    define PLATFORM_ARCH_PPC_64 1
-#    undef  PLATFORM_ENDIAN_BIG
-#    define PLATFORM_ENDIAN_BIG 1
-#    define PLATFORM_DESCRIPTION "Linux PPC64"
-#  elif defined( __powerpc__ ) || defined( __POWERPC__ ) || PLATFORM_ARCH_PPC
-#    undef  PLATFORM_ARCH_PPC
-#    define PLATFORM_ARCH_PPC 1
-#    undef  PLATFORM_ENDIAN_BIG
-#    define PLATFORM_ENDIAN_BIG 1
-#    define PLATFORM_DESCRIPTION "Linux PPC"
+#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || FOUNDATION_PLATFORM_ARCH_PPC_64
+#    undef  FOUNDATION_PLATFORM_ARCH_PPC_64
+#    define FOUNDATION_PLATFORM_ARCH_PPC_64 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_BIG
+#    define FOUNDATION_PLATFORM_ENDIAN_BIG 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Linux PPC64"
+#  elif defined( __powerpc__ ) || defined( __POWERPC__ ) || FOUNDATION_PLATFORM_ARCH_PPC
+#    undef  FOUNDATION_PLATFORM_ARCH_PPC
+#    define FOUNDATION_PLATFORM_ARCH_PPC 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_BIG
+#    define FOUNDATION_PLATFORM_ENDIAN_BIG 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Linux PPC"
 
 #  else
 #    error Unknown architecture
 #  endif
 
-#  undef  PLATFORM_FAMILY_DESKTOP
-#  define PLATFORM_FAMILY_DESKTOP 1
+#  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
 //BSD family
-#elif ( defined( __BSD__ ) || defined( __FreeBSD__ ) ) || PLATFORM_BSD
+#elif ( defined( __BSD__ ) || defined( __FreeBSD__ ) ) || FOUNDATION_PLATFORM_BSD
 
-#  undef  PLATFORM_BSD
-#  define PLATFORM_BSD 1
+#  undef  FOUNDATION_PLATFORM_BSD
+#  define FOUNDATION_PLATFORM_BSD 1
 
-#  undef  PLATFORM_POSIX
-#  define PLATFORM_POSIX 1
+#  undef  FOUNDATION_PLATFORM_POSIX
+#  define FOUNDATION_PLATFORM_POSIX 1
 
-#  define PLATFORM_NAME "BSD"
+#  define FOUNDATION_PLATFORM_NAME "BSD"
 
-#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 ) || PLATFORM_ARCH_X86_64
-#    undef  PLATFORM_ARCH_X86_64
-#    define PLATFORM_ARCH_X86_64 1
-#    undef  PLATFORM_ENDIAN_LITTLE
-#    define PLATFORM_ENDIAN_LITTLE 1
-#    define PLATFORM_DESCRIPTION "BSD x86-64"
-#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 ) || PLATFORM_ARCH_X86
-#    undef  PLATFORM_ARCH_X86
-#    define PLATFORM_ARCH_X86 1
-#    undef  PLATFORM_ENDIAN_LITTLE
-#    define PLATFORM_ENDIAN_LITTLE 1
-#    define PLATFORM_DESCRIPTION "BSD x86"
+#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 ) || FOUNDATION_PLATFORM_ARCH_X86_64
+#    undef  FOUNDATION_PLATFORM_ARCH_X86_64
+#    define FOUNDATION_PLATFORM_ARCH_X86_64 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#    define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "BSD x86-64"
+#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 ) || FOUNDATION_PLATFORM_ARCH_X86
+#    undef  FOUNDATION_PLATFORM_ARCH_X86
+#    define FOUNDATION_PLATFORM_ARCH_X86 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#    define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "BSD x86"
 
-#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || PLATFORM_ARCH_PPC_64
-#    undef  PLATFORM_ARCH_PPC_64
-#    define PLATFORM_ARCH_PPC_64 1
-#    undef  PLATFORM_ENDIAN_BIG
-#    define PLATFORM_ENDIAN_BIG 1
-#    define PLATFORM_DESCRIPTION "BSD PPC64"
-#  elif defined( __powerpc__ ) || defined( __POWERPC__ ) || PLATFORM_ARCH_PPC
-#    undef  PLATFORM_ARCH_PPC
-#    define PLATFORM_ARCH_PPC 1
-#    undef  PLATFORM_ENDIAN_BIG
-#    define PLATFORM_ENDIAN_BIG 1
-#    define PLATFORM_DESCRIPTION "BSD PPC"
+#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || FOUNDATION_PLATFORM_ARCH_PPC_64
+#    undef  FOUNDATION_PLATFORM_ARCH_PPC_64
+#    define FOUNDATION_PLATFORM_ARCH_PPC_64 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_BIG
+#    define FOUNDATION_PLATFORM_ENDIAN_BIG 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "BSD PPC64"
+#  elif defined( __powerpc__ ) || defined( __POWERPC__ ) || FOUNDATION_PLATFORM_ARCH_PPC
+#    undef  FOUNDATION_PLATFORM_ARCH_PPC
+#    define FOUNDATION_PLATFORM_ARCH_PPC 1
+#    undef  FOUNDATION_PLATFORM_ENDIAN_BIG
+#    define FOUNDATION_PLATFORM_ENDIAN_BIG 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "BSD PPC"
 
 #  else
 #    error Unknown architecture
 #  endif
 
-#  undef  PLATFORM_FAMILY_DESKTOP
-#  define PLATFORM_FAMILY_DESKTOP 1
+#  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
 // Windows
-#elif defined( _WIN32 ) || defined( __WIN32__ ) || defined( _WIN64 ) || PLATFORM_WINDOWS
+#elif defined( _WIN32 ) || defined( __WIN32__ ) || defined( _WIN64 ) || FOUNDATION_PLATFORM_WINDOWS
 
-#  undef  PLATFORM_WINDOWS
-#  define PLATFORM_WINDOWS 1
+#  undef  FOUNDATION_PLATFORM_WINDOWS
+#  define FOUNDATION_PLATFORM_WINDOWS 1
 
-#  define PLATFORM_NAME "Windows"
+#  define FOUNDATION_PLATFORM_NAME "Windows"
 
-#  if defined( __x86_64__ ) || defined( _M_AMD64 ) || defined( _AMD64_ ) || PLATFORM_ARCH_X86_64
-#    undef  PLATFORM_ARCH_X86_64
-#    define PLATFORM_ARCH_X86_64 1
-#    define PLATFORM_DESCRIPTION "Windows x86-64"
-#  elif defined( __x86__ ) || defined( _M_IX86 ) || defined( _X86_ ) || PLATFORM_ARCH_X86
-#    undef  PLATFORM_ARCH_X86
-#    define PLATFORM_ARCH_X86 1
-#    define PLATFORM_DESCRIPTION "Windows x86"
-#  elif defined( __ia64__ ) || defined( _M_IA64 ) || defined( _IA64_ ) || PLATFORM_ARCH_IA64
-#    undef  PLATFORM_ARCH_IA64
-#    define PLATFORM_ARCH_IA64 1
-#    define PLATFORM_DESCRIPTION "Windows IA-64"
+#  if defined( __x86_64__ ) || defined( _M_AMD64 ) || defined( _AMD64_ ) || FOUNDATION_PLATFORM_ARCH_X86_64
+#    undef  FOUNDATION_PLATFORM_ARCH_X86_64
+#    define FOUNDATION_PLATFORM_ARCH_X86_64 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Windows x86-64"
+#  elif defined( __x86__ ) || defined( _M_IX86 ) || defined( _X86_ ) || FOUNDATION_PLATFORM_ARCH_X86
+#    undef  FOUNDATION_PLATFORM_ARCH_X86
+#    define FOUNDATION_PLATFORM_ARCH_X86 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Windows x86"
+#  elif defined( __ia64__ ) || defined( _M_IA64 ) || defined( _IA64_ ) || FOUNDATION_PLATFORM_ARCH_IA64
+#    undef  FOUNDATION_PLATFORM_ARCH_IA64
+#    define FOUNDATION_PLATFORM_ARCH_IA64 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Windows IA-64"
 
 #  else
 #    error Unknown architecture
 #  endif
 
-#  undef  PLATFORM_ENDIAN_LITTLE
-#  define PLATFORM_ENDIAN_LITTLE 1
+#  undef  FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#  define FOUNDATION_PLATFORM_ENDIAN_LITTLE 1
 
-#  undef  PLATFORM_FAMILY_DESKTOP
-#  define PLATFORM_FAMILY_DESKTOP 1
+#  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
 #  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
 #    define _CRT_SECURE_NO_WARNINGS 1
@@ -489,10 +489,10 @@ typedef enum
 
 
 //Pointer size
-#if PLATFORM_ARCH_X86_64 || PLATFORM_ARCH_PPC_64 || PLATFORM_ARCH_IA64
-#  define PLATFORM_POINTER_SIZE 8
+#if FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64 || FOUNDATION_PLATFORM_ARCH_IA64
+#  define FOUNDATION_PLATFORM_POINTER_SIZE 8
 #else
-#  define PLATFORM_POINTER_SIZE 4
+#  define FOUNDATION_PLATFORM_POINTER_SIZE 4
 #endif
 
 
@@ -523,16 +523,16 @@ typedef struct {
 #  endif
 #endif
 
-#if ( defined( FLT_EVAL_METHOD ) && ( FLT_EVAL_METHOD >= 1 ) ) || ( defined( PLATFORM_REALSIZE ) && ( PLATFORM_REALSIZE > 32 ) )
+#if ( defined( FLT_EVAL_METHOD ) && ( FLT_EVAL_METHOD >= 1 ) ) || ( defined( FOUNDATION_PLATFORM_REALSIZE ) && ( FOUNDATION_PLATFORM_REALSIZE > 32 ) )
 typedef   float64_t         real;
 #  define REAL_C(x)         FLOAT64_C(x)
-#  undef  PLATFORM_REALSIZE
-#  define PLATFORM_REALSIZE 64
+#  undef  FOUNDATION_PLATFORM_REALSIZE
+#  define FOUNDATION_PLATFORM_REALSIZE 64
 #else
 typedef   float32_t         real;
 #  define REAL_C(x)         FLOAT32_C(x)
-#  undef  PLATFORM_REALSIZE
-#  define PLATFORM_REALSIZE 32
+#  undef  FOUNDATION_PLATFORM_REALSIZE
+#  define FOUNDATION_PLATFORM_REALSIZE 32
 #endif
 
 static FORCEINLINE CONSTCALL uint128_t uint128_make( const uint64_t w0, const uint64_t w1 ) { uint128_t u = { w0, w1 }; return u; }
@@ -558,10 +558,10 @@ static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { r
 //   DECLARE_THREAD_LOCAL_ARRAY( void*, profile_free, 32 );
 //   set_thread_profile_block( 1 ); // Assigns 1 to thread-local variable "profile_block"
 //   get_thread_profile_free()[0] = some_ptr; // Assigns some_ptr to slot 0 in thread-local array "profile_free"
-#if PLATFORM_MACOSX || PLATFORM_IOS || PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 
 // Forward declarations of various system APIs
-#  if PLATFORM_ANDROID
+#  if FOUNDATION_PLATFORM_ANDROID
 typedef int _pthread_key_t;
 #  else
 typedef __darwin_pthread_key_t _pthread_key_t;

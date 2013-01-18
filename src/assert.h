@@ -29,14 +29,14 @@ FOUNDATION_API int                  assert_report_formatted( const char* conditi
 #undef FOUNDATION_BREAKPOINT
 #undef FOUNDATION_ASSERT
 
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 #  define FOUNDATION_DUMP() do { *(volatile int*)3 = 0; } while(0)
 #  define FOUNDATION_BREAKPOINT() do { __debugbreak(); } while(0)
-#elif PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOSX
 FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_DUMP() do { __builtin_trap(); } while(0)
 #  define FOUNDATION_BREAKPOINT() do { Debugger(); __builtin_trap(); } while(0)
-#elif PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_IOS
 #  define FOUNDATION_DUMP() do { __builtin_trap(); } while(0)
 #  define FOUNDATION_BREAKPOINT() do { __builtin_trap(); } while(0)
 #else

@@ -19,7 +19,7 @@
 #include <types.h>
 
 
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 
 //! Epsilon value. This represents a small number close to zero that can be used for comparisons or thresholds. Roughly equals 100 floating point units at 1.0
 #define MATH_EPSILON                       0.00000000000002
@@ -172,7 +172,7 @@ static FORCEINLINE CONSTCALL unsigned int math_align_poweroftwo( unsigned int x 
 {
 	FOUNDATION_ASSERT( x > 1 );
 
-#if COMPILER_INTEL && ( PLATFORM_ARCH_X86 || PLATFORM_ARCH_X86_64 )
+#if COMPILER_INTEL && ( FOUNDATION_PLATFORM_ARCH_X86 || FOUNDATION_PLATFORM_ARCH_X86_64 )
 	--x;
 	__asm__( "bsrl %1,%0"
 		:"=r" (x)
@@ -217,7 +217,7 @@ static FORCEINLINE CONSTCALL real math_log2( real x ) { return math_logn( x ) * 
 
 #if COMPILER_MSVC
 
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 
 static FORCEINLINE real     math_sin( real x ) { return sin( x ); }
 static FORCEINLINE real     math_cos( real x ) { return cos( x ); }
@@ -244,7 +244,7 @@ static FORCEINLINE int      math_trunc( real x ) { return (int)x; }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)floor( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 
-#elif PLATFORM_ARCH_X86
+#elif FOUNDATION_PLATFORM_ARCH_X86
 
 double  __cdecl ceil(double);
 
@@ -296,7 +296,7 @@ static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 
 #elif COMPILER_INTEL
 
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 
 static FORCEINLINE real     math_sin( real x ) { return sin( x ); }
 static FORCEINLINE real     math_cos( real x ) { return cos( x ); }
@@ -355,13 +355,13 @@ static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 
 #elif COMPILER_GCC || COMPILER_CLANG
 
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 
 static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floor( x ); }
 static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceil( x ); }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)__builtin_floor( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)__builtin_ceil( x ); }
-#if PLATFORM_MACOSX || PLATFORM_IOS
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 static FORCEINLINE int      math_round( real x ) { return (int)( x + 0.5 ); }
 static FORCEINLINE int      math_trunc( real x ) { return (int)( x ); }
 #else
@@ -375,7 +375,7 @@ static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceilf( x
 static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floorf( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)__builtin_ceil( x ); }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)__builtin_floor( x ); }
-#if PLATFORM_MACOSX || PLATFORM_IOS
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 static FORCEINLINE int      math_round( real x ) { return (int)( x + 0.5f ); }
 static FORCEINLINE int      math_trunc( real x ) { return (int)( x ); }
 #else
@@ -390,7 +390,7 @@ static FORCEINLINE int      math_trunc( real x ) { return (int)__builtin_truncf(
 #endif
 
 
-#if PLATFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 
 
 typedef union { int64_t ival; real rval; } __real_convert;

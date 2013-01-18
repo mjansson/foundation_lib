@@ -48,7 +48,7 @@ void error_set_callback( error_callback_fn callback )
 
 #include <stdio.h>
 
-#if PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #endif
 

@@ -42,7 +42,7 @@ FOUNDATION_API void            thread_set_hardware( unsigned int hw_thread );
 FOUNDATION_API void            thread_cleanup( void );
 
 
-#if PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID
 
 FOUNDATION_API void            thread_attach_jvm( void );
 FOUNDATION_API void            thread_detach_jvm( void );
