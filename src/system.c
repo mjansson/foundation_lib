@@ -1,4 +1,4 @@
-/* array.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* system.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -13,30 +13,462 @@
 #include <foundation.h>
 
 
-//'FARR' in ascii
-#define _array_watermark 0x52524145
 
-void _array_verifyfn( const void* const* arr )
+typedef struct _foundation_platform_info
 {
-	FOUNDATION_ASSERT_MSG( !(*arr) || ( _array_raw_const(*arr)[2] == _array_watermark ), "Invalid array" );
+	platform_t      platform;
+	architecture_t  architecture;
+	byteorder_t     byteorder;
+} platform_info_t;
+
+static platform_info_t _platform_info = {
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	PLATFORM_WINDOWS,
+#elif FOUNDATION_PLATFORM_LINUX
+	PLATFORM_LINUX,
+#elif FOUNDATION_PLATFORM_MACOSX
+	PLATFORM_MACOSX,
+#elif FOUNDATION_PLATFORM_IOS
+	PLATFORM_IOS,
+#elif FOUNDATION_PLATFORM_ANDROID
+	PLATFORM_ANDROID,
+#else
+#  error Unknown platform
+#endif
+
+#if FOUNDATION_PLATFORM_ARCH_X86_64
+ARCHITECTURE_X86_64,
+#elif FOUNDATION_PLATFORM_ARCH_X86
+ARCHITECTURE_X86,
+#elif FOUNDATION_PLATFORM_ARCH_PPC_64
+ARCHITECTURE_PPC_64,
+#elif FOUNDATION_PLATFORM_ARCH_PPC
+ARCHITECTURE_PPC,
+#elif FOUNDATION_PLATFORM_ARCH_ARM8
+ARCHITECTURE_ARM8,
+#elif FOUNDATION_PLATFORM_ARCH_ARM7
+ARCHITECTURE_ARM7,
+#elif FOUNDATION_PLATFORM_ARCH_ARM6
+ARCHITECTURE_ARM6,
+#else
+#  error Unknown architecture
+#endif
+
+#if FOUNDATION_ARCH_BYTEORDER_LITTLEENDIAN
+BYTEORDER_LITTLEENDIAN
+#else
+BYTEORDER_BIGENDIAN
+#endif
+
+};
+
+
+platform_t system_platform()
+{
+	return _platform_info.platform;
 }
 
 
-void _array_growfn( void* arr, int increment, int factor, int itemsize )
+architecture_t system_architecture()
 {
-	void**   parr = (void**)arr;
-	int      capacity = *parr ? ( factor * _array_rawcapacity(*parr) + increment ) : ( increment + 1 );
-	int64_t  buffer_size = itemsize * capacity + 4LL * _array_header_size;
-	int*     buffer = *parr ? memory_reallocate( _array_raw( *parr ), (uint64_t)buffer_size, 0 ) : memory_allocate( (uint64_t)buffer_size, 16, MEMORY_PERSISTENT );
-	FOUNDATION_ASSERT_MSG( buffer, "Failed to reallocate array storage" );
-	if( buffer )
+	return _platform_info.architecture;
+}
+
+
+byteorder_t system_byteorder()
+{
+	return _platform_info.byteorder;
+}
+
+
+#if FOUNDATION_PLATFORM_WINDOWS
+
+#include <safewindows.h>
+
+const char* system_error_message( int code )
+{
+	static THREADLOCAL char errmsg[256];
+
+	if( !code )
+		code = GetLastError();
+	if( !code )
+		return "";
+
+	errmsg[0] = errmsg[255] = 0;
+	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, 255, 0 );
+	string_strip( errmsg, STRING_WHITESPACE );
+
+	return errmsg;
+}
+
+
+const char* system_hostname( void )
+{
+	unsigned int size = 255;
+	static char hostname[256] = {0};
+	if( hostname[0] )
+		return hostname;
+	strcpy( hostname, "<unknown>" );
+	GetComputerNameA( hostname, &size );
+	hostname[255] = 0;
+	return hostname;
+}
+
+
+uint64_t system_hostid( void )
+{
+	unsigned char hostid[8] = {0};
+	IP_ADAPTER_INFO adapter_info[16];
+	unsigned int status, buffer_length, i, j;
+	
+	buffer_length = sizeof( adapter_info );  // Save memory size of buffer
+	memset( adapter_info, 0, sizeof( adapter_info ) );
+	status = GetAdaptersInfo( adapter_info, &buffer_length );
+	if( status == ERROR_SUCCESS ) for( i = 0; i < 16; ++i )
 	{
-		buffer[0] = capacity;
-		if( !*parr )
+		if( adapter_info[i].Type == MIB_IF_TYPE_ETHERNET )
 		{
-			buffer[1] = 0;
-			buffer[2] = _array_watermark;
+			for( j = 0; j < 6; ++j )
+				hostid[5-j] = adapter_info[i].Address[j];
+			break;
 		}
-		*parr = buffer + _array_header_size;
 	}
+	return *(uint64_t*)hostid;
 }
+
+
+const char* system_username( void )
+{
+	unsigned int size = 255;
+	static char username[256] = {0};
+	if( username[0] )
+		return username;
+	strcpy( username, "<unknown>" );
+	GetUserNameA( username, &size );
+	username[255] = 0;
+	return username;
+}
+
+
+unsigned int system_hardware_threads( void )
+{
+	SYSTEM_INFO system_info;
+	GetSystemInfo( &system_info );
+	return system_info.dwNumberOfProcessors;
+}
+
+
+void system_process_events( void )
+{
+}
+
+
+bool system_debugger_attached( void )
+{
+	return IsDebuggerPresent();
+}
+
+
+void system_pause( void )
+{
+	system( "pause" );
+}
+
+
+static const char* _system_default_locale( void )
+{
+	return "enUS";
+}
+
+
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+
+
+const char* system_error_message( int code )
+{
+	if( !code )
+		code = errno;
+	if( !code )
+		return "";
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+	static char buffer[256]; //TODO: Thread safety
+#else
+	static THREADLOCAL char buffer[256];
+#endif
+	strerror_r( code, buffer, 256 );
+	return buffer;
+}
+
+
+const char* system_hostname( void )
+{
+	static char hostname[256] = {0};
+	if( hostname[0] )
+		return hostname;
+	strcpy( hostname, "<unknown>" );
+	gethostname( hostname, 256 );
+	hostname[255] = 0;
+	return hostname;
+}
+
+
+const char* system_username( void )
+{
+	static char username[64] = {0};
+	if( username[0] )
+		return username;
+	strcpy( username, "<unknown>" );
+#if FOUNDATION_PLATFORM_ANDROID
+	strncpy( username, getlogin(), 64 );
+#else
+	getlogin_r( username, 64 );
+#endif
+	username[63] = 0;
+	return username;	
+}
+
+
+uint64_t system_hostid( void )
+{
+	/*int s;
+	struct ifreq buffer;
+	s = socket( PF_INET, SOCK_DGRAM, 0 );
+	memset( &buffer, 0, sizeof( buffer ) );
+	strcpy(buffer.ifr_name, "eth0");
+	ioctl(s, SIOCGIFHWADDR, &buffer);
+	close(s);
+	printf("%.2X ", (unsigned char)buffer.ifr_hwaddr.sa_data[s]);*/
+#if FOUNDATION_PLATFORM_ANDROID
+	return 0;
+#else
+	return gethostid();
+#endif
+}
+
+
+unsigned int system_hardware_threads( void )
+{
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
+	return _ns_process_info_processor_count();
+#elif FOUNDATION_PLATFORM_ANDROID
+	return android_getCpuCount();
+#else
+	cpu_set_t prevmask, testmask;
+	CPU_ZERO( &prevmask );
+	CPU_ZERO( &testmask );
+	sched_getaffinity( 0, sizeof( prevmask ), &prevmask ); //Get current mask
+	sched_setaffinity( 0, sizeof( testmask ), &testmask ); //Set zero mask
+	sched_getaffinity( 0, sizeof( testmask ), &testmask ); //Get mask for all CPUs
+	sched_setaffinity( 0, sizeof( prevmask ), &prevmask ); //Reset current mask
+	unsigned int num = CPU_COUNT( &testmask );
+	return ( num > 1 ? num : 1 );
+#endif
+}
+
+
+void system_process_events( void )
+{
+#if FOUNDATION_PLATFORM_ANDROID
+	profile_begin_block( "system events" );
+
+	int ident = 0;
+	int events = 0;
+	int nummsg = 0;
+	struct android_poll_source* source = 0;
+	struct android_app* app = _global_app;
+
+	while( ( ident = ALooper_pollAll( 0, 0, &events, (void**)&source ) ) >= 0 )
+	{
+		// Process this event.
+		if( source )
+			source->process( app, source );
+		++nummsg;
+	}
+	
+	profile_end_block();
+#endif
+}
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+void android_handle_cmd( struct android_app* app, int32_t cmd )
+{
+    switch( cmd )
+	{
+		case APP_CMD_INPUT_CHANGED:
+		{
+			info_logf( "Got APP_CMD_INPUT_CHANGED" );
+            break;
+		}
+
+		case APP_CMD_INIT_WINDOW:
+		{
+			if( app->window )
+			{
+				int w = 0, h = 0;
+				w = ANativeWindow_getWidth( app->window );
+				h = ANativeWindow_getHeight( app->window );
+				info_logf( "Got APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
+			}
+            break;
+		}
+        
+		case APP_CMD_TERM_WINDOW:
+		{
+			info_logf( "Got APP_CMD_TERM_WINDOW" );
+            break;
+		}
+
+    	case APP_CMD_WINDOW_RESIZED:
+		{
+			info_logf( "Got APP_CMD_WINDOW_RESIZED" );
+            break;
+		}
+
+		case APP_CMD_WINDOW_REDRAW_NEEDED:
+		{
+			info_logf( "Got APP_CMD_WINDOW_REDRAW_NEEDED" );
+            break;
+		}
+
+		case APP_CMD_CONTENT_RECT_CHANGED:
+		{
+			info_logf( "Got APP_CMD_CONTENT_RECT_CHANGED" );
+            break;
+		}
+        
+		case APP_CMD_GAINED_FOCUS:
+		{
+			info_logf( "Got APP_CMD_GAINED_FOCUS" );
+			_app_enable_sensor( ASENSOR_TYPE_ACCELEROMETER );
+            break;
+		}
+
+		case APP_CMD_LOST_FOCUS:
+		{
+			info_logf( "Got APP_CMD_LOST_FOCUS" );
+			_app_disable_sensor( ASENSOR_TYPE_ACCELEROMETER );
+            break;
+		}
+
+		case APP_CMD_CONFIG_CHANGED:
+		{
+			info_logf( "Got APP_CMD_CONFIG_CHANGED" );
+            break;
+		}
+
+		case APP_CMD_LOW_MEMORY:
+		{
+			info_logf( "Got APP_CMD_LOW_MEMORY" );
+            break;
+		}
+
+		case APP_CMD_START:
+		{
+			info_logf( "Got APP_CMD_START" );
+            break;
+		}
+
+		case APP_CMD_RESUME:
+		{
+			info_logf( "Got APP_CMD_RESUME" );
+			app_reset_frame_time();
+			app_main_loop_resume();
+            break;
+		}
+
+		case APP_CMD_SAVE_STATE:
+		{
+			info_logf( "Got APP_CMD_SAVE_STATE" );
+            break;
+		}
+
+		case APP_CMD_PAUSE:
+		{
+			info_logf( "Got APP_CMD_PAUSE" );
+			app_main_loop_suspend();
+            break;
+		}
+
+		case APP_CMD_STOP:
+		{
+			info_logf( "Got APP_CMD_STOP" );
+            break;
+		}
+		
+		case APP_CMD_DESTROY:
+		{
+			info_logf( "Got APP_CMD_DESTROY" );
+			system_event_post( COREEVENT_TERMINATE );
+            break;
+		}
+
+		default:
+			break;
+    }
+}
+
+#endif
+
+
+bool system_debugger_attached( void )
+{
+	return false;
+}
+
+
+void system_pause( void )
+{
+}
+
+
+static const char* _system_default_locale( void )
+{
+	return "enUS";
+}
+
+
+void system_browser_open( const char* url )
+{
+
+}
+
+
+#endif
+
+
+uint32_t system_locale( void )
+{
+	uint32_t localeval = 0;
+	const char* locale = config_string( _HASH_ENGINE, _HASH_LOCALE );
+	if( !locale || ( string_length( locale ) != 4 ) )
+		locale = config_string( _HASH_APPLICATION, _HASH_LOCALE );
+	if( !locale || ( string_length( locale ) != 4 ) )
+		locale = _system_default_locale();
+	memcpy( &localeval, locale, 4 );
+	return localeval;
+}
+
+
+const char* system_locale_string( void )
+{
+	static char localestr[5] = {0};
+	uint32_t locale = system_locale();
+	memcpy( localestr, &locale, 4 );
+	return localestr;
+}
+
+
+uint16_t system_language( void )
+{
+	return (uint16_t)( ( system_locale() >> 16 ) & 0xFFFF );
+}
+
+
+uint16_t system_country( void )
+{
+	return (uint16_t)( system_locale() & 0xFFFF );
+}
+

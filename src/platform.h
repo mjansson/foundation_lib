@@ -23,8 +23,12 @@
 	preprocessor checks (the #if test will most likely catch the typo with an not defined error, whereas the
 	#ifdef macro will just resolve to false)
 
-	This header also defines a bunch of other preprocessor macros:
-	FOUNDATION_FOUNDATION_COMPILER_[...]
+	This header also defines a bunch of preprocessor macros:
+	FOUNDATION_PLATFORM_[...]
+	FOUNDATION_PLATFORM_ARCH_[...]
+	FOUNDATION_COMPILER_[...]
+	FOUNDATION_EXTERN
+	FOUNDATION_API
 	FOUNDATION_PREPROCESSOR_TOSTRING
 	FOUNDATION_PREPROCESSOR_JOIN
 	FOUNDATION_DECLARE_THREAD_LOCAL
@@ -83,6 +87,9 @@
 //Architectures
 #ifndef  FOUNDATION_PLATFORM_ARCH_ARM
 #  define FOUNDATION_PLATFORM_ARCH_ARM 0
+#  define FOUNDATION_PLATFORM_ARCH_ARM6 0
+#  define FOUNDATION_PLATFORM_ARCH_ARM7 0
+#  define FOUNDATION_PLATFORM_ARCH_ARM8 0
 #endif
 #ifndef  FOUNDATION_PLATFORM_ARCH_X86
 #  define FOUNDATION_PLATFORM_ARCH_X86 0
@@ -178,7 +185,25 @@
 #    if defined( __arm__ ) || FOUNDATION_PLATFORM_ARCH_ARM
 #      undef  FOUNDATION_PLATFORM_ARCH_ARM
 #      define FOUNDATION_PLATFORM_ARCH_ARM 1
-#      define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARM"
+#      if defined( __ARM_ARCH_8__ )
+#        undef  FOUNDATION_PLATFORM_ARCH_ARM8
+#        define FOUNDATION_PLATFORM_ARCH_ARM8 1
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
+#        error ARMv8 not yet supported
+#      elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
+#        undef  FOUNDATION_PLATFORM_ARCH_ARM7
+#        define FOUNDATION_PLATFORM_ARCH_ARM7 1
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv7"
+#        ifndef __ARM_NEON__
+#          error Missing ARM NEON support
+#        endif
+#      elif defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6__)
+#        undef  FOUNDATION_PLATFORM_ARCH_ARM6
+#        define FOUNDATION_PLATFORM_ARCH_ARM6 1
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv6"
+#      else
+#        error Unrecognized ARM architecture
+#      endif
 #    elif defined( __i386__ ) || FOUNDATION_PLATFORM_ARCH_X86
 #      undef  FOUNDATION_PLATFORM_IOS_SIMULATOR
 #      define FOUNDATION_PLATFORM_IOS_SIMULATOR 1

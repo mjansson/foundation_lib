@@ -44,3 +44,4 @@ FOUNDATION_API uint16_t           system_country( void );
 FOUNDATION_API uint32_t           system_locale( void );
 FOUNDATION_API const char*        system_locale_string( void );
 
+FOUNDATION_API void               system_process_events( void );

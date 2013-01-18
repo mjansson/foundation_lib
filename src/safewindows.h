@@ -30,14 +30,16 @@
 #define OUT
 #define far
 #define near
-#define FAR
+#define FAR 
 #define NEAR
 #define STREAM_SEEK_END _STREAM_SEEK_END
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-//#include <winsock2.h>
-//#include <ws2tcpip.h>
-//#include <iphlpapi.h>
+#include <winsock2.h>
+#include <iptypes.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
 //#include <mmsystem.h>
 //#include <mmreg.h>
 //#include <share.h>

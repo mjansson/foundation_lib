@@ -172,6 +172,9 @@ typedef void*         (* memory_allocate_zero_fn )( uint64_t size, unsigned int 
 typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align );
 typedef void          (* memory_deallocate_fn )( void* p );
 
+//! Callback function for writing profiling data to a stream
+typedef void          (* profile_write_fn)( void*, uint64_t );
+
 
 // COMPLEX TYPES
 

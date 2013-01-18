@@ -63,3 +63,6 @@
 #define BUILD_ENABLE_DEBUG_LOG                1
 
 #define BUILD_ERROR_CONTEXT_MAX_DEPTH         32
+
+#define BUILD_ENABLE_PROFILE                  1
+

@@ -39,6 +39,7 @@
 
 #include <objectmap.h>
 #include <timer.h>
+#include <profile.h>
 
 #include <environment.h>
 #include <config.h>
