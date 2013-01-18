@@ -25,6 +25,7 @@
 #include <atomic.h>
 #include <error.h>
 #include <thread.h>
+#include <library.h>
 #include <system.h>
 #include <log.h>
 

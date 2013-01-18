@@ -61,7 +61,7 @@ FOUNDATION_API void*                objectmap_raw_lookup( const objectmap_t* map
 	\return                         Object pointer, 0 if invalid/outdated handle */
 static FORCEINLINE PURECALL void*   objectmap_lookup( const objectmap_t* map, object_t id );
 
-#if 0
+
 static FORCEINLINE void* objectmap_lookup( const objectmap_t* map, object_t id )
 {
 	void* object = map->map[ id & map->mask_index ];
@@ -69,4 +69,3 @@ static FORCEINLINE void* objectmap_lookup( const objectmap_t* map, object_t id )
 	       ( ( *( (uint64_t*)object + 1 ) & map->mask_id ) == ( id & map->mask_id ) ) ? //ID in object is offset by 8 bytes
 	       object : 0 );
 }
-#endif

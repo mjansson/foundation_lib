@@ -85,11 +85,15 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _aligned_realloc( p, size, align );
 #elif FOUNDATION_PLATFORM_POSIX
-	//No posix_memalign_realloc
-	void* memory = realloc( p, size + align );
-	if( (uintptr_t)memory % align )
-		memory = pointer_offset( memory, align - ( (uintptr_t)memory % align ) );
-	return memory;
+	if( align )
+	{
+		//No posix_memalign_realloc
+		void* memory = realloc( p, size + align );
+		if( (uintptr_t)memory % align )
+			memory = pointer_offset( memory, align - ( (uintptr_t)memory % align ) );
+		return memory;
+	}
+	return realloc( p, size );
 #else
 #  error Not implemented
 #endif

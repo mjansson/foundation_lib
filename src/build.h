@@ -66,3 +66,6 @@
 
 #define BUILD_ENABLE_PROFILE                  1
 
+
+// Allocation sizes
+#define BUILD_LIBRARY_MAP_SIZE                64

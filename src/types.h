@@ -205,6 +205,17 @@ typedef struct _foundation_error_context
 	int                             depth;
 } error_context_t;
 
+//! Object base structure. If changing base object layout, change objectmap_lookup()
+#define FOUNDATION_DECLARE_OBJECT               \
+	ALIGN(16) volatile int32_t      ref;        \
+	int32_t                         objecttype; \
+	object_t                        id
+
+typedef struct _foundation_object_base
+{
+	FOUNDATION_DECLARE_OBJECT;
+} object_base_t;
+
 //! Object map
 typedef struct _foundation_objectmap
 {

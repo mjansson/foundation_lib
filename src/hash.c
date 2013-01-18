@@ -156,9 +156,6 @@ hash_t hash( alignedconstptr64_t key, const unsigned int len )
 
 #if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
 
-#include <array.h>
-#include <utf.h>
-
 #define HASH_STRING_BUCKETS		17
 #define HASH_STRING_KEY_BUCKETS	7
 

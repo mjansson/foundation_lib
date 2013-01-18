@@ -276,6 +276,10 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 			paths[9] = home_dir;
 		start_path = 9;
 	}
+	else
+	{
+		paths[9] = 0;
+	}
 
 	for( i = start_path; i < NUM_SEARCH_PATHS; ++i )
 	{

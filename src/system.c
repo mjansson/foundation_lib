@@ -86,6 +86,23 @@ byteorder_t system_byteorder()
 
 #include <safewindows.h>
 
+object_t _system_library_iphlpapi = 0;
+
+
+int _system_initialize( void )
+{
+	return 0;
+}
+
+
+void _system_shutdown( void )
+{
+	if( _system_library_iphlpapi )
+		library_unload( _system_library_iphlpapi );
+	_system_library_iphlpapi = 0;
+}
+
+
 const char* system_error_message( int code )
 {
 	static THREADLOCAL char errmsg[256];
@@ -121,10 +138,19 @@ uint64_t system_hostid( void )
 	unsigned char hostid[8] = {0};
 	IP_ADAPTER_INFO adapter_info[16];
 	unsigned int status, buffer_length, i, j;
+	DWORD (__stdcall *fn_get_adapters_info)( PIP_ADAPTER_INFO, PULONG ) = 0;
+
+	if( !_system_library_iphlpapi )
+	{
+		_system_library_iphlpapi = library_load( "iphlpapi" );
+		fn_get_adapters_info = (DWORD (__stdcall *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
+	}
+	if( !fn_get_adapters_info )
+		return 0;
 	
 	buffer_length = sizeof( adapter_info );  // Save memory size of buffer
 	memset( adapter_info, 0, sizeof( adapter_info ) );
-	status = GetAdaptersInfo( adapter_info, &buffer_length );
+	status = fn_get_adapters_info( adapter_info, &buffer_length );
 	if( status == ERROR_SUCCESS ) for( i = 0; i < 16; ++i )
 	{
 		if( adapter_info[i].Type == MIB_IF_TYPE_ETHERNET )
@@ -183,6 +209,16 @@ static const char* _system_default_locale( void )
 
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+
+
+int _system_initialize( void )
+{
+}
+
+
+void _system_shutdown( void )
+{
+}
 
 
 const char* system_error_message( int code )

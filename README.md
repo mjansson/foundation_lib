@@ -17,6 +17,7 @@ https://github.com/rampantpixels/profile_lib
 
 ## VERSION HISTORY
 
+* 0.1.4  (2013-01-18)  Added profiler, default malloc memory system and dynamic library loader. Preprocessor cleanups.
 * 0.1.3  (2013-01-17)  Added log callbacks, config parsing and application environment. Started static hash string tool
 * 0.1.2  (2013-01-16)  Adding object handles, object map, atomic operations, threading and log output
 * 0.1.1  (2013-01-15)  Adding assert and error handling, array, utf strings and hashing
