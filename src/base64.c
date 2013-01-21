@@ -13,8 +13,9 @@
 #include <foundation.h>
 
 
-static const char _base64_code[]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+/*lint -e{840}  We use null character in string literal deliberately here*/
 static const char _base64_decode[] = "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFGHIJKLMNOPQRSTUVW\0\0\0\0\0\0XYZ[\\]^_`abcdefghijklmnopq";
+static const char _base64_code[]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
 char* encode_base64( const void* arr, unsigned int size )
@@ -26,7 +27,7 @@ char* encode_base64( const void* arr, unsigned int size )
 	if( size % 3 )
 		len += 4;
 	carr = (const unsigned char*)arr;
-	buffer = memory_allocate( len + 1, 0, MEMORY_PERSISTENT );
+	buffer = memory_allocate( (uint64_t)len + 1U, 0, MEMORY_PERSISTENT );
 	ptr = buffer;
 	while( size > 2 )
 	{
@@ -57,9 +58,9 @@ char* encode_base64( const void* arr, unsigned int size )
 
 
 #define _decodeblock_base64( in, out ) \
-    out[ 0 ] = (unsigned char)( in[0] << 2 | in[1] >> 4 ); \
-    out[ 1 ] = (unsigned char)( in[1] << 4 | in[2] >> 2 ); \
-    out[ 2 ] = (unsigned char)( ( ( in[2] << 6 ) & 0xc0 ) | in[3] );
+    out[ 0 ] = (char)( in[0] << 2 | in[1] >> 4 ); \
+    out[ 1 ] = (char)( in[1] << 4 | in[2] >> 2 ); \
+    out[ 2 ] = (char)( ( ( in[2] << 6 ) & 0xc0 ) | in[3] );
 
 void decode_base64( const char* data, void* arr, unsigned int* size )
 {
@@ -79,8 +80,8 @@ void decode_base64( const char* data, void* arr, unsigned int* size )
 			char v = 0;
 			while( length && !v ) //Consume one valid byte from input, discarding invalid data
 			{
-				v = (unsigned char)*data++;
-				v = (unsigned char)( ( v < 43 || v > 122 ) ? 0 : _base64_decode[ v - 43 ] );
+				v = *data++;
+				v = ( ( v < 43 || v > 122 ) ? 0 : _base64_decode[ v - 43 ] );
 				if( v )
 				{
 					in[i] = (unsigned char)( v - 62 );
@@ -91,7 +92,7 @@ void decode_base64( const char* data, void* arr, unsigned int* size )
 		}
 		if( blocksize )
 		{
-			unsigned char out[3];
+			char out[3];
 			_decodeblock_base64( in, out );
 			for( i = 0; i < blocksize - 1; ++i )
 				*dst++ = out[i];

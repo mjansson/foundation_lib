@@ -44,6 +44,9 @@
 
 	*/
 
+//Lint warning inhibitors
+/*lint -e717    We use do {} while(0) constructs in macros deliberately */
+
 #if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE
 #  if __cplusplus
 #  define FOUNDATION_EXTERN extern "C"

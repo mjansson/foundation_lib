@@ -17,7 +17,6 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
-#  define vsnprintf( p, s, ... ) _vsnprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #endif
 
 
@@ -47,6 +46,7 @@ int assert_report( const char* condition, const char* file, int line, const char
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
 	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %s\nFile/line: %s : %d\n%s%s\n";
+	int ret;
 
 	if( !condition ) condition = nocondition;
 	if( !file      ) file  = nofile;
@@ -58,7 +58,9 @@ int assert_report( const char* condition, const char* file, int line, const char
 	_assert_context_buffer[0] = 0;
 	error_context_buffer( _assert_context_buffer, ASSERT_BUFFER_SIZE );
 
-	snprintf( _assert_box_buffer, ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg );
+	ret = snprintf( _assert_box_buffer, (size_t)ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg );
+	if( ( ret < 0 ) || ( ret >= ASSERT_BUFFER_SIZE ) )
+		_assert_box_buffer[ASSERT_BUFFER_SIZE-1] = 0;
 
 	debug_message_box( "Assert Failure", _assert_box_buffer, false );
 
@@ -71,9 +73,12 @@ int assert_report_formatted( const char* condition, const char* file, int line, 
 	if( msg )
 	{
 		/*lint --e{438} */
+		int ret;
 		va_list ap;
 		va_start( ap, msg );
-		vsnprintf( _assert_buffer, ASSERT_BUFFER_SIZE, msg, ap );
+		ret = vsnprintf( _assert_buffer, (size_t)ASSERT_BUFFER_SIZE, msg, ap );
+		if( ( ret < 0 ) || ( ret >= ASSERT_BUFFER_SIZE ) )
+			_assert_buffer[ASSERT_BUFFER_SIZE-1] = 0;
 		va_end( ap );
 	}
 	else

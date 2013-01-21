@@ -47,11 +47,12 @@ static void _output_logf( int severity, const char* prefix, const char* format, 
 	uint64_t tid = thread_id();
 	unsigned int pid = thread_hardware();
 	int need, more, remain, size = 383;
-	char local_buffer[384];
+	char local_buffer[385];
 	char* buffer = local_buffer;
 	va_list clist;
 	while(1)
 	{
+		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		need = snprintf( buffer, size, "[%.3f] <%llx:%d> %s", timestamp, tid, pid, prefix );
 
 		remain = size - need;
@@ -89,7 +90,7 @@ static void _output_logf( int severity, const char* prefix, const char* format, 
 
 		if( buffer != local_buffer )
 			memory_deallocate( buffer );
-		buffer = memory_allocate( size + 1, 0, MEMORY_TEMPORARY );
+		buffer = memory_allocate( size + 2, 0, MEMORY_TEMPORARY );
 	}
 	if( buffer != local_buffer )
 		memory_deallocate( buffer );
