@@ -592,12 +592,12 @@ typedef ALIGN(16) uint8_t     uint8_aligned128_t;
 
 #else
 
-typedef ALIGN(2)  void*       alignedptr16_t;
+typedef ALIGN(4)  void*       alignedptr16_t;
 typedef ALIGN(4)  void*       alignedptr32_t;
 typedef ALIGN(8)  void*       alignedptr64_t;
 typedef ALIGN(16) void*       alignedptr128_t;
 
-typedef ALIGN(2)  const void* alignedconstptr16_t;
+typedef ALIGN(4)  const void* alignedconstptr16_t;
 typedef ALIGN(4)  const void* alignedconstptr32_t;
 typedef ALIGN(8)  const void* alignedconstptr64_t;
 typedef ALIGN(16) const void* alignedconstptr128_t;

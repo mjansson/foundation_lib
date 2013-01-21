@@ -22,10 +22,10 @@
 
 
 //! Hash memory blob. Pointer must be aligned to 8 bytes
-FOUNDATION_API PURECALL hash_t               hash( alignedconstptr64_t key, const unsigned int len );
+FOUNDATION_API PURECALL hash_t               hash( const void* key, const unsigned int len );
 
 #if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
-static FORCEINLINE hash_t                    static_hash( alignedconstptr64_t key, const unsigned int len, const hash_t value );
+static FORCEINLINE hash_t                    static_hash( const void* key, const unsigned int len, const hash_t value );
 #  define static_hash_string( key, value )   static_hash( key, string_length( key ), value )
 FOUNDATION_API const char*                   hash_to_string( const hash_t value );
 #else
@@ -37,9 +37,9 @@ FOUNDATION_API const char*                   hash_to_string( const hash_t value 
 
 #if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
 
-FOUNDATION_API void _static_hash_store( alignedconstptr64_t key, const unsigned int len, const hash_t value );
+FOUNDATION_API void _static_hash_store( const void* key, const unsigned int len, const hash_t value );
 
-static FORCEINLINE hash_t static_hash( alignedconstptr64_t key, const unsigned int len, const hash_t value )
+static FORCEINLINE hash_t static_hash( const void* key, const unsigned int len, const hash_t value )
 {
 	hash_t ref = hash( key, len );
 	FOUNDATION_ASSERT_MSGFORMAT( !value || ( ref == value ), "Static hash fail: %s -> 0x%llx, expected 0x%llx", key, ref, value );

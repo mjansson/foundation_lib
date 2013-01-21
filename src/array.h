@@ -54,7 +54,7 @@
 #define array_grow(a,n)                   ( _array_growfn(&(a),(n),1,sizeof(*(a))), _array_rawsize(a)+=n, 0 )
 
 //Header size set to 16 bytes in order to align main array memory
-#define _array_header_size           4L
+#define _array_header_size           4UL
 #if BUILD_DEBUG
 #  define _array_verify(a)           ( _array_verifyfn((const void* const*)&(a)), (a) )
 #else

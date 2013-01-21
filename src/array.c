@@ -26,8 +26,10 @@ void _array_growfn( void* arr, int increment, int factor, int itemsize )
 {
 	void**   parr = (void**)arr;
 	int      capacity = *parr ? ( factor * _array_rawcapacity(*parr) + increment ) : ( increment + 1 );
-	int64_t  buffer_size = itemsize * capacity + 4LL * _array_header_size;
-	int*     buffer = *parr ? memory_reallocate( _array_raw( *parr ), (uint64_t)buffer_size, 0 ) : memory_allocate( (uint64_t)buffer_size, 16, MEMORY_PERSISTENT );
+	int      storage_size = itemsize * capacity;
+	uint64_t header_size = 4ULL * _array_header_size;
+	uint64_t buffer_size = (unsigned int)storage_size + header_size;
+	int*     buffer = *parr ? memory_reallocate( _array_raw( *parr ), buffer_size, 0 ) : memory_allocate( buffer_size, 16, MEMORY_PERSISTENT );
 	FOUNDATION_ASSERT_MSG( buffer, "Failed to reallocate array storage" );
 	if( buffer )
 	{

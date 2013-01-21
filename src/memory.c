@@ -59,7 +59,7 @@ void memory_deallocate( void* p )
 static void* _memory_allocate_malloc( uint64_t size, unsigned int align, memory_hint_t hint )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
-	return _aligned_malloc( size, align );
+	return _aligned_malloc( (size_t)size, align );
 #elif FOUNDATION_PLATFORM_POSIX
 	void* memory = 0;
 	result = posix_memalign( &memory, align, size );
@@ -83,7 +83,7 @@ static void* _memory_allocate_zero_malloc( uint64_t size, unsigned int align, me
 static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int align )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
-	return _aligned_realloc( p, size, align );
+	return _aligned_realloc( p, (size_t)size, align );
 #elif FOUNDATION_PLATFORM_POSIX
 	if( align )
 	{
