@@ -1,0 +1,7 @@
+debug           = 1   # 0 -> release build, 1 -> debug build
+profile         = 0   # 1 = profile build
+deploy          = 0   # 1 = deploy build
+arch            = ''  # '', 'x86', 'x86_64', 'arm'
+platform        = ''  # '','linux', 'macosx', win32', 'win64', 'raspberrypi'
+libsuffix       = ''  # suffix appended to all target library filenames
+tools           = 'gnu'  # Tools to use, 'intel', 'gnu', 'msvc'
