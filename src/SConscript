@@ -1,0 +1,54 @@
+
+import os.path
+
+Import("env")
+
+
+# SOURCES
+
+foundationsources = [
+
+	'array.c', 'assert.c', 'base64.c', 'config.c', 'environment.c', 'error.c', 'foundation.c', 'hash.c', 'library.c',
+	'log.c', 'memory.c', 'objectmap.c', 'path.c', 'profile.c', 'stream.c', 'system.c', 'thread.c', 'timer.c', 'utf.c'
+
+	]
+
+foundationheaders = [
+
+	'arrra.h', 'assert.h', 'atomic.h', 'base64.h', 'bits.h', 'build.h', 'config.h', 'environment.h', 'error.h',
+	'hash.h', 'hashstrings.h', 'internal.h', 'library.h', 'log.h', 'mathcore.h', 'memory.h', 'objectmap.h',
+	'path.h', 'platform.h', 'profile.h', 'stream.h', 'system.h', 'thread.h', 'timer.h', 'types.h', 'utf.h'
+
+	]
+
+#if env['platform'] == 'raspberrypi':
+#	enginesources.extend( [ 'core/atomic64_arm6.s' ] )
+
+
+# ADD INTERNAL FLAGS
+
+libenv = env.Clone()
+libenv.Append( CPPDEFINES=['FOUNDATION_COMPILE=1'] )
+
+
+# OUTPUTS
+
+#libenv['PCH'] = libenv.PCH( 'foundation.h.gch', '#/src/foundation.h' )[0]
+#libenv.Depends( libenv['PCH'], foundationsources )
+#if env['PLATFORM'] == 'win32':
+#	libenv.Command( '#/src/foundation.h.gch', libenv['PCH'], [ 'copy $SOURCE $TARGET' ] )
+#else:
+#	libenv.Command( '#/src/foundation.h.gch', libenv['PCH'], [ 'cp -pf $SOURCE $TARGET' ] )
+
+env['foundationlib'] = libenv.StaticLibrary( 'foundation', foundationsources )
+
+
+# DEPENDENCIES
+
+#if env['toolset'] == 'gnu':
+#	libenv.Depends( [ os.path.splitext( x )[0] + '.o' for x in foundationsources ], '#/src/foundation.h.gch' )
+
+
+# INSTALLS
+
+libenv.AddPostAction( 'foundation', libenv.Install( '#lib/${platform}${platformsuffix}/${buildprofile}', [ env['foundationlib'] ] ) )
