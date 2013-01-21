@@ -116,6 +116,8 @@ UpgradeLog*.XML
 
 #Project builds
 lib/**
+bin/**
+dist/**
 
 
 ############
@@ -139,10 +141,8 @@ Desktop.ini
 *.egg
 *.egg-info
 dist
-build
 eggs
 parts
-bin
 var
 sdist
 develop-eggs

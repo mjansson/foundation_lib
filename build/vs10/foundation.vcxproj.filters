@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\..\src\assert.h" />
+    <ClInclude Include="..\..\src\foundation.h" />
+    <ClInclude Include="..\..\src\platform.h" />
+    <ClInclude Include="..\..\src\timer.h" />
+    <ClInclude Include="..\..\src\types.h" />
+    <ClInclude Include="..\..\src\build.h" />
+    <ClInclude Include="..\..\src\error.h" />
+    <ClInclude Include="..\..\src\memory.h" />
+    <ClInclude Include="..\..\src\array.h" />
+    <ClInclude Include="..\..\src\hash.h" />
+    <ClInclude Include="..\..\src\utf.h" />
+    <ClInclude Include="..\..\src\base64.h" />
+    <ClInclude Include="..\..\src\bits.h" />
+    <ClInclude Include="..\..\src\objectmap.h" />
+    <ClInclude Include="..\..\src\mathcore.h" />
+    <ClInclude Include="..\..\src\atomic.h" />
+    <ClInclude Include="..\..\src\log.h" />
+    <ClInclude Include="..\..\src\thread.h" />
+    <ClInclude Include="..\..\src\safewindows.h" />
+    <ClInclude Include="..\..\src\environment.h" />
+    <ClInclude Include="..\..\src\config.h" />
+    <ClInclude Include="..\..\src\path.h" />
+    <ClInclude Include="..\..\src\stream.h" />
+    <ClInclude Include="..\..\src\hashstrings.h" />
+    <ClInclude Include="..\..\src\internal.h" />
+    <ClInclude Include="..\..\src\profile.h" />
+    <ClInclude Include="..\..\src\library.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\timer.c" />
+    <ClCompile Include="..\..\src\foundation.c" />
+    <ClCompile Include="..\..\src\assert.c" />
+    <ClCompile Include="..\..\src\error.c" />
+    <ClCompile Include="..\..\src\memory.c" />
+    <ClCompile Include="..\..\src\array.c" />
+    <ClCompile Include="..\..\src\hash.c" />
+    <ClCompile Include="..\..\src\utf.c" />
+    <ClCompile Include="..\..\src\base64.c" />
+    <ClCompile Include="..\..\src\objectmap.c" />
+    <ClCompile Include="..\..\src\log.c" />
+    <ClCompile Include="..\..\src\thread.c" />
+    <ClCompile Include="..\..\src\environment.c" />
+    <ClCompile Include="..\..\src\config.c" />
+    <ClCompile Include="..\..\src\path.c" />
+    <ClCompile Include="..\..\src\stream.c" />
+    <ClCompile Include="..\..\src\system.c" />
+    <ClCompile Include="..\..\src\profile.c" />
+    <ClCompile Include="..\..\src\library.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\src\hashstrings.txt" />
+  </ItemGroup>
+</Project>
