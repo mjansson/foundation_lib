@@ -30,6 +30,7 @@ FOUNDATION_API int                  assert_report_formatted( const char* conditi
 #undef FOUNDATION_ASSERT
 
 #if FOUNDATION_PLATFORM_WINDOWS
+FOUNDATION_EXTERN void __cdecl __debugbreak(void);
 #  define FOUNDATION_DUMP() do { *(volatile int*)3 = 0; } while(0)
 #  define FOUNDATION_BREAKPOINT() do { __debugbreak(); } while(0)
 #elif FOUNDATION_PLATFORM_MACOSX
