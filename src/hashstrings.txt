@@ -1,7 +1,7 @@
 
-_HASH_ENGINE                             engine
-_HASH_DEFAULT                            default
-_HASH_NULL                               null
-_HASH_LOCALE                             locale
-_HASH_APPLICATION                        application
-_HASH_USER                               user
+HASH_ENGINE                             engine
+HASH_DEFAULT                            default
+HASH_NULL                               null
+HASH_LOCALE                             locale
+HASH_APPLICATION                        application
+HASH_USER                               user
