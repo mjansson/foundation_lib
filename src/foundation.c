@@ -32,6 +32,9 @@ extern void _library_shutdown( void );
 extern int _system_initialize( void );
 extern void _system_shutdown( void );
 
+extern int _fs_initialize( void );
+extern void _fs_shutdown( void );
+
 extern int _config_initialize( void );
 extern void _config_shutdown( void );
 
@@ -56,6 +59,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _system_initialize() < 0 )
 		return -1;
 
+	if( _fs_initialize() < 0 )
+		return -1;
+
 	if( _config_initialize() < 0 )
 		return -1;
 
@@ -66,6 +72,7 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 void foundation_shutdown( void )
 {
 	_config_shutdown();
+	_fs_shutdown();
 	_system_shutdown();
 	_library_shutdown();
 	_environment_shutdown();

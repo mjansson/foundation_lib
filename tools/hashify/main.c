@@ -20,16 +20,16 @@ int main()
 {
 	unsigned int arg = 0, asize = 0, ihist = 0, histsize = 0;
 	char** files = 0;
-	const char* const* cmdline;
+	const char* const* cmdline = 0;
 	hash_t* history_hash = 0;
 	char** history_string = 0;
 	char def_buffer[1024];
 	char str_buffer[1024];
-	char* output_filename;
-	const char* input_filename;
-	stream_t* input;
-	stream_t* output;
-	char* preamble;
+	char* output_filename = 0;
+	const char* input_filename = 0;
+	stream_t* input = 0;
+	stream_t* output = 0;
+	char* preamble = 0;
 	hash_t hash_value;
 
 	application_t application;
@@ -67,9 +67,9 @@ int main()
 	}
 	error_context_pop();
 
-	for( arg = 1, asize = array_size( files ); arg < asize; ++arg )
+	for( arg = 0, asize = array_size( files ); arg < asize; ++arg )
 	{
-		input_filename = files[arg];
+		input_filename = path_clean( files[arg], path_is_absolute( files[arg] ) );
 		error_context_push( "Parsing file", input_filename );
 
 		output_filename = string_append( path_base_file_name_with_path( input_filename ), ".h" );

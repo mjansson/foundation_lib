@@ -25,6 +25,7 @@
 #include <atomic.h>
 #include <error.h>
 #include <thread.h>
+#include <mutex.h>
 #include <library.h>
 #include <system.h>
 #include <log.h>
@@ -39,12 +40,14 @@
 #include <mathcore.h>
 
 #include <objectmap.h>
+#include <event.h>
 #include <timer.h>
 #include <profile.h>
 
 #include <environment.h>
 #include <config.h>
 #include <stream.h>
+#include <fs.h>
 
 
 //! Entry point

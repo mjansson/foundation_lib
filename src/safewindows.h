@@ -42,7 +42,9 @@
 #include <iphlpapi.h>
 //#include <mmsystem.h>
 //#include <mmreg.h>
-//#include <share.h>
+#include <share.h>
+#include <io.h>
+#include <shellapi.h>
 #if FOUNDATION_COMPILER_MSVC
 #  include <dbghelp.h>
 #  include <stdlib.h>
