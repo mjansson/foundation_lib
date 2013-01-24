@@ -91,7 +91,7 @@ void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t 
 
 void event_post_delay( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, real delay )
 {
-	event_post_delay_ticks( stream, systemid, id, size, object, payload, (time_t)( delay * (real)timer_ticks_per_second() ) );
+	event_post_delay_ticks( stream, systemid, id, size, object, payload, (time_t)( delay * (real)time_ticks_per_second() ) );
 }
 
 

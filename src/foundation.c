@@ -17,8 +17,8 @@
 extern int _memory_initialize( const memory_system_t memory );
 extern void _memory_shutdown( void );
 
-extern int _timer_initialize( void );
-extern void _timer_shutdown( void );
+extern int _time_initialize( void );
+extern void _time_shutdown( void );
 
 extern int _thread_initialize( void );
 extern void _thread_shutdown( void );
@@ -35,6 +35,9 @@ extern void _system_shutdown( void );
 extern int _fs_initialize( void );
 extern void _fs_shutdown( void );
 
+extern int _random_initialize( void );
+extern void _random_shutdown( void );
+
 extern int _config_initialize( void );
 extern void _config_shutdown( void );
 
@@ -44,10 +47,13 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _memory_initialize( memory ) < 0 )
 		return -1;
 
-	if( _timer_initialize() < 0 )
+	if( _time_initialize() < 0 )
 		return -1;
 
 	if( _thread_initialize() < 0 )
+		return -1;
+
+	if( _random_initialize() < 0 )
 		return -1;
 
 	if( _environment_initialize( application ) < 0 )
@@ -76,7 +82,8 @@ void foundation_shutdown( void )
 	_system_shutdown();
 	_library_shutdown();
 	_environment_shutdown();
+	_random_shutdown();
 	_thread_shutdown();
-	_timer_shutdown();
+	_time_shutdown();
 	_memory_shutdown();
 }

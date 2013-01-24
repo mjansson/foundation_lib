@@ -469,6 +469,8 @@ void thread_set_hardware( unsigned int hw_thread )
 
 void thread_cleanup( void )
 {
+	random_thread_deallocate();
+
 #if FOUNDATION_PLATFORM_ANDROID
 	thread_detach_jvm();
 #endif

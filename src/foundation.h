@@ -26,22 +26,27 @@
 #include <error.h>
 #include <thread.h>
 #include <mutex.h>
+#include <semaphore.h>
 #include <library.h>
 #include <system.h>
+#include <process.h>
 #include <log.h>
 
 #include <hash.h>
 #include <hashstrings.h>
 #include <base64.h>
+#include <md5.h>
 #include <array.h>
+#include <ringbuffer.h>
 #include <utf.h>
 #include <path.h>
 
 #include <mathcore.h>
+#include <random.h>
 
 #include <objectmap.h>
 #include <event.h>
-#include <timer.h>
+#include <time.h>
 #include <profile.h>
 
 #include <environment.h>
