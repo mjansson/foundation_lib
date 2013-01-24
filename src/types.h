@@ -307,8 +307,51 @@ typedef struct _foundation_event
 	char                  payload[];
 } event_t;
 
+//! Semaphore
+#if FOUNDATION_PLATFORM_WINDOWS
+typedef void*                        semaphore_t;
+#elif FOUNDATION_PLATFORM_MACOSX
+typedef struct OpaqueMPSemaphoreID*  MPSemaphoreID;
+typedef struct _foundation_semaphore
+{
+	char*                            name;
+	union
+	{
+		MPSemaphoreID                unnamed;
+		int*                         named;
+	} sem;
+} semaphore_t;
+#elif FOUNDATION_PLATFORM_IOS
+typedef struct dispatch_semaphore_s* dispatch_semaphore_t;
+typedef dispatch_semaphore_t         semaphore_t;
+#elif FOUNDATION_PLATFORM_POSIX
+typedef union
+{
+#  if FOUNDATION_PLATFORM_ANDROID
+	volatile unsigned int  count;
+#else
+#  if FOUNDATION_ARCH_X86_64
+	char __size[64];
+#  else
+	char __size[32];
+#  endif
+	long int __align;
+#endif
+} semaphore_native_t;
+typedef struct _foundation_semaphore
+{
+	char*                            name;
+	semaphore_native_t*              sem;
+	semaphore_native_t               unnamed;
+} semaphore_t;
+#else
+#  error Semaphore not implemented yet on this platform
+#endif
+
 
 // OPAQUE COMPLEX TYPES
+
+typedef struct _foundation_md5              md5_t;
 
 typedef struct _foundation_stream           stream_t;
 typedef struct _foundation_directory        directory_t;
@@ -318,3 +361,5 @@ typedef struct _foundation_process          process_t;
 
 typedef struct _foundation_event_block      event_block_t;
 typedef struct _foundation_event_stream     event_stream_t;
+
+typedef struct _foundation_ringbuffer       ringbuffer_t;
