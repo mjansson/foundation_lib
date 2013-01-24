@@ -55,19 +55,26 @@ typedef struct _foundation_stream_vtable
 	stream_clone_fn          clone;
 } stream_vtable_t;
 
-#define FOUNDATION_DECLARE_STREAM                \
-	unsigned int        type:16;                 \
-	unsigned int        sequential:1;            \
-	unsigned int        reliable:1;              \
-	unsigned int        inorder:1;               \
-	unsigned int        swap:1;                  \
-	unsigned int        unused_streamflags:12;   \
-	byteorder_t         byteorder;               \
-	unsigned int        mode;                    \
-	char*               path;                    \
-	stream_vtable_t*    vtable
+#define FOUNDATION_DECLARE_STREAM                     \
+	unsigned int             type:16;                 \
+	unsigned int             sequential:1;            \
+	unsigned int             reliable:1;              \
+	unsigned int             inorder:1;               \
+	unsigned int             swap:1;                  \
+	unsigned int             unused_streamflags:12;   \
+	byteorder_t              byteorder;               \
+	unsigned int             mode;                    \
+	char*                    path;                    \
+	stream_vtable_t*         vtable
 
 struct ALIGN(8) _foundation_stream
 {
 	FOUNDATION_DECLARE_STREAM;
 };
+
+struct _foundation_directory
+{
+	char                     path[];
+};
+
+FOUNDATION_API void _stream_initialize( stream_t* stream );
