@@ -61,9 +61,15 @@ FOUNDATION_API stream_t*        fs_open_file( const char* path, unsigned int mod
 	\return                     Directory, null if not found or invalid */
 FOUNDATION_API directory_t*     fs_open_directory( const char* path );
 
-/*! \param path                 File path
+/*! Get last modification date (last write)
+    \param path                 File path
     \return                     File modification date, 0 if not an existing file */
 FOUNDATION_API uint64_t         fs_last_modified( const char* path );
+
+/*! Get file md5 digest
+    \param path                 File path
+    \return                     md5 digest, 0 if not an existing file or unreadable */
+FOUNDATION_API uint128_t        fs_md5( const char* path );
 
 /*! Get files matching the given pattern. Free the returned
     array with string_array_deallocate()

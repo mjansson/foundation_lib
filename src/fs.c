@@ -492,6 +492,17 @@ uint64_t fs_last_modified( const char* path )
 }
 
 
+uint128_t fs_md5( const char* path )
+{
+	uint128_t digest = {0};
+	stream_t* file = fs_open_file( path, STREAM_IN | STREAM_BINARY );
+	if( file )
+		digest = stream_md5( file );
+	stream_deallocate( file );
+	return digest;
+}
+
+
 void fs_touch( const char* path )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -1102,9 +1113,9 @@ static uint64_t _fs_file_write( stream_t* stream, const void* buffer, uint64_t n
 }
 
 
-static uint64_t _fs_file_last_modified( stream_t* stream )
+static uint64_t _fs_file_last_modified( const stream_t* stream )
 {
-	return fs_last_modified( GET_FILE( stream )->path );
+	return fs_last_modified( GET_FILE_CONST( stream )->path );
 }
 
 
@@ -1172,6 +1183,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 {
 	stream_file_t* file;
 	stream_t* stream;
+	char* abspath;
 	bool dotrunc, atend;
 	unsigned int in_mode = mode;
 	unsigned int pathlen;
@@ -1191,7 +1203,15 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 	stream->type = STREAMTYPE_FILE;
 	stream->sequential = false;
-	stream->path = string_clone( path );
+
+	abspath = path_make_absolute( path );
+	if( string_equal_substr( abspath, "file://", 7 ) )
+		stream->path = abspath;
+	else
+	{
+		stream->path = string_format( "file://", abspath );
+		string_deallocate( abspath );
+	}
 
 	dotrunc = false;
 	file->fd = _fs_file_fopen( file->path, mode, &dotrunc );
@@ -1225,6 +1245,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 }
 
 
+FOUNDATION_EXTERN void _ringbuffer_stream_initialize( void );
 
 int _fs_initialize( void )
 {
@@ -1244,6 +1265,8 @@ int _fs_initialize( void )
 	_fs_file_vtable.available_read = 0;
 	_fs_file_vtable.deallocate = _fs_file_close;
 	_fs_file_vtable.clone = _fs_file_clone;
+
+	_ringbuffer_stream_initialize();
 
 	return 0;
 }
