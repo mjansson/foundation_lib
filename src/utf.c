@@ -15,9 +15,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include <time.h>
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_WINDOWS
+FOUNDATION_EXTERN errno_t _ctime64_s( char*, size_t, const __time64_t* );;
+#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 #endif
 

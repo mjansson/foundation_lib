@@ -36,7 +36,7 @@ __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
 static bool             _log_stdout   = true;
 static log_callback_fn  _log_callback = 0;
 
-#define make_timestamp()  ((float32_t)( (real)( timer_current() - timer_startup() ) / (real)timer_ticks_per_second() ))
+#define make_timestamp()  ((float32_t)( (real)( time_current() - time_startup() ) / (real)time_ticks_per_second() ))
 
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG

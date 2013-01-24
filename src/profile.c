@@ -127,14 +127,14 @@ static void _profile_put_simple_block( uint32_t block )
 static void _profile_put_message_block( uint32_t id, const char* message )
 {
 	profile_block* subblock = 0;
-	int len = (int)strlen( message );
+	int len = (int)string_length( message );
 
 	//Allocate new master block
 	profile_block* block = _allocate_profile_block();
 	block->data.id = id;
 	block->data.processor = thread_hardware();
 	block->data.thread = (uint32_t)thread_id();
-	block->data.start  = timer_current() - _profile_ground_time;
+	block->data.start  = time_current() - _profile_ground_time;
 	block->data.end = atomic_add32( &_profile_counter, 1 );
 	string_copy( block->data.name, message, ( len > MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
 
@@ -204,7 +204,7 @@ static void* _profile_io( void* arg )
 	profile_block system_info;
 	memset( &system_info, 0, sizeof( profile_block ) );
 	system_info.data.id = PROFILE_ID_SYSTEMINFO;
-	system_info.data.start = timer_ticks_per_second();
+	system_info.data.start = time_ticks_per_second();
 	string_copy( system_info.data.name, "sysinfo", 7 );
 
 	while( !_profile_terminate_io )
@@ -275,7 +275,7 @@ void profile_initialize( char* identifier, void* buffer, uint64_t size )
 	_profile_blocks = _profile_root;
 	_profile_free = 1;
 	_profile_counter = 128;
-	_profile_ground_time = timer_current();
+	_profile_ground_time = time_current();
 	set_thread_profile_block( 0 );
 }
 
@@ -310,7 +310,7 @@ void profile_end_frame( uint64_t counter )
 	block->data.id = PROFILE_ID_ENDFRAME;
 	block->data.processor = thread_hardware();
 	block->data.thread = (uint32_t)thread_id();
-	block->data.start  = timer_current() - _profile_ground_time;
+	block->data.start  = time_current() - _profile_ground_time;
 	block->data.end = counter;
 
 	_profile_put_simple_block( BLOCK_INDEX( block ) );
@@ -333,7 +333,7 @@ void profile_begin_block( const char* message )
 		string_copy( block->data.name, message, MAX_MESSAGE_LENGTH );
 		block->data.processor = thread_hardware();
 		block->data.thread = (uint32_t)thread_id();
-		block->data.start  = timer_current() - _profile_ground_time;
+		block->data.start  = time_current() - _profile_ground_time;
 		set_thread_profile_block( BLOCK_INDEX( block ) );
 	}
 	else
@@ -347,7 +347,7 @@ void profile_begin_block( const char* message )
 		string_copy( subblock->data.name, message, MAX_MESSAGE_LENGTH );
 		subblock->data.processor = thread_hardware();
 		subblock->data.thread = (uint32_t)thread_id();
-		subblock->data.start  = timer_current() - _profile_ground_time;
+		subblock->data.start  = time_current() - _profile_ground_time;
 		subblock->previous = parent;
 		subblock->sibling = block->child;
 		if( block->child )
@@ -387,7 +387,7 @@ void profile_end_block( void )
 		return;
 	
 	block = GET_BLOCK( block_index );
-	block->data.end = timer_current() - _profile_ground_time;
+	block->data.end = time_current() - _profile_ground_time;
 	
 	if( block->previous )
 	{
