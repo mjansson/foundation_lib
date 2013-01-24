@@ -330,7 +330,7 @@ typedef union
 #  if FOUNDATION_PLATFORM_ANDROID
 	volatile unsigned int  count;
 #else
-#  if FOUNDATION_ARCH_X86_64
+#  if FOUNDATION_PLATFORM_ARCH_X86_64
 	char __size[64];
 #  else
 	char __size[32];

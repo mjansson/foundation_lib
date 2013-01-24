@@ -48,14 +48,14 @@
 /*lint -e717    We use do {} while(0) constructs in macros deliberately */
 
 #if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE
-#  if __cplusplus
+#  ifdef __cplusplus
 #  define FOUNDATION_EXTERN extern "C"
 #  else
 #  define FOUNDATION_EXTERN extern
 #  endif
 #  define FOUNDATION_API
 #else
-#  if __cplusplus
+#  ifdef __cplusplus
 #  define FOUNDATION_EXTERN extern "C"
 #  define FOUNDATION_API extern "C"
 #  else
@@ -457,6 +457,8 @@
 #  define PURECALL ATTRIBUTE(pure)
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
+
+#  include <stdbool.h>
 
 // Intel
 #elif defined( __ICL ) || defined( __ICC )

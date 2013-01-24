@@ -173,3 +173,7 @@ dist/**
 #Log files
 *.log
 *.tlog
+
+#Scons build
+.sconsign.dblite
+
