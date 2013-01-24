@@ -1,10 +1,12 @@
-/* timer.c  -  Cross-platform timer library  -  Public Domain  -  2011 Mattias Jansson / Rampant Pixels
+/* time.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
- * This library provides a cross-platform interface to measure
- * elapsed time with (at least) millisecond accuracy.
- *
- * This library is put in the public domain; you can redistribute
- * it and/or modify it without any restrictions.
+ * This library provides a cross-platform foundation library in C11 providing basic support data types and
+ * functions to write applications and games in a platform-independent fashion. The latest source code is
+ * always available at
+ * 
+ * https://github.com/rampantpixels/foundation_lib
+ * 
+ * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
 
@@ -16,8 +18,8 @@
 #elif FOUNDATION_PLATFORM_APPLE
 #  include <mach/mach_time.h>
 #  include <string.h>
-static mach_timebase_info_data_t _timerlib_info;
-static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) { *clock = mach_time * _timerlib_info.numer / _timerlib_info.denom; }
+static mach_timebase_info_data_t _time_info;
+static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <unistd.h>
 #  include <time.h>
@@ -26,42 +28,42 @@ static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) {
 #  error Not implemented on this platform!
 #endif
 
-static tick_t _timerlib_freq    = 0;
-static double _timerlib_oofreq  = 0;
-static tick_t _timerlib_startup = 0;
+static tick_t _time_freq    = 0;
+static double _time_oofreq  = 0;
+static tick_t _time_startup = 0;
 
 
-int _timer_initialize( void )
+int _time_initialize( void )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	tick_t unused;
-	if( !QueryPerformanceFrequency( (LARGE_INTEGER*)&_timerlib_freq ) ||
+	if( !QueryPerformanceFrequency( (LARGE_INTEGER*)&_time_freq ) ||
 	    !QueryPerformanceCounter( (LARGE_INTEGER*)&unused ) )
 		return -1;
 #elif FOUNDATION_PLATFORM_APPLE
-	if( mach_timebase_info( &_timerlib_info ) )
+	if( mach_timebase_info( &_time_info ) )
 		return -1;
-	_timerlib_freq = 1000000000ULL;
+	_time_freq = 1000000000ULL;
 #elif FOUNDATION_PLATFORM_POSIX
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	if( clock_gettime( CLOCK_MONOTONIC, &ts ) )
 		return -1;
-	_timerlib_freq = 1000000000ULL;
+	_time_freq = 1000000000ULL;
 #endif
 
-	_timerlib_oofreq  = REAL_C(1.0) / (double)_timerlib_freq;
-	_timerlib_startup = timer_current();
+	_time_oofreq  = REAL_C(1.0) / (double)_time_freq;
+	_time_startup = time_current();
 
 	return 0;
 }
 
 
-void _timer_shutdown( void )
+void _time_shutdown( void )
 {
 }
 
 
-tick_t timer_current( void )
+tick_t time_current( void )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -85,25 +87,25 @@ tick_t timer_current( void )
 }
 
 
-tick_t timer_startup( void )
+tick_t time_startup( void )
 {
-	return _timerlib_startup;
+	return _time_startup;
 }
 
 
-tick_t timer_ticks_per_second( void )
+tick_t time_ticks_per_second( void )
 {
-	return _timerlib_freq;
+	return _time_freq;
 }
 
 
-deltatime_t timer_elapsed( const tick_t t )
+deltatime_t time_elapsed( const tick_t t )
 {
-	return (deltatime_t)( (double)timer_elapsed_ticks( t ) * _timerlib_oofreq );
+	return (deltatime_t)( (double)time_elapsed_ticks( t ) * _time_oofreq );
 }
 
 
-tick_t timer_elapsed_ticks( const tick_t t )
+tick_t time_elapsed_ticks( const tick_t t )
 {
 	tick_t dt = 0;
 
@@ -134,9 +136,9 @@ tick_t timer_elapsed_ticks( const tick_t t )
 }
 
 
-deltatime_t timer_ticks_to_seconds( const tick_t dt )
+deltatime_t time_ticks_to_seconds( const tick_t dt )
 {
-	return (deltatime_t)( (double)dt * _timerlib_oofreq );
+	return (deltatime_t)( (double)dt * _time_oofreq );
 }
 
 
@@ -150,7 +152,7 @@ struct __timeb64 {
 _CRTIMP errno_t __cdecl _ftime64_s(_Out_ struct __timeb64 * _Time);
 #endif
 
-tick_t timer_system( void )
+tick_t time_system( void )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
