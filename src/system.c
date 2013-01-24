@@ -478,9 +478,9 @@ void system_browser_open( const char* url )
 uint32_t system_locale( void )
 {
 	uint32_t localeval = 0;
-	const char* locale = config_string( _HASH_ENGINE, _HASH_LOCALE );
+	const char* locale = config_string( HASH_ENGINE, HASH_LOCALE );
 	if( !locale || ( string_length( locale ) != 4 ) )
-		locale = config_string( _HASH_APPLICATION, _HASH_LOCALE );
+		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
 	if( !locale || ( string_length( locale ) != 4 ) )
 		locale = _system_default_locale();
 	memcpy( &localeval, locale, 4 );

@@ -30,7 +30,19 @@ void _stream_initialize( stream_t* stream )
 
 stream_t* stream_open( const char* path, unsigned int mode )
 {
-	return 0;
+	int protocol_end;
+
+	//Check if protocol was given
+	protocol_end = string_find_string( path, "://", 0 );
+	if( protocol_end != STRING_NPOS )
+	{
+		//TODO: Proper pluggable protocol handling
+	}
+
+	//No protocol, assume virtual file system path
+	//TODO: Virtual file system
+
+	return fs_open_file( path, mode );
 }
 
 

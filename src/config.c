@@ -120,7 +120,7 @@ int _config_initialize( void )
 	config_load( "application", 0, true );
 
 	//Load per-user config
-	config_load( "user", _HASH_USER, false );
+	config_load( "user", HASH_USER, false );
 
 	return 0;
 }

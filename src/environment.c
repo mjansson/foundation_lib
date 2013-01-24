@@ -30,13 +30,28 @@ static application_t   _environment_app;
 
 int _environment_initialize( const application_t application )
 {
-	_environment_app = application;
+#if FOUNDATION_PLATFORM_WINDOWS
+	int ia;
+	int num_args = 0;
+	LPWSTR* arg_list = CommandLineToArgvW( GetCommandLineW(), &num_args );
+	if( !arg_list )
+		return -1;
+
+	for( ia = 0; ia < num_args; ++ia )
+		array_push( _environment_argv, string_allocate_from_wstring( arg_list[ia], 0 ) );
+
+	LocalFree( arg_list );
+#endif
+
+   	_environment_app = application;
+
 	return 0;
 }
 
 
 void _environment_shutdown( void )
 {
+	string_array_deallocate( _environment_argv );
 }
 
 
