@@ -67,7 +67,4 @@
     <ClCompile Include="..\..\src\semaphore.c" />
     <ClCompile Include="..\..\src\time.c" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\src\hashstrings.txt" />
-  </ItemGroup>
 </Project>
