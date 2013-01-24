@@ -37,6 +37,21 @@ stream_t* stream_open( const char* path, unsigned int mode )
 	if( protocol_end != STRING_NPOS )
 	{
 		//TODO: Proper pluggable protocol handling
+		if( ( protocol_end == 4 ) && string_equal_substr( path, "file", protocol_end ) )
+			fs_open_file( path, mode );
+		//else if( ( protocol_end == 10 ) && string_equal_substr( path, "ringbuffer", protocol_end ) )
+		//	ringbuffer_stream_open( ... );
+		//else if( ( protocol_end == 3 ) && string_equal_substr( path, "tcp", protocol_end ) )
+		//	socket_tcp_connect( ... );
+		//else if( ( protocol_end == 3 ) && string_equal_substr( path, "udp", protocol_end ) )
+		//	socket_udp_open( ... );
+		//else if( ( protocol_end == 4 ) && string_equal_substr( path, "http", protocol_end ) )
+		//	http_get( ... );
+		else if( ( protocol_end != 3 ) || !string_equal_substr( path, "vfs", protocol_end ) )
+		{
+			error_logf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
+			return 0;
+		}
 	}
 
 	//No protocol, assume virtual file system path
@@ -128,6 +143,12 @@ byteorder_t stream_byteorder( const stream_t* stream )
 const char* stream_path( const stream_t* stream )
 {
 	return ( stream ? stream->path : 0 );
+}
+
+
+uint64_t stream_last_modified( const stream_t* stream )
+{
+	return ( stream && stream->vtable->lastmod ? stream->vtable->lastmod( stream ) : 0 );
 }
 
 
@@ -700,6 +721,76 @@ unsigned int stream_available_read( stream_t* stream )
 	if( stream->vtable->available_read )
 		return (unsigned int)stream->vtable->available_read( stream );
 	return (unsigned int)( stream_size( stream ) - stream_tell( stream ) );
+}
+
+
+uint128_t stream_md5( stream_t* stream )
+{
+	int64_t cur, ic, offset, lastc, num;
+	md5_t* md5;
+	uint128_t ret = {0};
+	unsigned char buf[1025];
+	bool ignore_lf = false;
+
+	if( stream->vtable->md5 )
+		return stream->vtable->md5( stream );
+
+	if( !stream_is_open( stream ) || stream_is_sequential( stream ) || !( stream->mode & STREAM_IN ) )
+		return ret;
+
+	FOUNDATION_ASSERT( stream->vtable->read );
+
+	cur = stream_tell( stream );
+	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
+	stream_determine_binary_mode( stream, 128 );
+
+	md5 = md5_allocate();
+
+	while( !stream_eos( stream ) )
+	{
+		num = (int64_t)stream->vtable->read( stream, buf, 1024 );
+		if( !num )
+			continue;
+		if( stream->mode & STREAM_BINARY )
+			md5_digest_raw( md5, buf, (size_t)num );
+		else
+		{
+			//If last buffer ended with CR, ignore a leading LF
+			offset = 0;
+			lastc = 0;
+			if( ignore_lf && ( buf[0] == '\n' ) )
+				offset = 1;
+			ignore_lf = false;
+
+			//Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line endings (for example, one line ending in a single CR and next ending in a single LF), it will not work!
+			for( ic = 0; ic < num; ++ic )
+			{
+				bool was_cr = ( buf[ic] == '\r' );
+				bool was_lf = ( buf[ic] == '\n' );
+				if( was_cr || was_lf )
+				{
+					if( was_cr && ( ic >= 1023 ) )
+						ignore_lf = true;
+					buf[ic] = '\n';
+					md5_digest_raw( md5, buf + lastc, (size_t)( ic - lastc + 1 ) ); //Include the LF
+					if( was_cr && ( buf[ic+1] == '\n' ) ) //Check for CR+LF
+						++ic;
+					lastc = ic + 1;
+				}
+			}
+			if( lastc < num )
+				md5_digest_raw( md5, buf + lastc, (size_t)( num - lastc ) );
+		}
+	}
+	
+	stream_seek( stream, cur, STREAM_SEEK_BEGIN );
+
+	md5_finalize( md5 );
+	ret = md5_get_digest_raw( md5 );
+
+	md5_deallocate( md5 );
+
+	return ret;
 }
 
 

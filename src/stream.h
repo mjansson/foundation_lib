@@ -180,6 +180,10 @@ FOUNDATION_API void              stream_buffer_read( stream_t* stream );
 	\return                      Number of bytes that can be read without blocking */
 FOUNDATION_API unsigned int      stream_available_read( stream_t* stream );
 
+/*! Get stream md5 digest
+    \param stream                Stream
+    \return                      md5 digest, 0 if not available for stream type or invalid stream */
+FOUNDATION_API uint128_t         stream_md5( stream_t* path );
 
 /*! Put raw data to stream
     \param p_buffer              Buffer of data to write
