@@ -143,6 +143,66 @@ typedef enum
 	STREAM_SEEK_END            = 0x0002
 } stream_seek_mode_t;
 
+//! Thread priority
+typedef enum
+{
+	THREAD_PRIORITY_LOW = 0,
+	THREAD_PRIORITY_BELOWNORMAL,
+	THREAD_PRIORITY_NORMAL,
+	THREAD_PRIORITY_ABOVENORMAL,
+	THREAD_PRIORITY_HIGHEST,
+	THREAD_PRIORITY_TIMECRITICAL
+} thread_priority_t;
+
+//! Process flags
+typedef enum
+{
+	//! Attached, spawn method will block until process ends and then return process exit code
+	PROCESS_ATTACHED                          = 0,
+
+	//! Detached, spawn method will immediately return with code 0
+	PROCESS_DETACHED                          = 0x01,
+
+	//! Create a console window for process
+	PROCESS_CONSOLE                           = 0x02,
+
+	//! Windows platform only, use ShellExecute instead of CreateProcess
+	PROCESS_WINDOWS_USE_SHELLEXECUTE          = 0x04,
+	
+	//! MacOSX platform only, use LSOpenApplication instead of fork/execve
+	PROCESS_OSX_USE_OPENAPPLICATION           = 0x08
+} process_flag_t;
+
+//! Process status
+typedef enum
+{
+	//! Returned when given invalid arguments
+	PROCESS_INVALID_ARGS                      = 0x7FFFFFFE,
+	
+	//! Returned when detached process is still running
+	PROCESS_STILL_ACTIVE                      = 0x7FFFFFFF
+} process_status_t;
+
+typedef enum
+{
+	//! System identifier for foundation
+	SYSTEM_FOUNDATION = 1
+} system_t;
+
+typedef enum
+{
+	//! Application has been asked to terminate
+	FOUNDATIONEVENT_TERMINATE = 1,
+
+	//! File was created
+	FOUNDATIONEVENT_FILE_CREATED,
+
+	//! File was deleted
+	FOUNDATIONEVENT_FILE_DELETED,
+
+	//! File was modified
+	FOUNDATIONEVENT_FILE_MODIFIED
+} foundation_event_id;
 
 //! Hash value
 typedef uint64_t         hash_t;
@@ -155,6 +215,7 @@ typedef real             deltatime_t;
 
 //! Object handle
 typedef uint64_t         object_t;
+
 
 //! Error handler callback
 typedef int           (* error_callback_fn )( error_level_t level, error_t error );
@@ -172,6 +233,9 @@ typedef void          (* memory_deallocate_fn )( void* p );
 
 //! Callback function for writing profiling data to a stream
 typedef void          (* profile_write_fn)( void*, uint64_t );
+
+//! Thread execution function
+typedef void*         (* thread_fn)( object_t, void* );
 
 
 // COMPLEX TYPES
@@ -229,7 +293,28 @@ typedef struct _foundation_objectmap
 	void*                           map[];
 } objectmap_t;
 
+//! Event base structure
+#define FOUNDATION_DECLARE_EVENT       \
+	uint8_t               system;      \
+	uint8_t               id;          \
+	uint16_t              serial;      \
+	uint16_t              size;        \
+	object_t              object
+
+typedef struct _foundation_event
+{
+	FOUNDATION_DECLARE_EVENT;
+	char                  payload[];
+} event_t;
+
 
 // OPAQUE COMPLEX TYPES
 
 typedef struct _foundation_stream           stream_t;
+typedef struct _foundation_directory        directory_t;
+
+typedef struct _foundation_mutex            mutex_t;
+typedef struct _foundation_process          process_t;
+
+typedef struct _foundation_event_block      event_block_t;
+typedef struct _foundation_event_stream     event_stream_t;
