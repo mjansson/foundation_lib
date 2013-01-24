@@ -36,22 +36,31 @@
     <ClInclude Include="..\..\src\config.h" />
     <ClInclude Include="..\..\src\environment.h" />
     <ClInclude Include="..\..\src\error.h" />
+    <ClInclude Include="..\..\src\event.h" />
     <ClInclude Include="..\..\src\foundation.h" />
+    <ClInclude Include="..\..\src\fs.h" />
     <ClInclude Include="..\..\src\hash.h" />
     <ClInclude Include="..\..\src\hashstrings.h" />
     <ClInclude Include="..\..\src\internal.h" />
     <ClInclude Include="..\..\src\library.h" />
     <ClInclude Include="..\..\src\log.h" />
     <ClInclude Include="..\..\src\mathcore.h" />
+    <ClInclude Include="..\..\src\md5.h" />
     <ClInclude Include="..\..\src\memory.h" />
+    <ClInclude Include="..\..\src\mutex.h" />
     <ClInclude Include="..\..\src\objectmap.h" />
     <ClInclude Include="..\..\src\path.h" />
     <ClInclude Include="..\..\src\platform.h" />
+    <ClInclude Include="..\..\src\process.h" />
     <ClInclude Include="..\..\src\profile.h" />
+    <ClInclude Include="..\..\src\random.h" />
+    <ClInclude Include="..\..\src\ringbuffer.h" />
     <ClInclude Include="..\..\src\safewindows.h" />
+    <ClInclude Include="..\..\src\semaphore.h" />
     <ClInclude Include="..\..\src\stream.h" />
+    <ClInclude Include="..\..\src\system.h" />
     <ClInclude Include="..\..\src\thread.h" />
-    <ClInclude Include="..\..\src\timer.h" />
+    <ClInclude Include="..\..\src\time.h" />
     <ClInclude Include="..\..\src\types.h" />
     <ClInclude Include="..\..\src\utf.h" />
   </ItemGroup>
@@ -62,6 +71,7 @@
     <ClCompile Include="..\..\src\config.c" />
     <ClCompile Include="..\..\src\environment.c" />
     <ClCompile Include="..\..\src\error.c" />
+    <ClCompile Include="..\..\src\event.c" />
     <ClCompile Include="..\..\src\foundation.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -70,17 +80,24 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Deploy|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\src\fs.c" />
     <ClCompile Include="..\..\src\hash.c" />
     <ClCompile Include="..\..\src\library.c" />
     <ClCompile Include="..\..\src\log.c" />
+    <ClCompile Include="..\..\src\md5.c" />
     <ClCompile Include="..\..\src\memory.c" />
+    <ClCompile Include="..\..\src\mutex.c" />
     <ClCompile Include="..\..\src\objectmap.c" />
     <ClCompile Include="..\..\src\path.c" />
+    <ClCompile Include="..\..\src\process.c" />
     <ClCompile Include="..\..\src\profile.c" />
+    <ClCompile Include="..\..\src\random.c" />
+    <ClCompile Include="..\..\src\ringbuffer.c" />
+    <ClCompile Include="..\..\src\semaphore.c" />
     <ClCompile Include="..\..\src\stream.c" />
     <ClCompile Include="..\..\src\system.c" />
     <ClCompile Include="..\..\src\thread.c" />
-    <ClCompile Include="..\..\src\timer.c" />
+    <ClCompile Include="..\..\src\time.c" />
     <ClCompile Include="..\..\src\utf.c" />
   </ItemGroup>
   <ItemGroup>

@@ -4,7 +4,6 @@
     <ClInclude Include="..\..\src\assert.h" />
     <ClInclude Include="..\..\src\foundation.h" />
     <ClInclude Include="..\..\src\platform.h" />
-    <ClInclude Include="..\..\src\timer.h" />
     <ClInclude Include="..\..\src\types.h" />
     <ClInclude Include="..\..\src\build.h" />
     <ClInclude Include="..\..\src\error.h" />
@@ -28,9 +27,18 @@
     <ClInclude Include="..\..\src\internal.h" />
     <ClInclude Include="..\..\src\profile.h" />
     <ClInclude Include="..\..\src\library.h" />
+    <ClInclude Include="..\..\src\event.h" />
+    <ClInclude Include="..\..\src\fs.h" />
+    <ClInclude Include="..\..\src\md5.h" />
+    <ClInclude Include="..\..\src\mutex.h" />
+    <ClInclude Include="..\..\src\process.h" />
+    <ClInclude Include="..\..\src\random.h" />
+    <ClInclude Include="..\..\src\ringbuffer.h" />
+    <ClInclude Include="..\..\src\semaphore.h" />
+    <ClInclude Include="..\..\src\system.h" />
+    <ClInclude Include="..\..\src\time.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\timer.c" />
     <ClCompile Include="..\..\src\foundation.c" />
     <ClCompile Include="..\..\src\assert.c" />
     <ClCompile Include="..\..\src\error.c" />
@@ -49,6 +57,15 @@
     <ClCompile Include="..\..\src\system.c" />
     <ClCompile Include="..\..\src\profile.c" />
     <ClCompile Include="..\..\src\library.c" />
+    <ClCompile Include="..\..\src\event.c" />
+    <ClCompile Include="..\..\src\fs.c" />
+    <ClCompile Include="..\..\src\md5.c" />
+    <ClCompile Include="..\..\src\mutex.c" />
+    <ClCompile Include="..\..\src\process.c" />
+    <ClCompile Include="..\..\src\random.c" />
+    <ClCompile Include="..\..\src\ringbuffer.c" />
+    <ClCompile Include="..\..\src\semaphore.c" />
+    <ClCompile Include="..\..\src\time.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\hashstrings.txt" />

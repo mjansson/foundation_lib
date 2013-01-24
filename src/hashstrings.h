@@ -1,9 +1,11 @@
 
 #pragma once
 
+#include <foundation.h>
+
 /* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
     Edit corresponding definitions file and rerun
-    the engine hashify tool to update this file */
+    the foundation hashify tool to update this file */
 
 #define HASH_ENGINE static_hash_string( "engine", 0x39c8cc157cfd24f8ULL )
 #define HASH_DEFAULT static_hash_string( "default", 0xe1c3a22ea1763f7bULL )

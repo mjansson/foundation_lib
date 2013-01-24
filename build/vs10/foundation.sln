@@ -6,9 +6,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{7A1FFF86-6964-4BBB-9F4E-1118296D25C7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hashify", "hashify.vcxproj", "{8363F5DF-C563-430A-A26D-B5FA585D59B5}"
-	ProjectSection(ProjectDependencies) = postProject
-		{6ABDE628-E9D5-4A7F-9847-A47F56210273} = {6ABDE628-E9D5-4A7F-9847-A47F56210273}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

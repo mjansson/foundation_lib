@@ -19,6 +19,19 @@
 #include <types.h>
 
 
+struct _foundation_ringbuffer
+{
+	uint64_t           total_read;
+	uint64_t           total_write;
+
+	unsigned int       offset_read;
+	unsigned int       offset_write;
+
+	unsigned int       buffer_size;
+	char               buffer[];
+};
+
+
 //Stream vtable
 typedef uint64_t  (*stream_read_fn)( stream_t*, void*, uint64_t );
 typedef uint64_t  (*stream_write_fn)( stream_t*, const void*, uint64_t );
@@ -29,7 +42,7 @@ typedef void      (*stream_truncate_fn)( stream_t*, uint64_t );
 typedef uint64_t  (*stream_size_fn)( stream_t* );
 typedef void      (*stream_seek_fn)( stream_t*, int64_t, stream_seek_mode_t );
 typedef int64_t   (*stream_tell_fn)( stream_t* );
-typedef uint64_t  (*stream_lastmod_fn)( stream_t* );
+typedef uint64_t  (*stream_lastmod_fn)( const stream_t* );
 typedef uint128_t (*stream_md5_fn)( stream_t* );
 typedef void      (*stream_buffer_read_fn)( stream_t* );
 typedef uint64_t  (*stream_available_read_fn)( stream_t* );
