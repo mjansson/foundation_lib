@@ -248,7 +248,7 @@ static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 
 #elif FOUNDATION_PLATFORM_ARCH_X86
 
-double  __cdecl ceil(double);
+_CRTIMP double  __cdecl ceil(_In_ double _X);
 
 static FORCEINLINE real     math_sin( real x ) { return (real)sin( x ); }
 static FORCEINLINE real     math_cos( real x ) { return (real)cos( x ); }
