@@ -41,7 +41,7 @@ static log_callback_fn  _log_callback = 0;
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
-static void _output_logf( int severity, const char* prefix, const char* format, va_list list, void* std )
+static void _log_outputf( int severity, const char* prefix, const char* format, va_list list, void* std )
 {
 	float32_t timestamp = make_timestamp();
 	uint64_t tid = thread_id();
@@ -100,11 +100,11 @@ static void _output_logf( int severity, const char* prefix, const char* format, 
 
 #if BUILD_ENABLE_DEBUG_LOG
 
-void debug_logf( const char* format, ... )
+void log_debugf( const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	_output_logf( ERRORLEVEL_DEBUG, "", format, list, stdout );
+	_log_outputf( ERRORLEVEL_DEBUG, "", format, list, stdout );
 	va_end( list );
 }
 
@@ -112,50 +112,50 @@ void debug_logf( const char* format, ... )
 
 #if BUILD_ENABLE_LOG
 
-void info_logf( const char* format, ... )
+void log_infof( const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	_output_logf( ERRORLEVEL_INFO, "", format, list, stdout );
+	_log_outputf( ERRORLEVEL_INFO, "", format, list, stdout );
 	va_end( list );
 }
 
-void warn_logf( warning_class_t wclass, const char* format, ... )
+void log_warnf( warning_class_t wclass, const char* format, ... )
 {
 	va_list list;
 
-	error_log_context( ERRORLEVEL_WARNING );
+	log_error_context( ERRORLEVEL_WARNING );
 
 	va_start( list, format );
-	_output_logf( ERRORLEVEL_WARNING, "WARNING: ", format, list, stdout );
+	_log_outputf( ERRORLEVEL_WARNING, "WARNING: ", format, list, stdout );
 	va_end( list );
 }
 
 
-void error_logf( error_level_t level, error_t err, const char* format, ... )
+void log_errorf( error_level_t level, error_t err, const char* format, ... )
 {
 	va_list list;
 
-	error_log_context( ERRORLEVEL_ERROR );
+	log_error_context( ERRORLEVEL_ERROR );
 
 	va_start( list, format );
-	_output_logf( ERRORLEVEL_ERROR, "ERROR: ", format, list, stderr );
+	_log_outputf( ERRORLEVEL_ERROR, "ERROR: ", format, list, stderr );
 	va_end( list );
 
 	error_report( level, err );
 }
 
 
-static void _error_log_contextf( error_level_t error_level, void* std, const char* format, ... )
+static void _log_error_contextf( error_level_t error_level, void* std, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	_output_logf( error_level, "", format, list, std );
+	_log_outputf( error_level, "", format, list, std );
 	va_end( list );
 }
 
 
-void error_log_context( error_level_t error_level )
+void log_error_context( error_level_t error_level )
 {
 	int i;
 	error_context_t* context = error_context();
@@ -163,55 +163,12 @@ void error_log_context( error_level_t error_level )
 	{
 		error_frame_t* frame = context->frame;
 		for( i = 0; i < context->depth; ++i, ++frame )
-			_error_log_contextf( error_level, stderr, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
+			_log_error_contextf( error_level, stderr, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
 	}
 }
 
 #endif
 
-#if BUILD_ENABLE_DEBUG_LOG || BUILD_DEBUG || ( BUILD_RELEASE && !BUILD_DEPLOY && BUILD_ENABLE_RELEASE_ASSERT )
-
-bool debug_message_box( const char* title, const char* message, bool cancel_button )
-{
-#if FOUNDATION_PLATFORM_WINDOWS
-	return ( MessageBoxA( 0, message, title, cancel_button ? MB_OKCANCEL : MB_OK ) == IDOK );
-#elif FOUNDATION_PLATFORM_MACOSX
-	return _objc_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
-#elif FOUNDATION_PLATFORM_LINUX
-	char* buf = string_format( "%s\n\n%s\n", title, message );
-	pid_t pid = fork();
-
-	switch( pid )
-	{
-		case -1:
-			//error
-			string_deallocate( buf );
-			break;
-
-		case 0:
-			execlp( "xmessage", "xmessage", "-buttons", cancel_button ? "OK:101,Cancel:102" : "OK:101", "-default", "OK", "-center", buf, (char*)0 );
-			_exit( -1 );
-			break;
-
-		default:
-		{
-			string_deallocate( buf );
-			int status;
-			waitpid( pid, &status, 0 );
-			if( ( !WIFEXITED( status ) ) || ( WEXITSTATUS( status ) != 101 ) )
-				return false;
-			return true;
-		}
-	}
-
-	return false;
-#else
-	//Not implemented
-	return false;
-#endif
-}
-
-#endif
 
 #if BUILD_ENABLE_LOG
 

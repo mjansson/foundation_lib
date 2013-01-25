@@ -404,12 +404,12 @@ bool fs_make_path( const char* path )
 #endif
 			if( !result )
 			{
-				warn_logf( WARNING_SUSPICIOUS, "Failed to create directory: %s", curpath );
+				log_warnf( WARNING_SUSPICIOUS, "Failed to create directory: %s", curpath );
 				//Unable to create directory
 				goto end;
 			}
 
-			debug_logf( "Created directory: %s", curpath );
+			log_debugf( "Created directory: %s", curpath );
 		}
 	}
 	
@@ -661,7 +661,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	if( handles[1] == INVALID_HANDLE_VALUE )
 	{
-		warn_logf( WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+		log_warnf( WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
 #elif FOUNDATION_PLATFORM_LINUX
@@ -674,7 +674,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	_add_notify_subdir( notify_fd, monitor->path, &watch, &paths );
 #endif
 
-	debug_logf( "Monitoring file system: %s", monitor->path );
+	log_debugf( "Monitoring file system: %s", monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{		
@@ -684,7 +684,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	}
 	if( dir == INVALID_HANDLE_VALUE )
 	{
-		warn_logf( WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+		log_warnf( WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
 	
@@ -704,7 +704,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		success = ReadDirectoryChangesW( dir, buffer, buffer_size, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size, &overlap, 0 );
 		if( !success )
 		{
- 			warn_logf( WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+ 			log_warnf( WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 			goto exit_thread;
 		}
  
@@ -730,7 +730,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				success = GetOverlappedResult( dir, &overlap, &transferred, FALSE );
 				if( !success )
 				{
-					warn_logf( WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+					log_warnf( WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 				}
 				else
 				{
@@ -853,7 +853,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 #endif
 	}
 
-	debug_logf( "Stopped monitoring file system: %s", monitor->path );
+	log_debugf( "Stopped monitoring file system: %s", monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	exit_thread:

@@ -248,11 +248,11 @@ int process_spawn( process_t* proc )
 		sei.lpDirectory     = wwd;
 		sei.nShow           = SW_SHOWNORMAL;
 
-		debug_logf( "Spawn process (ShellExecute): %s %s", proc->path, cmdline );
+		log_debugf( "Spawn process (ShellExecute): %s %s", proc->path, cmdline );
 
 		if( !ShellExecuteExW( &sei ) )
 		{
-			warn_logf( WARNING_BAD_DATA, "Unable to spawn process (shellexecute) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
+			log_warnf( WARNING_BAD_DATA, "Unable to spawn process (shellexecute) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 		}
 		else
 		{
@@ -273,11 +273,11 @@ int process_spawn( process_t* proc )
 		memset( &pi, 0, sizeof( pi ) );
 		si.cb = sizeof( si );
 
-		debug_logf( "Spawn process (CreateProcess): %s %s", proc->path, cmdline );
+		log_debugf( "Spawn process (CreateProcess): %s %s", proc->path, cmdline );
 
 		if( !CreateProcessW( 0/*wpath*/, wcmdline, 0, 0, FALSE, ( proc->flags & PROCESS_CONSOLE ) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi ) )
 		{
-			warn_logf( WARNING_BAD_DATA, "Unable to spawn process (createprocess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
+			log_warnf( WARNING_BAD_DATA, "Unable to spawn process (createprocess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 		}
 		else
 		{
@@ -379,14 +379,14 @@ int process_spawn( process_t* proc )
 			app_set_current_working_directory( proc->wd );
 		}
 
-		debug_logf( "Child process executing: %s", proc->path );
+		log_debugf( "Child process executing: %s", proc->path );
 
 		char* envp[] = { 0 };
 		
 		int code = execve( proc->path, proc->args, envp );		
 		if( code < 0 ) //Will always be true since this point will never be reached if execve() is successful
 		{
-			warn_logf( WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
+			log_warnf( WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
 		}
 		
 		//Error
@@ -395,7 +395,7 @@ int process_spawn( process_t* proc )
 
 	if( pid > 0 )
 	{		
-		debug_logf( "Child process forked, pid %d", pid );
+		log_debugf( "Child process forked, pid %d", pid );
 
 		proc->pid = pid;
 		
@@ -413,7 +413,7 @@ int process_spawn( process_t* proc )
 			{
 				//Process exited, check code
 				proc->code = (int)((char)WEXITSTATUS( cstatus ));
-				debug_logf( "Child process returned: %d", proc->code );
+				log_debugf( "Child process returned: %d", proc->code );
 				return proc->code;
 			}
 		}
@@ -422,7 +422,7 @@ int process_spawn( process_t* proc )
 	{
 		//Error
 		proc->code = errno;
-		warn_logf( WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
+		log_warnf( WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
 		return proc->code;
 	}	
 

@@ -13,6 +13,7 @@
 #include <foundation.h>
 
 
+static event_stream_t* _system_event_stream = 0;
 
 typedef struct _foundation_platform_info
 {
@@ -91,6 +92,7 @@ object_t _system_library_iphlpapi = 0;
 
 int _system_initialize( void )
 {
+	_system_event_stream = event_stream_allocate( 128 );
 	return 0;
 }
 
@@ -100,6 +102,9 @@ void _system_shutdown( void )
 	if( _system_library_iphlpapi )
 		library_unload( _system_library_iphlpapi );
 	_system_library_iphlpapi = 0;
+
+	event_stream_deallocate( _system_event_stream );
+	_system_event_stream = 0;
 }
 
 
@@ -208,16 +213,20 @@ static const char* _system_default_locale( void )
 }
 
 
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_POSIX
 
 
 int _system_initialize( void )
 {
+	_system_event_stream = event_stream_allocate( 128 );
+	return 0;
 }
 
 
 void _system_shutdown( void )
 {
+	event_stream_deallocate( _system_event_stream );
+	_system_event_stream = 0;
 }
 
 
@@ -508,3 +517,55 @@ uint16_t system_country( void )
 	return (uint16_t)( system_locale() & 0xFFFF );
 }
 
+
+event_stream_t* system_event_stream( void )
+{
+	return _system_event_stream;
+}
+
+
+void system_post_event( foundation_event_id event )
+{
+	event_post( _system_event_stream, SYSTEM_FOUNDATION, event, 0, 0, 0 );
+}
+
+
+bool system_message_box( const char* title, const char* message, bool cancel_button )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+	return ( MessageBoxA( 0, message, title, cancel_button ? MB_OKCANCEL : MB_OK ) == IDOK );
+#elif FOUNDATION_PLATFORM_MACOSX
+	return _objc_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
+#elif FOUNDATION_PLATFORM_LINUX
+	char* buf = string_format( "%s\n\n%s\n", title, message );
+	pid_t pid = fork();
+
+	switch( pid )
+	{
+		case -1:
+			//error
+			string_deallocate( buf );
+			break;
+
+		case 0:
+			execlp( "xmessage", "xmessage", "-buttons", cancel_button ? "OK:101,Cancel:102" : "OK:101", "-default", "OK", "-center", buf, (char*)0 );
+			_exit( -1 );
+			break;
+
+		default:
+		{
+			string_deallocate( buf );
+			int status;
+			waitpid( pid, &status, 0 );
+			if( ( !WIFEXITED( status ) ) || ( WEXITSTATUS( status ) != 101 ) )
+				return false;
+			return true;
+		}
+	}
+
+	return false;
+#else
+	//Not implemented
+	return false;
+#endif
+}

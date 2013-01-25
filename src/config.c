@@ -606,7 +606,7 @@ void config_parse( stream_t* stream, hash_t filter_section )
 			unsigned int endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
 			if( ( endpos == STRING_NPOS ) || ( endpos < 1 ) )
 			{
-				warn_logf( WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
+				log_warnf( WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
 				continue;
 			}
 			buffer[endpos] = 0;
@@ -623,7 +623,7 @@ void config_parse( stream_t* stream, hash_t filter_section )
 			unsigned int separator = string_find( buffer, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
-				warn_logf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
+				log_warnf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
 				continue;
 			}
 			
@@ -631,7 +631,7 @@ void config_parse( stream_t* stream, hash_t filter_section )
 			value = string_strip( buffer + separator + 1, " \t" );
 			if( !string_length( name ) )
 			{
-				warn_logf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
+				log_warnf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
 				continue;
 			}
 

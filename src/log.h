@@ -21,41 +21,34 @@
 
 #if BUILD_ENABLE_DEBUG_LOG
 
-FOUNDATION_API void     debug_logf( const char* message, ... );
+FOUNDATION_API void     log_debugf( const char* message, ... );
 
 #else
-#  define               debug_logf( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define               log_debugf( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
 #endif
 
 #if BUILD_ENABLE_LOG
 
-FOUNDATION_API void     info_logf( const char* format, ... );
-FOUNDATION_API void     warn_logf( warning_class_t wclass, const char* format, ... );
+FOUNDATION_API void     log_infof( const char* format, ... );
+FOUNDATION_API void     log_warnf( warning_class_t wclass, const char* format, ... );
 
 /*! Log error. Also calls error_report to report the error
     \param level        Error level
     \param err          Error code
     \param format       Log format */
-FOUNDATION_API void     error_logf( error_level_t level, error_t err, const char* format, ... );
-FOUNDATION_API void     error_log_context( error_level_t error_level );
+FOUNDATION_API void     log_errorf( error_level_t level, error_t err, const char* format, ... );
+FOUNDATION_API void     log_error_context( error_level_t error_level );
 
 FOUNDATION_API void     log_stdout( bool enable );
 
 FOUNDATION_API void     log_set_callback( log_callback_fn callback );
 
 #else
-#  define               info_logf( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               warn_logf( wclass, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               error_logf( level, err, msg, ... ) /*lint -save -e717 */ do { error_report( level, err ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               error_log_context( error_level ) /*lint -save -e717 */ do { (void)sizeof( error_level ); } while(0) /*lint -restore */
+#  define               log_infof( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define               log_warnf( wclass, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define               log_errorf( level, err, msg, ... ) /*lint -save -e717 */ do { error_report( level, err ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define               log_error_context( error_level ) /*lint -save -e717 */ do { (void)sizeof( error_level ); } while(0) /*lint -restore */
 #  define               log_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
 #  define               log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( callback ); } while(0) /*lint -restore */
 #endif
 
-#if BUILD_ENABLE_DEBUG_LOG || BUILD_DEBUG || ( BUILD_RELEASE && !BUILD_DEPLOY && BUILD_ENABLE_RELEASE_ASSERT )
-
-FOUNDATION_API bool     debug_message_box( const char* title, const char* message, bool cancel_button );
-
-#else
-#  define               debug_message_box( title, msg, button ) /*lint -save -e717 */ do { (void)sizeof( title ); (void)sizeof( msg ); (void)sizeof( button ); } while(0) /*lint -restore */
-#endif

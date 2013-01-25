@@ -114,7 +114,7 @@ object_t library_load( const char* name )
 	string_deallocate( dllname );
 	if( !dll )
 	{
-		warn_logf( WARNING_SUSPICIOUS, "Unable to load DLL '%s': %s", name, system_error_message( 0 ) );
+		log_warnf( WARNING_SUSPICIOUS, "Unable to load DLL '%s': %s", name, system_error_message( 0 ) );
 		error_context_pop();
 		return 0;
 	}
@@ -130,14 +130,14 @@ object_t library_load( const char* name )
 	string_deallocate( libname );
 	if( !lib )
 	{
-		warn_logf( WARNING_SUSPICIOUS, "Unable to load dynamic library '%s': %s", name, dlerror() );
+		log_warnf( WARNING_SUSPICIOUS, "Unable to load dynamic library '%s': %s", name, dlerror() );
 		error_context_pop();
 		return 0;
 	}
 
 #else
 	
-	error_logf( ERRORLEVEL_ERROR, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
+	log_errorf( ERRORLEVEL_ERROR, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
 	error_context_pop();
 	return 0;
 
@@ -151,7 +151,7 @@ object_t library_load( const char* name )
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 		dlclose( lib );
 #endif
-		error_logf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );	
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );	
 		error_context_pop();
 		return 0;
 	}

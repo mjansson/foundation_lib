@@ -45,3 +45,11 @@ FOUNDATION_API uint32_t           system_locale( void );
 FOUNDATION_API const char*        system_locale_string( void );
 
 FOUNDATION_API void               system_process_events( void );
+
+FOUNDATION_API bool               system_message_box( const char* title, const char* message, bool cancel_button );
+
+/*! Get system event stream
+    \return                       System event stream */
+FOUNDATION_API event_stream_t*    system_event_stream( void );
+
+FOUNDATION_API void               system_post_event( foundation_event_id event );

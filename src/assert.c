@@ -62,7 +62,7 @@ int assert_report( const char* condition, const char* file, int line, const char
 	if( ( ret < 0 ) || ( ret >= ASSERT_BUFFER_SIZE ) )
 		_assert_box_buffer[ASSERT_BUFFER_SIZE-1] = 0;
 
-	debug_message_box( "Assert Failure", _assert_box_buffer, false );
+	system_message_box( "Assert Failure", _assert_box_buffer, false );
 
 	return 0;
 }
