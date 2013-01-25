@@ -54,6 +54,8 @@
 #include <stream.h>
 #include <fs.h>
 
+#include <crash.h>
+ 
 
 //! Entry point
 FOUNDATION_API int         foundation_initialize( const memory_system_t memory, const application_t application );

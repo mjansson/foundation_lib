@@ -41,6 +41,13 @@ extern void _random_shutdown( void );
 extern int _config_initialize( void );
 extern void _config_shutdown( void );
 
+//Make artificial reference to main entry point
+#if FOUNDATION_PLATFORM_ANDROID
+FOUNDATION_EXTERN void android_main( struct android_app* );
+#else
+FOUNDATION_EXTERN int main( int, char** );
+#endif
+
 
 int foundation_initialize( const memory_system_t memory, const application_t application )
 {
