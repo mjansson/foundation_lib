@@ -1232,6 +1232,31 @@ const char* time_to_string_static( uint64_t t )
 }
 
 
+char* version_to_string( const version_t version )
+{
+	char buf[128];
+	return string_clone( version_to_string_buffer( buf, version ) );
+}
+
+
+char* version_to_string_buffer( char* buffer, const version_t version )
+{
+	if( version.sub.control )
+		sprintf( buffer, "%u.%u.%u-%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build, version.sub.control );
+	else if( version.sub.build )
+		sprintf( buffer, "%u.%u.%u-%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build );
+	else
+		sprintf( buffer, "%u.%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision );
+	return buffer;
+}
+
+
+const char* version_to_string_static( const version_t version )
+{
+	return version_to_string_buffer( get_thread_convert_buffer(), version );
+}
+
+
 
 int string_to_int( const char* val )
 {
@@ -1294,6 +1319,25 @@ real string_to_real( const char* val )
 #endif
 	}
 	return ret;
+}
+
+
+version_t string_to_version( const char* val )
+{
+	//%u.%u.%u-%u.%u
+	uint32_t num[5];
+	int i;
+	for( i = 0; i < 5; ++i )
+	{
+		num[i] = 0;
+		if( val && *val )
+		{
+			sscanf( val, "%d", num + i );
+			while( *val && ( ( *val >= '0' ) && ( *val < '9' ) ) ) val++;
+			while( *val && ( ( *val  < '0' ) || ( *val > '9' ) ) ) val++;
+		}
+	}
+	return version_make( num[0], num[1], num[2], num[3], num[4] );	
 }
 
 

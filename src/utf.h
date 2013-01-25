@@ -113,17 +113,24 @@ FOUNDATION_API char*          real_to_string( real val, unsigned int precision, 
     \return                   String */
 FOUNDATION_API char*          time_to_string( uint64_t time );
 
+/*! Get a formatted string of the given version
+    \param version            Version
+    \return                   String */
+FOUNDATION_API char*          version_to_string( const version_t version );
+
 FOUNDATION_API char*          int_to_string_buffer( char* buffer, int64_t val, unsigned int width, char padding );
 FOUNDATION_API char*          uint_to_string_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char padding );
 FOUNDATION_API char*          uint128_to_string_buffer( char* buffer, const uint128_t val );
 FOUNDATION_API char*          real_to_string_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char padding );
 FOUNDATION_API char*          time_to_string_buffer( char* buffer, uint64_t time );
+FOUNDATION_API char*          version_to_string_buffer( char* buffer, const version_t version );
 
 FOUNDATION_API const char*    int_to_string_static( int64_t val, unsigned int width, char padding );
 FOUNDATION_API const char*    uint_to_string_static( uint64_t val, bool hex, unsigned int width, char padding );
 FOUNDATION_API const char*    uint128_to_string_static( const uint128_t val );
 FOUNDATION_API const char*    real_to_string_static( real val, unsigned int precision, unsigned int width, char padding );
 FOUNDATION_API const char*    time_to_string_static( uint64_t time );
+FOUNDATION_API const char*    version_to_string_static( const version_t version );
 
 
 /*! Convert a string to a signed integer
@@ -154,7 +161,7 @@ FOUNDATION_API real           string_to_real( const char* val );
 
 /*! Convert a string to a version identifier
     \param val                String */
-FOUNDATION_API uint64_t       string_to_version( const char* str );
+FOUNDATION_API version_t      string_to_version( const char* str );
 
 /*! Validate email address format (basic tests)
     \param address            Email address string */
