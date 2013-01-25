@@ -51,6 +51,9 @@ FOUNDATION_API bool            thread_is_thread( object_t thread );
     \return                    true if main thread, false if not */
 FOUNDATION_API bool            thread_is_main( void );
 
+/*! Mark the calling thread as the main thread */
+FOUNDATION_API void            thread_set_main( void );
+
 /*! Terminate thread execution
     \param thread              Thread */
 FOUNDATION_API void            thread_terminate( object_t thread );

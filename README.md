@@ -18,6 +18,7 @@ functions to write applications and games in a platform-independent fashion. It 
 * Math support for 32 and 64 bit floats
 * Configuration repository with config file I/O
 * Application environment queries and control
+* Crash utilities (SEH, Mach exception handlers, signals)
 
 It is written with the following API design principles in mind:
 

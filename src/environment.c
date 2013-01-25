@@ -41,9 +41,29 @@ int _environment_initialize( const application_t application )
 		array_push( _environment_argv, string_allocate_from_wstring( arg_list[ia], 0 ) );
 
 	LocalFree( arg_list );
+#else
+#  error Not implemented yet
 #endif
 
    	_environment_app = application;
+
+   	string_copy( _environment_initial_working_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
+
+   	if( array_size( _environment_argv ) > 0 )
+	{
+		char* exe_path = path_clean( string_clone( _environment_argv[0] ), path_is_absolute( _environment_argv[0] ) );
+		char* dir_path = path_make_absolute( exe_path );
+		unsigned int last_path = string_rfind( dir_path, '/', STRING_NPOS );
+		if( last_path != STRING_NPOS )
+			dir_path[last_path] = 0;
+		else
+			dir_path[0] = 0;
+		string_copy( _environment_executable_dir, dir_path, FOUNDATION_MAX_PATHLEN );
+		string_deallocate( dir_path );
+		string_deallocate( exe_path );
+	}
+   	else
+	   	string_copy( _environment_executable_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
 
 	return 0;
 }
@@ -108,12 +128,12 @@ void environment_set_current_working_directory( const char* path )
 {
 	if( !path )
 		return;
-	debug_logf( "Setting current working directory to: %s", path );
+	log_debugf( "Setting current working directory to: %s", path );
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string( path, 0 );
 		if( !SetCurrentDirectoryW( wpath ) )
-			warn_logf( WARNING_SUSPICIOUS, "Unable to set working directory: %ls", wpath );
+			log_warnf( WARNING_SUSPICIOUS, "Unable to set working directory: %ls", wpath );
 		wstring_deallocate( wpath );
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID

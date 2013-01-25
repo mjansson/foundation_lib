@@ -37,6 +37,8 @@
     <ClInclude Include="..\..\src\semaphore.h" />
     <ClInclude Include="..\..\src\system.h" />
     <ClInclude Include="..\..\src\time.h" />
+    <ClInclude Include="..\..\src\crash.h" />
+    <ClInclude Include="..\..\src\main.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\foundation.c" />
@@ -66,5 +68,7 @@
     <ClCompile Include="..\..\src\ringbuffer.c" />
     <ClCompile Include="..\..\src\semaphore.c" />
     <ClCompile Include="..\..\src\time.c" />
+    <ClCompile Include="..\..\src\crash.c" />
+    <ClCompile Include="..\..\src\main.c" />
   </ItemGroup>
 </Project>

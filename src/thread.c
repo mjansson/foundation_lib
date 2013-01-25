@@ -76,6 +76,7 @@ typedef struct ALIGN(16) _foundation_thread
 #endif
 } thread_t;
 
+static uint64_t     _thread_main_id = 0;
 static objectmap_t* _thread_map = 0;
 
 #define GET_THREAD( obj ) objectmap_lookup( _thread_map, obj )
@@ -152,7 +153,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	uint64_t id = objectmap_reserve_id( _thread_map );
 	if( !id )
 	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
 		return 0;
 	}
 	thread = memory_allocate_zero( sizeof( thread_t ), 0, MEMORY_PERSISTENT );
@@ -288,7 +289,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	atomic_incr32( &thread->ref );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
-		warn_logf( WARNING_SUSPICIOUS, "Unable to enter thread %llx, already running", thread->id );
+		log_warnf( WARNING_SUSPICIOUS, "Unable to enter thread %llx, already running", thread->id );
 		_thread_dec_ref( thread );
 		return 0;
 	}
@@ -313,16 +314,16 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_ASSERT( thread->running == 1 );
 
-	info_logf( "Started thread '%s' (%llx) ID %llx", thread->name, thread->osid, thread->id );
+	log_infof( "Started thread '%s' (%llx) ID %llx", thread->name, thread->osid, thread->id );
 
-	//if( crash_guard_callback() )
-	//	crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
-	//else
+	if( crash_guard_callback() )
+		crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
+	else
 		thread->result = thread->fn( thread->id, thread->arg );
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
-	info_logf( "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_infof( "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
 
 	thread->osid  = 0;
 
@@ -335,7 +336,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		thread->running = 0;
 	}
 
-	debug_logf( "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_infof( "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
 
 	_thread_dec_ref( thread );
 
@@ -351,13 +352,13 @@ bool thread_start( object_t id, void* data )
 	thread_t* thread = GET_THREAD( id );
 	if( !thread )
 	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
 		return false; //Old/invalid id
 	}
 
 	if( thread->running > 0 )
 	{
-		warn_logf( WARNING_SUSPICIOUS, "Unable to start thread %llx, already running", id );
+		log_warnf( WARNING_SUSPICIOUS, "Unable to start thread %llx, already running", id );
 		return false; //Thread already running
 	}
 
@@ -370,7 +371,7 @@ bool thread_start( object_t id, void* data )
 	thread->handle = CreateThread( 0, thread->stacksize, _thread_entry, thread, 0, &osid );
 	if( !thread->handle )
 	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
 		return false;
 	}
 #if !FOUNDATION_BUILD_DEPLOY
@@ -380,7 +381,7 @@ bool thread_start( object_t id, void* data )
 	int err = pthread_create( &thread->thread, 0, _thread_entry, thread );
 	if( err )
 	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
 		return false;
 	}
 #else
@@ -464,6 +465,18 @@ unsigned int thread_hardware( void )
 
 void thread_set_hardware( unsigned int hw_thread )
 {
+}
+
+
+void thread_set_main( void )
+{
+	_thread_main_id = thread_id();
+}
+
+
+bool thread_is_main( void )
+{
+	return thread_id() == _thread_main_id;
 }
 
 

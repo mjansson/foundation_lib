@@ -5,3 +5,4 @@ HASH_NULL                               null
 HASH_LOCALE                             locale
 HASH_APPLICATION                        application
 HASH_USER                               user
+HASH_DAEMON                             daemon

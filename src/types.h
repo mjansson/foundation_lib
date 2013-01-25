@@ -237,6 +237,14 @@ typedef void          (* profile_write_fn)( void*, uint64_t );
 //! Thread execution function
 typedef void*         (* thread_fn)( object_t, void* );
 
+//! Guarded function, used with crash_guard
+typedef int           (* crash_guard_fn)( void* );
+
+//! Crash callback
+typedef void          (* crash_dump_callback_fn)( const wchar_t* );
+
+#define CRASH_DUMP_GENERATED        0xbaadf00d
+
 
 // COMPLEX TYPES
 
@@ -249,12 +257,27 @@ typedef struct _foundation_memory_system
 	memory_deallocate_fn            deallocate;
 } memory_system_t;
 
+//! Version identifier
+typedef union _foundation_version
+{
+	uint128_t                       version;
+	struct
+	{
+		uint16_t                    major;
+		uint16_t                    minor;
+		uint32_t                    revision;
+		uint32_t                    build;
+		uint32_t                    control;
+	}                               sub;
+} version_t;
+
 //! Application declaration
 typedef struct _foundation_application
 {
 	const char*                     name;
 	const char*                     short_name;
 	const char*                     config_dir;
+	version_t                       version;
 } application_t;
 
 typedef struct _foundation_error_frame
@@ -363,3 +386,9 @@ typedef struct _foundation_event_block      event_block_t;
 typedef struct _foundation_event_stream     event_stream_t;
 
 typedef struct _foundation_ringbuffer       ringbuffer_t;
+
+
+// UTILITY FUNCTIONS
+
+//! Pack version definition into a 128-bit integer
+static FORCEINLINE CONSTCALL version_t      version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control ) { version_t v; v.sub.major = (uint16_t)major; v.sub.minor = (uint16_t)minor; v.sub.revision = revision, v.sub.build = build; v.sub.control = control; return v; }

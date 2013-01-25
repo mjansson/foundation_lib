@@ -16,7 +16,18 @@
 static bool _hashify_check_only = true;
 
 
-int main()
+int main_initialize( void )
+{
+	application_t application;
+	application.name = "hashify";
+	application.short_name = "hashify";
+	application.config_dir = "hashify";
+
+	return foundation_initialize( memory_system_malloc(), application );
+}
+
+
+int main_run( void* main_arg )
 {
 	unsigned int arg = 0, asize = 0, ihist = 0, histsize = 0;
 	char** files = 0;
@@ -39,14 +50,6 @@ int main()
 	bool pragma_found = false;
 	int result = -1;
 
-	application_t application;
-	application.name = "hashify";
-	application.short_name = "hashify";
-	application.config_dir = "hashify";
-
-	if( foundation_initialize( memory_system_malloc(), application ) < 0 )
-		return -1;
-
 	cmdline = environment_command_line();
 
 	error_context_push( "parsing command line", "" );
@@ -63,7 +66,7 @@ int main()
 			{
 				++arg;
 				hash_value = hash( cmdline[arg], string_length( cmdline[arg] ) );
-				info_logf( "String '%s' hash: 0x%llx", cmdline[arg], hash_value );
+				log_infof( "String '%s' hash: 0x%llx", cmdline[arg], hash_value );
 			}
 			continue;
 		}
@@ -81,20 +84,20 @@ int main()
 
 		output_filename = string_append( path_base_file_name_with_path( input_filename ), ".h" );
 
-		debug_logf( "Hashifying %s -> %s", input_filename, output_filename );
+		log_infof( "Hashifying %s -> %s", input_filename, output_filename );
 
 		input  = stream_open( input_filename, STREAM_IN );
 		output = stream_open( output_filename, STREAM_IN | ( _hashify_check_only ? 0 : STREAM_OUT ) );
 
 		if( !input )
 		{
-			warn_logf( WARNING_BAD_DATA, "Unable to open input file: %s", input_filename );
+			log_warnf( WARNING_BAD_DATA, "Unable to open input file: %s", input_filename );
 			goto next;
 		}
 
 		if( !output && !_hashify_check_only )
 		{
-			warn_logf( WARNING_BAD_DATA, "Unable to open output file for verification: %s", output_filename );
+			log_warnf( WARNING_BAD_DATA, "Unable to open output file for verification: %s", output_filename );
 			goto next;
 		}
 
@@ -131,7 +134,7 @@ int main()
 
 			if( !output && !_hashify_check_only )
 			{
-				warn_logf( WARNING_BAD_DATA, "Unable to open output file: %s", output_filename );
+				log_warnf( WARNING_BAD_DATA, "Unable to open output file: %s", output_filename );
 				goto next;
 			}
 
@@ -166,7 +169,7 @@ int main()
 
 						if( hash( hash_str, string_length( hash_str ) ) != hash_value )
 						{
-							error_logf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash output file is out of date, %s is set to 0x%llx but should be 0x%llx ", hash_str, hash_value, hash( hash_str, string_length( hash_str ) ) );
+							log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash output file is out of date, %s is set to 0x%llx but should be 0x%llx ", hash_str, hash_value, hash( hash_str, string_length( hash_str ) ) );
 							string_array_deallocate( tokens );
 							goto exit;
 						}
@@ -189,7 +192,7 @@ int main()
 			{
 				hash_value = hash( str_buffer, string_length( str_buffer ) );
 
-				debug_logf( "  %s: %s -> 0x%llx", def_buffer, str_buffer, hash_value );
+				log_infof( "  %s: %s -> 0x%llx", def_buffer, str_buffer, hash_value );
 
 				if( !_hashify_check_only )
 				{
@@ -204,20 +207,20 @@ int main()
 						{
 							if( !string_equal( current_string[ihist], str_buffer ) )
 							{
-								error_logf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash string mismatch, \"%s\" with hash 0x%llx stored in output file, read \"%s\" from input file", current_string[ihist], current_hash[ihist], str_buffer );
+								log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash string mismatch, \"%s\" with hash 0x%llx stored in output file, read \"%s\" from input file", current_string[ihist], current_hash[ihist], str_buffer );
 								goto exit;
 							}
 							break;
 						}
 						else if( string_equal( current_string[ihist], str_buffer ) )
 						{
-							error_logf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash mismatch, \"%s\" with hash 0x%llx stored in output file, read \"%s\" with hash 0x%llx from input file", current_string[ihist], current_hash[ihist], str_buffer, hash_value );
+							log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash mismatch, \"%s\" with hash 0x%llx stored in output file, read \"%s\" with hash 0x%llx from input file", current_string[ihist], current_hash[ihist], str_buffer, hash_value );
 							goto exit;
 						}
 					}
 					if( ihist == histsize )
 					{
-						error_logf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash missing in output file, \"%s\" with hash 0x%llx ", str_buffer, hash_value );
+						log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  hash missing in output file, \"%s\" with hash 0x%llx ", str_buffer, hash_value );
 						goto exit;
 					}
 				}
@@ -227,7 +230,7 @@ int main()
 				{
 					if( history_hash[ihist] == hash_value )
 					{
-						error_logf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  global hash collision, 0x%llx between: \"%s\" and \"%s\" ", hash_value, str_buffer, history_string[ihist] );
+						log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "  global hash collision, 0x%llx between: \"%s\" and \"%s\" ", hash_value, str_buffer, history_string[ihist] );
 						if( _hashify_check_only )
 							goto exit;
 					}
@@ -238,7 +241,7 @@ int main()
 			}
 			else if( string_length( def_buffer ) || string_length( str_buffer ) )
 			{
-				warn_logf( WARNING_BAD_DATA, "  invalid line encountered in input file: %s %s", def_buffer, str_buffer );
+				log_warnf( WARNING_BAD_DATA, "  invalid line encountered in input file: %s %s", def_buffer, str_buffer );
 			}
 		}
 		
@@ -259,7 +262,7 @@ next:
 	}
 
 	if( _hashify_check_only )
-		info_logf( "All hashes are up to date" );
+		log_infof( "All hashes are up to date" );
 	result = 0;
 
 exit:
@@ -277,7 +280,12 @@ exit:
 
 	string_array_deallocate( files );
 
-	foundation_shutdown();
-
 	return result;
 }
+
+
+void main_shutdown( void )
+{
+	foundation_shutdown();
+}
+

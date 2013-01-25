@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\src\bits.h" />
     <ClInclude Include="..\..\src\build.h" />
     <ClInclude Include="..\..\src\config.h" />
+    <ClInclude Include="..\..\src\crash.h" />
     <ClInclude Include="..\..\src\environment.h" />
     <ClInclude Include="..\..\src\error.h" />
     <ClInclude Include="..\..\src\event.h" />
@@ -44,6 +45,7 @@
     <ClInclude Include="..\..\src\internal.h" />
     <ClInclude Include="..\..\src\library.h" />
     <ClInclude Include="..\..\src\log.h" />
+    <ClInclude Include="..\..\src\main.h" />
     <ClInclude Include="..\..\src\mathcore.h" />
     <ClInclude Include="..\..\src\md5.h" />
     <ClInclude Include="..\..\src\memory.h" />
@@ -69,6 +71,7 @@
     <ClCompile Include="..\..\src\assert.c" />
     <ClCompile Include="..\..\src\base64.c" />
     <ClCompile Include="..\..\src\config.c" />
+    <ClCompile Include="..\..\src\crash.c" />
     <ClCompile Include="..\..\src\environment.c" />
     <ClCompile Include="..\..\src\error.c" />
     <ClCompile Include="..\..\src\event.c" />
@@ -84,6 +87,7 @@
     <ClCompile Include="..\..\src\hash.c" />
     <ClCompile Include="..\..\src\library.c" />
     <ClCompile Include="..\..\src\log.c" />
+    <ClCompile Include="..\..\src\main.c" />
     <ClCompile Include="..\..\src\md5.c" />
     <ClCompile Include="..\..\src\memory.c" />
     <ClCompile Include="..\..\src\mutex.c" />
