@@ -519,14 +519,6 @@ typedef enum
 #endif
 
 
-//Pointer size
-#if FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64 || FOUNDATION_PLATFORM_ARCH_IA64
-#  define FOUNDATION_PLATFORM_POINTER_SIZE 8
-#else
-#  define FOUNDATION_PLATFORM_POINTER_SIZE 4
-#endif
-
-
 //Base data types
 #include <stdint.h>   //Standard types like int32_t, uintptr_t
 #include <float.h>
@@ -564,6 +556,20 @@ typedef   float32_t         real;
 #  define REAL_C(x)         FLOAT32_C(x)
 #  undef  FOUNDATION_PLATFORM_REALSIZE
 #  define FOUNDATION_PLATFORM_REALSIZE 32
+#endif
+
+//Pointer size
+#if FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64 || FOUNDATION_PLATFORM_ARCH_IA64
+#  define FOUNDATION_PLATFORM_POINTER_SIZE 8
+#else
+#  define FOUNDATION_PLATFORM_POINTER_SIZE 4
+#endif
+
+//whcar_t size
+#if WCHAR_MAX > 0xffff
+#  define FOUNDATION_WCHAR_SIZE 32
+#else
+#  define FOUNDATION_WCHAR_SIZE 16
 #endif
 
 static FORCEINLINE CONSTCALL uint128_t uint128_make( const uint64_t w0, const uint64_t w1 ) { uint128_t u = { w0, w1 }; return u; }
