@@ -78,12 +78,7 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _config_initialize() < 0 )
 		return -1;
 
-	//Create artificial reference to main entry point
-#if FOUNDATION_PLATFORM_ANDROID
-	return android_main ? 0 : -1;
-#else
-	return main ? 0 : -1;
-#endif
+	return 0;
 }
 
 
