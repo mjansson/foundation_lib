@@ -15,6 +15,7 @@
 
 static char**  _environment_argv;
 static char    _environment_wd[FOUNDATION_MAX_PATHLEN] = {0};
+static char    _environment_executable_name[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_executable_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
@@ -28,11 +29,33 @@ static char    _environment_var[FOUNDATION_MAX_PATHLEN] = {0};
 static application_t   _environment_app;
 
 
+static void _environment_set_executable_paths( const char* executable_path )
+{
+	unsigned int last_path = string_rfind( executable_path, '/', STRING_NPOS );
+	if( last_path != STRING_NPOS )
+	{
+		if( !string_length( _environment_executable_dir ) )
+			string_copy( _environment_executable_dir, executable_path, last_path + 1 );
+		if( !string_length( _environment_executable_name ) )
+			string_copy( _environment_executable_name, executable_path + last_path + 1, FOUNDATION_MAX_PATHLEN );
+	}
+	else
+	{
+		if( !string_length( _environment_executable_dir ) )
+			_environment_executable_dir[0] = 0;
+		if( !string_length( _environment_executable_name ) )
+			string_copy( _environment_executable_name, executable_path, FOUNDATION_MAX_PATHLEN );
+	}
+}
+
+
 int _environment_initialize( const application_t application )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ia;
 	int num_args = 0;
+	DWORD ret = 0;
+	wchar_t module_filename[FOUNDATION_MAX_PATHLEN];
 	LPWSTR* arg_list = CommandLineToArgvW( GetCommandLineW(), &num_args );
 	if( !arg_list )
 		return -1;
@@ -41,6 +64,22 @@ int _environment_initialize( const application_t application )
 		array_push( _environment_argv, string_allocate_from_wstring( arg_list[ia], 0 ) );
 
 	LocalFree( arg_list );
+
+	if( GetModuleFileNameW( 0, module_filename, FOUNDATION_MAX_PATHLEN ) )
+	{
+		char* exe_path;
+		char* dir_path;
+		
+		exe_path = string_allocate_from_wstring( module_filename, 0 );
+		exe_path = path_clean( string_clone( exe_path ), path_is_absolute( exe_path ) );
+		dir_path = path_make_absolute( exe_path );
+
+		_environment_set_executable_paths( dir_path );
+
+		string_deallocate( dir_path );
+		string_deallocate( exe_path );
+	}
+
 #else
 #  error Not implemented yet
 #endif
@@ -53,16 +92,13 @@ int _environment_initialize( const application_t application )
 	{
 		char* exe_path = path_clean( string_clone( _environment_argv[0] ), path_is_absolute( _environment_argv[0] ) );
 		char* dir_path = path_make_absolute( exe_path );
-		unsigned int last_path = string_rfind( dir_path, '/', STRING_NPOS );
-		if( last_path != STRING_NPOS )
-			dir_path[last_path] = 0;
-		else
-			dir_path[0] = 0;
-		string_copy( _environment_executable_dir, dir_path, FOUNDATION_MAX_PATHLEN );
+
+		_environment_set_executable_paths( dir_path );
+
 		string_deallocate( dir_path );
 		string_deallocate( exe_path );
 	}
-   	else
+	else if( !string_length( _environment_executable_dir ) )
 	   	string_copy( _environment_executable_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
 
 	return 0;
@@ -78,6 +114,12 @@ void _environment_shutdown( void )
 const char* const* environment_command_line( void )
 {
 	return _environment_argv;
+}
+
+
+const char* environment_executable_name( void )
+{
+	return _environment_executable_name;
 }
 
 

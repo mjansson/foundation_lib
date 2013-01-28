@@ -22,6 +22,9 @@
 //! Get command line as a string array. Returned array of strings must not be modified or deallocated.
 FOUNDATION_API const char* const*     environment_command_line( void );
 
+//! Get executable name. Returned string must not be modified or deallocated.
+FOUNDATION_API const char*            environment_executable_name( void );
+
 //! Get executable directory. Returned string must not be modified or deallocated.
 FOUNDATION_API const char*            environment_executable_directory( void );
 
