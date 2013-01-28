@@ -14,6 +14,16 @@
 #include <test/test.h>
 
 
+application_t test_application( void )
+{
+	application_t app;
+	app.name = "Foundation application tests";
+	app.short_name = "test_app";
+	app.config_dir = "test_app";
+	return app;
+}
+
+
 int do_something( void )
 {
 	return 1;

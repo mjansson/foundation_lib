@@ -40,5 +40,6 @@ TEST_API void test_add_test( test_fn test, const char* group, const char* name )
 #define DECLARE_TEST( test_group, test_name ) int _MAKE_TEST_FN( test_group, test_name )( void )
 #define ADD_TEST( test_group, test_name ) test_add_test( _MAKE_TEST_FN( test_group, test_name ), FOUNDATION_PREPROCESSOR_TOSTRING( test_group ), FOUNDATION_PREPROCESSOR_TOSTRING( test_name ) )
 
-#define EXPECT_EQ( var, expect ) do { if( (var) != (expect) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s != %s (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); return -1; } } while(0)
-
+#define EXPECT_EQ( var, expect ) do { if( !((var) == (expect)) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s != %s (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); return -1; } } while(0)
+#define EXPECT_NE( var, expect ) do { if( ((var) == (expect)) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s == %s (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); return -1; } } while(0)
+#define EXPECT_TRUE( var ) do { if( !(var) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s if false (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__ ); return -1; } } while(0)

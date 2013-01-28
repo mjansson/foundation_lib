@@ -17,6 +17,7 @@
 
 
 extern void test_declare( void );
+extern application_t test_application( void );
 
 
 typedef struct
@@ -67,12 +68,15 @@ void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
 	int result;
+
+	log_infof( "Running test suite: %s", environment_application()->short_name );
+
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
-		log_infof( "Running tests from %s", _test_groups[ig]->name );
+		log_infof( "Running tests from group %s", _test_groups[ig]->name );
 		for( ic = 0, csize = array_size( _test_groups[ig]->cases ); ic < csize; ++ic )
 		{
-			log_infof( "  Running %s", _test_groups[ig]->cases[ic]->name );
+			log_infof( "  Running %s tests", _test_groups[ig]->cases[ic]->name );
 			result = _test_groups[ig]->cases[ic]->fn();
 			if( result < 0 )
 				log_warnf( WARNING_SUSPICIOUS, "    FAILED" );
@@ -102,12 +106,7 @@ void test_free( void )
 
 int main_initialize( void )
 {
-	application_t application;
-	application.name = "Foundation Test Suite";
-	application.short_name = "test_app";
-	application.config_dir = "test_app";
-
-	return foundation_initialize( memory_system_malloc(), application );
+	return foundation_initialize( memory_system_malloc(), test_application() );
 }
 
 
