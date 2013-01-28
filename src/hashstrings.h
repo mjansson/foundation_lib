@@ -13,4 +13,4 @@
 #define HASH_LOCALE static_hash_string( "locale", 0xfb3833132a868037ULL )
 #define HASH_APPLICATION static_hash_string( "application", 0x1d0a3207798c58baULL )
 #define HASH_USER static_hash_string( "user", 0x921c12dbd6f624f6ULL )
-#define HASH_DAEMON static_hash_string( "daemon", 0x0ULL )
+#define HASH_DAEMON static_hash_string( "daemon", 0x27b6055e22f461b7ULL )
