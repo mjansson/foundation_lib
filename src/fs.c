@@ -517,7 +517,7 @@ void fs_touch( const char* path )
 }
 
 
-char** fs_matching_files( const char* path, const char* ext, bool recurse )
+char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 {
 	char** names = 0;
 	char** subdirs = 0;
@@ -527,8 +527,8 @@ char** fs_matching_files( const char* path, const char* ext, bool recurse )
 
 	//Windows specific implementation of directory listing
 	WIN32_FIND_DATAW data;
-	char* pattern = string_append( path_merge( path, "*." ), ext );
-	wchar_t* wpattern = wstring_allocate_from_string( pattern, 0 );
+	char* pathpattern = path_merge( path, pattern );
+	wchar_t* wpattern = wstring_allocate_from_string( pathpattern, 0 );
 	
 	HANDLE find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
@@ -539,15 +539,14 @@ char** fs_matching_files( const char* path, const char* ext, bool recurse )
 	FindClose( find );
 
 	wstring_deallocate( wpattern );
-	string_deallocate( pattern );
+	string_deallocate( pathpattern );
 
 #else
 
 	char** fnames = fs_files( path );
 	for( in = 0, nsize = array_size( fnames ); in < nsize; ++in )
 	{
-		unsigned int extpos = string_rfind( fnames[in], '.', STRING_NPOS );
-		if( ( extpos != STRING_NPOS ) && string_equal( fnames[in] + ( extpos + 1 ), ext ) )
+		if( string_match_pattern( fnames[in], pattern ) )
 		{
 			array_push( names, fnames[in] );
 			fnames[in] = 0;
@@ -564,7 +563,7 @@ char** fs_matching_files( const char* path, const char* ext, bool recurse )
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
 		char* subpath = path_merge( path, subdirs[id] );
-		char** subnames = fs_matching_files( subpath, ext, true );
+		char** subnames = fs_matching_files( subpath, pattern, true );
 
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
 			array_push( names, path_merge( subpath, subnames[in] ) );
@@ -1184,7 +1183,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	stream_file_t* file;
 	stream_t* stream;
 	char* abspath;
-	bool dotrunc, atend;
+	bool dotrunc, atend, has_protocol;
 	unsigned int in_mode = mode;
 	unsigned int pathlen;
 
@@ -1205,27 +1204,22 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	stream->sequential = false;
 
 	abspath = path_make_absolute( path );
-	if( string_equal_substr( abspath, "file://", 7 ) )
-		stream->path = abspath;
-	else
-	{
-		stream->path = string_format( "file://", abspath );
-		string_deallocate( abspath );
-	}
-
 	dotrunc = false;
-	file->fd = _fs_file_fopen( file->path, mode, &dotrunc );
+	has_protocol = string_equal_substr( abspath, "file://", 7 );
+
+	file->fd = _fs_file_fopen( has_protocol ? abspath + 7 : abspath, mode, &dotrunc );
 
 	if( ( mode & STREAM_OUT ) && !file->fd && !( mode & STREAM_TRUNCATE ) )
 	{
+		string_deallocate( abspath );
 		stream_deallocate( stream );
 		return fs_open_file( path, in_mode | STREAM_TRUNCATE );
 	}
 
 	atend = ( ( mode & STREAM_ATEND ) != 0 );
 
-	stream->mode = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC );
-	
+	stream->mode   = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC );
+	stream->path   = has_protocol ? abspath : string_prepend( abspath, "file://" );
 	stream->vtable = &_fs_file_vtable;
 
 	if( !file->fd )
