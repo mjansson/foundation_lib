@@ -1240,6 +1240,8 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 
 FOUNDATION_EXTERN void _ringbuffer_stream_initialize( void );
+FOUNDATION_EXTERN void _buffer_stream_initialize( void );
+
 
 int _fs_initialize( void )
 {
@@ -1261,6 +1263,7 @@ int _fs_initialize( void )
 	_fs_file_vtable.clone = _fs_file_clone;
 
 	_ringbuffer_stream_initialize();
+	_buffer_stream_initialize();
 
 	return 0;
 }

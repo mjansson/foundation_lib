@@ -39,6 +39,7 @@
     <ClInclude Include="..\..\src\time.h" />
     <ClInclude Include="..\..\src\crash.h" />
     <ClInclude Include="..\..\src\main.h" />
+    <ClInclude Include="..\..\src\bufferstream.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\foundation.c" />
@@ -70,5 +71,9 @@
     <ClCompile Include="..\..\src\time.c" />
     <ClCompile Include="..\..\src\crash.c" />
     <ClCompile Include="..\..\src\main.c" />
+    <ClCompile Include="..\..\src\bufferstream.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\hashstrings.txt" />
   </ItemGroup>
 </Project>

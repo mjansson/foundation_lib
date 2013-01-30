@@ -53,6 +53,7 @@
 #include <config.h>
 #include <stream.h>
 #include <fs.h>
+#include <bufferstream.h>
 
 #include <crash.h>
  
