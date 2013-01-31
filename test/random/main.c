@@ -14,6 +14,12 @@
 #include <test/test.h>
 
 
+static unsigned int _test_hist[64];
+static unsigned int _test_bits[64];
+static unsigned int _test_slice32 = ( 1U << 31U ) / 32U;
+static uint64_t     _test_slice64 = ( 1ULL << 63ULL ) / 64ULL;
+
+
 application_t test_application( void )
 {
 	application_t app;
@@ -24,12 +30,7 @@ application_t test_application( void )
 }
 
 
-static unsigned int _test_hist[64];
-static unsigned int _test_bits[64];
-static unsigned int _test_slice32 = ( 1U << 31U ) / 32U;
-static uint64_t     _test_slice64 = ( 1ULL << 63ULL ) / 64ULL;
-
-TEST( random, distribution32 )
+DECLARE_TEST( random, distribution32 )
 {
 #if FOUNDATION_PLATFORM_MOBILE
 	int num_passes = 64000;
@@ -65,14 +66,14 @@ TEST( random, distribution32 )
 	for( int j = 0; j < 32; ++j )
 		log_debugf( "%u-%u: %u", ( _test_slice32 * j ), ( _test_slice32 * ( j + 1 ) ), _test_hist[j] );*/
 
-	for( int j = 0; j < 32; ++j )
+	for( j = 0; j < 32; ++j )
 	{
 		if( _test_bits[j] < min_num )
 			min_num = _test_bits[j];
 		if( _test_bits[j] > max_num )
 			max_num = _test_bits[j];
 	}
-	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / 2.0 ) );
+	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
 	for( j = 0; j < 32; ++j )
 		EXPECT_GT( _test_bits[j], 0U );
@@ -80,219 +81,226 @@ TEST( random, distribution32 )
 
 	//log_debugf( "Bits: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
-	maxNum = 0, minNum = 0xFFFFFFFF;
-	for( int j = 0; j < 32; ++j )
+	max_num = 0, min_num = 0xFFFFFFFF;
+	for( j = 0; j < 32; ++j )
 	{
-		if( hist[j] < minNum )
-			minNum = hist[j];
-		if( hist[j] > maxNum )
-			maxNum = hist[j];
+		if( _test_hist[j] < min_num )
+			min_num = _test_hist[j];
+		if( _test_hist[j] > max_num )
+			max_num = _test_hist[j];
 	}
-	diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( int j = 0; j < 32; ++j )
-		EXPECT_GT( hist[j], 0U );
-	EXPECT_LT( diff, 0.06 ) << "Histograms: min " << minNum << " : max " << maxNum << " : diff " << diff;
+	for( j = 0; j < 32; ++j )
+		EXPECT_GT( _test_hist[j], 0U );
+	EXPECT_LT( diff, 0.06 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
-	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", minNum, maxNum, (double)diff );
+	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 	
 	//Verify range distribution
-	for( int j = 0; j < 128; ++j )
+	for( j = 0; j < 128; ++j )
 	{
-		memset( bits, 0, sizeof( unsigned int ) * 32 );
-		for( int i = 0; i < numPasses; ++i )
+		memset( _test_bits, 0, sizeof( unsigned int ) * 32 );
+		for( i = 0; i < num_passes; ++i )
 		{
 			unsigned int num = random32_range( ( j + 1 ) * 32, j * 32 );
 			EXPECT_GE( num, j * 32U );
 			EXPECT_LT( num, ( j + 1 ) * 32U );
-			++bits[ num % 32 ];
+			++_test_bits[ num % 32 ];
 		}
 	
 		//Verify distribution...
-		maxNum = 0, minNum = 0xFFFFFFFF;
-		for( int j = 0; j < 32; ++j )
+		max_num = 0, min_num = 0xFFFFFFFF;
+		for( j = 0; j < 32; ++j )
 		{
-			if( bits[j] < minNum )
-				minNum = bits[j];
-			if( bits[j] > maxNum )
-				maxNum = bits[j];
+			if( _test_bits[j] < min_num )
+				min_num = _test_bits[j];
+			if( _test_bits[j] > max_num )
+				max_num = _test_bits[j];
 		}
-		real diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+		diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-		for( int j = 0; j < 32; ++j )
-			EXPECT_GT( bits[j], 0U );
-		EXPECT_LT( diff, 0.06 ) << "Range distribution: min " << minNum << " : max " << maxNum << " : diff " << diff;
+		for( j = 0; j < 32; ++j )
+			EXPECT_GT( _test_bits[j], 0U );
+		EXPECT_LT( diff, 0.06 );// << "Range distribution: min " << min_num << " : max " << max_num << " : diff " << diff;
 	}
 
-	END_TEST_BLOCK()
+	return 0;
 }
 
 
-TEST( RandomTest, Distribution64 )
+DECLARE_TEST( random, distribution64 )
 {
-	BEGIN_TEST_BLOCK()
-
-#if NEO_PLATFORM_IOS || NEO_PLATFORM_ANDROID
-	int numPasses = 64000;
+#if FOUNDATION_PLATFORM_MOBILE
+	int num_passes = 64000;
 #else
-	int numPasses = 512000;
+	int num_passes = 512000;
 #endif
-	memset( bits, 0, sizeof( unsigned int ) * 64 );
-	memset( hist, 0, sizeof( unsigned int ) * 64 );
-	for( int i = 0; i < numPasses; ++i )
+	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
+	int i;
+	uint64_t j;
+	real diff;
+	
+	memset( _test_bits, 0, sizeof( unsigned int ) * 64 );
+	memset( _test_hist, 0, sizeof( unsigned int ) * 64 );
+	for( i = 0; i < num_passes; ++i )
 	{
 		uint64_t num = random64();
-		for( uint64_t j = 0; j < 64; ++j )
+		for( j = 0; j < 64; ++j )
 		{
 			if( num & ( 1ULL << j ) )
-				++bits[j];
-			if( ( num >= ( slice64 * j ) ) && ( num < ( slice64 * ( j + 1 ) ) ) )
-				++hist[j];
+				++_test_bits[j];
+			if( ( num >= ( _test_slice64 * j ) ) && ( num < ( _test_slice64 * ( j + 1 ) ) ) )
+				++_test_hist[j];
 		}
 	}
 
 	/*debug_logf( "Bit distribution:" );
 	for( int j = 0; j < 32; ++j )
-		debug_logf( "%2d: %d", j, bits[j] );*/
+		debug_logf( "%2d: %d", j, _test_bits[j] );*/
 	/*debug_logf( "Value distribution:" );
 	for( int j = 0; j < 32; ++j )
-		debug_logf( "%u-%u: %u", ( slice * j ), ( slice * ( j + 1 ) ), hist[j] );*/
+		debug_logf( "%u-%u: %u", ( _test_slice64 * j ), ( _test_slice64 * ( j + 1 ) ), _test_hist[j] );*/
 
-	unsigned int maxNum = 0, minNum = 0xFFFFFFFF;
-	for( int j = 0; j < 64; ++j )
+	for( j = 0; j < 64; ++j )
 	{
-		if( bits[j] < minNum )
-			minNum = bits[j];
-		if( bits[j] > maxNum )
-			maxNum = bits[j];
+		if( _test_bits[j] < min_num )
+			min_num = _test_bits[j];
+		if( _test_bits[j] > max_num )
+			max_num = _test_bits[j];
 	}
-	real diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( int j = 0; j < 64; ++j )
-		EXPECT_GT( bits[j], 0U );
-	EXPECT_LT( diff, 0.01 ) << "Bits: min " << minNum << " : max " << maxNum << " : diff " << diff;
+	for( j = 0; j < 64; ++j )
+		EXPECT_GT( _test_bits[j], 0U );
+	EXPECT_LT( diff, 0.01 );// << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
 
-	//debug_logf( "Bits: min %u : max %u : diff %.5lf", minNum, maxNum, (double)diff );
+	//debug_logf( "Bits: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
-	maxNum = 0, minNum = 0xFFFFFFFF;
-	for( int j = 0; j < 64; ++j )
+	max_num = 0, min_num = 0xFFFFFFFF;
+	for( j = 0; j < 64; ++j )
 	{
-		if( hist[j] < minNum )
-			minNum = hist[j];
-		if( hist[j] > maxNum )
-			maxNum = hist[j];
+		if( _test_hist[j] < min_num )
+			min_num = _test_hist[j];
+		if( _test_hist[j] > max_num )
+			max_num = _test_hist[j];
 	}
-	diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( int j = 0; j < 64; ++j )
-		EXPECT_GT( hist[j], 0U );
-	EXPECT_LT( diff, 0.1 ) << "Histograms: min " << minNum << " : max " << maxNum << " : diff " << diff;
+	for( j = 0; j < 64; ++j )
+		EXPECT_GT( _test_hist[j], 0U );
+	EXPECT_LT( diff, 0.1 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
-	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", minNum, maxNum, (double)diff );
+	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 	
 	//Verify range distribution
-	for( int j = 0; j < 128; ++j )
+	for( j = 0; j < 128; ++j )
 	{
-		memset( bits, 0, sizeof( unsigned int ) * 64 );
-		for( int i = 0; i < numPasses; ++i )
+		memset( _test_bits, 0, sizeof( unsigned int ) * 64 );
+		for( i = 0; i < num_passes; ++i )
 		{
-			unsigned int num = random32_range( ( j + 1 ) * 64, j * 64 );
-			EXPECT_GE( num, j * 64u );
+			uint64_t num = random64_range( ( j + 1 ) * 64, j * 64 );
+			EXPECT_GE( num, j * 64U );
 			EXPECT_LT( num, ( j + 1 ) * 64U );
-			++bits[ num % 64 ];
+			++_test_bits[ num % 64 ];
 		}
 	
 		//Verify distribution...
-		maxNum = 0, minNum = 0xFFFFFFFF;
-		for( int j = 0; j < 64; ++j )
+		max_num = 0, min_num = 0xFFFFFFFF;
+		for( j = 0; j < 64; ++j )
 		{
-			if( bits[j] < minNum )
-				minNum = bits[j];
-			if( bits[j] > maxNum )
-				maxNum = bits[j];
+			if( _test_bits[j] < min_num )
+				min_num = _test_bits[j];
+			if( _test_bits[j] > max_num )
+				max_num = _test_bits[j];
 		}
-		real diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+		diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-		for( int j = 0; j < 64; ++j )
-			EXPECT_GT( bits[j], 0U );
-		EXPECT_LT( diff, 0.1 ) << "Range distribution: min " << minNum << " : max " << maxNum << " : diff " << diff;
+		for( j = 0; j < 64; ++j )
+			EXPECT_GT( _test_bits[j], 0U );
+		EXPECT_LT( diff, 0.1 );// << "Range distribution: min " << min_num << " : max " << max_num << " : diff " << diff;
 	}
-	
-	END_TEST_BLOCK()
+
+	return 0;
 }
 
 
-TEST( RandomTest, DistributionReal )
+DECLARE_TEST( random, distribution_real )
 {
-	BEGIN_TEST_BLOCK()
+	int i, idx;
+	real diff, num;
+	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
 
-	memset( hist, 0, sizeof( unsigned int ) * 64 );
-	for( int i = 0; i < 512000; ++i )
+	memset( _test_hist, 0, sizeof( unsigned int ) * 64 );
+	for( i = 0; i < 512000; ++i )
 	{
-		real num = random_normalized();
+		num = random_normalized();
 		EXPECT_GE( num, 0 );
 		EXPECT_LT( num, 1 );
-		int idx = neo_floor( num * 64.0 );
-		++hist[ neo_clamp( idx, 0, 63 ) ];
+		idx = math_floor( num * REAL_C(64.0) );
+		++_test_hist[ ( idx < 0 ? 0 : ( idx > 63 ? 63 : idx ) ) ];
 	}
 
 	/*debug_logf( "Value distribution:" );
 	for( int j = 0; j < 54; ++j )
-		debug_logf( "%lf-%lf: %llu", ( (1.0/64.0) * j ), ( (1.0/64.0) * ( j + 1 ) ), hist[j] );*/
+		debug_logf( "%lf-%lf: %llu", ( (1.0/64.0) * j ), ( (1.0/64.0) * ( j + 1 ) ), _test_hist[j] );*/
 
-	unsigned int maxNum = 0, minNum = 0xFFFFFFFF;
-	for( int j = 0; j < 64; ++j )
+	for( i = 0; i < 64; ++i )
 	{
-		if( hist[j] < minNum )
-			minNum = hist[j];
-		if( hist[j] > maxNum )
-			maxNum = hist[j];
+		if( _test_hist[i] < min_num )
+			min_num = _test_hist[i];
+		if( _test_hist[i] > max_num )
+			max_num = _test_hist[i];
 	}
-	real diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( int j = 0; j < 64; ++j )
-		EXPECT_GT( hist[j], 0U );
-	EXPECT_LT( diff, 0.1 ) << "Histograms: min " << minNum << " : max " << maxNum << " : diff " << diff;
+	for( i = 0; i < 64; ++i )
+		EXPECT_GT( _test_hist[i], 0U );
+	EXPECT_LT( diff, 0.1 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
-	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", minNum, maxNum, (double)diff );
-	
-	END_TEST_BLOCK()
+	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
+
+	return 0;
 }
 
 
 void* random_thread( object_t thread, void* arg )
 {
-#if NEO_PLATFORM_IOS || NEO_PLATFORM_ANDROID
-	int numPasses = 64000;
+#if FOUNDATION_PLATFORM_MOBILE
+	int num_passes = 64000;
 #else
-	int numPasses = 512000;
+	int num_passes = 512000;
 #endif
-	for( int i = 0; i < numPasses; ++i )
+	int i, j;
+	unsigned int num;
+
+	for( i = 0; i < num_passes; ++i )
 	{
-		unsigned int num = random32();
-		for( int j = 0; j < 32; ++j )
+		num = random32();
+		for( j = 0; j < 32; ++j )
 		{
 			if( num & ( 1 << j ) )
-				atomic_incr32( (int*)bits + j );
-			if( ( num >= ( slice32 * j ) ) && ( num < ( slice32 * ( j + 1 ) ) ) )
-				atomic_incr32( (int*)hist + j );
+				atomic_incr32( (int*)_test_bits + j );
+			if( ( num >= ( _test_slice32 * j ) ) && ( num < ( _test_slice32 * ( j + 1 ) ) ) )
+				atomic_incr32( (int*)_test_hist + j );
 		}
 	}
 	return 0;
 }
 
 
-TEST( RandomTest, Threads )
+DECLARE_TEST( random, threads )
 {
-	//This test actually allocates memory (thread random state buffers)
-	//BEGIN_TEST_BLOCK()
-
-	memset( bits, 0, sizeof( unsigned int ) * 32 );
-	memset( hist, 0, sizeof( unsigned int ) * 32 );
-
 	//Launch 32 threads
 	object_t thread[32];
-	for( int i = 0; i < 32; ++i )
+	bool running = true;
+	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
+	int i, j;
+	real diff;
+	memset( _test_bits, 0, sizeof( unsigned int ) * 32 );
+	memset( _test_hist, 0, sizeof( unsigned int ) * 32 );
+
+	for( i = 0; i < 32; ++i )
 	{
 		thread[i] = thread_create( random_thread, "random", THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[i], 0 );
@@ -300,11 +308,10 @@ TEST( RandomTest, Threads )
 
 	thread_sleep( 500 );
 
-	bool running = true;
 	while( running )
 	{
 		running = false;
-		for( int i = 0; i < 32; ++i )
+		for( i = 0; i < 32; ++i )
 		{
 			if( thread_is_running( thread[i] ) )
 			{
@@ -315,62 +322,55 @@ TEST( RandomTest, Threads )
 		}
 	}
 
-	for( int i = 0; i < 32; ++i )
+	for( i = 0; i < 32; ++i )
 		thread_destroy( thread[i] );
 	
-	debug_logf( "All threads finished" );
-
 	/*debug_logf( "Bit distribution:" );
 	for( int j = 0; j < 32; ++j )
-		debug_logf( "%2d: %d", j, bits[j] );
+		debug_logf( "%2d: %d", j, _test_bits[j] );
 	debug_logf( "Value distribution:" );
 	for( int j = 0; j < 32; ++j )
-		debug_logf( "%u-%u: %u", ( slice * j ), ( slice * ( j + 1 ) ), hist[j] );*/
+		debug_logf( "%u-%u: %u", ( _test_slice32 * j ), ( _test_slice32 * ( j + 1 ) ), _test_hist[j] );*/
 
-	unsigned int maxNum = 0, minNum = 0xFFFFFFFF;
-	for( int j = 0; j < 31; ++j )
+	for( j = 0; j < 31; ++j )
 	{
-		if( bits[j] < minNum )
-			minNum = bits[j];
-		if( bits[j] > maxNum )
-			maxNum = bits[j];
+		if( _test_bits[j] < min_num )
+			min_num = _test_bits[j];
+		if( _test_bits[j] > max_num )
+			max_num = _test_bits[j];
 	}
-	real diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( int j = 0; j < 32; ++j )
-		EXPECT_GT( bits[j], 0U );
-	EXPECT_LT( diff, 0.01 ) << "Bits: min " << minNum << " : max " << maxNum << " : diff " << diff;
+	for( j = 0; j < 32; ++j )
+		EXPECT_GT( _test_bits[j], 0U );
+	EXPECT_LT( diff, 0.01 );// << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
 
-	//debug_logf( "Bits: min %u : max %u : diff %.5lf", minNum, maxNum, (double)diff );
+	//debug_logf( "Bits: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
-	maxNum = 0, minNum = 0xFFFFFFFF;
-	for( int j = 0; j < 31; ++j )
+	max_num = 0, min_num = 0xFFFFFFFF;
+	for( j = 0; j < 31; ++j )
 	{
-		if( hist[j] < minNum )
-			minNum = hist[j];
-		if( hist[j] > maxNum )
-			maxNum = hist[j];
+		if( _test_hist[j] < min_num )
+			min_num = _test_hist[j];
+		if( _test_hist[j] > max_num )
+			max_num = _test_hist[j];
 	}
-	diff = (real)( maxNum - minNum ) / (real)( minNum + ( ( maxNum - minNum ) / 2 ) );
+	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( int j = 0; j < 32; ++j )
-		EXPECT_GT( hist[j], 0U );
-	EXPECT_LT( diff, 0.1 ) << "Histograms: min " << minNum << " : max " << maxNum << " : diff " << diff;
+	for( j = 0; j < 32; ++j )
+		EXPECT_GT( _test_hist[j], 0U );
+	EXPECT_LT( diff, 0.1 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
-	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", minNum, maxNum, (double)diff );
-	
-	//END_TEST_BLOCK()
-}
+	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
-
-
-DECLARE_TEST( random, random )
-{
 	return 0;
 }
 
 
 void test_declare( void )
 {
-	ADD_TEST( random, random );
+	ADD_TEST( random, distribution32 );
+	ADD_TEST( random, distribution64 );
+	ADD_TEST( random, distribution_real );
+	ADD_TEST( random, threads );
 }

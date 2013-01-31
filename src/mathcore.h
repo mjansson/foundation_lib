@@ -113,11 +113,11 @@ static FORCEINLINE CONSTCALL real          math_realdec( real val, int units );
     \return                                Resulting float */
 static FORCEINLINE CONSTCALL real          math_realinc( real val, int units );
 
-static FORCEINLINE CONSTCALL bool         math_realisnan( real val );
-static FORCEINLINE CONSTCALL bool         math_realisinf( real val );
-static FORCEINLINE CONSTCALL bool         math_realisuninitialized( real val );
-static FORCEINLINE CONSTCALL bool         math_realisfinite( real val );
-static FORCEINLINE CONSTCALL real         math_realundenormalize( real val );
+static FORCEINLINE CONSTCALL bool          math_realisnan( real val );
+static FORCEINLINE CONSTCALL bool          math_realisinf( real val );
+static FORCEINLINE CONSTCALL bool          math_realisuninitialized( real val );
+static FORCEINLINE CONSTCALL bool          math_realisfinite( real val );
+static FORCEINLINE CONSTCALL real          math_realundenormalize( real val );
 
 
 #if BUILD_DEBUG || ( BUILD_RELEASE && !BUILD_DEPLOY && BUILD_ENABLE_RELEASE_ASSERT )
