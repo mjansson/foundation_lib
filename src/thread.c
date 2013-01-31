@@ -93,6 +93,9 @@ int _thread_initialize( void )
 	if( getprocidfn )
 		_fnGetCurrentProcessorNumber = getprocidfn;
 #endif
+
+	_thread_map = objectmap_allocate( BUILD_THREAD_MAP_SIZE );
+
 	return 0;
 }
 

@@ -68,6 +68,7 @@
 
 
 // Allocation sizes
+#define BUILD_THREAD_MAP_SIZE                 256
 #define BUILD_LIBRARY_MAP_SIZE                64
 
 //! Default size for thread stacks
