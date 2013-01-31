@@ -64,7 +64,7 @@ int assert_report( const char* condition, const char* file, int line, const char
 
 	system_message_box( "Assert Failure", _assert_box_buffer, false );
 
-	return 0;
+	return 1;
 }
 
 
