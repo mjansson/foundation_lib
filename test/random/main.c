@@ -34,6 +34,8 @@ DECLARE_TEST( random, distribution32 )
 {
 #if FOUNDATION_PLATFORM_MOBILE
 	int num_passes = 64000;
+#elif FOUNDATION_BUILD_DEBUG
+	int num_passes = 256000;
 #else
 	int num_passes = 512000;
 #endif
@@ -95,7 +97,7 @@ DECLARE_TEST( random, distribution32 )
 		EXPECT_GT( _test_hist[j], 0U );
 	EXPECT_LT( diff, 0.06 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
-	//debug_logf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
+	//log_debugf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 	
 	//Verify range distribution
 	for( j = 0; j < 128; ++j )
@@ -111,18 +113,20 @@ DECLARE_TEST( random, distribution32 )
 	
 		//Verify distribution...
 		max_num = 0, min_num = 0xFFFFFFFF;
-		for( j = 0; j < 32; ++j )
+		for( i = 0; i < 32; ++i )
 		{
-			if( _test_bits[j] < min_num )
-				min_num = _test_bits[j];
-			if( _test_bits[j] > max_num )
-				max_num = _test_bits[j];
+			if( _test_bits[i] < min_num )
+				min_num = _test_bits[i];
+			if( _test_bits[i] > max_num )
+				max_num = _test_bits[i];
 		}
 		diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-		for( j = 0; j < 32; ++j )
-			EXPECT_GT( _test_bits[j], 0U );
+		for( i = 0; i < 32; ++i )
+			EXPECT_GT( _test_bits[i], 0U );
 		EXPECT_LT( diff, 0.06 );// << "Range distribution: min " << min_num << " : max " << max_num << " : diff " << diff;
+
+		//log_debugf( "Range distribution: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 	}
 
 	return 0;
@@ -133,6 +137,8 @@ DECLARE_TEST( random, distribution64 )
 {
 #if FOUNDATION_PLATFORM_MOBILE
 	int num_passes = 64000;
+#elif FOUNDATION_BUILD_DEBUG
+	int num_passes = 256000;
 #else
 	int num_passes = 512000;
 #endif
@@ -207,17 +213,17 @@ DECLARE_TEST( random, distribution64 )
 	
 		//Verify distribution...
 		max_num = 0, min_num = 0xFFFFFFFF;
-		for( j = 0; j < 64; ++j )
+		for( i = 0; i < 64; ++i )
 		{
-			if( _test_bits[j] < min_num )
-				min_num = _test_bits[j];
-			if( _test_bits[j] > max_num )
-				max_num = _test_bits[j];
+			if( _test_bits[i] < min_num )
+				min_num = _test_bits[i];
+			if( _test_bits[i] > max_num )
+				max_num = _test_bits[i];
 		}
 		diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-		for( j = 0; j < 64; ++j )
-			EXPECT_GT( _test_bits[j], 0U );
+		for( i = 0; i < 64; ++i )
+			EXPECT_GT( _test_bits[i], 0U );
 		EXPECT_LT( diff, 0.1 );// << "Range distribution: min " << min_num << " : max " << max_num << " : diff " << diff;
 	}
 
