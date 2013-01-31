@@ -24,12 +24,6 @@ application_t test_application( void )
 }
 
 
-int do_something( void )
-{
-	return 1;
-}
-
-
 DECLARE_TEST( string, initialize )
 {
 	{

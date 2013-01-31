@@ -56,6 +56,7 @@
 #include <bufferstream.h>
 
 #include <crash.h>
+#include <blowfish.h>
  
 
 //! Entry point

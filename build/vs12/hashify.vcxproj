@@ -233,6 +233,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\tools\hashify\main.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\tools\hashify\errorcodes.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

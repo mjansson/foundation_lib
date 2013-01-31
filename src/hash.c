@@ -92,9 +92,7 @@ hash_t hash( const void* key, const unsigned int len )
 
 	//----------
 	// body
-#if FOUNDATION_PLATFORM_ARCH_ARM
 	FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( key, 8 );
-#endif
 
 	blocks = (const uint64_t*)data; /*lint !e826 Ok, loop below will not access data outside scope*/
 

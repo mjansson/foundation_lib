@@ -204,6 +204,14 @@ typedef enum
 	FOUNDATIONEVENT_FILE_MODIFIED
 } foundation_event_id;
 
+typedef enum
+{
+	BLOWFISH_ECB,
+	BLOWFISH_CBC,
+	BLOWFISH_CFB,
+	BLOWFISH_OFB
+} blowfish_mode_t;
+
 //! Hash value
 typedef uint64_t         hash_t;
 
@@ -386,6 +394,8 @@ typedef struct _foundation_event_block      event_block_t;
 typedef struct _foundation_event_stream     event_stream_t;
 
 typedef struct _foundation_ringbuffer       ringbuffer_t;
+
+typedef struct _foundation_blowfish         blowfish_t;
 
 
 // UTILITY FUNCTIONS
