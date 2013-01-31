@@ -461,7 +461,7 @@
 #  include <stdbool.h>
 
 // Intel
-#elif defined( __ICL ) || defined( __ICC )
+#elif defined( __ICL ) || defined( __ICC ) || defined(__INTEL_COMPILER)
 
 #  undef  FOUNDATION_COMPILER_INTEL
 #  define FOUNDATION_COMPILER_INTEL 1
@@ -473,19 +473,24 @@
 #    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __ICC )
 #  endif
 
-#  define RESTRICT restrict
-#  define THREADLOCAL __thread
+#  define RESTRICT __restrict
+#  define THREADLOCAL __declspec(thread)
 
-#  define ATTRIBUTE(x) __attribute__((__##x##__))
-#  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
-#  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+#  define ATTRIBUTE(x)
+#  define ATTRIBUTE2(x,y)
+#  define ATTRIBUTE3(x,y,z)
 
-#  define DEPRECATED ATTRIBUTE(deprecated)
-#  define FORCEINLINE inline ATTRIBUTE(always_inline)
-#  define NOINLINE ATTRIBUTE(noinline)
-#  define PURECALL ATTRIBUTE(pure)
-#  define CONSTCALL ATTRIBUTE(const)
-#  define ALIGN(x) ATTRIBUTE2(aligned,x)
+#  define DEPRECATED 
+#  define FORCEINLINE __forceinline
+#  define NOINLINE __declspec(noinline)
+#  define PURECALL 
+#  define CONSTCALL
+#  define ALIGN(x) __declspec(align(x))
+
+#  define bool _Bool
+#  define true 1
+#  define false 0
+#  define __bool_true_false_are_defined 1
 
 // Microsoft
 #elif defined( _MSC_VER )
