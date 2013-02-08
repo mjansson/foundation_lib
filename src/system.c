@@ -12,6 +12,14 @@
 
 #include <foundation.h>
 
+#if FOUNDATION_PLATFORM_POSIX
+#  include <sched.h>
+#  include <unistd.h>
+#  include <stdlib.h>
+#ifndef errno
+extern int errno;
+#endif
+#endif
 
 static event_stream_t* _system_event_stream = 0;
 
@@ -56,7 +64,7 @@ ARCHITECTURE_ARM6,
 #  error Unknown architecture
 #endif
 
-#if FOUNDATION_ARCH_BYTEORDER_LITTLEENDIAN
+#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
 BYTEORDER_LITTLEENDIAN
 #else
 BYTEORDER_BIGENDIAN
@@ -536,7 +544,7 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 	return ( MessageBoxA( 0, message, title, cancel_button ? MB_OKCANCEL : MB_OK ) == IDOK );
 #elif FOUNDATION_PLATFORM_MACOSX
 	return _objc_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
-#elif FOUNDATION_PLATFORM_LINUX
+#elif 0//FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format( "%s\n\n%s\n", title, message );
 	pid_t pid = fork();
 

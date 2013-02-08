@@ -308,11 +308,7 @@ static FORCEINLINE real     math_acos( real x ) { return acos( x ); }
 static FORCEINLINE real     math_atan( real x ) { return atan( x ); }
 static FORCEINLINE real     math_atan2( real x, real y ) { return atan2( x, y ); }
 static FORCEINLINE real     math_sqrt( real x ) { return sqrt( x ); }
-#  if FOUNDATION_COMPILER_MSVC
-static FORCEINLINE real     math_rsqrt( real x ) { return REAL_C( 1.0 ) / sqrtf( x ); }
-#  else
 static FORCEINLINE real     math_rsqrt( real x ) { return invsqrt( x ); }
-#  endif
 static FORCEINLINE real     math_abs( real x ) { return fabs( x ); }
 static FORCEINLINE real     math_mod( real x, real y ) { return fmod( x, y ); }
 static FORCEINLINE real     math_exp( real x ) { return exp( x ); }
@@ -335,13 +331,8 @@ static FORCEINLINE real     math_acos( real x ) { return acosf( x ); }
 static FORCEINLINE real     math_atan( real x ) { return atanf( x ); }
 static FORCEINLINE real     math_atan2( real x, real y ) { return atan2f( x, y ); }
 static FORCEINLINE real     math_sqrt( real x ) { return sqrtf( x ); }
-#  if FOUNDATION_COMPILER_MSVC
-static FORCEINLINE real     math_rsqrt( real x ) { return REAL_C( 1.0 ) / sqrtf( x ); }
-static FORCEINLINE real     math_abs( real x ) { return (real)fabs( x ); }
-#  else
 static FORCEINLINE real     math_rsqrt( real x ) { return invsqrtf( x ); }
 static FORCEINLINE real     math_abs( real x ) { return fabsf( x ); }
-#  endif
 static FORCEINLINE real     math_mod( real x, real y ) { return fmodf( x, y ); }
 static FORCEINLINE real     math_exp( real x ) { return expf( x ); }
 static FORCEINLINE real     math_pow( real x, real y ) { return powf( x, y ); }
@@ -356,6 +347,21 @@ static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 #endif
 
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+
+static FORCEINLINE real     math_sin( real x ) { return __builtin_sin( x ); }
+static FORCEINLINE real     math_cos( real x ) { return __builtin_cos( x ); }
+static FORCEINLINE real     math_tan( real x ) { return __builtin_tan( x ); }
+static FORCEINLINE real     math_asin( real x ) { return __builtin_asin( x ); }
+static FORCEINLINE real     math_acos( real x ) { return __builtin_acos( x ); }
+static FORCEINLINE real     math_atan( real x ) { return __builtin_atan( x ); }
+static FORCEINLINE real     math_atan2( real x, real y ) { return __builtin_atan2( x, y ); }
+static FORCEINLINE real     math_sqrt( real x ) { return __builtin_sqrt( x ); }
+static FORCEINLINE real     math_rsqrt( real x ) { return REAL_C( 1.0 ) / __builtin_sqrt( x ); }
+static FORCEINLINE real     math_abs( real x ) { return __builtin_fabs( x ); }
+static FORCEINLINE real     math_mod( real x, real y ) { return __builtin_fmod( x, y ); }
+static FORCEINLINE real     math_exp( real x ) { return __builtin_exp( x ); }
+static FORCEINLINE real     math_pow( real x, real y ) { return __builtin_pow( x, y ); }
+static FORCEINLINE real     math_logn( real x ) { return __builtin_log( x ); }
 
 #if FOUNDATION_PLATFORM_REALSIZE == 64
 
@@ -401,7 +407,7 @@ typedef union { int64_t ival; real rval; } __real_convert;
 static FORCEINLINE CONSTCALL bool math_realisnan( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=value };
+	const __real_convert conv = { .rval=val };
 #else
 	__real_convert conv; conv.rval = val;
 #endif
@@ -412,7 +418,7 @@ static FORCEINLINE CONSTCALL bool math_realisnan( real val )
 static FORCEINLINE CONSTCALL bool math_realisinf( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=value };
+	const __real_convert conv = { .rval=val };
 #else
 	__real_convert conv; conv.rval = val;
 #endif
@@ -423,7 +429,7 @@ static FORCEINLINE CONSTCALL bool math_realisinf( real val )
 static FORCEINLINE CONSTCALL bool math_realisuninitialized( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=value };
+	const __real_convert conv = { .rval=val };
 #else
 	__real_convert conv; conv.rval = val;
 #endif
@@ -440,7 +446,7 @@ static FORCEINLINE CONSTCALL bool math_realisfinite( real val )
 static FORCEINLINE CONSTCALL real math_realundenormalize( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=value };
+	const __real_convert conv = { .rval=val };
 #else
 	__real_convert conv; conv.rval = val;
 #endif
@@ -591,7 +597,7 @@ static FORCEINLINE CONSTCALL bool math_realisuninitialized( real val )
 	__real_convert conv; conv.rval = val;
 #endif
 	//Some common debugger uninitialized filler values
-	return ( (const uint32_t)conv.ival == 0xFEEEFEEEED ) | ( (const uint32_t)conv.ival == 0xCDCDCDC );
+	return ( (const uint32_t)conv.ival == 0xFEEEFEEEU ) || ( (const uint32_t)conv.ival == 0xCDCDCDCDU );
 }
 
 
@@ -604,7 +610,7 @@ static FORCEINLINE CONSTCALL bool math_realisfinite( real val )
 static FORCEINLINE CONSTCALL real math_realundenormalize( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=value };
+	const __real_convert conv = { .rval=val };
 #else
 	__real_convert conv; conv.rval = val;
 #endif

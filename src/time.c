@@ -22,7 +22,7 @@ static mach_timebase_info_data_t _time_info;
 static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <unistd.h>
-#  include <time.h>
+#  include "/usr/include/time.h"
 #  include <string.h>
 #else
 #  error Not implemented on this platform!

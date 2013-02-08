@@ -80,6 +80,9 @@
 #ifndef FOUNDATION_PLATFORM_LINUX
 # define FOUNDATION_PLATFORM_LINUX 0
 #endif
+#ifndef FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+# define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
+#endif
 #ifndef FOUNDATION_PLATFORM_BSD
 #  define FOUNDATION_PLATFORM_BSD 0
 #endif
@@ -317,6 +320,10 @@
 #  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
 #  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
+
 //BSD family
 #elif ( defined( __BSD__ ) || defined( __FreeBSD__ ) ) || FOUNDATION_PLATFORM_BSD
 
@@ -459,6 +466,8 @@
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
 
 #  include <stdbool.h>
+#  include <wchar.h>
+#  include <stdarg.h>
 
 // Intel
 #elif defined( __ICL ) || defined( __ICC ) || defined(__INTEL_COMPILER)
@@ -618,7 +627,7 @@ typedef ALIGN(4)  const void* alignedconstptr32_t;
 typedef ALIGN(8)  const void* alignedconstptr64_t;
 typedef ALIGN(16) const void* alignedconstptr128_t;
 
-typedef ALIGN(2)  uint8_t     uint8_aligned16_t;
+typedef ALIGN(4)  uint8_t     uint8_aligned16_t;
 typedef ALIGN(4)  uint8_t     uint8_aligned32_t;
 typedef ALIGN(8)  uint8_t     uint8_aligned64_t;
 typedef ALIGN(16) uint8_t     uint8_aligned128_t;
@@ -627,6 +636,8 @@ typedef ALIGN(16) uint8_t     uint8_aligned128_t;
 
 #define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ofs))
 #define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ofs))
+
+#include <string.h>
 
 
 // Base limits

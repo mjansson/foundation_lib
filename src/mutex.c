@@ -19,7 +19,7 @@
 
 struct ALIGN(16) _foundation_mutex
 {
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	char                   name[32];
 #endif
 
@@ -53,7 +53,7 @@ struct ALIGN(16) _foundation_mutex
 
 static void _mutex_initialize( mutex_t* mutex, const char* name )
 {
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	unsigned int namelen = string_length( name );
 	if( namelen > 31 )
 		namelen = 31;
@@ -119,7 +119,7 @@ void mutex_deallocate( mutex_t* mutex )
 const char* mutex_name( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	return mutex->name;
 #else
 	return "";
@@ -138,7 +138,7 @@ bool mutex_try_lock( mutex_t* mutex )
 #else
 #  error mutex_try_lock not implemented
 #endif
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	if( was_locked )
 		profile_lock( mutex->name );
 #endif
@@ -149,7 +149,7 @@ bool mutex_try_lock( mutex_t* mutex )
 bool mutex_lock( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	profile_trylock( mutex->name );
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -163,7 +163,7 @@ bool mutex_lock( mutex_t* mutex )
 #else
 #  error mutex_lock not implemented
 #endif
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	profile_lock( mutex->name );
 #endif
 	return true;
@@ -173,7 +173,7 @@ bool mutex_lock( mutex_t* mutex )
 bool mutex_unlock( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	profile_unlock( mutex->name );
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS

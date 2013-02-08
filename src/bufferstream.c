@@ -136,7 +136,7 @@ static uint64_t _buffer_stream_write( stream_t* stream, const void* source, uint
 
 static bool _buffer_stream_isopen( const stream_t* stream )
 {
-	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
+	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream && ( buffer_stream->buffer || buffer_stream->grow );
 }
 

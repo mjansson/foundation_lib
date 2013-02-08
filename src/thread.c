@@ -17,6 +17,14 @@
 typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 DWORD WINAPI GetCurrentProcessorNumberFallback(VOID) { return 0; }
 GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
+#elif FOUNDATION_PLATFORM_POSIX
+#  include <sys/prctl.h>
+#  include <pthread.h>
+struct timespec {
+	long int tv_sec;        /* seconds */
+	long   tv_nsec;       /* nanoseconds */
+};
+extern int nanosleep(const struct timespec *req, struct timespec *rem);
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
@@ -133,7 +141,7 @@ void _thread_destroy( void* thread_raw )
 }
 
 
-static void FORCEINLINE _thread_dec_ref( thread_t* thread )
+static FORCEINLINE void _thread_dec_ref( thread_t* thread )
 {
 	if( atomic_decr32( &thread->ref ) <= 0 )
 		_thread_destroy( thread );
@@ -232,7 +240,7 @@ void thread_set_name( const char* name )
 {
 	thread_t* self;
 
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 #  if FOUNDATION_PLATFORM_WINDOWS
 	_set_thread_name( thread_id(), name );
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
@@ -249,7 +257,7 @@ void thread_set_name( const char* name )
 	self = get_thread_self();
 	if( self )
 	{
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 		thread_t* check_self = GET_THREAD( self->id );
 		FOUNDATION_ASSERT( self == check_self );
 #endif
@@ -302,7 +310,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	pthread_t curid = pthread_self();
 	thread->osid = curid;
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	prctl( PR_SET_NAME, thread->name, 0, 0, 0 );
 #endif
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
@@ -377,7 +385,7 @@ bool thread_start( object_t id, void* data )
 		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
 		return false;
 	}
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 	_set_thread_name( osid, thread->name );
 #endif
 #elif FOUNDATION_PLATFORM_POSIX
@@ -417,10 +425,10 @@ void thread_sleep( int milliseconds )
 #if FOUNDATION_PLATFORM_WINDOWS
 	SleepEx( milliseconds, 1 );
 #elif FOUNDATION_PLATFORM_POSIX
-	struct timespec t;
-	t.tv_sec  = milliseconds / 1000;
-	t.tv_nsec = (long)( milliseconds % 1000 ) * 1000000L;
-	nanosleep( &t, 0 );
+	struct timespec ts;
+	ts.tv_sec  = milliseconds / 1000;
+	ts.tv_nsec = (long)( milliseconds % 1000 ) * 1000000L;
+	nanosleep( &ts, 0 );
 #else
 #  error Not implemented
 #endif

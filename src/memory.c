@@ -62,9 +62,8 @@ static void* _memory_allocate_malloc( uint64_t size, unsigned int align, memory_
 	return _aligned_malloc( (size_t)size, align );
 #elif FOUNDATION_PLATFORM_POSIX
 	void* memory = 0;
-	result = posix_memalign( &memory, align, size );
-	if( result == 0 )
-		return memory;
+	int result = posix_memalign( &memory, align, size );
+	return ( result == 0 ) ? memory : 0;
 #else
 #  error Not implemented
 #endif
@@ -115,12 +114,12 @@ static void _memory_deallocate_malloc( void* p )
 
 memory_system_t memory_system_malloc( void )
 {
-	memory_system_t system;
-	system.allocate = _memory_allocate_malloc;
-	system.allocate_zero = _memory_allocate_zero_malloc;
-	system.reallocate = _memory_reallocate_malloc;
-	system.deallocate = _memory_deallocate_malloc;
-	return system;
+	memory_system_t memsystem;
+	memsystem.allocate = _memory_allocate_malloc;
+	memsystem.allocate_zero = _memory_allocate_zero_malloc;
+	memsystem.reallocate = _memory_reallocate_malloc;
+	memsystem.deallocate = _memory_deallocate_malloc;
+	return memsystem;
 }
 
 

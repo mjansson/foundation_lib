@@ -1,11 +1,11 @@
 /* environment.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -24,6 +24,10 @@ static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN] = {0};
 #if FOUNDATION_PLATFORM_WINDOWS
 static char    _environment_var[FOUNDATION_MAX_PATHLEN] = {0};
 #  include <safewindows.h>
+#elif FOUNDATION_PLATFORM_POSIX
+#  include <unistd.h>
+#  include <stdlib.h>
+#  include <stdio.h>
 #endif
 
 static application_t   _environment_app;
@@ -69,7 +73,7 @@ int _environment_initialize( const application_t application )
 	{
 		char* exe_path;
 		char* dir_path;
-		
+
 		exe_path = string_allocate_from_wstring( module_filename, 0 );
 		exe_path = path_clean( string_clone( exe_path ), path_is_absolute( exe_path ) );
 		dir_path = path_make_absolute( exe_path );
@@ -79,16 +83,54 @@ int _environment_initialize( const application_t application )
 		string_deallocate( dir_path );
 		string_deallocate( exe_path );
 	}
+	else
+	{
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
+		return -1;
+	}
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
+	if( !cmdline )
+	{
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
+		return -1;
+	}
+
+	while( true )
+	{
+		char* arg = stream_read_string( cmdline );
+		if( !string_length( arg ) )
+		{
+			string_deallocate( arg );
+			break;
+		}
+
+		array_push( _environment_argv, arg );
+	}
+
+	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
+	if( readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN ) < 0 )
+	{
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
+		return -1;
+	}
+
+	char* exe_path;
+	char* dir_path;
+
+	exe_path = path_clean( string_clone( exelink ), path_is_absolute( exelink ) );
+	dir_path = path_make_absolute( exe_path );
+
+	_environment_set_executable_paths( dir_path );
+
+	string_deallocate( dir_path );
+	string_deallocate( exe_path );
 
 #else
-#  error Not implemented yet
-#endif
-
-   	_environment_app = application;
-
-   	string_copy( _environment_initial_working_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
-
-   	if( array_size( _environment_argv ) > 0 )
+#  error Not implemented
+	/*if( array_size( _environment_argv ) > 0 )
 	{
 		char* exe_path = path_clean( string_clone( _environment_argv[0] ), path_is_absolute( _environment_argv[0] ) );
 		char* dir_path = path_make_absolute( exe_path );
@@ -99,7 +141,12 @@ int _environment_initialize( const application_t application )
 		string_deallocate( exe_path );
 	}
 	else if( !string_length( _environment_executable_dir ) )
-	   	string_copy( _environment_executable_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
+	   	string_copy( _environment_executable_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN ); */
+#endif
+
+   	_environment_app = application;
+
+   	string_copy( _environment_initial_working_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
 
 	return 0;
 }
@@ -113,7 +160,7 @@ void _environment_shutdown( void )
 
 const char* const* environment_command_line( void )
 {
-	return _environment_argv;
+	return (const char* const*)_environment_argv;
 }
 
 
@@ -153,7 +200,7 @@ const char* environment_current_working_directory( void )
 	char* path = memory_allocate_zero( FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
 	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
 		return "";
 	}
 	path = path_clean( path, true );
@@ -180,7 +227,7 @@ void environment_set_current_working_directory( const char* path )
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	if( chdir( path ) < 0 )
-		warn_logf( WARNING_SUSPICIOUS, "Unable to set working directory: %s", path );
+		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to set working directory: %s", path );
 #else
 #  error Not implemented
 #endif

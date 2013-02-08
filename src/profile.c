@@ -62,7 +62,7 @@ static int                  _profile_enable = 0;
 static profile_write_fn     _profile_write = 0;
 static int                  _profile_terminate_io = 0;
 
-FOUNDATION_DECLARE_THREAD_LOCAL( uint32_t, profile_block, 0 );
+FOUNDATION_DECLARE_THREAD_LOCAL( uint32_t, profile_block, 0 )
 
 
 static profile_block* _allocate_profile_block( void )
@@ -74,7 +74,7 @@ static profile_block* _allocate_profile_block( void )
 	{
 		free_block = _profile_free;
 		next_block = GET_BLOCK( free_block )->child;
-	} while( !atomic_cas32( &_profile_free, next_block, free_block ) );
+	} while( !atomic_cas32( (int32_t*)&_profile_free, next_block, free_block ) );
 	block = GET_BLOCK( free_block );
 	memset( block, 0, sizeof( profile_block ) );
 	return block;
@@ -88,7 +88,7 @@ static void _free_profile_block( uint32_t block, uint32_t leaf )
 	{
 		last = _profile_free;
 		GET_BLOCK( leaf )->child = last;
-	} while( !atomic_cas32( &_profile_free, block, last ) );
+	} while( !atomic_cas32( (int32_t*)&_profile_free, block, last ) );
 }
 
 
@@ -98,7 +98,7 @@ static void _profile_put_root_block( uint32_t block )
 	do
 	{
 		self->sibling = _profile_root->child;
-	} while( !atomic_cas32( &_profile_root->child, block, self->sibling ) );
+	} while( !atomic_cas32( (int32_t*)&_profile_root->child, block, self->sibling ) );
 }
 
 
@@ -114,7 +114,7 @@ static void _profile_put_simple_block( uint32_t block )
 		self->previous = (uint16_t)parent_block;
 		self->sibling = (uint16_t)next_block;
 		if( next_block )
-			GET_BLOCK( next_block )->previous = (uint16_t)self;
+			GET_BLOCK( next_block )->previous = (uint16_t)block;
 		parent->child = block;
 	}
 	else
@@ -135,7 +135,7 @@ static void _profile_put_message_block( uint32_t id, const char* message )
 	block->data.processor = thread_hardware();
 	block->data.thread = (uint32_t)thread_id();
 	block->data.start  = time_current() - _profile_ground_time;
-	block->data.end = atomic_add32( &_profile_counter, 1 );
+	block->data.end = atomic_add32( (int32_t*)&_profile_counter, 1 );
 	string_copy( block->data.name, message, ( len > MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
 
 	len -= MAX_MESSAGE_LENGTH;
@@ -152,7 +152,7 @@ static void _profile_put_message_block( uint32_t id, const char* message )
 		cblock->data.processor = block->data.processor;
 		cblock->data.thread = block->data.thread;
 		cblock->data.start  = block->data.start;
-		cblock->data.end    = atomic_add32( &_profile_counter, 1 );
+		cblock->data.end    = atomic_add32( (int32_t*)&_profile_counter, 1 );
 		string_copy( cblock->data.name, message, ( len > MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
 
 		cblock->sibling = subblock->child;
@@ -219,7 +219,7 @@ static void* _profile_io( void* arg )
 			do
 			{
 				block = _profile_root->child;
-			} while( !atomic_cas32( &_profile_root->child, 0, block ) );
+			} while( !atomic_cas32( (int32_t*)&_profile_root->child, 0, block ) );
 
 			do
 			{
@@ -329,7 +329,7 @@ void profile_begin_block( const char* message )
 	{
 		//Allocate new master block
 		block = _allocate_profile_block();
-		block->data.id = atomic_add32( &_profile_counter, 1 );
+		block->data.id = atomic_add32( (int32_t*)&_profile_counter, 1 );
 		string_copy( block->data.name, message, MAX_MESSAGE_LENGTH );
 		block->data.processor = thread_hardware();
 		block->data.thread = (uint32_t)thread_id();
@@ -340,9 +340,9 @@ void profile_begin_block( const char* message )
 	{
 		//Allocate new child block
 		profile_block* subblock = _allocate_profile_block();
-		uint32_t index = BLOCK_INDEX( subblock );
+		uint32_t subindex = BLOCK_INDEX( subblock );
 		block = GET_BLOCK( parent );
-		subblock->data.id = atomic_add32( &_profile_counter, 1 );
+		subblock->data.id = atomic_add32( (int32_t*)&_profile_counter, 1 );
 		subblock->data.parentid = block->data.id;
 		string_copy( subblock->data.name, message, MAX_MESSAGE_LENGTH );
 		subblock->data.processor = thread_hardware();
@@ -351,9 +351,9 @@ void profile_begin_block( const char* message )
 		subblock->previous = parent;
 		subblock->sibling = block->child;
 		if( block->child )
-			GET_BLOCK( block->child )->previous = index;
-		block->child = index;
-		set_thread_profile_block( index );
+			GET_BLOCK( block->child )->previous = subindex;
+		block->child = subindex;
+		set_thread_profile_block( subindex );
 	}
 }
 

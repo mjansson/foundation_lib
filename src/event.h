@@ -46,7 +46,7 @@ FOUNDATION_API void                 event_post_delay( event_stream_t* stream, ui
     \param object                   Sender
     \param payload                  Event payload
     \param delay                    Delay in ticks */
-FOUNDATION_API void                 event_post_delay_ticks( event_stream_t* stream, uint8_t system, uint8_t id, uint16_t size, object_t object, const void* payload, time_t delay );
+FOUNDATION_API void                 event_post_delay_ticks( event_stream_t* stream, uint8_t system, uint8_t id, uint16_t size, object_t object, const void* payload, tick_t delay );
 
 /*! Grab first event for processing
     \param block                    Event block

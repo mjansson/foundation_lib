@@ -87,6 +87,7 @@ struct ALIGN(8) _foundation_stream
 
 struct _foundation_directory
 {
+	int                      handle;
 	char                     path[];
 };
 

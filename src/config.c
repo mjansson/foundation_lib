@@ -222,10 +222,10 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	paths[4] = 0;
 #endif
 
-#if FOUNDATION_FOUNDATION_PLATFORM_MACOSX || FOUNDATION_FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	bundle_path = path_merge( environment_executable_directory(), "../Resources/config" );
 	paths[5] = bundle_path;
-#elif FOUNDATION_FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_ANDROID
 	paths[5] = "/config";
 #else
 	paths[5] = 0;
@@ -304,7 +304,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
 		filename = string_append( path_merge( paths[i], name ), ".ini" );
 		istream = 0;
-#if FOUNDATION_FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID
 		if( i == ANDROID_ASSET_PATH_INDEX )
 			istream = asset_stream_open( filename, STREAM_IN );
 		else
@@ -337,7 +337,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 				"unknown";
 #endif
 			filename = string_append( path_append( path_merge( paths[i], FOUNDATION_PLATFORM_name ), name ), ".ini" );
-#if FOUNDATION_FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID
 			if( i == ANDROID_ASSET_PATH_INDEX )
 				istream = asset_stream_open( filename, STREAM_IN );
 			else
