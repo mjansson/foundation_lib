@@ -33,8 +33,9 @@ __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
 #  include <sys/wait.h>
 #endif
 
-static bool             _log_stdout   = true;
-static log_callback_fn  _log_callback = 0;
+static bool             _log_stdout      = true;
+static bool             _log_prefix      = true;
+static log_callback_fn  _log_callback    = 0;
 
 #define make_timestamp()  ((float32_t)( (real)( time_current() - time_startup() ) / (real)time_ticks_per_second() ))
 
@@ -53,7 +54,10 @@ static void _log_outputf( int severity, const char* prefix, const char* format, 
 	while(1)
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
-		need = snprintf( buffer, size, "[%.3f] <%llx:%d> %s", timestamp, tid, pid, prefix );
+		if( _log_prefix )
+			need = snprintf( buffer, size, "[%.3f] <%llx:%d> %s", timestamp, tid, pid, prefix );
+		else
+			need = snprintf( buffer, size, "%s", prefix );
 
 		remain = size - need;
 		va_copy( clist, list );
@@ -181,6 +185,12 @@ void log_stdout( bool enable )
 void log_set_callback( log_callback_fn callback )
 {
 	_log_callback = callback;
+}
+
+
+void log_enable_prefix( bool enable )
+{
+	_log_prefix = enable;
 }
 
 #endif
