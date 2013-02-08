@@ -19,16 +19,18 @@
 #include <types.h>
 
 
+#define FOUNDATION_DECLARE_RINGBUFFER \
+	uint64_t           total_read;    \
+	uint64_t           total_write;   \
+	unsigned int       offset_read;   \
+	unsigned int       offset_write;  \
+	unsigned int       buffer_size;   \
+	char               buffer[]
+
+
 struct _foundation_ringbuffer
 {
-	uint64_t           total_read;
-	uint64_t           total_write;
-
-	unsigned int       offset_read;
-	unsigned int       offset_write;
-
-	unsigned int       buffer_size;
-	char               buffer[];
+	FOUNDATION_DECLARE_RINGBUFFER;
 };
 
 

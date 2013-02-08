@@ -22,8 +22,11 @@ typedef struct ALIGN(8) _foundation_ringbuffer_stream
 	volatile int32_t         pending_read;
 	volatile int32_t         pending_write;
 	uint64_t                 total_size;
-	ringbuffer_t             buffer;
+
+	FOUNDATION_DECLARE_RINGBUFFER;
 } ringbuffer_stream_t;
+
+#define RINGBUFFER_FROM_STREAM( stream ) ((ringbuffer_t*)&stream->total_read)
 
 static stream_vtable_t _ringbuffer_stream_vtable = {0};
 
@@ -155,24 +158,25 @@ uint64_t ringbuffer_total_written( ringbuffer_t* buffer )
 
 static uint64_t _ringbuffer_stream_read( stream_t* stream, void* dest, uint64_t num )
 {
-	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
-
-	unsigned int num_read = ringbuffer_read( &buffer->buffer, dest, (unsigned int)num );
+	ringbuffer_stream_t* rbstream = (ringbuffer_stream_t*)stream;
+	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM( rbstream );
+	
+	unsigned int num_read = ringbuffer_read( buffer, dest, (unsigned int)num );
 
 	while( num_read < num )
 	{
-		buffer->pending_read = 1;
+		rbstream->pending_read = 1;
 
-		if( buffer->pending_write )
-			semaphore_post( &buffer->signal_read );
+		if( rbstream->pending_write )
+			semaphore_post( &rbstream->signal_read );
 
-		semaphore_wait( &buffer->signal_write );
+		semaphore_wait( &rbstream->signal_write );
 
-		num_read += ringbuffer_read( &buffer->buffer, pointer_offset( dest, num_read ), (unsigned int)( num - num_read ) );
+		num_read += ringbuffer_read( buffer, pointer_offset( dest, num_read ), (unsigned int)( num - num_read ) );
 	}
 
-	if( buffer->pending_write )
-		semaphore_post( &buffer->signal_read );
+	if( rbstream->pending_write )
+		semaphore_post( &rbstream->signal_read );
 
 	return num_read;
 }
@@ -180,24 +184,25 @@ static uint64_t _ringbuffer_stream_read( stream_t* stream, void* dest, uint64_t 
 
 static uint64_t _ringbuffer_stream_write( stream_t* stream, const void* source, uint64_t num )
 {
-	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
+	ringbuffer_stream_t* rbstream = (ringbuffer_stream_t*)stream;
+	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM( rbstream );
 
-	unsigned int num_write = ringbuffer_write( &buffer->buffer, source, (unsigned int)num );
+	unsigned int num_write = ringbuffer_write( buffer, source, (unsigned int)num );
 
 	while( num_write < num )
 	{
-		buffer->pending_write = 1;
+		rbstream->pending_write = 1;
 
-		if( buffer->pending_read )
-			semaphore_post( &buffer->signal_write );
+		if( rbstream->pending_read )
+			semaphore_post( &rbstream->signal_write );
 
-		semaphore_wait( &buffer->signal_read );
+		semaphore_wait( &rbstream->signal_read );
 
-		num_write += ringbuffer_write( &buffer->buffer, pointer_offset_const( source, num_write ), (unsigned int)( num - num_write ) );
+		num_write += ringbuffer_write( buffer, pointer_offset_const( source, num_write ), (unsigned int)( num - num_write ) );
 	}
 
-	if( buffer->pending_read )
-		semaphore_post( &buffer->signal_write );
+	if( rbstream->pending_read )
+		semaphore_post( &rbstream->signal_write );
 
 	return num_write;
 }
@@ -212,7 +217,7 @@ static bool _ringbuffer_stream_isopen( const stream_t* stream )
 static bool _ringbuffer_stream_eos( stream_t* stream )
 {
 	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
-	return buffer->total_size ? ( buffer->buffer.total_read == buffer->total_size ) : false;
+	return buffer->total_size ? ( buffer->total_read == buffer->total_size ) : false;
 }
 
 
@@ -249,7 +254,7 @@ static void _ringbuffer_stream_seek( stream_t* stream, int64_t offset, stream_se
 static int64_t _ringbuffer_stream_tell( stream_t* stream )
 {
 	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
-	return buffer->buffer.total_read;
+	return buffer->total_read;
 }
 
 
@@ -263,7 +268,7 @@ static uint64_t _ringbuffer_stream_available_read( stream_t* stream )
 {
 	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
 	//TODO: Will be f*ked up if buffer has wrapped around (overflow)
-	return buffer->buffer.total_write - buffer->buffer.total_read;
+	return buffer->total_write - buffer->total_read;
 }
 
 
@@ -294,7 +299,7 @@ stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_s
 	bufferstream->pending_read = 0;
 	bufferstream->pending_write = 0;
 	bufferstream->total_size = total_size;
-	bufferstream->buffer.buffer_size = buffer_size;
+	bufferstream->buffer_size = buffer_size;
 
 	stream->vtable = &_ringbuffer_stream_vtable;
 

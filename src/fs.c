@@ -16,6 +16,20 @@
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <safewindows.h>
 #  include <sys/utime.h>
+#elif FOUNDATION_PLATFORM_POSIX
+#  include "/usr/include/time.h"
+#  include <sys/types.h>
+#  include <sys/stat.h>
+#  include <sys/ioctl.h>
+#  include <stdlib.h>
+#  include <unistd.h>
+#  include <utime.h>
+#  include <fcntl.h>
+#  include <dirent.h>
+#endif
+
+#if FOUNDATION_PLATFORM_LINUX
+#  include <sys/inotify.h>
 #endif
 
 #include <stdio.h>
@@ -592,17 +606,17 @@ event_stream_t* fs_event_stream( void )
 
 #if FOUNDATION_PLATFORM_LINUX
 
-typedef struct _foundation_file_watch
+typedef struct _foundation_fs_watch
 {
 	int      fd;
 	char*    path;
-} file_watch_t;
+} fs_watch_t;
 
-static void _add_notify_subdir( int notify_fd, const char* path, file_watch_t** watch_arr, char*** path_arr )
+static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr )
 {
 	char** subdirs = 0;
 	char* local_path = 0;
-	//debug_logf( "Watching subdir: %s", path );
+	//log_debugf( "Watching subdir: %s", path );
 	int fd = inotify_add_watch( notify_fd, path, IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVE );
 	if( fd < 0 )
 		return;
@@ -611,7 +625,7 @@ static void _add_notify_subdir( int notify_fd, const char* path, file_watch_t** 
 	local_path = string_format( "%s/", path ? path : "" );
 	array_push( (*path_arr), local_path );
 	
-	file_watch_t watch;
+	fs_watch_t watch;
 	watch.fd = fd;
 	watch.path = local_path;
 	array_push( (*watch_arr), watch );	
@@ -627,7 +641,7 @@ static void _add_notify_subdir( int notify_fd, const char* path, file_watch_t** 
 	string_array_deallocate( subdirs );
 }
 
-static file_watch_t* _lookup_watch( file_watch_t* watch_arr, int fd )
+static fs_watch_t* _lookup_watch( fs_watch_t* watch_arr, int fd )
 {
 	//TODO: If array is kept sorted on fd, this could be made faster
 	for( int i = 0, size = array_size( watch_arr ); i < size; ++i )
@@ -665,7 +679,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	}
 #elif FOUNDATION_PLATFORM_LINUX
 	int notify_fd = inotify_init();
-	file_watch_t* watch = 0;
+	fs_watch_t* watch = 0;
 	char** paths = 0;
 	array_reserve( watch, 1024 );
 	
@@ -707,7 +721,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			goto exit_thread;
 		}
  
-		//debug_logf( "Read directory changes for path: %s", monitor->path );
+		//log_debugf( "Read directory changes for path: %s", monitor->path );
 
 		wait_status = WaitForMultipleObjects( 2, handles, FALSE, INFINITE );
  
@@ -724,7 +738,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				DWORD transferred = 0;
 			
 				//File system change
-				//debug_logf( "File system changed: %s", monitor->path );
+				//log_debugf( "File system changed: %s", monitor->path );
 
 				success = GetOverlappedResult( dir, &overlap, &transferred, FALSE );
 				if( !success )
@@ -733,7 +747,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				}
 				else
 				{
-					//debug_logf( "File system changed: %s (%d bytes)", monitor->path, transferred );
+					//log_debugf( "File system changed: %s (%d bytes)", monitor->path, transferred );
 
 					PFILE_NOTIFY_INFORMATION info = buffer;
 					do
@@ -760,7 +774,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 							default: break;
 						}
 						
-						//debug_logf( "File system changed: %s (action %d)", utfstr, info->Action );
+						//log_debugf( "File system changed: %s (action %d)", utfstr, info->Action );
 
 						if( event )
 							fs_post_event( event, utfstr, 0 );
@@ -785,53 +799,53 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
 		int ret = ioctl( notify_fd, FIONREAD, &avail );
-		//debug_logf( "ioctl inotify: %d", avail );
+		//log_debugf( "ioctl inotify: %d", avail );
 		if( avail > 0 )
 		{
-			alignedptr64_t buffer = allocate( file_allocator(), avail, 8 );
+			alignedptr64_t buffer = memory_allocate( avail, 8, MEMORY_TEMPORARY );
 			int offset = 0;
 			avail = read( notify_fd, buffer, avail );
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while( offset < avail )
 			{
-				file_event_id eventid = 0;
-				file_watch_t* curwatch = _lookup_watch( watch, event->wd );
+				foundation_event_id eventid = 0;
+				fs_watch_t* curwatch = _lookup_watch( watch, event->wd );
 				if( !curwatch )
 					goto skipwatch;
 
-				//debug_logf( "inotify event: %d %d bytes: %s", event->mask, event->len, event->name );
+				//log_debugf( "inotify event: %d %d bytes: %s", event->mask, event->len, event->name );
 
 				char* curpath = string_clone( curwatch->path );
 				curpath = string_append( curpath, event->name );
 
 				if( ( event->mask & IN_CREATE ) || ( event->mask & IN_MOVED_TO ) )
 				{
-					//debug_logf( "  IN_CREATE : %s", curpath );
-					file_event_post( FILEEVENT_CREATED, curpath );
+					//log_debugf( "  IN_CREATE : %s", curpath );
+					fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
 
 					if( fs_is_directory( curpath ) )
 						_add_notify_subdir( notify_fd, curpath, &watch, &paths );
 				}
 				if( ( event->mask & IN_DELETE ) || ( event->mask & IN_MOVED_FROM ) )
 				{
-					//debug_logf( "  IN_DELETE : %s", curpath );
-					file_event_post( FILEEVENT_DELETED, curpath );
+					//log_debugf( "  IN_DELETE : %s", curpath );
+					fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
 				}
 				if( event->mask & IN_MODIFY )
 				{
-					//debug_logf( "  IN_MODIFY : %s", curpath );
-					file_event_post( FILEEVENT_MODIFIED, curpath );
+					//log_debugf( "  IN_MODIFY : %s", curpath );
+					fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, curpath, 0 );
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
 				if( event->mask & IN_MOVED_FROM )
 				{
-					debug_logf( "  IN_MOVED_FROM : %s", curpath );
-					file_event_post( FILEEVENT_DELETED, curpath );
+					//log_debugf( "  IN_MOVED_FROM : %s", curpath );
+					fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
 				}
 				if( event->mask & IN_MOVED_TO )
 				{
-					debug_logf( "  IN_MOVED_TO : %s", curpath );
-					file_event_post( FILEEVENT_CREATED, curpath );
+					//log_debugf( "  IN_MOVED_TO : %s", curpath );
+					fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
 				}*/
 
 				string_deallocate( curpath );
@@ -841,12 +855,12 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				offset += event->len + sizeof( struct inotify_event );
 				event = (struct inotify_event*)pointer_offset( buffer, offset );
 			}
-			deallocate( buffer );
+			memory_deallocate( buffer );
 		}
 		if( monitor->signal )
 			mutex_wait( monitor->signal, 100 );
 #else
-		debug_logf( "Filesystem watcher not implemented on this platform" );
+		log_debugf( "Filesystem watcher not implemented on this platform" );
 		//Not implemented yet, just wait for signal to simulate thread
 		mutex_wait( monitor->signal, 0 );
 #endif
@@ -1035,7 +1049,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 #elif FOUNDATION_PLATFORM_POSIX
 	int fd = open( file->path, O_RDWR );
 	if( ftruncate( fd, length ) < 0 )
-		warn_logf( WARNING_SUSPICIOUS, "Unable to truncate real file: %s", file->path );
+		log_warnf( WARNING_SUSPICIOUS, "Unable to truncate real file: %s", file->path );
 	close( fd );
 #else
 #  error Not implemented
@@ -1224,7 +1238,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 	if( !file->fd )
 	{
-		//debug_logf( "Unable to open file: %s (mode %d): %s", file->path, in_mode, system_error_message( 0 ) );
+		//log_debugf( "Unable to open file: %s (mode %d): %s", file->path, in_mode, system_error_message( 0 ) );
 		stream_deallocate( stream );
 		return 0;
 	}

@@ -14,6 +14,10 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <safewindows.h>
+#elif FOUNDATION_PLATFORM_POSIX
+#  include "/usr/include/time.h"
+#  include <pthread.h>
+#  include <sys/time.h>
 #endif
 
 

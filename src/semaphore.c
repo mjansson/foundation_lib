@@ -26,17 +26,11 @@ extern int MPWaitOnSemaphore( MPSemaphoreID, int );
 #elif FOUNDATION_PLATFORM_IOS
 #  include <dispatch/dispatch.h>
 #  include <errno.h>
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_POSIX
+#  include "/usr/include/time.h"
+#  include "/usr/include/semaphore.h"
 #  include <sys/fcntl.h>
-#  include <semaphore.h>
 #  define native_sem_t sem_t
-#elif FOUNDATION_PLATFORM_ANDROID
-#  include <asm/fcntl.h>
-#  include <semaphore.h>
-#  include <time.h>
-#  define native_sem_t sem_t
-#elif FOUNDATION_PLATFORM_PS3
-#  include <sys/synchronization.h>
 #endif
 
 
@@ -81,78 +75,6 @@ void semaphore_post( semaphore_t* semaphore )
 }
 
 
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-
-
-void semaphore_initialize( semaphore_t* semaphore, int value )
-{
-	semaphore->name = 0;
-
-	if( sem_init( (native_sem_t*)&semaphore->unnamed, 0, value ) )
-	{
-		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore" );
-		error_logf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
-	}
-
-	semaphore->sem = &semaphore->unnamed;
-}
-
-
-void semaphore_initialize_named( semaphore_t* semaphore, const char* name, int value )
-{
-	semaphore->name = string_clone( name );
-
-	native_sem_t* sem = SEM_FAILED;
-	
-	sem = sem_open( name, O_CREAT, 0666, value );
-		
-	if( sem == SEM_FAILED )
-	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
-		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
-	}
-
-	semaphore->sem = (native_semaphore_t*)sem;
-}
-
-
-void semaphore_destroy( semaphore_t* semaphore )
-{
-	sem_destroy( (native_sem_t*)semaphore->sem );
-
-	if( semaphore->name )
-	{
-		sem_unlink( semaphore->name );
-		string_deallocate( semaphore->name );
-	}
-}
-
-
-void semaphore_wait( semaphore_t* semaphore )
-{
-	sem_wait( (native_sem_t*)semaphore->sem );
-}
-
-
-bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
-{
-	if( milliseconds > 0 )
-	{
-		struct timespec ts;
-		ts.tv_sec = milliseconds / 1000;
-		ts.tv_nsec = (long)( milliseconds % 1000 ) * (long)1000000;
-		return sem_timedwait( (native_sem_t*)semaphore->sem, &ts ) == 0;
-	}
-	return sem_trywait( (native_sem_t*)semaphore->sem ) == 0;
-}
-
-
-void semaphore_post( semaphore_t* semaphore )
-{
-	sem_post( (native_sem_t*)semaphore->sem );
-}
-
-
 #elif FOUNDATION_PLATFORM_MACOSX
 
 //OSX:
@@ -166,7 +88,7 @@ void semaphore_initialize( semaphore_t* semaphore, int value )
 	int ret = MPCreateSemaphore( 0xFFFF, value, &semaphore->sem.unnamed );
 	if( ret < 0 )
 	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize unnamed semaphore: %s", system_error_message( 0 ) );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize unnamed semaphore: %s", system_error_message( 0 ) );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize unnamed semaphore" );
 		return;
 	}
@@ -183,7 +105,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, int v
 		
 	if( sem == SEM_FAILED )
 	{
-		error_logf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
 	}
 
@@ -215,12 +137,12 @@ void semaphore_wait( semaphore_t* semaphore )
 	else
 	{
 		int ret = sem_wait( semaphore->sem.named );
-#if !FOUNDATION_BUILD_DEPLOY
+#if !BUILD_DEPLOY
 		if( ret != 0 )
 		{
 			//Don't report error if interrupted
 			if( errno != EINTR )
-				error_logf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( 0 ) );
+				log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( 0 ) );
 			else
 			{
 				info_logf( "Semaphore wait interrupted by signal" );
@@ -289,7 +211,7 @@ void semaphore_initialize( semaphore_t* semaphore, int value )
 	if( !*semaphore )
 	{
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore" );
-		error_logf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
 	}
 }
 
@@ -323,6 +245,78 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 void semaphore_post( semaphore_t* semaphore )
 {
 	dispatch_semaphore_signal( *semaphore );
+}
+
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+
+void semaphore_initialize( semaphore_t* semaphore, int value )
+{
+	semaphore->name = 0;
+
+	if( sem_init( (native_sem_t*)&semaphore->unnamed, 0, value ) )
+	{
+		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore" );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
+	}
+
+	semaphore->sem = &semaphore->unnamed;
+}
+
+
+void semaphore_initialize_named( semaphore_t* semaphore, const char* name, int value )
+{
+	semaphore->name = string_clone( name );
+
+	native_sem_t* sem = SEM_FAILED;
+	
+	sem = sem_open( name, O_CREAT, 0666, value );
+		
+	if( sem == SEM_FAILED )
+	{
+		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
+		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
+	}
+
+	semaphore->sem = (semaphore_native_t*)sem;
+}
+
+
+void semaphore_destroy( semaphore_t* semaphore )
+{
+	sem_destroy( (native_sem_t*)semaphore->sem );
+
+	if( semaphore->name )
+	{
+		sem_unlink( semaphore->name );
+		string_deallocate( semaphore->name );
+	}
+}
+
+
+void semaphore_wait( semaphore_t* semaphore )
+{
+	sem_wait( (native_sem_t*)semaphore->sem );
+}
+
+
+bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
+{
+	if( milliseconds > 0 )
+	{
+		struct timespec ts;
+		ts.tv_sec = milliseconds / 1000;
+		ts.tv_nsec = (long)( milliseconds % 1000 ) * (long)1000000;
+		return sem_timedwait( (native_sem_t*)semaphore->sem, &ts ) == 0;
+	}
+	return sem_trywait( (native_sem_t*)semaphore->sem ) == 0;
+}
+
+
+void semaphore_post( semaphore_t* semaphore )
+{
+	sem_post( (native_sem_t*)semaphore->sem );
 }
 
 

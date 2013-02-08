@@ -267,7 +267,7 @@ uint64_t random64_range( uint64_t low, uint64_t high )
 
 real random_normalized( void )
 {
-#if FOUNDATION_PLARANDOM_TRANSFORM_REALSIZE == 64
+#if FOUNDATION_PLATFORM_REALSIZE == 64
 	const real result = (real)random64() * ( REAL_C( 1.0 ) / REAL_C( 18446744073709551616.0L ) );
 #else
 	const real result = (real)random32() * ( REAL_C( 1.0 ) / REAL_C( 4294967296.0 ) );

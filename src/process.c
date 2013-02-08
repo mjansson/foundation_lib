@@ -17,9 +17,11 @@
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <unistd.h>
 #  include <stdlib.h>
-#  include <errno.h>
 #  include <sys/types.h>
 #  include <sys/wait.h>
+#ifndef errno
+extern int errno;
+#endif
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -333,7 +335,7 @@ int process_spawn( process_t* proc )
 		if( status != 0 )
 		{
 			proc->code = status;
-			warn_logf( WARNING_BAD_DATA, "Unable to spawn process for executable '%s': %s", proc->path, system_error_message( status ) );
+			log_warnf( WARNING_BAD_DATA, "Unable to spawn process for executable '%s': %s", proc->path, system_error_message( status ) );
 		}
 		
 		CFRelease( argvref );
@@ -375,8 +377,8 @@ int process_spawn( process_t* proc )
 		//Child
 		if( string_length( proc->wd ) )
 		{
-			debug_logf( "Spawned child process, setting working directory to %s", proc->wd );
-			app_set_current_working_directory( proc->wd );
+			log_debugf( "Spawned child process, setting working directory to %s", proc->wd );
+			environment_set_current_working_directory( proc->wd );
 		}
 
 		log_debugf( "Child process executing: %s", proc->path );
@@ -484,7 +486,7 @@ int process_wait( process_t* proc )
 	{
 		if( ( err == 0 ) && ( proc->flags & PROCESS_DETACHED ) )
 			return PROCESS_STILL_ACTIVE;
-		warn_logf( WARNING_BAD_DATA, "waitpid(%d) failed: %s (returned %d)", proc->pid, system_error_message( errno ), err );
+		log_warnf( WARNING_BAD_DATA, "waitpid(%d) failed: %s (returned %d)", proc->pid, system_error_message( errno ), err );
 		return 0;
 	}
 	

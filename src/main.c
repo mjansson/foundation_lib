@@ -66,7 +66,7 @@ int APIENTRY WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int c
 
 	thread_set_main();
 
-#if FOUNDATION_BUILD_DEBUG
+#if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
 	{
@@ -218,7 +218,7 @@ int main( int argc, char **argv )
 
 #else // !( FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS )
 
-#if FOUNDATION_BUILD_DEBUG
+#if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
 	{
