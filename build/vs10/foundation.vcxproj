@@ -131,35 +131,41 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -238,6 +244,10 @@
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>false</StringPooling>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -273,6 +283,10 @@
       <StringPooling>false</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -309,6 +323,10 @@
       <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -346,6 +364,10 @@
       <OpenMPSupport>false</OpenMPSupport>
       <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -384,6 +406,10 @@
       <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -422,6 +448,10 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <OmitFramePointers>false</OmitFramePointers>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

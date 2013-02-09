@@ -196,10 +196,8 @@ static profile_block* _process_profile_block( profile_block* block )
 }
 
 
-static void* _profile_io( void* arg )
+void* _profile_io( void* arg )
 {
-	profile_block** blocks = 0;
-
 	unsigned int system_info_counter = 0;
 	profile_block system_info;
 	memset( &system_info, 0, sizeof( profile_block ) );

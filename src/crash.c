@@ -39,10 +39,14 @@ crash_dump_callback_fn crash_guard_callback( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  include <safewindows.h>
-#  include <stdio.h>
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_INTEL
-#    include <dbghlp.h>
+#    define OUT
+#    define FAR
+#    define IN
+#    include <dbghelp.h>
 #  endif
+#  include <stdio.h>
+#  include <stdarg.h>
 
 typedef BOOL ( __stdcall *MiniDumpWriteDumpFn )( HANDLE, DWORD, HANDLE, MINIDUMP_TYPE, CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION, CONST PMINIDUMP_CALLBACK_INFORMATION );
 

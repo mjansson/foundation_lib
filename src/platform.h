@@ -496,6 +496,8 @@
 #  define CONSTCALL
 #  define ALIGN(x) __declspec(align(x))
 
+#  include <intrin.h>
+
 #  define bool _Bool
 #  define true 1
 #  define false 0

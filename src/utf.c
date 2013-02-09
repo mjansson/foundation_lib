@@ -111,7 +111,7 @@ char* string_vformat( const char* format, va_list list )
 
 	while( 1 )
 	{
-#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  define va_copy(dst, src) dst = src
 #endif
 		va_copy( copy_list, list );

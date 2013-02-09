@@ -39,35 +39,41 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseIntelIPP>Sequential</UseIntelIPP>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -151,6 +157,10 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -183,6 +193,10 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -217,6 +231,10 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -253,6 +271,10 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -290,6 +312,10 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -327,6 +353,10 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

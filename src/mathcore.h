@@ -18,7 +18,12 @@
 #include <platform.h>
 #include <types.h>
 
-#include <math.h>
+#if FOUNDATION_COMPILER_INTEL
+#  include <mathimf.h>
+#  undef I
+#else
+#  include <math.h>
+#endif
 
 
 #if FOUNDATION_PLATFORM_REALSIZE == 64
