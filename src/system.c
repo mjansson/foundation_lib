@@ -16,9 +16,8 @@
 #  include <sched.h>
 #  include <unistd.h>
 #  include <stdlib.h>
-#ifndef errno
-extern int errno;
-#endif
+#  define __error_t_defined 1
+#  include <errno.h>
 #endif
 
 static event_stream_t* _system_event_stream = 0;

@@ -17,11 +17,10 @@
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <unistd.h>
 #  include <stdlib.h>
+#  define __error_t_defined 1
+#  include <errno.h>
 #  include <sys/types.h>
 #  include <sys/wait.h>
-#ifndef errno
-extern int errno;
-#endif
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX

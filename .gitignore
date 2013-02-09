@@ -177,3 +177,5 @@ dist/**
 #Scons build
 .sconsign.dblite
 
+#Backups
+*~

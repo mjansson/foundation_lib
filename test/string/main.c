@@ -355,7 +355,7 @@ DECLARE_TEST( string, queries )
 		char* longstr  = string_clone( "testing utility string methods like finds, split, merge, explode and similar." );
 		{
 			unsigned int find     = string_find( longstr, ' ', 0 );
-			unsigned int find2    = string_find( longstr, 132, 0 );
+			unsigned int find2    = string_find( longstr, 12, 0 );
 			unsigned int find3    = string_find( emptystr, ' ', 0 );
 			unsigned int find4    = string_find( shortstr, ' ', 0 );
 			unsigned int find5    = string_find( shortstr, 'z', 0 );
@@ -707,7 +707,7 @@ DECLARE_TEST( string, utility )
 		mergearr = string_explode( mergestr, " .,", true );
 		mergearr2 = string_explode( mergestr, " .,", false );
 		mergearr3 = string_explode( mergestr, " .,", true );
-		merged = string_merge( mergearr, array_size( mergearr ), " " );
+		merged = string_merge( (const char* const*)mergearr, array_size( mergearr ), " " );
 
 		string_split( splitstr, " ", &splitleft, &splitright, false );
 		string_split( splitstr, " ", &splitleft2, &splitright2, true );

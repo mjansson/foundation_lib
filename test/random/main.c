@@ -97,7 +97,7 @@ DECLARE_TEST( random, distribution32 )
 	memset( _test_bits, 0, sizeof( unsigned int ) * 32 );
 	for( i = 0; i < num_passes; ++i )
 	{
-		unsigned int num = random32_range( ( j + 1 ) * 32, j * 32 );
+		num = random32_range( ( j + 1 ) * 32, j * 32 );
 		EXPECT_GE( num, j * 32U );
 		EXPECT_LT( num, ( j + 1 ) * 32U );
 		++_test_bits[ num % 32 ];

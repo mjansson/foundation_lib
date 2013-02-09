@@ -67,13 +67,6 @@ if env['PLATFORM'] == 'posix':
 	#	env['CC'] = 'clang'
 	#	env['CXX'] = 'clang++'
 	#	env['LD'] = 'llvm-ld'
-if env['platform'] == 'linux':
-	if env['arch'] == 'x86':
-		env['platformsuffix'] = '32'
-	elif env['arch'] == 'x86_64':
-		env['platformsuffix'] = '64'
-	else:
-		env['platformsuffix'] = env['arch']
 if env['TARGET_ARCH'] == 'x86' and env['arch'] != 'x86_64':
 	env['arch'] = 'x86'
 if env['TARGET_ARCH'] == 'i686' and env['arch'] != 'x86_64':
@@ -92,6 +85,13 @@ if env['TARGET_OS'] == 'win32':
 		else:
 			env['platform'] = 'win32'
 			env['arch'] = 'x86'
+if env['platform'] == 'linux':
+	if env['arch'] == 'x86':
+		env['platformsuffix'] = '32'
+	elif env['arch'] == 'x86_64':
+		env['platformsuffix'] = '64'
+	else:
+		env['platformsuffix'] = env['arch']
 
 #print "HOST_ARCH: %s" % baseenv['HOST_ARCH']
 #print "TARGET_ARCH: %s" % baseenv['TARGET_ARCH']
@@ -220,5 +220,8 @@ env['buildpath'] = env['buildpath'] + '-' + env['platform'] + env['platformsuffi
 
 Export("env")
 
-VariantDir( 'build/scons/%s' % env['buildpath'] , 'src', duplicate=0 )
-SConscript( 'build/scons/%s/SConscript' % env['buildpath']  )
+VariantDir( 'build/scons/%s/foundation' % env['buildpath'] , 'src', duplicate=0 )
+SConscript( 'build/scons/%s/foundation/SConscript' % env['buildpath']  )
+
+VariantDir( 'build/scons/%s/test' % env['buildpath'] , 'test', duplicate=0 )
+SConscript( 'build/scons/%s/test/SConscript' % env['buildpath']  )

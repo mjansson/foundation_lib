@@ -301,7 +301,7 @@ const char* environment_temporary_directory( void )
 }
 
 
-const char* environment_environment_variable( const char* var )
+const char* environment_variable( const char* var )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	char* cval;
