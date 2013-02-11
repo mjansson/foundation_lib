@@ -38,9 +38,9 @@ testenv.Append( LIBPATH=['#/lib/${platform}${platformsuffix}/${buildprofile}'] )
 testenv.Append( LIBS=[ 'test', 'foundation' ] )
 
 if testenv['platform'] == 'linux':
-	testenv.Append( LIBS=[ 'dl', 'rt' ] )
+	testenv.Append( LIBS=[ 'dl', 'rt', 'm' ] )
 elif testenv['platform'] == 'raspberrypi':
-	testenv.Append( LIBS=[ 'bcm_host', 'rt' ] )
+	testenv.Append( LIBS=[ 'bcm_host', 'rt', 'm' ] )
 
 env['alltest'] = testenv.Program( 'test-all${prgsuffix}', 'all/main.c' )
 env['apptest'] = testenv.Program( 'test-app${prgsuffix}', 'app/main.c' )

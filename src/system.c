@@ -242,7 +242,7 @@ const char* system_error_message( int code )
 	if( !code )
 		code = errno;
 	if( !code )
-		return "";
+		return "<no error>";
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
 #else
