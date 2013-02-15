@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <safewindows.h>
+#  include <foundation/safewindows.h>
 typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 DWORD WINAPI GetCurrentProcessorNumberFallback(VOID) { return 0; }
 GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;

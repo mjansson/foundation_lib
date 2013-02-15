@@ -64,6 +64,8 @@ static CONSTCALL FORCEINLINE unsigned int _memory_get_align( unsigned int align 
 }
 
 
+#if FOUNDATION_PLATFORM_POSIX
+
 static CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 {
 	uintptr_t address;
@@ -80,6 +82,7 @@ static CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 	return p;
 }	
 
+#endif
 
 static void* _memory_allocate_malloc( uint64_t size, unsigned int align, memory_hint_t hint )
 {

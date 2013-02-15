@@ -16,7 +16,7 @@
 #include <stdarg.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#include <safewindows.h>
+#include <foundation/safewindows.h>
 #  define va_copy(d,s) ((d)=(s))
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);

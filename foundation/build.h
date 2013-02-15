@@ -54,15 +54,15 @@
 #  endif
 #endif
 
-#  if BUILD_RELEASE || BUILD_PROFILE || BUILD_DEPLOY
+#if BUILD_DEBUG
 #  undef DEBUG
 #  undef _DEBUG
 #  undef NDEBUG
-#  define NDEBUG 1
 #else
 #  undef DEBUG
 #  undef _DEBUG
 #  undef NDEBUG
+#  define NDEBUG 1
 #endif
 
 

@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <safewindows.h>
+#  include <foundation/safewindows.h>
 #  include <sys/utime.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <time.h>

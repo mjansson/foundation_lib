@@ -16,7 +16,7 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  include <safewindows.h>
+#  include <foundation/safewindows.h>
 
 
 BOOL __stdcall _main_console_handler( DWORD control_type )
