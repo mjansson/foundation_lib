@@ -20,6 +20,11 @@
 #  include <errno.h>
 #endif
 
+#if FOUNDATION_PLATFORM_ANDROID
+#  include <foundation/android.h>
+#  include <cpu-features.h>
+#endif
+
 static event_stream_t* _system_event_stream = 0;
 
 typedef struct _foundation_platform_info
@@ -328,7 +333,7 @@ void system_process_events( void )
 	int events = 0;
 	int nummsg = 0;
 	struct android_poll_source* source = 0;
-	struct android_app* app = _global_app;
+	struct android_app* app = android_app();
 
 	while( ( ident = ALooper_pollAll( 0, 0, &events, (void**)&source ) ) >= 0 )
 	{
@@ -341,128 +346,6 @@ void system_process_events( void )
 	profile_end_block();
 #endif
 }
-
-
-#if FOUNDATION_PLATFORM_ANDROID
-
-void android_handle_cmd( struct android_app* app, int32_t cmd )
-{
-    switch( cmd )
-	{
-		case APP_CMD_INPUT_CHANGED:
-		{
-			info_logf( "Got APP_CMD_INPUT_CHANGED" );
-            break;
-		}
-
-		case APP_CMD_INIT_WINDOW:
-		{
-			if( app->window )
-			{
-				int w = 0, h = 0;
-				w = ANativeWindow_getWidth( app->window );
-				h = ANativeWindow_getHeight( app->window );
-				info_logf( "Got APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
-			}
-            break;
-		}
-        
-		case APP_CMD_TERM_WINDOW:
-		{
-			info_logf( "Got APP_CMD_TERM_WINDOW" );
-            break;
-		}
-
-    	case APP_CMD_WINDOW_RESIZED:
-		{
-			info_logf( "Got APP_CMD_WINDOW_RESIZED" );
-            break;
-		}
-
-		case APP_CMD_WINDOW_REDRAW_NEEDED:
-		{
-			info_logf( "Got APP_CMD_WINDOW_REDRAW_NEEDED" );
-            break;
-		}
-
-		case APP_CMD_CONTENT_RECT_CHANGED:
-		{
-			info_logf( "Got APP_CMD_CONTENT_RECT_CHANGED" );
-            break;
-		}
-        
-		case APP_CMD_GAINED_FOCUS:
-		{
-			info_logf( "Got APP_CMD_GAINED_FOCUS" );
-			_app_enable_sensor( ASENSOR_TYPE_ACCELEROMETER );
-            break;
-		}
-
-		case APP_CMD_LOST_FOCUS:
-		{
-			info_logf( "Got APP_CMD_LOST_FOCUS" );
-			_app_disable_sensor( ASENSOR_TYPE_ACCELEROMETER );
-            break;
-		}
-
-		case APP_CMD_CONFIG_CHANGED:
-		{
-			info_logf( "Got APP_CMD_CONFIG_CHANGED" );
-            break;
-		}
-
-		case APP_CMD_LOW_MEMORY:
-		{
-			info_logf( "Got APP_CMD_LOW_MEMORY" );
-            break;
-		}
-
-		case APP_CMD_START:
-		{
-			info_logf( "Got APP_CMD_START" );
-            break;
-		}
-
-		case APP_CMD_RESUME:
-		{
-			info_logf( "Got APP_CMD_RESUME" );
-			app_reset_frame_time();
-			app_main_loop_resume();
-            break;
-		}
-
-		case APP_CMD_SAVE_STATE:
-		{
-			info_logf( "Got APP_CMD_SAVE_STATE" );
-            break;
-		}
-
-		case APP_CMD_PAUSE:
-		{
-			info_logf( "Got APP_CMD_PAUSE" );
-			app_main_loop_suspend();
-            break;
-		}
-
-		case APP_CMD_STOP:
-		{
-			info_logf( "Got APP_CMD_STOP" );
-            break;
-		}
-		
-		case APP_CMD_DESTROY:
-		{
-			info_logf( "Got APP_CMD_DESTROY" );
-			system_event_post( COREEVENT_TERMINATE );
-            break;
-		}
-
-		default:
-			break;
-    }
-}
-
-#endif
 
 
 bool system_debugger_attached( void )

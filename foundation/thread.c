@@ -22,6 +22,10 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 #  include <pthread.h>
 #endif
 
+#if FOUNDATION_PLATFORM_ANDROID
+#  include <foundation/android.h>
+#endif
+
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 
 typedef struct _foundation_thread_local_block
@@ -49,7 +53,7 @@ void* _allocate_thread_local_block( unsigned int size )
 		}
 	}
 	
-	warn_logf( WARNING_MEMORY, "Unable to locate thread local memory block slot, will leak %d bytes", size );
+	log_warnf( WARNING_MEMORY, "Unable to locate thread local memory block slot, will leak %d bytes", size );
 	return block;
 }
 
@@ -532,9 +536,10 @@ void thread_attach_jvm( void )
 
 	// Attaches the current thread to the JVM
 	// TODO: According to the native activity, the java env can only be used in the main thread (calling ANativeActivityCallbacks)
-	jint result = (*_global_app->activity->vm)->AttachCurrentThread( _global_app->activity->vm, &_global_app->activity->env, &attach_args );
+	struct android_app* app = android_app();
+	jint result = (*app->activity->vm)->AttachCurrentThread( app->activity->vm, &app->activity->env, &attach_args );
 	if( result < 0 )
-		warn_logf( WARNING_SYSTEM_CALL_FAIL, "Unable to attach thread to Java VM (%d)", result );
+		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to attach thread to Java VM (%d)", result );
 	else
 		set_thread_jvm_attached( true );
 }
@@ -544,7 +549,7 @@ void thread_detach_jvm( void )
 {
 	if( get_thread_jvm_attached() )
 	{
-		JavaVM* java_vm = _global_app->activity->vm;
+		JavaVM* java_vm = android_app()->activity->vm;
 		(*java_vm)->DetachCurrentThread( java_vm );
 
 		set_thread_jvm_attached( false );

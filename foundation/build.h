@@ -46,8 +46,10 @@
 
 #if !BUILD_DEBUG && !BUILD_RELEASE && !BUILD_PROFILE && !BUILD_DEPLOY
 #  if defined( NDEBUG )
+#    undef  BUILD_RELEASE
 #    define BUILD_RELEASE 1
 #  else
+#    undef  BUILD_DEBUG
 #    define BUILD_DEBUG   1
 #  endif
 #endif

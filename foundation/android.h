@@ -28,7 +28,6 @@ FOUNDATION_API void                  android_shutdown( void );
 
 FOUNDATION_API struct android_app*   android_app( void );
 
-FOUNDATION_API int32_t               android_handle_input( struct android_app* app, AInputEvent* event );
 FOUNDATION_API void                  android_handle_cmd( struct android_app* app, int32_t cmd );
 FOUNDATION_API int                   android_sensor_callback( int fd, int events, void* data );
 

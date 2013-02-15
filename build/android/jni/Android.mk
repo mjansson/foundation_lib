@@ -40,7 +40,7 @@ LOCAL_SRC_FILES  := \
 	foundation/semaphore.c foundation/stream.c foundation/system.c foundation/thread.c foundation/time.c foundation/utf.c \
 	foundation/android.c
 
-LOCAL_STATIC_LIBRARIES := android_native_app_glue
+LOCAL_STATIC_LIBRARIES := android_native_app_glue cpufeatures
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -58,7 +58,7 @@ LOCAL_CFLAGS     :=
 
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android
 
-LOCAL_STATIC_LIBRARIES += foundation android_native_app_glue
+LOCAL_STATIC_LIBRARIES += foundation android_native_app_glue cpufeatures
 
 LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
 #LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES -fuse-ld=bfd
@@ -70,3 +70,4 @@ include $(BUILD_SHARED_LIBRARY)
 
 
 $(call import-module,android/native_app_glue)
+$(call import-module,android/cpufeatures)
