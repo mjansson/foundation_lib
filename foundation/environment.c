@@ -23,7 +23,7 @@ static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN] = {0};
 #if FOUNDATION_PLATFORM_WINDOWS
 static char    _environment_var[FOUNDATION_MAX_PATHLEN] = {0};
-#  include <foundation/safewindows.h>
+#  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <unistd.h>
 #  include <stdlib.h>

@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/safewindows.h>
+#  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_APPLE
 #  include <mach/mach_time.h>
 #  include <string.h>

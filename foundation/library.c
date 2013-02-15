@@ -14,7 +14,7 @@
 
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/safewindows.h>
+#  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <dlfcn.h>
 #endif

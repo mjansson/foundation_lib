@@ -97,7 +97,7 @@ byteorder_t system_byteorder()
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#include <foundation/safewindows.h>
+#include <foundation/windows.h>
 
 object_t _system_library_iphlpapi = 0;
 

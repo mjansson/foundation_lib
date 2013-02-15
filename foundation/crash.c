@@ -38,7 +38,7 @@ crash_dump_callback_fn crash_guard_callback( void )
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  include <foundation/safewindows.h>
+#  include <foundation/windows.h>
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_INTEL
 #    define OUT
 #    define FAR

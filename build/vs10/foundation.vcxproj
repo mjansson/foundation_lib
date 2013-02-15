@@ -59,7 +59,6 @@
     <ClInclude Include="..\..\foundation\profile.h" />
     <ClInclude Include="..\..\foundation\random.h" />
     <ClInclude Include="..\..\foundation\ringbuffer.h" />
-    <ClInclude Include="..\..\foundation\safewindows.h" />
     <ClInclude Include="..\..\foundation\semaphore.h" />
     <ClInclude Include="..\..\foundation\stream.h" />
     <ClInclude Include="..\..\foundation\system.h" />
@@ -67,6 +66,7 @@
     <ClInclude Include="..\..\foundation\time.h" />
     <ClInclude Include="..\..\foundation\types.h" />
     <ClInclude Include="..\..\foundation\utf.h" />
+    <ClInclude Include="..\..\foundation\windows.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\array.c" />

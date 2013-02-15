@@ -18,7 +18,6 @@
     <ClInclude Include="..\..\foundation\atomic.h" />
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\thread.h" />
-    <ClInclude Include="..\..\foundation\safewindows.h" />
     <ClInclude Include="..\..\foundation\environment.h" />
     <ClInclude Include="..\..\foundation\config.h" />
     <ClInclude Include="..\..\foundation\path.h" />
@@ -41,6 +40,7 @@
     <ClInclude Include="..\..\foundation\main.h" />
     <ClInclude Include="..\..\foundation\bufferstream.h" />
     <ClInclude Include="..\..\foundation\blowfish.h" />
+    <ClInclude Include="..\..\foundation\windows.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
