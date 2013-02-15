@@ -10,7 +10,9 @@
  *
  */
 
-#include <foundation.h>
+#pragma once
+
+#include <foundation/foundation.h>
 
 
 #if defined( TEST_COMPILE ) && TEST_COMPILE

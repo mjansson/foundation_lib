@@ -10,7 +10,7 @@
  *
  */
 
-#include <foundation.h>
+#include <foundation/foundation.h>
 
 #define TEST_COMPILE 1
 #include <test/test.h>

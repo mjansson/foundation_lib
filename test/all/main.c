@@ -10,7 +10,7 @@
  *
  */
 
-#include <foundation.h>
+#include <foundation/foundation.h>
 
 
 int main_initialize( void )
@@ -36,9 +36,9 @@ int main_run( void* main_arg )
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = "test-*.exe";
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	pattern = "test-*";
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_POSIX
 	pattern = "test-*";
 #else
 #  error Not implemented

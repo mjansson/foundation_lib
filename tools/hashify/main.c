@@ -10,7 +10,7 @@
  *
  */
 
-#include <foundation.h>
+#include <foundation/foundation.h>
 
 #include "errorcodes.h"
 
@@ -293,7 +293,7 @@ int hashify_generate_preamble( stream_t* output_file )
 	stream_write_string( output_file, preamble );
 	stream_write_string( output_file,
 		"#pragma once\n\n"
-		"#include <foundation.h>\n\n"
+		"#include <foundation/foundation.h>\n\n"
 		"/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******\n"
 		"    Edit corresponding definitions file and rerun\n"
 		"    the foundation hashify tool to update this file */\n\n"

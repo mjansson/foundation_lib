@@ -47,7 +47,7 @@ if baseenv['platform'] == 'win64':
 
 env = Environment(
 	variables=opts,
-	CPPPATH=['#src'],
+	CPPPATH=['#'],
 	TARGET_ARCH=baseenv['TARGET_ARCH'],
 	HOST_ARCH=baseenv['HOST_ARCH'],
 	tool=[ baseenv['tools'] ]
@@ -168,6 +168,7 @@ if env['CC'] == 'gcc':
 
 # SETUP DEBUG ENVRIONMENT
 if env['debug']:
+	env.Append( CPPDEFINES=['BUILD_DEBUG=1'] )
 	env['buildpath'] = 'debug'
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-g'] )
@@ -179,7 +180,7 @@ if env['debug']:
 
 # SETUP RELEASE ENVIRONMENT
 elif not env['deploy'] and not env['profile']:
-	env.Append( CPPDEFINES=['NDEBUG=1'] )
+	env.Append( CPPDEFINES=['BUILD_RELEASE=1'] )
 	env['buildpath'] = 'release';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 #		env.Append( CFLAGS=['-march=core2','-msse4'] )
@@ -190,7 +191,7 @@ elif not env['deploy'] and not env['profile']:
 
 # SETUP PROFILE ENVIRONMENT
 elif env['profile']:
-	env.Append( CPPDEFINES=['NDEBUG=1','FOUNDATION_BUILD_PROFILE=1'] )
+	env.Append( CPPDEFINES=['BUILD_PROFILE=1'] )
 	env['buildpath'] = 'profile';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 #		env.Append( CFLAGS=['-march=core2','-msse4'] )
@@ -201,7 +202,7 @@ elif env['profile']:
 
 # SETUP RTM ENVIRONMENT
 else:
-	env.Append( CPPDEFINES=['NDEBUG=1','FOUNDATION_BUILD_DEPLOY=1'] )
+	env.Append( CPPDEFINES=['BUILD_DEPLOY=1'] )
 	env['buildpath'] = 'deploy';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 #		env.Append( CFLAGS=['-march=core2','-msse4'] )
@@ -220,7 +221,7 @@ env['buildpath'] = env['buildpath'] + '-' + env['platform'] + env['platformsuffi
 
 Export("env")
 
-VariantDir( 'build/scons/%s/foundation' % env['buildpath'] , 'src', duplicate=0 )
+VariantDir( 'build/scons/%s/foundation' % env['buildpath'] , 'foundation', duplicate=0 )
 SConscript( 'build/scons/%s/foundation/SConscript' % env['buildpath']  )
 
 VariantDir( 'build/scons/%s/test' % env['buildpath'] , 'test', duplicate=0 )
