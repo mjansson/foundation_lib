@@ -327,9 +327,15 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	log_infof( "Started thread '%s' (%llx) ID %llx", thread->name, thread->osid, thread->id );
 
 	if( crash_guard_callback() )
-		crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
+	{
+		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
+		if( crash_result == CRASH_DUMP_GENERATED )
+			thread_destroy( crash_result );
+	}
 	else
+	{
 		thread->result = thread->fn( thread->id, thread->arg );
+	}
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;

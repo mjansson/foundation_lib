@@ -15,6 +15,7 @@
 
 static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;
+static char                    _crash_dump_file[FOUNDATION_MAX_PATHLEN+128];
 
 
 void crash_guard_set( crash_dump_callback_fn callback, const char* name )
@@ -50,29 +51,23 @@ crash_dump_callback_fn crash_guard_callback( void )
 
 typedef BOOL ( __stdcall *MiniDumpWriteDumpFn )( HANDLE, DWORD, HANDLE, MINIDUMP_TYPE, CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION, CONST PMINIDUMP_CALLBACK_INFORMATION );
 
-static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* name, wchar_t* dump_file )
+static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* name, char* dump_file )
 {
     MINIDUMP_EXCEPTION_INFORMATION info;
 
-	wchar_t    path[MAX_PATH+1]; 
     HANDLE     file;
     SYSTEMTIME local_time;
 
     GetLocalTime( &local_time );
-    GetTempPathW( MAX_PATH, path );
 
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
-    _snwprintf_s( dump_file, MAX_PATH, MAX_PATH,
-
-#  else
-	snwprintf( dump_file, MAX_PATH,
-#  endif
-		L"%ls%hs-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
-		path, name ? name : "foundation", 
+	dump_file[0] = 0;
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
+		environment_temporary_directory(), name ? name : "foundation", 
 		local_time.wYear, local_time.wMonth, local_time.wDay, 
 		local_time.wHour, local_time.wMinute, local_time.wSecond, 
 		GetCurrentProcessId(), GetCurrentThreadId());
-    file = CreateFileW( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
+	fs_make_path( environment_temporary_directory() );
+    file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
 
 	if( file && ( file != INVALID_HANDLE_VALUE ) )
 	{
@@ -88,8 +83,9 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 				info.ExceptionPointers = pointers;
 				info.ClientPointers    = TRUE;
 
-				/*lint --e{655} */
 				success = CallMiniDumpWriteDump( GetCurrentProcess(), GetCurrentProcessId(), file, MiniDumpWithDataSegs | MiniDumpWithProcessThreadData | MiniDumpWithThreadInfo, &info, 0, 0 );
+				if( !success )
+					dump_file[0] = 0;
 			}
 
 			FreeLibrary( lib );
@@ -116,12 +112,11 @@ crash_exception_closure_t _crash_exception_closure;
 
 LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 {
-	wchar_t dump_file[MAX_PATH+1];
-	_crash_create_mini_dump( pointers, _crash_exception_closure.name, dump_file );
+	_crash_create_mini_dump( pointers, _crash_exception_closure.name, _crash_dump_file );
 	if( _crash_exception_closure.callback )
-		_crash_exception_closure.callback( dump_file );
+		_crash_exception_closure.callback( _crash_dump_file );
 	else
-		error_logf( "Exception occurred! Minidump written to: %ls", dump_file );
+		error_logf( "Exception occurred! Minidump written to: %ls", _crash_dump_file );
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -134,15 +129,14 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
-	wchar_t dump_file[MAX_PATH+1];
 	__try
 	{
 		return fn( data );
 	}
-	__except( _crash_create_mini_dump( GetExceptionInformation(), name, dump_file ), EXCEPTION_EXECUTE_HANDLER )
+	__except( _crash_create_mini_dump( GetExceptionInformation(), name, _crash_dump_file ), EXCEPTION_EXECUTE_HANDLER )
 	{
 		if( callback )
-			callback( dump_file );
+			callback( _crash_dump_file );
 		return CRASH_DUMP_GENERATED;
 	}
 #  else

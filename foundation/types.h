@@ -249,7 +249,7 @@ typedef void*         (* thread_fn)( object_t, void* );
 typedef int           (* crash_guard_fn)( void* );
 
 //! Crash callback
-typedef void          (* crash_dump_callback_fn)( const wchar_t* );
+typedef void          (* crash_dump_callback_fn)( const char* );
 
 #define CRASH_DUMP_GENERATED        0xbaadf00d
 
@@ -286,6 +286,7 @@ typedef struct _foundation_application
 	const char*                     short_name;
 	const char*                     config_dir;
 	version_t                       version;
+	crash_dump_callback_fn          dump_callback;
 } application_t;
 
 typedef struct _foundation_error_frame
