@@ -46,6 +46,7 @@
     <ClInclude Include="..\..\foundation\hashstrings.h" />
     <ClInclude Include="..\..\foundation\internal.h" />
     <ClInclude Include="..\..\foundation\library.h" />
+    <ClInclude Include="..\..\foundation\locale.h" />
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\main.h" />
     <ClInclude Include="..\..\foundation\mathcore.h" />
@@ -61,11 +62,11 @@
     <ClInclude Include="..\..\foundation\ringbuffer.h" />
     <ClInclude Include="..\..\foundation\semaphore.h" />
     <ClInclude Include="..\..\foundation\stream.h" />
+    <ClInclude Include="..\..\foundation\string.h" />
     <ClInclude Include="..\..\foundation\system.h" />
     <ClInclude Include="..\..\foundation\thread.h" />
     <ClInclude Include="..\..\foundation\time.h" />
     <ClInclude Include="..\..\foundation\types.h" />
-    <ClInclude Include="..\..\foundation\utf.h" />
     <ClInclude Include="..\..\foundation\windows.h" />
   </ItemGroup>
   <ItemGroup>
@@ -103,10 +104,10 @@
     <ClCompile Include="..\..\foundation\ringbuffer.c" />
     <ClCompile Include="..\..\foundation\semaphore.c" />
     <ClCompile Include="..\..\foundation\stream.c" />
+    <ClCompile Include="..\..\foundation\string.c" />
     <ClCompile Include="..\..\foundation\system.c" />
     <ClCompile Include="..\..\foundation\thread.c" />
     <ClCompile Include="..\..\foundation\time.c" />
-    <ClCompile Include="..\..\foundation\utf.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt">

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -46,6 +46,7 @@
     <ClInclude Include="..\..\foundation\hashstrings.h" />
     <ClInclude Include="..\..\foundation\internal.h" />
     <ClInclude Include="..\..\foundation\library.h" />
+    <ClInclude Include="..\..\foundation\locale.h" />
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\main.h" />
     <ClInclude Include="..\..\foundation\mathcore.h" />
@@ -59,14 +60,14 @@
     <ClInclude Include="..\..\foundation\profile.h" />
     <ClInclude Include="..\..\foundation\random.h" />
     <ClInclude Include="..\..\foundation\ringbuffer.h" />
-    <ClInclude Include="..\..\foundation\safewindows.h" />
     <ClInclude Include="..\..\foundation\semaphore.h" />
     <ClInclude Include="..\..\foundation\stream.h" />
+    <ClInclude Include="..\..\foundation\string.h" />
     <ClInclude Include="..\..\foundation\system.h" />
     <ClInclude Include="..\..\foundation\thread.h" />
     <ClInclude Include="..\..\foundation\time.h" />
     <ClInclude Include="..\..\foundation\types.h" />
-    <ClInclude Include="..\..\foundation\utf.h" />
+    <ClInclude Include="..\..\foundation\windows.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\array.c" />
@@ -103,10 +104,10 @@
     <ClCompile Include="..\..\foundation\ringbuffer.c" />
     <ClCompile Include="..\..\foundation\semaphore.c" />
     <ClCompile Include="..\..\foundation\stream.c" />
+    <ClCompile Include="..\..\foundation\string.c" />
     <ClCompile Include="..\..\foundation\system.c" />
     <ClCompile Include="..\..\foundation\thread.c" />
     <ClCompile Include="..\..\foundation\time.c" />
-    <ClCompile Include="..\..\foundation\utf.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt">
@@ -215,7 +216,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;BUILD_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
@@ -234,7 +235,7 @@
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <MinimalRebuild>false</MinimalRebuild>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
@@ -252,7 +253,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;PLATFORM_REALSIZE=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;BUILD_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
@@ -271,7 +272,7 @@
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>false</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
@@ -289,7 +290,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG=1;FOUNDATION_COMPILE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;BUILD_RELEASE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
@@ -309,7 +310,7 @@
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
     </ClCompile>
@@ -327,7 +328,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG=1;FOUNDATION_COMPILE=1;BUILD_DEPLOY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;BUILD_DEPLOY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
@@ -347,7 +348,7 @@
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
@@ -364,7 +365,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG=1;FOUNDATION_COMPILE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;BUILD_RELEASE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
@@ -384,7 +385,7 @@
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
     </ClCompile>
@@ -402,7 +403,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG=1;FOUNDATION_COMPILE=1;BUILD_DEPLOY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FOUNDATION_COMPILE=1;BUILD_DEPLOY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
@@ -421,7 +422,7 @@
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <PrecompiledHeaderFile>foundation.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <OmitFramePointers>false</OmitFramePointers>

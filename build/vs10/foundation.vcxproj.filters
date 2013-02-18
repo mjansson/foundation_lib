@@ -10,7 +10,6 @@
     <ClInclude Include="..\..\foundation\memory.h" />
     <ClInclude Include="..\..\foundation\array.h" />
     <ClInclude Include="..\..\foundation\hash.h" />
-    <ClInclude Include="..\..\foundation\utf.h" />
     <ClInclude Include="..\..\foundation\base64.h" />
     <ClInclude Include="..\..\foundation\bits.h" />
     <ClInclude Include="..\..\foundation\objectmap.h" />
@@ -41,6 +40,8 @@
     <ClInclude Include="..\..\foundation\bufferstream.h" />
     <ClInclude Include="..\..\foundation\blowfish.h" />
     <ClInclude Include="..\..\foundation\windows.h" />
+    <ClInclude Include="..\..\foundation\locale.h" />
+    <ClInclude Include="..\..\foundation\string.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -49,7 +50,6 @@
     <ClCompile Include="..\..\foundation\memory.c" />
     <ClCompile Include="..\..\foundation\array.c" />
     <ClCompile Include="..\..\foundation\hash.c" />
-    <ClCompile Include="..\..\foundation\utf.c" />
     <ClCompile Include="..\..\foundation\base64.c" />
     <ClCompile Include="..\..\foundation\objectmap.c" />
     <ClCompile Include="..\..\foundation\log.c" />
@@ -74,6 +74,7 @@
     <ClCompile Include="..\..\foundation\main.c" />
     <ClCompile Include="..\..\foundation\bufferstream.c" />
     <ClCompile Include="..\..\foundation\blowfish.c" />
+    <ClCompile Include="..\..\foundation\string.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\foundation\hashstrings.txt" />
