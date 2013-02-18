@@ -1,0 +1,589 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CDCEF48D16D2D2B100198086 /* android.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44116D2D2B000198086 /* android.c */; };
+		CDCEF48E16D2D2B100198086 /* android.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44216D2D2B000198086 /* android.h */; };
+		CDCEF48F16D2D2B100198086 /* array.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44316D2D2B000198086 /* array.c */; };
+		CDCEF49016D2D2B100198086 /* array.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44416D2D2B000198086 /* array.h */; };
+		CDCEF49116D2D2B100198086 /* assert.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44516D2D2B000198086 /* assert.c */; };
+		CDCEF49216D2D2B100198086 /* assert.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44616D2D2B000198086 /* assert.h */; };
+		CDCEF49316D2D2B100198086 /* assetstream.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44716D2D2B000198086 /* assetstream.c */; };
+		CDCEF49416D2D2B100198086 /* assetstream.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44816D2D2B000198086 /* assetstream.h */; };
+		CDCEF49516D2D2B100198086 /* atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44916D2D2B000198086 /* atomic.h */; };
+		CDCEF49616D2D2B100198086 /* base64.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44A16D2D2B000198086 /* base64.c */; };
+		CDCEF49716D2D2B100198086 /* base64.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44B16D2D2B000198086 /* base64.h */; };
+		CDCEF49816D2D2B100198086 /* bits.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44C16D2D2B000198086 /* bits.h */; };
+		CDCEF49916D2D2B100198086 /* blowfish.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44D16D2D2B000198086 /* blowfish.c */; };
+		CDCEF49A16D2D2B100198086 /* blowfish.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44E16D2D2B000198086 /* blowfish.h */; };
+		CDCEF49B16D2D2B100198086 /* bufferstream.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44F16D2D2B000198086 /* bufferstream.c */; };
+		CDCEF49C16D2D2B100198086 /* bufferstream.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45016D2D2B000198086 /* bufferstream.h */; };
+		CDCEF49D16D2D2B100198086 /* build.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45116D2D2B000198086 /* build.h */; };
+		CDCEF49E16D2D2B100198086 /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45216D2D2B000198086 /* config.c */; };
+		CDCEF49F16D2D2B100198086 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45316D2D2B000198086 /* config.h */; };
+		CDCEF4A016D2D2B100198086 /* crash.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45416D2D2B000198086 /* crash.c */; };
+		CDCEF4A116D2D2B100198086 /* crash.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45516D2D2B000198086 /* crash.h */; };
+		CDCEF4A216D2D2B100198086 /* environment.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45616D2D2B000198086 /* environment.c */; };
+		CDCEF4A316D2D2B100198086 /* environment.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45716D2D2B000198086 /* environment.h */; };
+		CDCEF4A416D2D2B100198086 /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45816D2D2B000198086 /* error.c */; };
+		CDCEF4A516D2D2B100198086 /* error.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45916D2D2B000198086 /* error.h */; };
+		CDCEF4A616D2D2B100198086 /* event.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45A16D2D2B000198086 /* event.c */; };
+		CDCEF4A716D2D2B100198086 /* event.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45B16D2D2B000198086 /* event.h */; };
+		CDCEF4A816D2D2B100198086 /* foundation.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45C16D2D2B000198086 /* foundation.c */; };
+		CDCEF4A916D2D2B100198086 /* foundation.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45D16D2D2B000198086 /* foundation.h */; };
+		CDCEF4AA16D2D2B100198086 /* fs.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45E16D2D2B000198086 /* fs.c */; };
+		CDCEF4AB16D2D2B100198086 /* fs.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45F16D2D2B000198086 /* fs.h */; };
+		CDCEF4AC16D2D2B100198086 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF46016D2D2B000198086 /* hash.c */; };
+		CDCEF4AD16D2D2B100198086 /* hash.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46116D2D2B000198086 /* hash.h */; };
+		CDCEF4AE16D2D2B100198086 /* hashstrings.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46216D2D2B000198086 /* hashstrings.h */; };
+		CDCEF4AF16D2D2B100198086 /* internal.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46316D2D2B000198086 /* internal.h */; };
+		CDCEF4B016D2D2B100198086 /* library.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF46416D2D2B000198086 /* library.c */; };
+		CDCEF4B116D2D2B100198086 /* library.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46516D2D2B000198086 /* library.h */; };
+		CDCEF4B216D2D2B100198086 /* locale.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46616D2D2B000198086 /* locale.h */; };
+		CDCEF4B316D2D2B100198086 /* log.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF46716D2D2B000198086 /* log.c */; };
+		CDCEF4B416D2D2B100198086 /* log.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46816D2D2B000198086 /* log.h */; };
+		CDCEF4B516D2D2B100198086 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF46916D2D2B000198086 /* main.c */; };
+		CDCEF4B616D2D2B100198086 /* main.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46A16D2D2B000198086 /* main.h */; };
+		CDCEF4B716D2D2B100198086 /* mathcore.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46B16D2D2B000198086 /* mathcore.h */; };
+		CDCEF4B816D2D2B100198086 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF46C16D2D2B000198086 /* md5.c */; };
+		CDCEF4B916D2D2B100198086 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46D16D2D2B000198086 /* md5.h */; };
+		CDCEF4BA16D2D2B100198086 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF46E16D2D2B000198086 /* memory.c */; };
+		CDCEF4BB16D2D2B100198086 /* memory.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF46F16D2D2B000198086 /* memory.h */; };
+		CDCEF4BC16D2D2B100198086 /* mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47016D2D2B000198086 /* mutex.c */; };
+		CDCEF4BD16D2D2B100198086 /* mutex.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47116D2D2B000198086 /* mutex.h */; };
+		CDCEF4BE16D2D2B100198086 /* objectmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47216D2D2B000198086 /* objectmap.c */; };
+		CDCEF4BF16D2D2B100198086 /* objectmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47316D2D2B000198086 /* objectmap.h */; };
+		CDCEF4C016D2D2B100198086 /* path.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47416D2D2B000198086 /* path.c */; };
+		CDCEF4C116D2D2B100198086 /* path.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47516D2D2B000198086 /* path.h */; };
+		CDCEF4C216D2D2B100198086 /* platform.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47616D2D2B000198086 /* platform.h */; };
+		CDCEF4C316D2D2B100198086 /* process.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47716D2D2B000198086 /* process.c */; };
+		CDCEF4C416D2D2B100198086 /* process.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47816D2D2B000198086 /* process.h */; };
+		CDCEF4C516D2D2B100198086 /* profile.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47916D2D2B000198086 /* profile.c */; };
+		CDCEF4C616D2D2B100198086 /* profile.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47A16D2D2B000198086 /* profile.h */; };
+		CDCEF4C716D2D2B100198086 /* random.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47B16D2D2B000198086 /* random.c */; };
+		CDCEF4C816D2D2B100198086 /* random.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47C16D2D2B000198086 /* random.h */; };
+		CDCEF4C916D2D2B100198086 /* ringbuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47D16D2D2B000198086 /* ringbuffer.c */; };
+		CDCEF4CA16D2D2B100198086 /* ringbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF47E16D2D2B000198086 /* ringbuffer.h */; };
+		CDCEF4CB16D2D2B100198086 /* semaphore.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF47F16D2D2B000198086 /* semaphore.c */; };
+		CDCEF4CC16D2D2B100198086 /* semaphore.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48016D2D2B100198086 /* semaphore.h */; };
+		CDCEF4CD16D2D2B100198086 /* stream.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF48116D2D2B100198086 /* stream.c */; };
+		CDCEF4CE16D2D2B100198086 /* stream.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48216D2D2B100198086 /* stream.h */; };
+		CDCEF4CF16D2D2B100198086 /* string.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF48316D2D2B100198086 /* string.c */; };
+		CDCEF4D016D2D2B100198086 /* string.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48416D2D2B100198086 /* string.h */; };
+		CDCEF4D116D2D2B100198086 /* system.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF48516D2D2B100198086 /* system.c */; };
+		CDCEF4D216D2D2B100198086 /* system.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48616D2D2B100198086 /* system.h */; };
+		CDCEF4D316D2D2B100198086 /* thread.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF48716D2D2B100198086 /* thread.c */; };
+		CDCEF4D416D2D2B100198086 /* thread.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48816D2D2B100198086 /* thread.h */; };
+		CDCEF4D516D2D2B100198086 /* time.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF48916D2D2B100198086 /* time.c */; };
+		CDCEF4D616D2D2B100198086 /* time.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48A16D2D2B100198086 /* time.h */; };
+		CDCEF4D716D2D2B100198086 /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48B16D2D2B100198086 /* types.h */; };
+		CDCEF4D816D2D2B100198086 /* windows.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48C16D2D2B100198086 /* windows.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		CDCEF43916D2D11500198086 /* libfoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDCEF44116D2D2B000198086 /* android.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = android.c; path = ../../../foundation/android.c; sourceTree = "<group>"; };
+		CDCEF44216D2D2B000198086 /* android.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = android.h; path = ../../../foundation/android.h; sourceTree = "<group>"; };
+		CDCEF44316D2D2B000198086 /* array.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = array.c; path = ../../../foundation/array.c; sourceTree = "<group>"; };
+		CDCEF44416D2D2B000198086 /* array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = array.h; path = ../../../foundation/array.h; sourceTree = "<group>"; };
+		CDCEF44516D2D2B000198086 /* assert.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = assert.c; path = ../../../foundation/assert.c; sourceTree = "<group>"; };
+		CDCEF44616D2D2B000198086 /* assert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = assert.h; path = ../../../foundation/assert.h; sourceTree = "<group>"; };
+		CDCEF44716D2D2B000198086 /* assetstream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = assetstream.c; path = ../../../foundation/assetstream.c; sourceTree = "<group>"; };
+		CDCEF44816D2D2B000198086 /* assetstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = assetstream.h; path = ../../../foundation/assetstream.h; sourceTree = "<group>"; };
+		CDCEF44916D2D2B000198086 /* atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = atomic.h; path = ../../../foundation/atomic.h; sourceTree = "<group>"; };
+		CDCEF44A16D2D2B000198086 /* base64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = base64.c; path = ../../../foundation/base64.c; sourceTree = "<group>"; };
+		CDCEF44B16D2D2B000198086 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../../foundation/base64.h; sourceTree = "<group>"; };
+		CDCEF44C16D2D2B000198086 /* bits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bits.h; path = ../../../foundation/bits.h; sourceTree = "<group>"; };
+		CDCEF44D16D2D2B000198086 /* blowfish.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = blowfish.c; path = ../../../foundation/blowfish.c; sourceTree = "<group>"; };
+		CDCEF44E16D2D2B000198086 /* blowfish.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blowfish.h; path = ../../../foundation/blowfish.h; sourceTree = "<group>"; };
+		CDCEF44F16D2D2B000198086 /* bufferstream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bufferstream.c; path = ../../../foundation/bufferstream.c; sourceTree = "<group>"; };
+		CDCEF45016D2D2B000198086 /* bufferstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bufferstream.h; path = ../../../foundation/bufferstream.h; sourceTree = "<group>"; };
+		CDCEF45116D2D2B000198086 /* build.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = build.h; path = ../../../foundation/build.h; sourceTree = "<group>"; };
+		CDCEF45216D2D2B000198086 /* config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = config.c; path = ../../../foundation/config.c; sourceTree = "<group>"; };
+		CDCEF45316D2D2B000198086 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = ../../../foundation/config.h; sourceTree = "<group>"; };
+		CDCEF45416D2D2B000198086 /* crash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = crash.c; path = ../../../foundation/crash.c; sourceTree = "<group>"; };
+		CDCEF45516D2D2B000198086 /* crash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crash.h; path = ../../../foundation/crash.h; sourceTree = "<group>"; };
+		CDCEF45616D2D2B000198086 /* environment.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = environment.c; path = ../../../foundation/environment.c; sourceTree = "<group>"; };
+		CDCEF45716D2D2B000198086 /* environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = environment.h; path = ../../../foundation/environment.h; sourceTree = "<group>"; };
+		CDCEF45816D2D2B000198086 /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = error.c; path = ../../../foundation/error.c; sourceTree = "<group>"; };
+		CDCEF45916D2D2B000198086 /* error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = error.h; path = ../../../foundation/error.h; sourceTree = "<group>"; };
+		CDCEF45A16D2D2B000198086 /* event.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = event.c; path = ../../../foundation/event.c; sourceTree = "<group>"; };
+		CDCEF45B16D2D2B000198086 /* event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = event.h; path = ../../../foundation/event.h; sourceTree = "<group>"; };
+		CDCEF45C16D2D2B000198086 /* foundation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = foundation.c; path = ../../../foundation/foundation.c; sourceTree = "<group>"; };
+		CDCEF45D16D2D2B000198086 /* foundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = foundation.h; path = ../../../foundation/foundation.h; sourceTree = "<group>"; };
+		CDCEF45E16D2D2B000198086 /* fs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fs.c; path = ../../../foundation/fs.c; sourceTree = "<group>"; };
+		CDCEF45F16D2D2B000198086 /* fs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fs.h; path = ../../../foundation/fs.h; sourceTree = "<group>"; };
+		CDCEF46016D2D2B000198086 /* hash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hash.c; path = ../../../foundation/hash.c; sourceTree = "<group>"; };
+		CDCEF46116D2D2B000198086 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hash.h; path = ../../../foundation/hash.h; sourceTree = "<group>"; };
+		CDCEF46216D2D2B000198086 /* hashstrings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hashstrings.h; path = ../../../foundation/hashstrings.h; sourceTree = "<group>"; };
+		CDCEF46316D2D2B000198086 /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = internal.h; path = ../../../foundation/internal.h; sourceTree = "<group>"; };
+		CDCEF46416D2D2B000198086 /* library.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = library.c; path = ../../../foundation/library.c; sourceTree = "<group>"; };
+		CDCEF46516D2D2B000198086 /* library.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = library.h; path = ../../../foundation/library.h; sourceTree = "<group>"; };
+		CDCEF46616D2D2B000198086 /* locale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = locale.h; path = ../../../foundation/locale.h; sourceTree = "<group>"; };
+		CDCEF46716D2D2B000198086 /* log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = log.c; path = ../../../foundation/log.c; sourceTree = "<group>"; };
+		CDCEF46816D2D2B000198086 /* log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = log.h; path = ../../../foundation/log.h; sourceTree = "<group>"; };
+		CDCEF46916D2D2B000198086 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../foundation/main.c; sourceTree = "<group>"; };
+		CDCEF46A16D2D2B000198086 /* main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = main.h; path = ../../../foundation/main.h; sourceTree = "<group>"; };
+		CDCEF46B16D2D2B000198086 /* mathcore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mathcore.h; path = ../../../foundation/mathcore.h; sourceTree = "<group>"; };
+		CDCEF46C16D2D2B000198086 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = md5.c; path = ../../../foundation/md5.c; sourceTree = "<group>"; };
+		CDCEF46D16D2D2B000198086 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5.h; path = ../../../foundation/md5.h; sourceTree = "<group>"; };
+		CDCEF46E16D2D2B000198086 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = memory.c; path = ../../../foundation/memory.c; sourceTree = "<group>"; };
+		CDCEF46F16D2D2B000198086 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memory.h; path = ../../../foundation/memory.h; sourceTree = "<group>"; };
+		CDCEF47016D2D2B000198086 /* mutex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mutex.c; path = ../../../foundation/mutex.c; sourceTree = "<group>"; };
+		CDCEF47116D2D2B000198086 /* mutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mutex.h; path = ../../../foundation/mutex.h; sourceTree = "<group>"; };
+		CDCEF47216D2D2B000198086 /* objectmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = objectmap.c; path = ../../../foundation/objectmap.c; sourceTree = "<group>"; };
+		CDCEF47316D2D2B000198086 /* objectmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = objectmap.h; path = ../../../foundation/objectmap.h; sourceTree = "<group>"; };
+		CDCEF47416D2D2B000198086 /* path.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = path.c; path = ../../../foundation/path.c; sourceTree = "<group>"; };
+		CDCEF47516D2D2B000198086 /* path.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = path.h; path = ../../../foundation/path.h; sourceTree = "<group>"; };
+		CDCEF47616D2D2B000198086 /* platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = platform.h; path = ../../../foundation/platform.h; sourceTree = "<group>"; };
+		CDCEF47716D2D2B000198086 /* process.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = process.c; path = ../../../foundation/process.c; sourceTree = "<group>"; };
+		CDCEF47816D2D2B000198086 /* process.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = process.h; path = ../../../foundation/process.h; sourceTree = "<group>"; };
+		CDCEF47916D2D2B000198086 /* profile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = profile.c; path = ../../../foundation/profile.c; sourceTree = "<group>"; };
+		CDCEF47A16D2D2B000198086 /* profile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = profile.h; path = ../../../foundation/profile.h; sourceTree = "<group>"; };
+		CDCEF47B16D2D2B000198086 /* random.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = random.c; path = ../../../foundation/random.c; sourceTree = "<group>"; };
+		CDCEF47C16D2D2B000198086 /* random.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = random.h; path = ../../../foundation/random.h; sourceTree = "<group>"; };
+		CDCEF47D16D2D2B000198086 /* ringbuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ringbuffer.c; path = ../../../foundation/ringbuffer.c; sourceTree = "<group>"; };
+		CDCEF47E16D2D2B000198086 /* ringbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ringbuffer.h; path = ../../../foundation/ringbuffer.h; sourceTree = "<group>"; };
+		CDCEF47F16D2D2B000198086 /* semaphore.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = semaphore.c; path = ../../../foundation/semaphore.c; sourceTree = "<group>"; };
+		CDCEF48016D2D2B100198086 /* semaphore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = semaphore.h; path = ../../../foundation/semaphore.h; sourceTree = "<group>"; };
+		CDCEF48116D2D2B100198086 /* stream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stream.c; path = ../../../foundation/stream.c; sourceTree = "<group>"; };
+		CDCEF48216D2D2B100198086 /* stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stream.h; path = ../../../foundation/stream.h; sourceTree = "<group>"; };
+		CDCEF48316D2D2B100198086 /* string.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = string.c; path = ../../../foundation/string.c; sourceTree = "<group>"; };
+		CDCEF48416D2D2B100198086 /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = string.h; path = ../../../foundation/string.h; sourceTree = "<group>"; };
+		CDCEF48516D2D2B100198086 /* system.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = system.c; path = ../../../foundation/system.c; sourceTree = "<group>"; };
+		CDCEF48616D2D2B100198086 /* system.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = system.h; path = ../../../foundation/system.h; sourceTree = "<group>"; };
+		CDCEF48716D2D2B100198086 /* thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = thread.c; path = ../../../foundation/thread.c; sourceTree = "<group>"; };
+		CDCEF48816D2D2B100198086 /* thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = thread.h; path = ../../../foundation/thread.h; sourceTree = "<group>"; };
+		CDCEF48916D2D2B100198086 /* time.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = time.c; path = ../../../foundation/time.c; sourceTree = "<group>"; };
+		CDCEF48A16D2D2B100198086 /* time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = time.h; path = ../../../foundation/time.h; sourceTree = "<group>"; };
+		CDCEF48B16D2D2B100198086 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../../foundation/types.h; sourceTree = "<group>"; };
+		CDCEF48C16D2D2B100198086 /* windows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = windows.h; path = ../../../foundation/windows.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CDCEF43616D2D11500198086 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CDCEF43016D2D11500198086 = {
+			isa = PBXGroup;
+			children = (
+				CDCEF44016D2D1C400198086 /* foundation */,
+				CDCEF43A16D2D11500198086 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CDCEF43A16D2D11500198086 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CDCEF43916D2D11500198086 /* libfoundation.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CDCEF44016D2D1C400198086 /* foundation */ = {
+			isa = PBXGroup;
+			children = (
+				CDCEF44116D2D2B000198086 /* android.c */,
+				CDCEF44216D2D2B000198086 /* android.h */,
+				CDCEF44316D2D2B000198086 /* array.c */,
+				CDCEF44416D2D2B000198086 /* array.h */,
+				CDCEF44516D2D2B000198086 /* assert.c */,
+				CDCEF44616D2D2B000198086 /* assert.h */,
+				CDCEF44716D2D2B000198086 /* assetstream.c */,
+				CDCEF44816D2D2B000198086 /* assetstream.h */,
+				CDCEF44916D2D2B000198086 /* atomic.h */,
+				CDCEF44A16D2D2B000198086 /* base64.c */,
+				CDCEF44B16D2D2B000198086 /* base64.h */,
+				CDCEF44C16D2D2B000198086 /* bits.h */,
+				CDCEF44D16D2D2B000198086 /* blowfish.c */,
+				CDCEF44E16D2D2B000198086 /* blowfish.h */,
+				CDCEF44F16D2D2B000198086 /* bufferstream.c */,
+				CDCEF45016D2D2B000198086 /* bufferstream.h */,
+				CDCEF45116D2D2B000198086 /* build.h */,
+				CDCEF45216D2D2B000198086 /* config.c */,
+				CDCEF45316D2D2B000198086 /* config.h */,
+				CDCEF45416D2D2B000198086 /* crash.c */,
+				CDCEF45516D2D2B000198086 /* crash.h */,
+				CDCEF45616D2D2B000198086 /* environment.c */,
+				CDCEF45716D2D2B000198086 /* environment.h */,
+				CDCEF45816D2D2B000198086 /* error.c */,
+				CDCEF45916D2D2B000198086 /* error.h */,
+				CDCEF45A16D2D2B000198086 /* event.c */,
+				CDCEF45B16D2D2B000198086 /* event.h */,
+				CDCEF45C16D2D2B000198086 /* foundation.c */,
+				CDCEF45D16D2D2B000198086 /* foundation.h */,
+				CDCEF45E16D2D2B000198086 /* fs.c */,
+				CDCEF45F16D2D2B000198086 /* fs.h */,
+				CDCEF46016D2D2B000198086 /* hash.c */,
+				CDCEF46116D2D2B000198086 /* hash.h */,
+				CDCEF46216D2D2B000198086 /* hashstrings.h */,
+				CDCEF46316D2D2B000198086 /* internal.h */,
+				CDCEF46416D2D2B000198086 /* library.c */,
+				CDCEF46516D2D2B000198086 /* library.h */,
+				CDCEF46616D2D2B000198086 /* locale.h */,
+				CDCEF46716D2D2B000198086 /* log.c */,
+				CDCEF46816D2D2B000198086 /* log.h */,
+				CDCEF46916D2D2B000198086 /* main.c */,
+				CDCEF46A16D2D2B000198086 /* main.h */,
+				CDCEF46B16D2D2B000198086 /* mathcore.h */,
+				CDCEF46C16D2D2B000198086 /* md5.c */,
+				CDCEF46D16D2D2B000198086 /* md5.h */,
+				CDCEF46E16D2D2B000198086 /* memory.c */,
+				CDCEF46F16D2D2B000198086 /* memory.h */,
+				CDCEF47016D2D2B000198086 /* mutex.c */,
+				CDCEF47116D2D2B000198086 /* mutex.h */,
+				CDCEF47216D2D2B000198086 /* objectmap.c */,
+				CDCEF47316D2D2B000198086 /* objectmap.h */,
+				CDCEF47416D2D2B000198086 /* path.c */,
+				CDCEF47516D2D2B000198086 /* path.h */,
+				CDCEF47616D2D2B000198086 /* platform.h */,
+				CDCEF47716D2D2B000198086 /* process.c */,
+				CDCEF47816D2D2B000198086 /* process.h */,
+				CDCEF47916D2D2B000198086 /* profile.c */,
+				CDCEF47A16D2D2B000198086 /* profile.h */,
+				CDCEF47B16D2D2B000198086 /* random.c */,
+				CDCEF47C16D2D2B000198086 /* random.h */,
+				CDCEF47D16D2D2B000198086 /* ringbuffer.c */,
+				CDCEF47E16D2D2B000198086 /* ringbuffer.h */,
+				CDCEF47F16D2D2B000198086 /* semaphore.c */,
+				CDCEF48016D2D2B100198086 /* semaphore.h */,
+				CDCEF48116D2D2B100198086 /* stream.c */,
+				CDCEF48216D2D2B100198086 /* stream.h */,
+				CDCEF48316D2D2B100198086 /* string.c */,
+				CDCEF48416D2D2B100198086 /* string.h */,
+				CDCEF48516D2D2B100198086 /* system.c */,
+				CDCEF48616D2D2B100198086 /* system.h */,
+				CDCEF48716D2D2B100198086 /* thread.c */,
+				CDCEF48816D2D2B100198086 /* thread.h */,
+				CDCEF48916D2D2B100198086 /* time.c */,
+				CDCEF48A16D2D2B100198086 /* time.h */,
+				CDCEF48B16D2D2B100198086 /* types.h */,
+				CDCEF48C16D2D2B100198086 /* windows.h */,
+			);
+			name = foundation;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		CDCEF43716D2D11500198086 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDCEF48E16D2D2B100198086 /* android.h in Headers */,
+				CDCEF49016D2D2B100198086 /* array.h in Headers */,
+				CDCEF49216D2D2B100198086 /* assert.h in Headers */,
+				CDCEF49416D2D2B100198086 /* assetstream.h in Headers */,
+				CDCEF49516D2D2B100198086 /* atomic.h in Headers */,
+				CDCEF49716D2D2B100198086 /* base64.h in Headers */,
+				CDCEF49816D2D2B100198086 /* bits.h in Headers */,
+				CDCEF49A16D2D2B100198086 /* blowfish.h in Headers */,
+				CDCEF49C16D2D2B100198086 /* bufferstream.h in Headers */,
+				CDCEF49D16D2D2B100198086 /* build.h in Headers */,
+				CDCEF49F16D2D2B100198086 /* config.h in Headers */,
+				CDCEF4A116D2D2B100198086 /* crash.h in Headers */,
+				CDCEF4A316D2D2B100198086 /* environment.h in Headers */,
+				CDCEF4A516D2D2B100198086 /* error.h in Headers */,
+				CDCEF4A716D2D2B100198086 /* event.h in Headers */,
+				CDCEF4A916D2D2B100198086 /* foundation.h in Headers */,
+				CDCEF4AB16D2D2B100198086 /* fs.h in Headers */,
+				CDCEF4AD16D2D2B100198086 /* hash.h in Headers */,
+				CDCEF4AE16D2D2B100198086 /* hashstrings.h in Headers */,
+				CDCEF4AF16D2D2B100198086 /* internal.h in Headers */,
+				CDCEF4B116D2D2B100198086 /* library.h in Headers */,
+				CDCEF4B216D2D2B100198086 /* locale.h in Headers */,
+				CDCEF4B416D2D2B100198086 /* log.h in Headers */,
+				CDCEF4B616D2D2B100198086 /* main.h in Headers */,
+				CDCEF4B716D2D2B100198086 /* mathcore.h in Headers */,
+				CDCEF4B916D2D2B100198086 /* md5.h in Headers */,
+				CDCEF4BB16D2D2B100198086 /* memory.h in Headers */,
+				CDCEF4BD16D2D2B100198086 /* mutex.h in Headers */,
+				CDCEF4BF16D2D2B100198086 /* objectmap.h in Headers */,
+				CDCEF4C116D2D2B100198086 /* path.h in Headers */,
+				CDCEF4C216D2D2B100198086 /* platform.h in Headers */,
+				CDCEF4C416D2D2B100198086 /* process.h in Headers */,
+				CDCEF4C616D2D2B100198086 /* profile.h in Headers */,
+				CDCEF4C816D2D2B100198086 /* random.h in Headers */,
+				CDCEF4CA16D2D2B100198086 /* ringbuffer.h in Headers */,
+				CDCEF4CC16D2D2B100198086 /* semaphore.h in Headers */,
+				CDCEF4CE16D2D2B100198086 /* stream.h in Headers */,
+				CDCEF4D016D2D2B100198086 /* string.h in Headers */,
+				CDCEF4D216D2D2B100198086 /* system.h in Headers */,
+				CDCEF4D416D2D2B100198086 /* thread.h in Headers */,
+				CDCEF4D616D2D2B100198086 /* time.h in Headers */,
+				CDCEF4D716D2D2B100198086 /* types.h in Headers */,
+				CDCEF4D816D2D2B100198086 /* windows.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		CDCEF43816D2D11500198086 /* foundation-osx */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CDCEF43D16D2D11500198086 /* Build configuration list for PBXNativeTarget "foundation-osx" */;
+			buildPhases = (
+				CDCEF43516D2D11500198086 /* Sources */,
+				CDCEF43616D2D11500198086 /* Frameworks */,
+				CDCEF43716D2D11500198086 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "foundation-osx";
+			productName = foundation;
+			productReference = CDCEF43916D2D11500198086 /* libfoundation.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CDCEF43116D2D11500198086 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Rampant Pixels";
+			};
+			buildConfigurationList = CDCEF43416D2D11500198086 /* Build configuration list for PBXProject "foundation" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = CDCEF43016D2D11500198086;
+			productRefGroup = CDCEF43A16D2D11500198086 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CDCEF43816D2D11500198086 /* foundation-osx */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CDCEF43516D2D11500198086 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDCEF48D16D2D2B100198086 /* android.c in Sources */,
+				CDCEF48F16D2D2B100198086 /* array.c in Sources */,
+				CDCEF49116D2D2B100198086 /* assert.c in Sources */,
+				CDCEF49316D2D2B100198086 /* assetstream.c in Sources */,
+				CDCEF49616D2D2B100198086 /* base64.c in Sources */,
+				CDCEF49916D2D2B100198086 /* blowfish.c in Sources */,
+				CDCEF49B16D2D2B100198086 /* bufferstream.c in Sources */,
+				CDCEF49E16D2D2B100198086 /* config.c in Sources */,
+				CDCEF4A016D2D2B100198086 /* crash.c in Sources */,
+				CDCEF4A216D2D2B100198086 /* environment.c in Sources */,
+				CDCEF4A416D2D2B100198086 /* error.c in Sources */,
+				CDCEF4A616D2D2B100198086 /* event.c in Sources */,
+				CDCEF4A816D2D2B100198086 /* foundation.c in Sources */,
+				CDCEF4AA16D2D2B100198086 /* fs.c in Sources */,
+				CDCEF4AC16D2D2B100198086 /* hash.c in Sources */,
+				CDCEF4B016D2D2B100198086 /* library.c in Sources */,
+				CDCEF4B316D2D2B100198086 /* log.c in Sources */,
+				CDCEF4B516D2D2B100198086 /* main.c in Sources */,
+				CDCEF4B816D2D2B100198086 /* md5.c in Sources */,
+				CDCEF4BA16D2D2B100198086 /* memory.c in Sources */,
+				CDCEF4BC16D2D2B100198086 /* mutex.c in Sources */,
+				CDCEF4BE16D2D2B100198086 /* objectmap.c in Sources */,
+				CDCEF4C016D2D2B100198086 /* path.c in Sources */,
+				CDCEF4C316D2D2B100198086 /* process.c in Sources */,
+				CDCEF4C516D2D2B100198086 /* profile.c in Sources */,
+				CDCEF4C716D2D2B100198086 /* random.c in Sources */,
+				CDCEF4C916D2D2B100198086 /* ringbuffer.c in Sources */,
+				CDCEF4CB16D2D2B100198086 /* semaphore.c in Sources */,
+				CDCEF4CD16D2D2B100198086 /* stream.c in Sources */,
+				CDCEF4CF16D2D2B100198086 /* string.c in Sources */,
+				CDCEF4D116D2D2B100198086 /* system.c in Sources */,
+				CDCEF4D316D2D2B100198086 /* thread.c in Sources */,
+				CDCEF4D516D2D2B100198086 /* time.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CDCEF43B16D2D11500198086 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_FAST_MATH = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"BUILD_DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../../..;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = NO;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		CDCEF43C16D2D11500198086 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_FAST_MATH = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"BUILD_RELEASE=1",
+					"$(inherited)",
+				);
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_UNROLL_LOOPS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../../..;
+				LLVM_LTO = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		CDCEF43E16D2D11500198086 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				EXECUTABLE_PREFIX = lib;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = foundation;
+			};
+			name = Debug;
+		};
+		CDCEF43F16D2D11500198086 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = foundation;
+			};
+			name = Release;
+		};
+		CDCEF4D916D2D44B00198086 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_FAST_MATH = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"BUILD_DEPLOY=1",
+					"$(inherited)",
+				);
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_UNROLL_LOOPS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../../..;
+				LLVM_LTO = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Deploy;
+		};
+		CDCEF4DA16D2D44B00198086 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = foundation;
+			};
+			name = Deploy;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CDCEF43416D2D11500198086 /* Build configuration list for PBXProject "foundation" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDCEF43B16D2D11500198086 /* Debug */,
+				CDCEF43C16D2D11500198086 /* Release */,
+				CDCEF4D916D2D44B00198086 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
+		};
+		CDCEF43D16D2D11500198086 /* Build configuration list for PBXNativeTarget "foundation-osx" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDCEF43E16D2D11500198086 /* Debug */,
+				CDCEF43F16D2D11500198086 /* Release */,
+				CDCEF4DA16D2D44B00198086 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CDCEF43116D2D11500198086 /* Project object */;
+}
