@@ -38,8 +38,9 @@
 #include <foundation/md5.h>
 #include <foundation/array.h>
 #include <foundation/ringbuffer.h>
-#include <foundation/utf.h>
+#include <foundation/string.h>
 #include <foundation/path.h>
+#include <foundation/locale.h>
 
 #include <foundation/mathcore.h>
 #include <foundation/random.h>
