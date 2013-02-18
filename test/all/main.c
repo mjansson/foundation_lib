@@ -15,7 +15,7 @@
 
 int main_initialize( void )
 {
-	application_t application;
+	application_t application = {0};
 	application.name = "Foundation string test";
 	application.short_name = "test_string";
 	application.config_dir = "test_string";

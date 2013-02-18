@@ -118,7 +118,7 @@ static const uint32_t _test_ciphertext_right[NUM_VARIABLEKEYTESTS + NUM_SETKEYTE
 
 application_t test_application( void )
 {
-	application_t app;
+	application_t app = {0};
 	app.name = "Foundation blowfish tests";
 	app.short_name = "test_blowfish";
 	app.config_dir = "test_blowfish";

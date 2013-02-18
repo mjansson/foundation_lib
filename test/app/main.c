@@ -14,30 +14,30 @@
 #include <test/test.h>
 
 
+static application_t _global_app = {0};
+
+
 application_t test_application( void )
 {
-	application_t app;
-	app.name = "Foundation application tests";
-	app.short_name = "test_app";
-	app.config_dir = "test_app";
-	return app;
+	_global_app.name = "Foundation application tests";
+	_global_app.short_name = "test_app";
+	_global_app.config_dir = "test_app";
+	_global_app.version = version_make( 1, 2, 3, 4, 5 );
+	return _global_app;
 }
 
 
-int do_something( void )
+DECLARE_TEST( app, environment )
 {
-	return 1;
-}
-
-
-DECLARE_TEST( app, startup )
-{
-	EXPECT_EQ( do_something(), 1 );
+	EXPECT_STREQ( environment_application()->name, _global_app.name );
+	EXPECT_STREQ( environment_application()->short_name, _global_app.short_name );
+	EXPECT_STREQ( environment_application()->config_dir, _global_app.config_dir );
+	EXPECT_TRUE( uint128_equal( environment_application()->version.version, _global_app.version.version ) );
 	return 0;
 }
 
 
 void test_declare( void )
 {
-	ADD_TEST( app, startup );
+	ADD_TEST( app, environment );
 }

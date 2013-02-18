@@ -16,7 +16,7 @@
 
 application_t test_application( void )
 {
-	application_t app;
+	application_t app = {0};
 	app.name = "Foundation string tests";
 	app.short_name = "test_string";
 	app.config_dir = "test_string";

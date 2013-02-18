@@ -22,7 +22,7 @@ static uint64_t     _test_slice64 = 0x400000000000000ULL;//( 1ULL << 64ULL ) / 6
 
 application_t test_application( void )
 {
-	application_t app;
+	application_t app = {0};
 	app.name = "Foundation random tests";
 	app.short_name = "test_random";
 	app.config_dir = "test_random";
