@@ -1,5 +1,5 @@
 
-HASH_ENGINE                             engine
+HASH_FOUNDATION                         foundation
 HASH_DEFAULT                            default
 HASH_NULL                               null
 HASH_LOCALE                             locale
