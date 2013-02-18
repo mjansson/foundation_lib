@@ -158,11 +158,11 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 {
 #define NUM_SEARCH_PATHS 10
 #define ANDROID_ASSET_PATH_INDEX 5
-	char* sub_exe_path;
-	char* exe_parent_path;
-	char* exe_grandparent_path;
-	char* abs_exe_parent_path;
-	char* abs_exe_grandparent_path;
+	char* sub_exe_path = 0;
+	char* exe_parent_path = 0;
+	char* exe_processed_path = 0;
+	char* abs_exe_parent_path = 0;
+	char* abs_exe_processed_path = 0;
 	char* bundle_path = 0;
 	char* home_dir = 0;
 	char* cmdline_path = 0;
@@ -171,16 +171,27 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	const char* const* cmd_line;
 	int icl, clsize, start_path, i, j;
 
+	const char buildsuffix[4][9] = { "/debug", "/release", "/profile", "/deploy" };
+	const char platformsuffix[7][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/unknown" };
+	const char binsuffix[1][5] = { "/bin" };
+
 	FOUNDATION_ASSERT( name );
 
 	//Parse config file
 	//
 	//Look for config files in the following order in order to allow easy overloading of default values
 	//(for each directory, a platform subdirectory is also searched)
-	// 1) Executable directory (C:\path\to\exe)
-	// 2) Executable directory "config" subdirectory (C:\path\to\exe\config)
-	// 3) Executable directory parent "config" subdirectory (C:\path\to\config)
-	// 4) Executable directory grandparent "config" subdirectory (C:\path\config)
+	// 1) Executable directory (C:\path\bin\platform\build\exe)
+	// 2) Executable directory "config" subdirectory (C:\path\bin\platform\build\config)
+	// 3) Executable directory parent "config" subdirectory (C:path\bin\platform\config)
+	// 4) Executable directory processed "config" subdirectory (C:\path\config)
+	//    This step is performed by identifying if the path contains
+	//      1) known directories (bin)
+	//      2) a platform identifier (win32,win64,osx,ios,android,raspberrypi)
+	//      3) a build identifier (debug,release,profile,deploy)
+	//    and if so cleaning away these subdirectories. This allows you to have binaries
+	//    sorted on platform/build under a common "bin" directory, while placing configs
+	//    in a unified config directory outside the binary directory.
 	//
 	//For desktop builds (Windows, MacOSX, ...), if build is debug/release (i.e not deploy)
 	// 5) Initial working directory
@@ -207,14 +218,40 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 
 	sub_exe_path = path_merge( environment_executable_directory(), "config" );
 	exe_parent_path = path_merge( environment_executable_directory(), "../config" );
-	exe_grandparent_path = path_merge( environment_executable_directory(), "../../config" );
 	abs_exe_parent_path = path_make_absolute( exe_parent_path );
-	abs_exe_grandparent_path = path_make_absolute( exe_grandparent_path );
+
+	exe_processed_path = string_clone( environment_executable_directory() );
+	for( i = 0; i < 4; ++i )
+	{
+		if( string_ends_with( exe_processed_path, buildsuffix[i] ) )
+		{
+			exe_processed_path[ string_length( exe_processed_path ) - string_length( buildsuffix[i] ) ] = 0;
+			break;
+		}
+	}
+	for( i = 0; i < 7; ++i )
+	{
+		if( string_ends_with( exe_processed_path, platformsuffix[i] ) )
+		{
+			exe_processed_path[ string_length( exe_processed_path ) - string_length( platformsuffix[i] ) ] = 0;
+			break;
+		}
+	}
+	for( i = 0; i < 1; ++i )
+	{
+		if( string_ends_with( exe_processed_path, binsuffix[i] ) )
+		{
+			exe_processed_path[ string_length( exe_processed_path ) - string_length( binsuffix[i] ) ] = 0;
+			break;
+		}
+	}
+	exe_processed_path = path_append( exe_processed_path, "config" );
+	abs_exe_processed_path = path_make_absolute( exe_processed_path );
 	
 	paths[0] = environment_executable_directory();
 	paths[1] = sub_exe_path;
 	paths[2] = abs_exe_parent_path;
-	paths[3] = abs_exe_grandparent_path;
+	paths[3] = abs_exe_processed_path;
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
 	paths[4] = environment_initial_working_directory();
@@ -241,7 +278,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	paths[8] = 0;
 
 	string_deallocate( exe_parent_path );
-	string_deallocate( exe_grandparent_path );
+	string_deallocate( exe_processed_path );
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
 	cwd_config_path = path_merge( environment_current_working_directory(), "config" );
@@ -355,7 +392,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	string_deallocate( home_dir );
 	string_deallocate( cmdline_path );
 	string_deallocate( sub_exe_path );
-	string_deallocate( abs_exe_grandparent_path );
+	string_deallocate( abs_exe_processed_path );
 	string_deallocate( abs_exe_parent_path );
 	string_deallocate( bundle_path );
 	string_deallocate( cwd_config_path );
@@ -364,7 +401,6 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 
 static NOINLINE config_section_t* config_section( hash_t section, bool create )
 {
-	config_section_t new_section;
 	config_section_t* bucket;
 	int ib, bsize;
 
@@ -378,11 +414,14 @@ static NOINLINE config_section_t* config_section( hash_t section, bool create )
 	if( !create )
 		return 0;
 
-	new_section.name = section;
-
 	//TODO: Thread safeness
-	array_push_memcpy( bucket, &new_section );
-	_config_section[ section % CONFIG_SECTION_BUCKETS ] = bucket;
+	{
+		config_section_t new_section = {0};
+		new_section.name = section;
+
+		array_push_memcpy( bucket, &new_section );
+		_config_section[ section % CONFIG_SECTION_BUCKETS ] = bucket;
+	}
 
 	return bucket + bsize;
 }
