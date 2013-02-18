@@ -1011,6 +1011,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 {
 	int64_t cur;
 	stream_file_t* file;
+	bool has_protocol;
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
 	wchar_t* wpath;
@@ -1033,8 +1034,10 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 		file->fd = 0;
 	}
 
+	has_protocol = string_equal_substr( file->path, "file://", 7 );
+
 #if FOUNDATION_PLATFORM_WINDOWS
-	wpath = wstring_allocate_from_string( file->path, 0 );
+	wpath = wstring_allocate_from_string( has_protocol ? file->path + 7 : file->path, 0 );
 	fd = CreateFileW( wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0 );
 	wstring_deallocate( wpath );
 	if( length < 0xFFFFFFFF )
@@ -1047,7 +1050,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	SetEndOfFile( fd );
 	CloseHandle( fd );
 #elif FOUNDATION_PLATFORM_POSIX
-	int fd = open( file->path, O_RDWR );
+	int fd = open( has_protocol ? file->path + 7 : file->path, O_RDWR );
 	if( ftruncate( fd, length ) < 0 )
 		log_warnf( WARNING_SUSPICIOUS, "Unable to truncate real file: %s", file->path );
 	close( fd );
@@ -1055,7 +1058,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 #  error Not implemented
 #endif
 
-	file->fd = _fs_file_fopen( file->path, stream->mode, 0 );
+	file->fd = _fs_file_fopen( has_protocol ? file->path + 7 : file->path, stream->mode, 0 );
 
 	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
 
