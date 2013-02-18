@@ -79,7 +79,10 @@ int APIENTRY WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int c
 			name = string_append( name, version_to_string_static( app->version ) );
 		}
 
-		ret = crash_guard( main_run, 0, 0, name );
+		if( app->dump_callback )
+			crash_guard_set( app->dump_callback, name );
+
+		ret = crash_guard( main_run, 0, app->dump_callback, name );
 
 		string_deallocate( name );
 	}
@@ -208,7 +211,10 @@ int main( int argc, char **argv )
 			name = string_append( name, version_to_string_static( app->version ) );
 		}
 
-		ret = crash_guard( main_run, 0, 0, name );
+		if( app->dump_callback )
+			crash_guard_set( app->dump_callback, name );
+
+		ret = crash_guard( main_run, 0, app->dump_callback, name );
 
 		string_deallocate( name );
 	}
