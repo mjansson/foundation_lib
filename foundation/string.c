@@ -980,33 +980,8 @@ char* string_allocate_from_utf16( const uint16_t* str, unsigned int length )
 	}
 	
 	buf = memory_allocate_zero( ( curlen + 1 ), 0, MEMORY_PERSISTENT );
-	curlen = 0;
 
-	swap = false;
-	for( i = 0; i < inlength; ++i )
-	{		
-		//Convert through full UTF-32
-		glyph = str[i];
-		if( ( glyph == 0xFFFE ) || ( glyph == 0xFEFF ) )
-		{
-			swap = ( glyph != 0xFEFF );
-			continue; //BOM
-		}
-		if( swap )
-			glyph = swap_byteorder16( (uint16_t)glyph );
-		if( ( glyph >= 0xD800 ) && ( glyph <= 0xDFFF ) )
-		{
-			++i;
-			lval = str[i];
-			if( swap )
-				lval = swap_byteorder16( (uint16_t)lval );
-			glyph = ( ( ( ( glyph & 0x3FF ) << 10 ) | ( lval & 0x3FF ) ) + 0x10000 );
-		}
-		
-		curlen += encode_utf8( buf + curlen, glyph );
-	}
-	
-	buf[curlen] = 0;
+	string_convert_utf16( buf, str, curlen + 1, inlength );
 	
 	return buf;
 }
@@ -1043,12 +1018,60 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 	}
 	
 	buf = memory_allocate_zero( ( curlen + 1 ), 0, MEMORY_PERSISTENT );
-	curlen = 0;
+
+	string_convert_utf32( buf, str, curlen + 1, inlength );
 	
-	swap = false;
-	for( i = 0; i < inlength; ++i )
+	return buf;
+}
+
+
+void string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize, unsigned int srclength )
+{
+	bool swap = false;
+	uint32_t glyph, lval;
+	unsigned int curlen = 0, numbytes = 0;
+	unsigned int i;
+
+	for( i = 0; ( i < srclength ) && ( curlen < dstsize ); ++i )
 	{		
-		glyph = str[i];
+		//Convert through full UTF-32
+		glyph = src[i];
+		if( ( glyph == 0xFFFE ) || ( glyph == 0xFEFF ) )
+		{
+			swap = ( glyph != 0xFEFF );
+			continue; //BOM
+		}
+		if( swap )
+			glyph = swap_byteorder16( (uint16_t)glyph );
+		if( ( glyph >= 0xD800 ) && ( glyph <= 0xDFFF ) )
+		{
+			++i;
+			lval = src[i];
+			if( swap )
+				lval = swap_byteorder16( (uint16_t)lval );
+			glyph = ( ( ( ( glyph & 0x3FF ) << 10 ) | ( lval & 0x3FF ) ) + 0x10000 );
+		}
+		
+		numbytes = get_num_bytes_as_utf8( glyph );
+		if( ( curlen + numbytes ) < dstsize )
+			curlen += encode_utf8( dst + curlen, glyph );
+	}
+	
+	dst[curlen] = 0;
+}
+
+
+void string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize, unsigned int srclength )
+{
+	bool swap = false;
+	uint32_t glyph;
+	unsigned int curlen = 0, numbytes = 0;
+	unsigned int i;
+
+	swap = false;
+	for( i = 0; ( i < srclength ) && ( curlen < dstsize ); ++i )
+	{		
+		glyph = src[i];
 		if( ( glyph == 0x0000FEFF ) || ( glyph == 0xFFFE0000 ) )
 		{
 			swap = ( glyph != 0x0000FEFF );
@@ -1057,12 +1080,12 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 		if( swap )
 			glyph = swap_byteorder32( glyph );
 
-		curlen += encode_utf8( buf + curlen, glyph );
+		numbytes = get_num_bytes_as_utf8( glyph );
+		if( ( curlen + numbytes ) < dstsize )
+			curlen += encode_utf8( dst + curlen, glyph );
 	}
 	
-	buf[curlen] = 0;
-	
-	return buf;
+	dst[curlen] = 0;
 }
 
 

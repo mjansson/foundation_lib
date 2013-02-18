@@ -28,6 +28,7 @@ FOUNDATION_API char*          string_vformat( const char* format, va_list list )
 FOUNDATION_API unsigned int   string_length( const char* str );
 FOUNDATION_API unsigned int   string_glyphs( const char* str );
 FOUNDATION_API hash_t         string_hash( const char* str );
+
 FOUNDATION_API char*          string_resize( char* str, unsigned int length, char c );
 
 //! Like strncpy, except that dst will always be zero terminated (i.e copies at most limit-1 characters from src)
@@ -82,6 +83,9 @@ FOUNDATION_API bool           wstring_equal( const wchar_t* lhs, const wchar_t* 
 FOUNDATION_API char*          string_allocate_from_wstring( const wchar_t* str, unsigned int length );
 FOUNDATION_API char*          string_allocate_from_utf16( const uint16_t* str, unsigned int length );
 FOUNDATION_API char*          string_allocate_from_utf32( const uint32_t* str, unsigned int length );
+
+FOUNDATION_API void           string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize, unsigned int srclength );
+FOUNDATION_API void           string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize, unsigned int srclength );
 
 
 /*! Convert an integer to a string, with optional hexadecimal base and base prefix, field width and fill character
