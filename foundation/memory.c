@@ -87,12 +87,12 @@ static CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 static void* _memory_allocate_malloc( uint64_t size, unsigned int align, memory_hint_t hint )
 {
 	align = _memory_get_align( align );
-	if( !align )
-		return malloc( size );
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _aligned_malloc( (size_t)size, align );
 #elif FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
 	void* memory = 0;
+	if( !align )
+		return malloc( (size_t)size );
 	int result = posix_memalign( &memory, align, size );
 	if( result || !memory )
 		log_errorf( ERRORLEVEL_PANIC, ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
@@ -109,7 +109,7 @@ static void* _memory_allocate_zero_malloc( uint64_t size, unsigned int align, me
 {
 	void* memory = _memory_allocate_malloc( size, align, hint );
 	if( memory )
-		memset( memory, 0, size );
+		memset( memory, 0, (size_t)size );
 	return memory;
 }
 

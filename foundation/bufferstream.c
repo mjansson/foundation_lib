@@ -84,7 +84,7 @@ static uint64_t _buffer_stream_read( stream_t* stream, void* dest, uint64_t num 
 
 	if( num_read > 0 )
 	{
-		memcpy( dest, pointer_offset( buffer_stream->buffer, buffer_stream->current ), num_read );
+		memcpy( dest, pointer_offset( buffer_stream->buffer, buffer_stream->current ), (size_t)num_read );
 		buffer_stream->current += num_read;
 		return num_read;
 	}
@@ -125,7 +125,7 @@ static uint64_t _buffer_stream_write( stream_t* stream, const void* source, uint
 	num_write = ( want < available ) ? want : available;
 	if( num_write > 0 )
 	{
-		memcpy( pointer_offset( buffer_stream->buffer, buffer_stream->current ), source, num_write );
+		memcpy( pointer_offset( buffer_stream->buffer, buffer_stream->current ), source, (size_t)num_write );
 		buffer_stream->current += num_write;
 		return num_write;
 	}
