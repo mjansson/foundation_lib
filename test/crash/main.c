@@ -27,11 +27,10 @@ application_t test_application( void )
 }
 
 
-int test_crash_callback( const char* dump_path )
+void test_crash_callback( const char* dump_path )
 {
 	log_infof( "Crash callback called: %s", dump_path );
 	_crash_callback_called = true;
-	return 1;
 }
 
 
