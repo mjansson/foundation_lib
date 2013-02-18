@@ -49,7 +49,7 @@ static int                  hashify_check_match( const hashify_string_t* hashes,
 
 int main_initialize( void )
 {
-	application_t application;
+	application_t application = {0};
 	application.name = "hashify";
 	application.short_name = "hashify";
 	application.config_dir = "hashify";
@@ -159,7 +159,7 @@ int hashify_process_files( const char* const* files, bool check_only )
 		if( check_only )
 			output_file = stream_open( output_filename, STREAM_IN );
 		else
-			output_file = buffer_stream_allocate( memory_allocate( 65536, 0, MEMORY_PERSISTENT ), STREAM_OUT, 0, 65536, true, true );
+			output_file = buffer_stream_allocate( memory_allocate( 65536, 0, MEMORY_PERSISTENT ), STREAM_IN | STREAM_OUT, 0, 65536, true, true );
 
 		if( !input_file )
 		{
@@ -364,7 +364,7 @@ int hashify_write_file( stream_t* generated_file, const char* output_filename )
 	}
 
 	if( !need_update )
-		need_update = uint128_equal( stream_md5( generated_file ), stream_md5( output_file ) );
+		need_update = !uint128_equal( stream_md5( generated_file ), stream_md5( output_file ) );
 
 	if( need_update )
 	{
@@ -393,12 +393,15 @@ int hashify_write_file( stream_t* generated_file, const char* output_filename )
 			}
 		}
 
-		 if( result == HASHIFY_RESULT_OK )
-			 log_infof( "  wrote %s : %llu bytes", output_filename, total_written );
+		if( result == HASHIFY_RESULT_OK )
+		{
+			stream_truncate( output_file, total_written );
+			log_infof( "  wrote %s : %llu bytes", output_filename, total_written );
+		}
 	}
 	else
 	{
-		log_infof( "  hash file up to date" );
+		log_infof( "  hash file already up to date" );
 	}
 
 	stream_deallocate( output_file );
