@@ -76,12 +76,8 @@ int _environment_initialize( const application_t application )
 
 	if( GetModuleFileNameW( 0, module_filename, FOUNDATION_MAX_PATHLEN ) )
 	{
-		char* exe_path;
-		char* dir_path;
-
-		exe_path = string_allocate_from_wstring( module_filename, 0 );
-		exe_path = path_clean( string_clone( exe_path ), path_is_absolute( exe_path ) );
-		dir_path = path_make_absolute( exe_path );
+		char* exe_path = string_allocate_from_wstring( module_filename, 0 );
+		char* dir_path = path_make_absolute( exe_path );
 
 		_environment_set_executable_paths( dir_path );
 
@@ -153,6 +149,8 @@ int _environment_initialize( const application_t application )
 
    	string_copy( _environment_initial_working_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
 
+	environment_temporary_directory();
+
 	return 0;
 }
 
@@ -197,6 +195,7 @@ const char* environment_current_working_directory( void )
 		wchar_t* wd = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
 		GetCurrentDirectoryW( FOUNDATION_MAX_PATHLEN-1, wd );
 		path = path_clean( string_allocate_from_wstring( wd, 0 ), true );
+		string_copy( _environment_current_working_dir, path, FOUNDATION_MAX_PATHLEN );
 		string_copy( _environment_current_working_dir, path, FOUNDATION_MAX_PATHLEN );
 		string_deallocate( path );
 		memory_deallocate( wd );
@@ -302,6 +301,16 @@ const char* environment_temporary_directory( void )
 #else
 #  error Not implemented
 #endif
+	if( _environment_app.config_dir )
+	{
+		unsigned int curlen = string_length( _environment_temp_dir );
+		unsigned int cfglen = string_length( _environment_app.config_dir );
+		if( ( curlen + cfglen + 2 ) < FOUNDATION_MAX_PATHLEN )
+		{
+			_environment_temp_dir[curlen] = '/';
+			memcpy( _environment_temp_dir + curlen + 1, _environment_app.config_dir, cfglen + 1 );
+		}
+	}
 	return _environment_temp_dir;
 }
 
