@@ -44,12 +44,15 @@ local.properties
 # Build results
 [Dd]ebug/
 [Rr]elease/
+[Pp]rofile/
+[Dd]eploy/
 *_i.c
 *_p.c
 *.ilk
 *.meta
 *.obj
 *.pch
+*.pchi
 *.pdb
 *.pgc
 *.pgd
@@ -63,6 +66,7 @@ local.properties
 .builds
 *.dotCover
 *.lastbuildstate
+*.unsuccessfulbuild
 
 ## TODO: If you have NuGet Package Restore enabled, uncomment this
 #packages/
