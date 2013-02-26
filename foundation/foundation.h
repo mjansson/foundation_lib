@@ -44,6 +44,7 @@
 
 #include <foundation/mathcore.h>
 #include <foundation/random.h>
+#include <foundation/radixsort.h>
 
 #include <foundation/objectmap.h>
 #include <foundation/event.h>

@@ -66,6 +66,7 @@
     <ClInclude Include="..\..\foundation\platform.h" />
     <ClInclude Include="..\..\foundation\process.h" />
     <ClInclude Include="..\..\foundation\profile.h" />
+    <ClInclude Include="..\..\foundation\radixsort.h" />
     <ClInclude Include="..\..\foundation\random.h" />
     <ClInclude Include="..\..\foundation\ringbuffer.h" />
     <ClInclude Include="..\..\foundation\semaphore.h" />
@@ -110,6 +111,7 @@
     <ClCompile Include="..\..\foundation\path.c" />
     <ClCompile Include="..\..\foundation\process.c" />
     <ClCompile Include="..\..\foundation\profile.c" />
+    <ClCompile Include="..\..\foundation\radixsort.c" />
     <ClCompile Include="..\..\foundation\random.c" />
     <ClCompile Include="..\..\foundation\ringbuffer.c" />
     <ClCompile Include="..\..\foundation\semaphore.c" />

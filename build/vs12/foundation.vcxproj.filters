@@ -42,6 +42,7 @@
     <ClInclude Include="..\..\foundation\windows.h" />
     <ClInclude Include="..\..\foundation\string.h" />
     <ClInclude Include="..\..\foundation\locale.h" />
+    <ClInclude Include="..\..\foundation\radixsort.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -75,6 +76,7 @@
     <ClCompile Include="..\..\foundation\bufferstream.c" />
     <ClCompile Include="..\..\foundation\blowfish.c" />
     <ClCompile Include="..\..\foundation\string.c" />
+    <ClCompile Include="..\..\foundation\radixsort.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt" />

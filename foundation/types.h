@@ -212,6 +212,16 @@ typedef enum
 	BLOWFISH_OFB
 } blowfish_mode_t;
 
+typedef enum
+{
+	RADIXSORT_INT32,
+	RADIXSORT_UINT32,
+	RADIXSORT_INT64,
+	RADIXSORT_UINT64,
+	RADIXSORT_FLOAT32,
+	RADIXSORT_FLOAT64
+} radixsort_data_t;
+
 //! Hash value
 typedef uint64_t         hash_t;
 
