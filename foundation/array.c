@@ -25,7 +25,7 @@ void _array_verifyfn( const void* const* arr )
 void _array_growfn( void* arr, int increment, int factor, int itemsize )
 {
 	void**   parr = (void**)arr;
-	int      capacity = *parr ? ( factor * _array_rawcapacity(*parr) + increment ) : ( increment + 1 );
+	int      capacity = *parr ? ( factor * _array_rawcapacity(*parr) + increment ) : increment;
 	int      storage_size = itemsize * capacity;
 	uint64_t header_size = 4ULL * _array_header_size;
 	uint64_t buffer_size = (unsigned int)storage_size + header_size;
