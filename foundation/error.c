@@ -64,10 +64,11 @@ void _error_context_push( const char* name, const char* data )
 		context = memory_allocate_zero( sizeof( error_context_t ), 0, MEMORY_PERSISTENT );
 		set_thread_error_context( context );
 	}
-	FOUNDATION_ASSERT_MSG( context->depth < BUILD_ERROR_CONTEXT_MAX_DEPTH, "Error context stack overflow" );
+	FOUNDATION_ASSERT_MSG( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH, "Error context stack overflow" );
 	context->frame[ context->depth ].name = name;
 	context->frame[ context->depth ].data = data;
-	++context->depth;
+	if( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH-1 )
+		++context->depth;
 }
 
 

@@ -224,6 +224,10 @@ typedef real             deltatime_t;
 //! Object handle
 typedef uint64_t         object_t;
 
+//! Index for radix sorter (define to 32bit if need to sort more than 2^16 items in one array)
+typedef uint16_t         radixsort_index_t;
+//typedef uint32_t       radixsort_index_t;
+
 
 //! Error handler callback
 typedef int           (* error_callback_fn )( error_level_t level, error_t error );
@@ -297,7 +301,7 @@ typedef struct _foundation_error_frame
 
 typedef struct _foundation_error_context
 {
-	error_frame_t                   frame[BUILD_ERROR_CONTEXT_MAX_DEPTH];
+	error_frame_t                   frame[BUILD_SIZE_ERROR_CONTEXT_DEPTH];
 	int                             depth;
 } error_context_t;
 
@@ -397,6 +401,8 @@ typedef struct _foundation_event_stream     event_stream_t;
 typedef struct _foundation_ringbuffer       ringbuffer_t;
 
 typedef struct _foundation_blowfish         blowfish_t;
+
+typedef struct _foundation_radixsort        radixsort_t;
 
 
 // UTILITY FUNCTIONS

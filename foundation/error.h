@@ -32,7 +32,7 @@ FOUNDATION_API void       error_set_callback( error_callback_fn callback );
 
 
 
-#if !BUILD_DEPLOY || BUILD_ENABLE_DEPLOY_ERROR
+#if BUILD_ENABLE_ERROR_CONTEXT
 
 #define error_context_push( name, data )      do { _error_context_push( (name), (data) ); } while(0)
 #define error_context_pop()                   do { _error_context_pop(); } while(0)

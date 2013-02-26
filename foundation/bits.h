@@ -20,7 +20,7 @@
 
 
 //! Swap byte order, 16 bit
-static FORCEINLINE CONSTCALL uint16_t swap_byteorder16( uint16_t arg )
+static FORCEINLINE CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 {
 #if FOUNDATION_COMPILER_MSVC
 	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
@@ -37,7 +37,7 @@ static FORCEINLINE CONSTCALL uint16_t swap_byteorder16( uint16_t arg )
 }
 
 //! Swap byte order, 32 bit
-static FORCEINLINE CONSTCALL uint32_t swap_byteorder32( uint32_t arg )
+static FORCEINLINE CONSTCALL uint32_t byteorder_swap32( uint32_t arg )
 {
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __builtin_bswap32( arg );
@@ -60,7 +60,7 @@ static FORCEINLINE CONSTCALL uint32_t swap_byteorder32( uint32_t arg )
 }
 
 //! Swap byte order, 64 bit
-static FORCEINLINE CONSTCALL uint64_t swap_byteorder64( uint64_t arg )
+static FORCEINLINE CONSTCALL uint64_t byteorder_swap64( uint64_t arg )
 {
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __builtin_bswap64( arg );
@@ -83,7 +83,7 @@ static FORCEINLINE CONSTCALL uint64_t swap_byteorder64( uint64_t arg )
 }
 
 //! Swap byte order, generic data
-static FORCEINLINE PURECALL void swap_byteorder( void* RESTRICT buffer, const int size )
+static FORCEINLINE PURECALL void byteorder_swap( void* RESTRICT buffer, const int size )
 {
 	int i, num;
 	char* RESTRICT src = buffer;

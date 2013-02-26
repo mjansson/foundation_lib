@@ -69,7 +69,7 @@ DECLARE_TEST( crash, crash_thread )
 	_crash_callback_called = false;
 	crash_guard_set( test_crash_callback, "thread_crash" );
 	
-	thread = thread_create( thread_crash, "crash", THREAD_PRIORITY_NORMAL, BUILD_DEFAULT_THREAD_STACK_SIZE );
+	thread = thread_create( thread_crash, "crash", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
 	thread_sleep( 100 );
 	thread_terminate( thread );

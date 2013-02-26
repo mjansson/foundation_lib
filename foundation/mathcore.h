@@ -74,6 +74,8 @@ static FORCEINLINE CONSTCALL real          math_lerp( real t, real x, real y );
 static FORCEINLINE CONSTCALL real          math_unlerp( real v, real x, real y );
 static FORCEINLINE CONSTCALL real          math_linear_remap( real x, real xmin, real xmax, real ymin, real ymax );
 
+#define                                    math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
+
 //! Float compare
 /*! Compare two floats with epsilon tolerance expressed as number of adjacent float values
     \param rval                            First float

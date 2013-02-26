@@ -966,13 +966,13 @@ char* string_allocate_from_utf16( const uint16_t* str, unsigned int length )
 			continue; //BOM
 		}
 		if( swap )
-			glyph = swap_byteorder16( (uint16_t)glyph );
+			glyph = byteorder_swap16( (uint16_t)glyph );
 		if( ( glyph >= 0xD800 ) && ( glyph <= 0xDFFF ) )
 		{
 			++i;
 			lval = str[i];
 			if( swap )
-				lval = swap_byteorder16( (uint16_t)lval );
+				lval = byteorder_swap16( (uint16_t)lval );
 			glyph = ( ( ( ( glyph & 0x3FF ) << 10 ) | ( lval & 0x3FF ) ) + 0x10000 );
 		}
 		
@@ -1013,7 +1013,7 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 			continue; //BOM
 		}
 		if( swap )
-			glyph = swap_byteorder32( glyph );
+			glyph = byteorder_swap32( glyph );
 		curlen += get_num_bytes_as_utf8( glyph );
 	}
 	
@@ -1042,13 +1042,13 @@ void string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize,
 			continue; //BOM
 		}
 		if( swap )
-			glyph = swap_byteorder16( (uint16_t)glyph );
+			glyph = byteorder_swap16( (uint16_t)glyph );
 		if( ( glyph >= 0xD800 ) && ( glyph <= 0xDFFF ) )
 		{
 			++i;
 			lval = src[i];
 			if( swap )
-				lval = swap_byteorder16( (uint16_t)lval );
+				lval = byteorder_swap16( (uint16_t)lval );
 			glyph = ( ( ( ( glyph & 0x3FF ) << 10 ) | ( lval & 0x3FF ) ) + 0x10000 );
 		}
 		
@@ -1078,7 +1078,7 @@ void string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize,
 			continue; //BOM
 		}
 		if( swap )
-			glyph = swap_byteorder32( glyph );
+			glyph = byteorder_swap32( glyph );
 
 		numbytes = get_num_bytes_as_utf8( glyph );
 		if( ( curlen + numbytes ) < dstsize )
@@ -1092,14 +1092,14 @@ void string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize,
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, 128 )
 
 
-char* int_to_string( int64_t val, unsigned int width, char fill )
+char* string_from_int( int64_t val, unsigned int width, char fill )
 {
 	char buf[32];
-	return string_clone( int_to_string_buffer( buf, val, width, fill ) );
+	return string_clone( string_from_int_buffer( buf, val, width, fill ) );
 }
 
 
-char* int_to_string_buffer( char* buffer, int64_t val, unsigned int width, char fill )
+char* string_from_int_buffer( char* buffer, int64_t val, unsigned int width, char fill )
 {
 	unsigned int len = (unsigned int)sprintf( buffer, "%lld", val );
 	if( len < width )
@@ -1111,20 +1111,20 @@ char* int_to_string_buffer( char* buffer, int64_t val, unsigned int width, char 
 }
 
 
-const char* int_to_string_static( int64_t val, unsigned int width, char fill )
+const char* string_from_int_static( int64_t val, unsigned int width, char fill )
 {
-	return int_to_string_buffer( get_thread_convert_buffer(), val, width, fill );
+	return string_from_int_buffer( get_thread_convert_buffer(), val, width, fill );
 }
 
 
-char* uint_to_string( uint64_t val, bool hex, unsigned int width, char fill )
+char* string_from_uint( uint64_t val, bool hex, unsigned int width, char fill )
 {
 	char buf[32];
-	return string_clone( uint_to_string_buffer( buf, val, hex, width, fill ) );
+	return string_clone( string_from_uint_buffer( buf, val, hex, width, fill ) );
 }
 
 
-char* uint_to_string_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char fill )
+char* string_from_uint_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char fill )
 {
 	unsigned int len = (unsigned int)sprintf( buffer, hex ? "%llx" : "%llu", val );
 	if( len < width )
@@ -1136,41 +1136,41 @@ char* uint_to_string_buffer( char* buffer, uint64_t val, bool hex, unsigned int 
 }
 
 
-const char* uint_to_string_static( uint64_t val, bool hex, unsigned int width, char fill )
+const char* string_from_uint_static( uint64_t val, bool hex, unsigned int width, char fill )
 {
-	return uint_to_string_buffer( get_thread_convert_buffer(), val, hex, width, fill );
+	return string_from_uint_buffer( get_thread_convert_buffer(), val, hex, width, fill );
 }
 
 
-char* uint128_to_string( const uint128_t val )
+char* string_from_uint128( const uint128_t val )
 {
 	char buf[34];
-	return string_clone( uint128_to_string_buffer( buf, val ) );
+	return string_clone( string_from_uint128_buffer( buf, val ) );
 }
 
 
-char* uint128_to_string_buffer( char* buffer, const uint128_t val )
+char* string_from_uint128_buffer( char* buffer, const uint128_t val )
 {
 	/*unsigned int len = (unsigned int)*/sprintf( buffer, "%016llx%016llx", val.word[0], val.word[1] );
 	return buffer;
 }
 
 
-const char* uint128_to_string_static( const uint128_t val )
+const char* string_from_uint128_static( const uint128_t val )
 {
-	return uint128_to_string_buffer( get_thread_convert_buffer(), val );
+	return string_from_uint128_buffer( get_thread_convert_buffer(), val );
 }
 
 
-char* real_to_string( real val, unsigned int precision, unsigned int width, char fill )
+char* string_from_real( real val, unsigned int precision, unsigned int width, char fill )
 {
 	char str[64];
-	real_to_string_buffer( str, val, precision, width, fill );
+	string_from_real_buffer( str, val, precision, width, fill );
 	return string_clone( str );
 }
 
 
-char* real_to_string_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char fill )
+char* string_from_real_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char fill )
 {
 	unsigned int len;
 #if FOUNDATION_PLATFORM_REALSIZE == 64
@@ -1216,20 +1216,20 @@ char* real_to_string_buffer( char* buffer, real val, unsigned int precision, uns
 }
 
 
-const char* real_to_string_static( real val, unsigned int precision, unsigned int width, char fill )
+const char* string_from_real_static( real val, unsigned int precision, unsigned int width, char fill )
 {
-	return real_to_string_buffer( get_thread_convert_buffer(), val, precision, width, fill );
+	return string_from_real_buffer( get_thread_convert_buffer(), val, precision, width, fill );
 }
 
 
-char* time_to_string( uint64_t t )
+char* string_from_time( uint64_t t )
 {
 	char buf[64];
-	return string_clone( time_to_string_buffer( buf, t ) );
+	return string_clone( string_from_time_buffer( buf, t ) );
 }
 
 
-char* time_to_string_buffer( char* buffer, uint64_t t )
+char* string_from_time_buffer( char* buffer, uint64_t t )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	time_t timet = t / 1000ULL;
@@ -1251,20 +1251,20 @@ char* time_to_string_buffer( char* buffer, uint64_t t )
 }
 
 
-const char* time_to_string_static( uint64_t t )
+const char* string_from_time_static( uint64_t t )
 {
-	return time_to_string_buffer( get_thread_convert_buffer(), t );
+	return string_from_time_buffer( get_thread_convert_buffer(), t );
 }
 
 
-char* version_to_string( const version_t version )
+char* string_from_version( const version_t version )
 {
 	char buf[128];
-	return string_clone( version_to_string_buffer( buf, version ) );
+	return string_clone( string_from_version_buffer( buf, version ) );
 }
 
 
-char* version_to_string_buffer( char* buffer, const version_t version )
+char* string_from_version_buffer( char* buffer, const version_t version )
 {
 	if( version.sub.control )
 		sprintf( buffer, "%u.%u.%u-%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build, version.sub.control );
@@ -1276,9 +1276,9 @@ char* version_to_string_buffer( char* buffer, const version_t version )
 }
 
 
-const char* version_to_string_static( const version_t version )
+const char* string_from_version_static( const version_t version )
 {
-	return version_to_string_buffer( get_thread_convert_buffer(), version );
+	return string_from_version_buffer( get_thread_convert_buffer(), version );
 }
 
 

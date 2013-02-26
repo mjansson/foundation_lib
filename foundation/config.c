@@ -496,8 +496,8 @@ const char* config_string( hash_t section, hash_t key )
 	switch( key_val->type )
 	{
 		case CONFIGVALUE_BOOL:  return key_val->bval ? "true" : "false";
-		case CONFIGVALUE_INT:   if( !key_val->sval ) key_val->sval = int_to_string( key_val->ival, 0, 0 ); return key_val->sval;
-		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = real_to_string( key_val->rval, 4, 0, 0 ); return key_val->sval;
+		case CONFIGVALUE_INT:   if( !key_val->sval ) key_val->sval = string_from_int( key_val->ival, 0, 0 ); return key_val->sval;
+		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = string_from_real( key_val->rval, 4, 0, 0 ); return key_val->sval;
 		default: break;
 	}
 	//String value of some form

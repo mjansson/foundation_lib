@@ -45,7 +45,7 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_BREAKPOINT() do { *(volatile int*)0 = 0; } while(0)
 #endif
                                                                                 
-#if BUILD_DEBUG || ( BUILD_RELEASE && !BUILD_DEPLOY && BUILD_ENABLE_RELEASE_ASSERT )
+#if BUILD_ENABLE_ASSERT
 
 #  define FOUNDATION_ASSERT( cond ) /*lint -save -e717 */ do { if( ( !(cond) ) && assert_report( #cond, __FILE__, __LINE__, 0 ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_MSG( cond, msg ) /*lint -save -e717 */ do { if( ( !(cond) ) && assert_report_formatted( #cond, __FILE__, __LINE__, msg ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */

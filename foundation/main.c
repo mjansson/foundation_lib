@@ -76,7 +76,7 @@ int APIENTRY WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int c
 			const char* aname = app->short_name;
 			name = string_clone( aname ? aname : "unknown" );
 			name = string_append( name, "-" );
-			name = string_append( name, version_to_string_static( app->version ) );
+			name = string_append( name, string_from_version_static( app->version ) );
 		}
 
 		if( app->dump_callback )
@@ -208,7 +208,7 @@ int main( int argc, char **argv )
 			const char* aname = app->short_name;
 			name = string_clone( aname ? aname : "unknown" );
 			name = string_append( name, "-" );
-			name = string_append( name, version_to_string_static( app->version ) );
+			name = string_append( name, string_from_version_static( app->version ) );
 		}
 
 		if( app->dump_callback )

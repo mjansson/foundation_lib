@@ -92,49 +92,49 @@ FOUNDATION_API void           string_convert_utf32( char* dst, const uint32_t* s
     \param val                Integer value
     \param width              Field width
     \param padding            Fill character */
-FOUNDATION_API char*          int_to_string( int64_t val, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_int( int64_t val, unsigned int width, char padding );
 
 /*! Convert an unsigned integer to a string, with optional hexadecimal base and base prefix, field width and fill character
     \param val                Integer value
     \param hex                Hexadecimal flag
     \param width              Field width
     \param padding            Fill character */
-FOUNDATION_API char*          uint_to_string( uint64_t val, bool hex, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_uint( uint64_t val, bool hex, unsigned int width, char padding );
 
 /*! Convert an 128-bit unsigned integer to a string
     \param val                Integer value */
-FOUNDATION_API char*          uint128_to_string( const uint128_t val );
+FOUNDATION_API char*          string_from_uint128( const uint128_t val );
 
 /*! Convert a float to a string, with optional fixed notation, field width, precision and fill character
     \param val                Float value
     \param precision          Precision
     \param width              Field width
     \param padding            Fill character */
-FOUNDATION_API char*          real_to_string( real val, unsigned int precision, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_real( real val, unsigned int precision, unsigned int width, char padding );
 
 /*! Get a formatted string of the given timestamp
     \param time               Timestamp
     \return                   String */
-FOUNDATION_API char*          time_to_string( uint64_t time );
+FOUNDATION_API char*          string_from_time( uint64_t time );
 
 /*! Get a formatted string of the given version
     \param version            Version
     \return                   String */
-FOUNDATION_API char*          version_to_string( const version_t version );
+FOUNDATION_API char*          string_from_version( const version_t version );
 
-FOUNDATION_API char*          int_to_string_buffer( char* buffer, int64_t val, unsigned int width, char padding );
-FOUNDATION_API char*          uint_to_string_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char padding );
-FOUNDATION_API char*          uint128_to_string_buffer( char* buffer, const uint128_t val );
-FOUNDATION_API char*          real_to_string_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char padding );
-FOUNDATION_API char*          time_to_string_buffer( char* buffer, uint64_t time );
-FOUNDATION_API char*          version_to_string_buffer( char* buffer, const version_t version );
+FOUNDATION_API char*          string_from_int_buffer( char* buffer, int64_t val, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_uint_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_uint128_buffer( char* buffer, const uint128_t val );
+FOUNDATION_API char*          string_from_real_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_time_buffer( char* buffer, uint64_t time );
+FOUNDATION_API char*          string_from_version_buffer( char* buffer, const version_t version );
 
-FOUNDATION_API const char*    int_to_string_static( int64_t val, unsigned int width, char padding );
-FOUNDATION_API const char*    uint_to_string_static( uint64_t val, bool hex, unsigned int width, char padding );
-FOUNDATION_API const char*    uint128_to_string_static( const uint128_t val );
-FOUNDATION_API const char*    real_to_string_static( real val, unsigned int precision, unsigned int width, char padding );
-FOUNDATION_API const char*    time_to_string_static( uint64_t time );
-FOUNDATION_API const char*    version_to_string_static( const version_t version );
+FOUNDATION_API const char*    string_from_int_static( int64_t val, unsigned int width, char padding );
+FOUNDATION_API const char*    string_from_uint_static( uint64_t val, bool hex, unsigned int width, char padding );
+FOUNDATION_API const char*    string_from_uint128_static( const uint128_t val );
+FOUNDATION_API const char*    string_from_real_static( real val, unsigned int precision, unsigned int width, char padding );
+FOUNDATION_API const char*    string_from_time_static( uint64_t time );
+FOUNDATION_API const char*    string_from_version_static( const version_t version );
 
 
 /*! Convert a string to a signed integer
@@ -172,15 +172,15 @@ FOUNDATION_API version_t      string_to_version( const char* str );
 FOUNDATION_API bool           string_is_valid_email_address( const char* address );
 
 
-#define STRING_NPOS 0xFFFFFFFFU
+#define STRING_NPOS           0xFFFFFFFFU
 
 #if FOUNDATION_PLATFORM_REALSIZE == 64
-#  define REAL_FORMAT  "llf"
+#  define REAL_FORMAT         "llf"
 #else
-#  define REAL_FORMAT  "f"
+#  define REAL_FORMAT         "f"
 #endif
 
-#define STRING_WHITESPACE " \n\r\t"
-#define WSTRING_WHITESPACE L" \n\r\t"
+#define STRING_WHITESPACE     " \n\r\t"
+#define WSTRING_WHITESPACE   L" \n\r\t"
 
 

@@ -409,7 +409,7 @@ char* path_make_absolute( const char* path )
 
 char* path_make_temporary( void )
 {
-	uint64_t random_number = 0; //TODO: Implement random
-	return path_append( path_merge( environment_temporary_directory(), "tmp" ), uint_to_string_static( random_number, false, 0, '0' ) );
+	char uintbuffer[18];
+	return path_append( path_merge( environment_temporary_directory(), "tmp" ), string_from_uint_buffer( uintbuffer, random64(), true, 0, '0' ) );
 }
 
