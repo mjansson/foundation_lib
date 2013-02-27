@@ -31,9 +31,15 @@
 //! Epsilon value. This represents a small number close to zero that can be used for comparisons or thresholds. Roughly equals 100 floating point units at 1.0
 #define MATH_EPSILON                       0.00000000000002
 
+#define REAL_MAX                           DBL_MAX
+#define REAL_MIN                           DBL_MIN
+
 #else
 
 #define MATH_EPSILON                       0.00001f
+
+#define REAL_MAX                           FLT_MAX
+#define REAL_MIN                           FLT_MIN
 
 #endif
 

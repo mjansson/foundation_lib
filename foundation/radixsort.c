@@ -17,6 +17,7 @@ struct _foundation_radixsort
 {
 	radixsort_data_t     type;
 	radixsort_index_t    size;
+	radixsort_index_t    lastused;
 	radixsort_index_t*   indices[2];
 	radixsort_index_t*   histogram;
 	radixsort_index_t*   offset;
@@ -55,11 +56,10 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 	const radixsort_data_t data_type = sort->type;
 	const unsigned int data_size = _radixsort_data_size[ data_type ];
 
-	bool already_sorted = true;
-
 	const unsigned char* loop     = input_raw;
-	const unsigned char* loop_end = &loop[ num * data_size ];
+	const unsigned char* loop_end = loop + ( num * data_size );
 	radixsort_index_t*   indices  = sort->indices[0];
+	radixsort_index_t    index;
 
 	//Histograms for all passes
 	radixsort_index_t*   histogram[8];
@@ -71,18 +71,20 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 		histogram[ih] = &sort->histogram[ ih << 8 ];
 
 	//Read values in previous sorted order and check if already sorted
-	switch( data_type )
+	//Don't allow temporal coherence if increasing in size as it might introduce duplicate indices
+	if( num <= sort->lastused ) switch( data_type )
 	{
 		case RADIXSORT_INT32:
 		{
-			const int* input = (const int*)input_raw;
+			const int32_t* input = (const int32_t*)input_raw;
 
-			int val;
-			int prev_val = *input;
+			int32_t val;
+			int32_t prev_val = *input;
 
 			while( loop != loop_end )
 			{
-				if( ( val = input[ *indices++ ] ) < prev_val ) { already_sorted = false; break; }
+				index = *indices++;
+				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -103,14 +105,15 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 		case RADIXSORT_UINT32:
 		{
-			const unsigned int* input = (const unsigned int*)input_raw;
+			const uint32_t* input = (const uint32_t*)input_raw;
 
-			unsigned int val;
-			unsigned int prev_val = *input;
+			uint32_t val;
+			uint32_t prev_val = *input;
 
 			while( loop != loop_end )
 			{
-				if( ( val = input[ *indices++ ] ) < prev_val ) { already_sorted = false; break; }
+				index = *indices++;
+				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -138,7 +141,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				if( ( val = input[ *indices++ ] ) < prev_val ) { already_sorted = false; break; }
+				index = *indices++;
+				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -174,7 +178,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				if( ( val = input[ *indices++ ] ) < prev_val ) { already_sorted = false; break; }
+				index = *indices++;
+				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -203,14 +208,15 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 		case RADIXSORT_FLOAT32:
 		{
-			const float* input = (const float32_t*)input_raw;
+			const float32_t* input = (const float32_t*)input_raw;
 
 			float32_t val;
 			float32_t prev_val = *input;
 
 			while( loop != loop_end )
 			{
-				if( ( val = input[ *indices++ ] ) < prev_val ) { already_sorted = false; break; }
+				index = *indices++;
+				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -238,7 +244,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				if( ( val = input[ *indices++ ] ) < prev_val ) { already_sorted = false; break; }
+				index = *indices++;
+				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -266,8 +273,17 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 		}
 	}
 
-	if( already_sorted )
+	if( loop == loop_end )
 		return true;
+
+	if( num != sort->lastused )
+	{
+		for( ih = 0; ih < num; ++ih )
+		{
+			sort->indices[0][ih] = ih;
+			sort->indices[1][ih] = ih;
+		}
+	}
 
 	//Finish calculating the histograms, now without checks
 	switch( data_size )
@@ -325,33 +341,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 }
 
 
-radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
-{
-	void* buffer = memory_allocate( sizeof( radixsort_t ) + ( 2 * sizeof( radixsort_index_t ) * num ) + ( 256 * _radixsort_data_size[ type ] * sizeof( radixsort_index_t ) ) + ( 256 * sizeof( radixsort_index_t ) ), 0, MEMORY_PERSISTENT );
-	radixsort_t* sort = buffer;
-	radixsort_index_t i;
-
-	sort->type       = type;
-	sort->size       = num;
-	sort->indices[0] = pointer_offset( buffer, sizeof( radixsort_t ) );
-	sort->indices[1] = pointer_offset( sort->indices[0], sizeof( radixsort_index_t ) * num );
-	sort->histogram  = pointer_offset( sort->indices[1], sizeof( radixsort_index_t ) * num );
-	sort->offset     = pointer_offset( sort->histogram,  sizeof( radixsort_index_t ) * 256 * _radixsort_data_size[ type ] );
-
-	for( i = 0; i < num; ++i )
-		sort->indices[0][i] = i;
-
-	return sort;
-}
-
-
-void radixsort_deallocate( radixsort_t* sort )
-{
-	memory_deallocate( sort );
-}
-
-
-static radixsort_index_t* radixsort_int( radixsort_t* sort, const void* input, radixsort_index_t num )
+static const radixsort_index_t* radixsort_int( radixsort_t* sort, const void* input, radixsort_index_t num )
 {
 	const radixsort_data_t data_type = sort->type;
 
@@ -453,7 +443,7 @@ static radixsort_index_t* radixsort_int( radixsort_t* sort, const void* input, r
 }
 
 
-radixsort_index_t* radixsort_float( radixsort_t* sort, const void* input, radixsort_index_t num )
+static const radixsort_index_t* radixsort_float( radixsort_t* sort, const void* input, radixsort_index_t num )
 {
 	const radixsort_data_t data_type = sort->type;
 	const unsigned int data_size = _radixsort_data_size[ data_type ];
@@ -463,10 +453,10 @@ radixsort_index_t* radixsort_float( radixsort_t* sort, const void* input, radixs
 	radixsort_index_t negatives = 0;
 	unsigned int ihist, ipass, ival;
 
-	if( radixsort_create_histograms( sort, input, num ) )
+	if( !num || radixsort_create_histograms( sort, input, num ) )
 		return sort->indices[0]; //Already sorted
 
-	//Number of negatives is the last 128 values in the MSB histogram (last, since we deal with sytstem byte ordering
+	//Number of negatives is the last 128 values in the MSB histogram (last, since we deal with system byte ordering
 	//in radixsort_create_histograms).
 	histogram = &sort->histogram[ ( data_size - 1 ) << 8 ];
 	for( ihist = 128; ihist < 256; ++ihist )
@@ -532,6 +522,7 @@ radixsort_index_t* radixsort_float( radixsort_t* sort, const void* input, radixs
 
 				//First positive data comes after the negative data
 				*offset++ = negatives;
+				prev = negatives;
 				for( ival = 1; ival < 128; ++ival, ++offset, ++count )
 				{
 					next = prev + *count;
@@ -542,8 +533,8 @@ radixsort_index_t* radixsort_float( radixsort_t* sort, const void* input, radixs
 				//Reverse order for negative values
 				offset = sort->offset + 255;
 				count = count_base + 255;
-				prev = 0;
 				*offset-- = 0;
+				prev = 0;
 				for( ival = 0; ival < 127; ++ival, --offset, --count )
 				{
 					next = prev + *count;
@@ -613,13 +604,53 @@ radixsort_index_t* radixsort_float( radixsort_t* sort, const void* input, radixs
 }
 
 
-radixsort_index_t* radixsort( radixsort_t* sort, const void* input, radixsort_index_t num )
+const radixsort_index_t* radixsort( radixsort_t* sort, const void* input, radixsort_index_t num )
 {
 	const radixsort_data_t data_type = sort->type;
+	const radixsort_index_t* result = 0;
 
 	FOUNDATION_ASSERT( num <= sort->size );
 
 	if( ( data_type == RADIXSORT_FLOAT32 ) || ( data_type == RADIXSORT_FLOAT64 ) )
-		return radixsort_float( sort, input, num );
-	return radixsort_int( sort, input, num );
+		result = radixsort_float( sort, input, num );
+	else
+		result = radixsort_int( sort, input, num );
+
+	sort->lastused = num;
+
+	return result;
+}
+
+
+radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
+{
+	radixsort_index_t i;
+	radixsort_t* sort = memory_allocate( 
+		sizeof( radixsort_t ) + 
+		/* 2 index tables */ ( 2 * sizeof( radixsort_index_t ) * num ) +
+		/* histograms */     ( 256 * _radixsort_data_size[ type ] * sizeof( radixsort_index_t ) ) +
+		/* offset table */   ( 256 * sizeof( radixsort_index_t ) ),
+		0, MEMORY_PERSISTENT );
+
+	sort->type       = type;
+	sort->size       = num;
+	sort->lastused   = num;
+	sort->indices[0] = pointer_offset( sort, sizeof( radixsort_t ) );
+	sort->indices[1] = pointer_offset( sort->indices[0], sizeof( radixsort_index_t ) * num );
+	sort->histogram  = pointer_offset( sort->indices[1], sizeof( radixsort_index_t ) * num );
+	sort->offset     = pointer_offset( sort->histogram,  sizeof( radixsort_index_t ) * 256 * _radixsort_data_size[ type ] );
+
+	for( i = 0; i < num; ++i )
+	{
+		sort->indices[0][i] = i;
+		sort->indices[1][i] = i;
+	}
+
+	return sort;
+}
+
+
+void radixsort_deallocate( radixsort_t* sort )
+{
+	memory_deallocate( sort );
 }
