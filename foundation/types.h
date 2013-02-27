@@ -265,7 +265,7 @@ typedef int           (* crash_guard_fn)( void* );
 //! Crash callback
 typedef void          (* crash_dump_callback_fn)( const char* );
 
-#define CRASH_DUMP_GENERATED        0xbaadf00d
+#define CRASH_DUMP_GENERATED        0x0badf00dL
 
 
 // COMPLEX TYPES

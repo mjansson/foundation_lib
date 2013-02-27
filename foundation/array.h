@@ -33,7 +33,7 @@
 #define array_size( array )                                 ( _array_verify( array ) ? _array_rawsize_const( array ) : 0 )
 
 // Add/remove elements without initialization (set new size to size+num and allocate new storage if needed)
-#define array_grow( array, num )                            ( ( (num) > 0 ? array_reserve( array, array_size( array ) + (num) ) : 0 ), ( _array_verify( array ) ? _array_rawsize( array ) += (num) : 0 ), 0 )
+#define array_grow( array, num )                            ( ( (num) > 0 ? array_reserve( array, array_size( array ) + (num) ), 0 : 0 ), ( _array_verify( array ) ? _array_rawsize( array ) += (num) : 0 ), 0 )
 
 // Set size to 0 (does not affect capacity or resize storage buffer)
 #define array_clear( array )                                ( _array_verify( array ) ? _array_rawsize( array ) = 0, 0 : 0 )

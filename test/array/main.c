@@ -655,16 +655,16 @@ DECLARE_TEST( array, pushpop )
 		{
 			EXPECT_EQ( array_ptr[j], (void*)((uintptr_t)j) );
 			EXPECT_EQ( array_int[j], j );
-			EXPECT_EQ( array_obj[j], j );
+			EXPECT_EQ( array_obj[j], (object_t)j );
 			EXPECT_EQ( array_basic[j].intval, j );
-			EXPECT_EQ( array_basic[j].objval, j + 1 );
+			EXPECT_EQ( array_basic[j].objval, (object_t)j + 1 );
 			EXPECT_EQ( array_complex[j].basicval.intval, j );
-			EXPECT_EQ( array_complex[j].basicval.objval, j + 1 );
+			EXPECT_EQ( array_complex[j].basicval.objval, (object_t)j + 1 );
 			EXPECT_EQ( array_complex[j].intval, j + 2 );
 			EXPECT_EQ( array_complex[j].charval, (char)j );
 			EXPECT_EQ( array_complex[j].ptrval, 0 );
 			EXPECT_EQ( array_complex[j].unionval.basicval.intval, j + 3 );
-			EXPECT_EQ( array_complex[j].unionval.basicval.objval, j + 4 );
+			EXPECT_EQ( array_complex[j].unionval.basicval.objval, (object_t)j + 4 );
 		}
 	}
 	// Pop while non-empty
@@ -692,16 +692,16 @@ DECLARE_TEST( array, pushpop )
 		{
 			EXPECT_EQ( array_ptr[j], (void*)((uintptr_t)j) );
 			EXPECT_EQ( array_int[j], j );
-			EXPECT_EQ( array_obj[j], j );
+			EXPECT_EQ( array_obj[j], (object_t)j );
 			EXPECT_EQ( array_basic[j].intval, j );
-			EXPECT_EQ( array_basic[j].objval, j + 1 );
+			EXPECT_EQ( array_basic[j].objval, (object_t)j + 1 );
 			EXPECT_EQ( array_complex[j].basicval.intval, j );
-			EXPECT_EQ( array_complex[j].basicval.objval, j + 1 );
+			EXPECT_EQ( array_complex[j].basicval.objval, (object_t)j + 1 );
 			EXPECT_EQ( array_complex[j].intval, j + 2 );
 			EXPECT_EQ( array_complex[j].charval, (char)j );
 			EXPECT_EQ( array_complex[j].ptrval, 0 );
 			EXPECT_EQ( array_complex[j].unionval.basicval.intval, j + 3 );
-			EXPECT_EQ( array_complex[j].unionval.basicval.objval, j + 4 );
+			EXPECT_EQ( array_complex[j].unionval.basicval.objval, (object_t)j + 4 );
 		}
 	}
 	// Interleaved push-pops
@@ -766,16 +766,16 @@ DECLARE_TEST( array, pushpop )
 		{
 			EXPECT_EQ( array_ptr[j], (void*)((uintptr_t)j) );
 			EXPECT_EQ( array_int[j], j );
-			EXPECT_EQ( array_obj[j], j );
+			EXPECT_EQ( array_obj[j], (object_t)j );
 			EXPECT_EQ( array_basic[j].intval, j );
-			EXPECT_EQ( array_basic[j].objval, j + 1 );
+			EXPECT_EQ( array_basic[j].objval, (object_t)j + 1 );
 			EXPECT_EQ( array_complex[j].basicval.intval, j );
-			EXPECT_EQ( array_complex[j].basicval.objval, j + 1 );
+			EXPECT_EQ( array_complex[j].basicval.objval, (object_t)j + 1 );
 			EXPECT_EQ( array_complex[j].intval, j + 2 );
 			EXPECT_EQ( array_complex[j].charval, (char)j );
 			EXPECT_EQ( array_complex[j].ptrval, 0 );
 			EXPECT_EQ( array_complex[j].unionval.basicval.intval, j + 3 );
-			EXPECT_EQ( array_complex[j].unionval.basicval.objval, j + 4 );
+			EXPECT_EQ( array_complex[j].unionval.basicval.objval, (object_t)j + 4 );
 		}
 	}
 
@@ -968,7 +968,7 @@ DECLARE_TEST( array, inserterase )
 
 		EXPECT_EQ( array_ptr[clamped_i], (void*)((uintptr_t)i) );
 		EXPECT_EQ( array_int[clamped_i], i );
-		EXPECT_EQ( array_obj[clamped_i], i );
+		EXPECT_EQ( array_obj[clamped_i], (object_t)i );
 		EXPECT_EQ( memcmp( array_basic + clamped_i, &basic, sizeof( basic ) ), 0 );
 		EXPECT_EQ( memcmp( array_complex + clamped_i, &complex, sizeof( complex ) ), 0 );
 	}
@@ -1018,7 +1018,7 @@ DECLARE_TEST( array, inserterase )
 
 		EXPECT_EQ( array_ptr[clamped_i], (void*)((uintptr_t)i) );
 		EXPECT_EQ( array_int[clamped_i], i );
-		EXPECT_EQ( array_obj[clamped_i], i );
+		EXPECT_EQ( array_obj[clamped_i], (object_t)i );
 		EXPECT_EQ( memcmp( array_basic + clamped_i, &basic, sizeof( basic ) ), 0 );
 		EXPECT_EQ( memcmp( array_complex + clamped_i, &complex, sizeof( complex ) ), 0 );
 	}
