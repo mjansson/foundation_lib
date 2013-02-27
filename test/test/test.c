@@ -69,6 +69,7 @@ void test_run( void )
 	unsigned int ig, gsize, ic, csize;
 	int result;
 
+	log_suppress( ERRORLEVEL_DEBUG );
 	log_infof( "Running test suite: %s", environment_application()->short_name );
 
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
