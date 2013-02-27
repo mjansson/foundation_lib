@@ -18,42 +18,53 @@ static const char _base64_decode[] = "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFG
 static const char _base64_code[]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
-char* encode_base64( const void* arr, unsigned int size )
+unsigned int base64_encode( const void* src, char* dst, unsigned int srcsize, unsigned int dstsize )
 {
-	char* buffer, *ptr;
+	char* ptr;
 	const unsigned char* carr;
 	unsigned char bits;
-	unsigned int len = ( size / 3 ) * 4;
-	if( size % 3 )
+	unsigned int len;
+
+	if( dstsize > 0 )
+	{
+		unsigned int maxsrcsize = ( ( dstsize - 1 ) / 4 ) * 3;
+		if( maxsrcsize < srcsize )
+			srcsize = maxsrcsize;
+	}
+
+	len = ( srcsize / 3 ) * 4;
+	if( srcsize % 3 )
 		len += 4;
-	carr = (const unsigned char*)arr;
-	buffer = memory_allocate( (uint64_t)len + 1U, 0, MEMORY_PERSISTENT );
-	ptr = buffer;
-	while( size > 2 )
+
+	carr = (const unsigned char*)src;
+	ptr = dst;
+	while( srcsize > 2 )
 	{
 		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_code[bits];
 		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ) | ( ( *( carr + 1 ) >> 4 ) & 0xF ); *ptr++ = _base64_code[bits];
 		bits = (unsigned char)( ( *( carr + 1 ) & 0xF ) << 2 ) | ( ( *( carr + 2 ) >> 6 ) & 0x3 ); *ptr++ = _base64_code[bits];
 		bits = *( carr + 2 ) & 0x3F; *ptr++ = _base64_code[bits];
-		size -= 3;
+		srcsize -= 3;
 		carr += 3;
 	}
-	if( size == 2 )
+	if( srcsize == 2 )
 	{
 		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_code[bits];
 		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ) | ( ( *( carr + 1 ) >> 4 ) & 0xF ); *ptr++ = _base64_code[bits];
 		bits = (unsigned char)( ( *( carr + 1 ) & 0xF ) << 2 ); *ptr++ = _base64_code[bits];
 		*ptr++ = '=';
 	}
-	else if( size == 1 )
+	else if( srcsize == 1 )
 	{
 		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_code[bits];
 		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ); *ptr++ = _base64_code[bits];
 		*ptr++ = '=';
 		*ptr++ = '=';
 	}
-	buffer[len] = 0;
-	return buffer;
+
+	dst[len] = 0;
+	
+	return len + 1;
 }
 
 
@@ -62,15 +73,12 @@ char* encode_base64( const void* arr, unsigned int size )
     out[ 1 ] = (char)( in[1] << 4 | in[2] >> 2 ); \
     out[ 2 ] = (char)( ( ( in[2] << 6 ) & 0xc0 ) | in[3] );
 
-void decode_base64( const char* data, void* arr, unsigned int* size )
+unsigned int base64_decode( const char* src, void* dst, unsigned int srcsize, unsigned int dstsize )
 {
 	unsigned int i, length, blocksize;
-	char* dst = (char*)arr;
-	if( size )
-		*size = 0;
-	if( !data || !arr )
-		return;
-	length = (unsigned int)string_length( data );
+	char* cdst = (char*)dst;
+	char* cdstend = ( dstsize ? cdst + dstsize : 0 );
+	length = srcsize ? srcsize : (unsigned int)string_length( src );
 	while( length )
 	{
 		unsigned char in[4] = { 0, 0, 0, 0 }; //Always build blocks of 4 bytes to decode, pad with 0
@@ -80,7 +88,7 @@ void decode_base64( const char* data, void* arr, unsigned int* size )
 			char v = 0;
 			while( length && !v ) //Consume one valid byte from input, discarding invalid data
 			{
-				v = *data++;
+				v = *src++;
 				v = ( ( v < 43 || v > 122 ) ? 0 : _base64_decode[ v - 43 ] );
 				if( v )
 				{
@@ -94,10 +102,10 @@ void decode_base64( const char* data, void* arr, unsigned int* size )
 		{
 			char out[3];
 			_decodeblock_base64( in, out );
-			for( i = 0; i < blocksize - 1; ++i )
-				*dst++ = out[i];
+			for( i = 0; ( i < blocksize - 1 ) && ( !cdstend || ( cdst < cdstend ) ); ++i )
+				*cdst++ = out[i];
 		}
 	}
-	if( size )
-		*size = (unsigned int)( dst - (char*)arr );
+
+	return (unsigned int)( cdst - (char*)dst );
 }
