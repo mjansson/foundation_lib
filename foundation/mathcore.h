@@ -207,7 +207,7 @@ static FORCEINLINE CONSTCALL unsigned int math_align_poweroftwo( unsigned int x 
 
 static FORCEINLINE CONSTCALL bool math_is_poweroftwo( unsigned int x )
 {
-	return ( x & (x-1) ) == 0;
+	return ( x & ( x - 1 ) ) == 0;
 }
 
 
