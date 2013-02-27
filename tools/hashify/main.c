@@ -63,11 +63,11 @@ int main_run( void* main_arg )
 	int result = 0;
 	hashify_input_t input = hashify_parse_command_line( environment_command_line() );
 	
-	result = hashify_process_strings( input.strings );
+	result = hashify_process_strings( (char const* const*)input.strings );
 	if( result < 0 )
 		goto exit;
 
-	result = hashify_process_files( input.files, input.check_only );
+	result = hashify_process_files( (char const* const*)input.files, (char const* const*)input.check_only );
 	if( result < 0 )
 		goto exit;
 

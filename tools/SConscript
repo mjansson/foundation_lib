@@ -1,0 +1,24 @@
+import os.path
+
+Import("env")
+
+
+toolsenv    = env.Clone()
+
+toolsenv.Append( CPPPATH=['#/tools'] )
+toolsenv.Append( LIBPATH=['#/lib/${platform}${platformsuffix}/${buildprofile}'] )
+toolsenv.Append( LIBS=[ 'foundation' ] )
+
+if toolsenv['platform'] == 'linux':
+	toolsenv.Append( LIBS=[ 'dl', 'rt', 'm' ] )
+elif toolsenv['platform'] == 'raspberrypi':
+	toolsenv.Append( LIBS=[ 'bcm_host', 'rt', 'm' ] )
+
+env['bin2hexprg'] = toolsenv.Program( 'bin/bin2hex${prgsuffix}', 'bin2hex/main.c' )
+env['hashifyprg'] = toolsenv.Program( 'bin/hashify${prgsuffix}', 'hashify/main.c' )
+
+
+# INSTALLS
+
+toolsenv.AddPostAction( 'bin/bin2hex${prgsuffix}', toolsenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['bin2hexprg'] ] ) )
+toolsenv.AddPostAction( 'bin/hashify${prgsuffix}', toolsenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['hashifyprg'] ] ) )

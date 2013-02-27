@@ -23,9 +23,9 @@ typedef struct
 	int          columns;
 } bin2hex_input_t;
 
-static bin2hex_input_t      bin2hex_parse_command_line( const char* const* cmdline );
+static bin2hex_input_t      bin2hex_parse_command_line( char const* const* cmdline );
 
-static int                  bin2hex_process_files( const char* const* input, const char* const* output, int columns );
+static int                  bin2hex_process_files( char const* const* input, char const* const* output, int columns );
 static int                  bin2hex_process_file( stream_t* input, stream_t* output, int columns );
 
 static void                 bin2hex_print_usage( void );
@@ -54,7 +54,7 @@ int main_run( void* main_arg )
 		bin2hex_print_usage();
 	else
 	{
-		result = bin2hex_process_files( input.input_files, input.output_files, input.columns );
+		result = bin2hex_process_files( (char const* const*)input.input_files, (char const* const*)input.output_files, input.columns );
 		if( result < 0 )
 			goto exit;
 	}
@@ -74,7 +74,7 @@ void main_shutdown( void )
 }
 
 
-bin2hex_input_t bin2hex_parse_command_line( const char* const* cmdline )
+bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 {
 	bin2hex_input_t input = {0};
 	int arg, asize;
@@ -101,7 +101,7 @@ bin2hex_input_t bin2hex_parse_command_line( const char* const* cmdline )
 }
 
 
-int bin2hex_process_files( const char* const* input, const char* const* output, int columns )
+int bin2hex_process_files( char const* const* input, char const* const* output, int columns )
 {
 	int result = BIN2HEX_RESULT_OK;
 	unsigned int ifile, files_size;
