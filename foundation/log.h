@@ -45,6 +45,8 @@ FOUNDATION_API void     log_set_callback( log_callback_fn callback );
 
 FOUNDATION_API void     log_enable_prefix( bool enable );
 
+FOUNDATION_API void     log_suppress( error_level_t level );
+
 #else
 #  define               log_infof( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define               log_warnf( wclass, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
@@ -53,5 +55,6 @@ FOUNDATION_API void     log_enable_prefix( bool enable );
 #  define               log_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
 #  define               log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( callback ); } while(0) /*lint -restore */
 #  define               log_enable_prefix( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
+#  define               log_suppress( level ) /*lint -save -e717 */ do { (void)sizeof( level ); } while(0) /*lint -restore */
 #endif
 

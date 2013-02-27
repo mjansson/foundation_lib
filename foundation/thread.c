@@ -324,7 +324,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_ASSERT( thread->running == 1 );
 
-	log_infof( "Started thread '%s' (%llx) ID %llx", thread->name, thread->osid, thread->id );
+	log_debugf( "Started thread '%s' (%llx) ID %llx", thread->name, thread->osid, thread->id );
 
 	if( crash_guard_callback() )
 	{
@@ -339,7 +339,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
-	log_infof( "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_debugf( "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
 
 	thread->osid  = 0;
 
@@ -352,7 +352,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		thread->running = 0;
 	}
 
-	log_infof( "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_debugf( "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
 
 	_thread_dec_ref( thread );
 

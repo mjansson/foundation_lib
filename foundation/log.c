@@ -36,6 +36,7 @@ __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
 static bool             _log_stdout      = true;
 static bool             _log_prefix      = true;
 static log_callback_fn  _log_callback    = 0;
+static error_level_t    _log_suppress    = ERRORLEVEL_NONE;
 
 #define make_timestamp()  ((float32_t)( (real)( time_current() - time_startup() ) / (real)time_ticks_per_second() ))
 
@@ -108,7 +109,8 @@ void log_debugf( const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	_log_outputf( ERRORLEVEL_DEBUG, "", format, list, stdout );
+	if( _log_suppress < ERRORLEVEL_DEBUG )
+		_log_outputf( ERRORLEVEL_DEBUG, "", format, list, stdout );
 	va_end( list );
 }
 
@@ -120,13 +122,17 @@ void log_infof( const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	_log_outputf( ERRORLEVEL_INFO, "", format, list, stdout );
+	if( _log_suppress < ERRORLEVEL_INFO )
+		_log_outputf( ERRORLEVEL_INFO, "", format, list, stdout );
 	va_end( list );
 }
 
 void log_warnf( warning_class_t wclass, const char* format, ... )
 {
 	va_list list;
+
+	if( _log_suppress >= ERRORLEVEL_WARNING )
+		return;
 
 	log_error_context( ERRORLEVEL_WARNING );
 
@@ -139,6 +145,9 @@ void log_warnf( warning_class_t wclass, const char* format, ... )
 void log_errorf( error_level_t level, error_t err, const char* format, ... )
 {
 	va_list list;
+
+	if( _log_suppress >= ERRORLEVEL_ERROR )
+		return;
 
 	log_error_context( ERRORLEVEL_ERROR );
 
@@ -163,7 +172,7 @@ void log_error_context( error_level_t error_level )
 {
 	int i;
 	error_context_t* context = error_context();
-	if( context )
+	if( context && ( _log_suppress < error_level ) )
 	{
 		error_frame_t* frame = context->frame;
 		for( i = 0; i < context->depth; ++i, ++frame )
@@ -191,6 +200,12 @@ void log_set_callback( log_callback_fn callback )
 void log_enable_prefix( bool enable )
 {
 	_log_prefix = enable;
+}
+
+
+void log_suppress( error_level_t level )
+{
+	_log_suppress = level;
 }
 
 #endif
