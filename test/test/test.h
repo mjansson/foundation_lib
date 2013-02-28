@@ -49,5 +49,6 @@ TEST_API void test_add_test( test_fn test, const char* group, const char* name )
 #define EXPECT_LE( var, expect ) do { if( !((var) <= (expect)) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s > %s (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); return -1; } } while(0)
 #define EXPECT_LT( var, expect ) do { if( !((var) < (expect)) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s >= %s (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); return -1; } } while(0)
 #define EXPECT_TRUE( var ) do { if( !(var) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s if false (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__ ); return -1; } } while(0)
+#define EXPECT_FALSE( var ) do { if( (var) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s if true (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__ ); return -1; } } while(0)
 
 #define EXPECT_STREQ( var, expect ) do { if( !string_equal( (var), (expect) ) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s != %s ('%s', '%s') (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), (var), (expect), __FILE__, __LINE__ ); return -1; } } while(0)
