@@ -48,7 +48,7 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size
 
 	buffer_stream->type = STREAMTYPE_MEMORY;
 	buffer_stream->sequential = 0;
-	buffer_stream->path = string_format( "buffer://0x%p", stream );
+	buffer_stream->path = string_format( "buffer://" STRING_FORMAT_POINTER, stream );
 	buffer_stream->mode = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY );
 	buffer_stream->buffer = buffer;
 	buffer_stream->size = size;
@@ -136,8 +136,7 @@ static uint64_t _buffer_stream_write( stream_t* stream, const void* source, uint
 
 static bool _buffer_stream_isopen( const stream_t* stream )
 {
-	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
-	return buffer_stream && ( buffer_stream->buffer || buffer_stream->grow );
+	return stream != 0;
 }
 
 
@@ -159,8 +158,6 @@ static void _buffer_stream_truncate( stream_t* stream, uint64_t size )
 	if( buffer_stream->capacity >= size )
 	{
 		buffer_stream->size = size;
-		if( buffer_stream->current > buffer_stream->size )
-			buffer_stream->current = buffer_stream->size;
 	}
 	else if( buffer_stream->grow )
 	{
@@ -168,6 +165,8 @@ static void _buffer_stream_truncate( stream_t* stream, uint64_t size )
 		buffer_stream->buffer = memory_reallocate( buffer_stream->buffer, buffer_stream->capacity, 0 );
 		buffer_stream->size = buffer_stream->capacity;
 	}
+	if( buffer_stream->current > buffer_stream->size )
+		buffer_stream->current = buffer_stream->size;
 }
 
 

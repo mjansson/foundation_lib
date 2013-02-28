@@ -172,15 +172,27 @@ FOUNDATION_API version_t      string_to_version( const char* str );
 FOUNDATION_API bool           string_is_valid_email_address( const char* address );
 
 
-#define STRING_NPOS           0xFFFFFFFFU
+#define STRING_NPOS                     0xFFFFFFFFU
+
+#define STRING_WHITESPACE               " \n\r\t"
+#define WSTRING_WHITESPACE             L" \n\r\t"
 
 #if FOUNDATION_PLATFORM_REALSIZE == 64
-#  define REAL_FORMAT         "llf"
+#  define STRING_FORMAT_REAL            "llf"
 #else
-#  define REAL_FORMAT         "f"
+#  define STRING_FORMAT_REAL            "f"
 #endif
 
-#define STRING_WHITESPACE     " \n\r\t"
-#define WSTRING_WHITESPACE   L" \n\r\t"
-
-
+#if FOUNDATION_PLATFORM_WINDOWS
+#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#    define STRING_FORMAT_POINTER       "0x%016p"
+#  else
+#    define STRING_FORMAT_POINTER       "0x%08p"
+#  endif
+#else
+#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#    define STRING_FORMAT_POINTER       "%016p"
+#  else
+#    define STRING_FORMAT_POINTER       "%08p"
+#  endif
+#endif
