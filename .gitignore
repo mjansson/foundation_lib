@@ -183,3 +183,6 @@ dist/**
 
 #Backups
 *~
+
+#XCode
+xcuserdata
