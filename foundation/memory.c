@@ -12,8 +12,9 @@
 
 #include <foundation/foundation.h>
 
-#include <malloc.h>
-#include <stdlib.h>
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#endif
 
 
 static memory_system_t _memsys;

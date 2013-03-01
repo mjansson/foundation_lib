@@ -17,12 +17,11 @@
 #  include <foundation/windows.h>
 #  include <sys/utime.h>
 #elif FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
 #  include <time.h>
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #  include <sys/ioctl.h>
-#  include <stdlib.h>
-#  include <unistd.h>
 #  include <utime.h>
 #  include <fcntl.h>
 #  include <dirent.h>

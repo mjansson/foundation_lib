@@ -1,4 +1,4 @@
-/* safewindows.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* windows.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -12,12 +12,14 @@
 
 #pragma once
 
-/*! \file safewindows.h
+/*! \file windows.h
     Safe inclusion of windows.h */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+
+#if FOUNDATION_PLATFORM_WINDOWS
 
 #undef IN
 #undef OUT
@@ -71,3 +73,4 @@ EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE SHGetFolderPathW(__reserved HWND
 #undef BIGENDIAN
 #undef STREAM_SEEK_END
 
+#endif

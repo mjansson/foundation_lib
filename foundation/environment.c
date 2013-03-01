@@ -25,9 +25,7 @@ static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_var[FOUNDATION_MAX_PATHLEN] = {0};
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <unistd.h>
-#  include <stdlib.h>
-#  include <stdio.h>
+#  include <foundation/posix.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID

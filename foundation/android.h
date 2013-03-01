@@ -22,6 +22,10 @@
 
 #include <android_native_app_glue.h>
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 
 FOUNDATION_API int                   android_initialize( struct android_app* app );
 FOUNDATION_API void                  android_shutdown( void );

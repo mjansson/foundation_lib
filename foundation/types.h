@@ -16,6 +16,7 @@
     Foundation types */
 
 #include <foundation/platform.h>
+#include <foundation/build.h>
 
 
 // PRIMITIVE TYPES

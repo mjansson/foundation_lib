@@ -11,13 +11,13 @@
  */
 
 #include <foundation/foundation.h>
-#include <foundation/android.h>
 
 
 #if FOUNDATION_PLATFORM_ANDROID
 
+#include <foundation/android.h>
+
 #include <android/sensor.h>
-#include <stdlib.h>
 
 static struct android_app*       _android_app = 0;
 static struct ASensorEventQueue* _android_sensor_queue = 0;

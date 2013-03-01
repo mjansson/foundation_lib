@@ -185,7 +185,10 @@
 // MacOS X and iOS
 #elif ( defined( __APPLE__ ) && __APPLE__ ) || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
 
+#undef  FOUNDATION_PLATFORM_APPLE
 #define FOUNDATION_PLATFORM_APPLE 1
+
+#undef  FOUNDATION_PLATFORM_POSIX
 #define FOUNDATION_PLATFORM_POSIX 1
 
 #  if defined( __IPHONE__ ) || ( defined( TARGET_OS_IPHONE ) && TARGET_OS_IPHONE ) || ( defined( TARGET_IPHONE_SIMULATOR ) && TARGET_IPHONE_SIMULATOR ) || FOUNDATION_PLATFORM_IOS
@@ -449,6 +452,10 @@
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
 
+#  include <stdbool.h>
+#  include <stdarg.h>
+#  include <wchar.h>
+
 // GCC
 #elif defined( __GNUC__ )
 
@@ -535,7 +542,7 @@ typedef enum
 	false = 0,
 	true  = 1
 } bool;
-#endif
+#  endif
 
 #else
 #  error Unknown compiler

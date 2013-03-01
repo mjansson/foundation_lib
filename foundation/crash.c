@@ -15,7 +15,10 @@
 
 static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;
+
+#if FOUNDATION_PLATFORM_WINDOWS
 static char                    _crash_dump_file[FOUNDATION_MAX_PATHLEN+128];
+#endif
 
 
 void crash_guard_set( crash_dump_callback_fn callback, const char* name )

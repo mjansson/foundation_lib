@@ -15,10 +15,7 @@
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <unistd.h>
-#  include <stdlib.h>
-#  define __error_t_defined 1
-#  include <errno.h>
+#  include <foundation/posix.h>
 #  include <sys/types.h>
 #  include <sys/wait.h>
 #endif

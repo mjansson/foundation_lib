@@ -13,11 +13,8 @@
 #include <foundation/foundation.h>
 
 #if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
 #  include <sched.h>
-#  include <unistd.h>
-#  include <stdlib.h>
-#  define __error_t_defined 1
-#  include <errno.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
