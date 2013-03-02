@@ -10,6 +10,7 @@
 		CD7F382816E151E5000346C0 /* posix.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382516E151E5000346C0 /* posix.h */; };
 		CD7F382916E151E5000346C0 /* radixsort.c in Sources */ = {isa = PBXBuildFile; fileRef = CD7F382616E151E5000346C0 /* radixsort.c */; };
 		CD7F382A16E151E5000346C0 /* radixsort.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382716E151E5000346C0 /* radixsort.h */; };
+		CD7F382C16E21705000346C0 /* apple.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382B16E21705000346C0 /* apple.h */; };
 		CDCEF48D16D2D2B100198086 /* android.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44116D2D2B000198086 /* android.c */; };
 		CDCEF48E16D2D2B100198086 /* android.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44216D2D2B000198086 /* android.h */; };
 		CDCEF48F16D2D2B100198086 /* array.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44316D2D2B000198086 /* array.c */; };
@@ -92,6 +93,7 @@
 		CD7F382516E151E5000346C0 /* posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = posix.h; path = ../../../foundation/posix.h; sourceTree = "<group>"; };
 		CD7F382616E151E5000346C0 /* radixsort.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = radixsort.c; path = ../../../foundation/radixsort.c; sourceTree = "<group>"; };
 		CD7F382716E151E5000346C0 /* radixsort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = radixsort.h; path = ../../../foundation/radixsort.h; sourceTree = "<group>"; };
+		CD7F382B16E21705000346C0 /* apple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = apple.h; path = ../../../foundation/apple.h; sourceTree = "<group>"; };
 		CDCEF43916D2D11500198086 /* libfoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDCEF44116D2D2B000198086 /* android.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = android.c; path = ../../../foundation/android.c; sourceTree = "<group>"; };
 		CDCEF44216D2D2B000198086 /* android.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = android.h; path = ../../../foundation/android.h; sourceTree = "<group>"; };
@@ -203,6 +205,7 @@
 			children = (
 				CDCEF44116D2D2B000198086 /* android.c */,
 				CDCEF44216D2D2B000198086 /* android.h */,
+				CD7F382B16E21705000346C0 /* apple.h */,
 				CDCEF44316D2D2B000198086 /* array.c */,
 				CDCEF44416D2D2B000198086 /* array.h */,
 				CDCEF44516D2D2B000198086 /* assert.c */,
@@ -336,6 +339,7 @@
 				CDCEF4D816D2D2B100198086 /* windows.h in Headers */,
 				CD7F382816E151E5000346C0 /* posix.h in Headers */,
 				CD7F382A16E151E5000346C0 /* radixsort.h in Headers */,
+				CD7F382C16E21705000346C0 /* apple.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

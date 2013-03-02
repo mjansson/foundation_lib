@@ -19,7 +19,7 @@
 #include <foundation/types.h>
 
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE
 #  include <libkern/OSAtomic.h>
 #endif
 
@@ -126,7 +126,7 @@ static FORCEINLINE int atomic_add32( volatile int32_t* val, int32_t add )
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	int32_t old = (int32_t)_InterlockedExchangeAdd( (volatile long*)val, add );
 	return ( old + add );
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicAdd32( add, val );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( val, add );
@@ -169,7 +169,7 @@ static FORCEINLINE int64_t atomic_add64( volatile int64_t* val, int64_t add )
 #  else
 	return _InterlockedExchangeAdd64( val, add ) + add;
 #endif
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicAdd64( add, val );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( val, add );
@@ -210,7 +210,7 @@ static FORCEINLINE bool atomic_cas64( volatile int64_t* dst, int64_t val, int64_
 }
 
 
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_APPLE || FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 //atomic_cas_ptr defined above
 #else
 static FORCEINLINE bool atomic_cas_ptr( void** dst, void* val, void* ref )

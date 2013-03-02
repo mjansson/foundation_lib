@@ -668,7 +668,7 @@ typedef ALIGN(16) uint8_t     uint8_aligned128_t;
 //   FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( void*, profile_free, 32 );
 //   set_thread_profile_block( 1 ); // Assigns 1 to thread-local variable "profile_block"
 //   get_thread_profile_free()[0] = some_ptr; // Assigns some_ptr to slot 0 in thread-local array "profile_free"
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 
 // Forward declarations of various system APIs
 #  if FOUNDATION_PLATFORM_ANDROID

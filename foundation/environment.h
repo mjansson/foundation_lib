@@ -48,3 +48,11 @@ FOUNDATION_API const char*            environment_variable( const char* var );
 
 //! Get the application declaration
 FOUNDATION_API const application_t*   environment_application( void );
+
+
+#if FOUNDATION_PLATFORM_APPLE
+
+//! Get the application bundle identifier
+FOUNDATION_API void                   environment_bundle_identifier( char* buffer );
+
+#endif

@@ -22,6 +22,11 @@
 #  include <cpu-features.h>
 #endif
 
+#if FOUNDATION_PLATFORM_APPLE
+extern unsigned int _system_process_info_processor_count( void );
+extern int _system_show_alert( const char*, const char*, int );
+#endif
+
 static event_stream_t* _system_event_stream = 0;
 
 typedef struct _foundation_platform_info
@@ -271,7 +276,7 @@ const char* system_error_message( int code )
 		code = errno;
 	if( !code )
 		return "<no error>";
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
 #else
 	static THREADLOCAL char buffer[256];
@@ -329,8 +334,8 @@ uint64_t system_hostid( void )
 
 unsigned int system_hardware_threads( void )
 {
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
-	return _ns_process_info_processor_count();
+#if FOUNDATION_PLATFORM_APPLE
+	return _system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
 	return android_getCpuCount();
 #else
@@ -463,8 +468,8 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return ( MessageBoxA( 0, message, title, cancel_button ? MB_OKCANCEL : MB_OK ) == IDOK );
-#elif FOUNDATION_PLATFORM_MACOSX
-	return _objc_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
+#elif FOUNDATION_PLATFORM_APPLE
+	return _system_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
 #elif 0//FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format( "%s\n\n%s\n", title, message );
 	pid_t pid = fork();

@@ -382,7 +382,7 @@ static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floor( 
 static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceil( x ); }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)__builtin_floor( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)__builtin_ceil( x ); }
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE
 static FORCEINLINE int      math_round( real x ) { return (int)( x + 0.5 ); }
 static FORCEINLINE int      math_trunc( real x ) { return (int)( x ); }
 #else
@@ -396,7 +396,7 @@ static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceilf( x
 static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floorf( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)__builtin_ceil( x ); }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)__builtin_floor( x ); }
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE
 static FORCEINLINE int      math_round( real x ) { return (int)( x + 0.5f ); }
 static FORCEINLINE int      math_trunc( real x ) { return (int)( x ); }
 #else

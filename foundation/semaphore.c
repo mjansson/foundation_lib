@@ -150,7 +150,7 @@ void semaphore_wait( semaphore_t* semaphore )
 				log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( 0 ) );
 			else
 			{
-				info_logf( "Semaphore wait interrupted by signal" );
+				log_infof( "Semaphore wait interrupted by signal" );
 				ret = 0;
 			}
 		}
@@ -177,7 +177,7 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 		//TODO: Proper implementation (sem_timedwait not supported)
 		if( milliseconds > 0 )
 		{
-			time_t wakeup = timer_current() + ( ( (uint64_t)milliseconds * timer_ticks_per_second() ) / 1000ULL );
+			tick_t wakeup = time_current() + ( ( (uint64_t)milliseconds * time_ticks_per_second() ) / 1000ULL );
 			do
 			{
 				if( sem_trywait( semaphore->sem.named ) == 0 )

@@ -259,7 +259,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	paths[4] = 0;
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE
 	bundle_path = path_merge( environment_executable_directory(), "../Resources/config" );
 	paths[5] = bundle_path;
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -306,7 +306,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 	{
 #if FOUNDATION_PLATFORM_WINDOWS
 		home_dir = path_merge( environment_home_directory(), environment_application()->config_dir );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX
 		home_dir = string_append( path_merge( environment_home_directory(), "." ), environment_application()->config_dir );
 #endif
 		if( home_dir )

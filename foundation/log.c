@@ -26,11 +26,8 @@ __declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
 #  include <android/log.h>
 #endif
 
-#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
-#  include <unistd.h>
-#  include <stdarg.h>
-#  include <sys/types.h>
-#  include <sys/wait.h>
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
 #endif
 
 static bool             _log_stdout      = true;

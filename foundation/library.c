@@ -121,7 +121,7 @@ object_t library_load( const char* name )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-#  if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#  if FOUNDATION_PLATFORM_APPLE
 	char* libname = string_format( "lib%s.dylib", name );
 #  else
 	char* libname = string_format( "lib%s.so", name );

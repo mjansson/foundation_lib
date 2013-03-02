@@ -176,13 +176,13 @@ int main( int argc, char **argv )
 
 	thread_set_main();
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	if( !app_config_bool( _HASH_APPLICATION, _HASH_BSDUTILITY ) )
+#if FOUNDATION_PLATFORM_APPLE
+	if( !config_bool( HASH_APPLICATION, HASH_UTILITY ) )
 	{
 #if FOUNDATION_PLATFORM_MACOSX
 
 		//Fire up new thread to continue engine, then run Cocoa event loop in main thread
-		_app_start_main_ns_thread( argc, argv );	
+		//_app_start_main_ns_thread( argc, argv );
 		ret = NSApplicationMain( argc, (const char**)argv );
 
 #elif FOUNDATION_PLATFORM_IOS
@@ -190,13 +190,10 @@ int main( int argc, char **argv )
 		ret = UIApplicationMain( argc, (char**)argv, 0, 0 );
 
 #endif
+		//NSApplicationMain and UIApplicationMain never returns though
+		return ret;
 	}
-	else
-	{
-		ret = app_main( 0 );
-	}
-
-#else // !( FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS )
+#endif
 
 #if BUILD_DEBUG
 	ret = main_run( 0 );
@@ -220,14 +217,7 @@ int main( int argc, char **argv )
 	}
 #endif
 
-#endif
-
 	main_shutdown();
-
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	if( _bundle )
-		CFRelease( _bundle );
-#endif
 
 #if FOUNDATION_PLATFORM_ANDROID
 
@@ -239,64 +229,3 @@ int main( int argc, char **argv )
 
 #endif
 }
-
-
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-
-void _app_did_finish_launching( void )
-{
-#if FOUNDATION_PLATFORM_IOS
-	_app_main_pre_loop();
-#endif
-}
-
-
-void _app_did_become_active( void )
-{
-#if FOUNDATION_PLATFORM_IOS
-	app_reset_frame_time();
-#endif
-}
-
-
-void _app_will_resign_active( void )
-{
-}
-
-
-void _app_will_terminate( void )
-{	
-	system_event_post( COREEVENT_TERMINATE );
-	
-	app_pump_events();
-
-	_app_main_post_loop();
-	
-	core_terminate_services();
-	
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	if( _bundle )
-		CFRelease( _bundle );
-#endif
-	
-	app_exit();
-	_app_post_exit();
-	
-	array_deallocate( _invoke_argv ); //Not cloned strings, so just free array itself
-	
-	core_shutdown();
-}
-
-#endif
-
-#if FOUNDATION_PLATFORM_IOS
-
-bool (* app_open_url)( const char* url, const char* source_app, void* nsurl ) = 0;
-
-bool _app_open_url( const char* url, const char* source_app, void* nsurl )
-{
-	return app_open_url ? app_open_url( url, source_app, nsurl ) : false;
-}
-
-#endif
-

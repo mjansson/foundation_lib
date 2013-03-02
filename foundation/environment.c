@@ -14,7 +14,9 @@
 
 
 static char**  _environment_argv;
+#if !FOUNDATION_PLATFORM_APPLE
 static char    _environment_wd[FOUNDATION_MAX_PATHLEN] = {0};
+#endif
 static char    _environment_executable_name[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_executable_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
@@ -30,6 +32,11 @@ static char    _environment_var[FOUNDATION_MAX_PATHLEN] = {0};
 
 #if FOUNDATION_PLATFORM_ANDROID
 #  include <foundation/android.h>
+#endif
+
+#if FOUNDATION_PLATFORM_APPLE
+#  include <foundation/apple.h>
+extern CFStringRef NSHomeDirectory(void);
 #endif
 
 
@@ -253,16 +260,16 @@ const char* environment_home_directory( void )
 	}
 #elif FOUNDATION_PLATFORM_LINUX
 	string_copy( _environment_home_dir, environment_variable( "HOME" ), FOUNDATION_MAX_PATHLEN );
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	ENTER_AUTORELEASE();
-	CFStringRef home = NSHomeDirectory();
-	CFStringGetCString( home, _environment_home_dir, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
-	LEAVE_AUTORELEASE();
-
-	if( !app_config_bool( _HASH_APPLICATION, _HASH_BSDUTILITY ) )
+#elif FOUNDATION_PLATFORM_APPLE
+	if( config_bool( HASH_APPLICATION, HASH_UTILITY ) )
+	{
+		CFStringRef home = NSHomeDirectory();
+		CFStringGetCString( home, _environment_home_dir, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+	}
+	else
 	{
 		char bundle_identifier[FOUNDATION_MAX_PATHLEN+1];
-		app_bundle_identifier( bundle_identifier );
+		environment_bundle_identifier( bundle_identifier );
 		
 		char* path = path_append( path_merge( _environment_home_dir, "/Library/Application Support" ), bundle_identifier );
 		string_copy( _environment_home_dir, path, FOUNDATION_MAX_PATHLEN );

@@ -18,7 +18,7 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 FOUNDATION_EXTERN errno_t _ctime64_s( char*, size_t, const __time64_t* );;
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 #elif FOUNDATION_PLATFORM_POSIX
 #include <time.h>
@@ -1236,9 +1236,9 @@ char* string_from_time_buffer( char* buffer, uint64_t t )
 	buffer[0] = 0;
 	_ctime64_s( buffer, 64, &timet );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE
 	buffer[0] = 0;
-	time_t ts = t / 1000ULL;
+	time_t ts = (time_t)( t / 1000ULL );
 	ctime_r( &ts, buffer );
 	return string_strip( buffer, STRING_WHITESPACE );
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -1330,7 +1330,7 @@ uint128_t string_to_uint128( const char* val )
 
 real string_to_real( const char* val )
 {
-#if ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS ) && ( FOUNDATION_PLATFORM_REALSIZE == 64 )
+#if ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE ) && ( FOUNDATION_PLATFORM_REALSIZE == 64 )
 	long double ret = 0.0f;
 #else
 	real ret = 0.0f;

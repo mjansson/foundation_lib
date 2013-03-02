@@ -302,7 +302,7 @@ int process_spawn( process_t* proc )
 		
 		LSApplicationParameters params;
 		ProcessSerialNumber psn;
-		FSRef* fsref = allocate_zero( thread_allocator(), sizeof( FSRef ), 0 );
+		FSRef* fsref = memory_allocate_zero( sizeof( FSRef ), 0, MEMORY_TEMPORARY );
 		
 		memset( &params, 0, sizeof( LSApplicationParameters ) );
 		memset( &psn, 0, sizeof( ProcessSerialNumber ) );
@@ -338,7 +338,7 @@ int process_spawn( process_t* proc )
 		for( i = 0, size = array_size( args ); i < size; ++i )
 			CFRelease( args[i] );
 		
-		deallocate( fsref );
+		memory_deallocate( fsref );
 		string_deallocate( pathstripped );
 		
 		if( status == 0 )

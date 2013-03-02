@@ -18,7 +18,9 @@ typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 DWORD WINAPI GetCurrentProcessorNumberFallback(VOID) { return 0; }
 GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <sys/prctl.h>
+#  if !FOUNDATION_PLATFORM_APPLE
+#    include <sys/prctl.h>
+#  endif
 #  include <pthread.h>
 #endif
 
@@ -26,7 +28,7 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 #  include <foundation/android.h>
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 
 typedef struct _foundation_thread_local_block
 {
