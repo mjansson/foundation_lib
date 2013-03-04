@@ -67,6 +67,7 @@ typedef struct
 
 typedef struct
 {
+	bool              display_help;
 	bool              output_binary;
 	char*             output_file;
 	uuid_instance_t*  generate;
@@ -125,6 +126,9 @@ int main_run( void* main_arg )
 
 exit:
 
+	if( input.display_help )
+		uuidgen_print_usage();
+
 	for( iinst = 0, num_instance = array_size( input.generate ); iinst < num_instance; ++iinst )
 		string_deallocate( input.generate[iinst].name );
 	array_deallocate( input.generate );
@@ -149,7 +153,9 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 	error_context_push( "parsing command line", "" );
 	for( arg = 1, asize = array_size( cmdline ); arg < asize; ++arg )
 	{
-		if( string_equal( cmdline[arg], "--output" ) )
+		if( string_equal( cmdline[arg], "--help" ) )
+			input.display_help = true;
+		else if( string_equal( cmdline[arg], "--output" ) )
 		{
 			if( arg < asize - 1 )
 			{
@@ -210,8 +216,20 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 		}
 		else if( string_equal( cmdline[arg], "--" ) )
 			break; //Stop parsing cmdline options
+
+		//Unknown argument, display help
+		input.display_help = true;
 	}
 	error_context_pop();
+
+	if( !array_size( input.generate ) && !input.display_help )
+	{
+		//Default to one random-based UUID
+		uuid_instance_t instance = {0};
+		instance.method = METHOD_RANDOM;
+		instance.num = 1;
+		array_push_memcpy( input.generate, &instance );
+	}
 
 	return input;
 }
@@ -385,11 +403,7 @@ int uuidgen_generate_namespace_md5( uuid_t** uuid, const uuid_t namespace, const
 
 int uuidgen_output( uuid_t* uuid, const char* output, bool binary )
 {
-	if( !array_size( uuid ) )
-	{
-		uuidgen_print_usage();
-	}
-	else if( output )
+	if( output )
 	{
 		int i, uuidsize;
 		stream_t* stream = stream_open( output, STREAM_OUT | ( binary ? STREAM_BINARY : 0 ) );
@@ -400,7 +414,10 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary )
 			if( binary )
 				stream_write( stream, uuid + i, sizeof( uuid[i] ) );
 			else
+			{
 				stream_write_format( stream, "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", uuid[i].raw.data1, uuid[i].raw.data2, uuid[i].raw.data3, uuid[i].raw.data4[0], uuid[i].raw.data4[1], uuid[i].raw.data4[2], uuid[i].raw.data4[3], uuid[i].raw.data4[4], uuid[i].raw.data4[5], uuid[i].raw.data4[6], uuid[i].raw.data4[7] );
+				stream_write_endl( stream );
+			}
 		}
 		stream_deallocate( stream );
 	}
@@ -420,12 +437,16 @@ static void uuidgen_print_usage( void )
 	log_suppress( ERRORLEVEL_DEBUG );
 	log_infof( 
 		"uuidgen usage:\n"
-		"  uuidgen [--time n] [--random n] [--md5 <namespace> <name>]\n"
+		"  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help]\n"
+		"    If no arguments are given, one random-based UUID is output to stdout\n"
 		"    Optional arguments:\n"
 		"      --time n                     Generate n time-based UUIDs\n"
 		"      --random n                   Generate n random-based UUIDs\n"
 		"      --md5 <namespace> <name>     Generate a name-based UUID using the namespace UUID specified\n"
-		"                                   in <namespace> and a name string specified in <name>"
+		"                                   in <namespace> and a name string specified in <name>\n"
+		"      --output <filename>          Output to <filename> instead of stdout\n"
+		"      --binary                     Output binary data instead of ASCII (stdout is always ASCII)\n"
+		"      --help                       Show this message"
 	);
 }
 
