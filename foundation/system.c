@@ -155,10 +155,9 @@ uint64_t system_hostid( void )
 	DWORD (__stdcall *fn_get_adapters_info)( PIP_ADAPTER_INFO, PULONG ) = 0;
 
 	if( !_system_library_iphlpapi )
-	{
 		_system_library_iphlpapi = library_load( "iphlpapi" );
+	if( _system_library_iphlpapi )
 		fn_get_adapters_info = (DWORD (__stdcall *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
-	}
 	if( !fn_get_adapters_info )
 		return 0;
 	
