@@ -183,7 +183,7 @@ void bin2hex_print_usage( void )
 	log_infof( 
 		"bin2hex usage:\n"
 		"  bin2hex [--columns n] <file> <file> <file> <...>\n"
-		"    Required argumnets:\n"
+		"    Required arguments:\n"
 		"      <file>           Input filename (any number of input files allowed). Output will be named \"<file>.hex\"\n"
 		"    Optional arguments:\n"
 		"      --columns n      Print n bytes in each column (default is 32)\n"
