@@ -165,6 +165,10 @@ static void _buffer_stream_truncate( stream_t* stream, uint64_t size )
 		buffer_stream->buffer = memory_reallocate( buffer_stream->buffer, buffer_stream->capacity, 0 );
 		buffer_stream->size = buffer_stream->capacity;
 	}
+	else
+	{
+		buffer_stream->size = buffer_stream->capacity;
+	}
 	if( buffer_stream->current > buffer_stream->size )
 		buffer_stream->current = buffer_stream->size;
 }
