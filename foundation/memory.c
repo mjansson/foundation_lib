@@ -12,6 +12,9 @@
 
 #include <foundation/foundation.h>
 
+#if FOUNDATION_PLATFORM_WINDOWS
+#  include <foundation/windows.h>
+#endif
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #endif

@@ -67,7 +67,7 @@ int main_run( void* main_arg )
 	if( result < 0 )
 		goto exit;
 
-	result = hashify_process_files( (char const* const*)input.files, (char const* const*)input.check_only );
+	result = hashify_process_files( (char const* const*)input.files, input.check_only );
 	if( result < 0 )
 		goto exit;
 
@@ -203,8 +203,7 @@ int hashify_process_files( const char* const* files, bool check_only )
 int hashify_process_file( stream_t* input_file, stream_t* output_file, bool check_only, hashify_string_t** history )
 {
 	int result = HASHIFY_RESULT_OK;
-	char def_buffer[HASHIFY_LINEBUFFER_LENGTH];
-	char str_buffer[HASHIFY_LINEBUFFER_LENGTH];
+	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	hashify_string_t* local_hashes = 0;
 	hashify_string_t* local_generated = 0;
 
@@ -215,23 +214,36 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 	
 	while( !stream_eos( input_file ) && ( result == HASHIFY_RESULT_OK ) )
 	{
-		stream_read_string_buffer( input_file, def_buffer, HASHIFY_LINEBUFFER_LENGTH );
-		stream_read_string_buffer( input_file, str_buffer, HASHIFY_LINEBUFFER_LENGTH );
+		char* def_string = 0;
+		char* value_string = 0;
 
-		if( string_length( def_buffer ) && string_length( str_buffer ) )
+		stream_read_line_buffer( input_file, line_buffer, HASHIFY_LINEBUFFER_LENGTH, '\n' );
+		string_split( line_buffer, " \t", &def_string, &value_string, false );
+
+		string_strip( def_string, STRING_WHITESPACE );
+		string_strip( value_string, STRING_WHITESPACE );
+
+		if( string_length( value_string ) && ( value_string[0] == '"' ) && ( value_string[ string_length( value_string ) - 1 ] == '"' ) )
 		{
-			hash_t hash_value = hash( str_buffer, string_length( str_buffer ) );
+			unsigned int len = string_length( value_string );
+			memmove( value_string, value_string + 1, len - 2 );
+			value_string[len-2] = 0;
+		}
 
-			log_infof( "  %s: %s -> 0x%llx", def_buffer, str_buffer, hash_value );
+		if( string_length( def_string ) )
+		{
+			hash_t hash_value = hash( value_string, string_length( value_string ) );
+
+			log_infof( "  %s: %s -> 0x%llx", def_string, value_string, hash_value );
 
 			if( check_only )
 			{
 				//Check local consistency
-				result = hashify_check_local_consistency( str_buffer, hash_value, local_hashes );
+				result = hashify_check_local_consistency( value_string, hash_value, local_hashes );
 			}
 			else
 			{
-				stream_write_format( output_file, "#define %s static_hash_string( \"%s\", 0x%llxULL )\n", def_buffer, str_buffer, hash_value );
+				stream_write_format( output_file, "#define %s static_hash_string( \"%s\", 0x%llxULL )\n", def_string, value_string, hash_value );
 			}
 
 			if( result == HASHIFY_RESULT_OK )
@@ -239,19 +251,18 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 				hashify_string_t hash_string;
 
 				//Check history
-				result = hashify_check_collisions( str_buffer, hash_value, *history );
+				result = hashify_check_collisions( value_string, hash_value, *history );
 
 				//Add to history
-				string_copy( hash_string.string, str_buffer, HASHIFY_STRING_LENGTH );
+				string_copy( hash_string.string, value_string, HASHIFY_STRING_LENGTH );
 				hash_string.hash = hash_value;
 				array_push_memcpy( *history, &hash_string );
 				array_push_memcpy( local_generated, &hash_string );
 			}
 		}
-		else if( string_length( def_buffer ) || string_length( str_buffer ) )
-		{
-			log_warnf( WARNING_BAD_DATA, "  invalid line encountered in input file: %s %s", def_buffer, str_buffer );
-		}
+
+		string_deallocate( def_string );
+		string_deallocate( value_string );
 	}
 
 	if( check_only )
