@@ -2,6 +2,8 @@
 HASH_FOUNDATION                         foundation
 HASH_DEFAULT                            default
 HASH_NULL                               null
+HASH_TRUE                               true
+HASH_FALSE                              false
 HASH_LOCALE                             locale
 HASH_APPLICATION                        application
 HASH_USER                               user

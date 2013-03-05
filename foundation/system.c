@@ -407,9 +407,11 @@ uint32_t system_locale( void )
 	uint32_t localeval = 0;
 	char localestr[4];
 	
-	const char* locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
+	const char* locale = config_string( HASH_USER, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
+	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
 	

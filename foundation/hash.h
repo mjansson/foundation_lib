@@ -37,9 +37,9 @@ FOUNDATION_API const char*                   hash_to_string( const hash_t value 
 
 #if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
 
-FOUNDATION_API void _static_hash_store( const void* key, const unsigned int len, const hash_t value );
+FOUNDATION_API void                          _static_hash_store( const void* key, const unsigned int len, const hash_t value );
 
-static FORCEINLINE hash_t static_hash( const void* key, const unsigned int len, const hash_t value )
+static FORCEINLINE hash_t                    static_hash( const void* key, const unsigned int len, const hash_t value )
 {
 	hash_t ref = hash( key, len );
 	FOUNDATION_ASSERT_MSGFORMAT( !value || ( ref == value ), "Static hash fail: %s -> 0x%llx, expected 0x%llx", key, ref, value );
@@ -48,3 +48,6 @@ static FORCEINLINE hash_t static_hash( const void* key, const unsigned int len, 
 }
 
 #endif
+
+//! Hash of an empty string (length 0)
+#define HASH_EMPTY_STRING                    0xC2D00F032E25E509ULL
