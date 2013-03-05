@@ -68,6 +68,7 @@ typedef struct
 typedef struct
 {
 	bool              display_help;
+	bool              output_lowercase;
 	bool              output_binary;
 	char*             output_file;
 	uuid_instance_t*  generate;
@@ -83,7 +84,7 @@ static int                  uuidgen_generate_namespace_md5( uuid_t** uuid, const
 static int                  uuidgen_generate_random( uuid_t** uuid );
 static int                  uuidgen_generate_time( uuid_t** uuid );
 
-static int                  uuidgen_output( uuid_t* uuid, const char* output, bool binary );
+static int                  uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercase );
 
 static void                 uuidgen_print_usage( void );
 
@@ -120,7 +121,7 @@ int main_run( void* main_arg )
 			goto exit;
 	}
 
-	result = uuidgen_output( output, input.output_file, input.output_binary );
+	result = uuidgen_output( output, input.output_file, input.output_binary, input.output_lowercase );
 	if( result < 0 )
 		goto exit;
 
@@ -163,11 +164,18 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 				string_deallocate( input.output_file );
 				input.output_file = string_clone( cmdline[arg] );
 			}
-			continue;
 		}
 		else if( string_equal( cmdline[arg], "--binary" ) )
 		{
 			input.output_binary = true;
+		}
+		else if( string_equal( cmdline[arg], "--lowercase" ) )
+		{
+			input.output_lowercase = true;
+		}
+		else if( string_equal( cmdline[arg], "--uppercase" ) )
+		{
+			input.output_lowercase = false;
 		}
 		else if( string_equal( cmdline[arg], "--random" ) )
 		{
@@ -216,9 +224,11 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 		}
 		else if( string_equal( cmdline[arg], "--" ) )
 			break; //Stop parsing cmdline options
-
-		//Unknown argument, display help
-		input.display_help = true;
+		else
+		{
+			//Unknown argument, display help
+			input.display_help = true;
+		}
 	}
 	error_context_pop();
 
@@ -401,7 +411,7 @@ int uuidgen_generate_namespace_md5( uuid_t** uuid, const uuid_t namespace, const
 }
 
 
-int uuidgen_output( uuid_t* uuid, const char* output, bool binary )
+int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercase )
 {
 	if( output )
 	{
@@ -415,7 +425,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary )
 				stream_write( stream, uuid + i, sizeof( uuid[i] ) );
 			else
 			{
-				stream_write_format( stream, "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", uuid[i].raw.data1, uuid[i].raw.data2, uuid[i].raw.data3, uuid[i].raw.data4[0], uuid[i].raw.data4[1], uuid[i].raw.data4[2], uuid[i].raw.data4[3], uuid[i].raw.data4[4], uuid[i].raw.data4[5], uuid[i].raw.data4[6], uuid[i].raw.data4[7] );
+				stream_write_format( stream, lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", uuid[i].raw.data1, uuid[i].raw.data2, uuid[i].raw.data3, uuid[i].raw.data4[0], uuid[i].raw.data4[1], uuid[i].raw.data4[2], uuid[i].raw.data4[3], uuid[i].raw.data4[4], uuid[i].raw.data4[5], uuid[i].raw.data4[6], uuid[i].raw.data4[7] );
 				stream_write_endl( stream );
 			}
 		}
@@ -426,7 +436,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary )
 		int i, uuidsize;
 		log_suppress( ERRORLEVEL_DEBUG );
 		for( i = 0, uuidsize = array_size( uuid ); i < uuidsize; ++i )
-			log_infof( "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", uuid[i].raw.data1, uuid[i].raw.data2, uuid[i].raw.data3, uuid[i].raw.data4[0], uuid[i].raw.data4[1], uuid[i].raw.data4[2], uuid[i].raw.data4[3], uuid[i].raw.data4[4], uuid[i].raw.data4[5], uuid[i].raw.data4[6], uuid[i].raw.data4[7] );
+			log_infof( lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", uuid[i].raw.data1, uuid[i].raw.data2, uuid[i].raw.data3, uuid[i].raw.data4[0], uuid[i].raw.data4[1], uuid[i].raw.data4[2], uuid[i].raw.data4[3], uuid[i].raw.data4[4], uuid[i].raw.data4[5], uuid[i].raw.data4[6], uuid[i].raw.data4[7] );
 	}
 	return UUIDGEN_RESULT_OK;
 }
@@ -446,6 +456,8 @@ static void uuidgen_print_usage( void )
 		"                                   in <namespace> and a name string specified in <name>\n"
 		"      --output <filename>          Output to <filename> instead of stdout\n"
 		"      --binary                     Output binary data instead of ASCII (stdout is always ASCII)\n"
+		"      --lowercase                  Output UUID in lowercase hex\n"
+		"      --uppercase                  Output UUID in uppercase hex (default)\n"
 		"      --help                       Show this message"
 	);
 }
