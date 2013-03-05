@@ -1186,7 +1186,7 @@ char* string_from_real_buffer( char* buffer, real val, unsigned int precision, u
 #endif
 	FOUNDATION_ASSERT( len > 0 && len < 64 );
 	{
-		unsigned int end = string_find_last_not_of( buffer, "0", 0 );
+		unsigned int end = string_find_last_not_of( buffer, "0", STRING_NPOS );
 		if( end != STRING_NPOS )
 		{
 			if( buffer[ end ] == '.' )
