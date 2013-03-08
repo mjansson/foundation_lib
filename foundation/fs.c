@@ -1257,6 +1257,9 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 FOUNDATION_EXTERN void _ringbuffer_stream_initialize( void );
 FOUNDATION_EXTERN void _buffer_stream_initialize( void );
+#if FOUNDATION_PLATFORM_ANDROID
+FOUNDATION_EXTERN void _asset_stream_initialize( void );
+#endif
 
 
 int _fs_initialize( void )
@@ -1280,6 +1283,9 @@ int _fs_initialize( void )
 
 	_ringbuffer_stream_initialize();
 	_buffer_stream_initialize();
+#if FOUNDATION_PLATFORM_ANDROID
+	_asset_stream_initialize();
+#endif
 
 	return 0;
 }

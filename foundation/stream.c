@@ -37,8 +37,13 @@ stream_t* stream_open( const char* path, unsigned int mode )
 	if( protocol_end != STRING_NPOS )
 	{
 		//TODO: Proper pluggable protocol handling
-		if( ( protocol_end == 4 ) && string_equal_substr( path, "file", protocol_end ) )
-			fs_open_file( path, mode );
+#if FOUNDATION_PLATFORM_ANDROID
+		if( ( protocol_end == 5 ) && string_equal_substr( path, "asset", 5 ) )
+			return asset_stream_open( path, mode );
+		else
+#endif
+		if( ( protocol_end == 4 ) && string_equal_substr( path, "file", 4 ) )
+			return fs_open_file( path, mode );
 		//else if( ( protocol_end == 10 ) && string_equal_substr( path, "ringbuffer", protocol_end ) )
 		//	ringbuffer_stream_open( ... );
 		//else if( ( protocol_end == 3 ) && string_equal_substr( path, "tcp", protocol_end ) )

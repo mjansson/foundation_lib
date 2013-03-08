@@ -1,4 +1,4 @@
-/* buffer_stream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* bufferstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
