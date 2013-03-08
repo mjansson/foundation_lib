@@ -44,7 +44,7 @@ void error_set_callback( error_callback_fn callback )
 }
 
 
-#if !BUILD_DEPLOY || BUILD_ENABLE_DEPLOY_ERROR
+#if BUILD_ENABLE_ERROR_CONTEXT
 
 #include <stdio.h>
 

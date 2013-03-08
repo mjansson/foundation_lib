@@ -16,9 +16,11 @@ elif toolsenv['platform'] == 'raspberrypi':
 
 env['bin2hexprg'] = toolsenv.Program( 'bin/bin2hex${prgsuffix}', 'bin2hex/main.c' )
 env['hashifyprg'] = toolsenv.Program( 'bin/hashify${prgsuffix}', 'hashify/main.c' )
+env['uuidgenprg'] = toolsenv.Program( 'bin/uuidgen${prgsuffix}', 'uuidgen/main.c' )
 
 
 # INSTALLS
 
 toolsenv.AddPostAction( 'bin/bin2hex${prgsuffix}', toolsenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['bin2hexprg'] ] ) )
 toolsenv.AddPostAction( 'bin/hashify${prgsuffix}', toolsenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['hashifyprg'] ] ) )
+toolsenv.AddPostAction( 'bin/uuidgen${prgsuffix}', toolsenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['uuidgenprg'] ] ) )

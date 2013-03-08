@@ -359,7 +359,7 @@ int process_spawn( process_t* proc )
 
 	//Insert executable arg at start and null ptr at end
 	int argc = array_size( proc->args ) + 1;
-	array_grow( proc->args, 1 );
+	array_grow( proc->args, 2 );
 	for( int arg = argc - 1; arg > 0; --arg )
 		proc->args[arg] = proc->args[arg-1];
 	proc->args[0] = string_clone( proc->path );

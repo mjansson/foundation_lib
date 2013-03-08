@@ -59,7 +59,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 	const unsigned char* loop     = input_raw;
 	const unsigned char* loop_end = loop + ( num * data_size );
 	radixsort_index_t*   indices  = sort->indices[0];
-	radixsort_index_t    index;
+	radixsort_index_t    curindex;
 
 	//Histograms for all passes
 	radixsort_index_t*   histogram[8];
@@ -83,8 +83,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				index = *indices++;
-				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
+				curindex = *indices++;
+				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -112,8 +112,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				index = *indices++;
-				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
+				curindex = *indices++;
+				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -141,8 +141,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				index = *indices++;
-				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
+				curindex = *indices++;
+				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -178,8 +178,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				index = *indices++;
-				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
+				curindex = *indices++;
+				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -215,8 +215,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				index = *indices++;
-				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
+				curindex = *indices++;
+				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -244,8 +244,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 
 			while( loop != loop_end )
 			{
-				index = *indices++;
-				if( ( index >= num ) || ( ( val = input[ index ] ) < prev_val ) ) break;
+				curindex = *indices++;
+				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
