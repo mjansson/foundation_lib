@@ -173,6 +173,7 @@ pip-log.txt
 lib/**
 bin/**
 dist/**
+libs/**
 
 #Log files
 *.log
@@ -180,6 +181,10 @@ dist/**
 
 #Scons build
 .sconsign.dblite
+build/scons/debug*
+build/scons/release*
+build/scons/profi*
+build/scons/deploy*
 
 #Backups
 *~
