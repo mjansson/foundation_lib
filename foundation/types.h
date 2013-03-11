@@ -178,7 +178,10 @@ typedef enum
 typedef enum
 {
 	//! Returned when given invalid arguments
-	PROCESS_INVALID_ARGS                      = 0x7FFFFFFE,
+	PROCESS_INVALID_ARGS                      = 0x7FFFFFF0,
+
+	//! Returned when process was terminated by signal
+	PROCESS_TERMINATED_SIGNAL                 = 0x7FFFFFF1,
 	
 	//! Returned when detached process is still running
 	PROCESS_STILL_ACTIVE                      = 0x7FFFFFFF

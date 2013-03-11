@@ -475,7 +475,17 @@ int process_wait( process_t* proc )
 	pid_t err = waitpid( proc->pid, &cstatus, ( proc->flags & PROCESS_DETACHED ) ? WNOHANG : 0 );
 	if( err > 0 )
 	{
-		proc->code = (int)((char)WEXITSTATUS( cstatus ));
+		if( WIFEXITED( cstatus ) )
+			proc->code = (int)((char)WEXITSTATUS( cstatus ));
+		else if( WIFSIGNALED( cstatus ) )
+		{
+			proc->code = PROCESS_TERMINATED_SIGNAL;
+#ifdef WCOREDUMP
+			//if( WCOREDUMP( cstatus ) )
+			//...
+#endif
+			//proc->signal = WTERMSIG( cstatus );
+		}
 		proc->pid = 0;
 	}
 	else

@@ -64,9 +64,12 @@ int main_run( void* main_arg )
 
 		string_deallocate( process_path );
 
-		if( process_result < 0 )
+		if( process_result != 0 )
 		{
-			log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+			if( process_result >= PROCESS_INVALID_ARGS )
+				log_warnf( WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
+			else
+				log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 			goto exit;
 		}
 	}

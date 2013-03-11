@@ -16,7 +16,7 @@
 static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_MACOSX )
 static char                    _crash_dump_file[FOUNDATION_MAX_PATHLEN+128];
 #endif
 
@@ -127,10 +127,46 @@ LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 
 #endif
 
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE
+
+#include <signal.h>
+#include <setjmp.h>
+#include <ucontext.h>
+
+FOUNDATION_DECLARE_THREAD_LOCAL( crash_dump_callback_fn, crash_callback, 0 )
+FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
+FOUNDATION_DECLARE_THREAD_LOCAL( struct __jmp_buf_tag*, crash_env, 0 )
+
+	
+static void _crash_guard_minidump( ucontext_t* context, const char* name, char* dump_file )
+{
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "/tmp/core.%s", name ? name : "unknown" );
+}
+
+	
+static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
+{
+	log_infof( "Caught crash guard signal: %d", sig );
+
+	ucontext_t* user_context = arg;
+
+	crash_dump_callback_fn callback = get_thread_crash_callback();
+	if( callback )
+	{
+		_crash_guard_minidump( user_context, get_thread_crash_callback_name(), _crash_dump_file );
+		callback( _crash_dump_file );
+	}
+	
+	siglongjmp( get_thread_crash_env(), CRASH_DUMP_GENERATED );
+}
+
+#endif
+
 
 int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
+
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 	__try
 	{
@@ -148,9 +184,47 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	_crash_exception_closure.name = name;
 	return fn( data );
 #  endif
-#else
+	
+#elif FOUNDATION_PLATFORM_APPLE
+
 	//No guard mechanism in place yet for this platform
 	return fn( data );
+	
+#elif FOUNDATION_PLATFORM_POSIX
+	sigjmp_buf guard_env = {0};
+	
+	struct sigaction action;
+	memset( &action, 0, sizeof( action ) );
+
+	//Signals we process globally
+	action.sa_sigaction = _crash_guard_sigaction;
+	action.sa_flags = SA_SIGINFO;
+	if( ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
+	    ( sigaction( SIGFPE,  &action, 0 ) < 0 ) ||
+	    ( sigaction( SIGSEGV, &action, 0 ) < 0 ) ||
+	    ( sigaction( SIGBUS,  &action, 0 ) < 0 ) ||
+	    ( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
+	{
+		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to set crash guard signal actions" );
+		return fn( data );
+	}
+
+	set_thread_crash_callback( callback );
+	set_thread_crash_callback_name( name );
+
+	int ret = sigsetjmp( guard_env, 1 );
+	if( ret == 0 )
+	{
+		set_thread_crash_env( guard_env );
+		return fn( data );
+	}
+	return ret;
+	
+#else
+
+	//No guard mechanism in place yet for this platform
+	return fn( data );
+
 #endif
 }
 
