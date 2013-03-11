@@ -22,7 +22,7 @@ static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN] = {0};
 #if FOUNDATION_PLATFORM_WINDOWS
-static char    _environment_var[FOUNDATION_MAX_PATHLEN] = {0};
+static char*   _environment_var = 0;
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
@@ -44,7 +44,9 @@ static void _environment_set_executable_paths( const char* executable_path )
 		if( !string_length( _environment_executable_dir ) )
 			string_copy( _environment_executable_dir, executable_path, last_path + 1 );
 		if( !string_length( _environment_executable_name ) )
+		{
 			string_copy( _environment_executable_name, executable_path + last_path + 1, FOUNDATION_MAX_PATHLEN );
+		}
 	}
 	else
 	{
@@ -53,6 +55,11 @@ static void _environment_set_executable_paths( const char* executable_path )
 		if( !string_length( _environment_executable_name ) )
 			string_copy( _environment_executable_name, executable_path, FOUNDATION_MAX_PATHLEN );
 	}
+#if FOUNDATION_PLATFORM_WINDOWS
+	last_path = string_length( _environment_executable_name );
+	if( ( last_path > 4 ) && ( string_equal( _environment_executable_name + ( last_path - 4 ), ".exe" ) || string_equal( _environment_executable_name + ( last_path - 4 ), ".EXE" ) ) )
+		_environment_executable_name[ last_path - 4 ] = 0;
+#endif
 }
 
 
@@ -156,6 +163,10 @@ int _environment_initialize( const application_t application )
 void _environment_shutdown( void )
 {
 	string_array_deallocate( _environment_argv );
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	string_deallocate( _environment_var );
+#endif
 }
 
 
@@ -316,14 +327,26 @@ const char* environment_temporary_directory( void )
 const char* environment_variable( const char* var )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
-	char* cval;
+	unsigned int required;
 	wchar_t* key = wstring_allocate_from_string( var, 0 );
-	wchar_t val[512]; val[0] = 0;
-	GetEnvironmentVariableW( key, val, 512 );
+	wchar_t val[FOUNDATION_MAX_PATHLEN]; val[0] = 0;
+	if( ( required = GetEnvironmentVariableW( key, val, FOUNDATION_MAX_PATHLEN ) ) > FOUNDATION_MAX_PATHLEN )
+	{
+		wchar_t* val_local = memory_allocate( sizeof( wchar_t ) * ( required + 2 ), 0, MEMORY_TEMPORARY );
+		val_local[0] = 0;
+		GetEnvironmentVariableW( key, val_local, required + 1 );
+		if( _environment_var )
+			string_deallocate( _environment_var );
+		_environment_var = string_allocate_from_wstring( val_local, 0 );
+		memory_deallocate( val_local );
+	}
+	else
+	{
+		if( _environment_var )
+			string_deallocate( _environment_var );
+		_environment_var = string_allocate_from_wstring( val, 0 );
+	}
 	wstring_deallocate( key );
-	cval = string_allocate_from_wstring( val, 0 );
-	string_copy( _environment_var, cval, 512 );
-	string_deallocate( cval );
 	return _environment_var;
 #elif FOUNDATION_PLATFORM_POSIX
 	return getenv( var );
