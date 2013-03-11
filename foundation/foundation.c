@@ -64,6 +64,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _random_initialize() < 0 )
 		return -1;
 
+	if( _fs_initialize() < 0 )
+		return -1;
+
 	if( _environment_initialize( application ) < 0 )
 		return -1;
 
@@ -71,9 +74,6 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 		return -1;
 
 	if( _system_initialize() < 0 )
-		return -1;
-
-	if( _fs_initialize() < 0 )
 		return -1;
 
 	if( _config_initialize() < 0 )
