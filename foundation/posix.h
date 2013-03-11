@@ -28,6 +28,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sched.h>
+
+#include <sys/ioctl.h>
+#include <net/if.h>
 
 #undef radixsort
 

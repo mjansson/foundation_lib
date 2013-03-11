@@ -14,7 +14,6 @@
 
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#  include <sched.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -310,19 +309,25 @@ const char* system_username( void )
 
 uint64_t system_hostid( void )
 {
-	/*int s;
+	int sock, j;
 	struct ifreq buffer;
-	s = socket( PF_INET, SOCK_DGRAM, 0 );
+	union
+	{
+		uint64_t               id;
+		unsigned char ALIGN(8) buffer[8];
+	} hostid;
+
+	sock = socket( PF_INET, SOCK_DGRAM, 0 );
 	memset( &buffer, 0, sizeof( buffer ) );
-	strcpy(buffer.ifr_name, "eth0");
-	ioctl(s, SIOCGIFHWADDR, &buffer);
-	close(s);
-	printf("%.2X ", (unsigned char)buffer.ifr_hwaddr.sa_data[s]);*/
-#if FOUNDATION_PLATFORM_ANDROID
-	return 0;
-#else
-	return gethostid();
-#endif
+	strcpy( buffer.ifr_name, "eth0" );
+	ioctl( sock, SIOCGIFHWADDR, &buffer );
+	close( sock );
+
+	hostid.id = 0;
+	for( j = 0; j < 6; ++j )
+		hostid.buffer[5-j] = buffer.ifr_hwaddr.sa_data[j];
+	return hostid.id;
+	//return gethostid();
 }
 
 
