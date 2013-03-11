@@ -26,17 +26,42 @@ application_t test_application( void )
 
 DECLARE_TEST( environment, builtin )
 {
-	/*const char* const*     environment_command_line( void );
-	const char*            environment_executable_name( void );
-	const char*            environment_executable_directory( void );
-	const char*            environment_initial_working_directory( void );
-	const char*            environment_current_working_directory( void );
-	void                   environment_set_current_working_directory( const char* path );
-	const char*            environment_home_directory( void );
-	const char*            environment_temporary_directory( void );
-	const char*            environment_variable( const char* var );
-	const application_t*   environment_application( void );*/
+	char const* const* cmdline = environment_command_line();
+	
+	EXPECT_EQ( array_size( cmdline ), 1 );
+	EXPECT_NE( string_find_string( cmdline[0], "test-environment", 0 ), STRING_NPOS );
 
+	EXPECT_STREQ( environment_executable_name(), "test-environment" );
+	EXPECT_NE( environment_initial_working_directory(), 0 );
+	EXPECT_NE( string_length( environment_initial_working_directory() ), 0 );
+	EXPECT_STREQ( environment_initial_working_directory(), environment_current_working_directory() );
+	
+	EXPECT_NE( environment_home_directory(), 0 );
+	EXPECT_NE( string_length( environment_home_directory() ), 0 );
+
+	EXPECT_NE( environment_temporary_directory(), 0 );
+	EXPECT_NE( string_length( environment_temporary_directory() ), 0 );
+
+	EXPECT_NE( environment_variable( "PATH" ), 0 );
+	EXPECT_NE( string_length( environment_variable( "PATH" ) ), 0 );
+	
+	return 0;
+}
+
+DECLARE_TEST( environment, workingdir )
+{
+	const char* working_dir = environment_current_working_directory();
+
+	char* new_working_dir = path_path_name( working_dir );
+
+	environment_set_current_working_directory( new_working_dir );
+	EXPECT_STREQ( environment_current_working_directory(), new_working_dir );
+
+	environment_set_current_working_directory( working_dir );	
+	EXPECT_STREQ( environment_current_working_directory(), working_dir );
+
+	string_deallocate( new_working_dir );
+	
 	return 0;
 }
 
@@ -44,4 +69,5 @@ DECLARE_TEST( environment, builtin )
 void test_declare( void )
 {
 	ADD_TEST( environment, builtin );
+	ADD_TEST( environment, workingdir );
 }
