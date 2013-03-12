@@ -98,6 +98,8 @@ int main_initialize( void )
 	application.short_name = "uuidgen";
 	application.config_dir = "uuidgen";
 
+	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );
+
 	log_enable_prefix( false );
 	log_suppress( ERRORLEVEL_ERROR );
 

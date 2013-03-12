@@ -13,6 +13,8 @@
 #include <foundation/foundation.h>
 #include <foundation/main.h>
 
+FOUNDATION_EXTERN void foundation_startup( void );
+
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -65,6 +67,8 @@ int APIENTRY WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int c
 	SetConsoleCtrlHandler( _main_console_handler, TRUE );
 
 	thread_set_main();
+
+	foundation_startup();
 
 #if BUILD_DEBUG
 	ret = main_run( 0 );
@@ -179,6 +183,8 @@ int main( int argc, char **argv )
 #endif
 
 	thread_set_main();
+
+	foundation_startup();
 
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	if( !app_config_bool( _HASH_APPLICATION, _HASH_BSDUTILITY ) )

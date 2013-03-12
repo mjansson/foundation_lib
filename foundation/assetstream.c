@@ -142,7 +142,7 @@ stream_t* asset_stream_open( const char* path, unsigned int mode )
 		return 0;
 	}
 
-	stream_asset_t* asset = memory_allocate_zero( sizeof( stream_asset_t ), 0, MEMORY_PERSISTENT );
+	stream_asset_t* asset = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_asset_t ), 0, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)asset;
 
 	_stream_initialize( stream );

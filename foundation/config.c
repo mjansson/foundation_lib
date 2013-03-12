@@ -119,11 +119,11 @@ static NOINLINE void _expand_string_val( hash_t section, config_key_t* key )
 
 int _config_initialize( void )
 {
-	config_load( "foundation", 0, true );
-	config_load( "application", 0, true );
+	config_load( "foundation", 0, true, false );
+	config_load( "application", 0, true, false );
 
 	//Load per-user config
-	config_load( "user", HASH_USER, false );
+	config_load( "user", HASH_USER, false, true );
 
 	return 0;
 }
@@ -157,7 +157,7 @@ void _config_shutdown( void )
 }
 
 
-void config_load( const char* name, hash_t filter_section, bool built_in )
+void config_load( const char* name, hash_t filter_section, bool built_in, bool overwrite )
 {
 #define NUM_SEARCH_PATHS 10
 #define ANDROID_ASSET_PATH_INDEX 5
@@ -352,7 +352,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 		istream = stream_open( filename, STREAM_IN );
 		if( istream )
 		{
-			config_parse( istream, filter_section );
+			config_parse( istream, filter_section, overwrite );
 			stream_deallocate( istream );
 		}
 		string_deallocate( filename );
@@ -385,7 +385,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 			istream = stream_open( filename, STREAM_IN );
 			if( istream )
 			{
-				config_parse( istream, filter_section );
+				config_parse( istream, filter_section, overwrite );
 				stream_deallocate( istream );
 			}
 			string_deallocate( filename );
@@ -621,7 +621,7 @@ void config_set_string_constant( hash_t section, hash_t key, const char* value )
 }
 
 
-void config_parse( stream_t* stream, hash_t filter_section )
+void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 {
 	//Format: compatible with "standard" INI files (see http://en.wikipedia.org/wiki/INI_file)
 	//[section]
@@ -681,22 +681,25 @@ void config_parse( stream_t* stream, hash_t filter_section )
 
 			key = hash( name, string_length( name ) );
 
+			if( overwrite || !config_key( section, key, false ) )
+			{
 #if BUILD_CONFIG_DEBUG
-			debug_logf( "  config: %s (0x%llx) = %s", name, key, value );
+				debug_logf( "  config: %s (0x%llx) = %s", name, key, value );
 #endif
 
-			if( !string_length( value ) )
-				config_set_string( section, key, "" );
-			else if( string_equal( value, "false" ) )
-				config_set_bool( section, key, false );
-			else if( string_equal( value, "true" ) )
-				config_set_bool( section, key, true );
-			else if( ( string_find( value, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value, "0123456789.", 0 ) == STRING_NPOS ) && ( string_find( value, '.', string_find( value, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
-				config_set_real( section, key, string_to_real( value ) );
-			else if( string_find_first_not_of( value, "0123456789", 0 ) == STRING_NPOS )
-				config_set_int( section, key, string_to_int64( value ) );
-			else
-				config_set_string( section, key, value );
+				if( !string_length( value ) )
+					config_set_string( section, key, "" );
+				else if( string_equal( value, "false" ) )
+					config_set_bool( section, key, false );
+				else if( string_equal( value, "true" ) )
+					config_set_bool( section, key, true );
+				else if( ( string_find( value, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value, "0123456789.", 0 ) == STRING_NPOS ) && ( string_find( value, '.', string_find( value, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
+					config_set_real( section, key, string_to_real( value ) );
+				else if( string_find_first_not_of( value, "0123456789", 0 ) == STRING_NPOS )
+					config_set_int( section, key, string_to_int64( value ) );
+				else
+					config_set_string( section, key, value );
+			}
 		}
 	}
 	memory_deallocate( buffer );

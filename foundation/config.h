@@ -31,8 +31,8 @@ FOUNDATION_API void                    config_set_real( hash_t section, hash_t k
 FOUNDATION_API void                    config_set_string( hash_t section, hash_t key, const char* value );
 FOUNDATION_API void                    config_set_string_constant( hash_t section, hash_t key, const char* value );
 
-FOUNDATION_API void                    config_load( const char* name, hash_t filter_section, bool built_in );
-FOUNDATION_API void                    config_parse( stream_t* stream, hash_t filter_section );
+FOUNDATION_API void                    config_load( const char* name, hash_t filter_section, bool built_in, bool overwrite );
+FOUNDATION_API void                    config_parse( stream_t* stream, hash_t filter_section, bool overwrite );
 
 FOUNDATION_API void                    config_write( stream_t* stream, hash_t filter_section );
 

@@ -239,7 +239,7 @@ DECLARE_TEST( bufferstream, zero_grow )
 	tick_t curtime = time_current();
 	char readbuffer[1024] = {0};
 	char writebuffer[1024] = {0};
-	uint8_t* backing_store = memory_allocate( 315, 0, MEMORY_TEMPORARY );
+	uint8_t* backing_store = memory_allocate( 315, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
 	uint128_t md5known;
 	unsigned int slength;
@@ -314,7 +314,7 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 	tick_t curtime = time_current();
 	char readbuffer[1024] = {0};
 	char writebuffer[1024] = {0};
-	uint8_t* backing_store = memory_allocate( 1024, 0, MEMORY_TEMPORARY );
+	uint8_t* backing_store = memory_allocate( 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
 	uint128_t md5known;
 	unsigned int slength;
@@ -389,7 +389,7 @@ DECLARE_TEST( bufferstream, sized_grow )
 	tick_t curtime = time_current();
 	char readbuffer[1024] = {0};
 	char writebuffer[1024] = {0};
-	uint8_t* backing_store = memory_allocate( 1024, 0, MEMORY_TEMPORARY );
+	uint8_t* backing_store = memory_allocate( 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
 	uint128_t md5known;
 	unsigned int slength;
@@ -464,7 +464,7 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 	tick_t curtime = time_current();
 	char readbuffer[1024] = {0};
 	char writebuffer[1024] = {0};
-	uint8_t* backing_store = memory_allocate( 1024, 0, MEMORY_TEMPORARY );
+	uint8_t* backing_store = memory_allocate( 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
 	uint128_t md5known;
 	unsigned int slength;

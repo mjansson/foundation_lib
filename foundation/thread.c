@@ -505,7 +505,8 @@ void thread_cleanup( void )
 #endif
 
 	error_context_thread_deallocate();
-	
+	memory_context_thread_deallocate();
+
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	uint64_t curid = thread_id();
 	for( int i = 0; i < 1024; ++i )

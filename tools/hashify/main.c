@@ -54,6 +54,10 @@ int main_initialize( void )
 	application.short_name = "hashify";
 	application.config_dir = "hashify";
 
+	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );
+
+	log_enable_prefix( false );
+
 	return foundation_initialize( memory_system_malloc(), application );
 }
 

@@ -14,7 +14,7 @@
 
 /*! \file build.h
     Build setup. This header unifies the debug/release build macros and provides the following macro idenfiers,
-	usable with #if BUILD_DEBUG / #if BUILD_RELEASE
+	usable with #if BUILD_[type] conditionals
 
 	BUILD_DEBUG   - Debug build
 	BUILD_RELEASE - Release build
@@ -109,13 +109,23 @@
 #endif
 #endif
 
+#ifndef BUILD_ENABLE_MEMORY_CONTEXT
+#define BUILD_ENABLE_MEMORY_CONTEXT           1
+#endif
+
 
 // Allocation sizes
 #define BUILD_SIZE_THREAD_MAP                 256
 #define BUILD_SIZE_LIBRARY_MAP                64
+
+// Default size of temporary (linear) memory allocator buffer
+#define BUILD_SIZE_TEMPORARY_MEMORY           2 * 1024 * 1024
 
 // Default size for thread stacks
 #define BUILD_SIZE_DEFAULT_THREAD_STACK       0x8000
 
 // Maximum error context depth
 #define BUILD_SIZE_ERROR_CONTEXT_DEPTH        32
+
+// Maximum memory context depth
+#define BUILD_SIZE_MEMORY_CONTEXT_DEPTH       32

@@ -71,8 +71,20 @@ typedef enum
 typedef enum
 {
 	MEMORY_TEMPORARY,
-	MEMORY_PERSISTENT
+	MEMORY_PERSISTENT,
+	MEMORY_THREAD
 } memory_hint_t;
+
+//! Memory contexts
+typedef enum
+{
+	MEMORYCONTEXT_GLOBAL       = 0,
+	MEMORYCONTEXT_STRING,
+	MEMORYCONTEXT_STREAM,
+	MEMORYCONTEXT_NETWORK,
+
+	MEMORYCONTEXT_LASTBUILTIN  = 0x0fff
+} memory_context_id;
 
 //! \Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
 typedef enum
@@ -252,10 +264,13 @@ typedef int           (* assert_handler_fn )( const char* condition, const char*
 //! Log output callback
 typedef void          (* log_callback_fn )( int severity, const char* msg );
 
-typedef void*         (* memory_allocate_fn )( uint64_t size, unsigned int align, memory_hint_t hint );
-typedef void*         (* memory_allocate_zero_fn )( uint64_t size, unsigned int align, memory_hint_t hint );
+typedef void*         (* memory_allocate_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
+typedef void*         (* memory_allocate_zero_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
 typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align );
 typedef void          (* memory_deallocate_fn )( void* p );
+
+typedef int           (* system_initialize_fn )( void );
+typedef void          (* system_shutdown_fn )( void );
 
 //! Callback function for writing profiling data to a stream
 typedef void          (* profile_write_fn)( void*, uint64_t );
@@ -281,6 +296,8 @@ typedef struct _foundation_memory_system
 	memory_allocate_zero_fn         allocate_zero;
 	memory_reallocate_fn            reallocate;
 	memory_deallocate_fn            deallocate;
+	system_initialize_fn            initialize;
+	system_shutdown_fn              shutdown;
 } memory_system_t;
 
 //! Version identifier
@@ -318,6 +335,12 @@ typedef struct _foundation_error_context
 	error_frame_t                   frame[BUILD_SIZE_ERROR_CONTEXT_DEPTH];
 	int                             depth;
 } error_context_t;
+
+typedef struct _foundation_memory_context
+{
+	uint16_t                        context[BUILD_SIZE_MEMORY_CONTEXT_DEPTH];
+	int                             depth;
+} memory_context_t;
 
 //! Object base structure. If changing base object layout, change objectmap_lookup()
 #define FOUNDATION_DECLARE_OBJECT               \
