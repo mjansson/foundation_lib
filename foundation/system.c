@@ -248,6 +248,8 @@ static uint32_t _system_user_locale( void )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+#include <ifaddrs.h>
+
 
 int _system_initialize( void )
 {
@@ -307,27 +309,61 @@ const char* system_username( void )
 }
 
 
-uint64_t system_hostid( void )
+static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 {
-	int sock, j;
-	struct ifreq buffer;
+	unsigned int j;
 	union
 	{
 		uint64_t               id;
 		unsigned char ALIGN(8) buffer[8];
 	} hostid;
-
-	sock = socket( PF_INET, SOCK_DGRAM, 0 );
-	memset( &buffer, 0, sizeof( buffer ) );
-	strcpy( buffer.ifr_name, "eth0" );
-	ioctl( sock, SIOCGIFHWADDR, &buffer );
-	close( sock );
-
+	
+	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
+		return 0;
+	
 	hostid.id = 0;
 	for( j = 0; j < 6; ++j )
-		hostid.buffer[5-j] = buffer.ifr_hwaddr.sa_data[j];
+		hostid.buffer[5-j] = ifr->ifr_hwaddr.sa_data[j];
+	
 	return hostid.id;
-	//return gethostid();
+}
+
+
+uint64_t system_hostid( void )
+{
+	int sock, j;
+	struct ifreq buffer;
+	struct ifaddrs* ifaddr;
+	struct ifaddrs* ifa;
+	uint64_t hostid = 0;
+	
+	sock = socket( PF_INET, SOCK_DGRAM, 0 );
+	
+	if( getifaddrs( &ifaddr ) == 0 )
+	{
+		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
+		{
+			if( string_equal( ifa->ifa_name, "lo" ) )
+				continue;
+			
+			memset( &buffer, 0, sizeof( buffer ) );
+			string_copy( buffer.ifr_name, ifa->ifa_name, sizeof( buffer.ifr_name ) );
+
+			hostid = _system_hostid_lookup( sock, &buffer );
+		}
+		freeifaddrs( ifaddr );
+	}
+	else
+	{
+		memset( &buffer, 0, sizeof( buffer ) );
+		strcpy( buffer.ifr_name, "eth0" );
+
+		hostid = _system_hostid_lookup( sock, &buffer );
+	}
+
+	close( sock );
+	
+	return hostid;
 }
 
 
