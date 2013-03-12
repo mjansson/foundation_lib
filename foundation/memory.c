@@ -27,8 +27,8 @@ typedef ALIGN(8) struct
 {
 	void*               storage;
 	void*               end;
-	volatile void*      head;
-	volatile void*      tail;
+	void*               head;
+	void*               tail;
 	uint64_t            size;
 	uint64_t            maxchunk;
 } atomic_linear_memory_t;
@@ -64,7 +64,7 @@ static void* _atomic_allocate_linear( uint64_t chunksize )
 
 	do
 	{
-		old_head = (void*)_memory_temporary.head;
+		old_head = _memory_temporary.head;
 		new_head = pointer_offset( old_head, chunksize );
 
 		return_pointer = old_head;
