@@ -93,17 +93,22 @@ static uuid_t               string_to_uuid( const char* str );
 
 int main_initialize( void )
 {
+	int ret = 0;
+
 	application_t application = {0};
 	application.name = "uuidgen";
 	application.short_name = "uuidgen";
 	application.config_dir = "uuidgen";
 
-	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );
-
 	log_enable_prefix( false );
 	log_suppress( ERRORLEVEL_ERROR );
 
-	return foundation_initialize( memory_system_malloc(), application );
+	if( ( ret = foundation_initialize( memory_system_malloc(), application ) ) < 0 )
+		return ret;
+
+	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );
+
+	return 0;
 }
 
 

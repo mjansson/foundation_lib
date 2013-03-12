@@ -20,7 +20,7 @@
 #endif
 
 
-static memory_system_t _memsys;
+static memory_system_t _memsys = {0};
 
 
 typedef ALIGN(8) struct
