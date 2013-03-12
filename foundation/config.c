@@ -57,14 +57,33 @@ static int64_t _config_string_to_int( const char* str )
 {
 	unsigned int length = string_length( str );
 	unsigned int first_nonnumeric = 0;
+	unsigned int dot_position = 0;
 	if( length < 2 )
 		return string_to_int64( str );
 
-	first_nonnumeric = string_find_first_not_of( str, "0123456789", 0 );
+	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
 	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'm' ) || ( str[ first_nonnumeric ] == 'M' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
+				return (int64_t)( string_to_real( str ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) ) );
+			return string_to_int64( str ); //More than one dot
+		}
 		return string_to_int64( str ) * ( 1024LL * 1024LL );
+	}
 	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'k' ) || ( str[ first_nonnumeric ] == 'K' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			 if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
+				return (int64_t)( string_to_real( str ) * REAL_C( 1024.0 ) );
+			 return string_to_int64( str ); //More than one dot
+		}
 		return string_to_int64( str ) * 1024LL;
+	}
 
 	return string_to_int64( str );
 }
@@ -74,14 +93,31 @@ static real _config_string_to_real( const char* str )
 {
 	unsigned int length = string_length( str );
 	unsigned int first_nonnumeric = 0;
+	unsigned int dot_position = 0;
 	if( length < 2 )
 		return string_to_real( str );
 
 	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
 	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'm' ) || ( str[ first_nonnumeric ] == 'M' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			if( string_find( str, '.', dot_position + 1 ) != STRING_NPOS )
+				return string_to_real( str ); //More than one dot
+		}
 		return string_to_real( str ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) );
+	}
 	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'k' ) || ( str[ first_nonnumeric ] == 'K' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			if( string_find( str, '.', dot_position + 1 ) != STRING_NPOS )
+				return string_to_real( str ); //More than one dot
+		}
 		return string_to_real( str ) * REAL_C( 1024.0 );
+	}
 
 	return string_to_real( str );
 }
