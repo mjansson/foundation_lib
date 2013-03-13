@@ -222,6 +222,11 @@ typedef enum
 
 typedef enum
 {
+	EVENTFLAG_DELAY  = 1
+} event_flag_t;
+
+typedef enum
+{
 	BLOWFISH_ECB,
 	BLOWFISH_CBC,
 	BLOWFISH_CFB,
@@ -370,6 +375,7 @@ typedef struct _foundation_objectmap
 #define FOUNDATION_DECLARE_EVENT       \
 	uint8_t               system;      \
 	uint8_t               id;          \
+	uint16_t              flags;       \
 	uint16_t              serial;      \
 	uint16_t              size;        \
 	object_t              object

@@ -12,13 +12,6 @@
 
 #include <foundation/foundation.h>
 
-//
-//This sets up a lock-free structure of many-writers, single-reader and yield-spinning while waiting
-//for other threads to finish writing or swap-for-read. No locks needed as only write block needs to be protected
-//
-//The expected contention for writing is expected to be low as the write is a quick operation and number
-//of events posted to the same stream from different threads is very low
-//
 
 #define EVENT_BLOCK_POSTING  -1
 #define EVENT_BLOCK_SWAPPING -2
@@ -27,6 +20,7 @@ struct _foundation_event_block
 {
 	volatile uint32_t                used;
 	uint32_t                         capacity;
+	event_stream_t*                  stream;
 	event_t*                         events;
 };
 
@@ -40,19 +34,26 @@ struct ALIGN(16) _foundation_event_stream
 static int32_t _event_serial = 1;
 
 
-void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload )
+static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
 {
 	event_block_t* block;
 	event_t* event;
 	bool restored_block;
+	uint32_t basesize;
 	uint32_t allocsize;
 	int32_t last_write;
 
-	//Events must be aligned to an even 4 bytes
-	allocsize = sizeof( event_t ) + size;
-	if( allocsize % 4 )
-		allocsize += 4 - ( allocsize % 4 );
+	//Events must be aligned to an even 8 bytes
+	basesize = sizeof( event_t ) + size;
+	if( basesize % 8 )
+		basesize += 8 - ( basesize % 8 );
 
+	//Delayed events have extra 8 bytes payload to hold timestamp
+	allocsize = basesize;
+	if( ( flags & EVENTFLAG_DELAY ) && timestamp )
+		allocsize += 8;
+
+	//Lock the event block by atomic swapping the write block index
 	last_write = stream->write;
 	while( ( last_write < 0 ) || !atomic_cas32( &stream->write, EVENT_BLOCK_POSTING, last_write ) )
 	{
@@ -60,6 +61,7 @@ void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t 
 		last_write = stream->write;
 	}
 	
+	//We now have exclusive access to the event block
 	block = stream->block + last_write;
 
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
@@ -70,22 +72,45 @@ void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t 
 	}
 
 	event = pointer_offset( block->events, block->used );
-	block->used += allocsize;
 
 	event->system    = systemid;
 	event->id        = id;
 	event->serial    = (uint16_t)( atomic_exchange_and_add32( &_event_serial, 1 ) & 0xFFFF );
 	event->size      = allocsize;
+	event->flags     = 0;
 	event->object    = object;
 
 	if( size )
 		memcpy( event->payload, payload, size );
 
+	if( ( flags & EVENTFLAG_DELAY ) && timestamp )
+	{
+		event->flags |= EVENTFLAG_DELAY;
+		*(uint64_t*)pointer_offset( event, basesize ) = timestamp;
+	}
+
 	//Terminate with null system on next event
+	block->used += allocsize;
 	((event_t*)pointer_offset( block->events, block->used ))->system = 0;
 
+	//Now unlock the event block
 	restored_block = atomic_cas32( &stream->write, last_write, EVENT_BLOCK_POSTING );
 	FOUNDATION_ASSERT( restored_block );
+}
+
+
+uint16_t event_payload_size( const event_t* event )
+{
+	uint16_t size = event->size - sizeof( event_t );
+	if( event->flags & EVENTFLAG_DELAY )
+		size -= 8;
+	return size;
+}
+
+
+void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload )
+{
+	_event_post_delay_with_flag( stream, systemid, id, size, object, payload, 0, 0 );
 }
 
 
@@ -97,31 +122,73 @@ void event_post_delay( event_stream_t* stream, uint8_t systemid, uint8_t id, uin
 
 void event_post_delay_ticks( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, tick_t delay )
 {
+	tick_t delivery = 0;
+
 	if( !delay )
 	{
 		event_post( stream, systemid, id, size, object, payload );
 		return;
 	}
 
-	FOUNDATION_ASSERT_FAIL( "Delayed events not implemented yet" );	
+	_event_post_delay_with_flag( stream, systemid, id, size, object, payload, EVENTFLAG_DELAY, time_current() + delay );
 }
 
 
 event_t* event_first( const event_block_t* block )
 {
-	return block && block->used ? block->events : 0;
+	uint64_t curtime = 0;
+	uint64_t eventtime = 0;
+	event_t* event = ( block && block->used ? block->events : 0 );
+	while( event )
+	{
+		if( !( event->flags & EVENTFLAG_DELAY ) )
+			return event;
+
+		if( !curtime )
+			curtime = time_current();
+
+		eventtime = *(uint64_t*)pointer_offset( event, event->size - 8 );
+		if( eventtime < curtime )
+			return event;
+
+		//Re-post to next event block
+		_event_post_delay_with_flag( block->stream, event->system, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
+
+		event = pointer_offset( event, event->size );
+		if( !event->system )
+			return 0; // End of event list
+	}
+
+	return 0;
 }
 
 
-event_t* event_next( event_t* event )
+event_t* event_next( const event_block_t* block, event_t* event )
 {
-	event_t* next;
-	if( !event )
-		return 0;
-	next = pointer_offset( event, event->size );
-	if( !next->system )
-		return 0; // End of event list
-	return next;
+	uint64_t curtime = 0;
+	uint64_t eventtime;
+
+	while( event )
+	{
+		event = pointer_offset( event, event->size );
+		if( !event->system )
+			return 0; // End of event list
+
+		if( !( event->flags & EVENTFLAG_DELAY ) )
+			return event;
+
+		if( !curtime )
+			curtime = time_current();
+
+		eventtime = *(uint64_t*)pointer_offset( event, event->size - 8 );
+		if( eventtime < curtime )
+			return event;
+
+		//Re-post to next block
+		_event_post_delay_with_flag( block->stream, event->system, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
+	}
+
+	return 0;
 }
 
 
@@ -130,14 +197,19 @@ event_stream_t* event_stream_allocate( unsigned int size )
 	event_stream_t* stream = memory_allocate_zero( sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
 	stream->write = 0;
 	stream->read = 1;
-	if( size )
-	{
-		stream->block[0].events = memory_allocate( size, 16, MEMORY_PERSISTENT );
-		stream->block[1].events = memory_allocate( size, 16, MEMORY_PERSISTENT );
 
-		stream->block[0].capacity = size;
-		stream->block[1].capacity = size;
-	}
+	if( size < 256 )
+		size = 256;
+	
+	stream->block[0].events = memory_allocate( size, 16, MEMORY_PERSISTENT );
+	stream->block[1].events = memory_allocate( size, 16, MEMORY_PERSISTENT );
+
+	stream->block[0].capacity = size;
+	stream->block[1].capacity = size;
+
+	stream->block[0].stream = stream;
+	stream->block[1].stream = stream;
+
 	return stream;
 }
 
@@ -163,6 +235,7 @@ event_block_t* event_stream_process( event_stream_t* stream )
 	if( !stream )
 		return 0;
 
+	//Lock the write event block by atomic swapping the write block index
 	last_write = stream->write;
 	while( ( last_write < 0 ) || !atomic_cas32( &stream->write, EVENT_BLOCK_SWAPPING, last_write ) )
 	{
@@ -170,11 +243,16 @@ event_block_t* event_stream_process( event_stream_t* stream )
 		last_write = stream->write;
 	}
 
+	//Reset used on last read (safe, since read can only happen on one thread)
+	stream->block[ stream->read ].used = 0;
+
+	//Swap blocks
 	new_write = stream->read;
 	stream->read = last_write;
 
 	block = stream->block + last_write;
 
+	//Unlock write event block
 	restored_block = atomic_cas32( &stream->write, new_write, EVENT_BLOCK_SWAPPING );
 	FOUNDATION_ASSERT( restored_block );
 

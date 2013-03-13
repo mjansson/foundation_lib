@@ -201,6 +201,13 @@ bool thread_is_thread( object_t id )
 }
 
 
+void* thread_result( object_t id )
+{
+	thread_t* thread = GET_THREAD( id );
+	return ( !thread || thread->running ) ? 0 : thread->result;
+}
+
+
 const char* thread_name( void )
 {
 	return get_thread_name();
@@ -330,7 +337,10 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	{
 		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
 		if( crash_result == CRASH_DUMP_GENERATED )
+		{
+			thread->result = (void*)((uintptr_t)CRASH_DUMP_GENERATED);
 			log_warnf( WARNING_SUSPICIOUS, "Thread '%s' (%llx) ID %llx crashed", thread->name, thread->osid, thread->id );
+		}
 	}
 	else
 	{
