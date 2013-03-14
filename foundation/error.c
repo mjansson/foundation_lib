@@ -44,7 +44,7 @@ void error_set_callback( error_callback_fn callback )
 }
 
 
-#if !BUILD_DEPLOY || BUILD_ENABLE_DEPLOY_ERROR
+#if BUILD_ENABLE_ERROR_CONTEXT
 
 #include <stdio.h>
 
@@ -115,7 +115,10 @@ void _error_context_thread_deallocate( void )
 {
 	error_context_t* context = get_thread_error_context();
 	if( context )
+	{
+		FOUNDATION_ASSERT_MSG( !context->depth, "Error context thread exit with non-zero context stack" );
 		memory_deallocate( context );
+	}
 	set_thread_error_context( 0 );
 }
 

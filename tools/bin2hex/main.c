@@ -33,6 +33,8 @@ static void                 bin2hex_print_usage( void );
 
 int main_initialize( void )
 {
+	int ret = 0;
+
 	application_t application = {0};
 	application.name = "bin2hex";
 	application.short_name = "bin2hex";
@@ -40,7 +42,12 @@ int main_initialize( void )
 
 	log_enable_prefix( false );
 
-	return foundation_initialize( memory_system_malloc(), application );
+	if( ( ret = foundation_initialize( memory_system_malloc(), application ) ) < 0 )
+		return ret;
+
+	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );
+
+	return 0;
 }
 
 
@@ -183,7 +190,7 @@ void bin2hex_print_usage( void )
 	log_infof( 
 		"bin2hex usage:\n"
 		"  bin2hex [--columns n] <file> <file> <file> <...>\n"
-		"    Required argumnets:\n"
+		"    Required arguments:\n"
 		"      <file>           Input filename (any number of input files allowed). Output will be named \"<file>.hex\"\n"
 		"    Optional arguments:\n"
 		"      --columns n      Print n bytes in each column (default is 32)\n"

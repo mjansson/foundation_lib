@@ -13,6 +13,8 @@
 #include <foundation/foundation.h>
 #include <foundation/main.h>
 
+FOUNDATION_EXTERN void foundation_startup( void );
+
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -66,6 +68,8 @@ int APIENTRY WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int c
 
 	thread_set_main();
 
+	foundation_startup();
+
 #if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
@@ -100,8 +104,9 @@ int APIENTRY WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int c
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+#include <foundation/posix.h>
+
 #include <signal.h>
-#include <unistd.h>
 #include <stdio.h>
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -153,15 +158,18 @@ int main( int argc, char **argv )
 #if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
 	
 	//Set signal handlers
-	signal( SIGKILL, sighandler );
-	signal( SIGTERM, sighandler );
-	signal( SIGQUIT, sighandler );
-	signal( SIGINT,  sighandler );
-
-	//Ignore sigpipe
 	{
 		struct sigaction action;
 		memset( &action, 0, sizeof( action ) );
+
+		//Signals we process globally
+		action.sa_handler = sighandler;
+		sigaction( SIGKILL, &action, 0 );
+		sigaction( SIGTERM, &action, 0 );
+		sigaction( SIGQUIT, &action, 0 );
+		sigaction( SIGINT,  &action, 0 );
+
+		//Ignore sigpipe
 		action.sa_handler = SIG_IGN;
 		sigaction( SIGPIPE, &action, 0 );
 	}
@@ -175,6 +183,8 @@ int main( int argc, char **argv )
 #endif
 
 	thread_set_main();
+
+	foundation_startup();
 
 #if FOUNDATION_PLATFORM_APPLE
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )

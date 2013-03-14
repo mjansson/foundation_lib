@@ -14,7 +14,6 @@
 
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#  include <sched.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -160,10 +159,9 @@ uint64_t system_hostid( void )
 	DWORD (__stdcall *fn_get_adapters_info)( PIP_ADAPTER_INFO, PULONG ) = 0;
 
 	if( !_system_library_iphlpapi )
-	{
 		_system_library_iphlpapi = library_load( "iphlpapi" );
+	if( _system_library_iphlpapi )
 		fn_get_adapters_info = (DWORD (__stdcall *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
-	}
 	if( !fn_get_adapters_info )
 		return 0;
 	
@@ -255,6 +253,8 @@ static uint32_t _system_user_locale( void )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+#include <ifaddrs.h>
+
 
 int _system_initialize( void )
 {
@@ -314,21 +314,61 @@ const char* system_username( void )
 }
 
 
+static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
+{
+	unsigned int j;
+	union
+	{
+		uint64_t               id;
+		unsigned char ALIGN(8) buffer[8];
+	} hostid;
+	
+	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
+		return 0;
+	
+	hostid.id = 0;
+	for( j = 0; j < 6; ++j )
+		hostid.buffer[5-j] = ifr->ifr_hwaddr.sa_data[j];
+	
+	return hostid.id;
+}
+
+
 uint64_t system_hostid( void )
 {
-	/*int s;
+	int sock, j;
 	struct ifreq buffer;
-	s = socket( PF_INET, SOCK_DGRAM, 0 );
-	memset( &buffer, 0, sizeof( buffer ) );
-	strcpy(buffer.ifr_name, "eth0");
-	ioctl(s, SIOCGIFHWADDR, &buffer);
-	close(s);
-	printf("%.2X ", (unsigned char)buffer.ifr_hwaddr.sa_data[s]);*/
-#if FOUNDATION_PLATFORM_ANDROID
-	return 0;
-#else
-	return gethostid();
-#endif
+	struct ifaddrs* ifaddr;
+	struct ifaddrs* ifa;
+	uint64_t hostid = 0;
+	
+	sock = socket( PF_INET, SOCK_DGRAM, 0 );
+	
+	if( getifaddrs( &ifaddr ) == 0 )
+	{
+		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
+		{
+			if( string_equal( ifa->ifa_name, "lo" ) )
+				continue;
+			
+			memset( &buffer, 0, sizeof( buffer ) );
+			string_copy( buffer.ifr_name, ifa->ifa_name, sizeof( buffer.ifr_name ) );
+
+			hostid = _system_hostid_lookup( sock, &buffer );
+		}
+		freeifaddrs( ifaddr );
+	}
+	else
+	{
+		memset( &buffer, 0, sizeof( buffer ) );
+		strcpy( buffer.ifr_name, "eth0" );
+
+		hostid = _system_hostid_lookup( sock, &buffer );
+	}
+
+	close( sock );
+	
+	return hostid;
 }
 
 
@@ -413,9 +453,11 @@ uint32_t system_locale( void )
 	uint32_t localeval = 0;
 	char localestr[4];
 	
-	const char* locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
+	const char* locale = config_string( HASH_USER, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
+	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
 	
@@ -460,7 +502,7 @@ event_stream_t* system_event_stream( void )
 
 void system_post_event( foundation_event_id event )
 {
-	event_post( _system_event_stream, SYSTEM_FOUNDATION, event, 0, 0, 0 );
+	event_post( _system_event_stream, SYSTEM_FOUNDATION, event, 0, 0, 0, 0 );
 }
 
 

@@ -15,6 +15,7 @@
 
 // Internals
 extern int _memory_initialize( const memory_system_t memory );
+extern void _memory_preallocate( void );
 extern void _memory_shutdown( void );
 
 extern int _time_initialize( void );
@@ -64,6 +65,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _random_initialize() < 0 )
 		return -1;
 
+	if( _fs_initialize() < 0 )
+		return -1;
+
 	if( _environment_initialize( application ) < 0 )
 		return -1;
 
@@ -73,12 +77,10 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _system_initialize() < 0 )
 		return -1;
 
-	if( _fs_initialize() < 0 )
-		return -1;
-
 	if( _config_initialize() < 0 )
 		return -1;
 
+	//Artificial reference and sanity check
 #if FOUNDATION_PLATFORM_ANDROID
 	if( (uintptr_t)android_main < 1 )
 		return -1;
@@ -88,6 +90,12 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 #endif
 	
 	return 0;
+}
+
+
+void foundation_startup( void )
+{
+	_memory_preallocate();
 }
 
 

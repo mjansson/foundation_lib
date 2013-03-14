@@ -63,6 +63,9 @@ FOUNDATION_API void            thread_terminate( object_t thread );
     \return                    true if thread should terminate, false if not (keep running) */
 FOUNDATION_API bool            thread_should_terminate( object_t thread );
 
+/*! Get thread exit value */
+FOUNDATION_API void*           thread_result( object_t thread );
+
 /*! Get object handle for calling thread
     \return                    Thread object, null if not a foundation-created thread (like main application thread) */
 FOUNDATION_API object_t        thread_self( void );
@@ -96,7 +99,6 @@ FOUNDATION_API void            thread_set_hardware( unsigned int hw_thread );
 
 /*! Cleanup on thread exit */
 FOUNDATION_API void            thread_cleanup( void );
-
 
 #if FOUNDATION_PLATFORM_ANDROID
 

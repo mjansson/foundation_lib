@@ -359,7 +359,7 @@ int process_spawn( process_t* proc )
 
 	//Insert executable arg at start and null ptr at end
 	int argc = array_size( proc->args ) + 1;
-	array_grow( proc->args, 1 );
+	array_grow( proc->args, 2 );
 	for( int arg = argc - 1; arg > 0; --arg )
 		proc->args[arg] = proc->args[arg-1];
 	proc->args[0] = string_clone( proc->path );
@@ -475,7 +475,17 @@ int process_wait( process_t* proc )
 	pid_t err = waitpid( proc->pid, &cstatus, ( proc->flags & PROCESS_DETACHED ) ? WNOHANG : 0 );
 	if( err > 0 )
 	{
-		proc->code = (int)((char)WEXITSTATUS( cstatus ));
+		if( WIFEXITED( cstatus ) )
+			proc->code = (int)((char)WEXITSTATUS( cstatus ));
+		else if( WIFSIGNALED( cstatus ) )
+		{
+			proc->code = PROCESS_TERMINATED_SIGNAL;
+#ifdef WCOREDUMP
+			//if( WCOREDUMP( cstatus ) )
+			//...
+#endif
+			//proc->signal = WTERMSIG( cstatus );
+		}
 		proc->pid = 0;
 	}
 	else

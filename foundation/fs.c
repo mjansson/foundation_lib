@@ -62,7 +62,10 @@ static event_stream_t* _fs_event_stream = 0;
 static directory_t* _fs_directory_allocate( const char* path )
 {
 	unsigned int pathlen = string_length( path ) + 1;
-	directory_t* dir = memory_allocate_zero( sizeof( directory_t ) + pathlen, 0, MEMORY_PERSISTENT );
+	directory_t* dir = 0;
+	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_allocate_zero( sizeof( directory_t ) + pathlen, 0, MEMORY_PERSISTENT );
+	memory_context_pop();
 	memcpy( dir->path, path, pathlen );
 	return dir;
 }
@@ -78,7 +81,9 @@ void fs_monitor( const char* path )
 			return;
 	}
 
-	monitor = memory_allocate_zero( sizeof( fs_monitor_t ), 0, MEMORY_TEMPORARY );
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
+	monitor = memory_allocate_zero( sizeof( fs_monitor_t ), 0, MEMORY_PERSISTENT );
 	monitor->path = string_clone( path );
 	monitor->signal = mutex_allocate( "fs_monitor_signal" );
 	monitor->thread = thread_create( _fs_monitor, "fs_monitor", THREAD_PRIORITY_BELOWNORMAL, 0 );
@@ -96,6 +101,8 @@ void fs_monitor( const char* path )
 		array_push_memcpy( _fs_monitors, monitor );
 
 	thread_start( monitor->thread, monitor );
+
+	memory_context_pop();
 }
 
 
@@ -202,6 +209,8 @@ char** fs_subdirs( const char* path )
 	wchar_t* wpattern = wstring_allocate_from_string( pattern, 0 );
 	string_deallocate( pattern );
 
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
@@ -216,6 +225,8 @@ char** fs_subdirs( const char* path )
 		}
 	} while( FindNextFileW( find, &data ) );
 	FindClose( find );
+
+	memory_context_pop();
 	
 	wstring_deallocate( wpattern );
 	
@@ -227,6 +238,9 @@ char** fs_subdirs( const char* path )
 	{
 		struct dirent* entry = 0;
 		struct stat st;
+
+		memory_context_push( MEMORYCONTEXT_STREAM );
+
 		while( ( entry = readdir( dir ) ) != 0 )
 		{
 			if( entry->d_name[0] == '.' )
@@ -240,6 +254,8 @@ char** fs_subdirs( const char* path )
 			string_deallocate( found );
 		}
 		closedir( dir );
+
+		memory_context_pop();
 	}
 
 #else
@@ -262,6 +278,8 @@ char** fs_files( const char* path )
 	wchar_t* wpattern = wstring_allocate_from_string( pattern, 0 );
 	string_deallocate( pattern );
 
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
@@ -269,7 +287,9 @@ char** fs_files( const char* path )
 			array_push( arr, string_allocate_from_wstring( data.cFileName, 0 ) );
 	} while( FindNextFileW( find, &data ) );
 	FindClose( find );
-	
+
+	memory_context_pop();
+
 	wstring_deallocate( wpattern );
 	
 #elif FOUNDATION_PLATFORM_POSIX
@@ -281,6 +301,9 @@ char** fs_files( const char* path )
 		//We have a directory, parse and create virtual file system
 		struct dirent* entry = 0;
 		struct stat st;
+
+		memory_context_push( MEMORYCONTEXT_STREAM );
+
 		while( ( entry = readdir( dir ) ) != 0 )
 		{
 			char* found = path_append( string_clone( path ), entry->d_name );
@@ -289,6 +312,8 @@ char** fs_files( const char* path )
 			string_deallocate( found );
 		}
 		closedir( dir );
+
+		memory_context_pop();
 	}
 
 #else
@@ -449,11 +474,11 @@ void fs_copy_file( const char* source, const char* dest )
 
 	infile = fs_open_file( source, STREAM_IN );
 	outfile = fs_open_file( dest, STREAM_OUT );
-	buffer = memory_allocate( 4096, 0, MEMORY_TEMPORARY );
+	buffer = memory_allocate( 64 * 1024, 0, MEMORY_TEMPORARY );
 
 	while( !stream_eos( infile ) )
 	{
-		uint64_t numread = stream_read( infile, buffer, 4096 );
+		uint64_t numread = stream_read( infile, buffer, 64 * 1024 );
 		if( numread )
 			stream_write( outfile, buffer, numread );
 	}
@@ -544,11 +569,17 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 	wchar_t* wpattern = wstring_allocate_from_string( pathpattern, 0 );
 	
 	HANDLE find = FindFirstFileW( wpattern, &data );
+
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
 		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
 			array_push( names, path_clean( string_allocate_from_wstring( data.cFileName, 0 ), false ) );
 	} while( FindNextFileW( find, &data ) );
+
+	memory_context_pop();
+
 	FindClose( find );
 
 	wstring_deallocate( wpattern );
@@ -557,6 +588,9 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 #else
 
 	char** fnames = fs_files( path );
+
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 	for( in = 0, nsize = array_size( fnames ); in < nsize; ++in )
 	{
 		if( string_match_pattern( fnames[in], pattern ) )
@@ -565,6 +599,9 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 			fnames[in] = 0;
 		}
 	}
+
+	memory_context_pop();
+
 	string_array_deallocate( fnames );
 
 #endif
@@ -573,6 +610,9 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 		return names;
 
 	subdirs = fs_subdirs( path );
+
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
 		char* subpath = path_merge( path, subdirs[id] );
@@ -585,6 +625,8 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 		string_deallocate( subpath );
 	}
 
+	memory_context_pop();
+
 	return names;
 }
 
@@ -593,7 +635,7 @@ void fs_post_event( foundation_event_id id, const char* path, unsigned int pathl
 {
 	if( !pathlen )
 		pathlen = string_length( path );
-	event_post( fs_event_stream(), SYSTEM_FOUNDATION, id, pathlen + 1, 0, path );
+	event_post( fs_event_stream(), SYSTEM_FOUNDATION, id, pathlen + 1, 0, path, 0 );
 }
 
 
@@ -658,6 +700,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	fs_monitor_t* monitor = monitorptr;
 
 #if FOUNDATION_PLATFORM_WINDOWS
+
 	HANDLE handles[2];
 	DWORD buffer_size = 63 * 1024;
 	DWORD out_size = 0;
@@ -666,7 +709,11 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	HANDLE dir = 0;
 	unsigned int wait_status = 0;
 	wchar_t* wfpath = 0;
-	void* buffer = memory_allocate( buffer_size, 8, MEMORY_PERSISTENT );
+	void* buffer = 0;
+	
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
+	buffer = memory_allocate( buffer_size, 8, MEMORY_PERSISTENT );
 	
 	handles[0] = mutex_event_object( monitor->signal );
 	handles[1] = CreateEvent( 0, FALSE, FALSE, 0 );
@@ -676,14 +723,24 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		log_warnf( WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
+
 #elif FOUNDATION_PLATFORM_LINUX
+
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
 	char** paths = 0;
+
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 	array_reserve( watch, 1024 );
 	
 	//Recurse and add all subdirs
 	_add_notify_subdir( notify_fd, monitor->path, &watch, &paths );
+
+#else
+
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 #endif
 
 	log_debugf( "Monitoring file system: %s", monitor->path );
@@ -882,6 +939,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	array_deallocate( watch );
 #endif
 
+	memory_context_pop();
+
 	return 0;
 }
 
@@ -970,14 +1029,16 @@ static void _fs_file_seek( stream_t* stream, int64_t offset, stream_seek_mode_t 
 
 static bool _fs_file_eos( stream_t* stream )
 {
-	stream_file_t* file;
+	/*stream_file_t* file;
 	int64_t cur;
-	bool iseos;
+	bool iseos;*/
 
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return true;
 
-	file = GET_FILE( stream );
+	return ( feof( GET_FILE( stream )->fd ) != 0 );
+	
+	/*file = GET_FILE( stream );
 	cur = _fs_file_tell( stream );
 	fseek( (FILE*)file->fd, 0, SEEK_END );
 
@@ -985,7 +1046,7 @@ static bool _fs_file_eos( stream_t* stream )
 	if( !iseos )
 		fseek( (FILE*)file->fd, (long)cur, SEEK_SET );
 
-	return iseos;
+	return iseos;*/
 }
 
 
@@ -1212,7 +1273,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 		mode |= STREAM_IN;
 
 	pathlen = string_length( path );
-	file = memory_allocate_zero( sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
+	file = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
 	stream = GET_STREAM( file );
 	_stream_initialize( stream );
 
@@ -1257,6 +1318,9 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 FOUNDATION_EXTERN void _ringbuffer_stream_initialize( void );
 FOUNDATION_EXTERN void _buffer_stream_initialize( void );
+#if FOUNDATION_PLATFORM_ANDROID
+FOUNDATION_EXTERN void _asset_stream_initialize( void );
+#endif
 
 
 int _fs_initialize( void )
@@ -1280,6 +1344,9 @@ int _fs_initialize( void )
 
 	_ringbuffer_stream_initialize();
 	_buffer_stream_initialize();
+#if FOUNDATION_PLATFORM_ANDROID
+	_asset_stream_initialize();
+#endif
 
 	return 0;
 }

@@ -53,6 +53,76 @@ FOUNDATION_COMPILETIME_ASSERT( ( sizeof( config_section_t ) % 16 ) == 0, config_
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS] = {0};
 
 
+static int64_t _config_string_to_int( const char* str )
+{
+	unsigned int length = string_length( str );
+	unsigned int first_nonnumeric = 0;
+	unsigned int dot_position = 0;
+	if( length < 2 )
+		return string_to_int64( str );
+
+	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
+	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'm' ) || ( str[ first_nonnumeric ] == 'M' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
+				return (int64_t)( string_to_real( str ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) ) );
+			return string_to_int64( str ); //More than one dot
+		}
+		return string_to_int64( str ) * ( 1024LL * 1024LL );
+	}
+	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'k' ) || ( str[ first_nonnumeric ] == 'K' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			 if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
+				return (int64_t)( string_to_real( str ) * REAL_C( 1024.0 ) );
+			 return string_to_int64( str ); //More than one dot
+		}
+		return string_to_int64( str ) * 1024LL;
+	}
+
+	return string_to_int64( str );
+}
+
+
+static real _config_string_to_real( const char* str )
+{
+	unsigned int length = string_length( str );
+	unsigned int first_nonnumeric = 0;
+	unsigned int dot_position = 0;
+	if( length < 2 )
+		return string_to_real( str );
+
+	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
+	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'm' ) || ( str[ first_nonnumeric ] == 'M' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			if( string_find( str, '.', dot_position + 1 ) != STRING_NPOS )
+				return string_to_real( str ); //More than one dot
+		}
+		return string_to_real( str ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) );
+	}
+	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'k' ) || ( str[ first_nonnumeric ] == 'K' ) ) )
+	{
+		dot_position = string_find( str, '.', 0 );
+		if( dot_position != STRING_NPOS )
+		{
+			if( string_find( str, '.', dot_position + 1 ) != STRING_NPOS )
+				return string_to_real( str ); //More than one dot
+		}
+		return string_to_real( str ) * REAL_C( 1024.0 );
+	}
+
+	return string_to_real( str );
+}
+
+
 static NOINLINE char* _expand_string( hash_t section_current, char* str )
 {
 	char* expanded;
@@ -103,24 +173,27 @@ static NOINLINE char* _expand_string( hash_t section_current, char* str )
 
 static NOINLINE void _expand_string_val( hash_t section, config_key_t* key )
 {
+	bool is_true = false;
 	FOUNDATION_ASSERT( key->sval );
 	if( key->expanded != key->sval )
 		string_deallocate( key->expanded );
 	key->expanded = _expand_string( section, key->sval );
+
+	is_true = string_equal( key->expanded, "true" );
 	key->bval = ( string_equal( key->expanded, "false" ) || string_equal( key->expanded, "0" ) || !string_length( key->expanded ) ) ? false : true;
-	key->ival = string_to_int64( key->expanded );
-	key->rval = string_to_real( key->expanded );
+	key->ival = is_true ? 1 : _config_string_to_int( key->expanded );
+	key->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key->expanded );
 }
 
 
 
 int _config_initialize( void )
 {
-	config_load( "foundation", 0, true );
-	config_load( "application", 0, true );
+	config_load( "foundation", 0, true, false );
+	config_load( "application", 0, true, false );
 
 	//Load per-user config
-	config_load( "user", HASH_USER, false );
+	config_load( "user", HASH_USER, false, true );
 
 	return 0;
 }
@@ -154,7 +227,7 @@ void _config_shutdown( void )
 }
 
 
-void config_load( const char* name, hash_t filter_section, bool built_in )
+void config_load( const char* name, hash_t filter_section, bool built_in, bool overwrite )
 {
 #define NUM_SEARCH_PATHS 10
 #define ANDROID_ASSET_PATH_INDEX 5
@@ -349,7 +422,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 		istream = stream_open( filename, STREAM_IN );
 		if( istream )
 		{
-			config_parse( istream, filter_section );
+			config_parse( istream, filter_section, overwrite );
 			stream_deallocate( istream );
 		}
 		string_deallocate( filename );
@@ -382,7 +455,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in )
 			istream = stream_open( filename, STREAM_IN );
 			if( istream )
 			{
-				config_parse( istream, filter_section );
+				config_parse( istream, filter_section, overwrite );
 				stream_deallocate( istream );
 			}
 			string_deallocate( filename );
@@ -497,7 +570,7 @@ const char* config_string( hash_t section, hash_t key )
 	{
 		case CONFIGVALUE_BOOL:  return key_val->bval ? "true" : "false";
 		case CONFIGVALUE_INT:   if( !key_val->sval ) key_val->sval = string_from_int( key_val->ival, 0, 0 ); return key_val->sval;
-		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = string_from_real( key_val->rval, 4, 0, 0 ); return key_val->sval;
+		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = string_from_real( key_val->rval, 4, 0, '0' ); return key_val->sval;
 		default: break;
 	}
 	//String value of some form
@@ -515,7 +588,7 @@ const char* config_string( hash_t section, hash_t key )
 hash_t config_string_hash( hash_t section, hash_t key )
 {
 	const char* value = config_string( section, key );
-	return value ? hash( value, string_length( value ) ) : 0;
+	return value ? hash( value, string_length( value ) ) : HASH_EMPTY_STRING;
 }
 
 
@@ -586,9 +659,10 @@ void config_set_string( hash_t section, hash_t key, const char* value )
 
 	if( key_val->type == CONFIGVALUE_STRING )
 	{
+		bool is_true = string_equal( key_val->sval, "true" );
 		key_val->bval = ( string_equal( key_val->sval, "false" ) || string_equal( key_val->sval, "0" ) || !string_length( key_val->sval ) ) ? false : true;
-		key_val->ival = string_to_int64( key_val->sval );
-		key_val->rval = string_to_real( key_val->sval );
+		key_val->ival = is_true ? 1 : _config_string_to_int( key_val->sval );
+		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key_val->sval );
 	}
 }
 
@@ -609,14 +683,15 @@ void config_set_string_constant( hash_t section, hash_t key, const char* value )
 
 	if( key_val->type == CONFIGVALUE_STRING_CONST )
 	{
+		bool is_true = string_equal( key_val->sval, "true" );
 		key_val->bval = ( string_equal( key_val->sval, "false" ) || string_equal( key_val->sval, "0" ) || !string_length( key_val->sval ) ) ? false : true;
-		key_val->ival = string_to_int64( key_val->sval );
-		key_val->rval = string_to_real( key_val->sval );
+		key_val->ival = is_true ? 1 : _config_string_to_int( key_val->sval );
+		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key_val->sval );
 	}
 }
 
 
-void config_parse( stream_t* stream, hash_t filter_section )
+void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 {
 	//Format: compatible with "standard" INI files (see http://en.wikipedia.org/wiki/INI_file)
 	//[section]
@@ -676,22 +751,25 @@ void config_parse( stream_t* stream, hash_t filter_section )
 
 			key = hash( name, string_length( name ) );
 
+			if( overwrite || !config_key( section, key, false ) )
+			{
 #if BUILD_CONFIG_DEBUG
-			debug_logf( "  config: %s (0x%llx) = %s", name, key, value );
+				debug_logf( "  config: %s (0x%llx) = %s", name, key, value );
 #endif
 
-			if( !string_length( value ) )
-				config_set_string( section, key, "" );
-			else if( string_equal( value, "false" ) )
-				config_set_bool( section, key, false );
-			else if( string_equal( value, "true" ) )
-				config_set_bool( section, key, true );
-			else if( ( string_find( value, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value, "0123456789.", 0 ) == STRING_NPOS ) && ( string_find( value, '.', string_find( value, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
-				config_set_real( section, key, string_to_real( value ) );
-			else if( string_find_first_not_of( value, "0123456789", 0 ) == STRING_NPOS )
-				config_set_int( section, key, string_to_int64( value ) );
-			else
-				config_set_string( section, key, value );
+				if( !string_length( value ) )
+					config_set_string( section, key, "" );
+				else if( string_equal( value, "false" ) )
+					config_set_bool( section, key, false );
+				else if( string_equal( value, "true" ) )
+					config_set_bool( section, key, true );
+				else if( ( string_find( value, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value, "0123456789.", 0 ) == STRING_NPOS ) && ( string_find( value, '.', string_find( value, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
+					config_set_real( section, key, string_to_real( value ) );
+				else if( string_find_first_not_of( value, "0123456789", 0 ) == STRING_NPOS )
+					config_set_int( section, key, string_to_int64( value ) );
+				else
+					config_set_string( section, key, value );
+			}
 		}
 	}
 	memory_deallocate( buffer );

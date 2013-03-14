@@ -133,7 +133,7 @@ static FORCEINLINE CONSTCALL bool          math_realisfinite( real val );
 static FORCEINLINE CONSTCALL real          math_realundenormalize( real val );
 
 
-#if BUILD_DEBUG || ( BUILD_RELEASE && !BUILD_DEPLOY && BUILD_ENABLE_RELEASE_ASSERT )
+#if BUILD_ENABLE_ASSERT
 #  define FOUNDATION_ASSERT_FINITE( value ) \
 	/*lint -save -e717 */ do { FOUNDATION_ASSERT_MSG( math_realisfinite( (value), "Non-finite float value" ); } while(0) /*lint -restore */
 #else

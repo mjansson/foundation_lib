@@ -46,7 +46,7 @@ int main_run( void* main_arg )
 	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
-		if( string_equal( exe_paths[iexe], environment_executable_name() ) )
+		if( string_equal_substr( exe_paths[iexe], environment_executable_name(), string_length( environment_executable_name() ) ) )
 			continue; //Don't run self
 
 		process_path = path_merge( environment_executable_directory(), exe_paths[iexe] );
@@ -57,16 +57,19 @@ int main_run( void* main_arg )
 		process_set_working_directory( process, environment_executable_directory() );
 		process_set_flags( process, PROCESS_ATTACHED );
 		
-		log_infof( "Running test executable: %s (%s)", exe_paths[iexe], environment_executable_name() );
+		log_infof( "Running test executable: %s", exe_paths[iexe] );
 
 		process_result = process_spawn( process );
 		process_deallocate( process );
 
 		string_deallocate( process_path );
 
-		if( process_result < 0 )
+		if( process_result != 0 )
 		{
-			log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+			if( process_result >= PROCESS_INVALID_ARGS )
+				log_warnf( WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
+			else
+				log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 			goto exit;
 		}
 	}

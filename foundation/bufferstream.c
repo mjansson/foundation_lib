@@ -1,4 +1,4 @@
-/* buffer_stream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* bufferstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -30,7 +30,7 @@ static stream_vtable_t _buffer_stream_vtable;
 
 stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 {
-	stream_buffer_t* buffer_stream = memory_allocate_zero( sizeof( stream_buffer_t ), 0, MEMORY_PERSISTENT );
+	stream_buffer_t* buffer_stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_buffer_t ), 0, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)buffer_stream;
 
 	_stream_initialize( stream );
@@ -163,6 +163,10 @@ static void _buffer_stream_truncate( stream_t* stream, uint64_t size )
 	{
 		buffer_stream->capacity = size;
 		buffer_stream->buffer = memory_reallocate( buffer_stream->buffer, buffer_stream->capacity, 0 );
+		buffer_stream->size = buffer_stream->capacity;
+	}
+	else
+	{
 		buffer_stream->size = buffer_stream->capacity;
 	}
 	if( buffer_stream->current > buffer_stream->size )
