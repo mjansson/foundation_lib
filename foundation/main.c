@@ -177,7 +177,7 @@ int main( int argc, char **argv )
 	thread_set_main();
 
 #if FOUNDATION_PLATFORM_APPLE
-	if( !config_bool( HASH_APPLICATION, HASH_UTILITY ) )
+	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{
 #if FOUNDATION_PLATFORM_MACOSX
 

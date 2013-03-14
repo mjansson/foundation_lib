@@ -261,7 +261,7 @@ const char* environment_home_directory( void )
 #elif FOUNDATION_PLATFORM_LINUX
 	string_copy( _environment_home_dir, environment_variable( "HOME" ), FOUNDATION_MAX_PATHLEN );
 #elif FOUNDATION_PLATFORM_APPLE
-	if( config_bool( HASH_APPLICATION, HASH_UTILITY ) )
+	if( environment_application()->flags & APPLICATION_UTILITY )
 	{
 		CFStringRef home = NSHomeDirectory();
 		CFStringGetCString( home, _environment_home_dir, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );

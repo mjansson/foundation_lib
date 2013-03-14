@@ -115,6 +115,13 @@ typedef enum
 	BYTEORDER_BIGENDIAN    = 1
 } byteorder_t;
 
+//! Application flags
+typedef enum
+{
+	APPLICATION_UTILITY        = 0x0001,
+	APPLICATION_DAEMON         = 0x0002
+} application_flag_t;
+
 //! Open modes for streams
 typedef enum
 {
@@ -302,6 +309,7 @@ typedef struct _foundation_application
 	const char*                     config_dir;
 	version_t                       version;
 	crash_dump_callback_fn          dump_callback;
+	unsigned int                    flags;
 } application_t;
 
 typedef struct _foundation_error_frame
