@@ -151,7 +151,7 @@ void* memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hin
 		void* buffer = 0;
 		align = _memory_get_align( align );
 		buffer = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
-		memset( buffer, 0, size );
+		memset( buffer, 0, (size_t)size );
 		return buffer;
 	}
 	return _memsys.allocate_zero( memory_context(), size, align, hint );

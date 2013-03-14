@@ -50,7 +50,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 
 	//Delayed events have extra 8 bytes payload to hold timestamp
 	allocsize = basesize;
-	if( ( flags & EVENTFLAG_DELAY ) && timestamp )
+	if( timestamp )
 		allocsize += 8;
 
 	//Lock the event block by atomic swapping the write block index
@@ -66,8 +66,17 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
 	{
-		block->capacity <<= 1;
-		block->capacity += allocsize;
+#define BLOCK_CHUNK_SIZE ( 32 * 1024 )
+		if( block->capacity < BLOCK_CHUNK_SIZE )
+		{
+			block->capacity <<= 1;
+			block->capacity += allocsize;
+		}
+		else
+		{
+			block->capacity += BLOCK_CHUNK_SIZE;
+			FOUNDATION_ASSERT_MSG( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > 4Mb" );
+		}
 		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16 ) : memory_allocate( block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
 	}
 
@@ -83,7 +92,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 	if( size )
 		memcpy( event->payload, payload, size );
 
-	if( ( flags & EVENTFLAG_DELAY ) && timestamp )
+	if( timestamp )
 	{
 		event->flags |= EVENTFLAG_DELAY;
 		*(uint64_t*)pointer_offset( event, basesize ) = timestamp;
@@ -108,58 +117,9 @@ uint16_t event_payload_size( const event_t* event )
 }
 
 
-void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload )
+void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, tick_t delivery )
 {
-	_event_post_delay_with_flag( stream, systemid, id, size, object, payload, 0, 0 );
-}
-
-
-void event_post_delay( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, real delay )
-{
-	event_post_delay_ticks( stream, systemid, id, size, object, payload, (tick_t)( delay * (real)time_ticks_per_second() ) );
-}
-
-
-void event_post_delay_ticks( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, tick_t delay )
-{
-	tick_t delivery = 0;
-
-	if( !delay )
-	{
-		event_post( stream, systemid, id, size, object, payload );
-		return;
-	}
-
-	_event_post_delay_with_flag( stream, systemid, id, size, object, payload, EVENTFLAG_DELAY, time_current() + delay );
-}
-
-
-event_t* event_first( const event_block_t* block )
-{
-	uint64_t curtime = 0;
-	uint64_t eventtime = 0;
-	event_t* event = ( block && block->used ? block->events : 0 );
-	while( event )
-	{
-		if( !( event->flags & EVENTFLAG_DELAY ) )
-			return event;
-
-		if( !curtime )
-			curtime = time_current();
-
-		eventtime = *(uint64_t*)pointer_offset( event, event->size - 8 );
-		if( eventtime < curtime )
-			return event;
-
-		//Re-post to next event block
-		_event_post_delay_with_flag( block->stream, event->system, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
-
-		event = pointer_offset( event, event->size );
-		if( !event->system )
-			return 0; // End of event list
-	}
-
-	return 0;
+	_event_post_delay_with_flag( stream, systemid, id, size, object, payload, 0, delivery );
 }
 
 
@@ -168,10 +128,11 @@ event_t* event_next( const event_block_t* block, event_t* event )
 	uint64_t curtime = 0;
 	uint64_t eventtime;
 
-	while( event )
+	do
 	{
-		event = pointer_offset( event, event->size );
-		if( !event->system )
+		//Grab first event if no previous event, or grab next event
+		event = ( event ? pointer_offset( event, event->size ) : ( block && block->used ? block->events : 0 ) );
+		if( !event || !event->system )
 			return 0; // End of event list
 
 		if( !( event->flags & EVENTFLAG_DELAY ) )
@@ -186,7 +147,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 
 		//Re-post to next block
 		_event_post_delay_with_flag( block->stream, event->system, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
-	}
+	} while( true );
 
 	return 0;
 }

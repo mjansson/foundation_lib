@@ -121,6 +121,9 @@
 // Default size of temporary (linear) memory allocator buffer
 #define BUILD_SIZE_TEMPORARY_MEMORY           2 * 1024 * 1024
 
+// Maximum allowed size for an event block
+#define BUILD_SIZE_EVENT_BLOCK_LIMIT          ( 1 * 1024 * 1024 )
+
 // Default size for thread stacks
 #define BUILD_SIZE_DEFAULT_THREAD_STACK       0x8000
 

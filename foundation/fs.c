@@ -635,7 +635,7 @@ void fs_post_event( foundation_event_id id, const char* path, unsigned int pathl
 {
 	if( !pathlen )
 		pathlen = string_length( path );
-	event_post( fs_event_stream(), SYSTEM_FOUNDATION, id, pathlen + 1, 0, path );
+	event_post( fs_event_stream(), SYSTEM_FOUNDATION, id, pathlen + 1, 0, path, 0 );
 }
 
 
