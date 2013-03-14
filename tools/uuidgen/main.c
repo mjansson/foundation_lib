@@ -99,6 +99,7 @@ int main_initialize( void )
 	application.name = "uuidgen";
 	application.short_name = "uuidgen";
 	application.config_dir = "uuidgen";
+	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix( false );
 	log_suppress( ERRORLEVEL_ERROR );

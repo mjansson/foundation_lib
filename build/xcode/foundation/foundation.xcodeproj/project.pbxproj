@@ -11,6 +11,15 @@
 		CD1C2FD416F2557500D36B24 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
 		CD1C2FD616F25DEF00D36B24 /* system.m in Sources */ = {isa = PBXBuildFile; fileRef = CD1C2FD516F25DEF00D36B24 /* system.m */; };
 		CD1C2FD816F2640B00D36B24 /* environment.m in Sources */ = {isa = PBXBuildFile; fileRef = CD1C2FD716F2640B00D36B24 /* environment.m */; };
+		CD1C2FEB16F271BB00D36B24 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD1C2FEA16F271BB00D36B24 /* main.c */; };
+		CD1C2FEC16F271D000D36B24 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
+		CD1C2FED16F271D000D36B24 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD1C2FEE16F271D000D36B24 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
+		CD1C2FEF16F271D000D36B24 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CD1C300316F2728700D36B24 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
+		CD1C300416F2728700D36B24 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD1C300516F2728700D36B24 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
+		CD1C300616F2728700D36B24 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
 		CD7F382816E151E5000346C0 /* posix.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382516E151E5000346C0 /* posix.h */; };
 		CD7F382916E151E5000346C0 /* radixsort.c in Sources */ = {isa = PBXBuildFile; fileRef = CD7F382616E151E5000346C0 /* radixsort.c */; };
 		CD7F382A16E151E5000346C0 /* radixsort.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382716E151E5000346C0 /* radixsort.h */; };
@@ -94,9 +103,24 @@
 		CDCEF4D616D2D2B100198086 /* time.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48A16D2D2B100198086 /* time.h */; };
 		CDCEF4D716D2D2B100198086 /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48B16D2D2B100198086 /* types.h */; };
 		CDCEF4D816D2D2B100198086 /* windows.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF48C16D2D2B100198086 /* windows.h */; };
+		CDCF1E0316F2736E00626060 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCF1E0216F2736E00626060 /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		CD1C2FE716F2719300D36B24 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCEF43816D2D11500198086;
+			remoteInfo = foundation;
+		};
+		CD1C300116F2727A00D36B24 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCEF43816D2D11500198086;
+			remoteInfo = foundation;
+		};
 		CD7F384116E21DC6000346C0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
@@ -107,6 +131,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		CD1C2FDB16F270F800D36B24 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CD1C2FF216F2725100D36B24 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		CD7F383216E21CB1000346C0 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -123,13 +165,15 @@
 		CD1C2FD316F2557500D36B24 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		CD1C2FD516F25DEF00D36B24 /* system.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = system.m; path = ../../../foundation/system.m; sourceTree = "<group>"; };
 		CD1C2FD716F2640B00D36B24 /* environment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = environment.m; path = ../../../foundation/environment.m; sourceTree = "<group>"; };
+		CD1C2FDD16F270F800D36B24 /* bin2hex */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = bin2hex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD1C2FE916F271BB00D36B24 /* errorcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = errorcodes.h; path = ../../../tools/bin2hex/errorcodes.h; sourceTree = "<group>"; };
+		CD1C2FEA16F271BB00D36B24 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../tools/bin2hex/main.c; sourceTree = "<group>"; };
+		CD1C2FF416F2725100D36B24 /* uuidgen */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = uuidgen; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD7F382516E151E5000346C0 /* posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = posix.h; path = ../../../foundation/posix.h; sourceTree = "<group>"; };
 		CD7F382616E151E5000346C0 /* radixsort.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = radixsort.c; path = ../../../foundation/radixsort.c; sourceTree = "<group>"; };
 		CD7F382716E151E5000346C0 /* radixsort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = radixsort.h; path = ../../../foundation/radixsort.h; sourceTree = "<group>"; };
 		CD7F382B16E21705000346C0 /* apple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = apple.h; path = ../../../foundation/apple.h; sourceTree = "<group>"; };
 		CD7F383416E21CB1000346C0 /* hashify */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hashify; sourceTree = BUILT_PRODUCTS_DIR; };
-		CD7F383616E21CB1000346C0 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		CD7F383816E21CB1000346C0 /* hashify.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = hashify.1; sourceTree = "<group>"; };
 		CD7F383E16E21DA8000346C0 /* errorcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = errorcodes.h; path = ../../../tools/hashify/errorcodes.h; sourceTree = "<group>"; };
 		CD7F383F16E21DA8000346C0 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../tools/hashify/main.c; sourceTree = "<group>"; };
 		CD7F384416E21E00000346C0 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -210,16 +254,40 @@
 		CDCEF48A16D2D2B100198086 /* time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = time.h; path = ../../../foundation/time.h; sourceTree = "<group>"; };
 		CDCEF48B16D2D2B100198086 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../../foundation/types.h; sourceTree = "<group>"; };
 		CDCEF48C16D2D2B100198086 /* windows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = windows.h; path = ../../../foundation/windows.h; sourceTree = "<group>"; };
+		CDCF1E0116F2736E00626060 /* errorcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = errorcodes.h; path = ../../../tools/uuidgen/errorcodes.h; sourceTree = "<group>"; };
+		CDCF1E0216F2736E00626060 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../tools/uuidgen/main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CD1C2FDA16F270F800D36B24 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD1C2FEC16F271D000D36B24 /* libfoundation.a in Frameworks */,
+				CD1C2FED16F271D000D36B24 /* Carbon.framework in Frameworks */,
+				CD1C2FEE16F271D000D36B24 /* Cocoa.framework in Frameworks */,
+				CD1C2FEF16F271D000D36B24 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD1C2FF116F2725100D36B24 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD1C300316F2728700D36B24 /* libfoundation.a in Frameworks */,
+				CD1C300416F2728700D36B24 /* Carbon.framework in Frameworks */,
+				CD1C300516F2728700D36B24 /* Cocoa.framework in Frameworks */,
+				CD1C300616F2728700D36B24 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CD7F383116E21CB1000346C0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CD7F384316E21DCC000346C0 /* libfoundation.a in Frameworks */,
-				CD1C2FD216F2556300D36B24 /* Cocoa.framework in Frameworks */,
 				CD1C2FD416F2557500D36B24 /* Carbon.framework in Frameworks */,
+				CD1C2FD216F2556300D36B24 /* Cocoa.framework in Frameworks */,
 				CD7F384516E21E00000346C0 /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -239,6 +307,7 @@
 			children = (
 				CD7F382F16E21C70000346C0 /* bin2hex */,
 				CD7F382E16E21C69000346C0 /* hashify */,
+				CDCF1E0016F2735B00626060 /* uuidgen */,
 			);
 			name = tools;
 			sourceTree = "<group>";
@@ -255,17 +324,10 @@
 		CD7F382F16E21C70000346C0 /* bin2hex */ = {
 			isa = PBXGroup;
 			children = (
+				CD1C2FE916F271BB00D36B24 /* errorcodes.h */,
+				CD1C2FEA16F271BB00D36B24 /* main.c */,
 			);
 			name = bin2hex;
-			sourceTree = "<group>";
-		};
-		CD7F383516E21CB1000346C0 /* hashify */ = {
-			isa = PBXGroup;
-			children = (
-				CD7F383616E21CB1000346C0 /* main.c */,
-				CD7F383816E21CB1000346C0 /* hashify.1 */,
-			);
-			path = hashify;
 			sourceTree = "<group>";
 		};
 		CD7F384616E21E19000346C0 /* frameworks */ = {
@@ -284,7 +346,6 @@
 				CD7F384616E21E19000346C0 /* frameworks */,
 				CDCEF44016D2D1C400198086 /* foundation */,
 				CD7F382D16E21C60000346C0 /* tools */,
-				CD7F383516E21CB1000346C0 /* hashify */,
 				CDCEF43A16D2D11500198086 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -294,6 +355,8 @@
 			children = (
 				CDCEF43916D2D11500198086 /* libfoundation.a */,
 				CD7F383416E21CB1000346C0 /* hashify */,
+				CD1C2FDD16F270F800D36B24 /* bin2hex */,
+				CD1C2FF416F2725100D36B24 /* uuidgen */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -387,6 +450,15 @@
 			name = foundation;
 			sourceTree = "<group>";
 		};
+		CDCF1E0016F2735B00626060 /* uuidgen */ = {
+			isa = PBXGroup;
+			children = (
+				CDCF1E0116F2736E00626060 /* errorcodes.h */,
+				CDCF1E0216F2736E00626060 /* main.c */,
+			);
+			name = uuidgen;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -446,6 +518,42 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		CD1C2FDC16F270F800D36B24 /* bin2hex */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD1C2FE316F270F900D36B24 /* Build configuration list for PBXNativeTarget "bin2hex" */;
+			buildPhases = (
+				CD1C2FD916F270F800D36B24 /* Sources */,
+				CD1C2FDA16F270F800D36B24 /* Frameworks */,
+				CD1C2FDB16F270F800D36B24 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD1C2FE816F2719300D36B24 /* PBXTargetDependency */,
+			);
+			name = bin2hex;
+			productName = bin2hex;
+			productReference = CD1C2FDD16F270F800D36B24 /* bin2hex */;
+			productType = "com.apple.product-type.tool";
+		};
+		CD1C2FF316F2725100D36B24 /* uuidgen */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD1C2FFA16F2725200D36B24 /* Build configuration list for PBXNativeTarget "uuidgen" */;
+			buildPhases = (
+				CD1C2FF016F2725100D36B24 /* Sources */,
+				CD1C2FF116F2725100D36B24 /* Frameworks */,
+				CD1C2FF216F2725100D36B24 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD1C300216F2727A00D36B24 /* PBXTargetDependency */,
+			);
+			name = uuidgen;
+			productName = uuidgen;
+			productReference = CD1C2FF416F2725100D36B24 /* uuidgen */;
+			productType = "com.apple.product-type.tool";
+		};
 		CD7F383316E21CB1000346C0 /* hashify */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CD7F383A16E21CB1000346C0 /* Build configuration list for PBXNativeTarget "hashify" */;
@@ -504,11 +612,29 @@
 			targets = (
 				CDCEF43816D2D11500198086 /* foundation */,
 				CD7F383316E21CB1000346C0 /* hashify */,
+				CD1C2FDC16F270F800D36B24 /* bin2hex */,
+				CD1C2FF316F2725100D36B24 /* uuidgen */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CD1C2FD916F270F800D36B24 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD1C2FEB16F271BB00D36B24 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD1C2FF016F2725100D36B24 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDCF1E0316F2736E00626060 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CD7F383016E21CB1000346C0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -563,6 +689,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		CD1C2FE816F2719300D36B24 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCEF43816D2D11500198086 /* foundation */;
+			targetProxy = CD1C2FE716F2719300D36B24 /* PBXContainerItemProxy */;
+		};
+		CD1C300216F2727A00D36B24 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCEF43816D2D11500198086 /* foundation */;
+			targetProxy = CD1C300116F2727A00D36B24 /* PBXContainerItemProxy */;
+		};
 		CD7F384216E21DC6000346C0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CDCEF43816D2D11500198086 /* foundation */;
@@ -571,6 +707,60 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		CD1C2FE416F270F900D36B24 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/debug;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD1C2FE516F270F900D36B24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/release;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD1C2FE616F270F900D36B24 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/deploy;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
+		CD1C2FFB16F2725200D36B24 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/debug;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD1C2FFC16F2725200D36B24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/release;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD1C2FFD16F2725200D36B24 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/deploy;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
 		CD7F383B16E21CB1000346C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -758,6 +948,26 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		CD1C2FE316F270F900D36B24 /* Build configuration list for PBXNativeTarget "bin2hex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD1C2FE416F270F900D36B24 /* Debug */,
+				CD1C2FE516F270F900D36B24 /* Release */,
+				CD1C2FE616F270F900D36B24 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
+		};
+		CD1C2FFA16F2725200D36B24 /* Build configuration list for PBXNativeTarget "uuidgen" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD1C2FFB16F2725200D36B24 /* Debug */,
+				CD1C2FFC16F2725200D36B24 /* Release */,
+				CD1C2FFD16F2725200D36B24 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
+		};
 		CD7F383A16E21CB1000346C0 /* Build configuration list for PBXNativeTarget "hashify" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
