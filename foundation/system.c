@@ -314,6 +314,37 @@ const char* system_username( void )
 }
 
 
+#if FOUNDATION_PLATFORM_APPLE
+
+#include <net/if_dl.h>
+
+static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
+{
+	unsigned int j;
+	union
+	{
+		uint64_t               id;
+		unsigned char ALIGN(8) buffer[8];
+	} hostid;
+
+	if( ifaddr->ifa_addr && ( ifaddr->ifa_addr->sa_family == AF_LINK ) )
+	{
+		struct sockaddr_dl* addr_dl = (struct sockaddr_dl*)ifaddr->ifa_addr;
+		
+		FOUNDATION_ASSERT( addr_dl->sdl_alen == 6 );
+
+		hostid.id = 0;
+		for( j = 0; j < 6; ++j )
+			hostid.buffer[5-j] = LLADDR(addr_dl)[j];
+		
+		return hostid.id;
+	}
+	
+	return 0;
+}
+
+#else
+
 static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 {
 	unsigned int j;
@@ -333,31 +364,40 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 	return hostid.id;
 }
 
+#endif
+
 
 uint64_t system_hostid( void )
 {
-	int sock, j;
-	struct ifreq buffer;
 	struct ifaddrs* ifaddr;
 	struct ifaddrs* ifa;
 	uint64_t hostid = 0;
-	
-	sock = socket( PF_INET, SOCK_DGRAM, 0 );
+
+#if !FOUNDATION_PLATFORM_APPLE
+	struct ifreq buffer;
+	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
+#endif
 	
 	if( getifaddrs( &ifaddr ) == 0 )
 	{
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
-			if( string_equal( ifa->ifa_name, "lo" ) )
+			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
 				continue;
 			
+#if FOUNDATION_PLATFORM_APPLE
+			
+			
+#else
 			memset( &buffer, 0, sizeof( buffer ) );
 			string_copy( buffer.ifr_name, ifa->ifa_name, sizeof( buffer.ifr_name ) );
 
 			hostid = _system_hostid_lookup( sock, &buffer );
+#endif
 		}
 		freeifaddrs( ifaddr );
 	}
+#if !FOUNDATION_PLATFORM_APPLE
 	else
 	{
 		memset( &buffer, 0, sizeof( buffer ) );
@@ -367,6 +407,7 @@ uint64_t system_hostid( void )
 	}
 
 	close( sock );
+#endif
 	
 	return hostid;
 }
