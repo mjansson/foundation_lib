@@ -55,6 +55,7 @@ int main_initialize( void )
 	application.name = "hashify";
 	application.short_name = "hashify";
 	application.config_dir = "hashify";
+	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix( false );
 
@@ -191,6 +192,8 @@ int hashify_process_files( const char* const* files, bool check_only )
 		stream_deallocate( input_file );
 		stream_deallocate( output_file );
 
+		error_context_pop();
+		
 		string_deallocate( input_filename );
 		string_deallocate( output_filename );
 	}

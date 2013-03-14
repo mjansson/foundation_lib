@@ -36,6 +36,7 @@ static char*   _environment_var = 0;
 
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
+#  include <crt_externs.h>
 extern CFStringRef NSHomeDirectory(void);
 #endif
 
@@ -101,7 +102,23 @@ int _environment_initialize( const application_t application )
 		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
 		return -1;
 	}
+	
+#elif FOUNDATION_PLATFORM_APPLE
+	
+	int ia;
+	int* argc_ptr = _NSGetArgc();
+	char*** argv_ptr = _NSGetArgv();
 
+	for( ia = 0; ia < *argc_ptr; ++ia )
+		array_push( _environment_argv, string_clone( (*argv_ptr)[ia] ) );
+
+	FOUNDATION_ASSERT( *argc_ptr > 0 );
+	char* exe_path = path_make_absolute( (*argv_ptr)[0] );
+
+	_environment_set_executable_paths( exe_path );
+
+	string_deallocate( exe_path );
+	
 #elif FOUNDATION_PLATFORM_POSIX
 
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );

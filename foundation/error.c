@@ -118,8 +118,8 @@ void _error_context_thread_deallocate( void )
 	{
 		FOUNDATION_ASSERT_MSG( !context->depth, "Error context thread exit with non-zero context stack" );
 		memory_deallocate( context );
+		set_thread_error_context( 0 );
 	}
-	set_thread_error_context( 0 );
 }
 
 #endif

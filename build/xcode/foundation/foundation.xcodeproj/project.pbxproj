@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		CD1C2FD216F2556300D36B24 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
 		CD1C2FD416F2557500D36B24 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD1C2FD616F25DEF00D36B24 /* system.m in Sources */ = {isa = PBXBuildFile; fileRef = CD1C2FD516F25DEF00D36B24 /* system.m */; };
+		CD1C2FD816F2640B00D36B24 /* environment.m in Sources */ = {isa = PBXBuildFile; fileRef = CD1C2FD716F2640B00D36B24 /* environment.m */; };
 		CD7F382816E151E5000346C0 /* posix.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382516E151E5000346C0 /* posix.h */; };
 		CD7F382916E151E5000346C0 /* radixsort.c in Sources */ = {isa = PBXBuildFile; fileRef = CD7F382616E151E5000346C0 /* radixsort.c */; };
 		CD7F382A16E151E5000346C0 /* radixsort.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382716E151E5000346C0 /* radixsort.h */; };
@@ -119,6 +121,8 @@
 /* Begin PBXFileReference section */
 		CD1C2FD116F2556300D36B24 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		CD1C2FD316F2557500D36B24 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		CD1C2FD516F25DEF00D36B24 /* system.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = system.m; path = ../../../foundation/system.m; sourceTree = "<group>"; };
+		CD1C2FD716F2640B00D36B24 /* environment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = environment.m; path = ../../../foundation/environment.m; sourceTree = "<group>"; };
 		CD7F382516E151E5000346C0 /* posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = posix.h; path = ../../../foundation/posix.h; sourceTree = "<group>"; };
 		CD7F382616E151E5000346C0 /* radixsort.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = radixsort.c; path = ../../../foundation/radixsort.c; sourceTree = "<group>"; };
 		CD7F382716E151E5000346C0 /* radixsort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = radixsort.h; path = ../../../foundation/radixsort.h; sourceTree = "<group>"; };
@@ -319,6 +323,7 @@
 				CDCEF45316D2D2B000198086 /* config.h */,
 				CDCEF45416D2D2B000198086 /* crash.c */,
 				CDCEF45516D2D2B000198086 /* crash.h */,
+				CD1C2FD716F2640B00D36B24 /* environment.m */,
 				CDCEF45616D2D2B000198086 /* environment.c */,
 				CDCEF45716D2D2B000198086 /* environment.h */,
 				CDCEF45816D2D2B000198086 /* error.c */,
@@ -369,6 +374,7 @@
 				CDCEF48216D2D2B100198086 /* stream.h */,
 				CDCEF48316D2D2B100198086 /* string.c */,
 				CDCEF48416D2D2B100198086 /* string.h */,
+				CD1C2FD516F25DEF00D36B24 /* system.m */,
 				CDCEF48516D2D2B100198086 /* system.c */,
 				CDCEF48616D2D2B100198086 /* system.h */,
 				CDCEF48716D2D2B100198086 /* thread.c */,
@@ -549,6 +555,8 @@
 				CDCEF4D316D2D2B100198086 /* thread.c in Sources */,
 				CDCEF4D516D2D2B100198086 /* time.c in Sources */,
 				CD7F382916E151E5000346C0 /* radixsort.c in Sources */,
+				CD1C2FD616F25DEF00D36B24 /* system.m in Sources */,
+				CD1C2FD816F2640B00D36B24 /* environment.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -566,6 +574,8 @@
 		CD7F383B16E21CB1000346C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/debug;
 				MACH_O_TYPE = mh_execute;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -575,6 +585,8 @@
 		CD7F383C16E21CB1000346C0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/release;
 				MACH_O_TYPE = mh_execute;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -584,6 +596,8 @@
 		CD7F383D16E21CB1000346C0 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/deploy;
 				MACH_O_TYPE = mh_execute;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -674,6 +688,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/debug;
 				EXECUTABLE_PREFIX = lib;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = foundation;
@@ -684,6 +699,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/release;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = foundation;
 			};
@@ -733,6 +749,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = foundation;
 			};
