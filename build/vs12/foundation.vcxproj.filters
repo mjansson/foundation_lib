@@ -13,7 +13,6 @@
     <ClInclude Include="..\..\foundation\base64.h" />
     <ClInclude Include="..\..\foundation\bits.h" />
     <ClInclude Include="..\..\foundation\objectmap.h" />
-    <ClInclude Include="..\..\foundation\mathcore.h" />
     <ClInclude Include="..\..\foundation\atomic.h" />
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\thread.h" />
@@ -43,6 +42,7 @@
     <ClInclude Include="..\..\foundation\string.h" />
     <ClInclude Include="..\..\foundation\locale.h" />
     <ClInclude Include="..\..\foundation\radixsort.h" />
+    <ClInclude Include="..\..\foundation\math.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
