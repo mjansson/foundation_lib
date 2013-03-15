@@ -441,7 +441,6 @@ typedef struct _foundation_semaphore
 typedef struct _foundation_md5              md5_t;
 
 typedef struct _foundation_stream           stream_t;
-typedef struct _foundation_directory        directory_t;
 
 typedef struct _foundation_mutex            mutex_t;
 typedef struct _foundation_process          process_t;

@@ -20,56 +20,59 @@
 #include <foundation/types.h>
 
 
-/*! Create path in the real file system
-    \param path                 Path in real file system to create
-    \return                     true if success, false if not */
-FOUNDATION_API bool             fs_make_path( const char* path );
-
-/*! Check if the given file exists in the real file system
-    \param path                 Path
-    \return                     true if the file exists, false if not */
-FOUNDATION_API bool             fs_is_file( const char* path );
-
-/*! Check if the given directory exists in the real file system
-    \param path                 Path
-    \return                     true if the directory exists, false if not */
-FOUNDATION_API bool             fs_is_directory( const char* path );
-
-/*! Remove a file from the real file system
-    \param path                 Path
-    \return                     true if file was removed, false if not */
-FOUNDATION_API bool             fs_remove_file( const char* path );
-
-/*! Remove a directory (recursive) from the real file system
-    \param path                 Path
-    \return                     true if directory was removed, false if not */
-FOUNDATION_API bool             fs_remove_directory( const char* path );
+/*! Open a file
+    \param path                 File system path
+    \param mode                 Open mode
+    \return                     File stream, 0 if file not found */
+FOUNDATION_API stream_t*        fs_open_file( const char* path, unsigned int mode );
 	
 /*! Utility method for real file system, copy source file to destination path, creating directories if needed
     \param source               Source file path
     \param dest                 Destination file path */
 FOUNDATION_API void             fs_copy_file( const char* source, const char* dest );
 
-/*! Open a file
-    \param path                 File system path
-    \param mode                 Open mode
-    \return                     File stream, 0 if file not found */
-FOUNDATION_API stream_t*        fs_open_file( const char* path, unsigned int mode );
+/*! Remove a file from the real file system
+    \param path                 Path
+    \return                     true if file was removed, false if not */
+FOUNDATION_API bool             fs_remove_file( const char* path );
 
-/*! Open a subdirectory. The directory object returned must be deallocated when not needed anymore.
-	\param path                 Directory path (absolute path in file system)
-	\return                     Directory, null if not found or invalid */
-FOUNDATION_API directory_t*     fs_open_directory( const char* path );
+/*! Check if the given file exists in the real file system
+    \param path                 Path
+    \return                     true if the file exists, false if not */
+FOUNDATION_API bool             fs_is_file( const char* path );
 
-/*! Get last modification date (last write)
+
+/*! Create path in the real file system. Can recursively create directories
+    making up the path
+    \param path                 Path in real file system to create
+    \return                     true if success, false if not */
+FOUNDATION_API bool             fs_make_directory( const char* path );
+
+/*! Remove a directory (recursive) from the real file system
+    \param path                 Path
+    \return                     true if directory was removed, false if not */
+FOUNDATION_API bool             fs_remove_directory( const char* path );
+
+/*! Check if the given directory exists in the real file system
+    \param path                 Path
+    \return                     true if the directory exists, false if not */
+FOUNDATION_API bool             fs_is_directory( const char* path );
+
+
+/*! Get last modification date (last write) in milliseconds since the epoch (UNIX time)
     \param path                 File path
     \return                     File modification date, 0 if not an existing file */
 FOUNDATION_API uint64_t         fs_last_modified( const char* path );
+
+/*! Touch file and update modification date
+    \param path                 File path */
+FOUNDATION_API void             fs_touch( const char* path );
 
 /*! Get file md5 digest
     \param path                 File path
     \return                     md5 digest, 0 if not an existing file or unreadable */
 FOUNDATION_API uint128_t        fs_md5( const char* path );
+
 
 /*! Get files matching the given pattern. Free the returned
     array with string_array_deallocate()
@@ -78,10 +81,6 @@ FOUNDATION_API uint128_t        fs_md5( const char* path );
     \param recurse              Recursion flag
     \return                     Array of matching file names */
 FOUNDATION_API char**           fs_matching_files( const char* path, const char* pattern, bool recurse );
-
-/*! Touch file and update modification date
-    \param path                 File path */
-FOUNDATION_API void             fs_touch( const char* path );
 
 /*! Get files in the given directory path. Free the returned
     array with string_array_deallocate()
@@ -93,6 +92,7 @@ FOUNDATION_API char**           fs_files( const char* path );
     \return                     Array of subdirectory names */
 FOUNDATION_API char**           fs_subdirs( const char* path );
 
+
 /*! Monitor the path (recursive) for file system changes
     \param path                 File system path */
 FOUNDATION_API void             fs_monitor( const char* path );
@@ -100,6 +100,7 @@ FOUNDATION_API void             fs_monitor( const char* path );
 /*! Stop monitoring the path (recursive) for file system changes
     \param path                 File system path */
 FOUNDATION_API void             fs_unmonitor( const char* path );
+
 
 /*! Post a file event
     \param id                   Event id

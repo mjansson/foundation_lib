@@ -69,7 +69,7 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 		local_time.wYear, local_time.wMonth, local_time.wDay, 
 		local_time.wHour, local_time.wMinute, local_time.wSecond, 
 		GetCurrentProcessId(), GetCurrentThreadId());
-	fs_make_path( environment_temporary_directory() );
+	fs_make_directory( environment_temporary_directory() );
     file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
 
 	if( file && ( file != INVALID_HANDLE_VALUE ) )
