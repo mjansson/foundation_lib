@@ -42,7 +42,7 @@
 #include <foundation/path.h>
 #include <foundation/locale.h>
 
-#include <foundation/mathcore.h>
+#include <foundation/math.h>
 #include <foundation/random.h>
 #include <foundation/radixsort.h>
 
