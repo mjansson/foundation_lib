@@ -13,7 +13,7 @@
 #pragma once
 
 /*! \file objectmap.h
-    Mapping of object handles to object pointers */
+    Mapping of object handles to object pointers, thread safe and lock free */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
