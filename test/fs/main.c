@@ -139,6 +139,8 @@ DECLARE_TEST( fs, util )
 
 	EXPECT_EQ( fs_last_modified( testpath ), 0 );
 
+	thread_sleep( 1000 ); //For fs time granularity, make sure at least one second passed since systime
+
 	stream_deallocate( fs_open_file( testpath, STREAM_OUT ) );
 	EXPECT_TRUE( fs_is_file( testpath ) );
 	EXPECT_GE( fs_last_modified( testpath ), systime );
