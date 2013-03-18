@@ -42,34 +42,26 @@ if testenv['platform'] == 'linux':
 elif testenv['platform'] == 'raspberrypi':
 	testenv.Append( LIBS=[ 'bcm_host', 'rt', 'm' ] )
 
-env['alltest'] = testenv.Program( 'test-all${prgsuffix}', 'all/main.c' )
-env['apptest'] = testenv.Program( 'test-app${prgsuffix}', 'app/main.c' )
-env['arraytest'] = testenv.Program( 'test-array${prgsuffix}', 'array/main.c' )
-env['atomictest'] = testenv.Program( 'test-atomic${prgsuffix}', 'atomic/main.c' )
-env['base64test'] = testenv.Program( 'test-base64${prgsuffix}', 'base64/main.c' )
-env['blowfishtest'] = testenv.Program( 'test-blowfish${prgsuffix}', 'blowfish/main.c' )
-env['bufferstreamtest'] = testenv.Program( 'test-bufferstream${prgsuffix}', 'bufferstream/main.c' )
-env['configtest'] = testenv.Program( 'test-config${prgsuffix}', 'config/main.c' )
-env['crashtest'] = testenv.Program( 'test-crash${prgsuffix}', 'crash/main.c' )
-env['environmenttest'] = testenv.Program( 'test-environment${prgsuffix}', 'environment/main.c' )
-env['radixsorttest'] = testenv.Program( 'test-radixsort${prgsuffix}', 'radixsort/main.c' )
-env['randomtest'] = testenv.Program( 'test-random${prgsuffix}', 'random/main.c' )
-env['stringtest'] = testenv.Program( 'test-string${prgsuffix}', 'string/main.c' )
+def makeTest( name ):
+    global env
+    global testenv
+    env[name + 'test'] = testenv.Program( 'test-' + name + '${prgsuffix}', name + '/main.c' )
+    testenv.AddPostAction( 'test-' + name + '${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env[name + 'test'] ] ) )
 
-
-# INSTALLS
-
-testenv.AddPostAction( 'test-all${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['alltest'] ] ) )
-testenv.AddPostAction( 'test-app${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['apptest'] ] ) )
-testenv.AddPostAction( 'test-array${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['arraytest'] ] ) )
-testenv.AddPostAction( 'test-atomic${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['atomictest'] ] ) )
-testenv.AddPostAction( 'test-base64${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['base64test'] ] ) )
-testenv.AddPostAction( 'test-blowfish${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['blowfishtest'] ] ) )
-testenv.AddPostAction( 'test-bufferstream${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['bufferstreamtest'] ] ) )
-testenv.AddPostAction( 'test-config${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['configtest'] ] ) )
-testenv.AddPostAction( 'test-crash${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['crashtest'] ] ) )
-testenv.AddPostAction( 'test-environment${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['environmenttest'] ] ) )
-testenv.AddPostAction( 'test-radixsort${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['radixsorttest'] ] ) )
-testenv.AddPostAction( 'test-random${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['randomtest'] ] ) )
-testenv.AddPostAction( 'test-string${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env['stringtest'] ] ) )
-
+makeTest('all')
+makeTest('app')
+makeTest('array')
+makeTest('atomic')
+makeTest('base64')
+makeTest('blowfish')
+makeTest('bufferstream')
+makeTest('config')
+makeTest('crash')
+makeTest('environment')
+makeTest('error')
+makeTest('event')
+makeTest('fs')
+makeTest('hash')
+makeTest('radixsort')
+makeTest('random')
+makeTest('string')
