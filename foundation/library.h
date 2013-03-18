@@ -30,3 +30,6 @@ FOUNDATION_API void*         library_symbol( object_t library, const char* name 
 
 //! Library name
 FOUNDATION_API const char*   library_name( object_t library );
+
+//! Query if valid library
+FOUNDATION_API bool          library_valid( object_t library );

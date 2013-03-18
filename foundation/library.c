@@ -209,3 +209,8 @@ const char* library_name( object_t id )
 	return "";
 }
 
+
+bool library_valid( object_t id )
+{
+	return objectmap_lookup( _library_map, id ) != 0;
+}
