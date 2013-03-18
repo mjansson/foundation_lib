@@ -389,6 +389,7 @@ bool fs_make_directory( const char* path )
 	fpath = path_make_absolute( path );
 	paths = string_explode( fpath, "/", false );
 	pathsize = array_size( paths );
+	curpath = 0;
 	ipath = 0;
 
 	memory_context_push( MEMORYCONTEXT_STREAM );
