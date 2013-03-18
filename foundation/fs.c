@@ -94,34 +94,38 @@ void fs_monitor( const char* path )
 }
 
 
+static void _fs_stop_monitor( fs_monitor_t* monitor )
+{
+	object_t thread = monitor->thread;
+	mutex_t* notify = monitor->signal;
+	char* localpath = monitor->path;
+
+	memset( monitor, 0, sizeof( fs_monitor_t ) );
+
+	thread_terminate( thread );
+
+	if( notify )
+		mutex_signal( notify );
+
+	thread_destroy( thread );
+	while( thread_is_running( thread ) )
+		thread_yield();
+
+	if( localpath )
+		string_deallocate( localpath );
+
+	if( notify )
+		mutex_deallocate( notify );
+}
+
+
 void fs_unmonitor( const char* path )
 {
 	int mi, msize;
 	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
 	{
 		if( string_equal( _fs_monitors[mi].path, path ) )
-		{
-			object_t thread = _fs_monitors[mi].thread;
-			mutex_t* signal = _fs_monitors[mi].signal;
-			char* localpath = _fs_monitors[mi].path;
-
-			memset( _fs_monitors + mi, 0, sizeof( fs_monitor_t ) );
-
-			thread_terminate( thread );
-
-			if( signal )
-				mutex_signal( signal );
-
-			thread_destroy( thread );
-			while( thread_is_running( thread ) )
-				thread_yield();
-
-			if( localpath )
-				string_deallocate( localpath );
-
-			if( signal )
-				mutex_deallocate( signal );
-		}
+			_fs_stop_monitor( _fs_monitors + mi );
 	}
 }
 
@@ -1344,27 +1348,7 @@ void _fs_shutdown( void )
 {
 	int mi, msize;
 	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
-	{
-		object_t thread = _fs_monitors[mi].thread;
-		mutex_t* signal = _fs_monitors[mi].signal;
-		char* localpath = _fs_monitors[mi].path;
-
-		if( thread )
-			thread_terminate( thread );
-
-		if( signal )
-			mutex_signal( signal );
-
-		thread_destroy( thread );
-		while( thread_is_running( thread ) )
-			thread_yield();
-
-		if( localpath )
-			string_deallocate( localpath );
-
-		if( signal )
-			mutex_deallocate( signal );
-	}
+		_fs_stop_monitor( _fs_monitors + mi );
 	array_deallocate( _fs_monitors );
 	_fs_monitors = 0;
 
