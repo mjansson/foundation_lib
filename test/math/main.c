@@ -349,8 +349,8 @@ DECLARE_TEST( math, wrap )
 	EXPECT_EQ( math_inc_wrap_int16( 42, 40, 42 ), 40 );
 	EXPECT_EQ( math_inc_wrap_int16( 42, 40, 43 ), 43 );
 
-	min32 = 0x80000000L;//-2147483648
-	max32 = 0x7FFFFFFFL;// 2147483647
+	min32 = (int32_t)0x80000000L;//-2147483648
+	max32 = (int32_t)0x7FFFFFFFL;// 2147483647
 	EXPECT_EQ( math_inc_wrap_int32( max32 - 1, min32, max32), max32 );
 	EXPECT_EQ( math_inc_wrap_int32( max32, min32, max32 ), min32 );
 	EXPECT_EQ( math_inc_wrap_int32( 1, 0, 1 ), 0 );
@@ -359,8 +359,8 @@ DECLARE_TEST( math, wrap )
 	EXPECT_EQ( math_inc_wrap_int32( 42, 40, 42 ), 40 );
 	EXPECT_EQ( math_inc_wrap_int32( 42, 40, 43 ), 43 );
 
-	min64 = 0x8000000000000000LL;//-9223372036854775808
-	max64 = 0x7FFFFFFFFFFFFFFFLL;// 9223372036854775807
+	min64 = (int64_t)0x8000000000000000LL;//-9223372036854775808
+	max64 = (int64_t)0x7FFFFFFFFFFFFFFFLL;// 9223372036854775807
 	EXPECT_EQ( math_inc_wrap_int64( max64 - 1LL, min64, max64 ), max64 );
 	EXPECT_EQ( math_inc_wrap_int64( max64, min64, max64 ), min64 );
 	EXPECT_EQ( math_inc_wrap_int64( 1, 0, 1 ), 0 );
