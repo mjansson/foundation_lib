@@ -32,7 +32,7 @@ DECLARE_TEST( library, lookup )
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	const char* libraryname = "kernel32";
-	const char* symbolname = "somesym";
+	const char* symbolname = "ExitProcess";
 #elif FOUNDATION_PLATFORM_APPLE
 	const char* libraryname = "somelib";
 	const char* symbolname = "somesym";
