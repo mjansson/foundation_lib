@@ -24,16 +24,19 @@ application_t test_application( void )
 }
 
 
-DECLARE_TEST( math, core )
+DECLARE_TEST( math, constants )
 {
-	int i;
-	real testreal, refreal;
-	
 	EXPECT_GT( REAL_EPSILON, REAL_ZERO );
 	EXPECT_LT( REAL_EPSILON, REAL_ONE );
 	EXPECT_GT( REAL_MAX, REAL_MIN );
 	EXPECT_GT( REAL_MIN, REAL_ZERO );
 
+	return 0;
+}
+
+
+DECLARE_TEST( math, trigonometry )
+{
 	EXPECT_REALZERO( math_sin( REAL_ZERO ) );
 	EXPECT_REALZERO( math_sin( REAL_PI ) );
 	EXPECT_REALZERO( math_sin( REAL_TWOPI ) );
@@ -61,12 +64,26 @@ DECLARE_TEST( math, core )
 	EXPECT_REALZERO( math_atan2( REAL_ZERO, REAL_ONE ) );
 	EXPECT_REALEQ( math_atan2( REAL_ONE, -REAL_ONE ), REAL_HALFPI * REAL_HALF * REAL_THREE );
 
+	return 0;
+}
+
+
+DECLARE_TEST( math, squareroot )
+{
 	EXPECT_REALEQ( math_sqrt( 2 ), REAL_SQRT2 );
 	EXPECT_REALEQ( math_sqrt( 3 ), REAL_SQRT3 );
 
 	EXPECT_REALEQ( math_rsqrt( 2 ), REAL_ONE / REAL_SQRT2 );
 	EXPECT_REALEQ( math_rsqrt( 3 ), REAL_ONE / REAL_SQRT3 );
 
+	return 0;
+}
+
+
+DECLARE_TEST( math, utility )
+{
+	int i;
+	
 	EXPECT_REALONE( math_abs( REAL_ONE ) );
 	EXPECT_REALONE( math_abs( -REAL_ONE ) );
 	EXPECT_REALZERO( math_abs( REAL_ZERO ) );
@@ -80,21 +97,6 @@ DECLARE_TEST( math, core )
 	EXPECT_REALZERO( math_mod( REAL_MAX, REAL_ONE ) );
 	EXPECT_REALONE( math_mod( REAL_THREE, REAL_TWO ) );
 	EXPECT_REALONE( -math_mod( -REAL_THREE, -REAL_TWO ) );
-
-	EXPECT_REALONE( math_exp( REAL_ZERO ) );
-	EXPECT_REALEQ( math_exp( REAL_ONE ), REAL_E );
-
-	EXPECT_REALONE( math_pow( REAL_ONE, REAL_ONE ) );
-	EXPECT_REALONE( math_pow( REAL_ONE, REAL_ZERO ) );
-	EXPECT_REALONE( math_pow( REAL_THREE, REAL_ZERO ) );
-	EXPECT_REALEQ( math_pow( REAL_SQRT2, REAL_TWO ), REAL_TWO );
-
-	EXPECT_REALEQ( math_logn( REAL_TWO ), REAL_LOGN2 );
-	EXPECT_REALEQ( math_logn( REAL_C( 10.0 ) ), REAL_LOGN10 );
-
-	EXPECT_REALONE( math_log2( REAL_TWO ) );
-	EXPECT_REALEQ( math_log2( REAL_TWO * REAL_TWO ), REAL_TWO );
-	EXPECT_REALEQ( math_log2( REAL_TWO * REAL_TWO * REAL_TWO * REAL_TWO ), REAL_C( 4.0 ) );
 
 	EXPECT_EQ( math_floor( REAL_ZERO ), 0 );
 	EXPECT_EQ( math_floor( REAL_C( 0.999 ) ), 0 );
@@ -180,6 +182,36 @@ DECLARE_TEST( math, core )
 	EXPECT_REALEQ( math_clamp( REAL_HALF, REAL_ZERO, REAL_ONE ), REAL_HALF );
 	EXPECT_REALONE( math_clamp( REAL_ONE, REAL_ZERO, REAL_ONE ) );
 	EXPECT_REALONE( math_clamp( REAL_TWO, REAL_ZERO, REAL_ONE ) );
+
+	return 0;
+}
+
+
+DECLARE_TEST( math, exponentials )
+{
+	EXPECT_REALONE( math_exp( REAL_ZERO ) );
+	EXPECT_REALEQ( math_exp( REAL_ONE ), REAL_E );
+
+	EXPECT_REALONE( math_pow( REAL_ONE, REAL_ONE ) );
+	EXPECT_REALONE( math_pow( REAL_ONE, REAL_ZERO ) );
+	EXPECT_REALONE( math_pow( REAL_THREE, REAL_ZERO ) );
+	EXPECT_REALEQ( math_pow( REAL_SQRT2, REAL_TWO ), REAL_TWO );
+
+	EXPECT_REALEQ( math_logn( REAL_TWO ), REAL_LOGN2 );
+	EXPECT_REALEQ( math_logn( REAL_C( 10.0 ) ), REAL_LOGN10 );
+
+	EXPECT_REALONE( math_log2( REAL_TWO ) );
+	EXPECT_REALEQ( math_log2( REAL_TWO * REAL_TWO ), REAL_TWO );
+	EXPECT_REALEQ( math_log2( REAL_TWO * REAL_TWO * REAL_TWO * REAL_TWO ), REAL_C( 4.0 ) );
+
+	return 0;
+}
+
+
+DECLARE_TEST( math, comparison )
+{
+	int i;
+	real testreal, refreal;
 	
 	testreal = REAL_C( 42.42 );
 	refreal = testreal;
@@ -264,24 +296,71 @@ DECLARE_TEST( math, core )
 	EXPECT_REALNE( testreal, REAL_ZERO );
 	EXPECT_REALZERO( math_realundenormalize( testreal ) );
 
-#if 0
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( uint8,  uint8_t,  int8_t,  7  )
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( uint16, uint16_t, int16_t, 15 )
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( uint32, uint32_t, int32_t, 31 )
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( uint64, uint64_t, int64_t, 63ULL )
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( int8,   int8_t,   int8_t,  7  )
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( int16,  int16_t,  int16_t, 15 )
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( int32,  int32_t,  int32_t, 31 )
-	FOUNDATION_DECLARE_INCREMENT_AND_WRAP( int64,  int64_t,  int64_t, 63ULL )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( uint8,  uint8_t,  int8_t,  7  )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( uint16, uint16_t, int16_t, 15 )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( uint32, uint32_t, int32_t, 31 )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( uint64, uint64_t, int64_t, 63ULL )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( int8,  int8_t,   int8_t,  7  )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( int16, int16_t,  int16_t, 15 )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( int32, int32_t,  int32_t, 31 )
-	FOUNDATION_DECLARE_DECREMENT_AND_WRAP( int64, int64_t,  int64_t, 63ULL )
-#endif	
+	return 0;
+}
+
+
+DECLARE_TEST( math, wrap )
+{
+	int64_t min64, max64;
+	
+	EXPECT_EQ( math_inc_wrap_uint8( 0xFE, 0, 0xFF ), 0xFF );
+	EXPECT_EQ( math_inc_wrap_uint8( 0xFF, 0, 0xFF ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint8( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint8( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_uint8( 42, 40, 43 ), 43 );
+
+	EXPECT_EQ( math_inc_wrap_uint16( 0xFFFE, 0, 0xFFFF ), 0xFFFF );
+	EXPECT_EQ( math_inc_wrap_uint16( 0xFFFF, 0, 0xFFFF ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint16( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint16( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_uint16( 42, 40, 43 ), 43 );
+
+	EXPECT_EQ( math_inc_wrap_uint32( 0xFFFFFFFE, 0, 0xFFFFFFFF ), 0xFFFFFFFF );
+	EXPECT_EQ( math_inc_wrap_uint32( 0xFFFFFFFF, 0, 0xFFFFFFFF ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint32( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint32( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_uint32( 42, 40, 43 ), 43 );
+
+	EXPECT_EQ( math_inc_wrap_uint64( 0xFFFFFFFFFFFFFFFEULL, 0, 0xFFFFFFFFFFFFFFFFULL ), 0xFFFFFFFFFFFFFFFFULL );
+	EXPECT_EQ( math_inc_wrap_uint64( 0xFFFFFFFFFFFFFFFFULL, 0, 0xFFFFFFFFFFFFFFFFULL ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint64( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_uint64( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_uint64( 42, 40, 43 ), 43 );
+
+	EXPECT_EQ( math_inc_wrap_int8( 126, -128, 127 ), 127 );
+	EXPECT_EQ( math_inc_wrap_int8( 127, -128, 127 ), -128 );
+	EXPECT_EQ( math_inc_wrap_int8( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int8( 1, -1, 1 ), -1 );
+	EXPECT_EQ( math_inc_wrap_int8( -1, -1, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int8( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_int8( 42, 40, 43 ), 43 );
+
+	EXPECT_EQ( math_inc_wrap_int16( 32766, -32768, 32767 ), 32767 );
+	EXPECT_EQ( math_inc_wrap_int16( 32767, -32768, 32767 ), -32768 );
+	EXPECT_EQ( math_inc_wrap_int16( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int16( 1, -1, 1 ), -1 );
+	EXPECT_EQ( math_inc_wrap_int16( -1, -1, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int16( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_int16( 42, 40, 43 ), 43 );
+
+	EXPECT_EQ( math_inc_wrap_int32( 2147483646, -2147483648, 2147483647 ), 2147483647 );
+	EXPECT_EQ( math_inc_wrap_int32( 2147483647, -2147483648, 2147483647 ), -2147483648 );
+	EXPECT_EQ( math_inc_wrap_int32( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int32( 1, -1, 1 ), -1 );
+	EXPECT_EQ( math_inc_wrap_int32( -1, -1, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int32( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_int32( 42, 40, 43 ), 43 );
+
+	min64 = 0x8000000000000000LL;//-9223372036854775808
+	max64 = 0x7FFFFFFFFFFFFFFFLL;// 9223372036854775807
+	EXPECT_EQ( math_inc_wrap_int64( max64 - 1LL, min64, max64 ), max64 );
+	EXPECT_EQ( math_inc_wrap_int64( max64, min64, max64 ), min64 );
+	EXPECT_EQ( math_inc_wrap_int64( 1, 0, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int64( 1, -1, 1 ), -1 );
+	EXPECT_EQ( math_inc_wrap_int64( -1, -1, 1 ), 0 );
+	EXPECT_EQ( math_inc_wrap_int64( 42, 40, 42 ), 40 );
+	EXPECT_EQ( math_inc_wrap_int64( 42, 40, 43 ), 43 );
 	
 	return 0;
 }
@@ -289,5 +368,11 @@ DECLARE_TEST( math, core )
 
 void test_declare( void )
 {
-	ADD_TEST( math, core );
+	ADD_TEST( math, constants );
+	ADD_TEST( math, trigonometry );
+	ADD_TEST( math, squareroot );
+	ADD_TEST( math, utility );
+	ADD_TEST( math, exponentials );
+	ADD_TEST( math, comparison );
+	ADD_TEST( math, wrap );
 }
