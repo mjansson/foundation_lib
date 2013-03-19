@@ -23,9 +23,8 @@
 
 struct ALIGN(16) _foundation_mutex
 {
-#if !BUILD_DEPLOY
+	//! Mutex name
 	char                   name[32];
-#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -34,7 +33,7 @@ struct ALIGN(16) _foundation_mutex
 
 	//! Event handle
 	void*                  event;
-
+	
 	//! Wait count
 	volatile int           waiting;
 
@@ -52,17 +51,18 @@ struct ALIGN(16) _foundation_mutex
 #else
 #  error Not implemented	
 #endif		
+
+	//! Owner thread
+	uint64_t               lockedthread;
+	
+	//! Enter count
+	volatile int           lockcount;	
 };
 
 
 static void _mutex_initialize( mutex_t* mutex, const char* name )
 {
-#if !BUILD_DEPLOY
-	unsigned int namelen = string_length( name );
-	if( namelen > 31 )
-		namelen = 31;
 	string_copy( mutex->name, name, 32 );
-#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	InitializeCriticalSectionAndSpinCount( (CRITICAL_SECTION*)mutex->csection, 4000 );
@@ -82,11 +82,15 @@ static void _mutex_initialize( mutex_t* mutex, const char* name )
 #else
 #  error _mutex_initialize not implemented
 #endif
+
+	mutex->lockedthread = 0;
+	mutex->lockcount = 0;
 }
 
 
 static void _mutex_shutdown( mutex_t* mutex )
 {
+	FOUNDATION_ASSERT( !mutex->lockcount );
 #if FOUNDATION_PLATFORM_WINDOWS
 	CloseHandle( mutex->event );
 	DeleteCriticalSection( (CRITICAL_SECTION*)mutex->csection );
@@ -123,11 +127,7 @@ void mutex_deallocate( mutex_t* mutex )
 const char* mutex_name( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
-#if !BUILD_DEPLOY
 	return mutex->name;
-#else
-	return "";
-#endif
 }
 
 
@@ -146,20 +146,31 @@ bool mutex_try_lock( mutex_t* mutex )
 	if( was_locked )
 		profile_lock( mutex->name );
 #endif
+	if( was_locked )
+	{
+		FOUNDATION_ASSERT( !mutex->lockcount || ( thread_id() == mutex->lockedthread ) );
+		if( !mutex->lockcount )
+			mutex->lockedthread = thread_id();
+		++mutex->lockcount;
+	}
 	return was_locked;
 }
 
 
 bool mutex_lock( mutex_t* mutex )
 {
+	uint64_t thid;
+	
 	FOUNDATION_ASSERT( mutex );
+
 #if !BUILD_DEPLOY
 	profile_trylock( mutex->name );
 #endif
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	EnterCriticalSection( (CRITICAL_SECTION*)mutex->csection );
 #elif FOUNDATION_PLATFORM_POSIX
-	if( pthread_mutex_lock( &mutex->mutex ) < 0 )
+	if( pthread_mutex_lock( &mutex->mutex ) != 0 )
 	{
 		FOUNDATION_ASSERT_FAILFORMAT( "unable to lock mutex %s", mutex->name );
 		return false;
@@ -170,6 +181,12 @@ bool mutex_lock( mutex_t* mutex )
 #if !BUILD_DEPLOY
 	profile_lock( mutex->name );
 #endif
+
+	FOUNDATION_ASSERT_MSGFORMAT( !mutex->lockcount || ( thread_id() == mutex->lockedthread ), "Mutex lock acquired with lockcount > 0 (%d) and locked thread not self (%llx != %llx)", mutex->lockcount, mutex->lockedthread, thread_id() );
+	if( !mutex->lockcount )
+		mutex->lockedthread = thread_id();
+	++mutex->lockcount;
+
 	return true;
 }
 
@@ -177,13 +194,24 @@ bool mutex_lock( mutex_t* mutex )
 bool mutex_unlock( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
+
+	if( !mutex->lockcount )
+	{
+		log_warnf( WARNING_SUSPICIOUS, "Unable to unlock unlocked mutex %s", mutex->name );
+		return false;
+	}
+	
+	FOUNDATION_ASSERT( mutex->lockedthread == thread_id() );
+	--mutex->lockcount;
+
 #if !BUILD_DEPLOY
 	profile_unlock( mutex->name );
 #endif
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	LeaveCriticalSection( (CRITICAL_SECTION*)mutex->csection );
 #elif FOUNDATION_PLATFORM_POSIX
-	if( pthread_mutex_unlock( &mutex->mutex ) < 0 )
+	if( pthread_mutex_unlock( &mutex->mutex ) != 0 )
 	{
 		FOUNDATION_ASSERT_FAILFORMAT( "unable to unlock mutex %s", mutex->name );
 		return false;
@@ -206,16 +234,15 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 	FOUNDATION_ASSERT( mutex );
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	{
-		//MutexLock mlock( *this );
-		atomic_incr32( &mutex->waiting );
-	}
+	atomic_incr32( &mutex->waiting );
+
 	ret = WaitForSingleObject( mutex->event, ( timeout == 0 ) ? INFINITE : timeout );
-	{
-		//MutexLock lock( *this );
-		if( atomic_decr32( &mutex->waiting ) == 0 ) //TODO: not safe, could potentially be thread incrementing and calling SetEvent between return of atomic_decr32 and ResetEvent
-			ResetEvent( mutex->event );
-	}
+
+	if( ret == WAIT_OBJECT_0 )
+		mutex_lock( mutex );
+	
+	if( atomic_decr32( &mutex->waiting ) == 0 )
+		ResetEvent( mutex->event );
 
 	return ret == WAIT_OBJECT_0;
 
@@ -229,6 +256,8 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		mutex_unlock( mutex );
 		return true;
 	}
+
+	--mutex->lockcount;
 	
 	bool was_signal = false;
 	if( !timeout )
@@ -249,9 +278,13 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		if( !pthread_cond_timedwait( &mutex->cond, &mutex->mutex, &then ) )
 			was_signal = true;
 	}
-	
-	mutex->pending = false;
-	mutex_unlock( mutex );
+
+	if( was_signal )
+	{
+		++mutex->lockcount;
+		mutex->lockedthread = thread_id();
+		mutex->pending = false;
+	}
 	
 	return was_signal;
 

@@ -468,10 +468,10 @@ uint64_t thread_id( void )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return GetCurrentThreadId();
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	return pthread_self();
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 	return pthread_mach_thread_np( pthread_self() );
+#elif FOUNDATION_PLATFORM_POSIX
+	return pthread_self();
 #else
 #  error Not implemented
 #endif
