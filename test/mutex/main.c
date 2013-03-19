@@ -48,6 +48,7 @@ DECLARE_TEST( mutex, basic )
 	mutex_signal( mutex );
 	thread_yield();
 	EXPECT_TRUE( mutex_wait( mutex, 1 ) );
+	mutex_unlock( mutex );
 	
 	mutex_deallocate( mutex );
 	

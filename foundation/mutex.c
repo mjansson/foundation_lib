@@ -159,8 +159,6 @@ bool mutex_try_lock( mutex_t* mutex )
 
 bool mutex_lock( mutex_t* mutex )
 {
-	uint64_t thid;
-	
 	FOUNDATION_ASSERT( mutex );
 
 #if !BUILD_DEPLOY
