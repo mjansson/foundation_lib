@@ -155,6 +155,7 @@ static FORCEINLINE CONSTCALL bool          math_realisnan( real val );
 static FORCEINLINE CONSTCALL bool          math_realisinf( real val );
 static FORCEINLINE CONSTCALL bool          math_realisuninitialized( real val );
 static FORCEINLINE CONSTCALL bool          math_realisfinite( real val );
+static FORCEINLINE CONSTCALL bool          math_realisdenormalized( real val );
 static FORCEINLINE CONSTCALL real          math_realundenormalize( real val );
 
 
@@ -481,6 +482,17 @@ static FORCEINLINE CONSTCALL bool math_realisfinite( real val )
 }
 
 
+static FORCEINLINE CONSTCALL bool math_realisdenormalized( real val )
+{
+#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
+	const __real_convert conv = { .rval=val };
+#else
+	__real_convert conv; conv.rval = val;
+#endif
+	return ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) == 0 );
+}
+
+
 static FORCEINLINE CONSTCALL real math_realundenormalize( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
@@ -642,6 +654,17 @@ static FORCEINLINE CONSTCALL bool math_realisuninitialized( real val )
 static FORCEINLINE CONSTCALL bool math_realisfinite( real val )
 {
 	return !( math_realisnan( val ) || math_realisinf( val ) || math_realisuninitialized( val ) );
+}
+
+
+static FORCEINLINE CONSTCALL bool math_realisdenormalized( real val )
+{
+#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
+	const __real_convert conv = { .rval=val };
+#else
+	__real_convert conv; conv.rval = val;
+#endif
+	return ( ( (const uint32_t)conv.ival & 0x7F800000ULL ) == 0 );
 }
 
 

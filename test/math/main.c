@@ -210,9 +210,10 @@ DECLARE_TEST( math, exponentials )
 
 DECLARE_TEST( math, comparison )
 {
-	int i;
 	real testreal, refreal;
-	
+	real onereal = REAL_ONE;
+	real zeroreal = REAL_ZERO;
+
 	testreal = REAL_C( 42.42 );
 	refreal = testreal;
 
@@ -290,11 +291,14 @@ DECLARE_TEST( math, comparison )
 	EXPECT_TRUE( math_realisfinite( testreal ) );
 
 	EXPECT_TRUE( math_realisnan( math_sqrt( REAL_C( -1.0 ) ) ) );
-	EXPECT_TRUE( math_realisinf( REAL_ONE / REAL_ZERO ) );
+	EXPECT_TRUE( math_realisinf( onereal / zeroreal ) );
 
 	testreal = REAL_ONE / REAL_MAX;
 	EXPECT_REALNE( testreal, REAL_ZERO );
+	EXPECT_TRUE( math_realisdenormalized( testreal ) );
 	EXPECT_REALZERO( math_realundenormalize( testreal ) );
+	EXPECT_FALSE( math_realisdenormalized( REAL_ONE ) );
+	EXPECT_REALONE( math_realundenormalize( REAL_ONE ) );
 
 	return 0;
 }
@@ -302,6 +306,7 @@ DECLARE_TEST( math, comparison )
 
 DECLARE_TEST( math, wrap )
 {
+	int32_t min32, max32;
 	int64_t min64, max64;
 	
 	EXPECT_EQ( math_inc_wrap_uint8( 0xFE, 0, 0xFF ), 0xFF );
@@ -344,8 +349,10 @@ DECLARE_TEST( math, wrap )
 	EXPECT_EQ( math_inc_wrap_int16( 42, 40, 42 ), 40 );
 	EXPECT_EQ( math_inc_wrap_int16( 42, 40, 43 ), 43 );
 
-	EXPECT_EQ( math_inc_wrap_int32( 2147483646, -2147483648, 2147483647 ), 2147483647 );
-	EXPECT_EQ( math_inc_wrap_int32( 2147483647, -2147483648, 2147483647 ), -2147483648 );
+	min32 = 0x80000000L;//-2147483648
+	max32 = 0x7FFFFFFFL;// 2147483647
+	EXPECT_EQ( math_inc_wrap_int32( max32 - 1, min32, max32), max32 );
+	EXPECT_EQ( math_inc_wrap_int32( max32, min32, max32 ), min32 );
 	EXPECT_EQ( math_inc_wrap_int32( 1, 0, 1 ), 0 );
 	EXPECT_EQ( math_inc_wrap_int32( 1, -1, 1 ), -1 );
 	EXPECT_EQ( math_inc_wrap_int32( -1, -1, 1 ), 0 );
