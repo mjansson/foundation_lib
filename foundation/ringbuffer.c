@@ -286,7 +286,7 @@ stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_s
 	ringbuffer_stream_t* bufferstream = memory_allocate_zero( sizeof( ringbuffer_stream_t ) + buffer_size, 0, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)bufferstream;
 
-	_stream_initialize( stream );
+	_stream_initialize( stream, system_byteorder() );
 
 	stream->type = STREAMTYPE_RINGBUFFER;
 	stream->sequential = 1;

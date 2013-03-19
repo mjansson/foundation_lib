@@ -114,6 +114,9 @@
 #endif
 
 
+#define BUILD_DEFAULT_STREAM_BYTEORDER        BYTEORDER_LITTLEENDIAN
+
+
 // Allocation sizes
 #define BUILD_SIZE_THREAD_MAP                 256
 #define BUILD_SIZE_LIBRARY_MAP                64

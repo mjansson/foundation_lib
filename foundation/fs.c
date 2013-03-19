@@ -526,8 +526,10 @@ uint128_t fs_md5( const char* path )
 	uint128_t digest = {0};
 	stream_t* file = fs_open_file( path, STREAM_IN | STREAM_BINARY );
 	if( file )
+	{
 		digest = stream_md5( file );
-	stream_deallocate( file );
+		stream_deallocate( file );
+	}
 	return digest;
 }
 
@@ -1268,10 +1270,9 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	pathlen = string_length( path );
 	file = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
 	stream = GET_STREAM( file );
-	_stream_initialize( stream );
+	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 
 	stream->type = STREAMTYPE_FILE;
-	stream->sequential = false;
 
 	abspath = path_make_absolute( path );
 	dotrunc = false;
