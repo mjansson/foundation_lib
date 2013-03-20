@@ -67,7 +67,7 @@ void test_add_test( test_fn fn, const char* group_name, const char* test_name )
 void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
-	int result;
+	void* result;
 
 	log_suppress( ERRORLEVEL_DEBUG );
 	log_infof( "Running test suite: %s", environment_application()->short_name );
@@ -79,7 +79,7 @@ void test_run( void )
 		{
 			log_infof( "  Running %s tests", _test_groups[ig]->cases[ic]->name );
 			result = _test_groups[ig]->cases[ic]->fn();
-			if( result < 0 )
+			if( result != 0 )
 				log_warnf( WARNING_SUSPICIOUS, "    FAILED" );
 			else
 				log_infof( "    PASSED" );

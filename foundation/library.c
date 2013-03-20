@@ -55,7 +55,7 @@ void _library_shutdown( void )
 
 void _library_destroy( library_t* library )
 {
-	objectmap_free_id( _library_map, library->id );
+	objectmap_free( _library_map, library->id );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	FreeLibrary( library->dll );
@@ -143,7 +143,7 @@ object_t library_load( const char* name )
 
 #endif
 
-	id = objectmap_reserve_id( _library_map );
+	id = objectmap_reserve( _library_map );
 	if( !id )
 	{
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -165,7 +165,7 @@ object_t library_load( const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 	library->lib = lib;
 #endif
-	objectmap_set_object( _library_map, id, library );
+	objectmap_set( _library_map, id, library );
 
 	error_context_pop();
 	

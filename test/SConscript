@@ -2,34 +2,18 @@ import os.path
 
 Import("env")
 
-
-testlibsources = [
-
-	'test/test.c'
-
-	]
-
-
-# ADD INTERNAL FLAGS
+# TEST LIBRARY
+testlibsources = [ 'test/test.c' ]
 
 testlibenv = env.Clone()
-
 testlibenv.Append( CPPPATH=['#/test'] )
 
-
-# OUTPUTS
-
 env['testlib'] = testlibenv.StaticLibrary( 'test', testlibsources )
-
-
-# DEPENDENCIES
-
-
-# INSTALLS
 
 testlibenv.AddPostAction( 'test', testlibenv.Install( '#lib/${platform}${platformsuffix}/${buildprofile}', [ env['testlib'] ] ) )
 
 
+# TEST SUITES
 
 testenv    = env.Clone()
 
@@ -66,6 +50,7 @@ makeTest('library')
 makeTest('math')
 makeTest('md5')
 makeTest('mutex')
+makeTest('objectmap')
 makeTest('radixsort')
 makeTest('random')
 makeTest('string')

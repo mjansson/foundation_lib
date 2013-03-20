@@ -81,7 +81,7 @@ void* objectmap_raw_lookup( const objectmap_t* map, unsigned int idx )
 }
 
 
-object_t objectmap_reserve_id( objectmap_t* map )
+object_t objectmap_reserve( objectmap_t* map )
 {
 	uint64_t idx, next, id;
 
@@ -115,7 +115,7 @@ object_t objectmap_reserve_id( objectmap_t* map )
 }
 
 
-void objectmap_free_id( objectmap_t* map, object_t id )
+void objectmap_free( objectmap_t* map, object_t id )
 {
 	uint64_t idx, last;
 
@@ -133,7 +133,7 @@ void objectmap_free_id( objectmap_t* map, object_t id )
 }
 
 
-void objectmap_set_object( objectmap_t* map, object_t id, void* object )
+void objectmap_set( objectmap_t* map, object_t id, void* object )
 {
 	uint64_t idx;
 
@@ -143,7 +143,8 @@ void objectmap_set_object( objectmap_t* map, object_t id, void* object )
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT( !(((uintptr_t)map->map[idx]) & 1 ) );
 	FOUNDATION_ASSERT( !((uintptr_t)map->map[idx]) );
-	map->map[idx] = object;
+	if( !map->map[idx] )
+		map->map[idx] = object;
 	/*lint +esym(613,pool) */
 }
 

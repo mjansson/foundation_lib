@@ -147,19 +147,13 @@ DECLARE_TEST( blowfish, initialize )
 		right = _test_plaintext_right[i];
 		_blowfish_encrypt_words( blowfish, &left, &right );
 
-		if( memcmp( &left, &_test_ciphertext_left[i], 4 ) )
-			return -1;
-
-		if( memcmp( &right, &_test_ciphertext_right[i], 4 ) )
-			return -1;
+		EXPECT_EQ( memcmp( &left, &_test_ciphertext_left[i], 4 ), 0 );
+		EXPECT_EQ( memcmp( &right, &_test_ciphertext_right[i], 4 ), 0 );
 
 		_blowfish_decrypt_words( blowfish, &left, &right );
 
-		if( memcmp( &left, &_test_plaintext_left[i], 4 ) )
-			return -1;
-
-		if( memcmp( &right, &_test_plaintext_right[i], 4 ) )
-			return -1;
+		EXPECT_EQ( memcmp( &left, &_test_plaintext_left[i], 4 ), 0 );
+		EXPECT_EQ( memcmp( &right, &_test_plaintext_right[i], 4 ), 0 );
 	}
 
 	for( j = 1, i = NUM_VARIABLEKEYTESTS; i < ( NUM_VARIABLEKEYTESTS + NUM_SETKEYTESTS ); ++i )

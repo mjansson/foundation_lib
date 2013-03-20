@@ -104,7 +104,7 @@ DECLARE_TEST( error, context )
 }
 
 
-int error_test_thread( void )
+void* error_test_thread( void )
 {
 	error_context_t* context = 0;
 
@@ -186,8 +186,8 @@ void* error_thread( object_t thread, void* arg )
 
 	for( ipass = 0; ipass < 512; ++ipass )
 	{
-		if( error_test_thread() < 0 )
-			return (void*)(uintptr_t)1;
+		if( error_test_thread() )
+			return FAILED_TEST;
 		thread_yield();
 	}
 

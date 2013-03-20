@@ -137,7 +137,7 @@ void _thread_destroy( void* thread_raw )
 		while( thread_is_running( thread->id ) && ( ++spin_count < 50 ) )
 			thread_yield();
 	}
-	objectmap_free_id( _thread_map, thread->id );
+	objectmap_free( _thread_map, thread->id );
 	memory_deallocate( thread );
 }
 
@@ -160,9 +160,8 @@ static int _thread_guard_wrapper( void* data )
 
 object_t thread_create( thread_fn fn, const char* name, thread_priority_t priority, unsigned int stacksize )
 {
-	//TODO: Should we map by fn to avoid creating multiple thread objects for same entry point?
 	thread_t* thread;
-	uint64_t id = objectmap_reserve_id( _thread_map );
+	uint64_t id = objectmap_reserve( _thread_map );
 	if( !id )
 	{
 		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
@@ -176,7 +175,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	thread->priority = priority;
 	thread->stacksize = stacksize;
 	thread->ref = 1;
-	objectmap_set_object( _thread_map, id, thread );
+	objectmap_set( _thread_map, id, thread );
 	return thread->id;
 }
 
