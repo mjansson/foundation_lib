@@ -305,7 +305,7 @@ DECLARE_TEST( fs, monitor )
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
-
+	
 	stream = fs_event_stream();
 
 	if( fs_is_file( testpath ) )
@@ -368,7 +368,7 @@ DECLARE_TEST( fs, monitor )
 
 	fs_unmonitor( testpath );
 	thread_sleep( 1000 );
-
+	
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );

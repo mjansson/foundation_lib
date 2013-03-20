@@ -108,6 +108,7 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 		mutex_signal( notify );
 
 	thread_destroy( thread );
+
 	while( thread_is_running( thread ) )
 		thread_yield();
 
@@ -909,11 +910,15 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			memory_deallocate( buffer );
 		}
 		if( monitor->signal )
-			mutex_wait( monitor->signal, 100 );
+		{
+			if( mutex_wait( monitor->signal, 100 ) )
+				mutex_unlock( monitor->signal );
+		}
 #else
 		log_debugf( "Filesystem watcher not implemented on this platform" );
 		//Not implemented yet, just wait for signal to simulate thread
-		mutex_wait( monitor->signal, 0 );
+		if( mutex_wait( monitor->signal, 0 ) )
+			mutex_unlock( monitor->signal );
 #endif
 	}
 

@@ -260,11 +260,19 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 	bool was_signal = false;
 	if( !timeout )
 	{
-		if( !pthread_cond_wait( &mutex->cond, &mutex->mutex ) )
+		int ret = pthread_cond_wait( &mutex->cond, &mutex->mutex );
+		if( ret == 0 )
+		{
 			was_signal = true;
+		}
+		else
+		{
+			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to wait on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+		}
 	}
 	else
 	{
+		int ret;
 		gettimeofday( &now, 0 );
 		then.tv_sec  = now.tv_sec + ( timeout / 1000 );
 		then.tv_nsec = ( now.tv_usec * 1000 ) + (long)( timeout % 1000 ) * 1000000L;
@@ -273,16 +281,24 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 			++then.tv_sec;
 			then.tv_nsec -= 1000000000L;
 		}
-		if( !pthread_cond_timedwait( &mutex->cond, &mutex->mutex, &then ) )
+		ret = pthread_cond_timedwait( &mutex->cond, &mutex->mutex, &then );
+		if( ret == 0 )
+		{
 			was_signal = true;
+		}
+		else if( ret != 110/*ETIMEDOUT*/ )
+		{
+			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to wait (timed) on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+		}
 	}
 
+	++mutex->lockcount;
+	mutex->lockedthread = thread_id();
+	
 	if( was_signal )
-	{
-		++mutex->lockcount;
-		mutex->lockedthread = thread_id();
 		mutex->pending = false;
-	}
+	else
+		mutex_unlock( mutex );
 	
 	return was_signal;
 
@@ -295,13 +311,22 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 void mutex_signal( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
+
 #if FOUNDATION_PLATFORM_WINDOWS
+
 	SetEvent( mutex->event );
+
 #elif FOUNDATION_PLATFORM_POSIX
+
 	mutex_lock( mutex );
 	mutex->pending = true;
-	pthread_cond_broadcast( &mutex->cond );
+
+	int ret = pthread_cond_broadcast( &mutex->cond );
+	if( ret != 0 )
+		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to signal mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+
 	mutex_unlock( mutex );
+
 #else
 #  error mutex_signal not implemented
 #endif
