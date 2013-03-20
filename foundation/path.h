@@ -13,7 +13,14 @@
 #pragma once
 
 /*! \file path.h
-    Path utilities for unifying, merging, ... */
+    Path utilities for unifying, merging, cleaning and extracting path parts.
+
+    All function expect the path to be of a wellformed format using forward
+    slashes only, such as [protocol://][drive:][/]path/to/some/file[.ext],
+    except for path_clean and path_make_absolute
+
+    Use path_clean and path_make_absolute to create well-formed paths from
+    unknown formats */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
