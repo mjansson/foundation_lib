@@ -17,10 +17,12 @@
 
 char* path_clean( char* path, bool absolute )
 {
+	//Since this function is used a lot we want to perform as much operations
+	//in place instead of splicing up into a string array and remerge
 	char* replace;
 	char* inpath;
 	char* next;
-	unsigned int inlength, length, remain, protocollen, up, last_up, prev_up;
+	unsigned int inlength, length, remain, protocollen, up, last_up, prev_up, driveofs;
 
 	if( !path )
 		return string_allocate( 0 );
@@ -28,8 +30,9 @@ char* path_clean( char* path, bool absolute )
 	inpath = path;
 	inlength = string_length( path );
 	protocollen = string_find_string( path, "://", 0 );
-	if( protocollen != STRING_NPOS )
+	if( ( protocollen != STRING_NPOS ) && ( protocollen > 1 ) )
 	{
+		absolute = true;
 		protocollen += 3; //Also skip the "://" separator
 		inlength -= protocollen;
 		path += protocollen;
@@ -39,6 +42,7 @@ char* path_clean( char* path, bool absolute )
 		protocollen = 0;
 	}
 	length = inlength;
+	driveofs = 0;
 
 	replace = path;
 	while( ( replace = strchr( replace, '\\' ) ) != 0 )
@@ -97,7 +101,7 @@ char* path_clean( char* path, bool absolute )
 		}
 	}
 
-	if( absolute && !protocollen ) //If protocol present, don't prepend extra separator
+	if( absolute )
 	{
 		if( !length )
 		{
@@ -113,6 +117,8 @@ char* path_clean( char* path, bool absolute )
 		}
 		else if( ( length >= 2 ) && ( path[1] == ':' ) )
 		{
+			driveofs = 2;
+			
 			//Make sure first character is upper case
 			if( ( path[0] >= 'a' ) && ( path[0] <= 'z' ) )
 				path[0] = ( path[0] - (char)( (int)'a' - (int)'A' ) );
@@ -144,7 +150,7 @@ char* path_clean( char* path, bool absolute )
 				++length;
 			}
 		}
-		else if( path[0] != '/' )
+		else if( !protocollen && ( path[0] != '/' ) )
 		{
 			//make sure capacity is enough to hold additional character
 			if( inlength < ( length + 1 ) )
@@ -170,20 +176,41 @@ char* path_clean( char* path, bool absolute )
 	}
 
 	//Deal with .. references
-	last_up = 0;
+	last_up = driveofs;
 	while( ( up = string_find_string( path, "/../", last_up ) ) != STRING_NPOS )
 	{
 		if( up >= length )
 			break;
-		if( up == 0 )
+		if( up == driveofs )
 		{
-			last_up = 3;
+			if( absolute )
+			{
+				memmove( path + driveofs + 1, path + driveofs + 4, length - ( driveofs + 3 ) );
+				length -= 3;
+			}
+			else
+			{
+				last_up = driveofs + 3;
+			}
 			continue;
 		}
 		prev_up = string_rfind( path, '/', up - 1 );
-		if( ( prev_up != STRING_NPOS ) && ( prev_up > last_up ) )
+		if( prev_up == STRING_NPOS )
 		{
-			memmove( path + prev_up, path + up + 3, length - up - 3 );
+			if( absolute )
+			{
+				memmove( path, path + up + 3, length - up - 2 );
+				length -= ( up + 3 );
+			}
+			else
+			{
+				memmove( path, path + up + 4, length - up - 3 );
+				length -= ( up + 4 );
+			}				
+		}
+		else if( prev_up >= last_up )
+		{
+			memmove( path + prev_up, path + up + 3, length - up - 2 );
 			length -= ( up - prev_up + 3 );
 		}
 		else
@@ -203,8 +230,16 @@ char* path_clean( char* path, bool absolute )
 
 	if( protocollen )
 	{
-		if( ( length == 1 ) && ( path[0] == '/' ) )
-			length = 0;
+		if( path[0] == '/' )
+		{
+			if( length == 1 )
+				length = 0;
+			else
+			{
+				memmove( path, path + 1, length );
+				--length;
+			}
+		}
 		length += protocollen;
 		path = inpath;
 	}

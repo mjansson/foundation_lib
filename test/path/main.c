@@ -248,7 +248,10 @@ DECLARE_TEST( path, clean )
 	char* path21 = string_clone( "testing/path/extend/dyn" );
 	char* path22 = string_clone( "testing/./\\\\/\\/./path/././//./extend/\\\\" );
 	char* path23 = string_clone( "http://///\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\.///some/file" );
-
+	char* path24 = string_clone( "http://test/../../path" );
+	char* path25 = string_clone( "http:///.//test/../../path" );
+	char* path26 = string_clone( "http:///.//test/../../../../../../path" );
+	
 	path1 = path_clean( path1, true );
 	path2 = path_clean( path2, true );
 	path3 = path_clean( path3, true );
@@ -272,6 +275,9 @@ DECLARE_TEST( path, clean )
 	path21 = path_clean( path21, true );
 	path22 = path_clean( path22, true );
 	path23 = path_clean( path23, true );
+	path24 = path_clean( path24, true );
+	path25 = path_clean( path25, true );
+	path26 = path_clean( path26, true );
 
 	EXPECT_STREQ( path1, "/" );
 	EXPECT_STREQ( path2, "/" );
@@ -296,6 +302,9 @@ DECLARE_TEST( path, clean )
 	EXPECT_STREQ( path21, "/testing/path/extend/dyn" );
 	EXPECT_STREQ( path22, "/testing/path/extend" );
 	EXPECT_STREQ( path23, "http://some/file" );
+	EXPECT_STREQ( path24, "http://path" );
+	EXPECT_STREQ( path25, "http://path" );
+	EXPECT_STREQ( path26, "http://path" );
 
 	string_deallocate( path1 );
 	string_deallocate( path2 );
@@ -320,6 +329,9 @@ DECLARE_TEST( path, clean )
 	string_deallocate( path21 );
 	string_deallocate( path22 );
 	string_deallocate( path23 );
+	string_deallocate( path24 );
+	string_deallocate( path25 );
+	string_deallocate( path26 );
 
 	return 0;
 }
@@ -432,10 +444,86 @@ DECLARE_TEST( path, absolute )
 
 DECLARE_TEST( path, operations )
 {
-	//path_merge
+	char* temp1;
+	char* temp2;
+
+	char* merge1;
+	char* merge2;
+	char* merge3;
+	char* merge4;
+	char* merge5;
+	char* merge6;
+	char* merge7;
+	char* merge8;
+	char* merge9;
+	char* merge10;
+	char* merge11;
+	char* merge12;
+	char* merge13;
+	char* merge14;
+	char* merge15;
+
+	merge1 = path_merge( "", "" );
+	merge2 = path_merge( "/", "" );
+	merge3 = path_merge( "", "/" );
+	merge4 = path_merge( "", "test" );
+	merge5 = path_merge( "test", "" );
+	merge6 = path_merge( "test", "test" );
+	merge7 = path_merge( "/", "/" );
+	merge8 = path_merge( "test/", "/test" );
+	merge9 = path_merge( "/test", "test/" );
+	merge10 = path_merge( "test://", "/test" );
+	merge11 = path_merge( "test://", "../test" );
+	merge12 = path_merge( "test://test", "../test" );
+	merge13 = path_merge( "test://test", "../../test/" );
+	merge14 = path_merge( "c:", "test" );
+	log_infof( "FINAL MERGE" );
+	merge15 = path_merge( "c:/", "/test" );
+
+	EXPECT_STREQ( merge1, "" );
+	EXPECT_STREQ( merge2, "/" );
+	EXPECT_STREQ( merge3, "" );
+	EXPECT_STREQ( merge4, "test" );
+	EXPECT_STREQ( merge5, "test" );
+	EXPECT_STREQ( merge6, "test/test" );
+	EXPECT_STREQ( merge7, "/" );
+	EXPECT_STREQ( merge8, "test/test" );
+	EXPECT_STREQ( merge9, "/test/test" );
+	EXPECT_STREQ( merge10, "test://test" );
+	EXPECT_STREQ( merge11, "test://test" );
+	EXPECT_STREQ( merge12, "test://test" );
+	EXPECT_STREQ( merge13, "test://test" );
+	EXPECT_STREQ( merge14, "C:/test" );
+	EXPECT_STREQ( merge15, "C:/test" );
+	
+	string_deallocate( merge1 );
+	string_deallocate( merge2 );
+	string_deallocate( merge3 );
+	string_deallocate( merge4 );
+	string_deallocate( merge5 );
+	string_deallocate( merge6 );
+	string_deallocate( merge7 );
+	string_deallocate( merge8 );
+	string_deallocate( merge9 );
+	string_deallocate( merge10 );
+	string_deallocate( merge11 );
+	string_deallocate( merge12 );
+	string_deallocate( merge13 );
+	string_deallocate( merge14 );
+	string_deallocate( merge15 );
+
 	//path_append
 	//path_prepend
-	//path_make_temporary
+
+	temp1 = path_make_temporary();
+	temp2 = path_make_temporary();
+
+	EXPECT_NE( string_length( temp1 ), 0 );
+	EXPECT_NE( string_length( temp2 ), 0 );
+	EXPECT_FALSE( string_equal( temp1, temp2 ) );
+
+	string_deallocate( temp1 );
+	string_deallocate( temp2 );
 	
 	return 0;
 }
@@ -443,7 +531,16 @@ DECLARE_TEST( path, operations )
 
 DECLARE_TEST( path, query )
 {
-	//path_is_absolute
+	EXPECT_TRUE( path_is_absolute( "/" ) );
+	EXPECT_TRUE( path_is_absolute( "/test/" ) );
+	EXPECT_TRUE( path_is_absolute( "C:/test" ) );
+	EXPECT_TRUE( path_is_absolute( "C:test" ) );
+	EXPECT_TRUE( path_is_absolute( "vfs://test" ) );
+	EXPECT_TRUE( path_is_absolute( "vfs:///test" ) );
+	EXPECT_TRUE( path_is_absolute( "vfs:///" ) );
+	EXPECT_FALSE( path_is_absolute( "./" ) );
+	EXPECT_FALSE( path_is_absolute( "test/" ) );
+	EXPECT_FALSE( path_is_absolute( "vfs:/test" ) );
 
 	return 0;
 }
