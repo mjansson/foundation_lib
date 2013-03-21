@@ -57,7 +57,9 @@ FOUNDATION_API char*      path_file_name( const char* path );
 FOUNDATION_API char*      path_path_name( const char* path );
 
 //! Get subpath
-/*! Get subpath name from full path name and root path
+/*! Get subpath name from full path name and root path. If the full path is an absolute path,
+    the root path must also be an absolute path (and vice versa). Protocols will be stripped
+    before matching paths (which will then be treated as absolute paths).
     \param path           Full path
     \param root           Root full path
     \return               Subpath name within root directory, empty string if not in root directory */
@@ -70,18 +72,25 @@ FOUNDATION_API char*      path_subpath_name( const char* path, const char* root 
 FOUNDATION_API char*      path_protocol( const char* uri );
 
 //! Merge paths
-/*! Merge and cleanup paths
+/*! Merge and cleanup paths, allocating new string for merged path
     \param first          First path
     \param second         Second path
     \return               Path that is merged path, first + second */
 FOUNDATION_API char*      path_merge( const char* first, const char* second );
 
 //! Append path
-/*! Append and cleanup paths. Modifies and returns new pointer for first string argument
-    \param first          First path
-    \param second         Second path
+/*! Append and cleanup paths. Modifies and returns new pointer for first string
+    \param base           Base path
+    \param tail           Path to append
     \return               Merged path */
-FOUNDATION_API char*      path_append( char* first, const char* second );
+FOUNDATION_API char*      path_append( char* base, const char* tail );
+
+//! Prepend path
+/*! Prepend and cleanup paths. Modifies and returns new pointer for first string
+    \param tail           Tail of path
+    \param base           Path to prepend
+    \return               Merged path */
+FOUNDATION_API char*      path_prepend( char* tail, const char* base );
 
 //! Clean path
 /*! Clean path by replacing windows backslash with slash and cleaning up multiple concurrent slashes. Any slash characters

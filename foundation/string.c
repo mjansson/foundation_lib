@@ -562,13 +562,13 @@ bool string_ends_with( const char* str, const char* suffix )
 
 bool string_equal( const char* rhs, const char* lhs )
 {
-	return ( rhs == lhs ) || ( rhs && lhs && ( strcmp( rhs, lhs ) == 0 ) );
+	return ( rhs == lhs ) || ( rhs && lhs && ( strcmp( rhs, lhs ) == 0 ) ) || ( !rhs && lhs && lhs[0] == 0 ) || ( rhs && !lhs && rhs[0] == 0 );
 }
 
 
 bool string_equal_substr( const char* rhs, const char* lhs, unsigned int len )
 {
-	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) );
+	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
 }
 
 
