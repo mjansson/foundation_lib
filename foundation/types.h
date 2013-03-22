@@ -201,6 +201,12 @@ typedef enum
 
 	//! Returned when process was terminated by signal
 	PROCESS_TERMINATED_SIGNAL                 = 0x7FFFFFF1,
+
+	//! Returned when process wait was interrupted
+	PROCESS_WAIT_INTERRUPTED                  = 0x7FFFFFF2,
+
+	//! Returned when process wait failed for unknown reasons
+	PROCESS_WAIT_FAILED                       = 0x7FFFFFF3,
 	
 	//! Returned when detached process is still running
 	PROCESS_STILL_ACTIVE                      = 0x7FFFFFFF

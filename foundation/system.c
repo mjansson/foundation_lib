@@ -278,11 +278,12 @@ const char* system_error_message( int code )
 		return "<no error>";
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
-#else
-	static THREADLOCAL char buffer[256];
-#endif
 	strerror_r( code, buffer, 256 );
 	return buffer;
+#else
+	static THREADLOCAL char buffer[256];
+	return strerror_r( code, buffer, 256 );
+#endif
 }
 
 
