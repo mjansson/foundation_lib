@@ -33,24 +33,9 @@ static stream_vtable_t _ringbuffer_stream_vtable = {0};
 
 ringbuffer_t* ringbuffer_allocate( unsigned int size )
 {
-	ringbuffer_t* buffer = memory_allocate( sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT );
-
-	buffer->total_read = 0;
-	buffer->total_write = 0;
-	buffer->offset_read = 0;
-	buffer->offset_write = 0;
+	ringbuffer_t* buffer = memory_allocate_zero( sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT );
 	buffer->buffer_size = size;
-
 	return buffer;
-}
-
-
-void ringbuffer_reset( ringbuffer_t* buffer )
-{
-	buffer->total_read = 0;
-	buffer->total_write = 0;
-	buffer->offset_read = 0;
-	buffer->offset_write = 0;
 }
 
 
@@ -60,15 +45,37 @@ void ringbuffer_deallocate( ringbuffer_t* buffer )
 }
 
 
+unsigned int ringbuffer_size( ringbuffer_t* buffer )
+{
+	FOUNDATION_ASSERT( buffer );
+	return buffer->buffer_size;
+}
+
+
+void ringbuffer_reset( ringbuffer_t* buffer )
+{
+	FOUNDATION_ASSERT( buffer );
+	buffer->total_read = 0;
+	buffer->total_write = 0;
+	buffer->offset_read = 0;
+	buffer->offset_write = 0;
+}
+
+
 unsigned int ringbuffer_read( ringbuffer_t* buffer, void* dest, unsigned int num )
 {
-	unsigned int do_read = 0;
-	unsigned int max_read = 0;
+	unsigned int do_read;
+	unsigned int max_read;
+	unsigned int buffer_size;
+	unsigned int offset_read;
+	unsigned int offset_write;
 
-	unsigned int buffer_size = buffer->buffer_size;
-	unsigned int offset_read = buffer->offset_read;
-	unsigned int offset_write = buffer->offset_write;
+	FOUNDATION_ASSERT( buffer );
 
+	buffer_size = buffer->buffer_size;
+	offset_read = buffer->offset_read;
+	offset_write = buffer->offset_write;
+	
 	if( offset_read > offset_write )
 		max_read = buffer_size - offset_read;
 	else
@@ -100,13 +107,18 @@ unsigned int ringbuffer_read( ringbuffer_t* buffer, void* dest, unsigned int num
 
 unsigned int ringbuffer_write( ringbuffer_t* buffer, const void* source, unsigned int num )
 {
-	unsigned int do_write = 0;
-	unsigned int max_write = 0;
+	unsigned int do_write;
+	unsigned int max_write;
+	unsigned int buffer_size;
+	unsigned int offset_read;
+	unsigned int offset_write;
 
-	unsigned int buffer_size = buffer->buffer_size;
-	unsigned int offset_read = buffer->offset_read;
-	unsigned int offset_write = buffer->offset_write;
+	FOUNDATION_ASSERT( buffer );
 
+	buffer_size = buffer->buffer_size;
+	offset_read = buffer->offset_read;
+	offset_write = buffer->offset_write;
+	
 	if( offset_write >= offset_read )
 	{
 		max_write = buffer_size - offset_write;
@@ -145,13 +157,15 @@ unsigned int ringbuffer_write( ringbuffer_t* buffer, const void* source, unsigne
 
 uint64_t ringbuffer_total_read( ringbuffer_t* buffer )
 {
-	return buffer ? buffer->total_read : 0;
+	FOUNDATION_ASSERT( buffer );
+	return buffer->total_read;
 }
 
 
 uint64_t ringbuffer_total_written( ringbuffer_t* buffer )
 {
-	return buffer ? buffer->total_write : 0;
+	FOUNDATION_ASSERT( buffer );
+	return buffer->total_write;
 }
 
 

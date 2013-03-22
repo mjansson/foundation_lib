@@ -28,6 +28,10 @@ FOUNDATION_API ringbuffer_t*             ringbuffer_allocate( unsigned int size 
     \param buffer                        Ringbuffer */
 FOUNDATION_API void                      ringbuffer_deallocate( ringbuffer_t* buffer );
 
+/*! Get ringbuffer size
+    \return                              Size of ringbuffer */
+FOUNDATION_API unsigned int              ringbuffer_size( ringbuffer_t* size );
+
 /*! Reset ringbuffer read/write pointers and statistics to initial state
     \param buffer                        Ringbuffer */
 FOUNDATION_API void                      ringbuffer_reset( ringbuffer_t* buffer );
@@ -56,9 +60,8 @@ FOUNDATION_API uint64_t                  ringbuffer_total_read( ringbuffer_t* bu
     \return                              Total number of bytes written */
 FOUNDATION_API uint64_t                  ringbuffer_total_written( ringbuffer_t* buffer );
 
-/*! Allocate a ringbuffer stream, which is basically a
-    stream wrapped on top of a ringbuffer. Reads and writes
-    block on semaphores on missing data
+/*! Allocate a ringbuffer stream, which is basically a stream wrapped on top of a ringbuffer. Reads and writes
+    block on semaphores on missing data, making it usable for ringbuffer threaded i/o
     \param buffer_size                   Size of ringbuffer
     \param total_size                    Total size of stream, 0 if infinite */
 FOUNDATION_API stream_t*                 ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_size );

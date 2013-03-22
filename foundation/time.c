@@ -98,6 +98,14 @@ tick_t time_ticks_per_second( void )
 }
 
 
+tick_t time_diff( const tick_t from, const tick_t to )
+{
+	if( to <= from )
+		return 0;
+	return ( to - from );
+}
+	
+
 deltatime_t time_elapsed( const tick_t t )
 {
 	return (deltatime_t)( (double)time_elapsed_ticks( t ) * _time_oofreq );

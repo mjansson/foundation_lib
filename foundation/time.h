@@ -24,15 +24,21 @@
     \return                   Current timestamp */
 FOUNDATION_API tick_t         time_current( void );
 
+/*! Calculate time difference
+    \param from               Start timestamp
+    \param to                 End timestamp
+    \return                   Elapsed time (difference) in ticks */
+FOUNDATION_API tick_t         time_diff( const tick_t from, const tick_t to );
+
 /*! Get elapsed time since given timestamp
-    \param t                  Timestamp
+    \param since              Timestamp
     \return                   Number of seconds elapsed */
-FOUNDATION_API deltatime_t    time_elapsed( const tick_t t );
+FOUNDATION_API deltatime_t    time_elapsed( const tick_t since );
 
 /*! Get elapsed ticks since given timestamp
-    \param t                  Timestamp
+    \param since              Timestamp
     \return                   Number of ticks elapsed */
-FOUNDATION_API tick_t         time_elapsed_ticks( const tick_t t );
+FOUNDATION_API tick_t         time_elapsed_ticks( const tick_t since );
 
 /*! Get time frequency, as number of ticks per second
     \return                   Ticks per second */
