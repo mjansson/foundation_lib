@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation mutex tests";
 	app.short_name = "test_mutex";
 	app.config_dir = "test_mutex";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

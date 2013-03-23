@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation ringbuffer tests";
 	app.short_name = "test_ringbuffer";
 	app.config_dir = "test_ringbuffer";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

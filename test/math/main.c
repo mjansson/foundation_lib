@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation math tests";
 	app.short_name = "test_math";
 	app.config_dir = "test_math";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation string tests";
 	app.short_name = "test_string";
 	app.config_dir = "test_string";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

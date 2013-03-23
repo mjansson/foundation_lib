@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation path tests";
 	app.short_name = "test_path";
 	app.config_dir = "test_path";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 
@@ -477,7 +478,6 @@ DECLARE_TEST( path, operations )
 	merge12 = path_merge( "test://test", "../test" );
 	merge13 = path_merge( "test://test", "../../test/" );
 	merge14 = path_merge( "c:", "test" );
-	log_infof( "FINAL MERGE" );
 	merge15 = path_merge( "c:/", "/test" );
 
 	EXPECT_STREQ( merge1, "" );

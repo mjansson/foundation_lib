@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation md5 tests";
 	app.short_name = "test_md5";
 	app.config_dir = "test_md5";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

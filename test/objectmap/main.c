@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation objectmap tests";
 	app.short_name = "test_objectmap";
 	app.config_dir = "test_objectmap";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 
