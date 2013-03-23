@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation filesystem tests";
 	app.short_name = "test_fs";
 	app.config_dir = "test_fs";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

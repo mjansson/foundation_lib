@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation library tests";
 	app.short_name = "test_library";
 	app.config_dir = "test_library";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 
@@ -34,8 +35,8 @@ DECLARE_TEST( library, lookup )
 	const char* libraryname = "kernel32";
 	const char* symbolname = "ExitProcess";
 #elif FOUNDATION_PLATFORM_APPLE
-	const char* libraryname = "somelib";
-	const char* symbolname = "somesym";
+	const char* libraryname = "dl";
+	const char* symbolname = "dlsym";
 #elif FOUNDATION_PLATFORM_POSIX
 	const char* libraryname = "dl";
 	const char* symbolname = "dlsym";

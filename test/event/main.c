@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation event tests";
 	app.short_name = "test_event";
 	app.config_dir = "test_event";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 
