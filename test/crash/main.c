@@ -23,6 +23,7 @@ application_t test_application( void )
 	app.name = "Foundation crash tests";
 	app.short_name = "test_crash";
 	app.config_dir = "test_crash";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 
@@ -63,7 +64,6 @@ DECLARE_TEST( crash, crash_guard )
 
 DECLARE_TEST( crash, crash_thread )
 {
-	int crash_result = 0;
 	object_t thread = 0;
 	
 	_crash_callback_called = false;

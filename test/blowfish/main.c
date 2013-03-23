@@ -122,6 +122,7 @@ application_t test_application( void )
 	app.name = "Foundation blowfish tests";
 	app.short_name = "test_blowfish";
 	app.config_dir = "test_blowfish";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

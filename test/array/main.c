@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation array tests";
 	app.short_name = "test_array";
 	app.config_dir = "test_array";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 
@@ -327,11 +328,12 @@ DECLARE_TEST( array, allocation )
 		EXPECT_EQ( array_capacity( array_basic ), 4 * 2 );
 		EXPECT_EQ( array_capacity( array_combine ), 5 * 2 );
 
+		/* Reallocation might be in-place so pointers might be same
 		EXPECT_NE( array_ptr, array_ptr_prev );
 		EXPECT_NE( array_int, array_int_prev );
 		EXPECT_NE( array_obj, array_obj_prev );
 		EXPECT_NE( array_basic, array_basic_prev );
-		EXPECT_NE( array_combine, array_combine_prev );
+		EXPECT_NE( array_combine, array_combine_prev );*/
 	}
 
 	array_deallocate( array_ptr );

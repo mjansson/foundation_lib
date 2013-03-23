@@ -172,7 +172,7 @@ void* memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned in
 
 void* memory_reallocate( void* p, uint64_t size, unsigned int align )
 {
-	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p > _memory_temporary.end ), "Trying to reallocate temporary memory" );
+	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p >= _memory_temporary.end ), "Trying to reallocate temporary memory" );
 	return _memsys.reallocate( p, size, align );
 }
 

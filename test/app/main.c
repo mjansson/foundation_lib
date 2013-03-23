@@ -23,6 +23,7 @@ application_t test_application( void )
 	_global_app.short_name = "test_app";
 	_global_app.config_dir = "test_app";
 	_global_app.version = version_make( 1, 2, 3, 4, 5 );
+	_global_app.flags = APPLICATION_UTILITY;
 	return _global_app;
 }
 
