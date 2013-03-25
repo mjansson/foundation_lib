@@ -35,6 +35,7 @@ extern int MPWaitOnSemaphore( MPSemaphoreID, int );
 #  include <time.h>
 #  include <semaphore.h>
 #  include <sys/fcntl.h>
+#  include <sys/time.h>
 #  define native_sem_t sem_t
 #endif
 
@@ -42,15 +43,17 @@ extern int MPWaitOnSemaphore( MPSemaphoreID, int );
 #if FOUNDATION_PLATFORM_WINDOWS
 
 
-void semaphore_initialize( semaphore_t* semaphore, int value )
-{
+void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
+{	
+	FOUNDATION_ASSERT( value <= 0xFFFF );
 	*semaphore = CreateSemaphoreA( 0, value, 0xFFFF, 0 );
 }
 
 
-void semaphore_initialize_named( semaphore_t* semaphore, const char* name, int value )
+void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
 {
 	FOUNDATION_ASSERT( name );
+	FOUNDATION_ASSERT( value <= 0xFFFF );
 	*semaphore = CreateSemaphoreA( 0, value, 0xFFFF, name );
 }
 
@@ -61,9 +64,10 @@ void semaphore_destroy( semaphore_t* semaphore )
 }
 
 
-void semaphore_wait( semaphore_t* semaphore )
+bool semaphore_wait( semaphore_t* semaphore )
 {
-	WaitForSingleObject( (HANDLE)*semaphore, INFINITE );
+	DWORD res = WaitForSingleObject( (HANDLE)*semaphore, INFINITE );
+	return ( res == WAIT_OBJECT_0 );
 }
 
 
@@ -86,8 +90,10 @@ void semaphore_post( semaphore_t* semaphore )
 //unnamed - MPCreateSemaphore (for wait until), should be ported to dispatch_semaphore_t if 10.6+
 //named - sem_open
 
-void semaphore_initialize( semaphore_t* semaphore, int value )
+void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 {
+	FOUNDATION_ASSERT( value <= 0xFFFF );
+
 	semaphore->name = 0;
 
 	int ret = MPCreateSemaphore( 0xFFFF, value, &semaphore->sem.unnamed );
@@ -100,8 +106,11 @@ void semaphore_initialize( semaphore_t* semaphore, int value )
 }
 
 
-void semaphore_initialize_named( semaphore_t* semaphore, const char* name, int value )
+void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
 {
+	FOUNDATION_ASSERT( name );
+	FOUNDATION_ASSERT( value <= 0xFFFF );
+
 	semaphore->name = string_clone( name );
 
 	sem_t* sem = SEM_FAILED;
@@ -133,30 +142,28 @@ void semaphore_destroy( semaphore_t* semaphore )
 }
 
 
-void semaphore_wait( semaphore_t* semaphore )
+bool semaphore_wait( semaphore_t* semaphore )
 {
 	if( !semaphore->name )
-	{
-		MPWaitOnSemaphore( semaphore->sem.unnamed, 0x7FFFFFFF/*kDurationForever*/ );
+	{	
+		int ret = MPWaitOnSemaphore( semaphore->sem.unnamed, 0x7FFFFFFF/*kDurationForever*/ );
+		if( ret < 0 )
+			return false;
 	}
 	else
 	{
 		int ret = sem_wait( semaphore->sem.named );
-#if !BUILD_DEPLOY
 		if( ret != 0 )
 		{
 			//Don't report error if interrupted
 			if( errno != EINTR )
 				log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( 0 ) );
 			else
-			{
 				log_infof( "Semaphore wait interrupted by signal" );
-				ret = 0;
-			}
+			return false;
 		}
-#endif
-		FOUNDATION_ASSERT( ( ret == 0 ) || ( errno == EINTR ) );
 	}
+	return true;
 }
 
 
@@ -210,8 +217,9 @@ void semaphore_post( semaphore_t* semaphore )
 //unnamed - dispatch_semaphore_t
 //named - UNSUPPORTED
 
-void semaphore_initialize( semaphore_t* semaphore, int value )
+void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 {
+	FOUNDATION_ASSERT( value <= 0xFFFF );
 	*semaphore = dispatch_semaphore_create( value );
 	if( !*semaphore )
 	{
@@ -234,9 +242,10 @@ void semaphore_destroy( semaphore_t* semaphore )
 }
 
 
-void semaphore_wait( semaphore_t* semaphore )
+bool semaphore_wait( semaphore_t* semaphore )
 {
-	dispatch_semaphore_wait( *semaphore, DISPATCH_TIME_FOREVER );
+	long result = dispatch_semaphore_wait( *semaphore, DISPATCH_TIME_FOREVER );
+	return ( result == 0 );
 }
 
 
@@ -256,8 +265,10 @@ void semaphore_post( semaphore_t* semaphore )
 #elif FOUNDATION_PLATFORM_POSIX
 
 
-void semaphore_initialize( semaphore_t* semaphore, int value )
+void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 {
+	FOUNDATION_ASSERT( value <= 0xFFFF );
+
 	semaphore->name = 0;
 
 	if( sem_init( (native_sem_t*)&semaphore->unnamed, 0, value ) )
@@ -270,8 +281,11 @@ void semaphore_initialize( semaphore_t* semaphore, int value )
 }
 
 
-void semaphore_initialize_named( semaphore_t* semaphore, const char* name, int value )
+void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
 {
+	FOUNDATION_ASSERT( name );
+	FOUNDATION_ASSERT( value <= 0xFFFF );
+
 	semaphore->name = string_clone( name );
 
 	native_sem_t* sem = SEM_FAILED;
@@ -300,9 +314,9 @@ void semaphore_destroy( semaphore_t* semaphore )
 }
 
 
-void semaphore_wait( semaphore_t* semaphore )
+bool semaphore_wait( semaphore_t* semaphore )
 {
-	sem_wait( (native_sem_t*)semaphore->sem );
+	return sem_wait( (native_sem_t*)semaphore->sem ) == 0;
 }
 
 
@@ -310,10 +324,17 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 {
 	if( milliseconds > 0 )
 	{
-		struct timespec ts;
-		ts.tv_sec = milliseconds / 1000;
-		ts.tv_nsec = (long)( milliseconds % 1000 ) * (long)1000000;
-		return sem_timedwait( (native_sem_t*)semaphore->sem, &ts ) == 0;
+		struct timeval now = {0};
+		struct timespec then= {0};
+		gettimeofday( &now, 0 );
+		then.tv_sec = now.tv_sec + ( milliseconds / 1000 );
+		then.tv_nsec = ( now.tv_usec * 1000 ) + (long)( milliseconds % 1000 ) * 1000000L;
+		while( then.tv_nsec > 999999999 )
+		{
+			++then.tv_sec;
+			then.tv_nsec -= 1000000000L;
+		}
+		return sem_timedwait( (native_sem_t*)semaphore->sem, &then ) == 0;
 	}
 	return sem_trywait( (native_sem_t*)semaphore->sem ) == 0;
 }
