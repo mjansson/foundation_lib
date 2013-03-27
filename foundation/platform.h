@@ -113,6 +113,23 @@
 #  define FOUNDATION_PLATFORM_ARCH_IA64 0
 #endif
 
+//Architecture details
+#ifndef FOUNDATION_ARCH_SSE2
+#  define FOUNDATION_ARCH_SSE2 0
+#endif
+#ifndef FOUNDATION_ARCH_SSE3
+#  define FOUNDATION_ARCH_SSE3 0
+#endif
+#ifndef FOUNDATION_ARCH_SSE4
+#  define FOUNDATION_ARCH_SSE4 0
+#endif
+#ifndef FOUNDATION_ARCH_SSE4_FMA3
+#  define FOUNDATION_ARCH_SSE4_FMA3 0
+#endif
+#ifndef FOUNDATION_ARCH_NEON
+#  define FOUNDATION_ARCH_NEON 0
+#endif
+
 //Platform traits
 #define FOUNDATION_PLATFORM_APPLE 0
 #define FOUNDATION_PLATFORM_POSIX 0
@@ -425,6 +442,28 @@
 #define FOUNDATION_PREPROCESSOR_JOIN( a, b )           _FOUNDATION_PREPROCESSOR_JOIN( a, b )
 #define _FOUNDATION_PREPROCESSOR_JOIN( a, b )          _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b )
 #define _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b ) a##b
+
+
+//Architecture details
+#ifdef __SSE2__
+#  undef  FOUNDATION_ARCH_SSE2
+#  define FOUNDATION_ARCH_SSE2 1
+#endif
+
+#ifdef __SSE3__
+#  undef  FOUNDATION_ARCH_SSE3
+#  define FOUNDATION_ARCH_SSE3 1
+#endif
+
+#ifdef __SSE4_1__
+#  undef  FOUNDATION_ARCH_SSE4
+#  define FOUNDATION_ARCH_SSE4 1
+#endif
+
+#ifdef __ARM_NEON__
+#  undef  FOUNDATION_ARCH_NEON
+#  define FOUNDATION_ARCH_NEON 1
+#endif
 
 
 //Compilers

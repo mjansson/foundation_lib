@@ -131,7 +131,7 @@ DECLARE_TEST( semaphore, threaded )
 	{
 		semaphore_post( &test.read );
 		thread_yield();
-		if( !semaphore_try_wait( &test.write, 600 ) )
+		if( !semaphore_try_wait( &test.write, 200 ) )
 		{
 			failed_waits++;
 			EXPECT_TRUE( semaphore_wait( &test.write ) );
