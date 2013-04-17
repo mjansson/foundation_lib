@@ -205,10 +205,10 @@ DECLARE_TEST( ringbufferstream, threadedio )
 		srcbuffer[si] = random32();
 
 	elapsed = 0;
-	test.stream = ringbuffer_stream_allocate( 23477, test.buffer_size );
-
 	for( loop = 0; loop < loops; ++loop )
 	{
+		test.stream = ringbuffer_stream_allocate( 23477, test.buffer_size );
+
 		test.read_thread = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
 		test.write_thread = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
 
@@ -229,11 +229,10 @@ DECLARE_TEST( ringbufferstream, threadedio )
 
 		elapsed += time_ticks_to_seconds( time_diff( test.start_time, test.end_time ) );
 	}
-	throughput = (float64_t)( mbytes * loops ) / (float64_t)elapsed;
+	throughput = (real)( (float64_t)( mbytes * loops ) / (float64_t)elapsed );
 	log_infof( "Ringbuffer throughput: %d MiB in %.2f sec -> %.2f MiB/sec", ( loops * mbytes ), (float32_t)elapsed, (float32_t)throughput );
 
 	elapsed = 0;
-	
 	for( loop = 0; loop < loops; ++loop )
 	{
 		test.start_time = time_current();
@@ -245,7 +244,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 
 		elapsed += time_ticks_to_seconds( time_diff( test.start_time, test.end_time ) );
 	}
-	throughput = (float64_t)( mbytes * loops ) / (float64_t)elapsed;
+	throughput = (real)( (float64_t)( mbytes * loops ) / (float64_t)elapsed );
 	log_infof( "Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec", ( loops * mbytes ), (float32_t)elapsed, (float32_t)throughput );
 
 	return 0;
