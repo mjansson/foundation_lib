@@ -1320,6 +1320,7 @@ FOUNDATION_EXTERN void _buffer_stream_initialize( void );
 #if FOUNDATION_PLATFORM_ANDROID
 FOUNDATION_EXTERN void _asset_stream_initialize( void );
 #endif
+FOUNDATION_EXTERN void _pipe_stream_initialize( void );
 
 
 int _fs_initialize( void )
@@ -1346,6 +1347,7 @@ int _fs_initialize( void )
 #if FOUNDATION_PLATFORM_ANDROID
 	_asset_stream_initialize();
 #endif
+	_pipe_stream_initialize();
 
 	return 0;
 }

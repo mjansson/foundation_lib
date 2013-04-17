@@ -47,6 +47,9 @@ struct _foundation_process
 	//! Exit code
 	int                                     code;
 
+	//! Stdout pipe
+	stream_t*                               stdout;
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	//! ShellExecute verb
 	char*                                   verb;
@@ -72,6 +75,7 @@ void process_deallocate( process_t* proc )
 		return;
 	if( !( proc->flags & PROCESS_DETACHED ) )
 		process_wait( proc );
+	stream_deallocate( proc->stdout );
 	string_deallocate( proc->wd );
 	string_deallocate( proc->path );
 	string_array_deallocate( proc->args );
@@ -266,14 +270,29 @@ int process_spawn( process_t* proc )
 	{
 		STARTUPINFOW si;
 		PROCESS_INFORMATION pi;
+		BOOL inherit_handles = FALSE;
 
 		memset( &si, 0, sizeof( si ) );
 		memset( &pi, 0, sizeof( pi ) );
 		si.cb = sizeof( si );
 
+		if( !( proc->flags & PROCESS_CONSOLE ) )
+		{
+			proc->stdout = pipe_allocate();
+
+			si.dwFlags |= STARTF_USESTDHANDLES;
+			si.hStdOutput = pipe_write_handle( proc->stdout );
+			si.hStdError = pipe_write_handle( proc->stdout );
+
+			//Don't inherit read end of stdout pipe
+			SetHandleInformation( pipe_read_handle( proc->stdout ), HANDLE_FLAG_INHERIT, 0 );
+
+			inherit_handles = TRUE;
+		}
+
 		log_debugf( "Spawn process (CreateProcess): %s %s", proc->path, cmdline );
 
-		if( !CreateProcessW( 0/*wpath*/, wcmdline, 0, 0, FALSE, ( proc->flags & PROCESS_CONSOLE ) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi ) )
+		if( !CreateProcessW( 0/*wpath*/, wcmdline, 0, 0, inherit_handles, ( proc->flags & PROCESS_CONSOLE ) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi ) )
 		{
 			log_warnf( WARNING_BAD_DATA, "Unable to spawn process (createprocess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 		}
@@ -434,6 +453,12 @@ int process_spawn( process_t* proc )
 		return PROCESS_STILL_ACTIVE;
 
 	return process_wait( proc );
+}
+
+
+stream_t* process_stdout( process_t* proc )
+{
+	return proc ? proc->stdout : 0;
 }
 
 

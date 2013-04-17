@@ -57,6 +57,7 @@
 #include <foundation/fs.h>
 #include <foundation/bufferstream.h>
 #include <foundation/assetstream.h>
+#include <foundation/pipe.h>
 
 #include <foundation/crash.h>
 #include <foundation/blowfish.h>
