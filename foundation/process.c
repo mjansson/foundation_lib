@@ -50,6 +50,9 @@ struct _foundation_process
 	//! Stdout pipe
 	stream_t*                               stdout;
 
+	//! Stdin pipe
+	stream_t*                               stdin;
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	//! ShellExecute verb
 	char*                                   verb;
@@ -76,6 +79,7 @@ void process_deallocate( process_t* proc )
 	if( !( proc->flags & PROCESS_DETACHED ) )
 		process_wait( proc );
 	stream_deallocate( proc->stdout );
+	stream_deallocate( proc->stdin );
 	string_deallocate( proc->wd );
 	string_deallocate( proc->path );
 	string_array_deallocate( proc->args );
@@ -232,7 +236,7 @@ int process_spawn( process_t* proc )
 	
 	if( proc->flags & PROCESS_WINDOWS_USE_SHELLEXECUTE )
 	{
-		SHELLEXECUTEINFO sei;
+		SHELLEXECUTEINFOW sei;
 		wchar_t* wverb;
 		wchar_t* wpath;
 
@@ -250,11 +254,17 @@ int process_spawn( process_t* proc )
 		sei.lpDirectory     = wwd;
 		sei.nShow           = SW_SHOWNORMAL;
 
+		if( !( proc->flags & PROCESS_CONSOLE ) )
+			sei.fMask      |= SEE_MASK_NO_CONSOLE;
+
+		if( proc->flags & PROCESS_STDSTREAMS )
+			log_warnf( WARNING_UNSUPPORTED, "Unable to redirect standard in/out through pipes when using ShellExecute for process spawning" );
+
 		log_debugf( "Spawn process (ShellExecute): %s %s", proc->path, cmdline );
 
 		if( !ShellExecuteExW( &sei ) )
 		{
-			log_warnf( WARNING_BAD_DATA, "Unable to spawn process (shellexecute) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
+			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (ShellExecute) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 		}
 		else
 		{
@@ -276,16 +286,19 @@ int process_spawn( process_t* proc )
 		memset( &pi, 0, sizeof( pi ) );
 		si.cb = sizeof( si );
 
-		if( !( proc->flags & PROCESS_CONSOLE ) )
+		if( proc->flags & PROCESS_STDSTREAMS )
 		{
 			proc->stdout = pipe_allocate();
+			proc->stdin = pipe_allocate();
 
 			si.dwFlags |= STARTF_USESTDHANDLES;
 			si.hStdOutput = pipe_write_handle( proc->stdout );
 			si.hStdError = pipe_write_handle( proc->stdout );
+			si.hStdInput = pipe_read_handle( proc->stdin );
 
-			//Don't inherit read end of stdout pipe
+			//Don't inherit wrong ends of pipes
 			SetHandleInformation( pipe_read_handle( proc->stdout ), HANDLE_FLAG_INHERIT, 0 );
+			SetHandleInformation( pipe_write_handle( proc->stdin ), HANDLE_FLAG_INHERIT, 0 );
 
 			inherit_handles = TRUE;
 		}
@@ -294,7 +307,13 @@ int process_spawn( process_t* proc )
 
 		if( !CreateProcessW( 0/*wpath*/, wcmdline, 0, 0, inherit_handles, ( proc->flags & PROCESS_CONSOLE ) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi ) )
 		{
-			log_warnf( WARNING_BAD_DATA, "Unable to spawn process (createprocess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
+			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (CreateProcess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
+
+			stream_deallocate( proc->stdout );
+			stream_deallocate( proc->stdin );
+
+			proc->stdout = 0;
+			proc->stdin = 0;
 		}
 		else
 		{
@@ -302,6 +321,11 @@ int process_spawn( process_t* proc )
 			proc->ht = pi.hThread;
 			proc->code = 0;
 		}
+
+		if( proc->stdout )
+			pipe_close_write( proc->stdout );
+		if( proc->stdin )
+			pipe_close_read( proc->stdin );
 	}
 
 	wstring_deallocate( wcmdline );

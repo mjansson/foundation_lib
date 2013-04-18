@@ -53,9 +53,13 @@ FOUNDATION_API void                   process_set_flags( process_t* proc, unsign
     \return                           Exit code if attached, PROCESS_STILL_ACTIVE if detached, PROCESS_INVALID_ARGS if error due to invalid arguments */
 FOUNDATION_API int                    process_spawn( process_t* proc );
 
-/*! Get pipe to read stdout from process
+/*! Get pipe to read stdout from process (read-only stream)
     \return                           Stdout pipe */
 FOUNDATION_API stream_t*              process_stdout( process_t* proc );
+
+/*! Get pipe to write stdin to process (write-only stream)
+    \return                           Stdin pipe */
+FOUNDATION_API stream_t*              process_stdin( process_t* proc );
 
 /*! Wait for termination
     \param proc                       Process object

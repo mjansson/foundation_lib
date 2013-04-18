@@ -45,14 +45,14 @@ stream_t* pipe_allocate( void )
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		//Inheritable by default
+		//Inheritable by default so process can use for stdstreams
 		SECURITY_ATTRIBUTES security_attribs = {0};
 		security_attribs.nLength = sizeof( SECURITY_ATTRIBUTES ); 
 		security_attribs.bInheritHandle = TRUE; 
 		security_attribs.lpSecurityDescriptor = 0;
 
 		if( !CreatePipe( &pipe->handle_read, &pipe->handle_write, &security_attribs, 0 ) )
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( 0 ) );
+			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( GetLastError() ) );
 	}
 #endif
 
@@ -65,6 +65,7 @@ stream_t* pipe_allocate( void )
 static void _pipe_stream_deallocate( stream_t* stream )
 {
 	stream_pipe_t* pipe = (stream_pipe_t*)stream;
+	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipe->handle_read )
@@ -78,19 +79,39 @@ static void _pipe_stream_deallocate( stream_t* stream )
 }
 
 
+void pipe_close_read( stream_t* stream )
+{
+	stream_pipe_t* pipe = (stream_pipe_t*)stream;
+	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
+
+	pipe->mode &= ~STREAM_IN;
+}
+
+
+void pipe_close_write( stream_t* stream )
+{
+	stream_pipe_t* pipe = (stream_pipe_t*)stream;
+	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
+
+	pipe->mode &= ~STREAM_OUT;
+}
+
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 void* pipe_read_handle( stream_t* stream )
 {
 	stream_pipe_t* pipe = (stream_pipe_t*)stream;
-	return ( stream->type == STREAMTYPE_PIPE ) ? pipe->handle_read : 0;
+	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
+	return pipe->handle_read;
 }
 
 
 void* pipe_write_handle( stream_t* stream )
 {
 	stream_pipe_t* pipe = (stream_pipe_t*)stream;
-	return ( stream->type == STREAMTYPE_PIPE ) ? pipe->handle_write : 0;
+	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
+	return pipe->handle_write;
 }
 
 #endif
@@ -99,9 +120,10 @@ void* pipe_write_handle( stream_t* stream )
 static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 {
 	stream_pipe_t* pipe = (stream_pipe_t*)stream;
+	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	if( pipe->handle_read )
+	if( pipe->handle_read && ( ( pipe->mode & STREAM_IN ) != 0 ) )
 	{
 		unsigned int num_read = 0;
 		ReadFile( pipe->handle_read, dest, (unsigned int)num, &num_read, 0 );
@@ -116,9 +138,10 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64_t num )
 {
 	stream_pipe_t* pipe = (stream_pipe_t*)stream;
+	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	if( pipe->handle_write )
+	if( pipe->handle_write && ( ( pipe->mode & STREAM_OUT ) != 0 ) )
 	{
 		unsigned int num_written = 0;
 		WriteFile( pipe->handle_write, source, (unsigned int)num, &num_written, 0 );
