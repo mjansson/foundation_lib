@@ -65,7 +65,7 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 
 	dump_file[0] = 0;
 	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
-		environment_temporary_directory(), name ? name : "foundation", 
+		environment_temporary_directory(), name ? name : string_from_uuid_static( environment_application()->instance ), 
 		local_time.wYear, local_time.wMonth, local_time.wDay, 
 		local_time.wHour, local_time.wMinute, local_time.wSecond, 
 		GetCurrentProcessId(), GetCurrentThreadId());
@@ -141,6 +141,8 @@ FOUNDATION_DECLARE_THREAD_LOCAL( struct __jmp_buf_tag*, crash_env, 0 )
 static void _crash_guard_minidump( ucontext_t* context, const char* name, char* dump_file )
 {
 	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "/tmp/core.%s", name ? name : "unknown" );
+
+	//TODO: Write dump file
 }
 
 	

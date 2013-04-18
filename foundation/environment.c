@@ -176,6 +176,9 @@ int _environment_initialize( const application_t application )
 
    	_environment_app = application;
 
+	if( uuid_is_null( _environment_app.instance ) )
+		_environment_app.instance = uuid_generate_random();
+
    	string_copy( _environment_initial_working_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
 
 	environment_temporary_directory();
