@@ -187,11 +187,14 @@ typedef enum
 	//! Create a console window for process
 	PROCESS_CONSOLE                           = 0x02,
 
+	//! Create stdout/stdin pipes to process
+	PROCESS_STDSTREAMS                        = 0x04,
+
 	//! Windows platform only, use ShellExecute instead of CreateProcess
-	PROCESS_WINDOWS_USE_SHELLEXECUTE          = 0x04,
+	PROCESS_WINDOWS_USE_SHELLEXECUTE          = 0x08,
 	
 	//! MacOSX platform only, use LSOpenApplication instead of fork/execve
-	PROCESS_OSX_USE_OPENAPPLICATION           = 0x08
+	PROCESS_OSX_USE_OPENAPPLICATION           = 0x10
 } process_flag_t;
 
 //! Process status
@@ -273,6 +276,9 @@ typedef uint64_t         object_t;
 typedef uint16_t         radixsort_index_t;
 //typedef uint32_t       radixsort_index_t;
 
+//! UUID
+typedef uint128_t        uuid_t;
+
 
 //! Error handler callback
 typedef int           (* error_callback_fn )( error_level_t level, error_t error );
@@ -342,6 +348,7 @@ typedef struct _foundation_application
 	version_t                       version;
 	crash_dump_callback_fn          dump_callback;
 	unsigned int                    flags;
+	uuid_t                          instance;
 } application_t;
 
 typedef struct _foundation_error_frame

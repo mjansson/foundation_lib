@@ -30,6 +30,7 @@
 #include <foundation/library.h>
 #include <foundation/system.h>
 #include <foundation/process.h>
+#include <foundation/uuid.h>
 #include <foundation/log.h>
 
 #include <foundation/hash.h>

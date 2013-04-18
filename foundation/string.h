@@ -117,6 +117,11 @@ FOUNDATION_API char*          string_from_real( real val, unsigned int precision
     \return                   String */
 FOUNDATION_API char*          string_from_time( uint64_t time );
 
+/*! Get a formatted string of the given UUID
+    \param uuid               UUID
+    \return                   String */
+FOUNDATION_API char*          string_from_uuid( const uuid_t uuid );
+
 /*! Get a formatted string of the given version
     \param version            Version
     \return                   String */
@@ -127,6 +132,7 @@ FOUNDATION_API char*          string_from_uint_buffer( char* buffer, uint64_t va
 FOUNDATION_API char*          string_from_uint128_buffer( char* buffer, const uint128_t val );
 FOUNDATION_API char*          string_from_real_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char padding );
 FOUNDATION_API char*          string_from_time_buffer( char* buffer, uint64_t time );
+FOUNDATION_API char*          string_from_uuid_buffer( char* buffer, const uuid_t uuid );
 FOUNDATION_API char*          string_from_version_buffer( char* buffer, const version_t version );
 
 FOUNDATION_API const char*    string_from_int_static( int64_t val, unsigned int width, char padding );
@@ -134,6 +140,7 @@ FOUNDATION_API const char*    string_from_uint_static( uint64_t val, bool hex, u
 FOUNDATION_API const char*    string_from_uint128_static( const uint128_t val );
 FOUNDATION_API const char*    string_from_real_static( real val, unsigned int precision, unsigned int width, char padding );
 FOUNDATION_API const char*    string_from_time_static( uint64_t time );
+FOUNDATION_API const char*    string_from_uuid_static( const uuid_t uuid );
 FOUNDATION_API const char*    string_from_version_static( const version_t version );
 
 
@@ -162,6 +169,10 @@ FOUNDATION_API uint128_t      string_to_uint128( const char* val );
 /*! Convert a string to a float
     \param val                String */
 FOUNDATION_API real           string_to_real( const char* val );
+
+/*! Convert a string to a uuid
+    \param val                String */
+FOUNDATION_API uuid_t         string_to_uuid( const char* str );
 
 /*! Convert a string to a version identifier
     \param val                String */

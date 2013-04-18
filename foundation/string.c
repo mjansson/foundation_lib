@@ -1257,6 +1257,19 @@ const char* string_from_time_static( uint64_t t )
 }
 
 
+char* string_from_uuid( const uuid_t val )
+{
+	char buf[38];
+	return string_clone( string_from_uuid_buffer( buf, val ) );
+}
+
+
+const char* string_from_uuid_static( const uuid_t val )
+{
+	return string_from_uuid_buffer( get_thread_convert_buffer(), val );
+}
+
+
 char* string_from_version( const version_t version )
 {
 	char buf[128];

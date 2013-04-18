@@ -14,37 +14,6 @@
 
 #include "errorcodes.h"
 
-typedef struct
-{
-	uint32_t       data1;
-	uint16_t       data2;
-	uint16_t       data3;
-	uint8_t        data4[8];
-} uuid_raw_t;
-
-typedef struct
-{
-	uint32_t       time_low;
-	uint16_t       time_mid;
-	uint16_t       time_hi_and_version;
-	uint8_t        clock_seq_hi_and_reserved;
-	uint8_t        clock_seq_low;
-	uint8_t        node[6];
-} uuid_time_t;
-
-typedef union
-{
-	uuid_raw_t     uuid;
-	uint128_t      rnd;
-} uuid_random_t;
-
-typedef union
-{
-	uuid_raw_t     raw;
-	uuid_time_t    time;
-	uuid_random_t  random;
-	uint128_t      u128;
-} uuid_t;
 
 typedef enum
 {
@@ -74,21 +43,24 @@ typedef struct
 	uuid_instance_t*  generate;
 } uuidgen_input_t;
 
-//682EAE88-339A-41B6-B8E3-997DAA0466D4
-static uuid_raw_t           uuid_namespace_dns = { 0x682eae88, 0x339a, 0x41b6, 0xb8, 0xe3, 0x99, 0x7d, 0xaa, 0x4, 0x66, 0xd4 };
+typedef struct
+{
+	uint32_t       data1;
+	uint16_t       data2;
+	uint16_t       data3;
+	uint8_t        data4[8];
+} uuid_raw_t;
+
+typedef union
+{
+	uuid_raw_t     raw;
+	uuid_t         uuid;
+} uuid_convert_t;
 
 static uuidgen_input_t      uuidgen_parse_command_line( const char* const* cmdline );
-
 static int                  uuidgen_generate( uuid_t** uuid, const uuid_instance_t input );
-static int                  uuidgen_generate_namespace_md5( uuid_t** uuid, const uuid_t namespace, const char* name );
-static int                  uuidgen_generate_random( uuid_t** uuid );
-static int                  uuidgen_generate_time( uuid_t** uuid );
-
 static int                  uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercase );
-
 static void                 uuidgen_print_usage( void );
-
-static uuid_t               string_to_uuid( const char* str );
 
 
 int main_initialize( void )
@@ -219,7 +191,7 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 			{
 				++arg;
 				if( string_equal( cmdline[arg], "dns" ) || string_equal( cmdline[arg], "DNS" ) )
-					instance.namespace.raw = uuid_namespace_dns;
+					instance.namespace = UUID_DNS;
 				else
 					instance.namespace = string_to_uuid( cmdline[arg] );
 			}
@@ -262,11 +234,7 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 		{
 			unsigned int ii = 0;
 			for( ; ii < input.num; ++ii )
-			{
-				result = uuidgen_generate_random( uuid );
-				if( result != UUIDGEN_RESULT_OK )
-					break;
-			}
+				array_push( *uuid, uuid_generate_random() );
 			break;
 		}
 
@@ -274,17 +242,13 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 		{
 			unsigned int ii = 0;
 			for( ; ii < input.num; ++ii )
-			{
-				result = uuidgen_generate_time( uuid );
-				if( result != UUIDGEN_RESULT_OK )
-					break;
-			}
+				array_push( *uuid, uuid_generate_time() );
 			break;
 		}
 
 		case METHOD_NAMESPACE_MD5:
 		{
-			result = uuidgen_generate_namespace_md5( uuid, input.namespace, input.name );
+			array_push( *uuid, uuid_generate_name( input.namespace, input.name ) );
 			break;
 		}
 
@@ -296,126 +260,6 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 	}
 
 	return result;
-}
-
-
-int uuidgen_generate_random( uuid_t** uuid )
-{
-	uuid_random_t random_uuid;
-	random_uuid.rnd = uint128_make( random64(), random64() );
-
-	//Add variant and version
-	random_uuid.uuid.data3 &= 0x0FFF;
-	random_uuid.uuid.data3 |= 0x4000;
-	random_uuid.uuid.data4[0] &= 0x3F;
-	random_uuid.uuid.data4[0] |= 0x80;
-
-	array_push_memcpy( *uuid, &random_uuid.uuid );
-
-	return UUIDGEN_RESULT_OK;
-}
-
-
-int uuidgen_generate_time( uuid_t** uuid )
-{
-	uuid_time_t time_uuid;
-	tick_t current_time;
-	int in = 0;
-	uint32_t clock_seq = 0;
-	uint64_t host_id = 0;
-	static tick_t last_tick = 0;
-	static tick_t tick_local = 0;
-
-	do
-	{
-		current_time = time_system();
-		if( current_time == last_tick )
-		{
-			if( ++tick_local < 1024 )
-				break;
-			thread_sleep( 1 );
-		}
-		else
-		{
-			tick_local = 0;
-		}
-	} while( current_time == last_tick );
-	last_tick = current_time;
-	current_time = current_time + tick_local;
-
-	current_time = ( current_time * 10000ULL ) + 0x01B21DD213814000ULL; //Convert to 100ns since UUID UTC base time, October 15 1582
-
-	//We have no state so clock sequence is random
-	clock_seq = random32();
-
-	time_uuid.time_low = (uint32_t)( current_time & 0xFFFFFFFFULL );
-	time_uuid.time_mid = (uint16_t)( ( current_time >> 32ULL ) & 0xFFFFULL );
-	time_uuid.time_hi_and_version = (uint16_t)( current_time >> 48ULL );
-	time_uuid.clock_seq_low = ( clock_seq & 0xFF );
-	time_uuid.clock_seq_hi_and_reserved = ( ( clock_seq & 0x3F00 ) >> 8 );
-
-	//If hardware node ID, use random and set identifier (multicast) bit
-	host_id = system_hostid();
-	if( host_id )
-	{
-		for( in = 0; in < 6; ++in )
-			time_uuid.node[5-in] = (uint8_t)( ( host_id >> ( 8ULL * in ) ) & 0xFF );
-	}
-	else
-	{
-		for( in = 0; in < 6; ++in )
-			time_uuid.node[in] = (uint8_t)( random32() & 0xFF );
-		time_uuid.node[0] |= 0x01;
-	}
-
-	//Add variant and version
-	time_uuid.time_hi_and_version &= 0x0FFF;
-	time_uuid.time_hi_and_version |= ( 1 << 12 );
-	time_uuid.clock_seq_hi_and_reserved &= 0x3F;
-	time_uuid.clock_seq_hi_and_reserved |= 0x80;
-
-	array_push_memcpy( *uuid, &time_uuid );
-
-	return UUIDGEN_RESULT_OK;
-}
-
-
-int uuidgen_generate_namespace_md5( uuid_t** uuid, const uuid_t namespace, const char* name )
-{
-	//v3 uuid, namespace and md5
-	md5_t* md5;
-	uuid_raw_t namespace_id;
-	uuid_raw_t gen_uuid;
-	uint128_t digest;
-
-	//Namespace in network byte order
-	namespace_id = namespace.raw;
-	namespace_id.data1 = byteorder_bigendian32( namespace_id.data1 );
-	namespace_id.data2 = byteorder_bigendian16( namespace_id.data2 );
-	namespace_id.data3 = byteorder_bigendian16( namespace_id.data3 );
-
-	md5 = md5_allocate();
-	md5_initialize( md5 );
-	md5_digest_raw( md5, &namespace_id, sizeof( namespace_id ) );
-	md5_digest( md5, name );
-	md5_finalize( md5 );
-
-	//Convert to host order
-	digest = md5_get_digest_raw( md5 );
-	memcpy( &gen_uuid, &digest, sizeof( uuid_raw_t ) );
-	gen_uuid.data1 = byteorder_bigendian32( gen_uuid.data1 );
-	gen_uuid.data2 = byteorder_bigendian16( gen_uuid.data2 );
-	gen_uuid.data3 = byteorder_bigendian16( gen_uuid.data3 );
-
-	//Add variant and version
-	gen_uuid.data3 &= 0x0FFF;
-	gen_uuid.data3 |= ( 3 << 12 ); //Variant 3 for MD5
-	gen_uuid.data4[0] &= 0x3F;
-	gen_uuid.data4[0] |= 0x80;
-
-	array_push_memcpy( *uuid, &gen_uuid );
-
-	return UUIDGEN_RESULT_OK;
 }
 
 
@@ -433,7 +277,9 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 				stream_write( stream, uuid + i, sizeof( uuid[i] ) );
 			else
 			{
-				stream_write_format( stream, lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", uuid[i].raw.data1, uuid[i].raw.data2, uuid[i].raw.data3, uuid[i].raw.data4[0], uuid[i].raw.data4[1], uuid[i].raw.data4[2], uuid[i].raw.data4[3], uuid[i].raw.data4[4], uuid[i].raw.data4[5], uuid[i].raw.data4[6], uuid[i].raw.data4[7] );
+				uuid_convert_t convert;
+				convert.uuid = uuid[i];
+				stream_write_format( stream, lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
 				stream_write_endl( stream );
 			}
 		}
@@ -444,7 +290,11 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 		int i, uuidsize;
 		log_suppress( ERRORLEVEL_DEBUG );
 		for( i = 0, uuidsize = array_size( uuid ); i < uuidsize; ++i )
-			log_infof( lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", uuid[i].raw.data1, uuid[i].raw.data2, uuid[i].raw.data3, uuid[i].raw.data4[0], uuid[i].raw.data4[1], uuid[i].raw.data4[2], uuid[i].raw.data4[3], uuid[i].raw.data4[4], uuid[i].raw.data4[5], uuid[i].raw.data4[6], uuid[i].raw.data4[7] );
+		{
+			uuid_convert_t convert;
+			convert.uuid = uuid[i];
+			log_infof( lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
+		}
 	}
 	return UUIDGEN_RESULT_OK;
 }
@@ -468,28 +318,4 @@ static void uuidgen_print_usage( void )
 		"      --uppercase                  Output UUID in uppercase hex (default)\n"
 		"      --help                       Show this message"
 	);
-}
-
-
-#include <stdio.h>
-
-static uuid_t string_to_uuid( const char* str )
-{
-	uuid_t uuid = {0};
-	unsigned int data1;
-	unsigned int data2;
-	unsigned int data3;
-	unsigned int data4[8];
-	int i;
-#if FOUNDATION_PLATFORM_WINDOWS
-	sscanf_s( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &data1, &data2, &data3, &data4[0], &data4[1], &data4[2], &data4[3], &data4[4], &data4[5], &data4[6], &data4[7] );
-#else
-	sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &data1, &data2, &data3, &data4[0], &data4[1], &data4[2], &data4[3], &data4[4], &data4[5], &data4[6], &data4[7] );
-#endif
-	uuid.raw.data1 = data1;
-	uuid.raw.data2 = data2;
-	uuid.raw.data3 = data3;
-	for( i = 0; i < 8; ++i )
-		uuid.raw.data4[i] = data4[i];
-	return uuid;
 }
