@@ -125,7 +125,7 @@ void test_run( void )
 	
 	thread_terminate( thread );
 	thread_destroy( thread );
-	while( thread_is_running( thread ) )
+	while( thread_is_running( thread ) || thread_is_thread( thread ) )
 		thread_yield();
 }
 
