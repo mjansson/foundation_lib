@@ -462,6 +462,8 @@ typedef struct _foundation_blowfish         blowfish_t;
 
 typedef struct _foundation_radixsort        radixsort_t;
 
+typedef struct _foundation_hashmap          hashmap_t;
+
 
 // UTILITY FUNCTIONS
 
