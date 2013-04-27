@@ -117,6 +117,10 @@
 		CD94947C16FDC77600D8687F /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
 		CD94947D16FDC77600D8687F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
 		CD94947E16FDC77600D8687F /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CDBE40AC172C546C00C7AC40 /* hashmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CDBE40A8172C546C00C7AC40 /* hashmap.c */; };
+		CDBE40AD172C546C00C7AC40 /* hashmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CDBE40A9172C546C00C7AC40 /* hashmap.h */; };
+		CDBE40AE172C546C00C7AC40 /* pipe.c in Sources */ = {isa = PBXBuildFile; fileRef = CDBE40AA172C546C00C7AC40 /* pipe.c */; };
+		CDBE40AF172C546C00C7AC40 /* pipe.h in Headers */ = {isa = PBXBuildFile; fileRef = CDBE40AB172C546C00C7AC40 /* pipe.h */; };
 		CDCEF48D16D2D2B100198086 /* android.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44116D2D2B000198086 /* android.c */; };
 		CDCEF48E16D2D2B100198086 /* android.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44216D2D2B000198086 /* android.h */; };
 		CDCEF48F16D2D2B100198086 /* array.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44316D2D2B000198086 /* array.c */; };
@@ -1057,6 +1061,10 @@
 		CD94945816FDC6B600D8687F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/hash/main.c; sourceTree = "<group>"; };
 		CD94946A16FDC71F00D8687F /* test-library */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-library"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD94947416FDC73400D8687F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/library/main.c; sourceTree = "<group>"; };
+		CDBE40A8172C546C00C7AC40 /* hashmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hashmap.c; path = ../../../foundation/hashmap.c; sourceTree = "<group>"; };
+		CDBE40A9172C546C00C7AC40 /* hashmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hashmap.h; path = ../../../foundation/hashmap.h; sourceTree = "<group>"; };
+		CDBE40AA172C546C00C7AC40 /* pipe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pipe.c; path = ../../../foundation/pipe.c; sourceTree = "<group>"; };
+		CDBE40AB172C546C00C7AC40 /* pipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pipe.h; path = ../../../foundation/pipe.h; sourceTree = "<group>"; };
 		CDCEF43916D2D11500198086 /* libfoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDCEF44116D2D2B000198086 /* android.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = android.c; path = ../../../foundation/android.c; sourceTree = "<group>"; };
 		CDCEF44216D2D2B000198086 /* android.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = android.h; path = ../../../foundation/android.h; sourceTree = "<group>"; };
@@ -1733,6 +1741,8 @@
 				CDCEF45F16D2D2B000198086 /* fs.h */,
 				CDCEF46016D2D2B000198086 /* hash.c */,
 				CDCEF46116D2D2B000198086 /* hash.h */,
+				CDBE40A8172C546C00C7AC40 /* hashmap.c */,
+				CDBE40A9172C546C00C7AC40 /* hashmap.h */,
 				CDCEF46216D2D2B000198086 /* hashstrings.h */,
 				CDCEF46316D2D2B000198086 /* internal.h */,
 				CDCEF46416D2D2B000198086 /* library.c */,
@@ -1753,6 +1763,8 @@
 				CDCEF47316D2D2B000198086 /* objectmap.h */,
 				CDCEF47416D2D2B000198086 /* path.c */,
 				CDCEF47516D2D2B000198086 /* path.h */,
+				CDBE40AA172C546C00C7AC40 /* pipe.c */,
+				CDBE40AB172C546C00C7AC40 /* pipe.h */,
 				CDCEF47616D2D2B000198086 /* platform.h */,
 				CD7F382516E151E5000346C0 /* posix.h */,
 				CDCEF47716D2D2B000198086 /* process.c */,
@@ -1967,6 +1979,8 @@
 				CD7F382A16E151E5000346C0 /* radixsort.h in Headers */,
 				CD7F382C16E21705000346C0 /* apple.h in Headers */,
 				CDCF1E2F16FD98C100626060 /* math.h in Headers */,
+				CDBE40AD172C546C00C7AC40 /* hashmap.h in Headers */,
+				CDBE40AF172C546C00C7AC40 /* pipe.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2778,6 +2792,8 @@
 				CD7F382916E151E5000346C0 /* radixsort.c in Sources */,
 				CD1C2FD616F25DEF00D36B24 /* system.m in Sources */,
 				CD1C2FD816F2640B00D36B24 /* environment.m in Sources */,
+				CDBE40AC172C546C00C7AC40 /* hashmap.c in Sources */,
+				CDBE40AE172C546C00C7AC40 /* pipe.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4388,6 +4404,7 @@
 				CD92187E16FDCD3F0013C8CD /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD92189716FDCE060013C8CD /* Build configuration list for PBXNativeTarget "test-ringbuffer" */ = {
 			isa = XCConfigurationList;
@@ -4397,6 +4414,7 @@
 				CD92189A16FDCE060013C8CD /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD9218B316FDCEDD0013C8CD /* Build configuration list for PBXNativeTarget "test-string" */ = {
 			isa = XCConfigurationList;
@@ -4406,6 +4424,7 @@
 				CD9218B616FDCEDD0013C8CD /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD9493E416FDC35800D8687F /* Build configuration list for PBXNativeTarget "test-environment" */ = {
 			isa = XCConfigurationList;

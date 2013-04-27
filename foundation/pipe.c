@@ -64,9 +64,8 @@ stream_t* pipe_allocate( void )
 
 static void _pipe_stream_deallocate( stream_t* stream )
 {
-	stream_pipe_t* pipe = (stream_pipe_t*)stream;
-
 #if FOUNDATION_PLATFORM_WINDOWS
+	stream_pipe_t* pipe = (stream_pipe_t*)stream;
 	if( pipe->handle_read )
 		CloseHandle( pipe->handle_read );
 	pipe->handle_read = 0;
@@ -98,9 +97,8 @@ void* pipe_write_handle( stream_t* stream )
 
 static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 {
-	stream_pipe_t* pipe = (stream_pipe_t*)stream;
-
 #if FOUNDATION_PLATFORM_WINDOWS
+	stream_pipe_t* pipe = (stream_pipe_t*)stream;
 	if( pipe->handle_read )
 	{
 		unsigned int num_read = 0;
@@ -115,9 +113,8 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 
 static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64_t num )
 {
-	stream_pipe_t* pipe = (stream_pipe_t*)stream;
-
 #if FOUNDATION_PLATFORM_WINDOWS
+	stream_pipe_t* pipe = (stream_pipe_t*)stream;
 	if( pipe->handle_write )
 	{
 		unsigned int num_written = 0;
