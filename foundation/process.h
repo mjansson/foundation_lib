@@ -53,6 +53,10 @@ FOUNDATION_API void                   process_set_flags( process_t* proc, unsign
     \return                           Exit code if attached, PROCESS_STILL_ACTIVE if detached, PROCESS_INVALID_ARGS if error due to invalid arguments */
 FOUNDATION_API int                    process_spawn( process_t* proc );
 
+/*! Get pipe to read stdout from process
+    \return                           Stdout pipe */
+FOUNDATION_API stream_t*              process_stdout( process_t* proc );
+
 /*! Wait for termination
     \param proc                       Process object
     \return                           Exit code */
@@ -76,4 +80,3 @@ FOUNDATION_API void                   process_set_exit_code( int code );
 /*! Terminate current process with given code
     \param code                       Exit code */
 FOUNDATION_API void                   process_exit( int code );
-

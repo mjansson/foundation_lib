@@ -113,6 +113,23 @@
 #  define FOUNDATION_PLATFORM_ARCH_IA64 0
 #endif
 
+//Architecture details
+#ifndef FOUNDATION_ARCH_SSE2
+#  define FOUNDATION_ARCH_SSE2 0
+#endif
+#ifndef FOUNDATION_ARCH_SSE3
+#  define FOUNDATION_ARCH_SSE3 0
+#endif
+#ifndef FOUNDATION_ARCH_SSE4
+#  define FOUNDATION_ARCH_SSE4 0
+#endif
+#ifndef FOUNDATION_ARCH_SSE4_FMA3
+#  define FOUNDATION_ARCH_SSE4_FMA3 0
+#endif
+#ifndef FOUNDATION_ARCH_NEON
+#  define FOUNDATION_ARCH_NEON 0
+#endif
+
 //Platform traits
 #define FOUNDATION_PLATFORM_APPLE 0
 #define FOUNDATION_PLATFORM_POSIX 0
@@ -427,6 +444,28 @@
 #define _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b ) a##b
 
 
+//Architecture details
+#ifdef __SSE2__
+#  undef  FOUNDATION_ARCH_SSE2
+#  define FOUNDATION_ARCH_SSE2 1
+#endif
+
+#ifdef __SSE3__
+#  undef  FOUNDATION_ARCH_SSE3
+#  define FOUNDATION_ARCH_SSE3 1
+#endif
+
+#ifdef __SSE4_1__
+#  undef  FOUNDATION_ARCH_SSE4
+#  define FOUNDATION_ARCH_SSE4 1
+#endif
+
+#ifdef __ARM_NEON__
+#  undef  FOUNDATION_ARCH_NEON
+#  define FOUNDATION_ARCH_NEON 1
+#endif
+
+
 //Compilers
 
 // CLang
@@ -669,7 +708,7 @@ typedef ALIGN(16) uint8_t     uint8_aligned128_t;
 //   FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( void*, profile_free, 32 );
 //   set_thread_profile_block( 1 ); // Assigns 1 to thread-local variable "profile_block"
 //   get_thread_profile_free()[0] = some_ptr; // Assigns some_ptr to slot 0 in thread-local array "profile_free"
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 
 // Forward declarations of various system APIs
 #  if FOUNDATION_PLATFORM_ANDROID

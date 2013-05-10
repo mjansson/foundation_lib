@@ -22,26 +22,27 @@
 /*! Initialize semaphore with the given value
     \param semaphore         Semaphore
     \param value             Initial value */
-FOUNDATION_API void          semaphore_initialize( semaphore_t* semaphore, int value );
+FOUNDATION_API void          semaphore_initialize( semaphore_t* semaphore, unsigned int value );
 
 /*! Initialize a named semaphore with the given value
     \param semaphore         Semaphore
     \param name              Global name
     \param value             Initial value */
-FOUNDATION_API void          semaphore_initialize_named( semaphore_t* semaphore, const char* name, int value );
+FOUNDATION_API void          semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value );
 
 /*! Destroy semaphore
     \param semaphore         Semaphore */
 FOUNDATION_API void          semaphore_destroy( semaphore_t* semaphore );
 
 /*! Wait on semaphore
-    \param semaphore         Semaphore */
-FOUNDATION_API void          semaphore_wait( semaphore_t* semaphore );
+    \param semaphore         Semaphore
+    \return                  true if successful, false if error or interrupted */
+FOUNDATION_API bool          semaphore_wait( semaphore_t* semaphore );
 
 /*! Try waiting on semaphore
     \param semaphore         Semaphore
     \param milliseconds      Timeout in milliseconds
-    \return                  true if successful, false if timeout or error */
+    \return                  true if successful, false if timeout or error/interrupted */
 FOUNDATION_API bool          semaphore_try_wait( semaphore_t* semaphore, int milliseconds );
 
 /*! Post semaphore

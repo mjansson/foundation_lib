@@ -13,7 +13,7 @@
 #pragma once
 
 /*! \file objectmap.h
-    Mapping of object handles to object pointers */
+    Mapping of object handles to object pointers, thread safe and lock free */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -28,26 +28,26 @@ FOUNDATION_API objectmap_t*         objectmap_allocate( unsigned int size );
     \param map                      Object map */
 FOUNDATION_API void                 objectmap_deallocate( objectmap_t* map );
 
+/*! Get size of map
+    \param map                      Object map
+	\return                         Size of map (number of object handles) */
+FOUNDATION_API unsigned int         objectmap_size( const objectmap_t* map );
+
 /*! Reserve a slot in the map
     \param map                      Object map
     \return                         New object handle, 0 if none available */
-FOUNDATION_API object_t             objectmap_reserve_id( objectmap_t* map );
+FOUNDATION_API object_t             objectmap_reserve( objectmap_t* map );
 
 /*! Free a slot in the map
     \param map                      Object map
     \param id                       Object handle to free */
-FOUNDATION_API void                 objectmap_free_id( objectmap_t* map, object_t id );
+FOUNDATION_API void                 objectmap_free( objectmap_t* map, object_t id );
 
 /*! Set object pointer for given slot
     \param map                      Object map
     \param id                       Object handle
 	\param object                   Object pointer */
-FOUNDATION_API void                 objectmap_set_object( objectmap_t* map, object_t id, void* object );
-
-/*! Get size of map
-    \param map                      Object map
-	\return                         Size of map (number of object handles) */
-FOUNDATION_API unsigned int         objectmap_size( const objectmap_t* map );
+FOUNDATION_API void                 objectmap_set( objectmap_t* map, object_t id, void* object );
 
 /*! Raw lookup of object pointer for map index
     \param map                      Object map

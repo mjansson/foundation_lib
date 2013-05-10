@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation config tests";
 	app.short_name = "test_config";
 	app.config_dir = "test_config";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

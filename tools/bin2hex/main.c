@@ -39,6 +39,7 @@ int main_initialize( void )
 	application.name = "bin2hex";
 	application.short_name = "bin2hex";
 	application.config_dir = "bin2hex";
+	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix( false );
 
@@ -114,11 +115,11 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 	unsigned int ifile, files_size;
 	for( ifile = 0, files_size = array_size( input ); ( result == BIN2HEX_RESULT_OK ) && ( ifile < files_size ); ++ifile )
 	{
-		char* input_filename;
-		char* output_filename;
+		char* input_filename = 0;
+		char* output_filename = 0;
 
-		stream_t* input_file;
-		stream_t* output_file;
+		stream_t* input_file = 0;
+		stream_t* output_file = 0;
 
 		input_filename = path_clean( string_clone( input[ifile] ), path_is_absolute( input[ifile] ) );
 		error_context_push( "parsing file", input_filename );
@@ -150,8 +151,10 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 		stream_deallocate( input_file );
 		stream_deallocate( output_file );
 
-		string_deallocate( input_filename );
 		string_deallocate( output_filename );
+
+		error_context_pop();
+		string_deallocate( input_filename );		
 	}
 
 	if( ( result == BIN2HEX_RESULT_OK ) && ( files_size > 0 ) )

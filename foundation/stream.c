@@ -16,9 +16,9 @@
 #include <stdarg.h>
 
 
-void _stream_initialize( stream_t* stream )
+void _stream_initialize( stream_t* stream, byteorder_t order )
 {
-	stream->byteorder = BYTEORDER_LITTLEENDIAN;
+	stream->byteorder = order;
 	stream->sequential = 0;
 	stream->reliable = 1;
 	stream->inorder = 1;
@@ -54,7 +54,7 @@ stream_t* stream_open( const char* path, unsigned int mode )
 		//	http_get( ... );
 		else if( ( protocol_end != 3 ) || !string_equal_substr( path, "vfs", protocol_end ) )
 		{
-			log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
+			log_errorf( ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
 			return 0;
 		}
 	}
@@ -82,7 +82,7 @@ void stream_set_byteorder( stream_t* stream, byteorder_t byteorder )
 	if( !stream )
 		return;
 	stream->byteorder = byteorder;
-	stream->swap = ( byteorder != system_byteorder() ) ? true : false;
+	stream->swap = ( byteorder != system_byteorder() ) ? 1 : 0;
 }
 
 
@@ -747,7 +747,6 @@ uint128_t stream_md5( stream_t* stream )
 
 	cur = stream_tell( stream );
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
-	stream_determine_binary_mode( stream, 128 );
 
 	md5 = md5_allocate();
 

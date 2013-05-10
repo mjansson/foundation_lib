@@ -37,12 +37,13 @@
 #include <foundation/base64.h>
 #include <foundation/md5.h>
 #include <foundation/array.h>
+#include <foundation/hashmap.h>
 #include <foundation/ringbuffer.h>
 #include <foundation/string.h>
 #include <foundation/path.h>
 #include <foundation/locale.h>
 
-#include <foundation/mathcore.h>
+#include <foundation/math.h>
 #include <foundation/random.h>
 #include <foundation/radixsort.h>
 
@@ -57,6 +58,7 @@
 #include <foundation/fs.h>
 #include <foundation/bufferstream.h>
 #include <foundation/assetstream.h>
+#include <foundation/pipe.h>
 
 #include <foundation/crash.h>
 #include <foundation/stacktrace.h>

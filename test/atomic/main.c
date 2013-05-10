@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation atomic tests";
 	app.short_name = "test_atomic";
 	app.config_dir = "test_atomic";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 
@@ -101,7 +102,6 @@ typedef struct
 void* cas_thread( object_t thread, void* arg )
 {
 	int loop = 0;
-	int32_t icount = 0;
 	cas_value_t val = *(cas_value_t*)arg;
 
 	thread_sleep( 10 );

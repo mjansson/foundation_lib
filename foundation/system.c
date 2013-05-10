@@ -21,6 +21,11 @@
 #  include <cpu-features.h>
 #endif
 
+#if FOUNDATION_PLATFORM_APPLE
+extern unsigned int _system_process_info_processor_count( void );
+extern int _system_show_alert( const char*, const char*, int );
+#endif
+
 static event_stream_t* _system_event_stream = 0;
 
 typedef struct _foundation_platform_info
@@ -271,13 +276,14 @@ const char* system_error_message( int code )
 		code = errno;
 	if( !code )
 		return "<no error>";
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
-#else
-	static THREADLOCAL char buffer[256];
-#endif
 	strerror_r( code, buffer, 256 );
 	return buffer;
+#else
+	static THREADLOCAL char buffer[256];
+	return strerror_r( code, buffer, 256 );
+#endif
 }
 
 
@@ -309,6 +315,37 @@ const char* system_username( void )
 }
 
 
+#if FOUNDATION_PLATFORM_APPLE
+
+#include <net/if_dl.h>
+
+static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
+{
+	unsigned int j;
+	union
+	{
+		uint64_t               id;
+		unsigned char ALIGN(8) buffer[8];
+	} hostid;
+
+	if( ifaddr->ifa_addr && ( ifaddr->ifa_addr->sa_family == AF_LINK ) )
+	{
+		struct sockaddr_dl* addr_dl = (struct sockaddr_dl*)ifaddr->ifa_addr;
+		
+		FOUNDATION_ASSERT( addr_dl->sdl_alen == 6 );
+
+		hostid.id = 0;
+		for( j = 0; j < 6; ++j )
+			hostid.buffer[5-j] = LLADDR(addr_dl)[j];
+		
+		return hostid.id;
+	}
+	
+	return 0;
+}
+
+#else
+
 static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 {
 	unsigned int j;
@@ -328,31 +365,40 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 	return hostid.id;
 }
 
+#endif
+
 
 uint64_t system_hostid( void )
 {
-	int sock, j;
-	struct ifreq buffer;
 	struct ifaddrs* ifaddr;
 	struct ifaddrs* ifa;
 	uint64_t hostid = 0;
-	
-	sock = socket( PF_INET, SOCK_DGRAM, 0 );
+
+#if !FOUNDATION_PLATFORM_APPLE
+	struct ifreq buffer;
+	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
+#endif
 	
 	if( getifaddrs( &ifaddr ) == 0 )
 	{
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
-			if( string_equal( ifa->ifa_name, "lo" ) )
+			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
 				continue;
 			
+#if FOUNDATION_PLATFORM_APPLE
+			
+			
+#else
 			memset( &buffer, 0, sizeof( buffer ) );
 			string_copy( buffer.ifr_name, ifa->ifa_name, sizeof( buffer.ifr_name ) );
 
 			hostid = _system_hostid_lookup( sock, &buffer );
+#endif
 		}
 		freeifaddrs( ifaddr );
 	}
+#if !FOUNDATION_PLATFORM_APPLE
 	else
 	{
 		memset( &buffer, 0, sizeof( buffer ) );
@@ -362,6 +408,7 @@ uint64_t system_hostid( void )
 	}
 
 	close( sock );
+#endif
 	
 	return hostid;
 }
@@ -369,8 +416,8 @@ uint64_t system_hostid( void )
 
 unsigned int system_hardware_threads( void )
 {
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
-	return _ns_process_info_processor_count();
+#if FOUNDATION_PLATFORM_APPLE
+	return _system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
 	return android_getCpuCount();
 #else
@@ -497,16 +544,19 @@ event_stream_t* system_event_stream( void )
 
 void system_post_event( foundation_event_id event )
 {
-	event_post( _system_event_stream, SYSTEM_FOUNDATION, event, 0, 0, 0 );
+	event_post( _system_event_stream, SYSTEM_FOUNDATION, event, 0, 0, 0, 0 );
 }
 
 
 bool system_message_box( const char* title, const char* message, bool cancel_button )
 {
+	log_infof( "%s\n\n%s", title, message );
+	if( environment_application()->flags & APPLICATION_UTILITY )
+		return true;
 #if FOUNDATION_PLATFORM_WINDOWS
 	return ( MessageBoxA( 0, message, title, cancel_button ? MB_OKCANCEL : MB_OK ) == IDOK );
-#elif FOUNDATION_PLATFORM_MACOSX
-	return _objc_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
+#elif FOUNDATION_PLATFORM_APPLE
+	return _system_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
 #elif 0//FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format( "%s\n\n%s\n", title, message );
 	pid_t pid = fork();

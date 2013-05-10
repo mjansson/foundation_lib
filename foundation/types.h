@@ -21,7 +21,7 @@
 
 // PRIMITIVE TYPES
 
-//! Error severity level
+//! Error severity level (Do not change order!)
 typedef enum
 {
 	ERRORLEVEL_NONE    = 0,
@@ -32,7 +32,7 @@ typedef enum
 	ERRORLEVEL_PANIC
 } error_level_t;
 
-//! Error identifiers
+//! Error identifiers (Do not change order, only append!)
 typedef enum
 {
 	ERROR_NONE              = 0,
@@ -50,13 +50,15 @@ typedef enum
 	ERROR_UNKNOWN_TYPE,
 	ERROR_UNKNOWN_RESOURCE,
 	ERROR_MEMORY_ALIGNMENT,
-	ERROR_DEPRECATED
+	ERROR_DEPRECATED,
+
+	ERROR_LAST_BUILTIN
 } error_t;
 
 //! Warning classes
 typedef enum
 {
-	WARNING_PERFORMANCE,
+	WARNING_PERFORMANCE = 0,
 	WARNING_DEPRECATED,
 	WARNING_BAD_DATA,
 	WARNING_MEMORY,
@@ -64,8 +66,10 @@ typedef enum
 	WARNING_SUSPICIOUS,
 	WARNING_SCRIPT,
 	WARNING_SYSTEM_CALL_FAIL,
-	WARNING_DEADLOCK
-} warning_class_t;
+	WARNING_DEADLOCK,
+
+	WARNING_LAST_BUILTIN
+} warning_t;
 
 //! Memory hints
 typedef enum
@@ -82,6 +86,7 @@ typedef enum
 	MEMORYCONTEXT_STRING,
 	MEMORYCONTEXT_STREAM,
 	MEMORYCONTEXT_NETWORK,
+	MEMORYCONTEXT_SCRIPT,
 
 	MEMORYCONTEXT_LASTBUILTIN  = 0x0fff
 } memory_context_id;
@@ -127,6 +132,13 @@ typedef enum
 	BYTEORDER_BIGENDIAN    = 1
 } byteorder_t;
 
+//! Application flags
+typedef enum
+{
+	APPLICATION_UTILITY        = 0x0001,
+	APPLICATION_DAEMON         = 0x0002
+} application_flag_t;
+
 //! Open modes for streams
 typedef enum
 {
@@ -145,7 +157,8 @@ typedef enum
 	STREAMTYPE_FILE,
 	STREAMTYPE_SOCKET,
 	STREAMTYPE_RINGBUFFER,
-	STREAMTYPE_ASSET
+	STREAMTYPE_ASSET,
+	STREAMTYPE_PIPE
 } stream_type_t;
 
 //! Stream seek directions
@@ -194,6 +207,12 @@ typedef enum
 
 	//! Returned when process was terminated by signal
 	PROCESS_TERMINATED_SIGNAL                 = 0x7FFFFFF1,
+
+	//! Returned when process wait was interrupted
+	PROCESS_WAIT_INTERRUPTED                  = 0x7FFFFFF2,
+
+	//! Returned when process wait failed for unknown reasons
+	PROCESS_WAIT_FAILED                       = 0x7FFFFFF3,
 	
 	//! Returned when detached process is still running
 	PROCESS_STILL_ACTIVE                      = 0x7FFFFFFF
@@ -219,6 +238,11 @@ typedef enum
 	//! File was modified
 	FOUNDATIONEVENT_FILE_MODIFIED
 } foundation_event_id;
+
+typedef enum
+{
+	EVENTFLAG_DELAY  = 1
+} event_flag_t;
 
 typedef enum
 {
@@ -322,6 +346,7 @@ typedef struct _foundation_application
 	const char*                     config_dir;
 	version_t                       version;
 	crash_dump_callback_fn          dump_callback;
+	unsigned int                    flags;
 } application_t;
 
 typedef struct _foundation_error_frame
@@ -370,6 +395,7 @@ typedef struct _foundation_objectmap
 #define FOUNDATION_DECLARE_EVENT       \
 	uint8_t               system;      \
 	uint8_t               id;          \
+	uint16_t              flags;       \
 	uint16_t              serial;      \
 	uint16_t              size;        \
 	object_t              object
@@ -427,7 +453,6 @@ typedef struct _foundation_semaphore
 typedef struct _foundation_md5              md5_t;
 
 typedef struct _foundation_stream           stream_t;
-typedef struct _foundation_directory        directory_t;
 
 typedef struct _foundation_mutex            mutex_t;
 typedef struct _foundation_process          process_t;
@@ -440,6 +465,8 @@ typedef struct _foundation_ringbuffer       ringbuffer_t;
 typedef struct _foundation_blowfish         blowfish_t;
 
 typedef struct _foundation_radixsort        radixsort_t;
+
+typedef struct _foundation_hashmap          hashmap_t;
 
 
 // UTILITY FUNCTIONS

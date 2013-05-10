@@ -151,7 +151,7 @@ void* memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hin
 		void* buffer = 0;
 		align = _memory_get_align( align );
 		buffer = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
-		memset( buffer, 0, size );
+		memset( buffer, 0, (size_t)size );
 		return buffer;
 	}
 	return _memsys.allocate_zero( memory_context(), size, align, hint );
@@ -172,7 +172,7 @@ void* memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned in
 
 void* memory_reallocate( void* p, uint64_t size, unsigned int align )
 {
-	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p > _memory_temporary.end ), "Trying to reallocate temporary memory" );
+	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p >= _memory_temporary.end ), "Trying to reallocate temporary memory" );
 	return _memsys.reallocate( p, size, align );
 }
 
@@ -244,9 +244,9 @@ static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned 
 	void* memory = 0;
 	if( !align )
 		return malloc( (size_t)size );
-	int result = posix_memalign( &memory, align, size );
+	int result = posix_memalign( &memory, align, (size_t)size );
 	if( result || !memory )
-		log_errorf( ERRORLEVEL_PANIC, ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
+		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
 	return ( result == 0 ) ? memory : 0;
 #else
 	void* memory = malloc( size + align );
@@ -273,11 +273,11 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #else
 	if( align )
 	{
-		void* memory = realloc( p, size + align );
+		void* memory = realloc( p, (size_t)( size + align ) );
 		memory = _memory_align_pointer( memory, align );
 		return memory;
 	}
-	return realloc( p, size );
+	return realloc( p, (size_t)size );
 #endif
 }
 

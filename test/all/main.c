@@ -13,12 +13,43 @@
 #include <foundation/foundation.h>
 
 
+void* event_thread( object_t thread, void* arg )
+{
+	event_block_t* block;
+	event_t* event = 0;
+
+	while( !thread_should_terminate( thread ) )
+	{
+		block = event_stream_process( system_event_stream() );
+
+		while( ( event = event_next( block, 0 ) ) )
+		{
+			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
+			{
+				case FOUNDATIONEVENT_TERMINATE:
+					log_warnf( WARNING_SUSPICIOUS, "Terminating tests due to event" );
+					process_exit( -2 );
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		thread_sleep( 10 );
+	}
+
+	return 0;
+}
+
+
 int main_initialize( void )
 {
 	application_t application = {0};
 	application.name = "Foundation string test";
 	application.short_name = "test_string";
 	application.config_dir = "test_string";
+	application.flags = APPLICATION_UTILITY;
 	
 	return foundation_initialize( memory_system_malloc(), application );
 }
@@ -32,7 +63,11 @@ int main_run( void* main_arg )
 	process_t* process = 0;
 	char* process_path = 0;
 	int process_result = 0;
-
+	object_t thread = 0;
+	
+	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
+	thread_start( thread, 0 );
+	
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = "test-*.exe";
@@ -60,6 +95,11 @@ int main_run( void* main_arg )
 		log_infof( "Running test executable: %s", exe_paths[iexe] );
 
 		process_result = process_spawn( process );
+		while( process_result == PROCESS_WAIT_INTERRUPTED )
+		{
+			thread_sleep( 10 );
+			process_result = process_wait( process );
+		}
 		process_deallocate( process );
 
 		string_deallocate( process_path );
@@ -70,14 +110,21 @@ int main_run( void* main_arg )
 				log_warnf( WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
 			else
 				log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+			process_set_exit_code( -1 );
 			goto exit;
 		}
+		log_infof( "All tests from %s passed (%d)", exe_paths[iexe], process_result );
 	}
 
 	log_infof( "All tests passed" );
 
 exit:
 
+	thread_terminate( thread );
+	thread_destroy( thread );
+	while( thread_is_running( thread ) )
+		thread_sleep( 10 );
+	
 	return process_result;
 }
 

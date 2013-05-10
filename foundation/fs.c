@@ -59,18 +59,6 @@ static fs_monitor_t* _fs_monitors = 0;
 static event_stream_t* _fs_event_stream = 0;
 
 
-static directory_t* _fs_directory_allocate( const char* path )
-{
-	unsigned int pathlen = string_length( path ) + 1;
-	directory_t* dir = 0;
-	memory_context_push( MEMORYCONTEXT_STREAM );
-	memory_allocate_zero( sizeof( directory_t ) + pathlen, 0, MEMORY_PERSISTENT );
-	memory_context_pop();
-	memcpy( dir->path, path, pathlen );
-	return dir;
-}
-
-
 void fs_monitor( const char* path )
 {
 	int mi, msize;
@@ -106,44 +94,40 @@ void fs_monitor( const char* path )
 }
 
 
+static void _fs_stop_monitor( fs_monitor_t* monitor )
+{
+	object_t thread = monitor->thread;
+	mutex_t* notify = monitor->signal;
+	char* localpath = monitor->path;
+
+	memset( monitor, 0, sizeof( fs_monitor_t ) );
+
+	thread_terminate( thread );
+
+	if( notify )
+		mutex_signal( notify );
+
+	thread_destroy( thread );
+
+	while( thread_is_running( thread ) )
+		thread_yield();
+
+	if( localpath )
+		string_deallocate( localpath );
+
+	if( notify )
+		mutex_deallocate( notify );
+}
+
+
 void fs_unmonitor( const char* path )
 {
 	int mi, msize;
 	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
 	{
 		if( string_equal( _fs_monitors[mi].path, path ) )
-		{
-			object_t thread = _fs_monitors[mi].thread;
-			mutex_t* signal = _fs_monitors[mi].signal;
-			char* localpath = _fs_monitors[mi].path;
-
-			memset( _fs_monitors + mi, 0, sizeof( fs_monitor_t ) );
-
-			thread_terminate( thread );
-
-			if( signal )
-				mutex_signal( signal );
-
-			thread_destroy( thread );
-			while( thread_is_running( thread ) )
-				thread_yield();
-
-			if( localpath )
-				string_deallocate( localpath );
-
-			if( signal )
-				mutex_deallocate( signal );
-		}
+			_fs_stop_monitor( _fs_monitors + mi );
 	}
-}
-
-
-directory_t* fs_open_directory( const char* path )
-{
-	if( !fs_is_directory( path ) )
-		return 0;
-	
-	return _fs_directory_allocate( path );
 }
 
 
@@ -394,39 +378,40 @@ bool fs_remove_directory( const char* path )
 }
 
 
-bool fs_make_path( const char* path )
+bool fs_make_directory( const char* path )
 {
-	char* fpath = path_make_absolute( path );
-	char** paths = string_explode( fpath, "/", false );
-	char* curpath = 0;
-	int i = 0;
-	int size = array_size( paths );
+	char* fpath;
+	char** paths;
+	char* curpath;
+	int ipath;
+	int pathsize;
 	bool result = true;
 
+	fpath = path_make_absolute( path );
+	paths = string_explode( fpath, "/", false );
+	pathsize = array_size( paths );
+	curpath = 0;
+	ipath = 0;
+
+	memory_context_push( MEMORYCONTEXT_STREAM );
+
 #if FOUNDATION_PLATFORM_WINDOWS
-	if( i < size )
+	if( pathsize )
 	{
-		char* first = paths[i];
+		char* first = paths[ipath];
 		unsigned int flen = string_length( first );
 		if( flen && ( first[ flen - 1 ] == ':' ) )
 		{
 			curpath = string_clone( first );
-			++i; //Drive letter
+			++ipath; //Drive letter
 		}
 	}
 #endif
 
-	for( ; i < size; ++i )
+	for( ; ipath < pathsize; ++ipath )
 	{
-		//if( curpath )
-		{
-			curpath = string_append( curpath, "/" );
-			curpath = string_append( curpath, paths[i] );
-		}
-		/*else
-		{
-			curpath = string_clone( paths[i] );
-		}*/
+		curpath = string_append( curpath, "/" );
+		curpath = string_append( curpath, paths[ipath] );
 
 		if( !fs_is_directory( curpath ) )
 		{
@@ -457,6 +442,8 @@ bool fs_make_path( const char* path )
 	string_array_deallocate( paths );
 	string_deallocate( curpath );
 	
+	memory_context_pop();
+
 	return result;
 }
 
@@ -469,7 +456,7 @@ void fs_copy_file( const char* source, const char* dest )
 
 	char* destpath = path_path_name( dest );
 	if( string_length( destpath ) )
-		fs_make_path( destpath );
+		fs_make_directory( destpath );
 	string_deallocate( destpath );
 
 	infile = fs_open_file( source, STREAM_IN );
@@ -500,10 +487,11 @@ uint64_t fs_last_modified( const char* path )
 	uint64_t last_write_time;
 	wchar_t* wpath;
 	WIN32_FILE_ATTRIBUTE_DATA attrib;
+	BOOL success = 0;
 	memset( &attrib, 0, sizeof( attrib ) );
 
 	wpath = wstring_allocate_from_string( path, 0 );
-	GetFileAttributesExW( wpath, GetFileExInfoStandard, &attrib );
+	success = GetFileAttributesExW( wpath, GetFileExInfoStandard, &attrib );
 	wstring_deallocate( wpath );
 
 	/*SYSTEMTIME stime;
@@ -513,15 +501,19 @@ uint64_t fs_last_modified( const char* path )
 	stime.wMonth = 1;
 	SystemTimeToFileTime( &stime, &basetime );
 	uint64_t ms_offset_time = (*(uint64_t*)&basetime);*/
+
+	if( !success )
+		return 0;
 	
 	last_write_time = ( (uint64_t)attrib.ftLastWriteTime.dwHighDateTime << 32ULL ) | (uint64_t)attrib.ftLastWriteTime.dwLowDateTime;
 
-	return ( ( last_write_time - ms_offset_time ) / 10000ULL );
+	return ( last_write_time > ms_offset_time ) ? ( ( last_write_time - ms_offset_time ) / 10000ULL ) : 0;
 
 #elif FOUNDATION_PLATFORM_POSIX
 
 	struct stat st; memset( &st, 0, sizeof( st ) );
-	stat( path, &st );
+	if( stat( path, &st ) < 0 )
+		return 0;
 	return (uint64_t)st.st_mtime * 1000ULL;
 
 #else
@@ -535,8 +527,10 @@ uint128_t fs_md5( const char* path )
 	uint128_t digest = {0};
 	stream_t* file = fs_open_file( path, STREAM_IN | STREAM_BINARY );
 	if( file )
+	{
 		digest = stream_md5( file );
-	stream_deallocate( file );
+		stream_deallocate( file );
+	}
 	return digest;
 }
 
@@ -619,7 +613,7 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 		char** subnames = fs_matching_files( subpath, pattern, true );
 
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
-			array_push( names, path_merge( subpath, subnames[in] ) );
+			array_push( names, path_merge( subdirs[id], subnames[in] ) );
 
 		string_array_deallocate( subnames );
 		string_deallocate( subpath );
@@ -635,7 +629,7 @@ void fs_post_event( foundation_event_id id, const char* path, unsigned int pathl
 {
 	if( !pathlen )
 		pathlen = string_length( path );
-	event_post( fs_event_stream(), SYSTEM_FOUNDATION, id, pathlen + 1, 0, path );
+	event_post( fs_event_stream(), SYSTEM_FOUNDATION, id, pathlen + 1, 0, path, 0 );
 }
 
 
@@ -811,11 +805,12 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						int numchars = info->FileNameLength / sizeof( wchar_t );
 						wchar_t term = info->FileName[ numchars ];
 						char* utfstr;
+						char* fullpath;
 						foundation_event_id event = 0;
 						
 						info->FileName[ numchars ] = 0;
 						utfstr = string_allocate_from_wstring( info->FileName, 0 );
-						utfstr = path_clean( utfstr, false );
+						fullpath = path_merge( monitor->path, utfstr );
 
 						switch( info->Action )
 						{
@@ -833,9 +828,10 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						//log_debugf( "File system changed: %s (action %d)", utfstr, info->Action );
 
 						if( event )
-							fs_post_event( event, utfstr, 0 );
+							fs_post_event( event, fullpath, 0 );
 						
 						string_deallocate( utfstr );
+						string_deallocate( fullpath );
 
 						info->FileName[ numchars ] = term;
 
@@ -914,11 +910,15 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			memory_deallocate( buffer );
 		}
 		if( monitor->signal )
-			mutex_wait( monitor->signal, 100 );
+		{
+			if( mutex_wait( monitor->signal, 100 ) )
+				mutex_unlock( monitor->signal );
+		}
 #else
 		log_debugf( "Filesystem watcher not implemented on this platform" );
 		//Not implemented yet, just wait for signal to simulate thread
-		mutex_wait( monitor->signal, 0 );
+		if( mutex_wait( monitor->signal, 0 ) )
+			mutex_unlock( monitor->signal );
 #endif
 	}
 
@@ -1275,10 +1275,9 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	pathlen = string_length( path );
 	file = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
 	stream = GET_STREAM( file );
-	_stream_initialize( stream );
+	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 
 	stream->type = STREAMTYPE_FILE;
-	stream->sequential = false;
 
 	abspath = path_make_absolute( path );
 	dotrunc = false;
@@ -1321,6 +1320,7 @@ FOUNDATION_EXTERN void _buffer_stream_initialize( void );
 #if FOUNDATION_PLATFORM_ANDROID
 FOUNDATION_EXTERN void _asset_stream_initialize( void );
 #endif
+FOUNDATION_EXTERN void _pipe_stream_initialize( void );
 
 
 int _fs_initialize( void )
@@ -1347,6 +1347,7 @@ int _fs_initialize( void )
 #if FOUNDATION_PLATFORM_ANDROID
 	_asset_stream_initialize();
 #endif
+	_pipe_stream_initialize();
 
 	return 0;
 }
@@ -1356,27 +1357,7 @@ void _fs_shutdown( void )
 {
 	int mi, msize;
 	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
-	{
-		object_t thread = _fs_monitors[mi].thread;
-		mutex_t* signal = _fs_monitors[mi].signal;
-		char* localpath = _fs_monitors[mi].path;
-
-		if( thread )
-			thread_terminate( thread );
-
-		if( signal )
-			mutex_signal( signal );
-
-		thread_destroy( thread );
-		while( thread_is_running( thread ) )
-			thread_yield();
-
-		if( localpath )
-			string_deallocate( localpath );
-
-		if( signal )
-			mutex_deallocate( signal );
-	}
+		_fs_stop_monitor( _fs_monitors + mi );
 	array_deallocate( _fs_monitors );
 	_fs_monitors = 0;
 

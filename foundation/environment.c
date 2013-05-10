@@ -14,7 +14,9 @@
 
 
 static char**  _environment_argv;
+#if !FOUNDATION_PLATFORM_APPLE
 static char    _environment_wd[FOUNDATION_MAX_PATHLEN] = {0};
+#endif
 static char    _environment_executable_name[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_executable_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
@@ -30,6 +32,12 @@ static char*   _environment_var = 0;
 
 #if FOUNDATION_PLATFORM_ANDROID
 #  include <foundation/android.h>
+#endif
+
+#if FOUNDATION_PLATFORM_APPLE
+#  include <foundation/apple.h>
+#  include <crt_externs.h>
+extern CFStringRef NSHomeDirectory(void);
 #endif
 
 
@@ -91,16 +99,32 @@ int _environment_initialize( const application_t application )
 	}
 	else
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
 		return -1;
 	}
+	
+#elif FOUNDATION_PLATFORM_APPLE
+	
+	int ia;
+	int* argc_ptr = _NSGetArgc();
+	char*** argv_ptr = _NSGetArgv();
 
+	for( ia = 0; ia < *argc_ptr; ++ia )
+		array_push( _environment_argv, string_clone( (*argv_ptr)[ia] ) );
+
+	FOUNDATION_ASSERT( *argc_ptr > 0 );
+	char* exe_path = path_make_absolute( (*argv_ptr)[0] );
+
+	_environment_set_executable_paths( exe_path );
+
+	string_deallocate( exe_path );
+	
 #elif FOUNDATION_PLATFORM_POSIX
 
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
 	if( !cmdline )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
 		return -1;
 	}
 
@@ -119,7 +143,7 @@ int _environment_initialize( const application_t application )
 	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
 	if( readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN ) < 0 )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
 		return -1;
 	}
 
@@ -213,7 +237,7 @@ const char* environment_current_working_directory( void )
 	char* path = memory_allocate_zero( FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
 		return "";
 	}
 	path = path_clean( path, true );
@@ -264,16 +288,16 @@ const char* environment_home_directory( void )
 	}
 #elif FOUNDATION_PLATFORM_LINUX
 	string_copy( _environment_home_dir, environment_variable( "HOME" ), FOUNDATION_MAX_PATHLEN );
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	ENTER_AUTORELEASE();
-	CFStringRef home = NSHomeDirectory();
-	CFStringGetCString( home, _environment_home_dir, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
-	LEAVE_AUTORELEASE();
-
-	if( !app_config_bool( _HASH_APPLICATION, _HASH_BSDUTILITY ) )
+#elif FOUNDATION_PLATFORM_APPLE
+	if( environment_application()->flags & APPLICATION_UTILITY )
+	{
+		CFStringRef home = NSHomeDirectory();
+		CFStringGetCString( home, _environment_home_dir, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+	}
+	else
 	{
 		char bundle_identifier[FOUNDATION_MAX_PATHLEN+1];
-		app_bundle_identifier( bundle_identifier );
+		environment_bundle_identifier( bundle_identifier );
 		
 		char* path = path_append( path_merge( _environment_home_dir, "/Library/Application Support" ), bundle_identifier );
 		string_copy( _environment_home_dir, path, FOUNDATION_MAX_PATHLEN );

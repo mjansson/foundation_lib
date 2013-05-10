@@ -26,10 +26,10 @@ objectmap_t* objectmap_allocate( unsigned int size )
 
 	map = memory_allocate_zero( sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 0, MEMORY_PERSISTENT );
 	map->size_bits   = bits;
-	map->id_max      = ((1ULL<<(64ULL-bits))-1);
+	map->id_max      = ((1ULL<<(62ULL-bits))-1);
 	map->size        = size;
 	map->mask_index  = ((1ULL<<bits)-1ULL);
-	map->mask_id     = ~map->mask_index;
+	map->mask_id     = ( 0x3FFFFFFFFFFFFFFFULL & ~map->mask_index );
 	map->free        = 0;
 	map->id          = 1;
 
@@ -81,7 +81,7 @@ void* objectmap_raw_lookup( const objectmap_t* map, unsigned int idx )
 }
 
 
-object_t objectmap_reserve_id( objectmap_t* map )
+object_t objectmap_reserve( objectmap_t* map )
 {
 	uint64_t idx, next, id;
 
@@ -94,7 +94,7 @@ object_t objectmap_reserve_id( objectmap_t* map )
 		idx = map->free;
 		if( idx >= map->size )
 		{
-			log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Pool full, unable to reserve id" );
+			log_errorf( ERROR_OUT_OF_MEMORY, "Pool full, unable to reserve id" );
 			return 0;
 		}
 		next = ((uintptr_t)map->map[idx]) >> 1;
@@ -110,12 +110,15 @@ object_t objectmap_reserve_id( objectmap_t* map )
 	{
 		id = atomic_incr64( (volatile int64_t*)&map->id ) & map->id_max; //Wrap-around handled by masking
 	} while( !id );
+
+	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
+	FOUNDATION_ASSERT( ( ( id << map->size_bits ) & map->mask_id ) == ( id << map->size_bits ) );
 	
 	return ( id << map->size_bits ) | idx; /*lint +esym(613,pool) */
 }
 
 
-void objectmap_free_id( objectmap_t* map, object_t id )
+void objectmap_free( objectmap_t* map, object_t id )
 {
 	uint64_t idx, last;
 
@@ -133,7 +136,7 @@ void objectmap_free_id( objectmap_t* map, object_t id )
 }
 
 
-void objectmap_set_object( objectmap_t* map, object_t id, void* object )
+void objectmap_set( objectmap_t* map, object_t id, void* object )
 {
 	uint64_t idx;
 
@@ -143,7 +146,8 @@ void objectmap_set_object( objectmap_t* map, object_t id, void* object )
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT( !(((uintptr_t)map->map[idx]) & 1 ) );
 	FOUNDATION_ASSERT( !((uintptr_t)map->map[idx]) );
-	map->map[idx] = object;
+	if( !map->map[idx] )
+		map->map[idx] = object;
 	/*lint +esym(613,pool) */
 }
 

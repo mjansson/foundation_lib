@@ -7,6 +7,7 @@ opts.AddVariables(
 	BoolVariable( 'profile',        'Profile build', 0 ),
 	BoolVariable( 'deploy',         'Deploy build', 0 ),
 	EnumVariable( 'arch',           'Architecture to compile for', '', allowed_values=( '', 'x86', 'x86_64', 'arm' ) ),
+	EnumVariable( 'sse',            'SSE instruction set to use', '2', allowed_values=( '2', '3', '4' ) ),
 	EnumVariable( 'platform',       'Platform to compile for', '', allowed_values=( '', 'linux', 'win32', 'win64', 'macosx', 'raspberrypi' ) ),
 	( 'libsuffix',                  'Extra library name suffix', '' ),
 	EnumVariable( 'tools',          'Tools to use to build', 'gnu', allowed_values=( 'intel', 'gnu', 'msvc' ) ),
@@ -116,11 +117,11 @@ if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	if env['arch'] == 'x86':
 		env.Append( CCFLAGS=['-m32'] )
 		env.Append( LINKFLAGS=['-m32'] )
-		env.Append( CCFLAGS=['-msse3'] )
+		env.Append( CCFLAGS=['-msse' + env['sse']] )
 	if env['arch'] == 'x86_64':
 		env.Append( CCFLAGS=['-m64'] )
 		env.Append( LINKFLAGS=['-m64'] )
-		env.Append( CCFLAGS=['-msse3'] )
+		env.Append( CCFLAGS=['-msse' + env['sse']] )
 	env.Append( LINKFLAGS=['-pthread'] )
 
 if env['CC'] == 'cl':
@@ -171,9 +172,7 @@ if env['debug']:
 	env.Append( CPPDEFINES=['BUILD_DEBUG=1'] )
 	env['buildpath'] = 'debug'
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
-		env.Append( CFLAGS=['-g'] )
-		env.Append( CXXFLAGS=['-g'] )
-		env.Append( CFLAGS=['-fno-math-errno','-ffinite-math-only'] )
+		env.Append( CFLAGS=['-g','-fno-math-errno','-ffinite-math-only'] )
 		if env['CC'] == 'gcc':
 			env.Append( CFLAGS=['-funsafe-math-optimizations','-fno-trapping-math'] )
 	env['buildprofile'] = 'debug'
@@ -183,10 +182,7 @@ elif not env['deploy'] and not env['profile']:
 	env.Append( CPPDEFINES=['BUILD_RELEASE=1'] )
 	env['buildpath'] = 'release';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
-#		env.Append( CFLAGS=['-march=core2','-msse4'] )
 		env.Append( CFLAGS=['-g','-O3','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
-		env.Append( CXXFLAGS=['-g','-O3','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
-#		-fsingle-precision-constant
 	env['buildprofile'] = 'release'
 
 # SETUP PROFILE ENVIRONMENT
@@ -194,10 +190,7 @@ elif env['profile']:
 	env.Append( CPPDEFINES=['BUILD_PROFILE=1'] )
 	env['buildpath'] = 'profile';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
-#		env.Append( CFLAGS=['-march=core2','-msse4'] )
 		env.Append( CFLAGS=['-g','-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
-		env.Append( CXXFLAGS=['-g','-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
-#		-fsingle-precision-constant
 	env['buildprofile'] = 'profile'
 
 # SETUP RTM ENVIRONMENT
@@ -205,10 +198,7 @@ else:
 	env.Append( CPPDEFINES=['BUILD_DEPLOY=1'] )
 	env['buildpath'] = 'deploy';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
-#		env.Append( CFLAGS=['-march=core2','-msse4'] )
 		env.Append( CFLAGS=['-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
-		env.Append( CXXFLAGS=['-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
-#		-fsingle-precision-constant
 	env['buildprofile'] = 'deploy'
 
 

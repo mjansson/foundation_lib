@@ -57,12 +57,13 @@
     <ClInclude Include="..\..\foundation\locale.h" />
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\main.h" />
-    <ClInclude Include="..\..\foundation\mathcore.h" />
+    <ClInclude Include="..\..\foundation\math.h" />
     <ClInclude Include="..\..\foundation\md5.h" />
     <ClInclude Include="..\..\foundation\memory.h" />
     <ClInclude Include="..\..\foundation\mutex.h" />
     <ClInclude Include="..\..\foundation\objectmap.h" />
     <ClInclude Include="..\..\foundation\path.h" />
+    <ClInclude Include="..\..\foundation\pipe.h" />
     <ClInclude Include="..\..\foundation\platform.h" />
     <ClInclude Include="..\..\foundation\process.h" />
     <ClInclude Include="..\..\foundation\profile.h" />
@@ -109,6 +110,7 @@
     <ClCompile Include="..\..\foundation\mutex.c" />
     <ClCompile Include="..\..\foundation\objectmap.c" />
     <ClCompile Include="..\..\foundation\path.c" />
+    <ClCompile Include="..\..\foundation\pipe.c" />
     <ClCompile Include="..\..\foundation\process.c" />
     <ClCompile Include="..\..\foundation\profile.c" />
     <ClCompile Include="..\..\foundation\radixsort.c" />

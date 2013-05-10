@@ -29,19 +29,35 @@
 #if FOUNDATION_PLATFORM_REALSIZE == 64
 
 //! Epsilon value. This represents a small number close to zero that can be used for comparisons or thresholds. Roughly equals 100 floating point units at 1.0
-#define MATH_EPSILON                       0.00000000000002
+#define REAL_EPSILON                       0.00000000000002
 
 #define REAL_MAX                           DBL_MAX
 #define REAL_MIN                           DBL_MIN
 
 #else
 
-#define MATH_EPSILON                       0.00001f
+#define REAL_EPSILON                       0.00001f
 
 #define REAL_MAX                           FLT_MAX
 #define REAL_MIN                           FLT_MIN
 
 #endif
+
+#define REAL_ZERO                          REAL_C( 0.0 )
+#define REAL_ONE                           REAL_C( 1.0 )
+#define REAL_TWO                           REAL_C( 2.0 )
+#define REAL_THREE                         REAL_C( 3.0 )
+#define REAL_FOUR                          REAL_C( 4.0 )
+#define REAL_HALF                          REAL_C( 0.5 )
+
+#define REAL_PI                            REAL_C( 3.1415926535897932384626433832795 )
+#define REAL_HALFPI                        REAL_C( 1.5707963267948966192313216916398 )
+#define REAL_TWOPI                         REAL_C( 6.2831853071795864769252867665590 )
+#define REAL_SQRT2                         REAL_C( 1.4142135623730950488016887242097 )
+#define REAL_SQRT3                         REAL_C( 1.7320508075688772935274463415059 )
+#define REAL_E                             REAL_C( 2.7182818284590452353602874713527 )
+#define REAL_LOGN2                         REAL_C( 0.6931471805599453094172321214582 )
+#define REAL_LOGN10                        REAL_C( 2.3025850929940456840179914546844 )
 
 static FORCEINLINE CONSTCALL real          math_sin( real x );
 static FORCEINLINE CONSTCALL real          math_cos( real x );
@@ -126,10 +142,20 @@ static FORCEINLINE CONSTCALL real          math_realdec( real val, int units );
     \return                                Resulting float */
 static FORCEINLINE CONSTCALL real          math_realinc( real val, int units );
 
+/*+NAN float: 0x7fc00000
+-NAN float: 0x7fc00000
++NAN double: 0x7ff8000000000000
+-NAN double: 0x7ff8000000000000
+
++INF float: 0x7f800000
+-INF float: 0x7f800000
++INF double: 0x7ff0000000000000
+-INF double: 0x7ff0000000000000*/
 static FORCEINLINE CONSTCALL bool          math_realisnan( real val );
 static FORCEINLINE CONSTCALL bool          math_realisinf( real val );
 static FORCEINLINE CONSTCALL bool          math_realisuninitialized( real val );
 static FORCEINLINE CONSTCALL bool          math_realisfinite( real val );
+static FORCEINLINE CONSTCALL bool          math_realisdenormalized( real val );
 static FORCEINLINE CONSTCALL real          math_realundenormalize( real val );
 
 
@@ -382,7 +408,7 @@ static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floor( 
 static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceil( x ); }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)__builtin_floor( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)__builtin_ceil( x ); }
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE
 static FORCEINLINE int      math_round( real x ) { return (int)( x + 0.5 ); }
 static FORCEINLINE int      math_trunc( real x ) { return (int)( x ); }
 #else
@@ -396,7 +422,7 @@ static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceilf( x
 static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floorf( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)__builtin_ceil( x ); }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)__builtin_floor( x ); }
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE
 static FORCEINLINE int      math_round( real x ) { return (int)( x + 0.5f ); }
 static FORCEINLINE int      math_trunc( real x ) { return (int)( x ); }
 #else
@@ -414,7 +440,7 @@ static FORCEINLINE int      math_trunc( real x ) { return (int)__builtin_truncf(
 #if FOUNDATION_PLATFORM_REALSIZE == 64
 
 
-typedef union { int64_t ival; real rval; } __real_convert;
+typedef union { int64_t ival; float64_t rval; } __real_convert;
 
 
 static FORCEINLINE CONSTCALL bool math_realisnan( real val )
@@ -453,6 +479,17 @@ static FORCEINLINE CONSTCALL bool math_realisuninitialized( real val )
 static FORCEINLINE CONSTCALL bool math_realisfinite( real val )
 {
 	return !( math_realisnan( val ) || math_realisinf( val ) || math_realisuninitialized( val ) );
+}
+
+
+static FORCEINLINE CONSTCALL bool math_realisdenormalized( real val )
+{
+#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
+	const __real_convert conv = { .rval=val };
+#else
+	__real_convert conv; conv.rval = val;
+#endif
+	return ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) == 0 );
 }
 
 
@@ -527,7 +564,7 @@ static FORCEINLINE CONSTCALL bool math_realzero( real val )
 	return false;
 #else
 
-	return math_abs( val ) < MATH_EPSILON;
+	return math_abs( val ) < REAL_EPSILON;
 	
 #endif
 }
@@ -550,7 +587,7 @@ static FORCEINLINE CONSTCALL bool math_realone( real val )
 
 	return false;
 #else
-	return math_abs( val - 1.0 ) < MATH_EPSILON;
+	return math_abs( val - REAL_ONE ) < REAL_EPSILON;
 #endif
 }
 
@@ -577,7 +614,7 @@ static FORCEINLINE CONSTCALL real math_realinc( real val, int units )
 #else
 
 
-typedef union { int32_t ival; real rval; } __real_convert;
+typedef union { int32_t ival; float32_t rval; } __real_convert;
 
 
 static FORCEINLINE CONSTCALL bool math_realisnan( real val )
@@ -617,6 +654,17 @@ static FORCEINLINE CONSTCALL bool math_realisuninitialized( real val )
 static FORCEINLINE CONSTCALL bool math_realisfinite( real val )
 {
 	return !( math_realisnan( val ) || math_realisinf( val ) || math_realisuninitialized( val ) );
+}
+
+
+static FORCEINLINE CONSTCALL bool math_realisdenormalized( real val )
+{
+#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
+	const __real_convert conv = { .rval=val };
+#else
+	__real_convert conv; conv.rval = val;
+#endif
+	return ( ( (const uint32_t)conv.ival & 0x7F800000ULL ) == 0 );
 }
 
 
@@ -688,7 +736,7 @@ static FORCEINLINE CONSTCALL bool math_realzero( real val )
 
 	return false;
 #else
-	return math_abs( val ) < MATH_EPSILON;
+	return math_abs( val ) < REAL_EPSILON;
 #endif
 }
 
@@ -710,7 +758,7 @@ static FORCEINLINE CONSTCALL bool math_realone( real val )
 
 	return false;
 #else
-	return math_abs( val - 1.0f ) < MATH_EPSILON;
+	return math_abs( val - 1.0f ) < REAL_EPSILON;
 #endif
 }
 

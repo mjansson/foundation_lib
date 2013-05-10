@@ -26,6 +26,7 @@ application_t test_application( void )
 	app.name = "Foundation random tests";
 	app.short_name = "test_random";
 	app.config_dir = "test_random";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

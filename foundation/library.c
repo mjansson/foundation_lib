@@ -55,7 +55,7 @@ void _library_shutdown( void )
 
 void _library_destroy( library_t* library )
 {
-	objectmap_free_id( _library_map, library->id );
+	objectmap_free( _library_map, library->id );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	FreeLibrary( library->dll );
@@ -121,7 +121,7 @@ object_t library_load( const char* name )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-#  if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#  if FOUNDATION_PLATFORM_APPLE
 	char* libname = string_format( "lib%s.dylib", name );
 #  else
 	char* libname = string_format( "lib%s.so", name );
@@ -137,13 +137,13 @@ object_t library_load( const char* name )
 
 #else
 	
-	log_errorf( ERRORLEVEL_ERROR, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
+	log_errorf( ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
 	error_context_pop();
 	return 0;
 
 #endif
 
-	id = objectmap_reserve_id( _library_map );
+	id = objectmap_reserve( _library_map );
 	if( !id )
 	{
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -151,7 +151,7 @@ object_t library_load( const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		dlclose( lib );
 #endif
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );	
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );	
 		error_context_pop();
 		return 0;
 	}
@@ -165,7 +165,7 @@ object_t library_load( const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 	library->lib = lib;
 #endif
-	objectmap_set_object( _library_map, id, library );
+	objectmap_set( _library_map, id, library );
 
 	error_context_pop();
 	
@@ -194,7 +194,7 @@ void* library_symbol( object_t id, const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		return dlsym( library->lib, name );
 #else
-		log_errorf( ERRORLEVEL_ERROR, ERROR_NOT_IMPLEMENTED, "Dynamic library symbol lookup implemented for this platform: %s not found", name );
+		log_errorf( ERROR_NOT_IMPLEMENTED, "Dynamic library symbol lookup implemented for this platform: %s not found", name );
 #endif
 	}
 	return 0;
@@ -209,3 +209,8 @@ const char* library_name( object_t id )
 	return "";
 }
 
+
+bool library_valid( object_t id )
+{
+	return objectmap_lookup( _library_map, id ) != 0;
+}

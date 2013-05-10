@@ -18,7 +18,9 @@ typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 DWORD WINAPI GetCurrentProcessorNumberFallback(VOID) { return 0; }
 GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <sys/prctl.h>
+#  if !FOUNDATION_PLATFORM_APPLE
+#    include <sys/prctl.h>
+#  endif
 #  include <pthread.h>
 #endif
 
@@ -26,7 +28,7 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 #  include <foundation/android.h>
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 
 typedef struct _foundation_thread_local_block
 {
@@ -135,7 +137,7 @@ void _thread_destroy( void* thread_raw )
 		while( thread_is_running( thread->id ) && ( ++spin_count < 50 ) )
 			thread_yield();
 	}
-	objectmap_free_id( _thread_map, thread->id );
+	objectmap_free( _thread_map, thread->id );
 	memory_deallocate( thread );
 }
 
@@ -158,12 +160,11 @@ static int _thread_guard_wrapper( void* data )
 
 object_t thread_create( thread_fn fn, const char* name, thread_priority_t priority, unsigned int stacksize )
 {
-	//TODO: Should we map by fn to avoid creating multiple thread objects for same entry point?
 	thread_t* thread;
-	uint64_t id = objectmap_reserve_id( _thread_map );
+	uint64_t id = objectmap_reserve( _thread_map );
 	if( !id )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
 		return 0;
 	}
 	thread = memory_allocate_zero( sizeof( thread_t ), 0, MEMORY_PERSISTENT );
@@ -174,7 +175,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	thread->priority = priority;
 	thread->stacksize = stacksize;
 	thread->ref = 1;
-	objectmap_set_object( _thread_map, id, thread );
+	objectmap_set( _thread_map, id, thread );
 	return thread->id;
 }
 
@@ -198,6 +199,13 @@ bool thread_is_thread( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
 	return ( thread != 0 );
+}
+
+
+void* thread_result( object_t id )
+{
+	thread_t* thread = GET_THREAD( id );
+	return ( !thread || thread->running ) ? 0 : thread->result;
 }
 
 
@@ -330,7 +338,10 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	{
 		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
 		if( crash_result == CRASH_DUMP_GENERATED )
+		{
+			thread->result = (void*)((uintptr_t)CRASH_DUMP_GENERATED);
 			log_warnf( WARNING_SUSPICIOUS, "Thread '%s' (%llx) ID %llx crashed", thread->name, thread->osid, thread->id );
+		}
 	}
 	else
 	{
@@ -368,7 +379,7 @@ bool thread_start( object_t id, void* data )
 	thread_t* thread = GET_THREAD( id );
 	if( !thread )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
+		log_errorf( ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
 		return false; //Old/invalid id
 	}
 
@@ -387,7 +398,7 @@ bool thread_start( object_t id, void* data )
 	thread->handle = CreateThread( 0, thread->stacksize, _thread_entry, thread, 0, &osid );
 	if( !thread->handle )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
 		return false;
 	}
 #if !BUILD_DEPLOY
@@ -397,7 +408,7 @@ bool thread_start( object_t id, void* data )
 	int err = pthread_create( &thread->thread, 0, _thread_entry, thread );
 	if( err )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
 		return false;
 	}
 #else
@@ -456,10 +467,10 @@ uint64_t thread_id( void )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return GetCurrentThreadId();
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	return pthread_self();
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 	return pthread_mach_thread_np( pthread_self() );
+#elif FOUNDATION_PLATFORM_POSIX
+	return pthread_self();
 #else
 #  error Not implemented
 #endif

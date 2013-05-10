@@ -20,6 +20,7 @@ application_t test_application( void )
 	app.name = "Foundation radixsort tests";
 	app.short_name = "test_radixsort";
 	app.config_dir = "test_radixsort";
+	app.flags = APPLICATION_UTILITY;
 	return app;
 }
 

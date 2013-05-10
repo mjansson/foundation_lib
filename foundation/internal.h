@@ -87,10 +87,4 @@ struct ALIGN(8) _foundation_stream
 	FOUNDATION_DECLARE_STREAM;
 };
 
-struct _foundation_directory
-{
-	int                      handle;
-	char                     path[];
-};
-
-FOUNDATION_API void _stream_initialize( stream_t* stream );
+FOUNDATION_API void _stream_initialize( stream_t* stream, byteorder_t order );

@@ -17,19 +17,22 @@
 
 char* path_clean( char* path, bool absolute )
 {
+	//Since this function is used a lot we want to perform as much operations
+	//in place instead of splicing up into a string array and remerge
 	char* replace;
 	char* inpath;
 	char* next;
-	unsigned int inlength, length, remain, protocollen, up, last_up, prev_up;
+	unsigned int inlength, length, remain, protocollen, up, last_up, prev_up, driveofs;
 
 	if( !path )
-		return 0;
+		return string_allocate( 0 );
 
 	inpath = path;
 	inlength = string_length( path );
 	protocollen = string_find_string( path, "://", 0 );
-	if( protocollen != STRING_NPOS )
+	if( ( protocollen != STRING_NPOS ) && ( protocollen > 1 ) )
 	{
+		absolute = true;
 		protocollen += 3; //Also skip the "://" separator
 		inlength -= protocollen;
 		path += protocollen;
@@ -39,6 +42,7 @@ char* path_clean( char* path, bool absolute )
 		protocollen = 0;
 	}
 	length = inlength;
+	driveofs = 0;
 
 	replace = path;
 	while( ( replace = strchr( replace, '\\' ) ) != 0 )
@@ -111,9 +115,10 @@ char* path_clean( char* path, bool absolute )
 			path[1] = 0;
 			++length;
 		}
-#if FOUNDATION_PLATFORM_WINDOWS
 		else if( ( length >= 2 ) && ( path[1] == ':' ) )
 		{
+			driveofs = 2;
+			
 			//Make sure first character is upper case
 			if( ( path[0] >= 'a' ) && ( path[0] <= 'z' ) )
 				path[0] = ( path[0] - (char)( (int)'a' - (int)'A' ) );
@@ -145,8 +150,7 @@ char* path_clean( char* path, bool absolute )
 				++length;
 			}
 		}
-#endif
-		else if( path[0] != '/' )
+		else if( !protocollen && ( path[0] != '/' ) )
 		{
 			//make sure capacity is enough to hold additional character
 			if( inlength < ( length + 1 ) )
@@ -172,20 +176,41 @@ char* path_clean( char* path, bool absolute )
 	}
 
 	//Deal with .. references
-	last_up = 0;
+	last_up = driveofs;
 	while( ( up = string_find_string( path, "/../", last_up ) ) != STRING_NPOS )
 	{
 		if( up >= length )
 			break;
-		if( up == 0 )
+		if( up == driveofs )
 		{
-			last_up = 3;
+			if( absolute )
+			{
+				memmove( path + driveofs + 1, path + driveofs + 4, length - ( driveofs + 3 ) );
+				length -= 3;
+			}
+			else
+			{
+				last_up = driveofs + 3;
+			}
 			continue;
 		}
 		prev_up = string_rfind( path, '/', up - 1 );
-		if( ( prev_up != STRING_NPOS ) && ( prev_up > last_up ) )
+		if( prev_up == STRING_NPOS )
 		{
-			memmove( path + prev_up, path + up + 3, length - up - 3 );
+			if( absolute )
+			{
+				memmove( path, path + up + 3, length - up - 2 );
+				length -= ( up + 3 );
+			}
+			else
+			{
+				memmove( path, path + up + 4, length - up - 3 );
+				length -= ( up + 4 );
+			}				
+		}
+		else if( prev_up >= last_up )
+		{
+			memmove( path + prev_up, path + up + 3, length - up - 2 );
 			length -= ( up - prev_up + 3 );
 		}
 		else
@@ -205,8 +230,16 @@ char* path_clean( char* path, bool absolute )
 
 	if( protocollen )
 	{
-		if( ( length == 1 ) && ( path[0] == '/' ) )
-			length = 0;
+		if( path[0] == '/' )
+		{
+			if( length == 1 )
+				length = 0;
+			else
+			{
+				memmove( path, path + 1, length );
+				--length;
+			}
+		}
 		length += protocollen;
 		path = inpath;
 	}
@@ -221,7 +254,7 @@ char* path_base_file_name( const char* path )
 {
 	unsigned int start, end;
 	if( !path )
-		return 0;
+		return string_allocate( 0 );
 	start = string_find_last_of( path, "/\\", STRING_NPOS );
 	end = string_find( path, '.', ( start != STRING_NPOS ) ? start : 0 );
 	//For "dot" files, i.e files with names like "/path/to/.file", return the dot name ".file"
@@ -235,11 +268,15 @@ char* path_base_file_name( const char* path )
 
 char* path_base_file_name_with_path( const char* path )
 {
-	unsigned int end;
+	unsigned int start, end;
 	char* base;
 	if( !path )
-		return 0;
+		return string_allocate( 0 );
+	start = string_find_last_of( path, "/\\", STRING_NPOS );
 	end = string_rfind( path, '.', STRING_NPOS );
+	//For "dot" files, i.e files with names like "/path/to/.file", return the dot name ".file"
+	if( !end || ( end == ( start + 1 ) ) || ( ( start != STRING_NPOS ) && ( end < start ) ) )
+		end = STRING_NPOS;
 	base = string_substr( path, 0, ( end != STRING_NPOS ) ? end : STRING_NPOS );
 	base = path_clean( base, path_is_absolute( base ) );
 	return base;
@@ -248,10 +285,11 @@ char* path_base_file_name_with_path( const char* path )
 
 char* path_file_extension( const char* path )
 {
+	unsigned int start = string_find_last_of( path, "/\\", STRING_NPOS );
 	unsigned int end = string_rfind( path, '.', STRING_NPOS );
-	if( end != STRING_NPOS )
+	if( ( end != STRING_NPOS ) && ( ( start == STRING_NPOS ) || ( end > start ) ) )
 		return string_substr( path, end + 1, STRING_NPOS );
-	return 0;
+	return string_clone( "" );
 }
 
 
@@ -271,7 +309,7 @@ char* path_path_name( const char* path )
 	if( end == 0 )
 		return string_clone( "/" );
 	if( end == STRING_NPOS )
-		return 0;
+		return string_allocate( 0 );
 	pathname = string_substr( path, 0, end );
 	pathname = path_clean( pathname, path_is_absolute( pathname ) );
 	return pathname;
@@ -281,17 +319,42 @@ char* path_path_name( const char* path )
 char* path_subpath_name( const char* path, const char* root )
 {
 	char* subpath;
-	char* cpath = string_clone( path );
+	char* testpath;
+	char* testroot;
+	char* pathofpath;
+	unsigned int pathprotocol, rootprotocol;	
+	char* cpath = string_clone( path );	
 	char* croot = string_clone( root );
 
 	cpath = path_clean( cpath, path_is_absolute( cpath ) );
 	croot = path_clean( croot, path_is_absolute( croot ) );
+
+	pathofpath = path_path_name( cpath );
+
+	testpath = pathofpath;
+	pathprotocol = string_find_string( testpath, "://", 0 );
+	if( pathprotocol != STRING_NPOS )
+		testpath += pathprotocol + 2; // add two to treat as absolute path
+
+	testroot = croot;
+	rootprotocol = string_find_string( testroot, "://", 0 );
+	if( rootprotocol != STRING_NPOS )
+		testroot += rootprotocol + 2;
 	
-	if( strncmp( cpath, croot, strlen( croot ) ) != 0 )
+	if( ( rootprotocol != STRING_NPOS ) && ( ( pathprotocol == STRING_NPOS ) || ( pathprotocol != rootprotocol ) || !string_equal_substr( cpath, croot, rootprotocol ) ) )
+		subpath = string_allocate( 0 );
+	else if( !string_equal_substr( testpath, testroot, string_length( testroot ) ) )
 		subpath = string_allocate( 0 );
 	else
-		subpath = string_substr( cpath, string_length( croot ), STRING_NPOS );
-	subpath = path_clean( subpath, false );
+	{
+		char* filename = path_file_name( cpath );
+		
+		subpath = string_substr( testpath, string_length( testroot ), STRING_NPOS );
+		subpath = path_clean( path_append( subpath, filename ), false );
+
+		string_deallocate( filename );
+	}
+	string_deallocate( pathofpath );
 	string_deallocate( cpath );
 	string_deallocate( croot );
 
@@ -303,7 +366,7 @@ char* path_protocol( const char* uri )
 {
 	unsigned int end = string_find_string( uri, "://", 0 );
 	if( end == STRING_NPOS )
-		return 0;
+		return string_allocate( 0 );
 	return string_substr( uri, 0, end );
 }
 
@@ -325,14 +388,25 @@ char* path_merge( const char* first, const char* second )
 }
 
 
-char* path_append( char* first, const char* second )
+char* path_append( char* base, const char* tail )
 {
-	if( !first )
-		return 0;
-	first = string_append( first, "/" );
-	first = string_append( first, second );
-	first = path_clean( first, path_is_absolute( first ) );
-	return first;
+	if( !base )
+		return path_clean( string_clone( tail ), path_is_absolute( tail ) );
+	base = string_append( base, "/" );
+	base = string_append( base, tail );
+	base = path_clean( base, path_is_absolute( base ) );
+	return base;
+}
+
+
+char* path_prepend( char* tail, const char* base )
+{
+	if( !tail )
+		return path_clean( string_clone( base ), path_is_absolute( base ) );
+	tail = string_prepend( tail, "/" );
+	tail = string_prepend( tail, base );
+	tail = path_clean( tail, path_is_absolute( tail ) );
+	return tail;
 }
 
 
@@ -344,17 +418,15 @@ bool path_is_absolute( const char* path )
 		return true;
 	if( ( path[0] == '/' ) || ( path[0] == '\\' ) )
 		return true;
-#if FOUNDATION_PLATFORM_WINDOWS
-	if( path[1] == ':' ) //Weird formats like "C:path/to/something"
+	if( path[1] == ':' ) //Skip separator test to treat weird formats like "C:path/to/something" as absolute
 		return true;
-#endif
 	return false;
 }
 
 
 char* path_make_absolute( const char* path )
 {
-	unsigned int up, last, length;
+	unsigned int up, last, length, protocollen;
 	char* abspath = string_clone( path );
 	if( !path_is_absolute( abspath ) )
 	{
@@ -366,18 +438,29 @@ char* path_make_absolute( const char* path )
 	{
 		abspath = path_clean( abspath, true );
 	}
+
+	protocollen = string_find_string( abspath, "://", 0 );
+	if( protocollen != STRING_NPOS )
+		protocollen += 3; //Also skip the "://" separator
+	else
+		protocollen = 0;
 	
 	//Deal with .. references
 	while( ( up = string_find_string( abspath, "/../", 0 ) ) != STRING_NPOS )
 	{
 		char* subpath;
-		if( up == 0 )
+		if( ( protocollen && ( up == ( protocollen - 1 ) ) ) || ( !protocollen && ( up == 0 ) ) )
 		{
-			memmove( abspath, abspath + 4, strlen( abspath ) + 1 - 4 );
+			//This moves mem so "prot://../path" ends up as "prot://path"
+			memmove( abspath + protocollen, abspath + 3 + protocollen, string_length( abspath ) + 1 - ( 3 + protocollen ) );
 			continue;
 		}
 		last = string_rfind( abspath, '/', up - 1 );
-		FOUNDATION_ASSERT( last != STRING_NPOS ); //Gotta be at least one since it's a cleaned absolute path
+		if( last == STRING_NPOS )
+		{
+			//Must be a path like C:/../something since other absolute paths
+			last = up;
+		}
 		subpath = string_substr( abspath, 0, last );
 		subpath = string_append( subpath, abspath + up + 3 ); // +3 will include the / of the later part of the path
 		string_deallocate( abspath );
@@ -392,8 +475,8 @@ char* path_make_absolute( const char* path )
 			//Step up
 			if( length == 3 )
 			{
-				abspath[0] = 0;
-				length = 0;
+				abspath[1] = 0;
+				length = 1;
 			}
 			else
 			{

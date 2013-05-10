@@ -35,6 +35,34 @@ typedef struct
 test_group_t** _test_groups = 0;
 
 
+void* event_thread( object_t thread, void* arg )
+{
+	event_block_t* block;
+	event_t* event = 0;
+
+	while( !thread_should_terminate( thread ) )
+	{
+		block = event_stream_process( system_event_stream() );
+		while( ( event = event_next( block, 0 ) ) )
+		{
+			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
+			{
+				case FOUNDATIONEVENT_TERMINATE:
+					log_warnf( WARNING_SUSPICIOUS, "Terminating test due to event" );
+					process_exit( -2 );
+					break;
+
+				default:
+					break;
+			}
+		}
+		thread_sleep( 10 );
+	}
+
+	return 0;
+}
+
+
 void test_add_test( test_fn fn, const char* group_name, const char* test_name )
 {
 	unsigned int ig, gsize;
@@ -67,11 +95,15 @@ void test_add_test( test_fn fn, const char* group_name, const char* test_name )
 void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
-	int result;
+	void* result;
+	object_t thread;
 
 	log_suppress( ERRORLEVEL_DEBUG );
 	log_infof( "Running test suite: %s", environment_application()->short_name );
 
+	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
+	thread_start( thread, 0 );
+	
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
 		log_infof( "Running tests from group %s", _test_groups[ig]->name );
@@ -79,12 +111,22 @@ void test_run( void )
 		{
 			log_infof( "  Running %s tests", _test_groups[ig]->cases[ic]->name );
 			result = _test_groups[ig]->cases[ic]->fn();
-			if( result < 0 )
+			if( result != 0 )
+			{
 				log_warnf( WARNING_SUSPICIOUS, "    FAILED" );
+				process_set_exit_code( -1 );
+			}
 			else
+			{
 				log_infof( "    PASSED" );
+			}
 		}
-	}	
+	}
+	
+	thread_terminate( thread );
+	thread_destroy( thread );
+	while( thread_is_running( thread ) || thread_is_thread( thread ) )
+		thread_yield();
 }
 
 

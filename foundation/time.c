@@ -15,8 +15,8 @@
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_APPLE
+#  include <foundation/apple.h>
 #  include <mach/mach_time.h>
-#  include <string.h>
 static mach_timebase_info_data_t _time_info;
 static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
 #elif FOUNDATION_PLATFORM_POSIX
@@ -97,6 +97,14 @@ tick_t time_ticks_per_second( void )
 	return _time_freq;
 }
 
+
+tick_t time_diff( const tick_t from, const tick_t to )
+{
+	if( to <= from )
+		return 0;
+	return ( to - from );
+}
+	
 
 deltatime_t time_elapsed( const tick_t t )
 {

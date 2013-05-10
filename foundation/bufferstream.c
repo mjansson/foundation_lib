@@ -33,7 +33,7 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size
 	stream_buffer_t* buffer_stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_buffer_t ), 0, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)buffer_stream;
 
-	_stream_initialize( stream );
+	_stream_initialize( stream, system_byteorder() );
 
 	FOUNDATION_ASSERT_MSG( adopt || !grow, "Cannot grow buffer streams that are not adopted" );
 
@@ -47,7 +47,6 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size
 		size = capacity;
 
 	buffer_stream->type = STREAMTYPE_MEMORY;
-	buffer_stream->sequential = 0;
 	buffer_stream->path = string_format( "buffer://" STRING_FORMAT_POINTER, stream );
 	buffer_stream->mode = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY );
 	buffer_stream->buffer = buffer;

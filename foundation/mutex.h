@@ -62,7 +62,10 @@ FOUNDATION_API bool          mutex_lock( mutex_t* mutex );
     \return                  true if mutex was unlocked, false if error or mutex still locked or if the mutex was not locked by the calling thread */
 FOUNDATION_API bool          mutex_unlock( mutex_t* mutex );
 
-/*! Block and wait for signal
+/*! Block and wait for signal. If a signal was received and this function returns
+    true, the mutex will be locked and must be unlocked when not needed anymore.
+    If the function returns false, a timeout or error occurred and the mutex will
+    NOT be locked.
     \param mutex             Mutex
     \param timeout           Timeout in milliseconds, infinite wait if set to 0
     \return                  true if signal received, false if timeout or error */
