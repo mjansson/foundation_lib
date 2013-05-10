@@ -151,8 +151,10 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 		stream_deallocate( input_file );
 		stream_deallocate( output_file );
 
-		string_deallocate( input_filename );
 		string_deallocate( output_filename );
+
+		error_context_pop();
+		string_deallocate( input_filename );		
 	}
 
 	if( ( result == BIN2HEX_RESULT_OK ) && ( files_size > 0 ) )
