@@ -94,7 +94,7 @@ object_t objectmap_reserve( objectmap_t* map )
 		idx = map->free;
 		if( idx >= map->size )
 		{
-			log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Pool full, unable to reserve id" );
+			log_errorf( ERROR_OUT_OF_MEMORY, "Pool full, unable to reserve id" );
 			return 0;
 		}
 		next = ((uintptr_t)map->map[idx]) >> 1;

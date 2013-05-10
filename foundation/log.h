@@ -21,6 +21,8 @@
 
 #if BUILD_ENABLE_DEBUG_LOG
 
+/*! Log debug message
+    \param format       Log format */
 FOUNDATION_API void     log_debugf( const char* message, ... );
 
 #else
@@ -29,28 +31,51 @@ FOUNDATION_API void     log_debugf( const char* message, ... );
 
 #if BUILD_ENABLE_LOG
 
+/*! Log information message
+    \param format       Log format */
 FOUNDATION_API void     log_infof( const char* format, ... );
-FOUNDATION_API void     log_warnf( warning_class_t wclass, const char* format, ... );
 
-/*! Log error. Also calls error_report to report the error
-    \param level        Error level
+/*! Log warning message, including the current error context
+    \param warn         Warning code
+    \param format       Log format */
+FOUNDATION_API void     log_warnf( warning_t warn, const char* format, ... );
+
+/*! Log error message, including the current error context. Also calls error_report to report the error
     \param err          Error code
     \param format       Log format */
-FOUNDATION_API void     log_errorf( error_level_t level, error_t err, const char* format, ... );
+FOUNDATION_API void     log_errorf( error_t err, const char* format, ... );
+
+/*! Log panic message, including the current error context. Also calls error_report to report the error
+    \param err          Error code
+    \param format       Log format */
+FOUNDATION_API void     log_panicf( error_t err, const char* format, ... );
+
+/*! Log the current error context. The log output is filtered at the given severity level
+    \param              Severity level */
 FOUNDATION_API void     log_error_context( error_level_t error_level );
 
+/*! Control log output to stdout
+    \param enable       Flag to enable/disable output to stdout */
 FOUNDATION_API void     log_stdout( bool enable );
 
+/*! Set log callback
+    \param callback     New callback */
 FOUNDATION_API void     log_set_callback( log_callback_fn callback );
 
+/*! Control output of prefix information
+    \param enable       Flag to enable/disable prefix output */
 FOUNDATION_API void     log_enable_prefix( bool enable );
 
+/*! Control log suppression based on severity level. Any messages at the
+    given severity level or lower will be filtered and discarded.
+    \param level        Severity level to discard */
 FOUNDATION_API void     log_suppress( error_level_t level );
 
 #else
 #  define               log_infof( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               log_warnf( wclass, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               log_errorf( level, err, msg, ... ) /*lint -save -e717 */ do { error_report( level, err ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define               log_warnf( warn, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define               log_errorf( err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define               log_panicf( err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define               log_error_context( error_level ) /*lint -save -e717 */ do { (void)sizeof( error_level ); } while(0) /*lint -restore */
 #  define               log_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
 #  define               log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( callback ); } while(0) /*lint -restore */

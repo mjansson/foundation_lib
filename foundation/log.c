@@ -35,6 +35,37 @@ static bool             _log_prefix      = true;
 static log_callback_fn  _log_callback    = 0;
 static error_level_t    _log_suppress    = ERRORLEVEL_NONE;
 
+static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
+	"performance",
+	"deprecated",
+	"bad data",
+	"memory",
+	"unsupported",
+	"suspicious",
+	"script",
+	"system call fail",
+	"deadlock"
+};
+
+static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
+	"none",
+	"invalid value",
+	"unsupported",
+	"not implemented",
+	"out of memory",
+	"internal failure",
+	"malloc failure",
+	"memory leak",
+	"access denied",
+	"exception",
+	"system call fail",
+	"script",
+	"unknown type",
+	"unknown resource",
+	"memory alignment",
+	"deprecated"
+};
+
 #define make_timestamp()  ((float32_t)( (real)( time_current() - time_startup() ) / (real)time_ticks_per_second() ))
 
 
@@ -124,8 +155,9 @@ void log_infof( const char* format, ... )
 	va_end( list );
 }
 
-void log_warnf( warning_class_t wclass, const char* format, ... )
+void log_warnf( warning_t warn, const char* format, ... )
 {
+	char prefix[32];
 	va_list list;
 
 	if( _log_suppress >= ERRORLEVEL_WARNING )
@@ -133,14 +165,20 @@ void log_warnf( warning_class_t wclass, const char* format, ... )
 
 	log_error_context( ERRORLEVEL_WARNING );
 
+	if( warn < WARNING_LAST_BUILTIN )
+		string_format_buffer( prefix, 32, "WARNING [%s]: ", _log_warning_name[warn] );
+	else
+		string_format_buffer( prefix, 32, "WARNING [%d]: ", warn );
+	
 	va_start( list, format );
-	_log_outputf( ERRORLEVEL_WARNING, "WARNING: ", format, list, stdout );
+	_log_outputf( ERRORLEVEL_WARNING, prefix, format, list, stdout );
 	va_end( list );
 }
 
 
-void log_errorf( error_level_t level, error_t err, const char* format, ... )
+void log_errorf( error_t err, const char* format, ... )
 {
+	char prefix[32];
 	va_list list;
 
 	if( _log_suppress >= ERRORLEVEL_ERROR )
@@ -148,11 +186,36 @@ void log_errorf( error_level_t level, error_t err, const char* format, ... )
 
 	log_error_context( ERRORLEVEL_ERROR );
 
+	if( err < ERROR_LAST_BUILTIN )
+		string_format_buffer( prefix, 32, "ERROR [%s]: ", _log_error_name[err] );
+	else
+		string_format_buffer( prefix, 32, "ERROR [%d]: ", err );
+	
 	va_start( list, format );
-	_log_outputf( ERRORLEVEL_ERROR, "ERROR: ", format, list, stderr );
+	_log_outputf( ERRORLEVEL_ERROR, prefix, format, list, stderr );
 	va_end( list );
 
-	error_report( level, err );
+	error_report( ERRORLEVEL_ERROR, err );
+}
+
+
+void log_panicf( error_t err, const char* format, ... )
+{
+	char prefix[32];
+	va_list list;
+
+	log_error_context( ERRORLEVEL_PANIC );
+
+	if( err < ERROR_LAST_BUILTIN )
+		string_format_buffer( prefix, 32, "PANIC [%s]: ", _log_error_name[err] );
+	else
+		string_format_buffer( prefix, 32, "PANIC [%d]: ", err );
+	
+	va_start( list, format );
+	_log_outputf( ERRORLEVEL_PANIC, prefix, format, list, stderr );
+	va_end( list );
+
+	error_report( ERRORLEVEL_PANIC, err );
 }
 
 

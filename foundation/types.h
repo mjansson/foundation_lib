@@ -50,7 +50,9 @@ typedef enum
 	ERROR_UNKNOWN_TYPE,
 	ERROR_UNKNOWN_RESOURCE,
 	ERROR_MEMORY_ALIGNMENT,
-	ERROR_DEPRECATED
+	ERROR_DEPRECATED,
+
+	ERROR_LAST_BUILTIN
 } error_t;
 
 //! Warning classes
@@ -64,8 +66,10 @@ typedef enum
 	WARNING_SUSPICIOUS,
 	WARNING_SCRIPT,
 	WARNING_SYSTEM_CALL_FAIL,
-	WARNING_DEADLOCK
-} warning_class_t;
+	WARNING_DEADLOCK,
+
+	WARNING_LAST_BUILTIN
+} warning_t;
 
 //! Memory hints
 typedef enum
