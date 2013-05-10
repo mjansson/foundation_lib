@@ -13,11 +13,8 @@
 #include <foundation/foundation.h>
 
 
-#define STACKTRACE_MAX_CALLSTACK_DEPTH 62
-
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#  include <dbghlp.h>
 #  include <TlHelp32.h>
 #  include <psapi.h>
 #  include <stdio.h>
@@ -80,7 +77,7 @@ static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
 LONG WINAPI _stacktrace_exception_filter( LPEXCEPTION_POINTERS pointers )
 {
-	log_errorf( "Exception occurred in stack trace!" );
+	log_errorf( ERROR_EXCEPTION, "Exception occurred in stack trace!" );
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -205,7 +202,7 @@ static void _load_process_modules()
 
 	// Free the module handle pointer allocated in case the static array was insufficient.
 	if( module_handle != module_handles )
-		memory_deallocate( module_handle, 0 );
+		memory_deallocate( module_handle );
 }
 
 #endif	
@@ -248,10 +245,10 @@ void stack_trace_capture( void** trace, unsigned int max_depth, unsigned int ski
 		return;
 
 	if( !max_depth )
-		max_depth = MAX_CALLSTACK_DEPTH;
+		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
 		
-	if( max_depth > MAX_CALLSTACK_DEPTH )
-		max_depth = MAX_CALLSTACK_DEPTH;
+	if( max_depth > BUILD_SIZE_STACKTRACE_DEPTH )
+		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
 
 	if( !_stackwalk_initialized )
 	{
@@ -269,9 +266,9 @@ void stack_trace_capture( void** trace, unsigned int max_depth, unsigned int ski
 	if( CallRtlCaptureStackBackTrace )
 	{
 		uint16_t num_frames;
-		void* local_trace[MAX_CALLSTACK_DEPTH];
-		if( max_depth + skip_frames > MAX_CALLSTACK_DEPTH )
-			max_depth = MAX_CALLSTACK_DEPTH - skip_frames;
+		void* local_trace[BUILD_SIZE_STACKTRACE_DEPTH];
+		if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
+			max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
 		num_frames = CallRtlCaptureStackBackTrace( skip_frames, max_depth, local_trace, 0 );
 		memcpy( trace, local_trace, sizeof( void* ) * num_frames );
 		memset( trace + num_frames, 0, sizeof( void* ) * ( max_depth - num_frames ) );
@@ -319,8 +316,8 @@ void stack_trace_capture( void** trace, unsigned int max_depth, unsigned int ski
 #elif FOUNDATION_PLATFORM_APPLE
 	//TODO: Implement
 #elif FOUNDATION_PLATFORM_POSIX
-	if( max_depth + skip_frames > MAX_CALLSTACK_DEPTH )
-		max_depth = MAX_CALLSTACK_DEPTH - skip_frames;
+	if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
+		max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
 
 	int num = backtrace( trace, max_depth + skip_frames );
 	if( skip_frames )
@@ -491,6 +488,7 @@ char* stack_trace_resolve( void** trace, unsigned int max_depth, unsigned int sk
 	char* buffer;
 	size_t buflen = 0, curlen = 0;
 	char line_buffer[512];
+	size_t len;
 
 	_initialize_symbol_resolve();
 	
@@ -499,7 +497,7 @@ char* stack_trace_resolve( void** trace, unsigned int max_depth, unsigned int sk
 	buffer = memory_allocate_zero( buflen, 0, MEMORY_PERSISTENT );
 
 	if( !max_depth )
-		max_depth = MAX_CALLSTACK_DEPTH;
+		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
 
 	//Allow first frame to be null in case of a function call to a null pointer
 	for( i = 0; ( i < max_depth ) && ( *frame || !i ); ++i, ++frame )
@@ -507,7 +505,7 @@ char* stack_trace_resolve( void** trace, unsigned int max_depth, unsigned int sk
 		if( !skip_frames )
 		{
 			_resolve_stack_frame( *frame, line_buffer, 512 );
-			size_t len = string_length( line_buffer );
+			len = string_length( line_buffer );
 			if( curlen + len + 1 >= buflen )
 			{
 				buflen = curlen + len + 64;
@@ -528,5 +526,5 @@ char* stack_trace_resolve( void** trace, unsigned int max_depth, unsigned int sk
 
 void stack_trace_deallocate( char* trace )
 {
-	memory_deallocate( trace, 0 );
+	memory_deallocate( trace );
 }

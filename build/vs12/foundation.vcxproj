@@ -71,6 +71,7 @@
     <ClInclude Include="..\..\foundation\random.h" />
     <ClInclude Include="..\..\foundation\ringbuffer.h" />
     <ClInclude Include="..\..\foundation\semaphore.h" />
+    <ClInclude Include="..\..\foundation\stacktrace.h" />
     <ClInclude Include="..\..\foundation\stream.h" />
     <ClInclude Include="..\..\foundation\string.h" />
     <ClInclude Include="..\..\foundation\system.h" />
@@ -117,6 +118,7 @@
     <ClCompile Include="..\..\foundation\random.c" />
     <ClCompile Include="..\..\foundation\ringbuffer.c" />
     <ClCompile Include="..\..\foundation\semaphore.c" />
+    <ClCompile Include="..\..\foundation\stacktrace.c" />
     <ClCompile Include="..\..\foundation\stream.c" />
     <ClCompile Include="..\..\foundation\string.c" />
     <ClCompile Include="..\..\foundation\system.c" />
