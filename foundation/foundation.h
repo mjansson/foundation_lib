@@ -59,6 +59,8 @@
 #include <foundation/assetstream.h>
 
 #include <foundation/crash.h>
+#include <foundation/stacktrace.h>
+
 #include <foundation/blowfish.h>
  
 
