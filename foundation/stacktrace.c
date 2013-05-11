@@ -15,8 +15,17 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
+#define IN
+#define OUT
+#define FAR
+#define NEAR
+#  include <dbghelp.h>
 #  include <TlHelp32.h>
 #  include <psapi.h>
+#undef IN
+#undef OUT
+#undef FAR
+#undef NEAR
 #  include <stdio.h>
 #elif FOUNDATION_PLATFORM_APPLE
 #elif FOUNDATION_PLATFORM_POSIX
