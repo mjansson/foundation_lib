@@ -34,4 +34,9 @@ FOUNDATION_API void                  pipe_close_write( stream_t* pipe );
 FOUNDATION_API void*                 pipe_read_handle( stream_t* pipe );
 FOUNDATION_API void*                 pipe_write_handle( stream_t* pipe );
 
+#elif FOUNDATION_PLATFORM_POSIX
+
+FOUNDATION_API int                   pipe_read_fd( stream_t* pipe );
+FOUNDATION_API int                   pipe_write_fd( stream_t* pipe );
+
 #endif

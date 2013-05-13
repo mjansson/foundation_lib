@@ -248,10 +248,12 @@ bool _initialize_stackwalker()
 }
 
 
-void stack_trace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
+unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
 {
+	unsigned int num_frames = 0;
+	
 	if( !trace )
-		return;
+		return 0;
 
 	if( !max_depth )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
@@ -264,7 +266,7 @@ void stack_trace_capture( void** trace, unsigned int max_depth, unsigned int ski
 		if( !_initialize_stackwalker() )
 		{
 			memset( trace, 0, sizeof( void* ) * max_depth );
-			return;
+			return num_frames;
 		}
 	}
 		
@@ -274,11 +276,12 @@ void stack_trace_capture( void** trace, unsigned int max_depth, unsigned int ski
 #  if USE_CAPTURESTACKBACKTRACE
 	if( CallRtlCaptureStackBackTrace )
 	{
-		uint16_t num_frames;
 		void* local_trace[BUILD_SIZE_STACKTRACE_DEPTH];
 		if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
 			max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
-		num_frames = CallRtlCaptureStackBackTrace( skip_frames, max_depth, local_trace, 0 );
+		num_frames = (unsigned int)CallRtlCaptureStackBackTrace( skip_frames, max_depth, local_trace, 0 );
+		if( num_frames > max_depth )
+			num_frames = max_depth;
 		memcpy( trace, local_trace, sizeof( void* ) * num_frames );
 		memset( trace + num_frames, 0, sizeof( void* ) * ( max_depth - num_frames ) );
 	}
@@ -325,18 +328,23 @@ void stack_trace_capture( void** trace, unsigned int max_depth, unsigned int ski
 #elif FOUNDATION_PLATFORM_APPLE
 	//TODO: Implement
 #elif FOUNDATION_PLATFORM_POSIX
+	// Add 1 skip frames for this function call
+	skip_frames += 1;
+
 	if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
 
-	int num = backtrace( trace, max_depth + skip_frames );
+	num_frames = (unsigned int)backtrace( trace, max_depth + skip_frames );
 	if( skip_frames )
 	{
-		if( num > (int)skip_frames )
-			memmove( trace, trace + skip_frames, num - skip_frames );
+		if( num_frames > skip_frames )
+			memmove( trace, trace + skip_frames, sizeof( void* ) * ( num_frames - skip_frames ) );
 		else
 			trace[0] = 0;
 	}
 #endif
+
+	return num_frames;
 }
 
 
@@ -481,29 +489,66 @@ static bool _resolve_stack_frame( void* address, char* buffer, unsigned int buff
 
 	return found;
 
+#elif FOUNDATION_PLATFORM_LINUX
+
+	char* addrstr = string_format( STRING_FORMAT_POINTER, address );
+	const char** args = 0;
+	process_t* proc = process_allocate();
+
+	array_push( args, "-e" );
+	array_push( args, environment_command_line()[0] );
+	array_push( args, "-f" );
+	array_push( args, addrstr );
+	
+	process_set_working_directory( proc, environment_initial_working_directory() );
+	process_set_executable_path( proc, "/usr/bin/addr2line" );
+	process_set_arguments( proc, args, array_size( args ) );
+	process_set_flags( proc, PROCESS_ATTACHED );
+
+	process_spawn( proc );
+
+	stream_t* procout = process_stdout( proc );
+	char* function = stream_read_line( procout, '\n' );
+	char* filename = stream_read_line( procout, '\n' );
+	
+	process_wait( proc );
+	process_deallocate( proc );
+	
+	string_deallocate( addrstr );
+	array_deallocate( args );
+
+	string_format_buffer( buffer, buffer_size, "[" STRING_FORMAT_POINTER "] %s (%s)\n",
+		address,
+		function && string_length( function ) ? function : "??",
+		filename && string_length( filename ) ? filename : "??"
+	);
+	
+	string_deallocate( function );
+	string_deallocate( filename );
+	
+	return true;
+	
 #else
 
-	snprintf( buffer, buffer_size, "[0x%p]\n", address );
+	string_format_buffer( buffer, buffer_size, "[" STRING_FORMAT_POINTER "]\n", address );
 	return true;
 
 #endif
 }
 
 
-char* stack_trace_resolve( void** trace, unsigned int max_depth, unsigned int skip_frames )
+char* stacktrace_resolve( void** trace, unsigned int max_depth, unsigned int skip_frames )
 {
 	void** frame;
 	unsigned int i;
 	char* buffer;
-	size_t buflen = 0, curlen = 0;
 	char line_buffer[512];
-	size_t len;
+	unsigned int totallen;
 
 	_initialize_symbol_resolve();
 	
 	frame = trace + skip_frames;
-	buflen = 512;
-	buffer = memory_allocate_zero( buflen, 0, MEMORY_PERSISTENT );
+	buffer = string_clone( "" );
 
 	if( !max_depth )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
@@ -514,26 +559,20 @@ char* stack_trace_resolve( void** trace, unsigned int max_depth, unsigned int sk
 		if( !skip_frames )
 		{
 			_resolve_stack_frame( *frame, line_buffer, 512 );
-			len = string_length( line_buffer );
-			if( curlen + len + 1 >= buflen )
-			{
-				buflen = curlen + len + 64;
-				buffer = memory_reallocate( buffer, buflen, 0 );
-			}
-			strcat( buffer, line_buffer );
-			curlen += len;
+			buffer = string_append( buffer, line_buffer );
 		}
 		else
 		{
 			--skip_frames;
 		}
 	}
+
+	totallen = string_length( buffer );
+	if( totallen )
+	{
+		if( buffer[ totallen - 1 ] == '\n' )
+			buffer[ totallen - 1 ] = 0;
+	}
 	
 	return buffer;
-}
-
-
-void stack_trace_deallocate( char* trace )
-{
-	memory_deallocate( trace );
 }

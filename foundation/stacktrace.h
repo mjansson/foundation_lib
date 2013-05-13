@@ -19,9 +19,5 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API void         stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames );
-
-//! Memory returned must be freed by a call to stack_trace_deallocate
-FOUNDATION_API char*        stacktrace_resolve( void** trace, unsigned int max_depth, unsigned int skip_frames );
-
-FOUNDATION_API void         stacktrace_deallocate( char* trace );
+FOUNDATION_API unsigned int    stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames );
+FOUNDATION_API char*           stacktrace_resolve( void** trace, unsigned int max_depth, unsigned int skip_frames );
