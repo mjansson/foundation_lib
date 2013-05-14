@@ -33,17 +33,20 @@ struct _foundation_hashmap
 
 hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 {
+	hashmap_t* map;
+	unsigned int ibucket;
+
 	if( buckets < HASHMAP_MINBUCKETS )
 		buckets = HASHMAP_MINBUCKETS;
 	if( bucketsize < HASHMAP_MINBUCKETSIZE )
 		bucketsize = HASHMAP_MINBUCKETSIZE;
 	
-	hashmap_t* map = memory_allocate( sizeof( hashmap_t ) + sizeof( hashmap_bucket_t ) * buckets, 0, MEMORY_PERSISTENT );
+	map = memory_allocate( sizeof( hashmap_t ) + sizeof( hashmap_bucket_t ) * buckets, 0, MEMORY_PERSISTENT );
 
 	map->num_buckets = buckets;
 	map->num_nodes   = 0;
 
-	for( unsigned int ibucket = 0; ibucket < buckets; ++ibucket )
+	for( ibucket = 0; ibucket < buckets; ++ibucket )
 	{
 		map->bucket[ibucket] = 0;
 		array_reserve( map->bucket[ibucket], (int)bucketsize );
@@ -55,7 +58,8 @@ hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 
 void hashmap_deallocate( hashmap_t* map )
 {
-	for( unsigned int ibucket = 0; ibucket < map->num_buckets; ++ibucket )
+	unsigned int ibucket;
+	for( ibucket = 0; ibucket < map->num_buckets; ++ibucket )
 		array_deallocate( map->bucket[ibucket] );
 	memory_deallocate( map );
 }
@@ -65,7 +69,8 @@ void* hashmap_insert( hashmap_t* map, hash_t key, void* value )
 {
 	unsigned int ibucket = key % map->num_buckets;
 	hashmap_bucket_t bucket = map->bucket[ibucket];
-	for( unsigned int inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
+	unsigned int inode, nsize;
+	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
 	{
 		if( bucket[inode].key == key )
 		{
@@ -74,9 +79,11 @@ void* hashmap_insert( hashmap_t* map, hash_t key, void* value )
 			return prev;
 		}
 	}
-	hashmap_node_t node = { key, value };
-	array_push( map->bucket[ibucket], node );
-	++map->num_nodes;
+	{
+		hashmap_node_t node = { key, value };
+		array_push( map->bucket[ibucket], node );
+		++map->num_nodes;
+	}
 	return 0;
 }
 
@@ -85,7 +92,8 @@ void* hashmap_erase( hashmap_t* map, hash_t key )
 {
 	unsigned int ibucket = key % map->num_buckets;
 	hashmap_bucket_t bucket = map->bucket[ibucket];
-	for( unsigned int inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
+	unsigned int inode, nsize;
+	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
 	{
 		if( bucket[inode].key == key )
 		{
@@ -103,7 +111,8 @@ void* hashmap_lookup( hashmap_t* map, hash_t key )
 {
 	unsigned int ibucket = key % map->num_buckets;
 	hashmap_bucket_t bucket = map->bucket[ibucket];
-	for( unsigned int inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
+	unsigned int inode, nsize;
+	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
 	{
 		if( bucket[inode].key == key )
 			return bucket[inode].value;
@@ -116,7 +125,8 @@ bool hashmap_has_key( hashmap_t* map, hash_t key )
 {
 	unsigned int ibucket = key % map->num_buckets;
 	hashmap_bucket_t bucket = map->bucket[ibucket];
-	for( unsigned int inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
+	unsigned int inode, nsize;
+	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
 	{
 		if( bucket[inode].key == key )
 			return true;
@@ -133,7 +143,8 @@ unsigned int hashmap_size( hashmap_t* map )
 
 void hashmap_clear( hashmap_t* map )
 {
-	for( unsigned int ibucket = 0; ibucket < map->num_buckets; ++ibucket )
+	unsigned int ibucket;
+	for( ibucket = 0; ibucket < map->num_buckets; ++ibucket )
 		array_clear( map->bucket[ibucket] );
 	map->num_nodes = 0;
 }

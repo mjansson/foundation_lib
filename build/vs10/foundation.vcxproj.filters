@@ -13,7 +13,6 @@
     <ClInclude Include="..\..\foundation\base64.h" />
     <ClInclude Include="..\..\foundation\bits.h" />
     <ClInclude Include="..\..\foundation\objectmap.h" />
-    <ClInclude Include="..\..\foundation\mathcore.h" />
     <ClInclude Include="..\..\foundation\atomic.h" />
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\thread.h" />
@@ -44,6 +43,10 @@
     <ClInclude Include="..\..\foundation\string.h" />
     <ClInclude Include="..\..\foundation\radixsort.h" />
     <ClInclude Include="..\..\foundation\stacktrace.h" />
+    <ClInclude Include="..\..\foundation\hashmap.h" />
+    <ClInclude Include="..\..\foundation\math.h" />
+    <ClInclude Include="..\..\foundation\pipe.h" />
+    <ClInclude Include="..\..\foundation\uuid.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -79,6 +82,9 @@
     <ClCompile Include="..\..\foundation\string.c" />
     <ClCompile Include="..\..\foundation\radixsort.c" />
     <ClCompile Include="..\..\foundation\stacktrace.c" />
+    <ClCompile Include="..\..\foundation\hashmap.c" />
+    <ClCompile Include="..\..\foundation\pipe.c" />
+    <ClCompile Include="..\..\foundation\uuid.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\foundation\hashstrings.txt" />

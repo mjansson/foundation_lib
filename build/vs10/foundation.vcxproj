@@ -51,18 +51,20 @@
     <ClInclude Include="..\..\foundation\foundation.h" />
     <ClInclude Include="..\..\foundation\fs.h" />
     <ClInclude Include="..\..\foundation\hash.h" />
+    <ClInclude Include="..\..\foundation\hashmap.h" />
     <ClInclude Include="..\..\foundation\hashstrings.h" />
     <ClInclude Include="..\..\foundation\internal.h" />
     <ClInclude Include="..\..\foundation\library.h" />
     <ClInclude Include="..\..\foundation\locale.h" />
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\main.h" />
-    <ClInclude Include="..\..\foundation\mathcore.h" />
+    <ClInclude Include="..\..\foundation\math.h" />
     <ClInclude Include="..\..\foundation\md5.h" />
     <ClInclude Include="..\..\foundation\memory.h" />
     <ClInclude Include="..\..\foundation\mutex.h" />
     <ClInclude Include="..\..\foundation\objectmap.h" />
     <ClInclude Include="..\..\foundation\path.h" />
+    <ClInclude Include="..\..\foundation\pipe.h" />
     <ClInclude Include="..\..\foundation\platform.h" />
     <ClInclude Include="..\..\foundation\process.h" />
     <ClInclude Include="..\..\foundation\profile.h" />
@@ -77,6 +79,7 @@
     <ClInclude Include="..\..\foundation\thread.h" />
     <ClInclude Include="..\..\foundation\time.h" />
     <ClInclude Include="..\..\foundation\types.h" />
+    <ClInclude Include="..\..\foundation\uuid.h" />
     <ClInclude Include="..\..\foundation\windows.h" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +105,7 @@
     </ClCompile>
     <ClCompile Include="..\..\foundation\fs.c" />
     <ClCompile Include="..\..\foundation\hash.c" />
+    <ClCompile Include="..\..\foundation\hashmap.c" />
     <ClCompile Include="..\..\foundation\library.c" />
     <ClCompile Include="..\..\foundation\log.c" />
     <ClCompile Include="..\..\foundation\main.c" />
@@ -110,6 +114,7 @@
     <ClCompile Include="..\..\foundation\mutex.c" />
     <ClCompile Include="..\..\foundation\objectmap.c" />
     <ClCompile Include="..\..\foundation\path.c" />
+    <ClCompile Include="..\..\foundation\pipe.c" />
     <ClCompile Include="..\..\foundation\process.c" />
     <ClCompile Include="..\..\foundation\profile.c" />
     <ClCompile Include="..\..\foundation\radixsort.c" />
@@ -122,6 +127,7 @@
     <ClCompile Include="..\..\foundation\system.c" />
     <ClCompile Include="..\..\foundation\thread.c" />
     <ClCompile Include="..\..\foundation\time.c" />
+    <ClCompile Include="..\..\foundation\uuid.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt">
@@ -136,7 +142,16 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\foundation\hashstrings.txt" />
+    <None Include="..\..\foundation\hashstrings.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Deploy|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Deploy|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6ABDE628-E9D5-4A7F-9847-A47F56210273}</ProjectGuid>
@@ -149,7 +164,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <UseIntelIPP>Sequential</UseIntelIPP>
-    <PlatformToolset>Intel C++ Compiler XE 13.0</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>

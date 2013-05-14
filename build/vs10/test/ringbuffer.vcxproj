@@ -35,12 +35,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\test\config\main.c" />
+    <ClCompile Include="..\..\..\test\ringbuffer\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F7407057-9865-4DE7-8BEE-856D8AFAAB96}</ProjectGuid>
+    <ProjectGuid>{d09671c8-12fb-4607-927e-166bbc9fac7a}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>config</RootNamespace>
+    <RootNamespace>ringbuffer</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

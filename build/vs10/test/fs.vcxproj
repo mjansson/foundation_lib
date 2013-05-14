@@ -35,12 +35,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\test\config\main.c" />
+    <ClCompile Include="..\..\..\test\fs\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F7407057-9865-4DE7-8BEE-856D8AFAAB96}</ProjectGuid>
+    <ProjectGuid>{0657341f-4e52-4fec-bc11-ca5bfec74aec}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>config</RootNamespace>
+    <RootNamespace>fs</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
