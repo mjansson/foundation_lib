@@ -271,8 +271,8 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	}
 		
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
-	// Add 2 skip frames for this function call
-	skip_frames += 2;
+	// Add 1 skip frame for this function call
+	++skip_frames;
 #  if USE_CAPTURESTACKBACKTRACE
 	if( CallRtlCaptureStackBackTrace )
 	{
@@ -431,13 +431,13 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 	bool                found = false;
 	HANDLE              process_handle = GetCurrentProcess();
 	int                 buffer_offset = 0;
+	bool                last_was_main = false;
 	IMAGEHLP_LINE64     line64;
 	IMAGEHLP_MODULE64   module64;
 
-	for( iaddr = 0; iaddr < max_frames; ++iaddr )
+	for( iaddr = 0; ( iaddr < max_frames ) && !last_was_main; ++iaddr )
 	{
 		char* resolved = 0;
-		const char* symbol_name = "??";
 		const char* function_name = "??";
 		const char* file_name = "??";
 		const char* module_name = "??";
@@ -460,7 +460,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 			int offset = 0;
 			while( symbol->Name[offset] < 32 )
 				++offset;
-			symbol_name = symbol->Name + offset;
+			function_name = symbol->Name + offset;
 		}
 		else
 		{
@@ -479,10 +479,19 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		memset( &module64, 0, sizeof( module64 ) );
 		module64.SizeOfStruct = sizeof( module64 );
 		if( CallSymGetModuleInfo64 && CallSymGetModuleInfo64( process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &module64 ) )
+		{
+			int last_slash = STRING_NPOS;
 			module_name = module64.ImageName;
+			last_slash = string_rfind( module_name, '\\', STRING_NPOS );
+			if( last_slash != STRING_NPOS )
+				module_name += last_slash + 1;
+		}
 
-		resolved = string_format( "[" STRING_FORMAT_POINTER "] %s (%s:%d +%d bytes) [in %s]", symbol_name, function_name, file_name, line_number, displacement, module_name );
+		resolved = string_format( "[" STRING_FORMAT_POINTER "] %s (%s:%d +%d bytes) [in %s]", frames[iaddr], function_name, file_name, line_number, displacement, module_name );
 		array_push( lines, resolved );
+	
+		if( string_equal( function_name, "main" ) )
+			last_was_main = true;
 	}
 
 	return lines;
