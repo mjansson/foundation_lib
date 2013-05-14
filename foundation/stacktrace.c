@@ -418,9 +418,10 @@ static bool _initialize_symbol_resolve()
 }
 
 
-static bool _resolve_stack_frame( void* address, char* buffer, unsigned int buffer_size )
+static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_frames )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
+	char**              lines = 0;
 	char                symbol_buffer[ sizeof( IMAGEHLP_SYMBOL64 ) + 512 ];
 	PIMAGEHLP_SYMBOL64  symbol;
 	DWORD               displacement = 0;
@@ -429,76 +430,88 @@ static bool _resolve_stack_frame( void* address, char* buffer, unsigned int buff
 	bool                found = false;
 	HANDLE              process_handle = GetCurrentProcess();
 	int                 buffer_offset = 0;
+	IMAGEHLP_LINE64     line64;
+	IMAGEHLP_MODULE64   module64;
 
-	// Initialize symbol.
-	symbol = (PIMAGEHLP_SYMBOL64)symbol_buffer;
-	symbol->SizeOfStruct = sizeof( symbol_buffer );
-	symbol->MaxNameLength = 512;
-
-	// Get symbol from address.
-	if( CallSymGetSymFromAddr64 && CallSymGetSymFromAddr64( process_handle, (uint64_t)((uintptr_t)address), &displacement64, symbol ) )
+	for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )
 	{
-		int written, offset = 0;
-		while( symbol->Name[offset] < 32 )
-			++offset;
+		char* resolved = 0;
+		const char* symbol_name = "??";
+		const char* function_name = "??";
+		const char* file_name = "??";
+		const char* module_name = "??";
+		unsigned int line_number = 0;
+		unsigned int displacement = 0;
 
-		written = _snprintf( buffer + buffer_offset, buffer_size - buffer_offset, "%s() ", symbol->Name + offset );
-		if( written > 0 )
-			buffer_offset += written;
+		//Allow first frame to be null in case of a function call to a null pointer
+		if( iaddr && !frames[iaddr] )
+			break;
 
-		found = true;
-	}
-	else
-	{
-		// No symbol found for this address.
-		last_error = GetLastError();
-	}
+		// Initialize symbol.
+		symbol = (PIMAGEHLP_SYMBOL64)symbol_buffer;
+		memset( symbol, 0, sizeof( symbol_buffer ) );
+		symbol->SizeOfStruct = sizeof( symbol_buffer );
+		symbol->MaxNameLength = 512;
 
-	//Add filename
-	{
-		IMAGEHLP_LINE64 line;
-		int written = 0;
-
-		line.SizeOfStruct = sizeof( line );
-		if( CallSymGetLineFromAddr64 && CallSymGetLineFromAddr64( process_handle, (uint64_t)((uintptr_t)address), &displacement, &line ) )
-			written = _snprintf( buffer + buffer_offset, buffer_size - buffer_offset, "0x%p + %d bytes [File=%s:%d] ", address, displacement, line.FileName, line.LineNumber );
-		else    
-			written = _snprintf( buffer + buffer_offset, buffer_size - buffer_offset, "Address = 0x%p (filename not found) ", address );
-
-		if( written > 0 )
-			buffer_offset += written;
-	}
-
-	//Add module
-	{
-		IMAGEHLP_MODULE64 module;
-		int written = 0;
-
-		module.SizeOfStruct = sizeof( module );
-		if( CallSymGetModuleInfo64 && CallSymGetModuleInfo64( process_handle, (uint64_t)((uintptr_t)address), &module ) )
-			written = _snprintf( buffer + buffer_offset, buffer_size - buffer_offset, "[in %s]", module.ImageName );
+		// Get symbol from address.
+		if( CallSymGetSymFromAddr64 && CallSymGetSymFromAddr64( process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement64, symbol ) )
+		{
+			int offset = 0;
+			while( symbol->Name[offset] < 32 )
+				++offset;
+			symbol_name = symbol->Name + offset;
+		}
 		else
-			written = _snprintf( buffer + buffer_offset, buffer_size - buffer_offset, " [module not found]" );
-	
-		if( written > 0 )
-			buffer_offset += written;
-	}
-	
-	buffer[ buffer_offset++ ] = '\n';
-	buffer[ buffer_offset   ] = 0;
+		{
+			// No symbol found for this address.
+			last_error = GetLastError();
+		}
 
-	return found;
+		memset( &line, 0, sizeof( line ) );
+		line.SizeOfStruct = sizeof( line );
+		if( CallSymGetLineFromAddr64 && CallSymGetLineFromAddr64( process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement, &line64 ) )
+		{
+			file_name = line64.FileName;
+			line_number = line64.LineNumber;
+		}
+
+		memset( &module, 0, sizeof( module ) );
+		module.SizeOfStruct = sizeof( module );
+		if( CallSymGetModuleInfo64 && CallSymGetModuleInfo64( process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &module ) )
+			module_name = module.ImageName;
+
+		resolved = string_format( "[" STRING_FORMAT_POINTER "] %s (%s:%d +%d bytes) [in %s]", symbol_name, function_name, file_name, line_number, displacement, module_name );
+		array_push( lines, resolved );
+	}
+
+	return lines;
 
 #elif FOUNDATION_PLATFORM_LINUX
 
-	char* addrstr = string_format( STRING_FORMAT_POINTER, address );
+	char** addrs = 0;
+	char** lines = 0;
 	const char** args = 0;
 	process_t* proc = process_allocate();
+	unsigned int num_frames = 0;
+	unsigned int requested_frames = 0;
+	bool last_was_main = false;
 
 	array_push( args, "-e" );
 	array_push( args, environment_command_line()[0] );
 	array_push( args, "-f" );
-	array_push( args, addrstr );
+
+	for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )
+	{
+		//Allow first frame to be null in case of a function call to a null pointer
+		if( iaddr && !frames[iaddr] )
+			break;
+		
+		char* addr = string_format( STRING_FORMAT_POINTER, frames[iaddr] );
+		array_push( addrs, addr );
+		array_push( args, addr );
+
+		++requested_frames;
+	}
 	
 	process_set_working_directory( proc, environment_initial_working_directory() );
 	process_set_executable_path( proc, "/usr/bin/addr2line" );
@@ -508,30 +521,47 @@ static bool _resolve_stack_frame( void* address, char* buffer, unsigned int buff
 	process_spawn( proc );
 
 	stream_t* procout = process_stdout( proc );
-	char* function = stream_read_line( procout, '\n' );
-	char* filename = stream_read_line( procout, '\n' );
+	while( !stream_eos( procout ) && ( num_frames < requested_frames ) && !last_was_main )
+	{
+		char* function = stream_read_line( procout, '\n' );
+		char* filename = stream_read_line( procout, '\n' );
+
+		array_push( lines, string_format( "[" STRING_FORMAT_POINTER "] %s (%s)",
+			frames[num_frames],
+			function && string_length( function ) ? function : "??",
+			filename && string_length( filename ) ? filename : "??"
+		) );
+	
+		if( string_equal( function, "main" ) )
+			last_was_main = true;
+
+		string_deallocate( function );
+		string_deallocate( filename );
+
+		++num_frames;
+	}
 	
 	process_wait( proc );
 	process_deallocate( proc );
 	
-	string_deallocate( addrstr );
-	array_deallocate( args );
-
-	string_format_buffer( buffer, buffer_size, "[" STRING_FORMAT_POINTER "] %s (%s)\n",
-		address,
-		function && string_length( function ) ? function : "??",
-		filename && string_length( filename ) ? filename : "??"
-	);
+	string_array_deallocate( addrs );
+	array_deallocate( args );	
 	
-	string_deallocate( function );
-	string_deallocate( filename );
-	
-	return true;
+	return lines;
 	
 #else
 
-	string_format_buffer( buffer, buffer_size, "[" STRING_FORMAT_POINTER "]\n", address );
-	return true;
+	char** lines = 0;
+	for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )
+	{
+		//Allow first frame to be null in case of a function call to a null pointer
+		if( iaddr && !frames[iaddr] )
+			break;
+		
+		array_push( lines, string_format( "[" STRING_FORMAT_POINTER "]\n", frames[iaddr] ) );
+	}
+		
+	return lines;
 
 #endif
 }
@@ -539,40 +569,21 @@ static bool _resolve_stack_frame( void* address, char* buffer, unsigned int buff
 
 char* stacktrace_resolve( void** trace, unsigned int max_depth, unsigned int skip_frames )
 {
-	void** frame;
-	unsigned int i;
-	char* buffer;
-	char line_buffer[512];
-	unsigned int totallen;
+	char** lines;
+	char* resolved;
 
 	_initialize_symbol_resolve();
 	
-	frame = trace + skip_frames;
-	buffer = string_clone( "" );
-
 	if( !max_depth )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
+	if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
+		max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
 
-	//Allow first frame to be null in case of a function call to a null pointer
-	for( i = 0; ( i < max_depth ) && ( *frame || !i ); ++i, ++frame )
-	{
-		if( !skip_frames )
-		{
-			_resolve_stack_frame( *frame, line_buffer, 512 );
-			buffer = string_append( buffer, line_buffer );
-		}
-		else
-		{
-			--skip_frames;
-		}
-	}
+	lines = _resolve_stack_frames( trace + skip_frames, max_depth );
 
-	totallen = string_length( buffer );
-	if( totallen )
-	{
-		if( buffer[ totallen - 1 ] == '\n' )
-			buffer[ totallen - 1 ] = 0;
-	}
-	
-	return buffer;
+	resolved = string_merge( (const char* const*)lines, array_size( lines ), "\n" );
+
+	string_array_deallocate( lines );
+
+	return resolved;
 }

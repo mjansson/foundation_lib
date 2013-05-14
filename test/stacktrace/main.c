@@ -51,12 +51,12 @@ DECLARE_TEST( stacktrace, resolve )
 	resolved = stacktrace_resolve( trace, num_frames, 0 );
 	EXPECT_NE( resolved, 0 );
 
+	log_infof( "Resolved stack trace:\n%s", resolved );
+	
 	EXPECT_NE( string_find_string( resolved, "stacktraceresolve_fn", 0 ), STRING_NPOS );
 	EXPECT_NE( string_find_string( resolved, "test_run", 0 ), STRING_NPOS );
 	EXPECT_NE( string_find_string( resolved, "main_run", 0 ), STRING_NPOS );
 	
-	log_debugf( resolved );
-
 	memory_deallocate( resolved );
 	
 	return 0;
