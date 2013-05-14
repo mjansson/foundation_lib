@@ -164,7 +164,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	uint64_t id = objectmap_reserve( _thread_map );
 	if( !id )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
 		return 0;
 	}
 	thread = memory_allocate_zero( sizeof( thread_t ), 0, MEMORY_PERSISTENT );
@@ -379,7 +379,7 @@ bool thread_start( object_t id, void* data )
 	thread_t* thread = GET_THREAD( id );
 	if( !thread )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
+		log_errorf( ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
 		return false; //Old/invalid id
 	}
 
@@ -398,7 +398,7 @@ bool thread_start( object_t id, void* data )
 	thread->handle = CreateThread( 0, thread->stacksize, _thread_entry, thread, 0, &osid );
 	if( !thread->handle )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
 		return false;
 	}
 #if !BUILD_DEPLOY
@@ -408,7 +408,7 @@ bool thread_start( object_t id, void* data )
 	int err = pthread_create( &thread->thread, 0, _thread_entry, thread );
 	if( err )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
 		return false;
 	}
 #else

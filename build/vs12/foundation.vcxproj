@@ -71,6 +71,7 @@
     <ClInclude Include="..\..\foundation\random.h" />
     <ClInclude Include="..\..\foundation\ringbuffer.h" />
     <ClInclude Include="..\..\foundation\semaphore.h" />
+    <ClInclude Include="..\..\foundation\stacktrace.h" />
     <ClInclude Include="..\..\foundation\stream.h" />
     <ClInclude Include="..\..\foundation\string.h" />
     <ClInclude Include="..\..\foundation\system.h" />
@@ -118,6 +119,7 @@
     <ClCompile Include="..\..\foundation\random.c" />
     <ClCompile Include="..\..\foundation\ringbuffer.c" />
     <ClCompile Include="..\..\foundation\semaphore.c" />
+    <ClCompile Include="..\..\foundation\stacktrace.c" />
     <ClCompile Include="..\..\foundation\stream.c" />
     <ClCompile Include="..\..\foundation\string.c" />
     <ClCompile Include="..\..\foundation\system.c" />
@@ -288,6 +290,11 @@
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>false</StringPooling>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -323,6 +330,11 @@
       <StringPooling>false</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -359,6 +371,11 @@
       <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -396,6 +413,11 @@
       <OpenMPSupport>false</OpenMPSupport>
       <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -433,6 +455,11 @@
       <OpenMPSupport>false</OpenMPSupport>
       <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -471,6 +498,11 @@
       <PrecompiledHeaderFile>foundation\foundation.h</PrecompiledHeaderFile>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -509,6 +541,11 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <OmitFramePointers>false</OmitFramePointers>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -547,6 +584,11 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <OmitFramePointers>false</OmitFramePointers>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>SSE3</UseProcessorExtensions>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -135,3 +135,6 @@
 
 // Maximum memory context depth
 #define BUILD_SIZE_MEMORY_CONTEXT_DEPTH       32
+
+// Maximum stacktrace depth
+#define BUILD_SIZE_STACKTRACE_DEPTH           32

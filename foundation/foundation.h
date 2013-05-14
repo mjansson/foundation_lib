@@ -38,6 +38,7 @@
 #include <foundation/base64.h>
 #include <foundation/md5.h>
 #include <foundation/array.h>
+#include <foundation/hashmap.h>
 #include <foundation/ringbuffer.h>
 #include <foundation/string.h>
 #include <foundation/path.h>
@@ -61,6 +62,8 @@
 #include <foundation/pipe.h>
 
 #include <foundation/crash.h>
+#include <foundation/stacktrace.h>
+
 #include <foundation/blowfish.h>
  
 

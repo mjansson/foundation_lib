@@ -45,6 +45,7 @@
     <ClInclude Include="..\..\foundation\math.h" />
     <ClInclude Include="..\..\foundation\pipe.h" />
     <ClInclude Include="..\..\foundation\uuid.h" />
+    <ClInclude Include="..\..\foundation\stacktrace.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -81,6 +82,7 @@
     <ClCompile Include="..\..\foundation\radixsort.c" />
     <ClCompile Include="..\..\foundation\pipe.c" />
     <ClCompile Include="..\..\foundation\uuid.c" />
+    <ClCompile Include="..\..\foundation\stacktrace.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt" />

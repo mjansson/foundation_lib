@@ -137,7 +137,7 @@ object_t library_load( const char* name )
 
 #else
 	
-	log_errorf( ERRORLEVEL_ERROR, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
+	log_errorf( ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
 	error_context_pop();
 	return 0;
 
@@ -151,7 +151,7 @@ object_t library_load( const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		dlclose( lib );
 #endif
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );	
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );	
 		error_context_pop();
 		return 0;
 	}
@@ -194,7 +194,7 @@ void* library_symbol( object_t id, const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		return dlsym( library->lib, name );
 #else
-		log_errorf( ERRORLEVEL_ERROR, ERROR_NOT_IMPLEMENTED, "Dynamic library symbol lookup implemented for this platform: %s not found", name );
+		log_errorf( ERROR_NOT_IMPLEMENTED, "Dynamic library symbol lookup implemented for this platform: %s not found", name );
 #endif
 	}
 	return 0;

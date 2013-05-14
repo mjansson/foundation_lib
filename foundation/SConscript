@@ -9,19 +9,19 @@ Import("env")
 foundationsources = [
 
 	'array.c', 'assert.c', 'base64.c', 'blowfish.c', 'bufferstream.c', 'config.c', 'crash.c', 'environment.c',
-	'error.c', 'event.c', 'foundation.c', 'fs.c', 'hash.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c',
-	'mutex.c', 'objectmap.c', 'path.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'ringbuffer.c',
-	'semaphore.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c'
+	'error.c', 'event.c', 'foundation.c', 'fs.c', 'hash.c', 'hashmap.c', 'library.c', 'log.c', 'main.c', 'md5.c',
+	'memory.c', 'mutex.c', 'objectmap.c', 'path.c', 'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c',
+	'ringbuffer.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c'
 
 	]
 
 foundationheaders = [
 
 	'array.h', 'assert.h', 'atomic.h', 'base64.h', 'bits.h', 'blowfish.h', 'bufferstream.h', 'build.h', 'config.h',
-	'crash.h', 'environment.h', 'error.h', 'event.h', 'foundation.h', 'fs.h', 'hash.h', 'hashstrings.h', 'library.h',
-	'log.h', 'main.h', 'mathcore.h', 'md5.h', 'memory.h', 'mutex.h', 'objectmap.h', 'path.h', 'platform.h',
-	'process.h', 'profile.h', 'radixsort.h', 'random.h', 'ringbuffer.h', 'semaphore.h', 'stream.h', 'string.h',
-	'system.h', 'thread.h', 'time.h', 'types.h'
+	'crash.h', 'environment.h', 'error.h', 'event.h', 'foundation.h', 'fs.h', 'hash.h', 'hashmap.h', 'hashstrings.h',
+	'library.h', 'log.h', 'main.h', 'mathcore.h', 'md5.h', 'memory.h', 'mutex.h', 'objectmap.h', 'path.h',
+	'platform.h', 'pipe.h', 'process.h', 'profile.h', 'radixsort.h', 'random.h', 'ringbuffer.h', 'semaphore.h',
+	'stacktrace.h', 'stream.h', 'string.h', 'system.h', 'thread.h', 'time.h', 'types.h'
 
 	]
 

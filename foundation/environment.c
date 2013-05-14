@@ -99,7 +99,7 @@ int _environment_initialize( const application_t application )
 	}
 	else
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
 		return -1;
 	}
 	
@@ -124,7 +124,7 @@ int _environment_initialize( const application_t application )
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
 	if( !cmdline )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
 		return -1;
 	}
 
@@ -143,7 +143,7 @@ int _environment_initialize( const application_t application )
 	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
 	if( readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN ) < 0 )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
 		return -1;
 	}
 
@@ -240,7 +240,7 @@ const char* environment_current_working_directory( void )
 	char* path = memory_allocate_zero( FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
 		return "";
 	}
 	path = path_clean( path, true );

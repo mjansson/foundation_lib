@@ -21,7 +21,7 @@
 
 // PRIMITIVE TYPES
 
-//! Error severity level
+//! Error severity level (Do not change order!)
 typedef enum
 {
 	ERRORLEVEL_NONE    = 0,
@@ -32,7 +32,7 @@ typedef enum
 	ERRORLEVEL_PANIC
 } error_level_t;
 
-//! Error identifiers
+//! Error identifiers (Do not change order, only append!)
 typedef enum
 {
 	ERROR_NONE              = 0,
@@ -50,13 +50,15 @@ typedef enum
 	ERROR_UNKNOWN_TYPE,
 	ERROR_UNKNOWN_RESOURCE,
 	ERROR_MEMORY_ALIGNMENT,
-	ERROR_DEPRECATED
+	ERROR_DEPRECATED,
+
+	ERROR_LAST_BUILTIN
 } error_t;
 
 //! Warning classes
 typedef enum
 {
-	WARNING_PERFORMANCE,
+	WARNING_PERFORMANCE = 0,
 	WARNING_DEPRECATED,
 	WARNING_BAD_DATA,
 	WARNING_MEMORY,
@@ -64,8 +66,10 @@ typedef enum
 	WARNING_SUSPICIOUS,
 	WARNING_SCRIPT,
 	WARNING_SYSTEM_CALL_FAIL,
-	WARNING_DEADLOCK
-} warning_class_t;
+	WARNING_DEADLOCK,
+
+	WARNING_LAST_BUILTIN
+} warning_t;
 
 //! Memory hints
 typedef enum
@@ -82,6 +86,7 @@ typedef enum
 	MEMORYCONTEXT_STRING,
 	MEMORYCONTEXT_STREAM,
 	MEMORYCONTEXT_NETWORK,
+	MEMORYCONTEXT_SCRIPT,
 
 	MEMORYCONTEXT_LASTBUILTIN  = 0x0fff
 } memory_context_id;
@@ -467,6 +472,8 @@ typedef struct _foundation_ringbuffer       ringbuffer_t;
 typedef struct _foundation_blowfish         blowfish_t;
 
 typedef struct _foundation_radixsort        radixsort_t;
+
+typedef struct _foundation_hashmap          hashmap_t;
 
 
 // UTILITY FUNCTIONS

@@ -408,6 +408,8 @@ int process_spawn( process_t* proc )
 	proc->args[0] = string_clone( proc->path );
 	proc->args[argc] = 0;
 
+	proc->stdout = pipe_allocate();
+	
 	proc->pid = 0;	
 	pid_t pid = fork();
 
@@ -422,13 +424,14 @@ int process_spawn( process_t* proc )
 
 		log_debugf( "Child process executing: %s", proc->path );
 
+		pipe_close_read( proc->stdout );
+		dup2( pipe_write_fd( proc->stdout ), STDOUT_FILENO );
+		
 		char* envp[] = { 0 };
 		
 		int code = execve( proc->path, proc->args, envp );		
 		if( code < 0 ) //Will always be true since this point will never be reached if execve() is successful
-		{
 			log_warnf( WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
-		}
 		
 		//Error
 		process_exit( -1 );
@@ -439,6 +442,8 @@ int process_spawn( process_t* proc )
 		log_debugf( "Child process forked, pid %d", pid );
 
 		proc->pid = pid;
+
+		pipe_close_write( proc->stdout );
 		
 		if( proc->flags & PROCESS_DETACHED )
 		{
@@ -464,6 +469,10 @@ int process_spawn( process_t* proc )
 		//Error
 		proc->code = errno;
 		log_warnf( WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
+
+		stream_deallocate( proc->stdout );
+		proc->stdout = 0;
+		
 		return proc->code;
 	}	
 

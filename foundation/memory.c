@@ -246,7 +246,7 @@ static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned 
 		return malloc( (size_t)size );
 	int result = posix_memalign( &memory, align, (size_t)size );
 	if( result || !memory )
-		log_errorf( ERRORLEVEL_PANIC, ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
+		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
 	return ( result == 0 ) ? memory : 0;
 #else
 	void* memory = malloc( size + align );
