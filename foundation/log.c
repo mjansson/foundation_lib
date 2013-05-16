@@ -74,7 +74,7 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
-#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
+#if FOUNDATION_PLATFORM_WINDOWS
 #  define LOG_USE_VACOPY 0
 #else
 #  define LOG_USE_VACOPY 1
@@ -134,10 +134,7 @@ static void _log_outputf( int severity, const char* prefix, const char* format, 
 		if( ( more > -1 ) && ( need > -1 ) )
 			size = more + need + 1;
 		else
-		{
-printf("log realloc double\n");
 			size *= 2;
-		}
 
 		if( buffer != local_buffer )
 			memory_deallocate( buffer );
