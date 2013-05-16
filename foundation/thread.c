@@ -28,7 +28,7 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 #  include <foundation/android.h>
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
 
 typedef struct _foundation_thread_local_block
 {

@@ -50,10 +50,11 @@
 #if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE
 #  ifdef __cplusplus
 #  define FOUNDATION_EXTERN extern "C"
+#  define FOUNDATION_API extern "C"
 #  else
 #  define FOUNDATION_EXTERN extern
+#  define FOUNDATION_API extern
 #  endif
-#  define FOUNDATION_API
 #else
 #  ifdef __cplusplus
 #  define FOUNDATION_EXTERN extern "C"

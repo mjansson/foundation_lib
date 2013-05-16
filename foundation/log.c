@@ -21,6 +21,7 @@
 #    define va_copy(d,s) ((d)=(s))
 #  endif
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
+#  define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #endif
 
@@ -73,6 +74,12 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
+#  define LOG_USE_VACOPY 0
+#else
+#  define LOG_USE_VACOPY 1
+#endif
+
 static void _log_outputf( int severity, const char* prefix, const char* format, va_list list, void* std )
 {
 	float32_t timestamp = make_timestamp();
@@ -81,7 +88,6 @@ static void _log_outputf( int severity, const char* prefix, const char* format, 
 	int need, more, remain, size = 383;
 	char local_buffer[385];
 	char* buffer = local_buffer;
-	va_list clist;
 	while(1)
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
@@ -91,9 +97,16 @@ static void _log_outputf( int severity, const char* prefix, const char* format, 
 			need = snprintf( buffer, size, "%s", prefix );
 
 		remain = size - need;
-		va_copy( clist, list );
-		more = vsnprintf( buffer + need, remain, format, clist );
-		va_end( clist );
+#if LOG_USE_VACOPY
+		{
+			va_list clist;
+			va_copy( clist, list );
+			more = vsnprintf( buffer + need, remain, format, clist );
+			va_end( clist );
+		}
+#else
+		more = vsnprintf( buffer + need, remain, format, list );
+#endif
 			
 		if( ( more > -1 ) && ( more < remain ) )
 		{
@@ -121,7 +134,10 @@ static void _log_outputf( int severity, const char* prefix, const char* format, 
 		if( ( more > -1 ) && ( need > -1 ) )
 			size = more + need + 1;
 		else
+		{
+printf("log realloc double\n");
 			size *= 2;
+		}
 
 		if( buffer != local_buffer )
 			memory_deallocate( buffer );
