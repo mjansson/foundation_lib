@@ -17,9 +17,11 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
-#  define va_copy(d,s) ((d)=(s))
+#  if !FOUNDATION_COMPILER_CLANG
+#    define va_copy(d,s) ((d)=(s))
+#  endif
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
-__declspec(dllimport) void __stdcall OutputDebugStringA(LPCSTR);
+__declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID

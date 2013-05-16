@@ -374,7 +374,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 bool thread_start( object_t id, void* data )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
-	unsigned int osid = 0;
+	unsigned long osid = 0;
 #endif
 	thread_t* thread = GET_THREAD( id );
 	if( !thread )

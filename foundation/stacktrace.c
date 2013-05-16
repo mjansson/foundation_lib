@@ -38,6 +38,9 @@
 
 #  if FOUNDATION_COMPILER_MSVC
 #    pragma optimize( "", off )
+#  elif FOUNDATION_COMPILER_CLANG
+#    undef WINAPI
+#    define WINAPI STDCALL
 #  endif
 
 typedef BOOL    (WINAPI *EnumProcessesFn)( DWORD* lpidProcess, DWORD cb, DWORD* cbNeeded );
@@ -442,7 +445,6 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		const char* file_name = "??";
 		const char* module_name = "??";
 		unsigned int line_number = 0;
-		unsigned int displacement = 0;
 
 		//Allow first frame to be null in case of a function call to a null pointer
 		if( iaddr && !frames[iaddr] )

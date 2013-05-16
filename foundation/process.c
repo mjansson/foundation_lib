@@ -48,10 +48,10 @@ struct _foundation_process
 	int                                     code;
 
 	//! Stdout pipe
-	stream_t*                               stdout;
+	stream_t*                               pipeout;
 
 	//! Stdin pipe
-	stream_t*                               stdin;
+	stream_t*                               pipein;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	//! ShellExecute verb
@@ -78,8 +78,8 @@ void process_deallocate( process_t* proc )
 		return;
 	if( !( proc->flags & PROCESS_DETACHED ) )
 		process_wait( proc );
-	stream_deallocate( proc->stdout );
-	stream_deallocate( proc->stdin );
+	stream_deallocate( proc->pipeout );
+	stream_deallocate( proc->pipein );
 	string_deallocate( proc->wd );
 	string_deallocate( proc->path );
 	string_array_deallocate( proc->args );
@@ -288,17 +288,17 @@ int process_spawn( process_t* proc )
 
 		if( proc->flags & PROCESS_STDSTREAMS )
 		{
-			proc->stdout = pipe_allocate();
-			proc->stdin = pipe_allocate();
+			proc->pipeout = pipe_allocate();
+			proc->pipein = pipe_allocate();
 
 			si.dwFlags |= STARTF_USESTDHANDLES;
-			si.hStdOutput = pipe_write_handle( proc->stdout );
-			si.hStdError = pipe_write_handle( proc->stdout );
-			si.hStdInput = pipe_read_handle( proc->stdin );
+			si.hStdOutput = pipe_write_handle( proc->pipeout );
+			si.hStdError = pipe_write_handle( proc->pipeout );
+			si.hStdInput = pipe_read_handle( proc->pipein );
 
 			//Don't inherit wrong ends of pipes
-			SetHandleInformation( pipe_read_handle( proc->stdout ), HANDLE_FLAG_INHERIT, 0 );
-			SetHandleInformation( pipe_write_handle( proc->stdin ), HANDLE_FLAG_INHERIT, 0 );
+			SetHandleInformation( pipe_read_handle( proc->pipeout ), HANDLE_FLAG_INHERIT, 0 );
+			SetHandleInformation( pipe_write_handle( proc->pipein ), HANDLE_FLAG_INHERIT, 0 );
 
 			inherit_handles = TRUE;
 		}
@@ -309,11 +309,11 @@ int process_spawn( process_t* proc )
 		{
 			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (CreateProcess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 
-			stream_deallocate( proc->stdout );
-			stream_deallocate( proc->stdin );
+			stream_deallocate( proc->pipeout );
+			stream_deallocate( proc->pipein );
 
-			proc->stdout = 0;
-			proc->stdin = 0;
+			proc->pipeout = 0;
+			proc->pipein = 0;
 		}
 		else
 		{
@@ -322,10 +322,10 @@ int process_spawn( process_t* proc )
 			proc->code = 0;
 		}
 
-		if( proc->stdout )
-			pipe_close_write( proc->stdout );
-		if( proc->stdin )
-			pipe_close_read( proc->stdin );
+		if( proc->pipeout )
+			pipe_close_write( proc->pipeout );
+		if( proc->pipein )
+			pipe_close_read( proc->pipein );
 	}
 
 	wstring_deallocate( wcmdline );
@@ -408,7 +408,8 @@ int process_spawn( process_t* proc )
 	proc->args[0] = string_clone( proc->path );
 	proc->args[argc] = 0;
 
-	proc->stdout = pipe_allocate();
+	proc->pipeout = pipe_allocate();
+	proc->pipein = pipe_allocate();
 	
 	proc->pid = 0;	
 	pid_t pid = fork();
@@ -424,9 +425,12 @@ int process_spawn( process_t* proc )
 
 		log_debugf( "Child process executing: %s", proc->path );
 
-		pipe_close_read( proc->stdout );
-		dup2( pipe_write_fd( proc->stdout ), STDOUT_FILENO );
-		
+		pipe_close_read( proc->pipeout );
+		dup2( pipe_write_fd( proc->pipeout ), STDOUT_FILENO );
+
+		pipe_close_write( proc->pipein );
+		dup2( pipe_read_fd( proc->pipein ), STDIN_FILENO );
+
 		char* envp[] = { 0 };
 		
 		int code = execve( proc->path, proc->args, envp );		
@@ -443,7 +447,8 @@ int process_spawn( process_t* proc )
 
 		proc->pid = pid;
 
-		pipe_close_write( proc->stdout );
+		pipe_close_write( proc->pipeout );
+		pipe_close_read( proc->pipein );
 		
 		if( proc->flags & PROCESS_DETACHED )
 		{
@@ -470,8 +475,11 @@ int process_spawn( process_t* proc )
 		proc->code = errno;
 		log_warnf( WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
 
-		stream_deallocate( proc->stdout );
-		proc->stdout = 0;
+		stream_deallocate( proc->pipeout );
+		stream_deallocate( proc->pipein );
+
+		proc->pipeout = 0;
+		proc->pipein = 0;
 		
 		return proc->code;
 	}	
@@ -491,7 +499,13 @@ int process_spawn( process_t* proc )
 
 stream_t* process_stdout( process_t* proc )
 {
-	return proc ? proc->stdout : 0;
+	return proc ? proc->pipeout : 0;
+}
+
+
+stream_t* process_stdin( process_t* proc )
+{
+	return proc ? proc->pipein : 0;
 }
 
 

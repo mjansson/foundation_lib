@@ -180,7 +180,7 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
-		unsigned int num_read = 0;
+		unsigned long num_read = 0;
 		ReadFile( pipestream->handle_read, dest, (unsigned int)num, &num_read, 0 );
 		return num_read;
 	}
@@ -205,7 +205,7 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		unsigned int num_written = 0;
+		unsigned long num_written = 0;
 		WriteFile( pipestream->handle_write, source, (unsigned int)num, &num_written, 0 );
 		return num_written;
 	}

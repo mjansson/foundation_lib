@@ -130,7 +130,7 @@ const char* system_error_message( int code )
 	if( !code )
 		return "";
 
-	errmsg[0] = errmsg[255] = 0;
+	errmsg[0] = 0;
 	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, 255, 0 );
 	string_strip( errmsg, STRING_WHITESPACE );
 
@@ -140,7 +140,7 @@ const char* system_error_message( int code )
 
 const char* system_hostname( void )
 {
-	unsigned int size = 255;
+	unsigned long size = 255;
 	static char hostname[256] = {0};
 	if( hostname[0] )
 		return hostname;
@@ -155,13 +155,14 @@ uint64_t system_hostid( void )
 {
 	unsigned char hostid[8] = {0};
 	IP_ADAPTER_INFO adapter_info[16];
-	unsigned int status, buffer_length, i, j;
-	DWORD (__stdcall *fn_get_adapters_info)( PIP_ADAPTER_INFO, PULONG ) = 0;
+	unsigned int status, i, j;
+	unsigned long buffer_length;
+	DWORD (STDCALL *fn_get_adapters_info)( PIP_ADAPTER_INFO, PULONG ) = 0;
 
 	if( !_system_library_iphlpapi )
 		_system_library_iphlpapi = library_load( "iphlpapi" );
 	if( _system_library_iphlpapi )
-		fn_get_adapters_info = (DWORD (__stdcall *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
+		fn_get_adapters_info = (DWORD (STDCALL *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
 	if( !fn_get_adapters_info )
 		return 0;
 	
@@ -183,7 +184,7 @@ uint64_t system_hostid( void )
 
 const char* system_username( void )
 {
-	unsigned int size = 255;
+	unsigned long size = 255;
 	static char username[256] = {0};
 	if( username[0] )
 		return username;
@@ -225,7 +226,7 @@ static uint32_t _system_default_locale( void )
 }
 
 
-typedef int (__stdcall *fnGetLocaleInfoEx)( LPCWSTR, LCTYPE, LPWSTR, int );
+typedef int (STDCALL *fnGetLocaleInfoEx)( LPCWSTR, LCTYPE, LPWSTR, int );
 
 static uint32_t _system_user_locale( void )
 {

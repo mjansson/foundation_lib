@@ -43,16 +43,18 @@ crash_dump_callback_fn crash_guard_callback( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  include <foundation/windows.h>
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_INTEL
+#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
 #    define OUT
 #    define FAR
 #    define IN
 #    include <dbghelp.h>
+#  else
+#    define STDCALL __stdcall
 #  endif
 #  include <stdio.h>
 #  include <stdarg.h>
 
-typedef BOOL ( __stdcall *MiniDumpWriteDumpFn )( HANDLE, DWORD, HANDLE, MINIDUMP_TYPE, CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION, CONST PMINIDUMP_CALLBACK_INFORMATION );
+typedef BOOL ( STDCALL *MiniDumpWriteDumpFn )( HANDLE, DWORD, HANDLE, MINIDUMP_TYPE, CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION, CONST PMINIDUMP_CALLBACK_INFORMATION );
 
 static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* name, char* dump_file )
 {
@@ -169,7 +171,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
 	__try
 	{
 		return fn( data );

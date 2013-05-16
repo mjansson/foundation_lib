@@ -21,7 +21,7 @@ FOUNDATION_EXTERN void foundation_startup( void );
 #  include <foundation/windows.h>
 
 
-BOOL __stdcall _main_console_handler( DWORD control_type )
+BOOL STDCALL _main_console_handler( DWORD control_type )
 {
 	const char* control_name = "UNKNOWN";
 	bool post_terminate = false;
@@ -39,7 +39,7 @@ BOOL __stdcall _main_console_handler( DWORD control_type )
 	log_infof( "Caught console control: %s (%d)", control_name, control_type );
 	if( post_terminate )
 	{
-		unsigned int level = 0, flags = 0;
+		unsigned long level = 0, flags = 0;
 
 		system_post_event( FOUNDATIONEVENT_TERMINATE );
 		
@@ -57,7 +57,7 @@ BOOL __stdcall _main_console_handler( DWORD control_type )
 FOUNDATION_API int APIENTRY WinMain( HINSTANCE, HINSTANCE, LPSTR, int );
 #  endif
 
-int APIENTRY WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show )
+int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show )
 {
 	int ret = -1;
 

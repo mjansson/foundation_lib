@@ -478,7 +478,11 @@
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " __clang_version__
 
 #  define RESTRICT restrict
-#  define THREADLOCAL __thread
+#  if FOUNDATION_PLATFORM_WINDOWS
+#    define THREADLOCAL
+#  else
+#    define THREADLOCAL __thread
+#  endif
 
 #  define ATTRIBUTE(x) __attribute__((__##x##__))
 #  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
@@ -490,6 +494,10 @@
 #  define PURECALL ATTRIBUTE(pure)
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
+
+#  if FOUNDATION_PLATFORM_WINDOWS
+#    define STDCALL
+#  endif
 
 #  include <stdbool.h>
 #  include <stdarg.h>
@@ -549,6 +557,10 @@
 #  define CONSTCALL
 #  define ALIGN(x) __declspec(align(x))
 
+#  if FOUNDATION_PLATFORM_WINDOWS
+#    define STDCALL __stdcall
+#  endif
+
 #  include <intrin.h>
 
 #  define bool _Bool
@@ -574,6 +586,10 @@
 #  define PURECALL
 #  define CONSTCALL
 #  define ALIGN(x) __declspec(align(x))
+
+#  if FOUNDATION_PLATFORM_WINDOWS
+#    define STDCALL __stdcall
+#  endif
 
 #  ifndef __cplusplus
 typedef enum
@@ -732,6 +748,25 @@ static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get
 static _pthread_key_t _##name##_key = 0; \
 static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, 0 ); return _##name##_key; } \
 static FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); pthread_setspecific( key, arr ); } return arr; }
+
+#elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
+
+__declspec(dllimport) unsigned long __stdcall TlsAlloc();
+__declspec(dllimport) void*__stdcall TlsGetValue( unsigned long );
+__declspec(dllimport) int __stdcall TlsSetValue( unsigned long, void* );
+
+FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
+
+#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
+static unsigned long _##name##_key = 0; \
+static FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) { _##name##_key = TlsAlloc(); TlsSetValue( _##name##_key, init ); } return _##name##_key; } \
+static FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)TlsGetValue( get_##name##_key() )); } \
+static FORCEINLINE void set_thread_##name( type val ) { TlsSetValue( get_##name##_key(), (void*)((uintptr_t)val) ); }
+
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
+static unsigned long _##name##_key = 0; \
+static FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) _##name##_key = TlsAlloc(); return _##name##_key; } \
+static FORCEINLINE type* get_thread_##name( void ) { unsigned long key = get_##name##_key(); type* arr = (type*)TlsGetValue( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); TlsSetValue( key, arr ); } return arr; }
 
 #else
 

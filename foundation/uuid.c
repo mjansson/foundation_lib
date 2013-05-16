@@ -185,6 +185,17 @@ char* string_from_uuid_buffer( char* buffer, const uuid_t val )
 uuid_t string_to_uuid( const char* str )
 {
 	uuid_convert_t convert;
-	sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &convert.raw.data2, &convert.raw.data3, &convert.raw.data4[0], &convert.raw.data4[1], &convert.raw.data4[2], &convert.raw.data4[3], &convert.raw.data4[4], &convert.raw.data4[5], &convert.raw.data4[6], &convert.raw.data4[7] );
+	unsigned int data[10];
+	sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9] );
+	convert.raw.data2 = data[0];
+	convert.raw.data3 = data[1];
+	convert.raw.data4[0] = data[2];
+	convert.raw.data4[1] = data[3];
+	convert.raw.data4[2] = data[4];
+	convert.raw.data4[3] = data[5];
+	convert.raw.data4[4] = data[6];
+	convert.raw.data4[5] = data[7];
+	convert.raw.data4[6] = data[8];
+	convert.raw.data4[7] = data[9];
 	return convert.uuid;
 }
