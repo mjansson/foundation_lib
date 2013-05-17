@@ -26,7 +26,8 @@ static assert_handler_fn _assert_handler = 0;
 static char              _assert_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_context_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_box_buffer[ASSERT_BUFFER_SIZE];
-
+static char              _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
+static void*             _assert_stacktrace[128];
 
 assert_handler_fn assert_handler( void )
 {
@@ -45,11 +46,11 @@ int assert_report( const char* condition, const char* file, int line, const char
 	static const char nocondition[] = "<Static fail>";
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
-	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %s\nFile/line: %s : %d\n%s%s\n";
+	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %s\nFile/line: %s : %d\n%s%s\n%s\n";
 	int ret;
 
 	if( !condition ) condition = nocondition;
-	if( !file      ) file  = nofile;
+	if( !file      ) file      = nofile;
 	if( !msg       ) msg       = nomsg;
 	
 	if( _assert_handler && ( _assert_handler != assert_report ) )
@@ -58,7 +59,16 @@ int assert_report( const char* condition, const char* file, int line, const char
 	_assert_context_buffer[0] = 0;
 	error_context_buffer( _assert_context_buffer, ASSERT_BUFFER_SIZE );
 
-	ret = snprintf( _assert_box_buffer, (size_t)ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg );
+	_assert_stacktrace_buffer[0] = 0;
+	if( stacktrace_capture( _assert_stacktrace, 128, 1 ) > 0 )
+	{
+		//TODO: Resolve directly into buffer to avoid memory allocations in assert handler
+		char* trace = stacktrace_resolve( _assert_stacktrace, 128, 0 );
+		string_copy( _assert_stacktrace_buffer, trace, ASSERT_BUFFER_SIZE );
+		string_deallocate( trace );
+	}
+	
+	ret = snprintf( _assert_box_buffer, (size_t)ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg, _assert_stacktrace_buffer );
 	if( ( ret < 0 ) || ( ret >= ASSERT_BUFFER_SIZE ) )
 		_assert_box_buffer[ASSERT_BUFFER_SIZE-1] = 0;
 

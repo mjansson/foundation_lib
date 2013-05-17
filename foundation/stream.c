@@ -68,7 +68,8 @@ stream_t* stream_open( const char* path, unsigned int mode )
 
 void stream_deallocate( stream_t* stream )
 {
-	FOUNDATION_ASSERT( stream );
+	if( !stream )
+		return;
 	if( stream->vtable && stream->vtable->deallocate )
 		stream->vtable->deallocate( stream );
 	string_deallocate( stream->path );
