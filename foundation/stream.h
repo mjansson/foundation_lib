@@ -76,10 +76,6 @@ FOUNDATION_API bool              stream_is_inorder( const stream_t* stream );
 /*! Query if bytes must be swapped when reading from stream (byte order of file does not match byte order of system
 	\return                      true if bytes must be swapped, false if not */
 FOUNDATION_API bool              stream_is_swapped( const stream_t* stream );
-
-/*! Query if the stream is open for I/O
-	\return                      true if stream is open, false if not */
-FOUNDATION_API bool              stream_is_open( const stream_t* stream );
 	
 /*! \return                      Current byte order of stream data */
 FOUNDATION_API byteorder_t       stream_byteorder( const stream_t* stream );

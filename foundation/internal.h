@@ -37,7 +37,6 @@ struct _foundation_ringbuffer
 //Stream vtable
 typedef uint64_t  (*stream_read_fn)( stream_t*, void*, uint64_t );
 typedef uint64_t  (*stream_write_fn)( stream_t*, const void*, uint64_t );
-typedef bool      (*stream_isopen_fn)( const stream_t* );
 typedef bool      (*stream_eos_fn)( stream_t* );
 typedef void      (*stream_flush_fn)( stream_t* );
 typedef void      (*stream_truncate_fn)( stream_t*, uint64_t );
@@ -55,7 +54,6 @@ typedef struct _foundation_stream_vtable
 {
 	stream_read_fn           read;
 	stream_write_fn          write;
-	stream_isopen_fn         isopen;
 	stream_eos_fn            eos;
 	stream_flush_fn          flush;
 	stream_truncate_fn       truncate;

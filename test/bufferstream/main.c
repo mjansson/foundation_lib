@@ -46,7 +46,6 @@ DECLARE_TEST( bufferstream, null )
 
 	stream = buffer_stream_allocate( 0, 0, 0, 0, false, false );
 	EXPECT_NE( stream, 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -62,7 +61,6 @@ DECLARE_TEST( bufferstream, null )
 	//No buffer and not growing - all read/write ops should do nothing
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 0 );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -70,7 +68,6 @@ DECLARE_TEST( bufferstream, null )
 	EXPECT_TRUE( uint128_equal( stream_md5( stream ), md5zero ) );
 
 	stream_truncate( stream, 1024 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -79,7 +76,6 @@ DECLARE_TEST( bufferstream, null )
 
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 0 );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -114,7 +110,6 @@ DECLARE_TEST( bufferstream, zero )
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 0, 0, false, false );
 	EXPECT_NE( stream, 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -130,7 +125,6 @@ DECLARE_TEST( bufferstream, zero )
 	//No buffer and not growing - all read/write ops should do nothing
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 0 );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -138,7 +132,6 @@ DECLARE_TEST( bufferstream, zero )
 	EXPECT_TRUE( uint128_equal( stream_md5( stream ), md5null ) );
 
 	stream_truncate( stream, 1024 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -147,7 +140,6 @@ DECLARE_TEST( bufferstream, zero )
 
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 0 );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -182,7 +174,6 @@ DECLARE_TEST( bufferstream, null_grow )
 
 	stream = buffer_stream_allocate( 0, STREAM_IN | STREAM_OUT, 0, 0, true, true );
 	EXPECT_NE( stream, 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -198,7 +189,6 @@ DECLARE_TEST( bufferstream, null_grow )
 	string_copy( writebuffer, "MD5 test string for which the value is precomputed", 1024 );
 	slength = string_length( writebuffer );
 	EXPECT_EQ( stream_write( stream, writebuffer, slength ), slength );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), slength );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -207,14 +197,12 @@ DECLARE_TEST( bufferstream, null_grow )
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), slength );
 	EXPECT_TRUE( string_equal( readbuffer, writebuffer ) );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), slength );
 	EXPECT_EQ( stream_tell( stream ), slength );
 	EXPECT_EQ( stream_available_read( stream ), 0 );
 
 	stream_truncate( stream, 1024 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -222,7 +210,6 @@ DECLARE_TEST( bufferstream, null_grow )
 
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 1024 - slength );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 1024 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 * 2 );
 	EXPECT_EQ( stream_tell( stream ), 1024 * 2 );
@@ -257,7 +244,6 @@ DECLARE_TEST( bufferstream, zero_grow )
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 0, 315, true, true );
 	EXPECT_NE( stream, 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -273,7 +259,6 @@ DECLARE_TEST( bufferstream, zero_grow )
 	string_copy( writebuffer, "MD5 test string for which the value is precomputed", 1024 );
 	slength = string_length( writebuffer );
 	EXPECT_EQ( stream_write( stream, writebuffer, slength ), slength );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), slength );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -282,14 +267,12 @@ DECLARE_TEST( bufferstream, zero_grow )
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), slength );
 	EXPECT_TRUE( string_equal( readbuffer, writebuffer ) );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), slength );
 	EXPECT_EQ( stream_tell( stream ), slength );
 	EXPECT_EQ( stream_available_read( stream ), 0 );
 
 	stream_truncate( stream, 1024 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -297,7 +280,6 @@ DECLARE_TEST( bufferstream, zero_grow )
 
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 1024 - slength );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 1024 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 * 2 );
 	EXPECT_EQ( stream_tell( stream ), 1024 * 2 );
@@ -332,7 +314,6 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 0, 1024, true, false );
 	EXPECT_NE( stream, 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -348,7 +329,6 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 	string_copy( writebuffer, "MD5 test string for which the value is precomputed", 1024 );
 	slength = string_length( writebuffer );
 	EXPECT_EQ( stream_write( stream, writebuffer, slength ), slength );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), slength );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -357,14 +337,12 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), slength );
 	EXPECT_TRUE( string_equal( readbuffer, writebuffer ) );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), slength );
 	EXPECT_EQ( stream_tell( stream ), slength );
 	EXPECT_EQ( stream_available_read( stream ), 0 );
 
 	stream_truncate( stream, 2048 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -372,7 +350,6 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 1024 - slength );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 );
 	EXPECT_EQ( stream_tell( stream ), 1024 );
@@ -407,7 +384,6 @@ DECLARE_TEST( bufferstream, sized_grow )
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 315, 1024, true, true );
 	EXPECT_NE( stream, 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -423,7 +399,6 @@ DECLARE_TEST( bufferstream, sized_grow )
 	string_copy( writebuffer, "MD5 test string for which the value is precomputed", 1024 );
 	slength = string_length( writebuffer );
 	EXPECT_EQ( stream_write( stream, writebuffer, slength ), slength );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -432,14 +407,12 @@ DECLARE_TEST( bufferstream, sized_grow )
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 315 );
 	EXPECT_TRUE( string_equal_substr( readbuffer, writebuffer, slength ) );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), 315 );
 	EXPECT_EQ( stream_available_read( stream ), 0 );
 
 	stream_truncate( stream, 2048 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 2048 );
 	EXPECT_EQ( stream_tell( stream ), 315 );
@@ -447,7 +420,6 @@ DECLARE_TEST( bufferstream, sized_grow )
 
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 1024 );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 1024 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 2048 + 315 );
 	EXPECT_EQ( stream_tell( stream ), 2048 + 315 );
@@ -482,7 +454,6 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 315, 1024, false, false );
 	EXPECT_NE( stream, 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -498,7 +469,6 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 	string_copy( writebuffer, "MD5 test string for which the value is precomputed", 1024 );
 	slength = string_length( writebuffer );
 	EXPECT_EQ( stream_write( stream, writebuffer, slength ), slength );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), slength );
@@ -507,14 +477,12 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 315 );
 	EXPECT_TRUE( string_equal_substr( readbuffer, writebuffer, slength ) );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), 315 );
 	EXPECT_EQ( stream_available_read( stream ), 0 );
 
 	stream_truncate( stream, 2048 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_FALSE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 );
 	EXPECT_EQ( stream_tell( stream ), 315 );
@@ -522,7 +490,6 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 1024 - 315 );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 0 );
-	EXPECT_TRUE( stream_is_open( stream ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 1024 );
 	EXPECT_EQ( stream_tell( stream ), 1024 );

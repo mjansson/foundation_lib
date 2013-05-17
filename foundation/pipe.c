@@ -223,15 +223,16 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 }
 
 
-static bool _pipe_stream_isopen( const stream_t* stream )
-{
-	return stream != 0;
-}
-
-
 static bool _pipe_stream_eos( stream_t* stream )
 {
-	return !_pipe_stream_isopen( stream );
+	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
+#if FOUNDATION_PLATFORM_WINDOWS
+	return !stream || ( !pipestream->handle_read && !pipestream->handle_write );
+#elif FOUNDATION_PLATFORM_POSIX
+	return !stream || ( !pipestream->fd_read && !pipestream->fd_write );
+#else
+	return !stream;
+#endif
 }
 
 
@@ -278,7 +279,6 @@ void _pipe_stream_initialize( void )
 {
 	_pipe_stream_vtable.read = _pipe_stream_read;
 	_pipe_stream_vtable.write = _pipe_stream_write;
-	_pipe_stream_vtable.isopen = _pipe_stream_isopen;
 	_pipe_stream_vtable.eos = _pipe_stream_eos;
 	_pipe_stream_vtable.flush = _pipe_stream_flush;
 	_pipe_stream_vtable.truncate = _pipe_stream_truncate;

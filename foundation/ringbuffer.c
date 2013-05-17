@@ -224,12 +224,6 @@ static uint64_t _ringbuffer_stream_write( stream_t* stream, const void* source, 
 }
 
 
-static bool _ringbuffer_stream_isopen( const stream_t* stream )
-{
-	return true;
-}
-
-
 static bool _ringbuffer_stream_eos( stream_t* stream )
 {
 	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
@@ -328,7 +322,6 @@ void _ringbuffer_stream_initialize( void )
 	//Setup global vtable
 	_ringbuffer_stream_vtable.read = _ringbuffer_stream_read;
 	_ringbuffer_stream_vtable.write = _ringbuffer_stream_write;
-	_ringbuffer_stream_vtable.isopen = _ringbuffer_stream_isopen;
 	_ringbuffer_stream_vtable.eos = _ringbuffer_stream_eos;
 	_ringbuffer_stream_vtable.flush = _ringbuffer_stream_flush;
 	_ringbuffer_stream_vtable.truncate = _ringbuffer_stream_truncate;

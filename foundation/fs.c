@@ -1005,12 +1005,6 @@ static FILE* _fs_file_fopen( const char* path, unsigned int mode, bool* dotrunc 
 }
 
 
-static bool _fs_file_is_open( const stream_t* stream )
-{
-	return ( stream && ( stream->type == STREAMTYPE_FILE ) && ( GET_FILE_CONST( stream )->fd != 0 ) ) ? true : false;
-}
-
-
 static int64_t _fs_file_tell( stream_t* stream )
 {
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
@@ -1329,7 +1323,6 @@ int _fs_initialize( void )
 
 	_fs_file_vtable.read = _fs_file_read;
 	_fs_file_vtable.write = _fs_file_write;
-	_fs_file_vtable.isopen = _fs_file_is_open;
 	_fs_file_vtable.eos = _fs_file_eos;
 	_fs_file_vtable.flush = _fs_file_flush;
 	_fs_file_vtable.truncate = _fs_file_truncate;

@@ -133,12 +133,6 @@ static uint64_t _buffer_stream_write( stream_t* stream, const void* source, uint
 }
 
 
-static bool _buffer_stream_isopen( const stream_t* stream )
-{
-	return stream != 0;
-}
-
-
 static bool _buffer_stream_eos( stream_t* stream )
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
@@ -223,7 +217,6 @@ void _buffer_stream_initialize( void )
 {
 	_buffer_stream_vtable.read = _buffer_stream_read;
 	_buffer_stream_vtable.write = _buffer_stream_write;
-	_buffer_stream_vtable.isopen = _buffer_stream_isopen;
 	_buffer_stream_vtable.eos = _buffer_stream_eos;
 	_buffer_stream_vtable.flush = _buffer_stream_flush;
 	_buffer_stream_vtable.truncate = _buffer_stream_truncate;
