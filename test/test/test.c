@@ -16,8 +16,10 @@
 #include <test/test.h>
 
 
-extern void test_declare( void );
-extern application_t test_application( void );
+FOUNDATION_EXTERN void test_declare( void );
+FOUNDATION_EXTERN application_t test_application( void );
+FOUNDATION_EXTERN int test_initialize( void );
+FOUNDATION_EXTERN void test_shutdown( void );
 
 
 typedef struct
@@ -155,9 +157,12 @@ int main_initialize( void )
 
 int main_run( void* main_arg )
 {
+	if( test_initialize() < 0 )
+		return -1;
 	test_declare();
 	test_run();
 	test_free();
+	test_shutdown();
 	return 0;
 }
 
