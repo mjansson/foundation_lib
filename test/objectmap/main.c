@@ -25,6 +25,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 DECLARE_TEST( objectmap, initialize )
 {
 	objectmap_t* map;

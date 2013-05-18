@@ -25,6 +25,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 volatile int32_t val_32  = 0;
 volatile int64_t val_64  = 0;
 volatile void*   val_ptr = 0;

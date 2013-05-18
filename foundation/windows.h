@@ -36,6 +36,9 @@
 #define NEAR
 #define STREAM_SEEK_END _STREAM_SEEK_END
 
+#define UUID_DEFINED 1
+#define UUID uuid_t
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>

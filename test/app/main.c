@@ -28,6 +28,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 DECLARE_TEST( app, environment )
 {
 	EXPECT_STREQ( environment_application()->name, _global_app.name );

@@ -25,6 +25,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 DECLARE_TEST( md5, empty )
 {
 	md5_t* md5;

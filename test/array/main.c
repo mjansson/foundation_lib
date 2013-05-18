@@ -24,6 +24,18 @@ application_t test_application( void )
 	return app;
 }
 
+
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 typedef struct _basic_type
 {
 	int              intval;

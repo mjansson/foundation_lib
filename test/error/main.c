@@ -25,6 +25,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 DECLARE_TEST( error, error )
 {
 	EXPECT_EQ( error(), ERROR_NONE );

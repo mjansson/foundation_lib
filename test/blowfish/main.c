@@ -127,6 +127,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 // Internal functions
 extern void _blowfish_encrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres );
 extern void _blowfish_decrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres );

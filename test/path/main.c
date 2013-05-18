@@ -25,6 +25,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 DECLARE_TEST( path, extract )
 {
 	const char* path1 = "file.ext";

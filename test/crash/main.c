@@ -28,6 +28,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 void test_crash_callback( const char* dump_path )
 {
 	log_infof( "Crash callback called: %s", dump_path );

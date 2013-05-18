@@ -25,6 +25,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 DECLARE_TEST( hash, known )
 {
 	EXPECT_EQ( hash( "engine", string_length( "engine" ) ), 0x39c8cc157cfd24f8ULL );

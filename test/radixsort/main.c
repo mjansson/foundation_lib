@@ -25,6 +25,17 @@ application_t test_application( void )
 }
 
 
+int test_initialize( void )
+{
+	return 0;
+}
+
+
+void test_shutdown( void )
+{
+}
+
+
 DECLARE_TEST( radixsort, allocation )
 {
 	radixsort_t* sort_none = radixsort_allocate( RADIXSORT_INT32, 0 );
