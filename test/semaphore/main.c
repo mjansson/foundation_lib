@@ -75,7 +75,6 @@ DECLARE_TEST( semaphore, postwait )
 	EXPECT_TRUE( semaphore_wait( &sem ) );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
-	semaphore_destroy( &sem );
 
 	start = time_current();
 	semaphore_try_wait( &sem, 0 );
@@ -86,7 +85,9 @@ DECLARE_TEST( semaphore, postwait )
 	semaphore_try_wait( &sem, 500 );
 	end = time_current();
 	EXPECT_GE( end - start, time_ticks_per_second() / 2 );
-	
+
+	semaphore_destroy( &sem );
+
 	return 0;
 }
 
@@ -119,7 +120,6 @@ void* semaphore_waiter( object_t thread, void* arg )
 DECLARE_TEST( semaphore, threaded )
 {
 	object_t thread[32];
-	bool running;
 	int ith;
 	int failed_waits;
 
@@ -135,7 +135,7 @@ DECLARE_TEST( semaphore, threaded )
 		thread_start( thread[ith], &test );
 	}
 
-	thread_sleep( 500 );
+	test_wait_for_threads_startup( thread, 32 );
 
 	failed_waits = 0;
 	for( ith = 0; ith < test.loopcount * 32; ++ith )
@@ -155,18 +155,7 @@ DECLARE_TEST( semaphore, threaded )
 		thread_yield();
 	}
 
-	do
-	{
-		running = false;
-		for( ith = 0; ith < 32; ++ith )
-		{
-			if( thread_is_running( thread[ith] ) )
-			{
-				running = true;
-				break;
-			}
-		}
-	} while( running );
+	test_wait_for_threads_exit( thread, 32 );
 
 	EXPECT_EQ( test.counter, test.loopcount * 32 );
 	EXPECT_EQ( failed_waits, 0 );

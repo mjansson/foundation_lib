@@ -37,6 +37,11 @@ FOUNDATION_API void            thread_destroy( object_t thread );
     \return                    true if thread was started, false if error or already running */
 FOUNDATION_API bool            thread_start( object_t thread, void* data );
 
+/*! Query if thread has started
+    \param thread              Thread
+    \return                    true if started, false if not */
+FOUNDATION_API bool            thread_is_started( object_t thread );
+
 /*! Query if thread is running
     \param thread              Thread
     \return                    true if running, false if not */

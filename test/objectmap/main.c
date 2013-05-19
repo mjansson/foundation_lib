@@ -156,7 +156,6 @@ DECLARE_TEST( objectmap, thread )
 	objectmap_t* map;
 	object_t thread[32];
 	int ith;
-	bool running;
 
 	map = objectmap_allocate( 32000 );
 
@@ -166,7 +165,7 @@ DECLARE_TEST( objectmap, thread )
 		thread_start( thread[ith], map );
 	}
 
-	thread_sleep( 500 );
+	test_wait_for_threads_startup( thread, 32 );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
@@ -174,18 +173,7 @@ DECLARE_TEST( objectmap, thread )
 		thread_yield();
 	}
 	
-	do
-	{
-		running = false;
-		for( ith = 0; ith < 32; ++ith )
-		{
-			if( thread_is_running( thread[ith] ) )
-			{
-				running = true;
-				break;
-			}
-		}
-	} while( running );
+	test_wait_for_threads_exit( thread, 32 );
 
 	objectmap_deallocate( map );
 

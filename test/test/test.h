@@ -59,3 +59,7 @@ TEST_API void test_add_test( test_fn test, const char* group, const char* name )
 #define EXPECT_REALNE( var, expect ) do { if( math_realeq( (var), (expect), 10 ) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s == %s real (at %s:%u): %.6" STRING_FORMAT_REAL " : %.6" STRING_FORMAT_REAL, FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (real)((var)), (real)((expect)) ); return FAILED_TEST; } } while(0)
 #define EXPECT_REALEQ( var, expect ) do { if( !math_realeq( (var), (expect), 10 ) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s != %s real (at %s:%u): %.6" STRING_FORMAT_REAL " : %.6" STRING_FORMAT_REAL, FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (real)((var)), (real)((expect)) ); return FAILED_TEST; } } while(0)
 #define EXPECT_REALEQULPS( var, expect, ulps ) do { if( !math_realeq( (var), (expect), (ulps) ) ) { log_warnf( WARNING_SUSPICIOUS, "Test failed, %s != %s real (at %s:%u): %.6" STRING_FORMAT_REAL " : %.6" STRING_FORMAT_REAL, FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (real)((var)), (real)((expect)) ); return FAILED_TEST; } } while(0)
+
+TEST_API void test_wait_for_threads_startup( const object_t* threads, unsigned int num_threads );
+TEST_API void test_wait_for_threads_finish( const object_t* threads, unsigned int num_threads );
+TEST_API void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threads );

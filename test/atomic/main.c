@@ -144,52 +144,18 @@ DECLARE_TEST( atomic, incdec )
 	int num_threads = 32;
 	int ithread;
 	object_t threads[32];
-	bool thread_running[32];
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
-	{
 		threads[ithread] = thread_create( ithread % 2 ? dec_thread : inc_thread, ithread % 2 ? "dec" : "inc", THREAD_PRIORITY_NORMAL, 0 );
-		thread_running[ithread] = false;
-	}
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], 0 );
 	
-	while( true )
-	{
-		bool not_started = false;
-		for( ithread = 0; ithread < num_threads; ++ithread )
-		{
-			if( !thread_running[ithread] )
-			{
-				if( thread_is_running( threads[ithread] ) )
-					thread_running[ithread] = true;
-				else
-					not_started = true;
-			}
-		}
-		if( !not_started )
-			break;
-		thread_sleep( 1 );
-	}
+	test_wait_for_threads_startup( threads, num_threads );
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_destroy( threads[ithread] );
-	while( true )
-	{
-		bool has_thread = false;
-		for( ithread = 0; ithread < num_threads; ++ithread )
-		{
-			if( thread_is_thread( threads[ithread] ) )
-			{
-				has_thread = true;
-				break;
-			}
-		}
-		if( !has_thread )
-			break;
-		thread_sleep( 10 );
-	}
-	thread_sleep( 100 );
+
+	test_wait_for_threads_exit( threads, num_threads );
 
 	EXPECT_EQ( val_32, 0 );
 	EXPECT_EQ( val_64, 0 );
@@ -203,52 +169,18 @@ DECLARE_TEST( atomic, add )
 	int num_threads = 32;
 	int ithread;
 	object_t threads[32];
-	bool thread_running[32];
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
-	{
 		threads[ithread] = thread_create( add_thread, "add", THREAD_PRIORITY_NORMAL, 0 );
-		thread_running[ithread] = false;
-	}
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], 0 );
 	
-	while( true )
-	{
-		bool not_started = false;
-		for( ithread = 0; ithread < num_threads; ++ithread )
-		{
-			if( !thread_running[ithread] )
-			{
-				if( thread_is_running( threads[ithread] ) )
-					thread_running[ithread] = true;
-				else
-					not_started = true;
-			}
-		}
-		if( !not_started )
-			break;
-		thread_sleep( 1 );
-	}
+	test_wait_for_threads_startup( threads, num_threads );
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_destroy( threads[ithread] );
-	while( true )
-	{
-		bool has_thread = false;
-		for( ithread = 0; ithread < num_threads; ++ithread )
-		{
-			if( thread_is_thread( threads[ithread] ) )
-			{
-				has_thread = true;
-				break;
-			}
-		}
-		if( !has_thread )
-			break;
-		thread_sleep( 10 );
-	}
-	thread_sleep( 100 );
+
+	test_wait_for_threads_exit( threads, num_threads );
 
 	EXPECT_EQ( val_32, 0 );
 	EXPECT_EQ( val_64, 0 );
@@ -263,12 +195,10 @@ DECLARE_TEST( atomic, cas )
 	int ithread;
 	object_t threads[32];
 	cas_value_t cas_values[32];
-	bool thread_running[32];
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
 	{
 		threads[ithread] = thread_create( cas_thread, "cas", THREAD_PRIORITY_NORMAL, 0 );
-		thread_running[ithread] = false;
 		cas_values[ithread].val_32 = ithread;
 		cas_values[ithread].val_64 = ithread;
 		cas_values[ithread].val_ptr = (void*)(uintptr_t)ithread;
@@ -276,42 +206,12 @@ DECLARE_TEST( atomic, cas )
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], &cas_values[ithread] );
 	
-	while( true )
-	{
-		bool not_started = false;
-		for( ithread = 0; ithread < num_threads; ++ithread )
-		{
-			if( !thread_running[ithread] )
-			{
-				if( thread_is_running( threads[ithread] ) )
-					thread_running[ithread] = true;
-				else
-					not_started = true;
-			}
-		}
-		if( !not_started )
-			break;
-		thread_sleep( 1 );
-	}
+	test_wait_for_threads_startup( threads, num_threads );
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_destroy( threads[ithread] );
-	while( true )
-	{
-		bool has_thread = false;
-		for( ithread = 0; ithread < num_threads; ++ithread )
-		{
-			if( thread_is_thread( threads[ithread] ) )
-			{
-				has_thread = true;
-				break;
-			}
-		}
-		if( !has_thread )
-			break;
-		thread_sleep( 10 );
-	}
-	thread_sleep( 100 );
+
+	test_wait_for_threads_exit( threads, num_threads );
 
 	EXPECT_EQ( val_32, 0 );
 	EXPECT_EQ( val_64, 0 );

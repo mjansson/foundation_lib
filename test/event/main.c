@@ -174,7 +174,7 @@ DECLARE_TEST( event, immediate )
 }
 
 
-typedef struct
+typedef struct ALIGN(16) _producer_thread_arg
 {
 	event_stream_t*        stream;
 	tick_t                 max_delay;
@@ -187,18 +187,18 @@ typedef struct
 void* producer_thread( object_t thread, void* arg )
 {
 	uint8_t buffer[256] = {0};
-	producer_thread_arg_t* args = arg;
+	producer_thread_arg_t args = *(producer_thread_arg_t*)arg;
 	unsigned int produced = 0;
 
 	do
 	{
-		if( args->sleep_time )
-			thread_sleep( (int)args->sleep_time );
+		if( args.sleep_time )
+			thread_sleep( (int)args.sleep_time );
 		else
 			thread_yield();
-		event_post( args->stream, random32_range( 1, 256 ), random32_range( 0, 256 ), random32_range( 0, 256 ), args->id, buffer, args->max_delay ? time_current() + random64_range( 0, args->max_delay ) : 0 );
+		event_post( args.stream, random32_range( 1, 256 ), random32_range( 0, 256 ), random32_range( 0, 256 ), args.id, buffer, args.max_delay ? time_current() + random64_range( 0, args.max_delay ) : 0 );
 		++produced;
-	} while( !thread_should_terminate( thread ) && ( time_current() < args->end_time ) );
+	} while( !thread_should_terminate( thread ) && ( time_current() < args.end_time ) );
 
 	return (void*)((uintptr_t)produced);
 }
@@ -229,6 +229,8 @@ DECLARE_TEST( event, immediate_threaded )
 		thread[i] = thread_create( producer_thread, "event_producer", THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[i], args + i );
 	}
+
+	test_wait_for_threads_startup( thread, 32 );
 
 	while( running )
 	{
@@ -273,6 +275,8 @@ DECLARE_TEST( event, immediate_threaded )
 		EXPECT_EQ( read[i], should_have_read );
 		thread_destroy( thread[i] );
 	}
+
+	test_wait_for_threads_exit( thread, 32 );
 
 	return 0;
 }
@@ -441,8 +445,10 @@ DECLARE_TEST( event, delay_threaded )
 
 		read[i] = 0;
 		thread[i] = thread_create( producer_thread, "event_producer", THREAD_PRIORITY_NORMAL, 0 );
-		thread_start( thread[i], args + i );
+		thread_start( thread[i], &args[i] );
 	}
+
+	test_wait_for_threads_startup( thread, 32 );
 
 	while( running )
 	{
@@ -494,6 +500,8 @@ DECLARE_TEST( event, delay_threaded )
 		EXPECT_EQ( read[i], should_have_read );
 		thread_destroy( thread[i] );
 	}
+
+	test_wait_for_threads_exit( thread, 32 );
 
 	return 0;
 }

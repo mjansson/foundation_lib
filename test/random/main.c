@@ -292,7 +292,6 @@ DECLARE_TEST( random, threads )
 {
 	//Launch 32 threads
 	object_t thread[32];
-	bool running = true;
 	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
 	int i, j;
 	real diff;
@@ -305,25 +304,13 @@ DECLARE_TEST( random, threads )
 		thread_start( thread[i], 0 );
 	}
 
-	thread_sleep( 500 );
-
-	while( running )
-	{
-		running = false;
-		for( i = 0; i < 32; ++i )
-		{
-			if( thread_is_running( thread[i] ) )
-			{
-				running = true;
-				thread_sleep( 10 );
-				break;
-			}
-		}
-	}
+	test_wait_for_threads_startup( thread, 32 );
 
 	for( i = 0; i < 32; ++i )
 		thread_destroy( thread[i] );
 	
+	test_wait_for_threads_exit( thread, 32 );
+
 	/*log_debugf( "Bit distribution:" );
 	for( j = 0; j < 32; ++j )
 		log_debugf( "%2d: %d", j, _test_bits[j] );

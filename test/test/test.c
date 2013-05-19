@@ -172,3 +172,69 @@ void main_shutdown( void )
 	foundation_shutdown();
 }
 
+
+void test_wait_for_threads_startup( const object_t* threads, unsigned int num_threads )
+{
+	unsigned int i;
+	bool waiting = true;
+	bool* started = memory_allocate_zero( sizeof( bool ) * num_threads, 0, MEMORY_PERSISTENT );
+
+	while( waiting )
+	{
+		waiting = false;
+		for( i = 0; i < num_threads; ++i )
+		{
+			if( !started[i] )
+			{
+				if( thread_is_started( threads[i] ) )
+					started[i] = true;
+				else
+					waiting = true;
+			}
+		}
+	}
+
+	memory_deallocate( started );
+}
+
+
+void test_wait_for_threads_finish( const object_t* threads, unsigned int num_threads )
+{
+	unsigned int i;
+	bool waiting = true;
+
+	while( waiting )
+	{
+		waiting = false;
+		for( i = 0; i < num_threads; ++i )
+		{
+			if( thread_is_running( threads[i] ) )
+			{
+				waiting = true;
+				break;
+			}
+		}
+	}
+}
+
+
+void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threads )
+{
+	unsigned int i;
+	bool keep_waiting;
+	do
+	{
+		keep_waiting = false;
+		for( i = 0; i < num_threads; ++i )
+		{
+			if( thread_is_thread( threads[i] ) )
+			{
+				keep_waiting = true;
+				break;
+			}
+		}
+		if( keep_waiting )
+			thread_sleep( 10 );
+	} while( keep_waiting );
+}
+

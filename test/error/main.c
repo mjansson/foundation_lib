@@ -220,27 +220,17 @@ DECLARE_TEST( error, thread )
 		thread_start( thread[i], 0 );
 	}
 
-	thread_sleep( 500 );
+	test_wait_for_threads_startup( thread, 32 );
 
-	while( running )
-	{
-		running = false;
-		for( i = 0; i < 32; ++i )
-		{
-			if( thread_is_running( thread[i] ) )
-			{
-				running = true;
-				thread_sleep( 10 );
-				break;
-			}
-		}
-	}
+	test_wait_for_threads_finish( thread, 32 );
 
 	for( i = 0; i < 32; ++i )
 	{
 		EXPECT_EQ( thread_result( thread[i] ), 0 );
 		thread_destroy( thread[i] );
 	}
+
+	test_wait_for_threads_exit( thread, 32 );
 
 	return 0;
 }

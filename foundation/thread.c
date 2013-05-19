@@ -66,7 +66,8 @@ typedef struct ALIGN(16) _foundation_thread
 {
 	FOUNDATION_DECLARE_OBJECT;
 
-	volatile int32_t      running; //Aligned to 16 bytes for atomic
+	volatile int32_t      started; //Aligned to 16 bytes for atomic
+	volatile int32_t      running;
 	volatile int32_t      terminate;
 	uint32_t              stacksize;
 	thread_fn             fn;
@@ -188,6 +189,13 @@ void thread_destroy( object_t id )
 }
 
 
+bool thread_is_started( object_t id )
+{
+	thread_t* thread = GET_THREAD( id );
+	return ( thread && ( thread->started > 0 ) );
+}
+
+
 bool thread_is_running( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
@@ -205,7 +213,7 @@ bool thread_is_thread( object_t id )
 void* thread_result( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
-	return ( !thread || thread->running ) ? 0 : thread->result;
+	return ( !thread || !thread->started || thread->running ) ? 0 : thread->result;
 }
 
 
@@ -305,6 +313,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	thread_t* thread = GET_THREAD_PTR( data );
 
 	atomic_incr32( &thread->ref );
+	atomic_cas32( &thread->started, 1, 0 );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
 		log_warnf( WARNING_SUSPICIOUS, "Unable to enter thread %llx, already running", thread->id );
@@ -388,6 +397,8 @@ bool thread_start( object_t id, void* data )
 		log_warnf( WARNING_SUSPICIOUS, "Unable to start thread %llx, already running", id );
 		return false; //Thread already running
 	}
+
+	atomic_cas32( &thread->started, 0, 1 );
 
 	thread->arg = data;
 

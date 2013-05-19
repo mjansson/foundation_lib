@@ -85,7 +85,7 @@ DECLARE_TEST( crash, crash_thread )
 	thread_sleep( 100 );
 	thread_terminate( thread );
 	thread_destroy( thread );
-	while( thread_is_running( thread ) )
+	while( thread_is_thread( thread ) )
 		thread_yield();
 	thread_sleep( 100 );
 	

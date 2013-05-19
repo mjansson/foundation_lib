@@ -94,7 +94,6 @@ DECLARE_TEST( mutex, sync )
 	mutex_t* mutex;
 	object_t thread[32];
 	int ith;
-	bool running;
 
 	mutex = mutex_allocate( "test" );
 	mutex_lock( mutex );
@@ -105,25 +104,14 @@ DECLARE_TEST( mutex, sync )
 		thread_start( thread[ith], mutex );
 	}
 
-	thread_sleep( 500 );
+	test_wait_for_threads_startup( thread, 32 );
 	
 	for( ith = 0; ith < 32; ++ith )
 		thread_destroy( thread[ith] );
 
 	mutex_unlock( mutex );
 
-	do
-	{
-		running = false;
-		for( ith = 0; ith < 32; ++ith )
-		{
-			if( thread_is_thread( thread[ith] ) )
-			{
-				running = true;
-				break;
-			}
-		}
-	} while( running );
+	test_wait_for_threads_exit( thread, 32 );
 	
 	mutex_deallocate( mutex );
 
@@ -158,7 +146,6 @@ DECLARE_TEST( mutex, signal )
 	mutex_t* mutex;
 	object_t thread[32];
 	int ith;
-	bool running;
 
 	mutex = mutex_allocate( "test" );
 	mutex_lock( mutex );
@@ -171,25 +158,14 @@ DECLARE_TEST( mutex, signal )
 
 	mutex_unlock( mutex );
 	
-	thread_sleep( 500 );
+	test_wait_for_threads_startup( thread, 32 );
 	
 	mutex_signal( mutex );
 
 	for( ith = 0; ith < 32; ++ith )
 		thread_destroy( thread[ith] );
 	
-	do
-	{
-		running = false;
-		for( ith = 0; ith < 32; ++ith )
-		{
-			if( thread_is_thread( thread[ith] ) )
-			{
-				running = true;
-				break;
-			}
-		}
-	} while( running );
+	test_wait_for_threads_exit( thread, 32 );
 
 	EXPECT_EQ( thread_waited, 32 );
 
