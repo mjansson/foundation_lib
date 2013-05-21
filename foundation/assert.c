@@ -60,12 +60,19 @@ int assert_report( const char* condition, const char* file, int line, const char
 	error_context_buffer( _assert_context_buffer, ASSERT_BUFFER_SIZE );
 
 	_assert_stacktrace_buffer[0] = 0;
-	if( stacktrace_capture( _assert_stacktrace, 128, 1 ) > 0 )
+	if( foundation_is_initialized() )
 	{
-		//TODO: Resolve directly into buffer to avoid memory allocations in assert handler
-		char* trace = stacktrace_resolve( _assert_stacktrace, 128, 0 );
-		string_copy( _assert_stacktrace_buffer, trace, ASSERT_BUFFER_SIZE );
-		string_deallocate( trace );
+		if( stacktrace_capture( _assert_stacktrace, 128, 1 ) > 0 )
+		{
+			//TODO: Resolve directly into buffer to avoid memory allocations in assert handler
+			char* trace = stacktrace_resolve( _assert_stacktrace, 128, 0 );
+			string_copy( _assert_stacktrace_buffer, trace, ASSERT_BUFFER_SIZE );
+			string_deallocate( trace );
+		}
+	}
+	else
+	{
+		string_copy( _assert_stacktrace_buffer, "<no stacktrace - not initialized>", ASSERT_BUFFER_SIZE );
 	}
 	
 	ret = snprintf( _assert_box_buffer, (size_t)ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg, _assert_stacktrace_buffer );

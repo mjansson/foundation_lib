@@ -50,6 +50,8 @@ extern void android_main( struct android_app* );
 extern int main( int, char** );
 #endif
 
+static bool _foundation_initialized = false;
+
 
 int foundation_initialize( const memory_system_t memory, const application_t application )
 {
@@ -88,6 +90,8 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( (uintptr_t)main < 1 )
 		return -1;
 #endif
+
+	_foundation_initialized = true;
 	
 	return 0;
 }
@@ -101,6 +105,8 @@ void foundation_startup( void )
 
 void foundation_shutdown( void )
 {
+	_foundation_initialized = false;
+
 	_config_shutdown();
 	_fs_shutdown();
 	_system_shutdown();
@@ -110,4 +116,10 @@ void foundation_shutdown( void )
 	_thread_shutdown();
 	_time_shutdown();
 	_memory_shutdown();
+}
+
+
+bool foundation_is_initialized( void )
+{
+	return _foundation_initialized;
 }

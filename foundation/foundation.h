@@ -72,3 +72,6 @@ FOUNDATION_API int         foundation_initialize( const memory_system_t memory, 
 
 //! Exit point
 FOUNDATION_API void        foundation_shutdown( void );
+
+//! Query if initialized
+FOUNDATION_API bool        foundation_is_initialized( void );
