@@ -177,24 +177,19 @@ void test_wait_for_threads_startup( const object_t* threads, unsigned int num_th
 {
 	unsigned int i;
 	bool waiting = true;
-	bool* started = memory_allocate_zero( sizeof( bool ) * num_threads, 0, MEMORY_PERSISTENT );
 
 	while( waiting )
 	{
 		waiting = false;
 		for( i = 0; i < num_threads; ++i )
 		{
-			if( !started[i] )
+			if( !thread_is_started( threads[i] ) )
 			{
-				if( thread_is_started( threads[i] ) )
-					started[i] = true;
-				else
-					waiting = true;
+				waiting = true;
+				break;
 			}
 		}
 	}
-
-	memory_deallocate( started );
 }
 
 
