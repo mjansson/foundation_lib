@@ -66,7 +66,8 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 	"unknown type",
 	"unknown resource",
 	"memory alignment",
-	"deprecated"
+	"deprecated",
+	"assert"
 };
 
 #define make_timestamp()  ((float32_t)( (real)( time_current() - time_startup() ) / (real)time_ticks_per_second() ))

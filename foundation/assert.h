@@ -51,7 +51,9 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_ASSERT_MSG( cond, msg ) /*lint -save -e717 */ do { if( ( !(cond) ) && assert_report_formatted( #cond, __FILE__, __LINE__, msg ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) /*lint -save -e717 */ do { if( ( !(cond) ) && assert_report_formatted( #cond, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_FAIL( msg ) /*lint -save -e717 */ do { if( assert_report( 0, __FILE__, __LINE__, (msg) ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */
+#  define FOUNDATION_ASSERT_FAIL_LOG( msg ) /*lint -save -e717 */ do { if( assert_report( 0, __FILE__, __LINE__, (msg) ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) /*lint -save -e717 */ do { if( assert_report_formatted( 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */
+#  define FOUNDATION_ASSERT_FAILFORMAT_LOG( msg, ... ) /*lint -save -e717 */ do { if( assert_report_formatted( 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_RETURN( cond ) /*lint -save -e717 */ do { if( ( !(cond) ) && assert_report( #cond, __FILE__, __LINE__, 0 ) ) FOUNDATION_BREAKPOINT(); return; } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { FOUNDATION_ASSERT_MSG( ( (uintptr_t)(addr) % (uintptr_t)(alignment) ) == 0, "Mis-aligned memory" ); } while(0) /*lint -restore */
 
@@ -67,7 +69,9 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_ASSERT_MSG( cond, msg ) /*lint -save -e717 */ do { (void)sizeof( cond ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( cond ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_FAIL( msg ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define FOUNDATION_ASSERT_FAIL_LOG( msg ) /*lint -save -e717 */ do { log_errorf( ERROR_ASSERT, "%s", msg ); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define FOUNDATION_ASSERT_FAILFORMAT_LOG( msg, ... ) /*lint -save -e717 */ do { log_errorf( ERROR_ASSERT, msg, __VA_ARGS__ ); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_RETURN( cond ) /*lint -save -e717 */ do { if( !(cond) ) return; } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0) /*lint -restore */
 #  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) /*lint -save -e717 */ do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0) /*lint -restore */
