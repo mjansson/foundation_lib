@@ -71,6 +71,10 @@ FOUNDATION_API void     log_enable_prefix( bool enable );
     \param level        Severity level to discard */
 FOUNDATION_API void     log_suppress( error_level_t level );
 
+/*! Get current log supression level
+    \return             Severity level begin discarded */
+FOUNDATION_API error_level_t  log_get_suppression( void );
+
 #else
 #  define               log_infof( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define               log_warnf( warn, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
@@ -81,5 +85,6 @@ FOUNDATION_API void     log_suppress( error_level_t level );
 #  define               log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( callback ); } while(0) /*lint -restore */
 #  define               log_enable_prefix( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
 #  define               log_suppress( level ) /*lint -save -e717 */ do { (void)sizeof( level ); } while(0) /*lint -restore */
+#  define               log_get_suppression() ERRORLEVEL_NONE
 #endif
 

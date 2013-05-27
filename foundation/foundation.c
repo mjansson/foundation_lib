@@ -82,6 +82,18 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _config_initialize() < 0 )
 		return -1;
 
+	//Parse built-in command line options
+	{
+		const char* const* cmdline = environment_command_line();
+		for( unsigned int iarg = 0, argsize = array_size( cmdline ); iarg < argsize; ++iarg )
+		{
+			if( string_equal( cmdline[iarg], "--log-debug" ) )
+				log_suppress( ERRORLEVEL_NONE );
+			else if( string_equal( cmdline[iarg], "--log-info" ) )
+				log_suppress( ERRORLEVEL_DEBUG );
+		}
+	}
+
 	//Artificial reference and sanity check
 #if FOUNDATION_PLATFORM_ANDROID
 	if( (uintptr_t)android_main < 1 )

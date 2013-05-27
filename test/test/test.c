@@ -100,7 +100,6 @@ void test_run( void )
 	void* result;
 	object_t thread;
 
-	log_suppress( ERRORLEVEL_DEBUG );
 	log_infof( "Running test suite: %s", environment_application()->short_name );
 
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
@@ -151,6 +150,8 @@ void test_free( void )
 
 int main_initialize( void )
 {
+	log_suppress( ERRORLEVEL_DEBUG );
+	
 	return foundation_initialize( memory_system_malloc(), test_application() );
 }
 

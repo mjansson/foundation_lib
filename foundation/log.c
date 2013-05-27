@@ -284,4 +284,10 @@ void log_suppress( error_level_t level )
 	_log_suppress = level;
 }
 
+
+error_level_t log_get_suppression( void )
+{
+	return _log_suppress;
+}
+
 #endif
