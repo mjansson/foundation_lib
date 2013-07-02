@@ -76,7 +76,10 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 		{
 			block->capacity += BLOCK_CHUNK_SIZE;
 			FOUNDATION_ASSERT_MSG( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > 4Mb" );
+			error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
 		}
+		if( block->capacity % 16 )
+			block->capacity += 16 - ( basesize % 16 );			
 		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16 ) : memory_allocate( block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
 	}
 

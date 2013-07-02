@@ -9,3 +9,7 @@ HASH_APPLICATION                        application
 HASH_USER                               user
 HASH_DAEMON                             daemon
 HASH_TEMPORARY_MEMORY                   temporary_memory
+HASH_MEMORY_TRACKER                     memory_tracker
+HASH_LOCAL                              local
+HASH_REMOTE                             remote
+HASH_NONE                               none

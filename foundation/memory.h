@@ -42,4 +42,15 @@ FOUNDATION_API void              memory_context_thread_deallocate( void );
 
 #endif
 
+#if BUILD_ENABLE_MEMORY_TRACKER
+
+FOUNDATION_API void              memory_set_tracker( memory_tracker_t tracker );
+
+#else
+
+#define memory_tracking( tracker )         /*lint -save -e506 -e751 */ do { (void)sizeof( tracker ); } while(0) /*lint -restore -e506 -e751 */
+
+#endif
+
 FOUNDATION_API memory_system_t   memory_system_malloc( void );
+FOUNDATION_API memory_tracker_t  memory_tracker_local( void );

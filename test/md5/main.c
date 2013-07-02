@@ -164,7 +164,6 @@ DECLARE_TEST( md5, streams )
 	stream_deallocate( test_stream );
 
 	EXPECT_TRUE( uint128_equal( digest, uint128_make( 0x230e0a23943c7d13ULL, 0xd2ccac7ec9df4d0cULL ) ) );
-	stream_deallocate( test_stream );
 	
 	unix_stream = buffer_stream_allocate( (void*)unix_buffer, STREAM_IN, string_length( unix_buffer ), string_length( unix_buffer ), false, false );
 	windows_stream = buffer_stream_allocate( (void*)windows_buffer, STREAM_IN, string_length( windows_buffer ), string_length( windows_buffer ), false, false );

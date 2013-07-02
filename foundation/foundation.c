@@ -50,6 +50,10 @@ extern void android_main( struct android_app* );
 extern int main( int, char** );
 #endif
 
+#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+extern void _static_hash_cleanup( void );
+#endif
+
 static bool _foundation_initialized = false;
 
 
@@ -92,6 +96,8 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 			else if( string_equal( cmdline[iarg], "--log-info" ) )
 				log_suppress( ERRORLEVEL_DEBUG );
 		}
+
+		config_parse_commandline( cmdline, array_size( cmdline ) );
 	}
 
 	//Artificial reference and sanity check
@@ -127,6 +133,11 @@ void foundation_shutdown( void )
 	_random_shutdown();
 	_thread_shutdown();
 	_time_shutdown();
+
+#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+	_static_hash_cleanup();
+#endif
+	
 	_memory_shutdown();
 }
 

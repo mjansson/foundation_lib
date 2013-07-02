@@ -408,8 +408,11 @@ int process_spawn( process_t* proc )
 	proc->args[0] = string_clone( proc->path );
 	proc->args[argc] = 0;
 
-	proc->pipeout = pipe_allocate();
-	proc->pipein = pipe_allocate();
+	if( proc->flags & PROCESS_STDSTREAMS )
+	{
+		proc->pipeout = pipe_allocate();
+		proc->pipein = pipe_allocate();
+	}
 	
 	proc->pid = 0;	
 	pid_t pid = fork();
@@ -425,11 +428,14 @@ int process_spawn( process_t* proc )
 
 		log_debugf( "Child process executing: %s", proc->path );
 
-		pipe_close_read( proc->pipeout );
-		dup2( pipe_write_fd( proc->pipeout ), STDOUT_FILENO );
+		if( proc->flags & PROCESS_STDSTREAMS )
+		{
+			pipe_close_read( proc->pipeout );
+			dup2( pipe_write_fd( proc->pipeout ), STDOUT_FILENO );
 
-		pipe_close_write( proc->pipein );
-		dup2( pipe_read_fd( proc->pipein ), STDIN_FILENO );
+			pipe_close_write( proc->pipein );
+			dup2( pipe_read_fd( proc->pipein ), STDIN_FILENO );
+		}
 
 		char* envp[] = { 0 };
 		
@@ -447,8 +453,10 @@ int process_spawn( process_t* proc )
 
 		proc->pid = pid;
 
-		pipe_close_write( proc->pipeout );
-		pipe_close_read( proc->pipein );
+		if( proc->pipeout )
+			pipe_close_write( proc->pipeout );
+		if( proc->pipein )
+			pipe_close_read( proc->pipein );
 		
 		if( proc->flags & PROCESS_DETACHED )
 		{
@@ -475,8 +483,10 @@ int process_spawn( process_t* proc )
 		proc->code = errno;
 		log_warnf( WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
 
-		stream_deallocate( proc->pipeout );
-		stream_deallocate( proc->pipein );
+		if( proc->pipeout )
+			stream_deallocate( proc->pipeout );
+		if( proc->pipein )
+			stream_deallocate( proc->pipein );
 
 		proc->pipeout = 0;
 		proc->pipein = 0;

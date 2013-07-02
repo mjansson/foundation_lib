@@ -122,6 +122,8 @@ hashify_input_t hashify_parse_command_line( const char* const* cmdline )
 		}
 		else if( string_equal( cmdline[arg], "--" ) )
 			break; //Stop parsing cmdline options
+		else if( ( string_length( cmdline[arg] ) > 2 ) && string_equal_substr( cmdline[arg], "--", 2 ) )
+			continue; //Cmdline argument not parsed here			
 
 		array_push( input.files, string_clone( cmdline[arg] ) );
 	}

@@ -219,10 +219,10 @@ void _config_shutdown( void )
 					if( ( key[ik].type != CONFIGVALUE_STRING_CONST ) && ( key[ik].type != CONFIGVALUE_STRING_CONST_VAR ) )
 						string_deallocate( key[ik].sval );
 				}
-				array_deallocate( section[is].key[ikb] );
+				array_deallocate( key );
 			}
 		}
-		array_deallocate( _config_section[is] );
+		array_deallocate( section );
 	}
 }
 
@@ -778,13 +778,58 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 
 void config_parse_commandline( const char* const* cmdline, unsigned int num )
 {
-	//TODO: Implement, format --config section:key=value
+	//TODO: Implement, format --section:key=value
 	unsigned int arg;
 	for( arg = 0; arg < num; ++arg )
 	{
-		if( string_equal( cmdline[arg], "--config" ) )
+		if( string_match_pattern( cmdline[arg], "--*:*=*" ) )
 		{
+			unsigned int first_sep = string_find( cmdline[arg], ':', 0 );
+			unsigned int second_sep = string_find( cmdline[arg], '=', 0 );
+			if( ( first_sep != STRING_NPOS ) && ( second_sep != STRING_NPOS ) && ( first_sep < second_sep ) )
+			{
+				unsigned int section_length = first_sep - 2;
+				unsigned int key_length = second_sep - first_sep - 1;
 
+				const char* section_str = cmdline[arg] + 2;
+				const char* key_str = cmdline[arg] + ( first_sep + 1 );
+				
+				hash_t section = hash( section_str, section_length );
+				hash_t key = hash( key_str, key_length );
+				
+				char* value = string_substr( cmdline[arg], second_sep + 1, STRING_NPOS );
+				char* set_value = value;
+				
+				unsigned int value_length = string_length( value );
+				
+				if( !value_length )
+					config_set_string( section, key, "" );
+				else if( string_equal( value, "false" ) )
+					config_set_bool( section, key, false );
+				else if( string_equal( value, "true" ) )
+					config_set_bool( section, key, true );
+				else if( ( string_find( value, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value, "0123456789.", 0 ) == STRING_NPOS ) && ( string_find( value, '.', string_find( value, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
+					config_set_real( section, key, string_to_real( value ) );
+				else if( string_find_first_not_of( value, "0123456789", 0 ) == STRING_NPOS )
+					config_set_int( section, key, string_to_int64( value ) );
+				else
+				{
+					if( ( value_length > 1 ) && ( value[0] == '"' ) && ( value[ value_length - 1 ] == '"' ) )
+					{
+						value[ value_length - 1 ] = 0;
+						set_value = value + 1;
+						config_set_string( section, key, set_value );
+					}
+					else
+					{
+						config_set_string( section, key, value );
+					}
+				}
+
+				log_infof( "Config value from command line: %.*s:%.*s = %s", section_length, section_str, key_length, key_str, set_value );
+				
+				string_deallocate( value );
+			}	
 		}
 	}
 }

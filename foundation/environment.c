@@ -19,6 +19,7 @@ static char    _environment_wd[FOUNDATION_MAX_PATHLEN] = {0};
 #endif
 static char    _environment_executable_name[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_executable_dir[FOUNDATION_MAX_PATHLEN] = {0};
+static char    _environment_executable_path[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN] = {0};
@@ -68,6 +69,7 @@ static void _environment_set_executable_paths( const char* executable_path )
 	if( ( last_path > 4 ) && ( string_equal( _environment_executable_name + ( last_path - 4 ), ".exe" ) || string_equal( _environment_executable_name + ( last_path - 4 ), ".EXE" ) ) )
 		_environment_executable_name[ last_path - 4 ] = 0;
 #endif
+	string_copy( _environment_executable_path, executable_path, FOUNDATION_MAX_PATHLEN );
 }
 
 
@@ -212,6 +214,12 @@ const char* environment_executable_name( void )
 const char* environment_executable_directory( void )
 {
 	return _environment_executable_dir;
+}
+
+
+const char* environment_executable_path( void )
+{
+	return _environment_executable_path;
 }
 
 

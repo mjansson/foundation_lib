@@ -14,38 +14,46 @@
 
 /*! \file array.h
     Simple resizable array of integral/POD types. All functions are "unsafe" (not range checked)
-	unless marked as "_safe". Adapted and extended from stb_arr at http://nothings.org/stb.h */
+	unless marked as "_safe". Safe to pass null pointers to all methods, array storage will be allocated and
+    assigned as needed. Adapted and extended from stb_arr at http://nothings.org/stb.h */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 
-// Free array memory and reset pointer to zero
+//! Free array memory and reset pointer to zero.
 #define array_deallocate( array )                           ( _array_verify( array ) ? memory_deallocate( _array_raw( array ) ), (array)=0, 0 : 0 )
 
-// Get capacity of buffer in number of elements
+//! Get capacity of buffer in number of elements.
 #define array_capacity( array )                             ( _array_verify( array ) ? _array_rawcapacity_const( array ) : 0 )
 
-// Reserve storage for given number of elements (never reduces storage and does not affect number of currently stored elements)
-#define array_reserve( array, capacity )                    ( (void)_array_maybegrowfixed( array , (capacity) - array_capacity( array ) ) )
+//! Reserve storage for given number of elements (never reduces storage and does not affect number of currently stored elements).
+#define array_reserve( array, capacity )                    ( (void)_array_maybegrowfixed( array, (capacity) - array_capacity( array ) ) )
 
-// Get number of currently stored elements
+//! Get number of currently stored elements. Safe to pass null pointer.
 #define array_size( array )                                 ( _array_verify( array ) ? _array_rawsize_const( array ) : 0 )
 
-// Add/remove elements without initialization (set new size to size+num and allocate new storage if needed)
+//! Add/remove elements without initialization (set new size to size+num and allocate new storage if needed).
 #define array_grow( array, num )                            ( ( (num) > 0 ? array_reserve( array, array_size( array ) + (num) ), 0 : 0 ), ( _array_verify( array ) ? _array_rawsize( array ) += (num) : 0 ), 0 )
 
-// Set size to 0 (does not affect capacity or resize storage buffer)
+//! Set size to 0 (does not affect capacity or resize storage buffer).
 #define array_clear( array )                                ( _array_verify( array ) ? _array_rawsize( array ) = 0, 0 : 0 )
 
-//Copy content of one array to another, allocating more storage if needed
+//! Copy content of one array to another, allocating more storage if needed.
 #define array_copy( dst, src )                              ( _array_verify( src ) && ( sizeof( *(src) ) == sizeof( *(dst) ) ) ? ( _array_maybegrowfixed( (dst), ( _array_rawsize_const( src )- ( _array_verify( dst ) ? ( _array_rawsize( dst ) ) : 0 ) ) ) ), memcpy( (dst), (src), ( _array_rawsize_const( src ) ) * sizeof( *(src) ) ), ( _array_rawsize( dst ) = _array_rawsize_const( src ) ), 0 : array_clear( dst ), 0 )
 
-//Add element
+//! Add element at end of array
 #define array_push( array, element )                        ( (void)_array_maybegrow( array, 1 ), (array)[ _array_rawsize( array )++ ] = (element) )
+
+//! Add element at end of array, copy data using memcpy
 #define array_push_memcpy( array, elementptr )              ( (void)_array_maybegrow( array, 1 ), memcpy( (array) + _array_rawsize( array )++, (elementptr), sizeof( *(elementptr) ) ) )
+
+//! Add element at given position in array. Position is NOT range checked. Existing elements are moved using memmove.
 #define array_insert( array, pos, element )                 ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), sizeof( *(array) ) * ( _array_rawsize( array )++ - (pos) ) ), (array)[(pos)] = (element) )
+
+//! Add element at given position in array, copy data using memcpy. Position is NOT range checked. Existing elements are moved using memmove.
 #define array_insert_memcpy( array, pos, elementptr )       ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), sizeof( *(array) ) * ( _array_rawsize( array )++ - (pos) ) ), memcpy( (array) + (pos), (elementptr), sizeof( *array ) ) )
+
 #define array_insert_safe( array, pos, element )            do { int _clamped_pos = math_clamp( (pos), 0, array_size( array ) ); array_insert( array, _clamped_pos, element ); } while(0)
 #define array_insert_memcpy_safe( array, pos, elementptr )  do { int _clamped_pos = math_clamp( (pos), 0, array_size( array ) ); array_insert_memcpy( array, _clamped_pos, elementptr ); } while(0)
 

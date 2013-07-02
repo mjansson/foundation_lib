@@ -120,6 +120,9 @@ int main_run( void* main_arg )
 
 exit:
 
+	if( exe_paths )
+		string_array_deallocate( exe_paths );
+	
 	thread_terminate( thread );
 	thread_destroy( thread );
 	while( thread_is_running( thread ) )

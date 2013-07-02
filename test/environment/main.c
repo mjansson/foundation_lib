@@ -39,8 +39,8 @@ void test_shutdown( void )
 DECLARE_TEST( environment, builtin )
 {
 	char const* const* cmdline = environment_command_line();
-	
-	EXPECT_EQ( array_size( cmdline ), 1 );
+
+	EXPECT_GE( array_size( cmdline ), 1 );
 	EXPECT_NE( string_find_string( cmdline[0], "test-environment", 0 ), STRING_NPOS );
 
 	EXPECT_STREQ( environment_executable_name(), "test-environment" );

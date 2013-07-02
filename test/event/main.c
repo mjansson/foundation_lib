@@ -167,7 +167,6 @@ DECLARE_TEST( event, immediate )
 	EXPECT_EQ( event_payload_size( event ), 40 );
 	last_serial = event->serial;
 
-
 	event_stream_deallocate( stream );
 
 	return 0;
@@ -265,7 +264,6 @@ DECLARE_TEST( event, immediate_threaded )
 	{
 		EXPECT_LE( event_payload_size( event ), 256 );
 		++read[ event->object ];
-		running = true;
 		event = event_next( block, event );
 	}
 
@@ -278,6 +276,8 @@ DECLARE_TEST( event, immediate_threaded )
 
 	test_wait_for_threads_exit( thread, 32 );
 
+	event_stream_deallocate( stream );
+	
 	return 0;
 }
 
@@ -417,6 +417,8 @@ DECLARE_TEST( event, delay )
 	EXPECT_EQ( expect_event, FOUNDATIONEVENT_TERMINATE + 2 );
 	EXPECT_LE( time_current(), limit );
 
+	event_stream_deallocate( stream );
+	
 	return 0;
 }
 
@@ -503,6 +505,8 @@ DECLARE_TEST( event, delay_threaded )
 
 	test_wait_for_threads_exit( thread, 32 );
 
+	event_stream_deallocate( stream );
+	
 	return 0;
 }
 

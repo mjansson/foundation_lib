@@ -17,6 +17,7 @@
 #endif
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
+#  include <malloc.h>
 #endif
 
 
@@ -34,6 +35,18 @@ typedef ALIGN(8) struct
 } atomic_linear_memory_t;
 
 static atomic_linear_memory_t _memory_temporary = {0};
+
+
+#if BUILD_ENABLE_MEMORY_TRACKER
+static memory_tracker_t _memory_tracker = {0};
+static void _memory_track( void* addr, uint64_t size );
+static void _memory_untrack( void* addr );
+static void _memory_report( void );
+#else
+#define _memory_track( addr, size ) do { (void)sizeof( (addr) ); (void)sizeof( (size) ); } while(0)
+#define _memory_untrack( addr ) do { (void)sizeof( (addr) ); } while(0)
+#define _memory_report()
+#endif
 
 
 static void _atomic_allocate_initialize( uint64_t storagesize )
@@ -75,7 +88,7 @@ static void* _atomic_allocate_linear( uint64_t chunksize )
 			return_pointer = _memory_temporary.storage;
 		}
 	} while( !atomic_cas_ptr( &_memory_temporary.head, new_head, old_head ) );
-
+	
 	return return_pointer;
 }
 
@@ -121,13 +134,22 @@ int _memory_initialize( const memory_system_t memory )
 
 void _memory_preallocate( void )
 {
+	hash_t tracker;
+	
 	if( !_memory_temporary.storage )
 		_atomic_allocate_initialize( config_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY ) );
+
+	tracker = config_string_hash( HASH_FOUNDATION, HASH_MEMORY_TRACKER );
+	if( tracker == HASH_LOCAL )
+		memory_set_tracker( memory_tracker_local() );
 }
 
 
 void _memory_shutdown( void )
 {
+	memory_tracker_t no_tracker = {0};
+	memory_set_tracker( no_tracker );
+	
 	_atomic_allocate_shutdown();
 	_memsys.shutdown();
 }
@@ -135,53 +157,70 @@ void _memory_shutdown( void )
 
 void* memory_allocate( uint64_t size, unsigned int align, memory_hint_t hint )
 {
+	void* p;
 	if( ( hint == MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
 	{
 		align = _memory_get_align( align );
-		return _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
+		p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
 	}
-	return _memsys.allocate( memory_context(), size, align, hint );
+	else
+	{		
+		p = _memsys.allocate( memory_context(), size, align, hint );
+	}
+	_memory_track( p, size );
+	return p;
 }
 
 
 void* memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hint )
 {
+	void* p;
 	if( ( hint == MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
 	{
-		void* buffer = 0;
 		align = _memory_get_align( align );
-		buffer = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
-		memset( buffer, 0, (size_t)size );
-		return buffer;
+		p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
+		memset( p, 0, (size_t)size );
 	}
-	return _memsys.allocate_zero( memory_context(), size, align, hint );
+	else
+	{
+		p = _memsys.allocate_zero( memory_context(), size, align, hint );
+	}
+	_memory_track( p, size );
+	return p;
 }
 
 
 void* memory_allocate_context( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint )
 {
-	return _memsys.allocate( context, size, align, hint );
+	void* p = _memsys.allocate( context, size, align, hint );
+	_memory_track( p, size );
+	return p;
 }
 
 
 void* memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint )
 {
-	return _memsys.allocate_zero( context, size, align, hint );
+	void* p = _memsys.allocate_zero( context, size, align, hint );
+	_memory_track( p, size );
+	return p;
 }
 
 
 void* memory_reallocate( void* p, uint64_t size, unsigned int align )
 {
 	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p >= _memory_temporary.end ), "Trying to reallocate temporary memory" );
-	return _memsys.reallocate( p, size, align );
+	_memory_untrack( p );
+	p = _memsys.reallocate( p, size, align );
+	_memory_track( p, size );
+	return p;
 }
 
 
 void memory_deallocate( void* p )
 {
-	if( ( p >= _memory_temporary.storage ) || ( p < _memory_temporary.end ) )
-		return; //Temporary memory
-	_memsys.deallocate( p );
+	if( ( p < _memory_temporary.storage ) || ( p >=_memory_temporary.end ) )
+		_memsys.deallocate( p );
+	_memory_untrack( p );
 }
 
 
@@ -244,10 +283,14 @@ static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned 
 	void* memory = 0;
 	if( !align )
 		return malloc( (size_t)size );
-	int result = posix_memalign( &memory, align, (size_t)size );
+	/*int result = posix_memalign( &memory, align, (size_t)size );	
 	if( result || !memory )
 		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
-	return ( result == 0 ) ? memory : 0;
+	return ( result == 0 ) ? memory : 0;*/
+	memory = aligned_alloc( align, (size_t)size );
+	if( !memory )
+		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
+	return memory;
 #else
 	void* memory = malloc( size + align );
 	memory = _memory_align_pointer( memory, align );
@@ -273,8 +316,18 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #else
 	if( align )
 	{
-		void* memory = realloc( p, (size_t)( size + align ) );
-		memory = _memory_align_pointer( memory, align );
+		//No realloc aligned available
+		void* memory = aligned_alloc( align, (size_t)size );
+		if( !memory )
+		{
+			log_panicf( ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
+			return 0;
+		}
+		if( p )
+		{
+			size_t prev_size = malloc_usable_size( p );
+			memcpy( memory, p, ( size < prev_size ) ? size : prev_size );
+		}
 		return memory;
 	}
 	return realloc( p, (size_t)size );
@@ -319,3 +372,148 @@ memory_system_t memory_system_malloc( void )
 }
 
 
+#if BUILD_ENABLE_MEMORY_TRACKER
+
+
+void memory_set_tracker( memory_tracker_t tracker )
+{
+	memory_tracker_t no_tracker = {0};
+	memory_tracker_t old_tracker = _memory_tracker;
+
+	if( ( old_tracker.track == tracker.track ) && ( old_tracker.untrack == tracker.untrack ) )
+		return;
+	
+	_memory_tracker = no_tracker;
+	
+	if( old_tracker.shutdown )
+		old_tracker.shutdown();
+	
+	if( tracker.initialize )
+		tracker.initialize();
+
+	_memory_tracker = tracker;
+}
+
+
+static void _memory_track( void* addr, uint64_t size )
+{
+	if( _memory_tracker.track )
+		_memory_tracker.track( addr, size );
+}
+
+
+static void _memory_untrack( void* addr )
+{
+	if( _memory_tracker.untrack )
+		_memory_tracker.untrack( addr );
+}
+
+
+static void _memory_report( void )
+{
+}
+
+
+typedef struct ALIGN(8) _foundation_memory_tag
+{
+	void*         address;
+	uintptr_t     size;
+	void*         trace[14];
+} memory_tag_t;
+
+
+hashtable_t*       _memory_table = 0;
+memory_tag_t*      _memory_tags = 0;
+ALIGN(8) int32_t   _memory_tag_next = 0;
+
+#define MAX_CONCURRENT_ALLOCATIONS 32 * 1024
+
+
+static int _memory_tracker_initialize( void )
+{
+	log_debugf( "Initializing local memory tracker" );
+	if( !_memory_tags )
+		_memory_tags = memory_allocate_zero( sizeof( memory_tag_t ) * MAX_CONCURRENT_ALLOCATIONS, 16, MEMORY_PERSISTENT );
+	if( !_memory_table )
+		_memory_table = hashtable_allocate( MAX_CONCURRENT_ALLOCATIONS );
+	return 0;
+}
+
+
+static void _memory_tracker_shutdown( void )
+{
+	if( _memory_table )
+		hashtable_deallocate( _memory_table );
+	if( _memory_tags )
+	{
+		bool got_leaks = false;
+
+		log_debugf( "Checking for memory leaks" );
+		for( unsigned int it = 0; it < MAX_CONCURRENT_ALLOCATIONS; ++it )
+		{
+			memory_tag_t* tag = _memory_tags + it;
+			if( tag->address )
+			{
+				char* trace = stacktrace_resolve( tag->trace, 14, 0 );
+				log_warnf( WARNING_MEMORY, "Memory leak: %d bytes @ " STRING_FORMAT_POINTER " : tag %d\n%s", (unsigned int)tag->size, tag->address, it, trace );
+				string_deallocate( trace );
+				got_leaks = true;
+			}
+		}
+		memory_deallocate( _memory_tags );
+
+		if( !got_leaks )
+			log_debugf( "No memory leaks detected" );
+	}
+}
+
+
+static void _memory_tracker_track( void* addr, uint64_t size )
+{
+	if( addr ) do
+	{
+		int32_t tag = atomic_exchange_and_add32( &_memory_tag_next, 1 );
+		if( tag >= MAX_CONCURRENT_ALLOCATIONS )
+		{
+			int32_t newtag = tag % MAX_CONCURRENT_ALLOCATIONS;
+			atomic_cas32( &_memory_tag_next, newtag, tag + 1 );
+			tag = newtag;
+		}
+		if( !_memory_tags[ tag ].address && atomic_cas_ptr( &_memory_tags[ tag ].address, addr, 0 ) )
+		{
+			_memory_tags[ tag ].size = (uintptr_t)size;
+			stacktrace_capture( _memory_tags[ tag ].trace, 14, 3 );
+			hashtable_set( _memory_table, (uintptr_t)addr, (uintptr_t)( tag + 1 ) );
+			return;
+		}
+	} while( true );
+}
+
+
+static void _memory_tracker_untrack( void* addr )
+{
+	uintptr_t tag = addr ? hashtable_get( _memory_table, (uintptr_t)addr ) : 0;
+	if( tag )
+	{
+		--tag;
+		_memory_tags[ tag ].address = 0;
+	}
+	//else if( addr )
+	//	log_warnf( WARNING_SUSPICIOUS, "Untracked deallocation: " STRING_FORMAT_POINTER, addr );
+}
+
+
+#endif
+
+
+memory_tracker_t memory_tracker_local( void )
+{
+	memory_tracker_t tracker = {0};
+#if BUILD_ENABLE_MEMORY_TRACKER
+	tracker.track = _memory_tracker_track;
+	tracker.untrack = _memory_tracker_untrack;
+	tracker.initialize = _memory_tracker_initialize;
+	tracker.shutdown = _memory_tracker_shutdown;
+#endif
+	return tracker;
+}

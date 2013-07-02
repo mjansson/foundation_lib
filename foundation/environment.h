@@ -28,6 +28,9 @@ FOUNDATION_API const char*            environment_executable_name( void );
 //! Get executable directory. Returned string must not be modified or deallocated.
 FOUNDATION_API const char*            environment_executable_directory( void );
 
+//! Get executable full path. Returned string must not be modified or deallocated.
+FOUNDATION_API const char*            environment_executable_path( void );
+
 //! Get initial working directory. Returned string must not be modified or deallocated.
 FOUNDATION_API const char*            environment_initial_working_directory( void );
 

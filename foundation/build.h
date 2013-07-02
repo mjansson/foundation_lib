@@ -110,7 +110,19 @@
 #endif
 
 #ifndef BUILD_ENABLE_MEMORY_CONTEXT
+#if BUILD_DEBUG || BUILD_RELEASE
 #define BUILD_ENABLE_MEMORY_CONTEXT           1
+#else
+#define BUILD_ENABLE_MEMORY_CONTEXT           0
+#endif
+#endif
+
+#ifndef BUILD_ENABLE_MEMORY_TRACKER
+#if BUILD_DEBUG || BUILD_RELEASE
+#define BUILD_ENABLE_MEMORY_TRACKER           1
+#else
+#define BUILD_ENABLE_MEMORY_TRACKER           0
+#endif
 #endif
 
 

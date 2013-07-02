@@ -334,17 +334,18 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	// Add 1 skip frames for this function call
 	skip_frames += 1;
 
-	if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
-		max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
+	void* localframes[BUILD_SIZE_STACKTRACE_DEPTH];
+	num_frames = (unsigned int)backtrace( localframes, BUILD_SIZE_STACKTRACE_DEPTH );
 
-	num_frames = (unsigned int)backtrace( trace, max_depth + skip_frames );
-	if( skip_frames )
+	if( num_frames > skip_frames )
 	{
-		if( num_frames > skip_frames )
-			memmove( trace, trace + skip_frames, sizeof( void* ) * ( num_frames - skip_frames ) );
-		else
-			trace[0] = 0;
+		num_frames -= skip_frames;
+		if( num_frames > max_depth )
+			num_frames = max_depth;
+		memcpy( trace, localframes + skip_frames, sizeof( void* ) * num_frames );
 	}
+	else
+		trace[0] = 0;
 #endif
 
 	return num_frames;
@@ -508,8 +509,21 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 	unsigned int requested_frames = 0;
 	bool last_was_main = false;
 
+	if( !string_length( environment_executable_path() ) )
+	{
+		for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )
+		{
+			//Allow first frame to be null in case of a function call to a null pointer
+			if( iaddr && !frames[iaddr] )
+				break;
+		
+			array_push( lines, string_format( "[" STRING_FORMAT_POINTER "]", frames[iaddr] ) );
+		}
+		return lines;
+	}
+	
 	array_push( args, "-e" );
-	array_push( args, environment_command_line()[0] );
+	array_push( args, environment_executable_path() );
 	array_push( args, "-f" );
 
 	for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )

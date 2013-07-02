@@ -97,6 +97,8 @@ bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 		}
 		else if( string_equal( cmdline[arg], "--" ) )
 			break; //Stop parsing cmdline options
+		else if( ( string_length( cmdline[arg] ) > 2 ) && string_equal_substr( cmdline[arg], "--", 2 ) )
+			continue; //Cmdline argument not parsed here			
 		else
 		{
 			array_push( input.input_files, string_clone( cmdline[arg] ) );
