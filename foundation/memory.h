@@ -48,7 +48,7 @@ FOUNDATION_API void              memory_set_tracker( memory_tracker_t tracker );
 
 #else
 
-#define memory_tracking( tracker )         /*lint -save -e506 -e751 */ do { (void)sizeof( tracker ); } while(0) /*lint -restore -e506 -e751 */
+#define memory_set_tracker( tracker )       /*lint -save -e506 -e751 */ do { (void)sizeof( tracker ); } while(0) /*lint -restore -e506 -e751 */
 
 #endif
 
