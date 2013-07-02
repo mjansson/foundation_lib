@@ -39,6 +39,7 @@
 #include <foundation/md5.h>
 #include <foundation/array.h>
 #include <foundation/hashmap.h>
+#include <foundation/hashtable.h>
 #include <foundation/ringbuffer.h>
 #include <foundation/string.h>
 #include <foundation/path.h>

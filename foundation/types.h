@@ -295,13 +295,19 @@ typedef int           (* assert_handler_fn )( const char* condition, const char*
 //! Log output callback
 typedef void          (* log_callback_fn )( int severity, const char* msg );
 
+//! Subsystem initialization
+typedef int           (* system_initialize_fn )( void );
+
+//! Subsystem shutdown
+typedef void          (* system_shutdown_fn )( void );
+
 typedef void*         (* memory_allocate_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
 typedef void*         (* memory_allocate_zero_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
 typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align );
 typedef void          (* memory_deallocate_fn )( void* p );
 
-typedef int           (* system_initialize_fn )( void );
-typedef void          (* system_shutdown_fn )( void );
+typedef void          (* memory_track_fn )( void*, uint64_t );
+typedef void          (* memory_untrack_fn )( void* );
 
 //! Callback function for writing profiling data to a stream
 typedef void          (* profile_write_fn)( void*, uint64_t );
@@ -330,6 +336,15 @@ typedef struct _foundation_memory_system
 	system_initialize_fn            initialize;
 	system_shutdown_fn              shutdown;
 } memory_system_t;
+
+//! Memory tracking callbacks
+typedef struct _foundation_memory_tracker
+{
+	memory_track_fn                 track;
+	memory_untrack_fn               untrack;
+	system_initialize_fn            initialize;
+	system_shutdown_fn              shutdown;
+} memory_tracker_t;
 
 //! Version identifier
 typedef union _foundation_version
@@ -475,6 +490,8 @@ typedef struct _foundation_blowfish         blowfish_t;
 typedef struct _foundation_radixsort        radixsort_t;
 
 typedef struct _foundation_hashmap          hashmap_t;
+typedef struct _foundation_hashtable32      hashtable32_t;
+typedef struct _foundation_hashtable64      hashtable64_t;
 
 
 // UTILITY FUNCTIONS
