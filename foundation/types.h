@@ -402,7 +402,7 @@ typedef struct _foundation_object_base
 } object_base_t;
 
 //! Object map
-typedef struct _foundation_objectmap
+typedef struct ALIGN(16) _foundation_objectmap
 {
 	ALIGN(16) volatile uint64_t     free;
 	uint64_t                        size;

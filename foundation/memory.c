@@ -431,7 +431,7 @@ ALIGN(8) int32_t   _memory_tag_next = 0;
 
 static int _memory_tracker_initialize( void )
 {
-	log_debugf( "Initializing local memory tracker" );
+	log_debug( "Initializing local memory tracker" );
 	if( !_memory_tags )
 		_memory_tags = memory_allocate_zero( sizeof( memory_tag_t ) * MAX_CONCURRENT_ALLOCATIONS, 16, MEMORY_PERSISTENT );
 	if( !_memory_table )
@@ -448,7 +448,7 @@ static void _memory_tracker_shutdown( void )
 	{
 		bool got_leaks = false;
 
-		log_debugf( "Checking for memory leaks" );
+		log_debug( "Checking for memory leaks" );
 		for( unsigned int it = 0; it < MAX_CONCURRENT_ALLOCATIONS; ++it )
 		{
 			memory_tag_t* tag = _memory_tags + it;
@@ -463,7 +463,7 @@ static void _memory_tracker_shutdown( void )
 		memory_deallocate( _memory_tags );
 
 		if( !got_leaks )
-			log_debugf( "No memory leaks detected" );
+			log_debug( "No memory leaks detected" );
 	}
 }
 

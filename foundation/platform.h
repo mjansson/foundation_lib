@@ -444,6 +444,9 @@
 #define _FOUNDATION_PREPROCESSOR_JOIN( a, b )          _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b )
 #define _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b ) a##b
 
+#define FOUNDATION_PREPROCESSOR_NARGS( ... )           _FOUNDATION_PREPROCESSOR_NARGS( __VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 )
+#define _FOUNDATION_PREPROCESSOR_NARGS( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _, ... ) _
+
 
 //Architecture details
 #ifdef __SSE2__

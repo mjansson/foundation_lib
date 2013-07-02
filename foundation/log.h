@@ -21,8 +21,8 @@
 
 #if BUILD_ENABLE_DEBUG_LOG
 
-/*! Log debug message
-    \param format       Log format */
+/*! Log formatted debug message
+    \param format       Log message format */
 FOUNDATION_API void     log_debugf( const char* message, ... );
 
 #else
@@ -88,3 +88,8 @@ FOUNDATION_API error_level_t  log_get_suppression( void );
 #  define               log_get_suppression() ERRORLEVEL_NONE
 #endif
 
+#define log_debug( msg ) log_debugf( "%s", msg )
+#define log_info( msg ) log_infof( "%s", msg )
+#define log_warn( msg ) log_warnf( "%s", msg )
+#define log_error( msg ) log_errorf( "%s", msg )
+#define log_panic( msg ) log_panicf( "%s", msg )

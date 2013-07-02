@@ -15,16 +15,19 @@
 
 objectmap_t* objectmap_allocate( unsigned int size )
 {
-	uint64_t bits, ip;
+	uint64_t bits;
+	unsigned int ip;
 	uintptr_t next_indexshift;
 	objectmap_t* map;
+	void** slot;
 
 	FOUNDATION_ASSERT_MSG( size > 2, "Invalid objectmap size" );
 	if( size <= 2 )
 		size = 2;
 	bits = math_round( math_log2( (real)size ) ); //Number of bits needed
+	FOUNDATION_ASSERT_MSGFORMAT( bits < 50, "Invalid objectmap size %d", size );
 
-	map = memory_allocate_zero( sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 0, MEMORY_PERSISTENT );
+	map = memory_allocate_zero( sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 16, MEMORY_PERSISTENT );
 	map->size_bits   = bits;
 	map->id_max      = ((1ULL<<(62ULL-bits))-1);
 	map->size        = size;
@@ -33,10 +36,10 @@ objectmap_t* objectmap_allocate( unsigned int size )
 	map->free        = 0;
 	map->id          = 1;
 
-	next_indexshift = 3;
-	for( ip = 0; ip < ( size - 1 ); ++ip, next_indexshift += 2 )
-		map->map[ip] = (void*)next_indexshift;
-	map->map[size-1] = (void*)((uintptr_t)-1);
+	slot = map->map;
+	for( ip = 0, next_indexshift = 3; ip < ( size - 1 ); ++ip, next_indexshift += 2, ++slot )
+		*slot = (void*)next_indexshift;
+	*slot = (void*)((uintptr_t)-1);
 	
 	return map;
 }
