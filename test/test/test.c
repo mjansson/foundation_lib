@@ -36,6 +36,8 @@ typedef struct
 
 test_group_t** _test_groups = 0;
 
+static bool _test_failed = false;
+
 
 void* event_thread( object_t thread, void* arg )
 {
@@ -102,6 +104,8 @@ void test_run( void )
 
 	log_infof( "Running test suite: %s", environment_application()->short_name );
 
+	_test_failed = false;
+	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
 	
@@ -115,7 +119,7 @@ void test_run( void )
 			if( result != 0 )
 			{
 				log_warnf( WARNING_SUSPICIOUS, "    FAILED" );
-				process_set_exit_code( -1 );
+				_test_failed = true;
 			}
 			else
 			{
@@ -164,6 +168,11 @@ int main_run( void* main_arg )
 	test_run();
 	test_free();
 	test_shutdown();
+	if( _test_failed )
+	{
+		process_set_exit_code( -1 );		
+		return -1;
+	}
 	return 0;
 }
 

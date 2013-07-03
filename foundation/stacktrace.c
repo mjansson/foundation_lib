@@ -542,7 +542,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 	process_set_working_directory( proc, environment_initial_working_directory() );
 	process_set_executable_path( proc, "/usr/bin/addr2line" );
 	process_set_arguments( proc, args, array_size( args ) );
-	process_set_flags( proc, PROCESS_ATTACHED );
+	process_set_flags( proc, PROCESS_ATTACHED | PROCESS_STDSTREAMS );
 
 	process_spawn( proc );
 

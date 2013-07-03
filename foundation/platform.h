@@ -626,16 +626,11 @@ typedef struct {
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
 
-//Configurable standard floating point precision type
-#if !defined( FLT_EVAL_METHOD ) && ( defined(__FLT_EVAL_METHOD__ ) || defined( _FEVAL ) )
-#  ifdef __FLT_EVAL_METHOD__
-#    define FLT_EVAL_METHOD __FLT_EVAL_METHOD__
-#else
-#    define FLT_EVAL_METHOD _FEVAL
-#  endif
+#if !defined( FOUNDATION_PLATFORM_REALSIZE )
+#  define FOUNDATION_PLATFORM_REALSIZE 32
 #endif
 
-#if ( defined( FLT_EVAL_METHOD ) && ( FLT_EVAL_METHOD >= 1 ) ) || ( defined( FOUNDATION_PLATFORM_REALSIZE ) && ( FOUNDATION_PLATFORM_REALSIZE > 32 ) )
+#if defined( FOUNDATION_PLATFORM_REALSIZE ) && ( FOUNDATION_PLATFORM_REALSIZE > 32 )
 typedef   float64_t         real;
 #  define REAL_C(x)         FLOAT64_C(x)
 #  undef  FOUNDATION_PLATFORM_REALSIZE

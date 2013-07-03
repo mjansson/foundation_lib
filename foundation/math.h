@@ -450,7 +450,7 @@ static FORCEINLINE CONSTCALL bool math_realisnan( real val )
 #else
 	__real_convert conv; conv.rval = val;
 #endif
-	return ( ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) >> 23ULL ) == 0xff ) & ( ( (const uint64_t)conv.ival & 0x7FFFFFFFFFFFFFULL ) != 0 );
+	return ( ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) >> 55ULL ) == 0xff ) & ( ( (const uint64_t)conv.ival & 0xFFFFFFFFFFFFFULL ) != 0 );
 }
 
 
@@ -461,7 +461,7 @@ static FORCEINLINE CONSTCALL bool math_realisinf( real val )
 #else
 	__real_convert conv; conv.rval = val;
 #endif
-	return ( ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) >> 23ULL ) == 0xff ) & ( ( (const uint64_t)conv.ival & 0x7FFFFFFFFFFFFFULL ) == 0 );
+	return ( ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) >> 55ULL ) == 0xff ) & ( ( (const uint64_t)conv.ival & 0xFFFFFFFFFFFFFULL ) == 0 );
 }
 
 

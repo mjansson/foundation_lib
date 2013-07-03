@@ -304,6 +304,8 @@ DECLARE_TEST( math, comparison )
 
 	EXPECT_TRUE( math_realisnan( math_sqrt( REAL_C( -1.0 ) ) ) );
 	EXPECT_TRUE( math_realisinf( onereal / zeroreal ) );
+	EXPECT_TRUE( math_realisnan( -math_sqrt( REAL_C( -1.0 ) ) ) );
+	EXPECT_TRUE( math_realisinf( -onereal / zeroreal ) );
 
 	testreal = REAL_ONE / REAL_MAX;
 	EXPECT_REALNE( testreal, REAL_ZERO );
