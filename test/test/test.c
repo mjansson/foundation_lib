@@ -100,14 +100,17 @@ void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
 	void* result;
-	object_t thread;
+	object_t thread_event;
 
 	log_infof( "Running test suite: %s", environment_application()->short_name );
 
 	_test_failed = false;
 	
-	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
-	thread_start( thread, 0 );
+	thread_event = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
+	thread_start( thread_event, 0 );
+
+	while( !thread_is_running( thread_event ) )
+		thread_yield();
 	
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
@@ -128,9 +131,9 @@ void test_run( void )
 		}
 	}
 	
-	thread_terminate( thread );
-	thread_destroy( thread );
-	while( thread_is_running( thread ) || thread_is_thread( thread ) )
+	thread_terminate( thread_event );
+	thread_destroy( thread_event );
+	while( thread_is_running( thread_event ) || thread_is_thread( thread_event ) )
 		thread_yield();
 }
 
