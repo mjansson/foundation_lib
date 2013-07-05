@@ -225,7 +225,13 @@ typedef enum
 typedef enum
 {
 	//! System identifier for foundation
-	SYSTEM_FOUNDATION = 1
+	SYSTEM_FOUNDATION = 1,
+
+	//! System identifier for script
+	SYSTEM_SCRIPT,
+
+	//! System identifier for network
+	SYSTEM_NETWORK
 } system_t;
 
 typedef enum
