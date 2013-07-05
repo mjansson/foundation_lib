@@ -57,7 +57,8 @@ void objectmap_deallocate( objectmap_t* map )
 		bool is_object = !( (uintptr_t)map->map[i] & 1 );
 		if( is_object )
 		{
-			FOUNDATION_ASSERT_FAIL( "Object still stored in objectmap when map deallocated" );
+			log_errorf( ERROR_MEMORY_LEAK, "Object still stored in objectmap when map deallocated" );
+			break;
 		}
 	}
 	
