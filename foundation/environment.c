@@ -29,6 +29,7 @@ static char*   _environment_var = 0;
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
+#  include <pwd.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -298,7 +299,14 @@ const char* environment_home_directory( void )
 		memory_deallocate( wpath );
 	}
 #elif FOUNDATION_PLATFORM_LINUX
-	string_copy( _environment_home_dir, environment_variable( "HOME" ), FOUNDATION_MAX_PATHLEN );
+	const char* env_home = environment_variable( "HOME" );
+	if( !env_home )
+	{
+		struct passwd* pw = getpwuid( getuid() );
+		env_home = pw->pw_dir;
+	}
+	if( env_home )
+		string_copy( _environment_home_dir, env_home, FOUNDATION_MAX_PATHLEN );
 #elif FOUNDATION_PLATFORM_APPLE
 	if( environment_application()->flags & APPLICATION_UTILITY )
 	{
