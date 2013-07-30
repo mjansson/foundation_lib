@@ -169,6 +169,7 @@ if env['CC'] == 'gcc':
 
 # SETUP DEBUG ENVRIONMENT
 if env['debug']:
+	print "Building DEBUG configuration"
 	env.Append( CPPDEFINES=['BUILD_DEBUG=1'] )
 	env['buildpath'] = 'debug'
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
@@ -179,6 +180,7 @@ if env['debug']:
 
 # SETUP RELEASE ENVIRONMENT
 elif not env['deploy'] and not env['profile']:
+	print "Building RELEASE configuration"
 	env.Append( CPPDEFINES=['BUILD_RELEASE=1'] )
 	env['buildpath'] = 'release';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
@@ -187,14 +189,16 @@ elif not env['deploy'] and not env['profile']:
 
 # SETUP PROFILE ENVIRONMENT
 elif env['profile']:
+	print "Building PROFILE configuration"
 	env.Append( CPPDEFINES=['BUILD_PROFILE=1'] )
 	env['buildpath'] = 'profile';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-g','-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	env['buildprofile'] = 'profile'
 
-# SETUP RTM ENVIRONMENT
+# SETUP DEPLOY ENVIRONMENT
 else:
+	print "Building DEPLOY configuration"
 	env.Append( CPPDEFINES=['BUILD_DEPLOY=1'] )
 	env['buildpath'] = 'deploy';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':

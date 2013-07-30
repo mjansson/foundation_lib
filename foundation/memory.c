@@ -279,18 +279,21 @@ static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned 
 	align = _memory_get_align( align );
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _aligned_malloc( (size_t)size, align );
-#elif FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID && defined( __USE_ISOC11 )
 	void* memory = 0;
 	if( !align )
 		return malloc( (size_t)size );
-	/*int result = posix_memalign( &memory, align, (size_t)size );	
-	if( result || !memory )
-		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
-	return ( result == 0 ) ? memory : 0;*/
+#  if defined( __USE_ISOC11 )
 	memory = aligned_alloc( align, (size_t)size );
 	if( !memory )
 		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
 	return memory;
+#  else
+	int result = posix_memalign( &memory, align, (size_t)size );	
+	if( result || !memory )
+		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to allocate memory: %s", system_error_message( 0 ) );
+	return ( result == 0 ) ? memory : 0;
+#  endif
 #else
 	void* memory = malloc( size + align );
 	memory = _memory_align_pointer( memory, align );
@@ -314,10 +317,16 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _aligned_realloc( p, (size_t)size, align );
 #else
+#  if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
 	if( align )
 	{
 		//No realloc aligned available
+#    if defined( __USE_ISOC11 )		
 		void* memory = aligned_alloc( align, (size_t)size );
+#    else
+		void* memory = 0;
+		posix_memalign( &memory, align, (size_t)size );
+#    endif
 		if( !memory )
 		{
 			log_panicf( ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
@@ -330,6 +339,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 		}
 		return memory;
 	}
+#  endif
 	return realloc( p, (size_t)size );
 #endif
 }
