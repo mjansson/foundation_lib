@@ -437,9 +437,7 @@ int process_spawn( process_t* proc )
 			dup2( pipe_read_fd( proc->pipein ), STDIN_FILENO );
 		}
 
-		char* envp[] = { 0 };
-		
-		int code = execve( proc->path, proc->args, envp );		
+		int code = execv( proc->path, proc->args );
 		if( code < 0 ) //Will always be true since this point will never be reached if execve() is successful
 			log_warnf( WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
 		
