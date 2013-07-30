@@ -121,15 +121,18 @@ DECLARE_TEST( mutex, sync )
 }
 
 
-unsigned int thread_waited = 0;
+volatile int32_t thread_waiting = 0;
+volatile int32_t thread_waited = 0;
 
 void* thread_wait( object_t thread, void* arg )
 {
 	mutex_t* mutex = arg;
 
+	atomic_incr32( &thread_waiting );
+
 	if( mutex_wait( mutex, 10000 ) )
 	{
-		++thread_waited;
+		atomic_incr32( &thread_waited );
 		mutex_unlock( mutex );
 	}
 	else
@@ -159,6 +162,9 @@ DECLARE_TEST( mutex, signal )
 	mutex_unlock( mutex );
 	
 	test_wait_for_threads_startup( thread, 32 );
+
+	while( thread_waiting < 32 )
+		thread_yield();
 	
 	mutex_signal( mutex );
 
