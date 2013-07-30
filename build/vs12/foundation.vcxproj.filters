@@ -47,6 +47,7 @@
     <ClInclude Include="..\..\foundation\uuid.h" />
     <ClInclude Include="..\..\foundation\stacktrace.h" />
     <ClInclude Include="..\..\foundation\hashmap.h" />
+    <ClInclude Include="..\..\foundation\hashtable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -85,6 +86,7 @@
     <ClCompile Include="..\..\foundation\uuid.c" />
     <ClCompile Include="..\..\foundation\stacktrace.c" />
     <ClCompile Include="..\..\foundation\hashmap.c" />
+    <ClCompile Include="..\..\foundation\hashtable.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt" />

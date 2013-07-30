@@ -177,7 +177,8 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 unsigned int hashtable32_size( hashtable32_t* table )
 {
 	unsigned int count = 0;
-	for( unsigned int ie = 0; ie < table->capacity; ++ie )
+	unsigned int ie;
+	for( ie = 0; ie < table->capacity; ++ie )
 	{
 		if( table->entries[ie].key && table->entries[ie].value )
 			++count;
@@ -306,7 +307,8 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 unsigned int hashtable64_size( hashtable64_t* table )
 {
 	unsigned int count = 0;
-	for( unsigned int ie = 0; ie < table->capacity; ++ie )
+	unsigned int ie;
+	for( ie = 0; ie < table->capacity; ++ie )
 	{
 		if( table->entries[ie].key && table->entries[ie].value )
 			++count;

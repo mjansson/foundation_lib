@@ -53,6 +53,7 @@
     <ClInclude Include="..\..\foundation\hash.h" />
     <ClInclude Include="..\..\foundation\hashmap.h" />
     <ClInclude Include="..\..\foundation\hashstrings.h" />
+    <ClInclude Include="..\..\foundation\hashtable.h" />
     <ClInclude Include="..\..\foundation\internal.h" />
     <ClInclude Include="..\..\foundation\library.h" />
     <ClInclude Include="..\..\foundation\locale.h" />
@@ -106,6 +107,7 @@
     <ClCompile Include="..\..\foundation\fs.c" />
     <ClCompile Include="..\..\foundation\hash.c" />
     <ClCompile Include="..\..\foundation\hashmap.c" />
+    <ClCompile Include="..\..\foundation\hashtable.c" />
     <ClCompile Include="..\..\foundation\library.c" />
     <ClCompile Include="..\..\foundation\log.c" />
     <ClCompile Include="..\..\foundation\main.c" />

@@ -456,10 +456,11 @@ static void _memory_tracker_shutdown( void )
 		hashtable_deallocate( _memory_table );
 	if( _memory_tags )
 	{
+		unsigned int it;
 		bool got_leaks = false;
 
 		log_debug( "Checking for memory leaks" );
-		for( unsigned int it = 0; it < MAX_CONCURRENT_ALLOCATIONS; ++it )
+		for( it = 0; it < MAX_CONCURRENT_ALLOCATIONS; ++it )
 		{
 			memory_tag_t* tag = _memory_tags + it;
 			if( tag->address )
