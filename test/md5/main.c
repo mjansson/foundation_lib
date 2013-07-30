@@ -113,6 +113,8 @@ DECLARE_TEST( md5, reference )
 	EXPECT_STREQ( md5str, "137D3C94230A0E230C4DDFC97EACCCD2" );
 	string_deallocate( md5str );
 
+	md5_deallocate( md5 );
+
 	return 0;
 }
 
