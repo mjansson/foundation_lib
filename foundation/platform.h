@@ -649,7 +649,7 @@ typedef   float32_t         real;
 #  define FOUNDATION_PLATFORM_POINTER_SIZE 4
 #endif
 
-//whcar_t size
+//wchar_t size
 #if WCHAR_MAX > 0xffff
 #  define FOUNDATION_WCHAR_SIZE 32
 #else
