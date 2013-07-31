@@ -129,7 +129,7 @@ LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 
 #endif
 
-#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_ANDROID
 
 #include <signal.h>
 #include <setjmp.h>
@@ -190,6 +190,11 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #  endif
 	
 #elif FOUNDATION_PLATFORM_APPLE
+
+	//No guard mechanism in place yet for this platform
+	return fn( data );
+
+#elif FOUNDATION_PLATFORM_ANDROID
 
 	//No guard mechanism in place yet for this platform
 	return fn( data );

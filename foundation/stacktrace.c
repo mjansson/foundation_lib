@@ -28,6 +28,7 @@
 #undef NEAR
 #  include <stdio.h>
 #elif FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_ANDROID
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  include <execinfo.h>
@@ -329,6 +330,8 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 #  endif
 	}
 #elif FOUNDATION_PLATFORM_APPLE
+	//TODO: Implement
+#elif FOUNDATION_PLATFORM_ANDROID
 	//TODO: Implement
 #elif FOUNDATION_PLATFORM_POSIX
 	// Add 1 skip frames for this function call

@@ -13,7 +13,7 @@
 #pragma once
 
 /*! \file android.h
-    Android entry and shutdown functions */
+    Android-specific includes plus application glue entry and shutdown functions */
 
 #include <foundation/foundation.h>
 

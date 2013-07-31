@@ -14,6 +14,10 @@
 
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
+#  if !FOUNDATION_PLATFORM_ANDROID
+#    include <sys/socket.h>
+#    include <net/if.h>
+#  endif
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -254,7 +258,9 @@ static uint32_t _system_user_locale( void )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-#include <ifaddrs.h>
+#  if !FOUNDATION_PLATFORM_ANDROID
+#    include <ifaddrs.h>
+#  endif
 
 
 int _system_initialize( void )
@@ -345,7 +351,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	return 0;
 }
 
-#else
+#elif FOUNDATION_PLATFORM_LINUX
 
 static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 {
@@ -371,6 +377,10 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 
 uint64_t system_hostid( void )
 {
+#if FOUNDATION_PLATFORM_ANDROID
+	//Not implemented yet, see https://code.google.com/p/libjingle/source/browse/trunk/talk/base/ifaddrs-android.cc
+	return 0;
+#else
 	struct ifaddrs* ifaddr;
 	struct ifaddrs* ifa;
 	uint64_t hostid = 0;
@@ -412,6 +422,7 @@ uint64_t system_hostid( void )
 #endif
 	
 	return hostid;
+#endif
 }
 
 

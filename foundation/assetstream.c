@@ -50,13 +50,6 @@ static uint64_t asset_stream_write( stream_t* stream, const void* source, uint64
 }
 
 
-static bool asset_stream_isopen( const stream_t* stream )
-{
-	const stream_asset_t* asset = (const stream_asset_t*)stream;
-	return asset && asset->asset ? true : false;
-}
-
-
 static bool asset_stream_eos( stream_t* stream )
 {
 	stream_asset_t* asset = (stream_asset_t*)stream;
@@ -167,7 +160,6 @@ void _asset_stream_initialize( void )
 {
 	_asset_stream_vtable.read = asset_stream_read;
 	_asset_stream_vtable.write = asset_stream_write;
-	_asset_stream_vtable.isopen = asset_stream_isopen;
 	_asset_stream_vtable.eos = asset_stream_eos;
 	_asset_stream_vtable.flush = asset_stream_flush;
 	_asset_stream_vtable.truncate = asset_stream_truncate;

@@ -1023,24 +1023,10 @@ static void _fs_file_seek( stream_t* stream, int64_t offset, stream_seek_mode_t 
 
 static bool _fs_file_eos( stream_t* stream )
 {
-	/*stream_file_t* file;
-	int64_t cur;
-	bool iseos;*/
-
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return true;
 
-	return ( feof( GET_FILE( stream )->fd ) != 0 );
-	
-	/*file = GET_FILE( stream );
-	cur = _fs_file_tell( stream );
-	fseek( (FILE*)file->fd, 0, SEEK_END );
-
-	iseos = ( cur >= _fs_file_tell( stream ) );
-	if( !iseos )
-		fseek( (FILE*)file->fd, (long)cur, SEEK_SET );
-
-	return iseos;*/
+	return ( feof( (FILE*)GET_FILE( stream )->fd ) != 0 );
 }
 
 
