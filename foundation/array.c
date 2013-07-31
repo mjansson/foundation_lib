@@ -25,11 +25,15 @@ void _array_verifyfn( const void* const* arr )
 void _array_growfn( void* arr, int increment, int factor, int itemsize )
 {
 	void**   parr = (void**)arr;
-	int      capacity = *parr ? ( factor * _array_rawcapacity(*parr) + increment ) : increment;
+	int      size = *parr ? _array_rawsize(*parr) : 0;
+	int      prev_capacity = *parr ? _array_rawcapacity(*parr) : 0;
+	int      capacity = *parr ? ( factor * prev_capacity + increment ) : increment;
+	int      prev_used_size = itemsize * prev_capacity;
 	int      storage_size = itemsize * capacity;
 	uint64_t header_size = 4ULL * _array_header_size;
+	uint64_t prev_used_buffer_size = (unsigned int)prev_used_size + header_size;
 	uint64_t buffer_size = (unsigned int)storage_size + header_size;
-	int*     buffer = *parr ? memory_reallocate( _array_raw( *parr ), buffer_size, 16 ) : memory_allocate( buffer_size, 16, MEMORY_PERSISTENT );
+	int*     buffer = *parr ? memory_reallocate( _array_raw( *parr ), buffer_size, 16, prev_used_buffer_size ) : memory_allocate( buffer_size, 16, MEMORY_PERSISTENT );
 	FOUNDATION_ASSERT_MSG( buffer, "Failed to reallocate array storage" );
 	if( buffer )
 	{

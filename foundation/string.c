@@ -75,7 +75,7 @@ char* string_format( const char* format, ... )
 		else
 			capacity *= 2;
 			
-		buffer = memory_reallocate( buffer, capacity + 1, 0 );
+		buffer = memory_reallocate( buffer, capacity + 1, 0, 0 );
 	}
 
 	return buffer;
@@ -126,7 +126,7 @@ char* string_vformat( const char* format, va_list list )
 		else
 			capacity *= 2;
 			
-		buffer = memory_reallocate( buffer, capacity + 1, 0 );
+		buffer = memory_reallocate( buffer, capacity + 1, 0, 0 );
 	}
 
 	return buffer;
@@ -155,8 +155,8 @@ char* string_resize( char* str, unsigned int length, char c )
 
 	if( curlen < length )
 	{
-		str = memory_reallocate( str, length + 1, 0 );
-		memset( str + length, c, length - curlen );
+		str = memory_reallocate( str, length + 1, 0, curlen );
+		memset( str + curlen, c, length - curlen );
 	}
 	str[length] = 0;
 	return str;
@@ -257,16 +257,16 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 			continue;
 		}
 		
-		if( lendiff < 0 )
+		if( lendiff <= 0 )
 		{
 			//String is reducing or keeping length, just overwrite
 			memcpy( str + pos, newkey, newkeylen );
 			memmove( str + pos + newkeylen, str + pos + keylen, slen - pos - keylen + 1 );
-			slen += lendiff; //Negative, so reducing
+			slen += lendiff; //Zero or negative, so reducing by adding
 		}
 		else
 		{
-			str = memory_reallocate( str, slen + lendiff + 1, 0 );
+			str = memory_reallocate( str, slen + lendiff + 1, 0, slen + 1 );
 			memmove( str + pos + newkeylen, str + pos + keylen, slen - pos - keylen + 1 );
 			memcpy( str + pos, newkey, newkeylen );
 
@@ -295,7 +295,7 @@ char* string_append( char* str, const char* suffix )
 	if( !suffixlen )
 		return str;
 
-	str = str ? memory_reallocate( str, totallen + 1, 0 ) : memory_allocate_context( MEMORYCONTEXT_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
+	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate_context( MEMORYCONTEXT_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
 	memcpy( str + slen, suffix, suffixlen + 1 ); //Include terminating zero
 
 	return str;
@@ -304,15 +304,18 @@ char* string_append( char* str, const char* suffix )
 
 char* string_prepend( char* str, const char* prefix )
 {
-	unsigned int slen = string_length( str );
-	unsigned int prefixlen = string_length( prefix );
+	unsigned int slen = str ? string_length( str ) : 0;
+	unsigned int prefixlen = prefix ? string_length( prefix ) : 0;
 	unsigned int totallen = slen + prefixlen;
 	if( !prefixlen )
 		return str;
 
-	str = memory_reallocate( str, totallen + 1, 0 );
-	memmove( str + prefixlen, str, slen + 1 ); //Include terminating zero
+	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate_context( MEMORYCONTEXT_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
+	if( slen )
+		memmove( str + prefixlen, str, slen + 1 ); //Include terminating zero
 	memcpy( str, prefix, prefixlen );
+	if( !slen )
+		str[prefixlen] = 0;
 
 	return str;
 }

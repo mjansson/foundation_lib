@@ -309,7 +309,7 @@ typedef void          (* system_shutdown_fn )( void );
 
 typedef void*         (* memory_allocate_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
 typedef void*         (* memory_allocate_zero_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
-typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align );
+typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
 typedef void          (* memory_deallocate_fn )( void* p );
 
 typedef void          (* memory_track_fn )( void*, uint64_t );

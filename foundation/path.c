@@ -107,8 +107,8 @@ char* path_clean( char* path, bool absolute )
 		{
 			if( !inlength )
 			{
-				inlength += 2;
-				inpath = memory_reallocate( inpath, inlength + protocollen + 1, 0 );
+				inlength = 2;
+				inpath = memory_reallocate( inpath, inlength + protocollen + 1, 0, protocollen + 1 );
 				path = inpath + protocollen;
 			}
 			path[0] = '/';
@@ -127,8 +127,8 @@ char* path_clean( char* path, bool absolute )
 			{
 				if( inlength <= 2 )
 				{
+					inpath = memory_reallocate( inpath, inlength + 2 + protocollen + 1, 0, inlength + protocollen + 1 );
 					inlength += 2;
-					inpath = memory_reallocate( inpath, inlength + protocollen + 1, 0 );
 					path = inpath + protocollen;
 				}
 				path[2] = '/';
@@ -140,8 +140,8 @@ char* path_clean( char* path, bool absolute )
 				if( inlength < ( length + 1 ) )
 				{
 					//Need more space
+					inpath = memory_reallocate( inpath, length + protocollen + 2, 0, inlength + protocollen + 1 );
 					inlength = length + 1;
-					inpath = memory_reallocate( inpath, length + protocollen + 2, 0 );
 					path = inpath + protocollen;
 				}
 
@@ -156,8 +156,8 @@ char* path_clean( char* path, bool absolute )
 			if( inlength < ( length + 1 ) )
 			{
 				//Need more space
+				inpath = memory_reallocate( inpath, length + protocollen + 2, 0, inlength + protocollen + 1 );
 				inlength = length + 1;
-				inpath = memory_reallocate( inpath, length + protocollen + 2, 0 );
 				path = inpath + protocollen;
 			}
 			

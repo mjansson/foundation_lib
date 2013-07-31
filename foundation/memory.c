@@ -98,13 +98,13 @@ static CONSTCALL FORCEINLINE unsigned int _memory_get_align( unsigned int align 
 	if( align < FOUNDATION_PLATFORM_POINTER_SIZE )
 	{
 #if FOUNDATION_PLATFORM_ANDROID
-		return sizeof( uint64_t );
+		return align ? sizeof( uint64_t ) : 0;
 #else
 		return align ? FOUNDATION_PLATFORM_POINTER_SIZE : 0;
 #endif
 	}
 	align = math_align_poweroftwo( align );
-	return ( align < ( FOUNDATION_PLATFORM_POINTER_SIZE * 4 ) ) ? align : ( FOUNDATION_PLATFORM_POINTER_SIZE * 4 );
+	return ( align < 16 ) ? align : 16;
 }
 
 
@@ -206,11 +206,11 @@ void* memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned in
 }
 
 
-void* memory_reallocate( void* p, uint64_t size, unsigned int align )
+void* memory_reallocate( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
 {
 	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p >= _memory_temporary.end ), "Trying to reallocate temporary memory" );
 	_memory_untrack( p );
-	p = _memsys.reallocate( p, size, align );
+	p = _memsys.reallocate( p, size, align, oldsize );
 	_memory_track( p, size );
 	return p;
 }
@@ -311,7 +311,7 @@ static void* _memory_allocate_zero_malloc( uint16_t context, uint64_t size, unsi
 }
 
 
-static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int align )
+static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
 {
 	align = _memory_get_align( align );
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -320,25 +320,22 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	if( align )
 	{
 		//No realloc aligned available
-#  if FOUNDATION_PLATFORM_ANDROID
-		void* memory = malloc( size + align );
-		memory = _memory_align_pointer( memory, align );
-#  elif defined( __USE_ISOC11 )		
+#  if !FOUNDATION_PLATFORM_ANDROID && defined( _ISOC11_SOURCE )
 		void* memory = aligned_alloc( align, (size_t)size );
-#  else
+#  elif !FOUNDATION_PLATFORM_ANDROID
 		void* memory = 0;
 		posix_memalign( &memory, align, (size_t)size );
+#  else
+		void* memory = malloc( size + align );
+		memory = _memory_align_pointer( memory, align );
 #  endif
 		if( !memory )
 		{
 			log_panicf( ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
 			return 0;
 		}
-		if( p )
-		{
-			size_t prev_size = malloc_usable_size( p );
-			memcpy( memory, p, ( size < prev_size ) ? size : prev_size );
-		}
+		if( p && oldsize )
+			memcpy( memory, p, ( size < oldsize ) ? size : oldsize );
 		return memory;
 	}
 	return realloc( p, (size_t)size );

@@ -279,7 +279,7 @@ char* stream_read_line( stream_t* stream, char delimiter )
 		if( cursize + i > outsize )
 		{
 			outsize += 512;
-			outbuffer = memory_reallocate( outbuffer, outsize + 1, 0 );
+			outbuffer = memory_reallocate( outbuffer, outsize + 1, 0, cursize );
 		}
 		memcpy( outbuffer + cursize, buffer, i );
 		cursize += i;
@@ -589,7 +589,7 @@ char* stream_read_string( stream_t* stream )
 			if( cursize + 1 > outsize )
 			{
 				outsize += 512;
-				outbuffer = memory_reallocate( outbuffer, outsize, 0 );
+				outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
 			}
 			outbuffer[cursize++] = c;
 		}
@@ -638,7 +638,7 @@ char* stream_read_string( stream_t* stream )
 				if( cursize + i > outsize )
 				{
 					outsize += 512;
-					outbuffer = memory_reallocate( outbuffer, outsize, 0 );
+					outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
 				}
 				memcpy( outbuffer + cursize, buffer, i );
 				cursize += i;

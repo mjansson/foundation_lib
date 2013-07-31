@@ -67,6 +67,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
 	{
 #define BLOCK_CHUNK_SIZE ( 32 * 1024 )
+		uint32_t prev_capacity = block->capacity + 2ULL;
 		if( block->capacity < BLOCK_CHUNK_SIZE )
 		{
 			block->capacity <<= 1;
@@ -80,7 +81,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 		}
 		if( block->capacity % 16 )
 			block->capacity += 16 - ( basesize % 16 );			
-		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16 ) : memory_allocate( block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
+		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16, prev_capacity ) : memory_allocate( block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
 	}
 
 	event = pointer_offset( block->events, block->used );
