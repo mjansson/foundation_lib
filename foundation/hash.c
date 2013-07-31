@@ -22,7 +22,6 @@
 #define HASH_SEED 0xbaadf00d
 
 
-static FORCEINLINE PURECALL uint64_t getblock ( const uint64_t* RESTRICT p, const unsigned int i );
 static FORCEINLINE CONSTCALL uint64_t fmix64( uint64_t k );
 
 
@@ -38,6 +37,19 @@ static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned
 	return swap_byteorder64( p[i] );
 #endif
 }
+
+#if FOUNDATION_PLATFORM_ARCH_ARM
+static FORCEINLINE uint64_t getblock_nonaligned( const char* RESTRICT p, const unsigned int i )
+{
+	uint64_t ret;
+	memcpy( &ret, p + i*8, 8 );
+#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+	return ret;
+#else
+	return swap_byteorder64( ret );
+#endif
+}
+#endif
 
 
 //----------
@@ -91,11 +103,20 @@ hash_t hash( const void* key, const unsigned int len )
 
 	//----------
 	// body
-	FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( key, 8 );
 
-	//Ok to cast to u64, alignment is assured on required platforms at this point
 	blocks = (const uint64_t*)key; /*lint !e826 Ok, loop below will not access data outside scope*/
 
+#if FOUNDATION_PLATFORM_ARCH_ARM
+	if( (uintptr_t)key % 8 )
+	for( i = 0; i < nblocks; ++i )
+	{
+		k1 = getblock_nonaligned(key,i*2);
+		k2 = getblock_nonaligned(key,i*2+1);
+
+		bmix64(h1,h2,k1,k2,c1,c2); 
+	}
+	else
+#endif	
 	for( i = 0; i < nblocks; ++i )
 	{
 		k1 = getblock(blocks,i*2);

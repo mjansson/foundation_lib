@@ -43,7 +43,7 @@ extern CFStringRef NSHomeDirectory(void);
 #endif
 
 
-static application_t   _environment_app;
+static application_t   _environment_app = {0};
 
 
 static void _environment_set_executable_paths( const char* executable_path )

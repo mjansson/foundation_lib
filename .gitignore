@@ -28,6 +28,10 @@ local.properties
 # PDT-specific
 .buildpath
 
+#Android local build files
+build/android/assets
+build/android/libs
+
 
 #################
 ## Visual Studio

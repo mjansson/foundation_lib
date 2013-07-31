@@ -30,6 +30,9 @@ static void _android_disable_sensor( int sensor_type );
 int android_initialize( struct android_app* app )
 {
 	_android_app = app;
+
+	//Avoid glue code getting stripped
+	app_dummy();
 	
 	app->onAppCmd = android_handle_cmd;
 	app->onInputEvent = 0;//android_handle_input;

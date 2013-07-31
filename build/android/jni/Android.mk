@@ -117,37 +117,112 @@ include $(BUILD_SHARED_LIBRARY)
 
 #Build test modules
 include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := app
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-LOCAL_MODULE     := test-array
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := array
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-include $(FOUNDATION_LOCAL_PATH)/TargetSetup.mk
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := atomic
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-LOCAL_PATH       := $(FOUNDATION_LOCAL_PATH)/../../..
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := base64
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/test
-LOCAL_CFLAGS     := 
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := blowfish
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-ifeq ($(NDK_DEBUG),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/debug
-else
-ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/rtm
-else
-ifeq ($(BUILD_PROFILE),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/profile
-else
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/release
-endif
-endif
-endif
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := bufferstream
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-LOCAL_STATIC_LIBRARIES += test foundation android_native_app_glue cpufeatures
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := config
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := crash
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-LOCAL_SRC_FILES  := test/array/main.c
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := environment
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
-include $(BUILD_SHARED_LIBRARY)
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := error
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := event
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := fs
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := hash
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := hashmap
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := hashtable
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := library
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := math
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := md5
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := mutex
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := objectmap
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := path
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := radixsort
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := random
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := ringbuffer
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := semaphore
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := stacktrace
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := string
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
 
 $(call import-module,android/native_app_glue)

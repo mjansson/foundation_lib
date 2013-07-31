@@ -146,6 +146,8 @@ int main( int argc, char **argv )
 	int ret = -1;
 
 #if FOUNDATION_PLATFORM_ANDROID
+	if( !app )
+		return;
 	if( android_initialize( app ) < 0 )
 		return;
 	if( main_initialize() < 0 )

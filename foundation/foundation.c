@@ -101,10 +101,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 		config_parse_commandline( cmdline, array_size( cmdline ) );
 	}
 
-	//Artificial reference and sanity check
+	//Artificial references
 #if FOUNDATION_PLATFORM_ANDROID
-	if( (uintptr_t)android_main < 1 )
-		return -1;
+	android_main( 0 );
 #else
 	if( (uintptr_t)main < 1 )
 		return -1;
