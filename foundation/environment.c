@@ -42,6 +42,10 @@ static char*   _environment_var = 0;
 extern CFStringRef NSHomeDirectory(void);
 #endif
 
+#if FOUNDATION_PLATFORM_ANDROID
+#  include <foundation/android.h>
+#endif
+
 
 static application_t   _environment_app = {0};
 
@@ -121,6 +125,46 @@ int _environment_initialize( const application_t application )
 	_environment_set_executable_paths( exe_path );
 
 	string_deallocate( exe_path );
+
+#elif FOUNDATION_PLATFORM_ANDROID
+
+	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
+	if( !cmdline )
+	{
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
+		return -1;
+	}
+
+	while( true )
+	{
+		char* arg = stream_read_string( cmdline );
+		if( !string_length( arg ) )
+		{
+			string_deallocate( arg );
+			break;
+		}
+
+		array_push( _environment_argv, arg );
+	}
+
+	char* exe_path = path_append( path_path_name( android_app()->activity->internalDataPath ), "lib" );
+
+	// This will return something like "app_process" since we're just a dynamic
+	// library that gets invoked by a launcher process
+	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
+	if( readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN ) < 0 )
+	{
+		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
+		return -1;
+	}
+
+	char* exe_name = path_file_name( exelink );
+	exe_path = path_append( exe_path, exe_name );
+	
+	_environment_set_executable_paths( exe_path );
+
+	string_deallocate( exe_path );
+	string_deallocate( exe_name );
 	
 #elif FOUNDATION_PLATFORM_POSIX
 

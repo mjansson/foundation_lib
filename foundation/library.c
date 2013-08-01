@@ -128,6 +128,14 @@ object_t library_load( const char* name )
 #  endif
 	void* lib = dlopen( libname, RTLD_LAZY );
 	string_deallocate( libname );
+#if FOUNDATION_PLATFORM_ANDROID
+	if( !lib )
+	{
+		libname = string_format( "%s/lib%s.so", environment_executable_directory(), name );
+		lib = dlopen( libname, RTLD_LAZY );
+		string_deallocate( libname );
+	}
+#endif
 	if( !lib )
 	{
 		log_warnf( WARNING_SUSPICIOUS, "Unable to load dynamic library '%s': %s", name, dlerror() );

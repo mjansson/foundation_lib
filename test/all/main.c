@@ -78,30 +78,26 @@ int main_run( void* main_arg )
 	pattern = "test-*";
 #elif FOUNDATION_PLATFORM_ANDROID
 	pattern = "libtest-*.so";
-	log_infof( "Executable dir : %s", environment_executable_directory() );
-	log_infof( "Executable name: %s", environment_executable_name() );
 #elif FOUNDATION_PLATFORM_POSIX
 	pattern = "test-*";
 #else
 #  error Not implemented
 #endif
 	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
-#if FOUNDATION_PLATFORM_ANDROID
-	log_infof( "Found %d test libraries", array_size( exe_paths ) );
-#endif
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
 #if FOUNDATION_PLATFORM_ANDROID
-		log_infof( "Found test library: %s", exe_paths[iexe] );
-
-		if( string_equal_substr( exe_paths[iexe], environment_executable_name(), string_length( environment_executable_name() ) ) )
+		//Should be on format "libtest-name.so"
+		char* test_name = string_substr( exe_paths[iexe], 3, string_length( exe_paths[iexe] ) - 6 );
+		
+		if( string_equal_substr( test_name, environment_executable_name(), string_length( environment_executable_name() ) ) )
 			continue; //Don't run self
 		
-		library = library_load( exe_paths[iexe] );
+		library = library_load( test_name );
 		if( !library )
 		{
 			library_unload( library );
-			log_warnf( WARNING_SUSPICIOUS, "Tests failed, unable to load test library" );
+			log_warnf( WARNING_SUSPICIOUS, "Tests failed, unable to load test library: %s", exe_paths[iexe] );
 			process_set_exit_code( -1 );
 			goto exit;
 		}

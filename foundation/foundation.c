@@ -59,6 +59,9 @@ static bool _foundation_initialized = false;
 
 int foundation_initialize( const memory_system_t memory, const application_t application )
 {
+	if( _foundation_initialized )
+		return 0;
+	
 	if( _memory_initialize( memory ) < 0 )
 		return -1;
 
