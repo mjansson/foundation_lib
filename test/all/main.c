@@ -60,6 +60,9 @@ int main_run( void* main_arg )
 	const char* pattern = 0;
 	char** exe_paths = 0;
 	unsigned int iexe, exesize;
+	object_t library = 0;
+	void* library_initialize = 0;
+	void* library_run = 0;
 	process_t* process = 0;
 	char* process_path = 0;
 	int process_result = 0;
@@ -73,14 +76,69 @@ int main_run( void* main_arg )
 	pattern = "test-*.exe";
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	pattern = "test-*";
+#elif FOUNDATION_PLATFORM_ANDROID
+	pattern = "libtest-*.so";
+	log_infof( "Executable dir : %s", environment_executable_directory() );
+	log_infof( "Executable name: %s", environment_executable_name() );
 #elif FOUNDATION_PLATFORM_POSIX
 	pattern = "test-*";
 #else
 #  error Not implemented
 #endif
 	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
+#if FOUNDATION_PLATFORM_ANDROID
+	log_infof( "Found %d test libraries", array_size( exe_paths ) );
+#endif
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
+#if FOUNDATION_PLATFORM_ANDROID
+		log_infof( "Found test library: %s", exe_paths[iexe] );
+
+		if( string_equal_substr( exe_paths[iexe], environment_executable_name(), string_length( environment_executable_name() ) ) )
+			continue; //Don't run self
+		
+		library = library_load( exe_paths[iexe] );
+		if( !library )
+		{
+			library_unload( library );
+			log_warnf( WARNING_SUSPICIOUS, "Tests failed, unable to load test library" );
+			process_set_exit_code( -1 );
+			goto exit;
+		}
+		else
+		{
+			library_initialize = library_symbol( library, "main_initialize" );
+			library_run = library_symbol( library, "main_run" );
+			if( library_initialize && library_run )
+			{
+				int (*fn_initialize)(void) = library_initialize;
+				int (*fn_run)(void*) = library_run;
+				
+				log_infof( "Running test library: %s", exe_paths[iexe] );
+				process_result = fn_initialize();
+				if( process_result >= 0 )
+					process_result = fn_run( 0 );
+
+				library_unload( library );
+
+				if( process_result != 0 )
+				{
+					log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+					process_set_exit_code( -1 );
+					goto exit;
+				}
+			}
+			else
+			{
+				library_unload( library );
+				log_warnf( WARNING_SUSPICIOUS, "Tests failed, test library does not export expected symbols" );
+				process_set_exit_code( -1 );
+				goto exit;
+			}
+		}
+			
+		library_unload( library );
+#else
 		if( string_equal_substr( exe_paths[iexe], environment_executable_name(), string_length( environment_executable_name() ) ) )
 			continue; //Don't run self
 
@@ -113,6 +171,8 @@ int main_run( void* main_arg )
 			process_set_exit_code( -1 );
 			goto exit;
 		}
+#endif
+
 		log_infof( "All tests from %s passed (%d)", exe_paths[iexe], process_result );
 	}
 
