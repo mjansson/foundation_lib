@@ -135,27 +135,37 @@ void sighandler( int sig )
 #endif
 
 
-/*! Normal entry point for all platforms */
-
 #if FOUNDATION_PLATFORM_ANDROID
+
+/*! Android native glue entry point */
+
 void android_main( struct android_app* app )
-#else
-int main( int argc, char **argv )
-#endif
 {
-	int ret = -1;
-
-#if FOUNDATION_PLATFORM_ANDROID
 	if( !app )
 		return;
 	if( android_initialize( app ) < 0 )
 		return;
-	if( main_initialize() < 0 )
-		return;
+	android_real_main();
+	android_shutdown();
+}
+
+
+int android_real_main( void )
+{
+	
 #else
+
+/*! Normal entry point for all other platforms, including Windows console applications */
+
+int main( int argc, char **argv )
+{
+
+#endif
+
+	int ret = -1;
+
 	if( main_initialize() < 0 )
 		return ret;
-#endif
 
 #if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
 	
@@ -191,17 +201,17 @@ int main( int argc, char **argv )
 #if FOUNDATION_PLATFORM_APPLE
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{
-#if FOUNDATION_PLATFORM_MACOSX
+#  if FOUNDATION_PLATFORM_MACOSX
 
 		//Fire up new thread to continue engine, then run Cocoa event loop in main thread
 		//_app_start_main_ns_thread( argc, argv );
 		ret = NSApplicationMain( argc, (const char**)argv );
 
-#elif FOUNDATION_PLATFORM_IOS
+#  elif FOUNDATION_PLATFORM_IOS
 
 		ret = UIApplicationMain( argc, (char**)argv, 0, 0 );
 
-#endif
+#  endif
 		//NSApplicationMain and UIApplicationMain never returns though
 		return ret;
 	}
@@ -231,13 +241,5 @@ int main( int argc, char **argv )
 
 	main_shutdown();
 
-#if FOUNDATION_PLATFORM_ANDROID
-
-	android_shutdown();
-	
-#else
-
 	return ret;
-
-#endif
 }

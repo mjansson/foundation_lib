@@ -31,6 +31,9 @@ int android_initialize( struct android_app* app )
 {
 	_android_app = app;
 
+	if( !app || !app->activity )
+		return 0;
+	
 	//Avoid glue code getting stripped
 	app_dummy();
 	

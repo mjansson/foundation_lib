@@ -246,3 +246,14 @@ void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threa
 	} while( keep_waiting );
 }
 
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+extern int android_real_main( void );
+
+int main( int argc, char **argv )
+{
+	return android_real_main();
+}
+
+#endif

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="foundation" default="help">
+<project name="test_all" default="help">
 
     <!-- The local.properties file is created and updated by the 'android' tool.
          It contains the path to the SDK. It should *NOT* be checked into
@@ -72,7 +72,7 @@
         <copy todir="${jar.libs.dir}/armeabi-v7a">
             <fileset 
                 dir="../../bin/android/release" 
-                includes="libtest-*.so" />
+                includes="test*" />
         </copy>
         <copy todir="assets/config">
             <fileset 

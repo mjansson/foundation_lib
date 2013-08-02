@@ -77,7 +77,7 @@ int main_run( void* main_arg )
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	pattern = "test-*";
 #elif FOUNDATION_PLATFORM_ANDROID
-	pattern = "libtest-*.so";
+	pattern = "test-*";
 #elif FOUNDATION_PLATFORM_POSIX
 	pattern = "test-*";
 #else
@@ -86,55 +86,6 @@ int main_run( void* main_arg )
 	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
-#if FOUNDATION_PLATFORM_ANDROID
-		//Should be on format "libtest-name.so"
-		char* test_name = string_substr( exe_paths[iexe], 3, string_length( exe_paths[iexe] ) - 6 );
-		
-		if( string_equal_substr( test_name, environment_executable_name(), string_length( environment_executable_name() ) ) )
-			continue; //Don't run self
-		
-		library = library_load( test_name );
-		if( !library )
-		{
-			library_unload( library );
-			log_warnf( WARNING_SUSPICIOUS, "Tests failed, unable to load test library: %s", exe_paths[iexe] );
-			process_set_exit_code( -1 );
-			goto exit;
-		}
-		else
-		{
-			library_initialize = library_symbol( library, "main_initialize" );
-			library_run = library_symbol( library, "main_run" );
-			if( library_initialize && library_run )
-			{
-				int (*fn_initialize)(void) = library_initialize;
-				int (*fn_run)(void*) = library_run;
-				
-				log_infof( "Running test library: %s", exe_paths[iexe] );
-				process_result = fn_initialize();
-				if( process_result >= 0 )
-					process_result = fn_run( 0 );
-
-				library_unload( library );
-
-				if( process_result != 0 )
-				{
-					log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
-					process_set_exit_code( -1 );
-					goto exit;
-				}
-			}
-			else
-			{
-				library_unload( library );
-				log_warnf( WARNING_SUSPICIOUS, "Tests failed, test library does not export expected symbols" );
-				process_set_exit_code( -1 );
-				goto exit;
-			}
-		}
-			
-		library_unload( library );
-#else
 		if( string_equal_substr( exe_paths[iexe], environment_executable_name(), string_length( environment_executable_name() ) ) )
 			continue; //Don't run self
 
@@ -167,7 +118,6 @@ int main_run( void* main_arg )
 			process_set_exit_code( -1 );
 			goto exit;
 		}
-#endif
 
 		log_infof( "All tests from %s passed (%d)", exe_paths[iexe], process_result );
 	}

@@ -29,5 +29,5 @@ LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
 
 LOCAL_SRC_FILES  := test/$(FOUNDATION_TEST_MODULE)/main.c
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_EXECUTABLE)
 
