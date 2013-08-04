@@ -129,22 +129,28 @@ LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 
 #endif
 
-#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE
 
 #include <signal.h>
 #include <setjmp.h>
-#include <ucontext.h>
+//#include <ucontext.h>
 
 FOUNDATION_DECLARE_THREAD_LOCAL( crash_dump_callback_fn, crash_callback, 0 )
 FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
-FOUNDATION_DECLARE_THREAD_LOCAL( struct __jmp_buf_tag*, crash_env, 0 )
 
+#if FOUNDATION_PLATFORM_ANDROID
+FOUNDATION_DECLARE_THREAD_LOCAL( long int*, crash_env, 0 )
+#else
+FOUNDATION_DECLARE_THREAD_LOCAL( struct __jmp_buf_tag*, crash_env, 0 )
+#endif
 	
-static void _crash_guard_minidump( ucontext_t* context, const char* name, char* dump_file )
+	
+static void _crash_guard_minidump( void* context, const char* name, char* dump_file )
 {
 	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "/tmp/core.%s", name ? name : "unknown" );
 
 	//TODO: Write dump file
+	//ucontext_t* user_context = context;
 }
 
 	
@@ -152,12 +158,10 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 {
 	log_infof( "Caught crash guard signal: %d", sig );
 
-	ucontext_t* user_context = arg;
-
 	crash_dump_callback_fn callback = get_thread_crash_callback();
 	if( callback )
 	{
-		_crash_guard_minidump( user_context, get_thread_crash_callback_name(), _crash_dump_file );
+		_crash_guard_minidump( arg, get_thread_crash_callback_name(), _crash_dump_file );
 		callback( _crash_dump_file );
 	}
 	
@@ -194,11 +198,6 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	//No guard mechanism in place yet for this platform
 	return fn( data );
 
-#elif FOUNDATION_PLATFORM_ANDROID
-
-	//No guard mechanism in place yet for this platform
-	return fn( data );
-	
 #elif FOUNDATION_PLATFORM_POSIX
 	sigjmp_buf guard_env = {0};
 	
