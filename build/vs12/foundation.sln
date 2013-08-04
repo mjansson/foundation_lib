@@ -214,6 +214,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "semaphore", "test\semaphore
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hashtable", "test\hashtable.vcxproj", "{ADECD2E4-29F9-4283-8A45-AC406B648755}"
 	ProjectSection(ProjectDependencies) = postProject
+		{B2D31D20-6812-4040-9DDB-B0B03E852672} = {B2D31D20-6812-4040-9DDB-B0B03E852672}
 		{6ABDE628-E9D5-4A7F-9847-A47F56210273} = {6ABDE628-E9D5-4A7F-9847-A47F56210273}
 	EndProjectSection
 EndProject
