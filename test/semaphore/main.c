@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_semaphore_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation semaphore tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_semaphore_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_semaphore_shutdown( void )
 {
 }
 
@@ -167,9 +167,35 @@ DECLARE_TEST( semaphore, threaded )
 }
 
 
-void test_declare( void )
+void test_semaphore_declare( void )
 {
 	ADD_TEST( semaphore, initialize );
 	ADD_TEST( semaphore, postwait );
 	ADD_TEST( semaphore, threaded );
 }
+
+
+test_suite_t test_semaphore_suite = {
+	test_semaphore_application,
+	test_semaphore_declare,
+	test_semaphore_initialize,
+	test_semaphore_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_semaphore_run( void )
+{
+	test_suite = test_semaphore_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_semaphore_suite;
+}
+
+#endif

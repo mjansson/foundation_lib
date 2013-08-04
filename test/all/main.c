@@ -55,6 +55,38 @@ int main_initialize( void )
 }
 
 
+#if FOUNDATION_PLATFORM_ANDROID
+#  include <foundation/android.h>
+extern int test_app_run( void );
+extern int test_array_run( void );
+extern int test_atomic_run( void );
+extern int test_base64_run( void );
+extern int test_blowfish_run( void );
+extern int test_bufferstream_run( void );
+extern int test_config_run( void );
+extern int test_crash_run( void );
+extern int test_environment_run( void );
+extern int test_error_run( void );
+extern int test_event_run( void );
+extern int test_fs_run( void );
+extern int test_hash_run( void );
+extern int test_hashmap_run( void );
+extern int test_hashtable_run( void );
+extern int test_library_run( void );
+extern int test_math_run( void );
+extern int test_md5_run( void );
+extern int test_mutex_run( void );
+extern int test_objectmap_run( void );
+extern int test_path_run( void );
+extern int test_radixsort_run( void );
+extern int test_random_run( void );
+extern int test_ringbuffer_run( void );
+extern int test_semaphore_run( void );
+extern int test_stacktrace_run( void );
+extern int test_string_run( void );
+typedef int (*test_run_fn)( void );
+#endif
+
 int main_run( void* main_arg )
 {
 	const char* pattern = 0;
@@ -70,20 +102,69 @@ int main_run( void* main_arg )
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+	int test_fn = 0;
+	test_run_fn tests[] = {
+		//test_app_run
+		test_array_run,
+		test_atomic_run,
+		test_base64_run,
+		test_blowfish_run,
+		test_bufferstream_run,
+		test_config_run,
+		test_crash_run,
+		test_environment_run,
+		test_error_run,
+		test_event_run,
+		test_fs_run,
+		test_hash_run,
+		test_hashmap_run,
+		test_hashtable_run,
+		test_library_run,
+		test_math_run,
+		test_md5_run,
+		test_mutex_run,
+		test_objectmap_run,
+		test_path_run,
+		test_radixsort_run,
+		test_random_run,
+		test_ringbuffer_run,
+		test_semaphore_run,
+		test_stacktrace_run,
+		test_string_run,
+		0
+	};
+
+	do
+	{
+		if( process_result >= 0 )
+		{
+			if( ( process_result = tests[test_fn]() ) >= 0 )
+				log_infof( "All tests passed (%d)", process_result );
+		}
+		++test_fn;
+	} while( tests[test_fn] && ( process_result >= 0 ) );
+
+	if( process_result != 0 )
+	{
+		log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+	}
+	
+#else
 	
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = "test-*.exe";
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	pattern = "test-*";
-#elif FOUNDATION_PLATFORM_ANDROID
-	pattern = "test-*";
 #elif FOUNDATION_PLATFORM_POSIX
 	pattern = "test-*";
 #else
 #  error Not implemented
 #endif
-	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
+	exe_paths = fs_matching_files( environment_executable_directory(), pattern, true );
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
 		if( string_equal_substr( exe_paths[iexe], environment_executable_name(), string_length( environment_executable_name() ) ) )
@@ -128,6 +209,8 @@ exit:
 
 	if( exe_paths )
 		string_array_deallocate( exe_paths );
+
+#endif
 	
 	thread_terminate( thread );
 	thread_destroy( thread );

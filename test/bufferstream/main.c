@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_bufferstream_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation bufferstream tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_bufferstream_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_bufferstream_shutdown( void )
 {
 }
 
@@ -513,7 +513,7 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 }
 
 
-void test_declare( void )
+void test_bufferstream_declare( void )
 {
 	ADD_TEST( bufferstream, null );
 	ADD_TEST( bufferstream, zero );
@@ -523,3 +523,29 @@ void test_declare( void )
 	ADD_TEST( bufferstream, sized_grow );
 	ADD_TEST( bufferstream, sized_nogrow );
 }
+
+
+test_suite_t test_bufferstream_suite = {
+	test_bufferstream_application,
+	test_bufferstream_declare,
+	test_bufferstream_initialize,
+	test_bufferstream_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_bufferstream_run( void )
+{
+	test_suite = test_bufferstream_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_bufferstream_suite;
+}
+
+#endif

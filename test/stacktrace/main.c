@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_stacktrace_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation stacktrace tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_stacktrace_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_stacktrace_shutdown( void )
 {
 }
 
@@ -74,8 +74,34 @@ DECLARE_TEST( stacktrace, resolve )
 }
 
 
-void test_declare( void )
+void test_stacktrace_declare( void )
 {
 	ADD_TEST( stacktrace, capture );
 	ADD_TEST( stacktrace, resolve );
 }
+
+
+test_suite_t test_stacktrace_suite = {
+	test_stacktrace_application,
+	test_stacktrace_declare,
+	test_stacktrace_initialize,
+	test_stacktrace_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_stacktrace_run( void )
+{
+	test_suite = test_stacktrace_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_stacktrace_suite;
+}
+
+#endif

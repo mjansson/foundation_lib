@@ -17,7 +17,7 @@
 static application_t _global_app = {0};
 
 
-application_t test_application( void )
+application_t test_app_application( void )
 {
 	_global_app.name = "Foundation application tests";
 	_global_app.short_name = "test_app";
@@ -28,13 +28,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_app_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_app_shutdown( void )
 {
 }
 
@@ -49,7 +49,35 @@ DECLARE_TEST( app, environment )
 }
 
 
-void test_declare( void )
+void test_app_declare( void )
 {
 	ADD_TEST( app, environment );
 }
+
+
+test_suite_t test_app_suite = {
+	test_app_application,
+	test_app_declare,
+	test_app_initialize,
+	test_app_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_app_run( void )
+{
+	test_suite = test_app_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_app_suite;
+}
+
+#endif
+
+

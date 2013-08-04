@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_hashmap_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation hashmap tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_hashmap_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_hashmap_shutdown( void )
 {
 }
 
@@ -160,10 +160,36 @@ DECLARE_TEST( hashmap, lookup )
 }
 
 
-void test_declare( void )
+void test_hashmap_declare( void )
 {
 	ADD_TEST( hashmap, allocation );
 	ADD_TEST( hashmap, insert );
 	ADD_TEST( hashmap, erase );
 	ADD_TEST( hashmap, lookup );
 }
+
+
+test_suite_t test_hashmap_suite = {
+	test_hashmap_application,
+	test_hashmap_declare,
+	test_hashmap_initialize,
+	test_hashmap_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_hashmap_run( void )
+{
+	test_suite = test_hashmap_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_hashmap_suite;
+}
+
+#endif

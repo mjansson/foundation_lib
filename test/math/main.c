@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_math_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation math tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_math_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_math_shutdown( void )
 {
 }
 
@@ -387,7 +387,7 @@ DECLARE_TEST( math, wrap )
 }
 
 
-void test_declare( void )
+void test_math_declare( void )
 {
 	ADD_TEST( math, constants );
 	ADD_TEST( math, trigonometry );
@@ -397,3 +397,29 @@ void test_declare( void )
 	ADD_TEST( math, comparison );
 	ADD_TEST( math, wrap );
 }
+
+
+test_suite_t test_math_suite = {
+	test_math_application,
+	test_math_declare,
+	test_math_initialize,
+	test_math_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_math_run( void )
+{
+	test_suite = test_math_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_math_suite;
+}
+
+#endif

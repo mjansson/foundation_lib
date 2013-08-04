@@ -102,7 +102,9 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 
 #include <foundation/android.h>
 
-#elif FOUNDATION_PLATFORM_POSIX
+#endif
+
+#if FOUNDATION_PLATFORM_POSIX
 
 #include <foundation/posix.h>
 
@@ -167,7 +169,7 @@ int main( int argc, char **argv )
 	if( main_initialize() < 0 )
 		return ret;
 
-#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_POSIX
 	
 	//Set signal handlers
 	{

@@ -116,7 +116,7 @@ static const uint32_t _test_ciphertext_right[NUM_VARIABLEKEYTESTS + NUM_SETKEYTE
    0xFD36B46FL, 0x5A5479ADL, 0xFA52D080L };
 
 
-application_t test_application( void )
+application_t test_blowfish_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation blowfish tests";
@@ -127,13 +127,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_blowfish_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_blowfish_shutdown( void )
 {
 }
 
@@ -285,9 +285,35 @@ DECLARE_TEST( blowfish, random_data )
 }
 
 
-void test_declare( void )
+void test_blowfish_declare( void )
 {
 	ADD_TEST( blowfish, initialize );
 	ADD_TEST( blowfish, known_data );
 	ADD_TEST( blowfish, random_data );
 }
+
+
+test_suite_t test_blowfish_suite = {
+	test_blowfish_application,
+	test_blowfish_declare,
+	test_blowfish_initialize,
+	test_blowfish_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_blowfish_run( void )
+{
+	test_suite = test_blowfish_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_blowfish_suite;
+}
+
+#endif

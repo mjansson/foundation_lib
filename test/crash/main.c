@@ -17,7 +17,7 @@
 static bool _crash_callback_called = false;
 
 
-application_t test_application( void )
+application_t test_crash_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation crash tests";
@@ -28,13 +28,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_crash_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_crash_shutdown( void )
 {
 }
 
@@ -95,8 +95,34 @@ DECLARE_TEST( crash, crash_thread )
 }
 
 
-void test_declare( void )
+void test_crash_declare( void )
 {
 	ADD_TEST( crash, crash_guard );
 	ADD_TEST( crash, crash_thread );
 }
+
+
+test_suite_t test_crash_suite = {
+	test_crash_application,
+	test_crash_declare,
+	test_crash_initialize,
+	test_crash_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_crash_run( void )
+{
+	test_suite = test_crash_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_crash_suite;
+}
+
+#endif

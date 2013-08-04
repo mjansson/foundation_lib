@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_fs_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation filesystem tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_fs_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_fs_shutdown( void )
 {
 }
 
@@ -408,7 +408,7 @@ DECLARE_TEST( fs, monitor )
 }
 
 
-void test_declare( void )
+void test_fs_declare( void )
 {
 	ADD_TEST( fs, directory );
 	ADD_TEST( fs, file );
@@ -417,3 +417,29 @@ void test_declare( void )
 	ADD_TEST( fs, event );
 	ADD_TEST( fs, monitor );
 }
+
+
+test_suite_t test_fs_suite = {
+	test_fs_application,
+	test_fs_declare,
+	test_fs_initialize,
+	test_fs_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_fs_run( void )
+{
+	test_suite = test_fs_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_fs_suite;
+}
+
+#endif

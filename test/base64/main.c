@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_base64_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation base64 tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_base64_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_base64_shutdown( void )
 {
 }
 
@@ -238,7 +238,35 @@ DECLARE_TEST( base64, encode_decode )
 }
 
 
-void test_declare( void )
+void test_base64_declare( void )
 {
 	ADD_TEST( base64, encode_decode );
 }
+
+
+test_suite_t test_base64_suite = {
+	test_base64_application,
+	test_base64_declare,
+	test_base64_initialize,
+	test_base64_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_base64_run( void )
+{
+	test_suite = test_base64_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_base64_suite;
+}
+
+#endif
+
+

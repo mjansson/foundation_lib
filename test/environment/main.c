@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_environment_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation environment tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_environment_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_environment_shutdown( void )
 {
 }
 
@@ -41,9 +41,11 @@ DECLARE_TEST( environment, builtin )
 	char const* const* cmdline = environment_command_line();
 
 	EXPECT_GE( array_size( cmdline ), 1 );
+#if !FOUNDATION_PLATFORM_ANDROID
 	EXPECT_NE( string_find_string( cmdline[0], "test-environment", 0 ), STRING_NPOS );
 
 	EXPECT_STREQ( environment_executable_name(), "test-environment" );
+#endif
 	EXPECT_NE( environment_initial_working_directory(), 0 );
 	EXPECT_NE( string_length( environment_initial_working_directory() ), 0 );
 	EXPECT_STREQ( environment_initial_working_directory(), environment_current_working_directory() );
@@ -78,8 +80,34 @@ DECLARE_TEST( environment, workingdir )
 }
 
 
-void test_declare( void )
+void test_environment_declare( void )
 {
 	ADD_TEST( environment, builtin );
 	ADD_TEST( environment, workingdir );
 }
+
+
+test_suite_t test_environment_suite = {
+	test_environment_application,
+	test_environment_declare,
+	test_environment_initialize,
+	test_environment_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_environment_run( void )
+{
+	test_suite = test_environment_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_environment_suite;
+}
+
+#endif

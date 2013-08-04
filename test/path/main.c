@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_path_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation path tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_path_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_path_shutdown( void )
 {
 }
 
@@ -557,7 +557,7 @@ DECLARE_TEST( path, query )
 }
 
 
-void test_declare( void )
+void test_path_declare( void )
 {
 	ADD_TEST( path, extract );
 	ADD_TEST( path, clean );
@@ -565,3 +565,29 @@ void test_declare( void )
 	ADD_TEST( path, operations );
 	ADD_TEST( path, query );
 }
+
+
+test_suite_t test_path_suite = {
+	test_path_application,
+	test_path_declare,
+	test_path_initialize,
+	test_path_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_path_run( void )
+{
+	test_suite = test_path_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_path_suite;
+}
+
+#endif

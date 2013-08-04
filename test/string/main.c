@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_string_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation string tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_string_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_string_shutdown( void )
 {
 }
 
@@ -910,9 +910,35 @@ DECLARE_TEST( string, utility )
 }
 
 
-void test_declare( void )
+void test_string_declare( void )
 {
 	ADD_TEST( string, initialize );
 	ADD_TEST( string, queries );
 	ADD_TEST( string, utility );
 }
+
+
+test_suite_t test_string_suite = {
+	test_string_application,
+	test_string_declare,
+	test_string_initialize,
+	test_string_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_string_run( void )
+{
+	test_suite = test_string_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_string_suite;
+}
+
+#endif

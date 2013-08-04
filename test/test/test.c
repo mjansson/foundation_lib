@@ -16,11 +16,11 @@
 #include <test/test.h>
 
 
-FOUNDATION_EXTERN void test_declare( void );
-FOUNDATION_EXTERN application_t test_application( void );
-FOUNDATION_EXTERN int test_initialize( void );
-FOUNDATION_EXTERN void test_shutdown( void );
+test_suite_t test_suite = {0};
 
+#if !FOUNDATION_PLATFORM_ANDROID
+FOUNDATION_EXTERN test_suite_t test_suite_define( void );
+#endif
 
 typedef struct
 {
@@ -39,7 +39,7 @@ test_group_t** _test_groups = 0;
 static bool _test_failed = false;
 
 
-void* event_thread( object_t thread, void* arg )
+void* test_event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
 	event_t* event = 0;
@@ -99,18 +99,20 @@ void test_add_test( test_fn fn, const char* group_name, const char* test_name )
 void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
-	void* result;
-	object_t thread_event;
+	void* result = 0;
+	object_t thread_event = 0;
 
-	log_infof( "Running test suite: %s", environment_application()->short_name );
+	log_infof( "Running test suite: %s", test_suite.application().short_name );
 
 	_test_failed = false;
-	
-	thread_event = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
+
+#if !FOUNDATION_PLATFORM_ANDROID
+	thread_event = thread_create( test_event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread_event, 0 );
 
 	while( !thread_is_running( thread_event ) )
 		thread_yield();
+#endif
 	
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
@@ -155,22 +157,16 @@ void test_free( void )
 }
 
 
-int main_initialize( void )
+int test_run_all( void )
 {
-	log_suppress( ERRORLEVEL_DEBUG );
-	
-	return foundation_initialize( memory_system_malloc(), test_application() );
-}
-
-
-int main_run( void* main_arg )
-{
-	if( test_initialize() < 0 )
+	if( test_suite.initialize() < 0 )
 		return -1;
-	test_declare();
+	test_suite.declare();
+
 	test_run();
 	test_free();
-	test_shutdown();
+
+	test_suite.shutdown();
 	if( _test_failed )
 	{
 		process_set_exit_code( -1 );		
@@ -180,10 +176,30 @@ int main_run( void* main_arg )
 }
 
 
+#if !FOUNDATION_PLATFORM_ANDROID
+
+int main_initialize( void )
+{
+	log_suppress( ERRORLEVEL_DEBUG );
+
+	test_suite = test_suite_define();
+	
+	return foundation_initialize( memory_system_malloc(), test_suite.application() );
+}
+
+
+int main_run( void* main_arg )
+{
+	return test_run_all();
+}
+
+
 void main_shutdown( void )
 {
 	foundation_shutdown();
 }
+
+#endif
 
 
 void test_wait_for_threads_startup( const object_t* threads, unsigned int num_threads )
@@ -245,15 +261,3 @@ void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threa
 			thread_sleep( 10 );
 	} while( keep_waiting );
 }
-
-
-#if FOUNDATION_PLATFORM_ANDROID
-
-extern int android_real_main( void );
-
-int main( int argc, char **argv )
-{
-	return android_real_main();
-}
-
-#endif

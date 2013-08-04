@@ -19,7 +19,7 @@ ifeq ($(NDK_DEBUG),1)
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/debug
 else
 ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/rtm
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/deploy
 else
 ifeq ($(BUILD_PROFILE),1)
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/profile
@@ -59,7 +59,7 @@ ifeq ($(NDK_DEBUG),1)
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/debug
 else
 ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/rtm
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/deploy
 else
 ifeq ($(BUILD_PROFILE),1)
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/profile
@@ -78,41 +78,6 @@ LOCAL_SRC_FILES  := test/test/test.c
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/test
 
 include $(BUILD_STATIC_LIBRARY)
-
-
-#Build main test launcher
-include $(CLEAR_VARS)
-
-LOCAL_MODULE     := test-all
-
-include $(FOUNDATION_LOCAL_PATH)/TargetSetup.mk
-
-LOCAL_PATH       := $(FOUNDATION_LOCAL_PATH)/../../..
-
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/test
-LOCAL_CFLAGS     := 
-
-ifeq ($(NDK_DEBUG),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/debug
-else
-ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/rtm
-else
-ifeq ($(BUILD_PROFILE),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/profile
-else
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/release
-endif
-endif
-endif
-
-LOCAL_STATIC_LIBRARIES += foundation android_native_app_glue cpufeatures
-
-LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
-
-LOCAL_SRC_FILES  := test/all/main.c
-
-include $(BUILD_SHARED_LIBRARY)
 
 
 #Build test modules
@@ -223,6 +188,42 @@ include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 include $(CLEAR_VARS)
 FOUNDATION_TEST_MODULE := string
 include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+
+#Build main test launcher
+include $(CLEAR_VARS)
+
+LOCAL_MODULE     := test-all
+
+include $(FOUNDATION_LOCAL_PATH)/TargetSetup.mk
+
+LOCAL_PATH       := $(FOUNDATION_LOCAL_PATH)/../../..
+
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/test
+LOCAL_CFLAGS     := 
+
+ifeq ($(NDK_DEBUG),1)
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/debug
+else
+ifeq ($(BUILD_DEPLOY),1)
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/deploy
+else
+ifeq ($(BUILD_PROFILE),1)
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/profile
+else
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/release
+endif
+endif
+endif
+
+LOCAL_STATIC_LIBRARIES += test-app test-atomic test-array test-base64 test-blowfish test-bufferstream test-config test-crash test-environment test-error test-event test-fs test-hash test-hashmap test-hashtable test-library test-math test-md5 test-mutex test-objectmap test-path test-radixsort test-random test-ringbuffer test-semaphore test-stacktrace test-string test foundation android_native_app_glue cpufeatures
+
+LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
+
+LOCAL_SRC_FILES  := test/all/main.c
+
+include $(BUILD_SHARED_LIBRARY)
+
 
 
 $(call import-module,android/native_app_glue)

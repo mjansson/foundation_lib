@@ -71,8 +71,8 @@
     <target name="-pre-build">
         <copy todir="${jar.libs.dir}/armeabi-v7a">
             <fileset 
-                dir="../../bin/android/release" 
-                includes="test*" />
+                dir="../../bin/android/debug" 
+                includes="lib*.so" />
         </copy>
         <copy todir="assets/config">
             <fileset 

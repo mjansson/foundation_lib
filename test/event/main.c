@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_event_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation event tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_event_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_event_shutdown( void )
 {
 }
 
@@ -511,7 +511,7 @@ DECLARE_TEST( event, delay_threaded )
 }
 
 
-void test_declare( void )
+void test_event_declare( void )
 {
 	ADD_TEST( event, empty );
 	ADD_TEST( event, immediate );
@@ -519,3 +519,29 @@ void test_declare( void )
 	ADD_TEST( event, immediate_threaded );
 	ADD_TEST( event, delay_threaded );
 }
+
+
+test_suite_t test_event_suite = {
+	test_event_application,
+	test_event_declare,
+	test_event_initialize,
+	test_event_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_event_run( void )
+{
+	test_suite = test_event_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_event_suite;
+}
+
+#endif

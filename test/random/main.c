@@ -20,7 +20,7 @@ static unsigned int _test_slice32 = 0x8000000U;//( 1U << 32U ) / 32U;
 static uint64_t     _test_slice64 = 0x400000000000000ULL;//( 1ULL << 64ULL ) / 64ULL;
 
 
-application_t test_application( void )
+application_t test_random_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation random tests";
@@ -31,13 +31,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_random_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_random_shutdown( void )
 {
 }
 
@@ -353,10 +353,36 @@ DECLARE_TEST( random, threads )
 }
 
 
-void test_declare( void )
+void test_random_declare( void )
 {
 	ADD_TEST( random, distribution32 );
 	ADD_TEST( random, distribution64 );
 	ADD_TEST( random, distribution_real );
 	ADD_TEST( random, threads );
 }
+
+
+test_suite_t test_random_suite = {
+	test_random_application,
+	test_random_declare,
+	test_random_initialize,
+	test_random_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_random_run( void )
+{
+	test_suite = test_random_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_random_suite;
+}
+
+#endif

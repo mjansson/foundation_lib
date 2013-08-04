@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_hash_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation hash tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_hash_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_hash_shutdown( void )
 {
 }
 
@@ -114,8 +114,34 @@ DECLARE_TEST( hash, stability )
 }
 
 
-void test_declare( void )
+void test_hash_declare( void )
 {
 	ADD_TEST( hash, known );
 	ADD_TEST( hash, stability );
 }
+
+
+test_suite_t test_hash_suite = {
+	test_hash_application,
+	test_hash_declare,
+	test_hash_initialize,
+	test_hash_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_hash_run( void )
+{
+	test_suite = test_hash_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_hash_suite;
+}
+
+#endif

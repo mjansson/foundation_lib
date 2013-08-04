@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_config_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation config tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_config_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_config_shutdown( void )
 {
 }
 
@@ -764,9 +764,35 @@ DECLARE_TEST( config, variables )
 }
 
 
-void test_declare( void )
+void test_config_declare( void )
 {
 	ADD_TEST( config, builtin );
 	ADD_TEST( config, getset );
 	ADD_TEST( config, variables );
 }
+
+
+test_suite_t test_config_suite = {
+	test_config_application,
+	test_config_declare,
+	test_config_initialize,
+	test_config_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_config_run( void )
+{
+	test_suite = test_config_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_config_suite;
+}
+
+#endif

@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_array_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation array tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_array_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_array_shutdown( void )
 {
 }
 
@@ -1927,10 +1927,38 @@ DECLARE_TEST( array, inserterase )
 }
 
 
-void test_declare( void )
+void test_array_declare( void )
 {
 	ADD_TEST( array, allocation );
 	ADD_TEST( array, copy );
 	ADD_TEST( array, pushpop );
 	ADD_TEST( array, inserterase );
 }
+
+
+test_suite_t test_array_suite = {
+	test_array_application,
+	test_array_declare,
+	test_array_initialize,
+	test_array_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_array_run( void )
+{
+	test_suite = test_array_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_array_suite;
+}
+
+#endif
+
+

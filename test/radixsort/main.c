@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_radixsort_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation radixsort tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_radixsort_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_radixsort_shutdown( void )
 {
 }
 
@@ -359,10 +359,36 @@ DECLARE_TEST( radixsort, sort_real )
 }
 
 
-void test_declare( void )
+void test_radixsort_declare( void )
 {
 	ADD_TEST( radixsort, allocation );
 	ADD_TEST( radixsort, sort_int32 );
 	ADD_TEST( radixsort, sort_int64 );
 	ADD_TEST( radixsort, sort_real );
 }
+
+
+test_suite_t test_radixsort_suite = {
+	test_radixsort_application,
+	test_radixsort_declare,
+	test_radixsort_initialize,
+	test_radixsort_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_radixsort_run( void )
+{
+	test_suite = test_radixsort_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_radixsort_suite;
+}
+
+#endif

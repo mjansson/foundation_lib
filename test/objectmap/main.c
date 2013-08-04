@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_objectmap_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation objectmap tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_objectmap_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_objectmap_shutdown( void )
 {
 }
 
@@ -181,9 +181,35 @@ DECLARE_TEST( objectmap, thread )
 }
 
 
-void test_declare( void )
+void test_objectmap_declare( void )
 {
 	ADD_TEST( objectmap, initialize );
 	ADD_TEST( objectmap, store );
 	ADD_TEST( objectmap, thread );
 }
+
+
+test_suite_t test_objectmap_suite = {
+	test_objectmap_application,
+	test_objectmap_declare,
+	test_objectmap_initialize,
+	test_objectmap_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_objectmap_run( void )
+{
+	test_suite = test_objectmap_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_objectmap_suite;
+}
+
+#endif

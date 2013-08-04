@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_error_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation error tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_error_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_error_shutdown( void )
 {
 }
 
@@ -236,9 +236,35 @@ DECLARE_TEST( error, thread )
 }
 
 
-void test_declare( void )
+void test_error_declare( void )
 {
 	ADD_TEST( error, error );
 	ADD_TEST( error, context );
 	ADD_TEST( error, thread );
 }
+
+
+test_suite_t test_error_suite = {
+	test_error_application,
+	test_error_declare,
+	test_error_initialize,
+	test_error_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_error_run( void )
+{
+	test_suite = test_error_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_error_suite;
+}
+
+#endif

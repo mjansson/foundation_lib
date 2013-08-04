@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_library_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation library tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_library_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_library_shutdown( void )
 {
 }
 
@@ -87,7 +87,33 @@ DECLARE_TEST( library, lookup )
 }
 
 
-void test_declare( void )
+void test_library_declare( void )
 {
 	ADD_TEST( library, lookup );
 }
+
+
+test_suite_t test_library_suite = {
+	test_library_application,
+	test_library_declare,
+	test_library_initialize,
+	test_library_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_library_run( void )
+{
+	test_suite = test_library_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_library_suite;
+}
+
+#endif

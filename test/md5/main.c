@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_md5_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation md5 tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_md5_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_md5_shutdown( void )
 {
 }
 
@@ -199,9 +199,35 @@ DECLARE_TEST( md5, streams )
 }	
 
 
-void test_declare( void )
+void test_md5_declare( void )
 {
 	ADD_TEST( md5, empty );
 	ADD_TEST( md5, reference );
 	ADD_TEST( md5, streams );
 }
+
+
+test_suite_t test_md5_suite = {
+	test_md5_application,
+	test_md5_declare,
+	test_md5_initialize,
+	test_md5_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_md5_run( void )
+{
+	test_suite = test_md5_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_md5_suite;
+}
+
+#endif

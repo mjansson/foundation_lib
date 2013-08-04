@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_ringbuffer_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation ringbuffer tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_ringbuffer_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_ringbuffer_shutdown( void )
 {
 }
 
@@ -262,10 +262,36 @@ DECLARE_TEST( ringbufferstream, threadedio )
 }
 
 
-void test_declare( void )
+void test_ringbuffer_declare( void )
 {
 	ADD_TEST( ringbuffer, allocate );
 	ADD_TEST( ringbuffer, io );
 
 	ADD_TEST( ringbufferstream, threadedio );
 }
+
+
+test_suite_t test_ringbuffer_suite = {
+	test_ringbuffer_application,
+	test_ringbuffer_declare,
+	test_ringbuffer_initialize,
+	test_ringbuffer_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_ringbuffer_run( void )
+{
+	test_suite = test_ringbuffer_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_ringbuffer_suite;
+}
+
+#endif

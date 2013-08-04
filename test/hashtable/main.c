@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_hashtable_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation hashtable tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_hashtable_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_hashtable_shutdown( void )
 {
 }
 
@@ -258,10 +258,36 @@ DECLARE_TEST( hashtable, 64bit_threaded )
 }
 
 
-void test_declare( void )
+void test_hashtable_declare( void )
 {
 	ADD_TEST( hashtable, 32bit_basic );
 	ADD_TEST( hashtable, 32bit_threaded );
 	ADD_TEST( hashtable, 64bit_basic );
 	ADD_TEST( hashtable, 64bit_threaded );
 }
+
+
+test_suite_t test_hashtable_suite = {
+	test_hashtable_application,
+	test_hashtable_declare,
+	test_hashtable_initialize,
+	test_hashtable_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_hashtable_run( void )
+{
+	test_suite = test_hashtable_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_hashtable_suite;
+}
+
+#endif

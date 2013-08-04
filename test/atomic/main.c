@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_atomic_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation atomic tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_atomic_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_atomic_shutdown( void )
 {
 }
 
@@ -221,9 +221,37 @@ DECLARE_TEST( atomic, cas )
 }
 
 
-void test_declare( void )
+void test_atomic_declare( void )
 {
 	ADD_TEST( atomic, incdec );
 	ADD_TEST( atomic, add );
 	ADD_TEST( atomic, cas );
 }
+
+
+test_suite_t test_atomic_suite = {
+	test_atomic_application,
+	test_atomic_declare,
+	test_atomic_initialize,
+	test_atomic_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_atomic_run( void )
+{
+	test_suite = test_atomic_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_atomic_suite;
+}
+
+#endif
+
+

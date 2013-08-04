@@ -63,3 +63,14 @@ TEST_API void test_add_test( test_fn test, const char* group, const char* name )
 TEST_API void test_wait_for_threads_startup( const object_t* threads, unsigned int num_threads );
 TEST_API void test_wait_for_threads_finish( const object_t* threads, unsigned int num_threads );
 TEST_API void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threads );
+
+
+typedef struct _test_suite
+{
+	application_t (*application)( void );
+	void          (*declare)( void );
+	int           (*initialize)( void );
+	void          (*shutdown)( void );
+} test_suite_t;
+
+TEST_API test_suite_t  test_suite;

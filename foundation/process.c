@@ -398,7 +398,7 @@ int process_spawn( process_t* proc )
 	}
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_LINUX
+#if FOUNDATION_PLATFORM_POSIX
 
 	//Insert executable arg at start and null ptr at end
 	int argc = array_size( proc->args ) + 1;
@@ -494,7 +494,7 @@ int process_spawn( process_t* proc )
 
 #endif
 
-#if !FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_PLATFORM_MACOSX && !FOUNDATION_PLATFORM_LINUX
+#if !FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_PLATFORM_POSIX
 	FOUNDATION_ASSERT_FAIL( "Process spawning not supported on platform" );
 #endif
 

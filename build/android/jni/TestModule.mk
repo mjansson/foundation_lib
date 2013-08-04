@@ -13,7 +13,7 @@ ifeq ($(NDK_DEBUG),1)
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/debug
 else
 ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/rtm
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/deploy
 else
 ifeq ($(BUILD_PROFILE),1)
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/profile
@@ -23,11 +23,11 @@ endif
 endif
 endif
 
-LOCAL_STATIC_LIBRARIES += test foundation android_native_app_glue cpufeatures
+#LOCAL_STATIC_LIBRARIES += test foundation android_native_app_glue cpufeatures
 
-LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
+#LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
 
 LOCAL_SRC_FILES  := test/$(FOUNDATION_TEST_MODULE)/main.c
 
-include $(BUILD_EXECUTABLE)
+include $(BUILD_STATIC_LIBRARY)
 

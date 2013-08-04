@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_application( void )
+application_t test_mutex_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation mutex tests";
@@ -25,13 +25,13 @@ application_t test_application( void )
 }
 
 
-int test_initialize( void )
+int test_mutex_initialize( void )
 {
 	return 0;
 }
 
 
-void test_shutdown( void )
+void test_mutex_shutdown( void )
 {
 }
 
@@ -183,9 +183,35 @@ DECLARE_TEST( mutex, signal )
 }
 
 
-void test_declare( void )
+void test_mutex_declare( void )
 {
 	ADD_TEST( mutex, basic );
 	ADD_TEST( mutex, sync );
 	ADD_TEST( mutex, signal );
 }
+
+
+test_suite_t test_mutex_suite = {
+	test_mutex_application,
+	test_mutex_declare,
+	test_mutex_initialize,
+	test_mutex_shutdown
+};
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+int test_mutex_run( void )
+{
+	test_suite = test_mutex_suite;
+	return test_run_all();
+}
+
+#else
+
+test_suite_t test_suite_define( void )
+{
+	return test_mutex_suite;
+}
+
+#endif
