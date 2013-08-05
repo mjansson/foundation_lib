@@ -101,8 +101,6 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 	mutex_t* notify = monitor->signal;
 	char* localpath = monitor->path;
 
-	memset( monitor, 0, sizeof( fs_monitor_t ) );
-
 	thread_terminate( thread );
 
 	if( notify )
@@ -113,6 +111,8 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 	while( thread_is_running( thread ) )
 		thread_yield();
 
+	memset( monitor, 0, sizeof( fs_monitor_t ) );
+	
 	if( localpath )
 		string_deallocate( localpath );
 
