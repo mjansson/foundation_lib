@@ -46,7 +46,7 @@ void* event_thread( object_t thread, void* arg )
 int main_initialize( void )
 {
 	application_t application = {0};
-	application.name = "Foundation string test";
+	application.name = "Foundation library test suite";
 	application.short_name = "test_all";
 	application.config_dir = "test_all";
 	application.flags = APPLICATION_UTILITY;
@@ -104,7 +104,7 @@ int main_run( void* main_arg )
 	thread_start( thread, 0 );
 
 #if FOUNDATION_PLATFORM_ANDROID
-
+	
 	int test_fn = 0;
 	test_run_fn tests[] = {
 		//test_app_run

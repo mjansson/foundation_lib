@@ -66,7 +66,7 @@ DECLARE_TEST( stacktrace, resolve )
 	
 	EXPECT_NE( string_find_string( resolved, "stacktraceresolve_fn", 0 ), STRING_NPOS );
 	EXPECT_NE( string_find_string( resolved, "test_run", 0 ), STRING_NPOS );
-	EXPECT_NE( string_find_string( resolved, "main_run", 0 ), STRING_NPOS );
+	//EXPECT_NE( string_find_string( resolved, "main_run", 0 ), STRING_NPOS );
 	
 	memory_deallocate( resolved );
 	

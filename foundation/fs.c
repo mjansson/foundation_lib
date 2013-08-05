@@ -25,9 +25,6 @@
 #  include <utime.h>
 #  include <fcntl.h>
 #  include <dirent.h>
-#endif
-
-#if FOUNDATION_PLATFORM_LINUX
 #  include <sys/inotify.h>
 #endif
 
@@ -639,7 +636,7 @@ event_stream_t* fs_event_stream( void )
 }
 
 
-#if FOUNDATION_PLATFORM_LINUX
+#if FOUNDATION_PLATFORM_POSIX
 
 typedef struct _foundation_fs_watch
 {
@@ -718,7 +715,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		goto exit_thread;
 	}
 
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_POSIX
 
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
@@ -846,7 +843,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				break;
 		}
 
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_POSIX
 
 		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
@@ -933,7 +930,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		CloseHandle( handles[1] );
 
 	memory_deallocate( buffer );
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_POSIX
 	close( notify_fd );
 	string_array_deallocate( paths );
 	array_deallocate( watch );

@@ -101,6 +101,9 @@ FOUNDATION_API void             fs_monitor( const char* path );
     \param path                 File system path */
 FOUNDATION_API void             fs_unmonitor( const char* path );
 
+/*! Create a temporary file
+    \return                     Temporary file */
+FOUNDATION_API stream_t*        fs_temporary_file( void );
 
 /*! Post a file event
     \param id                   Event id

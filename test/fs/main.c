@@ -41,7 +41,7 @@ DECLARE_TEST( fs, directory )
 	char* longpath;
 	char* testpath = path_merge( environment_temporary_directory(), string_from_int_static( random64(), 0, 0 ) );
 
-	if( !fs_is_file( testpath ) )
+	if( fs_is_file( testpath ) )
 		fs_remove_file( testpath );
 	if( !fs_is_directory( testpath ) )
 		fs_make_directory( testpath );

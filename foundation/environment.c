@@ -389,14 +389,49 @@ const char* environment_temporary_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wpath );
 	}
-#elif FOUNDATION_PLATFORM_POSIX
-	string_copy( _environment_temp_dir, P_tmpdir, FOUNDATION_MAX_PATHLEN );
-	unsigned int len = string_length( _environment_temp_dir );
-	if( ( len > 1 ) && ( _environment_temp_dir[ len - 1 ] == '/' ) )
-		_environment_temp_dir[ len - 1 ] = 0;
-#else
-#  error Not implemented
 #endif
+#if FOUNDATION_PLATFORM_ANDROID
+	//Use application external data path, or if that fails, internal data path
+	struct android_app* app = android_app();
+	const char* test_path[] = { app && app->activity ? app->activity->externalDataPath : 0, app && app->activity ? app->activity->internalDataPath : 0 };
+	for( int itest = 0; itest < 2; ++itest )
+	{
+		if( test_path[itest] && string_length( test_path[itest] ) )
+		{
+			char* temp_path = path_prepend( string_format( ".tmp-%s", string_from_uuid_static( uuid_generate_random() ) ), test_path[itest] );
+			stream_t* temp_stream = fs_open_file( temp_path, STREAM_OUT | STREAM_BINARY );
+			if( temp_stream )
+			{
+				stream_deallocate( temp_stream );
+
+				string_copy( _environment_temp_dir, test_path[itest], FOUNDATION_MAX_PATHLEN );
+				unsigned int len = string_length( _environment_temp_dir );
+				if( !len || ( _environment_temp_dir[ len - 1 ] != '/' ) )
+				{
+					_environment_temp_dir[ len++ ] = '/';
+					_environment_temp_dir[ len ] = 0;
+				}
+				string_copy( _environment_temp_dir + len, ".tmp", FOUNDATION_MAX_PATHLEN - len );
+
+				//Clear it from old files
+				fs_remove_file( _environment_temp_dir );
+				fs_remove_directory( _environment_temp_dir );
+				fs_make_directory( _environment_temp_dir );
+			}
+			string_deallocate( temp_path );
+		}
+	}
+#endif	
+#if FOUNDATION_PLATFORM_POSIX
+	if( !_environment_temp_dir[0] )
+	{
+		string_copy( _environment_temp_dir, P_tmpdir, FOUNDATION_MAX_PATHLEN );
+		unsigned int len = string_length( _environment_temp_dir );
+		if( ( len > 1 ) && ( _environment_temp_dir[ len - 1 ] == '/' ) )
+			_environment_temp_dir[ len - 1 ] = 0;
+	}
+#endif
+#if !FOUNDATION_PLATFORM_ANDROID
 	if( _environment_app.config_dir )
 	{
 		unsigned int curlen = string_length( _environment_temp_dir );
@@ -407,6 +442,8 @@ const char* environment_temporary_directory( void )
 			memcpy( _environment_temp_dir + curlen + 1, _environment_app.config_dir, cfglen + 1 );
 		}
 	}
+#endif
+	log_debugf( "Application temporary path: %s", _environment_temp_dir );
 	return _environment_temp_dir;
 }
 

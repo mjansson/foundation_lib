@@ -79,5 +79,3 @@ test_suite_t test_suite_define( void )
 }
 
 #endif
-
-

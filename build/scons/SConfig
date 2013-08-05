@@ -1,4 +1,4 @@
-debug           = 1   # 0 -> release build, 1 -> debug build
+debug           = 0   # 0 -> release build, 1 -> debug build
 profile         = 0   # 1 = profile build
 deploy          = 0   # 1 = deploy build
 arch            = ''  # '', 'x86', 'x86_64', 'arm'
