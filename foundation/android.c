@@ -62,8 +62,8 @@ int android_initialize( struct android_app* app )
 	}
 	log_debugf( "Application window set, continuing" );
 
-	log_debugf( "Internal data path: %s", app->activity->internalDataPath );
-	log_debugf( "External data path: %s", app->activity->externalDataPath );
+	log_infof( "Internal data path: %s", app->activity->internalDataPath );
+	log_infof( "External data path: %s", app->activity->externalDataPath );
 
 	ASensorManager* sensor_manager = ASensorManager_getInstance();
 	_android_sensor_queue = ASensorManager_createEventQueue( sensor_manager, app->looper, 0, android_sensor_callback, 0 );
@@ -77,7 +77,7 @@ int android_initialize( struct android_app* app )
 
 void android_shutdown( void )
 {
-	log_debugf( "exiting native android app" );
+	log_infof( "exiting native android app" );
 
 	_android_app->onAppCmd = 0;
     _android_app->onInputEvent = 0;

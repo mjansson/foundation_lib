@@ -138,35 +138,16 @@ void sighandler( int sig )
 
 
 #if FOUNDATION_PLATFORM_ANDROID
-
-/*! Android native glue entry point */
-
-void android_main( struct android_app* app )
-{
-	if( !app )
-		return;
-	if( android_initialize( app ) < 0 )
-		return;
-	android_real_main();
-	android_shutdown();
-}
-
-
-int android_real_main( void )
-{
-	
+/*! Aliased entry point */
+int real_main( struct android_app* app )
 #else
-
-/*! Normal entry point for all other platforms, including Windows console applications */
-
-int main( int argc, char **argv )
-{
-
+/*! Normal entry point for all platforms, including Windows console applications */
+int main( int argc, char** argv )
 #endif
-
+{
 	int ret = -1;
 
-	if( main_initialize() < 0 )
+	if( ( ret = main_initialize() ) < 0 )
 		return ret;
 
 #if FOUNDATION_PLATFORM_POSIX
@@ -188,6 +169,11 @@ int main( int argc, char **argv )
 		sigaction( SIGPIPE, &action, 0 );
 	}
 
+#endif
+
+#if FOUNDATION_PLATFORM_ANDROID
+	if( ( ret = android_initialize( app ) ) < 0 )
+		return ret;
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -243,5 +229,22 @@ int main( int argc, char **argv )
 
 	main_shutdown();
 
+#if FOUNDATION_PLATFORM_ANDROID
+	android_shutdown();
+#endif
+
 	return ret;
 }
+
+
+#if FOUNDATION_PLATFORM_ANDROID
+
+/*! Android native glue entry point */
+void android_main( struct android_app* app )
+{
+	if( !app )
+		return;
+	real_main( app );
+}
+
+#endif

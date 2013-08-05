@@ -35,6 +35,4 @@ FOUNDATION_API struct android_app*   android_app( void );
 FOUNDATION_API void                  android_handle_cmd( struct android_app* app, int32_t cmd );
 FOUNDATION_API int                   android_sensor_callback( int fd, int events, void* data );
 
-FOUNDATION_API int                   android_real_main( void );
-
 #endif
