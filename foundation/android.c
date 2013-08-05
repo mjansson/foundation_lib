@@ -27,20 +27,24 @@ static void _android_enable_sensor( int sensor_type );
 static void _android_disable_sensor( int sensor_type );
 
 
-int android_initialize( struct android_app* app )
+void android_entry( struct android_app* app )
 {
-	_android_app = app;
-
 	if( !app || !app->activity )
-		return 0;
-	
+		return;
+
 	//Avoid glue code getting stripped
 	app_dummy();
 	
-	app->onAppCmd = android_handle_cmd;
-	app->onInputEvent = 0;//android_handle_input;
-	app->userData = 0;
+	_android_app = app;
+	
+	_android_app->onAppCmd = android_handle_cmd;
+	_android_app->onInputEvent = 0;//android_handle_input;
+	_android_app->userData = 0;
+}
 
+	
+int android_initialize( void )
+{
 	//log_debugf( "Force window fullscreen" );
 	//ANativeActivity_setWindowFlags( app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_FORCE_NOT_FULLSCREEN );	
 
@@ -49,24 +53,24 @@ int android_initialize( struct android_app* app )
 		int ident = 0;
 		int events = 0;
 		struct android_poll_source* source = 0;
-		while( !app->window )
+		while( !_android_app->window )
 		{
 			while( ( ident = ALooper_pollAll( 0, 0, &events, (void**)&source ) ) >= 0 )
 			{
 				// Process this event.
 				if( source )
-					source->process( app, source );
+					source->process( _android_app, source );
 			}
 			thread_sleep( 10 );
 		}
 	}
 	log_debugf( "Application window set, continuing" );
 
-	log_infof( "Internal data path: %s", app->activity->internalDataPath );
-	log_infof( "External data path: %s", app->activity->externalDataPath );
+	log_infof( "Internal data path: %s", _android_app->activity->internalDataPath );
+	log_infof( "External data path: %s", _android_app->activity->externalDataPath );
 
 	ASensorManager* sensor_manager = ASensorManager_getInstance();
-	_android_sensor_queue = ASensorManager_createEventQueue( sensor_manager, app->looper, 0, android_sensor_callback, 0 );
+	_android_sensor_queue = ASensorManager_createEventQueue( sensor_manager, _android_app->looper, 0, android_sensor_callback, 0 );
 
 	//Enable accelerometer sensor
 	_android_enable_sensor( ASENSOR_TYPE_ACCELEROMETER );

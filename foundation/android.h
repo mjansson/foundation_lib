@@ -27,7 +27,8 @@
 #include <stdio.h>
 
 
-FOUNDATION_API int                   android_initialize( struct android_app* app );
+FOUNDATION_API void                  android_entry( struct android_app* app );
+FOUNDATION_API int                   android_initialize( void );
 FOUNDATION_API void                  android_shutdown( void );
 
 FOUNDATION_API struct android_app*   android_app( void );

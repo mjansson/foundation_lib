@@ -139,7 +139,7 @@ void sighandler( int sig )
 
 #if FOUNDATION_PLATFORM_ANDROID
 /*! Aliased entry point */
-int real_main( struct android_app* app )
+int real_main( void )
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
 int main( int argc, char** argv )
@@ -172,7 +172,7 @@ int main( int argc, char** argv )
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
-	if( ( ret = android_initialize( app ) ) < 0 )
+	if( ( ret = android_initialize() ) < 0 )
 		return ret;
 #endif
 
@@ -244,7 +244,8 @@ void android_main( struct android_app* app )
 {
 	if( !app )
 		return;
-	real_main( app );
+	android_entry( app );
+	real_main();
 }
 
 #endif
