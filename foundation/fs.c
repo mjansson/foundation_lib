@@ -654,11 +654,15 @@ static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** wa
 {
 	char** subdirs = 0;
 	char* local_path = 0;
-	//log_debugf( "Watching subdir: %s", path );
 	int fd = inotify_add_watch( notify_fd, path, IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVE );
 	if( fd < 0 )
+	{
+		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Failed watching subdir: %s (%d)", path, fd );
 		return;
+	}
 
+	//log_debugf( "Watching subdir: %s (%d)", path, fd );
+	
 	//Include terminating / in paths stored in path_arr/watch_arr
 	local_path = string_format( "%s/", path ? path : "" );
 	array_push( (*path_arr), local_path );
@@ -857,18 +861,22 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		//log_debugf( "ioctl inotify: %d", avail );
 		if( avail > 0 )
 		{
-			alignedptr64_t buffer = memory_allocate( avail, 8, MEMORY_TEMPORARY );
+			/*alignedptr64_t*/void* buffer = memory_allocate_zero( avail + 4, 8, MEMORY_PERSISTENT );
 			int offset = 0;
-			avail = read( notify_fd, buffer, avail );
+			int avail_read = read( notify_fd, buffer, avail );
+			//log_debugf( "inotify read: %d", avail_read );
 			struct inotify_event* event = (struct inotify_event*)buffer;
-			while( offset < avail )
+			while( offset < avail_read )
 			{
 				foundation_event_id eventid = 0;
 				fs_watch_t* curwatch = _lookup_watch( watch, event->wd );
 				if( !curwatch )
+				{
+					log_warnf( WARNING_SUSPICIOUS, "inotify watch not found: %d %x %x %u bytes: %s", event->wd, event->mask, event->cookie, event->len, event->name );
 					goto skipwatch;
+				}
 
-				//log_debugf( "inotify event: %d %d bytes: %s", event->mask, event->len, event->name );
+				//log_debugf( "inotify event: %d %x %x %u bytes: %s in path %s", event->wd, event->mask, event->cookie, event->len, event->name, curwatch->path );
 
 				char* curpath = string_clone( curwatch->path );
 				curpath = string_append( curpath, event->name );

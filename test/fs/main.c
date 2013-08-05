@@ -337,8 +337,10 @@ DECLARE_TEST( fs, monitor )
 	fs_monitor( testpath );
 	thread_sleep( 1000 );
 
-	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT ) );
-	thread_sleep( 100 );
+	test_stream = fs_open_file( filetestpath, STREAM_OUT );
+	stream_deallocate( test_stream );
+	EXPECT_NE( test_stream, 0 );
+	thread_sleep( 1000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
