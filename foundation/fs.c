@@ -31,7 +31,7 @@
 #include <stdio.h>
 
 
-typedef struct _foundation_fs_monitor
+typedef struct ALIGN(16) _foundation_fs_monitor
 {
 	char*             path;
 	object_t          thread;
@@ -52,15 +52,19 @@ static stream_vtable_t _fs_file_vtable;
 
 static void* _fs_monitor( object_t, void* );
 
-static fs_monitor_t* _fs_monitors = 0;
+static fs_monitor_t _fs_monitors[BUILD_SIZE_FS_MONITORS] = {0};
 static event_stream_t* _fs_event_stream = 0;
 
 
 void fs_monitor( const char* path )
 {
-	int mi, msize;
-	fs_monitor_t* monitor = 0;
-	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
+	int mi;
+	char* path_clone = 0;
+	fs_monitor_t new_monitor = {0};
+
+	//TODO: Full thread safety
+
+	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS;++mi )
 	{
 		if( string_equal( _fs_monitors[mi].path, path ) )
 			return;
@@ -68,24 +72,24 @@ void fs_monitor( const char* path )
 
 	memory_context_push( MEMORYCONTEXT_STREAM );
 
-	monitor = memory_allocate_zero( sizeof( fs_monitor_t ), 0, MEMORY_PERSISTENT );
-	monitor->path = string_clone( path );
-	monitor->signal = mutex_allocate( "fs_monitor_signal" );
-	monitor->thread = thread_create( _fs_monitor, "fs_monitor", THREAD_PRIORITY_BELOWNORMAL, 0 );
+	path_clone = path_clean( string_clone( path ), path_is_absolute( path ) );
 
-	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
+	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
 		if( !_fs_monitors[mi].thread && !_fs_monitors[mi].path && !_fs_monitors[mi].signal )
 		{
-			memcpy( _fs_monitors + mi, monitor, sizeof( fs_monitor_t ) );
-			break;
+			if( atomic_cas_ptr( &_fs_monitors[mi].path, path_clone, 0 ) )
+			{
+				_fs_monitors[mi].thread = thread_create( _fs_monitor, "fs_monitor", THREAD_PRIORITY_BELOWNORMAL, 0 );
+				_fs_monitors[mi].signal = mutex_allocate( "fs_monitor_signal" );
+				thread_start( _fs_monitors[mi].thread, _fs_monitors + mi );
+				break;
+			}
 		}
 	}
 
-	if( mi == msize )
-		array_push_memcpy( _fs_monitors, monitor );
-
-	thread_start( monitor->thread, monitor );
+	if( mi == BUILD_SIZE_FS_MONITORS )
+		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to monitor file system, no free monitor slots: %s", path );
 
 	memory_context_pop();
 }
@@ -119,8 +123,8 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 
 void fs_unmonitor( const char* path )
 {
-	int mi, msize;
-	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
+	int mi;
+	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
 		if( string_equal( _fs_monitors[mi].path, path ) )
 			_fs_stop_monitor( _fs_monitors + mi );
@@ -617,6 +621,8 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 	}
 
 	memory_context_pop();
+
+	string_array_deallocate( subdirs );
 
 	return names;
 }
@@ -1331,11 +1337,9 @@ int _fs_initialize( void )
 
 void _fs_shutdown( void )
 {
-	int mi, msize;
-	for( mi = 0, msize = array_size( _fs_monitors ); mi < msize; ++mi )
+	int mi;
+	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 		_fs_stop_monitor( _fs_monitors + mi );
-	array_deallocate( _fs_monitors );
-	_fs_monitors = 0;
 
 	event_stream_deallocate( _fs_event_stream );
 	_fs_event_stream = 0;

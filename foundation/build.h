@@ -150,3 +150,6 @@
 
 // Maximum stacktrace depth
 #define BUILD_SIZE_STACKTRACE_DEPTH           32
+
+// Maximum number of filesystem monitors
+#define BUILD_SIZE_FS_MONITORS                32
