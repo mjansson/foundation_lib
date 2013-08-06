@@ -320,5 +320,5 @@ unsigned int hashtable64_size( hashtable64_t* table )
 void hashtable64_clear( hashtable64_t* table )
 {
 	FOUNDATION_ASSERT( table );
-	memset( table->entries, 0, sizeof( hashtable64_entry_t ) * table->capacity );
+	memset( table->entries, 0, sizeof( hashtable64_entry_t ) * (size_t)table->capacity );
 }
