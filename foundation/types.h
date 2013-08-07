@@ -76,8 +76,9 @@ typedef enum
 typedef enum
 {
 	MEMORY_TEMPORARY,
+	MEMORY_THREAD,
 	MEMORY_PERSISTENT,
-	MEMORY_THREAD
+	MEMORY_PERSISTENT_32BIT_ADDRESS
 } memory_hint_t;
 
 //! Memory contexts

@@ -18,6 +18,7 @@
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  include <malloc.h>
+#  include <sys/mman.h>
 #endif
 
 
@@ -279,30 +280,94 @@ void memory_context_thread_deallocate( void )
 #endif
 
 
-#if !FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 
-static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align )
-{
-	//If we align, we must be able to retrieve the original pointer for passing to free()
-	//Thus all allocations need to go through that path
-	unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? FOUNDATION_MAX_ALIGN : FOUNDATION_PLATFORM_POINTER_SIZE );
-	char* raw_memory = malloc( size + align + padding );
-	void* memory = _memory_align_pointer( raw_memory + padding, align );
-	*( (void**)memory - 1 ) = raw_memory;
-	return memory;
-}
+typedef long (*NtAllocateVirtualMemoryFn)( HANDLE, void**, ULONG, size_t*, ULONG, ULONG);
+static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
 
 #endif
+
+
+static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, memory_hint_t hint )
+{
+	//If we align manually, we must be able to retrieve the original pointer for passing to free()
+	//Thus all allocations need to go through that path
+
+#if FOUNDATION_PLATFORM_WINDOWS
+
+#  if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+	return _aligned_malloc( (size_t)size, align );
+#  else
+	if( hint != MEMORY_PERSISTENT_32BIT_ADDRESS )
+	{
+		unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
+		char* raw_memory = _aligned_malloc( (size_t)size + padding, align );
+		void* memory;
+
+		memory = raw_memory + padding; //Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
+		*( (void**)memory - 1 ) = raw_memory;
+
+		return memory;
+	}
+
+	unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
+	size_t allocate_size = size + padding + align;
+	char* raw_memory = 0;
+	void* memory;
+
+	long vmres = NtAllocateVirtualMemory( INVALID_HANDLE_VALUE, &raw_memory, 1, &allocate_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE );
+	if( vmres != 0 )
+		return 0;
+	
+	memory = _memory_align_pointer( raw_memory + padding, align );
+	*( (void**)memory - 1 ) = (void*)( (uintptr_t)raw_memory | 1 );
+
+	return memory;
+#  endif	
+
+#else
+	
+#  if FOUNDATION_PLATFORM_POINTER_SIZE > 4
+	if( hint != MEMORY_PERSISTENT_32BIT_ADDRESS )
+#  endif
+	{
+		unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
+		char* raw_memory = malloc( size + align + padding );
+		void* memory = _memory_align_pointer( raw_memory + padding, align );
+		*( (void**)memory - 1 ) = raw_memory;
+		return memory;
+	}
+	
+#  if FOUNDATION_PLATFORM_POINTER_SIZE > 4
+
+	unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE*2 ? align : FOUNDATION_PLATFORM_POINTER_SIZE*2 );
+	size_t allocate_size = size + padding + align;
+	char* raw_memory;
+	void* memory;
+
+	#ifndef MAP_UNINITIALIZED
+	#define MAP_UNINITIALIZED 0
+	#endif
+	raw_memory = mmap( 0, allocate_size, PROT_READ | PROT_WRITE, MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0 );
+	if( !raw_memory )
+		return 0;
+	
+	memory = _memory_align_pointer( raw_memory + padding, align );
+	*( (uintptr_t*)memory - 1 ) = ( (uintptr_t)raw_memory | 1 );
+	*( (uintptr_t*)memory - 2 ) = allocate_size;
+
+	return memory;	
+
+#  endif
+	
+#endif
+}
 
 
 static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint )
 {
 	align = _memory_get_align( align );
-#if FOUNDATION_PLATFORM_WINDOWS
-	return _aligned_malloc( (size_t)size, align );
-#else
-	return _memory_allocate_malloc_raw( size, align );
-#endif
+	return _memory_allocate_malloc_raw( size, align, hint );
 }
 
 
@@ -317,12 +382,34 @@ static void* _memory_allocate_zero_malloc( uint16_t context, uint64_t size, unsi
 
 static void _memory_deallocate_malloc( void* p )
 {
-#if FOUNDATION_PLATFORM_WINDOWS
-	if( p )
-		_aligned_free( p );
+	if( !p )
+		return;
+	
+#if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+#  if FOUNDATION_PLATFORM_WINDOWS
+	_aligned_free( p );
+#  else
+	free( *( (void**)p - 1 ) );
+#  endif
 #else
-	if( p )
-		free( *( (void**)p - 1 ) );
+	uintptr_t raw_ptr = *( (uintptr_t*)p - 1 );
+	if( raw_ptr & 1 )
+	{
+#  if FOUNDATION_PLATFORM_WINDOWS
+		VirtualFree( (void*)raw_ptr, 0, MEM_RELEASE );
+#  else
+		uintptr_t raw_size = *( (uintptr_t*)p - 2 );
+		munmap( (void*)raw_ptr, raw_size );
+#  endif
+	}
+	else
+	{
+#  if FOUNDATION_PLATFORM_WINDOWS
+		_aligned_free( (void*)raw_ptr );
+#  else
+		free( (void*)raw_ptr );
+#  endif
+	}
 #endif
 }
 
@@ -330,14 +417,16 @@ static void _memory_deallocate_malloc( void* p )
 static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
 {
 	align = _memory_get_align( align );
-#if FOUNDATION_PLATFORM_WINDOWS
+
+#if ( FOUNDATION_PLATFORM_POINTER_SIZE == 4 ) && FOUNDATION_PLATFORM_WINDOWS
 	return _aligned_realloc( p, (size_t)size, align );
 #else
+
 	void* memory = 0;
-	if( !align && p )
+	void* raw_p = p ? *( (void**)p - 1 ) : 0;
+	if( !align && raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
-		void* raw_memory = *( (void**)p - 1 );
-		raw_memory = realloc( raw_memory, size + FOUNDATION_PLATFORM_POINTER_SIZE );
+		void* raw_memory = realloc( raw_p, size + FOUNDATION_PLATFORM_POINTER_SIZE );
 		if( raw_memory )
 		{
 			*(void**)raw_memory = raw_memory;
@@ -346,7 +435,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	}
 	else
 	{
-		memory = _memory_allocate_malloc_raw( size, align );
+		memory = _memory_allocate_malloc_raw( size, align, MEMORY_PERSISTENT );
 		if( p && memory && oldsize )
 			memcpy( memory, p, ( size < oldsize ) ? size : oldsize );
 		_memory_deallocate_malloc( p );
@@ -362,6 +451,9 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 static int _memory_initialize_malloc( void )
 {
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_PLATFORM_POINTER_SIZE > 4 )
+	NtAllocateVirtualMemory = (NtAllocateVirtualMemoryFn)GetProcAddress( GetModuleHandleA( "ntdll.dll" ), "NtAllocateVirtualMemory" );
+#endif
 	return 0;
 }
 
