@@ -132,7 +132,7 @@ int main_run( void* main_arg )
 		test_random_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
-		test_stacktrace_run,
+		//test_stacktrace_run, 
 		test_string_run,
 		0
 	};

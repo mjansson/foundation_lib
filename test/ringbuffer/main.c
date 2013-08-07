@@ -156,6 +156,8 @@ DECLARE_TEST( ringbuffer, io )
 	EXPECT_EQ( ringbuffer_total_read( buffer ), expected_size );
 	EXPECT_EQ( ringbuffer_total_written( buffer ), expected_size );
 
+	ringbuffer_deallocate( buffer );
+	
 	return 0;
 }
 
@@ -204,8 +206,13 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	real elapsed, throughput;
 	unsigned int mbytes;
 
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+	mbytes = 16;
+	loops = 32;
+#else
 	mbytes = 256;
 	loops = 16;
+#endif
 	
 	test.buffer_size = mbytes * 1024 * 1024;
 	test.source_buffer = memory_allocate( test.buffer_size, 0, MEMORY_PERSISTENT );
@@ -258,6 +265,9 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	throughput = (real)( (float64_t)( mbytes * loops ) / (float64_t)elapsed );
 	log_infof( "Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec", ( loops * mbytes ), (float32_t)elapsed, (float32_t)throughput );
 
+	memory_deallocate( test.source_buffer );
+	memory_deallocate( test.dest_buffer );
+	
 	return 0;
 }
 
