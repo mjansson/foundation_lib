@@ -311,6 +311,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 
 		memory = raw_memory + padding; //Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
 		*( (void**)memory - 1 ) = raw_memory;
+		FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 
 		return memory;
 	}
@@ -325,6 +326,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 	
 	memory = _memory_align_pointer( raw_memory + padding, align );
 	*( (void**)memory - 1 ) = (void*)( (uintptr_t)raw_memory | 1 );
+	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 
 	return memory;
 #  endif	
@@ -339,6 +341,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 		char* raw_memory = malloc( size + align + padding );
 		void* memory = _memory_align_pointer( raw_memory + padding, align );
 		*( (void**)memory - 1 ) = raw_memory;
+		FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 		return memory;
 	}
 	
@@ -359,6 +362,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 	memory = _memory_align_pointer( raw_memory + padding, align );
 	*( (uintptr_t*)memory - 1 ) = ( (uintptr_t)raw_memory | 1 );
 	*( (uintptr_t*)memory - 2 ) = allocate_size;
+	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 
 	return memory;	
 
@@ -439,13 +443,28 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 	memory = 0;
 	raw_p = p ? *( (void**)p - 1 ) : 0;
+#if FOUNDATION_PLATFORM_WINDOWS
+	if( raw_p && !( (uintptr_t)raw_p & 1 ) )
+	{
+		unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
+		void* raw_memory = _aligned_realloc( raw_p, padding + size, align );
+		if( raw_memory )
+		{
+			memory = pointer_offset( raw_memory, padding );
+			*( (void**)memory - 1 ) = raw_memory;
+		}
+	}
+	else
+	{
+		memory = _memory_allocate_malloc_raw( size, align, raw_p ? MEMORY_PERSISTENT_32BIT_ADDRESS : MEMORY_PERSISTENT );
+		if( p && memory && oldsize )
+			memcpy( memory, p, ( size < oldsize ) ? size : oldsize );
+		_memory_deallocate_malloc( p );
+	}
+#else
 	if( !align && raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
-#if FOUNDATION_PLATFORM_WINDOWS
-		void* raw_memory = _aligned_realloc( raw_p, size + FOUNDATION_PLATFORM_POINTER_SIZE, 0 );
-#else
 		void* raw_memory = realloc( raw_p, size + FOUNDATION_PLATFORM_POINTER_SIZE );
-#endif
 		if( raw_memory )
 		{
 			*(void**)raw_memory = raw_memory;
@@ -454,11 +473,12 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	}
 	else
 	{
-		memory = _memory_allocate_malloc_raw( size, align, MEMORY_PERSISTENT );
+		memory = _memory_allocate_malloc_raw( size, align, raw_p ? MEMORY_PERSISTENT_32BIT_ADDRESS : MEMORY_PERSISTENT );
 		if( p && memory && oldsize )
 			memcpy( memory, p, ( size < oldsize ) ? size : oldsize );
 		_memory_deallocate_malloc( p );
 	}
+#endif
 	if( !memory )
 	{
 		log_panicf( ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
