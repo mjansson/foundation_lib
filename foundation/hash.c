@@ -191,8 +191,8 @@ typedef struct ALIGN(16) _hash_string_bucket
 	hash_string_t*      key[HASH_STRING_KEY_BUCKETS];
 } hash_string_bucket_t;
 
-FOUNDATION_COMPILETIME_ASSERT( ( sizeof( hash_string_t ) % 16 ) == 0, hash_string_align );
-FOUNDATION_COMPILETIME_ASSERT( ( sizeof( hash_string_bucket_t ) % 16 ) == 0, hash_string_bucket_align );
+FOUNDATION_STATIC_ASSERT( ( sizeof( hash_string_t ) % 16 ) == 0, hash_string_align );
+FOUNDATION_STATIC_ASSERT( ( sizeof( hash_string_bucket_t ) % 16 ) == 0, hash_string_bucket_align );
 
 static hash_string_bucket_t* _hash_string_bucket[HASH_STRING_BUCKETS] = {0};
 

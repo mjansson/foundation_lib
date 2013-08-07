@@ -46,8 +46,8 @@ typedef struct ALIGN(16) _foundation_config_section
 	config_key_t*           key[CONFIG_KEY_BUCKETS];
 } config_section_t;
 
-FOUNDATION_COMPILETIME_ASSERT( ( sizeof( config_key_t ) % 16 ) == 0, config_key_align );
-FOUNDATION_COMPILETIME_ASSERT( ( sizeof( config_section_t ) % 16 ) == 0, config_section_align );
+FOUNDATION_STATIC_ASSERT( ( sizeof( config_key_t ) % 16 ) == 0, config_key_align );
+FOUNDATION_STATIC_ASSERT( ( sizeof( config_section_t ) % 16 ) == 0, config_section_align );
 
 //Global config store
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS] = {0};

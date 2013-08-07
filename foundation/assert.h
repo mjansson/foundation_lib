@@ -78,5 +78,5 @@ FOUNDATION_EXTERN void Debugger(void);
 
 #endif
 
-#define FOUNDATION_COMPILETIME_ASSERT( cond, msg ) /*lint -save -e506 -e751 */ typedef char msg[(cond)?1:-1] /*lint -restore -e506 -e751 */
+#define FOUNDATION_STATIC_ASSERT( cond, msg ) /*lint -save -e506 -e751 */ typedef char msg[(cond)?1:-1] /*lint -restore -e506 -e751 */
 
