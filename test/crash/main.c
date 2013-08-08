@@ -28,6 +28,12 @@ application_t test_crash_application( void )
 }
 
 
+memory_system_t test_crash_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_crash_initialize( void )
 {
 	return 0;
@@ -104,6 +110,7 @@ void test_crash_declare( void )
 
 test_suite_t test_crash_suite = {
 	test_crash_application,
+	test_crash_memory_system,
 	test_crash_declare,
 	test_crash_initialize,
 	test_crash_shutdown

@@ -28,6 +28,12 @@ application_t test_app_application( void )
 }
 
 
+memory_system_t test_app_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_app_initialize( void )
 {
 	return 0;
@@ -57,6 +63,7 @@ void test_app_declare( void )
 
 test_suite_t test_app_suite = {
 	test_app_application,
+	test_app_memory_system,
 	test_app_declare,
 	test_app_initialize,
 	test_app_shutdown

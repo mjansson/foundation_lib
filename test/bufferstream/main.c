@@ -25,6 +25,12 @@ application_t test_bufferstream_application( void )
 }
 
 
+memory_system_t test_bufferstream_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_bufferstream_initialize( void )
 {
 	return 0;
@@ -527,6 +533,7 @@ void test_bufferstream_declare( void )
 
 test_suite_t test_bufferstream_suite = {
 	test_bufferstream_application,
+	test_bufferstream_memory_system,
 	test_bufferstream_declare,
 	test_bufferstream_initialize,
 	test_bufferstream_shutdown

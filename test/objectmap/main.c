@@ -25,6 +25,12 @@ application_t test_objectmap_application( void )
 }
 
 
+memory_system_t test_objectmap_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_objectmap_initialize( void )
 {
 	return 0;
@@ -191,6 +197,7 @@ void test_objectmap_declare( void )
 
 test_suite_t test_objectmap_suite = {
 	test_objectmap_application,
+	test_objectmap_memory_system,
 	test_objectmap_declare,
 	test_objectmap_initialize,
 	test_objectmap_shutdown

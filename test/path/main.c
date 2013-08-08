@@ -25,6 +25,12 @@ application_t test_path_application( void )
 }
 
 
+memory_system_t test_path_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_path_initialize( void )
 {
 	return 0;
@@ -569,6 +575,7 @@ void test_path_declare( void )
 
 test_suite_t test_path_suite = {
 	test_path_application,
+	test_path_memory_system,
 	test_path_declare,
 	test_path_initialize,
 	test_path_shutdown

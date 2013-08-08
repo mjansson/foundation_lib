@@ -25,6 +25,12 @@ application_t test_semaphore_application( void )
 }
 
 
+memory_system_t test_semaphore_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_semaphore_initialize( void )
 {
 	return 0;
@@ -177,6 +183,7 @@ void test_semaphore_declare( void )
 
 test_suite_t test_semaphore_suite = {
 	test_semaphore_application,
+	test_semaphore_memory_system,
 	test_semaphore_declare,
 	test_semaphore_initialize,
 	test_semaphore_shutdown

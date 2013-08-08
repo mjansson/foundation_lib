@@ -25,6 +25,12 @@ application_t test_array_application( void )
 }
 
 
+memory_system_t test_array_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_array_initialize( void )
 {
 	return 0;
@@ -1938,6 +1944,7 @@ void test_array_declare( void )
 
 test_suite_t test_array_suite = {
 	test_array_application,
+	test_array_memory_system,
 	test_array_declare,
 	test_array_initialize,
 	test_array_shutdown

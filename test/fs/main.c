@@ -25,6 +25,12 @@ application_t test_fs_application( void )
 }
 
 
+memory_system_t test_fs_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_fs_initialize( void )
 {
 	return 0;
@@ -423,6 +429,7 @@ void test_fs_declare( void )
 
 test_suite_t test_fs_suite = {
 	test_fs_application,
+	test_fs_memory_system,
 	test_fs_declare,
 	test_fs_initialize,
 	test_fs_shutdown

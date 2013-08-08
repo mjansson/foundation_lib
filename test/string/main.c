@@ -25,6 +25,12 @@ application_t test_string_application( void )
 }
 
 
+memory_system_t test_string_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_string_initialize( void )
 {
 	return 0;
@@ -920,6 +926,7 @@ void test_string_declare( void )
 
 test_suite_t test_string_suite = {
 	test_string_application,
+	test_string_memory_system,
 	test_string_declare,
 	test_string_initialize,
 	test_string_shutdown

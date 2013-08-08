@@ -25,6 +25,12 @@ application_t test_config_application( void )
 }
 
 
+memory_system_t test_config_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_config_initialize( void )
 {
 	return 0;
@@ -774,6 +780,7 @@ void test_config_declare( void )
 
 test_suite_t test_config_suite = {
 	test_config_application,
+	test_config_memory_system,
 	test_config_declare,
 	test_config_initialize,
 	test_config_shutdown

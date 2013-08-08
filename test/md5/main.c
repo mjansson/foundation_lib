@@ -25,6 +25,12 @@ application_t test_md5_application( void )
 }
 
 
+memory_system_t test_md5_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_md5_initialize( void )
 {
 	return 0;
@@ -209,6 +215,7 @@ void test_md5_declare( void )
 
 test_suite_t test_md5_suite = {
 	test_md5_application,
+	test_md5_memory_system,
 	test_md5_declare,
 	test_md5_initialize,
 	test_md5_shutdown

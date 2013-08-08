@@ -25,6 +25,12 @@ application_t test_hash_application( void )
 }
 
 
+memory_system_t test_hash_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_hash_initialize( void )
 {
 	return 0;
@@ -123,6 +129,7 @@ void test_hash_declare( void )
 
 test_suite_t test_hash_suite = {
 	test_hash_application,
+	test_hash_memory_system,
 	test_hash_declare,
 	test_hash_initialize,
 	test_hash_shutdown

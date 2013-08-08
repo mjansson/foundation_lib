@@ -25,6 +25,12 @@ application_t test_hashmap_application( void )
 }
 
 
+memory_system_t test_hashmap_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_hashmap_initialize( void )
 {
 	return 0;
@@ -171,6 +177,7 @@ void test_hashmap_declare( void )
 
 test_suite_t test_hashmap_suite = {
 	test_hashmap_application,
+	test_hashmap_memory_system,
 	test_hashmap_declare,
 	test_hashmap_initialize,
 	test_hashmap_shutdown

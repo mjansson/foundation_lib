@@ -25,6 +25,12 @@ application_t test_library_application( void )
 }
 
 
+memory_system_t test_library_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_library_initialize( void )
 {
 	return 0;
@@ -95,6 +101,7 @@ void test_library_declare( void )
 
 test_suite_t test_library_suite = {
 	test_library_application,
+	test_library_memory_system,
 	test_library_declare,
 	test_library_initialize,
 	test_library_shutdown

@@ -25,6 +25,12 @@ application_t test_math_application( void )
 }
 
 
+memory_system_t test_math_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_math_initialize( void )
 {
 	return 0;
@@ -402,6 +408,7 @@ void test_math_declare( void )
 
 test_suite_t test_math_suite = {
 	test_math_application,
+	test_math_memory_system,
 	test_math_declare,
 	test_math_initialize,
 	test_math_shutdown

@@ -25,6 +25,12 @@ application_t test_ringbuffer_application( void )
 }
 
 
+memory_system_t test_ringbuffer_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_ringbuffer_initialize( void )
 {
 	return 0;
@@ -283,6 +289,7 @@ void test_ringbuffer_declare( void )
 
 test_suite_t test_ringbuffer_suite = {
 	test_ringbuffer_application,
+	test_ringbuffer_memory_system,
 	test_ringbuffer_declare,
 	test_ringbuffer_initialize,
 	test_ringbuffer_shutdown

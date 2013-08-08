@@ -25,6 +25,12 @@ application_t test_radixsort_application( void )
 }
 
 
+memory_system_t test_radixsort_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_radixsort_initialize( void )
 {
 	return 0;
@@ -370,6 +376,7 @@ void test_radixsort_declare( void )
 
 test_suite_t test_radixsort_suite = {
 	test_radixsort_application,
+	test_radixsort_memory_system,
 	test_radixsort_declare,
 	test_radixsort_initialize,
 	test_radixsort_shutdown

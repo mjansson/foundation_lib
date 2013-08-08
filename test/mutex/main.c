@@ -25,6 +25,12 @@ application_t test_mutex_application( void )
 }
 
 
+memory_system_t test_mutex_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_mutex_initialize( void )
 {
 	return 0;
@@ -193,6 +199,7 @@ void test_mutex_declare( void )
 
 test_suite_t test_mutex_suite = {
 	test_mutex_application,
+	test_mutex_memory_system,
 	test_mutex_declare,
 	test_mutex_initialize,
 	test_mutex_shutdown

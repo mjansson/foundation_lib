@@ -127,6 +127,12 @@ application_t test_blowfish_application( void )
 }
 
 
+memory_system_t test_blowfish_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_blowfish_initialize( void )
 {
 	return 0;
@@ -295,6 +301,7 @@ void test_blowfish_declare( void )
 
 test_suite_t test_blowfish_suite = {
 	test_blowfish_application,
+	test_blowfish_memory_system,
 	test_blowfish_declare,
 	test_blowfish_initialize,
 	test_blowfish_shutdown

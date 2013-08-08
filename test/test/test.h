@@ -67,10 +67,11 @@ TEST_API void test_wait_for_threads_exit( const object_t* threads, unsigned int 
 
 typedef struct _test_suite
 {
-	application_t (*application)( void );
-	void          (*declare)( void );
-	int           (*initialize)( void );
-	void          (*shutdown)( void );
+	application_t    (*application)( void );
+	memory_system_t  (*memory_system)( void );
+	void             (*declare)( void );
+	int              (*initialize)( void );
+	void             (*shutdown)( void );
 } test_suite_t;
 
 TEST_API test_suite_t  test_suite;

@@ -31,6 +31,12 @@ application_t test_random_application( void )
 }
 
 
+memory_system_t test_random_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_random_initialize( void )
 {
 	return 0;
@@ -364,6 +370,7 @@ void test_random_declare( void )
 
 test_suite_t test_random_suite = {
 	test_random_application,
+	test_random_memory_system,
 	test_random_declare,
 	test_random_initialize,
 	test_random_shutdown

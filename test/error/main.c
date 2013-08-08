@@ -25,6 +25,12 @@ application_t test_error_application( void )
 }
 
 
+memory_system_t test_error_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_error_initialize( void )
 {
 	return 0;
@@ -246,6 +252,7 @@ void test_error_declare( void )
 
 test_suite_t test_error_suite = {
 	test_error_application,
+	test_error_memory_system,
 	test_error_declare,
 	test_error_initialize,
 	test_error_shutdown

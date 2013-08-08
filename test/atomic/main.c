@@ -25,6 +25,12 @@ application_t test_atomic_application( void )
 }
 
 
+memory_system_t test_atomic_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_atomic_initialize( void )
 {
 	return 0;
@@ -231,6 +237,7 @@ void test_atomic_declare( void )
 
 test_suite_t test_atomic_suite = {
 	test_atomic_application,
+	test_atomic_memory_system,
 	test_atomic_declare,
 	test_atomic_initialize,
 	test_atomic_shutdown

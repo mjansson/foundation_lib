@@ -25,6 +25,12 @@ application_t test_stacktrace_application( void )
 }
 
 
+memory_system_t test_stacktrace_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_stacktrace_initialize( void )
 {
 	return 0;
@@ -83,6 +89,7 @@ void test_stacktrace_declare( void )
 
 test_suite_t test_stacktrace_suite = {
 	test_stacktrace_application,
+	test_stacktrace_memory_system,
 	test_stacktrace_declare,
 	test_stacktrace_initialize,
 	test_stacktrace_shutdown

@@ -25,6 +25,12 @@ application_t test_environment_application( void )
 }
 
 
+memory_system_t test_environment_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_environment_initialize( void )
 {
 	return 0;
@@ -89,6 +95,7 @@ void test_environment_declare( void )
 
 test_suite_t test_environment_suite = {
 	test_environment_application,
+	test_environment_memory_system,
 	test_environment_declare,
 	test_environment_initialize,
 	test_environment_shutdown

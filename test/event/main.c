@@ -25,6 +25,12 @@ application_t test_event_application( void )
 }
 
 
+memory_system_t test_event_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_event_initialize( void )
 {
 	return 0;
@@ -523,6 +529,7 @@ void test_event_declare( void )
 
 test_suite_t test_event_suite = {
 	test_event_application,
+	test_event_memory_system,
 	test_event_declare,
 	test_event_initialize,
 	test_event_shutdown

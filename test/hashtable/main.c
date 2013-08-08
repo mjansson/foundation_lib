@@ -25,6 +25,12 @@ application_t test_hashtable_application( void )
 }
 
 
+memory_system_t test_hashtable_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_hashtable_initialize( void )
 {
 	return 0;
@@ -269,6 +275,7 @@ void test_hashtable_declare( void )
 
 test_suite_t test_hashtable_suite = {
 	test_hashtable_application,
+	test_hashtable_memory_system,
 	test_hashtable_declare,
 	test_hashtable_initialize,
 	test_hashtable_shutdown

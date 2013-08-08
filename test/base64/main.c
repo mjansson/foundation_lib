@@ -25,6 +25,12 @@ application_t test_base64_application( void )
 }
 
 
+memory_system_t test_base64_memory_system( void )
+{
+	return memory_system_malloc();
+}
+
+
 int test_base64_initialize( void )
 {
 	return 0;
@@ -246,6 +252,7 @@ void test_base64_declare( void )
 
 test_suite_t test_base64_suite = {
 	test_base64_application,
+	test_base64_memory_system,
 	test_base64_declare,
 	test_base64_initialize,
 	test_base64_shutdown
