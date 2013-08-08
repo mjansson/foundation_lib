@@ -167,7 +167,12 @@ int main_run( void* main_arg )
 	exe_paths = fs_matching_files( environment_executable_directory(), pattern, true );
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
-		if( string_equal_substr( exe_paths[iexe], environment_executable_name(), string_length( environment_executable_name() ) ) )
+		bool is_self = false;
+		char* exe_file_name = path_file_name( exe_paths[iexe] );
+		if( string_equal( exe_file_name, environment_executable_name() ) )
+			is_self = true;
+		string_deallocate( exe_file_name );
+		if( is_self )
 			continue; //Don't run self
 
 		process_path = path_merge( environment_executable_directory(), exe_paths[iexe] );
