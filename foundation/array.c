@@ -25,7 +25,6 @@ void _array_verifyfn( const void* const* arr )
 void _array_growfn( void* arr, int increment, int factor, int itemsize )
 {
 	void**   parr = (void**)arr;
-	int      size = *parr ? _array_rawsize(*parr) : 0;
 	int      prev_capacity = *parr ? _array_rawcapacity(*parr) : 0;
 	int      capacity = *parr ? ( factor * prev_capacity + increment ) : increment;
 	int      prev_used_size = itemsize * prev_capacity;
