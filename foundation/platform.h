@@ -209,6 +209,8 @@
 #undef  FOUNDATION_PLATFORM_POSIX
 #define FOUNDATION_PLATFORM_POSIX 1
 
+#  include <TargetConditionals.h>
+
 #  if defined( __IPHONE__ ) || ( defined( TARGET_OS_IPHONE ) && TARGET_OS_IPHONE ) || ( defined( TARGET_IPHONE_SIMULATOR ) && TARGET_IPHONE_SIMULATOR ) || FOUNDATION_PLATFORM_IOS
 
 #    undef  FOUNDATION_PLATFORM_IOS
