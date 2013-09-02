@@ -57,6 +57,12 @@
 		CD7F384016E21DA8000346C0 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD7F383F16E21DA8000346C0 /* main.c */; };
 		CD7F384316E21DCC000346C0 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
 		CD7F384516E21E00000346C0 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CD9097FB17D5324F00607B9C /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9097F517D5324E00607B9C /* hashtable.c */; };
+		CD9097FC17D5324F00607B9C /* hashtable.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9097F617D5324E00607B9C /* hashtable.h */; };
+		CD9097FD17D5324F00607B9C /* stacktrace.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9097F717D5324F00607B9C /* stacktrace.c */; };
+		CD9097FE17D5324F00607B9C /* stacktrace.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9097F817D5324F00607B9C /* stacktrace.h */; };
+		CD9097FF17D5324F00607B9C /* uuid.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9097F917D5324F00607B9C /* uuid.c */; };
+		CD90980017D5324F00607B9C /* uuid.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9097FA17D5324F00607B9C /* uuid.h */; };
 		CD92186416FDCC9E0013C8CD /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD92186316FDCC9E0013C8CD /* main.c */; };
 		CD92186916FDCCC60013C8CD /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
 		CD92186A16FDCCC60013C8CD /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCF1E0A16FD8EF300626060 /* libtest.a */; };
@@ -1042,6 +1048,12 @@
 		CD7F383E16E21DA8000346C0 /* errorcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = errorcodes.h; path = ../../../tools/hashify/errorcodes.h; sourceTree = "<group>"; };
 		CD7F383F16E21DA8000346C0 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../tools/hashify/main.c; sourceTree = "<group>"; };
 		CD7F384416E21E00000346C0 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		CD9097F517D5324E00607B9C /* hashtable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hashtable.c; path = ../../../foundation/hashtable.c; sourceTree = "<group>"; };
+		CD9097F617D5324E00607B9C /* hashtable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hashtable.h; path = ../../../foundation/hashtable.h; sourceTree = "<group>"; };
+		CD9097F717D5324F00607B9C /* stacktrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stacktrace.c; path = ../../../foundation/stacktrace.c; sourceTree = "<group>"; };
+		CD9097F817D5324F00607B9C /* stacktrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stacktrace.h; path = ../../../foundation/stacktrace.h; sourceTree = "<group>"; };
+		CD9097F917D5324F00607B9C /* uuid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = uuid.c; path = ../../../foundation/uuid.c; sourceTree = "<group>"; };
+		CD9097FA17D5324F00607B9C /* uuid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uuid.h; path = ../../../foundation/uuid.h; sourceTree = "<group>"; };
 		CD92186316FDCC9E0013C8CD /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/radixsort/main.c; sourceTree = "<group>"; };
 		CD92187516FDCD3F0013C8CD /* test-random */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-random"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD92187F16FDCDA00013C8CD /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/random/main.c; sourceTree = "<group>"; };
@@ -1744,6 +1756,8 @@
 				CDBE40A8172C546C00C7AC40 /* hashmap.c */,
 				CDBE40A9172C546C00C7AC40 /* hashmap.h */,
 				CDCEF46216D2D2B000198086 /* hashstrings.h */,
+				CD9097F517D5324E00607B9C /* hashtable.c */,
+				CD9097F617D5324E00607B9C /* hashtable.h */,
 				CDCEF46316D2D2B000198086 /* internal.h */,
 				CDCEF46416D2D2B000198086 /* library.c */,
 				CDCEF46516D2D2B000198086 /* library.h */,
@@ -1779,6 +1793,8 @@
 				CDCEF47E16D2D2B000198086 /* ringbuffer.h */,
 				CDCEF47F16D2D2B000198086 /* semaphore.c */,
 				CDCEF48016D2D2B100198086 /* semaphore.h */,
+				CD9097F717D5324F00607B9C /* stacktrace.c */,
+				CD9097F817D5324F00607B9C /* stacktrace.h */,
 				CDCEF48116D2D2B100198086 /* stream.c */,
 				CDCEF48216D2D2B100198086 /* stream.h */,
 				CDCEF48316D2D2B100198086 /* string.c */,
@@ -1791,6 +1807,8 @@
 				CDCEF48916D2D2B100198086 /* time.c */,
 				CDCEF48A16D2D2B100198086 /* time.h */,
 				CDCEF48B16D2D2B100198086 /* types.h */,
+				CD9097F917D5324F00607B9C /* uuid.c */,
+				CD9097FA17D5324F00607B9C /* uuid.h */,
 				CDCEF48C16D2D2B100198086 /* windows.h */,
 			);
 			name = foundation;
@@ -1981,6 +1999,9 @@
 				CDCF1E2F16FD98C100626060 /* math.h in Headers */,
 				CDBE40AD172C546C00C7AC40 /* hashmap.h in Headers */,
 				CDBE40AF172C546C00C7AC40 /* pipe.h in Headers */,
+				CD9097FC17D5324F00607B9C /* hashtable.h in Headers */,
+				CD9097FE17D5324F00607B9C /* stacktrace.h in Headers */,
+				CD90980017D5324F00607B9C /* uuid.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2794,6 +2815,9 @@
 				CD1C2FD816F2640B00D36B24 /* environment.m in Sources */,
 				CDBE40AC172C546C00C7AC40 /* hashmap.c in Sources */,
 				CDBE40AE172C546C00C7AC40 /* pipe.c in Sources */,
+				CD9097FB17D5324F00607B9C /* hashtable.c in Sources */,
+				CD9097FD17D5324F00607B9C /* stacktrace.c in Sources */,
+				CD9097FF17D5324F00607B9C /* uuid.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3801,7 +3825,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
 				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
@@ -3844,7 +3868,7 @@
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
@@ -3907,7 +3931,7 @@
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;

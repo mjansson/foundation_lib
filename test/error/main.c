@@ -218,7 +218,6 @@ DECLARE_TEST( error, thread )
 	//Launch 32 threads
 	object_t thread[32];
 	int i;
-	bool running = true;
 
 	for( i = 0; i < 32; ++i )
 	{

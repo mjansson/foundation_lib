@@ -92,9 +92,6 @@ int main_run( void* main_arg )
 	const char* pattern = 0;
 	char** exe_paths = 0;
 	unsigned int iexe, exesize;
-	object_t library = 0;
-	void* library_initialize = 0;
-	void* library_run = 0;
 	process_t* process = 0;
 	char* process_path = 0;
 	int process_result = 0;
