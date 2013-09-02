@@ -137,6 +137,8 @@ void test_run( void )
 	thread_destroy( thread_event );
 	while( thread_is_running( thread_event ) || thread_is_thread( thread_event ) )
 		thread_yield();
+
+	log_infof( "Finished test suite: %s", test_suite.application().short_name );
 }
 
 
