@@ -17,8 +17,11 @@
 #endif
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#  include <malloc.h>
 #  include <sys/mman.h>
+#endif
+
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#  include <malloc.h>
 #endif
 
 
@@ -338,7 +341,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 #  endif
 	{
 		unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
-		char* raw_memory = malloc( size + align + padding );
+		char* raw_memory = malloc( (size_t)size + align + padding );
 		void* memory = _memory_align_pointer( raw_memory + padding, align );
 		*( (void**)memory - 1 ) = raw_memory;
 		FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
@@ -355,6 +358,15 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 	#ifndef MAP_UNINITIALIZED
 	#define MAP_UNINITIALIZED 0
 	#endif
+	
+	#ifndef MAP_ANONYMOUS
+	#define MAP_ANONYMOUS MAP_ANON
+	#endif
+	
+	#ifndef MAP_32BIT
+	#define MAP_32BIT 0
+	#endif
+	
 	raw_memory = mmap( 0, allocate_size, PROT_READ | PROT_WRITE, MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0 );
 	if( !raw_memory )
 		return 0;
@@ -464,7 +476,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #else
 	if( !align && raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
-		void* raw_memory = realloc( raw_p, size + FOUNDATION_PLATFORM_POINTER_SIZE );
+		void* raw_memory = realloc( raw_p, (size_t)size + FOUNDATION_PLATFORM_POINTER_SIZE );
 		if( raw_memory )
 		{
 			*(void**)raw_memory = raw_memory;
@@ -475,7 +487,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	{
 		memory = _memory_allocate_malloc_raw( size, align, raw_p ? MEMORY_PERSISTENT_32BIT_ADDRESS : MEMORY_PERSISTENT );
 		if( p && memory && oldsize )
-			memcpy( memory, p, ( size < oldsize ) ? size : oldsize );
+			memcpy( memory, p, ( size < oldsize ) ? (size_t)size : (size_t)oldsize );
 		_memory_deallocate_malloc( p );
 	}
 #endif

@@ -24,6 +24,11 @@
 #define radixsort __stdlib_radixsort
 #define __error_t_defined 1
 
+#if FOUNDATION_PLATFORM_APPLE
+#define _UUID_T
+#define _UUID_UUID_H
+#endif
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,5 +41,11 @@
 #include <sys/wait.h>
 
 #undef radixsort
+
+
+#if FOUNDATION_PLATFORM_APPLE
+#undef _UUID_T
+#undef _UUID_UUID_H
+#endif
 
 #endif

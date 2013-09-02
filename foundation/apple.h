@@ -25,6 +25,11 @@
 #define radixsort __stdlib_radixsort
 #define __error_t_defined 1
 
+#define _UUID_T
+#define uuid_generate_random __system_uuid_generate_random
+#define uuid_generate_time __system_uuid_generate_time
+#define uuid_is_null __system_uuid_is_null
+
 #include <mach/mach_types.h>
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -37,5 +42,10 @@
 
 #undef radixsort
 #undef semaphore_t
+
+#undef _UUID_T
+#undef uuid_generate_random
+#undef uuid_generate_time
+#undef uuid_is_null
 
 #endif

@@ -25,6 +25,9 @@
 #  include <utime.h>
 #  include <fcntl.h>
 #  include <dirent.h>
+#endif
+
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 #  include <sys/inotify.h>
 #endif
 
@@ -60,7 +63,6 @@ void fs_monitor( const char* path )
 {
 	int mi;
 	char* path_clone = 0;
-	fs_monitor_t new_monitor = {0};
 
 	//TODO: Full thread safety
 
@@ -642,7 +644,7 @@ event_stream_t* fs_event_stream( void )
 }
 
 
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
 typedef struct _foundation_fs_watch
 {
@@ -725,7 +727,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		goto exit_thread;
 	}
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
@@ -853,7 +855,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				break;
 		}
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
 		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
@@ -944,7 +946,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		CloseHandle( handles[1] );
 
 	memory_deallocate( buffer );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	close( notify_fd );
 	string_array_deallocate( paths );
 	array_deallocate( watch );

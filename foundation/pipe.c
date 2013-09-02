@@ -187,7 +187,7 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
-		int num_read = read( pipestream->fd_read, dest, num );
+		int num_read = (int)read( pipestream->fd_read, dest, (size_t)num );
 		if( num_read < 0 )
 			num_read = 0;
 		return (unsigned int)num_read;
@@ -212,7 +212,7 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		int num_written = write( pipestream->fd_read, source, num );
+		int num_written = (int)write( pipestream->fd_read, source, (size_t)num );
 		if( num_written < 0 )
 			num_written = 0;
 		return (unsigned int)num_written;

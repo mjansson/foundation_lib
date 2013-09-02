@@ -23,9 +23,16 @@
 #if FOUNDATION_PLATFORM_MACOSX
 #  define task_t __hidden_task_t
 #  define semaphore_t __hidden_semaphore_t
+#  define _UUID_T
+#  define uuid_generate_random __system_uuid_generate_random
+#  define uuid_generate_time __system_uuid_generate_time
+#  define uuid_is_null __system_uuid_is_null
 #  include <ApplicationServices/ApplicationServices.h>
 #  undef task_t
 #  undef semaphore_t
+#  undef uuid_generate_random
+#  undef uuid_generate_time
+#  undef uuid_is_null
 #endif
 
 static int _process_exit_code = 0;

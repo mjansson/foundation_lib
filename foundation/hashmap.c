@@ -67,7 +67,7 @@ void hashmap_deallocate( hashmap_t* map )
 
 void* hashmap_insert( hashmap_t* map, hash_t key, void* value )
 {
-	unsigned int ibucket = key % map->num_buckets;
+	unsigned int ibucket = (unsigned int)( key % map->num_buckets );
 	hashmap_bucket_t bucket = map->bucket[ibucket];
 	unsigned int inode, nsize;
 	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
@@ -90,7 +90,7 @@ void* hashmap_insert( hashmap_t* map, hash_t key, void* value )
 
 void* hashmap_erase( hashmap_t* map, hash_t key )
 {
-	unsigned int ibucket = key % map->num_buckets;
+	unsigned int ibucket = (unsigned int)( key % map->num_buckets );
 	hashmap_bucket_t bucket = map->bucket[ibucket];
 	unsigned int inode, nsize;
 	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
@@ -109,7 +109,7 @@ void* hashmap_erase( hashmap_t* map, hash_t key )
 
 void* hashmap_lookup( hashmap_t* map, hash_t key )
 {
-	unsigned int ibucket = key % map->num_buckets;
+	unsigned int ibucket = (unsigned int)( key % map->num_buckets );
 	hashmap_bucket_t bucket = map->bucket[ibucket];
 	unsigned int inode, nsize;
 	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
@@ -123,7 +123,7 @@ void* hashmap_lookup( hashmap_t* map, hash_t key )
 
 bool hashmap_has_key( hashmap_t* map, hash_t key )
 {
-	unsigned int ibucket = key % map->num_buckets;
+	unsigned int ibucket = (unsigned int)( key % map->num_buckets );
 	hashmap_bucket_t bucket = map->bucket[ibucket];
 	unsigned int inode, nsize;
 	for( inode = 0, nsize = array_size( bucket ); inode < nsize; ++inode )
