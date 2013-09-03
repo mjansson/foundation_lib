@@ -164,8 +164,12 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 		_crash_guard_minidump( arg, get_thread_crash_callback_name(), _crash_dump_file );
 		callback( _crash_dump_file );
 	}
-	
-	siglongjmp( get_thread_crash_env(), CRASH_DUMP_GENERATED );
+
+	struct __jmp_buf_tag* guard_env = get_thread_crash_env();
+	if( guard_env )
+		siglongjmp( get_thread_crash_env(), CRASH_DUMP_GENERATED );
+	else
+		log_warnf( WARNING_SUSPICIOUS, "No sigjmp_buf for thread" );
 }
 
 #endif

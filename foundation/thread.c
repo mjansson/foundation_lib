@@ -341,9 +341,13 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_ASSERT( thread->running == 1 );
 
-	log_debugf( "Started thread '%s' (%llx) ID %llx", thread->name, thread->osid, thread->id );
+	log_debugf( "Started thread '%s' (%llx) ID %llx%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
 
-	if( crash_guard_callback() )
+#if BUILD_DEBUG
+	{
+		thread->result = thread->fn( thread->id, thread->arg );
+	}
+#else
 	{
 		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
 		if( crash_result == CRASH_DUMP_GENERATED )
@@ -352,10 +356,7 @@ thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 			log_warnf( WARNING_SUSPICIOUS, "Thread '%s' (%llx) ID %llx crashed", thread->name, thread->osid, thread->id );
 		}
 	}
-	else
-	{
-		thread->result = thread->fn( thread->id, thread->arg );
-	}
+#endif
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
