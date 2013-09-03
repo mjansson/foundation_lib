@@ -71,42 +71,30 @@ uuid_t uuid_generate_time( void )
 {
 	uuid_time_t time_uuid;
 	uuid_convert_t convert;
-	tick_t current_time;
+	int64_t current_time;
+	int32_t current_counter;
+	tick_t current_tick;
 	int in = 0;
 	uint32_t clock_seq = 0;
 	uint64_t host_id = 0;
-	static tick_t last_tick = 0;
-	static tick_t tick_local = 0;
+	static volatile int32_t last_counter = 0;
 
-	do
-	{
-		current_time = time_system();
-		if( current_time == last_tick )
-		{
-			if( ++tick_local < 1024 )
-				break;
-			thread_sleep( 1 );
-		}
-		else
-		{
-			tick_local = 0;
-		}
-	} while( current_time == last_tick );
-	last_tick = current_time;
-	current_time = current_time + tick_local;
+	//Allows creation of 10000 unique timestamps per millisecond
+	current_time = time_system();
+	current_counter = atomic_incr32( &last_counter ) % 10000;
 
-	current_time = ( current_time * 10000ULL ) + 0x01B21DD213814000ULL; //Convert to 100ns since UUID UTC base time, October 15 1582
+	current_tick = ( (tick_t)current_time * 10000ULL ) + current_counter + 0x01B21DD213814000ULL; //Convert to 100ns since UUID UTC base time, October 15 1582, and add counter
 
 	//We have no state so clock sequence is random
 	clock_seq = random32();
 
-	time_uuid.time_low = (uint32_t)( current_time & 0xFFFFFFFFULL );
-	time_uuid.time_mid = (uint16_t)( ( current_time >> 32ULL ) & 0xFFFFULL );
-	time_uuid.time_hi_and_version = (uint16_t)( current_time >> 48ULL );
+	time_uuid.time_low = (uint32_t)( current_tick & 0xFFFFFFFFULL );
+	time_uuid.time_mid = (uint16_t)( ( current_tick >> 32ULL ) & 0xFFFFULL );
+	time_uuid.time_hi_and_version = (uint16_t)( current_tick >> 48ULL );
 	time_uuid.clock_seq_low = ( clock_seq & 0xFF );
 	time_uuid.clock_seq_hi_and_reserved = ( ( clock_seq & 0x3F00 ) >> 8 );
 
-	//If hardware node ID, use random and set identifier (multicast) bit
+	//If hardware node ID is null, use random and set identifier (multicast) bit
 	host_id = system_hostid();
 	if( host_id )
 	{
@@ -165,6 +153,8 @@ uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
 	gen_uuid.data3 |= ( 3 << 12 ); //Variant 3 for MD5
 	gen_uuid.data4[0] &= 0x3F;
 	gen_uuid.data4[0] |= 0x80;
+
+	md5_deallocate( md5 );
 
 	convert.raw = gen_uuid;
 	return convert.uuid;
