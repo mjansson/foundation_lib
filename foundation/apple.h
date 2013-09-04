@@ -33,7 +33,9 @@
 #include <mach/mach_types.h>
 
 #include <CoreFoundation/CoreFoundation.h>
+#if FOUNDATION_PLATFORM_MACOSX
 #include <Carbon/Carbon.h>
+#endif
 
 #include <unistd.h>
 #include <stdlib.h>

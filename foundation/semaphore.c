@@ -24,6 +24,7 @@ extern int MPDeleteSemaphore( MPSemaphoreID );
 extern int MPSignalSemaphore( MPSemaphoreID );
 extern int MPWaitOnSemaphore( MPSemaphoreID, int );
 #elif FOUNDATION_PLATFORM_IOS
+#  include <foundation/apple.h>
 #  include <dispatch/dispatch.h>
 #  include <errno.h>
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -229,7 +230,7 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 }
 
 
-void semaphore_initialize_named( semaphore_t* semaphore, const char* name, int value )
+void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
 {
 	 FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
 }

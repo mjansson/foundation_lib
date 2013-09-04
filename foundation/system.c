@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
@@ -490,12 +491,6 @@ static uint32_t _system_default_locale( void )
 static uint32_t _system_user_locale( void )
 {
 	return _system_default_locale();
-}
-
-
-void system_browser_open( const char* url )
-{
-
 }
 
 

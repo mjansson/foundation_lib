@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
@@ -126,7 +127,7 @@ void _thread_shutdown( void )
 }
 
 
-void _thread_destroy( void* thread_raw )
+static void _thread_destroy( void* thread_raw )
 {
 	thread_t* thread = thread_raw;
 
@@ -306,7 +307,7 @@ typedef void* thread_arg_t;
 #  error Not implemented
 #endif
 
-thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
+static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 {
 	uint64_t thr_osid;
 	uint64_t thr_id;

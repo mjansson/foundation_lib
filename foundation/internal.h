@@ -85,4 +85,49 @@ struct ALIGN(8) _foundation_stream
 	FOUNDATION_DECLARE_STREAM;
 };
 
+
+//Internal entry points
+
 FOUNDATION_API void _stream_initialize( stream_t* stream, byteorder_t order );
+
+FOUNDATION_API void _ringbuffer_stream_initialize( void );
+FOUNDATION_API void _buffer_stream_initialize( void );
+#if FOUNDATION_PLATFORM_ANDROID
+FOUNDATION_API void _asset_stream_initialize( void );
+#endif
+FOUNDATION_API void _pipe_stream_initialize( void );
+
+
+FOUNDATION_API int _memory_initialize( const memory_system_t memory );
+FOUNDATION_API void _memory_preallocate( void );
+FOUNDATION_API void _memory_shutdown( void );
+
+FOUNDATION_API int _time_initialize( void );
+FOUNDATION_API void _time_shutdown( void );
+
+FOUNDATION_API int _thread_initialize( void );
+FOUNDATION_API void _thread_shutdown( void );
+
+FOUNDATION_API int _environment_initialize( const application_t application );
+FOUNDATION_API void _environment_shutdown( void );
+
+FOUNDATION_API int _library_initialize( void );
+FOUNDATION_API void _library_shutdown( void );
+
+FOUNDATION_API int _system_initialize( void );
+FOUNDATION_API void _system_shutdown( void );
+
+FOUNDATION_API int _fs_initialize( void );
+FOUNDATION_API void _fs_shutdown( void );
+
+FOUNDATION_API int _random_initialize( void );
+FOUNDATION_API void _random_shutdown( void );
+
+FOUNDATION_API int _config_initialize( void );
+FOUNDATION_API void _config_shutdown( void );
+
+#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+FOUNDATION_API void _static_hash_cleanup( void );
+#endif
+
+FOUNDATION_API void foundation_startup( void );

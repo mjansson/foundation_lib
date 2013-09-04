@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 static char**  _environment_argv;
@@ -38,8 +39,11 @@ static char*   _environment_var = 0;
 
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
-#  include <crt_externs.h>
 extern CFStringRef NSHomeDirectory(void);
+#endif
+
+#if FOUNDATION_PLATFORM_MACOSX
+#  include <crt_externs.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -110,7 +114,7 @@ int _environment_initialize( const application_t application )
 		return -1;
 	}
 	
-#elif FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_MACOSX
 	
 	int ia;
 	int* argc_ptr = _NSGetArgc();
@@ -126,6 +130,10 @@ int _environment_initialize( const application_t application )
 
 	string_deallocate( exe_path );
 
+#elif FOUNDATION_PLATFORM_IOS
+	
+	//TODO: Implement
+	
 #elif FOUNDATION_PLATFORM_ANDROID
 
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );

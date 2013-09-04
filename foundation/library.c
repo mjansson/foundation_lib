@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -53,7 +54,7 @@ void _library_shutdown( void )
 }
 
 
-void _library_destroy( library_t* library )
+static void _library_destroy( library_t* library )
 {
 	objectmap_free( _library_map, library->id );
 

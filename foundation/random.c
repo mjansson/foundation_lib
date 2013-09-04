@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 // C implementation of the "Maximally equidistributed pseudorandom number generators via linear output transformations" from http://www.sciencedirect.com/science/article/pii/S0378475408002358

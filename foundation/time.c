@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>

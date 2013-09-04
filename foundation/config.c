@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 #define BUILD_CONFIG_DEBUG        0
@@ -241,8 +242,11 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	char* cmdline_path = 0;
 	char* cwd_config_path = 0;
 	const char* paths[NUM_SEARCH_PATHS];
+#if !FOUNDATION_PLATFORM_FAMILY_MOBILE
 	const char* const* cmd_line;
-	int icl, clsize, start_path, i, j;
+	int icl, clsize;
+#endif
+	int start_path, i, j;
 
 	const char buildsuffix[4][9] = { "/debug", "/release", "/profile", "/deploy" };
 	const char platformsuffix[7][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/unknown" };

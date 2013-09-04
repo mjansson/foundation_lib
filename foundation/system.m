@@ -12,14 +12,26 @@
 
 #include <foundation/platform.h>
 
+//TODO: Cleanup this header mess
+#if FOUNDATION_PLATFORM_IOS
+#  include <foundation/apple.h>
+#endif
+
+#import <Foundation/NSSet.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSString.h>
 #import <Foundation/NSProcessInfo.h>
 
 #if FOUNDATION_PLATFORM_MACOSX
-#import <Foundation/NSString.h>
 #import <AppKit/NSAlert.h>
 #elif FOUNDATION_PLATFORM_IOS
-#import <UIKit/UIKit.h>
+#import <Foundation/NSUndoManager.h>
+#import <UIKit/UIAlertView.h>
 #endif
+
+
+unsigned int _system_process_info_processor_count( void );
+int          _system_show_alert( const char* title, const char* message, int cancel_button );
 
 
 unsigned int _system_process_info_processor_count( void )

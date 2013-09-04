@@ -117,7 +117,7 @@ extern int NSApplicationMain( int argc, const char *argv[] );
 extern int UIApplicationMain ( int argc, char *argv[], void *principalClassName, void *delegateClassName );
 #endif
 
-void sighandler( int sig )
+static void sighandler( int sig )
 {
 	const char* signame = "UNKNOWN";
 

@@ -11,36 +11,8 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
-
-// Internals
-extern int _memory_initialize( const memory_system_t memory );
-extern void _memory_preallocate( void );
-extern void _memory_shutdown( void );
-
-extern int _time_initialize( void );
-extern void _time_shutdown( void );
-
-extern int _thread_initialize( void );
-extern void _thread_shutdown( void );
-
-extern int _environment_initialize( const application_t application );
-extern void _environment_shutdown( void );
-
-extern int _library_initialize( void );
-extern void _library_shutdown( void );
-
-extern int _system_initialize( void );
-extern void _system_shutdown( void );
-
-extern int _fs_initialize( void );
-extern void _fs_shutdown( void );
-
-extern int _random_initialize( void );
-extern void _random_shutdown( void );
-
-extern int _config_initialize( void );
-extern void _config_shutdown( void );
 
 //Make artificial reference to main entry point
 #if FOUNDATION_PLATFORM_ANDROID
@@ -50,9 +22,6 @@ extern void android_main( struct android_app* );
 extern int main( int, char** );
 #endif
 
-#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
-extern void _static_hash_cleanup( void );
-#endif
 
 static bool _foundation_initialized = false;
 

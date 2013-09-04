@@ -906,7 +906,7 @@ bool wstring_equal( const wchar_t* lhs, const wchar_t* rhs )
 }
 
 
-unsigned int _string_length_utf16( const uint16_t* p_str )
+static unsigned int _string_length_utf16( const uint16_t* p_str )
 {
 	unsigned int len = 0;
 	if( !p_str )
@@ -920,7 +920,7 @@ unsigned int _string_length_utf16( const uint16_t* p_str )
 }
 
 
-unsigned int _string_length_utf32( const uint32_t* p_str )
+static unsigned int _string_length_utf32( const uint32_t* p_str )
 {
 	unsigned int len = 0;
 	if( !p_str )

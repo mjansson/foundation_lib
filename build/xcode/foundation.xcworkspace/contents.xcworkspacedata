@@ -4,4 +4,7 @@
    <FileRef
       location = "group:foundation/foundation.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:foundation/foundation-ios.xcodeproj">
+   </FileRef>
 </Workspace>

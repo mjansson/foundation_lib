@@ -32,6 +32,8 @@ local.properties
 build/android/assets
 build/android/libs
 
+#Xcode build
+build/xcode/foundation/build
 
 #################
 ## Visual Studio

@@ -12,6 +12,7 @@
 
 #include <foundation/platform.h>
 #include <foundation/string.h>
+#include <foundation/environment.h>
 
 #import <Foundation/NSString.h>
 #import <Foundation/NSBundle.h>

@@ -196,7 +196,7 @@ static profile_block* _process_profile_block( profile_block* block )
 }
 
 
-void* _profile_io( void* arg )
+static void* _profile_io( void* arg )
 {
 	unsigned int system_info_counter = 0;
 	profile_block system_info;

@@ -222,7 +222,7 @@ static void _load_process_modules()
 
 static bool _stackwalk_initialized = false;
 
-bool _initialize_stackwalker()
+static bool _initialize_stackwalker()
 {
 	if( _stackwalk_initialized )
 		return true;

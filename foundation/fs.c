@@ -1207,7 +1207,7 @@ static stream_t* _fs_file_clone( stream_t* stream )
 }
 
 
-void _fs_file_close( stream_t* stream )
+static void _fs_file_close( stream_t* stream )
 {
 	stream_file_t* file = GET_FILE( stream );
 	if( !file || ( stream->type != STREAMTYPE_FILE ) )
@@ -1239,7 +1239,7 @@ void _fs_file_close( stream_t* stream )
 }
 
 
-const char* _fs_file_path( const stream_t* stream )
+static const char* _fs_file_path( const stream_t* stream )
 {
 	const stream_file_t* file = GET_FILE_CONST( stream );
 	if( !file || ( stream->type != STREAMTYPE_FILE ) )
@@ -1306,14 +1306,6 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 	return stream;
 }
-
-
-FOUNDATION_EXTERN void _ringbuffer_stream_initialize( void );
-FOUNDATION_EXTERN void _buffer_stream_initialize( void );
-#if FOUNDATION_PLATFORM_ANDROID
-FOUNDATION_EXTERN void _asset_stream_initialize( void );
-#endif
-FOUNDATION_EXTERN void _pipe_stream_initialize( void );
 
 
 int _fs_initialize( void )

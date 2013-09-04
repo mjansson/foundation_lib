@@ -264,9 +264,6 @@
 #    undef  FOUNDATION_PLATFORM_MACOSX
 #    define FOUNDATION_PLATFORM_MACOSX 1
 
-#    undef  FOUNDATION_PLATFORM_POSIX
-#    define FOUNDATION_PLATFORM_POSIX 1
-
 #    define FOUNDATION_PLATFORM_NAME "MacOSX"
 
 #    if defined( __x86_64__ ) ||  defined( __x86_64 ) || defined( __amd64 ) || FOUNDATION_PLATFORM_ARCH_X86_64
@@ -537,7 +534,7 @@
 #  include <wchar.h>
 
 // Intel
-#elif defined( __ICL ) || defined( __ICC ) || defined(__INTEL_COMPILER)
+#elif defined( __ICL ) || defined( __ICC ) || defined( __INTEL_COMPILER )
 
 #  undef  FOUNDATION_COMPILER_INTEL
 #  define FOUNDATION_COMPILER_INTEL 1

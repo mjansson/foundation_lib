@@ -16,7 +16,7 @@
 static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;
 
-#if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_MACOSX )
+#if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
 static char                    _crash_dump_file[FOUNDATION_MAX_PATHLEN+128];
 #endif
 
