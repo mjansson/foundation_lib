@@ -189,6 +189,10 @@ include $(CLEAR_VARS)
 FOUNDATION_TEST_MODULE := string
 include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
+include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := uuid
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
 
 #Build main test launcher
 include $(CLEAR_VARS)
@@ -216,7 +220,7 @@ endif
 endif
 endif
 
-LOCAL_STATIC_LIBRARIES += test-app test-atomic test-array test-base64 test-blowfish test-bufferstream test-config test-crash test-environment test-error test-event test-fs test-hash test-hashmap test-hashtable test-library test-math test-md5 test-mutex test-objectmap test-path test-radixsort test-random test-ringbuffer test-semaphore test-stacktrace test-string test foundation android_native_app_glue cpufeatures
+LOCAL_STATIC_LIBRARIES += test-app test-atomic test-array test-base64 test-blowfish test-bufferstream test-config test-crash test-environment test-error test-event test-fs test-hash test-hashmap test-hashtable test-library test-math test-md5 test-mutex test-objectmap test-path test-radixsort test-random test-ringbuffer test-semaphore test-stacktrace test-string test-uuid test foundation android_native_app_glue cpufeatures
 
 LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
 
