@@ -300,9 +300,13 @@ static const uint32_t _blowfish_sboxes_init[SBOXES][SBOXENTRIES] = {
 };
 
 
+void _blowfish_encrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres );
+void _blowfish_decrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres );
+
+
 #define FEISTEL( val ) ( ( ( blowfish->sboxes[0][ (val>>24)&0xFF ] + blowfish->sboxes[1][ (val>>16)&0xFF ] ) ^ blowfish->sboxes[2][ (val>>8)&0xFF ] ) + blowfish->sboxes[3][ val&0xFF ] )
 
-static void _blowfish_encrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres )
+void _blowfish_encrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres )
 {
 	uint32_t lval = *lvalres;
 	uint32_t hval = *hvalres;
@@ -328,7 +332,7 @@ static void _blowfish_encrypt_words( const blowfish_t* blowfish, uint32_t* lvalr
 }
 
 
-static void _blowfish_decrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres )
+void _blowfish_decrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres )
 {
 	uint32_t lval = *lvalres;
 	uint32_t hval = *hvalres;
