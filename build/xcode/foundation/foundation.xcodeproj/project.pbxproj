@@ -57,6 +57,36 @@
 		CD7F384016E21DA8000346C0 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD7F383F16E21DA8000346C0 /* main.c */; };
 		CD7F384316E21DCC000346C0 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
 		CD7F384516E21E00000346C0 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CD86DADD17DA61A100FDE6B2 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD86DADC17DA61A100FDE6B2 /* main.c */; };
+		CD86DAE217DA61DA00FDE6B2 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
+		CD86DAE317DA61DA00FDE6B2 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCF1E0A16FD8EF300626060 /* libtest.a */; };
+		CD86DAE417DA61FD00FDE6B2 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD86DAE517DA61FD00FDE6B2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
+		CD86DAE617DA61FD00FDE6B2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CD86DAF817DA624C00FDE6B2 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD86DAF717DA624C00FDE6B2 /* main.c */; };
+		CD86DAFD17DA654D00FDE6B2 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
+		CD86DAFE17DA654D00FDE6B2 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCF1E0A16FD8EF300626060 /* libtest.a */; };
+		CD86DAFF17DA654D00FDE6B2 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD86DB0017DA654D00FDE6B2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
+		CD86DB0117DA654D00FDE6B2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CD86DB1317DA660B00FDE6B2 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD86DB1217DA660B00FDE6B2 /* main.c */; };
+		CD86DB1817DA66D600FDE6B2 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
+		CD86DB1917DA66D600FDE6B2 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCF1E0A16FD8EF300626060 /* libtest.a */; };
+		CD86DB1A17DA66D600FDE6B2 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD86DB1B17DA66D600FDE6B2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
+		CD86DB1C17DA66D600FDE6B2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CD86DB2E17DA686000FDE6B2 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD86DB2D17DA686000FDE6B2 /* main.c */; };
+		CD86DB3317DA687B00FDE6B2 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
+		CD86DB3417DA687B00FDE6B2 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCF1E0A16FD8EF300626060 /* libtest.a */; };
+		CD86DB3517DA687B00FDE6B2 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD86DB3617DA687B00FDE6B2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
+		CD86DB3717DA687B00FDE6B2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CD86DB4917DA68FB00FDE6B2 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD86DB4817DA68FB00FDE6B2 /* main.c */; };
+		CD86DB4E17DA691400FDE6B2 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCEF43916D2D11500198086 /* libfoundation.a */; };
+		CD86DB4F17DA691400FDE6B2 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCF1E0A16FD8EF300626060 /* libtest.a */; };
+		CD86DB5017DA691400FDE6B2 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
+		CD86DB5117DA691400FDE6B2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
+		CD86DB5217DA691400FDE6B2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
 		CD9097FB17D5324F00607B9C /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9097F517D5324E00607B9C /* hashtable.c */; };
 		CD9097FC17D5324F00607B9C /* hashtable.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9097F617D5324E00607B9C /* hashtable.h */; };
 		CD9097FD17D5324F00607B9C /* stacktrace.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9097F717D5324F00607B9C /* stacktrace.c */; };
@@ -387,6 +417,76 @@
 			proxyType = 1;
 			remoteGlobalIDString = CDCEF43816D2D11500198086;
 			remoteInfo = foundation;
+		};
+		CD86DADE17DA61C700FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCEF43816D2D11500198086;
+			remoteInfo = foundation;
+		};
+		CD86DAE017DA61C700FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCF1E0916FD8EF300626060;
+			remoteInfo = test;
+		};
+		CD86DAF917DA653200FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCEF43816D2D11500198086;
+			remoteInfo = foundation;
+		};
+		CD86DAFB17DA653200FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCF1E0916FD8EF300626060;
+			remoteInfo = test;
+		};
+		CD86DB1417DA66C700FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCEF43816D2D11500198086;
+			remoteInfo = foundation;
+		};
+		CD86DB1617DA66C700FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCF1E0916FD8EF300626060;
+			remoteInfo = test;
+		};
+		CD86DB2F17DA686C00FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCEF43816D2D11500198086;
+			remoteInfo = foundation;
+		};
+		CD86DB3117DA686C00FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCF1E0916FD8EF300626060;
+			remoteInfo = test;
+		};
+		CD86DB4A17DA690400FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCEF43816D2D11500198086;
+			remoteInfo = foundation;
+		};
+		CD86DB4C17DA690400FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDCF1E0916FD8EF300626060;
+			remoteInfo = test;
 		};
 		CD92186516FDCCAA0013C8CD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -848,6 +948,51 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CD86DACB17DA606200FDE6B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CD86DAE917DA622100FDE6B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CD86DB0417DA65A000FDE6B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CD86DB1F17DA679900FDE6B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CD86DB3B17DA68DD00FDE6B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		CD92187316FDCD3F0013C8CD /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1048,6 +1193,16 @@
 		CD7F383E16E21DA8000346C0 /* errorcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = errorcodes.h; path = ../../../tools/hashify/errorcodes.h; sourceTree = "<group>"; };
 		CD7F383F16E21DA8000346C0 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../tools/hashify/main.c; sourceTree = "<group>"; };
 		CD7F384416E21E00000346C0 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		CD86DACD17DA606200FDE6B2 /* test-hashmap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-hashmap"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD86DADC17DA61A100FDE6B2 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/hashmap/main.c; sourceTree = "<group>"; };
+		CD86DAEB17DA622100FDE6B2 /* test-hashtable */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-hashtable"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD86DAF717DA624C00FDE6B2 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/hashtable/main.c; sourceTree = "<group>"; };
+		CD86DB0617DA65A000FDE6B2 /* test-semaphore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-semaphore"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD86DB1217DA660B00FDE6B2 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/semaphore/main.c; sourceTree = "<group>"; };
+		CD86DB2117DA679900FDE6B2 /* test-stacktrace */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-stacktrace"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD86DB2D17DA686000FDE6B2 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/stacktrace/main.c; sourceTree = "<group>"; };
+		CD86DB3D17DA68DD00FDE6B2 /* test-uuid */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-uuid"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD86DB4817DA68FB00FDE6B2 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/uuid/main.c; sourceTree = "<group>"; };
 		CD9097F517D5324E00607B9C /* hashtable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hashtable.c; path = ../../../foundation/hashtable.c; sourceTree = "<group>"; };
 		CD9097F617D5324E00607B9C /* hashtable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hashtable.h; path = ../../../foundation/hashtable.h; sourceTree = "<group>"; };
 		CD9097F717D5324F00607B9C /* stacktrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stacktrace.c; path = ../../../foundation/stacktrace.c; sourceTree = "<group>"; };
@@ -1271,6 +1426,66 @@
 				CD1C2FD416F2557500D36B24 /* Carbon.framework in Frameworks */,
 				CD1C2FD216F2556300D36B24 /* Cocoa.framework in Frameworks */,
 				CD7F384516E21E00000346C0 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DACA17DA606200FDE6B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DAE217DA61DA00FDE6B2 /* libfoundation.a in Frameworks */,
+				CD86DAE317DA61DA00FDE6B2 /* libtest.a in Frameworks */,
+				CD86DAE417DA61FD00FDE6B2 /* Carbon.framework in Frameworks */,
+				CD86DAE517DA61FD00FDE6B2 /* Cocoa.framework in Frameworks */,
+				CD86DAE617DA61FD00FDE6B2 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DAE817DA622100FDE6B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DAFD17DA654D00FDE6B2 /* libfoundation.a in Frameworks */,
+				CD86DAFE17DA654D00FDE6B2 /* libtest.a in Frameworks */,
+				CD86DAFF17DA654D00FDE6B2 /* Carbon.framework in Frameworks */,
+				CD86DB0017DA654D00FDE6B2 /* Cocoa.framework in Frameworks */,
+				CD86DB0117DA654D00FDE6B2 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DB0317DA65A000FDE6B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DB1817DA66D600FDE6B2 /* libfoundation.a in Frameworks */,
+				CD86DB1917DA66D600FDE6B2 /* libtest.a in Frameworks */,
+				CD86DB1A17DA66D600FDE6B2 /* Carbon.framework in Frameworks */,
+				CD86DB1B17DA66D600FDE6B2 /* Cocoa.framework in Frameworks */,
+				CD86DB1C17DA66D600FDE6B2 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DB1E17DA679900FDE6B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DB3317DA687B00FDE6B2 /* libfoundation.a in Frameworks */,
+				CD86DB3417DA687B00FDE6B2 /* libtest.a in Frameworks */,
+				CD86DB3517DA687B00FDE6B2 /* Carbon.framework in Frameworks */,
+				CD86DB3617DA687B00FDE6B2 /* Cocoa.framework in Frameworks */,
+				CD86DB3717DA687B00FDE6B2 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DB3A17DA68DD00FDE6B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DB4E17DA691400FDE6B2 /* libfoundation.a in Frameworks */,
+				CD86DB4F17DA691400FDE6B2 /* libtest.a in Frameworks */,
+				CD86DB5017DA691400FDE6B2 /* Carbon.framework in Frameworks */,
+				CD86DB5117DA691400FDE6B2 /* Cocoa.framework in Frameworks */,
+				CD86DB5217DA691400FDE6B2 /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1596,6 +1811,46 @@
 			name = frameworks;
 			sourceTree = "<group>";
 		};
+		CD86DADB17DA617F00FDE6B2 /* hashmap */ = {
+			isa = PBXGroup;
+			children = (
+				CD86DADC17DA61A100FDE6B2 /* main.c */,
+			);
+			name = hashmap;
+			sourceTree = "<group>";
+		};
+		CD86DAF617DA622D00FDE6B2 /* hashtable */ = {
+			isa = PBXGroup;
+			children = (
+				CD86DAF717DA624C00FDE6B2 /* main.c */,
+			);
+			name = hashtable;
+			sourceTree = "<group>";
+		};
+		CD86DB1117DA65E300FDE6B2 /* semaphore */ = {
+			isa = PBXGroup;
+			children = (
+				CD86DB1217DA660B00FDE6B2 /* main.c */,
+			);
+			name = semaphore;
+			sourceTree = "<group>";
+		};
+		CD86DB2C17DA683C00FDE6B2 /* stacktrace */ = {
+			isa = PBXGroup;
+			children = (
+				CD86DB2D17DA686000FDE6B2 /* main.c */,
+			);
+			name = stacktrace;
+			sourceTree = "<group>";
+		};
+		CD86DB3817DA68C200FDE6B2 /* uuid */ = {
+			isa = PBXGroup;
+			children = (
+				CD86DB4817DA68FB00FDE6B2 /* main.c */,
+			);
+			name = uuid;
+			sourceTree = "<group>";
+		};
 		CD92187016FDCD340013C8CD /* random */ = {
 			isa = PBXGroup;
 			children = (
@@ -1711,6 +1966,11 @@
 				CD92187516FDCD3F0013C8CD /* test-random */,
 				CD92189116FDCE050013C8CD /* test-ringbuffer */,
 				CD9218AD16FDCEDD0013C8CD /* test-string */,
+				CD86DACD17DA606200FDE6B2 /* test-hashmap */,
+				CD86DAEB17DA622100FDE6B2 /* test-hashtable */,
+				CD86DB0617DA65A000FDE6B2 /* test-semaphore */,
+				CD86DB2117DA679900FDE6B2 /* test-stacktrace */,
+				CD86DB3D17DA68DD00FDE6B2 /* test-uuid */,
 			);
 			name = bin;
 			sourceTree = "<group>";
@@ -1840,6 +2100,8 @@
 				CD94941116FDC53A00D8687F /* event */,
 				CD94942D16FDC5F300D8687F /* fs */,
 				CD94944916FDC68B00D8687F /* hash */,
+				CD86DADB17DA617F00FDE6B2 /* hashmap */,
+				CD86DAF617DA622D00FDE6B2 /* hashtable */,
 				CD94946516FDC71300D8687F /* library */,
 				CDF561B316FDC86D00D041C0 /* math */,
 				CD20C65716FDC926007C42E3 /* md5 */,
@@ -1849,8 +2111,11 @@
 				CD20C6C716FDCC6A007C42E3 /* radixsort */,
 				CD92187016FDCD340013C8CD /* random */,
 				CD92188C16FDCDF00013C8CD /* ringbuffer */,
+				CD86DB1117DA65E300FDE6B2 /* semaphore */,
+				CD86DB2C17DA683C00FDE6B2 /* stacktrace */,
 				CD9218A816FDCECE0013C8CD /* string */,
 				CDCF1E0516FD8E6E00626060 /* test */,
+				CD86DB3817DA68C200FDE6B2 /* uuid */,
 			);
 			name = test;
 			sourceTree = "<group>";
@@ -2163,6 +2428,101 @@
 			name = hashify;
 			productName = hashify;
 			productReference = CD7F383416E21CB1000346C0 /* hashify */;
+			productType = "com.apple.product-type.tool";
+		};
+		CD86DACC17DA606200FDE6B2 /* test-hashmap */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD86DAD717DA606300FDE6B2 /* Build configuration list for PBXNativeTarget "test-hashmap" */;
+			buildPhases = (
+				CD86DAC917DA606200FDE6B2 /* Sources */,
+				CD86DACA17DA606200FDE6B2 /* Frameworks */,
+				CD86DACB17DA606200FDE6B2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD86DADF17DA61C700FDE6B2 /* PBXTargetDependency */,
+				CD86DAE117DA61C700FDE6B2 /* PBXTargetDependency */,
+			);
+			name = "test-hashmap";
+			productName = "test-hashmap";
+			productReference = CD86DACD17DA606200FDE6B2 /* test-hashmap */;
+			productType = "com.apple.product-type.tool";
+		};
+		CD86DAEA17DA622100FDE6B2 /* test-hashtable */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD86DAF217DA622100FDE6B2 /* Build configuration list for PBXNativeTarget "test-hashtable" */;
+			buildPhases = (
+				CD86DAE717DA622100FDE6B2 /* Sources */,
+				CD86DAE817DA622100FDE6B2 /* Frameworks */,
+				CD86DAE917DA622100FDE6B2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD86DAFA17DA653200FDE6B2 /* PBXTargetDependency */,
+				CD86DAFC17DA653200FDE6B2 /* PBXTargetDependency */,
+			);
+			name = "test-hashtable";
+			productName = "test-hashtable";
+			productReference = CD86DAEB17DA622100FDE6B2 /* test-hashtable */;
+			productType = "com.apple.product-type.tool";
+		};
+		CD86DB0517DA65A000FDE6B2 /* test-semaphore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD86DB0D17DA65A100FDE6B2 /* Build configuration list for PBXNativeTarget "test-semaphore" */;
+			buildPhases = (
+				CD86DB0217DA65A000FDE6B2 /* Sources */,
+				CD86DB0317DA65A000FDE6B2 /* Frameworks */,
+				CD86DB0417DA65A000FDE6B2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD86DB1517DA66C700FDE6B2 /* PBXTargetDependency */,
+				CD86DB1717DA66C700FDE6B2 /* PBXTargetDependency */,
+			);
+			name = "test-semaphore";
+			productName = "test-semaphore";
+			productReference = CD86DB0617DA65A000FDE6B2 /* test-semaphore */;
+			productType = "com.apple.product-type.tool";
+		};
+		CD86DB2017DA679900FDE6B2 /* test-stacktrace */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD86DB2817DA679900FDE6B2 /* Build configuration list for PBXNativeTarget "test-stacktrace" */;
+			buildPhases = (
+				CD86DB1D17DA679900FDE6B2 /* Sources */,
+				CD86DB1E17DA679900FDE6B2 /* Frameworks */,
+				CD86DB1F17DA679900FDE6B2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD86DB3017DA686C00FDE6B2 /* PBXTargetDependency */,
+				CD86DB3217DA686C00FDE6B2 /* PBXTargetDependency */,
+			);
+			name = "test-stacktrace";
+			productName = "test-stacktrace";
+			productReference = CD86DB2117DA679900FDE6B2 /* test-stacktrace */;
+			productType = "com.apple.product-type.tool";
+		};
+		CD86DB3C17DA68DD00FDE6B2 /* test-uuid */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD86DB4417DA68DD00FDE6B2 /* Build configuration list for PBXNativeTarget "test-uuid" */;
+			buildPhases = (
+				CD86DB3917DA68DD00FDE6B2 /* Sources */,
+				CD86DB3A17DA68DD00FDE6B2 /* Frameworks */,
+				CD86DB3B17DA68DD00FDE6B2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD86DB4B17DA690400FDE6B2 /* PBXTargetDependency */,
+				CD86DB4D17DA690400FDE6B2 /* PBXTargetDependency */,
+			);
+			name = "test-uuid";
+			productName = "test-uuid";
+			productReference = CD86DB3D17DA68DD00FDE6B2 /* test-uuid */;
 			productType = "com.apple.product-type.tool";
 		};
 		CD92187416FDCD3F0013C8CD /* test-random */ = {
@@ -2622,6 +2982,8 @@
 				CD94941516FDC55300D8687F /* test-event */,
 				CD94943116FDC5FD00D8687F /* test-fs */,
 				CD94944D16FDC69B00D8687F /* test-hash */,
+				CD86DACC17DA606200FDE6B2 /* test-hashmap */,
+				CD86DAEA17DA622100FDE6B2 /* test-hashtable */,
 				CD94946916FDC71F00D8687F /* test-library */,
 				CDF561B716FDC87F00D041C0 /* test-math */,
 				CD20C65B16FDC931007C42E3 /* test-md5 */,
@@ -2631,7 +2993,10 @@
 				CD20C6CB16FDCC78007C42E3 /* test-radixsort */,
 				CD92187416FDCD3F0013C8CD /* test-random */,
 				CD92189016FDCE050013C8CD /* test-ringbuffer */,
+				CD86DB0517DA65A000FDE6B2 /* test-semaphore */,
+				CD86DB2017DA679900FDE6B2 /* test-stacktrace */,
 				CD9218AC16FDCEDD0013C8CD /* test-string */,
+				CD86DB3C17DA68DD00FDE6B2 /* test-uuid */,
 			);
 		};
 /* End PBXProject section */
@@ -2698,6 +3063,46 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD7F384016E21DA8000346C0 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DAC917DA606200FDE6B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DADD17DA61A100FDE6B2 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DAE717DA622100FDE6B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DAF817DA624C00FDE6B2 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DB0217DA65A000FDE6B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DB1317DA660B00FDE6B2 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DB1D17DA679900FDE6B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DB2E17DA686000FDE6B2 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD86DB3917DA68DD00FDE6B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD86DB4917DA68FB00FDE6B2 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3001,6 +3406,56 @@
 			isa = PBXTargetDependency;
 			target = CDCEF43816D2D11500198086 /* foundation */;
 			targetProxy = CD7F384116E21DC6000346C0 /* PBXContainerItemProxy */;
+		};
+		CD86DADF17DA61C700FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCEF43816D2D11500198086 /* foundation */;
+			targetProxy = CD86DADE17DA61C700FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DAE117DA61C700FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCF1E0916FD8EF300626060 /* test */;
+			targetProxy = CD86DAE017DA61C700FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DAFA17DA653200FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCEF43816D2D11500198086 /* foundation */;
+			targetProxy = CD86DAF917DA653200FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DAFC17DA653200FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCF1E0916FD8EF300626060 /* test */;
+			targetProxy = CD86DAFB17DA653200FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB1517DA66C700FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCEF43816D2D11500198086 /* foundation */;
+			targetProxy = CD86DB1417DA66C700FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB1717DA66C700FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCF1E0916FD8EF300626060 /* test */;
+			targetProxy = CD86DB1617DA66C700FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB3017DA686C00FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCEF43816D2D11500198086 /* foundation */;
+			targetProxy = CD86DB2F17DA686C00FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB3217DA686C00FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCF1E0916FD8EF300626060 /* test */;
+			targetProxy = CD86DB3117DA686C00FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB4B17DA690400FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCEF43816D2D11500198086 /* foundation */;
+			targetProxy = CD86DB4A17DA690400FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB4D17DA690400FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDCF1E0916FD8EF300626060 /* test */;
+			targetProxy = CD86DB4C17DA690400FDE6B2 /* PBXContainerItemProxy */;
 		};
 		CD92186616FDCCAA0013C8CD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3510,6 +3965,171 @@
 			buildSettings = {
 				MACH_O_TYPE = mh_execute;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
+		CD86DAD417DA606200FDE6B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD86DAD517DA606200FDE6B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD86DAD617DA606200FDE6B2 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
+		CD86DAF317DA622100FDE6B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD86DAF417DA622100FDE6B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD86DAF517DA622100FDE6B2 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
+		CD86DB0E17DA65A100FDE6B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD86DB0F17DA65A100FDE6B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD86DB1017DA65A100FDE6B2 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
+		CD86DB2917DA679900FDE6B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD86DB2A17DA679900FDE6B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD86DB2B17DA679900FDE6B2 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
+		CD86DB4517DA68DD00FDE6B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD86DB4617DA68DD00FDE6B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD86DB4717DA68DD00FDE6B2 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Deploy;
@@ -4419,6 +5039,51 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
+		};
+		CD86DAD717DA606300FDE6B2 /* Build configuration list for PBXNativeTarget "test-hashmap" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD86DAD417DA606200FDE6B2 /* Debug */,
+				CD86DAD517DA606200FDE6B2 /* Release */,
+				CD86DAD617DA606200FDE6B2 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		CD86DAF217DA622100FDE6B2 /* Build configuration list for PBXNativeTarget "test-hashtable" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD86DAF317DA622100FDE6B2 /* Debug */,
+				CD86DAF417DA622100FDE6B2 /* Release */,
+				CD86DAF517DA622100FDE6B2 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		CD86DB0D17DA65A100FDE6B2 /* Build configuration list for PBXNativeTarget "test-semaphore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD86DB0E17DA65A100FDE6B2 /* Debug */,
+				CD86DB0F17DA65A100FDE6B2 /* Release */,
+				CD86DB1017DA65A100FDE6B2 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		CD86DB2817DA679900FDE6B2 /* Build configuration list for PBXNativeTarget "test-stacktrace" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD86DB2917DA679900FDE6B2 /* Debug */,
+				CD86DB2A17DA679900FDE6B2 /* Release */,
+				CD86DB2B17DA679900FDE6B2 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		CD86DB4417DA68DD00FDE6B2 /* Build configuration list for PBXNativeTarget "test-uuid" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD86DB4517DA68DD00FDE6B2 /* Debug */,
+				CD86DB4617DA68DD00FDE6B2 /* Release */,
+				CD86DB4717DA68DD00FDE6B2 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		CD92187B16FDCD3F0013C8CD /* Build configuration list for PBXNativeTarget "test-random" */ = {
 			isa = XCConfigurationList;
