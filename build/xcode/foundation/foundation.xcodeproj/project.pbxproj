@@ -488,6 +488,41 @@
 			remoteGlobalIDString = CDCF1E0916FD8EF300626060;
 			remoteInfo = test;
 		};
+		CD86DB7917DA6CE900FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CD86DACC17DA606200FDE6B2;
+			remoteInfo = "test-hashmap";
+		};
+		CD86DB7B17DA6CE900FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CD86DAEA17DA622100FDE6B2;
+			remoteInfo = "test-hashtable";
+		};
+		CD86DB7D17DA6CE900FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CD86DB0517DA65A000FDE6B2;
+			remoteInfo = "test-semaphore";
+		};
+		CD86DB7F17DA6CE900FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CD86DB2017DA679900FDE6B2;
+			remoteInfo = "test-stacktrace";
+		};
+		CD86DB8117DA6CE900FDE6B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CD86DB3C17DA68DD00FDE6B2;
+			remoteInfo = "test-uuid";
+		};
 		CD92186516FDCCAA0013C8CD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CDCEF43116D2D11500198086 /* Project object */;
@@ -2741,6 +2776,11 @@
 			buildRules = (
 			);
 			dependencies = (
+				CD86DB7A17DA6CE900FDE6B2 /* PBXTargetDependency */,
+				CD86DB7C17DA6CE900FDE6B2 /* PBXTargetDependency */,
+				CD86DB7E17DA6CE900FDE6B2 /* PBXTargetDependency */,
+				CD86DB8017DA6CE900FDE6B2 /* PBXTargetDependency */,
+				CD86DB8217DA6CE900FDE6B2 /* PBXTargetDependency */,
 				CDCF1E2616FD90D200626060 /* PBXTargetDependency */,
 				CDCF1E5E16FDAE4800626060 /* PBXTargetDependency */,
 				CDCF1E6016FDAE4800626060 /* PBXTargetDependency */,
@@ -3456,6 +3496,31 @@
 			isa = PBXTargetDependency;
 			target = CDCF1E0916FD8EF300626060 /* test */;
 			targetProxy = CD86DB4C17DA690400FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB7A17DA6CE900FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CD86DACC17DA606200FDE6B2 /* test-hashmap */;
+			targetProxy = CD86DB7917DA6CE900FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB7C17DA6CE900FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CD86DAEA17DA622100FDE6B2 /* test-hashtable */;
+			targetProxy = CD86DB7B17DA6CE900FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB7E17DA6CE900FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CD86DB0517DA65A000FDE6B2 /* test-semaphore */;
+			targetProxy = CD86DB7D17DA6CE900FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB8017DA6CE900FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CD86DB2017DA679900FDE6B2 /* test-stacktrace */;
+			targetProxy = CD86DB7F17DA6CE900FDE6B2 /* PBXContainerItemProxy */;
+		};
+		CD86DB8217DA6CE900FDE6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CD86DB3C17DA68DD00FDE6B2 /* test-uuid */;
+			targetProxy = CD86DB8117DA6CE900FDE6B2 /* PBXContainerItemProxy */;
 		};
 		CD92186616FDCCAA0013C8CD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5048,6 +5113,7 @@
 				CD86DAD617DA606200FDE6B2 /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD86DAF217DA622100FDE6B2 /* Build configuration list for PBXNativeTarget "test-hashtable" */ = {
 			isa = XCConfigurationList;
@@ -5057,6 +5123,7 @@
 				CD86DAF517DA622100FDE6B2 /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD86DB0D17DA65A100FDE6B2 /* Build configuration list for PBXNativeTarget "test-semaphore" */ = {
 			isa = XCConfigurationList;
@@ -5066,6 +5133,7 @@
 				CD86DB1017DA65A100FDE6B2 /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD86DB2817DA679900FDE6B2 /* Build configuration list for PBXNativeTarget "test-stacktrace" */ = {
 			isa = XCConfigurationList;
@@ -5075,6 +5143,7 @@
 				CD86DB2B17DA679900FDE6B2 /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD86DB4417DA68DD00FDE6B2 /* Build configuration list for PBXNativeTarget "test-uuid" */ = {
 			isa = XCConfigurationList;
@@ -5084,6 +5153,7 @@
 				CD86DB4717DA68DD00FDE6B2 /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CD92187B16FDCD3F0013C8CD /* Build configuration list for PBXNativeTarget "test-random" */ = {
 			isa = XCConfigurationList;
