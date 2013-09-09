@@ -580,8 +580,10 @@ int process_wait( process_t* proc )
 		int cur_errno = errno;
 		if( ( err == 0 ) && ( proc->flags & PROCESS_DETACHED ) )
 			return PROCESS_STILL_ACTIVE;
+		if( ( err < 0 ) && ( cur_errno == EINTR ) )
+			return PROCESS_WAIT_INTERRUPTED;
 		log_warnf( WARNING_BAD_DATA, "waitpid(%d) failed: %s (%d) (returned %d)", proc->pid, system_error_message( cur_errno ), cur_errno, err );
-		return ( cur_errno == EINTR ? PROCESS_WAIT_INTERRUPTED : PROCESS_WAIT_FAILED );
+		return PROCESS_WAIT_FAILED;
 	}
 	
 #else
