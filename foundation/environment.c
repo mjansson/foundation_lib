@@ -30,7 +30,6 @@ static char*   _environment_var = 0;
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#  include <pwd.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -46,9 +45,6 @@ extern CFStringRef NSHomeDirectory(void);
 #  include <crt_externs.h>
 #endif
 
-#if FOUNDATION_PLATFORM_ANDROID
-#  include <foundation/android.h>
-#endif
 
 
 static application_t   _environment_app = {0};
