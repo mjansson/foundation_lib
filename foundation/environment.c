@@ -38,7 +38,7 @@ static char*   _environment_var = 0;
 
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
-extern CFStringRef NSHomeDirectory(void);
+extern void _environment_ns_home_directory( char* );
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -358,8 +358,7 @@ const char* environment_home_directory( void )
 #elif FOUNDATION_PLATFORM_APPLE
 	if( environment_application()->flags & APPLICATION_UTILITY )
 	{
-		CFStringRef home = NSHomeDirectory();
-		CFStringGetCString( home, _environment_home_dir, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+		_environment_ns_home_directory( _environment_home_dir );
 	}
 	else
 	{

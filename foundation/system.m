@@ -15,17 +15,19 @@
 //TODO: Cleanup this header mess
 #if FOUNDATION_PLATFORM_IOS
 #  include <foundation/apple.h>
+#  define _UUID_T
+#  define _UUID_UUID_H
 #endif
 
 #import <Foundation/NSSet.h>
 #import <Foundation/NSArray.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSUndoManager.h>
 #import <Foundation/NSProcessInfo.h>
 
 #if FOUNDATION_PLATFORM_MACOSX
 #import <AppKit/NSAlert.h>
 #elif FOUNDATION_PLATFORM_IOS
-#import <Foundation/NSUndoManager.h>
 #import <UIKit/UIAlertView.h>
 #endif
 
@@ -37,12 +39,14 @@ int          _system_show_alert( const char* title, const char* message, int can
 unsigned int _system_process_info_processor_count( void )
 {
 	//[[NSProcessInfo processInfo] activeProcessorCount];
-	return (unsigned int)[[NSProcessInfo processInfo] processorCount];
+	@autoreleasepool { return (unsigned int)[[NSProcessInfo processInfo] processorCount]; }
 }
 
 
 int _system_show_alert( const char* title, const char* message, int cancel_button )
 {
+	@autoreleasepool
+	{	
 #if FOUNDATION_PLATFORM_MACOSX
 	
 	NSAlert* alert = [NSAlert alertWithMessageText:[NSString stringWithCString:title encoding:NSUTF8StringEncoding]
@@ -70,4 +74,5 @@ int _system_show_alert( const char* title, const char* message, int cancel_butto
 	return 1;
 	
 #endif
+	}
 }

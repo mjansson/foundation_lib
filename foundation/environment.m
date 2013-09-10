@@ -14,13 +14,30 @@
 #include <foundation/string.h>
 #include <foundation/environment.h>
 
+#import <CoreFoundation/CFString.h>
+
 #import <Foundation/NSString.h>
 #import <Foundation/NSBundle.h>
+
+extern CFStringRef NSHomeDirectory(void);
+extern void _environment_ns_home_directory( char* );
 
 
 void environment_bundle_identifier( char* target )
 {
-	NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
-	string_copy( target, [bundle_identifier UTF8String], FOUNDATION_MAX_PATHLEN );
+	@autoreleasepool
+	{
+		NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
+		string_copy( target, [bundle_identifier UTF8String], FOUNDATION_MAX_PATHLEN );
+	}
 }
 
+
+void _environment_ns_home_directory( char* buffer )
+{
+	@autoreleasepool
+	{
+		CFStringRef home = NSHomeDirectory();
+		CFStringGetCString( home, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+	}
+}

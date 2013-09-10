@@ -27,9 +27,6 @@
 #if FOUNDATION_PLATFORM_APPLE
 #define _UUID_T
 #define _UUID_UUID_H
-#define uuid_generate_random __system_uuid_generate_random
-#define uuid_generate_time __system_uuid_generate_time
-#define uuid_is_null __system_uuid_is_null
 #endif
 
 #include <unistd.h>
@@ -50,9 +47,6 @@
 #if FOUNDATION_PLATFORM_APPLE
 #undef _UUID_T
 #undef _UUID_UUID_H
-#undef uuid_generate_random
-#undef uuid_generate_time
-#undef uuid_is_null
 #endif
 
 #endif
