@@ -526,6 +526,11 @@ stream_t* process_stdin( process_t* proc )
 
 int process_wait( process_t* proc )
 {
+#if FOUNDATION_PLATFORM_POSIX
+	int cstatus;
+	pid_t err;
+#endif	
+	
 	if( !proc )
 		return PROCESS_INVALID_ARGS;
 
@@ -558,8 +563,16 @@ int process_wait( process_t* proc )
 	if( !proc->pid )
 		return proc->code;
 
-	int cstatus = 0;
-	pid_t err = waitpid( proc->pid, &cstatus, ( proc->flags & PROCESS_DETACHED ) ? WNOHANG : 0 );
+#  if FOUNDATION_PLATFORM_MACOSX
+	if( proc->flags & PROCESS_OSX_USE_OPENAPPLICATION )
+	{
+		log_warnf( WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_OSX_USE_OPENAPPLICATION" );
+		return PROCESS_WAIT_FAILED;
+	}
+#  endif
+	
+	cstatus = 0;
+	err = waitpid( proc->pid, &cstatus, ( proc->flags & PROCESS_DETACHED ) ? WNOHANG : 0 );
 	if( err > 0 )
 	{
 		if( WIFEXITED( cstatus ) )
