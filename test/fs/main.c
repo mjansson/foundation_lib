@@ -423,7 +423,11 @@ void test_fs_declare( void )
 	ADD_TEST( fs, util );
 	ADD_TEST( fs, query );
 	ADD_TEST( fs, event );
+#if !FOUNDATION_PLATFORM_APPLE
 	ADD_TEST( fs, monitor );
+#else
+	log_warnf( WARNING_UNSUPPORTED, "file system monitors not implemented yet for Apple platforms" );
+#endif
 }
 
 
