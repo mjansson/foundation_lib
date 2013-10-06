@@ -27,8 +27,6 @@
 #undef FAR
 #undef NEAR
 #  include <stdio.h>
-#elif FOUNDATION_PLATFORM_APPLE
-#elif FOUNDATION_PLATFORM_ANDROID
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  include <execinfo.h>
@@ -329,10 +327,6 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	_capture_stack_trace_helper( trace, max_depth, skip_frames, &context );
 #  endif
 	}
-#elif FOUNDATION_PLATFORM_APPLE
-	//TODO: Implement
-#elif FOUNDATION_PLATFORM_ANDROID
-	//TODO: Implement
 #elif FOUNDATION_PLATFORM_POSIX
 	// Add 1 skip frames for this function call
 	skip_frames += 1;
@@ -501,6 +495,18 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 	}
 
 	return lines;
+	
+#elif FOUNDATION_PLATFORM_MACOSX
+	
+	char** symbols = 0;
+	char** resolved = backtrace_symbols( frames, max_frames );
+	for( unsigned int iframe = 0; iframe < max_frames; ++iframe )
+	{
+		if( resolved[iframe] && string_length( resolved[iframe] ) )
+			array_push( symbols, string_clone( resolved[iframe] ) );
+	}
+	
+	return symbols;
 
 #elif FOUNDATION_PLATFORM_LINUX
 
