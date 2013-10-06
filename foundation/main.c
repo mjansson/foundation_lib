@@ -99,9 +99,7 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 
 
 #elif FOUNDATION_PLATFORM_ANDROID
-
 #include <foundation/android.h>
-
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
@@ -110,6 +108,11 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 
 #include <signal.h>
 #include <stdio.h>
+
+#if FOUNDATION_PLATFORM_APPLE
+#include <foundation/main.h>
+#include <foundation/delegate.h>
+#endif
 
 #if FOUNDATION_PLATFORM_MACOSX
 extern int NSApplicationMain( int argc, const char *argv[] );
@@ -191,8 +194,8 @@ int main( int argc, char** argv )
 	{
 #  if FOUNDATION_PLATFORM_MACOSX
 
-		//Fire up new thread to continue engine, then run Cocoa event loop in main thread
-		//_app_start_main_ns_thread( argc, argv );
+		//Fire up new thread to continue foundation application, then run Cocoa event loop in main thread
+		_delegate_start_main_ns_thread( argc, argv );
 		ret = NSApplicationMain( argc, (const char**)argv );
 
 #  elif FOUNDATION_PLATFORM_IOS

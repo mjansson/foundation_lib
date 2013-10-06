@@ -32,9 +32,16 @@
 
 #include <mach/mach_types.h>
 
-#include <CoreFoundation/CoreFoundation.h>
-#if FOUNDATION_PLATFORM_MACOSX
-#include <Carbon/Carbon.h>
+#ifdef __OBJC__
+#  include <CoreFoundation/CoreFoundation.h>
+#  import <Foundation/NSObject.h>
+#  import <Foundation/NSThread.h>
+#  import <AppKit/NSApplication.h>
+#else
+#  include <CoreFoundation/CoreFoundation.h>
+#  if FOUNDATION_PLATFORM_MACOSX
+#    include <Carbon/Carbon.h>
+#  endif
 #endif
 
 #include <unistd.h>

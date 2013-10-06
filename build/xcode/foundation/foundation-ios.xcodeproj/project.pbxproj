@@ -825,6 +825,7 @@
 				CD8D680A17ED7848009F11EB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		CD8D682917ED7993009F11EB /* Build configuration list for PBXNativeTarget "test-all" */ = {
 			isa = XCConfigurationList;
@@ -833,6 +834,7 @@
 				CD8D682B17ED7993009F11EB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

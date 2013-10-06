@@ -157,6 +157,8 @@
 		CDBE40AD172C546C00C7AC40 /* hashmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CDBE40A9172C546C00C7AC40 /* hashmap.h */; };
 		CDBE40AE172C546C00C7AC40 /* pipe.c in Sources */ = {isa = PBXBuildFile; fileRef = CDBE40AA172C546C00C7AC40 /* pipe.c */; };
 		CDBE40AF172C546C00C7AC40 /* pipe.h in Headers */ = {isa = PBXBuildFile; fileRef = CDBE40AB172C546C00C7AC40 /* pipe.h */; };
+		CDC5A38E17F9FF2500E0F8E4 /* delegate.h in Headers */ = {isa = PBXBuildFile; fileRef = CDC5A38D17F9FF2500E0F8E4 /* delegate.h */; };
+		CDC5A39117FA00C700E0F8E4 /* delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CDC5A39017FA00C700E0F8E4 /* delegate.m */; };
 		CDCEF48D16D2D2B100198086 /* android.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44116D2D2B000198086 /* android.c */; };
 		CDCEF48E16D2D2B100198086 /* android.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF44216D2D2B000198086 /* android.h */; };
 		CDCEF48F16D2D2B100198086 /* array.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44316D2D2B000198086 /* array.c */; };
@@ -1267,6 +1269,8 @@
 		CDBE40A9172C546C00C7AC40 /* hashmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hashmap.h; path = ../../../foundation/hashmap.h; sourceTree = "<group>"; };
 		CDBE40AA172C546C00C7AC40 /* pipe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pipe.c; path = ../../../foundation/pipe.c; sourceTree = "<group>"; };
 		CDBE40AB172C546C00C7AC40 /* pipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pipe.h; path = ../../../foundation/pipe.h; sourceTree = "<group>"; };
+		CDC5A38D17F9FF2500E0F8E4 /* delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = delegate.h; path = ../../../foundation/delegate.h; sourceTree = "<group>"; };
+		CDC5A39017FA00C700E0F8E4 /* delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = delegate.m; path = ../../../foundation/delegate.m; sourceTree = "<group>"; };
 		CDCEF43916D2D11500198086 /* libfoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDCEF44116D2D2B000198086 /* android.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = android.c; path = ../../../foundation/android.c; sourceTree = "<group>"; };
 		CDCEF44216D2D2B000198086 /* android.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = android.h; path = ../../../foundation/android.h; sourceTree = "<group>"; };
@@ -2035,6 +2039,8 @@
 				CDCEF45316D2D2B000198086 /* config.h */,
 				CDCEF45416D2D2B000198086 /* crash.c */,
 				CDCEF45516D2D2B000198086 /* crash.h */,
+				CDC5A39017FA00C700E0F8E4 /* delegate.m */,
+				CDC5A38D17F9FF2500E0F8E4 /* delegate.h */,
 				CD1C2FD716F2640B00D36B24 /* environment.m */,
 				CDCEF45616D2D2B000198086 /* environment.c */,
 				CDCEF45716D2D2B000198086 /* environment.h */,
@@ -2302,6 +2308,7 @@
 				CD9097FC17D5324F00607B9C /* hashtable.h in Headers */,
 				CD9097FE17D5324F00607B9C /* stacktrace.h in Headers */,
 				CD90980017D5324F00607B9C /* uuid.h in Headers */,
+				CDC5A38E17F9FF2500E0F8E4 /* delegate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3263,6 +3270,7 @@
 				CD9097FB17D5324F00607B9C /* hashtable.c in Sources */,
 				CD9097FD17D5324F00607B9C /* stacktrace.c in Sources */,
 				CD9097FF17D5324F00607B9C /* uuid.c in Sources */,
+				CDC5A39117FA00C700E0F8E4 /* delegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
