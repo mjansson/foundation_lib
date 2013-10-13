@@ -16,7 +16,7 @@
 static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;
 
-#if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
+#if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX /*&& !FOUNDATION_PLATFORM_APPLE*/ )
 static char                    _crash_dump_file[FOUNDATION_MAX_PATHLEN+128];
 #endif
 
@@ -129,7 +129,7 @@ LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 
 #endif
 
-#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_POSIX //&& !FOUNDATION_PLATFORM_APPLE
 
 #include <signal.h>
 #include <setjmp.h>
@@ -139,10 +139,13 @@ FOUNDATION_DECLARE_THREAD_LOCAL( crash_dump_callback_fn, crash_callback, 0 )
 FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
 
 #if FOUNDATION_PLATFORM_ANDROID
-FOUNDATION_DECLARE_THREAD_LOCAL( long int*, crash_env, 0 )
+#  define crash_env_t long int*
+#elif FOUNDATION_PLATFORM_APPLE
+#  define crash_env_t int*
 #else
-FOUNDATION_DECLARE_THREAD_LOCAL( struct __jmp_buf_tag*, crash_env, 0 )
+#  define crash_env_t struct __jmp_buf_tag*
 #endif
+FOUNDATION_DECLARE_THREAD_LOCAL( crash_env_t, crash_env, 0 )
 	
 	
 static void _crash_guard_minidump( void* context, const char* name, char* dump_file )
@@ -153,7 +156,7 @@ static void _crash_guard_minidump( void* context, const char* name, char* dump_f
 	//ucontext_t* user_context = context;
 }
 
-	
+
 static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 {
 	log_infof( "Caught crash guard signal: %d", sig );
@@ -165,9 +168,9 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 		callback( _crash_dump_file );
 	}
 
-	struct __jmp_buf_tag* guard_env = get_thread_crash_env();
+	crash_env_t guard_env = get_thread_crash_env();
 	if( guard_env )
-		siglongjmp( get_thread_crash_env(), CRASH_DUMP_GENERATED );
+		siglongjmp( guard_env, CRASH_DUMP_GENERATED );
 	else
 		log_warnf( WARNING_SUSPICIOUS, "No sigjmp_buf for thread" );
 }
@@ -196,11 +199,6 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	_crash_exception_closure.name = name;
 	return fn( data );
 #  endif
-	
-#elif FOUNDATION_PLATFORM_APPLE
-
-	//No guard mechanism in place yet for this platform
-	return fn( data );
 
 #elif FOUNDATION_PLATFORM_POSIX
 	sigjmp_buf guard_env = {0};

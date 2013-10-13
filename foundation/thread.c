@@ -119,7 +119,12 @@ void _thread_shutdown( void )
 	for( int i = 0; i < 1024; ++i )
 	{
 		if( _thread_local_blocks[i].block )
-			memory_deallocate( _thread_local_blocks[i].block );
+		{
+			void* block = _thread_local_blocks[i].block;
+			_thread_local_blocks[i].thread = 0;
+			_thread_local_blocks[i].block = 0;
+			memory_deallocate( block );
+		}
 	}
 #endif
 
@@ -344,7 +349,8 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	log_debugf( "Started thread '%s' (%llx) ID %llx%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
 
-#if BUILD_DEBUG
+	//On Mach systems exceptions will be caught by debugger anyway before signal handling
+#if FOUNDATION_PLATFORM_WINDOWS && BUILD_DEBUG
 	{
 		thread->result = thread->fn( thread->id, thread->arg );
 	}
@@ -537,9 +543,10 @@ void thread_cleanup( void )
 	{
 		if( ( _thread_local_blocks[i].thread == curid ) && _thread_local_blocks[i].block )
 		{
-			memory_deallocate( _thread_local_blocks[i].block );
+			void* block = _thread_local_blocks[i].block;
 			_thread_local_blocks[i].thread = 0;
 			_thread_local_blocks[i].block = 0;
+			memory_deallocate( block );
 		}
 	}
 #endif	

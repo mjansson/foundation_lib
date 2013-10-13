@@ -49,8 +49,23 @@ extern int app_main( void* arg );
 			log_warnf( WARNING_SUSPICIOUS, "Application is STILL not multithreaded!" );
     }
 	
-	//TODO: Crash guard
-	/*int ret =*/main_run( 0 );
+	{
+		char* name = 0;
+		const application_t* app = environment_application();
+		{
+			const char* aname = app->short_name;
+			name = string_clone( aname ? aname : "unknown" );
+			name = string_append( name, "-" );
+			name = string_append( name, string_from_version_static( app->version ) );
+		}
+		
+		if( app->dump_callback )
+			crash_guard_set( app->dump_callback, name );
+		
+		crash_guard( main_run, 0, app->dump_callback, name );
+		
+		string_deallocate( name );
+	}
 	
 	main_shutdown();
     

@@ -103,12 +103,8 @@ DECLARE_TEST( crash, crash_thread )
 
 void test_crash_declare( void )
 {
-#if !FOUNDATION_PLATFORM_APPLE
 	ADD_TEST( crash, crash_guard );
 	ADD_TEST( crash, crash_thread );
-#else
-	log_warnf( WARNING_UNSUPPORTED, "crash guards not implemented for Apple platforms" );
-#endif
 }
 
 

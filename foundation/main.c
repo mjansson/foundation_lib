@@ -208,9 +208,9 @@ int main( int argc, char** argv )
 	}
 #endif
 
-#if BUILD_DEBUG
-	ret = main_run( 0 );
-#else
+//#if BUILD_DEBUG
+//	ret = main_run( 0 );
+//#else
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
@@ -228,7 +228,7 @@ int main( int argc, char** argv )
 
 		string_deallocate( name );
 	}
-#endif
+//#endif
 
 	main_shutdown();
 
