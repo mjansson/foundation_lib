@@ -18,6 +18,14 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+//NOTE - The base of all header problems with XCode is that
+//       #include <Foundation/Foundation.h>
+//       in system headers will actually map to our foundation/foundation.h
+
+#include <foundation/uuid.h>
+#include <foundation/radixsort.h>
+#include <foundation/semaphore.h>
+
 
 #if FOUNDATION_PLATFORM_APPLE
 
@@ -36,7 +44,18 @@
 #  include <CoreFoundation/CoreFoundation.h>
 #  import <Foundation/NSObject.h>
 #  import <Foundation/NSThread.h>
-#  import <AppKit/NSApplication.h>
+#  import <Foundation/NSProcessInfo.h>
+#  import <Foundation/NSString.h>
+#  import <Foundation/NSSet.h>
+#  import <Foundation/NSArray.h>
+#  import <Foundation/NSTimer.h>
+#  import <Foundation/NSUndoManager.h>
+#  if FOUNDATION_PLATFORM_MACOSX
+#    import <AppKit/NSApplication.h>
+#    import <AppKit/NSAlert.h>
+#  elif FOUNDATION_PLATFORM_IOS
+#    import <UIKit/UIApplication.h>
+#  endif
 #else
 #  include <CoreFoundation/CoreFoundation.h>
 #  if FOUNDATION_PLATFORM_MACOSX

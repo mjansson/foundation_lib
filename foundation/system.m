@@ -11,25 +11,7 @@
  */
 
 #include <foundation/platform.h>
-
-//TODO: Cleanup this header mess
-#if FOUNDATION_PLATFORM_IOS
-#  include <foundation/apple.h>
-#  define _UUID_T
-#  define _UUID_UUID_H
-#endif
-
-#import <Foundation/NSSet.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSString.h>
-#import <Foundation/NSUndoManager.h>
-#import <Foundation/NSProcessInfo.h>
-
-#if FOUNDATION_PLATFORM_MACOSX
-#import <AppKit/NSAlert.h>
-#elif FOUNDATION_PLATFORM_IOS
-#import <UIKit/UIAlertView.h>
-#endif
+#include <foundation/apple.h>
 
 
 unsigned int _system_process_info_processor_count( void );

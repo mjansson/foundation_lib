@@ -114,11 +114,6 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 #include <foundation/delegate.h>
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
-extern int NSApplicationMain( int argc, const char *argv[] );
-#elif FOUNDATION_PLATFORM_IOS
-extern int UIApplicationMain ( int argc, char *argv[], void *principalClassName, void *delegateClassName );
-#endif
 
 static void sighandler( int sig )
 {
@@ -196,10 +191,14 @@ int main( int argc, char** argv )
 
 		//Fire up new thread to continue foundation application, then run Cocoa event loop in main thread
 		_delegate_start_main_ns_thread( argc, argv );
+
+		extern int NSApplicationMain( int argc, const char *argv[] );
 		ret = NSApplicationMain( argc, (const char**)argv );
 
 #  elif FOUNDATION_PLATFORM_IOS
 
+		//Foundation hooks triggered by redraw events
+		extern int UIApplicationMain( int argc, char *argv[], void *principalClassName, void *delegateClassName );
 		ret = UIApplicationMain( argc, (char**)argv, 0, 0 );
 
 #  endif

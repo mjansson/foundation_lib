@@ -42,6 +42,8 @@ FOUNDATION_API void _delegate_start_main_ns_thread( int argc, char** argv );
 
 #elif FOUNDATION_PLATFORM_IOS
 
+#ifdef __OBJC__
+
 @interface FoundationAppDelegate : NSObject <UIApplicationDelegate>
 {
     UIWindow* window;
@@ -56,3 +58,4 @@ FOUNDATION_API void _delegate_start_main_ns_thread( int argc, char** argv );
 
 #endif
 
+#endif
