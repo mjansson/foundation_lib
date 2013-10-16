@@ -15,9 +15,7 @@
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <time.h>
-#  include <pthread.h>
-#  include <sys/time.h>
+#  include <foundation/posix.h>
 #endif
 
 
@@ -286,7 +284,7 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		{
 			was_signal = true;
 		}
-		else if( ret != 110/*ETIMEDOUT*/ )
+		else if( ret != ETIMEDOUT )
 		{
 			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to wait (timed) on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
 		}

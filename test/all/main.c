@@ -167,7 +167,7 @@ int main_run( void* main_arg )
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
 		bool is_self = false;
-		char* exe_file_name = path_file_name( exe_paths[iexe] );
+		char* exe_file_name = path_base_file_name( exe_paths[iexe] );
 		if( string_equal( exe_file_name, environment_executable_name() ) )
 			is_self = true;
 		string_deallocate( exe_file_name );

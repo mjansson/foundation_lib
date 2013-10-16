@@ -35,11 +35,14 @@
 #include <errno.h>
 #include <sched.h>
 #include <pwd.h>
+#include <time.h>
+#include <pthread.h>
 
 #include <sys/ioctl.h>
-
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/errno.h>
+#include <sys/time.h>
 
 #undef radixsort
 
