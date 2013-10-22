@@ -102,10 +102,10 @@
 #endif
 
 #ifndef BUILD_ENABLE_PROFILE
-#if BUILD_PROFILE
+#if BUILD_DEBUG || BUILD_RELEASE || BUILD_PROFILE
 #define BUILD_ENABLE_PROFILE                  1
 #else
-#define BUILD_ENABLE_PROFILE                  1
+#define BUILD_ENABLE_PROFILE                  0
 #endif
 #endif
 

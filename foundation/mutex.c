@@ -133,6 +133,11 @@ bool mutex_try_lock( mutex_t* mutex )
 {
 	bool was_locked = false;
 	FOUNDATION_ASSERT( mutex );
+
+#if !BUILD_DEPLOY
+	profile_trylock( mutex->name );
+#endif
+	
 #if FOUNDATION_PLATFORM_WINDOWS
 	was_locked = TryEnterCriticalSection( (CRITICAL_SECTION*)mutex->csection );
 #elif FOUNDATION_PLATFORM_POSIX
@@ -230,6 +235,10 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 	FOUNDATION_ASSERT( mutex );
 #if FOUNDATION_PLATFORM_WINDOWS
 
+#if !BUILD_DEPLOY
+	profile_wait( mutex->name );
+#endif
+
 	atomic_incr32( &mutex->waiting );
 
 	ret = WaitForSingleObject( mutex->event, ( timeout == 0 ) ? INFINITE : timeout );
@@ -309,6 +318,10 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 void mutex_signal( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
+
+#if !BUILD_DEPLOY
+	profile_signal( mutex->name );
+#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 

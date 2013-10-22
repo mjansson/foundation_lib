@@ -78,6 +78,7 @@ extern int test_md5_run( void );
 extern int test_mutex_run( void );
 extern int test_objectmap_run( void );
 extern int test_path_run( void );
+extern int test_profile_run( void );
 extern int test_radixsort_run( void );
 extern int test_random_run( void );
 extern int test_ringbuffer_run( void );
@@ -126,6 +127,7 @@ int main_run( void* main_arg )
 		test_mutex_run,
 		test_objectmap_run,
 		test_path_run,
+		test_profile_run,
 		test_radixsort_run,
 		test_random_run,
 		test_ringbuffer_run,

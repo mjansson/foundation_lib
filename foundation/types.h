@@ -319,6 +319,9 @@ typedef void          (* memory_untrack_fn )( void* );
 //! Callback function for writing profiling data to a stream
 typedef void          (* profile_write_fn)( void*, uint64_t );
 
+//! Callback function for reading profiling data from a stream
+typedef void          (* profile_read_fn)( void*, uint64_t );
+
 //! Thread execution function
 typedef void*         (* thread_fn)( object_t, void* );
 

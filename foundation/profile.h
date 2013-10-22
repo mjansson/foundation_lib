@@ -23,8 +23,14 @@
 
 /*! Initialize profiling library. The string passed to the function must be
     constant over the execution of the application (until profile_shutdown() is called)
-    and should identify the application/build/machine or whatever you want it to identify */
-FOUNDATION_API void profile_initialize( char* identifier, void* buffer, uint64_t size );
+    and should identify the application/build/machine or whatever you want it to identify.
+    Memory buffer should be large enough to hold data for one frame to avoid excessive
+    calls to output flush function. The profile subsystem will not allocate any memory,
+    it only uses the passed in work buffer.
+    \param identifier                    Application identifier
+    \param buffer                        Work temporary buffer
+    \param size                          Size of work buffer */
+FOUNDATION_API void profile_initialize( const char* identifier, void* buffer, uint64_t size );
 
 /*! Shutdown profiling library and free resources. Will call the writer callback
     with a null pointer and zero size to indicate end of transmission */
@@ -36,7 +42,7 @@ FOUNDATION_API void profile_shutdown( void );
 FOUNDATION_API void profile_output( profile_write_fn writer );
 
 /*! Toggle profiling. A positive argument enables all profiling calls,
-    a negative disables all calls. */
+    a zero/negative disables all calls. */
 FOUNDATION_API void profile_enable( int enable );
 
 
@@ -78,6 +84,15 @@ FOUNDATION_API void profile_lock( const char* name );
     be constant until the block is written to the output stream. */
 FOUNDATION_API void profile_unlock( const char* name );
 
+/*! Wait notification. Call this method right before the thread enters a wait state
+    on a mutually exclusive resource. The string passed to this function must
+    be constant until the block is written to the output stream. */
+FOUNDATION_API void profile_wait( const char* name );
+
+/*! Signal notification. Call this method right before the thread signals state
+    on a mutually exclusive resource. The string passed to this function must
+    be constant until the block is written to the output stream. */
+FOUNDATION_API void profile_signal( const char* name );
 
 #else
 
@@ -98,5 +113,7 @@ FOUNDATION_API void profile_unlock( const char* name );
 #define profile_trylock( name ) do { (void)sizeof( name ); } while(0)
 #define profile_lock( name ) do { (void)sizeof( name ); } while(0)
 #define profile_unlock( name ) do { (void)sizeof( name ); } while(0)
+#define profile_wait( name ) do { (void)sizeof( name ); } while(0)
+#define profile_signal( name ) do { (void)sizeof( name ); } while(0)
 
 #endif
