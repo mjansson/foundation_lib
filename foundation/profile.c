@@ -64,6 +64,8 @@ static profile_block_t*     _profile_blocks = 0;
 static uint64_t             _profile_ground_time = 0;
 static int                  _profile_enable = 0;
 static profile_write_fn     _profile_write = 0;
+static uint64_t             _profile_num_blocks = 0;
+static int                  _profile_wait = 100;
 
 static object_t             _profile_io_thread = 0;
 
@@ -80,6 +82,7 @@ static profile_block_t* _profile_allocate_block( void )
 		free_block = _profile_free;
 		next_block = GET_BLOCK( free_block )->child;
 	} while( !atomic_cas32( (int32_t*)&_profile_free, next_block, free_block ) );
+	FOUNDATION_ASSERT_MSG( free_block, "Profile blocks exhausted, increase profile memory block size" );
 	block = GET_BLOCK( free_block );
 	memset( block, 0, sizeof( profile_block_t ) );
 	return block;
@@ -242,6 +245,9 @@ static void* _profile_io( object_t thread, void* arg )
 		{
 			profile_begin_block( "process" );
 
+			//This is thread safe in the sense that only completely closed and ended
+			//blocks will be put as children to root block, so no additional blocks
+			//will ever be added to child subtrees while we process it here
 			_profile_process_root_block( _profile_root );
 
 			profile_end_block();
@@ -256,7 +262,7 @@ static void* _profile_io( object_t thread, void* arg )
 
 		profile_end_block();
 		
-		thread_sleep( 100 );
+		thread_sleep( _profile_wait );
 	}
 
 	if( _profile_root->child )
@@ -279,7 +285,7 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 	profile_block_t* block = buffer;
 	uint64_t num_blocks = size / sizeof( profile_block_t );
 	uint32_t i;
-	
+
 	_profile_root = block++;
 	for( i = 1; i < ( num_blocks - 1 ); ++i, ++block )
 	{
@@ -290,12 +296,15 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 	block->sibling = 0;
 	_profile_root->child = 0;
 
+	_profile_num_blocks = num_blocks;
 	_profile_identifier = identifier;
 	_profile_blocks = _profile_root;
 	_profile_free = 1;
 	_profile_counter = 128;
 	_profile_ground_time = time_current();
 	set_thread_profile_block( 0 );
+
+	log_debugf( "Initialize profiling system with %u blocks (%uKiB)", num_blocks, size / 1024 );
 }
 
 
@@ -305,12 +314,36 @@ void profile_shutdown( void )
 
 	while( thread_is_thread( _profile_io_thread ) )
 		thread_sleep( 1 );
+
+	//Sanity checks
+	{
+		uint64_t num_blocks = 1;
+		uint32_t free_block = _profile_free;
+		
+		if( _profile_root->child != 0 )
+			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, root block allocated" );
+
+		while( free_block )
+		{
+			++num_blocks;
+			free_block = GET_BLOCK( free_block )->child;
+		}
+		
+		if( num_blocks != _profile_num_blocks )
+			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks" );			
+	}
 }
 
 
 void profile_output( profile_write_fn writer )
 {
 	_profile_write = writer;
+}
+
+
+void profile_output_wait( int ms )
+{
+	_profile_wait = ( ms > 1 ) ? ms : 1;
 }
 
 

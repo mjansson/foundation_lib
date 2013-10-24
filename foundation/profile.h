@@ -24,9 +24,9 @@
 /*! Initialize profiling library. The string passed to the function must be
     constant over the execution of the application (until profile_shutdown() is called)
     and should identify the application/build/machine or whatever you want it to identify.
-    Memory buffer should be large enough to hold data for one frame to avoid excessive
+    Memory buffer should be large enough to hold data for ~100ms to avoid excessive
     calls to output flush function. The profile subsystem will not allocate any memory,
-    it only uses the passed in work buffer.
+    it only uses the passed in work buffer. Recommended size is at least 256KiB
     \param identifier                    Application identifier
     \param buffer                        Work temporary buffer
     \param size                          Size of work buffer */
@@ -45,11 +45,15 @@ FOUNDATION_API void profile_output( profile_write_fn writer );
     a zero/negative disables all calls. */
 FOUNDATION_API void profile_enable( int enable );
 
+/*! Control profile output rate by setting time between flushes in milliseconds.
+    Default is 100ms. Increase rate when passing a smaller buffer to initialization,
+    decrease rate if passing a larger buffer */
+FOUNDATION_API void profile_output_wait( int ms );
+
 
 /*! End a frame. Inserts a token into the profiling stream that identifies the end
     of a frame, effectively grouping profile information together in a block */
 FOUNDATION_API void profile_end_frame( uint64_t counter );
-
 
 /*! Begin a named profile timing block. The string passed to this function must
     be constant until the block is written to the output stream. Every call to
@@ -63,11 +67,9 @@ FOUNDATION_API void profile_update_block( void );
 /*! End the current active block */
 FOUNDATION_API void profile_end_block( void );
 
-
 /*! Insert log message. The string passed to this function must
     be constant until the block is written to the output stream. */
 FOUNDATION_API void profile_log( const char* message );
-
 
 /*! Lock notification. Call this method right before the thread tries
     to acquire a lock on a mutually exclusive resource. The string passed to this function must

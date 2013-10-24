@@ -14,10 +14,10 @@
 #include <test/test.h>
 
 
-#define TEST_PROFILE_BUFFER_SIZE  65535
+#define TEST_PROFILE_BUFFER_SIZE  256000
 
 static const uint64_t       _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
-static char                 _test_profile_buffer[TEST_PROFILE_BUFFER_SIZE];
+static char*                _test_profile_buffer = 0;
 static uint64_t             _test_profile_offset = 0;
 
 static volatile int32_t     _test_profile_output_counter = 0;
@@ -50,20 +50,26 @@ memory_system_t test_profile_memory_system( void )
 int test_profile_initialize( void )
 {
 	profile_output( test_profile_output );
+
+	_test_profile_buffer = memory_allocate( TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT );
+	
 	return 0;
 }
 
 
 void test_profile_shutdown( void )
 {
+	memory_deallocate( _test_profile_buffer );
 }
 
 
 DECLARE_TEST( profile, initialize )
 {
+	error_t err = error();
+
 	_test_profile_offset = 0;
 	_test_profile_output_counter = 0;
-	
+
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
 	profile_enable( 1 );
 
@@ -80,12 +86,17 @@ DECLARE_TEST( profile, initialize )
 	EXPECT_EQ( _test_profile_output_counter, 0 );
 #endif
 	
+	err = error();
+	EXPECT_EQ( err, ERROR_NONE );
+
 	return 0;
 }
 
 
 DECLARE_TEST( profile, output )
 {
+	error_t err = error();
+
 	_test_profile_offset = 0;
 	_test_profile_output_counter = 0;
 
@@ -101,14 +112,14 @@ DECLARE_TEST( profile, output )
 
 #if BUILD_ENABLE_PROFILE
 	EXPECT_GT( _test_profile_output_counter, 0 );
-
-	//Parse output results
-	
-	
+	//TODO: Implement parsing output results	
 #else
 	EXPECT_EQ( _test_profile_output_counter, 0 );
 #endif
 
+	err = error();
+	EXPECT_EQ( err, ERROR_NONE );
+	
 	_test_profile_offset = 0;
 	_test_profile_output_counter = 0;
 
@@ -123,7 +134,107 @@ DECLARE_TEST( profile, output )
 	profile_shutdown();
 
 	EXPECT_EQ( _test_profile_output_counter, 0 );
+
+	err = error();
+	EXPECT_EQ( err, ERROR_NONE );
 	
+	return 0;
+}
+
+
+void* profile_thread( object_t thread, void* arg )
+{
+	int loop;
+
+	thread_yield();
+	
+	for( loop = 0; loop < 1000; ++loop )
+	{
+		profile_log( "Thread message" );
+
+		profile_begin_block( "Thread block" );
+		{
+			profile_update_block();
+
+			profile_begin_block( "Thread subblock" );
+			{
+				profile_log( "Sub message" );
+
+				profile_trylock( "Trylock" );
+
+				profile_lock( "Trylock" );
+
+				profile_wait( "Wait" );
+				profile_signal( "Signal" );
+
+				profile_unlock( "Trylock" );
+
+				profile_log( "End sub" );
+
+				thread_yield();
+			}
+			profile_end_block();
+
+			thread_sleep( 1 );
+		}
+		profile_end_block();
+	}
+	
+	return 0;
+}
+
+
+DECLARE_TEST( profile, thread )
+{
+	object_t thread[32];
+	int ith;
+	int frame;
+	error_t err = error();
+
+	_test_profile_offset = 0;
+	_test_profile_output_counter = 0;
+
+	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
+	profile_enable( 1 );
+	profile_output_wait( 1 );
+
+	for( ith = 0; ith < 32; ++ith )
+	{
+		thread[ith] = thread_create( profile_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
+		thread_start( thread[ith], 0 );
+	}
+
+	test_wait_for_threads_startup( thread, 32 );
+
+	for( frame = 0; frame < 1000; ++frame )
+	{
+		thread_sleep( 16 );
+		profile_end_frame( frame++ );
+	}
+	
+	for( ith = 0; ith < 32; ++ith )
+	{
+		thread_destroy( thread[ith] );
+		thread_yield();
+	}
+	
+	test_wait_for_threads_exit( thread, 32 );
+
+	thread_sleep( 1000 );
+	
+	profile_enable( 0 );
+	profile_shutdown();
+
+	err = error();
+
+#if BUILD_ENABLE_PROFILE
+	EXPECT_GT( _test_profile_output_counter, 0 );
+	//TODO: Implement parsing output results	
+#else
+	EXPECT_EQ( _test_profile_output_counter, 0 );
+#endif
+	EXPECT_EQ( err, ERROR_NONE );
+
 	return 0;
 }
 
@@ -132,6 +243,7 @@ void test_profile_declare( void )
 {
 	ADD_TEST( profile, initialize );
 	ADD_TEST( profile, output );
+	ADD_TEST( profile, thread );
 }
 
 
