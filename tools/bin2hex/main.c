@@ -160,7 +160,7 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 	}
 
 	if( ( result == BIN2HEX_RESULT_OK ) && ( files_size > 0 ) )
-		log_infof( "All files generated" );
+		log_info( "All files generated" );
 
 	return result;
 }
@@ -192,7 +192,7 @@ int bin2hex_process_file( stream_t* input, stream_t* output, int columns )
 
 void bin2hex_print_usage( void )
 {
-	log_infof( 
+	log_info( 
 		"bin2hex usage:\n"
 		"  bin2hex [--columns n] <file> <file> <file> <...>\n"
 		"    Required arguments:\n"

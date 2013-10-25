@@ -300,7 +300,7 @@ typedef int           (* error_callback_fn )( error_level_t level, error_t error
 typedef int           (* assert_handler_fn )( const char* condition, const char* file, int line, const char* msg );
 
 //! Log output callback
-typedef void          (* log_callback_fn )( int severity, const char* msg );
+typedef void          (* log_callback_fn )( uint64_t context, int severity, const char* msg );
 
 //! Subsystem initialization
 typedef int           (* system_initialize_fn )( void );

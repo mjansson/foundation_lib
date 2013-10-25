@@ -36,7 +36,7 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 static bool             _log_stdout      = true;
 static bool             _log_prefix      = true;
 static log_callback_fn  _log_callback    = 0;
-static error_level_t    _log_suppress    = ERRORLEVEL_NONE;
+static hashmap_t*       _log_suppress    = 0;
 
 static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
 	"performance",
@@ -81,7 +81,7 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 #  define LOG_USE_VACOPY 1
 #endif
 
-static void _log_outputf( int severity, const char* prefix, const char* format, va_list list, void* std )
+static void _log_outputf( uint64_t context, int severity, const char* prefix, const char* format, va_list list, void* std )
 {
 	float32_t timestamp = make_timestamp();
 	uint64_t tid = thread_id();
@@ -127,7 +127,7 @@ static void _log_outputf( int severity, const char* prefix, const char* format, 
 #endif
 
 			if( _log_callback )
-				_log_callback( severity, buffer );
+				_log_callback( context, severity, buffer );
 
 			break;
 		}
@@ -147,39 +147,45 @@ static void _log_outputf( int severity, const char* prefix, const char* format, 
 
 #endif
 
+
 #if BUILD_ENABLE_DEBUG_LOG
 
-void log_debugf( const char* format, ... )
+
+void log_context_debugf( uint64_t context, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	if( _log_suppress < ERRORLEVEL_DEBUG )
-		_log_outputf( ERRORLEVEL_DEBUG, "", format, list, stdout );
+	if( log_suppress( context ) < ERRORLEVEL_DEBUG )
+		_log_outputf( context, ERRORLEVEL_DEBUG, "", format, list, stdout );
 	va_end( list );
 }
+
 
 #endif
 
+
 #if BUILD_ENABLE_LOG
 
-void log_infof( const char* format, ... )
+
+void log_context_infof( uint64_t context, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	if( _log_suppress < ERRORLEVEL_INFO )
-		_log_outputf( ERRORLEVEL_INFO, "", format, list, stdout );
+	if( log_suppress( context ) < ERRORLEVEL_INFO )
+		_log_outputf( context, ERRORLEVEL_INFO, "", format, list, stdout );
 	va_end( list );
 }
 
-void log_warnf( warning_t warn, const char* format, ... )
+
+void log_context_warnf( uint64_t context, warning_t warn, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
 
-	if( _log_suppress >= ERRORLEVEL_WARNING )
+	if( log_suppress( context ) >= ERRORLEVEL_WARNING )
 		return;
 
-	log_error_context( ERRORLEVEL_WARNING );
+	log_error_context( context, ERRORLEVEL_WARNING );
 
 	if( warn < WARNING_LAST_BUILTIN )
 		string_format_buffer( prefix, 32, "WARNING [%s]: ", _log_warning_name[warn] );
@@ -187,20 +193,20 @@ void log_warnf( warning_t warn, const char* format, ... )
 		string_format_buffer( prefix, 32, "WARNING [%d]: ", warn );
 	
 	va_start( list, format );
-	_log_outputf( ERRORLEVEL_WARNING, prefix, format, list, stdout );
+	_log_outputf( context, ERRORLEVEL_WARNING, prefix, format, list, stdout );
 	va_end( list );
 }
 
 
-void log_errorf( error_t err, const char* format, ... )
+void log_context_errorf( uint64_t context, error_t err, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
 
-	if( _log_suppress >= ERRORLEVEL_ERROR )
+	if( log_suppress( context ) >= ERRORLEVEL_ERROR )
 		return;
 
-	log_error_context( ERRORLEVEL_ERROR );
+	log_error_context( context, ERRORLEVEL_ERROR );
 
 	if( err < ERROR_LAST_BUILTIN )
 		string_format_buffer( prefix, 32, "ERROR [%s]: ", _log_error_name[err] );
@@ -208,19 +214,19 @@ void log_errorf( error_t err, const char* format, ... )
 		string_format_buffer( prefix, 32, "ERROR [%d]: ", err );
 	
 	va_start( list, format );
-	_log_outputf( ERRORLEVEL_ERROR, prefix, format, list, stderr );
+	_log_outputf( context, ERRORLEVEL_ERROR, prefix, format, list, stderr );
 	va_end( list );
 
 	error_report( ERRORLEVEL_ERROR, err );
 }
 
 
-void log_panicf( error_t err, const char* format, ... )
+void log_context_panicf( uint64_t context, error_t err, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
 
-	log_error_context( ERRORLEVEL_PANIC );
+	log_error_context( context, ERRORLEVEL_PANIC );
 
 	if( err < ERROR_LAST_BUILTIN )
 		string_format_buffer( prefix, 32, "PANIC [%s]: ", _log_error_name[err] );
@@ -228,31 +234,31 @@ void log_panicf( error_t err, const char* format, ... )
 		string_format_buffer( prefix, 32, "PANIC [%d]: ", err );
 	
 	va_start( list, format );
-	_log_outputf( ERRORLEVEL_PANIC, prefix, format, list, stderr );
+	_log_outputf( context, ERRORLEVEL_PANIC, prefix, format, list, stderr );
 	va_end( list );
 
 	error_report( ERRORLEVEL_PANIC, err );
 }
 
 
-static void _log_error_contextf( error_level_t error_level, void* std, const char* format, ... )
+static void _log_error_contextf( uint64_t context, error_level_t error_level, void* std, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
-	_log_outputf( error_level, "", format, list, std );
+	_log_outputf( context, error_level, "", format, list, std );
 	va_end( list );
 }
 
 
-void log_error_context( error_level_t error_level )
+void log_error_context( uint64_t context, error_level_t error_level )
 {
 	int i;
-	error_context_t* context = error_context();
-	if( context && ( _log_suppress < error_level ) )
+	error_context_t* err_context = error_context();
+	if( err_context && ( log_suppress( context ) < error_level ) )
 	{
-		error_frame_t* frame = context->frame;
-		for( i = 0; i < context->depth; ++i, ++frame )
-			_log_error_contextf( error_level, stderr, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
+		error_frame_t* frame = err_context->frame;
+		for( i = 0; i < err_context->depth; ++i, ++frame )
+			_log_error_contextf( context, error_level, stderr, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
 	}
 }
 
@@ -261,7 +267,7 @@ void log_error_context( error_level_t error_level )
 
 #if BUILD_ENABLE_LOG
 
-void log_stdout( bool enable )
+void log_enable_stdout( bool enable )
 {
 	_log_stdout = enable;
 }
@@ -279,15 +285,42 @@ void log_enable_prefix( bool enable )
 }
 
 
-void log_suppress( error_level_t level )
+void log_set_suppress( uint64_t context, error_level_t level )
 {
-	_log_suppress = level;
+	if( !_log_suppress )
+		return;
+
+	hashmap_insert( _log_suppress, context, (void*)level );
 }
 
 
-error_level_t log_get_suppression( void )
+error_level_t log_suppress( uint64_t context )
 {
-	return _log_suppress;
+	if( !_log_suppress )
+		return ERRORLEVEL_NONE;
+
+	//Defaults to 0 - ERRORLEVEL_NONE
+	return (error_level_t)hashmap_lookup( _log_suppress, context );
 }
+
 
 #endif
+
+
+int _log_initialize( void )
+{
+#if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
+	_log_suppress = hashmap_allocate( HASHMAP_MINBUCKETS, HASHMAP_MINBUCKETSIZE );
+#endif
+	return 0;
+}
+
+
+void _log_shutdown( void )
+{
+#if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
+	hashmap_deallocate( _log_suppress );
+	_log_suppress = 0;
+#endif
+}
+

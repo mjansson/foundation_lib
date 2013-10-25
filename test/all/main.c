@@ -27,7 +27,7 @@ void* event_thread( object_t thread, void* arg )
 			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
 			{
 				case FOUNDATIONEVENT_TERMINATE:
-					log_warnf( WARNING_SUSPICIOUS, "Terminating tests due to event" );
+					log_warn( WARNING_SUSPICIOUS, "Terminating tests due to event" );
 					process_exit( -2 );
 					break;
 
@@ -209,7 +209,7 @@ int main_run( void* main_arg )
 		log_infof( "All tests from %s passed (%d)", exe_paths[iexe], process_result );
 	}
 
-	log_infof( "All tests passed" );
+	log_info( "All tests passed" );
 
 exit:
 

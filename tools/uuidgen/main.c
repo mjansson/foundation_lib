@@ -74,7 +74,7 @@ int main_initialize( void )
 	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix( false );
-	log_suppress( ERRORLEVEL_ERROR );
+	log_set_suppress( 0, ERRORLEVEL_ERROR );
 
 	if( ( ret = foundation_initialize( memory_system_malloc(), application ) ) < 0 )
 		return ret;
@@ -288,7 +288,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 	else
 	{
 		int i, uuidsize;
-		log_suppress( ERRORLEVEL_DEBUG );
+		log_set_suppress( 0, ERRORLEVEL_DEBUG );
 		for( i = 0, uuidsize = array_size( uuid ); i < uuidsize; ++i )
 		{
 			uuid_convert_t convert;
@@ -302,8 +302,8 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 
 static void uuidgen_print_usage( void )
 {
-	log_suppress( ERRORLEVEL_DEBUG );
-	log_infof( 
+	log_set_suppress( 0, ERRORLEVEL_DEBUG );
+	log_info( 
 		"uuidgen usage:\n"
 		"  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help]\n"
 		"    If no arguments are given, one random-based UUID is output to stdout\n"

@@ -172,7 +172,7 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 	if( guard_env )
 		siglongjmp( guard_env, CRASH_DUMP_GENERATED );
 	else
-		log_warnf( WARNING_SUSPICIOUS, "No sigjmp_buf for thread" );
+		log_warn( WARNING_SUSPICIOUS, "No sigjmp_buf for thread" );
 }
 
 #endif
@@ -215,7 +215,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	    ( sigaction( SIGBUS,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
 	{
-		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to set crash guard signal actions" );
+		log_warn( WARNING_SYSTEM_CALL_FAIL, "Unable to set crash guard signal actions" );
 		return fn( data );
 	}
 

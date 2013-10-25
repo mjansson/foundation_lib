@@ -253,7 +253,7 @@ static void _ringbuffer_stream_seek( stream_t* stream, int64_t offset, stream_se
 {
 	if( ( direction != STREAM_SEEK_CURRENT ) || ( offset < 0 ) )
 	{
-		log_errorf( ERROR_UNSUPPORTED, "Invalid call, only forward seeking allowed on ringbuffer streams" );
+		log_error( ERROR_UNSUPPORTED, "Invalid call, only forward seeking allowed on ringbuffer streams" );
 		return;
 	}
 	

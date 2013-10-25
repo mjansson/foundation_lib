@@ -52,7 +52,7 @@ void* test_event_thread( object_t thread, void* arg )
 			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
 			{
 				case FOUNDATIONEVENT_TERMINATE:
-					log_warnf( WARNING_SUSPICIOUS, "Terminating test due to event" );
+					log_warn( WARNING_SUSPICIOUS, "Terminating test due to event" );
 					process_exit( -2 );
 					break;
 
@@ -123,12 +123,12 @@ void test_run( void )
 			result = _test_groups[ig]->cases[ic]->fn();
 			if( result != 0 )
 			{
-				log_warnf( WARNING_SUSPICIOUS, "    FAILED" );
+				log_warn( WARNING_SUSPICIOUS, "    FAILED" );
 				_test_failed = true;
 			}
 			else
 			{
-				log_infof( "    PASSED" );
+				log_info( "    PASSED" );
 			}
 		}
 	}
@@ -182,7 +182,7 @@ int test_run_all( void )
 
 int main_initialize( void )
 {
-	log_suppress( ERRORLEVEL_DEBUG );
+	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 
 	test_suite = test_suite_define();
 	

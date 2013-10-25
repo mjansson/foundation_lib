@@ -54,7 +54,7 @@ void test_crash_callback( const char* dump_path )
 
 int instant_crash( void* arg )
 {
-	log_infof( "Causing illegal memory write" );
+	log_info( "Causing illegal memory write" );
 	*(volatile int*)3 = 0;
 	return 1;
 }

@@ -97,6 +97,8 @@ FOUNDATION_API void _asset_stream_initialize( void );
 #endif
 FOUNDATION_API void _pipe_stream_initialize( void );
 
+FOUNDATION_API int _log_initialize( void );
+FOUNDATION_API void _log_shutdown( void );
 
 FOUNDATION_API int _memory_initialize( const memory_system_t memory );
 FOUNDATION_API void _memory_preallocate( void );

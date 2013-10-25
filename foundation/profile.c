@@ -321,7 +321,7 @@ void profile_shutdown( void )
 		uint32_t free_block = _profile_free;
 		
 		if( _profile_root->child != 0 )
-			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, root block allocated" );
+			log_error( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, root block allocated" );
 
 		while( free_block )
 		{
@@ -330,7 +330,7 @@ void profile_shutdown( void )
 		}
 		
 		if( num_blocks != _profile_num_blocks )
-			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks" );			
+			log_error( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks" );			
 	}
 }
 

@@ -203,9 +203,9 @@ int hashify_process_files( const char* const* files, bool check_only )
 	if( ( result == HASHIFY_RESULT_OK ) && ( files_size > 0 ) )
 	{
 		if( check_only )
-			log_infof( "All hashes validated" );
+			log_info( "All hashes validated" );
 		else
-			log_infof( "All hashes generated" );
+			log_info( "All hashes generated" );
 	}
 
 	array_deallocate( history );
@@ -426,7 +426,7 @@ int hashify_write_file( stream_t* generated_file, const char* output_filename )
 	}
 	else
 	{
-		log_infof( "  hash file already up to date" );
+		log_info( "  hash file already up to date" );
 	}
 
 	stream_deallocate( output_file );

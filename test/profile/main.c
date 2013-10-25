@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-#define TEST_PROFILE_BUFFER_SIZE  256000
+#define TEST_PROFILE_BUFFER_SIZE  512000
 
 static const uint64_t       _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
 static char*                _test_profile_buffer = 0;
