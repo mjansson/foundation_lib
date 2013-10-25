@@ -84,12 +84,9 @@ static profile_block_t* _profile_allocate_block( void )
 	} while( free_block && !atomic_cas32( (volatile int32_t*)&_profile_free, next_block, free_block ) );
 	if( !free_block )
 	{
-		static bool has_warned = false;
-		if( !has_warned )
-		{
+		static int32_t has_warned = 0;
+		if( atomic_cas32( &has_warned, 1, 0 ) )
 			log_error( ERROR_OUT_OF_MEMORY, ( _profile_num_blocks < 65535 ) ? "Profile blocks exhausted, increase profile memory block size" : "Profile blocks exhausted, decrease profile output wait time" );
-			has_warned = true;
-		}
 		return 0;
 	}
 	block = GET_BLOCK( free_block );
@@ -167,9 +164,10 @@ static void _profile_put_message_block( uint32_t id, const char* message )
 	{
 		//add subblock
 		profile_block_t* cblock = _profile_allocate_block();
-		if( !block )
+		uint16_t cblock_index;
+		if( !cblock )
 			return;
-		uint16_t cblock_index = BLOCK_INDEX( cblock );
+		cblock_index = BLOCK_INDEX( cblock );
 		cblock->data.id = id + 1;
 		cblock->data.parentid = (uint32_t)subblock->data.end;
 		cblock->data.processor = block->data.processor;
@@ -601,7 +599,6 @@ void _profile_thread_cleanup( void )
 	do
 	{
 		uint32_t block_index = get_thread_profile_block();
-		profile_block_t* block;
 		if( !block_index )
 			break;
 		profile_end_block();
