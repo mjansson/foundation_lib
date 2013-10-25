@@ -100,6 +100,8 @@ void foundation_shutdown( void )
 {
 	_foundation_initialized = false;
 
+	profile_shutdown();
+	
 	_config_shutdown();
 	_fs_shutdown();
 	_system_shutdown();

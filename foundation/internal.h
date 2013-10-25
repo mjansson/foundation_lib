@@ -128,6 +128,8 @@ FOUNDATION_API void _random_shutdown( void );
 FOUNDATION_API int _config_initialize( void );
 FOUNDATION_API void _config_shutdown( void );
 
+FOUNDATION_API void _profile_thread_cleanup( void );
+
 #if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
 FOUNDATION_API void _static_hash_cleanup( void );
 #endif

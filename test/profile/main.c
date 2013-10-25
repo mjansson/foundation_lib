@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-#define TEST_PROFILE_BUFFER_SIZE  512000
+#define TEST_PROFILE_BUFFER_SIZE  32000
 
 static const uint64_t       _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
 static char*                _test_profile_buffer = 0;
@@ -198,6 +198,7 @@ DECLARE_TEST( profile, thread )
 	profile_enable( 1 );
 	profile_output_wait( 1 );
 
+	log_info( "This test will intentionally run out of memory in profiling system to verify it functions properly" );
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread[ith] = thread_create( profile_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );

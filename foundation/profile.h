@@ -26,7 +26,8 @@
     and should identify the application/build/machine or whatever you want it to identify.
     Memory buffer should be large enough to hold data for ~100ms to avoid excessive
     calls to output flush function. The profile subsystem will not allocate any memory,
-    it only uses the passed in work buffer. Recommended size is at least 256KiB
+    it only uses the passed in work buffer. Recommended size is at least 256KiB.
+    Maximum usable size is 4MiB, since the profiling system can only use 65k blocks of 64 bytes each.
     \param identifier                    Application identifier
     \param buffer                        Work temporary buffer
     \param size                          Size of work buffer */

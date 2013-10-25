@@ -58,8 +58,8 @@ struct _profile_block
 
 static const char*          _profile_identifier = 0;
 static uint32_t             _profile_counter = 0;
-static uint32_t             _profile_free = 0;
-static profile_block_t*     _profile_root = 0;
+static volatile uint32_t    _profile_free = 0;
+static volatile profile_block_t*     _profile_root = 0;
 static profile_block_t*     _profile_blocks = 0;
 static uint64_t             _profile_ground_time = 0;
 static int                  _profile_enable = 0;
@@ -81,8 +81,17 @@ static profile_block_t* _profile_allocate_block( void )
 	{
 		free_block = _profile_free;
 		next_block = GET_BLOCK( free_block )->child;
-	} while( !atomic_cas32( (int32_t*)&_profile_free, next_block, free_block ) );
-	FOUNDATION_ASSERT_MSG( free_block, "Profile blocks exhausted, increase profile memory block size" );
+	} while( free_block && !atomic_cas32( (volatile int32_t*)&_profile_free, next_block, free_block ) );
+	if( !free_block )
+	{
+		static bool has_warned = false;
+		if( !has_warned )
+		{
+			log_error( ERROR_OUT_OF_MEMORY, ( _profile_num_blocks < 65535 ) ? "Profile blocks exhausted, increase profile memory block size" : "Profile blocks exhausted, decrease profile output wait time" );
+			has_warned = true;
+		}
+		return 0;
+	}
 	block = GET_BLOCK( free_block );
 	memset( block, 0, sizeof( profile_block_t ) );
 	return block;
@@ -96,17 +105,19 @@ static void _profile_free_block( uint32_t block, uint32_t leaf )
 	{
 		last = _profile_free;
 		GET_BLOCK( leaf )->child = last;
-	} while( !atomic_cas32( (int32_t*)&_profile_free, block, last ) );
+	} while( !atomic_cas32( (volatile int32_t*)&_profile_free, block, last ) );
 }
 
 
 static void _profile_put_root_block( uint32_t block )
 {
+	uint32_t sibling;
 	profile_block_t* self = GET_BLOCK( block );
 	do
 	{
-		self->sibling = _profile_root->child;
-	} while( !atomic_cas32( (int32_t*)&_profile_root->child, block, self->sibling ) );
+		sibling = _profile_root->child;
+		self->sibling = sibling;
+	} while( !atomic_cas32( (volatile int32_t*)&_profile_root->child, block, sibling ) );
 }
 
 
@@ -139,12 +150,14 @@ static void _profile_put_message_block( uint32_t id, const char* message )
 
 	//Allocate new master block
 	profile_block_t* block = _profile_allocate_block();
+	if( !block )
+		return;
 	block->data.id = id;
 	block->data.processor = thread_hardware();
 	block->data.thread = (uint32_t)thread_id();
 	block->data.start  = time_current() - _profile_ground_time;
 	block->data.end = atomic_add32( (int32_t*)&_profile_counter, 1 );
-	string_copy( block->data.name, message, ( len > MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
+	memcpy( block->data.name, message, ( len >= MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
 
 	len -= MAX_MESSAGE_LENGTH;
 	message += MAX_MESSAGE_LENGTH;
@@ -154,6 +167,8 @@ static void _profile_put_message_block( uint32_t id, const char* message )
 	{
 		//add subblock
 		profile_block_t* cblock = _profile_allocate_block();
+		if( !block )
+			return;
 		uint16_t cblock_index = BLOCK_INDEX( cblock );
 		cblock->data.id = id + 1;
 		cblock->data.parentid = (uint32_t)subblock->data.end;
@@ -161,7 +176,7 @@ static void _profile_put_message_block( uint32_t id, const char* message )
 		cblock->data.thread = block->data.thread;
 		cblock->data.start  = block->data.start;
 		cblock->data.end    = atomic_add32( (int32_t*)&_profile_counter, 1 );
-		string_copy( cblock->data.name, message, ( len > MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
+		memcpy( cblock->data.name, message, ( len >= MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
 
 		cblock->sibling = subblock->child;
 		if( subblock->child )
@@ -204,14 +219,14 @@ static profile_block_t* _profile_process_block( profile_block_t* block )
 }
 
 
-static void _profile_process_root_block( profile_block_t* blockptr )
+static void _profile_process_root_block( volatile profile_block_t* blockptr )
 {
 	uint32_t block;
 			
 	do
 	{
 		block = blockptr->child;
-	} while( !atomic_cas32( (int32_t*)&blockptr->child, 0, block ) );
+	} while( !atomic_cas32( (volatile int32_t*)&blockptr->child, 0, block ) );
 
 	do
 	{
@@ -239,6 +254,11 @@ static void* _profile_io( object_t thread, void* arg )
 
 	while( !thread_should_terminate( thread ) )
 	{
+		thread_sleep( _profile_wait );
+
+		if( !_profile_root )
+			continue;
+		
 		profile_begin_block( "profile_io" );
 
 		if( _profile_root->child )
@@ -261,11 +281,9 @@ static void* _profile_io( object_t thread, void* arg )
 		}
 
 		profile_end_block();
-		
-		thread_sleep( _profile_wait );
 	}
 
-	if( _profile_root->child )
+	if( _profile_root && _profile_root->child )
 		_profile_process_root_block( _profile_root );
 
 	if( _profile_write )
@@ -282,10 +300,14 @@ static void* _profile_io( object_t thread, void* arg )
 
 void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 {
-	profile_block_t* block = buffer;
+	profile_block_t* root  = buffer;
+	profile_block_t* block = root;
 	uint64_t num_blocks = size / sizeof( profile_block_t );
 	uint32_t i;
 
+	if( num_blocks > 65535 )
+		num_blocks = 65535;
+	
 	_profile_root = block++;
 	for( i = 1; i < ( num_blocks - 1 ); ++i, ++block )
 	{
@@ -298,7 +320,7 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 
 	_profile_num_blocks = num_blocks;
 	_profile_identifier = identifier;
-	_profile_blocks = _profile_root;
+	_profile_blocks = root;
 	_profile_free = 1;
 	_profile_counter = 128;
 	_profile_ground_time = time_current();
@@ -316,12 +338,13 @@ void profile_shutdown( void )
 		thread_sleep( 1 );
 
 	//Sanity checks
+	if( _profile_root )
 	{
 		uint64_t num_blocks = 1;
 		uint32_t free_block = _profile_free;
 		
-		if( _profile_root->child != 0 )
-			log_error( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, root block allocated" );
+		if( _profile_root->child )
+			log_error( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
 
 		while( free_block )
 		{
@@ -330,8 +353,12 @@ void profile_shutdown( void )
 		}
 		
 		if( num_blocks != _profile_num_blocks )
-			log_error( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks" );			
+			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks (found %u of %u)", num_blocks, _profile_num_blocks );
 	}
+
+	_profile_root = 0;
+	_profile_num_blocks = 0;
+	_profile_identifier = 0;
 }
 
 
@@ -385,6 +412,8 @@ void profile_end_frame( uint64_t counter )
 	
 	//Allocate new master block
 	block = _profile_allocate_block();
+	if( !block )
+		return;
 	block->data.id = PROFILE_ID_ENDFRAME;
 	block->data.processor = thread_hardware();
 	block->data.thread = (uint32_t)thread_id();
@@ -398,7 +427,6 @@ void profile_end_frame( uint64_t counter )
 void profile_begin_block( const char* message )
 {
 	uint32_t parent;
-	profile_block_t* block;
 	if( !_profile_enable )
 		return;
 	
@@ -406,31 +434,39 @@ void profile_begin_block( const char* message )
 	if( !parent )
 	{
 		//Allocate new master block
-		block = _profile_allocate_block();
+		profile_block_t* block = _profile_allocate_block();
+		uint32_t blockindex;
+		if( !block )
+			return;
+		blockindex = BLOCK_INDEX( block );
 		block->data.id = atomic_add32( (int32_t*)&_profile_counter, 1 );
 		string_copy( block->data.name, message, MAX_MESSAGE_LENGTH );
 		block->data.processor = thread_hardware();
 		block->data.thread = (uint32_t)thread_id();
 		block->data.start  = time_current() - _profile_ground_time;
-		set_thread_profile_block( BLOCK_INDEX( block ) );
+		set_thread_profile_block( blockindex );
 	}
 	else
 	{
 		//Allocate new child block
+		profile_block_t* parentblock;
 		profile_block_t* subblock = _profile_allocate_block();
-		uint32_t subindex = BLOCK_INDEX( subblock );
-		block = GET_BLOCK( parent );
+		uint32_t subindex;
+		if( !subblock )
+			return;
+		subindex = BLOCK_INDEX( subblock );
+		parentblock = GET_BLOCK( parent );
 		subblock->data.id = atomic_add32( (int32_t*)&_profile_counter, 1 );
-		subblock->data.parentid = block->data.id;
+		subblock->data.parentid = parentblock->data.id;
 		string_copy( subblock->data.name, message, MAX_MESSAGE_LENGTH );
 		subblock->data.processor = thread_hardware();
 		subblock->data.thread = (uint32_t)thread_id();
 		subblock->data.start  = time_current() - _profile_ground_time;
 		subblock->previous = parent;
-		subblock->sibling = block->child;
-		if( block->child )
-			GET_BLOCK( block->child )->previous = subindex;
-		block->child = subindex;
+		subblock->sibling = parentblock->child;
+		if( parentblock->child )
+			GET_BLOCK( parentblock->child )->previous = subindex;
+		parentblock->child = subindex;
 		set_thread_profile_block( subindex );
 	}
 }
@@ -442,7 +478,7 @@ void profile_update_block( void )
 	unsigned int processor;
 	uint32_t block_index = get_thread_profile_block();
 	profile_block_t* block;
-	if( !_profile_enable && !block_index )
+	if( !_profile_enable || !block_index )
 		return;
 	
 	block = GET_BLOCK( block_index );
@@ -461,30 +497,34 @@ void profile_end_block( void )
 {
 	uint32_t block_index = get_thread_profile_block();
 	profile_block_t* block;
-	if( !_profile_enable && !block_index )
+	if( !_profile_enable || !block_index )
 		return;
 	
 	block = GET_BLOCK( block_index );
 	block->data.end = time_current() - _profile_ground_time;
-	
+
 	if( block->previous )
 	{
 		unsigned int processor;
+		profile_block_t* current = block;
 		profile_block_t* previous = GET_BLOCK( block->previous );
-		while( previous->child != block_index )
+		profile_block_t* parent;
+		unsigned int current_index = block_index;
+		unsigned int parent_index;
+		while( previous->child != current_index )
 		{
-			block_index = block->previous; //Walk sibling list backwards
-			block = GET_BLOCK( block_index );
-			previous = GET_BLOCK( block->previous );
+			current_index = current->previous; //Walk sibling list backwards
+			current = GET_BLOCK( current_index );
+			previous = GET_BLOCK( current->previous );
 		}
-		block_index = block->previous; //Previous now points to parent
-		block = GET_BLOCK( block_index );
-		set_thread_profile_block( block_index );
+		parent_index = current->previous; //Previous now points to parent
+		parent = GET_BLOCK( parent_index );
+		set_thread_profile_block( parent_index );
 
 		processor = thread_hardware();
-		if( block->data.processor != processor )
+		if( parent->data.processor != processor )
 		{
-			const char* message = block->data.name;
+			const char* message = parent->data.name;
 			//Thread migrated, split into new block
 			profile_end_block();
 			profile_begin_block( message );
@@ -553,3 +593,18 @@ void profile_signal( const char* name )
 
 
 #endif
+
+
+void _profile_thread_cleanup( void )
+{
+#if BUILD_ENABLE_PROFILE
+	do
+	{
+		uint32_t block_index = get_thread_profile_block();
+		profile_block_t* block;
+		if( !block_index )
+			break;
+		profile_end_block();
+	} while( true );
+#endif
+}

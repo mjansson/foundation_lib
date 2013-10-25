@@ -528,6 +528,8 @@ bool thread_is_main( void )
 
 void thread_cleanup( void )
 {
+	_profile_thread_cleanup();
+	
 	random_thread_deallocate();
 
 #if FOUNDATION_PLATFORM_ANDROID
