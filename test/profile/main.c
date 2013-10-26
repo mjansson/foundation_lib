@@ -14,7 +14,8 @@
 #include <test/test.h>
 
 
-#define TEST_PROFILE_BUFFER_SIZE  32000
+//Must be >30000 since we assume that in forced fail test
+#define TEST_PROFILE_BUFFER_SIZE  512000
 
 static const uint64_t       _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
 static char*                _test_profile_buffer = 0;
@@ -137,18 +138,18 @@ DECLARE_TEST( profile, output )
 
 	err = error();
 	EXPECT_EQ( err, ERROR_NONE );
-	
+
 	return 0;
 }
 
 
-void* profile_thread( object_t thread, void* arg )
+static void* _profile_fail_thread( object_t thread, void* arg )
 {
 	int loop;
 
 	thread_yield();
 	
-	for( loop = 0; loop < 1000; ++loop )
+	while( !thread_should_terminate( thread ) )
 	{
 		profile_log( "Thread message" );
 
@@ -194,14 +195,14 @@ DECLARE_TEST( profile, thread )
 	_test_profile_offset = 0;
 	_test_profile_output_counter = 0;
 
-	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
+	profile_initialize( "test_profile", _test_profile_buffer, 30000/*_test_profile_buffer_size*/ );
 	profile_enable( 1 );
 	profile_output_wait( 1 );
 
 	log_info( "This test will intentionally run out of memory in profiling system to verify it functions properly" );
 	for( ith = 0; ith < 32; ++ith )
 	{
-		thread[ith] = thread_create( profile_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( _profile_fail_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], 0 );
 	}
 
@@ -240,11 +241,123 @@ DECLARE_TEST( profile, thread )
 }
 
 
+static stream_t* _profile_stream = 0;
+
+
+static void _profile_file_writer( void* buffer, uint64_t size )
+{
+	stream_write( _profile_stream, buffer, size );
+}
+
+
+static void* _profile_stream_thread( object_t thread, void* arg )
+{
+	int loop;
+
+	thread_yield();
+
+	while( !thread_should_terminate( thread ) )
+	{
+		profile_log( "Thread message" );
+
+		profile_begin_block( "Thread block" );
+		{
+			profile_update_block();
+
+			profile_begin_block( "Thread subblock" );
+			{
+				profile_log( "Sub message" );
+
+				profile_trylock( "Trylock" );
+				profile_lock( "Trylock" );
+
+				profile_wait( "Wait" );
+				profile_signal( "Signal" );
+
+				thread_sleep( 2 );
+				
+				profile_unlock( "Trylock" );
+
+				profile_log( "End sub" );
+			}
+			profile_end_block();
+
+			profile_trylock( "Trylock" );
+			thread_sleep( 1 );
+
+			profile_lock( "Trylock" );
+			thread_sleep( 4 );
+			
+			profile_unlock( "Trylock" );
+		}
+		profile_end_block();
+	}
+	
+	return 0;
+}
+
+
+DECLARE_TEST( profile, stream )
+{
+	object_t thread[32];
+	int ith;
+	int frame;
+	error_t err = error();
+
+	char* filename = path_merge( environment_temporary_directory(), "test.profile" );
+	_profile_stream = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );
+	string_deallocate( filename );
+	
+	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
+	profile_output( _profile_file_writer );
+	profile_enable( 1 );
+	profile_output_wait( 1 );
+
+	log_info( "This test will intentionally run out of memory in profiling system to verify it functions properly" );
+	for( ith = 0; ith < 32; ++ith )
+	{
+		thread[ith] = thread_create( _profile_fail_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
+		thread_start( thread[ith], 0 );
+	}
+
+	test_wait_for_threads_startup( thread, 32 );
+
+	for( frame = 0; frame < 1000; ++frame )
+	{
+		thread_sleep( 16 );
+		profile_end_frame( frame++ );
+	}
+	
+	for( ith = 0; ith < 32; ++ith )
+	{
+		thread_destroy( thread[ith] );
+		thread_yield();
+	}
+	
+	test_wait_for_threads_exit( thread, 32 );
+
+	profile_end_frame( frame++ );
+	profile_output_wait( 100 );
+	
+	thread_sleep( 1000 );
+	
+	profile_enable( 0 );
+	profile_shutdown();
+
+	err = error();
+
+	stream_deallocate( _profile_stream );
+
+	return 0;
+}
+
+
 void test_profile_declare( void )
 {
 	ADD_TEST( profile, initialize );
 	ADD_TEST( profile, output );
 	ADD_TEST( profile, thread );
+	ADD_TEST( profile, stream );
 }
 
 

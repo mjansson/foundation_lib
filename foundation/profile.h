@@ -102,17 +102,15 @@ FOUNDATION_API void profile_signal( const char* name );
 #define profile_initialize( identifier, buffer, size ) do { (void)sizeof( identifier ); (void)sizeof( buffer ); (void)sizeof( size ); } while(0)
 #define profile_shutdown() do {} while(0)
 
-#define profile_output( writer ) do { (void)sizeof( writer ); } while(0)
+#define profile_output( writer ) do { (void)writer; } while(0)
 #define profile_enable( enable ) do { (void)sizeof( enable ); } while(0)
+#define profile_output_wait( ms ) do{ (void)sizeof( ms ); } while(0)
 
 #define profile_end_frame( counter ) do { (void)sizeof( counter ); } while(0)
-
 #define profile_begin_block( msg ) do { (void)sizeof( msg ); } while(0)
 #define profile_update_block() do {} while(0)
 #define profile_end_block() do {} while(0)
-
 #define profile_log( message ) do { (void)sizeof( message ); } while(0)
-
 #define profile_trylock( name ) do { (void)sizeof( name ); } while(0)
 #define profile_lock( name ) do { (void)sizeof( name ); } while(0)
 #define profile_unlock( name ) do { (void)sizeof( name ); } while(0)
