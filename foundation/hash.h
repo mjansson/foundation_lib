@@ -19,6 +19,7 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/assert.h>
 
 
 //! Hash memory blob. Pointer must be aligned to 8 bytes
