@@ -1,6 +1,6 @@
 #pragma once
 
-#include <foundation/foundation.h>
+#include <foundation/hash.h>
 
 /* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
     Edit corresponding definitions file and rerun
