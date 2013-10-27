@@ -113,7 +113,10 @@ DECLARE_TEST( mutex, sync )
 	test_wait_for_threads_startup( thread, 32 );
 	
 	for( ith = 0; ith < 32; ++ith )
+	{
+		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
+	}
 
 	mutex_unlock( mutex );
 
@@ -136,7 +139,7 @@ void* thread_wait( object_t thread, void* arg )
 
 	atomic_incr32( &thread_waiting );
 
-	if( mutex_wait( mutex, 10000 ) )
+	if( mutex_wait( mutex, 30000 ) )
 	{
 		atomic_incr32( &thread_waited );
 		mutex_unlock( mutex );
@@ -175,7 +178,10 @@ DECLARE_TEST( mutex, signal )
 	mutex_signal( mutex );
 
 	for( ith = 0; ith < 32; ++ith )
+	{
+		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
+	}
 	
 	test_wait_for_threads_exit( thread, 32 );
 

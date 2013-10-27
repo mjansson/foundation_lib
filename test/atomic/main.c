@@ -159,7 +159,7 @@ DECLARE_TEST( atomic, incdec )
 	test_wait_for_threads_startup( threads, num_threads );
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
-		thread_destroy( threads[ithread] );
+		thread_destroy( threads[ithread] ); //No terminate, wait to self-exit
 
 	test_wait_for_threads_exit( threads, num_threads );
 
@@ -184,7 +184,7 @@ DECLARE_TEST( atomic, add )
 	test_wait_for_threads_startup( threads, num_threads );
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
-		thread_destroy( threads[ithread] );
+		thread_destroy( threads[ithread] ); //No terminate, wait to self-exit
 
 	test_wait_for_threads_exit( threads, num_threads );
 
@@ -215,7 +215,7 @@ DECLARE_TEST( atomic, cas )
 	test_wait_for_threads_startup( threads, num_threads );
 	
 	for( ithread = 0; ithread < num_threads; ++ithread )
-		thread_destroy( threads[ithread] );
+		thread_destroy( threads[ithread] ); //No terminate, wait to self-exit
 
 	test_wait_for_threads_exit( threads, num_threads );
 

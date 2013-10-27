@@ -147,7 +147,7 @@ static void* _profile_fail_thread( object_t thread, void* arg )
 {
 	int loop;
 
-	thread_yield();
+	thread_sleep( 10 );
 	
 	while( !thread_should_terminate( thread ) )
 	{
@@ -199,7 +199,7 @@ DECLARE_TEST( profile, thread )
 	profile_enable( 1 );
 	profile_output_wait( 1 );
 
-	log_info( "This test will intentionally run out of memory in profiling system to verify it functions properly" );
+	log_info( "This test will intentionally run out of memory in profiling system" );
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread[ith] = thread_create( _profile_fail_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
@@ -211,11 +211,12 @@ DECLARE_TEST( profile, thread )
 	for( frame = 0; frame < 1000; ++frame )
 	{
 		thread_sleep( 16 );
-		profile_end_frame( frame++ );
+		profile_end_frame( frame );
 	}
 	
 	for( ith = 0; ith < 32; ++ith )
 	{
+		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
 		thread_yield();
 	}
@@ -242,11 +243,12 @@ DECLARE_TEST( profile, thread )
 
 
 static stream_t* _profile_stream = 0;
-
+static volatile int64_t _profile_generated_blocks = 0;
 
 static void _profile_file_writer( void* buffer, uint64_t size )
 {
-	stream_write( _profile_stream, buffer, size );
+	if( _profile_stream )
+		stream_write( _profile_stream, buffer, size );
 }
 
 
@@ -291,6 +293,10 @@ static void* _profile_stream_thread( object_t thread, void* arg )
 			profile_unlock( "Trylock" );
 		}
 		profile_end_block();
+
+		thread_sleep( 4 );
+
+		atomic_add64( &_profile_generated_blocks, 12 );
 	}
 	
 	return 0;
@@ -305,18 +311,19 @@ DECLARE_TEST( profile, stream )
 	error_t err = error();
 
 	char* filename = path_merge( environment_temporary_directory(), "test.profile" );
+	log_infof( "Output to profile file: %s", filename );
+	fs_make_directory( environment_temporary_directory() );
 	_profile_stream = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );
 	string_deallocate( filename );
 	
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
 	profile_output( _profile_file_writer );
 	profile_enable( 1 );
-	profile_output_wait( 1 );
+	profile_output_wait( 10 );
 
-	log_info( "This test will intentionally run out of memory in profiling system to verify it functions properly" );
 	for( ith = 0; ith < 32; ++ith )
 	{
-		thread[ith] = thread_create( _profile_fail_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( _profile_stream_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], 0 );
 	}
 
@@ -330,6 +337,7 @@ DECLARE_TEST( profile, stream )
 	
 	for( ith = 0; ith < 32; ++ith )
 	{
+		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
 		thread_yield();
 	}
@@ -348,6 +356,8 @@ DECLARE_TEST( profile, stream )
 
 	stream_deallocate( _profile_stream );
 
+	log_debugf( "Generated %lld blocks", _profile_generated_blocks );
+	
 	return 0;
 }
 

@@ -219,7 +219,10 @@ DECLARE_TEST( uuid, threaded )
 	test_wait_for_threads_startup( thread, num_threads );
 	
 	for( ith = 0; ith < num_threads; ++ith )
+	{
+		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
+	}
 
 	test_wait_for_threads_exit( thread, num_threads );
 
