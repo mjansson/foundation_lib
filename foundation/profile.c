@@ -11,7 +11,7 @@
  */
 
 #include <foundation/foundation.h>
-
+#include <foundation/internal.h>
 
 #if BUILD_ENABLE_PROFILE
 
@@ -53,21 +53,20 @@ struct _profile_block
 #define PROFILE_ID_WAIT             11
 #define PROFILE_ID_SIGNAL           12
 
-#define GET_BLOCK( index )    ( _profile_blocks + (index) )
-#define BLOCK_INDEX( block )  (uint16_t)((uintptr_t)( (block) - _profile_blocks ))
+#define GET_BLOCK( index )          ( _profile_blocks + (index) )
+#define BLOCK_INDEX( block )        (uint16_t)((uintptr_t)( (block) - _profile_blocks ))
 
-static const char*          _profile_identifier = 0;
-static uint32_t             _profile_counter = 0;
-static volatile uint32_t    _profile_free = 0;
-static volatile profile_block_t*     _profile_root = 0;
-static profile_block_t*     _profile_blocks = 0;
-static uint64_t             _profile_ground_time = 0;
-static int                  _profile_enable = 0;
-static profile_write_fn     _profile_write = 0;
-static uint64_t             _profile_num_blocks = 0;
-static int                  _profile_wait = 100;
-
-static object_t             _profile_io_thread = 0;
+static const char*                  _profile_identifier = 0;
+static uint32_t                     _profile_counter = 0;
+static volatile uint32_t            _profile_free = 0;
+static volatile profile_block_t*    _profile_root = 0;
+static profile_block_t*             _profile_blocks = 0;
+static uint64_t                     _profile_ground_time = 0;
+static int                          _profile_enable = 0;
+static profile_write_fn             _profile_write = 0;
+static uint64_t                     _profile_num_blocks = 0;
+static int                          _profile_wait = 100;
+static object_t                     _profile_io_thread = 0;
 
 FOUNDATION_DECLARE_THREAD_LOCAL( uint32_t, profile_block, 0 )
 
@@ -324,7 +323,7 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 	_profile_ground_time = time_current();
 	set_thread_profile_block( 0 );
 
-	log_debugf( "Initialize profiling system with %u blocks (%uKiB)", num_blocks, size / 1024 );
+	log_debugf( "Initialize profiling system with %llu blocks (%lluKiB)", num_blocks, size / 1024 );
 }
 
 
@@ -334,13 +333,24 @@ void profile_shutdown( void )
 
 	while( thread_is_thread( _profile_io_thread ) )
 		thread_sleep( 1 );
+	_profile_io_thread = 0;
 
+	//Discard and free up blocks remaining in queue
+	_profile_thread_cleanup();
+	if( _profile_root && _profile_root->child )
+	{
+		profile_write_fn old_write = _profile_write;
+		_profile_write = 0;
+		_profile_process_root_block( _profile_root );
+		_profile_write = old_write;
+	}
+	
 	//Sanity checks
 	if( _profile_root )
 	{
 		uint64_t num_blocks = 1;
 		uint32_t free_block = _profile_free;
-		
+
 		if( _profile_root->child )
 			log_error( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
 
@@ -349,12 +359,16 @@ void profile_shutdown( void )
 			++num_blocks;
 			free_block = GET_BLOCK( free_block )->child;
 		}
-		
+
 		if( num_blocks != _profile_num_blocks )
-			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks (found %u of %u)", num_blocks, _profile_num_blocks );
+		{
+			//If profile output function (user) crashed, this will probably trigger since at least one block will be lost in space
+			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks (found %llu of %llu)", num_blocks, _profile_num_blocks );
+		}
 	}
 
 	_profile_root = 0;
+	_profile_free = 0;
 	_profile_num_blocks = 0;
 	_profile_identifier = 0;
 }
@@ -518,7 +532,7 @@ void profile_end_block( void )
 		parent_index = current->previous; //Previous now points to parent
 		parent = GET_BLOCK( parent_index );
 		set_thread_profile_block( parent_index );
-
+		
 		processor = thread_hardware();
 		if( parent->data.processor != processor )
 		{
@@ -596,12 +610,11 @@ void profile_signal( const char* name )
 void _profile_thread_cleanup( void )
 {
 #if BUILD_ENABLE_PROFILE
-	do
+	uint32_t block_index;
+	while( ( block_index = get_thread_profile_block() ) )
 	{
-		uint32_t block_index = get_thread_profile_block();
-		if( !block_index )
-			break;
+		log_infof( "Profile thread cleanup, free block %u", block_index );
 		profile_end_block();
-	} while( true );
+	}
 #endif
 }
