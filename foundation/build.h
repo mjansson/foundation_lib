@@ -125,6 +125,14 @@
 #endif
 #endif
 
+#ifndef BUILD_ENABLE_STATIC_HASH_DEBUG
+#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#define BUILD_ENABLE_STATIC_HASH_DEBUG        1
+#else
+#define BUILD_ENABLE_STATIC_HASH_DEBUG        0
+#endif
+#endif
+
 
 #define BUILD_DEFAULT_STREAM_BYTEORDER        BYTEORDER_LITTLEENDIAN
 
@@ -153,3 +161,6 @@
 
 // Maximum number of filesystem monitors
 #define BUILD_SIZE_FS_MONITORS                32
+
+// Maximum number of statically hashed strings stored in lookup
+#define BUILD_SIZE_STATIC_HASH_STORE          4192

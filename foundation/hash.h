@@ -25,7 +25,7 @@
 //! Hash memory blob. Pointer must be aligned to 8 bytes
 FOUNDATION_API PURECALL hash_t               hash( const void* key, const unsigned int len );
 
-#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#if BUILD_ENABLE_STATIC_HASH_DEBUG
 static FORCEINLINE hash_t                    static_hash( const void* key, const unsigned int len, const hash_t value );
 #  define static_hash_string( key, value )   static_hash( key, string_length( key ), value )
 FOUNDATION_API const char*                   hash_to_string( const hash_t value );
@@ -36,7 +36,7 @@ FOUNDATION_API const char*                   hash_to_string( const hash_t value 
 #endif
 
 
-#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#if BUILD_ENABLE_STATIC_HASH_DEBUG
 
 FOUNDATION_API void                          _static_hash_store( const void* key, const unsigned int len, const hash_t value );
 

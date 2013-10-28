@@ -174,6 +174,14 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 }
 
 
+uint32_t hashtable32_raw( hashtable32_t* table, uint32_t slot )
+{
+	if( !table->entries[slot].key )
+		return 0;
+	return table->entries[slot].value;
+}
+
+
 unsigned int hashtable32_size( hashtable32_t* table )
 {
 	unsigned int count = 0;
@@ -301,6 +309,14 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 	} while( true );
 
 	return 0;
+}
+
+
+uint64_t hashtable64_raw( hashtable64_t* table, uint64_t slot )
+{
+	if( !table->entries[slot].key )
+		return 0;
+	return table->entries[slot].value;
 }
 
 

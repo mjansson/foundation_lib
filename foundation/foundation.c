@@ -34,6 +34,8 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _memory_initialize( memory ) < 0 )
 		return -1;
 
+	_static_hash_initialize();
+	
 	if( _log_initialize() < 0 )
 		return -1;
 
@@ -111,11 +113,7 @@ void foundation_shutdown( void )
 	_thread_shutdown();
 	_time_shutdown();
 	_log_shutdown();
-	
-#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
-	_static_hash_cleanup();
-#endif
-	
+	_static_hash_shutdown();
 	_memory_shutdown();
 }
 
