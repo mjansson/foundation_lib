@@ -45,7 +45,6 @@ static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
 	"memory",
 	"unsupported",
 	"suspicious",
-	"script",
 	"system call fail",
 	"deadlock"
 };
@@ -56,16 +55,14 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 	"unsupported",
 	"not implemented",
 	"out of memory",
-	"internal failure",
-	"malloc failure",
 	"memory leak",
+	"memory alignment",
+	"internal failure",
 	"access denied",
 	"exception",
 	"system call fail",
-	"script",
 	"unknown type",
 	"unknown resource",
-	"memory alignment",
 	"deprecated",
 	"assert"
 };
