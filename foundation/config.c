@@ -724,7 +724,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			unsigned int endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
 			if( ( endpos == STRING_NPOS ) || ( endpos < 1 ) )
 			{
-				log_warnf( WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
+				log_warnf( 0, WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
 				continue;
 			}
 			buffer[endpos] = 0;
@@ -741,7 +741,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			unsigned int separator = string_find( buffer, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
-				log_warnf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
+				log_warnf( 0, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
 				continue;
 			}
 			
@@ -749,7 +749,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			value = string_strip( buffer + separator + 1, " \t" );
 			if( !string_length( name ) )
 			{
-				log_warnf( WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
+				log_warnf( 0, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
 				continue;
 			}
 
@@ -830,7 +830,7 @@ void config_parse_commandline( const char* const* cmdline, unsigned int num )
 					}
 				}
 
-				log_infof( "Config value from command line: %.*s:%.*s = %s", section_length, section_str, key_length, key_str, set_value );
+				log_infof( 0, "Config value from command line: %.*s:%.*s = %s", section_length, section_str, key_length, key_str, set_value );
 				
 				string_deallocate( value );
 			}	

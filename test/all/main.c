@@ -27,7 +27,7 @@ void* event_thread( object_t thread, void* arg )
 			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
 			{
 				case FOUNDATIONEVENT_TERMINATE:
-					log_warn( WARNING_SUSPICIOUS, "Terminating tests due to event" );
+					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating tests due to event" );
 					process_exit( -2 );
 					break;
 
@@ -143,14 +143,14 @@ int main_run( void* main_arg )
 		if( process_result >= 0 )
 		{
 			if( ( process_result = tests[test_fn]() ) >= 0 )
-				log_infof( "All tests passed (%d)", process_result );
+				log_infof( HASH_TEST, "All tests passed (%d)", process_result );
 		}
 		++test_fn;
 	} while( tests[test_fn] && ( process_result >= 0 ) );
 
 	if( process_result != 0 )
 	{
-		log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 	}
 	
 #else
@@ -184,7 +184,7 @@ int main_run( void* main_arg )
 		process_set_working_directory( process, environment_executable_directory() );
 		process_set_flags( process, PROCESS_ATTACHED );
 		
-		log_infof( "Running test executable: %s", exe_paths[iexe] );
+		log_infof( HASH_TEST, "Running test executable: %s", exe_paths[iexe] );
 
 		process_result = process_spawn( process );
 		while( process_result == PROCESS_WAIT_INTERRUPTED )
@@ -199,17 +199,17 @@ int main_run( void* main_arg )
 		if( process_result != 0 )
 		{
 			if( process_result >= PROCESS_INVALID_ARGS )
-				log_warnf( WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
+				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
 			else
-				log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 			process_set_exit_code( -1 );
 			goto exit;
 		}
 
-		log_infof( "All tests from %s passed (%d)", exe_paths[iexe], process_result );
+		log_infof( HASH_TEST, "All tests from %s passed (%d)", exe_paths[iexe], process_result );
 	}
 
-	log_info( "All tests passed" );
+	log_info( HASH_TEST, "All tests passed" );
 
 exit:
 

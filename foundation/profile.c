@@ -85,7 +85,7 @@ static profile_block_t* _profile_allocate_block( void )
 	{
 		static int32_t has_warned = 0;
 		if( atomic_cas32( &has_warned, 1, 0 ) )
-			log_error( ERROR_OUT_OF_MEMORY, ( _profile_num_blocks < 65535 ) ? "Profile blocks exhausted, increase profile memory block size" : "Profile blocks exhausted, decrease profile output wait time" );
+			log_error( 0, ERROR_OUT_OF_MEMORY, ( _profile_num_blocks < 65535 ) ? "Profile blocks exhausted, increase profile memory block size" : "Profile blocks exhausted, decrease profile output wait time" );
 		return 0;
 	}
 	block = GET_BLOCK( free_block );
@@ -323,7 +323,7 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 	_profile_ground_time = time_current();
 	set_thread_profile_block( 0 );
 
-	log_debugf( "Initialize profiling system with %llu blocks (%lluKiB)", num_blocks, size / 1024 );
+	log_debugf( 0, "Initialize profiling system with %llu blocks (%lluKiB)", num_blocks, size / 1024 );
 }
 
 
@@ -352,7 +352,7 @@ void profile_shutdown( void )
 		uint32_t free_block = _profile_free;
 
 		if( _profile_root->child )
-			log_error( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
+			log_error( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
 
 		while( free_block )
 		{
@@ -363,7 +363,7 @@ void profile_shutdown( void )
 		if( num_blocks != _profile_num_blocks )
 		{
 			//If profile output function (user) crashed, this will probably trigger since at least one block will be lost in space
-			log_errorf( ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks (found %llu of %llu)", num_blocks, _profile_num_blocks );
+			log_errorf( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks (found %llu of %llu)", num_blocks, _profile_num_blocks );
 		}
 	}
 
@@ -613,7 +613,7 @@ void _profile_thread_cleanup( void )
 	uint32_t block_index;
 	while( ( block_index = get_thread_profile_block() ) )
 	{
-		log_infof( "Profile thread cleanup, free block %u", block_index );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Profile thread cleanup, free block %u", block_index );
 		profile_end_block();
 	}
 #endif

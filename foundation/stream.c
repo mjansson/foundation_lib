@@ -54,7 +54,7 @@ stream_t* stream_open( const char* path, unsigned int mode )
 		//	http_get( ... );
 		else if( ( protocol_end != 3 ) || !string_equal_substr( path, "vfs", protocol_end ) )
 		{
-			log_errorf( ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
+			log_errorf( 0, ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
 			return 0;
 		}
 	}

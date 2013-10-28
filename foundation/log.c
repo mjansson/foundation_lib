@@ -151,7 +151,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 #if BUILD_ENABLE_DEBUG_LOG
 
 
-void log_context_debugf( uint64_t context, const char* format, ... )
+void log_debugf( uint64_t context, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
@@ -167,7 +167,7 @@ void log_context_debugf( uint64_t context, const char* format, ... )
 #if BUILD_ENABLE_LOG
 
 
-void log_context_infof( uint64_t context, const char* format, ... )
+void log_infof( uint64_t context, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
@@ -177,7 +177,7 @@ void log_context_infof( uint64_t context, const char* format, ... )
 }
 
 
-void log_context_warnf( uint64_t context, warning_t warn, const char* format, ... )
+void log_warnf( uint64_t context, warning_t warn, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
@@ -198,7 +198,7 @@ void log_context_warnf( uint64_t context, warning_t warn, const char* format, ..
 }
 
 
-void log_context_errorf( uint64_t context, error_t err, const char* format, ... )
+void log_errorf( uint64_t context, error_t err, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
@@ -221,7 +221,7 @@ void log_context_errorf( uint64_t context, error_t err, const char* format, ... 
 }
 
 
-void log_context_panicf( uint64_t context, error_t err, const char* format, ... )
+void log_panicf( uint64_t context, error_t err, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;

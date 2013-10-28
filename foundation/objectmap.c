@@ -57,7 +57,7 @@ void objectmap_deallocate( objectmap_t* map )
 		bool is_object = !( (uintptr_t)map->map[i] & 1 );
 		if( is_object )
 		{
-			log_error( ERROR_MEMORY_LEAK, "Object still stored in objectmap when map deallocated" );
+			log_error( 0, ERROR_MEMORY_LEAK, "Object still stored in objectmap when map deallocated" );
 			break;
 		}
 	}
@@ -98,7 +98,7 @@ object_t objectmap_reserve( objectmap_t* map )
 		idx = map->free;
 		if( idx >= map->size )
 		{
-			log_error( ERROR_OUT_OF_MEMORY, "Pool full, unable to reserve id" );
+			log_error( 0, ERROR_OUT_OF_MEMORY, "Pool full, unable to reserve id" );
 			return 0;
 		}
 		next = ((uintptr_t)map->map[idx]) >> 1;

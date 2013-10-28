@@ -91,7 +91,7 @@ void fs_monitor( const char* path )
 	}
 
 	if( mi == BUILD_SIZE_FS_MONITORS )
-		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to monitor file system, no free monitor slots: %s", path );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to monitor file system, no free monitor slots: %s", path );
 
 	memory_context_pop();
 }
@@ -430,12 +430,12 @@ bool fs_make_directory( const char* path )
 #endif
 			if( !result )
 			{
-				log_warnf( WARNING_SUSPICIOUS, "Failed to create directory: %s", curpath );
+				log_warnf( 0, WARNING_SUSPICIOUS, "Failed to create directory: %s", curpath );
 				//Unable to create directory
 				goto end;
 			}
 
-			log_debugf( "Created directory: %s", curpath );
+			log_debugf( 0, "Created directory: %s", curpath );
 		}
 	}
 	
@@ -659,11 +659,11 @@ static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** wa
 	int fd = inotify_add_watch( notify_fd, path, IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVE );
 	if( fd < 0 )
 	{
-		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Failed watching subdir: %s (%d)", path, fd );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Failed watching subdir: %s (%d)", path, fd );
 		return;
 	}
 
-	//log_debugf( "Watching subdir: %s (%d)", path, fd );
+	//log_debugf( 0, "Watching subdir: %s (%d)", path, fd );
 	
 	//Include terminating / in paths stored in path_arr/watch_arr
 	local_path = string_format( "%s/", path ? path : "" );
@@ -723,7 +723,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	if( handles[1] == INVALID_HANDLE_VALUE )
 	{
-		log_warnf( WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
 
@@ -746,7 +746,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #endif
 
-	log_debugf( "Monitoring file system: %s", monitor->path );
+	log_debugf( 0, "Monitoring file system: %s", monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{		
@@ -756,7 +756,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	}
 	if( dir == INVALID_HANDLE_VALUE )
 	{
-		log_warnf( WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
 	
@@ -776,11 +776,11 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		success = ReadDirectoryChangesW( dir, buffer, buffer_size, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size, &overlap, 0 );
 		if( !success )
 		{
- 			log_warnf( WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+ 			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 			goto exit_thread;
 		}
  
-		//log_debugf( "Read directory changes for path: %s", monitor->path );
+		//log_debugf( 0, "Read directory changes for path: %s", monitor->path );
 
 		wait_status = WaitForMultipleObjects( 2, handles, FALSE, INFINITE );
  
@@ -797,16 +797,16 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				DWORD transferred = 0;
 			
 				//File system change
-				//log_debugf( "File system changed: %s", monitor->path );
+				//log_debugf( 0, "File system changed: %s", monitor->path );
 
 				success = GetOverlappedResult( dir, &overlap, &transferred, FALSE );
 				if( !success )
 				{
-					log_warnf( WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+					log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
 				}
 				else
 				{
-					//log_debugf( "File system changed: %s (%d bytes)", monitor->path, transferred );
+					//log_debugf( 0, "File system changed: %s (%d bytes)", monitor->path, transferred );
 
 					PFILE_NOTIFY_INFORMATION info = buffer;
 					do
@@ -834,7 +834,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 							default: break;
 						}
 						
-						//log_debugf( "File system changed: %s (action %d)", utfstr, info->Action );
+						//log_debugf( 0, "File system changed: %s (action %d)", utfstr, info->Action );
 
 						if( event )
 							fs_post_event( event, fullpath, 0 );
@@ -860,13 +860,13 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
 		int ret = ioctl( notify_fd, FIONREAD, &avail );
-		//log_debugf( "ioctl inotify: %d", avail );
+		//log_debugf( 0, "ioctl inotify: %d", avail );
 		if( avail > 0 )
 		{
 			/*alignedptr64_t*/void* buffer = memory_allocate_zero( avail + 4, 8, MEMORY_PERSISTENT );
 			int offset = 0;
 			int avail_read = read( notify_fd, buffer, avail );
-			//log_debugf( "inotify read: %d", avail_read );
+			//log_debugf( 0, "inotify read: %d", avail_read );
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while( offset < avail_read )
 			{
@@ -874,18 +874,18 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				fs_watch_t* curwatch = _lookup_watch( watch, event->wd );
 				if( !curwatch )
 				{
-					log_warnf( WARNING_SUSPICIOUS, "inotify watch not found: %d %x %x %u bytes: %s", event->wd, event->mask, event->cookie, event->len, event->name );
+					log_warnf( 0, WARNING_SUSPICIOUS, "inotify watch not found: %d %x %x %u bytes: %s", event->wd, event->mask, event->cookie, event->len, event->name );
 					goto skipwatch;
 				}
 
-				//log_debugf( "inotify event: %d %x %x %u bytes: %s in path %s", event->wd, event->mask, event->cookie, event->len, event->name, curwatch->path );
+				//log_debugf( 0, "inotify event: %d %x %x %u bytes: %s in path %s", event->wd, event->mask, event->cookie, event->len, event->name, curwatch->path );
 
 				char* curpath = string_clone( curwatch->path );
 				curpath = string_append( curpath, event->name );
 
 				if( ( event->mask & IN_CREATE ) || ( event->mask & IN_MOVED_TO ) )
 				{
-					//log_debugf( "  IN_CREATE : %s", curpath );
+					//log_debugf( 0, "  IN_CREATE : %s", curpath );
 					fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
 
 					if( fs_is_directory( curpath ) )
@@ -893,23 +893,23 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				}
 				if( ( event->mask & IN_DELETE ) || ( event->mask & IN_MOVED_FROM ) )
 				{
-					//log_debugf( "  IN_DELETE : %s", curpath );
+					//log_debugf( 0, "  IN_DELETE : %s", curpath );
 					fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
 				}
 				if( event->mask & IN_MODIFY )
 				{
-					//log_debugf( "  IN_MODIFY : %s", curpath );
+					//log_debugf( 0, "  IN_MODIFY : %s", curpath );
 					fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, curpath, 0 );
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
 				if( event->mask & IN_MOVED_FROM )
 				{
-					//log_debugf( "  IN_MOVED_FROM : %s", curpath );
+					//log_debugf( 0, "  IN_MOVED_FROM : %s", curpath );
 					fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
 				}
 				if( event->mask & IN_MOVED_TO )
 				{
-					//log_debugf( "  IN_MOVED_TO : %s", curpath );
+					//log_debugf( 0, "  IN_MOVED_TO : %s", curpath );
 					fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
 				}*/
 
@@ -928,14 +928,14 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				mutex_unlock( monitor->signal );
 		}
 #else
-		log_debugf( "Filesystem watcher not implemented on this platform" );
+		log_debug( 0, "Filesystem watcher not implemented on this platform" );
 		//Not implemented yet, just wait for signal to simulate thread
 		if( mutex_wait( monitor->signal, 0 ) )
 			mutex_unlock( monitor->signal );
 #endif
 	}
 
-	log_debugf( "Stopped monitoring file system: %s", monitor->path );
+	log_debugf( 0, "Stopped monitoring file system: %s", monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	exit_thread:
@@ -1105,7 +1105,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 #elif FOUNDATION_PLATFORM_POSIX
 	int fd = open( has_protocol ? file->path + 7 : file->path, O_RDWR );
 	if( ftruncate( fd, length ) < 0 )
-		log_warnf( WARNING_SUSPICIOUS, "Unable to truncate real file: %s", file->path );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file: %s", file->path );
 	close( fd );
 #else
 #  error Not implemented
@@ -1293,7 +1293,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 	if( !file->fd )
 	{
-		//log_debugf( "Unable to open file: %s (mode %d): %s", file->path, in_mode, system_error_message( 0 ) );
+		//log_debugf( 0, "Unable to open file: %s (mode %d): %s", file->path, in_mode, system_error_message( 0 ) );
 		stream_deallocate( stream );
 		return 0;
 	}

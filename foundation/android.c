@@ -45,10 +45,10 @@ void android_entry( struct android_app* app )
 	
 int android_initialize( void )
 {
-	//log_debugf( "Force window fullscreen" );
+	//log_debug( 0, "Force window fullscreen" );
 	//ANativeActivity_setWindowFlags( app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_FORCE_NOT_FULLSCREEN );	
 
-	log_debugf( "Waiting for application window to be set" );
+	log_debugf( 0, "Waiting for application window to be set" );
 	{
 		int ident = 0;
 		int events = 0;
@@ -64,10 +64,10 @@ int android_initialize( void )
 			thread_sleep( 10 );
 		}
 	}
-	log_debugf( "Application window set, continuing" );
+	log_debugf( 0, "Application window set, continuing" );
 
-	log_infof( "Internal data path: %s", _android_app->activity->internalDataPath );
-	log_infof( "External data path: %s", _android_app->activity->externalDataPath );
+	log_infof( 0, "Internal data path: %s", _android_app->activity->internalDataPath );
+	log_infof( 0, "External data path: %s", _android_app->activity->externalDataPath );
 
 	ASensorManager* sensor_manager = ASensorManager_getInstance();
 	_android_sensor_queue = ASensorManager_createEventQueue( sensor_manager, _android_app->looper, 0, android_sensor_callback, 0 );
@@ -81,7 +81,7 @@ int android_initialize( void )
 
 void android_shutdown( void )
 {
-	log_infof( "exiting native android app" );
+	log_info( 0, "Exiting native android app" );
 
 	_android_app->onAppCmd = 0;
     _android_app->onInputEvent = 0;
@@ -109,7 +109,7 @@ void android_shutdown( void )
 
 	_android_app = 0;
 
-	log_debugf( "calling exit(0)" );
+	log_debug( 0, "Calling exit(0)" );
 
 	exit( 0 );
 }
@@ -127,7 +127,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 	{
 		case APP_CMD_INPUT_CHANGED:
 		{
-			log_infof( "Got APP_CMD_INPUT_CHANGED" );
+			log_info( 0, "Got APP_CMD_INPUT_CHANGED" );
             break;
 		}
 
@@ -138,70 +138,70 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				int w = 0, h = 0;
 				w = ANativeWindow_getWidth( app->window );
 				h = ANativeWindow_getHeight( app->window );
-				log_infof( "Got APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
+				log_info( 0, "Got APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
 			}
             break;
 		}
         
 		case APP_CMD_TERM_WINDOW:
 		{
-			log_infof( "Got APP_CMD_TERM_WINDOW" );
+			log_info( 0, "Got APP_CMD_TERM_WINDOW" );
             break;
 		}
 
     	case APP_CMD_WINDOW_RESIZED:
 		{
-			log_infof( "Got APP_CMD_WINDOW_RESIZED" );
+			log_info( 0, "Got APP_CMD_WINDOW_RESIZED" );
             break;
 		}
 
 		case APP_CMD_WINDOW_REDRAW_NEEDED:
 		{
-			log_infof( "Got APP_CMD_WINDOW_REDRAW_NEEDED" );
+			log_info( 0, "Got APP_CMD_WINDOW_REDRAW_NEEDED" );
             break;
 		}
 
 		case APP_CMD_CONTENT_RECT_CHANGED:
 		{
-			log_infof( "Got APP_CMD_CONTENT_RECT_CHANGED" );
+			log_info( 0, "Got APP_CMD_CONTENT_RECT_CHANGED" );
             break;
 		}
         
 		case APP_CMD_GAINED_FOCUS:
 		{
-			log_infof( "Got APP_CMD_GAINED_FOCUS" );
+			log_info( 0, "Got APP_CMD_GAINED_FOCUS" );
 			_android_enable_sensor( ASENSOR_TYPE_ACCELEROMETER );
             break;
 		}
 
 		case APP_CMD_LOST_FOCUS:
 		{
-			log_infof( "Got APP_CMD_LOST_FOCUS" );
+			log_info( 0, "Got APP_CMD_LOST_FOCUS" );
 			_android_disable_sensor( ASENSOR_TYPE_ACCELEROMETER );
             break;
 		}
 
 		case APP_CMD_CONFIG_CHANGED:
 		{
-			log_infof( "Got APP_CMD_CONFIG_CHANGED" );
+			log_info( 0, "Got APP_CMD_CONFIG_CHANGED" );
             break;
 		}
 
 		case APP_CMD_LOW_MEMORY:
 		{
-			log_infof( "Got APP_CMD_LOW_MEMORY" );
+			log_info( 0, "Got APP_CMD_LOW_MEMORY" );
             break;
 		}
 
 		case APP_CMD_START:
 		{
-			log_infof( "Got APP_CMD_START" );
+			log_info( 0, "Got APP_CMD_START" );
             break;
 		}
 
 		case APP_CMD_RESUME:
 		{
-			log_infof( "Got APP_CMD_RESUME" );
+			log_info( 0, "Got APP_CMD_RESUME" );
 			//app_reset_frame_time();
 			//app_main_loop_resume();
             break;
@@ -209,26 +209,26 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_SAVE_STATE:
 		{
-			log_infof( "Got APP_CMD_SAVE_STATE" );
+			log_info( 0, "Got APP_CMD_SAVE_STATE" );
             break;
 		}
 
 		case APP_CMD_PAUSE:
 		{
-			log_infof( "Got APP_CMD_PAUSE" );
+			log_info( 0, "Got APP_CMD_PAUSE" );
 			//app_main_loop_suspend();
             break;
 		}
 
 		case APP_CMD_STOP:
 		{
-			log_infof( "Got APP_CMD_STOP" );
+			log_info( 0, "Got APP_CMD_STOP" );
             break;
 		}
 		
 		case APP_CMD_DESTROY:
 		{
-			log_infof( "Got APP_CMD_DESTROY" );
+			log_info( 0, "Got APP_CMD_DESTROY" );
 			system_post_event( FOUNDATIONEVENT_TERMINATE );
             break;
 		}
@@ -257,18 +257,18 @@ void _android_enable_sensor( int sensor_type )
 		const ASensor* sensor = ASensorManager_getDefaultSensor( sensor_manager, sensor_type );
 		if( sensor )
 		{
-			log_debugf( "Initializing sensor of type %d", sensor_type );
+			log_debugf( 0, "Initializing sensor of type %d", sensor_type );
 			if( _android_sensor_queue )
 			{
 				if( ASensorEventQueue_enableSensor( _android_sensor_queue, sensor ) < 0 )
-					log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to enable sensor" );
+					log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to enable sensor" );
 				else
 				{
 					int min_delay = ASensor_getMinDelay( sensor );
 					if( min_delay < 60000 )
 						min_delay = 60000;
 					if( ASensorEventQueue_setEventRate( _android_sensor_queue, sensor, min_delay ) < 0 )
-						log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to set sensor event rate" );
+						log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set sensor event rate" );
 
 					_android_sensor_enabled[sensor_type] = true;
 				}
@@ -277,7 +277,7 @@ void _android_enable_sensor( int sensor_type )
 	}
 	else
 	{
-		log_warnf( WARNING_UNSUPPORTED, "Unable to initialize sensor, no sensor manager" );
+		log_warn( 0, WARNING_UNSUPPORTED, "Unable to initialize sensor, no sensor manager" );
 	}
 }
 

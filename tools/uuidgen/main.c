@@ -293,7 +293,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 		{
 			uuid_convert_t convert;
 			convert.uuid = uuid[i];
-			log_infof( lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
+			log_infof( 0, lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
 		}
 	}
 	return UUIDGEN_RESULT_OK;
@@ -303,7 +303,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 static void uuidgen_print_usage( void )
 {
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
-	log_info( 
+	log_info( 0,
 		"uuidgen usage:\n"
 		"  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help]\n"
 		"    If no arguments are given, one random-based UUID is output to stdout\n"

@@ -106,7 +106,7 @@ int _environment_initialize( const application_t application )
 	}
 	else
 	{
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
 		return -1;
 	}
 	
@@ -135,7 +135,7 @@ int _environment_initialize( const application_t application )
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
 	if( !cmdline )
 	{
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
 		return -1;
 	}
 
@@ -158,7 +158,7 @@ int _environment_initialize( const application_t application )
 	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
 	if( readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN ) < 0 )
 	{
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
 		return -1;
 	}
 
@@ -175,7 +175,7 @@ int _environment_initialize( const application_t application )
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
 	if( !cmdline )
 	{
-		log_error( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
+		log_error( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/cmdline" );
 		return -1;
 	}
 
@@ -194,7 +194,7 @@ int _environment_initialize( const application_t application )
 	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
 	if( readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN ) < 0 )
 	{
-		log_error( ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
+		log_error( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/exe link" );
 		return -1;
 	}
 
@@ -297,7 +297,7 @@ const char* environment_current_working_directory( void )
 	char* path = memory_allocate_zero( FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
 	{
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
 		return "";
 	}
 	path = path_clean( path, true );
@@ -314,17 +314,17 @@ void environment_set_current_working_directory( const char* path )
 {
 	if( !path )
 		return;
-	log_debugf( "Setting current working directory to: %s", path );
+	log_debugf( 0, "Setting current working directory to: %s", path );
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string( path, 0 );
 		if( !SetCurrentDirectoryW( wpath ) )
-			log_warnf( WARNING_SUSPICIOUS, "Unable to set working directory: %ls", wpath );
+			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to set working directory: %ls", wpath );
 		wstring_deallocate( wpath );
 	}
 #elif FOUNDATION_PLATFORM_POSIX
 	if( chdir( path ) < 0 )
-		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to set working directory: %s", path );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set working directory: %s", path );
 #else
 #  error Not implemented
 #endif
@@ -446,7 +446,7 @@ const char* environment_temporary_directory( void )
 		}
 	}
 #endif
-	log_debugf( "Application temporary path: %s", _environment_temp_dir );
+	log_debugf( 0, "Application temporary path: %s", _environment_temp_dir );
 	return _environment_temp_dir;
 }
 

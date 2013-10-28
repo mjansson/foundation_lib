@@ -59,9 +59,7 @@ DECLARE_TEST( mutex, basic )
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 
-	log_set_suppress( 0, ERRORLEVEL_WARNING );
 	EXPECT_FALSE( mutex_unlock( mutex ) );
-	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 
 	mutex_signal( mutex );
 	thread_yield();
@@ -146,7 +144,7 @@ void* thread_wait( object_t thread, void* arg )
 	}
 	else
 	{
-		log_warn( WARNING_SUSPICIOUS, "Thread timeout" );
+		log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Thread timeout" );
 	}
 
 	return 0;

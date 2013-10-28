@@ -199,7 +199,7 @@ DECLARE_TEST( profile, thread )
 	profile_enable( 1 );
 	profile_output_wait( 1 );
 
-	log_info( "This test will intentionally run out of memory in profiling system" );
+	log_info( HASH_TEST, "This test will intentionally run out of memory in profiling system" );
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread[ith] = thread_create( _profile_fail_thread, "profile_thread", THREAD_PRIORITY_NORMAL, 0 );
@@ -311,7 +311,7 @@ DECLARE_TEST( profile, stream )
 	error_t err = error();
 
 	char* filename = path_merge( environment_temporary_directory(), "test.profile" );
-	log_infof( "Output to profile file: %s", filename );
+	log_infof( HASH_TEST, "Output to profile file: %s", filename );
 	fs_make_directory( environment_temporary_directory() );
 	_profile_stream = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );
 	string_deallocate( filename );
@@ -356,7 +356,7 @@ DECLARE_TEST( profile, stream )
 
 	stream_deallocate( _profile_stream );
 
-	log_debugf( "Generated %lld blocks", _profile_generated_blocks );
+	log_debugf( HASH_TEST, "Generated %lld blocks", _profile_generated_blocks );
 	
 	return 0;
 }

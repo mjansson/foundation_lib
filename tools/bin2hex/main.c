@@ -128,13 +128,13 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 
 		output_filename = path_clean( string_clone( output[ifile] ), path_is_absolute( output[ifile] ) );
 
-		log_infof( "bin2hex %s -> %s", input_filename, output_filename );
+		log_infof( 0, "bin2hex %s -> %s", input_filename, output_filename );
 
 		input_file = stream_open( input_filename, STREAM_IN | STREAM_BINARY );
 
 		if( !input_file )
 		{
-			log_warnf( WARNING_BAD_DATA, "Unable to open input file: %s", input_filename );
+			log_warnf( 0, WARNING_BAD_DATA, "Unable to open input file: %s", input_filename );
 			result = BIN2HEX_RESULT_MISSING_INPUT_FILE;
 		}
 		else
@@ -142,7 +142,7 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 			output_file = stream_open( output_filename, STREAM_OUT );
 			if( !output_file )
 			{
-				log_warnf( WARNING_BAD_DATA, "Unable to open output file: %s", output_filename );
+				log_warnf( 0, WARNING_BAD_DATA, "Unable to open output file: %s", output_filename );
 				result = BIN2HEX_RESULT_UNABLE_TO_OPEN_OUTPUT_FILE;
 			}
 		}
@@ -160,7 +160,7 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 	}
 
 	if( ( result == BIN2HEX_RESULT_OK ) && ( files_size > 0 ) )
-		log_info( "All files generated" );
+		log_info( 0, "All files generated" );
 
 	return result;
 }
@@ -192,7 +192,7 @@ int bin2hex_process_file( stream_t* input, stream_t* output, int columns )
 
 void bin2hex_print_usage( void )
 {
-	log_info( 
+	log_info( 0, 
 		"bin2hex usage:\n"
 		"  bin2hex [--columns n] <file> <file> <file> <...>\n"
 		"    Required arguments:\n"

@@ -248,7 +248,7 @@ static uint32_t _system_user_locale( void )
 			locale_string[2] = locale_string[3];
 			locale_string[3] = locale_string[4];
 			locale_string[4] = 0;
-			log_infof( "User default locale: %s", locale_string );
+			log_infof( 0, "User default locale: %s", locale_string );
 			return *(uint32_t*)locale_string;
 		}
 	}
@@ -557,7 +557,7 @@ void system_post_event( foundation_event_id event )
 
 bool system_message_box( const char* title, const char* message, bool cancel_button )
 {
-	log_infof( "%s\n\n%s", title, message );
+	log_infof( 0, "Display message box: %s\n%s", title, message );
 	if( environment_application()->flags & APPLICATION_UTILITY )
 		return true;
 #if FOUNDATION_PLATFORM_WINDOWS
