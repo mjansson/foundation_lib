@@ -10,10 +10,8 @@
  *
  */
 
-#include <foundation/hash.h>
+#include <foundation/foundation.h>
 #include <foundation/internal.h>
-#include <foundation/hashtable.h>
-#include <foundation/string.h>
 
 
 #if FOUNDATION_COMPILER_MSVC

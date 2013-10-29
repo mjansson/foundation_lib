@@ -231,7 +231,7 @@ static bool _initialize_stackwalker()
 		CallStackWalk64 = dll ? (StackWalk64Fn)GetProcAddress( dll, "StackWalk64" ) : 0;
 		if( !CallStackWalk64 )
 		{
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to load dbghelp DLL for StackWalk64" );
+			log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to load dbghelp DLL for StackWalk64" );
 			return false;
 		}
 
@@ -239,7 +239,7 @@ static bool _initialize_stackwalker()
 		CallRtlCaptureStackBackTrace = dll ? (RtlCaptureStackBackTraceFn)GetProcAddress( dll, "RtlCaptureStackBackTrace" ) : 0;
 		if( !CallRtlCaptureStackBackTrace )
 		{
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to load ntdll DLL for RtlCaptureStackBackTrace" );
+			log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to load ntdll DLL for RtlCaptureStackBackTrace" );
 			return false;
 		}
 	}
