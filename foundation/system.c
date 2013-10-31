@@ -248,7 +248,7 @@ static uint32_t _system_user_locale( void )
 			locale_string[2] = locale_string[3];
 			locale_string[3] = locale_string[4];
 			locale_string[4] = 0;
-			log_infof( 0, "User default locale: %s", locale_string );
+			//log_infof( 0, "User default locale: %s", locale_string );
 			return *(uint32_t*)locale_string;
 		}
 	}
