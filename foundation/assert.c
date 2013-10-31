@@ -79,6 +79,8 @@ int assert_report( const char* condition, const char* file, int line, const char
 	if( ( ret < 0 ) || ( ret >= ASSERT_BUFFER_SIZE ) )
 		_assert_box_buffer[ASSERT_BUFFER_SIZE-1] = 0;
 
+	log_errorf( 0, ERROR_ASSERT, "%s", _assert_box_buffer );
+
 	system_message_box( "Assert Failure", _assert_box_buffer, false );
 
 	return 1;
