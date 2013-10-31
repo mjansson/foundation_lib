@@ -250,3 +250,15 @@ FOUNDATION_API void              stream_truncate( stream_t* stream, uint64_t len
 /*! Flush the stream */
 FOUNDATION_API void              stream_flush( stream_t* stream );
 
+
+/*! Allocate a stream for stdout
+    \return                      Stream wrapping stdout */
+FOUNDATION_API stream_t*         stream_open_stdout( void );
+
+/*! Allocate a stream for stderr
+    \return                      Stream wrapping stderr */
+FOUNDATION_API stream_t*         stream_open_stderr( void );
+
+/*! Allocate a stream for stdin
+    \return                      Stream wrapping stdin */
+FOUNDATION_API stream_t*         stream_open_stdin( void );
