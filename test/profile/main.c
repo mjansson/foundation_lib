@@ -145,8 +145,6 @@ DECLARE_TEST( profile, output )
 
 static void* _profile_fail_thread( object_t thread, void* arg )
 {
-	int loop;
-
 	thread_sleep( 10 );
 	
 	while( !thread_should_terminate( thread ) )
@@ -254,8 +252,6 @@ static void _profile_file_writer( void* buffer, uint64_t size )
 
 static void* _profile_stream_thread( object_t thread, void* arg )
 {
-	int loop;
-
 	thread_yield();
 
 	while( !thread_should_terminate( thread ) )
