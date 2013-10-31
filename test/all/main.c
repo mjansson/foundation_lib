@@ -21,8 +21,9 @@ void* event_thread( object_t thread, void* arg )
 	while( !thread_should_terminate( thread ) )
 	{
 		block = event_stream_process( system_event_stream() );
+		event = 0;
 
-		while( ( event = event_next( block, 0 ) ) )
+		while( ( event = event_next( block, event ) ) )
 		{
 			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
 			{
