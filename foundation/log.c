@@ -33,10 +33,11 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #  include <foundation/posix.h>
 #endif
 
-static bool             _log_stdout      = true;
-static bool             _log_prefix      = true;
-static log_callback_fn  _log_callback    = 0;
-static hashmap_t*       _log_suppress    = 0;
+static bool             _log_stdout           = true;
+static bool             _log_prefix           = true;
+static log_callback_fn  _log_callback         = 0;
+static hashtable64_t*   _log_suppress         = 0;
+static error_level_t    _log_suppress_default = ERRORLEVEL_NONE;
 
 static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
 	"performance",
@@ -257,7 +258,7 @@ void log_error_context( uint64_t context, error_level_t error_level )
 	{
 		error_frame_t* frame = err_context->frame;
 		for( i = 0; i < err_context->depth; ++i, ++frame )
-			_log_error_contextf( context, error_level, stderr, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
+			_log_error_contextf( context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
 	}
 }
 
@@ -286,20 +287,21 @@ void log_enable_prefix( bool enable )
 
 void log_set_suppress( uint64_t context, error_level_t level )
 {
-	if( !_log_suppress )
-		return;
-
-	hashmap_insert( _log_suppress, context, (void*)level );
+	if( !context )
+		_log_suppress_default = level;
+	else if( _log_suppress )
+		hashtable64_set( _log_suppress, context, (uint64_t)level );
 }
 
 
 error_level_t log_suppress( uint64_t context )
 {
-	if( !_log_suppress )
-		return ERRORLEVEL_NONE;
+	if( !context )
+		return _log_suppress_default;
+	else if( _log_suppress )
+		return (error_level_t)hashtable64_get( _log_suppress, context ); //Defaults to 0 - ERRORLEVEL_NONE
+	return ERRORLEVEL_NONE;
 
-	//Defaults to 0 - ERRORLEVEL_NONE
-	return (error_level_t)hashmap_lookup( _log_suppress, context );
 }
 
 
@@ -309,7 +311,7 @@ error_level_t log_suppress( uint64_t context )
 int _log_initialize( void )
 {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
-	_log_suppress = hashmap_allocate( HASHMAP_MINBUCKETS, HASHMAP_MINBUCKETSIZE );
+	_log_suppress = hashtable64_allocate( 149 );
 #endif
 	return 0;
 }
@@ -318,7 +320,7 @@ int _log_initialize( void )
 void _log_shutdown( void )
 {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
-	hashmap_deallocate( _log_suppress );
+	hashtable64_deallocate( _log_suppress );
 	_log_suppress = 0;
 #endif
 }
