@@ -1015,6 +1015,7 @@ typedef struct ALIGN(8) _foundation_stdstream
 {
 	FOUNDATION_DECLARE_STREAM;
 	void*              std;
+	bool               eos;
 } stream_std_t;
 
 
@@ -1022,7 +1023,7 @@ static uint64_t  _stream_stdin_read( stream_t*, void*, uint64_t );
 static uint64_t  _stream_stdout_write( stream_t*, const void*, uint64_t );
 static void      _stream_stdout_flush( stream_t* );
 static stream_t* _stream_std_clone( stream_t* );
-
+static bool      _stream_stdin_eos( stream_t* );
 
 static stream_vtable_t _stream_stdout_vtable = {
 	0,
@@ -1045,7 +1046,7 @@ static stream_vtable_t _stream_stdout_vtable = {
 static stream_vtable_t _stream_stdin_vtable = {
 	_stream_stdin_read,
 	0,
-	0,
+	_stream_stdin_eos,
 	0,
 	0,
 	0,
@@ -1107,11 +1108,17 @@ static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t siz
 	stream_std_t* stdstream = (stream_std_t*)stream;
 	char* bytebuffer = (char*)buffer;
 	uint64_t read = 0;
+
+	stdstream->eos = false;
+
 	while( read < size )
 	{
 		int c = getc( stdstream->std );
 		if( c == EOF )
+		{
+			stdstream->eos = true;
 			break;
+		}
 		bytebuffer[read++] = (char)c;
 	}
 	return read;
@@ -1138,4 +1145,10 @@ static stream_t* _stream_std_clone( stream_t* stream )
 	memcpy( clone, stream, sizeof( stream_std_t ) );
 	clone->path = string_clone( stream->path );
 	return (stream_t*)clone;
+}
+
+
+static bool _stream_stdin_eos( stream_t* stream )
+{
+	return ((stream_std_t*)stream)->eos;
 }
