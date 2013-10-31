@@ -290,7 +290,12 @@ void log_set_suppress( uint64_t context, error_level_t level )
 	if( !context )
 		_log_suppress_default = level;
 	else if( _log_suppress )
-		hashtable64_set( _log_suppress, context, (uint64_t)level );
+	{
+		if( level > ERRORLEVEL_NONE )
+			hashtable64_set( _log_suppress, context, (uint64_t)level );
+		else
+			hashtable64_erase( _log_suppress, context );
+	}
 }
 
 
