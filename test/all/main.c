@@ -51,6 +51,8 @@ int main_initialize( void )
 	application.short_name = "test_all";
 	application.config_dir = "test_all";
 	application.flags = APPLICATION_UTILITY;
+
+	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	
 	return foundation_initialize( memory_system_malloc(), application );
 }
