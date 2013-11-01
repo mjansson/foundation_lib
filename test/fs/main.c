@@ -346,7 +346,7 @@ DECLARE_TEST( fs, monitor )
 	test_stream = fs_open_file( filetestpath, STREAM_OUT );
 	stream_deallocate( test_stream );
 	EXPECT_NE( test_stream, 0 );
-	thread_sleep( 1000 );
+	thread_sleep( 5000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -361,7 +361,7 @@ DECLARE_TEST( fs, monitor )
 	test_stream = fs_open_file( filetestpath, STREAM_IN | STREAM_OUT );
 	stream_write_string( test_stream, filetestpath );
 	stream_deallocate( test_stream );
-	thread_sleep( 100 );
+	thread_sleep( 5000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -374,7 +374,7 @@ DECLARE_TEST( fs, monitor )
 	EXPECT_EQ( event, 0 );
 
 	fs_remove_file( filetestpath );
-	thread_sleep( 100 );
+	thread_sleep( 5000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -423,11 +423,7 @@ void test_fs_declare( void )
 	ADD_TEST( fs, util );
 	ADD_TEST( fs, query );
 	ADD_TEST( fs, event );
-#if !FOUNDATION_PLATFORM_APPLE
 	ADD_TEST( fs, monitor );
-#else
-	log_warnf( WARNING_UNSUPPORTED, "file system monitors not implemented yet for Apple platforms" );
-#endif
 }
 
 

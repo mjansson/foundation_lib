@@ -39,6 +39,7 @@ typedef struct ALIGN(16) _foundation_fs_monitor
 	char*             path;
 	object_t          thread;
 	mutex_t*          signal;
+	void*             stream;
 } fs_monitor_t;
 
 typedef struct ALIGN(8) _foundation_stream_file
@@ -652,6 +653,7 @@ typedef struct _foundation_fs_watch
 	char*    path;
 } fs_watch_t;
 
+
 static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr )
 {
 	char** subdirs = 0;
@@ -685,6 +687,7 @@ static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** wa
 	string_array_deallocate( subdirs );
 }
 
+
 static fs_watch_t* _lookup_watch( fs_watch_t* watch_arr, int fd )
 {
 	//TODO: If array is kept sorted on fd, this could be made faster
@@ -696,7 +699,17 @@ static fs_watch_t* _lookup_watch( fs_watch_t* watch_arr, int fd )
 	return 0;
 }
 
+
+#elif FOUNDATION_PLATFORM_APPLE
+
+
+extern void* _fs_event_stream_create( const char* path );
+extern void  _fs_event_stream_destroy( void* stream );
+extern void  _fs_event_stream_flush( void* stream );
+
+
 #endif
+
 
 void* _fs_monitor( object_t thread, void* monitorptr )
 {
@@ -740,6 +753,12 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	//Recurse and add all subdirs
 	_add_notify_subdir( notify_fd, monitor->path, &watch, &paths );
 
+#elif FOUNDATION_PLATFORM_APPLE
+
+	memory_context_push( MEMORYCONTEXT_STREAM );
+	
+	monitor->stream = _fs_event_stream_create( monitor->path );
+	
 #else
 
 	memory_context_push( MEMORYCONTEXT_STREAM );
@@ -927,6 +946,18 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			if( mutex_wait( monitor->signal, 100 ) )
 				mutex_unlock( monitor->signal );
 		}
+		
+#elif FOUNDATION_PLATFORM_APPLE
+		
+		if( monitor->stream )
+			_fs_event_stream_flush( monitor->stream );
+		
+		if( monitor->signal )
+		{
+			if( mutex_wait( monitor->signal, 100 ) )
+				mutex_unlock( monitor->signal );
+		}
+		
 #else
 		log_debugf( "Filesystem watcher not implemented on this platform" );
 		//Not implemented yet, just wait for signal to simulate thread
@@ -938,6 +969,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	log_debugf( "Stopped monitoring file system: %s", monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
+	
 	exit_thread:
 
 	CloseHandle( dir );
@@ -946,10 +978,17 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		CloseHandle( handles[1] );
 
 	memory_deallocate( buffer );
+	
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	
 	close( notify_fd );
 	string_array_deallocate( paths );
 	array_deallocate( watch );
+	
+#elif FOUNDATION_PLATFORM_APPLE
+	
+	_fs_event_stream_destroy( monitor->stream );
+	
 #endif
 
 	memory_context_pop();

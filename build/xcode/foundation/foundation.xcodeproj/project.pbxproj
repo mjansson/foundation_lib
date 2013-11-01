@@ -50,6 +50,7 @@
 		CD20C6C116FDCBFC007C42E3 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
 		CD20C6C216FDCBFC007C42E3 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
 		CD20C6C616FDCC34007C42E3 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD20C6C516FDCC34007C42E3 /* main.c */; };
+		CD218122180C7D4000F65A1A /* fs.m in Sources */ = {isa = PBXBuildFile; fileRef = CD218121180C7D4000F65A1A /* fs.m */; };
 		CD7F382816E151E5000346C0 /* posix.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382516E151E5000346C0 /* posix.h */; };
 		CD7F382916E151E5000346C0 /* radixsort.c in Sources */ = {isa = PBXBuildFile; fileRef = CD7F382616E151E5000346C0 /* radixsort.c */; };
 		CD7F382A16E151E5000346C0 /* radixsort.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382716E151E5000346C0 /* radixsort.h */; };
@@ -1222,6 +1223,7 @@
 		CD20C6B016FDCBA7007C42E3 /* test-path */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-path"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD20C6C516FDCC34007C42E3 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/path/main.c; sourceTree = "<group>"; };
 		CD20C6CC16FDCC78007C42E3 /* test-radixsort */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-radixsort"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD218121180C7D4000F65A1A /* fs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = fs.m; path = ../../../foundation/fs.m; sourceTree = "<group>"; };
 		CD7F382516E151E5000346C0 /* posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = posix.h; path = ../../../foundation/posix.h; sourceTree = "<group>"; };
 		CD7F382616E151E5000346C0 /* radixsort.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = radixsort.c; path = ../../../foundation/radixsort.c; sourceTree = "<group>"; };
 		CD7F382716E151E5000346C0 /* radixsort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = radixsort.h; path = ../../../foundation/radixsort.h; sourceTree = "<group>"; };
@@ -2050,6 +2052,7 @@
 				CDCEF45B16D2D2B000198086 /* event.h */,
 				CDCEF45C16D2D2B000198086 /* foundation.c */,
 				CDCEF45D16D2D2B000198086 /* foundation.h */,
+				CD218121180C7D4000F65A1A /* fs.m */,
 				CDCEF45E16D2D2B000198086 /* fs.c */,
 				CDCEF45F16D2D2B000198086 /* fs.h */,
 				CDCEF46016D2D2B000198086 /* hash.c */,
@@ -3271,6 +3274,7 @@
 				CD9097FD17D5324F00607B9C /* stacktrace.c in Sources */,
 				CD9097FF17D5324F00607B9C /* uuid.c in Sources */,
 				CDC5A39117FA00C700E0F8E4 /* delegate.m in Sources */,
+				CD218122180C7D4000F65A1A /* fs.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
