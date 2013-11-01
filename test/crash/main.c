@@ -47,14 +47,14 @@ void test_crash_shutdown( void )
 
 void test_crash_callback( const char* dump_path )
 {
-	log_infof( "Crash callback called: %s", dump_path );
+	log_infof( HASH_TEST, "Crash callback called: %s", dump_path );
 	_crash_callback_called = true;
 }
 
 
 int instant_crash( void* arg )
 {
-	log_infof( "Causing illegal memory write" );
+	log_info( HASH_TEST, "Causing illegal memory write" );
 	*(volatile int*)3 = 0;
 	return 1;
 }

@@ -56,7 +56,7 @@ void* _allocate_thread_local_block( unsigned int size )
 		}
 	}
 	
-	log_warnf( WARNING_MEMORY, "Unable to locate thread local memory block slot, will leak %d bytes", size );
+	log_warnf( 0, WARNING_MEMORY, "Unable to locate thread local memory block slot, will leak %d bytes", size );
 	return block;
 }
 
@@ -171,7 +171,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	uint64_t id = objectmap_reserve( _thread_map );
 	if( !id )
 	{
-		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
+		log_error( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
 		return 0;
 	}
 	thread = memory_allocate_zero( sizeof( thread_t ), 0, MEMORY_PERSISTENT );
@@ -322,7 +322,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	atomic_cas32( &thread->started, 1, 0 );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
-		log_warnf( WARNING_SUSPICIOUS, "Unable to enter thread %llx, already running", thread->id );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread %llx, already running", thread->id );
 		_thread_dec_ref( thread );
 		return 0;
 	}
@@ -347,27 +347,25 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_ASSERT( thread->running == 1 );
 
-	log_debugf( "Started thread '%s' (%llx) ID %llx%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
+	log_debugf( 0, "Started thread '%s' (%llx) ID %llx%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
 
-	//On Mach systems exceptions will be caught by debugger anyway before signal handling
-#if FOUNDATION_PLATFORM_WINDOWS && BUILD_DEBUG
+	if( system_debugger_attached() )
 	{
 		thread->result = thread->fn( thread->id, thread->arg );
 	}
-#else
+	else
 	{
 		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
 		if( crash_result == CRASH_DUMP_GENERATED )
 		{
 			thread->result = (void*)((uintptr_t)CRASH_DUMP_GENERATED);
-			log_warnf( WARNING_SUSPICIOUS, "Thread '%s' (%llx) ID %llx crashed", thread->name, thread->osid, thread->id );
+			log_warnf( 0, WARNING_SUSPICIOUS, "Thread '%s' (%llx) ID %llx crashed", thread->name, thread->osid, thread->id );
 		}
 	}
-#endif
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
-	log_debugf( "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_debugf( 0, "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
 
 	thread->osid  = 0;
 
@@ -380,7 +378,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		thread->running = 0;
 	}
 
-	log_debugf( "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_debugf( 0, "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
 
 	_thread_dec_ref( thread );
 
@@ -396,13 +394,13 @@ bool thread_start( object_t id, void* data )
 	thread_t* thread = GET_THREAD( id );
 	if( !thread )
 	{
-		log_errorf( ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
+		log_errorf( 0, ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
 		return false; //Old/invalid id
 	}
 
 	if( thread->running > 0 )
 	{
-		log_warnf( WARNING_SUSPICIOUS, "Unable to start thread %llx, already running", id );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to start thread %llx, already running", id );
 		return false; //Thread already running
 	}
 
@@ -417,7 +415,7 @@ bool thread_start( object_t id, void* data )
 	thread->handle = CreateThread( 0, thread->stacksize, _thread_entry, thread, 0, &osid );
 	if( !thread->handle )
 	{
-		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
 		return false;
 	}
 #if !BUILD_DEPLOY
@@ -427,7 +425,7 @@ bool thread_start( object_t id, void* data )
 	int err = pthread_create( &thread->thread, 0, _thread_entry, thread );
 	if( err )
 	{
-		log_errorf( ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
 		return false;
 	}
 #else
@@ -528,6 +526,8 @@ bool thread_is_main( void )
 
 void thread_cleanup( void )
 {
+	_profile_thread_cleanup();
+	
 	random_thread_deallocate();
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -577,7 +577,7 @@ void thread_attach_jvm( void )
 	struct android_app* app = android_app();
 	jint result = (*app->activity->vm)->AttachCurrentThread( app->activity->vm, &app->activity->env, &attach_args );
 	if( result < 0 )
-		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to attach thread to Java VM (%d)", result );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to attach thread to Java VM (%d)", result );
 	else
 		set_thread_jvm_attached( true );
 }

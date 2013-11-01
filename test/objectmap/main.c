@@ -175,6 +175,7 @@ DECLARE_TEST( objectmap, thread )
 
 	for( ith = 0; ith < 32; ++ith )
 	{
+		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
 		thread_yield();
 	}

@@ -265,13 +265,13 @@ int process_spawn( process_t* proc )
 			sei.fMask      |= SEE_MASK_NO_CONSOLE;
 
 		if( proc->flags & PROCESS_STDSTREAMS )
-			log_warnf( WARNING_UNSUPPORTED, "Unable to redirect standard in/out through pipes when using ShellExecute for process spawning" );
+			log_warnf( 0, WARNING_UNSUPPORTED, "Unable to redirect standard in/out through pipes when using ShellExecute for process spawning" );
 
-		log_debugf( "Spawn process (ShellExecute): %s %s", proc->path, cmdline );
+		log_debugf( 0, "Spawn process (ShellExecute): %s %s", proc->path, cmdline );
 
 		if( !ShellExecuteExW( &sei ) )
 		{
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (ShellExecute) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (ShellExecute) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 		}
 		else
 		{
@@ -310,11 +310,11 @@ int process_spawn( process_t* proc )
 			inherit_handles = TRUE;
 		}
 
-		log_debugf( "Spawn process (CreateProcess): %s %s", proc->path, cmdline );
+		log_debugf( 0, "Spawn process (CreateProcess): %s %s", proc->path, cmdline );
 
 		if( !CreateProcessW( 0/*wpath*/, wcmdline, 0, 0, inherit_handles, ( proc->flags & PROCESS_CONSOLE ) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi ) )
 		{
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (CreateProcess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (CreateProcess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 
 			stream_deallocate( proc->pipeout );
 			stream_deallocate( proc->pipein );
@@ -376,12 +376,14 @@ int process_spawn( process_t* proc )
 		params.flags = kLSLaunchDefaults;
 		params.application = fsref;
 		params.argv = argvref;
+
+		log_debugf( 0, "Spawn process (LSOpenApplication): %s", pathstripped );
 		
 		status = LSOpenApplication( &params, &psn );
 		if( status != 0 )
 		{
 			proc->code = status;
-			log_warnf( WARNING_BAD_DATA, "Unable to spawn process for executable '%s': %s", proc->path, system_error_message( status ) );
+			log_warnf( 0, WARNING_BAD_DATA, "Unable to spawn process for executable '%s': %s", proc->path, system_error_message( status ) );
 		}
 		
 		CFRelease( argvref );
@@ -429,11 +431,11 @@ int process_spawn( process_t* proc )
 		//Child
 		if( string_length( proc->wd ) )
 		{
-			log_debugf( "Spawned child process, setting working directory to %s", proc->wd );
+			log_debugf( 0, "Spawned child process, setting working directory to %s", proc->wd );
 			environment_set_current_working_directory( proc->wd );
 		}
 
-		log_debugf( "Child process executing: %s", proc->path );
+		log_debugf( 0, "Child process executing: %s", proc->path );
 
 		if( proc->flags & PROCESS_STDSTREAMS )
 		{
@@ -446,7 +448,7 @@ int process_spawn( process_t* proc )
 
 		int code = execv( proc->path, proc->args );
 		if( code < 0 ) //Will always be true since this point will never be reached if execve() is successful
-			log_warnf( WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
+			log_warnf( 0, WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
 		
 		//Error
 		process_exit( -1 );
@@ -454,7 +456,7 @@ int process_spawn( process_t* proc )
 
 	if( pid > 0 )
 	{		
-		log_debugf( "Child process forked, pid %d", pid );
+		log_debugf( 0, "Child process forked, pid %d", pid );
 
 		proc->pid = pid;
 
@@ -477,7 +479,7 @@ int process_spawn( process_t* proc )
 			{
 				//Process exited, check code
 				proc->code = (int)((char)WEXITSTATUS( cstatus ));
-				log_debugf( "Child process returned: %d", proc->code );
+				log_debugf( 0, "Child process returned: %d", proc->code );
 				return proc->code;
 			}
 		}
@@ -486,7 +488,7 @@ int process_spawn( process_t* proc )
 	{
 		//Error
 		proc->code = errno;
-		log_warnf( WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
+		log_warnf( 0, WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
 
 		if( proc->pipeout )
 			stream_deallocate( proc->pipeout );
@@ -566,7 +568,7 @@ int process_wait( process_t* proc )
 #  if FOUNDATION_PLATFORM_MACOSX
 	if( proc->flags & PROCESS_OSX_USE_OPENAPPLICATION )
 	{
-		log_warnf( WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_OSX_USE_OPENAPPLICATION" );
+		log_warnf( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_OSX_USE_OPENAPPLICATION" );
 		return PROCESS_WAIT_FAILED;
 	}
 #  endif
@@ -595,7 +597,7 @@ int process_wait( process_t* proc )
 			return PROCESS_STILL_ACTIVE;
 		if( ( err < 0 ) && ( cur_errno == EINTR ) )
 			return PROCESS_WAIT_INTERRUPTED;
-		log_warnf( WARNING_BAD_DATA, "waitpid(%d) failed: %s (%d) (returned %d)", proc->pid, system_error_message( cur_errno ), cur_errno, err );
+		log_warnf( 0, WARNING_BAD_DATA, "waitpid(%d) failed: %s (%d) (returned %d)", proc->pid, system_error_message( cur_errno ), cur_errno, err );
 		return PROCESS_WAIT_FAILED;
 	}
 	

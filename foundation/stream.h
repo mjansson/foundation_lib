@@ -182,10 +182,10 @@ FOUNDATION_API unsigned int      stream_available_read( stream_t* stream );
 FOUNDATION_API uint128_t         stream_md5( stream_t* stream );
 
 /*! Put raw data to stream
-    \param p_buffer              Buffer of data to write
-    \param numBytes              Number of bytes to write
+    \param buffer                Buffer of data to write
+    \param num_bytes             Number of bytes to write
     \return                      Number of bytes written */
-FOUNDATION_API uint64_t          stream_write( stream_t* stream, const void* p_buffer, uint64_t num_bytes );
+FOUNDATION_API uint64_t          stream_write( stream_t* stream, const void* buffer, uint64_t num_bytes );
 
 /*! Put boolean to stream
     \param data                  Boolean to write */
@@ -250,3 +250,15 @@ FOUNDATION_API void              stream_truncate( stream_t* stream, uint64_t len
 /*! Flush the stream */
 FOUNDATION_API void              stream_flush( stream_t* stream );
 
+
+/*! Allocate a stream for stdout
+    \return                      Stream wrapping stdout */
+FOUNDATION_API stream_t*         stream_open_stdout( void );
+
+/*! Allocate a stream for stderr
+    \return                      Stream wrapping stderr */
+FOUNDATION_API stream_t*         stream_open_stderr( void );
+
+/*! Allocate a stream for stdin
+    \return                      Stream wrapping stdin */
+FOUNDATION_API stream_t*         stream_open_stdin( void );

@@ -254,7 +254,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 		elapsed += time_ticks_to_seconds( time_diff( test.start_time, test.end_time ) );
 	}
 	throughput = (real)( (float64_t)( mbytes * loops ) / (float64_t)elapsed );
-	log_infof( "Ringbuffer throughput: %d MiB in %.2f sec -> %.2f MiB/sec", ( loops * mbytes ), (float32_t)elapsed, (float32_t)throughput );
+	log_infof( HASH_TEST, "Ringbuffer throughput: %d MiB in %.2f sec -> %.2f MiB/sec", ( loops * mbytes ), (float32_t)elapsed, (float32_t)throughput );
 
 	elapsed = 0;
 	for( loop = 0; loop < loops; ++loop )
@@ -269,7 +269,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 		elapsed += time_ticks_to_seconds( time_diff( test.start_time, test.end_time ) );
 	}
 	throughput = (real)( (float64_t)( mbytes * loops ) / (float64_t)elapsed );
-	log_infof( "Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec", ( loops * mbytes ), (float32_t)elapsed, (float32_t)throughput );
+	log_infof( HASH_TEST, "Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec", ( loops * mbytes ), (float32_t)elapsed, (float32_t)throughput );
 
 	memory_deallocate( test.source_buffer );
 	memory_deallocate( test.dest_buffer );

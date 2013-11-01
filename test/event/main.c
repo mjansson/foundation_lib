@@ -277,6 +277,7 @@ DECLARE_TEST( event, immediate_threaded )
 	{
 		unsigned int should_have_read = (unsigned int)((uintptr_t)thread_result( thread[i] ));
 		EXPECT_EQ( read[i], should_have_read );
+		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
 	}
 
@@ -506,6 +507,7 @@ DECLARE_TEST( event, delay_threaded )
 	{
 		unsigned int should_have_read = (unsigned int)((uintptr_t)thread_result( thread[i] ));
 		EXPECT_EQ( read[i], should_have_read );
+		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
 	}
 

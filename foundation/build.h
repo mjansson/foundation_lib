@@ -102,10 +102,10 @@
 #endif
 
 #ifndef BUILD_ENABLE_PROFILE
-#if BUILD_PROFILE
+#if BUILD_DEBUG || BUILD_RELEASE || BUILD_PROFILE
 #define BUILD_ENABLE_PROFILE                  1
 #else
-#define BUILD_ENABLE_PROFILE                  1
+#define BUILD_ENABLE_PROFILE                  0
 #endif
 #endif
 
@@ -122,6 +122,14 @@
 #define BUILD_ENABLE_MEMORY_TRACKER           1
 #else
 #define BUILD_ENABLE_MEMORY_TRACKER           0
+#endif
+#endif
+
+#ifndef BUILD_ENABLE_STATIC_HASH_DEBUG
+#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#define BUILD_ENABLE_STATIC_HASH_DEBUG        1
+#else
+#define BUILD_ENABLE_STATIC_HASH_DEBUG        0
 #endif
 #endif
 
@@ -153,3 +161,6 @@
 
 // Maximum number of filesystem monitors
 #define BUILD_SIZE_FS_MONITORS                32
+
+// Maximum number of statically hashed strings stored in lookup
+#define BUILD_SIZE_STATIC_HASH_STORE          4192

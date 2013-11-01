@@ -57,12 +57,12 @@ stream_t* pipe_allocate( void )
 		security_attribs.lpSecurityDescriptor = 0;
 
 		if( !CreatePipe( &pipestream->handle_read, &pipestream->handle_write, &security_attribs, 0 ) )
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( GetLastError() ) );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( GetLastError() ) );
 	}
 #elif FOUNDATION_PLATFORM_POSIX
 	int fds[2] = { 0, 0 };
 	if( pipe( fds ) < 0 )
-		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( 0 ) );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( 0 ) );
 	else
 	{
 		pipestream->fd_read = fds[0];

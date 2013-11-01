@@ -313,7 +313,10 @@ DECLARE_TEST( random, threads )
 	test_wait_for_threads_startup( thread, 32 );
 
 	for( i = 0; i < 32; ++i )
+	{
+		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
+	}
 	
 	test_wait_for_threads_exit( thread, 32 );
 

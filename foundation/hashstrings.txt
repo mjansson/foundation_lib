@@ -13,3 +13,4 @@ HASH_MEMORY_TRACKER                     memory_tracker
 HASH_LOCAL                              local
 HASH_REMOTE                             remote
 HASH_NONE                               none
+HASH_TEST                               test

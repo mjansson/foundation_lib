@@ -17,79 +17,98 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/hashstrings.h>
 
 
 #if BUILD_ENABLE_DEBUG_LOG
 
-/*! Log formatted debug message
-    \param format       Log message format */
-FOUNDATION_API void     log_debugf( const char* message, ... );
+
+#define log_debug( context, msg )               log_debugf( context, "%s", msg )
+
+/*! Log formatted debug message in specified log context
+    \param context                              Log context
+    \param format                               Log message format */
+FOUNDATION_API void                             log_debugf( uint64_t context, const char* format, ... );
 
 #else
-#  define               log_debugf( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_debug( context, msg ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_debugf( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #endif
 
 #if BUILD_ENABLE_LOG
 
-/*! Log information message
-    \param format       Log format */
-FOUNDATION_API void     log_infof( const char* format, ... );
+#define log_info( context, msg )                log_infof( context, "%s", msg )
 
-/*! Log warning message, including the current error context
-    \param warn         Warning code
-    \param format       Log format */
-FOUNDATION_API void     log_warnf( warning_t warn, const char* format, ... );
+/*! Log information message in specified log context
+    \param context                              Log context
+    \param format                               Log format */
+FOUNDATION_API void                             log_infof( uint64_t context, const char* format, ... );
 
-/*! Log error message, including the current error context. Also calls error_report to report the error
-    \param err          Error code
-    \param format       Log format */
-FOUNDATION_API void     log_errorf( error_t err, const char* format, ... );
+#define log_warn( context, warn, msg )          log_warnf( context, warn, "%s", msg )
 
-/*! Log panic message, including the current error context. Also calls error_report to report the error
-    \param err          Error code
-    \param format       Log format */
-FOUNDATION_API void     log_panicf( error_t err, const char* format, ... );
+/*! Log warning message in specified log context, including the current error context
+    \param context                              Log context
+    \param warn                                 Warning code
+    \param format                               Log format */
+FOUNDATION_API void                             log_warnf( uint64_t context, warning_t warn, const char* format, ... );
 
-/*! Log the current error context. The log output is filtered at the given severity level
-    \param              Severity level */
-FOUNDATION_API void     log_error_context( error_level_t error_level );
+#define log_error( context, err, msg )          log_errorf( context, err, "%s", msg )
 
-/*! Control log output to stdout
-    \param enable       Flag to enable/disable output to stdout */
-FOUNDATION_API void     log_stdout( bool enable );
+/*! Log error message in specified log context, including the current error context. Also calls error_report to report the error
+    \param context                              Log context
+    \param err                                  Error code
+    \param format                               Log format */
+FOUNDATION_API void                             log_errorf( uint64_t context, error_t err, const char* format, ... );
+
+#define log_panic( context, err, msg )          log_panicf( context, err, "%s", msg )
+
+/*! Log panic message in the specified log context, including the current error context. Also calls error_report to report the error
+    \param context                              Log context
+    \param err                                  Error code
+    \param format                               Log format */
+FOUNDATION_API void                             log_panicf( uint64_t context, error_t err, const char* format, ... );
+
+/*! Log the current error context in the specified log context. The log output is filtered at the given severity level
+    \param context                              Log context
+    \param error_level                          Severity level */
+FOUNDATION_API void                             log_error_context( uint64_t context, error_level_t error_level );
 
 /*! Set log callback
-    \param callback     New callback */
-FOUNDATION_API void     log_set_callback( log_callback_fn callback );
+    \param callback                             New callback */
+FOUNDATION_API void                             log_set_callback( log_callback_fn callback );
+
+/*! Control log output to stdout
+    \param enable                               Flag to enable/disable output to stdout */
+FOUNDATION_API void                             log_enable_stdout( bool enable );
 
 /*! Control output of prefix information
-    \param enable       Flag to enable/disable prefix output */
-FOUNDATION_API void     log_enable_prefix( bool enable );
+    \param enable                               Flag to enable/disable prefix output */
+FOUNDATION_API void                             log_enable_prefix( bool enable );
 
 /*! Control log suppression based on severity level. Any messages at the
     given severity level or lower will be filtered and discarded.
-    \param level        Severity level to discard */
-FOUNDATION_API void     log_suppress( error_level_t level );
+    \param context                              Log context
+    \param level                                Severity level to discard */
+FOUNDATION_API void                             log_set_suppress( uint64_t context, error_level_t level );
 
 /*! Get current log supression level
-    \return             Severity level begin discarded */
-FOUNDATION_API error_level_t  log_get_suppression( void );
+    \param context                              Log context
+    \return                                     Severity level begin discarded */
+FOUNDATION_API error_level_t                    log_suppress( uint64_t context );
 
 #else
-#  define               log_infof( msg, ... ) /*lint -save -e717 */ do { (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               log_warnf( warn, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               log_errorf( err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               log_panicf( err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define               log_error_context( error_level ) /*lint -save -e717 */ do { (void)sizeof( error_level ); } while(0) /*lint -restore */
-#  define               log_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
-#  define               log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( callback ); } while(0) /*lint -restore */
-#  define               log_enable_prefix( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
-#  define               log_suppress( level ) /*lint -save -e717 */ do { (void)sizeof( level ); } while(0) /*lint -restore */
-#  define               log_get_suppression() ERRORLEVEL_NONE
+#  define log_info( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_infof( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_warn( context, warn, msg ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_warnf( context, warn, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_error( context, err, msg ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_errorf( context, err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_panic( context, err, msg ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_panicf( context, err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_error_context( context, error_level ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( error_level ); } while(0) /*lint -restore */
+#  define log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( callback ); } while(0) /*lint -restore */
+#  define log_enable_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
+#  define log_enable_prefix( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
+#  define log_set_suppress( context, level ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( level ); } while(0) /*lint -restore */
+#  define log_suppress( context ) ERRORLEVEL_NONE
 #endif
-
-#define log_debug( msg ) log_debugf( "%s", msg )
-#define log_info( msg ) log_infof( "%s", msg )
-#define log_warn( msg ) log_warnf( "%s", msg )
-#define log_error( msg ) log_errorf( "%s", msg )
-#define log_panic( msg ) log_panicf( "%s", msg )

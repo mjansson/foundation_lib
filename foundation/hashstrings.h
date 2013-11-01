@@ -1,6 +1,6 @@
 #pragma once
 
-#include <foundation/foundation.h>
+#include <foundation/hash.h>
 
 /* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
     Edit corresponding definitions file and rerun
@@ -20,3 +20,4 @@
 #define HASH_LOCAL static_hash_string( "local", 0xd17754fcf40a2974ULL )
 #define HASH_REMOTE static_hash_string( "remote", 0x4d4ee1b3734e2c5cULL )
 #define HASH_NONE static_hash_string( "none", 0xa90768116f8af366ULL )
+#define HASH_TEST static_hash_string( "test", 0x74326336c500c367ULL )

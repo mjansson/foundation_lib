@@ -11,6 +11,8 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
+
 
 #if FOUNDATION_COMPILER_MSVC
 #  pragma intrinsic(_rotl)
@@ -175,103 +177,72 @@ hash_t hash( const void* key, const unsigned int len )
 }
 
 
-#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#if BUILD_ENABLE_STATIC_HASH_DEBUG
 
-#define HASH_STRING_BUCKETS		17
-#define HASH_STRING_KEY_BUCKETS	7
 
-typedef struct ALIGN(16) _hash_string
+static hashtable64_t* _hash_lookup = 0;
+
+
+void _static_hash_initialize( void )
 {
-	hash_t              value;
-	char*               string;
-} hash_string_t;
+	_hash_lookup = hashtable64_allocate( BUILD_SIZE_STATIC_HASH_STORE + 1 );
+}
 
-typedef struct ALIGN(16) _hash_string_bucket
+
+void _static_hash_shutdown( void )
 {
-	hash_string_t*      key[HASH_STRING_KEY_BUCKETS];
-} hash_string_bucket_t;
-
-FOUNDATION_STATIC_ASSERT( ( sizeof( hash_string_t ) % 16 ) == 0, hash_string_align );
-FOUNDATION_STATIC_ASSERT( ( sizeof( hash_string_bucket_t ) % 16 ) == 0, hash_string_bucket_align );
-
-static hash_string_bucket_t* _hash_string_bucket[HASH_STRING_BUCKETS] = {0};
-
-
-void _static_hash_cleanup( void )
-{
-	int ib, ik, ia, asize;
-	for( ib = 0; ib < HASH_STRING_BUCKETS; ++ib )
+	unsigned int slot;
+	for( slot = 0; slot < BUILD_SIZE_STATIC_HASH_STORE + 1; ++slot )
 	{
-		hash_string_bucket_t* bucket = _hash_string_bucket[ ib ];
-		if( !bucket )
-			continue;
-
-		for( ik = 0; ik < HASH_STRING_KEY_BUCKETS; ++ik )
-		{
-			hash_string_t* key_array = bucket->key[ ik ];
-			for( ia = 0, asize = array_size( key_array ); ia < asize; ++ia )
-				memory_deallocate( key_array[ia].string );
-			array_deallocate( key_array );
-		}
-
-		memory_deallocate( bucket );
+		char* str = (char*)((uintptr_t)hashtable64_raw( _hash_lookup, slot ));
+		if( str )
+			string_deallocate( str );
 	}
-
-	memset( _hash_string_bucket, 0, sizeof( hash_string_bucket_t* ) * HASH_STRING_BUCKETS );
+	
+	hashtable64_deallocate( _hash_lookup );
+	_hash_lookup = 0;
 }
 
 
 void _static_hash_store( const void* key, const unsigned int len, const hash_t value )
 {
-	hash_string_t new_string;
-	hash_string_bucket_t* bucket;
-	hash_string_t* key_array;
-	const char* key_string;
-	int ia, asize;
+	const char* stored;
 
-	//TODO: Thread safeness
-	bucket = _hash_string_bucket[ value % HASH_STRING_BUCKETS ];
-	if( !bucket )
+	if( !_hash_lookup )
+		return;
+
+	stored = (const char*)((uintptr_t)hashtable64_get( _hash_lookup, value ));
+	if( stored )
 	{
-		bucket = memory_allocate_zero( sizeof( hash_string_bucket_t ), 16, MEMORY_PERSISTENT );
-		_hash_string_bucket[ value % HASH_STRING_BUCKETS ] = bucket;
+		FOUNDATION_ASSERT_MSG( string_equal_substr( stored, key, len ), "Static hash collision" );
+		FOUNDATION_ASSERT_MSG( string_length( stored ) == len, "Static hash collision" );
+		return;
 	}
 
-	key_string = (const char*)key;
-	key_array = bucket->key[ value % HASH_STRING_KEY_BUCKETS ];
-	for( ia = 0, asize = array_size( key_array ); ia < asize; ++ia )
-	{
-		if( key_array[ia].value == value )
-		{
-			FOUNDATION_ASSERT_MSG( string_equal_substr( key_array[ia].string, key_string, len ), "Static hash collision" );
-			FOUNDATION_ASSERT_MSG( string_length( key_array[ia].string ) == len, "Static hash collision" );
-			return;
-		}
-	}
-
-	new_string.value = value;
-	new_string.string = string_substr( key_string, 0, len );
-	array_push_memcpy( key_array, &new_string );
-	bucket->key[ value % HASH_STRING_KEY_BUCKETS ] = key_array;
+	stored = string_substr( key, 0, len );
+	hashtable64_set( _hash_lookup, value, (uint64_t)(uintptr_t)stored );
 }
 
 
 const char* hash_to_string( const hash_t value )
 {
-	int ia, asize;
-	hash_string_t* key_array;
-	hash_string_bucket_t* bucket;
-	
-	bucket = _hash_string_bucket[ value % HASH_STRING_BUCKETS ];
-	if( !bucket )
+	if( !_hash_lookup )
 		return 0;
-	key_array = bucket->key[ value % HASH_STRING_KEY_BUCKETS ];
-	for( ia = 0, asize = array_size( key_array ); ia < asize; ++ia )
-	{
-		if( key_array[ia].value == value )
-			return key_array[ia].string;
-	}
-	return 0;
+
+	return (const char*)(uintptr_t)hashtable64_get( _hash_lookup, value );
+}
+
+
+#else
+
+
+void _static_hash_initialize( void )
+{
+}
+
+
+void _static_hash_shutdown( void )
+{
 }
 
 

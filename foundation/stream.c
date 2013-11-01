@@ -44,17 +44,15 @@ stream_t* stream_open( const char* path, unsigned int mode )
 #endif
 		if( ( protocol_end == 4 ) && string_equal_substr( path, "file", 4 ) )
 			return fs_open_file( path, mode );
-		//else if( ( protocol_end == 10 ) && string_equal_substr( path, "ringbuffer", protocol_end ) )
-		//	ringbuffer_stream_open( ... );
-		//else if( ( protocol_end == 3 ) && string_equal_substr( path, "tcp", protocol_end ) )
-		//	socket_tcp_connect( ... );
-		//else if( ( protocol_end == 3 ) && string_equal_substr( path, "udp", protocol_end ) )
-		//	socket_udp_open( ... );
-		//else if( ( protocol_end == 4 ) && string_equal_substr( path, "http", protocol_end ) )
-		//	http_get( ... );
+		else if( ( protocol_end == 4 ) && string_equal_substr( path, "stdout", 4 ) )
+			return stream_open_stdout();
+		else if( ( protocol_end == 4 ) && string_equal_substr( path, "stderr", 4 ) )
+			return stream_open_stderr();
+		else if( ( protocol_end == 4 ) && string_equal_substr( path, "stdin", 4 ) )
+			return stream_open_stdin();
 		else if( ( protocol_end != 3 ) || !string_equal_substr( path, "vfs", protocol_end ) )
 		{
-			log_errorf( ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
+			log_errorf( 0, ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
 			return 0;
 		}
 	}
@@ -141,7 +139,7 @@ bool stream_is_inorder( const stream_t* stream )
 
 bool stream_eos( stream_t* stream )
 {
-	return ( stream && stream->vtable->eos ? stream->vtable->eos( stream ) : true );
+	return ( stream && stream->vtable->eos ? stream->vtable->eos( stream ) : false );
 }
 
 
@@ -180,8 +178,7 @@ void stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction
 int64_t stream_tell( stream_t* stream )
 {
 	FOUNDATION_ASSERT( stream );
-	FOUNDATION_ASSERT( stream->vtable->tell );
-	return stream->vtable->tell( stream );
+	return stream->vtable->tell ? stream->vtable->tell( stream ) : 0;
 }
 
 
@@ -1011,3 +1008,147 @@ void stream_flush( stream_t* stream )
 		stream->vtable->flush( stream );
 }
 
+
+#include <stdio.h>
+
+typedef struct ALIGN(8) _foundation_stdstream
+{
+	FOUNDATION_DECLARE_STREAM;
+	void*              std;
+	bool               eos;
+} stream_std_t;
+
+
+static uint64_t  _stream_stdin_read( stream_t*, void*, uint64_t );
+static uint64_t  _stream_stdout_write( stream_t*, const void*, uint64_t );
+static void      _stream_stdout_flush( stream_t* );
+static stream_t* _stream_std_clone( stream_t* );
+static bool      _stream_stdin_eos( stream_t* );
+
+static stream_vtable_t _stream_stdout_vtable = {
+	0,
+	_stream_stdout_write,
+	0,
+	_stream_stdout_flush,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	_stream_std_clone
+};
+
+
+static stream_vtable_t _stream_stdin_vtable = {
+	_stream_stdin_read,
+	0,
+	_stream_stdin_eos,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	_stream_std_clone
+};
+
+
+stream_t* stream_open_stdout( void )
+{
+	stream_std_t* stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	_stream_initialize( (stream_t*)stream, system_byteorder() );
+	stream->sequential = 1;
+	stream->mode = STREAM_OUT;
+	stream->type = STREAMTYPE_STDSTREAM;
+	stream->vtable = &_stream_stdout_vtable;
+	stream->path = string_clone( "stdout://" );
+	stream->std = stdout;
+	return (stream_t*)stream;
+}
+
+
+stream_t* stream_open_stderr( void )
+{
+	stream_std_t* stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	_stream_initialize( (stream_t*)stream, system_byteorder() );
+	stream->sequential = 1;
+	stream->mode = STREAM_OUT;
+	stream->type = STREAMTYPE_STDSTREAM;
+	stream->vtable = &_stream_stdout_vtable;
+	stream->path = string_clone( "stderr://" );
+	stream->std = stderr;
+	return (stream_t*)stream;
+}
+
+
+stream_t* stream_open_stdin( void )
+{
+	stream_std_t* stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	_stream_initialize( (stream_t*)stream, system_byteorder() );
+	stream->sequential = 1;
+	stream->mode = STREAM_IN;
+	stream->type = STREAMTYPE_STDSTREAM;
+	stream->vtable = &_stream_stdin_vtable;
+	stream->path = string_clone( "stdin://" );
+	stream->std = stdin;
+	return (stream_t*)stream;
+}
+
+
+static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t size )
+{
+	stream_std_t* stdstream = (stream_std_t*)stream;
+	char* bytebuffer = (char*)buffer;
+	uint64_t read = 0;
+
+	stdstream->eos = false;
+
+	while( read < size )
+	{
+		int c = getc( stdstream->std );
+		if( c == EOF )
+		{
+			stdstream->eos = true;
+			break;
+		}
+		bytebuffer[read++] = (char)c;
+	}
+	return read;
+}
+
+
+static uint64_t _stream_stdout_write( stream_t* stream, const void* buffer, uint64_t size )
+{
+	stream_std_t* stdstream = (stream_std_t*)stream;
+	uint64_t was_written = fwrite( buffer, 1, size, stdstream->std );
+	return was_written;
+}
+
+
+static void _stream_stdout_flush( stream_t* stream )
+{
+	fflush( ((stream_std_t*)stream)->std );
+}
+
+
+static stream_t* _stream_std_clone( stream_t* stream )
+{
+	stream_std_t* clone = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	memcpy( clone, stream, sizeof( stream_std_t ) );
+	clone->path = string_clone( stream->path );
+	return (stream_t*)clone;
+}
+
+
+static bool _stream_stdin_eos( stream_t* stream )
+{
+	return ((stream_std_t*)stream)->eos;
+}

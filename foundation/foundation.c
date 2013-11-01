@@ -34,6 +34,11 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _memory_initialize( memory ) < 0 )
 		return -1;
 
+	_static_hash_initialize();
+	
+	if( _log_initialize() < 0 )
+		return -1;
+
 	if( _time_initialize() < 0 )
 		return -1;
 
@@ -65,9 +70,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 		for( iarg = 0, argsize = array_size( cmdline ); iarg < argsize; ++iarg )
 		{
 			if( string_equal( cmdline[iarg], "--log-debug" ) )
-				log_suppress( ERRORLEVEL_NONE );
+				log_set_suppress( 0, ERRORLEVEL_NONE );
 			else if( string_equal( cmdline[iarg], "--log-info" ) )
-				log_suppress( ERRORLEVEL_DEBUG );
+				log_set_suppress( 0, ERRORLEVEL_DEBUG );
 		}
 
 		config_parse_commandline( cmdline, array_size( cmdline ) );
@@ -97,6 +102,8 @@ void foundation_shutdown( void )
 {
 	_foundation_initialized = false;
 
+	profile_shutdown();
+	
 	_config_shutdown();
 	_fs_shutdown();
 	_system_shutdown();
@@ -105,11 +112,8 @@ void foundation_shutdown( void )
 	_random_shutdown();
 	_thread_shutdown();
 	_time_shutdown();
-
-#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
-	_static_hash_cleanup();
-#endif
-	
+	_log_shutdown();
+	_static_hash_shutdown();
 	_memory_shutdown();
 }
 

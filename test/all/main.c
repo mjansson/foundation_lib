@@ -21,13 +21,14 @@ void* event_thread( object_t thread, void* arg )
 	while( !thread_should_terminate( thread ) )
 	{
 		block = event_stream_process( system_event_stream() );
+		event = 0;
 
-		while( ( event = event_next( block, 0 ) ) )
+		while( ( event = event_next( block, event ) ) )
 		{
 			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
 			{
 				case FOUNDATIONEVENT_TERMINATE:
-					log_warnf( WARNING_SUSPICIOUS, "Terminating tests due to event" );
+					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating tests due to event" );
 					process_exit( -2 );
 					break;
 
@@ -50,6 +51,8 @@ int main_initialize( void )
 	application.short_name = "test_all";
 	application.config_dir = "test_all";
 	application.flags = APPLICATION_UTILITY;
+
+	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	
 	return foundation_initialize( memory_system_malloc(), application );
 }
@@ -78,6 +81,7 @@ extern int test_md5_run( void );
 extern int test_mutex_run( void );
 extern int test_objectmap_run( void );
 extern int test_path_run( void );
+extern int test_profile_run( void );
 extern int test_radixsort_run( void );
 extern int test_random_run( void );
 extern int test_ringbuffer_run( void );
@@ -126,6 +130,7 @@ int main_run( void* main_arg )
 		test_mutex_run,
 		test_objectmap_run,
 		test_path_run,
+		test_profile_run,
 		test_radixsort_run,
 		test_random_run,
 		test_ringbuffer_run,
@@ -141,14 +146,14 @@ int main_run( void* main_arg )
 		if( process_result >= 0 )
 		{
 			if( ( process_result = tests[test_fn]() ) >= 0 )
-				log_infof( "All tests passed (%d)", process_result );
+				log_infof( HASH_TEST, "All tests passed (%d)", process_result );
 		}
 		++test_fn;
 	} while( tests[test_fn] && ( process_result >= 0 ) );
 
 	if( process_result != 0 )
 	{
-		log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 	}
 	
 #else
@@ -182,7 +187,7 @@ int main_run( void* main_arg )
 		process_set_working_directory( process, environment_executable_directory() );
 		process_set_flags( process, PROCESS_ATTACHED );
 		
-		log_infof( "Running test executable: %s", exe_paths[iexe] );
+		log_infof( HASH_TEST, "Running test executable: %s", exe_paths[iexe] );
 
 		process_result = process_spawn( process );
 		while( process_result == PROCESS_WAIT_INTERRUPTED )
@@ -197,17 +202,17 @@ int main_run( void* main_arg )
 		if( process_result != 0 )
 		{
 			if( process_result >= PROCESS_INVALID_ARGS )
-				log_warnf( WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
+				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
 			else
-				log_warnf( WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 			process_set_exit_code( -1 );
 			goto exit;
 		}
 
-		log_infof( "All tests from %s passed (%d)", exe_paths[iexe], process_result );
+		log_infof( HASH_TEST, "All tests from %s passed (%d)", exe_paths[iexe], process_result );
 	}
 
-	log_infof( "All tests passed" );
+	log_info( HASH_TEST, "All tests passed" );
 
 exit:
 

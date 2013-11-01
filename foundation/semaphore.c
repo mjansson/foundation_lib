@@ -100,7 +100,7 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 	int ret = MPCreateSemaphore( 0xFFFF, value, &semaphore->sem.unnamed );
 	if( ret < 0 )
 	{
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to initialize unnamed semaphore: %s", system_error_message( 0 ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize unnamed semaphore: %s", system_error_message( 0 ) );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize unnamed semaphore" );
 		return;
 	}
@@ -120,7 +120,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 		
 	if( sem == SEM_FAILED )
 	{
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
 	}
 
@@ -158,9 +158,9 @@ bool semaphore_wait( semaphore_t* semaphore )
 		{
 			//Don't report error if interrupted
 			if( errno != EINTR )
-				log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( 0 ) );
+				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( 0 ) );
 			else
-				log_infof( "Semaphore wait interrupted by signal" );
+				log_info( 0, "Semaphore wait interrupted by signal" );
 			return false;
 		}
 	}
@@ -225,7 +225,7 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 	if( !*semaphore )
 	{
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore" );
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
 	}
 }
 
@@ -275,7 +275,7 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 	if( sem_init( (native_sem_t*)&semaphore->unnamed, 0, value ) )
 	{
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore" );
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize semaphore: %s", system_error_message( 0 ) );
 	}
 
 	semaphore->sem = &semaphore->unnamed;
@@ -295,7 +295,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 		
 	if( sem == SEM_FAILED )
 	{
-		log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
 	}
 

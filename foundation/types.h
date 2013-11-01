@@ -40,18 +40,17 @@ typedef enum
 	ERROR_UNSUPPORTED,
 	ERROR_NOT_IMPLEMENTED,
 	ERROR_OUT_OF_MEMORY,
-	ERROR_INTERNAL_FAILURE,
-	ERROR_MALLOC_FAILURE,
 	ERROR_MEMORY_LEAK,
+	ERROR_MEMORY_ALIGNMENT,
+	ERROR_INTERNAL_FAILURE,
 	ERROR_ACCESS_DENIED,
 	ERROR_EXCEPTION,
 	ERROR_SYSTEM_CALL_FAIL,
-	ERROR_SCRIPT,
 	ERROR_UNKNOWN_TYPE,
 	ERROR_UNKNOWN_RESOURCE,
-	ERROR_MEMORY_ALIGNMENT,
 	ERROR_DEPRECATED,
 	ERROR_ASSERT,
+	ERROR_SCRIPT,
 
 	ERROR_LAST_BUILTIN
 } error_t;
@@ -65,9 +64,9 @@ typedef enum
 	WARNING_MEMORY,
 	WARNING_UNSUPPORTED,
 	WARNING_SUSPICIOUS,
-	WARNING_SCRIPT,
 	WARNING_SYSTEM_CALL_FAIL,
 	WARNING_DEADLOCK,
+	WARNING_SCRIPT,
 
 	WARNING_LAST_BUILTIN
 } warning_t;
@@ -160,7 +159,8 @@ typedef enum
 	STREAMTYPE_SOCKET,
 	STREAMTYPE_RINGBUFFER,
 	STREAMTYPE_ASSET,
-	STREAMTYPE_PIPE
+	STREAMTYPE_PIPE,
+	STREAMTYPE_STDSTREAM
 } stream_type_t;
 
 //! Stream seek directions
@@ -257,7 +257,7 @@ typedef enum
 
 typedef enum
 {
-	BLOWFISH_ECB,
+	BLOWFISH_ECB = 0,
 	BLOWFISH_CBC,
 	BLOWFISH_CFB,
 	BLOWFISH_OFB
@@ -265,7 +265,7 @@ typedef enum
 
 typedef enum
 {
-	RADIXSORT_INT32,
+	RADIXSORT_INT32 = 0,
 	RADIXSORT_UINT32,
 	RADIXSORT_INT64,
 	RADIXSORT_UINT64,
@@ -300,7 +300,7 @@ typedef int           (* error_callback_fn )( error_level_t level, error_t error
 typedef int           (* assert_handler_fn )( const char* condition, const char* file, int line, const char* msg );
 
 //! Log output callback
-typedef void          (* log_callback_fn )( int severity, const char* msg );
+typedef void          (* log_callback_fn )( uint64_t context, int severity, const char* msg );
 
 //! Subsystem initialization
 typedef int           (* system_initialize_fn )( void );
@@ -318,6 +318,9 @@ typedef void          (* memory_untrack_fn )( void* );
 
 //! Callback function for writing profiling data to a stream
 typedef void          (* profile_write_fn)( void*, uint64_t );
+
+//! Callback function for reading profiling data from a stream
+typedef void          (* profile_read_fn)( void*, uint64_t );
 
 //! Thread execution function
 typedef void*         (* thread_fn)( object_t, void* );

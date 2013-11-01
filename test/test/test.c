@@ -47,12 +47,14 @@ void* test_event_thread( object_t thread, void* arg )
 	while( !thread_should_terminate( thread ) )
 	{
 		block = event_stream_process( system_event_stream() );
-		while( ( event = event_next( block, 0 ) ) )
+		event = 0;
+
+		while( ( event = event_next( block, event ) ) )
 		{
 			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
 			{
 				case FOUNDATIONEVENT_TERMINATE:
-					log_warnf( WARNING_SUSPICIOUS, "Terminating test due to event" );
+					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating test due to event" );
 					process_exit( -2 );
 					break;
 
@@ -102,7 +104,7 @@ void test_run( void )
 	void* result = 0;
 	object_t thread_event = 0;
 
-	log_infof( "Running test suite: %s", test_suite.application().short_name );
+	log_infof( HASH_TEST, "Running test suite: %s", test_suite.application().short_name );
 
 	_test_failed = false;
 
@@ -116,19 +118,19 @@ void test_run( void )
 	
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
-		log_infof( "Running tests from group %s", _test_groups[ig]->name );
+		log_infof( HASH_TEST, "Running tests from group %s", _test_groups[ig]->name );
 		for( ic = 0, csize = array_size( _test_groups[ig]->cases ); ic < csize; ++ic )
 		{
-			log_infof( "  Running %s tests", _test_groups[ig]->cases[ic]->name );
+			log_infof( HASH_TEST, "  Running %s tests", _test_groups[ig]->cases[ic]->name );
 			result = _test_groups[ig]->cases[ic]->fn();
 			if( result != 0 )
 			{
-				log_warnf( WARNING_SUSPICIOUS, "    FAILED" );
+				log_warn( HASH_TEST, WARNING_SUSPICIOUS, "    FAILED" );
 				_test_failed = true;
 			}
 			else
 			{
-				log_infof( "    PASSED" );
+				log_info( HASH_TEST, "    PASSED" );
 			}
 		}
 	}
@@ -138,7 +140,7 @@ void test_run( void )
 	while( thread_is_running( thread_event ) || thread_is_thread( thread_event ) )
 		thread_yield();
 
-	log_infof( "Finished test suite: %s", test_suite.application().short_name );
+	log_infof( HASH_TEST, "Finished test suite: %s", test_suite.application().short_name );
 }
 
 
@@ -182,7 +184,8 @@ int test_run_all( void )
 
 int main_initialize( void )
 {
-	log_suppress( ERRORLEVEL_DEBUG );
+	log_set_suppress( 0, ERRORLEVEL_INFO );
+	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
 	test_suite = test_suite_define();
 	

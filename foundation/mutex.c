@@ -133,6 +133,11 @@ bool mutex_try_lock( mutex_t* mutex )
 {
 	bool was_locked = false;
 	FOUNDATION_ASSERT( mutex );
+
+#if !BUILD_DEPLOY
+	profile_trylock( mutex->name );
+#endif
+	
 #if FOUNDATION_PLATFORM_WINDOWS
 	was_locked = TryEnterCriticalSection( (CRITICAL_SECTION*)mutex->csection );
 #elif FOUNDATION_PLATFORM_POSIX
@@ -193,7 +198,7 @@ bool mutex_unlock( mutex_t* mutex )
 
 	if( !mutex->lockcount )
 	{
-		log_warnf( WARNING_SUSPICIOUS, "Unable to unlock unlocked mutex %s", mutex->name );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to unlock unlocked mutex %s", mutex->name );
 		return false;
 	}
 	
@@ -230,6 +235,10 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 	FOUNDATION_ASSERT( mutex );
 #if FOUNDATION_PLATFORM_WINDOWS
 
+#if !BUILD_DEPLOY
+	profile_wait( mutex->name );
+#endif
+
 	atomic_incr32( &mutex->waiting );
 
 	ret = WaitForSingleObject( mutex->event, ( timeout == 0 ) ? INFINITE : timeout );
@@ -265,7 +274,7 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		}
 		else
 		{
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to wait on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to wait on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
 		}
 	}
 	else
@@ -286,7 +295,7 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		}
 		else if( ret != ETIMEDOUT )
 		{
-			log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to wait (timed) on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to wait (timed) on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
 		}
 	}
 
@@ -310,6 +319,10 @@ void mutex_signal( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
 
+#if !BUILD_DEPLOY
+	profile_signal( mutex->name );
+#endif
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	SetEvent( mutex->event );
@@ -321,7 +334,7 @@ void mutex_signal( mutex_t* mutex )
 
 	int ret = pthread_cond_broadcast( &mutex->cond );
 	if( ret != 0 )
-		log_warnf( WARNING_SYSTEM_CALL_FAIL, "Unable to signal mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to signal mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
 
 	mutex_unlock( mutex );
 

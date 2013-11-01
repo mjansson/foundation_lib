@@ -36,7 +36,7 @@ BOOL STDCALL _main_console_handler( DWORD control_type )
 		case CTRL_SHUTDOWN_EVENT:  control_name = "CTRL_SHUTDOWN"; post_terminate = true; break;
 		default:                   handled = false; break;
 	}
-	log_infof( "Caught console control: %s (%d)", control_name, control_type );
+	log_infof( 0, "Caught console control: %s (%d)", control_name, control_type );
 	if( post_terminate )
 	{
 		unsigned long level = 0, flags = 0;
@@ -127,7 +127,7 @@ static void sighandler( int sig )
 		case SIGINT:  signame = "SIGINT"; break;
 		default: break;
 	}
-	log_infof( "Caught signal: %s (%d)", signame, sig );
+	log_infof( 0, "Caught signal: %s (%d)", signame, sig );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
 	//process_exit( -1 );
 }
