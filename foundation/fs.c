@@ -552,6 +552,20 @@ void fs_touch( const char* path )
 }
 
 
+stream_t* fs_temporary_file( void )
+{
+	stream_t* tempfile;
+	char* filename = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 )  );
+
+	fs_make_directory( environment_temporary_directory() );
+	tempfile = fs_open_file( filename, STREAM_OUT );
+
+	string_deallocate( filename );
+
+	return tempfile;
+}
+
+
 char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 {
 	char** names = 0;
