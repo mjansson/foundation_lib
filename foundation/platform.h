@@ -744,7 +744,7 @@ FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 static _pthread_key_t _##name##_key = 0; \
 static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, init ); return _##name##_key; } \
 static FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
-static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)val ); }
+static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
 static _pthread_key_t _##name##_key = 0; \

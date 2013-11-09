@@ -33,20 +33,20 @@ extern int app_main( void* arg );
 
 + (void)startMainThread:(void*)arg
 {
-	log_debug( "Started main thread" );
+	log_debug( 0, "Started main thread" );
 
 	@autoreleasepool
 	{
 		[FoundationAppDelegate referenceClass];
 
-		log_debug( "Waiting for application init" );
+		log_debug( 0, "Waiting for application init" );
 		while( !NSApp || ![NSApp isRunning] )
 			thread_sleep( 50 );
 		thread_sleep( 1 );
 
-		log_debug( "Application init done, launching main" );
+		log_debug( 0, "Application init done, launching main" );
 		if( ![NSThread isMultiThreaded] )
-			log_warnf( WARNING_SUSPICIOUS, "Application is STILL not multithreaded!" );
+			log_warn( 0, WARNING_SUSPICIOUS, "Application is STILL not multithreaded!" );
     }
 	
 	{
@@ -71,7 +71,7 @@ extern int app_main( void* arg );
     
 	@autoreleasepool
 	{
-		log_debug( "Calling application terminate" );
+		log_debug( 0, "Calling application terminate" );
 		[NSApp terminate:nil];
 	
 		[NSThread exit];
@@ -84,7 +84,7 @@ void _delegate_start_main_ns_thread( int argc, char** argv )
 {
 	@autoreleasepool
 	{
-		log_debug( "Starting main thread" );
+		log_debug( 0, "Starting main thread" );
 		[NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil];
 	}
 }
@@ -107,7 +107,7 @@ void* _delegate_nswindow( void )
 
 + (void)referenceClass
 {
-	log_debug( "FoundationAppDelegate class referenced" );
+	log_debug( 0, "FoundationAppDelegate class referenced" );
 }
 
 
@@ -115,7 +115,7 @@ void* _delegate_nswindow( void )
 {
 	//[application setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 	_delegate = self;
-	log_debug( "Application finished launching" );
+	log_debug( 0, "Application finished launching" );
 	//_app_did_finish_launching();
 }
 
@@ -126,20 +126,20 @@ void* _delegate_nswindow( void )
 
 - (void)applicationDidBecomeActive:(NSApplication*)application
 {
-	log_debug( "Application became active" );	
+	log_debug( 0, "Application became active" );
 	_delegate_app = application;
 	//_app_did_become_active();
 }
 
 - (void)applicationWillTerminate:(NSApplication*)application
 {
-	log_debug( "Application will terminate" );
+	log_debug( 0, "Application will terminate" );
 	//_app_will_terminate();
 }
 
 - (void) dealloc
 {
-	log_debug( "Application dealloc" );
+	log_debug( 0, "Application dealloc" );
 	
 	_delegate_app = 0;
 	_delegate = 0;
@@ -172,7 +172,7 @@ void* _delegate_uiwindow( void )
 {
 	//[application setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 	_delegate = self;
-	log_infof( "Application finished launching" );
+	log_info( 0, "Application finished launching" );
 	//_app_did_finish_launching();
 }
 
@@ -185,7 +185,7 @@ void* _delegate_uiwindow( void )
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
-	log_infof( "Application became active" );	
+	log_info( 0, "Application became active" );
 	_delegate_app = application;
 	//_app_did_become_active();
 }
@@ -193,14 +193,14 @@ void* _delegate_uiwindow( void )
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
-	log_infof( "Application will terminate" );
+	log_info( 0, "Application will terminate" );
 	//_app_will_terminate();
 }
 
 
 - (void) dealloc
 {
-	log_infof( "Application dealloc" );
+	log_info( 0, "Application dealloc" );
 
 	_delegate_app = 0;
 	_delegate = 0;
