@@ -98,6 +98,10 @@
 #  define FOUNDATION_PLATFORM_ARCH_ARM7 0
 #  define FOUNDATION_PLATFORM_ARCH_ARM8 0
 #endif
+#ifndef  FOUNDATION_PLATFORM_ARCH_ARM_64
+#  define FOUNDATION_PLATFORM_ARCH_ARM_64 0
+#  define FOUNDATION_PLATFORM_ARCH_ARM8_64 0
+#endif
 #ifndef  FOUNDATION_PLATFORM_ARCH_X86
 #  define FOUNDATION_PLATFORM_ARCH_X86 0
 #endif
@@ -226,6 +230,11 @@
 #        define FOUNDATION_PLATFORM_ARCH_ARM8 1
 #        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
 #        error ARMv8 not yet supported
+#      elif defined( __ARM64_ARCH_8__ )
+#        undef  FOUNDATION_PLATFORM_ARCH_ARM8_64
+#        define FOUNDATION_PLATFORM_ARCH_ARM8_64 1
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
+#        error ARMv8 not yet supported
 #      elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
 #        undef  FOUNDATION_PLATFORM_ARCH_ARM7
 #        define FOUNDATION_PLATFORM_ARCH_ARM7 1
@@ -237,6 +246,16 @@
 #        undef  FOUNDATION_PLATFORM_ARCH_ARM6
 #        define FOUNDATION_PLATFORM_ARCH_ARM6 1
 #        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv6"
+#      else
+#        error Unrecognized ARM architecture
+#      endif
+#    elif defined( __arm64__ ) || FOUNDATION_PLATFORM_ARCH_ARM_64
+#      undef  FOUNDATION_PLATFORM_ARCH_ARM_64
+#      define FOUNDATION_PLATFORM_ARCH_ARM_64 1
+#      if defined( __ARM64_ARCH_8__ )
+#        undef  FOUNDATION_PLATFORM_ARCH_ARM8_64
+#        define FOUNDATION_PLATFORM_ARCH_ARM8_64 1
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARM64v8"
 #      else
 #        error Unrecognized ARM architecture
 #      endif
@@ -646,7 +665,7 @@ typedef   float32_t         real;
 #endif
 
 //Pointer size
-#if FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64 || FOUNDATION_PLATFORM_ARCH_IA64
+#if FOUNDATION_PLATFORM_ARCH_ARM_64 || FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64 || FOUNDATION_PLATFORM_ARCH_IA64
 #  define FOUNDATION_PLATFORM_POINTER_SIZE 8
 #else
 #  define FOUNDATION_PLATFORM_POINTER_SIZE 4

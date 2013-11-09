@@ -43,6 +43,7 @@
 #ifdef __OBJC__
 #  include <CoreFoundation/CoreFoundation.h>
 #  import <Foundation/NSObject.h>
+#  import <Foundation/NSString.h>
 #  import <Foundation/NSThread.h>
 #  import <Foundation/NSProcessInfo.h>
 #  import <Foundation/NSString.h>
@@ -54,6 +55,9 @@
 #    import <AppKit/NSApplication.h>
 #    import <AppKit/NSAlert.h>
 #  elif FOUNDATION_PLATFORM_IOS
+#    import <Foundation/NSUUID.h>
+#    import <Foundation/NSCoder.h>
+#    import <Foundation/NSAttributedString.h>
 #    import <UIKit/UIApplication.h>
 #  endif
 #else

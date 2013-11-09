@@ -40,7 +40,7 @@ static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned
 #endif
 }
 
-#if FOUNDATION_PLATFORM_ARCH_ARM
+#if FOUNDATION_PLATFORM_ARCH_ARM || FOUNDATION_PLATFORM_ARCH_ARM_64
 static FORCEINLINE uint64_t getblock_nonaligned( const char* RESTRICT p, const unsigned int i )
 {
 	uint64_t ret;
@@ -108,7 +108,7 @@ hash_t hash( const void* key, const unsigned int len )
 
 	blocks = (const uint64_t*)key; /*lint !e826 Ok, loop below will not access data outside scope*/
 
-#if FOUNDATION_PLATFORM_ARCH_ARM
+#if FOUNDATION_PLATFORM_ARCH_ARM || FOUNDATION_PLATFORM_ARCH_ARM_64
 	if( (uintptr_t)key % 8 )
 	for( i = 0; i < nblocks; ++i )
 	{

@@ -123,7 +123,10 @@ typedef enum
 	ARCHITECTURE_ARM6         = 6,
 
 	/*! ARM 7 */
-	ARCHITECTURE_ARM7         = 7
+	ARCHITECTURE_ARM7         = 7,
+	
+	/*! ARM 8 64bit */
+	ARCHITECTURE_ARM8_64      = 8
 } architecture_t;
 
 //! Machine byte order identifiers
