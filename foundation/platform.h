@@ -602,6 +602,10 @@ typedef enum
 } bool;
 #  endif
 
+#if _MSC_VER < 1800
+#  define va_copy(d,s) ((d)=(s))
+#endif
+
 #else
 #  error Unknown compiler
 #endif

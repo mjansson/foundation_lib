@@ -311,7 +311,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	memset( &context, 0, sizeof( CONTEXT ) );
 	context.ContextFlags = CONTEXT_FULL;
 
-	log_warnf( WARNING_DEPRECATED, "********** REIMPLEMENT FALLBACK STACKTRACE **********" );
+	log_warnf( 0, WARNING_DEPRECATED, "********** REIMPLEMENT FALLBACK STACKTRACE **********" );
 	/* Use a fake function call to pop the return address and retrieve EIP.*/
 	__asm
 	{
