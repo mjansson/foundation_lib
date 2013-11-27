@@ -219,6 +219,7 @@
       <C99Support>true</C99Support>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -296,6 +297,7 @@
       <C99Support>true</C99Support>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -337,6 +339,7 @@
       <C99Support>true</C99Support>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -378,6 +381,7 @@
       <C99Support>true</C99Support>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
