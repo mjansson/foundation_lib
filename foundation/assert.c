@@ -20,14 +20,16 @@
 #endif
 
 
-#define ASSERT_BUFFER_SIZE  2048
+#define ASSERT_BUFFER_SIZE             2048U
+#define ASSERT_STACKTRACE_MAX_DEPTH    128U
+#define ASSERT_STACKTRACE_SKIP_FRAMES  1U
 
 static assert_handler_fn _assert_handler = 0;
 static char              _assert_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_context_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_box_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
-static void*             _assert_stacktrace[128];
+static void*             _assert_stacktrace[ASSERT_STACKTRACE_MAX_DEPTH];
 
 assert_handler_fn assert_handler( void )
 {
@@ -41,20 +43,19 @@ void assert_set_handler( assert_handler_fn new_handler )
 }
 
 
-int assert_report( const char* condition, const char* file, int line, const char* msg )
+int assert_report( uint64_t context, const char* condition, const char* file, int line, const char* msg )
 {
 	static const char nocondition[] = "<Static fail>";
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
 	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %s\nFile/line: %s : %d\n%s%s\n%s\n";
-	int ret;
 
 	if( !condition ) condition = nocondition;
 	if( !file      ) file      = nofile;
 	if( !msg       ) msg       = nomsg;
 	
 	if( _assert_handler && ( _assert_handler != assert_report ) )
-		return (*_assert_handler)( condition, file, line, msg );
+		return (*_assert_handler)( context, condition, file, line, msg );
 
 	_assert_context_buffer[0] = 0;
 	error_context_buffer( _assert_context_buffer, ASSERT_BUFFER_SIZE );
@@ -62,10 +63,10 @@ int assert_report( const char* condition, const char* file, int line, const char
 	_assert_stacktrace_buffer[0] = 0;
 	if( foundation_is_initialized() )
 	{
-		if( stacktrace_capture( _assert_stacktrace, 128, 1 ) > 0 )
+		if( stacktrace_capture( _assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, ASSERT_STACKTRACE_SKIP_FRAMES ) > 0 )
 		{
 			//TODO: Resolve directly into buffer to avoid memory allocations in assert handler
-			char* trace = stacktrace_resolve( _assert_stacktrace, 128, 0 );
+			char* trace = stacktrace_resolve( _assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, 0U );
 			string_copy( _assert_stacktrace_buffer, trace, ASSERT_BUFFER_SIZE );
 			string_deallocate( trace );
 		}
@@ -75,11 +76,9 @@ int assert_report( const char* condition, const char* file, int line, const char
 		string_copy( _assert_stacktrace_buffer, "<no stacktrace - not initialized>", ASSERT_BUFFER_SIZE );
 	}
 	
-	ret = snprintf( _assert_box_buffer, (size_t)ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg, _assert_stacktrace_buffer );
-	if( ( ret < 0 ) || ( ret >= ASSERT_BUFFER_SIZE ) )
-		_assert_box_buffer[ASSERT_BUFFER_SIZE-1] = 0;
+	snprintf( _assert_box_buffer, (size_t)ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg, _assert_stacktrace_buffer );
 
-	log_errorf( 0, ERROR_ASSERT, "%s", _assert_box_buffer );
+	log_errorf( context, ERROR_ASSERT, "%s", _assert_box_buffer );
 
 	system_message_box( "Assert Failure", _assert_box_buffer, false );
 
@@ -87,22 +86,19 @@ int assert_report( const char* condition, const char* file, int line, const char
 }
 
 
-int assert_report_formatted( const char* condition, const char* file, int line, const char* msg, ... )
+int assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... )
 {
 	if( msg )
 	{
-		/*lint --e{438} */
-		int ret;
+		/*lint --e{438} Lint gets confused about assignment to ap */
 		va_list ap;
 		va_start( ap, msg );
-		ret = vsnprintf( _assert_buffer, (size_t)ASSERT_BUFFER_SIZE, msg, ap );
-		if( ( ret < 0 ) || ( ret >= ASSERT_BUFFER_SIZE ) )
-			_assert_buffer[ASSERT_BUFFER_SIZE-1] = 0;
+		vsnprintf( _assert_buffer, (size_t)ASSERT_BUFFER_SIZE, msg, ap );
 		va_end( ap );
 	}
 	else
 	{
 		_assert_buffer[0] = 0;
 	}
-	return assert_report( condition, file, line, _assert_buffer );
+	return assert_report( context, condition, file, line, _assert_buffer );
 }

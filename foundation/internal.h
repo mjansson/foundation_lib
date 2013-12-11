@@ -74,8 +74,8 @@ typedef struct _foundation_stream_vtable
 	unsigned int             reliable:1;              \
 	unsigned int             inorder:1;               \
 	unsigned int             swap:1;                  \
-	unsigned int             unused_streamflags:12;   \
-	byteorder_t              byteorder;               \
+	unsigned int             byteorder:1;             \
+	unsigned int             unused_streamflags:11;   \
 	unsigned int             mode;                    \
 	char*                    path;                    \
 	stream_vtable_t*         vtable

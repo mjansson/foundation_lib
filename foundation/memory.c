@@ -165,10 +165,10 @@ void _memory_shutdown( void )
 }
 
 
-void* memory_allocate( uint64_t size, unsigned int align, memory_hint_t hint )
+void* memory_allocate( uint64_t size, unsigned int align, int hint )
 {
 	void* p;
-	if( ( hint == MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
+	if( ( hint & MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
 	{
 		align = _memory_get_align( align );
 		p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
@@ -182,10 +182,10 @@ void* memory_allocate( uint64_t size, unsigned int align, memory_hint_t hint )
 }
 
 
-void* memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hint )
+void* memory_allocate_zero( uint64_t size, unsigned int align, int hint )
 {
 	void* p;
-	if( ( hint == MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
+	if( ( hint & MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
 	{
 		align = _memory_get_align( align );
 		p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
@@ -200,7 +200,7 @@ void* memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hin
 }
 
 
-void* memory_allocate_context( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint )
+void* memory_allocate_context( uint16_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* p = _memsys.allocate( context, size, align, hint );
 	_memory_track( p, size );
@@ -208,7 +208,7 @@ void* memory_allocate_context( uint16_t context, uint64_t size, unsigned int ali
 }
 
 
-void* memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint )
+void* memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* p = _memsys.allocate_zero( context, size, align, hint );
 	_memory_track( p, size );
@@ -292,7 +292,7 @@ static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
 #endif
 
 
-static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, memory_hint_t hint )
+static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int hint )
 {
 	//If we align manually, we must be able to retrieve the original pointer for passing to free()
 	//Thus all allocations need to go through that path
@@ -308,7 +308,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 	void* memory;
 	long vmres;
 
-	if( hint != MEMORY_PERSISTENT_32BIT_ADDRESS )
+	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 	{
 		padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
 		raw_memory = _aligned_malloc( (size_t)size + padding, align );
@@ -330,7 +330,6 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 	
 	memory = _memory_align_pointer( raw_memory + padding, align );
 	*( (void**)memory - 1 ) = (void*)( (uintptr_t)raw_memory | 1 );
-	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 
 	return memory;
 #  endif	
@@ -338,7 +337,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 #else
 	
 #  if FOUNDATION_PLATFORM_POINTER_SIZE > 4
-	if( hint != MEMORY_PERSISTENT_32BIT_ADDRESS )
+	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 #  endif
 	{
 		unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
@@ -385,14 +384,14 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, mem
 }
 
 
-static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint )
+static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned int align, int hint )
 {
 	align = _memory_get_align( align );
 	return _memory_allocate_malloc_raw( size, align, hint );
 }
 
 
-static void* _memory_allocate_zero_malloc( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint )
+static void* _memory_allocate_zero_malloc( uint16_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* memory = _memory_allocate_malloc( context, size, align, hint );
 	if( memory )
@@ -469,7 +468,11 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	}
 	else
 	{
-		memory = _memory_allocate_malloc_raw( size, align, raw_p ? MEMORY_PERSISTENT_32BIT_ADDRESS : MEMORY_PERSISTENT );
+#if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+		memory = _memory_allocate_malloc_raw( size, align, 0U );
+#else
+		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
+#endif
 		if( p && memory && oldsize )
 			memcpy( memory, p, ( size < oldsize ) ? size : oldsize );
 		_memory_deallocate_malloc( p );
@@ -486,7 +489,11 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	}
 	else
 	{
-		memory = _memory_allocate_malloc_raw( size, align, raw_p ? MEMORY_PERSISTENT_32BIT_ADDRESS : MEMORY_PERSISTENT );
+#if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+		memory = _memory_allocate_malloc_raw( size, align, 0U );
+#else
+		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
+#endif
 		if( p && memory && oldsize )
 			memcpy( memory, p, ( size < oldsize ) ? (size_t)size : (size_t)oldsize );
 		_memory_deallocate_malloc( p );

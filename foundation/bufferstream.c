@@ -30,7 +30,7 @@ static stream_vtable_t _buffer_stream_vtable;
 
 stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 {
-	stream_buffer_t* buffer_stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_buffer_t ), 0, MEMORY_PERSISTENT );
+	stream_buffer_t* buffer_stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, (uint64_t)sizeof( stream_buffer_t ), 0U, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)buffer_stream;
 
 	_stream_initialize( stream, system_byteorder() );
@@ -78,8 +78,8 @@ static uint64_t _buffer_stream_read( stream_t* stream, void* dest, uint64_t num 
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
-	int64_t available = buffer_stream->size - buffer_stream->current;
-	int64_t num_read = ( (int64_t)num < available ) ? (int64_t)num : available;
+	uint64_t available = buffer_stream->size - buffer_stream->current;
+	uint64_t num_read = ( num < available ) ? num : available;
 
 	if( num_read > 0 )
 	{
@@ -96,9 +96,9 @@ static uint64_t _buffer_stream_write( stream_t* stream, const void* source, uint
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
-	int64_t available = buffer_stream->size - buffer_stream->current;
-	int64_t want = (int64_t)num;
-	int64_t num_write = 0;
+	uint64_t available = buffer_stream->size - buffer_stream->current;
+	uint64_t want = num;
+	uint64_t num_write;
 
 	if( want > available )
 	{
@@ -141,7 +141,7 @@ static bool _buffer_stream_eos( stream_t* stream )
 
 
 static void _buffer_stream_flush( stream_t* stream )
-{
+{	//lint --e{715, 818} stream unused and count be const, but it's really a vtable function
 }
 
 

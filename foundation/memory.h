@@ -19,10 +19,10 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API void*             memory_allocate( uint64_t size, unsigned int align, memory_hint_t hint );
-FOUNDATION_API void*             memory_allocate_zero( uint64_t size, unsigned int align, memory_hint_t hint );
-FOUNDATION_API void*             memory_allocate_context( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
-FOUNDATION_API void*             memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
+FOUNDATION_API void*             memory_allocate( uint64_t size, unsigned int align, int hint );
+FOUNDATION_API void*             memory_allocate_zero( uint64_t size, unsigned int align, int hint );
+FOUNDATION_API void*             memory_allocate_context( uint16_t context, uint64_t size, unsigned int align, int hint );
+FOUNDATION_API void*             memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned int align, int hint );
 FOUNDATION_API void*             memory_reallocate( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
 FOUNDATION_API void              memory_deallocate( void* p );
 
