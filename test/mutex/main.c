@@ -172,6 +172,7 @@ DECLARE_TEST( mutex, signal )
 
 	while( thread_waiting < 32 )
 		thread_yield();
+	thread_sleep( 1000 ); //Hack wait to give threads time to progress from atomic_incr to mutex_wait
 	
 	mutex_signal( mutex );
 
