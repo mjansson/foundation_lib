@@ -669,7 +669,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CONFIGURATION_BUILD_DIR = ../../../bin/ios/debug;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -695,6 +695,7 @@
 				SDKROOT = iphoneos;
 				STRIP_INSTALLED_PRODUCT = NO;
 				STRIP_STYLE = all;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				USE_HEADERMAP = NO;
 			};
 			name = Debug;
@@ -703,7 +704,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CONFIGURATION_BUILD_DIR = ../../../bin/ios/release;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -729,6 +730,7 @@
 				SDKROOT = iphoneos;
 				STRIP_INSTALLED_PRODUCT = NO;
 				STRIP_STYLE = all;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				USE_HEADERMAP = NO;
 			};
 			name = Release;

@@ -98,6 +98,10 @@
 #  define FOUNDATION_PLATFORM_ARCH_ARM7 0
 #  define FOUNDATION_PLATFORM_ARCH_ARM8 0
 #endif
+#ifndef  FOUNDATION_PLATFORM_ARCH_ARM_64
+#  define FOUNDATION_PLATFORM_ARCH_ARM_64 0
+#  define FOUNDATION_PLATFORM_ARCH_ARM8_64 0
+#endif
 #ifndef  FOUNDATION_PLATFORM_ARCH_X86
 #  define FOUNDATION_PLATFORM_ARCH_X86 0
 #endif
@@ -148,6 +152,10 @@
 #define FOUNDATION_COMPILER_MSVC 0
 #define FOUNDATION_COMPILER_INTEL 0
 
+
+#ifndef __STDC_FORMAT_MACROS
+#  define __STDC_FORMAT_MACROS
+#endif
 
 //First, platforms and architectures
 
@@ -226,6 +234,11 @@
 #        define FOUNDATION_PLATFORM_ARCH_ARM8 1
 #        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
 #        error ARMv8 not yet supported
+#      elif defined( __ARM64_ARCH_8__ )
+#        undef  FOUNDATION_PLATFORM_ARCH_ARM8_64
+#        define FOUNDATION_PLATFORM_ARCH_ARM8_64 1
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
+#        error ARMv8 not yet supported
 #      elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
 #        undef  FOUNDATION_PLATFORM_ARCH_ARM7
 #        define FOUNDATION_PLATFORM_ARCH_ARM7 1
@@ -237,6 +250,16 @@
 #        undef  FOUNDATION_PLATFORM_ARCH_ARM6
 #        define FOUNDATION_PLATFORM_ARCH_ARM6 1
 #        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv6"
+#      else
+#        error Unrecognized ARM architecture
+#      endif
+#    elif defined( __arm64__ ) || FOUNDATION_PLATFORM_ARCH_ARM_64
+#      undef  FOUNDATION_PLATFORM_ARCH_ARM_64
+#      define FOUNDATION_PLATFORM_ARCH_ARM_64 1
+#      if defined( __ARM64_ARCH_8__ )
+#        undef  FOUNDATION_PLATFORM_ARCH_ARM8_64
+#        define FOUNDATION_PLATFORM_ARCH_ARM8_64 1
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARM64v8"
 #      else
 #        error Unrecognized ARM architecture
 #      endif
@@ -591,7 +614,7 @@
 #  define ALIGN(x) __declspec(align(x))
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    define STDCALL __stdcall
+fr#    define STDCALL __stdcall
 #  endif
 
 #  ifndef __cplusplus
@@ -602,13 +625,18 @@ typedef enum
 } bool;
 #  endif
 
+#if _MSC_VER < 1800
+#  define va_copy(d,s) ((d)=(s))
+#endif
+
 #else
 #  error Unknown compiler
 #endif
 
 
 //Base data types
-#include <stdint.h>   //Standard types like int32_t, uintptr_t
+#include <stdint.h>
+#include <inttypes.h>
 #include <float.h>
 
 typedef float          float32_t;
@@ -642,7 +670,7 @@ typedef   float32_t         real;
 #endif
 
 //Pointer size
-#if FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64 || FOUNDATION_PLATFORM_ARCH_IA64
+#if FOUNDATION_PLATFORM_ARCH_ARM_64 || FOUNDATION_PLATFORM_ARCH_X86_64 || FOUNDATION_PLATFORM_ARCH_PPC_64 || FOUNDATION_PLATFORM_ARCH_IA64
 #  define FOUNDATION_PLATFORM_POINTER_SIZE 8
 #else
 #  define FOUNDATION_PLATFORM_POINTER_SIZE 4
@@ -740,7 +768,7 @@ FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 static _pthread_key_t _##name##_key = 0; \
 static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, init ); return _##name##_key; } \
 static FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
-static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)val ); }
+static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
 static _pthread_key_t _##name##_key = 0; \

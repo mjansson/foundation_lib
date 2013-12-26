@@ -17,6 +17,7 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/assert.h>
 
 #if FOUNDATION_COMPILER_INTEL
 #  include <mathimf.h>

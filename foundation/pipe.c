@@ -44,7 +44,7 @@ stream_t* pipe_allocate( void )
 	_stream_initialize( stream, system_byteorder() );
 
 	pipestream->type = STREAMTYPE_PIPE;
-	pipestream->path = string_format( "pipe://" STRING_FORMAT_POINTER, pipestream );
+	pipestream->path = string_format( "pipe://" PRIfixPTR, pipestream );
 	pipestream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 	pipestream->sequential = true;
 
@@ -212,7 +212,7 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		int num_written = (int)write( pipestream->fd_read, source, (size_t)num );
+		int num_written = (int)write( pipestream->fd_write, source, (size_t)num );
 		if( num_written < 0 )
 			num_written = 0;
 		return (unsigned int)num_written;

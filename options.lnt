@@ -1,0 +1,5 @@
+
++fie         // We always use enums as integrals
+
+-e717        // We use do { ... } while(0) construct
+-e826        // We use struct "inheritance" and cast between structs of incompatible sizes

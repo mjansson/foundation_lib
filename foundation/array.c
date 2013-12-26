@@ -14,11 +14,14 @@
 
 
 //'FARR' in ascii
-#define _array_watermark 0x52524145
+static const int ARRAY_WATERMARK = 0x52524145;
+
+static const unsigned int ARRAY_DEFAULT_ALIGN = 16U;
+
 
 void _array_verifyfn( const void* const* arr )
 {
-	FOUNDATION_ASSERT_MSG( !(*arr) || ( _array_raw_const(*arr)[2] == _array_watermark ), "Invalid array" );
+	FOUNDATION_ASSERT_MSG( !(*arr) || ( _array_raw_const(*arr)[2] == ARRAY_WATERMARK ), "Invalid array" );
 }
 
 
@@ -32,7 +35,7 @@ void _array_growfn( void* arr, int increment, int factor, int itemsize )
 	uint64_t header_size = 4ULL * _array_header_size;
 	uint64_t prev_used_buffer_size = (unsigned int)prev_used_size + header_size;
 	uint64_t buffer_size = (unsigned int)storage_size + header_size;
-	int*     buffer = *parr ? memory_reallocate( _array_raw( *parr ), buffer_size, 16, prev_used_buffer_size ) : memory_allocate( buffer_size, 16, MEMORY_PERSISTENT );
+	int*     buffer = *parr ? memory_reallocate( _array_raw( *parr ), buffer_size, ARRAY_DEFAULT_ALIGN, prev_used_buffer_size ) : memory_allocate( buffer_size, ARRAY_DEFAULT_ALIGN, MEMORY_PERSISTENT );
 	FOUNDATION_ASSERT_MSG( buffer, "Failed to reallocate array storage" );
 	if( buffer )
 	{
@@ -40,7 +43,7 @@ void _array_growfn( void* arr, int increment, int factor, int itemsize )
 		if( !*parr )
 		{
 			buffer[1] = 0;
-			buffer[2] = _array_watermark;
+			buffer[2] = ARRAY_WATERMARK;
 		}
 		*parr = buffer + _array_header_size;
 	}

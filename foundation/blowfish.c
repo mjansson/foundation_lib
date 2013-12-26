@@ -13,10 +13,10 @@
 #include <foundation/foundation.h>
 
 
-#define SUBKEYS              18
-#define SBOXES               4
-#define SBOXENTRIES          256
-#define MAXKEY               56
+#define SUBKEYS              18U
+#define SBOXES               4U
+#define SBOXENTRIES          256U
+#define MAXKEY               56U
 
 struct _foundation_blowfish
 {
@@ -362,7 +362,7 @@ void _blowfish_decrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uin
 
 blowfish_t* blowfish_allocate( void )
 {
-	return memory_allocate_zero( sizeof( blowfish_t ), 0, MEMORY_PERSISTENT );
+	return memory_allocate_zero( (uint64_t)sizeof( blowfish_t ), 0U, MEMORY_PERSISTENT );
 }
 
 
@@ -495,6 +495,9 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			}
 			break;
 		}
+
+		default:
+			break;
 	}
 
 	//Reset memory for paranoids
@@ -581,6 +584,9 @@ void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			}
 			break;
 		}
+
+		default:
+			break;
 	}
 
 	//Reset memory for paranoids

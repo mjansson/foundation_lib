@@ -52,7 +52,7 @@ typedef enum
 	ERROR_ASSERT,
 	ERROR_SCRIPT,
 
-	ERROR_LAST_BUILTIN
+	ERROR_LAST_BUILTIN  = 0x0fff
 } error_t;
 
 //! Warning classes
@@ -68,16 +68,16 @@ typedef enum
 	WARNING_DEADLOCK,
 	WARNING_SCRIPT,
 
-	WARNING_LAST_BUILTIN
+	WARNING_LAST_BUILTIN  = 0x0fff
 } warning_t;
 
 //! Memory hints
 typedef enum
 {
-	MEMORY_TEMPORARY,
-	MEMORY_THREAD,
-	MEMORY_PERSISTENT,
-	MEMORY_PERSISTENT_32BIT_ADDRESS
+	MEMORY_PERSISTENT          = 0x0000,
+	MEMORY_TEMPORARY           = 0x0001,
+	MEMORY_THREAD              = 0x0002,
+	MEMORY_32BIT_ADDRESS       = 0x0004
 } memory_hint_t;
 
 //! Memory contexts
@@ -123,7 +123,10 @@ typedef enum
 	ARCHITECTURE_ARM6         = 6,
 
 	/*! ARM 7 */
-	ARCHITECTURE_ARM7         = 7
+	ARCHITECTURE_ARM7         = 7,
+	
+	/*! ARM 8 64bit */
+	ARCHITECTURE_ARM8_64      = 8
 } architecture_t;
 
 //! Machine byte order identifiers
@@ -297,7 +300,7 @@ typedef uint128_t        uuid_t;
 typedef int           (* error_callback_fn )( error_level_t level, error_t error );
 
 //! Assert handler callback
-typedef int           (* assert_handler_fn )( const char* condition, const char* file, int line, const char* msg );
+typedef int           (* assert_handler_fn )( uint64_t context, const char* condition, const char* file, int line, const char* msg );
 
 //! Log output callback
 typedef void          (* log_callback_fn )( uint64_t context, int severity, const char* msg );
@@ -308,8 +311,8 @@ typedef int           (* system_initialize_fn )( void );
 //! Subsystem shutdown
 typedef void          (* system_shutdown_fn )( void );
 
-typedef void*         (* memory_allocate_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
-typedef void*         (* memory_allocate_zero_fn )( uint16_t context, uint64_t size, unsigned int align, memory_hint_t hint );
+typedef void*         (* memory_allocate_fn )( uint16_t context, uint64_t size, unsigned int align, int hint );
+typedef void*         (* memory_allocate_zero_fn )( uint16_t context, uint64_t size, unsigned int align, int hint );
 typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
 typedef void          (* memory_deallocate_fn )( void* p );
 

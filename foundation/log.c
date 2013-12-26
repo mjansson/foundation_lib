@@ -11,15 +11,13 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 #include <stdio.h>
 #include <stdarg.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
-#  if !FOUNDATION_COMPILER_CLANG
-#    define va_copy(d,s) ((d)=(s))
-#  endif
 #  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #  define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
@@ -93,7 +91,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if( _log_prefix )
-			need = snprintf( buffer, size, "[%.3f] <%llx:%d> %s", timestamp, tid, pid, prefix );
+			need = snprintf( buffer, size, "[%.3f] <%" PRIx64 ":%d> %s", timestamp, tid, pid, prefix );
 		else
 			need = snprintf( buffer, size, "%s", prefix );
 
