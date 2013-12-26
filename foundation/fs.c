@@ -39,7 +39,6 @@ typedef struct ALIGN(16) _foundation_fs_monitor
 	char*             path;
 	object_t          thread;
 	mutex_t*          signal;
-	void*             stream;
 } fs_monitor_t;
 
 typedef struct ALIGN(8) _foundation_stream_file
@@ -707,6 +706,32 @@ extern void* _fs_event_stream_create( const char* path );
 extern void  _fs_event_stream_destroy( void* stream );
 extern void  _fs_event_stream_flush( void* stream );
 
+typedef struct _fs_queue_node fs_queue_node_t;
+typedef struct _fs_entry fs_entry_t;
+typedef struct _fs_watch fs_watch_t;
+
+struct _fs_queue_node
+{
+	char*                        path;
+	bool                         recurse;
+};
+
+struct _fs_entry
+{
+	char*                        filename;
+	fs_entry_t**                 subentries;
+	bool                         is_directory;
+	uint64_t                     lastmod;
+	uint64_t                     checked;
+};
+
+struct _fs_watch
+{
+	volatile fs_queue_node_t*    event_queue;
+	fs_entry_t*                  root;
+	char*                        path;
+	void*                        stream;
+};
 
 #endif
 
@@ -757,7 +782,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	memory_context_push( MEMORYCONTEXT_STREAM );
 	
-	monitor->stream = _fs_event_stream_create( monitor->path );
+	void* event_stream = _fs_event_stream_create( monitor->path );
 	
 #else
 
@@ -949,8 +974,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		
 #elif FOUNDATION_PLATFORM_APPLE
 		
-		if( monitor->stream )
-			_fs_event_stream_flush( monitor->stream );
+		if( event_stream )
+			_fs_event_stream_flush( event_stream );
 		
 		if( monitor->signal )
 		{
@@ -987,7 +1012,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	
 #elif FOUNDATION_PLATFORM_APPLE
 	
-	_fs_event_stream_destroy( monitor->stream );
+	_fs_event_stream_destroy( event_stream );
 	
 #endif
 

@@ -31,10 +31,10 @@ void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* user_dat
 	{
 		for( size_t i = 0; i < num_events; ++i )
 		{
-			const char* path = event_paths[i];
+			//const char* path = event_paths[i];
             
-			FSEventStreamEventFlags flags = event_flags[i];
-			FSEventStreamEventId identifier = event_ids[i];
+			//FSEventStreamEventFlags flags = event_flags[i];
+			//FSEventStreamEventId identifier = event_ids[i];
 			
 			/* Store path and recurse flag in paths-to-process,
 			   then keep state and rescan for changes in fs monitor thread
@@ -86,12 +86,12 @@ void* _fs_event_stream_create( const char* path )
 			FSEventStreamSetDispatchQueue( stream, dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 ) );
 			if( NO == FSEventStreamStart( stream ) )
 			{
-				log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to start FS event stream" );
+				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to start FS event stream" );
 			}
 		}
 		else
 		{
-			log_errorf( ERROR_SYSTEM_CALL_FAIL, "Unable to create FS event stream" );
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to create FS event stream" );
 		}
 		
 		return stream;
