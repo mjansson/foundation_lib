@@ -1128,7 +1128,7 @@ static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t siz
 static uint64_t _stream_stdout_write( stream_t* stream, const void* buffer, uint64_t size )
 {
 	stream_std_t* stdstream = (stream_std_t*)stream;
-	uint64_t was_written = fwrite( buffer, 1, size, stdstream->std );
+	uint64_t was_written = fwrite( buffer, 1, (size_t)size, stdstream->std );
 	return was_written;
 }
 
