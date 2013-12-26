@@ -47,7 +47,7 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size
 		size = capacity;
 
 	buffer_stream->type = STREAMTYPE_MEMORY;
-	buffer_stream->path = string_format( "buffer://" STRING_FORMAT_POINTER, stream );
+	buffer_stream->path = string_format( "buffer://" PRIfixPTR, stream );
 	buffer_stream->mode = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY );
 	buffer_stream->buffer = buffer;
 	buffer_stream->size = size;

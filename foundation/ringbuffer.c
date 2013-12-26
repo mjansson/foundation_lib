@@ -300,7 +300,7 @@ stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_s
 
 	stream->type = STREAMTYPE_RINGBUFFER;
 	stream->sequential = 1;
-	stream->path = string_format( "ringbuffer://" STRING_FORMAT_POINTER, stream );
+	stream->path = string_format( "ringbuffer://" PRIfixPTR, stream );
 	stream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 
 	semaphore_initialize( &bufferstream->signal_read, 0 );

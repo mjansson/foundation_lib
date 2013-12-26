@@ -619,7 +619,7 @@ static void _memory_tracker_shutdown( void )
 			if( tag->address )
 			{
 				char* trace = stacktrace_resolve( tag->trace, 14, 0 );
-				log_warnf( 0, WARNING_MEMORY, "Memory leak: %d bytes @ " STRING_FORMAT_POINTER " : tag %d\n%s", (unsigned int)tag->size, tag->address, it, trace );
+				log_warnf( 0, WARNING_MEMORY, "Memory leak: %d bytes @ " PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, tag->address, it, trace );
 				string_deallocate( trace );
 				got_leaks = true;
 			}
@@ -663,7 +663,7 @@ static void _memory_tracker_untrack( void* addr )
 		_memory_tags[ tag ].address = 0;
 	}
 	//else if( addr )
-	//	log_warnf( 0, WARNING_SUSPICIOUS, "Untracked deallocation: " STRING_FORMAT_POINTER, addr );
+	//	log_warnf( 0, WARNING_SUSPICIOUS, "Untracked deallocation: " PRIfixPTR, addr );
 }
 
 

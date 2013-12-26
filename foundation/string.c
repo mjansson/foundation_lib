@@ -1101,7 +1101,7 @@ char* string_from_int( int64_t val, unsigned int width, char fill )
 
 char* string_from_int_buffer( char* buffer, int64_t val, unsigned int width, char fill )
 {
-	unsigned int len = (unsigned int)sprintf( buffer, "%lld", val );
+	unsigned int len = (unsigned int)sprintf( buffer, "%" PRId64, val );
 	if( len < width )
 	{
 		memmove( buffer + ( width - len ), buffer, len + 1 );
@@ -1126,7 +1126,7 @@ char* string_from_uint( uint64_t val, bool hex, unsigned int width, char fill )
 
 char* string_from_uint_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char fill )
 {
-	unsigned int len = (unsigned int)sprintf( buffer, hex ? "%llx" : "%llu", val );
+	unsigned int len = (unsigned int)sprintf( buffer, hex ? "%" PRIx64 : "%" PRIu64, val );
 	if( len < width )
 	{
 		memmove( buffer + ( width - len ), buffer, len + 1 );
@@ -1151,7 +1151,7 @@ char* string_from_uint128( const uint128_t val )
 
 char* string_from_uint128_buffer( char* buffer, const uint128_t val )
 {
-	/*unsigned int len = (unsigned int)*/sprintf( buffer, "%016llx%016llx", val.word[0], val.word[1] );
+	/*unsigned int len = (unsigned int)*/sprintf( buffer, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1] );
 	return buffer;
 }
 
@@ -1318,7 +1318,7 @@ int64_t string_to_int64( const char* val )
 {
 	int64_t ret = 0;
 	if( val )
-		sscanf( val, "%lld", &ret );
+		sscanf( val, "%" PRId64, &ret );
 	return ret;
 }
 
@@ -1327,7 +1327,7 @@ uint64_t string_to_uint64( const char* val, bool hex )
 {
 	uint64_t ret = 0;
 	if( val )
-		sscanf( val, hex ? "%llx" : "%llu", &ret );
+		sscanf( val, hex ? "%" PRIx64 : "%" PRIu64, &ret );
 	return ret;
 }
 
@@ -1336,7 +1336,7 @@ uint128_t string_to_uint128( const char* val )
 {
 	uint128_t ret = {0};
 	if( val )
-		sscanf( val, "%016llx%016llx", &ret.word[0], &ret.word[1] );
+		sscanf( val, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1] );
 	return ret;
 }
 
@@ -1349,13 +1349,7 @@ real string_to_real( const char* val )
 	real ret = 0.0f;
 #endif
 	if( val )
-	{
-#if FOUNDATION_PLATFORM_REALSIZE == 64
-		sscanf( val, "%Lf", &ret );
-#else
-		sscanf( val, "%f", &ret );
-#endif
-	}
+		sscanf( val, "%" PRIREAL, &ret );		
 	return ret;
 }
 
@@ -1370,7 +1364,7 @@ version_t string_to_version( const char* val )
 		num[i] = 0;
 		if( val && *val )
 		{
-			sscanf( val, "%d", num + i );
+			sscanf( val, "%u", num + i );
 			while( *val && ( ( *val >= '0' ) && ( *val < '9' ) ) ) val++;
 			while( *val && ( ( *val  < '0' ) || ( *val > '9' ) ) ) val++;
 		}

@@ -153,6 +153,10 @@
 #define FOUNDATION_COMPILER_INTEL 0
 
 
+#ifndef __STDC_FORMAT_MACROS
+#  define __STDC_FORMAT_MACROS
+#endif
+
 //First, platforms and architectures
 
 // Android
@@ -610,7 +614,7 @@
 #  define ALIGN(x) __declspec(align(x))
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    define STDCALL __stdcall
+fr#    define STDCALL __stdcall
 #  endif
 
 #  ifndef __cplusplus
@@ -631,7 +635,8 @@ typedef enum
 
 
 //Base data types
-#include <stdint.h>   //Standard types like int32_t, uintptr_t
+#include <stdint.h>
+#include <inttypes.h>
 #include <float.h>
 
 typedef float          float32_t;

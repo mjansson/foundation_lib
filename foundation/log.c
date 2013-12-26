@@ -91,7 +91,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if( _log_prefix )
-			need = snprintf( buffer, size, "[%.3f] <%llx:%d> %s", timestamp, tid, pid, prefix );
+			need = snprintf( buffer, size, "[%.3f] <%" PRIx64 ":%d> %s", timestamp, tid, pid, prefix );
 		else
 			need = snprintf( buffer, size, "%s", prefix );
 
