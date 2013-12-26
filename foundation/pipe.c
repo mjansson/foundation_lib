@@ -212,7 +212,7 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		int num_written = (int)write( pipestream->fd_read, source, (size_t)num );
+		int num_written = (int)write( pipestream->fd_write, source, (size_t)num );
 		if( num_written < 0 )
 			num_written = 0;
 		return (unsigned int)num_written;
