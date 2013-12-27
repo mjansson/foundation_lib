@@ -916,11 +916,50 @@ DECLARE_TEST( string, utility )
 }
 
 
+DECLARE_TEST( string, format )
+{
+	{
+		char* teststr1 = string_format( "%" PRId64, -1LL );
+		char* teststr2 = string_format( "0x%" PRIx64, -1LL );
+		char* teststr3 = string_format( "%016" PRIX64, 0x123456789abULL );
+
+		EXPECT_STREQ( teststr1, "-1" );
+		EXPECT_STREQ( teststr2, "0xffffffffffffffff" );
+		EXPECT_STREQ( teststr3, "00000123456789AB" );
+
+		string_deallocate( teststr1 );
+		string_deallocate( teststr2 );
+		string_deallocate( teststr3 );
+	}
+	{
+		char* teststr1 = string_format( PRIfixPTR, (void*)0 );
+		char* teststr2 = string_format( PRIfixPTR, (void*)-1 );
+		char* teststr3 = string_format( PRIfixPTR, (void*)0x1234abULL );
+
+#if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+		EXPECT_STREQ( teststr1, "0x0000000000000000" );
+		EXPECT_STREQ( teststr2, "0xFFFFFFFFFFFFFFFF" );
+		EXPECT_STREQ( teststr3, "0x00000000001234AB" );
+#else
+		EXPECT_STREQ( teststr1, "0x00000000" );
+		EXPECT_STREQ( teststr2, "0xFFFFFFFF" );
+		EXPECT_STREQ( teststr3, "0x001234AB" );
+#endif
+
+		string_deallocate( teststr1 );
+		string_deallocate( teststr2 );
+		string_deallocate( teststr3 );
+	}
+	return 0;
+}
+
+
 void test_string_declare( void )
 {
 	ADD_TEST( string, initialize );
 	ADD_TEST( string, queries );
 	ADD_TEST( string, utility );
+	ADD_TEST( string, format );
 }
 
 

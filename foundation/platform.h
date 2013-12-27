@@ -153,10 +153,6 @@
 #define FOUNDATION_COMPILER_INTEL 0
 
 
-#ifndef __STDC_FORMAT_MACROS
-#  define __STDC_FORMAT_MACROS
-#endif
-
 //First, platforms and architectures
 
 // Android
@@ -614,7 +610,7 @@
 #  define ALIGN(x) __declspec(align(x))
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-fr#    define STDCALL __stdcall
+#    define STDCALL __stdcall
 #  endif
 
 #  ifndef __cplusplus
@@ -636,7 +632,6 @@ typedef enum
 
 //Base data types
 #include <stdint.h>
-#include <inttypes.h>
 #include <float.h>
 
 typedef float          float32_t;
@@ -805,4 +800,47 @@ static FORCEINLINE type get_thread_##name( void ) { return _thread_##name; }
 static THREADLOCAL type _thread_##name [arrsize] = {0}; \
 static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 
+#endif
+
+
+//Format specifiers for 64bit and pointers
+
+#if defined( _MSC_VER )
+#  define PRId64       "I64d"
+#  define PRIi64       "I64i"
+#  define PRIdPTR      "Id"
+#  define PRIiPTR      "Ii"
+#  define PRIo64       "I64o"
+#  define PRIu64       "I64u"
+#  define PRIx64       "I64x"
+#  define PRIX64       "I64X"
+#  define PRIoPTR      "Io"
+#  define PRIuPTR      "Iu"
+#  define PRIxPTR      "Ix"
+#  define PRIXPTR      "IX"
+#else
+#  ifndef __STDC_FORMAT_MACROS
+#    define __STDC_FORMAT_MACROS
+#  endif
+#  include <inttypes.h>
+#endif
+
+#if FOUNDATION_PLATFORM_REALSIZE == 64
+#  define PRIREAL      "llf"
+#else
+#  define PRIREAL      "f"
+#endif
+
+#if FOUNDATION_PLATFORM_WINDOWS
+#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#    define PRIfixPTR  "0x%016p"
+#  else
+#    define PRIfixPTR  "0x%08p"
+#  endif
+#else
+#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#    define PRIfixPTR  "%016p"
+#  else
+#    define PRIfixPTR  "%08p"
+#  endif
 #endif

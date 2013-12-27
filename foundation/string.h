@@ -188,22 +188,3 @@ FOUNDATION_API bool           string_is_valid_email_address( const char* address
 #define STRING_WHITESPACE               " \n\r\t"
 #define WSTRING_WHITESPACE             L" \n\r\t"
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
-#  define PRIREAL                       "llf"
-#else
-#  define PRIREAL                       "f"
-#endif
-
-#if FOUNDATION_PLATFORM_WINDOWS
-#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
-#    define PRIfixPTR                   "0x%016p"
-#  else
-#    define PRIfixPTR                   "0x%08p"
-#  endif
-#else
-#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
-#    define PRIfixPTR                   "%016p"
-#  else
-#    define PRIfixPTR                   "%08p"
-#  endif
-#endif
