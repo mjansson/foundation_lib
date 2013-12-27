@@ -619,7 +619,7 @@ static void _memory_tracker_shutdown( void )
 			if( tag->address )
 			{
 				char* trace = stacktrace_resolve( tag->trace, 14, 0 );
-				log_warnf( 0, WARNING_MEMORY, "Memory leak: %d bytes @ " PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, tag->address, it, trace );
+				log_warnf( 0, WARNING_MEMORY, "Memory leak: %d bytes @ 0x%" PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, tag->address, it, trace );
 				string_deallocate( trace );
 				got_leaks = true;
 			}

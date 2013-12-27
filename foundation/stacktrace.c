@@ -487,7 +487,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 				module_name += last_slash + 1;
 		}
 
-		resolved = string_format( "[" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]", frames[iaddr], function_name, file_name, line_number, displacement, module_name );
+		resolved = string_format( "[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]", frames[iaddr], function_name, file_name, line_number, displacement, module_name );
 		array_push( lines, resolved );
 	
 		if( string_equal( function_name, "main" ) )
@@ -526,7 +526,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 			if( iaddr && !frames[iaddr] )
 				break;
 		
-			array_push( lines, string_format( "[" PRIfixPTR "]", frames[iaddr] ) );
+			array_push( lines, string_format( "[0x%" PRIfixPTR "]", frames[iaddr] ) );
 		}
 		return lines;
 	}
@@ -541,7 +541,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		if( iaddr && !frames[iaddr] )
 			break;
 		
-		char* addr = string_format( PRIfixPTR, frames[iaddr] );
+		char* addr = string_format( "0x%" PRIfixPTR, frames[iaddr] );
 		array_push( addrs, addr );
 		array_push( args, addr );
 
@@ -561,7 +561,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		char* function = stream_read_line( procout, '\n' );
 		char* filename = stream_read_line( procout, '\n' );
 
-		array_push( lines, string_format( "[" PRIfixPTR "] %s (%s)",
+		array_push( lines, string_format( "[0x%" PRIfixPTR "] %s (%s)",
 			frames[num_frames],
 			function && string_length( function ) ? function : "??",
 			filename && string_length( filename ) ? filename : "??"
@@ -593,7 +593,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		if( iaddr && !frames[iaddr] )
 			break;
 		
-		array_push( lines, string_format( "[" PRIfixPTR "]\n", frames[iaddr] ) );
+		array_push( lines, string_format( "[0x%" PRIfixPTR "]\n", frames[iaddr] ) );
 	}
 		
 	return lines;

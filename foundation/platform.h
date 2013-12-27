@@ -833,14 +833,14 @@ static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
-#    define PRIfixPTR  "0x%016p"
+#    define PRIfixPTR  "016I64X"
 #  else
-#    define PRIfixPTR  "0x%08p"
+#    define PRIfixPTR  "08IX"
 #  endif
 #else
 #  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
-#    define PRIfixPTR  "%016p"
+#    define PRIfixPTR  "016llX"
 #  else
-#    define PRIfixPTR  "%08p"
+#    define PRIfixPTR  "08X"
 #  endif
 #endif

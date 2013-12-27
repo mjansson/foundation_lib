@@ -932,9 +932,9 @@ DECLARE_TEST( string, format )
 		string_deallocate( teststr3 );
 	}
 	{
-		char* teststr1 = string_format( PRIfixPTR, (void*)0 );
-		char* teststr2 = string_format( PRIfixPTR, (void*)-1 );
-		char* teststr3 = string_format( PRIfixPTR, (void*)0x1234abULL );
+		char* teststr1 = string_format( "0x%" PRIfixPTR, (void*)0 );
+		char* teststr2 = string_format( "0x%" PRIfixPTR, (void*)-1 );
+		char* teststr3 = string_format( "0x%" PRIfixPTR, (void*)0x1234abULL );
 
 #if FOUNDATION_PLATFORM_POINTER_SIZE == 8
 		EXPECT_STREQ( teststr1, "0x0000000000000000" );
