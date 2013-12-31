@@ -206,12 +206,12 @@ void _static_hash_shutdown( void )
 
 void _static_hash_store( const void* key, const unsigned int len, const hash_t value )
 {
-	const char* stored;
+	char* stored;
 
 	if( !_hash_lookup )
 		return;
 
-	stored = (const char*)((uintptr_t)hashtable64_get( _hash_lookup, value ));
+	stored = (char*)((uintptr_t)hashtable64_get( _hash_lookup, value ));
 	if( stored )
 	{
 		FOUNDATION_ASSERT_MSG( string_equal_substr( stored, key, len ), "Static hash collision" );
@@ -219,7 +219,10 @@ void _static_hash_store( const void* key, const unsigned int len, const hash_t v
 		return;
 	}
 
-	stored = string_substr( key, 0, len );
+	stored = memory_allocate_context( 0, len + 1, 0, MEMORY_PERSISTENT );
+	memcpy( stored, key, len );
+	stored[len] = 0;
+
 	hashtable64_set( _hash_lookup, value, (uint64_t)(uintptr_t)stored );
 }
 

@@ -27,6 +27,7 @@ objectmap_t* objectmap_allocate( unsigned int size )
 	bits = math_round( math_log2( (real)size ) ); //Number of bits needed
 	FOUNDATION_ASSERT_MSGFORMAT( bits < 50, "Invalid objectmap size %d", size );
 
+	//Top two bits unused for Lua compatibility
 	map = memory_allocate_zero( sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 16, MEMORY_PERSISTENT );
 	map->size_bits   = bits;
 	map->id_max      = ((1ULL<<(62ULL-bits))-1);

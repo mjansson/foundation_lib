@@ -14,3 +14,5 @@ HASH_LOCAL                              local
 HASH_REMOTE                             remote
 HASH_NONE                               none
 HASH_TEST                               test
+HASH_STREAM                             stream
+HASH_STRING                             string

@@ -80,18 +80,6 @@ typedef enum
 	MEMORY_32BIT_ADDRESS       = 0x0004
 } memory_hint_t;
 
-//! Memory contexts
-typedef enum
-{
-	MEMORYCONTEXT_GLOBAL       = 0,
-	MEMORYCONTEXT_STRING,
-	MEMORYCONTEXT_STREAM,
-	MEMORYCONTEXT_NETWORK,
-	MEMORYCONTEXT_SCRIPT,
-
-	MEMORYCONTEXT_LASTBUILTIN  = 0x0fff
-} memory_context_id;
-
 //! \Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
 typedef enum
 {
@@ -311,8 +299,8 @@ typedef int           (* system_initialize_fn )( void );
 //! Subsystem shutdown
 typedef void          (* system_shutdown_fn )( void );
 
-typedef void*         (* memory_allocate_fn )( uint16_t context, uint64_t size, unsigned int align, int hint );
-typedef void*         (* memory_allocate_zero_fn )( uint16_t context, uint64_t size, unsigned int align, int hint );
+typedef void*         (* memory_allocate_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
+typedef void*         (* memory_allocate_zero_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
 typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
 typedef void          (* memory_deallocate_fn )( void* p );
 
@@ -399,7 +387,7 @@ typedef struct _foundation_error_context
 
 typedef struct _foundation_memory_context
 {
-	uint16_t                        context[BUILD_SIZE_MEMORY_CONTEXT_DEPTH];
+	uint64_t                        context[BUILD_SIZE_MEMORY_CONTEXT_DEPTH];
 	int                             depth;
 } memory_context_t;
 

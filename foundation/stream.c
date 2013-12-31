@@ -1063,7 +1063,7 @@ static stream_vtable_t _stream_stdin_vtable = {
 
 stream_t* stream_open_stdout( void )
 {
-	stream_std_t* stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* stream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
 	_stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
@@ -1077,7 +1077,7 @@ stream_t* stream_open_stdout( void )
 
 stream_t* stream_open_stderr( void )
 {
-	stream_std_t* stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* stream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
 	_stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
@@ -1091,7 +1091,7 @@ stream_t* stream_open_stderr( void )
 
 stream_t* stream_open_stdin( void )
 {
-	stream_std_t* stream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* stream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
 	_stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_IN;
@@ -1141,7 +1141,7 @@ static void _stream_stdout_flush( stream_t* stream )
 
 static stream_t* _stream_std_clone( stream_t* stream )
 {
-	stream_std_t* clone = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* clone = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
 	memcpy( clone, stream, sizeof( stream_std_t ) );
 	clone->path = string_clone( stream->path );
 	return (stream_t*)clone;

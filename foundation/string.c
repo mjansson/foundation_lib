@@ -1,4 +1,4 @@
-/* utf.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* string.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -27,7 +27,7 @@ FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 
 char* string_allocate( unsigned int length )
 {
-	return memory_allocate_zero_context( MEMORYCONTEXT_STRING, length + 1, 0, MEMORY_PERSISTENT );
+	return memory_allocate_zero_context( HASH_STRING, length + 1, 0, MEMORY_PERSISTENT );
 }
 
 
@@ -42,11 +42,11 @@ char* string_clone( const char* str )
 	if( str )
 	{
 		unsigned int len = string_length( str ) + 1;
-		char* clone = memory_allocate_context( MEMORYCONTEXT_STRING, len, 0, MEMORY_PERSISTENT );
+		char* clone = memory_allocate_context( HASH_STRING, len, 0, MEMORY_PERSISTENT );
 		memcpy( clone, str, len );
 		return clone;
 	}
-	return memory_allocate_zero_context( MEMORYCONTEXT_STRING, 1, 0, MEMORY_PERSISTENT );
+	return memory_allocate_zero_context( HASH_STRING, 1, 0, MEMORY_PERSISTENT );
 }
 
 
@@ -59,7 +59,7 @@ char* string_format( const char* format, ... )
 
 	FOUNDATION_ASSERT( format );
 	capacity = string_length( format ) + 32;
-	buffer = memory_allocate_context( MEMORYCONTEXT_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
+	buffer = memory_allocate_context( HASH_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
 
 	while( 1 )
 	{
@@ -107,7 +107,7 @@ char* string_vformat( const char* format, va_list list )
 	FOUNDATION_ASSERT( format );
 
 	capacity = string_length( format ) + 32;
-	buffer = memory_allocate_context( MEMORYCONTEXT_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
+	buffer = memory_allocate_context( HASH_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
 
 	while( 1 )
 	{
@@ -292,7 +292,7 @@ char* string_append( char* str, const char* suffix )
 	if( !suffixlen )
 		return str;
 
-	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate_context( MEMORYCONTEXT_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
+	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate_context( HASH_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
 	memcpy( str + slen, suffix, suffixlen + 1 ); //Include terminating zero
 
 	return str;
@@ -307,7 +307,7 @@ char* string_prepend( char* str, const char* prefix )
 	if( !prefixlen )
 		return str;
 
-	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate_context( MEMORYCONTEXT_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
+	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate_context( HASH_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
 	if( slen )
 		memmove( str + prefixlen, str, slen + 1 ); //Include terminating zero
 	memcpy( str, prefix, prefixlen );
@@ -322,7 +322,7 @@ char* string_concat( const char* lhs, const char* rhs )
 {
 	unsigned int llen = string_length( lhs );
 	unsigned int rlen = string_length( rhs );
-	char* buf = memory_allocate_context( MEMORYCONTEXT_STRING, llen + rlen + 1, 0, MEMORY_PERSISTENT );
+	char* buf = memory_allocate_context( HASH_STRING, llen + rlen + 1, 0, MEMORY_PERSISTENT );
 	memcpy( buf, lhs, llen );
 	memcpy( buf + llen, rhs, rlen );
 	buf[ llen + rlen ] = 0;
@@ -378,7 +378,7 @@ char* string_substr( const char* str, unsigned int offset, unsigned int length )
 	newlen = slen - offset;
 	if( length < newlen )
 		newlen = length;
-	buffer = memory_allocate_context( MEMORYCONTEXT_STRING, newlen + 1, 0, MEMORY_PERSISTENT );
+	buffer = memory_allocate_context( HASH_STRING, newlen + 1, 0, MEMORY_PERSISTENT );
 	memcpy( buffer, str + offset, newlen );
 	buffer[newlen] = 0;
 	return buffer;
@@ -769,7 +769,7 @@ wchar_t* wstring_allocate_from_string( const char* cstr, unsigned int length )
 
 	if( !cstr )
 	{
-		buffer = memory_allocate_zero_context( MEMORYCONTEXT_STRING, sizeof( wchar_t ), 0, MEMORY_PERSISTENT );
+		buffer = memory_allocate_zero_context( HASH_STRING, sizeof( wchar_t ), 0, MEMORY_PERSISTENT );
 		return buffer;
 	}
 
@@ -798,7 +798,7 @@ wchar_t* wstring_allocate_from_string( const char* cstr, unsigned int length )
 		i += num_bytes;
 	}
 
-	buffer = memory_allocate_zero_context( MEMORYCONTEXT_STRING, sizeof( wchar_t ) * ( num_chars + 1 ), 0, MEMORY_PERSISTENT );
+	buffer = memory_allocate_zero_context( HASH_STRING, sizeof( wchar_t ) * ( num_chars + 1 ), 0, MEMORY_PERSISTENT );
 
 	dest = buffer;
 	cur = cstr;
@@ -979,7 +979,7 @@ char* string_allocate_from_utf16( const uint16_t* str, unsigned int length )
 		curlen += get_num_bytes_as_utf8( glyph );
 	}
 	
-	buf = memory_allocate_zero_context( MEMORYCONTEXT_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT );
+	buf = memory_allocate_zero_context( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT );
 
 	string_convert_utf16( buf, str, curlen + 1, inlength );
 	
@@ -1017,7 +1017,7 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 		curlen += get_num_bytes_as_utf8( glyph );
 	}
 	
-	buf = memory_allocate_zero_context( MEMORYCONTEXT_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT );
+	buf = memory_allocate_zero_context( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT );
 
 	string_convert_utf32( buf, str, curlen + 1, inlength );
 	

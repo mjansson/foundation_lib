@@ -72,7 +72,7 @@ void fs_monitor( const char* path )
 			return;
 	}
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	path_clone = path_clean( string_clone( path ), path_is_absolute( path ) );
 
@@ -196,7 +196,7 @@ char** fs_subdirs( const char* path )
 	wchar_t* wpattern = wstring_allocate_from_string( pattern, 0 );
 	string_deallocate( pattern );
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
@@ -226,7 +226,7 @@ char** fs_subdirs( const char* path )
 		struct dirent* entry = 0;
 		struct stat st;
 
-		memory_context_push( MEMORYCONTEXT_STREAM );
+		memory_context_push( HASH_STREAM );
 
 		while( ( entry = readdir( dir ) ) != 0 )
 		{
@@ -265,7 +265,7 @@ char** fs_files( const char* path )
 	wchar_t* wpattern = wstring_allocate_from_string( pattern, 0 );
 	string_deallocate( pattern );
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
@@ -289,7 +289,7 @@ char** fs_files( const char* path )
 		struct dirent* entry = 0;
 		struct stat st;
 
-		memory_context_push( MEMORYCONTEXT_STREAM );
+		memory_context_push( HASH_STREAM );
 
 		while( ( entry = readdir( dir ) ) != 0 )
 		{
@@ -396,7 +396,7 @@ bool fs_make_directory( const char* path )
 	curpath = 0;
 	ipath = 0;
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pathsize )
@@ -581,7 +581,7 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 	
 	HANDLE find = FindFirstFileW( wpattern, &data );
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
@@ -600,7 +600,7 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 
 	char** fnames = fs_files( path );
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	for( in = 0, nsize = array_size( fnames ); in < nsize; ++in )
 	{
@@ -622,7 +622,7 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 
 	subdirs = fs_subdirs( path );
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
@@ -766,7 +766,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	wchar_t* wfpath = 0;
 	void* buffer = 0;
 	
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	buffer = memory_allocate( buffer_size, 8, MEMORY_PERSISTENT );
 	
@@ -785,7 +785,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	fs_watch_t* watch = 0;
 	char** paths = 0;
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 	array_reserve( watch, 1024 );
 	
@@ -794,13 +794,13 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #elif FOUNDATION_PLATFORM_APPLE
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 	
 	void* event_stream = _fs_event_stream_create( monitor->path );
 	
 #else
 
-	memory_context_push( MEMORYCONTEXT_STREAM );
+	memory_context_push( HASH_STREAM );
 
 #endif
 
@@ -1344,7 +1344,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 		mode |= STREAM_IN;
 
 	pathlen = string_length( path );
-	file = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
+	file = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
 	stream = GET_STREAM( file );
 	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 

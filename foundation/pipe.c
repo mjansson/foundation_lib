@@ -38,7 +38,7 @@ static stream_vtable_t _pipe_stream_vtable;
 
 stream_t* pipe_allocate( void )
 {
-	stream_pipe_t* pipestream = memory_allocate_zero_context( MEMORYCONTEXT_STREAM, sizeof( stream_pipe_t ), 0, MEMORY_PERSISTENT );
+	stream_pipe_t* pipestream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_pipe_t ), 0, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)pipestream;
 
 	_stream_initialize( stream, system_byteorder() );

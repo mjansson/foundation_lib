@@ -65,7 +65,7 @@ static void _atomic_allocate_initialize( uint64_t storagesize )
 {
 	if( storagesize < 1024 )
 		storagesize = BUILD_SIZE_TEMPORARY_MEMORY;
-	_memory_temporary.storage   = memory_allocate( storagesize, FOUNDATION_PLATFORM_POINTER_SIZE, MEMORY_PERSISTENT );
+	_memory_temporary.storage   = memory_allocate( storagesize, 16, MEMORY_PERSISTENT );
 	_memory_temporary.end       = pointer_offset( _memory_temporary.storage, storagesize );
 	_memory_temporary.head      = _memory_temporary.storage;
 	_memory_temporary.size      = storagesize;
@@ -200,7 +200,7 @@ void* memory_allocate_zero( uint64_t size, unsigned int align, int hint )
 }
 
 
-void* memory_allocate_context( uint16_t context, uint64_t size, unsigned int align, int hint )
+void* memory_allocate_context( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* p = _memsys.allocate( context, size, align, hint );
 	_memory_track( p, size );
@@ -208,7 +208,7 @@ void* memory_allocate_context( uint16_t context, uint64_t size, unsigned int ali
 }
 
 
-void* memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned int align, int hint )
+void* memory_allocate_zero_context( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* p = _memsys.allocate_zero( context, size, align, hint );
 	_memory_track( p, size );
@@ -239,7 +239,7 @@ void memory_deallocate( void* p )
 
 FOUNDATION_DECLARE_THREAD_LOCAL( memory_context_t*, memory_context, 0 )
 
-void memory_context_push( uint16_t context_id )
+void memory_context_push( uint64_t context_id )
 {
 	memory_context_t* context = get_thread_memory_context();
 	if( !context )
@@ -265,10 +265,10 @@ void memory_context_pop( void )
 }
 
 
-uint16_t memory_context( void )
+uint64_t memory_context( void )
 {
 	memory_context_t* context = get_thread_memory_context();
-	return ( context && ( context->depth > 0 ) ) ? context->context[ context->depth - 1 ] : MEMORYCONTEXT_GLOBAL;
+	return ( context && ( context->depth > 0 ) ) ? context->context[ context->depth - 1 ] : 0;
 }
 
 
@@ -384,14 +384,14 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 }
 
 
-static void* _memory_allocate_malloc( uint16_t context, uint64_t size, unsigned int align, int hint )
+static void* _memory_allocate_malloc( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
 	align = _memory_get_align( align );
 	return _memory_allocate_malloc_raw( size, align, hint );
 }
 
 
-static void* _memory_allocate_zero_malloc( uint16_t context, uint64_t size, unsigned int align, int hint )
+static void* _memory_allocate_zero_malloc( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* memory = _memory_allocate_malloc( context, size, align, hint );
 	if( memory )

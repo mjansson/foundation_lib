@@ -21,23 +21,23 @@
 
 FOUNDATION_API void*             memory_allocate( uint64_t size, unsigned int align, int hint );
 FOUNDATION_API void*             memory_allocate_zero( uint64_t size, unsigned int align, int hint );
-FOUNDATION_API void*             memory_allocate_context( uint16_t context, uint64_t size, unsigned int align, int hint );
-FOUNDATION_API void*             memory_allocate_zero_context( uint16_t context, uint64_t size, unsigned int align, int hint );
+FOUNDATION_API void*             memory_allocate_context( uint64_t context, uint64_t size, unsigned int align, int hint );
+FOUNDATION_API void*             memory_allocate_zero_context( uint64_t context, uint64_t size, unsigned int align, int hint );
 FOUNDATION_API void*             memory_reallocate( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
 FOUNDATION_API void              memory_deallocate( void* p );
 
 #if BUILD_ENABLE_MEMORY_CONTEXT
 
-FOUNDATION_API void              memory_context_push( uint16_t context );
+FOUNDATION_API void              memory_context_push( uint64_t context );
 FOUNDATION_API void              memory_context_pop( void );
-FOUNDATION_API uint16_t          memory_context( void );
+FOUNDATION_API uint64_t          memory_context( void );
 FOUNDATION_API void              memory_context_thread_deallocate( void );
 
 #else
 
 #define memory_context_push( context )      /*lint -save -e506 -e751 */ do { (void)sizeof( context ); } while(0) /*lint -restore -e506 -e751 */
 #define memory_context_pop()                do { /* */ } while(0)
-#define memory_context()                    MEMORYCONTEXT_GLOBAL
+#define memory_context()                    0
 #define memory_context_thread_deallocate()  do { /* */ } while(0)
 
 #endif

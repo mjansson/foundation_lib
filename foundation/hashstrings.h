@@ -21,3 +21,5 @@
 #define HASH_REMOTE static_hash_string( "remote", 0x4d4ee1b3734e2c5cULL )
 #define HASH_NONE static_hash_string( "none", 0xa90768116f8af366ULL )
 #define HASH_TEST static_hash_string( "test", 0x74326336c500c367ULL )
+#define HASH_STREAM static_hash_string( "stream", 0x5798159f6f1f8b05ULL )
+#define HASH_STRING static_hash_string( "string", 0xa1cc1854ea614cb4ULL )
