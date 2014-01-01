@@ -51,7 +51,7 @@ void* test_event_thread( object_t thread, void* arg )
 
 		while( ( event = event_next( block, event ) ) )
 		{
-			if( event->system == SYSTEM_FOUNDATION ) switch( event->id )
+			switch( event->id )
 			{
 				case FOUNDATIONEVENT_TERMINATE:
 					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating test due to event" );

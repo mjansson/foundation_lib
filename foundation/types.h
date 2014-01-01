@@ -216,18 +216,6 @@ typedef enum
 
 typedef enum
 {
-	//! System identifier for foundation
-	SYSTEM_FOUNDATION = 1,
-
-	//! System identifier for script
-	SYSTEM_SCRIPT,
-
-	//! System identifier for network
-	SYSTEM_NETWORK
-} system_t;
-
-typedef enum
-{
 	//! Application has been asked to terminate
 	FOUNDATIONEVENT_TERMINATE = 1,
 
@@ -417,8 +405,7 @@ typedef struct ALIGN(16) _foundation_objectmap
 
 //! Event base structure
 #define FOUNDATION_DECLARE_EVENT       \
-	uint8_t               system;      \
-	uint8_t               id;          \
+	uint16_t              id;          \
 	uint16_t              flags;       \
 	uint16_t              serial;      \
 	uint16_t              size;        \

@@ -121,12 +121,11 @@ DECLARE_TEST( event, immediate )
 	
 	stream = event_stream_allocate( 0 );
 
-	event_post( stream, SYSTEM_FOUNDATION, FOUNDATIONEVENT_TERMINATE, 0, 0, 0, 0 );
+	event_post( stream, FOUNDATIONEVENT_TERMINATE, 0, 0, 0, 0 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
-	EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_TERMINATE );
 	EXPECT_EQ( event->size, sizeof( event_t ) );
 	EXPECT_GT( event->serial, last_serial );
@@ -147,13 +146,12 @@ DECLARE_TEST( event, immediate )
 	EXPECT_EQ( event, 0 );
 
 
-	event_post( stream, SYSTEM_FOUNDATION, FOUNDATIONEVENT_TERMINATE, 13, 0, buffer, 0 );
-	event_post( stream, SYSTEM_FOUNDATION, FOUNDATIONEVENT_TERMINATE + 1, 37, 0, buffer, 0 );
+	event_post( stream, FOUNDATIONEVENT_TERMINATE, 13, 0, buffer, 0 );
+	event_post( stream, FOUNDATIONEVENT_TERMINATE + 1, 37, 0, buffer, 0 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
-	EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_TERMINATE );
 	EXPECT_EQ( event->size, sizeof( event_t ) + 16 );
 	EXPECT_GT( event->serial, last_serial );
@@ -164,7 +162,6 @@ DECLARE_TEST( event, immediate )
 
 	event = event_next( block, event );
 	EXPECT_NE( event, 0 );
-	EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_TERMINATE + 1 );
 	EXPECT_EQ( event->size, sizeof( event_t ) + 40 );
 	EXPECT_GT( event->serial, last_serial );
@@ -201,7 +198,7 @@ void* producer_thread( object_t thread, void* arg )
 			thread_sleep( (int)args.sleep_time );
 		else
 			thread_yield();
-		event_post( args.stream, random32_range( 1, 256 ), random32_range( 0, 256 ), random32_range( 0, 256 ), args.id, buffer, args.max_delay ? time_current() + random64_range( 0, args.max_delay ) : 0 );
+		event_post( args.stream, random32_range( 1, 65535 ), random32_range( 0, 256 ), args.id, buffer, args.max_delay ? time_current() + random64_range( 0, args.max_delay ) : 0 );
 		++produced;
 	} while( !thread_should_terminate( thread ) && ( time_current() < args.end_time ) );
 
@@ -305,8 +302,8 @@ DECLARE_TEST( event, delay )
 	delivery = current + ( time_ticks_per_second() / 2 );
 	limit = current + ( time_ticks_per_second() * 20 );
 
-	event_post( stream, SYSTEM_FOUNDATION, expect_event, 0, 0, 0, current + ( time_ticks_per_second() / 2 ) );
-	event_post( stream, SYSTEM_FOUNDATION, expect_event + 1, 0, 0, 0, current + (tick_t)((real)time_ticks_per_second() * REAL_C( 0.51 )) );
+	event_post( stream, expect_event, 0, 0, 0, current + ( time_ticks_per_second() / 2 ) );
+	event_post( stream, expect_event + 1, 0, 0, 0, current + (tick_t)((real)time_ticks_per_second() * REAL_C( 0.51 )) );
 
 	do
 	{
@@ -317,7 +314,6 @@ DECLARE_TEST( event, delay )
 
 		if( ( expect_event == FOUNDATIONEVENT_TERMINATE ) && event )
 		{
-			EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 			EXPECT_EQ( event->id, expect_event );
 			EXPECT_EQ( event->size, sizeof( event_t ) + 8 ); //8 bytes for additional timestamp payload
 			EXPECT_EQ( event->object, 0 );
@@ -334,7 +330,6 @@ DECLARE_TEST( event, delay )
 
 		if( ( expect_event == FOUNDATIONEVENT_TERMINATE + 1 ) && event )
 		{
-			EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 			EXPECT_EQ( event->id, expect_event );
 			EXPECT_EQ( event->size, sizeof( event_t ) + 8 ); //8 bytes for additional timestamp payload
 			EXPECT_EQ( event->object, 0 );
@@ -367,8 +362,8 @@ DECLARE_TEST( event, delay )
 	delivery = current + ( time_ticks_per_second() / 2 );
 	limit = current + ( time_ticks_per_second() * 20 );
 
-	event_post( stream, SYSTEM_FOUNDATION, expect_event, 0, 0, 0, current + ( time_ticks_per_second() / 2 ) );
-	event_post( stream, SYSTEM_FOUNDATION, expect_event + 1, 0, 0, 0, current + (tick_t)((real)time_ticks_per_second() * REAL_C( 0.41 )) );
+	event_post( stream, expect_event, 0, 0, 0, current + ( time_ticks_per_second() / 2 ) );
+	event_post( stream, expect_event + 1, 0, 0, 0, current + (tick_t)((real)time_ticks_per_second() * REAL_C( 0.41 )) );
 
 	do
 	{
@@ -379,7 +374,6 @@ DECLARE_TEST( event, delay )
 
 		if( ( expect_event == FOUNDATIONEVENT_TERMINATE ) && event )
 		{
-			EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 			EXPECT_EQ( event->id, expect_event );
 			EXPECT_EQ( event->size, sizeof( event_t ) + 8 ); //8 bytes for additional timestamp payload
 			EXPECT_EQ( event->object, 0 );
@@ -396,7 +390,6 @@ DECLARE_TEST( event, delay )
 
 		if( ( expect_event == FOUNDATIONEVENT_TERMINATE + 1 ) && event )
 		{
-			EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 			EXPECT_EQ( event->id, expect_event );
 			EXPECT_EQ( event->size, sizeof( event_t ) + 8 ); //8 bytes for additional timestamp payload
 			EXPECT_EQ( event->object, 0 );

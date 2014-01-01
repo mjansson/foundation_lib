@@ -298,7 +298,6 @@ DECLARE_TEST( fs, event )
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 
-	EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
 	EXPECT_STREQ( event->payload, pathstr );
 
@@ -351,7 +350,6 @@ DECLARE_TEST( fs, monitor )
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
-	EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
 	EXPECT_STREQ( event->payload, filetestpath );
 
@@ -366,7 +364,6 @@ DECLARE_TEST( fs, monitor )
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
-	EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_MODIFIED );
 	EXPECT_STREQ( event->payload, filetestpath );
 
@@ -379,7 +376,6 @@ DECLARE_TEST( fs, monitor )
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
-	EXPECT_EQ( event->system, SYSTEM_FOUNDATION );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
 	EXPECT_STREQ( event->payload, filetestpath );
 

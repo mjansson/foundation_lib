@@ -34,7 +34,7 @@ struct ALIGN(16) _foundation_event_stream
 static int32_t _event_serial = 1;
 
 
-static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
+static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
 {
 	event_block_t* block;
 	event_t* event;
@@ -42,6 +42,11 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 	uint32_t basesize;
 	uint32_t allocsize;
 	int32_t last_write;
+
+	//Events must have non-zero id
+	FOUNDATION_ASSERT_MSG( id, "Events must have non-zero id" );
+	if( !id )
+		return;
 
 	//Events must be aligned to an even 8 bytes
 	basesize = sizeof( event_t ) + size;
@@ -86,7 +91,6 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 
 	event = pointer_offset( block->events, block->used );
 
-	event->system    = systemid;
 	event->id        = id;
 	event->serial    = (uint16_t)( atomic_exchange_and_add32( &_event_serial, 1 ) & 0xFFFF );
 	event->size      = allocsize;
@@ -102,9 +106,9 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint8_t systemi
 		*(uint64_t*)pointer_offset( event, basesize ) = timestamp;
 	}
 
-	//Terminate with null system on next event
+	//Terminate with null id on next event
 	block->used += allocsize;
-	((event_t*)pointer_offset( block->events, block->used ))->system = 0;
+	((event_t*)pointer_offset( block->events, block->used ))->id = 0;
 
 	//Now unlock the event block
 	restored_block = atomic_cas32( &stream->write, last_write, EVENT_BLOCK_POSTING );
@@ -121,9 +125,9 @@ uint16_t event_payload_size( const event_t* event )
 }
 
 
-void event_post( event_stream_t* stream, uint8_t systemid, uint8_t id, uint16_t size, uint64_t object, const void* payload, tick_t delivery )
+void event_post( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, tick_t delivery )
 {
-	_event_post_delay_with_flag( stream, systemid, id, size, object, payload, 0, delivery );
+	_event_post_delay_with_flag( stream, id, size, object, payload, 0, delivery );
 }
 
 
@@ -136,7 +140,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 	{
 		//Grab first event if no previous event, or grab next event
 		event = ( event ? pointer_offset( event, event->size ) : ( block && block->used ? block->events : 0 ) );
-		if( !event || !event->system )
+		if( !event || !event->id )
 			return 0; // End of event list
 
 		if( !( event->flags & EVENTFLAG_DELAY ) )
@@ -150,7 +154,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 			return event;
 
 		//Re-post to next block
-		_event_post_delay_with_flag( block->stream, event->system, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
+		_event_post_delay_with_flag( block->stream, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
 	} while( true );
 
 	return 0;

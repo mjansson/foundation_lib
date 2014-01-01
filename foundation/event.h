@@ -40,7 +40,7 @@
     \param object                   Sender
     \param payload                  Event payload
 	\param delivery                 Delivery time, 0 for immediate delivery */
-FOUNDATION_API void                 event_post( event_stream_t* stream, uint8_t system, uint8_t id, uint16_t size, object_t object, const void* payload, tick_t delivery );
+FOUNDATION_API void                 event_post( event_stream_t* stream, uint16_t id, uint16_t size, object_t object, const void* payload, tick_t delivery );
 
 /*! Grab next event during procesing
     \param event                    Previous event, pass in 0 for getting first event
