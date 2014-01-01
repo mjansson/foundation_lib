@@ -382,7 +382,7 @@ typedef struct _foundation_memory_context
 //! Object base structure. If changing base object layout, change objectmap_lookup()
 #define FOUNDATION_DECLARE_OBJECT               \
 	ALIGN(16) volatile int32_t      ref;        \
-	int32_t                         objecttype; \
+	uint32_t                        flags;      \
 	object_t                        id
 
 typedef struct _foundation_object_base
