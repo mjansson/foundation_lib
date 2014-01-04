@@ -28,13 +28,16 @@
 #define array_capacity( array )                             ( _array_verify( array ) ? _array_rawcapacity_const( array ) : 0 )
 
 //! Reserve storage for given number of elements (never reduces storage and does not affect number of currently stored elements).
-#define array_reserve( array, capacity )                    ( (void)_array_maybegrowfixed( array, (capacity) - array_capacity( array ) ) )
+#define array_reserve( array, capacity )                    ( (void)_array_maybegrowfixed( array, (int)(capacity) - array_capacity( array ) ) )
 
 //! Get number of currently stored elements. Safe to pass null pointer.
 #define array_size( array )                                 ( _array_verify( array ) ? _array_rawsize_const( array ) : 0 )
 
 //! Add/remove elements without initialization (set new size to size+num and allocate new storage if needed).
-#define array_grow( array, num )                            ( ( (num) > 0 ? array_reserve( array, array_size( array ) + (num) ), 0 : 0 ), ( _array_verify( array ) ? _array_rawsize( array ) += (num) : 0 ), 0 )
+#define array_grow( array, num )                            ( array_reserve( array, array_size( array ) + (int)(num) ), ( _array_verify( array ) ? _array_rawsize( array ) += (num) : 0 ), 0 )
+
+//! Resize to given size without initialization (set new size to num and allocate new storage if needed).
+#define array_resize( array, num )                          ( array_grow( array, (int)(num) - array_size( array ) ), 0 )
 
 //! Set size to 0 (does not affect capacity or resize storage buffer).
 #define array_clear( array )                                ( _array_verify( array ) ? _array_rawsize( array ) = 0, 0 : 0 )

@@ -1933,12 +1933,60 @@ DECLARE_TEST( array, inserterase )
 }
 
 
+DECLARE_TEST( array, resize )
+{
+	int* intarr = 0;
+	int* prevarr = 0;
+
+	array_resize( intarr, 139 );
+
+	EXPECT_NE( intarr, 0 );
+	EXPECT_EQ( array_size( intarr ), 139 );
+
+	intarr[37] = 37;
+
+	prevarr = intarr;
+	array_resize( intarr, 139 );
+
+	EXPECT_EQ( intarr, prevarr );
+	EXPECT_EQ( intarr[37], 37 );
+	EXPECT_EQ( array_size( intarr ), 139 );
+
+	array_resize( intarr, 38 );
+
+	EXPECT_NE( intarr, 0 );
+	EXPECT_EQ( intarr[37], 37 );
+	EXPECT_EQ( array_size( intarr ), 38 );
+
+	array_reserve( intarr, 738 );
+	prevarr = intarr;
+	array_resize( intarr, 738 );
+	array_resize( intarr, 738 );
+
+	EXPECT_EQ( intarr, prevarr );
+	EXPECT_EQ( intarr[37], 37 );
+	EXPECT_EQ( array_size( intarr ), 738 );
+
+	array_resize( intarr, 0 );
+
+	EXPECT_NE( intarr, 0 );
+	EXPECT_EQ( array_size( intarr ), 0 );
+
+	array_deallocate( intarr );
+
+	EXPECT_EQ( intarr, 0 );
+
+	return 0;
+}
+
+
 void test_array_declare( void )
 {
 	ADD_TEST( array, allocation );
 	ADD_TEST( array, copy );
 	ADD_TEST( array, pushpop );
 	ADD_TEST( array, inserterase );
+	ADD_TEST( array, resize );
 }
 
 
