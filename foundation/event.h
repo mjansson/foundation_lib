@@ -30,7 +30,9 @@
 //to be posted during the event process loop (which will then be delivered and processed during the next
 //event process loop)
 //
-
+//Delayed events will not be delivered for processing until the delivery timestamp has passed. Delivery is not
+//guaranteed until next pass of event_stream_process & event_next iteration
+//
 
 /*! Post event to stream
     \param stream                   Event stream

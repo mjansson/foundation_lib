@@ -150,7 +150,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 			curtime = time_current();
 
 		eventtime = *(uint64_t*)pointer_offset( event, event->size - 8 );
-		if( eventtime < curtime )
+		if( eventtime <= curtime )
 			return event;
 
 		//Re-post to next block

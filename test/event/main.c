@@ -191,6 +191,7 @@ void* producer_thread( object_t thread, void* arg )
 	uint8_t buffer[256] = {0};
 	producer_thread_arg_t args = *(producer_thread_arg_t*)arg;
 	unsigned int produced = 0;
+	tick_t timestamp = 0;
 
 	do
 	{
@@ -198,7 +199,9 @@ void* producer_thread( object_t thread, void* arg )
 			thread_sleep( (int)args.sleep_time );
 		else
 			thread_yield();
-		event_post( args.stream, random32_range( 1, 65535 ), random32_range( 0, 256 ), args.id, buffer, args.max_delay ? time_current() + random64_range( 0, args.max_delay ) : 0 );
+		timestamp = args.max_delay ? time_current() + random64_range( 0, args.max_delay ) : 0;
+		memcpy( buffer, &timestamp, sizeof( tick_t ) );
+		event_post( args.stream, random32_range( 1, 65535 ), random32_range( timestamp ? 8 : 0, 256 ), args.id, buffer, timestamp );
 		++produced;
 	} while( !thread_should_terminate( thread ) && ( time_current() < args.end_time ) );
 
@@ -430,12 +433,13 @@ DECLARE_TEST( event, delay_threaded )
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
-	tick_t endtime;
+	tick_t endtime, curtime, payloadtime, begintime, prevtime;
 	unsigned int read[32];
 	int i;
 	bool running = true;
 
 	stream = event_stream_allocate( 0 );
+	begintime = time_current();
 
 	for( i = 0; i < 32; ++i )
 	{
@@ -467,29 +471,48 @@ DECLARE_TEST( event, delay_threaded )
 
 		thread_yield();
 
+		prevtime = begintime;
 		block = event_stream_process( stream );
+		begintime = time_current();
 		event = event_next( block, 0 );
+		curtime = time_current();
+
 		while( event )
 		{
-			++read[ event->object ];
 			running = true;
+			++read[ event->object ];
+			memcpy( &payloadtime, event->payload, sizeof( tick_t ) );
 
+			EXPECT_GE( event_payload_size( event ), 8 );
 			EXPECT_LE( event_payload_size( event ), 256 );
+			EXPECT_GE( payloadtime, prevtime );
+			EXPECT_GE( curtime, payloadtime );
+
 			event = event_next( block, event );
+			curtime = time_current();
 		}
 	}
 
-	endtime = time_current() + ( time_ticks_per_second() * 5 );
+	endtime = time_current() + ( time_ticks_per_second() * 6 );
 	do
 	{
+		prevtime = begintime;
 		block = event_stream_process( stream );
+		begintime = time_current();
 		event = event_next( block, 0 );
+		curtime = time_current();
 		while( event )
 		{
-			EXPECT_LE( event_payload_size( event ), 256 );
 			++read[ event->object ];
-			running = true;
+			memcpy( &payloadtime, event->payload, sizeof( tick_t ) );
+
+			EXPECT_GE( event_payload_size( event ), 8 );
+			EXPECT_LE( event_payload_size( event ), 256 );
+			EXPECT_GE( payloadtime, prevtime );
+			EXPECT_GE( curtime, payloadtime );
+
 			event = event_next( block, event );
+			curtime = time_current();
 		}
 
 		thread_sleep( 10 );
