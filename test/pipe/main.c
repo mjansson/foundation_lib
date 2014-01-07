@@ -47,20 +47,38 @@ static void* read_thread( object_t thread, void* arg )
 	stream_t* pipe = arg;
 	int i;
 	unsigned char dest_buffer[256];
+	uint64_t was_read, was_write;
+
 	for( i = 0; i < 64; ++i )
-		stream_read( pipe, dest_buffer + i*4, 4 );
+	{
+		was_read = stream_read( pipe, dest_buffer + i*4, 4 );
+		EXPECT_EQ( was_read, 4 );
+	}
 	for( i = 0; i < 256; ++i )
 		EXPECT_EQ( dest_buffer[i], (unsigned char)i );
+
 	for( i = 0; i < 64; ++i )
-		stream_write( pipe, dest_buffer + i*4, 4 );
+	{
+		was_write = stream_write( pipe, dest_buffer + i*4, 4 );
+		EXPECT_EQ( was_write, 4 );
+	}
 	thread_sleep( 2000 );
+
 	memset( dest_buffer, 0, 256 );
 	for( i = 0; i < 64; ++i )
-		stream_read( pipe, dest_buffer + i*4, 4 );
+	{
+		was_read = stream_read( pipe, dest_buffer + i*4, 4 );
+		EXPECT_EQ( was_read, 4 );
+	}
 	for( i = 0; i < 256; ++i )
 		EXPECT_EQ( dest_buffer[i], (unsigned char)i );
+
 	for( i = 0; i < 64; ++i )
-		stream_write( pipe, dest_buffer + i*4, 4 );
+	{
+		was_write = stream_write( pipe, dest_buffer + i*4, 4 );
+		EXPECT_EQ( was_write, 4 );
+	}
+
 	return 0;
 }
 
@@ -70,24 +88,40 @@ static void* write_thread( object_t thread, void* arg )
 	stream_t* pipe = arg;
 	unsigned char src_buffer[256];
 	int i;
+	uint64_t was_read, was_write;
+
 	for( i = 0; i < 256; ++i )
 		src_buffer[i] = (unsigned char)i;
-	stream_write( pipe, src_buffer, 69 );
-	stream_write( pipe, src_buffer + 69, 256 - 69 );
+	was_write = stream_write( pipe, src_buffer, 69 );
+	EXPECT_EQ( was_write, 69 );
+	thread_sleep( 100 );
+	was_write = stream_write( pipe, src_buffer + 69, 256 - 69 );
+	EXPECT_EQ( was_write, 256 - 69 );
 	thread_sleep( 1000 );
+	
 	memset( src_buffer, 0, 256 );
-	stream_read( pipe, src_buffer, 137 );
-	stream_read( pipe, src_buffer + 137, 256 - 137 );
+	was_read = stream_read( pipe, src_buffer, 137 );
+	EXPECT_EQ( was_read, 137 );
+	was_read = stream_read( pipe, src_buffer + 137, 256 - 137 );
+	EXPECT_EQ( was_read, 256 - 137 );
 	for( i = 0; i < 256; ++i )
 		EXPECT_EQ( src_buffer[i], (unsigned char)i );
-	stream_write( pipe, src_buffer, 199 );
-	stream_write( pipe, src_buffer + 199, 256 - 199 );
+
+	was_write = stream_write( pipe, src_buffer, 199 );
+	EXPECT_EQ( was_write, 199 );
+	thread_sleep( 100 );
+	was_write = stream_write( pipe, src_buffer + 199, 256 - 199 );
+	EXPECT_EQ( was_write, 256 - 199 );
 	thread_sleep( 3000 );
+
 	memset( src_buffer, 0, 256 );
-	stream_read( pipe, src_buffer, 255 );
-	stream_read( pipe, src_buffer + 255, 256 - 255 );
+	was_read = stream_read( pipe, src_buffer, 255 );
+	EXPECT_EQ( was_read, 255 );
+	was_read = stream_read( pipe, src_buffer + 255, 256 - 255 );
+	EXPECT_EQ( was_read, 256 - 255 );
 	for( i = 0; i < 256; ++i )
 		EXPECT_EQ( src_buffer[i], (unsigned char)i );
+
 	return 0;
 }
 
@@ -103,9 +137,17 @@ DECLARE_TEST( pipe, readwrite )
 	thread_start( writer, pipe );
 	thread_sleep( 100 );
 
-	while( thread_is_running( reader ) || thread_is_running( writer ) )
+	while( thread_is_running( reader ) && thread_is_running( writer ) )
 		thread_sleep( 10 );
 
+	if( !thread_is_running( reader ) )
+		EXPECT_EQ( thread_result( reader ), 0 );
+	if( !thread_is_running( writer ) )
+		EXPECT_EQ( thread_result( writer ), 0 );
+
+	while( thread_is_running( reader ) || thread_is_running( writer ) )
+		thread_sleep( 10 );
+	
 	EXPECT_EQ( thread_result( reader ), 0 );
 	EXPECT_EQ( thread_result( writer ), 0 );
 

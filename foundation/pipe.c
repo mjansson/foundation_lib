@@ -44,7 +44,7 @@ stream_t* pipe_allocate( void )
 	_stream_initialize( stream, system_byteorder() );
 
 	pipestream->type = STREAMTYPE_PIPE;
-	pipestream->path = string_format( "pipe://" PRIfixPTR, pipestream );
+	pipestream->path = string_format( "pipe://0x" PRIfixPTR, pipestream );
 	pipestream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 	pipestream->sequential = true;
 
@@ -187,10 +187,15 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
-		int num_read = (int)read( pipestream->fd_read, dest, (size_t)num );
-		if( num_read < 0 )
-			num_read = 0;
-		return (unsigned int)num_read;
+		uint64_t total_read = 0;
+		do
+		{
+			ssize_t num_read = read( pipestream->fd_read, pointer_offset( dest, total_read ), (size_t)( num - total_read ) );
+			if( num_read < 0 )
+				break;
+			total_read += num_read;
+		} while( total_read < num );
+		return total_read;
 	}	
 #endif
 
@@ -212,10 +217,15 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		int num_written = (int)write( pipestream->fd_write, source, (size_t)num );
-		if( num_written < 0 )
-			num_written = 0;
-		return (unsigned int)num_written;
+		uint64_t total_written = 0;
+		do
+		{
+			ssize_t num_written = write( pipestream->fd_write, pointer_offset_const( source, total_written ), (size_t)( num - total_written ) );
+			if( num_written < 0 )
+				break;
+			total_written += num_written;
+		} while( total_written < num );
+		return total_written;
 	}	
 #endif
 
