@@ -180,9 +180,15 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
-		unsigned long num_read = 0;
-		ReadFile( pipestream->handle_read, dest, (unsigned int)num, &num_read, 0 );
-		return num_read;
+		uint64_t total_read = 0;
+		do
+		{
+			unsigned long num_read = 0;
+			if( !ReadFile( pipestream->handle_read, pointer_offset( dest, total_read ), (unsigned int)( num - total_read ), &num_read, 0 ) )
+				break;
+			total_read += num_read;
+		} while( total_read < num );
+		return total_read;
 	}
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
@@ -210,9 +216,15 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		unsigned long num_written = 0;
-		WriteFile( pipestream->handle_write, source, (unsigned int)num, &num_written, 0 );
-		return num_written;
+		uint64_t total_written = 0;
+		do
+		{
+			unsigned long num_written = 0;
+			if( !WriteFile( pipestream->handle_write, pointer_offset_const( source, total_written ), (unsigned int)( num - total_written ), &num_written, 0 ) )
+				break;
+			total_written += num_written;
+		} while( total_written < num );
+		return total_written;
 	}
 #elif FOUNDATION_PLATFORM_POSIX
 	if( pipestream->fd_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
