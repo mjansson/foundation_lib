@@ -138,7 +138,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				int w = 0, h = 0;
 				w = ANativeWindow_getWidth( app->window );
 				h = ANativeWindow_getHeight( app->window );
-				log_info( 0, "Got APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
+				log_infof( 0, "Got APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
 			}
             break;
 		}

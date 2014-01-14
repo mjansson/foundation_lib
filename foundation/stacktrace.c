@@ -29,7 +29,9 @@
 #  include <stdio.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#  include <execinfo.h>
+#  if !FOUNDATION_PLATFORM_ANDROID
+#    include <execinfo.h>
+#  endif
 #endif
 
 
@@ -327,6 +329,8 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	_capture_stack_trace_helper( trace, max_depth, skip_frames, &context );
 #  endif
 	}
+#elif FOUNDATION_PLATFORM_ANDROID
+	// Not implemented yet
 #elif FOUNDATION_PLATFORM_POSIX
 	// Add 1 skip frames for this function call
 	skip_frames += 1;
