@@ -472,8 +472,8 @@ DECLARE_TEST( event, delay_threaded )
 		thread_yield();
 
 		prevtime = begintime;
-		block = event_stream_process( stream );
 		begintime = time_current();
+		block = event_stream_process( stream );
 		event = event_next( block, 0 );
 		curtime = time_current();
 
@@ -497,8 +497,8 @@ DECLARE_TEST( event, delay_threaded )
 	do
 	{
 		prevtime = begintime;
-		block = event_stream_process( stream );
 		begintime = time_current();
+		block = event_stream_process( stream );
 		event = event_next( block, 0 );
 		curtime = time_current();
 		while( event )
