@@ -72,9 +72,9 @@ DECLARE_TEST( library, lookup )
 	library_unload( 0 );
 	otherlib = 0;
 
-	log_suppress( ERRORLEVEL_WARNING );
+	log_set_suppress( 0, ERRORLEVEL_WARNING );
 	EXPECT_EQ( library_load( "this_library_should_not_exist" ), 0 );
-	log_suppress( ERRORLEVEL_DEBUG );
+	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	
 	EXPECT_TRUE( library_valid( lib ) );
 	EXPECT_FALSE( library_valid( 0 ) );
