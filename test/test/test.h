@@ -37,6 +37,7 @@
 typedef void* (* test_fn)( void );
 
 TEST_API void test_add_test( test_fn test, const char* group, const char* name );
+TEST_API int  test_run_all( void );
 
 #define _MAKE_TEST_FN( test_group, test_name ) FOUNDATION_PREPROCESSOR_JOIN( FOUNDATION_PREPROCESSOR_JOIN( test_group, test_name ), _fn )
 

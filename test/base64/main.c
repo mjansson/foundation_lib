@@ -45,14 +45,16 @@ void test_base64_shutdown( void )
 DECLARE_TEST( base64, encode_decode )
 {
 	char test_string[2048];
-	char test_data[1024];
-	char verify_data[1024];
+	uint64_t test_data64[128];
+	uint64_t verify_data64[128];
 	unsigned int written;
 	char prev_value;
 	char guard_value;
+	char* test_data = (void*)test_data64;
+	char* verify_data = (void*)verify_data64;
 
-	for( written = 0; written < 1024; written += 8 )
-		*(uint64_t*)( test_data + written ) = random64();
+	for( written = 0; written < 128; ++written )
+		test_data64[written] = random64();
 
 	//Test encode/decode zero/one blocks
 	{

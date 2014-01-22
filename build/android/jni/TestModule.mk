@@ -7,7 +7,6 @@ include $(FOUNDATION_LOCAL_PATH)/TargetSetup.mk
 LOCAL_PATH       := $(FOUNDATION_LOCAL_PATH)/../../..
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/test
-LOCAL_CFLAGS     := 
 
 ifeq ($(NDK_DEBUG),1)
 NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/debug
