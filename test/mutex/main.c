@@ -53,18 +53,34 @@ DECLARE_TEST( mutex, basic )
 	EXPECT_TRUE( mutex_lock( mutex ) );
 	EXPECT_TRUE( mutex_try_lock( mutex ) );
 	EXPECT_TRUE( mutex_lock( mutex ) );
-
+	
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 
+	log_set_suppress( 0, ERRORLEVEL_WARNING );
 	EXPECT_FALSE( mutex_unlock( mutex ) );
+	log_set_suppress( 0, ERRORLEVEL_INFO );
 
 	mutex_signal( mutex );
 	thread_yield();
 	EXPECT_TRUE( mutex_wait( mutex, 1 ) );
-	mutex_unlock( mutex );
+	EXPECT_TRUE( mutex_unlock( mutex ) );
+
+	log_set_suppress( 0, ERRORLEVEL_WARNING );
+	EXPECT_FALSE( mutex_wait( mutex, 100 ) );
+	EXPECT_FALSE( mutex_unlock( mutex ) );
+	log_set_suppress( 0, ERRORLEVEL_INFO );
+
+	mutex_signal( mutex );
+	thread_yield();
+	EXPECT_TRUE( mutex_wait( mutex, 1 ) );
+	log_set_suppress( 0, ERRORLEVEL_WARNING );
+	EXPECT_FALSE( mutex_wait( mutex, 100 ) );
+	EXPECT_TRUE( mutex_unlock( mutex ) );
+	EXPECT_FALSE( mutex_unlock( mutex ) );
+	log_set_suppress( 0, ERRORLEVEL_INFO );
 	
 	mutex_deallocate( mutex );
 	

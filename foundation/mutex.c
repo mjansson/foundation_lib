@@ -258,7 +258,6 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 	if( mutex->pending )
 	{
 		mutex->pending = false;
-		mutex_unlock( mutex );
 		return true;
 	}
 
