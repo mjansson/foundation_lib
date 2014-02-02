@@ -15,6 +15,7 @@
 #define HASH_APPLICATION static_hash_string( "application", 0x1d0a3207798c58baULL )
 #define HASH_USER static_hash_string( "user", 0x921c12dbd6f624f6ULL )
 #define HASH_DAEMON static_hash_string( "daemon", 0x27b6055e22f461b7ULL )
+#define HASH_MEMORY static_hash_string( "memory", 0x1ef05c31f30b3115ULL )
 #define HASH_TEMPORARY_MEMORY static_hash_string( "temporary_memory", 0x99a81dcbf3f5c346ULL )
 #define HASH_MEMORY_TRACKER static_hash_string( "memory_tracker", 0x344315811a5c41deULL )
 #define HASH_LOCAL static_hash_string( "local", 0xd17754fcf40a2974ULL )
