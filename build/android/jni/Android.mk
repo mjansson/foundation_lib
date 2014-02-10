@@ -98,6 +98,10 @@ FOUNDATION_TEST_MODULE := base64
 include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
 include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := bitbuffer
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
 FOUNDATION_TEST_MODULE := blowfish
 include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 

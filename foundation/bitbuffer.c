@@ -1,0 +1,269 @@
+/* bitbuffer.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+ * 
+ * This library provides a cross-platform foundation library in C11 providing basic support data types and
+ * functions to write applications and games in a platform-independent fashion. The latest source code is
+ * always available at
+ * 
+ * https://github.com/rampantpixels/foundation_lib
+ * 
+ * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
+ *
+ */
+
+#include <foundation/foundation.h>
+#include <foundation/internal.h>
+
+
+static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
+{
+	bitbuffer->pending_read = ( bitbuffer->buffer < bitbuffer->end ) ? *(uint32_t*)bitbuffer->buffer : 0;
+	bitbuffer->buffer += 4;
+	if( bitbuffer->swap )
+		bitbuffer->pending_read = byteorder_swap32( bitbuffer->pending_read );
+	bitbuffer->offset_read = 0;
+}
+
+
+static void _bitbuffer_put( bitbuffer_t* RESTRICT bitbuffer )
+{
+	if( bitbuffer->swap )
+		bitbuffer->pending_write = byteorder_swap32( bitbuffer->pending_write );
+	if( bitbuffer->buffer < bitbuffer->end )
+		*(uint32_t*)bitbuffer->buffer = bitbuffer->pending_write;
+	bitbuffer->buffer += 4;
+	bitbuffer->offset_write = 0;
+	bitbuffer->pending_write = 0;
+}
+
+
+void bitbuffer_initialize( bitbuffer_t* bitbuffer, void* buffer, unsigned int size, bool swap )
+{
+	FOUNDATION_ASSERT( !( size % 4 ) );
+	FOUNDATION_ASSERT( !( (uintptr_t)buffer % 4 ) );
+	memset( bitbuffer, 0, sizeof( bitbuffer_t ) );
+	bitbuffer->offset_read = 32;
+	bitbuffer->buffer = buffer;
+	bitbuffer->end = pointer_offset( buffer, size );
+	bitbuffer->swap = swap;
+}
+
+
+uint128_t bitbuffer_read128( bitbuffer_t* bitbuffer, unsigned int bits )
+{
+	if( bits <= 64 )
+	{
+#if !FOUNDATION_COMPILER_MSVC
+		const uint128_t value = {
+			.word[0] = bitbuffer_read64( bitbuffer, bits ),
+			.word[1] = 0
+		};
+#else
+		uint128_t value;
+		value.word[0] = bitbuffer_read64( bitbuffer, bits );
+		value.word[1] = 0;
+#endif
+		return value;
+	}
+	
+	FOUNDATION_ASSERT( bits <= 128 );
+	if( bits > 128 )
+		bits = 128;
+	
+	uint128_t value;
+	value.word[0] = bitbuffer_read64( bitbuffer, 64 );
+	value.word[1] = bitbuffer_read64( bitbuffer, bits - 64 );
+	return value;
+}
+
+
+uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
+{
+	if( bits <= 32 )
+		return bitbuffer_read32( bitbuffer, bits );
+	
+	FOUNDATION_ASSERT( bits <= 64 );
+	if( bits > 64 )
+		bits = 64;
+
+	uint32_t val0 = bitbuffer_read32( bitbuffer, 32 );
+	uint32_t val1 = bitbuffer_read32( bitbuffer, bits - 32 );
+	return (uint64_t)val0 | ( (uint64_t)val1 << 32ULL );
+}
+
+
+typedef union { uint64_t ival; float64_t rval; } _bitbuffer_convert64_t;
+typedef union { uint32_t ival; float32_t rval; } _bitbuffer_convert32_t;
+
+
+float64_t bitbuffer_read_float64( bitbuffer_t* bitbuffer )
+{
+#if !FOUNDATION_COMPILER_MSVC
+	const _bitbuffer_convert64_t conv = { .ival = bitbuffer_read64( bitbuffer, 64 ) };
+#else
+	_bitbuffer_convert64_t conv; conv.ival = bitbuffer_read64( bitbuffer, 64 );
+#endif
+	return conv.rval;
+}
+
+
+float32_t bitbuffer_read_float32( bitbuffer_t* bitbuffer )
+{
+#if !FOUNDATION_COMPILER_MSVC
+	const _bitbuffer_convert32_t conv = { .ival = bitbuffer_read32( bitbuffer, 32 ) };
+#else
+	_bitbuffer_convert32_t conv; conv.ival = bitbuffer_read32( bitbuffer, 32 );
+#endif
+	return conv.rval;
+}
+
+
+uint32_t bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits )
+{
+	if( !bits )
+		return 0;
+	
+	FOUNDATION_ASSERT( bits <= 32 );
+	if( bits > 32 )
+		bits = 32;
+
+	if( bitbuffer->offset_read >= 32 )
+		_bitbuffer_get( bitbuffer );
+	
+	unsigned int ret     = 0;
+	unsigned int curbits = 32 - bitbuffer->offset_read;
+
+	if( bits < curbits )
+		curbits = bits;
+
+	ret = ( curbits == 32 ) ? bitbuffer->pending_read : ( ( bitbuffer->pending_read >> bitbuffer->offset_read ) & ( ( 1 << curbits ) - 1 ) );
+
+	bitbuffer->offset_read += curbits;
+	bitbuffer->count_read  += curbits;
+
+	if( curbits == bits )
+		return ret;
+
+	FOUNDATION_ASSERT( bits && curbits );
+	FOUNDATION_ASSERT( bitbuffer->offset_read == 32 );
+	
+	_bitbuffer_get( bitbuffer );
+
+	ret |= ( bitbuffer->pending_read & ( ( 1 << ( bits - curbits ) ) - 1 ) ) << curbits;
+	
+	bitbuffer->offset_read  = ( bits - curbits );
+	bitbuffer->count_read  += ( bits - curbits );
+
+	return ret;
+}
+
+
+void bitbuffer_write128( bitbuffer_t* bitbuffer, uint128_t value, unsigned int bits )
+{
+	if( bits <= 64 )
+	{
+		bitbuffer_write64( bitbuffer, value.word[0], bits );
+		return;
+	}
+	
+	FOUNDATION_ASSERT( bits <= 128 );
+	if( bits > 128 )
+		bits = 128;
+	
+	bitbuffer_write64( bitbuffer, value.word[0], 64 );
+	bitbuffer_write64( bitbuffer, value.word[1], bits - 64 );
+}
+
+
+void bitbuffer_write64( bitbuffer_t* bitbuffer, uint64_t value, unsigned int bits )
+{
+	if( bits <= 32 )
+	{
+		bitbuffer_write32( bitbuffer, (uint32_t)value, bits );
+		return;
+	}
+	
+	FOUNDATION_ASSERT( bits <= 64 );
+	if( bits > 64 )
+		bits = 64;
+	
+	bitbuffer_write32( bitbuffer, (uint32_t)value, 32 );
+	bitbuffer_write32( bitbuffer, (uint32_t)( value >> 32ULL ), bits - 32 );
+}
+
+
+void bitbuffer_write_float64( bitbuffer_t* bitbuffer, float64_t value )
+{
+#if !FOUNDATION_COMPILER_MSVC
+	_bitbuffer_convert64_t conv = { .rval = value };
+#else
+	_bitbuffer_convert64_t conv; conv.rval = value;
+#endif
+	bitbuffer_write64( bitbuffer, conv.ival, 64 );
+}
+
+
+void bitbuffer_write_float32( bitbuffer_t* bitbuffer, float32_t value )
+{
+#if !FOUNDATION_COMPILER_MSVC
+	_bitbuffer_convert32_t conv = { .rval = value };
+#else
+	_bitbuffer_convert32_t conv; conv.rval = value;
+#endif
+	bitbuffer_write32( bitbuffer, conv.ival, 32 );
+}
+
+
+void bitbuffer_write32( bitbuffer_t* bitbuffer, uint32_t value, unsigned int bits )
+{
+	if( !bits )
+		return;
+
+	FOUNDATION_ASSERT( bits <= 32 );
+	if( bits > 32 )
+		bits = 32;
+
+	unsigned int curbits = 32 - bitbuffer->offset_write;
+	if( bits < curbits )
+		curbits = bits;
+
+	bitbuffer->pending_write |= ( ( curbits == 32 ) ? value : ( value & ( ( 1 << curbits ) - 1 ) ) ) << bitbuffer->offset_write;
+	bitbuffer->offset_write += curbits;
+
+	bitbuffer->count_write += bits;
+
+	if( bitbuffer->offset_write == 32 )
+		_bitbuffer_put( bitbuffer );
+
+	if( curbits == bits )
+		return;
+
+	FOUNDATION_ASSERT( bits && curbits );
+
+	bitbuffer->pending_write = ( value >> curbits ) & ( ( 1 << ( bits - curbits ) ) - 1 );
+	bitbuffer->offset_write  = bits - curbits;
+}
+
+
+void bitbuffer_align_read( bitbuffer_t* bitbuffer, bool force )
+{
+	if( !bitbuffer->offset_read && !force )
+		return;
+	bitbuffer->count_read += 32 - bitbuffer->offset_read;
+	bitbuffer->offset_read = 32;
+}
+
+
+void bitbuffer_align_write( bitbuffer_t* bitbuffer, bool force )
+{
+	if( !bitbuffer->offset_write && !force )
+		return;
+	bitbuffer->count_write += 32 - bitbuffer->offset_write;
+	_bitbuffer_put( bitbuffer );
+}
+
+
+void bitbuffer_discard_write( bitbuffer_t* bitbuffer )
+{
+	bitbuffer->offset_write = 0;
+	bitbuffer->pending_write = 0;
+}

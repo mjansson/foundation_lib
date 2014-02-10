@@ -64,6 +64,7 @@ extern int test_app_run( void );
 extern int test_array_run( void );
 extern int test_atomic_run( void );
 extern int test_base64_run( void );
+extern int test_bitbuffer_run( void );
 extern int test_blowfish_run( void );
 extern int test_bufferstream_run( void );
 extern int test_config_run( void );
@@ -114,6 +115,7 @@ int main_run( void* main_arg )
 		test_array_run,
 		test_atomic_run,
 		test_base64_run,
+		test_bitbuffer_run,
 		test_blowfish_run,
 		test_bufferstream_run,
 		test_config_run,

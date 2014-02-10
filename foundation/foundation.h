@@ -38,6 +38,7 @@
 #include <foundation/base64.h>
 #include <foundation/md5.h>
 #include <foundation/array.h>
+#include <foundation/bitbuffer.h>
 #include <foundation/hashmap.h>
 #include <foundation/hashtable.h>
 #include <foundation/ringbuffer.h>

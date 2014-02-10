@@ -458,6 +458,19 @@ typedef struct _foundation_semaphore
 #  error Semaphore not implemented yet on this platform
 #endif
 
+typedef struct _foundation_bitbuffer
+{
+	uint8_aligned32_t*  buffer;
+	uint8_aligned32_t*  end;
+	bool                swap;
+	unsigned int        pending_read;
+	unsigned int        pending_write;
+	unsigned int        offset_read;
+	unsigned int        offset_write;
+	unsigned int        count_read;
+	unsigned int        count_write;
+} bitbuffer_t;
+
 
 // OPAQUE COMPLEX TYPES
 
