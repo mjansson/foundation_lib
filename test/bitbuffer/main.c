@@ -50,14 +50,17 @@ DECLARE_TEST( bitbuffer, readwrite )
 	uint128_t readval128, writeval128;
 
 	uint32_t  val32[4]  = { random32(), random32(), random32(), random32() };
-	uint64_t  val64[4]  = { random64(), random64(), random64(), random64() };	
-	uint128_t val128[4] = { uint128_make( random64(), random64() ), uint128_make( random64(), random64() ), uint128_make( random64(), random64() ), uint128_make( random64(), random64() ) };
+	uint64_t  val64[4]  = { random64(), random64(), random64(), random64() };
+	uint128_t val128[4];
 	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
 	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
 
 	int bits32[20] = {0};
 	int bits64[20] = {0};
 	int bits128[20] = {0};
+
+	for( ival = 0; ival < 4; ++ival )
+		val128[ival] = uint128_make( random64(), random64() );
 
 	for( ipass = 0; ipass < 4096; ++ipass )
 	{

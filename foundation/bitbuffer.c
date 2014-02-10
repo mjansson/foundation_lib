@@ -64,20 +64,23 @@ uint128_t bitbuffer_read128( bitbuffer_t* bitbuffer, unsigned int bits )
 #endif
 		return value;
 	}
+	{	
+		uint128_t value;
+		FOUNDATION_ASSERT( bits <= 128 );
+		if( bits > 128 )
+			bits = 128;
 	
-	FOUNDATION_ASSERT( bits <= 128 );
-	if( bits > 128 )
-		bits = 128;
-	
-	uint128_t value;
-	value.word[0] = bitbuffer_read64( bitbuffer, 64 );
-	value.word[1] = bitbuffer_read64( bitbuffer, bits - 64 );
-	return value;
+		value.word[0] = bitbuffer_read64( bitbuffer, 64 );
+		value.word[1] = bitbuffer_read64( bitbuffer, bits - 64 );
+		return value;
+	}
 }
 
 
 uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
 {
+	uint32_t val0, val1;
+	
 	if( bits <= 32 )
 		return bitbuffer_read32( bitbuffer, bits );
 	
@@ -85,8 +88,8 @@ uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
 	if( bits > 64 )
 		bits = 64;
 
-	uint32_t val0 = bitbuffer_read32( bitbuffer, 32 );
-	uint32_t val1 = bitbuffer_read32( bitbuffer, bits - 32 );
+	val0 = bitbuffer_read32( bitbuffer, 32 );
+	val1 = bitbuffer_read32( bitbuffer, bits - 32 );
 	return (uint64_t)val0 | ( (uint64_t)val1 << 32ULL );
 }
 
@@ -119,6 +122,9 @@ float32_t bitbuffer_read_float32( bitbuffer_t* bitbuffer )
 
 uint32_t bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits )
 {
+	unsigned int ret;
+	unsigned int curbits;
+
 	if( !bits )
 		return 0;
 	
@@ -129,8 +135,8 @@ uint32_t bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits )
 	if( bitbuffer->offset_read >= 32 )
 		_bitbuffer_get( bitbuffer );
 	
-	unsigned int ret     = 0;
-	unsigned int curbits = 32 - bitbuffer->offset_read;
+	ret     = 0;
+	curbits = 32 - bitbuffer->offset_read;
 
 	if( bits < curbits )
 		curbits = bits;
@@ -215,6 +221,8 @@ void bitbuffer_write_float32( bitbuffer_t* bitbuffer, float32_t value )
 
 void bitbuffer_write32( bitbuffer_t* bitbuffer, uint32_t value, unsigned int bits )
 {
+	unsigned int curbits;
+
 	if( !bits )
 		return;
 
@@ -222,7 +230,7 @@ void bitbuffer_write32( bitbuffer_t* bitbuffer, uint32_t value, unsigned int bit
 	if( bits > 32 )
 		bits = 32;
 
-	unsigned int curbits = 32 - bitbuffer->offset_write;
+	curbits = 32 - bitbuffer->offset_write;
 	if( bits < curbits )
 		curbits = bits;
 
