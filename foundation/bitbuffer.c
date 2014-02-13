@@ -16,27 +16,40 @@
 
 static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
 {
-	bitbuffer->pending_read = ( bitbuffer->buffer < bitbuffer->end ) ? *(uint32_t*)bitbuffer->buffer : 0;
-	bitbuffer->buffer += 4;
-	if( bitbuffer->swap )
-		bitbuffer->pending_read = byteorder_swap32( bitbuffer->pending_read );
+	if( bitbuffer->buffer < bitbuffer->end )
+	{
+		bitbuffer->pending_read = bitbuffer->swap ? byteorder_swap32( *(uint32_t*)bitbuffer->buffer ) : *(uint32_t*)bitbuffer->buffer;
+		bitbuffer->buffer += 4;
+	}
+	else if( bitbuffer->stream )
+	{
+		bitbuffer->pending_read = stream_read_uint32( bitbuffer->stream );
+	}
+	else
+	{
+		bitbuffer->pending_read = 0;
+	}
 	bitbuffer->offset_read = 0;
 }
 
 
 static void _bitbuffer_put( bitbuffer_t* RESTRICT bitbuffer )
 {
-	if( bitbuffer->swap )
-		bitbuffer->pending_write = byteorder_swap32( bitbuffer->pending_write );
 	if( bitbuffer->buffer < bitbuffer->end )
-		*(uint32_t*)bitbuffer->buffer = bitbuffer->pending_write;
-	bitbuffer->buffer += 4;
+	{
+		*(uint32_t*)bitbuffer->buffer = bitbuffer->swap ? byteorder_swap32( bitbuffer->pending_write ) : bitbuffer->pending_write;
+		bitbuffer->buffer += 4;
+	}
+	else if( bitbuffer->stream )
+	{
+		stream_write_uint32( bitbuffer->stream, bitbuffer->pending_write );
+	}
 	bitbuffer->offset_write = 0;
 	bitbuffer->pending_write = 0;
 }
 
 
-void bitbuffer_initialize( bitbuffer_t* bitbuffer, void* buffer, unsigned int size, bool swap )
+void bitbuffer_initialize_buffer( bitbuffer_t* bitbuffer, void* buffer, unsigned int size, bool swap )
 {
 	FOUNDATION_ASSERT( !( size % 4 ) );
 	FOUNDATION_ASSERT( !( (uintptr_t)buffer % 4 ) );
@@ -45,6 +58,14 @@ void bitbuffer_initialize( bitbuffer_t* bitbuffer, void* buffer, unsigned int si
 	bitbuffer->buffer = buffer;
 	bitbuffer->end = pointer_offset( buffer, size );
 	bitbuffer->swap = swap;
+}
+
+
+void bitbuffer_initialize_stream( bitbuffer_t* bitbuffer, stream_t* stream )
+{
+	memset( bitbuffer, 0, sizeof( bitbuffer_t ) );
+	bitbuffer->offset_read = 32;
+	bitbuffer->stream = stream;
 }
 
 
@@ -254,8 +275,13 @@ void bitbuffer_write32( bitbuffer_t* bitbuffer, uint32_t value, unsigned int bit
 
 void bitbuffer_align_read( bitbuffer_t* bitbuffer, bool force )
 {
-	if( !bitbuffer->offset_read && !force )
-		return;
+	if( !( bitbuffer->offset_read & 31 ) ) //0 or 32
+	{
+		if( !force )
+			return;
+		if( bitbuffer->offset_read )
+			_bitbuffer_get( bitbuffer );
+	}
 	bitbuffer->count_read += 32 - bitbuffer->offset_read;
 	bitbuffer->offset_read = 32;
 }
@@ -267,6 +293,13 @@ void bitbuffer_align_write( bitbuffer_t* bitbuffer, bool force )
 		return;
 	bitbuffer->count_write += 32 - bitbuffer->offset_write;
 	_bitbuffer_put( bitbuffer );
+}
+
+
+void bitbuffer_discard_read( bitbuffer_t* bitbuffer )
+{
+	if( bitbuffer->offset_read != 32 )
+		bitbuffer->offset_read = 0;
 }
 
 
