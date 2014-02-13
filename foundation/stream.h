@@ -20,7 +20,8 @@
 
 
 /*! Open stream
-    \param path                  Path */
+    \param path                  Path
+    \param mode                  Open mode (read, write, ...) */
 FOUNDATION_API stream_t*         stream_open( const char* path, unsigned int mode );
 
 /*! Clone a stream (if supported by stream type)

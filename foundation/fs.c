@@ -555,10 +555,10 @@ void fs_touch( const char* path )
 stream_t* fs_temporary_file( void )
 {
 	stream_t* tempfile;
-	char* filename = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 )  );
+	char* filename = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
 
 	fs_make_directory( environment_temporary_directory() );
-	tempfile = fs_open_file( filename, STREAM_OUT );
+	tempfile = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );
 
 	string_deallocate( filename );
 
@@ -1354,7 +1354,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	dotrunc = false;
 	has_protocol = string_equal_substr( abspath, "file://", 7 );
 
-	file->fd = _fs_file_fopen( has_protocol ? abspath + 7 : abspath, mode, &dotrunc );
+	file->fd = _fs_file_fopen( has_protocol ? abspath + 6 : abspath, mode, &dotrunc );
 
 	if( ( mode & STREAM_OUT ) && !file->fd && !( mode & STREAM_TRUNCATE ) )
 	{
@@ -1366,7 +1366,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	atend = ( ( mode & STREAM_ATEND ) != 0 );
 
 	stream->mode   = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC );
-	stream->path   = has_protocol ? abspath : string_prepend( abspath, "file://" );
+	stream->path   = has_protocol ? abspath : string_prepend( abspath, ( abspath[0] == '/' ) ? "file:/" : "file://" );
 	stream->vtable = &_fs_file_vtable;
 
 	if( !file->fd )

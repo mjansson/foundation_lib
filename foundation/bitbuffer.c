@@ -66,6 +66,8 @@ void bitbuffer_initialize_stream( bitbuffer_t* bitbuffer, stream_t* stream )
 	memset( bitbuffer, 0, sizeof( bitbuffer_t ) );
 	bitbuffer->offset_read = 32;
 	bitbuffer->stream = stream;
+
+	stream_set_binary( stream, true );
 }
 
 
