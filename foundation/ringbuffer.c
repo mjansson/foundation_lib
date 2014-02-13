@@ -187,7 +187,7 @@ static uint64_t _ringbuffer_stream_read( stream_t* stream, void* dest, uint64_t 
 		semaphore_wait( &rbstream->signal_write );
 		rbstream->pending_read = 0;
 
-		num_read += ringbuffer_read( buffer, pointer_offset( dest, num_read ), (unsigned int)( num - num_read ) );
+		num_read += ringbuffer_read( buffer, dest ? pointer_offset( dest, num_read ) : 0, (unsigned int)( num - num_read ) );
 	}
 
 	if( rbstream->pending_write )
@@ -214,7 +214,7 @@ static uint64_t _ringbuffer_stream_write( stream_t* stream, const void* source, 
 		semaphore_wait( &rbstream->signal_read );
 		rbstream->pending_write = 0;
 
-		num_write += ringbuffer_write( buffer, pointer_offset_const( source, num_write ), (unsigned int)( num - num_write ) );
+		num_write += ringbuffer_write( buffer, source ? pointer_offset_const( source, num_write ) : 0, (unsigned int)( num - num_write ) );
 	}
 
 	if( rbstream->pending_read )
