@@ -42,6 +42,81 @@ void test_bitbuffer_shutdown( void )
 }
 
 
+DECLARE_TEST( bitbuffer, basics )
+{
+	uint32_t buffer[1024];
+	uint32_t read;
+	bitbuffer_t bitbuffer;
+
+	memset( buffer, 0xFF, 1024 * 4 );
+
+	bitbuffer_initialize( &bitbuffer, buffer, 1024 * 4, false );
+
+	bitbuffer_write32( &bitbuffer, 0x12345678, 32 );
+	bitbuffer_align_write( &bitbuffer, false );
+
+	EXPECT_EQ( buffer[0], 0x12345678 );
+	EXPECT_EQ( buffer[1], 0xFFFFFFFF );
+
+	bitbuffer_align_write( &bitbuffer, true );
+
+	EXPECT_EQ( buffer[0], 0x12345678 );
+	EXPECT_EQ( buffer[1], 0x00000000 );
+	EXPECT_EQ( buffer[2], 0xFFFFFFFF );
+
+	bitbuffer_write32( &bitbuffer, 0x12345678, 8 );
+
+	EXPECT_EQ( buffer[0], 0x12345678 );
+	EXPECT_EQ( buffer[1], 0x00000000 );
+	EXPECT_EQ( buffer[2], 0xFFFFFFFF );
+
+	bitbuffer_align_write( &bitbuffer, false );
+
+	EXPECT_EQ( buffer[0], 0x12345678 );
+	EXPECT_EQ( buffer[1], 0x00000000 );
+	EXPECT_EQ( buffer[2], 0x00000078 );
+	EXPECT_EQ( buffer[3], 0xFFFFFFFF );
+
+	bitbuffer_write32( &bitbuffer, 0x12345678, 12 );
+
+	EXPECT_EQ( buffer[0], 0x12345678 );
+	EXPECT_EQ( buffer[1], 0x00000000 );
+	EXPECT_EQ( buffer[2], 0x00000078 );
+	EXPECT_EQ( buffer[3], 0xFFFFFFFF );
+
+	bitbuffer_align_write( &bitbuffer, true );
+
+	EXPECT_EQ( buffer[0], 0x12345678 );
+	EXPECT_EQ( buffer[1], 0x00000000 );
+	EXPECT_EQ( buffer[2], 0x00000078 );
+	EXPECT_EQ( buffer[3], 0x00000678 );
+	EXPECT_EQ( buffer[4], 0xFFFFFFFF );
+
+	bitbuffer_initialize( &bitbuffer, buffer, 1024 * 4, false );
+
+	read = bitbuffer_read32( &bitbuffer, 32 );
+	bitbuffer_align_read( &bitbuffer, false );
+
+	EXPECT_EQ( read, 0x12345678 );
+
+	read = bitbuffer_read32( &bitbuffer, 32 );
+	bitbuffer_align_write( &bitbuffer, true );
+
+	EXPECT_EQ( read, 0x00000000 );
+
+	read = bitbuffer_read32( &bitbuffer, 12 );
+	bitbuffer_align_read( &bitbuffer, false );
+
+	EXPECT_EQ( read, 0x00000678 );
+
+	read = bitbuffer_read32( &bitbuffer, 31 );
+
+	EXPECT_EQ( read, 0x7FFFFFFF );
+
+	return 0;
+}
+
+
 DECLARE_TEST( bitbuffer, readwrite )
 {
 	int ipass, ival;
@@ -62,7 +137,7 @@ DECLARE_TEST( bitbuffer, readwrite )
 	for( ival = 0; ival < 4; ++ival )
 		val128[ival] = uint128_make( random64(), random64() );
 
-	for( ipass = 0; ipass < 4096; ++ipass )
+	for( ipass = 0; ipass < 8192; ++ipass )
 	{
 		for( ival = 0; ival < 20; ++ival )
 		{
@@ -147,16 +222,102 @@ DECLARE_TEST( bitbuffer, readwrite )
 
 DECLARE_TEST( bitbuffer, readwriteswap )
 {
+	int ipass, ival;
 	uint32_t buffer[1024];
 	bitbuffer_t bitbuffer;
+	uint128_t readval128, writeval128;
 
-	bitbuffer_initialize( &bitbuffer, buffer, 1024 * 4, true );
+	uint32_t  val32[4]  = { random32(), random32(), random32(), random32() };
+	uint64_t  val64[4]  = { random64(), random64(), random64(), random64() };
+	uint128_t val128[4];
+	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
+	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
+
+	int bits32[20] = {0};
+	int bits64[20] = {0};
+	int bits128[20] = {0};
+
+	for( ival = 0; ival < 4; ++ival )
+		val128[ival] = uint128_make( random64(), random64() );
+
+	for( ipass = 0; ipass < 8192; ++ipass )
+	{
+		for( ival = 0; ival < 20; ++ival )
+		{
+			bits32[ival] = random32_range( 0, 33 );
+			bits64[ival] = random32_range( 0, 65 );
+			bits128[ival] = random32_range( 0, 129 );
+		}
 	
+		//Phase 1 - write data
+		bitbuffer_initialize( &bitbuffer, buffer, 1024 * 4, true );
 
+		for( ival = 0; ival < 16; ++ival )
+		{
+			bitbuffer_write32( &bitbuffer, val32[0], bits32[ival] );
+			bitbuffer_write32( &bitbuffer, val32[1], bits32[ival+1] );
+			bitbuffer_write32( &bitbuffer, val32[2], bits32[ival+2] );
+			bitbuffer_write32( &bitbuffer, val32[3], bits32[ival+3] );
 
-	bitbuffer_initialize( &bitbuffer, buffer, 1024 * 4, true );
+			bitbuffer_write64( &bitbuffer, val64[0], bits64[ival] );
+			bitbuffer_write64( &bitbuffer, val64[1], bits64[ival+1] );
+			bitbuffer_write64( &bitbuffer, val64[2], bits64[ival+2] );
+			bitbuffer_write64( &bitbuffer, val64[3], bits64[ival+3] );
 
+			bitbuffer_write128( &bitbuffer, val128[0], bits128[ival] );
+			bitbuffer_write128( &bitbuffer, val128[1], bits128[ival+1] );
+			bitbuffer_write128( &bitbuffer, val128[2], bits128[ival+2] );
+			bitbuffer_write128( &bitbuffer, val128[3], bits128[ival+3] );
 
+			bitbuffer_write_float32( &bitbuffer, valf32[0] );
+			bitbuffer_write_float32( &bitbuffer, valf32[1] );
+			bitbuffer_write_float32( &bitbuffer, valf32[2] );
+			bitbuffer_write_float32( &bitbuffer, valf32[3] );
+
+			bitbuffer_write_float64( &bitbuffer, valf64[0] );
+			bitbuffer_write_float64( &bitbuffer, valf64[1] );
+			bitbuffer_write_float64( &bitbuffer, valf64[2] );
+			bitbuffer_write_float64( &bitbuffer, valf64[3] );
+		}
+
+		bitbuffer_align_write( &bitbuffer, false );
+		bitbuffer_write64( &bitbuffer, 0, 63 );
+
+		// Phase 2 - read and verify data
+		bitbuffer_initialize( &bitbuffer, buffer, 1024 * 4, true );
+
+		for( ival = 0; ival < 16; ++ival )
+		{
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival] ),   val32[0] & ( bits32[ival]   == 32 ? -1 : ( bits32[ival]   ? ( 1 << bits32[ival]   ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+1] ), val32[1] & ( bits32[ival+1] == 32 ? -1 : ( bits32[ival+1] ? ( 1 << bits32[ival+1] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+2] ), val32[2] & ( bits32[ival+2] == 32 ? -1 : ( bits32[ival+2] ? ( 1 << bits32[ival+2] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+3] ), val32[3] & ( bits32[ival+3] == 32 ? -1 : ( bits32[ival+3] ? ( 1 << bits32[ival+3] ) - 1 : 0 ) ) );
+
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival] ),   val64[0] & ( bits64[ival]   == 64 ? (uint64_t)-1 : ( bits64[ival]   ? ( 1ULL << bits64[ival]   ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+1] ), val64[1] & ( bits64[ival+1] == 64 ? (uint64_t)-1 : ( bits64[ival+1] ? ( 1ULL << bits64[ival+1] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+2] ), val64[2] & ( bits64[ival+2] == 64 ? (uint64_t)-1 : ( bits64[ival+2] ? ( 1ULL << bits64[ival+2] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+3] ), val64[3] & ( bits64[ival+3] == 64 ? (uint64_t)-1 : ( bits64[ival+3] ? ( 1ULL << bits64[ival+3] ) - 1 : 0 ) ) );
+
+			writeval128 = val128[0]; writeval128.word[0] &= ( bits128[ival] >= 64 ? (uint64_t)-1 : ( bits128[ival] ? ( 1ULL << bits128[ival] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival] == 128 ? (uint64_t)-1 : ( bits128[ival] > 64 ? ( 1ULL << ( bits128[ival] - 64 ) ) - 1 : 0 ) );
+			readval128 = bitbuffer_read128( &bitbuffer, bits128[ival] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
+			writeval128 = val128[1]; writeval128.word[0] &= ( bits128[ival+1] >= 64 ? (uint64_t)-1 : ( bits128[ival+1] ? ( 1ULL << bits128[ival+1] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival+1] == 128 ? (uint64_t)-1 : ( bits128[ival+1] > 64 ? ( 1ULL << ( bits128[ival+1] - 64 ) ) - 1 : 0 ) );
+			readval128 = bitbuffer_read128( &bitbuffer, bits128[ival+1] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
+			writeval128 = val128[2]; writeval128.word[0] &= ( bits128[ival+2] >= 64 ? (uint64_t)-1 : ( bits128[ival+2] ? ( 1ULL << bits128[ival+2] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival+2] == 128 ? (uint64_t)-1 : ( bits128[ival+2] > 64 ? ( 1ULL << ( bits128[ival+2] - 64 ) ) - 1 : 0 ) );
+			readval128 = bitbuffer_read128( &bitbuffer, bits128[ival+2] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
+			writeval128 = val128[3]; writeval128.word[0] &= ( bits128[ival+3] >= 64 ? (uint64_t)-1 : ( bits128[ival+3] ? ( 1ULL << bits128[ival+3] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival+3] == 128 ? (uint64_t)-1 : ( bits128[ival+3] > 64 ? ( 1ULL << ( bits128[ival+3] - 64 ) ) - 1 : 0 ) );
+			readval128 = bitbuffer_read128( &bitbuffer, bits128[ival+3] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
+
+			EXPECT_EQ( bitbuffer_read_float32( &bitbuffer ), valf32[0] );
+			EXPECT_EQ( bitbuffer_read_float32( &bitbuffer ), valf32[1] );
+			EXPECT_EQ( bitbuffer_read_float32( &bitbuffer ), valf32[2] );
+			EXPECT_EQ( bitbuffer_read_float32( &bitbuffer ), valf32[3] );
+
+			EXPECT_EQ( bitbuffer_read_float64( &bitbuffer ), valf64[0] );
+			EXPECT_EQ( bitbuffer_read_float64( &bitbuffer ), valf64[1] );
+			EXPECT_EQ( bitbuffer_read_float64( &bitbuffer ), valf64[2] );
+			EXPECT_EQ( bitbuffer_read_float64( &bitbuffer ), valf64[3] );
+		}
+	}
 	
 	return 0;
 }
@@ -164,7 +325,9 @@ DECLARE_TEST( bitbuffer, readwriteswap )
 
 void test_bitbuffer_declare( void )
 {
+	ADD_TEST( bitbuffer, basics );
 	ADD_TEST( bitbuffer, readwrite );
+	ADD_TEST( bitbuffer, readwriteswap );
 }
 
 
