@@ -363,6 +363,8 @@ DECLARE_TEST( bitbuffer, stream )
 	int bits64[20] = {0};
 	int bits128[20] = {0};
 
+	char* tmp_path;
+
 	for( ival = 0; ival < 4; ++ival )
 		val128[ival] = uint128_make( random64(), random64() );
 
@@ -410,7 +412,7 @@ DECLARE_TEST( bitbuffer, stream )
 		bitbuffer_align_write( &bitbuffer, false );
 		bitbuffer_write64( &bitbuffer, 0, 63 );
 
-		char* tmp_path = string_clone( stream_path( stream ) );
+		tmp_path = string_clone( stream_path( stream ) );
 		stream_deallocate( stream );
 
 		// Phase 2 - read and verify data

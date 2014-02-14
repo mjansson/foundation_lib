@@ -59,6 +59,14 @@ static fs_monitor_t _fs_monitors[BUILD_SIZE_FS_MONITORS] = {0};
 static event_stream_t* _fs_event_stream = 0;
 
 
+static const char* _fs_path( const char* abspath )
+{
+	bool has_protocol = string_equal_substr( abspath, "file://", 7 );
+	bool has_drive_letter = ( has_protocol && abspath[7] ) ? ( abspath[8] == ':' ) : false;
+	return( has_protocol ? abspath + ( has_drive_letter ? 7 : 6 ) : abspath );
+}
+
+
 void fs_monitor( const char* path )
 {
 	int mi;
@@ -138,7 +146,7 @@ bool fs_is_file( const char* path )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	wchar_t* wpath = wstring_allocate_from_string( path, 0 );
+	wchar_t* wpath = wstring_allocate_from_string( _fs_path( path ), 0 );
 	unsigned int attribs = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
 	if( ( attribs != 0xFFFFFFFF ) && !( attribs & FILE_ATTRIBUTE_DIRECTORY ) )
@@ -147,7 +155,7 @@ bool fs_is_file( const char* path )
 #elif FOUNDATION_PLATFORM_POSIX
 
 	struct stat st; memset( &st, 0, sizeof( st ) );
-	stat( path, &st );
+	stat( _fs_path( path ), &st );
 	if( st.st_mode & S_IFREG )
 		return true;
 
@@ -317,11 +325,11 @@ bool fs_remove_file( const char* path )
 	char* fpath = path_make_absolute( path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	wchar_t* wpath = wstring_allocate_from_string( fpath, 0 );
+	wchar_t* wpath = wstring_allocate_from_string( _fs_path( fpath ), 0 );
 	result = DeleteFileW( wpath );
 	wstring_deallocate( wpath );
 #elif FOUNDATION_PLATFORM_POSIX
-	result = ( unlink( fpath ) == 0 );
+	result = ( unlink( _fs_path( fpath ) ) == 0 );
 #else
 #  error Not implemented
 #endif
@@ -493,7 +501,7 @@ uint64_t fs_last_modified( const char* path )
 	BOOL success = 0;
 	memset( &attrib, 0, sizeof( attrib ) );
 
-	wpath = wstring_allocate_from_string( path, 0 );
+	wpath = wstring_allocate_from_string( _fs_path( path ), 0 );
 	success = GetFileAttributesExW( wpath, GetFileExInfoStandard, &attrib );
 	wstring_deallocate( wpath );
 
@@ -515,7 +523,7 @@ uint64_t fs_last_modified( const char* path )
 #elif FOUNDATION_PLATFORM_POSIX
 
 	struct stat st; memset( &st, 0, sizeof( st ) );
-	if( stat( path, &st ) < 0 )
+	if( stat( _fs_path( path ), &st ) < 0 )
 		return 0;
 	return (uint64_t)st.st_mtime * 1000ULL;
 
@@ -541,11 +549,11 @@ uint128_t fs_md5( const char* path )
 void fs_touch( const char* path )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
-	wchar_t* wpath = wstring_allocate_from_string( path, 0 );
+	wchar_t* wpath = wstring_allocate_from_string( _fs_path( path ), 0 );
 	_wutime( wpath, 0 );
 	wstring_deallocate( wpath );
 #elif FOUNDATION_PLATFORM_POSIX
-	utime( path, 0 );
+	utime( _fs_path( path ), 0 );
 #else
 #  error Not implemented
 #endif
@@ -1333,7 +1341,6 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	char* abspath;
 	bool dotrunc, atend, has_protocol;
 	unsigned int in_mode = mode;
-	unsigned int pathlen;
 
 	if( !path )
 		return 0;
@@ -1343,7 +1350,6 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	if( !( mode & STREAM_IN ) && !( mode & STREAM_OUT ) )
 		mode |= STREAM_IN;
 
-	pathlen = string_length( path );
 	file = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
 	stream = GET_STREAM( file );
 	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
@@ -1354,7 +1360,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	dotrunc = false;
 	has_protocol = string_equal_substr( abspath, "file://", 7 );
 
-	file->fd = _fs_file_fopen( has_protocol ? abspath + 6 : abspath, mode, &dotrunc );
+	file->fd = _fs_file_fopen( _fs_path( abspath ), mode, &dotrunc );
 
 	if( ( mode & STREAM_OUT ) && !file->fd && !( mode & STREAM_TRUNCATE ) )
 	{
