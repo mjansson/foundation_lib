@@ -18,3 +18,4 @@ HASH_TEST                               test
 HASH_STREAM                             stream
 HASH_STRING                             string
 HASH_BENCHMARK                          benchmark
+HASH_TOOL                               tool

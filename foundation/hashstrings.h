@@ -25,3 +25,4 @@
 #define HASH_STREAM static_hash_string( "stream", 0x5798159f6f1f8b05ULL )
 #define HASH_STRING static_hash_string( "string", 0xa1cc1854ea614cb4ULL )
 #define HASH_BENCHMARK static_hash_string( "benchmark", 0xf06a63ae2ff7eaceULL )
+#define HASH_TOOL static_hash_string( "tool", 0x4a8e770cf21d0529ULL )
