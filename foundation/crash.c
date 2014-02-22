@@ -13,6 +13,10 @@
 #include <foundation/foundation.h>
 
 
+#if BUILD_ENABLE_ERROR_CONTEXT
+extern void _error_context_clear();
+#endif	
+
 static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;
 
@@ -168,6 +172,10 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 		callback( _crash_dump_file );
 	}
 
+#if BUILD_ENABLE_ERROR_CONTEXT
+	_error_context_clear();
+#endif	
+
 	crash_env_t guard_env = get_thread_crash_env();
 	if( guard_env )
 		siglongjmp( guard_env, CRASH_DUMP_GENERATED );
@@ -191,6 +199,9 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	{
 		if( callback )
 			callback( _crash_dump_file );
+#if BUILD_ENABLE_ERROR_CONTEXT
+		_error_context_clear();
+#endif	
 		return CRASH_DUMP_GENERATED;
 	}
 #  else

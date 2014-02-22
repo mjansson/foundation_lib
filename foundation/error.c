@@ -83,6 +83,14 @@ void _error_context_pop( void )
 }
 
 
+void _error_context_clear( void )
+{
+	error_context_t* context = get_thread_error_context();
+	if( context )
+		context->depth = 0;
+}
+
+
 void _error_context_buffer( char* buffer, unsigned int size )
 {
 	error_context_t* context = get_thread_error_context();
