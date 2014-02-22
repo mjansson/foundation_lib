@@ -446,7 +446,6 @@ const char* environment_temporary_directory( void )
 		}
 	}
 #endif
-	log_debugf( 0, "Application temporary path: %s", _environment_temp_dir );
 	return _environment_temp_dir;
 }
 
