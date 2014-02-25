@@ -22,7 +22,7 @@
 
 
 //! Free array memory and reset pointer to zero.
-#define array_deallocate( array )                           ( _array_verify( array ) ? memory_deallocate( _array_raw( array ) ), (array)=0, 0 : 0 )
+#define array_deallocate( array )                           /*lint -e{522}*/ ( _array_verify( array ) ? memory_deallocate( _array_raw( array ) ), (array)=0, 0 : 0 )
 
 //! Get capacity of buffer in number of elements.
 #define array_capacity( array )                             ( _array_verify( array ) ? _array_rawcapacity_const( array ) : 0 )
@@ -49,7 +49,7 @@
 #define array_push( array, element )                        ( (void)_array_maybegrow( array, 1 ), (array)[ _array_rawsize( array )++ ] = (element) )
 
 //! Add element at end of array, copy data using memcpy
-#define array_push_memcpy( array, elementptr )              ( (void)_array_maybegrow( array, 1 ), memcpy( (array) + _array_rawsize( array )++, (elementptr), sizeof( *(elementptr) ) ) )
+#define array_push_memcpy( array, elementptr )              /*lint -e{506}*/ ( (void)_array_maybegrow( array, 1 ), memcpy( (array) + _array_rawsize( array )++, (elementptr), sizeof( *(array) ) ) )
 
 //! Add element at given position in array. Position is NOT range checked. Existing elements are moved using memmove.
 #define array_insert( array, pos, element )                 ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), sizeof( *(array) ) * ( _array_rawsize( array )++ - (pos) ) ), (array)[(pos)] = (element) )
@@ -96,7 +96,7 @@
 #define _array_needgrow(a,n)         ( ((n)>0) && ( _array_verify(a)==0 || (_array_rawsize_const(a)+(n)) > _array_rawcapacity_const(a) ) )
 #define _array_maybegrow(a,n)        ( _array_needgrow(a,(n)) ? _array_grow(a,n,2), 0 : 0 )
 #define _array_maybegrowfixed(a,n)   ( _array_needgrow(a,(n)) ? _array_grow(a,n,1), 0 : 0 )
-#define _array_grow(a,n,f)           ( _array_growfn(&(a),(n),(f),sizeof(*(a))) )
+#define _array_grow(a,n,f)           ( _array_growfn(&(a),(n),(f),(int)sizeof(*(a))) )
 
 FOUNDATION_API void _array_growfn( void* arr, int increment, int factor, int itemsize );
 FOUNDATION_API void _array_verifyfn( const void* const* arr );

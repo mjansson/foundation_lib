@@ -101,6 +101,8 @@
 #endif
 #endif
 
+#define BUILD_ENABLE_DEBUG_CONFIG             0
+
 #ifndef BUILD_ENABLE_PROFILE
 #if BUILD_DEBUG || BUILD_RELEASE || BUILD_PROFILE
 #define BUILD_ENABLE_PROFILE                  1

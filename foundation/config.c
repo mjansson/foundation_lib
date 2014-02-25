@@ -14,8 +14,6 @@
 #include <foundation/internal.h>
 
 
-#define BUILD_CONFIG_DEBUG        0
-
 #define CONFIG_SECTION_BUCKETS    7
 #define CONFIG_KEY_BUCKETS        11
 
@@ -36,9 +34,9 @@ typedef struct ALIGN(16) _foundation_config_key
 	config_value_type_t     type;
 	bool                    bval;
 	int64_t                 ival;
-	real                    rval;
 	char*                   sval;
 	char*                   expanded;
+	real                    rval;
 } config_key_t;
 
 typedef struct ALIGN(16) _foundation_config_section
@@ -57,8 +55,8 @@ static config_section_t* _config_section[CONFIG_SECTION_BUCKETS] = {0};
 static int64_t _config_string_to_int( const char* str )
 {
 	unsigned int length = string_length( str );
-	unsigned int first_nonnumeric = 0;
-	unsigned int dot_position = 0;
+	unsigned int first_nonnumeric;
+	unsigned int dot_position;
 	if( length < 2 )
 		return string_to_int64( str );
 
@@ -93,8 +91,8 @@ static int64_t _config_string_to_int( const char* str )
 static real _config_string_to_real( const char* str )
 {
 	unsigned int length = string_length( str );
-	unsigned int first_nonnumeric = 0;
-	unsigned int dot_position = 0;
+	unsigned int first_nonnumeric;
+	unsigned int dot_position;
 	if( length < 2 )
 		return string_to_real( str );
 
@@ -163,9 +161,9 @@ static NOINLINE char* _expand_string( hash_t section_current, char* str )
 
 		var_pos = string_find_string( expanded, "$(", 0 );
 	}
-#if BUILD_CONFIG_DEBUG
+#if BUILD_ENABLE_DEBUG_CONFIG
 	if( str != expanded )
-		debug_logf( "Expanded config value \"%s\" to \"%s\"", str, expanded );
+		log_debugf( HASH_CONFIG, "Expanded config value \"%s\" to \"%s\"", str, expanded );
 #endif
 
 	return expanded;
@@ -174,7 +172,7 @@ static NOINLINE char* _expand_string( hash_t section_current, char* str )
 
 static NOINLINE void _expand_string_val( hash_t section, config_key_t* key )
 {
-	bool is_true = false;
+	bool is_true;
 	FOUNDATION_ASSERT( key->sval );
 	if( key->expanded != key->sval )
 		string_deallocate( key->expanded );
@@ -190,8 +188,8 @@ static NOINLINE void _expand_string_val( hash_t section, config_key_t* key )
 
 int _config_initialize( void )
 {
-	config_load( "foundation", 0, true, false );
-	config_load( "application", 0, true, false );
+	config_load( "foundation", 0ULL, true, false );
+	config_load( "application", 0ULL, true, false );
 
 	//Load per-user config
 	config_load( "user", HASH_USER, false, true );
@@ -212,9 +210,11 @@ void _config_shutdown( void )
 		{
 			for( ikb = 0; ikb < CONFIG_KEY_BUCKETS; ++ikb )
 			{
+				/*lint -e{613} array_size( section ) in loop condition does the null pointer guard */
 				key = section[is].key[ikb];
 				for( ik = 0, ksize = array_size( key ); ik < ksize; ++ik )
 				{
+					/*lint --e{613} array_size( key ) in loop condition does the null pointer guard */
 					if( key[ik].expanded != key[ik].sval )
 						string_deallocate( key[ik].expanded );
 					if( ( key[ik].type != CONFIGVALUE_STRING_CONST ) && ( key[ik].type != CONFIGVALUE_STRING_CONST_VAR ) )
@@ -230,6 +230,8 @@ void _config_shutdown( void )
 
 void config_load( const char* name, hash_t filter_section, bool built_in, bool overwrite )
 {
+	/*lint --e{838} Safety null assign all pointers for all preprocessor paths */
+	/*lint --e{750} Unused macros in some paths */
 #define NUM_SEARCH_PATHS 10
 #define ANDROID_ASSET_PATH_INDEX 5
 	char* sub_exe_path = 0;
@@ -362,8 +364,10 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	paths[7] = cwd_config_path;
 
 	cmd_line = environment_command_line();
+	/*lint -e{850} We modify loop var to skip extra arg */
 	for( icl = 0, clsize = array_size( cmd_line ); icl < clsize; ++icl )
 	{
+		/*lint -e{613} array_size( cmd_line ) in loop condition does the null pointer guard */
 		if( string_equal_substr( cmd_line[icl], "--configdir", 11 ) )
 		{
 			if( string_equal_substr( cmd_line[icl], "--configdir=", 12 ) )
@@ -484,6 +488,7 @@ static NOINLINE config_section_t* config_section( hash_t section, bool create )
 	bucket = _config_section[ section % CONFIG_SECTION_BUCKETS ];
 	for( ib = 0, bsize = array_size( bucket ); ib < bsize; ++ib )
 	{
+		/*lint --e{613} array_size( bucket ) in loop condition does the null pointer guard */
 		if( bucket[ib].name == section )
 			return bucket + ib;
 	}
@@ -520,6 +525,7 @@ static NOINLINE config_key_t* config_key( hash_t section, hash_t key, bool creat
 	bucket = csection->key[ key % CONFIG_KEY_BUCKETS ];
 	for( ib = 0, bsize = array_size( bucket ); ib < bsize; ++ib )
 	{
+		/*lint --e{613} array_size( bucket ) in loop condition does the null pointer guard */
 		if( bucket[ib].name == key )
 			return bucket + ib;
 	}
@@ -570,8 +576,10 @@ const char* config_string( hash_t section, hash_t key )
 	if( !key_val )
 		return "";
 	//Convert to string
+	/*lint --e{788} We use default for remaining enums */
 	switch( key_val->type )
 	{
+		
 		case CONFIGVALUE_BOOL:  return key_val->bval ? "true" : "false";
 		case CONFIGVALUE_INT:   if( !key_val->sval ) key_val->sval = string_from_int( key_val->ival, 0, 0 ); return key_val->sval;
 		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = string_from_real( key_val->rval, 4, 0, '0' ); return key_val->sval;
@@ -599,7 +607,7 @@ hash_t config_string_hash( hash_t section, hash_t key )
 void config_set_bool( hash_t section, hash_t key, bool value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT( key_val );
+	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
 	key_val->bval = value;
 	key_val->ival = ( value ? 1 : 0 );
 	key_val->rval = ( value ? REAL_C( 1.0 ) : REAL_C( 0.0 ) );
@@ -616,7 +624,7 @@ void config_set_bool( hash_t section, hash_t key, bool value )
 void config_set_int( hash_t section, hash_t key, int64_t value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT( key_val );
+	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
 	key_val->bval = value ? true : false;
 	key_val->ival = value;
 	key_val->rval = (real)value;
@@ -633,7 +641,7 @@ void config_set_int( hash_t section, hash_t key, int64_t value )
 void config_set_real( hash_t section, hash_t key, real value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT( key_val );
+	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
 	key_val->bval = !math_realzero( value );
 	key_val->ival = (int64_t)value;
 	key_val->rval = value;
@@ -650,8 +658,7 @@ void config_set_real( hash_t section, hash_t key, real value )
 void config_set_string( hash_t section, hash_t key, const char* value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT( key_val );
-	FOUNDATION_ASSERT( value );
+	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
 	if( key_val->expanded != key_val->sval )
 		string_deallocate( key_val->expanded );
 	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
@@ -674,8 +681,8 @@ void config_set_string( hash_t section, hash_t key, const char* value )
 void config_set_string_constant( hash_t section, hash_t key, const char* value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT( key_val );
-	FOUNDATION_ASSERT( value );
+	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
+	FOUNDATION_ASSERT_NOTNULL_RETURN( value );
 	if( key_val->expanded != key_val->sval )
 		string_deallocate( key_val->expanded );
 	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
@@ -707,10 +714,10 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	hash_t key = 0;
 	unsigned int line = 0;
 
-#if BUILD_CONFIG_DEBUG
-	debug_logf( "Parsing config stream: %s", stream_path( stream ) );
+#if BUILD_ENABLE_DEBUG_CONFIG
+	log_debugf( HASH_CONFIG, "Parsing config stream: %s", stream_path( stream ) );
 #endif
-	buffer = memory_allocate_zero( 1024, 0, MEMORY_TEMPORARY );
+	buffer = memory_allocate_zero( 1024ULL, 0, MEMORY_TEMPORARY );
 	while( !stream_eos( stream ) )
 	{
 		++line;
@@ -724,13 +731,13 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			unsigned int endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
 			if( ( endpos == STRING_NPOS ) || ( endpos < 1 ) )
 			{
-				log_warnf( 0, WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
 				continue;
 			}
 			buffer[endpos] = 0;
 			section = hash( buffer + 1, endpos - 1 );
-#if BUILD_CONFIG_DEBUG
-			debug_logf( "  config: section set to '%s' (0x%llx)", buffer + 1, section );
+#if BUILD_ENABLE_DEBUG_CONFIG
+			log_debugf( HASH_CONFIG, "  config: section set to '%s' (0x%llx)", buffer + 1, section );
 #endif
 		}
 		else if( !filter_section || ( filter_section == section ) )
@@ -741,7 +748,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			unsigned int separator = string_find( buffer, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
-				log_warnf( 0, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
 				continue;
 			}
 			
@@ -749,7 +756,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			value = string_strip( buffer + separator + 1, " \t" );
 			if( !string_length( name ) )
 			{
-				log_warnf( 0, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
 				continue;
 			}
 
@@ -757,8 +764,8 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 
 			if( overwrite || !config_key( section, key, false ) )
 			{
-#if BUILD_CONFIG_DEBUG
-				debug_logf( "  config: %s (0x%llx) = %s", name, key, value );
+#if BUILD_ENABLE_DEBUG_CONFIG
+				log_debugf( HASH_CONFIG, "  config: %s (0x%llx) = %s", name, key, value );
 #endif
 
 				if( !string_length( value ) )
@@ -793,10 +800,11 @@ void config_parse_commandline( const char* const* cmdline, unsigned int num )
 			if( ( first_sep != STRING_NPOS ) && ( second_sep != STRING_NPOS ) && ( first_sep < second_sep ) )
 			{
 				unsigned int section_length = first_sep - 2;
-				unsigned int key_length = second_sep - first_sep - 1;
+				unsigned int end_pos = first_sep + 1;
+				unsigned int key_length = second_sep - end_pos;
 
 				const char* section_str = cmdline[arg] + 2;
-				const char* key_str = cmdline[arg] + ( first_sep + 1 );
+				const char* key_str = pointer_offset_const( cmdline[arg], end_pos );
 				
 				hash_t section = hash( section_str, section_length );
 				hash_t key = hash( key_str, key_length );
@@ -830,7 +838,7 @@ void config_parse_commandline( const char* const* cmdline, unsigned int num )
 					}
 				}
 
-				log_infof( 0, "Config value from command line: %.*s:%.*s = %s", section_length, section_str, key_length, key_str, set_value );
+				log_infof( HASH_CONFIG, "Config value from command line: %.*s:%.*s = %s", section_length, section_str, key_length, key_str, set_value );
 				
 				string_deallocate( value );
 			}	
@@ -847,7 +855,8 @@ void config_write( stream_t* stream, hash_t filter_section )
 
 	stream_set_binary( stream, false );
 
-	if( true )//stream_is_sequential( stream ) )
+	//TODO: If random access stream, update section if available, else append at end of stream
+	//if( stream_is_sequential( stream ) )
 	{
 		stream_write_format( stream, "[%s]", hash_to_string( filter_section ) );
 		stream_write_endl( stream );
@@ -856,7 +865,7 @@ void config_write( stream_t* stream, hash_t filter_section )
 		if( csection ) for( key = 0; key < CONFIG_KEY_BUCKETS; ++key )
 		{
 			bucket = csection->key[ key ];
-			for( ib = 0, bsize = array_size( bucket ); ib < bsize; ++ib )
+			if( bucket ) for( ib = 0, bsize = array_size( bucket ); ib < bsize; ++ib )
 			{
 				stream_write_format( stream, "\t%s\t\t\t\t= ", hash_to_string( bucket[ib].name ) );
 				switch( bucket[ib].type )
@@ -890,10 +899,6 @@ void config_write( stream_t* stream, hash_t filter_section )
 				stream_write_endl( stream );
 			}
 		}
-	}
-	else
-	{
-		//TODO: Update section if available, else append at end of stream
 	}
 }
 

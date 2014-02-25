@@ -726,9 +726,9 @@ typedef ALIGN(16) uint8_t     uint8_aligned128_t;
 
 #endif
 
-#define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ofs))
-#define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ofs))
-#define pointer_diff( first, second ) (uintptr_t)((const char*)(first) - (const char*)(second))
+#define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_diff( first, second ) (ptrdiff_t)((const char*)(first) - (const char*)(second))
 
 #include <string.h>
 

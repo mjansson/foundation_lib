@@ -1,5 +1,8 @@
 
+-d_WIN64
+
 +fie         // We always use enums as integrals
 
 -e717        // We use do { ... } while(0) construct
 -e826        // We use struct "inheritance" and cast between structs of incompatible sizes
+-e917        // We don't care about (for example) integer constants being coerced to unsigned int (passing 0 instead of 0U to a function taking unsigned int arg)

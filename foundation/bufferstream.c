@@ -14,6 +14,8 @@
 #include <foundation/internal.h>
 
 
+/*lint --e{754} Lint gets confused about initialized fields, we use memory_allocate_zero_context so safe to inhibit */
+
 typedef struct ALIGN(8) _foundation_stream_buffer
 {
 	FOUNDATION_DECLARE_STREAM;
@@ -30,7 +32,7 @@ static stream_vtable_t _buffer_stream_vtable;
 
 stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 {
-	stream_buffer_t* buffer_stream = memory_allocate_zero_context( HASH_STREAM, (uint64_t)sizeof( stream_buffer_t ), 0U, MEMORY_PERSISTENT );
+	stream_buffer_t* buffer_stream = memory_allocate_zero_context( HASH_STREAM, (uint64_t)sizeof( stream_buffer_t ), 0, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)buffer_stream;
 
 	_stream_initialize( stream, system_byteorder() );
@@ -166,10 +168,10 @@ static void _buffer_stream_truncate( stream_t* stream, uint64_t size )
 		buffer_stream->current = buffer_stream->size;
 }
 
-
+/*lint -e{818} Function prototype must match stream interface */
 static uint64_t _buffer_stream_size( stream_t* stream )
 {
-	return ((stream_buffer_t*)stream)->size;
+	return ((const stream_buffer_t*)stream)->size;
 }
 
 
@@ -182,39 +184,39 @@ static void _buffer_stream_seek( stream_t* stream, int64_t offset, stream_seek_m
 	else if( direction == STREAM_SEEK_BEGIN )
 		new_current = offset;
 	else if( direction == STREAM_SEEK_END )
-		new_current = buffer_stream->size + offset;
+		new_current = (int64_t)buffer_stream->size + offset;
 
 	if( new_current < 0 )
 		buffer_stream->current = 0;
 	else if( new_current > (int64_t)buffer_stream->size )
 		buffer_stream->current = buffer_stream->size;
 	else
-		buffer_stream->current = new_current;
+		buffer_stream->current = (uint64_t)new_current;
 }
 
-
+/*lint -e{818} Function prototype must match stream interface */
 static int64_t _buffer_stream_tell( stream_t* stream )
 {
-	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
-	return buffer_stream->current;
+	return (int64_t)((const stream_buffer_t*)stream)->current;
 }
 
-
+/*lint -e{550, 715} Function prototype must match stream interface */
 static uint64_t _buffer_stream_lastmod( const stream_t* stream )
 {
 	return time_current();
 }
 
-
+/*lint -e{818} Function prototype must match stream interface */
 static uint64_t _buffer_stream_available_read( stream_t* stream )
 {
-	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
+	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream->size - buffer_stream->current;
 }
 
 
 void _buffer_stream_initialize( void )
 {
+	memset( &_buffer_stream_vtable, 0, sizeof( _buffer_stream_vtable ) );
 	_buffer_stream_vtable.read = _buffer_stream_read;
 	_buffer_stream_vtable.write = _buffer_stream_write;
 	_buffer_stream_vtable.eos = _buffer_stream_eos;

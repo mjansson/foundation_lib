@@ -55,7 +55,11 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { if( assert_report_formatted( 0ULL, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); } while(0)
 #  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { if( assert_report_formatted( context, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); (void)sizeof( context ); } while(0)
 #  define FOUNDATION_ASSERT_RETURN( cond ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ) FOUNDATION_BREAKPOINT(); return; } while(0)
+#  define FOUNDATION_ASSERT_RETURN_VALUE( cond, val ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ) FOUNDATION_BREAKPOINT(); return (val); } while(0)
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_MSG( ( (uintptr_t)(addr) % (uintptr_t)(alignment) ) == 0, "Mis-aligned memory" ); } while(0)
+#  define FOUNDATION_ASSERT_NOTNULL( ptr ) do { if( ( !(ptr) ) && assert_report_formatted( 0ULL, #ptr, __FILE__, __LINE__, "Null pointer" ) ) FOUNDATION_BREAKPOINT(); } while(0)
+#  define FOUNDATION_ASSERT_NOTNULL_RETURN( ptr ) do { if( ( !(ptr) ) && assert_report_formatted( 0ULL, #ptr, __FILE__, __LINE__, "Null pointer" ) ) { FOUNDATION_BREAKPOINT(); return; } } while(0)
+#  define FOUNDATION_ASSERT_NOTNULL_RETURN_VALUE( ptr, val ) do { if( ( !(ptr) ) && assert_report_formatted( 0ULL, #ptr, __FILE__, __LINE__, "Null pointer" ) ) { FOUNDATION_BREAKPOINT(); return (val); } } while(0)
 
 #  if FOUNDATION_PLATFORM_ARCH_ARM || FOUNDATION_PLATFORM_ARCH_ARM_64
 #  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ); } while(0)
@@ -73,10 +77,13 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { (void)sizeof( msg ); } while(0)
 #  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { log_errorf( context, ERROR_ASSERT, msg, __VA_ARGS__ ); } while(0)
 #  define FOUNDATION_ASSERT_RETURN( cond ) do { if( !(cond) ) return; } while(0)
+#  define FOUNDATION_ASSERT_RETURN_VALUE( cond, val ) do { if( !(cond) ) return (val); } while(0)
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
 #  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
+#  define FOUNDATION_ASSERT_NOTNULL( ptr ) do { (void)sizeof( ptr ); } while(0)
+#  define FOUNDATION_ASSERT_NOTNULL_RETURN( ptr ) do { if( !(ptr) ) return; } while(0)
+#  define FOUNDATION_ASSERT_NOTNULL_RETURN_VALUE( ptr, val ) do { if( !(ptr) ) return (val); } while(0)
 
 #endif
 
-#define FOUNDATION_STATIC_ASSERT( cond, msg ) /*lint -e{506, 751} */ typedef char msg[(cond)?1:-1]
-
+#define FOUNDATION_STATIC_ASSERT( cond, msg ) /*lint -e{506, 751, 778} */ typedef char msg[(cond)?1:-1]
