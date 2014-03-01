@@ -632,6 +632,7 @@ typedef enum
 
 //Base data types
 #include <stdint.h>
+#include <stddef.h>
 #include <float.h>
 
 typedef float          float32_t;
