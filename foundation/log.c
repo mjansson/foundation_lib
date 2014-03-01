@@ -85,13 +85,14 @@ static log_timestamp_t _log_make_timestamp( void )
 
 	log_timestamp_t timestamp;
 	
-	timestamp.milliseconds = ( ( elapsed % ticks_per_sec ) * 1000ULL ) / ticks_per_sec;
-	timestamp.seconds = elapsed / ticks_per_sec;
-	timestamp.minutes = timestamp.seconds / 60;
-	timestamp.hours = timestamp.minutes / 24;
+	uint64_t milliseconds = ( ( elapsed % ticks_per_sec ) * 1000ULL ) / ticks_per_sec;
+	uint64_t seconds = elapsed / ticks_per_sec;
+	uint64_t minutes = seconds / 60ULL;
 
-	timestamp.minutes %= 60;
-	timestamp.seconds %= 60;
+	timestamp.milliseconds = (unsigned int)( milliseconds % 1000ULL );
+	timestamp.seconds = (unsigned int)( seconds % 60ULL );
+	timestamp.minutes = (unsigned int)( minutes % 60ULL );
+	timestamp.hours = (unsigned int)( minutes / 24ULL );
 
 	return timestamp;
 }
