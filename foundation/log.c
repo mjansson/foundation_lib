@@ -68,7 +68,33 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 	"script"
 };
 
-#define make_timestamp()  ((float32_t)( (real)( time_current() - time_startup() ) / (real)time_ticks_per_second() ))
+
+typedef struct _log_timestamp
+{
+	unsigned int   hours;
+	unsigned int   minutes;
+	unsigned int   seconds;
+	unsigned int   milliseconds;
+} log_timestamp_t;
+
+
+static log_timestamp_t _log_make_timestamp( void )
+{
+	tick_t elapsed = time_current() - time_startup();
+	tick_t ticks_per_sec = time_ticks_per_second();
+
+	log_timestamp_t timestamp;
+	
+	timestamp.milliseconds = ( ( elapsed % ticks_per_sec ) * 1000ULL ) / ticks_per_sec;
+	timestamp.seconds = elapsed / ticks_per_sec;
+	timestamp.minutes = timestamp.seconds / 60;
+	timestamp.hours = timestamp.minutes / 24;
+
+	timestamp.minutes %= 60;
+	timestamp.seconds %= 60;
+
+	return timestamp;
+}
 
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
@@ -81,7 +107,7 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 
 static void _log_outputf( uint64_t context, int severity, const char* prefix, const char* format, va_list list, void* std )
 {
-	float32_t timestamp = make_timestamp();
+	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
 	unsigned int pid = thread_hardware();
 	int need, more, remain, size = 383;
@@ -91,7 +117,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if( _log_prefix )
-			need = snprintf( buffer, size, "[%.3f] <%" PRIx64 ":%d> %s", timestamp, tid, pid, prefix );
+			need = snprintf( buffer, size, "[%u:%02u:%02u.%03u] <%" PRIx64 ":%d> %s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, prefix );
 		else
 			need = snprintf( buffer, size, "%s", prefix );
 
