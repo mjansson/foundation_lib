@@ -14,7 +14,7 @@
 
 /*! \file array.h
     Simple resizable array of integral/POD types. All functions are "unsafe" (not range checked)
-	unless marked as "_safe". Safe to pass null pointers to all methods, array storage will be allocated and
+	unless marked as "_safe". It is safe to pass null pointers to all methods, array storage will be allocated and
     assigned as needed. Adapted and extended from stb_arr at http://nothings.org/stb.h */
 
 #include <foundation/platform.h>
@@ -98,6 +98,16 @@
 #define _array_maybegrowfixed(a,n)   ( _array_needgrow(a,(n)) ? _array_grow(a,n,1), 0 : 0 )
 #define _array_grow(a,n,f)           ( _array_growfn(&(a),(n),(f),(int)sizeof(*(a))) )
 
+/*! Array memory allocation function. This will reallocate array storage with the given parameters,
+    resulting in a total size of (factor * previous_capacity + increment) elements, with each element
+    size given by itemsize.
+    \param arr                       Array
+    \param increment                 Number of elements to increment storage with
+    \param factor                    Factor to multiply previous capacity with
+    \param itemsize                  Size of a single item */
 FOUNDATION_API void _array_growfn( void* arr, int increment, int factor, int itemsize );
+
+ /*! Verify array integrity. Will cause an assert if array is not valid.
+     \param arr                      Array */
 FOUNDATION_API void _array_verifyfn( const void* const* arr );
 

@@ -13,7 +13,9 @@
 #pragma once
 
 /*! \file apple.h
-    Safe inclusion of mach headers */
+    Safe inclusion of mach and Apple headers for both OSX and iOS targets. Use this header
+    instead of direct inclusion of mach/Apple headers to avoid compilation problems with
+    multiple or missing definitions. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -39,9 +41,9 @@
 #define uuid_is_null __system_uuid_is_null
 
 #include <mach/mach_types.h>
+#include <CoreFoundation/CoreFoundation.h>
 
 #ifdef __OBJC__
-#  include <CoreFoundation/CoreFoundation.h>
 #  import <Foundation/NSObject.h>
 #  import <Foundation/NSString.h>
 #  import <Foundation/NSThread.h>
@@ -61,7 +63,6 @@
 #    import <UIKit/UIApplication.h>
 #  endif
 #else
-#  include <CoreFoundation/CoreFoundation.h>
 #  if FOUNDATION_PLATFORM_MACOSX
 #    include <Carbon/Carbon.h>
 #  endif

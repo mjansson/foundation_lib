@@ -261,14 +261,14 @@ void _android_enable_sensor( int sensor_type )
 			if( _android_sensor_queue )
 			{
 				if( ASensorEventQueue_enableSensor( _android_sensor_queue, sensor ) < 0 )
-					log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to enable sensor" );
+					log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to enable sensor of type %d", sensor_type );
 				else
 				{
 					int min_delay = ASensor_getMinDelay( sensor );
 					if( min_delay < 60000 )
 						min_delay = 60000;
 					if( ASensorEventQueue_setEventRate( _android_sensor_queue, sensor, min_delay ) < 0 )
-						log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set sensor event rate" );
+						log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set event rate %d for sensor of type %d", min_delay, sensor_type );
 
 					_android_sensor_enabled[sensor_type] = true;
 				}
@@ -277,7 +277,7 @@ void _android_enable_sensor( int sensor_type )
 	}
 	else
 	{
-		log_warn( 0, WARNING_UNSUPPORTED, "Unable to initialize sensor, no sensor manager" );
+		log_warn( 0, WARNING_UNSUPPORTED, "Unable to initialize sensors, no sensor manager" );
 	}
 }
 

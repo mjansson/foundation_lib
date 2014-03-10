@@ -13,16 +13,42 @@
 #pragma once
 
 /*! \file assert.h
-    Extended assert macros */
+    Extended assert macros and callback handling. Assert enabling/disabling is controlled by build settings
+    in build.h, where disabling asserts will replace the code with a null or static statement (depending on
+    the type of assert). */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-
+/*! Get the currently set global assert handler
+    \return                         Assert handler */
 FOUNDATION_API assert_handler_fn    assert_handler( void );
+
+/*! Set the current global assert handler. This will be called for each
+    triggered assert and thus needs to be thread safe. Set to null to
+    disable assert callbacks and use the default behaviour.
+    \param new_handler              New global assert handler
+	\see assert_handler_fn
+	\see assert_report */
 FOUNDATION_API void                 assert_set_handler( assert_handler_fn new_handler );
 
+/*! Report assert to the global assert handler. If the global assert handler is set
+    to null use the default behaviour, which is to print the assert report
+    to the log (error level) and popup a system message box for UI applications.
+    \param context                  Log context
+    \param condition                Assert condition expression
+    \param file                     Source file triggering assert
+    \param line                     Line number triggering assert
+    \param msg                      Assert information message */
 FOUNDATION_API int                  assert_report( uint64_t context, const char* condition, const char* file, int line, const char* msg );
+
+/*! Report assert with a formatted message.
+    \see assert_report
+	\param context                  Log context
+	\param condition                Assert condition expression
+	\param file                     Source file triggering assert
+	\param line                     Line number triggering assert
+	\param msg                      Assert information message format specifier */
 FOUNDATION_API int                  assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... );
 
 #undef FOUNDATION_DUMP
