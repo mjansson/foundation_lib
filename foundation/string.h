@@ -12,7 +12,7 @@
 
 #pragma once
 
-/*! \file utf.h
+/*! \file string.h
     String handling and utility functions in UTF-8, conversion to/from UTF-16 */
 
 #include <foundation/platform.h>

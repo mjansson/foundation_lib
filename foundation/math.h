@@ -12,7 +12,7 @@
 
 #pragma once
 
-/*! \file mathcore.h
+/*! \file math.h
     Core math functionality */
 
 #include <foundation/platform.h>

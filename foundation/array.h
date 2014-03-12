@@ -14,23 +14,25 @@
 
 /*! \file array.h
     Simple resizable array of integral/POD types. All functions are "unsafe" (not range checked)
-	unless marked as "_safe". It is safe to pass null pointers to all methods, array storage will be allocated and
-    assigned as needed. Adapted and extended from stb_arr at http://nothings.org/stb.h */
+	unless marked as "_safe". It is safe to pass null pointers to all methods as a null pointer is
+    considered a valid array (array storage will be allocated and assigned as needed).
+
+    Adapted and extended from stb_arr at http://nothings.org/stb.h */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 
-//! Free array memory and reset pointer to zero.
+//! Free array memory and reset array pointer to zero.
 #define array_deallocate( array )                           /*lint -e{522}*/ ( _array_verify( array ) ? memory_deallocate( _array_raw( array ) ), (array)=0, 0 : 0 )
 
-//! Get capacity of buffer in number of elements.
+//! Get capacity of array in number of elements. Capacity indicates the size of the allocated memory block. To get the currently stored number of elements, use array_size instead.
 #define array_capacity( array )                             ( _array_verify( array ) ? _array_rawcapacity_const( array ) : 0 )
 
 //! Reserve storage for given number of elements (never reduces storage and does not affect number of currently stored elements).
 #define array_reserve( array, capacity )                    ( (void)_array_maybegrowfixed( array, (int)(capacity) - array_capacity( array ) ) )
 
-//! Get number of currently stored elements. Safe to pass null pointer.
+//! Get number of currently stored elements.
 #define array_size( array )                                 ( _array_verify( array ) ? _array_rawsize_const( array ) : 0 )
 
 //! Add/remove elements without initialization (set new size to size+num and allocate new storage if needed).
@@ -57,29 +59,46 @@
 //! Add element at given position in array, copy data using memcpy. Position is NOT range checked. Existing elements are moved using memmove.
 #define array_insert_memcpy( array, pos, elementptr )       ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), sizeof( *(array) ) * ( _array_rawsize( array )++ - (pos) ) ), memcpy( (array) + (pos), (elementptr), sizeof( *array ) ) )
 
+//! Add element at given position in array. Position IS range checked and clamped to array size. Existing elements are moved using memmove.
 #define array_insert_safe( array, pos, element )            do { int _clamped_pos = math_clamp( (pos), 0, array_size( array ) ); array_insert( array, _clamped_pos, element ); } while(0)
+
+//! Add element at given position in array, copy data using memcpy. Position IS range checked and clamped to array size. Existing elements are moved using memmove.
 #define array_insert_memcpy_safe( array, pos, elementptr )  do { int _clamped_pos = math_clamp( (pos), 0, array_size( array ) ); array_insert_memcpy( array, _clamped_pos, elementptr ); } while(0)
 
-//Remove last element
+//! Remove last element. Array size is NOT validated, will cause undefined behaviour if called on an empty array
 #define array_pop( array )                                  ( _array_verify( array ) ? --_array_rawsize( array ), 0 : 0 )
+
+//! Remove last element. Array size IS validated, safe to call on an empty array
 #define array_pop_safe( array )                             ( _array_verify( array ) && _array_rawsize( array ) > 0 ? --_array_rawsize( array ), 0 : 0 )
 
-//Erase element without preserving order (swap-with-last), safe meaning range check before erase
+//! Erase element without preserving order (swap-with-last). Position is NOT ranged checked.
 #define array_erase( array, pos )                           ( _array_verify( array ) ? *((array) + (pos)) = *((array) + ( _array_rawsize( array ) - 1 )), --_array_rawsize( array ), 0 : 0 )
-#define array_erase_safe( array, pos )                      ( _array_verify( array ) && ( (pos) >=0 ) && ( (pos) < _array_rawsize( array )) ? array_erase( array, pos ) : 0 )
+
+//! Erase element without preserving order (swap-with-last), copy data using memcpy. Position is NOT ranged checked.
 #define array_erase_memcpy( array, pos )                    ( _array_verify( array ) ? memcpy( (array) + (pos), (array) + ( _array_rawsize( array ) - 1 ), sizeof( *(array) ) ), --_array_rawsize( array ), 0 : 0 )
+
+//! Erase element without preserving order (swap-with-last). Position IS ranged checked.
+#define array_erase_safe( array, pos )                      ( _array_verify( array ) && ( (pos) >=0 ) && ( (pos) < _array_rawsize( array )) ? array_erase( array, pos ) : 0 )
+
+//! Erase element without preserving order (swap-with-last), copy data using memcpy. Position IS ranged checked.
 #define array_erase_memcpy_safe( array, pos )               ( _array_verify( array ) && ( (pos) >= 0 ) && ( (pos) < _array_rawsize( array ) ) ? array_erase_memcpy( array, pos ) : 0 )
 
-//Erase element and preserve order (memmove), safe meaning range check before erase. Slower than array_erase
+//! Erase element and preserve order (memmove remaining elements in array). Position is NOT ranged checked
 #define array_erase_ordered( array, pos )                   ( _array_verify( array ) ? memmove( (array) + (pos), (array) + (pos) + 1, ( _array_rawsize( array ) - (pos) - 1 ) * sizeof( *(array) ) ), --_array_rawsize( array ), 0 : 0 )
+
+//! Erase element and preserve order (memmove remaining elements in array). Position IS ranged checked
 #define array_erase_ordered_safe( array, pos )              ( _array_verify( array ) && ( (pos) >= 0 ) && ( (pos) < _array_rawsize( array ) ) ? array_erase_ordered( array, pos ) : 0 )
+
+//! Erase a range of elements and preserve order (memmove remaining elements in array). Position and number of elements are NOT ranged checked
 #define array_erase_ordered_range( array, pos, num )        ( _array_verify( array ) && (num) ? memmove( (array) + (pos), (array) + (pos) + (num), ( _array_rawsize( array ) - (pos) - (num) ) * sizeof( *(array) ) ), _array_rawsize( array ) -= (num), 0 : 0 )
+
+//! Erase a range of elements and preserve order (memmove remaining elements in array). Position and number of elements ARE ranged checked
 #define array_erase_ordered_range_safe( array, pos, num )   do { int _clamped_start = math_clamp( (pos), 0, array_size( array ) ); int _clamped_end = math_clamp( ( (pos) + (num) ), 0, array_size( array ) ); if( _clamped_end > _clamped_start ) array_erase_ordered_range( array, _clamped_start, _clamped_end - _clamped_start ); } while(0)
 
 
 // **** Internal implementation details below, not for direct use **** 
 
-//Header size set to 16 bytes in order to align main array memory
+// Header size set to 16 bytes in order to align main array memory
 #define _array_header_size           4UL
 #if BUILD_DEBUG
 #  define _array_verify(a)           ( _array_verifyfn((const void* const*)&(a)), (a) )

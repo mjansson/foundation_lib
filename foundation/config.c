@@ -607,7 +607,7 @@ hash_t config_string_hash( hash_t section, hash_t key )
 void config_set_bool( hash_t section, hash_t key, bool value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
+	if( !FOUNDATION_VALIDATE( key_val ) ) return;
 	key_val->bval = value;
 	key_val->ival = ( value ? 1 : 0 );
 	key_val->rval = ( value ? REAL_C( 1.0 ) : REAL_C( 0.0 ) );
@@ -624,7 +624,7 @@ void config_set_bool( hash_t section, hash_t key, bool value )
 void config_set_int( hash_t section, hash_t key, int64_t value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
+	if( !FOUNDATION_VALIDATE( key_val ) ) return;
 	key_val->bval = value ? true : false;
 	key_val->ival = value;
 	key_val->rval = (real)value;
@@ -641,7 +641,7 @@ void config_set_int( hash_t section, hash_t key, int64_t value )
 void config_set_real( hash_t section, hash_t key, real value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
+	if( !FOUNDATION_VALIDATE( key_val ) ) return;
 	key_val->bval = !math_realzero( value );
 	key_val->ival = (int64_t)value;
 	key_val->rval = value;
@@ -658,7 +658,7 @@ void config_set_real( hash_t section, hash_t key, real value )
 void config_set_string( hash_t section, hash_t key, const char* value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
+	if( !FOUNDATION_VALIDATE( key_val ) ) return;
 	if( key_val->expanded != key_val->sval )
 		string_deallocate( key_val->expanded );
 	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
@@ -681,8 +681,8 @@ void config_set_string( hash_t section, hash_t key, const char* value )
 void config_set_string_constant( hash_t section, hash_t key, const char* value )
 {
 	config_key_t* key_val = config_key( section, key, true );
-	FOUNDATION_ASSERT_NOTNULL_RETURN( key_val ); /*lint --e{613} Null check in assert*/
-	FOUNDATION_ASSERT_NOTNULL_RETURN( value );
+	if( !FOUNDATION_VALIDATE( key_val ) ) return;
+	if( !FOUNDATION_VALIDATE( value ) ) return;
 	if( key_val->expanded != key_val->sval )
 		string_deallocate( key_val->expanded );
 	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )

@@ -12,7 +12,7 @@
 
 #pragma once
 
-/*! \file posix
+/*! \file posix.h
     Safe inclusion of posix headers */
 
 #include <foundation/platform.h>

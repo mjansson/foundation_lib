@@ -93,18 +93,18 @@ static FORCEINLINE bool         atomic_cas64( volatile int64_t* dst, int64_t val
     \param val                  Value to set
     \param ref                  Reference value
     \return                     true if operation was successful (new value stored), false if not */
+static FORCEINLINE bool         atomic_cas_ptr( void** dst, void* val, void* ref );
+
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_PLATFORM_ARCH_X86
-#    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchange( (long volatile*)dst, (long)val, (long)ref  ) == (long)ref ) ? true : false )
+#    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchange( (long volatile*)(dst), (long)(val), (long)(ref)  ) == (long)ref ) ? true : false )
 #  else
-#    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchangePointer( (void**)dst, val, ref ) == ref ) ? true : false )
+#    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchangePointer( (void**)(dst), (val), (ref) ) == (ref) ) ? true : false )
 #  endif
 #elif FOUNDATION_PLATFORM_IOS
-#  define                       atomic_cas_ptr( dst, val, ref ) OSAtomicCompareAndSwapPtr( ref, val, (void* volatile*)dst )
+#  define                       atomic_cas_ptr( dst, val, ref ) OSAtomicCompareAndSwapPtr( (ref), (val), (void* volatile*)(dst) )
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-#  define                       atomic_cas_ptr( dst, val, ref ) __sync_bool_compare_and_swap( dst, ref, val )
-#else
-static FORCEINLINE bool         atomic_cas_ptr( void** dst, void* val, void* ref );
+#  define                       atomic_cas_ptr( dst, val, ref ) __sync_bool_compare_and_swap( (dst), (ref), (val) )
 #endif
 
 
