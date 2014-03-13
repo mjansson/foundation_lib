@@ -13,7 +13,7 @@
 #pragma once
 
 /*! \file assetstream.h
-    Stream for Android assets */
+    Stream for Android application assets */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -22,6 +22,10 @@
 #if FOUNDATION_PLATFORM_ANDROID
 
 
+/*! Open as Android application asset as a stream
+    \param path                          Asset path within the package asset paths
+    \param mode                          Open mode
+    \return                              Stream, null if unsuccessful */
 FOUNDATION_API stream_t*                 asset_stream_open( const char* path, unsigned int mode );
 
 
