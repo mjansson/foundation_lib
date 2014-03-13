@@ -28,6 +28,78 @@
 
 #include <foundation/platform.h>
 
+/*! \define BUILD_DEBUG
+    Set to 1 for debug build, 0 otherwise. Debug builds are by default unoptimized with full debugging functionality enabled such as asserts, logging, memory tracking and other features */
+
+/*! \define BUILD_RELEASE
+    Set to 1 for release build, 0 otherwise. Release builds are by default optimized but with a normal set of debugging functionality enabled such as asserts, some logging and memory tracking */
+
+/*! \define BUILD_PROFILE
+    Set to 1 for profile build, 0 otherwise. Profile builds are by default fully optimized and all debugging functionality disabled, but with profiling calls enabled. */
+
+/*! \define BUILD_DEPLOY
+    Set to 1 for deploy build, 0 otherwise. Deploy builds are by default fully optimized and have all debugging and profiling functionality disabled. */
+
+/*! \define BUILD_ENABLE_ASSERT
+    Set to 1 if asserts are enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_ERROR_CONTEXT
+    Set to 1 if error context tracking is enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_LOG
+    Set to 1 if logging is enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_DEBUG_LOG
+    Set to 1 if debug logging is enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_DEBUG_CONFIG
+    Set to 1 if config system debugging is enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_PROFILE
+    Set to 1 if profiling hooks and system is enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_MEMORY_CONTEXT
+    Set to 1 if memory context tracking is enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_MEMORY_TRACKER
+    Set to 1 if memory allocation tracking is enabled, 0 if disabled */
+
+/*! \define BUILD_ENABLE_STATIC_HASH_DEBUG
+    Set to 1 if static string hash debugging is enabled allowing reverse hash lookups, 0 if disabled */
+
+/*! \define BUILD_DEFAULT_STREAM_BYTEORDER
+    The default stream byte order used if the byte order is not explicitly set on a stream */
+
+/*! \define BUILD_SIZE_THREAD_MAP
+    The maximum number of concurrently allocated thread objects */
+
+/*! \define BUILD_SIZE_LIBRARY_MAP
+    The maximum number of concurrently allocated dynamic library objects */
+
+/*! \define BUILD_SIZE_TEMPORARY_MEMORY
+    Default size of temporary (linear) memory allocator buffer */
+
+/*! \define BUILD_SIZE_EVENT_BLOCK_LIMIT
+    Maximum allowed size for an event block (memory used by events between process calls) */
+
+/*! BUILD_SIZE_DEFAULT_THREAD_STACK
+    Default size for thread stacks */
+
+/*! \define BUILD_SIZE_ERROR_CONTEXT_DEPTH
+    Maximum error context depth */
+
+/*! \define BUILD_SIZE_MEMORY_CONTEXT_DEPTH
+    Maximum memory context depth */
+
+/*! \define BUILD_SIZE_STACKTRACE_DEPTH
+    Maximum stacktrace depth */
+
+/*! \define BUILD_SIZE_FS_MONITORS
+    Maximum number of filesystem monitors */
+
+/*! \define BUILD_SIZE_STATIC_HASH_STORE
+    Maximum number of statically hashed strings stored in lookup (if BUILD_ENABLE_STATIC_HASH_DEBUG is enabled) */
+
 
 #ifndef BUILD_DEBUG
 #  define BUILD_DEBUG 0
@@ -139,30 +211,21 @@
 #define BUILD_DEFAULT_STREAM_BYTEORDER        BYTEORDER_LITTLEENDIAN
 
 
-// Allocation sizes
 #define BUILD_SIZE_THREAD_MAP                 256
 #define BUILD_SIZE_LIBRARY_MAP                64
 
-// Default size of temporary (linear) memory allocator buffer
 #define BUILD_SIZE_TEMPORARY_MEMORY           2 * 1024 * 1024
 
-// Maximum allowed size for an event block
 #define BUILD_SIZE_EVENT_BLOCK_LIMIT          ( 1 * 1024 * 1024 )
 
-// Default size for thread stacks
 #define BUILD_SIZE_DEFAULT_THREAD_STACK       0x8000
 
-// Maximum error context depth
 #define BUILD_SIZE_ERROR_CONTEXT_DEPTH        32
 
-// Maximum memory context depth
 #define BUILD_SIZE_MEMORY_CONTEXT_DEPTH       32
 
-// Maximum stacktrace depth
 #define BUILD_SIZE_STACKTRACE_DEPTH           32
 
-// Maximum number of filesystem monitors
 #define BUILD_SIZE_FS_MONITORS                32
 
-// Maximum number of statically hashed strings stored in lookup
 #define BUILD_SIZE_STATIC_HASH_STORE          4192

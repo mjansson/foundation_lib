@@ -19,7 +19,68 @@
 #include <foundation/types.h>
 
 
-//! Swap byte order, 16 bit
+/*! Swap byte order, 16 bit
+    \param arg                         Value
+    \return                            Byte-order swapped value */
+static FORCEINLINE CONSTCALL uint16_t  byteorder_swap16( uint16_t arg );
+
+/*! Swap byte order, 32 bit
+    \param arg                         Value
+    \return                            Byte-order swapped value */
+static FORCEINLINE CONSTCALL uint32_t  byteorder_swap32( uint32_t arg );
+
+/*! Swap byte order, 64 bit
+    \param arg                         Value
+    \return                            Byte-order swapped value */
+static FORCEINLINE CONSTCALL uint64_t  byteorder_swap64( uint64_t arg );
+
+/*! Swap byte order, generic data
+    \param buffer                      Pointer to value, swapped in-place
+    \param size                        Number of bytes in data */
+static FORCEINLINE PURECALL void       byteorder_swap( void* RESTRICT buffer, const int size );
+
+/*! Convert from 16-bit native byte order to big endian byte order (no-op for big endian systems)
+    \param arg                         Value
+    \return                            Big endian value */
+static FORCEINLINE CONSTCALL uint16_t  byteorder_bigendian16( uint16_t arg );
+
+/*! Convert from 32-bit native byte order to big endian byte order (no-op for big endian systems)
+    \param arg                         Value
+    \return                            Big endian value */
+static FORCEINLINE CONSTCALL uint32_t  byteorder_bigendian32( uint32_t arg );
+
+/*! Convert from 64-bit native byte order to big endian byte order (no-op for big endian systems)
+    \param arg                         Value
+    \return                            Big endian value */
+static FORCEINLINE CONSTCALL uint64_t  byteorder_bigendian64( uint64_t arg );
+
+/*! Convert generic data from native byte order to big endian byte order (no-op for big endian systems)
+    \param buffer                      Pointer to value, converted in-place to big endian
+    \param size                        Number of bytes in data */
+static FORCEINLINE PURECALL void       byteorder_bigendian( void* RESTRICT buffer, const int size );
+
+/*! Convert from 16-bit native byte order to little endian byte order (no-op for little endian systems)
+    \param arg                         Value
+    \return                            Little endian value */
+static FORCEINLINE CONSTCALL uint16_t  byteorder_littleendian16( uint16_t arg );
+
+/*! Convert from 32-bit native byte order to little endian byte order (no-op for little endian systems)
+    \param arg                         Value
+    \return                            Little endian value */
+static FORCEINLINE CONSTCALL uint32_t  byteorder_littleendian32( uint32_t arg );
+
+/*! Convert from 64-bit native byte order to little endian byte order (no-op for little endian systems)
+    \param arg                         Value
+    \return                            Little endian value */
+static FORCEINLINE CONSTCALL uint64_t  byteorder_littleendian64( uint64_t arg );
+
+/*! Convert generic data from native byte order to little endian byte order (no-op for little endian systems)
+    \param buffer                      Pointer to value, converted in-place to little endian
+    \param size                        Number of bytes in data */
+static FORCEINLINE PURECALL void       byteorder_littleendian( void* RESTRICT buffer, const int size );
+
+	
+	
 static FORCEINLINE CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 {
 #if FOUNDATION_COMPILER_MSVC
@@ -36,7 +97,7 @@ static FORCEINLINE CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 #endif
 }
 
-//! Swap byte order, 32 bit
+
 static FORCEINLINE CONSTCALL uint32_t byteorder_swap32( uint32_t arg )
 {
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -59,7 +120,7 @@ static FORCEINLINE CONSTCALL uint32_t byteorder_swap32( uint32_t arg )
 #endif
 }
 
-//! Swap byte order, 64 bit
+
 static FORCEINLINE CONSTCALL uint64_t byteorder_swap64( uint64_t arg )
 {
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -82,7 +143,7 @@ static FORCEINLINE CONSTCALL uint64_t byteorder_swap64( uint64_t arg )
 #endif
 }
 
-//! Swap byte order, generic data
+
 static FORCEINLINE PURECALL void byteorder_swap( void* RESTRICT buffer, const int size )
 {
 	int i, num;
@@ -97,8 +158,7 @@ static FORCEINLINE PURECALL void byteorder_swap( void* RESTRICT buffer, const in
 }
 
 
-//! Convert to specific byte order from native byte order
-static FORCEINLINE PURECALL uint16_t byteorder_bigendian16( uint16_t arg )
+static FORCEINLINE CONSTCALL uint16_t byteorder_bigendian16( uint16_t arg )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_BIG
 	return arg;
@@ -108,8 +168,7 @@ static FORCEINLINE PURECALL uint16_t byteorder_bigendian16( uint16_t arg )
 }
 
 
-//! Convert to specific byte order from native byte order
-static FORCEINLINE PURECALL uint32_t byteorder_bigendian32( uint32_t arg )
+static FORCEINLINE CONSTCALL uint32_t byteorder_bigendian32( uint32_t arg )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_BIG
 	return arg;
@@ -119,8 +178,7 @@ static FORCEINLINE PURECALL uint32_t byteorder_bigendian32( uint32_t arg )
 }
 
 
-//! Convert to specific byte order from native byte order
-static FORCEINLINE PURECALL uint64_t byteorder_bigendian64( uint64_t arg )
+static FORCEINLINE CONSTCALL uint64_t byteorder_bigendian64( uint64_t arg )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_BIG
 	return arg;
@@ -130,7 +188,6 @@ static FORCEINLINE PURECALL uint64_t byteorder_bigendian64( uint64_t arg )
 }
 
 
-//! Convert to specific byte order from native byte order, generic data
 static FORCEINLINE PURECALL void byteorder_bigendian( void* RESTRICT buffer, const int size )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
@@ -139,8 +196,7 @@ static FORCEINLINE PURECALL void byteorder_bigendian( void* RESTRICT buffer, con
 }
 
 
-//! Convert to specific byte order from native byte order
-static FORCEINLINE PURECALL uint16_t byteorder_littleendian16( uint16_t arg )
+static FORCEINLINE CONSTCALL uint16_t byteorder_littleendian16( uint16_t arg )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
 	return arg;
@@ -150,8 +206,7 @@ static FORCEINLINE PURECALL uint16_t byteorder_littleendian16( uint16_t arg )
 }
 
 
-//! Convert to specific byte order from native byte order
-static FORCEINLINE PURECALL uint32_t byteorder_littleendian32( uint32_t arg )
+static FORCEINLINE CONSTCALL uint32_t byteorder_littleendian32( uint32_t arg )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
 	return arg;
@@ -161,8 +216,7 @@ static FORCEINLINE PURECALL uint32_t byteorder_littleendian32( uint32_t arg )
 }
 
 
-//! Convert to specific byte order from native byte order
-static FORCEINLINE PURECALL uint64_t byteorder_littleendian64( uint64_t arg )
+static FORCEINLINE CONSTCALL uint64_t byteorder_littleendian64( uint64_t arg )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_LITTLE
 	return arg;
@@ -172,7 +226,6 @@ static FORCEINLINE PURECALL uint64_t byteorder_littleendian64( uint64_t arg )
 }
 
 
-//! Convert to specific byte order from native byte order, generic data
 static FORCEINLINE PURECALL void byteorder_littleendian( void* RESTRICT buffer, const int size )
 {
 #if FOUNDATION_PLATFORM_ENDIAN_BIG

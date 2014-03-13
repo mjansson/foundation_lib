@@ -20,7 +20,8 @@
 
 
 /*! Create memory buffer stream from (optionally) existing buffer. The buffer can grow up to
-    the given capacity. If adopt and grow flags set it will grow to any required size.
+    the given capacity. If adopt and grow flags set it will grow to any required size by
+    reallocating memory.
     \param buffer                    Buffer
 	\param mode                      Stream open mode
 	\param size                      Current size of data

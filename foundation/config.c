@@ -256,45 +256,6 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 
 	FOUNDATION_ASSERT( name );
 
-	//Parse config file
-	//
-	//Look for config files in the following order in order to allow easy overloading of default values
-	//(for each directory, a platform subdirectory is also searched)
-	// 1) Executable directory (C:\path\bin\platform\build\exe)
-	// 2) Executable directory "config" subdirectory (C:\path\bin\platform\build\config)
-	// 3) Executable directory parent "config" subdirectory (C:path\bin\platform\config)
-	// 4) Executable directory processed "config" subdirectory (C:\path\config)
-	//    This step is performed by identifying if the path contains
-	//      1) known directories (bin)
-	//      2) a platform identifier (win32,win64,osx,ios,android,raspberrypi)
-	//      3) a build identifier (debug,release,profile,deploy)
-	//    and if so cleaning away these subdirectories. This allows you to have binaries
-	//    sorted on platform/build under a common "bin" directory, while placing configs
-	//    in a unified config directory outside the binary directory.
-	//
-	//For desktop builds (Windows, MacOSX, ...), if build is debug/release (i.e not deploy)
-	// 5) Initial working directory
-	//
-	//For Android development
-	// 6) Application asset manager config dir (/config)
-	//For iOS & MacOSX development (non-bsdutil apps)
-	// 6) Application bundle config dir (/path/to/exe.app/Contents/Resources/config)
-	//Other platforms:
-	// 6)
-	//
-	//For desktop platforms (Windows, MacOSX, ...)
-	// 7) Current working directory (C:\current\dir)
-	// 8) Current working directory "config" subdirectory (C:\current\dir\config)
-	// 9) Command line --configdir directive
-	//
-	//If built_in flag is false, the following directories are also searched
-	//For Windows development, the user app directory
-	// 10) C:\Users\<username>\AppData\Local\<appname>
-	//For Linux development, the user app directory
-	// 10) /home/<username>/.<appname>
-	//For MacOSX development, the user app directory
-	// 10) /Users/<username>/.<appname>
-
 	sub_exe_path = path_merge( environment_executable_directory(), "config" );
 	exe_parent_path = path_merge( environment_executable_directory(), "../config" );
 	abs_exe_parent_path = path_make_absolute( exe_parent_path );
@@ -704,11 +665,6 @@ void config_set_string_constant( hash_t section, hash_t key, const char* value )
 
 void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 {
-	//Format: compatible with "standard" INI files (see http://en.wikipedia.org/wiki/INI_file)
-	//[section]
-	//name = value
-	//; comment (or #comment)
-
 	char* buffer;
 	hash_t section = 0;
 	hash_t key = 0;

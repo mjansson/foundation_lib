@@ -379,7 +379,8 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 	uint32_t data, ldata, hdata;
 	unsigned int isub, ikey, iword, ibox, ientry;
 
-	blowfish_reset( blowfish );
+	memcpy( blowfish->parray, _blowfish_parray_init, 4 * SUBKEYS );
+	memcpy( blowfish->sboxes, _blowfish_sboxes_init, 4 * SBOXES * SBOXENTRIES );
 
 	for( isub = 0, ikey = 0; isub < SUBKEYS; ++isub )
 	{
@@ -419,13 +420,6 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 	data  = 0;
 	ldata = 0;
 	hdata = 0;
-}
-
-
-void blowfish_reset( blowfish_t* blowfish )
-{
-	memcpy( blowfish->parray, _blowfish_parray_init, 4 * SUBKEYS );
-	memcpy( blowfish->sboxes, _blowfish_sboxes_init, 4 * SBOXES * SBOXENTRIES );
 }
 
 
