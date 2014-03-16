@@ -80,7 +80,7 @@ extern int app_main( void* arg );
 
 @end
 
-void _delegate_start_main_ns_thread( int argc, char** argv )
+void delegate_start_main_ns_thread( int argc, char** argv )
 {
 	@autoreleasepool
 	{

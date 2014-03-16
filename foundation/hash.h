@@ -22,13 +22,27 @@
 #include <foundation/assert.h>
 
 
-//! Hash memory blob. Pointer must be aligned to 8 bytes
+/*! Hash memory blob. Pointer must be aligned to 8 bytes
+    \param key                               Key to hash
+    \param len                               Length of key in bytes
+    \return                                  Hash of key */
 FOUNDATION_API PURECALL hash_t               hash( const void* key, const unsigned int len );
+
+/*! Reverse hash lookup. Only available if BUILD_ENABLE_STATIC_HASH_DEBUG is
+    enabled, otherwise if will always return an empty string
+    \param value                             Hash value
+    \return                                  String matching hash value, or empty string if not found */
+FOUNDATION_API const char*                   hash_to_string( const hash_t value );
+
+/*! \define static_hash_string
+    Declare a statically hashed string. If BUILD_ENABLE_STATIC_HASH_DEBUG is enabled
+    in the build config this will allow the string to be reverse looked up with hash_to_string.
+    Static hash strings are usually defined by using the hashify tool on a declaration file,
+    see the hashstrings.txt and corresponding hashstrings.h header */
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 static FORCEINLINE hash_t                    static_hash( const void* key, const unsigned int len, const hash_t value );
 #  define static_hash_string( key, value )   static_hash( key, string_length( key ), value )
-FOUNDATION_API const char*                   hash_to_string( const hash_t value );
 #else
 #  define static_hash( key, len, value )     ( (void)sizeof( key ), (void)sizeof( len ), (value) )
 #  define static_hash_string( key, value )   ( (void)sizeof( key ), (value) )
@@ -50,5 +64,6 @@ static FORCEINLINE hash_t                    static_hash( const void* key, const
 
 #endif
 
-//! Hash of an empty string (length 0)
+/*! \define HASH_EMPTY_STRING
+    Hash of an empty string (length 0) */
 #define HASH_EMPTY_STRING                    0xC2D00F032E25E509ULL

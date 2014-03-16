@@ -13,28 +13,26 @@
 #pragma once
 
 /*! \file event.h
-    Base system for event sending and processing */
+    Base system for event sending and processing
+
+    Double-buffered event streams with a lock-free structure of many-writers, single-reader and yield-spinning
+    over an atomic operation while waiting for other threads to finish writing or swap-for-read. No locks needed
+    as only write block indicator needs to be protected (which can be done with atomic operations).
+
+    The expected contention for writing is low as the write is a quick operation and number
+    of events posted to the same stream from different threads is very low
+
+    Current buffer used to writing events is swapped during the event_stream_process call, allowing new events
+    to be posted during the event process loop (which will then be delivered and processed during the next
+    event process loop)
+
+    Delayed events will not be delivered for processing until the delivery timestamp has passed. Delivery is not
+    guaranteed until next pass of event_stream_process & event_next iteration */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-//
-//Double-buffered event streams with a lock-free structure of many-writers, single-reader and yield-spinning
-//over an atomic operation while waiting for other threads to finish writing or swap-for-read. No locks needed
-//as only write block indicator needs to be protected (which can be done with atomic operations).
-//
-//The expected contention for writing is low as the write is a quick operation and number
-//of events posted to the same stream from different threads is very low
-//
-//Current buffer used to writing events is swapped during the event_stream_process call, allowing new events
-//to be posted during the event process loop (which will then be delivered and processed during the next
-//event process loop)
-//
-//Delayed events will not be delivered for processing until the delivery timestamp has passed. Delivery is not
-//guaranteed until next pass of event_stream_process & event_next iteration
-//
-
-/*! Post event to stream
+/*! Post event to stream, thread-safe.
     \param stream                   Event stream
     \param system                   System identifier
     \param id                       Event id

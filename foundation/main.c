@@ -190,7 +190,7 @@ int main( int argc, char** argv )
 #  if FOUNDATION_PLATFORM_MACOSX
 
 		//Fire up new thread to continue foundation application, then run Cocoa event loop in main thread
-		_delegate_start_main_ns_thread( argc, argv );
+		delegate_start_main_ns_thread( argc, argv );
 
 		extern int NSApplicationMain( int argc, const char *argv[] );
 		ret = NSApplicationMain( argc, (const char**)argv );

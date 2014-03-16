@@ -14,13 +14,17 @@
 
 /*! \file fs.h
     File system operations. All paths are either absolute paths in the
-    OS file system, or relative paths to the current working directory */
+    OS file system, or relative paths to the current working directory.
+    Absolute paths can optionally contain a protocol declarator (file://)
+
+    Also provides an interface to monitor file system changes through
+    events */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 
-/*! Open a file
+/*! Open a file in the real file system
     \param path                 File system path
     \param mode                 Open mode
     \return                     File stream, 0 if file not found */
@@ -41,7 +45,6 @@ FOUNDATION_API bool             fs_remove_file( const char* path );
     \return                     true if the file exists, false if not */
 FOUNDATION_API bool             fs_is_file( const char* path );
 
-
 /*! Create path in the real file system. Can recursively create directories
     making up the path
     \param path                 Path in real file system to create
@@ -58,7 +61,6 @@ FOUNDATION_API bool             fs_remove_directory( const char* path );
     \return                     true if the directory exists, false if not */
 FOUNDATION_API bool             fs_is_directory( const char* path );
 
-
 /*! Get last modification date (last write) in milliseconds since the epoch (UNIX time)
     \param path                 File path
     \return                     File modification date, 0 if not an existing file */
@@ -72,7 +74,6 @@ FOUNDATION_API void             fs_touch( const char* path );
     \param path                 File path
     \return                     md5 digest, 0 if not an existing file or unreadable */
 FOUNDATION_API uint128_t        fs_md5( const char* path );
-
 
 /*! Get files matching the given pattern. Free the returned
     array with string_array_deallocate()
@@ -91,7 +92,6 @@ FOUNDATION_API char**           fs_files( const char* path );
     array with string_array_deallocate()
     \return                     Array of subdirectory names */
 FOUNDATION_API char**           fs_subdirs( const char* path );
-
 
 /*! Monitor the path (recursive) for file system changes
     \param path                 File system path */

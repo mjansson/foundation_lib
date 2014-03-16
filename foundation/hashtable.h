@@ -13,15 +13,32 @@
 #pragma once
 
 /*! \file hashtable.h
-    Simple lock-free container mapping 32/64-bit keys to values. Fixed size. */
+    Simple lock-free container mapping 32/64-bit keys to values. Fixed size, thread-safe.
+    Limitation are:
+     - Only maps 32/64 bit integers to 32/64 bit integers
+     - All keys must be non-zero
+     - Fixed maximum number of entries
+     - Only operations are get/set
+     - No delete operation (only set to zero)
+
+    TODO: Look into a lock-free implementation of hopscotch hashing (http://en.wikipedia.org/wiki/Hopscotch_hashing) */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-
+/*! Allocate storage for a 32-bit hash table of given size
+    \param buckets                           Number of buckets
+    \return                                  Hash table object */
 FOUNDATION_API hashtable32_t*                hashtable32_allocate( unsigned int buckets );
+
+/*! Deallocate storage used by hash table
+    \param table                             Hash table object to deallocate */
 FOUNDATION_API void                          hashtable32_deallocate( hashtable32_t* table );
 
+/*! Set entry in hash table
+    \param table                             Hash table
+    \param key                               Key
+    \param value                             Value */
 FOUNDATION_API void                          hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value );
 FOUNDATION_API void                          hashtable32_erase( hashtable32_t* table, uint32_t key );
 FOUNDATION_API uint32_t                      hashtable32_get( hashtable32_t* table, uint32_t key );

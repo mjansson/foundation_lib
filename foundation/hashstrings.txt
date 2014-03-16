@@ -20,3 +20,11 @@ HASH_STRING                             string
 HASH_BENCHMARK                          benchmark
 HASH_TOOL                               tool
 HASH_CONFIG                             config
+HASH_ENVIRONMENT                        environment
+HASH_EXECUTABLE_NAME                    executable_name
+HASH_EXECUTABLE_DIRECTORY               executable_directory
+HASH_EXECUTABLE_PATH                    executable_path
+HASH_INITIAL_WORKING_DIRECTORY          initial_working_directory
+HASH_CURRENT_WORKING_DIRECTORY          current_working_directory
+HASH_HOME_DIRECTORY                     home_directory
+HASH_TEMPORARY_DIRECTORY                temporary_directory

@@ -13,7 +13,7 @@
 #pragma once
 
 /*! \file foundation.h
-    Wrapper for foundation library headers */
+    Wrapper for foundation library headers and main entry/exit points */
 
 #include <foundation/platform.h>
 
@@ -69,11 +69,17 @@
 #include <foundation/blowfish.h>
  
 
-//! Entry point
+/*! Main entry point. Call this in your main_initialize function to bootstrap the foundation library
+    and initialize all functionality.
+    \param memory          Memory system declaration (use memory_system_malloc for default system allocator)
+    \param application     Application declaration
+    \return                0 if initialization successful, <0 if error */
 FOUNDATION_API int         foundation_initialize( const memory_system_t memory, const application_t application );
 
-//! Exit point
+/*! Main exit point. Call this in your main_shutdown function to cleanup the foundation library
+    and terminate all functionality. */
 FOUNDATION_API void        foundation_shutdown( void );
 
-//! Query if initialized
+/*! Query if foundation library is initialized properly
+    \return                true if initialized, false if not */
 FOUNDATION_API bool        foundation_is_initialized( void );

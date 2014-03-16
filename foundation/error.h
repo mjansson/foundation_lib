@@ -14,23 +14,50 @@
 
 /*! \file error.h
     Error context and reporting. Most error handling is done per-thread, including
-	current error and error callback. */
+	current error and error callback. If error context is not enabled in the build
+    all error context macros evaluate to no-ops. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 
-//! Get current per-thread error. Also resets current thread error to ERROR_NONE
+/*! Get current per-thread error, and reset current thread error to ERROR_NONE
+    \return               Current error for the calling thread */
 FOUNDATION_API error_t    error( void );
 
-//! Report error, stored per-thread
+/*! Report error for the calling thread. Does not affect error state for any other thread.
+    If a error callback is set for the calling thread it will be called and the
+    return value propagated.
+    \param level          Error level
+    \param err            Error identifier
+    \return               Return value from error callback if set, 0 if no callback set */
 FOUNDATION_API int        error_report( error_level_t level, error_t err );
 
-//! Set new per-thread error handling callback
+/*! Set new per-thread error handling callback. The callback will be called each time
+    the calling thread reports an error.
+    \param callback       Error callback */
 FOUNDATION_API void       error_set_callback( error_callback_fn callback );
 
 
+/*! \define error_context_push
+    Push a new error context and associated data on the error context stack */
 
+/*! \define error_context_pop
+    Pop the top error context off the error context stack */
+
+/*! \define error_context_buffer
+    Generate a error context stack description string in the given buffer, limited
+    to the given size */
+
+/*! \define error_context
+    Get the current error context, or 0 if no context set/available */
+
+/*! \define error_context_declare_local
+    Make a local declaration depending on if error contexts are enabled in the build
+    or not */
+
+/*! \define error_context_thread_deallocate
+    Clean up thread local storage related to error context on thread exit */
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
