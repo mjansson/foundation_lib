@@ -28,7 +28,17 @@
     currently evaluating section is used. In this mode all evaluation is lazy and performed in the different get functions.
     Lookup is recursive, so a value can map to another lazily evaluated variable config value.
 
-	Config format when parsing config files/streams is compatible with "standard" INI files (see http://en.wikipedia.org/wiki/INI_file)
+    A reserved section is "environment" which can be used to access the data provided by the environment_* family of functions using the following keys:
+      executable_name - Current executable name
+      executable_directory - Current executable directory
+      executable_path - Current executable full path
+      initial_working_directory - Initial working directory
+      current_working_directory - Current working directory
+      home_directory - User home directory
+      temporary_directory - Temporary directory
+      variable[varname] - Environment variable named "varname"
+
+	Config format when parsing config files/streams is compatible with "standard" INI files (see http://en.wikipedia.org/wiki/INI_file). Numbers can have the k/K or m/M suffix for kilo or mega multipliers (4M meaning 4*1024*1024)
 	[section]
 	name = value
 	; comment (or #comment)

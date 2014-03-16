@@ -122,11 +122,42 @@ static real _config_string_to_real( const char* str )
 }
 
 
+static NOINLINE const char* _expand_environment( hash_t key, char* var )
+{
+	if( key == HASH_EXECUTABLE_NAME )
+		return environment_executable_name();
+	else if( key == HASH_EXECUTABLE_DIRECTORY )
+		return environment_executable_directory();
+	else if( key == HASH_EXECUTABLE_PATH )
+		return environment_executable_path();
+	else if( key == HASH_INITIAL_WORKING_DIRECTORY )
+		return environment_initial_working_directory();
+	else if( key == HASH_CURRENT_WORKING_DIRECTORY )
+		return environment_current_working_directory();
+	else if( key == HASH_HOME_DIRECTORY )
+		return environment_home_directory();
+	else if( key == HASH_TEMPORARY_DIRECTORY )
+		return environment_temporary_directory();
+	else if( string_equal_substr( var, "variable[", 9 ) )  //variable[varname] - Environment variable named "varname"
+	{
+		const char* value;
+		unsigned int end_pos = string_find( var, ']', 9 );
+		if( end_pos != STRING_NPOS )
+			var[end_pos] = 0;
+		value = environment_variable( var );
+		if( end_pos != STRING_NPOS )
+			var[end_pos] = ']';
+		return value;
+	}
+	return "";
+}
+
+
 static NOINLINE char* _expand_string( hash_t section_current, char* str )
 {
 	char* expanded;
 	char* variable;
-	unsigned int var_pos, var_end_pos, variable_length, separator;
+	unsigned int var_pos, var_end_pos, variable_length, separator, var_offset;
 	hash_t section, key;
 
 	expanded = str;
@@ -146,17 +177,21 @@ static NOINLINE char* _expand_string( hash_t section_current, char* str )
 		{
 			if( separator != 2 )
 				section = hash( variable + 2, separator - 2 );
-			key = hash( variable + separator + 1, variable_length - ( separator + 1 + ( variable[ variable_length - 1 ] == ')' ? 1 : 0 ) ) );
+			var_offset = separator + 1;
 		}
 		else
 		{
-			key = hash( variable + 2, variable_length - ( 2 + ( variable[ variable_length ] == ')' ? 1 : 0 ) ) );
+			var_offset = 2;
 		}
+		key = hash( variable + var_offset, variable_length - ( var_offset + ( variable[ variable_length - 1 ] == ')' ? 1 : 0 ) ) );
 
 		if( expanded == str )
 			expanded = string_clone( str );
 
-		expanded = string_replace( expanded, variable, config_string( section, key ), false );
+		if( section != HASH_ENVIRONMENT )
+			expanded = string_replace( expanded, variable, config_string( section, key ), false );
+		else
+			expanded = string_replace( expanded, variable, _expand_environment( key, variable + var_offset ), false );
 		string_deallocate( variable );
 
 		var_pos = string_find_string( expanded, "$(", 0 );
@@ -540,7 +575,6 @@ const char* config_string( hash_t section, hash_t key )
 	/*lint --e{788} We use default for remaining enums */
 	switch( key_val->type )
 	{
-		
 		case CONFIGVALUE_BOOL:  return key_val->bval ? "true" : "false";
 		case CONFIGVALUE_INT:   if( !key_val->sval ) key_val->sval = string_from_int( key_val->ival, 0, 0 ); return key_val->sval;
 		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = string_from_real( key_val->rval, 4, 0, '0' ); return key_val->sval;
