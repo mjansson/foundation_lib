@@ -1106,6 +1106,7 @@ stream_t* stream_open_stdin( void )
 static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t size )
 {
 	stream_std_t* stdstream = (stream_std_t*)stream;
+	FILE* stdfile = (FILE*)stdstream->std;
 	char* bytebuffer = (char*)buffer;
 	uint64_t read = 0;
 
@@ -1113,7 +1114,7 @@ static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t siz
 
 	while( read < size )
 	{
-		int c = getc( stdstream->std );
+		int c = getc( stdfile );
 		if( c == EOF )
 		{
 			stdstream->eos = true;

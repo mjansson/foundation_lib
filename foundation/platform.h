@@ -644,6 +644,7 @@ typedef enum
 #include <stdint.h>
 #include <stddef.h>
 #include <float.h>
+#include <limits.h>
 
 typedef float          float32_t;
 typedef double         float64_t;
