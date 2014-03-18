@@ -34,7 +34,7 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 typedef struct _foundation_thread_local_block
 {
 	uint64_t     thread;
-	void*        block;
+	atomicptr_t  block;
 } thread_local_block_t;
 
 //TODO: Ugly hack, improve this shit
@@ -46,7 +46,7 @@ void* _allocate_thread_local_block( unsigned int size )
 	
 	for( int i = 0; i < 1024; ++i )
 	{
-		if( !_thread_local_blocks[i].block )
+		if( !atomic_loadptr( &_thread_local_blocks[i].block ) )
 		{
 			if( atomic_cas_ptr( &_thread_local_blocks[i].block, block, 0 ) )
 			{
@@ -67,9 +67,9 @@ typedef struct ALIGN(16) _foundation_thread
 {
 	FOUNDATION_DECLARE_OBJECT;
 
-	volatile int32_t      started; //Aligned to 16 bytes for atomic
-	volatile int32_t      running;
-	volatile int32_t      terminate;
+	atomic32_t            started; //Aligned to 16 bytes for atomic
+	atomic32_t            running;
+	atomic32_t            terminate;
 	uint32_t              stacksize;
 	thread_fn             fn;
 	char                  name[32];
@@ -159,7 +159,7 @@ static FORCEINLINE void _thread_dec_ref( thread_t* thread )
 static int _thread_guard_wrapper( void* data )
 {
 	thread_t* thread = data;
-	FOUNDATION_ASSERT( thread->running == 1 );
+	FOUNDATION_ASSERT( atomic_load32( &thread->running ) == 1 );
 	thread->result = thread->fn( thread->id, thread->arg );
 	return 0;
 }
@@ -178,10 +178,9 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	thread->id = id;
 	thread->fn = fn;
 	string_copy( thread->name, name, 32 );
-	thread->running = 0;
 	thread->priority = priority;
 	thread->stacksize = stacksize;
-	thread->ref = 1;
+	atomic_store32( &thread->ref, 1 );
 	objectmap_set( _thread_map, id, thread );
 	return thread->id;
 }
@@ -198,14 +197,14 @@ void thread_destroy( object_t id )
 bool thread_is_started( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
-	return ( thread && ( thread->started > 0 ) );
+	return ( thread && ( atomic_load32( &thread->started ) > 0 ) );
 }
 
 
 bool thread_is_running( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
-	return ( thread && ( thread->running > 0 ) );
+	return ( thread && ( atomic_load32( &thread->running ) > 0 ) );
 }
 
 
@@ -219,7 +218,7 @@ bool thread_is_thread( object_t id )
 void* thread_result( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
-	return ( !thread || !thread->started || thread->running ) ? 0 : thread->result;
+	return ( !thread || !atomic_load32( &thread->started ) || atomic_load32( &thread->running ) ) ? 0 : thread->result;
 }
 
 
@@ -341,11 +340,11 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 #else
 	#error Not implemented
 #endif
-	thread->terminate = 0;
+	atomic_store32( &thread->terminate, 0 );
 
 	set_thread_self( thread );
 
-	FOUNDATION_ASSERT( thread->running == 1 );
+	FOUNDATION_ASSERT( atomic_load32( &thread->running ) == 1 );
 
 	log_debugf( 0, "Started thread '%s' (%llx) ID %llx%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
 
@@ -375,7 +374,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	if( !atomic_cas32( &thread->running, 0, 1 ) )
 	{
 		FOUNDATION_ASSERT_FAIL( "Unable to reset running flag" );
-		thread->running = 0;
+		atomic_store32( &thread->running, 0 );
 	}
 
 	log_debugf( 0, "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
@@ -398,7 +397,7 @@ bool thread_start( object_t id, void* data )
 		return false; //Old/invalid id
 	}
 
-	if( thread->running > 0 )
+	if( atomic_load32( &thread->running ) > 0 )
 	{
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to start thread %llx, already running", id );
 		return false; //Thread already running
@@ -440,7 +439,7 @@ void thread_terminate( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
 	if( thread )
-		thread->terminate = 1;
+		atomic_store32( &thread->terminate, 1 );
 }
 
 
@@ -448,7 +447,7 @@ bool thread_should_terminate( object_t id )
 {
 	thread_t* thread = GET_THREAD( id );
 	if( thread )
-		return thread->terminate > 0;
+		return atomic_load32( &thread->terminate )  > 0;
 	return true;
 }
 

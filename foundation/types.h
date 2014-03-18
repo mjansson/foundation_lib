@@ -381,7 +381,7 @@ typedef struct _foundation_memory_context
 
 //! Object base structure. If changing base object layout, change objectmap_lookup()
 #define FOUNDATION_DECLARE_OBJECT               \
-	ALIGN(16) volatile int32_t      ref;        \
+	atomic32_t                      ref;        \
 	uint32_t                        flags;      \
 	object_t                        id
 
@@ -393,9 +393,9 @@ typedef struct _foundation_object_base
 //! Object map
 typedef struct ALIGN(16) _foundation_objectmap
 {
-	ALIGN(16) volatile uint64_t     free;
+	atomic64_t                      free;
 	uint64_t                        size;
-	ALIGN(16) volatile uint64_t     id;
+	atomic64_t                      id;
 	uint64_t                        size_bits;
 	uint64_t                        id_max;
 	uint64_t                        mask_index;

@@ -34,8 +34,8 @@ objectmap_t* objectmap_allocate( unsigned int size )
 	map->size        = size;
 	map->mask_index  = ((1ULL<<bits)-1ULL);
 	map->mask_id     = ( 0x3FFFFFFFFFFFFFFFULL & ~map->mask_index );
-	map->free        = 0;
-	map->id          = 1;
+	atomic_store64( &map->free, 0 );
+	atomic_store64( &map->id, 1 );
 
 	slot = map->map;
 	for( ip = 0, next_indexshift = 3; ip < ( size - 1 ); ++ip, next_indexshift += 2, ++slot )
@@ -96,14 +96,14 @@ object_t objectmap_reserve( objectmap_t* map )
 	//TODO: Look into double-ended implementation with allocation from tail and free push to head
 	do
 	{
-		idx = map->free;
+		idx = atomic_load64( &map->free );
 		if( idx >= map->size )
 		{
 			log_error( 0, ERROR_OUT_OF_MEMORY, "Pool full, unable to reserve id" );
 			return 0;
 		}
 		next = ((uintptr_t)map->map[idx]) >> 1;
-	} while( !atomic_cas64( (volatile int64_t*)&map->free, next, idx ) );
+	} while( !atomic_cas64( &map->free, next, idx ) );
 	
 	//Sanity check that slot isn't taken
 	FOUNDATION_ASSERT_MSG( (intptr_t)(map->map[idx]) & 1, "Map failed sanity check, slot taken after reserve" );
@@ -113,7 +113,7 @@ object_t objectmap_reserve( objectmap_t* map )
 	id = 0;
 	do
 	{
-		id = atomic_incr64( (volatile int64_t*)&map->id ) & map->id_max; //Wrap-around handled by masking
+		id = atomic_incr64( &map->id ) & map->id_max; //Wrap-around handled by masking
 	} while( !id );
 
 	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
@@ -135,9 +135,9 @@ void objectmap_free( objectmap_t* map, object_t id )
 
 	do
 	{
-		last = (uint64_t)map->free;
+		last = atomic_load64( &map->free );
 		map->map[idx] = (void*)((uintptr_t)(last<<1)|1);
-	} while( !atomic_cas64( (volatile int64_t*)&map->free, idx, last ) ); /*lint +esym(613,pool) */
+	} while( !atomic_cas64( &map->free, idx, last ) ); /*lint +esym(613,pool) */
 }
 
 

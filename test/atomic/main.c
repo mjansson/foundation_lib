@@ -42,9 +42,9 @@ void test_atomic_shutdown( void )
 }
 
 
-volatile int32_t val_32  = 0;
-volatile int64_t val_64  = 0;
-volatile void*   val_ptr = 0;
+atomic32_t  val_32  = {0};
+atomic64_t  val_64  = {0};
+atomicptr_t val_ptr = {0};
 
 
 void* inc_thread( object_t thread, void* arg )
@@ -163,8 +163,8 @@ DECLARE_TEST( atomic, incdec )
 
 	test_wait_for_threads_exit( threads, num_threads );
 
-	EXPECT_EQ( val_32, 0 );
-	EXPECT_EQ( val_64, 0 );
+	EXPECT_EQ( atomic_load32( &val_32 ), 0 );
+	EXPECT_EQ( atomic_load64( &val_64 ), 0 );
 
 	return 0;
 }
@@ -188,8 +188,8 @@ DECLARE_TEST( atomic, add )
 
 	test_wait_for_threads_exit( threads, num_threads );
 
-	EXPECT_EQ( val_32, 0 );
-	EXPECT_EQ( val_64, 0 );
+	EXPECT_EQ( atomic_load32( &val_32 ), 0 );
+	EXPECT_EQ( atomic_load64( &val_64 ), 0 );
 
 	return 0;
 }
@@ -219,9 +219,9 @@ DECLARE_TEST( atomic, cas )
 
 	test_wait_for_threads_exit( threads, num_threads );
 
-	EXPECT_EQ( val_32, 0 );
-	EXPECT_EQ( val_64, 0 );
-	EXPECT_EQ( val_ptr, 0 );
+	EXPECT_EQ( atomic_load32( &val_32 ), 0 );
+	EXPECT_EQ( atomic_load64( &val_64 ), 0 );
+	EXPECT_EQ( atomic_loadptr( &val_ptr ), 0 );
 
 	return 0;
 }

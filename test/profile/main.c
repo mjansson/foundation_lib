@@ -21,12 +21,12 @@ static const uint64_t       _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE
 static char*                _test_profile_buffer = 0;
 static uint64_t             _test_profile_offset = 0;
 
-static volatile int32_t     _test_profile_output_counter = 0;
+static atomic32_t           _test_profile_output_counter = {0};
 
 
 void test_profile_output( void* buffer, uint64_t size )
 {
-	
+
 	atomic_incr32( &_test_profile_output_counter );
 }
 
@@ -50,7 +50,7 @@ memory_system_t test_profile_memory_system( void )
 
 int test_profile_initialize( void )
 {
-	profile_output( test_profile_output );
+	profile_set_output( test_profile_output );
 
 	_test_profile_buffer = memory_allocate( TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT );
 	
@@ -69,7 +69,7 @@ DECLARE_TEST( profile, initialize )
 	error_t err = error();
 
 	_test_profile_offset = 0;
-	_test_profile_output_counter = 0;
+	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
 	profile_enable( 1 );
@@ -82,9 +82,9 @@ DECLARE_TEST( profile, initialize )
 	profile_shutdown();
 
 #if BUILD_ENABLE_PROFILE
-	EXPECT_GT( _test_profile_output_counter, 0 );
+	EXPECT_GT( atomic_load32( &_test_profile_output_counter ), 0 );
 #else
-	EXPECT_EQ( _test_profile_output_counter, 0 );
+	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 #endif
 	
 	err = error();
@@ -99,7 +99,7 @@ DECLARE_TEST( profile, output )
 	error_t err = error();
 
 	_test_profile_offset = 0;
-	_test_profile_output_counter = 0;
+	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
 	profile_enable( 1 );
@@ -112,17 +112,17 @@ DECLARE_TEST( profile, output )
 	profile_shutdown();
 
 #if BUILD_ENABLE_PROFILE
-	EXPECT_GT( _test_profile_output_counter, 0 );
+	EXPECT_GT( atomic_load32( &_test_profile_output_counter ), 0 );
 	//TODO: Implement parsing output results	
 #else
-	EXPECT_EQ( _test_profile_output_counter, 0 );
+	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 #endif
 
 	err = error();
 	EXPECT_EQ( err, ERROR_NONE );
 	
 	_test_profile_offset = 0;
-	_test_profile_output_counter = 0;
+	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
 	profile_enable( 0 );
@@ -134,7 +134,7 @@ DECLARE_TEST( profile, output )
 	profile_enable( 0 );
 	profile_shutdown();
 
-	EXPECT_EQ( _test_profile_output_counter, 0 );
+	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 
 	err = error();
 	EXPECT_EQ( err, ERROR_NONE );
@@ -191,11 +191,11 @@ DECLARE_TEST( profile, thread )
 	error_t err = error();
 
 	_test_profile_offset = 0;
-	_test_profile_output_counter = 0;
+	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, 30000/*_test_profile_buffer_size*/ );
 	profile_enable( 1 );
-	profile_output_wait( 1 );
+	profile_set_output_wait( 1 );
 
 	log_info( HASH_TEST, "This test will intentionally run out of memory in profiling system" );
 	for( ith = 0; ith < 32; ++ith )
@@ -229,10 +229,10 @@ DECLARE_TEST( profile, thread )
 	err = error();
 
 #if BUILD_ENABLE_PROFILE
-	EXPECT_GT( _test_profile_output_counter, 0 );
+	EXPECT_GT( atomic_load32( &_test_profile_output_counter ), 0 );
 	//TODO: Implement parsing output results	
 #else
-	EXPECT_EQ( _test_profile_output_counter, 0 );
+	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 #endif
 	EXPECT_EQ( err, ERROR_NONE );
 
@@ -241,7 +241,8 @@ DECLARE_TEST( profile, thread )
 
 
 static stream_t* _profile_stream = 0;
-static volatile int64_t _profile_generated_blocks = 0;
+static atomic64_t _profile_generated_blocks = {0};
+
 
 static void _profile_file_writer( void* buffer, uint64_t size )
 {
@@ -313,9 +314,9 @@ DECLARE_TEST( profile, stream )
 	string_deallocate( filename );
 	
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
-	profile_output( _profile_file_writer );
+	profile_set_output( _profile_file_writer );
+	profile_set_output_wait( 10 );
 	profile_enable( 1 );
-	profile_output_wait( 10 );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
@@ -341,7 +342,7 @@ DECLARE_TEST( profile, stream )
 	test_wait_for_threads_exit( thread, 32 );
 
 	profile_end_frame( frame++ );
-	profile_output_wait( 100 );
+	profile_set_output_wait( 100 );
 	
 	thread_sleep( 1000 );
 	

@@ -47,6 +47,9 @@ typedef union
 } uuid_convert_t;
 
 
+static atomic32_t _uuid_last_counter = {0};
+
+
 //682EAE88-339A-41B6-B8E3-997DAA0466D4
 const uuid_raw_t UUID_DNS_RAW = { 0x682eae88, 0x339a, 0x41b6, 0xb8, 0xe3, 0x99, 0x7d, 0xaa, 0x4, 0x66, 0xd4 };
 const uuid_t UUID_DNS = { 0x682EAE88339A41B6ULL, 0xB8E3997DAA0466D4ULL };
@@ -77,11 +80,10 @@ uuid_t uuid_generate_time( void )
 	int in = 0;
 	uint32_t clock_seq = 0;
 	uint64_t host_id = 0;
-	static volatile int32_t last_counter = 0;
 
 	//Allows creation of 10000 unique timestamps per millisecond
 	current_time = time_system();
-	current_counter = atomic_incr32( &last_counter ) % 10000;
+	current_counter = atomic_incr32( &_uuid_last_counter ) % 10000;
 
 	current_tick = ( (tick_t)current_time * 10000ULL ) + current_counter + 0x01B21DD213814000ULL; //Convert to 100ns since UUID UTC base time, October 15 1582, and add counter
 

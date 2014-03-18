@@ -13,19 +13,23 @@
 #pragma once
 
 /*! \file pipe.h
-    Stream for unnamed pipes */
+    Stream for unnamed pipes, usable for inter-process communication. Pipe
+    read/write calls are blocking. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 
-/*! Create an unnamed pipe stream */
+/*! Create an unnamed pipe stream
+    \return                          New pipe stream */
 FOUNDATION_API stream_t*             pipe_allocate( void );
 
-/*! Close read end of pipe */
+/*! Close read end of pipe
+    \param pipe                      Pipe stream */
 FOUNDATION_API void                  pipe_close_read( stream_t* pipe );
 
-/*! Close write end of pipe */
+/*! Close write end of pipe
+    \param pipe                      Pip stream */
 FOUNDATION_API void                  pipe_close_write( stream_t* pipe );
 
 

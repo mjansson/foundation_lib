@@ -165,7 +165,7 @@ object_t library_load( const char* name )
 		return 0;
 	}
 	library = memory_allocate_zero( sizeof( library_t ), 0, MEMORY_PERSISTENT );
-	library->ref = 1;
+	atomic_store32( &library->ref, 1 );
 	library->id = id;
 	library->namehash = string_hash( name );
 	string_copy( library->name, name, 32 );

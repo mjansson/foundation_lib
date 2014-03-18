@@ -95,7 +95,7 @@ void hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value )
 
 		if( current_key != key )
 		{
-			if( current_key || !atomic_cas32( (int32_t*)&table->entries[ie].key, key, 0 ) )
+			if( current_key || !atomic_cas32( (atomic32_t*)&table->entries[ie].key, key, 0 ) )
 			{
 				ie = ( ie + 1 ) % table->capacity;
 				if( ie == eend )
@@ -233,7 +233,7 @@ void hashtable64_set( hashtable64_t* table, uint64_t key, uint64_t value )
 
 		if( current_key != key )
 		{
-			if( current_key || !atomic_cas64( (int64_t*)&table->entries[ie].key, key, 0 ) )
+			if( current_key || !atomic_cas64( (atomic64_t*)&table->entries[ie].key, key, 0 ) )
 			{
 				ie = ( ie + 1 ) % table->capacity;
 				if( ie == eend )

@@ -18,7 +18,7 @@
 
 struct _foundation_event_block
 {
-	volatile uint32_t                used;
+	int32_t                          used;
 	uint32_t                         capacity;
 	event_stream_t*                  stream;
 	event_t*                         events;
@@ -26,12 +26,12 @@ struct _foundation_event_block
 
 struct ALIGN(16) _foundation_event_stream
 {
-	volatile int32_t                 write;
-	volatile int32_t                 read;
+	atomic32_t                       write;
+	int32_t                          read;
 	event_block_t                    block[2];
 };
 
-static int32_t _event_serial = 1;
+static atomic32_t _event_serial = {1};
 
 
 static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
@@ -59,11 +59,11 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 		allocsize += 8;
 
 	//Lock the event block by atomic swapping the write block index
-	last_write = stream->write;
+	last_write = atomic_load32( &stream->write );
 	while( ( last_write < 0 ) || !atomic_cas32( &stream->write, EVENT_BLOCK_POSTING, last_write ) )
 	{
 		thread_yield();
-		last_write = stream->write;
+		last_write = atomic_load32( &stream->write );
 	}
 	
 	//We now have exclusive access to the event block
@@ -164,7 +164,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 event_stream_t* event_stream_allocate( unsigned int size )
 {
 	event_stream_t* stream = memory_allocate_zero( sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
-	stream->write = 0;
+	atomic_store32( &stream->write, 0 );
 	stream->read = 1;
 
 	if( size < 256 )
@@ -205,11 +205,11 @@ event_block_t* event_stream_process( event_stream_t* stream )
 		return 0;
 
 	//Lock the write event block by atomic swapping the write block index
-	last_write = stream->write;
+	last_write = atomic_load32( &stream->write );
 	while( ( last_write < 0 ) || !atomic_cas32( &stream->write, EVENT_BLOCK_SWAPPING, last_write ) )
 	{
 		thread_yield();
-		last_write = stream->write;
+		last_write = atomic_load32( &stream->write );
 	}
 
 	//Reset used on last read (safe, since read can only happen on one thread)

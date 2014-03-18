@@ -144,8 +144,9 @@ DECLARE_TEST( mutex, sync )
 }
 
 
-volatile int32_t thread_waiting = 0;
-volatile int32_t thread_waited = 0;
+atomic32_t thread_waiting = {0};
+atomic32_t thread_waited = {0};
+
 
 void* thread_wait( object_t thread, void* arg )
 {
@@ -186,7 +187,7 @@ DECLARE_TEST( mutex, signal )
 	
 	test_wait_for_threads_startup( thread, 32 );
 
-	while( thread_waiting < 32 )
+	while( atomic_load32( &thread_waiting ) < 32 )
 		thread_yield();
 	thread_sleep( 1000 ); //Hack wait to give threads time to progress from atomic_incr to mutex_wait
 	
@@ -200,7 +201,7 @@ DECLARE_TEST( mutex, signal )
 	
 	test_wait_for_threads_exit( thread, 32 );
 
-	EXPECT_EQ( thread_waited, 32 );
+	EXPECT_EQ( atomic_load32( &thread_waited ), 32 );
 
 	EXPECT_FALSE( mutex_wait( mutex, 500 ) );
 	

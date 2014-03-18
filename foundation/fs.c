@@ -36,7 +36,7 @@
 
 typedef struct ALIGN(16) _foundation_fs_monitor
 {
-	char*             path;
+	atomicptr_t       path;
 	object_t          thread;
 	mutex_t*          signal;
 } fs_monitor_t;
@@ -76,7 +76,7 @@ void fs_monitor( const char* path )
 
 	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS;++mi )
 	{
-		if( string_equal( _fs_monitors[mi].path, path ) )
+		if( string_equal( atomic_loadptr( &_fs_monitors[mi].path ), path ) )
 			return;
 	}
 
@@ -86,7 +86,7 @@ void fs_monitor( const char* path )
 
 	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
-		if( !_fs_monitors[mi].thread && !_fs_monitors[mi].path && !_fs_monitors[mi].signal )
+		if( !_fs_monitors[mi].thread && !atomic_loadptr( &_fs_monitors[mi].path ) && !_fs_monitors[mi].signal )
 		{
 			if( atomic_cas_ptr( &_fs_monitors[mi].path, path_clone, 0 ) )
 			{
@@ -109,7 +109,7 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 {
 	object_t thread = monitor->thread;
 	mutex_t* notify = monitor->signal;
-	char* localpath = monitor->path;
+	char* localpath = atomic_loadptr( &monitor->path );
 
 	thread_terminate( thread );
 
@@ -136,7 +136,7 @@ void fs_unmonitor( const char* path )
 	int mi;
 	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
-		if( string_equal( _fs_monitors[mi].path, path ) )
+		if( string_equal( atomic_loadptr( &_fs_monitors[mi].path ), path ) )
 			_fs_stop_monitor( _fs_monitors + mi );
 	}
 }
@@ -761,6 +761,7 @@ struct _fs_watch
 void* _fs_monitor( object_t thread, void* monitorptr )
 {
 	fs_monitor_t* monitor = monitorptr;
+	char* monitor_path = atomic_loadptr( &monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -783,7 +784,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	if( handles[1] == INVALID_HANDLE_VALUE )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor_path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
 
@@ -798,13 +799,13 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	array_reserve( watch, 1024 );
 	
 	//Recurse and add all subdirs
-	_add_notify_subdir( notify_fd, monitor->path, &watch, &paths );
+	_add_notify_subdir( notify_fd, monitor_path, &watch, &paths );
 
 #elif FOUNDATION_PLATFORM_APPLE
 
 	memory_context_push( HASH_STREAM );
 	
-	void* event_stream = _fs_event_stream_create( monitor->path );
+	void* event_stream = _fs_event_stream_create( monitor_path );
 	
 #else
 
@@ -812,17 +813,17 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #endif
 
-	log_debugf( 0, "Monitoring file system: %s", monitor->path );
+	log_debugf( 0, "Monitoring file system: %s", monitor_path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{		
-		wfpath = wstring_allocate_from_string( monitor->path, 0 );
+		wfpath = wstring_allocate_from_string( monitor_path, 0 );
 		dir = CreateFileW( wfpath, FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, 0 );
 		wstring_deallocate( wfpath );
 	}
 	if( dir == INVALID_HANDLE_VALUE )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor_path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
 	
@@ -842,11 +843,11 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		success = ReadDirectoryChangesW( dir, buffer, buffer_size, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size, &overlap, 0 );
 		if( !success )
 		{
- 			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+ 			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor_path, system_error_message( GetLastError() ) );
 			goto exit_thread;
 		}
  
-		//log_debugf( 0, "Read directory changes for path: %s", monitor->path );
+		//log_debugf( 0, "Read directory changes for path: %s", monitor_path );
 
 		wait_status = WaitForMultipleObjects( 2, handles, FALSE, INFINITE );
  
@@ -863,16 +864,16 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				DWORD transferred = 0;
 			
 				//File system change
-				//log_debugf( 0, "File system changed: %s", monitor->path );
+				//log_debugf( 0, "File system changed: %s", monitor_path );
 
 				success = GetOverlappedResult( dir, &overlap, &transferred, FALSE );
 				if( !success )
 				{
-					log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor->path, system_error_message( GetLastError() ) );
+					log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor_path, system_error_message( GetLastError() ) );
 				}
 				else
 				{
-					//log_debugf( 0, "File system changed: %s (%d bytes)", monitor->path, transferred );
+					//log_debugf( 0, "File system changed: %s (%d bytes)", monitor_path, transferred );
 
 					PFILE_NOTIFY_INFORMATION info = buffer;
 					do
@@ -885,7 +886,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						
 						info->FileName[ numchars ] = 0;
 						utfstr = string_allocate_from_wstring( info->FileName, 0 );
-						fullpath = path_merge( monitor->path, utfstr );
+						fullpath = path_merge( monitor_path, utfstr );
 
 						switch( info->Action )
 						{

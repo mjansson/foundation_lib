@@ -134,6 +134,9 @@
 #ifndef FOUNDATION_ARCH_NEON
 #  define FOUNDATION_ARCH_NEON 0
 #endif
+#ifndef FOUNDATION_ARCH_THUMB
+#  define FOUNDATION_ARCH_THUMB 0
+#endif
 
 //Platform traits
 #define FOUNDATION_PLATFORM_APPLE 0
@@ -233,7 +236,7 @@
 #      elif defined( __ARM64_ARCH_8__ )
 #        undef  FOUNDATION_PLATFORM_ARCH_ARM8_64
 #        define FOUNDATION_PLATFORM_ARCH_ARM8_64 1
-#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
+#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARM64v8"
 #        error ARMv8 not yet supported
 #      elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
 #        undef  FOUNDATION_PLATFORM_ARCH_ARM7
@@ -451,6 +454,13 @@
 
 #else
 #  error Unknown platform
+#endif
+
+#if FOUNDATION_PLATFORM_ARCH_ARM || FOUNDATION_PLATFORM_ARCH_ARM_64
+#  if defined(__thumb__)
+#    undef  FOUNDATION_ARCH_THUMB
+#    define FOUNDATION_ARCH_THUMB 1
+   #endif
 #endif
 
 
@@ -726,6 +736,20 @@ typedef ALIGN(8)  uint8_t     uint8_aligned64_t;
 typedef ALIGN(16) uint8_t     uint8_aligned128_t;
 
 #endif
+
+// Atomic types
+typedef ALIGN(4) struct {
+	uint32_t nonatomic;
+} atomic32_t;
+
+typedef ALIGN(8) struct {
+	uint64_t nonatomic;
+} atomic64_t;
+
+typedef ALIGN(FOUNDATION_PLATFORM_POINTER_SIZE) struct {
+	void* nonatomic;
+} atomicptr_t;
+
 
 #define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
 #define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))

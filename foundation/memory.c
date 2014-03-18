@@ -33,7 +33,7 @@ typedef ALIGN(8) struct
 {
 	void*               storage;
 	void*               end;
-	void*               head;
+	atomicptr_t         head;
 	void*               tail;
 	uint64_t            size;
 	uint64_t            maxchunk;
@@ -67,9 +67,9 @@ static void _atomic_allocate_initialize( uint64_t storagesize )
 		storagesize = BUILD_SIZE_TEMPORARY_MEMORY;
 	_memory_temporary.storage   = memory_allocate( storagesize, 16, MEMORY_PERSISTENT );
 	_memory_temporary.end       = pointer_offset( _memory_temporary.storage, storagesize );
-	_memory_temporary.head      = _memory_temporary.storage;
 	_memory_temporary.size      = storagesize;
 	_memory_temporary.maxchunk  = ( storagesize / 8 );
+	atomic_storeptr( &_memory_temporary.head, _memory_temporary.storage );
 }
 
 
@@ -89,7 +89,7 @@ static void* _atomic_allocate_linear( uint64_t chunksize )
 
 	do
 	{
-		old_head = _memory_temporary.head;
+		old_head = atomic_loadptr( &_memory_temporary.head );
 		new_head = pointer_offset( old_head, chunksize );
 
 		return_pointer = old_head;
@@ -579,7 +579,7 @@ static void _memory_report( void )
 
 typedef struct ALIGN(8) _foundation_memory_tag
 {
-	void*         address;
+	atomicptr_t   address;
 	uintptr_t     size;
 	void*         trace[14];
 } memory_tag_t;
@@ -587,7 +587,7 @@ typedef struct ALIGN(8) _foundation_memory_tag
 
 hashtable_t*       _memory_table = 0;
 memory_tag_t*      _memory_tags = 0;
-ALIGN(8) int32_t   _memory_tag_next = 0;
+atomic32_t         _memory_tag_next = {0};
 
 #define MAX_CONCURRENT_ALLOCATIONS 32 * 1024
 
@@ -616,10 +616,10 @@ static void _memory_tracker_shutdown( void )
 		for( it = 0; it < MAX_CONCURRENT_ALLOCATIONS; ++it )
 		{
 			memory_tag_t* tag = _memory_tags + it;
-			if( tag->address )
+			if( atomic_loadptr( &tag->address ) )
 			{
 				char* trace = stacktrace_resolve( tag->trace, 14, 0 );
-				log_warnf( 0, WARNING_MEMORY, "Memory leak: %d bytes @ 0x%" PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, tag->address, it, trace );
+				log_warnf( 0, WARNING_MEMORY, "Memory leak: %d bytes @ 0x%" PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, atomic_loadptr( &tag->address ), it, trace );
 				string_deallocate( trace );
 				got_leaks = true;
 			}
@@ -643,7 +643,7 @@ static void _memory_tracker_track( void* addr, uint64_t size )
 			atomic_cas32( &_memory_tag_next, newtag, tag + 1 );
 			tag = newtag;
 		}
-		if( !_memory_tags[ tag ].address && atomic_cas_ptr( &_memory_tags[ tag ].address, addr, 0 ) )
+		if( !atomic_loadptr( &_memory_tags[ tag ].address ) && atomic_cas_ptr( &_memory_tags[ tag ].address, addr, 0 ) )
 		{
 			_memory_tags[ tag ].size = (uintptr_t)size;
 			stacktrace_capture( _memory_tags[ tag ].trace, 14, 3 );
@@ -660,7 +660,7 @@ static void _memory_tracker_untrack( void* addr )
 	if( tag )
 	{
 		--tag;
-		_memory_tags[ tag ].address = 0;
+		atomic_storeptr( &_memory_tags[ tag ].address, 0 );
 	}
 	//else if( addr )
 	//	log_warnf( 0, WARNING_SUSPICIOUS, "Untracked deallocation: " PRIfixPTR, addr );
