@@ -282,7 +282,7 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t a
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_PLATFORM_ARCH_X86
 	long long ref;
-	do { ref = *val; } while( _InterlockedCompareExchange64( (volatile long long*)&val->nonatomic, ref + add, ref ) != ref );
+	do { ref = val->nonatomic; } while( _InterlockedCompareExchange64( (volatile long long*)&val->nonatomic, ref + add, ref ) != ref );
 	return ref;
 #  else //X86_64
 	return _InterlockedExchangeAdd64( &val->nonatomic, add );
@@ -303,7 +303,7 @@ static FORCEINLINE int64_t atomic_add64( atomic64_t* val, int64_t add )
 {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_PLATFORM_ARCH_X86
-	return atomic_exchange_and_add64( &val->nonatomic, add ) + add;
+	return atomic_exchange_and_add64( val, add ) + add;
 #  else
 	return _InterlockedExchangeAdd64( &val->nonatomic, add ) + add;
 #endif
@@ -337,7 +337,7 @@ static FORCEINLINE bool atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref 
 static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref )
 {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
-	return ( _InterlockedCompareExchange64( dst->nonatomic, val, ref ) == ref ) ? true : false;
+	return ( _InterlockedCompareExchange64( (volatile long long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_IOS
 	return OSAtomicCompareAndSwap64( ref, val, dst->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG

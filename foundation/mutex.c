@@ -33,7 +33,7 @@ struct ALIGN(16) _foundation_mutex
 	void*                  event;
 	
 	//! Wait count
-	volatile int           waiting;
+	atomic32_t             waiting;
 
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -65,7 +65,7 @@ static void _mutex_initialize( mutex_t* mutex, const char* name )
 #if FOUNDATION_PLATFORM_WINDOWS
 	InitializeCriticalSectionAndSpinCount( (CRITICAL_SECTION*)mutex->csection, 4000 );
 	mutex->event = CreateEvent( 0, TRUE, FALSE, 0 );
-	mutex->waiting = 0;
+	atomic_store32( &mutex->waiting, 0 );
 #elif FOUNDATION_PLATFORM_POSIX
 	mutex->pending = false;
 	

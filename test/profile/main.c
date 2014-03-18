@@ -353,7 +353,7 @@ DECLARE_TEST( profile, stream )
 
 	stream_deallocate( _profile_stream );
 
-	log_debugf( HASH_TEST, "Generated %lld blocks", _profile_generated_blocks );
+	log_debugf( HASH_TEST, "Generated %lld blocks", atomic_load64( &_profile_generated_blocks ) );
 	
 	return 0;
 }
