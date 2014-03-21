@@ -160,7 +160,7 @@ static FORCEINLINE PURECALL void byteorder_swap( void* RESTRICT buffer, const in
 
 static FORCEINLINE CONSTCALL uint16_t byteorder_bigendian16( uint16_t arg )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_BIG
+#if FOUNDATION_ARCH_ENDIAN_BIG
 	return arg;
 #else
 	return byteorder_swap16( arg );
@@ -170,7 +170,7 @@ static FORCEINLINE CONSTCALL uint16_t byteorder_bigendian16( uint16_t arg )
 
 static FORCEINLINE CONSTCALL uint32_t byteorder_bigendian32( uint32_t arg )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_BIG
+#if FOUNDATION_ARCH_ENDIAN_BIG
 	return arg;
 #else
 	return byteorder_swap32( arg );
@@ -180,7 +180,7 @@ static FORCEINLINE CONSTCALL uint32_t byteorder_bigendian32( uint32_t arg )
 
 static FORCEINLINE CONSTCALL uint64_t byteorder_bigendian64( uint64_t arg )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_BIG
+#if FOUNDATION_ARCH_ENDIAN_BIG
 	return arg;
 #else
 	return byteorder_swap64( arg );
@@ -190,7 +190,7 @@ static FORCEINLINE CONSTCALL uint64_t byteorder_bigendian64( uint64_t arg )
 
 static FORCEINLINE PURECALL void byteorder_bigendian( void* RESTRICT buffer, const int size )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 	byteorder_swap( buffer, size );
 #endif
 }
@@ -198,7 +198,7 @@ static FORCEINLINE PURECALL void byteorder_bigendian( void* RESTRICT buffer, con
 
 static FORCEINLINE CONSTCALL uint16_t byteorder_littleendian16( uint16_t arg )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return arg;
 #else
 	return byteorder_swap16( arg );
@@ -208,7 +208,7 @@ static FORCEINLINE CONSTCALL uint16_t byteorder_littleendian16( uint16_t arg )
 
 static FORCEINLINE CONSTCALL uint32_t byteorder_littleendian32( uint32_t arg )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return arg;
 #else
 	return byteorder_swap32( arg );
@@ -218,7 +218,7 @@ static FORCEINLINE CONSTCALL uint32_t byteorder_littleendian32( uint32_t arg )
 
 static FORCEINLINE CONSTCALL uint64_t byteorder_littleendian64( uint64_t arg )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return arg;
 #else
 	return byteorder_swap64( arg );
@@ -228,7 +228,7 @@ static FORCEINLINE CONSTCALL uint64_t byteorder_littleendian64( uint64_t arg )
 
 static FORCEINLINE PURECALL void byteorder_littleendian( void* RESTRICT buffer, const int size )
 {
-#if FOUNDATION_PLATFORM_ENDIAN_BIG
+#if FOUNDATION_ARCH_ENDIAN_BIG
 	byteorder_swap( buffer, size );
 #endif
 }

@@ -582,7 +582,7 @@ static FORCEINLINE CONSTCALL unsigned int math_align_poweroftwo( unsigned int x 
 {
 	FOUNDATION_ASSERT( x > 1 );
 
-#if FOUNDATION_COMPILER_INTEL && ( FOUNDATION_PLATFORM_ARCH_X86 || FOUNDATION_PLATFORM_ARCH_X86_64 )
+#if FOUNDATION_COMPILER_INTEL && ( FOUNDATION_ARCH_X86 || FOUNDATION_ARCH_X86_64 )
 	--x;
 	__asm__( "bsrl %1,%0"
 		:"=r" (x)
@@ -654,7 +654,7 @@ static FORCEINLINE int      math_trunc( real x ) { return (int)x; }
 static FORCEINLINE int64_t  math_floor64( real x ) { return (int64_t)floor( x ); }
 static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 
-#elif FOUNDATION_PLATFORM_ARCH_X86
+#elif FOUNDATION_ARCH_X86
 
 _CRTIMP double  __cdecl ceil(_In_ double _X);
 

@@ -92,7 +92,7 @@ typedef enum
 } platform_t;
 
 /*! Architecture identifiers for all architectures the engine supports. For compile-time selection of
-    architecture, use the FOUNDATION_PLATFORM_ARCH_[...] preprocessor macros. */
+    architecture, use the FOUNDATION_ARCH_[...] preprocessor macros. */
 typedef enum
 {
 	/*! x86 (Classic 32-bit x86 compatible CPUs) */
@@ -440,7 +440,7 @@ typedef union
 #  if FOUNDATION_PLATFORM_ANDROID
 	volatile unsigned int  count;
 #else
-#  if FOUNDATION_PLATFORM_ARCH_X86_64
+#  if FOUNDATION_ARCH_X86_64
 	char __size[64];
 #  else
 	char __size[32];

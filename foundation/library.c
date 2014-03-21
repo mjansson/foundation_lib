@@ -102,11 +102,11 @@ object_t library_load( const char* name )
 	dll = LoadLibraryA( dllname );
 	if( !dll )
 	{
-#if FOUNDATION_PLATFORM_ARCH_X86
+#if FOUNDATION_ARCH_X86
 		string_deallocate( dllname );
 		dllname = string_format( "%s32.dll", name );
 		dll = LoadLibraryA( dllname );
-#elif FOUNDATION_PLATFORM_ARCH_X86_64
+#elif FOUNDATION_ARCH_X86_64
 		string_deallocate( dllname );
 		dllname = string_format( "%s64.dll", name );
 		dll = LoadLibraryA( dllname );

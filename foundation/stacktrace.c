@@ -121,7 +121,7 @@ static int _capture_stack_trace_helper( void** trace, unsigned int max_depth, un
 		stack_frame.AddrPC.Mode         = AddrModeFlat;
 		stack_frame.AddrStack.Mode      = AddrModeFlat;
 		stack_frame.AddrFrame.Mode      = AddrModeFlat;
-#if FOUNDATION_PLATFORM_ARCH_X86_64
+#if FOUNDATION_ARCH_X86_64
 		stack_frame.AddrPC.Offset       = context->Rip;
 		stack_frame.AddrStack.Offset    = context->Rsp;
 		stack_frame.AddrFrame.Offset    = context->Rbp;
@@ -294,7 +294,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 #  else
 	{
 #  endif
-#  if FOUNDATION_PLATFORM_ARCH_X86_64
+#  if FOUNDATION_ARCH_X86_64
 	// Raise an exception so helper has access to context record.
 	__try
 	{

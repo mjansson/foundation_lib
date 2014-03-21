@@ -87,7 +87,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -116,7 +116,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -145,7 +145,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -182,7 +182,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -219,7 +219,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -248,7 +248,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 				if( ( curindex >= num ) || ( ( val = input[ curindex ] ) < prev_val ) ) break;
 				prev_val = val;
 
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -292,7 +292,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 		{
 			while( loop != loop_end )
 			{
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -312,7 +312,7 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 		{
 			while( loop != loop_end )
 			{
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 				++(histogram[0][ *loop++ ]);
 				++(histogram[1][ *loop++ ]);
 				++(histogram[2][ *loop++ ]);
@@ -367,7 +367,7 @@ static const radixsort_index_t* radixsort_int( radixsort_t* sort, const void* in
 	for( ipass = 0; ipass < data_size; ++ipass )
 	{
 		radixsort_index_t* count = &sort->histogram[ ipass << 8 ];
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 		unsigned int byteofs = ipass;
 #else
 		unsigned int byteofs = ( data_size - ipass - 1 );
@@ -465,7 +465,7 @@ static const radixsort_index_t* radixsort_float( radixsort_t* sort, const void* 
 	// Radix sort, j is the pass number (0 = LSB, 3/7 = MSB)
 	for( ipass = 0; ipass < data_size; ++ipass )
 	{
-#if FOUNDATION_PLATFORM_ENDIAN_LITTLE
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
 		unsigned int byteofs = ipass;
 #else
 		unsigned int byteofs = ( data_size - ipass - 1 );
