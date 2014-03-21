@@ -47,6 +47,123 @@
 //Lint warning inhibitors
 /*lint -e717    We use do {} while(0) constructs in macros deliberately */
 
+/*! \define FOUNDATION_COMPILE
+    Set to 1 when compiling the foundation library, undefined (or zero) when using the library */
+
+/*! \define FOUNDATION_EXTERN
+    Declare a variable visible to users of the library */
+
+/*! \define FOUNDATION_API
+    Declare a function visible to users of the library */
+
+/*! \define FOUNDATION_PLATFORM_ANDROID
+    Defined to 1 if compiling for android platforms, 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_IOS
+    Defined to 1 if compiling for iOS platforms (iPhone/iPad and simulators), 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_IOS_SIMULATOR
+    Defined to 1 if compiling for iOS simulator (also has FOUNDATION_PLATFORM_IOS defined to 1), 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_MACOSX
+    Defined to 1 if compiling for MacOS X, 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_LINUX
+    Defined to 1 if compiling for Linux, 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+    Defined to 1 if compiling for Raspberry Pi (also has FOUNDATION_PLATFORM_LINUX defined to 1), 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_BSD
+    Defined to 1 if compiling for BSD, 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_WINDOWS
+    Defined to 1 if compiling for Windows, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ARM
+    Defined to 1 if compiling for ARM architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ARM6
+    Defined to 1 if compiling for ARMv6 architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ARM7
+    Defined to 1 if compiling for ARMv7 architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ARM8
+    Defined to 1 if compiling for ARMv8 architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ARM_64
+    Defined to 1 if compiling for 64-bit ARM architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ARM8_64
+    Defined to 1 if compiling for 64-bit ARMv8 architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_X86
+    Defined to 1 if compiling for x86 architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_X86_64
+    Defined to 1 if compiling for x86-64 architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_PPC
+    Defined to 1 if compiling for PPC architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_PPC_64
+    Defined to 1 if compiling for 64-bit PPC architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_IA64
+    Defined to 1 if compiling for IA64 architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_SSE2
+    Defined to 1 if compiling with SSE2 instruction set enabled, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_SSE3
+    Defined to 1 if compiling with SSE3 instruction set enabled, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_SSE4
+    Defined to 1 if compiling with SSE4 instruction set enabled, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_SSE4_FMA3
+    Defined to 1 if compiling with SSE4 instruction set (including FMA3 instruction) enabled, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_NEON
+    Defined to 1 if compiling with NEON instruction set enabled, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_THUMB
+    Defined to 1 if compiling for ARM THUMB instruction set, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ENDIAN_LITTLE
+    Defined to 1 if compiling for little endian architectures, 0 otherwise */
+
+/*! \define FOUNDATION_ARCH_ENDIAN_BIG
+    Defined to 1 if compiling for big endian architectures, 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_APPLE
+    Defined to 1 if compiling for Apple platforms (OSX, iOS), 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_POSIX
+    Defined to 1 if compiling for POSIX platforms (Linux, BSD, OSX, iOS, Android), 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_FAMILY_MOBILE
+    Defined to 1 if compiling for mobile platforms (iOS, Android), 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_FAMILY_DESKTOP
+    Defined to 1 if compiling for desktop platforms (Windows, OSX, Linux, BSD), 0 otherwise */
+
+/*! \define FOUNDATION_PLATFORM_FAMILY_CONSOLE
+    Defined to 1 if compiling for console platforms (iOS, Android), 0 otherwise */
+
+/*! \define FOUNDATION_COMPILER_CLANG
+    Defined to 1 if compiling with clang, 0 otherwise */
+
+/*! \define FOUNDATION_COMPILER_GCC
+    Defined to 1 if compiling with GCC, 0 otherwise */
+
+/*! \define FOUNDATION_COMPILER_MSVC
+    Defined to 1 if compiling with Microsoft compiler, 0 otherwise */
+
+/*! \define FOUNDATION_COMPILER_INTEL
+    Defined to 1 if compiling with Intel compiler, 0 otherwise */
+
 #if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE
 #  ifdef __cplusplus
 #  define FOUNDATION_EXTERN extern "C"
@@ -137,13 +254,12 @@
 #ifndef FOUNDATION_ARCH_THUMB
 #  define FOUNDATION_ARCH_THUMB 0
 #endif
-
+#define FOUNDATION_ARCH_ENDIAN_LITTLE 0
+#define FOUNDATION_ARCH_ENDIAN_BIG 0
+	
 //Platform traits
 #define FOUNDATION_PLATFORM_APPLE 0
 #define FOUNDATION_PLATFORM_POSIX 0
-
-#define FOUNDATION_ARCH_ENDIAN_LITTLE 0
-#define FOUNDATION_ARCH_ENDIAN_BIG 0
 
 #define FOUNDATION_PLATFORM_FAMILY_MOBILE 0
 #define FOUNDATION_PLATFORM_FAMILY_DESKTOP 0
