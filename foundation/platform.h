@@ -47,124 +47,128 @@
 //Lint warning inhibitors
 /*lint -e717    We use do {} while(0) constructs in macros deliberately */
 
-/*! \define FOUNDATION_COMPILE
+/*! \def FOUNDATION_COMPILE
     Set to 1 when compiling the foundation library, undefined (or zero) when using the library */
 
-/*! \define FOUNDATION_EXTERN
+/*! \def FOUNDATION_EXTERN
     Declare a variable visible to users of the library */
 
-/*! \define FOUNDATION_API
+/*! \def FOUNDATION_API
     Declare a function visible to users of the library */
 
-/*! \define FOUNDATION_PLATFORM_ANDROID
+/*! \def FOUNDATION_PLATFORM_ANDROID
     Defined to 1 if compiling for android platforms, 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_IOS
+/*! \def FOUNDATION_PLATFORM_IOS
     Defined to 1 if compiling for iOS platforms (iPhone/iPad and simulators), 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_IOS_SIMULATOR
+/*! \def FOUNDATION_PLATFORM_IOS_SIMULATOR
     Defined to 1 if compiling for iOS simulator (also has FOUNDATION_PLATFORM_IOS defined to 1), 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_MACOSX
+/*! \def FOUNDATION_PLATFORM_MACOSX
     Defined to 1 if compiling for MacOS X, 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_LINUX
+/*! \def FOUNDATION_PLATFORM_LINUX
     Defined to 1 if compiling for Linux, 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+/*! \def FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
     Defined to 1 if compiling for Raspberry Pi (also has FOUNDATION_PLATFORM_LINUX defined to 1), 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_BSD
+/*! \def FOUNDATION_PLATFORM_BSD
     Defined to 1 if compiling for BSD, 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_WINDOWS
+/*! \def FOUNDATION_PLATFORM_WINDOWS
     Defined to 1 if compiling for Windows, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ARM
+/*! \def FOUNDATION_ARCH_ARM
     Defined to 1 if compiling for ARM architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ARM6
+/*! \def FOUNDATION_ARCH_ARM6
     Defined to 1 if compiling for ARMv6 architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ARM7
+/*! \def FOUNDATION_ARCH_ARM7
     Defined to 1 if compiling for ARMv7 architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ARM8
+/*! \def FOUNDATION_ARCH_ARM8
     Defined to 1 if compiling for ARMv8 architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ARM_64
+/*! \def FOUNDATION_ARCH_ARM_64
     Defined to 1 if compiling for 64-bit ARM architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ARM8_64
+/*! \def FOUNDATION_ARCH_ARM8_64
     Defined to 1 if compiling for 64-bit ARMv8 architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_X86
+/*! \def FOUNDATION_ARCH_X86
     Defined to 1 if compiling for x86 architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_X86_64
+/*! \def FOUNDATION_ARCH_X86_64
     Defined to 1 if compiling for x86-64 architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_PPC
+/*! \def FOUNDATION_ARCH_PPC
     Defined to 1 if compiling for PPC architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_PPC_64
+/*! \def FOUNDATION_ARCH_PPC_64
     Defined to 1 if compiling for 64-bit PPC architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_IA64
+/*! \def FOUNDATION_ARCH_IA64
     Defined to 1 if compiling for IA64 architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_SSE2
+/*! \def FOUNDATION_ARCH_SSE2
     Defined to 1 if compiling with SSE2 instruction set enabled, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_SSE3
+/*! \def FOUNDATION_ARCH_SSE3
     Defined to 1 if compiling with SSE3 instruction set enabled, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_SSE4
+/*! \def FOUNDATION_ARCH_SSE4
     Defined to 1 if compiling with SSE4 instruction set enabled, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_SSE4_FMA3
+/*! \def FOUNDATION_ARCH_SSE4_FMA3
     Defined to 1 if compiling with SSE4 instruction set (including FMA3 instruction) enabled, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_NEON
+/*! \def FOUNDATION_ARCH_NEON
     Defined to 1 if compiling with NEON instruction set enabled, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_THUMB
+/*! \def FOUNDATION_ARCH_THUMB
     Defined to 1 if compiling for ARM THUMB instruction set, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ENDIAN_LITTLE
+/*! \def FOUNDATION_ARCH_ENDIAN_LITTLE
     Defined to 1 if compiling for little endian architectures, 0 otherwise */
 
-/*! \define FOUNDATION_ARCH_ENDIAN_BIG
+/*! \def FOUNDATION_ARCH_ENDIAN_BIG
     Defined to 1 if compiling for big endian architectures, 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_APPLE
+/*! \def FOUNDATION_PLATFORM_APPLE
     Defined to 1 if compiling for Apple platforms (OSX, iOS), 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_POSIX
+/*! \def FOUNDATION_PLATFORM_POSIX
     Defined to 1 if compiling for POSIX platforms (Linux, BSD, OSX, iOS, Android), 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_FAMILY_MOBILE
+/*! \def FOUNDATION_PLATFORM_FAMILY_MOBILE
     Defined to 1 if compiling for mobile platforms (iOS, Android), 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_FAMILY_DESKTOP
+/*! \def FOUNDATION_PLATFORM_FAMILY_DESKTOP
     Defined to 1 if compiling for desktop platforms (Windows, OSX, Linux, BSD), 0 otherwise */
 
-/*! \define FOUNDATION_PLATFORM_FAMILY_CONSOLE
+/*! \def FOUNDATION_PLATFORM_FAMILY_CONSOLE
     Defined to 1 if compiling for console platforms (iOS, Android), 0 otherwise */
 
-/*! \define FOUNDATION_COMPILER_CLANG
+/*! \def FOUNDATION_COMPILER_CLANG
     Defined to 1 if compiling with clang, 0 otherwise */
 
-/*! \define FOUNDATION_COMPILER_GCC
+/*! \def FOUNDATION_COMPILER_GCC
     Defined to 1 if compiling with GCC, 0 otherwise */
 
-/*! \define FOUNDATION_COMPILER_MSVC
+/*! \def FOUNDATION_COMPILER_MSVC
     Defined to 1 if compiling with Microsoft compiler, 0 otherwise */
 
-/*! \define FOUNDATION_COMPILER_INTEL
+/*! \def FOUNDATION_COMPILER_INTEL
     Defined to 1 if compiling with Intel compiler, 0 otherwise */
 
-#if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE
+#if !defined( FOUNDATION_COMPILE )
+#  define FOUNDATION_COMPILE 0
+#endif
+
+#if FOUNDATION_COMPILE
 #  ifdef __cplusplus
 #  define FOUNDATION_EXTERN extern "C"
 #  define FOUNDATION_API extern "C"

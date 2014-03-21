@@ -39,24 +39,24 @@ FOUNDATION_API int        error_report( error_level_t level, error_t err );
 FOUNDATION_API void       error_set_callback( error_callback_fn callback );
 
 
-/*! \define error_context_push
+/*! \def error_context_push
     Push a new error context and associated data on the error context stack */
 
-/*! \define error_context_pop
+/*! \def error_context_pop
     Pop the top error context off the error context stack */
 
-/*! \define error_context_buffer
+/*! \def error_context_buffer
     Generate a error context stack description string in the given buffer, limited
     to the given size */
 
-/*! \define error_context
+/*! \def error_context
     Get the current error context, or 0 if no context set/available */
 
-/*! \define error_context_declare_local
+/*! \def error_context_declare_local
     Make a local declaration depending on if error contexts are enabled in the build
     or not */
 
-/*! \define error_context_thread_deallocate
+/*! \def error_context_thread_deallocate
     Clean up thread local storage related to error context on thread exit */
 
 #if BUILD_ENABLE_ERROR_CONTEXT

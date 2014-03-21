@@ -34,7 +34,6 @@
 
 /*! Post event to stream, thread-safe.
     \param stream                   Event stream
-    \param system                   System identifier
     \param id                       Event id
     \param size                     Event payload size
     \param object                   Sender
@@ -43,6 +42,7 @@
 FOUNDATION_API void                 event_post( event_stream_t* stream, uint16_t id, uint16_t size, object_t object, const void* payload, tick_t delivery );
 
 /*! Grab next event during procesing
+    \param block                    Event block
     \param event                    Previous event, pass in 0 for getting first event
     \return                         Next event */
 FOUNDATION_API event_t*             event_next( const event_block_t* block, event_t* event );

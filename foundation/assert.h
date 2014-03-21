@@ -51,10 +51,10 @@ FOUNDATION_API int                  assert_report( uint64_t context, const char*
 	\param msg                      Assert information message format specifier */
 FOUNDATION_API int                  assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... );
 
-/*! \define FOUNDATION_DUMP
+/*! \def FOUNDATION_DUMP
     Cause a hard break (core dump) */
 
-/*! \define FOUNDATION_BREAKPOINT
+/*! \def FOUNDATION_BREAKPOINT
     Cause a break that will be caught by attached debugger */
 
 #undef FOUNDATION_DUMP
@@ -80,40 +80,40 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_DUMP() do { _FOUNDATION_RAW_DUMP(); } while(0)
 #  define FOUNDATION_BREAKPOINT() do { _FOUNDATION_RAW_BREAKPOINT(); } while(0)
 
-/*! \define FOUNDATION_ASSERT
+/*! \def FOUNDATION_ASSERT
     Assert the given condition. If assert fails, call the assert report callback without a message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
 
-/*! \define FOUNDATION_ASSERT_MSG
+/*! \def FOUNDATION_ASSERT_MSG
     Assert the given condition. If assert fails, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
 
-/*! \define FOUNDATION_ASSERT_MSGFORMAT
+/*! \def FOUNDATION_ASSERT_MSGFORMAT
     Assert the given condition. If assert fails, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
 
-/*! \define FOUNDATION_ASSERT_FAIL
+/*! \def FOUNDATION_ASSERT_FAIL
     Statically fail assert, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
 
-/*! \define FOUNDATION_ASSERT_FAIL_LOG
+/*! \def FOUNDATION_ASSERT_FAIL_LOG
     Statically fail assert, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). If asserts are not enabled in build config the message will be logged as an error in the given log context */
 
-/*! \define FOUNDATION_ASSERT_FAILFORMAT
+/*! \def FOUNDATION_ASSERT_FAILFORMAT
     Statically fail assert, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
 
-/*! \define FOUNDATION_ASSERT_FAILFORMAT_LOG
+/*! \def FOUNDATION_ASSERT_FAILFORMAT_LOG
     Statically fail assert, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). If asserts are not enabled in build config the formatted message will be logged as an error in the given log context */
 
-/*! \define FOUNDATION_ASSERT_ALIGNMENT
+/*! \def FOUNDATION_ASSERT_ALIGNMENT
     Assert that the given memory address has the given alignment */
 
-/*! \define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT
+/*! \def FOUNDATION_ASSERT_PLATFORM_ALIGNMENT
     Assert that the given memory address has the given alignment if the platform requires specific alignments for some data types */
 
-/*! \define FOUNDATION_VALIDATE
+/*! \def FOUNDATION_VALIDATE
     Assert the given condition. If assert fails, call the assert report callback without a message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). The value of the validate expression will be true if condition is true and false if the condition fails, even if asserts are disabled in the build config. This allows constructs such as if( !FOUNDATION_VALIDATE( condition ) ) return; to remain safe and properly evaluated even when asserts are statically disabled. */
 
-/*! \define FOUNDATION_VALIDATE_MSG
+/*! \def FOUNDATION_VALIDATE_MSG
     Assert the given condition. If assert fails, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). The value of the validate expression will be true if condition is true and false if the condition fails, even if asserts are disabled in the build config. This allows constructs such as if( !FOUNDATION_VALIDATE_MSG( condition, "message" ) ) return; to remain safe and properly evaluated even when asserts are statically disabled. */
 
-/*! \define FOUNDATION_VALIDATE_MSGFORMAT
+/*! \def FOUNDATION_VALIDATE_MSGFORMAT
     Assert the given condition. If assert fails, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). The value of the validate expression will be true if condition is true and false if the condition fails, even if asserts are disabled in the build config. This allows constructs such as if( !FOUNDATION_VALIDATE_MSGFORMAT( condition, "%s", message ) ) return; to remain safe and properly evaluated even when asserts are statically disabled. */
 
 #if BUILD_ENABLE_ASSERT

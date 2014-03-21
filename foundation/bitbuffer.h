@@ -28,7 +28,7 @@ FOUNDATION_API void               bitbuffer_initialize_buffer( bitbuffer_t* bitb
 
 /*! Setup a bitbuffer interface for a given stream
     \param bitbuffer              Bitbuffer object
-    \param buffer                 Stream for I/O */
+    \param stream                 Stream for I/O */
 FOUNDATION_API void               bitbuffer_initialize_stream( bitbuffer_t* bitbuffer, stream_t* stream );
 
 /*! Read up to 32 bits of data as an integer

@@ -111,10 +111,10 @@ FOUNDATION_API void                    config_set_string_constant( hash_t sectio
 /*! Load config values from a file/stream, optionally filtering by section. 
     Look for config files in the following order in order to allow easy overloading of default values
     (for each directory, a platform subdirectory is also searched)
-     1) Executable directory (C:\path\bin\platform\build\exe)
-     2) Executable directory "config" subdirectory (C:\path\bin\platform\build\config)
-     3) Executable directory parent "config" subdirectory (C:path\bin\platform\config)
-     4) Executable directory processed "config" subdirectory (C:\path\config)
+     1) Executable directory (C:/path/bin/platform/build/exe)
+     2) Executable directory "config" subdirectory (C:/path/bin/platform/build/config)
+     3) Executable directory parent "config" subdirectory (C:/path/bin/platform/config)
+     4) Executable directory processed "config" subdirectory (C:/path/config)
 	    This step is performed by identifying if the path contains
 	      1) known directories (bin)
 	      2) a platform identifier (win32,win64,osx,ios,android,raspberrypi)
@@ -134,13 +134,13 @@ FOUNDATION_API void                    config_set_string_constant( hash_t sectio
 	 6)
 	
 	For desktop platforms (Windows, MacOSX, ...)
-	 7) Current working directory (C:\current\dir)
-	 8) Current working directory "config" subdirectory (C:\current\dir\config)
+	 7) Current working directory (C:/current/dir)
+	 8) Current working directory "config" subdirectory (C:/current/dir/config)
 	 9) Command line --configdir directive
 	
 	If built_in flag is false, the following directories are also searched
 	For Windows development, the user app directory
-	 10) C:\Users\<username>\AppData\Local\<appname>
+	 10) C:/Users/<username>/AppData/Local/<appname>
 	For Linux development, the user app directory
 	 10) /home/<username>/.<appname>
 	For MacOSX development, the user app directory

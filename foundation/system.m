@@ -20,7 +20,7 @@ int          _system_show_alert( const char* title, const char* message, int can
 
 unsigned int _system_process_info_processor_count( void )
 {
-	//[[NSProcessInfo processInfo] activeProcessorCount];
+	/* [[NSProcessInfo processInfo] activeProcessorCount]; */
 	@autoreleasepool { return (unsigned int)[[NSProcessInfo processInfo] processorCount]; }
 }
 

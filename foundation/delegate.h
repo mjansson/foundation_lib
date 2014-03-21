@@ -39,11 +39,10 @@
 + (void)referenceClass;
 @end
 
-#else
+#endif
 
 FOUNDATION_API void delegate_start_main_ns_thread( int argc, char** argv );
 
-#endif
 
 
 #elif FOUNDATION_PLATFORM_IOS

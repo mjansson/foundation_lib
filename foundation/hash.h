@@ -34,7 +34,7 @@ FOUNDATION_API PURECALL hash_t               hash( const void* key, const unsign
     \return                                  String matching hash value, or empty string if not found */
 FOUNDATION_API const char*                   hash_to_string( const hash_t value );
 
-/*! \define static_hash_string
+/*! \def static_hash_string
     Declare a statically hashed string. If BUILD_ENABLE_STATIC_HASH_DEBUG is enabled
     in the build config this will allow the string to be reverse looked up with hash_to_string.
     Static hash strings are usually defined by using the hashify tool on a declaration file,
@@ -64,6 +64,6 @@ static FORCEINLINE hash_t                    static_hash( const void* key, const
 
 #endif
 
-/*! \define HASH_EMPTY_STRING
+/*! \def HASH_EMPTY_STRING
     Hash of an empty string (length 0) */
 #define HASH_EMPTY_STRING                    0xC2D00F032E25E509ULL

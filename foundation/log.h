@@ -32,7 +32,7 @@
 #include <foundation/hashstrings.h>
 
 
-/*! \define log_debug
+/*! \def log_debug
     Log an unformatted debug message in the specific context */
 
 /*! \fn log_debugf
@@ -40,7 +40,7 @@
     \param context                              Log context
     \param format                               Log message format */
 
-/*! \define log_info
+/*! \def log_info
     Log an unformatted info message in the specific context */
 
 /*! \fn log_infof
@@ -48,7 +48,7 @@
     \param context                              Log context
     \param format                               Log message format */
 
-/*! \define log_warn
+/*! \def log_warn
     Log an unformatted warning message in the specific context */
 
 /*! \fn log_warnf
@@ -57,7 +57,7 @@
     \param warn                                 Warning type
     \param format                               Log message format */
 
-/*! \define log_error
+/*! \def log_error
     Log an unformatted error message in the specific context. Will also
     report the error code through error_report */
 
@@ -68,7 +68,7 @@
     \param err                                  Error code
     \param format                               Log message format */
 
-/*! \define log_panic
+/*! \def log_panic
     Log an unformatted panic message in the specific context. Will also
     report the error code through error_report */
 
@@ -78,7 +78,7 @@
     \param err                                  Error code
     \param format                               Log message format */
 
-/*! \fn log_error_callback
+/*! \fn log_error_context
     Log the current error context in the specified log context. The log output is filtered at the given severity level
     \param context                              Log context
     \param error_level                          Severity level */

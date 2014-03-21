@@ -32,7 +32,7 @@ extern int         main_initialize( void );
     for normal termination. Will be called after main_initialize()
     \param arg     Unused, set to 0
     \return        Process exit code */
-extern int         main_run( void* );
+extern int         main_run( void* arg );
 
 /*! Main exit point. This must be implemented by the application.
     The expectation is that this function will call foundation_shutdown

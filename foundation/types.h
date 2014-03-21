@@ -21,7 +21,9 @@
 
 // PRIMITIVE TYPES
 
-//! Error severity level (Do not change order!)
+/*! Error severity level. The higher the value, the more severe the error. Error level 0
+    (ERRORLEVEL_NONE) is used to indicate no error
+    \internal Do not change order! */
 typedef enum
 {
 	ERRORLEVEL_NONE    = 0,
@@ -32,7 +34,8 @@ typedef enum
 	ERRORLEVEL_PANIC
 } error_level_t;
 
-//! Error identifiers (Do not change order, only append!)
+/*! Error identifiers. Error 0 (ERROR_NONE) is used to indicate no error.
+    \internal Do not change order, only append! */
 typedef enum
 {
 	ERROR_NONE              = 0,
@@ -55,7 +58,8 @@ typedef enum
 	ERROR_LAST_BUILTIN  = 0x0fff
 } error_t;
 
-//! Warning classes
+/*! Warning classes
+    \internal Do not change order, only append! */
 typedef enum
 {
 	WARNING_PERFORMANCE = 0,
@@ -80,7 +84,7 @@ typedef enum
 	MEMORY_32BIT_ADDRESS       = 0x0004
 } memory_hint_t;
 
-//! \Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
+//! Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
 typedef enum
 {
 	PLATFORM_WINDOWS   = 1,

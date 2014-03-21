@@ -111,9 +111,9 @@ FOUNDATION_API void profile_signal( const char* name );
 #define profile_initialize( identifier, buffer, size ) do { (void)sizeof( identifier ); (void)sizeof( buffer ); (void)sizeof( size ); } while(0)
 #define profile_shutdown() do {} while(0)
 
-#define profile_output( writer ) do { (void)writer; } while(0)
 #define profile_enable( enable ) do { (void)sizeof( enable ); } while(0)
-#define profile_output_wait( ms ) do{ (void)sizeof( ms ); } while(0)
+#define profile_set_output( writer ) do { (void)writer; } while(0)
+#define profile_set_output_wait( ms ) do{ (void)sizeof( ms ); } while(0)
 
 #define profile_end_frame( counter ) do { (void)sizeof( counter ); } while(0)
 #define profile_begin_block( msg ) do { (void)sizeof( msg ); } while(0)

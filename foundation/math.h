@@ -30,58 +30,58 @@
 #endif
 
 
-/*! \define REAL_EPSILON
+/*! \def REAL_EPSILON
     Epsilon value. This represents a small number close to zero that can be used for comparisons or thresholds. Roughly equals 100 floating point units at 1.0 */
 
-/*! \define REAL_MAX
+/*! \def REAL_MAX
     Maximum finite number representable in the current real number format */
 
-/*! \define REAL_MIN
+/*! \def REAL_MIN
     Minimum finite number representable in the current real number format */
 
-/*! \define REAL_ZERO
+/*! \def REAL_ZERO
     Constant zero (0.0) */
 
-/*! \define REAL_ONE
+/*! \def REAL_ONE
     Constant one (1.0) */
 
-/*! \define REAL_TWO
+/*! \def REAL_TWO
     Constant two (2.0) */
 
-/*! \define REAL_THREE
+/*! \def REAL_THREE
     Constant three (3.0) */
 
-/*! \define REAL_FOUR
+/*! \def REAL_FOUR
     Constant four (4.0) */
 
-/*! \define REAL_HALF
+/*! \def REAL_HALF
     Constant half (0.5) */
 
-/*! \define REAL_QUARTER
+/*! \def REAL_QUARTER
     Constant quarter (0.25) */
 
-/*! \define REAL_PI
+/*! \def REAL_PI
     Constant pi (3.141592...) */
 
-/*! \define REAL_HALFPI
+/*! \def REAL_HALFPI
     Constant half pi (1.570796...) */
 
-/*! \define REAL_TWOPI
+/*! \def REAL_TWOPI
     Constant two pi (6.283185...) */
 
-/*! \define REAL_SQRT2
+/*! \def REAL_SQRT2
     Constant square root of two (1.414213...) */
 
-/*! \define REAL_SQRT3
+/*! \def REAL_SQRT3
     Constant square root of three (1.732050...) */
 
-/*! \define REAL_E
+/*! \def REAL_E
     Constant number e (2.718281...) */
 
-/*! \define REAL_LOGN2
+/*! \def REAL_LOGN2
     Constant natural logarithm of two (0.693147...) */
 
-/*! \define REAL_LOGN10
+/*! \def REAL_LOGN10
     Constant natural logarithm of ten (2.302585...) */
 
 /*! \fn math_sin
@@ -213,7 +213,7 @@
     \param t                               Argument in [0..1]
     \return                                Smoothed value */
 
-/*! \fn math_smoothwestep
+/*! \fn math_smootherstep
     Scalar interpolation function with zero first-order and second-order derivative at endpoints. smoothstep(t) = 6t^5 - 15t^4 + 10t^3
     \param t                               Argument in [0..1]
     \return                                Smoothed value */
@@ -241,7 +241,7 @@
     \param ymax                            End of destination interval
     \return                                Linear remapped value v = ymin + ((x-xmin) / (xmax-xmin)) * (ymax-ymin) */
 
-/*! \define math_clamp
+/*! \def math_clamp
     Clamp value to interval. Note that as a macro it can evaluate arguments multiple times!
     \param x                               Value to clamp
     \param minval                          Start of interval
@@ -303,7 +303,7 @@
     \param val                             Value
     \return                                true if infinite, false if not */
 
-/*! \fn math_realisunitialized
+/*! \fn math_realisuninitialized
     Query if value is a compiler specific uninitialized value identifier
     \param val                             Value
     \return                                true if value is an uninitialized value, false if not */
@@ -323,7 +323,7 @@
     \param val                             Value
     \return                                0 if value is denormalized, value if not */
 
-/*! \define FOUNDATION_ASSERT_FINITE
+/*! \def FOUNDATION_ASSERT_FINITE
     Assert that a value is finite
     \param value                           Value */
 
@@ -383,7 +383,7 @@
     \param max                             End of range
     \return                                Incremented and wrapped value inside range */
 
-/*! \fn math_dev_wrap_uint8
+/*! \fn math_dec_wrap_uint8
     Decrement and wrap unsigned 8-bit value inside given range
     \param val                             Value to decrement
     \param min                             Start of range
@@ -411,7 +411,7 @@
     \param max                             End of range
     \return                                Decremented and wrapped value inside range */
 
-/*! \fn math_dev_wrap_int8
+/*! \fn math_dec_wrap_int8
     Decrement and wrap signed 8-bit value inside given range
     \param val                             Value to decrement
     \param min                             Start of range
