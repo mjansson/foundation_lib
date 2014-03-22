@@ -54,10 +54,12 @@ FOUNDATION_API void                   process_set_flags( process_t* proc, unsign
 FOUNDATION_API int                    process_spawn( process_t* proc );
 
 /*! Get pipe to read stdout from process (read-only stream)
+    \param proc                       Process object
     \return                           Stdout pipe */
 FOUNDATION_API stream_t*              process_stdout( process_t* proc );
 
 /*! Get pipe to write stdin to process (write-only stream)
+    \param proc                       Process object
     \return                           Stdin pipe */
 FOUNDATION_API stream_t*              process_stdin( process_t* proc );
 
