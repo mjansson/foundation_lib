@@ -27,7 +27,9 @@ FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 
 char* string_allocate( unsigned int length )
 {
-	return memory_allocate_zero_context( HASH_STRING, length + 1, 0, MEMORY_PERSISTENT );
+	char* str = memory_allocate_context( HASH_STRING, length + 1, 0, MEMORY_PERSISTENT );
+	str[0] = 0;
+	return str;
 }
 
 
@@ -46,7 +48,7 @@ char* string_clone( const char* str )
 		memcpy( clone, str, len );
 		return clone;
 	}
-	return memory_allocate_zero_context( HASH_STRING, 1, 0, MEMORY_PERSISTENT );
+	return string_allocate( 0 );
 }
 
 
@@ -130,6 +132,20 @@ char* string_vformat( const char* format, va_list list )
 }
 
 
+char* string_vformat_buffer( char* buffer, unsigned int maxlen, const char* format, va_list list )
+{
+	va_list copy_list;
+
+	FOUNDATION_ASSERT( format );
+
+	va_copy( copy_list, list );
+	vsnprintf( buffer, maxlen, format, copy_list );
+	va_end( copy_list );
+
+	return buffer;
+}
+
+
 unsigned int string_length( const char* str )
 {
 	return str ? (unsigned int)strlen( str ) : 0;
@@ -138,8 +154,7 @@ unsigned int string_length( const char* str )
 
 hash_t string_hash( const char* str )
 {
-	FOUNDATION_ASSERT( str );
-	return hash( str, string_length( str ) );
+	return str ? hash( str, string_length( str ) ) : HASH_EMPTY_STRING;
 }
 
 

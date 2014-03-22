@@ -13,20 +13,68 @@
 #pragma once
 
 /*! \file string.h
-    String handling and utility functions in UTF-8, conversion to/from UTF-16 */
+    String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion to and from pritimive integral
+	data types. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-
+/*! Allocate (length+1) bytes of memory for a string of length characters. The string will be empty, i.e first byte
+    will be initialized to 0. The remainder of the memory block will be uninitialized
+	\param length             Length of string
+	\return                   Empty string stored in memory block of length (length+1) */
 FOUNDATION_API char*          string_allocate( unsigned int length );
+
+/*! Deallocate memory used by the given string. Safe to pass a null pointer.
+    \param str                String */
 FOUNDATION_API void           string_deallocate( char* str );
+
+/*! Clone a string. Safe to pass a null pointer, in which case an empty string will be returned.
+    \param str                String to clone
+	\return                   Cloned string */
 FOUNDATION_API char*          string_clone( const char* str );
+
+/*! Create a string from a format specifier and variable data, printf style.
+    \param format             Format specifier (not null)
+	\return                   Formatted string */
 FOUNDATION_API char*          string_format( const char* format, ... );
+
+/*! In-memory string formatting from a format specifier and variable data, printf style. Will print at most
+    maxlen-1 characters into the buffer and always zero terminate.
+	\param buffer             Destination buffer (not null)
+	\param maxlen             Maximum number of characters to print into buffer, including zero termination
+    \param format             Format specifier (not null)
+	\return                   Formatted string (buffer) */
 FOUNDATION_API char*          string_format_buffer( char* buffer, unsigned int maxlen, const char* format, ... );
+
+/*! Create a string from a format specifier and variable data given as a va_list, printf style.
+    \param format             Format specifier (not null)
+	\param list               Variable argument list
+	\return                   Formatted string */
 FOUNDATION_API char*          string_vformat( const char* format, va_list list );
+
+/*! In-memory string formatting from a format specifier and variable data given as a va_list, printf style. Will print at most
+    maxlen-1 characters into the buffer and always zero terminate.
+	\param buffer             Destination buffer (not null)
+	\param maxlen             Maximum number of characters to print into buffer, including zero termination
+    \param format             Format specifier (not null)
+	\param list               Variable argument list
+	\return                   Formatted string (buffer) */
+FOUNDATION_API char*          string_vformat_buffer( char* buffer, unsigned int maxlen, const char* format, va_list list );
+
+/*! Get length of string in bytes. Safe to pass a null pointer.
+    \param str                String
+    \return                   Length of string in bytes */
 FOUNDATION_API unsigned int   string_length( const char* str );
+
+/*! Get number of unicode glyphs stored in utf-8 string. Safe to pass null pointer.
+    \param str                String in utf-8 encoding
+    \return                   Number of unicode glyphs in string */
 FOUNDATION_API unsigned int   string_glyphs( const char* str );
+
+/*! Calculate hash of string. Safe to pass null, in which case the hash of an empty string will be returned
+    \param str                String
+	\return                   Hash of string */
 FOUNDATION_API hash_t         string_hash( const char* str );
 
 FOUNDATION_API char*          string_resize( char* str, unsigned int length, char c );
