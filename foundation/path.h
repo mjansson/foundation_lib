@@ -85,7 +85,7 @@ FOUNDATION_API char*      path_prepend( char* tail, const char* base );
 /*! Clean path by replacing windows backslash with slash and cleaning up multiple concurrent slashes. Any slash characters
     at end of path will be removed as well (except if resulting path is "/"). This method recognizes network protocol separator and will only clean file path part
     of such URI:s. Furthermore, any parts of the path of type "/./" will be condensed to "/". The operations are in-place,
-    which means that the given string will be modified.
+    which means that the given string will be modified and potentially reallocated in case string needs to grow.
     \param path           Path string
     \param absolute       Flag indicating absolute path. If true (default) a slash will be inserted at start of path if missing, if false any existing leading slashes will be removed
     \return               Cleaned path string */

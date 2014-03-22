@@ -110,8 +110,8 @@ static CONSTCALL FORCEINLINE unsigned int _memory_get_align( unsigned int align 
 #if FOUNDATION_PLATFORM_ANDROID
 	return align ? FOUNDATION_MAX_ALIGN : 0;
 #else
-	if( align < FOUNDATION_PLATFORM_POINTER_SIZE )
-		return align ? FOUNDATION_PLATFORM_POINTER_SIZE : 0;
+	if( align < FOUNDATION_ARCH_POINTER_SIZE )
+		return align ? FOUNDATION_ARCH_POINTER_SIZE : 0;
 	align = math_align_poweroftwo( align );
 	return ( align < FOUNDATION_MAX_ALIGN ) ? align : FOUNDATION_MAX_ALIGN;
 #endif
@@ -299,7 +299,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+#  if FOUNDATION_ARCH_POINTER_SIZE == 4
 	return _aligned_malloc( (size_t)size, align );
 #  else
 	unsigned int padding;
@@ -310,7 +310,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 
 	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 	{
-		padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
+		padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ? align : FOUNDATION_ARCH_POINTER_SIZE );
 		raw_memory = _aligned_malloc( (size_t)size + padding, align );
 
 		memory = raw_memory + padding; //Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
@@ -320,7 +320,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 		return memory;
 	}
 
-	padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ) ? align : FOUNDATION_PLATFORM_POINTER_SIZE;
+	padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ) ? align : FOUNDATION_ARCH_POINTER_SIZE;
 	allocate_size = size + padding + align;
 	raw_memory = 0;
 
@@ -336,11 +336,11 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 
 #else
 	
-#  if FOUNDATION_PLATFORM_POINTER_SIZE > 4
+#  if FOUNDATION_ARCH_POINTER_SIZE > 4
 	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 #  endif
 	{
-		unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
+		unsigned int padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ? align : FOUNDATION_ARCH_POINTER_SIZE );
 		char* raw_memory = malloc( (size_t)size + align + padding );
 		void* memory = _memory_align_pointer( raw_memory + padding, align );
 		*( (void**)memory - 1 ) = raw_memory;
@@ -348,9 +348,9 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 		return memory;
 	}
 	
-#  if FOUNDATION_PLATFORM_POINTER_SIZE > 4
+#  if FOUNDATION_ARCH_POINTER_SIZE > 4
 
-	unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE*2 ? align : FOUNDATION_PLATFORM_POINTER_SIZE*2 );
+	unsigned int padding = ( align > FOUNDATION_ARCH_POINTER_SIZE*2 ? align : FOUNDATION_ARCH_POINTER_SIZE*2 );
 	size_t allocate_size = size + padding + align;
 	char* raw_memory;
 	void* memory;
@@ -402,7 +402,7 @@ static void* _memory_allocate_zero_malloc( uint64_t context, uint64_t size, unsi
 
 static void _memory_deallocate_malloc( void* p )
 {
-#if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+#if FOUNDATION_ARCH_POINTER_SIZE == 4
 
 	if( !p )
 		return;
@@ -444,7 +444,7 @@ static void _memory_deallocate_malloc( void* p )
 
 static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
 {
-#if ( FOUNDATION_PLATFORM_POINTER_SIZE == 4 ) && FOUNDATION_PLATFORM_WINDOWS
+#if ( FOUNDATION_ARCH_POINTER_SIZE == 4 ) && FOUNDATION_PLATFORM_WINDOWS
 	align = _memory_get_align( align );
 	return _aligned_realloc( p, (size_t)size, align );
 #else
@@ -458,7 +458,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
-		unsigned int padding = ( align > FOUNDATION_PLATFORM_POINTER_SIZE ? align : FOUNDATION_PLATFORM_POINTER_SIZE );
+		unsigned int padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ? align : FOUNDATION_ARCH_POINTER_SIZE );
 		void* raw_memory = _aligned_realloc( raw_p, padding + size, align );
 		if( raw_memory )
 		{
@@ -468,7 +468,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	}
 	else
 	{
-#if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+#if FOUNDATION_ARCH_POINTER_SIZE == 4
 		memory = _memory_allocate_malloc_raw( size, align, 0U );
 #else
 		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
@@ -480,16 +480,16 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #else
 	if( !align && raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
-		void* raw_memory = realloc( raw_p, (size_t)size + FOUNDATION_PLATFORM_POINTER_SIZE );
+		void* raw_memory = realloc( raw_p, (size_t)size + FOUNDATION_ARCH_POINTER_SIZE );
 		if( raw_memory )
 		{
 			*(void**)raw_memory = raw_memory;
-			memory = pointer_offset( raw_memory, FOUNDATION_PLATFORM_POINTER_SIZE );
+			memory = pointer_offset( raw_memory, FOUNDATION_ARCH_POINTER_SIZE );
 		}
 	}
 	else
 	{
-#if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+#if FOUNDATION_ARCH_POINTER_SIZE == 4
 		memory = _memory_allocate_malloc_raw( size, align, 0U );
 #else
 		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
@@ -510,7 +510,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 static int _memory_initialize_malloc( void )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_PLATFORM_POINTER_SIZE > 4 )
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_ARCH_POINTER_SIZE > 4 )
 	NtAllocateVirtualMemory = (NtAllocateVirtualMemoryFn)GetProcAddress( GetModuleHandleA( "ntdll.dll" ), "NtAllocateVirtualMemory" );
 #endif
 	return 0;

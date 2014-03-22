@@ -490,8 +490,8 @@ typedef struct _foundation_hashtable64      hashtable64_t;
 
 typedef struct _foundation_bitbuffer
 {
-	uint8_aligned32_t*  buffer;
-	uint8_aligned32_t*  end;
+	uint8_t*            buffer;
+	uint8_t*            end;
 	stream_t*           stream;
 	bool                swap;
 	unsigned int        pending_read;

@@ -353,9 +353,9 @@ static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref 
 #else
 static FORCEINLINE bool atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref )
 {
-#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#  if FOUNDATION_ARCH_POINTER_SIZE == 8
 	return atomic_cas64( (atomic64_t*)dst, (int64_t)val, (int64_t)ref );
-#  elif FOUNDATION_PLATFORM_POINTER_SIZE == 4
+#  elif FOUNDATION_ARCH_POINTER_SIZE == 4
 	return atomic_cas32( (atomic32_t*)dst, (int32_t)val, (int32_t)ref );
 #  else
 #    error Unknown architecture (pointer size)

@@ -930,7 +930,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		//log_debugf( 0, "ioctl inotify: %d", avail );
 		if( avail > 0 )
 		{
-			/*alignedptr64_t*/void* buffer = memory_allocate_zero( avail + 4, 8, MEMORY_PERSISTENT );
+			void* buffer = memory_allocate_zero( avail + 4, 8, MEMORY_PERSISTENT );
 			int offset = 0;
 			int avail_read = read( notify_fd, buffer, avail );
 			//log_debugf( 0, "inotify read: %d", avail_read );

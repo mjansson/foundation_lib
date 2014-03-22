@@ -60,7 +60,7 @@ FOUNDATION_API unsigned int                  hashtable64_size( hashtable64_t* ta
 FOUNDATION_API void                          hashtable64_clear( hashtable64_t* table );
 
 
-#if FOUNDATION_PLATFORM_POINTER_SIZE == 4
+#if FOUNDATION_ARCH_POINTER_SIZE == 4
 
 #define hashtable_t             hashtable32_t
 #define hashtable_allocate      hashtable32_allocate

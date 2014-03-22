@@ -35,12 +35,26 @@ FOUNDATION_API void                  pipe_close_write( stream_t* pipe );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
+/*! Windows only, get OS handle for read end of pipe
+    \param mutex                     Pipe stream
+    \return                          Read object handle */
 FOUNDATION_API void*                 pipe_read_handle( stream_t* pipe );
+
+/*! Windows only, get OS handle for write end of pipe
+    \param mutex                     Pipe stream
+    \return                          Write object handle */
 FOUNDATION_API void*                 pipe_write_handle( stream_t* pipe );
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+/*! Posix only, get OS file descriptor for read end of pipe
+    \param mutex                     Pipe stream
+    \return                          Read file descriptor */
 FOUNDATION_API int                   pipe_read_fd( stream_t* pipe );
+
+/*! Posix only, get OS file descriptor for write end of pipe
+    \param mutex                     Pipe stream
+    \return                          Write file descriptor */
 FOUNDATION_API int                   pipe_write_fd( stream_t* pipe );
 
 #endif

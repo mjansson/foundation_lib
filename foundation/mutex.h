@@ -77,7 +77,7 @@ FOUNDATION_API void          mutex_signal( mutex_t* mutex );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-/*! Get OS handle for event object
+/*! Windows only, get OS handle for event object
     \param mutex             Mutex
     \return                  Event object handle */
 FOUNDATION_API void*         mutex_event_object( mutex_t* mutex );

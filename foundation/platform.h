@@ -164,6 +164,174 @@
 /*! \def FOUNDATION_COMPILER_INTEL
     Defined to 1 if compiling with Intel compiler, 0 otherwise */
 
+/*! \def FOUNDATION_COMPILER_NAME
+    A string naming the compiler used */
+
+/*! \def FOUNDATION_COMPILER_DESCRIPTION
+    A string with a more detailed description of the compiler used, name and version */
+
+/*! \def RESTRICT
+    Restrict attribute, defined to nothing if compiler does not support restrict */
+
+/*! \def THREADLOCAL
+    Thread local attribute, defined to nothing if the compiler/platform/architecture does not support thread local variables. For full platform support, use FOUNDATION_DECLARE_THREAD_LOCAL instead */
+
+/*! \def DEPRECATED
+    Deprecated attribute */
+
+/*! \define FORCEINLINE
+    Attribute to force function to be inlined */
+
+/*! \def NOINLINE
+    Attribute to prevent function from being inlined */
+
+/*! \def PURECALL
+    Attribute declaring function to be pure, meaning it has no effects except the return value and the return value depends only on the parameters and/or global variables */
+
+/*! \def CONSTCALL
+    Attribute declaring function to be const, meaning it does not examine any values except the arguments, and has no effects except the return value.
+	Basically this is just slightly more strict class than the PURECALL attribute, since function is not allowed to read global memory.
+	Note that a function that has pointer arguments and examines the data pointed to must not be declared const. Likewise, a function that calls a non-const
+    function usually must not be const. It does not make sense for a const function to return void. */
+
+/*! \def ALIGN
+    Variable or type attribute declaring the variable/type to have the specified memory alignment
+	\param x      Alignment */
+
+/*! \typedef float32_t
+    Floating point type guaranteed to be 32-bit in size */
+
+/*! \typedef float64_t
+    Floating point type guaranteed to be 64-bit in size */
+
+/*! \typedef uint128_t
+    128-bit Unsigned int type */
+
+/*! \typedef uint256_t
+    256-bit unsigned int type */
+
+/*! \typedef real
+    Floating point type of the size chosen in build config (32 or 64 bit). See FOUNDATION_PLATFORM_REALSIZE for declaring size used. */
+
+/*! \def FLOAT32_C
+    Declare a 32-bit floating point constant. Use for automatic suffixing, for example FLOAT32_C(1.0)
+	\param x      Constant value */
+
+/*! \def FLOAT64_C
+    Declare a 64-bit floating point constant. Use for automatic suffixing, for example FLOAT64_C(1.0)
+	\param x      Constant value */
+
+/*! \def REAL_C
+    Declare a real constant. Use for automatic suffixing depending on floating point notation used, for example REAL_C(1.0)
+	\param x      Constant value */
+
+/*! \def FOUNDATION_PLATFORM_REALSIZE
+    Declare the size of a real number, either 32 or 64 bit. Default to 32 bit */
+
+/*! \def FOUNDATION_ARCH_POINTER_SIZE
+    Defines the size of a pointer on the current architecture. Either 4 or 8 bytes for 32 and 64 bit architectures, respectively */
+
+/*! \def FOUNDATION_WCHAR_SIZE
+    Defines the size of the wchar_t type, depending on platform */
+
+/*! \fn uint128_make
+    Declare a 128-bit unsigned int value from low and high 64-bit components
+	\param low     Low 64 bits
+	\param high    High 64 bits
+	\return        128-bit value */
+
+/*! \fn uint128_equal
+    Query if two 128-bit unsigned int values are equal
+	\param u0      First value
+	\param u1      Second value
+	\return        true if values are equal, false if not */
+
+/*! \fn uint128_null
+    Declare a zero (null) 128-bit unsigned int value
+	\return        Zero 128-bit value */
+
+/*! \fn uint128_is_null
+    Query if a 128-bit unsigned int value is zero (null)
+	\param u0      Value
+	\return        true if value is zero (null), false if not */
+
+/*! \fn uint256_make
+    Declare a 256-bit unsigned int value from four 64-bit components
+	\param low     Low 64 bits
+	\param high    High 64 bits */
+
+/*! \fn uint256_equal
+    Query if two 256-bit unsigned int values are equal
+	\param u0      First value
+	\param u1      Second value
+	\return        true if values are equal, false if not */
+
+/*! \fn uint256_null
+    Declare a zero (null) 256-bit unsigned int value
+	\return        Zero 256-bit value */
+
+/*! \fn uint256_is_null
+    Query if a 256-bit unsigned int value is zero (null)
+	\param u0      Value
+	\return        true if value is zero (null), false if not */
+
+/*! \typedef atomic32_t
+    Atomic 32-bit integer type. Use with functions declares in atomic.h */
+
+/*! \typedef atomic64_t
+    Atomic 64-bit integer type. Use with functions declares in atomic.h */
+
+/*! \typedef atomicptr_t
+    Atomic pointer type. Use with functions declares in atomic.h */
+
+/*! \def pointer_offset
+    Offset a non-const pointer the given number of bytes, disregarding type of pointer
+	\param ptr     Pointer
+	\param ofs     Offset in bytes (positive or negative) */
+
+/*! \def pointer_offset_const
+    Offset a const pointer the given number of bytes, disregarding type of pointer
+	\param ptr     Pointer
+	\param ofs     Offset in bytes (positive or negative) */
+
+/*! \def pointer_diff
+    Calculate the offset in bytes between two pointers (from first to second), disregarding type of pointer
+	\param first   First pointer
+	\param second  Second pointer */
+
+/*! \def FOUNDATION_MAX_PATHLEN
+    Defines the maximum length of a path */
+
+/*! \def FOUNDATION_DECLARE_THREAD_LOCAL
+    Declare a thread-local variable of the given type, name and initial value. This will also declare and implement
+	two inlined functions to set and get value of the variable, called get_thread_[name] and set_thread_[name]. For example, to declare
+	a thread-local integer and use the get/set functions:
+	FOUNDATION_DECLARE_THREAD_LOCAL( int, myvar, 0 );
+	set_thread_myvar( 1 );
+	int currentval = get_thread_myvar();
+	\param type    Data type
+	\param name    Variable name
+	\param init    Initial value */
+
+/*! \def FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY
+    Declare a thread-local array of the given type, name and array size. This will also declare and implement
+	one inlined function to get the array pointer value of the variable, called get_thread_[name]. For example, to declare
+	a thread-local integer array and use the get/set functions:
+	FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( int, myvar, 10 );
+	int* currentarr = get_thread_myvar(); //Get thread-local array storage
+	currentarr[2] = 10;
+	int val = currentarr[2];
+	\param type    Data type
+	\param name    Variable name
+	\param arrsize Size of array in number of elements */
+
+/*! \def PRIREAL
+    Printf-style format declaration for a real variable. Use like other standard PRI* format specifiers, like string_format( "Value: %" PRIREAL, realval ); */
+
+/*! \def PRIfixPTR
+    Printf-style format declaration for a pointer variable producing a fixed-size string (padding with zeroes). Use like other standard PRI* format specifiers, like string_format( "Value: %" PRIfixPTR, ptr ); */
+
+
 #if !defined( FOUNDATION_COMPILE )
 #  define FOUNDATION_COMPILE 0
 #endif
@@ -798,9 +966,9 @@ typedef   float32_t         real;
 
 //Pointer size
 #if FOUNDATION_ARCH_ARM_64 || FOUNDATION_ARCH_X86_64 || FOUNDATION_ARCH_PPC_64 || FOUNDATION_ARCH_IA64
-#  define FOUNDATION_PLATFORM_POINTER_SIZE 8
+#  define FOUNDATION_ARCH_POINTER_SIZE 8
 #else
-#  define FOUNDATION_PLATFORM_POINTER_SIZE 4
+#  define FOUNDATION_ARCH_POINTER_SIZE 4
 #endif
 
 //wchar_t size
@@ -821,43 +989,6 @@ static FORCEINLINE CONSTCALL uint256_t uint256_null( void ) { return uint256_mak
 static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
 
 
-// Aligned types
-#if FOUNDATION_ARCH_X86_64 || FOUNDATION_ARCH_PPC_64
-
-typedef ALIGN(8)  void*       alignedptr16_t;
-typedef ALIGN(8)  void*       alignedptr32_t;
-typedef ALIGN(8)  void*       alignedptr64_t;
-typedef ALIGN(16) void*       alignedptr128_t;
-
-typedef ALIGN(8)  const void* alignedconstptr16_t;
-typedef ALIGN(8)  const void* alignedconstptr32_t;
-typedef ALIGN(8)  const void* alignedconstptr64_t;
-typedef ALIGN(16) const void* alignedconstptr128_t;
-
-typedef ALIGN(8)  uint8_t     uint8_aligned16_t;
-typedef ALIGN(8)  uint8_t     uint8_aligned32_t;
-typedef ALIGN(8)  uint8_t     uint8_aligned64_t;
-typedef ALIGN(16) uint8_t     uint8_aligned128_t;
-
-#else
-
-typedef ALIGN(4)  void*       alignedptr16_t;
-typedef ALIGN(4)  void*       alignedptr32_t;
-typedef ALIGN(8)  void*       alignedptr64_t;
-typedef ALIGN(16) void*       alignedptr128_t;
-
-typedef ALIGN(4)  const void* alignedconstptr16_t;
-typedef ALIGN(4)  const void* alignedconstptr32_t;
-typedef ALIGN(8)  const void* alignedconstptr64_t;
-typedef ALIGN(16) const void* alignedconstptr128_t;
-
-typedef ALIGN(4)  uint8_t     uint8_aligned16_t;
-typedef ALIGN(4)  uint8_t     uint8_aligned32_t;
-typedef ALIGN(8)  uint8_t     uint8_aligned64_t;
-typedef ALIGN(16) uint8_t     uint8_aligned128_t;
-
-#endif
-
 // Atomic types
 typedef ALIGN(4) struct {
 	uint32_t nonatomic;
@@ -867,7 +998,7 @@ typedef ALIGN(8) struct {
 	uint64_t nonatomic;
 } atomic64_t;
 
-typedef ALIGN(FOUNDATION_PLATFORM_POINTER_SIZE) struct {
+typedef ALIGN(FOUNDATION_ARCH_POINTER_SIZE) struct {
 	void* nonatomic;
 } atomicptr_t;
 
@@ -978,13 +1109,13 @@ static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#  if FOUNDATION_ARCH_POINTER_SIZE == 8
 #    define PRIfixPTR  "016I64X"
 #  else
 #    define PRIfixPTR  "08IX"
 #  endif
 #else
-#  if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#  if FOUNDATION_ARCH_POINTER_SIZE == 8
 #    define PRIfixPTR  "016llX"
 #  else
 #    define PRIfixPTR  "08X"

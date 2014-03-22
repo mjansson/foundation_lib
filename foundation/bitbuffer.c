@@ -53,7 +53,7 @@ void bitbuffer_initialize_buffer( bitbuffer_t* bitbuffer, void* buffer, unsigned
 {
 	FOUNDATION_ASSERT( !( size % 4 ) );
 	FOUNDATION_ASSERT( (uintptr_t)buffer );
-	FOUNDATION_ASSERT( !( (uintptr_t)buffer % FOUNDATION_PLATFORM_POINTER_SIZE ) );
+	FOUNDATION_ASSERT( !( (uintptr_t)buffer % FOUNDATION_ARCH_POINTER_SIZE ) );
 	memset( bitbuffer, 0, sizeof( bitbuffer_t ) );
 	bitbuffer->offset_read = 32;
 	bitbuffer->buffer = buffer;
