@@ -936,7 +936,7 @@ DECLARE_TEST( string, format )
 		char* teststr2 = string_format( "0x%" PRIfixPTR, (void*)-1 );
 		char* teststr3 = string_format( "0x%" PRIfixPTR, (void*)0x1234abULL );
 
-#if FOUNDATION_PLATFORM_POINTER_SIZE == 8
+#if FOUNDATION_ARCH_POINTER_SIZE == 8
 		EXPECT_STREQ( teststr1, "0x0000000000000000" );
 		EXPECT_STREQ( teststr2, "0xFFFFFFFFFFFFFFFF" );
 		EXPECT_STREQ( teststr3, "0x00000000001234AB" );

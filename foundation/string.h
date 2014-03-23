@@ -14,7 +14,9 @@
 
 /*! \file string.h
     String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion to and from pritimive integral
-	data types. */
+	data types.
+
+    Unless otherwise noted in the function descripion it is safe to pass null pointers to any arguments. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -25,73 +27,142 @@
 	\return                   Empty string stored in memory block of length (length+1) */
 FOUNDATION_API char*          string_allocate( unsigned int length );
 
-/*! Deallocate memory used by the given string. Safe to pass a null pointer.
+/*! Deallocate memory used by the given string
     \param str                String */
 FOUNDATION_API void           string_deallocate( char* str );
 
-/*! Clone a string. Safe to pass a null pointer, in which case an empty string will be returned.
+/*! Clone a string
     \param str                String to clone
 	\return                   Cloned string */
 FOUNDATION_API char*          string_clone( const char* str );
 
 /*! Create a string from a format specifier and variable data, printf style.
-    \param format             Format specifier (not null)
+    \param format             Format specifier
 	\return                   Formatted string */
 FOUNDATION_API char*          string_format( const char* format, ... );
 
 /*! In-memory string formatting from a format specifier and variable data, printf style. Will print at most
     maxlen-1 characters into the buffer and always zero terminate.
-	\param buffer             Destination buffer (not null)
+	\param buffer             Destination buffer
 	\param maxlen             Maximum number of characters to print into buffer, including zero termination
-    \param format             Format specifier (not null)
+    \param format             Format specifier
 	\return                   Formatted string (buffer) */
 FOUNDATION_API char*          string_format_buffer( char* buffer, unsigned int maxlen, const char* format, ... );
 
 /*! Create a string from a format specifier and variable data given as a va_list, printf style.
-    \param format             Format specifier (not null)
+    \param format             Format specifier
 	\param list               Variable argument list
 	\return                   Formatted string */
 FOUNDATION_API char*          string_vformat( const char* format, va_list list );
 
 /*! In-memory string formatting from a format specifier and variable data given as a va_list, printf style. Will print at most
     maxlen-1 characters into the buffer and always zero terminate.
-	\param buffer             Destination buffer (not null)
+	\param buffer             Destination buffer
 	\param maxlen             Maximum number of characters to print into buffer, including zero termination
-    \param format             Format specifier (not null)
+    \param format             Format specifier
 	\param list               Variable argument list
 	\return                   Formatted string (buffer) */
 FOUNDATION_API char*          string_vformat_buffer( char* buffer, unsigned int maxlen, const char* format, va_list list );
 
-/*! Get length of string in bytes. Safe to pass a null pointer.
+/*! Get length of string in bytes
     \param str                String
     \return                   Length of string in bytes */
 FOUNDATION_API unsigned int   string_length( const char* str );
 
-/*! Get number of unicode glyphs stored in utf-8 string. Safe to pass null pointer.
+/*! Get number of unicode glyphs stored in utf-8 string
     \param str                String in utf-8 encoding
     \return                   Number of unicode glyphs in string */
 FOUNDATION_API unsigned int   string_glyphs( const char* str );
 
-/*! Calculate hash of string. Safe to pass null, in which case the hash of an empty string will be returned
+/*! Calculate hash of string. A null pointer is treated as an empty string
     \param str                String
 	\return                   Hash of string */
 FOUNDATION_API hash_t         string_hash( const char* str );
 
+/*! Reallocate a string and fill with the given character. If the current string length
+    is greater or equal to the requested length the string is zero terminated at the
+    requested length but not reallocated.
+    \param str                String
+    \param length             New requested length
+    \param c                  Fill character
+    \return                   New string of requested length */
 FOUNDATION_API char*          string_resize( char* str, unsigned int length, char c );
 
-//! Like strncpy, except that dst will always be zero terminated (i.e copies at most limit-1 characters from src)
+/*! Copy one string to another. Like strncpy, except that dst will always be zero
+    terminated (i.e copies at most limit-1 characters from src)
+    \param dst                Destination string
+    \param src                Source string
+    \param limit              Maximum number of bytes to store in dst string, including zero terminator */
 FOUNDATION_API void           string_copy( char* dst, const char* src, unsigned int limit );
 
-//! These methods modify the passed string and returns a modified string pointer
+/*! Strip a string (in-place) of given characters at start and end. 
+    Modifies the passed string and returns a new pointer to it. If null is passed as string
+    to strip, a new empty string is returned.
+    \param str                String to strip
+    \param delimiters         Characters to strip
+    \return                   Stipped string */
 FOUNDATION_API char*          string_strip( char* str, const char* delimiters );
+
+/*! Strip a substring (in-place) of given characters at start end end of the given sub-string. 
+    Modifies the passed string (starting at str and ending at str+length)
+    and returns a new pointer to it. If null is passed as string to strip, a new empty string is returned.
+    \param str                String to strip
+    \param delimiters         Characters to strip
+    \param length             Length of substring to strip
+    \return                   Stipped string */
 FOUNDATION_API char*          string_strip_substr( char* str, const char* delimiters, unsigned int length );
+
+/*! Replace all occurrences of the given key string inside the given string, optionally repeating the
+    replace after an occurrence have been replaced. If repeat is set to false, the newly replaced part of
+    the string is not rechecked for replacement. The repeat is recursion safe and will not endlessly loop,
+    like repat replacing "foo" with "foobar". The string will be reallocated if the replacement string
+    is longer than the key string, so always replace and use of the old string pointer with value returned.
+    \param str                String to replace in
+    \param key                Key string
+    \param newkey             String to replace key with
+    \param repeat             Repeat flag
+    \return                   New (potentially reallocated) string pointer */
 FOUNDATION_API char*          string_replace( char* str, const char* key, const char* newkey, bool repeat );
+
+/*! Append a suffix to a string. Will reallocate the given string so
+    use the returned pointer as a replacement for the passed string.
+    \param str                Base string
+    \param suffix             Suffix string
+    \return                   New string which is base string with suffix string appended (base+suffix) */
 FOUNDATION_API char*          string_append( char* str, const char* suffix );
+
+/*! Prepend a prefix to a string. Will reallocate the given string so
+    use the returned pointer as a replacement for the passed string.
+    \param str                Base string
+    \param prefix             Prefix string
+    \return                   New string which is base string with prefix string prepended (prefix+base) */
 FOUNDATION_API char*          string_prepend( char* str, const char* prefix );
 
-//! These methods do not modify the passed string and returns a new string pointer
+/*! Concatenate two strings. Does not modify arguments, will allocate
+    a new string to hold the result.
+    \param lhs                First string
+    \param rhs                Second string
+    \return                   New concatenated string (lhs+rhs) */
 FOUNDATION_API char*          string_concat( const char* lhs, const char* rhs );
+
+/*! Split a string into two strings along the first occurrence of any of the given separator characters.
+    The entire group of separators following the initial occurrence will be removed in the split. For example,
+    splitting "this is insidious" with separators "is " will yield resulting strings "th" and "nsidious".
+    Unless null the left and right string pointers will be set to newly allocated strings. The allowempty flag
+    controls if an empty left part is allowed. If not, any leading separator characters will first be
+    discarded before processing split.
+    \param str                Source string
+    \param separators         Separator characters
+    \param left               Pointer to string pointer which will receive new left part of split result.
+    \param right              Pointer to string pointer which will receive new right part of split result
+    \param allowempty         Empty flag */
 FOUNDATION_API void           string_split( const char* str, const char* separators, char** left, char** right, bool allowempty );
+
+/*! Get substring of a string. Will be clamped to source string limits
+    \param str                Source string
+    \param offset             Start offset
+    \param length             Length of substring
+    \return                   New substring */
 FOUNDATION_API char*          string_substr( const char* str, unsigned int offset, unsigned int length );
 
 FOUNDATION_API unsigned int   string_find( const char* str, char c, unsigned int offset );

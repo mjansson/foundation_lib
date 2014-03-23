@@ -48,7 +48,7 @@ char* string_clone( const char* str )
 		memcpy( clone, str, len );
 		return clone;
 	}
-	return string_allocate( 0 );
+	return 0;
 }
 
 
@@ -59,7 +59,9 @@ char* string_format( const char* format, ... )
 	char* buffer;
 	va_list list;
 
-	FOUNDATION_ASSERT( format );
+	if( !format )
+		return 0;
+
 	capacity = string_length( format ) + 32;
 	buffer = memory_allocate_context( HASH_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
 
@@ -88,8 +90,13 @@ char* string_format_buffer( char* buffer, unsigned int maxlen, const char* forma
 {
 	va_list list;
 
-	FOUNDATION_ASSERT( buffer );
-	FOUNDATION_ASSERT( format );
+	if( !buffer )
+		return 0;
+	if( !format )
+	{
+		buffer[0] = 0;
+		return buffer;
+	}
 
 	va_start( list, format );
 	vsnprintf( buffer, maxlen, format, list );
@@ -106,7 +113,8 @@ char* string_vformat( const char* format, va_list list )
 	char* buffer;
 	va_list copy_list;
 
-	FOUNDATION_ASSERT( format );
+	if( !format )
+		return 0;
 
 	capacity = string_length( format ) + 32;
 	buffer = memory_allocate_context( HASH_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
@@ -136,7 +144,13 @@ char* string_vformat_buffer( char* buffer, unsigned int maxlen, const char* form
 {
 	va_list copy_list;
 
-	FOUNDATION_ASSERT( format );
+	if( !buffer )
+		return 0;
+	if( !format )
+	{
+		buffer[0] = 0;
+		return buffer;
+	}
 
 	va_copy( copy_list, list );
 	vsnprintf( buffer, maxlen, format, copy_list );
@@ -160,17 +174,15 @@ hash_t string_hash( const char* str )
 
 char* string_resize( char* str, unsigned int length, char c )
 {
-	unsigned int curlen;
-	
-	FOUNDATION_ASSERT( str );
-	curlen = string_length( str );
+	unsigned int curlen = string_length( str );
 
 	if( curlen < length )
 	{
 		str = memory_reallocate( str, length + 1, 0, curlen );
 		memset( str + curlen, c, length - curlen );
 	}
-	str[length] = 0;
+	if( str )
+		str[length] = 0;
 	return str;
 }
 
@@ -180,8 +192,11 @@ void string_copy( char* dst, const char* src, unsigned int limit )
 	unsigned int length = string_length( src );
 	if( length >= limit )
 		length = limit - 1;
-	memcpy( dst, src, length );
-	dst[length] = 0;
+	if( dst )
+	{
+		memcpy( dst, src, length );
+		dst[length] = 0;
+	}
 }
 
 
@@ -246,8 +261,6 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 {
 	unsigned int pos, lastpos, keylen, newkeylen, slen;
 	int lendiff, replaced;
-
-	FOUNDATION_ASSERT( str );
 
 	slen = (unsigned int)string_length( str );
 	keylen = (unsigned int)string_length( key );
@@ -338,8 +351,10 @@ char* string_concat( const char* lhs, const char* rhs )
 	unsigned int llen = string_length( lhs );
 	unsigned int rlen = string_length( rhs );
 	char* buf = memory_allocate_context( HASH_STRING, llen + rlen + 1, 0, MEMORY_PERSISTENT );
-	memcpy( buf, lhs, llen );
-	memcpy( buf + llen, rhs, rlen );
+	if( llen )
+		memcpy( buf, lhs, llen );
+	if( rlen )
+		memcpy( buf + llen, rhs, rlen );
 	buf[ llen + rlen ] = 0;
 	return buf;
 }
