@@ -262,6 +262,7 @@ char* md5_get_digest( const md5_t* digest )
 		str[j]   = trn[ digest->digest[i] / 16 ];
 		str[j+1] = trn[ digest->digest[i] % 16 ];
 	}
+	str[32] = 0;
 
 	return str;
 }
