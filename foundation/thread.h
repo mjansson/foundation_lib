@@ -107,7 +107,10 @@ FOUNDATION_API void            thread_cleanup( void );
 
 #if FOUNDATION_PLATFORM_ANDROID
 
+/*! Attach the thread to the JVM to be able to do JVM calls through JNI */
 FOUNDATION_API void            thread_attach_jvm( void );
+
+/*! Detach the thread from the JVM. No more calls to the JVM through JNI can be made from this thread after a call to this function */
 FOUNDATION_API void            thread_detach_jvm( void );
 
 #endif

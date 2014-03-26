@@ -26,11 +26,22 @@
     \internal Do not change order! */
 typedef enum
 {
+	//! No error
 	ERRORLEVEL_NONE    = 0,
+
+	//! Debug level, usually ignored in anything except debug builds. Execution will continue as expected.
 	ERRORLEVEL_DEBUG,
+
+	//! Information level, contains generally useful information. Execution will continue as expected.
 	ERRORLEVEL_INFO,
+
+	//! Warning level, contains important information. Operation failed, but execution can continue.
 	ERRORLEVEL_WARNING,
+
+	//! Error level, contains vital information. Operation failed and execution might be affected.
 	ERRORLEVEL_ERROR,
+
+	//! Panic level, contains vital information. Operation failed and execution cannot continue.
 	ERRORLEVEL_PANIC
 } error_level_t;
 
@@ -38,23 +49,55 @@ typedef enum
     \internal Do not change order, only append! */
 typedef enum
 {
+	//! No error
 	ERROR_NONE              = 0,
+
+	//! An invalid value was passed to the function
 	ERROR_INVALID_VALUE,
+
+	//! The function is unsupported on the current system
 	ERROR_UNSUPPORTED,
+
+	//! The function is not yet implemented
 	ERROR_NOT_IMPLEMENTED,
+
+	//! The function could not allocate the needed memory and/or resources
 	ERROR_OUT_OF_MEMORY,
+
+	//! A memory leak was detected
 	ERROR_MEMORY_LEAK,
+
+	//! Memory alignment check failed
 	ERROR_MEMORY_ALIGNMENT,
+
+	//! Internal failed, unspecified. The function encountered a state it did not expect or support
 	ERROR_INTERNAL_FAILURE,
+
+	//! The function call was not allowed
 	ERROR_ACCESS_DENIED,
+
+	//! An exception was thrown
 	ERROR_EXCEPTION,
+
+	//! A system call failed
 	ERROR_SYSTEM_CALL_FAIL,
+
+	//! The function encountered an unsupported data type for the requested operation
 	ERROR_UNKNOWN_TYPE,
+
+	//! The function could not resolve the resource to use in the requested operation
 	ERROR_UNKNOWN_RESOURCE,
+
+	//! The function is deprecated and should not be used
 	ERROR_DEPRECATED,
+
+	//! An assert triggered
 	ERROR_ASSERT,
+
+	//! A script generated an error
 	ERROR_SCRIPT,
 
+	//! Marker, last reserved internal error identifier
 	ERROR_LAST_BUILTIN  = 0x0fff
 } error_t;
 
@@ -62,36 +105,72 @@ typedef enum
     \internal Do not change order, only append! */
 typedef enum
 {
+	//! Performance warning
 	WARNING_PERFORMANCE = 0,
+
+	//! Function is deprecated
 	WARNING_DEPRECATED,
+
+	//! Bad data passed to/used in function
 	WARNING_BAD_DATA,
+
+	//! Memory issues (running low, leaks, ...)
 	WARNING_MEMORY,
+
+	//! Unsupported function
 	WARNING_UNSUPPORTED,
+
+	//! General warning, function encountered a suspicious state
 	WARNING_SUSPICIOUS,
+
+	//! System call failed
 	WARNING_SYSTEM_CALL_FAIL,
+
+	//! Potential deadlock encountered
 	WARNING_DEADLOCK,
+
+	//! Script generated warning
 	WARNING_SCRIPT,
 
+	//! Marker, last reserved inernal warning identifier
 	WARNING_LAST_BUILTIN  = 0x0fff
 } warning_t;
 
 //! Memory hints
 typedef enum
 {
+	//! Memory is persistent (retained when function returns)
 	MEMORY_PERSISTENT          = 0x0000,
+
+	//! Memory is temporary (extremely short lived and generally freed before function returns)
 	MEMORY_TEMPORARY           = 0x0001,
+
+	//! Memory is thread local
 	MEMORY_THREAD              = 0x0002,
+
+	//! Memory should be allocated in low 32-bit address space
 	MEMORY_32BIT_ADDRESS       = 0x0004
 } memory_hint_t;
 
 //! Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
 typedef enum
 {
+	//! Windows
 	PLATFORM_WINDOWS   = 1,
+
+	//! Linux
 	PLATFORM_LINUX,
+
+	//! MacOS X
 	PLATFORM_MACOSX,
+
+	//! iOS (iPhone, iPad)
 	PLATFORM_IOS,
+
+	//! Android
 	PLATFORM_ANDROID,
+
+	//! Raspberry Pi (linux flavour)
 	PLATFORM_RASPBERRYPI
 } platform_t;
 
@@ -124,28 +203,46 @@ typedef enum
 //! Machine byte order identifiers
 typedef enum
 {
+	//! Little endian
 	BYTEORDER_LITTLEENDIAN = 0,
+
+	//! Big endian
 	BYTEORDER_BIGENDIAN    = 1
 } byteorder_t;
 
 //! Application flags
 typedef enum
 {
+	//! Application is a command line utility and should not have a normal windowing system interaction loop)
 	APPLICATION_UTILITY        = 0x0001,
+
+	//! Application is a daemon/service
 	APPLICATION_DAEMON         = 0x0002
 } application_flag_t;
 
 //! Open modes for streams
 typedef enum
 {
+	//! Readable
 	STREAM_IN                  = 0x0001,
+
+	//! Writable
 	STREAM_OUT                 = 0x0002,
+
+	//! Truncate on open
 	STREAM_TRUNCATE            = 0x0010,
+
+	//! Position at end on open
 	STREAM_ATEND               = 0x0020,
+
+	//! Read/write in binary mode
 	STREAM_BINARY              = 0x0100,
+
+	//! Force sync on each write
 	STREAM_SYNC                = 0x0200
 } stream_mode_t;
 
+//! Built-in stream type identifiers
 typedef enum
 {
 	STREAMTYPE_INVALID         = 0,
