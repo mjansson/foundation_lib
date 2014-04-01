@@ -245,32 +245,63 @@ typedef enum
 //! Built-in stream type identifiers
 typedef enum
 {
+	//! Invalid identifier
 	STREAMTYPE_INVALID         = 0,
+
+	//! Memory buffer stream
 	STREAMTYPE_MEMORY,
+
+	//! File system stream
 	STREAMTYPE_FILE,
+
+	//! Socket stream
 	STREAMTYPE_SOCKET,
+
+	//! Ring buffer stream
 	STREAMTYPE_RINGBUFFER,
+
+	//! Asset stream (Android)
 	STREAMTYPE_ASSET,
+
+	//! Pipe stream
 	STREAMTYPE_PIPE,
+
+	//! Standard stream (stdin, stderr, stdout)
 	STREAMTYPE_STDSTREAM
 } stream_type_t;
 
 //! Stream seek directions
 typedef enum
 {
+	//! Seek from start of stream
 	STREAM_SEEK_BEGIN          = 0x0000,
+
+	//! Seek from current position of stream
 	STREAM_SEEK_CURRENT        = 0x0001,
+
+	//! Seek from end of stream
 	STREAM_SEEK_END            = 0x0002
 } stream_seek_mode_t;
 
 //! Thread priority
 typedef enum
 {
+	//! Lowest possible priority
 	THREAD_PRIORITY_LOW = 0,
+
+	//! Unimportant priority
 	THREAD_PRIORITY_BELOWNORMAL,
+
+	//! Normal priority
 	THREAD_PRIORITY_NORMAL,
+
+	//! Important priority
 	THREAD_PRIORITY_ABOVENORMAL,
+
+	//! High priority
 	THREAD_PRIORITY_HIGHEST,
+
+	//! Absolutely critical
 	THREAD_PRIORITY_TIMECRITICAL
 } thread_priority_t;
 
@@ -315,6 +346,7 @@ typedef enum
 	PROCESS_STILL_ACTIVE                      = 0x7FFFFFFF
 } process_status_t;
 
+//! Foundadtion library level event identifiers
 typedef enum
 {
 	//! Application has been asked to terminate
@@ -330,26 +362,48 @@ typedef enum
 	FOUNDATIONEVENT_FILE_MODIFIED
 } foundation_event_id;
 
+//! Event flags
 typedef enum
 {
+	//! Event is delayed and will be delivered at a later timestamp
 	EVENTFLAG_DELAY  = 1
 } event_flag_t;
 
+//! Blowfish block cipher mode of operation (http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
 typedef enum
 {
+	//! Electronic codebook
 	BLOWFISH_ECB = 0,
+
+	//! Cipher-block chaining
 	BLOWFISH_CBC,
+
+	//! Cipher feedback
 	BLOWFISH_CFB,
+
+	//! Output feedback
 	BLOWFISH_OFB
 } blowfish_mode_t;
 
+//! Radix sort data types
 typedef enum
 {
+	//! 32-bit signed integer
 	RADIXSORT_INT32 = 0,
+
+	//! 32-bit unsigned integer
 	RADIXSORT_UINT32,
+
+	//! 64-bit signed integer
 	RADIXSORT_INT64,
+
+	//! 64-bit unsigned integer
 	RADIXSORT_UINT64,
+
+	//! 32-bit floating point
 	RADIXSORT_FLOAT32,
+
+	//! 64-bit floating point
 	RADIXSORT_FLOAT64
 } radixsort_data_t;
 
@@ -388,12 +442,22 @@ typedef int           (* system_initialize_fn )( void );
 //! Subsystem shutdown
 typedef void          (* system_shutdown_fn )( void );
 
+//! Memory system allocation function
 typedef void*         (* memory_allocate_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
+
+//! Memory system allocate-and-zero-out function
 typedef void*         (* memory_allocate_zero_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
+
+//! Memory system reallocation function
 typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
+
+//! Memory system deallocation function
 typedef void          (* memory_deallocate_fn )( void* p );
 
+//! Memory tracker tracking function
 typedef void          (* memory_track_fn )( void*, uint64_t );
+
+//! Memory tracker untracking function
 typedef void          (* memory_untrack_fn )( void* );
 
 //! Callback function for writing profiling data to a stream
@@ -411,6 +475,7 @@ typedef int           (* crash_guard_fn)( void* );
 //! Crash callback
 typedef void          (* crash_dump_callback_fn)( const char* );
 
+//! Identifier returned from threads and crash guards after a fatal exception (crash) has been caught
 #define CRASH_DUMP_GENERATED        0x0badf00dL
 
 
@@ -419,33 +484,63 @@ typedef void          (* crash_dump_callback_fn)( const char* );
 //! Memory management callbacks
 typedef struct _foundation_memory_system
 {
+	//! Allocation
 	memory_allocate_fn              allocate;
+
+	//! Allocate-and-zero-out
 	memory_allocate_zero_fn         allocate_zero;
+
+	//! Reallocation
 	memory_reallocate_fn            reallocate;
+
+	//! Deallocation
 	memory_deallocate_fn            deallocate;
+
+	//! Initialization of memory system
 	system_initialize_fn            initialize;
+
+	//! Shutdown of memory system
 	system_shutdown_fn              shutdown;
 } memory_system_t;
 
 //! Memory tracking callbacks
 typedef struct _foundation_memory_tracker
 {
+	//! Track a memory allocation
 	memory_track_fn                 track;
+
+	//! Untrack a memory allocation
 	memory_untrack_fn               untrack;
+
+	//! Initialize tracker
 	system_initialize_fn            initialize;
+
+	//! Shutdown tracker
 	system_shutdown_fn              shutdown;
 } memory_tracker_t;
 
 //! Version identifier
 typedef union _foundation_version
 {
+	//! Compound version identifier
 	uint128_t                       version;
+
+	//! Version numbers separated into sections, "major.minor.revision-revision (control)"
 	struct
 	{
+		//! Major version
 		uint16_t                    major;
+
+		//! Minor version
 		uint16_t                    minor;
+
+		//! Revision number
 		uint32_t                    revision;
+
+		//! Build number
 		uint32_t                    build;
+
+		//! Source control version/revision/identifier
 		uint32_t                    control;
 	}                               sub;
 } version_t;
@@ -453,30 +548,55 @@ typedef union _foundation_version
 //! Application declaration
 typedef struct _foundation_application
 {
+	//! Long descriptive name
 	const char*                     name;
+
+	//! Short name, should only contain [a-z][A-Z][-_.]
 	const char*                     short_name;
+
+	//! Config directory name
 	const char*                     config_dir;
+
+	//! Version declaration
 	version_t                       version;
+
+	//! Crash dump callback function
 	crash_dump_callback_fn          dump_callback;
+
+	//! Application flags (\see application_flag_t)
 	unsigned int                    flags;
+
+	//! Instance UUID, generated by the foundation library on foundation initialization
 	uuid_t                          instance;
 } application_t;
 
+//! Data for a frame in the error context stack
 typedef struct _foundation_error_frame
 {
+	//! Error description
 	const char*                     name;
+
+	//! Data associated with error
 	const char*                     data;
 } error_frame_t;
 
+//! Error context stack
 typedef struct _foundation_error_context
 {
+	//! Error context stack
 	error_frame_t                   frame[BUILD_SIZE_ERROR_CONTEXT_DEPTH];
+
+	//! Current depth of error context stack
 	int                             depth;
 } error_context_t;
 
+//! Memory context stack
 typedef struct _foundation_memory_context
 {
+	//! Memory context stack
 	uint64_t                        context[BUILD_SIZE_MEMORY_CONTEXT_DEPTH];
+
+	//! Current depth of memory context stack
 	int                             depth;
 } memory_context_t;
 
@@ -486,21 +606,43 @@ typedef struct _foundation_memory_context
 	uint32_t                        flags;      \
 	object_t                        id
 
+//! Object base structure. All object-based designs must have this layout at the start of the structure
 typedef struct _foundation_object_base
 {
+	/*! \var ref
+        Object reference count */
+	/*! \var flags
+	    Object flags */
+	/*! \var id
+	    Object ID (self) */
 	FOUNDATION_DECLARE_OBJECT;
 } object_base_t;
 
 //! Object map
 typedef struct ALIGN(16) _foundation_objectmap
 {
+	//! Current first free slot
 	atomic64_t                      free;
+
+	//! Number of slots in map
 	uint64_t                        size;
+
+	//! Counter for next available ID
 	atomic64_t                      id;
+
+	//! Number of bits needed for slot index
 	uint64_t                        size_bits;
+
+	//! Maximum ID (depending on how many bits are used by size)
 	uint64_t                        id_max;
+
+	//! Bitmask for slot index
 	uint64_t                        mask_index;
+
+	//! Bitmask for ID
 	uint64_t                        mask_id;
+
+	//! Slot array
 	void*                           map[];
 } objectmap_t;
 
@@ -514,11 +656,23 @@ typedef struct ALIGN(16) _foundation_objectmap
 
 typedef struct _foundation_event
 {
+	/*! \var id
+        Event ID */
+	/*! \var flags
+	    Event flags */
+	/*! \var serial
+	    Event serial number */
+	/*! \var size
+        Size of event data payload  */
+	/*! \var object
+        Object associated with event */
 	FOUNDATION_DECLARE_EVENT;
+
+	//! Event data payload
 	char                  payload[];
 } event_t;
 
-//! Semaphore
+//! Semaphore (actual type depending on platform)
 #if FOUNDATION_PLATFORM_WINDOWS
 typedef void*                        semaphore_t;
 #elif FOUNDATION_PLATFORM_MACOSX
@@ -562,45 +716,87 @@ typedef struct _foundation_semaphore
 
 // OPAQUE COMPLEX TYPES
 
+//! MD5 state
 typedef struct _foundation_md5              md5_t;
 
+//! Base opaque stream
 typedef struct _foundation_stream           stream_t;
 
+//! Mutex
 typedef struct _foundation_mutex            mutex_t;
+
+//! Process
 typedef struct _foundation_process          process_t;
 
+//! Event block holding a number of events f
 typedef struct _foundation_event_block      event_block_t;
+
+//! Event strem
 typedef struct _foundation_event_stream     event_stream_t;
 
+//! Ringbuffer
 typedef struct _foundation_ringbuffer       ringbuffer_t;
 
+//! Blowfish state
 typedef struct _foundation_blowfish         blowfish_t;
 
+//! Radix sorter
 typedef struct _foundation_radixsort        radixsort_t;
 
+//! Hashmap
 typedef struct _foundation_hashmap          hashmap_t;
+
+//! Hash table (32bit data)
 typedef struct _foundation_hashtable32      hashtable32_t;
+
+//! Hash table (64bit data)
 typedef struct _foundation_hashtable64      hashtable64_t;
 
 
 // COMPLEX TYPES
 
+//! Bit buffer for bit based I/O to a memory buffer or stream
 typedef struct _foundation_bitbuffer
 {
+	//! Memory buffer
 	uint8_t*            buffer;
+
+	//! End of buffer indicator
 	uint8_t*            end;
+
+	//! Stream
 	stream_t*           stream;
+
+	//! Swap flag for compatibility between machines with different endian arch
 	bool                swap;
+
+	//! Pending data to be read
 	unsigned int        pending_read;
+
+	//! Pending data to be written
 	unsigned int        pending_write;
+
+	//! Current read offset in bits into pending data
 	unsigned int        offset_read;
+
+	//! Current write offset in bits into pending data
 	unsigned int        offset_write;
+
+	//! Number of read bits
 	unsigned int        count_read;
+
+	//! Number of written bits
 	unsigned int        count_write;
 } bitbuffer_t;
 
 
 // UTILITY FUNCTIONS
 
-//! Pack version definition into a 128-bit integer
+/*! Pack version definition into a 128-bit integer
+    \param major          Major version
+    \param minor          Minor version
+    \param revision       Revision number
+	\param build          Build number
+	\param control        Source control version/revision/identifier
+    \return               Packed version data */
 static FORCEINLINE CONSTCALL version_t      version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control ) { version_t v; v.sub.major = (uint16_t)major; v.sub.minor = (uint16_t)minor; v.sub.revision = revision, v.sub.build = build; v.sub.control = control; return v; }
