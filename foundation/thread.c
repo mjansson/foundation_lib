@@ -118,11 +118,11 @@ void _thread_shutdown( void )
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	for( int i = 0; i < 1024; ++i )
 	{
-		if( _thread_local_blocks[i].block )
+		if( atomic_loadptr( &_thread_local_blocks[i].block ) )
 		{
-			void* block = _thread_local_blocks[i].block;
+			void* block = atomic_loadptr( &_thread_local_blocks[i].block );
 			_thread_local_blocks[i].thread = 0;
-			_thread_local_blocks[i].block = 0;
+			atomic_storeptr( &_thread_local_blocks[i].block, 0 );
 			memory_deallocate( block );
 		}
 	}
@@ -540,11 +540,11 @@ void thread_cleanup( void )
 	uint64_t curid = thread_id();
 	for( int i = 0; i < 1024; ++i )
 	{
-		if( ( _thread_local_blocks[i].thread == curid ) && _thread_local_blocks[i].block )
+		if( ( _thread_local_blocks[i].thread == curid ) && atomic_loadptr( &_thread_local_blocks[i].block ) )
 		{
-			void* block = _thread_local_blocks[i].block;
+			void* block = atomic_loadptr( &_thread_local_blocks[i].block );
 			_thread_local_blocks[i].thread = 0;
-			_thread_local_blocks[i].block = 0;
+			atomic_storeptr( &_thread_local_blocks[i].block, 0 );
 			memory_deallocate( block );
 		}
 	}

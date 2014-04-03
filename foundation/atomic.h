@@ -265,7 +265,7 @@ static FORCEINLINE int atomic_add32( atomic32_t* val, int32_t add )
 	int32_t old = (int32_t)_InterlockedExchangeAdd( (volatile long*)&val->nonatomic, add );
 	return ( old + add );
 #elif FOUNDATION_PLATFORM_APPLE
-	return OSAtomicAdd32( add, &val->nonatomic );
+	return OSAtomicAdd32( add, (int*)&val->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( &val->nonatomic, add );
 #else 
@@ -308,7 +308,7 @@ static FORCEINLINE int64_t atomic_add64( atomic64_t* val, int64_t add )
 	return _InterlockedExchangeAdd64( &val->nonatomic, add ) + add;
 #endif
 #elif FOUNDATION_PLATFORM_APPLE
-	return OSAtomicAdd64( add, &val->nonatomic );
+	return OSAtomicAdd64( add, (int64_t*)&val->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( &val->nonatomic, add );
 #else 
