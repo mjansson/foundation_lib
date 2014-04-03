@@ -18,7 +18,8 @@ static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
 {
 	if( bitbuffer->buffer < bitbuffer->end )
 	{
-		bitbuffer->pending_read = bitbuffer->swap ? byteorder_swap32( *(uint32_t*)bitbuffer->buffer ) : *(uint32_t*)bitbuffer->buffer;
+		void* bufferptr = bitbuffer->buffer; //For alignment required archs, we know it is 32-bit aligned already so safe casts below
+		bitbuffer->pending_read = bitbuffer->swap ? byteorder_swap32( *(uint32_t*)bufferptr ) : *(uint32_t*)bufferptr;
 		bitbuffer->buffer += 4;
 	}
 	else if( bitbuffer->stream )
@@ -37,7 +38,8 @@ static void _bitbuffer_put( bitbuffer_t* RESTRICT bitbuffer )
 {
 	if( bitbuffer->buffer < bitbuffer->end )
 	{
-		*(uint32_t*)bitbuffer->buffer = bitbuffer->swap ? byteorder_swap32( bitbuffer->pending_write ) : bitbuffer->pending_write;
+		void* bufferptr = bitbuffer->buffer; //For alignment required archs, we know it is 32-bit aligned already so safe casts below
+		*(uint32_t*)bufferptr = bitbuffer->swap ? byteorder_swap32( bitbuffer->pending_write ) : bitbuffer->pending_write;
 		bitbuffer->buffer += 4;
 	}
 	else if( bitbuffer->stream )

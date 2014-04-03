@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 
-FOUNDATION_DECLARE_THREAD_LOCAL( error_t, error, ERROR_NONE )
+FOUNDATION_DECLARE_THREAD_LOCAL( error_t, error, 0 ) // 0 = ERROR_NONE
 FOUNDATION_DECLARE_THREAD_LOCAL( error_callback_fn, error_callback, 0 )
 
 

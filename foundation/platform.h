@@ -522,6 +522,8 @@
 #        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
 #        error ARMv8 not yet supported
 #      elif defined( __ARM64_ARCH_8__ )
+#        undef  FOUNDATION_ARCH_ARM_64
+#        define FOUNDATION_ARCH_ARM_64 1
 #        undef  FOUNDATION_ARCH_ARM8_64
 #        define FOUNDATION_ARCH_ARM8_64 1
 #        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARM64v8"
@@ -821,7 +823,19 @@
 
 #  include <stdbool.h>
 #  include <stdarg.h>
+
+// Workaround for broken use of __LP64__ in some older NDK headers
+#if FOUNDATION_PLATFORM_ANDROID && !defined(__LP64__)
+#  define __LP64__ 0
+#  define FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
+#endif
+
 #  include <wchar.h>
+
+#if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
+#  undef __LP64__
+#  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
+#endif
 
 // GCC
 #elif defined( __GNUC__ )
@@ -848,7 +862,19 @@
 
 #  include <stdbool.h>
 #  include <stdarg.h>
+
+// Workaround for broken use of __LP64__ in some older NDK headers
+#if FOUNDATION_PLATFORM_ANDROID && !defined(__LP64__)
+#  define __LP64__ 0
+#  define FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
+#endif
+
 #  include <wchar.h>
+
+#if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
+#  undef __LP64__
+#  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
+#endif
 
 // Intel
 #elif defined( __ICL ) || defined( __ICC ) || defined( __INTEL_COMPILER )
@@ -1038,7 +1064,7 @@ FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static _pthread_key_t _##name##_key = 0; \
-static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, init ); return _##name##_key; } \
+static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) { pthread_key_create( &_##name##_key, 0 ); pthread_setspecific( _##name##_key, (init) ); } return _##name##_key; } \
 static FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
 static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
 

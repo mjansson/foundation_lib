@@ -4,7 +4,7 @@ LOCAL_PATH := $(FOUNDATION_LOCAL_PATH)/../../..
 include $(CLEAR_VARS)
 
 # Make static libraries installable
-$(call module-class-register-installable,STATIC_LIBRARY,lib,.a)
+$(call module-class-register-installable,STATIC_LIBRARY,lib,$(TARGET_LIB_EXTENSION))
 
 
 #Build foundation library
@@ -209,6 +209,8 @@ include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 #Build main test launcher
 include $(CLEAR_VARS)
 
+$(eval NDK_MODULE_CLASS.STATIC_LIBRARY.INSTALLABLE := $(false))
+
 LOCAL_MODULE     := test-all
 
 include $(FOUNDATION_LOCAL_PATH)/TargetSetup.mk
@@ -240,6 +242,8 @@ LOCAL_SRC_FILES  := test/all/main.c
 include $(BUILD_SHARED_LIBRARY)
 
 
+
+include $(CLEAR_VARS)
 
 $(call import-module,android/native_app_glue)
 $(call import-module,android/cpufeatures)
