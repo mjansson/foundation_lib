@@ -12,19 +12,18 @@ include $(CLEAR_VARS)
 
 LOCAL_PATH := $(FOUNDATION_LOCAL_PATH)/../../..
 
-TARGET_ARCH_ABI  := armeabi-v7a
 TARGET_PLATFORM  := android-10
 
 ifeq ($(NDK_DEBUG),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/debug
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/debug/$(TARGET_ARCH_ABI)
 else
 ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/deploy
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/deploy/$(TARGET_ARCH_ABI)
 else
 ifeq ($(BUILD_PROFILE),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/profile
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/profile/$(TARGET_ARCH_ABI)
 else
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/release
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/release/$(TARGET_ARCH_ABI)
 endif
 endif
 endif
@@ -52,19 +51,18 @@ include $(CLEAR_VARS)
 
 LOCAL_PATH := $(FOUNDATION_LOCAL_PATH)/../../..
 
-TARGET_ARCH_ABI  := armeabi-v7a
 TARGET_PLATFORM  := android-10
 
 ifeq ($(NDK_DEBUG),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/debug
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/debug/$(TARGET_ARCH_ABI)
 else
 ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/deploy
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/deploy/$(TARGET_ARCH_ABI)
 else
 ifeq ($(BUILD_PROFILE),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/profile
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/profile/$(TARGET_ARCH_ABI)
 else
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/release
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/release/$(TARGET_ARCH_ABI)
 endif
 endif
 endif
@@ -209,8 +207,6 @@ include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 #Build main test launcher
 include $(CLEAR_VARS)
 
-$(eval NDK_MODULE_CLASS.STATIC_LIBRARY.INSTALLABLE := $(false))
-
 LOCAL_MODULE     := test-all
 
 include $(FOUNDATION_LOCAL_PATH)/TargetSetup.mk
@@ -220,15 +216,15 @@ LOCAL_PATH       := $(FOUNDATION_LOCAL_PATH)/../../..
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/test
 
 ifeq ($(NDK_DEBUG),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/debug
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/debug/$(TARGET_ARCH_ABI)
 else
 ifeq ($(BUILD_DEPLOY),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/deploy
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/deploy/$(TARGET_ARCH_ABI)
 else
 ifeq ($(BUILD_PROFILE),1)
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/profile
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/profile/$(TARGET_ARCH_ABI)
 else
-NDK_APP_DST_DIR  := $(LOCAL_PATH)/bin/android/release
+NDK_APP_DST_DIR  := $(LOCAL_PATH)/lib/android/release/$(TARGET_ARCH_ABI)
 endif
 endif
 endif
@@ -242,8 +238,6 @@ LOCAL_SRC_FILES  := test/all/main.c
 include $(BUILD_SHARED_LIBRARY)
 
 
-
-include $(CLEAR_VARS)
 
 $(call import-module,android/native_app_glue)
 $(call import-module,android/cpufeatures)

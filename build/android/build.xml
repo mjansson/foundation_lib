@@ -69,11 +69,26 @@
     <import file="custom_rules.xml" optional="true" />
 
     <target name="-pre-build">
+        <!--<copy todir="${jar.libs.dir}/armeabi">
+            <fileset 
+                dir="../../lib/android/release/armeabi"
+                includes="lib*.so" />
+        </copy>-->
         <copy todir="${jar.libs.dir}/armeabi-v7a">
             <fileset 
-                dir="../../bin/android/release" 
+                dir="../../lib/android/debug/armeabi-v7a"
                 includes="lib*.so" />
         </copy>
+        <copy todir="${jar.libs.dir}/x86">
+            <fileset 
+                dir="../../lib/android/debug/x86"
+                includes="lib*.so" />
+        </copy>
+        <!--<copy todir="${jar.libs.dir}/mips">
+            <fileset 
+                dir="../../lib/android/release/mips"
+                includes="lib*.so" />
+        </copy>-->
         <copy todir="assets/config">
             <fileset 
                 dir="../../config" 

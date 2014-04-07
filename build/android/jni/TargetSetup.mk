@@ -1,7 +1,13 @@
 LOCAL_PATH       := $(FOUNDATION_LOCAL_PATH)/../../..
 
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON   := true
 LOCAL_ARM_MODE   := arm
+endif
+
+ifeq ($(TARGET_ARCH_ABI),armeabi)
+LOCAL_ARM_MODE   := arm
+endif
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)
 LOCAL_CFLAGS     := -std=gnu99 -W -Wall -Wcast-align -Wcast-qual -Wchar-subscripts -Winline -Wpointer-arith -Wwrite-strings -Wundef -Wstrict-aliasing -Wno-shadow -Wno-redundant-decls -Wno-variadic-macros -Wno-long-long -Wno-format -Wno-unused -Wno-missing-field-initializers -Wno-missing-braces -Wno-unused-parameter -Werror -ftabstop=4 -fstrict-aliasing -fno-math-errno -ffinite-math-only -funsafe-math-optimizations -fno-trapping-math
