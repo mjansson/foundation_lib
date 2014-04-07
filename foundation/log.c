@@ -145,7 +145,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 
 #if FOUNDATION_PLATFORM_ANDROID
 			if( _log_stdout )
-				__android_log_write( ANDROID_LOG_DEBUG + severity, environment_application()->short_name, buffer );
+				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name, buffer );
 #else
 			if( _log_stdout && std )
 				fprintf( std, "%s", buffer );
