@@ -197,7 +197,13 @@ typedef enum
 	ARCHITECTURE_ARM7         = 7,
 	
 	/*! ARM 8 64bit */
-	ARCHITECTURE_ARM8_64      = 8
+	ARCHITECTURE_ARM8_64      = 8,
+
+	/*! ARM 5 */
+	ARCHITECTURE_ARM5         = 9,
+
+	/*! MIPS */
+	ARCHITECTURE_MIPS         = 10
 } architecture_t;
 
 //! Machine byte order identifiers

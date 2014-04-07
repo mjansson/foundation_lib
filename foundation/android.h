@@ -17,16 +17,17 @@
     of foundation_lib is built on the Android NDK and requires the android_native_app_glue and cpufeatures NDK
     libraries (will be automatically compiled and linked by the makefiles) */
 
-#include <foundation/foundation.h>
+#include <foundation/platform.h>
 
 
 #if FOUNDATION_PLATFORM_ANDROID
 
-#include <android_native_app_glue.h>
-
+#include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <android_native_app_glue.h>
 
 
 /*! Entry point for android native applications. Called internally at process launch,

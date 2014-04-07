@@ -83,6 +83,9 @@
 /*! \def FOUNDATION_ARCH_ARM
     Defined to 1 if compiling for ARM architectures, 0 otherwise */
 
+/*! \def FOUNDATION_ARCH_ARM5
+    Defined to 1 if compiling for ARMv5 architectures, 0 otherwise */
+
 /*! \def FOUNDATION_ARCH_ARM6
     Defined to 1 if compiling for ARMv6 architectures, 0 otherwise */
 
@@ -112,6 +115,9 @@
 
 /*! \def FOUNDATION_ARCH_IA64
     Defined to 1 if compiling for IA64 architectures, 0 otherwise */
+
+/*! \def FOUNDATION_ARCH_MIPS
+    Defined to 1 if compiling for MIPS architectures, 0 otherwise */
 
 /*! \def FOUNDATION_ARCH_SSE2
     Defined to 1 if compiling with SSE2 instruction set enabled, 0 otherwise */
@@ -383,6 +389,7 @@
 //Architectures
 #ifndef  FOUNDATION_ARCH_ARM
 #  define FOUNDATION_ARCH_ARM 0
+#  define FOUNDATION_ARCH_ARM5 0
 #  define FOUNDATION_ARCH_ARM6 0
 #  define FOUNDATION_ARCH_ARM7 0
 #  define FOUNDATION_ARCH_ARM8 0
@@ -405,6 +412,9 @@
 #endif
 #ifndef FOUNDATION_ARCH_IA64
 #  define FOUNDATION_ARCH_IA64 0
+#endif
+#ifndef FOUNDATION_ARCH_MIPS
+#  define FOUNDATION_ARCH_MIPS 0
 #endif
 
 //Architecture details
@@ -466,9 +476,10 @@
 #      undef  FOUNDATION_ARCH_ARM7
 #      define FOUNDATION_ARCH_ARM7 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "Android ARMv7"
-#      ifndef __ARM_NEON__
-#        error No ARM NEON support
-#      endif
+#    elif defined(__ARM_ARCH_5TE__)
+#      undef  FOUNDATION_ARCH_ARM5
+#      define FOUNDATION_ARCH_ARM5 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Android ARMv5"
 #    else
 #      error Unsupported ARM architecture
 #    endif
@@ -480,6 +491,13 @@
 #    undef  FOUNDATION_ARCH_X86_64
 #    define FOUNDATION_ARCH_X86_64 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android x86-64"
+#  elif defined( __mips__ ) || FOUNDATION_ARCH_MIPS
+#    undef  FOUNDATION_ARCH_MIPS
+#    define FOUNDATION_ARCH_MIPS 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Android MIPS"
+#    ifndef _MIPS_ISA
+#      define _MIPS_ISA 6 /*_MIPS_ISA_MIPS32*/
+#    endif
 #  else
 #    error Unknown architecture
 #  endif
@@ -494,6 +512,11 @@
 #  undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
 #  define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
 
+// Workarounds for weird include dependencies in NDK headers
+#  if !defined(__LP64__)
+#    define __LP64__ 0
+#    define FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
+#  endif
 
 // MacOS X and iOS
 #elif ( defined( __APPLE__ ) && __APPLE__ ) || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
@@ -824,18 +847,7 @@
 #  include <stdbool.h>
 #  include <stdarg.h>
 
-// Workaround for broken use of __LP64__ in some older NDK headers
-#if FOUNDATION_PLATFORM_ANDROID && !defined(__LP64__)
-#  define __LP64__ 0
-#  define FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#endif
-
 #  include <wchar.h>
-
-#if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
-#  undef __LP64__
-#  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#endif
 
 // GCC
 #elif defined( __GNUC__ )
@@ -863,18 +875,7 @@
 #  include <stdbool.h>
 #  include <stdarg.h>
 
-// Workaround for broken use of __LP64__ in some older NDK headers
-#if FOUNDATION_PLATFORM_ANDROID && !defined(__LP64__)
-#  define __LP64__ 0
-#  define FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#endif
-
 #  include <wchar.h>
-
-#if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
-#  undef __LP64__
-#  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#endif
 
 // Intel
 #elif defined( __ICL ) || defined( __ICC ) || defined( __INTEL_COMPILER )
@@ -1146,4 +1147,10 @@ static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 #  else
 #    define PRIfixPTR  "08X"
 #  endif
+#endif
+
+
+#if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
+#  undef __LP64__
+#  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
 #endif
