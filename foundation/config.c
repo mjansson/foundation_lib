@@ -28,7 +28,7 @@ typedef enum _foundation_config_value_type
 	CONFIGVALUE_STRING_CONST_VAR
 } config_value_type_t;
 
-typedef struct ALIGN(16) _foundation_config_key
+typedef struct ALIGN(8) _foundation_config_key
 {
 	hash_t                  name;
 	config_value_type_t     type;
@@ -39,14 +39,14 @@ typedef struct ALIGN(16) _foundation_config_key
 	real                    rval;
 } config_key_t;
 
-typedef struct ALIGN(16) _foundation_config_section
+typedef struct ALIGN(8) _foundation_config_section
 {
 	hash_t                  name;
 	config_key_t*           key[CONFIG_KEY_BUCKETS];
 } config_section_t;
 
-FOUNDATION_STATIC_ASSERT( ( sizeof( config_key_t ) % 16 ) == 0, config_key_align );
-FOUNDATION_STATIC_ASSERT( ( sizeof( config_section_t ) % 16 ) == 0, config_section_align );
+FOUNDATION_STATIC_ASSERT( ( sizeof( config_key_t ) % 8 ) == 0, config_key_align );
+FOUNDATION_STATIC_ASSERT( ( sizeof( config_section_t ) % 8 ) == 0, config_section_align );
 
 //Global config store
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS] = {0};

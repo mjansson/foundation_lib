@@ -468,16 +468,21 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	}
 	else
 	{
-#if FOUNDATION_ARCH_POINTER_SIZE == 4
+#  if FOUNDATION_ARCH_POINTER_SIZE == 4
 		memory = _memory_allocate_malloc_raw( size, align, 0U );
-#else
+#  else
 		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
-#endif
+#  endif
 		if( p && memory && oldsize )
 			memcpy( memory, p, ( size < oldsize ) ? size : oldsize );
 		_memory_deallocate_malloc( p );
 	}
-#else
+
+#else //!FOUNDATION_PLATFORM_WINDOWS
+
+//If we're on ARM the realloc can return a 16-bit aligned address, causing raw pointer store to SIGILL
+//Realigning does not work since the realloc memory copy preserve cannot be done properly. Revert to normal alloc-and-copy
+#if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
 	if( !align && raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
 		void* raw_memory = realloc( raw_p, (size_t)size + FOUNDATION_ARCH_POINTER_SIZE );
@@ -488,17 +493,20 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 		}
 	}
 	else
-	{
-#if FOUNDATION_ARCH_POINTER_SIZE == 4
-		memory = _memory_allocate_malloc_raw( size, align, 0U );
-#else
-		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
 #endif
+	{
+#  if FOUNDATION_ARCH_POINTER_SIZE == 4
+		memory = _memory_allocate_malloc_raw( size, align, 0U );
+#  else
+		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
+#  endif
 		if( p && memory && oldsize )
 			memcpy( memory, p, ( size < oldsize ) ? (size_t)size : (size_t)oldsize );
 		_memory_deallocate_malloc( p );
 	}
+	
 #endif
+
 	if( !memory )
 	{
 		log_panicf( 0, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );

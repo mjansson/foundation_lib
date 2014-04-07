@@ -16,15 +16,15 @@
 
 typedef struct _foundation_hashtable32_entry
 {
-	uint32_t   key;
-	uint32_t   value;
+	atomic32_t   key;
+	uint32_t     value;
 } hashtable32_entry_t;
 
 
 typedef struct _foundation_hashtable64_entry
 {
-	uint64_t   key;
-	uint64_t   value;
+	atomic64_t   key;
+	uint64_t     value;
 } hashtable64_entry_t;
 
 
@@ -91,11 +91,11 @@ void hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value )
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
-		uint32_t current_key = table->entries[ie].key;
+		uint32_t current_key = atomic_load32( &table->entries[ie].key );
 
 		if( current_key != key )
 		{
-			if( current_key || !atomic_cas32( (atomic32_t*)&table->entries[ie].key, key, 0 ) )
+			if( current_key || !atomic_cas32( &table->entries[ie].key, key, 0 ) )
 			{
 				ie = ( ie + 1 ) % table->capacity;
 				if( ie == eend )
@@ -124,7 +124,7 @@ void hashtable32_erase( hashtable32_t* table, uint32_t key )
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
-		uint32_t current_key = table->entries[ie].key;
+		uint32_t current_key = atomic_load32( &table->entries[ie].key );
 
 		if( current_key == key )
 		{
@@ -155,7 +155,7 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
-		uint32_t current_key = table->entries[ie].key;
+		uint32_t current_key = atomic_load32( &table->entries[ie].key );
 
 		if( current_key == key )
 			return table->entries[ie].value;
@@ -177,7 +177,7 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 
 uint32_t hashtable32_raw( hashtable32_t* table, uint32_t slot )
 {
-	if( !table->entries[slot].key )
+	if( !atomic_load32( &table->entries[slot].key ) )
 		return 0;
 	return table->entries[slot].value;
 }
@@ -189,7 +189,7 @@ unsigned int hashtable32_size( hashtable32_t* table )
 	unsigned int ie;
 	for( ie = 0; ie < table->capacity; ++ie )
 	{
-		if( table->entries[ie].key && table->entries[ie].value )
+		if( atomic_load32( &table->entries[ie].key ) && table->entries[ie].value )
 			++count;
 	}
 	return count;
@@ -229,11 +229,11 @@ void hashtable64_set( hashtable64_t* table, uint64_t key, uint64_t value )
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
-		uint64_t current_key = table->entries[ie].key;
+		uint64_t current_key = atomic_load64( &table->entries[ie].key );
 
 		if( current_key != key )
 		{
-			if( current_key || !atomic_cas64( (atomic64_t*)&table->entries[ie].key, key, 0 ) )
+			if( current_key || !atomic_cas64( &table->entries[ie].key, key, 0 ) )
 			{
 				ie = ( ie + 1 ) % table->capacity;
 				if( ie == eend )
@@ -262,7 +262,7 @@ void hashtable64_erase( hashtable64_t* table, uint64_t key )
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
-		uint64_t current_key = table->entries[ie].key;
+		uint64_t current_key = atomic_load64( &table->entries[ie].key );
 
 		if( current_key == key )
 		{
@@ -293,7 +293,7 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
-		uint64_t current_key = table->entries[ie].key;
+		uint64_t current_key = atomic_load64( &table->entries[ie].key );
 
 		if( current_key == key )
 			return table->entries[ie].value;
@@ -315,7 +315,7 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 
 uint64_t hashtable64_raw( hashtable64_t* table, uint64_t slot )
 {
-	if( !table->entries[slot].key )
+	if( !atomic_load64( &table->entries[slot].key ) )
 		return 0;
 	return table->entries[slot].value;
 }
@@ -327,7 +327,7 @@ unsigned int hashtable64_size( hashtable64_t* table )
 	unsigned int ie;
 	for( ie = 0; ie < table->capacity; ++ie )
 	{
-		if( table->entries[ie].key && table->entries[ie].value )
+		if( atomic_load64( &table->entries[ie].key ) && table->entries[ie].value )
 			++count;
 	}
 	return count;
