@@ -609,6 +609,190 @@ DECLARE_TEST( string, queries )
 }
 
 
+DECLARE_TEST( string, append )
+{
+	const char* nullstr = 0;
+	const char* emptystr = "";
+	const char* shortstr = "short";
+	const char* longstr = "long long long long long long long long long";
+	char* val = 0;
+
+	val = 0;
+	val = string_append( val, nullstr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = 0;
+	val = string_append( val, emptystr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = 0;
+	val = string_append( val, nullstr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = string_clone( emptystr );
+	val = string_append( val, emptystr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = 0;
+	val = string_append( val, shortstr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_append( val, nullstr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( emptystr );
+	val = string_append( val, shortstr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_append( val, emptystr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_append( val, shortstr );
+	EXPECT_STREQ( val, "shortshort" );
+	string_deallocate( val );
+
+	val = 0;
+	val = string_append( val, longstr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_append( val, nullstr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( emptystr );
+	val = string_append( val, longstr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_append( val, emptystr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_append( val, longstr );
+	EXPECT_STREQ( val, "shortlong long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_append( val, shortstr );
+	EXPECT_STREQ( val, "long long long long long long long long longshort" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_append( val, longstr );
+	EXPECT_STREQ( val, "long long long long long long long long longlong long long long long long long long long" );
+	string_deallocate( val );
+
+	return 0;
+}
+
+
+DECLARE_TEST( string, prepend )
+{
+	const char* nullstr = 0;
+	const char* emptystr = "";
+	const char* shortstr = "short";
+	const char* longstr = "long long long long long long long long long";
+	char* val;
+
+	val = 0;
+	val = string_prepend( val, nullstr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = 0;
+	val = string_prepend( val, emptystr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = string_clone( emptystr );
+	val = string_prepend( val, nullstr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = string_clone( emptystr );
+	val = string_prepend( val, emptystr );
+	EXPECT_STREQ( val, "" );
+	string_deallocate( val );
+
+	val = 0;
+	val = string_prepend( val, shortstr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_prepend( val, nullstr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( emptystr );
+	val = string_prepend( val, shortstr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_prepend( val, emptystr );
+	EXPECT_STREQ( val, "short" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_prepend( val, shortstr );
+	EXPECT_STREQ( val, "shortshort" );
+	string_deallocate( val );
+
+	val = 0;
+	val = string_prepend( val, longstr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_prepend( val, nullstr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( emptystr );
+	val = string_prepend( val, longstr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_prepend( val, emptystr );
+	EXPECT_STREQ( val, "long long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( shortstr );
+	val = string_prepend( val, longstr );
+	EXPECT_STREQ( val, "long long long long long long long long longshort" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_prepend( val, shortstr );
+	EXPECT_STREQ( val, "shortlong long long long long long long long long" );
+	string_deallocate( val );
+
+	val = string_clone( longstr );
+	val = string_prepend( val, longstr );
+	EXPECT_STREQ( val, "long long long long long long long long longlong long long long long long long long long" );
+	string_deallocate( val );
+
+	return 0;
+}
+
+
 DECLARE_TEST( string, utility )
 {
 	{
@@ -959,6 +1143,8 @@ void test_string_declare( void )
 	ADD_TEST( string, initialize );
 	ADD_TEST( string, queries );
 	ADD_TEST( string, utility );
+	ADD_TEST( string, append );
+	ADD_TEST( string, prepend );
 	ADD_TEST( string, format );
 }
 
