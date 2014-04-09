@@ -417,7 +417,7 @@ DECLARE_TEST( bitbuffer, stream )
 
 		// Phase 2 - read and verify data
 		stream = stream_open( tmp_path, STREAM_IN | STREAM_BINARY );
-		EXPECT_NE( stream, 0 );
+		EXPECT_NE_MSG( stream, 0, tmp_path );
 		bitbuffer_initialize_stream( &bitbuffer, stream );
 
 		for( ival = 0; ival < 16; ++ival )
