@@ -335,7 +335,7 @@ char* string_prepend( char* str, const char* prefix )
 	if( !prefixlen )
 		return str;
 
-	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate_context( HASH_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
+	str = str ? memory_reallocate( str, totallen + 1, 0, slen + 1 ) : memory_allocate_context( HASH_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
 	if( slen )
 		memmove( str + prefixlen, str, slen + 1 ); //Include terminating zero
 	memcpy( str, prefix, prefixlen );
