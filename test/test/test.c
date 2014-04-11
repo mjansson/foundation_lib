@@ -215,6 +215,9 @@ void test_wait_for_threads_startup( const object_t* threads, unsigned int num_th
 	while( waiting )
 	{
 		waiting = false;
+
+		atomic_thread_fence_acquire();
+
 		for( i = 0; i < num_threads; ++i )
 		{
 			if( !thread_is_started( threads[i] ) )
@@ -235,6 +238,9 @@ void test_wait_for_threads_finish( const object_t* threads, unsigned int num_thr
 	while( waiting )
 	{
 		waiting = false;
+
+		atomic_thread_fence_acquire();
+
 		for( i = 0; i < num_threads; ++i )
 		{
 			if( thread_is_running( threads[i] ) )
@@ -254,6 +260,9 @@ void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threa
 	do
 	{
 		keep_waiting = false;
+
+		atomic_thread_fence_acquire();
+
 		for( i = 0; i < num_threads; ++i )
 		{
 			if( thread_is_thread( threads[i] ) )
