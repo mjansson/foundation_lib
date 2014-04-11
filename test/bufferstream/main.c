@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_bufferstream_application( void )
+static application_t test_bufferstream_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation bufferstream tests";
@@ -25,19 +25,19 @@ application_t test_bufferstream_application( void )
 }
 
 
-memory_system_t test_bufferstream_memory_system( void )
+static memory_system_t test_bufferstream_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_bufferstream_initialize( void )
+static int test_bufferstream_initialize( void )
 {
 	return 0;
 }
 
 
-void test_bufferstream_shutdown( void )
+static void test_bufferstream_shutdown( void )
 {
 }
 
@@ -519,7 +519,7 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 }
 
 
-void test_bufferstream_declare( void )
+static void test_bufferstream_declare( void )
 {
 	ADD_TEST( bufferstream, null );
 	ADD_TEST( bufferstream, zero );
@@ -540,8 +540,9 @@ test_suite_t test_bufferstream_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_bufferstream_run( void );
 int test_bufferstream_run( void )
 {
 	test_suite = test_bufferstream_suite;

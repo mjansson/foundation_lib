@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_objectmap_application( void )
+static application_t test_objectmap_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation objectmap tests";
@@ -25,19 +25,19 @@ application_t test_objectmap_application( void )
 }
 
 
-memory_system_t test_objectmap_memory_system( void )
+static memory_system_t test_objectmap_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_objectmap_initialize( void )
+static int test_objectmap_initialize( void )
 {
 	return 0;
 }
 
 
-void test_objectmap_shutdown( void )
+static void test_objectmap_shutdown( void )
 {
 }
 
@@ -116,7 +116,7 @@ DECLARE_TEST( objectmap, store )
 }
 
 
-void* objectmap_thread( object_t thread, void* arg )
+static void* objectmap_thread( object_t thread, void* arg )
 {
 	objectmap_t* map;
 	object_base_t* objects;
@@ -188,7 +188,7 @@ DECLARE_TEST( objectmap, thread )
 }
 
 
-void test_objectmap_declare( void )
+static void test_objectmap_declare( void )
 {
 	ADD_TEST( objectmap, initialize );
 	ADD_TEST( objectmap, store );
@@ -205,8 +205,9 @@ test_suite_t test_objectmap_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_objectmap_run( void );
 int test_objectmap_run( void )
 {
 	test_suite = test_objectmap_suite;

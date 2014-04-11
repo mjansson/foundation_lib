@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_math_application( void )
+static application_t test_math_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation math tests";
@@ -25,19 +25,19 @@ application_t test_math_application( void )
 }
 
 
-memory_system_t test_math_memory_system( void )
+static memory_system_t test_math_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_math_initialize( void )
+static int test_math_initialize( void )
 {
 	return 0;
 }
 
 
-void test_math_shutdown( void )
+static void test_math_shutdown( void )
 {
 }
 
@@ -394,7 +394,7 @@ DECLARE_TEST( math, wrap )
 }
 
 
-void test_math_declare( void )
+static void test_math_declare( void )
 {
 	ADD_TEST( math, constants );
 	ADD_TEST( math, trigonometry );
@@ -415,8 +415,9 @@ test_suite_t test_math_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_math_run( void );
 int test_math_run( void )
 {
 	test_suite = test_math_suite;

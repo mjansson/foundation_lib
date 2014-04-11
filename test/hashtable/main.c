@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_hashtable_application( void )
+static application_t test_hashtable_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation hashtable tests";
@@ -25,19 +25,19 @@ application_t test_hashtable_application( void )
 }
 
 
-memory_system_t test_hashtable_memory_system( void )
+static memory_system_t test_hashtable_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_hashtable_initialize( void )
+static int test_hashtable_initialize( void )
 {
 	return 0;
 }
 
 
-void test_hashtable_shutdown( void )
+static void test_hashtable_shutdown( void )
 {
 }
 
@@ -58,7 +58,7 @@ typedef struct
 } producer64_arg_t;
 
 
-void* producer32_thread( object_t thread, void* arg )
+static void* producer32_thread( object_t thread, void* arg )
 {
 	producer32_arg_t* parg = arg;
 	hashtable32_t* table = parg->table;
@@ -82,7 +82,7 @@ void* producer32_thread( object_t thread, void* arg )
 }
 
 
-void* producer64_thread( object_t thread, void* arg )
+static void* producer64_thread( object_t thread, void* arg )
 {
 	producer64_arg_t* parg = arg;
 	hashtable64_t* table = parg->table;
@@ -145,12 +145,14 @@ DECLARE_TEST( hashtable, 32bit_threaded )
 	object_t thread[32];
 	producer32_arg_t args[32] = {0};
 	int i, j;
+	int num_threads = 32;
 
 	hashtable32_t* table = hashtable32_allocate( 32 * 16789 + 65536 );
 
 	EXPECT_EQ( hashtable32_size( table ), 0 );
 
-	for( i = 0; i < 32; ++i )
+	num_threads = math_clamp( system_hardware_threads() * 2, 4, 32 );
+	for( i = 0; i < num_threads; ++i )
 	{
 		args[i].table = table;
 		args[i].key_offset = 1 + ( i * 16789 );
@@ -160,17 +162,17 @@ DECLARE_TEST( hashtable, 32bit_threaded )
 		thread_start( thread[i], args + i );
 	}
 
-	test_wait_for_threads_startup( thread, 32 );
+	test_wait_for_threads_startup( thread, num_threads );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
 	}
 	
-	test_wait_for_threads_exit( thread, 32 );
+	test_wait_for_threads_exit( thread, num_threads );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		for( j = 1; j < 65535; ++j )
 		{
@@ -224,12 +226,14 @@ DECLARE_TEST( hashtable, 64bit_threaded )
 	object_t thread[32];
 	producer64_arg_t args[32] = {0};
 	int i, j;
+	int num_threads = 0;
 
 	hashtable64_t* table = hashtable64_allocate( 32 * 16789 + 65536 );
 
 	EXPECT_EQ( hashtable64_size( table ), 0 );
-
-	for( i = 0; i < 32; ++i )
+	
+	num_threads = math_clamp( system_hardware_threads() * 2, 4, 32 );
+	for( i = 0; i < num_threads; ++i )
 	{
 		args[i].table = table;
 		args[i].key_offset = 1 + ( i * 16789 );
@@ -239,17 +243,17 @@ DECLARE_TEST( hashtable, 64bit_threaded )
 		thread_start( thread[i], args + i );
 	}
 
-	test_wait_for_threads_startup( thread, 32 );
+	test_wait_for_threads_startup( thread, num_threads );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
 	}
 	
-	test_wait_for_threads_exit( thread, 32 );
+	test_wait_for_threads_exit( thread, num_threads );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		for( j = 1; j < 65535; ++j )
 		{
@@ -264,7 +268,7 @@ DECLARE_TEST( hashtable, 64bit_threaded )
 }
 
 
-void test_hashtable_declare( void )
+static void test_hashtable_declare( void )
 {
 	ADD_TEST( hashtable, 32bit_basic );
 	ADD_TEST( hashtable, 32bit_threaded );
@@ -282,8 +286,9 @@ test_suite_t test_hashtable_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_hashtable_run( void );
 int test_hashtable_run( void )
 {
 	test_suite = test_hashtable_suite;

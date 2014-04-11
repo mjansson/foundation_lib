@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_semaphore_application( void )
+static application_t test_semaphore_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation semaphore tests";
@@ -25,19 +25,19 @@ application_t test_semaphore_application( void )
 }
 
 
-memory_system_t test_semaphore_memory_system( void )
+static memory_system_t test_semaphore_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_semaphore_initialize( void )
+static int test_semaphore_initialize( void )
 {
 	return 0;
 }
 
 
-void test_semaphore_shutdown( void )
+static void test_semaphore_shutdown( void )
 {
 }
 
@@ -106,7 +106,7 @@ typedef struct
 	int           counter;
 } semaphore_test_t;
 
-void* semaphore_waiter( object_t thread, void* arg )
+static void* semaphore_waiter( object_t thread, void* arg )
 {
 	semaphore_test_t* sem = arg;
 	int loop;
@@ -174,7 +174,7 @@ DECLARE_TEST( semaphore, threaded )
 }
 
 
-void test_semaphore_declare( void )
+static void test_semaphore_declare( void )
 {
 	ADD_TEST( semaphore, initialize );
 	ADD_TEST( semaphore, postwait );
@@ -191,8 +191,9 @@ test_suite_t test_semaphore_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_semaphore_run( void );
 int test_semaphore_run( void )
 {
 	test_suite = test_semaphore_suite;

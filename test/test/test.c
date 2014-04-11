@@ -18,7 +18,7 @@
 
 test_suite_t test_suite = {0};
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 FOUNDATION_EXTERN test_suite_t test_suite_define( void );
 #endif
 
@@ -108,7 +108,7 @@ void test_run( void )
 
 	_test_failed = false;
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	thread_event = thread_create( test_event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread_event, 0 );
 
@@ -180,7 +180,7 @@ int test_run_all( void )
 }
 
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 
 int main_initialize( void )
 {

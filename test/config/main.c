@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_config_application( void )
+static application_t test_config_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation config tests";
@@ -25,19 +25,19 @@ application_t test_config_application( void )
 }
 
 
-memory_system_t test_config_memory_system( void )
+static memory_system_t test_config_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_config_initialize( void )
+static int test_config_initialize( void )
 {
 	return 0;
 }
 
 
-void test_config_shutdown( void )
+static void test_config_shutdown( void )
 {
 }
 
@@ -770,7 +770,7 @@ DECLARE_TEST( config, variables )
 }
 
 
-void test_config_declare( void )
+static void test_config_declare( void )
 {
 	ADD_TEST( config, builtin );
 	ADD_TEST( config, getset );
@@ -787,8 +787,9 @@ test_suite_t test_config_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_config_run( void );
 int test_config_run( void )
 {
 	test_suite = test_config_suite;

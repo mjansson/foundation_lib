@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_uuid_application( void )
+static application_t test_uuid_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation uuid tests";
@@ -25,19 +25,19 @@ application_t test_uuid_application( void )
 }
 
 
-memory_system_t test_uuid_memory_system( void )
+static memory_system_t test_uuid_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_uuid_initialize( void )
+static int test_uuid_initialize( void )
 {
 	return 0;
 }
 
 
-void test_uuid_shutdown( void )
+static void test_uuid_shutdown( void )
 {
 }
 
@@ -192,7 +192,7 @@ DECLARE_TEST( uuid, generate )
 
 static uuid_t uuid_thread_store[32][8192];
 
-void* uuid_thread_time( object_t thread, void* arg )
+static void* uuid_thread_time( object_t thread, void* arg )
 {
 	int i;
 	int ithread = (int)(uintptr_t)arg;
@@ -248,7 +248,7 @@ DECLARE_TEST( uuid, threaded )
 }
 
 
-void test_uuid_declare( void )
+static void test_uuid_declare( void )
 {
 	ADD_TEST( uuid, generate );
 	ADD_TEST( uuid, threaded );
@@ -264,8 +264,9 @@ test_suite_t test_uuid_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_uuid_run( void );
 int test_uuid_run( void )
 {
 	test_suite = test_uuid_suite;

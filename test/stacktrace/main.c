@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_stacktrace_application( void )
+static application_t test_stacktrace_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation stacktrace tests";
@@ -25,19 +25,19 @@ application_t test_stacktrace_application( void )
 }
 
 
-memory_system_t test_stacktrace_memory_system( void )
+static memory_system_t test_stacktrace_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_stacktrace_initialize( void )
+static int test_stacktrace_initialize( void )
 {
 	return 0;
 }
 
 
-void test_stacktrace_shutdown( void )
+static void test_stacktrace_shutdown( void )
 {
 }
 
@@ -80,7 +80,7 @@ DECLARE_TEST( stacktrace, resolve )
 }
 
 
-void test_stacktrace_declare( void )
+static void test_stacktrace_declare( void )
 {
 	ADD_TEST( stacktrace, capture );
 	ADD_TEST( stacktrace, resolve );
@@ -96,8 +96,9 @@ test_suite_t test_stacktrace_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_stacktrace_run( void );
 int test_stacktrace_run( void )
 {
 	test_suite = test_stacktrace_suite;

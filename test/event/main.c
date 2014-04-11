@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_event_application( void )
+static application_t test_event_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation event tests";
@@ -25,19 +25,19 @@ application_t test_event_application( void )
 }
 
 
-memory_system_t test_event_memory_system( void )
+static memory_system_t test_event_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_event_initialize( void )
+static int test_event_initialize( void )
 {
 	return 0;
 }
 
 
-void test_event_shutdown( void )
+static void test_event_shutdown( void )
 {
 }
 
@@ -186,7 +186,7 @@ typedef struct ALIGN(16) _producer_thread_arg
 } producer_thread_arg_t;
 
 
-void* producer_thread( object_t thread, void* arg )
+static void* producer_thread( object_t thread, void* arg )
 {
 	uint8_t buffer[256] = {0};
 	producer_thread_arg_t args = *(producer_thread_arg_t*)arg;
@@ -535,7 +535,7 @@ DECLARE_TEST( event, delay_threaded )
 }
 
 
-void test_event_declare( void )
+static void test_event_declare( void )
 {
 	ADD_TEST( event, empty );
 	ADD_TEST( event, immediate );
@@ -554,8 +554,9 @@ test_suite_t test_event_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_event_run( void );
 int test_event_run( void )
 {
 	test_suite = test_event_suite;

@@ -67,7 +67,9 @@
 #include <foundation/stacktrace.h>
 
 #include <foundation/blowfish.h>
- 
+
+#include <foundation/main.h>
+
 
 /*! Main entry point. Call this in your main_initialize function to bootstrap the foundation library
     and initialize all functionality.

@@ -140,3 +140,7 @@ FOUNDATION_API void foundation_startup( void );
 
 FOUNDATION_API uint32_t      hashtable32_raw( hashtable32_t* table, uint32_t key );
 FOUNDATION_API uint64_t      hashtable64_raw( hashtable64_t* table, uint64_t key );
+
+#if BUILD_ENABLE_ERROR_CONTEXT
+FOUNDATION_API void          _error_context_clear( void );
+#endif

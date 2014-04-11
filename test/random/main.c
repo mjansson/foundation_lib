@@ -22,7 +22,7 @@ static unsigned int _test_slice32 = 0x8000000U;//( 1U << 32U ) / 32U;
 static uint64_t     _test_slice64 = 0x400000000000000ULL;//( 1ULL << 64ULL ) / 64ULL;
 
 
-application_t test_random_application( void )
+static application_t test_random_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation random tests";
@@ -33,19 +33,19 @@ application_t test_random_application( void )
 }
 
 
-memory_system_t test_random_memory_system( void )
+static memory_system_t test_random_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_random_initialize( void )
+static int test_random_initialize( void )
 {
 	return 0;
 }
 
 
-void test_random_shutdown( void )
+static void test_random_shutdown( void )
 {
 }
 
@@ -275,7 +275,7 @@ DECLARE_TEST( random, distribution_real )
 }
 
 
-void* random_thread( object_t thread, void* arg )
+static void* random_thread( object_t thread, void* arg )
 {
 	int num_passes = 512000 * 8;
 	int i, j;
@@ -364,7 +364,7 @@ DECLARE_TEST( random, threads )
 }
 
 
-void test_random_declare( void )
+static void test_random_declare( void )
 {
 	ADD_TEST( random, distribution32 );
 	ADD_TEST( random, distribution64 );
@@ -382,8 +382,9 @@ test_suite_t test_random_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_random_run( void );
 int test_random_run( void )
 {
 	test_suite = test_random_suite;

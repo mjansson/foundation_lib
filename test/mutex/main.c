@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_mutex_application( void )
+static application_t test_mutex_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation mutex tests";
@@ -25,19 +25,19 @@ application_t test_mutex_application( void )
 }
 
 
-memory_system_t test_mutex_memory_system( void )
+static memory_system_t test_mutex_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_mutex_initialize( void )
+static int test_mutex_initialize( void )
 {
 	return 0;
 }
 
 
-void test_mutex_shutdown( void )
+static void test_mutex_shutdown( void )
 {
 }
 
@@ -90,7 +90,7 @@ DECLARE_TEST( mutex, basic )
 
 unsigned int thread_counter = 0;
 
-void* mutex_thread( object_t thread, void* arg )
+static void* mutex_thread( object_t thread, void* arg )
 {
 	mutex_t* mutex = arg;
 	int i;
@@ -148,7 +148,7 @@ atomic32_t thread_waiting = {0};
 atomic32_t thread_waited = {0};
 
 
-void* thread_wait( object_t thread, void* arg )
+static void* thread_wait( object_t thread, void* arg )
 {
 	mutex_t* mutex = arg;
 
@@ -211,7 +211,7 @@ DECLARE_TEST( mutex, signal )
 }
 
 
-void test_mutex_declare( void )
+static void test_mutex_declare( void )
 {
 	ADD_TEST( mutex, basic );
 	ADD_TEST( mutex, sync );
@@ -228,8 +228,9 @@ test_suite_t test_mutex_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_mutex_run( void );
 int test_mutex_run( void )
 {
 	test_suite = test_mutex_suite;

@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_string_application( void )
+static application_t test_string_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation string tests";
@@ -25,19 +25,19 @@ application_t test_string_application( void )
 }
 
 
-memory_system_t test_string_memory_system( void )
+static memory_system_t test_string_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_string_initialize( void )
+static int test_string_initialize( void )
 {
 	return 0;
 }
 
 
-void test_string_shutdown( void )
+static void test_string_shutdown( void )
 {
 }
 
@@ -1138,7 +1138,7 @@ DECLARE_TEST( string, format )
 }
 
 
-void test_string_declare( void )
+static void test_string_declare( void )
 {
 	ADD_TEST( string, initialize );
 	ADD_TEST( string, queries );
@@ -1158,8 +1158,9 @@ test_suite_t test_string_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_string_run( void );
 int test_string_run( void )
 {
 	test_suite = test_string_suite;

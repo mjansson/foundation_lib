@@ -15,16 +15,18 @@
 	</array>
 	<key>CFBundleIcons</key>
 	<dict>
-		<key>CFBundlePrimaryIcon</key>
+		<key>UINewsstandIcon</key>
 		<dict>
 			<key>CFBundleIconFiles</key>
-			<array>
-				<string>n2_57.png</string>
-				<string>n2_72.png</string>
-			</array>
-			<key>UIPrerenderedIcon</key>
-			<false/>
+			<array/>
+			<key>UINewsstandBindingEdge</key>
+			<string>UINewsstandBindingEdgeLeft</string>
+			<key>UINewsstandBindingType</key>
+			<string>UINewsstandBindingTypeMagazine</string>
 		</dict>
+	</dict>
+	<key>CFBundleIcons~ipad</key>
+	<dict>
 		<key>UINewsstandIcon</key>
 		<dict>
 			<key>CFBundleIconFiles</key>
@@ -58,6 +60,9 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_ringbuffer_application( void )
+static application_t test_ringbuffer_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation ringbuffer tests";
@@ -25,19 +25,19 @@ application_t test_ringbuffer_application( void )
 }
 
 
-memory_system_t test_ringbuffer_memory_system( void )
+static memory_system_t test_ringbuffer_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_ringbuffer_initialize( void )
+static int test_ringbuffer_initialize( void )
 {
 	return 0;
 }
 
 
-void test_ringbuffer_shutdown( void )
+static void test_ringbuffer_shutdown( void )
 {
 }
 
@@ -281,7 +281,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 }
 
 
-void test_ringbuffer_declare( void )
+static void test_ringbuffer_declare( void )
 {
 	ADD_TEST( ringbuffer, allocate );
 	ADD_TEST( ringbuffer, io );
@@ -299,8 +299,9 @@ test_suite_t test_ringbuffer_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_ringbuffer_run( void );
 int test_ringbuffer_run( void )
 {
 	test_suite = test_ringbuffer_suite;

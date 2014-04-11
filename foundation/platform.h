@@ -581,6 +581,12 @@
 #      undef  FOUNDATION_ARCH_X86
 #      define FOUNDATION_ARCH_X86 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "iOS x86 (simulator)"
+#    elif defined( __x86_64__ ) || FOUNDATION_ARCH_X86_64
+#      undef  FOUNDATION_PLATFORM_IOS_SIMULATOR
+#      define FOUNDATION_PLATFORM_IOS_SIMULATOR 1
+#      undef  FOUNDATION_ARCH_X86_64
+#      define FOUNDATION_ARCH_X86_64 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "iOS x86_64 (simulator)"
 #    else
 #      error Unknown architecture
 #    endif

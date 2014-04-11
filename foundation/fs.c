@@ -721,7 +721,7 @@ static fs_watch_t* _lookup_watch( fs_watch_t* watch_arr, int fd )
 }
 
 
-#elif FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_MACOSX
 
 
 extern void* _fs_event_stream_create( const char* path );
@@ -801,7 +801,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	//Recurse and add all subdirs
 	_add_notify_subdir( notify_fd, monitor_path, &watch, &paths );
 
-#elif FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_MACOSX
 
 	memory_context_push( HASH_STREAM );
 	
@@ -995,7 +995,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				mutex_unlock( monitor->signal );
 		}
 		
-#elif FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_MACOSX
 		
 		if( event_stream )
 			_fs_event_stream_flush( event_stream );
@@ -1033,7 +1033,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	string_array_deallocate( paths );
 	array_deallocate( watch );
 	
-#elif FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_MACOSX
 	
 	_fs_event_stream_destroy( event_stream );
 	

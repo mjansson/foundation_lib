@@ -157,7 +157,7 @@ static UIApplication*          _delegate_app = 0;
 static FoundationAppDelegate*  _delegate     = 0;
 
 
-void* _delegate_uiwindow( void )
+void* delegate_uiwindow( void )
 {
 	return _delegate ? [_delegate window] : 0;
 }

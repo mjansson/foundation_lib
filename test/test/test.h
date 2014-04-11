@@ -41,7 +41,7 @@ TEST_API int  test_run_all( void );
 
 #define _MAKE_TEST_FN( test_group, test_name ) FOUNDATION_PREPROCESSOR_JOIN( FOUNDATION_PREPROCESSOR_JOIN( test_group, test_name ), _fn )
 
-#define DECLARE_TEST( test_group, test_name ) void* _MAKE_TEST_FN( test_group, test_name )( void )
+#define DECLARE_TEST( test_group, test_name ) static void* _MAKE_TEST_FN( test_group, test_name )( void )
 #define ADD_TEST( test_group, test_name ) test_add_test( _MAKE_TEST_FN( test_group, test_name ), FOUNDATION_PREPROCESSOR_TOSTRING( test_group ), FOUNDATION_PREPROCESSOR_TOSTRING( test_name ) )
 
 #define EXPECT_EQ( var, expect ) do { if( !((var) == (expect)) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s != %s (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); return FAILED_TEST; } } while(0)

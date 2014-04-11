@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_error_application( void )
+static application_t test_error_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation error tests";
@@ -25,19 +25,19 @@ application_t test_error_application( void )
 }
 
 
-memory_system_t test_error_memory_system( void )
+static memory_system_t test_error_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_error_initialize( void )
+static int test_error_initialize( void )
 {
 	return 0;
 }
 
 
-void test_error_shutdown( void )
+static void test_error_shutdown( void )
 {
 }
 
@@ -122,7 +122,7 @@ DECLARE_TEST( error, context )
 }
 
 
-void* error_test_thread( void )
+static void* error_test_thread( void )
 {
 	error_context_t* context = 0;
 
@@ -196,7 +196,7 @@ void* error_test_thread( void )
 }
 
 
-void* error_thread( object_t thread, void* arg )
+static void* error_thread( object_t thread, void* arg )
 {
 	int ipass = 0;
 
@@ -241,7 +241,7 @@ DECLARE_TEST( error, thread )
 }
 
 
-void test_error_declare( void )
+static void test_error_declare( void )
 {
 	ADD_TEST( error, error );
 	ADD_TEST( error, context );
@@ -258,8 +258,9 @@ test_suite_t test_error_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_error_run( void );
 int test_error_run( void )
 {
 	test_suite = test_error_suite;

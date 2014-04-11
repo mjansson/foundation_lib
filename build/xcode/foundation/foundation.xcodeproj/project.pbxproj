@@ -3142,7 +3142,7 @@
 		CDCEF43116D2D11500198086 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = "Rampant Pixels";
 			};
 			buildConfigurationList = CDCEF43416D2D11500198086 /* Build configuration list for PBXProject "foundation" */;
@@ -4201,6 +4201,434 @@
 			};
 			name = Deploy;
 		};
+		CD6603DF18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/profile;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_FAST_MATH = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"BUILD_PROFILE=1",
+					"$(inherited)",
+				);
+				GCC_STRICT_ALIASING = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_UNROLL_LOOPS = YES;
+				GCC_VERSION = "";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../../..;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/profile;
+				LLVM_LTO = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				SDKROOT = macosx;
+				USE_HEADERMAP = NO;
+			};
+			name = Profile;
+		};
+		CD6603E018F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = foundation;
+			};
+			name = Profile;
+		};
+		CD6603E118F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACH_O_TYPE = mh_execute;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E218F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E318F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E418F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
+				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E518F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E618F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E718F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E818F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603E918F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603EA18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603EB18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603EC18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603ED18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603EE18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603EF18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F018F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F118F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F218F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F318F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F418F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F518F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F618F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F718F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F818F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603F918F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603FA18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603FB18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603FC18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603FD18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603FE18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD6603FF18F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD66040018F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD66040118F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD66040218F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD66040318F7A007001BDED3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../test,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
 		CD7F383B16E21CB1000346C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4703,7 +5131,7 @@
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
@@ -4746,7 +5174,7 @@
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
@@ -4778,7 +5206,6 @@
 		CDCEF43E16D2D11500198086 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/debug;
 				EXECUTABLE_PREFIX = lib;
 				ONLY_ACTIVE_ARCH = NO;
@@ -4789,7 +5216,6 @@
 		CDCEF43F16D2D11500198086 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/release;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = foundation;
@@ -4809,7 +5235,7 @@
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
@@ -4841,7 +5267,6 @@
 		CDCEF4DA16D2D44B00198086 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = foundation;
@@ -5292,6 +5717,7 @@
 				CD1C2FE416F270F900D36B24 /* Debug */,
 				CD1C2FE516F270F900D36B24 /* Release */,
 				CD1C2FE616F270F900D36B24 /* Deploy */,
+				CD6603E218F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5302,6 +5728,7 @@
 				CD1C2FFB16F2725200D36B24 /* Debug */,
 				CD1C2FFC16F2725200D36B24 /* Release */,
 				CD1C2FFD16F2725200D36B24 /* Deploy */,
+				CD6603E318F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5312,6 +5739,7 @@
 				CD20C66316FDC931007C42E3 /* Debug */,
 				CD20C66416FDC931007C42E3 /* Release */,
 				CD20C66516FDC931007C42E3 /* Deploy */,
+				CD6603F718F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5322,6 +5750,7 @@
 				CD20C67F16FDC9D6007C42E3 /* Debug */,
 				CD20C68016FDC9D6007C42E3 /* Release */,
 				CD20C68116FDC9D6007C42E3 /* Deploy */,
+				CD6603F818F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5332,6 +5761,7 @@
 				CD20C69B16FDCADF007C42E3 /* Debug */,
 				CD20C69C16FDCADF007C42E3 /* Release */,
 				CD20C69D16FDCADF007C42E3 /* Deploy */,
+				CD6603F918F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5342,6 +5772,7 @@
 				CD20C6B716FDCBA7007C42E3 /* Debug */,
 				CD20C6B816FDCBA7007C42E3 /* Release */,
 				CD20C6B916FDCBA7007C42E3 /* Deploy */,
+				CD6603FA18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5352,6 +5783,7 @@
 				CD20C6D316FDCC78007C42E3 /* Debug */,
 				CD20C6D416FDCC78007C42E3 /* Release */,
 				CD20C6D516FDCC78007C42E3 /* Deploy */,
+				CD6603FD18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5362,6 +5794,7 @@
 				CD7F383B16E21CB1000346C0 /* Debug */,
 				CD7F383C16E21CB1000346C0 /* Release */,
 				CD7F383D16E21CB1000346C0 /* Deploy */,
+				CD6603E118F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5372,6 +5805,7 @@
 				CD86DAD417DA606200FDE6B2 /* Debug */,
 				CD86DAD517DA606200FDE6B2 /* Release */,
 				CD86DAD617DA606200FDE6B2 /* Deploy */,
+				CD6603F318F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5382,6 +5816,7 @@
 				CD86DAF317DA622100FDE6B2 /* Debug */,
 				CD86DAF417DA622100FDE6B2 /* Release */,
 				CD86DAF517DA622100FDE6B2 /* Deploy */,
+				CD6603F418F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5392,6 +5827,7 @@
 				CD86DB0E17DA65A100FDE6B2 /* Debug */,
 				CD86DB0F17DA65A100FDE6B2 /* Release */,
 				CD86DB1017DA65A100FDE6B2 /* Deploy */,
+				CD66040018F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5402,6 +5838,7 @@
 				CD86DB2917DA679900FDE6B2 /* Debug */,
 				CD86DB2A17DA679900FDE6B2 /* Release */,
 				CD86DB2B17DA679900FDE6B2 /* Deploy */,
+				CD66040118F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5412,6 +5849,7 @@
 				CD86DB4517DA68DD00FDE6B2 /* Debug */,
 				CD86DB4617DA68DD00FDE6B2 /* Release */,
 				CD86DB4717DA68DD00FDE6B2 /* Deploy */,
+				CD66040318F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5422,6 +5860,7 @@
 				CD92187C16FDCD3F0013C8CD /* Debug */,
 				CD92187D16FDCD3F0013C8CD /* Release */,
 				CD92187E16FDCD3F0013C8CD /* Deploy */,
+				CD6603FE18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5432,6 +5871,7 @@
 				CD92189816FDCE060013C8CD /* Debug */,
 				CD92189916FDCE060013C8CD /* Release */,
 				CD92189A16FDCE060013C8CD /* Deploy */,
+				CD6603FF18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5442,6 +5882,7 @@
 				CD9218B416FDCEDD0013C8CD /* Debug */,
 				CD9218B516FDCEDD0013C8CD /* Release */,
 				CD9218B616FDCEDD0013C8CD /* Deploy */,
+				CD66040218F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5452,6 +5893,7 @@
 				CD9493E516FDC35800D8687F /* Debug */,
 				CD9493E616FDC35800D8687F /* Release */,
 				CD9493E716FDC35800D8687F /* Deploy */,
+				CD6603EE18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5462,6 +5904,7 @@
 				CD94940116FDC4AE00D8687F /* Debug */,
 				CD94940216FDC4AE00D8687F /* Release */,
 				CD94940316FDC4AE00D8687F /* Deploy */,
+				CD6603EF18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5472,6 +5915,7 @@
 				CD94941D16FDC55300D8687F /* Debug */,
 				CD94941E16FDC55300D8687F /* Release */,
 				CD94941F16FDC55300D8687F /* Deploy */,
+				CD6603F018F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5482,6 +5926,7 @@
 				CD94943916FDC5FD00D8687F /* Debug */,
 				CD94943A16FDC5FD00D8687F /* Release */,
 				CD94943B16FDC5FD00D8687F /* Deploy */,
+				CD6603F118F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5492,6 +5937,7 @@
 				CD94945516FDC69B00D8687F /* Debug */,
 				CD94945616FDC69B00D8687F /* Release */,
 				CD94945716FDC69B00D8687F /* Deploy */,
+				CD6603F218F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5502,6 +5948,7 @@
 				CD94947116FDC71F00D8687F /* Debug */,
 				CD94947216FDC71F00D8687F /* Release */,
 				CD94947316FDC71F00D8687F /* Deploy */,
+				CD6603F518F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5512,6 +5959,7 @@
 				CDCEF43B16D2D11500198086 /* Debug */,
 				CDCEF43C16D2D11500198086 /* Release */,
 				CDCEF4D916D2D44B00198086 /* Deploy */,
+				CD6603DF18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5522,6 +5970,7 @@
 				CDCEF43E16D2D11500198086 /* Debug */,
 				CDCEF43F16D2D11500198086 /* Release */,
 				CDCEF4DA16D2D44B00198086 /* Deploy */,
+				CD6603E018F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5532,6 +5981,7 @@
 				CDCF1E0C16FD8EF300626060 /* Debug */,
 				CDCF1E0D16FD8EF300626060 /* Release */,
 				CDCF1E0E16FD8EF300626060 /* Deploy */,
+				CD6603E418F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5542,6 +5992,7 @@
 				CDCF1E1F16FD8FED00626060 /* Debug */,
 				CDCF1E2016FD8FED00626060 /* Release */,
 				CDCF1E2116FD8FED00626060 /* Deploy */,
+				CD6603E518F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5552,6 +6003,7 @@
 				CDCF1E3B16FDA00D00626060 /* Debug */,
 				CDCF1E3C16FDA00D00626060 /* Release */,
 				CDCF1E3D16FDA00D00626060 /* Deploy */,
+				CD6603E618F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5562,6 +6014,7 @@
 				CDCF1E5616FDADEC00626060 /* Debug */,
 				CDCF1E5716FDADEC00626060 /* Release */,
 				CDCF1E5816FDADEC00626060 /* Deploy */,
+				CD6603E718F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5572,6 +6025,7 @@
 				CDCF1E7416FDBDAB00626060 /* Debug */,
 				CDCF1E7516FDBDAB00626060 /* Release */,
 				CDCF1E7616FDBDAB00626060 /* Deploy */,
+				CD6603E818F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5582,6 +6036,7 @@
 				CDCF1E8F16FDBEE600626060 /* Debug */,
 				CDCF1E9016FDBEE600626060 /* Release */,
 				CDCF1E9116FDBEE600626060 /* Deploy */,
+				CD6603E918F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5592,6 +6047,7 @@
 				CDCF1EAC16FDBF7900626060 /* Debug */,
 				CDCF1EAD16FDBF7900626060 /* Release */,
 				CDCF1EAE16FDBF7900626060 /* Deploy */,
+				CD6603EA18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5602,6 +6058,7 @@
 				CDCF1EC816FDC01800626060 /* Debug */,
 				CDCF1EC916FDC01800626060 /* Release */,
 				CDCF1ECA16FDC01800626060 /* Deploy */,
+				CD6603EB18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5612,6 +6069,7 @@
 				CDCF1EE616FDC0BD00626060 /* Debug */,
 				CDCF1EE716FDC0BD00626060 /* Release */,
 				CDCF1EE816FDC0BD00626060 /* Deploy */,
+				CD6603EC18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5622,6 +6080,7 @@
 				CDCF1F0216FDC14500626060 /* Debug */,
 				CDCF1F0316FDC14500626060 /* Release */,
 				CDCF1F0416FDC14500626060 /* Deploy */,
+				CD6603ED18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
@@ -5632,8 +6091,10 @@
 				CDD61945186CAFAC003369E9 /* Debug */,
 				CDD61946186CAFAC003369E9 /* Release */,
 				CDD61947186CAFAC003369E9 /* Deploy */,
+				CD6603FB18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CDD61961186CB115003369E9 /* Build configuration list for PBXNativeTarget "test-profile" */ = {
 			isa = XCConfigurationList;
@@ -5641,8 +6102,10 @@
 				CDD61962186CB115003369E9 /* Debug */,
 				CDD61963186CB115003369E9 /* Release */,
 				CDD61964186CB115003369E9 /* Deploy */,
+				CD6603FC18F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		CDF561BE16FDC87F00D041C0 /* Build configuration list for PBXNativeTarget "test-math" */ = {
 			isa = XCConfigurationList;
@@ -5650,6 +6113,7 @@
 				CDF561BF16FDC87F00D041C0 /* Debug */,
 				CDF561C016FDC87F00D041C0 /* Release */,
 				CDF561C116FDC87F00D041C0 /* Deploy */,
+				CD6603F618F7A007001BDED3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;

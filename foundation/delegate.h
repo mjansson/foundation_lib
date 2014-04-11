@@ -63,4 +63,6 @@ FOUNDATION_API void delegate_start_main_ns_thread( int argc, char** argv );
 
 #endif
 
+FOUNDATION_API void* delegate_uiwindow( void );
+
 #endif

@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_array_application( void )
+static application_t test_array_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation array tests";
@@ -25,19 +25,19 @@ application_t test_array_application( void )
 }
 
 
-memory_system_t test_array_memory_system( void )
+static memory_system_t test_array_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_array_initialize( void )
+static int test_array_initialize( void )
 {
 	return 0;
 }
 
 
-void test_array_shutdown( void )
+static void test_array_shutdown( void )
 {
 }
 
@@ -1980,7 +1980,7 @@ DECLARE_TEST( array, resize )
 }
 
 
-void test_array_declare( void )
+static void test_array_declare( void )
 {
 	ADD_TEST( array, allocation );
 	ADD_TEST( array, copy );
@@ -1999,8 +1999,9 @@ test_suite_t test_array_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_array_run( void );
 int test_array_run( void )
 {
 	test_suite = test_array_suite;

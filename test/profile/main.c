@@ -24,14 +24,14 @@ static uint64_t             _test_profile_offset = 0;
 static atomic32_t           _test_profile_output_counter = {0};
 
 
-void test_profile_output( void* buffer, uint64_t size )
+static void test_profile_output( void* buffer, uint64_t size )
 {
 
 	atomic_incr32( &_test_profile_output_counter );
 }
 
 
-application_t test_profile_application( void )
+static application_t test_profile_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation profile tests";
@@ -42,13 +42,13 @@ application_t test_profile_application( void )
 }
 
 
-memory_system_t test_profile_memory_system( void )
+static memory_system_t test_profile_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_profile_initialize( void )
+static int test_profile_initialize( void )
 {
 	profile_set_output( test_profile_output );
 
@@ -58,7 +58,7 @@ int test_profile_initialize( void )
 }
 
 
-void test_profile_shutdown( void )
+static void test_profile_shutdown( void )
 {
 	memory_deallocate( _test_profile_buffer );
 }
@@ -359,7 +359,7 @@ DECLARE_TEST( profile, stream )
 }
 
 
-void test_profile_declare( void )
+static void test_profile_declare( void )
 {
 	ADD_TEST( profile, initialize );
 	ADD_TEST( profile, output );
@@ -377,8 +377,9 @@ test_suite_t test_profile_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_profile_run( void );
 int test_profile_run( void )
 {
 	test_suite = test_profile_suite;

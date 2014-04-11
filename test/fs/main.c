@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_fs_application( void )
+static application_t test_fs_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation filesystem tests";
@@ -25,19 +25,19 @@ application_t test_fs_application( void )
 }
 
 
-memory_system_t test_fs_memory_system( void )
+static memory_system_t test_fs_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_fs_initialize( void )
+static int test_fs_initialize( void )
 {
 	return 0;
 }
 
 
-void test_fs_shutdown( void )
+static void test_fs_shutdown( void )
 {
 }
 
@@ -412,14 +412,16 @@ DECLARE_TEST( fs, monitor )
 }
 
 
-void test_fs_declare( void )
+static void test_fs_declare( void )
 {
 	ADD_TEST( fs, directory );
 	ADD_TEST( fs, file );
 	ADD_TEST( fs, util );
 	ADD_TEST( fs, query );
 	ADD_TEST( fs, event );
+#if !FOUNDATION_PLATFORM_MACOSX && !FOUNDATION_PLATFORM_IOS
 	ADD_TEST( fs, monitor );
+#endif
 }
 
 
@@ -432,8 +434,9 @@ test_suite_t test_fs_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_fs_run( void );
 int test_fs_run( void )
 {
 	test_suite = test_fs_suite;

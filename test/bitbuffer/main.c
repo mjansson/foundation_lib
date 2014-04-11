@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_bitbuffer_application( void )
+static application_t test_bitbuffer_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation bitbuffer tests";
@@ -25,19 +25,19 @@ application_t test_bitbuffer_application( void )
 }
 
 
-memory_system_t test_bitbuffer_memory_system( void )
+static memory_system_t test_bitbuffer_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_bitbuffer_initialize( void )
+static int test_bitbuffer_initialize( void )
 {
 	return 0;
 }
 
 
-void test_bitbuffer_shutdown( void )
+static void test_bitbuffer_shutdown( void )
 {
 }
 
@@ -461,7 +461,7 @@ DECLARE_TEST( bitbuffer, stream )
 }
 
 
-void test_bitbuffer_declare( void )
+static void test_bitbuffer_declare( void )
 {
 	ADD_TEST( bitbuffer, basics );
 	ADD_TEST( bitbuffer, readwrite );
@@ -479,8 +479,9 @@ test_suite_t test_bitbuffer_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_bitbuffer_run( void );
 int test_bitbuffer_run( void )
 {
 	test_suite = test_bitbuffer_suite;

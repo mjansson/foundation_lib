@@ -188,7 +188,7 @@ static FORCEINLINE int64_t atomic_load64( atomic64_t* val )
 		mov dword ptr result[4], edx;
 	}
 #  else
-	asm volatile(
+	__asm volatile(
 		"movl %%ebx, %%eax\n"
 		"movl %%ecx, %%edx\n"
 		"lock; cmpxchg8b %1"
@@ -229,7 +229,7 @@ static FORCEINLINE void atomic_store64( atomic64_t* dst, int64_t val )
 	}
 #  else
 	uint64_t expected = dst->nonatomic;
-	asm volatile(
+	__asm volatile(
 		"1:    cmpxchg8b %0\n"
 		"      jne 1b"
 		: "=m"(dst->nonatomic)
@@ -289,7 +289,7 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t a
 #  endif
 #elif FOUNDATION_PLATFORM_IOS
 	int64_t ref;
-	do { ref = *val; } while( !OSAtomicCompareAndSwap64( ref, ref + add, &val->nonatomic ) );
+	do { ref = (int64_t)val->nonatomic; } while( !OSAtomicCompareAndSwap64( ref, ref + add, (int64_t*)&val->nonatomic ) );
 	return ref;
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_fetch_and_add( &val->nonatomic, add );
@@ -325,7 +325,7 @@ static FORCEINLINE bool atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref 
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return ( _InterlockedCompareExchange( (volatile long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_IOS
-	return OSAtomicCompareAndSwap32( ref, val, &dst->nonatomic );
+	return OSAtomicCompareAndSwap32( ref, val, (int32_t*)&dst->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( &dst->nonatomic, ref, val );
 #else 
@@ -339,7 +339,7 @@ static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref 
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return ( _InterlockedCompareExchange64( (volatile long long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_IOS
-	return OSAtomicCompareAndSwap64( ref, val, dst->nonatomic );
+	return OSAtomicCompareAndSwap64( ref, val, (int64_t*)&dst->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( &dst->nonatomic, ref, val );
 #else 

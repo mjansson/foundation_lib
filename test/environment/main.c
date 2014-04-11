@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_environment_application( void )
+static application_t test_environment_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation environment tests";
@@ -25,19 +25,19 @@ application_t test_environment_application( void )
 }
 
 
-memory_system_t test_environment_memory_system( void )
+static memory_system_t test_environment_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_environment_initialize( void )
+static int test_environment_initialize( void )
 {
 	return 0;
 }
 
 
-void test_environment_shutdown( void )
+static void test_environment_shutdown( void )
 {
 }
 
@@ -86,7 +86,7 @@ DECLARE_TEST( environment, workingdir )
 }
 
 
-void test_environment_declare( void )
+static void test_environment_declare( void )
 {
 	ADD_TEST( environment, builtin );
 	ADD_TEST( environment, workingdir );
@@ -102,8 +102,9 @@ test_suite_t test_environment_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_environment_run( void );
 int test_environment_run( void )
 {
 	test_suite = test_environment_suite;

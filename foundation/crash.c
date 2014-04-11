@@ -11,11 +11,8 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
-
-#if BUILD_ENABLE_ERROR_CONTEXT
-extern void _error_context_clear();
-#endif	
 
 static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;

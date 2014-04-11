@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 FOUNDATION_DECLARE_THREAD_LOCAL( error_t, error, 0 ) // 0 = ERROR_NONE

@@ -15,6 +15,8 @@
 #include <foundation/log.h>
 #include <foundation/fs.h>
 
+#if FOUNDATION_PLATFORM_MACOSX
+
 #include <foundation/apple.h>
 
 #include <dispatch/queue.h>
@@ -111,3 +113,6 @@ void _fs_event_stream_destroy( void* stream )
 		FSEventStreamRelease( stream );
 	}
 }
+
+#endif
+

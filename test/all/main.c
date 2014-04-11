@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 
-void* event_thread( object_t thread, void* arg )
+static void* event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
 	event_t* event = 0;
@@ -60,7 +60,10 @@ int main_initialize( void )
 
 #if FOUNDATION_PLATFORM_ANDROID
 #  include <foundation/android.h>
-extern int test_app_run( void );
+#endif
+
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+//extern int test_app_run( void );
 extern int test_array_run( void );
 extern int test_atomic_run( void );
 extern int test_base64_run( void );
@@ -96,18 +99,20 @@ typedef int (*test_run_fn)( void );
 
 int main_run( void* main_arg )
 {
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
 	const char* pattern = 0;
 	char** exe_paths = 0;
 	unsigned int iexe, exesize;
 	process_t* process = 0;
 	char* process_path = 0;
+#endif
 	int process_result = 0;
 	object_t thread = 0;
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	
 	int test_fn = 0;
 	test_run_fn tests[] = {
@@ -139,7 +144,10 @@ int main_run( void* main_arg )
 		test_random_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
-		//test_stacktrace_run, 
+#if !FOUNDATION_PLATFORM_ANDROID
+		//No proper stack tracing on android yet
+		test_stacktrace_run,
+#endif
 		test_string_run,
 		test_uuid_run,
 		0

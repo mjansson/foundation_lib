@@ -17,7 +17,7 @@
 static bool _crash_callback_called = false;
 
 
-application_t test_crash_application( void )
+static application_t test_crash_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation crash tests";
@@ -28,31 +28,31 @@ application_t test_crash_application( void )
 }
 
 
-memory_system_t test_crash_memory_system( void )
+static memory_system_t test_crash_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_crash_initialize( void )
+static int test_crash_initialize( void )
 {
 	return 0;
 }
 
 
-void test_crash_shutdown( void )
+static void test_crash_shutdown( void )
 {
 }
 
 
-void test_crash_callback( const char* dump_path )
+static void test_crash_callback( const char* dump_path )
 {
 	log_infof( HASH_TEST, "Crash callback called: %s", dump_path );
 	_crash_callback_called = true;
 }
 
 
-int instant_crash( void* arg )
+static int instant_crash( void* arg )
 {
 	log_info( HASH_TEST, "Causing illegal memory write" );
 	*(volatile int*)3 = 0;
@@ -60,7 +60,7 @@ int instant_crash( void* arg )
 }
 
 
-void* thread_crash( object_t thread, void* arg )
+static void* thread_crash( object_t thread, void* arg )
 {
 	return (void*)(uintptr_t)instant_crash( arg );
 }
@@ -101,7 +101,7 @@ DECLARE_TEST( crash, crash_thread )
 }
 
 
-void test_crash_declare( void )
+static void test_crash_declare( void )
 {
 	ADD_TEST( crash, crash_guard );
 	ADD_TEST( crash, crash_thread );
@@ -117,8 +117,9 @@ test_suite_t test_crash_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_crash_run( void );
 int test_crash_run( void )
 {
 	test_suite = test_crash_suite;

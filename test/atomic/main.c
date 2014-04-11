@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-application_t test_atomic_application( void )
+static application_t test_atomic_application( void )
 {
 	application_t app = {0};
 	app.name = "Foundation atomic tests";
@@ -25,19 +25,19 @@ application_t test_atomic_application( void )
 }
 
 
-memory_system_t test_atomic_memory_system( void )
+static memory_system_t test_atomic_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_atomic_initialize( void )
+static int test_atomic_initialize( void )
 {
 	return 0;
 }
 
 
-void test_atomic_shutdown( void )
+static void test_atomic_shutdown( void )
 {
 }
 
@@ -47,7 +47,7 @@ atomic64_t  val_64  = {0};
 atomicptr_t val_ptr = {0};
 
 
-void* inc_thread( object_t thread, void* arg )
+static void* inc_thread( object_t thread, void* arg )
 {
 	int loop = 0;
 	int icount = 0;
@@ -66,7 +66,7 @@ void* inc_thread( object_t thread, void* arg )
 }
 
 
-void* dec_thread( object_t thread, void* arg )
+static void* dec_thread( object_t thread, void* arg )
 {
 	int loop = 0;
 	int icount = 0;
@@ -85,7 +85,7 @@ void* dec_thread( object_t thread, void* arg )
 }
 
 
-void* add_thread( object_t thread, void* arg )
+static void* add_thread( object_t thread, void* arg )
 {
 	int loop = 0;
 	int32_t icount = 0;
@@ -116,7 +116,7 @@ typedef struct
 	void*   val_ptr;
 } cas_value_t;
 
-void* cas_thread( object_t thread, void* arg )
+static void* cas_thread( object_t thread, void* arg )
 {
 	int loop = 0;
 	cas_value_t val = *(cas_value_t*)arg;
@@ -147,7 +147,7 @@ void* cas_thread( object_t thread, void* arg )
 
 DECLARE_TEST( atomic, incdec )
 {
-	int num_threads = 32;
+	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	int ithread;
 	object_t threads[32];
 	
@@ -172,7 +172,7 @@ DECLARE_TEST( atomic, incdec )
 
 DECLARE_TEST( atomic, add )
 {
-	int num_threads = 32;
+	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	int ithread;
 	object_t threads[32];
 	
@@ -197,7 +197,7 @@ DECLARE_TEST( atomic, add )
 
 DECLARE_TEST( atomic, cas )
 {
-	int num_threads = 32;
+	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	int ithread;
 	object_t threads[32];
 	cas_value_t cas_values[32];
@@ -227,7 +227,7 @@ DECLARE_TEST( atomic, cas )
 }
 
 
-void test_atomic_declare( void )
+static void test_atomic_declare( void )
 {
 	ADD_TEST( atomic, incdec );
 	ADD_TEST( atomic, add );
@@ -244,8 +244,9 @@ test_suite_t test_atomic_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
 
+int test_atomic_run( void );
 int test_atomic_run( void )
 {
 	test_suite = test_atomic_suite;
