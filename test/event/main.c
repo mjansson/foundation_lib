@@ -219,10 +219,11 @@ DECLARE_TEST( event, immediate_threaded )
 	unsigned int read[32];
 	int i;
 	bool running = true;
+	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 
 	stream = event_stream_allocate( 0 );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		args[i].stream = stream;
 		args[i].end_time = time_current() + ( time_ticks_per_second() * 5 );
@@ -235,13 +236,13 @@ DECLARE_TEST( event, immediate_threaded )
 		thread_start( thread[i], args + i );
 	}
 
-	test_wait_for_threads_startup( thread, 32 );
+	test_wait_for_threads_startup( thread, num_threads );
 
 	while( running )
 	{
 		running = false;
 
-		for( i = 0; i < 32; ++i )
+		for( i = 0; i < num_threads; ++i )
 		{
 			if( thread_is_running( thread[i] ) )
 			{
@@ -273,7 +274,7 @@ DECLARE_TEST( event, immediate_threaded )
 		event = event_next( block, event );
 	}
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		unsigned int should_have_read = (unsigned int)((uintptr_t)thread_result( thread[i] ));
 		EXPECT_EQ( read[i], should_have_read );
@@ -281,7 +282,7 @@ DECLARE_TEST( event, immediate_threaded )
 		thread_destroy( thread[i] );
 	}
 
-	test_wait_for_threads_exit( thread, 32 );
+	test_wait_for_threads_exit( thread, num_threads );
 
 	event_stream_deallocate( stream );
 	
@@ -437,11 +438,12 @@ DECLARE_TEST( event, delay_threaded )
 	unsigned int read[32];
 	int i;
 	bool running = true;
+	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 
 	stream = event_stream_allocate( 0 );
 	begintime = time_current();
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		args[i].stream = stream;
 		args[i].end_time = time_current() + ( time_ticks_per_second() * 5 );
@@ -454,13 +456,13 @@ DECLARE_TEST( event, delay_threaded )
 		thread_start( thread[i], &args[i] );
 	}
 
-	test_wait_for_threads_startup( thread, 32 );
+	test_wait_for_threads_startup( thread, num_threads );
 
 	while( running )
 	{
 		running = false;
 
-		for( i = 0; i < 32; ++i )
+		for( i = 0; i < num_threads; ++i )
 		{
 			if( thread_is_running( thread[i] ) )
 			{
@@ -519,7 +521,7 @@ DECLARE_TEST( event, delay_threaded )
 
 	} while( time_current() < endtime );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		unsigned int should_have_read = (unsigned int)((uintptr_t)thread_result( thread[i] ));
 		EXPECT_EQ( read[i], should_have_read );
@@ -527,7 +529,7 @@ DECLARE_TEST( event, delay_threaded )
 		thread_destroy( thread[i] );
 	}
 
-	test_wait_for_threads_exit( thread, 32 );
+	test_wait_for_threads_exit( thread, num_threads );
 
 	event_stream_deallocate( stream );
 	

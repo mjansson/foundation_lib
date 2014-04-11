@@ -208,7 +208,7 @@ DECLARE_TEST( uuid, threaded )
 {
 	object_t thread[32];
 	int ith, i, jth, j;
-	int num_threads = math_clamp( system_hardware_threads() + 1, 3, 32 );
+	int num_threads = math_clamp( system_hardware_threads() * 2, 4, 32 );
 
 	for( ith = 0; ith < num_threads; ++ith )
 	{

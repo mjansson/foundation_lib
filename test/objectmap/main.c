@@ -162,25 +162,26 @@ DECLARE_TEST( objectmap, thread )
 	objectmap_t* map;
 	object_t thread[32];
 	int ith;
+	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 
 	map = objectmap_allocate( 32000 );
 
-	for( ith = 0; ith < 32; ++ith )
+	for( ith = 0; ith < num_threads; ++ith )
 	{
 		thread[ith] = thread_create( objectmap_thread, "objectmap_thread", THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], map );
 	}
 
-	test_wait_for_threads_startup( thread, 32 );
+	test_wait_for_threads_startup( thread, num_threads );
 
-	for( ith = 0; ith < 32; ++ith )
+	for( ith = 0; ith < num_threads; ++ith )
 	{
 		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
 		thread_yield();
 	}
 	
-	test_wait_for_threads_exit( thread, 32 );
+	test_wait_for_threads_exit( thread, num_threads );
 
 	objectmap_deallocate( map );
 

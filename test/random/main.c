@@ -300,27 +300,28 @@ DECLARE_TEST( random, threads )
 {
 	//Launch 32 threads
 	object_t thread[32];
+	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	int max_num = 0, min_num = 0x7FFFFFFF;
 	int i, j;
 	real diff;
 	memset( _test_thread_bits, 0, sizeof( atomic32_t ) * 32 );
 	memset( _test_thread_hist, 0, sizeof( atomic32_t ) * 32 );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		thread[i] = thread_create( random_thread, "random", THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[i], 0 );
 	}
 
-	test_wait_for_threads_startup( thread, 32 );
+	test_wait_for_threads_startup( thread, num_threads );
 
-	for( i = 0; i < 32; ++i )
+	for( i = 0; i < num_threads; ++i )
 	{
 		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
 	}
 	
-	test_wait_for_threads_exit( thread, 32 );
+	test_wait_for_threads_exit( thread, num_threads );
 
 	/*log_debugf( "Bit distribution:" );
 	for( j = 0; j < 32; ++j )
@@ -329,7 +330,7 @@ DECLARE_TEST( random, threads )
 	for( j = 0; j < 32; ++j )
 		log_debugf( "%08x-%08x: %u", ( _test_slice32 * j ), ( _test_slice32 * ( j + 1 ) ) - 1, atomic_load32( &_test_threaD_hist[j] ) );*/
 
-	for( j = 0; j < 32; ++j )
+	for( j = 0; j < num_threads; ++j )
 	{
 		if( atomic_load32( &_test_thread_bits[j] ) < min_num )
 			min_num = atomic_load32( &_test_thread_bits[j] );
@@ -338,14 +339,14 @@ DECLARE_TEST( random, threads )
 	}
 	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( j = 0; j < 32; ++j )
+	for( j = 0; j < num_threads; ++j )
 		EXPECT_GT( atomic_load32( &_test_thread_bits[j] ), 0 );
 	EXPECT_LT( diff, 0.004 );// << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
 
 	//log_debugf( "Bits: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
 	max_num = 0, min_num = 0x7FFFFFFF;
-	for( j = 0; j < 31; ++j )
+	for( j = 0; j < num_threads; ++j )
 	{
 		if( atomic_load32( &_test_thread_hist[j] ) < min_num )
 			min_num = atomic_load32( &_test_thread_hist[j] );
@@ -354,7 +355,7 @@ DECLARE_TEST( random, threads )
 	}
 	diff = (real)( max_num - min_num ) / ( (real)min_num + ( (real)( max_num - min_num ) / REAL_C(2.0) ) );
 
-	for( j = 0; j < 32; ++j )
+	for( j = 0; j < num_threads; ++j )
 		EXPECT_GT( atomic_load32( &_test_thread_hist[j] ), 0 );
 	EXPECT_LT( diff, 0.02 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 

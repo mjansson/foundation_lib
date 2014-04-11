@@ -150,7 +150,7 @@ DECLARE_TEST( atomic, incdec )
 	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	int ithread;
 	object_t threads[32];
-	
+
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		threads[ithread] = thread_create( ithread % 2 ? dec_thread : inc_thread, ithread % 2 ? "dec" : "inc", THREAD_PRIORITY_NORMAL, 0 );
 	for( ithread = 0; ithread < num_threads; ++ithread )
