@@ -211,7 +211,7 @@
 #define BUILD_DEFAULT_STREAM_BYTEORDER        BYTEORDER_LITTLEENDIAN
 
 
-#define BUILD_SIZE_THREAD_MAP                 256
+#define BUILD_SIZE_THREAD_MAP                 512
 #define BUILD_SIZE_LIBRARY_MAP                64
 
 #define BUILD_SIZE_TEMPORARY_MEMORY           2 * 1024 * 1024

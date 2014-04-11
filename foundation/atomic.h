@@ -381,13 +381,13 @@ static FORCEINLINE bool atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref )
 
 #  if FOUNDATION_ARCH_ARM6 && FOUNDATION_ARCH_THUMB
 
-// Fences compiled as standalone functions (mcr instruction not available in thumb mode)
+// TODO: Fences compiled as standalone functions (no mcr in thumb mode)
 
 #  elif FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
 
-#define mint_thread_fence_acquire() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
-#define mint_thread_fence_release() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
-#define mint_thread_fence_seq_cst() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
+#define atomic_thread_fence_acquire() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
+#define atomic_thread_fence_release() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
+#define atomic_thread_fence_sequentially_consistent() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
 
 #  else
 

@@ -228,32 +228,38 @@ const char* thread_name( void )
 }
 
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
+
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO
 {
-   DWORD dwType; // Must be 0x1000.
-   LPCSTR szName; // Pointer to name (in user addr space).
-   DWORD dwThreadID; // Thread ID (-1=caller thread).
-   DWORD dwFlags; // Reserved for future use, must be zero.
+	DWORD dwType; // Must be 0x1000.
+	LPCSTR szName; // Pointer to name (in user addr space).
+	DWORD dwThreadID; // Thread ID (-1=caller thread).
+	DWORD dwFlags; // Reserved for future use, must be zero.
 } THREADNAME_INFO;
 #pragma pack(pop)
-void _set_thread_name( uint64_t threadid, const char* threadname )
+
+static void NOINLINE _set_thread_name( const char* threadname )
 {
-   THREADNAME_INFO info;
-   info.dwType = 0x1000;
-   info.szName = threadname;
-   info.dwThreadID = (DWORD)threadid;
-   info.dwFlags = 0;
-   __try
-   {
-      RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
-   }
-   __except(EXCEPTION_CONTINUE_EXECUTION) //EXCEPTION_EXECUTE_HANDLER seems to require a debugger present...
-   {
-   }
+	THREADNAME_INFO info;
+	info.dwType = 0x1000;
+	info.szName = threadname;
+	info.dwThreadID = -1;
+	info.dwFlags = 0;
+
+	__try
+	{
+		RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
+	}
+	__except(EXCEPTION_CONTINUE_EXECUTION) //Does EXCEPTION_EXECUTE_HANDLER require a debugger present?
+	{
+		atomic_thread_fence_release();
+	}
 }
+
 #endif
 
 void thread_set_name( const char* name )
@@ -262,7 +268,7 @@ void thread_set_name( const char* name )
 
 #if !BUILD_DEPLOY
 #  if FOUNDATION_PLATFORM_WINDOWS
-	_set_thread_name( thread_id(), name );
+	_set_thread_name( name );
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	if( !thread_is_main() ) //Don't set main thread (i.e process) name
 		prctl( PR_SET_NAME, name, 0, 0, 0 );
@@ -328,6 +334,10 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	thread->osid = GetCurrentThreadId();
+#if !BUILD_DEPLOY
+	if( thread->name[0] )
+		_set_thread_name( thread->name );
+#endif
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	pthread_t curid = pthread_self();
 	thread->osid = curid;
@@ -417,9 +427,6 @@ bool thread_start( object_t id, void* data )
 		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
 		return false;
 	}
-#if !BUILD_DEPLOY
-	_set_thread_name( osid, thread->name );
-#endif
 #elif FOUNDATION_PLATFORM_POSIX
 	int err = pthread_create( &thread->thread, 0, _thread_entry, thread );
 	if( err )
