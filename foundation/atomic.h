@@ -375,9 +375,9 @@ static FORCEINLINE bool atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref )
 
 #else
 
-#define atomic_signal_fence_acquire() asm volatile("" ::: "memory")
-#define atomic_signal_fence_release() asm volatile("" ::: "memory")
-#define atomic_signal_fence_sequentially_consistent() asm volatile("" ::: "memory")
+#define atomic_signal_fence_acquire() __asm volatile("" ::: "memory")
+#define atomic_signal_fence_release() __asm volatile("" ::: "memory")
+#define atomic_signal_fence_sequentially_consistent() __asm volatile("" ::: "memory")
 
 #  if FOUNDATION_ARCH_ARM6 && FOUNDATION_ARCH_THUMB
 
@@ -385,18 +385,18 @@ static FORCEINLINE bool atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref )
 
 #  elif FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
 
-#define atomic_thread_fence_acquire() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
-#define atomic_thread_fence_release() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
-#define atomic_thread_fence_sequentially_consistent() asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
+#define atomic_thread_fence_acquire() __asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
+#define atomic_thread_fence_release() __asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
 
 #  else
 
-#define atomic_thread_fence_acquire() asm volatile("" ::: "memory")
-#define atomic_thread_fence_release() asm volatile("" ::: "memory")
+#define atomic_thread_fence_acquire() __asm volatile("" ::: "memory")
+#define atomic_thread_fence_release() __asm volatile("" ::: "memory")
 #    if FOUNDATION_ARCH_X86
-#define atomic_thread_fence_sequentially_consistent() asm volatile("lock; orl $0, (%%rsp)" ::: "memory")
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%rsp)" ::: "memory")
 #    else
-#define atomic_thread_fence_sequentially_consistent() asm volatile("lock; orl $0, (%%esp)" ::: "memory")
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%esp)" ::: "memory")
 #    endif
 
 #  endif
