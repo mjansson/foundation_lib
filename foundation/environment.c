@@ -14,7 +14,6 @@
 #include <foundation/internal.h>
 
 
-static char**  _environment_argv;
 #if !FOUNDATION_PLATFORM_APPLE
 static char    _environment_wd[FOUNDATION_MAX_PATHLEN] = {0};
 #endif
@@ -47,7 +46,18 @@ extern void _environment_ns_home_directory( char* );
 
 
 
-static application_t   _environment_app = {0};
+static application_t       _environment_app = {0};
+
+static char**              _environment_argv = 0;
+static int                 _environment_main_argc = 0;
+static const char* const*  _environment_main_argv = 0;
+
+
+void _environment_main_args( int argc, const char* const* argv )
+{
+	_environment_main_argc = argc;
+	_environment_main_argv = argv;
+}
 
 
 static void _environment_set_executable_paths( const char* executable_path )
@@ -110,26 +120,18 @@ int _environment_initialize( const application_t application )
 		return -1;
 	}
 	
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	
-	int ia;
-	int* argc_ptr = _NSGetArgc();
-	char*** argv_ptr = _NSGetArgv();
+	for( int ia = 0; ia < _environment_main_argc; ++ia )
+		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
 
-	for( ia = 0; ia < *argc_ptr; ++ia )
-		array_push( _environment_argv, string_clone( (*argv_ptr)[ia] ) );
-
-	FOUNDATION_ASSERT( *argc_ptr > 0 );
-	char* exe_path = path_make_absolute( (*argv_ptr)[0] );
+	FOUNDATION_ASSERT( _environment_main_argc > 0 );
+	char* exe_path = path_make_absolute( _environment_main_argv[0] );
 
 	_environment_set_executable_paths( exe_path );
 
 	string_deallocate( exe_path );
 
-#elif FOUNDATION_PLATFORM_IOS
-	
-	//TODO: Implement
-	
 #elif FOUNDATION_PLATFORM_ANDROID
 
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );

@@ -11,9 +11,7 @@
  */
 
 #include <foundation/foundation.h>
-#include <foundation/main.h>
-
-FOUNDATION_EXTERN void foundation_startup( void );
+#include <foundation/internal.h>
 
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -145,6 +143,10 @@ int main( int argc, char** argv )
 {
 	int ret = -1;
 
+#if !FOUNDATION_PLATFORM_ANDROID
+	_environment_main_args( argc, (const char* const*)argv );
+#endif
+	
 	if( ( ret = main_initialize() ) < 0 )
 		return ret;
 

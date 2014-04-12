@@ -144,3 +144,5 @@ FOUNDATION_API uint64_t      hashtable64_raw( hashtable64_t* table, uint64_t key
 #if BUILD_ENABLE_ERROR_CONTEXT
 FOUNDATION_API void          _error_context_clear( void );
 #endif
+
+FOUNDATION_API void          _environment_main_args( int argc, const char* const* argv );
