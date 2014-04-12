@@ -30,7 +30,8 @@ FOUNDATION_API void          semaphore_initialize( semaphore_t* semaphore, unsig
     \param value             Initial value */
 FOUNDATION_API void          semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value );
 
-/*! Destroy semaphore
+/*! Destroy semaphore. The semaphore value must be >= than the value it was created with,
+    or it will be considered to be still in use (on OSX/iOS targets this will cause a debug abort).
     \param semaphore         Semaphore */
 FOUNDATION_API void          semaphore_destroy( semaphore_t* semaphore );
 
