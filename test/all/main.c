@@ -144,10 +144,7 @@ int main_run( void* main_arg )
 		test_random_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
-#if !FOUNDATION_PLATFORM_ANDROID
-		//No proper stack tracing on android yet
 		test_stacktrace_run,
-#endif
 		test_string_run,
 		test_uuid_run,
 		0

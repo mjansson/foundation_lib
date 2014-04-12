@@ -52,12 +52,15 @@ DECLARE_TEST( semaphore, initialize )
 
 	semaphore_initialize( &sem, 1 );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
+	semaphore_post( &sem ); //Restored value
 	semaphore_destroy( &sem );
 
 	semaphore_initialize( &sem, 2 );
 	EXPECT_TRUE( semaphore_wait( &sem ) );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
+	semaphore_post( &sem );
+	semaphore_post( &sem ); //Restored value
 	semaphore_destroy( &sem );
 	
 	return 0;
