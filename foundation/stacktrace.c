@@ -597,7 +597,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		if( iaddr && !frames[iaddr] )
 			break;
 		
-		array_push( lines, string_format( "[0x%" PRIfixPTR "]\n", frames[iaddr] ) );
+		array_push( lines, string_format( "[0x%" PRIfixPTR "]", frames[iaddr] ) );
 	}
 		
 	return lines;
