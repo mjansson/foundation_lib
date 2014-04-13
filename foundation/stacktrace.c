@@ -404,7 +404,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	//Grab initial frame pointer
 	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (last_fp));
 
-	if( last_fp ) do
+	while( last_fp && ( num_frames < max_depth ) )
 	{
 		caller_fp = READ_64BIT_MEMORY( last_fp );
 		caller_lr = READ_64BIT_MEMORY( last_fp + 8 );
@@ -424,7 +424,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 
 		last_fp = caller_fp;
 
-	} while( last_fp && ( num_frames < max_depth ) );
+	}
 
 #  elif FOUNDATION_ARCH_ARM
 
@@ -434,7 +434,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	//Grab initial frame pointer
 	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (last_fp));
 
-	if( last_fp ) do
+	while( last_fp && ( num_frames < max_depth ) )
 	{
 		caller_fp = READ_32BIT_MEMORY( last_fp );
 		caller_lr = READ_32BIT_MEMORY( last_fp + 4 );
@@ -453,8 +453,37 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 		}
 
 		last_fp = caller_fp;
+	}
 
-	} while( last_fp && ( num_frames < max_depth ) );
+#  elif FOUNDATION_ARCH_X86
+
+#   define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
+	uint32_t last_ebp = 0, last_esp = 0, caller_ebp = 0, caller_esp = 0, caller_eip = 0;
+
+	//Grab base pointer and stack pointer
+	__asm volatile("movl %%ebp, %[result]\n\t" : [result] "=r" (last_ebp));
+	__asm volatile("movl %%esp, %[result]\n\t" : [result] "=r" (last_esp));
+
+	while( last_ebp && ( num_frames < max_depth ) )
+	{
+		caller_eip = READ_32BIT_MEMORY( last_ebp + 4 );
+		caller_ebp = READ_32BIT_MEMORY( last_ebp );
+		caller_esp = last_ebp + 8;
+
+		if( skip_frames > 0 )
+			--skip_frames;
+		else if( caller_eip > 0x1000 )
+		{
+			void* instruction = (void*)(uintptr_t)( ( caller_eip - 1 ) & ~3 );
+			trace[num_frames++] = instruction;
+		}
+		else
+		{
+			caller_ebp = 0;
+		}
+
+		last_ebp = caller_ebp;
+	}
 
 #  else
 
