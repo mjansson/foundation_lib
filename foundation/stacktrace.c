@@ -220,6 +220,71 @@ static void _load_process_modules()
 
 #endif	
 
+#if FOUNDATION_PLATFORM_ANDROID
+
+#define FOUNDATION_MAX_MODULES 256
+
+typedef struct _foundation_android_module
+{
+	uintptr_t           address_start;
+	uintptr_t           address_end;
+	char                name[64];
+} foundation_android_module_t;
+
+foundation_android_module_t _android_modules[FOUNDATION_MAX_MODULES];
+
+static void _load_process_modules()
+{
+	int imod = 0;
+	char line_buffer[256];
+
+	memset( _android_modules, 0, sizeof( foundation_android_module_t ) * FOUNDATION_MAX_MODULES );
+
+	stream_t* maps = fs_open_file( "/proc/self/maps", STREAM_IN );
+	if( !maps )
+	{
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/maps" );
+		return;
+	}
+
+	while( !stream_eos( maps ) && ( imod < FOUNDATION_MAX_MODULES ) )
+	{
+		line_buffer[0] = 0; 
+		stream_read_line_buffer( maps, line_buffer, 256, '\n' );
+	
+		if( !line_buffer[0] )
+			continue;
+
+		uintptr_t start = (uintptr_t)string_to_uint64( line_buffer, true );
+		uintptr_t end = (uintptr_t)string_to_uint64( line_buffer + string_find( line_buffer, '-', 0 ) + 1, true );
+		const char* module = line_buffer + string_rfind_first_of( line_buffer, "/ ", STRING_NPOS ) + 1;
+
+		if( !module[0] || ( string_find_first_not_of( module, "0123456789", 0 ) == STRING_NPOS ) )
+			continue;
+
+		if( ( imod > 0 ) && /*( start == _android_modules[imod].address_end ) && */string_equal( module, _android_modules[imod-1].name ) )
+		{
+			_android_modules[imod-1].address_end = end;
+			continue;
+		}
+
+		_android_modules[imod].address_start = start;
+		_android_modules[imod].address_end = end;
+		string_copy( _android_modules[imod].name, module, 64 );
+
+		++imod;
+	}
+
+	//for( int i = 0; i < imod; ++i )
+	//	log_infof( HASH_TEST, "%" PRIfixPTR "-%" PRIfixPTR ": %s", _android_modules[i].address_start, _android_modules[i].address_end, _android_modules[i].name );
+
+	if( imod == FOUNDATION_MAX_MODULES )
+		log_warnf( 0, WARNING_MEMORY, "Too many modules encountered" );
+}
+
+#endif
+
+
 static bool _stackwalk_initialized = false;
 
 static bool _initialize_stackwalker()
@@ -330,7 +395,49 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 #  endif
 	}
 #elif FOUNDATION_PLATFORM_ANDROID
-	// Not implemented yet
+	
+#  if FOUNDATION_ARCH_ARM_64
+
+	//Not yet implemented
+	log_warnf( 0, WARNING_UNSUPPORTED, "Stacktrace capture not yet implemented for this architecture" );
+
+#  elif FOUNDATION_ARCH_ARM
+
+#   define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
+	uint32_t last_fp = 0, caller_fp = 0, caller_lr = 0, caller_sp = 0;
+
+	//Grab initial frame pointer
+	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (last_fp));
+
+	if( last_fp ) do
+	{
+		caller_fp = READ_32BIT_MEMORY( last_fp );
+		caller_lr = READ_32BIT_MEMORY( last_fp + 4 );
+		caller_sp = last_fp + 8;
+
+		if( skip_frames > 0 )
+			--skip_frames;
+		else if( caller_fp > 0x1000 )
+		{
+			void* instruction = (void*)(uintptr_t)( ( caller_lr - 2 ) & ~3 );
+			trace[num_frames++] = instruction;
+		}
+		else
+		{
+			caller_fp = 0;
+		}
+
+		last_fp = caller_fp;
+
+	} while( last_fp && ( num_frames < max_depth ) );
+
+#  else
+
+	//Not yet implemented
+	log_warnf( 0, WARNING_UNSUPPORTED, "Stacktrace capture not yet implemented for this architecture" );
+
+#  endif
+
 #elif FOUNDATION_PLATFORM_POSIX
 	// Add 1 skip frames for this function call
 	skip_frames += 1;
@@ -587,7 +694,38 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 	array_deallocate( args );	
 	
 	return lines;
+
+#elif FOUNDATION_PLATFORM_ANDROID
+
+	char** lines = 0;
 	
+	_load_process_modules();
+
+	for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )
+	{
+		//Allow first frame to be null in case of a function call to a null pointer
+		if( iaddr && !frames[iaddr] )
+			break;
+		
+		//Find the module and relative address
+		uintptr_t relativeframe = (uintptr_t)frames[iaddr];
+		const char* module = "<no module found>";
+
+		for( int imod = 0; imod < FOUNDATION_MAX_MODULES; ++imod )
+		{
+			if( ( relativeframe >= _android_modules[imod].address_start ) && ( relativeframe < _android_modules[imod].address_end ) )
+			{
+				relativeframe -= _android_modules[imod].address_start;
+				module = _android_modules[imod].name;
+				break;
+			}
+		}
+
+		array_push( lines, string_format( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %s", frames[iaddr], relativeframe, module ) );
+	}
+		
+	return lines;
+
 #else
 
 	char** lines = 0;
