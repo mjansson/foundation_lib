@@ -90,7 +90,7 @@ static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
 LONG WINAPI _stacktrace_exception_filter( LPEXCEPTION_POINTERS pointers )
 {
-	log_errorf( ERROR_EXCEPTION, "Exception occurred in stack trace!" );
+	log_errorf( 0, ERROR_EXCEPTION, "Exception occurred in stack trace!" );
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -398,8 +398,33 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	
 #  if FOUNDATION_ARCH_ARM_64
 
-	//Not yet implemented
-	log_warnf( 0, WARNING_UNSUPPORTED, "Stacktrace capture not yet implemented for this architecture" );
+#   define READ_64BIT_MEMORY( addr ) (*(uint64_t volatile * volatile)(addr))
+	uint64_t last_fp = 0, caller_fp = 0, caller_lr = 0, caller_sp = 0;
+
+	//Grab initial frame pointer
+	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (last_fp));
+
+	if( last_fp ) do
+	{
+		caller_fp = READ_64BIT_MEMORY( last_fp );
+		caller_lr = READ_64BIT_MEMORY( last_fp + 8 );
+		caller_sp = last_fp + 16;
+
+		if( skip_frames > 0 )
+			--skip_frames;
+		else if( caller_fp > 0x1000 )
+		{
+			void* instruction = (void*)(uintptr_t)( ( caller_lr - 4 ) & ~7 );
+			trace[num_frames++] = instruction;
+		}
+		else
+		{
+			caller_fp = 0;
+		}
+
+		last_fp = caller_fp;
+
+	} while( last_fp && ( num_frames < max_depth ) );
 
 #  elif FOUNDATION_ARCH_ARM
 
