@@ -160,7 +160,7 @@ static FORCEINLINE void         atomic_thread_fence_sequentially_consistent( voi
 #  else
 #    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchangePointer( &(dst)->nonatomic, (val), (ref) ) == (ref) ) ? true : false )
 #  endif
-#elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 #  define                       atomic_cas_ptr( dst, val, ref ) OSAtomicCompareAndSwapPtr( (ref), (val), (void* volatile*)&((dst)->nonatomic) )
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 #  define                       atomic_cas_ptr( dst, val, ref ) __sync_bool_compare_and_swap( &(dst)->nonatomic, (ref), (val) )
@@ -177,7 +177,7 @@ static FORCEINLINE int64_t atomic_load64( atomic64_t* val )
 {
 #if FOUNDATION_ARCH_X86
 	uint64_t result;
-#  if FOUNDATION_COMPILER_MSVC
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
     __asm
 	{
 		mov esi, val;
@@ -217,7 +217,7 @@ static FORCEINLINE void atomic_store32( atomic32_t* dst, int32_t val )
 static FORCEINLINE void atomic_store64( atomic64_t* dst, int64_t val )
 {
 #if FOUNDATION_ARCH_X86
-#  if FOUNDATION_COMPILER_MSVC
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 	__asm
 	{
 		mov esi, dst;
