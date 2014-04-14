@@ -1,0 +1,25 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "..\\foundation"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "..\\test"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "..\\tools"
+		}
+	],
+	"build_systems":
+	[
+		{
+			"name": "SCons",
+			"shell_cmd": "scons tools=intel",
+			"working_dir": "${project_path:${folder:${file_path}}}\\..",
+		}
+	]
+}
