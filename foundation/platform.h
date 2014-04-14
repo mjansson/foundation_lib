@@ -912,6 +912,7 @@
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
+#    define va_copy(d,s) ((d)=(s))
 #  endif
 
 #  include <intrin.h>

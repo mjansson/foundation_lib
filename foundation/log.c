@@ -100,12 +100,6 @@ static log_timestamp_t _log_make_timestamp( void )
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
-#if FOUNDATION_PLATFORM_WINDOWS
-#  define LOG_USE_VACOPY 0
-#else
-#  define LOG_USE_VACOPY 1
-#endif
-
 static void _log_outputf( uint64_t context, int severity, const char* prefix, const char* format, va_list list, void* std )
 {
 	log_timestamp_t timestamp = _log_make_timestamp();
@@ -123,16 +117,12 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 			need = snprintf( buffer, size, "%s", prefix );
 
 		remain = size - need;
-#if LOG_USE_VACOPY
 		{
 			va_list clist;
 			va_copy( clist, list );
 			more = vsnprintf( buffer + need, remain, format, clist );
 			va_end( clist );
 		}
-#else
-		more = vsnprintf( buffer + need, remain, format, list );
-#endif
 			
 		if( ( more > -1 ) && ( more < remain ) )
 		{
