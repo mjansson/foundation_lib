@@ -13,6 +13,11 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
+#if FOUNDATION_COMPILER_MSVC
+//Test will do division by zero
+#  pragma warning( disable : 4723 )
+#endif
+
 
 static application_t test_math_application( void )
 {
