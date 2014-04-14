@@ -154,18 +154,7 @@ on all sequentially consistent fences. */
 static FORCEINLINE void         atomic_thread_fence_sequentially_consistent( void );
 
 
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
-#  if FOUNDATION_ARCH_X86
-#    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchange( (long volatile*)&((dst)->nonatomic), (long)(val), (long)(ref)  ) == (long)ref ) ? true : false )
-#  else
-#    define                     atomic_cas_ptr( dst, val, ref ) ( ( _InterlockedCompareExchangePointer( &(dst)->nonatomic, (val), (ref) ) == (ref) ) ? true : false )
-#  endif
-#elif FOUNDATION_PLATFORM_APPLE
-#  define                       atomic_cas_ptr( dst, val, ref ) OSAtomicCompareAndSwapPtr( (ref), (val), (void* volatile*)&((dst)->nonatomic) )
-#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-#  define                       atomic_cas_ptr( dst, val, ref ) __sync_bool_compare_and_swap( &(dst)->nonatomic, (ref), (val) )
-#endif
-
+// Implementations
 
 static FORCEINLINE int32_t atomic_load32( atomic32_t* val )
 {
@@ -249,7 +238,7 @@ static FORCEINLINE void atomic_storeptr( atomicptr_t* dst, void* val )
 
 static FORCEINLINE int32_t atomic_exchange_and_add32( atomic32_t* val, int32_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS
 	return _InterlockedExchangeAdd( (volatile long*)&val->nonatomic, add );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_fetch_and_add( &val->nonatomic, add );
@@ -261,7 +250,7 @@ static FORCEINLINE int32_t atomic_exchange_and_add32( atomic32_t* val, int32_t a
 
 static FORCEINLINE int atomic_add32( atomic32_t* val, int32_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS
 	int32_t old = (int32_t)_InterlockedExchangeAdd( (volatile long*)&val->nonatomic, add );
 	return ( old + add );
 #elif FOUNDATION_PLATFORM_APPLE
@@ -279,7 +268,7 @@ static FORCEINLINE int atomic_decr32( atomic32_t* val ) { return atomic_add32( v
 
 static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86
 	long long ref;
 	do { ref = val->nonatomic; } while( _InterlockedCompareExchange64( (volatile long long*)&val->nonatomic, ref + add, ref ) != ref );
@@ -287,7 +276,7 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t a
 #  else //X86_64
 	return _InterlockedExchangeAdd64( &val->nonatomic, add );
 #  endif
-#elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 	int64_t ref;
 	do { ref = (int64_t)val->nonatomic; } while( !OSAtomicCompareAndSwap64( ref, ref + add, (int64_t*)&val->nonatomic ) );
 	return ref;
@@ -301,7 +290,7 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t a
 
 static FORCEINLINE int64_t atomic_add64( atomic64_t* val, int64_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86
 	return atomic_exchange_and_add64( val, add ) + add;
 #  else
@@ -322,9 +311,9 @@ static FORCEINLINE int64_t atomic_decr64( atomic64_t* val ) { return atomic_add6
 
 static FORCEINLINE bool atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS
 	return ( _InterlockedCompareExchange( (volatile long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
-#elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicCompareAndSwap32( ref, val, (int32_t*)&dst->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( &dst->nonatomic, ref, val );
@@ -336,9 +325,9 @@ static FORCEINLINE bool atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref 
 
 static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref )
 {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS
 	return ( _InterlockedCompareExchange64( (volatile long long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
-#elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicCompareAndSwap64( ref, val, (int64_t*)&dst->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( &dst->nonatomic, ref, val );
@@ -348,23 +337,30 @@ static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref 
 }
 
 
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_APPLE || FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-//atomic_cas_ptr defined above
-#else
 static FORCEINLINE bool atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref )
 {
 #  if FOUNDATION_ARCH_POINTER_SIZE == 8
-	return atomic_cas64( (atomic64_t*)dst, (int64_t)val, (int64_t)ref );
+	return atomic_cas64( (atomic64_t*)dst, (int64_t)(uintptr_t)val, (int64_t)(uintptr_t)ref );
 #  elif FOUNDATION_ARCH_POINTER_SIZE == 4
-	return atomic_cas32( (atomic32_t*)dst, (int32_t)val, (int32_t)ref );
+	return atomic_cas32( (atomic32_t*)dst, (int32_t)(uintptr_t)val, (int32_t)(uintptr_t)ref );
 #  else
 #    error Unknown architecture (pointer size)
 #  endif
 }
+
+
+static FORCEINLINE void atomic_signal_fence_acquire( void ) {}
+static FORCEINLINE void atomic_signal_fence_release( void ) {}
+static FORCEINLINE void atomic_signal_fence_sequentially_consistent( void ) {}
+
+#if !FOUNDATION_ARCH_ARM || !FOUNDATION_ARCH_THUMB
+static FORCEINLINE void atomic_thread_fence_acquire( void ) {}
+static FORCEINLINE void atomic_thread_fence_release( void ) {}
+static FORCEINLINE void atomic_thread_fence_sequentially_consistent( void ) {}
 #endif
 
 
-#if FOUNDATION_COMPILER_MSVC || FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 
 #define atomic_signal_fence_acquire() _ReadWriteBarrier()
 #define atomic_signal_fence_release() _ReadWriteBarrier()
@@ -379,7 +375,7 @@ static FORCEINLINE bool atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref )
 #define atomic_signal_fence_release() __asm volatile("" ::: "memory")
 #define atomic_signal_fence_sequentially_consistent() __asm volatile("" ::: "memory")
 
-#  if FOUNDATION_ARCH_ARM6 && FOUNDATION_ARCH_THUMB
+#  if FOUNDATION_ARCH_ARM && FOUNDATION_ARCH_THUMB
 
 // TODO: Fences compiled as standalone functions (no mcr in thumb mode)
 
