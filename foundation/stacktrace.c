@@ -280,6 +280,8 @@ static void _load_process_modules()
 
 	if( imod == FOUNDATION_MAX_MODULES )
 		log_warnf( 0, WARNING_MEMORY, "Too many modules encountered" );
+
+	stream_deallocate( maps );
 }
 
 #endif
