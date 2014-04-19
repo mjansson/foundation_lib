@@ -112,7 +112,7 @@ Help( opts.GenerateHelpText( env ) )
 # SETUP DEFAULT COMPILER AND LINKER FLAGS SHARED BY ALL CONFIGS
 if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	env.Append( CFLAGS=['-std=gnu99','-W','-Wall','-Wcast-align','-Wcast-qual','-Wchar-subscripts','-Winline','-Wpointer-arith','-Wredundant-decls','-Wshadow','-Wwrite-strings','-Wno-variadic-macros','-Wno-long-long','-Wno-format','-Wno-unused','-Wundef','-Wstrict-aliasing','-Wno-missing-field-initializers','-Wno-missing-braces','-Wno-unused-parameter','-ftabstop=4','-fstrict-aliasing'] )
-	if env['platform'] != 'raspberrypi':
+	if env['platform'] == 'raspberrypi':
 		env.Append( CFLAGS=['-pedantic','-Werror'] )
 		env.Append( CFLAGS=['-march=armv6j','-mfloat-abi=hard','-mfpu=vfp','-mtune=arm1176jzf-s'] )
 		env.Append( CXXFLAGS=['-march=armv6j','-mfloat-abi=hard','-mfpu=vfp','-mtune=arm1176jzf-s'] )
