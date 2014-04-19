@@ -109,9 +109,8 @@ void android_shutdown( void )
 
 	_android_app = 0;
 
-	log_debug( 0, "Calling exit(0)" );
-
-	exit( 0 );
+	//log_debug( 0, "Calling exit(0)" );
+	//exit( 0 );
 }
 
 
@@ -127,7 +126,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 	{
 		case APP_CMD_INPUT_CHANGED:
 		{
-			log_debug( 0, "Got APP_CMD_INPUT_CHANGED" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_INPUT_CHANGED" );
             break;
 		}
 
@@ -138,97 +137,99 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				int w = 0, h = 0;
 				w = ANativeWindow_getWidth( app->window );
 				h = ANativeWindow_getHeight( app->window );
-				log_debugf( 0, "Got APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
+				log_infof( HASH_SYSTEM, "System command: APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
 			}
             break;
 		}
         
 		case APP_CMD_TERM_WINDOW:
 		{
-			log_debug( 0, "Got APP_CMD_TERM_WINDOW" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_TERM_WINDOW" );
             break;
 		}
 
     	case APP_CMD_WINDOW_RESIZED:
 		{
-			log_debug( 0, "Got APP_CMD_WINDOW_RESIZED" );
+			int w = 0, h = 0;
+			w = ANativeWindow_getWidth( app->window );
+			h = ANativeWindow_getHeight( app->window );
+			log_infof( HASH_SYSTEM, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
             break;
 		}
 
 		case APP_CMD_WINDOW_REDRAW_NEEDED:
 		{
-			log_debug( 0, "Got APP_CMD_WINDOW_REDRAW_NEEDED" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_WINDOW_REDRAW_NEEDED" );
             break;
 		}
 
 		case APP_CMD_CONTENT_RECT_CHANGED:
 		{
-			log_debug( 0, "Got APP_CMD_CONTENT_RECT_CHANGED" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_CONTENT_RECT_CHANGED" );
             break;
 		}
         
 		case APP_CMD_GAINED_FOCUS:
 		{
-			log_debug( 0, "Got APP_CMD_GAINED_FOCUS" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_GAINED_FOCUS" );
 			_android_enable_sensor( ASENSOR_TYPE_ACCELEROMETER );
             break;
 		}
 
 		case APP_CMD_LOST_FOCUS:
 		{
-			log_debug( 0, "Got APP_CMD_LOST_FOCUS" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_LOST_FOCUS" );
 			_android_disable_sensor( ASENSOR_TYPE_ACCELEROMETER );
             break;
 		}
 
 		case APP_CMD_CONFIG_CHANGED:
 		{
-			log_debug( 0, "Got APP_CMD_CONFIG_CHANGED" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_CONFIG_CHANGED" );
             break;
 		}
 
 		case APP_CMD_LOW_MEMORY:
 		{
-			log_debug( 0, "Got APP_CMD_LOW_MEMORY" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_LOW_MEMORY" );
             break;
 		}
 
 		case APP_CMD_START:
 		{
-			log_debug( 0, "Got APP_CMD_START" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_START" );
             break;
 		}
 
 		case APP_CMD_RESUME:
 		{
-			log_debug( 0, "Got APP_CMD_RESUME" );
-			//app_reset_frame_time();
-			//app_main_loop_resume();
+			log_info( HASH_SYSTEM, "System command: APP_CMD_RESUME" );
+			system_post_event( FOUNDATIONEVENT_RESUME );
             break;
 		}
 
 		case APP_CMD_SAVE_STATE:
 		{
-			log_debug( 0, "Got APP_CMD_SAVE_STATE" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_SAVE_STATE" );
             break;
 		}
 
 		case APP_CMD_PAUSE:
 		{
-			log_debug( 0, "Got APP_CMD_PAUSE" );
-			//app_main_loop_suspend();
+			log_info( HASH_SYSTEM, "System command: APP_CMD_PAUSE" );
+			system_post_event( FOUNDATIONEVENT_PAUSE );
             break;
 		}
 
 		case APP_CMD_STOP:
 		{
-			log_debug( 0, "Got APP_CMD_STOP" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_STOP" );
             break;
 		}
 		
 		case APP_CMD_DESTROY:
 		{
-			log_debug( 0, "Got APP_CMD_DESTROY" );
+			log_info( HASH_SYSTEM, "System command: APP_CMD_DESTROY" );
 			system_post_event( FOUNDATIONEVENT_TERMINATE );
             break;
 		}

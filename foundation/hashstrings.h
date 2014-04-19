@@ -35,3 +35,4 @@
 #define HASH_CURRENT_WORKING_DIRECTORY static_hash_string( "current_working_directory", 0x6b80ceb3924e8af3ULL )
 #define HASH_HOME_DIRECTORY static_hash_string( "home_directory", 0xbb5cb0f40e9f0f3aULL )
 #define HASH_TEMPORARY_DIRECTORY static_hash_string( "temporary_directory", 0xb75730bc0dd1d067ULL )
+#define HASH_SYSTEM static_hash_string( "system", 0xb72020e83e0eb654ULL )

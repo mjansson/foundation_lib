@@ -28,3 +28,4 @@ HASH_INITIAL_WORKING_DIRECTORY          initial_working_directory
 HASH_CURRENT_WORKING_DIRECTORY          current_working_directory
 HASH_HOME_DIRECTORY                     home_directory
 HASH_TEMPORARY_DIRECTORY                temporary_directory
+HASH_SYSTEM                             system

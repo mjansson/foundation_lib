@@ -95,7 +95,28 @@ extern int test_stacktrace_run( void );
 extern int test_string_run( void );
 extern int test_uuid_run( void );
 typedef int (*test_run_fn)( void );
+
+void* test_runner( object_t obj, void* arg )
+{
+	test_run_fn* tests = (test_run_fn*)arg;
+	int test_fn = 0;
+	int process_result = 0;
+
+	do
+	{
+		if( process_result >= 0 )
+		{
+			if( ( process_result = tests[test_fn]() ) >= 0 )
+				log_infof( HASH_TEST, "All tests passed (%d)", process_result );
+		}
+		++test_fn;
+	} while( tests[test_fn] && ( process_result >= 0 ) );
+
+	return (void*)(intptr_t)process_result;
+}
+
 #endif
+
 
 int main_run( void* main_arg )
 {
@@ -114,7 +135,6 @@ int main_run( void* main_arg )
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	
-	int test_fn = 0;
 	test_run_fn tests[] = {
 		//test_app_run
 		test_array_run,
@@ -150,15 +170,37 @@ int main_run( void* main_arg )
 		0
 	};
 
-	do
+#if FOUNDATION_PLATFORM_ANDROID
+
+	object_t test_thread = thread_create( test_runner, "test_runner", THREAD_PRIORITY_NORMAL, 0 );
+	thread_start( test_thread, tests );
+
+	while( !thread_is_running( test_thread ) )
 	{
-		if( process_result >= 0 )
-		{
-			if( ( process_result = tests[test_fn]() ) >= 0 )
-				log_infof( HASH_TEST, "All tests passed (%d)", process_result );
-		}
-		++test_fn;
-	} while( tests[test_fn] && ( process_result >= 0 ) );
+		system_process_events();
+		thread_sleep( 10 );
+	}
+
+	while( thread_is_running( test_thread ) )
+	{
+		system_process_events();
+		thread_sleep( 10 );
+	}
+
+	process_result = (int)(intptr_t)thread_result( test_thread );
+	thread_destroy( test_thread );
+
+	while( thread_is_thread( test_thread ) )
+	{
+		system_process_events();
+		thread_sleep( 10 );
+	}
+
+#else
+
+	process_result = (int)(intptr_t)test_runner( 0, tests );
+
+#endif
 
 	if( process_result != 0 )
 	{

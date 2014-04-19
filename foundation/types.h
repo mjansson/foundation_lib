@@ -358,6 +358,12 @@ typedef enum
 	//! Application has been asked to terminate
 	FOUNDATIONEVENT_TERMINATE = 1,
 
+	//! Application has been asked to pause
+	FOUNDATIONEVENT_PAUSE,
+
+	//! Application has been asked to resume
+	FOUNDATIONEVENT_RESUME,
+
 	//! File was created
 	FOUNDATIONEVENT_FILE_CREATED,
 
