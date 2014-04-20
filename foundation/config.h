@@ -41,7 +41,8 @@
 	Config format when parsing config files/streams is compatible with "standard" INI files (see http://en.wikipedia.org/wiki/INI_file). Numbers can have the k/K or m/M suffix for kilo or mega multipliers (4M meaning 4*1024*1024)
 	[section]
 	name = value
-	; comment (or #comment)
+	; comment
+    # comment
 */
 
 #include <foundation/platform.h>
@@ -140,11 +141,11 @@ FOUNDATION_API void                    config_set_string_constant( hash_t sectio
 	
 	If built_in flag is false, the following directories are also searched
 	For Windows development, the user app directory
-	 10) C:/Users/<username>/AppData/Local/<appname>
+	 10) C:/Users/[username]/AppData/Local/[appname]
 	For Linux development, the user app directory
-	 10) /home/<username>/.<appname>
+	 10) /home/[username]/.[appname]
 	For MacOSX development, the user app directory
-	 10) /Users/<username>/.<appname>
+	 10) /Users/[username]/.[appname]
 
     \param name                        File/stream name (will be opened with stream_open)
     \param filter_section              Optional filter, which will only load the section matching the given filter_section. Set to 0 to load all sections

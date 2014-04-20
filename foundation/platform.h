@@ -19,9 +19,9 @@
 	If you need to override platform or architecture, predefine one of FOUNDATION_PLATFORM_[...] and FOUNDATION_ARCH_[...] to 1
 
 	All preprocessor macros are designed to be always defined and used by value, i.e a check should be performed like
-	"#if FOUNDATION_PLATFORM_[...]" rather than "#ifdef FOUNDATION_PLATFORM_[...]", since this solves the potential problem of typos in
-	preprocessor checks (the #if test will most likely catch the typo with an not defined error, whereas the
-	#ifdef macro will just resolve to false)
+	"\#if FOUNDATION_PLATFORM_[...]" rather than "\#ifdef FOUNDATION_PLATFORM_[...]", since this solves the potential problem of typos in
+	preprocessor checks (the \#if test will most likely catch the typo with an not defined error, whereas the
+	\#ifdef macro will just resolve to false)
 
 	This header also defines a bunch of preprocessor macros:
 	FOUNDATION_PLATFORM_[...]
@@ -209,12 +209,6 @@
 
 /*! \typedef float64_t
     Floating point type guaranteed to be 64-bit in size */
-
-/*! \typedef uint128_t
-    128-bit Unsigned int type */
-
-/*! \typedef uint256_t
-    256-bit unsigned int type */
 
 /*! \typedef real
     Floating point type of the size chosen in build config (32 or 64 bit). See FOUNDATION_PLATFORM_REALSIZE for declaring size used. */
@@ -971,10 +965,12 @@ typedef enum
 typedef float          float32_t;
 typedef double         float64_t;
 
+/*! 128-bit Unsigned int type */
 typedef struct {
 	uint64_t word[2];
 } uint128_t;
 
+/*! 256-bit unsigned int type */
 typedef struct {
 	uint64_t word[4];
 } uint256_t;

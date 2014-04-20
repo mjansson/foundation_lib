@@ -198,42 +198,42 @@ FOUNDATION_API unsigned int   string_rfind_string( const char* str, const char* 
     \param key                Key characters to search for
     \param offset             Start offset of search within source string
     \return                   Offset of first occurrence of any of the characters in the key string within str (greater or equal to offset). STRING_NPOS if none found */
-FOUNDATION_API unsigned int   string_find_first_of( const char* str, const char* tokens, unsigned int offset );
+FOUNDATION_API unsigned int   string_find_first_of( const char* str, const char* key, unsigned int offset );
 
 /*! Search for the last occurrence of any character in key string in a string from the given offset
     \param str                Source string
     \param key                Key characters to search for
     \param offset             Start offset of search within source string
     \return                   Offset of last occurrence of any of the characters in the key string within str (greater or equal to offset). STRING_NPOS if none found */
-FOUNDATION_API unsigned int   string_find_last_of( const char* str, const char* tokens, unsigned int offset );
+FOUNDATION_API unsigned int   string_find_last_of( const char* str, const char* key, unsigned int offset );
 
 /*! Search for the first occurrence of any character not present in key string in a string from the given offset
     \param str                Source string
     \param key                Key characters to invert search for
     \param offset             Start offset of search within source string
     \return                   Offset of first occurrence of any character which is not part of the key string within str (greater or equal to offset). STRING_NPOS if none found */
-FOUNDATION_API unsigned int   string_find_first_not_of( const char* str, const char* tokens, unsigned int offset );
+FOUNDATION_API unsigned int   string_find_first_not_of( const char* str, const char* key, unsigned int offset );
 
 /*! Search for the last occurrence of any character not present in key string in a string from the given offset
     \param str                Source string
     \param key                Key characters to invert search for
     \param offset             Start offset of search within source string
     \return                   Offset of last occurrence of any character which is not part of the key string within str (greater or equal to offset). STRING_NPOS if none found */
-FOUNDATION_API unsigned int   string_find_last_not_of( const char* str, const char* tokens, unsigned int offset );
+FOUNDATION_API unsigned int   string_find_last_not_of( const char* str, const char* key, unsigned int offset );
 
 /*! Reverse search for the first occurrence of any character in key string in a string from the given offset
     \param str                Source string
     \param key                Key characters to search for
     \param offset             Start offset of search within source string
     \return                   Offset of first occurrence of any of the characters in the key string within str (greater or equal to offset). STRING_NPOS if none found */
-FOUNDATION_API unsigned int   string_rfind_first_of( const char* str, const char* tokens, unsigned int offset );
+FOUNDATION_API unsigned int   string_rfind_first_of( const char* str, const char* key, unsigned int offset );
 
 /*! Search for the first occurrence of any character not present in key string in a string from the given offset
     \param str                Source string
     \param key                Key characters to invert search for
     \param offset             Start offset of search within source string
     \return                   Offset of first occurrence of any character which is not part of the key string within str (greater or equal to offset). STRING_NPOS if none found */
-FOUNDATION_API unsigned int   string_rfind_first_not_of( const char* str, const char* tokens, unsigned int offset );
+FOUNDATION_API unsigned int   string_rfind_first_not_of( const char* str, const char* key, unsigned int offset );
 
 /*! Query if string ends with the given suffix
     \param str                String
@@ -472,7 +472,6 @@ FOUNDATION_API const char*    string_from_uint_static( uint64_t val, bool hex, u
 /*! Convert an 128-bit unsigned integer into a thread-local conversion buffer.
     The buffer is shared between all string_from_*_static functions and only valid until next call to one
     of these functions.
-    \param buffer             Preallocated string (has to be large enough to hold integer representation)
     \param val                Integer value
     \return                   String (thread-local buffer) */
 FOUNDATION_API const char*    string_from_uint128_static( const uint128_t val );
@@ -543,12 +542,12 @@ FOUNDATION_API real           string_to_real( const char* val );
 /*! Convert a string to a uuid
     \param val                String
     \return                   UUID */
-FOUNDATION_API uuid_t         string_to_uuid( const char* str );
+FOUNDATION_API uuid_t         string_to_uuid( const char* val );
 
 /*! Convert a string to a version identifier
     \param val                String
     \return                   Version identifier */
-FOUNDATION_API version_t      string_to_version( const char* str );
+FOUNDATION_API version_t      string_to_version( const char* val );
 
 /*! Validate email address format (basic tests)
     \param address            Email address string
