@@ -88,6 +88,9 @@ struct ALIGN(8) _foundation_stream
 
 //Internal entry points
 
+FOUNDATION_API int _atomic_initialize( void );
+FOUNDATION_API void _atomic_shutdown( void );
+
 FOUNDATION_API void _stream_initialize( stream_t* stream, byteorder_t order );
 
 FOUNDATION_API void _ringbuffer_stream_initialize( void );

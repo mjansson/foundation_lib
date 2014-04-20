@@ -29,3 +29,66 @@ __asm__(
 );
 
 #endif
+
+
+#if FOUNDATION_ARCH_MIPS
+
+#include <foundation/posix.h>
+
+static  pthread_mutex_t _atomic_mutex = {0};
+
+
+uint64_t __foundation_sync_fetch_and_add_8( uint64_t* val, uint64_t add )
+{
+	pthread_mutex_lock( &_atomic_mutex );
+	uint64_t prev = *val;
+	*val += add;
+	pthread_mutex_unlock( &_atomic_mutex );
+	return prev;
+}
+
+
+uint64_t __foundation_sync_add_and_fetch_8( uint64_t* val, uint64_t add )
+{
+	pthread_mutex_lock( &_atomic_mutex );
+	uint64_t ret = ( *val += add );
+	pthread_mutex_unlock( &_atomic_mutex );
+	return ret;
+}
+
+
+bool __foundation_sync_bool_compare_and_swap_8( uint64_t* val, uint64_t oldval, uint64_t newval )
+{
+	bool res = false;
+	pthread_mutex_lock( &_atomic_mutex );
+	if( *val == oldval )
+	{
+		*val = newval;
+		res = true;
+	}
+	pthread_mutex_unlock( &_atomic_mutex );
+	return res;
+}
+
+#endif
+
+
+int _atomic_initialize( void )
+{
+#if FOUNDATION_ARCH_MIPS
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init( &attr );	
+	pthread_mutex_init( &_atomic_mutex, &attr );
+	pthread_mutexattr_destroy( &attr );
+#endif
+	return 0;
+}
+
+
+void _atomic_shutdown( void )
+{
+#if FOUNDATION_ARCH_MIPS
+	pthread_mutex_destroy( &_atomic_mutex );
+#endif
+}
+

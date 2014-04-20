@@ -32,6 +32,13 @@
 #  include <libkern/OSAtomic.h>
 #endif
 
+#if FOUNDATION_ARCH_MIPS
+FOUNDATION_API uint64_t __foundation_sync_fetch_and_add_8( uint64_t* val, uint64_t add );
+FOUNDATION_API uint64_t __foundation_sync_add_and_fetch_8( uint64_t* val, uint64_t add );
+FOUNDATION_API bool __foundation_sync_bool_compare_and_swap_8( uint64_t* val, uint64_t oldval, uint64_t newval );
+#endif
+
+
 /*! Atomically load the value
     \param src                  Value
     \return                     Current value */
@@ -280,6 +287,8 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t a
 	int64_t ref;
 	do { ref = (int64_t)val->nonatomic; } while( !OSAtomicCompareAndSwap64( ref, ref + add, (int64_t*)&val->nonatomic ) );
 	return ref;
+#elif FOUNDATION_ARCH_MIPS
+	return __foundation_sync_fetch_and_add_8( &val->nonatomic, add );	
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_fetch_and_add( &val->nonatomic, add );
 #else 
@@ -298,6 +307,8 @@ static FORCEINLINE int64_t atomic_add64( atomic64_t* val, int64_t add )
 #endif
 #elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicAdd64( add, (int64_t*)&val->nonatomic );
+#elif FOUNDATION_ARCH_MIPS
+	return __foundation_sync_add_and_fetch_8( &val->nonatomic, add );	
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( &val->nonatomic, add );
 #else 
@@ -329,6 +340,8 @@ static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref 
 	return ( _InterlockedCompareExchange64( (volatile long long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicCompareAndSwap64( ref, val, (int64_t*)&dst->nonatomic );
+#elif FOUNDATION_ARCH_MIPS
+	return __foundation_sync_bool_compare_and_swap_8( &dst->nonatomic, ref, val );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( &dst->nonatomic, ref, val );
 #else 

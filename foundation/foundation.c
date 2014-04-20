@@ -31,6 +31,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _foundation_initialized )
 		return 0;
 	
+	if( _atomic_initialize() < 0 )
+		return -1;
+	
 	if( _memory_initialize( memory ) < 0 )
 		return -1;
 
@@ -115,6 +118,7 @@ void foundation_shutdown( void )
 	_log_shutdown();
 	_static_hash_shutdown();
 	_memory_shutdown();
+	_atomic_shutdown();
 }
 
 
