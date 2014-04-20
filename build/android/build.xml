@@ -84,11 +84,16 @@
                 dir="../../lib/android/debug/x86"
                 includes="lib*.so" />
         </copy>
-        <!--<copy todir="${jar.libs.dir}/mips">
+        <copy todir="${jar.libs.dir}/mips">
             <fileset 
-                dir="../../lib/android/release/mips"
+                dir="../../lib/android/debug/mips"
                 includes="lib*.so" />
-        </copy>-->
+        </copy>
+        <copy todir="${jar.libs.dir}/armeabi">
+            <fileset 
+                dir="../../lib/android/debug/armeabi"
+                includes="lib*.so" />
+        </copy>
         <copy todir="assets/config">
             <fileset 
                 dir="../../config" 
