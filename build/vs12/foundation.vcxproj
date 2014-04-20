@@ -87,6 +87,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\foundation\array.c" />
     <ClCompile Include="..\..\foundation\assert.c" />
+    <ClCompile Include="..\..\foundation\atomic.c" />
     <ClCompile Include="..\..\foundation\base64.c" />
     <ClCompile Include="..\..\foundation\bitbuffer.c" />
     <ClCompile Include="..\..\foundation\blowfish.c" />
