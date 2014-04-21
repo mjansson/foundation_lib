@@ -96,7 +96,7 @@ extern int test_string_run( void );
 extern int test_uuid_run( void );
 typedef int (*test_run_fn)( void );
 
-void* test_runner( object_t obj, void* arg )
+static void* test_runner( object_t obj, void* arg )
 {
 	test_run_fn* tests = (test_run_fn*)arg;
 	int test_fn = 0;

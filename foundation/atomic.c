@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 #if FOUNDATION_ARCH_ARM && FOUNDATION_ARCH_THUMB
