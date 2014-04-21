@@ -35,6 +35,9 @@ build/android/libs
 #Xcode build
 build/xcode/foundation/build
 
+#Doxygen generated
+doc/html
+
 #################
 ## Visual Studio
 #################

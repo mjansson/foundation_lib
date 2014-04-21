@@ -1,0 +1,79 @@
+/*! \mainpage Overview
+
+	\subpage build_page
+	<br>How to build the library on supported platforms, architectures and compilers <br> <br>
+	\subpage using_page
+	<br>How to use the library in a project
+
+    \page build_page Building
+    \tableofcontents
+    \section overview Overview
+    \subsection configs Configurations
+    The library can be built in four different build configurations with increasing amount of optimizations
+    and decreasing amount of debug possibilities. The configurations are named debug, release, profile and deploy
+    with the deploy configuration the recommended configuration for releases to the public.
+    \subsubsection debug Debug
+    In debug configuration no optimizations are enabled and all debug functionality is available in the library, including
+    asserts, logging and error handling. This configuration is intented for development purposes.
+    \subsubsection release Release
+    In release configuration most optimizations are enabled and all debug functionality is available in the library, including
+    asserts, logging and error handling. This configuration is intented for testing purposes.
+    \subsubsection profile Profile
+    In profile configuration all optimizations are enabled and all debug functionality is disabled in the library, including
+    asserts, logging and error handling. Profiling hooks and measurements are included in the library code. This configuration
+    is intented for profiling purposes, as it is identical to the final deploy build except for profiling code being enabled.
+    \subsubsection deploy Deploy
+    In deploy configuration all optimizations are enabled and all debug functionality is disabled in the library, including
+    asserts, logging and error handling. Profiling is also disabled. This configuration is intented for public releases.
+	\subsection output Output
+	Libraries will be placed in lib/[platform]/[configuration]/ with platform names
+	<ul>
+	<li>win32
+	<li>win64
+	<li>osx
+	<li>ios
+	<li>android
+	</ul>
+	Configuration names are
+	<ul>
+	<li>debug
+	<li>release
+	<li>profile
+	<li>deploy
+	</ul>
+
+	Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/
+
+    \section windows Windows
+	On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2012/2013, as well as
+	with Microsoft, Intel, GCC and clang compilers using SCons. Both 32 and 64 bit Windows are supported.
+	\subsection win_vstudio Visual Studio
+	To build with Visual Studio, open the foundation.sln solution file for the Visual Studio version used. Currently
+	there are solution files provided for Visual Studio 2012 and 2013 in build/vs12 and build/vs13 respectively.
+
+	To build all targets and configurations use batch build, select all targets and build. 
+
+	\subsection win_scons SCons
+	To build with SCons 
+
+    \section osx MacOS X
+	\subsection osx_xcode XCode
+	XCode is the only supported method of building the library and test cases on MacOS X.
+
+    \section linux Linux
+    \subsection linux_scons SCons
+    SCons is the only supported method of building the library on Linux.
+
+    \section ios iOS
+	\subsection ios_xcode XCode
+	XCode is the only supported method of building the library and test cases for iOS.
+
+    \section android Android
+	\subsection android_ndk NDK build
+	The NDK build system is the only supported method of building the library and test cases for Android. You can
+	build on any host platform supported by the Android SDK/NDK.
+
+
+	\page using_page Using the foundation library
+
+*/
