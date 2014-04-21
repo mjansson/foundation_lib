@@ -145,6 +145,7 @@
 		CD8D683017ED7A27009F11EB /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD5ED0D617D66F9B00C94373 /* libfoundation.a */; };
 		CD8D683117ED7A27009F11EB /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD8D67FF17ED7848009F11EB /* libtest.a */; };
 		CD8D683917ED7C2C009F11EB /* test-ios.xib in Resources */ = {isa = PBXBuildFile; fileRef = CD8D683817ED7C2C009F11EB /* test-ios.xib */; };
+		CDF5F01F1905060D005EE9AF /* atomic.c in Sources */ = {isa = PBXBuildFile; fileRef = CDF5F01E1905060D005EE9AF /* atomic.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -303,6 +304,7 @@
 		CD8D681B17ED7992009F11EB /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		CD8D682E17ED79C9009F11EB /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/all/main.c; sourceTree = "<group>"; };
 		CD8D683817ED7C2C009F11EB /* test-ios.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = "test-ios.xib"; path = "../../../test/test/test-ios.xib"; sourceTree = "<group>"; };
+		CDF5F01E1905060D005EE9AF /* atomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = atomic.c; path = ../../../foundation/atomic.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -369,6 +371,7 @@
 				CD5ED0F517D6708400C94373 /* assert.h */,
 				CD5ED0F617D6708400C94373 /* assetstream.c */,
 				CD5ED0F717D6708400C94373 /* assetstream.h */,
+				CDF5F01E1905060D005EE9AF /* atomic.c */,
 				CD5ED0F817D6708400C94373 /* atomic.h */,
 				CD5ED0F917D6708400C94373 /* base64.c */,
 				CD5ED0FA17D6708400C94373 /* base64.h */,
@@ -962,6 +965,7 @@
 				CD5ED16817D6708400C94373 /* foundation.c in Sources */,
 				CD5ED16A17D6708400C94373 /* fs.c in Sources */,
 				CD5ED16C17D6708400C94373 /* hash.c in Sources */,
+				CDF5F01F1905060D005EE9AF /* atomic.c in Sources */,
 				CD5ED16E17D6708400C94373 /* hashmap.c in Sources */,
 				CD5ED17117D6708400C94373 /* hashtable.c in Sources */,
 				CD5ED17417D6708400C94373 /* library.c in Sources */,

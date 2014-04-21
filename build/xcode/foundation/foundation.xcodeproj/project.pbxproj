@@ -304,6 +304,9 @@
 		CDD6196E186CB154003369E9 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD316F2557500D36B24 /* Carbon.framework */; };
 		CDD6196F186CB154003369E9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD1C2FD116F2556300D36B24 /* Cocoa.framework */; };
 		CDD61970186CB154003369E9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7F384416E21E00000346C0 /* CoreFoundation.framework */; };
+		CDF5F01B190505B7005EE9AF /* atomic.c in Sources */ = {isa = PBXBuildFile; fileRef = CDF5F018190505B7005EE9AF /* atomic.c */; };
+		CDF5F01C190505B7005EE9AF /* bitbuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CDF5F019190505B7005EE9AF /* bitbuffer.c */; };
+		CDF5F01D190505B7005EE9AF /* bitbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF5F01A190505B7005EE9AF /* bitbuffer.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1436,6 +1439,9 @@
 		CDD6195A186CB115003369E9 /* test-profile */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-profile"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDD61966186CB143003369E9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/profile/main.c; sourceTree = "<group>"; };
 		CDF561B816FDC87F00D041C0 /* test-math */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-math"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDF5F018190505B7005EE9AF /* atomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = atomic.c; path = ../../../foundation/atomic.c; sourceTree = "<group>"; };
+		CDF5F019190505B7005EE9AF /* bitbuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bitbuffer.c; path = ../../../foundation/bitbuffer.c; sourceTree = "<group>"; };
+		CDF5F01A190505B7005EE9AF /* bitbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bitbuffer.h; path = ../../../foundation/bitbuffer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2116,9 +2122,12 @@
 				CDCEF44616D2D2B000198086 /* assert.h */,
 				CDCEF44716D2D2B000198086 /* assetstream.c */,
 				CDCEF44816D2D2B000198086 /* assetstream.h */,
+				CDF5F018190505B7005EE9AF /* atomic.c */,
 				CDCEF44916D2D2B000198086 /* atomic.h */,
 				CDCEF44A16D2D2B000198086 /* base64.c */,
 				CDCEF44B16D2D2B000198086 /* base64.h */,
+				CDF5F019190505B7005EE9AF /* bitbuffer.c */,
+				CDF5F01A190505B7005EE9AF /* bitbuffer.h */,
 				CDCEF44C16D2D2B000198086 /* bits.h */,
 				CDCEF44D16D2D2B000198086 /* blowfish.c */,
 				CDCEF44E16D2D2B000198086 /* blowfish.h */,
@@ -2382,6 +2391,7 @@
 				CDCEF4A516D2D2B100198086 /* error.h in Headers */,
 				CDCEF4A716D2D2B100198086 /* event.h in Headers */,
 				CDCEF4A916D2D2B100198086 /* foundation.h in Headers */,
+				CDF5F01D190505B7005EE9AF /* bitbuffer.h in Headers */,
 				CDCEF4AB16D2D2B100198086 /* fs.h in Headers */,
 				CDCEF4AD16D2D2B100198086 /* hash.h in Headers */,
 				CDCEF4AE16D2D2B100198086 /* hashstrings.h in Headers */,
@@ -3408,10 +3418,12 @@
 				CDCEF4CB16D2D2B100198086 /* semaphore.c in Sources */,
 				CDCEF4CD16D2D2B100198086 /* stream.c in Sources */,
 				CDCEF4CF16D2D2B100198086 /* string.c in Sources */,
+				CDF5F01C190505B7005EE9AF /* bitbuffer.c in Sources */,
 				CDCEF4D116D2D2B100198086 /* system.c in Sources */,
 				CDCEF4D316D2D2B100198086 /* thread.c in Sources */,
 				CDCEF4D516D2D2B100198086 /* time.c in Sources */,
 				CD7F382916E151E5000346C0 /* radixsort.c in Sources */,
+				CDF5F01B190505B7005EE9AF /* atomic.c in Sources */,
 				CD1C2FD616F25DEF00D36B24 /* system.m in Sources */,
 				CD1C2FD816F2640B00D36B24 /* environment.m in Sources */,
 				CDBE40AC172C546C00C7AC40 /* hashmap.c in Sources */,
