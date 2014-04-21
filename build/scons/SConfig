@@ -1,8 +1,6 @@
-debug           = 0   # 0 -> release build, 1 -> debug build
-profile         = 0   # 1 = profile build
-deploy          = 0   # 1 = deploy build
-arch            = ''  # '', 'x86', 'x86_64', 'arm'
-sse             = '2'   # SSE version support, 2, 3 or 4
-platform        = ''  # '','linux', 'macosx', win32', 'win64', 'raspberrypi'
-libsuffix       = ''  # suffix appended to all target library filenames
-tools           = 'gnu'  # Tools to use, 'intel', 'gnu', 'msvc'
+config          = 'debug'  # Build configuration, 'debug', 'release', 'profile', 'deploy'
+arch            = ''       # '', 'x86', 'x86_64'
+sse             = '2'      # SSE version support, 2, 3 or 4
+platform        = ''       # '','linux', 'macosx', win32', 'win64', 'raspberrypi'
+libsuffix       = ''       # suffix appended to all target library filenames
+tools           = 'gnu'    # Tools to use, 'intel', 'gnu', 'msvc', 'clang'

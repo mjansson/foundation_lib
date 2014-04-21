@@ -3,14 +3,12 @@ import os
 opts = Variables( 'build/scons/SConfig', ARGUMENTS )
 
 opts.AddVariables(
-	BoolVariable( 'debug',          'Debug build', 0 ),
-	BoolVariable( 'profile',        'Profile build', 0 ),
-	BoolVariable( 'deploy',         'Deploy build', 0 ),
-	EnumVariable( 'arch',           'Architecture to compile for', '', allowed_values=( '', 'x86', 'x86_64', 'arm' ) ),
+	EnumVariable( 'config',         'Build configuration', 'debug', allowed_values=( 'debug', 'release', 'profile', 'deploy' ) ),
+	EnumVariable( 'arch',           'Architecture to compile for', '', allowed_values=( '', 'x86', 'x86_64' ) ),
 	EnumVariable( 'sse',            'SSE instruction set to use', '2', allowed_values=( '2', '3', '4' ) ),
 	EnumVariable( 'platform',       'Platform to compile for', '', allowed_values=( '', 'linux', 'win32', 'win64', 'macosx', 'raspberrypi' ) ),
 	( 'libsuffix',                  'Extra library name suffix', '' ),
-	EnumVariable( 'tools',          'Tools to use to build', 'gnu', allowed_values=( 'intel', 'gnu', 'msvc' ) ),
+	EnumVariable( 'tools',          'Tools to use to build', 'gnu', allowed_values=( 'intel', 'gnu', 'msvc', 'clang' ) ),
 )
 
 baseenv = Environment( variables=opts )
@@ -57,7 +55,6 @@ env = Environment(
 	CPPPATH=['#'],
 	TARGET_ARCH=baseenv['TARGET_ARCH'],
 	HOST_ARCH=baseenv['HOST_ARCH'],
-	#tool=[ baseenv['tools'] ]
 	tools=baseenv['toolslist']
 )
 
@@ -100,6 +97,8 @@ if env['platform'] == 'linux':
 		env['platformsuffix'] = '64'
 	else:
 		env['platformsuffix'] = env['arch']
+
+env['buildprofile'] = env['config']
 
 #print "HOST_ARCH: %s" % baseenv['HOST_ARCH']
 #print "TARGET_ARCH: %s" % baseenv['TARGET_ARCH']
@@ -176,7 +175,7 @@ if env['CC'] == 'gcc':
 
 
 # SETUP DEBUG ENVRIONMENT
-if env['debug']:
+if env['buildprofile'] == 'debug':
 	print "Building DEBUG configuration"
 	env.Append( CPPDEFINES=['BUILD_DEBUG=1'] )
 	env['buildpath'] = 'debug'
@@ -186,10 +185,9 @@ if env['debug']:
 			env.Append( CFLAGS=['-funsafe-math-optimizations','-fno-trapping-math'] )
 	if env['CC'] == 'icl':
 		env.Append( CFLAGS=['/Od'] )
-	env['buildprofile'] = 'debug'
 
 # SETUP RELEASE ENVIRONMENT
-elif not env['deploy'] and not env['profile']:
+elif env['buildprofile'] == 'release':
 	print "Building RELEASE configuration"
 	env.Append( CPPDEFINES=['BUILD_RELEASE=1'] )
 	env['buildpath'] = 'release';
@@ -197,10 +195,9 @@ elif not env['deploy'] and not env['profile']:
 		env.Append( CFLAGS=['-g','-O3','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
 		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF'] )
-	env['buildprofile'] = 'release'
 
 # SETUP PROFILE ENVIRONMENT
-elif env['profile']:
+elif env['buildprofile'] == 'profile':
 	print "Building PROFILE configuration"
 	env.Append( CPPDEFINES=['BUILD_PROFILE=1'] )
 	env['buildpath'] = 'profile';
@@ -208,10 +205,9 @@ elif env['profile']:
 		env.Append( CFLAGS=['-g','-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
 		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF'] )
-	env['buildprofile'] = 'profile'
 
 # SETUP DEPLOY ENVIRONMENT
-else:
+elif env['buildprofile'] == 'deploy':
 	print "Building DEPLOY configuration"
 	env.Append( CPPDEFINES=['BUILD_DEPLOY=1'] )
 	env['buildpath'] = 'deploy';
@@ -219,7 +215,6 @@ else:
 		env.Append( CFLAGS=['-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
 		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF'] )
-	env['buildprofile'] = 'deploy'
 
 
 # SETUP COMMON ENVIRONMENT
@@ -237,7 +232,7 @@ SConscript( 'build/scons/%s/foundation/SConscript' % env['buildpath']  )
 VariantDir( 'build/scons/%s/test' % env['buildpath'] , 'test', duplicate=0 )
 SConscript( 'build/scons/%s/test/SConscript' % env['buildpath']  )
 
-if not env['profile'] and not env['deploy']:
+if env['buildprofile'] != 'profile' and env['buildprofile'] != 'deploy':
 
    VariantDir( 'build/scons/%s/tools' % env['buildpath'] , 'tools', duplicate=0 )
    SConscript( 'build/scons/%s/tools/SConscript' % env['buildpath']  )
