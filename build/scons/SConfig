@@ -1,6 +1,6 @@
 config          = 'debug'  # Build configuration, 'debug', 'release', 'profile', 'deploy'
 arch            = ''       # '', 'x86', 'x86_64'
 sse             = '2'      # SSE version support, 2, 3 or 4
-platform        = ''       # '','linux', 'macosx', win32', 'win64', 'raspberrypi'
-libsuffix       = ''       # suffix appended to all target library filenames
-tools           = 'gnu'    # Tools to use, 'intel', 'gnu', 'msvc', 'clang'
+platform        = ''       # Target platform, '','linux', 'macosx', win32', 'win64', 'raspberrypi'
+libsuffix       = ''       # Suffix appended to all target library filenames
+tools           = ''       # Tools to use, 'intel', 'gnu', 'msvc', 'clang'

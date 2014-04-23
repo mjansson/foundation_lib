@@ -8,7 +8,7 @@ opts.AddVariables(
 	EnumVariable( 'sse',            'SSE instruction set to use', '2', allowed_values=( '2', '3', '4' ) ),
 	EnumVariable( 'platform',       'Platform to compile for', '', allowed_values=( '', 'linux', 'win32', 'win64', 'macosx', 'raspberrypi' ) ),
 	( 'libsuffix',                  'Extra library name suffix', '' ),
-	EnumVariable( 'tools',          'Tools to use to build', 'gnu', allowed_values=( 'intel', 'gnu', 'msvc', 'clang' ) ),
+	EnumVariable( 'tools',          'Tools to use to build', 'gnu', allowed_values=( '', 'intel', 'gnu', 'msvc', 'clang' ) ),
 )
 
 baseenv = Environment( variables=opts )
@@ -29,9 +29,11 @@ if ( "%s" % baseenv['HOST_ARCH'] ) == 'None':
 if baseenv['PLATFORM'] == 'win32':
 	if baseenv['tools'] == 'gnu':
 		baseenv['toolslist'] = ['mingw']
-	if baseenv['tools'] == 'intel':
-		baseenv['toolslist'] = ['default','intelc','mslib']
-	if baseenv['tools'] == 'msvc':
+	elif baseenv['tools'] == 'intel':
+		baseenv['toolslist'] = ['default','intelc']
+	elif baseenv['tools'] == 'clang':
+		baseenv['toolslist'] = ['mingw']
+	else: #if baseenv['tools'] == 'msvc':
 		baseenv['toolslist'] = ['default','msvc','mslib']
 elif baseenv['PLATFORM'] == 'posix':
 	if baseenv['tools'] == 'gnu':
@@ -111,6 +113,9 @@ print "Building on " + env['PLATFORM'] + " (" + env['HOST_ARCH'] + ") for " + en
 Help( opts.GenerateHelpText( env ) )
 
 # SETUP DEFAULT COMPILER AND LINKER FLAGS SHARED BY ALL CONFIGS
+if baseenv['tools'] == 'clang':
+	env['CC'] = 'clang'
+	env['AR'] = 'llvm-ar'
 if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	env.Append( CFLAGS=['-std=gnu99','-W','-Wall','-Wcast-align','-Wcast-qual','-Wchar-subscripts','-Winline','-Wpointer-arith','-Wredundant-decls','-Wshadow','-Wwrite-strings','-Wno-variadic-macros','-Wno-long-long','-Wno-format','-Wno-unused','-Wundef','-Wstrict-aliasing','-Wno-missing-field-initializers','-Wno-missing-braces','-Wno-unused-parameter','-ftabstop=4','-fstrict-aliasing'] )
 	if env['platform'] == 'raspberrypi':
@@ -132,7 +137,8 @@ if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	env.Append( LINKFLAGS=['-pthread'] )
 
 if env['CC'] == 'icl':
-	env.Append( CFLAGS=['/Zi','/W3','/WX','/Oi','/Oy-','/Quse-intel-optimized-headers','/MT','/GS-','/fp:fast=2','/QxSSE3','/GR-','/Qstd=c99','/Qrestrict','/Qansi-alias'] )
+	env.Append( CFLAGS=['/Zi','/W3','/WX','/Oi','/Quse-intel-optimized-headers','/MT','/GS-','/fp:fast=2','/QxSSE3','/GR-','/Qstd=c99','/Qrestrict','/Qansi-alias'] )
+	env['AR'] = 'xilib'
 
 if env['CC'] == 'cl':
 	env.Append( CFLAGS=['/Zi','/W3','/WX','/Oi','/Oy-','/MT','/Gy-','/Gm-','/GS-','/fp:fast','/fp:except-','/GR-'] )

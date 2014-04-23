@@ -25,6 +25,11 @@
 			"name": "SCons - MSVC",
 			"shell_cmd": "scons tools=msvc",
 			"working_dir": "${project_path:${folder:${file_path}}}\\..",
+		},
+		{
+			"name": "SCons - CLang",
+			"shell_cmd": "scons tools=clang",
+			"working_dir": "${project_path:${folder:${file_path}}}\\..",
 		}
 	]
 }
