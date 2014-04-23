@@ -17,8 +17,13 @@
 	"build_systems":
 	[
 		{
-			"name": "SCons",
+			"name": "SCons - Intel",
 			"shell_cmd": "scons tools=intel",
+			"working_dir": "${project_path:${folder:${file_path}}}\\..",
+		},
+		{
+			"name": "SCons - MSVC",
+			"shell_cmd": "scons tools=msvc",
 			"working_dir": "${project_path:${folder:${file_path}}}\\..",
 		}
 	]

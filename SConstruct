@@ -31,6 +31,8 @@ if baseenv['PLATFORM'] == 'win32':
 		baseenv['toolslist'] = ['mingw']
 	if baseenv['tools'] == 'intel':
 		baseenv['toolslist'] = ['default','intelc','mslib']
+	if baseenv['tools'] == 'msvc':
+		baseenv['toolslist'] = ['default','msvc','mslib']
 elif baseenv['PLATFORM'] == 'posix':
 	if baseenv['tools'] == 'gnu':
 		baseenv['toolslist'] = ['default']
@@ -130,10 +132,15 @@ if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	env.Append( LINKFLAGS=['-pthread'] )
 
 if env['CC'] == 'icl':
-	env.Append( CFLAGS=['/Zi','/W3','/WX','/Oi','/Quse-intel-optimized-headers','/MT','/GS-','/fp:fast=2','/QxSSE3','/GR-','/Qstd=c99','/Qrestrict','/Qansi-alias'] )
+	env.Append( CFLAGS=['/Zi','/W3','/WX','/Oi','/Oy-','/Quse-intel-optimized-headers','/MT','/GS-','/fp:fast=2','/QxSSE3','/GR-','/Qstd=c99','/Qrestrict','/Qansi-alias'] )
 
 if env['CC'] == 'cl':
-	env.Append( LINKFLAGS=[ '/MACHINE:X86' ] )
+	env.Append( CFLAGS=['/Zi','/W3','/WX','/Oi','/Oy-','/MT','/Gy-','/Gm-','/GS-','/fp:fast','/fp:except-','/GR-'] )
+	if env['platform'] == 'win32':
+		env.Append( CFLAGS=['/arch:SSE2'] )
+		env.Append( LINKFLAGS=['/MACHINE:X86'])
+	if env['platform'] == 'win64':
+		env.Append( LINKFLAGS=['/MACHINE:X64'])
 
 
 # SETUP DEFAULT ENVIRONMENT
@@ -185,6 +192,8 @@ if env['buildprofile'] == 'debug':
 			env.Append( CFLAGS=['-funsafe-math-optimizations','-fno-trapping-math'] )
 	if env['CC'] == 'icl':
 		env.Append( CFLAGS=['/Od'] )
+	if env['CC'] == 'cl':
+		env.Append( CFLAGS=['/Od'] )
 
 # SETUP RELEASE ENVIRONMENT
 elif env['buildprofile'] == 'release':
@@ -194,7 +203,11 @@ elif env['buildprofile'] == 'release':
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-g','-O3','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
-		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF'] )
+		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF','/GL'] )
+		env.Append( LINKFLAGS=['/LTCG'])
+	if env['CC'] == 'cl':
+		env.Append( CFLAGS=['/O2','/Ob2','/Ot','/GT','/GF','/GL'] )
+		env.Append( LINKFLAGS=['/LTCG'])
 
 # SETUP PROFILE ENVIRONMENT
 elif env['buildprofile'] == 'profile':
@@ -204,7 +217,11 @@ elif env['buildprofile'] == 'profile':
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-g','-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
-		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF'] )
+		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF','/GL'] )
+		env.Append( LINKFLAGS=['/LTCG'])
+	if env['CC'] == 'cl':
+		env.Append( CFLAGS=['/O2','/Ob2','/Ot','/GT','/GF','/GL'] )
+		env.Append( LINKFLAGS=['/LTCG'])
 
 # SETUP DEPLOY ENVIRONMENT
 elif env['buildprofile'] == 'deploy':
@@ -214,7 +231,11 @@ elif env['buildprofile'] == 'deploy':
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
-		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF'] )
+		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF','/GL'] )
+		env.Append( LINKFLAGS=['/LTCG'])
+	if env['CC'] == 'cl':
+		env.Append( CFLAGS=['/O2','/Ob2','/Ot','/GT','/GF','/GL'] )
+		env.Append( LINKFLAGS=['/LTCG'])
 
 
 # SETUP COMMON ENVIRONMENT

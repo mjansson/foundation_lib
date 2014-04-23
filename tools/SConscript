@@ -13,6 +13,10 @@ if toolsenv['platform'] == 'linux':
 	toolsenv.Append( LIBS=[ 'dl', 'rt', 'm' ] )
 elif toolsenv['platform'] == 'raspberrypi':
 	toolsenv.Append( LIBS=[ 'bcm_host', 'rt', 'm' ] )
+elif toolsenv['platform'] == 'win32' or toolsenv['platform'] == 'win64':
+	toolsenv.Append( LIBS=[ 'user32', 'shell32', 'advapi32' ] )
+	if toolsenv['CC'] == 'cl' or toolsenv['CC'] == 'icl':
+		toolsenv.Append( LINKFLAGS=['/SUBSYSTEM:CONSOLE'])
 
 env['bin2hexprg'] = toolsenv.Program( 'bin/bin2hex${prgsuffix}', 'bin2hex/main.c' )
 env['hashifyprg'] = toolsenv.Program( 'bin/hashify${prgsuffix}', 'hashify/main.c' )
