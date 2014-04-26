@@ -62,9 +62,9 @@ FOUNDATION_API int                  assert_report_formatted( uint64_t context, c
 #undef FOUNDATION_ASSERT
 
 #if FOUNDATION_PLATFORM_WINDOWS
-FOUNDATION_EXTERN void __cdecl __debugbreak(void);
+FOUNDATION_API void                 _assert_debug_break( void );
 #  define _FOUNDATION_RAW_DUMP() (*(volatile int*)3 = 0)
-#  define _FOUNDATION_RAW_BREAKPOINT() (__debugbreak())
+#  define _FOUNDATION_RAW_BREAKPOINT() (_assert_debug_break())
 #elif FOUNDATION_PLATFORM_MACOSX
 FOUNDATION_EXTERN void Debugger(void);
 #  define _FOUNDATION_RAW_DUMP() (__builtin_trap())

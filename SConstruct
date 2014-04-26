@@ -1,6 +1,6 @@
 import os
 
-opts = Variables( 'build/scons/SConfig', ARGUMENTS )
+opts = Variables( ['build/scons/SConfig', 'SConfig'], ARGUMENTS )
 
 opts.AddVariables(
 	EnumVariable( 'config',         'Build configuration', 'debug', allowed_values=( 'debug', 'release', 'profile', 'deploy' ) ),
@@ -9,6 +9,7 @@ opts.AddVariables(
 	EnumVariable( 'platform',       'Platform to compile for', '', allowed_values=( '', 'linux', 'win32', 'win64', 'macosx', 'raspberrypi' ) ),
 	( 'libsuffix',                  'Extra library name suffix', '' ),
 	EnumVariable( 'tools',          'Tools to use to build', 'gnu', allowed_values=( '', 'intel', 'gnu', 'msvc', 'clang' ) ),
+	( 'includepath',                'Extra system include path', '' ),
 )
 
 baseenv = Environment( variables=opts )
@@ -59,7 +60,8 @@ env = Environment(
 	CPPPATH=['#'],
 	TARGET_ARCH=baseenv['TARGET_ARCH'],
 	HOST_ARCH=baseenv['HOST_ARCH'],
-	tools=baseenv['toolslist']
+	tools=baseenv['toolslist'],
+	ENV = os.environ
 )
 
 #for item in sorted(baseenv.Dictionary().items()):
@@ -116,6 +118,7 @@ Help( opts.GenerateHelpText( env ) )
 if baseenv['tools'] == 'clang':
 	env['CC'] = 'clang'
 	env['AR'] = 'llvm-ar'
+
 if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	env.Append( CFLAGS=['-std=gnu99','-W','-Wall','-Wcast-align','-Wcast-qual','-Wchar-subscripts','-Winline','-Wpointer-arith','-Wredundant-decls','-Wshadow','-Wwrite-strings','-Wno-variadic-macros','-Wno-long-long','-Wno-format','-Wno-unused','-Wundef','-Wstrict-aliasing','-Wno-missing-field-initializers','-Wno-missing-braces','-Wno-unused-parameter','-ftabstop=4','-fstrict-aliasing'] )
 	if env['platform'] == 'raspberrypi':
@@ -126,6 +129,9 @@ if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( LIBPATH=['/opt/vc/lib'] )
 		#echo 'SUBSYSTEM=="vchiq",GROUP="video",MODE="0660"' > /etc/udev/rules.d/10-vchiq-permissions.rules
 	    #usermod -a -G video [your_username]
+	if env['platform'] == 'win32' or env['platform'] == 'win64':
+		#Some warnings disabled due to MinGW header breakage
+		env.Append( CFLAGS=['-Wno-ignored-attributes', '-Wno-typedef-redefinition', '-Wno-undef', '-Wno-unknown-pragmas', '-Wno-redundant-decls', '-Wno-shadow'] )
 	if env['arch'] == 'x86':
 		env.Append( CCFLAGS=['-m32'] )
 		env.Append( LINKFLAGS=['-m32'] )
@@ -148,44 +154,12 @@ if env['CC'] == 'cl':
 	if env['platform'] == 'win64':
 		env.Append( LINKFLAGS=['/MACHINE:X64'])
 
+if baseenv['includepath'] != '':
+		env.Append( CPPPATH=[baseenv['includepath']] )
 
 # SETUP DEFAULT ENVIRONMENT
-#if env['PLATFORM'] == 'win32':
-#	# AVOID CMDLINE LENGTH OVERFLOW
-#	import win32file 
-#	import win32event  
-#	import win32process 
-#	import win32security 
-#	import string 
-#	import shutil
-#
-#	def my_spawn(sh, escape, cmd, args, spawnenv): 
-#		for var in spawnenv:  
-#			spawnenv[var] = spawnenv[var].encode('ascii', 'replace') 
-#		sAttrs = win32security.SECURITY_ATTRIBUTES() 
-#		StartupInfo = win32process.STARTUPINFO() 
-#		newargs = string.join( args[1:], ' ' ) #map(escape, args[1:]), ' ') 
-#		cmdline = cmd + " " + newargs 
-#		exit_code = 0
-#		# check for any special operating system commands 
-#		if cmd == 'del':
-#			for arg in args[1:]: 
-#				win32file.DeleteFile(arg) 
-#		elif cmd == 'copy':
-#			shutil.copyfile(args[1].strip('"'),args[2].strip('"'))
-#		else:
-#			# otherwise execute the command.
-#			hProcess, hThread, dwPid, dwTid = win32process.CreateProcess(None, cmdline, None, None, 1, 0, spawnenv, None, StartupInfo) 
-#			win32event.WaitForSingleObject(hProcess, win32event.INFINITE) 
-#			exit_code = win32process.GetExitCodeProcess(hProcess)
-#			win32file.CloseHandle(hProcess); 
-#			win32file.CloseHandle(hThread); 
-#		return exit_code  
-#	env['SPAWN'] = my_spawn
-
 if env['CC'] == 'gcc':
 	env['BUILDERS']['PCH'] = Builder( action = '$CXX -x c++-header $CXXFLAGS $_CPPINCFLAGS $_CPPDEFFLAGS -o $TARGET $SOURCE', suffix = '.h.gch', src_suffix = '.h' )
-
 
 # SETUP DEBUG ENVRIONMENT
 if env['buildprofile'] == 'debug':

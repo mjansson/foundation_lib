@@ -242,6 +242,13 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+LONG WINAPI _thread_set_name_exception_filter( LPEXCEPTION_POINTERS pointers )
+{
+	return EXCEPTION_CONTINUE_EXECUTION;
+}
+#endif
+
 static void NOINLINE _set_thread_name( const char* threadname )
 {
 	THREADNAME_INFO info;
@@ -250,14 +257,22 @@ static void NOINLINE _set_thread_name( const char* threadname )
 	info.dwThreadID = -1;
 	info.dwFlags = 0;
 
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+	LPTOP_LEVEL_EXCEPTION_FILTER prev_filter = SetUnhandledExceptionFilter( _thread_set_name_exception_filter );
+#else
 	__try
+#endif
 	{
 		RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
 	}
-	__except(EXCEPTION_CONTINUE_EXECUTION) //Does EXCEPTION_EXECUTE_HANDLER require a debugger present?
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+	SetUnhandledExceptionFilter( prev_filter );
+#else
+	__except( EXCEPTION_CONTINUE_EXECUTION ) //Does EXCEPTION_EXECUTE_HANDLER require a debugger present?
 	{
 		atomic_thread_fence_release();
 	}
+#endif
 }
 
 #endif

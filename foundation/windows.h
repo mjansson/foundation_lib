@@ -39,7 +39,13 @@
 #define UUID_DEFINED 1
 #define UUID uuid_t
 
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+__MINGW_EXTENSION unsigned __int64 __readgsqword(unsigned __LONG32 Offset);
+#define __INTRINSIC_DEFINED___readgsqword
+#endif
+
 #define WIN32_LEAN_AND_MEAN
+
 #include <windows.h>
 #include <winsock2.h>
 #include <iptypes.h>
@@ -50,9 +56,9 @@
 #include <share.h>
 #include <io.h>
 #include <shellapi.h>
+#include <dbghelp.h>
+#include <stdlib.h>
 #if FOUNDATION_COMPILER_MSVC
-#  include <dbghelp.h>
-#  include <stdlib.h>
 //From shlobj.h
 EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE SHGetFolderPathW(__reserved HWND hwnd, __in int csidl, __in_opt HANDLE hToken, __in DWORD dwFlags, __out_ecount(MAX_PATH) LPWSTR pszPath);
 #  define CSIDL_LOCAL_APPDATA             0x001c        // <user name>\Local Settings\Application Data (non roaming)

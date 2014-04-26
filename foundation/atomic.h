@@ -22,7 +22,7 @@
 
     Signal fences guarantee memory order between threads on same core or between interrupt and signal.
 
-    Thread fences guarantee memory order between multiple threads and a multicore system */
+    Thread fences guarantee memory order between multiple threads on a multicore system */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -35,7 +35,7 @@
 #if FOUNDATION_ARCH_MIPS
 FOUNDATION_API uint64_t __foundation_sync_fetch_and_add_8( uint64_t* val, uint64_t add );
 FOUNDATION_API uint64_t __foundation_sync_add_and_fetch_8( uint64_t* val, uint64_t add );
-FOUNDATION_API bool __foundation_sync_bool_compare_and_swap_8( uint64_t* val, uint64_t oldval, uint64_t newval );
+FOUNDATION_API bool     __foundation_sync_bool_compare_and_swap_8( uint64_t* val, uint64_t oldval, uint64_t newval );
 #endif
 
 
@@ -245,7 +245,7 @@ static FORCEINLINE void atomic_storeptr( atomicptr_t* dst, void* val )
 
 static FORCEINLINE int32_t atomic_exchange_and_add32( atomic32_t* val, int32_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return _InterlockedExchangeAdd( (volatile long*)&val->nonatomic, add );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_fetch_and_add( &val->nonatomic, add );
@@ -257,7 +257,7 @@ static FORCEINLINE int32_t atomic_exchange_and_add32( atomic32_t* val, int32_t a
 
 static FORCEINLINE int atomic_add32( atomic32_t* val, int32_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	int32_t old = (int32_t)_InterlockedExchangeAdd( (volatile long*)&val->nonatomic, add );
 	return ( old + add );
 #elif FOUNDATION_PLATFORM_APPLE
@@ -275,7 +275,7 @@ static FORCEINLINE int atomic_decr32( atomic32_t* val ) { return atomic_add32( v
 
 static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_ARCH_X86
 	long long ref;
 	do { ref = val->nonatomic; } while( _InterlockedCompareExchange64( (volatile long long*)&val->nonatomic, ref + add, ref ) != ref );
@@ -299,7 +299,7 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t a
 
 static FORCEINLINE int64_t atomic_add64( atomic64_t* val, int64_t add )
 {
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_ARCH_X86
 	return atomic_exchange_and_add64( val, add ) + add;
 #  else
@@ -322,7 +322,7 @@ static FORCEINLINE int64_t atomic_decr64( atomic64_t* val ) { return atomic_add6
 
 static FORCEINLINE bool atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref )
 {
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return ( _InterlockedCompareExchange( (volatile long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicCompareAndSwap32( ref, val, (int32_t*)&dst->nonatomic );
@@ -336,7 +336,7 @@ static FORCEINLINE bool atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref 
 
 static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref )
 {
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return ( _InterlockedCompareExchange64( (volatile long long*)&dst->nonatomic, val, ref ) == ref ) ? true : false;
 #elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicCompareAndSwap64( ref, val, (int64_t*)&dst->nonatomic );

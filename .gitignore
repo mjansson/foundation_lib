@@ -38,6 +38,9 @@ build/xcode/foundation/build
 #Doxygen generated
 doc/html
 
+#Local config
+SConfig
+
 #################
 ## Visual Studio
 #################

@@ -4,3 +4,4 @@ sse             = '2'      # SSE version support, 2, 3 or 4
 platform        = ''       # Target platform, '','linux', 'macosx', win32', 'win64', 'raspberrypi'
 libsuffix       = ''       # Suffix appended to all target library filenames
 tools           = ''       # Tools to use, 'intel', 'gnu', 'msvc', 'clang'
+includepath     = ''       # Additional system include path

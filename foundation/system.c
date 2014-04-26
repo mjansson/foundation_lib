@@ -246,7 +246,7 @@ static uint32_t _system_user_locale( void )
 	{
 		wchar_t locale_sname[128] = {0};
 		char locale_string[8] = {0};
-		get_locale_info( LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, locale_sname, 32 );
+		get_locale_info( 0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname, 32 );
 		string_convert_utf16( locale_string, (uint16_t*)locale_sname, 8, (unsigned int)wcslen( locale_sname ) );
 		locale_string[5] = 0;
 		if( string_match_pattern( locale_string, "??" "-" "??" ) )

@@ -44,14 +44,6 @@ crash_dump_callback_fn crash_guard_callback( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  include <foundation/windows.h>
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
-#    define OUT
-#    define FAR
-#    define IN
-#    include <dbghelp.h>
-#  else
-#    define STDCALL __stdcall
-#  endif
 #  include <stdio.h>
 #  include <stdarg.h>
 
@@ -105,7 +97,7 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 	}
 }
 
-#  if FOUNDATION_COMPILER_GCC
+#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
 typedef struct
 {
@@ -122,7 +114,7 @@ LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 	if( _crash_exception_closure.callback )
 		_crash_exception_closure.callback( _crash_dump_file );
 	else
-		error_logf( "Exception occurred! Minidump written to: %ls", _crash_dump_file );
+		log_errorf( 0, ERROR_EXCEPTION, "Exception occurred! Minidump written to: %ls", _crash_dump_file );
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -187,7 +179,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
 	__try
 	{
 		return fn( data );

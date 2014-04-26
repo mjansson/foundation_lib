@@ -86,7 +86,7 @@ static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
 #  define USE_CAPTURESTACKBACKTRACE 1
 
-#  if FOUNDATION_COMPILER_GCC
+#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
 LONG WINAPI _stacktrace_exception_filter( LPEXCEPTION_POINTERS pointers )
 {
@@ -107,7 +107,7 @@ static int _capture_stack_trace_helper( void** trace, unsigned int max_depth, un
 	unsigned int   machine_type	= IMAGE_FILE_MACHINE_I386;
 	CONTEXT        context_copy = *context;
 
-#if FOUNDATION_COMPILER_GCC
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	LPTOP_LEVEL_EXCEPTION_FILTER prev_filter = SetUnhandledExceptionFilter( _stacktrace_exception_filter );
 #else
 	__try
@@ -145,7 +145,7 @@ static int _capture_stack_trace_helper( void** trace, unsigned int max_depth, un
 				trace[current_depth++] = (void*)((uintptr_t)stack_frame.AddrPC.Offset);
 		}
 	} 
-#if FOUNDATION_COMPILER_GCC
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	SetUnhandledExceptionFilter( prev_filter );
 #else
 	__except ( EXCEPTION_EXECUTE_HANDLER )

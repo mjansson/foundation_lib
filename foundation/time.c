@@ -150,7 +150,7 @@ deltatime_t time_ticks_to_seconds( const tick_t dt )
 }
 
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 struct __timeb64 {
 	__time64_t time;
 	unsigned short millitm;

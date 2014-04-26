@@ -30,6 +30,11 @@
 			"name": "SCons - CLang",
 			"shell_cmd": "scons tools=clang",
 			"working_dir": "${project_path:${folder:${file_path}}}\\..",
+		},
+		{
+			"name": "SCons - GCC",
+			"shell_cmd": "scons tools=gnu",
+			"working_dir": "${project_path:${folder:${file_path}}}\\..",
 		}
 	]
 }

@@ -842,6 +842,19 @@
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
+#    ifndef __USE_MINGW_ANSI_STDIO
+#      define __USE_MINGW_ANSI_STDIO 1
+#    endif
+#    ifndef _CRT_SECURE_NO_WARNINGS
+#      define _CRT_SECURE_NO_WARNINGS 1
+#    endif
+#    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
+#      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
+#    endif
+#    ifndef _MSC_VER
+#      define _MSC_VER 1300
+#    endif
+#    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
 #  endif
 
 #  include <stdbool.h>
@@ -871,6 +884,22 @@
 #  define PURECALL ATTRIBUTE(pure)
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
+
+#  if FOUNDATION_PLATFORM_WINDOWS
+#    define STDCALL
+#    ifndef __USE_MINGW_ANSI_STDIO
+#      define __USE_MINGW_ANSI_STDIO 1
+#    endif
+#    ifndef _CRT_SECURE_NO_WARNINGS
+#      define _CRT_SECURE_NO_WARNINGS 1
+#    endif
+#    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
+#      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
+#    endif
+#    ifndef _MSC_VER
+#      define _MSC_VER 1300
+#    endif
+#  endif
 
 #  include <stdbool.h>
 #  include <stdarg.h>
@@ -1079,9 +1108,9 @@ static FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t key = get_##
 
 #elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
 
-__declspec(dllimport) unsigned long __stdcall TlsAlloc();
-__declspec(dllimport) void*__stdcall TlsGetValue( unsigned long );
-__declspec(dllimport) int __stdcall TlsSetValue( unsigned long, void* );
+__declspec(dllimport) unsigned long STDCALL TlsAlloc();
+__declspec(dllimport) void* STDCALL TlsGetValue( unsigned long );
+__declspec(dllimport) int STDCALL TlsSetValue( unsigned long, void* );
 
 FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 
