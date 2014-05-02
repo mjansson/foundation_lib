@@ -40,3 +40,10 @@ FOUNDATION_API const char*                 crash_guard_name( void );
 /*! Get current global crash dump callback
     \return                                Crash dump callback */
 FOUNDATION_API crash_dump_callback_fn      crash_guard_callback( void );
+
+/*! Cause a debug break that will be caught by any attached debugger */
+FOUNDATION_API void                        crash_debug_break( void );
+
+/*! Cause a core dump (illegal instruction) that will hard crash the process */
+FOUNDATION_API void                        crash_dump( void );
+

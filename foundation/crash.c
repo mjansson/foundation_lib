@@ -238,3 +238,31 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #endif
 }
 
+
+#if FOUNDATION_PLATFORM_WINDOWS
+
+extern __declspec(dllimport) void STDCALL DebugBreak(void);
+
+#endif
+
+
+void crash_debug_break( void )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+	DebugBreak();
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+	__builtin_trap();
+#else
+	(*(volatile int*)3 = 0);
+#endif
+}
+
+
+void crash_dump( void )
+{
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+	__builtin_trap();
+#else
+	(*(volatile int*)3 = 0);
+#endif
+}

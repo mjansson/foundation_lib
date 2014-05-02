@@ -102,15 +102,3 @@ int assert_report_formatted( uint64_t context, const char* condition, const char
 	}
 	return assert_report( context, condition, file, line, _assert_buffer );
 }
-
-
-#if FOUNDATION_PLATFORM_WINDOWS
-
-extern void STDCALL DebugBreak(void);
-
-void _assert_debug_break( void )
-{
-	DebugBreak();
-}
-
-#endif

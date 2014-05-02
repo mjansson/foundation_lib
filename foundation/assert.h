@@ -19,6 +19,8 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/crash.h>
+
 
 /*! Get the currently set global assert handler
     \return                         Assert handler */
@@ -50,35 +52,6 @@ FOUNDATION_API int                  assert_report( uint64_t context, const char*
 	\param line                     Line number triggering assert
 	\param msg                      Assert information message format specifier */
 FOUNDATION_API int                  assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... );
-
-/*! \def FOUNDATION_DUMP
-    Cause a hard break (core dump) */
-
-/*! \def FOUNDATION_BREAKPOINT
-    Cause a break that will be caught by attached debugger */
-
-#undef FOUNDATION_DUMP
-#undef FOUNDATION_BREAKPOINT
-#undef FOUNDATION_ASSERT
-
-#if FOUNDATION_PLATFORM_WINDOWS
-FOUNDATION_API void                 _assert_debug_break( void );
-#  define _FOUNDATION_RAW_DUMP() (*(volatile int*)3 = 0)
-#  define _FOUNDATION_RAW_BREAKPOINT() (_assert_debug_break())
-#elif FOUNDATION_PLATFORM_MACOSX
-FOUNDATION_EXTERN void Debugger(void);
-#  define _FOUNDATION_RAW_DUMP() (__builtin_trap())
-#  define _FOUNDATION_RAW_BREAKPOINT() (Debugger(), __builtin_trap())
-#elif FOUNDATION_PLATFORM_IOS
-#  define _FOUNDATION_RAW_DUMP() (__builtin_trap())
-#  define _FOUNDATION_RAW_BREAKPOINT() (__builtin_trap())
-#else
-#  define _FOUNDATION_RAW_DUMP() (*(volatile int*)0 = 0)
-#  define _FOUNDATION_RAW_BREAKPOINT() (*(volatile int*)0 = 0)
-#endif
-
-#  define FOUNDATION_DUMP() do { _FOUNDATION_RAW_DUMP(); } while(0)
-#  define FOUNDATION_BREAKPOINT() do { _FOUNDATION_RAW_BREAKPOINT(); } while(0)
 
 /*! \def FOUNDATION_ASSERT
     Assert the given condition. If assert fails, call the assert report callback without a message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
@@ -118,13 +91,13 @@ FOUNDATION_EXTERN void Debugger(void);
 
 #if BUILD_ENABLE_ASSERT
 
-#  define FOUNDATION_ASSERT( cond ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ) FOUNDATION_BREAKPOINT(); } while(0)
-#  define FOUNDATION_ASSERT_MSG( cond, msg ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg) ) ) FOUNDATION_BREAKPOINT(); } while(0)
-#  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); } while(0)
-#  define FOUNDATION_ASSERT_FAIL( msg ) do { if( assert_report( 0ULL, 0, __FILE__, __LINE__, (msg) ) ) FOUNDATION_BREAKPOINT(); } while(0)
-#  define FOUNDATION_ASSERT_FAIL_LOG( context, msg ) do { if( assert_report( context, 0, __FILE__, __LINE__, (msg) ) ) FOUNDATION_BREAKPOINT(); (void)sizeof( context ); } while(0)
-#  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { if( assert_report_formatted( 0ULL, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); } while(0)
-#  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { if( assert_report_formatted( context, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) FOUNDATION_BREAKPOINT(); (void)sizeof( context ); } while(0)
+#  define FOUNDATION_ASSERT( cond ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_MSG( cond, msg ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg) ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_FAIL( msg ) do { if( assert_report( 0ULL, 0, __FILE__, __LINE__, (msg) ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_FAIL_LOG( context, msg ) do { if( assert_report( context, 0, __FILE__, __LINE__, (msg) ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
+#  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { if( assert_report_formatted( 0ULL, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { if( assert_report_formatted( context, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
 
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_MSG( ( (uintptr_t)(addr) % (uintptr_t)(alignment) ) == 0, "Mis-aligned memory" ); } while(0)
 #  if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
@@ -133,9 +106,9 @@ FOUNDATION_EXTERN void Debugger(void);
 #  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
 #endif
 
-#  define FOUNDATION_VALIDATE( cond ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ? ( _FOUNDATION_RAW_BREAKPOINT(), false ) : false ) : true )
-#  define FOUNDATION_VALIDATE_MSG( cond, msg ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, __FILE__, __LINE__, (msg) ) ? ( _FOUNDATION_RAW_BREAKPOINT(), false ) : false ) : true )
-#  define FOUNDATION_VALIDATE_MSGFORMAT( cond, msg, ... ) ( ( !(cond) ) ? ( assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ? ( _FOUNDATION_RAW_BREAKPOINT(), false ) : false ) : true )
+#  define FOUNDATION_VALIDATE( cond ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ? ( crash_debug_break(), false ) : false ) : true )
+#  define FOUNDATION_VALIDATE_MSG( cond, msg ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, __FILE__, __LINE__, (msg) ) ? ( crash_debug_break(), false ) : false ) : true )
+#  define FOUNDATION_VALIDATE_MSGFORMAT( cond, msg, ... ) ( ( !(cond) ) ? ( assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ? ( crash_debug_break(), false ) : false ) : true )
 
 #else
 
