@@ -43,6 +43,8 @@
 
 FOUNDATION_API void delegate_start_main_ns_thread( int argc, char** argv );
 
+FOUNDATION_API void* delegate_nswindow( void );
+
 
 
 #elif FOUNDATION_PLATFORM_IOS

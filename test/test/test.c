@@ -39,7 +39,7 @@ test_group_t** _test_groups = 0;
 static bool _test_failed = false;
 
 
-void* test_event_thread( object_t thread, void* arg )
+static void* test_event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
 	event_t* event = 0;
@@ -98,7 +98,7 @@ void test_add_test( test_fn fn, const char* group_name, const char* test_name )
 }
 
 
-void test_run( void )
+static void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
 	void* result = 0;
@@ -144,7 +144,7 @@ void test_run( void )
 }
 
 
-void test_free( void )
+static void test_free( void )
 {
 	unsigned int ig, gsize, ic, csize;
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )

@@ -203,3 +203,4 @@ build/scons/deploy*
 
 #XCode
 xcuserdata
+*.xccheckout

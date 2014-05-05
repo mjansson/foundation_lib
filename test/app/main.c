@@ -17,7 +17,7 @@
 static application_t _global_app = {0};
 
 
-application_t test_app_application( void )
+static application_t test_app_application( void )
 {
 	_global_app.name = "Foundation application tests";
 	_global_app.short_name = "test_app";
@@ -28,19 +28,19 @@ application_t test_app_application( void )
 }
 
 
-memory_system_t test_app_memory_system( void )
+static memory_system_t test_app_memory_system( void )
 {
 	return memory_system_malloc();
 }
 
 
-int test_app_initialize( void )
+static int test_app_initialize( void )
 {
 	return 0;
 }
 
 
-void test_app_shutdown( void )
+static void test_app_shutdown( void )
 {
 }
 
@@ -55,7 +55,7 @@ DECLARE_TEST( app, environment )
 }
 
 
-void test_app_declare( void )
+static void test_app_declare( void )
 {
 	ADD_TEST( app, environment );
 }
@@ -80,6 +80,7 @@ int test_app_run( void )
 
 #else
 
+test_suite_t test_suite_define( void );
 test_suite_t test_suite_define( void )
 {
 	return test_app_suite;

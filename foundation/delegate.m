@@ -94,7 +94,7 @@ static NSApplication*           _delegate_app = 0;
 static FoundationAppDelegate*   _delegate     = 0;
 
 
-void* _delegate_nswindow( void )
+void* delegate_nswindow( void )
 {
 	return _delegate ? [_delegate window] : 0;
 }

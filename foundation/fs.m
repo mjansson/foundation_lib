@@ -27,7 +27,7 @@ void  _fs_event_stream_destroy( void* stream );
 void  _fs_event_stream_flush( void* stream );
 
 
-void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* user_data, size_t num_events, const char *const event_paths[], const FSEventStreamEventFlags event_flags[], const FSEventStreamEventId event_ids[] )
+static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* user_data, size_t num_events, const char *const event_paths[], const FSEventStreamEventFlags event_flags[], const FSEventStreamEventId event_ids[] )
 {
 	@autoreleasepool
 	{

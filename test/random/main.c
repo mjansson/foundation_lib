@@ -394,6 +394,7 @@ int test_random_run( void )
 
 #else
 
+test_suite_t test_suite_define( void );
 test_suite_t test_suite_define( void )
 {
 	return test_random_suite;

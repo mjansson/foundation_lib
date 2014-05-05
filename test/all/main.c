@@ -219,7 +219,7 @@ int main_run( void* main_arg )
 #else
 #  error Not implemented
 #endif
-	exe_paths = fs_matching_files( environment_executable_directory(), pattern, true );
+	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
 		bool is_self = false;
