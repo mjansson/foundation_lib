@@ -43,6 +43,8 @@
 
 FOUNDATION_API void delegate_start_main_ns_thread( int argc, char** argv );
 
+/*! Get the window associated with the application delegate
+    \return Window */
 FOUNDATION_API void* delegate_nswindow( void );
 
 
@@ -65,6 +67,8 @@ FOUNDATION_API void* delegate_nswindow( void );
 
 #endif
 
+/*! Get the window associated with the application delegate
+    \return Window */
 FOUNDATION_API void* delegate_uiwindow( void );
 
 #endif
