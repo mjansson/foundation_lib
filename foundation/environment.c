@@ -365,7 +365,7 @@ const char* environment_home_directory( void )
 	else
 	{
 		char bundle_identifier[FOUNDATION_MAX_PATHLEN+1];
-		environment_bundle_identifier( bundle_identifier );
+		environment_bundle_identifier( bundle_identifier, FOUNDATION_MAX_PATHLEN );
 		
 		char* path = path_append( path_merge( _environment_home_dir, "/Library/Application Support" ), bundle_identifier );
 		string_copy( _environment_home_dir, path, FOUNDATION_MAX_PATHLEN );

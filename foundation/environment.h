@@ -67,7 +67,9 @@ FOUNDATION_API const application_t*   environment_application( void );
 
 #if FOUNDATION_PLATFORM_APPLE
 
-//! Get the application bundle identifier
-FOUNDATION_API void                   environment_bundle_identifier( char* buffer );
+/*! Get the application bundle identifier
+    \param buffer                     Buffer receiving string
+	\param maxlength                  Size of buffer in bytes */
+FOUNDATION_API void                   environment_bundle_identifier( char* buffer, unsigned int maxlength );
 
 #endif

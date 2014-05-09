@@ -187,18 +187,17 @@ int main( int argc, char** argv )
 	foundation_startup();
 
 #if FOUNDATION_PLATFORM_APPLE
+#  if FOUNDATION_PLATFORM_MACOSX
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{
-#  if FOUNDATION_PLATFORM_MACOSX
-
 		//Fire up new thread to continue foundation application, then run Cocoa event loop in main thread
-		delegate_start_main_ns_thread( argc, argv );
+		delegate_start_main_ns_thread();
 
 		extern int NSApplicationMain( int argc, const char *argv[] );
 		ret = NSApplicationMain( argc, (const char**)argv );
 
 #  elif FOUNDATION_PLATFORM_IOS
-
+	{
 		//Foundation hooks triggered by redraw events
 		extern int UIApplicationMain( int argc, char *argv[], void *principalClassName, void *delegateClassName );
 		ret = UIApplicationMain( argc, (char**)argv, 0, 0 );

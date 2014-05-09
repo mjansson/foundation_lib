@@ -1,4 +1,4 @@
-/* delegate.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* delegate.m  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -13,9 +13,6 @@
 #include <foundation/foundation.h>
 #include <foundation/delegate.h>
 #include <foundation/main.h>
-
-
-#if FOUNDATION_PLATFORM_MACOSX
 
 
 extern int app_main( void* arg );
@@ -34,16 +31,18 @@ extern int app_main( void* arg );
 + (void)startMainThread:(void*)arg
 {
 	log_debug( 0, "Started main thread" );
-
+	
 	@autoreleasepool
 	{
 		[FoundationAppDelegate referenceClass];
-
+		
+#if FOUNDATION_PLATFORM_MACOSX
 		log_debug( 0, "Waiting for application init" );
 		while( !NSApp || ![NSApp isRunning] )
 			thread_sleep( 50 );
 		thread_sleep( 1 );
-
+#endif
+		
 		log_debug( 0, "Application init done, launching main" );
 		if( ![NSThread isMultiThreaded] )
 			log_warn( 0, WARNING_SUSPICIOUS, "Application is STILL not multithreaded!" );
@@ -71,16 +70,18 @@ extern int app_main( void* arg );
     
 	@autoreleasepool
 	{
+#if FOUNDATION_PLATFORM_MACOSX
 		log_debug( 0, "Calling application terminate" );
 		[NSApp terminate:nil];
-	
+#endif
+		
 		[NSThread exit];
 	}
 }
 
 @end
 
-void delegate_start_main_ns_thread( int argc, char** argv )
+void delegate_start_main_ns_thread( void )
 {
 	@autoreleasepool
 	{
@@ -88,6 +89,9 @@ void delegate_start_main_ns_thread( int argc, char** argv )
 		[NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil];
 	}
 }
+
+
+#if FOUNDATION_PLATFORM_MACOSX
 
 
 static NSApplication*           _delegate_app = 0;
@@ -113,10 +117,10 @@ void* delegate_nswindow( void )
 
 - (void)applicationDidFinishLaunching:(NSApplication*)application
 {
-	//[application setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 	_delegate = self;
 	log_debug( 0, "Application finished launching" );
-	//_app_did_finish_launching();
+
+	delegate_start_main_ns_thread();
 }
 
 - (void)applicationWillResignActive:(NSApplication*)application
@@ -168,12 +172,18 @@ void* delegate_uiwindow( void )
 @synthesize window;
 
 
++ (void)referenceClass
+{
+	log_debug( 0, "FoundationAppDelegate class referenced" );
+}
+
+
 - (void)applicationDidFinishLaunching:(UIApplication*)application
 {
-	//[application setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 	_delegate = self;
 	log_info( 0, "Application finished launching" );
-	//_app_did_finish_launching();
+	
+	delegate_start_main_ns_thread();
 }
 
 

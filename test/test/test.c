@@ -12,7 +12,6 @@
 
 #include <foundation/foundation.h>
 
-#define TEST_COMPILE 1
 #include <test/test.h>
 
 
@@ -186,7 +185,7 @@ int main_initialize( void )
 {
 	log_set_suppress( 0, ERRORLEVEL_INFO );
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
-
+	
 	test_suite = test_suite_define();
 	
 	return foundation_initialize( test_suite.memory_system(), test_suite.application() );

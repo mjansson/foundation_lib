@@ -23,9 +23,12 @@
 
 /*! \fn delegate_start_main_ns_thread
     Start the main thread as a separate thread. The process entry thread will go on
-    and run the main Cocoa event loop.
-    \param argc               Number of arguments
-    \param argv               Argument array */
+    and run the main Cocoa event loop. */
+
+#if FOUNDATION_PLATFORM_APPLE
+
+FOUNDATION_API void delegate_start_main_ns_thread( void );
+
 
 #if FOUNDATION_PLATFORM_MACOSX
 
@@ -41,12 +44,9 @@
 
 #endif
 
-FOUNDATION_API void delegate_start_main_ns_thread( int argc, char** argv );
-
 /*! Get the window associated with the application delegate
     \return Window */
 FOUNDATION_API void* delegate_nswindow( void );
-
 
 
 #elif FOUNDATION_PLATFORM_IOS
@@ -58,6 +58,7 @@ FOUNDATION_API void* delegate_nswindow( void );
     UIWindow* window;
 }
 @property (nonatomic, retain) IBOutlet UIWindow *window;
++ (void)referenceClass;
 @end
 
 @interface FoundationAlertViewDelegate : NSObject <UIAlertViewDelegate>
@@ -70,5 +71,7 @@ FOUNDATION_API void* delegate_nswindow( void );
 /*! Get the window associated with the application delegate
     \return Window */
 FOUNDATION_API void* delegate_uiwindow( void );
+
+#endif
 
 #endif

@@ -44,6 +44,19 @@ static void* event_thread( object_t thread, void* arg )
 }
 
 
+#if FOUNDATION_PLATFORM_IOS
+
+#include <foundation/delegate.h>
+#include <test/test.h>
+
+static void test_log_callback( uint64_t context, int severity, const char* msg )
+{
+	test_text_view_append( test_view_from_tag( delegate_uiwindow(), 1 ), msg );
+}
+
+#endif
+
+
 int main_initialize( void )
 {
 	application_t application = {0};
@@ -53,6 +66,10 @@ int main_initialize( void )
 	application.flags = APPLICATION_UTILITY;
 
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
+	
+#if FOUNDATION_PLATFORM_IOS
+	log_set_callback( test_log_callback );
+#endif
 	
 	return foundation_initialize( memory_system_malloc(), application );
 }

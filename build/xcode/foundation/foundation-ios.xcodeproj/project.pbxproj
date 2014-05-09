@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		45B216A9191A184E00B89D7D /* test.m in Sources */ = {isa = PBXBuildFile; fileRef = 45B216A8191A184E00B89D7D /* test.m */; };
 		CD5ED14B17D6708400C94373 /* android.c in Sources */ = {isa = PBXBuildFile; fileRef = CD5ED0EF17D6708400C94373 /* android.c */; };
 		CD5ED14C17D6708400C94373 /* android.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED0F017D6708400C94373 /* android.h */; };
 		CD5ED14D17D6708400C94373 /* apple.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED0F117D6708400C94373 /* apple.h */; };
@@ -166,6 +167,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		45B216A8191A184E00B89D7D /* test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = test.m; path = ../../../test/test/test.m; sourceTree = "<group>"; };
 		CD5ED0D617D66F9B00C94373 /* libfoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD5ED0EF17D6708400C94373 /* android.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = android.c; path = ../../../foundation/android.c; sourceTree = "<group>"; };
 		CD5ED0F017D6708400C94373 /* android.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = android.h; path = ../../../foundation/android.h; sourceTree = "<group>"; };
@@ -757,6 +759,7 @@
 			isa = PBXGroup;
 			children = (
 				CD8D683817ED7C2C009F11EB /* test-ios.xib */,
+				45B216A8191A184E00B89D7D /* test.m */,
 				CD8D680E17ED7877009F11EB /* test.c */,
 				CD8D680F17ED7877009F11EB /* test.h */,
 			);
@@ -906,11 +909,6 @@
 			attributes = {
 				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
-				TargetAttributes = {
-					CD8D681517ED7992009F11EB = {
-						DevelopmentTeam = TDSNBN44YV;
-					};
-				};
 			};
 			buildConfigurationList = CD5ED0D017D66F9A00C94373 /* Build configuration list for PBXProject "foundation-ios" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1001,6 +999,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD8D681017ED7877009F11EB /* test.c in Sources */,
+				45B216A9191A184E00B89D7D /* test.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1205,6 +1204,10 @@
 		CD66040618F7D3BA001BDED3 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"TEST_COMPILE=1",
+				);
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				HEADER_SEARCH_PATHS = (
 					../../..,
@@ -1219,10 +1222,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"FOUNDATION_COMPILE=1",
-				);
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,
@@ -1284,6 +1285,10 @@
 		CD66040A18F7D3C1001BDED3 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"TEST_COMPILE=1",
+				);
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				HEADER_SEARCH_PATHS = (
 					../../..,
@@ -1298,10 +1303,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"FOUNDATION_COMPILE=1",
-				);
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,
@@ -1315,6 +1318,10 @@
 		CD8D680917ED7848009F11EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"TEST_COMPILE=1",
+				);
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				HEADER_SEARCH_PATHS = (
 					../../..,
@@ -1327,6 +1334,10 @@
 		CD8D680A17ED7848009F11EB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"TEST_COMPILE=1",
+				);
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				HEADER_SEARCH_PATHS = (
 					../../..,
@@ -1341,10 +1352,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"FOUNDATION_COMPILE=1",
-				);
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,
@@ -1360,10 +1369,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"FOUNDATION_COMPILE=1",
-				);
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,

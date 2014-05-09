@@ -23,12 +23,12 @@ extern CFStringRef NSHomeDirectory(void);
 extern void _environment_ns_home_directory( char* );
 
 
-void environment_bundle_identifier( char* target )
+void environment_bundle_identifier( char* target, unsigned int maxlength )
 {
 	@autoreleasepool
 	{
 		NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
-		string_copy( target, [bundle_identifier UTF8String], FOUNDATION_MAX_PATHLEN );
+		string_copy( target, [bundle_identifier UTF8String], maxlength );
 	}
 }
 

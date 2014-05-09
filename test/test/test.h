@@ -39,6 +39,13 @@ typedef void* (* test_fn)( void );
 TEST_API void test_add_test( test_fn test, const char* group, const char* name );
 TEST_API int  test_run_all( void );
 
+#if FOUNDATION_PLATFORM_IOS
+
+TEST_API void* test_view_from_tag( void* window, int tag );
+TEST_API void  test_text_view_append( void* view, const char* msg );
+
+#endif
+
 #define _MAKE_TEST_FN( test_group, test_name ) FOUNDATION_PREPROCESSOR_JOIN( FOUNDATION_PREPROCESSOR_JOIN( test_group, test_name ), _fn )
 
 #define DECLARE_TEST( test_group, test_name ) static void* _MAKE_TEST_FN( test_group, test_name )( void )
