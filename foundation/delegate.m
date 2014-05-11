@@ -118,27 +118,28 @@ void* delegate_nswindow( void )
 - (void)applicationDidFinishLaunching:(NSApplication*)application
 {
 	_delegate = self;
-	log_debug( 0, "Application finished launching" );
+	log_info( 0, "Application finished launching" );
 
 	delegate_start_main_ns_thread();
 }
 
 - (void)applicationWillResignActive:(NSApplication*)application
 {
-	//_app_will_resign_active();
+	log_info( 0, "Application will resign active" );
+	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
 - (void)applicationDidBecomeActive:(NSApplication*)application
 {
-	log_debug( 0, "Application became active" );
+	log_info( 0, "Application became active" );
 	_delegate_app = application;
-	//_app_did_become_active();
+	system_post_event( FOUNDATIONEVENT_RESUME );
 }
 
 - (void)applicationWillTerminate:(NSApplication*)application
 {
-	log_debug( 0, "Application will terminate" );
-	//_app_will_terminate();
+	log_info( 0, "Application will terminate" );
+	system_post_event( FOUNDATIONEVENT_TERMINATE );
 }
 
 - (void) dealloc
@@ -189,7 +190,8 @@ void* delegate_uiwindow( void )
 
 - (void)applicationWillResignActive:(UIApplication*)application
 {
-	//_app_will_resign_active();
+	log_info( 0, "Application will resign active" );
+	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
 
@@ -197,14 +199,14 @@ void* delegate_uiwindow( void )
 {
 	log_info( 0, "Application became active" );
 	_delegate_app = application;
-	//_app_did_become_active();
+	system_post_event( FOUNDATIONEVENT_RESUME );
 }
 
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
 	log_info( 0, "Application will terminate" );
-	//_app_will_terminate();
+	system_post_event( FOUNDATIONEVENT_TERMINATE );
 }
 
 

@@ -21,6 +21,9 @@
 #include <foundation/types.h>
 #include <foundation/assert.h>
 
+#if BUILD_ENABLE_STATIC_HASH_DEBUG
+#include <foundation/string.h>
+#endif
 
 /*! Hash memory blob. Pointer must be aligned to 8 bytes
     \param key                               Key to hash

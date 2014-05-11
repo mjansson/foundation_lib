@@ -314,9 +314,23 @@ DECLARE_TEST( fs, event )
 
 DECLARE_TEST( fs, monitor )
 {
-	char* testpath = path_merge( environment_temporary_directory(), string_from_int_static( random64(), 0, 0 ) );
-	char* filetestpath = path_merge( testpath, string_from_int_static( random64(), 0, 0 ) );
+	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), false, 0, 0 ) );
+	char* filetestpath = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
+	char* subtestpath = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
+	char* filesubtestpath = path_merge( subtestpath, string_from_uint_static( random64(), false, 0, 0 ) );
 
+	char* multisubtestpath[128];
+	char* multifilesubtestpath[128][128];
+	bool multifilesubtestfound[128][128];
+	int isub, ifilesub;
+	
+	for( isub = 0; isub < 128; ++isub )
+	{
+		multisubtestpath[isub] = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
+		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+			multifilesubtestpath[isub][ifilesub] = path_merge( multisubtestpath[isub], string_from_uint_static( random64(), false, 0, 0 ) );
+	}
+	
 	stream_t* test_stream;
 
 	event_stream_t* stream;
@@ -325,12 +339,8 @@ DECLARE_TEST( fs, monitor )
 	
 	stream = fs_event_stream();
 
-	if( fs_is_file( testpath ) )
-		fs_remove_file( testpath );
-	if( !fs_is_directory( testpath ) )
-		fs_make_directory( testpath );
-	if( fs_is_file( filetestpath ) )
-		fs_remove_file( filetestpath );
+	fs_remove_directory( testpath );
+	fs_make_directory( testpath );
 
 	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT ) );
 	fs_remove_file( filetestpath );
@@ -345,7 +355,7 @@ DECLARE_TEST( fs, monitor )
 	test_stream = fs_open_file( filetestpath, STREAM_OUT );
 	stream_deallocate( test_stream );
 	EXPECT_NE( test_stream, 0 );
-	thread_sleep( 5000 );
+	thread_sleep( 3000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -359,7 +369,7 @@ DECLARE_TEST( fs, monitor )
 	test_stream = fs_open_file( filetestpath, STREAM_IN | STREAM_OUT );
 	stream_write_string( test_stream, filetestpath );
 	stream_deallocate( test_stream );
-	thread_sleep( 5000 );
+	thread_sleep( 3000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -371,7 +381,7 @@ DECLARE_TEST( fs, monitor )
 	EXPECT_EQ( event, 0 );
 
 	fs_remove_file( filetestpath );
-	thread_sleep( 5000 );
+	thread_sleep( 3000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -381,7 +391,136 @@ DECLARE_TEST( fs, monitor )
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
+	
+	fs_make_directory( subtestpath );
+	thread_sleep( 3000 );
+	
+	block = event_stream_process( stream );
+	event = event_next( block, 0 );
+	EXPECT_EQ( event, 0 );
+	
+	test_stream = fs_open_file( filesubtestpath, STREAM_OUT );
+	stream_deallocate( test_stream );
+	EXPECT_NE( test_stream, 0 );
+	thread_sleep( 3000 );
+	
+	block = event_stream_process( stream );
+	event = event_next( block, 0 );
+	EXPECT_NE( event, 0 );
+	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
+	EXPECT_STREQ( event->payload, filesubtestpath );
+	
+	event = event_next( block, event );
+	EXPECT_EQ( event, 0 );
+	
+	test_stream = fs_open_file( filesubtestpath, STREAM_IN | STREAM_OUT );
+	stream_write_string( test_stream, filesubtestpath );
+	stream_deallocate( test_stream );
+	thread_sleep( 3000 );
+	
+	block = event_stream_process( stream );
+	event = event_next( block, 0 );
+	EXPECT_NE( event, 0 );
+	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_MODIFIED );
+	EXPECT_STREQ( event->payload, filesubtestpath );
+	
+	event = event_next( block, event );
+	EXPECT_EQ( event, 0 );
+	
+	fs_remove_file( filesubtestpath );
+	thread_sleep( 3000 );
+	
+	block = event_stream_process( stream );
+	event = event_next( block, 0 );
+	EXPECT_NE( event, 0 );
+	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
+	EXPECT_STREQ( event->payload, filesubtestpath );
+	
+	event = event_next( block, event );
+	EXPECT_EQ( event, 0 );
 
+	for( isub = 0; isub < 128; ++isub )
+	{
+		fs_make_directory( multisubtestpath[isub] );
+		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		{
+			test_stream = fs_open_file( multifilesubtestpath[isub][ifilesub], STREAM_IN | STREAM_OUT );
+			stream_deallocate( test_stream );
+			multifilesubtestfound[isub][ifilesub] = false;
+		}
+	}
+	thread_sleep( 3000 );
+	
+	block = event_stream_process( stream );
+	while( ( event = event_next( block, 0 ) ) )
+	{
+		bool found = false;
+		EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
+		
+		for( isub = 0; isub < 128; ++isub )
+		{
+			for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+			{
+				if( string_equal( multifilesubtestpath[isub][ifilesub], event->payload ) )
+				{
+					multifilesubtestfound[isub][ifilesub] = true;
+					found = true;
+					break;
+				}
+			}
+		}
+		
+		EXPECT_TRUE( found );
+	}
+
+	for( isub = 0; isub < 128; ++isub )
+	{
+		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		{
+			EXPECT_TRUE( multifilesubtestfound[isub][ifilesub] );
+		}
+	}
+	
+	for( isub = 0; isub < 128; ++isub )
+	{
+		fs_remove_directory( multisubtestpath[isub] );
+		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		{
+			multifilesubtestfound[isub][ifilesub] = false;
+		}
+	}
+	thread_sleep( 3000 );
+	
+	block = event_stream_process( stream );
+	while( ( event = event_next( block, 0 ) ) )
+	{
+		bool found = false;
+		EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
+		
+		for( isub = 0; isub < 128; ++isub )
+		{
+			for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+			{
+				if( string_equal( multifilesubtestpath[isub][ifilesub], event->payload ) )
+				{
+					multifilesubtestfound[isub][ifilesub] = true;
+					found = true;
+					break;
+				}
+			}
+		}
+		
+		EXPECT_TRUE( found );
+	}
+	
+	for( isub = 0; isub < 128; ++isub )
+	{
+		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		{
+			EXPECT_TRUE( multifilesubtestfound[isub][ifilesub] );
+		}
+	}
+	
 	fs_unmonitor( testpath );
 	thread_sleep( 1000 );
 	
@@ -405,6 +544,15 @@ DECLARE_TEST( fs, monitor )
 
 	fs_remove_directory( testpath );
 
+	for( isub = 0; isub < 128; ++isub )
+	{
+		string_deallocate( multisubtestpath[isub] );
+		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+			string_deallocate( multifilesubtestpath[isub][ifilesub] );
+	}
+	
+	string_deallocate( subtestpath );
+	string_deallocate( filesubtestpath );
 	string_deallocate( testpath );
 	string_deallocate( filetestpath );
 
@@ -414,12 +562,12 @@ DECLARE_TEST( fs, monitor )
 
 static void test_fs_declare( void )
 {
-	ADD_TEST( fs, directory );
-	ADD_TEST( fs, file );
-	ADD_TEST( fs, util );
-	ADD_TEST( fs, query );
-	ADD_TEST( fs, event );
-#if !FOUNDATION_PLATFORM_MACOSX && !FOUNDATION_PLATFORM_IOS
+	//ADD_TEST( fs, directory );
+	//ADD_TEST( fs, file );
+	//ADD_TEST( fs, util );
+	//ADD_TEST( fs, query );
+	//ADD_TEST( fs, event );
+#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE
 	ADD_TEST( fs, monitor );
 #endif
 }

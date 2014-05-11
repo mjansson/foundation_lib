@@ -20,6 +20,8 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/array.h>
+
 
 /*! Allocate (length+1) bytes of memory for a string of length characters. The string will be empty, i.e first byte
     will be initialized to 0. The remainder of the memory block will be uninitialized
