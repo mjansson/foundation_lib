@@ -728,33 +728,6 @@ extern void* _fs_event_stream_create( const char* path );
 extern void  _fs_event_stream_destroy( void* stream );
 extern void  _fs_event_stream_flush( void* stream );
 
-typedef struct _fs_queue_node fs_queue_node_t;
-typedef struct _fs_entry fs_entry_t;
-typedef struct _fs_watch fs_watch_t;
-
-struct _fs_queue_node
-{
-	char*                        path;
-	bool                         recurse;
-};
-
-struct _fs_entry
-{
-	char*                        filename;
-	fs_entry_t**                 subentries;
-	bool                         is_directory;
-	uint64_t                     lastmod;
-	uint64_t                     checked;
-};
-
-struct _fs_watch
-{
-	volatile fs_queue_node_t*    event_queue;
-	fs_entry_t*                  root;
-	char*                        path;
-	void*                        stream;
-};
-
 #endif
 
 

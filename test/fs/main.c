@@ -319,23 +319,26 @@ DECLARE_TEST( fs, monitor )
 	char* subtestpath = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
 	char* filesubtestpath = path_merge( subtestpath, string_from_uint_static( random64(), false, 0, 0 ) );
 
-	char* multisubtestpath[128];
-	char* multifilesubtestpath[128][128];
-	bool multifilesubtestfound[128][128];
+#define MULTICOUNT 16
+	char* multisubtestpath[MULTICOUNT];
+	char* multifilesubtestpath[MULTICOUNT][MULTICOUNT];
+	bool multisubtestfound[MULTICOUNT];
+	bool multisubtestmodfound[MULTICOUNT];
+	bool multifilesubtestfound[MULTICOUNT][MULTICOUNT];
 	int isub, ifilesub;
-	
-	for( isub = 0; isub < 128; ++isub )
-	{
-		multisubtestpath[isub] = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
-		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
-			multifilesubtestpath[isub][ifilesub] = path_merge( multisubtestpath[isub], string_from_uint_static( random64(), false, 0, 0 ) );
-	}
 	
 	stream_t* test_stream;
 
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
+	
+	for( isub = 0; isub < MULTICOUNT; ++isub )
+	{
+		multisubtestpath[isub] = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
+		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
+			multifilesubtestpath[isub][ifilesub] = path_merge( multisubtestpath[isub], string_from_uint_static( random64(), false, 0, 0 ) );
+	}
 	
 	stream = fs_event_stream();
 
@@ -397,6 +400,11 @@ DECLARE_TEST( fs, monitor )
 	
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
+	EXPECT_NE( event, 0 );
+	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
+	EXPECT_STREQ( event->payload, subtestpath );
+
+	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 	
 	test_stream = fs_open_file( filesubtestpath, STREAM_OUT );
@@ -439,10 +447,11 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 
-	for( isub = 0; isub < 128; ++isub )
+	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
 		fs_make_directory( multisubtestpath[isub] );
-		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		multisubtestfound[isub] = false;
+		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
 			test_stream = fs_open_file( multifilesubtestpath[isub][ifilesub], STREAM_IN | STREAM_OUT );
 			stream_deallocate( test_stream );
@@ -452,14 +461,21 @@ DECLARE_TEST( fs, monitor )
 	thread_sleep( 3000 );
 	
 	block = event_stream_process( stream );
-	while( ( event = event_next( block, 0 ) ) )
+	event = 0;
+	while( ( event = event_next( block, event ) ) )
 	{
 		bool found = false;
 		EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
 		
-		for( isub = 0; isub < 128; ++isub )
+		for( isub = 0; isub < MULTICOUNT; ++isub )
 		{
-			for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+			if( string_equal( multisubtestpath[isub], event->payload ) )
+			{
+				multisubtestfound[isub] = true;
+				found = true;
+				break;
+			}
+			else for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 			{
 				if( string_equal( multifilesubtestpath[isub][ifilesub], event->payload ) )
 				{
@@ -473,18 +489,21 @@ DECLARE_TEST( fs, monitor )
 		EXPECT_TRUE( found );
 	}
 
-	for( isub = 0; isub < 128; ++isub )
+	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
-		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		EXPECT_TRUE( multisubtestfound[isub] );
+		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
 			EXPECT_TRUE( multifilesubtestfound[isub][ifilesub] );
 		}
 	}
 	
-	for( isub = 0; isub < 128; ++isub )
+	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
 		fs_remove_directory( multisubtestpath[isub] );
-		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		multisubtestfound[isub] = false;
+		multisubtestmodfound[isub] = false;
+		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
 			multifilesubtestfound[isub][ifilesub] = false;
 		}
@@ -492,30 +511,56 @@ DECLARE_TEST( fs, monitor )
 	thread_sleep( 3000 );
 	
 	block = event_stream_process( stream );
-	while( ( event = event_next( block, 0 ) ) )
+	event = 0;
+	while( ( event = event_next( block, event ) ) )
 	{
 		bool found = false;
-		EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
-		
-		for( isub = 0; isub < 128; ++isub )
+
+		if( event->id == FOUNDATIONEVENT_FILE_MODIFIED )
 		{
-			for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+			for( isub = 0; isub < MULTICOUNT; ++isub )
 			{
-				if( string_equal( multifilesubtestpath[isub][ifilesub], event->payload ) )
+				if( string_equal( multisubtestpath[isub], event->payload ) )
 				{
-					multifilesubtestfound[isub][ifilesub] = true;
+					multisubtestmodfound[isub] = true;
 					found = true;
 					break;
 				}
 			}
+			EXPECT_TRUE( found );
 		}
+		else
+		{
+			EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
 		
-		EXPECT_TRUE( found );
+			for( isub = 0; isub < MULTICOUNT; ++isub )
+			{
+				if( string_equal( multisubtestpath[isub], event->payload ) )
+				{
+					multisubtestfound[isub] = true;
+					found = true;
+					break;
+				}
+				else for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
+				{
+					if( string_equal( multifilesubtestpath[isub][ifilesub], event->payload ) )
+					{
+						multifilesubtestfound[isub][ifilesub] = true;
+						found = true;
+						break;
+					}
+				}
+			}
+		
+			EXPECT_TRUE( found );
+		}
 	}
 	
-	for( isub = 0; isub < 128; ++isub )
+	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
-		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		EXPECT_TRUE( multisubtestfound[isub] );
+		EXPECT_TRUE( multisubtestmodfound[isub] );
+		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
 			EXPECT_TRUE( multifilesubtestfound[isub][ifilesub] );
 		}
@@ -544,10 +589,10 @@ DECLARE_TEST( fs, monitor )
 
 	fs_remove_directory( testpath );
 
-	for( isub = 0; isub < 128; ++isub )
+	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
 		string_deallocate( multisubtestpath[isub] );
-		for( ifilesub = 0; ifilesub < 128; ++ifilesub )
+		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 			string_deallocate( multifilesubtestpath[isub][ifilesub] );
 	}
 	
