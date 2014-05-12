@@ -675,6 +675,28 @@ typedef struct _foundation_fs_watch
 } fs_watch_t;
 
 
+static void _fs_send_creations( const char* path )
+{
+	char** files = fs_files( path );
+	for( int ifile = 0, fsize = array_size( files ); ifile < fsize; ++ifile )
+	{
+		char* filepath = path_merge( path, files[ifile] );
+		fs_post_event( FOUNDATIONEVENT_FILE_CREATED, filepath, 0 );
+		string_deallocate( filepath );
+	}
+	string_array_deallocate( files );
+
+	char** subdirs = fs_subdirs( path );
+	for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
+	{
+		char* subpath = path_merge( path, subdirs[isub] );
+		_fs_send_creations( subpath );
+		string_deallocate( subpath );
+	}
+	string_array_deallocate( subdirs );
+}
+
+
 static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr, bool send_create )
 {
 	char** subdirs = 0;
@@ -686,23 +708,17 @@ static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** wa
 		return;
 	}
 
-	//log_debugf( 0, "Watching subdir: %s (%d)", path, fd );
 	if( send_create )
-	{
-		char** files = fs_files( path );
-		for( int i = 0, size = array_size( subdirs ); i < size; ++i )
-			fs_post_event( FOUNDATIONEVENT_FILE_CREATED, path, 0 );
-		string_array_deallocate( files );
-	}
-	
+		_fs_send_creations( path );
+
 	//Include terminating / in paths stored in path_arr/watch_arr
 	local_path = string_format( "%s/", path ? path : "" );
 	array_push( (*path_arr), local_path );
-	
+
 	fs_watch_t watch;
 	watch.fd = fd;
 	watch.path = local_path;
-	array_push( (*watch_arr), watch );	
+	array_push( (*watch_arr), watch );
 
 	//Recurse
 	subdirs = fs_subdirs( local_path );
@@ -754,11 +770,11 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	unsigned int wait_status = 0;
 	wchar_t* wfpath = 0;
 	void* buffer = 0;
-	
+
 	memory_context_push( HASH_STREAM );
 
 	buffer = memory_allocate( buffer_size, 8, MEMORY_PERSISTENT );
-	
+
 	handles[0] = mutex_event_object( monitor->signal );
 	handles[1] = CreateEvent( 0, FALSE, FALSE, 0 );
 
@@ -777,16 +793,16 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	memory_context_push( HASH_STREAM );
 
 	array_reserve( watch, 1024 );
-	
+
 	//Recurse and add all subdirs
 	_add_notify_subdir( notify_fd, monitor_path, &watch, &paths, false );
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
 	memory_context_push( HASH_STREAM );
-	
+
 	void* event_stream = _fs_event_stream_create( monitor_path );
-	
+
 #else
 
 	memory_context_push( HASH_STREAM );
@@ -796,7 +812,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	log_debugf( 0, "Monitoring file system: %s", monitor_path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	{		
+	{
 		wfpath = wstring_allocate_from_string( monitor_path, 0 );
 		dir = CreateFileW( wfpath, FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, 0 );
 		wstring_deallocate( wfpath );
@@ -806,7 +822,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor_path, system_error_message( GetLastError() ) );
 		goto exit_thread;
 	}
-	
+
 	memset( &overlap, 0, sizeof( overlap ) );
 	overlap.hEvent = handles[1];
 #endif
@@ -826,23 +842,23 @@ void* _fs_monitor( object_t thread, void* monitorptr )
  			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor_path, system_error_message( GetLastError() ) );
 			goto exit_thread;
 		}
- 
+
 		//log_debugf( 0, "Read directory changes for path: %s", monitor_path );
 
 		wait_status = WaitForMultipleObjects( 2, handles, FALSE, INFINITE );
- 
-		switch( wait_status ) 
-		{ 
+
+		switch( wait_status )
+		{
 			case WAIT_OBJECT_0:
 			{
 				//Signal thread
 				continue;
 			}
- 
+
 			case WAIT_OBJECT_0+1:
 			{
 				DWORD transferred = 0;
-			
+
 				//File system change
 				//log_debugf( 0, "File system changed: %s", monitor_path );
 
@@ -863,9 +879,9 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						char* utfstr;
 						char* fullpath;
 						foundation_event_id event = 0;
-						
+
 						info->FileName[ numchars ] = 0;
-						
+
 						unsigned int attr = GetFileAttributesW( info->FileName );
 						if( ( attr & FILE_ATTRIBUTE_DIRECTORY ) != 0 )
 						{
@@ -875,29 +891,29 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						{
 							utfstr = string_allocate_from_wstring( info->FileName, 0 );
 							fullpath = path_merge( monitor_path, utfstr );
-							
+
 							switch( info->Action )
 							{
 								case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
 								case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
 								case FILE_ACTION_MODIFIED:  event = FOUNDATIONEVENT_FILE_MODIFIED; break;
-									
+
 									//Treat rename as delete/add pair
 								case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
 								case FILE_ACTION_RENAMED_NEW_NAME: event = FOUNDATIONEVENT_FILE_CREATED; break;
-									
+
 								default: break;
 							}
-							
+
 							//log_debugf( 0, "File system changed: %s (action %d)", utfstr, info->Action );
-							
+
 							if( event )
 								fs_post_event( event, fullpath, 0 );
-							
+
 							string_deallocate( utfstr );
 							string_deallocate( fullpath );
 						}
-						
+
 						info->FileName[ numchars ] = term;
 
 						info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)((char*)info + info->NextEntryOffset) : 0;
@@ -938,8 +954,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 				char* curpath = string_clone( curwatch->path );
 				curpath = string_append( curpath, event->name );
-				
-				bool is_dir = fs_is_directory( curpath );
+
+				bool is_dir = ( ( event->mask & IN_ISDIR ) != 0 );
 
 				if( ( event->mask & IN_CREATE ) || ( event->mask & IN_MOVED_TO ) )
 				{
@@ -949,7 +965,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 					}
 					else
 					{
-						//log_debugf( 0, "  IN_CREATE : %s", curpath );
 						fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
 					}
 				}
@@ -957,7 +972,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				{
 					if( !is_dir )
 					{
-						//log_debugf( 0, "  IN_DELETE : %s", curpath );
 						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
 					}
 				}
@@ -965,7 +979,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				{
 					if( !is_dir )
 					{
-						//log_debugf( 0, "  IN_MODIFY : %s", curpath );
 						fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, curpath, 0 );
 					}
 				}
@@ -995,18 +1008,18 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			if( mutex_wait( monitor->signal, 100 ) )
 				mutex_unlock( monitor->signal );
 		}
-		
+
 #elif FOUNDATION_PLATFORM_MACOSX
-		
+
 		if( event_stream )
 			_fs_event_stream_flush( event_stream );
-		
+
 		if( monitor->signal )
 		{
 			if( mutex_wait( monitor->signal, 100 ) )
 				mutex_unlock( monitor->signal );
 		}
-		
+
 #else
 		log_debug( 0, "Filesystem watcher not implemented on this platform" );
 		//Not implemented yet, just wait for signal to simulate thread
