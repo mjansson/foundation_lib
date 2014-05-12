@@ -203,9 +203,11 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					}
 					else
 					{
-						if( fs_last_modified( filepath ) > node->last_modified[ifile] )
+						uint64_t last_modified = fs_last_modified( filepath );
+						if( last_modified > node->last_modified[ifile] )
 						{
 							//log_debugf( HASH_FOUNDATION, "  modified: %s", filepath );
+							node->last_modified[ifile] = last_modified;
 							fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, filepath, 0 );
 						}
 						++isub;
