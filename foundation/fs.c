@@ -858,30 +858,39 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						foundation_event_id event = 0;
 						
 						info->FileName[ numchars ] = 0;
-						utfstr = string_allocate_from_wstring( info->FileName, 0 );
-						fullpath = path_merge( monitor_path, utfstr );
-
-						switch( info->Action )
-						{
-							case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
-							case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
-							case FILE_ACTION_MODIFIED:  event = FOUNDATIONEVENT_FILE_MODIFIED; break;
 						
-								//Treat rename as delete/add pair
-							case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
-							case FILE_ACTION_RENAMED_NEW_NAME: event = FOUNDATIONEVENT_FILE_CREATED; break;
-
-							default: break;
+						unsigned int attr = GetFileAttributesW( info->FileName );
+						if( ( attr & FILE_ATTRIBUTE_DIRECTORY ) != 0 )
+						{
+							//Ignore directory changes
+						}
+						else
+						{
+							utfstr = string_allocate_from_wstring( info->FileName, 0 );
+							fullpath = path_merge( monitor_path, utfstr );
+							
+							switch( info->Action )
+							{
+								case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
+								case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
+								case FILE_ACTION_MODIFIED:  event = FOUNDATIONEVENT_FILE_MODIFIED; break;
+									
+									//Treat rename as delete/add pair
+								case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
+								case FILE_ACTION_RENAMED_NEW_NAME: event = FOUNDATIONEVENT_FILE_CREATED; break;
+									
+								default: break;
+							}
+							
+							//log_debugf( 0, "File system changed: %s (action %d)", utfstr, info->Action );
+							
+							if( event )
+								fs_post_event( event, fullpath, 0 );
+							
+							string_deallocate( utfstr );
+							string_deallocate( fullpath );
 						}
 						
-						//log_debugf( 0, "File system changed: %s (action %d)", utfstr, info->Action );
-
-						if( event )
-							fs_post_event( event, fullpath, 0 );
-						
-						string_deallocate( utfstr );
-						string_deallocate( fullpath );
-
 						info->FileName[ numchars ] = term;
 
 						info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)((char*)info + info->NextEntryOffset) : 0;
@@ -922,24 +931,36 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 				char* curpath = string_clone( curwatch->path );
 				curpath = string_append( curpath, event->name );
+				
+				bool is_dir = fs_is_directory( curpath );
 
 				if( ( event->mask & IN_CREATE ) || ( event->mask & IN_MOVED_TO ) )
 				{
-					//log_debugf( 0, "  IN_CREATE : %s", curpath );
-					fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
-
-					if( fs_is_directory( curpath ) )
+					if( is_dir )
+					{
 						_add_notify_subdir( notify_fd, curpath, &watch, &paths );
+					}
+					else
+					{
+						//log_debugf( 0, "  IN_CREATE : %s", curpath );
+						fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
+					}
 				}
 				if( ( event->mask & IN_DELETE ) || ( event->mask & IN_MOVED_FROM ) )
 				{
-					//log_debugf( 0, "  IN_DELETE : %s", curpath );
-					fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
+					if( !is_dir )
+					{
+						//log_debugf( 0, "  IN_DELETE : %s", curpath );
+						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
+					}
 				}
 				if( event->mask & IN_MODIFY )
 				{
-					//log_debugf( 0, "  IN_MODIFY : %s", curpath );
-					fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, curpath, 0 );
+					if( !is_dir )
+					{
+						//log_debugf( 0, "  IN_MODIFY : %s", curpath );
+						fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, curpath, 0 );
+					}
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
 				if( event->mask & IN_MOVED_FROM )

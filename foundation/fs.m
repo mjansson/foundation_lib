@@ -25,6 +25,7 @@ void  _fs_event_stream_flush( void* stream );
 
 
 //This implementation is not optimal in any way, but will do for now
+//Memory allocation mania should really be cleaned up
 
 
 typedef struct _file_node file_node_t;
@@ -115,7 +116,7 @@ static void _fs_node_send_deletions( file_node_t* node, const char* path )
 	for( int ifile = 0, fsize = array_size( node->files ); ifile < fsize; ++ifile )
 	{
 		char* filepath = path_merge( path, node->files[ifile] );
-		log_infof( HASH_FOUNDATION, "  deleted %s", filepath );
+		//log_infof( HASH_FOUNDATION, "    deleted %s", filepath );
 		fs_post_event( FOUNDATIONEVENT_FILE_DELETED, filepath, 0 );
 		string_deallocate( filepath );
 	}
@@ -134,7 +135,7 @@ static void _fs_node_send_creations( file_node_t* node, const char* path )
 	for( int ifile = 0, fsize = array_size( node->files ); ifile < fsize; ++ifile )
 	{
 		char* filepath = path_merge( path, node->files[ifile] );
-		log_infof( HASH_FOUNDATION, "  created %s", filepath );
+		//log_infof( HASH_FOUNDATION, "    created %s", filepath );
 		fs_post_event( FOUNDATIONEVENT_FILE_CREATED, filepath, 0 );
 		string_deallocate( filepath );
 	}
@@ -181,119 +182,122 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 				
 				file_node_t* node = _fs_node_find( root_node, subpath );
 				if( !node )
-				{
-					log_warnf( 0, WARNING_SUSPICIOUS, "No node found when processing FS event for %s", path );
-				}
-				else
-				{
-					char** files = fs_files( path );
+					continue;
 
-					//Check if file have been added, removed or modified
-					for( int isub = 0, subsize = array_size( node->files ); isub < subsize; )
+				char** files = fs_files( path );
+
+				//Check if file have been added, removed or modified
+				for( int isub = 0, subsize = array_size( node->files ); isub < subsize; )
+				{
+					int ifile;
+					char* filepath = path_merge( path + root_ofs, node->files[isub] );
+					
+					if( ( ifile = string_array_find( (const char* const*)files, node->files[isub], array_size( files ) ) ) == -1 )
 					{
-						int ifile;
-						char* filepath = path_merge( path + root_ofs, node->files[isub] );
+						//log_debugf( HASH_FOUNDATION, "  deleted: %s", filepath );
+						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, filepath, 0 );
+						string_deallocate( node->files[isub] );
+						array_erase_memcpy( node->files, isub );
+						array_erase_memcpy( node->last_modified, isub );
+						--subsize;
+					}
+					else
+					{
+						if( fs_last_modified( filepath ) > node->last_modified[ifile] )
+						{
+							//log_debugf( HASH_FOUNDATION, "  modified: %s", filepath );
+							fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, filepath, 0 );
+						}
+						++isub;
+					}
+					string_deallocate( filepath );
+				}
+				for( int isub = 0, subsize = array_size( files ); isub < subsize; ++isub )
+				{
+					if( string_array_find( (const char* const*)node->files, files[isub], array_size( node->files ) ) == -1 )
+					{
+						char* filepath = path_merge( path + root_ofs, files[isub] );
+						fs_post_event( FOUNDATIONEVENT_FILE_CREATED, filepath, 0 );
+						//log_debugf( HASH_FOUNDATION, "  created: %s", filepath );
 						
-						if( ( ifile = string_array_find( (const char* const*)files, node->files[isub], array_size( files ) ) ) == -1 )
-						{
-							fs_post_event( FOUNDATIONEVENT_FILE_DELETED, filepath, 0 );
-							string_deallocate( node->files[isub] );
-							array_erase_memcpy( node->files, isub );
-							array_erase_memcpy( node->last_modified, isub );
-							--subsize;
-						}
-						else
-						{
-							if( fs_last_modified( filepath ) > node->last_modified[ifile] )
-								fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, filepath, 0 );
-							++isub;
-						}
+						array_push( node->last_modified, fs_last_modified( filepath ) );
+						array_push( node->files, files[isub] );
+						files[isub] = 0;
 						string_deallocate( filepath );
 					}
-					for( int isub = 0, subsize = array_size( files ); isub < subsize; ++isub )
-					{
-						if( string_array_find( (const char* const*)node->files, files[isub], array_size( node->files ) ) == -1 )
-						{
-							char* filepath = path_merge( path + root_ofs, files[isub] );
-							fs_post_event( FOUNDATIONEVENT_FILE_CREATED, filepath, 0 );
-
-							array_push( node->last_modified, fs_last_modified( filepath ) );
-							array_push( node->files, files[isub] );
-							files[isub] = 0;
-							string_deallocate( filepath );
-						}
-					}
-					
-					string_array_deallocate( files );
-
-					//Check for subdir additions/removals
-					char** subdirs = fs_subdirs( path );
-					for( int iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; )
-					{
-						bool found = false;
-						for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
-						{
-							if( string_equal( node->subdirs[iexist]->name, subdirs[isub] ) )
-							{
-								found = true;
-								break;
-							}
-						}
-						
-						if( !found )
-						{
-							//Recurse and send out file deletion events
-							char* fullpath = path_merge( path + root_ofs, node->subdirs[iexist]->name );
-							log_infof( HASH_FOUNDATION, "Send file deletion events for old subdir: %s", fullpath );
-							_fs_node_send_deletions( node, fullpath );
-							string_deallocate( fullpath );
-							
-							_fs_node_deallocate( node->subdirs[iexist] );
-							array_erase_memcpy( node->subdirs, iexist );
-							--existsize;
-						}
-						else
-						{
-							++iexist;
-						}
-					}
-
+				}
+				
+				string_array_deallocate( files );
+				
+				//Check for subdir additions/removals
+				char** subdirs = fs_subdirs( path );
+				for( int iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; )
+				{
+					bool found = false;
 					for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 					{
-						bool found = false;
-						for( int iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; ++existsize )
+						if( string_equal( node->subdirs[iexist]->name, subdirs[isub] ) )
 						{
-							if( string_equal( node->subdirs[iexist]->name, subdirs[isub] ) )
-							{
-								found = true;
-								break;
-							}
-						}
-						
-						if( !found )
-						{
-							file_node_t* child = memory_allocate_zero( sizeof( file_node_t ), 0, MEMORY_PERSISTENT );
-							
-							child->name = subdirs[isub];
-							subdirs[isub] = 0;
-
-							array_push( node->subdirs, child );
-							
-							char* fullpath = path_merge( path, subdirs[isub] );
-							_fs_node_populate( child, fullpath );
-							string_deallocate( fullpath );
-
-							fullpath = path_merge( path + root_ofs, child->name );
-							log_infof( HASH_FOUNDATION, "Send file creation events for new subdir: %s", fullpath );
-							_fs_node_send_creations( child, fullpath );
-							string_deallocate( fullpath );
+							found = true;
+							break;
 						}
 					}
 					
-					string_array_deallocate( subdirs );
+					if( !found )
+					{
+						//log_debugf( HASH_FOUNDATION, "  del subdir: %s %s", node->name, node->subdirs[iexist]->name );
+						
+						//Recurse and send out file deletion events
+						char* fullpath = path_merge( path + root_ofs, node->subdirs[iexist]->name );
+						_fs_node_send_deletions( node->subdirs[iexist], fullpath );
+						string_deallocate( fullpath );
+						
+						_fs_node_deallocate( node->subdirs[iexist] );
+						array_erase_memcpy( node->subdirs, iexist );
+						--existsize;
+					}
+					else
+					{
+						++iexist;
+					}
 				}
+				
+				for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
+				{
+					bool found = false;
+					for( int iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; ++iexist )
+					{
+						if( string_equal( node->subdirs[iexist]->name, subdirs[isub] ) )
+						{
+							found = true;
+							break;
+						}
+					}
+					
+					if( !found )
+					{
+						file_node_t* child = memory_allocate_zero( sizeof( file_node_t ), 0, MEMORY_PERSISTENT );
+						
+						//log_debugf( HASH_FOUNDATION, "  add subdir: %s %s", node->name, subdirs[isub] );
+						
+						child->name = subdirs[isub];
+						subdirs[isub] = 0;
+						
+						array_push( node->subdirs, child );
+						
+						char* fullpath = path_merge( path, child->name );
+						_fs_node_populate( child, fullpath );
+						string_deallocate( fullpath );
+						
+						fullpath = path_merge( path + root_ofs, child->name );
+						_fs_node_send_creations( child, fullpath );
+						string_deallocate( fullpath );
+					}
+				}
+				
+				string_array_deallocate( subdirs );
 			}
-        }
+		}
 	}
 }
 
