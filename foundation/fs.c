@@ -675,7 +675,7 @@ typedef struct _foundation_fs_watch
 } fs_watch_t;
 
 
-static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr )
+static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr, bool send_create )
 {
 	char** subdirs = 0;
 	char* local_path = 0;
@@ -687,6 +687,13 @@ static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** wa
 	}
 
 	//log_debugf( 0, "Watching subdir: %s (%d)", path, fd );
+	if( send_create )
+	{
+		char** files = fs_files( path );
+		for( int i = 0, size = array_size( subdirs ); i < size; ++i )
+			fs_post_event( FOUNDATIONEVENT_FILE_CREATED, path, 0 );
+		string_array_deallocate( files );
+	}
 	
 	//Include terminating / in paths stored in path_arr/watch_arr
 	local_path = string_format( "%s/", path ? path : "" );
@@ -702,7 +709,7 @@ static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** wa
 	for( int i = 0, size = array_size( subdirs ); i < size; ++i )
 	{
 		char* subpath = path_merge( local_path, subdirs[i] );
-		_add_notify_subdir( notify_fd, subpath, watch_arr, path_arr );
+		_add_notify_subdir( notify_fd, subpath, watch_arr, path_arr, send_create );
 		string_deallocate( subpath );
 	}
 	string_array_deallocate( subdirs );
@@ -772,7 +779,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	array_reserve( watch, 1024 );
 	
 	//Recurse and add all subdirs
-	_add_notify_subdir( notify_fd, monitor_path, &watch, &paths );
+	_add_notify_subdir( notify_fd, monitor_path, &watch, &paths, false );
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
@@ -938,7 +945,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				{
 					if( is_dir )
 					{
-						_add_notify_subdir( notify_fd, curpath, &watch, &paths );
+						_add_notify_subdir( notify_fd, curpath, &watch, &paths, true );
 					}
 					else
 					{
