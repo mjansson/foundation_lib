@@ -836,7 +836,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 		out_size = 0;
 
-		success = ReadDirectoryChangesW( dir, buffer, buffer_size, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size, &overlap, 0 );
+		success = ReadDirectoryChangesW( dir, buffer, buffer_size, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size, &overlap, 0 );
 		if( !success )
 		{
  			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor_path, system_error_message( GetLastError() ) );
@@ -881,24 +881,22 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						foundation_event_id event = 0;
 
 						info->FileName[ numchars ] = 0;
+                        utfstr = string_allocate_from_wstring( info->FileName, 0 );
+                        fullpath = path_merge( monitor_path, utfstr );
 
-						unsigned int attr = GetFileAttributesW( info->FileName );
-						if( ( attr & FILE_ATTRIBUTE_DIRECTORY ) != 0 )
+						if( fs_is_directory( fullpath ) )
 						{
 							//Ignore directory changes
 						}
 						else
 						{
-							utfstr = string_allocate_from_wstring( info->FileName, 0 );
-							fullpath = path_merge( monitor_path, utfstr );
-
 							switch( info->Action )
 							{
 								case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
 								case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
 								case FILE_ACTION_MODIFIED:  event = FOUNDATIONEVENT_FILE_MODIFIED; break;
 
-									//Treat rename as delete/add pair
+								//Treat rename as delete/add pair
 								case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
 								case FILE_ACTION_RENAMED_NEW_NAME: event = FOUNDATIONEVENT_FILE_CREATED; break;
 
@@ -909,10 +907,9 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 							if( event )
 								fs_post_event( event, fullpath, 0 );
-
-							string_deallocate( utfstr );
-							string_deallocate( fullpath );
 						}
+						string_deallocate( utfstr );
+						string_deallocate( fullpath );
 
 						info->FileName[ numchars ] = term;
 
