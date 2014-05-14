@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 
-#if FOUNDATION_ARCH_ARM && FOUNDATION_ARCH_THUMB
+#if FOUNDATION_ARCH_ARM5 || FOUNDATION_ARCH6
 
 __asm__(
 	"   .align 2\n"

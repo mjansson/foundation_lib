@@ -388,15 +388,15 @@ static FORCEINLINE void atomic_thread_fence_sequentially_consistent( void ) {}
 #define atomic_signal_fence_release() __asm volatile("" ::: "memory")
 #define atomic_signal_fence_sequentially_consistent() __asm volatile("" ::: "memory")
 
-#  if FOUNDATION_ARCH_ARM && FOUNDATION_ARCH_THUMB
+#  if FOUNDATION_ARCH_ARM5 || FOUNDATION_ARCH_ARM6
 
-// TODO: Fences compiled as standalone functions (no mcr in thumb mode)
+// Fences compiled as standalone functions
 
-#  elif FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
+#  elif FOUNDATION_ARCH_ARM
 
-#define atomic_thread_fence_acquire() __asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
-#define atomic_thread_fence_release() __asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
-#define atomic_thread_fence_sequentially_consistent() __asm volatile("mcr p15, 0, %0, c7, c10, 5" :: "r"(0) : "memory")
+#define atomic_thread_fence_acquire() __asm volatile("dmb" ::: "memory")
+#define atomic_thread_fence_release() __asm volatile("dmb" ::: "memory")
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("dmb" ::: "memory")
 
 #  else
 
