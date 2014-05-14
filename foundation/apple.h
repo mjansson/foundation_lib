@@ -54,8 +54,10 @@
 #  import <Foundation/NSTimer.h>
 #  import <Foundation/NSUndoManager.h>
 #  if FOUNDATION_PLATFORM_MACOSX
+#    import <Foundation/NSRunLoop.h>
 #    import <AppKit/NSApplication.h>
 #    import <AppKit/NSAlert.h>
+#    import <AppKit/NSWindow.h>
 #  elif FOUNDATION_PLATFORM_IOS
 #    import <Foundation/NSUUID.h>
 #    import <Foundation/NSCoder.h>

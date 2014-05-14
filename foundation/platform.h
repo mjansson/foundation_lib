@@ -769,11 +769,11 @@
 #  error Unknown platform
 #endif
 
-#if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
+#if FOUNDATION_ARCH_ARM
 #  if defined(__thumb__)
 #    undef  FOUNDATION_ARCH_THUMB
 #    define FOUNDATION_ARCH_THUMB 1
-   #endif
+#  endif
 #endif
 
 
