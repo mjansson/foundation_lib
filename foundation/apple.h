@@ -63,6 +63,7 @@
 #    import <Foundation/NSCoder.h>
 #    import <Foundation/NSAttributedString.h>
 #    import <UIKit/UIApplication.h>
+#    import <UIKit/UIWindow.h>
 #  endif
 #else
 #  if FOUNDATION_PLATFORM_MACOSX

@@ -6,7 +6,7 @@ opts.AddVariables(
 	EnumVariable( 'config',         'Build configuration', 'debug', allowed_values=( 'debug', 'release', 'profile', 'deploy' ) ),
 	EnumVariable( 'arch',           'Architecture to compile for', '', allowed_values=( '', 'x86', 'x86_64' ) ),
 	EnumVariable( 'sse',            'SSE instruction set to use', '2', allowed_values=( '2', '3', '4' ) ),
-	EnumVariable( 'platform',       'Platform to compile for', '', allowed_values=( '', 'linux', 'win32', 'win64', 'macosx', 'raspberrypi' ) ),
+	EnumVariable( 'platform',       'Platform to compile for', '', allowed_values=( '', 'linux', 'win32', 'win64', 'macosx', 'raspberrypi', 'ios', 'android' ) ),
 	( 'libsuffix',                  'Extra library name suffix', '' ),
 	EnumVariable( 'tools',          'Tools to use to build', 'gnu', allowed_values=( '', 'intel', 'gnu', 'msvc', 'clang' ) ),
 	( 'includepath',                'Extra system include path', '' ),
@@ -78,6 +78,15 @@ if env['PLATFORM'] == 'posix':
 	#	env['CC'] = 'clang'
 	#	env['CXX'] = 'clang++'
 	#	env['LD'] = 'llvm-ld'
+if env['PLATFORM'] == 'darwin':
+	if env['platform'] == '':
+		env['platform'] = 'osx'
+	if env['TARGET_ARCH'] != None:
+		env['arch'] = env['TARGET_ARCH']
+	else:
+		env['arch'] = env['HOST_ARCH']
+	env['arch'] = env['HOST_ARCH']
+	env['ENV']['TERM'] = os.environ['TERM']
 if env['TARGET_ARCH'] == 'x86' and env['arch'] != 'x86_64':
 	env['arch'] = 'x86'
 if env['TARGET_ARCH'] == 'i686' and env['arch'] != 'x86_64':
@@ -165,7 +174,6 @@ if env['CC'] == 'gcc':
 if env['buildprofile'] == 'debug':
 	print "Building DEBUG configuration"
 	env.Append( CPPDEFINES=['BUILD_DEBUG=1'] )
-	env['buildpath'] = 'debug'
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-g','-fno-math-errno','-ffinite-math-only'] )
 		if env['CC'] == 'gcc':
@@ -179,7 +187,6 @@ if env['buildprofile'] == 'debug':
 elif env['buildprofile'] == 'release':
 	print "Building RELEASE configuration"
 	env.Append( CPPDEFINES=['BUILD_RELEASE=1'] )
-	env['buildpath'] = 'release';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-g','-O3','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
@@ -193,7 +200,6 @@ elif env['buildprofile'] == 'release':
 elif env['buildprofile'] == 'profile':
 	print "Building PROFILE configuration"
 	env.Append( CPPDEFINES=['BUILD_PROFILE=1'] )
-	env['buildpath'] = 'profile';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-g','-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
@@ -207,7 +213,6 @@ elif env['buildprofile'] == 'profile':
 elif env['buildprofile'] == 'deploy':
 	print "Building DEPLOY configuration"
 	env.Append( CPPDEFINES=['BUILD_DEPLOY=1'] )
-	env['buildpath'] = 'deploy';
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
 		env.Append( CFLAGS=['-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
@@ -223,7 +228,7 @@ if env['platform'] == 'raspberrypi':
 	env.Append( CPPDEFINES=['__raspberrypi__=1'] )
 
 
-env['buildpath'] = env['buildpath'] + '-' + env['platform'] + env['platformsuffix']
+env['buildpath'] = env['buildprofile'] + '-' + env['platform'] + env['platformsuffix']
 
 Export("env")
 
