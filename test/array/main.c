@@ -42,14 +42,15 @@ static void test_array_shutdown( void )
 }
 
 
-typedef struct _basic_type
+typedef struct ALIGN(8) _basic_type
 {
 	int              intval;
+	float32_t        floatval;
 	object_t         objval;
 } basic_t;
 
 
-typedef struct _combine_type
+typedef struct ALIGN(8) _combine_type
 {
 	int              intval;
 	union
@@ -73,7 +74,7 @@ DECLARE_TEST( array, allocation )
 	object_t*  array_obj = 0;
 	basic_t*   array_basic = 0;
 	combine_t* array_combine = 0;
-	
+
 	EXPECT_EQ( array_size( array_ptr ), 0 );
 	EXPECT_EQ( array_size( array_int ), 0 );
 	EXPECT_EQ( array_size( array_obj ), 0 );
@@ -85,7 +86,7 @@ DECLARE_TEST( array, allocation )
 	EXPECT_EQ( array_capacity( array_obj ), 0 );
 	EXPECT_EQ( array_capacity( array_basic ), 0 );
 	EXPECT_EQ( array_capacity( array_combine ), 0 );
-	
+
 	// Reserve
 	{
 		array_reserve( array_ptr, 0 );
@@ -137,7 +138,7 @@ DECLARE_TEST( array, allocation )
 		array_deallocate( array_obj );
 		array_deallocate( array_basic );
 		array_deallocate( array_combine );
-	
+
 		EXPECT_EQ( array_size( array_ptr ), 0 );
 		EXPECT_EQ( array_size( array_int ), 0 );
 		EXPECT_EQ( array_size( array_obj ), 0 );
@@ -221,7 +222,7 @@ DECLARE_TEST( array, allocation )
 		array_clear( array_obj );
 		array_clear( array_basic );
 		array_clear( array_combine );
-	
+
 		EXPECT_EQ( array_size( array_ptr ), 0 );
 		EXPECT_EQ( array_size( array_int ), 0 );
 		EXPECT_EQ( array_size( array_obj ), 0 );
@@ -241,7 +242,7 @@ DECLARE_TEST( array, allocation )
 		array_deallocate( array_obj );
 		array_deallocate( array_basic );
 		array_deallocate( array_combine );
-	
+
 		array_clear( array_ptr );
 		array_clear( array_int );
 		array_clear( array_obj );
@@ -385,6 +386,7 @@ DECLARE_TEST( array, copy )
 		combine_t combine = {0};
 
 		basic.intval = i;
+		basic.floatval = (float32_t)i;
 		basic.objval = i + 1;
 
 		combine.basicval.intval = i;

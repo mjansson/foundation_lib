@@ -312,12 +312,15 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	{
 		padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ? align : FOUNDATION_ARCH_POINTER_SIZE );
 		raw_memory = _aligned_malloc( (size_t)size + padding, align );
-
-		memory = raw_memory + padding; //Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
-		*( (void**)memory - 1 ) = raw_memory;
-		FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
-
-		return memory;
+		if( raw_memory )
+		{
+			memory = raw_memory + padding; //Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
+			*( (void**)memory - 1 ) = raw_memory;
+			FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+			return memory;
+		}
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in 32-bit space", size );
+		return 0;
 	}
 
 	padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ) ? align : FOUNDATION_ARCH_POINTER_SIZE;
@@ -326,28 +329,36 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 
 	vmres = NtAllocateVirtualMemory( INVALID_HANDLE_VALUE, &raw_memory, 1, &allocate_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE );
 	if( vmres != 0 )
+	{
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
 		return 0;
-	
+	}
+
 	memory = _memory_align_pointer( raw_memory + padding, align );
 	*( (void**)memory - 1 ) = (void*)( (uintptr_t)raw_memory | 1 );
 
 	return memory;
-#  endif	
+#  endif
 
 #else
-	
+
 #  if FOUNDATION_ARCH_POINTER_SIZE > 4
 	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 #  endif
 	{
 		unsigned int padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ? align : FOUNDATION_ARCH_POINTER_SIZE );
 		char* raw_memory = malloc( (size_t)size + align + padding );
-		void* memory = _memory_align_pointer( raw_memory + padding, align );
-		*( (void**)memory - 1 ) = raw_memory;
-		FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
-		return memory;
+		if( raw_memory )
+		{
+			void* memory = _memory_align_pointer( raw_memory + padding, align );
+			*( (void**)memory - 1 ) = raw_memory;
+			FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+			return memory;
+		}
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in 32-bit space", size );
+		return 0;
 	}
-	
+
 #  if FOUNDATION_ARCH_POINTER_SIZE > 4
 
 	unsigned int padding = ( align > FOUNDATION_ARCH_POINTER_SIZE*2 ? align : FOUNDATION_ARCH_POINTER_SIZE*2 );
@@ -358,28 +369,31 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	#ifndef MAP_UNINITIALIZED
 	#define MAP_UNINITIALIZED 0
 	#endif
-	
+
 	#ifndef MAP_ANONYMOUS
 	#define MAP_ANONYMOUS MAP_ANON
 	#endif
-	
+
 	#ifndef MAP_32BIT
 	#define MAP_32BIT 0
 	#endif
-	
+
 	raw_memory = mmap( 0, allocate_size, PROT_READ | PROT_WRITE, MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0 );
 	if( !raw_memory )
+	{
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
 		return 0;
-	
+	}
+
 	memory = _memory_align_pointer( raw_memory + padding, align );
 	*( (uintptr_t*)memory - 1 ) = ( (uintptr_t)raw_memory | 1 );
 	*( (uintptr_t*)memory - 2 ) = allocate_size;
 	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 
-	return memory;	
+	return memory;
 
 #  endif
-	
+
 #endif
 }
 

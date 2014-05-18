@@ -515,11 +515,11 @@
 // MacOS X and iOS
 #elif ( defined( __APPLE__ ) && __APPLE__ ) || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
 
-#undef  FOUNDATION_PLATFORM_APPLE
-#define FOUNDATION_PLATFORM_APPLE 1
+#  undef  FOUNDATION_PLATFORM_APPLE
+#  define FOUNDATION_PLATFORM_APPLE 1
 
-#undef  FOUNDATION_PLATFORM_POSIX
-#define FOUNDATION_PLATFORM_POSIX 1
+#  undef  FOUNDATION_PLATFORM_POSIX
+#  define FOUNDATION_PLATFORM_POSIX 1
 
 #  include <TargetConditionals.h>
 
@@ -533,19 +533,7 @@
 #    if defined( __arm__ ) || FOUNDATION_ARCH_ARM
 #      undef  FOUNDATION_ARCH_ARM
 #      define FOUNDATION_ARCH_ARM 1
-#      if defined( __ARM_ARCH_8__ )
-#        undef  FOUNDATION_ARCH_ARM8
-#        define FOUNDATION_ARCH_ARM8 1
-#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv8"
-#        error ARMv8 not yet supported
-#      elif defined( __ARM64_ARCH_8__ )
-#        undef  FOUNDATION_ARCH_ARM_64
-#        define FOUNDATION_ARCH_ARM_64 1
-#        undef  FOUNDATION_ARCH_ARM8_64
-#        define FOUNDATION_ARCH_ARM8_64 1
-#        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARM64v8"
-#        error ARMv8 not yet supported
-#      elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
+#      if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
 #        undef  FOUNDATION_ARCH_ARM7
 #        define FOUNDATION_ARCH_ARM7 1
 #        define FOUNDATION_PLATFORM_DESCRIPTION "iOS ARMv7"
@@ -560,6 +548,8 @@
 #        error Unrecognized ARM architecture
 #      endif
 #    elif defined( __arm64__ ) || FOUNDATION_ARCH_ARM_64
+#      undef  FOUNDATION_ARCH_ARM
+#      define FOUNDATION_ARCH_ARM 1
 #      undef  FOUNDATION_ARCH_ARM_64
 #      define FOUNDATION_ARCH_ARM_64 1
 #      if defined( __ARM64_ARCH_8__ )
@@ -674,9 +664,46 @@
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Linux PPC"
-
+#  elif defined( __arm__ ) || FOUNDATION_ARCH_ARM
+#    undef  FOUNDATION_ARCH_ARM
+#    define FOUNDATION_ARCH_ARM 1
+#    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
+#      undef  FOUNDATION_ARCH_ARM7
+#      define FOUNDATION_ARCH_ARM7 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Linux ARMv7"
+#      ifndef __ARM_NEON__
+#        error Missing ARM NEON support
+#      endif
+#    elif defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6__)
+#      undef  FOUNDATION_ARCH_ARM6
+#      define FOUNDATION_ARCH_ARM6 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Linux ARMv6"
+#    else
+#      error Unrecognized ARM architecture
+#    endif
+#  elif defined( __arm64__ ) || FOUNDATION_ARCH_ARM_64
+#    undef  FOUNDATION_ARCH_ARM
+#    define FOUNDATION_ARCH_ARM 1
+#    undef  FOUNDATION_ARCH_ARM_64
+#    define FOUNDATION_ARCH_ARM_64 1
+#    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    if defined( __ARM64_ARCH_8__ )
+#      undef  FOUNDATION_ARCH_ARM8_64
+#      define FOUNDATION_ARCH_ARM8_64 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Linux ARM64v8"
+#    else
+#      error Unrecognized ARM architecture
+#    endif
 #  else
 #    error Unknown architecture
+#  endif
+
+#  if defined( __raspberrypi__ )
+#    undef  FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+#    define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 1
 #  endif
 
 #  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
@@ -1031,7 +1058,9 @@ typedef   float32_t         real;
 #endif
 
 //wchar_t size
-#if WCHAR_MAX > 0xffff
+#if FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+#  define FOUNDATION_WCHAR_SIZE 32
+#elif WCHAR_MAX > 0xffff
 #  define FOUNDATION_WCHAR_SIZE 32
 #else
 #  define FOUNDATION_WCHAR_SIZE 16

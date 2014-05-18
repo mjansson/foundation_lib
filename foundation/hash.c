@@ -36,7 +36,7 @@ static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return p[i];
 #else
-	return swap_byteorder64( p[i] );
+	return byteorder_swap64( p[i] );
 #endif
 }
 
@@ -48,7 +48,7 @@ static FORCEINLINE uint64_t getblock_nonaligned( const char* RESTRICT p, const u
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return ret;
 #else
-	return swap_byteorder64( ret );
+	return byteorder_swap64( ret );
 #endif
 }
 #endif

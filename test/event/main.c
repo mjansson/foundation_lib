@@ -189,21 +189,21 @@ typedef struct ALIGN(16) _producer_thread_arg
 static void* producer_thread( object_t thread, void* arg )
 {
 	uint8_t buffer[256] = {0};
-	producer_thread_arg_t args = *(producer_thread_arg_t*)arg;
+	producer_thread_arg_t* args = arg;
 	unsigned int produced = 0;
 	tick_t timestamp = 0;
 
 	do
 	{
-		if( args.sleep_time )
-			thread_sleep( (int)args.sleep_time );
+		if( args->sleep_time )
+			thread_sleep( (int)args->sleep_time );
 		else
 			thread_yield();
-		timestamp = args.max_delay ? time_current() + random64_range( 0, args.max_delay ) : 0;
+		timestamp = args->max_delay ? time_current() + random64_range( 0, args->max_delay ) : 0;
 		memcpy( buffer, &timestamp, sizeof( tick_t ) );
-		event_post( args.stream, random32_range( 1, 65535 ), random32_range( timestamp ? 8 : 0, 256 ), args.id, buffer, timestamp );
+		event_post( args->stream, random32_range( 1, 65535 ), random32_range( timestamp ? 8 : 0, 256 ), args->id, buffer, timestamp );
 		++produced;
-	} while( !thread_should_terminate( thread ) && ( time_current() < args.end_time ) );
+	} while( !thread_should_terminate( thread ) && ( time_current() < args->end_time ) );
 
 	return (void*)((uintptr_t)produced);
 }
@@ -285,7 +285,7 @@ DECLARE_TEST( event, immediate_threaded )
 	test_wait_for_threads_exit( thread, num_threads );
 
 	event_stream_deallocate( stream );
-	
+
 	return 0;
 }
 
@@ -299,7 +299,7 @@ DECLARE_TEST( event, delay )
 	tick_t limit = 0;
 	tick_t current = 0;
 	uint8_t expect_event = FOUNDATIONEVENT_TERMINATE;
-	
+
 	stream = event_stream_allocate( 0 );
 
 	current = time_current();

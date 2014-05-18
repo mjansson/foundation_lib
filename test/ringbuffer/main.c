@@ -128,7 +128,7 @@ DECLARE_TEST( ringbuffer, allocate )
 	EXPECT_EQ( ringbuffer_total_written( buffer ), 512 );
 
 	ringbuffer_deallocate( buffer );
-	
+
 	return 0;
 }
 
@@ -143,7 +143,7 @@ DECLARE_TEST( ringbuffer, io )
 
 	for( size = 0; size < 256; ++size )
 		from[size] = (char)( random32() & 0xFF );
-	
+
 	buffer = ringbuffer_allocate( 512 );
 	loops = 32;
 	for( loop = 0; loop < loops; ++loop )
@@ -155,7 +155,7 @@ DECLARE_TEST( ringbuffer, io )
 
 			for( verify = 0; verify < size; ++verify )
 				EXPECT_EQ( to[verify], from[verify] );
-		
+
 			expected_size += size;
 		}
 	}
@@ -163,7 +163,7 @@ DECLARE_TEST( ringbuffer, io )
 	EXPECT_EQ( ringbuffer_total_written( buffer ), expected_size );
 
 	ringbuffer_deallocate( buffer );
-	
+
 	return 0;
 }
 
@@ -171,7 +171,7 @@ DECLARE_TEST( ringbuffer, io )
 typedef struct
 {
 	stream_t* stream;
-	
+
 	object_t read_thread;
 	object_t write_thread;
 
@@ -179,11 +179,11 @@ typedef struct
 	char*    dest_buffer;
 
 	unsigned int buffer_size;
-	
+
 	tick_t   start_time;
 	tick_t   end_time;
 } ringbufferstream_test_t;
-	
+
 
 static void* read_thread( object_t thread, void* arg )
 {
@@ -212,7 +212,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	real elapsed, throughput;
 	unsigned int mbytes;
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 	mbytes = 16;
 	loops = 32;
 #else
@@ -220,11 +220,10 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	loops = 16;
 #endif
 
-
 	test.buffer_size = mbytes * 1024 * 1024;
 
 	srcbuffer = memory_allocate( test.buffer_size, 0, MEMORY_PERSISTENT );
-	
+
 	test.source_buffer = (void*)srcbuffer;
 	test.dest_buffer   = memory_allocate_zero( test.buffer_size, 0, MEMORY_PERSISTENT );
 

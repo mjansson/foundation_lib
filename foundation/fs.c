@@ -1362,7 +1362,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	if( !( mode & STREAM_IN ) && !( mode & STREAM_OUT ) )
 		mode |= STREAM_IN;
 
-	file = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_file_t ), 0, MEMORY_PERSISTENT );
+	file = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_file_t ), 8, MEMORY_PERSISTENT );
 	stream = GET_STREAM( file );
 	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 
