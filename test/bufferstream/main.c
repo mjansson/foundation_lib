@@ -1,11 +1,11 @@
 /* main.c  -  Foundation bufferstream test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -51,7 +51,7 @@ DECLARE_TEST( bufferstream, null )
 	uint128_t md5null;
 	uint128_t md5zero;
 
-	/*{
+	{
 		md5_t* md5 = md5_allocate();
 		md5_initialize( md5 );
 		md5_finalize( md5 );
@@ -59,10 +59,10 @@ DECLARE_TEST( bufferstream, null )
 		md5_deallocate( md5 );
 
 		md5zero = uint128_null();
-	}*/
+	}
 
 	stream = buffer_stream_allocate( 0, 0, 0, 0, false, false );
-	/*EXPECT_NE( stream, 0 );
+	EXPECT_NE( stream, 0 );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
@@ -84,8 +84,6 @@ DECLARE_TEST( bufferstream, null )
 	EXPECT_EQ( stream_available_read( stream ), 0 );
 	EXPECT_TRUE( uint128_equal( stream_md5( stream ), md5zero ) );
 
-	log_infof( HASH_FOUNDATION, "truncating null stream" );
-
 	stream_truncate( stream, 1024 );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
@@ -93,17 +91,13 @@ DECLARE_TEST( bufferstream, null )
 	EXPECT_EQ( stream_available_read( stream ), 0 );
 	EXPECT_TRUE( uint128_equal( stream_md5( stream ), md5zero ) );
 
-	log_infof( HASH_FOUNDATION, "part two" );
-
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 0 );
 	EXPECT_EQ( stream_write( stream, writebuffer, 1024 ), 0 );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 0 );
 	EXPECT_EQ( stream_tell( stream ), 0 );
 	EXPECT_EQ( stream_available_read( stream ), 0 );
-	EXPECT_TRUE( uint128_equal( stream_md5( stream ), md5zero ) );*/
-
-	log_infof( HASH_FOUNDATION, "deallocating" );
+	EXPECT_TRUE( uint128_equal( stream_md5( stream ), md5zero ) );
 
 	stream_deallocate( stream );
 
