@@ -27,7 +27,16 @@ It is written with the following API design principles in mind:
 * Specialized. A function in an API should perform a single task. Functions should not do completely different unrelated tasks or change behaviour depending on the contents of the variables passed in.
 * Compact. The API needs to be compact, meaning the user can use it without using a manual. Note though that "compact" does not mean "small". A consistent naming scheme makes the API easier to use and remember.
 * Contained. Third party dependencies are kept to an absolute minimum and prefer to use primitive or well-defined data types.
-  
+
+Platforms and architectures currently supported:
+
+* Windows (x86, x86-64), Vista or later
+* MacOS X (x86, x86-64), 10.6+
+* Linux (x86, x86-64, PPC, ARM)
+* iOS (ARM7, ARM7s, ARM64), 5.0+
+* Android (ARM6, ARM7, x86, MIPS)
+* Raspberry Pi (ARM6)
+
 The latest source code maintained by Rampant Pixels is always available at
 
 https://github.com/rampantpixels/foundation_lib
