@@ -2066,6 +2066,7 @@
 				CDCEF43A16D2D11500198086 /* bin */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		CDCEF43A16D2D11500198086 /* bin */ = {
 			isa = PBXGroup;
@@ -3153,7 +3154,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0510;
-				ORGANIZATIONNAME = "Rampant Pixels";
+				ORGANIZATIONNAME = "Rampant Pixels AB";
 			};
 			buildConfigurationList = CDCEF43416D2D11500198086 /* Build configuration list for PBXProject "foundation" */;
 			compatibilityVersion = "Xcode 3.2";

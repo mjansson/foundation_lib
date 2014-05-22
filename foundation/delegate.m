@@ -17,6 +17,13 @@
 
 extern int app_main( void* arg );
 
+volatile int _delegate_dummy = 0;
+
+NOINLINE void delegate_reference_classes( void )
+{
+	_delegate_dummy = 1;
+	[FoundationAppDelegate referenceClass];
+}
 
 @interface FoundationMainThread : NSObject
 {
@@ -38,8 +45,6 @@ static volatile bool _delegate_received_terminate = false;
 	
 	@autoreleasepool
 	{
-		[FoundationAppDelegate referenceClass];
-		
 #if FOUNDATION_PLATFORM_MACOSX
 		log_debug( 0, "Waiting for application init" );
 		while( !NSApp || ![NSApp isRunning] )
@@ -95,11 +100,10 @@ static volatile bool _delegate_received_terminate = false;
 
 void delegate_start_main_ns_thread( void )
 {
-	@autoreleasepool
-	{
-		log_debug( 0, "Starting main thread" );
-		[NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil];
-	}
+	delegate_reference_classes();
+
+	log_debug( 0, "Starting main thread" );
+	@autoreleasepool { [NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil]; }
 }
 
 
@@ -123,7 +127,7 @@ void* delegate_nswindow( void )
 
 + (void)referenceClass
 {
-	log_debug( 0, "FoundationAppDelegate class referenced" );
+	_delegate_dummy = 2;
 }
 
 
@@ -188,7 +192,7 @@ void* delegate_uiwindow( void )
 
 + (void)referenceClass
 {
-	log_debug( 0, "FoundationAppDelegate class referenced" );
+	_delegate_dummy = 2;
 }
 
 

@@ -28,7 +28,7 @@
 #if FOUNDATION_PLATFORM_APPLE
 
 FOUNDATION_API void delegate_start_main_ns_thread( void );
-
+FOUNDATION_API void delegate_reference_classes( void );
 
 #if FOUNDATION_PLATFORM_MACOSX
 

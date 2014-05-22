@@ -349,6 +349,7 @@
 				CD8D680017ED7848009F11EB /* Frameworks */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		CD5ED0D717D66F9B00C94373 /* bin */ = {
 			isa = PBXGroup;
