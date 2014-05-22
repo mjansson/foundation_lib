@@ -19,6 +19,8 @@ test_suite_t test_suite = {0};
 
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 FOUNDATION_EXTERN test_suite_t test_suite_define( void );
+#elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+extern volatile bool _test_should_terminate;
 #endif
 
 typedef struct
@@ -101,7 +103,9 @@ static void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
 	void* result = 0;
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	object_t thread_event = 0;
+#endif
 
 	log_infof( HASH_TEST, "Running test suite: %s", test_suite.application().short_name );
 
@@ -131,13 +135,24 @@ static void test_run( void )
 			{
 				log_info( HASH_TEST, "    PASSED" );
 			}
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+			if( _test_should_terminate )
+			{
+				_test_failed = true;
+				goto exit;
+			}
+#endif
 		}
 	}
 	
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	thread_terminate( thread_event );
 	thread_destroy( thread_event );
 	while( thread_is_running( thread_event ) || thread_is_thread( thread_event ) )
 		thread_yield();
+#else
+	exit:
+#endif
 
 	log_infof( HASH_TEST, "Finished test suite: %s", test_suite.application().short_name );
 }
