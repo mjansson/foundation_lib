@@ -355,8 +355,11 @@ typedef enum
 //! Foundadtion library level event identifiers
 typedef enum
 {
+	//! Application has been asked to start
+	FOUNDATIONEVENT_START = 1,
+
 	//! Application has been asked to terminate
-	FOUNDATIONEVENT_TERMINATE = 1,
+	FOUNDATIONEVENT_TERMINATE,
 
 	//! Application has been asked to pause
 	FOUNDATIONEVENT_PAUSE,

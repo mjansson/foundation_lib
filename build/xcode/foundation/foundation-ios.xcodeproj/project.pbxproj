@@ -1132,6 +1132,7 @@
 		CD5ED0E417D66F9B00C94373 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FOUNDATION_COMPILE=1",
@@ -1144,6 +1145,7 @@
 		CD5ED0E517D66F9B00C94373 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/release;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FOUNDATION_COMPILE=1",
@@ -1192,6 +1194,7 @@
 		CD66040518F7D3BA001BDED3 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/profile;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FOUNDATION_COMPILE=1",
@@ -1204,6 +1207,7 @@
 		CD66040618F7D3BA001BDED3 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/profile;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"TEST_COMPILE=1",
@@ -1273,6 +1277,7 @@
 		CD66040918F7D3C1001BDED3 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/deploy;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FOUNDATION_COMPILE=1",
@@ -1285,6 +1290,7 @@
 		CD66040A18F7D3C1001BDED3 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/deploy;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"TEST_COMPILE=1",
@@ -1318,6 +1324,7 @@
 		CD8D680917ED7848009F11EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"TEST_COMPILE=1",
@@ -1334,6 +1341,7 @@
 		CD8D680A17ED7848009F11EB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = ../../../lib/ios/release;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"TEST_COMPILE=1",

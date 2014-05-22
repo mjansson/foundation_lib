@@ -68,6 +68,8 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 
 	foundation_startup();
 
+	system_post_event( FOUNDATIONEVENT_START );
+    
 #if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
@@ -185,6 +187,10 @@ int main( int argc, char** argv )
 	thread_set_main();
 
 	foundation_startup();
+    
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
+	system_post_event( FOUNDATIONEVENT_START );
+#endif
 
 #if FOUNDATION_PLATFORM_APPLE
 #  if FOUNDATION_PLATFORM_MACOSX
@@ -198,7 +204,7 @@ int main( int argc, char** argv )
 
 #  elif FOUNDATION_PLATFORM_IOS
 	{
-		//Foundation hooks triggered by redraw events
+		//Foundation hooks triggered by redraw/background events
 		extern int UIApplicationMain( int argc, char *argv[], void *principalClassName, void *delegateClassName );
 		ret = UIApplicationMain( argc, (char**)argv, 0, 0 );
 

@@ -198,6 +198,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 		case APP_CMD_START:
 		{
 			log_info( HASH_SYSTEM, "System command: APP_CMD_START" );
+            system_post_event( FOUNDATIONEVENT_START );
             break;
 		}
 

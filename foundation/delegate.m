@@ -25,11 +25,15 @@ extern int app_main( void* arg );
 + (void)startMainThread:(void*)arg;
 @end
 
+static volatile bool _delegate_main_thread_running = false;
+static volatile bool _delegate_received_terminate = false;
 
 @implementation FoundationMainThread
 
 + (void)startMainThread:(void*)arg
 {
+	_delegate_main_thread_running = true;
+
 	log_debug( 0, "Started main thread" );
 	
 	@autoreleasepool
@@ -73,6 +77,14 @@ extern int app_main( void* arg );
 #if FOUNDATION_PLATFORM_MACOSX
 		log_debug( 0, "Calling application terminate" );
 		[NSApp terminate:nil];
+#endif
+		log_debug( 0, "Main thread exiting" );
+
+		_delegate_main_thread_running = false;
+		
+#if FOUNDATION_PLATFORM_IOS
+		if( !_delegate_received_terminate )
+			exit( -1 );
 #endif
 		
 		[NSThread exit];
@@ -119,6 +131,7 @@ void* delegate_nswindow( void )
 {
 	_delegate = self;
 	log_info( 0, "Application finished launching" );
+	system_post_event( FOUNDATIONEVENT_START );
 
 	delegate_start_main_ns_thread();
 }
@@ -182,7 +195,8 @@ void* delegate_uiwindow( void )
 - (void)applicationDidFinishLaunching:(UIApplication*)application
 {
 	_delegate = self;
-	log_info( 0, "Application finished launching" );
+	log_debug( 0, "Application finished launching" );
+	system_post_event( FOUNDATIONEVENT_START );
 	
 	delegate_start_main_ns_thread();
 }
@@ -190,14 +204,14 @@ void* delegate_uiwindow( void )
 
 - (void)applicationWillResignActive:(UIApplication*)application
 {
-	log_info( 0, "Application will resign active" );
+	log_debug( 0, "Application will resign active" );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
-	log_info( 0, "Application became active" );
+	log_debug( 0, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
 }
@@ -205,14 +219,19 @@ void* delegate_uiwindow( void )
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
-	log_info( 0, "Application will terminate" );
+	_delegate_received_terminate = true;
+
+	log_debug( 0, "Application will terminate" );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
+	
+	while( _delegate_main_thread_running )
+		thread_sleep( 1 );
 }
 
 
 - (void) dealloc
 {
-	log_info( 0, "Application dealloc" );
+	log_debug( 0, "Application dealloc" );
 
 	_delegate_app = 0;
 	_delegate = 0;

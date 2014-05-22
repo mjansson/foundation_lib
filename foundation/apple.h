@@ -64,6 +64,7 @@
 #    import <Foundation/NSAttributedString.h>
 #    import <UIKit/UIApplication.h>
 #    import <UIKit/UIWindow.h>
+#    import <QuartzCore/QuartzCore.h>
 #  endif
 #else
 #  if FOUNDATION_PLATFORM_MACOSX
