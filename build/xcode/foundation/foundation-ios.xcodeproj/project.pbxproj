@@ -346,7 +346,7 @@
 				CD5ED0EE17D6708400C94373 /* foundation */,
 				CD8D680D17ED7859009F11EB /* test */,
 				CD5ED0D717D66F9B00C94373 /* bin */,
-				CD8D680017ED7848009F11EB /* Frameworks */,
+				CD8D680017ED7848009F11EB /* frameworks */,
 			);
 			sourceTree = "<group>";
 			usesTabs = 1;
@@ -706,14 +706,14 @@
 			name = uuid;
 			sourceTree = "<group>";
 		};
-		CD8D680017ED7848009F11EB /* Frameworks */ = {
+		CD8D680017ED7848009F11EB /* frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				CD8D680117ED7848009F11EB /* Foundation.framework */,
 				CD8D681817ED7992009F11EB /* UIKit.framework */,
 				CD8D681B17ED7992009F11EB /* CoreGraphics.framework */,
 			);
-			name = Frameworks;
+			name = frameworks;
 			sourceTree = "<group>";
 		};
 		CD8D680D17ED7859009F11EB /* test */ = {

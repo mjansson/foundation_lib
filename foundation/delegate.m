@@ -155,6 +155,8 @@ void* delegate_nswindow( void )
 
 - (void)applicationWillTerminate:(NSApplication*)application
 {
+	_delegate_received_terminate = true;
+
 	log_info( 0, "Application will terminate" );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
 }

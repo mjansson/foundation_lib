@@ -2059,11 +2059,11 @@
 		CDCEF43016D2D11500198086 = {
 			isa = PBXGroup;
 			children = (
-				CD7F384616E21E19000346C0 /* frameworks */,
 				CDCEF44016D2D1C400198086 /* foundation */,
 				CD7F382D16E21C60000346C0 /* tools */,
 				CDCF1E0416FD8E5E00626060 /* test */,
 				CDCEF43A16D2D11500198086 /* bin */,
+				CD7F384616E21E19000346C0 /* frameworks */,
 			);
 			sourceTree = "<group>";
 			usesTabs = 1;
