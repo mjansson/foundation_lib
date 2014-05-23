@@ -1,20 +1,20 @@
 /* main.c  -  Foundation test launcher  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
 
 #include <foundation/foundation.h>
 
-
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 
+volatile bool _test_should_start = false;
 volatile bool _test_should_terminate = false;
 
 #endif
@@ -33,6 +33,13 @@ static void* event_thread( object_t thread, void* arg )
 		{
 			switch( event->id )
 			{
+				case FOUNDATIONEVENT_START:
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_IOS
+					log_infof( HASH_TEST, "Application start event received" );
+					_test_should_start = true;
+#endif
+					break;
+					
 				case FOUNDATIONEVENT_TERMINATE:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_IOS
 					log_infof( HASH_TEST, "Application terminate event received" );
@@ -73,7 +80,7 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 int main_initialize( void )
 {
 	application_t application = {0};
-	application.name = "Window library test suite";
+	application.name = "Foundation library test suite";
 	application.short_name = "test_all";
 	application.config_dir = "test_all";
 	application.flags = APPLICATION_UTILITY;
@@ -140,7 +147,7 @@ static void* test_runner( object_t obj, void* arg )
 				log_infof( HASH_TEST, "All tests passed (%d)", process_result );
 		}
 		++test_fn;
-	} while( tests[test_fn] && ( process_result >= 0 ) && !_test_should_terminate );
+	} while( tests[test_fn] && ( process_result >= 0 ) );
 	
 	return (void*)(intptr_t)process_result;
 }
@@ -156,6 +163,7 @@ int main_run( void* main_arg )
 	unsigned int iexe, exesize;
 	process_t* process = 0;
 	char* process_path = 0;
+	unsigned int* exe_flags = 0;
 #endif
 	int process_result = 0;
 	object_t thread = 0;
@@ -166,6 +174,9 @@ int main_run( void* main_arg )
 		thread_sleep( 10 );
 	
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+	
+	while( !_test_should_start )
+		thread_sleep( 10 );
 	
 	test_run_fn tests[] = {
 		//test_app_run
@@ -250,7 +261,7 @@ int main_run( void* main_arg )
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = "test-*.exe";
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_MACOSX
 	pattern = "test-*";
 #elif FOUNDATION_PLATFORM_POSIX
 	pattern = "test-*";
@@ -258,6 +269,21 @@ int main_run( void* main_arg )
 #  error Not implemented
 #endif
 	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
+	array_resize( exe_flags, array_size( exe_paths ) );
+#if FOUNDATION_PLATFORM_MACOSX
+	//Also search for test-*.app
+	const char* app_pattern = "test-*.app";
+	char** subdirs = fs_subdirs( environment_executable_directory() );
+	for( int idir = 0, dirsize = array_size( subdirs ); idir < dirsize; ++idir )
+	{
+		if( string_match_pattern( subdirs[idir], app_pattern ) )
+		{
+			array_push( exe_paths, string_substr( subdirs[idir], 0, string_length( subdirs[idir] ) - 4 ) );
+			array_push( exe_flags, PROCESS_OSX_USE_OPENAPPLICATION );
+		}
+	}
+	string_array_deallocate( subdirs );
+#endif
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
 		bool is_self = false;
@@ -274,7 +300,7 @@ int main_run( void* main_arg )
 		
 		process_set_executable_path( process, process_path );
 		process_set_working_directory( process, environment_executable_directory() );
-		process_set_flags( process, PROCESS_ATTACHED );
+		process_set_flags( process, PROCESS_ATTACHED | exe_flags[iexe] );
 		
 		log_infof( HASH_TEST, "Running test executable: %s", exe_paths[iexe] );
 		
@@ -307,6 +333,7 @@ exit:
 	
 	if( exe_paths )
 		string_array_deallocate( exe_paths );
+	array_deallocate( exe_flags );
 	
 #endif
 	

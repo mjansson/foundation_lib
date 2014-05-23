@@ -18,6 +18,8 @@
 #  include <foundation/posix.h>
 #  include <sys/types.h>
 #  include <sys/wait.h>
+#  include <sys/event.h>
+#  include <sys/time.h>
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -67,6 +69,10 @@ struct _foundation_process
 	void*                                   ht;
 #elif FOUNDATION_PLATFORM_POSIX
 	pid_t                                   pid;
+#endif
+	
+#if FOUNDATION_PLATFORM_MACOSX
+	int                                     kq;
 #endif
 };
 
@@ -399,11 +405,30 @@ int process_spawn( process_t* proc )
 			GetProcessPID( &psn, &pid );
 			
 			proc->pid = pid;
-		}
 
-		//Always detached with LSOpenApplication, not a child process at all
-		//if( proc->flags & PROCESS_DETACHED )
-			return PROCESS_STILL_ACTIVE;
+			//Always "detached" with LSOpenApplication, not a child process at all
+			//Setup a kqueue to watch when process terminates so we can emulate a wait
+			proc->kq = kqueue();
+			if( proc->kq < 0 )
+			{
+				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create kqueue for process watch: %s (%d)", proc->kq, system_error_message( proc->kq ) );
+				proc->kq = 0;
+			}
+			else
+			{
+				struct kevent changes;
+				EV_SET( &changes, (pid_t)pid, EVFILT_PROC, EV_ADD | EV_RECEIPT, NOTE_EXIT, 0, 0 );
+				int ret = kevent( proc->kq, &changes, 1, &changes, 1, 0 );
+				if( ret != 1 )
+				{
+					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to setup kqueue for process watch, failed to add event to kqueue (%d)", ret );
+					close( proc->kq );
+					proc->kq = 0;
+				}
+			}
+		}
+		
+		goto exit;
 	}
 #endif
 
@@ -506,6 +531,10 @@ int process_spawn( process_t* proc )
 #if !FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_PLATFORM_POSIX
 	FOUNDATION_ASSERT_FAIL( "Process spawning not supported on platform" );
 #endif
+	
+#if FOUNDATION_PLATFORM_MACOSX
+exit:
+#endif
 
 	if( proc->flags & PROCESS_DETACHED )
 		return PROCESS_STILL_ACTIVE;
@@ -568,8 +597,24 @@ int process_wait( process_t* proc )
 #  if FOUNDATION_PLATFORM_MACOSX
 	if( proc->flags & PROCESS_OSX_USE_OPENAPPLICATION )
 	{
-		log_warnf( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_OSX_USE_OPENAPPLICATION" );
-		return PROCESS_WAIT_FAILED;
+		if( proc->kq )
+		{
+			struct kevent event;
+			int ret = kevent( proc->kq, 0, 0, &event, 1, 0 );
+			if( ret != 1 )
+				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to wait on process, failed to read event from kqueue (%d)", ret );
+			
+			close( proc->kq );
+			proc->kq = 0;
+		}
+		else
+		{
+			log_warnf( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_OSX_USE_OPENAPPLICATION and no kqueue" );
+			return PROCESS_WAIT_FAILED;
+		}
+		proc->pid = 0;
+		proc->code = 0;
+		return proc->code;
 	}
 #  endif
 	
