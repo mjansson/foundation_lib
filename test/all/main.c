@@ -15,8 +15,6 @@
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 
-#include <foundation/delegate.h>
-
 volatile bool _test_should_terminate = false;
 
 #endif
@@ -231,8 +229,6 @@ int main_run( void* main_arg )
 	}
 	
 #else
-	
-	delegate_reference_classes();
 	
 	process_result = (int)(intptr_t)test_runner( 0, tests );
 	

@@ -33,25 +33,30 @@ NOINLINE void delegate_reference_classes( void )
 @end
 
 static volatile bool _delegate_main_thread_running = false;
+static volatile bool _delegate_received_start = false;
 static volatile bool _delegate_received_terminate = false;
 
 @implementation FoundationMainThread
 
 + (void)startMainThread:(void*)arg
 {
+	if( _delegate_main_thread_running )
+		return;
+
 	_delegate_main_thread_running = true;
 
 	log_debug( 0, "Started main thread" );
 	
+    if( !_delegate_received_start )
+    {
+		log_debug( 0, "Waiting for application init" );
+        while( !_delegate_received_start )
+            thread_sleep( 50 );
+        thread_sleep( 1 );
+    }
+    
 	@autoreleasepool
 	{
-#if FOUNDATION_PLATFORM_MACOSX
-		log_debug( 0, "Waiting for application init" );
-		while( !NSApp || ![NSApp isRunning] )
-			thread_sleep( 50 );
-		thread_sleep( 1 );
-#endif
-		
 		log_debug( 0, "Application init done, launching main" );
 		if( ![NSThread isMultiThreaded] )
 			log_warn( 0, WARNING_SUSPICIOUS, "Application is STILL not multithreaded!" );
@@ -101,7 +106,7 @@ static volatile bool _delegate_received_terminate = false;
 void delegate_start_main_ns_thread( void )
 {
 	delegate_reference_classes();
-
+	
 	log_debug( 0, "Starting main thread" );
 	@autoreleasepool { [NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil]; }
 }
@@ -134,21 +139,21 @@ void* delegate_nswindow( void )
 - (void)applicationDidFinishLaunching:(NSApplication*)application
 {
 	_delegate = self;
-	log_info( 0, "Application finished launching" );
-	system_post_event( FOUNDATIONEVENT_START );
+    _delegate_received_start = true;
 
-	delegate_start_main_ns_thread();
+	log_debug( 0, "Application finished launching" );
+	system_post_event( FOUNDATIONEVENT_START );
 }
 
 - (void)applicationWillResignActive:(NSApplication*)application
 {
-	log_info( 0, "Application will resign active" );
+	log_debug( 0, "Application will resign active" );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
 - (void)applicationDidBecomeActive:(NSApplication*)application
 {
-	log_info( 0, "Application became active" );
+	log_debug( 0, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
 }
@@ -157,8 +162,11 @@ void* delegate_nswindow( void )
 {
 	_delegate_received_terminate = true;
 
-	log_info( 0, "Application will terminate" );
-	system_post_event( FOUNDATIONEVENT_TERMINATE );
+	if( foundation_is_initialized() )
+	{
+		log_debug( 0, "Application will terminate" );
+		system_post_event( FOUNDATIONEVENT_TERMINATE );
+	}
 }
 
 - (void) dealloc
@@ -201,10 +209,10 @@ void* delegate_uiwindow( void )
 - (void)applicationDidFinishLaunching:(UIApplication*)application
 {
 	_delegate = self;
+    _delegate_received_start = true;
+
 	log_debug( 0, "Application finished launching" );
 	system_post_event( FOUNDATIONEVENT_START );
-	
-	delegate_start_main_ns_thread();
 }
 
 
