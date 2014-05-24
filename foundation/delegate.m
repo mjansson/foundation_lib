@@ -211,21 +211,21 @@ void* delegate_uiwindow( void )
 	_delegate = self;
     _delegate_received_start = true;
 
-	log_debug( 0, "Application finished launching" );
+	log_debug( HASH_FOUNDATION, "Application finished launching" );
 	system_post_event( FOUNDATIONEVENT_START );
 }
 
 
 - (void)applicationWillResignActive:(UIApplication*)application
 {
-	log_debug( 0, "Application will resign active" );
+	log_debug( HASH_FOUNDATION, "Application will resign active" );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
-	log_debug( 0, "Application became active" );
+	log_debug( HASH_FOUNDATION, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
 }
@@ -235,11 +235,47 @@ void* delegate_uiwindow( void )
 {
 	_delegate_received_terminate = true;
 
-	log_debug( 0, "Application will terminate" );
+	log_debug( HASH_FOUNDATION, "Application will terminate" );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
 	
 	while( _delegate_main_thread_running )
 		thread_sleep( 1 );
+}
+
+
+- (void)applicationDidEnterBackground:(UIApplication *)application
+{
+	log_debug( HASH_FOUNDATION, "Application entered background" );
+}
+
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
+{
+	log_warnf( 0, WARNING_MEMORY, "Application received memory warning" );
+	system_post_event( FOUNDATIONEVENT_LOW_MEMORY_WARNING );
+	
+#if BUILD_DEBUG || BUILD_RELEASE
+	@autoreleasepool
+	{
+		CGRect flash_frame = [(UIWindow*)delegate_uiwindow() frame];
+		flash_frame.size.height = 60;
+	
+		float duration = 1.0f;
+		UIView* flash = [[[UIView alloc] initWithFrame:flash_frame] autorelease];
+		flash.backgroundColor = [UIColor redColor];
+		[(UIWindow*)delegate_uiwindow() addSubview:flash];
+		
+		dispatch_after( dispatch_time( DISPATCH_TIME_NOW, (int64_t)( (double)( duration + 0.1 ) * (double)NSEC_PER_SEC ) ), dispatch_get_main_queue(), ^{
+			[flash removeFromSuperview];
+		});
+	
+		[UIView beginAnimations:@"FoundationMemoryWarningFlash" context:0];
+		[UIView setAnimationDuration:duration];
+		flash.alpha = 0.0;
+		[UIView commitAnimations];
+	}
+#endif
+	
 }
 
 

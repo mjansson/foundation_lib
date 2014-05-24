@@ -374,7 +374,10 @@ typedef enum
 	FOUNDATIONEVENT_FILE_DELETED,
 
 	//! File was modified
-	FOUNDATIONEVENT_FILE_MODIFIED
+	FOUNDATIONEVENT_FILE_MODIFIED,
+	
+	//! Low memory warning
+	FOUNDATIONEVENT_LOW_MEMORY_WARNING
 } foundation_event_id;
 
 //! Event flags

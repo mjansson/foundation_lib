@@ -64,6 +64,8 @@
 #    import <Foundation/NSAttributedString.h>
 #    import <UIKit/UIApplication.h>
 #    import <UIKit/UIWindow.h>
+#    import <UIKit/UIScreen.h>
+#    import <UIKit/UIView.h>
 #    import <QuartzCore/QuartzCore.h>
 #  endif
 #else
