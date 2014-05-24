@@ -18,7 +18,6 @@
 #  include <foundation/posix.h>
 #  include <sys/types.h>
 #  include <sys/wait.h>
-#  include <sys/event.h>
 #  include <sys/time.h>
 #endif
 
@@ -35,6 +34,7 @@
 #  undef uuid_generate_random
 #  undef uuid_generate_time
 #  undef uuid_is_null
+#  include <sys/event.h>
 #endif
 
 static int _process_exit_code = 0;
