@@ -394,9 +394,9 @@ static FORCEINLINE void atomic_thread_fence_sequentially_consistent( void ) {}
 
 #  elif FOUNDATION_ARCH_ARM
 
-#define atomic_thread_fence_acquire() __asm volatile("dmb" ::: "memory")
-#define atomic_thread_fence_release() __asm volatile("dmb" ::: "memory")
-#define atomic_thread_fence_sequentially_consistent() __asm volatile("dmb" ::: "memory")
+#define atomic_thread_fence_acquire() __asm volatile("dmb sy" ::: "memory")
+#define atomic_thread_fence_release() __asm volatile("dmb st" ::: "memory")
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("dmb sy" ::: "memory")
 
 #  else
 
