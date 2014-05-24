@@ -270,6 +270,7 @@ int main_run( void* main_arg )
 #endif
 	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
 	array_resize( exe_flags, array_size( exe_paths ) );
+	memset( exe_flags, 0, sizeof( unsigned int ) * array_size( exe_flags ) );
 #if FOUNDATION_PLATFORM_MACOSX
 	//Also search for test-*.app
 	const char* app_pattern = "test-*.app";
