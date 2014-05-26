@@ -70,7 +70,7 @@ DECLARE_TEST( stacktrace, resolve )
 
 	log_infof( HASH_TEST, "Resolved stack trace:\n%s", resolved );
 	
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID
 	EXPECT_NE( string_find_string( resolved, "stacktraceresolve_fn", 0 ), STRING_NPOS );
 	EXPECT_NE( string_find_string( resolved, "test_run", 0 ), STRING_NPOS );
 	//EXPECT_NE( string_find_string( resolved, "main_run", 0 ), STRING_NPOS );

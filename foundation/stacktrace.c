@@ -663,7 +663,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 
 	return lines;
 	
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	
 	char** symbols = 0;
 	char** resolved = backtrace_symbols( frames, max_frames );
@@ -672,7 +672,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		if( resolved[iframe] && string_length( resolved[iframe] ) )
 			array_push( symbols, string_clone( resolved[iframe] ) );
 	}
-	
+
 	return symbols;
 
 #elif FOUNDATION_PLATFORM_LINUX
