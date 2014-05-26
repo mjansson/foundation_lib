@@ -80,17 +80,19 @@ typedef struct _log_timestamp
 
 static log_timestamp_t _log_make_timestamp( void )
 {
-	tick_t elapsed = time_current() - time_startup();
-	tick_t ticks_per_sec = time_ticks_per_second();
+	tick_t elapsed;
+	tick_t ticks_per_sec;
 	uint64_t milliseconds;
 	uint64_t seconds;
 	uint64_t minutes;
 
 	log_timestamp_t timestamp = {0};
 	
+	ticks_per_sec = time_ticks_per_second();
 	if( !ticks_per_sec )
 		return timestamp;
-
+	
+	elapsed = time_current() - time_startup();
 	milliseconds = ( ( elapsed % ticks_per_sec ) * 1000ULL ) / ticks_per_sec;
 	seconds = elapsed / ticks_per_sec;
 	minutes = seconds / 60ULL;
