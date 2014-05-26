@@ -71,7 +71,7 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 {
 	if( _test_should_terminate )
 		return;
-	test_text_view_append( test_view_from_tag( delegate_uiwindow(), 1 ), msg );
+	test_text_view_append( delegate_uiwindow(), 1 , msg );
 }
 
 #endif
@@ -139,15 +139,12 @@ static void* test_runner( object_t obj, void* arg )
 	int test_fn = 0;
 	int process_result = 0;
 	
-	do
+	while( tests[test_fn] && ( process_result >= 0 ) )
 	{
-		if( process_result >= 0 )
-		{
-			if( ( process_result = tests[test_fn]() ) >= 0 )
-				log_infof( HASH_TEST, "All tests passed (%d)", process_result );
-		}
+		if( ( process_result = tests[test_fn]() ) >= 0 )
+			log_infof( HASH_TEST, "All tests passed (%d)", process_result );
 		++test_fn;
-	} while( tests[test_fn] && ( process_result >= 0 ) );
+	}
 	
 	return (void*)(intptr_t)process_result;
 }

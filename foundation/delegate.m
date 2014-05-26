@@ -94,10 +94,11 @@ static volatile bool _delegate_received_terminate = false;
 		
 #if FOUNDATION_PLATFORM_IOS
 		if( !_delegate_received_terminate )
+		{
+			log_warnf( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
 			exit( -1 );
+		}
 #endif
-		
-		[NSThread exit];
 	}
 }
 
@@ -115,13 +116,13 @@ void delegate_start_main_ns_thread( void )
 #if FOUNDATION_PLATFORM_MACOSX
 
 
-static NSApplication*           _delegate_app = 0;
-static FoundationAppDelegate*   _delegate     = 0;
+static __weak NSApplication*           _delegate_app = 0;
+static __weak FoundationAppDelegate*   _delegate     = 0;
 
 
 void* delegate_nswindow( void )
 {
-	return _delegate ? [_delegate window] : 0;
+	return (__bridge void*)(_delegate ? [_delegate window] : 0);
 }
 
 
@@ -175,9 +176,6 @@ void* delegate_nswindow( void )
 	
 	_delegate_app = 0;
 	_delegate = 0;
-	
-	[window release];
-	[super dealloc];
 }
 
 @end
@@ -185,13 +183,13 @@ void* delegate_nswindow( void )
 
 #elif FOUNDATION_PLATFORM_IOS
 
-static UIApplication*          _delegate_app = 0;
-static FoundationAppDelegate*  _delegate     = 0;
+static __weak UIApplication*          _delegate_app = 0;
+static __weak FoundationAppDelegate*  _delegate     = 0;
 
 
 void* delegate_uiwindow( void )
 {
-	return _delegate ? [_delegate window] : 0;
+	return (__bridge void*)(_delegate ? [_delegate window] : 0);
 }
 
 
@@ -257,13 +255,13 @@ void* delegate_uiwindow( void )
 #if BUILD_DEBUG || BUILD_RELEASE
 	@autoreleasepool
 	{
-		CGRect flash_frame = [(UIWindow*)delegate_uiwindow() frame];
+		CGRect flash_frame = [(__bridge UIWindow*)delegate_uiwindow() frame];
 		flash_frame.size.height = 60;
 	
 		float duration = 1.0f;
-		UIView* flash = [[[UIView alloc] initWithFrame:flash_frame] autorelease];
+		UIView* flash = [[UIView alloc] initWithFrame:flash_frame];
 		flash.backgroundColor = [UIColor redColor];
-		[(UIWindow*)delegate_uiwindow() addSubview:flash];
+		[(__bridge UIWindow*)delegate_uiwindow() addSubview:flash];
 		
 		dispatch_after( dispatch_time( DISPATCH_TIME_NOW, (int64_t)( (double)( duration + 0.1 ) * (double)NSEC_PER_SEC ) ), dispatch_get_main_queue(), ^{
 			[flash removeFromSuperview];
@@ -285,9 +283,6 @@ void* delegate_uiwindow( void )
 
 	_delegate_app = 0;
 	_delegate = 0;
-	
-	[window release];
-	[super dealloc];
 }
 
 @end

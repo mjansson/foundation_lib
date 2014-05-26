@@ -41,8 +41,7 @@ TEST_API int  test_run_all( void );
 
 #if FOUNDATION_PLATFORM_IOS
 
-TEST_API void* test_view_from_tag( void* window, int tag );
-TEST_API void  test_text_view_append( void* view, const char* msg );
+TEST_API void  test_text_view_append( void* window, int tag, const char* msg );
 
 #endif
 

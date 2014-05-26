@@ -20,39 +20,22 @@
 
 # import <UIKit/UITextView.h>
 
-typedef struct _test_log test_log_t;
 
-struct _test_log
-{
-	void*        view;
-	char         msg[];
-};
-
-
-void* test_view_from_tag( void* window, int tag )
+void test_text_view_append( void* window, int tag, const char* msg )
 {
 	if( !window )
-		return 0;
+		return;
 	
-	return [(UIWindow*)window viewWithTag:tag];
-}
-
-
-void test_text_view_append( void* view, const char* msg )
-{
-	if( !view )
+	__weak UITextView* textview = (UITextView*)[(__bridge UIWindow*)window viewWithTag:tag];
+	if( !textview )
 		return;
 
-	int msglen = string_length( msg );
-	test_log_t* log = memory_allocate_context( HASH_TEST, sizeof( test_log_t ) + msglen + 1, 0, MEMORY_PERSISTENT );
+	char* logmsg = string_clone( msg );
 	
-	log->view = view;
-	string_copy( log->msg, msg, msglen + 1 );
-	
-	dispatch_async( dispatch_get_main_queue(), ^{ @autoreleasepool {
-		UITextView* textview = (UITextView*)log->view;
-		textview.text = [textview.text stringByAppendingString:[NSString stringWithUTF8String:log->msg]];
-		memory_deallocate( log );
+	dispatch_after( dispatch_time( DISPATCH_TIME_NOW, NSEC_PER_SEC / 4 ), dispatch_get_main_queue(), ^{ @autoreleasepool {
+	//dispatch_async( dispatch_get_main_queue(), ^{ @autoreleasepool {
+		textview.text = [textview.text stringByAppendingString:[NSString stringWithUTF8String:logmsg]];
+		memory_deallocate( logmsg );
 	}});
 }
 

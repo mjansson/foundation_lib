@@ -25,7 +25,7 @@
                 <outlet property="rootViewController" destination="dQg-1M-d8C" id="aON-gj-hTu"/>
             </connections>
         </window>
-        <viewController title="Test Log" nibName="test-ios" id="dQg-1M-d8C">
+        <viewController title="Test Log" nibName="" id="dQg-1M-d8C">
             <textView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" tag="1" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" editable="NO" id="Ied-uC-Ke1">
                 <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

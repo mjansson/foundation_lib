@@ -39,8 +39,6 @@ int _system_show_alert( const char* title, const char* message, int cancel_butto
 	
 	NSInteger button = [alert runModal];
 	
-	[alert autorelease];
-	
 	return ( button == 1/*NSAlertDefaultReturn*/ ) ? 1 : 0;
 	
 #elif FOUNDATION_PLATFORM_IOS
@@ -51,7 +49,6 @@ int _system_show_alert( const char* title, const char* message, int cancel_butto
 						  delegate:nil cancelButtonTitle:[NSString stringWithCString:"Cancel" encoding:NSASCIIStringEncoding] otherButtonTitles:nil];
 	
 	[alert show];
-	[alert autorelease];
 	
 	return 1;
 	
