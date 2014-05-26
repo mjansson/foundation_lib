@@ -129,7 +129,6 @@ static void sighandler( int sig )
 	}
 	log_infof( 0, "Caught signal: %s (%d)", signame, sig );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
-	//process_exit( -1 );
 }
 
 #endif

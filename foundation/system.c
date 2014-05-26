@@ -557,7 +557,8 @@ event_stream_t* system_event_stream( void )
 
 void system_post_event( foundation_event_id event )
 {
-	event_post( _system_event_stream, event, 0, 0, 0, 0 );
+	if( _system_event_stream )
+		event_post( _system_event_stream, event, 0, 0, 0, 0 );
 }
 
 
