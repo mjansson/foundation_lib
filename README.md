@@ -31,7 +31,7 @@ It is written with the following API design principles in mind:
 Platforms and architectures currently supported:
 
 * Windows (x86, x86-64), Vista or later
-* MacOS X (x86, x86-64), 10.6+
+* MacOS X (x86-64), 10.7+
 * Linux (x86, x86-64, PPC, ARM)
 * iOS (ARM7, ARM7s, ARM64), 5.0+
 * Android (ARM6, ARM7, x86, MIPS)
