@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:osx/foundation.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:osx/test.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:osx/tool.xcodeproj">
+   </FileRef>
+</Workspace>
