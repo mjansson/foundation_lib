@@ -165,6 +165,8 @@ int main_run( void* main_arg )
 	int process_result = 0;
 	object_t thread = 0;
 	
+	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
+	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
 	while( !thread_is_running( thread ) )

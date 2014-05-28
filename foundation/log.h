@@ -97,7 +97,8 @@
 
 /*! \fn log_set_suppress
     Control log suppression based on severity level. Any messages at the
-    given severity level or lower will be filtered and discarded.
+    given severity level or lower will be filtered and discarded. If a log context
+    has no explicit supression level the default (0) context supression level will be used.
     \param context                              Log context
     \param level                                Severity level to discard */
 

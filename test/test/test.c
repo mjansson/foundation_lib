@@ -199,7 +199,6 @@ int test_run_all( void )
 int main_initialize( void )
 {
 	log_set_suppress( 0, ERRORLEVEL_INFO );
-	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 	
 	test_suite = test_suite_define();
 	
@@ -209,6 +208,8 @@ int main_initialize( void )
 
 int main_run( void* main_arg )
 {
+	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
+    
 	return test_run_all();
 }
 
