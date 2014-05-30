@@ -705,8 +705,7 @@ typedef struct _foundation_semaphore
 	} sem;
 } semaphore_t;
 #elif FOUNDATION_PLATFORM_IOS
-typedef struct dispatch_semaphore_s* dispatch_semaphore_t;
-typedef dispatch_semaphore_t         semaphore_t;
+typedef struct dispatch_semaphore_s* semaphore_t;
 #elif FOUNDATION_PLATFORM_POSIX
 typedef union
 {

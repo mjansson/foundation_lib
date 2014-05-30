@@ -40,6 +40,8 @@ test_group_t** _test_groups = 0;
 static bool _test_failed = false;
 
 
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+
 static void* test_event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
@@ -68,6 +70,8 @@ static void* test_event_thread( object_t thread, void* arg )
 
 	return 0;
 }
+
+#endif
 
 
 void test_add_test( test_fn fn, const char* group_name, const char* test_name )

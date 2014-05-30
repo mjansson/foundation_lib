@@ -311,6 +311,7 @@ DECLARE_TEST( fs, event )
 	return 0;
 }
 
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
 
 DECLARE_TEST( fs, monitor )
 {
@@ -575,6 +576,8 @@ DECLARE_TEST( fs, monitor )
 
 	return 0;
 }
+
+#endif
 
 
 static void test_fs_declare( void )
