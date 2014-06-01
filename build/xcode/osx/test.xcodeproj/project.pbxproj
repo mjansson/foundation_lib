@@ -1404,6 +1404,7 @@
 				4555173719363B2B00CF089B /* bin */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		455516961936208A00CF089B /* lib */ = {
 			isa = PBXGroup;
@@ -4230,6 +4231,7 @@
 				4555172C193638C400CF089B /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
 		};
 		4555174719363BA500CF089B /* Build configuration list for PBXNativeTarget "test-app" */ = {
 			isa = XCConfigurationList;

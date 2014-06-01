@@ -150,6 +150,7 @@
 				455519F41938D40100CF089B /* frameworks */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		455519BB1938BBDF00CF089B /* lib */ = {
 			isa = PBXGroup;

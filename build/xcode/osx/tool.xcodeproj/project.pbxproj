@@ -118,6 +118,7 @@
 				455516A81936355D00CF089B /* bin */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		455516A81936355D00CF089B /* bin */ = {
 			isa = PBXGroup;
@@ -506,6 +507,7 @@
 				455516AF1936355E00CF089B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		455516C71936377B00CF089B /* Build configuration list for PBXNativeTarget "uuidgen" */ = {
 			isa = XCConfigurationList;
