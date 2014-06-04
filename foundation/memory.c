@@ -355,7 +355,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 			FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 			return memory;
 		}
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in 32-bit space", size );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
 		return 0;
 	}
 
@@ -374,14 +374,36 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	#define MAP_ANONYMOUS MAP_ANON
 	#endif
 
-	#ifndef MAP_32BIT
-	#define MAP_32BIT 0
-	#endif
-
+#ifndef MAP_32BIT
+    //On MacOSX app needs to be linked with -pagezero_size 10000 -image_base 100000000 to
+    // 1) Free up low 4Gb address range by reducing page zero size
+    // 2) Move executable base address above 4Gb to free up more memory address space
+#define MMAP_REGION_START ((uintptr_t)0x10000)
+#define MMAP_REGION_END   ((uintptr_t)0x80000000)
+    static atomicptr_t baseaddr = { (void*)MMAP_REGION_START };
+    bool retried = false;
+    do
+    {
+        raw_memory = mmap( atomic_loadptr( &baseaddr ), allocate_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0 );
+        if( ( (uintptr_t)raw_memory >= MMAP_REGION_START ) && (uintptr_t)( raw_memory + allocate_size ) < MMAP_REGION_END )
+        {
+            atomic_storeptr( &baseaddr, pointer_offset( raw_memory, allocate_size ) );
+            break;
+        }
+        if( raw_memory )
+            munmap( raw_memory, allocate_size );
+        raw_memory = 0;
+        if( retried )
+            break;
+        retried = true;
+        atomic_storeptr( &baseaddr, (void*)MMAP_REGION_START );
+    } while( true );
+#    else
 	raw_memory = mmap( 0, allocate_size, PROT_READ | PROT_WRITE, MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0 );
+#    endif
 	if( !raw_memory )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", size );
 		return 0;
 	}
 
