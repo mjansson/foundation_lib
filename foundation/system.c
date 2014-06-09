@@ -31,6 +31,7 @@ extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
 #endif
 
+static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNOWN;
 static event_stream_t* _system_event_stream = 0;
 
 typedef struct _foundation_platform_info
@@ -546,6 +547,22 @@ uint16_t system_language( void )
 uint16_t system_country( void )
 {
 	return (uint16_t)( system_locale() & 0xFFFF );
+}
+
+
+void _system_set_device_orientation( device_orientation_t orientation )
+{
+	if( _system_device_orientation == orientation )
+		return;
+	
+	_system_device_orientation = orientation;
+	system_post_event( FOUNDATIONEVENT_DEVICE_ORIENTATION );
+}
+
+
+device_orientation_t system_device_orientation( void )
+{
+	return _system_device_orientation;
 }
 
 

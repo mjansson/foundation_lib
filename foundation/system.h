@@ -75,6 +75,10 @@ FOUNDATION_API uint32_t           system_locale( void );
     \return                       Currently set locale as a string identifier */
 FOUNDATION_API const char*        system_locale_string( void );
 
+/*! Get the current device orientation
+    \return                       Device orientation */
+FOUNDATION_API device_orientation_t system_device_orientation( void );
+
 /*! Process system events. You should call this once every loop iteration in your main loop */
 FOUNDATION_API void               system_process_events( void );
 

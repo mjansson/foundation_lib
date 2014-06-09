@@ -13,6 +13,7 @@
 #include <foundation/foundation.h>
 #include <foundation/delegate.h>
 #include <foundation/main.h>
+#include <foundation/internal.h>
 
 
 extern int app_main( void* arg );
@@ -183,6 +184,9 @@ void* delegate_nswindow( void )
 
 #elif FOUNDATION_PLATFORM_IOS
 
+#import <Foundation/NSNotification.h>
+
+
 static __weak UIApplication*          _delegate_app = 0;
 static __weak FoundationAppDelegate*  _delegate     = 0;
 
@@ -211,6 +215,9 @@ void* delegate_uiwindow( void )
 
 	log_debug( HASH_FOUNDATION, "Application finished launching" );
 	system_post_event( FOUNDATIONEVENT_START );
+	
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
 }
 
 
@@ -235,6 +242,9 @@ void* delegate_uiwindow( void )
 
 	log_debug( HASH_FOUNDATION, "Application will terminate" );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
+	
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 	
 	while( _delegate_main_thread_running )
 		thread_sleep( 1 );
@@ -274,6 +284,15 @@ void* delegate_uiwindow( void )
 	}
 #endif
 	
+}
+
+
+- (void)deviceOrientationDidChange:(NSNotification*)notification
+{
+	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+	
+	log_debugf( 0, "Device orientation changed to %d", (int)orientation );
+	_system_set_device_orientation( (device_orientation_t)orientation );
 }
 
 

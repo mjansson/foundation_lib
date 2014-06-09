@@ -377,7 +377,10 @@ typedef enum
 	FOUNDATIONEVENT_FILE_MODIFIED,
 	
 	//! Low memory warning
-	FOUNDATIONEVENT_LOW_MEMORY_WARNING
+	FOUNDATIONEVENT_LOW_MEMORY_WARNING,
+	
+	//! Device orientation changed
+	FOUNDATIONEVENT_DEVICE_ORIENTATION
 } foundation_event_id;
 
 //! Event flags
@@ -424,6 +427,31 @@ typedef enum
 	//! 64-bit floating point
 	RADIXSORT_FLOAT64
 } radixsort_data_t;
+
+//! Device orientation
+typedef enum
+{
+	//! Orientation not known
+	DEVICEORIENTATION_UNKNOWN = 0,
+	
+	//! Device oriented vertically, bottom of device down
+	DEVICEORIENTATION_PORTRAIT,
+	
+	//! Device oriented vertically, bottom of device up
+	DEVICEORIENTATION_PORTRAIT_FLIPPED,
+	
+	//! Device oriented horizontally, bottom of device to the right (rotated counter-clockwise from portrait mode)
+	DEVICEORIENTATION_LANDSCAPE_CCW,
+
+	//! Device oriented horizontally, bottom of device to the left (rotated clockwise from portrait mode)
+	DEVICEORIENTATION_LANDSCAPE_CW,
+	
+	//! Device oriented flat, face up
+	DEVICEORIENTATION_FACEUP,
+
+	//! Device oriented flat, face down
+	DEVICEORIENTATION_FACEDOWN
+} device_orientation_t;
 
 //! Hash value
 typedef uint64_t         hash_t;
