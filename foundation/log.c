@@ -290,6 +290,7 @@ void log_error_context( uint64_t context, error_level_t error_level )
 
 #if BUILD_ENABLE_LOG
 
+
 void log_enable_stdout( bool enable )
 {
 	_log_stdout = enable;
@@ -328,7 +329,14 @@ error_level_t log_suppress( uint64_t context )
 			return (error_level_t)( level - 1ULL );
 	}
 	return _log_suppress_default;
+}
 
+
+void log_suppress_clear( void )
+{
+	_log_suppress_default = ERRORLEVEL_NONE;
+    if( _log_suppress )
+        hashtable64_clear( _log_suppress );
 }
 
 

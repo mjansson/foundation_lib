@@ -103,9 +103,12 @@
     \param level                                Severity level to discard */
 
 /*! \fn log_suppress
-    Get current log supression level
+    Get current log supression level for the given context
     \param context                              Log context
-    \return                                     Severity level begin discarded */
+    \return                                     Severity level being discarded for the given context */
+
+/*! \fn log_suppress_clear
+    Clear all log suppression for all contexts */
 
 #if BUILD_ENABLE_DEBUG_LOG
 
@@ -133,6 +136,7 @@ FOUNDATION_API void                             log_enable_stdout( bool enable )
 FOUNDATION_API void                             log_enable_prefix( bool enable );
 FOUNDATION_API void                             log_set_suppress( uint64_t context, error_level_t level );
 FOUNDATION_API error_level_t                    log_suppress( uint64_t context );
+FOUNDATION_API void                             log_suppress_clear( void );
 #else
 #  define log_info( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define log_infof( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
@@ -148,4 +152,5 @@ FOUNDATION_API error_level_t                    log_suppress( uint64_t context )
 #  define log_enable_prefix( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
 #  define log_set_suppress( context, level ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( level ); } while(0) /*lint -restore */
 #  define log_suppress( context ) ERRORLEVEL_NONE
+#  define log_suppress_clear() do {} while(0)
 #endif
