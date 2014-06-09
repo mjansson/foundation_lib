@@ -33,8 +33,13 @@ elif testenv['platform'] == 'win32' or testenv['platform'] == 'win64':
 def makeTest( name ):
     global env
     global testenv
-    env[name + 'test'] = testenv.Program( 'test-' + name + '${prgsuffix}', name + '/main.c' )
-    testenv.AddPostAction( 'test-' + name + '${prgsuffix}', testenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env[name + 'test'] ] ) )
+    finalenv = testenv.Clone()
+    if finalenv['platform'] == 'win32' or finalenv['platform'] == 'win64':
+        if finalenv['CC'] == 'cl' or finalenv['CC'] == 'icl':
+            finalenv['bindir'] = 'bin/${platform}${platformsuffix}/${buildprofile}'
+            finalenv.Append( LINKFLAGS=['/PDB:\"${bindir}/test-' + name + '${prgsuffix}.pdb\"'])
+    env[name + 'test'] = finalenv.Program( 'test-' + name + '${prgsuffix}', name + '/main.c' )
+    finalenv.AddPostAction( 'test-' + name + '${prgsuffix}', finalenv.Install( '#bin/${platform}${platformsuffix}/${buildprofile}', [ env[name + 'test'] ] ) )
 
 makeTest('all')
 makeTest('app')

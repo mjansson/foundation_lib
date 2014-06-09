@@ -159,9 +159,9 @@ if env['CC'] == 'cl':
 	env.Append( CFLAGS=['/Zi','/W3','/WX','/Oi','/Oy-','/MT','/Gy-','/Gm-','/GS-','/fp:fast','/fp:except-','/GR-'] )
 	if env['platform'] == 'win32':
 		env.Append( CFLAGS=['/arch:SSE2'] )
-		env.Append( LINKFLAGS=['/MACHINE:X86'])
+		env.Append( LINKFLAGS=['/MACHINE:X86','/DEBUG'])
 	if env['platform'] == 'win64':
-		env.Append( LINKFLAGS=['/MACHINE:X64'])
+		env.Append( LINKFLAGS=['/MACHINE:X64','/DEBUG'])
 
 if baseenv['includepath'] != '':
 		env.Append( CPPPATH=[baseenv['includepath']] )
