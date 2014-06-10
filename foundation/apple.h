@@ -62,10 +62,13 @@
 #    import <Foundation/NSUUID.h>
 #    import <Foundation/NSCoder.h>
 #    import <Foundation/NSAttributedString.h>
+#    import <Foundation/NSIndexPath.h>
+#    import <Foundation/NSBundle.h>
 #    import <UIKit/UIApplication.h>
 #    import <UIKit/UIWindow.h>
 #    import <UIKit/UIScreen.h>
 #    import <UIKit/UIView.h>
+#    import <UIKit/UIViewController.h>
 #    import <QuartzCore/QuartzCore.h>
 #  endif
 #else

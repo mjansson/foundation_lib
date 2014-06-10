@@ -13,7 +13,6 @@
 #include <foundation/foundation.h>
 #include <foundation/delegate.h>
 #include <foundation/main.h>
-#include <foundation/internal.h>
 
 
 extern int app_main( void* arg );
@@ -186,6 +185,8 @@ void* delegate_nswindow( void )
 
 #import <Foundation/NSNotification.h>
 
+
+FOUNDATION_EXTERN void _system_set_device_orientation( device_orientation_t orientation );
 
 static __weak UIApplication*          _delegate_app = 0;
 static __weak FoundationAppDelegate*  _delegate     = 0;
