@@ -58,6 +58,7 @@
 #    import <AppKit/NSApplication.h>
 #    import <AppKit/NSAlert.h>
 #    import <AppKit/NSWindow.h>
+#    import <AppKit/NSViewController.h>
 #  elif FOUNDATION_PLATFORM_IOS
 #    import <Foundation/NSUUID.h>
 #    import <Foundation/NSCoder.h>
