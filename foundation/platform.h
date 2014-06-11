@@ -1060,10 +1060,12 @@ typedef   float32_t         real;
 //wchar_t size
 #if FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 #  define FOUNDATION_WCHAR_SIZE 32
-#elif WCHAR_MAX > 0xffff
-#  define FOUNDATION_WCHAR_SIZE 32
 #else
-#  define FOUNDATION_WCHAR_SIZE 16
+#  if WCHAR_MAX > 0xffff
+#    define FOUNDATION_WCHAR_SIZE 32
+#  else
+#    define FOUNDATION_WCHAR_SIZE 16
+#  endif
 #endif
 
 static FORCEINLINE CONSTCALL uint128_t uint128_make( const uint64_t low, const uint64_t high ) { uint128_t u = { low, high }; return u; }

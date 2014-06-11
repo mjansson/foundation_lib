@@ -32,7 +32,7 @@ __asm__(
 #endif
 
 
-#if FOUNDATION_ARCH_MIPS
+#if FOUNDATION_MUTEX_64BIT_ATOMIC
 
 #include <foundation/posix.h>
 
