@@ -405,19 +405,24 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 
 	//Grab initial frame pointer
 	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (last_fp));
-
+	
 	while( last_fp && ( num_frames < max_depth ) )
 	{
 		caller_fp = READ_64BIT_MEMORY( last_fp );
 		caller_lr = READ_64BIT_MEMORY( last_fp + 8 );
 		caller_sp = last_fp + 16;
 
-		if( skip_frames > 0 )
-			--skip_frames;
-		else if( caller_fp > 0x1000 )
+		if( ( caller_fp > 0x1000 ) && caller_lr )
 		{
-			void* instruction = (void*)(uintptr_t)( ( caller_lr - 4 ) & ~7 );
-			trace[num_frames++] = instruction;
+			if( skip_frames > 0 )
+			{
+				--skip_frames;
+			}
+			else
+			{
+				void* instruction = (void*)(uintptr_t)( ( caller_lr - 4 ) & ~7 );
+				trace[num_frames++] = instruction;
+			}
 		}
 		else
 		{
@@ -441,13 +446,18 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 		caller_fp = READ_32BIT_MEMORY( last_fp );
 		caller_lr = READ_32BIT_MEMORY( last_fp + 4 );
 		caller_sp = last_fp + 8;
-		
-		if( skip_frames > 0 )
-			--skip_frames;
-		else if( caller_fp > 0x1000 )
+
+		if( ( caller_fp > 0x1000 ) && caller_lr )
 		{
-			void* instruction = (void*)(uintptr_t)( ( caller_lr - 2 ) & ~3 );
-			trace[num_frames++] = instruction;
+			if( skip_frames > 0 )
+			{
+				--skip_frames;
+			}
+			else
+			{
+				void* instruction = (void*)(uintptr_t)( ( caller_lr - 2 ) & ~3 );
+				trace[num_frames++] = instruction;
+			}
 		}
 		else
 		{
@@ -472,12 +482,17 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 		caller_ebp = READ_32BIT_MEMORY( last_ebp );
 		caller_esp = last_ebp + 8;
 
-		if( skip_frames > 0 )
-			--skip_frames;
-		else if( caller_eip > 0x1000 )
+		if( caller_eip > 0x1000 )
 		{
-			void* instruction = (void*)(uintptr_t)( ( caller_eip - 1 ) & ~3 );
-			trace[num_frames++] = instruction;
+			if( skip_frames > 0 )
+			{
+				--skip_frames;
+			}
+			else
+			{
+				void* instruction = (void*)(uintptr_t)( ( caller_eip - 1 ) & ~3 );
+				trace[num_frames++] = instruction;
+			}
 		}
 		else
 		{
