@@ -396,7 +396,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	_capture_stack_trace_helper( trace, max_depth, skip_frames, &context );
 #  endif
 	}
-#elif FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 	
 #  if FOUNDATION_ARCH_ARM_64
 
@@ -441,7 +441,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 		caller_fp = READ_32BIT_MEMORY( last_fp );
 		caller_lr = READ_32BIT_MEMORY( last_fp + 4 );
 		caller_sp = last_fp + 8;
-
+		
 		if( skip_frames > 0 )
 			--skip_frames;
 		else if( caller_fp > 0x1000 )
@@ -500,7 +500,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 
 	void* localframes[BUILD_SIZE_STACKTRACE_DEPTH];
 	num_frames = (unsigned int)backtrace( localframes, BUILD_SIZE_STACKTRACE_DEPTH );
-
+	
 	if( num_frames > skip_frames )
 	{
 		num_frames -= skip_frames;
