@@ -60,7 +60,15 @@ DECLARE_TEST( hash, stability )
 	int i, j, k, len;
 	hash_t lhash, rhash, rhashref;
 
-	for( i = 0; i < 128; ++i )
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+	int mult = 200;
+	int passes = 64;
+#else
+	int mult = 1000;
+	int passes = 128;
+#endif	
+	
+	for( i = 0; i < passes; ++i )
 	{
 		uint32_t lhs[129], rhs[129];
 		len = i + 1;
@@ -71,7 +79,7 @@ DECLARE_TEST( hash, stability )
 		lhash = hash( lhs, len * sizeof( uint32_t ) );
 		EXPECT_NE( lhash, 0U );
 
-		for( j = 0; j < 64000; ++j )
+		for( j = 0; j < 64 * mult; ++j )
 		{
 			for( k = 0; k < len; ++k )
 				rhs[k] = random32();
@@ -86,7 +94,7 @@ DECLARE_TEST( hash, stability )
 		}
 	}
 
-	for( i = 4; i < 128; ++i )
+	for( i = 4; i < passes; ++i )
 	{
 		char lhs[130], rhs[130];
 		len = i + 1;
@@ -101,7 +109,7 @@ DECLARE_TEST( hash, stability )
 		lhash = hash( lhs, len );
 		EXPECT_NE( lhash, 0U );
 
-		for( j = 0; j < 128000; ++j )
+		for( j = 0; j < 128 * mult; ++j )
 		{
 			for( k = 4; k < len; ++k )
 				rhs[k] = random32_range( 32, 128 );
