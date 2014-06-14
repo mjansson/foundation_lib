@@ -618,6 +618,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 	memory = 0;
 #  if BUILD_ENABLE_MEMORY_GUARD
+	if( p )
 	{
 		int guard_loop;
 		uint64_t  old_size = *(uint64_t*)pointer_offset( p, -FOUNDATION_MAX_ALIGN * 2 );
