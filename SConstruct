@@ -37,8 +37,12 @@ if baseenv['PLATFORM'] == 'win32':
 	else: #if baseenv['tools'] == 'msvc':
 		baseenv['toolslist'] = ['default','msvc','mslib']
 elif baseenv['PLATFORM'] == 'posix':
+	if baseenv['platform'] == 'raspberrypi' and baseenv['tools'] == '':
+		baseenv['tools'] = 'clang'
 	if baseenv['tools'] == 'gnu':
 		baseenv['toolslist'] = ['default']
+	#elif baseenv['tools'] == 'clang':
+	#	baseenv['toolslist'] = ['default']
 	else:
 		baseenv['toolslist'] = ['default']
 	if baseenv['arch'] == 'arm':
@@ -67,6 +71,7 @@ env = Environment(
 #for item in sorted(baseenv.Dictionary().items()):
 #	print "construction variable = '%s', value = '%s'" % item
 
+env['tools'] = baseenv['tools']
 env['platformsuffix'] = ''
 
 if env['PLATFORM'] == 'posix':
@@ -74,10 +79,6 @@ if env['PLATFORM'] == 'posix':
 		env['platform'] = 'linux'
 	env['arch'] = env['TARGET_ARCH']
 	env['ENV']['TERM'] = os.environ['TERM']
-	#if env['platform'] == 'raspberrypi':
-	#	env['CC'] = 'clang'
-	#	env['CXX'] = 'clang++'
-	#	env['LD'] = 'llvm-ld'
 if env['PLATFORM'] == 'darwin':
 	if env['platform'] == '':
 		env['platform'] = 'osx'
@@ -127,6 +128,7 @@ Help( opts.GenerateHelpText( env ) )
 if baseenv['tools'] == 'clang':
 	env['CC'] = 'clang'
 	env['AR'] = 'llvm-ar'
+	env['LD'] = 'llvm-ld'
 
 if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	env.Append( CFLAGS=['-std=gnu99','-W','-Wall','-Wcast-align','-Wcast-qual','-Wchar-subscripts','-Winline','-Wpointer-arith','-Wredundant-decls','-Wshadow','-Wwrite-strings','-Wno-variadic-macros','-Wno-long-long','-Wno-format','-Wno-unused','-Wundef','-Wstrict-aliasing','-Wno-missing-field-initializers','-Wno-missing-braces','-Wno-unused-parameter','-ftabstop=4','-fstrict-aliasing'] )
@@ -164,7 +166,7 @@ if env['CC'] == 'cl':
 		env.Append( LINKFLAGS=['/MACHINE:X64','/DEBUG'])
 
 if baseenv['includepath'] != '':
-		env.Append( CPPPATH=[baseenv['includepath']] )
+	env.Append( CPPPATH=[baseenv['includepath']] )
 
 # SETUP DEFAULT ENVIRONMENT
 if env['CC'] == 'gcc':
