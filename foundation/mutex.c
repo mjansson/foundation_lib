@@ -49,12 +49,12 @@ struct ALIGN(16) _foundation_mutex
 #else
 #  error Not implemented	
 #endif		
-
-	//! Owner thread
-	uint64_t               lockedthread;
 	
 	//! Enter count
 	volatile int           lockcount;	
+
+	//! Owner thread
+	uint64_t               lockedthread;
 };
 
 
@@ -81,8 +81,8 @@ static void _mutex_initialize( mutex_t* mutex, const char* name )
 #  error _mutex_initialize not implemented
 #endif
 
-	mutex->lockedthread = 0;
 	mutex->lockcount = 0;
+	mutex->lockedthread = 0;
 }
 
 

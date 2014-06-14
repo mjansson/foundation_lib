@@ -103,6 +103,7 @@ void _random_shutdown( void )
 		mutex_unlock( _random_mutex );
 		mutex_deallocate( _random_mutex );
 	}
+	_random_mutex = 0;
 }
 
 

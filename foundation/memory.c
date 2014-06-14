@@ -193,8 +193,10 @@ static void* _memory_guard_verify( void* memory )
 	uint32_t* guard_footer = pointer_offset( memory, size );
 	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
 	{
-		FOUNDATION_ASSERT_MSG( *guard_header == MEMORY_GUARD_VALUE, "Memory underwrite" );
-		FOUNDATION_ASSERT_MSG( *guard_footer == MEMORY_GUARD_VALUE, "Memory overwrite" );
+		if( *guard_header != MEMORY_GUARD_VALUE )
+			FOUNDATION_ASSERT_MSG( *guard_header == MEMORY_GUARD_VALUE, "Memory underwrite" );
+		if( *guard_footer != MEMORY_GUARD_VALUE )
+			FOUNDATION_ASSERT_MSG( *guard_footer == MEMORY_GUARD_VALUE, "Memory overwrite" );
 		guard_header++;
 		guard_footer++;
 	}
