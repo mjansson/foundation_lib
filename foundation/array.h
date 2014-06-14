@@ -101,7 +101,7 @@
 // Header size set to 16 bytes in order to align main array memory
 #define _array_header_size           4UL
 #if BUILD_DEBUG
-#  define _array_verify(a)           ( _array_verifyfn((const void* const*)&(a)), (a) )
+#  define _array_verify(a)           ( _array_verifyfn((const void* const*)&(a)) )
 #else
 #  define _array_verify(a)           (a)
 #endif
@@ -113,20 +113,22 @@
 #define _array_rawsize_const(a)      _array_raw_const(a)[1]
 
 #define _array_needgrow(a,n)         ( ((n)>0) && ( _array_verify(a)==0 || (_array_rawsize_const(a)+(n)) > _array_rawcapacity_const(a) ) )
-#define _array_maybegrow(a,n)        ( _array_needgrow(a,(n)) ? _array_grow(a,n,2), 0 : 0 )
-#define _array_maybegrowfixed(a,n)   ( _array_needgrow(a,(n)) ? _array_grow(a,n,1), 0 : 0 )
-#define _array_grow(a,n,f)           ( _array_growfn(&(a),(n),(f),(int)sizeof(*(a))) )
+#define _array_maybegrow(a,n)        ( _array_needgrow(a,(n)) ? _array_grow(a,n,2) : (a) )
+#define _array_maybegrowfixed(a,n)   ( _array_needgrow(a,(n)) ? _array_grow(a,n,1) : (a) )
+#define _array_grow(a,n,f)           ( _array_growfn((void**)&(a),(n),(f),(int)sizeof(*(a))) )
 
 /*! Array memory allocation function. This will reallocate array storage with the given parameters,
     resulting in a total size of (factor * previous_capacity + increment) elements, with each element
     size given by itemsize.
-    \param arr                       Array
+    \param arr                       Pointer to array
     \param increment                 Number of elements to increment storage with
     \param factor                    Factor to multiply previous capacity with
-    \param itemsize                  Size of a single item */
-FOUNDATION_API void _array_growfn( void* arr, int increment, int factor, int itemsize );
+    \param itemsize                  Size of a single item
+	\return                          New array pointer */
+FOUNDATION_API void*                 _array_growfn( void** arr, int increment, int factor, int itemsize );
 
  /*! Verify array integrity. Will cause an assert if array is not valid.
-     \param arr                      Array */
-FOUNDATION_API void _array_verifyfn( const void* const* arr );
+     \param arr                      Pointer to array
+	 \return                         Array if valid, null if invalid */
+FOUNDATION_API const void*           _array_verifyfn( const void* const* arr );
 

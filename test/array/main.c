@@ -1979,6 +1979,18 @@ DECLARE_TEST( array, resize )
 
 	EXPECT_EQ( intarr, 0 );
 
+	array_reserve( intarr, 15 );
+	EXPECT_EQ( array_capacity( intarr ), 15 );
+	EXPECT_EQ( array_size( intarr ), 0 );
+
+	array_grow( intarr, 2 );
+	EXPECT_EQ( array_capacity( intarr ), 15 );
+	EXPECT_EQ( array_size( intarr ), 2 );
+
+	array_grow( intarr, 15 );
+	EXPECT_EQ( array_capacity( intarr ), 17 );
+	EXPECT_EQ( array_size( intarr ), 17 );
+
 	return 0;
 }
 
