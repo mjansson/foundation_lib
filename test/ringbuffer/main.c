@@ -21,6 +21,7 @@ static application_t test_ringbuffer_application( void )
 	app.short_name = "test_ringbuffer";
 	app.config_dir = "test_ringbuffer";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

@@ -26,7 +26,6 @@ static atomic32_t           _test_profile_output_counter = {0};
 
 static void test_profile_output( void* buffer, uint64_t size )
 {
-
 	atomic_incr32( &_test_profile_output_counter );
 }
 
@@ -38,6 +37,7 @@ static application_t test_profile_application( void )
 	app.short_name = "test_profile";
 	app.config_dir = "test_profile";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

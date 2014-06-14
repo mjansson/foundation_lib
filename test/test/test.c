@@ -294,3 +294,11 @@ void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threa
 			thread_sleep( 10 );
 	} while( keep_waiting );
 }
+
+
+void test_crash_handler( const char* dump_file )
+{
+	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
+	process_exit( -1 );
+}
+
