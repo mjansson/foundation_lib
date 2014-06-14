@@ -566,12 +566,14 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 	align = _memory_get_align( align );
 
-	memory = 0;
+	memory = p;
 #  if BUILD_ENABLE_MEMORY_GUARD
-	if( p )
-		p = _memory_guard_verify( p );
+	if( memory )
+		memory = _memory_guard_verify( memory );
 #  endif
-	raw_p = p ? *( (void**)p - 1 ) : 0;
+	raw_p = memory ? *( (void**)memory - 1 ) : 0;
+	memory = 0;
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
