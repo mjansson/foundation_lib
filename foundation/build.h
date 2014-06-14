@@ -64,6 +64,9 @@
 /*! \def BUILD_ENABLE_MEMORY_TRACKER
     Set to 1 if memory allocation tracking is enabled, 0 if disabled */
 
+/*! \def BUILD_ENABLE_MEMORY_GUARD
+    Set to 1 if memory guards for detecting overwrite and underwrite is enabled, 0 if disabled */
+
 /*! \def BUILD_ENABLE_STATIC_HASH_DEBUG
     Set to 1 if static string hash debugging is enabled allowing reverse hash lookups, 0 if disabled */
 
@@ -199,6 +202,14 @@
 #endif
 #endif
 
+#ifndef BUILD_ENABLE_MEMORY_GUARD
+#if BUILD_DEBUG || BUILD_RELEASE
+#define BUILD_ENABLE_MEMORY_GUARD             1
+#else
+#define BUILD_ENABLE_MEMORY_GUARD             0
+#endif
+#endif
+
 #ifndef BUILD_ENABLE_STATIC_HASH_DEBUG
 #if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
 #define BUILD_ENABLE_STATIC_HASH_DEBUG        1
@@ -214,7 +225,7 @@
 #define BUILD_SIZE_THREAD_MAP                 512
 #define BUILD_SIZE_LIBRARY_MAP                64
 
-#define BUILD_SIZE_TEMPORARY_MEMORY           2 * 1024 * 1024
+#define BUILD_SIZE_TEMPORARY_MEMORY           ( 2 * 1024 * 1024 )
 
 #define BUILD_SIZE_EVENT_BLOCK_LIMIT          ( 1 * 1024 * 1024 )
 
@@ -229,3 +240,5 @@
 #define BUILD_SIZE_FS_MONITORS                32
 
 #define BUILD_SIZE_STATIC_HASH_STORE          4192
+
+#define BUILD_EVENT_BLOCK_CHUNK_SIZE          ( 32 * 1024 )

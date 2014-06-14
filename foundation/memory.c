@@ -25,6 +25,8 @@
 #  include <malloc.h>
 #endif
 
+#define MEMORY_GUARD_VALUE 0xDEADBEEF
+
 
 static memory_system_t _memsys = {0};
 
@@ -319,7 +321,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 			FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 			return memory;
 		}
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in 32-bit space", size );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
 		return 0;
 	}
 
@@ -330,7 +332,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	vmres = NtAllocateVirtualMemory( INVALID_HANDLE_VALUE, &raw_memory, 1, &allocate_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE );
 	if( vmres != 0 )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", size );
 		return 0;
 	}
 
@@ -347,15 +349,32 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #  endif
 	{
 		unsigned int padding = ( align > FOUNDATION_ARCH_POINTER_SIZE ? align : FOUNDATION_ARCH_POINTER_SIZE );
+#if BUILD_ENABLE_MEMORY_GUARD
+		padding += FOUNDATION_MAX_ALIGN * 3;
+#endif
 		char* raw_memory = malloc( (size_t)size + align + padding );
 		if( raw_memory )
 		{
 			void* memory = _memory_align_pointer( raw_memory + padding, align );
 			*( (void**)memory - 1 ) = raw_memory;
 			FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+#if BUILD_ENABLE_MEMORY_GUARD
+			{
+				int guard_loop;
+				uint32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_ALIGN );
+				uint32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_ALIGN * 2 );
+				*(uint64_t*)memory = size;
+				for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
+				{
+					*guard_header++ = MEMORY_GUARD_VALUE;
+					*guard_footer++ = MEMORY_GUARD_VALUE;
+				}
+				memory = pointer_offset( memory, FOUNDATION_MAX_ALIGN * 2 );
+			}
+#endif
 			return memory;
 		}
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
+		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory (%llu requested)", size, size + align + padding );
 		return 0;
 	}
 
@@ -366,6 +385,10 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	char* raw_memory;
 	void* memory;
 
+#    if BUILD_ENABLE_MEMORY_GUARD
+	padding += FOUNDATION_MAX_ALIGN * 3;
+#    endif
+
 	#ifndef MAP_UNINITIALIZED
 	#define MAP_UNINITIALIZED 0
 	#endif
@@ -374,12 +397,12 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	#define MAP_ANONYMOUS MAP_ANON
 	#endif
 
-#ifndef MAP_32BIT
+#    ifndef MAP_32BIT
     //On MacOSX app needs to be linked with -pagezero_size 10000 -image_base 100000000 to
     // 1) Free up low 4Gb address range by reducing page zero size
     // 2) Move executable base address above 4Gb to free up more memory address space
-#define MMAP_REGION_START ((uintptr_t)0x10000)
-#define MMAP_REGION_END   ((uintptr_t)0x80000000)
+    #define MMAP_REGION_START ((uintptr_t)0x10000)
+    #define MMAP_REGION_END   ((uintptr_t)0x80000000)
     static atomicptr_t baseaddr = { (void*)MMAP_REGION_START };
     bool retried = false;
     do
@@ -411,6 +434,20 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	*( (uintptr_t*)memory - 1 ) = ( (uintptr_t)raw_memory | 1 );
 	*( (uintptr_t*)memory - 2 ) = allocate_size;
 	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+#    if BUILD_ENABLE_MEMORY_GUARD
+	{
+		int guard_loop;
+		uint32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_ALIGN );
+		uint32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_ALIGN * 2 );
+		*(uint64_t*)memory = size;
+		for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
+		{
+			*guard_header++ = MEMORY_GUARD_VALUE;
+			*guard_footer++ = MEMORY_GUARD_VALUE;
+		}
+		memory = pointer_offset( memory, FOUNDATION_MAX_ALIGN * 2 );
+	}
+#    endif
 
 	return memory;
 
@@ -445,6 +482,22 @@ static void _memory_deallocate_malloc( void* p )
 #  if FOUNDATION_PLATFORM_WINDOWS
 	_aligned_free( p );
 #  else
+#    if BUILD_ENABLE_MEMORY_GUARD
+	{
+		int guard_loop;
+		uint64_t  size = *(uint64_t*)pointer_offset( p, -FOUNDATION_MAX_ALIGN * 2 );
+		uint32_t* guard_header = pointer_offset( p, -FOUNDATION_MAX_ALIGN );
+		uint32_t* guard_footer = pointer_offset( p, size );
+		for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
+		{
+			FOUNDATION_ASSERT_MSG( *guard_header == MEMORY_GUARD_VALUE, "Memory underwrite" );
+			FOUNDATION_ASSERT_MSG( *guard_footer == MEMORY_GUARD_VALUE, "Memory overwrite" );
+			guard_header++;
+			guard_footer++;
+		}
+	}
+	p = pointer_offset( p, -FOUNDATION_MAX_ALIGN * 2 );
+#    endif
 	free( *( (void**)p - 1 ) );
 #  endif
 
@@ -455,6 +508,22 @@ static void _memory_deallocate_malloc( void* p )
 	if( !p )
 		return;
 
+#  if BUILD_ENABLE_MEMORY_GUARD
+	{
+		int guard_loop;
+		uint64_t  size = *(uint64_t*)pointer_offset( p, -FOUNDATION_MAX_ALIGN * 2 );
+		uint32_t* guard_header = pointer_offset( p, -FOUNDATION_MAX_ALIGN );
+		uint32_t* guard_footer = pointer_offset( p, size );
+		for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
+		{
+			FOUNDATION_ASSERT_MSG( *guard_header == MEMORY_GUARD_VALUE, "Memory underwrite" );
+			FOUNDATION_ASSERT_MSG( *guard_footer == MEMORY_GUARD_VALUE, "Memory overwrite" );
+			guard_header++;
+			guard_footer++;
+		}
+	}
+	p = pointer_offset( p, -FOUNDATION_MAX_ALIGN * 2 );
+#  endif
 	raw_ptr = *( (uintptr_t*)p - 1 );
 	if( raw_ptr & 1 )
 	{
@@ -490,7 +559,25 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	align = _memory_get_align( align );
 
 	memory = 0;
+#  if BUILD_ENABLE_MEMORY_GUARD
+	{
+		int guard_loop;
+		uint64_t  size = *(uint64_t*)pointer_offset( p, -FOUNDATION_MAX_ALIGN * 2 );
+		uint32_t* guard_header = pointer_offset( p, -FOUNDATION_MAX_ALIGN );
+		uint32_t* guard_footer = pointer_offset( p, size );
+		for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
+		{
+			FOUNDATION_ASSERT_MSG( *guard_header == MEMORY_GUARD_VALUE, "Memory underwrite" );
+			FOUNDATION_ASSERT_MSG( *guard_footer == MEMORY_GUARD_VALUE, "Memory overwrite" );
+			guard_header++;
+			guard_footer++;
+		}
+
+	}
+	raw_p = p ? *( (void**)pointer_offset( p, -FOUNDATION_MAX_ALIGN * 2 ) - 1 ) : 0;
+#  else
 	raw_p = p ? *( (void**)p - 1 ) : 0;
+#  endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
@@ -518,7 +605,10 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 //If we're on ARM the realloc can return a 16-bit aligned address, causing raw pointer store to SIGILL
 //Realigning does not work since the realloc memory copy preserve cannot be done properly. Revert to normal alloc-and-copy
-#if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
+//Same with alignment, since we cannot guarantee that the returned memory block offset from start of actual memory block
+//is the same in the reallocated block as the original block, we need to alloc-and-copy to get alignment
+//Memory guard introduces implicit alignments as well so alloc-and-copy for that
+#if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64 && !BUILD_ENABLE_MEMORY_GUARD
 	if( !align && raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
 		void* raw_memory = realloc( raw_p, (size_t)size + FOUNDATION_ARCH_POINTER_SIZE );
