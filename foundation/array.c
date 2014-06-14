@@ -29,9 +29,28 @@ const void* _array_verifyfn( const void* const* arr )
 }
 
 
+void* _array_resizefn( void** arr, int elements, int itemsize )
+{
+	if( elements > 0 )
+	{
+		if( !(*arr) )
+			_array_growfn( arr, elements, 1, itemsize );
+		else if( _array_rawcapacity( *arr ) < elements )
+			_array_growfn( arr, elements - _array_rawcapacity( *arr ), 1, itemsize );
+	}
+	else
+	{
+		elements = 0;
+	}
+	if( *arr )
+		_array_rawsize( *arr ) = elements;
+	return *arr;
+}
+
+
 void* _array_growfn( void** arr, int increment, int factor, int itemsize )
 {
-	int      prev_capacity = *arr ? _array_rawcapacity(*arr) : 0;
+	int      prev_capacity = *arr ? _array_rawcapacity( *arr ) : 0;
 	int      capacity = *arr ? ( factor * prev_capacity + increment ) : increment;
 	int      prev_used_size = itemsize * prev_capacity;
 	int      storage_size = itemsize * capacity;

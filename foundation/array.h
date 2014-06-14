@@ -36,10 +36,10 @@
 #define array_size( array )                                 ( _array_verify( array ) ? _array_rawsize_const( array ) : 0 )
 
 //! Add/remove elements without initialization (set new size to size+num and allocate new storage if needed).
-#define array_grow( array, num )                            ( array_reserve( array, array_size( array ) + (int)(num) ), ( _array_verify( array ) ? _array_rawsize( array ) += (num) : 0 ), 0 )
+#define array_grow( array, num )                            ( (void)_array_resize( array, array_size( array ) + num ) )
 
 //! Resize to given size without initialization (set new size to num and allocate new storage if needed).
-#define array_resize( array, num )                          ( array_grow( array, (int)(num) - array_size( array ) ), 0 )
+#define array_resize( array, num )                          ( (void)_array_resize( array, num ) )
 
 //! Set size to 0 (does not affect capacity or resize storage buffer).
 #define array_clear( array )                                ( _array_verify( array ) ? _array_rawsize( array ) = 0, 0 : 0 )
@@ -116,6 +116,7 @@
 #define _array_maybegrow(a,n)        ( _array_needgrow(a,(n)) ? _array_grow(a,n,2) : (a) )
 #define _array_maybegrowfixed(a,n)   ( _array_needgrow(a,(n)) ? _array_grow(a,n,1) : (a) )
 #define _array_grow(a,n,f)           ( _array_growfn((void**)&(a),(n),(f),(int)sizeof(*(a))) )
+#define _array_resize(a,n)           ( _array_resizefn((void**)&(a),(n),(int)sizeof(*(a))) )
 
 /*! Array memory allocation function. This will reallocate array storage with the given parameters,
     resulting in a total size of (factor * previous_capacity + increment) elements, with each element
@@ -126,6 +127,12 @@
     \param itemsize                  Size of a single item
 	\return                          New array pointer */
 FOUNDATION_API void*                 _array_growfn( void** arr, int increment, int factor, int itemsize );
+
+/*! Array resize function. This will reallocate array storage if needed
+    \param arr                       Pointer to array
+    \param elements                  Number of elements to resize to
+	\return                          New array pointer */
+FOUNDATION_API void*                 _array_resizefn( void** arr, int elements, int itemsize );
 
  /*! Verify array integrity. Will cause an assert if array is not valid.
      \param arr                      Pointer to array

@@ -1991,6 +1991,10 @@ DECLARE_TEST( array, resize )
 	EXPECT_EQ( array_capacity( intarr ), 17 );
 	EXPECT_EQ( array_size( intarr ), 17 );
 
+	array_deallocate( intarr );
+
+	EXPECT_EQ( intarr, 0 );
+	
 	return 0;
 }
 
