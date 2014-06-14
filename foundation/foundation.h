@@ -67,6 +67,7 @@
 #include <foundation/stacktrace.h>
 
 #include <foundation/blowfish.h>
+#include <foundation/regex.h>
 
 #include <foundation/main.h>
 

@@ -797,6 +797,9 @@ typedef struct _foundation_hashtable32      hashtable32_t;
 //! Hash table (64bit data)
 typedef struct _foundation_hashtable64      hashtable64_t;
 
+//! Compiled regular expression
+typedef struct _foundation_regex            regex_t;
+
 
 // COMPLEX TYPES
 
