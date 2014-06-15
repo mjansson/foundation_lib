@@ -66,6 +66,7 @@ void* _array_growfn( void** arr, int increment, int factor, int itemsize )
 		{
 			buffer[1] = 0;
 			buffer[2] = ARRAY_WATERMARK;
+			buffer[3] = itemsize;
 		}
 		*arr = buffer + _array_header_size;
 	}
