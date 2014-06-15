@@ -21,6 +21,7 @@ static application_t test_array_application( void )
 	app.short_name = "test_array";
 	app.config_dir = "test_array";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 
@@ -1978,6 +1979,22 @@ DECLARE_TEST( array, resize )
 
 	EXPECT_EQ( intarr, 0 );
 
+	array_reserve( intarr, 15 );
+	EXPECT_EQ( array_capacity( intarr ), 15 );
+	EXPECT_EQ( array_size( intarr ), 0 );
+
+	array_grow( intarr, 2 );
+	EXPECT_EQ( array_capacity( intarr ), 15 );
+	EXPECT_EQ( array_size( intarr ), 2 );
+
+	array_grow( intarr, 15 );
+	EXPECT_EQ( array_capacity( intarr ), 17 );
+	EXPECT_EQ( array_size( intarr ), 17 );
+
+	array_deallocate( intarr );
+
+	EXPECT_EQ( intarr, 0 );
+	
 	return 0;
 }
 

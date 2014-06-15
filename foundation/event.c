@@ -71,16 +71,15 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
 	{
-#define BLOCK_CHUNK_SIZE ( 32 * 1024 )
 		uint32_t prev_capacity = block->capacity + 2ULL;
-		if( block->capacity < BLOCK_CHUNK_SIZE )
+		if( block->capacity < BUILD_EVENT_BLOCK_CHUNK_SIZE )
 		{
 			block->capacity <<= 1;
 			block->capacity += allocsize;
 		}
 		else
 		{
-			block->capacity += BLOCK_CHUNK_SIZE;
+			block->capacity += BUILD_EVENT_BLOCK_CHUNK_SIZE;
 			FOUNDATION_ASSERT_MSG( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > 4Mb" );
 			error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
 		}

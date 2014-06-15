@@ -21,6 +21,7 @@ static application_t test_radixsort_application( void )
 	app.short_name = "test_radixsort";
 	app.config_dir = "test_radixsort";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

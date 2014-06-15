@@ -21,6 +21,7 @@ static application_t test_mutex_application( void )
 	app.short_name = "test_mutex";
 	app.config_dir = "test_mutex";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

@@ -21,6 +21,7 @@ static application_t test_stacktrace_application( void )
 	app.short_name = "test_stacktrace";
 	app.config_dir = "test_stacktrace";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

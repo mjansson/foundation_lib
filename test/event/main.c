@@ -21,6 +21,7 @@ static application_t test_event_application( void )
 	app.short_name = "test_event";
 	app.config_dir = "test_event";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

@@ -24,6 +24,7 @@ static application_t test_app_application( void )
 	_global_app.config_dir = "test_app";
 	_global_app.version = version_make( 1, 2, 3, 4, 5 );
 	_global_app.flags = APPLICATION_UTILITY;
+	_global_app.dump_callback = test_crash_handler;
 	return _global_app;
 }
 

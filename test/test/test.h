@@ -81,6 +81,7 @@ TEST_API void NOINLINE test_wait_for_threads_startup( const object_t* threads, u
 TEST_API void NOINLINE test_wait_for_threads_finish( const object_t* threads, unsigned int num_threads );
 TEST_API void NOINLINE test_wait_for_threads_exit( const object_t* threads, unsigned int num_threads );
 
+TEST_API void NOINLINE test_crash_handler( const char* );
 
 typedef struct _test_suite
 {

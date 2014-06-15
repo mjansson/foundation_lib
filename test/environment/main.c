@@ -21,6 +21,7 @@ static application_t test_environment_application( void )
 	app.short_name = "test_environment";
 	app.config_dir = "test_environment";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

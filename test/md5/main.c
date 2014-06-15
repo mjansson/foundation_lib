@@ -21,6 +21,7 @@ static application_t test_md5_application( void )
 	app.short_name = "test_md5";
 	app.config_dir = "test_md5";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

@@ -123,6 +123,7 @@ static application_t test_blowfish_application( void )
 	app.short_name = "test_blowfish";
 	app.config_dir = "test_blowfish";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 

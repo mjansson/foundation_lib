@@ -19,10 +19,10 @@
 typedef struct ALIGN(8) _foundation_stream_buffer
 {
 	FOUNDATION_DECLARE_STREAM;
-	void*                    buffer;
 	uint64_t                 current;
 	uint64_t                 size;
 	uint64_t                 capacity;
+	void*                    buffer;
 	bool                     own;
 	bool                     grow;
 } stream_buffer_t;
@@ -32,7 +32,7 @@ static stream_vtable_t _buffer_stream_vtable;
 
 stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 {
-	stream_buffer_t* buffer_stream = memory_allocate_zero_context( HASH_STREAM, (uint64_t)sizeof( stream_buffer_t ), 8, MEMORY_PERSISTENT );
+	stream_buffer_t* buffer_stream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_buffer_t ), 8, MEMORY_PERSISTENT );
 	stream_t* stream = (stream_t*)buffer_stream;
 
 	_stream_initialize( stream, system_byteorder() );

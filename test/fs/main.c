@@ -21,6 +21,7 @@ static application_t test_fs_application( void )
 	app.short_name = "test_fs";
 	app.config_dir = "test_fs";
 	app.flags = APPLICATION_UTILITY;
+	app.dump_callback = test_crash_handler;
 	return app;
 }
 
