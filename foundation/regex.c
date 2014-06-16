@@ -16,10 +16,16 @@
 #define REGEXERR_OK                    0
 #define REGEXERR_TOO_LONG             -1
 #define REGEXERR_MISMATCHED_CAPTURES  -2
+#define REGEXERR_MISMATCHED_BLOCKS    -3
 
 #define REGEXRES_INTERNAL_FAILURE     -1
 #define REGEXRES_NOMATCH               0
 #define REGEXRES_MATCH                 1
+
+#define REGEXCODE_NULL                 (int16_t)0x0000
+#define REGEXCODE_WHITESPACE           (int16_t)0x0100
+#define REGEXCODE_NONWHITESPACE        (int16_t)0x0200
+#define REGEXCODE_DIGIT                (int16_t)0x0300
 
 
 typedef enum
@@ -28,7 +34,10 @@ typedef enum
 	REGEXOP_END_CAPTURE,
 	REGEXOP_BEGINNING_OF_LINE,
 	REGEXOP_END_OF_LINE,
-	REGEXOP_EXACT_MATCH
+	REGEXOP_EXACT_MATCH,
+	REGEXOP_ANY,
+	REGEXOP_ANY_OF,
+	REGEXOP_ANY_BUT
 } regex_op_t;
 
 
@@ -41,7 +50,7 @@ struct _foundation_regex
 };
 
 
-static const char* REGEX_META_CHARACTERS = "^$()";
+static const char* REGEX_META_CHARACTERS = "^$()[].";
 
 
 static int _regex_emit( regex_t** target, bool allow_grow, int ops, ... )
@@ -93,6 +102,37 @@ static int _regex_emit_buffer( regex_t** target, bool allow_grow, int ops, const
 }
 
 
+static int16_t _regex_encode_escape( char code )
+{
+	switch( code )
+	{
+		case 'n': return '\n';
+		case 'r': return '\r';
+		case 't': return '\t';
+		case '0': return REGEXCODE_NULL;
+		case 's': return REGEXCODE_WHITESPACE;
+		case 'S': return REGEXCODE_NONWHITESPACE;
+		case 'd': return REGEXCODE_DIGIT;
+		default:  break;
+	}
+	return code;
+}
+
+
+static bool _regex_match_escape( char c, int16_t code )
+{
+	switch( code )
+	{
+		case REGEXCODE_NULL: return c == 0;
+		case REGEXCODE_WHITESPACE: return string_find( STRING_WHITESPACE, c, 0 ) != STRING_NPOS;
+		case REGEXCODE_NONWHITESPACE: return string_find( STRING_WHITESPACE, c, 0 ) == STRING_NPOS;
+		case REGEXCODE_DIGIT: return string_find( "0123456789", c, 0 ) != STRING_NPOS;
+		default: break;
+	}
+	return false;
+}
+
+
 static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow, int level )
 {
 	int ret = 0;
@@ -139,6 +179,82 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 				return REGEXERR_MISMATCHED_CAPTURES;
 			return REGEXERR_OK;
 		}
+
+		case '[':
+		{
+			char local_buffer[64];
+			char* buffer = local_buffer;
+			int buffer_len = 0;
+			int buffer_maxlen = 64;
+			int16_t code;
+			bool closed = false;
+			int op = REGEXOP_ANY_OF;
+			if( **pattern == '^' )
+			{
+				++(*pattern);
+				op = REGEXOP_ANY_BUT;
+			}
+			while( !closed && **pattern )
+			{
+				if( buffer_len >= ( buffer_maxlen - 1 ) )
+				{
+					char* new_buffer = memory_allocate( buffer_maxlen << 1, 0, MEMORY_TEMPORARY );
+					memcpy( new_buffer, buffer, buffer_len );
+					if( buffer != local_buffer )
+						memory_deallocate( buffer );
+					buffer = new_buffer;
+					buffer_maxlen <<= 1;
+				}
+				
+				switch( **pattern )
+				{
+					case ']':
+					{
+						_regex_emit( target, allow_grow, 2, op, buffer_len );
+						if( buffer_len )
+							_regex_emit_buffer( target, allow_grow, buffer_len, buffer );
+						buffer_len = 0;
+						closed = true;
+						break;
+					}
+					
+					case '\\':
+					{
+						++*pattern;
+						code = _regex_encode_escape( **pattern );
+						if( !code || ( code > 0xFF ) )
+						{
+							buffer[buffer_len++] = 0;
+							buffer[buffer_len++] = ( code >> 8 ) & 0xFF;
+						}
+						else
+						{
+							buffer[buffer_len++] = code;
+						}
+						break;
+					}
+
+					default:
+					{
+						buffer[buffer_len++] = **pattern;
+						break;
+					}
+				}
+				++*pattern;
+			}
+			if( buffer != local_buffer )
+				memory_deallocate( buffer );
+			if( buffer_len )
+				return REGEXERR_MISMATCHED_BLOCKS;
+			break;
+		}
+			
+		case '.':
+		{
+			if( ( ret = _regex_emit( target, allow_grow, 1, REGEXOP_ANY ) ) )
+				return ret;
+			break;
+		}
 		
 		default:
 		{
@@ -166,6 +282,7 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 
 static int _regex_execute( regex_t* regex, int op, const char* input, int inoffset, int inlength, regex_capture_t* captures, int maxcaptures )
 {
+	int res = REGEXRES_MATCH;
 	while( op < regex->code_length ) switch( regex->code[op++] )
 	{
 		case REGEXOP_BEGIN_CAPTURE:
@@ -197,6 +314,71 @@ static int _regex_execute( regex_t* regex, int op, const char* input, int inoffs
 				return REGEXRES_NOMATCH;
 			break;
 		}
+
+		case REGEXOP_ANY_OF:
+		{
+			char cin, cmatch;
+			int ibuf, buffer_len;
+
+			if( inoffset >= inlength )
+				return REGEXRES_NOMATCH;
+			
+			cin = input[inoffset];
+			buffer_len = regex->code[op++];
+			
+			for( ibuf = 0; ibuf < buffer_len; ++ibuf )
+			{
+				cmatch = regex->code[op + ibuf];
+				if( !cmatch && _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
+					break;
+				if( cin == cmatch )
+					break;
+			}
+			
+			if( ibuf == buffer_len )
+				return REGEXRES_NOMATCH;
+			
+			++inoffset;
+			op += buffer_len;
+			
+			break;
+		}
+			
+		case REGEXOP_ANY_BUT:
+		{
+			char cin, cmatch;
+			int ibuf, buffer_len;
+			
+			if( inoffset >= inlength )
+				return REGEXRES_NOMATCH;
+			
+			cin = input[inoffset];
+			buffer_len = regex->code[op++];
+			
+			for( ibuf = 0; ibuf < buffer_len; ++ibuf )
+			{
+				cmatch = regex->code[op + ibuf];
+				if( !cmatch && _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
+					return REGEXRES_NOMATCH;
+				if( cin == cmatch )
+					return REGEXRES_NOMATCH;
+			}
+			
+			++inoffset;
+			op += buffer_len;
+			
+			break;
+		}
+
+		case REGEXOP_ANY:
+		{
+			if( inoffset < inlength )
+			{
+				++inoffset;
+				break;
+			}
+			return REGEXRES_NOMATCH;
+		}
 			
 		case REGEXOP_EXACT_MATCH:
 		{
@@ -214,7 +396,7 @@ static int _regex_execute( regex_t* regex, int op, const char* input, int inoffs
 			return REGEXRES_INTERNAL_FAILURE;
 		}
 	}
-	return REGEXRES_MATCH;
+	return res;
 }
 
 

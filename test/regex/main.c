@@ -42,7 +42,7 @@ static void test_regex_shutdown( void )
 }
 
 
-DECLARE_TEST( regex, simple )
+DECLARE_TEST( regex, exact )
 {
 	regex_t* regex = regex_compile( "^(TEST REGEX)$" );
 	EXPECT_NE( regex, 0 );
@@ -68,9 +68,66 @@ DECLARE_TEST( regex, simple )
 }
 
 
+DECLARE_TEST( regex, any )
+{
+	regex_t* regex = regex_compile( "^(.TEST.REGEX).$" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_FALSE( regex_match( regex, "TEST REGEX", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, " TEST REGEX", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "TTEST_REGEX ", 0, 0, 0 ) );
+	
+	regex_free( regex );
+	
+	regex = regex_compile( "(.TEST.REGEX)." );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_FALSE( regex_match( regex, "TEST REGEX", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, " TEST REGEX", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "TTEST_REGEX ", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "RANDOM CRAP TEST_REGEX RANDOM CRAP", 0, 0, 0 ) );
+	
+	regex_free( regex );
+	
+	return 0;
+}
+
+
+DECLARE_TEST( regex, any_block )
+{
+	regex_t* regex = regex_compile( "^([ \\n\\r\\0\\S\\s\\d\\\\TESTREGEX])$" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_TRUE( regex_match( regex, "T", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, " TEST REGEX\t 0123456789 \n\r TEST!", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, " ", 1, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "\0 ", 2, 0, 0 ) );
+	
+	regex_free( regex );
+
+	regex = regex_compile( "^([ \\n\\r\\0\\S\\s\\d\\\\T])" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_TRUE( regex_match( regex, "T", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, " TEST REGEX\t 0123456789 \n\r TEST!", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "a", 1, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, " ", 1, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "\0 ", 2, 0, 0 ) );
+	
+	regex_free( regex );
+	
+	return 0;
+}
+
+
 static void test_regex_declare( void )
 {
-	ADD_TEST( regex, simple );
+	ADD_TEST( regex, exact );
+	ADD_TEST( regex, any );
+	ADD_TEST( regex, any_block );
 }
 
 
