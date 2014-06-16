@@ -758,6 +758,13 @@ typedef struct _foundation_semaphore
 #  error Semaphore not implemented yet on this platform
 #endif
 
+//! Regex capture
+typedef struct _foundation_regex_capture
+{
+	const char*                      substring;
+	int                              length;
+} regex_capture_t;
+
 
 // OPAQUE COMPLEX TYPES
 

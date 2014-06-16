@@ -26,8 +26,11 @@ FOUNDATION_API regex_t*              regex_compile( const char* pattern );
 /*! Match input string with regular expression
     \param regex                     Compiled expression
     \param input                     Input string
+    \param inlength                  Input length (0 for input string length)
+	\param captures                  Result capture array, null if not wanted
+    \param maxcaptures               Maximum number of captures
     \return                          true if string matches expression, false if not */
-FOUNDATION_API bool                  regex_match( regex_t* regex, const char* input );
+FOUNDATION_API bool                  regex_match( regex_t* regex, const char* input, int inlength, regex_capture_t* captures, int maxcaptures );
 
 /*! Free a compiled expression
     \param regex                     Compiled expression */
