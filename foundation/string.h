@@ -562,9 +562,9 @@ FOUNDATION_API bool           string_is_valid_email_address( const char* address
 
 /*! \def STRING_WHITESPACE
     Default whitespace characters */
-#define STRING_WHITESPACE               " \n\r\t"
+#define STRING_WHITESPACE               " \n\r\t\v\f"
 
 /*! \def WSTRING_WHITESPACE
     Default whitespace wide characters */
-#define WSTRING_WHITESPACE             L" \n\r\t"
+#define WSTRING_WHITESPACE             L" \n\r\t\v\f"
 

@@ -123,11 +123,43 @@ DECLARE_TEST( regex, any_block )
 }
 
 
+DECLARE_TEST( regex, quantifier )
+{
+	regex_capture_t captures[16];
+	regex_t* regex = regex_compile( "^(.*)$" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	
+	regex_free( regex );
+
+	regex = regex_compile( "^(.+)$" );
+	EXPECT_NE( regex, 0 );
+
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	
+	regex_free( regex );
+	
+	return 0;
+}
+
+
 static void test_regex_declare( void )
 {
 	ADD_TEST( regex, exact );
 	ADD_TEST( regex, any );
 	ADD_TEST( regex, any_block );
+	ADD_TEST( regex, quantifier );
 }
 
 
