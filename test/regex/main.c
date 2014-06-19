@@ -150,6 +150,39 @@ DECLARE_TEST( regex, quantifier )
 	
 	regex_free( regex );
 	
+	regex = regex_compile( "^(.*?)$" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	
+	regex_free( regex );
+	
+	regex = regex_compile( "^(.+?)$" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	
+	regex_free( regex );
+
+	regex = regex_compile( "^a.b+?bcd?e*$" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_TRUE( regex_match( regex, "aabbbbceeeeeee", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "abbbc", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "abbcde", 0, 0, 0 ) );
+	
+	regex_free( regex );
+	
 	return 0;
 }
 
