@@ -541,7 +541,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 				cmatch = regex->code[op + ibuf];
 				if( !cmatch && _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
 					break;
-				if( cin == cmatch )
+				else if( cin == cmatch )
 					break;
 			}
 			
@@ -570,7 +570,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 				cmatch = regex->code[op + ibuf];
 				if( !cmatch && _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
 					return _regex_context_nomatch( op + buffer_len );
-				if( cin == cmatch )
+				else if( cin == cmatch )
 					return _regex_context_nomatch( op + buffer_len );
 			}
 			
@@ -602,8 +602,13 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 			
 		case REGEXOP_META_MATCH:
 		{
-			//...
-			break;
+			char cmatch = regex->code[op];
+			if( !cmatch && _regex_match_escape( input[inoffset], (int16_t)regex->code[++op] << 8 ) )
+				break;
+			else if( input[inoffset] == regex->code[op] )
+				break;
+
+			return _regex_context_nomatch( op );
 		}
 
 		case REGEXOP_ZERO_OR_MORE:
@@ -681,11 +686,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 				break; // Match with one
 			}
 			
-			//No match
-			op = next_op;
-			inoffset = REGEXRES_NOMATCH;
-
-			break;
+			return _regex_context_nomatch( next_op );
 		}
 
 		default:
