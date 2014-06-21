@@ -121,7 +121,9 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 	while( thread_is_running( thread ) )
 		thread_yield();
 
-	memset( monitor, 0, sizeof( fs_monitor_t ) );
+	atomic_storeptr( &monitor->path, 0 );
+	monitor->signal = 0;
+	monitor->thread = 0;
 	
 	if( localpath )
 		string_deallocate( localpath );
