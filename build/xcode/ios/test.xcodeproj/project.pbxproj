@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		451871BE19560285000E42C9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 451871BD19560285000E42C9 /* main.c */; };
 		455519ED1938CEE000CF089B /* test.c in Sources */ = {isa = PBXBuildFile; fileRef = 455519EA1938CEE000CF089B /* test.c */; };
 		455519EE1938CEE000CF089B /* test.m in Sources */ = {isa = PBXBuildFile; fileRef = 455519EC1938CEE000CF089B /* test.m */; };
 		455519F61938D40100CF089B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455519F51938D40100CF089B /* Foundation.framework */; };
@@ -73,6 +74,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		451871BD19560285000E42C9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/regex/main.c; sourceTree = "<group>"; };
 		455519BA1938BBDF00CF089B /* libtest.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtest.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		455519EA1938CEE000CF089B /* test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test.c; path = ../../test/test/test.c; sourceTree = "<group>"; };
 		455519EB1938CEE000CF089B /* test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = test.h; path = ../../test/test/test.h; sourceTree = "<group>"; };
@@ -141,6 +143,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		451871BC19560269000E42C9 /* regex */ = {
+			isa = PBXGroup;
+			children = (
+				451871BD19560285000E42C9 /* main.c */,
+			);
+			name = regex;
+			sourceTree = "<group>";
+		};
 		455519B11938BBDF00CF089B = {
 			isa = PBXGroup;
 			children = (
@@ -190,6 +200,7 @@
 				45551A591938D55B00CF089B /* profile */,
 				45551A5B1938D55B00CF089B /* radixsort */,
 				45551A5D1938D55B00CF089B /* random */,
+				451871BC19560269000E42C9 /* regex */,
 				45551A5F1938D55B00CF089B /* ringbuffer */,
 				45551A611938D55B00CF089B /* semaphore */,
 				45551A631938D55B00CF089B /* stacktrace */,
@@ -600,6 +611,7 @@
 				45551A771938D55B00CF089B /* main.c in Sources */,
 				45551A701938D55B00CF089B /* main.c in Sources */,
 				45551A7D1938D55B00CF089B /* main.c in Sources */,
+				451871BE19560285000E42C9 /* main.c in Sources */,
 				45551A681938D55B00CF089B /* main.c in Sources */,
 				45551A6C1938D55B00CF089B /* main.c in Sources */,
 				45551A7A1938D55B00CF089B /* main.c in Sources */,
