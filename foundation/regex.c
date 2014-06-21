@@ -45,7 +45,9 @@ typedef enum
 	REGEXOP_ONE_OR_MORE,
 	REGEXOP_ZERO_OR_MORE_SHORTEST,
 	REGEXOP_ONE_OR_MORE_SHORTEST,
-	REGEXOP_ZERO_OR_ONE
+	REGEXOP_ZERO_OR_ONE,
+	REGEXOP_BRANCH,
+	REGEXOP_BRANCH_END
 } regex_op_t;
 
 
@@ -186,7 +188,7 @@ static int _regex_compile_quantifier( regex_t** target, bool allow_grow, int las
 	
 	move_size = 1 + (*target)->code_length - last_offset;
 	
-	if( ( ret = _regex_emit( target, allow_grow, 1, 0, 0 ) ) ) //Make sure we have buffer space
+	if( ( ret = _regex_emit( target, allow_grow, 1, 0 ) ) ) //Make sure we have buffer space
 		return ret;
 	
 	memmove( (*target)->code + last_offset + 1, (*target)->code + last_offset, move_size );
@@ -258,7 +260,9 @@ static regex_context_t _regex_consume_shortest( regex_t* regex, int op, const ch
 static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow, int level )
 {
 	int ret = 0;
-	int last_offset = -1;
+	int last_offset = (*target)->code_length;
+	int branch_begin = (*target)->code_length;
+	int branch_op = -1;
 	
 	do switch( *(*pattern)++ )
 	{
@@ -286,9 +290,8 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 
 			_regex_parse( target, pattern, allow_grow, level + 1 );
 
-			if( **pattern != ')' )
+			if( *(*pattern - 1) != ')' )
 				return REGEXERR_MISMATCHED_CAPTURES;
-			++(*pattern);
 			
 			if( ( ret = _regex_emit( target, allow_grow, 2, REGEXOP_END_CAPTURE, capture ) ) )
 			   return ret;
@@ -298,7 +301,10 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 			
 		case ')':
 		{
-			--(*pattern);
+			if( branch_op >= 0 )
+				(*target)->code[branch_op + 1] = (*target)->code_length - branch_op - 2;
+			branch_op = -1;
+			
 			if( level == 0 )
 				return REGEXERR_MISMATCHED_CAPTURES;
 			return REGEXERR_OK;
@@ -437,13 +443,13 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 			if( ( **pattern >= '0' ) && ( **pattern <= '9' ) && ( *( *pattern + 1 ) >= '0' ) && ( *( *pattern + 1 ) <= '9' ) )
 			{
 				char val = ( ( **pattern - '0' ) << 8 ) | ( *( *pattern + 1 ) - '0' );
-				++(*pattern);
+				(*pattern) += 2;
 				if( ( ret = _regex_emit( target, allow_grow, 2, REGEXOP_META_MATCH, val ) ) )
 					return ret;
 			}
 			else
 			{
-				code = _regex_encode_escape( **pattern );
+				code = _regex_encode_escape( *(*pattern)++ );
 				if( !code || ( code > 0xFF ) )
 				{
 					if( ( ret = _regex_emit( target, allow_grow, 3, REGEXOP_META_MATCH, 0, ( code >> 8 ) & 0xFF ) ) )
@@ -458,11 +464,20 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 			break;
 		}
 			
-		/*case '|':
+		case '|':
 		{
-			...
+			int move_size = (*target)->code_length - branch_begin;
+			
+			if( ( ret = _regex_emit( target, allow_grow, 4, 0, 0, REGEXOP_BRANCH_END, 0 ) ) ) //Make sure we have buffer space
+				return ret;
+			
+			memmove( (*target)->code + branch_begin + 2, (*target)->code + branch_begin, move_size );
+			(*target)->code[branch_begin] = REGEXOP_BRANCH;
+			(*target)->code[branch_begin + 1] = move_size + 2;
+			
+			branch_op = (*target)->code_length - 2;
 			break;
-		}*/
+		}
 			
 		default:
 		{
@@ -539,8 +554,11 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 			for( ibuf = 0; ibuf < buffer_len; ++ibuf )
 			{
 				cmatch = regex->code[op + ibuf];
-				if( !cmatch && _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
-					break;
+				if( !cmatch )
+				{
+					if( _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
+						break;
+				}
 				else if( cin == cmatch )
 					break;
 			}
@@ -568,8 +586,11 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 			for( ibuf = 0; ibuf < buffer_len; ++ibuf )
 			{
 				cmatch = regex->code[op + ibuf];
-				if( !cmatch && _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
-					return _regex_context_nomatch( op + buffer_len );
+				if( !cmatch )
+				{
+					if( _regex_match_escape( cin, (int16_t)regex->code[op + (++ibuf)] << 8 ) )
+						return _regex_context_nomatch( op + buffer_len );
+				}
 				else if( cin == cmatch )
 					return _regex_context_nomatch( op + buffer_len );
 			}
@@ -602,10 +623,13 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 			
 		case REGEXOP_META_MATCH:
 		{
-			char cmatch = regex->code[op];
-			if( !cmatch && _regex_match_escape( input[inoffset], (int16_t)regex->code[++op] << 8 ) )
-				break;
-			else if( input[inoffset] == regex->code[op] )
+			char cmatch = regex->code[op++];
+			if( !cmatch )
+			{
+				if( _regex_match_escape( input[inoffset++], (int16_t)regex->code[op++] << 8 ) )
+					break;
+			}
+			else if( input[inoffset++] == cmatch )
 				break;
 
 			return _regex_context_nomatch( op );
@@ -689,6 +713,31 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 			return _regex_context_nomatch( next_op );
 		}
 
+		case REGEXOP_BRANCH:
+		{
+			int skip = regex->code[op++];
+			context = _regex_execute( regex, op, input, inoffset, inlength, captures, maxcaptures );
+			if( context.inoffset >= REGEXRES_MATCH)
+			{
+				inoffset = context.inoffset;
+				op = context.op;
+			}
+			else
+			{
+				context = _regex_execute( regex, op + skip, input, inoffset, inlength, captures, maxcaptures );
+				inoffset = context.inoffset;
+				op = context.op;
+			}
+			break;
+		}
+			
+		case REGEXOP_BRANCH_END:
+		{
+			int skip = regex->code[op++];
+			op += skip;
+			break;
+		}
+			
 		default:
 		{
 			log_errorf( 0, ERROR_INTERNAL_FAILURE, "Regex encountered an unsupported op: %02x", (unsigned int)regex->code[op] );

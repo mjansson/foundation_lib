@@ -187,12 +187,29 @@ DECLARE_TEST( regex, quantifier )
 }
 
 
+DECLARE_TEST( regex, branch )
+{
+	regex_capture_t captures[16];
+	regex_t* regex = regex_compile( "^(\\s*|\\S*)$" );
+	EXPECT_NE( regex, 0 );
+	
+	EXPECT_TRUE( regex_match( regex, "anynonwhitespacestringwillmatchthisregex", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, "   \t\t\n\r  \t\v\n  ", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "no mixed string will match this regex", 0, captures, 0 ) );
+	
+	regex_free( regex );
+	
+	return 0;
+}
+
+
 static void test_regex_declare( void )
 {
 	ADD_TEST( regex, exact );
 	ADD_TEST( regex, any );
 	ADD_TEST( regex, any_block );
 	ADD_TEST( regex, quantifier );
+	ADD_TEST( regex, branch );
 }
 
 

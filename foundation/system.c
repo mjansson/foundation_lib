@@ -406,8 +406,7 @@ uint64_t system_hostid( void )
 				continue;
 			
 #if FOUNDATION_PLATFORM_APPLE
-			
-			
+			hostid = _system_hostid_lookup( ifa );
 #else
 			memset( &buffer, 0, sizeof( buffer ) );
 			string_copy( buffer.ifr_name, ifa->ifa_name, sizeof( buffer.ifr_name ) );
