@@ -11,8 +11,8 @@ foundationsources = [
 	'array.c', 'assert.c', 'atomic.c', 'base64.c', 'bitbuffer.c', 'blowfish.c', 'bufferstream.c', 'config.c',
 	'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c', 'hash.c', 'hashmap.c',
 	'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c', 'objectmap.c', 'path.c',
-	'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'ringbuffer.c', 'semaphore.c', 'stacktrace.c',
-	'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c', 'uuid.c'
+	'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c', 'ringbuffer.c', 'semaphore.c',
+	'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c', 'uuid.c'
 
 	]
 
@@ -22,8 +22,8 @@ foundationheaders = [
 	'build.h', 'config.h', 'crash.h', 'environment.h', 'error.h', 'event.h', 'foundation.h', 'fs.h', 'hash.h',
 	'hashmap.h', 'hashstrings.h', 'hashtable.h', 'library.h', 'log.h', 'main.h', 'mathcore.h', 'md5.h',
 	'memory.h', 'mutex.h', 'objectmap.h', 'path.h', 'platform.h', 'pipe.h', 'process.h', 'profile.h',
-	'radixsort.h', 'random.h', 'ringbuffer.h', 'semaphore.h', 'stacktrace.h', 'stream.h', 'string.h',
-	'system.h', 'thread.h', 'time.h', 'types.h', 'uuid.h'
+	'radixsort.h', 'random.h', 'regex.h', 'ringbuffer.h', 'semaphore.h', 'stacktrace.h', 'stream.h',
+	'string.h', 'system.h', 'thread.h', 'time.h', 'types.h', 'uuid.h'
 
 	]
 
