@@ -525,6 +525,48 @@ typedef void          (* crash_dump_callback_fn)( const char* );
 #define CRASH_DUMP_GENERATED        0x0badf00dL
 
 
+// OPAQUE COMPLEX TYPES
+
+//! MD5 state
+typedef struct _foundation_md5              md5_t;
+
+//! Base opaque stream
+typedef struct _foundation_stream           stream_t;
+
+//! Mutex
+typedef struct _foundation_mutex            mutex_t;
+
+//! Process
+typedef struct _foundation_process          process_t;
+
+//! Event block holding a number of events f
+typedef struct _foundation_event_block      event_block_t;
+
+//! Event strem
+typedef struct _foundation_event_stream     event_stream_t;
+
+//! Ringbuffer
+typedef struct _foundation_ringbuffer       ringbuffer_t;
+
+//! Blowfish state
+typedef struct _foundation_blowfish         blowfish_t;
+
+//! Radix sorter
+typedef struct _foundation_radixsort        radixsort_t;
+
+//! Hashmap
+typedef struct _foundation_hashmap          hashmap_t;
+
+//! Hash table (32bit data)
+typedef struct _foundation_hashtable32      hashtable32_t;
+
+//! Hash table (64bit data)
+typedef struct _foundation_hashtable64      hashtable64_t;
+
+//! Compiled regular expression
+typedef struct _foundation_regex            regex_t;
+
+
 // COMPLEX TYPES
 
 //! Memory management callbacks
@@ -758,81 +800,46 @@ typedef struct _foundation_semaphore
 #  error Semaphore not implemented yet on this platform
 #endif
 
-
-// OPAQUE COMPLEX TYPES
-
-//! MD5 state
-typedef struct _foundation_md5              md5_t;
-
-//! Base opaque stream
-typedef struct _foundation_stream           stream_t;
-
-//! Mutex
-typedef struct _foundation_mutex            mutex_t;
-
-//! Process
-typedef struct _foundation_process          process_t;
-
-//! Event block holding a number of events f
-typedef struct _foundation_event_block      event_block_t;
-
-//! Event strem
-typedef struct _foundation_event_stream     event_stream_t;
-
-//! Ringbuffer
-typedef struct _foundation_ringbuffer       ringbuffer_t;
-
-//! Blowfish state
-typedef struct _foundation_blowfish         blowfish_t;
-
-//! Radix sorter
-typedef struct _foundation_radixsort        radixsort_t;
-
-//! Hashmap
-typedef struct _foundation_hashmap          hashmap_t;
-
-//! Hash table (32bit data)
-typedef struct _foundation_hashtable32      hashtable32_t;
-
-//! Hash table (64bit data)
-typedef struct _foundation_hashtable64      hashtable64_t;
-
-
-// COMPLEX TYPES
-
 //! Bit buffer for bit based I/O to a memory buffer or stream
 typedef struct _foundation_bitbuffer
 {
 	//! Memory buffer
 	uint8_t*            buffer;
-
+	
 	//! End of buffer indicator
 	uint8_t*            end;
-
+	
 	//! Stream
 	stream_t*           stream;
-
+	
 	//! Swap flag for compatibility between machines with different endian arch
 	bool                swap;
-
+	
 	//! Pending data to be read
 	unsigned int        pending_read;
-
+	
 	//! Pending data to be written
 	unsigned int        pending_write;
-
+	
 	//! Current read offset in bits into pending data
 	unsigned int        offset_read;
-
+	
 	//! Current write offset in bits into pending data
 	unsigned int        offset_write;
-
+	
 	//! Number of read bits
 	unsigned int        count_read;
-
+	
 	//! Number of written bits
 	unsigned int        count_write;
 } bitbuffer_t;
+
+//! Regex capture
+typedef struct _foundation_regex_capture
+{
+	const char*                      substring;
+	int                              length;
+} regex_capture_t;
 
 
 // UTILITY FUNCTIONS

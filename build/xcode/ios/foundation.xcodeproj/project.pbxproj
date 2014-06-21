@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		456F75A01949DF6D00D1D43B /* regex.h in Headers */ = {isa = PBXBuildFile; fileRef = 456F759F1949DF6D00D1D43B /* regex.h */; };
+		456F75A21949E16300D1D43B /* regex.c in Sources */ = {isa = PBXBuildFile; fileRef = 456F75A11949E16300D1D43B /* regex.c */; };
 		CD5ED14B17D6708400C94373 /* android.c in Sources */ = {isa = PBXBuildFile; fileRef = CD5ED0EF17D6708400C94373 /* android.c */; };
 		CD5ED14C17D6708400C94373 /* android.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED0F017D6708400C94373 /* android.h */; };
 		CD5ED14D17D6708400C94373 /* apple.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED0F117D6708400C94373 /* apple.h */; };
@@ -108,6 +110,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		456F759F1949DF6D00D1D43B /* regex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = regex.h; path = ../../../foundation/regex.h; sourceTree = "<group>"; };
+		456F75A11949E16300D1D43B /* regex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = regex.c; path = ../../../foundation/regex.c; sourceTree = "<group>"; };
 		CD5ED0D617D66F9B00C94373 /* libfoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD5ED0EF17D6708400C94373 /* android.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = android.c; path = ../../../foundation/android.c; sourceTree = "<group>"; };
 		CD5ED0F017D6708400C94373 /* android.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = android.h; path = ../../../foundation/android.h; sourceTree = "<group>"; };
@@ -321,6 +325,8 @@
 				CD5ED13317D6708400C94373 /* radixsort.h */,
 				CD5ED13417D6708400C94373 /* random.c */,
 				CD5ED13517D6708400C94373 /* random.h */,
+				456F75A11949E16300D1D43B /* regex.c */,
+				456F759F1949DF6D00D1D43B /* regex.h */,
 				CD5ED13617D6708400C94373 /* ringbuffer.c */,
 				CD5ED13717D6708400C94373 /* ringbuffer.h */,
 				CD5ED13817D6708400C94373 /* semaphore.c */,
@@ -411,6 +417,7 @@
 				CD5ED19917D6708400C94373 /* stream.h in Headers */,
 				CD5ED19B17D6708400C94373 /* string.h in Headers */,
 				CD5ED19E17D6708400C94373 /* system.h in Headers */,
+				456F75A01949DF6D00D1D43B /* regex.h in Headers */,
 				CD5ED1A017D6708400C94373 /* thread.h in Headers */,
 				CD5ED1A217D6708400C94373 /* time.h in Headers */,
 				CD5ED1A317D6708400C94373 /* types.h in Headers */,
@@ -491,6 +498,7 @@
 				CD5ED16E17D6708400C94373 /* hashmap.c in Sources */,
 				CD5ED17117D6708400C94373 /* hashtable.c in Sources */,
 				CD5ED17417D6708400C94373 /* library.c in Sources */,
+				456F75A21949E16300D1D43B /* regex.c in Sources */,
 				CD5ED17717D6708400C94373 /* log.c in Sources */,
 				CD5ED17917D6708400C94373 /* main.c in Sources */,
 				CD5ED17C17D6708400C94373 /* md5.c in Sources */,
