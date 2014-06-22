@@ -346,14 +346,13 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	if( ifaddr->ifa_addr && ( ifaddr->ifa_addr->sa_family == AF_LINK ) )
 	{
 		struct sockaddr_dl* addr_dl = (struct sockaddr_dl*)ifaddr->ifa_addr;
-		
-		FOUNDATION_ASSERT( addr_dl->sdl_alen == 6 );
-
-		hostid.id = 0;
-		for( j = 0; j < 6; ++j )
-			hostid.buffer[5-j] = LLADDR(addr_dl)[j];
-		
-		return hostid.id;
+		if( addr_dl->sdl_alen == 6 )
+		{
+			hostid.id = 0;
+			for( j = 0; j < 6; ++j )
+				hostid.buffer[5-j] = LLADDR(addr_dl)[j];
+			return hostid.id;
+		}
 	}
 	
 	return 0;
