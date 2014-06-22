@@ -12,6 +12,8 @@
 
 #include <foundation/foundation.h>
 
+#include <stdarg.h>
+
 
 #define REGEXERR_OK                    0
 #define REGEXERR_TOO_LONG             -1
@@ -370,7 +372,7 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 							}
 							else
 							{
-								buffer[buffer_len++] = code;
+								buffer[buffer_len++] = (char)code;
 							}
 						}
 						break;
