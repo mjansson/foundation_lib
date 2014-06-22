@@ -135,6 +135,9 @@ DECLARE_TEST( fs, file )
 	fs_remove_file( copypath );
 	EXPECT_FALSE( fs_is_file( copypath ) );
 
+	fs_remove_file( testpath );
+	EXPECT_FALSE( fs_is_file( testpath ) );
+	
 	stream_deallocate( teststream );
 	string_deallocate( testpath );
 	string_deallocate( copypath );
