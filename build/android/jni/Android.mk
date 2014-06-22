@@ -39,8 +39,8 @@ LOCAL_SRC_FILES  := \
 	foundation/fs.c foundation/hash.c foundation/hashmap.c foundation/hashtable.c foundation/library.c foundation/log.c \
 	foundation/main.c foundation/md5.c foundation/memory.c foundation/mutex.c foundation/objectmap.c foundation/path.c \
 	foundation/pipe.c foundation/process.c foundation/profile.c foundation/radixsort.c foundation/random.c \
-	foundation/ringbuffer.c foundation/semaphore.c foundation/stacktrace.c foundation/stream.c foundation/string.c \
-	foundation/system.c foundation/thread.c foundation/time.c foundation/uuid.c
+	foundation/regex.c foundation/ringbuffer.c foundation/semaphore.c foundation/stacktrace.c foundation/stream.c \
+	foundation/string.c foundation/system.c foundation/thread.c foundation/time.c foundation/uuid.c
 
 LOCAL_STATIC_LIBRARIES := android_native_app_glue cpufeatures
 
@@ -185,6 +185,10 @@ FOUNDATION_TEST_MODULE := random
 include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
 include $(CLEAR_VARS)
+FOUNDATION_TEST_MODULE := regex
+include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
+
+include $(CLEAR_VARS)
 FOUNDATION_TEST_MODULE := ringbuffer
 include $(FOUNDATION_LOCAL_PATH)/TestModule.mk
 
@@ -230,7 +234,7 @@ endif
 endif
 endif
 
-LOCAL_STATIC_LIBRARIES += test-app test-atomic test-array test-base64 test-blowfish test-bitbuffer test-bufferstream test-config test-crash test-environment test-error test-event test-fs test-hash test-hashmap test-hashtable test-library test-math test-md5 test-mutex test-objectmap test-path test-pipe test-profile test-radixsort test-random test-ringbuffer test-semaphore test-stacktrace test-string test-uuid test foundation android_native_app_glue cpufeatures
+LOCAL_STATIC_LIBRARIES += test-app test-atomic test-array test-base64 test-blowfish test-bitbuffer test-bufferstream test-config test-crash test-environment test-error test-event test-fs test-hash test-hashmap test-hashtable test-library test-math test-md5 test-mutex test-objectmap test-path test-pipe test-profile test-radixsort test-random test-regex test-ringbuffer test-semaphore test-stacktrace test-string test-uuid test foundation android_native_app_glue cpufeatures
 
 LOCAL_LDLIBS     += -llog -landroid -lEGL -lGLESv1_CM -lGLESv2 -lOpenSLES
 
