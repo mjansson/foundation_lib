@@ -119,6 +119,9 @@
 /*! \def FOUNDATION_ARCH_MIPS
     Defined to 1 if compiling for MIPS architectures, 0 otherwise */
 
+/*! \def FOUNDATION_ARCH_MIPS_64
+    Defined to 1 if compiling for 64-bit MIPS architectures, 0 otherwise */
+
 /*! \def FOUNDATION_ARCH_SSE2
     Defined to 1 if compiling with SSE2 instruction set enabled, 0 otherwise */
 
@@ -410,6 +413,9 @@
 #ifndef FOUNDATION_ARCH_MIPS
 #  define FOUNDATION_ARCH_MIPS 0
 #endif
+#ifndef FOUNDATION_ARCH_MIPS_64
+#  define FOUNDATION_ARCH_MIPS_64 0
+#endif
 
 //Architecture details
 #ifndef FOUNDATION_ARCH_SSE2
@@ -477,6 +483,19 @@
 #    else
 #      error Unsupported ARM architecture
 #    endif
+#  elif defined( __aarch64__ ) || FOUNDATION_ARCH_ARM_64
+#    undef  FOUNDATION_ARCH_ARM
+#    define FOUNDATION_ARCH_ARM 1
+#    undef  FOUNDATION_ARCH_ARM_64
+#    define FOUNDATION_ARCH_ARM_64 1
+//Assume ARMv8 for now
+//#    if defined( __ARM_ARCH ) && ( __ARM_ARCH == 8 )
+#      undef  FOUNDATION_ARCH_ARM8_64
+#      define FOUNDATION_ARCH_ARM8_64 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Android ARM64v8"
+//#    else
+//#      error Unrecognized AArch64 architecture
+//#    endif
 #  elif defined( __i386__ ) || FOUNDATION_ARCH_X86
 #    undef  FOUNDATION_ARCH_X86
 #    define FOUNDATION_ARCH_X86 1
@@ -485,10 +504,20 @@
 #    undef  FOUNDATION_ARCH_X86_64
 #    define FOUNDATION_ARCH_X86_64 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android x86-64"
+#  elif ( defined( __mips__ ) && defined( __mips64 ) ) || FOUNDATION_ARCH_MIPS_64
+#    undef  FOUNDATION_ARCH_MIPS
+#    define FOUNDATION_ARCH_MIPS 1
+#    undef  FOUNDATION_ARCH_MIPS_64
+#    define FOUNDATION_ARCH_MIPS_64 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Android MIPS64"
+#    ifndef _MIPS_ISA
+#      define _MIPS_ISA 7 /*_MIPS_ISA_MIPS64*/
+#    endif
 #  elif defined( __mips__ ) || FOUNDATION_ARCH_MIPS
 #    undef  FOUNDATION_ARCH_MIPS
 #    define FOUNDATION_ARCH_MIPS 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android MIPS"
+#    include <asm/asm.h>
 #    ifndef _MIPS_ISA
 #      define _MIPS_ISA 6 /*_MIPS_ISA_MIPS32*/
 #    endif
@@ -497,8 +526,13 @@
 #  endif
 
 // Traits
-#  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
-#  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#  if defined( __AARCH64EB__ )
+#    undef  FOUNDATION_ARCH_ENDIAN_BIG
+#    define FOUNDATION_ARCH_ENDIAN_BIG 1
+#  else
+#    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#  endif
 
 #  undef  FOUNDATION_PLATFORM_FAMILY_MOBILE
 #  define FOUNDATION_PLATFORM_FAMILY_MOBILE 1
@@ -1051,7 +1085,7 @@ typedef   float32_t         real;
 #endif
 
 //Pointer size
-#if FOUNDATION_ARCH_ARM_64 || FOUNDATION_ARCH_X86_64 || FOUNDATION_ARCH_PPC_64 || FOUNDATION_ARCH_IA64
+#if FOUNDATION_ARCH_ARM_64 || FOUNDATION_ARCH_X86_64 || FOUNDATION_ARCH_PPC_64 || FOUNDATION_ARCH_IA64 || FOUNDATION_ARCH_MIPS_64
 #  define FOUNDATION_ARCH_POINTER_SIZE 8
 #else
 #  define FOUNDATION_ARCH_POINTER_SIZE 4
@@ -1217,3 +1251,9 @@ static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 #  undef __LP64__
 #  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
 #endif
+
+#if FOUNDATION_PLATFORM_ANDROID
+#  undef __ISO_C_VISIBLE
+#  define __ISO_C_VISIBLE 2011
+#endif
+

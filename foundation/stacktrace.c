@@ -404,7 +404,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	uint64_t last_fp = 0, caller_fp = 0, caller_lr = 0, caller_sp = 0;
 
 	//Grab initial frame pointer
-	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (last_fp));
+	__asm volatile("mov %[result], x29\n\t" : [result] "=r" (last_fp));
 	
 	while( last_fp && ( num_frames < max_depth ) )
 	{

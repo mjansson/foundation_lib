@@ -228,11 +228,15 @@ static FORCEINLINE void atomic_store64( atomic64_t* dst, int64_t val )
 	}
 #  else
 	uint64_t expected = dst->nonatomic;
+#    if FOUNDATION_COMPILER_GCC
+  __sync_bool_compare_and_swap( &dst->nonatomic, expected, val );
+#    else
 	__asm volatile(
 		"1:    cmpxchg8b %0\n"
 		"      jne 1b"
 		: "=m"(dst->nonatomic)
 		: "b"((uint32_t)val), "c"((uint32_t)(val >> 32)), "A"(expected));
+#    endif
 #  endif
 #else
 	dst->nonatomic = val;
