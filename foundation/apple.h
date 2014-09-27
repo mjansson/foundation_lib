@@ -65,6 +65,8 @@
 #    import <Foundation/NSAttributedString.h>
 #    import <Foundation/NSIndexPath.h>
 #    import <Foundation/NSBundle.h>
+#    import <Foundation/NSUserActivity.h>
+#    import <Foundation/NSMapTable.h>
 #    import <UIKit/UIApplication.h>
 #    import <UIKit/UIWindow.h>
 #    import <UIKit/UIScreen.h>

@@ -6,6 +6,7 @@ functions to write applications and games in a platform-independent fashion. It 
 * Abstractions and unification of basic data types
 * Pluggable memory management
 * Threads and synchronization
+* Atomic operations
 * Timing and profiling
 * Object lifetime management
 * Events processing
@@ -17,8 +18,9 @@ functions to write applications and games in a platform-independent fashion. It 
 * Murmur hasing and statically hashed strings
 * Math support for 32 and 64 bit floats
 * Configuration repository with config file I/O
-* Application environment queries and control
-* Crash utilities (SEH, Mach exception handlers, signals)
+* Application, environment and system queries and control
+* Regular expressions
+* Crash utilities (SEH, signals)
 
 It is written with the following API design principles in mind:
 
@@ -34,7 +36,7 @@ Platforms and architectures currently supported:
 * MacOS X (x86-64), 10.7+
 * Linux (x86, x86-64, PPC, ARM)
 * iOS (ARM7, ARM7s, ARM64), 5.0+
-* Android (ARM6, ARM7, x86, MIPS)
+* Android (ARM6, ARM7, ARM8-AARCH64, x86, x86-64, MIPS, MIPS64)
 * Raspberry Pi (ARM6)
 
 The latest source code maintained by Rampant Pixels is always available at

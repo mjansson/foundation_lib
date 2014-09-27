@@ -339,12 +339,14 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_ARCH_POINTER_SIZE == 4
-	char* memory = _aligned_malloc( (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
 #    if BUILD_ENABLE_MEMORY_GUARD
+	char* memory = _aligned_malloc( (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
 	if( memory )
-		memory = _memory_guard_initialize( memory, size );
-#    endif
+		memory = _memory_guard_initialize( memory, (size_t)size );
 	return memory;
+#    else
+	return _aligned_malloc( size, align);
+#    endif
 #  else
 	unsigned int padding, extra_padding = 0;
 	size_t allocate_size;
@@ -561,7 +563,22 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 {
 #if ( FOUNDATION_ARCH_POINTER_SIZE == 4 ) && FOUNDATION_PLATFORM_WINDOWS
 	align = _memory_get_align( align );
+#  if BUILD_ENABLE_MEMORY_GUARD
+	if( p )
+	{
+		p = _memory_guard_verify( p );
+		p = _aligned_realloc( p, (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
+	}
+	else
+	{
+		p = _aligned_malloc( (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
+	}
+	if( p )
+		p = _memory_guard_initialize( p, (size_t)size );
+	return p;
+#  else
 	return _aligned_realloc( p, (size_t)size, align );
+#  endif
 #else
 	void* memory;
 	void* raw_p;
