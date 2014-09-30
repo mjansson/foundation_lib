@@ -1190,28 +1190,32 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	has_protocol = string_equal_substr( file->path, "file://", 7 );
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	wpath = wstring_allocate_from_string( has_protocol ? file->path + 7 : file->path, 0 );
+	wpath = wstring_allocate_from_string( _fs_path( file->path ), 0 );
 	fd = CreateFileW( wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0 );
 	wstring_deallocate( wpath );
 	if( length < 0xFFFFFFFF )
-		SetFilePointer( fd, (LONG)length, 0, FILE_BEGIN );
+	{
+		if( SetFilePointer( fd, (LONG)length, 0, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
+			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
+	}
 	else
 	{
 		LONG high = (LONG)( length >> 32LL );
-		SetFilePointer( fd, (LONG)length, &high, FILE_BEGIN );
+		if( SetFilePointer( fd, (LONG)length, &high, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
+		   log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
 	}
 	SetEndOfFile( fd );
 	CloseHandle( fd );
 #elif FOUNDATION_PLATFORM_POSIX
-	int fd = open( has_protocol ? file->path + 7 : file->path, O_RDWR );
+	int fd = open( _fs_path( file->path ), O_RDWR );
 	if( ftruncate( fd, length ) < 0 )
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file: %s", file->path );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( errno ) );
 	close( fd );
 #else
 #  error Not implemented
 #endif
 
-	file->fd = _fs_file_fopen( has_protocol ? file->path + 7 : file->path, stream->mode, 0 );
+	file->fd = _fs_file_fopen( _fs_path( file->path ), stream->mode, 0 );
 
 	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
 
