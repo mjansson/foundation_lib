@@ -371,7 +371,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #endif
 			return memory;
 		}
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size );
 		return 0;
 	}
 
@@ -386,7 +386,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	vmres = NtAllocateVirtualMemory( INVALID_HANDLE_VALUE, &raw_memory, 1, &allocate_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE );
 	if( vmres != 0 )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", size );
 		return 0;
 	}
 
@@ -421,7 +421,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #endif
 			return memory;
 		}
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory (%llu requested)", size, size + align + padding );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory (%llu requested)", size, size + align + padding );
 		return 0;
 	}
 
@@ -476,7 +476,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #    endif
 	if( !raw_memory )
 	{
-		log_errorf( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", size );
 		return 0;
 	}
 
@@ -658,7 +658,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 	if( !memory )
 	{
-		log_panicf( 0, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
+		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
 	}
 	return memory;
 #endif
@@ -751,7 +751,7 @@ atomic32_t         _memory_tag_next = {0};
 
 static int _memory_tracker_initialize( void )
 {
-	log_debug( 0, "Initializing local memory tracker" );
+	log_debug( HASH_MEMORY, "Initializing local memory tracker" );
 	if( !_memory_tags )
 		_memory_tags = memory_allocate_zero( sizeof( memory_tag_t ) * MAX_CONCURRENT_ALLOCATIONS, 16, MEMORY_PERSISTENT );
 	if( !_memory_table )
@@ -769,14 +769,14 @@ static void _memory_tracker_shutdown( void )
 		unsigned int it;
 		bool got_leaks = false;
 
-		log_debug( 0, "Checking for memory leaks" );
+		log_debug( HASH_MEMORY, "Checking for memory leaks" );
 		for( it = 0; it < MAX_CONCURRENT_ALLOCATIONS; ++it )
 		{
 			memory_tag_t* tag = _memory_tags + it;
 			if( atomic_loadptr( &tag->address ) )
 			{
 				char* trace = stacktrace_resolve( tag->trace, 14, 0 );
-				log_warnf( 0, WARNING_MEMORY, "Memory leak: %d bytes @ 0x%" PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, atomic_loadptr( &tag->address ), it, trace );
+				log_warnf( HASH_MEMORY, WARNING_MEMORY, "Memory leak: %d bytes @ 0x%" PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, atomic_loadptr( &tag->address ), it, trace );
 				string_deallocate( trace );
 				got_leaks = true;
 			}
@@ -784,7 +784,7 @@ static void _memory_tracker_shutdown( void )
 		memory_deallocate( _memory_tags );
 
 		if( !got_leaks )
-			log_debug( 0, "No memory leaks detected" );
+			log_debug( HASH_MEMORY, "No memory leaks detected" );
 	}
 }
 
@@ -820,7 +820,7 @@ static void _memory_tracker_untrack( void* addr )
 		atomic_storeptr( &_memory_tags[ tag ].address, 0 );
 	}
 	//else if( addr )
-	//	log_warnf( 0, WARNING_SUSPICIOUS, "Untracked deallocation: " PRIfixPTR, addr );
+	//	log_warnf( HASH_MEMORY, WARNING_SUSPICIOUS, "Untracked deallocation: " PRIfixPTR, addr );
 }
 
 
