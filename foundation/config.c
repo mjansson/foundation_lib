@@ -196,7 +196,7 @@ static NOINLINE char* _expand_string( hash_t section_current, char* str )
 
 		var_pos = string_find_string( expanded, "$(", 0 );
 	}
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 	if( str != expanded )
 		log_debugf( HASH_CONFIG, "Expanded config value \"%s\" to \"%s\"", str, expanded );
 #endif
@@ -704,7 +704,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	hash_t key = 0;
 	unsigned int line = 0;
 
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 	log_debugf( HASH_CONFIG, "Parsing config stream: %s", stream_path( stream ) );
 #endif
 	buffer = memory_allocate_zero( 1024ULL, 0, MEMORY_TEMPORARY );
@@ -726,7 +726,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			}
 			buffer[endpos] = 0;
 			section = hash( buffer + 1, endpos - 1 );
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 			log_debugf( HASH_CONFIG, "  config: section set to '%s' (0x%llx)", buffer + 1, section );
 #endif
 		}
@@ -754,7 +754,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 
 			if( overwrite || !config_key( section, key, false ) )
 			{
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 				log_debugf( HASH_CONFIG, "  config: %s (0x%llx) = %s", name, key, value );
 #endif
 

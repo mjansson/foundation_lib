@@ -13,16 +13,27 @@
 #pragma once
 
 /*! \file build.h
-    Build setup. This header unifies the debug/release build macros and provides the following macro idenfiers,
-	usable with "#if BUILD_[type]" conditionals
+  Build setup. This header contains all the compile time build setup for the foundation library.
 
-	BUILD_DEBUG   - Debug build
-	BUILD_RELEASE - Release build
-	BUILD_PROFILE - Deploy build with profiling
-	BUILD_DEPLOY  - Deploy build
+  This header unifies the debug/release build macros across platforms, build systems and compiler and provides the following
+  macro idenfiers, usable with <i>#if BUILD_[type]</i> conditionals
 
-	Other configurations can be made with various BUILD_ENABLE_[...] at the end of this file. There are also
-	a number of BUILD_SIZE_[...] defines for preallocated buffer sizes used.
+  <ul>
+  <li>BUILD_DEBUG   - Debug build
+  <li>BUILD_RELEASE - Release build
+  <li>BUILD_PROFILE - Deploy build with profiling
+  <li>BUILD_DEPLOY  - Deploy build
+  </ul>
+ 
+  Feature enable/disable control is made through the various <i>BUILD_ENABLE_[...]</i> preprocessor definitions declared
+  in this header. The value of a flag is interpreted as disabled if the value is 0, and enabled for all other values (with
+  1 being the normal value for enabled). These enable flags can also be set externally on compilation command lines or in
+  source files prior to inclusion of foundation headers. Note that some affect if source code is compiled in or discarded
+  in the library, so it is recommended to set all values inside this header.
+
+  There are also a number of <i>BUILD_SIZE_[...]</i> defines for preallocated buffer sizes used. These definitions have
+  to be made inside this header since they are only used in the library source code and not affecting external code.
+  Refer to each definition for the meaning and default value.
 
 	*/
 
@@ -41,34 +52,49 @@
     Set to 1 for deploy build, 0 otherwise. Deploy builds are by default fully optimized and have all debugging and profiling functionality disabled. */
 
 /*! \def BUILD_ENABLE_ASSERT
-    Set to 1 if asserts are enabled, 0 if disabled */
+    Control if runtime asserts are enabled. Default value is enabled in debug and release builds, and disabled in profile and deploy builds. If asserts are
+    disabled, all assert macros will reduce to void (no evaluated code). See assert.h documentation for more information on asserts. */
 
 /*! \def BUILD_ENABLE_ERROR_CONTEXT
-    Set to 1 if error context tracking is enabled, 0 if disabled */
+    Control if error context tracking is enabled. Default value is enabled in debug and release builds, and disabled in profile and deploy builds.
+    If error context tracking is disabled, all calls to set error context will reduce to void (no evaluated code). See error.h documentation for more
+    information on error context tracking. */
 
 /*! \def BUILD_ENABLE_LOG
-    Set to 1 if logging is enabled, 0 if disabled */
+    Control if logging is enabled. Default value is enabled in debug and release builds on all platforms, disabled in profile and deploy builds on
+    console/mobile platform families, and enabled in profile and deploy builds on all other platforms. If logging is disabled, all calls to log
+    functions will reduce to void (no evaluated code). See log.h documentation for more information on log functions. */
 
 /*! \def BUILD_ENABLE_DEBUG_LOG
-    Set to 1 if debug logging is enabled, 0 if disabled */
+    Control if debug logging is enabled. Similar to BUILD_ENABLE_LOG, but explicitly controls debug level logging. Default value is enabled in debug builds,
+    and disabled in all other builds. Depends on BUILD_ENABLE_LOG */
 
-/*! \def BUILD_ENABLE_DEBUG_CONFIG
-    Set to 1 if config system debugging is enabled, 0 if disabled */
+/*! \def BUILD_ENABLE_CONFIG_DEBUG
+    Control if extra debug logging is enabled in the config module. Default is disabled in all builds. */
 
 /*! \def BUILD_ENABLE_PROFILE
-    Set to 1 if profiling hooks and system is enabled, 0 if disabled */
+    Control if profiling is enabled. Default value is enabled in debug, release and profile builds, and disabled in deploy builds. If profiling is disabled,
+    all calls to profile functions will reduce to void (no evaluated code). See profile.h documentation for more information on profiling calls. */
 
 /*! \def BUILD_ENABLE_MEMORY_CONTEXT
-    Set to 1 if memory context tracking is enabled, 0 if disabled */
+    Control is memory context tracking is enabled. Default value is enabled in debug and release builds, and disabled in profile and deploy builds. If
+    memory context tracking is disabled, all calls to track memory context will reduce to void (no evaluated code). See memory.h documentation for more
+    information on memory context tracking. */
 
 /*! \def BUILD_ENABLE_MEMORY_TRACKER
-    Set to 1 if memory allocation tracking is enabled, 0 if disabled */
+    Control if memory tracking is enabled. Default value is enabled in debug and release builds, and disabled in profile and deploy builds. If memory
+    tracking is enabled, each memoruy allocation and deallocation will incur a slight overhead to track the origin of the call and enable memory leak
+    detection. For more information on memory tracking, check the memory.h documentation. */
 
 /*! \def BUILD_ENABLE_MEMORY_GUARD
-    Set to 1 if memory guards for detecting overwrite and underwrite is enabled, 0 if disabled */
+    Control if memory guarding is enabled. Default value is enabled in debug and release builds, and disabled in profile and deploy builds. Memory
+    guarding incurs a slight memory overhead on each allocation, and enables over/underwrite detection on memory deallocation. For more information on
+    memory guarding, check the memory.h documentation. */
 
 /*! \def BUILD_ENABLE_STATIC_HASH_DEBUG
-    Set to 1 if static string hash debugging is enabled allowing reverse hash lookups, 0 if disabled */
+    Control if static string hashing debugging is enabled. Default value is enabled in debug and release builds on desktop platforms, and disabled all
+    other build configurations and/or platforms. Static string hash debugging enables sanity checking in statically hashed strings, as well as reverse
+    lookup of string hashes. See hash.h documentation for more information on statically hashed strings. */
 
 /*! \def BUILD_DEFAULT_STREAM_BYTEORDER
     The default stream byte order used if the byte order is not explicitly set on a stream */
@@ -176,7 +202,7 @@
 #endif
 #endif
 
-#define BUILD_ENABLE_DEBUG_CONFIG             0
+#define BUILD_ENABLE_CONFIG_DEBUG             0
 
 #ifndef BUILD_ENABLE_PROFILE
 #if BUILD_DEBUG || BUILD_RELEASE || BUILD_PROFILE
@@ -211,7 +237,7 @@
 #endif
 
 #ifndef BUILD_ENABLE_STATIC_HASH_DEBUG
-#if !BUILD_DEPLOY && FOUNDATION_PLATFORM_FAMILY_DESKTOP
+#if ( BUILD_DEBUG || BUILD_RELEASE ) && FOUNDATION_PLATFORM_FAMILY_DESKTOP
 #define BUILD_ENABLE_STATIC_HASH_DEBUG        1
 #else
 #define BUILD_ENABLE_STATIC_HASH_DEBUG        0
@@ -241,4 +267,4 @@
 
 #define BUILD_SIZE_STATIC_HASH_STORE          4192
 
-#define BUILD_EVENT_BLOCK_CHUNK_SIZE          ( 32 * 1024 )
+#define BUILD_SIZE_EVENT_BLOCK_CHUNK          ( 32 * 1024 )

@@ -144,6 +144,10 @@ FOUNDATION_API void foundation_startup( void );
 FOUNDATION_API uint32_t      hashtable32_raw( hashtable32_t* table, uint32_t key );
 FOUNDATION_API uint64_t      hashtable64_raw( hashtable64_t* table, uint64_t key );
 
+FOUNDATION_API void          _object_initialize( object_base_t* obj, object_t id );
+FOUNDATION_API object_t      _object_ref( object_base_t* obj );
+FOUNDATION_API object_t      _object_unref( object_base_t* obj );
+
 #if BUILD_ENABLE_ERROR_CONTEXT
 FOUNDATION_API void          _error_context_clear( void );
 #endif
