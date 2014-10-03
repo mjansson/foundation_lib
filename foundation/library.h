@@ -24,6 +24,11 @@
     \return                  Null if not found or error loading, library object reference if loaded successfully */
 FOUNDATION_API object_t      library_load( const char* name );
 
+/*! Reference library, explicitly increase the reference count of the library object
+    \param library           Library object
+    \return                  Object handle if library object is still valid, 0 if library object is no longer valid */
+FOUNDATION_API object_t      library_ref( object_t library );
+
 /*! Unload library
     \param library           Library object */
 FOUNDATION_API void          library_unload( object_t library );

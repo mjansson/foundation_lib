@@ -11,6 +11,40 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
+
+
+void _object_initialize( object_base_t* obj, object_t id )
+{
+	obj->id = id;
+	atomic_store32( &obj->ref, 1 );
+}
+
+
+object_t _object_ref( object_base_t* obj )
+{
+	int32_t ref;
+	if( obj ) do
+	{
+		ref = atomic_load32( &obj->ref );
+		if( ( ref > 0 ) && atomic_cas32( &obj->ref, ref + 1, ref ) )
+			return obj->id;
+	} while( ref > 0 );
+	return 0;
+}
+
+
+object_t _object_unref( object_base_t* obj )
+{
+	int32_t ref;
+	if( obj ) do
+	{
+		ref = atomic_load32( &obj->ref );
+		if( ( ref > 0 ) && atomic_cas32( &obj->ref, ref - 1, ref ) )
+			return ( ref == 1 ) ? 0 : obj->id;
+	} while( ref > 0 );
+	return 0;
+}
 
 
 objectmap_t* objectmap_allocate( unsigned int size )

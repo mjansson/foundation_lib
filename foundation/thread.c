@@ -149,9 +149,9 @@ static void _thread_destroy( void* thread_raw )
 }
 
 
-static FORCEINLINE void _thread_dec_ref( thread_t* thread )
+static FORCEINLINE void _thread_unref( thread_t* thread )
 {
-	if( atomic_decr32( &thread->ref ) <= 0 )
+	if( !_object_unref( (object_base_t*)thread ) )
 		_thread_destroy( thread );
 }
 
@@ -175,22 +175,25 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 		return 0;
 	}
 	thread = memory_allocate_zero( sizeof( thread_t ), 0, MEMORY_PERSISTENT );
-	thread->id = id;
+	_object_initialize( (object_base_t*)thread, id );
 	thread->fn = fn;
 	string_copy( thread->name, name, 32 );
 	thread->priority = priority;
 	thread->stacksize = stacksize;
-	atomic_store32( &thread->ref, 1 );
 	objectmap_set( _thread_map, id, thread );
 	return thread->id;
 }
 
 
+object_t thread_ref( object_t id )
+{
+	return _object_ref( GET_THREAD( id ) );
+}
+
+
 void thread_destroy( object_t id )
 {
-	thread_t* thread = GET_THREAD( id );
-	if( thread )
-		_thread_dec_ref( thread );
+	_thread_unref( GET_THREAD( id ) );
 }
 
 
@@ -338,12 +341,17 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	uint64_t thr_id;
 	thread_t* thread = GET_THREAD_PTR( data );
 
-	atomic_incr32( &thread->ref );
+	if( !_object_ref( (object_base_t*)thread ) )
+	{
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread, invalid thread object %" PRIfixPTR, thread );
+		return 0;
+	}
+	
 	atomic_cas32( &thread->started, 1, 0 );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread %llx, already running", thread->id );
-		_thread_dec_ref( thread );
+		_thread_unref( thread );
 		return 0;
 	}
 
@@ -404,7 +412,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	log_debugf( 0, "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
 
-	_thread_dec_ref( thread );
+	_thread_unref( thread );
 
 	return 0;
 }

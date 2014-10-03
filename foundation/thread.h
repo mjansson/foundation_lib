@@ -27,6 +27,11 @@
     \return                    New thread object */
 FOUNDATION_API object_t        thread_create( thread_fn fn, const char* name, thread_priority_t priority, unsigned int stacksize );
 
+/*! Reference thread, explicitly increase the reference count of the thread object
+    \param thread              Thread
+	\return                    Object handle if thread object is still valid, 0 if thread object is no longer valid */
+FOUNDATION_API object_t        thread_ref( object_t thread );
+
 /*! Destroy thread. Stops the thread if it is running
     \param thread              Thread */
 FOUNDATION_API void            thread_destroy( object_t thread );
