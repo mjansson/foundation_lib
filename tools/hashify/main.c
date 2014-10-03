@@ -534,17 +534,19 @@ int hashify_check_match( const hashify_string_t* hashes, const hashify_string_t*
 
 static void hashify_print_usage( void )
 {
+	const error_level_t saved_level = log_suppress( 0 );
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	log_info( 0,
 			 "hashify usage:\n"
-			 "  hashify [--help] [--validate] [--generate-string <string>] [<filename> <filename> ...] [--]\n"
+			 "  hashify [--validate] [--generate-string <string>] [<filename> <filename> ...] [--help] [--]\n"
 			 "    Generated files have the same file name as the input file, with the extension replaced by .h\n"
 			 "    Optional arguments:\n"
-			 "      --help                       Display this help message\n"
 			 "      --validate                   Suppress output and only validate existing hashes\n"
 			 "      --generate-string <string>   Generate hash of the given string\n"
 			 "      <filename> <filename> ...    Any number of input files\n"
+			 "      --help                       Display this help message\n"
 			 "      --                           Stop processing command line arguments"
 			 );
+	log_set_suppress( 0, saved_level );
 }
 

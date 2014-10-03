@@ -22,19 +22,19 @@
 //! UUID namespace "dns"
 FOUNDATION_API const uuid_t           UUID_DNS;
 
-/*! Generate UUID based on random numbers
-    \return                           Random-based UUID */
-FOUNDATION_API uuid_t                 uuid_generate_random( void );
-
-/*! Generate UUID based on time (and host id)
+/*! Generate UUID based on time (and host id) - version 1
     \return                           Time-based UUID */
 FOUNDATION_API uuid_t                 uuid_generate_time( void );
 
-/*! Generate UUID based on namespace and name
+/*! Generate UUID based on namespace and name - version 3
     \param namespace                  Namespace
 	\param name                       Name
     \return                           Name-based UUID */
 FOUNDATION_API uuid_t                 uuid_generate_name( const uuid_t namespace, const char* name );
+
+/*! Generate UUID based on random numbers - version 4
+    \return                           Random-based UUID */
+FOUNDATION_API uuid_t                 uuid_generate_random( void );
 
 /*! Check if UUIDs are equal
     \param u0                         First UUID

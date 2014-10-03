@@ -130,10 +130,9 @@ devices refer to the Android SDK documentation.
 
 \page tools_page Using the tools provided by the library
 
-The library comes with a number of useful tools to help with development of applications.
+The library comes with a number of small tools to help with development of applications.
 
-\section hashify Hashify
-
+\section hashify
 The hashify tool is used to generate headers with predefined hashed strings from definition text files. The library
 itself has one such header in foundation/hashstrings.h which is generated from foundation/hashstrings.txt
 
@@ -143,6 +142,50 @@ options refer to the help information output by running hashify without any argu
 
 The hashify tool will not touch the output file if it does not need updating, to avoid changing timestamps of the header
 file and trigger rebuilds. This makes it suitable for automatic execution in build farms and similar environments.
+
+<pre>hashify [--help] [--validate] [--generate-string <string>] [<filename> <filename> ...] [--]
+    Generated files have the same file name as the input file, with the extension replaced by .h
+    Optional arguments:
+      --validate                   Suppress output and only validate existing hashes
+      --generate-string <string>   Generate hash of the given string
+      <filename> <filename> ...    Any number of input files
+      --help                       Display the help message
+      --                           Stop processing command line arguments</pre>
+
+\section uuidgen
+The uuidgen tool generates UUIDs using the uuid submodule in the library. It can generate version 1 (MAC address), 3 (MD5 hash)
+and 4 (random) UUIDs. If you run the tool without any arguments it will generate a single version 4 (random) UUID to stdout.
+
+<pre>uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help]
+    If no arguments are given, one random-based UUID is output to stdout
+    Optional arguments:
+      --time n                     Generate n time-based UUIDs
+      --random n                   Generate n random-based UUIDs
+      --md5 <namespace> <name>     Generate a name-based UUID using the namespace UUID specified
+                                   in <namespace> and a name string specified in <name>
+      --output <filename>          Output to <filename> instead of stdout
+      --binary                     Output binary data instead of ASCII (stdout is always ASCII)
+      --lowercase                  Output UUID in lowercase hex
+      --uppercase                  Output UUID in uppercase hex (default)
+      --help                       Display the help message
+      --                           Stop processing command line arguments</pre>
+
+\section bin2hex
+The bin2hex tool converts any given input file to a string based file with each input file byte output as a hex string value,
+suitable for including as a data block in a C source file (format "0x23, 0x20, 0x46, 0x6f, ...")
+
+<pre>bin2hex usage:
+  bin2hex [--columns n] [--help] <file> <file> <file> <...> [--]
+    Required arguments:
+      <file>                       Input filename (any number of input files allowed). Output will be named "<file>.hex"
+    Optional arguments:
+      --columns n                  Print n bytes in each column (default is 32)
+      --help                       Display the help message
+      --                           Stop processing command line arguments</pre>
+
+\section plans Future plans
+Currently there are no plans for extra tools, but if you have a suggestion or request feel free to leave us a comment on
+our repository pages at https://github.com/rampantpixels/foundation_lib
 
 
 \page overview_page Overview of the design principles and general api patterns
@@ -163,6 +206,7 @@ design principles in mind:
 Each submodule is contained in one header/source file pair, with all function names beginning with the submodule name. For example, all calls related to bit buffers are contained in bitbuffer.h and have
 the format "bitbuffer_<function>( bitbuffer_t*, ... )". If the function call requires a data object related to the submodule (in this case, bitbuffer_t) a pointer to the object is always the first function argument.
 
+\section data_types Data types
 The library uses standard C data types (char, unsigned int, ...) where exact data type size is not required, and standard integer types (int16_t, uint64_t) where explicit size is required. The library
 extends these types with floating point data types:
 
@@ -171,15 +215,29 @@ extends these types with floating point data types:
 <li><i>real</i> for a configurable generic floating point data type
 </ul>
 
-To set the <i>real</i> data type format use the FOUNDATION_PLATFORM_REALSIZE preprocessor macro to 32 or 64, or change the default value in platform.h
+To set the <i>real</i> data type format use the FOUNDATION_PLATFORM_REALSIZE preprocessor macro to 32 or 64, or change the defined value in platform.h (default is 32 bit floating point values).
 
-To be written... create vs allocate
+\section object_lifetime Object lifetime
+Complex data types (objects) are handled in two ways. Either the caller have explicit lifetime control and accessed through raw pointers, or else has implicit control where
+the lifetime is handled by reference counting and accessed through object handles of type object_t (basically a 64-bit handle mapping into a lookup table).
+
+Explicit allocations are always handled by function calls of the format <i><module>_t* <module>_allocate(...)</i> to allocate the object and <i>void <module>_deallocate(<module>_t* ptr)</i> to deallocate it,
+for example md5_allocate and md5_deallocate in md5.h
+
+Implicit allocators are always handled by function calls of the format <i>object_t <module>_create(...)</i> to allocate a new object, <i><module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void <module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
+for example thread_create, thread_ref and thread_destroy in thread.h
+
+Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_<module>_MAP, for example BUILD_SIZE_THREAD_MAP for threads.
 
 
 \page features_page Details on specific submodules and features provided by the library
 
 \section build_config Build configuration
-To be written... (all build.h flags)
+Static build configuration is done in the build.h header by defining a set of preprocessor directives. All values can be set on compilation command line since the build declarations are checked for pre-existing definitions. It is, however, recommended to use the build header file to ensure the library and projects using the library have the same set of definitions.
+
+Most important is the build type definition
+
+For a full list and documentation of the build configuration preprocessor definitions, check the documentation for the build.h header
 
 \section memory_management Memory management
 To be written... (memory system, hints, context)
