@@ -33,6 +33,7 @@ typedef struct
 } hashify_string_t;
 
 static hashify_input_t      hashify_parse_command_line( const char* const* cmdline );
+static void                 hashify_print_usage( void );
 
 static int                  hashify_process_strings( const char* const* strings );
 static int                  hashify_process_files( const char* const* files, bool check_only );
@@ -58,6 +59,7 @@ int main_initialize( void )
 	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix( false );
+	log_set_suppress( 0, ERRORLEVEL_ERROR );
 
 	if( ( ret = foundation_initialize( memory_system_malloc(), application ) ) < 0 )
 		return ret;
@@ -106,7 +108,11 @@ hashify_input_t hashify_parse_command_line( const char* const* cmdline )
 	error_context_push( "parsing command line", "" );
 	for( arg = 1, asize = array_size( cmdline ); arg < asize; ++arg )
 	{
-		if( string_equal( cmdline[arg], "--validate" ) )
+		if( string_equal( cmdline[arg], "--help" ) )
+		{
+			hashify_print_usage();
+		}
+		else if( string_equal( cmdline[arg], "--validate" ) )
 		{
 			input.check_only = true;
 			continue;
@@ -128,6 +134,9 @@ hashify_input_t hashify_parse_command_line( const char* const* cmdline )
 		array_push( input.files, string_clone( cmdline[arg] ) );
 	}
 	error_context_pop();
+	
+	if( array_size( cmdline ) <= 1 )
+		hashify_print_usage();
 
 	return input;
 }
@@ -520,5 +529,22 @@ int hashify_check_match( const hashify_string_t* hashes, const hashify_string_t*
 		}
 	}
 	return HASHIFY_RESULT_OK;
+}
+
+
+static void hashify_print_usage( void )
+{
+	log_set_suppress( 0, ERRORLEVEL_DEBUG );
+	log_info( 0,
+			 "hashify usage:\n"
+			 "  hashify [--help] [--validate] [--generate-string <string>] [<filename> <filename> ...] [--]\n"
+			 "    Generated files have the same file name as the input file, with the extension replaced by .h\n"
+			 "    Optional arguments:\n"
+			 "      --help                       Display this help message\n"
+			 "      --validate                   Suppress output and only validate existing hashes\n"
+			 "      --generate-string <string>   Generate hash of the given string\n"
+			 "      <filename> <filename> ...    Any number of input files\n"
+			 "      --                           Stop processing command line arguments"
+			 );
 }
 
