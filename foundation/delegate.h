@@ -21,14 +21,24 @@
 #include <foundation/apple.h>
 
 
-/*! \fn delegate_start_main_ns_thread
-    Start the main thread as a separate thread. The process entry thread will go on
+/*! MacOS X and iOS only. Start the main thread as a separate thread. The process entry thread will go on
     and run the main Cocoa event loop. */
-
-#if FOUNDATION_PLATFORM_APPLE
-
 FOUNDATION_API void delegate_start_main_ns_thread( void );
+
+/*! MacOS X and iOS only. Ensures all delegate classes and methods have references to prevent from
+    being stripped in optimization passes during compilation and linking */
 FOUNDATION_API void delegate_reference_classes( void );
+
+/*! MacOS X only. Get the currently assigned window from the delegate
+    object window outlet.
+    \return Window object */
+FOUNDATION_API void* delegate_nswindow( void );
+
+/*! \fn delegate_uiwindow
+    iOS only. Get the main UI application window.
+    \return Windows object*/
+FOUNDATION_API void* delegate_uiwindow( void );
+
 
 #if FOUNDATION_PLATFORM_MACOSX
 
@@ -43,10 +53,6 @@ FOUNDATION_API void delegate_reference_classes( void );
 @end
 
 #endif
-
-/*! Get the window associated with the application delegate
-    \return Window */
-FOUNDATION_API void* delegate_nswindow( void );
 
 
 #elif FOUNDATION_PLATFORM_IOS
@@ -68,10 +74,5 @@ FOUNDATION_API void* delegate_nswindow( void );
 
 #endif
 
-/*! Get the window associated with the application delegate
-    \return Window */
-FOUNDATION_API void* delegate_uiwindow( void );
-
 #endif
 
-#endif

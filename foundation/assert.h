@@ -41,7 +41,8 @@ FOUNDATION_API void                 assert_set_handler( assert_handler_fn new_ha
     \param condition                Assert condition expression
     \param file                     Source file triggering assert
     \param line                     Line number triggering assert
-    \param msg                      Assert information message */
+    \param msg                      Assert information message
+    \return                         1 if assert was not handled and execution should break, 0 if assert handled and execution can continue */
 FOUNDATION_API int                  assert_report( uint64_t context, const char* condition, const char* file, int line, const char* msg );
 
 /*! Report assert with a formatted message.
@@ -50,7 +51,8 @@ FOUNDATION_API int                  assert_report( uint64_t context, const char*
 	\param condition                Assert condition expression
 	\param file                     Source file triggering assert
 	\param line                     Line number triggering assert
-	\param msg                      Assert information message format specifier */
+	\param msg                      Assert information message format specifier
+    \return                         1 if assert was not handled and execution should break, 0 if assert handled and execution can continue */
 FOUNDATION_API int                  assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... );
 
 /*! \def FOUNDATION_ASSERT

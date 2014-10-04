@@ -25,7 +25,7 @@
 	\param data                            Argument
     \param callback                        Function to call on crash dump
     \param name                            Dump name prefix
-	\return                                Function return value, CRASH_DUMP_GENERATED if dump was generated */
+	\return                                Function return value, FOUNDATION_CRASH_DUMP_GENERATED if dump was generated */
 FOUNDATION_API int                         crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name );
 
 /*! Set the global crash guard callback and dump name prefix. This will be used for all new threads created.

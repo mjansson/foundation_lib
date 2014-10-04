@@ -80,7 +80,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 		else
 		{
 			block->capacity += BUILD_SIZE_EVENT_BLOCK_CHUNK;
-			FOUNDATION_ASSERT_MSG( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > 4Mb" );
+			FOUNDATION_ASSERT_MSGFORMAT( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > %d", BUILD_SIZE_EVENT_BLOCK_LIMIT );
 			error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
 		}
 		if( block->capacity % 16 )

@@ -1203,7 +1203,7 @@ char* string_from_real( real val, unsigned int precision, unsigned int width, ch
 char* string_from_real_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char fill )
 {
 	unsigned int len;
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 	if( precision )
 		len = (unsigned int)sprintf( buffer, "%.*lf", precision, val );
 	else
@@ -1373,7 +1373,7 @@ uint128_t string_to_uint128( const char* val )
 
 real string_to_real( const char* val )
 {
-#if ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE ) && ( FOUNDATION_PLATFORM_REALSIZE == 64 )
+#if ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE ) && ( FOUNDATION_SIZE_REAL == 64 )
 	long double ret = 0.0f;
 #else
 	real ret = 0.0f;

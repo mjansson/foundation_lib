@@ -128,17 +128,18 @@
     \param increment                 Number of elements to increment storage with
     \param factor                    Factor to multiply previous capacity with
     \param itemsize                  Size of a single item
-	\return                          New array pointer */
+    \return                          New array pointer */
 FOUNDATION_API void*                 _array_growfn( void** arr, int increment, int factor, int itemsize );
 
 /*! Array resize function. This will reallocate array storage if needed
     \param arr                       Pointer to array
     \param elements                  Number of elements to resize to
-	\return                          New array pointer */
+    \param itemsize                  Size of a single item
+    \return                          New array pointer */
 FOUNDATION_API void*                 _array_resizefn( void** arr, int elements, int itemsize );
 
- /*! Verify array integrity. Will cause an assert if array is not valid.
-     \param arr                      Pointer to array
-	 \return                         Array if valid, null if invalid */
+/*! Verify array integrity. Will cause an assert if array is not valid.
+    \param arr                       Pointer to array
+    \return                          Array if valid, null if invalid */
 FOUNDATION_API const void*           _array_verifyfn( const void* const* arr );
 

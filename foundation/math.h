@@ -440,7 +440,7 @@
     \return                                Decremented and wrapped value inside range */
 
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 #define REAL_EPSILON                       0.00000000000002
 
@@ -627,7 +627,7 @@ static FORCEINLINE CONSTCALL real math_log2( real x ) { return math_logn( x ) * 
 
 #if FOUNDATION_COMPILER_MSVC
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 static FORCEINLINE real     math_sin( real x ) { return sin( x ); }
 static FORCEINLINE real     math_cos( real x ) { return cos( x ); }
@@ -706,7 +706,7 @@ static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 
 #elif FOUNDATION_COMPILER_INTEL
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 static FORCEINLINE real     math_sin( real x ) { return sin( x ); }
 static FORCEINLINE real     math_cos( real x ) { return cos( x ); }
@@ -771,7 +771,7 @@ static FORCEINLINE real     math_exp( real x ) { return __builtin_exp( x ); }
 static FORCEINLINE real     math_pow( real x, real y ) { return __builtin_pow( x, y ); }
 static FORCEINLINE real     math_logn( real x ) { return __builtin_log( x ); }
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floor( x ); }
 static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceil( x ); }
@@ -806,7 +806,7 @@ static FORCEINLINE int      math_trunc( real x ) { return (int)__builtin_truncf(
 #endif
 
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 
 typedef union { int64_t ival; float64_t rval; } __real_convert;

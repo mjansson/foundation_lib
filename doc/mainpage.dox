@@ -1,4 +1,5 @@
-/*! \mainpage Overview
+/*!
+\mainpage Overview
 
 \subpage build_page
 <br><br>
@@ -134,7 +135,7 @@ The library comes with a number of small tools to help with development of appli
 
 \section hashify
 The hashify tool is used to generate headers with predefined hashed strings from definition text files. The library
-itself has one such header in foundation/hashstrings.h which is generated from foundation/hashstrings.txt
+itself has one such header in hashstrings.h which is generated from hashstrings.txt
 
 To use the tool simply run it with the path to each definition file as argument, for example "hashify foundation/hashstrings.txt".
 It will by default generate a file named like the definition file with the extension replaces with ".h". For more
@@ -143,12 +144,12 @@ options refer to the help information output by running hashify without any argu
 The hashify tool will not touch the output file if it does not need updating, to avoid changing timestamps of the header
 file and trigger rebuilds. This makes it suitable for automatic execution in build farms and similar environments.
 
-<pre>hashify [--help] [--validate] [--generate-string <string>] [<filename> <filename> ...] [--]
+<pre>hashify [--help] [--validate] [--generate-string \<string>] [\<filename> \<filename> ...] [--]
     Generated files have the same file name as the input file, with the extension replaced by .h
     Optional arguments:
       --validate                   Suppress output and only validate existing hashes
-      --generate-string <string>   Generate hash of the given string
-      <filename> <filename> ...    Any number of input files
+      --generate-string \<string>   Generate hash of the given string
+      \<filename> \<filename> ...    Any number of input files
       --help                       Display the help message
       --                           Stop processing command line arguments</pre>
 
@@ -156,14 +157,14 @@ file and trigger rebuilds. This makes it suitable for automatic execution in bui
 The uuidgen tool generates UUIDs using the uuid submodule in the library. It can generate version 1 (MAC address), 3 (MD5 hash)
 and 4 (random) UUIDs. If you run the tool without any arguments it will generate a single version 4 (random) UUID to stdout.
 
-<pre>uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help]
+<pre>uuidgen [--time n] [--random n] [--md5 \<namespace> \<name>] [--output \<filename>] [--help]
     If no arguments are given, one random-based UUID is output to stdout
     Optional arguments:
       --time n                     Generate n time-based UUIDs
       --random n                   Generate n random-based UUIDs
-      --md5 <namespace> <name>     Generate a name-based UUID using the namespace UUID specified
-                                   in <namespace> and a name string specified in <name>
-      --output <filename>          Output to <filename> instead of stdout
+      --md5 \<namespace> \<name>     Generate a name-based UUID using the namespace UUID specified
+                                   in \<namespace> and a name string specified in \<name>
+      --output \<filename>          Output to \<filename> instead of stdout
       --binary                     Output binary data instead of ASCII (stdout is always ASCII)
       --lowercase                  Output UUID in lowercase hex
       --uppercase                  Output UUID in uppercase hex (default)
@@ -175,9 +176,9 @@ The bin2hex tool converts any given input file to a string based file with each 
 suitable for including as a data block in a C source file (format "0x23, 0x20, 0x46, 0x6f, ...")
 
 <pre>bin2hex usage:
-  bin2hex [--columns n] [--help] <file> <file> <file> <...> [--]
+  bin2hex [--columns n] [--help] \<file> \<file> \<file> <...> [--]
     Required arguments:
-      <file>                       Input filename (any number of input files allowed). Output will be named "<file>.hex"
+      \<file>                       Input filename (any number of input files allowed). Output will be named "\<file>.hex"
     Optional arguments:
       --columns n                  Print n bytes in each column (default is 32)
       --help                       Display the help message
@@ -215,19 +216,19 @@ extends these types with floating point data types:
 <li><i>real</i> for a configurable generic floating point data type
 </ul>
 
-To set the <i>real</i> data type format use the FOUNDATION_PLATFORM_REALSIZE preprocessor macro to 32 or 64, or change the defined value in platform.h (default is 32 bit floating point values).
+To set the <i>real</i> data type format use the FOUNDATION_SIZE_REAL preprocessor macro to 32 or 64, or change the defined value in platform.h (default is 32 bit floating point values).
 
 \section object_lifetime Object lifetime
 Complex data types (objects) are handled in two ways. Either the caller have explicit lifetime control and accessed through raw pointers, or else has implicit control where
 the lifetime is handled by reference counting and accessed through object handles of type object_t (basically a 64-bit handle mapping into a lookup table).
 
-Explicit allocations are always handled by function calls of the format <i><module>_t* <module>_allocate(...)</i> to allocate the object and <i>void <module>_deallocate(<module>_t* ptr)</i> to deallocate it,
+Explicit allocations are always handled by function calls of the format <i>\<module>_t* \<module>_allocate(...)</i> to allocate the object and <i>void \<module>_deallocate(\<module>_t* ptr)</i> to deallocate it,
 for example md5_allocate and md5_deallocate in md5.h
 
-Implicit allocators are always handled by function calls of the format <i>object_t <module>_create(...)</i> to allocate a new object, <i><module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void <module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
+Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
 for example thread_create, thread_ref and thread_destroy in thread.h
 
-Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_<module>_MAP, for example BUILD_SIZE_THREAD_MAP for threads.
+Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_\<module>_MAP, for example BUILD_SIZE_THREAD_MAP for threads.
 
 
 \page features_page Details on specific submodules and features provided by the library
@@ -265,5 +266,4 @@ To be written... (headers, linking)
 
 \section template_app Template application
 To be written... (initialization, shutdown, environment, system, config, library)
-
 */

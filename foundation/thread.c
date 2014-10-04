@@ -388,9 +388,9 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	else
 	{
 		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
-		if( crash_result == CRASH_DUMP_GENERATED )
+		if( crash_result == FOUNDATION_CRASH_DUMP_GENERATED )
 		{
-			thread->result = (void*)((uintptr_t)CRASH_DUMP_GENERATED);
+			thread->result = (void*)((uintptr_t)FOUNDATION_CRASH_DUMP_GENERATED);
 			log_warnf( 0, WARNING_SUSPICIOUS, "Thread '%s' (%llx) ID %llx crashed", thread->name, thread->osid, thread->id );
 		}
 	}

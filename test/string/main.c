@@ -207,7 +207,7 @@ DECLARE_TEST( string, initialize )
 
 		{
 			uint16_t wteststr[] = { 0xFEFF, 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0xFFFE, 0x1234, 0xFF03, 0 };
-#if FOUNDATION_WCHAR_SIZE == 32
+#if FOUNDATION_SIZE_WCHAR == 4
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x0032, 0x3412, 0x03FF, 0 };
 #else
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0x3412, 0x03FF, 0 };
@@ -221,7 +221,7 @@ DECLARE_TEST( string, initialize )
 
 		{
 			uint32_t wteststr[] = { 0x0000FEFF, 0x00000100, 0x0000078f, 0x00001234, 0x0000FF03, 0x000D0854, 0x000D0C53, 0x00000032, 0xFFFE0000, 0x12340000, 0xFF030000, 0 };
-#if FOUNDATION_WCHAR_SIZE == 32
+#if FOUNDATION_SIZE_WCHAR == 4
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x000D0C53, 0x0032, 0x3412, 0x03FF, 0 };
 #else
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0xDB03, 0xDC53, 0x0032, 0x3412, 0x03FF, 0 };
@@ -1121,7 +1121,7 @@ DECLARE_TEST( string, format )
 		char* teststr2 = string_format( "0x%" PRIfixPTR, (void*)-1 );
 		char* teststr3 = string_format( "0x%" PRIfixPTR, (void*)0x1234abULL );
 
-#if FOUNDATION_ARCH_POINTER_SIZE == 8
+#if FOUNDATION_SIZE_POINTER == 8
 		EXPECT_STREQ( teststr1, "0x0000000000000000" );
 		EXPECT_STREQ( teststr2, "0xFFFFFFFFFFFFFFFF" );
 		EXPECT_STREQ( teststr3, "0x00000000001234AB" );

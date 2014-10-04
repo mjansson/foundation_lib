@@ -14,24 +14,26 @@
 
 /*! \file regex.h
     Small regular expression implementation matching a subset of Perl regular expression syntax.
+    <pre>
     ^        Match beginning of string
     $        Match end of string
     ()       Group and capture substring
     []       Match any character from the grouped set
     [^]      Match any character but ones from the grouped set
-    \s       Match whitespace
-    \S       Match non-whitespace
-    \d       Match decimal digits
-    \D       Match non-digits
-    \n       Match newline
-    \r       Match carriage return
+    \\s       Match whitespace
+    \\S       Match non-whitespace
+    \\d       Match decimal digits
+    \\D       Match non-digits
+    \\n       Match newline
+    \\r       Match carriage return
     +        Match one or more times (longest possible match)
     +?       Match one or more times (shortest possible match)
     *        Match zero or more times (longest possible match)
     *?       Match zero or more times (shortest possible match)
     ?        Match zero or once
-    \XX      Match byte with hex value 0xXX
-    \meta    Match one of the meta characters ^$()[].*+?|\ */
+    \\XX      Match byte with hex value 0xXX
+    \\meta    Match one of the meta characters ^$()[].*+?|\
+    </pre> */
 
 #include <foundation/platform.h>
 

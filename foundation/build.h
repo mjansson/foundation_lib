@@ -16,7 +16,7 @@
   Build setup. This header contains all the compile time build setup for the foundation library.
 
   This header unifies the debug/release build macros across platforms, build systems and compiler and provides the following
-  macro idenfiers, usable with <i>#if BUILD_[type]</i> conditionals
+  macro idenfiers, usable with <i>\#if BUILD_[type]</i> conditionals
 
   <ul>
   <li>BUILD_DEBUG   - Debug build
@@ -97,7 +97,8 @@
     lookup of string hashes. See hash.h documentation for more information on statically hashed strings. */
 
 /*! \def BUILD_DEFAULT_STREAM_BYTEORDER
-    The default stream byte order used if the byte order is not explicitly set on a stream */
+    The default stream byte order used if the byte order is not explicitly set on a stream. Default value is little endian, matching most supported
+    architectures. */
 
 /*! \def BUILD_SIZE_THREAD_MAP
     The maximum number of concurrently allocated thread objects */
@@ -109,9 +110,12 @@
     Default size of temporary (linear) memory allocator buffer */
 
 /*! \def BUILD_SIZE_EVENT_BLOCK_LIMIT
-    Maximum allowed size for an event block (memory used by events between process calls) */
+    Maximum allowed size for an event block (memory used by events between event processing calls) */
 
-/*! BUILD_SIZE_DEFAULT_THREAD_STACK
+/*! \def BUILD_SIZE_EVENT_BLOCK_CHUNK
+    Size with which the event block size increases each time it runs out of memory (until it reaches BUILD_SIZE_EVENT_BLOCK_LIMIT) */
+
+/*! \def BUILD_SIZE_DEFAULT_THREAD_STACK
     Default size for thread stacks */
 
 /*! \def BUILD_SIZE_ERROR_CONTEXT_DEPTH

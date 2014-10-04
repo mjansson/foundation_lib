@@ -73,7 +73,7 @@ DECLARE_TEST( crash, crash_guard )
 	
 	_crash_callback_called = false;
 	crash_result = crash_guard( instant_crash, 0, test_crash_callback, "instant_crash" );
-	EXPECT_EQ( crash_result, CRASH_DUMP_GENERATED );
+	EXPECT_EQ( crash_result, FOUNDATION_CRASH_DUMP_GENERATED );
 	EXPECT_TRUE( _crash_callback_called );
 
 	return 0;
