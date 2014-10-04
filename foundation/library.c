@@ -56,6 +56,9 @@ void _library_shutdown( void )
 
 static void _library_destroy( library_t* library )
 {
+	if( !library )
+		return;
+
 	objectmap_free( _library_map, library->id );
 
 #if FOUNDATION_PLATFORM_WINDOWS
