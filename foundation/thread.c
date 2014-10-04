@@ -135,7 +135,8 @@ void _thread_shutdown( void )
 static void _thread_destroy( void* thread_raw )
 {
 	thread_t* thread = thread_raw;
-
+	if( !thread )
+		return;
 	if( thread_is_running( thread->id ) )
 	{
 		unsigned int spin_count = 0;
