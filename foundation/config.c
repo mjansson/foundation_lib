@@ -48,8 +48,8 @@ struct config_section_t
 };
 typedef ALIGN(8) struct config_section_t config_section_t;
 
-FOUNDATION_STATIC_ASSERT( ( sizeof( config_key_t ) % 8 ) == 0, config_key_align );
-FOUNDATION_STATIC_ASSERT( ( sizeof( config_section_t ) % 8 ) == 0, config_section_align );
+FOUNDATION_STATIC_ASSERT( ALIGNOF( config_key_t ) == 8, config_key_align );
+FOUNDATION_STATIC_ASSERT( ALIGNOF( config_section_t ) == 8, config_section_align );
 
 //Global config store
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS] = {0};
