@@ -230,7 +230,7 @@ struct android_module_t
 	uintptr_t           address_end;
 	char                name[64];
 };
-typedef struct android_module_t;
+typedef struct android_module_t android_module_t;
 
 android_module_t _android_modules[FOUNDATION_MAX_MODULES];
 
