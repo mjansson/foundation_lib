@@ -17,7 +17,7 @@
 #define CONFIG_SECTION_BUCKETS    7
 #define CONFIG_KEY_BUCKETS        11
 
-typedef enum _foundation_config_value_type
+enum config_value_type_t
 {
 	CONFIGVALUE_BOOL = 0,
 	CONFIGVALUE_INT,
@@ -26,9 +26,10 @@ typedef enum _foundation_config_value_type
 	CONFIGVALUE_STRING_CONST,
 	CONFIGVALUE_STRING_VAR,
 	CONFIGVALUE_STRING_CONST_VAR
-} config_value_type_t;
+};
+typedef enum config_value_type_t config_value_type_t;
 
-typedef struct ALIGN(8) _foundation_config_key
+struct config_key_t
 {
 	hash_t                  name;
 	config_value_type_t     type;
@@ -37,13 +38,15 @@ typedef struct ALIGN(8) _foundation_config_key
 	char*                   sval;
 	char*                   expanded;
 	real                    rval;
-} config_key_t;
+};
+typedef ALIGN(8) struct config_key_t config_key_t;
 
-typedef struct ALIGN(8) _foundation_config_section
+struct config_section_t
 {
 	hash_t                  name;
 	config_key_t*           key[CONFIG_KEY_BUCKETS];
-} config_section_t;
+};
+typedef ALIGN(8) struct config_section_t config_section_t;
 
 FOUNDATION_STATIC_ASSERT( ( sizeof( config_key_t ) % 8 ) == 0, config_key_align );
 FOUNDATION_STATIC_ASSERT( ( sizeof( config_section_t ) % 8 ) == 0, config_section_align );

@@ -16,7 +16,7 @@
 
 /*lint --e{754} Lint gets confused about initialized fields, we use memory_allocate_zero_context so safe to inhibit */
 
-typedef struct ALIGN(8) _foundation_stream_buffer
+struct stream_buffer_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	uint64_t                 current;
@@ -25,7 +25,8 @@ typedef struct ALIGN(8) _foundation_stream_buffer
 	void*                    buffer;
 	bool                     own;
 	bool                     grow;
-} stream_buffer_t;
+};
+typedef ALIGN(8) struct stream_buffer_t stream_buffer_t;
 
 static stream_vtable_t _buffer_stream_vtable;
 

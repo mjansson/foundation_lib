@@ -1011,12 +1011,13 @@ void stream_flush( stream_t* stream )
 
 #include <stdio.h>
 
-typedef struct ALIGN(8) _foundation_stdstream
+struct stream_std_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	void*              std;
 	bool               eos;
-} stream_std_t;
+};
+typedef ALIGN(8) struct stream_std_t stream_std_t;
 
 
 static uint64_t  _stream_stdin_read( stream_t*, void*, uint64_t );

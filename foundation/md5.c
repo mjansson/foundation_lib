@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 
-struct _foundation_md5
+struct md5_t
 {
 	bool             init;
 	uint32_t         state[4];

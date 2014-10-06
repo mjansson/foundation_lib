@@ -31,11 +31,12 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
 
-typedef struct _foundation_thread_local_block
+struct thread_local_block_t
 {
 	uint64_t     thread;
 	atomicptr_t  block;
-} thread_local_block_t;
+};
+typedef struct thread_local_block_t thread_local_block_t;
 
 //TODO: Ugly hack, improve this shit
 static thread_local_block_t _thread_local_blocks[1024] = {{0}};
@@ -63,7 +64,7 @@ void* _allocate_thread_local_block( unsigned int size )
 #endif
 
 
-typedef struct ALIGN(16) _foundation_thread
+struct thread_t
 {
 	FOUNDATION_DECLARE_OBJECT;
 
@@ -85,7 +86,8 @@ typedef struct ALIGN(16) _foundation_thread
 #else
 #  error Not implemented
 #endif
-} thread_t;
+};
+typedef ALIGN(16) struct thread_t thread_t;
 
 static uint64_t     _thread_main_id = 0;
 static objectmap_t* _thread_map = 0;

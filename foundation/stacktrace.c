@@ -224,21 +224,22 @@ static void _load_process_modules()
 
 #define FOUNDATION_MAX_MODULES 256
 
-typedef struct _foundation_android_module
+struct android_module_t
 {
 	uintptr_t           address_start;
 	uintptr_t           address_end;
 	char                name[64];
-} foundation_android_module_t;
+};
+typedef struct android_module_t;
 
-foundation_android_module_t _android_modules[FOUNDATION_MAX_MODULES];
+android_module_t _android_modules[FOUNDATION_MAX_MODULES];
 
 static void _load_process_modules()
 {
 	int imod = 0;
 	char line_buffer[256];
 
-	memset( _android_modules, 0, sizeof( foundation_android_module_t ) * FOUNDATION_MAX_MODULES );
+	memset( _android_modules, 0, sizeof( android_module_t ) * FOUNDATION_MAX_MODULES );
 
 	stream_t* maps = fs_open_file( "/proc/self/maps", STREAM_IN );
 	if( !maps )

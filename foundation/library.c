@@ -20,7 +20,7 @@
 #  include <dlfcn.h>
 #endif
 
-typedef struct _foundation_library
+struct library_t
 {
 	FOUNDATION_DECLARE_OBJECT;
 
@@ -32,7 +32,8 @@ typedef struct _foundation_library
 #elif FOUNDATION_PLATFORM_POSIX
 	void*            lib;
 #endif
-} library_t;
+};
+typedef ALIGN(8) struct library_t library_t;
 
 
 static objectmap_t* _library_map = 0;

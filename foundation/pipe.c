@@ -20,7 +20,7 @@
 #endif
 
 
-typedef struct ALIGN(8) _foundation_stream_pipe
+struct stream_pipe_t
 {
 	FOUNDATION_DECLARE_STREAM;
 
@@ -31,7 +31,8 @@ typedef struct ALIGN(8) _foundation_stream_pipe
 	int       fd_read;
 	int       fd_write;
 #endif
-} stream_pipe_t;
+};
+typedef ALIGN(8) struct stream_pipe_t stream_pipe_t;
 
 static stream_vtable_t _pipe_stream_vtable;
 

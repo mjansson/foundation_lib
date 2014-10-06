@@ -34,18 +34,20 @@
 #include <stdio.h>
 
 
-typedef struct ALIGN(16) _foundation_fs_monitor
+struct fs_monitor_t
 {
 	atomicptr_t       path;
 	object_t          thread;
 	mutex_t*          signal;
-} fs_monitor_t;
+};
+typedef ALIGN(16) struct fs_monitor_t fs_monitor_t;
 
-typedef struct ALIGN(8) _foundation_stream_file
+struct stream_file_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	void*                  fd;
-} stream_file_t;
+};
+typedef ALIGN(8) struct stream_file_t stream_file_t;
 
 #define GET_FILE( s ) ((stream_file_t*)(s))
 #define GET_FILE_CONST( s ) ((const stream_file_t*)(s))
@@ -670,11 +672,12 @@ event_stream_t* fs_event_stream( void )
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
-typedef struct _foundation_fs_watch
+struct fs_watch_t
 {
 	int      fd;
 	char*    path;
-} fs_watch_t;
+};
+typedef struct fs_watch_t fs_watch_t;
 
 
 static void _fs_send_creations( const char* path )

@@ -53,7 +53,7 @@ typedef enum
 } regex_op_t;
 
 
-struct _foundation_regex
+struct regex_t
 {
 	unsigned int    num_captures;
 	unsigned int    code_length;
@@ -61,11 +61,12 @@ struct _foundation_regex
 	uint8_t         code[];
 };
 
-typedef struct _foundation_regex_context
+struct regex_context_t
 {
 	int             op;
 	int             inoffset;
-} regex_context_t;
+};
+typedef struct regex_context_t regex_context_t;
 
 
 static const char* REGEX_META_CHARACTERS = "^$()[].*+?|\\";

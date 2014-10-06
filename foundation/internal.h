@@ -28,7 +28,7 @@
 	char               buffer[]
 
 
-struct _foundation_ringbuffer
+struct ringbuffer_t
 {
 	FOUNDATION_DECLARE_RINGBUFFER;
 };
@@ -50,7 +50,7 @@ typedef uint64_t  (*stream_available_read_fn)( stream_t* );
 typedef void      (*stream_deallocate_fn)( stream_t* );
 typedef stream_t* (*stream_clone_fn)( stream_t* );
 
-typedef struct _foundation_stream_vtable
+struct stream_vtable_t
 {
 	stream_read_fn           read;
 	stream_write_fn          write;
@@ -66,7 +66,8 @@ typedef struct _foundation_stream_vtable
 	stream_available_read_fn available_read;
 	stream_deallocate_fn     deallocate;
 	stream_clone_fn          clone;
-} stream_vtable_t;
+};
+typedef struct stream_vtable_t stream_vtable_t;
 
 #define FOUNDATION_DECLARE_STREAM                     \
 	unsigned int             type:16;                 \
@@ -80,7 +81,7 @@ typedef struct _foundation_stream_vtable
 	char*                    path;                    \
 	stream_vtable_t*         vtable
 
-struct ALIGN(8) _foundation_stream
+struct ALIGN(8) stream_t
 {
 	FOUNDATION_DECLARE_STREAM;
 };

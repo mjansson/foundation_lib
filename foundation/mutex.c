@@ -19,7 +19,7 @@
 #endif
 
 
-struct ALIGN(16) _foundation_mutex
+struct ALIGN(16) mutex_t
 {
 	//! Mutex name
 	char                   name[32];

@@ -39,7 +39,7 @@
 
 static int _process_exit_code = 0;
 
-struct _foundation_process
+struct process_t
 {
 	//! Working directory
 	char*                                   wd;

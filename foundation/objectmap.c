@@ -14,6 +14,10 @@
 #include <foundation/internal.h>
 
 
+FOUNDATION_STATIC_ASSERT( ALIGNOF(object_base_t) == 8, failed_object_align );
+FOUNDATION_STATIC_ASSERT( ALIGNOF(objectmap_t) == 16, failed_objectmap_align );
+
+
 void _object_initialize( object_base_t* obj, object_t id )
 {
 	obj->id = id;

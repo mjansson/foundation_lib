@@ -580,6 +580,7 @@
 #  define PURECALL ATTRIBUTE(pure)
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
+#  define ALIGNOF(x) _Alignof(x)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
@@ -625,6 +626,7 @@
 #  define PURECALL ATTRIBUTE(pure)
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
+#  define ALIGNOF(x) _Alignof(x)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
@@ -673,6 +675,7 @@
 #  define PURECALL 
 #  define CONSTCALL
 #  define ALIGN(x) __declspec(align(x))
+#  define ALIGNOF(x) _Alignof(x)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -704,6 +707,7 @@
 #  define PURECALL
 #  define CONSTCALL
 #  define ALIGN(x) __declspec(align(x))
+#  define ALIGNOF(x) __alignof(x)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -723,7 +727,7 @@ typedef enum
 
 #else
 
-#  error Unknown compiler
+#  warning Unknown compiler
 
 #  define FOUNDATION_COMPILER_NAME "unknown"
 #  define FOUNDATION_COMPILER_DESCRIPTION "unknown"
@@ -736,7 +740,7 @@ typedef enum
 #  define NOINLINE
 #  define PURECALL
 #  define CONSTCALL
-#  define ALIGN(x)
+#  define ALIGN
 
 typedef enum
 {

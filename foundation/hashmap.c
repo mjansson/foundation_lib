@@ -13,17 +13,18 @@
 #include <foundation/foundation.h>
 
 
-typedef struct _foundation_hashmap_node
+struct hashmap_node_t
 {
 	hash_t                key;
 	void*                 value;
-} hashmap_node_t;
+};
+typedef struct hashmap_node_t hashmap_node_t;
 
 
 typedef hashmap_node_t*   hashmap_bucket_t;
 
 
-struct _foundation_hashmap
+struct hashmap_t
 {
 	unsigned int          num_buckets;
 	unsigned int          num_nodes;

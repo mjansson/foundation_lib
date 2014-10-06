@@ -34,12 +34,13 @@ extern int _system_show_alert( const char*, const char*, int );
 static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNOWN;
 static event_stream_t* _system_event_stream = 0;
 
-typedef struct _foundation_platform_info
+struct platform_info_t
 {
 	platform_t      platform;
 	architecture_t  architecture;
 	byteorder_t     byteorder;
-} platform_info_t;
+};
+typedef struct platform_info_t platform_info_t;
 
 static platform_info_t _platform_info = {
 

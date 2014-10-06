@@ -14,28 +14,30 @@
 #include <foundation/internal.h>
 
 
-typedef struct _foundation_hashtable32_entry
+struct hashtable32_entry_t
 {
 	atomic32_t   key;
 	uint32_t     value;
-} hashtable32_entry_t;
+};
+typedef struct hashtable32_entry_t hashtable32_entry_t;
 
 
-typedef struct _foundation_hashtable64_entry
+struct hashtable64_entry_t
 {
 	atomic64_t   key;
 	uint64_t     value;
-} hashtable64_entry_t;
+};
+typedef struct hashtable64_entry_t hashtable64_entry_t;
 
 
-struct ALIGN(8) _foundation_hashtable32
+struct ALIGN(8) hashtable32_t
 {
 	uint32_t                        capacity;
 	ALIGN(8) hashtable32_entry_t    entries[];
 };
 
 
-struct ALIGN(8) _foundation_hashtable64
+struct ALIGN(8) hashtable64_t
 {
 	uint64_t                        capacity;
 	ALIGN(8) hashtable64_entry_t    entries[];

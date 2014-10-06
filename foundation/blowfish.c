@@ -18,7 +18,7 @@
 #define SBOXENTRIES          256U
 #define MAXKEY               56U
 
-struct _foundation_blowfish
+struct blowfish_t
 {
 	uint32_t         parray[SUBKEYS];
 	uint32_t         sboxes[SBOXES][SBOXENTRIES];

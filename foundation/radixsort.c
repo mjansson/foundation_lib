@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 
-struct _foundation_radixsort
+struct radixsort_t
 {
 	radixsort_data_t     type;
 	radixsort_index_t    size;

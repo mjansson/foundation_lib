@@ -21,12 +21,13 @@
 #include <android/asset_manager.h>
 
 
-typedef struct ALIGN(8) _foundation_stream_asset
+struct stream_asset_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	AAsset*                  asset;
 	int64_t                  position;
-} stream_asset_t;
+};
+typedef ALIGN(8) struct stream_asset_t stream_asset_t;
 
 static stream_vtable_t _asset_stream_vtable;
 

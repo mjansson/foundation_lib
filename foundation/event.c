@@ -16,7 +16,7 @@
 #define EVENT_BLOCK_POSTING  -1
 #define EVENT_BLOCK_SWAPPING -2
 
-struct _foundation_event_block
+struct event_block_t
 {
 	int32_t                          used;
 	uint32_t                         capacity;
@@ -24,7 +24,7 @@ struct _foundation_event_block
 	event_t*                         events;
 };
 
-struct ALIGN(16) _foundation_event_stream
+struct ALIGN(16) event_stream_t
 {
 	atomic32_t                       write;
 	int32_t                          read;

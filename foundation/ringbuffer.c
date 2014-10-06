@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 
-typedef struct ALIGN(8) _foundation_ringbuffer_stream
+struct ringbuffer_stream_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	semaphore_t              signal_read;
@@ -24,7 +24,8 @@ typedef struct ALIGN(8) _foundation_ringbuffer_stream
 	uint64_t                 total_size;
 
 	FOUNDATION_DECLARE_RINGBUFFER;
-} ringbuffer_stream_t;
+};
+typedef ALIGN(8) struct ringbuffer_stream_t ringbuffer_stream_t;
 
 #define RINGBUFFER_FROM_STREAM( stream ) ((ringbuffer_t*)&stream->total_read)
 

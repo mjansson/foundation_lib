@@ -734,12 +734,13 @@ static void _memory_report( void )
 }
 
 
-typedef struct ALIGN(8) _foundation_memory_tag
+struct memory_tag_t
 {
 	atomicptr_t   address;
 	uintptr_t     size;
 	void*         trace[14];
-} memory_tag_t;
+};
+typedef ALIGN(8) struct memory_tag_t memory_tag_t;
 
 
 hashtable_t*       _memory_table = 0;
