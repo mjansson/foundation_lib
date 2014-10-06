@@ -190,3 +190,48 @@ void objectmap_set( objectmap_t* map, object_t id, void* object )
 	/*lint +esym(613,pool) */
 }
 
+
+void* objectmap_lookup_ref( const objectmap_t* map, object_t id )
+{
+	void* object;
+	do
+	{
+		object = map->map[ id & map->mask_index ];
+		if( object && !( (uintptr_t)object & 1 ) &&
+		   ( ( *( (uint64_t*)object + 1 ) & map->mask_id ) == ( id & map->mask_id ) ) ) //ID in object is offset by 8 bytes
+		{
+			object_base_t* base_obj = object;
+			int32_t ref = atomic_load32( &base_obj->ref );
+			if( ref && atomic_cas32( &base_obj->ref, ref + 1, ref ) )
+				return object;
+		}
+	} while( object );
+	return 0;
+}
+
+
+bool objectmap_lookup_unref( const objectmap_t* map, object_t id, object_deallocate_fn deallocate )
+{
+	void* object;
+	do
+	{
+		object = map->map[ id & map->mask_index ];
+		if( object && !( (uintptr_t)object & 1 ) &&
+		   ( ( *( (uint64_t*)object + 1 ) & map->mask_id ) == ( id & map->mask_id ) ) ) //ID in object is offset by 8 bytes
+		{
+			object_base_t* base_obj = object;
+			int32_t ref = atomic_load32( &base_obj->ref );
+			if( ref && atomic_cas32( &base_obj->ref, ref - 1, ref ) )
+			{
+				if( ref == 1 )
+				{
+					deallocate( id, object );
+					return false;
+				}
+				return true;
+			}
+		}
+	} while( object );
+	return false;
+}
+

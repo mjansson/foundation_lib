@@ -132,7 +132,7 @@ void _thread_shutdown( void )
 }
 
 
-static void _thread_destroy( void* thread_raw )
+static void _thread_destroy( object_t id, void* thread_raw )
 {
 	thread_t* thread = thread_raw;
 	if( !thread )
@@ -152,8 +152,8 @@ static void _thread_destroy( void* thread_raw )
 
 static FORCEINLINE void _thread_unref( thread_t* thread )
 {
-	if( !_object_unref( (object_base_t*)thread ) )
-		_thread_destroy( thread );
+	if( thread )
+		objectmap_lookup_unref( _thread_map, thread->id, _thread_destroy );
 }
 
 

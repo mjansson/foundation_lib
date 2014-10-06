@@ -234,6 +234,7 @@ typedef void          (* profile_read_fn )( void* data, uint64_t size );
 typedef void*         (* thread_fn )( object_t thread, void* arg );
 typedef int           (* crash_guard_fn )( void* arg );
 typedef void          (* crash_dump_callback_fn )( const char* file );
+typedef void          (* object_deallocate_fn )( object_t id, void* object );
 
 
 //! Identifier returned from threads and crash guards after a fatal exception (crash) has been caught
