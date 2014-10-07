@@ -73,7 +73,9 @@ FOUNDATION_API void            thread_terminate( object_t thread );
     \return                    true if thread should terminate, false if not (keep running) */
 FOUNDATION_API bool            thread_should_terminate( object_t thread );
 
-/*! Get thread exit value */
+/*! Get thread exit value
+\param thread Thread handle
+\return Thread exit value */
 FOUNDATION_API void*           thread_result( object_t thread );
 
 /*! Get object handle for calling thread

@@ -21,7 +21,8 @@
 
 /*! Open stream
     \param path                  Path
-    \param mode                  Open mode (read, write, ...) */
+    \param mode                  Open mode (read, write, ...)
+    \return                      New stream, null if error or invalid path/mode */
 FOUNDATION_API stream_t*         stream_open( const char* path, unsigned int mode );
 
 /*! Clone a stream (if supported by stream type)

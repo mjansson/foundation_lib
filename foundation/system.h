@@ -85,7 +85,8 @@ FOUNDATION_API void               system_process_events( void );
 /*! Popup a system message box to the user
     \param title                  Title of the message box
     \param message                Message displayed in the box
-    \param cancel_button          Flag to trigger a cancel button as well as the default ok button */
+    \param cancel_button          Flag to trigger a cancel button as well as the default ok button
+    \return                       true if ok button pressed, false if cancel button pressed */
 FOUNDATION_API bool               system_message_box( const char* title, const char* message, bool cancel_button );
 
 /*! Get system event stream

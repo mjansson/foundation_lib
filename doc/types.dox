@@ -1,11 +1,14 @@
 /*!
 
 \file types.h
-Foundation data types
+\brief Foundation data types
+\details Foundation data types, enumerations and typedefs. Provides platform abstractions of system
+specific data types and provides the base language used in all libraries built on this foundation library.
 
 
 \enum error_level_t
-Error severity level. The higher the value, the more severe the error. Error level 0
+\brief Error severity level
+\details Error severity level. The higher the value, the more severe the error. Error level 0
 (ERRORLEVEL_NONE) is used to indicate no error
 \internal Do not change order! \endinternal
 
@@ -29,7 +32,8 @@ Panic level, contains vital information. Operation failed and execution cannot c
 
 
 \enum error_t
-Error identifiers. Error 0 (ERROR_NONE) is used to indicate no error.
+\brief Error identifiers
+\details Error identifiers. Error 0 (ERROR_NONE) is used to indicate no error.
 \internal Do not change order, only append! \endinternal
 
 \var error_t ERROR_NONE
@@ -85,7 +89,8 @@ Marker, last reserved internal error identifier
 
 
 \enum warning_t
-Warning classes
+\brief Warning classes
+\details Warning classes. Indicate which type/group of warning message that was generated
 \internal Do not change order, only append! \endinternal
 
 \var warning_t WARNING_PERFORMANCE
@@ -120,7 +125,9 @@ Marker, last reserved inernal warning identifier
 
 
 \enum memory_hint_t
-Memory hints
+\brief Memory hints
+\details Memory hints. Enables the memory allocator to do better implementations of allocations
+based on usage patterns for the requested memory.
 
 \var memory_hint_t MEMORY_PERSISTENT
 Memory is persistent (retained when function returns)
@@ -136,7 +143,8 @@ Memory should be allocated in low 32-bit address space
 
 
 \enum platform_t
-Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
+\brief Platform identifiers
+\details Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
 
 \var platform_t PLATFORM_WINDOWS
 Windows
@@ -158,7 +166,8 @@ Raspberry Pi (linux flavour)
 
 
 \enum architecture_t
-Architecture identifiers for all architectures the engine supports. For compile-time selection of
+\brief Architecture identifiers
+\details Architecture identifiers for all architectures the engine supports. For compile-time selection of
 architecture, use the <code>FOUNDATION_ARCH_[...]</code> preprocessor macros.
 
 \var architecture_t ARCHITECTURE_X86
@@ -190,7 +199,8 @@ MIPS
 
 
 \enum byteorder_t
-Machine byte order identifiers
+\brief Machine byte order identifiers
+\details Machine byte order identifiers
 
 \var byteorder_t BYTEORDER_LITTLEENDIAN
 Little endian
@@ -200,7 +210,8 @@ Big endian
 
 
 \enum application_flag_t
-Application flags
+\brief Application flags
+\details Application flags
 
 \var application_flag_t APPLICATION_UTILITY
 Application is a command line utility and should not have a normal windowing system interaction loop)
@@ -210,7 +221,8 @@ Application is a daemon/service
 
 
 \enum stream_mode_t
-Open modes for streams
+\brief Stream open modes
+\details Open modes for streams. Not all streams can be opened with all modes.
 
 \var stream_mode_t STREAM_IN
 Readable
@@ -232,7 +244,9 @@ Force sync on each write
 
 
 \enum stream_type_t
-Built-in stream type identifiers
+\brief Stream type identifiers
+\details Stream type identifiers. Only lists built-in types, application specific types
+can be added above the STREAMTYPE_LAST_RESERVED value.
 
 \var stream_type_t STREAMTYPE_INVALID
 Invalid identifier
@@ -258,9 +272,13 @@ Pipe stream
 \var stream_type_t STREAMTYPE_STDSTREAM
 Standard stream (stdin, stderr, stdout)
 
+\var stream_type_t STREAMTYPE_LAST_RESERVED
+Last reserved built-in stream type, not a real type.
+
 
 \enum stream_seek_mode_t
-Stream seek directions
+\brief Stream seek directions
+\details Stream seek directions
 
 \var stream_seek_mode_t STREAM_SEEK_BEGIN
 Seek from start of stream
@@ -273,7 +291,8 @@ Seek from end of stream
 
 
 \enum thread_priority_t
-Thread priority
+\brief Thread priority
+\details Thread priority
 
 \var thread_priority_t THREAD_PRIORITY_LOW
 Lowest possible priority
@@ -295,7 +314,8 @@ Absolutely critical
 
 
 \enum process_flag_t
-Process flags
+\brief Process flags
+\details Process flags
 
 \var process_flag_t PROCESS_ATTACHED
 Attached, spawn method will block until process ends and then return process exit code
@@ -317,7 +337,8 @@ MacOSX platform only, use LSOpenApplication instead of fork/execve
 
 
 \enum process_status_t
-Process status
+\brief Process status
+\details Process status
 
 \var process_status_t PROCESS_INVALID_ARGS
 Returned when given invalid arguments
@@ -336,7 +357,11 @@ Returned when detached process is still running
 
 
 \enum foundation_event_id
-Foundadtion library level event identifiers
+\brief Event identifiers
+\details Foundation library level event identifiers. These event identifiers are only
+valid in conjunction with foundation event streams. Other event streams will use
+their own event identifiers with the same value, and event streams should be treated
+as separate "namespaces" for event identifiers.
 
 \var foundation_event_id FOUNDATIONEVENT_START
 Application has been asked to start
@@ -367,14 +392,16 @@ Device orientation changed
 
 
 \enum event_flag_t
-Event flags
+\brief Event flags
+\details Event flags
 
 \var event_flag_t EVENTFLAG_DELAY
 Event is delayed and will be delivered at a later timestamp
 
 
 \enum blowfish_mode_t
-Blowfish block cipher mode of operation (http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
+\brief Cipher mode
+\details Blowfish block cipher mode of operation (http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
 
 \var blowfish_mode_t BLOWFISH_ECB 
 Electronic codebook
@@ -390,7 +417,8 @@ Output feedback
 
 
 \enum radixsort_data_t
-Radix sort data types
+\brief Radix sort data types
+\details Radix sort data types
 
 \var radixsort_data_t RADIXSORT_INT32
 32-bit signed integer
@@ -412,7 +440,8 @@ Radix sort data types
 
 
 \enum device_orientation_t
-Device orientation
+\brief Device orientation
+\details Device orientation
 
 \var device_orientation_t DEVICEORIENTATION_UNKNOWN
 Orientation not known
@@ -437,23 +466,28 @@ Device oriented flat, face down
 
 
 \typedef hash_t
-Hash value
+\brief Hash value
+\details Hash value
 
 \typedef tick_t
-Tick type used for absolute time measurements or timestamps
+\brief Tick
+\details Tick type used for absolute time measurements or timestamps
 
 \typedef deltatime_t
-Deltatime type used for floating point time differences
+\brief Deltatime
+\details Deltatime type used for floating point time differences
 
 \typedef object_t
-Object handle used for identifying reference counted objects
+\brief Object handle
+\details Object handle used for identifying reference counted objects
 
 \typedef radixsort_index_t
 \brief Index for radix sorter
 \details Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array
 
 \typedef uuid_t
-UUID
+\brief UUID
+\details UUID
 
 
 \typedef typedef int (*error_callback_fn)( error_level_t level, error_t error )
@@ -817,7 +851,7 @@ Slot array
 
 \def FOUNDATION_DECLARE_EVENT
 \brief Event base structure declaration
-\details Declares the base event data lyaout. Event structures should use the macro as first
+\details Declares the base event data layout. Event structures should use the macro as first
 declaration in an event struct:
 <pre>typedef struct
 {

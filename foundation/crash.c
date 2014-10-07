@@ -99,11 +99,12 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
-typedef struct
+struct crash_exception_closure_t
 {
 	crash_dump_callback_fn      callback;
 	const char*                 name;
-} crash_exception_closure_t;
+};
+typedef struct crash_exception_closure_t crash_exception_closure_t;
 
 //TODO: Set per-thread
 crash_exception_closure_t _crash_exception_closure;

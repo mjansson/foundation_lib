@@ -38,9 +38,9 @@ static void _fs_node_make_path( char* target, const char* first, unsigned int fi
 }
 
 
-typedef struct _file_node file_node_t;
+typedef struct file_node_t file_node_t;
 
-struct _file_node
+struct file_node_t
 {
 	char*          name;
 	file_node_t**  subdirs;

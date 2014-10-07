@@ -1,7 +1,8 @@
-/*
+/*!
 
 \file build.h
-Build setup. This header contains all the compile time build setup for the foundation library.
+\brief Build setup
+\details Build setup. This header contains all the compile time build setup for the foundation library.
 
 This header unifies the debug/release build macros across platforms, build systems and compiler and provides the following
 macro idenfiers, usable with <i>\#if BUILD_[type]</i> conditionals

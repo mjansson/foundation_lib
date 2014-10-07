@@ -38,94 +38,49 @@
 #endif
 
 //Platforms
-#ifndef FOUNDATION_PLATFORM_ANDROID
-#  define FOUNDATION_PLATFORM_ANDROID 0
-#endif
-#ifndef FOUNDATION_PLATFORM_IOS
-#  define FOUNDATION_PLATFORM_IOS 0
-#endif
-#ifndef FOUNDATION_PLATFORM_IOS_SIMULATOR
-#  define FOUNDATION_PLATFORM_IOS_SIMULATOR 0
-#endif
-#ifndef FOUNDATION_PLATFORM_MACOSX
-#  define FOUNDATION_PLATFORM_MACOSX 0
-#endif
-#ifndef FOUNDATION_PLATFORM_LINUX
-# define FOUNDATION_PLATFORM_LINUX 0
-#endif
-#ifndef FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-# define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
-#endif
-#ifndef FOUNDATION_PLATFORM_BSD
-#  define FOUNDATION_PLATFORM_BSD 0
-#endif
-#ifndef FOUNDATION_PLATFORM_WINDOWS
-#  define FOUNDATION_PLATFORM_WINDOWS 0
-#endif
+#define FOUNDATION_PLATFORM_ANDROID 0
+#define FOUNDATION_PLATFORM_BSD 0
+#define FOUNDATION_PLATFORM_IOS 0
+#define FOUNDATION_PLATFORM_IOS_SIMULATOR 0
+#define FOUNDATION_PLATFORM_LINUX 0
+#define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
+#define FOUNDATION_PLATFORM_MACOSX 0
+#define FOUNDATION_PLATFORM_WINDOWS 0
 
-//Architectures
-#ifndef  FOUNDATION_ARCH_ARM
-#  define FOUNDATION_ARCH_ARM 0
-#  define FOUNDATION_ARCH_ARM5 0
-#  define FOUNDATION_ARCH_ARM6 0
-#  define FOUNDATION_ARCH_ARM7 0
-#  define FOUNDATION_ARCH_ARM8 0
-#endif
-#ifndef  FOUNDATION_ARCH_ARM_64
-#  define FOUNDATION_ARCH_ARM_64 0
-#  define FOUNDATION_ARCH_ARM8_64 0
-#endif
-#ifndef  FOUNDATION_ARCH_X86
-#  define FOUNDATION_ARCH_X86 0
-#endif
-#ifndef  FOUNDATION_ARCH_X86_64
-#  define FOUNDATION_ARCH_X86_64 0
-#endif
-#ifndef  FOUNDATION_ARCH_PPC
-#  define FOUNDATION_ARCH_PPC 0
-#endif
-#ifndef  FOUNDATION_ARCH_PPC_64
-#  define FOUNDATION_ARCH_PPC_64 0
-#endif
-#ifndef FOUNDATION_ARCH_IA64
-#  define FOUNDATION_ARCH_IA64 0
-#endif
-#ifndef FOUNDATION_ARCH_MIPS
-#  define FOUNDATION_ARCH_MIPS 0
-#endif
-#ifndef FOUNDATION_ARCH_MIPS_64
-#  define FOUNDATION_ARCH_MIPS_64 0
-#endif
-
-//Architecture details
-#ifndef FOUNDATION_ARCH_SSE2
-#  define FOUNDATION_ARCH_SSE2 0
-#endif
-#ifndef FOUNDATION_ARCH_SSE3
-#  define FOUNDATION_ARCH_SSE3 0
-#endif
-#ifndef FOUNDATION_ARCH_SSE4
-#  define FOUNDATION_ARCH_SSE4 0
-#endif
-#ifndef FOUNDATION_ARCH_SSE4_FMA3
-#  define FOUNDATION_ARCH_SSE4_FMA3 0
-#endif
-#ifndef FOUNDATION_ARCH_NEON
-#  define FOUNDATION_ARCH_NEON 0
-#endif
-#ifndef FOUNDATION_ARCH_THUMB
-#  define FOUNDATION_ARCH_THUMB 0
-#endif
-#define FOUNDATION_ARCH_ENDIAN_LITTLE 0
-#define FOUNDATION_ARCH_ENDIAN_BIG 0
-	
-//Platform traits
+//Platform traits and groups
 #define FOUNDATION_PLATFORM_APPLE 0
 #define FOUNDATION_PLATFORM_POSIX 0
 
 #define FOUNDATION_PLATFORM_FAMILY_MOBILE 0
 #define FOUNDATION_PLATFORM_FAMILY_DESKTOP 0
 #define FOUNDATION_PLATFORM_FAMILY_CONSOLE 0
+
+//Architectures
+#define FOUNDATION_ARCH_ARM 0
+#define FOUNDATION_ARCH_ARM5 0
+#define FOUNDATION_ARCH_ARM6 0
+#define FOUNDATION_ARCH_ARM7 0
+#define FOUNDATION_ARCH_ARM8 0
+#define FOUNDATION_ARCH_ARM_64 0
+#define FOUNDATION_ARCH_ARM8_64 0
+#define FOUNDATION_ARCH_X86 0
+#define FOUNDATION_ARCH_X86_64 0
+#define FOUNDATION_ARCH_PPC 0
+#define FOUNDATION_ARCH_PPC_64 0
+#define FOUNDATION_ARCH_IA64 0
+#define FOUNDATION_ARCH_MIPS 0
+#define FOUNDATION_ARCH_MIPS_64 0
+
+//Architecture details
+#define FOUNDATION_ARCH_SSE2 0
+#define FOUNDATION_ARCH_SSE3 0
+#define FOUNDATION_ARCH_SSE4 0
+#define FOUNDATION_ARCH_SSE4_FMA3 0
+#define FOUNDATION_ARCH_NEON 0
+#define FOUNDATION_ARCH_THUMB 0
+
+#define FOUNDATION_ARCH_ENDIAN_LITTLE 0
+#define FOUNDATION_ARCH_ENDIAN_BIG 0
 
 //Compilers
 #define FOUNDATION_COMPILER_CLANG 0
@@ -137,7 +92,7 @@
 //First, platforms and architectures
 
 // Android
-#if defined( __ANDROID__ ) || FOUNDATION_PLATFORM_ANDROID
+#if defined( __ANDROID__ )
 
 #  undef  FOUNDATION_PLATFORM_ANDROID
 #  define FOUNDATION_PLATFORM_ANDROID 1
@@ -149,7 +104,7 @@
 #  define FOUNDATION_PLATFORM_NAME "Android"
 
 // Architecture and detailed description
-#  if defined( __arm__ ) || FOUNDATION_ARCH_ARM
+#  if defined( __arm__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    ifdef __ARM_ARCH_7A__
@@ -163,7 +118,7 @@
 #    else
 #      error Unsupported ARM architecture
 #    endif
-#  elif defined( __aarch64__ ) || FOUNDATION_ARCH_ARM_64
+#  elif defined( __aarch64__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    undef  FOUNDATION_ARCH_ARM_64
@@ -176,15 +131,15 @@
 //#    else
 //#      error Unrecognized AArch64 architecture
 //#    endif
-#  elif defined( __i386__ ) || FOUNDATION_ARCH_X86
+#  elif defined( __i386__ )
 #    undef  FOUNDATION_ARCH_X86
 #    define FOUNDATION_ARCH_X86 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android x86"
-#  elif defined( __x86_64__ ) || FOUNDATION_ARCH_X86_64
+#  elif defined( __x86_64__ )
 #    undef  FOUNDATION_ARCH_X86_64
 #    define FOUNDATION_ARCH_X86_64 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android x86-64"
-#  elif ( defined( __mips__ ) && defined( __mips64 ) ) || FOUNDATION_ARCH_MIPS_64
+#  elif ( defined( __mips__ ) && defined( __mips64 ) )
 #    undef  FOUNDATION_ARCH_MIPS
 #    define FOUNDATION_ARCH_MIPS 1
 #    undef  FOUNDATION_ARCH_MIPS_64
@@ -193,7 +148,7 @@
 #    ifndef _MIPS_ISA
 #      define _MIPS_ISA 7 /*_MIPS_ISA_MIPS64*/
 #    endif
-#  elif defined( __mips__ ) || FOUNDATION_ARCH_MIPS
+#  elif defined( __mips__ )
 #    undef  FOUNDATION_ARCH_MIPS
 #    define FOUNDATION_ARCH_MIPS 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android MIPS"
@@ -227,7 +182,7 @@
 #  endif
 
 // MacOS X and iOS
-#elif ( defined( __APPLE__ ) && __APPLE__ ) || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
+#elif ( defined( __APPLE__ ) && __APPLE__ )
 
 #  undef  FOUNDATION_PLATFORM_APPLE
 #  define FOUNDATION_PLATFORM_APPLE 1
@@ -237,14 +192,14 @@
 
 #  include <TargetConditionals.h>
 
-#  if defined( __IPHONE__ ) || ( defined( TARGET_OS_IPHONE ) && TARGET_OS_IPHONE ) || ( defined( TARGET_IPHONE_SIMULATOR ) && TARGET_IPHONE_SIMULATOR ) || FOUNDATION_PLATFORM_IOS
+#  if defined( __IPHONE__ ) || ( defined( TARGET_OS_IPHONE ) && TARGET_OS_IPHONE ) || ( defined( TARGET_IPHONE_SIMULATOR ) && TARGET_IPHONE_SIMULATOR )
 
 #    undef  FOUNDATION_PLATFORM_IOS
 #    define FOUNDATION_PLATFORM_IOS 1
 
 #    define FOUNDATION_PLATFORM_NAME "iOS"
 
-#    if defined( __arm__ ) || FOUNDATION_ARCH_ARM
+#    if defined( __arm__ )
 #      undef  FOUNDATION_ARCH_ARM
 #      define FOUNDATION_ARCH_ARM 1
 #      if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
@@ -261,7 +216,7 @@
 #      else
 #        error Unrecognized ARM architecture
 #      endif
-#    elif defined( __arm64__ ) || FOUNDATION_ARCH_ARM_64
+#    elif defined( __arm64__ )
 #      undef  FOUNDATION_ARCH_ARM
 #      define FOUNDATION_ARCH_ARM 1
 #      undef  FOUNDATION_ARCH_ARM_64
@@ -273,13 +228,13 @@
 #      else
 #        error Unrecognized ARM architecture
 #      endif
-#    elif defined( __i386__ ) || FOUNDATION_ARCH_X86
+#    elif defined( __i386__ )
 #      undef  FOUNDATION_PLATFORM_IOS_SIMULATOR
 #      define FOUNDATION_PLATFORM_IOS_SIMULATOR 1
 #      undef  FOUNDATION_ARCH_X86
 #      define FOUNDATION_ARCH_X86 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "iOS x86 (simulator)"
-#    elif defined( __x86_64__ ) || FOUNDATION_ARCH_X86_64
+#    elif defined( __x86_64__ )
 #      undef  FOUNDATION_PLATFORM_IOS_SIMULATOR
 #      define FOUNDATION_PLATFORM_IOS_SIMULATOR 1
 #      undef  FOUNDATION_ARCH_X86_64
@@ -298,33 +253,33 @@
 #    undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
 #    define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
 
-#  elif defined( __MACH__ ) || FOUNDATION_PLATFORM_MACOSX
+#  elif defined( __MACH__ )
 
 #    undef  FOUNDATION_PLATFORM_MACOSX
 #    define FOUNDATION_PLATFORM_MACOSX 1
 
 #    define FOUNDATION_PLATFORM_NAME "MacOSX"
 
-#    if defined( __x86_64__ ) ||  defined( __x86_64 ) || defined( __amd64 ) || FOUNDATION_ARCH_X86_64
+#    if defined( __x86_64__ ) ||  defined( __x86_64 ) || defined( __amd64 )
 #      undef  FOUNDATION_ARCH_X86_64
 #      define FOUNDATION_ARCH_X86_64 1
 #      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX x86-64"
-#    elif defined( __i386__ ) || defined( __intel__ ) || FOUNDATION_ARCH_X86
+#    elif defined( __i386__ ) || defined( __intel__ )
 #      undef  FOUNDATION_ARCH_X86
 #      define FOUNDATION_ARCH_X86 1
 #      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX x86"
 
-#    elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || FOUNDATION_ARCH_PPC_64
+#    elif defined( __powerpc64__ ) || defined( __POWERPC64__ )
 #      undef  FOUNDATION_ARCH_PPC_64
 #      define FOUNDATION_ARCH_PPC_64 1
 #      undef  FOUNDATION_ARCH_ENDIAN_BIG
 #      define FOUNDATION_ARCH_ENDIAN_BIG 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX PPC64"
-#    elif defined( __powerpc__ ) || defined( __POWERPC__ ) || FOUNDATION_ARCH_PPC
+#    elif defined( __powerpc__ ) || defined( __POWERPC__ )
 #      undef  FOUNDATION_ARCH_PPC
 #      define FOUNDATION_ARCH_PPC 1
 #      undef  FOUNDATION_ARCH_ENDIAN_BIG
@@ -343,7 +298,7 @@
 #  endif
 
 // Linux
-#elif ( defined( __linux__ ) || defined( __linux ) ) || FOUNDATION_PLATFORM_LINUX
+#elif ( defined( __linux__ ) || defined( __linux ) )
 
 #  undef  FOUNDATION_PLATFORM_LINUX
 #  define FOUNDATION_PLATFORM_LINUX 1
@@ -353,26 +308,26 @@
 
 #  define FOUNDATION_PLATFORM_NAME "Linux"
 
-#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 ) || FOUNDATION_ARCH_X86_64
+#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 )
 #    undef  FOUNDATION_ARCH_X86_64
 #    define FOUNDATION_ARCH_X86_64 1
 #    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Linux x86-64"
-#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 ) || FOUNDATION_ARCH_X86
+#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 )
 #    undef  FOUNDATION_ARCH_X86
 #    define FOUNDATION_ARCH_X86 1
 #    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Linux x86"
 
-#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || FOUNDATION_ARCH_PPC_64
+#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ )
 #    undef  FOUNDATION_ARCH_PPC_64
 #    define FOUNDATION_ARCH_PPC_64 1
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Linux PPC64"
-#  elif defined( __powerpc__ ) || defined( __POWERPC__ ) || FOUNDATION_ARCH_PPC
+#  elif defined( __powerpc__ ) || defined( __POWERPC__ )
 #    undef  FOUNDATION_ARCH_PPC
 #    define FOUNDATION_ARCH_PPC 1
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
@@ -390,14 +345,14 @@
 #      ifndef __ARM_NEON__
 #        error Missing ARM NEON support
 #      endif
-#    elif defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6__)
+#    elif defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6J__)
 #      undef  FOUNDATION_ARCH_ARM6
 #      define FOUNDATION_ARCH_ARM6 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "Linux ARMv6"
 #    else
 #      error Unrecognized ARM architecture
 #    endif
-#  elif defined( __arm64__ ) || FOUNDATION_ARCH_ARM_64
+#  elif defined( __arm64__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    undef  FOUNDATION_ARCH_ARM_64
@@ -428,7 +383,7 @@
 #  endif
 
 //BSD family
-#elif ( defined( __BSD__ ) || defined( __FreeBSD__ ) ) || FOUNDATION_PLATFORM_BSD
+#elif ( defined( __BSD__ ) || defined( __FreeBSD__ ) )
 
 #  undef  FOUNDATION_PLATFORM_BSD
 #  define FOUNDATION_PLATFORM_BSD 1
@@ -438,26 +393,26 @@
 
 #  define FOUNDATION_PLATFORM_NAME "BSD"
 
-#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 ) || FOUNDATION_ARCH_X86_64
+#  if defined( __x86_64__ ) || defined( __x86_64 ) || defined( __amd64 )
 #    undef  FOUNDATION_ARCH_X86_64
 #    define FOUNDATION_ARCH_X86_64 1
 #    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "BSD x86-64"
-#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 ) || FOUNDATION_ARCH_X86
+#  elif defined( __i386__ ) || defined( __intel__ ) || defined( _M_IX86 )
 #    undef  FOUNDATION_ARCH_X86
 #    define FOUNDATION_ARCH_X86 1
 #    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "BSD x86"
 
-#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ ) || FOUNDATION_ARCH_PPC_64
+#  elif defined( __powerpc64__ ) || defined( __POWERPC64__ )
 #    undef  FOUNDATION_ARCH_PPC_64
 #    define FOUNDATION_ARCH_PPC_64 1
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "BSD PPC64"
-#  elif defined( __powerpc__ ) || defined( __POWERPC__ ) || FOUNDATION_ARCH_PPC
+#  elif defined( __powerpc__ ) || defined( __POWERPC__ )
 #    undef  FOUNDATION_ARCH_PPC
 #    define FOUNDATION_ARCH_PPC 1
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
@@ -472,22 +427,22 @@
 #  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
 // Windows
-#elif defined( _WIN32 ) || defined( __WIN32__ ) || defined( _WIN64 ) || FOUNDATION_PLATFORM_WINDOWS
+#elif defined( _WIN32 ) || defined( __WIN32__ ) || defined( _WIN64 )
 
 #  undef  FOUNDATION_PLATFORM_WINDOWS
 #  define FOUNDATION_PLATFORM_WINDOWS 1
 
 #  define FOUNDATION_PLATFORM_NAME "Windows"
 
-#  if defined( __x86_64__ ) || defined( _M_AMD64 ) || defined( _AMD64_ ) || FOUNDATION_ARCH_X86_64
+#  if defined( __x86_64__ ) || defined( _M_AMD64 ) || defined( _AMD64_ )
 #    undef  FOUNDATION_ARCH_X86_64
 #    define FOUNDATION_ARCH_X86_64 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Windows x86-64"
-#  elif defined( __x86__ ) || defined( _M_IX86 ) || defined( _X86_ ) || FOUNDATION_ARCH_X86
+#  elif defined( __x86__ ) || defined( _M_IX86 ) || defined( _X86_ )
 #    undef  FOUNDATION_ARCH_X86
 #    define FOUNDATION_ARCH_X86 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Windows x86"
-#  elif defined( __ia64__ ) || defined( _M_IA64 ) || defined( _IA64_ ) || FOUNDATION_ARCH_IA64
+#  elif defined( __ia64__ ) || defined( _M_IA64 ) || defined( _IA64_ )
 #    undef  FOUNDATION_ARCH_IA64
 #    define FOUNDATION_ARCH_IA64 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Windows IA-64"
@@ -727,7 +682,7 @@ typedef enum
 
 #else
 
-#  warning Unknown compiler
+#  error Unknown compiler
 
 #  define FOUNDATION_COMPILER_NAME "unknown"
 #  define FOUNDATION_COMPILER_DESCRIPTION "unknown"
@@ -741,6 +696,7 @@ typedef enum
 #  define PURECALL
 #  define CONSTCALL
 #  define ALIGN
+#  define ALIGNOF
 
 typedef enum
 {
@@ -760,31 +716,29 @@ typedef enum
 typedef float          float32_t;
 typedef double         float64_t;
 
-typedef struct {
+struct uint128_t
+{
 	uint64_t word[2];
-} uint128_t;
+};
+typedef struct uint128_t uint128_t;
 
-typedef struct {
+struct uint256_t
+{
 	uint64_t word[4];
-} uint256_t;
+};
+typedef struct uint256_t uint256_t;
 
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
 
-#if !defined( FOUNDATION_SIZE_REAL )
-#  define FOUNDATION_SIZE_REAL 32
-#endif
+#define FOUNDATION_SIZE_REAL 32
 
-#if defined( FOUNDATION_SIZE_REAL ) && ( FOUNDATION_SIZE_REAL > 32 )
+#if FOUNDATION_SIZE_REAL == 64
 typedef   float64_t         real;
 #  define REAL_C(x)         FLOAT64_C(x)
-#  undef  FOUNDATION_SIZE_REAL
-#  define FOUNDATION_SIZE_REAL 64
 #else
 typedef   float32_t         real;
 #  define REAL_C(x)         FLOAT32_C(x)
-#  undef  FOUNDATION_SIZE_REAL
-#  define FOUNDATION_SIZE_REAL 32
 #endif
 
 //Pointer size
@@ -806,17 +760,24 @@ typedef   float32_t         real;
 #endif
 
 //Atomic types
-typedef ALIGN(4) struct {
+struct atomic32_t
+{
 	uint32_t nonatomic;
-} atomic32_t;
+};
+typedef ALIGN(4) struct atomic32_t atomic32_t;
 
-typedef ALIGN(8) struct {
+struct atomic64_t
+{
 	uint64_t nonatomic;
-} atomic64_t;
+};
+typedef ALIGN(8) struct atomic64_t atomic64_t;
 
-typedef ALIGN(FOUNDATION_SIZE_POINTER) struct {
+struct atomicptr_t
+{
 	void* nonatomic;
-} atomicptr_t;
+};
+typedef ALIGN(FOUNDATION_SIZE_POINTER) struct atomicptr_t atomicptr_t;
+
 
 //Pointer arithmetic
 #define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
@@ -943,6 +904,7 @@ static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { r
 #  endif
 #endif
 
+#include <foundation/build.h>
 
 #if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
 #  undef __LP64__

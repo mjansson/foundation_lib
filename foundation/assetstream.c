@@ -173,5 +173,4 @@ void _asset_stream_initialize( void )
 	_asset_stream_vtable.clone = asset_stream_clone;
 }
 
-
 #endif

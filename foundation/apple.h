@@ -12,11 +12,6 @@
 
 #pragma once
 
-/*! \file apple.h
-    Safe inclusion of mach and Apple headers for both OSX and iOS targets. Use this header
-    instead of direct inclusion of mach/Apple headers to avoid compilation problems with
-    multiple or missing definitions. */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 

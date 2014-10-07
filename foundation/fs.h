@@ -85,11 +85,13 @@ FOUNDATION_API char**           fs_matching_files( const char* path, const char*
 
 /*! Get files in the given directory path. Free the returned
     array with string_array_deallocate()
+    \param path                 Path of directory
     \return                     Array of file names */
 FOUNDATION_API char**           fs_files( const char* path );
 
 /*! Get subdirectories in the given directory path. Free the returned
     array with string_array_deallocate()
+    \param path                 Path of directory
     \return                     Array of subdirectory names */
 FOUNDATION_API char**           fs_subdirs( const char* path );
 

@@ -27,5 +27,6 @@
 	\param size                      Current size of data
 	\param capacity                  Buffer capacity
 	\param adopt                     Take ownership of buffer
-	\param grow                      Allow growing buffer by reallocating memory (requires buffer to be adopted) */
+	\param grow                      Allow growing buffer by reallocating memory (requires buffer to be adopted)
+  \return                          New stream */
 FOUNDATION_API stream_t*             buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow );
