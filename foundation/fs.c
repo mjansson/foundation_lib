@@ -578,42 +578,51 @@ stream_t* fs_temporary_file( void )
 }
 
 
-char** fs_matching_files( const char* path, const char* pattern, bool recurse )
+static char** _fs_matching_files( const char* path, regex_t* pattern, bool recurse )
 {
 	char** names = 0;
 	char** subdirs = 0;
 	unsigned int id, dsize, in, nsize;
-
+	
 #if FOUNDATION_PLATFORM_WINDOWS
-
+	
 	//Windows specific implementation of directory listing
 	WIN32_FIND_DATAW data;
-	char* pathpattern = path_merge( path, pattern );
+	char filename[FOUNDATION_MAX_PATHLEN];
+	char* pathpattern = path_merge( path, "*" );
 	wchar_t* wpattern = wstring_allocate_from_string( pathpattern, 0 );
 	
 	HANDLE find = FindFirstFileW( wpattern, &data );
-
+	
 	memory_context_push( HASH_STREAM );
-
+	
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
 		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
-			array_push( names, path_clean( string_allocate_from_wstring( data.cFileName, 0 ), false ) );
+		{
+#if FOUNDATION_SIZE_WCHAR == 2
+			string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize, unsigned int srclength );
+#else
+			string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize, unsigned int srclength );
+#endif
+			if( regex_match( pattern, filename, namelen, 0, 0 ) )
+				array_push( names, path_clean( filename, false ) );
+		}
 	} while( FindNextFileW( find, &data ) );
-
+	
 	memory_context_pop();
-
+	
 	FindClose( find );
-
+	
 	wstring_deallocate( wpattern );
 	string_deallocate( pathpattern );
-
+	
 #else
-
+	
 	char** fnames = fs_files( path );
-
+	
 	memory_context_push( HASH_STREAM );
-
+	
 	for( in = 0, nsize = array_size( fnames ); in < nsize; ++in )
 	{
 		if( string_match_pattern( fnames[in], pattern ) )
@@ -622,36 +631,45 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 			fnames[in] = 0;
 		}
 	}
-
+	
 	memory_context_pop();
-
+	
 	string_array_deallocate( fnames );
-
+	
 #endif
-
+	
 	if( !recurse )
 		return names;
-
+	
 	subdirs = fs_subdirs( path );
-
+	
 	memory_context_push( HASH_STREAM );
-
+	
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
 		char* subpath = path_merge( path, subdirs[id] );
-		char** subnames = fs_matching_files( subpath, pattern, true );
-
+		char** subnames = _fs_matching_files( subpath, pattern, true );
+		
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
 			array_push( names, path_merge( subdirs[id], subnames[in] ) );
-
+		
 		string_array_deallocate( subnames );
 		string_deallocate( subpath );
 	}
-
+	
 	memory_context_pop();
-
+	
 	string_array_deallocate( subdirs );
+	
+	return names;
+}
 
+
+char** fs_matching_files( const char* path, const char* pattern, bool recurse )
+{
+	regex_t* regex = regex_compile( pattern );
+	char** names = _fs_matching_files( path, regex, recurse );
+	regex_free( regex );
 	return names;
 }
 

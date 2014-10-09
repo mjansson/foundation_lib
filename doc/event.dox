@@ -1,0 +1,65 @@
+
+/*!
+
+\file event.h
+\brief Events posting and processing
+\details Base system for event posting and processing
+
+Double-buffered event streams with a lock-free structure of many-writers, single-reader and yield-spinning
+over an atomic operation while waiting for other threads to finish writing or swap-for-read. No locks needed
+as only write block indicator needs to be protected (which can be done with atomic operations).
+
+The expected contention for writing is low as the write is a quick operation and number
+of events posted to the same stream from different threads is very low.
+
+Current buffer used to writing events is swapped during the event_stream_process call, allowing new events
+to be posted during the event process loop (which will then be delivered and processed during the next
+event process loop).
+
+Delayed events will not be delivered for processing until the delivery timestamp has passed. Delivery is not
+guaranteed until next pass of <code>event_stream_process</code> and <code>event_next</code> iteration.
+
+
+\fn void event_post( event_stream_t* stream, uint16_t id, uint16_t size, object_t object, const void* payload, tick_t delivery )
+\brief Post event
+\details Post event to stream. This operation is thread-safe and will spin loop until operation can
+be completed if in contention with another thread
+\param stream                   Event stream
+\param id                       Event id
+\param size                     Event payload size
+\param object                   Sender
+\param payload                  Event payload
+\param delivery                 Delivery time, 0 for immediate delivery
+
+\fn event_t* event_next( const event_block_t* block, event_t* event )
+\brief Get next event
+\details Get next event during procesing
+\param block                    Event block
+\param event                    Previous event, pass in 0 for getting first event
+\return                         Next event
+
+\fn uint16_t event_payload_size( const event_t* event )
+\brief Get event payload size
+\details Get event actual payload size (size field in event struct may be padded and extended for internal data)
+\param event                    Event
+\return                         Payload in bytes
+
+\fn event_stream_t* event_stream_allocate( unsigned int size )
+\brief Allocate event stream
+\details Allocate an event stream. Use #event_stream_deallocate to deallocate the returned stream.
+\param size                     Initial size of stream buffer
+\return                         Event stream
+
+\fn void event_stream_deallocate( event_stream_t* stream )
+\brief Deallocate event stream
+\details Deallocate an event stream which was allocated by #event_stream_allocate
+\param stream                   Event stream
+
+\fn event_block_t* event_stream_process( event_stream_t* stream )
+\brief Get event block
+\details Get event block for processing. Processing for an event stream must only occur on one single thread at any
+given moment (not thread-safe).
+\param stream                   Event stream
+\return                         Event block for processing
+
+*/

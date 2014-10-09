@@ -1,0 +1,27 @@
+
+/*!
+
+\file foundation.h
+\brief Foundation library main header and entry points
+\details Wrapper for foundation library headers and main entry/exit points
+
+
+\fn int foundation_initialize( const memory_system_t memory, const application_t application )
+\brief Main entry point
+\details Main entry point. Call this in your main_initialize function to bootstrap the foundation library
+and initialize all functionality.
+\param memory          Memory system declaration (use memory_system_malloc for default system allocator)
+\param application     Application declaration
+\return                0 if initialization successful, <0 if error
+
+\fn void foundation_shutdown( void )
+\brief Main exit point
+\details Main exit point. Call this in your main_shutdown function to cleanup the foundation library
+and terminate all functionality.
+
+\fn bool foundation_is_initialized( void )
+\brief Query if initialized
+\details Query if foundation library is initialized properly
+\return                true if initialized, false if not
+
+*/

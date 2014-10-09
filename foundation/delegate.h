@@ -12,9 +12,6 @@
 
 #pragma once
 
-/*! \file delegate.h
-    Application delegate and entry points for OSX & iOS */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
@@ -23,12 +20,7 @@
 
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
-/*! MacOS X and iOS only. Start the main thread as a separate thread. The process entry thread will go on
-    and run the main Cocoa event loop. */
 FOUNDATION_API void delegate_start_main_ns_thread( void );
-
-/*! MacOS X and iOS only. Ensures all delegate classes and methods have references to prevent from
-    being stripped in optimization passes during compilation and linking */
 FOUNDATION_API void delegate_reference_classes( void );
 
 #endif
@@ -36,9 +28,6 @@ FOUNDATION_API void delegate_reference_classes( void );
 
 #if FOUNDATION_PLATFORM_MACOSX
 
-/*! MacOS X only. Get the currently assigned window from the delegate
-    object window outlet.
-    \return Window object */
 FOUNDATION_API void* delegate_nswindow( void );
 
 #ifdef __OBJC__
@@ -58,9 +47,6 @@ FOUNDATION_API void* delegate_nswindow( void );
 
 #if FOUNDATION_PLATFORM_IOS
 
-/*! \fn delegate_uiwindow
-    iOS only. Get the main UI application window.
-    \return Windows object*/
 FOUNDATION_API void* delegate_uiwindow( void );
 
 #ifdef __OBJC__

@@ -15,6 +15,10 @@
 #include <foundation/platform.h>
 
 
+#ifdef FOUNDATION_PLATFORM_DOXYGEN
+#  define BUILD_DEBUG 1
+#endif
+
 #ifndef BUILD_DEBUG
 #  define BUILD_DEBUG 0
 #endif
