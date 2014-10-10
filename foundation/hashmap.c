@@ -13,6 +13,10 @@
 #include <foundation/foundation.h>
 
 
+#define HASHMAP_MINBUCKETS                 13
+#define HASHMAP_MINBUCKETSIZE              8
+
+
 struct hashmap_node_t
 {
 	hash_t                key;

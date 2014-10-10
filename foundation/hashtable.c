@@ -139,10 +139,7 @@ void hashtable32_erase( hashtable32_t* table, uint32_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable erase looped, not found" );
 			return;
-		}
 	} while( true );
 }
 
@@ -167,10 +164,7 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable get looped, not found" );
 			return 0;
-		}
 	} while( true );
 
 	return 0;
@@ -277,10 +271,7 @@ void hashtable64_erase( hashtable64_t* table, uint64_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable erase looped, not found" );
 			return;
-		}
 	} while( true );
 }
 
@@ -305,8 +296,6 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable get looped, not found" );
 			return 0;
 		}
 	} while( true );

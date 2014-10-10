@@ -1,4 +1,4 @@
-/* foundation.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* locale.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -11,9 +11,6 @@
  */
 
 #pragma once
-
-/*! \file foundation.h
-    Wrapper for foundation library headers */
 
 #include <foundation/platform.h>
 
@@ -439,5 +436,5 @@
 #define COUNTRY_DEFAULT                                          COUNTRY_UNITED_STATES
 
 // Predefined standard locales
-#define LOCALE_EN_US                 _LOCALE_DEF('e','n','U','S')
+#define LOCALE_EN_US                 _LOCALE_FROM_LANGUAGE_COUNTRY( LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES )
 #define LOCALE_DEFAULT               LOCALE_EN_US

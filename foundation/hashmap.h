@@ -12,15 +12,9 @@
 
 #pragma once
 
-/*! \file hashmap.h
-    Simple container mapping hashvalues to pointers */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-
-#define HASHMAP_MINBUCKETS                 13
-#define HASHMAP_MINBUCKETSIZE              8
 
 FOUNDATION_API hashmap_t*                  hashmap_allocate( unsigned int buckets, unsigned int bucketsize );
 FOUNDATION_API void                        hashmap_deallocate( hashmap_t* map );

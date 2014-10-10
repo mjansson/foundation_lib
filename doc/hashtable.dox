@@ -1,0 +1,149 @@
+
+/*!
+
+\file hashtable.h
+\brief Lock-free key-value mapping container
+\details Simple lock-free container mapping 32/64-bit keys to values. Fixed size, thread-safe.
+Limitation are:
+<ul>
+<li>Only maps 32/64 bit integers to 32/64 bit integers
+<li>All keys must be non-zero
+<li>Fixed maximum number of entries
+<li>Only operations are get/set
+<li>No true erase operation, only set to zero
+</ul>
+\todo Look into a lock-free implementation of hopscotch hashing (http://en.wikipedia.org/wiki/Hopscotch_hashing)
+
+
+\fn hashtable32_t* hashtable32_allocate( unsigned int buckets )
+\brief Allocate 32-bit hash table
+\details Allocate storage for a 32-bit hash table of given size
+\param buckets Number of buckets
+\return New hash table
+
+\fn void hashtable32_deallocate( hashtable32_t* table )
+\brief Deallocate hash table
+\details Deallocate storage used by hash table
+\param table Hash table object to deallocate
+
+\fn void hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value )
+\brief Set value
+\details Set stored value for the given key
+\param table Hash table
+\param key Key
+\param value New value
+
+\fn void hashtable32_erase( hashtable32_t* table, uint32_t key )
+\brief Erase (set to zero)
+\details Erase the value for a key by setting the value to zero. The key still holds
+a slot in the table.
+\param table Hash table
+\param key Key
+
+\fn uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
+\brief Get value
+\details Get the value stored for the given key, or zero if no value stored
+\param table Hash table
+\param key Key
+\return Value stored for key, zero if not found
+
+\fn unsigned int hashtable32_size( hashtable32_t* table )
+\brief Get value count
+\details Get number of stored keys with non-zero values. Walks the table
+so potentially slow.
+\param table Hash table
+\return Number of keys with non-zero values
+
+\fn void hashtable32_clear( hashtable32_t* table )
+\brief Clear table
+\details Clear the entire table, resetting the stat to the state after
+initial allocation.
+\param table Hash table
+
+\fn hashtable64_t* hashtable64_allocate( unsigned int buckets )
+\brief Allocate 64-bit hash table
+\details Allocate storage for a 64-bit hash table of given size
+\param buckets Number of buckets
+\return New hash table
+
+\fn void hashtable64_deallocate( hashtable64_t* table )
+\brief Deallocate hash table
+\details Deallocate storage used by hash table
+\param table Hash table object to deallocate
+
+\fn void hashtable64_set( hashtable64_t* table, uint64_t key, uint64_t value )
+\brief Set value
+\details Set stored value for the given key
+\param table Hash table
+\param key Key
+\param value New value
+
+\fn void hashtable64_erase( hashtable64_t* table, uint64_t key )
+\brief Erase (set to zero)
+\details Erase the value for a key by setting the value to zero. The key still holds
+a slot in the table.
+\param table Hash table
+\param key Key
+
+\fn uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
+\brief Get value
+\details Get the value stored for the given key, or zero if no value stored
+\param table Hash table
+\param key Key
+\return Value stored for key, zero if not found
+
+\fn unsigned int hashtable64_size( hashtable64_t* table )
+\brief Get value count
+\details Get number of stored keys with non-zero values. Walks the table
+so potentially slow.
+\param table Hash table
+\return Number of keys with non-zero values
+
+\fn void hashtable64_clear( hashtable64_t* table )
+\brief Clear table
+\details Clear the entire table, resetting the stat to the state after
+initial allocation.
+\param table Hash table
+
+\def hashtable_t
+\brief Pointer sized hash table
+\details Defined alias for a hash table storing values the size of a pointer,
+so 32 or 64 bit depending on architecture.
+
+\def hashtable_clear
+\brief Clear table
+\details Clear the entire table, resetting the stat to the state after
+initial allocation.
+
+\def hashtable_allocate
+\brief Allocate pointer sized hash table
+\details Allocate storage for a pointer sized hash table of given size
+
+\def hashtable_deallocate
+\brief Deallocate hash table
+\details Deallocate storage used by hash table
+
+\def hashtable_set
+\brief Set value
+\details Set stored value for the given key
+
+\def hashtable_erase
+\brief Erase (set to zero)
+\details Erase the value for a key by setting the value to zero. The key still holds
+a slot in the table.
+
+\def hashtable_get
+\brief Get value
+\details Get the value stored for the given key, or zero if no value stored
+
+\def hashtable_size
+\brief Get value count
+\details Get number of stored keys with non-zero values. Walks the table
+so potentially slow.
+
+\def hashtable_clear
+\brief Clear table
+\details Clear the entire table, resetting the stat to the state after
+initial allocation.
+
+*/

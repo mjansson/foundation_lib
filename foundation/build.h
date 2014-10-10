@@ -16,45 +16,44 @@
 
 
 #ifdef FOUNDATION_PLATFORM_DOXYGEN
-#  define BUILD_DEBUG 1
+#  define BUILD_DEBUG                         1
+#  define BUILD_ENABLE_ASSERT                 1
+#  define BUILD_ENABLE_ERROR_CONTEXT          1
+#  define BUILD_ENABLE_LOG                    1
+#  define BUILD_ENABLE_DEBUG_LOG              1
+#  define BUILD_ENABLE_CONFIG_DEBUG           1
+#  define BUILD_ENABLE_PROFILE                1
+#  define BUILD_ENABLE_MEMORY_CONTEXT         1
+#  define BUILD_ENABLE_MEMORY_TRACKER         1
+#  define BUILD_ENABLE_MEMORY_GUARD           1
+#  define BUILD_ENABLE_STATIC_HASH_DEBUG      1
 #endif
 
 #ifndef BUILD_DEBUG
-#  define BUILD_DEBUG 0
+#  define BUILD_DEBUG                         0
 #endif
 
 #ifndef BUILD_RELEASE
-#  define BUILD_RELEASE 0
+#  define BUILD_RELEASE                       0
 #endif
 
 #ifndef BUILD_PROFILE
-#  define BUILD_PROFILE 0
+#  define BUILD_PROFILE                       0
 #endif
 
 #ifndef BUILD_DEPLOY
-#  define BUILD_DEPLOY 0
+#  define BUILD_DEPLOY                        0
 #endif
 
+//Fallback
 #if !BUILD_DEBUG && !BUILD_RELEASE && !BUILD_PROFILE && !BUILD_DEPLOY
 #  if defined( NDEBUG )
 #    undef  BUILD_RELEASE
-#    define BUILD_RELEASE 1
+#    define BUILD_RELEASE                     1
 #  else
 #    undef  BUILD_DEBUG
-#    define BUILD_DEBUG   1
+#    define BUILD_DEBUG                       1
 #  endif
-#endif
-
-#if BUILD_DEBUG
-#  undef DEBUG
-#  undef _DEBUG
-#  undef NDEBUG
-#  define _DEBUG 1
-#else
-#  undef DEBUG
-#  undef _DEBUG
-#  undef NDEBUG
-#  define NDEBUG 1
 #endif
 
 
@@ -76,10 +75,10 @@
 #endif
 
 #ifndef BUILD_ENABLE_LOG
-#if ( FOUNDATION_PLATFORM_FAMILY_CONSOLE || FOUNDATION_PLATFORM_FAMILY_MOBILE ) && ( BUILD_DEPLOY || BUILD_PROFILE )
-#define BUILD_ENABLE_LOG                      0
-#else
+#if BUILD_DEBUG || BUILD_RELEASE
 #define BUILD_ENABLE_LOG                      1
+#else
+#define BUILD_ENABLE_LOG                      0
 #endif
 #endif
 
@@ -157,3 +156,18 @@
 #define BUILD_SIZE_STATIC_HASH_STORE          4192
 
 #define BUILD_SIZE_EVENT_BLOCK_CHUNK          ( 32 * 1024 )
+
+
+//Define appropriate "standard" macros
+#if BUILD_DEBUG
+#  undef DEBUG
+#  undef _DEBUG
+#  undef NDEBUG
+#  define _DEBUG 1
+#else
+#  undef DEBUG
+#  undef _DEBUG
+#  undef NDEBUG
+#  define NDEBUG 1
+#endif
+
