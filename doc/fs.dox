@@ -75,8 +75,9 @@ of this function (slow)
 
 \fn char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 \brief Get matching files
-\details Get files matching the given pattern. The pattern can be a regular
+\details Get files matching the given pattern. The pattern should be a regular
 expression supported by the regex parser in the library (see regex.h documentation).
+For example, to find all files with a given extension ".ext", use the regex "^.*\\.ext$"
 Free the returned array with #string_array_deallocate
 \param path                 File path
 \param pattern              File name pattern

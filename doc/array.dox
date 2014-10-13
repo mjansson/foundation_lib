@@ -163,24 +163,27 @@ Adapted and extended from stb_arr at http://nothings.org/stb.h
 \internal
 
 \fn _array_growfn
-Array memory allocation function. This will reallocate array storage with the given parameters,
+\brief Array memory allocation
+\details Array memory allocation function. This will reallocate array storage with the given parameters,
 resulting in a total size of (factor * previous_capacity + increment) elements, with each element
 size given by itemsize.
 \param arr                       Pointer to array
 \param increment                 Number of elements to increment storage with
 \param factor                    Factor to multiply previous capacity with
 \param itemsize                  Size of a single item
-\return                          New array pointer */
+\return                          New array pointer
 
 \fn _array_resizefn
-Array resize function. This will reallocate array storage if needed
+\brief Array resize
+\details Array resize function. This will reallocate array storage if needed
 \param arr                       Pointer to array
 \param elements                  Number of elements to resize to
 \param itemsize                  Size of a single item
 \return                          New array pointer
 
 \fn _array_verifyfn
-Verify array integrity. Will cause an assert if array is not valid.
+\brief Array verification
+\details Verify array integrity. Will cause an assert if array is not valid.
 \param arr                       Pointer to array
 \return                          Array if valid, null if invalid
 

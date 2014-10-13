@@ -75,6 +75,6 @@ the mutex.
 \brief Get OS handle
 \details Windows only, get OS handle for event object
 \param mutex Mutex
-\return Event object handle */
+\return Event object handle
 
 */
