@@ -312,7 +312,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 		memory = _memory_guard_initialize( memory, (size_t)size );
 	return memory;
 #    else
-	return _aligned_malloc( size, align);
+	return _aligned_malloc( (size_t)size, align );
 #    endif
 #  else
 	unsigned int padding, extra_padding = 0;

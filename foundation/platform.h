@@ -630,7 +630,7 @@
 #  define PURECALL 
 #  define CONSTCALL
 #  define ALIGN(x) __declspec(align(x))
-#  define ALIGNOF(x) _Alignof(x)
+#  define ALIGNOF(x) __alignof(x)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
