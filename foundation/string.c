@@ -929,7 +929,7 @@ void wstring_deallocate( wchar_t* str )
 
 unsigned int wstring_length( const wchar_t* str )
 {
-	return wcslen( str );
+	return (unsigned int)wcslen( str );
 }
 
 
