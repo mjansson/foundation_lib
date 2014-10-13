@@ -927,6 +927,12 @@ void wstring_deallocate( wchar_t* str )
 }
 
 
+unsigned int wstring_length( const wchar_t* str )
+{
+	return wcslen( str );
+}
+
+
 bool wstring_equal( const wchar_t* lhs, const wchar_t* rhs )
 {
 	return wcscmp( lhs, rhs ) == 0;
