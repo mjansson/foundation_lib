@@ -213,19 +213,19 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					if( ( ifile = string_array_find( (const char* const*)files, node->files[isub], array_size( files ) ) ) == -1 )
 					{
 						//log_debugf( HASH_FOUNDATION, "  deleted: %s", pathbuf );
-						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, pathbuf, 0 );
 						string_deallocate( node->files[isub] );
 						array_erase_memcpy( node->files, isub );
 						array_erase_memcpy( node->last_modified, isub );
 						--subsize;
+						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, pathbuf, 0 );
 					}
 					else
 					{
 						uint64_t last_modified = fs_last_modified( pathbuf );
-						if( last_modified > node->last_modified[ifile] )
+						if( last_modified > node->last_modified[isub] )
 						{
-							//log_debugf( HASH_FOUNDATION, "  modified: %s", pathbuf );
-							node->last_modified[ifile] = last_modified;
+							//log_debugf( HASH_FOUNDATION, "  modified: %s (%llx > %llx)", pathbuf, ifile, last_modified, node->last_modified[isub] );
+							node->last_modified[isub] = last_modified;
 							fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, pathbuf, 0 );
 						}
 						++isub;
