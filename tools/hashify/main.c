@@ -180,7 +180,7 @@ int hashify_process_files( const char* const* files, bool check_only )
 		if( check_only )
 			output_file = stream_open( output_filename, STREAM_IN );
 		else
-			output_file = buffer_stream_allocate( memory_allocate( 65536, 0, MEMORY_PERSISTENT ), STREAM_IN | STREAM_OUT, 0, 65536, true, true );
+			output_file = buffer_stream_allocate( memory_allocate( 0, 65536, 0, MEMORY_PERSISTENT ), STREAM_IN | STREAM_OUT, 0, 65536, true, true );
 
 		if( !input_file )
 		{

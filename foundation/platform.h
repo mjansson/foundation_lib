@@ -581,7 +581,7 @@
 #  define PURECALL ATTRIBUTE(pure)
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
-#  define ALIGNOF(x) _Alignof(x)
+#  define ALIGNOF(x) __alignof__(x)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL

@@ -136,7 +136,7 @@ stream_t* asset_stream_open( const char* path, unsigned int mode )
 		return 0;
 	}
 
-	stream_asset_t* asset = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_asset_t ), 8, MEMORY_PERSISTENT );
+	stream_asset_t* asset = memory_allocate( HASH_STREAM, sizeof( stream_asset_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream_t* stream = (stream_t*)asset;
 
 	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );

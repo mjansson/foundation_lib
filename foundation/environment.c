@@ -287,7 +287,7 @@ const char* environment_current_working_directory( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
-		wchar_t* wd = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+		wchar_t* wd = memory_allocate( 0, sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 		GetCurrentDirectoryW( FOUNDATION_MAX_PATHLEN-1, wd );
 		path = path_clean( string_allocate_from_wstring( wd, 0 ), true );
 		string_copy( _environment_current_working_dir, path, FOUNDATION_MAX_PATHLEN );
@@ -341,7 +341,7 @@ const char* environment_home_directory( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
-		wchar_t* wpath = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+		wchar_t* wpath = memory_allocate( 0, sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 		SHGetFolderPathW( 0, CSIDL_LOCAL_APPDATA, 0, 0, wpath );
 		path = path_clean( string_allocate_from_wstring( wpath, 0 ), true );
 		string_copy( _environment_home_dir, path, FOUNDATION_MAX_PATHLEN );
@@ -387,7 +387,7 @@ const char* environment_temporary_directory( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
-		wchar_t* wpath = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+		wchar_t* wpath = memory_allocate( 0, sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 		GetTempPathW( FOUNDATION_MAX_PATHLEN, wpath );
 		path = path_clean( string_allocate_from_wstring( wpath, 0 ), true );
 		string_copy( _environment_temp_dir, path, FOUNDATION_MAX_PATHLEN );

@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 
-/*lint --e{754} Lint gets confused about initialized fields, we use memory_allocate_zero_context so safe to inhibit */
+/*lint --e{754} Lint gets confused about initialized fields, we use memory_allocate so safe to inhibit */
 
 struct stream_buffer_t
 {
