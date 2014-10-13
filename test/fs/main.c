@@ -445,9 +445,7 @@ DECLARE_TEST( fs, monitor )
 	
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
-	
-	log_info( HASH_TEST, "<<<<<<< Running subdirectory create tests >>>>>>>" );
-	
+
 	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
 		fs_make_directory( multisubtestpath[isub] );
@@ -469,8 +467,8 @@ DECLARE_TEST( fs, monitor )
 		while( ( event = event_next( block, event ) ) )
 		{
 			bool found = false;
-			char eventstr[64];
-			string_format_buffer( eventstr, 64, "event %d:%d:%d:%d:0x%llx(%s)", event->id, event->flags, event->serial, event->size, event->payload, (const char*)event->payload );
+			char eventstr[256];
+			string_format_buffer( eventstr, 256, "event %d:%d:%d:%d:0x%llx(%s)", event->id, event->flags, event->serial, event->size, event->payload, (const char*)event->payload );
 			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr );
 			
 			for( isub = 0; isub < MULTICOUNT; ++isub )
@@ -507,7 +505,6 @@ DECLARE_TEST( fs, monitor )
 			multifilesubtestfound[isub][ifilesub] = false;
 		}
 	}
-	log_info( HASH_TEST, "<<<<<<< Done subdirectory create tests >>>>>>>" );	
 	thread_sleep( 3000 );
 	
 	do
