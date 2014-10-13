@@ -600,13 +600,9 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 	{
 		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
 		{
-#if FOUNDATION_SIZE_WCHAR == 2
-			string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize, unsigned int srclength );
-#else
-			string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize, unsigned int srclength );
-#endif
-			if( regex_match( pattern, filename, namelen, 0, 0 ) )
-				array_push( names, path_clean( filename, false ) );
+			string_convert_utf16( filename, data.cFileName, FOUNDATION_MAX_PATHLEN, wstring_length( data.cFileName ) );
+			if( regex_match( pattern, filename, string_length( filename ), 0, 0 ) )
+				array_push( names, path_clean( string_clone( filename ), false ) );
 		}
 	} while( FindNextFileW( find, &data ) );
 	
@@ -796,7 +792,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	memory_context_push( HASH_STREAM );
 
-	buffer = memory_allocate( buffer_size, 8, MEMORY_PERSISTENT );
+	buffer = memory_allocate( 0, buffer_size, 8, MEMORY_PERSISTENT );
 
 	handles[0] = mutex_event_object( monitor->signal );
 	handles[1] = CreateEvent( 0, FALSE, FALSE, 0 );
