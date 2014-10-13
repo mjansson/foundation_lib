@@ -460,7 +460,7 @@ const char* environment_variable( const char* var )
 	wchar_t val[FOUNDATION_MAX_PATHLEN]; val[0] = 0;
 	if( ( required = GetEnvironmentVariableW( key, val, FOUNDATION_MAX_PATHLEN ) ) > FOUNDATION_MAX_PATHLEN )
 	{
-		wchar_t* val_local = memory_allocate( sizeof( wchar_t ) * ( required + 2 ), 0, MEMORY_TEMPORARY );
+		wchar_t* val_local = memory_allocate( 0, sizeof( wchar_t ) * ( required + 2 ), 0, MEMORY_TEMPORARY );
 		val_local[0] = 0;
 		GetEnvironmentVariableW( key, val_local, required + 1 );
 		if( _environment_var )

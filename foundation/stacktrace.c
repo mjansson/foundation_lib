@@ -184,7 +184,7 @@ static void _load_process_modules()
 
 	if( bytes > sizeof( module_handles ) )
 	{
-		module_handle = memory_allocate( bytes, 0, MEMORY_TEMPORARY );
+		module_handle = memory_allocate( 0, bytes, 0, MEMORY_TEMPORARY );
 		CallEnumProcessModules( process_handle, module_handle, bytes, &bytes );
 	}
 
