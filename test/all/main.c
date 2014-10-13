@@ -259,11 +259,11 @@ int main_run( void* main_arg )
 	
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
-	pattern = "test-*.exe";
+	pattern = "^test-.*.exe$";
 #elif FOUNDATION_PLATFORM_MACOSX
-	pattern = "test-*";
+	pattern = "^test-.*";
 #elif FOUNDATION_PLATFORM_POSIX
-	pattern = "test-*";
+	pattern = "^test-.*";
 #else
 #  error Not implemented
 #endif
