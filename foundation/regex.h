@@ -17,6 +17,7 @@
     <pre>
     ^        Match beginning of string
     $        Match end of string
+    .        Match one character
     ()       Group and capture substring
     []       Match any character from the grouped set
     [^]      Match any character but ones from the grouped set

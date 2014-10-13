@@ -56,7 +56,7 @@ static void _random_seed_buffer( unsigned int* buffer )
 
 static unsigned int* _random_allocate_buffer( void )
 {
-	unsigned int* buffer = memory_allocate( sizeof( unsigned int ) * ( RANDOM_STATE_SIZE + 1 ), 0, MEMORY_PERSISTENT );
+	unsigned int* buffer = memory_allocate( 0, sizeof( unsigned int ) * ( RANDOM_STATE_SIZE + 1 ), 0, MEMORY_PERSISTENT );
 	_random_seed_buffer( buffer );
 	buffer[RANDOM_STATE_SIZE] = 0;
 	array_push( _random_state, buffer );

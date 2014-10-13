@@ -476,7 +476,7 @@ void fs_copy_file( const char* source, const char* dest )
 
 	infile = fs_open_file( source, STREAM_IN );
 	outfile = fs_open_file( dest, STREAM_OUT );
-	buffer = memory_allocate( 64 * 1024, 0, MEMORY_TEMPORARY );
+	buffer = memory_allocate( 0, 64 * 1024, 0, MEMORY_TEMPORARY );
 
 	while( !stream_eos( infile ) )
 	{
@@ -625,7 +625,7 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 	
 	for( in = 0, nsize = array_size( fnames ); in < nsize; ++in )
 	{
-		if( string_match_pattern( fnames[in], pattern ) )
+		if( regex_match( pattern, fnames[in], string_length( fnames[in] ), 0, 0 ) )
 		{
 			array_push( names, fnames[in] );
 			fnames[in] = 0;
@@ -1389,7 +1389,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	if( !( mode & STREAM_IN ) && !( mode & STREAM_OUT ) )
 		mode |= STREAM_IN;
 
-	file = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_file_t ), 8, MEMORY_PERSISTENT );
+	file = memory_allocate( HASH_STREAM, sizeof( stream_file_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream = GET_STREAM( file );
 	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 

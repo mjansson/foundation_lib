@@ -334,7 +334,7 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 			{
 				if( buffer_len >= ( buffer_maxlen - 1 ) )
 				{
-					char* new_buffer = memory_allocate( buffer_maxlen << 1, 0, MEMORY_TEMPORARY );
+					char* new_buffer = memory_allocate( 0, buffer_maxlen << 1, 0, MEMORY_TEMPORARY );
 					memcpy( new_buffer, buffer, buffer_len );
 					if( buffer != local_buffer )
 						memory_deallocate( buffer );
@@ -771,7 +771,7 @@ static regex_context_t _regex_execute( regex_t* regex, int op, const char* input
 regex_t* regex_compile( const char* pattern )
 {
 	unsigned int pattern_length = string_length( pattern );
-	regex_t* compiled = memory_allocate_context( HASH_STRING, sizeof( regex_t ) + pattern_length + 1, 0, MEMORY_PERSISTENT );
+	regex_t* compiled = memory_allocate( HASH_STRING, sizeof( regex_t ) + pattern_length + 1, 0, MEMORY_PERSISTENT );
 	
 	compiled->num_captures = 0;
 	compiled->code_length = 0;

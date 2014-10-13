@@ -162,7 +162,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 
 		if( buffer != local_buffer )
 			memory_deallocate( buffer );
-		buffer = memory_allocate( size + 2, 0, MEMORY_TEMPORARY );
+		buffer = memory_allocate( 0, size + 2, 0, MEMORY_TEMPORARY );
 	}
 	if( buffer != local_buffer )
 		memory_deallocate( buffer );

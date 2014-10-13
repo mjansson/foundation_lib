@@ -43,7 +43,7 @@ static thread_local_block_t _thread_local_blocks[1024] = {{0}};
 
 void* _allocate_thread_local_block( unsigned int size )
 {
-	void* block = memory_allocate_zero( size, 0, MEMORY_PERSISTENT );
+	void* block = memory_allocate( 0, size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	
 	for( int i = 0; i < 1024; ++i )
 	{
@@ -177,7 +177,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 		log_error( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
 		return 0;
 	}
-	thread = memory_allocate_zero( sizeof( thread_t ), 0, MEMORY_PERSISTENT );
+	thread = memory_allocate( 0, sizeof( thread_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_object_initialize( (object_base_t*)thread, id );
 	thread->fn = fn;
 	string_copy( thread->name, name, 32 );

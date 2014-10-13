@@ -90,12 +90,12 @@ void test_add_test( test_fn fn, const char* group_name, const char* test_name )
 
 	if( !test_group )
 	{
-		test_group = memory_allocate_zero( sizeof( test_group_t ), 0, MEMORY_PERSISTENT );
+		test_group = memory_allocate( 0, sizeof( test_group_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		test_group->name = group_name;
 		array_push( _test_groups, test_group );
 	}
 
-	test_case = memory_allocate_zero( sizeof( test_case_t ), 0, MEMORY_PERSISTENT );
+	test_case = memory_allocate( 0, sizeof( test_case_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	test_case->name = test_name;
 	test_case->fn = fn;
 

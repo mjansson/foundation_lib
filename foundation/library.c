@@ -168,7 +168,7 @@ object_t library_load( const char* name )
 		error_context_pop();
 		return 0;
 	}
-	library = memory_allocate_zero( sizeof( library_t ), 0, MEMORY_PERSISTENT );
+	library = memory_allocate( 0, sizeof( library_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_object_initialize( (object_base_t*)library, id );
 	library->namehash = string_hash( name );
 	string_copy( library->name, name, 32 );

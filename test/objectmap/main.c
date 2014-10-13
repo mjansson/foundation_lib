@@ -125,7 +125,7 @@ static void* objectmap_thread( object_t thread, void* arg )
 	int loop;
 
 	map = arg;
-	objects = memory_allocate_zero( sizeof( object_base_t ) * 512, 0, MEMORY_TEMPORARY );
+	objects = memory_allocate( 0, sizeof( object_base_t ) * 512, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	
 	thread_sleep( 10 );
 	

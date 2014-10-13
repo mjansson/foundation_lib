@@ -34,7 +34,7 @@ static stream_vtable_t _ringbuffer_stream_vtable = {0};
 
 ringbuffer_t* ringbuffer_allocate( unsigned int size )
 {
-	ringbuffer_t* buffer = memory_allocate_zero( sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT );
+	ringbuffer_t* buffer = memory_allocate( 0, sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	buffer->buffer_size = size;
 	return buffer;
 }
@@ -294,7 +294,7 @@ static void _ringbuffer_stream_deallocate( stream_t* stream )
 
 stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_size )
 {
-	ringbuffer_stream_t* bufferstream = memory_allocate_zero( sizeof( ringbuffer_stream_t ) + buffer_size, 0, MEMORY_PERSISTENT );
+	ringbuffer_stream_t* bufferstream = memory_allocate( 0, sizeof( ringbuffer_stream_t ) + buffer_size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream_t* stream = (stream_t*)bufferstream;
 
 	_stream_initialize( stream, system_byteorder() );

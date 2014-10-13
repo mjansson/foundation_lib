@@ -710,7 +710,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 #if BUILD_ENABLE_CONFIG_DEBUG
 	log_debugf( HASH_CONFIG, "Parsing config stream: %s", stream_path( stream ) );
 #endif
-	buffer = memory_allocate_zero( 1024ULL, 0, MEMORY_TEMPORARY );
+	buffer = memory_allocate( 0, 1024ULL, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	while( !stream_eos( stream ) )
 	{
 		++line;

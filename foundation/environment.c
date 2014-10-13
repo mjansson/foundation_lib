@@ -296,7 +296,7 @@ const char* environment_current_working_directory( void )
 		memory_deallocate( wd );
 	}
 #elif FOUNDATION_PLATFORM_POSIX
-	char* path = memory_allocate_zero( FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+	char* path = memory_allocate( 0, FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
 	{
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );

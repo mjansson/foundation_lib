@@ -362,7 +362,7 @@ void _blowfish_decrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uin
 
 blowfish_t* blowfish_allocate( void )
 {
-	return memory_allocate_zero( (uint64_t)sizeof( blowfish_t ), 0U, MEMORY_PERSISTENT );
+	return memory_allocate( 0, (uint64_t)sizeof( blowfish_t ), 0U, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 }
 
 

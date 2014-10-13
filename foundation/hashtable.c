@@ -70,7 +70,7 @@ static FORCEINLINE uint64_t _hashtable64_hash( uint64_t key )
 
 hashtable32_t* hashtable32_allocate( unsigned int buckets )
 {
-	hashtable32_t* table = (hashtable32_t*)memory_allocate_zero( sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+	hashtable32_t* table = (hashtable32_t*)memory_allocate( 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	table->capacity = buckets;
 	return table;
 }
@@ -202,7 +202,7 @@ void hashtable32_clear( hashtable32_t* table )
 
 hashtable64_t* hashtable64_allocate( unsigned int buckets )
 {
-	hashtable64_t* table = (hashtable64_t*)memory_allocate_zero( sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+	hashtable64_t* table = (hashtable64_t*)memory_allocate( 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	table->capacity = buckets;
 	return table;
 }
@@ -297,7 +297,6 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
 			return 0;
-		}
 	} while( true );
 
 	return 0;

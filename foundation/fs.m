@@ -68,7 +68,7 @@ static void _fs_node_populate( file_node_t* node, const char* fullpath )
 	char** subdirs = fs_subdirs( fullpath );
 	for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 	{
-		file_node_t* child = memory_allocate_zero( sizeof( file_node_t ), 0, 0 );
+		file_node_t* child = memory_allocate( 0, sizeof( file_node_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		child->name = subdirs[isub];
 		array_push( node->subdirs, child );
 	}
@@ -293,7 +293,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					
 					if( !found )
 					{
-						file_node_t* child = memory_allocate_zero( sizeof( file_node_t ), 0, MEMORY_PERSISTENT );
+						file_node_t* child = memory_allocate( 0, sizeof( file_node_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 						
 						//log_debugf( HASH_FOUNDATION, "  add subdir: %s %s", node->name, subdirs[isub] );
 						child->name = subdirs[isub];
@@ -337,7 +337,7 @@ void* _fs_event_stream_create( const char* path )
 {
 	@autoreleasepool
 	{
-		file_node_t* node = memory_allocate_zero( sizeof( file_node_t ), 0, MEMORY_PERSISTENT );
+		file_node_t* node = memory_allocate( 0, sizeof( file_node_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		node->name = string_clone( path );
 		
 		_fs_node_populate( node, path );

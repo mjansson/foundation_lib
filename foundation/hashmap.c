@@ -46,7 +46,7 @@ hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 	if( bucketsize < HASHMAP_MINBUCKETSIZE )
 		bucketsize = HASHMAP_MINBUCKETSIZE;
 	
-	map = memory_allocate( sizeof( hashmap_t ) + sizeof( hashmap_bucket_t ) * buckets, 0, MEMORY_PERSISTENT );
+	map = memory_allocate( 0, sizeof( hashmap_t ) + sizeof( hashmap_bucket_t ) * buckets, 0, MEMORY_PERSISTENT );
 
 	map->num_buckets = buckets;
 	map->num_nodes   = 0;

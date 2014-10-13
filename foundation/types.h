@@ -68,7 +68,8 @@ typedef enum
 	MEMORY_PERSISTENT          = 0x0000,
 	MEMORY_TEMPORARY           = 0x0001,
 	MEMORY_THREAD              = 0x0002,
-	MEMORY_32BIT_ADDRESS       = 0x0004
+	MEMORY_32BIT_ADDRESS       = 0x0004,
+	MEMORY_ZERO_INITIALIZED    = 0x0008
 } memory_hint_t;
 
 typedef enum
@@ -225,7 +226,6 @@ typedef void          (* log_callback_fn )( uint64_t context, int severity, cons
 typedef int           (* system_initialize_fn )( void );
 typedef void          (* system_shutdown_fn )( void );
 typedef void*         (* memory_allocate_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
-typedef void*         (* memory_allocate_zero_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
 typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
 typedef void          (* memory_deallocate_fn )( void* p );
 typedef void          (* memory_track_fn )( void* p, uint64_t size );
@@ -264,7 +264,6 @@ typedef struct regex_t            regex_t;
 struct memory_system_t
 {
 	memory_allocate_fn              allocate;
-	memory_allocate_zero_fn         allocate_zero;
 	memory_reallocate_fn            reallocate;
 	memory_deallocate_fn            deallocate;
 	system_initialize_fn            initialize;

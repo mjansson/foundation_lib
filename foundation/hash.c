@@ -219,7 +219,7 @@ void _static_hash_store( const void* key, const unsigned int len, const hash_t v
 		return;
 	}
 
-	stored = memory_allocate_context( 0, len + 1, 0, MEMORY_PERSISTENT );
+	stored = memory_allocate( 0, len + 1, 0, MEMORY_PERSISTENT );
 	memcpy( stored, key, len );
 	stored[len] = 0;
 

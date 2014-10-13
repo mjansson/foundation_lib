@@ -625,7 +625,7 @@ const radixsort_index_t* radixsort( radixsort_t* sort, const void* input, radixs
 radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
 {
 	radixsort_index_t i;
-	radixsort_t* sort = memory_allocate( 
+	radixsort_t* sort = memory_allocate( 0,
 		sizeof( radixsort_t ) + 
 		/* 2 index tables */ ( 2 * sizeof( radixsort_index_t ) * num ) +
 		/* histograms */     ( 256 * _radixsort_data_size[ type ] * sizeof( radixsort_index_t ) ) +

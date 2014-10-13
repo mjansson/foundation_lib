@@ -223,10 +223,10 @@ DECLARE_TEST( ringbufferstream, threadedio )
 
 	test.buffer_size = mbytes * 1024 * 1024;
 
-	srcbuffer = memory_allocate( test.buffer_size, 0, MEMORY_PERSISTENT );
+	srcbuffer = memory_allocate( 0, test.buffer_size, 0, MEMORY_PERSISTENT );
 
 	test.source_buffer = (void*)srcbuffer;
-	test.dest_buffer   = memory_allocate_zero( test.buffer_size, 0, MEMORY_PERSISTENT );
+	test.dest_buffer   = memory_allocate( 0, test.buffer_size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
 	for( si = 0; si < ( test.buffer_size / 4 ); ++si )
 		srcbuffer[si] = random32();

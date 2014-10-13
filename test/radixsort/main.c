@@ -84,8 +84,8 @@ DECLARE_TEST( radixsort, sort_int32 )
 		const radixsort_index_t* RESTRICT sindex_int;
 		const radixsort_index_t* RESTRICT sindex_uint;
 
-		arr_int = memory_allocate( sizeof( int32_t ) * num, 0, MEMORY_PERSISTENT );
-		arr_uint = memory_allocate( sizeof( uint32_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_int = memory_allocate( 0, sizeof( int32_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_uint = memory_allocate( 0, sizeof( uint32_t ) * num, 0, MEMORY_PERSISTENT );
 
 		for( ival = 0; ival < num; ++ival )
 		{
@@ -123,8 +123,8 @@ DECLARE_TEST( radixsort, sort_int32 )
 		const radixsort_index_t* RESTRICT sindex_int;
 		const radixsort_index_t* RESTRICT sindex_uint;
 
-		arr_int = memory_allocate( sizeof( int32_t ) * num, 0, MEMORY_PERSISTENT );
-		arr_uint = memory_allocate( sizeof( uint32_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_int = memory_allocate( 0, sizeof( int32_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_uint = memory_allocate( 0, sizeof( uint32_t ) * num, 0, MEMORY_PERSISTENT );
 
 		for( ival = 0; ival < num; ++ival )
 		{
@@ -185,8 +185,8 @@ DECLARE_TEST( radixsort, sort_int64 )
 		const radixsort_index_t* RESTRICT sindex_int;
 		const radixsort_index_t* RESTRICT sindex_uint;
 
-		arr_int = memory_allocate( sizeof( int64_t ) * num, 0, MEMORY_PERSISTENT );
-		arr_uint = memory_allocate( sizeof( uint64_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_int = memory_allocate( 0, sizeof( int64_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_uint = memory_allocate( 0, sizeof( uint64_t ) * num, 0, MEMORY_PERSISTENT );
 
 		for( ival = 0; ival < num; ++ival )
 		{
@@ -224,8 +224,8 @@ DECLARE_TEST( radixsort, sort_int64 )
 		const radixsort_index_t* RESTRICT sindex_int;
 		const radixsort_index_t* RESTRICT sindex_uint;
 
-		arr_int = memory_allocate( sizeof( int64_t ) * num, 0, MEMORY_PERSISTENT );
-		arr_uint = memory_allocate( sizeof( uint64_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_int = memory_allocate( 0, sizeof( int64_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_uint = memory_allocate( 0, sizeof( uint64_t ) * num, 0, MEMORY_PERSISTENT );
 
 		for( ival = 0; ival < num; ++ival )
 		{
@@ -288,8 +288,8 @@ DECLARE_TEST( radixsort, sort_real )
 		const radixsort_index_t* RESTRICT sindex_32;
 		const radixsort_index_t* RESTRICT sindex_64;
 
-		arr_32 = memory_allocate( sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
-		arr_64 = memory_allocate( sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_32 = memory_allocate( 0, sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_64 = memory_allocate( 0, sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
 
 		for( ival = 0; ival < num; ++ival )
 		{
@@ -327,8 +327,8 @@ DECLARE_TEST( radixsort, sort_real )
 		const radixsort_index_t* RESTRICT sindex_32;
 		const radixsort_index_t* RESTRICT sindex_64;
 
-		arr_32 = memory_allocate( sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
-		arr_64 = memory_allocate( sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_32 = memory_allocate( 0, sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
+		arr_64 = memory_allocate( 0, sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
 
 		for( ival = 0; ival < num; ++ival )
 		{

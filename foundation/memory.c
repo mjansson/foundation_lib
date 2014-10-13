@@ -67,7 +67,7 @@ static void _atomic_allocate_initialize( uint64_t storagesize )
 {
 	if( storagesize < 1024 )
 		storagesize = BUILD_SIZE_TEMPORARY_MEMORY;
-	_memory_temporary.storage   = memory_allocate( storagesize, 16, MEMORY_PERSISTENT );
+	_memory_temporary.storage   = memory_allocate( 0, storagesize, 16, MEMORY_PERSISTENT );
 	_memory_temporary.end       = pointer_offset( _memory_temporary.storage, storagesize );
 	_memory_temporary.size      = storagesize;
 	_memory_temporary.maxchunk  = ( storagesize / 8 );
@@ -204,24 +204,7 @@ static void* _memory_guard_verify( void* memory )
 }
 
 
-void* memory_allocate( uint64_t size, unsigned int align, int hint )
-{
-	void* p;
-	if( ( hint & MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
-	{
-		align = _memory_get_align( align );
-		p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
-	}
-	else
-	{		
-		p = _memsys.allocate( memory_context(), size, align, hint );
-	}
-	_memory_track( p, size );
-	return p;
-}
-
-
-void* memory_allocate_zero( uint64_t size, unsigned int align, int hint )
+void* memory_allocate( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* p;
 	if( ( hint & MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
@@ -232,24 +215,8 @@ void* memory_allocate_zero( uint64_t size, unsigned int align, int hint )
 	}
 	else
 	{
-		p = _memsys.allocate_zero( memory_context(), size, align, hint );
+		p = _memsys.allocate( context ? context : memory_context(), size, align, hint );
 	}
-	_memory_track( p, size );
-	return p;
-}
-
-
-void* memory_allocate_context( uint64_t context, uint64_t size, unsigned int align, int hint )
-{
-	void* p = _memsys.allocate( context, size, align, hint );
-	_memory_track( p, size );
-	return p;
-}
-
-
-void* memory_allocate_zero_context( uint64_t context, uint64_t size, unsigned int align, int hint )
-{
-	void* p = _memsys.allocate_zero( context, size, align, hint );
 	_memory_track( p, size );
 	return p;
 }
@@ -283,7 +250,7 @@ void memory_context_push( uint64_t context_id )
 	memory_context_t* context = get_thread_memory_context();
 	if( !context )
 	{
-		context = memory_allocate_zero( sizeof( memory_context_t ), 0, MEMORY_PERSISTENT );
+		context = memory_allocate( 0, sizeof( memory_context_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		set_thread_memory_context( context );
 	}
 	FOUNDATION_ASSERT_MSG( context->depth < BUILD_SIZE_MEMORY_CONTEXT_DEPTH, "Memory context stack overflow" );
@@ -498,17 +465,12 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 
 static void* _memory_allocate_malloc( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
+	void* block;
 	align = _memory_get_align( align );
-	return _memory_allocate_malloc_raw( size, align, hint );
-}
-
-
-static void* _memory_allocate_zero_malloc( uint64_t context, uint64_t size, unsigned int align, int hint )
-{
-	void* memory = _memory_allocate_malloc( context, size, align, hint );
-	if( memory )
-		memset( memory, 0, (size_t)size );
-	return memory;
+	block = _memory_allocate_malloc_raw( size, align, hint );
+	if( block && ( hint & MEMORY_ZERO_INITIALIZED ) )
+		memset( block, 0, (size_t)size );
+	return block;
 }
 
 
@@ -683,7 +645,6 @@ memory_system_t memory_system_malloc( void )
 {
 	memory_system_t memsystem;
 	memsystem.allocate = _memory_allocate_malloc;
-	memsystem.allocate_zero = _memory_allocate_zero_malloc;
 	memsystem.reallocate = _memory_reallocate_malloc;
 	memsystem.deallocate = _memory_deallocate_malloc;
 	memsystem.initialize = _memory_initialize_malloc;
@@ -754,7 +715,7 @@ static int _memory_tracker_initialize( void )
 {
 	log_debug( HASH_MEMORY, "Initializing local memory tracker" );
 	if( !_memory_tags )
-		_memory_tags = memory_allocate_zero( sizeof( memory_tag_t ) * MAX_CONCURRENT_ALLOCATIONS, 16, MEMORY_PERSISTENT );
+		_memory_tags = memory_allocate( 0, sizeof( memory_tag_t ) * MAX_CONCURRENT_ALLOCATIONS, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	if( !_memory_table )
 		_memory_table = hashtable_allocate( MAX_CONCURRENT_ALLOCATIONS );
 	return 0;
