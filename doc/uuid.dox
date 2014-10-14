@@ -1,0 +1,48 @@
+
+/*!
+
+\file uuid.h
+\brief UUID
+\details UUID generation (version 1, 3 and 4) and utility functions
+
+
+\var UUID_DNS
+\brief UUID namespace "dns"
+\details Predefined UUID namespace "dns"
+
+\fn uuid_t uuid_generate_time( void )
+\brief Generate time based UUID
+\details Generate UUID based on time (and host id) - version 1.
+\return Time-based UUID
+
+\fn uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
+\brief Generate name based UUID
+\details Generate UUID based on namespace and name - version 3.
+\param namespace Namespace
+\param name Name
+\return Name-based UUID
+
+\fn uuid_t uuid_generate_random( void )
+\brief Generate random UUID
+\details Generate UUID based on random numbers - version 4.
+\return Random-based UUID
+
+\fn bool uuid_equal( const uuid_t u0, const uuid_t u1 )
+\brief Check if UUIDs are equal
+\details Check if UUIDs are equal.
+\param u0 First UUID
+\param u1 Second UUID
+\return true if equal, false if not
+
+\fn uuid_t uuid_null( void )
+\brief Make null UUID
+\details Make null UUID.
+\return Null UUID
+
+\fn bool uuid_is_null( const uuid_t uuid )
+\brief Check if UUID is null
+\details  Check if UUID is null.
+\param uuid UUID
+\return true if null, false if not
+
+*/

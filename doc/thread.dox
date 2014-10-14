@@ -1,0 +1,131 @@
+
+/*!
+
+\file thread.h
+\brief Threads
+\details Thread management
+
+
+\fn object_t thread_create( thread_fn fn, const char* name, thread_priority_t priority, unsigned int stacksize )
+\brief Create thread
+\details Create new thread.
+\param fn Thread execution function
+\param name Thread name
+\param priority Thread priority
+\param stacksize Thread stack size
+\return New thread object
+
+\fn object_t thread_ref( object_t thread )
+\brief Reference thread
+\details Reference thread, explicitly increase the reference count of the thread object.
+\param thread Thread
+\return Object handle if thread object is still valid, 0 if thread object is no longer valid
+
+\fn void thread_destroy( object_t thread )
+\brief Destroy thread
+\details Decrease reference count and destroy thread if it reaches zero. Stops the thread if it is running.
+\param thread Thread
+
+\fn bool thread_start( object_t thread, void* data )
+\brief Start thread
+\details Start a thread if it is not already running.
+\param thread Thread
+\param data Argument
+\return true if thread was started, false if error or already running
+
+\fn bool thread_is_started( object_t thread )
+\brief Query if started
+\details Query if thread has been started.
+\param thread Thread
+\return true if started, false if not
+
+\fn bool thread_is_running( object_t thread )
+\brief Query if running
+\details Query if thread is running.
+\param thread Thread
+\return true if running, false if not
+
+\fn bool thread_is_thread( object_t thread )
+\brief Query if valid thread
+\details Query if object is a valid thread.
+\param thread Thread object
+\return true if a valid thread, false if not
+
+\fn bool thread_is_main( void )
+\brief Query if main thread
+\details Query if calling thread is the main thread.
+\return true if main thread, false if not
+
+\fn void thread_set_main( void )
+\brief Mark as main thread
+\details Mark the calling thread as the main thread
+
+\fn void thread_terminate( object_t thread )
+\brief Terminate execution
+\details Terminate thread execution.
+\param thread Thread
+
+\fn bool thread_should_terminate( object_t thread )
+\brief Query if thread should terminate 
+\details Query if thread is scheduled for termination.
+\param thread Thread
+\return true if thread should terminate, false if not (keep running)
+
+\fn void* thread_result( object_t thread )
+\brief Get result
+\details Get thread result (exit value).
+\param thread Thread handle
+\return Thread result
+
+\fn object_t thread_self( void )
+\brief Get self
+\details Get object handle for calling thread.
+\return Thread object, null if not a foundation-created thread (like main application thread)
+
+\fn const char* thread_name( void )
+\brief Get name
+\details Get name for calling thread.
+\return Thread name
+
+\fn void thread_set_name( const char* name )
+\brief Set name
+\details Set name for calling thread.
+\param name Thread name
+
+\fn void thread_sleep( int milliseconds )
+\brief Sleep
+\details Sleep calling thread for specified time.
+\param milliseconds Milliseconds to sleep
+
+\fn void thread_yield( void )
+\brief Yield
+\details Yield calling thread remaining timeslice to other threads.
+
+\fn uint64_t thread_id( void )
+\brief Get system id
+\details Get calling thread system id.
+\return Thread id
+
+\fn unsigned int thread_hardware( void )
+\brief Get hardware thread
+\details Get the hardware thread the calling thread is running on.
+\return Hardware thread id
+
+\fn void thread_set_hardware( unsigned int hw_thread )
+\brief Set affinity
+\details Set thread affinity for calling thread.
+\param hw_thread Hardware thread id
+
+\fn void thread_cleanup( void )
+\brief Cleanup on thread exit
+\details Cleanup on thread exit.
+
+\fn void thread_attach_jvm( void )
+\brief Attach JVM
+\details Android only. Attach the thread to the JVM to be able to do JVM calls through JNI.
+
+\fn void thread_detach_jvm( void )
+\brief Detach JVM
+\details Android only. Detach the thread from the JVM. No more calls to the JVM through JNI can be made from this thread after a call to this function.
+
+*/

@@ -12,9 +12,6 @@
 
 #pragma once
 
-/*! \file windows.h
-    Safe inclusion of windows.h */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
