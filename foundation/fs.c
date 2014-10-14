@@ -665,7 +665,7 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 {
 	regex_t* regex = regex_compile( pattern );
 	char** names = _fs_matching_files( path, regex, recurse );
-	regex_free( regex );
+	regex_deallocate( regex );
 	return names;
 }
 

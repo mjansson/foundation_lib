@@ -52,7 +52,7 @@ DECLARE_TEST( regex, exact )
 	EXPECT_FALSE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
 	EXPECT_FALSE( regex_match( regex, "TEST_REGEX", 0, 0, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 
 	regex = regex_compile( "(TEST REGEX)" );
 	EXPECT_NE( regex, 0 );
@@ -62,7 +62,7 @@ DECLARE_TEST( regex, exact )
 	EXPECT_TRUE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
 	EXPECT_FALSE( regex_match( regex, "TEST_REGEX", 0, 0, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	return 0;
 }
@@ -78,7 +78,7 @@ DECLARE_TEST( regex, any )
 	EXPECT_FALSE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
 	EXPECT_TRUE( regex_match( regex, "TTEST_REGEX ", 0, 0, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	regex = regex_compile( "(.TEST.REGEX)." );
 	EXPECT_NE( regex, 0 );
@@ -89,7 +89,7 @@ DECLARE_TEST( regex, any )
 	EXPECT_TRUE( regex_match( regex, "TTEST_REGEX ", 0, 0, 0 ) );
 	EXPECT_TRUE( regex_match( regex, "RANDOM CRAP TEST_REGEX RANDOM CRAP", 0, 0, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	return 0;
 }
@@ -106,7 +106,7 @@ DECLARE_TEST( regex, any_block )
 	EXPECT_TRUE( regex_match( regex, " ", 1, 0, 0 ) );
 	EXPECT_FALSE( regex_match( regex, "\0 ", 2, 0, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 
 	regex = regex_compile( "^([ \\n\\r\\0\\S\\s\\d\\\\T])" );
 	EXPECT_NE( regex, 0 );
@@ -117,7 +117,7 @@ DECLARE_TEST( regex, any_block )
 	EXPECT_TRUE( regex_match( regex, " ", 1, 0, 0 ) );
 	EXPECT_TRUE( regex_match( regex, "\0 ", 2, 0, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	return 0;
 }
@@ -136,7 +136,7 @@ DECLARE_TEST( regex, quantifier )
 	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
 	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 
 	regex = regex_compile( "^(.+)$" );
 	EXPECT_NE( regex, 0 );
@@ -148,7 +148,7 @@ DECLARE_TEST( regex, quantifier )
 	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
 	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	regex = regex_compile( "^(.*?)$" );
 	EXPECT_NE( regex, 0 );
@@ -160,7 +160,7 @@ DECLARE_TEST( regex, quantifier )
 	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
 	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	regex = regex_compile( "^(.+?)$" );
 	EXPECT_NE( regex, 0 );
@@ -172,7 +172,7 @@ DECLARE_TEST( regex, quantifier )
 	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
 	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 
 	regex = regex_compile( "^a.b+?bcd?e*$" );
 	EXPECT_NE( regex, 0 );
@@ -181,7 +181,7 @@ DECLARE_TEST( regex, quantifier )
 	EXPECT_TRUE( regex_match( regex, "abbbc", 0, 0, 0 ) );
 	EXPECT_FALSE( regex_match( regex, "abbcde", 0, 0, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	return 0;
 }
@@ -197,7 +197,7 @@ DECLARE_TEST( regex, branch )
 	EXPECT_TRUE( regex_match( regex, "   \t\t\n\r  \t\v\n  ", 0, 0, 0 ) );
 	EXPECT_FALSE( regex_match( regex, "no mixed string will match this regex", 0, captures, 0 ) );
 	
-	regex_free( regex );
+	regex_deallocate( regex );
 	
 	return 0;
 }

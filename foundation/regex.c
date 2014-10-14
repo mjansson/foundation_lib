@@ -813,7 +813,7 @@ bool regex_match( regex_t* regex, const char* input, int inlength, regex_capture
 }
 
 
-void regex_free( regex_t* regex )
+void regex_deallocate( regex_t* regex )
 {
 	memory_deallocate( regex );
 }
