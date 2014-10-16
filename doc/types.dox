@@ -133,13 +133,16 @@ based on usage patterns for the requested memory.
 Memory is persistent (retained when function returns)
 
 \var memory_hint_t MEMORY_TEMPORARY
-Memory is temporary (extremely short lived and generally freed before function returns)
+Memory is temporary (extremely short lived and generally freed before function returns or scope ends)
 
 \var memory_hint_t MEMORY_THREAD
-Memory is thread local
+Memory is local to the calling thread
 
 \var memory_hint_t MEMORY_32BIT_ADDRESS
 Memory should be allocated in low 32-bit address space
+
+\var memory_hint_t MEMORY_ZERO_INITIALIZED
+Memory should be initialized to zero during allocation
 
 
 \enum platform_t
@@ -532,17 +535,7 @@ with this prototype for allocating memory
 \param context Memory context
 \param size Requested size
 \param align Aligmnent requirement
-\param hint Meory hitn (see memory_hint_t)
-\return Pointer to allocated memory block if successful, 0 if error
-
-\typedef void* (*memory_allocate_zero_fn)( uint64_t context, uint64_t size, unsigned int align, int hint )
-\brief Memory allocation
-\details Memory system allocate-and-zero-out function prototype. Implementation of a memory system should provide an implementation
-with this prototype for allocating memory pre-filled with zero
-\param context Memory context
-\param size Requested size
-\param align Aligmnent requirement
-\param hint Meory hitn (see memory_hint_t)
+\param hint Memory hitn (see memory_hint_t)
 \return Pointer to allocated memory block if successful, 0 if error
 
 \typedef void* (*memory_reallocate_fn)( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
@@ -671,9 +664,6 @@ prototype to allow the crash guard to catch and handle exceptions correctly
 
 \var memory_system_t::allocate
 Memory allocation with no initialization
-
-\var memory_system_t::allocate_zero
-Memory allocation with initialization to zero
 
 \var memory_system_t::reallocate
 Memory reallocation

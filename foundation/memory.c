@@ -708,16 +708,14 @@ hashtable_t*       _memory_table = 0;
 memory_tag_t*      _memory_tags = 0;
 atomic32_t         _memory_tag_next = {0};
 
-#define MAX_CONCURRENT_ALLOCATIONS 32 * 1024
-
 
 static int _memory_tracker_initialize( void )
 {
 	log_debug( HASH_MEMORY, "Initializing local memory tracker" );
 	if( !_memory_tags )
-		_memory_tags = memory_allocate( 0, sizeof( memory_tag_t ) * MAX_CONCURRENT_ALLOCATIONS, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+		_memory_tags = memory_allocate( 0, sizeof( memory_tag_t ) * BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	if( !_memory_table )
-		_memory_table = hashtable_allocate( MAX_CONCURRENT_ALLOCATIONS );
+		_memory_table = hashtable_allocate( BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS );
 	return 0;
 }
 
@@ -732,7 +730,7 @@ static void _memory_tracker_shutdown( void )
 		bool got_leaks = false;
 
 		log_debug( HASH_MEMORY, "Checking for memory leaks" );
-		for( it = 0; it < MAX_CONCURRENT_ALLOCATIONS; ++it )
+		for( it = 0; it < BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS; ++it )
 		{
 			memory_tag_t* tag = _memory_tags + it;
 			if( atomic_loadptr( &tag->address ) )
@@ -756,9 +754,9 @@ static void _memory_tracker_track( void* addr, uint64_t size )
 	if( addr ) do
 	{
 		int32_t tag = atomic_exchange_and_add32( &_memory_tag_next, 1 );
-		if( tag >= MAX_CONCURRENT_ALLOCATIONS )
+		if( tag >= BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS )
 		{
-			int32_t newtag = tag % MAX_CONCURRENT_ALLOCATIONS;
+			int32_t newtag = tag % BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS;
 			atomic_cas32( &_memory_tag_next, newtag, tag + 1 );
 			tag = newtag;
 		}

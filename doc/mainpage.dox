@@ -93,7 +93,7 @@ build/xcode/foundation-osx.xcworkspace and build the appropriate targets. The wo
 
 \section linux Linux
 \subsection linux_scons SCons
-SCons is the only supported method of building the library on Linux. verify the configuration set in build/scons/SConfig.
+SCons is the only supported method of building the library on Linux. Verify the configuration set in build/scons/SConfig.
 You can also set all options as key=value arguments on the command line. For example, to build release configuration with gnu
 compiler use "scons config=release tools=gnu"
 
@@ -216,7 +216,7 @@ extends these types with floating point data types:
 <li><i>real</i> for a configurable generic floating point data type
 </ul>
 
-To set the <i>real</i> data type format use the FOUNDATION_SIZE_REAL preprocessor macro to 32 or 64, or change the defined value in platform.h (default is 32 bit floating point values).
+To set the <i>real</i> data type format set the #FOUNDATION_SIZE_REAL preprocessor macro to 32 or 64, or change the defined value in platform.h (default is 32 bit floating point values).
 
 \section object_lifetime Object lifetime
 Complex data types (objects) are handled in two ways. Either the caller have explicit lifetime control and accessed through raw pointers, or else has implicit control where
@@ -226,9 +226,9 @@ Explicit allocations are always handled by function calls of the format <i>\<mod
 for example md5_allocate and md5_deallocate in md5.h
 
 Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
-for example thread_create, thread_ref and thread_destroy in thread.h
+for example #thread_create, #thread_ref and #thread_destroy in thread.h
 
-Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_\<module>_MAP, for example BUILD_SIZE_THREAD_MAP for threads.
+Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_\<module>_MAP, for example #BUILD_SIZE_THREAD_MAP for threads.
 
 
 \page features_page Details on specific submodules and features provided by the library
@@ -241,7 +241,15 @@ Most important is the build type definition
 For a full list and documentation of the build configuration preprocessor definitions, check the documentation for the build.h header
 
 \section memory_management Memory management
-To be written... (memory system, hints, context)
+Memory management is handled through a memory system implementation, which is basically three entry points for allocation, reallocation and deallocation. By default the foundation library provides a memory system built on the C library malloc/realloc/free family of functions, extended and wrapped to handle alignment requirements. When you initialize the foundation library you have to pass in a memory system implementation declaration through a #memory_system_t struct. To use the default malloc-based system, use #memory_system_malloc
+
+Memory allocations will belong to a memory context, which is usually a hash value of a module name (for example, #HASH_STREAM). This allows the memory tracker to place allocations in buckets to see how much memory each part/module of the software allocates at any given time. Memory context can be set explicitly with an argument to #memory_allocate or implicitly through the thread local memory context stack controlled with #memory_context_push and #memory_context_pop.
+
+Memory allocations can also give hint flags of the usage of the requested memory buffer. This allows the implementation to make optimizations and extra requirements during allocation. The memory hint flags are documented in #memory_hint_t with the most common flags being #MEMORY_TEMPORARY and #MEMORY_ZERO_INITIALIZED for temporary (scope level) allocations and initialization to zero, respectively.
+
+The memory management module also provides memory tracking if compiled with #BUILD_ENABLE_MEMORY_TRACKER set to 1, which tracks all allocations and deallocations and enable memory leak detection. A memory tracker is declared with the #memory_tracker_t struct, and the library provides a default local implementation in #memory_tracker_local. The maximum number of concurrent allocations the local memory tracker can keep track of is set with the #BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS preprocessor directive in build.h header. A networked memory tracker will be provided in a network library, and further entry points to query the tracker during runtime will be added in a later release. Right now the tracker only prints detected leaks on application termination.
+
+Finally there is a memory overwrite/underwrite guard functionality built in and enabled with the #BUILD_ENABLE_MEMORY_GUARD build.h preprocessor directive. This will incur a slight memory overhead on each allocation, adding a dead zone before and after each allocated memory block for detecting invalid memory writes outside the allocated area. This functionality is built on top of the memory system implementation which does not need to provide a guard implementation internally.
 
 \section threading Threading
 To be written... (thread, semaphore, mutex, atomic)
@@ -250,13 +258,13 @@ To be written... (thread, semaphore, mutex, atomic)
 To be written... (crash, profile, log, )
 
 \section streams_files Streams and file access
-To be written...
+To be written... (paths, protocols, byte ordering, special streams)
 
 \section data_structures Data structures
 To be written...
 
 \section strings String handling and unicode support
-To be written...
+To be written... (utf-8, wide strings)
 
 
 \page using_page Using the foundation library in a project
@@ -266,4 +274,5 @@ To be written... (headers, linking)
 
 \section template_app Template application
 To be written... (initialization, shutdown, environment, system, config, library)
+
 */

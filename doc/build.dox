@@ -133,6 +133,10 @@ architectures.
 \brief Maximum memory context depth
 \details Maximum memory context depth
 
+\def BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS
+\brief Maximum concurrect allocation tracked
+\details Maximum concurrent number of allocations the local memory tracker can keep track of.
+
 \def BUILD_SIZE_STACKTRACE_DEPTH
 \brief Maximum stacktrace depth
 \details Maximum stacktrace depth

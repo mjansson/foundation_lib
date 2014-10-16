@@ -112,7 +112,7 @@ over an UDP socket are out-of-order.
 \brief Read raw data
 \details Read raw data from stream, disregarding byte order.
 \param stream Stream
-\param bufferDestination buffer
+\param buffer Destination buffer
 \param num_bytes Number of bytes to read
 \return Number of bytes read
 
@@ -130,7 +130,7 @@ over an UDP socket are out-of-order.
 \details Read line as string, discarding delimiter. Allocates a new memory buffer for the string.
 \param stream Stream
 \param delimiter Delimiter, default '\n'
-\return String, must be freed with a call to #string_deallocte
+\return String, must be freed with a call to #string_deallocate
 
 \fn uint64_t stream_size( stream_t* stream )
 \brief Get size

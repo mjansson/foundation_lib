@@ -35,7 +35,7 @@ should be called before launching a process, except for set exit code which shou
 the standard first argument of the executable path, it will be automatically added.
 \param proc Process object
 \param args Arguments array
-\param numNumber of arguments
+\param num Number of arguments
 
 \fn void process_set_flags( process_t* proc, unsigned int flags )
 \brief Set flags
