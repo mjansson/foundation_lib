@@ -34,14 +34,14 @@ static void* event_thread( object_t thread, void* arg )
 			switch( event->id )
 			{
 				case FOUNDATIONEVENT_START:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 					log_infof( HASH_TEST, "Application start event received" );
 					_test_should_start = true;
 #endif
 					break;
 					
 				case FOUNDATIONEVENT_TERMINATE:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 					log_infof( HASH_TEST, "Application terminate event received" );
 					_test_should_terminate = true;
 #else
@@ -175,7 +175,12 @@ int main_run( void* main_arg )
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	
 	while( !_test_should_start )
-		thread_sleep( 10 );
+	{
+#if FOUNDATION_PLATFORM_ANDROID
+		system_process_events();
+#endif
+		thread_sleep( 100 );
+	}
 	
 	test_run_fn tests[] = {
 		//test_app_run
