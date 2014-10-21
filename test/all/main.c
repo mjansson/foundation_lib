@@ -221,7 +221,9 @@ int main_run( void* main_arg )
 	
 	object_t test_thread = thread_create( test_runner, "test_runner", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( test_thread, tests );
-	
+
+	log_infof( HASH_TEST, "Starting test runner thread" );
+
 	while( !thread_is_running( test_thread ) )
 	{
 		system_process_events();

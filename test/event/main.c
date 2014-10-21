@@ -189,6 +189,8 @@ typedef struct ALIGN(16) _producer_thread_arg
 
 static void* producer_thread( object_t thread, void* arg )
 {
+	uint64_t random_delay;
+	uint16_t random_id, random_size;
 	uint8_t buffer[256] = {0};
 	producer_thread_arg_t* args = arg;
 	unsigned int produced = 0;
@@ -198,11 +200,17 @@ static void* producer_thread( object_t thread, void* arg )
 	{
 		if( args->sleep_time )
 			thread_sleep( (int)args->sleep_time );
-		else
-			thread_yield();
-		timestamp = args->max_delay ? time_current() + random64_range( 0, args->max_delay ) : 0;
+		random_delay = args->max_delay ? random64_range( 0, args->max_delay ) : 0;
+		random_id = (uint16_t)random32_range( 1, 65535 );
+		random_size = (uint16_t)random32_range( args->max_delay ? 8 : 0, 256 );
+		thread_yield();
+		//There is a small chance of test failure due to thread time slice contention here
+		//If the producer thread is suspended between the timestamp calculation and event post
+		//an event with an old timestamp might be posted after the main test thread does an
+		//event process - test will fail (timestamp check will fail since it is old due to suspension)
+		timestamp = args->max_delay ? time_current() + random_delay : 0;
 		memcpy( buffer, &timestamp, sizeof( tick_t ) );
-		event_post( args->stream, random32_range( 1, 65535 ), random32_range( timestamp ? 8 : 0, 256 ), args->id, buffer, timestamp );
+		event_post( args->stream, random_id, random_size, args->id, buffer, timestamp );
 		++produced;
 	} while( !thread_should_terminate( thread ) && ( time_current() < args->end_time ) );
 
@@ -444,6 +452,8 @@ DECLARE_TEST( event, delay_threaded )
 	stream = event_stream_allocate( 0 );
 	begintime = time_current();
 
+	thread_yield();
+
 	for( i = 0; i < num_threads; ++i )
 	{
 		args[i].stream = stream;
@@ -476,19 +486,26 @@ DECLARE_TEST( event, delay_threaded )
 
 		prevtime = begintime;
 		begintime = time_current();
+
+		thread_sleep( 1 );
+
 		block = event_stream_process( stream );
 		event = event_next( block, 0 );
 		curtime = time_current();
 
 		while( event )
 		{
+			char msgbuf[64];
+
 			running = true;
 			++read[ event->object ];
 			memcpy( &payloadtime, event->payload, sizeof( tick_t ) );
 
+			string_format_buffer( msgbuf, 64, "payload %llu - previous %llu (%dms)", payloadtime, prevtime, (int)( time_ticks_to_seconds( time_diff( prevtime, payloadtime ) ) * REAL_C(1000.0) ) );
+
 			EXPECT_GE( event_payload_size( event ), 8 );
 			EXPECT_LE( event_payload_size( event ), 256 );
-			EXPECT_GE( payloadtime, prevtime );
+			EXPECT_GE_MSG( payloadtime, prevtime, msgbuf );
 			EXPECT_GE( curtime, payloadtime );
 
 			event = event_next( block, event );
