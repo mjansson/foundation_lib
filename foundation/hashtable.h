@@ -12,39 +12,17 @@
 
 #pragma once
 
-/*! \file hashtable.h
-    Simple lock-free container mapping 32/64-bit keys to values. Fixed size, thread-safe.
-    Limitation are:
-     - Only maps 32/64 bit integers to 32/64 bit integers
-     - All keys must be non-zero
-     - Fixed maximum number of entries
-     - Only operations are get/set
-     - No delete operation (only set to zero)
-
-    TODO: Look into a lock-free implementation of hopscotch hashing (http://en.wikipedia.org/wiki/Hopscotch_hashing) */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! Allocate storage for a 32-bit hash table of given size
-    \param buckets                           Number of buckets
-    \return                                  Hash table object */
 FOUNDATION_API hashtable32_t*                hashtable32_allocate( unsigned int buckets );
-
-/*! Deallocate storage used by hash table
-    \param table                             Hash table object to deallocate */
 FOUNDATION_API void                          hashtable32_deallocate( hashtable32_t* table );
 
-/*! Set entry in hash table
-    \param table                             Hash table
-    \param key                               Key
-    \param value                             Value */
 FOUNDATION_API void                          hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value );
 FOUNDATION_API void                          hashtable32_erase( hashtable32_t* table, uint32_t key );
 FOUNDATION_API uint32_t                      hashtable32_get( hashtable32_t* table, uint32_t key );
-
 FOUNDATION_API unsigned int                  hashtable32_size( hashtable32_t* table );
-
 FOUNDATION_API void                          hashtable32_clear( hashtable32_t* table );
 
 
@@ -54,13 +32,11 @@ FOUNDATION_API void                          hashtable64_deallocate( hashtable64
 FOUNDATION_API void                          hashtable64_set( hashtable64_t* table, uint64_t key, uint64_t value );
 FOUNDATION_API void                          hashtable64_erase( hashtable64_t* table, uint64_t key );
 FOUNDATION_API uint64_t                      hashtable64_get( hashtable64_t* table, uint64_t key );
-
 FOUNDATION_API unsigned int                  hashtable64_size( hashtable64_t* table );
-
 FOUNDATION_API void                          hashtable64_clear( hashtable64_t* table );
 
 
-#if FOUNDATION_ARCH_POINTER_SIZE == 4
+#if FOUNDATION_SIZE_POINTER == 4
 
 #define hashtable_t             hashtable32_t
 #define hashtable_allocate      hashtable32_allocate

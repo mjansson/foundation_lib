@@ -1,4 +1,4 @@
-/* mathcore.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* math.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  * 
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -12,12 +12,6 @@
 
 #pragma once
 
-/*! \file math.h
-    Core math functionality, providing single entry points to common math
-    functions across platforms and floating point notations used (32 or 64 bit real numbers).
-
-    Increment/decrement and wrap functions from http://cellperformance.beyond3d.com/articles/2006/07/increment-and-decrement-wrapping-values.html */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 #include <foundation/assert.h>
@@ -30,417 +24,7 @@
 #endif
 
 
-/*! \def REAL_EPSILON
-    Epsilon value. This represents a small number close to zero that can be used for comparisons or thresholds. Roughly equals 100 floating point units at 1.0 */
-
-/*! \def REAL_MAX
-    Maximum finite number representable in the current real number format */
-
-/*! \def REAL_MIN
-    Minimum finite number representable in the current real number format */
-
-/*! \def REAL_ZERO
-    Constant zero (0.0) */
-
-/*! \def REAL_ONE
-    Constant one (1.0) */
-
-/*! \def REAL_TWO
-    Constant two (2.0) */
-
-/*! \def REAL_THREE
-    Constant three (3.0) */
-
-/*! \def REAL_FOUR
-    Constant four (4.0) */
-
-/*! \def REAL_HALF
-    Constant half (0.5) */
-
-/*! \def REAL_QUARTER
-    Constant quarter (0.25) */
-
-/*! \def REAL_PI
-    Constant pi (3.141592...) */
-
-/*! \def REAL_HALFPI
-    Constant half pi (1.570796...) */
-
-/*! \def REAL_TWOPI
-    Constant two pi (6.283185...) */
-
-/*! \def REAL_SQRT2
-    Constant square root of two (1.414213...) */
-
-/*! \def REAL_SQRT3
-    Constant square root of three (1.732050...) */
-
-/*! \def REAL_E
-    Constant number e (2.718281...) */
-
-/*! \def REAL_LOGN2
-    Constant natural logarithm of two (0.693147...) */
-
-/*! \def REAL_LOGN10
-    Constant natural logarithm of ten (2.302585...) */
-
-/*! \fn math_sin
-    Sine function
-    \param x                               Argument
-    \return                                Sine of argument */
-
-/*! \fn math_cos
-    Cosine function
-    \param x                               Argument
-    \return                                Cosine of argument */
-
-/*! \fn math_tan
-    Tangent function
-    \param x                               Argument
-    \return                                Tangent of argument */
-
-/*! \fn math_asin
-    ArcSine function
-    \param x                               Argument
-    \return                                Arcsine of argument */
-
-/*! \fn math_acos
-    Arccosine function
-    \param x                               Argument
-    \return                                Arccosine of argument */
-
-/*! \fn math_atan
-    Arctangent function
-    \param x                               Argument
-    \return                                Arctangent of argument */
-
-/*! \fn math_atan2
-    Calculate the angle in radians between the positive x-axis of a plane and the point given by the coordinates (x, y) on it. The angle is positive for counter-clockwise angles (upper half-plane, y > 0), and negative for clockwise angles (lower half-plane, y < 0).
-    \param x                               X coordinate
-    \param y                               Y coordinate
-    \return                                Angle in radians */
-
-/*! \fn math_sqrt
-    Square root function
-    \param x                               Argument
-    \return                                Square root of argument */
-
-/*! \fn math_rsqrt
-    Inverse squareroot (1/sqrt) function
-    \param x                               Argument
-    \return                                Inverse square root of argument */
-
-/*! \fn math_abs
-    Absolute function
-    \param x                               Argument
-    \return                                Absulute of argument */
-
-/*! \fn math_mod
-    Floating point modulo function
-    \param x                               Value
-    \param y                               Base
-    \return                                x modulo y */
-
-/*! \fn math_exp
-    Natural exponential function
-    \param x                               Argument
-    \return                                e^x */
-
-/*! \fn math_pow
-    Power (exponential) function
-    \param x                               Base
-    \param y                               Exponent
-    \return                                x^y */
-
-/*! \fn math_logn
-    Natural logarithm function
-    \param x                               Argument
-    \return                                Natural logarithm of argument */
-
-/*! \fn math_log2
-    Binary logarithm (base 2) function
-    \param x                               Argument
-    \return                                Binary logarithm of argument */
-
-/*! \fn math_floor
-    Floor (largest previous integer) function
-    \param x                               Argument
-    \return                                Largest integer not greater than x */
-
-/*! \fn math_ceil
-    Ceiling (smallest following integer) function
-    \param x                               Argument
-    \return                                Smallest integer greater than x */
-
-/*! \fn math_floor64
-    Floor (largest previous 64 bit integer) function
-    \param x                               Argument
-    \return                                Largest 64 bit integer not greater than x */
-
-/*! \fn math_ceil
-    Ceiling (smallest following 64 bit integer) function
-    \param x                               Argument
-    \return                                Smallest 64 bit integer greater than x */
-
-/*! \fn math_round
-    Round to nearest floating point function
-    \param x                               Argument
-    \return                                Argument rounded to nearest integer */
-
-/*! \fn math_trunc
-    Truncation (integral part) function
-    \param x                               Argument
-    \return                                Integral part of argument */
-
-/*! \fn math_align_poweroftwo
-    Calculate smallest greater power-of-two. Argument MUST be > 1 or results are undefined
-    \param x                               Argument (MUST be >1)
-    \return                                Smallest greater power-of-two (or x if it is a power-of-two) */
-
-/*! \fn math_is_poweroftwo
-    Query if power-of-two
-    \param x                               Argument
-    \return                                true if x is a power-of-two, false if not */
-
-/*! \fn math_align_up
-    Calculate smallest greater multiple of the given base
-    \param x                               Argument
-    \param alignment                       Alignment
-    \return                                Smallest greater multiple of the given alignment */
-
-/*! \fn math_smoothstep
-    Scalar interpolation function with zero first-order derivative at endpoints. smoothstep(t) = 3t^2 - 2t^3
-    \param t                               Argument in [0..1]
-    \return                                Smoothed value */
-
-/*! \fn math_smootherstep
-    Scalar interpolation function with zero first-order and second-order derivative at endpoints. smoothstep(t) = 6t^5 - 15t^4 + 10t^3
-    \param t                               Argument in [0..1]
-    \return                                Smoothed value */
-
-/*! \fn math_lerp
-    Linear interpolation function
-    \param t                               Interpolation factor in [0..1] range
-    \param x                               Start value
-    \param y                               End value
-    \return                                Linear interpolation, x + t * (y-x) */
-
-/*! \fn math_unlerp
-    Inverse linear interpolation function
-    \param v                               Current value
-    \param x                               Start value
-    \param y                               End value
-    \return                                Linear interpolation factor, t = (v-x) / (y-x) */
-
-/*! \fn math_linear_remap
-    Remap a value from source interval to destination interval
-    \param x                               Current value
-    \param xmin                            Start of source interval
-    \param xmax                            End of source interval
-    \param ymin                            Start of destination interval
-    \param ymax                            End of destination interval
-    \return                                Linear remapped value v = ymin + ((x-xmin) / (xmax-xmin)) * (ymax-ymin) */
-
-/*! \def math_clamp
-    Clamp value to interval. Note that as a macro it can evaluate arguments multiple times!
-    \param x                               Value to clamp
-    \param minval                          Start of interval
-    \param maxval                          End of interval
-    \return                                Value x clamped to [minval,maxval] interval */
-
-/*! \fn math_realeq
-    Compare two floats with epsilon tolerance expressed as number of adjacent float values
-    \param rval                            First float
-    \param lval                            Second float
-    \param ulps                            Number of float values in tolerance
-    \return                                True if float values are in tolerance range of eachother, false if not */
-
-/*! \fn math_realeqns
-    Compare two floats with epsilon tolerance expressed as number of adjacent float values. This
-    method (unlike math_realeq) is not sign safe, comparing -x to x for small values of x will yield incorrect results. Most notably will -0 and +0 not be equal.
-    \param rval                            First float
-    \param lval                            Second float
-    \param ulps                            Number of float values in tolerance
-    \return                                True if float values are in tolerance range of eachother, false if not */
-
-/*! \fn math_realzero
-    Test if float is near zero (within epsilon distance)
-    \param val                             Float
-    \return                                True if float is within epsilon distance of zero */
-
-/*! \fn math_realone
-    Test if float is near one (within epsilon distance)
-    \param val                             Float
-    \return                                True if float is within epsilon distance of one */
-
-/*! \fn math_realdec
-    Decrease a floating point value the given number of units
-    \param val                             Float
-    \param units                           Units
-    \return                                Resulting float */
-
-/*! \fn math_realinc
-    Increase a floating point value the given number of units
-    \param val                             Float
-    \param units                           Units
-    \return                                Resulting float */
-
-/*! \fn math_realisnan
-    Query if value is NaN
-    +NAN float: 0x7fc00000
-    -NAN float: 0x7fc00000
-    +NAN double: 0x7ff8000000000000
-    -NAN double: 0x7ff8000000000000
-    \param val                             Value
-    \return                                true if NaN, false if not */
-
-/*! \fn math_realisinf
-    Queryif value is infinite
-    +INF float: 0x7f800000
-    -INF float: 0x7f800000
-    +INF double: 0x7ff0000000000000
-    -INF double: 0x7ff0000000000000
-    \param val                             Value
-    \return                                true if infinite, false if not */
-
-/*! \fn math_realisuninitialized
-    Query if value is a compiler specific uninitialized value identifier
-    \param val                             Value
-    \return                                true if value is an uninitialized value, false if not */
-
-/*! \fn math_realisfinite
-    Query if value is finite (not NaN, inf or uninitialized)
-    \param val                             Value
-    \return                                true if finite, false if not */
-
-/*! \fn math_realisdenormalized
-    Query if value is denormalized
-    \param val                             Value
-    \return                                true if value is denormalized, false if not */
-
-/*! \fn math_realundenormalize
-    Un-denormalize a value
-    \param val                             Value
-    \return                                0 if value is denormalized, value if not */
-
-/*! \def FOUNDATION_ASSERT_FINITE
-    Assert that a value is finite
-    \param value                           Value */
-
-/*! \fn math_inc_wrap_uint8
-    Increment and wrap unsigned 8-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_inc_wrap_uint16
-    Increment and wrap unsigned 16-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_inc_wrap_uint32
-    Increment and wrap unsigned 32-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_inc_wrap_uint64
-    Increment and wrap unsigned 64-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_inc_wrap_int8
-    Increment and wrap signed 8-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_inc_wrap_int16
-    Increment and wrap signed 16-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_inc_wrap_int32
-    Increment and wrap signed 32-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_inc_wrap_int64
-    Increment and wrap signed 64-bit value inside given range
-    \param val                             Value to increment
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Incremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_uint8
-    Decrement and wrap unsigned 8-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_uint16
-    Decrement and wrap unsigned 16-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_uint32
-    Decrement and wrap unsigned 32-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_uint64
-    Decrement and wrap unsigned 64-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_int8
-    Decrement and wrap signed 8-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_int16
-    Decrement and wrap signed 16-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_int32
-    Decrement and wrap signed 32-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-/*! \fn math_dec_wrap_int64
-    Decrement and wrap signed 64-bit value inside given range
-    \param val                             Value to decrement
-    \param min                             Start of range
-    \param max                             End of range
-    \return                                Decremented and wrapped value inside range */
-
-
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 #define REAL_EPSILON                       0.00000000000002
 
@@ -533,7 +117,6 @@ static FORCEINLINE CONSTCALL real          math_realundenormalize( real val );
 #  define FOUNDATION_ASSERT_FINITE( value ) /*lint -save -e717 */ do { (void)sizeof( value ); } while(0) /*lint -restore */
 #endif
 
-// inc/dec with wrap, from http://cellperformance.beyond3d.com/articles/2006/07/increment-and-decrement-wrapping-values.html
 
 #define FOUNDATION_DECLARE_INCREMENT_AND_WRAP( suffix, type, signed_type, bit_mask ) \
 static FORCEINLINE CONSTCALL type math_inc_wrap_##suffix( const type val, const type min, const type max ); \
@@ -576,6 +159,7 @@ FOUNDATION_DECLARE_DECREMENT_AND_WRAP( int64, int64_t,  int64_t, 63ULL )
 #undef FOUNDATION_DECLARE_DECREMENT_AND_WRAP
 
 
+#ifndef FOUNDATION_PLATFORM_DOXYGEN
 // IMPLEMENTATIONS	
 
 static FORCEINLINE CONSTCALL unsigned int math_align_poweroftwo( unsigned int x )
@@ -627,7 +211,7 @@ static FORCEINLINE CONSTCALL real math_log2( real x ) { return math_logn( x ) * 
 
 #if FOUNDATION_COMPILER_MSVC
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 static FORCEINLINE real     math_sin( real x ) { return sin( x ); }
 static FORCEINLINE real     math_cos( real x ) { return cos( x ); }
@@ -706,7 +290,7 @@ static FORCEINLINE int64_t  math_ceil64( real x ) { return (int64_t)ceil( x ); }
 
 #elif FOUNDATION_COMPILER_INTEL
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 static FORCEINLINE real     math_sin( real x ) { return sin( x ); }
 static FORCEINLINE real     math_cos( real x ) { return cos( x ); }
@@ -771,7 +355,7 @@ static FORCEINLINE real     math_exp( real x ) { return __builtin_exp( x ); }
 static FORCEINLINE real     math_pow( real x, real y ) { return __builtin_pow( x, y ); }
 static FORCEINLINE real     math_logn( real x ) { return __builtin_log( x ); }
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 static FORCEINLINE int      math_floor( real x ) { return (int)__builtin_floor( x ); }
 static FORCEINLINE int      math_ceil( real x ) { return (int)__builtin_ceil( x ); }
@@ -806,7 +390,7 @@ static FORCEINLINE int      math_trunc( real x ) { return (int)__builtin_truncf(
 #endif
 
 
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 
 
 typedef union { int64_t ival; float64_t rval; } __real_convert;
@@ -941,7 +525,7 @@ static FORCEINLINE CONSTCALL bool math_realzero( real val )
 
 static FORCEINLINE CONSTCALL bool math_realone( real val )
 {
-#if 0 //BUILD_DEBUG
+#if 0
 	__real_convert ca;
 	int64_t ai, diff;
 	ca.rval = val;
@@ -1150,5 +734,7 @@ static FORCEINLINE CONSTCALL real math_realinc( real val, int units )
 	
 	return ca.rval;
 }
+
+#endif
 
 #endif

@@ -237,31 +237,31 @@ DECLARE_TEST( fs, query )
 	EXPECT_EQ( array_size( subdirs ), 1 );
 	string_array_deallocate( subdirs );
 
-	files = fs_matching_files( testpath, "*", false );
+	files = fs_matching_files( testpath, "^.*$", false );
 	EXPECT_EQ( array_size( files ), 8 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "*", true );
+	files = fs_matching_files( testpath, "^.*$", true );
 	EXPECT_EQ( array_size( files ), 9 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "*.0", false );
+	files = fs_matching_files( testpath, "^.*\\.0$", false );
 	EXPECT_EQ( array_size( files ), 1 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "*.0", true );
+	files = fs_matching_files( testpath, "^.*\\.0$", true );
 	EXPECT_EQ( array_size( files ), 2 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "*.1", false );
+	files = fs_matching_files( testpath, "^.*\\.1$", false );
 	EXPECT_EQ( array_size( files ), 1 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "*.1", true );
+	files = fs_matching_files( testpath, "^.*\\.1$", true );
 	EXPECT_EQ( array_size( files ), 1 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "*.?", true );
+	files = fs_matching_files( testpath, "^.*\\..$", true );
 	EXPECT_EQ( array_size( files ), 9 );
 	{
 		char* verifypath = string_from_int( subpathid, 0, 0 );
@@ -445,7 +445,7 @@ DECLARE_TEST( fs, monitor )
 	
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
-	
+
 	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
 		fs_make_directory( multisubtestpath[isub] );
@@ -467,7 +467,9 @@ DECLARE_TEST( fs, monitor )
 		while( ( event = event_next( block, event ) ) )
 		{
 			bool found = false;
-			EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
+			char eventstr[256];
+			string_format_buffer( eventstr, 256, "event %d:%d:%d:%d:%s", event->id, event->flags, event->serial, event->size, (const char*)event->payload );
+			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr );
 			
 			for( isub = 0; isub < MULTICOUNT; ++isub )
 			{

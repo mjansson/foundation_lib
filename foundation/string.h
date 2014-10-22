@@ -318,6 +318,7 @@ FOUNDATION_API void           wstring_from_string( wchar_t* str, const char* cst
 FOUNDATION_API void           wstring_deallocate( wchar_t* str );
 
 /*! Get length of a wide character string
+    \param str                Wide character string
     \return                   Length in number of wide characters (not bytes) */
 FOUNDATION_API unsigned int   wstring_length( const wchar_t* str );
 

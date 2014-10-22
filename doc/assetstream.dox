@@ -1,0 +1,16 @@
+
+/*!
+
+\file assetstream.h
+\brief Stream for Android application assets
+\details Stream for reading Android application assets
+
+
+\fn asset_stream_open
+\brief Open an Android application asset as a stream
+\details Open an Android application asset as a stream. Assets can only be read, not written.
+\param path Asset path within the package asset paths
+\param mode Open mode
+\return New stream, null if path not found or invalid mode
+
+*/

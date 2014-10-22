@@ -99,11 +99,12 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
-typedef struct
+struct crash_exception_closure_t
 {
 	crash_dump_callback_fn      callback;
 	const char*                 name;
-} crash_exception_closure_t;
+};
+typedef struct crash_exception_closure_t crash_exception_closure_t;
 
 //TODO: Set per-thread
 crash_exception_closure_t _crash_exception_closure;
@@ -167,7 +168,7 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 
 	crash_env_t guard_env = get_thread_crash_env();
 	if( guard_env )
-		siglongjmp( guard_env, CRASH_DUMP_GENERATED );
+		siglongjmp( guard_env, FOUNDATION_CRASH_DUMP_GENERATED );
 	else
 		log_warn( 0, WARNING_SUSPICIOUS, "No sigjmp_buf for thread" );
 }
@@ -191,7 +192,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #if BUILD_ENABLE_ERROR_CONTEXT
 		_error_context_clear();
 #endif	
-		return CRASH_DUMP_GENERATED;
+		return FOUNDATION_CRASH_DUMP_GENERATED;
 	}
 #  else
 	SetUnhandledExceptionFilter( _crash_exception_filter );

@@ -56,7 +56,7 @@ static void _random_seed_buffer( unsigned int* buffer )
 
 static unsigned int* _random_allocate_buffer( void )
 {
-	unsigned int* buffer = memory_allocate( sizeof( unsigned int ) * ( RANDOM_STATE_SIZE + 1 ), 0, MEMORY_PERSISTENT );
+	unsigned int* buffer = memory_allocate( 0, sizeof( unsigned int ) * ( RANDOM_STATE_SIZE + 1 ), 0, MEMORY_PERSISTENT );
 	_random_seed_buffer( buffer );
 	buffer[RANDOM_STATE_SIZE] = 0;
 	array_push( _random_state, buffer );
@@ -269,7 +269,7 @@ uint64_t random64_range( uint64_t low, uint64_t high )
 
 real random_normalized( void )
 {
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 	const real result = (real)random64() * ( REAL_C( 1.0 ) / REAL_C( 18446744073709551616.0L ) );
 #else
 	const real result = (real)random32() * ( REAL_C( 1.0 ) / REAL_C( 4294967296.0 ) );

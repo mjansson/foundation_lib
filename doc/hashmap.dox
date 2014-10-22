@@ -1,0 +1,66 @@
+
+/*!
+
+\file hashmap.h
+\brief Simple container mapping hash values to pointers
+\details Simple container mapping hash values to pointers. Access is not atomic
+and therefor not thread safe. For a thread safe alternative look at hashtable.h
+instead.
+
+
+\fn hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
+\brief Allocate hash map
+\details Allocate new hash map with the given bucket count and size. Minimum bucket
+count is 13, minimum bucket size is 8. Hash map should be deallocated with a call to
+#hashmap_deallocate
+\param buckets Bucket count
+\param bucketsize Bucket size
+\return New hash map
+
+\fn void hashmap_deallocate( hashmap_t* map )
+\brief Deallocate hash map
+\details Deallocate a hash map previously allocated with #hashmap_allocate
+\param map Hash map
+
+\fn void* hashmap_insert( hashmap_t* map, hash_t key, void* value )
+\brief Insert key-value mapping
+\details Insert a new key-value mapping. Will replace any previously stored mapping
+for the given key.
+\param map Hash map
+\param key Key
+\param value Value
+\return Previously stored value, 0 if no value previously stored for key
+
+\fn void* hashmap_erase( hashmap_t* map, hash_t key )
+\brief Erase key
+\details Erase any value mapping for the given key.
+\param map Hash map
+\param key Key
+\return Previously stored value, 0 if no value previously stored for key
+
+\fn void* hashmap_lookup( hashmap_t* map, hash_t key )
+\brief Lookup value
+\details Lookup the stored value mapping for the given key
+\param map Hash map
+\param key Key
+\return Stored value, 0 if no value stored for key
+
+\fn bool hashmap_has_key( hashmap_t* map, hash_t key )
+\brief Query if key present
+\details Query if there is any value mapping stored for the given key.
+\param map Hash map
+\param key Key
+\return true if there is a value mapping stored for the key, false if not
+
+\fn unsigned int hashmap_size( hashmap_t* map )
+\brief Get number of keys stored
+\details Get the number of key-value mappings stored in the hash map.
+\param map Hash map
+\return Number of keys stored
+
+\fn void hashmap_clear( hashmap_t* map )
+\brief Clear map
+\details Clear map and erase all key-value mappings.
+\param map Hash map
+
+*/

@@ -1,0 +1,129 @@
+
+/*!
+
+\file fs.h
+\brief File system operations
+\details File system operations acting on the local operating system file system. All paths
+are either absolute paths, or relative paths to the current working directory.
+Absolute paths can optionally contain a file protocol declarator (file://)
+
+Also provides an interface to monitor local file system changes through
+events on platforms supporting this.
+
+
+\fn stream_t* fs_open_file( const char* path, unsigned int mode )
+\brief Open file
+\details Open a file in the file system
+\param path                 File system path
+\param mode                 Open mode
+\return                     File stream, 0 if file not found
+
+\fn	void fs_copy_file( const char* source, const char* dest )
+\brief Copy file
+\details Copy source file to destination path in the file system, creating directories if needed
+\param source               Source file path
+\param dest                 Destination file path
+
+\fn bool fs_remove_file( const char* path )
+\brief Remove file
+\details Remove a file from the file system
+\param path                 Path
+\return                     true if file was removed, false if not
+
+\fn bool fs_is_file( const char* path )
+\brief Check if file exists
+\details Check if the given file exists in the file system
+\param path                 Path
+\return                     true if the file exists, false if not
+
+\fn bool fs_make_directory( const char* path )
+\brief Create path
+\brief Create path in the file system. Will recursively create directories
+making up the path
+\param path                 Path in real file system to create
+\return                     true if success, false if not
+
+\fn bool fs_remove_directory( const char* path )
+\brief Remove path
+\details Remove a directory recursively from the file system
+\param path                 Path
+\return                     true if directory was removed, false if not
+
+\fn bool fs_is_directory( const char* path )
+\brief Check if path exists
+\details Check if the given directory exists in the file system
+\param path                 Path
+\return                     true if the directory exists, false if not
+
+\fn uint64_t fs_last_modified( const char* path )
+\brief Get last modification time
+\details Get last modification time (last write) in milliseconds since the epoch (UNIX time)
+\param path                 File path
+\return                     File modification time, 0 if not an existing file
+
+\fn void fs_touch( const char* path )
+\brief Touch file
+\details Touch file and update modification date
+\param path                 File path
+
+\fn uint128_t fs_md5( const char* path )
+\brief Get file MD5 digest
+\details Get file MD5 digest. Will read and digest the file contents on each call
+of this function (slow)
+\param path                 File path
+\return                     md5 digest, 0 if not an existing file or unreadable
+
+\fn char** fs_matching_files( const char* path, const char* pattern, bool recurse )
+\brief Get matching files
+\details Get files matching the given pattern. The pattern should be a regular
+expression supported by the regex parser in the library (see regex.h documentation).
+For example, to find all files with a given extension ".ext", use the regex "^.*\\.ext$"
+Free the returned array with #string_array_deallocate
+\param path                 File path
+\param pattern              File name pattern
+\param recurse              Recursion flag
+\return                     Array of matching file names
+
+\fn char** fs_files( const char* path )
+\brief Get files
+\details Get files in the given directory path. Free the returned
+array with #string_array_deallocate
+\param path                 Path of directory
+\return                     Array of file names
+
+\fn char** fs_subdirs( const char* path )
+\brief Get subdirectories
+\details Get subdirectories in the given directory path. Free the returned
+array with #string_array_deallocate
+\param path                 Path of directory
+\return                     Array of subdirectory names
+
+\fn void fs_monitor( const char* path )
+\brief Monitor file system changes
+\details Monitor the path (recursive) for file system changes. Changes are
+notified as file system events in the event stream returned by #fs_event_stream
+\param path                 File system path
+
+\fn void fs_unmonitor( const char* path )
+\brief Stop file system monitor
+\details Stop monitoring the path (recursive) for file system changes
+\param path                 File system path
+
+\fn stream_t* fs_temporary_file( void )
+\brief Create temporary file
+\details Create a temporary file
+\return                     Temporary file
+
+\fn void fs_post_event( foundation_event_id id, const char* path, unsigned int pathlen )
+\brief Post file event
+\details Post a file event
+\param id                   Event id
+\param path                 Path
+\param pathlen              Length of path
+
+\fn event_stream_t* fs_event_stream( void )
+\brief Get file system event stream
+\details Get file system event stream
+\return                     File system event stream
+
+*/

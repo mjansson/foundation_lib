@@ -11,6 +11,44 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
+
+
+FOUNDATION_STATIC_ASSERT( ALIGNOF(object_base_t) >= 8, failed_object_align );
+FOUNDATION_STATIC_ASSERT( ALIGNOF(objectmap_t) >= 8, failed_objectmap_align );
+
+
+void _object_initialize( object_base_t* obj, object_t id )
+{
+	obj->id = id;
+	atomic_store32( &obj->ref, 1 );
+}
+
+
+object_t _object_ref( object_base_t* obj )
+{
+	int32_t ref;
+	if( obj ) do
+	{
+		ref = atomic_load32( &obj->ref );
+		if( ( ref > 0 ) && atomic_cas32( &obj->ref, ref + 1, ref ) )
+			return obj->id;
+	} while( ref > 0 );
+	return 0;
+}
+
+
+object_t _object_unref( object_base_t* obj )
+{
+	int32_t ref;
+	if( obj ) do
+	{
+		ref = atomic_load32( &obj->ref );
+		if( ( ref > 0 ) && atomic_cas32( &obj->ref, ref - 1, ref ) )
+			return ( ref == 1 ) ? 0 : obj->id;
+	} while( ref > 0 );
+	return 0;
+}
 
 
 objectmap_t* objectmap_allocate( unsigned int size )
@@ -28,7 +66,7 @@ objectmap_t* objectmap_allocate( unsigned int size )
 	FOUNDATION_ASSERT_MSGFORMAT( bits < 50, "Invalid objectmap size %d", size );
 
 	//Top two bits unused for Lua compatibility
-	map = memory_allocate_zero( sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 16, MEMORY_PERSISTENT );
+	map = memory_allocate( 0, sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	map->size_bits   = bits;
 	map->id_max      = ((1ULL<<(62ULL-bits))-1);
 	map->size        = size;
@@ -154,5 +192,50 @@ void objectmap_set( objectmap_t* map, object_t id, void* object )
 	if( !map->map[idx] )
 		map->map[idx] = object;
 	/*lint +esym(613,pool) */
+}
+
+
+void* objectmap_lookup_ref( const objectmap_t* map, object_t id )
+{
+	void* object;
+	do
+	{
+		object = map->map[ id & map->mask_index ];
+		if( object && !( (uintptr_t)object & 1 ) &&
+		   ( ( *( (uint64_t*)object + 1 ) & map->mask_id ) == ( id & map->mask_id ) ) ) //ID in object is offset by 8 bytes
+		{
+			object_base_t* base_obj = object;
+			int32_t ref = atomic_load32( &base_obj->ref );
+			if( ref && atomic_cas32( &base_obj->ref, ref + 1, ref ) )
+				return object;
+		}
+	} while( object );
+	return 0;
+}
+
+
+bool objectmap_lookup_unref( const objectmap_t* map, object_t id, object_deallocate_fn deallocate )
+{
+	void* object;
+	do
+	{
+		object = map->map[ id & map->mask_index ];
+		if( object && !( (uintptr_t)object & 1 ) &&
+		   ( ( *( (uint64_t*)object + 1 ) & map->mask_id ) == ( id & map->mask_id ) ) ) //ID in object is offset by 8 bytes
+		{
+			object_base_t* base_obj = object;
+			int32_t ref = atomic_load32( &base_obj->ref );
+			if( ref && atomic_cas32( &base_obj->ref, ref - 1, ref ) )
+			{
+				if( ref == 1 )
+				{
+					deallocate( id, object );
+					return false;
+				}
+				return true;
+			}
+		}
+	} while( object );
+	return false;
 }
 

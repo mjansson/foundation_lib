@@ -20,7 +20,9 @@
 #import <Foundation/NSBundle.h>
 
 extern CFStringRef NSHomeDirectory(void);
+extern CFStringRef NSTemporaryDirectory(void);
 extern void _environment_ns_home_directory( char* );
+extern void _environment_ns_temporary_directory( char* );
 
 
 void environment_bundle_identifier( char* target, unsigned int maxlength )
@@ -38,6 +40,16 @@ void _environment_ns_home_directory( char* buffer )
 	@autoreleasepool
 	{
 		CFStringRef home = NSHomeDirectory();
+		CFStringGetCString( home, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+	}
+}
+
+
+void _environment_ns_temporary_directory( char* buffer )
+{
+	@autoreleasepool
+	{
+		CFStringRef home = NSTemporaryDirectory();
 		CFStringGetCString( home, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
 	}
 }

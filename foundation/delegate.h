@@ -12,25 +12,23 @@
 
 #pragma once
 
-/*! \file delegate.h
-    Application delegate and entry points for OSX & iOS */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 #include <foundation/apple.h>
 
 
-/*! \fn delegate_start_main_ns_thread
-    Start the main thread as a separate thread. The process entry thread will go on
-    and run the main Cocoa event loop. */
-
-#if FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
 FOUNDATION_API void delegate_start_main_ns_thread( void );
 FOUNDATION_API void delegate_reference_classes( void );
 
+#endif
+
+
 #if FOUNDATION_PLATFORM_MACOSX
+
+FOUNDATION_API void* delegate_nswindow( void );
 
 #ifdef __OBJC__
 
@@ -44,12 +42,12 @@ FOUNDATION_API void delegate_reference_classes( void );
 
 #endif
 
-/*! Get the window associated with the application delegate
-    \return Window */
-FOUNDATION_API void* delegate_nswindow( void );
+#endif
 
 
-#elif FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS
+
+FOUNDATION_API void* delegate_uiwindow( void );
 
 #ifdef __OBJC__
 
@@ -68,10 +66,5 @@ FOUNDATION_API void* delegate_nswindow( void );
 
 #endif
 
-/*! Get the window associated with the application delegate
-    \return Window */
-FOUNDATION_API void* delegate_uiwindow( void );
-
 #endif
 
-#endif

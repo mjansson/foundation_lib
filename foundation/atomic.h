@@ -12,18 +12,6 @@
 
 #pragma once
 
-/*! \file atomic.h
-    Atomic operations and memory fences. For an excellent source of information on memory models, atomic
-    instructions and memory barrier/fences, go to http://mintomic.github.io/lock-free/memory-model/ and/or
-    http://en.cppreference.com/w/cpp/atomic/memory_order
-
-    Atomic operations provide a means to atomically load, store and perform basic operations to a 32/64 bit data
-    location. On Windows all atomic store/modify functions also provide a full memory fence (both acquire and release).
-
-    Signal fences guarantee memory order between threads on same core or between interrupt and signal.
-
-    Thread fences guarantee memory order between multiple threads on a multicore system */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
@@ -42,125 +30,36 @@ FOUNDATION_API bool     __foundation_sync_bool_compare_and_swap_8( uint64_t* val
 #endif
 
 
-/*! Atomically load the value
-    \param src                  Value
-    \return                     Current value */
 static FORCEINLINE int32_t      atomic_load32( atomic32_t* src );
-
-/*! Atomically load the value
-    \param src                  Value
-    \return                     Current value */
 static FORCEINLINE int64_t      atomic_load64( atomic64_t* src );
-
-/*! Atomically load the value
-    \param src                  Value
-    \return                     Current value */
 static FORCEINLINE void*        atomic_loadptr( atomicptr_t* src );
 
-/*! Atomically store the value
-    \param dst                  Target
-    \param val                  Value to store */
 static FORCEINLINE void         atomic_store32( atomic32_t* dst, int32_t val );
-
-/*! Atomically store the value
-    \param dst                  Target
-    \param val                  Value to store */
 static FORCEINLINE void         atomic_store64( atomic64_t* dst, int64_t val );
-
-/*! Atomically store the value
-    \param dst                  Target
-    \param val                  Value to store */
 static FORCEINLINE void         atomic_storeptr( atomicptr_t* dst, void* val );
 
-/*! Atomically add to the value of the integer and returns its old value
-    \param val                  Value to change
-    \param add                  Value to add
-    \return                     Old value before addition */
 static FORCEINLINE int32_t      atomic_exchange_and_add32( atomic32_t* val, int32_t add );
-
-/*! Atomically add to the value of the integer and returns its new value
-	\param val                  Value to change
-	\param add                  Value to add
-	\return                     New value after addition */
-static FORCEINLINE int32_t      atomic_add32( atomic32_t* val, int32_t add );
-
-/*! Atomically increases the value of the integer and returns its new value
-	\param val                  Value to change
-	\return                     New value after addition */
-static FORCEINLINE int32_t      atomic_incr32( atomic32_t* val );
-
-/*! Atomically decreases the value of the integer and returns its new value
-	\param val                  Value to change
-	\return                     New value after addition */
-static FORCEINLINE int32_t      atomic_decr32( atomic32_t* val );
-
-/*! Atomically add to the value of the integer and returns its old value
-    \param val                  Value to change
-    \param add                  Value to add
-    \return                     Old value before addition */
 static FORCEINLINE int64_t      atomic_exchange_and_add64( atomic64_t* val, int64_t add );
 
-/*! Atomically add to the value of the integer and returns its new value
-    \param val                  Value to change
-    \param add                  Value to add
-	\return                     New value after addition */
+static FORCEINLINE int32_t      atomic_add32( atomic32_t* val, int32_t add );
 static FORCEINLINE int64_t      atomic_add64( atomic64_t* val, int64_t add );
 
-/*! Atomically increases the value of the integer and returns its new value
-    \param val                  Value to change
-	\return                     New value after addition */
+static FORCEINLINE int32_t      atomic_incr32( atomic32_t* val );
 static FORCEINLINE int64_t      atomic_incr64( atomic64_t* val );
 
-/*! Atomically decreases the value of the integer and returns its new value
-    \param val                  Value to change
-	\return                     New value after addition */
+static FORCEINLINE int32_t      atomic_decr32( atomic32_t* val );
 static FORCEINLINE int64_t      atomic_decr64( atomic64_t* val );
 
-/*! Atomically compare and swap (CAS). The value in the destination location is compared to the reference
-    value, and if equal the new value is stored in the destination location.
-    \param dst                  Value to change
-    \param val                  Value to set
-    \param ref                  Reference value
-    \return                     true if operation was successful (new value stored), false if not */
 static FORCEINLINE bool         atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref );
-
-/*! Atomically compare and swap (CAS). The value in the destination location is compared to the reference
-    value, and if equal the new value is stored in the destination location.
-    \param dst                  Value to change
-    \param val                  Value to set
-    \param ref                  Reference value
-    \return                     true if operation was successful (new value stored), false if not */
 static FORCEINLINE bool         atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref );
-
-/*! Atomically compare and swap (CAS). The value in the destination location is compared to the reference
-    value, and if equal the new value is stored in the destination location.
-    \param dst                  Value to change
-    \param val                  Value to set
-    \param ref                  Reference value
-    \return                     true if operation was successful (new value stored), false if not */
 static FORCEINLINE bool         atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref );
 
-/*! Signal fence to make prior writes to other memory locations visible. Implemented as a compile
-    barrier on all supported platforms */
 static FORCEINLINE void         atomic_signal_fence_acquire( void );
-
-/*! Signal fence to make prior writes to other memory locations visible to functions doing a
-    acquire fence. Implemented as a compile barrier on all supported platforms */
 static FORCEINLINE void         atomic_signal_fence_release( void );
-
-/*! Signal fence combining acquire and release order as well as providing a single total order
-    on all sequentially consistent fences. Implemented as a compile barrier on all supported platforms */
 static FORCEINLINE void         atomic_signal_fence_sequentially_consistent( void );
 
-/*! Thread fence making prior writes made to other memory locations done by a thread doing a release
-    fance visible to the calling thread. */
 static FORCEINLINE void         atomic_thread_fence_acquire( void );
-
-/*! Thread fence making prior writes visible to other thread to do an acquire fence. */
 static FORCEINLINE void         atomic_thread_fence_release( void );
-
-/*! Thread fence combining an acquire and release fence as well as enforcing a single total order
-on all sequentially consistent fences. */
 static FORCEINLINE void         atomic_thread_fence_sequentially_consistent( void );
 
 
@@ -359,9 +258,9 @@ static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref 
 
 static FORCEINLINE bool atomic_cas_ptr( atomicptr_t* dst, void* val, void* ref )
 {
-#  if FOUNDATION_ARCH_POINTER_SIZE == 8
+#  if FOUNDATION_SIZE_POINTER == 8
 	return atomic_cas64( (atomic64_t*)dst, (int64_t)(uintptr_t)val, (int64_t)(uintptr_t)ref );
-#  elif FOUNDATION_ARCH_POINTER_SIZE == 4
+#  elif FOUNDATION_SIZE_POINTER == 4
 	return atomic_cas32( (atomic32_t*)dst, (int32_t)(uintptr_t)val, (int32_t)(uintptr_t)ref );
 #  else
 #    error Unknown architecture (pointer size)
@@ -409,10 +308,15 @@ static FORCEINLINE void atomic_thread_fence_sequentially_consistent( void ) {}
 
 #define atomic_thread_fence_acquire() __asm volatile("" ::: "memory")
 #define atomic_thread_fence_release() __asm volatile("" ::: "memory")
-#    if FOUNDATION_ARCH_X86
+
+#    if FOUNDATION_ARCH_MIPS
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("sync" ::: "memory")
+#    elif FOUNDATION_ARCH_X86_64
 #define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%rsp)" ::: "memory")
-#    else
+#    elif FOUNDATION_ARCH_X86
 #define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%esp)" ::: "memory")
+#    else
+#error atomic_thread_fence_sequentially_consistent not implemented for architecture
 #    endif
 
 #  endif

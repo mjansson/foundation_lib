@@ -12,82 +12,15 @@
 
 #pragma once
 
-/*! \file assert.h
-    Extended assert macros and callback handling. Assert enabling/disabling is controlled by build settings
-    in build.h, where disabling asserts will replace the code with a null or static statement (depending on
-    the type of assert). */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 #include <foundation/crash.h>
 
 
-/*! Get the currently set global assert handler
-    \return                         Assert handler */
 FOUNDATION_API assert_handler_fn    assert_handler( void );
-
-/*! Set the current global assert handler. This will be called for each
-    triggered assert and thus needs to be thread safe. Set to null to
-    disable assert callbacks and use the default behaviour.
-    \param new_handler              New global assert handler
-	\see assert_handler_fn
-	\see assert_report */
 FOUNDATION_API void                 assert_set_handler( assert_handler_fn new_handler );
-
-/*! Report assert to the global assert handler. If the global assert handler is set
-    to null use the default behaviour, which is to print the assert report
-    to the log (error level) and popup a system message box for UI applications.
-    \param context                  Log context
-    \param condition                Assert condition expression
-    \param file                     Source file triggering assert
-    \param line                     Line number triggering assert
-    \param msg                      Assert information message */
 FOUNDATION_API int                  assert_report( uint64_t context, const char* condition, const char* file, int line, const char* msg );
-
-/*! Report assert with a formatted message.
-    \see assert_report
-	\param context                  Log context
-	\param condition                Assert condition expression
-	\param file                     Source file triggering assert
-	\param line                     Line number triggering assert
-	\param msg                      Assert information message format specifier */
 FOUNDATION_API int                  assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... );
-
-/*! \def FOUNDATION_ASSERT
-    Assert the given condition. If assert fails, call the assert report callback without a message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
-
-/*! \def FOUNDATION_ASSERT_MSG
-    Assert the given condition. If assert fails, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
-
-/*! \def FOUNDATION_ASSERT_MSGFORMAT
-    Assert the given condition. If assert fails, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
-
-/*! \def FOUNDATION_ASSERT_FAIL
-    Statically fail assert, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
-
-/*! \def FOUNDATION_ASSERT_FAIL_LOG
-    Statically fail assert, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). If asserts are not enabled in build config the message will be logged as an error in the given log context */
-
-/*! \def FOUNDATION_ASSERT_FAILFORMAT
-    Statically fail assert, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT) */
-
-/*! \def FOUNDATION_ASSERT_FAILFORMAT_LOG
-    Statically fail assert, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). If asserts are not enabled in build config the formatted message will be logged as an error in the given log context */
-
-/*! \def FOUNDATION_ASSERT_ALIGNMENT
-    Assert that the given memory address has the given alignment */
-
-/*! \def FOUNDATION_ASSERT_PLATFORM_ALIGNMENT
-    Assert that the given memory address has the given alignment if the platform requires specific alignments for some data types */
-
-/*! \def FOUNDATION_VALIDATE
-    Assert the given condition. If assert fails, call the assert report callback without a message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). The value of the validate expression will be true if condition is true and false if the condition fails, even if asserts are disabled in the build config. This allows constructs such as if( !FOUNDATION_VALIDATE( condition ) ) return; to remain safe and properly evaluated even when asserts are statically disabled. */
-
-/*! \def FOUNDATION_VALIDATE_MSG
-    Assert the given condition. If assert fails, call the assert report callback with the given message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). The value of the validate expression will be true if condition is true and false if the condition fails, even if asserts are disabled in the build config. This allows constructs such as if( !FOUNDATION_VALIDATE_MSG( condition, "message" ) ) return; to remain safe and properly evaluated even when asserts are statically disabled. */
-
-/*! \def FOUNDATION_VALIDATE_MSGFORMAT
-    Assert the given condition. If assert fails, call the assert report callback with the given formatted message and optionally (depending on callback) cause a breakpoint (FOUNDATION_BREAKPOINT). The value of the validate expression will be true if condition is true and false if the condition fails, even if asserts are disabled in the build config. This allows constructs such as if( !FOUNDATION_VALIDATE_MSGFORMAT( condition, "%s", message ) ) return; to remain safe and properly evaluated even when asserts are statically disabled. */
 
 #if BUILD_ENABLE_ASSERT
 

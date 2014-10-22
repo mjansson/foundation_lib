@@ -34,14 +34,14 @@ static void* event_thread( object_t thread, void* arg )
 			switch( event->id )
 			{
 				case FOUNDATIONEVENT_START:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 					log_infof( HASH_TEST, "Application start event received" );
 					_test_should_start = true;
 #endif
 					break;
 					
 				case FOUNDATIONEVENT_TERMINATE:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 					log_infof( HASH_TEST, "Application terminate event received" );
 					_test_should_terminate = true;
 #else
@@ -173,9 +173,18 @@ int main_run( void* main_arg )
 		thread_sleep( 10 );
 	
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
-	
 	while( !_test_should_start )
-		thread_sleep( 10 );
+	{
+#if FOUNDATION_PLATFORM_ANDROID
+		system_process_events();
+#endif
+		thread_sleep( 100 );
+	}
+#endif
+
+	fs_remove_directory( environment_temporary_directory() );
+	
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	
 	test_run_fn tests[] = {
 		//test_app_run
@@ -216,7 +225,9 @@ int main_run( void* main_arg )
 	
 	object_t test_thread = thread_create( test_runner, "test_runner", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( test_thread, tests );
-	
+
+	log_infof( HASH_TEST, "Starting test runner thread" );
+
 	while( !thread_is_running( test_thread ) )
 	{
 		system_process_events();
@@ -259,11 +270,11 @@ int main_run( void* main_arg )
 	
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
-	pattern = "test-*.exe";
+	pattern = "^test-.*.exe$";
 #elif FOUNDATION_PLATFORM_MACOSX
-	pattern = "test-*";
+	pattern = "^test-.*";
 #elif FOUNDATION_PLATFORM_POSIX
-	pattern = "test-*";
+	pattern = "^test-.*";
 #else
 #  error Not implemented
 #endif

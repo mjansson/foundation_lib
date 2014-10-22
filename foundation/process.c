@@ -39,7 +39,7 @@
 
 static int _process_exit_code = 0;
 
-struct _foundation_process
+struct process_t
 {
 	//! Working directory
 	char*                                   wd;
@@ -79,7 +79,7 @@ struct _foundation_process
 
 process_t* process_allocate()
 {
-	process_t* proc = memory_allocate_zero( sizeof( process_t ), 0, MEMORY_PERSISTENT );
+	process_t* proc = memory_allocate( 0, sizeof( process_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	proc->flags = PROCESS_ATTACHED;
 	return proc;
 }
@@ -358,7 +358,7 @@ int process_spawn( process_t* proc )
 		
 		LSApplicationParameters params;
 		ProcessSerialNumber psn;
-		FSRef* fsref = memory_allocate_zero( sizeof( FSRef ), 0, MEMORY_TEMPORARY );
+		FSRef* fsref = memory_allocate( 0, sizeof( FSRef ), 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 		
 		memset( &params, 0, sizeof( LSApplicationParameters ) );
 		memset( &psn, 0, sizeof( ProcessSerialNumber ) );

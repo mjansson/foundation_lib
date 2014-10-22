@@ -38,6 +38,7 @@ static char*   _environment_var = 0;
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
 extern void _environment_ns_home_directory( char* );
+extern void _environment_ns_temporary_directory( char* );
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -287,7 +288,7 @@ const char* environment_current_working_directory( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
-		wchar_t* wd = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+		wchar_t* wd = memory_allocate( 0, sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 		GetCurrentDirectoryW( FOUNDATION_MAX_PATHLEN-1, wd );
 		path = path_clean( string_allocate_from_wstring( wd, 0 ), true );
 		string_copy( _environment_current_working_dir, path, FOUNDATION_MAX_PATHLEN );
@@ -296,7 +297,7 @@ const char* environment_current_working_directory( void )
 		memory_deallocate( wd );
 	}
 #elif FOUNDATION_PLATFORM_POSIX
-	char* path = memory_allocate_zero( FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+	char* path = memory_allocate( 0, FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
 	{
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to get cwd: %s", system_error_message( 0 ) );
@@ -341,7 +342,7 @@ const char* environment_home_directory( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
-		wchar_t* wpath = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+		wchar_t* wpath = memory_allocate( 0, sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 		SHGetFolderPathW( 0, CSIDL_LOCAL_APPDATA, 0, 0, wpath );
 		path = path_clean( string_allocate_from_wstring( wpath, 0 ), true );
 		string_copy( _environment_home_dir, path, FOUNDATION_MAX_PATHLEN );
@@ -387,7 +388,7 @@ const char* environment_temporary_directory( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		char* path;
-		wchar_t* wpath = memory_allocate_zero( sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY );
+		wchar_t* wpath = memory_allocate( 0, sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 		GetTempPathW( FOUNDATION_MAX_PATHLEN, wpath );
 		path = path_clean( string_allocate_from_wstring( wpath, 0 ), true );
 		string_copy( _environment_temp_dir, path, FOUNDATION_MAX_PATHLEN );
@@ -426,7 +427,13 @@ const char* environment_temporary_directory( void )
 			string_deallocate( temp_path );
 		}
 	}
-#endif	
+#endif
+#if FOUNDATION_PLATFORM_APPLE
+	if( !_environment_temp_dir[0] )
+	{
+		_environment_ns_temporary_directory( _environment_temp_dir );
+	}
+#endif
 #if FOUNDATION_PLATFORM_POSIX
 	if( !_environment_temp_dir[0] )
 	{
@@ -436,18 +443,24 @@ const char* environment_temporary_directory( void )
 			_environment_temp_dir[ len - 1 ] = 0;
 	}
 #endif
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	if( _environment_app.config_dir )
 	{
 		unsigned int curlen = string_length( _environment_temp_dir );
 		unsigned int cfglen = string_length( _environment_app.config_dir );
 		if( ( curlen + cfglen + 2 ) < FOUNDATION_MAX_PATHLEN )
 		{
-			_environment_temp_dir[curlen] = '/';
-			memcpy( _environment_temp_dir + curlen + 1, _environment_app.config_dir, cfglen + 1 );
+			if( _environment_temp_dir[curlen-1] != '/' )
+				_environment_temp_dir[curlen++] = '/';
+			memcpy( _environment_temp_dir + curlen, _environment_app.config_dir, cfglen + 1 );
 		}
 	}
 #endif
+	{
+		unsigned int curlen = string_length( _environment_temp_dir );
+		if( _environment_temp_dir[curlen-1] == '/' )
+			_environment_temp_dir[curlen-1] = 0;
+	}
 	return _environment_temp_dir;
 }
 
@@ -460,7 +473,7 @@ const char* environment_variable( const char* var )
 	wchar_t val[FOUNDATION_MAX_PATHLEN]; val[0] = 0;
 	if( ( required = GetEnvironmentVariableW( key, val, FOUNDATION_MAX_PATHLEN ) ) > FOUNDATION_MAX_PATHLEN )
 	{
-		wchar_t* val_local = memory_allocate( sizeof( wchar_t ) * ( required + 2 ), 0, MEMORY_TEMPORARY );
+		wchar_t* val_local = memory_allocate( 0, sizeof( wchar_t ) * ( required + 2 ), 0, MEMORY_TEMPORARY );
 		val_local[0] = 0;
 		GetEnvironmentVariableW( key, val_local, required + 1 );
 		if( _environment_var )

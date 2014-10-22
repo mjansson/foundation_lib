@@ -14,28 +14,30 @@
 #include <foundation/internal.h>
 
 
-typedef struct _foundation_hashtable32_entry
+struct hashtable32_entry_t
 {
 	atomic32_t   key;
 	uint32_t     value;
-} hashtable32_entry_t;
+};
+typedef struct hashtable32_entry_t hashtable32_entry_t;
 
 
-typedef struct _foundation_hashtable64_entry
+struct hashtable64_entry_t
 {
 	atomic64_t   key;
 	uint64_t     value;
-} hashtable64_entry_t;
+};
+typedef struct hashtable64_entry_t hashtable64_entry_t;
 
 
-struct ALIGN(8) _foundation_hashtable32
+struct ALIGN(8) hashtable32_t
 {
 	uint32_t                        capacity;
 	ALIGN(8) hashtable32_entry_t    entries[];
 };
 
 
-struct ALIGN(8) _foundation_hashtable64
+struct ALIGN(8) hashtable64_t
 {
 	uint64_t                        capacity;
 	ALIGN(8) hashtable64_entry_t    entries[];
@@ -68,7 +70,7 @@ static FORCEINLINE uint64_t _hashtable64_hash( uint64_t key )
 
 hashtable32_t* hashtable32_allocate( unsigned int buckets )
 {
-	hashtable32_t* table = (hashtable32_t*)memory_allocate_zero( sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+	hashtable32_t* table = (hashtable32_t*)memory_allocate( 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	table->capacity = buckets;
 	return table;
 }
@@ -137,10 +139,7 @@ void hashtable32_erase( hashtable32_t* table, uint32_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable erase looped, not found" );
 			return;
-		}
 	} while( true );
 }
 
@@ -165,10 +164,7 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable get looped, not found" );
 			return 0;
-		}
 	} while( true );
 
 	return 0;
@@ -206,7 +202,7 @@ void hashtable32_clear( hashtable32_t* table )
 
 hashtable64_t* hashtable64_allocate( unsigned int buckets )
 {
-	hashtable64_t* table = (hashtable64_t*)memory_allocate_zero( sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+	hashtable64_t* table = (hashtable64_t*)memory_allocate( 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	table->capacity = buckets;
 	return table;
 }
@@ -275,10 +271,7 @@ void hashtable64_erase( hashtable64_t* table, uint64_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable erase looped, not found" );
 			return;
-		}
 	} while( true );
 }
 
@@ -303,10 +296,7 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 
 		ie = ( ie + 1 ) % table->capacity;
 		if( ie == eend )
-		{
-			FOUNDATION_ASSERT( "Hashtable get looped, not found" );
 			return 0;
-		}
 	} while( true );
 
 	return 0;

@@ -1,0 +1,361 @@
+
+/*!
+
+\file stream.h
+\brief Stream I/O
+\details Base abstraction of I/O streams.
+
+
+\fn stream_t* stream_open( const char* path, unsigned int mode )
+\brief Open stream
+\details Open stream.
+\param path Path
+\param mode Open mode (read, write, ...), see #stream_mode_t
+\return New stream, null if error or invalid path/mode
+
+\fn stream_t* stream_clone( stream_t* stream )
+\brief Clone stream
+\details Clone a stream (if supported by stream type).
+\param stream Stream
+\return Cloned stream, null if not clonable
+
+\fn void stream_deallocate( stream_t* stream )
+\brief Deallocate stream
+\details Deallocate stream
+\param stream Stream
+
+\fn int64_t stream_tell( stream_t* stream )
+\brief Get position
+\details Read current stream position..
+\param stream Stream
+\return Position in stream, -1 if error (invalid stream)
+
+\fn void stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
+\brief Reposition stream
+\details Reposition the stream position according to offset and direction.
+Sequential streams can only be repositioned with a positive offset
+and #STREAM_SEEK_CURRENT direction.
+\param stream Stream
+\param offset Offset in bytes
+\param direction Seek direction, see #stream_seek_mode_t
+
+\fn bool stream_eos( stream_t* stream )
+\brief Query if at end
+\details Query if the stream is at the end
+\param stream Stream
+\return true if at end of stream, false if not
+
+\fn void stream_set_byteorder( stream_t* stream, byteorder_t byteorder )
+\brief Set byte order
+\details Set byte order of stream data. Only used in binary mode I/O.
+\param stream Stream
+\param byteorder New byte order
+
+\fn void stream_set_binary( stream_t* stream, bool binary )
+\brief Set binary mode
+\details Set binary mode of stream
+\param stream Stream
+\param binary Binary if true, ASCII if false
+
+\fn bool stream_is_binary( const stream_t* stream )
+\brief Query if binary
+\details Query if stream is in binary mode
+\param stream Stream
+\return True if binary, false if ASCII
+
+\fn bool stream_is_sequential( const stream_t* stream )
+\brief Query if sequential
+\details Query if stream is sequential (only forward seeking possible). Network streams are
+generally sequential.
+\param stream Stream
+\return true if stream is sequential, false if random access capable
+
+\fn bool stream_is_reliable( const stream_t* stream )
+\brief Query if reliable
+\details Query if stream is reliable (data written guaranteed to be readable). Network streams
+over an UDP socket are unreliable.
+\param stream Stream
+\return true if stream is reliable, false if unreliable
+
+\fn bool stream_is_inorder( const stream_t* stream )
+\brief Query if in-order
+\details Query if stream is in-order (data written guaranteed to be read back in the same order). Network streams
+over an UDP socket are out-of-order.
+\param stream Stream
+\return true if stream is reliable, false if unreliable
+
+\fn bool stream_is_swapped( const stream_t* stream )
+\brief Query if byte order is swapped
+\details Query if bytes must be swapped when reading from stream (byte order of file does not match byte order of system
+\param stream Stream
+\return true if bytes must be swapped, false if not
+
+\fn byteorder_t stream_byteorder( const stream_t* stream )
+\brief Get byte order
+\details Get stream byte order.
+\param stream Stream
+\return Current byte order of stream data
+
+\fn const char* stream_path( const stream_t* stream )
+\brief Get full path
+\details Get stream full path including protocol.
+\param stream Stream
+\return Stream path
+
+\fn uint64_t stream_last_modified( const stream_t* stream )
+\brief Get last modification timestamp
+\details Get last modification timestamp.
+\param stream Stream
+\return Last modified timestamp, 0 if not open or date not meaningful for stream type
+
+\fn uint64_t stream_read( stream_t* stream, void* buffer, uint64_t num_bytes )
+\brief Read raw data
+\details Read raw data from stream, disregarding byte order.
+\param stream Stream
+\param buffer Destination buffer
+\param num_bytes Number of bytes to read
+\return Number of bytes read
+
+\fn uint64_t stream_read_line_buffer( stream_t* stream, char* dest, unsigned int count, char delimiter )
+\brief Read line into buffer
+\details Read line of up to count characters, consuming but discarding delimiter, reading into buffer.
+\param stream Stream
+\param dest Destination buffer, null if input is to be ignored
+\param count Maximum number of characters to extract
+\param delimiter Delimiter
+\return Number of bytes read (including delimiter)
+
+\fn char* stream_read_line( stream_t* stream, char delimiter )
+\brief Read line and allocate buffer
+\details Read line as string, discarding delimiter. Allocates a new memory buffer for the string.
+\param stream Stream
+\param delimiter Delimiter, default '\n'
+\return String, must be freed with a call to #string_deallocate
+
+\fn uint64_t stream_size( stream_t* stream )
+\brief Get size
+\details Get the size (length) of the stream data in bytes, if available. If the size can't be determined (sequential streams, like network sockets) the method will return 0.
+\param stream Stream
+\return Stream size (length), or 0 if unknown
+
+\fn void stream_determine_binary_mode( stream_t* stream, unsigned int num )
+\brief Determine binary mode
+\details Try to determine if stream is in binary or ASCII mode by reading the given number of bytes and checking if all bytes are in printable ASCII range (byte values [0x20,0x7e] and linefeed/tab). The method will restore the stream position with a call to seek, so using this on a sequential stream is not supported.
+\param stream Stream
+\param num Number of bytes to read
+
+\fn bool stream_read_bool( stream_t* stream )
+\brief Read bool
+\details Read boolean value from stream.
+\param stream Stream
+\return Boolean value read, false if error
+
+\fn int8_t stream_read_int8( stream_t* stream )
+\brief Read int8_t
+\details Read char value from stream.
+\param stream Stream
+\return Character read, 0 if error
+
+\fn uint8_t stream_read_uint8( stream_t* stream )
+\brief Read uint8_t
+\details Read byte value from stream.
+\param stream Stream
+\return Byte read, 0 if error
+
+\fn int16_t stream_read_int16( stream_t* stream )
+\brief Read int16_t
+\details Read short value from stream.
+\param stream Stream
+\return Value read, 0 if error
+
+\fn uint16_t stream_read_uint16( stream_t* stream )
+\brief Read uint16_t
+\details Read unsigned short from stream
+\param stream Stream
+\return Value read, 0 if error
+
+\fn int32_t stream_read_int32( stream_t* stream )
+\brief Read int32_t
+\details Read integer from stream.
+\param stream Stream
+\return Value read, 0 if error
+
+\fn uint32_t stream_read_uint32( stream_t* stream )
+\brief Read uint32_t
+\details Read unsigned integer from stream.
+\param stream Stream
+\return Value read, 0 if error
+
+\fn int64_t stream_read_int64( stream_t* stream )
+\brief Read int64_t
+\details Read integer from stream.
+\param stream Stream
+\return Value read, 0 if error
+
+\fn uint64_t stream_read_uint64( stream_t* stream )
+\brief Read uint64_t
+\details Read unsigned integer from stream.
+\param stream Stream
+\return Value read, 0 if error
+
+\fn float32_t stream_read_float32( stream_t* stream )
+\brief Read 32-bit float
+\details Read 32-bit float from stream
+\param stream Stream
+\return Value read, 0 if error
+
+\fn float64_t stream_read_float64( stream_t* stream )
+\brief Read 64-bit float
+\details Read float from stream
+\param stream Stream
+\return Value read, 0 if error
+
+\fn char* stream_read_string( stream_t* stream )
+\brief Read string
+\details Read string from stream. Must be freed with a call to #string_deallocate
+\param stream Stream
+\return String, 0 if error
+
+\fn uint64_t stream_read_string_buffer( stream_t* stream, char* buffer, uint64_t size )
+\brief Read string
+\details Read string from stream into pre-allocated buffer.
+\param stream Stream
+\param buffer Buffer
+\param size Size of buffer, including terminating zero
+\return String, 0 if error
+
+\fn void stream_buffer_read( stream_t* stream )
+\brief Buffer data
+\details Buffer any pending incoming data (network streams).
+\param stream Stream
+
+\fn unsigned int stream_available_read( stream_t* stream )
+\brief Get number of available bytes
+\details Check number of bytes available (network streams).
+\param stream Stream
+\return Number of bytes that can be read without blocking
+
+\fn uint128_t stream_md5( stream_t* stream )
+\brief Get MD5
+\details Read stream md5 digest
+\param stream Stream
+\return md5 digest, 0 if not available for stream type or invalid stream
+
+\fn uint64_t stream_write( stream_t* stream, const void* buffer, uint64_t num_bytes )
+\brief Write data
+\details Write raw data to stream.
+\param stream Stream
+\param buffer Buffer of data to write
+\param num_bytes Number of bytes to write
+\return Number of bytes written
+
+\fn void stream_write_bool( stream_t* stream, bool data )
+\brief Write bool
+\details Write boolean to stream.
+\param stream Stream
+\param data Boolean to write
+
+\fn void stream_write_int8( stream_t* stream, int8_t data )
+\brief Write int8_t
+\details Write char to stream.
+\param stream Stream
+\param data Char to write 
+
+\fn void stream_write_uint8( stream_t* stream, uint8_t data )
+\brief Write uint8_t
+\details Write byte to stream.
+\param stream Stream
+\param data Byte to write
+
+\fn void stream_write_int16( stream_t* stream, int16_t data )
+\brief Write int16_t
+\details Write short to stream.
+\param stream Stream
+\param data Short to write
+
+\fn void stream_write_uint16( stream_t* stream, uint16_t data )
+\brief Write uint16_t
+\details Write unsigned short to stream.
+\param stream Stream
+\param data Unsigned short to write
+
+\fn void stream_write_int32( stream_t* stream, int32_t data )
+\brief Write int32_t
+\details Write integer to stream.
+\param stream Stream
+\param data Integer to write
+
+\fn void stream_write_uint32( stream_t* stream, uint32_t data )
+\brief Write uint32_t
+\details Write unsigned integer to stream.
+\param stream Stream
+\param data Unsigned integer to write
+
+\fn void stream_write_int64( stream_t* stream, int64_t data )
+\brief Write int64_t
+\details Write integer to stream.
+\param stream Stream
+\param data Integer to write
+
+\fn void stream_write_uint64( stream_t* stream, uint64_t data )
+\brief Write uint64_t
+\details Write unsigned integer to stream.
+\param stream Stream
+\param data Unsigned integer to write
+
+\fn void stream_write_float32( stream_t* stream, float32_t data )
+\brief Write 32-bit float
+\details Write 32-bit float to stream.
+\param stream Stream
+\param data Float to write
+
+\fn void stream_write_float64( stream_t* stream, float64_t data )
+\brief Write 64-bit float
+\details Write 64-bit float to stream.
+\param stream Stream
+\param data Float to write
+
+\fn void stream_write_string( stream_t* stream, const char* data )
+\brief Write string
+\details Write string to stream.
+\param stream Stream
+\param data String to write
+
+\fn void stream_write_endl( stream_t* stream )
+\brief Write end of line
+\details Write an endline character to the stream and flush.
+\param stream Stream
+
+\fn void stream_write_format( stream_t* stream, const char* format, ... )
+\brief Write formatted string
+\details Write a formatted string to stream.
+\param stream Stream
+\param format Format declaration string
+
+\fn void stream_truncate( stream_t* stream, uint64_t length )
+\brief Truncate stream
+\details Truncate stream to given size if it is larger, do nothing if smaller or equal in size.
+\param stream Stream
+\param length New length of stream
+
+\fn void stream_flush( stream_t* stream )
+\brief Flush
+\details Flush the stream
+\param stream Stream
+
+\fn stream_t* stream_open_stdout( void )
+\brief Open stdout stream
+\details Allocate a stream for stdout
+\return Stream wrapping stdout
+
+\fn stream_t* stream_open_stderr( void )
+\brief Open stderr stream
+\details Allocate a stream for stderr
+\return Stream wrapping stderr
+
+\fn stream_t* stream_open_stdin( void )
+\brief Open stdin stream
+\details Allocate a stream for stdin
+\return Stream wrapping stdin
+
+*/

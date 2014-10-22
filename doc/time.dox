@@ -1,0 +1,55 @@
+
+/*!
+
+\file time.h
+\brief Time measurements
+\details Time measurements
+
+
+\fn tick_t time_current( void )
+\brief Get current timestamp
+\details Get current timestamp, in ticks of system-specific frequency (queryable with #time_ticks_per_second),
+measured from some system-specific base timestamp and not in sync with other timestamps.
+\return Current timestamp
+
+\fn tick_t time_diff( const tick_t from, const tick_t to )
+\brief Calculate time difference
+\details Calculate time difference.
+\param from Start timestamp
+\param to End timestamp
+\return Elapsed time (difference) in ticks
+
+\fn deltatime_t time_elapsed( const tick_t since )
+\brief Get elapsed time
+\details Get elapsed time since given timestamp.
+\param since Timestamp
+\return Number of seconds elapsed
+
+\fn tick_t time_elapsed_ticks( const tick_t since )
+\brief Get elapsed ticks
+\details Get elapsed ticks since given timestamp.
+\param since Timestamp
+\return Number of ticks elapsed
+
+\fn tick_t time_ticks_per_second( void )
+\brief Get time frequency
+\details Get time frequency, as number of ticks per second.
+\return Ticks per second
+
+\fn deltatime_t time_ticks_to_seconds( const tick_t dt )
+\brief Get ticks as seconds
+\details Get ticks as seconds (effectively calculating <code>ticks / time_ticks_per_second()</code>).
+\param dt Deltatime in ticks
+\return Deltatime in seconds
+
+\fn tick_t time_startup( void )
+\brief Get startup timestamp
+\details Get startup timestamp.
+\return Startup timestamp
+
+\fn tick_t time_system( void )
+\brief Get system time
+\details Get system time, in milliseconds since the epoch (UNIX time).
+\return Current timestamp, in milliseconds
+
+*/

@@ -1,0 +1,94 @@
+
+/*!
+
+\file process.h
+\brief Process execution and control
+\details Abstraction of processes, allowing launching of new processes and reading return codes. All set functions
+should be called before launching a process, except for set exit code which should be set before exiting a process.
+
+
+\fn process_t* process_allocate( void )
+\brief Allocate process
+\details Allocate a new process object.
+\return New process object
+
+\fn void process_deallocate( process_t* proc )
+\brief Deallocate process
+\details Deallocate process object.
+\param proc Process object
+
+\fn void process_set_working_directory( process_t* proc, const char* path )
+\brief Set working directory
+\details Set working directory for process.
+\param proc Process object
+\param path Working directory
+
+\fn void process_set_executable_path( process_t* proc, const char* path )
+\brief Set executable path
+\details Set executable path.
+\param proc Process object
+\param path Path
+
+\fn void process_set_arguments( process_t* proc, const char** args, unsigned int num )
+\brief Set arguments
+\details Set arguments passed on the command line to the new process. Should not contain
+the standard first argument of the executable path, it will be automatically added.
+\param proc Process object
+\param args Arguments array
+\param num Number of arguments
+
+\fn void process_set_flags( process_t* proc, unsigned int flags )
+\brief Set flags
+\details Set execution flags, see #process_flag_t for a list of available flags.
+\param proc Process object
+\param flags Flags
+
+\fn int process_spawn( process_t* proc )
+\brief Spawn process
+\details Spawn process
+\param proc Process object
+\return Exit code if attached, #PROCESS_STILL_ACTIVE if detached, #PROCESS_INVALID_ARGS if error due to invalid arguments
+
+\fn stream_t* process_stdout( process_t* proc )
+\brief Get stdout pipe
+\details Get pipe to read stdout from process (read-only stream). Only available if the #PROCESS_STDSTREAMS flag was
+set prior to spawning the process.
+\param proc Process object
+\return Stdout pipe
+
+\fn stream_t* process_stdin( process_t* proc )
+\brief Get stdin pipe
+\details Get pipe to write stdin to process (write-only stream). Only available if the #PROCESS_STDSTREAMS flag was
+set prior to spawning the process.
+\param proc Process object
+\return Stdin pipe
+
+\fn int process_wait( process_t* proc )
+\brief Wait for termination
+\details Wait for termination.
+\param proc Process object
+\return Exit code
+
+\fn void process_set_verb( process_t* proc, const char* verb )
+\brief Set execution verb
+\details Only used on Windows platforms. Set the execution verb when using ShellExecute to launch process
+(i.e if the #PROCESS_WINDOWS_USE_SHELLEXECUTE flag is set). By default the "runas" verb is used.
+\param proc Process object
+\param verb Verb to use
+
+\fn int process_exit_code( void )
+\brief Get pending exit code
+\details Get current process pending exit code.
+\return Pending process exit code
+
+\fn void process_set_exit_code( int code )
+\brief Set exit code
+\details Set process exit code for current process.
+\param code New exit code
+
+\fn void process_exit( int code )
+\brief Terminate
+\details Terminate current process with given code.
+\param code Exit code
+
+*/

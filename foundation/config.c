@@ -17,7 +17,7 @@
 #define CONFIG_SECTION_BUCKETS    7
 #define CONFIG_KEY_BUCKETS        11
 
-typedef enum _foundation_config_value_type
+enum config_value_type_t
 {
 	CONFIGVALUE_BOOL = 0,
 	CONFIGVALUE_INT,
@@ -26,9 +26,10 @@ typedef enum _foundation_config_value_type
 	CONFIGVALUE_STRING_CONST,
 	CONFIGVALUE_STRING_VAR,
 	CONFIGVALUE_STRING_CONST_VAR
-} config_value_type_t;
+};
+typedef enum config_value_type_t config_value_type_t;
 
-typedef struct ALIGN(8) _foundation_config_key
+struct config_key_t
 {
 	hash_t                  name;
 	config_value_type_t     type;
@@ -37,16 +38,18 @@ typedef struct ALIGN(8) _foundation_config_key
 	char*                   sval;
 	char*                   expanded;
 	real                    rval;
-} config_key_t;
+};
+typedef ALIGN(8) struct config_key_t config_key_t;
 
-typedef struct ALIGN(8) _foundation_config_section
+struct config_section_t
 {
 	hash_t                  name;
 	config_key_t*           key[CONFIG_KEY_BUCKETS];
-} config_section_t;
+};
+typedef ALIGN(8) struct config_section_t config_section_t;
 
-FOUNDATION_STATIC_ASSERT( ( sizeof( config_key_t ) % 8 ) == 0, config_key_align );
-FOUNDATION_STATIC_ASSERT( ( sizeof( config_section_t ) % 8 ) == 0, config_section_align );
+FOUNDATION_STATIC_ASSERT( ALIGNOF( config_key_t ) == 8, config_key_align );
+FOUNDATION_STATIC_ASSERT( ALIGNOF( config_section_t ) == 8, config_section_align );
 
 //Global config store
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS] = {0};
@@ -196,7 +199,7 @@ static NOINLINE char* _expand_string( hash_t section_current, char* str )
 
 		var_pos = string_find_string( expanded, "$(", 0 );
 	}
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 	if( str != expanded )
 		log_debugf( HASH_CONFIG, "Expanded config value \"%s\" to \"%s\"", str, expanded );
 #endif
@@ -704,10 +707,10 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	hash_t key = 0;
 	unsigned int line = 0;
 
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 	log_debugf( HASH_CONFIG, "Parsing config stream: %s", stream_path( stream ) );
 #endif
-	buffer = memory_allocate_zero( 1024ULL, 0, MEMORY_TEMPORARY );
+	buffer = memory_allocate( 0, 1024ULL, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	while( !stream_eos( stream ) )
 	{
 		++line;
@@ -726,7 +729,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			}
 			buffer[endpos] = 0;
 			section = hash( buffer + 1, endpos - 1 );
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 			log_debugf( HASH_CONFIG, "  config: section set to '%s' (0x%llx)", buffer + 1, section );
 #endif
 		}
@@ -754,7 +757,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 
 			if( overwrite || !config_key( section, key, false ) )
 			{
-#if BUILD_ENABLE_DEBUG_CONFIG
+#if BUILD_ENABLE_CONFIG_DEBUG
 				log_debugf( HASH_CONFIG, "  config: %s (0x%llx) = %s", name, key, value );
 #endif
 
@@ -869,7 +872,7 @@ void config_write( stream_t* stream, hash_t filter_section )
 						break;
 
 					case CONFIGVALUE_REAL:
-#if FOUNDATION_PLATFORM_REALSIZE == 64
+#if FOUNDATION_SIZE_REAL == 64
 						stream_write_float64( stream, bucket[ib].rval );
 #else
 						stream_write_float32( stream, bucket[ib].rval );

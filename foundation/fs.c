@@ -34,18 +34,20 @@
 #include <stdio.h>
 
 
-typedef struct ALIGN(16) _foundation_fs_monitor
+struct fs_monitor_t
 {
 	atomicptr_t       path;
 	object_t          thread;
 	mutex_t*          signal;
-} fs_monitor_t;
+};
+typedef ALIGN(16) struct fs_monitor_t fs_monitor_t;
 
-typedef struct ALIGN(8) _foundation_stream_file
+struct stream_file_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	void*                  fd;
-} stream_file_t;
+};
+typedef ALIGN(8) struct stream_file_t stream_file_t;
 
 #define GET_FILE( s ) ((stream_file_t*)(s))
 #define GET_FILE_CONST( s ) ((const stream_file_t*)(s))
@@ -474,7 +476,7 @@ void fs_copy_file( const char* source, const char* dest )
 
 	infile = fs_open_file( source, STREAM_IN );
 	outfile = fs_open_file( dest, STREAM_OUT );
-	buffer = memory_allocate( 64 * 1024, 0, MEMORY_TEMPORARY );
+	buffer = memory_allocate( 0, 64 * 1024, 0, MEMORY_TEMPORARY );
 
 	while( !stream_eos( infile ) )
 	{
@@ -576,80 +578,94 @@ stream_t* fs_temporary_file( void )
 }
 
 
-char** fs_matching_files( const char* path, const char* pattern, bool recurse )
+static char** _fs_matching_files( const char* path, regex_t* pattern, bool recurse )
 {
 	char** names = 0;
 	char** subdirs = 0;
 	unsigned int id, dsize, in, nsize;
-
+	
 #if FOUNDATION_PLATFORM_WINDOWS
-
+	
 	//Windows specific implementation of directory listing
 	WIN32_FIND_DATAW data;
-	char* pathpattern = path_merge( path, pattern );
+	char filename[FOUNDATION_MAX_PATHLEN];
+	char* pathpattern = path_merge( path, "*" );
 	wchar_t* wpattern = wstring_allocate_from_string( pathpattern, 0 );
 	
 	HANDLE find = FindFirstFileW( wpattern, &data );
-
+	
 	memory_context_push( HASH_STREAM );
-
+	
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
 		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
-			array_push( names, path_clean( string_allocate_from_wstring( data.cFileName, 0 ), false ) );
+		{
+			string_convert_utf16( filename, data.cFileName, FOUNDATION_MAX_PATHLEN, wstring_length( data.cFileName ) );
+			if( regex_match( pattern, filename, string_length( filename ), 0, 0 ) )
+				array_push( names, path_clean( string_clone( filename ), false ) );
+		}
 	} while( FindNextFileW( find, &data ) );
-
+	
 	memory_context_pop();
-
+	
 	FindClose( find );
-
+	
 	wstring_deallocate( wpattern );
 	string_deallocate( pathpattern );
-
+	
 #else
-
+	
 	char** fnames = fs_files( path );
-
+	
 	memory_context_push( HASH_STREAM );
-
+	
 	for( in = 0, nsize = array_size( fnames ); in < nsize; ++in )
 	{
-		if( string_match_pattern( fnames[in], pattern ) )
+		if( regex_match( pattern, fnames[in], string_length( fnames[in] ), 0, 0 ) )
 		{
 			array_push( names, fnames[in] );
 			fnames[in] = 0;
 		}
 	}
-
+	
 	memory_context_pop();
-
+	
 	string_array_deallocate( fnames );
-
+	
 #endif
-
+	
 	if( !recurse )
 		return names;
-
+	
 	subdirs = fs_subdirs( path );
-
+	
 	memory_context_push( HASH_STREAM );
-
+	
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
 		char* subpath = path_merge( path, subdirs[id] );
-		char** subnames = fs_matching_files( subpath, pattern, true );
-
+		char** subnames = _fs_matching_files( subpath, pattern, true );
+		
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
 			array_push( names, path_merge( subdirs[id], subnames[in] ) );
-
+		
 		string_array_deallocate( subnames );
 		string_deallocate( subpath );
 	}
-
+	
 	memory_context_pop();
-
+	
 	string_array_deallocate( subdirs );
+	
+	return names;
+}
 
+
+char** fs_matching_files( const char* path, const char* pattern, bool recurse )
+{
+	regex_t* regex = regex_compile( pattern );
+	char** names = _fs_matching_files( path, regex, recurse );
+	regex_deallocate( regex );
 	return names;
 }
 
@@ -670,11 +686,12 @@ event_stream_t* fs_event_stream( void )
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
-typedef struct _foundation_fs_watch
+struct fs_watch_t
 {
 	int      fd;
 	char*    path;
-} fs_watch_t;
+};
+typedef struct fs_watch_t fs_watch_t;
 
 
 static void _fs_send_creations( const char* path )
@@ -775,7 +792,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	memory_context_push( HASH_STREAM );
 
-	buffer = memory_allocate( buffer_size, 8, MEMORY_PERSISTENT );
+	buffer = memory_allocate( 0, buffer_size, 8, MEMORY_PERSISTENT );
 
 	handles[0] = mutex_event_object( monitor->signal );
 	handles[1] = CreateEvent( 0, FALSE, FALSE, 0 );
@@ -934,7 +951,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		//log_debugf( 0, "ioctl inotify: %d", avail );
 		if( avail > 0 )
 		{
-			void* buffer = memory_allocate_zero( avail + 4, 8, MEMORY_PERSISTENT );
+			void* buffer = memory_allocate( HASH_STREAM, avail + 4, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 			int offset = 0;
 			int avail_read = read( notify_fd, buffer, avail );
 			//log_debugf( 0, "inotify read: %d", avail_read );
@@ -1190,28 +1207,32 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	has_protocol = string_equal_substr( file->path, "file://", 7 );
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	wpath = wstring_allocate_from_string( has_protocol ? file->path + 7 : file->path, 0 );
+	wpath = wstring_allocate_from_string( _fs_path( file->path ), 0 );
 	fd = CreateFileW( wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0 );
 	wstring_deallocate( wpath );
 	if( length < 0xFFFFFFFF )
-		SetFilePointer( fd, (LONG)length, 0, FILE_BEGIN );
+	{
+		if( SetFilePointer( fd, (LONG)length, 0, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
+			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
+	}
 	else
 	{
 		LONG high = (LONG)( length >> 32LL );
-		SetFilePointer( fd, (LONG)length, &high, FILE_BEGIN );
+		if( SetFilePointer( fd, (LONG)length, &high, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
+		   log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
 	}
 	SetEndOfFile( fd );
 	CloseHandle( fd );
 #elif FOUNDATION_PLATFORM_POSIX
-	int fd = open( has_protocol ? file->path + 7 : file->path, O_RDWR );
+	int fd = open( _fs_path( file->path ), O_RDWR );
 	if( ftruncate( fd, length ) < 0 )
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file: %s", file->path );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( errno ) );
 	close( fd );
 #else
 #  error Not implemented
 #endif
 
-	file->fd = _fs_file_fopen( has_protocol ? file->path + 7 : file->path, stream->mode, 0 );
+	file->fd = _fs_file_fopen( _fs_path( file->path ), stream->mode, 0 );
 
 	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
 
@@ -1364,7 +1385,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	if( !( mode & STREAM_IN ) && !( mode & STREAM_OUT ) )
 		mode |= STREAM_IN;
 
-	file = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_file_t ), 8, MEMORY_PERSISTENT );
+	file = memory_allocate( HASH_STREAM, sizeof( stream_file_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream = GET_STREAM( file );
 	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 

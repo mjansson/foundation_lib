@@ -16,7 +16,7 @@
 #define EVENT_BLOCK_POSTING  -1
 #define EVENT_BLOCK_SWAPPING -2
 
-struct _foundation_event_block
+struct event_block_t
 {
 	int32_t                          used;
 	uint32_t                         capacity;
@@ -24,7 +24,7 @@ struct _foundation_event_block
 	event_t*                         events;
 };
 
-struct ALIGN(16) _foundation_event_stream
+struct ALIGN(16) event_stream_t
 {
 	atomic32_t                       write;
 	int32_t                          read;
@@ -72,20 +72,20 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
 	{
 		uint32_t prev_capacity = block->capacity + 2ULL;
-		if( block->capacity < BUILD_EVENT_BLOCK_CHUNK_SIZE )
+		if( block->capacity < BUILD_SIZE_EVENT_BLOCK_CHUNK )
 		{
 			block->capacity <<= 1;
 			block->capacity += allocsize;
 		}
 		else
 		{
-			block->capacity += BUILD_EVENT_BLOCK_CHUNK_SIZE;
-			FOUNDATION_ASSERT_MSG( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > 4Mb" );
+			block->capacity += BUILD_SIZE_EVENT_BLOCK_CHUNK;
+			FOUNDATION_ASSERT_MSGFORMAT( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > %d", BUILD_SIZE_EVENT_BLOCK_LIMIT );
 			error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
 		}
 		if( block->capacity % 16 )
 			block->capacity += 16 - ( basesize % 16 );			
-		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16, prev_capacity ) : memory_allocate( block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
+		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16, prev_capacity ) : memory_allocate( 0, block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
 	}
 
 	event = pointer_offset( block->events, block->used );
@@ -162,15 +162,15 @@ event_t* event_next( const event_block_t* block, event_t* event )
 
 event_stream_t* event_stream_allocate( unsigned int size )
 {
-	event_stream_t* stream = memory_allocate_zero( sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
+	event_stream_t* stream = memory_allocate( 0, sizeof( event_stream_t ), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	atomic_store32( &stream->write, 0 );
 	stream->read = 1;
 
 	if( size < 256 )
 		size = 256;
 	
-	stream->block[0].events = memory_allocate( size, 16, MEMORY_PERSISTENT );
-	stream->block[1].events = memory_allocate( size, 16, MEMORY_PERSISTENT );
+	stream->block[0].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	stream->block[1].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
 	stream->block[0].capacity = size;
 	stream->block[1].capacity = size;

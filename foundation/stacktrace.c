@@ -34,6 +34,9 @@
 #  endif
 #endif
 
+#if FOUNDATION_PLATFORM_ANDROID
+#  include <unwind.h>
+#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -184,7 +187,7 @@ static void _load_process_modules()
 
 	if( bytes > sizeof( module_handles ) )
 	{
-		module_handle = memory_allocate( bytes, 0, MEMORY_TEMPORARY );
+		module_handle = memory_allocate( 0, bytes, 0, MEMORY_TEMPORARY );
 		CallEnumProcessModules( process_handle, module_handle, bytes, &bytes );
 	}
 
@@ -224,21 +227,31 @@ static void _load_process_modules()
 
 #define FOUNDATION_MAX_MODULES 256
 
-typedef struct _foundation_android_module
+struct android_trace_t
+{
+	void**        trace;
+	unsigned int  cur_depth;
+	unsigned int  max_depth;
+	unsigned int  skip_frames;
+};
+typedef struct android_trace_t android_trace_t;
+
+struct android_module_t
 {
 	uintptr_t           address_start;
 	uintptr_t           address_end;
 	char                name[64];
-} foundation_android_module_t;
+};
+typedef struct android_module_t android_module_t;
 
-foundation_android_module_t _android_modules[FOUNDATION_MAX_MODULES];
+android_module_t _android_modules[FOUNDATION_MAX_MODULES];
 
 static void _load_process_modules()
 {
 	int imod = 0;
 	char line_buffer[256];
 
-	memset( _android_modules, 0, sizeof( foundation_android_module_t ) * FOUNDATION_MAX_MODULES );
+	memset( _android_modules, 0, sizeof( android_module_t ) * FOUNDATION_MAX_MODULES );
 
 	stream_t* maps = fs_open_file( "/proc/self/maps", STREAM_IN );
 	if( !maps )
@@ -282,6 +295,23 @@ static void _load_process_modules()
 		log_warnf( 0, WARNING_MEMORY, "Too many modules encountered" );
 
 	stream_deallocate( maps );
+}
+
+
+static _Unwind_Reason_Code unwind_stack( struct _Unwind_Context* context, void* arg )
+{
+	android_trace_t* trace = arg;
+	void* ip = (void*)_Unwind_GetIP( context );
+	if( trace->skip_frames )
+		--trace->skip_frames;
+	else if( ip )
+	{
+		if( trace->cur_depth < trace->max_depth )
+			trace->trace[trace->cur_depth++] = ip;
+		else
+			return 4;//_URC_NORMAL_STOP;
+	}
+	return _URC_NO_REASON;
 }
 
 #endif
@@ -396,23 +426,34 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	_capture_stack_trace_helper( trace, max_depth, skip_frames, &context );
 #  endif
 	}
-#elif FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_LINUX_RASPBERRYPI && !FOUNDATION_COMPILER_GCC )
-	
-#  if FOUNDATION_ARCH_ARM_64
 
-#   define READ_64BIT_MEMORY( addr ) (*(uint64_t volatile * volatile)(addr))
-	uint64_t last_fp = 0, caller_fp = 0, caller_lr = 0, caller_sp = 0;
+#elif FOUNDATION_PLATFORM_ANDROID 
+
+	android_trace_t stack_trace = {
+		.trace = trace,
+		.cur_depth = 0,
+		.max_depth = max_depth,
+		.skip_frames = skip_frames
+	};
+	
+	_Unwind_Backtrace( unwind_stack, &stack_trace );
+
+	num_frames = stack_trace.cur_depth;
+
+#elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+
+# define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
+	uint32_t fp = 0, lr = 0;
 
 	//Grab initial frame pointer
-	__asm volatile("mov %[result], x29\n\t" : [result] "=r" (last_fp));
-	
-	while( last_fp && ( num_frames < max_depth ) )
-	{
-		caller_fp = READ_64BIT_MEMORY( last_fp );
-		caller_lr = READ_64BIT_MEMORY( last_fp + 8 );
-		caller_sp = last_fp + 16;
+	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (fp));
 
-		if( ( caller_fp > 0x1000 ) && caller_lr )
+	while( fp && ( num_frames < max_depth ) )
+	{
+		lr = READ_32BIT_MEMORY( fp + 4 );
+		fp = READ_32BIT_MEMORY( fp );
+
+		if( ( fp > 0x1000 ) && lr )
 		{
 			if( skip_frames > 0 )
 			{
@@ -420,96 +461,18 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 			}
 			else
 			{
-				void* instruction = (void*)(uintptr_t)( ( caller_lr - 4 ) & ~7 );
+				void* instruction = (void*)(uintptr_t)( ( lr - 2 ) & ~3 );
 				trace[num_frames++] = instruction;
 			}
 		}
 		else
 		{
-			caller_fp = 0;
+			fp = 0;
 		}
-
-		last_fp = caller_fp;
-
 	}
-
-#  elif FOUNDATION_ARCH_ARM
-
-#   define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
-	uint32_t last_fp = 0, caller_fp = 0, caller_lr = 0, caller_sp = 0;
-
-	//Grab initial frame pointer
-	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (last_fp));
-
-	while( last_fp && ( num_frames < max_depth ) )
-	{
-		caller_fp = READ_32BIT_MEMORY( last_fp );
-		caller_lr = READ_32BIT_MEMORY( last_fp + 4 );
-		caller_sp = last_fp + 8;
-		
-		if( ( caller_fp > 0x1000 ) && caller_lr )
-		{
-			if( skip_frames > 0 )
-			{
-				--skip_frames;
-			}
-			else
-			{
-				void* instruction = (void*)(uintptr_t)( ( caller_lr - 2 ) & ~3 );
-				trace[num_frames++] = instruction;
-			}
-		}
-		else
-		{
-			caller_fp = 0;
-		}
-
-		last_fp = caller_fp;
-	}
-
-#  elif FOUNDATION_ARCH_X86
-
-#   define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
-	uint32_t last_ebp = 0, last_esp = 0, caller_ebp = 0, caller_esp = 0, caller_eip = 0;
-
-	//Grab base pointer and stack pointer
-	__asm volatile("movl %%ebp, %[result]\n\t" : [result] "=r" (last_ebp));
-	__asm volatile("movl %%esp, %[result]\n\t" : [result] "=r" (last_esp));
-
-	while( last_ebp && ( num_frames < max_depth ) )
-	{
-		caller_eip = READ_32BIT_MEMORY( last_ebp + 4 );
-		caller_ebp = READ_32BIT_MEMORY( last_ebp );
-		caller_esp = last_ebp + 8;
-
-		if( caller_eip > 0x1000 )
-		{
-			if( skip_frames > 0 )
-			{
-				--skip_frames;
-			}
-			else
-			{
-				void* instruction = (void*)(uintptr_t)( ( caller_eip - 1 ) & ~3 );
-				trace[num_frames++] = instruction;
-			}
-		}
-		else
-		{
-			caller_ebp = 0;
-		}
-
-		last_ebp = caller_ebp;
-	}
-
-#  else
-
-	//Not yet implemented
-	log_warnf( 0, WARNING_UNSUPPORTED, "Stacktrace capture not yet implemented for this architecture" );
-
-#  endif
 
 #elif FOUNDATION_PLATFORM_POSIX
+
 	// Add 1 skip frames for this function call
 	skip_frames += 1;
 
@@ -525,6 +488,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 	}
 	else
 		trace[0] = 0;
+
 #endif
 
 	return num_frames;

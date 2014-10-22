@@ -1,0 +1,83 @@
+
+/*!
+
+\file objectmap.h
+\brief Mapping of object handles to pointers
+\details Mapping of object handles to object pointers, thread safe and lock free
+
+
+\fn objectmap_t* objectmap_allocate( unsigned int size )
+\brief Allocate map
+\details Allocate storage for new map with the given number of object slots
+\param size Number of slots
+\return New object map
+
+\fn void objectmap_deallocate( objectmap_t* map )
+\brief Free memory
+\details Free memory. Does not free the stored objects, only map storage.
+\param map Object map
+
+\fn unsigned int objectmap_size( const objectmap_t* map )
+\brief Get size of map
+\details Get size of map (number of object slots)
+\param map Object map
+\return Size of map
+
+\fn object_t objectmap_reserve( objectmap_t* map )
+\brief Reserve slot
+\details Reserve a slot in the map
+\param map Object map
+\return New object handle, 0 if none available
+
+\fn void objectmap_free( objectmap_t* map, object_t id )
+\brief Free slot
+\details Free a slot in the map
+\param map Object map
+\param id Object handle to free
+
+\fn void objectmap_set( objectmap_t* map, object_t id, void* object )
+\brief Set object pointer
+\details Set object pointer for given slot
+\param map Object map
+\param id Object handle
+\param object Object pointer
+
+\fn void* objectmap_raw_lookup( const objectmap_t* map, unsigned int index )
+\brief Raw lookup
+\details Raw lookup of object pointer for map index
+\param map Object map
+\param index Map index
+\return Object pointer
+
+\fn void* objectmap_lookup( const objectmap_t* map, object_t id )
+\brief Map object to pointer
+\details Map object handle to object pointer. This function is unsafe in the sense that it
+might return an object pointer which points to an invalid (deallocated) object if
+the object reference count was decreased in another thread while this function is
+executing. The object lifetime is also not guaranteed in any code using the returned
+object. For a safe function use objectmap_lookup_ref
+\param map Object map
+\param id Object handle
+\return Object pointer, 0 if invalid/outdated handle
+
+\fn void* objectmap_lookup_ref( const objectmap_t* map, object_t id )
+Map object handle to object pointer and increase ref count. This function is safe in
+the sense that it will only return an object pointer if the ref count was successfully
+increased and object is still valid. Once the caller has finished using the object
+returned, the handle should be released and reference count decreased by a call to the
+appropriate destroy function (for eaxmple, a thread this would be thread_destroy).
+\param map Object map
+\param id Object handle
+\return Object pointer, 0 if invalid/outdated handle
+
+\fn bool objectmap_lookup_unref( const objectmap_t* map, object_t id, object_deallocate_fn deallocate )
+Map object handle to object pointer and decrease ref count. If the object reference count
+reaches zero the object is deallocated by a call to the deallocation function. This function
+is safe in the sense that it will work correctly across threads also using the object_lookup_ref
+and object_lookup_unref functions.
+\param map Object map
+\param id Object handle
+\param deallocate Deallocation function
+\return true if object is still valid, false if it was deallocated
+
+*/

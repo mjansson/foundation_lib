@@ -28,7 +28,7 @@
 	char               buffer[]
 
 
-struct _foundation_ringbuffer
+struct ringbuffer_t
 {
 	FOUNDATION_DECLARE_RINGBUFFER;
 };
@@ -50,7 +50,7 @@ typedef uint64_t  (*stream_available_read_fn)( stream_t* );
 typedef void      (*stream_deallocate_fn)( stream_t* );
 typedef stream_t* (*stream_clone_fn)( stream_t* );
 
-typedef struct _foundation_stream_vtable
+struct stream_vtable_t
 {
 	stream_read_fn           read;
 	stream_write_fn          write;
@@ -66,7 +66,8 @@ typedef struct _foundation_stream_vtable
 	stream_available_read_fn available_read;
 	stream_deallocate_fn     deallocate;
 	stream_clone_fn          clone;
-} stream_vtable_t;
+};
+typedef struct stream_vtable_t stream_vtable_t;
 
 #define FOUNDATION_DECLARE_STREAM                     \
 	unsigned int             type:16;                 \
@@ -80,7 +81,7 @@ typedef struct _foundation_stream_vtable
 	char*                    path;                    \
 	stream_vtable_t*         vtable
 
-struct ALIGN(8) _foundation_stream
+struct ALIGN(8) stream_t
 {
 	FOUNDATION_DECLARE_STREAM;
 };
@@ -143,6 +144,10 @@ FOUNDATION_API void foundation_startup( void );
 
 FOUNDATION_API uint32_t      hashtable32_raw( hashtable32_t* table, uint32_t key );
 FOUNDATION_API uint64_t      hashtable64_raw( hashtable64_t* table, uint64_t key );
+
+FOUNDATION_API void          _object_initialize( object_base_t* obj, object_t id );
+FOUNDATION_API object_t      _object_ref( object_base_t* obj );
+FOUNDATION_API object_t      _object_unref( object_base_t* obj );
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 FOUNDATION_API void          _error_context_clear( void );

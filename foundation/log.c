@@ -106,7 +106,7 @@ static log_timestamp_t _log_make_timestamp( void )
 }
 
 
-#if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
+#if BUILD_ENABLE_LOG
 
 static void _log_outputf( uint64_t context, int severity, const char* prefix, const char* format, va_list list, void* std )
 {
@@ -162,7 +162,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 
 		if( buffer != local_buffer )
 			memory_deallocate( buffer );
-		buffer = memory_allocate( size + 2, 0, MEMORY_TEMPORARY );
+		buffer = memory_allocate( 0, size + 2, 0, MEMORY_TEMPORARY );
 	}
 	if( buffer != local_buffer )
 		memory_deallocate( buffer );
@@ -171,7 +171,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 #endif
 
 
-#if BUILD_ENABLE_DEBUG_LOG
+#if BUILD_ENABLE_LOG && BUILD_ENABLE_DEBUG_LOG
 
 
 void log_debugf( uint64_t context, const char* format, ... )
@@ -285,11 +285,6 @@ void log_error_context( uint64_t context, error_level_t error_level )
 	}
 }
 
-#endif
-
-
-#if BUILD_ENABLE_LOG
-
 
 void log_enable_stdout( bool enable )
 {
@@ -345,7 +340,7 @@ void log_suppress_clear( void )
 
 int _log_initialize( void )
 {
-#if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
+#if BUILD_ENABLE_LOG
 	_log_suppress = hashtable64_allocate( 149 );
 #endif
 	return 0;
@@ -354,7 +349,7 @@ int _log_initialize( void )
 
 void _log_shutdown( void )
 {
-#if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
+#if BUILD_ENABLE_LOG
 	hashtable64_deallocate( _log_suppress );
 	_log_suppress = 0;
 #endif

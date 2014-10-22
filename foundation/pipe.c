@@ -20,7 +20,7 @@
 #endif
 
 
-typedef struct ALIGN(8) _foundation_stream_pipe
+struct stream_pipe_t
 {
 	FOUNDATION_DECLARE_STREAM;
 
@@ -31,14 +31,15 @@ typedef struct ALIGN(8) _foundation_stream_pipe
 	int       fd_read;
 	int       fd_write;
 #endif
-} stream_pipe_t;
+};
+typedef ALIGN(8) struct stream_pipe_t stream_pipe_t;
 
 static stream_vtable_t _pipe_stream_vtable;
 
 
 stream_t* pipe_allocate( void )
 {
-	stream_pipe_t* pipestream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_pipe_t ), 8, MEMORY_PERSISTENT );
+	stream_pipe_t* pipestream = memory_allocate( HASH_STREAM, sizeof( stream_pipe_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream_t* stream = (stream_t*)pipestream;
 
 	_stream_initialize( stream, system_byteorder() );

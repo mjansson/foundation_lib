@@ -1,0 +1,278 @@
+/*!
+\mainpage Overview
+
+\subpage build_page
+<br><br>
+\subpage test_page
+<br><br>
+\subpage tools_page
+<br><br>
+\subpage overview_page
+<br><br>
+\subpage features_page
+<br><br>
+\subpage using_page
+<br><br>
+
+
+\page build_page Building the library
+\tableofcontents
+\section overview Overview
+
+\subsection configs Configurations
+The library can be built in four different build configurations with increasing amount of optimizations
+and decreasing amount of debug possibilities. The configurations are named debug, release, profile and deploy
+with the deploy configuration the recommended configuration for releases to the public.
+
+\subsubsection debug Debug
+In debug configuration no optimizations are enabled and all debug functionality is available in the library, including
+asserts, logging and error handling. This configuration is intented for development purposes.
+
+\subsubsection release Release
+In release configuration most optimizations are enabled and all debug functionality is available in the library, including
+asserts, logging and error handling. This configuration is intented for testing purposes.
+
+\subsubsection profile Profile
+In profile configuration all optimizations are enabled and all debug functionality is disabled in the library, including
+asserts, logging and error handling. Profiling hooks and measurements are included in the library code. This configuration
+is intented for profiling purposes, as it is identical to the final deploy build except for profiling code being enabled.
+
+\subsubsection deploy Deploy
+In deploy configuration all optimizations are enabled and all debug functionality is disabled in the library, including
+asserts, logging and error handling. Profiling is also disabled. This configuration is intented for public releases.
+
+\subsection output Output
+Libraries will be placed in lib/[platform]/[configuration]/ with platform names
+<ul>
+<li>win32
+<li>win64
+<li>macosx
+<li>ios
+<li>android
+</ul>
+Configuration names are
+<ul>
+<li>debug
+<li>release
+<li>profile
+<li>deploy
+</ul>
+For android each architecture has it's own subdirectory and separate library
+<ul>
+<li>armeabi
+<li>armeabi-v7a
+<li>arm64-v8a
+<li>x86
+<li>x86_64
+<li>mips
+<li>mips64
+</ul>
+
+Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/
+
+\section windows Windows
+On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2012/2013, as well as
+with Microsoft, Intel, GCC and clang compilers using SCons. Both 32 and 64 bit Windows are supported.
+\subsection win_vstudio Visual Studio
+To build with Visual Studio, open the foundation.sln solution file for the Visual Studio version used. Currently
+there are solution files provided for Visual Studio 2012 and 2013 in build/vs12 and build/vs13 respectively.
+
+To build all targets and configurations use batch build, select all targets and build. 
+
+\subsection win_scons SCons
+To build with SCons verify the configuration set in build/scons/SConfig. You can also set all options as key=value
+arguments on the command line. For example, to build release configuration with intel compiler use
+"scons config=release tools=intel"
+
+If you use SublimeText there is a template SublimeText project with a SCons build tool setup in build/foundation.sublime-project
+
+\section osx MacOS X
+\subsection osx_xcode XCode
+XCode is the only supported method of building the library and test cases on MacOS X. Open the XCode workspace in
+build/xcode/foundation-osx.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
+
+\section linux Linux
+\subsection linux_scons SCons
+SCons is the only supported method of building the library on Linux. Verify the configuration set in build/scons/SConfig.
+You can also set all options as key=value arguments on the command line. For example, to build release configuration with gnu
+compiler use "scons config=release tools=gnu"
+
+If you use SublimeText there is a template SublimeText project with a SCons build tool setup in build/foundation.sublime-project
+
+\section ios iOS
+\subsection ios_xcode XCode
+XCode is the only supported method of building the library and test cases for iOS. Open the XCode workspace in
+build/xcode/foundation-ios.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
+
+\section android Android
+\subsection android_ndk NDK build
+The NDK build system is the only supported method of building the library and test cases for Android. You can
+build on any host platform supported by the Android SDK/NDK. The library and test cases are built for all supported
+hardware architectures available through the NDK (armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips and mips64).
+
+For armeabi the library is built in ARM instruction mode (not THUMB).
+
+For armeabi-v7a the library is built in ARM instruction mode (not THUMB) and has NEON enabled.
+
+From the root directory run "ndk-build -C build/android NDK_DEBUG=1" for a debug build. For other configurations,
+run "ndk-build -C build/android NDK_DEBUG=0 BUILD_RELEASE=1" and replace BUILD_RELEASE with the configuration wanted
+(BUILD_RELEASE, BUILD_PROFILE, BUILD_DEPLOY).
+
+
+\page test_page Running and verifying the test cases
+
+The test cases is wrapped by a launcher application named test-all which will enumerate and launch each test executable
+in sequence, aborting on failure. For iOS and Android all test cases are linked into the launcher executable to avoid
+installing lots of small apps on the target device.
+
+To install the test launcher on Android, change to the build/android subdirectory and use the Android SDK ant build
+system to install it with "ant debug install". For more information on running and debugging apps on emulators and/or
+devices refer to the Android SDK documentation.
+
+\page tools_page Using the tools provided by the library
+
+The library comes with a number of small tools to help with development of applications.
+
+\section hashify
+The hashify tool is used to generate headers with predefined hashed strings from definition text files. The library
+itself has one such header in hashstrings.h which is generated from hashstrings.txt
+
+To use the tool simply run it with the path to each definition file as argument, for example "hashify foundation/hashstrings.txt".
+It will by default generate a file named like the definition file with the extension replaces with ".h". For more
+options refer to the help information output by running hashify without any arguments.
+
+The hashify tool will not touch the output file if it does not need updating, to avoid changing timestamps of the header
+file and trigger rebuilds. This makes it suitable for automatic execution in build farms and similar environments.
+
+<pre>hashify [--help] [--validate] [--generate-string \<string>] [\<filename> \<filename> ...] [--]
+    Generated files have the same file name as the input file, with the extension replaced by .h
+    Optional arguments:
+      --validate                   Suppress output and only validate existing hashes
+      --generate-string \<string>   Generate hash of the given string
+      \<filename> \<filename> ...    Any number of input files
+      --help                       Display the help message
+      --                           Stop processing command line arguments</pre>
+
+\section uuidgen
+The uuidgen tool generates UUIDs using the uuid submodule in the library. It can generate version 1 (MAC address), 3 (MD5 hash)
+and 4 (random) UUIDs. If you run the tool without any arguments it will generate a single version 4 (random) UUID to stdout.
+
+<pre>uuidgen [--time n] [--random n] [--md5 \<namespace> \<name>] [--output \<filename>] [--help]
+    If no arguments are given, one random-based UUID is output to stdout
+    Optional arguments:
+      --time n                     Generate n time-based UUIDs
+      --random n                   Generate n random-based UUIDs
+      --md5 \<namespace> \<name>     Generate a name-based UUID using the namespace UUID specified
+                                   in \<namespace> and a name string specified in \<name>
+      --output \<filename>          Output to \<filename> instead of stdout
+      --binary                     Output binary data instead of ASCII (stdout is always ASCII)
+      --lowercase                  Output UUID in lowercase hex
+      --uppercase                  Output UUID in uppercase hex (default)
+      --help                       Display the help message
+      --                           Stop processing command line arguments</pre>
+
+\section bin2hex
+The bin2hex tool converts any given input file to a string based file with each input file byte output as a hex string value,
+suitable for including as a data block in a C source file (format "0x23, 0x20, 0x46, 0x6f, ...")
+
+<pre>bin2hex usage:
+  bin2hex [--columns n] [--help] \<file> \<file> \<file> <...> [--]
+    Required arguments:
+      \<file>                       Input filename (any number of input files allowed). Output will be named "\<file>.hex"
+    Optional arguments:
+      --columns n                  Print n bytes in each column (default is 32)
+      --help                       Display the help message
+      --                           Stop processing command line arguments</pre>
+
+\section plans Future plans
+Currently there are no plans for extra tools, but if you have a suggestion or request feel free to leave us a comment on
+our repository pages at https://github.com/rampantpixels/foundation_lib
+
+
+\page overview_page Overview of the design principles and general api patterns
+
+\section design_principles Design principles
+This library provides a cross-platform foundation library in C providing basic support data types and
+functions to write applications and games in a platform-independent fashion. It is written with the following API
+design principles in mind:
+
+<ul>
+<li><b>Consistent</b>: All functions, parameters and types should follow a well defined pattern in order to make it easy to remember how function names are constructed and how to pass the expected parameters.
+<li><b>Orthogonal</b>: A function should not have any side effects, and there should be only one way to perform an operation in the system.
+<li><b>Specialized</b>: A function in an API should perform a single task. Functions should not do completely different unrelated tasks or change behaviour depending on the contents of the variables passed in.
+<li><b>Compact</b>: The API needs to be compact, meaning the user can use it without using a manual. Note though that "compact" does not mean "small". A consistent naming scheme makes the API easier to use and remember.
+<li><b>Contained</b>: Third party dependencies are kept to an absolute minimum and prefer to use primitive or well-defined data types.
+</ul>
+
+Each submodule is contained in one header/source file pair, with all function names beginning with the submodule name. For example, all calls related to bit buffers are contained in bitbuffer.h and have
+the format "bitbuffer_<function>( bitbuffer_t*, ... )". If the function call requires a data object related to the submodule (in this case, bitbuffer_t) a pointer to the object is always the first function argument.
+
+\section data_types Data types
+The library uses standard C data types (char, unsigned int, ...) where exact data type size is not required, and standard integer types (int16_t, uint64_t) where explicit size is required. The library
+extends these types with floating point data types:
+
+<ul>
+<li><i>float32_t</i>, <i>float64_t</i> for explicit size floating point data
+<li><i>real</i> for a configurable generic floating point data type
+</ul>
+
+To set the <i>real</i> data type format set the #FOUNDATION_SIZE_REAL preprocessor macro to 32 or 64, or change the defined value in platform.h (default is 32 bit floating point values).
+
+\section object_lifetime Object lifetime
+Complex data types (objects) are handled in two ways. Either the caller have explicit lifetime control and accessed through raw pointers, or else has implicit control where
+the lifetime is handled by reference counting and accessed through object handles of type object_t (basically a 64-bit handle mapping into a lookup table).
+
+Explicit allocations are always handled by function calls of the format <i>\<module>_t* \<module>_allocate(...)</i> to allocate the object and <i>void \<module>_deallocate(\<module>_t* ptr)</i> to deallocate it,
+for example md5_allocate and md5_deallocate in md5.h
+
+Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
+for example #thread_create, #thread_ref and #thread_destroy in thread.h
+
+Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_\<module>_MAP, for example #BUILD_SIZE_THREAD_MAP for threads.
+
+
+\page features_page Details on specific submodules and features provided by the library
+
+\section build_config Build configuration
+Static build configuration is done in the build.h header by defining a set of preprocessor directives. All values can be set on compilation command line since the build declarations are checked for pre-existing definitions. It is, however, recommended to use the build header file to ensure the library and projects using the library have the same set of definitions.
+
+Most important is the build type definition
+
+For a full list and documentation of the build configuration preprocessor definitions, check the documentation for the build.h header
+
+\section memory_management Memory management
+Memory management is handled through a memory system implementation, which is basically three entry points for allocation, reallocation and deallocation. By default the foundation library provides a memory system built on the C library malloc/realloc/free family of functions, extended and wrapped to handle alignment requirements. When you initialize the foundation library you have to pass in a memory system implementation declaration through a #memory_system_t struct. To use the default malloc-based system, use #memory_system_malloc
+
+Memory allocations will belong to a memory context, which is usually a hash value of a module name (for example, #HASH_STREAM). This allows the memory tracker to place allocations in buckets to see how much memory each part/module of the software allocates at any given time. Memory context can be set explicitly with an argument to #memory_allocate or implicitly through the thread local memory context stack controlled with #memory_context_push and #memory_context_pop.
+
+Memory allocations can also give hint flags of the usage of the requested memory buffer. This allows the implementation to make optimizations and extra requirements during allocation. The memory hint flags are documented in #memory_hint_t with the most common flags being #MEMORY_TEMPORARY and #MEMORY_ZERO_INITIALIZED for temporary (scope level) allocations and initialization to zero, respectively.
+
+The memory management module also provides memory tracking if compiled with #BUILD_ENABLE_MEMORY_TRACKER set to 1, which tracks all allocations and deallocations and enable memory leak detection. A memory tracker is declared with the #memory_tracker_t struct, and the library provides a default local implementation in #memory_tracker_local. The maximum number of concurrent allocations the local memory tracker can keep track of is set with the #BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS preprocessor directive in build.h header. A networked memory tracker will be provided in a network library, and further entry points to query the tracker during runtime will be added in a later release. Right now the tracker only prints detected leaks on application termination.
+
+Finally there is a memory overwrite/underwrite guard functionality built in and enabled with the #BUILD_ENABLE_MEMORY_GUARD build.h preprocessor directive. This will incur a slight memory overhead on each allocation, adding a dead zone before and after each allocated memory block for detecting invalid memory writes outside the allocated area. This functionality is built on top of the memory system implementation which does not need to provide a guard implementation internally.
+
+\section threading Threading
+To be written... (thread, semaphore, mutex, atomic)
+
+\section debugging Debugging, profiling, logging and error handling
+To be written... (crash, profile, log, )
+
+\section streams_files Streams and file access
+To be written... (paths, protocols, byte ordering, special streams)
+
+\section data_structures Data structures
+To be written...
+
+\section strings String handling and unicode support
+To be written... (utf-8, wide strings)
+
+
+\page using_page Using the foundation library in a project
+
+\section project_setup Project setup
+To be written... (headers, linking)
+
+\section template_app Template application
+To be written... (initialization, shutdown, environment, system, config, library)
+
+*/

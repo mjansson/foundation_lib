@@ -262,7 +262,7 @@ char* stream_read_line( stream_t* stream, char delimiter )
 	if( stream_is_sequential( stream ) ) //Need to read one byte at a time since we can't scan back if overreading
 		want_read = 1;
 
-	outbuffer = memory_allocate( outsize + 1, 0, MEMORY_PERSISTENT );
+	outbuffer = memory_allocate( 0, outsize + 1, 0, MEMORY_PERSISTENT );
 	while( !stream_eos( stream ) )
 	{
 		read = (int)stream->vtable->read( stream, buffer, want_read );
@@ -317,7 +317,7 @@ void stream_determine_binary_mode( stream_t* stream, unsigned int num )
 	if( !num )
 		num = 8;
 
-	buf = memory_allocate( num, 0, MEMORY_TEMPORARY );
+	buf = memory_allocate( 0, num, 0, MEMORY_TEMPORARY );
 	memset( buf, 32, num );
 	
 	cur = stream_tell( stream );
@@ -552,7 +552,7 @@ char* stream_read_string( stream_t* stream )
 
 	FOUNDATION_ASSERT( stream->vtable->read );
 
-	outbuffer = memory_allocate( outsize, 0, MEMORY_PERSISTENT );
+	outbuffer = memory_allocate( 0, outsize, 0, MEMORY_PERSISTENT );
 
 	if( stream_is_sequential( stream ) )
 	{
@@ -1011,12 +1011,13 @@ void stream_flush( stream_t* stream )
 
 #include <stdio.h>
 
-typedef struct ALIGN(8) _foundation_stdstream
+struct stream_std_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	void*              std;
 	bool               eos;
-} stream_std_t;
+};
+typedef ALIGN(8) struct stream_std_t stream_std_t;
 
 
 static uint64_t  _stream_stdin_read( stream_t*, void*, uint64_t );
@@ -1063,7 +1064,7 @@ static stream_vtable_t _stream_stdin_vtable = {
 
 stream_t* stream_open_stdout( void )
 {
-	stream_std_t* stream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
@@ -1077,7 +1078,7 @@ stream_t* stream_open_stdout( void )
 
 stream_t* stream_open_stderr( void )
 {
-	stream_std_t* stream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
@@ -1091,7 +1092,7 @@ stream_t* stream_open_stderr( void )
 
 stream_t* stream_open_stdin( void )
 {
-	stream_std_t* stream = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_IN;
@@ -1142,7 +1143,7 @@ static void _stream_stdout_flush( stream_t* stream )
 
 static stream_t* _stream_std_clone( stream_t* stream )
 {
-	stream_std_t* clone = memory_allocate_zero_context( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT );
+	stream_std_t* clone = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	memcpy( clone, stream, sizeof( stream_std_t ) );
 	clone->path = string_clone( stream->path );
 	return (stream_t*)clone;

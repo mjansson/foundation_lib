@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 
-typedef struct ALIGN(8) _foundation_ringbuffer_stream
+struct ringbuffer_stream_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	semaphore_t              signal_read;
@@ -24,7 +24,8 @@ typedef struct ALIGN(8) _foundation_ringbuffer_stream
 	uint64_t                 total_size;
 
 	FOUNDATION_DECLARE_RINGBUFFER;
-} ringbuffer_stream_t;
+};
+typedef ALIGN(8) struct ringbuffer_stream_t ringbuffer_stream_t;
 
 #define RINGBUFFER_FROM_STREAM( stream ) ((ringbuffer_t*)&stream->total_read)
 
@@ -33,7 +34,7 @@ static stream_vtable_t _ringbuffer_stream_vtable = {0};
 
 ringbuffer_t* ringbuffer_allocate( unsigned int size )
 {
-	ringbuffer_t* buffer = memory_allocate_zero( sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT );
+	ringbuffer_t* buffer = memory_allocate( 0, sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	buffer->buffer_size = size;
 	return buffer;
 }
@@ -293,7 +294,7 @@ static void _ringbuffer_stream_deallocate( stream_t* stream )
 
 stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_size )
 {
-	ringbuffer_stream_t* bufferstream = memory_allocate_zero( sizeof( ringbuffer_stream_t ) + buffer_size, 0, MEMORY_PERSISTENT );
+	ringbuffer_stream_t* bufferstream = memory_allocate( 0, sizeof( ringbuffer_stream_t ) + buffer_size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream_t* stream = (stream_t*)bufferstream;
 
 	_stream_initialize( stream, system_byteorder() );

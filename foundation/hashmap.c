@@ -13,17 +13,22 @@
 #include <foundation/foundation.h>
 
 
-typedef struct _foundation_hashmap_node
+#define HASHMAP_MINBUCKETS                 13
+#define HASHMAP_MINBUCKETSIZE              8
+
+
+struct hashmap_node_t
 {
 	hash_t                key;
 	void*                 value;
-} hashmap_node_t;
+};
+typedef struct hashmap_node_t hashmap_node_t;
 
 
 typedef hashmap_node_t*   hashmap_bucket_t;
 
 
-struct _foundation_hashmap
+struct hashmap_t
 {
 	unsigned int          num_buckets;
 	unsigned int          num_nodes;
@@ -41,7 +46,7 @@ hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 	if( bucketsize < HASHMAP_MINBUCKETSIZE )
 		bucketsize = HASHMAP_MINBUCKETSIZE;
 	
-	map = memory_allocate( sizeof( hashmap_t ) + sizeof( hashmap_bucket_t ) * buckets, 0, MEMORY_PERSISTENT );
+	map = memory_allocate( 0, sizeof( hashmap_t ) + sizeof( hashmap_bucket_t ) * buckets, 0, MEMORY_PERSISTENT );
 
 	map->num_buckets = buckets;
 	map->num_nodes   = 0;

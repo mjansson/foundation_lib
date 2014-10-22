@@ -1,0 +1,22 @@
+
+/*!
+
+\file bufferstream.h
+\brief Stream for memory buffer
+\details Stream for memory buffer
+
+
+\fn stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
+\brief Allocate stream for memory buffer
+\details Allocate a new stream for memory buffers from an (optionally) existing buffer. The buffer can grow up to
+the given capacity. If adopt and grow flags set it will grow to any required size 
+reallocating memory.
+\param buffer                    Buffer
+\param mode                      Stream open mode
+\param size                      Current size of data
+\param capacity                  Buffer capacity
+\param adopt                     Take ownership of buffer
+\param grow                      Allow growing buffer by reallocating memory (requires buffer to be adopted)
+\return                          New stream
+
+*/

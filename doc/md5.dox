@@ -1,0 +1,73 @@
+
+/*!
+
+\file md5.h
+\brief MD5 algorithm
+\details MD5 message-digest algorithm. Inspired by Alexander Peslyak's public domain implementation
+available at http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
+
+Normal use case is to first allocate the md5 block, then do any number of initialize-digest-finalize
+call sequences:
+
+<pre>md5_initialize()
+md5_digest()
+md5_digest_raw()
+...
+md5_finalize()
+md5_get_digest()
+md5_get_digest_raw()</pre>
+
+
+\fn md5_t* md5_allocate( void )
+\brief Allocate block
+\details Allocate a new MD5 block. The block must be initialized with a call
+to #md5_initialize before being used for digests.
+\return New MD5 block
+
+\fn void md5_deallocate( md5_t* digest )
+\brief Deallocate block
+\details Deallocate MD5 block
+\param digest MD5 block
+
+\fn void md5_initialize( md5_t* digest )
+\brief Initialize block
+Initialize MD5 block. Must be called before each block of digest operations
+with #md5_digest and #md5_digest_raw
+\param digest MD5 block
+
+\fn md5_t* md5_digest( md5_t* digest, const char* message )
+\brief Digest string
+\details Digest a zero-terminated string.
+\param digest MD5 block
+\param message Message to digest
+\return MD5 block
+
+\fn md5_t* md5_digest_raw( md5_t* digest, const void* buffer, size_t size )
+\brief Digest data buffer
+\details Digest a raw data buffer.
+\param digest MD5 block
+\param buffer Data to digest
+\param size Size of buffer
+\return MD5 block
+
+\fn void md5_finalize( md5_t* digest )
+\brief Finalize digest
+\details Finalize digest. Must be called between digesting data with #md5_digest/#md5_digest_raw and getting the
+final message digest with #md5_get_digest/#md5_get_digest_raw
+\param digest MD5 block
+
+\fn char* md5_get_digest( const md5_t* digest )
+\brief Get digest string
+\details Get digest as string. Before getting the digest string the MD5 block must be
+finalized with a call to #md5_finalize.
+\param digest MD5 block
+\return Message digest string
+
+\fn uint128_t md5_get_digest_raw( const md5_t* digest )
+\brief Get raw digest
+\details Get digest as raw 128-bit value. Before getting the raw digest the MD5 block must be
+finalized with a call to #md5_finalize.
+\param digest MD5 block
+\return Message digest
+
+*/

@@ -1,0 +1,940 @@
+/*!
+
+\file types.h
+\brief Foundation data types
+\details Foundation data types, enumerations and typedefs. Provides platform abstractions of system
+specific data types and provides the base language used in all libraries built on this foundation library.
+
+
+\enum error_level_t
+\brief Error severity level
+\details Error severity level. The higher the value, the more severe the error. Error level 0
+(ERRORLEVEL_NONE) is used to indicate no error
+\internal Do not change order! \endinternal
+
+\var error_level_t ERRORLEVEL_NONE
+No error
+
+\var error_level_t ERRORLEVEL_DEBUG
+Debug level, usually ignored in anything except debug builds. Execution will continue as expected.
+
+\var error_level_t ERRORLEVEL_INFO
+Information level, contains generally useful information. Execution will continue as expected.
+
+\var error_level_t ERRORLEVEL_WARNING
+Warning level, contains important information. Operation failed, but execution can continue.
+
+\var error_level_t ERRORLEVEL_ERROR
+Error level, contains vital information. Operation failed and execution might be affected.
+
+\var error_level_t ERRORLEVEL_PANIC
+Panic level, contains vital information. Operation failed and execution cannot continue.
+
+
+\enum error_t
+\brief Error identifiers
+\details Error identifiers. Error 0 (ERROR_NONE) is used to indicate no error.
+\internal Do not change order, only append! \endinternal
+
+\var error_t ERROR_NONE
+No error
+
+\var error_t ERROR_INVALID_VALUE
+An invalid value was passed to the function
+
+\var error_t ERROR_UNSUPPORTED
+The function is unsupported on the current system
+
+\var error_t ERROR_NOT_IMPLEMENTED
+The function is not yet implemented
+
+\var error_t ERROR_OUT_OF_MEMORY
+The function could not allocate the needed memory and/or resources
+
+\var error_t ERROR_MEMORY_LEAK
+A memory leak was detected
+
+\var error_t ERROR_MEMORY_ALIGNMENT
+Memory alignment check failed
+
+\var error_t ERROR_INTERNAL_FAILURE
+Internal failed, unspecified. The function encountered a state it did not expect or support
+
+\var error_t ERROR_ACCESS_DENIED
+The function call was not allowed
+
+\var error_t ERROR_EXCEPTION
+An exception was thrown
+
+\var error_t ERROR_SYSTEM_CALL_FAIL
+A system call failed
+
+\var error_t ERROR_UNKNOWN_TYPE
+The function encountered an unsupported data type for the requested operation
+
+\var error_t ERROR_UNKNOWN_RESOURCE
+The function could not resolve the resource to use in the requested operation
+
+\var error_t ERROR_DEPRECATED
+The function is deprecated and should not be used
+
+\var error_t ERROR_ASSERT
+An assert triggered
+
+\var error_t ERROR_SCRIPT
+A script generated an error
+
+\var error_t ERROR_LAST_BUILTIN
+Marker, last reserved internal error identifier
+
+
+\enum warning_t
+\brief Warning classes
+\details Warning classes. Indicate which type/group of warning message that was generated
+\internal Do not change order, only append! \endinternal
+
+\var warning_t WARNING_PERFORMANCE
+Performance warning
+
+\var warning_t WARNING_DEPRECATED
+Function is deprecated
+
+\var warning_t WARNING_BAD_DATA
+Bad data passed to/used in function
+
+\var warning_t WARNING_MEMORY
+Memory issues (running low, leaks, ...)
+
+\var warning_t WARNING_UNSUPPORTED
+Unsupported function
+
+\var warning_t WARNING_SUSPICIOUS
+General warning, function encountered a suspicious state
+
+\var warning_t WARNING_SYSTEM_CALL_FAIL
+System call failed
+
+\var warning_t WARNING_DEADLOCK
+Potential deadlock encountered
+
+\var warning_t WARNING_SCRIPT
+Script generated warning
+
+\var warning_t WARNING_LAST_BUILTIN
+Marker, last reserved inernal warning identifier
+
+
+\enum memory_hint_t
+\brief Memory hints
+\details Memory hints. Enables the memory allocator to do better implementations of allocations
+based on usage patterns for the requested memory.
+
+\var memory_hint_t MEMORY_PERSISTENT
+Memory is persistent (retained when function returns)
+
+\var memory_hint_t MEMORY_TEMPORARY
+Memory is temporary (extremely short lived and generally freed before function returns or scope ends)
+
+\var memory_hint_t MEMORY_THREAD
+Memory is local to the calling thread
+
+\var memory_hint_t MEMORY_32BIT_ADDRESS
+Memory should be allocated in low 32-bit address space
+
+\var memory_hint_t MEMORY_ZERO_INITIALIZED
+Memory should be initialized to zero during allocation
+
+
+\enum platform_t
+\brief Platform identifiers
+\details Platform identifiers. For compile-time platform selection, use the FOUNDATION_PLATFORM_[...] preprocessor macros
+
+\var platform_t PLATFORM_WINDOWS
+Windows
+
+\var platform_t PLATFORM_LINUX
+Linux
+
+\var platform_t PLATFORM_MACOSX
+MacOS X
+
+\var platform_t PLATFORM_IOS
+iOS (iPhone, iPad)
+
+\var platform_t PLATFORM_ANDROID
+Android
+
+\var platform_t PLATFORM_RASPBERRYPI
+Raspberry Pi (linux flavour)
+
+
+\enum architecture_t
+\brief Architecture identifiers
+\details Architecture identifiers for all architectures the engine supports. For compile-time selection of
+architecture, use the <code>FOUNDATION_ARCH_[...]</code> preprocessor macros.
+
+\var architecture_t ARCHITECTURE_X86
+x86 (Classic 32-bit x86 compatible CPUs)
+
+\var architecture_t ARCHITECTURE_X86_64
+x86-64 (x86 with 64-bit extensions)
+
+\var architecture_t ARCHITECTURE_PPC
+PowerPC 32-bit
+
+\var architecture_t ARCHITECTURE_PPC_64
+PowerPC 64-bit
+
+\var architecture_t ARCHITECTURE_ARM6
+ARM 6
+
+\var architecture_t ARCHITECTURE_ARM7
+ARM 7
+
+\var architecture_t ARCHITECTURE_ARM8_64
+ARM 8 64bit
+
+\var architecture_t ARCHITECTURE_ARM5
+ARM 5
+
+\var architecture_t ARCHITECTURE_MIPS
+MIPS
+
+
+\enum byteorder_t
+\brief Machine byte order identifiers
+\details Machine byte order identifiers
+
+\var byteorder_t BYTEORDER_LITTLEENDIAN
+Little endian
+
+\var byteorder_t BYTEORDER_BIGENDIAN
+Big endian
+
+
+\enum application_flag_t
+\brief Application flags
+\details Application flags
+
+\var application_flag_t APPLICATION_UTILITY
+Application is a command line utility and should not have a normal windowing system interaction loop)
+
+\var application_flag_t APPLICATION_DAEMON
+Application is a daemon/service
+
+
+\enum stream_mode_t
+\brief Stream open modes
+\details Open modes for streams. Not all streams can be opened with all modes.
+
+\var stream_mode_t STREAM_IN
+Readable
+
+\var stream_mode_t STREAM_OUT
+Writable
+
+\var stream_mode_t STREAM_TRUNCATE
+Truncate on open
+
+\var stream_mode_t STREAM_ATEND
+Position at end on open
+
+\var stream_mode_t STREAM_BINARY
+Read/write in binary mode
+
+\var stream_mode_t STREAM_SYNC
+Force sync on each write
+
+
+\enum stream_type_t
+\brief Stream type identifiers
+\details Stream type identifiers. Only lists built-in types, application specific types
+can be added above the STREAMTYPE_LAST_RESERVED value.
+
+\var stream_type_t STREAMTYPE_INVALID
+Invalid identifier
+
+\var stream_type_t STREAMTYPE_MEMORY
+Memory buffer stream
+
+\var stream_type_t STREAMTYPE_FILE
+File system stream
+
+\var stream_type_t STREAMTYPE_SOCKET
+Socket stream
+
+\var stream_type_t STREAMTYPE_RINGBUFFER
+Ring buffer stream
+
+\var stream_type_t STREAMTYPE_ASSET
+Asset stream (Android)
+
+\var stream_type_t STREAMTYPE_PIPE
+Pipe stream
+
+\var stream_type_t STREAMTYPE_STDSTREAM
+Standard stream (stdin, stderr, stdout)
+
+\var stream_type_t STREAMTYPE_LAST_RESERVED
+Last reserved built-in stream type, not a real type.
+
+
+\enum stream_seek_mode_t
+\brief Stream seek directions
+\details Stream seek directions
+
+\var stream_seek_mode_t STREAM_SEEK_BEGIN
+Seek from start of stream
+
+\var stream_seek_mode_t STREAM_SEEK_CURRENT
+Seek from current position of stream
+
+\var stream_seek_mode_t STREAM_SEEK_END
+Seek from end of stream
+
+
+\enum thread_priority_t
+\brief Thread priority
+\details Thread priority
+
+\var thread_priority_t THREAD_PRIORITY_LOW
+Lowest possible priority
+
+\var thread_priority_t THREAD_PRIORITY_BELOWNORMAL
+Unimportant priority
+
+\var thread_priority_t THREAD_PRIORITY_NORMAL
+Normal priority
+
+\var thread_priority_t THREAD_PRIORITY_ABOVENORMAL
+Important priority
+
+\var thread_priority_t THREAD_PRIORITY_HIGHEST
+High priority
+
+\var thread_priority_t THREAD_PRIORITY_TIMECRITICAL
+Absolutely critical
+
+
+\enum process_flag_t
+\brief Process flags
+\details Process flags
+
+\var process_flag_t PROCESS_ATTACHED
+Attached, spawn method will block until process ends and then return process exit code
+
+\var process_flag_t PROCESS_DETACHED
+Detached, spawn method will immediately return with code 0
+
+\var process_flag_t PROCESS_CONSOLE
+Create a console window for process
+
+\var process_flag_t PROCESS_STDSTREAMS
+Create stdout/stdin pipes to process
+
+\var process_flag_t PROCESS_WINDOWS_USE_SHELLEXECUTE
+Windows platform only, use ShellExecute instead of CreateProcess
+
+\var process_flag_t PROCESS_OSX_USE_OPENAPPLICATION
+MacOSX platform only, use LSOpenApplication instead of fork/execve
+
+
+\enum process_status_t
+\brief Process status
+\details Process status
+
+\var process_status_t PROCESS_INVALID_ARGS
+Returned when given invalid arguments
+
+\var process_status_t PROCESS_TERMINATED_SIGNAL
+Returned when process was terminated by signal
+
+\var process_status_t PROCESS_WAIT_INTERRUPTED
+Returned when process wait was interrupted
+
+\var process_status_t PROCESS_WAIT_FAILED
+Returned when process wait failed for unknown reasons
+
+\var process_status_t PROCESS_STILL_ACTIVE
+Returned when detached process is still running
+
+
+\enum foundation_event_id
+\brief Event identifiers
+\details Foundation library level event identifiers. These event identifiers are only
+valid in conjunction with foundation event streams. Other event streams will use
+their own event identifiers with the same value, and event streams should be treated
+as separate "namespaces" for event identifiers.
+
+\var foundation_event_id FOUNDATIONEVENT_START
+Application has been asked to start
+
+\var foundation_event_id FOUNDATIONEVENT_TERMINATE
+Application has been asked to terminate
+
+\var foundation_event_id FOUNDATIONEVENT_PAUSE
+Application has been asked to pause
+
+\var foundation_event_id FOUNDATIONEVENT_RESUME
+Application has been asked to resume
+
+\var foundation_event_id FOUNDATIONEVENT_FILE_CREATED
+File was created
+
+\var foundation_event_id FOUNDATIONEVENT_FILE_DELETED
+File was deleted
+
+\var foundation_event_id FOUNDATIONEVENT_FILE_MODIFIED
+File was modified
+
+\var foundation_event_id FOUNDATIONEVENT_LOW_MEMORY_WARNING
+Low memory warning
+
+\var foundation_event_id FOUNDATIONEVENT_DEVICE_ORIENTATION
+Device orientation changed
+
+
+\enum event_flag_t
+\brief Event flags
+\details Event flags
+
+\var event_flag_t EVENTFLAG_DELAY
+Event is delayed and will be delivered at a later timestamp
+
+
+\enum blowfish_mode_t
+\brief Cipher mode
+\details Blowfish block cipher mode of operation (http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
+
+\var blowfish_mode_t BLOWFISH_ECB 
+Electronic codebook
+
+\var blowfish_mode_t BLOWFISH_CBC
+Cipher-block chaining
+
+\var blowfish_mode_t BLOWFISH_CFB
+Cipher feedback
+
+\var blowfish_mode_t BLOWFISH_OFB
+Output feedback
+
+
+\enum radixsort_data_t
+\brief Radix sort data types
+\details Radix sort data types
+
+\var radixsort_data_t RADIXSORT_INT32
+32-bit signed integer
+
+\var radixsort_data_t RADIXSORT_UINT32
+32-bit unsigned integer
+
+\var radixsort_data_t RADIXSORT_INT64
+64-bit signed integer
+
+\var radixsort_data_t RADIXSORT_UINT64
+64-bit unsigned integer
+
+\var radixsort_data_t RADIXSORT_FLOAT32
+32-bit floating point
+
+\var radixsort_data_t RADIXSORT_FLOAT64
+64-bit floating point
+
+
+\enum device_orientation_t
+\brief Device orientation
+\details Device orientation
+
+\var device_orientation_t DEVICEORIENTATION_UNKNOWN
+Orientation not known
+
+\var device_orientation_t DEVICEORIENTATION_PORTRAIT
+Device oriented vertically, bottom of device down
+
+\var device_orientation_t DEVICEORIENTATION_PORTRAIT_FLIPPED
+Device oriented vertically, bottom of device up
+
+\var device_orientation_t DEVICEORIENTATION_LANDSCAPE_CCW
+Device oriented horizontally, bottom of device to the right (rotated counter-clockwise from portrait mode)
+
+\var device_orientation_t DEVICEORIENTATION_LANDSCAPE_CW
+Device oriented horizontally, bottom of device to the left (rotated clockwise from portrait mode)
+
+\var device_orientation_t DEVICEORIENTATION_FACEUP
+Device oriented flat, face up
+
+\var device_orientation_t DEVICEORIENTATION_FACEDOWN
+Device oriented flat, face down
+
+
+\typedef hash_t
+\brief Hash value
+\details Hash value
+
+\typedef tick_t
+\brief Tick
+\details Tick type used for absolute time measurements or timestamps
+
+\typedef deltatime_t
+\brief Deltatime
+\details Deltatime type used for floating point time differences
+
+\typedef object_t
+\brief Object handle
+\details Object handle used for identifying reference counted objects
+
+\typedef radixsort_index_t
+\brief Index for radix sorter
+\details Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array
+
+\typedef uuid_t
+\brief UUID
+\details UUID
+
+
+\typedef typedef int (*error_callback_fn)( error_level_t level, error_t error )
+\brief Error handler callback
+\details Error handler callback which is passed the error level and reported error. It should return
+an implementation specific code which is then returned from the call to error_report
+\param level Error level
+\param error Error code
+\return Implementation specific code which is passed back as return from error_report
+
+\typedef int (*assert_handler_fn)( uint64_t context, const char* condition, const char* file, int line, const char* msg )
+\brief Assert handler callback
+\details Assert handler callback which is passed assert data and should do impementation specific processing and return
+a code indicating if execution can continue or need to be aborted.
+\param context Error context
+\param condition String expressing the condition that failed
+\param file Source file triggering the assert
+\param line Source line triggering the assert
+\param msg Assert message, if any
+\return 1 if assert was not handled and execution should break, 0 if assert handled and execution can continue
+
+\typedef void (*log_callback_fn)( uint64_t context, int severity, const char* msg )
+\brief Log output callback
+\details Log output callback. Called after each log message processed and output by the log functions.
+\param context Log context
+\param severity Log severity
+\param msg Log message
+
+\typedef int (*system_initialize_fn)( void )
+\brief Subsystem initialization
+\details Subsystem initialization function prototype. Return value should be the success state of initialization
+\return 0 on success, <0 if failure (errors should be reported through log_error or error_report)
+
+\typedef void (*system_shutdown_fn)( void )
+\brief Subsystem shutdown
+\details Subsystem shutdown function prototype. Will be called for each successfully initialized subsystem on shutdown
+
+\typedef void* (*memory_allocate_fn)( uint64_t context, uint64_t size, unsigned int align, int hint )
+\brief Memory allocation
+\details Memory system allocation function prototype. Implementation of a memory system should provide an implementation
+with this prototype for allocating memory
+\param context Memory context
+\param size Requested size
+\param align Aligmnent requirement
+\param hint Memory hitn (see memory_hint_t)
+\return Pointer to allocated memory block if successful, 0 if error
+
+\typedef void* (*memory_reallocate_fn)( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
+\brief Memory reallocation
+\details Memory system reallocation function prototype. Implementation of a memory system should provide an implementation
+with this prototype for reallocating memory
+\param p Pointer to previous memory block
+\param size Requested size
+\param align Aligmnent requirement
+\param oldsize Size of previous memory block
+\return Pointer to allocated memory block if successful, 0 if error
+
+\typedef void (*memory_deallocate_fn)( void* p )
+\brief Memory deallocation
+\details Memory system deallocation function prototype. Implementation of a memory system should provide an implementation
+with this prototype for deallocating memory
+\param p Pointer to memory block
+
+\typedef void (*memory_track_fn)( void* p, uint64_t size )
+\brief Memory tracking
+\details Memory tracker tracking function prototype. Implementation of a memory tracker should provide an implementation
+with this prototype for tracking memory allocations
+\param p Pointer to allocated memory block
+\param size Size of memory block
+
+\typedef void (*memory_untrack_fn)( void* p )
+\brief Memory tracking
+\details Memory tracker untracking function prototype. Implementation of a memory tracker should provide an implementation
+with this prototype for untracking memory allocations
+\param p Pointer to deallocated memory block
+
+\typedef void (*profile_write_fn)( void* data, uint64_t size )
+\brief Profile data output callback
+\details Callback function for writing profiling data to a stream
+\param data Pointer to data block
+\param size Size of data block
+
+\typedef void (*profile_read_fn)( void* data, uint64_t size )
+\brief Profile data input callback
+\details Callback function for reading profiling data from a stream
+\param data Pointer to data block
+\param size Size of data block
+
+\typedef void* (*thread_fn)( object_t thread, void* arg )
+\brief Thread entry point
+\details Thread entry point function prototype
+\param thread Thread object handle
+\param arg Argument passed by caller when starting the thread
+\return Implementation specific data which can be obtained through thread_result
+
+\typedef int (*crash_guard_fn)( void* arg )
+\brief Function prototype for crash guards
+\details Any function to be used in conjunction with the crash guard functionality of the library should have this
+prototype to allow the crash guard to catch and handle exceptions correctly
+\param Implementation specific argument passed to crash_guard
+\return Implementation specific return value which is forwarded as return value from crash_guard (note that FOUNDATION_CRASH_DUMP_GENERATED is reserved)
+
+\typedef void (*crash_dump_callback_fn)( const char* file )
+\brief Crash callback
+\details Crash callback function prototype, used to notify that an exception occurred and the process state was saved to a dump file
+\param file Dump file path
+
+\typedef void (*object_deallocate_fn)( object_t id, void* object )
+\brief Object deallocation
+\details Object deallocation function prototype, used to deallocate an object of a specific type
+\param id Object handle
+\param object Object pointer
+
+
+\typedef md5_t
+\brief MD5 state
+\details Opaque struct holding an MD5 state
+
+\typedef stream_t
+\brief Base stream type
+\details Base opaque stream type from which all streams are derived.
+
+\typedef mutex_t
+\brief Mutex
+\details Mutex for thread synchronization
+
+\typedef process_t
+\brief Process
+\details Opaque struct holding state for a process
+
+\typedef event_block_t
+\brief Event block
+\details Event block holding a number of events for processing. Block can be maximum BUILD_SIZE_EVENT_BLOCK_LIMIT bytes in size
+
+\typedef event_stream_t
+\brief Event strem
+\details Opaque struct holding state for a event stream from a single module. Event streams produce event blocks for processing
+
+\typedef ringbuffer_t
+\brief Ringbuffer
+\details Opaque struct holding state for a ring buffer. A ring buffer is a shared memory area where one input and one output stream concurrently write and read data.
+
+\typedef blowfish_t
+\brief Blowfish state
+\details Opaque struct holding state for a blowfish encryption block
+
+\typedef radixsort_t
+\brief Radix sorter
+\details Opaque struct holding state for a radix sorter for a defined data type.
+
+\typedef hashmap_t
+\brief Hash map
+\details Opaque struct holding state for a hash map, mapping hash values to data pointers
+
+\typedef hashtable32_t
+\brief  Hash table (32 bit data)
+\details Opaque struct holding state for a hash table, a lock free mapping of hash values to 32 bit integer data
+
+\typedef hashtable64_t
+\brief  Hash table (64 bit data)
+\details Opaque struct holding state for a hash table, a lock free mapping of hash values to 64 bit integer data
+
+\typedef regex_t
+\brief Compiled regular expression
+\details Opaque struct holding state for a compiled regular expression
+
+
+\struct memory_system_t
+\brief Memory management system declaration
+\details Memory management system declaration with function pointers for all memory system entry points.
+
+\var memory_system_t::allocate
+Memory allocation with no initialization
+
+\var memory_system_t::reallocate
+Memory reallocation
+
+\var memory_system_t::deallocate
+Memory deallocation
+
+\var memory_system_t::initialize
+Initialization of memory system
+
+\var memory_system_t::shutdown
+Shutdown of memory system
+
+
+\struct memory_tracker_t
+\brief Memory tracking system declaration
+\details Memory tracking system declarations with function pointers for all memory tracking entry points
+
+\var memory_tracker_t::track
+Track a memory allocation
+
+\var memory_tracker_t::untrack
+Untrack a memory allocation
+
+\var memory_tracker_t::initialize
+Initialize memory tracker
+
+\var memory_tracker_t::shutdown
+Shutdown memory tracker
+
+
+\union version_t
+\brief Version identifier
+\details Version identifier expressed as an 128-bit integer with major, minor, revision, build and control version number components
+
+\var version_t::version
+Compound version identifier
+
+\var version_t::sub
+Version numbers separated into sections, "major.minor.revision-revision (control)"
+
+\var version_t::sub.major
+Major version
+
+\var version_t::sub.minor
+Minor version
+
+\var version_t::sub.revision
+Revision number
+
+\var version_t::sub.build
+Build number
+
+\var version_t::sub.revision
+Source control version/revision/identifier
+
+
+\struct application_t
+\brief Application declaration
+\details Application declaration
+
+\var application_t::name
+Long descriptive name
+
+\var application_t::short_name
+Short name, should only contain [a-z][A-Z][-_.]
+
+\var application_t::config_dir
+Config directory name
+
+\var application_t::version
+Version declaration
+
+\var application_t::dump_callback
+Crash dump callback function
+
+\var application_t::flags
+Application flags (see application_flag_t)
+
+\var application_t::instance
+Instance UUID, generated by the foundation library on foundation initialization
+
+
+\struct error_frame_t
+\brief Data for a frame in the error context stack
+\details Data for a frame in the error context stack
+
+\var error_frame_t::name
+Error description
+
+\var error_frame_t::data
+Data associated with error
+
+
+\struct error_context_t
+\brief Error context stack
+\details Error context stack
+
+\var error_context_t::frame
+Error context stack
+
+\var error_context_t::depth
+Current depth of error context stack
+
+
+\struct memory_context_t
+\brief Memory context stack
+\details Memory context stack
+
+\var memory_context_t::context
+Memory context stack
+
+\var memory_context_t::depth
+Current depth of memory context stack
+
+
+\def FOUNDATION_DECLARE_OBJECT
+\brief Object base structure declaration
+\details Declares the base object data layout. Object structures should be 8-byte align for platform compatibility.
+Use the macro as first declaration in an object struct:
+<pre>typedef struct ALIGN(8)
+{
+  FOUNDATION_DECLARE_OBJECT;
+  int       some_other_data;
+  //[...]
+} my_object_t;</pre>
+\internal If changing base object layout, change objectmap_lookup and objectmap_lookup_ref \endinternal
+
+
+\struct object_base_t
+\brief Object base structure
+\details Object base structure. All object-based designs must have this layout at the start of the structure.
+See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in a structure.
+
+\var object_base_t::ref
+Object reference count
+
+\var object_base_t::flags
+Object flags
+
+\var object_base_t::id
+Object ID and handle (self)
+
+
+\struct objectmap_t
+\brief Object map
+\details Object map which maps object handles to object pointers. As object lifetime is managed by
+reference counting, objects that are deallocated will invalidate the handle in the corresponding
+object map. 
+
+\var objectmap_t::free
+Current first free slot
+
+\var objectmap_t::size
+Number of slots in map
+
+\var objectmap_t::id
+Counter for next available ID
+
+\var objectmap_t::size_bits
+Number of bits needed for slot index
+
+\var objectmap_t::id_max
+Maximum ID (depending on how many bits are used by size)
+
+\var objectmap_t::mask_index
+Bitmask for slot index
+
+\var objectmap_t::mask_id
+Bitmask for ID
+
+\var objectmap_t::map
+Slot array
+
+
+\def FOUNDATION_DECLARE_EVENT
+\brief Event base structure declaration
+\details Declares the base event data layout. Event structures should use the macro as first
+declaration in an event struct:
+<pre>typedef struct
+{
+  FOUNDATION_DECLARE_EVENT;
+  int some_other_data;
+  //[...]
+} my_event_t;</pre>
+
+\struct event_t
+\brief Event base structure
+\details Event base structure. All event structures must have this layout at the start of the structure.
+See #FOUNDATION_DECLARE_EVENT for a macro to declare the base layout in a structure.
+
+\var event_t::id
+Event ID
+
+\var event_t::flags
+Event flags
+
+\var event_t::serial
+Event serial number
+
+\var event_t::size
+Size of event data payload
+
+\var event_t::object
+Object associated with event
+
+\var event_t::payload
+Event data payload
+
+
+\struct semaphore_t
+\brief Semaphore
+\details Semaphore for thread synchronization and communication. Actual type specifics depend
+on platform, the semaphore_t type should be treated as an opaque data struct.
+
+
+\struct bitbuffer_t
+\brief Bit buffer
+\details Bit buffer for bit based I/O to a memory buffer or stream
+
+\var bitbuffer_t::buffer
+Memory buffer
+
+\var bitbuffer_t::end
+End of buffer indicator
+
+\var bitbuffer_t::stream
+Stream
+
+\var bitbuffer_t::swap
+Swap flag for compatibility between machines with different endian architectures
+
+\var bitbuffer_t::pending_read
+Pending data to be read
+
+\var bitbuffer_t::pending_write
+Pending data to be written
+
+\var bitbuffer_t::offset_read
+Current read offset in bits into pending data
+
+\var bitbuffer_t::offset_write
+Current write offset in bits into pending data
+
+\var bitbuffer_t::count_read
+Number of read bits
+
+\var bitbuffer_t::count_write
+Number of written bits
+
+
+\struct regex_capture_t
+\brief Regex capture
+\details Regex capture. Used to capture matching in a regex search. See regex_match in regex.h
+
+\var regex_capture_t::substring
+Captured substring (NOT null terminated)
+
+\var regex_capture_t::length
+Length of captured substring
+
+
+\fn version_t version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control )
+\brief Pack version definition into a 128-bit integer
+\details Pack version definition into a 128-bit integer
+\param major          Major version
+\param minor          Minor version
+\param revision       Revision number
+\param build          Build number
+\param control        Source control version/revision/identifier
+\return               Packed version data
+
+
+*/

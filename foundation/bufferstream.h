@@ -12,20 +12,8 @@
 
 #pragma once
 
-/*! \file bufferstream.h
-    Stream for memory buffer */
-
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 
-/*! Create memory buffer stream from (optionally) existing buffer. The buffer can grow up to
-    the given capacity. If adopt and grow flags set it will grow to any required size by
-    reallocating memory.
-    \param buffer                    Buffer
-	\param mode                      Stream open mode
-	\param size                      Current size of data
-	\param capacity                  Buffer capacity
-	\param adopt                     Take ownership of buffer
-	\param grow                      Allow growing buffer by reallocating memory (requires buffer to be adopted) */
-FOUNDATION_API stream_t*             buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow );
+FOUNDATION_API stream_t*  buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow );

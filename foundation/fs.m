@@ -38,9 +38,9 @@ static void _fs_node_make_path( char* target, const char* first, unsigned int fi
 }
 
 
-typedef struct _file_node file_node_t;
+typedef __attribute__((__aligned__(8))) struct file_node_t file_node_t;
 
-struct _file_node
+struct file_node_t
 {
 	char*          name;
 	file_node_t**  subdirs;
@@ -68,7 +68,7 @@ static void _fs_node_populate( file_node_t* node, const char* fullpath )
 	char** subdirs = fs_subdirs( fullpath );
 	for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 	{
-		file_node_t* child = memory_allocate_zero( sizeof( file_node_t ), 0, 0 );
+		file_node_t* child = memory_allocate( 0, sizeof( file_node_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		child->name = subdirs[isub];
 		array_push( node->subdirs, child );
 	}
@@ -78,9 +78,9 @@ static void _fs_node_populate( file_node_t* node, const char* fullpath )
 	for( int isub = 0, subsize = array_size( node->files ); isub < subsize; ++isub )
 	{
 		char* filepath = path_merge( fullpath, node->files[isub] );
-		//log_debugf( HASH_FOUNDATION, "  populate found file: %s", filepath );
 		uint64_t last_modified = fs_last_modified( filepath );
 		array_push( node->last_modified, last_modified );
+		//log_debugf( HASH_FOUNDATION, "  populate found file: %s (%llx)", filepath, last_modified );
 		string_deallocate( filepath );
 	}
 	
@@ -186,7 +186,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 			}
 			else
 			{
-				//log_debugf( HASH_FOUNDATION, "Got event for: %s (0x%x 0x%x)", path, (unsigned int)flags, (unsigned int)identifier );
+				//log_debugf( HASH_FOUNDATION, "Got event for: %s (0x%x 0x%x)", rawpath, (unsigned int)flags, (unsigned int)identifier );
 
 				unsigned int root_ofs = string_find_string( rawpath, root_node->name, 0 );
 				if( root_ofs == STRING_NPOS )
@@ -213,19 +213,19 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					if( ( ifile = string_array_find( (const char* const*)files, node->files[isub], array_size( files ) ) ) == -1 )
 					{
 						//log_debugf( HASH_FOUNDATION, "  deleted: %s", pathbuf );
-						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, pathbuf, 0 );
 						string_deallocate( node->files[isub] );
 						array_erase_memcpy( node->files, isub );
 						array_erase_memcpy( node->last_modified, isub );
 						--subsize;
+						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, pathbuf, 0 );
 					}
 					else
 					{
 						uint64_t last_modified = fs_last_modified( pathbuf );
-						if( last_modified > node->last_modified[ifile] )
+						if( last_modified > node->last_modified[isub] )
 						{
-							//log_debugf( HASH_FOUNDATION, "  modified: %s", pathbuf );
-							node->last_modified[ifile] = last_modified;
+							//log_debugf( HASH_FOUNDATION, "  modified: %s (%llx > %llx)", pathbuf, ifile, last_modified, node->last_modified[isub] );
+							node->last_modified[isub] = last_modified;
 							fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, pathbuf, 0 );
 						}
 						++isub;
@@ -237,12 +237,13 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					{
 						_fs_node_make_path( pathbuf, path, path_len, files[isub], string_length( files[isub] ) );
 						
-						fs_post_event( FOUNDATIONEVENT_FILE_CREATED, pathbuf, 0 );
-						//log_debugf( HASH_FOUNDATION, "  created: %s", pathbuf );
+						uint64_t last_mod = fs_last_modified( pathbuf );
 						
-						array_push( node->last_modified, fs_last_modified( pathbuf ) );
+						array_push( node->last_modified, last_mod );
 						array_push( node->files, files[isub] );
 						files[isub] = 0;
+						//log_debugf( HASH_FOUNDATION, "  created: %s (%llx)", pathbuf, last_mod );
+						fs_post_event( FOUNDATIONEVENT_FILE_CREATED, pathbuf, 0 );
 					}
 				}
 				
@@ -293,7 +294,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					
 					if( !found )
 					{
-						file_node_t* child = memory_allocate_zero( sizeof( file_node_t ), 0, MEMORY_PERSISTENT );
+						file_node_t* child = memory_allocate( 0, sizeof( file_node_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 						
 						//log_debugf( HASH_FOUNDATION, "  add subdir: %s %s", node->name, subdirs[isub] );
 						child->name = subdirs[isub];
@@ -337,7 +338,7 @@ void* _fs_event_stream_create( const char* path )
 {
 	@autoreleasepool
 	{
-		file_node_t* node = memory_allocate_zero( sizeof( file_node_t ), 0, MEMORY_PERSISTENT );
+		file_node_t* node = memory_allocate( 0, sizeof( file_node_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		node->name = string_clone( path );
 		
 		_fs_node_populate( node, path );

@@ -20,7 +20,7 @@
 #  include <dlfcn.h>
 #endif
 
-typedef struct _foundation_library
+struct library_t
 {
 	FOUNDATION_DECLARE_OBJECT;
 
@@ -32,7 +32,8 @@ typedef struct _foundation_library
 #elif FOUNDATION_PLATFORM_POSIX
 	void*            lib;
 #endif
-} library_t;
+};
+typedef ALIGN(8) struct library_t library_t;
 
 
 static objectmap_t* _library_map = 0;
@@ -56,6 +57,9 @@ void _library_shutdown( void )
 
 static void _library_destroy( library_t* library )
 {
+	if( !library )
+		return;
+
 	objectmap_free( _library_map, library->id );
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -164,9 +168,8 @@ object_t library_load( const char* name )
 		error_context_pop();
 		return 0;
 	}
-	library = memory_allocate_zero( sizeof( library_t ), 0, MEMORY_PERSISTENT );
-	atomic_store32( &library->ref, 1 );
-	library->id = id;
+	library = memory_allocate( 0, sizeof( library_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	_object_initialize( (object_base_t*)library, id );
 	library->namehash = string_hash( name );
 	string_copy( library->name, name, 32 );
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -182,14 +185,17 @@ object_t library_load( const char* name )
 }
 
 
+object_t library_ref( object_t id )
+{
+	return _object_ref( objectmap_lookup( _library_map, id ) );
+}
+
+
 void library_unload( object_t id )
 {
-	library_t* library = objectmap_lookup( _library_map, id );
-	if( library )
-	{
-		if( atomic_decr32( &library->ref ) == 0 )
-			_library_destroy( library );
-	}
+	void* library = objectmap_lookup( _library_map, id );
+	if( !_object_unref( library ) )
+		_library_destroy( library );
 }
 
 

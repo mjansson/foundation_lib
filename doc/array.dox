@@ -1,0 +1,192 @@
+/*!
+
+\file array.h
+\brief Simple resizable array of integral/POD types
+\details Simple resizable array of integral/POD types. All functions are "unsafe" (not range checked)
+unless marked as "_safe". It is safe to pass null pointers to all methods as a null pointer is
+considered a valid array (array storage will be allocated and assigned as needed).
+
+Example usage:
+
+<pre>int** arr = 0;
+array_push( arr, 10 ); //arr is now allocated and arr[0] now equals 10
+array_pop( arr ); //arr size is now 0, arr still allocated
+array_deallocate( arr ); //arr is now deallocated and arr now equals null</pre>
+
+Adapted and extended from stb_arr at http://nothings.org/stb.h
+
+
+\def array_deallocate
+\brief Deallocate array
+\details Free array memory and reset array pointer to zero.
+\param array Array pointer
+
+\def array_capacity
+\brief Array capacity
+\details Get capacity of array in number of elements. Capacity indicates the size of the allocated memory block. To get the currently stored number of elements, use array_size instead.
+\param array Array pointer
+
+\def array_reserve
+\brief Reserve storage
+\details Reserve storage for given number of elements. Never reduces storage and does not affect number of currently stored elements.
+\param array Array pointer
+\param capacity New capacity
+
+\def array_size
+\brief Array size
+\details Get number of currently stored elements.
+\param array Array pointer
+
+\def array_grow
+\brief Change size
+\details Add or remove elements without initialization, if size is positive or negative respectively. Sets new size to array_size(array)+num and allocates new storage if needed.
+\param array Array pointer
+\param num Number of elements to grow/shrink
+
+\def array_resize
+\brief Resize to given size
+\details Resize to given absolute size without initialization. Sets new size to num and allocate new storage if needed.
+\param array Array pointer
+\param num New size
+
+\def array_clear
+\brief Set size to 0
+\details Set size to 0. Does not affect capacity or resize storage buffer.
+\param array Array pointer
+
+\def array_copy
+\brief Copy array
+\details Copy content of one array to another, allocating more storage if needed.
+\param dst Destination array
+\param src Source array
+
+\def array_push
+\brief Add elemend at end
+\details Add element at end of array
+\param array Array pointer
+\param element New element
+
+\def array_push_memcpy
+\brief Add element at end
+\details Add element at end of array copying data with memcpy
+\param array Array pointer
+\param elementptr Pointer to new element
+
+\def array_insert
+\brief Add element at given position
+\details Add element at given position in array. Position is NOT range checked. Existing elements are moved using memmove.
+\param array Array pointer
+\param pos Position
+\param element New element
+
+\def array_insert_memcpy
+\brief Add element at given position
+\details Add element at given position in array, copy data using memcpy. Position is NOT range checked. Existing elements are moved using memmove.
+\param array Array pointer
+\param pos Position
+\param elementptr Pointer to new element
+
+\def array_insert_safe
+\brief Checked add element at given position
+\brief Add element at given position in array. Position IS range checked and clamped to array size. Existing elements are moved using memmove.
+\param array Array pointer
+\param pos Position
+\param element New element
+
+\def array_insert_memcpy_safe
+\brief Checked add element at given position
+\details Add element at given position in array, copy data using memcpy. Position IS range checked and clamped to array size. Existing elements are moved using memmove.
+\param array Array pointer
+\param pos Position
+\param elementptr Pointer to new element
+
+\def array_pop
+\brief Remove last element
+\details Remove last element. Array size is NOT validated, will cause undefined behaviour if called on an empty array
+\param array Array pointer
+
+\def array_pop_safe
+\brief Remove last element
+\details Remove last element. Array size IS validated, safe to call on an empty array
+\param array Array pointer
+
+\def array_erase
+\brief Erase element at given position
+\details Erase element without preserving order (swap-with-last). Position is NOT ranged checked.
+\param array Array pointer
+\param pos Position
+
+\def array_erase_memcpy
+\brief Erase element at given position
+\details Erase element without preserving order (swap-with-last), copy data using memcpy. Position is NOT ranged checked.
+\param array Array pointer
+\param pos Position
+
+\def array_erase_safe
+\brief Erase element at given position
+\details Erase element without preserving order (swap-with-last). Position IS ranged checked.
+\param array Array pointer
+\param pos Position
+
+\def array_erase_safe
+\brief Erase element at given position
+\details Erase element without preserving order (swap-with-last), copy data using memcpy. Position IS ranged checked.
+\param array Array pointer
+\param pos Position
+
+\def array_erase_ordered
+\brief Erase element at given position preserving order
+\details Erase element and preserve order (memmove remaining elements in array). Position is NOT ranged checked
+\param array Array pointer
+\param pos Position
+
+\def array_erase_ordered
+\brief Erase element at given position preserving order
+\details Erase element and preserve order (memmove remaining elements in array). Position IS ranged checked
+\param array Array pointer
+\param pos Position
+
+\def array_erase_ordered_range
+\brief Erase rage of elements starting at given position preserving order
+\details Erase a range of elements and preserve order (memmove remaining elements in array). Position and number of elements are NOT ranged checked
+\param array Array pointer
+\param pos Starting position
+\param num Number of elements to erase
+
+\def array_erase_ordered_range
+\brief Erase rage of elements starting at given position preserving order
+\details Erase a range of elements and preserve order (memmove remaining elements in array). Position and number of elements ARE ranged checked
+\param array Array pointer
+\param pos Starting position
+\param num Number of elements to erase
+
+\internal
+
+\fn _array_growfn
+\brief Array memory allocation
+\details Array memory allocation function. This will reallocate array storage with the given parameters,
+resulting in a total size of (factor * previous_capacity + increment) elements, with each element
+size given by itemsize.
+\param arr                       Pointer to array
+\param increment                 Number of elements to increment storage with
+\param factor                    Factor to multiply previous capacity with
+\param itemsize                  Size of a single item
+\return                          New array pointer
+
+\fn _array_resizefn
+\brief Array resize
+\details Array resize function. This will reallocate array storage if needed
+\param arr                       Pointer to array
+\param elements                  Number of elements to resize to
+\param itemsize                  Size of a single item
+\return                          New array pointer
+
+\fn _array_verifyfn
+\brief Array verification
+\details Verify array integrity. Will cause an assert if array is not valid.
+\param arr                       Pointer to array
+\return                          Array if valid, null if invalid
+
+\endinternal
+
+*/

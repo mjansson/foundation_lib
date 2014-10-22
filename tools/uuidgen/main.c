@@ -302,10 +302,11 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 
 static void uuidgen_print_usage( void )
 {
+	const error_level_t saved_level = log_suppress( 0 );
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	log_info( 0,
 		"uuidgen usage:\n"
-		"  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help]\n"
+		"  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help] [--]\n"
 		"    If no arguments are given, one random-based UUID is output to stdout\n"
 		"    Optional arguments:\n"
 		"      --time n                     Generate n time-based UUIDs\n"
@@ -316,6 +317,8 @@ static void uuidgen_print_usage( void )
 		"      --binary                     Output binary data instead of ASCII (stdout is always ASCII)\n"
 		"      --lowercase                  Output UUID in lowercase hex\n"
 		"      --uppercase                  Output UUID in uppercase hex (default)\n"
-		"      --help                       Show this message"
+		"      --help                       Display this help message\n"
+		"      --                           Stop processing command line arguments"
 	);
+	log_set_suppress( 0, saved_level );
 }

@@ -19,7 +19,7 @@
 #endif
 
 
-struct ALIGN(16) _foundation_mutex
+struct ALIGN(16) mutex_t
 {
 	//! Mutex name
 	char                   name[32];
@@ -103,7 +103,7 @@ static void _mutex_shutdown( mutex_t* mutex )
 
 mutex_t* mutex_allocate( const char* name )
 {
-	mutex_t* mutex = memory_allocate_zero( sizeof( mutex_t ), 16, MEMORY_PERSISTENT );
+	mutex_t* mutex = memory_allocate( 0, sizeof( mutex_t ), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
 	_mutex_initialize( mutex, name );
 

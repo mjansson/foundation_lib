@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 
-struct _foundation_md5
+struct md5_t
 {
 	bool             init;
 	uint32_t         state[4];
@@ -135,7 +135,7 @@ static void md5_transform( md5_t* digest, const unsigned char* buffer )
 
 md5_t* md5_allocate( void )
 {
-	md5_t* digest = memory_allocate( sizeof( md5_t ), 0, MEMORY_PERSISTENT );
+	md5_t* digest = memory_allocate( 0, sizeof( md5_t ), 0, MEMORY_PERSISTENT );
 	
 	md5_initialize( digest );
 

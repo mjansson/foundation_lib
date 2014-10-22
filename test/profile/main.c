@@ -52,7 +52,7 @@ static int test_profile_initialize( void )
 {
 	profile_set_output( test_profile_output );
 
-	_test_profile_buffer = memory_allocate( TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT );
+	_test_profile_buffer = memory_allocate( 0, TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT );
 	
 	return 0;
 }
