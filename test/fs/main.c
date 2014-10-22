@@ -468,7 +468,7 @@ DECLARE_TEST( fs, monitor )
 		{
 			bool found = false;
 			char eventstr[256];
-			string_format_buffer( eventstr, 256, "event %d:%d:%d:%d:0x%llx(%s)", event->id, event->flags, event->serial, event->size, event->payload, (const char*)event->payload );
+			string_format_buffer( eventstr, 256, "event %d:%d:%d:%d:%s", event->id, event->flags, event->serial, event->size, (const char*)event->payload );
 			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr );
 			
 			for( isub = 0; isub < MULTICOUNT; ++isub )
