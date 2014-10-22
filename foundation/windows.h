@@ -42,6 +42,8 @@ __MINGW_EXTENSION unsigned __int64 __readgsqword(unsigned __LONG32 Offset);
 #endif
 
 #define WIN32_LEAN_AND_MEAN
+//Work around broken dbghlp.h header
+#pragma warning( disable : 4091 )
 
 #include <windows.h>
 #include <winsock2.h>

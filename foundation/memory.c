@@ -306,6 +306,8 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_SIZE_POINTER == 4
+	if( !align )
+		align = 8;
 #    if BUILD_ENABLE_MEMORY_GUARD
 	char* memory = _aligned_malloc( (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
 	if( memory )
@@ -320,6 +322,9 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	char* raw_memory;
 	void* memory;
 	long vmres;
+
+	if (!align)
+		align = 8;
 
 	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 	{
@@ -564,7 +569,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #  else
 		unsigned int extra_padding = 0;
 #  endif
-		void* raw_memory = _aligned_realloc( raw_p, size + padding + extra_padding, align );
+		void* raw_memory = _aligned_realloc( raw_p, size + padding + extra_padding, align ? align : 8 );
 		if( raw_memory )
 		{
 			memory = pointer_offset( raw_memory, padding );
