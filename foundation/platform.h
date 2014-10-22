@@ -345,7 +345,7 @@
 #      ifndef __ARM_NEON__
 #        error Missing ARM NEON support
 #      endif
-#    elif defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6J__)
+#    elif defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6ZK__)
 #      undef  FOUNDATION_ARCH_ARM6
 #      define FOUNDATION_ARCH_ARM6 1
 #      define FOUNDATION_PLATFORM_DESCRIPTION "Linux ARMv6"
@@ -535,7 +535,7 @@
 #  define PURECALL ATTRIBUTE(pure)
 #  define CONSTCALL ATTRIBUTE(const)
 #  define ALIGN(x) ATTRIBUTE2(aligned,x)
-#  define ALIGNOF(x) _Alignof(x)
+#  define ALIGNOF(x) __alignof__(x)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL

@@ -440,8 +440,8 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 
 	num_frames = stack_trace.cur_depth;
 
-#elif ( FOUNDATION_PLATFORM_LINUX_RASPBERRYPI && !FOUNDATION_COMPILER_GCC )
-	
+#elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+
 # define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
 	uint32_t fp = 0, lr = 0;
 
@@ -450,8 +450,8 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 
 	while( fp && ( num_frames < max_depth ) )
 	{
-		lr = READ_32BIT_MEMORY( fp - 4 );
-		fp = READ_32BIT_MEMORY( fp - 12 );
+		lr = READ_32BIT_MEMORY( fp + 4 );
+		fp = READ_32BIT_MEMORY( fp );
 
 		if( ( fp > 0x1000 ) && lr )
 		{
