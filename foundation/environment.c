@@ -38,6 +38,7 @@ static char*   _environment_var = 0;
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
 extern void _environment_ns_home_directory( char* );
+extern void _environment_ns_temporary_directory( char* );
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -426,7 +427,13 @@ const char* environment_temporary_directory( void )
 			string_deallocate( temp_path );
 		}
 	}
-#endif	
+#endif
+#if FOUNDATION_PLATFORM_APPLE
+	if( !_environment_temp_dir[0] )
+	{
+		_environment_ns_temporary_directory( _environment_temp_dir );
+	}
+#endif
 #if FOUNDATION_PLATFORM_POSIX
 	if( !_environment_temp_dir[0] )
 	{
@@ -436,18 +443,24 @@ const char* environment_temporary_directory( void )
 			_environment_temp_dir[ len - 1 ] = 0;
 	}
 #endif
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	if( _environment_app.config_dir )
 	{
 		unsigned int curlen = string_length( _environment_temp_dir );
 		unsigned int cfglen = string_length( _environment_app.config_dir );
 		if( ( curlen + cfglen + 2 ) < FOUNDATION_MAX_PATHLEN )
 		{
-			_environment_temp_dir[curlen] = '/';
-			memcpy( _environment_temp_dir + curlen + 1, _environment_app.config_dir, cfglen + 1 );
+			if( _environment_temp_dir[curlen-1] != '/' )
+				_environment_temp_dir[curlen++] = '/';
+			memcpy( _environment_temp_dir + curlen, _environment_app.config_dir, cfglen + 1 );
 		}
 	}
 #endif
+	{
+		unsigned int curlen = string_length( _environment_temp_dir );
+		if( _environment_temp_dir[curlen-1] == '/' )
+			_environment_temp_dir[curlen-1] = 0;
+	}
 	return _environment_temp_dir;
 }
 

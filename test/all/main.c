@@ -173,7 +173,6 @@ int main_run( void* main_arg )
 		thread_sleep( 10 );
 	
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
-	
 	while( !_test_should_start )
 	{
 #if FOUNDATION_PLATFORM_ANDROID
@@ -181,6 +180,11 @@ int main_run( void* main_arg )
 #endif
 		thread_sleep( 100 );
 	}
+#endif
+
+	fs_remove_directory( environment_temporary_directory() );
+	
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	
 	test_run_fn tests[] = {
 		//test_app_run
