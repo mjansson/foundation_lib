@@ -114,6 +114,11 @@ static CONSTCALL FORCEINLINE unsigned int _memory_get_align( unsigned int align 
 	//4, 8, 16, ...
 #if FOUNDATION_PLATFORM_ANDROID
 	return align ? FOUNDATION_MAX_ALIGN : 0;
+#elif FOUNDATION_PLATFORM_WINDOWS
+	if( align < FOUNDATION_SIZE_POINTER )
+		return FOUNDATION_SIZE_POINTER;
+	align = math_align_poweroftwo( align );
+	return ( align < FOUNDATION_MAX_ALIGN ) ? align : FOUNDATION_MAX_ALIGN;
 #else
 	if( align < FOUNDATION_SIZE_POINTER )
 		return align ? FOUNDATION_SIZE_POINTER : 0;
@@ -306,8 +311,6 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_SIZE_POINTER == 4
-	if( !align )
-		align = 8;
 #    if BUILD_ENABLE_MEMORY_GUARD
 	char* memory = _aligned_malloc( (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
 	if( memory )
@@ -322,9 +325,6 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	char* raw_memory;
 	void* memory;
 	long vmres;
-
-	if (!align)
-		align = 8;
 
 	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 	{
