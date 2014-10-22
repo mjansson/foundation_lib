@@ -24,7 +24,7 @@ testenv.Append( LIBS=[ 'test', 'foundation' ] )
 if testenv['platform'] == 'linux':
 	testenv.Append( LIBS=[ 'dl', 'rt', 'm' ] )
 elif testenv['platform'] == 'raspberrypi':
-	testenv.Append( LIBS=[ 'bcm_host', 'rt', 'm' ] )
+	testenv.Append( LIBS=[ 'bcm_host', 'dl', 'rt', 'm' ] )
 elif testenv['platform'] == 'win32' or testenv['platform'] == 'win64':
 	testenv.Append( LIBS=[ 'user32', 'shell32', 'advapi32' ] )
 	if testenv['CC'] == 'cl' or testenv['CC'] == 'icl':

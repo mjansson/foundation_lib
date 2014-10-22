@@ -134,8 +134,8 @@ if env['CC'] == 'gcc' or env['CC'] == 'clang':
 	env.Append( CFLAGS=['-std=gnu99','-W','-Wall','-Wcast-align','-Wcast-qual','-Wchar-subscripts','-Winline','-Wpointer-arith','-Wredundant-decls','-Wshadow','-Wwrite-strings','-Wno-variadic-macros','-Wno-long-long','-Wno-format','-Wno-unused','-Wundef','-Wstrict-aliasing','-Wno-missing-field-initializers','-Wno-missing-braces','-Wno-unused-parameter','-ftabstop=4','-fstrict-aliasing'] )
 	if env['platform'] == 'raspberrypi':
 		env.Append( CFLAGS=['-pedantic','-Werror'] )
-		env.Append( CFLAGS=['-march=armv6j','-mfloat-abi=hard','-mfpu=vfp','-mtune=arm1176jzf-s'] )
-		env.Append( CXXFLAGS=['-march=armv6j','-mfloat-abi=hard','-mfpu=vfp','-mtune=arm1176jzf-s'] )
+		env.Append( CFLAGS=['-mfloat-abi=hard','-mfpu=vfp','-mcpu=arm1176jzf-s','-mtune=arm1176jzf-s'] )
+		env.Append( CXXFLAGS=['-mfloat-abi=hard','-mfpu=vfp','-mcpu=arm1176jzf-s','-mtune=arm1176jzf-s'] )
 		env.Append( CPPPATH=['/opt/vc/include','/opt/vc/include/interface/vcos/pthreads'] )
 		env.Append( LIBPATH=['/opt/vc/lib'] )
 		#echo 'SUBSYSTEM=="vchiq",GROUP="video",MODE="0660"' > /etc/udev/rules.d/10-vchiq-permissions.rules
@@ -203,7 +203,7 @@ elif env['buildprofile'] == 'profile':
 	print "Building PROFILE configuration"
 	env.Append( CPPDEFINES=['BUILD_PROFILE=1'] )
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
-		env.Append( CFLAGS=['-g','-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
+		env.Append( CFLAGS=['-g','-O4','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
 		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF','/GL'] )
 		env.Append( LINKFLAGS=['/LTCG'])
@@ -216,7 +216,7 @@ elif env['buildprofile'] == 'deploy':
 	print "Building DEPLOY configuration"
 	env.Append( CPPDEFINES=['BUILD_DEPLOY=1'] )
 	if env['CC'] == 'gcc' or env['CC'] == 'clang':
-		env.Append( CFLAGS=['-O6','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
+		env.Append( CFLAGS=['-O4','-ffast-math','-funit-at-a-time','-fno-math-errno','-funsafe-math-optimizations','-ffinite-math-only','-fno-trapping-math','-funroll-loops'] )
 	if env['CC'] == 'icl':
 		env.Append( CFLAGS=['/O3','/Ob2','/Ot','/GT','/GF','/GL'] )
 		env.Append( LINKFLAGS=['/LTCG'])
