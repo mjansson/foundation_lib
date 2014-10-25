@@ -111,10 +111,10 @@
 \details Get the hardware thread the calling thread is running on.
 \return Hardware thread id
 
-\fn void thread_set_hardware( unsigned int hw_thread )
+\fn void thread_set_hardware( uint64_t mask )
 \brief Set affinity
-\details Set thread affinity for calling thread.
-\param hw_thread Hardware thread id
+\details Set thread CPU core affinity for the calling thread.
+\param mask CPU core mask for which the thread is allowed to execute on
 
 \fn void thread_cleanup( void )
 \brief Cleanup on thread exit
