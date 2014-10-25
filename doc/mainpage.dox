@@ -252,7 +252,31 @@ The memory management module also provides memory tracking if compiled with #BUI
 Finally there is a memory overwrite/underwrite guard functionality built in and enabled with the #BUILD_ENABLE_MEMORY_GUARD build.h preprocessor directive. This will incur a slight memory overhead on each allocation, adding a dead zone before and after each allocated memory block for detecting invalid memory writes outside the allocated area. This functionality is built on top of the memory system implementation which does not need to provide a guard implementation internally.
 
 \section threading Threading
-To be written... (thread, semaphore, mutex, atomic)
+\subsection threads Threads
+The threading module provides functionality to create and manage new execution threads and handle thread synchronization with mutexes and semaphores. Threads are reference counted (see \ref object_lifetime) and lifetime controlled by #thread_create, #thread_destroy and #thread_ref. A thread object represents a single execution thread for a specific function and cannot be reused for multiple execution threads of the same function. To have multiple execution threads of the same function, you must create multiple thread objects.
+
+Thread execution is controlled with #thread_start and #thread_terminate. Note that thread termination only sets the internal flag that the thread should terminate, the execution function must use #thread_should_terminate to check if termination is triggered. You can use #thread_is_started to query if a thread has been started, and #thread_is_running to query if the thread is currently executing. A thread has a single result value of type void* which is the return value of the execution function. You can get the result value from #thread_result once the thread has terminated.
+
+You can set thread affinity to specific CPU core(s) with the #thread_set_hardware function taking a bit mask of allowed cores, and use #thread_hardware to query which CPU core a thread is currently running on. To query how many CPU cores that are available use #system_hardware_threads.
+
+The foundation library has the concept of a single main thread which is the application control thread. To set and query the main thread flag, use #thread_set_main and #thread_is_main. To further help debugging and thread identification, use #thread_set_name to set a human readable name for the thread which you will be able to see in the debugger.
+
+Thread execution time slices can be given up to other execution threads with #thread_yield. For time controlled suspension of thread execution use #thread_sleep.
+
+If you want to use the JNI to call into the JVM in a thread on the Android platform you must attach the thread using #thread_attach_jvm. Remember to call #thread_detach_jvm before terminating the thread to release the resources allocated by the attach call.
+
+\subsection thread_synchonization Synchronization
+The foundation library provides two mechanisms for thread synchronization, mutexes and semaphores. A mutex provides a lock for providing exclusive access to a resource or execution section as well as a signal/wait notifiction event, and a semaphore provides a thread safe access counter.
+
+A mutex is allocated and destroyed with #mutex_allocate and #mutex_deallocate. The mutex name is for debugging purposes only (also used in profiling events), limited to 32 characters. #mutex_lock will lock the mutex to the calling thread and block until a lock can be obtained if another thread currently holds the lock. #mutex_unlock will unlock the mutex if the lock is held by the calling thread. To lock without blocking, use #mutex_try_lock, which will return false if the lock could not be obtained in the given time span. Mutexes are reentrant, meaning a thread can lock the same mutex with #mutex_lock multiple times without blocking, and the mutex is only unlocked when #mutex_unlock has been called by the thread the same number of times.
+
+Mutex signals can be used to provide a simple way of combining a thread wait/lock scheme. A thread uses #mutex_wait to wait for a signal state sent by another thread with #mutex_signal, and if the thread was woken by a signal the mutex lock will be obtained and the #mutex_wait function returns true. Remember to call #mutex_unlock once lock is no longer needed.
+
+Semaphores provide an interface to a counter which threads can use to have access to a resource limited to a specific number of concurrent uses. Semaphores 
+
+
+\subsection atomic_operations Atomic operations
+Atomic operations are provides for 32-bit and 64-bit data types, along with an aliased interface for pointers which uses the appropriate 32/64-bit interface depending on architecture pointer size.
 
 \section debugging Debugging, profiling, logging and error handling
 To be written... (crash, profile, log, )
