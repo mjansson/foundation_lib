@@ -67,11 +67,11 @@ void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned i
 
 static void _buffer_stream_deallocate( stream_t* stream )
 {
-	buffer_stream_cleanup( (stream_buffer_t*)stream );
+	buffer_stream_finalize( (stream_buffer_t*)stream );
 }
 
 
-void buffer_stream_cleanup( stream_buffer_t* stream )
+void buffer_stream_finalize( stream_buffer_t* stream )
 {
 	if( stream->own )
 		memory_deallocate( stream->buffer );

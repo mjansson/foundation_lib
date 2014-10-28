@@ -56,12 +56,12 @@ void hashmap_initialize( hashmap_t* map, unsigned int buckets, unsigned int buck
 
 void hashmap_deallocate( hashmap_t* map )
 {
-	hashmap_cleanup( map );
+	hashmap_finalize( map );
 	memory_deallocate( map );
 }
 
 
-void hashmap_cleanup( hashmap_t* map )
+void hashmap_finalize( hashmap_t* map )
 {
 	unsigned int ibucket;
 	for( ibucket = 0; ibucket < map->num_buckets; ++ibucket )

@@ -51,12 +51,12 @@ void process_deallocate( process_t* proc )
 {
 	if( !proc )
 		return;
-	process_cleanup( proc );
+	process_finalize( proc );
 	memory_deallocate( proc );
 }
 
 
-void process_cleanup( process_t* proc )
+void process_finalize( process_t* proc )
 {
 	if( !( proc->flags & PROCESS_DETACHED ) )
 		process_wait( proc );

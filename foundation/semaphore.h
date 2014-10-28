@@ -18,7 +18,7 @@
 
 FOUNDATION_API void   semaphore_initialize( semaphore_t* semaphore, unsigned int value );
 FOUNDATION_API void   semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value );
-FOUNDATION_API void   semaphore_cleanup( semaphore_t* semaphore );
+FOUNDATION_API void   semaphore_finalize( semaphore_t* semaphore );
 FOUNDATION_API bool   semaphore_wait( semaphore_t* semaphore );
 FOUNDATION_API bool   semaphore_try_wait( semaphore_t* semaphore, int milliseconds );
 FOUNDATION_API void   semaphore_post( semaphore_t* semaphore );

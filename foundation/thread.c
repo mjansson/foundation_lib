@@ -130,7 +130,7 @@ void _thread_shutdown( void )
 	}
 #endif
 
-	thread_cleanup();
+	thread_finalize();
 }
 
 
@@ -405,7 +405,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	thread->osid  = 0;
 
 	set_thread_self( 0 );
-	thread_cleanup();
+	thread_finalize();
 
 	if( !atomic_cas32( &thread->running, 0, 1 ) )
 	{
@@ -556,9 +556,9 @@ bool thread_is_main( void )
 }
 
 
-void thread_cleanup( void )
+void thread_finalize( void )
 {
-	_profile_thread_cleanup();
+	_profile_thread_finalize();
 	
 	random_thread_deallocate();
 

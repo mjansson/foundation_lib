@@ -98,12 +98,12 @@ void objectmap_initialize( objectmap_t* map, unsigned int size )
 
 void objectmap_deallocate( objectmap_t* map )
 {
-	objectmap_cleanup( map );
+	objectmap_finalize( map );
 	memory_deallocate( map );
 }
 
 
-void objectmap_cleanup( objectmap_t* map )
+void objectmap_finalize( objectmap_t* map )
 {
 	uint64_t i;
 	

@@ -59,7 +59,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 }
 
 
-void semaphore_cleanup( semaphore_t* semaphore )
+void semaphore_finalize( semaphore_t* semaphore )
 {
 	CloseHandle( (HANDLE)*semaphore );
 }
@@ -128,7 +128,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 }
 
 
-void semaphore_cleanup( semaphore_t* semaphore )
+void semaphore_finalize( semaphore_t* semaphore )
 {
 	if( !semaphore->name )
 	{
@@ -236,7 +236,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 }
 
 
-void semaphore_cleanup( semaphore_t* semaphore )
+void semaphore_finalize( semaphore_t* semaphore )
 {
 	if( *semaphore )
 		dispatch_release( *semaphore );
@@ -303,7 +303,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 }
 
 
-void semaphore_cleanup( semaphore_t* semaphore )
+void semaphore_finalize( semaphore_t* semaphore )
 {
 	sem_destroy( (native_sem_t*)semaphore->sem );
 

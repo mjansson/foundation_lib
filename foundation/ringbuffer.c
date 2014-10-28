@@ -284,7 +284,7 @@ static uint64_t _ringbuffer_stream_available_read( stream_t* stream )
 
 static void _ringbuffer_stream_deallocate( stream_t* stream )
 {
-	ringbuffer_stream_cleanup( (stream_ringbuffer_t*)stream );
+	ringbuffer_stream_finalize( (stream_ringbuffer_t*)stream );
 }
 
 
@@ -319,10 +319,10 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buf
 }
 
 
-void ringbuffer_stream_cleanup( stream_ringbuffer_t* stream )
+void ringbuffer_stream_finalize( stream_ringbuffer_t* stream )
 {
-	semaphore_cleanup( &stream->signal_read );
-	semaphore_cleanup( &stream->signal_write );
+	semaphore_finalize( &stream->signal_read );
+	semaphore_finalize( &stream->signal_write );
 }
 
 

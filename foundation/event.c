@@ -182,12 +182,12 @@ void event_stream_deallocate( event_stream_t* stream )
 {
 	if( !stream )
 		return;
-	event_stream_cleanup( stream );
+	event_stream_finalize( stream );
 	memory_deallocate( stream );
 }
 
 
-void event_stream_cleanup( event_stream_t* stream )
+void event_stream_finalize( event_stream_t* stream )
 {
 	if( stream->block[0].events )
 		memory_deallocate( stream->block[0].events );

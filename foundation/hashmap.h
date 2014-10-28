@@ -19,7 +19,7 @@
 FOUNDATION_API hashmap_t*                  hashmap_allocate( unsigned int buckets, unsigned int bucketsize );
 FOUNDATION_API void                        hashmap_initialize( hashmap_t* map, unsigned int buckets, unsigned int bucketsize );
 FOUNDATION_API void                        hashmap_deallocate( hashmap_t* map );
-FOUNDATION_API void                        hashmap_cleanup( hashmap_t* map );
+FOUNDATION_API void                        hashmap_finalize( hashmap_t* map );
 
 FOUNDATION_API void*                       hashmap_insert( hashmap_t* map, hash_t key, void* value );
 FOUNDATION_API void*                       hashmap_erase( hashmap_t* map, hash_t key );

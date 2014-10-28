@@ -71,11 +71,11 @@ void pipe_initialize( stream_pipe_t* pipestream )
 
 static void _pipe_stream_deallocate( stream_t* stream )
 {
-	pipe_cleanup( (stream_pipe_t*)stream );
+	pipe_finalize( (stream_pipe_t*)stream );
 }
 
 
-void pipe_cleanup( stream_pipe_t* pipe )
+void pipe_finalize( stream_pipe_t* pipe )
 {
 	FOUNDATION_ASSERT( pipe->type == STREAMTYPE_PIPE );
 #if FOUNDATION_PLATFORM_WINDOWS

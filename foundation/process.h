@@ -19,7 +19,7 @@
 FOUNDATION_API process_t*  process_allocate( void );
 FOUNDATION_API void        process_initialize( process_t* proc );
 FOUNDATION_API void        process_deallocate( process_t* proc );
-FOUNDATION_API void        process_cleanup( process_t* proc );
+FOUNDATION_API void        process_finalize( process_t* proc );
 
 FOUNDATION_API void        process_set_working_directory( process_t* proc, const char* path );
 FOUNDATION_API void        process_set_executable_path( process_t* proc, const char* path );

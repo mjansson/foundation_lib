@@ -344,7 +344,7 @@ void profile_shutdown( void )
 	_profile_io_thread = 0;
 
 	//Discard and free up blocks remaining in queue
-	_profile_thread_cleanup();
+	_profile_thread_finalize();
 	if( atomic_load32( &_profile_root ) )
 	{
 		profile_write_fn old_write = _profile_write;
@@ -617,7 +617,7 @@ void profile_signal( const char* name )
 #endif
 
 
-void _profile_thread_cleanup( void )
+void _profile_thread_finalize( void )
 {
 #if BUILD_ENABLE_PROFILE
 	uint32_t block_index;
