@@ -16,20 +16,6 @@
 #define EVENT_BLOCK_POSTING  -1
 #define EVENT_BLOCK_SWAPPING -2
 
-struct event_block_t
-{
-	int32_t                          used;
-	uint32_t                         capacity;
-	event_stream_t*                  stream;
-	event_t*                         events;
-};
-
-struct ALIGN(16) event_stream_t
-{
-	atomic32_t                       write;
-	int32_t                          read;
-	event_block_t                    block[2];
-};
 
 static atomic32_t _event_serial = {1};
 
@@ -162,7 +148,16 @@ event_t* event_next( const event_block_t* block, event_t* event )
 
 event_stream_t* event_stream_allocate( unsigned int size )
 {
-	event_stream_t* stream = memory_allocate( 0, sizeof( event_stream_t ), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	event_stream_t* stream = memory_allocate( 0, sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
+	
+	event_stream_initialize( stream, size );
+	
+	return stream;
+}
+
+
+void event_stream_initialize( event_stream_t* stream, unsigned int size )
+{
 	atomic_store32( &stream->write, 0 );
 	stream->read = 1;
 
@@ -171,14 +166,15 @@ event_stream_t* event_stream_allocate( unsigned int size )
 	
 	stream->block[0].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream->block[1].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	
+	stream->block[0].used = 0;
+	stream->block[1].used = 0;
 
 	stream->block[0].capacity = size;
 	stream->block[1].capacity = size;
 
 	stream->block[0].stream = stream;
 	stream->block[1].stream = stream;
-
-	return stream;
 }
 
 
@@ -186,11 +182,17 @@ void event_stream_deallocate( event_stream_t* stream )
 {
 	if( !stream )
 		return;
+	event_stream_cleanup( stream );
+	memory_deallocate( stream );
+}
+
+
+void event_stream_cleanup( event_stream_t* stream )
+{
 	if( stream->block[0].events )
 		memory_deallocate( stream->block[0].events );
 	if( stream->block[1].events )
 		memory_deallocate( stream->block[1].events );
-	memory_deallocate( stream );
 }
 
 

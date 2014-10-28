@@ -13,15 +13,6 @@
 #include <foundation/foundation.h>
 
 
-struct md5_t
-{
-	bool             init;
-	uint32_t         state[4];
-	uint32_t         count[2];
-	unsigned char    buffer[64];
-	unsigned char    digest[16];
-};
-
 #define F1( x, y, z ) ((z) ^ ((x) & ((y) ^ (z))))
 #define F2( x, y, z ) ((y) ^ ((z) & ((x) ^ (y))))
 #define F3( x, y, z ) ((x) ^ (y) ^ (z))

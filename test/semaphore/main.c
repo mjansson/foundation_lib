@@ -49,12 +49,12 @@ DECLARE_TEST( semaphore, initialize )
 
 	semaphore_initialize( &sem, 0 );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
-	semaphore_destroy( &sem );
+	semaphore_cleanup( &sem );
 
 	semaphore_initialize( &sem, 1 );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
 	semaphore_post( &sem ); //Restored value
-	semaphore_destroy( &sem );
+	semaphore_cleanup( &sem );
 
 	semaphore_initialize( &sem, 2 );
 	EXPECT_TRUE( semaphore_wait( &sem ) );
@@ -62,7 +62,7 @@ DECLARE_TEST( semaphore, initialize )
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
 	semaphore_post( &sem );
 	semaphore_post( &sem ); //Restored value
-	semaphore_destroy( &sem );
+	semaphore_cleanup( &sem );
 	
 	return 0;
 }
@@ -96,7 +96,7 @@ DECLARE_TEST( semaphore, postwait )
 	end = time_current();
 	EXPECT_GE( end - start, time_ticks_per_second() / 2 );
 
-	semaphore_destroy( &sem );
+	semaphore_cleanup( &sem );
 
 	return 0;
 }
@@ -171,8 +171,8 @@ DECLARE_TEST( semaphore, threaded )
 	EXPECT_EQ( test.counter, test.loopcount * 32 );
 	EXPECT_EQ( failed_waits, 0 );
 
-	semaphore_destroy( &test.read );
-	semaphore_destroy( &test.write );
+	semaphore_cleanup( &test.read );
+	semaphore_cleanup( &test.write );
 	
 	return 0;
 }

@@ -213,12 +213,58 @@ typedef enum
 	DEVICEORIENTATION_FACEDOWN
 } device_orientation_t;
 
-typedef uint64_t         hash_t;
-typedef uint64_t         tick_t;
-typedef real             deltatime_t;
-typedef uint64_t         object_t;
-typedef uint16_t         radixsort_index_t;
-typedef uint128_t        uuid_t;
+typedef uint64_t      hash_t;
+typedef uint64_t      tick_t;
+typedef real          deltatime_t;
+typedef uint64_t      object_t;
+typedef uint16_t      radixsort_index_t;
+typedef uint128_t     uuid_t;
+
+typedef struct application_t                 application_t;
+typedef struct bitbuffer_t                   bitbuffer_t;
+typedef struct blowfish_t                    blowfish_t;
+typedef struct error_frame_t                 error_frame_t;
+typedef struct error_context_t               error_context_t;
+typedef struct event_t                       event_t;
+typedef struct event_block_t                 event_block_t;
+typedef ALIGN(16) struct event_stream_t      event_stream_t;
+typedef struct hashmap_node_t                hashmap_node_t;
+typedef struct hashmap_node_t*               hashmap_bucket_t;
+typedef struct hashmap_t                     hashmap_t;
+typedef struct hashtable32_entry_t           hashtable32_entry_t;
+typedef struct hashtable64_entry_t           hashtable64_entry_t;
+typedef ALIGN(8) struct hashtable32_t        hashtable32_t;
+typedef ALIGN(8) struct hashtable64_t        hashtable64_t;
+typedef struct md5_t                         md5_t;
+typedef struct memory_context_t              memory_context_t;
+typedef struct memory_system_t               memory_system_t;
+typedef struct memory_tracker_t              memory_tracker_t;
+typedef struct mutex_t                       mutex_t;
+typedef ALIGN(8) struct object_base_t        object_base_t;
+typedef ALIGN(16) struct objectmap_t         objectmap_t;
+typedef struct process_t                     process_t;
+typedef struct radixsort_t                   radixsort_t;
+typedef struct regex_t                       regex_t;
+typedef struct regex_capture_t               regex_capture_t;
+typedef struct ringbuffer_t                  ringbuffer_t;
+typedef ALIGN(8) struct stream_t             stream_t;
+typedef ALIGN(8) struct stream_buffer_t      stream_buffer_t;
+typedef ALIGN(8) struct stream_pipe_t        stream_pipe_t;
+typedef ALIGN(8) struct stream_ringbuffer_t  stream_ringbuffer_t;
+typedef struct stream_vtable_t               stream_vtable_t;
+typedef union  version_t                     version_t;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+typedef void*                                semaphore_t;
+#elif FOUNDATION_PLATFORM_MACOSX
+typedef struct OpaqueMPSemaphoreID*          MPSemaphoreID;
+typedef struct semaphore_t                   semaphore_t;
+#elif FOUNDATION_PLATFORM_IOS
+typedef struct dispatch_semaphore_s*         semaphore_t;
+#elif FOUNDATION_PLATFORM_POSIX
+typedef union semaphore_native_t             semaphore_native_t;
+typedef struct semaphore_t                   semaphore_t;
+#endif
 
 typedef int           (* error_callback_fn )( error_level_t level, error_t error );
 typedef int           (* assert_handler_fn )( uint64_t context, const char* condition, const char* file, int line, const char* msg );
@@ -236,30 +282,37 @@ typedef void*         (* thread_fn )( object_t thread, void* arg );
 typedef int           (* crash_guard_fn )( void* arg );
 typedef void          (* crash_dump_callback_fn )( const char* file );
 typedef void          (* object_deallocate_fn )( object_t id, void* object );
+typedef uint64_t      (* stream_read_fn )( stream_t*, void*, uint64_t );
+typedef uint64_t      (* stream_write_fn )( stream_t*, const void*, uint64_t );
+typedef bool          (* stream_eos_fn )( stream_t* );
+typedef void          (* stream_flush_fn )( stream_t* );
+typedef void          (* stream_truncate_fn  )( stream_t*, uint64_t );
+typedef uint64_t      (* stream_size_fn )( stream_t* );
+typedef void          (* stream_seek_fn )( stream_t*, int64_t, stream_seek_mode_t );
+typedef int64_t       (* stream_tell_fn )( stream_t* );
+typedef uint64_t      (* stream_lastmod_fn )( const stream_t* );
+typedef uint128_t     (* stream_md5_fn)( stream_t* );
+typedef void          (* stream_buffer_read_fn )( stream_t* );
+typedef uint64_t      (* stream_available_read_fn )( stream_t* );
+typedef void          (* stream_deallocate_fn )( stream_t* );
+typedef stream_t*     (* stream_clone_fn )( stream_t* );
 
 
-//! Identifier returned from threads and crash guards after a fatal exception (crash) has been caught
+// Identifier returned from threads and crash guards after a fatal exception (crash) has been caught
 #define FOUNDATION_CRASH_DUMP_GENERATED        0x0badf00dL
 
 
-// OPAQUE COMPLEX TYPES
-
-typedef struct md5_t              md5_t;
-typedef struct stream_t           stream_t;
-typedef struct mutex_t            mutex_t;
-typedef struct process_t          process_t;
-typedef struct event_block_t      event_block_t;
-typedef struct event_stream_t     event_stream_t;
-typedef struct ringbuffer_t       ringbuffer_t;
-typedef struct blowfish_t         blowfish_t;
-typedef struct radixsort_t        radixsort_t;
-typedef struct hashmap_t          hashmap_t;
-typedef struct hashtable32_t      hashtable32_t;
-typedef struct hashtable64_t      hashtable64_t;
-typedef struct regex_t            regex_t;
-
-
 // COMPLEX TYPES
+
+struct md5_t
+{
+	bool                            init;
+	uint32_t                        state[4];
+	uint32_t                        count[2];
+	unsigned char                   buffer[64];
+	unsigned char                   digest[16];
+};
+
 
 struct memory_system_t
 {
@@ -269,7 +322,7 @@ struct memory_system_t
 	system_initialize_fn            initialize;
 	system_shutdown_fn              shutdown;
 };
-typedef struct memory_system_t    memory_system_t;
+
 
 struct memory_tracker_t
 {
@@ -278,7 +331,7 @@ struct memory_tracker_t
 	system_initialize_fn            initialize;
 	system_shutdown_fn              shutdown;
 };
-typedef struct memory_tracker_t   memory_tracker_t;
+
 
 union version_t
 {
@@ -292,7 +345,7 @@ union version_t
 		uint32_t                    control;
 	}                               sub;
 };
-typedef union version_t           version_t;
+
 
 struct application_t
 {
@@ -304,28 +357,128 @@ struct application_t
 	unsigned int                    flags;
 	uuid_t                          instance;
 };
-typedef struct application_t      application_t;
+
+
+#define BLOWFISH_SUBKEYS            18U
+#define BLOWFISH_SBOXES             4U
+#define BLOWFISH_SBOXENTRIES        256U
+#define BLOWFISH_MAXKEY             56U
+
+struct blowfish_t
+{
+	uint32_t                        parray[BLOWFISH_SUBKEYS];
+	uint32_t                        sboxes[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIES];
+};
+
+
+struct bitbuffer_t
+{
+	uint8_t*                        buffer;
+	uint8_t*                        end;
+	stream_t*                       stream;
+	bool                            swap;
+	unsigned int                    pending_read;
+	unsigned int                    pending_write;
+	unsigned int                    offset_read;
+	unsigned int                    offset_write;
+	unsigned int                    count_read;
+	unsigned int                    count_write;
+};
+
 
 struct error_frame_t
 {
 	const char*                     name;
 	const char*                     data;
 };
-typedef struct error_frame_t error_frame_t;
+
 
 struct error_context_t
 {
 	error_frame_t                   frame[BUILD_SIZE_ERROR_CONTEXT_DEPTH];
 	int                             depth;
 };
-typedef struct error_context_t error_context_t;
+
+
+#define FOUNDATION_DECLARE_EVENT                 \
+	uint16_t                        id;          \
+	uint16_t                        flags;       \
+	uint16_t                        serial;      \
+	uint16_t                        size;        \
+	object_t                        object
+
+struct event_t
+{
+	FOUNDATION_DECLARE_EVENT;
+	char                            payload[];
+};
+
+
+struct event_block_t
+{
+	int32_t                         used;
+	uint32_t                        capacity;
+	event_stream_t*                 stream;
+	event_t*                        events;
+};
+
+
+struct event_stream_t
+{
+	atomic32_t                      write;
+	int32_t                         read;
+	event_block_t                   block[2];
+};
+
+
+struct hashmap_node_t
+{
+	hash_t                          key;
+	void*                           value;
+};
+
+
+struct hashmap_t
+{
+	unsigned int                    num_buckets;
+	unsigned int                    num_nodes;
+	hashmap_bucket_t                bucket[];
+};
+
+
+struct hashtable32_entry_t
+{
+	atomic32_t                      key;
+	uint32_t                        value;
+};
+
+
+struct hashtable64_entry_t
+{
+	atomic64_t                      key;
+	uint64_t                        value;
+};
+
+
+struct hashtable32_t
+{
+	uint32_t                        capacity;
+	ALIGN(8) hashtable32_entry_t    entries[];
+};
+
+
+struct hashtable64_t
+{
+	uint64_t                        capacity;
+	ALIGN(8) hashtable64_entry_t    entries[];
+};
+
 
 struct memory_context_t
 {
 	uint64_t                        context[BUILD_SIZE_MEMORY_CONTEXT_DEPTH];
 	int                             depth;
 };
-typedef struct memory_context_t memory_context_t;
 
 #define FOUNDATION_DECLARE_OBJECT               \
 	atomic32_t                      ref;        \
@@ -336,7 +489,6 @@ struct object_base_t
 {
 	FOUNDATION_DECLARE_OBJECT;
 };
-typedef ALIGN(8) struct object_base_t object_base_t;
 
 struct objectmap_t
 {
@@ -349,101 +501,176 @@ struct objectmap_t
 	uint64_t                        mask_id;
 	void*                           map[];
 };
-typedef ALIGN(16) struct objectmap_t objectmap_t;
 
-#define FOUNDATION_DECLARE_EVENT       \
-	uint16_t              id;          \
-	uint16_t              flags;       \
-	uint16_t              serial;      \
-	uint16_t              size;        \
-	object_t              object
-
-struct event_t
+struct process_t
 {
-	FOUNDATION_DECLARE_EVENT;
-	char                  payload[];
-};
-typedef struct event_t event_t;
-
+	char*                           wd;
+	char*                           path;
+	char**                          args;
+	unsigned int                    flags;
+	int                             code;
+	stream_t*                       pipeout;
+	stream_t*                       pipein;
+	
 #if FOUNDATION_PLATFORM_WINDOWS
+	char*                           verb;
+	void*                           hp;
+	void*                           ht;
+#elif FOUNDATION_PLATFORM_POSIX
+	int                             pid;
+#endif
+	
+#if FOUNDATION_PLATFORM_MACOSX
+	int                             kq;
+#endif
+};
 
-typedef void*                        semaphore_t;
+struct radixsort_t
+{
+	radixsort_data_t                type;
+	radixsort_index_t               size;
+	radixsort_index_t               lastused;
+	radixsort_index_t*              indices[2];
+	radixsort_index_t*              histogram;
+	radixsort_index_t*              offset;
+};
 
-#elif FOUNDATION_PLATFORM_MACOSX
+struct regex_t
+{
+	unsigned int                    num_captures;
+	unsigned int                    code_length;
+	unsigned int                    code_allocated;
+	uint8_t                         code[];
+};
 
-typedef struct OpaqueMPSemaphoreID*  MPSemaphoreID;
+struct regex_capture_t
+{
+	const char*                     substring;
+	int                             length;
+};
+
+#define FOUNDATION_DECLARE_RINGBUFFER              \
+	uint64_t                        total_read;    \
+	uint64_t                        total_write;   \
+	unsigned int                    offset_read;   \
+	unsigned int                    offset_write;  \
+	unsigned int                    buffer_size;   \
+	char                            buffer[]
+
+struct ringbuffer_t
+{
+	FOUNDATION_DECLARE_RINGBUFFER;
+};
+
+#if FOUNDATION_PLATFORM_MACOSX
 
 struct semaphore_t
 {
-	char*                            name;
+	char*                           name;
 	union
 	{
-		MPSemaphoreID                unnamed;
-		int*                         named;
+		MPSemaphoreID               unnamed;
+		int*                        named;
 	} sem;
 };
-typedef struct semaphore_t semaphore_t;
 
 #elif FOUNDATION_PLATFORM_IOS
-
-typedef struct dispatch_semaphore_s* semaphore_t;
-
 #elif FOUNDATION_PLATFORM_POSIX
 
 union semaphore_native_t
 {
 #  if FOUNDATION_PLATFORM_ANDROID
-	volatile unsigned int  count;
+	volatile unsigned int           count;
 #else
 #  if FOUNDATION_ARCH_X86_64
-	char                   __size[64];
+	char                            __size[64];
 #  else
-	char                   __size[32];
+	char                            __size[32];
 #  endif
-	long int               __align;
+	long int                        __align;
 #endif
 };
-typedef union semaphore_native_t semaphore_native_t;
 
-typedef struct semaphore_t
-{
-	char*                            name;
-	semaphore_native_t*              sem;
-	semaphore_native_t               unnamed;
-} semaphore_t;
-
-#else
-
-#  error Semaphore not implemented yet on this platform
 struct semaphore_t
 {
-	int not_yet_implemented;
+	char*                           name;
+	semaphore_native_t*             sem;
+	semaphore_native_t              unnamed;
 };
-typedef struct semaphore_t semaphore_t;
 
 #endif
 
-struct bitbuffer_t
-{
-	uint8_t*            buffer;
-	uint8_t*            end;
-	stream_t*           stream;
-	bool                swap;
-	unsigned int        pending_read;
-	unsigned int        pending_write;
-	unsigned int        offset_read;
-	unsigned int        offset_write;
-	unsigned int        count_read;
-	unsigned int        count_write;
-};
-typedef struct bitbuffer_t bitbuffer_t;
+#define FOUNDATION_DECLARE_STREAM                            \
+unsigned int                    type:16;                 \
+unsigned int                    sequential:1;            \
+unsigned int                    reliable:1;              \
+unsigned int                    inorder:1;               \
+unsigned int                    swap:1;                  \
+unsigned int                    byteorder:1;             \
+unsigned int                    unused_streamflags:11;   \
+unsigned int                    mode;                    \
+char*                           path;                    \
+stream_vtable_t*                vtable
 
-struct regex_capture_t
+struct ALIGN(8) stream_t
 {
-	const char*                      substring;
-	int                              length;
+	FOUNDATION_DECLARE_STREAM;
 };
-typedef struct regex_capture_t regex_capture_t;
+
+struct stream_buffer_t
+{
+	FOUNDATION_DECLARE_STREAM;
+	uint64_t                        current;
+	uint64_t                        size;
+	uint64_t                        capacity;
+	void*                           buffer;
+	bool                            own;
+	bool                            grow;
+};
+
+struct stream_pipe_t
+{
+	FOUNDATION_DECLARE_STREAM;
+	
+#if FOUNDATION_PLATFORM_WINDOWS
+	void*                           handle_read;
+	void*                           handle_write;
+#elif FOUNDATION_PLATFORM_POSIX
+	int                             fd_read;
+	int                             fd_write;
+#endif
+};
+
+struct stream_ringbuffer_t
+{
+	FOUNDATION_DECLARE_STREAM;
+	
+	semaphore_t                     signal_read;
+	semaphore_t                     signal_write;
+	volatile int32_t                pending_read;
+	volatile int32_t                pending_write;
+	uint64_t                        total_size;
+	
+	FOUNDATION_DECLARE_RINGBUFFER;
+};
+
+struct stream_vtable_t
+{
+	stream_read_fn                  read;
+	stream_write_fn                 write;
+	stream_eos_fn                   eos;
+	stream_flush_fn                 flush;
+	stream_truncate_fn              truncate;
+	stream_size_fn                  size;
+	stream_seek_fn                  seek;
+	stream_tell_fn                  tell;
+	stream_lastmod_fn               lastmod;
+	stream_md5_fn                   md5;
+	stream_buffer_read_fn           buffer_read;
+	stream_available_read_fn        available_read;
+	stream_deallocate_fn            deallocate;
+	stream_clone_fn                 clone;
+};
 
 
 // UTILITY FUNCTIONS

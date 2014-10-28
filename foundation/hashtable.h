@@ -17,6 +17,7 @@
 #include <foundation/types.h>
 
 FOUNDATION_API hashtable32_t*                hashtable32_allocate( unsigned int buckets );
+FOUNDATION_API void                          hashtable32_initialize( hashtable32_t* table, unsigned int buckets );
 FOUNDATION_API void                          hashtable32_deallocate( hashtable32_t* table );
 
 FOUNDATION_API void                          hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value );
@@ -27,6 +28,7 @@ FOUNDATION_API void                          hashtable32_clear( hashtable32_t* t
 
 
 FOUNDATION_API hashtable64_t*                hashtable64_allocate( unsigned int buckets );
+FOUNDATION_API void                          hashtable64_initialize( hashtable64_t* table, unsigned int buckets );
 FOUNDATION_API void                          hashtable64_deallocate( hashtable64_t* table );
 
 FOUNDATION_API void                          hashtable64_set( hashtable64_t* table, uint64_t key, uint64_t value );
@@ -40,6 +42,7 @@ FOUNDATION_API void                          hashtable64_clear( hashtable64_t* t
 
 #define hashtable_t             hashtable32_t
 #define hashtable_allocate      hashtable32_allocate
+#define hashtable_initialize    hashtable32_initialize
 #define hashtable_deallocate    hashtable32_deallocate
 #define hashtable_set           hashtable32_set
 #define hashtable_erase         hashtable32_erase
@@ -51,6 +54,7 @@ FOUNDATION_API void                          hashtable64_clear( hashtable64_t* t
 
 #define hashtable_t             hashtable64_t
 #define hashtable_allocate      hashtable64_allocate
+#define hashtable_initialize    hashtable64_initialize
 #define hashtable_deallocate    hashtable64_deallocate
 #define hashtable_set           hashtable64_set
 #define hashtable_erase         hashtable64_erase

@@ -14,19 +14,6 @@
 #include <foundation/internal.h>
 
 
-struct ringbuffer_stream_t
-{
-	FOUNDATION_DECLARE_STREAM;
-	semaphore_t              signal_read;
-	semaphore_t              signal_write;
-	volatile int32_t         pending_read;
-	volatile int32_t         pending_write;
-	uint64_t                 total_size;
-
-	FOUNDATION_DECLARE_RINGBUFFER;
-};
-typedef ALIGN(8) struct ringbuffer_stream_t ringbuffer_stream_t;
-
 #define RINGBUFFER_FROM_STREAM( stream ) ((ringbuffer_t*)&stream->total_read)
 
 static stream_vtable_t _ringbuffer_stream_vtable = {0};
@@ -34,9 +21,21 @@ static stream_vtable_t _ringbuffer_stream_vtable = {0};
 
 ringbuffer_t* ringbuffer_allocate( unsigned int size )
 {
-	ringbuffer_t* buffer = memory_allocate( 0, sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	buffer->buffer_size = size;
+	ringbuffer_t* buffer = memory_allocate( 0, sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT );
+
+	ringbuffer_initialize( buffer, size );
+	
 	return buffer;
+}
+
+
+void ringbuffer_initialize( ringbuffer_t* buffer, unsigned int size )
+{
+	buffer->total_read = 0;
+	buffer->total_write = 0;
+	buffer->offset_read = 0;
+	buffer->offset_write = 0;
+	buffer->buffer_size = size;
 }
 
 
@@ -173,7 +172,7 @@ uint64_t ringbuffer_total_written( ringbuffer_t* buffer )
 
 static uint64_t _ringbuffer_stream_read( stream_t* stream, void* dest, uint64_t num )
 {
-	ringbuffer_stream_t* rbstream = (ringbuffer_stream_t*)stream;
+	stream_ringbuffer_t* rbstream = (stream_ringbuffer_t*)stream;
 	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM( rbstream );
 	
 	unsigned int num_read = ringbuffer_read( buffer, dest, (unsigned int)num );
@@ -200,7 +199,7 @@ static uint64_t _ringbuffer_stream_read( stream_t* stream, void* dest, uint64_t 
 
 static uint64_t _ringbuffer_stream_write( stream_t* stream, const void* source, uint64_t num )
 {
-	ringbuffer_stream_t* rbstream = (ringbuffer_stream_t*)stream;
+	stream_ringbuffer_t* rbstream = (stream_ringbuffer_t*)stream;
 	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM( rbstream );
 
 	unsigned int num_write = ringbuffer_write( buffer, source, (unsigned int)num );
@@ -227,7 +226,7 @@ static uint64_t _ringbuffer_stream_write( stream_t* stream, const void* source, 
 
 static bool _ringbuffer_stream_eos( stream_t* stream )
 {
-	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
+	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	return buffer->total_size ? ( buffer->total_read == buffer->total_size ) : false;
 }
 
@@ -239,14 +238,14 @@ static void _ringbuffer_stream_flush( stream_t* stream )
 
 static void _ringbuffer_stream_truncate( stream_t* stream, uint64_t size )
 {
-	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
+	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	buffer->total_size = (unsigned int)size;
 }
 
 
 static uint64_t _ringbuffer_stream_size( stream_t* stream )
 {
-	return ((ringbuffer_stream_t*)stream)->total_size;
+	return ((stream_ringbuffer_t*)stream)->total_size;
 }
 
 
@@ -264,7 +263,7 @@ static void _ringbuffer_stream_seek( stream_t* stream, int64_t offset, stream_se
 
 static int64_t _ringbuffer_stream_tell( stream_t* stream )
 {
-	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
+	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	return buffer->total_read;
 }
 
@@ -277,7 +276,7 @@ static uint64_t _ringbuffer_stream_lastmod( const stream_t* stream )
 
 static uint64_t _ringbuffer_stream_available_read( stream_t* stream )
 {
-	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
+	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	//TODO: Will be f*ked up if buffer has wrapped around (overflow)
 	return buffer->total_write - buffer->total_read;
 }
@@ -285,36 +284,45 @@ static uint64_t _ringbuffer_stream_available_read( stream_t* stream )
 
 static void _ringbuffer_stream_deallocate( stream_t* stream )
 {
-	ringbuffer_stream_t* buffer = (ringbuffer_stream_t*)stream;
-
-	semaphore_destroy( &buffer->signal_read );
-	semaphore_destroy( &buffer->signal_write );
+	ringbuffer_stream_cleanup( (stream_ringbuffer_t*)stream );
 }
 
 
 stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_size )
 {
-	ringbuffer_stream_t* bufferstream = memory_allocate( 0, sizeof( ringbuffer_stream_t ) + buffer_size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	stream_t* stream = (stream_t*)bufferstream;
+	stream_ringbuffer_t* bufferstream = memory_allocate( 0, sizeof( stream_ringbuffer_t ) + buffer_size, 0, MEMORY_PERSISTENT );
 
-	_stream_initialize( stream, system_byteorder() );
+	ringbuffer_stream_initialize( bufferstream, buffer_size, total_size );
+	
+	return (stream_t*)bufferstream;
+}
 
+
+void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buffer_size, uint64_t total_size )
+{
+	memset( stream, 0, sizeof( stream_ringbuffer_t ) );
+	
+	_stream_initialize( (stream_t*)stream, system_byteorder() );
+	
 	stream->type = STREAMTYPE_RINGBUFFER;
 	stream->sequential = 1;
 	stream->path = string_format( "ringbuffer://0x%" PRIfixPTR, stream );
 	stream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
-
-	semaphore_initialize( &bufferstream->signal_read, 0 );
-	semaphore_initialize( &bufferstream->signal_write, 0 );
-
-	bufferstream->pending_read = 0;
-	bufferstream->pending_write = 0;
-	bufferstream->total_size = total_size;
-	bufferstream->buffer_size = buffer_size;
-
+	
+	semaphore_initialize( &stream->signal_read, 0 );
+	semaphore_initialize( &stream->signal_write, 0 );
+	
+	stream->total_size = total_size;
+	stream->buffer_size = buffer_size;
+	
 	stream->vtable = &_ringbuffer_stream_vtable;
+}
 
-	return stream;
+
+void ringbuffer_stream_cleanup( stream_ringbuffer_t* stream )
+{
+	semaphore_cleanup( &stream->signal_read );
+	semaphore_cleanup( &stream->signal_write );
 }
 
 

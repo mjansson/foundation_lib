@@ -17,6 +17,7 @@
 
 
 FOUNDATION_API ringbuffer_t*   ringbuffer_allocate( unsigned int size );
+FOUNDATION_API void            ringbuffer_initialize( ringbuffer_t* buffer, unsigned int size );
 FOUNDATION_API void            ringbuffer_deallocate( ringbuffer_t* buffer );
 
 FOUNDATION_API unsigned int    ringbuffer_size( ringbuffer_t* buffer );
@@ -29,3 +30,5 @@ FOUNDATION_API uint64_t        ringbuffer_total_read( ringbuffer_t* buffer );
 FOUNDATION_API uint64_t        ringbuffer_total_written( ringbuffer_t* buffer );
 
 FOUNDATION_API stream_t*       ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_size );
+FOUNDATION_API void            ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buffer_size, uint64_t total_size );
+FOUNDATION_API void            ringbuffer_stream_cleanup( stream_ringbuffer_t* stream );

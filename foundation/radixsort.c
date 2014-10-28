@@ -13,16 +13,6 @@
 #include <foundation/foundation.h>
 
 
-struct radixsort_t
-{
-	radixsort_data_t     type;
-	radixsort_index_t    size;
-	radixsort_index_t    lastused;
-	radixsort_index_t*   indices[2];
-	radixsort_index_t*   histogram;
-	radixsort_index_t*   offset;
-};
-
 static const unsigned int _radixsort_data_size[] = {
 	4, //RADIXSORT_INT32,
 	4, //RADIXSORT_UINT32,
@@ -624,7 +614,6 @@ const radixsort_index_t* radixsort( radixsort_t* sort, const void* input, radixs
 
 radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
 {
-	radixsort_index_t i;
 	radixsort_t* sort = memory_allocate( 0,
 		sizeof( radixsort_t ) + 
 		/* 2 index tables */ ( 2 * sizeof( radixsort_index_t ) * num ) +
@@ -632,21 +621,30 @@ radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
 		/* offset table */   ( 256 * sizeof( radixsort_index_t ) ),
 		0, MEMORY_PERSISTENT );
 
-	sort->type       = type;
-	sort->size       = num;
-	sort->lastused   = num;
 	sort->indices[0] = pointer_offset( sort, sizeof( radixsort_t ) );
 	sort->indices[1] = pointer_offset( sort->indices[0], sizeof( radixsort_index_t ) * num );
 	sort->histogram  = pointer_offset( sort->indices[1], sizeof( radixsort_index_t ) * num );
 	sort->offset     = pointer_offset( sort->histogram,  sizeof( radixsort_index_t ) * 256 * _radixsort_data_size[ type ] );
+	
+	radixsort_initialize( sort, type, num );
+	
+	return sort;
+}
+
+
+void radixsort_initialize( radixsort_t* sort, radixsort_data_t type, radixsort_index_t num )
+{
+	radixsort_index_t i;
+	
+	sort->type       = type;
+	sort->size       = num;
+	sort->lastused   = num;
 
 	for( i = 0; i < num; ++i )
 	{
 		sort->indices[0][i] = i;
 		sort->indices[1][i] = i;
 	}
-
-	return sort;
 }
 
 

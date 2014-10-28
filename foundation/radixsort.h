@@ -17,6 +17,7 @@
 
 
 FOUNDATION_API radixsort_t*               radixsort_allocate( radixsort_data_t type, radixsort_index_t num );
+FOUNDATION_API void                       radixsort_initialize( radixsort_t* sort, radixsort_data_t type, radixsort_index_t num );
 FOUNDATION_API void                       radixsort_deallocate( radixsort_t* sort );
 
 FOUNDATION_API const radixsort_index_t*   radixsort( radixsort_t* sort, const void* input, radixsort_index_t num );

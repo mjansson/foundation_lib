@@ -20,27 +20,24 @@
 #endif
 
 
-struct stream_pipe_t
-{
-	FOUNDATION_DECLARE_STREAM;
-
-#if FOUNDATION_PLATFORM_WINDOWS
-	HANDLE    handle_read;
-	HANDLE    handle_write;
-#elif FOUNDATION_PLATFORM_POSIX
-	int       fd_read;
-	int       fd_write;
-#endif
-};
-typedef ALIGN(8) struct stream_pipe_t stream_pipe_t;
-
 static stream_vtable_t _pipe_stream_vtable;
 
 
 stream_t* pipe_allocate( void )
 {
 	stream_pipe_t* pipestream = memory_allocate( HASH_STREAM, sizeof( stream_pipe_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	
+	pipe_initialize( pipestream );
+	
+	return (stream_t*)pipestream;
+}
+
+
+void pipe_initialize( stream_pipe_t* pipestream )
+{
 	stream_t* stream = (stream_t*)pipestream;
+	
+	memset( stream, 0, sizeof( stream_pipe_t ) );
 
 	_stream_initialize( stream, system_byteorder() );
 
@@ -64,39 +61,39 @@ stream_t* pipe_allocate( void )
 	int fds[2] = { 0, 0 };
 	if( pipe( fds ) < 0 )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( 0 ) );
-	else
-	{
-		pipestream->fd_read = fds[0];
-		pipestream->fd_write = fds[1];
-	}
+	pipestream->fd_read = fds[0];
+	pipestream->fd_write = fds[1];
 #endif
 
 	pipestream->vtable = &_pipe_stream_vtable;
-
-	return stream;
 }
 
 
 static void _pipe_stream_deallocate( stream_t* stream )
 {
-	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
+	pipe_cleanup( (stream_pipe_t*)stream );
+}
+
+
+void pipe_cleanup( stream_pipe_t* pipe )
+{
+	FOUNDATION_ASSERT( pipe->type == STREAMTYPE_PIPE );
 #if FOUNDATION_PLATFORM_WINDOWS
-	if( pipestream->handle_read )
-		CloseHandle( pipestream->handle_read );
-	pipestream->handle_read = 0;
+	if( pipe->handle_read )
+		CloseHandle( pipe->handle_read );
+	pipe->handle_read = 0;
 
-	if( pipestream->handle_write )
-		CloseHandle( pipestream->handle_write );
-	pipestream->handle_write = 0;
+	if( pipe->handle_write )
+		CloseHandle( pipe->handle_write );
+	pipe->handle_write = 0;
 #elif FOUNDATION_PLATFORM_POSIX
-	if( pipestream->fd_read )
-		close( pipestream->fd_read );
-	pipestream->fd_read = 0;
+	if( pipe->fd_read )
+		close( pipe->fd_read );
+	pipe->fd_read = 0;
 
-	if( pipestream->fd_write )
-		close( pipestream->fd_write );
-	pipestream->fd_write = 0;	
+	if( pipe->fd_write )
+		close( pipe->fd_write );
+	pipe->fd_write = 0;
 #endif
 }
 

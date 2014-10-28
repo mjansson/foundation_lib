@@ -53,20 +53,34 @@ object_t _object_unref( object_base_t* obj )
 
 objectmap_t* objectmap_allocate( unsigned int size )
 {
-	uint64_t bits;
-	unsigned int ip;
-	uintptr_t next_indexshift;
 	objectmap_t* map;
-	void** slot;
-
+	
 	FOUNDATION_ASSERT_MSG( size > 2, "Invalid objectmap size" );
 	if( size <= 2 )
 		size = 2;
+
+	map = memory_allocate( 0, sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 16, MEMORY_PERSISTENT );
+
+	objectmap_initialize( map, size );
+	
+	return map;
+}
+
+
+void objectmap_initialize( objectmap_t* map, unsigned int size )
+{
+	uint64_t bits;
+	unsigned int ip;
+	uintptr_t next_indexshift;
+	void** slot;
+
+	FOUNDATION_ASSERT_MSG( size > 2, "Invalid objectmap size" );
 	bits = math_round( math_log2( (real)size ) ); //Number of bits needed
 	FOUNDATION_ASSERT_MSGFORMAT( bits < 50, "Invalid objectmap size %d", size );
-
+	
+	memset( map, 0, sizeof( objectmap_t ) + ( sizeof( void* ) * size ) );
+	
 	//Top two bits unused for Lua compatibility
-	map = memory_allocate( 0, sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	map->size_bits   = bits;
 	map->id_max      = ((1ULL<<(62ULL-bits))-1);
 	map->size        = size;
@@ -79,18 +93,23 @@ objectmap_t* objectmap_allocate( unsigned int size )
 	for( ip = 0, next_indexshift = 3; ip < ( size - 1 ); ++ip, next_indexshift += 2, ++slot )
 		*slot = (void*)next_indexshift;
 	*slot = (void*)((uintptr_t)-1);
-	
-	return map;
 }
 
 
 void objectmap_deallocate( objectmap_t* map )
 {
-	uint64_t i;
+	objectmap_cleanup( map );
+	memory_deallocate( map );
+}
 
+
+void objectmap_cleanup( objectmap_t* map )
+{
+	uint64_t i;
+	
 	if( !map )
 		return;
-
+	
 	for( i = 0; i < map->size; ++i )
 	{
 		bool is_object = !( (uintptr_t)map->map[i] & 1 );
@@ -100,8 +119,6 @@ void objectmap_deallocate( objectmap_t* map )
 			break;
 		}
 	}
-	
-	memory_deallocate( map );
 }
 
 
