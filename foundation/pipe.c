@@ -69,12 +69,6 @@ void pipe_initialize( stream_pipe_t* pipestream )
 }
 
 
-static void _pipe_stream_deallocate( stream_t* stream )
-{
-	pipe_finalize( (stream_pipe_t*)stream );
-}
-
-
 void pipe_finalize( stream_pipe_t* pipe )
 {
 	FOUNDATION_ASSERT( pipe->type == STREAMTYPE_PIPE );
@@ -307,5 +301,5 @@ void _pipe_stream_initialize( void )
 	_pipe_stream_vtable.tell = _pipe_stream_tell;
 	_pipe_stream_vtable.lastmod = _pipe_stream_lastmod;
 	_pipe_stream_vtable.available_read = _pipe_stream_available_read;
-	_pipe_stream_vtable.deallocate = _pipe_stream_deallocate;
+	_pipe_stream_vtable.finalize = (stream_finalize_fn)pipe_finalize;
 }

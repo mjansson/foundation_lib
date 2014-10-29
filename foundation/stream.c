@@ -68,10 +68,16 @@ void stream_deallocate( stream_t* stream )
 {
 	if( !stream )
 		return;
-	if( stream->vtable && stream->vtable->deallocate )
-		stream->vtable->deallocate( stream );
-	string_deallocate( stream->path );
+	stream_finalize( stream );
 	memory_deallocate( stream );
+}
+
+
+void stream_finalize( stream_t* stream )
+{
+	if( stream->vtable && stream->vtable->finalize )
+		stream->vtable->finalize( stream );
+	string_deallocate( stream->path );
 }
 
 

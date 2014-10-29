@@ -294,7 +294,7 @@ typedef uint64_t      (* stream_lastmod_fn )( const stream_t* );
 typedef uint128_t     (* stream_md5_fn)( stream_t* );
 typedef void          (* stream_buffer_read_fn )( stream_t* );
 typedef uint64_t      (* stream_available_read_fn )( stream_t* );
-typedef void          (* stream_deallocate_fn )( stream_t* );
+typedef void          (* stream_finalize_fn )( stream_t* );
 typedef stream_t*     (* stream_clone_fn )( stream_t* );
 
 
@@ -668,7 +668,7 @@ struct stream_vtable_t
 	stream_md5_fn                   md5;
 	stream_buffer_read_fn           buffer_read;
 	stream_available_read_fn        available_read;
-	stream_deallocate_fn            deallocate;
+	stream_finalize_fn              finalize;
 	stream_clone_fn                 clone;
 };
 

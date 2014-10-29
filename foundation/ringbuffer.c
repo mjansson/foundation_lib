@@ -282,12 +282,6 @@ static uint64_t _ringbuffer_stream_available_read( stream_t* stream )
 }
 
 
-static void _ringbuffer_stream_deallocate( stream_t* stream )
-{
-	ringbuffer_stream_finalize( (stream_ringbuffer_t*)stream );
-}
-
-
 stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_size )
 {
 	stream_ringbuffer_t* bufferstream = memory_allocate( 0, sizeof( stream_ringbuffer_t ) + buffer_size, 0, MEMORY_PERSISTENT );
@@ -339,7 +333,7 @@ void _ringbuffer_stream_initialize( void )
 	_ringbuffer_stream_vtable.tell = _ringbuffer_stream_tell;
 	_ringbuffer_stream_vtable.lastmod = _ringbuffer_stream_lastmod;
 	_ringbuffer_stream_vtable.available_read = _ringbuffer_stream_available_read;
-	_ringbuffer_stream_vtable.deallocate = _ringbuffer_stream_deallocate;
+	_ringbuffer_stream_vtable.finalize = (stream_finalize_fn)ringbuffer_stream_finalize;
 }
 
 

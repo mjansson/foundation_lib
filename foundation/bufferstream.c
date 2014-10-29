@@ -65,13 +65,7 @@ void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned i
 }
 
 
-static void _buffer_stream_deallocate( stream_t* stream )
-{
-	buffer_stream_finalize( (stream_buffer_t*)stream );
-}
-
-
-void buffer_stream_finalize( stream_buffer_t* stream )
+static void _buffer_stream_finalize( stream_buffer_t* stream )
 {
 	if( stream->own )
 		memory_deallocate( stream->buffer );
@@ -229,5 +223,5 @@ void _buffer_stream_initialize( void )
 	_buffer_stream_vtable.tell = _buffer_stream_tell;
 	_buffer_stream_vtable.lastmod = _buffer_stream_lastmod;
 	_buffer_stream_vtable.available_read = _buffer_stream_available_read;
-	_buffer_stream_vtable.deallocate = _buffer_stream_deallocate;
+	_buffer_stream_vtable.finalize = (stream_finalize_fn)buffer_stream_finalize;
 }
