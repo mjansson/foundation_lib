@@ -313,10 +313,14 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buf
 }
 
 
-void ringbuffer_stream_finalize( stream_ringbuffer_t* stream )
+static void _ringbuffer_stream_finalize( stream_t* stream )
 {
-	semaphore_finalize( &stream->signal_read );
-	semaphore_finalize( &stream->signal_write );
+	stream_ringbuffer_t* bufferstream = (stream_ringbuffer_t*)stream;
+	if( bufferstream && ( stream->type == STREAMTYPE_RINGBUFFER ) )
+	{
+		semaphore_finalize( &bufferstream->signal_read );
+		semaphore_finalize( &bufferstream->signal_write );
+	}
 }
 
 
@@ -333,7 +337,7 @@ void _ringbuffer_stream_initialize( void )
 	_ringbuffer_stream_vtable.tell = _ringbuffer_stream_tell;
 	_ringbuffer_stream_vtable.lastmod = _ringbuffer_stream_lastmod;
 	_ringbuffer_stream_vtable.available_read = _ringbuffer_stream_available_read;
-	_ringbuffer_stream_vtable.finalize = (stream_finalize_fn)ringbuffer_stream_finalize;
+	_ringbuffer_stream_vtable.finalize = _ringbuffer_stream_finalize;
 }
 
 
