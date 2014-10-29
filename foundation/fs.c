@@ -1350,13 +1350,8 @@ static void _fs_file_finalize( stream_t* stream )
 	}
 
 	if( file->fd )
-	{
 		fclose( (FILE*)file->fd );
-		file->fd = 0;
-	}
-
-	if( file->path )
-		file->path[0] = 0;
+	file->fd = 0;
 }
 
 

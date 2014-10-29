@@ -69,9 +69,13 @@ void pipe_initialize( stream_pipe_t* pipestream )
 }
 
 
-void pipe_finalize( stream_pipe_t* pipe )
+static void _pipe_finalize( stream_t* stream )
 {
-	FOUNDATION_ASSERT( pipe->type == STREAMTYPE_PIPE );
+	stream_pipe_t* pipe = (stream_pipe_t*)stream;
+
+	if( !pipe || ( stream->type != STREAMTYPE_PIPE ) )
+		return;
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipe->handle_read )
 		CloseHandle( pipe->handle_read );
@@ -301,5 +305,5 @@ void _pipe_stream_initialize( void )
 	_pipe_stream_vtable.tell = _pipe_stream_tell;
 	_pipe_stream_vtable.lastmod = _pipe_stream_lastmod;
 	_pipe_stream_vtable.available_read = _pipe_stream_available_read;
-	_pipe_stream_vtable.finalize = (stream_finalize_fn)pipe_finalize;
+	_pipe_stream_vtable.finalize = _pipe_finalize;
 }

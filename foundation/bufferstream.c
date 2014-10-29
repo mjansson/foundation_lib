@@ -68,8 +68,13 @@ void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned i
 static void _buffer_stream_finalize( stream_t* stream )
 {
 	stream_buffer_t* bufferstream = (stream_buffer_t*)stream;
-	if( bufferstream && ( stream->type == STREAMTYPE_MEMORY ) && bufferstream->own )
+	
+	if( !bufferstream || ( stream->type != STREAMTYPE_MEMORY ) )
+		return;
+	
+	if( bufferstream->own )
 		memory_deallocate( bufferstream->buffer );
+	bufferstream->buffer = 0;
 }
 
 

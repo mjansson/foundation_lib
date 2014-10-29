@@ -77,7 +77,11 @@ void stream_finalize( stream_t* stream )
 {
 	if( stream->vtable && stream->vtable->finalize )
 		stream->vtable->finalize( stream );
+	
 	string_deallocate( stream->path );
+
+	stream->path = 0;
+	stream->type = STREAMTYPE_INVALID;
 }
 
 
