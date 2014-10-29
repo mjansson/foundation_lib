@@ -54,8 +54,7 @@ DECLARE_TEST( bufferstream, null )
 
 	{
 		md5_t* md5 = md5_allocate();
-		md5_initialize( md5 );
-		md5_finalize( md5 );
+		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
 
@@ -118,8 +117,7 @@ DECLARE_TEST( bufferstream, zero )
 
 	{
 		md5_t* md5 = md5_allocate();
-		md5_initialize( md5 );
-		md5_finalize( md5 );
+		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
 
@@ -182,8 +180,7 @@ DECLARE_TEST( bufferstream, null_grow )
 
 	{
 		md5_t* md5 = md5_allocate();
-		md5_initialize( md5 );
-		md5_finalize( md5 );
+		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
 
@@ -252,8 +249,7 @@ DECLARE_TEST( bufferstream, zero_grow )
 
 	{
 		md5_t* md5 = md5_allocate();
-		md5_initialize( md5 );
-		md5_finalize( md5 );
+		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
 
@@ -322,8 +318,7 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 
 	{
 		md5_t* md5 = md5_allocate();
-		md5_initialize( md5 );
-		md5_finalize( md5 );
+		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
 
@@ -392,8 +387,7 @@ DECLARE_TEST( bufferstream, sized_grow )
 
 	{
 		md5_t* md5 = md5_allocate();
-		md5_initialize( md5 );
-		md5_finalize( md5 );
+		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
 
@@ -462,8 +456,7 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 
 	{
 		md5_t* md5 = md5_allocate();
-		md5_initialize( md5 );
-		md5_finalize( md5 );
+		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
 
