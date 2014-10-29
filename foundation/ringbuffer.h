@@ -17,8 +17,10 @@
 
 
 FOUNDATION_API ringbuffer_t*   ringbuffer_allocate( unsigned int size );
-FOUNDATION_API void            ringbuffer_initialize( ringbuffer_t* buffer, unsigned int size );
 FOUNDATION_API void            ringbuffer_deallocate( ringbuffer_t* buffer );
+
+FOUNDATION_API void            ringbuffer_initialize( ringbuffer_t* buffer, unsigned int size );
+FOUNDATION_API void            ringbuffer_finalize( ringbuffer_t* buffer );
 
 FOUNDATION_API unsigned int    ringbuffer_size( ringbuffer_t* buffer );
 FOUNDATION_API void            ringbuffer_reset( ringbuffer_t* buffer );

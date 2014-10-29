@@ -650,5 +650,11 @@ void radixsort_initialize( radixsort_t* sort, radixsort_data_t type, radixsort_i
 
 void radixsort_deallocate( radixsort_t* sort )
 {
+	radixsort_finalize( sort );
 	memory_deallocate( sort );
+}
+
+
+void radixsort_finalize( radixsort_t* sort )
+{
 }

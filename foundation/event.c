@@ -193,6 +193,9 @@ void event_stream_finalize( event_stream_t* stream )
 		memory_deallocate( stream->block[0].events );
 	if( stream->block[1].events )
 		memory_deallocate( stream->block[1].events );
+	
+	stream->block[0].events = 0;
+	stream->block[1].events = 0;
 }
 
 

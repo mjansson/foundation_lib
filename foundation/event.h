@@ -20,8 +20,10 @@ FOUNDATION_API event_t*             event_next( const event_block_t* block, even
 FOUNDATION_API uint16_t             event_payload_size( const event_t* event );
 
 FOUNDATION_API event_stream_t*      event_stream_allocate( unsigned int size );
-FOUNDATION_API void                 event_stream_initialize( event_stream_t* stream, unsigned int size );
 FOUNDATION_API void                 event_stream_deallocate( event_stream_t* stream );
+
+FOUNDATION_API void                 event_stream_initialize( event_stream_t* stream, unsigned int size );
 FOUNDATION_API void                 event_stream_finalize( event_stream_t* stream );
+
 FOUNDATION_API event_block_t*       event_stream_process( event_stream_t* stream );
 

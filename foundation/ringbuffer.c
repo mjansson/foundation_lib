@@ -41,7 +41,13 @@ void ringbuffer_initialize( ringbuffer_t* buffer, unsigned int size )
 
 void ringbuffer_deallocate( ringbuffer_t* buffer )
 {
+	ringbuffer_finalize( buffer );
 	memory_deallocate( buffer );
+}
+
+
+void ringbuffer_finalize( ringbuffer_t* buffer )
+{
 }
 
 
@@ -316,11 +322,12 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buf
 static void _ringbuffer_stream_finalize( stream_t* stream )
 {
 	stream_ringbuffer_t* bufferstream = (stream_ringbuffer_t*)stream;
-	if( bufferstream && ( stream->type == STREAMTYPE_RINGBUFFER ) )
-	{
-		semaphore_finalize( &bufferstream->signal_read );
-		semaphore_finalize( &bufferstream->signal_write );
-	}
+	
+	if( !bufferstream || ( stream->type != STREAMTYPE_RINGBUFFER ) )
+		return;
+	
+	semaphore_finalize( &bufferstream->signal_read );
+	semaphore_finalize( &bufferstream->signal_write );
 }
 
 

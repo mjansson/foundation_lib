@@ -21,6 +21,7 @@ FOUNDATION_API void          bitbuffer_deallocate( bitbuffer_t* bitbuffer );
 
 FOUNDATION_API void          bitbuffer_initialize_buffer( bitbuffer_t* bitbuffer, void* buffer, unsigned int size, bool swap );
 FOUNDATION_API void          bitbuffer_initialize_stream( bitbuffer_t* bitbuffer, stream_t* stream );
+FOUNDATION_API void          bitbuffer_finalize( bitbuffer_t* bitbuffer );
 
 FOUNDATION_API uint32_t      bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits );
 FOUNDATION_API uint64_t      bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits );

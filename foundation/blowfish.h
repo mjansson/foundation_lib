@@ -18,6 +18,9 @@
 
 FOUNDATION_API blowfish_t*  blowfish_allocate( void );
 FOUNDATION_API void         blowfish_deallocate( blowfish_t* blowfish );
+
 FOUNDATION_API void         blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned int length );
+FOUNDATION_API void         blowfish_finalize( blowfish_t* blowfish );
+
 FOUNDATION_API void         blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec );
 FOUNDATION_API void         blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec );

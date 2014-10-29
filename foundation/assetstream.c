@@ -108,8 +108,14 @@ static uint64_t asset_stream_available_read( stream_t* stream )
 static void asset_stream_finalize( stream_t* stream )
 {
 	stream_asset_t* asset = (stream_asset_t*)stream;
-	if( asset && asset->asset )
+	
+	if( !asset || ( stream->type != STREAMTYPE_ASSET ) )
+		return;
+	
+	if( asset->asset )
 		AAsset_close( asset->asset );
+	
+	asset->asset = 0;
 }
 
 

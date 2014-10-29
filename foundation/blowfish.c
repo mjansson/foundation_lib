@@ -357,6 +357,7 @@ blowfish_t* blowfish_allocate( void )
 
 void blowfish_deallocate( blowfish_t* blowfish )
 {
+	blowfish_finalize( blowfish );
 	memory_deallocate( blowfish );
 }
 
@@ -409,6 +410,11 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 	data  = 0;
 	ldata = 0;
 	hdata = 0;
+}
+
+
+void blowfish_finalize( blowfish_t* blowfish )
+{
 }
 
 

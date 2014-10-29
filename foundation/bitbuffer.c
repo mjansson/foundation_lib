@@ -72,7 +72,13 @@ bitbuffer_t* bitbuffer_allocate_stream( stream_t* stream )
 
 void bitbuffer_deallocate( bitbuffer_t* bitbuffer )
 {
+	bitbuffer_finalize( bitbuffer );
 	memory_deallocate( bitbuffer );
+}
+
+
+void bitbuffer_finalize( bitbuffer_t* bitbuffer )
+{
 }
 
 

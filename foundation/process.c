@@ -60,6 +60,7 @@ void process_finalize( process_t* proc )
 {
 	if( !( proc->flags & PROCESS_DETACHED ) )
 		process_wait( proc );
+	
 	stream_deallocate( proc->pipeout );
 	stream_deallocate( proc->pipein );
 	string_deallocate( proc->wd );
@@ -67,6 +68,14 @@ void process_finalize( process_t* proc )
 	string_array_deallocate( proc->args );
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_deallocate( proc->verb );
+#endif
+
+	proc->pipeout = 0;
+	proc->pipein = 0;
+	proc->wd = 0;
+	proc->path = 0;
+#if FOUNDATION_PLATFORM_WINDOWS
+	proc->verb = 0;
 #endif
 }
 

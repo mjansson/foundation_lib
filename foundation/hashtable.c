@@ -55,7 +55,13 @@ void hashtable32_initialize( hashtable32_t* table, unsigned int buckets )
 
 void hashtable32_deallocate( hashtable32_t* table )
 {
+	hashtable32_finalize( table );
 	memory_deallocate( table );
+}
+
+
+void hashtable32_finalize( hashtable32_t* table )
+{
 }
 
 
@@ -196,7 +202,13 @@ void hashtable64_initialize( hashtable64_t* table, unsigned int buckets )
 
 void hashtable64_deallocate( hashtable64_t* table )
 {
+	hashtable64_finalize( table );
 	memory_deallocate( table );
+}
+
+
+void hashtable64_finalize( hashtable64_t* table )
+{
 }
 
 

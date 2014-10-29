@@ -17,8 +17,9 @@
 
 
 FOUNDATION_API objectmap_t*         objectmap_allocate( unsigned int size );
-FOUNDATION_API void                 objectmap_initialize( objectmap_t* map, unsigned int size );
 FOUNDATION_API void                 objectmap_deallocate( objectmap_t* map );
+
+FOUNDATION_API void                 objectmap_initialize( objectmap_t* map, unsigned int size );
 FOUNDATION_API void                 objectmap_finalize( objectmap_t* map );
 
 FOUNDATION_API unsigned int         objectmap_size( const objectmap_t* map );

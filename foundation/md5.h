@@ -17,10 +17,13 @@
 
 
 FOUNDATION_API md5_t*        md5_allocate( void );
-FOUNDATION_API void          md5_initialize( md5_t* digest );
 FOUNDATION_API void          md5_deallocate( md5_t* digest );
+
+FOUNDATION_API void          md5_initialize( md5_t* digest );
+FOUNDATION_API void          md5_finalize( md5_t* digest );
+
 FOUNDATION_API md5_t*        md5_digest( md5_t* digest, const char* message );
 FOUNDATION_API md5_t*        md5_digest_raw( md5_t* digest, const void* buffer, size_t size );
-FOUNDATION_API void          md5_finalize( md5_t* digest );
+FOUNDATION_API void          md5_digest_finalize( md5_t* digest );
 FOUNDATION_API char*         md5_get_digest( const md5_t* digest );
 FOUNDATION_API uint128_t     md5_get_digest_raw( const md5_t* digest );
