@@ -539,8 +539,9 @@ unsigned int thread_hardware( void )
 }
 
 
-void thread_set_hardware( unsigned int hw_thread )
+void thread_set_hardware( uint64_t mask )
 {
+  //TODO: Implement
 }
 
 
