@@ -17,6 +17,7 @@
 
 
 FOUNDATION_API stream_t*             pipe_allocate( void );
+FOUNDATION_API void                  pipe_initialize( stream_pipe_t* pipe );
 FOUNDATION_API void                  pipe_close_read( stream_t* pipe );
 FOUNDATION_API void                  pipe_close_write( stream_t* pipe );
 

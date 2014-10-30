@@ -18,6 +18,7 @@
 
 FOUNDATION_API mutex_t*      mutex_allocate( const char* name );
 FOUNDATION_API void          mutex_deallocate( mutex_t* mutex );
+
 FOUNDATION_API const char*   mutex_name( mutex_t* mutex );
 FOUNDATION_API bool          mutex_try_lock( mutex_t* mutex );
 FOUNDATION_API bool          mutex_lock( mutex_t* mutex );

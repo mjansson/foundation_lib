@@ -42,7 +42,7 @@ FOUNDATION_API unsigned int    thread_hardware( void );
 FOUNDATION_API void            thread_sleep( int milliseconds );
 FOUNDATION_API void            thread_yield( void );
 
-FOUNDATION_API void            thread_cleanup( void );
+FOUNDATION_API void            thread_finalize( void );
 
 #if FOUNDATION_PLATFORM_ANDROID
 

@@ -16,29 +16,27 @@
 
 /*lint --e{754} Lint gets confused about initialized fields, we use memory_allocate so safe to inhibit */
 
-struct stream_buffer_t
-{
-	FOUNDATION_DECLARE_STREAM;
-	uint64_t                 current;
-	uint64_t                 size;
-	uint64_t                 capacity;
-	void*                    buffer;
-	bool                     own;
-	bool                     grow;
-};
-typedef ALIGN(8) struct stream_buffer_t stream_buffer_t;
-
 static stream_vtable_t _buffer_stream_vtable;
 
 
 stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 {
-	stream_buffer_t* buffer_stream = memory_allocate( HASH_STREAM, sizeof( stream_buffer_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	stream_t* stream = (stream_t*)buffer_stream;
+	stream_buffer_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_buffer_t ), 8, MEMORY_PERSISTENT );
+	
+	buffer_stream_initialize( stream, buffer, mode, size, capacity, adopt, grow );
+	
+	return (stream_t*)stream;
+}
 
-	_stream_initialize( stream, system_byteorder() );
 
-	FOUNDATION_ASSERT_MSG( adopt || !grow, "Cannot grow buffer streams that are not adopted" );
+void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
+{
+	memset( stream, 0, sizeof( stream_buffer_t ) );
+	
+	_stream_initialize( (stream_t*)stream, system_byteorder() );
+
+	if( !FOUNDATION_VALIDATE_MSG( adopt || !grow, "Cannot grow buffer streams that are not adopted" ) )
+		grow = false;
 
 	if( !buffer )
 	{
@@ -49,31 +47,34 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size
 	if( size > capacity )
 		size = capacity;
 
-	buffer_stream->type = STREAMTYPE_MEMORY;
-	buffer_stream->path = string_format( "buffer://0x%" PRIfixPTR, stream );
-	buffer_stream->mode = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY );
-	buffer_stream->buffer = buffer;
-	buffer_stream->size = size;
-	buffer_stream->capacity = capacity;
-	buffer_stream->own = adopt;
-	buffer_stream->grow = ( adopt && grow );
+	stream->type = STREAMTYPE_MEMORY;
+	stream->path = string_format( "buffer://0x%" PRIfixPTR, stream );
+	stream->mode = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY );
+	stream->buffer = buffer;
+	stream->size = size;
+	stream->capacity = capacity;
+	stream->own = adopt;
+	stream->grow = ( adopt && grow );
 
 	if( mode & STREAM_TRUNCATE )
-		buffer_stream->size = 0;
+		stream->size = 0;
 	if( mode & STREAM_ATEND )
-		buffer_stream->current = buffer_stream->size;
+		stream->current = stream->size;
 
-	buffer_stream->vtable = &_buffer_stream_vtable;
-
-	return stream;
+	stream->vtable = &_buffer_stream_vtable;
 }
 
 
-static void _buffer_stream_deallocate( stream_t* stream )
+static void _buffer_stream_finalize( stream_t* stream )
 {
-	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
-	if( buffer_stream->own )
-		memory_deallocate( buffer_stream->buffer );
+	stream_buffer_t* bufferstream = (stream_buffer_t*)stream;
+	
+	if( !bufferstream || ( stream->type != STREAMTYPE_MEMORY ) )
+		return;
+	
+	if( bufferstream->own )
+		memory_deallocate( bufferstream->buffer );
+	bufferstream->buffer = 0;
 }
 
 
@@ -228,5 +229,5 @@ void _buffer_stream_initialize( void )
 	_buffer_stream_vtable.tell = _buffer_stream_tell;
 	_buffer_stream_vtable.lastmod = _buffer_stream_lastmod;
 	_buffer_stream_vtable.available_read = _buffer_stream_available_read;
-	_buffer_stream_vtable.deallocate = _buffer_stream_deallocate;
+	_buffer_stream_vtable.finalize = _buffer_stream_finalize;
 }

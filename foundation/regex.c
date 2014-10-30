@@ -53,14 +53,6 @@ typedef enum
 } regex_op_t;
 
 
-struct regex_t
-{
-	unsigned int    num_captures;
-	unsigned int    code_length;
-	unsigned int    code_allocated;
-	uint8_t         code[];
-};
-
 struct regex_context_t
 {
 	int             op;

@@ -22,66 +22,28 @@
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
-#  define task_t __hidden_task_t
-#  define semaphore_t __hidden_semaphore_t
-#  define _UUID_T
-#  define uuid_generate_random __system_uuid_generate_random
-#  define uuid_generate_time __system_uuid_generate_time
-#  define uuid_is_null __system_uuid_is_null
-#  include <ApplicationServices/ApplicationServices.h>
-#  undef task_t
-#  undef semaphore_t
-#  undef uuid_generate_random
-#  undef uuid_generate_time
-#  undef uuid_is_null
+#  include <foundation/apple.h>
 #  include <sys/event.h>
 #endif
 
+
 static int _process_exit_code = 0;
-
-struct process_t
-{
-	//! Working directory
-	char*                                   wd;
-	
-	//! Executable path
-	char*                                   path;
-
-	//! Arguments
-	char**                                  args;
-
-	//! Flags
-	unsigned int                            flags;
-
-	//! Exit code
-	int                                     code;
-
-	//! Stdout pipe
-	stream_t*                               pipeout;
-
-	//! Stdin pipe
-	stream_t*                               pipein;
-
-#if FOUNDATION_PLATFORM_WINDOWS
-	//! ShellExecute verb
-	char*                                   verb;
-	void*                                   hp;
-	void*                                   ht;
-#elif FOUNDATION_PLATFORM_POSIX
-	pid_t                                   pid;
-#endif
-	
-#if FOUNDATION_PLATFORM_MACOSX
-	int                                     kq;
-#endif
-};
 
 
 process_t* process_allocate()
 {
-	process_t* proc = memory_allocate( 0, sizeof( process_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	proc->flags = PROCESS_ATTACHED;
+	process_t* proc = memory_allocate( 0, sizeof( process_t ), 0, MEMORY_PERSISTENT );
+	
+	process_initialize( proc );
+	
 	return proc;
+}
+
+
+void process_initialize( process_t* proc )
+{
+	memset( proc, 0, sizeof( process_t ) );
+	proc->flags = PROCESS_ATTACHED;
 }
 
 
@@ -89,8 +51,16 @@ void process_deallocate( process_t* proc )
 {
 	if( !proc )
 		return;
+	process_finalize( proc );
+	memory_deallocate( proc );
+}
+
+
+void process_finalize( process_t* proc )
+{
 	if( !( proc->flags & PROCESS_DETACHED ) )
 		process_wait( proc );
+	
 	stream_deallocate( proc->pipeout );
 	stream_deallocate( proc->pipein );
 	string_deallocate( proc->wd );
@@ -99,7 +69,14 @@ void process_deallocate( process_t* proc )
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_deallocate( proc->verb );
 #endif
-	memory_deallocate( proc );
+
+	proc->pipeout = 0;
+	proc->pipein = 0;
+	proc->wd = 0;
+	proc->path = 0;
+#if FOUNDATION_PLATFORM_WINDOWS
+	proc->verb = 0;
+#endif
 }
 
 
