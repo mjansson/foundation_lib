@@ -49,14 +49,14 @@ DECLARE_TEST( md5, empty )
 	char* md5str;
 	
 	md5 = md5_allocate();
-	md5_finalize( md5 );
+	md5_digest_finalize( md5 );
 	md5str = md5_get_digest( md5 );
 
 	EXPECT_STREQ( md5str, "D41D8CD98F00B204E9800998ECF8427E" );
 	string_deallocate( md5str );
 
 	md5_initialize( md5 );
-	md5_finalize( md5 );
+	md5_digest_finalize( md5 );
 	md5str = md5_get_digest( md5 );
 
 	EXPECT_STREQ( md5str, "D41D8CD98F00B204E9800998ECF8427E" );
@@ -94,10 +94,10 @@ DECLARE_TEST( md5, reference )
 	char* md5str;
 
 	md5 = md5_allocate();
-	md5_finalize( md5 );
+	md5_digest_finalize( md5 );
 
 	md5_digest_raw( md5, "testing md5 implementation", 26 );
-	md5_finalize( md5 );
+	md5_digest_finalize( md5 );
 
 	md5str = md5_get_digest( md5 );
 
@@ -107,14 +107,14 @@ DECLARE_TEST( md5, reference )
 	md5_digest_raw( md5, "testing md5 implementation", 26 );
 	md5_digest_raw( md5, "", 0 );
 	md5_digest_raw( md5, "further testing md5 implementation with long buffer > 32 bytes", 62 );
-	md5_finalize( md5 );
+	md5_digest_finalize( md5 );
 	md5str = md5_get_digest( md5 );
 
 	EXPECT_STREQ( md5str, "BD870884942EA7B32A9CB2547B02B871" );
 	string_deallocate( md5str );
 
 	md5_digest_raw( md5, digest_test_string, 2000 );
-	md5_finalize( md5 );
+	md5_digest_finalize( md5 );
 	md5str = md5_get_digest( md5 );
 
 	EXPECT_STREQ( md5str, "137D3C94230A0E230C4DDFC97EACCCD2" );

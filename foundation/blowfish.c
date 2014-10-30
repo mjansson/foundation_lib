@@ -13,18 +13,7 @@
 #include <foundation/foundation.h>
 
 
-#define SUBKEYS              18U
-#define SBOXES               4U
-#define SBOXENTRIES          256U
-#define MAXKEY               56U
-
-struct blowfish_t
-{
-	uint32_t         parray[SUBKEYS];
-	uint32_t         sboxes[SBOXES][SBOXENTRIES];
-};
-
-static const uint32_t _blowfish_parray_init[SUBKEYS] = {
+static const uint32_t _blowfish_parray_init[BLOWFISH_SUBKEYS] = {
 	0x243F6A88U, 0x85A308D3U, 0x13198A2EU, 0x03707344U,
 	0xA4093822U, 0x299F31D0U, 0x082EFA98U, 0xEC4E6C89U,
 	0x452821E6U, 0x38D01377U, 0xBE5466CFU, 0x34E90C6CU,
@@ -32,7 +21,7 @@ static const uint32_t _blowfish_parray_init[SUBKEYS] = {
 	0x9216D5D9U, 0x8979FB1BL
 };
 
-static const uint32_t _blowfish_sboxes_init[SBOXES][SBOXENTRIES] = {
+static const uint32_t _blowfish_sboxes_init[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIES] = {
 {
 	0xD1310BA6U, 0x98DFB5ACU, 0x2FFD72DBU, 0xD01ADFB7U,
 	0xB8E1AFEDU, 0x6A267E96U, 0xBA7C9045U, 0xF12C7F99U,
@@ -362,27 +351,28 @@ void _blowfish_decrypt_words( const blowfish_t* blowfish, uint32_t* lvalres, uin
 
 blowfish_t* blowfish_allocate( void )
 {
-	return memory_allocate( 0, (uint64_t)sizeof( blowfish_t ), 0U, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	return memory_allocate( 0, sizeof( blowfish_t ), 0U, MEMORY_PERSISTENT );
 }
 
 
 void blowfish_deallocate( blowfish_t* blowfish )
 {
+	blowfish_finalize( blowfish );
 	memory_deallocate( blowfish );
 }
 
 
 void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned int length )
 {
-	unsigned int capped_length = ( length <= MAXKEY ) ? length : MAXKEY;
+	unsigned int capped_length = ( length <= BLOWFISH_MAXKEY ) ? length : BLOWFISH_MAXKEY;
 	const unsigned char* ckey = key;
 	uint32_t data, ldata, hdata;
 	unsigned int isub, ikey, iword, ibox, ientry;
 
-	memcpy( blowfish->parray, _blowfish_parray_init, 4 * SUBKEYS );
-	memcpy( blowfish->sboxes, _blowfish_sboxes_init, 4 * SBOXES * SBOXENTRIES );
+	memcpy( blowfish->parray, _blowfish_parray_init, 4 * BLOWFISH_SUBKEYS );
+	memcpy( blowfish->sboxes, _blowfish_sboxes_init, 4 * BLOWFISH_SBOXES * BLOWFISH_SBOXENTRIES );
 
-	for( isub = 0, ikey = 0; isub < SUBKEYS; ++isub )
+	for( isub = 0, ikey = 0; isub < BLOWFISH_SUBKEYS; ++isub )
 	{
 		data = 0;
 		for( iword = 0; iword < 4; ++iword, ++ikey )
@@ -394,7 +384,7 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 	ldata = 0;
 	hdata = 0;
 
-	for( isub = 0; isub < SUBKEYS; isub += 2 )
+	for( isub = 0; isub < BLOWFISH_SUBKEYS; isub += 2 )
 	{
 		_blowfish_encrypt_words( blowfish, &ldata, &hdata );
 
@@ -403,9 +393,9 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 		blowfish->parray[isub+1] = hdata;
 	}
 
-	for( ibox = 0; ibox < SBOXES; ++ibox )
+	for( ibox = 0; ibox < BLOWFISH_SBOXES; ++ibox )
 	{
-		for( ientry = 0; ientry < SBOXENTRIES; ientry += 2 )
+		for( ientry = 0; ientry < BLOWFISH_SBOXENTRIES; ientry += 2 )
 		{
 			_blowfish_encrypt_words( blowfish, &ldata, &hdata );
 
@@ -420,6 +410,11 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 	data  = 0;
 	ldata = 0;
 	hdata = 0;
+}
+
+
+void blowfish_finalize( blowfish_t* blowfish )
+{
 }
 
 

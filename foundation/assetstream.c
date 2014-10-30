@@ -105,11 +105,17 @@ static uint64_t asset_stream_available_read( stream_t* stream )
 }
 
 
-static void asset_stream_deallocate( stream_t* stream )
+static void asset_stream_finalize( stream_t* stream )
 {
 	stream_asset_t* asset = (stream_asset_t*)stream;
-	if( asset && asset->asset )
+	
+	if( !asset || ( stream->type != STREAMTYPE_ASSET ) )
+		return;
+	
+	if( asset->asset )
 		AAsset_close( asset->asset );
+	
+	asset->asset = 0;
 }
 
 
@@ -169,7 +175,7 @@ void _asset_stream_initialize( void )
 	_asset_stream_vtable.tell = asset_stream_tell;
 	_asset_stream_vtable.lastmod = asset_stream_lastmod;
 	_asset_stream_vtable.available_read = asset_stream_available_read;
-	_asset_stream_vtable.deallocate = asset_stream_deallocate;
+	_asset_stream_vtable.finalize = asset_stream_finalize;
 	_asset_stream_vtable.clone = asset_stream_clone;
 }
 

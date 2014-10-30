@@ -1328,7 +1328,7 @@ static stream_t* _fs_file_clone( stream_t* stream )
 }
 
 
-static void _fs_file_close( stream_t* stream )
+static void _fs_file_finalize( stream_t* stream )
 {
 	stream_file_t* file = GET_FILE( stream );
 	if( !file || ( stream->type != STREAMTYPE_FILE ) )
@@ -1350,13 +1350,8 @@ static void _fs_file_close( stream_t* stream )
 	}
 
 	if( file->fd )
-	{
 		fclose( (FILE*)file->fd );
-		file->fd = 0;
-	}
-
-	if( file->path )
-		file->path[0] = 0;
+	file->fd = 0;
 }
 
 
@@ -1442,7 +1437,7 @@ int _fs_initialize( void )
 	_fs_file_vtable.lastmod = _fs_file_last_modified;
 	_fs_file_vtable.buffer_read = 0;
 	_fs_file_vtable.available_read = 0;
-	_fs_file_vtable.deallocate = _fs_file_close;
+	_fs_file_vtable.finalize = _fs_file_finalize;
 	_fs_file_vtable.clone = _fs_file_clone;
 
 	_ringbuffer_stream_initialize();

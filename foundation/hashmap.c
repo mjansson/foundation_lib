@@ -15,31 +15,11 @@
 
 #define HASHMAP_MINBUCKETS                 13
 #define HASHMAP_MINBUCKETSIZE              8
-
-
-struct hashmap_node_t
-{
-	hash_t                key;
-	void*                 value;
-};
-typedef struct hashmap_node_t hashmap_node_t;
-
-
-typedef hashmap_node_t*   hashmap_bucket_t;
-
-
-struct hashmap_t
-{
-	unsigned int          num_buckets;
-	unsigned int          num_nodes;
-	hashmap_bucket_t      bucket[];
-};
 	
 
 hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 {
 	hashmap_t* map;
-	unsigned int ibucket;
 
 	if( buckets < HASHMAP_MINBUCKETS )
 		buckets = HASHMAP_MINBUCKETS;
@@ -48,25 +28,44 @@ hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 	
 	map = memory_allocate( 0, sizeof( hashmap_t ) + sizeof( hashmap_bucket_t ) * buckets, 0, MEMORY_PERSISTENT );
 
-	map->num_buckets = buckets;
-	map->num_nodes   = 0;
-
-	for( ibucket = 0; ibucket < buckets; ++ibucket )
-	{
-		map->bucket[ibucket] = 0;
-		array_reserve( map->bucket[ibucket], (int)bucketsize );
-	}
+	hashmap_initialize( map, buckets, bucketsize );
 	
 	return map;
 }
 
 
+void hashmap_initialize( hashmap_t* map, unsigned int buckets, unsigned int bucketsize )
+{
+	unsigned int ibucket;
+	
+	if( buckets < HASHMAP_MINBUCKETS )
+		buckets = HASHMAP_MINBUCKETS;
+	if( bucketsize < HASHMAP_MINBUCKETSIZE )
+		bucketsize = HASHMAP_MINBUCKETSIZE;
+	
+	map->num_buckets = buckets;
+	map->num_nodes   = 0;
+	
+	for( ibucket = 0; ibucket < buckets; ++ibucket )
+	{
+		map->bucket[ibucket] = 0;
+		array_reserve( map->bucket[ibucket], (int)bucketsize );
+	}
+}
+
+
 void hashmap_deallocate( hashmap_t* map )
+{
+	hashmap_finalize( map );
+	memory_deallocate( map );
+}
+
+
+void hashmap_finalize( hashmap_t* map )
 {
 	unsigned int ibucket;
 	for( ibucket = 0; ibucket < map->num_buckets; ++ibucket )
 		array_deallocate( map->bucket[ibucket] );
-	memory_deallocate( map );
 }
 
 

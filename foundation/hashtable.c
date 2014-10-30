@@ -14,37 +14,6 @@
 #include <foundation/internal.h>
 
 
-struct hashtable32_entry_t
-{
-	atomic32_t   key;
-	uint32_t     value;
-};
-typedef struct hashtable32_entry_t hashtable32_entry_t;
-
-
-struct hashtable64_entry_t
-{
-	atomic64_t   key;
-	uint64_t     value;
-};
-typedef struct hashtable64_entry_t hashtable64_entry_t;
-
-
-struct ALIGN(8) hashtable32_t
-{
-	uint32_t                        capacity;
-	ALIGN(8) hashtable32_entry_t    entries[];
-};
-
-
-struct ALIGN(8) hashtable64_t
-{
-	uint64_t                        capacity;
-	ALIGN(8) hashtable64_entry_t    entries[];
-};
-
-
-
 static FORCEINLINE uint32_t _hashtable32_hash( uint32_t key )
 {
 	key ^= key >> 16;
@@ -67,18 +36,32 @@ static FORCEINLINE uint64_t _hashtable64_hash( uint64_t key )
 }
 
 
-
 hashtable32_t* hashtable32_allocate( unsigned int buckets )
 {
-	hashtable32_t* table = (hashtable32_t*)memory_allocate( 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	table->capacity = buckets;
+	hashtable32_t* table = (hashtable32_t*)memory_allocate( 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+
+	hashtable32_initialize( table, buckets );
+	
 	return table;
+}
+
+
+void hashtable32_initialize( hashtable32_t* table, unsigned int buckets )
+{
+	memset( table, 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets );
+	table->capacity = buckets;
 }
 
 
 void hashtable32_deallocate( hashtable32_t* table )
 {
+	hashtable32_finalize( table );
 	memory_deallocate( table );
+}
+
+
+void hashtable32_finalize( hashtable32_t* table )
+{
 }
 
 
@@ -202,15 +185,30 @@ void hashtable32_clear( hashtable32_t* table )
 
 hashtable64_t* hashtable64_allocate( unsigned int buckets )
 {
-	hashtable64_t* table = (hashtable64_t*)memory_allocate( 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	table->capacity = buckets;
+	hashtable64_t* table = (hashtable64_t*)memory_allocate( 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+
+	hashtable64_initialize( table, buckets );
+	
 	return table;
+}
+
+
+void hashtable64_initialize( hashtable64_t* table, unsigned int buckets )
+{
+	memset( table, 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets );
+	table->capacity = buckets;
 }
 
 
 void hashtable64_deallocate( hashtable64_t* table )
 {
+	hashtable64_finalize( table );
 	memory_deallocate( table );
+}
+
+
+void hashtable64_finalize( hashtable64_t* table )
+{
 }
 
 

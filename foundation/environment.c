@@ -41,11 +41,6 @@ extern void _environment_ns_home_directory( char* );
 extern void _environment_ns_temporary_directory( char* );
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
-#  include <crt_externs.h>
-#endif
-
-
 
 static application_t       _environment_app = {0};
 
