@@ -19,9 +19,9 @@
 \param name  Global name
 \param value Initial value
 
-\fn void semaphore_destroy( semaphore_t* semaphore )
-\brief Destroy semaphore
-\details Destroy semaphore. The semaphore value must be >= than the value it was created with,
+\fn void semaphore_finalize( semaphore_t* semaphore )
+\brief Finalize semaphore
+\details Finalize semaphore. The semaphore value must be >= than the value it was created with,
 or it will be considered to be still in use (on OSX/iOS targets this will cause a debug abort).
 \param semaphore Semaphore
 

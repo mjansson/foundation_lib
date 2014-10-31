@@ -9,12 +9,22 @@ should be called before launching a process, except for set exit code which shou
 
 \fn process_t* process_allocate( void )
 \brief Allocate process
-\details Allocate a new process object.
+\details Allocate a new process object. Deallocate the process object with a call to #process_deallocate.
 \return New process object
 
 \fn void process_deallocate( process_t* proc )
 \brief Deallocate process
-\details Deallocate process object.
+\details Deallocate process object previously allocated with a call to #process_allocate.
+\param proc Process object
+
+\fn void process_initialize( process_t* proc )
+\brief Initialize process
+\details Initialize a new process object. Finalize the process object with a call to #process_finalize.
+\param proc Process object
+
+\fn void process_finalize( process_t* proc )
+\brief Finalize process
+\details Finalize process object previously initialized with a call to #process_initialize.
 \param proc Process object
 
 \fn void process_set_working_directory( process_t* proc, const char* path )

@@ -9,8 +9,13 @@ read/write calls are blocking.
 
 \fn stream_t* pipe_allocate( void )
 \brief Allocate unnamed pipe stream
-\details Allocate an unnamed pipe stream
+\details Allocate an unnamed pipe stream. Deallocate the stream with a call to #stream_deallocate
 \return New pipe stream
+
+\fn void pipe_initialize( stream_pipe_t* stream )
+\brief Initialize unnamed pipe stream
+\details Initialize an unnamed pipe stream. Finalize the stream with a call to #stream_finalize
+\param stream Pipe stream
 
 \fn void pipe_close_read( stream_t* pipe )
 \brief Close read end

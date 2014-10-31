@@ -604,180 +604,561 @@ prototype to allow the crash guard to catch and handle exceptions correctly
 \param id Object handle
 \param object Object pointer
 
+\typedef uint64_t (*stream_read_fn)( stream_t* stream, void* dst, uint64_t size )
+\brief Stream read
+\details Generic function to read data from a stream
+\param stream Stream to read from
+\param dst Destination buffer
+\param size Number of bytes to read
+\return Number of bytes actually read
 
-\typedef md5_t
+\typedef uint64_t (*stream_write_fn)( stream_t* stream, const void* src, uint64_t size )
+\brief Stream write
+\details Generic function to write data to a stream
+\param stream Stream to write to
+\param src Source buffer
+\param size Number of bytes to write
+\return Number of bytes actually written
+
+\typedef bool (*stream_eos_fn)( stream_t* stream )
+\brief Query if end of stream
+\details Query if end of stream
+\param stream Stream
+\return true if stream at end, false if not
+
+\typedef void (*stream_flush_fn)( stream_t* stream )
+\brief Flush stream
+\details Flush stream output buffers
+\param stream Stream
+
+\typedef void (*stream_truncate_fn)( stream_t* stream, uint64_t size )
+\brief Truncate stream
+\details Truncate stream size to the given size
+\param stream Stream
+\param size Size to truncate stream to
+
+\typedef uint64_t (*stream_size_fn)( stream_t* stream )
+\brief Get stream size
+\details Get stream size
+\param stream Stream
+\return Stream size, 0 if invalid stream or unknown (like a network stream)
+
+\typedef void (*stream_seek_fn)( stream_t* stream, int64_t offset, stream_seek_mode_t mode )
+\brief Seek in stream
+\details Seek in the stream. Only available if stream is seekable and not a sequential stream like
+a network stream.
+\param stream Stream
+\param offset Seek offset
+\param mode Seek mode (see #stream_seek_mode_t)
+
+\typedef int64_t (*stream_tell_fn)( stream_t* stream )
+\brief Get current stream position
+\details Get current stream position
+\param stream Stream
+\return Current stream position, 0 if invalid stream or unknown
+
+\typedef uint64_t (*stream_lastmod_fn)( const stream_t* stream )
+\brief Get last modification timestamp
+\details Get timestamp when stream was last modified (written to or attributes/size changed)
+\param stream Stream
+\return Last modification timestamp, 0 if invalid stream or unknown
+
+\typedef uint128_t (*stream_md5_fn)( stream_t* stream )
+\brief Get stream digest
+\details Get stream digest. Only available if stream size is known and stream is seekable. Does
+not modify the current stream position.
+\param stream Stream 
+\return Digest of stream content, 0 if invalid stream or unknown
+
+\typedef void (*stream_buffer_read_fn)( stream_t* stream )
+\brief Buffer available data
+\details If the stream has available data to be read from an external source (like a socket for
+network streams), read and buffer the available data without blocking.
+\param stream Stream
+
+\typedef uint64_t (*stream_available_read_fn)( stream_t* stream )
+\brief Query available data
+\details Query how much data can be read from the stream without blocking
+\param stream Stream
+\return Number of bytes that can be read without blocking
+
+\typedef void (*stream_finalize_fn)( stream_t* stream )
+\brief Finalize stream object
+\details Finalize a stream object that was previously initialized with a call to a specific
+stream initialization function and free any associated resources.
+\param stream Stream
+
+\typedef stream_t* (*stream_clone_fn)( stream_t* stream )
+\brief Clone stream
+\details Clone stream, allocating a duplicate copy of the stream if the stream type supports it.
+\param stream Stream
+\return Clone of stream, 0 if not supported or invalid source stream
+
+
+\struct md5_t
 \brief MD5 state
 \details Opaque struct holding an MD5 state
 
-\typedef stream_t
+\var md5_t::init
+\brief Initialization flag
+\details Flag indicating the md5 state has been initialized and ready for digestion of data
+
+\var md5_t::state
+\brief Digest state
+\details Internal state during data digestion
+
+\var md5_t::count
+\brief Digest counter
+\details Internal counters during data digestion
+
+\var md5_t::buffer
+\brief Digest buffer
+\details Internal buffer during data digestion
+
+\var md5_t::digest
+\brief Digest
+\details Internal digest data buffer
+
+\struct stream_t
 \brief Base stream type
 \details Base opaque stream type from which all streams are derived.
+
+\var stream_t::type
+\brief Stream type
+\details Stream type identifier
+
+\var stream_t::sequential
+\brief Sequential flag
+\details Flag indicating stream is sequential, meaning it can only read/write sequentially and only seek forward from current position. Generally stream size is unavailable for sequential streams.
+
+\var stream_t::reliable
+\brief Reliable flag
+\details Flag indicating stream is reliable, meaning data written is guaranteed to be readable.
+
+\var stream_t::inorder
+\brief In-order flag
+\details Flag indicating stream is in-order, meaning data written is guaranteed to be read in the same order as it was written.
+
+\var stream_t::swap
+\brief Byte order swap flag
+\details Flag indicating stream is byte order swapped, meaning multi-byte data will be byte order swapped on read/write.
+
+\var stream_t::byteorder
+\brief Byte order indicator
+\details Stream byte order indicator (0 = little endian, 1 = big endian)
+
+\var stream_t::mode
+\brief Stream open mode
+\details Stream open mode (see #stream_mode_t)
+
+\var stream_t::path
+\brief Stream path
+\details Stream path
+
+\var stream_t::vtable
+\brief Stream virtual table
+\details Stream virtual table with stream type specific implementation function pointers
 
 \typedef mutex_t
 \brief Mutex
 \details Mutex for thread synchronization
 
-\typedef process_t
+\struct process_t
 \brief Process
 \details Opaque struct holding state for a process
 
-\typedef event_block_t
+\var process_t::wd
+\brief Working directory
+\details Working directory
+
+\var process_t::path
+\brief Executable path
+\details Executable path
+
+\var process_t::args
+\brief Argument array
+\details Array of argument strings
+
+\var process_t::flags
+\brief Flags
+\details Flags, see #process_flag_t
+
+\var process_t::code
+\brief Exit code
+\details Exit code for the process
+
+\var process_t::pipeout
+\brief Pipe for stdout
+\details Pipe stream for stdout
+
+\var process_t::pipein
+\brief Pipe for stdin
+\details Pipe stream for stdin
+
+\var process_t::verb
+\brief Shell verb
+\details Windows only, shell verb used when launching process with ShellExecute
+
+\var process_t::hp
+\brief Process handle
+\details Windows only, process handle
+
+\var process_t::ht
+\brief Thread handle
+\details Windows only, thread handle
+
+\var process_t::pid
+\brief Process identifier
+\details Posix only, process identifier
+
+\var process_t::kq
+\brief Process kqueue
+\details MaxOS X only, kqueue for watching for process termination when launching process with LSOpenApplication
+
+\struct event_block_t
 \brief Event block
 \details Event block holding a number of events for processing. Block can be maximum BUILD_SIZE_EVENT_BLOCK_LIMIT bytes in size
 
-\typedef event_stream_t
-\brief Event strem
-\details Opaque struct holding state for a event stream from a single module. Event streams produce event blocks for processing
+\var event_block_t::used
+\brief Number of events pending
+\details Number of events pending
 
-\typedef ringbuffer_t
+\var event_block_t::capacity
+\brief Capacity of event store buffer
+\details Capacity of event store buffer
+
+\var event_block_t::stream
+\brief Event stream
+\details Event stream owning this event block
+
+\var event_block_t::events
+\brief Event buffer
+\details Memory buffer holding event data
+
+\struct event_stream_t
+\brief Event stream
+\details Event stream from a single module. Event streams produce event blocks for processing
+
+\var event_stream_t::write
+\brief Write block index
+\details Write block index
+
+\var event_stream_t::read
+\brief Read block index
+\details Read block index
+
+\var event_stream_t::block
+\brief Event blocks
+\details Event blocks, double buffered for concurrent read/write access
+
+\struct ringbuffer_t
 \brief Ringbuffer
-\details Opaque struct holding state for a ring buffer. A ring buffer is a shared memory area where one input and one output stream concurrently write and read data.
+\details Ring buffer, a shared memory area wrapped to a circular buffer with one read and one get pointer.
 
-\typedef blowfish_t
+\var ringbuffer_t::total_read
+\brief Total bytes read
+\details Total number of bytes read from ring buffer
+
+\var ringbuffer_t::total_write
+\brief Total bytes written
+\details Total number of bytes written to ring buffer
+
+\var ringbuffer_t::offset_read
+\brief Read offset
+\details Current read offset
+
+\var ringbuffer_t::offset_write
+\brief Write offset
+\details Current write offset
+
+\var ringbuffer_t::buffer_size
+\brief Size of buffer
+\details Size of buffer in bytes
+
+\var ringbuffer_t::buffer
+\brief Buffer
+\details Memory buffer
+
+\struct blowfish_t
 \brief Blowfish state
-\details Opaque struct holding state for a blowfish encryption block
+\details State for a blowfish encryption block
 
-\typedef radixsort_t
+\var blowfish_t::parray
+\brief Blowfish P-array
+\details Blowfish P-array
+
+\var blowfish_t::sboxes
+\brief Blowfish S-boxes
+\details Blowfish S-boxes
+
+\struct radixsort_t
 \brief Radix sorter
-\details Opaque struct holding state for a radix sorter for a defined data type.
+\details State for a radix sorter for a defined data type.
 
-\typedef hashmap_t
+\var radixsort_t::type
+\brief Data type
+\details Data type being sorted
+
+\var radixsort_t::size
+\brief Maximum number of elements
+\details Maximum number of elements that can be sorted
+
+\var radixsort_t::lastused
+\brief Number of elements in last sort
+\details Number of elements in last call to #radixsort
+
+\var radixsort_t::indices
+\brief Index buffers
+\details Index buffers holding sorted result
+
+\var radixsort_t::histogram
+\brief Histogram buffer
+\details Buffer for histogram data
+
+\var radixsort_t::offset
+\brief Offset table
+\details Offset table
+
+\struct hashmap_t
 \brief Hash map
-\details Opaque struct holding state for a hash map, mapping hash values to data pointers
+\details Hash map container, mapping hash values to data pointers
 
-\typedef hashtable32_t
-\brief  Hash table (32 bit data)
-\details Opaque struct holding state for a hash table, a lock free mapping of hash values to 32 bit integer data
+\var hashmap_t::num_buckets
+\brief Number of buckets
+\details Number of buckets in the hash map.
 
-\typedef hashtable64_t
-\brief  Hash table (64 bit data)
-\details Opaque struct holding state for a hash table, a lock free mapping of hash values to 64 bit integer data
+\var hashmap_t::num_nodes
+\brief Number of nodes
+\details Total number of nodes in the hash map across all buckets.
 
-\typedef regex_t
+\var hashmap_t::bucket
+\brief Bucket array
+\details Bucket array, represented as an array of hashmap_node_t arrays, which will be dynamically allocated
+and reallocated to the required sizes.
+
+\struct hashmap_node_t
+\brief Hash map node
+\details Single node in a hash map, mapping a single key to a single data value (pointer).
+
+\var hashmap_node_t::key
+\brief Hash map node key
+\details Key for the hash map node.
+
+\var hashmap_node_t::value
+\brief Hash map node value
+\details Value for the hash map node.
+
+\struct hashtable32_t
+\brief Hash table (32 bit data)
+\details Hash table, a lock free mapping of hash values to 32 bit integer data.
+
+\var hashtable32_t::capacity
+\brief Capacity of table
+\details Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
+
+\var hashtable32_t::entries
+\brief Table storage
+\details Hash table storage as array of nodes where each node is a key-value pair.
+
+\struct hashtable32_entry_t
+\brief Node in 32-bit hash table
+\details Node in 32-bit hash table holding key and value for a single node.
+
+\var hashtable32_entry_t::key
+\brief Hash key
+\details Hash key for node in hash table.
+
+\var hashtable32_entry_t::value
+\brief Value
+\details Value for the corresponding hash key. If the value is zero the node is considered unused.
+
+\struct hashtable64_t
+\brief Hash table (64 bit data)
+\details Opaque struct holding state for a hash table, a lock free mapping of hash values to 64 bit integer data.
+
+\var hashtable64_t::capacity
+\brief Capacity of table
+\details Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
+
+\var hashtable64_t::entries
+\brief Table storage
+\details Hash table storage as array of nodes where each node is a key-value pair.
+
+\struct hashtable64_entry_t
+\brief Node in 64-bit hash table
+\details Node in 64-bit hash table holding key and value for a single node.
+
+\var hashtable64_entry_t::key
+\brief Hash key
+\details Hash key for node in hash table.
+
+\var hashtable64_entry_t::value
+\brief Value
+\details Value for the corresponding hash key. If the value is zero the node is considered unused.
+
+\struct regex_t
 \brief Compiled regular expression
 \details Opaque struct holding state for a compiled regular expression
 
+\var regex_t::num_captures
+\brief Number of captures
+\details Counter during regex matching keeping number of currently captured substrings
+
+\var regex_t::code_length
+\brief Length of compiled code
+\details Length of the compiled code array
+
+\var regex_t::code_allocated
+\brief Capacity of code array
+\details Capacity of the code array (number of bytes)
+
+\var regex_t::code
+\brief Compiled code
+\details Compiled regex code
 
 \struct memory_system_t
 \brief Memory management system declaration
 \details Memory management system declaration with function pointers for all memory system entry points.
 
 \var memory_system_t::allocate
-Memory allocation with no initialization
+\brief Memory allocation
+\details Memory allocation
 
 \var memory_system_t::reallocate
-Memory reallocation
+\brief Memory reallocation
+\details Memory reallocation
 
 \var memory_system_t::deallocate
-Memory deallocation
+\brief Memory deallocation
+\details Memory deallocation
 
 \var memory_system_t::initialize
-Initialization of memory system
+\brief Initialization of memory system
+\details Initialization of memory system
 
 \var memory_system_t::shutdown
-Shutdown of memory system
-
+\brief Shutdown of memory system
+\details Shutdown of memory system
 
 \struct memory_tracker_t
 \brief Memory tracking system declaration
 \details Memory tracking system declarations with function pointers for all memory tracking entry points
 
 \var memory_tracker_t::track
-Track a memory allocation
+\brief Track a memory allocation
+\details Track a memory allocation
 
 \var memory_tracker_t::untrack
-Untrack a memory allocation
+\brief Untrack a memory allocation
+\details Untrack a memory allocation
 
 \var memory_tracker_t::initialize
-Initialize memory tracker
+\brief Initialize memory tracker
+\details Initialize memory tracker
 
 \var memory_tracker_t::shutdown
-Shutdown memory tracker
-
+\brief Shutdown memory tracker
+\details Shutdown memory tracker
 
 \union version_t
 \brief Version identifier
 \details Version identifier expressed as an 128-bit integer with major, minor, revision, build and control version number components
 
 \var version_t::version
-Compound version identifier
+\brief Compound version
+\details Compound version identifier
 
 \var version_t::sub
-Version numbers separated into sections, "major.minor.revision-revision (control)"
+\brief Version numbers
+\details Version numbers separated into sections, "major.minor.revision-revision (control)"
 
 \var version_t::sub.major
-Major version
+\brief Major version
+\details Major version
 
 \var version_t::sub.minor
-Minor version
+\brief Minor version
+\details Minor version
 
 \var version_t::sub.revision
-Revision number
+\brief Revision number
+\details Revision number
 
 \var version_t::sub.build
-Build number
+\brief Build number
+\details Build number
 
 \var version_t::sub.revision
-Source control version/revision/identifier
-
+\brief Source control version/revision/identifier
+\details Source control version/revision/identifier
 
 \struct application_t
 \brief Application declaration
 \details Application declaration
 
 \var application_t::name
-Long descriptive name
+\brief Long name
+\details Long descriptive name
 
 \var application_t::short_name
-Short name, should only contain [a-z][A-Z][-_.]
+\brief Short name
+\details Short name, should only contain [a-z][A-Z][-_.]
 
 \var application_t::config_dir
-Config directory name
+\brief Config directory
+\details Config directory name
 
 \var application_t::version
-Version declaration
+\brief Version
+\details Version declaration
 
 \var application_t::dump_callback
-Crash dump callback function
+\brief Crash callback
+\details Crash dump callback function
 
 \var application_t::flags
-Application flags (see application_flag_t)
+\brief Application flags
+\details Application flags (see application_flag_t)
 
 \var application_t::instance
-Instance UUID, generated by the foundation library on foundation initialization
-
+\brief Instance UUID
+\details Instance UUID, generated by the foundation library on foundation initialization
 
 \struct error_frame_t
 \brief Data for a frame in the error context stack
 \details Data for a frame in the error context stack
 
 \var error_frame_t::name
-Error description
+\brief Error description
+\details Error description
 
 \var error_frame_t::data
-Data associated with error
-
+\brief Data associated with error
+\details Data associated with error
 
 \struct error_context_t
 \brief Error context stack
 \details Error context stack
 
 \var error_context_t::frame
-Error context stack
+\brief Error context stack
+\details Error context stack
 
 \var error_context_t::depth
-Current depth of error context stack
-
+\details Current depth
+\details Current depth of error context stack
 
 \struct memory_context_t
 \brief Memory context stack
 \details Memory context stack
 
 \var memory_context_t::context
-Memory context stack
+\brief Memory context stack
+\details Memory context stack
 
 \var memory_context_t::depth
-Current depth of memory context stack
+\details Current depth
+\details Current depth of memory context stack
 
 
 \def FOUNDATION_DECLARE_OBJECT
@@ -792,21 +1173,22 @@ Use the macro as first declaration in an object struct:
 } my_object_t;</pre>
 \internal If changing base object layout, change objectmap_lookup and objectmap_lookup_ref \endinternal
 
-
 \struct object_base_t
 \brief Object base structure
 \details Object base structure. All object-based designs must have this layout at the start of the structure.
 See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in a structure.
 
 \var object_base_t::ref
-Object reference count
+\brief Object reference count
+\details Object reference count
 
 \var object_base_t::flags
-Object flags
+\brief Object flags
+\details Object flags
 
 \var object_base_t::id
-Object ID and handle (self)
-
+\brief Object ID and handle (self)
+\details Object ID and handle (self)
 
 \struct objectmap_t
 \brief Object map
@@ -815,29 +1197,36 @@ reference counting, objects that are deallocated will invalidate the handle in t
 object map. 
 
 \var objectmap_t::free
-Current first free slot
+\brief Current first free slot
+\details Current first free slot
 
 \var objectmap_t::size
-Number of slots in map
+\brief Number of slots in map 
+\details Number of slots in map
 
 \var objectmap_t::id
-Counter for next available ID
+\brief Counter for next available ID
+\details Counter for next available ID
 
 \var objectmap_t::size_bits
-Number of bits needed for slot index
+\brief Number of bits needed for slot index
+\details Number of bits needed for slot index
 
 \var objectmap_t::id_max
-Maximum ID (depending on how many bits are used by size)
+\brief Maximum ID
+\details Maximum ID depending on how many bits are used by size
 
 \var objectmap_t::mask_index
-Bitmask for slot index
+\brief Bitmask for slot index
+\details Bitmask for slot index
 
 \var objectmap_t::mask_id
-Bitmask for ID
+\brief Bitmask for ID
+\details Bitmask for ID
 
 \var objectmap_t::map
-Slot array
-
+\brief Slot array
+\details Slot array
 
 \def FOUNDATION_DECLARE_EVENT
 \brief Event base structure declaration
@@ -856,63 +1245,77 @@ declaration in an event struct:
 See #FOUNDATION_DECLARE_EVENT for a macro to declare the base layout in a structure.
 
 \var event_t::id
-Event ID
+\brief Event ID
+\details Event ID
 
 \var event_t::flags
-Event flags
+\brief Event flags
+\details Event flags
 
 \var event_t::serial
-Event serial number
+\brief Event serial number
+\details Event serial number
 
 \var event_t::size
-Size of event data payload
+\brief Size of event data payload
+\details Size of event data payload
 
 \var event_t::object
-Object associated with event
+\brief Object associated with event
+\details Object associated with event
 
 \var event_t::payload
-Event data payload
-
+\brief Event data payload
+\details Event data payload
 
 \struct semaphore_t
 \brief Semaphore
 \details Semaphore for thread synchronization and communication. Actual type specifics depend
 on platform, the semaphore_t type should be treated as an opaque data struct.
 
-
 \struct bitbuffer_t
 \brief Bit buffer
 \details Bit buffer for bit based I/O to a memory buffer or stream
 
 \var bitbuffer_t::buffer
-Memory buffer
+\brief Memory buffer
+\details Memory buffer for buffer based I/O
 
 \var bitbuffer_t::end
-End of buffer indicator
+\brief End of buffer indicator
+\details End of buffer indicator
 
 \var bitbuffer_t::stream
-Stream
+\brief Stream
+\details Stream for stream based I/O
 
 \var bitbuffer_t::swap
-Swap flag for compatibility between machines with different endian architectures
+\brief Swap flag
+\details Swap flag for compatibility between machines with different endian architectures
 
 \var bitbuffer_t::pending_read
-Pending data to be read
+\brief Pending data to be read
+\details Pending data to be read
 
 \var bitbuffer_t::pending_write
-Pending data to be written
+\brief Pending data to be written
+\details Pending data to be written
 
 \var bitbuffer_t::offset_read
-Current read offset in bits into pending data
+\brief Current read offset
+\details Current read offset in bits into pending data
 
 \var bitbuffer_t::offset_write
-Current write offset in bits into pending data
+\brief Current write offset 
+\details Current write offset in bits into pending data
 
 \var bitbuffer_t::count_read
-Number of read bits
+\brief Number of read bits
+\details Total number of read bits
 
 \var bitbuffer_t::count_write
-Number of written bits
+\brief Number of written bits
+\details Total number of written bits
 
 
 \struct regex_capture_t
@@ -920,10 +1323,12 @@ Number of written bits
 \details Regex capture. Used to capture matching in a regex search. See regex_match in regex.h
 
 \var regex_capture_t::substring
-Captured substring (NOT null terminated)
+\brief Captured substring (NOT null terminated)
+\details Captured substring (NOT null terminated)
 
 \var regex_capture_t::length
-Length of captured substring
+\brief Length of captured substring
+\details Length of captured substring
 
 
 \fn version_t version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control )

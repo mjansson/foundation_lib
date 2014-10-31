@@ -9,8 +9,8 @@
 \fn stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 \brief Allocate stream for memory buffer
 \details Allocate a new stream for memory buffers from an (optionally) existing buffer. The buffer can grow up to
-the given capacity. If adopt and grow flags set it will grow to any required size 
-reallocating memory.
+the given capacity. If adopt and grow flags set it will grow to any required size reallocating memory. The stream should be
+deallocated with a call to #stream_deallocate.
 \param buffer                    Buffer
 \param mode                      Stream open mode
 \param size                      Current size of data
@@ -18,5 +18,18 @@ reallocating memory.
 \param adopt                     Take ownership of buffer
 \param grow                      Allow growing buffer by reallocating memory (requires buffer to be adopted)
 \return                          New stream
+
+\fn void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
+\brief Initialize stream for memory buffer
+\details Initialize a new stream for memory buffers from an (optionally) existing buffer. The buffer can grow up to
+the given capacity. If adopt and grow flags set it will grow to any required size reallocating memory. The stream should be
+finalized with a call to #stream_finalize.
+\param stream                    Stream object
+\param buffer                    Buffer
+\param mode                      Stream open mode
+\param size                      Current size of data
+\param capacity                  Buffer capacity
+\param adopt                     Take ownership of buffer
+\param grow                      Allow growing buffer by reallocating memory (requires buffer to be adopted)
 
 */

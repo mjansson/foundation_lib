@@ -223,10 +223,10 @@ Complex data types (objects) are handled in two ways. Either the caller have exp
 the lifetime is handled by reference counting and accessed through object handles of type object_t (basically a 64-bit handle mapping into a lookup table).
 
 Explicit allocations are always handled by function calls of the format <i>\<module>_t* \<module>_allocate(...)</i> to allocate the object and <i>void \<module>_deallocate(\<module>_t* ptr)</i> to deallocate it,
-for example md5_allocate and md5_deallocate in md5.h
+for example md5_allocate and md5_deallocate in md5.h. The corresponding calls for initializing/finalizing a struct places on the stack is <i>void \<module>_initialize(\<module>_t* ptr)</i> and <i>void \<module>_initialize(\<module>_t* ptr)</i>. All objects that are initialized must be finalized in order to free any allocated resources correctly. Objects that are allocated on the heap with allocate/deallocate should not be initialized/finalized as this is done implicitly by the allocation and deallocation.
 
 Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
-for example #thread_create, #thread_ref and #thread_destroy in thread.h
+for example #thread_create, #thread_ref and #thread_destroy in thread.h. Implicitly allocated objects does not need to be initialized/finalized.
 
 Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_\<module>_MAP, for example #BUILD_SIZE_THREAD_MAP for threads.
 

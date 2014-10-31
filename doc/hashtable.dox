@@ -17,14 +17,29 @@ Limitation are:
 
 \fn hashtable32_t* hashtable32_allocate( unsigned int buckets )
 \brief Allocate 32-bit hash table
-\details Allocate storage for a 32-bit hash table of given size
+\details Allocate storage for a 32-bit hash table of given size. The returned hash table should
+be deallocated with a call to #hashtable32_deallocate.
 \param buckets Number of buckets
 \return New hash table
 
 \fn void hashtable32_deallocate( hashtable32_t* table )
 \brief Deallocate hash table
-\details Deallocate storage used by hash table
+\details Deallocate hash table previously allocated by a call to #hashtable32_allocate and free resources and
+storage used by hash table
 \param table Hash table object to deallocate
+
+\fn void hashtable32_initialize( hashtable32_t* table, unsigned int buckets )
+\brief Initialize 32-bit hash table
+\details Initialize a 32-bit hash table of given size. The returned hash table should
+be finalized with a call to #hashtable32_finalize.
+\param table Hash table
+\param buckets Number of buckets
+\return New hash table
+
+\fn void hashtable32_finalize( hashtable32_t* table )
+\brief Finalize hash table
+\details Finalize hash table previously initialized by a call to #hashtable32_initialize
+\param table Hash table object to finalize
 
 \fn void hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value )
 \brief Set value
@@ -62,14 +77,29 @@ initial allocation.
 
 \fn hashtable64_t* hashtable64_allocate( unsigned int buckets )
 \brief Allocate 64-bit hash table
-\details Allocate storage for a 64-bit hash table of given size
+\details Allocate storage for a 64-bit hash table of given size. The returned hash table should
+be deallocated with a call to #hashtable64_deallocate.
 \param buckets Number of buckets
 \return New hash table
 
 \fn void hashtable64_deallocate( hashtable64_t* table )
 \brief Deallocate hash table
-\details Deallocate storage used by hash table
+\details Deallocate hash table previously allocated by a call to #hashtable64_allocate and free resources and
+storage used by hash table
 \param table Hash table object to deallocate
+
+\fn void hashtable64_initialize( hashtable64_t* table, unsigned int buckets )
+\brief Initialize 64-bit hash table
+\details Initialize a 64-bit hash table of given size. The returned hash table should
+be finalized with a call to #hashtable64_finalize.
+\param table Hash table
+\param buckets Number of buckets
+\return New hash table
+
+\fn void hashtable64_finalize( hashtable64_t* table )
+\brief Finalize hash table
+\details Finalize hash table previously initialized by a call to #hashtable64_initialize
+\param table Hash table object to finalize
 
 \fn void hashtable64_set( hashtable64_t* table, uint64_t key, uint64_t value )
 \brief Set value

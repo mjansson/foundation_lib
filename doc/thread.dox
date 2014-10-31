@@ -116,9 +116,9 @@
 \details Set thread CPU core affinity for the calling thread.
 \param mask CPU core mask for which the thread is allowed to execute on
 
-\fn void thread_cleanup( void )
-\brief Cleanup on thread exit
-\details Cleanup on thread exit.
+\fn void thread_finalize( void )
+\brief Finalize on thread exit
+\details Finalize on thread exit and free thread local resources.
 
 \fn void thread_attach_jvm( void )
 \brief Attach JVM

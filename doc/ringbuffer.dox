@@ -9,13 +9,24 @@ thread safe. The ring buffer stream uses a semaphore to block and notify readers
 
 \fn ringbuffer_t* ringbuffer_allocate( unsigned int size )
 \brief Allocate ring buffer
-\details Allocate ring buffer of given size.
+\details Allocate ring buffer of given size. Deallocate the ring buffer with a call to #ringbuffer_deallocate.
 \param size Size in bytes
 \return Ring buffer
 
 \fn void ringbuffer_deallocate( ringbuffer_t* buffer )
-\brief Free ring buffer
-\details Free ring buffer memory.
+\brief Deallocate ring buffer
+\details Deallocate ring buffer previously allocated with a call to #ringbuffer_allocate.
+\param buffer Ring buffer
+
+\fn void ringbuffer_allocate( ringbuffer_t* buffer, unsigned int size )
+\brief Initialize ring buffer
+\details Initialize ring buffer of given size. Finalize the ring buffer with a call to #ringbuffer_finalize.
+\param buffer Ring buffer
+\param size Size in bytes
+
+\fn void ringbuffer_finalize( ringbuffer_t* buffer )
+\brief Finalize ring buffer
+\details Finalize ring buffer previously initialized with a call to #ringbuffer_finalize.
 \param buffer Ring buffer
 
 \fn unsigned int ringbuffer_size( ringbuffer_t* buffer )
@@ -64,5 +75,13 @@ block on semaphores on missing data, making it usable for ringbuffer threaded i/
 \param buffer_size Size of ringbuffer
 \param total_size Total size of stream, 0 if infinite
 \return  Ringbuffer stream
+
+\fn void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buffer_size, uint64_t total_size )
+\brief Initialize ring buffer stream
+\details Initialize a ringbuffer stream, which is basically a stream wrapped on top of a ringbuffer. Reads and writes
+block on semaphores on missing data, making it usable for ringbuffer threaded i/o
+\param stream Ringbuffer stream
+\param buffer_size Size of ringbuffer
+\param total_size Total size of stream, 0 if infinite
 
 */
