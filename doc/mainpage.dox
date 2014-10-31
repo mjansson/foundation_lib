@@ -240,6 +240,7 @@ Most important is the build type definition
 
 For a full list and documentation of the build configuration preprocessor definitions, check the documentation for the build.h header
 
+
 \section memory_management Memory management
 Memory management is handled through a memory system implementation, which is basically three entry points for allocation, reallocation and deallocation. By default the foundation library provides a memory system built on the C library malloc/realloc/free family of functions, extended and wrapped to handle alignment requirements. When you initialize the foundation library you have to pass in a memory system implementation declaration through a #memory_system_t struct. To use the default malloc-based system, use #memory_system_malloc
 
@@ -250,6 +251,7 @@ Memory allocations can also give hint flags of the usage of the requested memory
 The memory management module also provides memory tracking if compiled with #BUILD_ENABLE_MEMORY_TRACKER set to 1, which tracks all allocations and deallocations and enable memory leak detection. A memory tracker is declared with the #memory_tracker_t struct, and the library provides a default local implementation in #memory_tracker_local. The maximum number of concurrent allocations the local memory tracker can keep track of is set with the #BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS preprocessor directive in build.h header. A networked memory tracker will be provided in a network library, and further entry points to query the tracker during runtime will be added in a later release. Right now the tracker only prints detected leaks on application termination.
 
 Finally there is a memory overwrite/underwrite guard functionality built in and enabled with the #BUILD_ENABLE_MEMORY_GUARD build.h preprocessor directive. This will incur a slight memory overhead on each allocation, adding a dead zone before and after each allocated memory block for detecting invalid memory writes outside the allocated area. This functionality is built on top of the memory system implementation which does not need to provide a guard implementation internally.
+
 
 \section threading Threading
 \subsection threads Threads
@@ -272,31 +274,80 @@ A mutex is allocated and destroyed with #mutex_allocate and #mutex_deallocate. T
 
 Mutex signals can be used to provide a simple way of combining a thread wait/lock scheme. A thread uses #mutex_wait to wait for a signal state sent by another thread with #mutex_signal, and if the thread was woken by a signal the mutex lock will be obtained and the #mutex_wait function returns true. Remember to call #mutex_unlock once lock is no longer needed.
 
-Semaphores provide an interface to a counter which threads can use to have access to a resource limited to a specific number of concurrent uses. Semaphores 
-
+Semaphores provide an interface to a counter which threads can use to have access to a resource limited to a specific number of concurrent uses (for example in a producer/consumer scheme). Mutexes can be considered a binary semaphore (maximum value of 1) with additional ownership tracking. You post to a semaphore to increase the counter (produce) and wait to decrease the counter (consume). If the current value is zero the wait will block until another thread has made a post to increase the value.
 
 \subsection atomic_operations Atomic operations
-Atomic operations are provides for 32-bit and 64-bit data types, along with an aliased interface for pointers which uses the appropriate 32/64-bit interface depending on architecture pointer size.
+Atomic operations are provides for 32-bit and 64-bit data types, along with an aliased interface for pointers which uses the appropriate 32/64-bit interface depending on architecture pointer size. There are also acquire/release memory fences for both signal and thread fencing.
+
 
 \section debugging Debugging, profiling, logging and error handling
-To be written... (crash, profile, log, )
+
+\subsection debugging_error_handling Error handling
+
+\subsection debugging_logging Logging
+
+\subsection debugging_crash_dumps Crash dumps
+
+\subsection debugging_profiling Profiling
+
+\subsection debugging_memory Memory tracking, leak detection and guards
+
 
 \section streams_files Streams and file access
-To be written... (paths, protocols, byte ordering, special streams)
+
+\subsection streams Streams overview
+
+\subsection stream_paths Paths and protocols
+
+\subsection stream_byte_ordering Byte ordering
+
+\subsection stream_special Special streams
+
 
 \section data_structures Data structures
-To be written...
+
+\subsection data_arrays Arrays
+
+\subsection data_hashmap Hashmap
+
+\subsection data_hashtable Hash table
+
 
 \section strings String handling and unicode support
-To be written... (utf-8, wide strings)
+
+\subsection string_handling String functions
+
+\subsection string_utf8 UTF-8
+
+\subsection string_wide Wide character strings
+
+\subsection string_regex Regular expressions
 
 
 \page using_page Using the foundation library in a project
 
 \section project_setup Project setup
-To be written... (headers, linking)
+
+\subsection project_visual_studio Visual Studio
+
+\subsection project_xcode XCode
+
+\subsection project_android Android
+
+\subsection project_scons SCons
+
 
 \section template_app Template application
-To be written... (initialization, shutdown, environment, system, config, library)
+
+\subsection template_initialization Initialization
+
+\subsection template_shutdown Shutdown
+
+\subsection template_environment Environment
+
+\subsection template_system System
+
+\subsection template_config Config
+
 
 */
