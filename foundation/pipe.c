@@ -25,7 +25,7 @@ static stream_vtable_t _pipe_stream_vtable;
 
 stream_t* pipe_allocate( void )
 {
-	stream_pipe_t* pipestream = memory_allocate( HASH_STREAM, sizeof( stream_pipe_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	stream_pipe_t* pipestream = memory_allocate( HASH_STREAM, sizeof( stream_pipe_t ), 8, MEMORY_PERSISTENT );
 	
 	pipe_initialize( pipestream );
 	

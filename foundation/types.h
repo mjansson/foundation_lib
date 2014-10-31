@@ -92,7 +92,8 @@ typedef enum
 	ARCHITECTURE_ARM7         = 7,
 	ARCHITECTURE_ARM8_64      = 8,
 	ARCHITECTURE_ARM5         = 9,
-	ARCHITECTURE_MIPS         = 10
+	ARCHITECTURE_MIPS         = 10,
+	ARCHITECTURE_MIPS_64      = 11
 } architecture_t;
 
 typedef enum
@@ -229,7 +230,6 @@ typedef struct event_t                       event_t;
 typedef struct event_block_t                 event_block_t;
 typedef ALIGN(16) struct event_stream_t      event_stream_t;
 typedef struct hashmap_node_t                hashmap_node_t;
-typedef struct hashmap_node_t*               hashmap_bucket_t;
 typedef struct hashmap_t                     hashmap_t;
 typedef struct hashtable32_entry_t           hashtable32_entry_t;
 typedef struct hashtable64_entry_t           hashtable64_entry_t;
@@ -282,20 +282,20 @@ typedef void*         (* thread_fn )( object_t thread, void* arg );
 typedef int           (* crash_guard_fn )( void* arg );
 typedef void          (* crash_dump_callback_fn )( const char* file );
 typedef void          (* object_deallocate_fn )( object_t id, void* object );
-typedef uint64_t      (* stream_read_fn )( stream_t*, void*, uint64_t );
-typedef uint64_t      (* stream_write_fn )( stream_t*, const void*, uint64_t );
-typedef bool          (* stream_eos_fn )( stream_t* );
-typedef void          (* stream_flush_fn )( stream_t* );
-typedef void          (* stream_truncate_fn  )( stream_t*, uint64_t );
-typedef uint64_t      (* stream_size_fn )( stream_t* );
-typedef void          (* stream_seek_fn )( stream_t*, int64_t, stream_seek_mode_t );
-typedef int64_t       (* stream_tell_fn )( stream_t* );
-typedef uint64_t      (* stream_lastmod_fn )( const stream_t* );
-typedef uint128_t     (* stream_md5_fn)( stream_t* );
-typedef void          (* stream_buffer_read_fn )( stream_t* );
-typedef uint64_t      (* stream_available_read_fn )( stream_t* );
-typedef void          (* stream_finalize_fn )( stream_t* );
-typedef stream_t*     (* stream_clone_fn )( stream_t* );
+typedef uint64_t      (* stream_read_fn )( stream_t* stream, void* dst, uint64_t size );
+typedef uint64_t      (* stream_write_fn )( stream_t* stream, const void* src, uint64_t size );
+typedef bool          (* stream_eos_fn )( stream_t* stream );
+typedef void          (* stream_flush_fn )( stream_t* stream );
+typedef void          (* stream_truncate_fn  )( stream_t* stream, uint64_t size );
+typedef uint64_t      (* stream_size_fn )( stream_t* stream );
+typedef void          (* stream_seek_fn )( stream_t* stream, int64_t offset, stream_seek_mode_t mode );
+typedef int64_t       (* stream_tell_fn )( stream_t* stream );
+typedef uint64_t      (* stream_lastmod_fn )( const stream_t* stream );
+typedef uint128_t     (* stream_md5_fn)( stream_t* stream );
+typedef void          (* stream_buffer_read_fn )( stream_t* stream );
+typedef uint64_t      (* stream_available_read_fn )( stream_t* stream );
+typedef void          (* stream_finalize_fn )( stream_t* stream );
+typedef stream_t*     (* stream_clone_fn )( stream_t* stream );
 
 
 // Identifier returned from threads and crash guards after a fatal exception (crash) has been caught
@@ -423,7 +423,7 @@ struct event_block_t
 };
 
 
-struct event_stream_t
+struct ALIGN(16) event_stream_t
 {
 	atomic32_t                      write;
 	int32_t                         read;
@@ -442,7 +442,7 @@ struct hashmap_t
 {
 	unsigned int                    num_buckets;
 	unsigned int                    num_nodes;
-	hashmap_bucket_t                bucket[];
+	hashmap_node_t*                 bucket[];
 };
 
 
@@ -460,14 +460,14 @@ struct hashtable64_entry_t
 };
 
 
-struct hashtable32_t
+struct ALIGN(8) hashtable32_t
 {
 	uint32_t                        capacity;
 	ALIGN(8) hashtable32_entry_t    entries[];
 };
 
 
-struct hashtable64_t
+struct ALIGN(8) hashtable64_t
 {
 	uint64_t                        capacity;
 	ALIGN(8) hashtable64_entry_t    entries[];
@@ -485,12 +485,12 @@ struct memory_context_t
 	uint32_t                        flags;      \
 	object_t                        id
 
-struct object_base_t
+struct ALIGN(8) object_base_t
 {
 	FOUNDATION_DECLARE_OBJECT;
 };
 
-struct objectmap_t
+struct ALIGN(16) objectmap_t
 {
 	atomic64_t                      free;
 	uint64_t                        size;
@@ -516,7 +516,8 @@ struct process_t
 	char*                           verb;
 	void*                           hp;
 	void*                           ht;
-#elif FOUNDATION_PLATFORM_POSIX
+#endif
+#if FOUNDATION_PLATFORM_POSIX
 	int                             pid;
 #endif
 	
@@ -628,7 +629,7 @@ struct stream_buffer_t
 	bool                            grow;
 };
 
-struct stream_pipe_t
+struct ALIGN(8) stream_pipe_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	
@@ -641,7 +642,7 @@ struct stream_pipe_t
 #endif
 };
 
-struct stream_ringbuffer_t
+struct ALIGN(8) stream_ringbuffer_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	
