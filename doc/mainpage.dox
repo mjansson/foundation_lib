@@ -363,16 +363,43 @@ The hashmap.h module is a resizable hash map providing mapping between hash valu
 The hashtable.h module is a fixed size hash table providing a thread safe atomic hash table mapping hash value keys to 32 or 64 bit value data. All operations are thread safe, which also limits the functionality to storing a 32 or 64 bit data element per hash key. Also, keys can not be fully erased once stored, only reset to hold value zero as an indicator of the key being erased. Therefor the size of the hash table must be initialized to the maximum number of unique keys to be stored over the lifetime of the hash table.
 
 \section strings String handling and unicode support
-The string.h module provides string utility functions focusing on 
+The string.h module provides string utility functions focusing on features, utf-8 support and ease of use rather than performance and minimal footprint. If you are building an application that relies heavily on string processing, you would be better off looking at additional libraries.
+
+\subsection string_utf8 UTF-8 and wide character strings
+All strings are considered to be on UTF-8 format. However, most length, offset and other index type variables and arguments are considered to be representing bytes, not compound UTF glyphs consisting of multiple UTF-8 byte sequences. This means functions like #string_length returns the length of the string buffer in bytes (memory footprint). To get the number of actual UTF glyphs in a string and the glyphs themselves, use #string_glyphs and #string_glyph.
+
+There are utility functions to convert to and from wide character strings, UTF-16 strings and UTF-32 strings. The API is designed around performing all operations in UTF-8 format and only using wide string formats in external APIs.
 
 \subsection string_handling String functions
+The module provides functions to allocate, initialize, format and deallocate strings both allocating new memory buffers as well as working with existing pre-allocated buffers. Unless otherwise noted in the API documentation, all functions allow null pointers to be passed as arguments (treated as empty strings).
 
-\subsection string_utf8 UTF-8
+In general, all arguments of type <code>char*</code> are expected to be strings allocated by the string module or #memory_allocate. These arguments can be modified and reallocated by the function, and generally a new string pointer is returned by the function. Arguments of type <code>const char*</code> can be any string, including static compile time strings and stack based data. These arguments will never be modified or reallocated. The function will allocate a new string if the return type is a <code>char*</code>. For more details, check the API documentation for each function.
 
-\subsection string_wide Wide character strings
+The #string_find find family of functions takes offset arguments which are byte offsets into the given string argument. Invalid offsets are denoted by the STRING_NPOS constant (-1). If reverse find functions (last of and rfind), STRING_NPOS will mean searching from the end of the string. Apart from the special STRING_NPOS offset, all other offset arguments are expected to be valid in [0..string_length] interval.
 
 \subsection string_regex Regular expressions
-
+Apart from the simple wildcard #string_match_pattern function, the regex.h provides a limited regular expression module with a subset of perl regex features. The regex module supports the following features:
+<pre>^        Match beginning of string
+    $        Match end of string
+    .        Match one character
+    ()       Group and capture substring
+    []       Match any character from the grouped set
+    [^]      Match any character but ones from the grouped set
+    \\s       Match whitespace
+    \\S       Match non-whitespace
+    \\d       Match decimal digits
+    \\D       Match non-digits
+    \\n       Match newline
+    \\r       Match carriage return
+    +        Match one or more times (longest possible match)
+    +?       Match one or more times (shortest possible match)
+    *        Match zero or more times (longest possible match)
+    *?       Match zero or more times (shortest possible match)
+    ?        Match zero or once
+    \\XX      Match byte with hex value 0xXX
+    \\meta    Match one of the meta characters ^$()[].*+?|\
+</pre>
+Substring capturing is optional, and if performed it will capture start pointers and lengths of matched substrings and will not allocate any additional memory.
 
 \page using_page Using the foundation library in a project
 
@@ -384,7 +411,7 @@ The string.h module provides string utility functions focusing on
 
 \subsection project_android Android
 
-\subsection project_scons SCons
+\subsection project_scons Ninja
 
 
 \section template_app Template application
