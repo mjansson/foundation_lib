@@ -310,7 +310,7 @@ void semaphore_finalize( semaphore_t* semaphore )
 	if( semaphore->name )
 	{
 		sem_unlink( semaphore->name );
-		sem_close( semaphore->name );
+		sem_close( (native_sem_t*)semaphore->sem );
 		string_deallocate( semaphore->name );
 	}
 }
