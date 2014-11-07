@@ -242,9 +242,9 @@ For a full list and documentation of the build configuration preprocessor defini
 
 
 \section memory_management Memory management
-Memory management is handled through a memory system implementation, which is basically three entry points for allocation, reallocation and deallocation. By default the foundation library provides a memory system built on the C library malloc/realloc/free family of functions, extended and wrapped to handle alignment requirements. When you initialize the foundation library you have to pass in a memory system implementation declaration through a #memory_system_t struct. To use the default malloc-based system, use #memory_system_malloc
+Memory management is handled through a memory system implementation, which is basically three entry points for allocation, reallocation and deallocation. By default the foundation library provides a memory system built on the C library malloc/realloc/free family of functions, extended and wrapped to handle alignment requirements. When you initialize the foundation library you have to pass in a memory system implementation declaration through a #memory_system_t struct. To use the default malloc-based system, use #memory_system_malloc.
 
-Memory allocations will belong to a memory context, which is usually a hash value of a module name (for example, #HASH_STREAM). This allows the memory tracker to place allocations in buckets to see how much memory each part/module of the software allocates at any given time. Memory context can be set explicitly with an argument to #memory_allocate or implicitly through the thread local memory context stack controlled with #memory_context_push and #memory_context_pop.
+Memory allocations will belong to a memory context, which is usually a hash value of a module name (for example, #HASH_STREAM). This allows the memory tracker to place allocations in buckets to see how much memory each part/module of the software allocates at any given time. Memory context can be set explicitly with an argument to #memory_allocate or implicitly through the thread local memory context stack controlled with #memory_context_push and #memory_context_pop. The thread local context is used if you pass 0 as context to #memory_allocate and in #memory_reallocate when passed a null pointer.
 
 Memory allocations can also give hint flags of the usage of the requested memory buffer. This allows the implementation to make optimizations and extra requirements during allocation. The memory hint flags are documented in #memory_hint_t with the most common flags being #MEMORY_TEMPORARY and #MEMORY_ZERO_INITIALIZED for temporary (scope level) allocations and initialization to zero, respectively.
 
@@ -283,37 +283,87 @@ Atomic operations are provides for 32-bit and 64-bit data types, along with an a
 \section debugging Debugging, profiling, logging and error handling
 
 \subsection debugging_error_handling Error handling
+Error handling is done with return values couple with thread local error state. Return values are either bool, integer or pointer values where false, negative values and null indicate an error condition respectively. The thread local error state is set with calls to either error log functions or error_report (see error.h file documentation). The error state of one thread does not affect the error state of any other thread. Reading the error state with a call to #error will reset the state to no error.
+
+As an extra debugging help there is also a thread local error context stack providing debug messages and debug data for each layer of the current call stack using the error context functionality. The context frames are pushed and popped from the stack with calls to #error_context_push and #error_context_pop, read with #error_context and converted to descriptive string format with #error_context_buffer. If you need to have a local variable which only exists for error contexts, use #error_context_declare_local. Error context functionality is controlled by the #BUILD_ENABLE_ERROR_CONTEXT build control in build.h, and disabling it will reduce all error context calls and local variable declarations to void.
 
 \subsection debugging_logging Logging
+Logging output is provided in log.h through five different severity levels (debug, info, warning, error, panic, in increasing order of severity). Log messages are associated with a context (usually a hash of the corresponding module name string), and can be suppressed based on severity level per context using #log_set_suppress. If a context has no specific suppression level set, it will fall back on the default context (value 0) suppression.
+
+Log messages are by default prefixed with additional debug data "[0:00:06.024] <513:0>" where the fields are time since startup, thread id and processor core, respectively. You can disable this prefix with #log_enable_prefix. Log messages are by default printed on stdout, which can be controlled with #log_enable_stdout. On Windows log messages are always output to the debugger with OutputDebugString.
+
+To pipe log messages to other outputs use the log callback by implementing your own callback function and registering it using #log_set_callback. All final formatted log messages (after suppression and context filtering) will be passed to the callback.
+
+Finally, the #BUILD_ENABLE_LOG controls if log functions are enabled. If the build control is disabled, all log function calls will be reduced to void. The debug functions #log_debug and #log_debugf have a separate build control #BUILD_ENABLE_DEBUG_LOG.
 
 \subsection debugging_crash_dumps Crash dumps
+The foundation library provides structured exception handling based guards on Windows and signal based guards on posix compatible platforms. The guard acts as a proxy function call which will call the guarded function and catch any exceptional state. If an exception is caught, the state is written to a crash dump file and a callback is called with the dump information. The guard function itself returns with a specific value indicating a dump was generated. For more information on the guard and callback check the crash.h documentation.
 
 \subsection debugging_profiling Profiling
+The profiling module provides an efficient function-level profiling system. It is not intended for fine grained instruction level optimization, but rather profiling the entire application on a function level scope. The module does not allocate any memory and is reentrant (thread safe). The basic use is to begin/end scope blocks around functions entry/exit with calls to #profile_begin_block and #profile_end_block. All string identifiers should be valid until the profile module flushes the data to the output function, and the easiest way to guarantee this is to use static C strings as identifiers (for example, <code>profile_begin_block("my block");</code>). If a block runs for a long time you should also call #profile_update_block to update information about which CPU core the thread is running on.
 
-\subsection debugging_memory Memory tracking, leak detection and guards
+Data is collected on a frame-by-frame basis, make sure to call #profile_end_frame at the end of an application frame. All profile blocks must be closed by the time the frame is ended.
 
+To enable the profile module you need to call #profile_enable. The module is initially disabled. On enble, the module starts a low-priority background thread which handles flushing the profile data to the output callback set by #profile_set_output. If no output callback is set, the profile data is silently discarded. You can control the rate at which the output flush thread wakes with #profile_set_output_wait as number of milliseconds to sleep between each flush. The smaller memory buffer you intialize the profiling module with, the more ofter the output thread needs to wake and flush in order to avoid data being lost from being out of memory. Default wait sleep is 100 milliseconds.
+
+There are also functions for adding notices about mutex locks, waits and signals, as well as generic log messages.
+
+All profiling module functions are enabled/disabled with the #BUILD_ENABLE_PROFILE build config directive in the build.h header. If you set #BUILD_ENABLE_PROFILE to 0, all profiling function calls will evaluate to void and not generate any code.
+
+In the future we will provide a UI tool to analyze profiling data dumps and a network output client/server for collecting and analyzing profiling data remotely.
 
 \section streams_files Streams and file access
 
 \subsection streams Streams overview
+Streams provide a generalized streaming I/O to various resources such as files, memory buffers, network sockets and pipes. The functions abstract away any platform specific implementations, byte order handling, binary/ascii modes and provides a single interface for I/O to any stream types. The functions in stream.h can be used to read/write to any stream type, and the stream specific implementations is handled through a "virtual table" of function pointers provided by the specific type.
+
+Generally the generalized stream.h module functions is the only interface needed, but when initializing stack based or allocating heap stream objects of specific types (like #buffer_stream_initialize and #buffer_stream_allocate) you need to use the type specific initialization/allocation function and then the generalized stream functions to do any I/O.
+
+Stream functions are not reentrant. If you need to do thread safe stream I/O you need to wrap it with a mutex lock or similar construct. A special case is the ring buffer stream, where one thread can write and another thread read concurrently.
 
 \subsection stream_paths Paths and protocols
+Streams are identified by a full path including a type "protocol". The full path format is "\<protocol>:\<path>". For example, a file stream full path is "file://tmp/appname/somefile.ext". The #stream_open function will correctly identify stream type from the protocol and initialize the correct data structure.
+
+All paths use forward slashes "/" as separators. Absolute paths start with a root separator, "/absolute/path", and relative paths start without a separator, "relative/path". If the path is a full path including a protocol, the path is always considered to be absolute and should begin with a double forward slash, "//absolute/path". Thus together with the protocol specifier and the protocol separator, the full path becomes "protocol://absolute/path".
+
+The path.h module provides utility functions to work with paths. All external paths of uncertain formats should be sanitized with #path_clean to make it adhere to the path format used in the library. All other stream and path functions assume the path is well formed and on the format specified above.
 
 \subsection stream_byte_ordering Byte ordering
+Streams with multi-byte data naturally have a byte order associated with the data. Since streams can wrap a network socket, the stream module provides automatic and transparent byte order handling based on the byte order of the stream and the byte order of the executing hardware. By default, streams local to the executing process such as memory buffer streams and pipes have the same byte order as the executing hardware. Other streams default to the byte order specified in the build configuration directive #BUILD_DEFAULT_STREAM_BYTEORDER (which defaults to little endian). You should set the byte order of a stream with #stream_set_byteorder if needed.
+
+Once you have set the correct byte order on a stream all multi-byte read/write operations with automatically convert and I/O the data in the appropriate format. No further byte swapping is needed in the application code.
+
+\subsection stream_traits Stream traits and modes
+Streams have a number of traits that determine what kind of features and guaranteed the stream type implementation provides. This allows the stream interface to abstract across UDP network streams and other non-reliable resources.
+
+The stream traits are inorder, reliable, sequential, binary, and swapped. The traits can be queried with stream_is_<trait> family of functions. Only binary and byte order traits can be changed explicitly, all other traits are inherent to the stream type. Operations unsupported by the stream trait set will silently be ignored (like seeking backwards on a sequential stream). The traits meanings:
+<ul>
+<li><b>in order:</b> The data written to the stream is guaranteed to be read back in the same order
+<li><b>reliable:</b> The data written to the stream is guaranteed to be readable
+<li><b>sequential:</b> The data can only be written to and read from the stream in sequence. No random access is available, and only forward seeking from the current position is supported. Stream size is generally unavailable for sequential streams.
+<li><b>binary:</b> Data is written to and read from the stream in binary format. If the binary trait is not set, data will be converted to/from ASCII strings before write or after read operations.
+<li><b>swap:</b> Multi-byte data byte order will be swapped before write or after read operations (only for binary streams).
+</ul>
+
+Streams are opened with a specific open mode, see #stream_mode_t. Some streams will enforce specific modes (like read-only or write-only). Operations unsupported by the current mode will be silently ignored (like reading from a write-only mode stream). If the requested mode is unavailable for a given stream implementation or trait set it will be silently ignored.
 
 \subsection stream_special Special streams
-
+The standard library stdout, stderr and stdin files are wrapped in special streams available through the #stream_open_stdout, #stream_open_stderr and #stream_open_stdin functions. Stdout and stderr are write-only, while stdin is read-only.
 
 \section data_structures Data structures
+The library provides a number of basic container data types.
 
 \subsection data_arrays Arrays
+The array.h module is a simple resizable array implemented as a set of macros operating directly on the argument pointer. Memory allocation is done in chunks reserving additional memory when the current capacity is used up. Arrays are never implicitly resized to a smaller capacity in order to avoid extra allocations and memory copy operations. By default the array does not preserve order but rather use swap-with-last to erase elements, and operations are not ranged checked. The <code>*_ordered</code> functions provide order preserving operations and <code>*_safe</code> functions provide range checking. Arrays are not thread safe, you need to use a mutex or similar construct to wrap operations for thread safety.
 
-\subsection data_hashmap Hashmap
+\subsection data_hashmap Hash map
+The hashmap.h module is a resizable hash map providing mapping between hash value keys and pointer data. The hash map will have a fixed number of buckets set at initialization time, but each bucket will grow to accomodate storage need by utilizing the array module. Hash maps are not thread safe, you need to use a mutex or similar construct to wrap operations for thread safety.
 
 \subsection data_hashtable Hash table
-
+The hashtable.h module is a fixed size hash table providing a thread safe atomic hash table mapping hash value keys to 32 or 64 bit value data. All operations are thread safe, which also limits the functionality to storing a 32 or 64 bit data element per hash key. Also, keys can not be fully erased once stored, only reset to hold value zero as an indicator of the key being erased. Therefor the size of the hash table must be initialized to the maximum number of unique keys to be stored over the lifetime of the hash table.
 
 \section strings String handling and unicode support
+The string.h module provides string utility functions focusing on 
 
 \subsection string_handling String functions
 
