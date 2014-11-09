@@ -48,11 +48,9 @@ static atomic_linear_memory_t _memory_temporary = {0};
 static memory_tracker_t _memory_tracker = {0};
 static void _memory_track( void* addr, uint64_t size );
 static void _memory_untrack( void* addr );
-static void _memory_report( void );
 #else
 #define _memory_track( addr, size ) do { (void)sizeof( (addr) ); (void)sizeof( (size) ); } while(0)
 #define _memory_untrack( addr ) do { (void)sizeof( (addr) ); } while(0)
-#define _memory_report()
 #endif
 
 
@@ -681,6 +679,8 @@ void memory_set_tracker( memory_tracker_t tracker )
 }
 
 
+#if BUILD_ENABLE_MEMORY_TRACKER
+
 static void _memory_track( void* addr, uint64_t size )
 {
 	if( _memory_tracker.track )
@@ -694,10 +694,7 @@ static void _memory_untrack( void* addr )
 		_memory_tracker.untrack( addr );
 }
 
-
-static void _memory_report( void )
-{
-}
+#endif
 
 
 struct memory_tag_t

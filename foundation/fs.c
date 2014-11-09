@@ -1355,15 +1355,6 @@ static void _fs_file_finalize( stream_t* stream )
 }
 
 
-static const char* _fs_file_path( const stream_t* stream )
-{
-	const stream_file_t* file = GET_FILE_CONST( stream );
-	if( !file || ( stream->type != STREAMTYPE_FILE ) )
-		return 0;
-	return file->path;
-}
-
-
 stream_t* fs_open_file( const char* path, unsigned int mode )
 {
 	stream_file_t* file;
@@ -1436,7 +1427,7 @@ int _fs_initialize( void )
 	_fs_file_vtable.tell = _fs_file_tell;
 	_fs_file_vtable.lastmod = _fs_file_last_modified;
 	_fs_file_vtable.buffer_read = 0;
-	_fs_file_vtable.available_read = 0;
+	_fs_file_vtable.available_read = _fs_file_available_read;
 	_fs_file_vtable.finalize = _fs_file_finalize;
 	_fs_file_vtable.clone = _fs_file_clone;
 

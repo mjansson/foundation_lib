@@ -176,6 +176,8 @@ void* delegate_nswindow( void )
 	
 	_delegate_app = 0;
 	_delegate = 0;
+
+  [super dealloc];
 }
 
 @end
