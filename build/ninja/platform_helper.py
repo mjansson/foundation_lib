@@ -3,7 +3,7 @@
 import sys
 
 def supported_platforms():
-  return ['windows', 'linux', 'macosx', 'ios', 'android', 'raspberrypi']
+  return [ 'windows', 'linux', 'macosx', 'ios', 'android', 'raspberrypi' ]
 
 class Platform(object):
   def __init__(self, platform):

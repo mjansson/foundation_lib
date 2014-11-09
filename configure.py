@@ -6,6 +6,9 @@ from optparse import OptionParser
 import os
 import pipes
 import sys
+
+sys.path.insert( 0, 'build/ninja' )
+
 import platform_helper
 import toolchain_helper
 import ninja_syntax
@@ -49,7 +52,7 @@ writer.comment( 'configure options' )
 writer.variable( 'configure_target', target.platform )
 writer.variable( 'configure_host', host.platform )
 
-env_keys = set( [ 'CC', 'AR', 'CFLAGS', 'LDFLAGS' ] )
+env_keys = set( [ 'CC', 'AR', 'LINK', 'CFLAGS', 'ARFLAGS', 'LINKFLAGS' ] )
 configure_env = dict( ( key, os.environ[key] ) for key in os.environ if key in env_keys )
 if configure_env:
   config_str = ' '.join( [ key + '=' + pipes.quote( configure_env[key] ) for key in configure_env ] )
@@ -60,40 +63,51 @@ toolchain = toolchain_helper.Toolchain( options.toolchain, host, target, config,
                                         configure_env.get( 'AR' ),
                                         configure_env.get( 'LINK' ),
                                         configure_env.get( 'CFLAGS' ),
-                                        configure_env.get( 'LDFLAGS' ) )
+                                        configure_env.get( 'ARFLAGS' ),
+                                        configure_env.get( 'LINKFLAGS' ) )
 
 writer.variable( 'configure_toolchain', toolchain.toolchain )
 writer.newline()
 
-
-def shell_escape( str ):
-  """Escape str such that it's interpreted as a single argument by the shell."""
-
-  # This isn't complete, but it's just enough to make NINJA_PYTHON work.
-  if host.is_windows():
-    return str
-  if '"' in str:
-    return "'%s'" % str.replace( "'", "\\'" )
-  return str
-
-
-writer.variable( 'cc', toolchain.cc )
-writer.variable( 'ar', toolchain.ar )
-writer.variable( 'cflags', ' '.join( shell_escape( flag ) for flag in toolchain.cflags ) )
-writer.variable( 'ldflags', ' '.join( shell_escape( flag ) for flag in toolchain.ldflags ) )
-writer.newline()
-
-toolchain.add_rules( writer )
+toolchain.write_variables( writer )
+toolchain.write_rules( writer )
 
 objs = []
 
 writer.comment( 'Foundation library source files' )
 libsources = [
-  'array', 'assert', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config',
-  'crash', 'environment', 'error', 'event', 'foundation', 'fs', 'hash', 'hashmap',
-  'hashtable', 'library', 'log', 'main', 'md5', 'memory', 'mutex', 'objectmap', 'path',
-  'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore',
-  'stacktrace', 'stream', 'string', 'system', 'thread', 'time', 'uuid'
+  'array.c', 'assert.c', 'atomic.c', 'base64.c', 'bitbuffer.c', 'blowfish.c', 'bufferstream.c', 'config.c',
+  'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c', 'hash.c', 'hashmap.c',
+  'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c', 'objectmap.c', 'path.c',
+  'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c', 'ringbuffer.c', 'semaphore.c',
+  'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c', 'uuid.c'
   ]
-toolchain.lib( writer, 'foundation', libsources )
+if target.is_macosx():
+  libsources += [ 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
+foundation_lib = toolchain.lib( writer, '', 'foundation', libsources )
+writer.newline()
+
+writer.comment( 'Tools executable source files' )
+toolchain.bin( writer, 'tools', 'bin2hex', [ 'main.c' ], 'bin2hex', foundation_lib, [ 'foundation' ] )
+toolchain.bin( writer, 'tools', 'hashify', [ 'main.c' ], 'hashify', foundation_lib, [ 'foundation' ] )
+toolchain.bin( writer, 'tools', 'uuidgen', [ 'main.c' ], 'uuidgen', foundation_lib, [ 'foundation' ] )
+
+writer.comment( 'Add test include paths' )
+toolchain.add_include_path( 'test' )
+writer.variable( 'cflags', ' '.join( toolchain.shell_escape( flag ) for flag in toolchain.cflags ) )
+
+writer.comment( 'Test library source files' )
+test_lib = toolchain.lib( writer, 'test', 'test', [ 'test.c' ] )
+writer.newline()
+
+writer.comment( 'Test executable source files' )
+toolchain.bin( writer, 'test', 'all', [ 'main.c' ], 'test-all', foundation_lib, [ 'foundation' ] )
+test_cases = [
+  'array', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
+  'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'library', 'math', 'md5', 'mutex', 'objectmap',
+  'path', 'pipe', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
+  'string', 'uuid'
+]
+for test in test_cases:
+  toolchain.bin( writer, 'test', test, [ 'main.c' ], 'test-' + test, foundation_lib + test_lib, [ 'test', 'foundation' ] )
 writer.newline()
