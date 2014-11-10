@@ -29,10 +29,7 @@ parser.add_option( '--config',
 (options, args) = parser.parse_args()
 
 target = platform_helper.Platform(options.target)
-if options.host:
-    host = platform_helper.Platform(options.host)
-else:
-    host = target
+host = platform_helper.Platform(options.host)
 
 config = options.config
 if config is None:
@@ -82,32 +79,45 @@ libsources = [
   'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c', 'ringbuffer.c', 'semaphore.c',
   'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c', 'uuid.c'
   ]
-if target.is_macosx():
+if target.is_macosx() or target.is_ios():
   libsources += [ 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
 foundation_lib = toolchain.lib( writer, '', 'foundation', libsources )
 writer.newline()
 
-writer.comment( 'Tools executable source files' )
-toolchain.bin( writer, 'tools', 'bin2hex', [ 'main.c' ], 'bin2hex', foundation_lib, [ 'foundation' ] )
-toolchain.bin( writer, 'tools', 'hashify', [ 'main.c' ], 'hashify', foundation_lib, [ 'foundation' ] )
-toolchain.bin( writer, 'tools', 'uuidgen', [ 'main.c' ], 'uuidgen', foundation_lib, [ 'foundation' ] )
+if not target.is_ios() and not target.is_android():
+  writer.comment( 'Tools executable source files' )
+  toolchain.bin( writer, 'tools', 'bin2hex', [ 'main.c' ], 'bin2hex', foundation_lib, [ 'foundation' ] )
+  toolchain.bin( writer, 'tools', 'hashify', [ 'main.c' ], 'hashify', foundation_lib, [ 'foundation' ] )
+  toolchain.bin( writer, 'tools', 'uuidgen', [ 'main.c' ], 'uuidgen', foundation_lib, [ 'foundation' ] )
+  writer.newline()
 
 writer.comment( 'Add test include paths' )
 toolchain.add_include_path( 'test' )
 writer.variable( 'cflags', ' '.join( toolchain.shell_escape( flag ) for flag in toolchain.cflags ) )
+writer.variable( 'mflags', ' '.join( toolchain.shell_escape( flag ) for flag in toolchain.mflags ) )
 
 writer.comment( 'Test library source files' )
-test_lib = toolchain.lib( writer, 'test', 'test', [ 'test.c' ] )
+libsources = [ 'test.c' ]
+if target.is_ios():
+  libsources += [ 'test.m' ]
+test_lib = toolchain.lib( writer, 'test', 'test', libsources )
 writer.newline()
 
 writer.comment( 'Test executable source files' )
-toolchain.bin( writer, 'test', 'all', [ 'main.c' ], 'test-all', foundation_lib, [ 'foundation' ] )
 test_cases = [
   'array', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
   'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'library', 'math', 'md5', 'mutex', 'objectmap',
   'path', 'pipe', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
   'string', 'uuid'
 ]
-for test in test_cases:
-  toolchain.bin( writer, 'test', test, [ 'main.c' ], 'test-' + test, foundation_lib + test_lib, [ 'test', 'foundation' ] )
+if target.is_ios():
+  test_cases += [ 'all' ]
+  toolchain.bin( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', foundation_lib + test_lib, [ 'test', 'foundation' ], [ 'all/ios/test-all.plist', 'all/ios/Images.xcassets', 'all/ios/test-all.xib' ] )
+elif target.is_android():
+  test_cases += [ 'all' ]
+  toolchain.bin( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', foundation_lib + test_lib, [ 'test', 'foundation' ] )
+else:
+  toolchain.bin( writer, 'test', 'all', [ 'main.c' ], 'test-all', foundation_lib, [ 'foundation' ] )
+  for test in test_cases:
+    toolchain.bin( writer, 'test', test, [ 'main.c' ], 'test-' + test, foundation_lib + test_lib, [ 'test', 'foundation' ] )
 writer.newline()
