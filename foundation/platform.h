@@ -333,7 +333,7 @@
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Linux PPC"
-#  elif defined( __arm__ ) || FOUNDATION_ARCH_ARM
+#  elif defined( __arm__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    undef  FOUNDATION_ARCH_ENDIAN_LITTLE

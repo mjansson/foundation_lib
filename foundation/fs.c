@@ -776,7 +776,6 @@ extern void  _fs_event_stream_flush( void* stream );
 void* _fs_monitor( object_t thread, void* monitorptr )
 {
 	fs_monitor_t* monitor = monitorptr;
-	char* monitor_path = atomic_loadptr( &monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -789,6 +788,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	unsigned int wait_status = 0;
 	wchar_t* wfpath = 0;
 	void* buffer = 0;
+  char* monitor_path = atomic_loadptr( &monitor->path );
 
 	memory_context_push( HASH_STREAM );
 
@@ -805,6 +805,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
+  char* monitor_path = atomic_loadptr( &monitor->path );
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
 	char** paths = 0;
@@ -817,6 +818,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	_add_notify_subdir( notify_fd, monitor_path, &watch, &paths, false );
 
 #elif FOUNDATION_PLATFORM_MACOSX
+
+  char* monitor_path = atomic_loadptr( &monitor->path );
 
 	memory_context_push( HASH_STREAM );
 
