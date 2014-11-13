@@ -2,7 +2,7 @@
 
 """Ninja build file generator for foundation library"""
 
-from optparse import OptionParser
+import argparse
 import os
 import pipes
 import sys
@@ -13,24 +13,28 @@ import platform_helper
 import toolchain_helper
 import ninja_syntax
 
-parser = OptionParser()
-parser.add_option( '--target',
-                   help = 'target platform (' + '/'.join( platform_helper.supported_platforms() ) + ')',
+parser = argparse.ArgumentParser( description = 'Ninja build configurator and generator' )
+parser.add_argument( '-t', '--target',
+                   help = 'Target platform',
                    choices = platform_helper.supported_platforms() )
-parser.add_option( '--host',
-                   help = 'host platform (' + '/'.join( platform_helper.supported_platforms() ) + ')',
+parser.add_argument( '--host',
+                   help = 'Host platform',
                    choices = platform_helper.supported_platforms() )
-parser.add_option( '--toolchain',
-                   help = 'toolchain (' + '/'.join( toolchain_helper.supported_toolchains() ) + ')',
+parser.add_argument( '--toolchain',
+                   help = 'Toolchain to use',
                    choices = toolchain_helper.supported_toolchains() )
-parser.add_option( '--config',
-                   help = 'configuration (debug, release, profile, deploy)',
+parser.add_argument( '-c', '--config',
+                   help = 'Build configuration',
                    choices = ['debug', 'release', 'profile', 'deploy'] )
-(options, args) = parser.parse_args()
+parser.add_argument( '-a', '--arch', action = 'append',
+                     help = 'Add architecture',
+                     choices = toolchain_helper.supported_architectures(),
+                     default = [] )
+options = parser.parse_args()
 
 target = platform_helper.Platform(options.target)
 host = platform_helper.Platform(options.host)
-
+archs = options.arch
 config = options.config
 if config is None:
   config = 'release'
@@ -55,7 +59,7 @@ if configure_env:
   config_str = ' '.join( [ key + '=' + pipes.quote( configure_env[key] ) for key in configure_env ] )
   writer.variable('configure_env', config_str + '$ ')
 
-toolchain = toolchain_helper.Toolchain( options.toolchain, host, target, config,
+toolchain = toolchain_helper.Toolchain( options.toolchain, host, target, archs, config,
                                         configure_env.get( 'CC' ),
                                         configure_env.get( 'AR' ),
                                         configure_env.get( 'LINK' ),
@@ -64,6 +68,8 @@ toolchain = toolchain_helper.Toolchain( options.toolchain, host, target, config,
                                         configure_env.get( 'LINKFLAGS' ) )
 
 writer.variable( 'configure_toolchain', toolchain.toolchain )
+writer.variable( 'configure_archs', toolchain.archs )
+writer.variable( 'configure_config', toolchain.config )
 writer.newline()
 
 toolchain.write_variables( writer )
@@ -90,11 +96,6 @@ if not target.is_ios() and not target.is_android():
   toolchain.bin( writer, 'tools', 'hashify', [ 'main.c' ], 'hashify', foundation_lib, [ 'foundation' ] )
   toolchain.bin( writer, 'tools', 'uuidgen', [ 'main.c' ], 'uuidgen', foundation_lib, [ 'foundation' ] )
   writer.newline()
-
-writer.comment( 'Add test include paths' )
-toolchain.add_include_path( 'test' )
-writer.variable( 'cflags', ' '.join( toolchain.shell_escape( flag ) for flag in toolchain.cflags ) )
-writer.variable( 'mflags', ' '.join( toolchain.shell_escape( flag ) for flag in toolchain.mflags ) )
 
 writer.comment( 'Test library source files' )
 libsources = [ 'test.c' ]
