@@ -166,6 +166,8 @@ int main_run( void* main_arg )
 	object_t thread = 0;
 	
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
+
+	log_infof( HASH_TEST, "Foundation library vX.Y.Z-B %d", system_architecture() );
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
@@ -272,9 +274,9 @@ int main_run( void* main_arg )
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = "^test-.*.exe$";
 #elif FOUNDATION_PLATFORM_MACOSX
-	pattern = "^test-.*";
+	pattern = "^test-.*$";
 #elif FOUNDATION_PLATFORM_POSIX
-	pattern = "^test-.*";
+	pattern = "^test-.*$";
 #else
 #  error Not implemented
 #endif
@@ -282,8 +284,8 @@ int main_run( void* main_arg )
 	array_resize( exe_flags, array_size( exe_paths ) );
 	memset( exe_flags, 0, sizeof( unsigned int ) * array_size( exe_flags ) );
 #if FOUNDATION_PLATFORM_MACOSX
-	//Also search for test-*.app
-	const char* app_pattern = "test-*.app";
+	//Also search for test applications
+	const char* app_pattern = "^test-.*\\.app$";
 	char** subdirs = fs_subdirs( environment_executable_directory() );
 	for( int idir = 0, dirsize = array_size( subdirs ); idir < dirsize; ++idir )
 	{

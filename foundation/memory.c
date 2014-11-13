@@ -623,7 +623,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 	if( !memory )
 	{
-		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
+		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s (%" PRIfixPTR ", raw %" PRIfixPTR ")", system_error_message( 0 ), p, raw_p );
 	}
 	return memory;
 #endif

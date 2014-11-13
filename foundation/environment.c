@@ -14,9 +14,6 @@
 #include <foundation/internal.h>
 
 
-#if !FOUNDATION_PLATFORM_APPLE
-static char    _environment_wd[FOUNDATION_MAX_PATHLEN] = {0};
-#endif
 static char    _environment_executable_name[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_executable_dir[FOUNDATION_MAX_PATHLEN] = {0};
 static char    _environment_executable_path[FOUNDATION_MAX_PATHLEN] = {0};

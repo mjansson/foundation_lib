@@ -417,6 +417,9 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	_thread_unref( thread );
 
+	FOUNDATION_UNUSED(thr_osid);
+	FOUNDATION_UNUSED(thr_id);
+	
 	return 0;
 }
 

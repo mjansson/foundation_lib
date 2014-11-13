@@ -85,14 +85,16 @@ typedef enum
 typedef enum
 {
 	ARCHITECTURE_X86          = 0,
-	ARCHITECTURE_X86_64       = 1,
-	ARCHITECTURE_PPC          = 2,
-	ARCHITECTURE_PPC_64       = 3,
-	ARCHITECTURE_ARM6         = 6,
-	ARCHITECTURE_ARM7         = 7,
-	ARCHITECTURE_ARM8_64      = 8,
-	ARCHITECTURE_ARM5         = 9,
-	ARCHITECTURE_MIPS         = 10
+	ARCHITECTURE_X86_64,
+	ARCHITECTURE_PPC,
+	ARCHITECTURE_PPC_64,
+	ARCHITECTURE_ARM5,
+	ARCHITECTURE_ARM6,
+	ARCHITECTURE_ARM7,
+	ARCHITECTURE_ARM8,
+	ARCHITECTURE_ARM8_64,
+	ARCHITECTURE_MIPS,
+	ARCHITECTURE_MIPS_64
 } architecture_t;
 
 typedef enum
@@ -485,7 +487,7 @@ struct memory_context_t
 	uint32_t                        flags;      \
 	object_t                        id
 
-struct object_base_t
+struct ALIGN(8) object_base_t
 {
 	FOUNDATION_DECLARE_OBJECT;
 };

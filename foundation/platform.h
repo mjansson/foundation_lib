@@ -791,6 +791,7 @@ typedef ALIGN(FOUNDATION_SIZE_POINTER) struct atomicptr_t atomicptr_t;
 // Base limits
 #define FOUNDATION_MAX_PATHLEN    512
 
+#define FOUNDATION_UNUSED(x) (void)(x)
 
 // Wrappers for platforms that not yet support thread-local storage declarations
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID

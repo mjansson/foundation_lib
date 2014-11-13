@@ -950,8 +950,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
-		int ret = ioctl( notify_fd, FIONREAD, &avail );
-		//log_debugf( 0, "ioctl inotify: %d", avail );
+		/*int ret =*/ ioctl( notify_fd, FIONREAD, &avail );
+		//log_debugf( 0, "ioctl inotify: %d (%d)", avail, ret );
 		if( avail > 0 )
 		{
 			void* buffer = memory_allocate( HASH_STREAM, avail + 4, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
@@ -961,7 +961,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while( offset < avail_read )
 			{
-				foundation_event_id eventid = 0;
 				fs_watch_t* curwatch = _lookup_watch( watch, event->wd );
 				if( !curwatch )
 				{
@@ -1184,7 +1183,6 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 {
 	int64_t cur;
 	stream_file_t* file;
-	bool has_protocol;
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
 	wchar_t* wpath;
@@ -1206,8 +1204,6 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 		fclose( (FILE*)file->fd );
 		file->fd = 0;
 	}
-
-	has_protocol = string_equal_substr( file->path, "file://", 7 );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	wpath = wstring_allocate_from_string( _fs_path( file->path ), 0 );
