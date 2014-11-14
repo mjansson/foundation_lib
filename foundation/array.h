@@ -35,9 +35,9 @@
 #define array_erase( array, pos )                           ( _array_verify( array ) ? *((array) + (pos)) = *((array) + ( _array_rawsize( array ) - 1 )), --_array_rawsize( array ), 0 : 0 )
 #define array_erase_memcpy( array, pos )                    ( _array_verify( array ) ? memcpy( (array) + (pos), (array) + ( _array_rawsize( array ) - 1 ), _array_elementsize( array ) ), --_array_rawsize( array ), 0 : 0 )
 #define array_erase_safe( array, pos )                      ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase( array, pos ), 0 : 0 )
-#define array_erase_memcpy_safe( array, pos )               ( _array_verify( array ) && ( (pos) < _array_rawsize( array ) ) ? array_erase_memcpy( array, pos ), 0 : 0 )
+#define array_erase_memcpy_safe( array, pos )               ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_memcpy( array, pos ), 0 : 0 )
 #define array_erase_ordered( array, pos )                   ( _array_verify( array ) ? memmove( (array) + (pos), (array) + (pos) + 1, ( _array_rawsize( array ) - (pos) - 1 ) * _array_elementsize( array ) ), --_array_rawsize( array ), 0 : 0 )
-#define array_erase_ordered_safe( array, pos )              ( _array_verify( array ) && ( (pos) < _array_rawsize( array ) ) ? array_erase_ordered( array, pos ), 0 : 0 )
+#define array_erase_ordered_safe( array, pos )              ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_ordered( array, pos ), 0 : 0 )
 #define array_erase_ordered_range( array, pos, num )        ( _array_verify( array ) ? memmove( (array) + (pos), (array) + (pos) + (num), ( _array_rawsize( array ) - (pos) - (num) ) * _array_elementsize( array ) ), _array_rawsize( array ) -= (num), 0 : 0 )
 #define array_erase_ordered_range_safe( array, pos, num )   do { int _clamped_start = math_clamp( (pos), 0, array_size( array ) ); int _clamped_end = math_clamp( ( (pos) + (num) ), 0, array_size( array ) ); if( _clamped_end > _clamped_start ) array_erase_ordered_range( array, _clamped_start, _clamped_end - _clamped_start ); } while(0)
 
