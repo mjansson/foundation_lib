@@ -69,6 +69,7 @@
 #include <foundation/main.h>
 
 
-FOUNDATION_API int   foundation_initialize( const memory_system_t memory, const application_t application );
-FOUNDATION_API void  foundation_shutdown( void );
-FOUNDATION_API bool  foundation_is_initialized( void );
+FOUNDATION_API int       foundation_initialize( const memory_system_t memory, const application_t application );
+FOUNDATION_API void      foundation_shutdown( void );
+FOUNDATION_API bool      foundation_is_initialized( void );
+FOUNDATION_API version_t foundation_version( void );

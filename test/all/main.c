@@ -152,6 +152,20 @@ static void* test_runner( object_t obj, void* arg )
 #endif
 
 
+static const char* test_arch_name[11] = {
+  "x86",
+  "x86-64",
+  "ppc",
+  "ppc64",
+  "arm5",
+  "arm6",
+  "arm7",
+  "arm8",
+  "arm8-64",
+  "mips",
+  "mips64"
+};
+
 int main_run( void* main_arg )
 {
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
@@ -167,7 +181,7 @@ int main_run( void* main_arg )
 	
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
-	log_infof( HASH_TEST, "Foundation library vX.Y.Z-B %d", system_architecture() );
+	log_infof( HASH_TEST, "Foundation library v%s built for %s", string_from_version_static( foundation_version() ), test_arch_name[ system_architecture() ] );
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
