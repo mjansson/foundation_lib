@@ -117,7 +117,9 @@ if target.is_ios() or target.is_android():
   test_cases += [ 'all' ]
   if target.is_ios():
     test_resources = [ 'all/ios/test-all.plist', 'all/ios/Images.xcassets', 'all/ios/test-all.xib' ]
-  toolchain.bin( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', foundation_lib + test_lib, [ 'test', 'foundation' ], test_resources )
+    toolchain.app( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', foundation_lib + test_lib, [ 'test', 'foundation' ], test_resources )
+  else:
+    toolchain.bin( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', foundation_lib + test_lib, [ 'test', 'foundation' ], test_resources )
 else:
   #Build one binary per test case
   toolchain.bin( writer, 'test', 'all', [ 'main.c' ], 'test-all', foundation_lib, [ 'foundation' ] )

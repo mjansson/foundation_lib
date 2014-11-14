@@ -440,18 +440,21 @@ class Toolchain(object):
       for name in sources:
         objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = [ ( 'carchflags', localcarchflags ) ] )
       builtbin += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = implicit_deps, variables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ] )
-      #For OSX and iOS resources go into universal binary
-      if resources and not self.target.is_macosx() and not self.target.is_ios():
+      if resources:
         for resource in resources:
           builtres += self.build_res( writer, basepath, module, resource, binpath, binname )
+    return builtres + builtbin
+
+  def app( self, writer, basepath, module, sources, binname, implicit_deps = None, libs = None, resources = None ):
+    builtres = []
+    builtapp = []
+    if binname is None:
+      binname = module
+    archbins = self.bin( writer, basepath, module, sources, binname, implicit_deps, libs )
     if self.target.is_macosx() or self.target.is_ios():
-      writer.newline()
-      writer.comment( "Make universal binary" )
       binpath = os.path.join( self.binpath, binname + '.app' )
       builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', builtbin )
-      #lipo -create armv7/test-all arm64/test-all -output bin/ios/debug/test-all.app/test-all
       if resources:
         for resource in resources:
           builtres += self.build_res( writer, basepath, module, resource, self.binpath, binname )
-    return builtres + builtbin
-
+    return builtapp + builtbin
