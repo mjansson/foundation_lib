@@ -23,9 +23,10 @@ parser.add_argument( '--host',
 parser.add_argument( '--toolchain',
                    help = 'Toolchain to use',
                    choices = toolchain_helper.supported_toolchains() )
-parser.add_argument( '-c', '--config',
+parser.add_argument( '-c', '--config', action = 'append',
                    help = 'Build configuration',
-                   choices = ['debug', 'release', 'profile', 'deploy'] )
+                   choices = ['debug', 'release', 'profile', 'deploy'],
+                   default = [] )
 parser.add_argument( '-a', '--arch', action = 'append',
                      help = 'Add architecture',
                      choices = toolchain_helper.supported_architectures(),
@@ -35,9 +36,9 @@ options = parser.parse_args()
 target = platform_helper.Platform(options.target)
 host = platform_helper.Platform(options.host)
 archs = options.arch
-config = options.config
-if config is None:
-  config = 'release'
+configs = options.config
+if configs is None or configs == []:
+  configs = [ 'release' ]
 
 buildfile = open( 'build.ninja', 'w' )
 writer = ninja_syntax.Writer( buildfile )
@@ -59,7 +60,7 @@ if configure_env:
   config_str = ' '.join( [ key + '=' + pipes.quote( configure_env[key] ) for key in configure_env ] )
   writer.variable('configure_env', config_str + '$ ')
 
-toolchain = toolchain_helper.Toolchain( options.toolchain, host, target, archs, config,
+toolchain = toolchain_helper.Toolchain( options.toolchain, host, target, archs, configs,
                                         configure_env.get( 'CC' ),
                                         configure_env.get( 'AR' ),
                                         configure_env.get( 'LINK' ),
@@ -69,7 +70,7 @@ toolchain = toolchain_helper.Toolchain( options.toolchain, host, target, archs, 
 
 writer.variable( 'configure_toolchain', toolchain.toolchain )
 writer.variable( 'configure_archs', toolchain.archs )
-writer.variable( 'configure_config', toolchain.config )
+writer.variable( 'configure_configs', toolchain.configs )
 writer.newline()
 
 toolchain.write_variables( writer )
@@ -92,10 +93,12 @@ writer.newline()
 
 if not target.is_ios() and not target.is_android():
   writer.comment( 'Tools executable source files' )
-  toolchain.bin( writer, 'tools', 'bin2hex', [ 'main.c' ], 'bin2hex', foundation_lib, [ 'foundation' ] )
-  toolchain.bin( writer, 'tools', 'hashify', [ 'main.c' ], 'hashify', foundation_lib, [ 'foundation' ] )
-  toolchain.bin( writer, 'tools', 'uuidgen', [ 'main.c' ], 'uuidgen', foundation_lib, [ 'foundation' ] )
-  writer.newline()
+  configs = [ config for config in toolchain.configs if config not in [ 'profile', 'deploy' ] ]
+  if not configs == []:
+    toolchain.bin( writer, 'tools', 'bin2hex', [ 'main.c' ], 'bin2hex', [ foundation_lib ], [ 'foundation' ], configs = configs )
+    toolchain.bin( writer, 'tools', 'hashify', [ 'main.c' ], 'hashify', [ foundation_lib ], [ 'foundation' ], configs = configs )
+    toolchain.bin( writer, 'tools', 'uuidgen', [ 'main.c' ], 'uuidgen', [ foundation_lib ], [ 'foundation' ], configs = configs )
+    writer.newline()
 
 writer.comment( 'Test library source files' )
 libsources = [ 'test.c' ]
@@ -117,12 +120,12 @@ if target.is_ios() or target.is_android():
   test_cases += [ 'all' ]
   if target.is_ios():
     test_resources = [ 'all/ios/test-all.plist', 'all/ios/Images.xcassets', 'all/ios/test-all.xib' ]
-    toolchain.app( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', foundation_lib + test_lib, [ 'test', 'foundation' ], test_resources )
+    toolchain.app( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', [ foundation_lib, test_lib ], [ 'test', 'foundation' ], test_resources )
   else:
-    toolchain.bin( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', foundation_lib + test_lib, [ 'test', 'foundation' ], test_resources )
+    toolchain.bin( writer, 'test', '', [ os.path.join( module, 'main.c' ) for module in test_cases ], 'test-all', [ foundation_lib, test_lib ], [ 'test', 'foundation' ], test_resources )
 else:
   #Build one binary per test case
-  toolchain.bin( writer, 'test', 'all', [ 'main.c' ], 'test-all', foundation_lib, [ 'foundation' ] )
+  toolchain.bin( writer, 'test', 'all', [ 'main.c' ], 'test-all', [ foundation_lib ], [ 'foundation' ] )
   for test in test_cases:
-    toolchain.bin( writer, 'test', test, [ 'main.c' ], 'test-' + test, foundation_lib + test_lib, [ 'test', 'foundation' ] )
+    toolchain.bin( writer, 'test', test, [ 'main.c' ], 'test-' + test, [ foundation_lib, test_lib ], [ 'test', 'foundation' ] )
 writer.newline()
