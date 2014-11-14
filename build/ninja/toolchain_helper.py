@@ -64,6 +64,7 @@ class Toolchain(object):
       self.link = 'gcc'
       self.cflags = [ '-std=c11', '-DFOUNDATION_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
+                      '-Wno-unused-value',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
