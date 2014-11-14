@@ -25,6 +25,7 @@ class Toolchain(object):
         self.toolchain = 'clang'
 
     self.carchflags = []
+    self.ararchflags = []
     self.linkarchflags = []
     self.libpaths = []
     self.includepaths = [ '.', 'test' ]
@@ -84,7 +85,7 @@ class Toolchain(object):
       elif config == 'deploy':
         self.cflags += [ '-O4', '-DBUILD_DEPLOY=1', '-funroll-loops' ]
 
-      self.arcmd = 'rm -f $out && $ar crs $out $in'
+      self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
       self.linkcmd = '$cc $libpaths $linkflags $linkarchflags -o $out $in $libs'
 
       if target.is_linux():
@@ -123,15 +124,15 @@ class Toolchain(object):
         if target.is_macosx():
           sdk = 'macosx'
           deploytarget = 'MACOSX_DEPLOYMENT_TARGET=10.7'
-          self.cflags += [ '-arch', 'x86_64', '-fasm-blocks', '-mmacosx-version-min=10.7', '-isysroot', '$sdkdir' ]
-          self.arflags += [ '-static', '-arch_only', 'x86_64', '-no_warning_for_no_symbols' ]
-          self.linkflags += [ '-arch', 'x86_64', '-isysroot', '$sdkdir' ]
+          self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=10.7', '-isysroot', '$sdkdir' ]
+          self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
+          self.linkflags += [ '-isysroot', '$sdkdir' ]
         elif target.is_ios():
           sdk = 'iphoneos'
           deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=6.0'
-          self.cflags += [ '-arch', 'armv7', '-fasm-blocks', '-miphoneos-version-min=6.0', '-isysroot', '$sdkdir' ]
-          self.arflags += [ '-static', '-arch_only', 'armv7', '-no_warning_for_no_symbols' ]
-          self.linkflags += [ '-arch', 'armv7', '-isysroot', '$sdkdir' ]
+          self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=6.0', '-isysroot', '$sdkdir' ]
+          self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
+          self.linkflags += [ '-isysroot', '$sdkdir' ]
         
         platformpath = subprocess.check_output( [ 'xcrun', '--sdk', sdk, '--show-sdk-platform-path' ] ).strip()
         localpath = platformpath + "/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -139,6 +140,7 @@ class Toolchain(object):
         self.cc = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'clang' ] ).strip()
         self.ar = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'libtool' ] ).strip()
         self.link = deploytarget + " " + self.cc
+        self.lipo = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'lipo' ] ).strip()
         self.plist = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'plutil' ] ).strip()
         self.xcassets = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'actool' ] ).strip()
         self.xib = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'ibtool' ] ).strip()
@@ -146,17 +148,19 @@ class Toolchain(object):
         self.mflags += self.cflags + [ '-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c' ]
         self.cflags += [ '-x', 'c' ]
         
-        self.arcmd = 'rm -f $out && $ar $arflags $in -o $out'
+        self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $mflags $carchflags -c $in -o $out'
+        self.arcmd = 'rm -f $out && $ar $ararchflags $arflags $in -o $out'
+        self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $in $libs -o $out'
-        self.plistcmd = self.plist + ' -convert binary1 -o $out -- $in'
-        self.xcassetscmd = self.xcassets + ' --output-format human-readable-text --output-partial-info-plist /tmp/partial-assets.plist' \
-                                           ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target 6.0' \
-                                           ' --target-device iphone --target-device ipad --compress-pngs --compile $out $in >/dev/null'
-        self.xibcmd = self.xib + ' --target-device iphone --target-device ipad --module test_all --minimum-deployment-target 6.0 ' \
-                                 ' --output-partial-info-plist /tmp/partial-info.plist --auto-activate-custom-fonts --output-format human-readable-text' \
-                                 ' --compile $out $in'
+        self.plistcmd = '$plist -convert binary1 -o $out -- $in'
+        self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist /tmp/partial-assets.plist' \
+                           ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target 6.0' \
+                           ' --target-device iphone --target-device ipad --compress-pngs --compile $out $in >/dev/null'
+        self.xibcmd = '$xib --target-device iphone --target-device ipad --module test_all --minimum-deployment-target 6.0 ' \
+                      ' --output-partial-info-plist /tmp/partial-info.plist --auto-activate-custom-fonts '\
+                      ' --output-format human-readable-text --compile $out $in'
       else:
-        self.arcmd = 'rm -f $out && $ar crs $out $in'
+        self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags -o $out $in $libs'
 
       if target.is_macosx():
@@ -195,7 +199,14 @@ class Toolchain(object):
   def make_carchflags( self, arch ):
     flags = ''
     if self.target.is_macosx() or self.target.is_ios():
-      pass
+      if arch == 'x86':
+        flags += ' -arch x86'
+      elif arch == 'x86-64':
+        flags += '-arch x86_64'
+      elif arch == 'arm7':
+        flags += '-arch armv7'
+      elif arch == 'arm64':
+        flags += '-arch arm64'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -203,10 +214,30 @@ class Toolchain(object):
         flags += ' -m64'
     return flags.strip()
 
+  def make_ararchflags( self, arch ):
+    flags = ''
+    if self.target.is_macosx() or self.target.is_ios():
+      if arch == 'x86':
+        flags += ' -arch_only x86'
+      elif arch == 'x86-64':
+        flags += '-arch_only x86_64'
+      elif arch == 'arm7':
+        flags += '-arch_only armv7'
+      elif arch == 'arm64':
+        flags += '-arch_only arm64'
+    return flags.strip()
+
   def make_linkarchflags( self, arch ):
     flags = ''
     if self.target.is_macosx() or self.target.is_ios():
-      pass
+      if arch == 'x86':
+        flags += ' -arch x86'
+      elif arch == 'x86-64':
+        flags += '-arch x86_64'
+      elif arch == 'arm7':
+        flags += '-arch armv7'
+      elif arch == 'arm64':
+        flags += '-arch arm64'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -269,8 +300,6 @@ class Toolchain(object):
     return self.binpath
 
   def shell_escape( self, str ):
-    """Escape str such that it's interpreted as a single argument by the shell."""
-
     # This isn't complete, but it's just enough to make NINJA_PYTHON work.
     if self.host.is_windows():
       return str
@@ -288,10 +317,15 @@ class Toolchain(object):
 
     if self.target.is_macosx() or self.target.is_ios():
       writer.rule( 'cm',
-                   command = '$cc -MMD -MT $out -MF $out.d $mflags -c $in -o $out',
-                   depfile = '$out.d',
-                   deps = 'gcc',
+                   command = self.cmcmd,
+                   depfile = self.ccdepfile,
+                   deps = self.ccdeps,
                    description = 'CC $out' )
+      writer.newline()
+
+      writer.rule( 'lipo',
+                   command = self.lipocmd,
+                   description = 'LIPO $out' )
       writer.newline()
 
       writer.rule( 'plist',
@@ -302,10 +336,12 @@ class Toolchain(object):
       writer.rule( 'xcassets',
                    command = self.xcassetscmd,
                    description = 'XCASSETS $out' )
+      writer.newline()
 
       writer.rule( 'xib',
                    command = self.xibcmd,
                    description = 'XIB $out' )
+      writer.newline()
 
     writer.rule( 'ar',
                  command = self.arcmd,
@@ -329,12 +365,18 @@ class Toolchain(object):
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
-    writer.variable( 'cflags', ' '.join( self.shell_escape( flag ) for flag in self.cflags ) )
-    writer.variable( 'carchflags', ' '.join( self.shell_escape( flag ) for flag in self.carchflags ) )
     if self.target.is_macosx() or self.target.is_ios():
+      writer.variable( 'lipo', self.lipo )
+      writer.variable( 'plist', self.plist )
+      writer.variable( 'xcassets', self.xcassets )
+      writer.variable( 'xib', self.xib )
       writer.variable( 'mflags', ' '.join( self.shell_escape( flag ) for flag in self.mflags ) )
+    writer.variable( 'cflags', ' '.join( self.shell_escape( flag ) for flag in self.cflags ) )
     writer.variable( 'arflags', ' '.join( self.shell_escape( flag ) for flag in self.arflags ) )
     writer.variable( 'linkflags', ' '.join( self.shell_escape( flag ) for flag in self.linkflags ) )
+    writer.variable( 'carchflags', ' '.join( self.shell_escape( flag ) for flag in self.carchflags ) )
+    writer.variable( 'ararchflags', ' '.join( self.shell_escape( flag ) for flag in self.ararchflags ) )
+    writer.variable( 'linkarchflags', ' '.join( self.shell_escape( flag ) for flag in self.linkarchflags ) )
     writer.variable( 'includepaths', ' '.join( self.shell_escape( path ) for path in self.make_includepaths( self.includepaths ) ) )
     writer.variable( 'libpaths', ' '.join( self.shell_escape( path ) for path in self.make_libpaths( self.libpaths ) ) )
     writer.newline()
@@ -357,22 +399,28 @@ class Toolchain(object):
       buildpath = os.path.join( self.buildpath, arch )
       libpath = os.path.join( self.libpath, arch )
       localcarchflags = self.make_carchflags( arch )
+      localararchflags = self.make_ararchflags( arch )
       for name in sources:
         if name.endswith( '.c' ):
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = [ ( 'carchflags', localcarchflags ) ] )
         elif name.endswith( '.m' ):
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext + 'm' ), 'cm', os.path.join( basepath, module, name ), variables = [ ( 'carchflags', localcarchflags ) ] )
-      builtlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs )
+      builtlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = [ ( 'ararchflags', localararchflags ) ] )
+    if self.target.is_macosx() or self.target.is_ios():
+      writer.newline()
+      writer.comment( "Make universal library" )
+      builtlibs = writer.build( os.path.join( self.libpath, self.libprefix + module + self.staticlibext ), 'ar', builtlibs, variables = [ ( 'arflags', '-static -no_warning_for_no_symbols' ) ] );
     return builtlibs
 
   def build_res( self, writer, basepath, module, resource, binpath, binname ):
     if self.target.is_macosx() or self.target.is_ios():
+      appname = binname + '.app'
       if resource.endswith( '.plist' ):
-        return writer.build( os.path.join( binpath, binname + '.app', binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
+        return writer.build( os.path.join( binpath, appname, binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
       elif resource.endswith( '.xcassets' ):
-        return writer.build( os.path.join( binpath, binname + '.app' ), 'xcassets', os.path.join( basepath, module, resource ) )
+        return writer.build( os.path.join( binpath, appname ), 'xcassets', os.path.join( basepath, module, resource ) )
       elif resource.endswith( '.xib' ):
-        return writer.build( os.path.join( binpath, binname + '.app', os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
+        return writer.build( os.path.join( binpath, appname, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
     return []
 
   def bin( self, writer, basepath, module, sources, binname, implicit_deps = None, libs = None, resources = None ):
@@ -390,12 +438,19 @@ class Toolchain(object):
       locallibpaths = self.make_libpaths( self.libpaths + [ libpath ] )
       for name in sources:
         objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = [ ( 'carchflags', localcarchflags ) ] )
-        if resources:
-          for resource in resources:
-            builtres += self.build_res( writer, basepath, module, resource, binpath, binname )
-        if self.target.is_ios():
-          builtbin += writer.build( os.path.join( binpath, binname + '.app', self.binprefix + binname + self.binext ), 'link', objs, implicit = implicit_deps, variables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ] )
-        else:
-          builtbin += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = implicit_deps, variables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ] )
+      builtbin += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = implicit_deps, variables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ] )
+      #For OSX and iOS resources go into universal binary
+      if resources and not self.target.is_macosx() and not self.target.is_ios():
+        for resource in resources:
+          builtres += self.build_res( writer, basepath, module, resource, binpath, binname )
+    if self.target.is_macosx() or self.target.is_ios():
+      writer.newline()
+      writer.comment( "Make universal binary" )
+      binpath = os.path.join( self.binpath, binname + '.app' )
+      builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', builtbin )
+      #lipo -create armv7/test-all arm64/test-all -output bin/ios/debug/test-all.app/test-all
+      if resources:
+        for resource in resources:
+          builtres += self.build_res( writer, basepath, module, resource, self.binpath, binname )
     return builtres + builtbin
 
