@@ -210,7 +210,8 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	uint32_t* srcbuffer;
 	unsigned int si;
 	unsigned int loop, loops;
-	real elapsed, throughput;
+	real elapsed;
+	real throughput ATTRIBUTE(unused);
 	unsigned int mbytes;
 
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
