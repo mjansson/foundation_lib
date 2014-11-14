@@ -186,6 +186,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 			}
 			else
 			{
+				FOUNDATION_UNUSED( identifier );
 				//log_debugf( HASH_FOUNDATION, "Got event for: %s (0x%x 0x%x)", rawpath, (unsigned int)flags, (unsigned int)identifier );
 
 				unsigned int root_ofs = string_find_string( rawpath, root_node->name, 0 );

@@ -173,6 +173,8 @@ void _memory_shutdown( void )
 }
 
 
+#if BUILD_ENABLE_MEMORY_GUARD
+
 static void* _memory_guard_initialize( void* memory, size_t size )
 {
 	int guard_loop;
@@ -205,6 +207,8 @@ static void* _memory_guard_verify( void* memory )
 	}
 	return pointer_offset( memory, -FOUNDATION_MAX_ALIGN * 2 );
 }
+
+#endif
 
 
 void* memory_allocate( uint64_t context, uint64_t size, unsigned int align, int hint )

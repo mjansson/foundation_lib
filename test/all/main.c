@@ -182,6 +182,7 @@ int main_run( void* main_arg )
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
 	log_infof( HASH_TEST, "Foundation library v%s built for %s", string_from_version_static( foundation_version() ), test_arch_name[ system_architecture() ] );
+	FOUNDATION_UNUSED( test_arch_name );
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
