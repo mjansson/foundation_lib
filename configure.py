@@ -9,7 +9,8 @@ sys.path.insert( 0, os.path.join( 'build', 'ninja' ) )
 
 import generator
 
-generator = generator.Generator()
+includepaths = [ '.' ]
+generator = generator.Generator( includepaths = includepaths )
 target = generator.target
 writer = generator.writer
 toolchain = generator.toolchain
@@ -29,7 +30,8 @@ if not target.is_ios() and not target.is_android():
     generator.bin( 'hashify', [ 'main.c' ], 'hashify', basepath = 'tools', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], configs = configs )
     generator.bin( 'uuidgen', [ 'main.c' ], 'uuidgen', basepath = 'tools', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], configs = configs )
 
-test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.c', 'test.m' ] )
+includepaths += [ 'test' ]
+test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.c', 'test.m' ], includepaths = includepaths )
 
 test_cases = [
   'array', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
@@ -43,11 +45,11 @@ if target.is_ios() or target.is_android():
   test_cases += [ 'all' ]
   if target.is_ios():
     test_resources = [ 'all/ios/test-all.plist', 'all/ios/Images.xcassets', 'all/ios/test-all.xib' ]
-    generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources )
+    generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
   else:
-    generator.bin( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources )
+    generator.bin( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
 else:
   #Build one binary per test case
-  generator.bin( module = 'all', sources = [ 'main.c' ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ] )
+  generator.bin( module = 'all', sources = [ 'main.c' ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], includepaths = includepaths )
   for test in test_cases:
-    generator.bin( module = test, sources = [ 'main.c' ], binname = 'test-' + test, basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ] )
+    generator.bin( module = test, sources = [ 'main.c' ], binname = 'test-' + test, basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], includepaths = includepaths )

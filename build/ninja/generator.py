@@ -12,7 +12,7 @@ import toolchain
 import syntax
 
 class Generator(object):
-  def __init__( self ):
+  def __init__( self, includepaths ):
     parser = argparse.ArgumentParser( description = 'Ninja build generator' )
     parser.add_argument( '-t', '--target',
                          help = 'Target platform',
@@ -40,11 +40,12 @@ class Generator(object):
     self.host = platform.Platform(options.host)
     archs = options.arch
     configs = options.config
-    includepaths = options.includepath
     if configs is None or configs == []:
       configs = [ 'release' ]
     if includepaths is None:
       includepaths = []
+    if not options.includepath is None:
+      includepaths += options.includepath
 
     buildfile = open( 'build.ninja', 'w' )
     self.writer = syntax.Writer( buildfile )
@@ -95,12 +96,12 @@ class Generator(object):
   def writer( self ):
     return self.writer
 
-  def lib( self, module, sources, basepath = None ):
-    return self.toolchain.lib( self.writer, module, sources, basepath )
+  def lib( self, module, sources, basepath = None, configs = None, includepaths = None ):
+    return self.toolchain.lib( self.writer, module, sources, basepath, configs, includepaths )
 
-  def bin( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None ):
-    return self.toolchain.bin( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs )
+  def bin( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
+    return self.toolchain.bin( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs, includepaths )
 
-  def app( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None ):
-    return self.toolchain.app( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs )
+  def app( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
+    return self.toolchain.app( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs, includepaths )
 

@@ -17,8 +17,8 @@ class Toolchain(object):
     self.toolchain = toolchain
     self.host = host
     self.target = target
-    self.archs = archs
-    self.configs = configs
+    self.archs = list( archs )
+    self.configs = list( configs )
     if self.toolchain is None:
       if host.is_windows():
         self.toolchain = 'msvc'
@@ -33,7 +33,7 @@ class Toolchain(object):
     self.includepaths = []
 
     if not includepaths is None:
-      self.includepaths = includepaths
+      self.includepaths = list( includepaths )
 
     if self.archs is None or self.archs == []:
       if target.is_windows():
@@ -424,25 +424,33 @@ class Toolchain(object):
         return writer.build( os.path.join( binpath, appname, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
     return []
 
-  def lib( self, writer, module, sources, basepath = None, includepaths = None ):
+  def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
     built = {}
     if basepath == None:
       basepath = ''
-    for config in self.configs:
+    if configs is None:
+      configs = list( self.configs )
+    if includepaths == None:
+      includepaths = list( self.includepaths )
+    for config in configs:
       archlibs = []
       built[config] = []
       localcconfigflags = self.make_cconfigflags( config )
+      localincludepaths = self.make_includepaths( includepaths )
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
         libpath = os.path.join( self.libpath, config, arch )
         localcarchflags = self.make_carchflags( arch )
         localararchflags = self.make_ararchflags( arch )
+        localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
+        if includepaths != self.includepaths:
+          localvariables += [ ( 'includepaths', localincludepaths ) ]
         for name in sources:
           if name.endswith( '.c' ):
-            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ] )
+            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
           elif name.endswith( '.m' ):
-            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext + 'm' ), 'cm', os.path.join( basepath, module, name ), variables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ] )
+            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext + 'm' ), 'cm', os.path.join( basepath, module, name ), variables = localvariables )
         archlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = [ ( 'ararchflags', localararchflags ) ] )
       if self.target.is_macosx() or self.target.is_ios():
         writer.newline()
@@ -460,9 +468,12 @@ class Toolchain(object):
     if binname is None:
       binname = module
     if configs is None:
-      configs = self.configs
+      configs = list( self.configs )
+    if includepaths == None:
+      includepaths = list( self.includepaths )
     for config in configs:      
       localcconfigflags = self.make_cconfigflags( config )
+      localincludepaths = self.make_includepaths( includepaths )
       built[config] = []
       local_deps = self.list_per_config( implicit_deps, config )
       for arch in self.archs:
@@ -476,8 +487,11 @@ class Toolchain(object):
         localcarchflags = self.make_carchflags( arch )
         locallinkarchflags = self.make_linkarchflags( arch )
         locallibpaths = self.make_libpaths( self.libpaths + [ libpath ] )
+        localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
+        if includepaths != self.includepaths:
+          localvariables += [ ( 'includepaths', localincludepaths ) ]
         for name in sources:
-          objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ] )
+          objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ] )
         if resources:
           for resource in resources:
@@ -493,9 +507,11 @@ class Toolchain(object):
     if binname is None:
       binname = module
     if configs is None:
-      configs = self.configs
+      configs = list( self.configs )
+    if includepaths == None:
+      includepaths = list( self.includepaths )
     for config in configs:
-      archbins = self.bin( writer, basepath, module, sources, binname, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ] )
+      archbins = self.bin( writer, basepath, module, sources, binname, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
         builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', archbins )
