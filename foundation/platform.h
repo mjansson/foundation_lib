@@ -465,13 +465,6 @@
 #  error Unknown platform
 #endif
 
-#if FOUNDATION_ARCH_ARM
-#  if defined(__thumb__)
-#    undef  FOUNDATION_ARCH_THUMB
-#    define FOUNDATION_ARCH_THUMB 1
-#  endif
-#endif
-
 
 //Utility macros
 #define FOUNDATION_PREPROCESSOR_TOSTRING( x )          _FOUNDATION_PREPROCESSOR_TOSTRING(x)
@@ -504,6 +497,11 @@
 #ifdef __ARM_NEON__
 #  undef  FOUNDATION_ARCH_NEON
 #  define FOUNDATION_ARCH_NEON 1
+#endif
+
+#ifdef __thumb__
+#  undef  FOUNDATION_ARCH_THUMB
+#  define FOUNDATION_ARCH_THUMB 1
 #endif
 
 

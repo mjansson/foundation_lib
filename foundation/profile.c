@@ -34,7 +34,7 @@ struct _profile_block_data
 	uint64_t              end;
 	char                  name[ MAX_MESSAGE_LENGTH + 1 ];
 }; //sizeof( profile_block_data ) == 58
-FOUNDATION_STATIC_ASSERT( sizeof( profile_block_data_t ) == 58, profile_block_data_size );
+FOUNDATION_STATIC_ASSERT( sizeof( profile_block_data_t ) == 58, "profile_block_data_t size" );
 
 #pragma pack(pop)
 
@@ -45,7 +45,7 @@ struct _profile_block
 	uint16_t              sibling;
 	uint16_t              child;
 }; //sizeof( profile_block ) == 64
-FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, profile_block_size );
+FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, "profile_block_t size" );
 
 #define PROFILE_ID_ENDOFSTREAM      0
 #define PROFILE_ID_SYSTEMINFO       1
