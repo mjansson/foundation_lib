@@ -62,6 +62,10 @@ FOUNDATION_API int                  assert_report_formatted( uint64_t context, c
 
 #if FOUNDATION_COMPILER_CLANG || FOUNDATION_COMPILER_INTEL || ( FOUNDATION_COMPILER_GCC && ( ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) ) ) )
 #  define FOUNDATION_STATIC_ASSERT( cond, msg ) _Static_assert( cond, msg )
+#elif FOUNDATION_COMPILER_MSVC && ( _MSC_VER > 1600 )
+#  define FOUNDATION_STATIC_ASSERT( cond, msg ) static_assert( cond, msg )
+#elif defined( __COUNTER__ )
+#  define FOUNDATION_STATIC_ASSERT( cond, msg ) /*lint -e{506, 751, 778} */ typedef char FOUNDATION_PREPROCESSOR_JOIN( _static_assert_at_line_, __COUNTER__ )[(cond)?1:-1]
 #else
 #  define FOUNDATION_STATIC_ASSERT( cond, msg ) /*lint -e{506, 751, 778} */ typedef char FOUNDATION_PREPROCESSOR_JOIN( _static_assert_at_line_, __LINE__ )[(cond)?1:-1]
 #endif
