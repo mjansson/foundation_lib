@@ -307,10 +307,11 @@ DECLARE_TEST( profile, stream )
 	object_t thread[32];
 	int ith;
 	int frame;
+	char* filename;
 
 	error();
 	
-	char* filename = path_merge( environment_temporary_directory(), "test.profile" );
+	filename = path_merge( environment_temporary_directory(), "test.profile" );
 	log_infof( HASH_TEST, "Output to profile file: %s", filename );
 	fs_make_directory( environment_temporary_directory() );
 	_profile_stream = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );

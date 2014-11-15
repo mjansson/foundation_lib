@@ -651,6 +651,10 @@
 #  define FOUNDATION_COMPILER_NAME "msvc"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( _MSC_VER )
 
+#  define ATTRIBUTE(x)
+#  define ATTRIBUTE2(x,y)
+#  define ATTRIBUTE3(x,y,z)
+
 #  define RESTRICT __restrict
 #  define THREADLOCAL __declspec(thread)
 
