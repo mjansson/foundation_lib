@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+
+"""Ninja platform abstraction"""
 
 import sys
 

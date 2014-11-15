@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
+"""Ninja toolchain abstraction"""
+
 import sys
 import os
 import subprocess
-import platform_helper
 
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
@@ -12,7 +13,7 @@ def supported_architectures():
   return [ 'x86', 'x86-64', 'ppc', 'ppc64', 'arm6', 'arm7', 'arm64', 'mips', 'mips64' ]
 
 class Toolchain(object):
-  def __init__( self, toolchain, host, target, archs, configs, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
+  def __init__( self, toolchain, host, target, archs, configs, includepaths, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
     self.toolchain = toolchain
     self.host = host
     self.target = target
@@ -29,7 +30,10 @@ class Toolchain(object):
     self.ararchflags = []
     self.linkarchflags = []
     self.libpaths = []
-    self.includepaths = [ '.', 'test' ]
+    self.includepaths = []
+
+    if not includepaths is None:
+      self.includepaths = includepaths
 
     if self.archs is None or self.archs == []:
       if target.is_windows():
@@ -304,6 +308,9 @@ class Toolchain(object):
   def binpath( self ):
     return self.binpath
 
+  def includepaths( self ):
+    return self.includepaths
+
   def shell_escape( self, str ):
     # This isn't complete, but it's just enough to make NINJA_PYTHON work.
     if self.host.is_windows():
@@ -406,8 +413,21 @@ class Toolchain(object):
       config_list += config_dict[config]
     return config_list
 
-  def lib( self, writer, basepath, module, sources ):
+  def build_res( self, writer, basepath, module, resource, binpath, binname, config ):
+    if self.target.is_macosx() or self.target.is_ios():
+      appname = binname + '.app'
+      if resource.endswith( '.plist' ):
+        return writer.build( os.path.join( binpath, appname, binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
+      elif resource.endswith( '.xcassets' ):
+        return writer.build( os.path.join( binpath, appname ), 'xcassets', os.path.join( basepath, module, resource ) )
+      elif resource.endswith( '.xib' ):
+        return writer.build( os.path.join( binpath, appname, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
+    return []
+
+  def lib( self, writer, module, sources, basepath = None, includepaths = None ):
     built = {}
+    if basepath == None:
+      basepath = ''
     for config in self.configs:
       archlibs = []
       built[config] = []
@@ -430,21 +450,13 @@ class Toolchain(object):
         built[config] += writer.build( os.path.join( self.libpath, config, self.libprefix + module + self.staticlibext ), 'ar', archlibs, variables = [ ( 'arflags', '-static -no_warning_for_no_symbols' ) ] );
       else:
         built[config] += archlibs
+    writer.newline()
     return built
 
-  def build_res( self, writer, basepath, module, resource, binpath, binname, config ):
-    if self.target.is_macosx() or self.target.is_ios():
-      appname = binname + '.app'
-      if resource.endswith( '.plist' ):
-        return writer.build( os.path.join( binpath, appname, binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
-      elif resource.endswith( '.xcassets' ):
-        return writer.build( os.path.join( binpath, appname ), 'xcassets', os.path.join( basepath, module, resource ) )
-      elif resource.endswith( '.xib' ):
-        return writer.build( os.path.join( binpath, appname, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
-    return []
-
-  def bin( self, writer, basepath, module, sources, binname, implicit_deps = None, libs = None, resources = None, configs = None ):
+  def bin( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
     built = {}
+    if basepath is None:
+      basepath = ''
     if binname is None:
       binname = module
     if configs is None:
@@ -470,14 +482,19 @@ class Toolchain(object):
         if resources:
           for resource in resources:
             built[config] += self.build_res( writer, basepath, module, resource, binpath, binname, config )
+    writer.newline()
     return built
 
-  def app( self, writer, basepath, module, sources, binname, implicit_deps = None, libs = None, resources = None ):
+  def app( self, writer, basepath, module, sources, binname, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
     builtres = []
     builtapp = []
+    if basepath is None:
+      basepath = ''
     if binname is None:
       binname = module
-    for config in self.configs:
+    if configs is None:
+      configs = self.configs
+    for config in configs:
       archbins = self.bin( writer, basepath, module, sources, binname, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ] )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
@@ -485,4 +502,6 @@ class Toolchain(object):
         if resources:
           for resource in resources:
             builtres += self.build_res( writer, basepath, module, resource, os.path.join( self.binpath, config ), binname, config )
+        writer.newline()
     return builtapp + builtbin
+
