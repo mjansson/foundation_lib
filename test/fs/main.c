@@ -516,8 +516,10 @@ DECLARE_TEST( fs, monitor )
 		while( ( event = event_next( block, event ) ) )
 		{
 			bool found = false;
-			
-			EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
+			char eventstr[256];
+			string_format_buffer(eventstr, 256, "event %d:%d:%d:%d:%s", event->id, event->flags, event->serial, event->size, (const char*)event->payload);
+
+			EXPECT_EQ_MSG(event->id, FOUNDATIONEVENT_FILE_DELETED, eventstr);
 			
 			for( isub = 0; isub < MULTICOUNT; ++isub )
 			{
