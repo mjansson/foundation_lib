@@ -178,7 +178,7 @@ bool fs_is_directory( const char* path )
 	wchar_t* wpath = wstring_allocate_from_string( path, 0 );
 	unsigned int attr = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
-	if( ( attr == 0xFFFFFFFF) || !( attr & FILE_ATTRIBUTE_DIRECTORY ) )
+	if( ( attr == 0xFFFFFFFF ) || !( attr & FILE_ATTRIBUTE_DIRECTORY ) )
 		return false;
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -912,11 +912,12 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						}
 						else
 						{
+							//log_infof(HASH_TEST, "File system changed: %s (%s) (%d) (dir: %s) (file: %s)", fullpath, utfstr, info->Action, fs_is_directory( fullpath ) ? "yes" : "no", fs_is_file( fullpath ) ? "yes" : "no" );
 							switch( info->Action )
 							{
 								case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
 								case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
-								case FILE_ACTION_MODIFIED:  event = FOUNDATIONEVENT_FILE_MODIFIED; break;
+								case FILE_ACTION_MODIFIED:  if( fs_is_file( fullpath ) ) event = FOUNDATIONEVENT_FILE_MODIFIED; break;
 
 								//Treat rename as delete/add pair
 								case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
@@ -924,8 +925,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 								default: break;
 							}
-
-							//log_debugf( 0, "File system changed: %s (action %d)", utfstr, info->Action );
 
 							if( event )
 								fs_post_event( event, fullpath, 0 );
