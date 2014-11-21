@@ -57,10 +57,13 @@ class Toolchain(object):
       self.cflags = []
       self.arflags = []
       self.linkflags = []
+      self.extralibs = []
       self.objext = '.obj'
       self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags -c $in /Fo$out'
       self.ccdepfile = None
       self.ccdeps = 'msvc'
+      self.arcmd = '$ar /OUT:$out /NOLOGO'
+      self.linkcmd = '$link'
 
     elif self.toolchain.startswith('gcc') or self.toolchain.startswith('gnu'):
       self.toolchain = 'gcc' 
@@ -449,7 +452,7 @@ class Toolchain(object):
         for name in sources:
           if name.endswith( '.c' ):
             objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
-          elif name.endswith( '.m' ):
+          elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
             objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext + 'm' ), 'cm', os.path.join( basepath, module, name ), variables = localvariables )
         archlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = [ ( 'ararchflags', localararchflags ) ] )
       if self.target.is_macosx() or self.target.is_ios():
