@@ -28,7 +28,9 @@ class Toolchain(object):
     self.cconfigflags = []
     self.carchflags = []
     self.ararchflags = []
+    self.arconfigflags = []
     self.linkarchflags = []
+    self.linkconfigflags = []
     self.libpaths = []
     self.includepaths = []
 
@@ -53,17 +55,17 @@ class Toolchain(object):
       self.toolchain = 'msvc'
       self.cc = 'cl'
       self.ar = 'lib'
-      self.link = 'cl'
-      self.cflags = []
+      self.link = 'link'
+      self.cflags = [ '/FS', '/D', '"FOUNDATION_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
       self.arflags = []
       self.linkflags = []
-      self.extralibs = []
+      self.extralibs = [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
       self.objext = '.obj'
-      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags -c $in /Fo$out'
+      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /nologo'
       self.ccdepfile = None
       self.ccdeps = 'msvc'
-      self.arcmd = '$ar /OUT:$out /NOLOGO'
-      self.linkcmd = '$link'
+      self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
+      self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $libs $in'
 
     elif self.toolchain.startswith('gcc') or self.toolchain.startswith('gnu'):
       self.toolchain = 'gcc' 
@@ -86,7 +88,7 @@ class Toolchain(object):
       self.ccdepfile = '$out.d'
 
       self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
-      self.linkcmd = '$cc $libpaths $linkflags $linkarchflags -o $out $in $libs'
+      self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs'
 
       if target.is_linux():
         self.linkflags += [ '-pthread' ]
@@ -142,7 +144,7 @@ class Toolchain(object):
         self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $mflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = 'rm -f $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
-        self.linkcmd = '$link $libpaths $linkflags $linkarchflags $in $libs -o $out'
+        self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
         self.plistcmd = '$plist -convert binary1 -o $out -- $in'
         self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist /tmp/partial-assets.plist' \
                            ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target 6.0' \
@@ -152,7 +154,7 @@ class Toolchain(object):
                       ' --output-format human-readable-text --compile $out $in'
       else:
         self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
-        self.linkcmd = '$cc $libpaths $linkflags $linkarchflags -o $out $in $libs'
+        self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs'
 
       if target.is_macosx():
         self.linkflags += [ '-framework', 'Cocoa', '-framework', 'CoreFoundation' ]
@@ -206,6 +208,15 @@ class Toolchain(object):
         else:
           flags += '-O4'
         flags += ' -DBUILD_DEPLOY=1 -funroll-loops'
+    elif self.toolchain == 'msvc':
+      if config == 'debug':
+        flags += '/Od /D "BUILD_DEBUG=1" /GF- /Gm-'
+      elif config == 'release':
+        flags += '/O2 /D "BUILD_RELEASE=1" /Ob2 /Ot /GT /GL /GF /Gm-'
+      elif config == 'profile':
+        flags += '/Ox /D "BUILD_PROFILE=1" /Ob2 /Ot /GT /GL /GF /Gm-'
+      elif config == 'deploy':
+        flags += '/Ox /D "BUILD_DEPLOY=1" /Ob2 /Ot /GT /GL /GF /Gm-'
     return flags
 
   def make_carchflags( self, arch ):
@@ -237,6 +248,18 @@ class Toolchain(object):
         flags += '-arch_only armv7'
       elif arch == 'arm64':
         flags += '-arch_only arm64'
+    elif self.toolchain == 'msvc':
+      if arch == 'x86':
+        flags += ' /MACHINE:X86'
+      elif arch == 'x86-64':
+        flags += ' /MACHINE:X64'
+    return flags.strip()
+
+  def make_arconfigflags( self, arch, config ):
+    flags = ''
+    if self.toolchain == 'msvc':
+      if config != 'debug':
+        flags += ' /LTCG'
     return flags.strip()
 
   def make_linkarchflags( self, arch ):
@@ -255,6 +278,20 @@ class Toolchain(object):
         flags += ' -m32'
       elif arch == 'x86-64':
         flags += ' -m64'
+    elif self.toolchain == 'msvc':
+      if arch == 'x86':
+        flags += ' /MACHINE:X86'
+      elif arch == 'x86-64':
+        flags += ' /MACHINE:X64'
+    return flags.strip()
+
+  def make_linkconfigflags( self, arch, config ):
+    flags = ''
+    if self.toolchain == 'msvc':
+      if config == 'debug':
+        flags += ' /DEBUG /INCREMENTAL'
+      else:
+        flags += ' /DEBUG /LTCG /INCREMENTAL:NO /OPT:REF /OPT:ICF'
     return flags.strip()
 
   def toolchain( self ):
@@ -322,6 +359,11 @@ class Toolchain(object):
       return "'%s'" % str.replace( "'", "\\'" )
     return str
 
+  def path_escape( self, str ):
+    if self.is_msvc():
+      return "\"%s\"" % str.replace( "\"", "'" )
+    return str
+
   def write_rules( self, writer ):
     writer.rule( 'cc',
                 command = self.cccmd,
@@ -377,6 +419,8 @@ class Toolchain(object):
         sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-path' ] ).strip()
       if sdkdir:
         writer.variable( 'sdkdir', sdkdir )
+    if self.target.is_windows():
+      writer.variable( 'pdbpath', '' )
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
@@ -391,7 +435,9 @@ class Toolchain(object):
     writer.variable( 'linkflags', ' '.join( self.shell_escape( flag ) for flag in self.linkflags ) )
     writer.variable( 'carchflags', ' '.join( self.shell_escape( flag ) for flag in self.carchflags ) )
     writer.variable( 'ararchflags', ' '.join( self.shell_escape( flag ) for flag in self.ararchflags ) )
+    writer.variable( 'arconfigflags', ' '.join( self.shell_escape( flag ) for flag in self.arconfigflags ) )
     writer.variable( 'linkarchflags', ' '.join( self.shell_escape( flag ) for flag in self.linkarchflags ) )
+    writer.variable( 'linkconfigflags', ' '.join( self.shell_escape( flag ) for flag in self.linkconfigflags ) )
     writer.variable( 'cconfigflags', ' '.join( self.shell_escape( flag ) for flag in self.cconfigflags ) )
     writer.variable( 'includepaths', ' '.join( self.shell_escape( path ) for path in self.make_includepaths( self.includepaths ) ) )
     writer.variable( 'libpaths', ' '.join( self.shell_escape( path ) for path in self.make_libpaths( self.libpaths ) ) )
@@ -403,9 +449,13 @@ class Toolchain(object):
     return [ '-l' + lib for lib in libs ]
 
   def make_includepaths( self, includepaths ):
+    if self.is_msvc():
+      return [ '/I' + self.path_escape(path) for path in includepaths ]
     return [ '-I' + path for path in includepaths ]
 
   def make_libpaths( self, libpaths ):
+    if self.is_msvc():
+      return [ '/LIBPATH:' + self.path_escape(path) for path in libpaths ]
     return [ '-L' + path for path in libpaths ]
 
   def list_per_config( self, config_dicts, config ):
@@ -447,14 +497,19 @@ class Toolchain(object):
         localcarchflags = self.make_carchflags( arch )
         localararchflags = self.make_ararchflags( arch )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
+        if self.target.is_windows():
+          pdbpath = os.path.join( buildpath, 'ninja.pdb' )
+          localvariables += [ ( 'pdbpath', pdbpath ) ] 
         if includepaths != self.includepaths:
           localvariables += [ ( 'includepaths', localincludepaths ) ]
+        localarconfigflags = self.make_arconfigflags( arch, config )
+        localarvariables = [ ( 'ararchflags', localararchflags ), ( 'arconfigflags', localarconfigflags ) ]
         for name in sources:
           if name.endswith( '.c' ):
             objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
             objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext + 'm' ), 'cm', os.path.join( basepath, module, name ), variables = localvariables )
-        archlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = [ ( 'ararchflags', localararchflags ) ] )
+        archlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = localarvariables )
       if self.target.is_macosx() or self.target.is_ios():
         writer.newline()
         writer.comment( "Make universal library" )
@@ -489,13 +544,18 @@ class Toolchain(object):
           libpath = os.path.join( self.libpath, config, arch )
         localcarchflags = self.make_carchflags( arch )
         locallinkarchflags = self.make_linkarchflags( arch )
+        locallinkconfigflags = self.make_linkconfigflags( arch, config )
         locallibpaths = self.make_libpaths( self.libpaths + [ libpath ] )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
         if includepaths != self.includepaths:
           localvariables += [ ( 'includepaths', localincludepaths ) ]
+        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
+        if self.target.is_windows():
+          pdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
+          locallinkvariables += [ ( 'pdbpath', pdbpath ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
-        built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ] )
+        built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
         if resources:
           for resource in resources:
             built[config] += self.build_res( writer, basepath, module, resource, binpath, binname, config )
