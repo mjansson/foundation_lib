@@ -529,7 +529,7 @@ class Toolchain(object):
       configs = list( self.configs )
     if includepaths == None:
       includepaths = list( self.includepaths )
-    for config in configs:      
+    for config in configs:
       localcconfigflags = self.make_cconfigflags( config )
       localincludepaths = self.make_includepaths( includepaths )
       built[config] = []
@@ -562,7 +562,7 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def app( self, writer, basepath, module, sources, binname, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
+  def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
     builtres = []
     builtapp = []
     if basepath is None:
@@ -574,10 +574,13 @@ class Toolchain(object):
     if includepaths == None:
       includepaths = list( self.includepaths )
     for config in configs:
-      archbins = self.bin( writer, basepath, module, sources, binname, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths )
+      archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
-        builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', archbins )
+        binlist = []
+        for _, value in archbins.iteritems():
+          binlist += value
+        builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
         if resources:
           for resource in resources:
             builtres += self.build_res( writer, basepath, module, resource, os.path.join( self.binpath, config ), binname, config )

@@ -176,12 +176,21 @@ int main_run( void* main_arg )
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
 #endif
+#if BUILD_DEBUG
+	const char* build_name = "debug";
+#elif BUILD_RELEASE
+	const char* build_name = "release";
+#elif BUILD_PROFILE
+	const char* ATTRIBUTE(unused) build_name = "profile";
+#elif BUILD_DEPLOY
+	const char* ATTRIBUTE(unused) build_name = "deploy";
+#endif
 	int process_result = 0;
 	object_t thread = 0;
 	
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
-	log_infof( HASH_TEST, "Foundation library v%s built for %s", string_from_version_static( foundation_version() ), test_arch_name[ system_architecture() ] );
+	log_infof( HASH_TEST, "Foundation library v%s built for %s (%s)", string_from_version_static( foundation_version() ), test_arch_name[ system_architecture() ], build_name );
 	FOUNDATION_UNUSED( test_arch_name );
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
