@@ -71,25 +71,38 @@ For android each architecture has it's own subdirectory and separate library
 Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/
 
 \section windows Windows
-On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2012/2013, as well as
-with Microsoft, Intel, GCC and clang compilers using SCons. Both 32 and 64 bit Windows are supported.
+On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013, as well as
+with Microsoft, Intel, GCC and clang compilers using Ninja. Both 32-bit and 64-bit Windows are supported.
+
 \subsection win_vstudio Visual Studio
-To build with Visual Studio, open the foundation.sln solution file for the Visual Studio version used. Currently
-there are solution files provided for Visual Studio 2012 and 2013 in build/vs12 and build/vs13 respectively.
+To build with Visual Studio, open the foundation.sln solution file Visual Studio 2013 in <code>build/vs13</code>.
+To build all targets and configurations use batch build, select all targets and build.
 
-To build all targets and configurations use batch build, select all targets and build. 
+\subsection win_ninja Ninja
+To build with Ninja use the build configuration python script in the root directory to set the architectures and build
+configurations you want. Multiple architectures and build configurations can be enabled in a single build. Run configure.py
+with <code>-h</code> switch for help. For example, to build debug, release and deploy configurations for both 32-bit and 64-bit
+with intel compiler use <code>python configure.py -a x86 -a x86-64 -c debug -c release -c deploy --toolchain intel</code>.
 
-\subsection win_scons SCons
-To build with SCons verify the configuration set in build/scons/SConfig. You can also set all options as key=value
-arguments on the command line. For example, to build release configuration with intel compiler use
-"scons config=release tools=intel"
+The default toolchain on Windows is the Microsoft compiler suite. You should run the appropriate <code>vcvarsall.bat</code>
+environment setup batch script prior to starting builds (or use the preconfigured command prompts from Visual Studio installs).
 
-If you use SublimeText there is a template SublimeText project with a SCons build tool setup in build/foundation.sublime-project
+If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
+The build requires you to have generated a ninja build with the configure.py python script.
 
 \section osx MacOS X
 \subsection osx_xcode XCode
-XCode is the only supported method of building the library and test cases on MacOS X. Open the XCode workspace in
-build/xcode/foundation-osx.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
+XCode is the preferred method of building the library and test cases on MacOS X. Open the XCode workspace in
+<code>build/xcode/foundation-osx.xcworkspace</code> and build the appropriate targets. The workspace contains projects
+for both foundation library and test cases. The only supported architecture is x86-64 targetting MacOS X 10.7 or later.
+
+\subsection osx_ninja Ninja
+To build with Ninja use the build configuration python script in the root directory to set the build configurations you want.
+Multiple build configurations can be enabled in a single build. Run configure.py with <code>-h</code> switch for help. For example,
+to build debug, release and deploy configurations use <code>configure.py -c debug -c release -c deploy</code>.
+
+The ninja build will use clang toolchain by default. The only supported architecture is x86-64 targetting MacOS X 10.7 or later.
+The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.	
 
 \section linux Linux
 \subsection linux_scons SCons
