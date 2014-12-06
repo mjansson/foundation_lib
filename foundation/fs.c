@@ -831,7 +831,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #endif
 
-	log_debugf( 0, "Monitoring file system: %s", monitor_path );
+	log_debugf( 0, "Monitoring file system: %s", atomic_loadptr( &monitor->path ) );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{

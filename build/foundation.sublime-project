@@ -3,38 +3,27 @@
 	[
 		{
 			"follow_symlinks": true,
-			"path": "..\\foundation"
+			"path": "../foundation"
 		},
 		{
 			"follow_symlinks": true,
-			"path": "..\\test"
+			"path": "../test"
 		},
 		{
 			"follow_symlinks": true,
-			"path": "..\\tools"
+			"path": "../tools"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "../doc"
 		}
 	],
 	"build_systems":
 	[
 		{
-			"name": "SCons - Intel",
-			"shell_cmd": "scons tools=intel",
-			"working_dir": "${project_path:${folder:${file_path}}}\\..",
-		},
-		{
-			"name": "SCons - MSVC",
-			"shell_cmd": "scons tools=msvc",
-			"working_dir": "${project_path:${folder:${file_path}}}\\..",
-		},
-		{
-			"name": "SCons - CLang",
-			"shell_cmd": "scons tools=clang",
-			"working_dir": "${project_path:${folder:${file_path}}}\\..",
-		},
-		{
-			"name": "SCons - GCC",
-			"shell_cmd": "scons tools=gnu",
-			"working_dir": "${project_path:${folder:${file_path}}}\\..",
+			"name": "Ninja",
+			"shell_cmd": "ninja",
+			"working_dir": "${project_path:${folder:${file_path}}}/..",
 		}
 	]
 }

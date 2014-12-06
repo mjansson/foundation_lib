@@ -62,7 +62,7 @@ static void* event_thread( object_t thread, void* arg )
 }
 
 
-#if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS && BUILD_ENABLE_LOG
 
 #include <foundation/delegate.h>
 #include <test/test.h>
@@ -87,7 +87,7 @@ int main_initialize( void )
 	
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	
-#if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS && BUILD_ENABLE_LOG
 	log_set_callback( test_log_callback );
 #endif
 	
