@@ -85,7 +85,8 @@ with <code>-h</code> switch for help. For example, to build debug, release and d
 with intel compiler use <code>python configure.py -a x86 -a x86-64 -c debug -c release -c deploy --toolchain intel</code>.
 
 The default toolchain on Windows is the Microsoft compiler suite. You should run the appropriate <code>vcvarsall.bat</code>
-environment setup batch script prior to starting builds (or use the preconfigured command prompts from Visual Studio installs).
+environment setup batch script for the architecture you choose prior to starting builds
+(or use the preconfigured command prompts from Visual Studio installs).
 
 If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
 The build requires you to have generated a ninja build with the configure.py python script.
@@ -104,18 +105,30 @@ to build debug, release and deploy configurations use <code>configure.py -c debu
 The ninja build will use clang toolchain by default. The only supported architecture is x86-64 targetting MacOS X 10.7 or later.
 The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.	
 
-\section linux Linux
-\subsection linux_scons SCons
-SCons is the only supported method of building the library on Linux. Verify the configuration set in build/scons/SConfig.
-You can also set all options as key=value arguments on the command line. For example, to build release configuration with gnu
-compiler use "scons config=release tools=gnu"
-
-If you use SublimeText there is a template SublimeText project with a SCons build tool setup in build/foundation.sublime-project
-
 \section ios iOS
 \subsection ios_xcode XCode
-XCode is the only supported method of building the library and test cases for iOS. Open the XCode workspace in
+XCode is the preferred method of building the library and test cases for iOS. Open the XCode workspace in
 build/xcode/foundation-ios.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
+
+\subsection osx_ninja Ninja
+To build with Ninja use the build configuration python script in the root directory to set the build configurations you want.
+Multiple build configurations can be enabled in a single build. Run configure.py with <code>-h</code> switch for help. For example,
+to build debug, release and deploy configurations use <code>configure.py -c debug -c release -c deploy</code>.
+
+The ninja build will use clang toolchain by default. The supported architectures are arm7 and arm64 targetting iOS 6 or later.
+The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.	
+
+\section linux Linux
+\subsection linux_ninja
+Ninja is the only supported method of building the library on Linux. To build with Ninja use the build configuration python script
+in the root directory to set the build configurations you want. Multiple build configurations can be enabled in a single build.
+Run configure.py with <code>-h</code> switch for help. For example, to build debug, release and deploy configurations use
+<code>configure.py -c debug -c release -c deploy</code>.
+
+The ninja build will use clang toolchain by default. The supported architectures are x86, x86-64, arm6, arm7, arm64, mips and mips64.
+
+If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
+The build requires you to have generated a ninja build with the configure.py python script.
 
 \section android Android
 \subsection android_ndk NDK build
@@ -265,7 +278,10 @@ The memory management module also provides memory tracking if compiled with #BUI
 Finally there is a memory overwrite/underwrite guard functionality built in and enabled with the #BUILD_ENABLE_MEMORY_GUARD build.h preprocessor directive. This will incur a slight memory overhead on each allocation, adding a dead zone before and after each allocated memory block for detecting invalid memory writes outside the allocated area. This functionality is built on top of the memory system implementation which does not need to provide a guard implementation internally.
 
 \section threading Threading
-To be written... (thread, semaphore, mutex, atomic)
+The library provides many primitives for supporting multithreaded programming: Threads, thread-local data, semaphores, mutexes and atomic operations. These constructs are also used internally in the library for providing thread-safe implementations.
+
+The thread module can be used to easily create and manage multiple threads of execution. Threads are reference counted and created with #thread_create. New references can be made with #thread_ref, and a reference can be released with #thread_destroy. The thread will be deallocated once the reference count reaches zero. Execution of a thread is started with #thread_start, which will also increase the reference count by one. A thread can only be started once, if you want multiple execution threads for the same function you need to create multiple thread objects, once for each execution thread.
+...
 
 \section debugging Debugging, profiling, logging and error handling
 To be written... (crash, profile, log, )
@@ -283,7 +299,7 @@ To be written... (utf-8, wide strings)
 \page using_page Using the foundation library in a project
 
 \section project_setup Project setup
-To be written... (headers, linking)
+To be written... (headers, linking, build systems)
 
 \section template_app Template application
 To be written... (initialization, shutdown, environment, system, config, library)
