@@ -552,6 +552,7 @@ class Toolchain(object):
         locallinkvariables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
         if self.target.is_windows():
           pdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
+          localvariables += [ ( 'pdbpath', pdbpath ) ] 
           locallinkvariables += [ ( 'pdbpath', pdbpath ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
