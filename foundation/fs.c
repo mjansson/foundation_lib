@@ -178,7 +178,7 @@ bool fs_is_directory( const char* path )
 	wchar_t* wpath = wstring_allocate_from_string( path, 0 );
 	unsigned int attr = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
-	if( ( attr == 0xFFFFFFFF) || !( attr & FILE_ATTRIBUTE_DIRECTORY ) )
+	if( ( attr == 0xFFFFFFFF ) || !( attr & FILE_ATTRIBUTE_DIRECTORY ) )
 		return false;
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -776,7 +776,6 @@ extern void  _fs_event_stream_flush( void* stream );
 void* _fs_monitor( object_t thread, void* monitorptr )
 {
 	fs_monitor_t* monitor = monitorptr;
-	char* monitor_path = atomic_loadptr( &monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -789,6 +788,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	unsigned int wait_status = 0;
 	wchar_t* wfpath = 0;
 	void* buffer = 0;
+  char* monitor_path = atomic_loadptr( &monitor->path );
 
 	memory_context_push( HASH_STREAM );
 
@@ -805,6 +805,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
+  char* monitor_path = atomic_loadptr( &monitor->path );
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
 	char** paths = 0;
@@ -818,6 +819,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
+  char* monitor_path = atomic_loadptr( &monitor->path );
+
 	memory_context_push( HASH_STREAM );
 
 	void* event_stream = _fs_event_stream_create( monitor_path );
@@ -828,7 +831,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #endif
 
-	log_debugf( 0, "Monitoring file system: %s", monitor_path );
+	log_debugf( 0, "Monitoring file system: %s", atomic_loadptr( &monitor->path ) );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
@@ -909,11 +912,12 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 						}
 						else
 						{
+							//log_infof(HASH_TEST, "File system changed: %s (%s) (%d) (dir: %s) (file: %s)", fullpath, utfstr, info->Action, fs_is_directory( fullpath ) ? "yes" : "no", fs_is_file( fullpath ) ? "yes" : "no" );
 							switch( info->Action )
 							{
 								case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
 								case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
-								case FILE_ACTION_MODIFIED:  event = FOUNDATIONEVENT_FILE_MODIFIED; break;
+								case FILE_ACTION_MODIFIED:  if( fs_is_file( fullpath ) ) event = FOUNDATIONEVENT_FILE_MODIFIED; break;
 
 								//Treat rename as delete/add pair
 								case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
@@ -921,8 +925,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 								default: break;
 							}
-
-							//log_debugf( 0, "File system changed: %s (action %d)", utfstr, info->Action );
 
 							if( event )
 								fs_post_event( event, fullpath, 0 );
@@ -947,8 +949,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
-		int ret = ioctl( notify_fd, FIONREAD, &avail );
-		//log_debugf( 0, "ioctl inotify: %d", avail );
+		/*int ret =*/ ioctl( notify_fd, FIONREAD, &avail );
+		//log_debugf( 0, "ioctl inotify: %d (%d)", avail, ret );
 		if( avail > 0 )
 		{
 			void* buffer = memory_allocate( HASH_STREAM, avail + 4, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
@@ -958,7 +960,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while( offset < avail_read )
 			{
-				foundation_event_id eventid = 0;
 				fs_watch_t* curwatch = _lookup_watch( watch, event->wd );
 				if( !curwatch )
 				{
@@ -1181,7 +1182,6 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 {
 	int64_t cur;
 	stream_file_t* file;
-	bool has_protocol;
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
 	wchar_t* wpath;
@@ -1203,8 +1203,6 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 		fclose( (FILE*)file->fd );
 		file->fd = 0;
 	}
-
-	has_protocol = string_equal_substr( file->path, "file://", 7 );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	wpath = wstring_allocate_from_string( _fs_path( file->path ), 0 );
@@ -1355,15 +1353,6 @@ static void _fs_file_finalize( stream_t* stream )
 }
 
 
-static const char* _fs_file_path( const stream_t* stream )
-{
-	const stream_file_t* file = GET_FILE_CONST( stream );
-	if( !file || ( stream->type != STREAMTYPE_FILE ) )
-		return 0;
-	return file->path;
-}
-
-
 stream_t* fs_open_file( const char* path, unsigned int mode )
 {
 	stream_file_t* file;
@@ -1436,7 +1425,7 @@ int _fs_initialize( void )
 	_fs_file_vtable.tell = _fs_file_tell;
 	_fs_file_vtable.lastmod = _fs_file_last_modified;
 	_fs_file_vtable.buffer_read = 0;
-	_fs_file_vtable.available_read = 0;
+	_fs_file_vtable.available_read = _fs_file_available_read;
 	_fs_file_vtable.finalize = _fs_file_finalize;
 	_fs_file_vtable.clone = _fs_file_clone;
 

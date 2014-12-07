@@ -333,7 +333,7 @@
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Linux PPC"
-#  elif defined( __arm__ ) || FOUNDATION_ARCH_ARM
+#  elif defined( __arm__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
@@ -465,13 +465,6 @@
 #  error Unknown platform
 #endif
 
-#if FOUNDATION_ARCH_ARM
-#  if defined(__thumb__)
-#    undef  FOUNDATION_ARCH_THUMB
-#    define FOUNDATION_ARCH_THUMB 1
-#  endif
-#endif
-
 
 //Utility macros
 #define FOUNDATION_PREPROCESSOR_TOSTRING( x )          _FOUNDATION_PREPROCESSOR_TOSTRING(x)
@@ -504,6 +497,11 @@
 #ifdef __ARM_NEON__
 #  undef  FOUNDATION_ARCH_NEON
 #  define FOUNDATION_ARCH_NEON 1
+#endif
+
+#ifdef __thumb__
+#  undef  FOUNDATION_ARCH_THUMB
+#  define FOUNDATION_ARCH_THUMB 1
 #endif
 
 
@@ -653,6 +651,10 @@
 #  define FOUNDATION_COMPILER_NAME "msvc"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( _MSC_VER )
 
+#  define ATTRIBUTE(x)
+#  define ATTRIBUTE2(x,y)
+#  define ATTRIBUTE3(x,y,z)
+
 #  define RESTRICT __restrict
 #  define THREADLOCAL __declspec(thread)
 
@@ -791,6 +793,7 @@ typedef ALIGN(FOUNDATION_SIZE_POINTER) struct atomicptr_t atomicptr_t;
 // Base limits
 #define FOUNDATION_MAX_PATHLEN    512
 
+#define FOUNDATION_UNUSED(x) (void)(x)
 
 // Wrappers for platforms that not yet support thread-local storage declarations
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID

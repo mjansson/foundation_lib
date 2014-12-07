@@ -49,17 +49,9 @@ DECLARE_TEST( bufferstream, null )
 	tick_t curtime = time_current();
 	uint8_t readbuffer[1024] = {0};
 	uint8_t writebuffer[1024] = {0};
-	uint128_t md5null;
 	uint128_t md5zero;
 
-	{
-		md5_t* md5 = md5_allocate();
-		md5_digest_finalize( md5 );
-		md5null = md5_get_digest_raw( md5 );
-		md5_deallocate( md5 );
-
-		md5zero = uint128_null();
-	}
+	md5zero = uint128_null();
 
 	stream = buffer_stream_allocate( 0, 0, 0, 0, false, false );
 	EXPECT_NE( stream, 0 );
@@ -113,15 +105,12 @@ DECLARE_TEST( bufferstream, zero )
 	uint8_t writebuffer[1024] = {0};
 	uint8_t backing_store[1024] = {0};
 	uint128_t md5null;
-	uint128_t md5zero;
 
 	{
 		md5_t* md5 = md5_allocate();
 		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
-
-		md5zero = uint128_null();
 	}
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 0, 0, false, false );
@@ -175,7 +164,6 @@ DECLARE_TEST( bufferstream, null_grow )
 	char readbuffer[1024] = {0};
 	char writebuffer[1024] = {0};
 	uint128_t md5null;
-	uint128_t md5known;
 	unsigned int slength;
 
 	{
@@ -183,8 +171,6 @@ DECLARE_TEST( bufferstream, null_grow )
 		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
-
-		md5known = uint128_make( 0x208f271bebabedd2ULL, 0x3e2617e655b0caadULL );
 	}
 
 	stream = buffer_stream_allocate( 0, STREAM_IN | STREAM_OUT, 0, 0, true, true );
@@ -244,7 +230,6 @@ DECLARE_TEST( bufferstream, zero_grow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 315, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	uint128_t md5null;
-	uint128_t md5known;
 	unsigned int slength;
 
 	{
@@ -252,8 +237,6 @@ DECLARE_TEST( bufferstream, zero_grow )
 		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
-
-		md5known = uint128_make( 0x208f271bebabedd2ULL, 0x3e2617e655b0caadULL );
 	}
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 0, 315, true, true );
@@ -313,7 +296,6 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
-	uint128_t md5known;
 	unsigned int slength;
 
 	{
@@ -321,8 +303,6 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
-
-		md5known = uint128_make( 0x208f271bebabedd2ULL, 0x3e2617e655b0caadULL );
 	}
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 0, 1024, true, false );
@@ -382,7 +362,6 @@ DECLARE_TEST( bufferstream, sized_grow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
-	uint128_t md5known;
 	unsigned int slength;
 
 	{
@@ -390,8 +369,6 @@ DECLARE_TEST( bufferstream, sized_grow )
 		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
-
-		md5known = uint128_make( 0x208f271bebabedd2ULL, 0x3e2617e655b0caadULL );
 	}
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 315, 1024, true, true );
@@ -451,7 +428,6 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
-	uint128_t md5known;
 	unsigned int slength;
 
 	{
@@ -459,8 +435,6 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 		md5_digest_finalize( md5 );
 		md5null = md5_get_digest_raw( md5 );
 		md5_deallocate( md5 );
-
-		md5known = uint128_make( 0x208f271bebabedd2ULL, 0x3e2617e655b0caadULL );
 	}
 
 	stream = buffer_stream_allocate( backing_store, STREAM_IN | STREAM_OUT, 315, 1024, false, false );

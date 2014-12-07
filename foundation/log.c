@@ -31,6 +31,8 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #  include <foundation/posix.h>
 #endif
 
+#if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
+
 static bool             _log_stdout           = true;
 static bool             _log_prefix           = true;
 static log_callback_fn  _log_callback         = 0;
@@ -105,6 +107,7 @@ static log_timestamp_t _log_make_timestamp( void )
 	return timestamp;
 }
 
+#endif
 
 #if BUILD_ENABLE_LOG
 

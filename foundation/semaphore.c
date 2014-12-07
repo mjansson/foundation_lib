@@ -305,9 +305,11 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 
 void semaphore_finalize( semaphore_t* semaphore )
 {
-	sem_destroy( (native_sem_t*)semaphore->sem );
-
-	if( semaphore->name )
+	if( !semaphore->name )
+	{
+		sem_destroy( (native_sem_t*)semaphore->sem );
+	}
+	else
 	{
 		sem_unlink( semaphore->name );
 		sem_close( (native_sem_t*)semaphore->sem );

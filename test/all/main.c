@@ -62,7 +62,7 @@ static void* event_thread( object_t thread, void* arg )
 }
 
 
-#if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS && BUILD_ENABLE_LOG
 
 #include <foundation/delegate.h>
 #include <test/test.h>
@@ -87,7 +87,7 @@ int main_initialize( void )
 	
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	
-#if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS && BUILD_ENABLE_LOG
 	log_set_callback( test_log_callback );
 #endif
 	
@@ -152,6 +152,20 @@ static void* test_runner( object_t obj, void* arg )
 #endif
 
 
+static const char* test_arch_name[11] = {
+  "x86",
+  "x86-64",
+  "ppc",
+  "ppc64",
+  "arm5",
+  "arm6",
+  "arm7",
+  "arm8",
+  "arm8-64",
+  "mips",
+  "mips64"
+};
+
 int main_run( void* main_arg )
 {
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
@@ -162,10 +176,22 @@ int main_run( void* main_arg )
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
 #endif
+#if BUILD_DEBUG
+	const char* build_name = "debug";
+#elif BUILD_RELEASE
+	const char* build_name = "release";
+#elif BUILD_PROFILE
+	const char* ATTRIBUTE(unused) build_name = "profile";
+#elif BUILD_DEPLOY
+	const char* ATTRIBUTE(unused) build_name = "deploy";
+#endif
 	int process_result = 0;
 	object_t thread = 0;
 	
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
+
+	log_infof( HASH_TEST, "Foundation library v%s built for %s (%s)", string_from_version_static( foundation_version() ), test_arch_name[ system_architecture() ], build_name );
+	FOUNDATION_UNUSED( test_arch_name );
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
@@ -272,9 +298,9 @@ int main_run( void* main_arg )
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = "^test-.*.exe$";
 #elif FOUNDATION_PLATFORM_MACOSX
-	pattern = "^test-.*";
+	pattern = "^test-.*$";
 #elif FOUNDATION_PLATFORM_POSIX
-	pattern = "^test-.*";
+	pattern = "^test-.*$";
 #else
 #  error Not implemented
 #endif
@@ -282,8 +308,8 @@ int main_run( void* main_arg )
 	array_resize( exe_flags, array_size( exe_paths ) );
 	memset( exe_flags, 0, sizeof( unsigned int ) * array_size( exe_flags ) );
 #if FOUNDATION_PLATFORM_MACOSX
-	//Also search for test-*.app
-	const char* app_pattern = "test-*.app";
+	//Also search for test applications
+	const char* app_pattern = "^test-.*\\.app$";
 	char** subdirs = fs_subdirs( environment_executable_directory() );
 	for( int idir = 0, dirsize = array_size( subdirs ); idir < dirsize; ++idir )
 	{

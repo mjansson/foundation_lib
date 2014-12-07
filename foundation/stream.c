@@ -754,7 +754,7 @@ unsigned int stream_available_read( stream_t* stream )
 
 uint128_t stream_md5( stream_t* stream )
 {
-	int64_t cur, ic, offset, lastc, num;
+	int64_t cur, ic, lastc, num;
 	md5_t md5;
 	uint128_t ret = {0};
 	unsigned char buf[1025];
@@ -773,6 +773,7 @@ uint128_t stream_md5( stream_t* stream )
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 
 	md5_initialize( &md5 );
+	buf[1024] = 0;
 
 	while( !stream_eos( stream ) )
 	{
@@ -784,21 +785,23 @@ uint128_t stream_md5( stream_t* stream )
 		else
 		{
 			//If last buffer ended with CR, ignore a leading LF
-			offset = 0;
 			lastc = 0;
 			if( ignore_lf && ( buf[0] == '\n' ) )
-				offset = 1;
+				lastc = 1;
 			ignore_lf = false;
 
-			//Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line endings (for example, one line ending in a single CR and next ending in a single LF), it will not work!
-			for( ic = 0; ic < num; ++ic )
+			//Digest one line at a time
+			//Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line endings
+			//(for example, one line ending in a single CR and next is empty and ending in a single LF),
+			//it will not work!
+			for( ic = lastc; ic < num; ++ic )
 			{
 				bool was_cr = ( buf[ic] == '\r' );
 				bool was_lf = ( buf[ic] == '\n' );
 				if( was_cr || was_lf )
 				{
 					if( was_cr && ( ic >= 1023 ) )
-						ignore_lf = true;
+						ignore_lf = true; //Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
 					md5_digest_raw( &md5, buf + lastc, (size_t)( ic - lastc + 1 ) ); //Include the LF
 					if( was_cr && ( buf[ic+1] == '\n' ) ) //Check for CR+LF
