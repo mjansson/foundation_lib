@@ -1,7 +1,3 @@
-#################
-## Eclipse
-#################
-
 *.pydevproject
 .project
 .metadata
@@ -16,6 +12,7 @@ local.properties
 .settings/
 .loadpath
 .ninja*
+build.ninja
 
 # External tool builders
 .externalToolBuilders/
