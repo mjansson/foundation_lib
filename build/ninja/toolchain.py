@@ -74,7 +74,7 @@ class Toolchain(object):
       self.cc = 'gcc'
       self.ar = 'ar'
       self.link = 'gcc'
-      self.cflags = [ '-std=c11', '-DFOUNDATION_COMPILE=1',
+      self.cflags = [ '-DFOUNDATION_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
                       '-Wno-unused-value',
                       '-funit-at-a-time', '-fstrict-aliasing',
@@ -99,6 +99,11 @@ class Toolchain(object):
       if target.is_linux() or target.is_raspberrypi():
         self.linkflags += [ '-pthread' ]
         self.extralibs += [ 'dl', 'm' ]
+      if target.is_raspberrypi():
+        self.cflags += [ '-std=c99' ]
+        self.extralibs += [ 'rt' ]
+      else:
+        self.cflags += [ '-std=c11' ]
 
     elif self.toolchain.startswith('clang') or self.toolchain.startswith('llvm'):
       self.toolchain = 'clang' 
