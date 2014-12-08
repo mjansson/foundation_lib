@@ -50,6 +50,8 @@ class Toolchain(object):
         self.archs = [ 'x86-64' ]
       elif target.is_ios():
         self.archs = [ 'arm7', 'arm64' ]
+      elif target.is_raspberrypi():
+        self.archs = [ 'arm6' ]
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
@@ -90,7 +92,11 @@ class Toolchain(object):
       self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
       self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs'
 
-      if target.is_linux():
+      if host.is_raspberrypi():
+        self.includepaths += [ '/opt/vc/include', '/opt/vc/include/interface/vcos/pthreads' ]
+        self.libpaths += [ '/opt/vc/lib' ]
+
+      if target.is_linux() or target.is_raspberrypi():
         self.linkflags += [ '-pthread' ]
         self.extralibs += [ 'dl', 'm' ]
 
@@ -113,7 +119,7 @@ class Toolchain(object):
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
-      if host.is_macosx():        
+      if host.is_macosx() and (target.is_macosx() or target.is_ios()):
         if target.is_macosx():
           sdk = 'macosx'
           deploytarget = 'MACOSX_DEPLOYMENT_TARGET=10.7'
@@ -160,7 +166,10 @@ class Toolchain(object):
         self.linkflags += [ '-framework', 'Cocoa', '-framework', 'CoreFoundation' ]
       if target.is_ios():
         self.linkflags += [ '-framework', 'CoreGraphics', '-framework', 'UIKit', '-framework', 'Foundation' ]
-      if target.is_linux():
+      if host.is_raspberrypi():
+        self.includepaths += [ '/opt/vc/include', '/opt/vc/include/interface/vcos/pthreads' ]
+        self.libpaths += [ '/opt/vc/lib' ]
+      if target.is_linux() or target.is_raspberrypi():
         self.linkflags += [ '-pthread' ]
         self.extralibs += [ 'dl', 'm' ]
 
@@ -230,6 +239,8 @@ class Toolchain(object):
         flags += '-arch armv7'
       elif arch == 'arm64':
         flags += '-arch arm64'
+    elif self.target.is_raspberrypi():
+      flags += '-mfloat-abi=hard -mfpu=vfp -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -D__raspberrypi__=1'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -273,6 +284,8 @@ class Toolchain(object):
         flags += '-arch armv7'
       elif arch == 'arm64':
         flags += '-arch arm64'
+    elif self.target.is_raspberrypi():
+      pass
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -412,7 +425,7 @@ class Toolchain(object):
 
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
-    if self.host.is_macosx():
+    if self.host.is_macosx() and (self.target.is_macosx() or self.target.is_ios()):
       if self.target.is_macosx():
         sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
       elif self.target.is_ios():
