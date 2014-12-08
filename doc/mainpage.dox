@@ -42,10 +42,10 @@ In deploy configuration all optimizations are enabled and all debug functionalit
 asserts, logging and error handling. Profiling is also disabled. This configuration is intented for public releases.
 
 \subsection output Output
-Libraries will be placed in lib/[platform]/[configuration]/ with platform names
+Libraries will be placed in lib/[platform]/[configuration]/[architecture] with platform names
 <ul>
-<li>win32
-<li>win64
+<li>windows
+<li>linux
 <li>macosx
 <li>ios
 <li>android
@@ -57,18 +57,20 @@ Configuration names are
 <li>profile
 <li>deploy
 </ul>
-For android each architecture has it's own subdirectory and separate library
+Architecture names are
 <ul>
 <li>armeabi
 <li>armeabi-v7a
 <li>arm64-v8a
 <li>x86
-<li>x86_64
+<li>x86-64
 <li>mips
 <li>mips64
 </ul>
 
-Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/
+For MacOSX and iOS builds the libraries and binaries will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture.
+
+Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for MacOSX and iOS since the binaries are universal).
 
 \section windows Windows
 On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013, as well as
