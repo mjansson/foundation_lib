@@ -110,7 +110,7 @@ The ninja will use the latest SDK and clang toolchain available by using the xcr
 XCode is the preferred method of building the library and test cases for iOS. Open the XCode workspace in
 build/xcode/foundation-ios.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
 
-\subsection osx_ninja Ninja
+\subsection ios_ninja Ninja
 To build with Ninja use the build configuration python script in the root directory to set the build configurations you want.
 Multiple build configurations can be enabled in a single build. Run configure.py with <code>-h</code> switch for help. For example,
 to build debug, release and deploy configurations use <code>configure.py -c debug -c release -c deploy</code>.
