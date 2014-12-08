@@ -229,29 +229,29 @@ typedef struct error_frame_t                 error_frame_t;
 typedef struct error_context_t               error_context_t;
 typedef struct event_t                       event_t;
 typedef struct event_block_t                 event_block_t;
-typedef ALIGN(16) struct event_stream_t      event_stream_t;
+typedef struct event_stream_t                event_stream_t ALIGN(16);
 typedef struct hashmap_node_t                hashmap_node_t;
 typedef struct hashmap_t                     hashmap_t;
-typedef struct hashtable32_entry_t           hashtable32_entry_t;
-typedef struct hashtable64_entry_t           hashtable64_entry_t;
-typedef ALIGN(8) struct hashtable32_t        hashtable32_t;
-typedef ALIGN(8) struct hashtable64_t        hashtable64_t;
+typedef struct hashtable32_entry_t           hashtable32_entry_t ALIGN(8);
+typedef struct hashtable64_entry_t           hashtable64_entry_t ALIGN(8);
+typedef struct hashtable32_t                 hashtable32_t ALIGN(8);
+typedef struct hashtable64_t                 hashtable64_t ALIGN(8);
 typedef struct md5_t                         md5_t;
 typedef struct memory_context_t              memory_context_t;
 typedef struct memory_system_t               memory_system_t;
 typedef struct memory_tracker_t              memory_tracker_t;
 typedef struct mutex_t                       mutex_t;
-typedef ALIGN(8) struct object_base_t        object_base_t;
-typedef ALIGN(16) struct objectmap_t         objectmap_t;
+typedef struct object_base_t                 object_base_t ALIGN(8);
+typedef struct objectmap_t                   objectmap_t ALIGN(16);
 typedef struct process_t                     process_t;
 typedef struct radixsort_t                   radixsort_t;
 typedef struct regex_t                       regex_t;
 typedef struct regex_capture_t               regex_capture_t;
 typedef struct ringbuffer_t                  ringbuffer_t;
-typedef ALIGN(8) struct stream_t             stream_t;
-typedef ALIGN(8) struct stream_buffer_t      stream_buffer_t;
-typedef ALIGN(8) struct stream_pipe_t        stream_pipe_t;
-typedef ALIGN(8) struct stream_ringbuffer_t  stream_ringbuffer_t;
+typedef struct stream_t                      stream_t ALIGN(8);
+typedef struct stream_buffer_t               stream_buffer_t ALIGN(8);
+typedef struct stream_pipe_t                 stream_pipe_t ALIGN(8);
+typedef struct stream_ringbuffer_t           stream_ringbuffer_t ALIGN(8);
 typedef struct stream_vtable_t               stream_vtable_t;
 typedef union  version_t                     version_t;
 
@@ -424,12 +424,12 @@ struct event_block_t
 };
 
 
-struct ALIGN(16) event_stream_t
+struct event_stream_t
 {
 	atomic32_t                      write;
 	int32_t                         read;
 	event_block_t                   block[2];
-};
+} ALIGN(16);
 
 
 struct hashmap_node_t
@@ -451,28 +451,28 @@ struct hashtable32_entry_t
 {
 	atomic32_t                      key;
 	uint32_t                        value;
-};
+} ALIGN(8);
 
 
 struct hashtable64_entry_t
 {
 	atomic64_t                      key;
 	uint64_t                        value;
-};
+} ALIGN(8);
 
 
-struct ALIGN(8) hashtable32_t
+struct hashtable32_t
 {
 	uint32_t                        capacity;
-	ALIGN(8) hashtable32_entry_t    entries[];
-};
+	hashtable32_entry_t             entries[];
+} ALIGN(8);
 
 
-struct ALIGN(8) hashtable64_t
+struct hashtable64_t
 {
 	uint64_t                        capacity;
-	ALIGN(8) hashtable64_entry_t    entries[];
-};
+	hashtable64_entry_t             entries[];
+} ALIGN(8);
 
 
 struct memory_context_t
@@ -486,12 +486,12 @@ struct memory_context_t
 	uint32_t                        flags;      \
 	object_t                        id
 
-struct ALIGN(8) object_base_t
+struct object_base_t
 {
 	FOUNDATION_DECLARE_OBJECT;
-};
+} ALIGN(8);
 
-struct ALIGN(16) objectmap_t
+struct objectmap_t
 {
 	atomic64_t                      free;
 	uint64_t                        size;
@@ -501,7 +501,7 @@ struct ALIGN(16) objectmap_t
 	uint64_t                        mask_index;
 	uint64_t                        mask_id;
 	void*                           map[];
-};
+} ALIGN(16);
 
 struct process_t
 {
@@ -614,10 +614,10 @@ unsigned int                    mode;                    \
 char*                           path;                    \
 stream_vtable_t*                vtable
 
-struct ALIGN(8) stream_t
+struct stream_t
 {
 	FOUNDATION_DECLARE_STREAM;
-};
+} ALIGN(8);
 
 struct stream_buffer_t
 {
@@ -630,20 +630,21 @@ struct stream_buffer_t
 	bool                            grow;
 };
 
-struct ALIGN(8) stream_pipe_t
+struct stream_pipe_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	
 #if FOUNDATION_PLATFORM_WINDOWS
 	void*                           handle_read;
 	void*                           handle_write;
-#elif FOUNDATION_PLATFORM_POSIX
+#endif
+#if FOUNDATION_PLATFORM_POSIX
 	int                             fd_read;
 	int                             fd_write;
 #endif
-};
+} ALIGN(8);
 
-struct ALIGN(8) stream_ringbuffer_t
+struct stream_ringbuffer_t
 {
 	FOUNDATION_DECLARE_STREAM;
 	
@@ -654,7 +655,7 @@ struct ALIGN(8) stream_ringbuffer_t
 	uint64_t                        total_size;
 	
 	FOUNDATION_DECLARE_RINGBUFFER;
-};
+} ALIGN(8);
 
 struct stream_vtable_t
 {
