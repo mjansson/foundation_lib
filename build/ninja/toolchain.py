@@ -58,12 +58,12 @@ class Toolchain(object):
       self.cc = 'cl'
       self.ar = 'lib'
       self.link = 'link'
-      self.cflags = [ '/FS', '/D', '"FOUNDATION_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
+      self.cflags = [ '/D', '"FOUNDATION_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
       self.arflags = []
       self.linkflags = []
       self.extralibs = [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
       self.objext = '.obj'
-      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /nologo'
+      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
       self.ccdepfile = None
       self.ccdeps = 'msvc'
       self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
@@ -511,7 +511,7 @@ class Toolchain(object):
         localararchflags = self.make_ararchflags( arch )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
         if self.target.is_windows():
-          pdbpath = os.path.join( buildpath, 'ninja.pdb' )
+          pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
         if includepaths != self.includepaths:
           localvariables += [ ( 'includepaths', localincludepaths ) ]
@@ -564,9 +564,10 @@ class Toolchain(object):
           localvariables += [ ( 'includepaths', localincludepaths ) ]
         locallinkvariables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
         if self.target.is_windows():
-          pdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
+          pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
-          locallinkvariables += [ ( 'pdbpath', pdbpath ) ]
+          linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
+          locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
