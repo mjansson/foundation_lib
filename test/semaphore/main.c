@@ -89,10 +89,10 @@ DECLARE_TEST( semaphore, postwait )
 	start = time_current();
 	semaphore_try_wait( &sem, 0 );
 	end = time_current();
-	EXPECT_LT( end - start, time_ticks_per_second() / 1000 );
+	EXPECT_LE( end - start, time_ticks_per_second() / 1000 );
 
 	start = time_current();
-	semaphore_try_wait( &sem, 500 );
+	semaphore_try_wait( &sem, 510 );
 	end = time_current();
 	EXPECT_GE( end - start, time_ticks_per_second() / 2 );
 
