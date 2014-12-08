@@ -43,5 +43,9 @@ The latest source code maintained by Rampant Pixels is always available at
 
 https://github.com/rampantpixels/foundation_lib
 
+Pre-generated documentation in HTML format for the latest release can be found at
+
+http://rampantpixels.github.io/foundation_lib/doc
+
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
