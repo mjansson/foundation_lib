@@ -667,7 +667,7 @@
 #  define PURECALL
 #  define CONSTCALL
 #  define ALIGN( alignment ) __declspec( align( alignment ) )
-#  define ALIGNOF(x) __alignof( type )
+#  define ALIGNOF( type ) __alignof( type )
 #  define ALIGNED_STRUCT( name, alignment ) ALIGN( alignment ) struct name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
