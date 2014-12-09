@@ -47,5 +47,13 @@ Pre-generated documentation in HTML format for the latest release can be found a
 
 http://rampantpixels.github.io/foundation_lib/doc
 
+Master branch is used for stable releases. Development is done in feature branches from the develop branch
+
+https://github.com/rampantpixels/foundation_lib/tree/develop
+
+Cross-platform build system uses Ninja
+
+http://martine.github.io/ninja
+
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
