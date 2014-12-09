@@ -527,13 +527,14 @@
 #  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
 #  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 
-#  define DEPRECATED ATTRIBUTE(deprecated)
-#  define FORCEINLINE inline ATTRIBUTE(always_inline)
-#  define NOINLINE ATTRIBUTE(noinline)
-#  define PURECALL ATTRIBUTE(pure)
-#  define CONSTCALL ATTRIBUTE(const)
-#  define ALIGN(x) ATTRIBUTE2(aligned,x)
-#  define ALIGNOF(x) __alignof__(x)
+#  define DEPRECATED ATTRIBUTE( deprecated )
+#  define FORCEINLINE inline ATTRIBUTE( always_inline )
+#  define NOINLINE ATTRIBUTE( noinline )
+#  define PURECALL ATTRIBUTE( pure )
+#  define CONSTCALL ATTRIBUTE( const )
+#  define ALIGN( alignment ) ATTRIBUTE2( aligned, alignment )
+#  define ALIGNOF( type ) __alignof__( type )
+#  define ALIGNED_STRUCT( name, alignment ) struct ALIGN( alignment ) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
@@ -573,13 +574,14 @@
 #  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
 #  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 
-#  define DEPRECATED ATTRIBUTE(deprecated)
-#  define FORCEINLINE inline ATTRIBUTE(always_inline)
-#  define NOINLINE ATTRIBUTE(noinline)
-#  define PURECALL ATTRIBUTE(pure)
-#  define CONSTCALL ATTRIBUTE(const)
-#  define ALIGN(x) ATTRIBUTE2(aligned,x)
-#  define ALIGNOF(x) __alignof__(x)
+#  define DEPRECATED ATTRIBUTE( deprecated )
+#  define FORCEINLINE inline ATTRIBUTE( always_inline )
+#  define NOINLINE ATTRIBUTE( noinline )
+#  define PURECALL ATTRIBUTE( pure )
+#  define CONSTCALL ATTRIBUTE( const )
+#  define ALIGN( alignment ) ATTRIBUTE2( aligned, alignment )
+#  define ALIGNOF( type ) __alignof__( type )
+#  define ALIGNED_STRUCT( name, alignment ) struct ALIGN( alignment ) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
@@ -616,7 +618,7 @@
 #  endif
 
 #  define RESTRICT __restrict
-#  define THREADLOCAL __declspec(thread)
+#  define THREADLOCAL __declspec( thread )
 
 #  define ATTRIBUTE(x)
 #  define ATTRIBUTE2(x,y)
@@ -624,11 +626,12 @@
 
 #  define DEPRECATED 
 #  define FORCEINLINE __forceinline
-#  define NOINLINE __declspec(noinline)
+#  define NOINLINE __declspec( noinline )
 #  define PURECALL 
 #  define CONSTCALL
-#  define ALIGN(x) __declspec(align(x))
-#  define ALIGNOF(x) __alignof(x)
+#  define ALIGN( alignment ) __declspec( align( alignment ) )
+#  define ALIGNOF( type ) __alignof( type )
+#  define ALIGNED_STRUCT( name, alignment ) ALIGN( alignment ) struct name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -656,15 +659,16 @@
 #  define ATTRIBUTE3(x,y,z)
 
 #  define RESTRICT __restrict
-#  define THREADLOCAL __declspec(thread)
+#  define THREADLOCAL __declspec( thread )
 
-#  define DEPRECATED __declspec(deprecated)
+#  define DEPRECATED __declspec( deprecated )
 #  define FORCEINLINE __forceinline
-#  define NOINLINE __declspec(noinline)
+#  define NOINLINE __declspec( noinline )
 #  define PURECALL
 #  define CONSTCALL
-#  define ALIGN(x) __declspec(align(x))
-#  define ALIGNOF(x) __alignof(x)
+#  define ALIGN( alignment ) __declspec( align( alignment ) )
+#  define ALIGNOF( type ) __alignof( type )
+#  define ALIGNED_STRUCT( name, alignment ) ALIGN( alignment ) struct name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -684,7 +688,7 @@ typedef enum
 
 #else
 
-#  error Unknown compiler
+#  warning Unknown compiler
 
 #  define FOUNDATION_COMPILER_NAME "unknown"
 #  define FOUNDATION_COMPILER_DESCRIPTION "unknown"
@@ -699,6 +703,7 @@ typedef enum
 #  define CONSTCALL
 #  define ALIGN
 #  define ALIGNOF
+#  define ALIGNED_STRUCT( name, alignment ) struct name
 
 typedef enum
 {
@@ -707,7 +712,6 @@ typedef enum
 } bool;
 
 #endif
-
 
 //Base data types
 #include <stdint.h>
@@ -762,23 +766,23 @@ typedef   float32_t         real;
 #endif
 
 //Atomic types
-struct atomic32_t
+ALIGNED_STRUCT( atomic32_t, 4 )
 {
 	uint32_t nonatomic;
 };
-typedef ALIGN(4) struct atomic32_t atomic32_t;
+typedef ALIGNED_STRUCT( atomic32_t, 4 ) atomic32_t;
 
-struct atomic64_t
+ALIGNED_STRUCT( atomic64_t, 8 )
 {
 	uint64_t nonatomic;
 };
-typedef ALIGN(8) struct atomic64_t atomic64_t;
+typedef ALIGNED_STRUCT( atomic64_t, 8 ) atomic64_t;
 
-struct atomicptr_t
+ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER )
 {
 	void* nonatomic;
 };
-typedef ALIGN(FOUNDATION_SIZE_POINTER) struct atomicptr_t atomicptr_t;
+typedef ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER ) atomicptr_t;
 
 
 //Pointer arithmetic

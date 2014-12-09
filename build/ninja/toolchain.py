@@ -50,18 +50,20 @@ class Toolchain(object):
         self.archs = [ 'x86-64' ]
       elif target.is_ios():
         self.archs = [ 'arm7', 'arm64' ]
+      elif target.is_raspberrypi():
+        self.archs = [ 'arm6' ]
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
       self.cc = 'cl'
       self.ar = 'lib'
       self.link = 'link'
-      self.cflags = [ '/FS', '/D', '"FOUNDATION_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
+      self.cflags = [ '/D', '"FOUNDATION_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
       self.arflags = []
       self.linkflags = []
       self.extralibs = [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
       self.objext = '.obj'
-      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /nologo'
+      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
       self.ccdepfile = None
       self.ccdeps = 'msvc'
       self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
@@ -72,7 +74,7 @@ class Toolchain(object):
       self.cc = 'gcc'
       self.ar = 'ar'
       self.link = 'gcc'
-      self.cflags = [ '-std=c11', '-DFOUNDATION_COMPILE=1',
+      self.cflags = [ '-DFOUNDATION_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
                       '-Wno-unused-value',
                       '-funit-at-a-time', '-fstrict-aliasing',
@@ -90,9 +92,18 @@ class Toolchain(object):
       self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
       self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs'
 
-      if target.is_linux():
+      if host.is_raspberrypi():
+        self.includepaths += [ '/opt/vc/include', '/opt/vc/include/interface/vcos/pthreads' ]
+        self.libpaths += [ '/opt/vc/lib' ]
+
+      if target.is_linux() or target.is_raspberrypi():
         self.linkflags += [ '-pthread' ]
         self.extralibs += [ 'dl', 'm' ]
+      if target.is_raspberrypi():
+        self.cflags += [ '-std=c99' ]
+        self.extralibs += [ 'rt' ]
+      else:
+        self.cflags += [ '-std=c11' ]
 
     elif self.toolchain.startswith('clang') or self.toolchain.startswith('llvm'):
       self.toolchain = 'clang' 
@@ -113,7 +124,7 @@ class Toolchain(object):
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
-      if host.is_macosx():        
+      if host.is_macosx() and (target.is_macosx() or target.is_ios()):
         if target.is_macosx():
           sdk = 'macosx'
           deploytarget = 'MACOSX_DEPLOYMENT_TARGET=10.7'
@@ -160,7 +171,10 @@ class Toolchain(object):
         self.linkflags += [ '-framework', 'Cocoa', '-framework', 'CoreFoundation' ]
       if target.is_ios():
         self.linkflags += [ '-framework', 'CoreGraphics', '-framework', 'UIKit', '-framework', 'Foundation' ]
-      if target.is_linux():
+      if host.is_raspberrypi():
+        self.includepaths += [ '/opt/vc/include', '/opt/vc/include/interface/vcos/pthreads' ]
+        self.libpaths += [ '/opt/vc/lib' ]
+      if target.is_linux() or target.is_raspberrypi():
         self.linkflags += [ '-pthread' ]
         self.extralibs += [ 'dl', 'm' ]
 
@@ -230,6 +244,8 @@ class Toolchain(object):
         flags += '-arch armv7'
       elif arch == 'arm64':
         flags += '-arch arm64'
+    elif self.target.is_raspberrypi():
+      flags += '-mfloat-abi=hard -mfpu=vfp -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -D__raspberrypi__=1'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -273,6 +289,8 @@ class Toolchain(object):
         flags += '-arch armv7'
       elif arch == 'arm64':
         flags += '-arch arm64'
+    elif self.target.is_raspberrypi():
+      pass
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -412,7 +430,7 @@ class Toolchain(object):
 
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
-    if self.host.is_macosx():
+    if self.host.is_macosx() and (self.target.is_macosx() or self.target.is_ios()):
       if self.target.is_macosx():
         sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
       elif self.target.is_ios():
@@ -498,7 +516,7 @@ class Toolchain(object):
         localararchflags = self.make_ararchflags( arch )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
         if self.target.is_windows():
-          pdbpath = os.path.join( buildpath, 'ninja.pdb' )
+          pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
         if includepaths != self.includepaths:
           localvariables += [ ( 'includepaths', localincludepaths ) ]
@@ -551,9 +569,10 @@ class Toolchain(object):
           localvariables += [ ( 'includepaths', localincludepaths ) ]
         locallinkvariables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
         if self.target.is_windows():
-          pdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
+          pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
-          locallinkvariables += [ ( 'pdbpath', pdbpath ) ]
+          linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
+          locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )

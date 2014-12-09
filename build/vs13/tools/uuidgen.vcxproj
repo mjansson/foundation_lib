@@ -74,22 +74,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\..\bin\win32\debug\</OutDir>
+    <OutDir>..\..\..\bin\windows\debug\x86\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\..\bin\win64\debug\</OutDir>
+    <OutDir>..\..\..\bin\windows\debug\x86-64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\win32\release\</OutDir>
+    <OutDir>..\..\..\bin\windows\release\x86\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\win64\release\</OutDir>
+    <OutDir>..\..\..\bin\windows\release\x86-64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -129,7 +129,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\..\lib\win32\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\lib\windows\debug\x86</AdditionalLibraryDirectories>
       <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -169,7 +169,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\..\lib\win64\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\lib\windows\debug\x86-64</AdditionalLibraryDirectories>
       <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -213,7 +213,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\lib\win32\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\lib\windows\release\x86</AdditionalLibraryDirectories>
       <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -256,7 +256,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\lib\win64\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\lib\windows\release\x86-64</AdditionalLibraryDirectories>
       <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

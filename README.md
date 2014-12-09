@@ -35,13 +35,25 @@ Platforms and architectures currently supported:
 * Windows (x86, x86-64), Vista or later
 * MacOS X (x86-64), 10.7+
 * Linux (x86, x86-64, PPC, ARM)
-* iOS (ARM7, ARM7s, ARM64), 5.0+
+* iOS (ARM7, ARM7s, ARM64), 6.0+
 * Android (ARM6, ARM7, ARM8-AARCH64, x86, x86-64, MIPS, MIPS64)
 * Raspberry Pi (ARM6)
 
 The latest source code maintained by Rampant Pixels is always available at
 
 https://github.com/rampantpixels/foundation_lib
+
+Pre-generated documentation in HTML format for the latest release can be found at
+
+http://rampantpixels.github.io/foundation_lib/doc
+
+Master branch is used for stable releases. Development is done in feature branches from the develop branch
+
+https://github.com/rampantpixels/foundation_lib/tree/develop
+
+Cross-platform build system uses Ninja
+
+http://martine.github.io/ninja
 
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 

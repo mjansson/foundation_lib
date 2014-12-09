@@ -185,20 +185,26 @@ PowerPC 32-bit
 \var architecture_t ARCHITECTURE_PPC_64
 PowerPC 64-bit
 
+\var architecture_t ARCHITECTURE_ARM5
+ARM 5
+
 \var architecture_t ARCHITECTURE_ARM6
 ARM 6
 
 \var architecture_t ARCHITECTURE_ARM7
 ARM 7
 
-\var architecture_t ARCHITECTURE_ARM8_64
-ARM 8 64bit
+\var architecture_t ARCHITECTURE_ARM8
+ARM 8
 
-\var architecture_t ARCHITECTURE_ARM5
-ARM 5
+\var architecture_t ARCHITECTURE_ARM8_64
+ARM 8 64-bit
 
 \var architecture_t ARCHITECTURE_MIPS
 MIPS
+
+\var architecture_t ARCHITECTURE_MIPS_64
+MIPS 64-bit
 
 
 \enum byteorder_t
@@ -759,6 +765,138 @@ stream initialization function and free any associated resources.
 \brief Stream virtual table
 \details Stream virtual table with stream type specific implementation function pointers
 
+\struct stream_buffer_t
+\brief Memory buffer stream
+\details Stream interface for read/write to a memory buffer. This struct is also a stream_t (stream struct type declared at start of struct) and can be used in all functions operating on a stream_t. The memory buffer is allocated separately from the stream buffer.
+
+\var stream_buffer_t::current
+\brief Current read/write offset
+\details Current read/write offset
+
+\var stream_buffer_t::size
+\brief Current size of buffer
+\details Current size of buffer (always less or equal than capacity)
+
+\var stream_buffer_t::capacity
+\brief Current allocated capacity of buffer
+\details Current allocated capacity of buffer
+
+\var stream_buffer_t::buffer
+\brief Memory buffer
+\details Memory buffer
+
+\var stream_buffer_t::own
+\brief Flag indicating ownership of buffer
+\details If this flag is set the memory buffer is owned internally by the stream buffer and will be deallocated together with the stream buffer. If not set, the ownership of the memory buffer is handled externally.
+
+\var stream_buffer_t::grow
+\brief Flag indicating if memory buffer can grow
+\details If this flag is set (and if the memory buffer is owned by the stream buffer), the memory buffer can grow by reallocating memory if write requests increase size beyond the capacity of the memory buffer. If not set, any write requests beyond the capacity will fail.
+
+\struct stream_pipe_t
+\brief Pipe stream
+\details Stream interface for read/write to a pipe. This struct is also a stream_t (stream struct type declared at start of struct) and can be used in all functions operating on a stream_t.
+
+\var stream_pipe_t::handle_read
+\brief Read handle (Windows only)
+\details File handle for read end of the pipe.
+
+\var stream_pipe_t::handle_write
+\brief Write handle (Windows only)
+\details File handle for write end of the pipe.
+
+\var stream_pipe_t::fd_read
+\brief Read file descriptor (Posix only)
+\details File descriptor for read end of the pipe.
+
+\var stream_pipe_t::fd_write
+\brief Write file descriptor (Posix only)
+\details File descriptor for write end of the pipe.
+
+\struct stream_ringbuffer_t
+\brief Ring buffer stream
+\details Stream interface for read/write to a ring buffer. This struct is also a stream_t (stream struct type declared at start of struct) and can be used in all functions operating on a stream_t. Read and write operation can be concurrent (one single thread reading, one single thread writing) as availability of data is flagged with semaphores. Multiple readers and/or writers are not supported. Stream is sequential.
+
+\var stream_ringbuffer_t::signal_read
+\brief Read signal
+\details Semaphore signalling availability of data for reading
+
+\var stream_ringbuffer_t::signal_write
+\brief Write signal
+\details Semaphore signalling availability of data for writing
+
+\var stream_ringbuffer_t::pending_read
+\brief Number of bytes pending for reading
+\details Number of bytes pending for reading
+
+\var stream_ringbuffer_t::pending_write
+\brief Number of bytes pending for writing
+\details Number of bytes pending for writing
+
+\var stream_ringbuffer_t::total_size
+\brief Number of bytes written
+\details Number of bytes written (total size of stream)
+
+\struct stream_vtable_t
+\brief Stream virtual function table
+\details Virtual function table for stream implementations. Each stream type must provide implementation for the basic stream operations in this struct or set the entry to null to indicate that the functionality is not supported by the stream type.
+
+\var stream_vtable_t::read
+\brief Read function
+\details Function to read data from stream.
+
+\var stream_vtable_t::write
+\brief Write function
+\details Function to write data to stream.
+
+\var stream_vtable_t::eos
+\brief Query if end of stream
+\details Function to query if current position is at end of stream.
+
+\var stream_vtable_t::flush
+\brief Flush data
+\details Function to flush any pending data to stream.
+
+\var stream_vtable_t::truncate
+\brief Truncate to current position
+\details Function to truncate stream to current position.
+
+\var stream_vtable_t::size
+\brief Query size
+\details Function to query size of stream
+
+\var stream_vtable_t::seek
+\brief Seek function
+\details Function to seek in stream.
+
+\var stream_vtable_t::tell
+\brief Query current position
+\details Function to query the current position in the stream.
+
+\var stream_vtable_t::lastmod
+\brief Query last modification timestamp
+\details Function to query the last modification timestamp of the stream.
+
+\var stream_vtable_t::md5
+\brief Query hash
+\details Function to query the MD5 of the stream content
+
+\var stream_vtable_t::buffer_read
+\brief Buffer data
+\details Function to buffer any incoming data for the stream.
+
+\var stream_vtable_t::available_read
+\brief Query available data
+\details Function to query the amount of data that can be read without blocking.
+
+\var stream_vtable_t::finalize
+\brief Finalization function
+\details Function to finalize the stream, free memory and release any resources associated with the stream.
+
+\var stream_vtable_t::clone
+\brief Clone function
+\details Function to clone the stream.
+
 \typedef mutex_t
 \brief Mutex
 \details Mutex for thread synchronization
@@ -948,18 +1086,6 @@ and reallocated to the required sizes.
 \brief Hash map node value
 \details Value for the hash map node.
 
-\struct hashtable32_t
-\brief Hash table (32 bit data)
-\details Hash table, a lock free mapping of hash values to 32 bit integer data.
-
-\var hashtable32_t::capacity
-\brief Capacity of table
-\details Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
-
-\var hashtable32_t::entries
-\brief Table storage
-\details Hash table storage as array of nodes where each node is a key-value pair.
-
 \struct hashtable32_entry_t
 \brief Node in 32-bit hash table
 \details Node in 32-bit hash table holding key and value for a single node.
@@ -972,18 +1098,6 @@ and reallocated to the required sizes.
 \brief Value
 \details Value for the corresponding hash key. If the value is zero the node is considered unused.
 
-\struct hashtable64_t
-\brief Hash table (64 bit data)
-\details Opaque struct holding state for a hash table, a lock free mapping of hash values to 64 bit integer data.
-
-\var hashtable64_t::capacity
-\brief Capacity of table
-\details Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
-
-\var hashtable64_t::entries
-\brief Table storage
-\details Hash table storage as array of nodes where each node is a key-value pair.
-
 \struct hashtable64_entry_t
 \brief Node in 64-bit hash table
 \details Node in 64-bit hash table holding key and value for a single node.
@@ -995,6 +1109,30 @@ and reallocated to the required sizes.
 \var hashtable64_entry_t::value
 \brief Value
 \details Value for the corresponding hash key. If the value is zero the node is considered unused.
+
+\struct hashtable32_t
+\brief Hash table (32 bit data)
+\details Hash table, a lock free mapping of hash values to 32 bit integer data.
+
+\var hashtable32_t::capacity
+\brief Capacity of table
+\details Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
+
+\var hashtable32_t::entries
+\brief Table storage
+\details Hash table storage as array of nodes where each node is a key-value pair.
+
+\struct hashtable64_t
+\brief Hash table (64 bit data)
+\details Opaque struct holding state for a hash table, a lock free mapping of hash values to 64 bit integer data.
+
+\var hashtable64_t::capacity
+\brief Capacity of table
+\details Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
+
+\var hashtable64_t::entries
+\brief Table storage
+\details Hash table storage as array of nodes where each node is a key-value pair.
 
 \struct regex_t
 \brief Compiled regular expression
