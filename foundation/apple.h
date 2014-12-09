@@ -26,16 +26,27 @@
 
 #if FOUNDATION_PLATFORM_APPLE
 
-#define semaphore_t __system_semaphore_t
-#define radixsort __stdlib_radixsort
 #define __error_t_defined 1
 
+#define semaphore_t __system_semaphore_t
+#define radixsort __stdlib_radixsort
 #define _UUID_T
 #define uuid_generate_random __system_uuid_generate_random
 #define uuid_generate_time __system_uuid_generate_time
 #define uuid_is_null __system_uuid_is_null
+#define semaphore_wait __system_semaphore_wait
+#define semaphore_destroy __system_semaphore_destroy
+#define thread_create __system_thread_create
+#define thread_terminate __system_thread_terminate
+#define task_t __system_task_t
 
 #include <mach/mach_types.h>
+#include <mach/mach_interface.h>
+
+#undef semaphore_wait
+#undef semaphore_destroy
+#undef thread_create
+#undef thread_terminate
 
 #ifdef __OBJC__
 #  import <CoreFoundation/CoreFoundation.h>
@@ -50,6 +61,7 @@
 #  import <Foundation/NSUndoManager.h>
 #  if FOUNDATION_PLATFORM_MACOSX
 #    import <Foundation/NSRunLoop.h>
+#    import <Foundation/NSExtensionContext.h>
 #    import <AppKit/NSApplication.h>
 #    import <AppKit/NSAlert.h>
 #    import <AppKit/NSWindow.h>
@@ -73,6 +85,7 @@
 #  include <CoreFoundation/CoreFoundation.h>
 #  if FOUNDATION_PLATFORM_MACOSX
 #    include <Carbon/Carbon.h>
+#    include <ApplicationServices/ApplicationServices.h>
 #  endif
 #endif
 
@@ -83,10 +96,10 @@
 
 #undef radixsort
 #undef semaphore_t
-
 #undef _UUID_T
 #undef uuid_generate_random
 #undef uuid_generate_time
 #undef uuid_is_null
+#undef task_t
 
 #endif

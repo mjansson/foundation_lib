@@ -15,7 +15,7 @@ encryption/descryption.
 
 \fn void blowfish_deallocate( blowfish_t* blowfish )
 \brief Deallocate blowfish state
-\details Deallocate a blowfish state object
+\details Deallocate a blowfish state object and free resources
 \param blowfish Blowfish state object to deallocate
 
 \fn void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned int length )
@@ -25,6 +25,11 @@ a call to this function the state object can be used for encryption/decryption.
 \param blowfish Blowfish state object
 \param key Key data
 \param length Length of key data in bytes
+
+\fn void blowfish_finalize( blowfish_t* blowfish )
+\brief Finalize blowfish state
+\details Finalize a blowfish state object and free resources
+\param blowfish Blowfish state object to finalize
 
 \fn void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec )
 \brief Encrypt data

@@ -13,15 +13,6 @@
 #include <foundation/foundation.h>
 
 
-struct md5_t
-{
-	bool             init;
-	uint32_t         state[4];
-	uint32_t         count[2];
-	unsigned char    buffer[64];
-	unsigned char    digest[16];
-};
-
 #define F1( x, y, z ) ((z) ^ ((x) & ((y) ^ (z))))
 #define F2( x, y, z ) ((y) ^ ((z) & ((x) ^ (y))))
 #define F3( x, y, z ) ((x) ^ (y) ^ (z))
@@ -145,6 +136,7 @@ md5_t* md5_allocate( void )
 
 void md5_deallocate( md5_t* digest )
 {
+	md5_finalize( digest );
 	memory_deallocate( digest );
 }
 
@@ -160,6 +152,11 @@ void md5_initialize( md5_t* digest )
 	digest->count[1] = 0;
 
 	memset( digest->buffer, 0, 64 );
+}
+
+
+void md5_finalize( md5_t* md5 )
+{
 }
 
 
@@ -209,7 +206,7 @@ md5_t* md5_digest_raw( md5_t* digest, const void* buffer, size_t size )
 }
 
 
-void md5_finalize( md5_t* digest )
+void md5_digest_finalize( md5_t* digest )
 {
 	unsigned char bits[8];
 	unsigned int idx, size_pad;

@@ -264,12 +264,18 @@ function usually must not be const. It does not make sense for a const function 
 \def ALIGN
 \brief Align attribute
 \details Variable or type attribute declaring the variable/type to have the specified memory alignment
-\param x Alignment
+\param alignment Alignment
 
 \def ALIGNOF
 \brief Get alignment
 \details Get the alignment of the given type or variable
-\param x Type or variable
+\param type Type or variable
+
+\def ALIGNED_STRUCT
+\brief Declare aligned struct
+\details Declare an aligned struct type
+\param name Struct name
+\param alignment Alignment
 
 \typedef float32_t
 \brief 32-bit floating point type

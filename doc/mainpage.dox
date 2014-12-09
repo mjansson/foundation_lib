@@ -42,10 +42,10 @@ In deploy configuration all optimizations are enabled and all debug functionalit
 asserts, logging and error handling. Profiling is also disabled. This configuration is intented for public releases.
 
 \subsection output Output
-Libraries will be placed in lib/[platform]/[configuration]/ with platform names
+Libraries will be placed in lib/[platform]/[configuration]/[architecture] with platform names
 <ul>
-<li>win32
-<li>win64
+<li>windows
+<li>linux
 <li>macosx
 <li>ios
 <li>android
@@ -57,52 +57,80 @@ Configuration names are
 <li>profile
 <li>deploy
 </ul>
-For android each architecture has it's own subdirectory and separate library
+Architecture names are
 <ul>
 <li>armeabi
 <li>armeabi-v7a
 <li>arm64-v8a
 <li>x86
-<li>x86_64
+<li>x86-64
 <li>mips
 <li>mips64
 </ul>
 
-Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/
+For MacOSX and iOS builds the libraries and binaries will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture.
+
+Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for MacOSX and iOS since the binaries are universal).
 
 \section windows Windows
-On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2012/2013, as well as
-with Microsoft, Intel, GCC and clang compilers using SCons. Both 32 and 64 bit Windows are supported.
+On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013, as well as
+with Microsoft, Intel, GCC and clang compilers using Ninja. Both 32-bit and 64-bit Windows are supported.
+
 \subsection win_vstudio Visual Studio
-To build with Visual Studio, open the foundation.sln solution file for the Visual Studio version used. Currently
-there are solution files provided for Visual Studio 2012 and 2013 in build/vs12 and build/vs13 respectively.
+To build with Visual Studio, open the foundation.sln solution file Visual Studio 2013 in <code>build/vs13</code>.
+To build all targets and configurations use batch build, select all targets and build.
 
-To build all targets and configurations use batch build, select all targets and build. 
+\subsection win_ninja Ninja
+To build with Ninja use the build configuration python script in the root directory to set the architectures and build
+configurations you want. Multiple architectures and build configurations can be enabled in a single build. Run configure.py
+with <code>-h</code> switch for help. For example, to build debug, release and deploy configurations for both 32-bit and 64-bit
+with intel compiler use <code>python configure.py -a x86 -a x86-64 -c debug -c release -c deploy --toolchain intel</code>.
 
-\subsection win_scons SCons
-To build with SCons verify the configuration set in build/scons/SConfig. You can also set all options as key=value
-arguments on the command line. For example, to build release configuration with intel compiler use
-"scons config=release tools=intel"
+The default toolchain on Windows is the Microsoft compiler suite. You should run the appropriate <code>vcvarsall.bat</code>
+environment setup batch script for the architecture you choose prior to starting builds
+(or use the preconfigured command prompts from Visual Studio installs).
 
-If you use SublimeText there is a template SublimeText project with a SCons build tool setup in build/foundation.sublime-project
+If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
+The build requires you to have generated a ninja build with the configure.py python script.
 
 \section osx MacOS X
 \subsection osx_xcode XCode
-XCode is the only supported method of building the library and test cases on MacOS X. Open the XCode workspace in
-build/xcode/foundation-osx.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
+XCode is the preferred method of building the library and test cases on MacOS X. Open the XCode workspace in
+<code>build/xcode/foundation-osx.xcworkspace</code> and build the appropriate targets. The workspace contains projects
+for both foundation library and test cases. The only supported architecture is x86-64 targetting MacOS X 10.7 or later.
 
-\section linux Linux
-\subsection linux_scons SCons
-SCons is the only supported method of building the library on Linux. Verify the configuration set in build/scons/SConfig.
-You can also set all options as key=value arguments on the command line. For example, to build release configuration with gnu
-compiler use "scons config=release tools=gnu"
+\subsection osx_ninja Ninja
+To build with Ninja use the build configuration python script in the root directory to set the build configurations you want.
+Multiple build configurations can be enabled in a single build. Run configure.py with <code>-h</code> switch for help. For example,
+to build debug, release and deploy configurations use <code>configure.py -c debug -c release -c deploy</code>.
 
-If you use SublimeText there is a template SublimeText project with a SCons build tool setup in build/foundation.sublime-project
+The ninja build will use clang toolchain by default. The only supported architecture is x86-64 targetting MacOS X 10.7 or later.
+The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.	
 
 \section ios iOS
 \subsection ios_xcode XCode
-XCode is the only supported method of building the library and test cases for iOS. Open the XCode workspace in
+XCode is the preferred method of building the library and test cases for iOS. Open the XCode workspace in
 build/xcode/foundation-ios.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
+
+\subsection ios_ninja Ninja
+To build with Ninja use the build configuration python script in the root directory to set the build configurations you want.
+Multiple build configurations can be enabled in a single build. Run configure.py with <code>-h</code> switch for help. For example,
+to build debug, release and deploy configurations use <code>configure.py -c debug -c release -c deploy</code>.
+
+The ninja build will use clang toolchain by default. The supported architectures are arm7 and arm64 targetting iOS 6 or later.
+The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.	
+
+\section linux Linux
+\subsection linux_ninja
+Ninja is the only supported method of building the library on Linux. To build with Ninja use the build configuration python script
+in the root directory to set the build configurations you want. Multiple build configurations can be enabled in a single build.
+Run configure.py with <code>-h</code> switch for help. For example, to build debug, release and deploy configurations use
+<code>configure.py -c debug -c release -c deploy</code>.
+
+The ninja build will use clang toolchain by default. The supported architectures are x86, x86-64, arm6, arm7, arm64, mips and mips64.
+
+If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
+The build requires you to have generated a ninja build with the configure.py python script.
 
 \section android Android
 \subsection android_ndk NDK build
@@ -223,10 +251,10 @@ Complex data types (objects) are handled in two ways. Either the caller have exp
 the lifetime is handled by reference counting and accessed through object handles of type object_t (basically a 64-bit handle mapping into a lookup table).
 
 Explicit allocations are always handled by function calls of the format <i>\<module>_t* \<module>_allocate(...)</i> to allocate the object and <i>void \<module>_deallocate(\<module>_t* ptr)</i> to deallocate it,
-for example md5_allocate and md5_deallocate in md5.h
+for example md5_allocate and md5_deallocate in md5.h. The corresponding calls for initializing/finalizing a struct places on the stack is <i>void \<module>_initialize(\<module>_t* ptr)</i> and <i>void \<module>_initialize(\<module>_t* ptr)</i>. All objects that are initialized must be finalized in order to free any allocated resources correctly. Objects that are allocated on the heap with allocate/deallocate should not be initialized/finalized as this is done implicitly by the allocation and deallocation.
 
 Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
-for example #thread_create, #thread_ref and #thread_destroy in thread.h
+for example #thread_create, #thread_ref and #thread_destroy in thread.h. Implicitly allocated objects does not need to be initialized/finalized.
 
 Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_\<module>_MAP, for example #BUILD_SIZE_THREAD_MAP for threads.
 
@@ -240,10 +268,11 @@ Most important is the build type definition
 
 For a full list and documentation of the build configuration preprocessor definitions, check the documentation for the build.h header
 
-\section memory_management Memory management
-Memory management is handled through a memory system implementation, which is basically three entry points for allocation, reallocation and deallocation. By default the foundation library provides a memory system built on the C library malloc/realloc/free family of functions, extended and wrapped to handle alignment requirements. When you initialize the foundation library you have to pass in a memory system implementation declaration through a #memory_system_t struct. To use the default malloc-based system, use #memory_system_malloc
 
-Memory allocations will belong to a memory context, which is usually a hash value of a module name (for example, #HASH_STREAM). This allows the memory tracker to place allocations in buckets to see how much memory each part/module of the software allocates at any given time. Memory context can be set explicitly with an argument to #memory_allocate or implicitly through the thread local memory context stack controlled with #memory_context_push and #memory_context_pop.
+\section memory_management Memory management
+Memory management is handled through a memory system implementation, which is basically three entry points for allocation, reallocation and deallocation. By default the foundation library provides a memory system built on the C library malloc/realloc/free family of functions, extended and wrapped to handle alignment requirements. When you initialize the foundation library you have to pass in a memory system implementation declaration through a #memory_system_t struct. To use the default malloc-based system, use #memory_system_malloc.
+
+Memory allocations will belong to a memory context, which is usually a hash value of a module name (for example, #HASH_STREAM). This allows the memory tracker to place allocations in buckets to see how much memory each part/module of the software allocates at any given time. Memory context can be set explicitly with an argument to #memory_allocate or implicitly through the thread local memory context stack controlled with #memory_context_push and #memory_context_pop. The thread local context is used if you pass 0 as context to #memory_allocate and in #memory_reallocate when passed a null pointer.
 
 Memory allocations can also give hint flags of the usage of the requested memory buffer. This allows the implementation to make optimizations and extra requirements during allocation. The memory hint flags are documented in #memory_hint_t with the most common flags being #MEMORY_TEMPORARY and #MEMORY_ZERO_INITIALIZED for temporary (scope level) allocations and initialization to zero, respectively.
 
@@ -251,28 +280,179 @@ The memory management module also provides memory tracking if compiled with #BUI
 
 Finally there is a memory overwrite/underwrite guard functionality built in and enabled with the #BUILD_ENABLE_MEMORY_GUARD build.h preprocessor directive. This will incur a slight memory overhead on each allocation, adding a dead zone before and after each allocated memory block for detecting invalid memory writes outside the allocated area. This functionality is built on top of the memory system implementation which does not need to provide a guard implementation internally.
 
+
 \section threading Threading
-To be written... (thread, semaphore, mutex, atomic)
+\subsection threads Threads
+The threading module provides functionality to create and manage new execution threads and handle thread synchronization with mutexes and semaphores. Threads are reference counted (see \ref object_lifetime) and lifetime controlled by #thread_create, #thread_destroy and #thread_ref. A thread object represents a single execution thread for a specific function and cannot be reused for multiple execution threads of the same function. To have multiple execution threads of the same function, you must create multiple thread objects.
+
+Thread execution is controlled with #thread_start and #thread_terminate. Note that thread termination only sets the internal flag that the thread should terminate, the execution function must use #thread_should_terminate to check if termination is triggered. You can use #thread_is_started to query if a thread has been started, and #thread_is_running to query if the thread is currently executing. A thread has a single result value of type void* which is the return value of the execution function. You can get the result value from #thread_result once the thread has terminated.
+
+You can set thread affinity to specific CPU core(s) with the #thread_set_hardware function taking a bit mask of allowed cores, and use #thread_hardware to query which CPU core a thread is currently running on. To query how many CPU cores that are available use #system_hardware_threads.
+
+The foundation library has the concept of a single main thread which is the application control thread. To set and query the main thread flag, use #thread_set_main and #thread_is_main. To further help debugging and thread identification, use #thread_set_name to set a human readable name for the thread which you will be able to see in the debugger.
+
+Thread execution time slices can be given up to other execution threads with #thread_yield. For time controlled suspension of thread execution use #thread_sleep.
+
+If you want to use the JNI to call into the JVM in a thread on the Android platform you must attach the thread using #thread_attach_jvm. Remember to call #thread_detach_jvm before terminating the thread to release the resources allocated by the attach call.
+
+\subsection thread_synchonization Synchronization
+The foundation library provides two mechanisms for thread synchronization, mutexes and semaphores. A mutex provides a lock for providing exclusive access to a resource or execution section as well as a signal/wait notifiction event, and a semaphore provides a thread safe access counter.
+
+A mutex is allocated and destroyed with #mutex_allocate and #mutex_deallocate. The mutex name is for debugging purposes only (also used in profiling events), limited to 32 characters. #mutex_lock will lock the mutex to the calling thread and block until a lock can be obtained if another thread currently holds the lock. #mutex_unlock will unlock the mutex if the lock is held by the calling thread. To lock without blocking, use #mutex_try_lock, which will return false if the lock could not be obtained in the given time span. Mutexes are reentrant, meaning a thread can lock the same mutex with #mutex_lock multiple times without blocking, and the mutex is only unlocked when #mutex_unlock has been called by the thread the same number of times.
+
+Mutex signals can be used to provide a simple way of combining a thread wait/lock scheme. A thread uses #mutex_wait to wait for a signal state sent by another thread with #mutex_signal, and if the thread was woken by a signal the mutex lock will be obtained and the #mutex_wait function returns true. Remember to call #mutex_unlock once lock is no longer needed.
+
+Semaphores provide an interface to a counter which threads can use to have access to a resource limited to a specific number of concurrent uses (for example in a producer/consumer scheme). Mutexes can be considered a binary semaphore (maximum value of 1) with additional ownership tracking. You post to a semaphore to increase the counter (produce) and wait to decrease the counter (consume). If the current value is zero the wait will block until another thread has made a post to increase the value.
+
+\subsection atomic_operations Atomic operations
+Atomic operations are provides for 32-bit and 64-bit data types, along with an aliased interface for pointers which uses the appropriate 32/64-bit interface depending on architecture pointer size. There are also acquire/release memory fences for both signal and thread fencing.
+
 
 \section debugging Debugging, profiling, logging and error handling
-To be written... (crash, profile, log, )
+
+\subsection debugging_error_handling Error handling
+Error handling is done with return values couple with thread local error state. Return values are either bool, integer or pointer values where false, negative values and null indicate an error condition respectively. The thread local error state is set with calls to either error log functions or error_report (see error.h file documentation). The error state of one thread does not affect the error state of any other thread. Reading the error state with a call to #error will reset the state to no error.
+
+As an extra debugging help there is also a thread local error context stack providing debug messages and debug data for each layer of the current call stack using the error context functionality. The context frames are pushed and popped from the stack with calls to #error_context_push and #error_context_pop, read with #error_context and converted to descriptive string format with #error_context_buffer. If you need to have a local variable which only exists for error contexts, use #error_context_declare_local. Error context functionality is controlled by the #BUILD_ENABLE_ERROR_CONTEXT build control in build.h, and disabling it will reduce all error context calls and local variable declarations to void.
+
+\subsection debugging_logging Logging
+Logging output is provided in log.h through five different severity levels (debug, info, warning, error, panic, in increasing order of severity). Log messages are associated with a context (usually a hash of the corresponding module name string), and can be suppressed based on severity level per context using #log_set_suppress. If a context has no specific suppression level set, it will fall back on the default context (value 0) suppression.
+
+Log messages are by default prefixed with additional debug data "[0:00:06.024] <513:0>" where the fields are time since startup, thread id and processor core, respectively. You can disable this prefix with #log_enable_prefix. Log messages are by default printed on stdout, which can be controlled with #log_enable_stdout. On Windows log messages are always output to the debugger with OutputDebugString.
+
+To pipe log messages to other outputs use the log callback by implementing your own callback function and registering it using #log_set_callback. All final formatted log messages (after suppression and context filtering) will be passed to the callback.
+
+Finally, the #BUILD_ENABLE_LOG controls if log functions are enabled. If the build control is disabled, all log function calls will be reduced to void. The debug functions #log_debug and #log_debugf have a separate build control #BUILD_ENABLE_DEBUG_LOG.
+
+\subsection debugging_crash_dumps Crash dumps
+The foundation library provides structured exception handling based guards on Windows and signal based guards on posix compatible platforms. The guard acts as a proxy function call which will call the guarded function and catch any exceptional state. If an exception is caught, the state is written to a crash dump file and a callback is called with the dump information. The guard function itself returns with a specific value indicating a dump was generated. For more information on the guard and callback check the crash.h documentation.
+
+\subsection debugging_profiling Profiling
+The profiling module provides an efficient function-level profiling system. It is not intended for fine grained instruction level optimization, but rather profiling the entire application on a function level scope. The module does not allocate any memory and is reentrant (thread safe). The basic use is to begin/end scope blocks around functions entry/exit with calls to #profile_begin_block and #profile_end_block. All string identifiers should be valid until the profile module flushes the data to the output function, and the easiest way to guarantee this is to use static C strings as identifiers (for example, <code>profile_begin_block("my block");</code>). If a block runs for a long time you should also call #profile_update_block to update information about which CPU core the thread is running on.
+
+Data is collected on a frame-by-frame basis, make sure to call #profile_end_frame at the end of an application frame. All profile blocks must be closed by the time the frame is ended.
+
+To enable the profile module you need to call #profile_enable. The module is initially disabled. On enble, the module starts a low-priority background thread which handles flushing the profile data to the output callback set by #profile_set_output. If no output callback is set, the profile data is silently discarded. You can control the rate at which the output flush thread wakes with #profile_set_output_wait as number of milliseconds to sleep between each flush. The smaller memory buffer you intialize the profiling module with, the more ofter the output thread needs to wake and flush in order to avoid data being lost from being out of memory. Default wait sleep is 100 milliseconds.
+
+There are also functions for adding notices about mutex locks, waits and signals, as well as generic log messages.
+
+All profiling module functions are enabled/disabled with the #BUILD_ENABLE_PROFILE build config directive in the build.h header. If you set #BUILD_ENABLE_PROFILE to 0, all profiling function calls will evaluate to void and not generate any code.
+
+In the future we will provide a UI tool to analyze profiling data dumps and a network output client/server for collecting and analyzing profiling data remotely.
 
 \section streams_files Streams and file access
-To be written... (paths, protocols, byte ordering, special streams)
+
+\subsection streams Streams overview
+Streams provide a generalized streaming I/O to various resources such as files, memory buffers, network sockets and pipes. The functions abstract away any platform specific implementations, byte order handling, binary/ascii modes and provides a single interface for I/O to any stream types. The functions in stream.h can be used to read/write to any stream type, and the stream specific implementations is handled through a "virtual table" of function pointers provided by the specific type.
+
+Generally the generalized stream.h module functions is the only interface needed, but when initializing stack based or allocating heap stream objects of specific types (like #buffer_stream_initialize and #buffer_stream_allocate) you need to use the type specific initialization/allocation function and then the generalized stream functions to do any I/O.
+
+Stream functions are not reentrant. If you need to do thread safe stream I/O you need to wrap it with a mutex lock or similar construct. A special case is the ring buffer stream, where one thread can write and another thread read concurrently.
+
+\subsection stream_paths Paths and protocols
+Streams are identified by a full path including a type "protocol". The full path format is "\<protocol>:\<path>". For example, a file stream full path is "file://tmp/appname/somefile.ext". The #stream_open function will correctly identify stream type from the protocol and initialize the correct data structure.
+
+All paths use forward slashes "/" as separators. Absolute paths start with a root separator, "/absolute/path", and relative paths start without a separator, "relative/path". If the path is a full path including a protocol, the path is always considered to be absolute and should begin with a double forward slash, "//absolute/path". Thus together with the protocol specifier and the protocol separator, the full path becomes "protocol://absolute/path".
+
+The path.h module provides utility functions to work with paths. All external paths of uncertain formats should be sanitized with #path_clean to make it adhere to the path format used in the library. All other stream and path functions assume the path is well formed and on the format specified above.
+
+\subsection stream_byte_ordering Byte ordering
+Streams with multi-byte data naturally have a byte order associated with the data. Since streams can wrap a network socket, the stream module provides automatic and transparent byte order handling based on the byte order of the stream and the byte order of the executing hardware. By default, streams local to the executing process such as memory buffer streams and pipes have the same byte order as the executing hardware. Other streams default to the byte order specified in the build configuration directive #BUILD_DEFAULT_STREAM_BYTEORDER (which defaults to little endian). You should set the byte order of a stream with #stream_set_byteorder if needed.
+
+Once you have set the correct byte order on a stream all multi-byte read/write operations with automatically convert and I/O the data in the appropriate format. No further byte swapping is needed in the application code.
+
+\subsection stream_traits Stream traits and modes
+Streams have a number of traits that determine what kind of features and guaranteed the stream type implementation provides. This allows the stream interface to abstract across UDP network streams and other non-reliable resources.
+
+The stream traits are inorder, reliable, sequential, binary, and swapped. The traits can be queried with stream_is_<trait> family of functions. Only binary and byte order traits can be changed explicitly, all other traits are inherent to the stream type. Operations unsupported by the stream trait set will silently be ignored (like seeking backwards on a sequential stream). The traits meanings:
+<ul>
+<li><b>in order:</b> The data written to the stream is guaranteed to be read back in the same order
+<li><b>reliable:</b> The data written to the stream is guaranteed to be readable
+<li><b>sequential:</b> The data can only be written to and read from the stream in sequence. No random access is available, and only forward seeking from the current position is supported. Stream size is generally unavailable for sequential streams.
+<li><b>binary:</b> Data is written to and read from the stream in binary format. If the binary trait is not set, data will be converted to/from ASCII strings before write or after read operations.
+<li><b>swap:</b> Multi-byte data byte order will be swapped before write or after read operations (only for binary streams).
+</ul>
+
+Streams are opened with a specific open mode, see #stream_mode_t. Some streams will enforce specific modes (like read-only or write-only). Operations unsupported by the current mode will be silently ignored (like reading from a write-only mode stream). If the requested mode is unavailable for a given stream implementation or trait set it will be silently ignored.
+
+\subsection stream_special Special streams
+The standard library stdout, stderr and stdin files are wrapped in special streams available through the #stream_open_stdout, #stream_open_stderr and #stream_open_stdin functions. Stdout and stderr are write-only, while stdin is read-only.
 
 \section data_structures Data structures
-To be written...
+The library provides a number of basic container data types.
+
+\subsection data_arrays Arrays
+The array.h module is a simple resizable array implemented as a set of macros operating directly on the argument pointer. Memory allocation is done in chunks reserving additional memory when the current capacity is used up. Arrays are never implicitly resized to a smaller capacity in order to avoid extra allocations and memory copy operations. By default the array does not preserve order but rather use swap-with-last to erase elements, and operations are not ranged checked. The <code>*_ordered</code> functions provide order preserving operations and <code>*_safe</code> functions provide range checking. Arrays are not thread safe, you need to use a mutex or similar construct to wrap operations for thread safety.
+
+\subsection data_hashmap Hash map
+The hashmap.h module is a resizable hash map providing mapping between hash value keys and pointer data. The hash map will have a fixed number of buckets set at initialization time, but each bucket will grow to accomodate storage need by utilizing the array module. Hash maps are not thread safe, you need to use a mutex or similar construct to wrap operations for thread safety.
+
+\subsection data_hashtable Hash table
+The hashtable.h module is a fixed size hash table providing a thread safe atomic hash table mapping hash value keys to 32 or 64 bit value data. All operations are thread safe, which also limits the functionality to storing a 32 or 64 bit data element per hash key. Also, keys can not be fully erased once stored, only reset to hold value zero as an indicator of the key being erased. Therefor the size of the hash table must be initialized to the maximum number of unique keys to be stored over the lifetime of the hash table.
 
 \section strings String handling and unicode support
-To be written... (utf-8, wide strings)
+The string.h module provides string utility functions focusing on features, utf-8 support and ease of use rather than performance and minimal footprint. If you are building an application that relies heavily on string processing, you would be better off looking at additional libraries.
 
+\subsection string_utf8 UTF-8 and wide character strings
+All strings are considered to be on UTF-8 format. However, most length, offset and other index type variables and arguments are considered to be representing bytes, not compound UTF glyphs consisting of multiple UTF-8 byte sequences. This means functions like #string_length returns the length of the string buffer in bytes (memory footprint). To get the number of actual UTF glyphs in a string and the glyphs themselves, use #string_glyphs and #string_glyph.
+
+There are utility functions to convert to and from wide character strings, UTF-16 strings and UTF-32 strings. The API is designed around performing all operations in UTF-8 format and only using wide string formats in external APIs.
+
+\subsection string_handling String functions
+The module provides functions to allocate, initialize, format and deallocate strings both allocating new memory buffers as well as working with existing pre-allocated buffers. Unless otherwise noted in the API documentation, all functions allow null pointers to be passed as arguments (treated as empty strings).
+
+In general, all arguments of type <code>char*</code> are expected to be strings allocated by the string module or #memory_allocate. These arguments can be modified and reallocated by the function, and generally a new string pointer is returned by the function. Arguments of type <code>const char*</code> can be any string, including static compile time strings and stack based data. These arguments will never be modified or reallocated. The function will allocate a new string if the return type is a <code>char*</code>. For more details, check the API documentation for each function.
+
+The #string_find find family of functions takes offset arguments which are byte offsets into the given string argument. Invalid offsets are denoted by the STRING_NPOS constant (-1). If reverse find functions (last of and rfind), STRING_NPOS will mean searching from the end of the string. Apart from the special STRING_NPOS offset, all other offset arguments are expected to be valid in [0..string_length] interval.
+
+\subsection string_regex Regular expressions
+Apart from the simple wildcard #string_match_pattern function, the regex.h provides a limited regular expression module with a subset of perl regex features. The regex module supports the following features:
+<pre>^        Match beginning of string
+    $        Match end of string
+    .        Match one character
+    ()       Group and capture substring
+    []       Match any character from the grouped set
+    [^]      Match any character but ones from the grouped set
+    \\s       Match whitespace
+    \\S       Match non-whitespace
+    \\d       Match decimal digits
+    \\D       Match non-digits
+    \\n       Match newline
+    \\r       Match carriage return
+    +        Match one or more times (longest possible match)
+    +?       Match one or more times (shortest possible match)
+    *        Match zero or more times (longest possible match)
+    *?       Match zero or more times (shortest possible match)
+    ?        Match zero or once
+    \\XX      Match byte with hex value 0xXX
+    \\meta    Match one of the meta characters ^$()[].*+?|\
+</pre>
+Substring capturing is optional, and if performed it will capture start pointers and lengths of matched substrings and will not allocate any additional memory.
 
 \page using_page Using the foundation library in a project
 
 \section project_setup Project setup
-To be written... (headers, linking)
+
+\subsection project_visual_studio Visual Studio
+
+\subsection project_xcode XCode
+
+\subsection project_android Android
+
+\subsection project_scons Ninja
+
 
 \section template_app Template application
-To be written... (initialization, shutdown, environment, system, config, library)
+
+\subsection template_initialization Initialization
+
+\subsection template_shutdown Shutdown
+
+\subsection template_environment Environment
+
+\subsection template_system System
+
+\subsection template_config Config
+
 
 */

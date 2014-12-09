@@ -124,7 +124,7 @@ uuid_t uuid_generate_time( void )
 uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
 {
 	//v3 uuid, namespace and md5
-	md5_t* md5;
+	md5_t md5;
 	uuid_raw_t namespace_id;
 	uuid_raw_t gen_uuid;
 	uuid_convert_t convert;
@@ -137,14 +137,13 @@ uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
 	namespace_id.data2 = byteorder_bigendian16( namespace_id.data2 );
 	namespace_id.data3 = byteorder_bigendian16( namespace_id.data3 );
 
-	md5 = md5_allocate();
-	md5_initialize( md5 );
-	md5_digest_raw( md5, &namespace_id, sizeof( namespace_id ) );
-	md5_digest( md5, name );
-	md5_finalize( md5 );
+	md5_initialize( &md5 );
+	md5_digest_raw( &md5, &namespace_id, sizeof( namespace_id ) );
+	md5_digest( &md5, name );
+	md5_digest_finalize( &md5 );
 
 	//Convert to host order
-	digest = md5_get_digest_raw( md5 );
+	digest = md5_get_digest_raw( &md5 );
 	memcpy( &gen_uuid, &digest, sizeof( uuid_raw_t ) );
 	gen_uuid.data1 = byteorder_bigendian32( gen_uuid.data1 );
 	gen_uuid.data2 = byteorder_bigendian16( gen_uuid.data2 );
@@ -156,7 +155,7 @@ uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
 	gen_uuid.data4[0] &= 0x3F;
 	gen_uuid.data4[0] |= 0x80;
 
-	md5_deallocate( md5 );
+	md5_finalize( &md5 );
 
 	convert.raw = gen_uuid;
 	return convert.uuid;

@@ -8,13 +8,28 @@
 
 \fn objectmap_t* objectmap_allocate( unsigned int size )
 \brief Allocate map
-\details Allocate storage for new map with the given number of object slots
+\details Allocate storage for new map with the given number of object slots. The object map
+should be deallocated with a call to #objectmap_deallocate.
 \param size Number of slots
 \return New object map
 
 \fn void objectmap_deallocate( objectmap_t* map )
-\brief Free memory
-\details Free memory. Does not free the stored objects, only map storage.
+\brief Deallocate map
+\details Deallocate an object map previously allocated with a call to #objectmap_allocate.
+Does not free the stored objects, only map storage.
+\param map Object map
+
+\fn void objectmap_initialize( objectmap_t* map, unsigned int size )
+\brief Initialize map
+\details Initialize object mapwith the given number of object slots. The object map
+should be finalized with a call to #objectmap_finalize.
+\param map Object map
+\param size Number of slots
+
+\fn void objectmap_finalize( objectmap_t* map )
+\brief Finalize map
+\details Finalize an object map previously initialized with a call to #objectmap_initialize.
+Does not free the stored objects.
 \param map Object map
 
 \fn unsigned int objectmap_size( const objectmap_t* map )

@@ -443,17 +443,17 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 
 # define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
-	uint32_t fp = 0, lr = 0;
+	uint32_t fp = 0, pc = 0;
 
 	//Grab initial frame pointer
 	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (fp));
 
 	while( fp && ( num_frames < max_depth ) )
 	{
-		lr = READ_32BIT_MEMORY( fp + 4 );
-		fp = READ_32BIT_MEMORY( fp );
-
-		if( ( fp > 0x1000 ) && lr )
+		pc = READ_32BIT_MEMORY( fp );
+		fp = READ_32BIT_MEMORY( fp - 4 );
+		
+		if( ( fp > 0x1000 ) && pc )
 		{
 			if( skip_frames > 0 )
 			{
@@ -461,7 +461,7 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 			}
 			else
 			{
-				void* instruction = (void*)(uintptr_t)( ( lr - 2 ) & ~3 );
+				void* instruction = (void*)(uintptr_t)( pc & ~3 );
 				trace[num_frames++] = instruction;
 			}
 		}

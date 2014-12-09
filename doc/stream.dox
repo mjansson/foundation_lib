@@ -21,7 +21,13 @@
 
 \fn void stream_deallocate( stream_t* stream )
 \brief Deallocate stream
-\details Deallocate stream
+\details Deallocate stream previously allocated by any stream specific allocation function
+or from a call to #stream_open.
+\param stream Stream
+
+\fn void stream_finalize( stream_t* stream )
+\brief Finalize stream
+\details Finalize stream previously initialized by any stream specific initialization function.
 \param stream Stream
 
 \fn int64_t stream_tell( stream_t* stream )

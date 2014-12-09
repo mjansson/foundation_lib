@@ -11,7 +11,6 @@
  */
 
 #include <foundation/foundation.h>
-#include <foundation/internal.h>
 
 
 static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
@@ -48,6 +47,38 @@ static void _bitbuffer_put( bitbuffer_t* RESTRICT bitbuffer )
 	}
 	bitbuffer->offset_write = 0;
 	bitbuffer->pending_write = 0;
+}
+
+
+bitbuffer_t* bitbuffer_allocate_buffer( void* buffer, unsigned int size, bool swap )
+{
+	bitbuffer_t* bitbuffer = memory_allocate( 0, sizeof( bitbuffer_t ), 0, MEMORY_PERSISTENT );
+	
+	bitbuffer_initialize_buffer( bitbuffer, buffer, size, true );
+	
+	return bitbuffer;
+}
+
+
+bitbuffer_t* bitbuffer_allocate_stream( stream_t* stream )
+{
+	bitbuffer_t* bitbuffer = memory_allocate( 0, sizeof( bitbuffer_t ), 0, MEMORY_PERSISTENT );
+	
+	bitbuffer_initialize_stream( bitbuffer, stream );
+	
+	return bitbuffer;
+}
+
+
+void bitbuffer_deallocate( bitbuffer_t* bitbuffer )
+{
+	bitbuffer_finalize( bitbuffer );
+	memory_deallocate( bitbuffer );
+}
+
+
+void bitbuffer_finalize( bitbuffer_t* bitbuffer )
+{
 }
 
 

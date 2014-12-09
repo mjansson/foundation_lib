@@ -53,6 +53,8 @@ static int test_profile_initialize( void )
 	profile_set_output( test_profile_output );
 
 	_test_profile_buffer = memory_allocate( 0, TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT );
+
+	FOUNDATION_UNUSED( _test_profile_buffer_size );
 	
 	return 0;
 }
@@ -305,9 +307,11 @@ DECLARE_TEST( profile, stream )
 	object_t thread[32];
 	int ith;
 	int frame;
-	error_t err = error();
+	char* filename;
 
-	char* filename = path_merge( environment_temporary_directory(), "test.profile" );
+	error();
+	
+	filename = path_merge( environment_temporary_directory(), "test.profile" );
 	log_infof( HASH_TEST, "Output to profile file: %s", filename );
 	fs_make_directory( environment_temporary_directory() );
 	_profile_stream = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );
@@ -349,7 +353,7 @@ DECLARE_TEST( profile, stream )
 	profile_enable( 0 );
 	profile_shutdown();
 
-	err = error();
+	error();
 
 	stream_deallocate( _profile_stream );
 

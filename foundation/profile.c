@@ -34,7 +34,7 @@ struct _profile_block_data
 	uint64_t              end;
 	char                  name[ MAX_MESSAGE_LENGTH + 1 ];
 }; //sizeof( profile_block_data ) == 58
-FOUNDATION_STATIC_ASSERT( sizeof( profile_block_data_t ) == 58, profile_block_data_size );
+FOUNDATION_STATIC_ASSERT( sizeof( profile_block_data_t ) == 58, "profile_block_data_t size" );
 
 #pragma pack(pop)
 
@@ -45,7 +45,7 @@ struct _profile_block
 	uint16_t              sibling;
 	uint16_t              child;
 }; //sizeof( profile_block ) == 64
-FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, profile_block_size );
+FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, "profile_block_t size" );
 
 #define PROFILE_ID_ENDOFSTREAM      0
 #define PROFILE_ID_SYSTEMINFO       1
@@ -344,7 +344,7 @@ void profile_shutdown( void )
 	_profile_io_thread = 0;
 
 	//Discard and free up blocks remaining in queue
-	_profile_thread_cleanup();
+	_profile_thread_finalize();
 	if( atomic_load32( &_profile_root ) )
 	{
 		profile_write_fn old_write = _profile_write;
@@ -617,7 +617,7 @@ void profile_signal( const char* name )
 #endif
 
 
-void _profile_thread_cleanup( void )
+void _profile_thread_finalize( void )
 {
 #if BUILD_ENABLE_PROFILE
 	uint32_t block_index;

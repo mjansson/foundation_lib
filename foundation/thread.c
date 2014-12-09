@@ -130,7 +130,7 @@ void _thread_shutdown( void )
 	}
 #endif
 
-	thread_cleanup();
+	thread_finalize();
 }
 
 
@@ -405,7 +405,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	thread->osid  = 0;
 
 	set_thread_self( 0 );
-	thread_cleanup();
+	thread_finalize();
 
 	if( !atomic_cas32( &thread->running, 0, 1 ) )
 	{
@@ -417,6 +417,9 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	_thread_unref( thread );
 
+	FOUNDATION_UNUSED(thr_osid);
+	FOUNDATION_UNUSED(thr_id);
+	
 	return 0;
 }
 
@@ -539,8 +542,9 @@ unsigned int thread_hardware( void )
 }
 
 
-void thread_set_hardware( unsigned int hw_thread )
+void thread_set_hardware( uint64_t mask )
 {
+  //TODO: Implement
 }
 
 
@@ -556,9 +560,9 @@ bool thread_is_main( void )
 }
 
 
-void thread_cleanup( void )
+void thread_finalize( void )
 {
-	_profile_thread_cleanup();
+	_profile_thread_finalize();
 	
 	random_thread_deallocate();
 

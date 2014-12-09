@@ -19,6 +19,7 @@
 FOUNDATION_API stream_t*         stream_open( const char* path, unsigned int mode );
 FOUNDATION_API stream_t*         stream_clone( stream_t* stream );
 FOUNDATION_API void              stream_deallocate( stream_t* stream );
+FOUNDATION_API void              stream_finalize( stream_t* stream );
 
 FOUNDATION_API int64_t           stream_tell( stream_t* stream );
 FOUNDATION_API void              stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction );

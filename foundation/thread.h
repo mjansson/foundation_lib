@@ -31,7 +31,7 @@ FOUNDATION_API bool            thread_should_terminate( object_t thread );
 
 FOUNDATION_API void            thread_set_main( void );
 FOUNDATION_API void            thread_set_name( const char* name );
-FOUNDATION_API void            thread_set_hardware( unsigned int hw_thread );
+FOUNDATION_API void            thread_set_hardware( uint64_t mask );
 
 FOUNDATION_API void*           thread_result( object_t thread );
 FOUNDATION_API object_t        thread_self( void );
@@ -42,7 +42,7 @@ FOUNDATION_API unsigned int    thread_hardware( void );
 FOUNDATION_API void            thread_sleep( int milliseconds );
 FOUNDATION_API void            thread_yield( void );
 
-FOUNDATION_API void            thread_cleanup( void );
+FOUNDATION_API void            thread_finalize( void );
 
 #if FOUNDATION_PLATFORM_ANDROID
 

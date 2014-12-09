@@ -22,6 +22,20 @@ count is 13, minimum bucket size is 8. Hash map should be deallocated with a cal
 \details Deallocate a hash map previously allocated with #hashmap_allocate
 \param map Hash map
 
+\fn void hashmap_initialize( hashmap_t* map, unsigned int buckets, unsigned int bucketsize )
+\brief Initialize hash map
+\details Initialize new hash map with the given bucket count and size. Minimum bucket
+count is 13, minimum bucket size is 8. Hash map should be finalized with a call to
+#hashmap_finalize
+\param map Hash map to initialize
+\param buckets Bucket count
+\param bucketsize Bucket size
+
+\fn void hashmap_finalize( hashmap_t* map )
+\brief Finalize hash map
+\details Finalize a hash map previously initialized with #hashmap_initialize and free resources
+\param map Hash map
+
 \fn void* hashmap_insert( hashmap_t* map, hash_t key, void* value )
 \brief Insert key-value mapping
 \details Insert a new key-value mapping. Will replace any previously stored mapping

@@ -48,11 +48,9 @@ static atomic_linear_memory_t _memory_temporary = {0};
 static memory_tracker_t _memory_tracker = {0};
 static void _memory_track( void* addr, uint64_t size );
 static void _memory_untrack( void* addr );
-static void _memory_report( void );
 #else
 #define _memory_track( addr, size ) do { (void)sizeof( (addr) ); (void)sizeof( (size) ); } while(0)
 #define _memory_untrack( addr ) do { (void)sizeof( (addr) ); } while(0)
-#define _memory_report()
 #endif
 
 
@@ -175,6 +173,8 @@ void _memory_shutdown( void )
 }
 
 
+#if BUILD_ENABLE_MEMORY_GUARD
+
 static void* _memory_guard_initialize( void* memory, size_t size )
 {
 	int guard_loop;
@@ -207,6 +207,8 @@ static void* _memory_guard_verify( void* memory )
 	}
 	return pointer_offset( memory, -FOUNDATION_MAX_ALIGN * 2 );
 }
+
+#endif
 
 
 void* memory_allocate( uint64_t context, uint64_t size, unsigned int align, int hint )
@@ -625,7 +627,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 
 	if( !memory )
 	{
-		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s", system_error_message( 0 ) );
+		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s (%" PRIfixPTR ", raw %" PRIfixPTR ")", system_error_message( 0 ), p, raw_p );
 	}
 	return memory;
 #endif
@@ -681,6 +683,8 @@ void memory_set_tracker( memory_tracker_t tracker )
 }
 
 
+#if BUILD_ENABLE_MEMORY_TRACKER
+
 static void _memory_track( void* addr, uint64_t size )
 {
 	if( _memory_tracker.track )
@@ -694,10 +698,7 @@ static void _memory_untrack( void* addr )
 		_memory_tracker.untrack( addr );
 }
 
-
-static void _memory_report( void )
-{
-}
+#endif
 
 
 struct memory_tag_t
