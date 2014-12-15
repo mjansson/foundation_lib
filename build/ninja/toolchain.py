@@ -13,10 +13,12 @@ def supported_architectures():
   return [ 'x86', 'x86-64', 'ppc', 'ppc64', 'arm6', 'arm7', 'arm64', 'mips', 'mips64' ]
 
 class Toolchain(object):
-  def __init__( self, toolchain, host, target, archs, configs, includepaths, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
+  def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
+    self.project = project
     self.toolchain = toolchain
     self.host = host
     self.target = target
+    self.dependlibs = list( dependlibs )
     self.archs = list( archs )
     self.configs = list( configs )
     if self.toolchain is None:
@@ -32,10 +34,8 @@ class Toolchain(object):
     self.linkarchflags = []
     self.linkconfigflags = []
     self.libpaths = []
-    self.includepaths = []
-
-    if not includepaths is None:
-      self.includepaths = list( includepaths )
+    self.includepaths = self.build_includepaths( includepaths )
+    self.extralibs = []
 
     if self.archs is None or self.archs == []:
       if target.is_windows():
@@ -58,10 +58,10 @@ class Toolchain(object):
       self.cc = 'cl'
       self.ar = 'lib'
       self.link = 'link'
-      self.cflags = [ '/D', '"FOUNDATION_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
+      self.cflags = [ '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
       self.arflags = []
       self.linkflags = []
-      self.extralibs = [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
+      self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
       self.objext = '.obj'
       self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
       self.ccdepfile = None
@@ -74,15 +74,14 @@ class Toolchain(object):
       self.cc = 'gcc'
       self.ar = 'ar'
       self.link = 'gcc'
-      self.cflags = [ '-DFOUNDATION_COMPILE=1',
+      self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
                       '-Wno-unused-value',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
       self.arflags = []
-      self.linkflags = [ '-pthread' ]
-      self.extralibs = []
+      self.linkflags = []
       self.objext = '.o'
 
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
@@ -110,14 +109,13 @@ class Toolchain(object):
       self.cc = 'clang'
       self.ar = 'llvm-ar'
       self.link = 'clang'
-      self.cflags = [ '-std=c11', '-DFOUNDATION_COMPILE=1',
+      self.cflags = [ '-std=c11', '-D' + self.project.upper() + '_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
       self.arflags = []
       self.linkflags = []
-      self.extralibs = []
       self.objext = '.o'
 
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
@@ -202,6 +200,25 @@ class Toolchain(object):
     self.buildpath = os.path.join( 'build', 'ninja', target.platform )
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
+
+  def build_includepaths( self, includepaths ):
+    finalpaths = [ '.' ]
+    if not includepaths is None:
+      finalpaths += list( includepaths )
+    for deplib in self.dependlibs:
+      finalpaths += [ os.path.join( '..', deplib + '_lib' ) ]
+    return finalpaths
+
+  def build_libpaths( self, libpaths, arch, config ):
+    finalpaths = []
+    if not libpaths is None:
+      finalpaths += list( libpaths )
+    for deplib in self.dependlibs:
+      if self.target.is_macosx() or self.target.is_ios():
+        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config ) ]
+      else:
+        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config, arch ) ]
+    return finalpaths
 
   def make_cconfigflags( self, config ):
     flags = ''
@@ -501,8 +518,7 @@ class Toolchain(object):
       basepath = ''
     if configs is None:
       configs = list( self.configs )
-    if includepaths == None:
-      includepaths = list( self.includepaths )
+    includepaths = self.build_includepaths( includepaths )
     for config in configs:
       archlibs = []
       built[config] = []
@@ -545,8 +561,7 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
-    if includepaths == None:
-      includepaths = list( self.includepaths )
+    includepaths = self.build_includepaths( includepaths )
     for config in configs:
       localcconfigflags = self.make_cconfigflags( config )
       localincludepaths = self.make_includepaths( includepaths )
@@ -563,11 +578,11 @@ class Toolchain(object):
         localcarchflags = self.make_carchflags( arch )
         locallinkarchflags = self.make_linkarchflags( arch )
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
-        locallibpaths = self.make_libpaths( self.libpaths + [ libpath ] )
+        locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libpath ], arch, config ) )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
         if includepaths != self.includepaths:
           localvariables += [ ( 'includepaths', localincludepaths ) ]
-        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
+        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
@@ -591,8 +606,6 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
-    if includepaths == None:
-      includepaths = list( self.includepaths )
     for config in configs:
       archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths )
       if self.target.is_macosx() or self.target.is_ios():

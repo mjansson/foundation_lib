@@ -12,7 +12,7 @@ import toolchain
 import syntax
 
 class Generator(object):
-  def __init__( self, includepaths ):
+  def __init__( self, project, includepaths = [], dependlibs = [] ):
     parser = argparse.ArgumentParser( description = 'Ninja build generator' )
     parser.add_argument( '-t', '--target',
                          help = 'Target platform',
@@ -36,6 +36,7 @@ class Generator(object):
                          default = [] )
     options = parser.parse_args()
 
+    self.project = project
     self.target = platform.Platform(options.target)
     self.host = platform.Platform(options.host)
     archs = options.arch
@@ -67,7 +68,7 @@ class Generator(object):
       config_str = ' '.join( [ key + '=' + pipes.quote( configure_env[key] ) for key in configure_env ] )
       writer.variable('configure_env', config_str + '$ ')
 
-    self.toolchain = toolchain.Toolchain( options.toolchain, self.host, self.target, archs, configs, includepaths,
+    self.toolchain = toolchain.Toolchain( project, options.toolchain, self.host, self.target, archs, configs, includepaths, dependlibs,
                                           configure_env.get( 'CC' ),
                                           configure_env.get( 'AR' ),
                                           configure_env.get( 'LINK' ),
@@ -104,4 +105,9 @@ class Generator(object):
 
   def app( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
     return self.toolchain.app( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs, includepaths )
+
+  def test_includepaths( self ):
+    if self.project == "foundation":
+      return [ 'test' ]
+    return [ 'test', os.path.join( '..', 'foundation_lib', 'test' ) ]
 
