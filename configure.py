@@ -9,13 +9,13 @@ sys.path.insert( 0, os.path.join( 'build', 'ninja' ) )
 
 import generator
 
-includepaths = [ '.' ]
-generator = generator.Generator( includepaths = includepaths )
+generator = generator.Generator( project = 'foundation' )
 target = generator.target
 writer = generator.writer
 toolchain = generator.toolchain
+includepaths = []
 
-foundation_lib = generator.lib( module = 'foundation', sources = [
+foundation_lib = generator.lib( module = 'foundation', includepaths = includepaths, sources = [
   'array.c', 'assert.c', 'atomic.c', 'base64.c', 'bitbuffer.c', 'blowfish.c', 'bufferstream.c', 'config.c',
   'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c', 'hash.c', 'hashmap.c',
   'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c', 'objectmap.c', 'path.c',
@@ -30,7 +30,7 @@ if not target.is_ios() and not target.is_android():
     generator.bin( 'hashify', [ 'main.c' ], 'hashify', basepath = 'tools', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], configs = configs )
     generator.bin( 'uuidgen', [ 'main.c' ], 'uuidgen', basepath = 'tools', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], configs = configs )
 
-includepaths += [ 'test' ]
+includepaths = [ 'test' ]
 test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.c', 'test.m' ], includepaths = includepaths )
 
 test_cases = [

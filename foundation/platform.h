@@ -921,4 +921,16 @@ static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { r
 #if FOUNDATION_PLATFORM_ANDROID
 #  undef __ISO_C_VISIBLE
 #  define __ISO_C_VISIBLE 2011
+#  undef  PRId64
+#  undef  PRIi64
+#  undef  PRIo64
+#  undef  PRIu64
+#  undef  PRIx64
+#  undef  PRIX64
+#  define PRId64       "lld"
+#  define PRIi64       "lli"
+#  define PRIo64       "llo"
+#  define PRIu64       "llu"
+#  define PRIx64       "llx"
+#  define PRIX64       "llX"
 #endif

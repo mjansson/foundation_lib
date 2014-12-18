@@ -104,6 +104,51 @@ class Toolchain(object):
       else:
         self.cflags += [ '-std=c11' ]
 
+      if target.is_android():
+        self.android_archname = dict()
+        self.android_archname['x86'] = 'x86'
+        self.android_archname['x86-64'] = 'x86_64'
+        self.android_archname['arm6'] = 'arm'
+        self.android_archname['arm7'] = 'arm'
+        self.android_archname['arm64'] = 'arm64'
+        self.android_archname['mips'] = 'mips'
+        self.android_archname['mips64'] = 'mips64'
+
+        self.android_toolchainname = dict()
+        self.android_toolchainname['x86'] = 'x86'
+        self.android_toolchainname['x86-64'] = 'x86_64'
+        self.android_toolchainname['arm6'] = 'arm-linux-androideabi'
+        self.android_toolchainname['arm7'] = 'arm-linux-androideabi'
+        self.android_toolchainname['arm64'] = 'aarch64-linux-android'
+        self.android_toolchainname['mips'] = 'mipsel-linux-android'
+        self.android_toolchainname['mips64'] = 'mips64el-linux-android'
+
+        self.android_ccname = dict()
+        self.android_ccname['x86'] = 'i686-linux-android-gcc'
+        self.android_ccname['x86-64'] = 'x86_64-linux-android-gcc'
+        self.android_ccname['arm6'] = 'arm-linux-androideabi-gcc'
+        self.android_ccname['arm7'] = 'arm-linux-androideabi-gcc'
+        self.android_ccname['arm64'] = 'aarch64-linux-android-gcc'
+        self.android_ccname['mips'] = 'mipsel-linux-android-gcc'
+        self.android_ccname['mips64'] = 'mips64el-linux-android-gcc'
+
+        self.android_ndk_path = os.environ[ 'ANDROID_NDK' ]
+        
+        self.android_toolchainversion = '4.9'
+        self.android_platformversion = '21'
+
+        if host.is_macosx():
+          self.android_hostarchname = 'darwin-x86_64'
+
+        self.cccmd = os.path.join( '$toolchain', '$cc' ) + ' -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+        self.linkcmd = os.path.join( '$toolchain', '$cc' ) + ' $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs'
+
+        self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
+                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wformat', '-Werror=format-security' ]
+
+        self.includepaths += [ os.path.join( self.android_ndk_path, 'sources', 'android', 'native_app_glue' ),
+                               os.path.join( self.android_ndk_path, 'sources', 'android', 'cpufeatures' ) ]
+
     elif self.toolchain.startswith('clang') or self.toolchain.startswith('llvm'):
       self.toolchain = 'clang' 
       self.cc = 'clang'
@@ -263,6 +308,8 @@ class Toolchain(object):
         flags += '-arch arm64'
     elif self.target.is_raspberrypi():
       flags += '-mfloat-abi=hard -mfpu=vfp -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -D__raspberrypi__=1'
+    elif self.target.is_android():
+      pass
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -307,6 +354,8 @@ class Toolchain(object):
       elif arch == 'arm64':
         flags += '-arch arm64'
     elif self.target.is_raspberrypi():
+      pass
+    elif self.target.is_android():
       pass
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
@@ -386,6 +435,9 @@ class Toolchain(object):
   def includepaths( self ):
     return self.includepaths
 
+  def android_ndk_path( self ):
+    return self.android_ndk_path
+
   def shell_escape( self, str ):
     # This isn't complete, but it's just enough to make NINJA_PYTHON work.
     if self.host.is_windows():
@@ -456,6 +508,8 @@ class Toolchain(object):
         writer.variable( 'sdkdir', sdkdir )
     if self.target.is_windows():
       writer.variable( 'pdbpath', '' )
+    if self.target.is_android():
+      writer.variable( 'toolchain', '' )
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
@@ -518,12 +572,13 @@ class Toolchain(object):
       basepath = ''
     if configs is None:
       configs = list( self.configs )
-    includepaths = self.build_includepaths( includepaths )
+    allincludepaths = self.build_includepaths( self.includepaths + includepaths )
     for config in configs:
       archlibs = []
       built[config] = []
       localcconfigflags = self.make_cconfigflags( config )
-      localincludepaths = self.make_includepaths( includepaths )
+      localincludepaths = self.make_includepaths( allincludepaths )
+      extraincludepaths = []
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
@@ -534,8 +589,12 @@ class Toolchain(object):
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
-        if includepaths != self.includepaths:
-          localvariables += [ ( 'includepaths', localincludepaths ) ]
+        if self.target.is_android():
+          localvariables += [ ( 'toolchain', os.path.join( self.android_ndk_path, 'toolchains', self.android_toolchainname[arch] + '-' + self.android_toolchainversion, 'prebuilt', self.android_hostarchname, 'bin' ) ) ]
+          localvariables += [ ( 'cc', self.android_ccname[arch] ) ]
+          extraincludepaths += self.make_includepaths( [ os.path.join( self.android_ndk_path, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch], 'usr', 'include' ) ] )
+        if includepaths != None or extraincludepaths != []:
+          localvariables += [ ( 'includepaths', localincludepaths + extraincludepaths ) ]
         localarconfigflags = self.make_arconfigflags( arch, config )
         localarvariables = [ ( 'ararchflags', localararchflags ), ( 'arconfigflags', localarconfigflags ) ]
         for name in sources:
@@ -561,10 +620,11 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
-    includepaths = self.build_includepaths( includepaths )
+    allincludepaths = self.build_includepaths( self.includepaths + includepaths )
     for config in configs:
       localcconfigflags = self.make_cconfigflags( config )
-      localincludepaths = self.make_includepaths( includepaths )
+      localincludepaths = self.make_includepaths( allincludepaths )
+      extraincludepaths = []
       built[config] = []
       local_deps = self.list_per_config( implicit_deps, config )
       for arch in self.archs:
@@ -580,14 +640,18 @@ class Toolchain(object):
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
         locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libpath ], arch, config ) )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
-        if includepaths != self.includepaths:
-          localvariables += [ ( 'includepaths', localincludepaths ) ]
         locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
           linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
           locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
+        if self.target.is_android():
+          localvariables += [ ( 'toolchain', os.path.join( self.android_ndk_path, 'toolchains', self.android_toolchainname[arch] + '-' + self.android_toolchainversion, 'prebuilt', self.android_hostarchname, 'bin' ) ) ]
+          localvariables += [ ( 'cc', self.android_ccname[arch] ) ]
+          extraincludepaths += self.make_includepaths( [ os.path.join( self.android_ndk_path, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch], 'usr', 'include' ) ] )
+        if includepaths != None or extraincludepaths != []:
+          localvariables += [ ( 'includepaths', localincludepaths + extraincludepaths ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
