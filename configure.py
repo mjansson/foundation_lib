@@ -13,15 +13,19 @@ generator = generator.Generator( project = 'foundation' )
 target = generator.target
 writer = generator.writer
 toolchain = generator.toolchain
-includepaths = []
+extrasources = []
 
-foundation_lib = generator.lib( module = 'foundation', includepaths = includepaths, sources = [
-  'array.c', 'assert.c', 'atomic.c', 'base64.c', 'bitbuffer.c', 'blowfish.c', 'bufferstream.c', 'config.c',
-  'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c', 'hash.c', 'hashmap.c',
-  'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c', 'objectmap.c', 'path.c',
-  'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c', 'ringbuffer.c', 'semaphore.c',
-  'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c', 'uuid.c',
-  'delegate.m', 'environment.m', 'fs.m', 'system.m' ] )
+if target.is_android():
+  extrasources += [ os.path.join( toolchain.android_ndk_path, 'sources', 'android', 'native_app_glue', 'android_native_app_glue.c' ),
+                    os.path.join( toolchain.android_ndk_path, 'sources', 'android', 'cpufeatures', 'cpu-features.c' ) ]
+
+foundation_lib = generator.lib( module = 'foundation', sources = [
+  'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'bitbuffer.c', 'blowfish.c',
+  'bufferstream.c', 'config.c', 'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c',
+  'hash.c', 'hashmap.c', 'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
+  'objectmap.c', 'path.c', 'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
+  'ringbuffer.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
+  'uuid.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ] + extrasources )
 
 if not target.is_ios() and not target.is_android():
   configs = [ config for config in toolchain.configs if config not in [ 'profile', 'deploy' ] ]
