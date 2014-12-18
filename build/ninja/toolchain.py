@@ -39,8 +39,11 @@ class Toolchain(object):
     self.linkarchflags = []
     self.linkconfigflags = []
     self.libpaths = []
-    self.includepaths = self.build_includepaths( includepaths )
+    self.includepaths = [ '.' ] + self.build_includepaths( includepaths )
     self.extralibs = []
+
+    # TODO: Add dependent lib search
+    self.includepaths += [ os.path.join( '..', deplib + '_lib' ) for deplib in self.dependlibs ]
 
     if self.archs is None or self.archs == []:
       if target.is_windows():
@@ -68,7 +71,7 @@ class Toolchain(object):
       self.linkflags = []
       self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
       self.objext = '.obj'
-      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
+      self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
       self.ccdepfile = None
       self.ccdeps = 'msvc'
       self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
@@ -89,7 +92,7 @@ class Toolchain(object):
       self.linkflags = []
       self.objext = '.o'
 
-      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
@@ -144,7 +147,7 @@ class Toolchain(object):
 
         self.sysroot = ''
         self.liblinkname = ''
-        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = 'rm -f $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -lgcc -landroid -no-canonical-prefixes -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -o $out $in $libs'
 
@@ -170,7 +173,7 @@ class Toolchain(object):
       self.linkflags = []
       self.objext = '.o'
 
-      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
@@ -202,7 +205,7 @@ class Toolchain(object):
         self.mflags += self.cflags + [ '-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c' ]
         self.cflags += [ '-x', 'c' ]
         
-        self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $mflags $carchflags $cconfigflags -c $in -o $out'
+        self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $mflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = 'rm -f $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
@@ -259,11 +262,9 @@ class Toolchain(object):
     self.binpath = os.path.join( 'bin', target.platform )
 
   def build_includepaths( self, includepaths ):
-    finalpaths = [ '.' ]
+    finalpaths = []
     if not includepaths is None:
       finalpaths += list( includepaths )
-    for deplib in self.dependlibs:
-      finalpaths += [ os.path.join( '..', deplib + '_lib' ) ]
     return finalpaths
 
   def build_libpaths( self, libpaths, arch, config ):
@@ -595,15 +596,11 @@ class Toolchain(object):
       basepath = ''
     if configs is None:
       configs = list( self.configs )
-    if includepaths is None:
-      includepaths = []
-    allincludepaths = self.build_includepaths( self.includepaths + includepaths )
+    moreincludepaths = self.build_includepaths( includepaths )
     for config in configs:
       archlibs = []
       built[config] = []
       localcconfigflags = self.make_cconfigflags( config )
-      localincludepaths = self.make_includepaths( allincludepaths )
-      extraincludepaths = []
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
@@ -620,9 +617,9 @@ class Toolchain(object):
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
           localarvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
-          extraincludepaths += self.make_includepaths( [ os.path.join( sysroot, 'usr', 'include' ) ] )
-        if includepaths != [] or extraincludepaths != []:
-          localvariables += [ ( 'includepaths', localincludepaths + extraincludepaths ) ]
+          moreincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if moreincludepaths != []:
+          localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths ) ) ]
         for name in sources:
           if name.endswith( '.c' ):
             objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
@@ -646,13 +643,9 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
-    if includepaths is None:
-      includepaths = []
-    allincludepaths = self.build_includepaths( self.includepaths + includepaths )
+    moreincludepaths = self.build_includepaths( includepaths )
     for config in configs:
       localcconfigflags = self.make_cconfigflags( config )
-      localincludepaths = self.make_includepaths( allincludepaths )
-      extraincludepaths = []
       built[config] = []
       local_deps = self.list_per_config( implicit_deps, config )
       for arch in self.archs:
@@ -675,11 +668,12 @@ class Toolchain(object):
           linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
           locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
         if self.target.is_android():
-          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', self.make_android_sysroot_path( arch ) ) ]
-          locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', self.make_android_sysroot_path( arch ) ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
-          extraincludepaths += self.make_includepaths( [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'include' ) ] )
-        if includepaths != [] or extraincludepaths != []:
-          localvariables += [ ( 'includepaths', localincludepaths + extraincludepaths ) ]
+          sysroot = self.make_android_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
+          moreincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if moreincludepaths != []:
+          localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths ) ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
@@ -691,7 +685,7 @@ class Toolchain(object):
 
   def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
     builtres = []
-    builtapp = []
+    builtbin = []
     if basepath is None:
       basepath = ''
     if binname is None:
@@ -710,5 +704,13 @@ class Toolchain(object):
           for resource in resources:
             builtres += self.build_res( writer, basepath, module, resource, os.path.join( self.binpath, config ), binname, config )
         writer.newline()
-    return builtapp + builtbin
+      elif self.target.is_android():
+        #TODO: Implement apk build
+        for _, value in archbins.iteritems():
+          builtbin += value
+        pass
+      else:
+        for _, value in archbins.iteritems():
+          builtbin += value
+    return builtres + builtbin
 
