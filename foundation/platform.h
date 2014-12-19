@@ -152,7 +152,6 @@
 #    undef  FOUNDATION_ARCH_MIPS
 #    define FOUNDATION_ARCH_MIPS 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android MIPS"
-#    include <asm/asm.h>
 #    ifndef _MIPS_ISA
 #      define _MIPS_ISA 6 /*_MIPS_ISA_MIPS32*/
 #    endif
@@ -174,12 +173,6 @@
 
 #  undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
 #  define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
-
-// Workarounds for weird include dependencies in NDK headers
-#  if !defined(__LP64__)
-#    define __LP64__ 0
-#    define FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#  endif
 
 // MacOS X and iOS
 #elif ( defined( __APPLE__ ) && __APPLE__ )
@@ -912,25 +905,3 @@ static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { r
 #endif
 
 #include <foundation/build.h>
-
-#if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
-#  undef __LP64__
-#  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#endif
-
-#if FOUNDATION_PLATFORM_ANDROID
-#  undef __ISO_C_VISIBLE
-#  define __ISO_C_VISIBLE 2011
-#  undef  PRId64
-#  undef  PRIi64
-#  undef  PRIo64
-#  undef  PRIu64
-#  undef  PRIx64
-#  undef  PRIX64
-#  define PRId64       "lld"
-#  define PRIi64       "lli"
-#  define PRIo64       "llo"
-#  define PRIu64       "llu"
-#  define PRIx64       "llx"
-#  define PRIX64       "llX"
-#endif

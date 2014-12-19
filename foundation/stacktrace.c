@@ -298,6 +298,27 @@ static void _load_process_modules()
 }
 
 
+#if FOUNDATION_PLATFORM_ANDROID && FOUNDATION_COMPILER_CLANG && FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
+
+extern int _Unwind_VRS_Get(struct _Unwind_Context *context, int regclass, uint32_t regno, int representation, void* valuep);
+
+uintptr_t _Unwind_GetGR( struct _Unwind_Context* ctx, int index )
+{
+	#define _UVRSC_CORE 0    // integer register
+	#define _UVRSD_UINT32 0
+	uint32_t val;
+	_Unwind_VRS_Get( ctx, _UVRSC_CORE, index, _UVRSD_UINT32, &val );
+	return val;
+}
+
+uintptr_t _Unwind_GetIP( struct _Unwind_Context* ctx )
+{
+	#define UNWIND_IP_REG 15
+	return _Unwind_GetGR( ctx, UNWIND_IP_REG ) & ~1; // thumb bit
+}
+
+#endif
+
 static _Unwind_Reason_Code unwind_stack( struct _Unwind_Context* context, void* arg )
 {
 	android_trace_t* trace = arg;
