@@ -670,15 +670,30 @@ class Toolchain(object):
   def make_android_sysroot_path( self, arch ):
     return os.path.join( self.android_ndk_path, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch] )
 
-  def build_res( self, writer, basepath, module, resource, binpath, binname, config ):
+  def build_res( self, writer, basepath, module, resource, binpath, binname ):
     if self.target.is_macosx() or self.target.is_ios():
-      appname = binname + '.app'
       if resource.endswith( '.plist' ):
-        return writer.build( os.path.join( binpath, appname, binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
+        return writer.build( os.path.join( binpath, binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
       elif resource.endswith( '.xcassets' ):
-        return writer.build( os.path.join( binpath, appname ), 'xcassets', os.path.join( basepath, module, resource ) )
+        return writer.build( binpath, 'xcassets', os.path.join( basepath, module, resource ) )
       elif resource.endswith( '.xib' ):
-        return writer.build( os.path.join( binpath, appname, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
+        return writer.build( os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
+    return []
+
+  def build_app( self, writer, basepath, module, binpath, binname, archbins, resources ):
+    binlist = []
+    builtbin = []
+    builtres = []
+    for _, value in archbins.iteritems():
+      binlist += value
+    builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
+    if resources:
+      for resource in resources:
+        builtres += self.build_res( writer, basepath, module, resource, binpath, binname )
+    writer.newline()
+    return builtbin + builtres
+
+  def build_apk( self, writer, basepath, module, resources ):
     return []
 
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
@@ -785,7 +800,6 @@ class Toolchain(object):
     return built
 
   def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
-    builtres = []
     builtbin = []
     if basepath is None:
       basepath = ''
@@ -797,21 +811,11 @@ class Toolchain(object):
       archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
-        binlist = []
-        for _, value in archbins.iteritems():
-          binlist += value
-        builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
-        if resources:
-          for resource in resources:
-            builtres += self.build_res( writer, basepath, module, resource, os.path.join( self.binpath, config ), binname, config )
-        writer.newline()
+        builtbin += self.build_app( writer, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
       elif self.target.is_android():
-        #TODO: Implement apk build
-        for _, value in archbins.iteritems():
-          builtbin += value
-        pass
+        builtbin += self.apk( writer, module, binname, basepath = basepath, resources = resources )
       else:
         for _, value in archbins.iteritems():
           builtbin += value
-    return builtres + builtbin
+    return builtbin
 
