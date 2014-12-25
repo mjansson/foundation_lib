@@ -111,7 +111,7 @@ class Toolchain(object):
         self.linkflags += [ '-pthread' ]
         self.extralibs += [ 'dl', 'm' ]
       if target.is_raspberrypi():
-        self.cflags += [ '-std=c99' ]
+        self.cflags += [ '-std=c99', '-fno-omit-frame-pointer' ]
         self.extralibs += [ 'rt' ]
       else:
         self.cflags += [ '-std=c11' ]

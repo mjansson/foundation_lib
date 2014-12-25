@@ -38,6 +38,11 @@
 #  include <unwind.h>
 #endif
 
+#if FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+extern void NOINLINE _gcc_barrier_function( uint32_t fp );
+void __attribute__((optimize("O0"))) _gcc_barrier_function( uint32_t fp ) {}
+#endif
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_COMPILER_MSVC
@@ -227,31 +232,33 @@ static void _load_process_modules()
 
 #define FOUNDATION_MAX_MODULES 256
 
-struct android_trace_t
+struct arm_trace_t
 {
 	void**        trace;
 	unsigned int  cur_depth;
 	unsigned int  max_depth;
 	unsigned int  skip_frames;
 };
-typedef struct android_trace_t android_trace_t;
+typedef struct arm_trace_t arm_trace_t;
 
-struct android_module_t
+#if FOUNDATION_PLATFORM_ANDROID
+
+struct arm_module_t
 {
 	uintptr_t           address_start;
 	uintptr_t           address_end;
 	char                name[64];
 };
-typedef struct android_module_t android_module_t;
+typedef struct arm_module_t arm_module_t;
 
-android_module_t _android_modules[FOUNDATION_MAX_MODULES];
+arm_module_t _process_modules[FOUNDATION_MAX_MODULES];
 
 static void _load_process_modules()
 {
 	int imod = 0;
 	char line_buffer[256];
 
-	memset( _android_modules, 0, sizeof( android_module_t ) * FOUNDATION_MAX_MODULES );
+	memset( _process_modules, 0, sizeof( arm_module_t ) * FOUNDATION_MAX_MODULES );
 
 	stream_t* maps = fs_open_file( "/proc/self/maps", STREAM_IN );
 	if( !maps )
@@ -275,21 +282,21 @@ static void _load_process_modules()
 		if( !module[0] || ( string_find_first_not_of( module, "0123456789", 0 ) == STRING_NPOS ) )
 			continue;
 
-		if( ( imod > 0 ) && /*( start == _android_modules[imod].address_end ) && */string_equal( module, _android_modules[imod-1].name ) )
+		if( ( imod > 0 ) && /*( start == _process_modules[imod].address_end ) && */string_equal( module, _process_modules[imod-1].name ) )
 		{
-			_android_modules[imod-1].address_end = end;
+			_process_modules[imod-1].address_end = end;
 			continue;
 		}
 
-		_android_modules[imod].address_start = start;
-		_android_modules[imod].address_end = end;
-		string_copy( _android_modules[imod].name, module, 64 );
+		_process_modules[imod].address_start = start;
+		_process_modules[imod].address_end = end;
+		string_copy( _process_modules[imod].name, module, 64 );
 
 		++imod;
 	}
 
 	//for( int i = 0; i < imod; ++i )
-	//	log_infof( HASH_TEST, "%" PRIfixPTR "-%" PRIfixPTR ": %s", _android_modules[i].address_start, _android_modules[i].address_end, _android_modules[i].name );
+	//	log_infof( HASH_TEST, "%" PRIfixPTR "-%" PRIfixPTR ": %s", _process_modules[i].address_start, _process_modules[i].address_end, _process_modules[i].name );
 
 	if( imod == FOUNDATION_MAX_MODULES )
 		log_warnf( 0, WARNING_MEMORY, "Too many modules encountered" );
@@ -297,8 +304,9 @@ static void _load_process_modules()
 	stream_deallocate( maps );
 }
 
+#endif
 
-#if FOUNDATION_PLATFORM_ANDROID && FOUNDATION_COMPILER_CLANG && FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
+#if FOUNDATION_COMPILER_CLANG && FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
 
 extern int _Unwind_VRS_Get(struct _Unwind_Context *context, int regclass, uint32_t regno, int representation, void* valuep);
 
@@ -321,7 +329,7 @@ uintptr_t _Unwind_GetIP( struct _Unwind_Context* ctx )
 
 static _Unwind_Reason_Code unwind_stack( struct _Unwind_Context* context, void* arg )
 {
-	android_trace_t* trace = arg;
+	arm_trace_t* trace = arg;
 	void* ip = (void*)_Unwind_GetIP( context );
 	if( trace->skip_frames )
 		--trace->skip_frames;
@@ -370,7 +378,7 @@ static bool _initialize_stackwalker()
 }
 
 
-unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
+unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
 {
 	unsigned int num_frames = 0;
 	
@@ -448,9 +456,9 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 #  endif
 	}
 
-#elif FOUNDATION_PLATFORM_ANDROID 
+#elif FOUNDATION_PLATFORM_ANDROID
 
-	android_trace_t stack_trace = {
+	arm_trace_t stack_trace = {
 		.trace = trace,
 		.cur_depth = 0,
 		.max_depth = max_depth,
@@ -463,12 +471,15 @@ unsigned int stacktrace_capture( void** trace, unsigned int max_depth, unsigned 
 
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 
-# define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile * volatile)(addr))
-	uint32_t fp = 0, pc = 0;
+# define READ_32BIT_MEMORY( addr ) (*(uint32_t volatile* volatile)(addr))
+	volatile uint32_t fp = 0;
+	volatile uint32_t pc = 0;
 
 	//Grab initial frame pointer
 	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (fp));
 
+	_gcc_barrier_function( fp );
+	
 	while( fp && ( num_frames < max_depth ) )
 	{
 		pc = READ_32BIT_MEMORY( fp );
@@ -769,10 +780,10 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 
 		for( int imod = 0; imod < FOUNDATION_MAX_MODULES; ++imod )
 		{
-			if( ( relativeframe >= _android_modules[imod].address_start ) && ( relativeframe < _android_modules[imod].address_end ) )
+			if( ( relativeframe >= _process_modules[imod].address_start ) && ( relativeframe < _process_modules[imod].address_end ) )
 			{
-				relativeframe -= _android_modules[imod].address_start;
-				module = _android_modules[imod].name;
+				relativeframe -= _process_modules[imod].address_start;
+				module = _process_modules[imod].name;
 				break;
 			}
 		}
