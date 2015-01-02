@@ -49,6 +49,8 @@ if target.is_ios() or target.is_android():
   test_cases += [ 'all' ]
   if target.is_ios():
     test_resources = [ 'all/ios/test-all.plist', 'all/ios/Images.xcassets', 'all/ios/test-all.xib' ]
+  elif target.is_android():
+    test_resources = [ 'all/android/AndroidManifest.xml' ]
   generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
 else:
   #Build one binary per test case

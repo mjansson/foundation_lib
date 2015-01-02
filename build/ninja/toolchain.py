@@ -656,6 +656,9 @@ class Toolchain(object):
       config_list += config_dict[config]
     return config_list
 
+  def make_outfile( self, path ):
+    return path.replace( "/", "_" )
+
   def make_android_toolchain_path( self, arch ):
     if self.toolchain == 'clang':
       return os.path.join( self.make_android_clang_path( arch ), 'bin', '' )
@@ -694,6 +697,12 @@ class Toolchain(object):
     return builtbin + builtres
 
   def build_apk( self, writer, basepath, module, resources ):
+    buildpath = os.path.join( self.buildpath, config, arch )
+    #copy archbins (libraries)
+    #copy resources
+    #copy assets
+    #binary assets
+    #zipalign
     return []
 
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
@@ -730,10 +739,10 @@ class Toolchain(object):
         for name in sources:
           if os.path.isabs( name ):
             infile = name
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.objext )
+            outfile = os.path.join( buildpath, basepath, module, self.make_outfile( os.path.splitext( os.path.basename( name ) )[0] ) + self.objext )
           else:
             infile = os.path.join( basepath, module, name )
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext )
+            outfile = os.path.join( buildpath, basepath, module, self.make_outfile( os.path.splitext( name )[0] ) + self.objext )
           if name.endswith( '.c' ):
             objs += writer.build( outfile, 'cc', infile, variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
@@ -791,7 +800,7 @@ class Toolchain(object):
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
-          objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
+          objs += writer.build( os.path.join( buildpath, basepath, module, self.make_outfile( os.path.splitext( name )[0] ) + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
         if resources:
           for resource in resources:
