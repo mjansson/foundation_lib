@@ -252,6 +252,12 @@ class Toolchain(object):
       self.binprefix = ''
       self.binext = ''
 
+    self.copycmd = '$copy $in $out'
+    if host.is_windows():
+      self.copy = 'copy'
+    else:
+      self.copy = 'cp -f'
+
     self.buildpath = os.path.join( 'build', 'ninja', target.platform )
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
@@ -283,6 +289,15 @@ class Toolchain(object):
     self.android_toolchainprefix['arm64'] = 'aarch64-linux-android-'
     self.android_toolchainprefix['mips'] = 'mipsel-linux-android-'
     self.android_toolchainprefix['mips64'] = 'mips64el-linux-android-'
+
+    self.android_archpath = dict()
+    self.android_archpath['x86'] = 'x86'
+    self.android_archpath['x86-64'] = 'x86-64'
+    self.android_archpath['arm6'] = 'armeabi'
+    self.android_archpath['arm7'] = 'armeabi-v7a'
+    self.android_archpath['arm64'] = 'arm64-v8a'
+    self.android_archpath['mips'] = 'mips'
+    self.android_archpath['mips64'] = 'mips64'
 
     self.android_ndk_path = os.environ[ 'ANDROID_NDK' ]
 
@@ -590,6 +605,10 @@ class Toolchain(object):
     writer.rule( 'link',
                  command = self.linkcmd,
                  description = 'LINK $out')
+
+    writer.rule( 'copy',
+                 command = self.copycmd,
+                 description = 'COPY $in -> $out')
     writer.newline()
 
   def write_variables( self, writer ):
@@ -612,6 +631,7 @@ class Toolchain(object):
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
+    writer.variable( 'copy', self.copy )
     if self.target.is_macosx() or self.target.is_ios():
       writer.variable( 'lipo', self.lipo )
       writer.variable( 'plist', self.plist )
@@ -701,9 +721,23 @@ class Toolchain(object):
     writer.newline()
     return builtbin + builtres
 
-  def build_apk( self, writer, basepath, module, resources ):
-    buildpath = os.path.join( self.buildpath, config, arch )
-    #copy archbins (libraries)
+  def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
+    buildpath = os.path.join( self.buildpath, config, "apk", binname )
+    apkname = binname + ".apk"
+    zipfiles = []
+    for _, value in archbins.iteritems():
+      for archbin in value:
+        archpair = os.path.split( archbin )
+        libname = archpair[1]
+        arch = os.path.split( archpair[0] )[1]
+        archpath = os.path.join( buildpath, "lib", self.android_archpath[arch], libname )
+        zipfiles += writer.build( archpath, 'copy', archbin )
+    for resource in resources:
+      filename = os.path.split( resource )[1]
+      if filename == 'AndroidManifest.xml':
+        zipfiles += writer.build( os.path.join( buildpath, 'AndroidManifest.xml' ), 'copy', os.path.join( basepath, module, resource ) )
+      else:
+        pass
     #copy resources
     #copy assets
     #binary assets
@@ -831,7 +865,7 @@ class Toolchain(object):
         binpath = os.path.join( self.binpath, config, binname + '.app' )
         builtbin += self.build_app( writer, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
       elif self.target.is_android():
-        builtbin += self.apk( writer, module, binname, basepath = basepath, resources = resources )
+        builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources )
       else:
         for _, value in archbins.iteritems():
           builtbin += value
