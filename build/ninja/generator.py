@@ -100,11 +100,11 @@ class Generator(object):
   def lib( self, module, sources, basepath = None, configs = None, includepaths = None ):
     return self.toolchain.lib( self.writer, module, sources, basepath, configs, includepaths )
 
-  def bin( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
-    return self.toolchain.bin( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs, includepaths )
+  def bin( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
+    return self.toolchain.bin( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs, includepaths, extralibs, extraframeworks )
 
-  def app( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
-    return self.toolchain.app( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs, includepaths )
+  def app( self, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
+    return self.toolchain.app( self.writer, module, sources, binname, basepath, implicit_deps, libs, resources, configs, includepaths, extralibs, extraframeworks )
 
   def test_includepaths( self ):
     if self.project == "foundation":

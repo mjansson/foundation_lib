@@ -638,6 +638,11 @@ class Toolchain(object):
       return [ lib + '.lib' for lib in libs ]
     return [ '-l' + lib for lib in libs ]
 
+  def make_frameworks( self, frameworks ):
+    if self.target.is_macosx() or self.target.is_ios():
+      return [ '-framework ' + framework for framework in frameworks ]
+    return[]
+
   def make_includepaths( self, includepaths ):
     if self.is_msvc():
       return [ '/I' + self.path_escape(path) for path in includepaths ]
@@ -757,7 +762,7 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def bin( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
+  def bin( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
     built = {}
     if basepath is None:
       basepath = ''
@@ -765,6 +770,10 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
+    if extralibs is None:
+      extralibs = []
+    if extraframeworks is None:
+      extraframeworks = []
     moreincludepaths = self.build_includepaths( includepaths )
     for config in configs:
       localcconfigflags = self.make_cconfigflags( config )
@@ -784,7 +793,7 @@ class Toolchain(object):
         locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libpath ], arch, config ) )
         localarchlibs = self.make_linkarchlibs( arch )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
-        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + self.extralibs ) ), ( 'archlibs', self.make_libs( localarchlibs ) ), 
+        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + extralibs + self.extralibs ) + self.make_frameworks( extraframeworks ) ), ( 'archlibs', self.make_libs( localarchlibs ) ), 
                                ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
         extraincludepaths = []
         if self.target.is_windows():
@@ -808,7 +817,7 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
+  def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
     builtbin = []
     if basepath is None:
       basepath = ''
@@ -817,7 +826,7 @@ class Toolchain(object):
     if configs is None:
       configs = list( self.configs )
     for config in configs:
-      archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths )
+      archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths, extralibs = extralibs, extraframeworks = extraframeworks )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
         builtbin += self.build_app( writer, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
