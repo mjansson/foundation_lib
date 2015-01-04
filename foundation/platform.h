@@ -527,7 +527,7 @@
 #  define CONSTCALL ATTRIBUTE( const )
 #  define ALIGN( alignment ) ATTRIBUTE2( aligned, alignment )
 #  define ALIGNOF( type ) __alignof__( type )
-#  define ALIGNED_STRUCT( name, alignment ) struct ALIGN( alignment ) name
+#  define ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
