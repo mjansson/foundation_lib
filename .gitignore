@@ -205,3 +205,7 @@ xcuserdata
 
 #SublimeText local workspace
 *.sublime-workspace
+
+#Never store keystores in version control!
+*.keystore
+
