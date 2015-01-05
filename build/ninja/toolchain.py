@@ -262,6 +262,10 @@ class Toolchain(object):
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
 
+    self.aaptcmd = 'cd $apkbuildpath; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch; $aapt a $apk $apklibs'
+    self.aaptdeploycmd = 'cd $apkbuildpath; $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res; $aapt a -u $apk $apklibs'
+    self.zipaligncmd = '$zipalign -f 4 $in $out'
+
   def build_android_toolchain( self ):
     self.android_archname = dict()
     self.android_archname['x86'] = 'x86'
@@ -300,9 +304,16 @@ class Toolchain(object):
     self.android_archpath['mips64'] = 'mips64'
 
     self.android_ndk_path = os.environ[ 'ANDROID_NDK' ]
+    self.android_sdk_path = os.environ[ 'ANDROID_HOME' ]
 
     if self.host.is_macosx():
-      self.android_hostarchname = 'darwin-x86_64'    
+      self.android_hostarchname = 'darwin-x86_64'
+
+    buildtools_list = subprocess.check_output( [ 'ls', '-1', os.path.join( self.android_sdk_path, 'build-tools' ) ] ).strip().split('\n')
+    buildtools_list.sort(key=lambda s: map(int, s.split('.')))
+
+    self.android_buildtools_path = os.path.join( self.android_sdk_path, 'build-tools', buildtools_list[-1] )
+    self.android_jar = os.path.join( self.android_sdk_path, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
 
   def build_includepaths( self, includepaths ):
     finalpaths = []
@@ -320,7 +331,7 @@ class Toolchain(object):
       else:
         finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config, arch ) ]
     if self.target.is_android():
-      if arch == 'x86-64':
+      if arch == 'x86-64' or arch == 'mips64' or arch == 'arm64':
         finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib64' ) ]
       finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib' ) ]
     return finalpaths
@@ -385,12 +396,17 @@ class Toolchain(object):
         elif arch == 'mips64':
           flags += ' -target mips64el-none-linux-android'
         flags += ' -gcc-toolchain ' + self.make_android_gcc_path( arch )
+      elif self.toolchain == 'gcc':
+        if arch == 'mips':
+          flags += ' -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers'
+        elif arch == 'mips64':
+          flags += ' -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers'
       if arch == 'x86':
         flags += ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32'
       elif arch == 'x86-64':
         flags += ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel'
       elif arch == 'arm6':
-        flags += ' -march=armv5te -mtune=xscale -msoft-float -fno-integrated-as'
+        flags += ' -march=armv5te -mtune=xscale -msoft-float'
       elif arch == 'arm7':
         flags += ' -march=armv7-a -mhard-float -mfpu=vfpv3-d16 -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
@@ -597,6 +613,22 @@ class Toolchain(object):
                    description = 'XIB $out' )
       writer.newline()
 
+    if self.target.is_android():
+      writer.rule( 'aapt',
+                   command = self.aaptcmd,
+                   description = 'AAPT $out' )
+      writer.newline()
+
+      writer.rule( 'aaptdeploy',
+                   command = self.aaptdeploycmd,
+                   description = 'AAPT $out' )
+      writer.newline()
+
+      writer.rule( 'zipalign',
+                   command = self.zipaligncmd,
+                   description = 'ZIPALIGN $out' )
+      writer.newline()
+
     writer.rule( 'ar',
                  command = self.arcmd,
                  description = 'LIB $out')
@@ -605,6 +637,7 @@ class Toolchain(object):
     writer.rule( 'link',
                  command = self.linkcmd,
                  description = 'LINK $out')
+    writer.newline()
 
     writer.rule( 'copy',
                  command = self.copycmd,
@@ -624,6 +657,13 @@ class Toolchain(object):
       writer.variable( 'pdbpath', '' )
     if self.target.is_android():
       writer.variable( 'ndk', self.android_ndk_path )
+      writer.variable( 'sdk', self.android_sdk_path )
+      writer.variable( 'androidjar', self.android_jar )
+      writer.variable( 'apkbuildpath', '' )
+      writer.variable( 'apk', '' )
+      writer.variable( 'apklibs', '' )
+      writer.variable( 'aapt', os.path.join( self.android_buildtools_path, 'aapt' ) )
+      writer.variable( 'zipalign', os.path.join( self.android_buildtools_path, 'zipalign' ) )
       writer.variable( 'toolchain', '' )
       writer.variable( 'toolchaintarget', '' )
       writer.variable( 'sysroot', '' )
@@ -681,9 +721,6 @@ class Toolchain(object):
       config_list += config_dict[config]
     return config_list
 
-  def make_outfile( self, path ):
-    return path.replace( "/", "_" )
-
   def make_android_toolchain_path( self, arch ):
     if self.toolchain == 'clang':
       return os.path.join( self.make_android_clang_path( arch ), 'bin', '' )
@@ -724,25 +761,38 @@ class Toolchain(object):
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
     buildpath = os.path.join( self.buildpath, config, "apk", binname )
     apkname = binname + ".apk"
-    zipfiles = []
+    apkfiles = []
+    libfiles = []
+    locallibs = ''
+    resfiles = []
+    manifestfile = []
+    writer.comment('Make APK')
     for _, value in archbins.iteritems():
       for archbin in value:
         archpair = os.path.split( archbin )
         libname = archpair[1]
         arch = os.path.split( archpair[0] )[1]
-        archpath = os.path.join( buildpath, "lib", self.android_archpath[arch], libname )
-        zipfiles += writer.build( archpath, 'copy', archbin )
+        locallibpath = os.path.join( 'lib', self.android_archpath[arch], libname )
+        archpath = os.path.join( buildpath, locallibpath )
+        locallibs += locallibpath + ' '
+        libfiles += writer.build( archpath, 'copy', archbin )
     for resource in resources:
       filename = os.path.split( resource )[1]
       if filename == 'AndroidManifest.xml':
-        zipfiles += writer.build( os.path.join( buildpath, 'AndroidManifest.xml' ), 'copy', os.path.join( basepath, module, resource ) )
+        manifestfile = writer.build( os.path.join( buildpath, 'AndroidManifest.xml' ), 'copy', os.path.join( basepath, module, resource ) )
       else:
-        pass
-    #copy resources
-    #copy assets
-    #binary assets
-    #zipalign
-    return []
+        restype = os.path.split( os.path.split( resource )[0] )[1]
+        if restype == 'asset':
+          pass #todo: implement
+        else:
+          resfiles += writer.build( os.path.join( buildpath, 'res', restype, filename ), 'copy', os.path.join( basepath, module, resource ) )
+    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', apkname ), ( 'apklibs', locallibs ) ]
+    if config == 'deploy':
+      apkfile = writer.build( os.path.join( buildpath, apkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles )
+    else:
+      apkfile = writer.build( os.path.join( buildpath, apkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles )
+    outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', apkfile )
+    return outfile
 
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
     built = {}
@@ -778,10 +828,10 @@ class Toolchain(object):
         for name in sources:
           if os.path.isabs( name ):
             infile = name
-            outfile = os.path.join( buildpath, basepath, module, self.make_outfile( os.path.splitext( os.path.basename( name ) )[0] ) + self.objext )
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.objext )
           else:
             infile = os.path.join( basepath, module, name )
-            outfile = os.path.join( buildpath, basepath, module, self.make_outfile( os.path.splitext( name )[0] ) + self.objext )
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext )
           if name.endswith( '.c' ):
             objs += writer.build( outfile, 'cc', infile, variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
@@ -843,7 +893,7 @@ class Toolchain(object):
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
-          objs += writer.build( os.path.join( buildpath, basepath, module, self.make_outfile( os.path.splitext( name )[0] ) + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
+          objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
         if resources:
           for resource in resources:
