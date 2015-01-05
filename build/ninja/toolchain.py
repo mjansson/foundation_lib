@@ -265,6 +265,7 @@ class Toolchain(object):
     self.aaptcmd = 'cd $apkbuildpath; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch; $aapt a $apk $apklibs'
     self.aaptdeploycmd = 'cd $apkbuildpath; $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res; $aapt a -u $apk $apklibs'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
+    self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
   def build_android_toolchain( self ):
     self.android_archname = dict()
@@ -305,6 +306,10 @@ class Toolchain(object):
 
     self.android_ndk_path = os.environ[ 'ANDROID_NDK' ]
     self.android_sdk_path = os.environ[ 'ANDROID_HOME' ]
+    self.android_keystore = os.environ[ 'KEYSTORE' ]
+    self.android_keyalias = os.environ[ 'KEYALIAS' ]
+    self.android_keystorepass = os.environ[ 'KEYSTOREPASS' ]
+    self.android_keypass = os.environ[ 'KEYPASS' ]
 
     if self.host.is_macosx():
       self.android_hostarchname = 'darwin-x86_64'
@@ -624,6 +629,11 @@ class Toolchain(object):
                    description = 'AAPT $out' )
       writer.newline()
 
+      writer.rule( 'jarsigner',
+                   command = self.jarsignercmd,
+                   description = 'JARSIGNER $out' )
+      writer.newline()
+
       writer.rule( 'zipalign',
                    command = self.zipaligncmd,
                    description = 'ZIPALIGN $out' )
@@ -664,6 +674,11 @@ class Toolchain(object):
       writer.variable( 'apklibs', '' )
       writer.variable( 'aapt', os.path.join( self.android_buildtools_path, 'aapt' ) )
       writer.variable( 'zipalign', os.path.join( self.android_buildtools_path, 'zipalign' ) )
+      writer.variable( 'jarsigner', 'jarsigner' )
+      writer.variable( 'keystore', self.android_keystore )
+      writer.variable( 'keyalias', self.android_keyalias )
+      writer.variable( 'keystorepass', self.android_keystorepass )
+      writer.variable( 'keypass', self.android_keypass )
       writer.variable( 'toolchain', '' )
       writer.variable( 'toolchaintarget', '' )
       writer.variable( 'sysroot', '' )
@@ -760,6 +775,8 @@ class Toolchain(object):
 
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
     buildpath = os.path.join( self.buildpath, config, "apk", binname )
+    unsignedapkname = binname + ".unsigned.apk"
+    unalignedapkname = binname + ".unaligned.apk"
     apkname = binname + ".apk"
     apkfiles = []
     libfiles = []
@@ -786,12 +803,13 @@ class Toolchain(object):
           pass #todo: implement
         else:
           resfiles += writer.build( os.path.join( buildpath, 'res', restype, filename ), 'copy', os.path.join( basepath, module, resource ) )
-    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', apkname ), ( 'apklibs', locallibs ) ]
+    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apklibs', locallibs ) ]
     if config == 'deploy':
-      apkfile = writer.build( os.path.join( buildpath, apkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles )
+      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles )
     else:
-      apkfile = writer.build( os.path.join( buildpath, apkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles )
-    outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', apkfile )
+      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles )
+    unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
+    outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
     return outfile
 
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
