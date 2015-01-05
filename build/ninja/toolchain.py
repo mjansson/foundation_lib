@@ -805,11 +805,11 @@ class Toolchain(object):
           resfiles += writer.build( os.path.join( buildpath, 'res', restype, filename ), 'copy', os.path.join( basepath, module, resource ) )
     aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apklibs', locallibs ) ]
     if config == 'deploy':
-      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles )
+      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
       unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
     else:
       debugkeyvars = [ ( 'keystore', '~/.android/debug.keystore' ), ( 'keyalias', 'androiddebugkey' ), ( 'keystorepass', 'android' ), ( 'keypass', 'android' ) ]
-      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles )
+      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
       unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile, variables = debugkeyvars )
     outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
     return outfile
