@@ -5,6 +5,7 @@
 import sys
 import os
 import subprocess
+import platform
 
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
@@ -22,12 +23,17 @@ class Toolchain(object):
     self.archs = list( archs )
     self.configs = list( configs )
     if self.toolchain is None:
-      if host.is_windows():
-        self.toolchain = 'msvc'
-      elif target.is_android():
+      if target.is_android():
         self.toolchain = 'gcc'
+      elif host.is_windows():
+        self.toolchain = 'msvc'
       else:
         self.toolchain = 'clang'
+
+    if host.is_windows():
+      self.exe_suffix = '.exe'
+    else:
+      self.exe_suffix = ''
 
     self.android_platformversion = '21'
     self.android_toolchainversion_gcc = '4.9'
@@ -48,6 +54,13 @@ class Toolchain(object):
 
     # TODO: Add dependent lib search
     self.includepaths += [ os.path.join( '..', deplib + '_lib' ) for deplib in self.dependlibs ]
+
+    if host.is_windows():
+      self.rmcmd = 'cmd /C del /F /Q'
+      self.cdcmd = 'cmd /C cd'
+    else:
+      self.rmcmd = 'rm -f' 
+      self.cdcmd = 'cd'
 
     if self.archs is None or self.archs == []:
       if target.is_windows():
@@ -82,10 +95,10 @@ class Toolchain(object):
       self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
 
     elif self.toolchain.startswith('gcc') or self.toolchain.startswith('gnu'):
-      self.toolchain = 'gcc' 
-      self.cc = 'gcc'
-      self.ar = 'ar'
-      self.link = 'gcc'
+      self.toolchain = 'gcc' + self.exe_suffix
+      self.cc = 'gcc' + self.exe_suffix
+      self.ar = 'ar' + self.exe_suffix
+      self.link = 'gcc' + self.exe_suffix
       self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
                       '-Wno-unused-value',
@@ -100,7 +113,7 @@ class Toolchain(object):
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
-      self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
+      self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
       self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if host.is_raspberrypi():
@@ -121,11 +134,11 @@ class Toolchain(object):
         self.sysroot = ''
         self.liblinkname = ''
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = 'rm -f $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
-                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function' ]
+                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function', '-Wno-unused-variable' ]
 
         self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
 
@@ -181,7 +194,7 @@ class Toolchain(object):
         self.cflags += [ '-x', 'c' ]
         
         self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $mflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = 'rm -f $out && $ar $ararchflags $arflags $in -o $out'
+        self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
         self.plistcmd = '$plist -convert binary1 -o $out -- $in'
@@ -198,7 +211,7 @@ class Toolchain(object):
         self.liblinkname = ''
 
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = 'rm -f $out && $toolchain$ar crs $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer',
@@ -212,7 +225,7 @@ class Toolchain(object):
         self.extralibs += [ 'log' ]
 
       else:
-        self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if target.is_macosx():
@@ -254,7 +267,7 @@ class Toolchain(object):
 
     self.copycmd = '$copy $in $out'
     if host.is_windows():
-      self.copy = 'copy'
+      self.copy = 'cmd /C copy /Y'
     else:
       self.copy = 'cp -f'
 
@@ -262,8 +275,8 @@ class Toolchain(object):
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
 
-    self.aaptcmd = 'cd $apkbuildpath; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch; $aapt a $apk $apklibs'
-    self.aaptdeploycmd = 'cd $apkbuildpath; $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res; $aapt a -u $apk $apklibs'
+    self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch && $aapt a $apk $apklibs'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res && $aapt a -u $apk $apklibs'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
@@ -304,17 +317,23 @@ class Toolchain(object):
     self.android_archpath['mips'] = 'mips'
     self.android_archpath['mips64'] = 'mips64'
 
-    self.android_ndk_path = os.environ[ 'ANDROID_NDK' ]
-    self.android_sdk_path = os.environ[ 'ANDROID_HOME' ]
-    self.android_keystore = os.getenv( 'KEYSTORE', '~/.android/debug.keystore' )
+    self.android_ndk_path = os.getenv( 'ANDROID_NDK', os.getenv( 'NDK_HOME', '' ) )
+    self.android_sdk_path = os.getenv( 'ANDROID_SDK', os.getenv( 'ANDROID_HOME', '' ) )
+    self.android_keystore = os.getenv( 'KEYSTORE', os.path.join( os.path.expanduser( '~' ), '.android', 'debug.keystore' ) )
     self.android_keyalias = os.getenv( 'KEYALIAS', 'androiddebugkey' )
     self.android_keystorepass = os.getenv( 'KEYSTOREPASS', 'android' )
     self.android_keypass = os.getenv( 'KEYPASS', 'android' )
 
-    if self.host.is_macosx():
+    if self.host.is_windows():
+      if os.getenv( 'PROCESSOR_ARCHITECTURE', 'AMD64' ).find( '64' ) != -1:
+        self.android_hostarchname = 'windows-x86_64'
+      else:
+        self.android_hostarchname = 'windows-x86'
+    elif self.host.is_macosx():
       self.android_hostarchname = 'darwin-x86_64'
 
-    buildtools_list = subprocess.check_output( [ 'ls', '-1', os.path.join( self.android_sdk_path, 'build-tools' ) ] ).strip().split('\n')
+    buildtools_path = os.path.join( self.android_sdk_path, 'build-tools' )
+    buildtools_list = [ item for item in os.listdir( buildtools_path ) if os.path.isdir( os.path.join( buildtools_path, item ) ) ]
     buildtools_list.sort(key=lambda s: map(int, s.split('.')))
 
     self.android_buildtools_path = os.path.join( self.android_sdk_path, 'build-tools', buildtools_list[-1] )
