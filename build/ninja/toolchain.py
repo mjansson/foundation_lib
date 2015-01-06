@@ -30,6 +30,24 @@ class Toolchain(object):
       else:
         self.toolchain = 'clang'
 
+    if self.archs is None or self.archs == []:
+      if target.is_windows():
+        self.archs = [ 'x86', 'x86-64' ]
+      elif target.is_linux():
+        localarch = subprocess.check_output( [ 'uname', '-m' ] ).strip()
+        if localarch == 'x86_64':
+          self.archs = [ 'x86-64' ]
+        else:
+          self.archs = [ localarch ]
+      elif target.is_macosx():
+        self.archs = [ 'x86-64' ]
+      elif target.is_ios():
+        self.archs = [ 'arm7', 'arm64' ]
+      elif target.is_raspberrypi():
+        self.archs = [ 'arm6' ]
+      elif self.target.is_android():
+        self.archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
+
     if host.is_windows():
       self.exe_suffix = '.exe'
     else:
@@ -53,6 +71,8 @@ class Toolchain(object):
           self.android_toolchainversion_clang = val
 
     if target.is_android():
+      if int( self.android_platformversion ) < 21:
+        self.archs = [ arch for arch in self.archs if not arch.endswith( '64' ) ]
       self.build_android_toolchain()
 
     self.cconfigflags = []
@@ -74,24 +94,6 @@ class Toolchain(object):
     else:
       self.rmcmd = 'rm -f' 
       self.cdcmd = 'cd'
-
-    if self.archs is None or self.archs == []:
-      if target.is_windows():
-        self.archs = [ 'x86', 'x86-64' ]
-      elif target.is_linux():
-        localarch = subprocess.check_output( [ 'uname', '-m' ] ).strip()
-        if localarch == 'x86_64':
-          self.archs = [ 'x86-64' ]
-        else:
-          self.archs = [ localarch ]
-      elif target.is_macosx():
-        self.archs = [ 'x86-64' ]
-      elif target.is_ios():
-        self.archs = [ 'arm7', 'arm64' ]
-      elif target.is_raspberrypi():
-        self.archs = [ 'arm6' ]
-      elif self.target.is_android():
-        self.archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
@@ -141,18 +143,19 @@ class Toolchain(object):
       if target.is_raspberrypi():
         self.cflags += [ '-std=c99', '-fno-omit-frame-pointer' ]
         self.extralibs += [ 'rt' ]
+      elif target.is_android():
+        self.cflags += [ '-std=gnu11' ] #c11 gives errors in ndk cpu-features on android
       else:
         self.cflags += [ '-std=c11' ]
 
       if target.is_android():
-
         self.sysroot = ''
         self.liblinkname = ''
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
-        self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
+        self.cflags += [ '-DANDROID', '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
                          '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function', '-Wno-unused-variable' ]
 
         self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
@@ -360,6 +363,12 @@ class Toolchain(object):
     self.android_buildtools_path = os.path.join( self.android_sdk_path, 'build-tools', buildtools_list[-1] )
     self.android_jar = os.path.join( self.android_sdk_path, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
 
+    self.aapt = os.path.join( self.android_buildtools_path, 'aapt' )
+    self.zipalign = os.path.join( self.android_buildtools_path, 'zipalign' )
+    if not os.path.isfile( self.zipalign ):
+      self.zipalign = os.path.join( self.android_sdk_path, 'tools', 'zipalign' )
+    self.jarsigner = 'jarsigner'
+
   def build_includepaths( self, includepaths ):
     finalpaths = []
     if not includepaths is None:
@@ -451,9 +460,11 @@ class Toolchain(object):
       elif arch == 'x86-64':
         flags += ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel'
       elif arch == 'arm6':
-        flags += ' -march=armv5te -mtune=xscale -msoft-float'
+        flags += ' -march=armv5te -mtune=xscale -msoft-float -marm'
       elif arch == 'arm7':
-        flags += ' -march=armv7-a -mhard-float -mfpu=vfpv3-d16 -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1'
+        flags += ' -march=armv7-a -mhard-float -mfpu=vfpv3-d16 -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1 -marm'
+      elif arch == 'arm64':
+        pass
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -712,9 +723,9 @@ class Toolchain(object):
       writer.variable( 'apkbuildpath', '' )
       writer.variable( 'apk', '' )
       writer.variable( 'apklibs', '' )
-      writer.variable( 'aapt', os.path.join( self.android_buildtools_path, 'aapt' ) )
-      writer.variable( 'zipalign', os.path.join( self.android_buildtools_path, 'zipalign' ) )
-      writer.variable( 'jarsigner', 'jarsigner' )
+      writer.variable( 'aapt', self.aapt )
+      writer.variable( 'zipalign', self.zipalign )
+      writer.variable( 'jarsigner', self.jarsigner )
       writer.variable( 'keystore', self.android_keystore )
       writer.variable( 'keyalias', self.android_keyalias )
       writer.variable( 'keystorepass', self.android_keystorepass )
