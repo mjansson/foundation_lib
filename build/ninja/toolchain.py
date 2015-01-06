@@ -100,7 +100,7 @@ class Toolchain(object):
       self.cc = 'cl'
       self.ar = 'lib'
       self.link = 'link'
-      self.cflags = [ '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
+      self.cflags = [ '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-' ]
       self.arflags = []
       self.linkflags = []
       self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
@@ -464,6 +464,11 @@ class Toolchain(object):
       elif arch == 'arm7':
         flags += ' -march=armv7-a -mhard-float -mfpu=vfpv3-d16 -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1 -marm'
       elif arch == 'arm64':
+        pass
+    elif self.target.is_windows() and self.toolchain == 'msvc':
+      if arch == 'x86':
+        flags += ' /arch:SSE2'
+      elif arch == 'x86-64':
         pass
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
