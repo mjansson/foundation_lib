@@ -14,7 +14,7 @@ def supported_architectures():
   return [ 'x86', 'x86-64', 'ppc', 'ppc64', 'arm6', 'arm7', 'arm64', 'mips', 'mips64' ]
 
 class Toolchain(object):
-  def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
+  def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, variables, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
     self.project = project
     self.toolchain = toolchain
     self.host = host
@@ -35,9 +35,22 @@ class Toolchain(object):
     else:
       self.exe_suffix = ''
 
-    self.android_platformversion = '21'
-    self.android_toolchainversion_gcc = '4.9'
-    self.android_toolchainversion_clang = '3.5'
+    self.android_platformversion = os.getenv( 'ANDROID_PLATFORMVERSION', '21' )
+    self.android_toolchainversion_gcc = os.getenv( 'ANDROID_GCCVERSION', '4.9' )
+    self.android_toolchainversion_clang = os.getenv( 'ANDROID_CLANGVERSION', '3.5' )
+
+    if variables:
+      if isinstance(variables, dict):
+        iterator = iter(variables.items())
+      else:
+        iterator = iter(variables)
+      for key, val in iterator:
+        if key == 'platformversion':
+          self.android_platformversion = val
+        elif key == 'gccversion':
+          self.android_toolchainversion_gcc = val
+        elif key == 'clangversion':
+          self.android_toolchainversion_clang = val
 
     if target.is_android():
       self.build_android_toolchain()
