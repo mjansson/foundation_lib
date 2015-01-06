@@ -306,10 +306,10 @@ class Toolchain(object):
 
     self.android_ndk_path = os.environ[ 'ANDROID_NDK' ]
     self.android_sdk_path = os.environ[ 'ANDROID_HOME' ]
-    self.android_keystore = os.getenv( 'KEYSTORE', '' )
-    self.android_keyalias = os.getenv( 'KEYALIAS', '' )
-    self.android_keystorepass = os.getenv( 'KEYSTOREPASS', '' )
-    self.android_keypass = os.getenv( 'KEYPASS', '' )
+    self.android_keystore = os.getenv( 'KEYSTORE', '~/.android/debug.keystore' )
+    self.android_keyalias = os.getenv( 'KEYALIAS', 'androiddebugkey' )
+    self.android_keystorepass = os.getenv( 'KEYSTOREPASS', 'android' )
+    self.android_keypass = os.getenv( 'KEYPASS', 'android' )
 
     if self.host.is_macosx():
       self.android_hostarchname = 'darwin-x86_64'
@@ -808,9 +808,8 @@ class Toolchain(object):
       unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
       unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
     else:
-      debugkeyvars = [ ( 'keystore', '~/.android/debug.keystore' ), ( 'keyalias', 'androiddebugkey' ), ( 'keystorepass', 'android' ), ( 'keypass', 'android' ) ]
       unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
-      unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile, variables = debugkeyvars )
+      unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
     outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
     return outfile
 
