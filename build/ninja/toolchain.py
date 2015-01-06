@@ -363,10 +363,10 @@ class Toolchain(object):
     self.android_buildtools_path = os.path.join( self.android_sdk_path, 'build-tools', buildtools_list[-1] )
     self.android_jar = os.path.join( self.android_sdk_path, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
 
-    self.aapt = os.path.join( self.android_buildtools_path, 'aapt' )
-    self.zipalign = os.path.join( self.android_buildtools_path, 'zipalign' )
+    self.aapt = os.path.join( self.android_buildtools_path, 'aapt' + self.exe_suffix )
+    self.zipalign = os.path.join( self.android_buildtools_path, 'zipalign' + self.exe_suffix )
     if not os.path.isfile( self.zipalign ):
-      self.zipalign = os.path.join( self.android_sdk_path, 'tools', 'zipalign' )
+      self.zipalign = os.path.join( self.android_sdk_path, 'tools', 'zipalign' + self.exe_suffix )
     self.jarsigner = 'jarsigner'
 
   def build_includepaths( self, includepaths ):
