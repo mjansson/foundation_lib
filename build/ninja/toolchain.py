@@ -77,6 +77,8 @@ class Toolchain(object):
         self.archs = [ 'arm7', 'arm64' ]
       elif target.is_raspberrypi():
         self.archs = [ 'arm6' ]
+      elif self.target.is_android():
+        self.archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
@@ -329,6 +331,12 @@ class Toolchain(object):
         self.android_hostarchname = 'windows-x86_64'
       else:
         self.android_hostarchname = 'windows-x86'
+    elif self.host.is_linux():
+        localarch = subprocess.check_output( [ 'uname', '-m' ] ).strip()
+        if localarch == 'x86_64':
+          self.android_hostarchname = 'linux-x86_64'
+        else:
+          self.android_hostarchname = 'linux-x86'
     elif self.host.is_macosx():
       self.android_hostarchname = 'darwin-x86_64'
 
