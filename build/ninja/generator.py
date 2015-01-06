@@ -43,6 +43,17 @@ class Generator(object):
     configs = options.config
     if configs is None or configs == []:
       configs = [ 'release' ]
+    if archs is None or archs == []:
+      if self.target.is_windows():
+        archs = [ 'x86', 'x86-64' ]
+      elif self.target.is_macosx():
+        archs = [ 'x86-64' ]
+      elif self.target.is_ios():
+        archs = [ 'arm7', 'arm64' ]
+      elif self.target.is_raspberrypi():
+        archs = [ 'arm6' ]
+      elif self.target.is_android():
+        archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
     if includepaths is None:
       includepaths = []
     if not options.includepath is None:
