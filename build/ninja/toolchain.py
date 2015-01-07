@@ -95,6 +95,17 @@ class Toolchain(object):
       self.rmcmd = 'rm -f' 
       self.cdcmd = 'cd'
 
+    self.copycmd = '$copy $in $out'
+    if host.is_windows():
+      self.copy = 'cmd /C copy /Y'
+    else:
+      self.copy = 'cp -f'
+
+    self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch && $aapt a $apk $apklibs'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res && $aapt a -u $apk $apklibs'
+    self.zipaligncmd = '$zipalign -f 4 $in $out'
+    self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
+
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
       self.cc = 'cl'
@@ -298,20 +309,9 @@ class Toolchain(object):
       self.binprefix = ''
       self.binext = ''
 
-    self.copycmd = '$copy $in $out'
-    if host.is_windows():
-      self.copy = 'cmd /C copy /Y'
-    else:
-      self.copy = 'cp -f'
-
     self.buildpath = os.path.join( 'build', 'ninja', target.platform )
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
-
-    self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch && $aapt a $apk $apklibs'
-    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res && $aapt a -u $apk $apklibs'
-    self.zipaligncmd = '$zipalign -f 4 $in $out'
-    self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
   def build_android_toolchain( self ):
     self.android_archname = dict()
@@ -824,7 +824,7 @@ class Toolchain(object):
   def build_res( self, writer, basepath, module, resource, binpath, binname ):
     if self.target.is_macosx() or self.target.is_ios():
       if resource.endswith( '.plist' ):
-        return writer.build( os.path.join( binpath, binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
+        return writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', os.path.join( basepath, module, resource ) )
       elif resource.endswith( '.xcassets' ):
         return writer.build( binpath, 'xcassets', os.path.join( basepath, module, resource ) )
       elif resource.endswith( '.xib' ):
