@@ -267,24 +267,20 @@ class Toolchain(object):
       self.linkflags = []
 
       if target.is_windows():
+        self.cflags = [ 
+          '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast=2', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-',
+          '/Qrestrict', '/Qansi-alias', '/QxSSE3', '/Quse-intel-optimized-headers', '/Qstd=c99'
+        ]
         self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
+        self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
+        self.ccdepfile = None
+        self.ccdeps = 'msvc'
+        self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
+        self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
         self.objext = '.obj'
       else:
+        #TODO: Implement
         self.objext = '.o'
-
-      self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
-      self.ccdepfile = None
-      self.ccdeps = 'msvc'
-      self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
-      self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
-
-      #Debug x86/x64
-      #/Yu"foundation\foundation.h" /MP /GS- /Qrestrict /Qansi-alias /W3 /QxSSE3 /Zc:wchar_t /I"..\.." /Zi /Od /Fd"Win32\Debug\foundation\vc120.pdb" /fp:fast /Quse-intel-optimized-headers /D "FOUNDATION_COMPILE=1" /D "BUILD_DEBUG=1" /D "_UNICODE" /D "UNICODE" /WX /Zc:forScope /GR- /arch:SSE2 /Gd /Oi /MT /Fa"Win32\Debug\foundation\" /nologo /Fo"Win32\Debug\foundation\" /Qprof-dir "Win32\Debug\foundation\" /Qstd=c99 /Fp"Win32\Debug\foundation\foundation.pch" 
-      #/Yu"foundation\foundation.h" /MP /GS- /Qrestrict /Qansi-alias /W3 /QxSSE3 /Zc:wchar_t /I"..\.." /Zi /Od /Fd"x64\Debug\foundation\vc120.pdb" /fp:fast /Quse-intel-optimized-headers /D "FOUNDATION_COMPILE=1" /D "BUILD_DEBUG=1" /D "_UNICODE" /D "UNICODE" /WX /Zc:forScope /GR- /Oi /MT /Fa"x64\Debug\foundation\" /nologo /Fo"x64\Debug\foundation\" /Qprof-dir "x64\Debug\foundation\" /Qstd=c99 /Fp"x64\Debug\foundation\foundation.pch"
-
-      #Deploy x86/x64
-      #/Yu"foundation\foundation.h" /MP /GS- /Qrestrict /Qansi-alias /W3 /QxSSE3 /Zc:wchar_t /I"..\.." /Zi /Ox /Ob2 /Fd"Win32\Deploy\foundation\vc120.pdb" /fp:fast /Quse-intel-optimized-headers /D "FOUNDATION_COMPILE=1" /D "BUILD_DEPLOY=1" /D "_UNICODE" /D "UNICODE" /Qipo /GF /GT /WX /Zc:forScope /GR- /arch:SSE2 /Gd /Oi /MT /Fa"Win32\Deploy\foundation\" /nologo /Fo"Win32\Deploy\foundation\" /Qprof-dir "Win32\Deploy\foundation\" /Qstd=c99 /Ot /Fp"Win32\Deploy\foundation\foundation.pch" 
-      #/Yu"foundation\foundation.h" /MP /GS- /Qrestrict /Qansi-alias /W3 /QxSSE3 /Zc:wchar_t /I"..\.." /Zi /Ox /Ob2 /Fd"x64\Deploy\foundation\vc120.pdb" /fp:fast /Quse-intel-optimized-headers /D "FOUNDATION_COMPILE=1" /D "BUILD_DEPLOY=1" /D "_UNICODE" /D "UNICODE" /Qipo /GF /GT /WX /Zc:forScope /GR- /Oi /MT /Fa"x64\Deploy\foundation\" /nologo /Fo"x64\Deploy\foundation\" /Qprof-dir "x64\Deploy\foundation\" /Qstd=c99 /Ot /Fp"x64\Deploy\foundation\foundation.pch"
 
     if target.is_windows():
       self.libprefix = ''
