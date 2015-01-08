@@ -6,6 +6,8 @@ import sys
 import os
 import subprocess
 import platform
+import random
+import string
 
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
@@ -216,8 +218,10 @@ class Toolchain(object):
         self.link = deploytarget + " " + self.cc
         self.lipo = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'lipo' ] ).strip()
         self.plist = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'plutil' ] ).strip()
+        self.plist = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'plutil' ] ).strip()
         self.xcassets = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'actool' ] ).strip()
         self.xib = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'ibtool' ] ).strip()
+        self.dsymutil = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'dsymutil' ] ).strip()
         
         self.mflags += self.cflags + [ '-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c' ]
         self.cflags += [ '-x', 'c' ]
@@ -226,13 +230,15 @@ class Toolchain(object):
         self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
-        self.plistcmd = '$plist -convert binary1 -o $out -- $in'
-        self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist /tmp/partial-assets.plist' \
+        #self.plistcmd = '$plist -convert binary1 -o $out -- $in'
+        self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --output $out $in'
+        self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
                            ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target 6.0' \
-                           ' --target-device iphone --target-device ipad --compress-pngs --compile $out $in >/dev/null'
+                           ' --target-device iphone --target-device ipad --compress-pngs --compile $outpath $in >/dev/null'
         self.xibcmd = '$xib --target-device iphone --target-device ipad --module test_all --minimum-deployment-target 6.0 ' \
                       ' --output-partial-info-plist /tmp/partial-info.plist --auto-activate-custom-fonts '\
                       ' --output-format human-readable-text --compile $out $in'
+        self.dsymutilcmd = '$dsymutil $in -o $out'
 
       elif target.is_android():
 
@@ -674,6 +680,11 @@ class Toolchain(object):
                    description = 'LIPO $out' )
       writer.newline()
 
+      writer.rule( 'dsymutil',
+                   command = self.dsymutilcmd,
+                   description = 'DSYMUTIL $out' )
+      writer.newline()
+
       writer.rule( 'plist',
                    command = self.plistcmd,
                    description = 'PLIST $out' )
@@ -763,6 +774,10 @@ class Toolchain(object):
       writer.variable( 'plist', self.plist )
       writer.variable( 'xcassets', self.xcassets )
       writer.variable( 'xib', self.xib )
+      writer.variable( 'dsymutil', self.dsymutil )
+      writer.variable( 'exename', '' )
+      writer.variable( 'prodname', '' )
+      writer.variable( 'outpath', '' )
       writer.variable( 'mflags', ' '.join( self.shell_escape( flag ) for flag in self.mflags ) )
     writer.variable( 'cflags', ' '.join( self.shell_escape( flag ) for flag in self.cflags ) )
     writer.variable( 'arflags', ' '.join( self.shell_escape( flag ) for flag in self.arflags ) )
@@ -821,16 +836,6 @@ class Toolchain(object):
   def make_android_sysroot_path( self, arch ):
     return os.path.join( self.android_ndk_path, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch] )
 
-  def build_res( self, writer, basepath, module, resource, binpath, binname ):
-    if self.target.is_macosx() or self.target.is_ios():
-      if resource.endswith( '.plist' ):
-        return writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', os.path.join( basepath, module, resource ) )
-      elif resource.endswith( '.xcassets' ):
-        return writer.build( binpath, 'xcassets', os.path.join( basepath, module, resource ) )
-      elif resource.endswith( '.xib' ):
-        return writer.build( os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
-    return []
-
   def build_app( self, writer, basepath, module, binpath, binname, archbins, resources ):
     binlist = []
     builtbin = []
@@ -838,10 +843,20 @@ class Toolchain(object):
     for _, value in archbins.iteritems():
       binlist += value
     builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
+    builtbin += writer.build( binpath + '.dSYM', 'dsymutil', builtbin )
     if resources:
+      assetsplists = []
       for resource in resources:
-        builtres += self.build_res( writer, basepath, module, resource, binpath, binname )
-    writer.newline()
+        if resource.endswith( '.xcassets' ):
+          assetsvars = [ ( 'outpath', binpath ) ]
+          plistpath = '/tmp/partial-assets-' + ( ''.join( random.choice( string.lowercase ) for i in range( 16 ) ) ) + '.plist'
+          assetsplists += writer.build( plistpath, 'xcassets', os.path.join( basepath, module, resource ), variables = assetsvars )
+        elif resource.endswith( '.xib' ):
+          builtres += writer.build( os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
+      for resource in resources:
+        if resource.endswith( '.plist' ):
+          plistvars = [ ( 'exename', binname ), ( 'prodname', binname ) ]
+          builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, variables = plistvars )
     return builtbin + builtres
 
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
