@@ -209,3 +209,7 @@ xcuserdata
 #Never store keystores in version control!
 *.keystore
 
+#Do not store local build prefs
+build.json
+codesign.json
+
