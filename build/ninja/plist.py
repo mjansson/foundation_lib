@@ -23,13 +23,16 @@ parser = argparse.ArgumentParser( description = 'PList utility for Ninja builds'
 parser.add_argument( 'files',
                      metavar = 'file', type=file, nargs='+',
                      help = 'Source plist file' )
-parser.add_argument( '--exename',
+parser.add_argument( '--exename', type=str,
                      help = 'Executable name',
                      default = [] )
-parser.add_argument( '--prodname',
+parser.add_argument( '--prodname', type=str,
                      help = 'Product name',
                      default = [] )
-parser.add_argument( '--output',
+parser.add_argument( '--bundle', type=str,
+                     help = 'Bundle identifier',
+                     default = [] )
+parser.add_argument( '--output', type=str,
                      help = 'Output path',
                      default = [] )
 options = parser.parse_args()
@@ -41,9 +44,23 @@ if not options.prodname:
 
 buildversion = subprocess.check_output( [ 'sw_vers', '-buildVersion' ] ).strip()
 
+#Merge inputs using first file as base
 lines = []
 for f in options.files:
-  lines += [ line.strip( '\n\r' ) for line in f ]
+  if lines == []:
+    lines += [ line.strip( '\n\r' ) for line in f ]
+  else:
+    mergelines = [ line.strip( '\n\r' ) for line in f ]
+    for i in range( 0, len( mergelines ) ):
+      if re.match( '^<dict>$', mergelines[i] ):
+        for j in range( 0, len( lines ) ):
+          if re.match( '^</dict>$', lines[j] ):
+            for k in range( i+1, len( mergelines ) ):
+              if re.match( '^</dict>$', mergelines[k] ):
+                break
+              lines.insert( j+(k-(i+1)), mergelines[k] )
+            break
+        break
 
 #Parse input plist to get package type and signature
 bundle_package_type = 'APPL'
@@ -66,7 +83,7 @@ with open( os.path.join( os.path.dirname( options.output ), 'PkgInfo' ), 'w' ) a
 
 #insert os version
 for i in range( 0, len( lines ) ):
-  if re.match( '^\t*<dict>$', lines[i] ):
+  if re.match( '^<dict>$', lines[i] ):
     lines.insert( i+1, '\t<key>BuildMachineOSBuild</key>' )
     lines.insert( i+2, '\t<string>' + buildversion + '</string>' )
     break
@@ -79,6 +96,13 @@ for i in range( 0, len( lines ) ):
     lines[i] = lines[i].replace( '$(PRODUCT_NAME)', options.prodname )
   if lines[i].find( '$(PRODUCT_NAME:rfc1034identifier)' ) != -1:
     lines[i] = lines[i].replace( '$(PRODUCT_NAME:rfc1034identifier)', normalize_string( options.exename ).lower() )
+
+#replace bundle identifier if given
+if not options.bundle is None and options.bundle != '':
+  for i in range( 0, len( lines ) ):
+    if lines[i].find( 'CFBundleIdentifier' ) != -1:
+      lines[i+1] = '\t<string>' + normalize_string( options.bundle ) + '</string>'
+      break
 
 #add supported platform, minimum os version and requirements
 for i in range( 0, len( lines ) ):
@@ -94,86 +118,6 @@ for i in range( 0, len( lines ) ):
     lines.insert( i+10, '\t\t<integer>1</integer>' )
     lines.insert( i+11, '\t\t<integer>2</integer>' )
     lines.insert( i+12, '\t</array>' )
-    break
-
-#add icons and images
-for i in range( 0, len( lines ) ):
-  if 'UIMainStoryboardFile' in lines[i]:
-    #TODO: Detect which icons and launch images that are present
-    lines.insert( i+0,  '\t<key>CFBundleIcons</key>' )
-    lines.insert( i+1,  '\t<dict>' )
-    lines.insert( i+2,  '\t\t<key>CFBundlePrimaryIcon</key>' )
-    lines.insert( i+3,  '\t\t<dict>' )
-    lines.insert( i+4,  '\t\t\t<key>CFBundleIconFiles</key>' )
-    lines.insert( i+5,  '\t\t\t<array>' )
-    lines.insert( i+6,  '\t\t\t\t<string>AppIcon29x29</string>' )
-    lines.insert( i+7,  '\t\t\t\t<string>AppIcon40x40</string>' )
-    lines.insert( i+8,  '\t\t\t\t<string>AppIcon57x57</string>' )
-    lines.insert( i+9,  '\t\t\t\t<string>AppIcon60x60</string>' )
-    lines.insert( i+10,  '\t\t\t</array>' )
-    lines.insert( i+11,  '\t\t</dict>' )
-    lines.insert( i+12,  '\t</dict>' )
-    lines.insert( i+13,  '\t<key>CFBundleIcons~ipad</key>' )
-    lines.insert( i+14,  '\t<dict>' )
-    lines.insert( i+15,  '\t\t<key>CFBundlePrimaryIcon</key>' )
-    lines.insert( i+16,  '\t\t<dict>' )
-    lines.insert( i+17,  '\t\t <key>CFBundleIconFiles</key>' )
-    lines.insert( i+18,  '\t\t <array>' )
-    lines.insert( i+19,  '\t\t\t <string>AppIcon29x29</string>' )
-    lines.insert( i+20,  '\t\t\t <string>AppIcon40x40</string>' )
-    lines.insert( i+21,  '\t\t\t <string>AppIcon57x57</string>' )
-    lines.insert( i+22,  '\t\t\t <string>AppIcon60x60</string>' )
-    lines.insert( i+23,  '\t\t\t <string>AppIcon50x50</string>' )
-    lines.insert( i+24,  '\t\t\t <string>AppIcon72x72</string>' )
-    lines.insert( i+25,  '\t\t\t <string>AppIcon76x76</string>' )
-    lines.insert( i+26,  '\t\t </array>' )
-    lines.insert( i+27,  '\t </dict>' )
-    lines.insert( i+28,  '\t</dict>' )
-    lines.insert( i+29,  '\t<key>UILaunchImageFile</key>' )
-    lines.insert( i+30,  '\t<string>LaunchImage</string>' )
-    lines.insert( i+31,  '\t<key>UILaunchImages</key>' )
-    lines.insert( i+32,  '\t<array>' )
-    lines.insert( i+33,  '\t\t<dict>' )
-    lines.insert( i+34,  '\t\t\t<key>UILaunchImageMinimumOSVersion</key>' )
-    lines.insert( i+35,  '\t\t\t<string>7.0</string>' )
-    lines.insert( i+36,  '\t\t\t<key>UILaunchImageName</key>' )
-    lines.insert( i+37,  '\t\t\t<string>LaunchImage-700</string>' )
-    lines.insert( i+38,  '\t\t\t<key>UILaunchImageOrientation</key>' )
-    lines.insert( i+39,  '\t\t\t<string>Portrait</string>' )
-    lines.insert( i+40,  '\t\t\t<key>UILaunchImageSize</key>' )
-    lines.insert( i+41,  '\t\t\t<string>{320, 480}</string>' )
-    lines.insert( i+42,  '\t\t</dict>' )
-    lines.insert( i+43,  '\t\t<dict>' )
-    lines.insert( i+44,  '\t\t\t<key>UILaunchImageMinimumOSVersion</key>' )
-    lines.insert( i+45,  '\t\t\t<string>7.0</string>' )
-    lines.insert( i+46,  '\t\t\t<key>UILaunchImageName</key>' )
-    lines.insert( i+47,  '\t\t\t<string>LaunchImage-700-568h</string>' )
-    lines.insert( i+48,  '\t\t\t<key>UILaunchImageOrientation</key>' )
-    lines.insert( i+49,  '\t\t\t<string>Portrait</string>' )
-    lines.insert( i+50,  '\t\t\t<key>UILaunchImageSize</key>' )
-    lines.insert( i+51,  '\t\t\t<string>{320, 568}</string>' )
-    lines.insert( i+52,  '\t\t</dict>' )
-    lines.insert( i+53,  '\t\t<dict>' )
-    lines.insert( i+54,  '\t\t\t<key>UILaunchImageMinimumOSVersion</key>' )
-    lines.insert( i+55,  '\t\t\t<string>7.0</string>' )
-    lines.insert( i+56,  '\t\t\t<key>UILaunchImageName</key>' )
-    lines.insert( i+57,  '\t\t\t<string>LaunchImage-700-Portrait</string>' )
-    lines.insert( i+58,  '\t\t\t<key>UILaunchImageOrientation</key>' )
-    lines.insert( i+59,  '\t\t\t<string>Portrait</string>' )
-    lines.insert( i+60,  '\t\t\t<key>UILaunchImageSize</key>' )
-    lines.insert( i+61,  '\t\t\t<string>{768, 1024}</string>' )
-    lines.insert( i+62,  '\t\t</dict>' )
-    lines.insert( i+63,  '\t\t<dict>' )
-    lines.insert( i+64,  '\t\t\t<key>UILaunchImageMinimumOSVersion</key>' )
-    lines.insert( i+65,  '\t\t\t<string>7.0</string>' )
-    lines.insert( i+66,  '\t\t\t<key>UILaunchImageName</key>' )
-    lines.insert( i+67,  '\t\t\t<string>LaunchImage-700-Landscape</string>' )
-    lines.insert( i+68,  '\t\t\t<key>UILaunchImageOrientation</key>' )
-    lines.insert( i+69,  '\t\t\t<string>Landscape</string>' )
-    lines.insert( i+70,  '\t\t\t<key>UILaunchImageSize</key>' )
-    lines.insert( i+71,  '\t\t\t<string>{768, 1024}</string>' )
-    lines.insert( i+72,  '\t\t</dict>' )
-    lines.insert( i+73,  '\t</array>' )
     break
 
 #add build info

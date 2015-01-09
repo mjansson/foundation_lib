@@ -8,6 +8,7 @@ import subprocess
 import platform
 import random
 import string
+import json
 
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
@@ -55,22 +56,69 @@ class Toolchain(object):
     else:
       self.exe_suffix = ''
 
-    self.android_platformversion = os.getenv( 'ANDROID_PLATFORMVERSION', '21' )
-    self.android_toolchainversion_gcc = os.getenv( 'ANDROID_GCCVERSION', '4.9' )
-    self.android_toolchainversion_clang = os.getenv( 'ANDROID_CLANGVERSION', '3.5' )
+    #Set default values
+    self.android_ndkpath = ''
+    self.android_sdkpath = ''
+    self.android_keystore = os.path.join( os.path.expanduser( '~' ), '.android', 'debug.keystore' )
+    self.android_keyalias = 'androiddebugkey'
+    self.android_keystorepass = 'android'
+    self.android_keypass = 'android'
+    self.android_platformversion = '21'
+    self.android_toolchainversion_gcc = '4.9'
+    self.android_toolchainversion_clang = '3.5'
 
+    self.ios_deploymenttarget = '6.0'
+    self.ios_organisation = ''
+    self.ios_bundleidentifier = ''
+
+    self.macosx_deploymenttarget = '10.7'
+    self.macosx_organisation = ''
+    self.macosx_bundleidentifier = ''
+
+    #Parse variables
     if variables:
-      if isinstance(variables, dict):
-        iterator = iter(variables.items())
+      if isinstance( variables, dict ):
+        iterator = iter( variables.items() )
       else:
-        iterator = iter(variables)
+        iterator = iter( variables )
       for key, val in iterator:
-        if key == 'platformversion':
+        if key == 'bundleidentifier':
+          self.ios_bundleidentifier = val
+          self.macosx_bundleidentifier = val
+        elif key == 'android_ndkpath':
+          self.android_ndkpath = val
+        elif key == 'android_sdkpath':
+          self.android_sdkpath = val
+        elif key == 'android_keystore':
+          self.android_keystore = val
+        elif key == 'android_keyalias':
+          self.android_keyalias = val
+        elif key == 'android_keystorepass':
+          self.android_keystorepass = val
+        elif key == 'android_keypass':
+          self.android_keypass = val
+        elif key == 'android_platformversion':
           self.android_platformversion = val
-        elif key == 'gccversion':
+        elif key == 'android_gccversion':
           self.android_toolchainversion_gcc = val
-        elif key == 'clangversion':
+        elif key == 'android_clangversion':
           self.android_toolchainversion_clang = val
+        elif key == 'ios_deploymenttarget':
+          self.ios_deploymenttarget = val
+        elif key == 'ios_organisation':
+          self.ios_organisation = val
+        elif key == 'ios_bundleidentifier':
+          self.ios_bundleidentifier = val
+        elif key == 'macosx_deploymenttarget':
+          self.macosx_deploymenttarget = val
+        elif key == 'macosx_organisation':
+          self.macosx_organisation = val
+        elif key == 'macosx_bundleidentifier':
+          self.macosx_bundleidentifier = val
+
+    #Source in local build prefs
+    self.read_prefs( 'build.json' )
+    self.read_prefs( os.path.join( 'build', 'ninja', 'build.json' ) )
 
     if target.is_android():
       if int( self.android_platformversion ) < 21:
@@ -197,16 +245,25 @@ class Toolchain(object):
       self.ccdepfile = '$out.d'
 
       if host.is_macosx() and (target.is_macosx() or target.is_ios()):
+        self.ios_bundleidentifier = os.getenv( 'BUNDLEIDENTIFIER', self.ios_bundleidentifier )
+        self.macosx_bundleidentifier = os.getenv( 'BUNDLEIDENTIFIER', self.macosx_bundleidentifier )
+        self.ios_deploymenttarget = os.getenv( 'IOS_DEPLOYMENTTARGET', self.ios_deploymenttarget )
+        self.ios_organisation = os.getenv( 'IOS_ORGANISATION', self.ios_organisation )
+        self.ios_bundleidentifier = os.getenv( 'IOS_BUNDLEIDENTIFIER', self.ios_bundleidentifier )
+        self.macosx_deploymenttarget = os.getenv( 'MACOSX_DEPLOYMENTTARGET', self.macosx_deploymenttarget )
+        self.macosx_organisation = os.getenv( 'MACOSX_ORGANISATION', self.macosx_organisation )
+        self.macosx_bundleidentifier = os.getenv( 'MACOSX_BUNDLEIDENTIFIER', self.macosx_bundleidentifier )
+
         if target.is_macosx():
           sdk = 'macosx'
-          deploytarget = 'MACOSX_DEPLOYMENT_TARGET=10.7'
-          self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=10.7', '-isysroot', '$sdkdir' ]
+          deploytarget = 'MACOSX_DEPLOYMENT_TARGET=' + self.macosx_deploymenttarget
+          self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=' + self.macosx_deploymenttarget, '-isysroot', '$sdkdir' ]
           self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
           self.linkflags += [ '-isysroot', '$sdkdir' ]
         elif target.is_ios():
           sdk = 'iphoneos'
-          deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=6.0'
-          self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=6.0', '-isysroot', '$sdkdir' ]
+          deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=' + self.ios_deploymenttarget
+          self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=' + self.ios_deploymenttarget, '-isysroot', '$sdkdir' ]
           self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
           self.linkflags += [ '-isysroot', '$sdkdir' ]
         
@@ -230,15 +287,15 @@ class Toolchain(object):
         self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
-        #self.plistcmd = '$plist -convert binary1 -o $out -- $in'
-        self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --output $out $in'
+        self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --bundle $bundleidentifier --output $out $in'
         self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
                            ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target 6.0' \
                            ' --target-device iphone --target-device ipad --compress-pngs --compile $outpath $in >/dev/null'
         self.xibcmd = '$xib --target-device iphone --target-device ipad --module test_all --minimum-deployment-target 6.0 ' \
                       ' --output-partial-info-plist /tmp/partial-info.plist --auto-activate-custom-fonts '\
-                      ' --output-format human-readable-text --compile $out $in'
-        self.dsymutilcmd = '$dsymutil $in -o $out'
+                      ' --output-format human-readable-text --compile $outpath $in'
+        self.dsymutilcmd = '$dsymutil $in -o $outpath'
+        self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --builddir $builddir --binname $binname $outpath'
 
       elif target.is_android():
 
@@ -320,6 +377,16 @@ class Toolchain(object):
     self.binpath = os.path.join( 'bin', target.platform )
 
   def build_android_toolchain( self ):
+    self.android_platformversion = os.getenv( 'ANDROID_PLATFORMVERSION', self.android_platformversion )
+    self.android_toolchainversion_gcc = os.getenv( 'ANDROID_GCCVERSION', self.android_toolchainversion_gcc )
+    self.android_toolchainversion_clang = os.getenv( 'ANDROID_CLANGVERSION', self.android_toolchainversion_clang )
+    self.android_ndkpath = os.getenv( 'ANDROID_NDKPATH', os.getenv( 'ANDROID_NDK', os.getenv( 'NDK_HOME', self.android_ndkpath ) ) )
+    self.android_sdkpath = os.getenv( 'ANDROID_SDKPATH', os.getenv( 'ANDROID_SDK', os.getenv( 'ANDROID_HOME', self.android_sdkpath ) ) )
+    self.android_keystore = os.getenv( 'ANDROID_KEYSTORE', self.android_keystore )
+    self.android_keyalias = os.getenv( 'ANDROID_KEYALIAS', self.android_keyalias )
+    self.android_keystorepass = os.getenv( 'ANDROID_KEYSTOREPASS', self.android_keystorepass )
+    self.android_keypass = os.getenv( 'ANDROID_KEYPASS', self.android_keypass )
+
     self.android_archname = dict()
     self.android_archname['x86'] = 'x86'
     self.android_archname['x86-64'] = 'x86_64'
@@ -356,13 +423,6 @@ class Toolchain(object):
     self.android_archpath['mips'] = 'mips'
     self.android_archpath['mips64'] = 'mips64'
 
-    self.android_ndk_path = os.getenv( 'ANDROID_NDK', os.getenv( 'NDK_HOME', '' ) )
-    self.android_sdk_path = os.getenv( 'ANDROID_SDK', os.getenv( 'ANDROID_HOME', '' ) )
-    self.android_keystore = os.getenv( 'KEYSTORE', os.path.join( os.path.expanduser( '~' ), '.android', 'debug.keystore' ) )
-    self.android_keyalias = os.getenv( 'KEYALIAS', 'androiddebugkey' )
-    self.android_keystorepass = os.getenv( 'KEYSTOREPASS', 'android' )
-    self.android_keypass = os.getenv( 'KEYPASS', 'android' )
-
     if self.host.is_windows():
       if os.getenv( 'PROCESSOR_ARCHITECTURE', 'AMD64' ).find( '64' ) != -1:
         self.android_hostarchname = 'windows-x86_64'
@@ -377,18 +437,61 @@ class Toolchain(object):
     elif self.host.is_macosx():
       self.android_hostarchname = 'darwin-x86_64'
 
-    buildtools_path = os.path.join( self.android_sdk_path, 'build-tools' )
+    buildtools_path = os.path.join( self.android_sdkpath, 'build-tools' )
     buildtools_list = [ item for item in os.listdir( buildtools_path ) if os.path.isdir( os.path.join( buildtools_path, item ) ) ]
-    buildtools_list.sort(key=lambda s: map(int, s.split('.')))
+    buildtools_list.sort( key=lambda s: map( int, s.split('.') ) )
 
-    self.android_buildtools_path = os.path.join( self.android_sdk_path, 'build-tools', buildtools_list[-1] )
-    self.android_jar = os.path.join( self.android_sdk_path, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
+    self.android_buildtools_path = os.path.join( self.android_sdkpath, 'build-tools', buildtools_list[-1] )
+    self.android_jar = os.path.join( self.android_sdkpath, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
 
     self.aapt = os.path.join( self.android_buildtools_path, 'aapt' + self.exe_suffix )
     self.zipalign = os.path.join( self.android_buildtools_path, 'zipalign' + self.exe_suffix )
     if not os.path.isfile( self.zipalign ):
-      self.zipalign = os.path.join( self.android_sdk_path, 'tools', 'zipalign' + self.exe_suffix )
+      self.zipalign = os.path.join( self.android_sdkpath, 'tools', 'zipalign' + self.exe_suffix )
     self.jarsigner = 'jarsigner'
+
+  def read_prefs( self, filename ):
+    if not os.path.isfile( filename ):
+      return
+    file = open( filename, 'r' )
+    prefs = json.load( file )
+    file.close()
+    if 'android' in prefs:
+      androidprefs = prefs['android']
+      if 'ndkpath' in androidprefs:
+        self.android_ndkpath = androidprefs['ndkpath']
+      if 'sdkpath' in androidprefs:
+        self.android_sdkpath = androidprefs['sdkpath']
+      if 'keystore' in androidprefs:
+        self.android_keystore = androidprefs['keystore']
+      if 'keyalias' in androidprefs:
+        self.android_keyalias = androidprefs['keyalias']
+      if 'keystorepass' in androidprefs:
+        self.android_keystorepass = androidprefs['keystorepass']
+      if 'keypass' in androidprefs:
+        self.android_keypass = androidprefs['keypass']
+      if 'platformversion' in androidprefs:
+        self.android_platformversion = androidprefs['platformversion']
+      if 'gccversion' in androidprefs:
+        self.android_gccversion = androidprefs['gccversion']
+      if 'platformversion' in androidprefs:
+        self.android_clangversion = androidprefs['clangversion']
+    if 'ios' in prefs:
+      iosprefs = prefs['ios']
+      if 'deploymenttarget' in iosprefs:
+        self.ios_deploymenttarget = iosprefs['deploymenttarget']
+      if 'organisation' in iosprefs:
+        self.ios_organisation = iosprefs['organisation']
+      if 'bundleidentifier' in iosprefs:
+        self.ios_bundleidentifier = iosprefs['bundleidentifier']
+    if 'macosx' in prefs:
+      macosxprefs = prefs['macosx']
+      if 'deploymenttarget' in macosxprefs:
+        self.macosx_deploymenttarget = macosxprefs['deploymenttarget']
+      if 'organisation' in macosxprefs:
+        self.macosx_organisation = macosxprefs['organisation']
+      if 'bundleidentifier' in macosxprefs:
+        self.macosx_bundleidentifier = macosxprefs['bundleidentifier']
 
   def build_includepaths( self, includepaths ):
     finalpaths = []
@@ -643,8 +746,8 @@ class Toolchain(object):
   def includepaths( self ):
     return self.includepaths
 
-  def android_ndk_path( self ):
-    return self.android_ndk_path
+  def android_ndkpath( self ):
+    return self.android_ndkpath
 
   def shell_escape( self, str ):
     # This isn't complete, but it's just enough to make NINJA_PYTHON work.
@@ -682,7 +785,7 @@ class Toolchain(object):
 
       writer.rule( 'dsymutil',
                    command = self.dsymutilcmd,
-                   description = 'DSYMUTIL $out' )
+                   description = 'DSYMUTIL $outpath' )
       writer.newline()
 
       writer.rule( 'plist',
@@ -692,12 +795,17 @@ class Toolchain(object):
 
       writer.rule( 'xcassets',
                    command = self.xcassetscmd,
-                   description = 'XCASSETS $out' )
+                   description = 'XCASSETS $outpath' )
       writer.newline()
 
       writer.rule( 'xib',
                    command = self.xibcmd,
-                   description = 'XIB $out' )
+                   description = 'XIB $outpath' )
+      writer.newline()
+
+      writer.rule( 'codesign',
+                   command = self.codesigncmd,
+                   description = 'CODESIGN $in' )
       writer.newline()
 
     if self.target.is_android():
@@ -738,6 +846,7 @@ class Toolchain(object):
 
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
+    writer.variable( 'target', self.target.platform )
     if self.host.is_macosx() and (self.target.is_macosx() or self.target.is_ios()):
       if self.target.is_macosx():
         sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
@@ -748,8 +857,8 @@ class Toolchain(object):
     if self.target.is_windows():
       writer.variable( 'pdbpath', '' )
     if self.target.is_android():
-      writer.variable( 'ndk', self.android_ndk_path )
-      writer.variable( 'sdk', self.android_sdk_path )
+      writer.variable( 'ndk', self.android_ndkpath )
+      writer.variable( 'sdk', self.android_sdkpath )
       writer.variable( 'androidjar', self.android_jar )
       writer.variable( 'apkbuildpath', '' )
       writer.variable( 'apk', '' )
@@ -777,6 +886,8 @@ class Toolchain(object):
       writer.variable( 'dsymutil', self.dsymutil )
       writer.variable( 'exename', '' )
       writer.variable( 'prodname', '' )
+      writer.variable( 'binname', '' )
+      writer.variable( 'bundleidentifier', '' )
       writer.variable( 'outpath', '' )
       writer.variable( 'mflags', ' '.join( self.shell_escape( flag ) for flag in self.mflags ) )
     writer.variable( 'cflags', ' '.join( self.shell_escape( flag ) for flag in self.cflags ) )
@@ -828,36 +939,50 @@ class Toolchain(object):
     return os.path.join( self.make_android_gcc_path( arch ), 'bin', self.android_toolchainprefix[arch] )
 
   def make_android_clang_path( self, arch ):
-    return os.path.join( self.android_ndk_path, 'toolchains', 'llvm-' + self.android_toolchainversion_clang, 'prebuilt', self.android_hostarchname )
+    return os.path.join( self.android_ndkpath, 'toolchains', 'llvm-' + self.android_toolchainversion_clang, 'prebuilt', self.android_hostarchname )
 
   def make_android_gcc_path( self, arch ):
-    return os.path.join( self.android_ndk_path, 'toolchains', self.android_toolchainname[arch], 'prebuilt', self.android_hostarchname )
+    return os.path.join( self.android_ndkpath, 'toolchains', self.android_toolchainname[arch], 'prebuilt', self.android_hostarchname )
 
   def make_android_sysroot_path( self, arch ):
-    return os.path.join( self.android_ndk_path, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch] )
+    return os.path.join( self.android_ndkpath, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch] )
 
-  def build_app( self, writer, basepath, module, binpath, binname, archbins, resources ):
+  def make_bundleidentifier( self, binname ):
+    if self.target.is_macosx():
+      return self.macosx_bundleidentifier.replace( '$(binname)', binname )
+    elif self.target.is_ios():
+      return self.ios_bundleidentifier.replace( '$(binname)', binname )
+    return ''
+
+  def build_app( self, writer, config, basepath, module, binpath, binname, archbins, resources ):
     binlist = []
     builtbin = []
     builtres = []
     for _, value in archbins.iteritems():
       binlist += value
+    builddir = os.path.join( self.buildpath, config, 'app', binname )
     builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
-    builtbin += writer.build( binpath + '.dSYM', 'dsymutil', builtbin )
+    dsympath = binpath + '.dSYM'
+    builtsym = writer.build( [ os.path.join( dsympath, 'Contents', 'Resources', 'DWARF', binname ), os.path.join( dsympath, 'Contents', 'Resources', 'DWARF' ), os.path.join( dsympath, 'Contents', 'Resources' ), os.path.join( dsympath, 'Contents', 'Info.plist' ), os.path.join( dsympath, 'Contents' ), dsympath ], 'dsymutil', builtbin, variables = [ ( 'outpath', dsympath ) ] )
     if resources:
       assetsplists = []
       for resource in resources:
         if resource.endswith( '.xcassets' ):
           assetsvars = [ ( 'outpath', binpath ) ]
-          plistpath = '/tmp/partial-assets-' + ( ''.join( random.choice( string.lowercase ) for i in range( 16 ) ) ) + '.plist'
-          assetsplists += writer.build( plistpath, 'xcassets', os.path.join( basepath, module, resource ), variables = assetsvars )
+          plistpath = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xcassets.plist' )
+          assetsplists += writer.build( plistpath, 'xcassets', os.path.join( basepath, module, resource ), implicit = builtbin, variables = assetsvars )
         elif resource.endswith( '.xib' ):
-          builtres += writer.build( os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
+          nibpath = os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' )
+          builtres += writer.build( [ os.path.join( nibpath, 'objects.nib' ), os.path.join( nibpath, 'objects-8.0+.nib' ), os.path.join( nibpath, 'runtime.nib' ), nibpath ], 'xib', os.path.join( basepath, module, resource ), variables = [ ( 'outpath', nibpath ) ] )
       for resource in resources:
         if resource.endswith( '.plist' ):
           plistvars = [ ( 'exename', binname ), ( 'prodname', binname ) ]
+          bundleidentifier = self.make_bundleidentifier( binname )
+          if bundleidentifier != '':
+            plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
           builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, variables = plistvars )
-    return builtbin + builtres
+    writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ) ] )
+    return builtbin + builtsym + builtres
 
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
     buildpath = os.path.join( self.buildpath, config, "apk", binname )
@@ -1018,7 +1143,7 @@ class Toolchain(object):
       archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths, extralibs = extralibs, extraframeworks = extraframeworks )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
-        builtbin += self.build_app( writer, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
+        builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
       elif self.target.is_android():
         builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources )
       else:

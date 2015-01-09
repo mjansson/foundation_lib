@@ -9,7 +9,7 @@ sys.path.insert( 0, os.path.join( 'build', 'ninja' ) )
 
 import generator
 
-generator = generator.Generator( project = 'foundation' )
+generator = generator.Generator( project = 'foundation', variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.$(binname)' ) ] )
 target = generator.target
 writer = generator.writer
 toolchain = generator.toolchain
