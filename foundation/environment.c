@@ -350,7 +350,9 @@ const char* environment_home_directory( void )
 	}
 	if( env_home )
 		string_copy( _environment_home_dir, env_home, FOUNDATION_MAX_PATHLEN );
-#elif FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_IOS
+	_environment_ns_home_directory( _environment_home_dir );
+#elif FOUNDATION_PLATFORM_MACOSX
 	if( environment_application()->flags & APPLICATION_UTILITY )
 	{
 		_environment_ns_home_directory( _environment_home_dir );
