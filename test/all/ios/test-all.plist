@@ -22,7 +22,9 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>UIMainStoryboardFile</key>
+	<key>NSMainNibFile</key>
+	<string>test-all</string>
+	<key>NSMainNibFile~ipad</key>
 	<string>test-all</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>

@@ -295,7 +295,7 @@ class Toolchain(object):
                       ' --output-partial-info-plist /tmp/partial-info.plist --auto-activate-custom-fonts '\
                       ' --output-format human-readable-text --compile $outpath $in'
         self.dsymutilcmd = '$dsymutil $in -o $outpath'
-        self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --builddir $builddir --binname $binname $outpath'
+        self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --builddir $builddir --binname $binname --config $config $outpath'
 
       elif target.is_android():
 
@@ -847,6 +847,7 @@ class Toolchain(object):
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
     writer.variable( 'target', self.target.platform )
+    writer.variable( 'config', '' )
     if self.host.is_macosx() and (self.target.is_macosx() or self.target.is_ios()):
       if self.target.is_macosx():
         sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
@@ -981,7 +982,7 @@ class Toolchain(object):
           if bundleidentifier != '':
             plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
           builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, variables = plistvars )
-    writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ) ] )
+    writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ), ( 'config', config ) ] )
     return builtbin + builtsym + builtres
 
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):

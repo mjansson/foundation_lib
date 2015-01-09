@@ -31,6 +31,9 @@ parser.add_argument( '--prefs', type=str,
 parser.add_argument( '--builddir', type=str,
                      help = 'Build directory',
                      default = [] )
+parser.add_argument( '--config', type=str,
+                     help = 'Build configuration',
+                     default = [] )
 options = parser.parse_args()
 
 androidprefs = {}
@@ -86,10 +89,16 @@ def codesign_ios():
 
   with open( plistpath, 'w' ) as plist_file:
     for line in lines:
+      if options.config != 'deploy' and line == '</dict>':
+        plist_file.write( '\t<key>get-task-allow</key>\n' )
+        plist_file.write( '\t<true/>\n' )
       plist_file.write( line + '\n' )
     plist_file.close()
 
-  os.system( plutil + ' -convert binary1 ' + plistpath )
+  #os.system( plutil + ' -convert binary1 ' + plistpath )
+
+  shutil.copyfile( iosprefs['provisioning'], os.path.join( options.file, "embedded.mobileprovision" ) )
+
   os.system( '/usr/bin/codesign --force --sign ' + iosprefs['signature'] + ' --entitlements ' + plistpath + ' ' + options.file )
 
 
