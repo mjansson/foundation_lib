@@ -70,6 +70,7 @@ class Toolchain(object):
     self.ios_deploymenttarget = '6.0'
     self.ios_organisation = ''
     self.ios_bundleidentifier = ''
+    self.ios_provisioning = ''
 
     self.macosx_deploymenttarget = '10.7'
     self.macosx_organisation = ''
@@ -109,6 +110,8 @@ class Toolchain(object):
           self.ios_organisation = val
         elif key == 'ios_bundleidentifier':
           self.ios_bundleidentifier = val
+        elif key == 'ios_provisioning':
+          self.ios_provisioning = val
         elif key == 'macosx_deploymenttarget':
           self.macosx_deploymenttarget = val
         elif key == 'macosx_organisation':
@@ -484,6 +487,8 @@ class Toolchain(object):
         self.ios_organisation = iosprefs['organisation']
       if 'bundleidentifier' in iosprefs:
         self.ios_bundleidentifier = iosprefs['bundleidentifier']
+      if 'provisioning' in iosprefs:
+        self.ios_provisioning = iosprefs['provisioning']
     if 'macosx' in prefs:
       macosxprefs = prefs['macosx']
       if 'deploymenttarget' in macosxprefs:
@@ -890,6 +895,7 @@ class Toolchain(object):
       writer.variable( 'binname', '' )
       writer.variable( 'bundleidentifier', '' )
       writer.variable( 'outpath', '' )
+      writer.variable( 'provisioning', 'none' )
       writer.variable( 'mflags', ' '.join( self.shell_escape( flag ) for flag in self.mflags ) )
     writer.variable( 'cflags', ' '.join( self.shell_escape( flag ) for flag in self.cflags ) )
     writer.variable( 'arflags', ' '.join( self.shell_escape( flag ) for flag in self.arflags ) )
@@ -982,7 +988,10 @@ class Toolchain(object):
           if bundleidentifier != '':
             plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
           builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, variables = plistvars )
-    writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ), ( 'config', config ) ] )
+    codesignvars = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ), ( 'config', config ) ]
+    if self.ios_provisioning != '':
+      codesignvars += [ ( 'provisioning', self.ios_provisioning ) ]
+    writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = codesignvars )
     return builtbin + builtsym + builtres
 
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):

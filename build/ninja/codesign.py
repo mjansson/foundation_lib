@@ -22,6 +22,9 @@ parser.add_argument( '--bundle',
 parser.add_argument( '--organisation',
                      help = 'Organisation identifier (OSX/iOS)',
                      default = [] )
+parser.add_argument( '--provisioning',
+                     help = 'Provisioning profile (OSX/iOS)',
+                     default = [] )
 parser.add_argument( '--binname',
                      help = 'Binary name (OSX/iOS)',
                      default = [] )
@@ -63,6 +66,8 @@ def codesign_ios():
     iosprefs['organisation'] = options.organisation
   if not 'bundleidentifier' in iosprefs:
     iosprefs['bundleidentifier'] = options.bundle
+  if not 'provisioning' in iosprefs:
+    iosprefs['provisioning'] = options.provisioning
 
   sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-path' ] ).strip()
   entitlements = os.path.join( sdkdir, 'Entitlements.plist' )
