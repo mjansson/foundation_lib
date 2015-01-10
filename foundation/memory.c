@@ -550,7 +550,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #  endif
 #else
 	void* memory;
-	void* raw_p;
+	void* raw_p ATTRIBUTE(unused);
 
 	align = _memory_get_align( align );
 

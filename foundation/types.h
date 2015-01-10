@@ -64,6 +64,7 @@ typedef enum
 	WARNING_SYSTEM_CALL_FAIL,
 	WARNING_DEADLOCK,
 	WARNING_SCRIPT,
+	WARNING_RESOURCE,
 	WARNING_LAST_BUILTIN  = 0x0fff
 } warning_t;
 
@@ -236,7 +237,7 @@ typedef struct event_block_t                       event_block_t;
 typedef ALIGNED_STRUCT( event_stream_t, 16 )       event_stream_t;
 typedef struct hashmap_node_t                      hashmap_node_t;
 typedef struct hashmap_t                           hashmap_t;
-typedef ALIGNED_STRUCT( hashtable32_entry_t, 8 )  hashtable32_entry_t;
+typedef ALIGNED_STRUCT( hashtable32_entry_t, 8 )   hashtable32_entry_t;
 typedef ALIGNED_STRUCT( hashtable64_entry_t, 8 )   hashtable64_entry_t;
 typedef ALIGNED_STRUCT( hashtable32_t, 8 )         hashtable32_t;
 typedef ALIGNED_STRUCT( hashtable64_t, 8 )         hashtable64_t;

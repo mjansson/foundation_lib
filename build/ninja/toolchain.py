@@ -5,6 +5,10 @@
 import sys
 import os
 import subprocess
+import platform
+import random
+import string
+import json
 
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
@@ -13,29 +17,21 @@ def supported_architectures():
   return [ 'x86', 'x86-64', 'ppc', 'ppc64', 'arm6', 'arm7', 'arm64', 'mips', 'mips64' ]
 
 class Toolchain(object):
-  def __init__( self, toolchain, host, target, archs, configs, includepaths, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
+  def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, variables, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
+    self.project = project
     self.toolchain = toolchain
     self.host = host
     self.target = target
+    self.dependlibs = list( dependlibs )
     self.archs = list( archs )
     self.configs = list( configs )
     if self.toolchain is None:
-      if host.is_windows():
+      if target.is_android():
+        self.toolchain = 'gcc'
+      elif host.is_windows():
         self.toolchain = 'msvc'
       else:
         self.toolchain = 'clang'
-
-    self.cconfigflags = []
-    self.carchflags = []
-    self.ararchflags = []
-    self.arconfigflags = []
-    self.linkarchflags = []
-    self.linkconfigflags = []
-    self.libpaths = []
-    self.includepaths = []
-
-    if not includepaths is None:
-      self.includepaths = list( includepaths )
 
     if self.archs is None or self.archs == []:
       if target.is_windows():
@@ -52,45 +48,156 @@ class Toolchain(object):
         self.archs = [ 'arm7', 'arm64' ]
       elif target.is_raspberrypi():
         self.archs = [ 'arm6' ]
+      elif self.target.is_android():
+        self.archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
+
+    if host.is_windows():
+      self.exe_suffix = '.exe'
+    else:
+      self.exe_suffix = ''
+
+    #Set default values
+    self.android_ndkpath = ''
+    self.android_sdkpath = ''
+    self.android_keystore = os.path.join( os.path.expanduser( '~' ), '.android', 'debug.keystore' )
+    self.android_keyalias = 'androiddebugkey'
+    self.android_keystorepass = 'android'
+    self.android_keypass = 'android'
+    self.android_platformversion = '21'
+    self.android_toolchainversion_gcc = '4.9'
+    self.android_toolchainversion_clang = '3.5'
+
+    self.ios_deploymenttarget = '6.0'
+    self.ios_organisation = ''
+    self.ios_bundleidentifier = ''
+    self.ios_provisioning = ''
+
+    self.macosx_deploymenttarget = '10.7'
+    self.macosx_organisation = ''
+    self.macosx_bundleidentifier = ''
+
+    #Parse variables
+    if variables:
+      if isinstance( variables, dict ):
+        iterator = iter( variables.items() )
+      else:
+        iterator = iter( variables )
+      for key, val in iterator:
+        if key == 'bundleidentifier':
+          self.ios_bundleidentifier = val
+          self.macosx_bundleidentifier = val
+        elif key == 'android_ndkpath':
+          self.android_ndkpath = val
+        elif key == 'android_sdkpath':
+          self.android_sdkpath = val
+        elif key == 'android_keystore':
+          self.android_keystore = val
+        elif key == 'android_keyalias':
+          self.android_keyalias = val
+        elif key == 'android_keystorepass':
+          self.android_keystorepass = val
+        elif key == 'android_keypass':
+          self.android_keypass = val
+        elif key == 'android_platformversion':
+          self.android_platformversion = val
+        elif key == 'android_gccversion':
+          self.android_toolchainversion_gcc = val
+        elif key == 'android_clangversion':
+          self.android_toolchainversion_clang = val
+        elif key == 'ios_deploymenttarget':
+          self.ios_deploymenttarget = val
+        elif key == 'ios_organisation':
+          self.ios_organisation = val
+        elif key == 'ios_bundleidentifier':
+          self.ios_bundleidentifier = val
+        elif key == 'ios_provisioning':
+          self.ios_provisioning = val
+        elif key == 'macosx_deploymenttarget':
+          self.macosx_deploymenttarget = val
+        elif key == 'macosx_organisation':
+          self.macosx_organisation = val
+        elif key == 'macosx_bundleidentifier':
+          self.macosx_bundleidentifier = val
+
+    #Source in local build prefs
+    self.read_prefs( 'build.json' )
+    self.read_prefs( os.path.join( 'build', 'ninja', 'build.json' ) )
+
+    if target.is_android():
+      if int( self.android_platformversion ) < 21:
+        self.archs = [ arch for arch in self.archs if not arch.endswith( '64' ) ]
+      self.build_android_toolchain()
+
+    self.cconfigflags = []
+    self.carchflags = []
+    self.ararchflags = []
+    self.arconfigflags = []
+    self.linkarchflags = []
+    self.linkconfigflags = []
+    self.libpaths = []
+    self.includepaths = [ '.' ] + self.build_includepaths( includepaths )
+    self.extralibs = []
+
+    # TODO: Add dependent lib search
+    self.includepaths += [ os.path.join( '..', deplib + '_lib' ) for deplib in self.dependlibs ]
+
+    if host.is_windows():
+      self.rmcmd = 'cmd /C del /F /Q'
+      self.cdcmd = 'cmd /C cd'
+      self.mkdircmd = 'cmd /C mkdir'
+    else:
+      self.rmcmd = 'rm -f' 
+      self.cdcmd = 'cd'
+      self.mkdircmd = 'mkdir -p'
+
+    self.copycmd = '$copy $in $out'
+    if host.is_windows():
+      self.copy = 'cmd /C copy /Y'
+    else:
+      self.copy = 'cp -f'
+
+    self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch && $aapt a $apk $apklibs'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res && $aapt a $apk $apklibs'
+    self.zipaligncmd = '$zipalign -f 4 $in $out'
+    self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
       self.cc = 'cl'
       self.ar = 'lib'
       self.link = 'link'
-      self.cflags = [ '/D', '"FOUNDATION_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-', '/arch:SSE2' ]
+      self.cflags = [ '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-' ]
       self.arflags = []
       self.linkflags = []
-      self.extralibs = [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
+      self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
       self.objext = '.obj'
-      self.cccmd = '$cc /showIncludes $includepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
+      self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
       self.ccdepfile = None
       self.ccdeps = 'msvc'
       self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
-      self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $libs $in'
+      self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
 
     elif self.toolchain.startswith('gcc') or self.toolchain.startswith('gnu'):
-      self.toolchain = 'gcc' 
-      self.cc = 'gcc'
-      self.ar = 'ar'
-      self.link = 'gcc'
-      self.cflags = [ '-DFOUNDATION_COMPILE=1',
+      self.toolchain = 'gcc' + self.exe_suffix
+      self.cc = 'gcc' + self.exe_suffix
+      self.ar = 'ar' + self.exe_suffix
+      self.link = 'gcc' + self.exe_suffix
+      self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
                       '-Wno-unused-value',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
       self.arflags = []
-      self.linkflags = [ '-pthread' ]
-      self.extralibs = []
+      self.linkflags = []
       self.objext = '.o'
 
-      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
-      self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
-      self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs'
+      self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+      self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if host.is_raspberrypi():
         self.includepaths += [ '/opt/vc/include', '/opt/vc/include/interface/vcos/pthreads' ]
@@ -100,41 +207,68 @@ class Toolchain(object):
         self.linkflags += [ '-pthread' ]
         self.extralibs += [ 'dl', 'm' ]
       if target.is_raspberrypi():
-        self.cflags += [ '-std=c99' ]
+        self.cflags += [ '-std=c99', '-fno-omit-frame-pointer' ]
         self.extralibs += [ 'rt' ]
+      elif target.is_android():
+        self.cflags += [ '-std=gnu11' ] #c11 gives errors in ndk cpu-features on android
       else:
         self.cflags += [ '-std=c11' ]
+
+      if target.is_android():
+        self.sysroot = ''
+        self.liblinkname = ''
+        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+        self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
+
+        self.cflags += [ '-DANDROID', '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
+                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function', '-Wno-unused-variable' ]
+
+        self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
+
+        self.includepaths += [ os.path.join( '$ndk', 'sources', 'android', 'native_app_glue' ),
+                               os.path.join( '$ndk', 'sources', 'android', 'cpufeatures' ) ]
+
+        self.extralibs += [ 'log' ]
 
     elif self.toolchain.startswith('clang') or self.toolchain.startswith('llvm'):
       self.toolchain = 'clang' 
       self.cc = 'clang'
       self.ar = 'llvm-ar'
       self.link = 'clang'
-      self.cflags = [ '-std=c11', '-DFOUNDATION_COMPILE=1',
+      self.cflags = [ '-std=c11', '-D' + self.project.upper() + '_COMPILE=1',
                       '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
       self.arflags = []
       self.linkflags = []
-      self.extralibs = []
       self.objext = '.o'
 
-      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+      self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
       if host.is_macosx() and (target.is_macosx() or target.is_ios()):
+        self.ios_bundleidentifier = os.getenv( 'BUNDLEIDENTIFIER', self.ios_bundleidentifier )
+        self.macosx_bundleidentifier = os.getenv( 'BUNDLEIDENTIFIER', self.macosx_bundleidentifier )
+        self.ios_deploymenttarget = os.getenv( 'IOS_DEPLOYMENTTARGET', self.ios_deploymenttarget )
+        self.ios_organisation = os.getenv( 'IOS_ORGANISATION', self.ios_organisation )
+        self.ios_bundleidentifier = os.getenv( 'IOS_BUNDLEIDENTIFIER', self.ios_bundleidentifier )
+        self.macosx_deploymenttarget = os.getenv( 'MACOSX_DEPLOYMENTTARGET', self.macosx_deploymenttarget )
+        self.macosx_organisation = os.getenv( 'MACOSX_ORGANISATION', self.macosx_organisation )
+        self.macosx_bundleidentifier = os.getenv( 'MACOSX_BUNDLEIDENTIFIER', self.macosx_bundleidentifier )
+
         if target.is_macosx():
           sdk = 'macosx'
-          deploytarget = 'MACOSX_DEPLOYMENT_TARGET=10.7'
-          self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=10.7', '-isysroot', '$sdkdir' ]
+          deploytarget = 'MACOSX_DEPLOYMENT_TARGET=' + self.macosx_deploymenttarget
+          self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=' + self.macosx_deploymenttarget, '-isysroot', '$sdkdir' ]
           self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
           self.linkflags += [ '-isysroot', '$sdkdir' ]
         elif target.is_ios():
           sdk = 'iphoneos'
-          deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=6.0'
-          self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=6.0', '-isysroot', '$sdkdir' ]
+          deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=' + self.ios_deploymenttarget
+          self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=' + self.ios_deploymenttarget, '-isysroot', '$sdkdir' ]
           self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
           self.linkflags += [ '-isysroot', '$sdkdir' ]
         
@@ -146,26 +280,50 @@ class Toolchain(object):
         self.link = deploytarget + " " + self.cc
         self.lipo = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'lipo' ] ).strip()
         self.plist = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'plutil' ] ).strip()
+        self.plist = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'plutil' ] ).strip()
         self.xcassets = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'actool' ] ).strip()
         self.xib = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'ibtool' ] ).strip()
+        self.dsymutil = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'dsymutil' ] ).strip()
         
         self.mflags += self.cflags + [ '-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c' ]
         self.cflags += [ '-x', 'c' ]
         
-        self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $mflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = 'rm -f $out && $ar $ararchflags $arflags $in -o $out'
+        self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $mflags $carchflags $cconfigflags -c $in -o $out'
+        self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
-        self.plistcmd = '$plist -convert binary1 -o $out -- $in'
-        self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist /tmp/partial-assets.plist' \
+        self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --bundle $bundleidentifier --output $out $in'
+        self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
                            ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target 6.0' \
-                           ' --target-device iphone --target-device ipad --compress-pngs --compile $out $in >/dev/null'
+                           ' --target-device iphone --target-device ipad --compress-pngs --compile $outpath $in >/dev/null'
         self.xibcmd = '$xib --target-device iphone --target-device ipad --module test_all --minimum-deployment-target 6.0 ' \
                       ' --output-partial-info-plist /tmp/partial-info.plist --auto-activate-custom-fonts '\
-                      ' --output-format human-readable-text --compile $out $in'
+                      ' --output-format human-readable-text --compile $outpath $in'
+        self.dsymutilcmd = '$dsymutil $in -o $outpath'
+        self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --builddir $builddir --binname $binname --config $config $outpath'
+
+      elif target.is_android():
+
+        self.sysroot = ''
+        self.liblinkname = ''
+
+        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+        self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
+
+        self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer',
+                         '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function' ]
+
+        self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
+
+        self.includepaths += [ os.path.join( '$ndk', 'sources', 'android', 'native_app_glue' ),
+                               os.path.join( '$ndk', 'sources', 'android', 'cpufeatures' ) ]
+
+        self.extralibs += [ 'log' ]
+
       else:
-        self.arcmd = 'rm -f $out && $ar crs $ararchflags $arflags $out $in'
-        self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs'
+        self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if target.is_macosx():
         self.linkflags += [ '-framework', 'Cocoa', '-framework', 'CoreFoundation' ]
@@ -186,13 +344,33 @@ class Toolchain(object):
       self.cflags = []
       self.arflags = []
       self.linkflags = []
-      self.objext = '.obj'
+
+      if target.is_windows():
+        self.cflags = [ 
+          '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast=2', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-',
+          '/Qrestrict', '/Qansi-alias', '/QxSSE3', '/Quse-intel-optimized-headers', '/Qstd=c99'
+        ]
+        self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
+        self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
+        self.ccdepfile = None
+        self.ccdeps = 'msvc'
+        self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
+        self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
+        self.objext = '.obj'
+      else:
+        #TODO: Implement
+        self.objext = '.o'
 
     if target.is_windows():
       self.libprefix = ''
       self.staticlibext = '.lib'
       self.binprefix = ''
       self.binext = '.exe'
+    elif target.is_android():
+      self.libprefix = 'lib'
+      self.staticlibext = '.a'
+      self.binprefix = 'lib'
+      self.binext = '.so'
     else:
       self.libprefix = 'lib'
       self.staticlibext = '.a'
@@ -202,6 +380,146 @@ class Toolchain(object):
     self.buildpath = os.path.join( 'build', 'ninja', target.platform )
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
+
+  def build_android_toolchain( self ):
+    self.android_platformversion = os.getenv( 'ANDROID_PLATFORMVERSION', self.android_platformversion )
+    self.android_toolchainversion_gcc = os.getenv( 'ANDROID_GCCVERSION', self.android_toolchainversion_gcc )
+    self.android_toolchainversion_clang = os.getenv( 'ANDROID_CLANGVERSION', self.android_toolchainversion_clang )
+    self.android_ndkpath = os.getenv( 'ANDROID_NDKPATH', os.getenv( 'ANDROID_NDK', os.getenv( 'NDK_HOME', self.android_ndkpath ) ) )
+    self.android_sdkpath = os.getenv( 'ANDROID_SDKPATH', os.getenv( 'ANDROID_SDK', os.getenv( 'ANDROID_HOME', self.android_sdkpath ) ) )
+    self.android_keystore = os.getenv( 'ANDROID_KEYSTORE', self.android_keystore )
+    self.android_keyalias = os.getenv( 'ANDROID_KEYALIAS', self.android_keyalias )
+    self.android_keystorepass = os.getenv( 'ANDROID_KEYSTOREPASS', self.android_keystorepass )
+    self.android_keypass = os.getenv( 'ANDROID_KEYPASS', self.android_keypass )
+
+    self.android_archname = dict()
+    self.android_archname['x86'] = 'x86'
+    self.android_archname['x86-64'] = 'x86_64'
+    self.android_archname['arm6'] = 'arm'
+    self.android_archname['arm7'] = 'arm'
+    self.android_archname['arm64'] = 'arm64'
+    self.android_archname['mips'] = 'mips'
+    self.android_archname['mips64'] = 'mips64'
+
+    self.android_toolchainname = dict()
+    self.android_toolchainname['x86'] = 'x86-' + self.android_toolchainversion_gcc
+    self.android_toolchainname['x86-64'] = 'x86_64-' + self.android_toolchainversion_gcc
+    self.android_toolchainname['arm6'] = 'arm-linux-androideabi-' + self.android_toolchainversion_gcc
+    self.android_toolchainname['arm7'] = 'arm-linux-androideabi-' + self.android_toolchainversion_gcc
+    self.android_toolchainname['arm64'] = 'aarch64-linux-android-' + self.android_toolchainversion_gcc
+    self.android_toolchainname['mips'] = 'mipsel-linux-android-' + self.android_toolchainversion_gcc
+    self.android_toolchainname['mips64'] = 'mips64el-linux-android-' + self.android_toolchainversion_gcc
+
+    self.android_toolchainprefix = dict()
+    self.android_toolchainprefix['x86'] = 'i686-linux-android-'
+    self.android_toolchainprefix['x86-64'] = 'x86_64-linux-android-'
+    self.android_toolchainprefix['arm6'] = 'arm-linux-androideabi-'
+    self.android_toolchainprefix['arm7'] = 'arm-linux-androideabi-'
+    self.android_toolchainprefix['arm64'] = 'aarch64-linux-android-'
+    self.android_toolchainprefix['mips'] = 'mipsel-linux-android-'
+    self.android_toolchainprefix['mips64'] = 'mips64el-linux-android-'
+
+    self.android_archpath = dict()
+    self.android_archpath['x86'] = 'x86'
+    self.android_archpath['x86-64'] = 'x86-64'
+    self.android_archpath['arm6'] = 'armeabi'
+    self.android_archpath['arm7'] = 'armeabi-v7a'
+    self.android_archpath['arm64'] = 'arm64-v8a'
+    self.android_archpath['mips'] = 'mips'
+    self.android_archpath['mips64'] = 'mips64'
+
+    if self.host.is_windows():
+      if os.getenv( 'PROCESSOR_ARCHITECTURE', 'AMD64' ).find( '64' ) != -1:
+        self.android_hostarchname = 'windows-x86_64'
+      else:
+        self.android_hostarchname = 'windows-x86'
+    elif self.host.is_linux():
+        localarch = subprocess.check_output( [ 'uname', '-m' ] ).strip()
+        if localarch == 'x86_64':
+          self.android_hostarchname = 'linux-x86_64'
+        else:
+          self.android_hostarchname = 'linux-x86'
+    elif self.host.is_macosx():
+      self.android_hostarchname = 'darwin-x86_64'
+
+    buildtools_path = os.path.join( self.android_sdkpath, 'build-tools' )
+    buildtools_list = [ item for item in os.listdir( buildtools_path ) if os.path.isdir( os.path.join( buildtools_path, item ) ) ]
+    buildtools_list.sort( key=lambda s: map( int, s.split('.') ) )
+
+    self.android_buildtools_path = os.path.join( self.android_sdkpath, 'build-tools', buildtools_list[-1] )
+    self.android_jar = os.path.join( self.android_sdkpath, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
+
+    self.aapt = os.path.join( self.android_buildtools_path, 'aapt' + self.exe_suffix )
+    self.zipalign = os.path.join( self.android_buildtools_path, 'zipalign' + self.exe_suffix )
+    if not os.path.isfile( self.zipalign ):
+      self.zipalign = os.path.join( self.android_sdkpath, 'tools', 'zipalign' + self.exe_suffix )
+    self.jarsigner = 'jarsigner'
+
+  def read_prefs( self, filename ):
+    if not os.path.isfile( filename ):
+      return
+    file = open( filename, 'r' )
+    prefs = json.load( file )
+    file.close()
+    if 'android' in prefs:
+      androidprefs = prefs['android']
+      if 'ndkpath' in androidprefs:
+        self.android_ndkpath = androidprefs['ndkpath']
+      if 'sdkpath' in androidprefs:
+        self.android_sdkpath = androidprefs['sdkpath']
+      if 'keystore' in androidprefs:
+        self.android_keystore = androidprefs['keystore']
+      if 'keyalias' in androidprefs:
+        self.android_keyalias = androidprefs['keyalias']
+      if 'keystorepass' in androidprefs:
+        self.android_keystorepass = androidprefs['keystorepass']
+      if 'keypass' in androidprefs:
+        self.android_keypass = androidprefs['keypass']
+      if 'platformversion' in androidprefs:
+        self.android_platformversion = androidprefs['platformversion']
+      if 'gccversion' in androidprefs:
+        self.android_gccversion = androidprefs['gccversion']
+      if 'platformversion' in androidprefs:
+        self.android_clangversion = androidprefs['clangversion']
+    if 'ios' in prefs:
+      iosprefs = prefs['ios']
+      if 'deploymenttarget' in iosprefs:
+        self.ios_deploymenttarget = iosprefs['deploymenttarget']
+      if 'organisation' in iosprefs:
+        self.ios_organisation = iosprefs['organisation']
+      if 'bundleidentifier' in iosprefs:
+        self.ios_bundleidentifier = iosprefs['bundleidentifier']
+      if 'provisioning' in iosprefs:
+        self.ios_provisioning = iosprefs['provisioning']
+    if 'macosx' in prefs:
+      macosxprefs = prefs['macosx']
+      if 'deploymenttarget' in macosxprefs:
+        self.macosx_deploymenttarget = macosxprefs['deploymenttarget']
+      if 'organisation' in macosxprefs:
+        self.macosx_organisation = macosxprefs['organisation']
+      if 'bundleidentifier' in macosxprefs:
+        self.macosx_bundleidentifier = macosxprefs['bundleidentifier']
+
+  def build_includepaths( self, includepaths ):
+    finalpaths = []
+    if not includepaths is None:
+      finalpaths += list( includepaths )
+    return finalpaths
+
+  def build_libpaths( self, libpaths, arch, config ):
+    finalpaths = []
+    if not libpaths is None:
+      finalpaths += list( libpaths )
+    for deplib in self.dependlibs:
+      if self.target.is_macosx() or self.target.is_ios():
+        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config ) ]
+      else:
+        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config, arch ) ]
+    if self.target.is_android():
+      if arch == 'x86-64' or arch == 'mips64' or arch == 'arm64':
+        finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib64' ) ]
+      finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib' ) ]
+    return finalpaths
 
   def make_cconfigflags( self, config ):
     flags = ''
@@ -239,13 +557,50 @@ class Toolchain(object):
       if arch == 'x86':
         flags += ' -arch x86'
       elif arch == 'x86-64':
-        flags += '-arch x86_64'
+        flags += ' -arch x86_64'
       elif arch == 'arm7':
-        flags += '-arch armv7'
+        flags += ' -arch armv7'
       elif arch == 'arm64':
-        flags += '-arch arm64'
+        flags += ' -arch arm64'
     elif self.target.is_raspberrypi():
-      flags += '-mfloat-abi=hard -mfpu=vfp -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -D__raspberrypi__=1'
+      flags += ' -mfloat-abi=hard -mfpu=vfp -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -D__raspberrypi__=1'
+    elif self.target.is_android():
+      if self.toolchain == 'clang':
+        if arch == 'x86':
+          flags += ' -target i686-none-linux-android'
+        elif arch == 'x86-64':
+          flags += ' -target x86_64-none-linux-android'
+        elif arch == 'arm6':
+          flags += ' -target armv5te-none-linux-androideabi'
+        elif arch == 'arm7':
+          flags += ' -target armv7-none-linux-androideabi'
+        elif arch == 'arm64':
+          flags += ' -target aarch64-none-linux-android'
+        elif arch == 'mips':
+          flags += ' -target mipsel-none-linux-android'
+        elif arch == 'mips64':
+          flags += ' -target mips64el-none-linux-android'
+        flags += ' -gcc-toolchain ' + self.make_android_gcc_path( arch )
+      elif self.toolchain == 'gcc':
+        if arch == 'mips':
+          flags += ' -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers'
+        elif arch == 'mips64':
+          flags += ' -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers'
+      if arch == 'x86':
+        flags += ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32'
+      elif arch == 'x86-64':
+        flags += ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel'
+      elif arch == 'arm6':
+        flags += ' -march=armv5te -mtune=xscale -msoft-float -marm'
+      elif arch == 'arm7':
+        flags += ' -march=armv7-a -mhard-float -mfpu=vfpv3-d16 -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1 -marm'
+      elif arch == 'arm64':
+        pass
+    elif self.target.is_windows() and self.toolchain == 'msvc':
+      if arch == 'x86':
+        flags += ' /arch:SSE2'
+      elif arch == 'x86-64':
+        pass
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -284,13 +639,32 @@ class Toolchain(object):
       if arch == 'x86':
         flags += ' -arch x86'
       elif arch == 'x86-64':
-        flags += '-arch x86_64'
+        flags += ' -arch x86_64'
       elif arch == 'arm7':
-        flags += '-arch armv7'
+        flags += ' -arch armv7'
       elif arch == 'arm64':
-        flags += '-arch arm64'
+        flags += ' -arch arm64'
     elif self.target.is_raspberrypi():
       pass
+    elif self.target.is_android():
+      if arch == 'arm7':
+        flags += ' -Wl,--no-warn-mismatch -Wl,--fix-cortex-a8'
+      if self.toolchain == 'clang':
+        if arch == 'x86':
+          flags += ' -target i686-none-linux-android'
+        elif arch == 'x86-64':
+          flags += ' -target x86_64-none-linux-android'
+        elif arch == 'arm6':
+          flags += ' -target armv5te-none-linux-androideabi'
+        elif arch == 'arm7':
+          flags += ' -target armv7-none-linux-androideabi'
+        elif arch == 'arm64':
+          flags += ' -target aarch64-none-linux-android'
+        elif arch == 'mips':
+          flags += ' -target mipsel-none-linux-android'
+        elif arch == 'mips64':
+          flags += ' -target mips64el-none-linux-android'
+        flags += ' -gcc-toolchain ' + self.make_android_gcc_path( arch )
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -311,6 +685,16 @@ class Toolchain(object):
       else:
         flags += ' /DEBUG /LTCG /INCREMENTAL:NO /OPT:REF /OPT:ICF'
     return flags.strip()
+
+  def make_linkarchlibs( self, arch ):
+    archlibs = []
+    if self.target.is_android():
+      if arch == 'arm7':
+        archlibs += [ 'm_hard' ]
+      else:
+        archlibs += [ 'm' ]
+      archlibs += [ 'gcc', 'android' ]
+    return archlibs
 
   def toolchain( self ):
     return self.toolchain
@@ -369,6 +753,9 @@ class Toolchain(object):
   def includepaths( self ):
     return self.includepaths
 
+  def android_ndkpath( self ):
+    return self.android_ndkpath
+
   def shell_escape( self, str ):
     # This isn't complete, but it's just enough to make NINJA_PYTHON work.
     if self.host.is_windows():
@@ -403,6 +790,11 @@ class Toolchain(object):
                    description = 'LIPO $out' )
       writer.newline()
 
+      writer.rule( 'dsymutil',
+                   command = self.dsymutilcmd,
+                   description = 'DSYMUTIL $outpath' )
+      writer.newline()
+
       writer.rule( 'plist',
                    command = self.plistcmd,
                    description = 'PLIST $out' )
@@ -410,12 +802,38 @@ class Toolchain(object):
 
       writer.rule( 'xcassets',
                    command = self.xcassetscmd,
-                   description = 'XCASSETS $out' )
+                   description = 'XCASSETS $outpath' )
       writer.newline()
 
       writer.rule( 'xib',
                    command = self.xibcmd,
-                   description = 'XIB $out' )
+                   description = 'XIB $outpath' )
+      writer.newline()
+
+      writer.rule( 'codesign',
+                   command = self.codesigncmd,
+                   description = 'CODESIGN $in' )
+      writer.newline()
+
+    if self.target.is_android():
+      writer.rule( 'aapt',
+                   command = self.aaptcmd,
+                   description = 'AAPT $out' )
+      writer.newline()
+
+      writer.rule( 'aaptdeploy',
+                   command = self.aaptdeploycmd,
+                   description = 'AAPT $out' )
+      writer.newline()
+
+      writer.rule( 'jarsigner',
+                   command = self.jarsignercmd,
+                   description = 'JARSIGNER $out' )
+      writer.newline()
+
+      writer.rule( 'zipalign',
+                   command = self.zipaligncmd,
+                   description = 'ZIPALIGN $out' )
       writer.newline()
 
     writer.rule( 'ar',
@@ -428,8 +846,15 @@ class Toolchain(object):
                  description = 'LINK $out')
     writer.newline()
 
+    writer.rule( 'copy',
+                 command = self.copycmd,
+                 description = 'COPY $in -> $out')
+    writer.newline()
+
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
+    writer.variable( 'target', self.target.platform )
+    writer.variable( 'config', '' )
     if self.host.is_macosx() and (self.target.is_macosx() or self.target.is_ios()):
       if self.target.is_macosx():
         sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
@@ -439,14 +864,40 @@ class Toolchain(object):
         writer.variable( 'sdkdir', sdkdir )
     if self.target.is_windows():
       writer.variable( 'pdbpath', '' )
+    if self.target.is_android():
+      writer.variable( 'ndk', self.android_ndkpath )
+      writer.variable( 'sdk', self.android_sdkpath )
+      writer.variable( 'androidjar', self.android_jar )
+      writer.variable( 'apkbuildpath', '' )
+      writer.variable( 'apk', '' )
+      writer.variable( 'apklibs', '' )
+      writer.variable( 'aapt', self.aapt )
+      writer.variable( 'zipalign', self.zipalign )
+      writer.variable( 'jarsigner', self.jarsigner )
+      writer.variable( 'keystore', self.android_keystore )
+      writer.variable( 'keyalias', self.android_keyalias )
+      writer.variable( 'keystorepass', self.android_keystorepass )
+      writer.variable( 'keypass', self.android_keypass )
+      writer.variable( 'toolchain', '' )
+      writer.variable( 'toolchaintarget', '' )
+      writer.variable( 'sysroot', '' )
+      writer.variable( 'liblinkname', '' )
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
+    writer.variable( 'copy', self.copy )
     if self.target.is_macosx() or self.target.is_ios():
       writer.variable( 'lipo', self.lipo )
       writer.variable( 'plist', self.plist )
       writer.variable( 'xcassets', self.xcassets )
       writer.variable( 'xib', self.xib )
+      writer.variable( 'dsymutil', self.dsymutil )
+      writer.variable( 'exename', '' )
+      writer.variable( 'prodname', '' )
+      writer.variable( 'binname', '' )
+      writer.variable( 'bundleidentifier', '' )
+      writer.variable( 'outpath', '' )
+      writer.variable( 'provisioning', 'none' )
       writer.variable( 'mflags', ' '.join( self.shell_escape( flag ) for flag in self.mflags ) )
     writer.variable( 'cflags', ' '.join( self.shell_escape( flag ) for flag in self.cflags ) )
     writer.variable( 'arflags', ' '.join( self.shell_escape( flag ) for flag in self.arflags ) )
@@ -459,12 +910,19 @@ class Toolchain(object):
     writer.variable( 'cconfigflags', ' '.join( self.shell_escape( flag ) for flag in self.cconfigflags ) )
     writer.variable( 'includepaths', ' '.join( self.shell_escape( path ) for path in self.make_includepaths( self.includepaths ) ) )
     writer.variable( 'libpaths', ' '.join( self.shell_escape( path ) for path in self.make_libpaths( self.libpaths ) ) )
+    writer.variable( 'libs', ' ' )
+    writer.variable( 'archlibs', ' ' )
     writer.newline()
 
   def make_libs( self, libs ):
     if self.is_msvc():
       return [ lib + '.lib' for lib in libs ]
     return [ '-l' + lib for lib in libs ]
+
+  def make_frameworks( self, frameworks ):
+    if self.target.is_macosx() or self.target.is_ios():
+      return [ '-framework ' + framework for framework in frameworks ]
+    return[]
 
   def make_includepaths( self, includepaths ):
     if self.is_msvc():
@@ -484,16 +942,99 @@ class Toolchain(object):
       config_list += config_dict[config]
     return config_list
 
-  def build_res( self, writer, basepath, module, resource, binpath, binname, config ):
-    if self.target.is_macosx() or self.target.is_ios():
-      appname = binname + '.app'
-      if resource.endswith( '.plist' ):
-        return writer.build( os.path.join( binpath, appname, binname + '.plist' ), 'plist', os.path.join( basepath, module, resource ) )
-      elif resource.endswith( '.xcassets' ):
-        return writer.build( os.path.join( binpath, appname ), 'xcassets', os.path.join( basepath, module, resource ) )
-      elif resource.endswith( '.xib' ):
-        return writer.build( os.path.join( binpath, appname, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' ), 'xib', os.path.join( basepath, module, resource ) )
-    return []
+  def make_android_toolchain_path( self, arch ):
+    if self.toolchain == 'clang':
+      return os.path.join( self.make_android_clang_path( arch ), 'bin', '' )
+    return os.path.join( self.make_android_gcc_path( arch ), 'bin', self.android_toolchainprefix[arch] )
+
+  def make_android_clang_path( self, arch ):
+    return os.path.join( self.android_ndkpath, 'toolchains', 'llvm-' + self.android_toolchainversion_clang, 'prebuilt', self.android_hostarchname )
+
+  def make_android_gcc_path( self, arch ):
+    return os.path.join( self.android_ndkpath, 'toolchains', self.android_toolchainname[arch], 'prebuilt', self.android_hostarchname )
+
+  def make_android_sysroot_path( self, arch ):
+    return os.path.join( self.android_ndkpath, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch] )
+
+  def make_bundleidentifier( self, binname ):
+    if self.target.is_macosx():
+      return self.macosx_bundleidentifier.replace( '$(binname)', binname )
+    elif self.target.is_ios():
+      return self.ios_bundleidentifier.replace( '$(binname)', binname )
+    return ''
+
+  def build_app( self, writer, config, basepath, module, binpath, binname, archbins, resources ):
+    binlist = []
+    builtbin = []
+    builtres = []
+    for _, value in archbins.iteritems():
+      binlist += value
+    builddir = os.path.join( self.buildpath, config, 'app', binname )
+    builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
+    dsympath = binpath + '.dSYM'
+    builtsym = writer.build( [ os.path.join( dsympath, 'Contents', 'Resources', 'DWARF', binname ), os.path.join( dsympath, 'Contents', 'Resources', 'DWARF' ), os.path.join( dsympath, 'Contents', 'Resources' ), os.path.join( dsympath, 'Contents', 'Info.plist' ), os.path.join( dsympath, 'Contents' ), dsympath ], 'dsymutil', builtbin, variables = [ ( 'outpath', dsympath ) ] )
+    if resources:
+      assetsplists = []
+      for resource in resources:
+        if resource.endswith( '.xcassets' ):
+          assetsvars = [ ( 'outpath', binpath ) ]
+          plistpath = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xcassets.plist' )
+          assetsplists += writer.build( plistpath, 'xcassets', os.path.join( basepath, module, resource ), implicit = builtbin, variables = assetsvars )
+        elif resource.endswith( '.xib' ):
+          nibpath = os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' )
+          builtres += writer.build( [ os.path.join( nibpath, 'objects.nib' ), os.path.join( nibpath, 'objects-8.0+.nib' ), os.path.join( nibpath, 'runtime.nib' ), nibpath ], 'xib', os.path.join( basepath, module, resource ), variables = [ ( 'outpath', nibpath ) ] )
+      for resource in resources:
+        if resource.endswith( '.plist' ):
+          plistvars = [ ( 'exename', binname ), ( 'prodname', binname ) ]
+          bundleidentifier = self.make_bundleidentifier( binname )
+          if bundleidentifier != '':
+            plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
+          builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, variables = plistvars )
+    codesignvars = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ), ( 'config', config ) ]
+    if self.ios_provisioning != '':
+      codesignvars += [ ( 'provisioning', self.ios_provisioning ) ]
+    writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = codesignvars )
+    return builtbin + builtsym + builtres
+
+  def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
+    buildpath = os.path.join( self.buildpath, config, "apk", binname )
+    unsignedapkname = binname + ".unsigned.apk"
+    unalignedapkname = binname + ".unaligned.apk"
+    apkname = binname + ".apk"
+    apkfiles = []
+    libfiles = []
+    locallibs = ''
+    resfiles = []
+    manifestfile = []
+    writer.comment('Make APK')
+    for _, value in archbins.iteritems():
+      for archbin in value:
+        archpair = os.path.split( archbin )
+        libname = archpair[1]
+        arch = os.path.split( archpair[0] )[1]
+        locallibpath = os.path.join( 'lib', self.android_archpath[arch], libname )
+        archpath = os.path.join( buildpath, locallibpath )
+        locallibs += locallibpath + ' '
+        libfiles += writer.build( archpath, 'copy', archbin )
+    for resource in resources:
+      filename = os.path.split( resource )[1]
+      if filename == 'AndroidManifest.xml':
+        manifestfile = writer.build( os.path.join( buildpath, 'AndroidManifest.xml' ), 'copy', os.path.join( basepath, module, resource ) )
+      else:
+        restype = os.path.split( os.path.split( resource )[0] )[1]
+        if restype == 'asset':
+          pass #todo: implement
+        else:
+          resfiles += writer.build( os.path.join( buildpath, 'res', restype, filename ), 'copy', os.path.join( basepath, module, resource ) )
+    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apklibs', locallibs ) ]
+    if config == 'deploy':
+      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
+      unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
+    else:
+      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
+      unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
+    outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
+    return outfile
 
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
     built = {}
@@ -501,13 +1042,11 @@ class Toolchain(object):
       basepath = ''
     if configs is None:
       configs = list( self.configs )
-    if includepaths == None:
-      includepaths = list( self.includepaths )
+    moreincludepaths = self.build_includepaths( includepaths )
     for config in configs:
       archlibs = []
       built[config] = []
       localcconfigflags = self.make_cconfigflags( config )
-      localincludepaths = self.make_includepaths( includepaths )
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
@@ -515,18 +1054,30 @@ class Toolchain(object):
         localcarchflags = self.make_carchflags( arch )
         localararchflags = self.make_ararchflags( arch )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
+        localarconfigflags = self.make_arconfigflags( arch, config )
+        localarvariables = [ ( 'ararchflags', localararchflags ), ( 'arconfigflags', localarconfigflags ) ]
+        extraincludepaths = []
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
-        if includepaths != self.includepaths:
-          localvariables += [ ( 'includepaths', localincludepaths ) ]
-        localarconfigflags = self.make_arconfigflags( arch, config )
-        localarvariables = [ ( 'ararchflags', localararchflags ), ( 'arconfigflags', localarconfigflags ) ]
+        if self.target.is_android():
+          sysroot = self.make_android_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          localarvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if moreincludepaths != [] or extraincludepaths != []:
+          localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
+          if os.path.isabs( name ):
+            infile = name
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.objext )
+          else:
+            infile = os.path.join( basepath, module, name )
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext )
           if name.endswith( '.c' ):
-            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
+            objs += writer.build( outfile, 'cc', infile, variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
-            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext + 'm' ), 'cm', os.path.join( basepath, module, name ), variables = localvariables )
+            objs += writer.build( outfile + 'm', 'cm', infile, variables = localvariables )
         archlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = localarvariables )
       if self.target.is_macosx() or self.target.is_ios():
         writer.newline()
@@ -537,7 +1088,7 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def bin( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
+  def bin( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
     built = {}
     if basepath is None:
       basepath = ''
@@ -545,11 +1096,13 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
-    if includepaths == None:
-      includepaths = list( self.includepaths )
+    if extralibs is None:
+      extralibs = []
+    if extraframeworks is None:
+      extraframeworks = []
+    moreincludepaths = self.build_includepaths( includepaths )
     for config in configs:
       localcconfigflags = self.make_cconfigflags( config )
-      localincludepaths = self.make_includepaths( includepaths )
       built[config] = []
       local_deps = self.list_per_config( implicit_deps, config )
       for arch in self.archs:
@@ -563,16 +1116,24 @@ class Toolchain(object):
         localcarchflags = self.make_carchflags( arch )
         locallinkarchflags = self.make_linkarchflags( arch )
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
-        locallibpaths = self.make_libpaths( self.libpaths + [ libpath ] )
+        locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libpath ], arch, config ) )
+        localarchlibs = self.make_linkarchlibs( arch )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
-        if includepaths != self.includepaths:
-          localvariables += [ ( 'includepaths', localincludepaths ) ]
-        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.extralibs ) ), ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
+        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + extralibs + self.extralibs ) + self.make_frameworks( extraframeworks ) ), ( 'archlibs', self.make_libs( localarchlibs ) ), 
+                               ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
+        extraincludepaths = []
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ] 
           linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
           locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
+        if self.target.is_android():
+          sysroot = self.make_android_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if moreincludepaths != [] or extraincludepaths != []:
+          localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
@@ -582,28 +1143,23 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None ):
-    builtres = []
-    builtapp = []
+  def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
+    builtbin = []
     if basepath is None:
       basepath = ''
     if binname is None:
       binname = module
     if configs is None:
       configs = list( self.configs )
-    if includepaths == None:
-      includepaths = list( self.includepaths )
     for config in configs:
-      archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths )
+      archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths, extralibs = extralibs, extraframeworks = extraframeworks )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
-        binlist = []
+        builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
+      elif self.target.is_android():
+        builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources )
+      else:
         for _, value in archbins.iteritems():
-          binlist += value
-        builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
-        if resources:
-          for resource in resources:
-            builtres += self.build_res( writer, basepath, module, resource, os.path.join( self.binpath, config ), binname, config )
-        writer.newline()
-    return builtapp + builtbin
+          builtbin += value
+    return builtbin
 

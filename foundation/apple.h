@@ -59,6 +59,7 @@
 #  import <Foundation/NSArray.h>
 #  import <Foundation/NSTimer.h>
 #  import <Foundation/NSUndoManager.h>
+#  import <Foundation/NSFileManager.h>
 #  if FOUNDATION_PLATFORM_MACOSX
 #    import <Foundation/NSRunLoop.h>
 #    import <Foundation/NSExtensionContext.h>
