@@ -132,6 +132,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_INIT_WINDOW:
 		{
+#if BUILD_ENABLE_LOG
 			if( app->window )
 			{
 				int w = 0, h = 0;
@@ -139,6 +140,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				h = ANativeWindow_getHeight( app->window );
 				log_infof( HASH_SYSTEM, "System command: APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
 			}
+#endif
             break;
 		}
         
@@ -150,10 +152,15 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
     	case APP_CMD_WINDOW_RESIZED:
 		{
-			int w = 0, h = 0;
-			w = ANativeWindow_getWidth( app->window );
-			h = ANativeWindow_getHeight( app->window );
-			log_infof( HASH_SYSTEM, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
+#if BUILD_ENABLE_LOG
+			if( app->window )
+			{
+				int w = 0, h = 0;
+				w = ANativeWindow_getWidth( app->window );
+				h = ANativeWindow_getHeight( app->window );
+				log_infof( HASH_SYSTEM, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
+			}
+#endif
             break;
 		}
 

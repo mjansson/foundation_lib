@@ -15,7 +15,6 @@
 		455519FA1938D40100CF089B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455519F91938D40100CF089B /* UIKit.framework */; };
 		45551A241938D43700CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A231938D43700CF089B /* main.c */; };
 		45551A281938D46500CF089B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 45551A251938D46500CF089B /* Images.xcassets */; };
-		45551A291938D46500CF089B /* test-all.plist in Resources */ = {isa = PBXBuildFile; fileRef = 45551A261938D46500CF089B /* test-all.plist */; };
 		45551A2A1938D46500CF089B /* test-all.xib in Resources */ = {isa = PBXBuildFile; fileRef = 45551A271938D46500CF089B /* test-all.xib */; };
 		45551A2D1938D50000CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A2B1938D50000CF089B /* main.c */; };
 		45551A681938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A2E1938D55B00CF089B /* main.c */; };
@@ -49,6 +48,7 @@
 		45551A841938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A661938D55B00CF089B /* main.c */; };
 		45551A861938D5D400CF089B /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 45551A851938D5D400CF089B /* libfoundation.a */; };
 		45551A871938D5D900CF089B /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455519BA1938BBDF00CF089B /* libtest.a */; };
+		45BB33991A601D9200D30F3E /* config in Resources */ = {isa = PBXBuildFile; fileRef = 45BB33981A601D9200D30F3E /* config */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +118,7 @@
 		45551A641938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/string/main.c; sourceTree = "<group>"; };
 		45551A661938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/uuid/main.c; sourceTree = "<group>"; };
 		45551A851938D5D400CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/ios/debug/libfoundation.a; sourceTree = "<group>"; };
+		45BB33981A601D9200D30F3E /* config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = config; path = ../../../config; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				455519E31938BDC000CF089B /* test */,
+				45BB33981A601D9200D30F3E /* config */,
 				455519BB1938BBDF00CF089B /* lib */,
 				45551A8A1938D60500CF089B /* bin */,
 				455519F41938D40100CF089B /* frameworks */,
@@ -535,7 +537,7 @@
 		455519B21938BBDF00CF089B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
 			};
 			buildConfigurationList = 455519B51938BBDF00CF089B /* Build configuration list for PBXProject "test" */;
@@ -561,7 +563,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				45551A291938D46500CF089B /* test-all.plist in Resources */,
+				45BB33991A601D9200D30F3E /* config in Resources */,
 				45551A281938D46500CF089B /* Images.xcassets in Resources */,
 				45551A2A1938D46500CF089B /* test-all.xib in Resources */,
 			);
@@ -696,6 +698,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
@@ -773,6 +776,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
@@ -910,6 +914,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
@@ -927,6 +932,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
