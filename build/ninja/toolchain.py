@@ -144,9 +144,11 @@ class Toolchain(object):
     if host.is_windows():
       self.rmcmd = 'cmd /C del /F /Q'
       self.cdcmd = 'cmd /C cd'
+      self.mkdircmd = 'cmd /C mkdir'
     else:
       self.rmcmd = 'rm -f' 
       self.cdcmd = 'cd'
+      self.mkdircmd = 'mkdir -p'
 
     self.copycmd = '$copy $in $out'
     if host.is_windows():
@@ -155,7 +157,7 @@ class Toolchain(object):
       self.copy = 'cp -f'
 
     self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch && $aapt a $apk $apklibs'
-    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res && $aapt a -u $apk $apklibs'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res && $aapt a $apk $apklibs'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
