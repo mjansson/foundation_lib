@@ -49,6 +49,7 @@ Libraries will be placed in lib/[platform]/[configuration]/[architecture] with p
 <li>macosx
 <li>ios
 <li>android
+<li>raspberrypi
 </ul>
 Configuration names are
 <ul>
@@ -59,92 +60,151 @@ Configuration names are
 </ul>
 Architecture names are
 <ul>
-<li>armeabi
-<li>armeabi-v7a
-<li>arm64-v8a
+<li>arm6
+<li>arm7
+<li>arm64
 <li>x86
 <li>x86-64
 <li>mips
 <li>mips64
 </ul>
 
-For MacOSX and iOS builds the libraries and binaries will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture.
+For MacOSX and iOS builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
 
 Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for MacOSX and iOS since the binaries are universal).
 
-\section windows Windows
-On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013, as well as
-with Microsoft, Intel, GCC and clang compilers using Ninja. Both 32-bit and 64-bit Windows are supported.
+\section ninja Ninja
+Building with Ninja is almost identical across all supported platforms. Use the build configuration python script in the root directory to set the architectures and build
+configurations you want, along with any configuration options.
 
-\subsection win_vstudio Visual Studio
-To build with Visual Studio, open the foundation.sln solution file Visual Studio 2013 in <code>build/vs13</code>.
-To build all targets and configurations use batch build, select all targets and build.
+\subsection ninja_configurations Configurations
+Any combination of configurations can be built in one build. Specify which configurations to build with the -c switch. For example, to build all configurations use
+<code>-c debug -c release -c profile -c deploy</code>.
 
-\subsection win_ninja Ninja
-To build with Ninja use the build configuration python script in the root directory to set the architectures and build
-configurations you want. Multiple architectures and build configurations can be enabled in a single build. Run configure.py
-with <code>-h</code> switch for help. For example, to build debug, release and deploy configurations for both 32-bit and 64-bit
-with intel compiler use <code>python configure.py -a x86 -a x86-64 -c debug -c release -c deploy --toolchain intel</code>.
+\subsection ninja_arch Architectures
+Any combination of architectures supported by the host, target and toolchain combination can be built in one build. By default (if no other directive is given) all architectures
+supported will be built. Specify which architectures to build with the -a switch. For example, to build all architectures in an Android build use
+<code>-a arm6 -a arm7 -a arm64 -a mips -a mips64 -a x86 -a x86-64</code>
 
-The default toolchain on Windows is the Microsoft compiler suite. You should run the appropriate <code>vcvarsall.bat</code>
+\subsection ninja_toolchain Toolchains
+There is currently support for four different toolchains depending on your host platform. These are GCC, CLang, Intel and Microsoft. Not all toolchains are supported on all
+host platforms. Specify which toolchain to use with the --toolchain switch. For example, to use gcc when building for Android use <code>--toolchain gcc</code>. The toolchain
+names are
+<ul>
+<li>gcc
+<li>clang
+<li>intel
+<li>msvc
+</ul>
+
+\subsection ninja_target Targets
+By using the target switch (-t) you can cross-compile to a secondary target platform. Currently you can cross compile for iOS on MacOS X, and for Android on Windows,
+Linux and MacOS X.
+
+Use the <code>-t ios</code> target switch to specify iOS builds. By default arm7 and arm64 architectures will be built (universal).
+
+Use the <code>-t android</code> target switch to specify Android builds. By default all architectures supported by your Android SDK/NDK will be built.
+For arm6 (armeabi) the library is built in ARM instruction mode (not THUMB). For arm7 (armeabi-v7a) the library is built in ARM instruction mode (not THUMB) and has NEON enabled.
+
+\subsection ninja_host Host specifics
+If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
+The build requires you to have generated a ninja build with the configure.py python script.
+
+On Windows the default toolchain is the Microsoft compiler suite. You should run the appropriate <code>vcvarsall.bat</code>
 environment setup batch script for the architecture you choose prior to starting builds
 (or use the preconfigured command prompts from Visual Studio installs).
 
-If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
-The build requires you to have generated a ninja build with the configure.py python script.
+On MacOS X (and when cross compiling for iOS) the default toolchain is clang. The only supported architecture is x86-64 targetting MacOS X 10.7 or later,
+and arm7/arm64 targeting iOS 6.0 or later. The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.
 
-\section osx MacOS X
-\subsection osx_xcode XCode
-XCode is the preferred method of building the library and test cases on MacOS X. Open the XCode workspace in
-<code>build/xcode/foundation-osx.xcworkspace</code> and build the appropriate targets. The workspace contains projects
-for both foundation library and test cases. The only supported architecture is x86-64 targetting MacOS X 10.7 or later.
+On Linux the default toolchain is clang. The supported architectures are x86, x86-64, arm6, arm7, arm64, mips and mips64.
 
-\subsection osx_ninja Ninja
-To build with Ninja use the build configuration python script in the root directory to set the build configurations you want.
-Multiple build configurations can be enabled in a single build. Run configure.py with <code>-h</code> switch for help. For example,
-to build debug, release and deploy configurations use <code>configure.py -c debug -c release -c deploy</code>.
+On Raspberry Pi the default toolchain is gcc. The only supported architecture is arm6 (with Raspberry Pi specific compiler switches).
 
-The ninja build will use clang toolchain by default. The only supported architecture is x86-64 targetting MacOS X 10.7 or later.
-The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.	
+\subsection ninja_codesign Code signing
+The Ninja build will by default sign the Android apk and iOS app bundles it builds. The signatures, keystores and passwords used in this process can be specified
+through the build options. On Android the default settings is to use the normal Android SDK debug keystore to autosign the apk.
 
-\section ios iOS
-\subsection ios_xcode XCode
-XCode is the preferred method of building the library and test cases for iOS. Open the XCode workspace in
-build/xcode/foundation-ios.xcworkspace and build the appropriate targets. The workspace contains projects for both foundation library and test cases.
+\subsection options Build options
+Some build variables can be set externally from the ninja build files. These variables are
+<ul>
+<li>android_ndkpath - Path to the Android NDK (no default)
+<li>android_sdkpath - Path to the Android SDK (no default)
+<li>android_keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")
+<li>android_keyalias = Key alias to use when signing API (default "androiddebugkey")
+<li>android_keystorepass - Password for keystore used when signing APK (default "android")
+<li>android_keypass - Password for key used when signing APK (default "android")
+<li>android_platformversion - Android platform version to use when building (default "21")
+<li>android_toolchainversion_gcc - GCC toolchain version to use when building (default "4.9")
+<li>android_toolchainversion_clang - CLang toolchain version to use when building (default "3.5")
+<li>ios_deploymenttarget - Minimum iOS target version (default "6.0")
+<li>ios_organisation - Organisation identifier on format "TDSNAF78CU" (no default)
+<li>ios_bundleidentifier - Bundle identifier on format "com.company.id" (no default)
+<li>ios_signature - Certificate signature (no default)
+<li>ios_provisioning - Mobile provisioning profile path (no default)
+<li>macosx_deploymenttarget - Minimum MacOS X target version (default "10.7")
+<li>macosx_organisation - Organisation identifier on format "TDSNAF78CU" (no default)
+<li>macosx_bundleidentifier - Bundle identifier on format "com.company.id" (no default)
 
-\subsection ios_ninja Ninja
-To build with Ninja use the build configuration python script in the root directory to set the build configurations you want.
-Multiple build configurations can be enabled in a single build. Run configure.py with <code>-h</code> switch for help. For example,
-to build debug, release and deploy configurations use <code>configure.py -c debug -c release -c deploy</code>.
+The bundle identifier variables can contain expansion variables which will be substituted during build. These include
+<ul>
+<li>$(binname) - Binary name (for example, "test-all")
 
-The ninja build will use clang toolchain by default. The supported architectures are arm7 and arm64 targetting iOS 6 or later.
-The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.	
+The variables can be set in four different ways, in increasing order of priority.
+<ul>
+<li>configure.py script variables passed to generator
+<li>build.json file in root project directory, read during configure.py execution
+<li>environment variables, read during configure.py execution
+<li>codesign.json file in root project directory, read at build time
 
-\section linux Linux
-\subsection linux_ninja
-Ninja is the only supported method of building the library on Linux. To build with Ninja use the build configuration python script
-in the root directory to set the build configurations you want. Multiple build configurations can be enabled in a single build.
-Run configure.py with <code>-h</code> switch for help. For example, to build debug, release and deploy configurations use
-<code>configure.py -c debug -c release -c deploy</code>.
+Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.$(binname)' ) ]</code>.
+Any variables that have a identical name with different platform prefix can be passed without any platform name as in the example. The value will be applied to all platform specific variables.
 
-The ninja build will use clang toolchain by default. The supported architectures are x86, x86-64, arm6, arm7, arm64, mips and mips64.
+The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. And example build.json file:
+<code>{
+	"android" : {
+		"ndkpath" : "~/android-ndk",
+		"sdkpath" : "~/android-sdk",
+		"platformversion" : "21",
+		"gccversion" : "4.9",
+		"clangversion" : "3.5"
+	},
+	"ios" : {
+		"deploymenttarget" : "6.0"
+	},
+	"macosx" : {
+		"deploymenttarget" : "10.7"
+	}
+}</code>
 
-If you use SublimeText there is a template SublimeText project with a Ninja build tool setup in <code>build/foundation.sublime-project</code>.
-The build requires you to have generated a ninja build with the configure.py python script.
+You can override configure.py and build.json values using environment variables. The environment variable names should be the variable name in upper case. For example, to set the Minimum iOS target version set <code>IOS_DEPLOYMENTVERSION="6.0"</code> in the environment prior to invoking configure.py
 
-\section android Android
-\subsection android_ndk NDK build
-The NDK build system is the only supported method of building the library and test cases for Android. You can
-build on any host platform supported by the Android SDK/NDK. The library and test cases are built for all supported
-hardware architectures available through the NDK (armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips and mips64).
+Finally, the codesign.json is read by the codesigning phase at build time and can hold the secrets related to code signing. This allows you to have the secret locally on the build machine without requiring recreation of the build scripts or storing secrets in version control. The format is the same as for build.json and the variables used are:
+<ul>
+<li>android_keystore
+<li>android_keyalias
+<li>android_keystorepass
+<li>android_keypass
+<li>ios_organisation
+<li>ios_bundleidentifier
+<li>ios_signature
+<li>ios_provisioning
+<li>ios_organisation
+<li>ios_bundleidentifier
+<li>ios_signature
 
-For armeabi the library is built in ARM instruction mode (not THUMB).
 
-For armeabi-v7a the library is built in ARM instruction mode (not THUMB) and has NEON enabled.
+\section visual_studio Visual Studio
+On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013 Both 32-bit and 64-bit Windows are supported.
+To build with Visual Studio, open the foundation.sln solution file Visual Studio 2013 in <code>build/vs13</code>. To build all targets and configurations
+use batch build, select all targets and build.
 
-From the root directory run "ndk-build -C build/android NDK_DEBUG=1" for a debug build. For other configurations,
-run "ndk-build -C build/android NDK_DEBUG=0 BUILD_RELEASE=1" and replace BUILD_RELEASE with the configuration wanted
-(BUILD_RELEASE, BUILD_PROFILE, BUILD_DEPLOY).
+\section xcode XCode
+To build with XCode, open the XCode workspace in <code>build/xcode/foundation-osx.xcworkspace</code> for MacOS X and
+<code>build/xcode/foundation-ios.xcworkspace</code> for iOS and build the appropriate targets.
+The workspace contains projects for both foundation library and test cases. The only supported architecture is x86-64 targetting MacOS X 10.7 or later,
+or for iOS arm7/arm64 targeting iOS 6.0 or later.
+
 
 
 \page test_page Running and verifying the test cases
@@ -433,13 +493,11 @@ Substring capturing is optional, and if performed it will capture start pointers
 
 \section project_setup Project setup
 
+\subsection project_scons Ninja
+
 \subsection project_visual_studio Visual Studio
 
 \subsection project_xcode XCode
-
-\subsection project_android Android
-
-\subsection project_scons Ninja
 
 
 \section template_app Template application
