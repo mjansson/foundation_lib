@@ -108,8 +108,20 @@ def codesign_ios():
 
 
 def codesign_macosx():
+  if not 'organisation' in macosxprefs:
+    macosxprefs['organisation'] = options.organisation
+  if not 'bundleidentifier' in macosxprefs:
+    macosxprefs['bundleidentifier'] = options.bundle
+  if not 'provisioning' in macosxprefs:
+    macosxprefs['provisioning'] = options.provisioning
+
+  codesign_allocate = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '-f', 'codesign_allocate' ] ).strip()
   sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
   entitlements = os.path.join( sdkdir, 'Entitlements.plist' )
+
+  print 'export CODESIGN_ALLOCATE=' + codesign_allocate + '; /usr/bin/codesign --force --sign ' + macosxprefs['signature'] + ' ' + options.file
+
+  os.system( 'export CODESIGN_ALLOCATE=' + codesign_allocate + '; /usr/bin/codesign --force --sign ' + macosxprefs['signature'] + ' ' + options.file )
 
 
 def codesign_android():

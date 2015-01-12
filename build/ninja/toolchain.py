@@ -75,6 +75,7 @@ class Toolchain(object):
     self.macosx_deploymenttarget = '10.7'
     self.macosx_organisation = ''
     self.macosx_bundleidentifier = ''
+    self.macosx_provisioning = ''
 
     #Parse variables
     if variables:
@@ -86,6 +87,15 @@ class Toolchain(object):
         if key == 'bundleidentifier':
           self.ios_bundleidentifier = val
           self.macosx_bundleidentifier = val
+        elif key == 'organisation':
+          self.ios_organisation = val
+          self.macosx_organisation = val
+        elif key == 'bundleidentifier':
+          self.ios_bundleidentifier = val
+          self.macosx_bundleidentifier = val
+        elif key == 'provisioning':
+          self.ios_provisioning = val
+          self.macosx_provisioning = val
         elif key == 'android_ndkpath':
           self.android_ndkpath = val
         elif key == 'android_sdkpath':
@@ -118,6 +128,8 @@ class Toolchain(object):
           self.macosx_organisation = val
         elif key == 'macosx_bundleidentifier':
           self.macosx_bundleidentifier = val
+        elif key == 'macosx_provisioning':
+          self.macosx_provisioning = val
 
     #Source in local build prefs
     self.read_prefs( 'build.json' )
@@ -150,7 +162,7 @@ class Toolchain(object):
       self.cdcmd = 'cd'
       self.mkdircmd = 'mkdir -p'
 
-    self.copycmd = '$copy $in $out'
+    self.copycmd = '$copy $in $outpath'
     if host.is_windows():
       self.copy = 'cmd /C copy /Y'
     else:
@@ -250,14 +262,20 @@ class Toolchain(object):
       self.ccdepfile = '$out.d'
 
       if host.is_macosx() and (target.is_macosx() or target.is_ios()):
+        self.ios_organisation = os.getenv( 'ORGANISATION', self.ios_organisation )
+        self.macosx_organisation = os.getenv( 'ORGANISATION', self.macosx_organisation )
         self.ios_bundleidentifier = os.getenv( 'BUNDLEIDENTIFIER', self.ios_bundleidentifier )
         self.macosx_bundleidentifier = os.getenv( 'BUNDLEIDENTIFIER', self.macosx_bundleidentifier )
+        self.ios_provisioning = os.getenv( 'PROVISIONING', self.ios_provisioning )
+        self.macosx_provisioning = os.getenv( 'PROVISIONING', self.macosx_provisioning )
         self.ios_deploymenttarget = os.getenv( 'IOS_DEPLOYMENTTARGET', self.ios_deploymenttarget )
         self.ios_organisation = os.getenv( 'IOS_ORGANISATION', self.ios_organisation )
         self.ios_bundleidentifier = os.getenv( 'IOS_BUNDLEIDENTIFIER', self.ios_bundleidentifier )
+        self.ios_provisioning = os.getenv( 'IOS_PROVISIONING', self.ios_provisioning )
         self.macosx_deploymenttarget = os.getenv( 'MACOSX_DEPLOYMENTTARGET', self.macosx_deploymenttarget )
         self.macosx_organisation = os.getenv( 'MACOSX_ORGANISATION', self.macosx_organisation )
         self.macosx_bundleidentifier = os.getenv( 'MACOSX_BUNDLEIDENTIFIER', self.macosx_bundleidentifier )
+        self.macosx_provisioning = os.getenv( 'MACOSX_PROVISIONING', self.macosx_provisioning )
 
         if target.is_macosx():
           sdk = 'macosx'
@@ -291,16 +309,16 @@ class Toolchain(object):
         self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
-        self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --bundle $bundleidentifier --output $out $in'
+        self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --bundle $bundleidentifier --target $target --deploymenttarget $deploymenttarget --output $outpath $in'
         if target.is_macosx():
-          self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
+          self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $outplist' \
                              ' --app-icon AppIcon --launch-image LaunchImage --platform macosx --minimum-deployment-target ' + self.macosx_deploymenttarget + \
                              ' --target-device mac --compress-pngs --compile $outpath $in >/dev/null'
-          self.xibcmd = '$xib --target-device mac --target-device ipad --module $module --minimum-deployment-target ' + self.macosx_deploymenttarget + \
+          self.xibcmd = '$xib --target-device mac --module $module --minimum-deployment-target ' + self.macosx_deploymenttarget + \
                         ' --output-partial-info-plist $outplist --auto-activate-custom-fonts' \
                         ' --output-format human-readable-text --compile $outpath $in'
         elif target.is_ios():
-          self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
+          self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $outplist' \
                              ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target ' + self.ios_deploymenttarget + \
                              ' --target-device iphone --target-device ipad --compress-pngs --compile $outpath $in >/dev/null'
           self.xibcmd = '$xib --target-device iphone --target-device ipad --module $module --minimum-deployment-target ' + self.ios_deploymenttarget + \
@@ -506,6 +524,8 @@ class Toolchain(object):
         self.macosx_organisation = macosxprefs['organisation']
       if 'bundleidentifier' in macosxprefs:
         self.macosx_bundleidentifier = macosxprefs['bundleidentifier']
+      if 'provisioning' in macosxprefs:
+        self.macosx_provisioning = macosxprefs['provisioning']
 
   def build_includepaths( self, includepaths ):
     finalpaths = []
@@ -804,7 +824,7 @@ class Toolchain(object):
 
       writer.rule( 'plist',
                    command = self.plistcmd,
-                   description = 'PLIST $out' )
+                   description = 'PLIST $outpath' )
       writer.newline()
 
       writer.rule( 'xcassets',
@@ -855,7 +875,7 @@ class Toolchain(object):
 
     writer.rule( 'copy',
                  command = self.copycmd,
-                 description = 'COPY $in -> $out')
+                 description = 'COPY $in -> $outpath')
     writer.newline()
 
   def write_variables( self, writer ):
@@ -907,6 +927,10 @@ class Toolchain(object):
       writer.variable( 'bundleidentifier', '' )
       writer.variable( 'outpath', '' )
       writer.variable( 'provisioning', 'none' )
+      if self.target.is_macosx():
+        writer.variable( 'deploymenttarget', self.macosx_deploymenttarget )
+      elif self.target.is_ios():
+        writer.variable( 'deploymenttarget', self.ios_deploymenttarget )
       writer.variable( 'mflags', ' '.join( self.shell_escape( flag ) for flag in self.mflags ) )
     writer.variable( 'cflags', ' '.join( self.shell_escape( flag ) for flag in self.cflags ) )
     writer.variable( 'arflags', ' '.join( self.shell_escape( flag ) for flag in self.arflags ) )
@@ -972,44 +996,84 @@ class Toolchain(object):
       return self.ios_bundleidentifier.replace( '$(binname)', binname )
     return ''
 
+  def build_copy( self, writer, dest, source, base_create_dir = '', created_dir_targets = '' ):
+    if base_create_dir != '':
+      destlist = [ dest ]
+      while created_dir_targets != '':
+        destlist += [ os.path.join( base_create_dir, created_dir_targets ) ]
+        created_dir_targets = os.path.split( created_dir_targets )[0]
+      writer.build( destlist, 'copy', source, variables = [ ( 'outpath', dest ) ] )
+    else:
+      writer.build( dest, 'copy', source, variables = [ ( 'outpath', dest ) ] )
+    return [ dest ]
+
   def build_app( self, writer, config, basepath, module, binpath, binname, archbins, resources ):
     binlist = []
     builtbin = []
     builtres = []
+    builtsym = []
     for _, value in archbins.iteritems():
       binlist += value
     builddir = os.path.join( self.buildpath, config, 'app', binname )
-    if self.target.is_macosx():
-      builtbin = writer.build( os.path.join( binpath, 'Contents', 'MacOS', self.binprefix + binname + self.binext ), 'lipo', binlist )
-    else:
+    if self.target.is_ios():
       builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
+      dsymsource = builtbin
+    else:
+      builtbin = self.build_copy( writer, os.path.join( binpath, 'Contents', 'MacOS', self.binprefix + binname + self.binext ), binlist, os.path.join( binpath, 'Contents' ), 'MacOS' )
+      dsymsource = binlist
     dsympath = binpath + '.dSYM'
-    builtsym = writer.build( [ os.path.join( dsympath, 'Contents', 'Resources', 'DWARF', binname ), os.path.join( dsympath, 'Contents', 'Resources', 'DWARF' ), os.path.join( dsympath, 'Contents', 'Resources' ), os.path.join( dsympath, 'Contents', 'Info.plist' ), os.path.join( dsympath, 'Contents' ), dsympath ], 'dsymutil', builtbin, variables = [ ( 'outpath', dsympath ) ] )
+    dsymcontentpath = os.path.join( dsympath, 'Contents' )
+    builtsym = writer.build( [ os.path.join( dsymcontentpath, 'Resources', 'DWARF', binname ), os.path.join( dsymcontentpath, 'Resources', 'DWARF' ), os.path.join( dsymcontentpath, 'Resources' ), os.path.join( dsymcontentpath, 'Info.plist' ), dsymcontentpath, dsympath ], 'dsymutil', dsymsource, variables = [ ( 'outpath', dsympath ) ] )
     if resources:
       assetsplists = []
       xibplists = []
       for resource in resources:
         if resource.endswith( '.xcassets' ):
-          assetsvars = [ ( 'outpath', binpath ) ]
-          plistpath = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xcassets.plist' )
+          if self.target.is_macosx():
+            assetsvars = [ ( 'outpath', os.path.join( binpath, 'Contents', 'Resources' ) ) ]
+          else:
+            assetsvars = [ ( 'outpath', binpath ) ]
+          outplist = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xcassets.plist' )
+          assetsvars += [ ( 'outplist', outplist ) ]
+          plistpath = [ outplist ]
+          if self.target.is_macosx():
+            plistpath += [ os.path.join( binpath, 'Contents', 'Resources', 'AppIcon.icns' ) ]
           assetsplists += writer.build( plistpath, 'xcassets', os.path.join( basepath, module, resource ), implicit = builtbin, variables = assetsvars )
         elif resource.endswith( '.xib' ):
           xibmodule = binname.replace( '-', '_' ).replace( '.', '_' )
-          nibpath = os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' )
+          if self.target.is_macosx():
+            nibpath = os.path.join( binpath, 'Contents', 'Resources', os.path.splitext( os.path.basename( resource ) )[0] + '.nib' )
+          else:
+            nibpath = os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' )
           plistpath = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xib.plist' )
           xibplists += [ plistpath ]
-          builtres += writer.build( [ os.path.join( nibpath, 'objects.nib' ), os.path.join( nibpath, 'objects-8.0+.nib' ), os.path.join( nibpath, 'runtime.nib' ), nibpath, plistpath ], 'xib', os.path.join( basepath, module, resource ), variables = [ ( 'outpath', nibpath ), ( 'outplist', plistpath ), ( 'module', xibmodule ) ] )
+          outfiles = []
+          if self.target.is_ios():
+            outfiles += [ os.path.join( nibpath, 'objects.nib' ), os.path.join( nibpath, 'objects-8.0+.nib' ), os.path.join( nibpath, 'runtime.nib' ) ]
+          outfiles = [ nibpath, plistpath ]
+          builtres += writer.build( outfiles, 'xib', os.path.join( basepath, module, resource ), variables = [ ( 'outpath', nibpath ), ( 'outplist', plistpath ), ( 'module', xibmodule ) ] )
       for resource in resources:
         if resource.endswith( '.plist' ):
-          plistvars = [ ( 'exename', binname ), ( 'prodname', binname ) ]
+          if self.target.is_macosx():
+            plistpath = os.path.join( binpath, 'Contents', 'Info.plist' )
+            pkginfopath = os.path.join( binpath, 'Contents', 'PkgInfo' )
+          else:
+            plistpath = os.path.join( binpath, 'Info.plist' )
+            pkginfopath = os.path.join( binpath, 'PkgInfo' )
+          plistvars = [ ( 'exename', binname ), ( 'prodname', binname ), ( 'outpath', plistpath ) ]
           bundleidentifier = self.make_bundleidentifier( binname )
           if bundleidentifier != '':
             plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
-          builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists + xibplists, variables = plistvars )
+          builtres += writer.build( [ plistpath, pkginfopath ], 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, implicit = [ os.path.join( 'build', 'ninja', 'plist.py' ) ], variables = plistvars )
     codesignvars = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ), ( 'config', config ) ]
-    if self.ios_provisioning != '':
-      codesignvars += [ ( 'provisioning', self.ios_provisioning ), ( 'outpath', binpath ) ]
-    writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = codesignvars )
+    if self.target.is_ios():
+      if self.ios_provisioning != '':
+        codesignvars += [ ( 'provisioning', self.ios_provisioning ) ]
+      writer.build( [ os.path.join( binpath, '_CodeSignature', 'CodeResources' ), os.path.join( binpath, '_CodeSignature' ), binpath ], 'codesign', builtbin, implicit = builtres + [ os.path.join( 'build', 'ninja', 'codesign.py' ) ], variables = codesignvars )
+    elif self.target.is_macosx():
+      if self.macosx_provisioning != '':
+        codesignvars += [ ( 'provisioning', self.macosx_provisioning ) ]
+      writer.build( [ os.path.join( binpath, 'Contents', '_CodeSignature', 'CodeResources' ), os.path.join( binpath, 'Contents', '_CodeSignature' ), os.path.join( binpath, 'Contents' ), binpath ], 'codesign', builtbin, implicit = builtres + [ os.path.join( 'build', 'ninja', 'codesign.py' ) ], variables = codesignvars )
     return builtbin + builtsym + builtres
 
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
@@ -1031,17 +1095,17 @@ class Toolchain(object):
         locallibpath = os.path.join( 'lib', self.android_archpath[arch], libname )
         archpath = os.path.join( buildpath, locallibpath )
         locallibs += locallibpath + ' '
-        libfiles += writer.build( archpath, 'copy', archbin )
+        libfiles += self.build_copy( writer, archpath, archbin )
     for resource in resources:
       filename = os.path.split( resource )[1]
       if filename == 'AndroidManifest.xml':
-        manifestfile = writer.build( os.path.join( buildpath, 'AndroidManifest.xml' ), 'copy', os.path.join( basepath, module, resource ) )
+        manifestfile = self.write_copy( os.path.join( buildpath, 'AndroidManifest.xml' ), os.path.join( basepath, module, resource ) )
       else:
         restype = os.path.split( os.path.split( resource )[0] )[1]
         if restype == 'asset':
           pass #todo: implement
         else:
-          resfiles += writer.build( os.path.join( buildpath, 'res', restype, filename ), 'copy', os.path.join( basepath, module, resource ) )
+          resfiles += self.build_copy( writer, os.path.join( buildpath, 'res', restype, filename ), os.path.join( basepath, module, resource ) )
     aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apklibs', locallibs ) ]
     if config == 'deploy':
       unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
@@ -1059,6 +1123,7 @@ class Toolchain(object):
     if configs is None:
       configs = list( self.configs )
     moreincludepaths = self.build_includepaths( includepaths )
+    do_universal = True if self.target.is_macosx() or self.target.is_ios() else False
     for config in configs:
       archlibs = []
       built[config] = []
@@ -1094,7 +1159,7 @@ class Toolchain(object):
             objs += writer.build( outfile, 'cc', infile, variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
             objs += writer.build( outfile + 'm', 'cm', infile, variables = localvariables )
-        archlibs += writer.build( os.path.join( libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = localarvariables )
+        archlibs += writer.build( os.path.join( buildpath if do_universal else libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = localarvariables )
       if self.target.is_macosx() or self.target.is_ios():
         writer.newline()
         writer.comment( "Make universal library" )
@@ -1104,7 +1169,7 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def bin( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
+  def bin( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None, is_app = False ):
     built = {}
     if basepath is None:
       basepath = ''
@@ -1117,9 +1182,11 @@ class Toolchain(object):
     if extraframeworks is None:
       extraframeworks = []
     moreincludepaths = self.build_includepaths( includepaths )
+    do_universal = True if self.target.is_macosx() or self.target.is_ios() else False
     for config in configs:
       localcconfigflags = self.make_cconfigflags( config )
       built[config] = []
+      builtbin = []
       local_deps = self.list_per_config( implicit_deps, config )
       for arch in self.archs:
         objs = []
@@ -1152,10 +1219,18 @@ class Toolchain(object):
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
           objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
-        built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
+        archbin = writer.build( os.path.join( buildpath if is_app or do_universal else binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
+        builtbin += archbin
+        built[config] += archbin
         if resources:
           for resource in resources:
             built[config] += self.build_res( writer, basepath, module, resource, binpath, binname, config )
+      if self.target.is_macosx():
+        buildpath = os.path.join( self.buildpath, config )
+        binpath = os.path.join( self.binpath, config )
+        writer.newline()
+        writer.comment( "Make universal binary" )
+        built[config] = writer.build( os.path.join( buildpath if is_app else binpath, self.binprefix + binname + self.binext ), 'lipo', builtbin )
     writer.newline()
     return built
 
@@ -1168,7 +1243,7 @@ class Toolchain(object):
     if configs is None:
       configs = list( self.configs )
     for config in configs:
-      archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths, extralibs = extralibs, extraframeworks = extraframeworks )
+      archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths, extralibs = extralibs, extraframeworks = extraframeworks, is_app = True )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
         builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
