@@ -5,6 +5,7 @@
 import argparse
 import subprocess
 import os
+import time
 import shutil
 import json
 
@@ -100,11 +101,15 @@ def codesign_ios():
       plist_file.write( line + '\n' )
     plist_file.close()
 
-  #os.system( plutil + ' -convert binary1 ' + plistpath )
-
-  shutil.copyfile( iosprefs['provisioning'], os.path.join( options.file, "embedded.mobileprovision" ) )
+  if os.path.isfile( os.path.join( options.file, '_CodeSignature', 'CodeResources' ) ):
+    os.remove( os.path.join( options.file, '_CodeSignature', 'CodeResources' ) )
 
   os.system( '/usr/bin/codesign --force --sign ' + iosprefs['signature'] + ' --entitlements ' + plistpath + ' ' + options.file )
+
+  if os.path.isfile( os.path.join( options.file, '_CodeSignature', 'CodeResources' ) ):
+    os.utime( os.path.join( options.file, '_CodeSignature', 'CodeResources' ), None )
+    os.utime( os.path.join( options.file, '_CodeSignature' ), None )
+    os.utime( options.file, None )
 
 
 def codesign_macosx():
@@ -119,9 +124,16 @@ def codesign_macosx():
   sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
   entitlements = os.path.join( sdkdir, 'Entitlements.plist' )
 
-  print 'export CODESIGN_ALLOCATE=' + codesign_allocate + '; /usr/bin/codesign --force --sign ' + macosxprefs['signature'] + ' ' + options.file
-
+  if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):
+    os.remove( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) )
+  
   os.system( 'export CODESIGN_ALLOCATE=' + codesign_allocate + '; /usr/bin/codesign --force --sign ' + macosxprefs['signature'] + ' ' + options.file )
+
+  if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):
+    os.utime( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ), None )
+    os.utime( os.path.join( options.file, 'Contents', '_CodeSignature' ), None )
+    os.utime( os.path.join( options.file, 'Contents' ), None )
+    os.utime( options.file, None )
 
 
 def codesign_android():
