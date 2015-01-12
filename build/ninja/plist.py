@@ -52,6 +52,8 @@ for f in options.files:
   else:
     mergelines = [ line.strip( '\n\r' ) for line in f ]
     for i in range( 0, len( mergelines ) ):
+      if re.match( '^<dict/>$', mergelines[i] ):
+        break
       if re.match( '^<dict>$', mergelines[i] ):
         for j in range( 0, len( lines ) ):
           if re.match( '^</dict>$', lines[j] ):
@@ -96,6 +98,8 @@ for i in range( 0, len( lines ) ):
     lines[i] = lines[i].replace( '$(PRODUCT_NAME)', options.prodname )
   if lines[i].find( '$(PRODUCT_NAME:rfc1034identifier)' ) != -1:
     lines[i] = lines[i].replace( '$(PRODUCT_NAME:rfc1034identifier)', normalize_string( options.exename ).lower() )
+  if lines[i].find( '$(PRODUCT_NAME:c99extidentifier)' ) != -1:
+    lines[i] = lines[i].replace( '$(PRODUCT_NAME:c99extidentifier)', normalize_string( options.exename ).lower().replace( '-', '_' ).replace( '.', '_' ) )
 
 #replace bundle identifier if given
 if not options.bundle is None and options.bundle != '':

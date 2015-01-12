@@ -280,7 +280,6 @@ class Toolchain(object):
         self.link = deploytarget + " " + self.cc
         self.lipo = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'lipo' ] ).strip()
         self.plist = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'plutil' ] ).strip()
-        self.plist = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'plutil' ] ).strip()
         self.xcassets = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'actool' ] ).strip()
         self.xib = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'ibtool' ] ).strip()
         self.dsymutil = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'dsymutil' ] ).strip()
@@ -293,12 +292,20 @@ class Toolchain(object):
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
         self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --bundle $bundleidentifier --output $out $in'
-        self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
-                           ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target 6.0' \
-                           ' --target-device iphone --target-device ipad --compress-pngs --compile $outpath $in >/dev/null'
-        self.xibcmd = '$xib --target-device iphone --target-device ipad --module test_all --minimum-deployment-target 6.0 ' \
-                      ' --output-partial-info-plist /tmp/partial-info.plist --auto-activate-custom-fonts '\
-                      ' --output-format human-readable-text --compile $outpath $in'
+        if target.is_macosx():
+          self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
+                             ' --app-icon AppIcon --launch-image LaunchImage --platform macosx --minimum-deployment-target ' + self.macosx_deploymenttarget + \
+                             ' --target-device mac --compress-pngs --compile $outpath $in >/dev/null'
+          self.xibcmd = '$xib --target-device mac --target-device ipad --module $module --minimum-deployment-target ' + self.macosx_deploymenttarget + \
+                        ' --output-partial-info-plist $outplist --auto-activate-custom-fonts' \
+                        ' --output-format human-readable-text --compile $outpath $in'
+        elif target.is_ios():
+          self.xcassetscmd = '$xcassets --output-format human-readable-text --output-partial-info-plist $out' \
+                             ' --app-icon AppIcon --launch-image LaunchImage --platform iphoneos --minimum-deployment-target ' + self.ios_deploymenttarget + \
+                             ' --target-device iphone --target-device ipad --compress-pngs --compile $outpath $in >/dev/null'
+          self.xibcmd = '$xib --target-device iphone --target-device ipad --module $module --minimum-deployment-target ' + self.ios_deploymenttarget + \
+                        ' --output-partial-info-plist $outplist --auto-activate-custom-fonts' \
+                        ' --output-format human-readable-text --compile $outpath $in'
         self.dsymutilcmd = '$dsymutil $in -o $outpath'
         self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --builddir $builddir --binname $binname --config $config $outpath'
 
@@ -812,7 +819,7 @@ class Toolchain(object):
 
       writer.rule( 'codesign',
                    command = self.codesigncmd,
-                   description = 'CODESIGN $in' )
+                   description = 'CODESIGN $outpath' )
       writer.newline()
 
     if self.target.is_android():
@@ -892,9 +899,11 @@ class Toolchain(object):
       writer.variable( 'xcassets', self.xcassets )
       writer.variable( 'xib', self.xib )
       writer.variable( 'dsymutil', self.dsymutil )
+      writer.variable( 'outplist', '' )
       writer.variable( 'exename', '' )
       writer.variable( 'prodname', '' )
       writer.variable( 'binname', '' )
+      writer.variable( 'module', '' )
       writer.variable( 'bundleidentifier', '' )
       writer.variable( 'outpath', '' )
       writer.variable( 'provisioning', 'none' )
@@ -970,29 +979,36 @@ class Toolchain(object):
     for _, value in archbins.iteritems():
       binlist += value
     builddir = os.path.join( self.buildpath, config, 'app', binname )
-    builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
+    if self.target.is_macosx():
+      builtbin = writer.build( os.path.join( binpath, 'Contents', 'MacOS', self.binprefix + binname + self.binext ), 'lipo', binlist )
+    else:
+      builtbin = writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'lipo', binlist )
     dsympath = binpath + '.dSYM'
     builtsym = writer.build( [ os.path.join( dsympath, 'Contents', 'Resources', 'DWARF', binname ), os.path.join( dsympath, 'Contents', 'Resources', 'DWARF' ), os.path.join( dsympath, 'Contents', 'Resources' ), os.path.join( dsympath, 'Contents', 'Info.plist' ), os.path.join( dsympath, 'Contents' ), dsympath ], 'dsymutil', builtbin, variables = [ ( 'outpath', dsympath ) ] )
     if resources:
       assetsplists = []
+      xibplists = []
       for resource in resources:
         if resource.endswith( '.xcassets' ):
           assetsvars = [ ( 'outpath', binpath ) ]
           plistpath = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xcassets.plist' )
           assetsplists += writer.build( plistpath, 'xcassets', os.path.join( basepath, module, resource ), implicit = builtbin, variables = assetsvars )
         elif resource.endswith( '.xib' ):
+          xibmodule = binname.replace( '-', '_' ).replace( '.', '_' )
           nibpath = os.path.join( binpath, os.path.splitext( os.path.basename( resource ) )[0] + '.nib' )
-          builtres += writer.build( [ os.path.join( nibpath, 'objects.nib' ), os.path.join( nibpath, 'objects-8.0+.nib' ), os.path.join( nibpath, 'runtime.nib' ), nibpath ], 'xib', os.path.join( basepath, module, resource ), variables = [ ( 'outpath', nibpath ) ] )
+          plistpath = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xib.plist' )
+          xibplists += [ plistpath ]
+          builtres += writer.build( [ os.path.join( nibpath, 'objects.nib' ), os.path.join( nibpath, 'objects-8.0+.nib' ), os.path.join( nibpath, 'runtime.nib' ), nibpath, plistpath ], 'xib', os.path.join( basepath, module, resource ), variables = [ ( 'outpath', nibpath ), ( 'outplist', plistpath ), ( 'module', xibmodule ) ] )
       for resource in resources:
         if resource.endswith( '.plist' ):
           plistvars = [ ( 'exename', binname ), ( 'prodname', binname ) ]
           bundleidentifier = self.make_bundleidentifier( binname )
           if bundleidentifier != '':
             plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
-          builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, variables = plistvars )
+          builtres += writer.build( os.path.join( binpath, 'Info.plist' ), 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists + xibplists, variables = plistvars )
     codesignvars = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ), ( 'config', config ) ]
     if self.ios_provisioning != '':
-      codesignvars += [ ( 'provisioning', self.ios_provisioning ) ]
+      codesignvars += [ ( 'provisioning', self.ios_provisioning ), ( 'outpath', binpath ) ]
     writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = codesignvars )
     return builtbin + builtsym + builtres
 
