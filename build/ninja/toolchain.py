@@ -1005,29 +1005,39 @@ class Toolchain(object):
     writer.build( destlist, 'copy', source, variables = [ ( 'outpath', dest ) ] )
     return [ dest ]
 
-  def build_app( self, writer, config, basepath, module, binpath, binname, archbins, resources ):
-    binlist = []
+  def build_app( self, writer, config, basepath, module, binpath, binname, unibinary, resources, codesign ):
+    #Outputs
     builtbin = []
     builtres = []
     builtsym = []
-    do_codesign = True
-    for _, value in archbins.iteritems():
-      binlist += value
+    
+    #Paths
     builddir = os.path.join( self.buildpath, config, 'app', binname )
-    if self.target.is_ios():
-      unibin = writer.build( os.path.join( builddir, self.binprefix + binname + self.binext ), 'lipo', binlist )
-      builtbin = self.build_copy( writer, os.path.join( binpath, self.binprefix + binname + self.binext ), unibin )
-      dsymsource = unibin
-    else:
-      builtbin = self.build_copy( writer, os.path.join( binpath, 'Contents', 'MacOS', self.binprefix + binname + self.binext ), binlist, os.path.join( binpath, 'Contents' ), 'MacOS' )
-      dsymsource = binlist
     dsympath = binpath + '.dSYM'
+    
+    #Extract debug symbols from universal binary
     dsymcontentpath = os.path.join( dsympath, 'Contents' )
-    builtsym = writer.build( [ os.path.join( dsymcontentpath, 'Resources', 'DWARF', binname ), os.path.join( dsymcontentpath, 'Resources', 'DWARF' ), os.path.join( dsymcontentpath, 'Resources' ), os.path.join( dsymcontentpath, 'Info.plist' ), dsymcontentpath, dsympath ], 'dsymutil', dsymsource, variables = [ ( 'outpath', dsympath ) ] )
+    builtsym = writer.build( [ os.path.join( dsymcontentpath, 'Resources', 'DWARF', binname ), os.path.join( dsymcontentpath, 'Resources', 'DWARF' ), os.path.join( dsymcontentpath, 'Resources' ), os.path.join( dsymcontentpath, 'Info.plist' ), dsymcontentpath, dsympath ], 'dsymutil', unibinary, variables = [ ( 'outpath', dsympath ) ] )
+
+    #Copy final universal binary
+    if self.target.is_ios():
+      builtbin = self.build_copy( writer, os.path.join( binpath, self.binprefix + binname + self.binext ), unibinary )
+    else:
+      builtbin = self.build_copy( writer, os.path.join( binpath, 'Contents', 'MacOS', self.binprefix + binname + self.binext ), unibinary, os.path.join( binpath, 'Contents' ), 'MacOS' )
+    
+    #Build resources
     if resources:
+      has_resources = False
+      
+      #Lists of input plists and partial plist files produced by resources
+      plists = []
       assetsplists = []
       xibplists = []
-      has_resources = False
+
+      #All resource output files
+      outfiles = []
+
+      #First build everything except plist inputs
       for resource in resources:
         if resource.endswith( '.xcassets' ):
           if self.target.is_macosx():
@@ -1036,10 +1046,12 @@ class Toolchain(object):
             assetsvars = [ ( 'outpath', binpath ) ]
           outplist = os.path.join( builddir, os.path.splitext( os.path.basename( resource ) )[0] + '-xcassets.plist' )
           assetsvars += [ ( 'outplist', outplist ) ]
-          plistpath = [ outplist ]
+          outfiles = [ outplist ]
           if self.target.is_macosx():
-            plistpath += [ os.path.join( binpath, 'Contents', 'Resources', 'AppIcon.icns' ) ]
-          assetsplists += writer.build( plistpath, 'xcassets', os.path.join( basepath, module, resource ), variables = assetsvars )
+            outfiles += [ os.path.join( binpath, 'Contents', 'Resources', 'AppIcon.icns' ) ]
+          elif self.target.is_ios():
+            pass #TODO: Need to list all icon and launch image files here
+          assetsplists += writer.build( outfiles, 'xcassets', os.path.join( basepath, module, resource ), variables = assetsvars )
           has_resources = True
         elif resource.endswith( '.xib' ):
           xibmodule = binname.replace( '-', '_' ).replace( '.', '_' )
@@ -1055,23 +1067,30 @@ class Toolchain(object):
           outfiles += [ nibpath, plistpath ]
           builtres += writer.build( outfiles, 'xib', os.path.join( basepath, module, resource ), variables = [ ( 'outpath', nibpath ), ( 'outplist', plistpath ), ( 'module', xibmodule ) ] )
           has_resources = True
-      for resource in resources:
-        if resource.endswith( '.plist' ):
-          if self.target.is_macosx():
-            plistpath = os.path.join( binpath, 'Contents', 'Info.plist' )
-            pkginfopath = os.path.join( binpath, 'Contents', 'PkgInfo' )
-          else:
-            plistpath = os.path.join( binpath, 'Info.plist' )
-            pkginfopath = os.path.join( binpath, 'PkgInfo' )
-          plistvars = [ ( 'exename', binname ), ( 'prodname', binname ), ( 'outpath', plistpath ) ]
-          bundleidentifier = self.make_bundleidentifier( binname )
-          if bundleidentifier != '':
-            plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
-          outfiles = [ plistpath, pkginfopath ]
-          if has_resources and self.target.is_macosx():
-            outfiles += [ os.path.join( binpath, 'Contents', 'Resources' ) ]
-          builtres += writer.build( outfiles, 'plist', [ os.path.join( basepath, module, resource ) ] + assetsplists, implicit = [ os.path.join( 'build', 'ninja', 'plist.py' ) ], variables = plistvars )
-    if do_codesign:
+        elif resource.endswith( '.plist' ):
+          plists += [ os.path.join( basepath, module, resource ) ]
+
+      #Extra output files/directories
+      outfiles = []
+      if has_resources and self.target.is_macosx():
+        outfiles += [ os.path.join( binpath, 'Contents', 'Resources' ) ]
+
+      #Now build input plists appending partial plists created by previous resources
+      if self.target.is_macosx():
+        plistpath = os.path.join( binpath, 'Contents', 'Info.plist' )
+        pkginfopath = os.path.join( binpath, 'Contents', 'PkgInfo' )
+      else:
+        plistpath = os.path.join( binpath, 'Info.plist' )
+        pkginfopath = os.path.join( binpath, 'PkgInfo' )
+      plistvars = [ ( 'exename', binname ), ( 'prodname', binname ), ( 'outpath', plistpath ) ]
+      bundleidentifier = self.make_bundleidentifier( binname )
+      if bundleidentifier != '':
+        plistvars += [ ( 'bundleidentifier', bundleidentifier ) ]
+      outfiles += [ plistpath, pkginfopath ]
+      builtres += writer.build( outfiles, 'plist', plists + assetsplists + xibplists, implicit = [ os.path.join( 'build', 'ninja', 'plist.py' ) ], variables = plistvars )
+
+    #Do code signing (might modify binary, but does not matter, nothing should have final binary as input anyway)
+    if codesign:
       codesignvars = [ ( 'builddir', builddir ), ( 'binname', binname ), ( 'outpath', binpath ), ( 'config', config ) ]
       if self.target.is_ios():
         if self.ios_provisioning != '':
@@ -1081,6 +1100,7 @@ class Toolchain(object):
         if self.macosx_provisioning != '':
           codesignvars += [ ( 'provisioning', self.macosx_provisioning ) ]
         writer.build( [ os.path.join( binpath, 'Contents', '_CodeSignature', 'CodeResources' ), os.path.join( binpath, 'Contents', '_CodeSignature' ), os.path.join( binpath, 'Contents' ), binpath ], 'codesign', builtbin, implicit = builtres + [ os.path.join( 'build', 'ninja', 'codesign.py' ) ], variables = codesignvars )
+
     return builtbin + builtsym + builtres
 
   def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
@@ -1232,7 +1252,7 @@ class Toolchain(object):
         if resources:
           for resource in resources:
             built[config] += self.build_res( writer, basepath, module, resource, binpath, binname, config )
-      if self.target.is_macosx():
+      if do_universal:
         buildpath = os.path.join( self.buildpath, config )
         binpath = os.path.join( self.binpath, config )
         writer.newline()
@@ -1241,7 +1261,7 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None ):
+  def app( self, writer, module, sources, binname, basepath = None, implicit_deps = None, libs = None, resources = None, configs = None, includepaths = None, extralibs = None, extraframeworks = None, codesign = True ):
     builtbin = []
     if basepath is None:
       basepath = ''
@@ -1253,7 +1273,7 @@ class Toolchain(object):
       archbins = self.bin( writer, module, sources, binname, basepath = basepath, implicit_deps = implicit_deps, libs = libs, resources = None, configs = [ config ], includepaths = includepaths, extralibs = extralibs, extraframeworks = extraframeworks, is_app = True )
       if self.target.is_macosx() or self.target.is_ios():
         binpath = os.path.join( self.binpath, config, binname + '.app' )
-        builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
+        builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, unibinary = archbins[config], resources = resources, codesign = codesign )
       elif self.target.is_android():
         builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources )
       else:
