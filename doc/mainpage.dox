@@ -356,7 +356,7 @@ Thread execution time slices can be given up to other execution threads with #th
 If you want to use the JNI to call into the JVM in a thread on the Android platform you must attach the thread using #thread_attach_jvm. Remember to call #thread_detach_jvm before terminating the thread to release the resources allocated by the attach call.
 
 \subsection thread_synchonization Synchronization
-The foundation library provides two mechanisms for thread synchronization, mutexes and semaphores. A mutex provides a lock for providing exclusive access to a resource or execution section as well as a signal/wait notifiction event, and a semaphore provides a thread safe access counter.
+The foundation library provides two mechanisms for thread synchronization, mutexes and semaphores. A mutex provides a lock for providing exclusive access to a resource or execution section as well as a signal/wait notification event, and a semaphore provides a thread safe access counter.
 
 A mutex is allocated and destroyed with #mutex_allocate and #mutex_deallocate. The mutex name is for debugging purposes only (also used in profiling events), limited to 32 characters. #mutex_lock will lock the mutex to the calling thread and block until a lock can be obtained if another thread currently holds the lock. #mutex_unlock will unlock the mutex if the lock is held by the calling thread. To lock without blocking, use #mutex_try_lock, which will return false if the lock could not be obtained in the given time span. Mutexes are reentrant, meaning a thread can lock the same mutex with #mutex_lock multiple times without blocking, and the mutex is only unlocked when #mutex_unlock has been called by the thread the same number of times.
 
