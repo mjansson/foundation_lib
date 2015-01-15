@@ -156,8 +156,11 @@ class Toolchain(object):
     else:
       self.copy = 'cp -f'
 
-    self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch && $aapt a $apk $apklibs'
-    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && $aapt c -S res -C bin/res; $aapt p -f -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res && $aapt a $apk $apklibs'
+    self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
+    self.dexcmd = '$dex --dex --output $out $in'
+    self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch $aaptflags'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && $aapt c -S res -C bin/res; $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res $aaptflags'
+    self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
@@ -449,6 +452,10 @@ class Toolchain(object):
     self.android_buildtools_path = os.path.join( self.android_sdkpath, 'build-tools', buildtools_list[-1] )
     self.android_jar = os.path.join( self.android_sdkpath, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
 
+    self.javac = 'javac'
+    self.dex = os.path.join( self.android_buildtools_path, 'dx' + self.exe_suffix )
+    if not os.path.isfile( self.dex ):
+      self.dex = os.path.join( self.android_sdkpath, 'tools', 'dx' + self.exe_suffix )
     self.aapt = os.path.join( self.android_buildtools_path, 'aapt' + self.exe_suffix )
     self.zipalign = os.path.join( self.android_buildtools_path, 'zipalign' + self.exe_suffix )
     if not os.path.isfile( self.zipalign ):
@@ -826,6 +833,21 @@ class Toolchain(object):
                    description = 'AAPT $out' )
       writer.newline()
 
+      writer.rule( 'aaptadd',
+                   command = self.aaptaddcmd,
+                   description = 'AAPT $out' )
+      writer.newline()
+
+      writer.rule( 'javac',
+                   command = self.javaccmd,
+                   description = 'JAVAC $outpath' )
+      writer.newline()
+
+      writer.rule( 'dex',
+                   command = self.dexcmd,
+                   description = 'DEX $out' )
+      writer.newline()
+
       writer.rule( 'jarsigner',
                    command = self.jarsignercmd,
                    description = 'JARSIGNER $out' )
@@ -870,7 +892,9 @@ class Toolchain(object):
       writer.variable( 'androidjar', self.android_jar )
       writer.variable( 'apkbuildpath', '' )
       writer.variable( 'apk', '' )
-      writer.variable( 'apklibs', '' )
+      writer.variable( 'apkaddfiles', '' )
+      writer.variable( 'javac', self.javac )
+      writer.variable( 'dex', self.dex )
       writer.variable( 'aapt', self.aapt )
       writer.variable( 'zipalign', self.zipalign )
       writer.variable( 'jarsigner', self.jarsigner )
@@ -882,6 +906,7 @@ class Toolchain(object):
       writer.variable( 'toolchaintarget', '' )
       writer.variable( 'sysroot', '' )
       writer.variable( 'liblinkname', '' )
+      writer.variable( 'aaptflags', '' )
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
@@ -996,8 +1021,9 @@ class Toolchain(object):
     writer.build( os.path.join( binpath, '_CodeSignature', 'CodeResources' ), 'codesign', builtbin, implicit = builtres, variables = codesignvars )
     return builtbin + builtsym + builtres
 
-  def build_apk( self, writer, config, basepath, module, binname, archbins, resources ):
+  def build_apk( self, writer, config, basepath, module, binname, archbins, resources, javasources ):
     buildpath = os.path.join( self.buildpath, config, "apk", binname )
+    baseapkname = binname + ".base.apk"
     unsignedapkname = binname + ".unsigned.apk"
     unalignedapkname = binname + ".unaligned.apk"
     apkname = binname + ".apk"
@@ -1006,6 +1032,7 @@ class Toolchain(object):
     locallibs = ''
     resfiles = []
     manifestfile = []
+
     writer.comment('Make APK')
     for _, value in archbins.iteritems():
       for archbin in value:
@@ -1026,13 +1053,36 @@ class Toolchain(object):
           pass #todo: implement
         else:
           resfiles += writer.build( os.path.join( buildpath, 'res', restype, filename ), 'copy', os.path.join( basepath, module, resource ) )
-    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apklibs', locallibs ) ]
+    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', baseapkname ) ]
+    if javasources != []:
+      aaptvars += [ ( 'aaptflags', '-J gen' ) ]
     if config == 'deploy':
-      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
-      unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
+      baseapkfile = writer.build( os.path.join( buildpath, baseapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
     else:
-      unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = libfiles + manifestfile + resfiles )
-      unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
+      baseapkfile = writer.build( os.path.join( buildpath, baseapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
+
+    #Compile java code
+    javafiles = []
+    localjava = ''
+    if javasources != []:
+      #self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
+      #self.dexcmd = '$dex --dex --output $out $in'
+      javasourcepath = 'test/all/android/java'
+      javasourcepath += ':' + os.path.join( buildpath, 'gen' )
+      classpath = os.path.join( buildpath, 'classes' )
+      javavars = [ ( 'outpath', classpath ), ( 'sourcepath', javasourcepath ) ]
+      javaclasses = writer.build( classpath, 'javac', javasources, variables = javavars )
+      localjava = os.path.join( buildpath, 'classes.dex' )
+      javafiles += writer.build( localjava, 'dex', classpath )
+
+    #Add native libraries and java classes to apk
+    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apkaddfiles', locallibs + localjava ) ]
+    unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptadd', baseapkfile, variables = aaptvars, implicit = libfiles + javafiles )
+
+    #Sign the APK
+    unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
+
+    #Run zipalign
     outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
     return outfile
 
@@ -1135,7 +1185,8 @@ class Toolchain(object):
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
-          objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
+          if name.endswith( '.c' ):
+            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
         if resources:
           for resource in resources:
@@ -1157,7 +1208,7 @@ class Toolchain(object):
         binpath = os.path.join( self.binpath, config, binname + '.app' )
         builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, archbins = archbins, resources = resources )
       elif self.target.is_android():
-        builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources )
+        builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources, javasources = [ name for name in sources if name.endswith( '.java' ) ] )
       else:
         for _, value in archbins.iteritems():
           builtbin += value
