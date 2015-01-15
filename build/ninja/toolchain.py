@@ -172,7 +172,7 @@ class Toolchain(object):
     self.dexcmd = '$dex --dex --output $out $in'
     self.aaptcmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' gen && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
     self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && ' + self.mkdircmd + ' gen && $aapt c -S res -C bin/res; $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
-    self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && $aapt a $apk $apkaddfiles'
+    self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && ' + self.copy + ' $apksource $apk && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
@@ -919,6 +919,7 @@ class Toolchain(object):
       writer.variable( 'androidjar', self.android_jar )
       writer.variable( 'apkbuildpath', '' )
       writer.variable( 'apk', '' )
+      writer.variable( 'apksource', '' )
       writer.variable( 'apkaddfiles', '' )
       writer.variable( 'javac', self.javac )
       writer.variable( 'dex', self.dex )
@@ -1182,7 +1183,7 @@ class Toolchain(object):
       javafiles += writer.build( os.path.join( buildpath, 'classes.dex' ), 'dex', classpath )
 
     #Add native libraries and java classes to apk
-    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apkaddfiles', locallibs + localjava ) ]
+    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apksource', baseapkname ), ( 'apkaddfiles', locallibs + localjava ) ]
     unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptadd', baseapkfile, variables = aaptvars, implicit = libfiles + javafiles )
 
     #Sign the APK
