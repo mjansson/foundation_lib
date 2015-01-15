@@ -19,6 +19,14 @@ def normalize_char(c):
 def normalize_string(s):
     return ''.join( normalize_char(c) for c in s )
 
+def replace_var( str, var, val ):
+  if str.find( '$(' + var + ')' ) != -1:
+    return str.replace( '$(' + var + ')', val )
+  if str.find( '${' + var + '}' ) != -1:
+    return str.replace( '${' + var + '}', val )
+  return str
+
+
 parser = argparse.ArgumentParser( description = 'PList utility for Ninja builds' )
 parser.add_argument( 'files',
                      metavar = 'file', type=file, nargs='+',
@@ -35,12 +43,25 @@ parser.add_argument( '--bundle', type=str,
 parser.add_argument( '--output', type=str,
                      help = 'Output path',
                      default = [] )
+parser.add_argument( '--target', type=str,
+                     help = 'Target OS',
+                     default = [] )
+parser.add_argument( '--deploymenttarget', type=str,
+                     help = 'Target OS version',
+                     default = [] )
 options = parser.parse_args()
 
 if not options.exename:
   options.exename = 'unknown'
 if not options.prodname:
   options.prodname = 'unknown'
+if not options.target:
+  options.target = 'macosx'
+if not options.deploymenttarget:
+  if options.target == 'macosx':
+    options.deploymenttarget = '10.7'
+  else:
+    options.deploymenttarget = '6.0'
 
 buildversion = subprocess.check_output( [ 'sw_vers', '-buildVersion' ] ).strip()
 
@@ -52,6 +73,8 @@ for f in options.files:
   else:
     mergelines = [ line.strip( '\n\r' ) for line in f ]
     for i in range( 0, len( mergelines ) ):
+      if re.match( '^<dict/>$', mergelines[i] ):
+        break
       if re.match( '^<dict>$', mergelines[i] ):
         for j in range( 0, len( lines ) ):
           if re.match( '^</dict>$', lines[j] ):
@@ -90,12 +113,12 @@ for i in range( 0, len( lines ) ):
 
 #replace build variables name
 for i in range( 0, len( lines ) ):
-  if lines[i].find( '$(EXECUTABLE_NAME)' ) != -1:
-    lines[i] = lines[i].replace( '$(EXECUTABLE_NAME)', options.exename )
-  if lines[i].find( '$(PRODUCT_NAME)' ) != -1:
-    lines[i] = lines[i].replace( '$(PRODUCT_NAME)', options.prodname )
-  if lines[i].find( '$(PRODUCT_NAME:rfc1034identifier)' ) != -1:
-    lines[i] = lines[i].replace( '$(PRODUCT_NAME:rfc1034identifier)', normalize_string( options.exename ).lower() )
+  lines[i] = replace_var( lines[i], 'EXECUTABLE_NAME', options.exename )
+  lines[i] = replace_var( lines[i], 'PRODUCT_NAME', options.prodname )
+  lines[i] = replace_var( lines[i], 'PRODUCT_NAME:rfc1034identifier', normalize_string( options.exename ).lower() )
+  lines[i] = replace_var( lines[i], 'PRODUCT_NAME:c99extidentifier', normalize_string( options.exename ).lower().replace( '-', '_' ).replace( '.', '_' ) )
+  lines[i] = replace_var( lines[i], 'IOS_DEPLOYMENT_TARGET', options.deploymenttarget )
+  lines[i] = replace_var( lines[i], 'MACOSX_DEPLOYMENT_TARGET', options.deploymenttarget )
 
 #replace bundle identifier if given
 if not options.bundle is None and options.bundle != '':
@@ -105,20 +128,21 @@ if not options.bundle is None and options.bundle != '':
       break
 
 #add supported platform, minimum os version and requirements
-for i in range( 0, len( lines ) ):
-  if 'CFBundleSignature' in lines[i]:
-    lines.insert( i+2,  '\t<key>CFBundleSupportedPlatforms</key>' )
-    lines.insert( i+3,  '\t<array>' )
-    lines.insert( i+4,  '\t\t<string>iPhoneOS</string>' )
-    lines.insert( i+5,  '\t</array>' )
-    lines.insert( i+6,  '\t<key>MinimumOSVersion</key>' )
-    lines.insert( i+7,  '\t<string>6.0</string>' )
-    lines.insert( i+8,  '\t<key>UIDeviceFamily</key>' )
-    lines.insert( i+9,  '\t<array>' )
-    lines.insert( i+10, '\t\t<integer>1</integer>' )
-    lines.insert( i+11, '\t\t<integer>2</integer>' )
-    lines.insert( i+12, '\t</array>' )
-    break
+if options.target == 'ios':
+  for i in range( 0, len( lines ) ):
+    if 'CFBundleSignature' in lines[i]:
+      lines.insert( i+2,  '\t<key>CFBundleSupportedPlatforms</key>' )
+      lines.insert( i+3,  '\t<array>' )
+      lines.insert( i+4,  '\t\t<string>iPhoneOS</string>' )
+      lines.insert( i+5,  '\t</array>' )
+      lines.insert( i+6,  '\t<key>MinimumOSVersion</key>' )
+      lines.insert( i+7,  '\t<string>6.0</string>' )
+      lines.insert( i+8,  '\t<key>UIDeviceFamily</key>' )
+      lines.insert( i+9,  '\t<array>' )
+      lines.insert( i+10, '\t\t<integer>1</integer>' )
+      lines.insert( i+11, '\t\t<integer>2</integer>' )
+      lines.insert( i+12, '\t</array>' )
+      break
 
 #add build info
 #<key>DTCompiler</key>
