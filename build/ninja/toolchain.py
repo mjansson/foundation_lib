@@ -168,10 +168,10 @@ class Toolchain(object):
     else:
       self.copy = 'cp -f'
 
-    self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
+    self.javaccmd = self.mkdircmd + ' $outpath && $javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
     self.dexcmd = '$dex --dex --output $out $in'
-    self.aaptcmd = self.cdcmd + ' $apkbuildpath && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch $aaptflags'
-    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && $aapt c -S res -C bin/res; $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res $aaptflags'
+    self.aaptcmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' gen && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && ' + self.mkdircmd + ' gen && $aapt c -S res -C bin/res; $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
     self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
@@ -1153,7 +1153,7 @@ class Toolchain(object):
     for resource in resources:
       filename = os.path.split( resource )[1]
       if filename == 'AndroidManifest.xml':
-        manifestfile = self.write_copy( os.path.join( buildpath, 'AndroidManifest.xml' ), os.path.join( basepath, module, resource ) )
+        manifestfile = self.build_copy( writer, os.path.join( buildpath, 'AndroidManifest.xml' ), os.path.join( basepath, module, resource ) )
       else:
         restype = os.path.split( os.path.split( resource )[0] )[1]
         if restype == 'asset':
@@ -1161,12 +1161,11 @@ class Toolchain(object):
         else:
           resfiles += self.build_copy( writer, os.path.join( buildpath, 'res', restype, filename ), os.path.join( basepath, module, resource ) )
     aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', baseapkname ) ]
-    if javasources != []:
-      aaptvars += [ ( 'aaptflags', '-J gen' ) ]
+    aaptout = [ os.path.join( buildpath, baseapkname ), os.path.join( buildpath, 'gen' ) ]
     if config == 'deploy':
-      baseapkfile = writer.build( os.path.join( buildpath, baseapkname ), 'aaptdeploy', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
+      baseapkfile = writer.build( aaptout, 'aaptdeploy', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
     else:
-      baseapkfile = writer.build( os.path.join( buildpath, baseapkname ), 'aapt', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
+      baseapkfile = writer.build( aaptout, 'aapt', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
 
     #Compile java code
     javafiles = []
@@ -1179,8 +1178,8 @@ class Toolchain(object):
       classpath = os.path.join( buildpath, 'classes' )
       javavars = [ ( 'outpath', classpath ), ( 'sourcepath', javasourcepath ) ]
       javaclasses = writer.build( classpath, 'javac', javasources, variables = javavars )
-      localjava = os.path.join( buildpath, 'classes.dex' )
-      javafiles += writer.build( localjava, 'dex', classpath )
+      localjava = 'classes.dex'
+      javafiles += writer.build( os.path.join( buildpath, 'classes.dex' ), 'dex', classpath )
 
     #Add native libraries and java classes to apk
     aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apkaddfiles', locallibs + localjava ) ]
@@ -1295,16 +1294,11 @@ class Toolchain(object):
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
-<<<<<<< HEAD
           if name.endswith( '.c' ):
             objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
-        built[config] += writer.build( os.path.join( binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
-=======
-          objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
         archbin = writer.build( os.path.join( buildpath if is_app or do_universal else binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
         builtbin += archbin
         built[config] += archbin
->>>>>>> feature/extend-ninja-build
         if resources:
           for resource in resources:
             built[config] += self.build_res( writer, basepath, module, resource, binpath, binname, config )
@@ -1331,7 +1325,7 @@ class Toolchain(object):
         binpath = os.path.join( self.binpath, config, binname + '.app' )
         builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, unibinary = archbins[config], resources = resources, codesign = codesign )
       elif self.target.is_android():
-        builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources, javasources = [ name for name in sources if name.endswith( '.java' ) ] )
+        builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources, javasources = [ os.path.join( basepath, module, name ) for name in sources if name.endswith( '.java' ) ] )
       else:
         for _, value in archbins.iteritems():
           builtbin += value
