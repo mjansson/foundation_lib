@@ -46,7 +46,7 @@ FOUNDATION_API void            thread_finalize( void );
 
 #if FOUNDATION_PLATFORM_ANDROID
 
-FOUNDATION_API void            thread_attach_jvm( void );
+FOUNDATION_API void*           thread_attach_jvm( void );
 FOUNDATION_API void            thread_detach_jvm( void );
 
 #endif

@@ -120,9 +120,10 @@
 \brief Finalize on thread exit
 \details Finalize on thread exit and free thread local resources.
 
-\fn void thread_attach_jvm( void )
+\fn void* thread_attach_jvm( void )
 \brief Attach JVM
-\details Android only. Attach the thread to the JVM to be able to do JVM calls through JNI.
+\details Android only. Attach the thread to the JVM to be able to do JVM calls through JNI. Returns the JNI environment specific to the calling thread.
+\return JNI environment (const struct JNINativeInterface**) for the calling thread, null if error
 
 \fn void thread_detach_jvm( void )
 \brief Detach JVM
