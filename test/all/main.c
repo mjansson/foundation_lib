@@ -62,7 +62,12 @@ static void* event_thread( object_t thread, void* arg )
 }
 
 
-#if FOUNDATION_PLATFORM_IOS && BUILD_ENABLE_LOG
+#if ( FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID ) && BUILD_ENABLE_LOG
+
+#if FOUNDATION_PLATFORM_ANDROID
+#include <foundation/android.h>
+#include <android/native_activity.h>
+#endif
 
 #include <foundation/delegate.h>
 #include <test/test.h>
@@ -71,7 +76,24 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 {
 	if( _test_should_terminate )
 		return;
+
+#if FOUNDATION_PLATFORM_IOS
 	test_text_view_append( delegate_uiwindow(), 1 , msg );
+#elif FOUNDATION_PLATFORM_ANDROID
+	jclass _test_log_class = 0;
+	jmethodID _test_log_append = 0;
+	const struct JNINativeInterface** jnienv = thread_attach_jvm();
+	_test_log_class = (*jnienv)->GetObjectClass( jnienv, android_app()->activity->clazz );//(*jnienv)->FindClass( jnienv, "com/rampantpixels/foundation/test/TestActivity" );
+	if( _test_log_class )
+		_test_log_append = (*jnienv)->GetMethodID( jnienv, _test_log_class, "appendLog", "(Ljava/lang/String;)V" );
+	if( _test_log_append )
+	{
+		jstring jstr = (*jnienv)->NewStringUTF( jnienv, msg );
+		(*jnienv)->CallVoidMethod( jnienv, android_app()->activity->clazz, _test_log_append, jstr );
+		(*jnienv)->DeleteLocalRef( jnienv, jstr );
+	}
+	thread_detach_jvm();
+#endif	
 }
 
 #endif
@@ -87,7 +109,7 @@ int main_initialize( void )
 	
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 	
-#if FOUNDATION_PLATFORM_IOS && BUILD_ENABLE_LOG
+#if ( FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID ) && BUILD_ENABLE_LOG
 	log_set_callback( test_log_callback );
 #endif
 	
@@ -387,6 +409,10 @@ exit:
 
 void main_shutdown( void )
 {
+#if FOUNDATION_PLATFORM_ANDROID
+	thread_detach_jvm();
+#endif
+
 	foundation_shutdown();
 }
 

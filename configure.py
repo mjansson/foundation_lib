@@ -45,7 +45,8 @@ test_cases = [
 ]
 if target.is_ios() or target.is_android():
   #Build one fat binary with all test cases
-  test_resources = None
+  test_resources = []
+  test_extrasources = []
   test_cases += [ 'all' ]
   if target.is_ios():
     test_resources = [ os.path.join( 'all', 'ios', item ) for item in [ 'test-all.plist', 'Images.xcassets', 'test-all.xib' ] ]
@@ -53,9 +54,12 @@ if target.is_ios() or target.is_android():
     test_resources = [ os.path.join( 'all', 'android', item ) for item in [
       'AndroidManifest.xml', os.path.join( 'layout', 'main.xml' ), os.path.join( 'values', 'strings.xml' ),
       os.path.join( 'drawable-ldpi', 'icon.png' ), os.path.join( 'drawable-mdpi', 'icon.png' ), os.path.join( 'drawable-hdpi', 'icon.png' ),
-      os.path.join( 'drawable-xhdpi', 'icon.png' ), os.path.join( 'drawable-xxhdpi', 'icon.png' ), os.path.join( 'drawable-xxxhdpi', 'icon.png' ) ]
-    ]
-  generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
+      os.path.join( 'drawable-xhdpi', 'icon.png' ), os.path.join( 'drawable-xxhdpi', 'icon.png' ), os.path.join( 'drawable-xxxhdpi', 'icon.png' )
+    ] ]
+    test_extrasources = [ os.path.join( 'all', 'android', 'java', 'com', 'rampantpixels', 'foundation', 'test', item ) for item in [
+      'TestActivity.java'
+    ] ]
+  generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ] + test_extrasources, binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
 else:
   #Build one binary per test case
   generator.bin( module = 'all', sources = [ 'main.c' ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], includepaths = includepaths )

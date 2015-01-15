@@ -591,43 +591,37 @@ void thread_finalize( void )
 
 #if FOUNDATION_PLATFORM_ANDROID
 
-#include <android_native_app_glue.h>
-
 #include <android/native_activity.h>
 
-FOUNDATION_DECLARE_THREAD_LOCAL( bool, jvm_attached, false )
 
-
-void thread_attach_jvm( void )
+void* thread_attach_jvm( void )
 {
-	if( get_thread_jvm_attached() )
-		return;
-
 	JavaVMAttachArgs attach_args;
+	struct android_app* app = android_app();
+	void* env = 0;
+
+	(*app->activity->vm)->GetEnv( app->activity->vm, &env, JNI_VERSION_1_6 );
+	if( env )
+		return env;
+
 	attach_args.version = JNI_VERSION_1_6;
 	attach_args.name = "NativeThread";
 	attach_args.group = 0;
 
 	// Attaches the current thread to the JVM
 	// TODO: According to the native activity, the java env can only be used in the main thread (calling ANativeActivityCallbacks)
-	struct android_app* app = android_app();
-	jint result = (*app->activity->vm)->AttachCurrentThread( app->activity->vm, &app->activity->env, &attach_args );
+	jint result = (*app->activity->vm)->AttachCurrentThread( app->activity->vm, (const struct JNINativeInterface ***)&env, &attach_args );
 	if( result < 0 )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to attach thread to Java VM (%d)", result );
-	else
-		set_thread_jvm_attached( true );
+
+	return env;
 }
 
 
 void thread_detach_jvm( void )
 {
-	if( get_thread_jvm_attached() )
-	{
-		JavaVM* java_vm = android_app()->activity->vm;
-		(*java_vm)->DetachCurrentThread( java_vm );
-
-		set_thread_jvm_attached( false );
-	}
+	JavaVM* java_vm = android_app()->activity->vm;
+	(*java_vm)->DetachCurrentThread( java_vm );
 }
 
 #endif
