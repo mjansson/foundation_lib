@@ -9,6 +9,7 @@ import platform
 import random
 import string
 import json
+import zlib
 
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
@@ -1022,6 +1023,9 @@ class Toolchain(object):
       return self.ios_bundleidentifier.replace( '$(binname)', binname )
     return ''
 
+  def make_pathhash( self, path ):
+    return '-' + hex( zlib.adler32( path ) & 0xffffffff )[2:]
+
   def build_copy( self, writer, dest, source, base_create_dir = '', created_dir_targets = '' ):
     destlist = [ dest ]
     if base_create_dir != '':
@@ -1228,14 +1232,14 @@ class Toolchain(object):
         for name in sources:
           if os.path.isabs( name ):
             infile = name
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.objext )
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.make_pathhash( infile ) + self.objext )
           else:
             infile = os.path.join( basepath, module, name )
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext )
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.make_pathhash( infile ) + self.objext )
           if name.endswith( '.c' ):
             objs += writer.build( outfile, 'cc', infile, variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
-            objs += writer.build( outfile + 'm', 'cm', infile, variables = localvariables )
+            objs += writer.build( outfile, 'cm', infile, variables = localvariables )
         archlibs += writer.build( os.path.join( buildpath if do_universal else libpath, self.libprefix + module + self.staticlibext ), 'ar', objs, variables = localarvariables )
       if self.target.is_macosx() or self.target.is_ios():
         writer.newline()
@@ -1295,8 +1299,16 @@ class Toolchain(object):
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
+          if os.path.isabs( name ):
+            infile = name
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.make_pathhash( infile ) + self.objext )
+          else:
+            infile = os.path.join( basepath, module, name )
+            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.make_pathhash( infile ) + self.objext )
           if name.endswith( '.c' ):
-            objs += writer.build( os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.objext ), 'cc', os.path.join( basepath, module, name ), variables = localvariables )
+            objs += writer.build( outfile, 'cc', infile, variables = localvariables )
+          elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
+            objs += writer.build( outfile, 'cm', infile, variables = localvariables )
         archbin = writer.build( os.path.join( buildpath if is_app or do_universal else binpath, self.binprefix + binname + self.binext ), 'link', objs, implicit = local_deps, variables = locallinkvariables )
         builtbin += archbin
         built[config] += archbin
