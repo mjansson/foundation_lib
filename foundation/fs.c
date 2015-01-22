@@ -163,6 +163,8 @@ bool fs_is_file( const char* path )
 	if( st.st_mode & S_IFREG )
 		return true;
 
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -188,6 +190,8 @@ bool fs_is_directory( const char* path )
 	if( !( st.st_mode & S_IFDIR ) )
 		return false;
 
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -257,6 +261,8 @@ char** fs_subdirs( const char* path )
 		memory_context_pop();
 	}
 
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -315,6 +321,8 @@ char** fs_files( const char* path )
 		memory_context_pop();
 	}
 
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -334,6 +342,8 @@ bool fs_remove_file( const char* path )
 	wstring_deallocate( wpath );
 #elif FOUNDATION_PLATFORM_POSIX
 	result = ( unlink( _fs_path( fpath ) ) == 0 );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -381,6 +391,8 @@ bool fs_remove_directory( const char* path )
 	wstring_deallocate( wfpath );
 #elif FOUNDATION_PLATFORM_POSIX
 	result = ( rmdir( fpath ) == 0 );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -437,6 +449,8 @@ bool fs_make_directory( const char* path )
 #elif FOUNDATION_PLATFORM_POSIX
 			mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH;
 			result = ( mkdir( curpath, mode ) == 0 );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -531,6 +545,9 @@ uint64_t fs_last_modified( const char* path )
 		return 0;
 	return (uint64_t)st.st_mtime * 1000ULL;
 
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
+	return 0;
 #else
 #  error Not implemented
 #endif
@@ -558,6 +575,8 @@ void fs_touch( const char* path )
 	wstring_deallocate( wpath );
 #elif FOUNDATION_PLATFORM_POSIX
 	utime( _fs_path( path ), 0 );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -1129,6 +1148,9 @@ static FILE* _fs_file_fopen( const char* path, unsigned int mode, bool* dotrunc 
 	return fd;
 #elif FOUNDATION_PLATFORM_POSIX
 	return fopen( path, modestr );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
+	return 0;
 #else
 #  error Not implemented
 	return 0;
@@ -1226,6 +1248,8 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	if( ftruncate( fd, length ) < 0 )
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( errno ) );
 	close( fd );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -1341,8 +1365,12 @@ static void _fs_file_finalize( stream_t* stream )
 			_commit( _fileno( (FILE*)file->fd ) );
 #elif FOUNDATION_PLATFORM_MACOSX
 			fcntl( fileno( (FILE*)file->fd ), F_FULLFSYNC, 0 );
-#else
+#elif FOUNDATION_PLATFORM_POSIX
 			fsync( fileno( (FILE*)file->fd ) );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
+#else
+#  error Not implemented
 #endif
 		}
 	}

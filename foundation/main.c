@@ -69,7 +69,7 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 	foundation_startup();
 
 	system_post_event( FOUNDATIONEVENT_START );
-    
+	
 #if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
@@ -134,6 +134,7 @@ static void sighandler( int sig )
 
 #endif
 
+#if !FOUNDATION_PLATFORM_PNACL
 
 #if FOUNDATION_PLATFORM_ANDROID
 /*! Aliased entry point */
@@ -144,6 +145,7 @@ int main( int argc, char** argv )
 #endif
 {
 	int ret = -1;
+
 
 #if !FOUNDATION_PLATFORM_ANDROID
 	_environment_main_args( argc, (const char* const*)argv );
@@ -187,7 +189,7 @@ int main( int argc, char** argv )
 	thread_set_main();
 
 	foundation_startup();
-    
+	
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
 	system_post_event( FOUNDATIONEVENT_START );
 #endif
@@ -255,6 +257,36 @@ void android_main( struct android_app* app )
 		return;
 	android_entry( app );
 	real_main();
+}
+
+#endif
+
+#endif
+
+#if FOUNDATION_PLATFORM_PNACL
+
+#include <foundation/pnacl.h>
+#include <ppapi/c/ppp_instance.h>
+
+
+PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser )
+{
+	log_debugf( HASH_PNACL, "PPP_InitializeModule: %d %d", module_id, get_browser );
+	return pnacl_module_initialize( module_id, get_browser );
+}
+
+
+PP_EXPORT const void* PPP_GetInterface( const char* interface_name )
+{
+	log_debugf( HASH_PNACL, "PPP_GetInterface: %s", interface_name );
+	return pnacl_module_interface( interface_name );
+}
+
+
+PP_EXPORT void PPP_ShutdownModule()
+{
+	log_debugf( HASH_PNACL, "PPP_ShutdownModule" );
+	pnacl_module_shutdown();
 }
 
 #endif

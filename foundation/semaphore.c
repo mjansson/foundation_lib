@@ -32,7 +32,7 @@ extern int MPWaitOnSemaphore( MPSemaphoreID, int );
 #  include <semaphore.h>
 #  include <asm/fcntl.h>
 #  define native_sem_t sem_t
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #  include <time.h>
 #  include <semaphore.h>
 #  include <sys/fcntl.h>
@@ -40,6 +40,9 @@ extern int MPWaitOnSemaphore( MPSemaphoreID, int );
 #  define native_sem_t sem_t
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL && !defined( SEM_FAILED )
+#  define SEM_FAILED ((sem_t*)0)
+#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -232,7 +235,7 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 
 void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
 {
-	 FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
+	FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
 }
 
 
@@ -263,7 +266,7 @@ void semaphore_post( semaphore_t* semaphore )
 }
 
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 
 void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
@@ -290,7 +293,10 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 	semaphore->name = string_clone( name );
 
 	native_sem_t* sem = SEM_FAILED;
-	
+
+#if FOUNDATION_PLATFORM_PNACL
+	FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
+#else	
 	sem = sem_open( name, O_CREAT, 0666, value );
 		
 	if( sem == SEM_FAILED )
@@ -298,6 +304,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
 	}
+#endif
 
 	semaphore->sem = (semaphore_native_t*)sem;
 }
@@ -311,8 +318,10 @@ void semaphore_finalize( semaphore_t* semaphore )
 	}
 	else
 	{
+#if !FOUNDATION_PLATFORM_PNACL
 		sem_unlink( semaphore->name );
 		sem_close( (native_sem_t*)semaphore->sem );
+#endif
 		string_deallocate( semaphore->name );
 	}
 }
@@ -328,6 +337,9 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 {
 	if( milliseconds > 0 )
 	{
+#if FOUNDATION_PLATFORM_PNACL
+		//TODO: PNaCl busy wait/yield simulation of sem_timedwait
+#else
 		struct timeval now = {0};
 		struct timespec then= {0};
 		gettimeofday( &now, 0 );
@@ -339,6 +351,7 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 			then.tv_nsec -= 1000000000L;
 		}
 		return sem_timedwait( (native_sem_t*)semaphore->sem, &then ) == 0;
+#endif
 	}
 	return sem_trywait( (native_sem_t*)semaphore->sem ) == 0;
 }

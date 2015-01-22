@@ -25,6 +25,10 @@
 #  include <malloc.h>
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <stdlib.h>
+#endif
+
 #define MEMORY_GUARD_VALUE 0xDEADBEEF
 
 

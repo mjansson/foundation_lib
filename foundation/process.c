@@ -19,6 +19,8 @@
 #  include <sys/types.h>
 #  include <sys/wait.h>
 #  include <sys/time.h>
+#elif FOUNDATION_PLATFORM_PNACL
+#  include <unistd.h>
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -623,6 +625,8 @@ int process_wait( process_t* proc )
 		return PROCESS_WAIT_FAILED;
 	}
 	
+#elif FOUNDATION_PLATFORM_PNACL
+	//Not supported
 #else
 #error Not implemented
 #endif

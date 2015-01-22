@@ -452,6 +452,8 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 				"ios";
 #elif FOUNDATION_PLATFORM_ANDROID
 				"android";
+#elif FOUNDATION_PLATFORM_PNACL
+				"pnacl";
 #else
 #  error Insert platform name
 				"unknown";
