@@ -12,7 +12,7 @@
 
 #include <foundation/foundation.h>
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 
 volatile bool _test_should_start = false;
 volatile bool _test_should_terminate = false;
@@ -83,7 +83,7 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 	jclass _test_log_class = 0;
 	jmethodID _test_log_append = 0;
 	const struct JNINativeInterface** jnienv = thread_attach_jvm();
-	_test_log_class = (*jnienv)->GetObjectClass( jnienv, android_app()->activity->clazz );//(*jnienv)->FindClass( jnienv, "com/rampantpixels/foundation/test/TestActivity" );
+	_test_log_class = (*jnienv)->GetObjectClass( jnienv, android_app()->activity->clazz );
 	if( _test_log_class )
 		_test_log_append = (*jnienv)->GetMethodID( jnienv, _test_log_class, "appendLog", "(Ljava/lang/String;)V" );
 	if( _test_log_append )
@@ -121,7 +121,7 @@ int main_initialize( void )
 #  include <foundation/android.h>
 #endif
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 //extern int test_app_run( void );
 extern int test_array_run( void );
 extern int test_atomic_run( void );
@@ -185,7 +185,8 @@ static const char* test_arch_name[11] = {
   "arm8",
   "arm8-64",
   "mips",
-  "mips64"
+  "mips64",
+  "generic"
 };
 
 int main_run( void* main_arg )
@@ -232,7 +233,7 @@ int main_run( void* main_arg )
 
 	fs_remove_directory( environment_temporary_directory() );
 	
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	
 	test_run_fn tests[] = {
 		//test_app_run

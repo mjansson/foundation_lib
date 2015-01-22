@@ -71,7 +71,7 @@ test_suite_t test_app_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
 
 int test_app_run( void )
 {

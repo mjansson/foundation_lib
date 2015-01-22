@@ -13,6 +13,11 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#  include <ppapi/c/ppp_instance.h>
+#endif
+
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -134,11 +139,9 @@ static void sighandler( int sig )
 
 #endif
 
-#if !FOUNDATION_PLATFORM_PNACL
-
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */
-int real_main( void )
+int real_main( PP_Instance instance )
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
 int main( int argc, char** argv )
@@ -147,7 +150,7 @@ int main( int argc, char** argv )
 	int ret = -1;
 
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	_environment_main_args( argc, (const char* const*)argv );
 #endif
 	
@@ -190,7 +193,7 @@ int main( int argc, char** argv )
 
 	foundation_startup();
 	
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
 	system_post_event( FOUNDATIONEVENT_START );
 #endif
 
@@ -216,9 +219,9 @@ int main( int argc, char** argv )
 	}
 #endif
 
-//#if BUILD_DEBUG
-//	ret = main_run( 0 );
-//#else
+#if FOUNDATION_PLATFORM_PNACL
+	ret = pnacl_instance_main( instance );
+#else
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
@@ -244,6 +247,8 @@ int main( int argc, char** argv )
 	android_shutdown();
 #endif
 
+#endif
+
 	return ret;
 }
 
@@ -261,12 +266,8 @@ void android_main( struct android_app* app )
 
 #endif
 
-#endif
 
 #if FOUNDATION_PLATFORM_PNACL
-
-#include <foundation/pnacl.h>
-#include <ppapi/c/ppp_instance.h>
 
 
 PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser )

@@ -103,7 +103,7 @@ test_suite_t test_environment_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
 
 int test_environment_run( void );
 int test_environment_run( void )
