@@ -149,7 +149,6 @@ int main( int argc, char** argv )
 {
 	int ret = -1;
 
-
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	_environment_main_args( argc, (const char* const*)argv );
 #endif
@@ -219,9 +218,6 @@ int main( int argc, char** argv )
 	}
 #endif
 
-#if FOUNDATION_PLATFORM_PNACL
-	ret = pnacl_instance_main( instance );
-#else
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
@@ -245,8 +241,6 @@ int main( int argc, char** argv )
 
 #if FOUNDATION_PLATFORM_ANDROID
 	android_shutdown();
-#endif
-
 #endif
 
 	return ret;

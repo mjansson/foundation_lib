@@ -121,7 +121,8 @@ typedef enum
 	STREAM_IN                  = 0x0001,
 	STREAM_OUT                 = 0x0002,
 	STREAM_TRUNCATE            = 0x0010,
-	STREAM_ATEND               = 0x0020,
+	STREAM_CREATE              = 0x0020,
+	STREAM_ATEND               = 0x0040,
 	STREAM_BINARY              = 0x0100,
 	STREAM_SYNC                = 0x0200
 } stream_mode_t;

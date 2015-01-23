@@ -38,12 +38,17 @@
 
 #include <ppapi/c/ppp.h>
 #include <ppapi/c/pp_instance.h>
+#include <ppapi/c/pp_resource.h>
+#include <ppapi/c/pp_errors.h>
 
 FOUNDATION_API int         pnacl_module_initialize( PP_Module module_id, PPB_GetInterface get_browser );
 FOUNDATION_API const void* pnacl_module_interface( const char* interface_name );
 FOUNDATION_API void        pnacl_module_shutdown( void );
 
-FOUNDATION_API int         pnacl_instance_main( PP_Instance instance );
+FOUNDATION_API const char* pnacl_error_message( int err );
+
+FOUNDATION_API PP_Instance pnacl_instance( void );
+FOUNDATION_API const void* pnacl_interface( const char* interface );
 
 #undef radixsort
 

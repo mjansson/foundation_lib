@@ -31,3 +31,4 @@ HASH_TEMPORARY_DIRECTORY                temporary_directory
 HASH_SYSTEM                             system
 HASH_DEBUG                              debug
 HASH_PNACL                              pnacl
+HASH_FS                                 fs

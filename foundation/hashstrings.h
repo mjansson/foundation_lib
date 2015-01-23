@@ -38,3 +38,4 @@
 #define HASH_SYSTEM static_hash_string( "system", 0xb72020e83e0eb654ULL )
 #define HASH_DEBUG static_hash_string( "debug", 0x71626bc355dbf213ULL )
 #define HASH_PNACL static_hash_string( "pnacl", 0xb361b58ae8fffba3ULL )
+#define HASH_FS static_hash_string( "fs", 0x4692a53ac19eddeeULL )

@@ -462,8 +462,7 @@ const char* environment_temporary_directory( void )
 #endif
 #if FOUNDATION_PLATFORM_PNACL
 	//TODO: PNaCl
-	_environment_temp_dir[0] = '/';
-	_environment_temp_dir[1] = 0;
+	string_copy( _environment_temp_dir, "/tmp", FOUNDATION_MAX_PATHLEN );
 #endif
 	{
 		unsigned int curlen = string_length( _environment_temp_dir );

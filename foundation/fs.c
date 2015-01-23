@@ -31,8 +31,26 @@
 #  include <sys/inotify.h>
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#  include <ppapi/c/pp_file_info.h>
+#  include <ppapi/c/pp_completion_callback.h>
+#  include <ppapi/c/ppp_instance.h>
+#  include <ppapi/c/ppb_file_io.h>
+#  include <ppapi/c/ppb_file_system.h>
+static PP_Resource _pnacl_fs_temporary = 0;
+static PP_Resource _pnacl_fs_persistent = 0;
+static const PPB_FileSystem* _pnacl_file_system = 0;
+static const PPB_FileIO* _pnacl_file_io = 0;
+#endif
+
 #include <stdio.h>
 
+#if FOUNDATION_PLATFORM_PNACL
+typedef PP_Resource fs_file_descriptor;
+#else
+typedef FILE* fs_file_descriptor;
+#endif
 
 struct fs_monitor_t
 {
@@ -45,7 +63,13 @@ typedef ALIGN(16) struct fs_monitor_t fs_monitor_t;
 struct stream_file_t
 {
 	FOUNDATION_DECLARE_STREAM;
-	void*                  fd;
+
+	fs_file_descriptor     fd;
+
+#if FOUNDATION_PLATFORM_PNACL
+	int64_t                position;
+	int64_t                size;
+#endif
 };
 typedef ALIGN(8) struct stream_file_t stream_file_t;
 
@@ -585,11 +609,12 @@ void fs_touch( const char* path )
 
 stream_t* fs_temporary_file( void )
 {
-	stream_t* tempfile;
+	stream_t* tempfile = 0;
+
 	char* filename = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
 
 	fs_make_directory( environment_temporary_directory() );
-	tempfile = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );
+	tempfile = fs_open_file( filename, STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE );
 
 	string_deallocate( filename );
 
@@ -735,7 +760,7 @@ static void _fs_send_creations( const char* path )
 }
 
 
-static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr, bool send_create )
+static void _fs_add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr, bool send_create )
 {
 	char** subdirs = 0;
 	char* local_path = 0;
@@ -763,7 +788,7 @@ static void _add_notify_subdir( int notify_fd, const char* path, fs_watch_t** wa
 	for( int i = 0, size = array_size( subdirs ); i < size; ++i )
 	{
 		char* subpath = path_merge( local_path, subdirs[i] );
-		_add_notify_subdir( notify_fd, subpath, watch_arr, path_arr, send_create );
+		_fs_add_notify_subdir( notify_fd, subpath, watch_arr, path_arr, send_create );
 		string_deallocate( subpath );
 	}
 	string_array_deallocate( subdirs );
@@ -834,7 +859,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	array_reserve( watch, 1024 );
 
 	//Recurse and add all subdirs
-	_add_notify_subdir( notify_fd, monitor_path, &watch, &paths, false );
+	_fs_add_notify_subdir( notify_fd, monitor_path, &watch, &paths, false );
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
@@ -997,7 +1022,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				{
 					if( is_dir )
 					{
-						_add_notify_subdir( notify_fd, curpath, &watch, &paths, true );
+						_fs_add_notify_subdir( notify_fd, curpath, &watch, &paths, true );
 					}
 					else
 					{
@@ -1095,66 +1120,136 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 }
 
 
-static FILE* _fs_file_fopen( const char* path, unsigned int mode, bool* dotrunc )
+static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, bool* dotrunc )
 {
+	fs_file_descriptor fd = 0;
+
+#if FOUNDATION_PLATFORM_PNACL
+
+	PP_Resource fs = 0;
+	const char* localpath = 0;
+
+	if( string_equal_substr( path, "/tmp/", 5 ) )
+	{
+		fs = _pnacl_fs_temporary;
+		localpath = path + 4;
+	}
+	else if( string_equal_substr( path, "/persistent/", 12 ) )
+	{
+		fs = _pnacl_fs_persistent;
+		localpath = path + 11;
+	}
+	else
+		return 0;
+
+	fd = _pnacl_file_io->Create( pnacl_instance() );
+	if( fd )
+	{
+		int flags = 0;
+
+		if( mode & STREAM_IN )
+			flags |= PP_FILEOPENFLAG_READ;
+		if( mode & STREAM_OUT )
+			flags |= PP_FILEOPENFLAG_WRITE;
+		if( mode & STREAM_TRUNCATE )
+			flags |= PP_FILEOPENFLAG_TRUNCATE;
+		if( mode & STREAM_CREATE )
+			flags |= PP_FILEOPENFLAG_CREATE;
+
+		int res = _pnacl_file_io->Open( fd, 0, flags, PP_BlockUntilComplete() );
+		if( res != PP_OK )
+		{
+			_pnacl_file_io->Close( fd );
+			fd = 0;
+		}
+	}
+
+#else
+
 #if FOUNDATION_PLATFORM_WINDOWS
+#  define MODESTRING(x) L##x
 	const wchar_t* modestr;
 	wchar_t* wpath;
-	FILE* fd;
 #else
+#  define MODESTRING(x) x
 	const char* modestr;
 #endif
+
 	if( mode & STREAM_IN )
 	{
 		if( mode & STREAM_OUT )
 		{
 			if( mode & STREAM_TRUNCATE )
-#if FOUNDATION_PLATFORM_WINDOWS
-				modestr = L"w+b";
-#else
-				modestr = "w+b";
-#endif
+			{
+				if( mode & STREAM_CREATE )
+					modestr = MODESTRING("w+b");
+				else
+				{
+					modestr = MODESTRING("r+b");
+					if( dotrunc )
+						*dotrunc = true;
+				}
+			}
+			else if( mode & STREAM_CREATE )
+				modestr = MODESTRING("a+b");
 			else
-#if FOUNDATION_PLATFORM_WINDOWS
-				modestr = L"r+b";
-#else
-				modestr = "r+b";
-#endif
+				modestr = MODESTRING("r+b");
 		}
 		else
 		{
-#if FOUNDATION_PLATFORM_WINDOWS
-			modestr = L"rb";
-#else
-			modestr = "rb";
-#endif
-			if( ( mode & STREAM_TRUNCATE ) && dotrunc )
-				*dotrunc = true;
+			if( mode & STREAM_TRUNCATE )
+			{
+				if( mode & STREAM_CREATE )
+					modestr = MODESTRING("w+b");
+				else
+				{
+					modestr = MODESTRING("r+b");
+					if( dotrunc )
+						*dotrunc = true;
+				}
+			}
+			else if( mode & STREAM_CREATE )
+				modestr = MODESTRING("a+b");
+			else
+				modestr = MODESTRING("rb");
 		}
 	}
-	else
+	else if( mode & STREAM_OUT )
 	{
-#if FOUNDATION_PLATFORM_WINDOWS
-		modestr = L"wb";
-#else
-		modestr = "wb";
-#endif
+		if( mode & STREAM_TRUNCATE )
+		{
+			if( mode & STREAM_CREATE )
+				modestr = MODESTRING("w+b");
+			else
+			{
+				modestr = MODESTRING("r+b");
+				*dotrunc = true;
+			}
+		}
+		else if( mode & STREAM_CREATE )
+			modestr = MODESTRING("a+b");
+		else
+			modestr = MODESTRING("r+b");
 	}
+	else
+		return 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	wpath = wstring_allocate_from_string( path, 0 );
 	fd = _wfsopen( wpath, modestr, ( mode & STREAM_OUT ) ? _SH_DENYWR : _SH_DENYNO );
 	wstring_deallocate( wpath );
-	return fd;
 #elif FOUNDATION_PLATFORM_POSIX
-	return fopen( path, modestr );
-#elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
-	return 0;
+	fd = fopen( path, modestr );
 #else
 #  error Not implemented
-	return 0;
 #endif
+
+	if( fd && !( mode & STREAM_ATEND ) && ( modestr[0] == 'a' ) )
+		fseek( fd, 0, SEEK_SET );
+	
+#endif
+
+	return fd;
 }
 
 
@@ -1162,7 +1257,11 @@ static int64_t _fs_file_tell( stream_t* stream )
 {
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return -1;
-	return (int64_t)ftell( (FILE*)GET_FILE( stream )->fd );
+#if FOUNDATION_PLATFORM_PNACL
+	return (int64_t)GET_FILE( stream )->position;
+#else
+	return (int64_t)ftell( GET_FILE( stream )->fd );
+#endif
 }
 
 
@@ -1170,7 +1269,27 @@ static void _fs_file_seek( stream_t* stream, int64_t offset, stream_seek_mode_t 
 {
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return;
-	fseek( (FILE*)GET_FILE( stream )->fd, (long)offset, ( direction == STREAM_SEEK_BEGIN ) ? SEEK_SET : ( ( direction == STREAM_SEEK_END ) ? SEEK_END : SEEK_CUR ) );
+#if FOUNDATION_PLATFORM_PNACL
+	stream_file_t* file = GET_FILE( stream );
+	if( direction == STREAM_SEEK_BEGIN )
+		file->position = offset;
+	else if( direction == STREAM_SEEK_END )
+		file->position = file->size - offset;
+	else
+		file->position += offset;
+	if( file->position < 0 )
+		file->position = 0;
+	if( file->position > file->size )
+	{
+		if( _pnacl_file_io->SetLength( file->fd, file->size, PP_BlockUntilComplete() ) == PP_OK )
+		{
+			file->size = file->position;
+			_pnacl_file_io->Flush( file->fd, PP_BlockUntilComplete() );
+		}
+	}
+#else
+	fseek( GET_FILE( stream )->fd, (long)offset, ( direction == STREAM_SEEK_BEGIN ) ? SEEK_SET : ( ( direction == STREAM_SEEK_END ) ? SEEK_END : SEEK_CUR ) );
+#endif
 }
 
 
@@ -1179,7 +1298,12 @@ static bool _fs_file_eos( stream_t* stream )
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return true;
 
-	return ( feof( (FILE*)GET_FILE( stream )->fd ) != 0 );
+#if FOUNDATION_PLATFORM_PNACL
+	stream_file_t* file = GET_FILE( stream );
+	return ( file->position >= file->size );
+#else
+	return ( feof( GET_FILE( stream )->fd ) != 0 );
+#endif
 }
 
 
@@ -1191,12 +1315,18 @@ static uint64_t _fs_file_size( stream_t* stream )
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
 
+#if FOUNDATION_PLATFORM_PNACL
+	return GET_FILE( stream )->size;
+#else
+
 	cur = _fs_file_tell( stream );
 	_fs_file_seek( stream, 0, STREAM_SEEK_END );
 	size = _fs_file_tell( stream );
 	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
 
 	return size;
+
+#endif
 }
 
 
@@ -1212,6 +1342,19 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	if( !stream || !( stream->mode & STREAM_OUT ) || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return;
 
+#if FOUNDATION_PLATFORM_PNACL
+
+	file = GET_FILE( stream );
+
+	if( _pnacl_file_io->SetLength( file->fd, 0, PP_BlockUntilComplete() ) == PP_OK )
+	{
+		file->size = 0;
+		file->position = 0;
+		_pnacl_file_io->Flush( file->fd, PP_BlockUntilComplete() );
+	}
+
+#else
+
 	if( (uint64_t)length >= _fs_file_size( stream ) )
 		return;
 
@@ -1222,7 +1365,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	file = GET_FILE( stream );
 	if( file->fd )
 	{
-		fclose( (FILE*)file->fd );
+		fclose( file->fd );
 		file->fd = 0;
 	}
 
@@ -1248,8 +1391,6 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	if( ftruncate( fd, length ) < 0 )
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( errno ) );
 	close( fd );
-#elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -1259,6 +1400,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
 
 	//FOUNDATION_ASSERT( file_size( file ) == length );
+#endif
 }
 
 
@@ -1266,7 +1408,12 @@ static void _fs_file_flush( stream_t* stream )
 {
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return;
-	fflush( (FILE*)GET_FILE( stream )->fd );
+
+#if FOUNDATION_PLATFORM_PNACL
+	_pnacl_file_io->Flush( GET_FILE( stream )->fd, PP_BlockUntilComplete() );
+#else
+	fflush( GET_FILE( stream )->fd );
+#endif
 }
 
 
@@ -1283,22 +1430,50 @@ static uint64_t _fs_file_read( stream_t* stream, void* buffer, uint64_t num_byte
 	file = GET_FILE( stream );
 	beforepos = _fs_file_tell( stream );
 
+#if FOUNDATION_PLATFORM_PNACL
+
+	int64_t available = file->size - file->position;
+	if( !available )
+		return 0;
+	if( available > 0x7FFFFFFFLL )
+		available = 0x7FFFFFFFLL;
+
+	int32_t read = _pnacl_file_io->Read( file->fd, file->position, buffer, ( available < (int64_t)num_bytes ) ? (int32_t)available : (int32_t)num_bytes, PP_BlockUntilComplete() );
+	if( read == 0 )
+	{
+		was_read = ( file->size - file->position );
+		file->position = file->size;
+	}
+	else if( read > 0 )
+	{
+		was_read = read;
+		file->position += read;
+	}
+	else
+		return 0;
+
+	return was_read;
+
+#else
+
 	size = (size_t)( num_bytes & 0xFFFFFFFFULL );
-	was_read = fread( buffer, 1, size, (FILE*)file->fd );
+	was_read = fread( buffer, 1, size, file->fd );
 
 	//if( num_bytes > 0xFFFFFFFFULL )
-	//	was_read += fread( (void*)( (char*)buffer + size ), 0xFFFFFFFF, (size_t)( num_bytes >> 32LL ), (FILE*)_fd );
+	//	was_read += fread( (void*)( (char*)buffer + size ), 0xFFFFFFFF, (size_t)( num_bytes >> 32LL ), file->fd );
 
 	if( was_read > 0 )
 		return was_read;
 
-	if( feof( (FILE*)file->fd ) )
+	if( feof( file->fd ) )
 	{
 		was_read = ( _fs_file_tell( stream ) - beforepos );
 		return was_read;
 	}
 
 	return 0;
+
+#endif
 }
 
 
@@ -1311,23 +1486,59 @@ static uint64_t _fs_file_write( stream_t* stream, const void* buffer, uint64_t n
 	if( !stream || !( stream->mode & STREAM_OUT ) || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
 
+#if FOUNDATION_PLATFORM_PNACL
+
 	file = GET_FILE( stream );
-	size = (size_t)( num_bytes & 0xFFFFFFFFLL );
-	was_written = fwrite( buffer, 1, size, (FILE*)file->fd );
+
+	if( file->position + (int64_t)num_bytes > file->size )
+	{
+		if( _pnacl_file_io->SetLength( file->fd, file->size, PP_BlockUntilComplete() ) == PP_OK )
+			file->size = file->position + (int64_t)num_bytes;
+	}
+
+	int32_t written = _pnacl_file_io->Write( file->fd, file->position, buffer, num_bytes, PP_BlockUntilComplete() );
+	if( written == 0 )
+	{
+		was_written = ( file->size - file->position );
+		file->position = file->size;
+	}
+	else if( written > 0 )
+	{
+		was_written = written;
+		file->position += written;
+	}
+	else
+		return 0;
+
+	return was_written;
+
+#else
+
+	file = GET_FILE( stream );
+	size = (size_t)( num_bytes & 0x7FFFFFFFLL );
+	was_written = fwrite( buffer, 1, size, file->fd );
 
 	//if( num_bytes > 0xFFFFFFFFLL )
-	//	was_written += fwrite( (const void*)( (const char*)buffer + size ), 0xFFFFFFFF, (size_t)( num_bytes >> 32LL ), (FILE*)file->fd );
+	//	was_written += fwrite( (const void*)( (const char*)buffer + size ), 0xFFFFFFFF, (size_t)( num_bytes >> 32LL ), file->fd );
 
 	if( was_written > 0 )
 		return was_written;
 
 	return 0;
+
+#endif
 }
 
 
 static uint64_t _fs_file_last_modified( const stream_t* stream )
 {
+#if FOUNDATION_PLATFORM_PNACL
+	struct PP_FileInfo info = {0};
+	_pnacl_file_io->Query( GET_FILE_CONST( stream )->fd, &info, PP_BlockUntilComplete() );
+	return info.last_modified_time;
+#else
 	return fs_last_modified( GET_FILE_CONST( stream )->path );
+#endif
 }
 
 
@@ -1362,13 +1573,13 @@ static void _fs_file_finalize( stream_t* stream )
 		if( file->fd )
 		{
 #if FOUNDATION_PLATFORM_WINDOWS
-			_commit( _fileno( (FILE*)file->fd ) );
+			_commit( _fileno( file->fd ) );
 #elif FOUNDATION_PLATFORM_MACOSX
-			fcntl( fileno( (FILE*)file->fd ), F_FULLFSYNC, 0 );
+			fcntl( fileno( file->fd ), F_FULLFSYNC, 0 );
 #elif FOUNDATION_PLATFORM_POSIX
-			fsync( fileno( (FILE*)file->fd ) );
+			fsync( fileno( file->fd ) );
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+			_pnacl_file_io->Flush( file->fd, PP_BlockUntilComplete() );
 #else
 #  error Not implemented
 #endif
@@ -1376,7 +1587,13 @@ static void _fs_file_finalize( stream_t* stream )
 	}
 
 	if( file->fd )
-		fclose( (FILE*)file->fd );
+	{
+#if FOUNDATION_PLATFORM_PNACL
+		_pnacl_file_io->Close( file->fd );
+#else
+		fclose( file->fd );
+#endif
+	}
 	file->fd = 0;
 }
 
@@ -1384,10 +1601,10 @@ static void _fs_file_finalize( stream_t* stream )
 stream_t* fs_open_file( const char* path, unsigned int mode )
 {
 	stream_file_t* file;
+	fs_file_descriptor fd;
 	stream_t* stream;
 	char* abspath;
-	bool dotrunc, atend, has_protocol;
-	unsigned int in_mode = mode;
+	bool has_protocol, dotrunc;
 
 	if( !path )
 		return 0;
@@ -1397,42 +1614,37 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	if( !( mode & STREAM_IN ) && !( mode & STREAM_OUT ) )
 		mode |= STREAM_IN;
 
+	abspath = path_make_absolute( path );
+	has_protocol = string_equal_substr( abspath, "file://", 7 );
+	dotrunc = false;
+
+	fd = _fs_file_fopen( _fs_path( abspath ), mode, &dotrunc );
+	if( !fd )
+	{
+		//log_debugf( 0, "Unable to open file: %s (mode %d): %s", file->path, in_mode, system_error_message( 0 ) );
+		string_deallocate( abspath );
+		return 0;
+	}
+
 	file = memory_allocate( HASH_STREAM, sizeof( stream_file_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream = GET_STREAM( file );
 	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 
-	stream->type = STREAMTYPE_FILE;
-
-	abspath = path_make_absolute( path );
-	dotrunc = false;
-	has_protocol = string_equal_substr( abspath, "file://", 7 );
-
-	file->fd = _fs_file_fopen( _fs_path( abspath ), mode, &dotrunc );
-
-	if( ( mode & STREAM_OUT ) && !file->fd && !( mode & STREAM_TRUNCATE ) )
-	{
-		string_deallocate( abspath );
-		stream_deallocate( stream );
-		return fs_open_file( path, in_mode | STREAM_TRUNCATE );
-	}
-
-	atend = ( ( mode & STREAM_ATEND ) != 0 );
-
+	file->fd       = fd;
+	stream->type   = STREAMTYPE_FILE;
 	stream->mode   = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC );
 	stream->path   = has_protocol ? abspath : string_prepend( abspath, ( abspath[0] == '/' ) ? "file:/" : "file://" );
 	stream->vtable = &_fs_file_vtable;
-
-	if( !file->fd )
-	{
-		//log_debugf( 0, "Unable to open file: %s (mode %d): %s", file->path, in_mode, system_error_message( 0 ) );
-		stream_deallocate( stream );
-		return 0;
-	}
 	
-	if( dotrunc )
-		stream_truncate( stream, 0 );
+#if FOUNDATION_PLATFORM_PNACL
+	struct PP_FileInfo fileinfo = {0};
+	_pnacl_file_io->Query( file->fd, &fileinfo, PP_BlockUntilComplete() );
+	file->size = fileinfo.size;
+#endif
 
-	if( atend )
+	if( dotrunc )
+		_fs_file_truncate( stream, 0 );
+	else if( mode & STREAM_ATEND )
 		stream_seek( stream, 0, STREAM_SEEK_END );
 
 	return stream;
@@ -1464,6 +1676,37 @@ int _fs_initialize( void )
 #endif
 	_pipe_stream_initialize();
 
+#if FOUNDATION_PLATFORM_PNACL
+
+	int ret;
+	const struct PP_CompletionCallback block = PP_BlockUntilComplete();
+	PP_Instance instance = pnacl_instance();
+
+	_pnacl_file_system = pnacl_interface( PPB_FILESYSTEM_INTERFACE );
+	_pnacl_file_io = pnacl_interface( PPB_FILEIO_INTERFACE );
+
+	if( !_pnacl_file_system )
+		log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to get file system interface" );
+	if( !_pnacl_file_io )
+		log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to get file I/O interface" );
+	
+	if( _pnacl_file_system )
+	{
+		_pnacl_fs_temporary = _pnacl_file_system->Create( instance, PP_FILESYSTEMTYPE_LOCALTEMPORARY );
+		log_debugf( HASH_PNACL, "Created temporary file system: %d", _pnacl_fs_temporary );
+
+		_pnacl_fs_persistent = _pnacl_file_system->Create( instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT );
+		log_debugf( HASH_PNACL, "Created persistent file system: %d", _pnacl_fs_persistent );
+
+		if( ( ret = _pnacl_file_system->Open( _pnacl_fs_temporary, 100000, block ) ) != PP_OK )
+			log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to open temporary file system: %s (%d)", pnacl_error_message( ret ), ret );
+
+		if( ( ret = _pnacl_file_system->Open( _pnacl_fs_persistent, 100000, block ) != PP_OK ) )
+			log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to open persistent file system: %s (%d)", pnacl_error_message( ret ), ret );
+	}
+
+#endif
+
 	return 0;
 }
 
@@ -1476,4 +1719,11 @@ void _fs_shutdown( void )
 
 	event_stream_deallocate( _fs_event_stream );
 	_fs_event_stream = 0;
+
+#if FOUNDATION_PLATFORM_PNACL
+	_pnacl_fs_temporary = 0;
+	_pnacl_fs_persistent = 0;
+	_pnacl_file_system = 0;
+	_pnacl_file_io = 0;
+#endif
 }

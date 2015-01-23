@@ -380,6 +380,9 @@ DECLARE_TEST( bitbuffer, stream )
 	
 		//Phase 1 - write data
 		stream = fs_temporary_file();
+
+		EXPECT_NE( stream, 0 );
+
 		bitbuffer_initialize_stream( &bitbuffer, stream );
 
 		for( ival = 0; ival < 16; ++ival )

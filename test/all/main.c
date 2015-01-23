@@ -174,7 +174,7 @@ static void* test_runner( object_t obj, void* arg )
 #endif
 
 
-static const char* test_arch_name[11] = {
+static const char* test_arch_name[13] = {
   "x86",
   "x86-64",
   "ppc",
@@ -186,7 +186,8 @@ static const char* test_arch_name[11] = {
   "arm8-64",
   "mips",
   "mips64",
-  "generic"
+  "generic",
+  "<unknown>"
 };
 
 int main_run( void* main_arg )
