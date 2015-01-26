@@ -263,24 +263,22 @@ void android_main( struct android_app* app )
 
 #if FOUNDATION_PLATFORM_PNACL
 
+/*! PNaCl glue entry points */
 
 PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser )
 {
-	log_debugf( HASH_PNACL, "PPP_InitializeModule: %d %d", module_id, get_browser );
 	return pnacl_module_initialize( module_id, get_browser );
 }
 
 
 PP_EXPORT const void* PPP_GetInterface( const char* interface_name )
 {
-	log_debugf( HASH_PNACL, "PPP_GetInterface: %s", interface_name );
 	return pnacl_module_interface( interface_name );
 }
 
 
 PP_EXPORT void PPP_ShutdownModule()
 {
-	log_debugf( HASH_PNACL, "PPP_ShutdownModule" );
 	pnacl_module_shutdown();
 }
 

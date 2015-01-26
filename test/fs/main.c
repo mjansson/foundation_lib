@@ -97,20 +97,42 @@ DECLARE_TEST( fs, file )
 	EXPECT_EQ( teststream, 0 );
 	EXPECT_FALSE( fs_is_file( testpath ) );
 
+	teststream = fs_open_file( testpath, STREAM_OUT );
+	EXPECT_EQ( teststream, 0 );
+	EXPECT_FALSE( fs_is_file( testpath ) );
+
 	teststream = fs_open_file( testpath, STREAM_IN | STREAM_OUT );
+	EXPECT_EQ( teststream, 0 );
+	EXPECT_FALSE( fs_is_file( testpath ) );
+
+	teststream = fs_open_file( testpath, STREAM_IN | STREAM_CREATE );
 	EXPECT_NE( teststream, 0 );
 	EXPECT_TRUE( fs_is_file( testpath ) );
-
 	stream_deallocate( teststream );
 	fs_remove_file( testpath );
+	EXPECT_FALSE( fs_is_file( testpath ) );
+
+	teststream = fs_open_file( testpath, STREAM_OUT | STREAM_CREATE );
+	EXPECT_NE( teststream, 0 );
+	EXPECT_TRUE( fs_is_file( testpath ) );
+	stream_deallocate( teststream );
+	fs_remove_file( testpath );
+	EXPECT_FALSE( fs_is_file( testpath ) );
+
+	teststream = fs_open_file( testpath, STREAM_IN | STREAM_OUT | STREAM_CREATE );
+	EXPECT_NE( teststream, 0 );
+	EXPECT_TRUE( fs_is_file( testpath ) );
+	stream_deallocate( teststream );
+	fs_remove_file( testpath );
+	EXPECT_FALSE( fs_is_file( testpath ) );
+
 	teststream = fs_open_file( testpath, STREAM_IN );
 	EXPECT_EQ( teststream, 0 );
 	EXPECT_FALSE( fs_is_file( testpath ) );
 
-	teststream = fs_open_file( testpath, STREAM_OUT );
+	teststream = fs_open_file( testpath, STREAM_OUT | STREAM_CREATE );
 	EXPECT_NE( teststream, 0 );
 	EXPECT_TRUE( fs_is_file( testpath ) );
-
 	stream_deallocate( teststream );
 	teststream = 0;
 
@@ -125,7 +147,6 @@ DECLARE_TEST( fs, file )
 	EXPECT_TRUE( fs_is_file( testpath ) );
 
 	stream_write_string( teststream, "testing testing" );
-
 	stream_deallocate( teststream );
 	teststream = 0;
 
@@ -163,7 +184,7 @@ DECLARE_TEST( fs, util )
 
 	thread_sleep( 1000 ); //For fs time granularity, make sure at least one second passed since systime
 
-	stream_deallocate( fs_open_file( testpath, STREAM_OUT ) );
+	stream_deallocate( fs_open_file( testpath, STREAM_OUT | STREAM_CREATE ) );
 	EXPECT_TRUE( fs_is_file( testpath ) );
 	EXPECT_GE( fs_last_modified( testpath ), systime );
 
@@ -171,7 +192,7 @@ DECLARE_TEST( fs, util )
 	EXPECT_FALSE( fs_is_file( testpath ) );
 	EXPECT_EQ( fs_last_modified( testpath ), 0 );
 
-	stream_deallocate( fs_open_file( testpath, STREAM_OUT ) );
+	stream_deallocate( fs_open_file( testpath, STREAM_OUT | STREAM_CREATE ) );
 	EXPECT_TRUE( fs_is_file( testpath ) );
 	EXPECT_GE( fs_last_modified( testpath ), systime );
 
@@ -214,12 +235,12 @@ DECLARE_TEST( fs, query )
 	{
 		filepath[ifp] = path_merge( testpath, string_from_int_static( random64(), 0, 0 ) );
 		filepath[ifp] = string_append( string_append( filepath[ifp], "." ), string_from_int_static( ifp, 0, 0 ) );
-		stream_deallocate( fs_open_file( filepath[ifp], STREAM_OUT ) );
+		stream_deallocate( fs_open_file( filepath[ifp], STREAM_OUT | STREAM_CREATE ) );
 	}
 
 	subfilepath = path_merge( subtestpath, string_from_int_static( subfileid, 0, 0 ) );
 	subfilepath = string_append( subfilepath, ".0" );
-	stream_deallocate( fs_open_file( subfilepath, STREAM_OUT ) );
+	stream_deallocate( fs_open_file( subfilepath, STREAM_OUT | STREAM_CREATE ) );
 
 	files = fs_files( filepath[0] );
 	EXPECT_EQ( array_size( files ), 0 );
@@ -315,7 +336,7 @@ DECLARE_TEST( fs, event )
 	return 0;
 }
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 
 DECLARE_TEST( fs, monitor )
 {
@@ -349,7 +370,7 @@ DECLARE_TEST( fs, monitor )
 	fs_remove_directory( testpath );
 	fs_make_directory( testpath );
 
-	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT ) );
+	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT | STREAM_CREATE ) );
 	fs_remove_file( filetestpath );
 
 	block = event_stream_process( stream );
@@ -359,7 +380,7 @@ DECLARE_TEST( fs, monitor )
 	fs_monitor( testpath );
 	thread_sleep( 1000 );
 
-	test_stream = fs_open_file( filetestpath, STREAM_OUT );
+	test_stream = fs_open_file( filetestpath, STREAM_OUT | STREAM_CREATE );
 	stream_deallocate( test_stream );
 	EXPECT_NE( test_stream, 0 );
 	thread_sleep( 3000 );
@@ -373,7 +394,7 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 
-	test_stream = fs_open_file( filetestpath, STREAM_IN | STREAM_OUT );
+	test_stream = fs_open_file( filetestpath, STREAM_IN | STREAM_OUT | STREAM_CREATE );
 	stream_write_string( test_stream, filetestpath );
 	stream_deallocate( test_stream );
 	thread_sleep( 3000 );
@@ -406,7 +427,7 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );
 	
-	test_stream = fs_open_file( filesubtestpath, STREAM_OUT );
+	test_stream = fs_open_file( filesubtestpath, STREAM_OUT | STREAM_CREATE );
 	stream_deallocate( test_stream );
 	EXPECT_NE( test_stream, 0 );
 	thread_sleep( 3000 );
@@ -420,7 +441,7 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 	
-	test_stream = fs_open_file( filesubtestpath, STREAM_IN | STREAM_OUT );
+	test_stream = fs_open_file( filesubtestpath, STREAM_IN | STREAM_OUT | STREAM_CREATE );
 	stream_write_string( test_stream, filesubtestpath );
 	stream_deallocate( test_stream );
 	thread_sleep( 3000 );
@@ -451,7 +472,7 @@ DECLARE_TEST( fs, monitor )
 		fs_make_directory( multisubtestpath[isub] );
 		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
-			test_stream = fs_open_file( multifilesubtestpath[isub][ifilesub], STREAM_IN | STREAM_OUT );
+			test_stream = fs_open_file( multifilesubtestpath[isub][ifilesub], STREAM_IN | STREAM_OUT | STREAM_CREATE );
 			stream_deallocate( test_stream );
 			multifilesubtestfound[isub][ifilesub] = false;
 		}
@@ -554,7 +575,7 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );
 
-	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT ) );
+	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT | STREAM_CREATE ) );
 	thread_sleep( 100 );
 
 	block = event_stream_process( stream );
@@ -595,7 +616,7 @@ static void test_fs_declare( void )
 	ADD_TEST( fs, util );
 	ADD_TEST( fs, query );
 	ADD_TEST( fs, event );
-#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE
+#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE && !FOUNDATION_PLATFORM_PNACL
 	ADD_TEST( fs, monitor );
 #endif
 }

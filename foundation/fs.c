@@ -34,14 +34,21 @@
 #if FOUNDATION_PLATFORM_PNACL
 #  include <foundation/pnacl.h>
 #  include <ppapi/c/pp_file_info.h>
+#  include <ppapi/c/pp_directory_entry.h>
 #  include <ppapi/c/pp_completion_callback.h>
 #  include <ppapi/c/ppp_instance.h>
 #  include <ppapi/c/ppb_file_io.h>
 #  include <ppapi/c/ppb_file_system.h>
+#  include <ppapi/c/ppb_file_ref.h>
+#  include <ppapi/c/ppb_var.h>
+#  include <ppapi/c/ppb_core.h>
 static PP_Resource _pnacl_fs_temporary = 0;
 static PP_Resource _pnacl_fs_persistent = 0;
 static const PPB_FileSystem* _pnacl_file_system = 0;
 static const PPB_FileIO* _pnacl_file_io = 0;
+static const PPB_FileRef* _pnacl_file_ref = 0;
+static const PPB_Var* _pnacl_var = 0;
+static const PPB_Core* _pnacl_core = 0;
 #endif
 
 #include <stdio.h>
@@ -91,6 +98,60 @@ static const char* _fs_path( const char* abspath )
 	bool has_drive_letter = ( has_protocol && abspath[7] ) ? ( abspath[8] == ':' ) : false;
 	return( has_protocol ? abspath + ( has_drive_letter ? 7 : 6 ) : abspath );
 }
+
+
+#if FOUNDATION_PLATFORM_PNACL
+
+PP_Resource _fs_resolve_path( const char* path, const char** localpath )
+{
+	static const char rootpath[] = "/";
+	if( string_equal_substr( path, "/tmp", 4 ) )
+	{
+		if( path[4] == 0 )
+		{
+			*localpath = rootpath;
+			return _pnacl_fs_temporary;
+		}
+		else if( path[4] == '/' )
+		{
+			*localpath = path + 4;
+			return _pnacl_fs_temporary;
+		}
+	}
+	else if( string_equal_substr( path, "/persistent", 11 ) )
+	{
+		if( path[11] == 0 )
+		{
+			*localpath = rootpath;
+			return _pnacl_fs_temporary;
+		}
+		else if( path[11] == '/' )
+		{
+			*localpath = path + 11;
+			return _pnacl_fs_persistent;
+		}
+	}
+	else if( string_equal_substr( path, "/cache", 6 ) )
+	{
+		/* TODO: PNaCl implement
+		if( path[6] == 0 )
+		{
+			*localpath = rootpath;
+			return _pnacl_fs_cache;
+		}
+		else if( path[6] == '/' )
+		{
+			localpath = path + 6;
+			return _pnacl_fs_cache;
+		}*/
+	}
+
+	log_warnf( HASH_PNACL, WARNING_BAD_DATA, "Invalid file path: %s", path );
+
+	return 0;
+}
+
+#endif
 
 
 void fs_monitor( const char* path )
@@ -188,7 +249,25 @@ bool fs_is_file( const char* path )
 		return true;
 
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+
+	bool is_file = false;
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( path ), &localpath );
+	if( !fs )
+		return 0;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
+		return 0;
+
+	struct PP_FileInfo info = {0};
+	if ( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
+		is_file = ( info.type == PP_FILETYPE_REGULAR );
+
+	_pnacl_core->ReleaseResource( ref );
+
+	return is_file;
+
 #else
 #  error Not implemented
 #endif
@@ -215,7 +294,25 @@ bool fs_is_directory( const char* path )
 		return false;
 
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+
+	bool is_dir = false;
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( path ), &localpath );
+	if( !fs )
+		return 0;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
+		return 0;
+
+	struct PP_FileInfo info = {0};
+	if ( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
+		is_dir = ( info.type == PP_FILETYPE_DIRECTORY );
+
+	_pnacl_core->ReleaseResource( ref );
+
+	return is_dir;
+
 #else
 #  error Not implemented
 #endif
@@ -286,7 +383,46 @@ char** fs_subdirs( const char* path )
 	}
 
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+
+	memory_context_push( HASH_STREAM );
+
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( path ), &localpath );
+	if( !fs )
+		return arr;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
+		return arr;
+
+	pnacl_array_t entries = {0};
+	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
+	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	{
+		struct PP_DirectoryEntry* entry = entries.data;
+		for( int ient = 0; ient < entries.count; ++ient, ++entry )
+		{
+			if( entry->file_type == PP_FILETYPE_DIRECTORY )
+			{
+				uint32_t varlen = 0;
+				const struct PP_Var namevar = _pnacl_file_ref->GetName( entry->file_ref );
+				const char* utfname = _pnacl_var->VarToUtf8( namevar, &varlen );
+				char* copyname = memory_allocate( 0, varlen + 1, 0, MEMORY_PERSISTENT );
+				
+				memcpy( copyname, utfname, varlen );
+				copyname[varlen] = 0;
+				array_push( arr, copyname );
+			}
+		}
+	}
+
+	_pnacl_core->ReleaseResource( ref );
+
+	if( entries.data )
+		memory_deallocate( entries.data );
+
+	memory_context_pop();
+
 #else
 #  error Not implemented
 #endif
@@ -346,7 +482,46 @@ char** fs_files( const char* path )
 	}
 
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+
+	memory_context_push( HASH_STREAM );
+
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( path ), &localpath );
+	if( !fs )
+		return arr;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
+		return arr;
+
+	pnacl_array_t entries = {0};
+	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
+	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	{
+		struct PP_DirectoryEntry* entry = entries.data;
+		for( int ient = 0; ient < entries.count; ++ient, ++entry )
+		{
+			if( entry->file_type == PP_FILETYPE_REGULAR )
+			{
+				uint32_t varlen = 0;
+				const struct PP_Var namevar = _pnacl_file_ref->GetName( entry->file_ref );
+				const char* utfname = _pnacl_var->VarToUtf8( namevar, &varlen );
+				char* copyname = memory_allocate( 0, varlen + 1, 0, MEMORY_PERSISTENT );
+				
+				memcpy( copyname, utfname, varlen );
+				copyname[varlen] = 0;
+				array_push( arr, copyname );
+			}
+		}
+	}
+
+	_pnacl_core->ReleaseResource( ref );
+
+	if( entries.data )
+		memory_deallocate( entries.data );
+
+	memory_context_pop();
+
 #else
 #  error Not implemented
 #endif
@@ -361,16 +536,33 @@ bool fs_remove_file( const char* path )
 	char* fpath = path_make_absolute( path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
+
 	wchar_t* wpath = wstring_allocate_from_string( _fs_path( fpath ), 0 );
 	result = DeleteFileW( wpath );
 	wstring_deallocate( wpath );
+
 #elif FOUNDATION_PLATFORM_POSIX
+
 	result = ( unlink( _fs_path( fpath ) ) == 0 );
+
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( fpath ), &localpath );
+	if( !fs )
+		return 0;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
+		return 0;
+
+	_pnacl_file_ref->Delete( ref, PP_BlockUntilComplete() );
+	_pnacl_core->ReleaseResource( ref );
+
 #else
 #  error Not implemented
 #endif
+
 	string_deallocate( fpath );
 	
 	return result;
@@ -410,13 +602,29 @@ bool fs_remove_directory( const char* path )
 	string_array_deallocate( subfiles );
 	
 #if FOUNDATION_PLATFORM_WINDOWS
+
 	wfpath = wstring_allocate_from_string( fpath, 0 );
 	result = RemoveDirectoryW( wfpath );
 	wstring_deallocate( wfpath );
+
 #elif FOUNDATION_PLATFORM_POSIX
+
 	result = ( rmdir( fpath ) == 0 );
+
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( fpath ), &localpath );
+	if( !fs )
+		return 0;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
+		return 0;
+
+	_pnacl_file_ref->Delete( ref, PP_BlockUntilComplete() );
+	_pnacl_core->ReleaseResource( ref );
+
 #else
 #  error Not implemented
 #endif
@@ -431,6 +639,28 @@ bool fs_remove_directory( const char* path )
 
 bool fs_make_directory( const char* path )
 {
+#if FOUNDATION_PLATFORM_PNACL
+	
+	char* fpath = path_make_absolute( path );
+
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( fpath ), &localpath );
+	if( !fs )
+		return 0;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
+		return 0;
+
+	bool result = ( _pnacl_file_ref->MakeDirectory( ref, PP_MAKEDIRECTORYFLAG_WITH_ANCESTORS, PP_BlockUntilComplete() ) == PP_OK );
+	_pnacl_core->ReleaseResource( ref );
+
+	string_deallocate( fpath );
+
+	return result;
+
+#else
+
 	char* fpath;
 	char** paths;
 	char* curpath;
@@ -439,7 +669,7 @@ bool fs_make_directory( const char* path )
 	bool result = true;
 
 	fpath = path_make_absolute( path );
-	paths = string_explode( fpath, "/", false );
+	paths = string_explode( _fs_path( fpath ), "/", false );
 	pathsize = array_size( paths );
 	curpath = 0;
 	ipath = 0;
@@ -473,8 +703,6 @@ bool fs_make_directory( const char* path )
 #elif FOUNDATION_PLATFORM_POSIX
 			mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH;
 			result = ( mkdir( curpath, mode ) == 0 );
-#elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -484,8 +712,6 @@ bool fs_make_directory( const char* path )
 				//Unable to create directory
 				goto end;
 			}
-
-			log_debugf( 0, "Created directory: %s", curpath );
 		}
 	}
 	
@@ -498,6 +724,8 @@ bool fs_make_directory( const char* path )
 	memory_context_pop();
 
 	return result;
+
+#endif
 }
 
 
@@ -513,7 +741,7 @@ void fs_copy_file( const char* source, const char* dest )
 	string_deallocate( destpath );
 
 	infile = fs_open_file( source, STREAM_IN );
-	outfile = fs_open_file( dest, STREAM_OUT );
+	outfile = fs_open_file( dest, STREAM_OUT | STREAM_CREATE );
 	buffer = memory_allocate( 0, 64 * 1024, 0, MEMORY_TEMPORARY );
 
 	while( !stream_eos( infile ) )
@@ -536,7 +764,7 @@ uint64_t fs_last_modified( const char* path )
 	//This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan 1601" was
 	//a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date for unix time, 1 Jan 1970, is 116444736000000000
 	const uint64_t ms_offset_time = 116444736000000000ULL;
-
+	char* fpath;
 	uint64_t last_write_time;
 	wchar_t* wpath;
 	WIN32_FILE_ATTRIBUTE_DATA attrib;
@@ -564,14 +792,36 @@ uint64_t fs_last_modified( const char* path )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+	uint64_t tstamp = 0;
 	struct stat st; memset( &st, 0, sizeof( st ) );
-	if( stat( _fs_path( path ), &st ) < 0 )
-		return 0;
-	return (uint64_t)st.st_mtime * 1000ULL;
+	if( stat( _fs_path( path ), &st ) >= 0 )
+		tstamp = (uint64_t)st.st_mtime * 1000ULL;
+
+	return tstamp;
 
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
-	return 0;
+
+	uint64_t tstamp = 0;
+	char* fpath = path_make_absolute( path );
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( fpath ), &localpath );
+	if( fs )
+	{
+		PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+		if( ref )
+		{
+			struct PP_FileInfo info = {0};
+			_pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() );
+			tstamp = info.last_modified_time * 1000ULL;
+
+			_pnacl_core->ReleaseResource( ref );
+		}
+	}
+	
+	string_deallocate( fpath );
+
+	return tstamp;
+
 #else
 #  error Not implemented
 #endif
@@ -600,7 +850,23 @@ void fs_touch( const char* path )
 #elif FOUNDATION_PLATFORM_POSIX
 	utime( _fs_path( path ), 0 );
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
+
+	char* fpath = path_make_absolute( path );
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( _fs_path( fpath ), &localpath );
+	if( fs )
+	{
+		PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+		if( ref )
+		{
+			PP_Time tstamp = (PP_Time)( time_system() / 1000ULL );
+			_pnacl_file_ref->Touch( ref, tstamp, tstamp, PP_BlockUntilComplete() );
+			_pnacl_core->ReleaseResource( ref );
+		}
+	}
+	
+	string_deallocate( fpath );
+
 #else
 #  error Not implemented
 #endif
@@ -1126,20 +1392,14 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 
 #if FOUNDATION_PLATFORM_PNACL
 
-	PP_Resource fs = 0;
-	const char* localpath = 0;
 
-	if( string_equal_substr( path, "/tmp/", 5 ) )
-	{
-		fs = _pnacl_fs_temporary;
-		localpath = path + 4;
-	}
-	else if( string_equal_substr( path, "/persistent/", 12 ) )
-	{
-		fs = _pnacl_fs_persistent;
-		localpath = path + 11;
-	}
-	else
+	const char* localpath = 0;
+	PP_Resource fs = _fs_resolve_path( path, &localpath );
+	if( !fs )
+		return 0;
+
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	if( !ref )
 		return 0;
 
 	fd = _pnacl_file_io->Create( pnacl_instance() );
@@ -1156,13 +1416,16 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 		if( mode & STREAM_CREATE )
 			flags |= PP_FILEOPENFLAG_CREATE;
 
-		int res = _pnacl_file_io->Open( fd, 0, flags, PP_BlockUntilComplete() );
+		int res = _pnacl_file_io->Open( fd, ref, flags, PP_BlockUntilComplete() );
 		if( res != PP_OK )
 		{
 			_pnacl_file_io->Close( fd );
+			_pnacl_core->ReleaseResource( fd );
 			fd = 0;
 		}
 	}
+
+	_pnacl_core->ReleaseResource( ref );
 
 #else
 
@@ -1535,7 +1798,7 @@ static uint64_t _fs_file_last_modified( const stream_t* stream )
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo info = {0};
 	_pnacl_file_io->Query( GET_FILE_CONST( stream )->fd, &info, PP_BlockUntilComplete() );
-	return info.last_modified_time;
+	return info.last_modified_time * 1000ULL;
 #else
 	return fs_last_modified( GET_FILE_CONST( stream )->path );
 #endif
@@ -1590,6 +1853,7 @@ static void _fs_file_finalize( stream_t* stream )
 	{
 #if FOUNDATION_PLATFORM_PNACL
 		_pnacl_file_io->Close( file->fd );
+		_pnacl_core->ReleaseResource( file->fd );
 #else
 		fclose( file->fd );
 #endif
@@ -1679,30 +1943,35 @@ int _fs_initialize( void )
 #if FOUNDATION_PLATFORM_PNACL
 
 	int ret;
-	const struct PP_CompletionCallback block = PP_BlockUntilComplete();
 	PP_Instance instance = pnacl_instance();
 
 	_pnacl_file_system = pnacl_interface( PPB_FILESYSTEM_INTERFACE );
 	_pnacl_file_io = pnacl_interface( PPB_FILEIO_INTERFACE );
+	_pnacl_file_ref = pnacl_interface( PPB_FILEREF_INTERFACE );
+	_pnacl_var = pnacl_interface( PPB_VAR_INTERFACE );
+	_pnacl_core = pnacl_interface( PPB_CORE_INTERFACE );
 
 	if( !_pnacl_file_system )
-		log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to get file system interface" );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file system interface" );
 	if( !_pnacl_file_io )
-		log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to get file I/O interface" );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file I/O interface" );
+	if( !_pnacl_file_ref )
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file ref interface" );
+	if( !_pnacl_var )
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get var interface" );
+	if( !_pnacl_core )
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get core interface" );
 	
-	if( _pnacl_file_system )
+	if( _pnacl_file_system && _pnacl_file_io && _pnacl_file_ref && _pnacl_var && _pnacl_core )
 	{
 		_pnacl_fs_temporary = _pnacl_file_system->Create( instance, PP_FILESYSTEMTYPE_LOCALTEMPORARY );
-		log_debugf( HASH_PNACL, "Created temporary file system: %d", _pnacl_fs_temporary );
-
 		_pnacl_fs_persistent = _pnacl_file_system->Create( instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT );
-		log_debugf( HASH_PNACL, "Created persistent file system: %d", _pnacl_fs_persistent );
 
-		if( ( ret = _pnacl_file_system->Open( _pnacl_fs_temporary, 100000, block ) ) != PP_OK )
-			log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to open temporary file system: %s (%d)", pnacl_error_message( ret ), ret );
+		if( ( ret = _pnacl_file_system->Open( _pnacl_fs_temporary, 100000, PP_BlockUntilComplete() ) ) != PP_OK )
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to open temporary file system: %s (%d)", pnacl_error_message( ret ), ret );
 
-		if( ( ret = _pnacl_file_system->Open( _pnacl_fs_persistent, 100000, block ) != PP_OK ) )
-			log_warnf( HASH_PNACL, WARNING_SYSTEM_CALL_FAIL, "Unable to open persistent file system: %s (%d)", pnacl_error_message( ret ), ret );
+		if( ( ret = _pnacl_file_system->Open( _pnacl_fs_persistent, 100000, PP_BlockUntilComplete() ) != PP_OK ) )
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to open persistent file system: %s (%d)", pnacl_error_message( ret ), ret );
 	}
 
 #endif
@@ -1721,9 +1990,15 @@ void _fs_shutdown( void )
 	_fs_event_stream = 0;
 
 #if FOUNDATION_PLATFORM_PNACL
+	_pnacl_core->ReleaseResource( _pnacl_fs_persistent );
+	_pnacl_core->ReleaseResource( _pnacl_fs_temporary );
+
 	_pnacl_fs_temporary = 0;
 	_pnacl_fs_persistent = 0;
 	_pnacl_file_system = 0;
 	_pnacl_file_io = 0;
+	_pnacl_file_ref = 0;
+	_pnacl_var = 0;
+	_pnacl_core = 0;
 #endif
 }

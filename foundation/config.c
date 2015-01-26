@@ -289,7 +289,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	int start_path, i, j;
 
 	const char buildsuffix[4][9] = { "/debug", "/release", "/profile", "/deploy" };
-	const char platformsuffix[7][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/unknown" };
+	const char platformsuffix[8][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/pnacl", "/unknown" };
 	const char binsuffix[1][5] = { "/bin" };
 
 	FOUNDATION_ASSERT( name );
@@ -327,8 +327,13 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	abs_exe_processed_path = path_make_absolute( exe_processed_path );
 	
 	paths[0] = environment_executable_directory();
+#if FOUNDATION_PLATFORM_PNACL
+	paths[1] = 0;
+	paths[2] = 0;
+#else
 	paths[1] = sub_exe_path;
 	paths[2] = abs_exe_parent_path;
+#endif
 	paths[3] = abs_exe_processed_path;
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY

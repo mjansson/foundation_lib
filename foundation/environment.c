@@ -206,7 +206,14 @@ int _environment_initialize( const application_t application )
 
 #elif FOUNDATION_PLATFORM_PNACL
 
-	//TODO: PNaCl
+	for( int ia = 0; ia < _environment_main_argc; ++ia )
+		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
+
+	string_copy( _environment_executable_dir, "/cache", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_current_working_dir, "/cache", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_home_dir, "/persistent", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_temp_dir, "/tmp", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_executable_path, application.short_name, FOUNDATION_MAX_PATHLEN );
 
 #else
 #  error Not implemented
@@ -303,7 +310,7 @@ const char* environment_current_working_directory( void )
 	string_copy( _environment_current_working_dir, path, FOUNDATION_MAX_PATHLEN );
 	memory_deallocate( path );
 #elif FOUNDATION_PLATFORM_PNACL
-	return "/";
+	return "/persistent";
 #else
 #  error Not implemented
 #endif
@@ -327,7 +334,11 @@ void environment_set_current_working_directory( const char* path )
 	if( chdir( path ) < 0 )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set working directory: %s", path );
 #elif FOUNDATION_PLATFORM_PNACL
-	//Not supported
+	//Allow anything
+	char* abspath = path_make_absolute( path );
+	string_copy( _environment_current_working_dir, abspath, FOUNDATION_MAX_PATHLEN );
+	string_deallocate( abspath );
+	return;
 #else
 #  error Not implemented
 #endif
@@ -377,7 +388,6 @@ const char* environment_home_directory( void )
 #elif FOUNDATION_PLATFORM_ANDROID
 	string_copy( _environment_home_dir, android_app()->activity->internalDataPath, FOUNDATION_MAX_PATHLEN );
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
 #else
 #  error Not implemented
 #endif
@@ -459,10 +469,6 @@ const char* environment_temporary_directory( void )
 			memcpy( _environment_temp_dir + curlen, _environment_app.config_dir, cfglen + 1 );
 		}
 	}
-#endif
-#if FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
-	string_copy( _environment_temp_dir, "/tmp", FOUNDATION_MAX_PATHLEN );
 #endif
 	{
 		unsigned int curlen = string_length( _environment_temp_dir );

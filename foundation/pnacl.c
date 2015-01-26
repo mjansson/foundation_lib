@@ -21,6 +21,7 @@
 #include <foundation/environment.h>
 #include <foundation/main.h>
 #include <foundation/system.h>
+#include <foundation/internal.h>
 #include <foundation/pnacl.h>
 
 #include <ppapi/c/pp_instance.h>
@@ -104,7 +105,7 @@ PP_Instance pnacl_instance( void )
 }
 
 
-static void* pnacl_instance_main_thread( object_t thread, void* arg )
+static void* pnacl_instance_main_thread( void* arg )
 {
 	PP_Instance instance = (PP_Instance)(uintptr_t)arg;
 	int ret = real_main( instance );
@@ -123,9 +124,17 @@ static int pnacl_instance_initialize( PP_Instance instance )
 
 static PP_Bool pnacl_instance_create( PP_Instance instance, uint32_t argc, const char* argn[], const char* argv[] )
 {
-	log_debugf( HASH_PNACL, "PNaCL instance create: %d %d", instance, argc );
+	//TODO: Cleanup this to avoid memory allocs
+	unsigned int iout = 0;
+	char** argarr = malloc( sizeof( char* ) * argc * 2 + 1 );
 	for( unsigned int iarg = 0; iarg < argc; ++iarg )
-		log_debugf( HASH_PNACL, "  %s = %s", argn[iarg], argv[iarg] );
+	{
+		argarr[iout++] = strdup( argn[iarg] ? argn[iarg] : "" );
+		argarr[iout++] = strdup( argv[iarg] ? argv[iarg] : "" );
+	}
+	argarr[iout] = 0;
+
+	_environment_main_args( iout, (const char* const*)argarr );
 
 	if( pnacl_instance_initialize( instance ) < 0 )
 		return PP_FALSE;
@@ -191,6 +200,27 @@ const void* pnacl_module_interface( const char* interface_name )
 
 void pnacl_module_shutdown()
 {
+}
+
+
+void* pnacl_array_output( void* arr, uint32_t count, uint32_t size )
+{
+	pnacl_array_t* array = arr;
+
+	array->count = count;
+	if( size )
+	{
+		array->data = memory_allocate( HASH_PNACL, count * size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+		if( !array->data )
+			array->count = 0;
+	}
+	else
+	{
+		array->count = 0;
+		array->data = 0;
+	}
+
+	return array->data;
 }
 
 

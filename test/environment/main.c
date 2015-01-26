@@ -48,7 +48,7 @@ DECLARE_TEST( environment, builtin )
 	char const* const* cmdline = environment_command_line();
 
 	EXPECT_GE( array_size( cmdline ), 1 );
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
 	EXPECT_NE( string_find_string( cmdline[0], "test-environment", 0 ), STRING_NPOS );
 
 	EXPECT_STREQ( environment_executable_name(), "test-environment" );
@@ -63,9 +63,11 @@ DECLARE_TEST( environment, builtin )
 	EXPECT_NE( environment_temporary_directory(), 0 );
 	EXPECT_NE( string_length( environment_temporary_directory() ), 0 );
 
+#if !FOUNDATION_PLATFORM_PNACL
 	EXPECT_NE( environment_variable( "PATH" ), 0 );
 	EXPECT_NE( string_length( environment_variable( "PATH" ) ), 0 );
-	
+#endif
+
 	return 0;
 }
 

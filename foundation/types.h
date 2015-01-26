@@ -649,7 +649,7 @@ ALIGNED_STRUCT( stream_pipe_t, 8 )
 	void*                           handle_read;
 	void*                           handle_write;
 #endif
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int                             fd_read;
 	int                             fd_write;
 #endif

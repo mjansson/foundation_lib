@@ -338,7 +338,17 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 	if( milliseconds > 0 )
 	{
 #if FOUNDATION_PLATFORM_PNACL
-		//TODO: PNaCl busy wait/yield simulation of sem_timedwait
+		//PNaCl busy wait/yield simulation of sem_timedwait
+		tick_t start = time_current();
+		tick_t ticks_per_sec = time_ticks_per_second();
+		while( sem_trywait( (native_sem_t*)semaphore->sem ) != 0 )
+		{
+			thread_yield();
+			tick_t elapsed = time_elapsed_ticks( start );
+			if( elapsed > ( ( (tick_t)milliseconds * ticks_per_sec ) / 1000ULL ) )
+				return false;
+		}
+		return true;
 #else
 		struct timeval now = {0};
 		struct timespec then= {0};
