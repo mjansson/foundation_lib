@@ -107,6 +107,10 @@
 #  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 
+#  ifdef __STRICT_ANSI__
+#    undef __STRICT_ANSI__
+#  endif
+
 // Android
 #elif defined( __ANDROID__ )
 

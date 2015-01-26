@@ -282,7 +282,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	char* cmdline_path = 0;
 	char* cwd_config_path = 0;
 	const char* paths[NUM_SEARCH_PATHS];
-#if !FOUNDATION_PLATFORM_FAMILY_MOBILE
+#if !FOUNDATION_PLATFORM_FAMILY_MOBILE && !FOUNDATION_PLATFORM_PNACL
 	const char* const* cmd_line;
 	int icl, clsize;
 #endif

@@ -21,6 +21,7 @@
 #include <foundation/environment.h>
 #include <foundation/main.h>
 #include <foundation/system.h>
+#include <foundation/memory.h>
 #include <foundation/internal.h>
 #include <foundation/pnacl.h>
 

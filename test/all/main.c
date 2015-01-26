@@ -192,7 +192,7 @@ static const char* test_arch_name[13] = {
 
 int main_run( void* main_arg )
 {
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	const char* pattern = 0;
 	char** exe_paths = 0;
 	unsigned int iexe, exesize;

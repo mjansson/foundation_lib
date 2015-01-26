@@ -52,6 +52,7 @@ void _environment_main_args( int argc, const char* const* argv )
 	_environment_main_argv = argv;
 }
 
+#if !FOUNDATION_PLATFORM_PNACL
 
 static void _environment_set_executable_paths( const char* executable_path )
 {
@@ -80,6 +81,7 @@ static void _environment_set_executable_paths( const char* executable_path )
 	string_copy( _environment_executable_path, executable_path, FOUNDATION_MAX_PATHLEN );
 }
 
+#endif
 
 int _environment_initialize( const application_t application )
 {

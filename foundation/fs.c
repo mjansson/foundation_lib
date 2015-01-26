@@ -144,6 +144,7 @@ PP_Resource _fs_resolve_path( const char* path, const char** localpath )
 			localpath = path + 6;
 			return _pnacl_fs_cache;
 		}*/
+		return 0;
 	}
 
 	log_warnf( HASH_PNACL, WARNING_BAD_DATA, "Invalid file path: %s", path );
@@ -1572,8 +1573,10 @@ static bool _fs_file_eos( stream_t* stream )
 
 static uint64_t _fs_file_size( stream_t* stream )
 {
+#if !FOUNDATION_PLATFORM_PNACL
 	int64_t cur;
 	int64_t size;
+#endif
 
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
@@ -1595,8 +1598,10 @@ static uint64_t _fs_file_size( stream_t* stream )
 
 static void _fs_file_truncate( stream_t* stream, uint64_t length )
 {
-	int64_t cur;
 	stream_file_t* file;
+#if !FOUNDATION_PLATFORM_PNACL
+	int64_t cur;
+#endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
 	wchar_t* wpath;
@@ -1684,8 +1689,10 @@ static uint64_t _fs_file_read( stream_t* stream, void* buffer, uint64_t num_byte
 {
 	stream_file_t* file;
 	int64_t beforepos;
-	size_t size;
 	uint64_t was_read = 0;
+#if !FOUNDATION_PLATFORM_PNACL
+	size_t size;
+#endif
 
 	if( !stream || !( stream->mode & STREAM_IN ) || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
@@ -1743,8 +1750,10 @@ static uint64_t _fs_file_read( stream_t* stream, void* buffer, uint64_t num_byte
 static uint64_t _fs_file_write( stream_t* stream, const void* buffer, uint64_t num_bytes )
 {
 	stream_file_t* file;
-	size_t size;
 	uint64_t was_written = 0;
+#if !FOUNDATION_PLATFORM_PNACL
+	size_t size;
+#endif
 
 	if( !stream || !( stream->mode & STREAM_OUT ) || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
