@@ -55,5 +55,9 @@ Cross-platform build system uses Ninja
 
 http://martine.github.io/ninja
 
+The PNaCl build of the latest release can be tested at
+
+http://www.rampantpixels.com/foundation_lib/pnacl/
+
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
