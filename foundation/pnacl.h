@@ -60,6 +60,7 @@ FOUNDATION_API const void* pnacl_interface( const char* interface );
 
 FOUNDATION_API void*       pnacl_array_output( void* arr, uint32_t count, uint32_t size );
 
+FOUNDATION_API void        pnacl_post_log( uint64_t context, int severity, const char* msg, unsigned int msglen );
 
 #undef radixsort
 

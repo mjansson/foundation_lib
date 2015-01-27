@@ -35,6 +35,8 @@
 #include <ppapi/c/pp_completion_callback.h>
 
 #include <ppapi/c/ppp_instance.h>
+#include <ppapi/c/ppb_var.h>
+#include <ppapi/c/ppb_messaging.h>
 
 extern int real_main( PP_Instance instance );
 
@@ -42,6 +44,9 @@ extern int real_main( PP_Instance instance );
 static PP_Module _pnacl_module = 0;
 static PPB_GetInterface _pnacl_browser_interface = 0;
 static PP_Instance _pnacl_instance = 0;
+
+static const PPB_Var* _pnacl_var = 0;
+static const PPB_Messaging* _pnacl_messaging = 0;
 
 
 const char* pnacl_error_message( int err )
@@ -119,6 +124,10 @@ static int pnacl_instance_initialize( PP_Instance instance )
 {
 	//TODO: Make this non-static
 	_pnacl_instance = instance;
+
+	_pnacl_var = _pnacl_browser_interface( PPB_VAR_INTERFACE );
+	_pnacl_messaging = _pnacl_browser_interface( PPB_MESSAGING_INTERFACE );
+
 	return 0;
 }
 
@@ -222,6 +231,29 @@ void* pnacl_array_output( void* arr, uint32_t count, uint32_t size )
 	}
 
 	return array->data;
+}
+
+
+void pnacl_post_log( uint64_t context, int severity, const char* msg, unsigned int msglen )
+{
+	if( !_pnacl_var || !_pnacl_messaging || !msglen )
+		return;
+
+	char* jsonmsg;
+	char* cleanmsg;
+
+	cleanmsg = string_replace( string_clone( msg ), "\"", "'", false );
+	if( cleanmsg[msglen-1] == '\n' )
+		cleanmsg[msglen-1] = 0;
+	jsonmsg = string_format( "{\"type\":\"log\",\"context\":\"%llx\",\"severity\":\"%d\",\"msg\":\"%s\"}", context, severity, cleanmsg );
+
+	PP_Instance instance = pnacl_instance();
+	struct PP_Var msg_var = _pnacl_var->VarFromUtf8( jsonmsg, string_length( jsonmsg ) );
+	_pnacl_messaging->PostMessage( instance, msg_var );
+	_pnacl_var->Release( msg_var );
+
+	string_deallocate( jsonmsg );
+	string_deallocate( cleanmsg );
 }
 
 
