@@ -72,6 +72,8 @@ class Toolchain(object):
     self.android_platformversion = '21'
     self.android_toolchainversion_gcc = '4.9'
     self.android_toolchainversion_clang = '3.5'
+    self.android_tsa = ''
+    self.android_tsacert = ''
 
     self.ios_deploymenttarget = '6.0'
     self.ios_organisation = ''
@@ -122,6 +124,10 @@ class Toolchain(object):
           self.android_toolchainversion_gcc = val
         elif key == 'android_clangversion':
           self.android_toolchainversion_clang = val
+        elif key == 'android_tsa':
+          self.android_tsa = val
+        elif key == 'android_tsacert':
+          self.android_tsacert = val
         elif key == 'ios_deploymenttarget':
           self.ios_deploymenttarget = val
         elif key == 'ios_organisation':
@@ -184,7 +190,7 @@ class Toolchain(object):
     self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && ' + self.mkdircmd + ' gen && $aapt c -S res -C bin/res; $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
     self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && ' + self.copy + ' $apksource $apk && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
-    self.jarsignercmd = '$jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
+    self.jarsignercmd = '$jarsigner $timestamp -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
@@ -455,6 +461,8 @@ class Toolchain(object):
     self.android_keyalias = os.getenv( 'ANDROID_KEYALIAS', self.android_keyalias )
     self.android_keystorepass = os.getenv( 'ANDROID_KEYSTOREPASS', self.android_keystorepass )
     self.android_keypass = os.getenv( 'ANDROID_KEYPASS', self.android_keypass )
+    self.android_tsa = os.getenv( 'ANDROID_TSA', self.android_tsa )
+    self.android_tsacert = os.getenv( 'ANDROID_TSACERT', self.android_tsacert )
 
     self.android_archname = dict()
     self.android_archname['x86'] = 'x86'
@@ -549,6 +557,10 @@ class Toolchain(object):
         self.android_gccversion = androidprefs['gccversion']
       if 'platformversion' in androidprefs:
         self.android_clangversion = androidprefs['clangversion']
+      if 'tsa' in androidprefs:
+        self.android_tsa = androidprefs['tsa']
+      if 'tsacert' in androidprefs:
+        self.android_tsacert = androidprefs['tsacert']
     if 'ios' in prefs:
       iosprefs = prefs['ios']
       if 'deploymenttarget' in iosprefs:
@@ -906,6 +918,7 @@ class Toolchain(object):
       writer.variable( 'sysroot', '' )
       writer.variable( 'liblinkname', '' )
       writer.variable( 'aaptflags', '' )
+      writer.variable( 'timestamp', '' )
     if self.target.is_pnacl():
       writer.variable( 'finalize', self.finalize )
       writer.variable( 'nmf', self.nmf )
@@ -1164,7 +1177,12 @@ class Toolchain(object):
     unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptadd', baseapkfile, variables = aaptvars, implicit = libfiles + javafiles )
 
     #Sign the APK
-    unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile )
+    jarsignervars = []
+    if self.android_tsacert != '':
+      jarsignervars += [ ( 'timestamp', '-tsacert ' + self.android_tsacert ) ]
+    elif self.android_tsa != '':
+      jarsignervars += [ ( 'timestamp', '-tsa ' + self.android_tsa ) ]
+    unalignedapkfile = writer.build( os.path.join( buildpath, unalignedapkname ), 'jarsigner', unsignedapkfile, variables = jarsignervars )
 
     #Run zipalign
     outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
