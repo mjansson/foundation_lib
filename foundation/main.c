@@ -139,7 +139,10 @@ static void sighandler( int sig )
 
 #endif
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_ANDROID
+/*! Aliased entry point */
+int real_main( void )
+#elif FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */
 int real_main( PP_Instance instance )
 #else
