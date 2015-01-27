@@ -26,6 +26,10 @@
 #  include <cpu-features.h>
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#endif
+
 #if FOUNDATION_PLATFORM_APPLE
 extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
@@ -56,6 +60,8 @@ static platform_info_t _platform_info = {
 	PLATFORM_MACOSX,
 #elif FOUNDATION_PLATFORM_IOS
 	PLATFORM_IOS,
+#elif FOUNDATION_PLATFORM_PNACL
+	PLATFORM_PNACL,
 #else
 #  error Unknown platform
 #endif
@@ -82,6 +88,8 @@ ARCHITECTURE_ARM5,
 ARCHITECTURE_MIPS_64,
 #elif FOUNDATION_ARCH_MIPS
 ARCHITECTURE_MIPS,
+#elif FOUNDATION_ARCH_GENERIC
+ARCHITECTURE_GENERIC,
 #else
 #  error Unknown architecture
 #endif
@@ -269,9 +277,9 @@ static uint32_t _system_user_locale( void )
 }
 
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-#  if !FOUNDATION_PLATFORM_ANDROID
+#  if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 #    include <ifaddrs.h>
 #  endif
 
@@ -298,10 +306,14 @@ const char* system_error_message( int code )
 		return "<no error>";
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
-	strerror_r( code, buffer, 256 );
-	return buffer;
 #else
 	static THREADLOCAL char buffer[256];
+#endif
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+	if( strerror_r( code, buffer, 256 ) == 0 )
+		return buffer;
+	return "<no error string>";
+#else
 	return strerror_r( code, buffer, 256 );
 #endif
 }
@@ -325,7 +337,7 @@ const char* system_username( void )
 	if( username[0] )
 		return username;
 	strcpy( username, "<unknown>" );
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	strncpy( username, getlogin(), 64 );
 #else
 	getlogin_r( username, 64 );
@@ -392,6 +404,9 @@ uint64_t system_hostid( void )
 #if FOUNDATION_PLATFORM_ANDROID
 	//Not implemented yet, see https://code.google.com/p/libjingle/source/browse/trunk/talk/base/ifaddrs-android.cc
 	return 0;
+#elif FOUNDATION_PLATFORM_PNACL
+	//Not implemented yet, see https://code.google.com/p/libjingle/source/browse/trunk/talk/base/ifaddrs-android.cc
+	return 0;
 #else
 	struct ifaddrs* ifaddr;
 	struct ifaddrs* ifa;
@@ -443,6 +458,8 @@ unsigned int system_hardware_threads( void )
 	return _system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
 	return android_getCpuCount();
+#elif FOUNDATION_PLATFORM_PNACL
+	return sysconf( _SC_NPROCESSORS_ONLN );
 #else
 	cpu_set_t prevmask, testmask;
 	CPU_ZERO( &prevmask );

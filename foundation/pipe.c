@@ -17,6 +17,8 @@
 #include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #include <foundation/posix.h>
+#elif FOUNDATION_PLATFORM_PNACL
+#include <foundation/pnacl.h>
 #endif
 
 
@@ -57,7 +59,7 @@ void pipe_initialize( stream_pipe_t* pipestream )
 		if( !CreatePipe( &pipestream->handle_read, &pipestream->handle_write, &security_attribs, 0 ) )
 			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( GetLastError() ) );
 	}
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int fds[2] = { 0, 0 };
 	if( pipe( fds ) < 0 )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( 0 ) );
@@ -84,7 +86,7 @@ static void _pipe_finalize( stream_t* stream )
 	if( pipe->handle_write )
 		CloseHandle( pipe->handle_write );
 	pipe->handle_write = 0;
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pipe->fd_read )
 		close( pipe->fd_read );
 	pipe->fd_read = 0;
@@ -101,7 +103,7 @@ void pipe_close_read( stream_t* stream )
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pipestream->fd_read )
 	{
 		close( pipestream->fd_read );
@@ -118,7 +120,7 @@ void pipe_close_write( stream_t* stream )
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pipestream->fd_write )
 	{
 		close( pipestream->fd_write );
@@ -149,7 +151,7 @@ void* pipe_write_handle( stream_t* stream )
 }
 
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 
 int pipe_read_fd( stream_t* stream )
@@ -186,7 +188,7 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 		} while( total_read < num );
 		return total_read;
 	}
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pipestream->fd_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
 		uint64_t total_read = 0;
@@ -222,7 +224,7 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 		} while( total_written < num );
 		return total_written;
 	}
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pipestream->fd_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
 		uint64_t total_written = 0;
@@ -246,7 +248,7 @@ static bool _pipe_stream_eos( stream_t* stream )
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 #if FOUNDATION_PLATFORM_WINDOWS
 	return !stream || ( !pipestream->handle_read && !pipestream->handle_write );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	return !stream || ( !pipestream->fd_read && !pipestream->fd_write );
 #else
 	return !stream;

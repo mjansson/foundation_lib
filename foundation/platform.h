@@ -46,6 +46,7 @@
 #define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
 #define FOUNDATION_PLATFORM_MACOSX 0
 #define FOUNDATION_PLATFORM_WINDOWS 0
+#define FOUNDATION_PLATFORM_PNACL 0
 
 //Platform traits and groups
 #define FOUNDATION_PLATFORM_APPLE 0
@@ -70,6 +71,7 @@
 #define FOUNDATION_ARCH_IA64 0
 #define FOUNDATION_ARCH_MIPS 0
 #define FOUNDATION_ARCH_MIPS_64 0
+#define FOUNDATION_ARCH_GENERIC 0
 
 //Architecture details
 #define FOUNDATION_ARCH_SSE2 0
@@ -91,8 +93,26 @@
 
 //First, platforms and architectures
 
+#if defined( __pnacl__ )
+
+#  undef  FOUNDATION_PLATFORM_PNACL
+#  define FOUNDATION_PLATFORM_PNACL 1
+
+#  define FOUNDATION_PLATFORM_NAME "PNaCl"
+#  define FOUNDATION_PLATFORM_DESCRIPTION "PNaCl"
+
+#  undef  FOUNDATION_ARCH_GENERIC
+#  define FOUNDATION_ARCH_GENERIC 1
+
+#  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+
+#  ifdef __STRICT_ANSI__
+#    undef __STRICT_ANSI__
+#  endif
+
 // Android
-#if defined( __ANDROID__ )
+#elif defined( __ANDROID__ )
 
 #  undef  FOUNDATION_PLATFORM_ANDROID
 #  define FOUNDATION_PLATFORM_ANDROID 1

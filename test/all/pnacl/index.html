@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Foundation Library PNaCl Test Suite</title>
+</head>
+<body>
+	<h1>Foundation Library PNaCl Test Suite</h1>
+	<p>
+		<div id="test" style="width: 0px; height: 0px;">
+			<embed id="plugin"
+				width="0" height="0"
+				src="test-all.nmf"
+				type="application/x-pnacl" />
+		</div>
+		<pre id="log"></pre>
+		<script type="text/javascript">
+			var plugin = document.getElementById( 'plugin' );
+			var log = document.getElementById( 'log' );
+			plugin.addEventListener( "message", function( rawmsg ) {
+				var parsed = JSON.parse( rawmsg.data );
+				log.textContent += parsed.msg + '\n';
+			}, false );
+		</script>
+	</p>
+</body>
+</html>

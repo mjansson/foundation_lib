@@ -364,12 +364,12 @@ DECLARE_TEST( bitbuffer, stream )
 	int bits64[20] = {0};
 	int bits128[20] = {0};
 
-	char* tmp_path;
+	char* tmp_path = 0;
 
 	for( ival = 0; ival < 4; ++ival )
 		val128[ival] = uint128_make( random64(), random64() );
 
-	for( ipass = 0; ipass < 8192; ++ipass )
+	for( ipass = 0; ipass < 1024; ++ipass )
 	{
 		for( ival = 0; ival < 20; ++ival )
 		{
@@ -380,6 +380,10 @@ DECLARE_TEST( bitbuffer, stream )
 	
 		//Phase 1 - write data
 		stream = fs_temporary_file();
+		EXPECT_NE( stream, 0 );
+
+		tmp_path = string_clone( stream_path( stream ) );
+
 		bitbuffer_initialize_stream( &bitbuffer, stream );
 
 		for( ival = 0; ival < 16; ++ival )
@@ -413,12 +417,8 @@ DECLARE_TEST( bitbuffer, stream )
 		bitbuffer_align_write( &bitbuffer, false );
 		bitbuffer_write64( &bitbuffer, 0, 63 );
 
-		tmp_path = string_clone( stream_path( stream ) );
-		stream_deallocate( stream );
-
 		// Phase 2 - read and verify data
-		stream = stream_open( tmp_path, STREAM_IN | STREAM_BINARY );
-		EXPECT_NE_MSG( stream, 0, tmp_path );
+		stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 		bitbuffer_initialize_stream( &bitbuffer, stream );
 
 		for( ival = 0; ival < 16; ++ival )
@@ -480,7 +480,7 @@ test_suite_t test_bitbuffer_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
 
 int test_bitbuffer_run( void );
 int test_bitbuffer_run( void )

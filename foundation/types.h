@@ -84,7 +84,8 @@ typedef enum
 	PLATFORM_MACOSX,
 	PLATFORM_IOS,
 	PLATFORM_ANDROID,
-	PLATFORM_RASPBERRYPI
+	PLATFORM_RASPBERRYPI,
+	PLATFORM_PNACL
 } platform_t;
 
 typedef enum
@@ -99,7 +100,8 @@ typedef enum
 	ARCHITECTURE_ARM8,
 	ARCHITECTURE_ARM8_64,
 	ARCHITECTURE_MIPS,
-	ARCHITECTURE_MIPS_64
+	ARCHITECTURE_MIPS_64,
+	ARCHITECTURE_GENERIC
 } architecture_t;
 
 typedef enum
@@ -119,7 +121,8 @@ typedef enum
 	STREAM_IN                  = 0x0001,
 	STREAM_OUT                 = 0x0002,
 	STREAM_TRUNCATE            = 0x0010,
-	STREAM_ATEND               = 0x0020,
+	STREAM_CREATE              = 0x0020,
+	STREAM_ATEND               = 0x0040,
 	STREAM_BINARY              = 0x0100,
 	STREAM_SYNC                = 0x0200
 } stream_mode_t;
@@ -267,7 +270,7 @@ typedef struct OpaqueMPSemaphoreID*          MPSemaphoreID;
 typedef struct semaphore_t                   semaphore_t;
 #elif FOUNDATION_PLATFORM_IOS
 typedef struct dispatch_semaphore_s*         semaphore_t;
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 typedef union semaphore_native_t             semaphore_native_t;
 typedef struct semaphore_t                   semaphore_t;
 #endif
@@ -582,12 +585,15 @@ struct semaphore_t
 };
 
 #elif FOUNDATION_PLATFORM_IOS
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 union semaphore_native_t
 {
 #  if FOUNDATION_PLATFORM_ANDROID
 	volatile unsigned int           count;
+#  elif FOUNDATION_PLATFORM_PNACL
+	volatile int                    count;
+	volatile int                    nwaiters;
 #else
 #  if FOUNDATION_ARCH_X86_64
 	char                            __size[64];
@@ -643,7 +649,7 @@ ALIGNED_STRUCT( stream_pipe_t, 8 )
 	void*                           handle_read;
 	void*                           handle_write;
 #endif
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int                             fd_read;
 	int                             fd_write;
 #endif
