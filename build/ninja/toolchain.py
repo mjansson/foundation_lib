@@ -371,10 +371,13 @@ class Toolchain(object):
         pnacl_osname = subprocess.check_output( [ 'python', os.path.join( self.pnacl_sdkpath, 'tools', 'getos.py' ) ] ).strip()
         pnacl_toolchainpath = os.path.join( self.pnacl_sdkpath, 'toolchain', pnacl_osname + '_pnacl' )
 
-        self.cc = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-clang' )
-        self.ar = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-ar' )
+        shsuffix = ''
+        if self.host.is_windows():
+          shsuffix = '.bat'
+        self.cc = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-clang' + shsuffix )
+        self.ar = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-ar' + shsuffix )
         self.link = self.cc
-        self.finalize = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-finalize' )
+        self.finalize = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-finalize' + shsuffix )
         self.nmf = os.path.join( self.pnacl_sdkpath, 'tools', 'create_nmf.py' )
 
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'

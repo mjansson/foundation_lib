@@ -14,6 +14,7 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/error.h>
 
 
 FOUNDATION_API void              log_debugf( uint64_t context, const char* format, ... );
