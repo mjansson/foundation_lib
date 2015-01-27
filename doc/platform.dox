@@ -56,6 +56,10 @@ Use the macros defined in this file for platform/arch definitions, attributes an
 \brief Windows platform flag
 \details Defined to 1 if compiling for Windows, 0 otherwise
 
+\def FOUNDATION_PLATFORM_PNACL
+\brief PNaCl platform flag
+\details Defined to 1 if compiling for PNaCl, 0 otherwise
+
 \def FOUNDATION_PLATFORM_APPLE
 \brief Apple platform group flag
 \details Defined to 1 if compiling for Apple platforms (MacOS X, iOS, iOS simulator), 0 otherwise
