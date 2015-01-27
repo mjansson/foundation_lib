@@ -765,7 +765,6 @@ uint64_t fs_last_modified( const char* path )
 	//This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan 1601" was
 	//a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date for unix time, 1 Jan 1970, is 116444736000000000
 	const uint64_t ms_offset_time = 116444736000000000ULL;
-	char* fpath;
 	uint64_t last_write_time;
 	wchar_t* wpath;
 	WIN32_FILE_ATTRIBUTE_DATA attrib;
