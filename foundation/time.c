@@ -20,7 +20,7 @@
 #  include <mach/mach_time.h>
 static mach_timebase_info_data_t _time_info;
 static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #  include <unistd.h>
 #  include <time.h>
 #  include <string.h>
@@ -44,7 +44,7 @@ int _time_initialize( void )
 	if( mach_timebase_info( &_time_info ) )
 		return -1;
 	_time_freq = 1000000000ULL;
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	if( clock_gettime( CLOCK_MONOTONIC, &ts ) )
 		return -1;
@@ -77,12 +77,14 @@ tick_t time_current( void )
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
 	return curclock;
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_MONOTONIC, &ts );
 	return ( (uint64_t)ts.tv_sec * 1000000000ULL ) + ts.tv_nsec;
 
+#else
+#  error Not implemented
 #endif
 }
 
@@ -129,7 +131,7 @@ tick_t time_elapsed_ticks( const tick_t t )
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
 	dt = curclock - t;
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	tick_t curclock;
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
@@ -138,6 +140,8 @@ tick_t time_elapsed_ticks( const tick_t t )
 	curclock = ( (tick_t)ts.tv_sec * 1000000000ULL ) + ts.tv_nsec;
 	dt = curclock - t;
 
+#else
+#  error Not implemented
 #endif
 
 	return dt;
@@ -174,11 +178,13 @@ tick_t time_system( void )
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
 	return ( curclock / 1000000ULL );
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_REALTIME, &ts );
 	return ( (uint64_t)ts.tv_sec * 1000ULL ) + ( ts.tv_nsec / 1000000ULL );
 
+#else
+#  error Not implemented
 #endif
 }

@@ -13,6 +13,11 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#  include <ppapi/c/ppp_instance.h>
+#endif
+
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -69,7 +74,7 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 	foundation_startup();
 
 	system_post_event( FOUNDATIONEVENT_START );
-    
+	
 #if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
@@ -134,10 +139,9 @@ static void sighandler( int sig )
 
 #endif
 
-
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */
-int real_main( void )
+int real_main( PP_Instance instance )
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
 int main( int argc, char** argv )
@@ -145,7 +149,7 @@ int main( int argc, char** argv )
 {
 	int ret = -1;
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	_environment_main_args( argc, (const char* const*)argv );
 #endif
 	
@@ -187,8 +191,8 @@ int main( int argc, char** argv )
 	thread_set_main();
 
 	foundation_startup();
-    
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
+	
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
 	system_post_event( FOUNDATIONEVENT_START );
 #endif
 
@@ -214,9 +218,6 @@ int main( int argc, char** argv )
 	}
 #endif
 
-//#if BUILD_DEBUG
-//	ret = main_run( 0 );
-//#else
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
@@ -255,6 +256,30 @@ void android_main( struct android_app* app )
 		return;
 	android_entry( app );
 	real_main();
+}
+
+#endif
+
+
+#if FOUNDATION_PLATFORM_PNACL
+
+/*! PNaCl glue entry points */
+
+PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser )
+{
+	return pnacl_module_initialize( module_id, get_browser );
+}
+
+
+PP_EXPORT const void* PPP_GetInterface( const char* interface_name )
+{
+	return pnacl_module_interface( interface_name );
+}
+
+
+PP_EXPORT void PPP_ShutdownModule()
+{
+	pnacl_module_shutdown();
 }
 
 #endif

@@ -17,9 +17,9 @@
 
 test_suite_t test_suite = {0};
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
 FOUNDATION_EXTERN test_suite_t test_suite_define( void );
-#elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 extern volatile bool _test_should_terminate;
 #endif
 
@@ -40,7 +40,7 @@ test_group_t** _test_groups = 0;
 static bool _test_failed = false;
 
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
 
 static void* test_event_thread( object_t thread, void* arg )
 {
@@ -107,7 +107,7 @@ static void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
 	void* result = 0;
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
 	object_t thread_event = 0;
 #endif
 
@@ -115,7 +115,7 @@ static void test_run( void )
 
 	_test_failed = false;
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
 	thread_event = thread_create( test_event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread_event, 0 );
 
@@ -139,7 +139,7 @@ static void test_run( void )
 			{
 				log_info( HASH_TEST, "    PASSED" );
 			}
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
 			if( _test_should_terminate )
 			{
 				_test_failed = true;
@@ -149,7 +149,7 @@ static void test_run( void )
 		}
 	}
 	
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
 	thread_terminate( thread_event );
 	thread_destroy( thread_event );
 	while( thread_is_running( thread_event ) || thread_is_thread( thread_event ) )
@@ -198,7 +198,7 @@ int test_run_all( void )
 }
 
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
 
 int main_initialize( void )
 {

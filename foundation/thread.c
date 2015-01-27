@@ -18,11 +18,17 @@
 typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 DWORD WINAPI GetCurrentProcessorNumberFallback(VOID) { return 0; }
 GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
-#elif FOUNDATION_PLATFORM_POSIX
+#endif
+
+#if FOUNDATION_PLATFORM_POSIX
 #  if !FOUNDATION_PLATFORM_APPLE
 #    include <sys/prctl.h>
 #  endif
 #  include <pthread.h>
+#endif
+
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -81,7 +87,7 @@ struct thread_t
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE                handle;
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	pthread_t             thread;
 #else
 #  error Not implemented
@@ -327,7 +333,7 @@ typedef void* thread_arg_t;
 #define FOUNDATION_THREADCALL WINAPI
 #define GET_THREAD_PTR(x) ((thread_t*)(x))
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 typedef void* thread_return_t;
 typedef void* thread_arg_t;
@@ -370,6 +376,9 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 #if !BUILD_DEPLOY
 	prctl( PR_SET_NAME, thread->name, 0, 0, 0 );
 #endif
+#elif FOUNDATION_PLATFORM_PNACL
+	pthread_t curid = pthread_self();
+	thread->osid = (uintptr_t)curid;
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	mach_port_t curid = pthread_mach_thread_np( pthread_self() );
 	thread->osid = curid;
@@ -456,7 +465,7 @@ bool thread_start( object_t id, void* data )
 		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
 		return false;
 	}
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int err = pthread_create( &thread->thread, 0, _thread_entry, thread );
 	if( err )
 	{
@@ -492,7 +501,7 @@ void thread_sleep( int milliseconds )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	SleepEx( milliseconds, 1 );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	struct timespec ts;
 	ts.tv_sec  = milliseconds / 1000;
 	ts.tv_nsec = (long)( milliseconds % 1000 ) * 1000000L;
@@ -507,7 +516,7 @@ void thread_yield( void )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	Sleep(0);
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	sched_yield();
 #else
 #  error Not implemented
@@ -523,6 +532,8 @@ uint64_t thread_id( void )
 	return pthread_mach_thread_np( pthread_self() );
 #elif FOUNDATION_PLATFORM_POSIX
 	return pthread_self();
+#elif FOUNDATION_PLATFORM_PNACL
+	return (uintptr_t)pthread_self();
 #else
 #  error Not implemented
 #endif

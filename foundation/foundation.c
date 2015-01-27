@@ -18,6 +18,11 @@
 #if FOUNDATION_PLATFORM_ANDROID
 struct android_app;
 extern void android_main( struct android_app* );
+#elif FOUNDATION_PLATFORM_PNACL
+#include <ppapi/c/ppp.h>
+FOUNDATION_EXTERN PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser );
+FOUNDATION_EXTERN PP_EXPORT const void* PPP_GetInterface( const char* interface_name );
+FOUNDATION_EXTERN PP_EXPORT void PPP_ShutdownModule();
 #else
 extern int main( int, char** );
 #endif
@@ -84,6 +89,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	//Artificial references
 #if FOUNDATION_PLATFORM_ANDROID
 	android_main( 0 );
+#elif FOUNDATION_PLATFORM_PNACL
+	if( ( (uintptr_t)PPP_InitializeModule < 1 ) || ( (uintptr_t)PPP_GetInterface < 1 ) || ( (uintptr_t)PPP_ShutdownModule < 1 ) )
+		return -1;
 #else
 	if( (uintptr_t)main < 1 )
 		return -1;
@@ -130,6 +138,6 @@ bool foundation_is_initialized( void )
 
 version_t foundation_version( void )
 {
-	return version_make( 1, 2, 1, 0, 0 );
+	return version_make( 1, 2, 2, 0, 0 );
 }
 

@@ -309,11 +309,11 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buf
 	stream->path = string_format( "ringbuffer://0x%" PRIfixPTR, stream );
 	stream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 	
+	ringbuffer_initialize( RINGBUFFER_FROM_STREAM( stream ), buffer_size );
 	semaphore_initialize( &stream->signal_read, 0 );
 	semaphore_initialize( &stream->signal_write, 0 );
 	
 	stream->total_size = total_size;
-	stream->buffer_size = buffer_size;
 	
 	stream->vtable = &_ringbuffer_stream_vtable;
 }

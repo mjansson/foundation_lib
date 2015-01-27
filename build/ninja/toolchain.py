@@ -15,7 +15,7 @@ def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
 
 def supported_architectures():
-  return [ 'x86', 'x86-64', 'ppc', 'ppc64', 'arm6', 'arm7', 'arm64', 'mips', 'mips64' ]
+  return [ 'x86', 'x86-64', 'ppc', 'ppc64', 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'generic' ]
 
 class Toolchain(object):
   def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, variables, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
@@ -52,6 +52,11 @@ class Toolchain(object):
       elif self.target.is_android():
         self.archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
 
+    #PNaCl overrides
+    if target.is_pnacl():
+      self.toolchain = 'clang'
+      self.archs = [ 'generic' ]
+
     if host.is_windows():
       self.exe_suffix = '.exe'
     else:
@@ -77,6 +82,8 @@ class Toolchain(object):
     self.macosx_organisation = ''
     self.macosx_bundleidentifier = ''
     self.macosx_provisioning = ''
+
+    self.pnacl_sdkpath = ''
 
     #Parse variables
     if variables:
@@ -131,6 +138,8 @@ class Toolchain(object):
           self.macosx_bundleidentifier = val
         elif key == 'macosx_provisioning':
           self.macosx_provisioning = val
+        elif key == 'pnacl_sdkpath':
+          self.pnacl_sdkpath = val
 
     #Source in local build prefs
     self.read_prefs( 'build.json' )
@@ -350,6 +359,27 @@ class Toolchain(object):
 
         self.extralibs += [ 'log' ]
 
+      elif target.is_pnacl():
+        self.pnacl_sdkpath = os.getenv( 'PNACL_SDKPATH', os.getenv( 'NACL_SDK_ROOT', self.pnacl_sdkpath ) )
+
+        pnacl_osname = subprocess.check_output( [ 'python', os.path.join( self.pnacl_sdkpath, 'tools', 'getos.py' ) ] ).strip()
+        pnacl_toolchainpath = os.path.join( self.pnacl_sdkpath, 'toolchain', pnacl_osname + '_pnacl' )
+
+        self.cc = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-clang' )
+        self.ar = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-ar' )
+        self.link = self.cc
+        self.finalize = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-finalize' )
+        self.nmf = os.path.join( self.pnacl_sdkpath, 'tools', 'create_nmf.py' )
+
+        self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
+        self.finalizecmd = '$finalize -o $out $in'
+        self.nmfcmd = 'python $nmf -o $out $in'
+
+        self.includepaths += [ os.path.join( self.pnacl_sdkpath, 'include' ) ]
+
+        self.extralibs += [ 'ppapi', 'm' ]
+
       else:
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
@@ -400,6 +430,11 @@ class Toolchain(object):
       self.staticlibext = '.a'
       self.binprefix = 'lib'
       self.binext = '.so'
+    elif target.is_pnacl():
+      self.libprefix = 'lib'
+      self.staticlibext = '.a'
+      self.binprefix = ''
+      self.binext = '.bc'
     else:
       self.libprefix = 'lib'
       self.staticlibext = '.a'
@@ -534,6 +569,10 @@ class Toolchain(object):
         self.macosx_bundleidentifier = macosxprefs['bundleidentifier']
       if 'provisioning' in macosxprefs:
         self.macosx_provisioning = macosxprefs['provisioning']
+    if 'pnacl' in prefs:
+      pnaclprefs = prefs['pnacl']
+      if 'sdkpath' in pnaclprefs:
+        self.pnacl_sdkpath = pnaclprefs['sdkpath']
 
   def build_includepaths( self, includepaths ):
     finalpaths = []
@@ -805,101 +844,32 @@ class Toolchain(object):
     return str
 
   def write_rules( self, writer ):
-    writer.rule( 'cc',
-                command = self.cccmd,
-                depfile = self.ccdepfile,
-                deps = self.ccdeps,
-                description = 'CC $out' )
-    writer.newline()
+    writer.rule( 'cc', command = self.cccmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $out' )
+    writer.rule( 'ar', command = self.arcmd, description = 'LIB $out')
+    writer.rule( 'link', command = self.linkcmd, description = 'LINK $out')
+    writer.rule( 'copy', command = self.copycmd, description = 'COPY $in -> $outpath')
 
     if self.target.is_macosx() or self.target.is_ios():
-      writer.rule( 'cm',
-                   command = self.cmcmd,
-                   depfile = self.ccdepfile,
-                   deps = self.ccdeps,
-                   description = 'CC $out' )
-      writer.newline()
-
-      writer.rule( 'lipo',
-                   command = self.lipocmd,
-                   description = 'LIPO $out' )
-      writer.newline()
-
-      writer.rule( 'dsymutil',
-                   command = self.dsymutilcmd,
-                   description = 'DSYMUTIL $outpath' )
-      writer.newline()
-
-      writer.rule( 'plist',
-                   command = self.plistcmd,
-                   description = 'PLIST $outpath' )
-      writer.newline()
-
-      writer.rule( 'xcassets',
-                   command = self.xcassetscmd,
-                   description = 'XCASSETS $outpath' )
-      writer.newline()
-
-      writer.rule( 'xib',
-                   command = self.xibcmd,
-                   description = 'XIB $outpath' )
-      writer.newline()
-
-      writer.rule( 'codesign',
-                   command = self.codesigncmd,
-                   description = 'CODESIGN $outpath' )
-      writer.newline()
+      writer.rule( 'cm', command = self.cmcmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $out' )
+      writer.rule( 'lipo', command = self.lipocmd, description = 'LIPO $out' )
+      writer.rule( 'dsymutil', command = self.dsymutilcmd, description = 'DSYMUTIL $outpath' )
+      writer.rule( 'plist', command = self.plistcmd, description = 'PLIST $outpath' )
+      writer.rule( 'xcassets', command = self.xcassetscmd, description = 'XCASSETS $outpath' )
+      writer.rule( 'xib', command = self.xibcmd, description = 'XIB $outpath' )
+      writer.rule( 'codesign', command = self.codesigncmd, description = 'CODESIGN $outpath' )
 
     if self.target.is_android():
-      writer.rule( 'aapt',
-                   command = self.aaptcmd,
-                   description = 'AAPT $out' )
-      writer.newline()
+      writer.rule( 'aapt', command = self.aaptcmd, description = 'AAPT $out' )
+      writer.rule( 'aaptdeploy', command = self.aaptdeploycmd, description = 'AAPT $out' )
+      writer.rule( 'aaptadd', command = self.aaptaddcmd, description = 'AAPT $out' )
+      writer.rule( 'javac', command = self.javaccmd, description = 'JAVAC $outpath' )
+      writer.rule( 'dex', command = self.dexcmd, description = 'DEX $out' )
+      writer.rule( 'jarsigner', command = self.jarsignercmd, description = 'JARSIGNER $out' )
+      writer.rule( 'zipalign', command = self.zipaligncmd, description = 'ZIPALIGN $out' )
 
-      writer.rule( 'aaptdeploy',
-                   command = self.aaptdeploycmd,
-                   description = 'AAPT $out' )
-      writer.newline()
-
-      writer.rule( 'aaptadd',
-                   command = self.aaptaddcmd,
-                   description = 'AAPT $out' )
-      writer.newline()
-
-      writer.rule( 'javac',
-                   command = self.javaccmd,
-                   description = 'JAVAC $outpath' )
-      writer.newline()
-
-      writer.rule( 'dex',
-                   command = self.dexcmd,
-                   description = 'DEX $out' )
-      writer.newline()
-
-      writer.rule( 'jarsigner',
-                   command = self.jarsignercmd,
-                   description = 'JARSIGNER $out' )
-      writer.newline()
-
-      writer.rule( 'zipalign',
-                   command = self.zipaligncmd,
-                   description = 'ZIPALIGN $out' )
-      writer.newline()
-
-    writer.rule( 'ar',
-                 command = self.arcmd,
-                 description = 'LIB $out')
-    writer.newline()
-
-    writer.rule( 'link',
-                 command = self.linkcmd,
-                 description = 'LINK $out')
-    writer.newline()
-
-    writer.rule( 'copy',
-                 command = self.copycmd,
-                 description = 'COPY $in -> $outpath')
-    writer.newline()
+    if self.target.is_pnacl():
+      writer.rule( 'finalize', command = self.finalizecmd, description = 'FINALIZE $out' )
+      writer.rule( 'nmf', command = self.nmfcmd, description = 'NMF $out' )
 
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
@@ -936,6 +906,9 @@ class Toolchain(object):
       writer.variable( 'sysroot', '' )
       writer.variable( 'liblinkname', '' )
       writer.variable( 'aaptflags', '' )
+    if self.target.is_pnacl():
+      writer.variable( 'finalize', self.finalize )
+      writer.variable( 'nmf', self.nmf )
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
@@ -1272,7 +1245,10 @@ class Toolchain(object):
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
-        binpath = os.path.join( self.binpath, config, arch )
+        if self.target.is_pnacl():
+          binpath = os.path.join( self.binpath, config )
+        else:
+          binpath = os.path.join( self.binpath, config, arch )
         if self.target.is_macosx() or self.target.is_ios():
           libpath = os.path.join( self.libpath, config ) #Use universal libraries
         else:
@@ -1316,11 +1292,17 @@ class Toolchain(object):
           for resource in resources:
             built[config] += self.build_res( writer, basepath, module, resource, binpath, binname, config )
       if do_universal:
-        buildpath = os.path.join( self.buildpath, config )
-        binpath = os.path.join( self.binpath, config )
+        if self.target.is_macosx() or self.target.is_ios():
+          buildpath = os.path.join( self.buildpath, config )
+          binpath = os.path.join( self.binpath, config )
+          writer.newline()
+          writer.comment( "Make universal binary" )
+          built[config] = writer.build( os.path.join( buildpath if is_app else binpath, self.binprefix + binname + self.binext ), 'lipo', builtbin )
+      if self.target.is_pnacl():
         writer.newline()
-        writer.comment( "Make universal binary" )
-        built[config] = writer.build( os.path.join( buildpath if is_app else binpath, self.binprefix + binname + self.binext ), 'lipo', builtbin )
+        writer.comment( "Finalize portable executable" )
+        pexe = writer.build( os.path.join( binpath, self.binprefix + binname + '.pexe' ), 'finalize', builtbin )
+        built[config] = pexe + writer.build( os.path.join( binpath, self.binprefix + binname + '.nmf' ), 'nmf', pexe + builtbin )
     writer.newline()
     return built
 

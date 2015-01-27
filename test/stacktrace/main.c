@@ -99,7 +99,7 @@ test_suite_t test_stacktrace_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
 
 int test_stacktrace_run( void );
 int test_stacktrace_run( void )

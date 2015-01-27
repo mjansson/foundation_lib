@@ -52,6 +52,7 @@ void _environment_main_args( int argc, const char* const* argv )
 	_environment_main_argv = argv;
 }
 
+#if !FOUNDATION_PLATFORM_PNACL
 
 static void _environment_set_executable_paths( const char* executable_path )
 {
@@ -80,6 +81,7 @@ static void _environment_set_executable_paths( const char* executable_path )
 	string_copy( _environment_executable_path, executable_path, FOUNDATION_MAX_PATHLEN );
 }
 
+#endif
 
 int _environment_initialize( const application_t application )
 {
@@ -204,6 +206,17 @@ int _environment_initialize( const application_t application )
 	string_deallocate( dir_path );
 	string_deallocate( exe_path );
 
+#elif FOUNDATION_PLATFORM_PNACL
+
+	for( int ia = 0; ia < _environment_main_argc; ++ia )
+		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
+
+	string_copy( _environment_executable_dir, "/cache", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_current_working_dir, "/cache", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_home_dir, "/persistent", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_temp_dir, "/tmp", FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_executable_path, application.short_name, FOUNDATION_MAX_PATHLEN );
+
 #else
 #  error Not implemented
 	/*if( array_size( _environment_argv ) > 0 )
@@ -298,6 +311,8 @@ const char* environment_current_working_directory( void )
 	path = path_clean( path, true );
 	string_copy( _environment_current_working_dir, path, FOUNDATION_MAX_PATHLEN );
 	memory_deallocate( path );
+#elif FOUNDATION_PLATFORM_PNACL
+	return "/persistent";
 #else
 #  error Not implemented
 #endif
@@ -320,6 +335,12 @@ void environment_set_current_working_directory( const char* path )
 #elif FOUNDATION_PLATFORM_POSIX
 	if( chdir( path ) < 0 )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set working directory: %s", path );
+#elif FOUNDATION_PLATFORM_PNACL
+	//Allow anything
+	char* abspath = path_make_absolute( path );
+	string_copy( _environment_current_working_dir, abspath, FOUNDATION_MAX_PATHLEN );
+	string_deallocate( abspath );
+	return;
 #else
 #  error Not implemented
 #endif
@@ -368,6 +389,7 @@ const char* environment_home_directory( void )
 	}
 #elif FOUNDATION_PLATFORM_ANDROID
 	string_copy( _environment_home_dir, android_app()->activity->internalDataPath, FOUNDATION_MAX_PATHLEN );
+#elif FOUNDATION_PLATFORM_PNACL
 #else
 #  error Not implemented
 #endif
@@ -485,8 +507,12 @@ const char* environment_variable( const char* var )
 	return _environment_var;
 #elif FOUNDATION_PLATFORM_POSIX
 	return getenv( var );
+#elif FOUNDATION_PLATFORM_PNACL
+	//TODO: PNaCl
+	return 0;
 #else
 #  error Not implemented
+	return 0;
 #endif
 }
 

@@ -315,6 +315,8 @@ static FORCEINLINE void atomic_thread_fence_sequentially_consistent( void ) {}
 #define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%rsp)" ::: "memory")
 #    elif FOUNDATION_ARCH_X86
 #define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%esp)" ::: "memory")
+#    elif FOUNDATION_PLATFORM_PNACL
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("sync" ::: "memory")
 #    else
 #error atomic_thread_fence_sequentially_consistent not implemented for architecture
 #    endif

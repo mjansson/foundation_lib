@@ -199,6 +199,9 @@ build/scons/deploy*
 #Backups
 *~
 
+#Object files
+*.o
+
 #XCode
 xcuserdata
 *.xccheckout

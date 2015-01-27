@@ -245,7 +245,7 @@ test_suite_t test_atomic_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
 
 int test_atomic_run( void );
 int test_atomic_run( void )

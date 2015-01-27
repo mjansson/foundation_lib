@@ -236,6 +236,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	for( loop = 0; loop < loops; ++loop )
 	{
 		test.stream = ringbuffer_stream_allocate( 23477, test.buffer_size );
+		EXPECT_NE( test.stream, 0 );
 
 		test.read_thread = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
 		test.write_thread = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
@@ -300,7 +301,7 @@ test_suite_t test_ringbuffer_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
 
 int test_ringbuffer_run( void );
 int test_ringbuffer_run( void )

@@ -31,6 +31,10 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #  include <foundation/posix.h>
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#endif
+
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
 static bool             _log_stdout           = true;
@@ -143,7 +147,9 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 #if FOUNDATION_PLATFORM_WINDOWS
 			OutputDebugStringA( buffer );
 #endif
-
+#if FOUNDATION_PLATFORM_PNACL
+			pnacl_post_log( context, severity, buffer, need + more + 1 );
+#endif
 #if FOUNDATION_PLATFORM_ANDROID
 			if( _log_stdout )
 				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name, buffer );

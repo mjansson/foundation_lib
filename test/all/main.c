@@ -12,7 +12,7 @@
 
 #include <foundation/foundation.h>
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 
 volatile bool _test_should_start = false;
 volatile bool _test_should_terminate = false;
@@ -83,7 +83,7 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 	jclass _test_log_class = 0;
 	jmethodID _test_log_append = 0;
 	const struct JNINativeInterface** jnienv = thread_attach_jvm();
-	_test_log_class = (*jnienv)->GetObjectClass( jnienv, android_app()->activity->clazz );//(*jnienv)->FindClass( jnienv, "com/rampantpixels/foundation/test/TestActivity" );
+	_test_log_class = (*jnienv)->GetObjectClass( jnienv, android_app()->activity->clazz );
 	if( _test_log_class )
 		_test_log_append = (*jnienv)->GetMethodID( jnienv, _test_log_class, "appendLog", "(Ljava/lang/String;)V" );
 	if( _test_log_append )
@@ -121,7 +121,7 @@ int main_initialize( void )
 #  include <foundation/android.h>
 #endif
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 //extern int test_app_run( void );
 extern int test_array_run( void );
 extern int test_atomic_run( void );
@@ -174,7 +174,7 @@ static void* test_runner( object_t obj, void* arg )
 #endif
 
 
-static const char* test_arch_name[11] = {
+static const char* test_arch_name[13] = {
   "x86",
   "x86-64",
   "ppc",
@@ -185,12 +185,14 @@ static const char* test_arch_name[11] = {
   "arm8",
   "arm8-64",
   "mips",
-  "mips64"
+  "mips64",
+  "generic",
+  "<unknown>"
 };
 
 int main_run( void* main_arg )
 {
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	const char* pattern = 0;
 	char** exe_paths = 0;
 	unsigned int iexe, exesize;
@@ -232,7 +234,7 @@ int main_run( void* main_arg )
 
 	fs_remove_directory( environment_temporary_directory() );
 	
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	
 	test_run_fn tests[] = {
 		//test_app_run
@@ -243,7 +245,9 @@ int main_run( void* main_arg )
 		test_blowfish_run,
 		test_bufferstream_run,
 		test_config_run,
+#if !FOUNDATION_PLATFORM_PNACL
 		test_crash_run,
+#endif
 		test_environment_run,
 		test_error_run,
 		test_event_run,
@@ -251,19 +255,25 @@ int main_run( void* main_arg )
 		test_hash_run,
 		test_hashmap_run,
 		test_hashtable_run,
+#if !FOUNDATION_PLATFORM_PNACL
 		test_library_run,
+#endif
 		test_math_run,
 		test_md5_run,
 		test_mutex_run,
 		test_objectmap_run,
 		test_path_run,
+#if !FOUNDATION_PLATFORM_PNACL
 		test_pipe_run,
+#endif
 		test_profile_run,
 		test_radixsort_run,
 		test_random_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
+#if !FOUNDATION_PLATFORM_PNACL
 		test_stacktrace_run,
+#endif
 		test_string_run,
 		test_uuid_run,
 		0
