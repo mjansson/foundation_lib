@@ -167,6 +167,9 @@ Android
 \var platform_t PLATFORM_RASPBERRYPI
 Raspberry Pi (linux flavour)
 
+\var platform_t PLATFORM_PNACL
+PNaCl
+
 
 \enum architecture_t
 \brief Architecture identifiers
@@ -205,6 +208,9 @@ MIPS
 
 \var architecture_t ARCHITECTURE_MIPS_64
 MIPS 64-bit
+
+\var architecture_t ARCHITECTURE_GENERIC
+Generic (for PNaCl)
 
 
 \enum byteorder_t
@@ -250,6 +256,9 @@ Read/write in binary mode
 
 \var stream_mode_t STREAM_SYNC
 Force sync on each write
+
+\var stream_mode_t STREAM_CREATE
+Create file if it does not exist
 
 
 \enum stream_type_t

@@ -371,10 +371,13 @@ class Toolchain(object):
         pnacl_osname = subprocess.check_output( [ 'python', os.path.join( self.pnacl_sdkpath, 'tools', 'getos.py' ) ] ).strip()
         pnacl_toolchainpath = os.path.join( self.pnacl_sdkpath, 'toolchain', pnacl_osname + '_pnacl' )
 
-        self.cc = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-clang' )
-        self.ar = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-ar' )
+        shsuffix = ''
+        if self.host.is_windows():
+          shsuffix = '.bat'
+        self.cc = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-clang' + shsuffix )
+        self.ar = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-ar' + shsuffix )
         self.link = self.cc
-        self.finalize = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-finalize' )
+        self.finalize = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-finalize' + shsuffix )
         self.nmf = os.path.join( self.pnacl_sdkpath, 'tools', 'create_nmf.py' )
 
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
@@ -856,13 +859,13 @@ class Toolchain(object):
     return str
 
   def write_rules( self, writer ):
-    writer.rule( 'cc', command = self.cccmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $out' )
+    writer.rule( 'cc', command = self.cccmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in' )
     writer.rule( 'ar', command = self.arcmd, description = 'LIB $out')
     writer.rule( 'link', command = self.linkcmd, description = 'LINK $out')
     writer.rule( 'copy', command = self.copycmd, description = 'COPY $in -> $outpath')
 
     if self.target.is_macosx() or self.target.is_ios():
-      writer.rule( 'cm', command = self.cmcmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $out' )
+      writer.rule( 'cm', command = self.cmcmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in' )
       writer.rule( 'lipo', command = self.lipocmd, description = 'LIPO $out' )
       writer.rule( 'dsymutil', command = self.dsymutilcmd, description = 'DSYMUTIL $outpath' )
       writer.rule( 'plist', command = self.plistcmd, description = 'PLIST $outpath' )
