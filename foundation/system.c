@@ -306,7 +306,9 @@ const char* system_error_message( int code )
 		return "<no error>";
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
-	return strerror_r( code, buffer, 256 );
+	if( strerror_r( code, buffer, 256 ) == 0 )
+		return buffer;
+	return "<no error string>";
 #else
 	static THREADLOCAL char buffer[256];
 	return strerror_r( code, buffer, 256 );
