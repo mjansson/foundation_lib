@@ -686,7 +686,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 
 	return symbols;
 
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
 
 	char** addrs = 0;
 	char** lines = 0;
