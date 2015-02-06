@@ -21,7 +21,7 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
-#  if !FOUNDATION_PLATFORM_APPLE
+#  if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
 #    include <sys/prctl.h>
 #  endif
 #  include <pthread.h>
@@ -33,6 +33,10 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 
 #if FOUNDATION_PLATFORM_ANDROID
 #  include <foundation/android.h>
+#endif
+
+#if FOUNDATION_PLATFORM_BSD
+#  include <pthread_np.h>
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
@@ -70,7 +74,7 @@ void* _allocate_thread_local_block( unsigned int size )
 #endif
 
 
-struct thread_t
+ALIGNED_STRUCT( thread_t, 16 )
 {
 	FOUNDATION_DECLARE_OBJECT;
 
@@ -93,7 +97,7 @@ struct thread_t
 #  error Not implemented
 #endif
 };
-typedef ALIGN(16) struct thread_t thread_t;
+typedef ALIGNED_STRUCT( thread_t, 16 ) thread_t;
 
 static uint64_t     _thread_main_id = 0;
 static objectmap_t* _thread_map = 0;
@@ -301,7 +305,10 @@ void thread_set_name( const char* name )
 		prctl( PR_SET_NAME, name, 0, 0, 0 );
 #  elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	if( !thread_is_main() ) //Don't set main thread (i.e process) name
-        pthread_setname_np( name );
+		pthread_setname_np( name );
+#  elif FOUNDATION_PLATFORM_BSD
+	if( !thread_is_main() ) //Don't set main thread (i.e process) name
+		pthread_set_name_np( pthread_self(), name );
 #  endif
 #endif
 
@@ -371,10 +378,15 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		_set_thread_name( thread->name );
 #endif
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	pthread_t curid = pthread_self();
+	const pthread_t curid = pthread_self();
 	thread->osid = curid;
 #if !BUILD_DEPLOY
 	prctl( PR_SET_NAME, thread->name, 0, 0, 0 );
+#endif
+#elif FOUNDATION_PLATFORM_BSD
+	thread->osid = pthread_getthreadid_np();
+#if !BUILD_DEPLOY
+	pthread_set_name_np( pthread_self(), thread->name );
 #endif
 #elif FOUNDATION_PLATFORM_PNACL
 	pthread_t curid = pthread_self();
@@ -530,6 +542,8 @@ uint64_t thread_id( void )
 	return GetCurrentThreadId();
 #elif FOUNDATION_PLATFORM_APPLE
 	return pthread_mach_thread_np( pthread_self() );
+#elif FOUNDATION_PLATFORM_BSD
+	return pthread_getthreadid_np();
 #elif FOUNDATION_PLATFORM_POSIX
 	return pthread_self();
 #elif FOUNDATION_PLATFORM_PNACL

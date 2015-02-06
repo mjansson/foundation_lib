@@ -30,6 +30,11 @@
 #  include <foundation/pnacl.h>
 #endif
 
+#if FOUNDATION_PLATFORM_BSD
+#  include <sys/types.h>
+#  include <sys/sysctl.h>
+#endif
+
 #if FOUNDATION_PLATFORM_APPLE
 extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
@@ -62,6 +67,8 @@ static platform_info_t _platform_info = {
 	PLATFORM_IOS,
 #elif FOUNDATION_PLATFORM_PNACL
 	PLATFORM_PNACL,
+#elif FOUNDATION_PLATFORM_BSD
+	PLATFORM_BSD,
 #else
 #  error Unknown platform
 #endif
@@ -309,7 +316,7 @@ const char* system_error_message( int code )
 #else
 	static THREADLOCAL char buffer[256];
 #endif
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
 	if( strerror_r( code, buffer, 256 ) == 0 )
 		return buffer;
 	return "<no error string>";
@@ -347,7 +354,7 @@ const char* system_username( void )
 }
 
 
-#if FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 
 #include <net/if_dl.h>
 
@@ -412,7 +419,7 @@ uint64_t system_hostid( void )
 	struct ifaddrs* ifa;
 	uint64_t hostid = 0;
 
-#if !FOUNDATION_PLATFORM_APPLE
+#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
 	struct ifreq buffer;
 	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
 #endif
@@ -424,7 +431,7 @@ uint64_t system_hostid( void )
 			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
 				continue;
 			
-#if FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 			hostid = _system_hostid_lookup( ifa );
 #else
 			memset( &buffer, 0, sizeof( buffer ) );
@@ -435,7 +442,7 @@ uint64_t system_hostid( void )
 		}
 		freeifaddrs( ifaddr );
 	}
-#if !FOUNDATION_PLATFORM_APPLE
+#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
 	else
 	{
 		memset( &buffer, 0, sizeof( buffer ) );
@@ -460,6 +467,16 @@ unsigned int system_hardware_threads( void )
 	return android_getCpuCount();
 #elif FOUNDATION_PLATFORM_PNACL
 	return sysconf( _SC_NPROCESSORS_ONLN );
+#elif FOUNDATION_PLATFORM_BSD
+	int ctlarg[2], ncpu;
+	size_t len;
+
+	ctlarg[0] = CTL_HW;
+	ctlarg[1] = HW_NCPU;
+	len = sizeof( ncpu );
+	if( sysctl( ctlarg, 2, &ncpu, &len, 0, 0 ) == 0 )
+		return ncpu;
+	return 1;
 #else
 	cpu_set_t prevmask, testmask;
 	CPU_ZERO( &prevmask );

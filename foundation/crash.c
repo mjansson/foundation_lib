@@ -136,6 +136,8 @@ FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
 #  define crash_env_t long int*
 #elif FOUNDATION_PLATFORM_APPLE
 #  define crash_env_t int*
+#elif FOUNDATION_PLATFORM_BSD
+#  define crash_env_t struct _sigjmp_buf*
 #else
 #  define crash_env_t struct __jmp_buf_tag*
 #endif
