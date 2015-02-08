@@ -816,10 +816,10 @@ typedef ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER ) atomicptr_t;
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 
 // Forward declarations of various system APIs
-#  if FOUNDATION_PLATFORM_ANDROID
-typedef int _pthread_key_t;
-#  else
+#if FOUNDATION_PLATFORM_APPLE
 typedef __darwin_pthread_key_t _pthread_key_t;
+#else
+typedef int _pthread_key_t;
 #  endif
 FOUNDATION_EXTERN int pthread_key_create( _pthread_key_t*, void (*)(void*) );
 FOUNDATION_EXTERN int pthread_setspecific( _pthread_key_t, const void* );

@@ -127,7 +127,7 @@ void _thread_shutdown( void )
 {
 	objectmap_deallocate( _thread_map );
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
 	for( int i = 0; i < 1024; ++i )
 	{
 		if( atomic_loadptr( &_thread_local_blocks[i].block ) )

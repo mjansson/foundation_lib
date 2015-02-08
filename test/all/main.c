@@ -173,34 +173,6 @@ static void* test_runner( object_t obj, void* arg )
 
 #endif
 
-static const char* test_platform_name[9] = {
-  "windows",
-  "linux",
-  "macosx",
-  "ios",
-  "android",
-  "raspberrypi",
-  "pnacl",
-  "bsd",
-  "<unknown>"
-};
-
-static const char* test_arch_name[13] = {
-  "x86",
-  "x86-64",
-  "ppc",
-  "ppc64",
-  "arm5",
-  "arm6",
-  "arm7",
-  "arm8",
-  "arm8-64",
-  "mips",
-  "mips64",
-  "generic",
-  "<unknown>"
-};
-
 int main_run( void* main_arg )
 {
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
@@ -225,8 +197,7 @@ int main_run( void* main_arg )
 	
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
-	log_infof( HASH_TEST, "Foundation library v%s built for %s %s (%s)", string_from_version_static( foundation_version() ), test_platform_name[ system_platform() ], test_arch_name[ system_architecture() ], build_name );
-	FOUNDATION_UNUSED( test_arch_name );
+	log_infof( HASH_TEST, "Foundation library v%s built for %s using %s (%s)", string_from_version_static( foundation_version() ), FOUNDATION_PLATFORM_DESCRIPTION, FOUNDATION_COMPILER_DESCRIPTION, build_name );
 	
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
