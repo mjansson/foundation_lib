@@ -38,6 +38,10 @@ extern void _environment_ns_home_directory( char* );
 extern void _environment_ns_temporary_directory( char* );
 #endif
 
+#if FOUNDATION_PLATFORM_BSD
+#  include <sys/types.h>
+#  include <sys/sysctl.h>
+#endif
 
 static application_t       _environment_app = {0};
 
@@ -120,6 +124,7 @@ int _environment_initialize( const application_t application )
 	for( int ia = 0; ia < _environment_main_argc; ++ia )
 		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
 
+	//TODO: Use NS api since argv[0] could contain anything
 	FOUNDATION_ASSERT( _environment_main_argc > 0 );
 	char* exe_path = path_make_absolute( _environment_main_argv[0] );
 
@@ -166,6 +171,31 @@ int _environment_initialize( const application_t application )
 
 	string_deallocate( exe_path );
 	string_deallocate( exe_name );
+
+#elif FOUNDATION_PLATFORM_BSD
+
+	for( int ia = 0; ia < _environment_main_argc; ++ia )
+		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
+
+	int callarg[4];
+	char buf[1024];
+	size_t size = sizeof(buf);
+	callarg[0] = CTL_KERN;
+	callarg[1] = KERN_PROC;
+	callarg[2] = KERN_PROC_PATHNAME;
+	callarg[3] = -1;
+	sysctl(callarg, 4, buf, &size, 0, 0);
+	
+	char* exe_path;
+	char* dir_path;
+
+	exe_path = path_clean( string_clone( buf ), path_is_absolute( buf ) );
+	dir_path = path_make_absolute( exe_path );
+
+	_environment_set_executable_paths( dir_path );
+
+	string_deallocate( dir_path );
+	string_deallocate( exe_path );
 	
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -362,7 +392,7 @@ const char* environment_home_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wpath );
 	}
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
 	const char* env_home = environment_variable( "HOME" );
 	if( !env_home )
 	{

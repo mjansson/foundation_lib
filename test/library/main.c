@@ -55,6 +55,9 @@ DECLARE_TEST( library, lookup )
 #elif FOUNDATION_PLATFORM_APPLE
 	const char* libraryname = "dl";
 	const char* symbolname = "dlsym";
+#elif FOUNDATION_PLATFORM_BSD
+	const char* libraryname = "execinfo";
+	const char* symbolname = "backtrace";
 #elif FOUNDATION_PLATFORM_POSIX
 	const char* libraryname = "dl";
 	const char* symbolname = "dlsym";

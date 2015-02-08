@@ -15,12 +15,18 @@
 		</div>
 		<pre id="log"></pre>
 		<script type="text/javascript">
-			var plugin = document.getElementById( 'plugin' );
 			var log = document.getElementById( 'log' );
-			plugin.addEventListener( "message", function( rawmsg ) {
-				var parsed = JSON.parse( rawmsg.data );
-				log.textContent += parsed.msg + '\n';
-			}, false );
+			var haspnacl = navigator.mimeTypes['application/x-pnacl'] !== undefined;
+			if( haspnacl ) {
+				var plugin = document.getElementById( 'plugin' );
+				plugin.addEventListener( "message", function( rawmsg ) {
+					var parsed = JSON.parse( rawmsg.data );
+					log.textContent += parsed.msg + '\n';
+				}, false );
+			}
+			else {
+				log.textContent = "Your browser does not have PNaCl support";
+			}
 		</script>
 	</p>
 </body>

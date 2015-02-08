@@ -37,9 +37,9 @@ class Toolchain(object):
     if self.archs is None or self.archs == []:
       if target.is_windows():
         self.archs = [ 'x86', 'x86-64' ]
-      elif target.is_linux():
+      elif target.is_linux() or target.is_bsd():
         localarch = subprocess.check_output( [ 'uname', '-m' ] ).strip()
-        if localarch == 'x86_64':
+        if localarch == 'x86_64' or localarch == 'amd64':
           self.archs = [ 'x86-64' ]
         else:
           self.archs = [ localarch ]
@@ -234,9 +234,13 @@ class Toolchain(object):
         self.includepaths += [ '/opt/vc/include', '/opt/vc/include/interface/vcos/pthreads' ]
         self.libpaths += [ '/opt/vc/lib' ]
 
-      if target.is_linux() or target.is_raspberrypi():
+      if target.is_linux() or target.is_bsd() or target.is_raspberrypi():
         self.linkflags += [ '-pthread' ]
-        self.extralibs += [ 'dl', 'm' ]
+        self.extralibs += [ 'm' ]
+      if target.is_linux() or target.is_raspberrypi():
+        self.extralibs += [ 'dl' ]
+      if target.is_bsd():
+        self.extralibs += [ 'execinfo' ]
       if target.is_raspberrypi():
         self.cflags += [ '-std=c99', '-fno-omit-frame-pointer' ]
         self.extralibs += [ 'rt' ]
@@ -400,9 +404,13 @@ class Toolchain(object):
       if host.is_raspberrypi():
         self.includepaths += [ '/opt/vc/include', '/opt/vc/include/interface/vcos/pthreads' ]
         self.libpaths += [ '/opt/vc/lib' ]
-      if target.is_linux() or target.is_raspberrypi():
+      if target.is_linux() or target.is_bsd() or target.is_raspberrypi():
         self.linkflags += [ '-pthread' ]
-        self.extralibs += [ 'dl', 'm' ]
+        self.extralibs += [ 'm' ]
+      if target.is_linux() or target.is_raspberrypi():
+        self.extralibs += [ 'dl' ]
+      if target.is_bsd():
+        self.extralibs += [ 'execinfo' ]
 
     elif self.toolchain.startswith('intel'):
       self.toolchain = 'intel' 

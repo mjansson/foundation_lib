@@ -289,7 +289,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	int start_path, i, j;
 
 	const char buildsuffix[4][9] = { "/debug", "/release", "/profile", "/deploy" };
-	const char platformsuffix[8][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/pnacl", "/unknown" };
+	const char platformsuffix[PLATFORM_INVALID+1][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/pnacl", "/bsd", "/unknown" };
 	const char binsuffix[1][5] = { "/bin" };
 
 	FOUNDATION_ASSERT( name );
@@ -390,20 +390,18 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 #endif
 	
 	start_path = 0;
+
+	paths[9] = 0;
 	if( !built_in )
 	{
 #if FOUNDATION_PLATFORM_WINDOWS
 		home_dir = path_merge( environment_home_directory(), environment_application()->config_dir );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
 		home_dir = path_prepend( string_concat( ".", environment_application()->config_dir ), environment_home_directory() );
 #endif
 		if( home_dir )
 			paths[9] = home_dir;
 		start_path = 9;
-	}
-	else
-	{
-		paths[9] = 0;
 	}
 
 	for( i = start_path; i < NUM_SEARCH_PATHS; ++i )
@@ -459,6 +457,8 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 				"android";
 #elif FOUNDATION_PLATFORM_PNACL
 				"pnacl";
+#elif FOUNDATION_PLATFORM_BSD
+				"bsd";
 #else
 #  error Insert platform name
 				"unknown";

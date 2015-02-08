@@ -62,6 +62,7 @@ static int test_profile_initialize( void )
 
 static void test_profile_shutdown( void )
 {
+	profile_set_output( 0 );
 	memory_deallocate( _test_profile_buffer );
 }
 
