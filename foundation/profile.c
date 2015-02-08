@@ -15,6 +15,8 @@
 
 #if BUILD_ENABLE_PROFILE
 
+#define PROFILE_ENABLE_SANITY_CHECKS 0
+
 typedef struct _profile_block_data   profile_block_data_t;
 typedef struct _profile_block        profile_block_t;
 typedef struct _profile_root         profile_root_t;
@@ -66,6 +68,7 @@ FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, "profile_block_t size
 
 static const char*                  _profile_identifier = 0;
 static atomic32_t                   _profile_counter = {0};
+static atomic32_t                   _profile_loopid = {0};
 static atomic32_t                   _profile_free = {0};
 static atomic32_t                   _profile_root = {0};
 static profile_block_t*             _profile_blocks = 0;
@@ -81,14 +84,19 @@ FOUNDATION_DECLARE_THREAD_LOCAL( uint32_t, profile_block, 0 )
 
 static profile_block_t* _profile_allocate_block( void )
 {
-	//Grab block from free list
+	//Grab block from free list, avoiding ABA issues by
+	//using high 16 bit as a loop counter
 	profile_block_t* block;
-	uint32_t free_block, next_block;
+	uint32_t free_block_tag, free_block, next_block_tag;
 	do
 	{
-		free_block = atomic_load32( &_profile_free );
-		next_block = GET_BLOCK( free_block )->child;
-	} while( free_block && !atomic_cas32( &_profile_free, next_block, free_block ) );
+		free_block_tag = atomic_load32( &_profile_free );
+		free_block = free_block_tag & 0xffff;
+
+		next_block_tag = GET_BLOCK( free_block )->child;
+		next_block_tag |= ( atomic_incr32( &_profile_loopid ) & 0xffff ) << 16;
+	} while( free_block && !atomic_cas32( &_profile_free, next_block_tag, free_block_tag ) );
+
 	if( !free_block )
 	{
 		static atomic32_t has_warned = {0};
@@ -96,6 +104,7 @@ static profile_block_t* _profile_allocate_block( void )
 			log_error( 0, ERROR_OUT_OF_MEMORY, ( _profile_num_blocks < 65535 ) ? "Profile blocks exhausted, increase profile memory block size" : "Profile blocks exhausted, decrease profile output wait time" );
 		return 0;
 	}
+
 	block = GET_BLOCK( free_block );
 	memset( block, 0, sizeof( profile_block_t ) );
 	return block;
@@ -104,12 +113,13 @@ static profile_block_t* _profile_allocate_block( void )
 
 static void _profile_free_block( uint32_t block, uint32_t leaf )
 {
-	uint32_t last;
+	uint32_t last_tag, block_tag;
 	do
 	{
-		last = atomic_load32( &_profile_free );
-		GET_BLOCK( leaf )->child = last ;
-	} while( !atomic_cas32( &_profile_free, block, last ) );
+		block_tag = block | ( ( atomic_incr32( &_profile_loopid ) & 0xffff ) << 16 );
+		last_tag = atomic_load32( &_profile_free );
+		GET_BLOCK( leaf )->child = last_tag & 0xffff;
+	} while( !atomic_cas32( &_profile_free, block_tag, last_tag ) );
 }
 
 
@@ -117,11 +127,33 @@ static void _profile_put_root_block( uint32_t block )
 {
 	uint32_t sibling;
 	profile_block_t* self = GET_BLOCK( block );
-	do
+
+#if PROFILE_ENABLE_SANITY_CHECKS
+	FOUNDATION_ASSERT( self->sibling == 0 );
+#endif
+	while( !atomic_cas32( &_profile_root, block, 0 ) )
 	{
-		sibling = atomic_load32( &_profile_root );
-		self->sibling = sibling;
-	} while( !atomic_cas32( &_profile_root, block, sibling ) );
+		do
+		{
+			sibling = atomic_load32( &_profile_root );
+		} while( sibling && !atomic_cas32( &_profile_root, 0, sibling ) );
+
+		if( sibling )
+		{
+			if( self->sibling )
+			{
+				uint32_t leaf = self->sibling;
+				while( GET_BLOCK( leaf )->sibling )
+					leaf = GET_BLOCK( leaf )->sibling;
+				GET_BLOCK( sibling )->previous = leaf;
+				GET_BLOCK( leaf )->sibling = sibling;
+			}
+			else
+			{
+				self->sibling = sibling;
+			}
+		}
+	}
 }
 
 
@@ -199,6 +231,8 @@ static void _profile_put_message_block( uint32_t id, const char* message )
 
 
 //Pass each block once, writing it to stream and adjusting child/sibling pointers to form a single-linked list through child pointer
+//Potential drawback of this is that block access order will degenerate over time and result in random access over the whole
+//profile memory area in the end
 static profile_block_t* _profile_process_block( profile_block_t* block )
 {
 	profile_block_t* leaf = block;
@@ -207,18 +241,21 @@ static profile_block_t* _profile_process_block( profile_block_t* block )
 		_profile_write( block, sizeof( profile_block_t ) );
 
 	if( block->child )
-		leaf = _profile_process_block( GET_BLOCK( block->child ) );
-	if( block->sibling && !block->child )
 	{
+		leaf = _profile_process_block( GET_BLOCK( block->child ) );
+		if( block->sibling )
+		{
+			profile_block_t* subleaf = _profile_process_block( GET_BLOCK( block->sibling ) );
+			subleaf->child = block->child;
+			block->child = block->sibling;
+			block->sibling = 0;
+		}
+	}
+	else if( block->sibling )
+	{
+		leaf = _profile_process_block( GET_BLOCK( block->sibling ) );
 		block->child = block->sibling;
 		block->sibling = 0;
-		leaf = _profile_process_block( GET_BLOCK( block->child ) );
-	}
-	if( block->sibling )
-	{
-		profile_block_t* subleaf = _profile_process_block( GET_BLOCK( block->sibling ) );
-		subleaf->child = block->child;
-		block->child = block->sibling;
 	}
 	return leaf;
 }
@@ -231,12 +268,12 @@ static void _profile_process_root_block( void )
 	do
 	{
 		block = atomic_load32( &_profile_root );
-	} while( !atomic_cas32( &_profile_root, 0, block ) );
+	} while( block && !atomic_cas32( &_profile_root, 0, block ) );
 
-	do
+	while( block )
 	{
-		profile_block_t* current = GET_BLOCK( block );
 		profile_block_t* leaf;
+		profile_block_t* current = GET_BLOCK( block );
 		uint32_t next = current->sibling;
 
 		current->sibling = 0;
@@ -244,7 +281,7 @@ static void _profile_process_root_block( void )
 		_profile_free_block( block, BLOCK_INDEX( leaf ) );
 
 		block = next;
-	} while( block );
+	}
 }
 
 
@@ -320,6 +357,7 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 	}
 	block->child = 0;
 	block->sibling = 0;
+	root->child = 0;
 
 	atomic_store32( &_profile_root, 0 );
 
@@ -346,23 +384,21 @@ void profile_shutdown( void )
 	//Discard and free up blocks remaining in queue
 	_profile_thread_finalize();
 	if( atomic_load32( &_profile_root ) )
-	{
-		profile_write_fn old_write = _profile_write;
-		_profile_write = 0;
 		_profile_process_root_block();
-		_profile_write = old_write;
-	}
 	
 	//Sanity checks
 	{
 		uint64_t num_blocks = 0;
-		uint32_t free_block = atomic_load32( &_profile_free );
+		uint32_t free_block = atomic_load32( &_profile_free ) & 0xffff;
 
 		if( atomic_load32( &_profile_root ) )
-			log_error( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
+			log_errorf( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
 
 		while( free_block )
 		{
+			profile_block_t* block = GET_BLOCK( free_block );
+			if( block->sibling )
+			       log_errorf( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, block %d has sibling set", free_block );
 			++num_blocks;
 			free_block = GET_BLOCK( free_block )->child;
 		}
@@ -378,7 +414,7 @@ void profile_shutdown( void )
 
 	atomic_store32( &_profile_root, 0 );
 	atomic_store32( &_profile_free, 0 );
-	
+
 	_profile_num_blocks = 0;
 	_profile_identifier = 0;
 }
@@ -538,9 +574,16 @@ void profile_end_block( void )
 			current_index = current->previous; //Walk sibling list backwards
 			current = GET_BLOCK( current_index );
 			previous = GET_BLOCK( current->previous );
+#if PROFILE_ENABLE_SANITY_CHECKS
+			FOUNDATION_ASSERT( current_index != 0 );
+			FOUNDATION_ASSERT( current->previous != 0 );
+#endif
 		}
 		parent_index = current->previous; //Previous now points to parent
 		parent = GET_BLOCK( parent_index );
+#if PROFILE_ENABLE_SANITY_CHECKS
+		FOUNDATION_ASSERT( parent_index != block_index );
+#endif
 		set_thread_profile_block( parent_index );
 		
 		processor = thread_hardware();
@@ -620,10 +663,15 @@ void profile_signal( const char* name )
 void _profile_thread_finalize( void )
 {
 #if BUILD_ENABLE_PROFILE
-	uint32_t block_index;
+	uint32_t block_index, last_block = 0;
 	while( ( block_index = get_thread_profile_block() ) )
 	{
 		log_warnf( 0, WARNING_SUSPICIOUS, "Profile thread cleanup, free block %u", block_index );
+		if( last_block == block_index )
+		{
+			log_warnf( 0, WARNING_SUSPICIOUS, "Unrecoverable error, self reference in block %u", block_index );
+			break;
+		}
 		profile_end_block();
 	}
 #endif
