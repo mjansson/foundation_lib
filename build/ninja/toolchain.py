@@ -10,6 +10,7 @@ import random
 import string
 import json
 import zlib
+import version
 
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
@@ -168,6 +169,9 @@ class Toolchain(object):
 
     # TODO: Add dependent lib search
     self.includepaths += [ os.path.join( '..', deplib + '_lib' ) for deplib in self.dependlibs ]
+
+    # Generate base version
+    version.generate_version(self.project)
 
     if host.is_windows():
       self.rmcmd = 'cmd /C del /F /Q'
