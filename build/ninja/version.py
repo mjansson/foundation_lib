@@ -5,27 +5,18 @@
 import subprocess
 import os
 
-def generate_version_string():
-  git_version = subprocess.check_output( [ 'git', 'describe' ] ).strip()
+def generate_version_string(libname):
+  git_version = subprocess.check_output( [ 'git', 'describe', '--long' ] ).strip()
   tokens = git_version.split('-')
   version_numbers = tokens[0].split('.')
 
-  source = """/* version.c  -  Foundation library  -  Public Domain  -  2015 Mattias Jansson / Rampant Pixels
-* 
-* This library provides a cross-platform foundation library in C11 providing basic support data types and
-* functions to write applications and games in a platform-independent fashion. The latest source code is
-* always available at
-*
-* https://github.com/rampantpixels/foundation_lib
-*
-* This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
-*
-*/
+  source = """/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
+   This file is generated from the git describe command */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-version_t foundation_version( void )
+version_t """ + libname + """_version( void )
 {
 """
   source += "	return version_make( " + version_numbers[0] + ", " + version_numbers[1] + ", " + version_numbers[2] + ", " + tokens[1] + ", 0x" + tokens[2][1:] + " );\n}\n"
@@ -45,8 +36,8 @@ def write_version_string(output_path, str):
   file.write( str )
   file.close
 
-def generate_version(output_path):
-  generated = generate_version_string()
+def generate_version(libname, output_path):
+  generated = generate_version_string(libname)
   previous = read_version_string(output_path)
 
   if generated != previous:

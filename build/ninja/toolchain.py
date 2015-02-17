@@ -171,14 +171,14 @@ class Toolchain(object):
     self.includepaths += [ os.path.join( '..', deplib + '_lib' ) for deplib in self.dependlibs ]
 
     # Generate base version
-    version.generate_version(self.project)
+    version.generate_version(self.project, self.project)
 
     if host.is_windows():
       self.rmcmd = 'cmd /C del /F /Q'
       self.cdcmd = 'cmd /C cd'
       self.mkdircmd = 'cmd /C mkdir'
     else:
-      self.rmcmd = 'rm -f' 
+      self.rmcmd = 'rm -f'
       self.cdcmd = 'cd'
       self.mkdircmd = 'mkdir -p'
 
@@ -271,7 +271,7 @@ class Toolchain(object):
         self.extralibs += [ 'log' ]
 
     elif self.toolchain.startswith('clang') or self.toolchain.startswith('llvm'):
-      self.toolchain = 'clang' 
+      self.toolchain = 'clang'
       self.cc = 'clang'
       self.ar = 'llvm-ar'
       self.link = 'clang'
@@ -316,10 +316,10 @@ class Toolchain(object):
           self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=' + self.ios_deploymenttarget, '-isysroot', '$sdkdir' ]
           self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
           self.linkflags += [ '-isysroot', '$sdkdir' ]
-        
+
         platformpath = subprocess.check_output( [ 'xcrun', '--sdk', sdk, '--show-sdk-platform-path' ] ).strip()
         localpath = platformpath + "/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-        
+
         self.cc = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'clang' ] ).strip()
         self.ar = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'libtool' ] ).strip()
         self.link = deploytarget + " " + self.cc
@@ -328,10 +328,10 @@ class Toolchain(object):
         self.xcassets = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'actool' ] ).strip()
         self.xib = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'ibtool' ] ).strip()
         self.dsymutil = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'dsymutil' ] ).strip()
-        
+
         self.mflags += self.cflags + [ '-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c' ]
         self.cflags += [ '-x', 'c' ]
-        
+
         self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $mflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
@@ -417,7 +417,7 @@ class Toolchain(object):
         self.extralibs += [ 'execinfo' ]
 
     elif self.toolchain.startswith('intel'):
-      self.toolchain = 'intel' 
+      self.toolchain = 'intel'
       self.cc = 'icl'
       self.ar = 'ar'
       self.link = 'link'
@@ -426,7 +426,7 @@ class Toolchain(object):
       self.linkflags = []
 
       if target.is_windows():
-        self.cflags = [ 
+        self.cflags = [
           '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast=2', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-',
           '/Qrestrict', '/Qansi-alias', '/QxSSE3', '/Quse-intel-optimized-headers', '/Qstd=c99'
         ]
@@ -997,7 +997,7 @@ class Toolchain(object):
 
   def list_per_config( self, config_dicts, config ):
     if config_dicts is None:
-      return None    
+      return None
     config_list = []
     for config_dict in config_dicts:
       config_list += config_dict[config]
@@ -1041,11 +1041,11 @@ class Toolchain(object):
     builtbin = []
     builtres = []
     builtsym = []
-    
+
     #Paths
     builddir = os.path.join( self.buildpath, config, 'app', binname )
     dsympath = binpath + '.dSYM'
-    
+
     #Extract debug symbols from universal binary
     dsymcontentpath = os.path.join( dsympath, 'Contents' )
     builtsym = writer.build( [ os.path.join( dsymcontentpath, 'Resources', 'DWARF', binname ), os.path.join( dsymcontentpath, 'Resources', 'DWARF' ), os.path.join( dsymcontentpath, 'Resources' ), os.path.join( dsymcontentpath, 'Info.plist' ), dsymcontentpath, dsympath ], 'dsymutil', unibinary, variables = [ ( 'outpath', dsympath ) ] )
@@ -1055,11 +1055,11 @@ class Toolchain(object):
       builtbin = self.build_copy( writer, os.path.join( binpath, self.binprefix + binname + self.binext ), unibinary )
     else:
       builtbin = self.build_copy( writer, os.path.join( binpath, 'Contents', 'MacOS', self.binprefix + binname + self.binext ), unibinary, os.path.join( binpath, 'Contents' ), 'MacOS' )
-    
+
     #Build resources
     if resources:
       has_resources = False
-      
+
       #Lists of input plists and partial plist files produced by resources
       plists = []
       assetsplists = []
@@ -1227,7 +1227,7 @@ class Toolchain(object):
         extraincludepaths = []
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
-          localvariables += [ ( 'pdbpath', pdbpath ) ] 
+          localvariables += [ ( 'pdbpath', pdbpath ) ]
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
@@ -1292,12 +1292,12 @@ class Toolchain(object):
         locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libpath ], arch, config ) )
         localarchlibs = self.make_linkarchlibs( arch )
         localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
-        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + extralibs + self.extralibs ) + self.make_frameworks( extraframeworks ) ), ( 'archlibs', self.make_libs( localarchlibs ) ), 
+        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + extralibs + self.extralibs ) + self.make_frameworks( extraframeworks ) ), ( 'archlibs', self.make_libs( localarchlibs ) ),
                                ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
         extraincludepaths = []
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
-          localvariables += [ ( 'pdbpath', pdbpath ) ] 
+          localvariables += [ ( 'pdbpath', pdbpath ) ]
           linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
           locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
         if self.target.is_android():
