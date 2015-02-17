@@ -421,7 +421,7 @@ Event is delayed and will be delivered at a later timestamp
 \brief Cipher mode
 \details Blowfish block cipher mode of operation (http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
 
-\var blowfish_mode_t BLOWFISH_ECB 
+\var blowfish_mode_t BLOWFISH_ECB
 Electronic codebook
 
 \var blowfish_mode_t BLOWFISH_CBC
@@ -619,6 +619,13 @@ prototype to allow the crash guard to catch and handle exceptions correctly
 \param id Object handle
 \param object Object pointer
 
+\typedef stream_t* (*stream_open_fn)( const char* path, unsigned int mode )
+\brief Stream open
+\details Generic function to open a stream with the given path and mode
+\param path Path, optionally including protocol
+\param mode Open mode
+\return Newly allocated stream, null if it could not be opened
+
 \typedef uint64_t (*stream_read_fn)( stream_t* stream, void* dst, uint64_t size )
 \brief Stream read
 \details Generic function to read data from a stream
@@ -682,7 +689,7 @@ a network stream.
 \brief Get stream digest
 \details Get stream digest. Only available if stream size is known and stream is seekable. Does
 not modify the current stream position.
-\param stream Stream 
+\param stream Stream
 \return Digest of stream content, 0 if invalid stream or unknown
 
 \typedef void (*stream_buffer_read_fn)( stream_t* stream )
@@ -1341,14 +1348,14 @@ See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in a struc
 \brief Object map
 \details Object map which maps object handles to object pointers. As object lifetime is managed by
 reference counting, objects that are deallocated will invalidate the handle in the corresponding
-object map. 
+object map.
 
 \var objectmap_t::free
 \brief Current first free slot
 \details Current first free slot
 
 \var objectmap_t::size
-\brief Number of slots in map 
+\brief Number of slots in map
 \details Number of slots in map
 
 \var objectmap_t::id
@@ -1453,7 +1460,7 @@ on platform, the semaphore_t type should be treated as an opaque data struct.
 \details Current read offset in bits into pending data
 
 \var bitbuffer_t::offset_write
-\brief Current write offset 
+\brief Current write offset
 \details Current write offset in bits into pending data
 
 \var bitbuffer_t::count_read

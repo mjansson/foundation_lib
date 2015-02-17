@@ -1,11 +1,11 @@
 /* pipe.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -28,9 +28,9 @@ static stream_vtable_t _pipe_stream_vtable;
 stream_t* pipe_allocate( void )
 {
 	stream_pipe_t* pipestream = memory_allocate( HASH_STREAM, sizeof( stream_pipe_t ), 8, MEMORY_PERSISTENT );
-	
+
 	pipe_initialize( pipestream );
-	
+
 	return (stream_t*)pipestream;
 }
 
@@ -38,10 +38,10 @@ stream_t* pipe_allocate( void )
 void pipe_initialize( stream_pipe_t* pipestream )
 {
 	stream_t* stream = (stream_t*)pipestream;
-	
+
 	memset( stream, 0, sizeof( stream_pipe_t ) );
 
-	_stream_initialize( stream, system_byteorder() );
+	stream_initialize( stream, system_byteorder() );
 
 	pipestream->type = STREAMTYPE_PIPE;
 	pipestream->path = string_format( "pipe://0x" PRIfixPTR, pipestream );
@@ -52,8 +52,8 @@ void pipe_initialize( stream_pipe_t* pipestream )
 	{
 		//Inheritable by default so process can use for stdstreams
 		SECURITY_ATTRIBUTES security_attribs = {0};
-		security_attribs.nLength = sizeof( SECURITY_ATTRIBUTES ); 
-		security_attribs.bInheritHandle = TRUE; 
+		security_attribs.nLength = sizeof( SECURITY_ATTRIBUTES );
+		security_attribs.bInheritHandle = TRUE;
 		security_attribs.lpSecurityDescriptor = 0;
 
 		if( !CreatePipe( &pipestream->handle_read, &pipestream->handle_write, &security_attribs, 0 ) )
@@ -200,7 +200,7 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 			total_read += num_read;
 		} while( total_read < num );
 		return total_read;
-	}	
+	}
 #endif
 
 	return 0;
@@ -236,7 +236,7 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 			total_written += num_written;
 		} while( total_written < num );
 		return total_written;
-	}	
+	}
 #endif
 
 	return 0;

@@ -1,11 +1,11 @@
 /* types.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -294,6 +294,7 @@ typedef void*         (* thread_fn )( object_t thread, void* arg );
 typedef int           (* crash_guard_fn )( void* arg );
 typedef void          (* crash_dump_callback_fn )( const char* file );
 typedef void          (* object_deallocate_fn )( object_t id, void* object );
+typedef stream_t*     (* stream_open_fn )( const char* path, unsigned int mode );
 typedef uint64_t      (* stream_read_fn )( stream_t* stream, void* dst, uint64_t size );
 typedef uint64_t      (* stream_write_fn )( stream_t* stream, const void* src, uint64_t size );
 typedef bool          (* stream_eos_fn )( stream_t* stream );
@@ -523,7 +524,7 @@ struct process_t
 	int                             code;
 	stream_t*                       pipeout;
 	stream_t*                       pipein;
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	char*                           verb;
 	void*                           hp;
@@ -532,7 +533,7 @@ struct process_t
 #if FOUNDATION_PLATFORM_POSIX
 	int                             pid;
 #endif
-	
+
 #if FOUNDATION_PLATFORM_MACOSX
 	int                             kq;
 #endif
@@ -647,7 +648,7 @@ ALIGNED_STRUCT( stream_buffer_t, 8 )
 ALIGNED_STRUCT( stream_pipe_t, 8 )
 {
 	FOUNDATION_DECLARE_STREAM;
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	void*                           handle_read;
 	void*                           handle_write;
@@ -661,13 +662,13 @@ ALIGNED_STRUCT( stream_pipe_t, 8 )
 ALIGNED_STRUCT( stream_ringbuffer_t, 8 )
 {
 	FOUNDATION_DECLARE_STREAM;
-	
+
 	semaphore_t                     signal_read;
 	semaphore_t                     signal_write;
 	volatile int32_t                pending_read;
 	volatile int32_t                pending_write;
 	uint64_t                        total_size;
-	
+
 	FOUNDATION_DECLARE_RINGBUFFER;
 };
 

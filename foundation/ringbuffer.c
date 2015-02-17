@@ -1,11 +1,11 @@
 /* ringbuffer.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -24,7 +24,7 @@ ringbuffer_t* ringbuffer_allocate( unsigned int size )
 	ringbuffer_t* buffer = memory_allocate( 0, sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT );
 
 	ringbuffer_initialize( buffer, size );
-	
+
 	return buffer;
 }
 
@@ -81,7 +81,7 @@ unsigned int ringbuffer_read( ringbuffer_t* buffer, void* dest, unsigned int num
 	buffer_size = buffer->buffer_size;
 	offset_read = buffer->offset_read;
 	offset_write = buffer->offset_write;
-	
+
 	if( offset_read > offset_write )
 		max_read = buffer_size - offset_read;
 	else
@@ -124,7 +124,7 @@ unsigned int ringbuffer_write( ringbuffer_t* buffer, const void* source, unsigne
 	buffer_size = buffer->buffer_size;
 	offset_read = buffer->offset_read;
 	offset_write = buffer->offset_write;
-	
+
 	if( offset_write >= offset_read )
 	{
 		max_write = buffer_size - offset_write;
@@ -180,7 +180,7 @@ static uint64_t _ringbuffer_stream_read( stream_t* stream, void* dest, uint64_t 
 {
 	stream_ringbuffer_t* rbstream = (stream_ringbuffer_t*)stream;
 	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM( rbstream );
-	
+
 	unsigned int num_read = ringbuffer_read( buffer, dest, (unsigned int)num );
 
 	while( num_read < num )
@@ -262,7 +262,7 @@ static void _ringbuffer_stream_seek( stream_t* stream, int64_t offset, stream_se
 		log_error( 0, ERROR_UNSUPPORTED, "Invalid call, only forward seeking allowed on ringbuffer streams" );
 		return;
 	}
-	
+
 	_ringbuffer_stream_read( stream, 0, offset );
 }
 
@@ -293,7 +293,7 @@ stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_s
 	stream_ringbuffer_t* bufferstream = memory_allocate( 0, sizeof( stream_ringbuffer_t ) + buffer_size, 0, MEMORY_PERSISTENT );
 
 	ringbuffer_stream_initialize( bufferstream, buffer_size, total_size );
-	
+
 	return (stream_t*)bufferstream;
 }
 
@@ -301,20 +301,20 @@ stream_t* ringbuffer_stream_allocate( unsigned int buffer_size, uint64_t total_s
 void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buffer_size, uint64_t total_size )
 {
 	memset( stream, 0, sizeof( stream_ringbuffer_t ) );
-	
-	_stream_initialize( (stream_t*)stream, system_byteorder() );
-	
+
+	stream_initialize( (stream_t*)stream, system_byteorder() );
+
 	stream->type = STREAMTYPE_RINGBUFFER;
 	stream->sequential = 1;
 	stream->path = string_format( "ringbuffer://0x%" PRIfixPTR, stream );
 	stream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
-	
+
 	ringbuffer_initialize( RINGBUFFER_FROM_STREAM( stream ), buffer_size );
 	semaphore_initialize( &stream->signal_read, 0 );
 	semaphore_initialize( &stream->signal_write, 0 );
-	
+
 	stream->total_size = total_size;
-	
+
 	stream->vtable = &_ringbuffer_stream_vtable;
 }
 
@@ -322,10 +322,10 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, unsigned int buf
 static void _ringbuffer_stream_finalize( stream_t* stream )
 {
 	stream_ringbuffer_t* bufferstream = (stream_ringbuffer_t*)stream;
-	
+
 	if( !bufferstream || ( stream->type != STREAMTYPE_RINGBUFFER ) )
 		return;
-	
+
 	semaphore_finalize( &bufferstream->signal_read );
 	semaphore_finalize( &bufferstream->signal_write );
 }

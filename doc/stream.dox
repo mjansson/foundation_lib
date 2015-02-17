@@ -25,6 +25,12 @@
 or from a call to #stream_open.
 \param stream Stream
 
+\fn void stream_initialize( stream_t* stream, byteorder_t order )
+\brief Initialize stream
+\details Initialize stream structure with default values
+\param stream Stream
+\param order Byte order of stream
+
 \fn void stream_finalize( stream_t* stream )
 \brief Finalize stream
 \details Finalize stream previously initialized by any stream specific initialization function.
@@ -265,7 +271,7 @@ over an UDP socket are out-of-order.
 \brief Write int8_t
 \details Write char to stream.
 \param stream Stream
-\param data Char to write 
+\param data Char to write
 
 \fn void stream_write_uint8( stream_t* stream, uint8_t data )
 \brief Write uint8_t
@@ -363,5 +369,18 @@ over an UDP socket are out-of-order.
 \brief Open stdin stream
 \details Allocate a stream for stdin
 \return Stream wrapping stdin
+
+\fn void stream_set_protocol_handler( const char* protocol, stream_open_fn fn )
+\brief Set protocol handler
+\details Set function to handle opening streams for the given protocol
+\param protocol Protocol
+\param fn Handler function
+
+\fn stream_open_fn stream_protocol_handler( const char* protocol, unsigned int length )
+\brief Get protocol handler
+\details Get the assigned handler for the given protocol
+\param protocol Procotol string
+\param length Length of protocol string, 0 for entire string
+\return Handler function, 0 if none registered
 
 */

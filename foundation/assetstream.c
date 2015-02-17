@@ -108,13 +108,13 @@ static uint64_t asset_stream_available_read( stream_t* stream )
 static void asset_stream_finalize( stream_t* stream )
 {
 	stream_asset_t* asset = (stream_asset_t*)stream;
-	
+
 	if( !asset || ( stream->type != STREAMTYPE_ASSET ) )
 		return;
-	
+
 	if( asset->asset )
 		AAsset_close( asset->asset );
-	
+
 	asset->asset = 0;
 }
 
@@ -145,7 +145,7 @@ stream_t* asset_stream_open( const char* path, unsigned int mode )
 	stream_asset_t* asset = memory_allocate( HASH_STREAM, sizeof( stream_asset_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream_t* stream = (stream_t*)asset;
 
-	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
+	stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 
 	stream->type = STREAMTYPE_ASSET;
 	stream->sequential = 0;
