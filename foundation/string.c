@@ -1316,7 +1316,7 @@ char* string_from_version( const version_t version )
 char* string_from_version_buffer( char* buffer, const version_t version )
 {
 	if( version.sub.control )
-		sprintf( buffer, "%u.%u.%u-%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build, version.sub.control );
+		sprintf( buffer, "%u.%u.%u-%u-%x", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build, version.sub.control );
 	else if( version.sub.build )
 		sprintf( buffer, "%u.%u.%u-%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build );
 	else
@@ -1400,7 +1400,7 @@ version_t string_to_version( const char* val )
 		num[i] = 0;
 		if( val && *val )
 		{
-			sscanf( val, "%u", num + i );
+			sscanf( val, i < 4 ? "%u" : "%x", num + i );
 			while( *val && ( ( *val >= '0' ) && ( *val < '9' ) ) ) val++;
 			while( *val && ( ( *val  < '0' ) || ( *val > '9' ) ) ) val++;
 		}

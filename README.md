@@ -39,6 +39,7 @@ Platforms and architectures currently supported:
 * iOS (ARM7, ARM7s, ARM64), 6.0+
 * Android (ARM6, ARM7, ARM8-AARCH64, x86, x86-64, MIPS, MIPS64)
 * Raspberry Pi (ARM6)
+* PNaCl
 
 The latest source code maintained by Rampant Pixels is always available at
 

@@ -1,11 +1,11 @@
 /* foundation.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -35,15 +35,15 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 {
 	if( _foundation_initialized )
 		return 0;
-	
+
 	if( _atomic_initialize() < 0 )
 		return -1;
-	
+
 	if( _memory_initialize( memory ) < 0 )
 		return -1;
 
 	_static_hash_initialize();
-	
+
 	if( _log_initialize() < 0 )
 		return -1;
 
@@ -55,6 +55,9 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 
 	if( _random_initialize() < 0 )
 		return -1;
+
+    if( _stream_initialize() < 0 )
+        return -1;
 
 	if( _fs_initialize() < 0 )
 		return -1;
@@ -98,7 +101,7 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 #endif
 
 	_foundation_initialized = true;
-	
+
 	return 0;
 }
 
@@ -114,9 +117,10 @@ void foundation_shutdown( void )
 	_foundation_initialized = false;
 
 	profile_shutdown();
-	
+
 	_config_shutdown();
 	_fs_shutdown();
+    _stream_shutdown();
 	_system_shutdown();
 	_library_shutdown();
 	_environment_shutdown();
@@ -133,11 +137,5 @@ void foundation_shutdown( void )
 bool foundation_is_initialized( void )
 {
 	return _foundation_initialized;
-}
-
-
-version_t foundation_version( void )
-{
-	return version_make( 1, 2, 3, 0, 0 );
 }
 

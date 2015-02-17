@@ -118,9 +118,9 @@ int _environment_initialize( const application_t application )
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to get module filename" );
 		return -1;
 	}
-	
+
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	
+
 	for( int ia = 0; ia < _environment_main_argc; ++ia )
 		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
 
@@ -166,7 +166,7 @@ int _environment_initialize( const application_t application )
 
 	char* exe_name = path_file_name( exelink );
 	exe_path = path_append( exe_path, exe_name );
-	
+
 	_environment_set_executable_paths( exe_path );
 
 	string_deallocate( exe_path );
@@ -185,7 +185,7 @@ int _environment_initialize( const application_t application )
 	callarg[2] = KERN_PROC_PATHNAME;
 	callarg[3] = -1;
 	sysctl(callarg, 4, buf, &size, 0, 0);
-	
+
 	char* exe_path;
 	char* dir_path;
 
@@ -196,7 +196,7 @@ int _environment_initialize( const application_t application )
 
 	string_deallocate( dir_path );
 	string_deallocate( exe_path );
-	
+
 #elif FOUNDATION_PLATFORM_POSIX
 
 	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
@@ -412,7 +412,7 @@ const char* environment_home_directory( void )
 	{
 		char bundle_identifier[FOUNDATION_MAX_PATHLEN+1];
 		environment_bundle_identifier( bundle_identifier, FOUNDATION_MAX_PATHLEN );
-		
+
 		char* path = path_append( path_merge( _environment_home_dir, "/Library/Application Support" ), bundle_identifier );
 		string_copy( _environment_home_dir, path, FOUNDATION_MAX_PATHLEN );
 		string_deallocate( path );
@@ -538,8 +538,7 @@ const char* environment_variable( const char* var )
 #elif FOUNDATION_PLATFORM_POSIX
 	return getenv( var );
 #elif FOUNDATION_PLATFORM_PNACL
-	//TODO: PNaCl
-	return 0;
+	return 0; //No env vars on PNaCl
 #else
 #  error Not implemented
 	return 0;

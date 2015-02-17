@@ -1,11 +1,11 @@
 /* fs.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -212,7 +212,7 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 	atomic_storeptr( &monitor->path, 0 );
 	monitor->signal = 0;
 	monitor->thread = 0;
-	
+
 	if( localpath )
 		string_deallocate( localpath );
 
@@ -352,11 +352,11 @@ char** fs_subdirs( const char* path )
 	FindClose( find );
 
 	memory_context_pop();
-	
+
 	wstring_deallocate( wpattern );
-	
+
 #elif FOUNDATION_PLATFORM_POSIX
-	
+
 	//POSIX specific implementation of directory listing
 	DIR* dir = opendir( path );
 	if( dir )
@@ -409,7 +409,7 @@ char** fs_subdirs( const char* path )
 				const struct PP_Var namevar = _pnacl_file_ref->GetName( entry->file_ref );
 				const char* utfname = _pnacl_var->VarToUtf8( namevar, &varlen );
 				char* copyname = memory_allocate( 0, varlen + 1, 0, MEMORY_PERSISTENT );
-				
+
 				memcpy( copyname, utfname, varlen );
 				copyname[varlen] = 0;
 				array_push( arr, copyname );
@@ -436,7 +436,7 @@ char** fs_files( const char* path )
 {
 	char** arr = 0;
 #if FOUNDATION_PLATFORM_WINDOWS
-	
+
 	//Windows specific implementation of directory listing
 	HANDLE find;
 	WIN32_FIND_DATAW data;
@@ -457,9 +457,9 @@ char** fs_files( const char* path )
 	memory_context_pop();
 
 	wstring_deallocate( wpattern );
-	
+
 #elif FOUNDATION_PLATFORM_POSIX
-	
+
 	//POSIX specific implementation of directory listing
 	DIR* dir = opendir( path );
 	if( dir )
@@ -508,7 +508,7 @@ char** fs_files( const char* path )
 				const struct PP_Var namevar = _pnacl_file_ref->GetName( entry->file_ref );
 				const char* utfname = _pnacl_var->VarToUtf8( namevar, &varlen );
 				char* copyname = memory_allocate( 0, varlen + 1, 0, MEMORY_PERSISTENT );
-				
+
 				memcpy( copyname, utfname, varlen );
 				copyname[varlen] = 0;
 				array_push( arr, copyname );
@@ -565,7 +565,7 @@ bool fs_remove_file( const char* path )
 #endif
 
 	string_deallocate( fpath );
-	
+
 	return result;
 }
 
@@ -583,7 +583,7 @@ bool fs_remove_directory( const char* path )
 
 	if( !fs_is_directory( fpath ) )
 		goto end;
-	
+
 	subpaths = fs_subdirs( fpath );
 	for( i = 0, num = array_size( subpaths ); i < num; ++i )
 	{
@@ -601,7 +601,7 @@ bool fs_remove_directory( const char* path )
 		string_deallocate( next );
 	}
 	string_array_deallocate( subfiles );
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	wfpath = wstring_allocate_from_string( fpath, 0 );
@@ -641,7 +641,7 @@ bool fs_remove_directory( const char* path )
 bool fs_make_directory( const char* path )
 {
 #if FOUNDATION_PLATFORM_PNACL
-	
+
 	char* fpath = path_make_absolute( path );
 
 	const char* localpath = 0;
@@ -715,13 +715,13 @@ bool fs_make_directory( const char* path )
 			}
 		}
 	}
-	
+
 	end:
-	
+
 	string_deallocate( fpath  );
 	string_array_deallocate( paths );
 	string_deallocate( curpath );
-	
+
 	memory_context_pop();
 
 	return result;
@@ -785,7 +785,7 @@ uint64_t fs_last_modified( const char* path )
 
 	if( !success )
 		return 0;
-	
+
 	last_write_time = ( (uint64_t)attrib.ftLastWriteTime.dwHighDateTime << 32ULL ) | (uint64_t)attrib.ftLastWriteTime.dwLowDateTime;
 
 	return ( last_write_time > ms_offset_time ) ? ( ( last_write_time - ms_offset_time ) / 10000ULL ) : 0;
@@ -817,7 +817,7 @@ uint64_t fs_last_modified( const char* path )
 			_pnacl_core->ReleaseResource( ref );
 		}
 	}
-	
+
 	string_deallocate( fpath );
 
 	return tstamp;
@@ -864,7 +864,7 @@ void fs_touch( const char* path )
 			_pnacl_core->ReleaseResource( ref );
 		}
 	}
-	
+
 	string_deallocate( fpath );
 
 #else
@@ -893,19 +893,19 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 	char** names = 0;
 	char** subdirs = 0;
 	unsigned int id, dsize, in, nsize;
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS
-	
+
 	//Windows specific implementation of directory listing
 	WIN32_FIND_DATAW data;
 	char filename[FOUNDATION_MAX_PATHLEN];
 	char* pathpattern = path_merge( path, "*" );
 	wchar_t* wpattern = wstring_allocate_from_string( pathpattern, 0 );
-	
+
 	HANDLE find = FindFirstFileW( wpattern, &data );
-	
+
 	memory_context_push( HASH_STREAM );
-	
+
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
 		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
@@ -915,20 +915,20 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 				array_push( names, path_clean( string_clone( filename ), false ) );
 		}
 	} while( FindNextFileW( find, &data ) );
-	
+
 	memory_context_pop();
-	
+
 	FindClose( find );
-	
+
 	wstring_deallocate( wpattern );
 	string_deallocate( pathpattern );
-	
+
 #else
-	
+
 	char** fnames = fs_files( path );
-	
+
 	memory_context_push( HASH_STREAM );
-	
+
 	for( in = 0, nsize = array_size( fnames ); in < nsize; ++in )
 	{
 		if( regex_match( pattern, fnames[in], string_length( fnames[in] ), 0, 0 ) )
@@ -937,36 +937,36 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 			fnames[in] = 0;
 		}
 	}
-	
+
 	memory_context_pop();
-	
+
 	string_array_deallocate( fnames );
-	
+
 #endif
-	
+
 	if( !recurse )
 		return names;
-	
+
 	subdirs = fs_subdirs( path );
-	
+
 	memory_context_push( HASH_STREAM );
-	
+
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
 		char* subpath = path_merge( path, subdirs[id] );
 		char** subnames = _fs_matching_files( subpath, pattern, true );
-		
+
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
 			array_push( names, path_merge( subdirs[id], subnames[in] ) );
-		
+
 		string_array_deallocate( subnames );
 		string_deallocate( subpath );
 	}
-	
+
 	memory_context_pop();
-	
+
 	string_array_deallocate( subdirs );
-	
+
 	return names;
 }
 
@@ -1251,7 +1251,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 			}
 
 			case WAIT_TIMEOUT:
-			default: 
+			default:
 				break;
 		}
 
@@ -1358,7 +1358,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	log_debugf( 0, "Stopped monitoring file system: %s", monitor->path );
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	
+
 	exit_thread:
 
 	CloseHandle( dir );
@@ -1367,17 +1367,17 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		CloseHandle( handles[1] );
 
 	memory_deallocate( buffer );
-	
+
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	
+
 	close( notify_fd );
 	string_array_deallocate( paths );
 	array_deallocate( watch );
-	
+
 #elif FOUNDATION_PLATFORM_MACOSX
-	
+
 	_fs_event_stream_destroy( event_stream );
-	
+
 #endif
 
 	memory_context_pop();
@@ -1509,7 +1509,7 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 
 	if( fd && !( mode & STREAM_ATEND ) && ( modestr[0] == 'a' ) )
 		fseek( fd, 0, SEEK_SET );
-	
+
 #endif
 
 	return fd;
@@ -1628,7 +1628,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 	cur = _fs_file_tell( stream );
 	if( cur > (int64_t)length )
 		cur = length;
-	
+
 	file = GET_FILE( stream );
 	if( file->fd )
 	{
@@ -1900,14 +1900,14 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 
 	file = memory_allocate( HASH_STREAM, sizeof( stream_file_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream = GET_STREAM( file );
-	_stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
+	stream_initialize( stream, BUILD_DEFAULT_STREAM_BYTEORDER );
 
 	file->fd       = fd;
 	stream->type   = STREAMTYPE_FILE;
 	stream->mode   = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC );
 	stream->path   = has_protocol ? abspath : string_prepend( abspath, ( abspath[0] == '/' ) ? "file:/" : "file://" );
 	stream->vtable = &_fs_file_vtable;
-	
+
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo fileinfo = {0};
 	_pnacl_file_io->Query( file->fd, &fileinfo, PP_BlockUntilComplete() );
@@ -1969,7 +1969,7 @@ int _fs_initialize( void )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get var interface" );
 	if( !_pnacl_core )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get core interface" );
-	
+
 	if( _pnacl_file_system && _pnacl_file_io && _pnacl_file_ref && _pnacl_var && _pnacl_core )
 	{
 		_pnacl_fs_temporary = _pnacl_file_system->Create( instance, PP_FILESYSTEMTYPE_LOCALTEMPORARY );
