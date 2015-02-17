@@ -25,5 +25,8 @@
 			"shell_cmd": "ninja",
 			"working_dir": "${project_path:${folder:${file_path}}}/..",
 		}
-	]
+	],
+	"translate_tabs_to_spaces": false,
+	"use_tab_stops": true,
+	"trim_trailing_white_space_on_save": true
 }
