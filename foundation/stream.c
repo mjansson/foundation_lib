@@ -68,7 +68,7 @@ void stream_set_protocol_handler( const char* protocol, stream_open_fn fn )
 
 stream_open_fn stream_protocol_handler( const char* protocol, unsigned int length )
 {
-	return (stream_open_fn)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
+	return (stream_open_fn)(uintptr_t)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
 }
 
 
