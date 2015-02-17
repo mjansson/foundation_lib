@@ -21,79 +21,79 @@ static hashtable64_t* _stream_protocol_table = 0;
 
 static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
 {
-    return stream_open_stdout();
+	return stream_open_stdout();
 }
 
 
 static stream_t* _stream_open_stderr( const char* path, unsigned int mode )
 {
-    return stream_open_stderr();
+	return stream_open_stderr();
 }
 
 
 static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
 {
-    return stream_open_stdin();
+	return stream_open_stdin();
 }
 
 
 int _stream_initialize( void )
 {
-    _stream_protocol_table = hashtable64_allocate( 32 );
+	_stream_protocol_table = hashtable64_allocate( 32 );
 
+	stream_set_protocol_handler( "", fs_open_file );
 #if FOUNDATION_PLATFORM_ANDROID
-    stream_set_protocol_handler( "asset", asset_stream_open );
+	stream_set_protocol_handler( "asset", asset_stream_open );
 #endif
-    stream_set_protocol_handler( "file", fs_open_file );
-    stream_set_protocol_handler( "stdout", _stream_open_stdout );
-    stream_set_protocol_handler( "stderr", _stream_open_stderr );
-    stream_set_protocol_handler( "stdin", _stream_open_stdin );
-    return 0;
+	stream_set_protocol_handler( "file", fs_open_file );
+	stream_set_protocol_handler( "stdout", _stream_open_stdout );
+	stream_set_protocol_handler( "stderr", _stream_open_stderr );
+	stream_set_protocol_handler( "stdin", _stream_open_stdin );
+	return 0;
 }
 
 
 void _stream_shutdown( void )
 {
-    hashtable_deallocate( _stream_protocol_table );
-    _stream_protocol_table = 0;
+	hashtable_deallocate( _stream_protocol_table );
+	_stream_protocol_table = 0;
 }
 
 
 void stream_set_protocol_handler( const char* protocol, stream_open_fn fn )
 {
-    hashtable64_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (uint64_t)(uintptr_t)fn );
+	hashtable64_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (uint64_t)(uintptr_t)fn );
 }
 
 
 stream_open_fn stream_protocol_handler( const char* protocol, unsigned int length )
 {
-    return (stream_open_fn)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
+	return (stream_open_fn)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
 }
 
 
 void stream_initialize( stream_t* stream, byteorder_t order )
 {
-    stream->byteorder = order;
-    stream->sequential = 0;
-    stream->reliable = 1;
-    stream->inorder = 1;
-    stream->swap = ( stream->byteorder != system_byteorder() ) ? 1 : 0;
-    stream->mode = STREAM_BINARY;
-    stream->path = 0;
+	stream->byteorder = order;
+	stream->sequential = 0;
+	stream->reliable = 1;
+	stream->inorder = 1;
+	stream->swap = ( stream->byteorder != system_byteorder() ) ? 1 : 0;
+	stream->mode = STREAM_BINARY;
+	stream->path = 0;
 }
 
 
 stream_t* stream_open( const char* path, unsigned int mode )
 {
 	unsigned int protocol_end;
-    stream_open_fn open_fn = fs_open_file;
+	stream_open_fn open_fn = 0;
 
 	//Check if protocol was given
 	protocol_end = string_find_string( path, "://", 0 );
-	if( protocol_end != STRING_NPOS )
-        open_fn = stream_protocol_handler( path, protocol_end );
+	open_fn = stream_protocol_handler( ( protocol_end != STRING_NPOS ) ? path : "", ( protocol_end != STRING_NPOS ) ? protocol_end : 0 );
 
-    return open_fn ? open_fn( path, mode ) : 0;
+	return open_fn ? open_fn( path, mode ) : 0;
 }
 
 
