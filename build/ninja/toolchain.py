@@ -374,7 +374,7 @@ class Toolchain(object):
         self.extralibs += [ 'log' ]
 
       elif target.is_pnacl():
-        self.pnacl_sdkpath = os.getenv( 'PNACL_SDKPATH', os.getenv( 'NACL_SDK_ROOT', self.pnacl_sdkpath ) )
+        self.pnacl_sdkpath = os.path.expanduser( os.getenv( 'PNACL_SDKPATH', os.getenv( 'NACL_SDK_ROOT', self.pnacl_sdkpath ) ) )
 
         pnacl_osname = subprocess.check_output( [ 'python', os.path.join( self.pnacl_sdkpath, 'tools', 'getos.py' ) ] ).strip()
         pnacl_toolchainpath = os.path.join( self.pnacl_sdkpath, 'toolchain', pnacl_osname + '_pnacl' )

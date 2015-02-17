@@ -11,7 +11,8 @@ def generate_version_string(libname):
   version_numbers = tokens[0].split('.')
 
   source = """/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
-   This file is generated from the git describe command */
+   This file is generated from the git describe command.
+   Run the configure script to regeneerate this file */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
