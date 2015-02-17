@@ -1,11 +1,11 @@
 /* platform.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -527,7 +527,7 @@
 #  define FOUNDATION_COMPILER_CLANG 1
 
 #  define FOUNDATION_COMPILER_NAME "clang"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " __clang_version__
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __clang_major__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __clang_minor__ )
 
 #  define RESTRICT restrict
 #  if FOUNDATION_PLATFORM_WINDOWS
@@ -578,7 +578,7 @@
 #  define FOUNDATION_COMPILER_GCC 1
 
 #  define FOUNDATION_COMPILER_NAME "gcc"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
 
 #  define RESTRICT __restrict
 #  define THREADLOCAL __thread
@@ -637,10 +637,10 @@
 #  define ATTRIBUTE2(x,y)
 #  define ATTRIBUTE3(x,y,z)
 
-#  define DEPRECATED 
+#  define DEPRECATED
 #  define FORCEINLINE __forceinline
 #  define NOINLINE __declspec( noinline )
-#  define PURECALL 
+#  define PURECALL
 #  define CONSTCALL
 #  define ALIGN( alignment ) __declspec( align( alignment ) )
 #  define ALIGNOF( type ) __alignof( type )

@@ -135,9 +135,3 @@ bool foundation_is_initialized( void )
 	return _foundation_initialized;
 }
 
-
-version_t foundation_version( void )
-{
-	return version_make( 1, 2, 3, 0, 0 );
-}
-
