@@ -139,3 +139,5 @@ bool foundation_is_initialized( void )
 	return _foundation_initialized;
 }
 
+
+#include "version.c"

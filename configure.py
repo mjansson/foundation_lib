@@ -25,7 +25,7 @@ foundation_lib = generator.lib( module = 'foundation', sources = [
   'hash.c', 'hashmap.c', 'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'pnacl.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
-  'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ] + extrasources )
+  'uuid.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ] + extrasources )
 
 if not target.is_ios() and not target.is_android():
   configs = [ config for config in toolchain.configs if config not in [ 'profile', 'deploy' ] ]
