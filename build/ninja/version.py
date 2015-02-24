@@ -4,6 +4,7 @@
 
 import subprocess
 import os
+import sys
 
 def generate_version_string(libname):
   git_version = subprocess.check_output( [ 'git', 'describe', '--long' ] ).strip()
@@ -14,8 +15,7 @@ def generate_version_string(libname):
    This file is generated from the git describe command.
    Run the configure script to regeneerate this file */
 
-#include <foundation/platform.h>
-#include <foundation/types.h>
+#include <foundation/foundation.h>
 
 version_t """ + libname + """_version( void )
 {
@@ -43,3 +43,6 @@ def generate_version(libname, output_path):
 
   if generated != previous:
     write_version_string(output_path, generated)
+
+if __name__ == "__main__":
+  generate_version(sys.argv[1], sys.argv[2])
