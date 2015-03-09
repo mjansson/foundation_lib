@@ -209,6 +209,7 @@ void* library_symbol( object_t id, const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		return dlsym( library->lib, name );
 #else
+		FOUNDATION_UNUSED( name );
 		log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library symbol lookup implemented for this platform: %s not found", name );
 #endif
 	}
