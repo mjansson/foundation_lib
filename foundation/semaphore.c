@@ -353,8 +353,8 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 		}
 		return true;
 #else
-		struct timeval now = {0};
-		struct timespec then= {0};
+		struct timeval now;
+		struct timespec then;
 		gettimeofday( &now, 0 );
 		then.tv_sec = now.tv_sec + ( milliseconds / 1000 );
 		then.tv_nsec = ( now.tv_usec * 1000 ) + (long)( milliseconds % 1000 ) * 1000000L;

@@ -40,7 +40,7 @@
 
 #if FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 extern void NOINLINE _gcc_barrier_function( uint32_t fp );
-void __attribute__((optimize("O0"))) _gcc_barrier_function( uint32_t fp ) {}
+void __attribute__((optimize("O0"))) _gcc_barrier_function( uint32_t fp ) { FOUNDATION_UNUSED( fp ); }
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
