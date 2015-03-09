@@ -133,6 +133,7 @@
     <ClCompile Include="..\..\foundation\thread.c" />
     <ClCompile Include="..\..\foundation\time.c" />
     <ClCompile Include="..\..\foundation\uuid.c" />
+    <ClCompile Include="..\..\foundation\version.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt">
