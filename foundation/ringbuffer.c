@@ -16,7 +16,7 @@
 
 #define RINGBUFFER_FROM_STREAM( stream ) ((ringbuffer_t*)&stream->total_read)
 
-static stream_vtable_t _ringbuffer_stream_vtable = {0};
+static stream_vtable_t _ringbuffer_stream_vtable;
 
 
 ringbuffer_t* ringbuffer_allocate( unsigned int size )
@@ -48,6 +48,7 @@ void ringbuffer_deallocate( ringbuffer_t* buffer )
 
 void ringbuffer_finalize( ringbuffer_t* buffer )
 {
+	FOUNDATION_UNUSED( buffer );
 }
 
 
@@ -239,6 +240,7 @@ static bool _ringbuffer_stream_eos( stream_t* stream )
 
 static void _ringbuffer_stream_flush( stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 }
 
 
@@ -276,6 +278,7 @@ static int64_t _ringbuffer_stream_tell( stream_t* stream )
 
 static uint64_t _ringbuffer_stream_lastmod( const stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 

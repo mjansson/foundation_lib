@@ -146,6 +146,7 @@ static bool _buffer_stream_eos( stream_t* stream )
 
 static void _buffer_stream_flush( stream_t* stream )
 {	//lint --e{715, 818} stream unused and count be const, but it's really a vtable function
+	FOUNDATION_UNUSED( stream );
 }
 
 
@@ -205,6 +206,7 @@ static int64_t _buffer_stream_tell( stream_t* stream )
 /*lint -e{550, 715} Function prototype must match stream interface */
 static uint64_t _buffer_stream_lastmod( const stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 

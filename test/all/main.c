@@ -23,12 +23,13 @@ static void* event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
 	event_t* event = 0;
-	
+	FOUNDATION_UNUSED( arg );
+
 	while( !thread_should_terminate( thread ) )
 	{
 		block = event_stream_process( system_event_stream() );
 		event = 0;
-		
+
 		while( ( event = event_next( block, event ) ) )
 		{
 			switch( event->id )
@@ -39,7 +40,7 @@ static void* event_thread( object_t thread, void* arg )
 					_test_should_start = true;
 #endif
 					break;
-					
+
 				case FOUNDATIONEVENT_TERMINATE:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 					log_infof( HASH_TEST, "Application terminate event received" );
@@ -49,15 +50,15 @@ static void* event_thread( object_t thread, void* arg )
 					process_exit( -2 );
 #endif
 					break;
-					
+
 				default:
 					break;
 			}
 		}
-		
+
 		thread_sleep( 10 );
 	}
-	
+
 	return 0;
 }
 
@@ -194,16 +195,17 @@ int main_run( void* main_arg )
 #endif
 	int process_result = 0;
 	object_t thread = 0;
-	
+	FOUNDATION_UNUSED( main_arg );
+
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
 	log_infof( HASH_TEST, "Foundation library v%s built for %s using %s (%s)", string_from_version_static( foundation_version() ), FOUNDATION_PLATFORM_DESCRIPTION, FOUNDATION_COMPILER_DESCRIPTION, build_name );
-	
+
 	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
 	while( !thread_is_running( thread ) )
 		thread_sleep( 10 );
-	
+
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	while( !_test_should_start )
 	{

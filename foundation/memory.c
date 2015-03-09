@@ -477,6 +477,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 static void* _memory_allocate_malloc( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* block;
+	FOUNDATION_UNUSED( context );
 	align = _memory_get_align( align );
 	block = _memory_allocate_malloc_raw( size, align, hint );
 	if( block && ( hint & MEMORY_ZERO_INITIALIZED ) )

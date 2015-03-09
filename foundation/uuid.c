@@ -47,12 +47,12 @@ typedef union
 } uuid_convert_t;
 
 
-static atomic32_t _uuid_last_counter = {0};
+static atomic32_t _uuid_last_counter;
 
 
 //682EAE88-339A-41B6-B8E3-997DAA0466D4
-const uuid_raw_t UUID_DNS_RAW = { 0x682eae88, 0x339a, 0x41b6, 0xb8, 0xe3, 0x99, 0x7d, 0xaa, 0x4, 0x66, 0xd4 };
-const uuid_t UUID_DNS = { 0x682EAE88339A41B6ULL, 0xB8E3997DAA0466D4ULL };
+const uuid_raw_t UUID_DNS_RAW = { 0x682eae88, 0x339a, 0x41b6, { 0xb8, 0xe3, 0x99, 0x7d, 0xaa, 0x4, 0x66, 0xd4 } };
+const uuid_t UUID_DNS = { { 0x682EAE88339A41B6ULL, 0xB8E3997DAA0466D4ULL } };
 
 
 uuid_t uuid_generate_random( void )

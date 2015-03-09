@@ -57,8 +57,8 @@ int main_initialize( void )
 int main_run( void* main_arg )
 {
 	int result = BIN2HEX_RESULT_OK;
-
 	bin2hex_input_t input = bin2hex_parse_command_line( environment_command_line() );
+	FOUNDATION_UNUSED( main_arg );
 
 	if( input.display_help )
 		bin2hex_print_usage();

@@ -1370,7 +1370,7 @@ uint64_t string_to_uint64( const char* val, bool hex )
 
 uint128_t string_to_uint128( const char* val )
 {
-	uint128_t ret = {0};
+	uint128_t ret = uint128_null();
 	if( val )
 		sscanf( val, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1] );
 	return ret;
@@ -1385,7 +1385,7 @@ real string_to_real( const char* val )
 	real ret = 0.0f;
 #endif
 	if( val )
-		sscanf( val, "%" PRIREAL, &ret );		
+		sscanf( val, "%" PRIREAL, &ret );
 	return ret;
 }
 

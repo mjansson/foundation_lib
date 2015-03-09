@@ -53,9 +53,9 @@ static void _bitbuffer_put( bitbuffer_t* RESTRICT bitbuffer )
 bitbuffer_t* bitbuffer_allocate_buffer( void* buffer, unsigned int size, bool swap )
 {
 	bitbuffer_t* bitbuffer = memory_allocate( 0, sizeof( bitbuffer_t ), 0, MEMORY_PERSISTENT );
-	
-	bitbuffer_initialize_buffer( bitbuffer, buffer, size, true );
-	
+
+	bitbuffer_initialize_buffer( bitbuffer, buffer, size, swap );
+
 	return bitbuffer;
 }
 
@@ -63,9 +63,9 @@ bitbuffer_t* bitbuffer_allocate_buffer( void* buffer, unsigned int size, bool sw
 bitbuffer_t* bitbuffer_allocate_stream( stream_t* stream )
 {
 	bitbuffer_t* bitbuffer = memory_allocate( 0, sizeof( bitbuffer_t ), 0, MEMORY_PERSISTENT );
-	
+
 	bitbuffer_initialize_stream( bitbuffer, stream );
-	
+
 	return bitbuffer;
 }
 
@@ -79,6 +79,7 @@ void bitbuffer_deallocate( bitbuffer_t* bitbuffer )
 
 void bitbuffer_finalize( bitbuffer_t* bitbuffer )
 {
+	FOUNDATION_UNUSED( bitbuffer );
 }
 
 

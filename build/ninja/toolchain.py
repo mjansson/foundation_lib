@@ -218,8 +218,7 @@ class Toolchain(object):
       self.ar = 'ar' + self.exe_suffix
       self.link = 'gcc' + self.exe_suffix
       self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
-                      '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
-                      '-Wno-unused-value',
+                      '-W', '-Wall', '-Werror', #'-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers', '-Wno-unused-value',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []

@@ -66,18 +66,18 @@ FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, "profile_block_t size
 #define GET_BLOCK( index )          ( _profile_blocks + (index) )
 #define BLOCK_INDEX( block )        (uint16_t)((uintptr_t)( (block) - _profile_blocks ))
 
-static const char*                  _profile_identifier = 0;
-static atomic32_t                   _profile_counter = {0};
-static atomic32_t                   _profile_loopid = {0};
-static atomic32_t                   _profile_free = {0};
-static atomic32_t                   _profile_root = {0};
-static profile_block_t*             _profile_blocks = 0;
-static uint64_t                     _profile_ground_time = 0;
-static int                          _profile_enable = 0;
-static profile_write_fn             _profile_write = 0;
-static uint64_t                     _profile_num_blocks = 0;
+static const char*                  _profile_identifier;
+static atomic32_t                   _profile_counter;
+static atomic32_t                   _profile_loopid;
+static atomic32_t                   _profile_free;
+static atomic32_t                   _profile_root;
+static profile_block_t*             _profile_blocks;
+static uint64_t                     _profile_ground_time;
+static int                          _profile_enable;
+static profile_write_fn             _profile_write;
+static uint64_t                     _profile_num_blocks;
 static int                          _profile_wait = 100;
-static object_t                     _profile_io_thread = 0;
+static object_t                     _profile_io_thread;
 
 FOUNDATION_DECLARE_THREAD_LOCAL( uint32_t, profile_block, 0 )
 
@@ -264,7 +264,7 @@ static profile_block_t* _profile_process_block( profile_block_t* block )
 static void _profile_process_root_block( void )
 {
 	uint32_t block;
-			
+
 	do
 	{
 		block = atomic_load32( &_profile_root );
@@ -289,6 +289,7 @@ static void* _profile_io( object_t thread, void* arg )
 {
 	unsigned int system_info_counter = 0;
 	profile_block_t system_info;
+	FOUNDATION_UNUSED( arg );
 	memset( &system_info, 0, sizeof( profile_block_t ) );
 	system_info.data.id = PROFILE_ID_SYSTEMINFO;
 	system_info.data.start = time_ticks_per_second();
@@ -300,7 +301,7 @@ static void* _profile_io( object_t thread, void* arg )
 
 		if( !atomic_load32( &_profile_root ) )
 			continue;
-		
+
 		profile_begin_block( "profile_io" );
 
 		if( atomic_load32( &_profile_root ) )
@@ -314,7 +315,7 @@ static void* _profile_io( object_t thread, void* arg )
 
 			profile_end_block();
 		}
-		
+
 		if( system_info_counter++ > 10 )
 		{
 			if( _profile_write )

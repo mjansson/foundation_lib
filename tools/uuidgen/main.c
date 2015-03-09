@@ -91,7 +91,7 @@ int main_run( void* main_arg )
 	int iinst, num_instance;
 	uuid_t* output = 0;
 	uuidgen_input_t input = uuidgen_parse_command_line( environment_command_line() );
-	
+	FOUNDATION_UNUSED( main_arg );
 	//--md5 dns com.rampantpixels.foundation.uuidgen -> BD63FB1E-2EEA-35EB-940F-1042E6008A95
 
 	for( iinst = 0, num_instance = array_size( input.generate ); iinst < num_instance; ++iinst )

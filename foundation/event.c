@@ -20,7 +20,7 @@
 static atomic32_t _event_serial = {1};
 
 
-static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
+static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
 {
 	event_block_t* block;
 	event_t* event;
@@ -51,7 +51,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 		thread_yield();
 		last_write = atomic_load32( &stream->write );
 	}
-	
+
 	//We now have exclusive access to the event block
 	block = stream->block + last_write;
 
@@ -79,7 +79,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 	event->id        = id;
 	event->serial    = (uint16_t)( atomic_exchange_and_add32( &_event_serial, 1 ) & 0xFFFF );
 	event->size      = allocsize;
-	event->flags     = 0;
+	event->flags     = flags;
 	event->object    = object;
 
 	if( size )
@@ -112,7 +112,7 @@ uint16_t event_payload_size( const event_t* event )
 
 void event_post( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, tick_t delivery )
 {
-	_event_post_delay_with_flag( stream, id, size, object, payload, 0, delivery );
+	_event_post_delay_with_flags( stream, id, size, object, payload, 0, delivery );
 }
 
 
@@ -139,7 +139,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 			return event;
 
 		//Re-post to next block
-		_event_post_delay_with_flag( block->stream, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
+		_event_post_delay_with_flags( block->stream, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
 	} while( true );
 
 	return 0;

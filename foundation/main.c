@@ -133,6 +133,8 @@ static void sighandler( int sig )
 		default: break;
 	}
 	log_infof( 0, "Caught signal: %s (%d)", signame, sig );
+#else
+	FOUNDATION_UNUSED( sig );
 #endif
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
 }

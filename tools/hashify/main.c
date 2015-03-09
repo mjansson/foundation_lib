@@ -74,7 +74,8 @@ int main_run( void* main_arg )
 {
 	int result = 0;
 	hashify_input_t input = hashify_parse_command_line( environment_command_line() );
-	
+	FOUNDATION_UNUSED( main_arg );
+
 	result = hashify_process_strings( (char const* const*)input.strings );
 	if( result < 0 )
 		goto exit;

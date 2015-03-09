@@ -127,7 +127,7 @@ static void md5_transform( md5_t* digest, const unsigned char* buffer )
 md5_t* md5_allocate( void )
 {
 	md5_t* digest = memory_allocate( 0, sizeof( md5_t ), 0, MEMORY_PERSISTENT );
-	
+
 	md5_initialize( digest );
 
 	return digest;
@@ -157,6 +157,7 @@ void md5_initialize( md5_t* digest )
 
 void md5_finalize( md5_t* md5 )
 {
+	FOUNDATION_UNUSED( md5 );
 }
 
 

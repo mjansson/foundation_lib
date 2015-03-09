@@ -655,6 +655,9 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 	return false;
 #else
 	//Not implemented
+	FOUNDATION_UNUSED( message );
+	FOUNDATION_UNUSED( title );
+	FOUNDATION_UNUSED( cancel_button );
 	return false;
 #endif
 }

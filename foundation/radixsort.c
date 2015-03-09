@@ -657,4 +657,5 @@ void radixsort_deallocate( radixsort_t* sort )
 
 void radixsort_finalize( radixsort_t* sort )
 {
+	FOUNDATION_UNUSED( sort );
 }

@@ -142,19 +142,24 @@ FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
 #  define crash_env_t struct __jmp_buf_tag*
 #endif
 FOUNDATION_DECLARE_THREAD_LOCAL( crash_env_t, crash_env, 0 )
-	
-	
+
+
 static void _crash_guard_minidump( void* context, const char* name, char* dump_file )
 {
 	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "/tmp/core.%s", name ? name : "unknown" );
 
 	//TODO: Write dump file
 	//ucontext_t* user_context = context;
+	FOUNDATION_UNUSED( context );
 }
 
 
 static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 {
+	FOUNDATION_UNUSED( sig );
+	FOUNDATION_UNUSED( info );
+	FOUNDATION_UNUSED( arg );
+
 	log_warnf( 0, WARNING_SUSPICIOUS, "Caught crash guard signal: %d", sig );
 
 	crash_dump_callback_fn callback = get_thread_crash_callback();
@@ -166,7 +171,7 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 	_error_context_clear();
-#endif	
+#endif
 
 	crash_env_t guard_env = get_thread_crash_env();
 	if( guard_env )
@@ -193,7 +198,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 			callback( _crash_dump_file );
 #if BUILD_ENABLE_ERROR_CONTEXT
 		_error_context_clear();
-#endif	
+#endif
 		return FOUNDATION_CRASH_DUMP_GENERATED;
 	}
 #  else
@@ -204,8 +209,8 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #  endif
 
 #elif FOUNDATION_PLATFORM_POSIX
-	sigjmp_buf guard_env = {0};
-	
+	sigjmp_buf guard_env;
+
 	struct sigaction action;
 	memset( &action, 0, sizeof( action ) );
 
@@ -225,6 +230,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	set_thread_crash_callback( callback );
 	set_thread_crash_callback_name( name );
 
+	memset( &guard_env, 0, sizeof( guard_env ) );
 	int ret = sigsetjmp( guard_env, 1 );
 	if( ret == 0 )
 	{
@@ -232,7 +238,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 		return fn( data );
 	}
 	return ret;
-	
+
 #else
 
 	//No guard mechanism in place yet for this platform

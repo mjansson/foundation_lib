@@ -126,6 +126,8 @@ void process_set_verb( process_t* proc, const char* verb )
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_deallocate( proc->verb );
 	proc->verb = string_clone( verb );
+#else
+	FOUNDATION_UNUSED( verb );
 #endif
 }
 

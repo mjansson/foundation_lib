@@ -42,13 +42,13 @@
 #  include <ppapi/c/ppb_file_ref.h>
 #  include <ppapi/c/ppb_var.h>
 #  include <ppapi/c/ppb_core.h>
-static PP_Resource _pnacl_fs_temporary = 0;
-static PP_Resource _pnacl_fs_persistent = 0;
-static const PPB_FileSystem* _pnacl_file_system = 0;
-static const PPB_FileIO* _pnacl_file_io = 0;
-static const PPB_FileRef* _pnacl_file_ref = 0;
-static const PPB_Var* _pnacl_var = 0;
-static const PPB_Core* _pnacl_core = 0;
+static PP_Resource _pnacl_fs_temporary;
+static PP_Resource _pnacl_fs_persistent;
+static const PPB_FileSystem* _pnacl_file_system;
+static const PPB_FileIO* _pnacl_file_io;
+static const PPB_FileRef* _pnacl_file_ref;
+static const PPB_Var* _pnacl_var;
+static const PPB_Core* _pnacl_core;
 #endif
 
 #include <stdio.h>
@@ -88,8 +88,8 @@ static stream_vtable_t _fs_file_vtable;
 
 static void* _fs_monitor( object_t, void* );
 
-static fs_monitor_t _fs_monitors[BUILD_SIZE_FS_MONITORS] = {0};
-static event_stream_t* _fs_event_stream = 0;
+static fs_monitor_t _fs_monitors[BUILD_SIZE_FS_MONITORS];
+static event_stream_t* _fs_event_stream;
 
 
 static const char* _fs_path( const char* abspath )
@@ -830,7 +830,7 @@ uint64_t fs_last_modified( const char* path )
 
 uint128_t fs_md5( const char* path )
 {
-	uint128_t digest = {0};
+	uint128_t digest = uint128_null();
 	stream_t* file = fs_open_file( path, STREAM_IN | STREAM_BINARY );
 	if( file )
 	{
@@ -1086,6 +1086,7 @@ extern void  _fs_event_stream_flush( void* stream );
 void* _fs_monitor( object_t thread, void* monitorptr )
 {
 	fs_monitor_t* monitor = monitorptr;
+	FOUNDATION_UNUSED( thread );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 

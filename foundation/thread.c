@@ -147,6 +147,7 @@ void _thread_shutdown( void )
 static void _thread_destroy( object_t id, void* thread_raw )
 {
 	thread_t* thread = thread_raw;
+	FOUNDATION_UNUSED( id );
 	if( !thread )
 		return;
 	if( thread_is_running( thread->id ) )
@@ -569,7 +570,8 @@ unsigned int thread_hardware( void )
 
 void thread_set_hardware( uint64_t mask )
 {
-  //TODO: Implement
+	//TODO: Implement
+	FOUNDATION_UNUSED( mask );
 }
 
 
@@ -588,7 +590,7 @@ bool thread_is_main( void )
 void thread_finalize( void )
 {
 	_profile_thread_finalize();
-	
+
 	random_thread_deallocate();
 
 #if FOUNDATION_PLATFORM_ANDROID

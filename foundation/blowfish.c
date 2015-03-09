@@ -415,6 +415,7 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 
 void blowfish_finalize( blowfish_t* blowfish )
 {
+	FOUNDATION_UNUSED( blowfish );
 }
 
 

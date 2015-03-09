@@ -41,7 +41,7 @@ hashtable32_t* hashtable32_allocate( unsigned int buckets )
 	hashtable32_t* table = (hashtable32_t*)memory_allocate( 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
 
 	hashtable32_initialize( table, buckets );
-	
+
 	return table;
 }
 
@@ -62,6 +62,7 @@ void hashtable32_deallocate( hashtable32_t* table )
 
 void hashtable32_finalize( hashtable32_t* table )
 {
+	FOUNDATION_UNUSED( table );
 }
 
 
@@ -188,7 +189,7 @@ hashtable64_t* hashtable64_allocate( unsigned int buckets )
 	hashtable64_t* table = (hashtable64_t*)memory_allocate( 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
 
 	hashtable64_initialize( table, buckets );
-	
+
 	return table;
 }
 
@@ -209,6 +210,7 @@ void hashtable64_deallocate( hashtable64_t* table )
 
 void hashtable64_finalize( hashtable64_t* table )
 {
+	FOUNDATION_UNUSED( table );
 }
 
 

@@ -46,6 +46,7 @@ static void* test_event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
 	event_t* event = 0;
+	FOUNDATION_UNUSED( arg );
 
 	while( !thread_should_terminate( thread ) )
 	{
@@ -203,17 +204,18 @@ int test_run_all( void )
 int main_initialize( void )
 {
 	log_set_suppress( 0, ERRORLEVEL_INFO );
-	
+
 	test_suite = test_suite_define();
-	
+
 	return foundation_initialize( test_suite.memory_system(), test_suite.application() );
 }
 
 
 int main_run( void* main_arg )
 {
+	FOUNDATION_UNUSED( main_arg );
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
-    
+
 	return test_run_all();
 }
 
@@ -298,6 +300,7 @@ void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threa
 
 void test_crash_handler( const char* dump_file )
 {
+	FOUNDATION_UNUSED( dump_file );
 	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
 	process_exit( -1 );
 }
