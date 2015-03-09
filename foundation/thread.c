@@ -1,11 +1,11 @@
 /* thread.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -49,12 +49,12 @@ struct thread_local_block_t
 typedef struct thread_local_block_t thread_local_block_t;
 
 //TODO: Ugly hack, improve this shit
-static thread_local_block_t _thread_local_blocks[1024] = {{0}};
+static thread_local_block_t _thread_local_blocks[1024];
 
 void* _allocate_thread_local_block( unsigned int size )
 {
 	void* block = memory_allocate( 0, size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	
+
 	for( int i = 0; i < 1024; ++i )
 	{
 		if( !atomic_loadptr( &_thread_local_blocks[i].block ) )
@@ -66,7 +66,7 @@ void* _allocate_thread_local_block( unsigned int size )
 			}
 		}
 	}
-	
+
 	log_warnf( 0, WARNING_MEMORY, "Unable to locate thread local memory block slot, will leak %d bytes", size );
 	return block;
 }
@@ -99,8 +99,8 @@ ALIGNED_STRUCT( thread_t, 16 )
 };
 typedef ALIGNED_STRUCT( thread_t, 16 ) thread_t;
 
-static uint64_t     _thread_main_id = 0;
-static objectmap_t* _thread_map = 0;
+static uint64_t     _thread_main_id;
+static objectmap_t* _thread_map;
 
 #define GET_THREAD( obj ) objectmap_lookup( _thread_map, obj )
 
@@ -185,7 +185,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	uint64_t id = objectmap_reserve( _thread_map );
 	if( !id )
 	{
-		log_error( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
+		log_error( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );
 		return 0;
 	}
 	thread = memory_allocate( 0, sizeof( thread_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
@@ -363,7 +363,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread, invalid thread object %" PRIfixPTR, thread );
 		return 0;
 	}
-	
+
 	atomic_cas32( &thread->started, 1, 0 );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
@@ -441,7 +441,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_UNUSED(thr_osid);
 	FOUNDATION_UNUSED(thr_id);
-	
+
 	return 0;
 }
 
@@ -612,7 +612,7 @@ void thread_finalize( void )
 			memory_deallocate( block );
 		}
 	}
-#endif	
+#endif
 }
 
 

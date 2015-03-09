@@ -1,11 +1,11 @@
 /* hashtable.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -106,7 +106,7 @@ void hashtable32_erase( hashtable32_t* table, uint32_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
@@ -134,7 +134,7 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
@@ -254,7 +254,7 @@ void hashtable64_erase( hashtable64_t* table, uint64_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
@@ -282,7 +282,7 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{

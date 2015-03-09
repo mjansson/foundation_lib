@@ -1,11 +1,11 @@
 /* main.c  -  Foundation semaphore test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_semaphore_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation semaphore tests";
 	app.short_name = "test_semaphore";
 	app.config_dir = "test_semaphore";
@@ -42,7 +43,7 @@ static void test_semaphore_shutdown( void )
 {
 }
 
-                   
+
 DECLARE_TEST( semaphore, initialize )
 {
 	semaphore_t sem;
@@ -63,7 +64,7 @@ DECLARE_TEST( semaphore, initialize )
 	semaphore_post( &sem );
 	semaphore_post( &sem ); //Restored value
 	semaphore_finalize( &sem );
-	
+
 	return 0;
 }
 
@@ -114,6 +115,7 @@ static void* semaphore_waiter( object_t thread, void* arg )
 {
 	semaphore_test_t* sem = arg;
 	int loop;
+	FOUNDATION_UNUSED( thread );
 
 	for( loop = 0; loop < sem->loopcount; ++loop )
 	{
@@ -122,7 +124,7 @@ static void* semaphore_waiter( object_t thread, void* arg )
 		++sem->counter;
 		semaphore_post( &sem->write );
 	}
-	
+
 	return 0;
 }
 
@@ -138,7 +140,7 @@ DECLARE_TEST( semaphore, threaded )
 	semaphore_initialize( &test.write, 0 );
 	test.loopcount = 128;
 	test.counter = 0;
-	
+
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread[ith] = thread_create( semaphore_waiter, "semaphore_waiter", THREAD_PRIORITY_NORMAL, 0 );
@@ -173,7 +175,7 @@ DECLARE_TEST( semaphore, threaded )
 
 	semaphore_finalize( &test.read );
 	semaphore_finalize( &test.write );
-	
+
 	return 0;
 }
 

@@ -1,11 +1,11 @@
 /* array.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -42,7 +42,7 @@
 #define array_erase_ordered_range_safe( array, pos, num )   do { int _clamped_start = math_clamp( (pos), 0, array_size( array ) ); int _clamped_end = math_clamp( ( (pos) + (num) ), 0, array_size( array ) ); if( _clamped_end > _clamped_start ) array_erase_ordered_range( array, _clamped_start, _clamped_end - _clamped_start ); } while(0)
 
 
-// **** Internal implementation details below, not for direct use **** 
+// **** Internal implementation details below, not for direct use ****
 
 // Header size set to 16 bytes in order to align main array memory
 #define _array_header_size           4UL

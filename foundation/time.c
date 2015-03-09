@@ -1,11 +1,11 @@
 /* time.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -28,9 +28,9 @@ static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) {
 #  error Not implemented on this platform!
 #endif
 
-static tick_t _time_freq    = 0;
-static double _time_oofreq  = 0;
-static tick_t _time_startup = 0;
+static tick_t _time_freq;
+static double _time_oofreq;
+static tick_t _time_startup;
 
 
 int _time_initialize( void )
@@ -107,7 +107,7 @@ tick_t time_diff( const tick_t from, const tick_t to )
 		return 0;
 	return ( to - from );
 }
-	
+
 
 deltatime_t time_elapsed( const tick_t t )
 {

@@ -1,11 +1,11 @@
 /* main.c  -  Foundation bin2hex tool  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -36,7 +36,8 @@ int main_initialize( void )
 {
 	int ret = 0;
 
-	application_t application = {0};
+	application_t application;
+	memset( &application, 0, sizeof( application ) );
 	application.name = "bin2hex";
 	application.short_name = "bin2hex";
 	application.config_dir = "bin2hex";
@@ -86,8 +87,10 @@ void main_shutdown( void )
 
 bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 {
-	bin2hex_input_t input = {0};
+	bin2hex_input_t input;
 	int arg, asize;
+
+	memset( &input, 0, sizeof( input ) );
 
 	error_context_push( "parsing command line", "" );
 	for( arg = 1, asize = array_size( cmdline ); arg < asize; ++arg )
@@ -104,7 +107,7 @@ bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 		else if( string_equal( cmdline[arg], "--" ) )
 			break; //Stop parsing cmdline options
 		else if( ( string_length( cmdline[arg] ) > 2 ) && string_equal_substr( cmdline[arg], "--", 2 ) )
-			continue; //Cmdline argument not parsed here			
+			continue; //Cmdline argument not parsed here
 		else
 		{
 			array_push( input.input_files, string_clone( cmdline[arg] ) );
@@ -112,7 +115,7 @@ bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 		}
 	}
 	error_context_pop();
-	
+
 	if( array_size( cmdline ) <= 1 )
 		input.display_help = true;
 
@@ -155,7 +158,7 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 				result = BIN2HEX_RESULT_UNABLE_TO_OPEN_OUTPUT_FILE;
 			}
 		}
-		
+
 		if( input_file && output_file )
 			result = bin2hex_process_file( input_file, output_file, columns );
 
@@ -165,7 +168,7 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 		string_deallocate( output_filename );
 
 		error_context_pop();
-		string_deallocate( input_filename );		
+		string_deallocate( input_filename );
 	}
 
 	if( ( result == BIN2HEX_RESULT_OK ) && ( files_size > 0 ) )

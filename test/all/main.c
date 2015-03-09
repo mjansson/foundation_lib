@@ -94,7 +94,7 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 		(*jnienv)->DeleteLocalRef( jnienv, jstr );
 	}
 	thread_detach_jvm();
-#endif	
+#endif
 }
 
 #endif
@@ -102,18 +102,19 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 
 int main_initialize( void )
 {
-	application_t application = {0};
+	application_t application;
+	memset( &application, 0, sizeof( application ) );
 	application.name = "Foundation library test suite";
 	application.short_name = "test_all";
 	application.config_dir = "test_all";
 	application.flags = APPLICATION_UTILITY;
-	
+
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
-	
+
 #if ( FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID ) && BUILD_ENABLE_LOG
 	log_set_callback( test_log_callback );
 #endif
-	
+
 	return foundation_initialize( memory_system_malloc(), application );
 }
 
@@ -161,14 +162,14 @@ static void* test_runner( object_t obj, void* arg )
 	test_run_fn* tests = (test_run_fn*)arg;
 	int test_fn = 0;
 	int process_result = 0;
-	
+
 	while( tests[test_fn] && ( process_result >= 0 ) )
 	{
 		if( ( process_result = tests[test_fn]() ) >= 0 )
 			log_infof( HASH_TEST, "All tests passed (%d)", process_result );
 		++test_fn;
 	}
-	
+
 	return (void*)(intptr_t)process_result;
 }
 
@@ -217,9 +218,9 @@ int main_run( void* main_arg )
 #endif
 
 	fs_remove_directory( environment_temporary_directory() );
-	
+
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
-	
+
 	test_run_fn tests[] = {
 		//test_app_run
 		test_array_run,
@@ -262,9 +263,9 @@ int main_run( void* main_arg )
 		test_uuid_run,
 		0
 	};
-	
+
 #if FOUNDATION_PLATFORM_ANDROID
-	
+
 	object_t test_thread = thread_create( test_runner, "test_runner", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( test_thread, tests );
 
@@ -275,41 +276,41 @@ int main_run( void* main_arg )
 		system_process_events();
 		thread_sleep( 10 );
 	}
-	
+
 	while( thread_is_running( test_thread ) )
 	{
 		system_process_events();
 		thread_sleep( 10 );
 	}
-	
+
 	process_result = (int)(intptr_t)thread_result( test_thread );
 	thread_destroy( test_thread );
-	
+
 	while( thread_is_thread( test_thread ) )
 	{
 		system_process_events();
 		thread_sleep( 10 );
 	}
-	
+
 #else
-	
+
 	process_result = (int)(intptr_t)test_runner( 0, tests );
-	
+
 #endif
-	
+
 	if( process_result != 0 )
 		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
-	
+
 	while( !_test_should_terminate )
 	{
 		system_process_events();
 		thread_sleep( 100 );
 	}
-	
+
 	log_debug( HASH_TEST, "Exiting main loop" );
-	
+
 #else
-	
+
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = "^test-.*.exe$";
@@ -346,17 +347,17 @@ int main_run( void* main_arg )
 		string_deallocate( exe_file_name );
 		if( is_self )
 			continue; //Don't run self
-		
+
 		process_path = path_merge( environment_executable_directory(), exe_paths[iexe] );
-		
+
 		process = process_allocate();
-		
+
 		process_set_executable_path( process, process_path );
 		process_set_working_directory( process, environment_executable_directory() );
 		process_set_flags( process, PROCESS_ATTACHED | exe_flags[iexe] );
-		
+
 		log_infof( HASH_TEST, "Running test executable: %s", exe_paths[iexe] );
-		
+
 		process_result = process_spawn( process );
 		while( process_result == PROCESS_WAIT_INTERRUPTED )
 		{
@@ -364,9 +365,9 @@ int main_run( void* main_arg )
 			process_result = process_wait( process );
 		}
 		process_deallocate( process );
-		
+
 		string_deallocate( process_path );
-		
+
 		if( process_result != 0 )
 		{
 			if( process_result >= PROCESS_INVALID_ARGS )
@@ -376,27 +377,27 @@ int main_run( void* main_arg )
 			process_set_exit_code( -1 );
 			goto exit;
 		}
-		
+
 		log_infof( HASH_TEST, "All tests from %s passed (%d)", exe_paths[iexe], process_result );
 	}
-	
+
 	log_info( HASH_TEST, "All tests passed" );
-	
+
 exit:
-	
+
 	if( exe_paths )
 		string_array_deallocate( exe_paths );
 	array_deallocate( exe_flags );
-	
+
 #endif
-	
+
 	thread_terminate( thread );
 	thread_destroy( thread );
 	while( thread_is_running( thread ) )
 		thread_sleep( 10 );
 	while( thread_is_thread( thread ) )
 		thread_sleep( 10 );
-	
+
 	return process_result;
 }
 

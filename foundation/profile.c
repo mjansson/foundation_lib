@@ -1,11 +1,11 @@
 /* profile.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -336,7 +336,7 @@ static void* _profile_io( object_t thread, void* arg )
 		terminate.data.id = PROFILE_ID_ENDOFSTREAM;
 		_profile_write( &terminate, sizeof( profile_block_t ) );
 	}
-	
+
 	return 0;
 }
 
@@ -350,7 +350,7 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 
 	if( num_blocks > 65535 )
 		num_blocks = 65535;
-	
+
 	for( i = 0; i < ( num_blocks - 1 ); ++i, ++block )
 	{
 		block->child = ( i + 1 );
@@ -386,7 +386,7 @@ void profile_shutdown( void )
 	_profile_thread_finalize();
 	if( atomic_load32( &_profile_root ) )
 		_profile_process_root_block();
-	
+
 	//Sanity checks
 	{
 		uint64_t num_blocks = 0;
@@ -437,7 +437,7 @@ void profile_enable( bool enable )
 {
 	bool was_enabled = ( _profile_enable > 0 );
 	bool is_enabled = enable;
-	
+
 	if( is_enabled && !was_enabled )
 	{
 		_profile_enable = 1;
@@ -457,7 +457,7 @@ void profile_enable( bool enable )
 
 		while( thread_is_running( _profile_io_thread ) )
 			thread_yield();
-		
+
 		_profile_enable = 0;
 	}
 }
@@ -468,7 +468,7 @@ void profile_end_frame( uint64_t counter )
 	profile_block_t* block;
 	if( !_profile_enable )
 		return;
-	
+
 	//Allocate new master block
 	block = _profile_allocate_block();
 	if( !block )
@@ -488,7 +488,7 @@ void profile_begin_block( const char* message )
 	uint32_t parent;
 	if( !_profile_enable )
 		return;
-	
+
 	parent = get_thread_profile_block();
 	if( !parent )
 	{
@@ -539,13 +539,13 @@ void profile_update_block( void )
 	profile_block_t* block;
 	if( !_profile_enable || !block_index )
 		return;
-	
+
 	block = GET_BLOCK( block_index );
 	message = block->data.name;
 	processor = thread_hardware();
 	if( block->data.processor == processor )
 		return;
-	
+
 	//Thread migrated to another core, split into new block
 	profile_end_block();
 	profile_begin_block( message );
@@ -558,7 +558,7 @@ void profile_end_block( void )
 	profile_block_t* block;
 	if( !_profile_enable || !block_index )
 		return;
-	
+
 	block = GET_BLOCK( block_index );
 	block->data.end = time_current() - _profile_ground_time;
 
@@ -586,7 +586,7 @@ void profile_end_block( void )
 		FOUNDATION_ASSERT( parent_index != block_index );
 #endif
 		set_thread_profile_block( parent_index );
-		
+
 		processor = thread_hardware();
 		if( parent->data.processor != processor )
 		{

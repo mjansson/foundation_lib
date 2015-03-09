@@ -1,11 +1,11 @@
 /* event.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -70,7 +70,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, u
 			error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
 		}
 		if( block->capacity % 16 )
-			block->capacity += 16 - ( basesize % 16 );			
+			block->capacity += 16 - ( basesize % 16 );
 		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16, prev_capacity ) : memory_allocate( 0, block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
 	}
 
@@ -149,9 +149,9 @@ event_t* event_next( const event_block_t* block, event_t* event )
 event_stream_t* event_stream_allocate( unsigned int size )
 {
 	event_stream_t* stream = memory_allocate( 0, sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
-	
+
 	event_stream_initialize( stream, size );
-	
+
 	return stream;
 }
 
@@ -163,10 +163,10 @@ void event_stream_initialize( event_stream_t* stream, unsigned int size )
 
 	if( size < 256 )
 		size = 256;
-	
+
 	stream->block[0].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream->block[1].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	
+
 	stream->block[0].used = 0;
 	stream->block[1].used = 0;
 
@@ -193,7 +193,7 @@ void event_stream_finalize( event_stream_t* stream )
 		memory_deallocate( stream->block[0].events );
 	if( stream->block[1].events )
 		memory_deallocate( stream->block[1].events );
-	
+
 	stream->block[0].events = 0;
 	stream->block[1].events = 0;
 }

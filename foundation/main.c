@@ -1,11 +1,11 @@
 /* main.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -45,7 +45,7 @@ BOOL STDCALL _main_console_handler( DWORD control_type )
 		unsigned long level = 0, flags = 0;
 
 		system_post_event( FOUNDATIONEVENT_TERMINATE );
-		
+
 		GetProcessShutdownParameters( &level, &flags );
 		SetProcessShutdownParameters( level, SHUTDOWN_NORETRY );
 
@@ -74,7 +74,7 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 	foundation_startup();
 
 	system_post_event( FOUNDATIONEVENT_START );
-	
+
 #if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
@@ -157,12 +157,12 @@ int main( int argc, char** argv )
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	_environment_main_args( argc, (const char* const*)argv );
 #endif
-	
+
 	if( ( ret = main_initialize() ) < 0 )
 		return ret;
 
 #if FOUNDATION_PLATFORM_POSIX
-	
+
 	//Set signal handlers
 	{
 		struct sigaction action;
@@ -196,7 +196,7 @@ int main( int argc, char** argv )
 	thread_set_main();
 
 	foundation_startup();
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
 	system_post_event( FOUNDATIONEVENT_START );
 #endif
@@ -206,7 +206,7 @@ int main( int argc, char** argv )
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{
 		delegate_start_main_ns_thread();
-		
+
 		extern int NSApplicationMain( int argc, const char *argv[] );
 		ret = NSApplicationMain( argc, (const char**)argv );
 

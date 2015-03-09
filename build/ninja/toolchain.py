@@ -218,7 +218,7 @@ class Toolchain(object):
       self.ar = 'ar' + self.exe_suffix
       self.link = 'gcc' + self.exe_suffix
       self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
-                      '-W', '-Wall', '-Werror', #'-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers', '-Wno-unused-value',
+                      '-W', '-Wall', '-Werror',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
@@ -260,7 +260,7 @@ class Toolchain(object):
         self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-DANDROID', '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
-                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function', '-Wno-unused-variable' ]
+                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack' ]
 
         self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
 
@@ -275,7 +275,7 @@ class Toolchain(object):
       self.ar = 'llvm-ar'
       self.link = 'clang'
       self.cflags = [ '-std=c11', '-D' + self.project.upper() + '_COMPILE=1',
-                      '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
+                      '-W', '-Wall', '-Werror',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
@@ -363,7 +363,7 @@ class Toolchain(object):
         self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer',
-                         '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function' ]
+                         '-no-canonical-prefixes', '-Wa,--noexecstack' ]
 
         self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
 

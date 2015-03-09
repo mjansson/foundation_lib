@@ -163,6 +163,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 	file_node_t* root_node = user_data;
 	unsigned int root_path_len = string_length( root_node->name );
 	char pathbuf[FOUNDATION_MAX_PATHLEN+1];
+	FOUNDATION_UNUSED( stream_ref );
 
 	@autoreleasepool
 	{

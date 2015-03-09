@@ -1,11 +1,11 @@
 /* main.c  -  Foundation hashmap test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_hashmap_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation hashmap tests";
 	app.short_name = "test_hashmap";
 	app.config_dir = "test_hashmap";
@@ -42,7 +43,7 @@ static void test_hashmap_shutdown( void )
 {
 }
 
-                   
+
 DECLARE_TEST( hashmap, allocation )
 {
 	hashmap_t* map = hashmap_allocate( 0, 0 );
@@ -60,7 +61,7 @@ DECLARE_TEST( hashmap, allocation )
 	EXPECT_EQ( hashmap_lookup( map, (hash_t)(uintptr_t)map ), 0 );
 
 	hashmap_deallocate( map );
-	
+
 	return 0;
 }
 
@@ -69,21 +70,21 @@ DECLARE_TEST( hashmap, insert )
 {
 	hashmap_t* map = hashmap_allocate( 0, 0 );
 	void* prev = 0;
-	
+
 	EXPECT_EQ( hashmap_lookup( map, 0 ), 0 );
 
 	prev = hashmap_insert( map, 0, map );
 	EXPECT_EQ( prev, 0 );
-	
+
 	prev = hashmap_insert( map, 0, map );
 	EXPECT_EQ( prev, map );
-	
+
 	prev = hashmap_insert( map, 0, 0 );
 	EXPECT_EQ( prev, map );
 
 	prev = hashmap_insert( map, 0, map );
 	EXPECT_EQ( prev, 0 );
-	
+
 	prev = hashmap_insert( map, (hash_t)(uintptr_t)map, map );
 	EXPECT_EQ( prev, 0 );
 
@@ -99,7 +100,7 @@ DECLARE_TEST( hashmap, insert )
 	EXPECT_EQ( hashmap_lookup( map, (hash_t)(uintptr_t)map ), 0 );
 
 	hashmap_deallocate( map );
-	
+
 	return 0;
 }
 
@@ -108,7 +109,7 @@ DECLARE_TEST( hashmap, erase )
 {
 	hashmap_t* map = hashmap_allocate( 0, 0 );
 	void* prev = 0;
-	
+
 	EXPECT_EQ( hashmap_lookup( map, 0 ), 0 );
 	EXPECT_EQ( hashmap_size( map ), 0 );
 
@@ -116,20 +117,20 @@ DECLARE_TEST( hashmap, erase )
 	EXPECT_EQ( prev, 0 );
 	EXPECT_EQ( hashmap_size( map ), 1 );
 	EXPECT_TRUE( hashmap_has_key( map, 0 ) );
-	
+
 	prev = hashmap_erase( map, 0 );
 	EXPECT_EQ( prev, map );
 	EXPECT_EQ( hashmap_size( map ), 0 );
 	EXPECT_FALSE( hashmap_has_key( map, 0 ) );
-	
+
 	prev = hashmap_erase( map, 0 );
 	EXPECT_EQ( prev, 0 );
 	EXPECT_EQ( hashmap_size( map ), 0 );
 	EXPECT_FALSE( hashmap_has_key( map, 0 ) );
-	
+
 	prev = hashmap_erase( map, (hash_t)(uintptr_t)map );
 	EXPECT_EQ( prev, 0 );
-	EXPECT_EQ( hashmap_size( map ), 0 );	
+	EXPECT_EQ( hashmap_size( map ), 0 );
 	EXPECT_FALSE( hashmap_has_key( map, (hash_t)(uintptr_t)map ) );
 
 	hashmap_deallocate( map );
@@ -150,7 +151,7 @@ DECLARE_TEST( hashmap, lookup )
 		void* prev = hashmap_insert( map, key, value );
 		EXPECT_EQ( prev, 0 );
 	}
-	
+
 	for( ikey = 0, key = (hash_t)4321, value = (void*)(uintptr_t)1234; ikey < 1024; ++ikey, ++key, ++value )
 	{
 		void* prev = hashmap_lookup( map, key );
@@ -158,7 +159,7 @@ DECLARE_TEST( hashmap, lookup )
 
 		EXPECT_TRUE( hashmap_has_key( map, key ) );
 		hashmap_erase( map, key );
-		EXPECT_FALSE( hashmap_has_key( map, key ) );		
+		EXPECT_FALSE( hashmap_has_key( map, key ) );
 	}
 
 	hashmap_deallocate( map );

@@ -1,11 +1,11 @@
 /* crash.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -60,9 +60,9 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 
 	dump_file[0] = 0;
 	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
-		environment_temporary_directory(), name ? name : string_from_uuid_static( environment_application()->instance ), 
-		local_time.wYear, local_time.wMonth, local_time.wDay, 
-		local_time.wHour, local_time.wMinute, local_time.wSecond, 
+		environment_temporary_directory(), name ? name : string_from_uuid_static( environment_application()->instance ),
+		local_time.wYear, local_time.wMonth, local_time.wDay,
+		local_time.wHour, local_time.wMinute, local_time.wSecond,
 		GetCurrentProcessId(), GetCurrentThreadId());
 	fs_make_directory( environment_temporary_directory() );
     file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
@@ -92,7 +92,7 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 		{
 			FlushFileBuffers( file );
 		}
-	
+
 		CloseHandle( file );
 	}
 }

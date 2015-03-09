@@ -1,11 +1,11 @@
 /* main.c  -  Foundation stacktrace test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_stacktrace_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation stacktrace tests";
 	app.short_name = "test_stacktrace";
 	app.config_dir = "test_stacktrace";
@@ -51,7 +52,7 @@ DECLARE_TEST( stacktrace, capture )
 
 	num_frames = stacktrace_capture( trace, TEST_DEPTH, 0 );
 	EXPECT_GT( num_frames, 3 );
-	
+
 	return 0;
 }
 
@@ -70,7 +71,7 @@ DECLARE_TEST( stacktrace, resolve )
 	EXPECT_NE( resolved, 0 );
 
 	log_infof( HASH_TEST, "Resolved stack trace:\n%s", resolved );
-	
+
 #if !FOUNDATION_PLATFORM_ANDROID
 	EXPECT_NE( string_find_string( resolved, "stacktraceresolve_fn", 0 ), STRING_NPOS );
 	EXPECT_NE( string_find_string( resolved, "test_run", 0 ), STRING_NPOS );
@@ -78,7 +79,7 @@ DECLARE_TEST( stacktrace, resolve )
 #endif
 
 	memory_deallocate( resolved );
-	
+
 	return 0;
 }
 

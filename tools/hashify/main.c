@@ -1,11 +1,11 @@
 /* main.c  -  Foundation library tools  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -52,7 +52,8 @@ int main_initialize( void )
 {
 	int ret = 0;
 
-	application_t application = {0};
+	application_t application;
+	memset( &application, 0, sizeof( application ) );
 	application.name = "hashify";
 	application.short_name = "hashify";
 	application.config_dir = "hashify";
@@ -101,9 +102,10 @@ void main_shutdown( void )
 
 hashify_input_t hashify_parse_command_line( const char* const* cmdline )
 {
-	hashify_input_t input = {0};
+	hashify_input_t input;
 	int arg, asize;
 
+	memset( &input, 0, sizeof( input ) );
 	input.check_only = false;
 
 	error_context_push( "parsing command line", "" );
@@ -130,12 +132,12 @@ hashify_input_t hashify_parse_command_line( const char* const* cmdline )
 		else if( string_equal( cmdline[arg], "--" ) )
 			break; //Stop parsing cmdline options
 		else if( ( string_length( cmdline[arg] ) > 2 ) && string_equal_substr( cmdline[arg], "--", 2 ) )
-			continue; //Cmdline argument not parsed here			
+			continue; //Cmdline argument not parsed here
 
 		array_push( input.files, string_clone( cmdline[arg] ) );
 	}
 	error_context_pop();
-	
+
 	if( array_size( cmdline ) <= 1 )
 		hashify_print_usage();
 
@@ -193,7 +195,7 @@ int hashify_process_files( const char* const* files, bool check_only )
 			log_warnf( 0, WARNING_BAD_DATA, "Unable to open output file: %s", output_filename );
 			result = HASHIFY_RESULT_MISSING_OUTPUT_FILE;
 		}
-		
+
 		if( input_file && output_file )
 		{
 			result = hashify_process_file( input_file, output_file, check_only, &history );
@@ -205,7 +207,7 @@ int hashify_process_files( const char* const* files, bool check_only )
 		stream_deallocate( output_file );
 
 		error_context_pop();
-		
+
 		string_deallocate( input_filename );
 		string_deallocate( output_filename );
 	}
@@ -235,7 +237,7 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 		result = hashify_read_hashes( output_file, &local_hashes );
 	else
 		result = hashify_generate_preamble( output_file );
-	
+
 	while( !stream_eos( input_file ) && ( result == HASHIFY_RESULT_OK ) )
 	{
 		char* def_string = 0;
@@ -335,7 +337,7 @@ int hashify_generate_preamble( stream_t* output_file )
 	);
 
 	string_deallocate( preamble );
-	
+
 	return 0;
 }
 

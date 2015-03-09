@@ -1,11 +1,11 @@
 /* main.c  -  Foundation string tests  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_string_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation string tests";
 	app.short_name = "test_string";
 	app.config_dir = "test_string";
@@ -55,7 +56,7 @@ DECLARE_TEST( string, initialize )
 		EXPECT_EQ( 0U, string_length( nullstr3 ) );
 		EXPECT_EQ( 0, strcmp( nullstr1, "" ) );
 		EXPECT_EQ( 0, strcmp( nullstr2, "" ) );
-		EXPECT_EQ( 0, strcmp( nullstr3, "" ) );	
+		EXPECT_EQ( 0, strcmp( nullstr3, "" ) );
 
 		string_deallocate( nullstr1 );
 		string_deallocate( nullstr2 );
@@ -268,7 +269,7 @@ DECLARE_TEST( string, initialize )
 		wstring_deallocate( wstr15 );
 		wstring_deallocate( wstr16 );
 		wstring_deallocate( wstr17 );
-	}		
+	}
 	return 0;
 }
 
@@ -416,7 +417,7 @@ DECLARE_TEST( string, queries )
 			unsigned int rfindofs5 = string_rfind( longstr, ' ', 0 );
 			unsigned int rfindofs6 = string_rfind( shortstr, 's', 5 );
 			unsigned int rfindofs7 = string_rfind( shortstr, 's', 0 );
-		
+
 			EXPECT_EQ( rfind, 68U );
 			EXPECT_EQ( rfind2, STRING_NPOS );
 			EXPECT_EQ( rfind3, STRING_NPOS );
@@ -450,7 +451,7 @@ DECLARE_TEST( string, queries )
 			unsigned int findstrofs9  = string_find_string( longstr, "", string_length( longstr ) );
 			unsigned int findstrofs10 = string_find_string( longstr, "", STRING_NPOS );
 			unsigned int findstrofs11 = string_find_string( longstr, "string", STRING_NPOS );
-		
+
 			EXPECT_EQ( findstr, 2U );
 			EXPECT_EQ( findstr2, STRING_NPOS );
 			EXPECT_EQ( findstr3, STRING_NPOS );
@@ -815,7 +816,7 @@ DECLARE_TEST( string, utility )
 		char* path16 = string_clone( ".\\.\\\\\\" );
 		char* path17 = string_clone( ".\\.\\\\\\.\\\\////\\///\\\\.\\.\\\\\\\\\\.\\\\\\\\\\\\.\\\\." );
 		char* path18 = string_clone( "http://\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\\\\\\\//\\.\\\\\\\\\\\\.\\\\." );
-		
+
 		char* path19 = string_clone( "testing/path/ext" );
 		char* path20 = string_clone( "testing/path/extend" );
 		char* path21 = string_clone( "testing/path/extend/dyn" );
@@ -893,7 +894,7 @@ DECLARE_TEST( string, utility )
 	{
 		char** explodearr = 0;
 		char* explodestr = string_clone( "  .,testing,    .,utility.,string  methods ..., like,,,finds  split..merge     .,.explode.and. .., ., similar   .,,,. " );
-		
+
 		char* mergestr = string_clone( "    testing   merge string   " );
 		char* mergestr2 = string_clone( " ., testing, .merge.string,. " );
 		char* merged = 0;
@@ -905,7 +906,7 @@ DECLARE_TEST( string, utility )
 
 		char* substrtest = string_clone( "testing substr" );
 		char* substr = 0;
-		
+
 		explodearr = string_explode( explodestr, " ,.", false );
 		mergearr = string_explode( mergestr, " .,", true );
 		mergearr2 = string_explode( mergestr, " .,", false );
@@ -914,7 +915,7 @@ DECLARE_TEST( string, utility )
 
 		string_split( splitstr, " ", &splitleft, &splitright, false );
 		string_split( splitstr, " ", &splitleft2, &splitright2, true );
-		
+
 		EXPECT_EQ( array_size( explodearr ), 11 );
 		EXPECT_TRUE( string_equal( explodearr[0], "testing" ) );
 		EXPECT_TRUE( string_equal( explodearr[1], "utility" ) );
@@ -988,7 +989,7 @@ DECLARE_TEST( string, utility )
 			replacestr3 = string_replace( replacestr3, "replace", "testrep", true );
 			replacestr4 = string_replace( replacestr4, "foo", "bar", true );
 			replacestr5 = string_replace( replacestr5, "rep", "re", true );
-		
+
 			EXPECT_TRUE( string_equal( replacestr, "testing testreplace" ) );
 			EXPECT_TRUE( string_equal( replacestr2, "testing testreplace" ) );
 			EXPECT_TRUE( string_equal( replacestr3, "testing testtestrep" ) );
@@ -1009,7 +1010,7 @@ DECLARE_TEST( string, utility )
 			stripstr = string_strip( stripstr, " tp:   " );
 			stripstr2 = string_strip( stripstr2, "" );
 			stripstr3 = string_strip( stripstr3, " tesingrp:" );
-		
+
 			EXPECT_TRUE( string_equal( stripstr, "esting stri" ) );
 			EXPECT_TRUE( string_equal( stripstr2, "   testing strip :   " ) );
 			EXPECT_TRUE( string_equal( stripstr3, "" ) );
@@ -1020,7 +1021,7 @@ DECLARE_TEST( string, utility )
 		}
 		string_array_deallocate( explodearr );
 		string_deallocate( explodestr );
-		
+
 		string_deallocate( mergestr );
 		string_deallocate( mergestr2 );
 		string_deallocate( merged );
@@ -1057,10 +1058,10 @@ DECLARE_TEST( string, utility )
 		char* concatstr8 = string_concat( teststr3, clonestr2 );
 		char* concatstr9 = string_concat( clonestr3, teststr3 );
 		char* concatstr10 = string_concat( teststr3, clonestr3 );
-		
+
 		EXPECT_NE( teststr, clonestr );
 		EXPECT_TRUE( string_equal( teststr, clonestr ) );
-		
+
 		EXPECT_NE( teststr2, clonestr2 );
 		EXPECT_TRUE( string_equal( teststr2, clonestr2 ) );
 
@@ -1077,7 +1078,7 @@ DECLARE_TEST( string, utility )
 		EXPECT_TRUE( string_equal( concatstr8, LONGSTRING SHORTSTRING ) );
 		EXPECT_TRUE( string_equal( concatstr9, LONGSTRING LONGSTRING ) );
 		EXPECT_TRUE( string_equal( concatstr10, LONGSTRING LONGSTRING ) );
-		
+
 		string_deallocate( teststr );
 		string_deallocate( clonestr );
 		string_deallocate( teststr2 );

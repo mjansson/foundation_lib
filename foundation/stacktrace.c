@@ -1,11 +1,11 @@
 /* stacktrace.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -152,16 +152,16 @@ static int _capture_stack_trace_helper( void** trace, unsigned int max_depth, un
 			else
 				trace[current_depth++] = (void*)((uintptr_t)stack_frame.AddrPC.Offset);
 		}
-	} 
+	}
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	SetUnhandledExceptionFilter( prev_filter );
 #else
 	__except ( EXCEPTION_EXECUTE_HANDLER )
 	{
-		// We need to catch any exceptions within this function so they don't get sent to 
+		// We need to catch any exceptions within this function so they don't get sent to
 		// the engine's error handler, hence causing an infinite loop.
 		return EXCEPTION_EXECUTE_HANDLER;
-	} 
+	}
 #endif
 
 	memset( trace + current_depth, 0, sizeof( void* ) * ( max_depth - current_depth ) );
@@ -173,7 +173,7 @@ static int _capture_stack_trace_helper( void** trace, unsigned int max_depth, un
 
 static void _load_process_modules()
 {
-	int           error = 0;	
+	int           error = 0;
 	bool          succeeded;
 	HMODULE       module_handles[MAX_MOD_HANDLES];
 	HMODULE*      module_handle = module_handles;
@@ -181,7 +181,7 @@ static void _load_process_modules()
 	int           i;
 	DWORD         bytes = 0;
 	MODULEINFO    module_info;
-	HANDLE        process_handle = GetCurrentProcess(); 
+	HANDLE        process_handle = GetCurrentProcess();
 
 	succeeded = CallEnumProcessModules( process_handle, module_handles, sizeof( module_handles ), &bytes );
 	if( !succeeded )
@@ -219,14 +219,14 @@ static void _load_process_modules()
 		{
 			error = GetLastError();
 		}
-	} 
+	}
 
 	// Free the module handle pointer allocated in case the static array was insufficient.
 	if( module_handle != module_handles )
 		memory_deallocate( module_handle );
 }
 
-#endif	
+#endif
 
 #if FOUNDATION_PLATFORM_ANDROID
 
@@ -269,9 +269,9 @@ static void _load_process_modules()
 
 	while( !stream_eos( maps ) && ( imod < FOUNDATION_MAX_MODULES ) )
 	{
-		line_buffer[0] = 0; 
+		line_buffer[0] = 0;
 		stream_read_line_buffer( maps, line_buffer, 256, '\n' );
-	
+
 		if( !line_buffer[0] )
 			continue;
 
@@ -352,7 +352,7 @@ static bool _initialize_stackwalker()
 {
 	if( _stackwalk_initialized )
 		return true;
-		
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		void* dll = LoadLibraryA( "DBGHELP.DLL" );
@@ -381,13 +381,13 @@ static bool _initialize_stackwalker()
 unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
 {
 	unsigned int num_frames = 0;
-	
+
 	if( !trace )
 		return 0;
 
 	if( !max_depth )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
-		
+
 	if( max_depth > BUILD_SIZE_STACKTRACE_DEPTH )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
 
@@ -399,7 +399,7 @@ unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, 
 			return num_frames;
 		}
 	}
-		
+
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	// Add 1 skip frame for this function call
 	++skip_frames;
@@ -444,7 +444,7 @@ unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, 
 	__asm
 	{
 		call FakeStackTraceCall
-		FakeStackTraceCall: 
+		FakeStackTraceCall:
 		pop eax
 		mov context.Eip, eax
 		mov context.Ebp, ebp
@@ -464,7 +464,7 @@ unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, 
 		.max_depth = max_depth,
 		.skip_frames = skip_frames
 	};
-	
+
 	_Unwind_Backtrace( unwind_stack, &stack_trace );
 
 	num_frames = stack_trace.cur_depth;
@@ -479,12 +479,12 @@ unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, 
 	__asm volatile("mov %[result], fp\n\t" : [result] "=r" (fp));
 
 	_gcc_barrier_function( fp );
-	
+
 	while( fp && ( num_frames < max_depth ) )
 	{
 		pc = READ_32BIT_MEMORY( fp );
 		fp = READ_32BIT_MEMORY( fp - 4 );
-		
+
 		if( ( fp > 0x1000 ) && pc )
 		{
 			if( skip_frames > 0 )
@@ -510,7 +510,7 @@ unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, 
 
 	void* localframes[BUILD_SIZE_STACKTRACE_DEPTH];
 	num_frames = (unsigned int)backtrace( localframes, BUILD_SIZE_STACKTRACE_DEPTH );
-	
+
 	if( num_frames > skip_frames )
 	{
 		num_frames -= skip_frames;
@@ -582,15 +582,15 @@ static bool _initialize_symbol_resolve()
 
 		CallSymInitialize( GetCurrentProcess(), 0, TRUE );
 	}
-	
+
 	_load_process_modules();
 
 	_symbol_resolve_initialized = true;
 
 #else
-	
+
 	_symbol_resolve_initialized = true;
-	
+
 #endif
 
 	return _symbol_resolve_initialized;
@@ -667,15 +667,15 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 
 		resolved = string_format( "[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]", frames[iaddr], function_name, file_name, line_number, displacement, module_name );
 		array_push( lines, resolved );
-	
+
 		if( string_equal( function_name, "main" ) )
 			last_was_main = true;
 	}
 
 	return lines;
-	
+
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	
+
 	char** symbols = 0;
 	char** resolved = backtrace_symbols( frames, max_frames );
 	for( unsigned int iframe = 0; iframe < max_frames; ++iframe )
@@ -703,12 +703,12 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 			//Allow first frame to be null in case of a function call to a null pointer
 			if( iaddr && !frames[iaddr] )
 				break;
-		
+
 			array_push( lines, string_format( "[0x%" PRIfixPTR "]", frames[iaddr] ) );
 		}
 		return lines;
 	}
-	
+
 	array_push( args, "-e" );
 	array_push( args, environment_executable_path() );
 	array_push( args, "-f" );
@@ -718,14 +718,14 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		//Allow first frame to be null in case of a function call to a null pointer
 		if( iaddr && !frames[iaddr] )
 			break;
-		
+
 		char* addr = string_format( "0x%" PRIfixPTR, frames[iaddr] );
 		array_push( addrs, addr );
 		array_push( args, addr );
 
 		++requested_frames;
 	}
-	
+
 	process_set_working_directory( proc, environment_initial_working_directory() );
 	process_set_executable_path( proc, "/usr/bin/addr2line" );
 	process_set_arguments( proc, args, array_size( args ) );
@@ -744,7 +744,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 			function && string_length( function ) ? function : "??",
 			filename && string_length( filename ) ? filename : "??"
 		) );
-	
+
 		if( string_equal( function, "main" ) )
 			last_was_main = true;
 
@@ -753,19 +753,19 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 
 		++num_frames;
 	}
-	
+
 	process_wait( proc );
 	process_deallocate( proc );
-	
+
 	string_array_deallocate( addrs );
-	array_deallocate( args );	
-	
+	array_deallocate( args );
+
 	return lines;
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
 	char** lines = 0;
-	
+
 	_load_process_modules();
 
 	for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )
@@ -773,7 +773,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		//Allow first frame to be null in case of a function call to a null pointer
 		if( iaddr && !frames[iaddr] )
 			break;
-		
+
 		//Find the module and relative address
 		uintptr_t relativeframe = (uintptr_t)frames[iaddr];
 		const char* module = "<no module found>";
@@ -790,7 +790,7 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 
 		array_push( lines, string_format( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %s", frames[iaddr], relativeframe, module ) );
 	}
-		
+
 	return lines;
 
 #else
@@ -801,10 +801,10 @@ static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_fr
 		//Allow first frame to be null in case of a function call to a null pointer
 		if( iaddr && !frames[iaddr] )
 			break;
-		
+
 		array_push( lines, string_format( "[0x%" PRIfixPTR "]", frames[iaddr] ) );
 	}
-		
+
 	return lines;
 
 #endif
@@ -817,7 +817,7 @@ char* stacktrace_resolve( void** trace, unsigned int max_depth, unsigned int ski
 	char* resolved;
 
 	_initialize_symbol_resolve();
-	
+
 	if( !max_depth )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
 	if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )

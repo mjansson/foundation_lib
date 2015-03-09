@@ -1,11 +1,11 @@
 /* main.c  -  Foundation path test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_path_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation path tests";
 	app.short_name = "test_path";
 	app.config_dir = "test_path";
@@ -69,7 +70,7 @@ DECLARE_TEST( path, extract )
 	const char* path22 = "asset://.path/file";
 	const char* path23 = "asset://.path/.dir/";
 	char* testpath;
-	
+
 	testpath = path_base_file_name( path1 ); EXPECT_STREQ( testpath, "file" ); string_deallocate( testpath );
 	testpath = path_base_file_name( path2 ); EXPECT_STREQ( testpath, "file" ); string_deallocate( testpath );
 	testpath = path_base_file_name( path3 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
@@ -270,7 +271,7 @@ DECLARE_TEST( path, clean )
 	char* path24 = string_clone( "http://test/../../path" );
 	char* path25 = string_clone( "http:///.//test/../../path" );
 	char* path26 = string_clone( "http:///.//test/../../../../../../path" );
-	
+
 	path1 = path_clean( path1, true );
 	path2 = path_clean( path2, true );
 	path3 = path_clean( path3, true );
@@ -386,7 +387,7 @@ DECLARE_TEST( path, absolute )
 	char* cwd_sub_sub = path_path_name( cwd_sub );
 	char* cwd_test = path_merge( cwd, "test" );
 	char* cwd_test_path = path_merge( cwd, "test/path" );
-	
+
 	path1 = path_make_absolute( "" );
 	path2 = path_make_absolute( "/" );
 	path3 = path_make_absolute( "./" );
@@ -513,7 +514,7 @@ DECLARE_TEST( path, operations )
 	EXPECT_STREQ( merge13, "test://test" );
 	EXPECT_STREQ( merge14, "C:/test" );
 	EXPECT_STREQ( merge15, "C:/test" );
-	
+
 	string_deallocate( merge1 );
 	string_deallocate( merge2 );
 	string_deallocate( merge3 );
@@ -542,7 +543,7 @@ DECLARE_TEST( path, operations )
 
 	string_deallocate( temp1 );
 	string_deallocate( temp2 );
-	
+
 	return 0;
 }
 

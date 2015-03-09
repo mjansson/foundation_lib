@@ -1,11 +1,11 @@
 /* main.c  -  Foundation hashtable test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_hashtable_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation hashtable tests";
 	app.short_name = "test_hashtable";
 	app.config_dir = "test_hashtable";
@@ -182,14 +183,14 @@ DECLARE_TEST( hashtable, 32bit_threaded )
 			uint32_t key = ( 1 + ( i * 16789 ) ) + j;
 			EXPECT_EQ( hashtable32_get( table, key ), 1 + ( key % 17 ) );
 		}
-	}	
-	
+	}
+
 	hashtable32_deallocate( table );
 
 	return 0;
 }
 
-                   
+
 DECLARE_TEST( hashtable, 64bit_basic )
 {
 	hashtable64_t* table = hashtable64_allocate( 1024 );
@@ -263,8 +264,8 @@ DECLARE_TEST( hashtable, 64bit_threaded )
 			uint32_t key = ( 1 + ( i * 16789 ) ) + j;
 			EXPECT_EQ( hashtable64_get( table, key ), 1 + ( key % 17 ) );
 		}
-	}	
-	
+	}
+
 	hashtable64_deallocate( table );
 
 	return 0;

@@ -1,11 +1,11 @@
 /* main.c  -  Foundation array test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_array_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation array tests";
 	app.short_name = "test_array";
 	app.config_dir = "test_array";
@@ -383,8 +384,8 @@ DECLARE_TEST( array, copy )
 
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.floatval = (float32_t)i;
@@ -449,8 +450,8 @@ DECLARE_TEST( array, copy )
 
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -551,8 +552,8 @@ DECLARE_TEST( array, pushpop )
 
 	// Push to empty
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = 1;
 		basic.objval = 2;
@@ -629,8 +630,8 @@ DECLARE_TEST( array, pushpop )
 	// Push to non-empty
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -730,8 +731,8 @@ DECLARE_TEST( array, pushpop )
 	// Interleaved push-pops
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		for( j = 0; j < 2; ++j )
 		{
@@ -831,8 +832,8 @@ DECLARE_TEST( array, inserterase )
 
 	// Insert in empty
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = 1;
 		basic.objval = 2;
@@ -908,8 +909,8 @@ DECLARE_TEST( array, inserterase )
 	}
 	// Insert safe in empty
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = 1;
 		basic.objval = 2;
@@ -955,8 +956,8 @@ DECLARE_TEST( array, inserterase )
 	// Insert sequence
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1005,8 +1006,8 @@ DECLARE_TEST( array, inserterase )
 	// Insert sequence
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1055,8 +1056,8 @@ DECLARE_TEST( array, inserterase )
 	// Erase single items
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1082,8 +1083,8 @@ DECLARE_TEST( array, inserterase )
 		void* ptrval;
 		int intval;
 		object_t objval;
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1152,8 +1153,8 @@ DECLARE_TEST( array, inserterase )
 	//Erase single item, safe
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1179,8 +1180,8 @@ DECLARE_TEST( array, inserterase )
 		void* ptrval;
 		int intval;
 		object_t objval;
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1255,8 +1256,8 @@ DECLARE_TEST( array, inserterase )
 	// Erase single item, memcpy
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1282,8 +1283,8 @@ DECLARE_TEST( array, inserterase )
 		void* ptrval;
 		int intval;
 		object_t objval;
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1352,8 +1353,8 @@ DECLARE_TEST( array, inserterase )
 	//Erase single item, memcpy safe
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1379,8 +1380,8 @@ DECLARE_TEST( array, inserterase )
 		void* ptrval;
 		int intval;
 		object_t objval;
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1455,8 +1456,8 @@ DECLARE_TEST( array, inserterase )
 	// Erase single item, ordered
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1482,8 +1483,8 @@ DECLARE_TEST( array, inserterase )
 		void* ptrval;
 		int intval;
 		object_t objval;
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1552,8 +1553,8 @@ DECLARE_TEST( array, inserterase )
 	//Erase single item, ordered safe
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1579,8 +1580,8 @@ DECLARE_TEST( array, inserterase )
 		void* ptrval;
 		int intval;
 		object_t objval;
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1661,8 +1662,8 @@ DECLARE_TEST( array, inserterase )
 	//Range erase
 	for( i = 0; i < 255; ++i )
 	{
-		basic_t basic = {0};
-		combine_t combine = {0};
+		basic_t basic;
+		combine_t combine;
 
 		basic.intval = i;
 		basic.objval = i + 1;
@@ -1994,7 +1995,7 @@ DECLARE_TEST( array, resize )
 	array_deallocate( intarr );
 
 	EXPECT_EQ( intarr, 0 );
-	
+
 	return 0;
 }
 
