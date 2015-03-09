@@ -310,6 +310,8 @@ static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
 
 static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int hint )
 {
+	FOUNDATION_UNUSED( hint );
+
 	//If we align manually, we must be able to retrieve the original pointer for passing to free()
 	//Thus all allocations need to go through that path
 

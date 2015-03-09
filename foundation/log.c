@@ -154,6 +154,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 			pnacl_post_log( context, severity, buffer, need + more + 1 );
 #endif
 #if FOUNDATION_PLATFORM_ANDROID
+			FOUNDATION_UNUSED( std );
 			if( _log_stdout )
 				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name, buffer );
 #else

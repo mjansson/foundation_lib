@@ -248,7 +248,9 @@ class Toolchain(object):
         self.cflags += [ '-std=c99', '-fno-omit-frame-pointer' ]
         self.extralibs += [ 'rt' ]
       elif target.is_android():
-        self.cflags += [ '-std=gnu11' ] #c11 gives errors in ndk cpu-features on android
+        self.cflags += [ '-std=gnu11' ] #c11 gives errors in NDK cpu-features on android
+        self.cflags += [ '-Wno-unused-function' ] #errors in NDK cpu-features on android
+        self.cflags += [ '-Wno-unused-parameter' ] #errors in NDK native-app-glue on android
       else:
         self.cflags += [ '-std=c11' ]
 
@@ -259,7 +261,7 @@ class Toolchain(object):
         self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
-        self.cflags += [ '-DANDROID', '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
+        self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
                          '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack' ]
 
         self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]

@@ -47,6 +47,9 @@ static uint64_t asset_stream_read( stream_t* stream, void* dest, uint64_t num )
 static uint64_t asset_stream_write( stream_t* stream, const void* source, uint64_t num )
 {
 	FOUNDATION_ASSERT_FAIL( "Asset writing not allowed" );
+	FOUNDATION_UNUSED( stream );
+	FOUNDATION_UNUSED( source );
+	FOUNDATION_UNUSED( num );
 	return 0;
 }
 
@@ -60,12 +63,15 @@ static bool asset_stream_eos( stream_t* stream )
 
 static void asset_stream_flush( stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 }
 
 
 static void asset_stream_truncate( stream_t* stream, uint64_t size )
 {
 	FOUNDATION_ASSERT_FAIL( "Asset truncation not allowed" );
+	FOUNDATION_UNUSED( stream );
+	FOUNDATION_UNUSED( size );
 }
 
 
@@ -94,6 +100,7 @@ static int64_t asset_stream_tell( stream_t* stream )
 
 static uint64_t asset_stream_lastmod( const stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 

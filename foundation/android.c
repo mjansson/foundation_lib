@@ -250,6 +250,9 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 int android_sensor_callback( int fd, int events, void* data )
 {
+	FOUNDATION_UNUSED( fd );
+	FOUNDATION_UNUSED( events );
+	FOUNDATION_UNUSED( data );
 	return 1;
 }
 
