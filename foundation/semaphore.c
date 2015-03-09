@@ -236,6 +236,9 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
 {
 	FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
+	FOUNDATION_UNUSED( semaphore );
+	FOUNDATION_UNUSED( name );
+	FOUNDATION_UNUSED( value );
 }
 
 

@@ -193,8 +193,8 @@ void* delegate_nswindow( void )
 
 FOUNDATION_EXTERN void _system_set_device_orientation( device_orientation_t orientation );
 
-static __weak UIApplication*          _delegate_app = 0;
-static __weak FoundationAppDelegate*  _delegate     = 0;
+static __weak UIApplication*          _delegate_app;
+static __weak FoundationAppDelegate*  _delegate;
 
 
 void* delegate_uiwindow( void )
@@ -216,6 +216,7 @@ void* delegate_uiwindow( void )
 
 - (void)applicationDidFinishLaunching:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	_delegate = self;
     _delegate_received_start = true;
 
@@ -229,6 +230,7 @@ void* delegate_uiwindow( void )
 
 - (void)applicationWillResignActive:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application will resign active" );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
@@ -236,6 +238,7 @@ void* delegate_uiwindow( void )
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
@@ -244,6 +247,7 @@ void* delegate_uiwindow( void )
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	_delegate_received_terminate = true;
 
 	log_debug( HASH_FOUNDATION, "Application will terminate" );
@@ -259,12 +263,14 @@ void* delegate_uiwindow( void )
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application entered background" );
 }
 
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
 {
+	FOUNDATION_UNUSED( application );
 	log_warnf( 0, WARNING_MEMORY, "Application received memory warning" );
 	system_post_event( FOUNDATIONEVENT_LOW_MEMORY_WARNING );
 
@@ -295,6 +301,7 @@ void* delegate_uiwindow( void )
 
 - (void)deviceOrientationDidChange:(NSNotification*)notification
 {
+	FOUNDATION_UNUSED( notification );
 	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
 
 	log_debugf( 0, "Device orientation changed to %d", (int)orientation );

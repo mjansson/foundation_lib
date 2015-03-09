@@ -75,6 +75,9 @@ static void* event_thread( object_t thread, void* arg )
 
 static void test_log_callback( uint64_t context, int severity, const char* msg )
 {
+	FOUNDATION_UNUSED( context );
+	FOUNDATION_UNUSED( severity );
+
 	if( _test_should_terminate )
 		return;
 
@@ -159,6 +162,7 @@ typedef int (*test_run_fn)( void );
 
 static void* test_runner( object_t obj, void* arg )
 {
+	FOUNDATION_UNUSED( obj );
 	test_run_fn* tests = (test_run_fn*)arg;
 	int test_fn = 0;
 	int process_result = 0;
