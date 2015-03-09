@@ -871,6 +871,9 @@ DECLARE_TEST( array, inserterase )
 	}
 	// Erase
 	{
+		int small_neg = -1;
+		int large_neg = -1234;
+
 		array_erase( array_ptr, 0 );
 		array_erase( array_int, 0 );
 		array_erase( array_obj, 0 );
@@ -889,8 +892,8 @@ DECLARE_TEST( array, inserterase )
 		EXPECT_EQ( array_capacity( array_basic ), 1 );
 		EXPECT_EQ( array_capacity( array_combine ), 1 );
 
-		array_erase_safe( array_ptr, -1 );
-		array_erase_safe( array_int, -1234 );
+		array_erase_safe( array_ptr, small_neg );
+		array_erase_safe( array_int, large_neg );
 		array_erase_safe( array_obj, 0 );
 		array_erase_safe( array_basic, 1 );
 		array_erase_safe( array_combine, 1234 );
@@ -911,6 +914,8 @@ DECLARE_TEST( array, inserterase )
 	{
 		basic_t basic;
 		combine_t combine;
+		int small_neg = -1;
+		int large_neg = -1234;
 
 		basic.intval = 1;
 		basic.objval = 2;
@@ -922,8 +927,8 @@ DECLARE_TEST( array, inserterase )
 		combine.ptrval = 0;
 		combine.unionval.realval = REAL_C(1.0);
 
-		array_insert_safe( array_ptr, -1234, 0 );
-		array_insert_safe( array_int, -1, 0 );
+		array_insert_safe( array_ptr, large_neg, 0 );
+		array_insert_safe( array_int, small_neg, 0 );
 		array_insert_safe( array_obj, 0, 0 );
 		array_insert_safe( array_basic, 1, basic );
 		array_insert_safe( array_combine, 1234, combine );
@@ -1182,6 +1187,9 @@ DECLARE_TEST( array, inserterase )
 		object_t objval;
 		basic_t basic;
 		combine_t combine;
+		int small_neg = -1;
+		int large_neg = -1234;
+		int huge_neg = -123456;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1203,11 +1211,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_safe( array_basic, clamped_i );
 		array_erase_safe( array_combine, clamped_i );
 
-		array_erase_safe( array_ptr, -1234 );
-		array_erase_safe( array_int, -1 );
+		array_erase_safe( array_ptr, large_neg );
+		array_erase_safe( array_int, small_neg );
 		array_erase_safe( array_obj, 1024 );
-		array_erase_safe( array_basic, 12345 );
-		array_erase_safe( array_combine, -12345 );
+		array_erase_safe( array_basic, 123456 );
+		array_erase_safe( array_combine, huge_neg );
 
 		EXPECT_EQ( array_size( array_ptr ), 254 - i );
 		EXPECT_EQ( array_size( array_int ), 254 - i );
@@ -1382,6 +1390,9 @@ DECLARE_TEST( array, inserterase )
 		object_t objval;
 		basic_t basic;
 		combine_t combine;
+		int small_neg = -1;
+		int large_neg = -1234;
+		int huge_neg = -123456;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1403,11 +1414,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_memcpy_safe( array_basic, clamped_i );
 		array_erase_memcpy_safe( array_combine, clamped_i );
 
-		array_erase_memcpy_safe( array_ptr, -1234 );
-		array_erase_memcpy_safe( array_int, -1 );
+		array_erase_memcpy_safe( array_ptr, large_neg );
+		array_erase_memcpy_safe( array_int, small_neg );
 		array_erase_memcpy_safe( array_obj, 1024 );
-		array_erase_memcpy_safe( array_basic, 12345 );
-		array_erase_memcpy_safe( array_combine, -12345 );
+		array_erase_memcpy_safe( array_basic, 123456 );
+		array_erase_memcpy_safe( array_combine, huge_neg );
 
 		EXPECT_EQ( array_size( array_ptr ), 254 - i );
 		EXPECT_EQ( array_size( array_int ), 254 - i );
@@ -1582,6 +1593,9 @@ DECLARE_TEST( array, inserterase )
 		object_t objval;
 		basic_t basic;
 		combine_t combine;
+		int small_neg = -1;
+		int large_neg = -1234;
+		int huge_neg = -123456;
 
 		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
 
@@ -1603,11 +1617,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_ordered_safe( array_basic, clamped_i );
 		array_erase_ordered_safe( array_combine, clamped_i );
 
-		array_erase_ordered_safe( array_ptr, -1234 );
-		array_erase_ordered_safe( array_int, -1 );
+		array_erase_ordered_safe( array_ptr, large_neg );
+		array_erase_ordered_safe( array_int, small_neg );
 		array_erase_ordered_safe( array_obj, 1024 );
-		array_erase_ordered_safe( array_basic, 12345 );
-		array_erase_ordered_safe( array_combine, -12345 );
+		array_erase_ordered_safe( array_basic, 123456 );
+		array_erase_ordered_safe( array_combine, huge_neg );
 
 		EXPECT_EQ( array_size( array_ptr ), 254 - i );
 		EXPECT_EQ( array_size( array_int ), 254 - i );
@@ -1692,11 +1706,16 @@ DECLARE_TEST( array, inserterase )
 	array_copy( copy_combine, array_combine );
 
 	//Erasing 0 is always safe
-	array_erase_ordered_range( array_ptr, -1234, 0 );
-	array_erase_ordered_range( array_int, -1, 0 );
-	array_erase_ordered_range( array_obj, 0, 0 );
-	array_erase_ordered_range( array_basic, 1, 0 );
-	array_erase_ordered_range( array_combine, 1234, 0 );
+	{
+		int small_neg = -1;
+		int large_neg = -1234;
+		int zero = 0;
+		array_erase_ordered_range( array_ptr, large_neg, zero );
+		array_erase_ordered_range( array_int, small_neg, zero );
+		array_erase_ordered_range( array_obj, 0, zero );
+		array_erase_ordered_range( array_basic, 1, zero );
+		array_erase_ordered_range( array_combine, 1234, zero );
+	}
 
 	EXPECT_EQ( array_size( array_ptr ), 255 );
 	EXPECT_EQ( array_size( array_int ), 255 );
@@ -1789,11 +1808,15 @@ DECLARE_TEST( array, inserterase )
 	}
 
 	//Erase range safe
-	array_erase_ordered_range_safe( array_ptr, -1234, -1234 );
-	array_erase_ordered_range_safe( array_int, -1234, 1234 );
-	array_erase_ordered_range_safe( array_obj, 10, -10 );
-	array_erase_ordered_range_safe( array_basic, 1234, -123 );
-	array_erase_ordered_range_safe( array_combine, 1234, 1234 );
+	{
+		int small_neg = -10;
+		int large_neg = -1234;
+		array_erase_ordered_range_safe( array_ptr, large_neg, large_neg );
+		array_erase_ordered_range_safe( array_int, large_neg, -large_neg );
+		array_erase_ordered_range_safe( array_obj, 10, small_neg );
+		array_erase_ordered_range_safe( array_basic, 1234, small_neg );
+		array_erase_ordered_range_safe( array_combine, 1234, 1234 );
+	}
 
 	EXPECT_EQ( array_size( array_ptr ), 190 );
 	EXPECT_EQ( array_size( array_int ), 190 );
