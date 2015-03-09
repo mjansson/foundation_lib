@@ -538,6 +538,7 @@ const char* environment_variable( const char* var )
 #elif FOUNDATION_PLATFORM_POSIX
 	return getenv( var );
 #elif FOUNDATION_PLATFORM_PNACL
+	FOUNDATION_UNUSED( var );
 	return 0; //No env vars on PNaCl
 #else
 #  error Not implemented

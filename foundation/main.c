@@ -156,6 +156,8 @@ int main( int argc, char** argv )
 
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	_environment_main_args( argc, (const char* const*)argv );
+#elif FOUNDATION_PLATFORM_PNACL
+	FOUNDATION_UNUSED( instance );
 #endif
 
 	if( ( ret = main_initialize() ) < 0 )

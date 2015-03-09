@@ -261,7 +261,7 @@ bool fs_is_file( const char* path )
 	if( !ref )
 		return 0;
 
-	struct PP_FileInfo info = {0};
+	struct PP_FileInfo info;
 	if ( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
 		is_file = ( info.type == PP_FILETYPE_REGULAR );
 
@@ -306,7 +306,7 @@ bool fs_is_directory( const char* path )
 	if( !ref )
 		return 0;
 
-	struct PP_FileInfo info = {0};
+	struct PP_FileInfo info;
 	if ( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
 		is_dir = ( info.type == PP_FILETYPE_DIRECTORY );
 
@@ -396,7 +396,7 @@ char** fs_subdirs( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries = {0};
+	pnacl_array_t entries;
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
 	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
@@ -495,7 +495,7 @@ char** fs_files( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries = {0};
+	pnacl_array_t entries;
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
 	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
@@ -810,7 +810,7 @@ uint64_t fs_last_modified( const char* path )
 		PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
 		if( ref )
 		{
-			struct PP_FileInfo info = {0};
+			struct PP_FileInfo info;
 			_pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() );
 			tstamp = info.last_modified_time * 1000ULL;
 
@@ -1392,7 +1392,7 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 	fs_file_descriptor fd = 0;
 
 #if FOUNDATION_PLATFORM_PNACL
-
+	FOUNDATION_UNUSED( dotrunc );
 
 	const char* localpath = 0;
 	PP_Resource fs = _fs_resolve_path( path, &localpath );
@@ -1611,7 +1611,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 		return;
 
 #if FOUNDATION_PLATFORM_PNACL
-
+	FOUNDATION_UNUSED( length );
 	file = GET_FILE( stream );
 
 	if( _pnacl_file_io->SetLength( file->fd, 0, PP_BlockUntilComplete() ) == PP_OK )
@@ -1805,7 +1805,7 @@ static uint64_t _fs_file_write( stream_t* stream, const void* buffer, uint64_t n
 static uint64_t _fs_file_last_modified( const stream_t* stream )
 {
 #if FOUNDATION_PLATFORM_PNACL
-	struct PP_FileInfo info = {0};
+	struct PP_FileInfo info;
 	_pnacl_file_io->Query( GET_FILE_CONST( stream )->fd, &info, PP_BlockUntilComplete() );
 	return info.last_modified_time * 1000ULL;
 #else
@@ -1910,7 +1910,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	stream->vtable = &_fs_file_vtable;
 
 #if FOUNDATION_PLATFORM_PNACL
-	struct PP_FileInfo fileinfo = {0};
+	struct PP_FileInfo fileinfo;
 	_pnacl_file_io->Query( file->fd, &fileinfo, PP_BlockUntilComplete() );
 	file->size = fileinfo.size;
 #endif

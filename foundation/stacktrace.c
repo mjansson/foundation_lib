@@ -521,6 +521,8 @@ unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, 
 	else
 		trace[0] = 0;
 
+#else
+	FOUNDATION_UNUSED( skip_frames );
 #endif
 
 	return num_frames;

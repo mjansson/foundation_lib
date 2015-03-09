@@ -163,22 +163,29 @@ static PP_Bool pnacl_instance_create( PP_Instance instance, uint32_t argc, const
 
 static void pnacl_instance_destroy( PP_Instance instance )
 {
-	//TODO: Deostry main thread
+	//TODO: Destroy main thread
+	FOUNDATION_UNUSED( instance );
 }
 
 
 static void pnacl_instance_change_view( PP_Instance instance, PP_Resource view )
 {
+	FOUNDATION_UNUSED( instance );
+	FOUNDATION_UNUSED( view );
 }
 
 
 static void pnacl_instance_change_focus( PP_Instance instance, PP_Bool has_focus )
 {
+	FOUNDATION_UNUSED( instance );
+	FOUNDATION_UNUSED( has_focus );
 }
 
 
 static PP_Bool pnacl_instance_document_load( PP_Instance instance, PP_Resource url_loader )
 {
+	FOUNDATION_UNUSED( instance );
+	FOUNDATION_UNUSED( url_loader );
 	return PP_TRUE;
 }
 
