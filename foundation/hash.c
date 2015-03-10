@@ -1,11 +1,11 @@
 /* hash.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -115,16 +115,16 @@ hash_t hash( const void* key, const unsigned int len )
 		k1 = getblock_nonaligned(key,i*2);
 		k2 = getblock_nonaligned(key,i*2+1);
 
-		bmix64(h1,h2,k1,k2,c1,c2); 
+		bmix64(h1,h2,k1,k2,c1,c2);
 	}
 	else
-#endif	
+#endif
 	for( i = 0; i < nblocks; ++i )
 	{
 		k1 = getblock(blocks,i*2);
 		k2 = getblock(blocks,i*2+1);
 
-		bmix64(h1,h2,k1,k2,c1,c2); 
+		bmix64(h1,h2,k1,k2,c1,c2);
 	}
 
 	//----------
@@ -198,7 +198,7 @@ void _static_hash_shutdown( void )
 		if( str )
 			string_deallocate( str );
 	}
-	
+
 	hashtable64_deallocate( _hash_lookup );
 	_hash_lookup = 0;
 }

@@ -1,11 +1,11 @@
 /* pnacl.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -41,12 +41,12 @@
 extern int real_main( PP_Instance instance );
 
 
-static PP_Module _pnacl_module = 0;
-static PPB_GetInterface _pnacl_browser_interface = 0;
-static PP_Instance _pnacl_instance = 0;
+static PP_Module _pnacl_module;
+static PPB_GetInterface _pnacl_browser_interface;
+static PP_Instance _pnacl_instance;
 
-static const PPB_Var* _pnacl_var = 0;
-static const PPB_Messaging* _pnacl_messaging = 0;
+static const PPB_Var* _pnacl_var;
+static const PPB_Messaging* _pnacl_messaging;
 
 
 const char* pnacl_error_message( int err )
@@ -163,22 +163,29 @@ static PP_Bool pnacl_instance_create( PP_Instance instance, uint32_t argc, const
 
 static void pnacl_instance_destroy( PP_Instance instance )
 {
-	//TODO: Deostry main thread
+	//TODO: Destroy main thread
+	FOUNDATION_UNUSED( instance );
 }
 
 
 static void pnacl_instance_change_view( PP_Instance instance, PP_Resource view )
 {
+	FOUNDATION_UNUSED( instance );
+	FOUNDATION_UNUSED( view );
 }
 
 
 static void pnacl_instance_change_focus( PP_Instance instance, PP_Bool has_focus )
 {
+	FOUNDATION_UNUSED( instance );
+	FOUNDATION_UNUSED( has_focus );
 }
 
 
 static PP_Bool pnacl_instance_document_load( PP_Instance instance, PP_Resource url_loader )
 {
+	FOUNDATION_UNUSED( instance );
+	FOUNDATION_UNUSED( url_loader );
 	return PP_TRUE;
 }
 

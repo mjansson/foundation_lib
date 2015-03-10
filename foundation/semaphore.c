@@ -1,11 +1,11 @@
 /* semaphore.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -15,7 +15,7 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#elif FOUNDATION_PLATFORM_MACOSX 
+#elif FOUNDATION_PLATFORM_MACOSX
 #  include <sys/fcntl.h>
 #  include <sys/semaphore.h>
 #  include <errno.h>
@@ -48,7 +48,7 @@ extern int MPWaitOnSemaphore( MPSemaphoreID, int );
 
 
 void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
-{	
+{
 	FOUNDATION_ASSERT( value <= 0xFFFF );
 	*semaphore = CreateSemaphoreA( 0, value, 0xFFFF, 0 );
 }
@@ -118,9 +118,9 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 	semaphore->name = string_clone( name );
 
 	sem_t* sem = SEM_FAILED;
-	
+
 	sem = sem_open( name, O_CREAT, 0666, value );
-		
+
 	if( sem == SEM_FAILED )
 	{
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
@@ -149,7 +149,7 @@ void semaphore_finalize( semaphore_t* semaphore )
 bool semaphore_wait( semaphore_t* semaphore )
 {
 	if( !semaphore->name )
-	{	
+	{
 		int ret = MPWaitOnSemaphore( semaphore->sem.unnamed, 0x7FFFFFFF/*kDurationForever*/ );
 		if( ret < 0 )
 			return false;
@@ -236,6 +236,9 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
 {
 	FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
+	FOUNDATION_UNUSED( semaphore );
+	FOUNDATION_UNUSED( name );
+	FOUNDATION_UNUSED( value );
 }
 
 
@@ -296,9 +299,9 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
-#else	
+#else
 	sem = sem_open( name, O_CREAT, 0666, value );
-		
+
 	if( sem == SEM_FAILED )
 	{
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
@@ -350,8 +353,8 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 		}
 		return true;
 #else
-		struct timeval now = {0};
-		struct timespec then= {0};
+		struct timeval now;
+		struct timespec then;
 		gettimeofday( &now, 0 );
 		then.tv_sec = now.tv_sec + ( milliseconds / 1000 );
 		then.tv_nsec = ( now.tv_usec * 1000 ) + (long)( milliseconds % 1000 ) * 1000000L;

@@ -1,11 +1,11 @@
 /* main.c  -  Foundation ringbuffer test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_ringbuffer_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation ringbuffer tests";
 	app.short_name = "test_ringbuffer";
 	app.config_dir = "test_ringbuffer";
@@ -189,6 +190,7 @@ typedef struct
 static void* read_thread( object_t thread, void* arg )
 {
 	ringbufferstream_test_t* test = arg;
+	FOUNDATION_UNUSED( thread );
 	stream_read( test->stream, test->dest_buffer, test->buffer_size );
 	test->end_time = time_current();
 	return 0;
@@ -198,6 +200,7 @@ static void* read_thread( object_t thread, void* arg )
 static void* write_thread( object_t thread, void* arg )
 {
 	ringbufferstream_test_t* test = arg;
+	FOUNDATION_UNUSED( thread );
 	test->start_time = time_current();
 	stream_write( test->stream, test->source_buffer, test->buffer_size );
 	return 0;
@@ -206,7 +209,7 @@ static void* write_thread( object_t thread, void* arg )
 
 DECLARE_TEST( ringbufferstream, threadedio )
 {
-	ringbufferstream_test_t test = {0};
+	ringbufferstream_test_t test;
 	uint32_t* srcbuffer;
 	unsigned int si;
 	unsigned int loop, loops;
@@ -278,7 +281,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 
 	memory_deallocate( test.source_buffer );
 	memory_deallocate( test.dest_buffer );
-	
+
 	return 0;
 }
 

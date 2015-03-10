@@ -1,11 +1,11 @@
 /* main.c  -  Foundation app test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 
-static application_t _global_app = {0};
+static application_t _global_app;
 
 
 static application_t test_app_application( void )

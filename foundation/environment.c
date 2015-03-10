@@ -14,15 +14,15 @@
 #include <foundation/internal.h>
 
 
-static char    _environment_executable_name[FOUNDATION_MAX_PATHLEN] = {0};
-static char    _environment_executable_dir[FOUNDATION_MAX_PATHLEN] = {0};
-static char    _environment_executable_path[FOUNDATION_MAX_PATHLEN] = {0};
-static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
-static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN] = {0};
-static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN] = {0};
-static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN] = {0};
+static char    _environment_executable_name[FOUNDATION_MAX_PATHLEN];
+static char    _environment_executable_dir[FOUNDATION_MAX_PATHLEN];
+static char    _environment_executable_path[FOUNDATION_MAX_PATHLEN];
+static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN];
+static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN];
+static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN];
+static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN];
 #if FOUNDATION_PLATFORM_WINDOWS
-static char*   _environment_var = 0;
+static char*   _environment_var;
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
@@ -43,11 +43,11 @@ extern void _environment_ns_temporary_directory( char* );
 #  include <sys/sysctl.h>
 #endif
 
-static application_t       _environment_app = {0};
+static application_t       _environment_app;
 
-static char**              _environment_argv = 0;
-static int                 _environment_main_argc = 0;
-static const char* const*  _environment_main_argv = 0;
+static char**              _environment_argv;
+static int                 _environment_main_argc;
+static const char* const*  _environment_main_argv;
 
 
 void _environment_main_args( int argc, const char* const* argv )
@@ -538,6 +538,7 @@ const char* environment_variable( const char* var )
 #elif FOUNDATION_PLATFORM_POSIX
 	return getenv( var );
 #elif FOUNDATION_PLATFORM_PNACL
+	FOUNDATION_UNUSED( var );
 	return 0; //No env vars on PNaCl
 #else
 #  error Not implemented

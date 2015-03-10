@@ -258,39 +258,49 @@ static bool _pipe_stream_eos( stream_t* stream )
 
 static void _pipe_stream_flush( stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 }
 
 
 static void _pipe_stream_truncate( stream_t* stream, uint64_t size )
 {
+	FOUNDATION_UNUSED( stream );
+	FOUNDATION_UNUSED( size );
 }
 
 
 static uint64_t _pipe_stream_size( stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return 0;
 }
 
 
 static void _pipe_stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
 {
+	FOUNDATION_UNUSED( stream );
+	FOUNDATION_UNUSED( offset );
+	FOUNDATION_UNUSED( direction );
 }
 
 
 static int64_t _pipe_stream_tell( stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return 0;
 }
 
 
 static uint64_t _pipe_stream_lastmod( const stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 
 
 static uint64_t _pipe_stream_available_read( stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return 0;
 }
 

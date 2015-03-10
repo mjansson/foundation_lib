@@ -28,7 +28,7 @@ extern int main( int, char** );
 #endif
 
 
-static bool _foundation_initialized = false;
+static bool _foundation_initialized;
 
 
 int foundation_initialize( const memory_system_t memory, const application_t application )
@@ -138,4 +138,3 @@ bool foundation_is_initialized( void )
 {
 	return _foundation_initialized;
 }
-

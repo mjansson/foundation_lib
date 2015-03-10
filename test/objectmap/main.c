@@ -1,11 +1,11 @@
 /* main.c  -  Foundation objectmap test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_objectmap_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation objectmap tests";
 	app.short_name = "test_objectmap";
 	app.config_dir = "test_objectmap";
@@ -55,7 +56,7 @@ DECLARE_TEST( objectmap, initialize )
 	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );
 
 	objectmap_deallocate( map );
-	
+
 	return 0;
 }
 
@@ -63,9 +64,9 @@ DECLARE_TEST( objectmap, initialize )
 DECLARE_TEST( objectmap, store )
 {
 	objectmap_t* map;
-	object_base_t first = {0};
-	object_base_t second = {0};
-	
+	object_base_t first;
+	object_base_t second;
+
 	map = objectmap_allocate( 129 );
 
 	EXPECT_EQ( objectmap_lookup( map, 0 ), 0 );
@@ -86,31 +87,31 @@ DECLARE_TEST( objectmap, store )
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), &first );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );
-	
+
 	objectmap_set( map, second.id, &second );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), &first );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), &first );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), &second );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );
 
 	objectmap_free( map, first.id );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), 0 );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), &second );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );
 
 	objectmap_free( map, first.id );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), 0 );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), &second );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );
 
 	objectmap_free( map, second.id );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), 0 );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), 0 );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );	
-	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );
+
 	objectmap_deallocate( map );
 
 	return 0;
@@ -123,16 +124,17 @@ static void* objectmap_thread( object_t thread, void* arg )
 	object_base_t* objects;
 	int obj;
 	int loop;
+	FOUNDATION_UNUSED( thread );
 
 	map = arg;
 	objects = memory_allocate( 0, sizeof( object_base_t ) * 512, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
-	
+
 	thread_sleep( 10 );
-	
+
 	for( loop = 0; loop < 32; ++loop )
 	{
 		thread_yield();
-	
+
 		for( obj = 0; obj < 512; ++obj )
 		{
 			objects[obj].id = objectmap_reserve( map );
@@ -143,7 +145,7 @@ static void* objectmap_thread( object_t thread, void* arg )
 		}
 
 		thread_yield();
-	
+
 		for( obj = 0; obj < 512; ++obj )
 		{
 			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), objects + obj );
@@ -151,7 +153,7 @@ static void* objectmap_thread( object_t thread, void* arg )
 			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), 0 );
 		}
 	}
-	
+
 	memory_deallocate( objects );
 
 	return 0;
@@ -181,7 +183,7 @@ DECLARE_TEST( objectmap, thread )
 		thread_destroy( thread[ith] );
 		thread_yield();
 	}
-	
+
 	test_wait_for_threads_exit( thread, num_threads );
 
 	objectmap_deallocate( map );

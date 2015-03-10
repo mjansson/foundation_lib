@@ -90,6 +90,7 @@
     <ClCompile Include="..\..\foundation\hashtable.c" />
     <ClCompile Include="..\..\foundation\atomic.c" />
     <ClCompile Include="..\..\foundation\regex.c" />
+    <ClCompile Include="..\..\foundation\version.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt" />

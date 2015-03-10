@@ -1,11 +1,11 @@
 /* main.c  -  Foundation library tools  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -67,7 +67,8 @@ int main_initialize( void )
 {
 	int ret = 0;
 
-	application_t application = {0};
+	application_t application;
+	memset( &application, 0, sizeof( application ) );
 	application.name = "uuidgen";
 	application.short_name = "uuidgen";
 	application.config_dir = "uuidgen";
@@ -91,7 +92,7 @@ int main_run( void* main_arg )
 	int iinst, num_instance;
 	uuid_t* output = 0;
 	uuidgen_input_t input = uuidgen_parse_command_line( environment_command_line() );
-	
+	FOUNDATION_UNUSED( main_arg );
 	//--md5 dns com.rampantpixels.foundation.uuidgen -> BD63FB1E-2EEA-35EB-940F-1042E6008A95
 
 	for( iinst = 0, num_instance = array_size( input.generate ); iinst < num_instance; ++iinst )
@@ -128,8 +129,10 @@ void main_shutdown( void )
 
 uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 {
-	uuidgen_input_t input = {0};
+	uuidgen_input_t input;
 	int arg, asize;
+
+	memset( &input, 0, sizeof( input ) );
 
 	error_context_push( "parsing command line", "" );
 	for( arg = 1, asize = array_size( cmdline ); arg < asize; ++arg )
@@ -159,8 +162,9 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 		}
 		else if( string_equal( cmdline[arg], "--random" ) )
 		{
-			uuid_instance_t instance = {0};
+			uuid_instance_t instance;
 			instance.method = METHOD_RANDOM;
+			instance.num = 1;
 			if( ( arg < ( asize - 1 ) ) && ( cmdline[arg+1][0] != '-' ) )
 			{
 				++arg;
@@ -172,8 +176,9 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 		}
 		else if( string_equal( cmdline[arg], "--time" ) )
 		{
-			uuid_instance_t instance = {0};
+			uuid_instance_t instance;
 			instance.method = METHOD_TIME;
+			instance.num = 1;
 			if( ( arg < ( asize - 1 ) ) && ( cmdline[arg+1][0] != '-' ) )
 			{
 				++arg;
@@ -185,8 +190,9 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 		}
 		else if( string_equal( cmdline[arg], "--md5" ) )
 		{
-			uuid_instance_t instance = {0};
+			uuid_instance_t instance;
 			instance.method = METHOD_NAMESPACE_MD5;
+			instance.num = 1;
 			if( arg < ( asize - 1 ) )
 			{
 				++arg;
@@ -215,7 +221,7 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 	if( !array_size( input.generate ) && !input.display_help )
 	{
 		//Default to one random-based UUID
-		uuid_instance_t instance = {0};
+		uuid_instance_t instance;
 		instance.method = METHOD_RANDOM;
 		instance.num = 1;
 		array_push_memcpy( input.generate, &instance );

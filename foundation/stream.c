@@ -16,23 +16,29 @@
 #include <stdarg.h>
 
 
-static hashtable64_t* _stream_protocol_table = 0;
+static hashtable64_t* _stream_protocol_table;
 
 
 static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
 {
+	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( mode );
 	return stream_open_stdout();
 }
 
 
 static stream_t* _stream_open_stderr( const char* path, unsigned int mode )
 {
+	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( mode );
 	return stream_open_stderr();
 }
 
 
 static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
 {
+	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( mode );
 	return stream_open_stdin();
 }
 
@@ -789,7 +795,7 @@ uint128_t stream_md5( stream_t* stream )
 {
 	int64_t cur, ic, lastc, num;
 	md5_t md5;
-	uint128_t ret = {0};
+	uint128_t ret = uint128_null();
 	unsigned char buf[1025];
 	bool ignore_lf = false;
 

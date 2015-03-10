@@ -1,11 +1,11 @@
 /* system.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -41,7 +41,7 @@ extern int _system_show_alert( const char*, const char*, int );
 #endif
 
 static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNOWN;
-static event_stream_t* _system_event_stream = 0;
+static event_stream_t* _system_event_stream;
 
 struct platform_info_t
 {
@@ -132,7 +132,7 @@ byteorder_t system_byteorder()
 
 #include <foundation/windows.h>
 
-object_t _system_library_iphlpapi = 0;
+object_t _system_library_iphlpapi;
 
 
 int _system_initialize( void )
@@ -197,7 +197,7 @@ uint64_t system_hostid( void )
 		fn_get_adapters_info = (DWORD (STDCALL *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
 	if( !fn_get_adapters_info )
 		return 0;
-	
+
 	buffer_length = sizeof( adapter_info );  // Save memory size of buffer
 	memset( adapter_info, 0, sizeof( adapter_info ) );
 	status = fn_get_adapters_info( adapter_info, &buffer_length );
@@ -279,7 +279,7 @@ static uint32_t _system_user_locale( void )
 			return *(uint32_t*)locale_string;
 		}
 	}
-	
+
 	return _system_default_locale();
 }
 
@@ -350,7 +350,7 @@ const char* system_username( void )
 	getlogin_r( username, 64 );
 #endif
 	username[63] = 0;
-	return username;	
+	return username;
 }
 
 
@@ -378,7 +378,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 			return hostid.id;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -392,14 +392,14 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 		uint64_t               id;
 		unsigned char ALIGN(8) buffer[8];
 	} hostid;
-	
+
 	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
 		return 0;
-	
+
 	hostid.id = 0;
 	for( j = 0; j < 6; ++j )
 		hostid.buffer[5-j] = ifr->ifr_hwaddr.sa_data[j];
-	
+
 	return hostid.id;
 }
 
@@ -423,14 +423,14 @@ uint64_t system_hostid( void )
 	struct ifreq buffer;
 	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
 #endif
-	
+
 	if( getifaddrs( &ifaddr ) == 0 )
 	{
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
 			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
 				continue;
-			
+
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 			hostid = _system_hostid_lookup( ifa );
 #else
@@ -453,7 +453,7 @@ uint64_t system_hostid( void )
 
 	close( sock );
 #endif
-	
+
 	return hostid;
 #endif
 }
@@ -509,7 +509,7 @@ void system_process_events( void )
 			source->process( app, source );
 		++nummsg;
 	}
-	
+
 	profile_end_block();
 #endif
 }
@@ -545,7 +545,7 @@ uint32_t system_locale( void )
 {
 	uint32_t localeval = 0;
 	char localestr[4];
-	
+
 	const char* locale = config_string( HASH_USER, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
@@ -553,7 +553,7 @@ uint32_t system_locale( void )
 		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
-	
+
 #define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (((unsigned char)(x)) | (32)) : (x)
 #define _LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (((unsigned char)(x)) & (~32)) : (x)
 	localestr[0] = _LOCALE_CHAR_TO_LOWERCASE( locale[0] );
@@ -591,7 +591,7 @@ void _system_set_device_orientation( device_orientation_t orientation )
 {
 	if( _system_device_orientation == orientation )
 		return;
-	
+
 	_system_device_orientation = orientation;
 	system_post_event( FOUNDATIONEVENT_DEVICE_ORIENTATION );
 }
@@ -655,6 +655,9 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 	return false;
 #else
 	//Not implemented
+	FOUNDATION_UNUSED( message );
+	FOUNDATION_UNUSED( title );
+	FOUNDATION_UNUSED( cancel_button );
 	return false;
 #endif
 }
