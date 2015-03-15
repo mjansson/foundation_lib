@@ -1265,6 +1265,8 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
+    if libs is None:
+      libs = []
     if extralibs is None:
       extralibs = []
     if extraframeworks is None:
