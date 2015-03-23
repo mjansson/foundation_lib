@@ -221,7 +221,6 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	    ( sigaction( SIGFPE,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSEGV, &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGBUS,  &action, 0 ) < 0 ) ||
-		( sigaction( SIGINT,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
 	{
