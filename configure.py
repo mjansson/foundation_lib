@@ -50,6 +50,7 @@ if target.is_ios() or target.is_android() or target.is_pnacl():
   test_cases += [ 'all' ]
   if target.is_ios():
     test_resources = [ os.path.join( 'all', 'ios', item ) for item in [ 'test-all.plist', 'Images.xcassets', 'test-all.xib' ] ]
+    test_extrasources = [ os.path.join( 'all', 'ios', 'viewcontroller.m' ) ]
   elif target.is_android():
     test_resources = [ os.path.join( 'all', 'android', item ) for item in [
       'AndroidManifest.xml', os.path.join( 'layout', 'main.xml' ), os.path.join( 'values', 'strings.xml' ),
