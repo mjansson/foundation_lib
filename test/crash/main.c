@@ -58,8 +58,7 @@ static void test_crash_callback( const char* dump_path )
 static int instant_crash( void* arg )
 {
 	FOUNDATION_UNUSED( arg );
-	log_info( HASH_TEST, "Causing illegal memory write" );
-	*(volatile int*)3 = 0;
+	crash_debug_break();
 	return 1;
 }
 
@@ -75,6 +74,9 @@ DECLARE_TEST( crash, crash_guard )
 {
 	int crash_result;
 
+	if( system_debugger_attached() )
+		return 0; //Don't do crash tests with debugger attached
+	
 	_crash_callback_called = false;
 	crash_result = crash_guard( instant_crash, 0, test_crash_callback, "instant_crash" );
 	EXPECT_EQ( crash_result, FOUNDATION_CRASH_DUMP_GENERATED );
@@ -88,6 +90,9 @@ DECLARE_TEST( crash, crash_thread )
 {
 	object_t thread = 0;
 
+	if( system_debugger_attached() )
+		return 0; //Don't do crash tests with debugger attached
+	
 	_crash_callback_called = false;
 	crash_guard_set( test_crash_callback, "thread_crash" );
 

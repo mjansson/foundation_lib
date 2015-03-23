@@ -36,6 +36,7 @@
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
+#include <sys/sysctl.h>
 extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
 #endif
@@ -155,7 +156,7 @@ void _system_shutdown( void )
 
 const char* system_error_message( int code )
 {
-	static THREADLOCAL char errmsg[256];
+	static FOUNDATION_THREADLOCAL char errmsg[256];
 
 	if( !code )
 		code = GetLastError();
@@ -314,7 +315,7 @@ const char* system_error_message( int code )
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
 #else
-	static THREADLOCAL char buffer[256];
+	static FOUNDATION_THREADLOCAL char buffer[256];
 #endif
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
 	if( strerror_r( code, buffer, 256 ) == 0 )
@@ -364,7 +365,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	union
 	{
 		uint64_t               id;
-		unsigned char ALIGN(8) buffer[8];
+		unsigned char FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
 	if( ifaddr->ifa_addr && ( ifaddr->ifa_addr->sa_family == AF_LINK ) )
@@ -390,7 +391,7 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 	union
 	{
 		uint64_t               id;
-		unsigned char ALIGN(8) buffer[8];
+		unsigned char FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
 	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
@@ -517,7 +518,26 @@ void system_process_events( void )
 
 bool system_debugger_attached( void )
 {
+#if FOUNDATION_PLATFORM_APPLE
+	int mib[4];
+	struct kinfo_proc info;
+	size_t size;
+
+	memset( &info, 0, sizeof( info ) );
+	info.kp_proc.p_flag = 0;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_PROC;
+	mib[2] = KERN_PROC_PID;
+	mib[3] = getpid();
+
+	size = sizeof( info );
+	sysctl( mib, sizeof( mib ) / sizeof( *mib ), &info, &size, 0, 0 );
+
+	return ( ( info.kp_proc.p_flag & P_TRACED ) != 0 );
+#else
 	return false;
+#endif
 }
 
 

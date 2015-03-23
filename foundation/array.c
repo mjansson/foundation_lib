@@ -16,7 +16,7 @@
 //'FARR' in ascii
 static const int ARRAY_WATERMARK = 0x52524145;
 
-static const unsigned int ARRAY_DEFAULT_ALIGN = 16U;
+static const unsigned int ARRAY_DEFAULT_FOUNDATION_ALIGN = 16U;
 
 
 const void* _array_verifyfn( const void* const* arr )
@@ -57,7 +57,7 @@ void* _array_growfn( void** arr, int increment, int factor, int itemsize )
 	uint64_t header_size = 4ULL * _array_header_size;
 	uint64_t prev_used_buffer_size = (unsigned int)prev_used_size + header_size;
 	uint64_t buffer_size = (unsigned int)storage_size + header_size;
-	int*     buffer = *arr ? memory_reallocate( _array_raw( *arr ), buffer_size, ARRAY_DEFAULT_ALIGN, prev_used_buffer_size ) : memory_allocate( 0, buffer_size, ARRAY_DEFAULT_ALIGN, MEMORY_PERSISTENT );
+	int*     buffer = *arr ? memory_reallocate( _array_raw( *arr ), buffer_size, ARRAY_DEFAULT_FOUNDATION_ALIGN, prev_used_buffer_size ) : memory_allocate( 0, buffer_size, ARRAY_DEFAULT_FOUNDATION_ALIGN, MEMORY_PERSISTENT );
 	FOUNDATION_ASSERT_MSG( buffer, "Failed to reallocate array storage" );
 	if( buffer )
 	{

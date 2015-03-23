@@ -178,7 +178,7 @@ DECLARE_TEST( event, immediate )
 }
 
 
-typedef struct ALIGN(16) _producer_thread_arg
+typedef FOUNDATION_ALIGNED_STRUCT( _producer_thread_arg, 16 )
 {
 	event_stream_t*        stream;
 	tick_t                 max_delay;

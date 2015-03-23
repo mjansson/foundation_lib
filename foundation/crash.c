@@ -217,10 +217,12 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	//Signals we process globally
 	action.sa_sigaction = _crash_guard_sigaction;
 	action.sa_flags = SA_SIGINFO;
-	if( ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
+	if( ( sigaction( SIGTRAP, &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGFPE,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSEGV, &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGBUS,  &action, 0 ) < 0 ) ||
+		( sigaction( SIGINT,  &action, 0 ) < 0 ) ||
+	    ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
 	{
 		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set crash guard signal actions" );

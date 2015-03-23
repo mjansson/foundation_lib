@@ -19,7 +19,7 @@ extern int app_main( void* arg );
 
 volatile int _delegate_dummy;
 
-NOINLINE void delegate_reference_classes( void )
+FOUNDATION_NOINLINE void delegate_reference_classes( void )
 {
 	_delegate_dummy = 1;
 	[FoundationAppDelegate referenceClass];

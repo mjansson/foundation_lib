@@ -537,7 +537,7 @@
 		455519B21938BBDF00CF089B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0620;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
 			};
 			buildConfigurationList = 455519B51938BBDF00CF089B /* Build configuration list for PBXProject "test" */;

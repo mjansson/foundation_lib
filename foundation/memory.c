@@ -35,7 +35,7 @@
 static memory_system_t _memory_system;
 static memory_tracker_t _memory_no_tracker;
 
-typedef ALIGN(8) struct
+typedef FOUNDATION_ALIGN(8) struct
 {
 	void*               storage;
 	void*               end;
@@ -59,9 +59,9 @@ static void _memory_untrack( void* addr );
 
 
 #if FOUNDATION_PLATFORM_ANDROID
-#  define FOUNDATION_MAX_ALIGN  8
+#  define FOUNDATION_MAX_FOUNDATION_ALIGN  8
 #else
-#  define FOUNDATION_MAX_ALIGN  16
+#  define FOUNDATION_MAX_FOUNDATION_ALIGN  16
 #endif
 
 
@@ -109,28 +109,28 @@ static void* _atomic_allocate_linear( uint64_t chunksize )
 }
 
 
-static CONSTCALL FORCEINLINE unsigned int _memory_get_align( unsigned int align )
+static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE unsigned int _memory_get_align( unsigned int align )
 {
 	//All alignment in memory code is built around higher alignments
 	//being multiples of lower alignments (powers of two).
 	//4, 8, 16, ...
 #if FOUNDATION_PLATFORM_ANDROID
-	return align ? FOUNDATION_MAX_ALIGN : 0;
+	return align ? FOUNDATION_MAX_FOUNDATION_ALIGN : 0;
 #elif FOUNDATION_PLATFORM_WINDOWS
 	if( align < FOUNDATION_SIZE_POINTER )
 		return FOUNDATION_SIZE_POINTER;
 	align = math_align_poweroftwo( align );
-	return ( align < FOUNDATION_MAX_ALIGN ) ? align : FOUNDATION_MAX_ALIGN;
+	return ( align < FOUNDATION_MAX_FOUNDATION_ALIGN ) ? align : FOUNDATION_MAX_FOUNDATION_ALIGN;
 #else
 	if( align < FOUNDATION_SIZE_POINTER )
 		return align ? FOUNDATION_SIZE_POINTER : 0;
 	align = math_align_poweroftwo( align );
-	return ( align < FOUNDATION_MAX_ALIGN ) ? align : FOUNDATION_MAX_ALIGN;
+	return ( align < FOUNDATION_MAX_FOUNDATION_ALIGN ) ? align : FOUNDATION_MAX_FOUNDATION_ALIGN;
 #endif
 }
 
 
-static CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
+static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 {
 	uintptr_t address;
 	if( !p || !align )
@@ -181,25 +181,25 @@ void _memory_shutdown( void )
 static void* _memory_guard_initialize( void* memory, size_t size )
 {
 	int guard_loop;
-	uint32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_ALIGN );
-	uint32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_ALIGN * 2 );
+	uint32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_FOUNDATION_ALIGN );
+	uint32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_FOUNDATION_ALIGN * 2 );
 	*(uint64_t*)memory = size;
-	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
+	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_FOUNDATION_ALIGN / 4; ++guard_loop )
 	{
 		*guard_header++ = MEMORY_GUARD_VALUE;
 		*guard_footer++ = MEMORY_GUARD_VALUE;
 	}
-	return pointer_offset( memory, FOUNDATION_MAX_ALIGN * 2 );
+	return pointer_offset( memory, FOUNDATION_MAX_FOUNDATION_ALIGN * 2 );
 }
 
 
 static void* _memory_guard_verify( void* memory )
 {
 	int guard_loop;
-	uint64_t  size = *(uint64_t*)pointer_offset( memory, -FOUNDATION_MAX_ALIGN * 2 );
-	uint32_t* guard_header = pointer_offset( memory, -FOUNDATION_MAX_ALIGN );
+	uint64_t  size = *(uint64_t*)pointer_offset( memory, -FOUNDATION_MAX_FOUNDATION_ALIGN * 2 );
+	uint32_t* guard_header = pointer_offset( memory, -FOUNDATION_MAX_FOUNDATION_ALIGN );
 	uint32_t* guard_footer = pointer_offset( memory, size );
-	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
+	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_FOUNDATION_ALIGN / 4; ++guard_loop )
 	{
 		if( *guard_header != MEMORY_GUARD_VALUE )
 			FOUNDATION_ASSERT_MSG( *guard_header == MEMORY_GUARD_VALUE, "Memory underwrite" );
@@ -208,7 +208,7 @@ static void* _memory_guard_verify( void* memory )
 		guard_header++;
 		guard_footer++;
 	}
-	return pointer_offset( memory, -FOUNDATION_MAX_ALIGN * 2 );
+	return pointer_offset( memory, -FOUNDATION_MAX_FOUNDATION_ALIGN * 2 );
 }
 
 #endif
@@ -319,7 +319,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 
 #  if FOUNDATION_SIZE_POINTER == 4
 #    if BUILD_ENABLE_MEMORY_GUARD
-	char* memory = _aligned_malloc( (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
+	char* memory = _aligned_malloc( (size_t)size + FOUNDATION_MAX_FOUNDATION_ALIGN * 3, align );
 	if( memory )
 		memory = _memory_guard_initialize( memory, (size_t)size );
 	return memory;
@@ -337,7 +337,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	{
 		padding = ( align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER );
 #if BUILD_ENABLE_MEMORY_GUARD
-		extra_padding = FOUNDATION_MAX_ALIGN * 3;
+		extra_padding = FOUNDATION_MAX_FOUNDATION_ALIGN * 3;
 #endif
 		raw_memory = _aligned_malloc( (size_t)size + padding + extra_padding, align );
 		if( raw_memory )
@@ -356,7 +356,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 
 	padding = ( align > FOUNDATION_SIZE_POINTER ) ? align : FOUNDATION_SIZE_POINTER;
 #    if BUILD_ENABLE_MEMORY_GUARD
-	extra_padding = FOUNDATION_MAX_ALIGN * 3;
+	extra_padding = FOUNDATION_MAX_FOUNDATION_ALIGN * 3;
 #    endif
 
 	allocate_size = size + padding + extra_padding + align;
@@ -387,7 +387,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 		unsigned int extra_padding = 0;
 		unsigned int padding = ( align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER );
 #if BUILD_ENABLE_MEMORY_GUARD
-		extra_padding = FOUNDATION_MAX_ALIGN * 3;
+		extra_padding = FOUNDATION_MAX_FOUNDATION_ALIGN * 3;
 #endif
 		char* raw_memory = malloc( (size_t)size + align + padding + extra_padding );
 		if( raw_memory )
@@ -413,7 +413,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	void* memory;
 
 #    if BUILD_ENABLE_MEMORY_GUARD
-	extra_padding = FOUNDATION_MAX_ALIGN * 3;
+	extra_padding = FOUNDATION_MAX_FOUNDATION_ALIGN * 3;
 #    endif
 
 	allocate_size = size + padding + extra_padding + align;
@@ -542,11 +542,11 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	if( p )
 	{
 		p = _memory_guard_verify( p );
-		p = _aligned_realloc( p, (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
+		p = _aligned_realloc( p, (size_t)size + FOUNDATION_MAX_FOUNDATION_ALIGN * 3, align );
 	}
 	else
 	{
-		p = _aligned_malloc( (size_t)size + FOUNDATION_MAX_ALIGN * 3, align );
+		p = _aligned_malloc( (size_t)size + FOUNDATION_MAX_FOUNDATION_ALIGN * 3, align );
 	}
 	if( p )
 		p = _memory_guard_initialize( p, (size_t)size );
@@ -556,7 +556,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #  endif
 #else
 	void* memory;
-	void* raw_p ATTRIBUTE(unused);
+	void* raw_p FOUNDATION_ATTRIBUTE(unused);
 
 	align = _memory_get_align( align );
 
@@ -573,7 +573,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 	{
 		unsigned int padding = ( align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER );
 #  if BUILD_ENABLE_MEMORY_GUARD
-		unsigned int extra_padding = FOUNDATION_MAX_ALIGN * 3;
+		unsigned int extra_padding = FOUNDATION_MAX_FOUNDATION_ALIGN * 3;
 #  else
 		unsigned int extra_padding = 0;
 #  endif
@@ -712,7 +712,7 @@ struct memory_tag_t
 	uintptr_t     size;
 	void*         trace[14];
 };
-typedef ALIGN(8) struct memory_tag_t memory_tag_t;
+typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
 
 
 static hashtable_t*       _memory_table;

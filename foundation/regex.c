@@ -68,8 +68,8 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 static regex_context_t _regex_execute( regex_t* regex, int op, const char* input, int inoffset, int inlength, regex_capture_t* captures, int maxcaptures );
 
 
-static FORCEINLINE CONSTCALL regex_context_t _regex_context_nomatch( int next_op ) { const regex_context_t context = { next_op, REGEXRES_NOMATCH }; return context; }
-static FORCEINLINE CONSTCALL regex_context_t _regex_context_internal_failure( int next_op ) { const regex_context_t context = { next_op, REGEXRES_INTERNAL_FAILURE }; return context; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_nomatch( int next_op ) { const regex_context_t context = { next_op, REGEXRES_NOMATCH }; return context; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_internal_failure( int next_op ) { const regex_context_t context = { next_op, REGEXRES_INTERNAL_FAILURE }; return context; }
 
 
 static int _regex_emit( regex_t** target, bool allow_grow, int ops, ... )

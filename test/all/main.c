@@ -194,13 +194,14 @@ int main_run( void* main_arg )
 #elif BUILD_RELEASE
 	const char* build_name = "release";
 #elif BUILD_PROFILE
-	const char* ATTRIBUTE(unused) build_name = "profile";
+	const char* build_name = "profile";
 #elif BUILD_DEPLOY
-	const char* ATTRIBUTE(unused) build_name = "deploy";
+	const char* build_name = "deploy";
 #endif
 	int process_result = 0;
 	object_t thread = 0;
 	FOUNDATION_UNUSED( main_arg );
+	FOUNDATION_UNUSED( build_name );
 
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
