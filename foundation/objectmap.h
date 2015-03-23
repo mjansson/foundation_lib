@@ -28,10 +28,8 @@ FOUNDATION_API void                 objectmap_free( objectmap_t* map, object_t i
 FOUNDATION_API void                 objectmap_set( objectmap_t* map, object_t id, void* object );
 
 FOUNDATION_API void*                objectmap_raw_lookup( const objectmap_t* map, unsigned int index );
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void*   objectmap_lookup( const objectmap_t* map, object_t id );
 FOUNDATION_API void*                objectmap_lookup_ref( const objectmap_t* map, object_t id );
 FOUNDATION_API bool                 objectmap_lookup_unref( const objectmap_t* map, object_t id, object_deallocate_fn deallocate );
-
 
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void* objectmap_lookup( const objectmap_t* map, object_t id )
 {
