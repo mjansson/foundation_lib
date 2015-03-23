@@ -7,15 +7,34 @@ import os
 import sys
 
 def generate_version_string(libname):
+
+  version_numbers = []
+  tokens = []
+
   gitcmd = 'git'
   if sys.platform.startswith('win'):
     gitcmd = 'git.exe'
   try:
-	git_version = subprocess.check_output( [ gitcmd, 'describe', '--long' ] ).strip()
+    git_version = subprocess.check_output( [ gitcmd, 'describe', '--long' ], stderr = subprocess.STDOUT ).strip()
+    tokens = git_version.split( '-' )
+    version_numbers = tokens[0].split( '.' )
   except Exception:
-    return
-  tokens = git_version.split('-')
-  version_numbers = tokens[0].split('.')
+    pass
+
+  version_major = "0"
+  version_minor = "0"
+  version_revision = "1"
+  version_build = "0"
+  version_scm = "0"
+
+  if version_numbers and len( version_numbers ) > 2:
+    version_major = version_numbers[0]
+    version_minor = version_numbers[1]
+    version_revision = version_numbers[2]
+
+  if tokens and len( tokens ) > 2:
+    version_build = tokens[1]
+    version_scm = tokens[2][1:]
 
   source = """/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
    This file is generated from the git describe command.
@@ -26,7 +45,7 @@ def generate_version_string(libname):
 version_t """ + libname + """_version( void )
 {
 """
-  source += "	return version_make( " + version_numbers[0] + ", " + version_numbers[1] + ", " + version_numbers[2] + ", " + tokens[1] + ", 0x" + tokens[2][1:] + " );\n}\n"
+  source += "	return version_make( " + version_major + ", " + version_minor + ", " + version_revision + ", " + version_build + ", 0x" + version_scm + " );\n}\n"
   return source
 
 def read_version_string(input_path):
