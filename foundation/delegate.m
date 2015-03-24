@@ -232,6 +232,7 @@ void* delegate_uiwindow( void )
 {
 	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application will resign active" );
+	system_post_event( FOUNDATIONEVENT_FOCUS_LOST );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
@@ -242,6 +243,7 @@ void* delegate_uiwindow( void )
 	log_debug( HASH_FOUNDATION, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
+	system_post_event( FOUNDATIONEVENT_FOCUS_GAIN );
 }
 
 

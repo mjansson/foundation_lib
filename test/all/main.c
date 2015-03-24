@@ -19,6 +19,8 @@ volatile bool _test_should_terminate = false;
 
 #endif
 
+volatile bool _test_have_focus = false;
+
 static void* event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
@@ -36,19 +38,27 @@ static void* event_thread( object_t thread, void* arg )
 			{
 				case FOUNDATIONEVENT_START:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
-					log_infof( HASH_TEST, "Application start event received" );
+					log_debugf( HASH_TEST, "Application start event received" );
 					_test_should_start = true;
 #endif
 					break;
 
 				case FOUNDATIONEVENT_TERMINATE:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
-					log_infof( HASH_TEST, "Application terminate event received" );
+					log_debugf( HASH_TEST, "Application stop/terminate event received" );
 					_test_should_terminate = true;
 #else
 					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating tests due to event" );
 					process_exit( -2 );
 #endif
+					break;
+
+				case FOUNDATIONEVENT_FOCUS_GAIN:
+					_test_have_focus = true;
+					break;
+
+				case FOUNDATIONEVENT_FOCUS_LOST:
+					_test_have_focus = false;
 					break;
 
 				default:
@@ -58,6 +68,8 @@ static void* event_thread( object_t thread, void* arg )
 
 		thread_sleep( 10 );
 	}
+
+	log_debugf( HASH_TEST, "Application event thread exiting" );
 
 	return 0;
 }
@@ -189,6 +201,9 @@ int main_run( void* main_arg )
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
 #endif
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+	int remain_counter = 0;
+#endif
 #if BUILD_DEBUG
 	const char* build_name = "debug";
 #elif BUILD_RELEASE
@@ -228,7 +243,7 @@ int main_run( void* main_arg )
 
 	test_run_fn tests[] = {
 		//test_app_run
-		test_array_run,
+/*		test_array_run,
 		test_atomic_run,
 		test_base64_run,
 		test_bitbuffer_run,
@@ -264,7 +279,7 @@ int main_run( void* main_arg )
 #if !FOUNDATION_PLATFORM_PNACL
 		test_stacktrace_run,
 #endif
-		test_string_run,
+		test_string_run,*/
 		test_uuid_run,
 		0
 	};
@@ -274,7 +289,7 @@ int main_run( void* main_arg )
 	object_t test_thread = thread_create( test_runner, "test_runner", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( test_thread, tests );
 
-	log_infof( HASH_TEST, "Starting test runner thread" );
+	log_debugf( HASH_TEST, "Starting test runner thread" );
 
 	while( !thread_is_running( test_thread ) )
 	{
@@ -306,10 +321,11 @@ int main_run( void* main_arg )
 	if( process_result != 0 )
 		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 
-	while( !_test_should_terminate )
+	while( !_test_should_terminate && _test_have_focus && ( remain_counter < 50 ) )
 	{
 		system_process_events();
 		thread_sleep( 100 );
+		++remain_counter;
 	}
 
 	log_debug( HASH_TEST, "Exiting main loop" );
@@ -402,6 +418,8 @@ exit:
 		thread_sleep( 10 );
 	while( thread_is_thread( thread ) )
 		thread_sleep( 10 );
+
+	log_infof( HASH_TEST, "Tests exiting: %d", process_result );
 
 	return process_result;
 }
