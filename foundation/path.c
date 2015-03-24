@@ -493,6 +493,6 @@ char* path_make_absolute( const char* path )
 char* path_make_temporary( void )
 {
 	char uintbuffer[18];
-	return path_append( path_merge( environment_temporary_directory(), "tmp" ), string_from_uint_buffer( uintbuffer, random64(), true, 0, '0' ) );
+	return path_merge( environment_temporary_directory(), string_from_uint_buffer( uintbuffer, random64(), true, 0, '0' ) );
 }
 

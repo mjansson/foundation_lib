@@ -443,15 +443,17 @@ const char* environment_temporary_directory( void )
 	}
 #endif
 #if FOUNDATION_PLATFORM_ANDROID
-	//Use application external data path, or if that fails, internal data path
+	//Use application internal data path, or if that fails, external data path
 	struct android_app* app = android_app();
-	const char* test_path[] = { app && app->activity ? app->activity->externalDataPath : 0, app && app->activity ? app->activity->internalDataPath : 0 };
-	for( int itest = 0; itest < 2; ++itest )
+	const char* test_path[] = { app && app->activity ? app->activity->internalDataPath : 0, app && app->activity ? app->activity->externalDataPath : 0 };
+	for( int itest = 0; !_environment_temp_dir[0] && ( itest < 2 ); ++itest )
 	{
 		if( test_path[itest] && string_length( test_path[itest] ) )
 		{
+			fs_make_directory( test_path[itest] );
+
 			char* temp_path = path_prepend( string_format( ".tmp-%s", string_from_uuid_static( uuid_generate_random() ) ), test_path[itest] );
-			stream_t* temp_stream = fs_open_file( temp_path, STREAM_OUT | STREAM_BINARY );
+			stream_t* temp_stream = fs_open_file( temp_path, STREAM_CREATE | STREAM_OUT | STREAM_BINARY );
 			if( temp_stream )
 			{
 				stream_deallocate( temp_stream );
@@ -469,6 +471,10 @@ const char* environment_temporary_directory( void )
 				fs_remove_file( _environment_temp_dir );
 				fs_remove_directory( _environment_temp_dir );
 				fs_make_directory( _environment_temp_dir );
+			}
+			else
+			{
+				_environment_temp_dir[0] = 0;
 			}
 			string_deallocate( temp_path );
 		}

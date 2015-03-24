@@ -146,7 +146,9 @@ FOUNDATION_DECLARE_THREAD_LOCAL( crash_env_t, crash_env, 0 )
 
 static void _crash_guard_minidump( void* context, const char* name, char* dump_file )
 {
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "/tmp/core.%s", name ? name : "unknown" );
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s-%016x.dmp",
+		environment_temporary_directory(), name ? name : string_from_uuid_static( environment_application()->instance ), time_system() );
+	fs_make_directory( environment_temporary_directory() );
 
 	//TODO: Write dump file
 	//ucontext_t* user_context = context;
@@ -185,6 +187,9 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 
 int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name )
 {
+	//Make sure path is initialized
+	environment_temporary_directory();
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
