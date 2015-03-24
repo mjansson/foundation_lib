@@ -539,10 +539,10 @@ bool system_debugger_attached( void )
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
-	int fd, ib, partial = 0;
+	int fd, ib, ofs, partial = 0;
+	bool read_pid = false;
 	ssize_t nread;
 	static const char tracer_pid[] = "TracerPid:";
-	static const int  tracer_pid_len = sizeof( tracer_pid );
 
 	fd = open( "/proc/self/status", O_RDONLY );
 	if( fd < 0 )
@@ -556,15 +556,28 @@ bool system_debugger_attached( void )
 		{
 			for( ib = 0; ( ib < nread ); ++ib )
 			{
-				for( ; ( ib + partial < nread ) && ( partial < tracer_pid_len ); ++partial )
+				if( read_pid )
 				{
-					if( buffer[ib+partial] != tracer_pid[partial] )
-						break;
+					if( ( buffer[ib] >= '1' ) && ( buffer[ib] <= '9' ) )
+						return true;
+					if( ( buffer[ib] != ' ' ) && ( buffer[ib] != '\t' ) )
+						return false;
 				}
-				if( !tracer_pid[partial] )
-					return true;
-				if( ib + partial < nread )
-					partial = 0;
+				else
+				{
+					for( ofs = 0; ( ib + ofs < nread ) && tracer_pid[partial]; ++partial, ++ofs )
+					{
+						if( buffer[ib+ofs] != tracer_pid[partial] )
+							break;
+					}
+					if( !tracer_pid[partial] )
+					{
+						ib += ofs;
+						read_pid = true;
+					}
+					else if( ib + partial < nread )
+						partial = 0;
+				}
 			}
 		}
 	} while( nread > 0 );

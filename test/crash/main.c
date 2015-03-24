@@ -75,8 +75,11 @@ DECLARE_TEST( crash, crash_guard )
 	int crash_result;
 
 	if( system_debugger_attached() )
+	{
+		log_info( HASH_TEST, "Skip test when debugger is attached" );
 		return 0; //Don't do crash tests with debugger attached
-	
+	}
+
 	_crash_callback_called = false;
 	crash_result = crash_guard( instant_crash, 0, test_crash_callback, "instant_crash" );
 	EXPECT_EQ( crash_result, FOUNDATION_CRASH_DUMP_GENERATED );
@@ -92,7 +95,7 @@ DECLARE_TEST( crash, crash_thread )
 
 	if( system_debugger_attached() )
 		return 0; //Don't do crash tests with debugger attached
-	
+
 	_crash_callback_called = false;
 	crash_guard_set( test_crash_callback, "thread_crash" );
 
