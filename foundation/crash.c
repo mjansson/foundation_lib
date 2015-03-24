@@ -51,21 +51,24 @@ typedef BOOL ( STDCALL *MiniDumpWriteDumpFn )( HANDLE, DWORD, HANDLE, MINIDUMP_T
 
 static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* name, char* dump_file )
 {
-    MINIDUMP_EXCEPTION_INFORMATION info;
+	MINIDUMP_EXCEPTION_INFORMATION info;
 
-    HANDLE     file;
-    SYSTEMTIME local_time;
+	HANDLE     file;
+	SYSTEMTIME local_time;
 
-    GetLocalTime( &local_time );
+	GetLocalTime( &local_time );
 
 	dump_file[0] = 0;
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
-		environment_temporary_directory(), name ? name : string_from_uuid_static( environment_application()->instance ),
+	if( !name )
+		name = environment_application()->short_name;
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
+		environment_temporary_directory(), name ? name : "", name ? "-" : "",
+		string_from_uuid_static( environment_application()->instance ),
 		local_time.wYear, local_time.wMonth, local_time.wDay,
 		local_time.wHour, local_time.wMinute, local_time.wSecond,
 		GetCurrentProcessId(), GetCurrentThreadId());
 	fs_make_directory( environment_temporary_directory() );
-    file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
+	file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
 
 	if( file && ( file != INVALID_HANDLE_VALUE ) )
 	{
@@ -146,8 +149,11 @@ FOUNDATION_DECLARE_THREAD_LOCAL( crash_env_t, crash_env, 0 )
 
 static void _crash_guard_minidump( void* context, const char* name, char* dump_file )
 {
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s-%016x.dmp",
-		environment_temporary_directory(), name ? name : string_from_uuid_static( environment_application()->instance ), time_system() );
+	if( !name )
+		name = environment_application()->short_name;
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%x.dmp",
+		environment_temporary_directory(), name ? name : "", name ? "-" : "",
+		string_from_uuid_static( environment_application()->instance ), time_system() );
 	fs_make_directory( environment_temporary_directory() );
 
 	//TODO: Write dump file
@@ -223,11 +229,11 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	action.sa_sigaction = _crash_guard_sigaction;
 	action.sa_flags = SA_SIGINFO;
 	if( ( sigaction( SIGTRAP, &action, 0 ) < 0 ) ||
-	    ( sigaction( SIGFPE,  &action, 0 ) < 0 ) ||
-	    ( sigaction( SIGSEGV, &action, 0 ) < 0 ) ||
-	    ( sigaction( SIGBUS,  &action, 0 ) < 0 ) ||
-	    ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
-	    ( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
+		( sigaction( SIGFPE,  &action, 0 ) < 0 ) ||
+		( sigaction( SIGSEGV, &action, 0 ) < 0 ) ||
+		( sigaction( SIGBUS,  &action, 0 ) < 0 ) ||
+		( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
+		( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
 	{
 		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set crash guard signal actions" );
 		return fn( data );

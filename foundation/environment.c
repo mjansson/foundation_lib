@@ -21,6 +21,7 @@ static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN];
 static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN];
 static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN];
 static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN];
+static bool    _environment_temp_dir_local;
 #if FOUNDATION_PLATFORM_WINDOWS
 static char*   _environment_var;
 #  include <foundation/windows.h>
@@ -48,6 +49,8 @@ static application_t       _environment_app;
 static char**              _environment_argv;
 static int                 _environment_main_argc;
 static const char* const*  _environment_main_argv;
+
+static void _environment_clean_temporary_directory( bool recreate );
 
 
 void _environment_main_args( int argc, const char* const* argv )
@@ -270,7 +273,7 @@ int _environment_initialize( const application_t application )
 
    	string_copy( _environment_initial_working_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
 
-	environment_temporary_directory();
+   	_environment_clean_temporary_directory( true );
 
 	return 0;
 }
@@ -278,6 +281,8 @@ int _environment_initialize( const application_t application )
 
 void _environment_shutdown( void )
 {
+	_environment_clean_temporary_directory( false );
+
 	string_array_deallocate( _environment_argv );
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -467,10 +472,7 @@ const char* environment_temporary_directory( void )
 				}
 				string_copy( _environment_temp_dir + len, ".tmp", FOUNDATION_MAX_PATHLEN - len );
 
-				//Clear it from old files
-				fs_remove_file( _environment_temp_dir );
-				fs_remove_directory( _environment_temp_dir );
-				fs_make_directory( _environment_temp_dir );
+				_environment_temp_dir_local = true;
 			}
 			else
 			{
@@ -484,6 +486,9 @@ const char* environment_temporary_directory( void )
 	if( !_environment_temp_dir[0] )
 	{
 		_environment_ns_temporary_directory( _environment_temp_dir );
+#if FOUNDATION_PLATFORM_IOS
+		_environment_temp_dir_local = true;
+#endif
 	}
 #endif
 #if FOUNDATION_PLATFORM_POSIX
@@ -500,11 +505,14 @@ const char* environment_temporary_directory( void )
 	{
 		unsigned int curlen = string_length( _environment_temp_dir );
 		unsigned int cfglen = string_length( _environment_app.config_dir );
-		if( ( curlen + cfglen + 2 ) < FOUNDATION_MAX_PATHLEN )
+		if( ( curlen + cfglen + 39 ) < FOUNDATION_MAX_PATHLEN )
 		{
 			if( _environment_temp_dir[curlen-1] != '/' )
 				_environment_temp_dir[curlen++] = '/';
-			memcpy( _environment_temp_dir + curlen, _environment_app.config_dir, cfglen + 1 );
+			memcpy( _environment_temp_dir + curlen, _environment_app.config_dir, cfglen );
+			_environment_temp_dir[curlen + cfglen] = '-';
+			memcpy( _environment_temp_dir + curlen + cfglen + 1, string_from_uuid_static( _environment_app.instance ), 37 );
+			_environment_temp_dir_local = true;
 		}
 	}
 #endif
@@ -514,6 +522,19 @@ const char* environment_temporary_directory( void )
 			_environment_temp_dir[curlen-1] = 0;
 	}
 	return _environment_temp_dir;
+}
+
+
+static void _environment_clean_temporary_directory( bool recreate )
+{
+	const char* path = environment_temporary_directory();
+
+	if( _environment_temp_dir_local && fs_is_directory( path ) )
+	{
+		fs_remove_directory( path );
+		if( recreate )
+			fs_make_directory( path );
+	}
 }
 
 
