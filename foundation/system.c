@@ -519,6 +519,7 @@ void system_process_events( void )
 bool system_debugger_attached( void )
 {
 #if FOUNDATION_PLATFORM_APPLE
+
 	int mib[4];
 	struct kinfo_proc info;
 	size_t size;
@@ -535,6 +536,41 @@ bool system_debugger_attached( void )
 	sysctl( mib, sizeof( mib ) / sizeof( *mib ), &info, &size, 0, 0 );
 
 	return ( ( info.kp_proc.p_flag & P_TRACED ) != 0 );
+
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+
+	int fd, ib, partial = 0;
+	ssize_t nread;
+	static const char tracer_pid[] = "TracerPid:";
+	static const int  tracer_pid_len = sizeof( tracer_pid );
+
+	fd = open( "/proc/self/status", O_RDONLY );
+	if( fd < 0 )
+		return false;
+
+	do
+	{
+		char buffer[128];
+		nread = read( fd, buffer, sizeof( buffer ) );
+		if( nread > 0 )
+		{
+			for( ib = 0; ( ib < nread ); ++ib )
+			{
+				for( ; ( ib + partial < nread ) && ( partial < tracer_pid_len ); ++partial )
+				{
+					if( buffer[ib+partial] != tracer_pid[partial] )
+						break;
+				}
+				if( !tracer_pid[partial] )
+					return true;
+				if( ib + partial < nread )
+					partial = 0;
+			}
+		}
+	} while( nread > 0 );
+
+	return false;
+
 #else
 	return false;
 #endif
