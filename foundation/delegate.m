@@ -96,7 +96,8 @@ static volatile bool _delegate_received_terminate = false;
 #if FOUNDATION_PLATFORM_IOS
 		if( !_delegate_received_terminate )
 		{
-			log_warnf( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
+			if( ( environment_application()->flags & APPLICATION_UTILITY ) == 0 )
+				log_warnf( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
 			exit( -1 );
 		}
 #endif
