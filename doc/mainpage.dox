@@ -165,7 +165,7 @@ The variables can be set in four different ways, in increasing order of priority
 Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.$(binname)' ) ]</code>.
 Any variables that have a identical name with different platform prefix can be passed without any platform name as in the example. The value will be applied to all platform specific variables.
 
-The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. And example build.json file:
+The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. An example build.json file:
 <code>{
 	"android" : {
 		"ndkpath" : "~/android-ndk",
@@ -200,6 +200,26 @@ Finally, the codesign.json is read by the codesigning phase at build time and ca
 <li>ios_bundleidentifier
 <li>ios_signature
 
+An example codesign.json file:
+<code>{
+    "android" : {
+        "keystore" : "~/.android/debug.keystore",
+        "keyalias" : "androiddebugkey",
+        "keystorepass" : "android",
+        "keypass" : "android"
+    },
+    "ios" : {
+        "organisation" : "TXXXYZ12AB",
+        "bundleidentifier" : "com.mycompany.$(binname)",
+        "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+        "provisioning" : "01234567-89AB-CDEF-0123-456789ABCDEF.mobileprovision"
+    },
+    "macosx" : {
+        "organisation" : "TXXXYZ12AB",
+        "bundleidentifier" : "com.mycompany.$(binname)",
+        "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+    }
+}</code>
 
 \section visual_studio Visual Studio
 On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013 Both 32-bit and 64-bit Windows are supported.
