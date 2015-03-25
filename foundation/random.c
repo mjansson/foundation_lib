@@ -146,7 +146,7 @@ void random_thread_deallocate( void )
 }
 
 
-static FORCEINLINE unsigned int random_from_state( unsigned int* RESTRICT state )
+static FOUNDATION_FORCEINLINE unsigned int random_from_state( unsigned int* FOUNDATION_RESTRICT state )
 {
 	unsigned int state_index = state[ RANDOM_STATE_SIZE ];
 	unsigned int bits0, bits1, bits2;

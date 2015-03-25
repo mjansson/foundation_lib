@@ -44,7 +44,7 @@ static void test_array_shutdown( void )
 }
 
 
-typedef struct ALIGN(8) _basic_type
+typedef FOUNDATION_ALIGNED_STRUCT( _basic_type, 8 )
 {
 	int              intval;
 	float32_t        floatval;
@@ -52,7 +52,7 @@ typedef struct ALIGN(8) _basic_type
 } basic_t;
 
 
-typedef struct ALIGN(8) _combine_type
+typedef FOUNDATION_ALIGNED_STRUCT( _combined_type, 8 )
 {
 	int              intval;
 	union

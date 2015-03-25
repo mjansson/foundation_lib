@@ -19,7 +19,7 @@ extern int app_main( void* arg );
 
 volatile int _delegate_dummy;
 
-NOINLINE void delegate_reference_classes( void )
+FOUNDATION_NOINLINE void delegate_reference_classes( void )
 {
 	_delegate_dummy = 1;
 	[FoundationAppDelegate referenceClass];
@@ -96,7 +96,8 @@ static volatile bool _delegate_received_terminate = false;
 #if FOUNDATION_PLATFORM_IOS
 		if( !_delegate_received_terminate )
 		{
-			log_warnf( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
+			if( ( environment_application()->flags & APPLICATION_UTILITY ) == 0 )
+				log_warnf( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
 			exit( -1 );
 		}
 #endif
@@ -232,6 +233,7 @@ void* delegate_uiwindow( void )
 {
 	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application will resign active" );
+	system_post_event( FOUNDATIONEVENT_FOCUS_LOST );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
@@ -242,6 +244,7 @@ void* delegate_uiwindow( void )
 	log_debug( HASH_FOUNDATION, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
+	system_post_event( FOUNDATIONEVENT_FOCUS_GAIN );
 }
 
 

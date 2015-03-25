@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		450F8C7D1AC02FB000688440 /* viewcontroller.m in Sources */ = {isa = PBXBuildFile; fileRef = 450F8C7C1AC02FB000688440 /* viewcontroller.m */; };
 		451871BE19560285000E42C9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 451871BD19560285000E42C9 /* main.c */; };
 		455519ED1938CEE000CF089B /* test.c in Sources */ = {isa = PBXBuildFile; fileRef = 455519EA1938CEE000CF089B /* test.c */; };
 		455519EE1938CEE000CF089B /* test.m in Sources */ = {isa = PBXBuildFile; fileRef = 455519EC1938CEE000CF089B /* test.m */; };
@@ -74,6 +75,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		450F8C7B1AC02FB000688440 /* viewcontroller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = viewcontroller.h; path = ../../../test/all/ios/viewcontroller.h; sourceTree = "<group>"; };
+		450F8C7C1AC02FB000688440 /* viewcontroller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = viewcontroller.m; path = ../../../test/all/ios/viewcontroller.m; sourceTree = "<group>"; };
 		451871BD19560285000E42C9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/regex/main.c; sourceTree = "<group>"; };
 		455519BA1938BBDF00CF089B /* libtest.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtest.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		455519EA1938CEE000CF089B /* test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test.c; path = ../../test/test/test.c; sourceTree = "<group>"; };
@@ -155,8 +158,8 @@
 		455519B11938BBDF00CF089B = {
 			isa = PBXGroup;
 			children = (
-				455519E31938BDC000CF089B /* test */,
 				45BB33981A601D9200D30F3E /* config */,
+				455519E31938BDC000CF089B /* test */,
 				455519BB1938BBDF00CF089B /* lib */,
 				45551A8A1938D60500CF089B /* bin */,
 				455519F41938D40100CF089B /* frameworks */,
@@ -241,6 +244,8 @@
 				45551A261938D46500CF089B /* test-all.plist */,
 				45551A271938D46500CF089B /* test-all.xib */,
 				45551A231938D43700CF089B /* main.c */,
+				450F8C7B1AC02FB000688440 /* viewcontroller.h */,
+				450F8C7C1AC02FB000688440 /* viewcontroller.m */,
 			);
 			name = all;
 			sourceTree = "<group>";
@@ -537,7 +542,7 @@
 		455519B21938BBDF00CF089B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0620;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
 			};
 			buildConfigurationList = 455519B51938BBDF00CF089B /* Build configuration list for PBXProject "test" */;
@@ -588,6 +593,7 @@
 				45551A7F1938D55B00CF089B /* main.c in Sources */,
 				45551A791938D55B00CF089B /* main.c in Sources */,
 				45551A721938D55B00CF089B /* main.c in Sources */,
+				450F8C7D1AC02FB000688440 /* viewcontroller.m in Sources */,
 				45551A6F1938D55B00CF089B /* main.c in Sources */,
 				45551A6A1938D55B00CF089B /* main.c in Sources */,
 				45551A7C1938D55B00CF089B /* main.c in Sources */,
@@ -678,6 +684,7 @@
 				LLVM_LTO = YES;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Profile;
 		};
@@ -698,13 +705,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Profile;
@@ -756,6 +757,7 @@
 				LLVM_LTO = YES;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Deploy;
 		};
@@ -776,13 +778,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Deploy;
@@ -834,6 +830,7 @@
 				);
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -884,6 +881,7 @@
 				LLVM_LTO = YES;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -914,13 +912,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -932,13 +924,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/mjansson/projects/foundation_lib/lib/ios/debug,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

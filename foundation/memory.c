@@ -35,7 +35,7 @@
 static memory_system_t _memory_system;
 static memory_tracker_t _memory_no_tracker;
 
-typedef ALIGN(8) struct
+typedef FOUNDATION_ALIGN(8) struct
 {
 	void*               storage;
 	void*               end;
@@ -109,7 +109,7 @@ static void* _atomic_allocate_linear( uint64_t chunksize )
 }
 
 
-static CONSTCALL FORCEINLINE unsigned int _memory_get_align( unsigned int align )
+static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE unsigned int _memory_get_align( unsigned int align )
 {
 	//All alignment in memory code is built around higher alignments
 	//being multiples of lower alignments (powers of two).
@@ -130,7 +130,7 @@ static CONSTCALL FORCEINLINE unsigned int _memory_get_align( unsigned int align 
 }
 
 
-static CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
+static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 {
 	uintptr_t address;
 	if( !p || !align )
@@ -556,7 +556,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #  endif
 #else
 	void* memory;
-	void* raw_p ATTRIBUTE(unused);
+	void* raw_p FOUNDATION_ATTRIBUTE(unused);
 
 	align = _memory_get_align( align );
 
@@ -712,7 +712,7 @@ struct memory_tag_t
 	uintptr_t     size;
 	void*         trace[14];
 };
-typedef ALIGN(8) struct memory_tag_t memory_tag_t;
+typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
 
 
 static hashtable_t*       _memory_table;

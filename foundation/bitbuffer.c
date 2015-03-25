@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 
-static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
+static void _bitbuffer_get( bitbuffer_t* FOUNDATION_RESTRICT bitbuffer )
 {
 	if( bitbuffer->buffer < bitbuffer->end )
 	{
@@ -33,7 +33,7 @@ static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
 }
 
 
-static void _bitbuffer_put( bitbuffer_t* RESTRICT bitbuffer )
+static void _bitbuffer_put( bitbuffer_t* FOUNDATION_RESTRICT bitbuffer )
 {
 	if( bitbuffer->buffer < bitbuffer->end )
 	{

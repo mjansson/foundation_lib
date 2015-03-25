@@ -65,7 +65,7 @@ struct fs_monitor_t
 	object_t          thread;
 	mutex_t*          signal;
 };
-typedef ALIGN(16) struct fs_monitor_t fs_monitor_t;
+typedef FOUNDATION_ALIGN(16) struct fs_monitor_t fs_monitor_t;
 
 struct stream_file_t
 {
@@ -78,7 +78,7 @@ struct stream_file_t
 	int64_t                size;
 #endif
 };
-typedef ALIGN(8) struct stream_file_t stream_file_t;
+typedef FOUNDATION_ALIGN(8) struct stream_file_t stream_file_t;
 
 #define GET_FILE( s ) ((stream_file_t*)(s))
 #define GET_FILE_CONST( s ) ((const stream_file_t*)(s))
@@ -396,9 +396,9 @@ char** fs_subdirs( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries;
+	pnacl_array_t entries = { 0, 0 };
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
 		for( int ient = 0; ient < entries.count; ++ient, ++entry )
@@ -495,9 +495,9 @@ char** fs_files( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries;
+	pnacl_array_t entries = { 0, 0 };
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
 		for( int ient = 0; ient < entries.count; ++ient, ++entry )
@@ -516,10 +516,10 @@ char** fs_files( const char* path )
 		}
 	}
 
-	_pnacl_core->ReleaseResource( ref );
-
 	if( entries.data )
 		memory_deallocate( entries.data );
+
+	_pnacl_core->ReleaseResource( ref );
 
 	memory_context_pop();
 
@@ -811,8 +811,8 @@ uint64_t fs_last_modified( const char* path )
 		if( ref )
 		{
 			struct PP_FileInfo info;
-			_pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() );
-			tstamp = info.last_modified_time * 1000ULL;
+			if( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
+				tstamp = info.last_modified_time * 1000ULL;
 
 			_pnacl_core->ReleaseResource( ref );
 		}

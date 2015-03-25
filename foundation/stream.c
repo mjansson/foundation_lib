@@ -1069,7 +1069,7 @@ struct stream_std_t
 	void*              std;
 	bool               eos;
 };
-typedef ALIGN(8) struct stream_std_t stream_std_t;
+typedef FOUNDATION_ALIGN(8) struct stream_std_t stream_std_t;
 
 
 static uint64_t  _stream_stdin_read( stream_t*, void*, uint64_t );

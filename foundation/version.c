@@ -6,5 +6,5 @@
 
 version_t foundation_version( void )
 {
-	return version_make( 1, 2, 5, 0, 0x22e7d0c );
+	return version_make( 1, 2, 5, 2, 0xc12798c );
 }

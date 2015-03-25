@@ -39,17 +39,17 @@ struct config_key_t
 	char*                   expanded;
 	real                    rval;
 };
-typedef ALIGN(8) struct config_key_t config_key_t;
+typedef FOUNDATION_ALIGN(8) struct config_key_t config_key_t;
 
 struct config_section_t
 {
 	hash_t                  name;
 	config_key_t*           key[CONFIG_KEY_BUCKETS];
 };
-typedef ALIGN(8) struct config_section_t config_section_t;
+typedef FOUNDATION_ALIGN(8) struct config_section_t config_section_t;
 
-FOUNDATION_STATIC_ASSERT( ALIGNOF( config_key_t ) == 8, "config_key_t alignment" );
-FOUNDATION_STATIC_ASSERT( ALIGNOF( config_section_t ) == 8, "config_section_t alignment" );
+FOUNDATION_STATIC_ASSERT( FOUNDATION_ALIGNOF( config_key_t ) == 8, "config_key_t alignment" );
+FOUNDATION_STATIC_ASSERT( FOUNDATION_ALIGNOF( config_section_t ) == 8, "config_section_t alignment" );
 
 //Global config store
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS];
@@ -125,7 +125,7 @@ static real _config_string_to_real( const char* str )
 }
 
 
-static NOINLINE const char* _expand_environment( hash_t key, char* var )
+static FOUNDATION_NOINLINE const char* _expand_environment( hash_t key, char* var )
 {
 	if( key == HASH_EXECUTABLE_NAME )
 		return environment_executable_name();
@@ -156,7 +156,7 @@ static NOINLINE const char* _expand_environment( hash_t key, char* var )
 }
 
 
-static NOINLINE char* _expand_string( hash_t section_current, char* str )
+static FOUNDATION_NOINLINE char* _expand_string( hash_t section_current, char* str )
 {
 	char* expanded;
 	char* variable;
@@ -208,7 +208,7 @@ static NOINLINE char* _expand_string( hash_t section_current, char* str )
 }
 
 
-static NOINLINE void _expand_string_val( hash_t section, config_key_t* key )
+static FOUNDATION_NOINLINE void _expand_string_val( hash_t section, config_key_t* key )
 {
 	bool is_true;
 	FOUNDATION_ASSERT( key->sval );
@@ -489,7 +489,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 }
 
 
-static NOINLINE config_section_t* config_section( hash_t section, bool create )
+static FOUNDATION_NOINLINE config_section_t* config_section( hash_t section, bool create )
 {
 	config_section_t* bucket;
 	int ib, bsize;
@@ -519,7 +519,7 @@ static NOINLINE config_section_t* config_section( hash_t section, bool create )
 }
 
 
-static NOINLINE config_key_t* config_key( hash_t section, hash_t key, bool create )
+static FOUNDATION_NOINLINE config_key_t* config_key( hash_t section, hash_t key, bool create )
 {
 	config_key_t new_key;
 	config_section_t* csection;

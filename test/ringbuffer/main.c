@@ -214,7 +214,7 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	unsigned int si;
 	unsigned int loop, loops;
 	real elapsed;
-	real throughput ATTRIBUTE(unused);
+	real throughput;
 	unsigned int mbytes;
 
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
@@ -224,6 +224,8 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	mbytes = 256;
 	loops = 16;
 #endif
+	
+	FOUNDATION_UNUSED( throughput );
 
 	test.buffer_size = mbytes * 1024 * 1024;
 
