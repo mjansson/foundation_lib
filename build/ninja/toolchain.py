@@ -28,7 +28,7 @@ class Toolchain(object):
     self.archs = list( archs )
     self.configs = list( configs )
     if self.toolchain is None:
-      if target.is_android():
+      if target.is_android() or target.is_raspberrypi():
         self.toolchain = 'gcc'
       elif host.is_windows():
         self.toolchain = 'msvc'
