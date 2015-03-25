@@ -201,7 +201,7 @@ int main_run( void* main_arg )
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
 #endif
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	int remain_counter = 0;
 #endif
 #if BUILD_DEBUG
@@ -243,7 +243,7 @@ int main_run( void* main_arg )
 
 	test_run_fn tests[] = {
 		//test_app_run
-/*		test_array_run,
+		test_array_run,
 		test_atomic_run,
 		test_base64_run,
 		test_bitbuffer_run,
@@ -279,7 +279,7 @@ int main_run( void* main_arg )
 #if !FOUNDATION_PLATFORM_PNACL
 		test_stacktrace_run,
 #endif
-		test_string_run,*/
+		test_string_run,
 		test_uuid_run,
 		0
 	};

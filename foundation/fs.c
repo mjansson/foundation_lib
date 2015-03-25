@@ -239,7 +239,7 @@ bool fs_is_file( const char* path )
 	wchar_t* wpath = wstring_allocate_from_string( _fs_path( path ), 0 );
 	unsigned int attribs = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
-	if( ( attribs != 0xFFFFFFFF ) && !( attribs & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+	if( ( attribs != 0xFFFFFFFF ) && !( attribs & FILE_ATTRIBUTE_DIRECTORY ) )
 		return true;
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -284,7 +284,7 @@ bool fs_is_directory( const char* path )
 	wchar_t* wpath = wstring_allocate_from_string( path, 0 );
 	unsigned int attr = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
-	if( ( attr == 0xFFFFFFFF ) || !( attr & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+	if( ( attr == 0xFFFFFFFF ) || !( attr & FILE_ATTRIBUTE_DIRECTORY ) )
 		return false;
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -339,7 +339,7 @@ char** fs_subdirs( const char* path )
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
-		if( data.dwFileAttributes & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY )
+		if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
 		{
 			if( data.cFileName[0] == L'.' )
 			{
@@ -396,9 +396,9 @@ char** fs_subdirs( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries;
+	pnacl_array_t entries = { 0, 0 };
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
 		for( int ient = 0; ient < entries.count; ++ient, ++entry )
@@ -449,7 +449,7 @@ char** fs_files( const char* path )
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
-		if( !( data.dwFileAttributes & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
 			array_push( arr, string_allocate_from_wstring( data.cFileName, 0 ) );
 	} while( FindNextFileW( find, &data ) );
 	FindClose( find );
@@ -495,9 +495,9 @@ char** fs_files( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries;
+	pnacl_array_t entries = { 0, 0 };
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
 		for( int ient = 0; ient < entries.count; ++ient, ++entry )
@@ -516,10 +516,10 @@ char** fs_files( const char* path )
 		}
 	}
 
-	_pnacl_core->ReleaseResource( ref );
-
 	if( entries.data )
 		memory_deallocate( entries.data );
+
+	_pnacl_core->ReleaseResource( ref );
 
 	memory_context_pop();
 
@@ -767,7 +767,7 @@ uint64_t fs_last_modified( const char* path )
 	const uint64_t ms_offset_time = 116444736000000000ULL;
 	uint64_t last_write_time;
 	wchar_t* wpath;
-	WIN32_FILE_FOUNDATION_ATTRIBUTE_DATA attrib;
+	WIN32_FILE_ATTRIBUTE_DATA attrib;
 	BOOL success = 0;
 	memset( &attrib, 0, sizeof( attrib ) );
 
@@ -811,8 +811,8 @@ uint64_t fs_last_modified( const char* path )
 		if( ref )
 		{
 			struct PP_FileInfo info;
-			_pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() );
-			tstamp = info.last_modified_time * 1000ULL;
+			if( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
+				tstamp = info.last_modified_time * 1000ULL;
 
 			_pnacl_core->ReleaseResource( ref );
 		}
@@ -908,7 +908,7 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
-		if( !( data.dwFileAttributes & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
 		{
 			string_convert_utf16( filename, data.cFileName, FOUNDATION_MAX_PATHLEN, wstring_length( data.cFileName ) );
 			if( regex_match( pattern, filename, string_length( filename ), 0, 0 ) )
