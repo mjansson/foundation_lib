@@ -17,7 +17,7 @@
 #if FOUNDATION_COMPILER_MSVC
 #  include <stdlib.h>
 #  include <intrin.h>
-#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG*/
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 #  define _rotl64(a, bits) (((a) << (uint64_t)(bits)) | ((a) >> (64ULL - (uint64_t)(bits))))
 #endif
 
