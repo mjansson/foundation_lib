@@ -502,7 +502,7 @@ char** fs_files( const char* path )
 		struct PP_DirectoryEntry* entry = entries.data;
 		for( int ient = 0; ient < entries.count; ++ient, ++entry )
 		{
-			if( entry->file_type != PP_FILETYPE_REGULAR )
+			if( entry->file_type == PP_FILETYPE_REGULAR )
 			{
 				uint32_t varlen = 0;
 				const struct PP_Var namevar = _pnacl_file_ref->GetName( entry->file_ref );
