@@ -432,7 +432,7 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 	if( !data || !length )
 		return;
 
-	FOUNDATION_ASSERT_PLATFORM_FOUNDATION_ALIGNMENT( data, 4 );
+	FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( data, 4 );
 
 	/*lint --e{826} */
 	cur = data;

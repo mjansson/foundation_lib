@@ -32,11 +32,11 @@ FOUNDATION_API int                  assert_report_formatted( uint64_t context, c
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { if( assert_report_formatted( 0ULL, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
 #  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { if( assert_report_formatted( context, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
 
-#  define FOUNDATION_ASSERT_FOUNDATION_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_MSG( ( (uintptr_t)(addr) % (uintptr_t)(alignment) ) == 0, "Mis-aligned memory" ); } while(0)
+#  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_MSG( ( (uintptr_t)(addr) % (uintptr_t)(alignment) ) == 0, "Mis-aligned memory" ); } while(0)
 #  if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
-#  define FOUNDATION_ASSERT_PLATFORM_FOUNDATION_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_FOUNDATION_ALIGNMENT( addr, alignment ); } while(0)
+#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ); } while(0)
 #else
-#  define FOUNDATION_ASSERT_PLATFORM_FOUNDATION_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
+#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
 #endif
 
 #  define FOUNDATION_VALIDATE( cond ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ? ( crash_debug_break(), false ) : false ) : true )
@@ -52,8 +52,8 @@ FOUNDATION_API int                  assert_report_formatted( uint64_t context, c
 #  define FOUNDATION_ASSERT_FAIL_LOG( context, msg ) do { log_errorf( context, ERROR_ASSERT, "%s", msg ); } while(0)
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { (void)sizeof( msg ); } while(0)
 #  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { log_errorf( context, ERROR_ASSERT, msg, __VA_ARGS__ ); } while(0)
-#  define FOUNDATION_ASSERT_FOUNDATION_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
-#  define FOUNDATION_ASSERT_PLATFORM_FOUNDATION_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
+#  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
+#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
 #  define FOUNDATION_VALIDATE( cond ) (cond)
 #  define FOUNDATION_VALIDATE_MSG( cond, msg ) ( ( !(cond) ) ? ( (void)sizeof( msg ), false ) : true )
 #  define FOUNDATION_VALIDATE_MSGFORMAT( cond, msg, ... ) ( ( !(cond) ) ? ( (void)sizeof( msg ), false ) : true )
