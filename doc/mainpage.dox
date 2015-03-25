@@ -44,31 +44,31 @@ asserts, logging and error handling. Profiling is also disabled. This configurat
 \subsection output Output
 Libraries will be placed in lib/[platform]/[configuration]/[architecture] with platform names
 <ul>
-<li>windows
-<li>linux
-<li>macosx
-<li>ios
-<li>android
-<li>bsd
-<li>raspberrypi
-<li>pnacl
+<li>windows</li>
+<li>linux</li>
+<li>macosx</li>
+<li>ios</li>
+<li>android</li>
+<li>bsd</li>
+<li>raspberrypi</li>
+<li>pnacl</li>
 </ul>
 Configuration names are
 <ul>
-<li>debug
-<li>release
-<li>profile
-<li>deploy
+<li>debug</li>
+<li>release</li>
+<li>profile</li>
+<li>deploy</li>
 </ul>
 Architecture names are
 <ul>
-<li>arm6
-<li>arm7
-<li>arm64
-<li>x86
-<li>x86-64
-<li>mips
-<li>mips64
+<li>arm6</li>
+<li>arm7</li>
+<li>arm64</li>
+<li>x86</li>
+<li>x86-64</li>
+<li>mips</li>
+<li>mips64</li>
 </ul>
 
 For MacOSX, iOS and PNaCl builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
@@ -93,10 +93,10 @@ There is currently support for four different toolchains depending on your host 
 host platforms. Specify which toolchain to use with the --toolchain switch. For example, to use gcc when building for Android use <code>--toolchain gcc</code>. The toolchain
 names are
 <ul>
-<li>gcc
-<li>clang
-<li>intel
-<li>msvc
+<li>gcc</li>
+<li>clang</li>
+<li>intel</li>
+<li>msvc</li>
 </ul>
 
 \subsection ninja_target Targets
@@ -130,43 +130,46 @@ through the build options. On Android the default settings is to use the normal 
 \subsection options Build options
 Some build variables can be set externally from the ninja build files. These variables are
 <ul>
-<li>android_ndkpath - Path to the Android NDK (no default)
-<li>android_sdkpath - Path to the Android SDK (no default)
-<li>android_keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")
-<li>android_keyalias = Key alias to use when signing API (default "androiddebugkey")
-<li>android_keystorepass - Password for keystore used when signing APK (default "android")
-<li>android_keypass - Password for key used when signing APK (default "android")
-<li>android_platformversion - Android platform version to use when building (default "21")
-<li>android_toolchainversion_gcc - GCC toolchain version to use when building (default "4.9")
-<li>android_toolchainversion_clang - CLang toolchain version to use when building (default "3.5")
-<li>android_tsa - Location of the Timestamping Authority
-<li>android_tsacert - Public key certificate for Timestamping Authority
-<li>ios_deploymenttarget - Minimum iOS target version (default "6.0")
-<li>ios_organisation - Organisation identifier on format "TDSNAF78CU" (no default)
-<li>ios_bundleidentifier - Bundle identifier on format "com.company.id" (no default)
-<li>ios_signature - Certificate signature (no default)
-<li>ios_provisioning - Mobile provisioning profile path (no default)
-<li>macosx_deploymenttarget - Minimum MacOS X target version (default "10.7")
-<li>macosx_organisation - Organisation identifier on format "TDSNAF78CU" (no default)
-<li>macosx_bundleidentifier - Bundle identifier on format "com.company.id" (no default)
-<li>pnacl_sdkpath - Path to the PNaCl SDK (no default)
+<li>android_ndkpath - Path to the Android NDK (no default)</li>
+<li>android_sdkpath - Path to the Android SDK (no default)</li>
+<li>android_keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")</li>
+<li>android_keyalias = Key alias to use when signing API (default "androiddebugkey")</li>
+<li>android_keystorepass - Password for keystore used when signing APK (default "android")</li>
+<li>android_keypass - Password for key used when signing APK (default "android")</li>
+<li>android_platformversion - Android platform version to use when building (default "21")</li>
+<li>android_toolchainversion_gcc - GCC toolchain version to use when building (default "4.9")</li>
+<li>android_toolchainversion_clang - CLang toolchain version to use when building (default "3.5")</li>
+<li>android_tsa - Location of the Timestamping Authority</li>
+<li>android_tsacert - Public key certificate for Timestamping Authority</li>
+<li>ios_deploymenttarget - Minimum iOS target version (default "6.0")</li>
+<li>ios_organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
+<li>ios_bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
+<li>ios_signature - Certificate signature (no default)</li>
+<li>ios_provisioning - Mobile provisioning profile path (no default)</li>
+<li>macosx_deploymenttarget - Minimum MacOS X target version (default "10.7")</li>
+<li>macosx_organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
+<li>macosx_bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
+<li>pnacl_sdkpath - Path to the PNaCl SDK (no default)</li>
+</ul>
 
 The bundle identifier variables can contain expansion variables which will be substituted during build. These include
 <ul>
-<li>$(binname) - Binary name (for example, "test-all")
+<li>\$(binname) - Binary name (for example, "test-all")</li>
+</ul>
 
 The variables can be set in four different ways, in increasing order of priority.
 <ul>
-<li>configure.py script variables passed to generator
-<li>build.json file in root project directory, read during configure.py execution
-<li>environment variables, read during configure.py execution
-<li>codesign.json file in root project directory, read at build time
+<li>configure.py script variables passed to generator</li>
+<li>build.json file in root project directory, read during configure.py execution</li>
+<li>environment variables, read during configure.py execution</li>
+<li>codesign.json file in root project directory, read at build time</li>
+</ul>
 
 Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.$(binname)' ) ]</code>.
 Any variables that have a identical name with different platform prefix can be passed without any platform name as in the example. The value will be applied to all platform specific variables.
 
 The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. An example build.json file:
-<code>{
+<pre>{
 	"android" : {
 		"ndkpath" : "~/android-ndk",
 		"sdkpath" : "~/android-sdk",
@@ -180,28 +183,29 @@ The build.json is a simple host-local file which can hold any variable values li
 	"macosx" : {
 		"deploymenttarget" : "10.7"
 	}
-}</code>
+}</pre>
 
 You can override configure.py and build.json values using environment variables. The environment variable names should be the variable name in upper case. For example, to set the Minimum iOS target version set <code>IOS_DEPLOYMENTVERSION="6.0"</code> in the environment prior to invoking configure.py
 
 Finally, the codesign.json is read by the codesigning phase at build time and can hold the secrets related to code signing. This allows you to have the secret locally on the build machine without requiring recreation of the build scripts or storing secrets in version control. The format is the same as for build.json and the variables used are:
 <ul>
-<li>android_keystore
-<li>android_keyalias
-<li>android_keystorepass
-<li>android_keypass
-<li>android_tsa
-<li>android_tsacert
-<li>ios_organisation
-<li>ios_bundleidentifier
-<li>ios_signature
-<li>ios_provisioning
-<li>ios_organisation
-<li>ios_bundleidentifier
-<li>ios_signature
+<li>android_keystore</li>
+<li>android_keyalias</li>
+<li>android_keystorepass</li>
+<li>android_keypass</li>
+<li>android_tsa</li>
+<li>android_tsacert</li>
+<li>ios_organisation</li>
+<li>ios_bundleidentifier</li>
+<li>ios_signature</li>
+<li>ios_provisioning</li>
+<li>ios_organisation</li>
+<li>ios_bundleidentifier</li>
+<li>ios_signature</li>
+</ul>
 
 An example codesign.json file:
-<code>{
+<pre>{
     "android" : {
         "keystore" : "~/.android/debug.keystore",
         "keyalias" : "androiddebugkey",
@@ -219,7 +223,7 @@ An example codesign.json file:
         "bundleidentifier" : "com.mycompany.$(binname)",
         "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
     }
-}</code>
+}</pre>
 
 \section visual_studio Visual Studio
 On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013 Both 32-bit and 64-bit Windows are supported.
@@ -240,10 +244,11 @@ During compilation of the library itself, <code>FOUNDATION_COMPILE</code> should
 
 Depending on the build configuration wanted, the appropriate build configuration symbol should be defined to non-zero.
 <ul>
-<li><code>BUILD_DEBUG</code>
-<li><code>BUILD_RELEASE</code>
-<li><code>BUILD_PROFILE</code>
-<li><code>BUILD_DEPLOY</code>
+<li><code>BUILD_DEBUG</code></li>
+<li><code>BUILD_RELEASE</code></li>
+<li><code>BUILD_PROFILE</code></li>
+<li><code>BUILD_DEPLOY</code></li>
+</ul>
 
 All other build control directives are defined in the build.h header.
 
@@ -314,7 +319,7 @@ file and trigger rebuilds. This makes it suitable for automatic execution in bui
       --generate-string \<string>   Generate hash of the given string
       \<filename> \<filename> ...    Any number of input files
       --help                       Display the help message
-      --                           Stop processing command line arguments</code>
+      --                           Stop processing command line arguments</pre>
 
 \section uuidgen
 The uuidgen tool generates UUIDs using the uuid submodule in the library. It can generate version 1 (MAC address), 3 (MD5 hash)
@@ -332,7 +337,7 @@ and 4 (random) UUIDs. If you run the tool without any arguments it will generate
       --lowercase                  Output UUID in lowercase hex
       --uppercase                  Output UUID in uppercase hex (default)
       --help                       Display the help message
-      --                           Stop processing command line arguments</code>
+      --                           Stop processing command line arguments</pre>
 
 \section bin2hex
 The bin2hex tool converts any given input file to a string based file with each input file byte output as a hex string value,
@@ -345,7 +350,7 @@ suitable for including as a data block in a C source file (format "0x23, 0x20, 0
     Optional arguments:
       --columns n                  Print n bytes in each column (default is 32)
       --help                       Display the help message
-      --                           Stop processing command line arguments</code>
+      --                           Stop processing command line arguments</pre>
 
 \section plans Future plans
 Currently there are no plans for extra tools, but if you have a suggestion or request feel free to leave us a comment on
@@ -561,7 +566,7 @@ Apart from the simple wildcard #string_match_pattern function, the regex.h provi
     ?        Match zero or once
     \\XX      Match byte with hex value 0xXX
     \\meta    Match one of the meta characters ^$()[].*+?|\
-</code>
+</pre>
 Substring capturing is optional, and if performed it will capture start pointers and lengths of matched substrings and will not allocate any additional memory.
 
 \page using_page Using the foundation library in a project
