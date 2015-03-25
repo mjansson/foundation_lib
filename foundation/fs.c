@@ -239,7 +239,7 @@ bool fs_is_file( const char* path )
 	wchar_t* wpath = wstring_allocate_from_string( _fs_path( path ), 0 );
 	unsigned int attribs = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
-	if( ( attribs != 0xFFFFFFFF ) && !( attribs & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+	if( ( attribs != 0xFFFFFFFF ) && !( attribs & FILE_ATTRIBUTE_DIRECTORY ) )
 		return true;
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -284,7 +284,7 @@ bool fs_is_directory( const char* path )
 	wchar_t* wpath = wstring_allocate_from_string( path, 0 );
 	unsigned int attr = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
-	if( ( attr == 0xFFFFFFFF ) || !( attr & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+	if( ( attr == 0xFFFFFFFF ) || !( attr & FILE_ATTRIBUTE_DIRECTORY ) )
 		return false;
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -339,7 +339,7 @@ char** fs_subdirs( const char* path )
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
-		if( data.dwFileAttributes & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY )
+		if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
 		{
 			if( data.cFileName[0] == L'.' )
 			{
@@ -449,7 +449,7 @@ char** fs_files( const char* path )
 	find = FindFirstFileW( wpattern, &data );
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
-		if( !( data.dwFileAttributes & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
 			array_push( arr, string_allocate_from_wstring( data.cFileName, 0 ) );
 	} while( FindNextFileW( find, &data ) );
 	FindClose( find );
@@ -767,7 +767,7 @@ uint64_t fs_last_modified( const char* path )
 	const uint64_t ms_offset_time = 116444736000000000ULL;
 	uint64_t last_write_time;
 	wchar_t* wpath;
-	WIN32_FILE_FOUNDATION_ATTRIBUTE_DATA attrib;
+	WIN32_FILE_ATTRIBUTE_DATA attrib;
 	BOOL success = 0;
 	memset( &attrib, 0, sizeof( attrib ) );
 
@@ -908,7 +908,7 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 
 	if( find != INVALID_HANDLE_VALUE ) do
 	{
-		if( !( data.dwFileAttributes & FILE_FOUNDATION_ATTRIBUTE_DIRECTORY ) )
+		if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
 		{
 			string_convert_utf16( filename, data.cFileName, FOUNDATION_MAX_PATHLEN, wstring_length( data.cFileName ) );
 			if( regex_match( pattern, filename, string_length( filename ), 0, 0 ) )
