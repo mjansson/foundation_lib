@@ -224,7 +224,7 @@ test_suite_t test_regex_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_regex_run( void );
 int test_regex_run( void )
