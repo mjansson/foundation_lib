@@ -659,9 +659,7 @@ class Toolchain(object):
       if self.is_monolithic():
         flags += ' -DBUILD_MONOLITHIC=1'
       if self.use_coverage():
-        if self.toolchain == 'gcc':
-          flags += ' gcov'
-        elif self.toolchain == 'clang':
+        if self.toolchain == 'gcc' or self.toolchain == 'clang':
           flags += ' --coverage'
     elif self.toolchain == 'msvc':
       if config == 'debug':
@@ -810,9 +808,7 @@ class Toolchain(object):
       else:
         flags += ' /DEBUG /LTCG /INCREMENTAL:NO /OPT:REF /OPT:ICF'
     if self.use_coverage():
-      if self.toolchain == 'gcc':
-        flags += ' gcov'
-      elif self.toolchain == 'clang':
+      if self.toolchain == 'gcc' or self.toolchain == 'clang':
         flags += ' --coverage'
     return flags.strip()
 
