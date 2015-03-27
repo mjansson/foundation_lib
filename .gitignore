@@ -219,3 +219,5 @@ xcuserdata
 build.json
 codesign.json
 coveralls.json
+coverallsreport.json
+
