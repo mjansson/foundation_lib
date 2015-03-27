@@ -32,6 +32,14 @@ def gitinfo():
     }
   }
 
+def read_prefs( filename ):
+  if not os.path.isfile( filename ):
+    return
+  file = open( filename, 'r' )
+  prefs = json.load( file )
+  file.close()
+  return prefs
+
 def merge_reports( basereport, addreport ):
   baselen = len(basereport)
   addlen = len(addreport)
@@ -100,8 +108,10 @@ for sourcefile, report in sourcefiles.iteritems():
   sourcereport['coverage'] = report
   sourcelist.append( sourcereport )
 
+prefs = read_prefs( 'coveralls.json' )
+
 coveralls = {}
-coveralls['repo_token'] = 'yiZoExCQa8uW2CmJd7MmmqmzZPOEphG4B'
+coveralls['repo_token'] = prefs['repo_token']
 coveralls['source_files'] = sourcelist
 coveralls['git'] = gitinfo()
 

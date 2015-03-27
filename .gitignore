@@ -218,4 +218,4 @@ xcuserdata
 #Do not store local build prefs
 build.json
 codesign.json
-
+coveralls.json
