@@ -99,9 +99,9 @@ class Toolchain(object):
         iterator = iter( variables )
       for key, val in iterator:
         if key == 'monolithic':
-          self.monolithic = self.get_boolean_flag( val )
+          self.build_monolithic = self.get_boolean_flag( val )
         elif key == 'coverage':
-          self.coverage = self.get_boolean_flag( val )
+          self.build_coverage = self.get_boolean_flag( val )
         elif key == 'bundleidentifier':
           self.ios_bundleidentifier = val
           self.macosx_bundleidentifier = val
@@ -609,9 +609,9 @@ class Toolchain(object):
       if 'sdkpath' in pnaclprefs:
         self.pnacl_sdkpath = pnaclprefs['sdkpath']
     if 'monolithic' in prefs:
-      self.monolithic = self.get_boolean_flag( prefs['monolithic'] )
+      self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
     if 'coverage' in prefs:
-      self.coverage = self.get_boolean_flag( prefs['coverage'] )
+      self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
 
   def get_boolean_flag( self, val ):
     return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
@@ -838,10 +838,10 @@ class Toolchain(object):
     return self.toolchain == 'intel'
 
   def is_monolithic( self ):
-    return self.monolithic
+    return self.build_monolithic
 
   def use_coverage( self ):
-    return self.coverage
+    return self.build_coverage
 
   def cc( self ):
     return self.cc

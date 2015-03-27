@@ -43,7 +43,7 @@ test_cases = [
   'path', 'pipe', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
   'string', 'uuid'
 ]
-if generator.test_monolithic() or target.is_ios() or target.is_android() or target.is_pnacl():
+if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_pnacl():
   #Build one fat binary with all test cases
   test_resources = []
   test_extrasources = []
