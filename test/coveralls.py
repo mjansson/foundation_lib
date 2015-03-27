@@ -9,6 +9,29 @@ import hashlib
 import requests
 from coverage import parse_gcov
 
+def gitcmd( *arguments ):
+  gitcmd = 'git'
+  if sys.platform.startswith('win'):
+    gitcmd = 'git.exe'
+  return subprocess.check_output( ['git'] + list( arguments ) )
+
+def gitlog( format ):
+  return gitcmd( '--no-pager', 'log', '-1', '--pretty=format:%s' % format )
+
+def gitinfo():
+  return {
+    'branch' : gitcmd( 'rev-parse', '--abbrev-ref', 'HEAD' ),
+    'remotes' : [ { 'name': remote.split()[0], 'url': remote.split()[1] } for remote in gitcmd( 'remote', '-v' ) if '(fetch)' in remote ],
+    'head' : {
+      'id' : gitlog( '%H' ),
+      'message' : gitlog( '%s' ),
+      'author_name' : gitlog( '%aN' ),
+      'author_email' : gitlog( '%ae' ),
+      'committer_name' : gitlog( '%cN' ),
+      'committer_email' : gitlog( '%ce' )
+    }
+  }
+
 def merge_reports( basereport, addreport ):
   baselen = len(basereport)
   addlen = len(addreport)
@@ -60,7 +83,7 @@ for file in os.listdir( options.sourcedir ):
 
 for key, pair in infiles.iteritems():
   if pair[0] and pair[1]:
-    subprocess.call( [ "gcov", "-gcda=" + os.path.join( options.objectdir, key + ".gcda" ), "-gcno=" + os.path.join( options.objectdir, key + ".gcno" ), "source" ] )
+    subprocess.check_output( [ "gcov", "-gcda=" + os.path.join( options.objectdir, key + ".gcda" ), "-gcno=" + os.path.join( options.objectdir, key + ".gcno" ), "source" ] )
     for file in os.listdir('.'):
       if file.endswith(".gcov"):
         sourcefile = os.path.splitext(file)[0]
@@ -80,6 +103,7 @@ for sourcefile, report in sourcefiles.iteritems():
 coveralls = {}
 coveralls['repo_token'] = 'yiZoExCQa8uW2CmJd7MmmqmzZPOEphG4B'
 coveralls['source_files'] = sourcelist
+coveralls['git'] = gitinfo()
 
 result = post_report( coveralls )
 print result
