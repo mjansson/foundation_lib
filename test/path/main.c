@@ -584,7 +584,7 @@ test_suite_t test_path_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_path_run( void );
 int test_path_run( void )

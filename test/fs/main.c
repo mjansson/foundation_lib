@@ -617,7 +617,7 @@ static void test_fs_declare( void )
 	ADD_TEST( fs, util );
 	ADD_TEST( fs, query );
 	ADD_TEST( fs, event );
-#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE && !FOUNDATION_PLATFORM_PNACL && !FOUNDATION_PLATFORM_BSD
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL && !FOUNDATION_PLATFORM_BSD
 	ADD_TEST( fs, monitor );
 #endif
 }
@@ -632,7 +632,7 @@ test_suite_t test_fs_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_fs_run( void );
 int test_fs_run( void )

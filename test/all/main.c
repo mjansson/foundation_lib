@@ -11,14 +11,10 @@
  */
 
 #include <foundation/foundation.h>
-
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#include <test/test.h>
 
 volatile bool _test_should_start = false;
 volatile bool _test_should_terminate = false;
-
-#endif
-
 volatile bool _test_have_focus = false;
 
 static void* event_thread( object_t thread, void* arg )
@@ -122,12 +118,20 @@ int main_initialize( void )
 	application.name = "Foundation library test suite";
 	application.short_name = "test_all";
 	application.config_dir = "test_all";
+	application.version = foundation_version();
 	application.flags = APPLICATION_UTILITY;
+	application.dump_callback = test_crash_handler;
 
-	log_set_suppress( 0, ERRORLEVEL_DEBUG );
+	log_set_suppress( 0, ERRORLEVEL_INFO );
 
 #if ( FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID ) && BUILD_ENABLE_LOG
 	log_set_callback( test_log_callback );
+#endif
+
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+
+	_test_should_start = true;
+
 #endif
 
 	return foundation_initialize( memory_system_malloc(), application );
@@ -138,8 +142,8 @@ int main_initialize( void )
 #  include <foundation/android.h>
 #endif
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
-//extern int test_app_run( void );
+#if BUILD_MONOLITHIC
+extern int test_app_run( void );
 extern int test_array_run( void );
 extern int test_atomic_run( void );
 extern int test_base64_run( void );
@@ -193,7 +197,7 @@ static void* test_runner( object_t obj, void* arg )
 
 int main_run( void* main_arg )
 {
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+#if !BUILD_MONOLITHIC
 	const char* pattern = 0;
 	char** exe_paths = 0;
 	unsigned int iexe, exesize;
@@ -201,7 +205,7 @@ int main_run( void* main_arg )
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
 #endif
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 	int remain_counter = 0;
 #endif
 #if BUILD_DEBUG
@@ -239,10 +243,10 @@ int main_run( void* main_arg )
 
 	fs_remove_directory( environment_temporary_directory() );
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 	test_run_fn tests[] = {
-		//test_app_run
+		test_app_run,
 		test_array_run,
 		test_atomic_run,
 		test_base64_run,
@@ -321,6 +325,8 @@ int main_run( void* main_arg )
 	if( process_result != 0 )
 		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+
 	while( !_test_should_terminate && _test_have_focus && ( remain_counter < 50 ) )
 	{
 		system_process_events();
@@ -328,9 +334,11 @@ int main_run( void* main_arg )
 		++remain_counter;
 	}
 
+#endif
+
 	log_debug( HASH_TEST, "Exiting main loop" );
 
-#else
+#else // !BUILD_MONOLITHIC
 
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS

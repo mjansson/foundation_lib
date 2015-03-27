@@ -41,6 +41,10 @@ Platforms and architectures currently supported:
 * Raspberry Pi (ARM6)
 * PNaCl
 
+Test suite coverage report:
+
+[![Coverage Status](https://coveralls.io/repos/rampantpixels/foundation_lib/badge.svg)](https://coveralls.io/r/rampantpixels/foundation_lib)
+
 The latest source code maintained by Rampant Pixels is always available at
 
 https://github.com/rampantpixels/foundation_lib

@@ -789,7 +789,7 @@ test_suite_t test_config_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_config_run( void );
 int test_config_run( void )

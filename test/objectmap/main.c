@@ -209,7 +209,7 @@ test_suite_t test_objectmap_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_objectmap_run( void );
 int test_objectmap_run( void )

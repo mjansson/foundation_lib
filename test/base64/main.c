@@ -263,7 +263,7 @@ test_suite_t test_base64_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_base64_run( void );
 int test_base64_run( void )
