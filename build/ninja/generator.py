@@ -36,10 +36,10 @@ class Generator(object):
                          default = [] )
     parser.add_argument( '--monolithic', action='store_true',
                          help = 'Build monolithic test suite',
-                         default = [] )
+                         default = False )
     parser.add_argument( '--coverage', action='store_true',
                          help = 'Build with code coverage',
-                         default = [] )
+                         default = False )
     options = parser.parse_args()
 
     self.project = project
