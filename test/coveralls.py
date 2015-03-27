@@ -21,7 +21,7 @@ def gitlog( format ):
 def gitinfo():
   return {
     'branch' : gitcmd( 'rev-parse', '--abbrev-ref', 'HEAD' ),
-    'remotes' : [ { 'name': remote.split()[0], 'url': remote.split()[1] } for remote in gitcmd( 'remote', '-v' ) if '(fetch)' in remote ],
+    'remotes' : [ { 'name': remote.split()[0], 'url': remote.split()[1] } for remote in gitcmd( 'remote', '-v' ).split( '\n' ) if '(fetch)' in remote ],
     'head' : {
       'id' : gitlog( '%H' ),
       'message' : gitlog( '%s' ),
@@ -70,6 +70,12 @@ argparser.add_argument( '-o', '--objectdir', required = True,
                      help = 'Object directory' )
 argparser.add_argument( '-s', '--sourcedir', required = True,
                      help = 'Source directory' )
+argparser.add_argument( '-m,', '--merge', action = 'append',
+                     help = 'Merge in previous report',
+                     default = [] )
+argparser.add_argument( '-p', '--post', action='store_true',
+                     help = 'Post results to Coveralls',
+                     default = False )
 options = argparser.parse_args()
 
 infiles = {}
@@ -100,6 +106,18 @@ for key, pair in infiles.iteritems():
           sourcefiles[sourcefile] = merge_reports( sourcefiles[sourcefile], results )
         os.remove( file )
 
+for reportfile in options.merge:
+  with open( reportfile, 'r' ) as infile:
+    report = json.load( infile )
+    infile.close()
+    sourcelist = report['source_files']
+    for sourcefile in sourcelist:
+      filename = os.path.basename( sourcefile['name'] )
+      if not filename in sourcefiles:
+        sourcefiles[filename] = []
+      results = sourcefile['coverage']
+      sourcefiles[filename] = merge_reports( sourcefiles[filename], results )
+
 sourcelist = []
 for sourcefile, report in sourcefiles.iteritems():
   sourcereport = {}
@@ -115,10 +133,9 @@ coveralls['repo_token'] = prefs['repo_token']
 coveralls['source_files'] = sourcelist
 coveralls['git'] = gitinfo()
 
-result = post_report( coveralls )
-print result
-
-#generate output coveralls report
-
-#for count in report:
-#  print str( count )
+if options.post:
+  result = post_report( coveralls )
+  print
+else:
+  with open( 'coverallsreport.json', 'w' ) as outfile:
+    json.dump( coveralls, outfile )
