@@ -1,11 +1,11 @@
 /* test.h  -  Foundation test library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -68,8 +68,10 @@ TEST_API void  test_text_view_append( void* window, int tag, const char* msg );
 #define EXPECT_TRUE_MSG( var, msg ) do { if( !(var) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s is false (at %s:%u) : %s", FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (msg) ); return FAILED_TEST; } } while(0)
 #define EXPECT_FALSE_MSG( var, msg ) do { if( (var) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s is true (at %s:%u) : %s", FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (msg) ); return FAILED_TEST; } } while(0)
 
+#define EXPECT_INTEQ( var, expect ) do { if( !((var) == (expect)) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s != %s (%d != %d) (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), (int)(var), (int)(expect), __FILE__, __LINE__ ); return FAILED_TEST; } } while(0)
+
 #define EXPECT_STREQ( var, expect ) do { if( !string_equal( (var), (expect) ) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s != %s ('%s', '%s') (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), (var), (expect), __FILE__, __LINE__ ); return FAILED_TEST; } } while(0)
-#define EXPECT_STREQ_SUBSTR( var, expect, length ) do { if( !string_equal_substr( (var), (expect), (length) ) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s != %s for length %d ('%s', '%s') (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), (int)(length), (var), (expect), __FILE__, __LINE__ ); return FAILED_TEST; } } while(0)
+#define EXPECT_STREQ_SUBSTR( var, expect, length ) do { if( !string_equal_substr( (var), (expect), (length) ) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s != %s for length %d ('%.*s', '%.*s') (at %s:%u)", FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), (int)(length), (int)(length), (var), (int)(length), (expect), __FILE__, __LINE__ ); return FAILED_TEST; } } while(0)
 
 #define EXPECT_REALZERO( var ) do { if( !math_realzero(var) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s is not zero real (at %s:%u): %.6" PRIREAL, FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (real)((var)) ); return FAILED_TEST; } } while(0)
 #define EXPECT_REALONE( var ) do { if( !math_realone(var) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s is not one real (at %s:%u): %.6" PRIREAL, FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (real)((var)) ); return FAILED_TEST; } } while(0)
