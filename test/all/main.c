@@ -110,6 +110,17 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 
 #endif
 
+#if !BUILD_MONOLITHIC
+
+void test_crash_handler( const char* dump_file )
+{
+	FOUNDATION_UNUSED( dump_file );
+	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
+	process_exit( -1 );
+}
+
+#endif
+
 
 int main_initialize( void )
 {
