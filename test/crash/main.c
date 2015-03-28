@@ -55,6 +55,32 @@ static void test_crash_callback( const char* dump_path )
 }
 
 
+static uint64_t handled_context;
+static char handled_condition[32];
+static char handled_file[32];
+static int handled_line;
+static char handled_msg[32];
+static char handled_log[512];
+
+static int handle_assert( uint64_t context, const char* condition, const char* file, int line, const char* msg )
+{
+	handled_context = context;
+	string_copy( handled_condition, condition, 32 );
+	string_copy( handled_file, file, 32 );
+	handled_line = line;
+	string_copy( handled_msg, msg, 32 );
+	return 1234;
+}
+
+
+void handle_log( uint64_t context, int severity, const char* msg )
+{
+	FOUNDATION_UNUSED( context );
+	FOUNDATION_UNUSED( severity );
+	string_copy( handled_log, msg, 512 );
+}
+
+
 static int instant_crash( void* arg )
 {
 	FOUNDATION_UNUSED( arg );
@@ -70,15 +96,43 @@ static void* thread_crash( object_t thread, void* arg )
 }
 
 
+DECLARE_TEST( crash, assert_callback )
+{
+	log_info( HASH_TEST, "This test will intentionally generate assert errors" );
+
+	EXPECT_EQ( assert_handler(), 0 );
+
+	assert_set_handler( handle_assert );
+	EXPECT_EQ( assert_handler(), handle_assert );
+
+	EXPECT_EQ( assert_report( 1, "condition", "file", 2, "msg" ), 1234 );
+	EXPECT_EQ( assert_handler(), handle_assert );
+	EXPECT_EQ( handled_context, 1 );
+	EXPECT_STREQ( handled_condition, "condition" );
+	EXPECT_STREQ( handled_file, "file" );
+	EXPECT_EQ( handled_line, 2 );
+	EXPECT_STREQ( handled_msg, "msg" );
+
+	assert_set_handler( 0 );
+	EXPECT_EQ( assert_handler(), 0 );
+
+	log_set_callback( handle_log );
+	EXPECT_EQ( assert_report_formatted( 1, "assert_report_formatted", "file", 2, "%s", "msg" ), 1 );
+	EXPECT_EQ( error(), ERROR_ASSERT );
+	EXPECT_TRUE( string_find_string( handled_log, "assert_report_formatted", 0 ) != STRING_NPOS );
+	EXPECT_TRUE( string_find_string( handled_log, "msg", 0 ) != STRING_NPOS );
+	log_set_callback( 0 );
+
+	return 0;
+}
+
+
 DECLARE_TEST( crash, crash_guard )
 {
 	int crash_result;
 
-	if( system_debugger_attached() )
-	{
-		log_info( HASH_TEST, "Skip test when debugger is attached" );
+	if( system_debugger_attached() || ( system_platform() == PLATFORM_PNACL ) )
 		return 0; //Don't do crash tests with debugger attached
-	}
 
 	_crash_callback_called = false;
 	crash_result = crash_guard( instant_crash, 0, test_crash_callback, "instant_crash" );
@@ -93,7 +147,7 @@ DECLARE_TEST( crash, crash_thread )
 {
 	object_t thread = 0;
 
-	if( system_debugger_attached() )
+	if( system_debugger_attached() || ( system_platform() == PLATFORM_PNACL ) )
 		return 0; //Don't do crash tests with debugger attached
 
 	_crash_callback_called = false;
@@ -116,6 +170,7 @@ DECLARE_TEST( crash, crash_thread )
 
 static void test_crash_declare( void )
 {
+	ADD_TEST( crash, assert_callback );
 	ADD_TEST( crash, crash_guard );
 	ADD_TEST( crash, crash_thread );
 }
