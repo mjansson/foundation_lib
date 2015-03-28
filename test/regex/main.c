@@ -192,18 +192,77 @@ DECLARE_TEST( regex, quantifier )
 DECLARE_TEST( regex, branch )
 {
 	regex_capture_t captures[16];
-	regex_t* regex = regex_compile( "^(\\s*|\\S*)$" );
+	regex_t* regex = regex_compile( "^(\\s+|\\S+)$" );
 	EXPECT_NE( regex, 0 );
 
 	EXPECT_TRUE( regex_match( regex, "anynonwhitespacestringwillmatchthisregex", 0, 0, 0 ) );
 	EXPECT_TRUE( regex_match( regex, "   \t\t\n\r  \t\v\n  ", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "no mixed string will match this regex", 0, captures, 0 ) );
+
+	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
+	EXPECT_FALSE( regex_match( regex, "no mixed string will match this regex", 0, captures, 16 ) );
 
 	regex_deallocate( regex );
 
 	return 0;
 }
 
+
+DECLARE_TEST( regex, noanchor )
+{
+	regex_capture_t captures[16];
+	regex_t* regex = regex_compile( "matchthis(\\s+|\\S+)!" );
+	EXPECT_NE( regex, 0 );
+
+	EXPECT_TRUE( regex_match( regex, "anynonwhitespacestringwillmatchthisregex!", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "   \t\t\n\r  \t\v\n  ", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, "no mixed strings at end will matchthis reg ex !", 0, captures, 16 ) );
+	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthisregex!", 0, captures, 16 ) );
+
+	regex_deallocate( regex );
+
+	return 0;
+}
+
+
+DECLARE_TEST( regex, captures )
+{
+	regex_capture_t captures[16];
+	regex_t* regex = regex_compile( "matchthis(\\s+|\\S+)!endofline([abcd\\\\]*)" );
+	EXPECT_NE( regex, 0 );
+
+	EXPECT_FALSE( regex_match( regex, "no mixed strings at end will matchthis reg ex !endofline", 0, captures, 16 ) );
+	EXPECT_TRUE( regex_match( regex, "non mixed strings at end will matchthisregex!endofline", 0, captures, 16 ) );
+	EXPECT_TRUE( regex_match( regex, "non mixed strings at end will matchthis  \t\n\r  !endofline", 0, captures, 16 ) );
+
+	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
+	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthisregex!endofline", 0, captures, 16 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].substring, "regex", 5 );
+	EXPECT_INTEQ( captures[0].length, 5 );
+	EXPECT_EQ( captures[1].length, 0 );
+	EXPECT_EQ( captures[2].substring, 0 );
+	EXPECT_EQ( captures[2].length, 0 );
+
+	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
+	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthis  \t\n\r  !endofline", 0, captures, 16 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].substring, "  \t\n\r  ", 7 );
+	EXPECT_INTEQ( captures[0].length, 7 );
+	EXPECT_EQ( captures[1].length, 0 );
+	EXPECT_EQ( captures[2].substring, 0 );
+	EXPECT_EQ( captures[2].length, 0 );
+
+	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
+	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthisstring!endofline\\aabbcc\\", 0, captures, 16 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].substring, "string", 6 );
+	EXPECT_INTEQ( captures[0].length, 6 );
+	EXPECT_STREQ_SUBSTR( captures[1].substring, "\\aabbcc\\", 8 );
+	EXPECT_EQ( captures[1].length, 8 );
+	EXPECT_EQ( captures[2].substring, 0 );
+	EXPECT_EQ( captures[2].length, 0 );
+
+	regex_deallocate( regex );
+
+	return 0;
+}
 
 static void test_regex_declare( void )
 {
@@ -212,6 +271,8 @@ static void test_regex_declare( void )
 	ADD_TEST( regex, any_block );
 	ADD_TEST( regex, quantifier );
 	ADD_TEST( regex, branch );
+	ADD_TEST( regex, noanchor );
+	ADD_TEST( regex, captures );
 }
 
 

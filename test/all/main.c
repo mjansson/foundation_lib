@@ -110,6 +110,17 @@ static void test_log_callback( uint64_t context, int severity, const char* msg )
 
 #endif
 
+#if !BUILD_MONOLITHIC
+
+void test_crash_handler( const char* dump_file )
+{
+	FOUNDATION_UNUSED( dump_file );
+	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
+	process_exit( -1 );
+}
+
+#endif
+
 
 int main_initialize( void )
 {
@@ -254,9 +265,7 @@ int main_run( void* main_arg )
 		test_blowfish_run,
 		test_bufferstream_run,
 		test_config_run,
-#if !FOUNDATION_PLATFORM_PNACL
 		test_crash_run,
-#endif
 		test_environment_run,
 		test_error_run,
 		test_event_run,
@@ -264,25 +273,19 @@ int main_run( void* main_arg )
 		test_hash_run,
 		test_hashmap_run,
 		test_hashtable_run,
-#if !FOUNDATION_PLATFORM_PNACL
 		test_library_run,
-#endif
 		test_math_run,
 		test_md5_run,
 		test_mutex_run,
 		test_objectmap_run,
 		test_path_run,
-#if !FOUNDATION_PLATFORM_PNACL
 		test_pipe_run,
-#endif
 		test_profile_run,
 		test_radixsort_run,
 		test_random_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
-#if !FOUNDATION_PLATFORM_PNACL
 		test_stacktrace_run,
-#endif
 		test_string_run,
 		test_uuid_run,
 		0
