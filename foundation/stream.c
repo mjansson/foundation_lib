@@ -22,24 +22,27 @@ static hashtable64_t* _stream_protocol_table;
 static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
-	FOUNDATION_UNUSED( mode );
-	return stream_open_stdout();
+	stream_t* stream = stream_open_stdout();
+	stream->mode = ( mode & STREAM_BINARY ) | STREAM_OUT;
+	return stream;
 }
 
 
 static stream_t* _stream_open_stderr( const char* path, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
-	FOUNDATION_UNUSED( mode );
-	return stream_open_stderr();
+	stream_t* stream = stream_open_stderr();
+	stream->mode = ( mode & STREAM_BINARY ) | STREAM_OUT;
+	return stream;
 }
 
 
 static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
-	FOUNDATION_UNUSED( mode );
-	return stream_open_stdin();
+	stream_t* stream = stream_open_stdin();
+	stream->mode = ( mode & STREAM_BINARY ) | STREAM_IN;
+	return stream;
 }
 
 
@@ -1077,6 +1080,7 @@ static uint64_t  _stream_stdout_write( stream_t*, const void*, uint64_t );
 static void      _stream_stdout_flush( stream_t* );
 static stream_t* _stream_std_clone( stream_t* );
 static bool      _stream_stdin_eos( stream_t* );
+static uint64_t  _stream_std_last_modified( const stream_t* stream );
 
 static stream_vtable_t _stream_stdout_vtable = {
 	0,
@@ -1087,7 +1091,7 @@ static stream_vtable_t _stream_stdout_vtable = {
 	0,
 	0,
 	0,
-	0,
+	_stream_std_last_modified,
 	0,
 	0,
 	0,
@@ -1105,7 +1109,7 @@ static stream_vtable_t _stream_stdin_vtable = {
 	0,
 	0,
 	0,
-	0,
+	_stream_std_last_modified,
 	0,
 	0,
 	0,
@@ -1205,4 +1209,11 @@ static stream_t* _stream_std_clone( stream_t* stream )
 static bool _stream_stdin_eos( stream_t* stream )
 {
 	return ((stream_std_t*)stream)->eos;
+}
+
+
+static uint64_t _stream_std_last_modified( const stream_t* stream )
+{
+	FOUNDATION_ASSERT( stream );
+	return time_system();
 }
