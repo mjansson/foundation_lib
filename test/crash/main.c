@@ -134,6 +134,8 @@ DECLARE_TEST( crash, crash_guard )
 	if( system_debugger_attached() || ( system_platform() == PLATFORM_PNACL ) )
 		return 0; //Don't do crash tests with debugger attached
 
+	log_info( HASH_TEST, "This test will intentionally generate a crash" );
+
 	_crash_callback_called = false;
 	crash_result = crash_guard( instant_crash, 0, test_crash_callback, "instant_crash" );
 	EXPECT_EQ( crash_result, FOUNDATION_CRASH_DUMP_GENERATED );
@@ -149,6 +151,8 @@ DECLARE_TEST( crash, crash_thread )
 
 	if( system_debugger_attached() || ( system_platform() == PLATFORM_PNACL ) )
 		return 0; //Don't do crash tests with debugger attached
+
+	log_info( HASH_TEST, "This test will intentionally generate a crash" );
 
 	_crash_callback_called = false;
 	crash_guard_set( test_crash_callback, "thread_crash" );
