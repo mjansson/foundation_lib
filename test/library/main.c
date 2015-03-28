@@ -49,22 +49,27 @@ DECLARE_TEST( library, lookup )
 	object_t lib = 0;
 	object_t otherlib = 0;
 	void* symbol = 0;
+	const char* libraryname;
+	const char* symbolname;
+
+	if( system_platform() == PLATFORM_PNACL )
+		return 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	const char* libraryname = "kernel32";
-	const char* symbolname = "ExitProcess";
+	libraryname = "kernel32";
+	symbolname = "ExitProcess";
 #elif FOUNDATION_PLATFORM_APPLE
-	const char* libraryname = "dl";
-	const char* symbolname = "dlsym";
+	libraryname = "dl";
+	symbolname = "dlsym";
 #elif FOUNDATION_PLATFORM_BSD
-	const char* libraryname = "execinfo";
-	const char* symbolname = "backtrace";
+	libraryname = "execinfo";
+	symbolname = "backtrace";
 #elif FOUNDATION_PLATFORM_POSIX
-	const char* libraryname = "dl";
-	const char* symbolname = "dlsym";
+	libraryname = "dl";
+	symbolname = "dlsym";
 #else
-	const char* libraryname = "somelib";
-	const char* symbolname = "somesym";
+	libraryname = "somelib";
+	symbolname = "somesym";
 #endif
 
 	lib = library_load( libraryname );

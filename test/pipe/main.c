@@ -132,10 +132,17 @@ static void* write_thread( object_t thread, void* arg )
 
 DECLARE_TEST( pipe, readwrite )
 {
-	stream_t* pipe = pipe_allocate();
+	stream_t* pipe;
+	object_t reader;
+	object_t writer;
 
-	object_t reader = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
-	object_t writer = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
+	if( system_platform() == PLATFORM_PNACL )
+		return 0;
+
+	pipe = pipe_allocate();
+
+	reader = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
+	writer = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
 
 	thread_start( reader, pipe );
 	thread_start( writer, pipe );
