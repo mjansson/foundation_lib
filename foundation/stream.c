@@ -429,9 +429,9 @@ bool stream_read_bool( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = !( !str || !string_length( str ) || string_equal( str, "false" ) || ( string_equal( str, "0" ) ) );
-		string_deallocate( str );
+		char buffer[6] = {0};
+		stream_read_string_buffer( stream, buffer, 6 );
+		value = !( !string_length( buffer ) || string_equal( buffer, "false" ) || ( string_equal( buffer, "0" ) ) );
 	}
 
 	return value;
@@ -445,9 +445,9 @@ int8_t stream_read_int8( stream_t* stream )
 		stream_read( stream, &value, 1 );
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (int8_t)string_to_int( str );
-		string_deallocate( str );
+		char buffer[6] = {0};
+		stream_read_string_buffer( stream, buffer, 6 );
+		value = (int8_t)string_to_int( buffer );
 	}
 	return value;
 }
@@ -460,9 +460,9 @@ uint8_t stream_read_uint8( stream_t* stream )
 		stream_read( stream, &value, 1 );
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (uint8_t)string_to_uint( str, false );
-		string_deallocate( str );
+		char buffer[6] = {0};
+		stream_read_string_buffer( stream, buffer, 6 );
+		value = (uint8_t)string_to_uint( buffer, false );
 	}
 	return value;
 }
@@ -479,9 +479,9 @@ int16_t stream_read_int16( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (int16_t)string_to_int( str );
-		string_deallocate( str );
+		char buffer[8] = {0};
+		stream_read_string_buffer( stream, buffer, 8 );
+		value = (int16_t)string_to_int( buffer );
 	}
 	return value;
 }
@@ -498,9 +498,9 @@ uint16_t stream_read_uint16( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (uint16_t)string_to_uint( str, false );
-		string_deallocate( str );
+		char buffer[8] = {0};
+		stream_read_string_buffer( stream, buffer, 8 );
+		value = (uint16_t)string_to_uint( buffer, false );
 	}
 	return value;
 }
@@ -517,9 +517,9 @@ int32_t stream_read_int32( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (int32_t)string_to_int( str );
-		string_deallocate( str );
+		char buffer[12] = {0};
+		stream_read_string_buffer( stream, buffer, 12 );
+		value = (int32_t)string_to_int( buffer );
 	}
 	return value;
 }
@@ -536,9 +536,9 @@ uint32_t stream_read_uint32( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_uint( str, false );
-		string_deallocate( str );
+		char buffer[12] = {0};
+		stream_read_string_buffer( stream, buffer, 12 );
+		value = (uint32_t)string_to_uint( buffer, false );
 	}
 	return value;
 }
@@ -555,9 +555,9 @@ int64_t stream_read_int64( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_int64( str );
-		string_deallocate( str );
+		char buffer[22] = {0};
+		stream_read_string_buffer( stream, buffer, 22 );
+		value = string_to_int64( buffer );
 	}
 	return value;
 }
@@ -574,9 +574,9 @@ uint64_t stream_read_uint64( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_uint64( str, false );
-		string_deallocate( str );
+		char buffer[22] = {0};
+		stream_read_string_buffer( stream, buffer, 22 );
+		value = string_to_uint64( buffer, false );
 	}
 	return value;
 }
@@ -593,9 +593,9 @@ float32_t stream_read_float32( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (float32_t)string_to_real( str );
-		string_deallocate( str );
+		char buffer[32] = {0};
+		stream_read_string_buffer( stream, buffer, 32 );
+		value = string_to_float32( buffer );
 	}
 	return value;
 }
@@ -612,9 +612,9 @@ float64_t stream_read_float64( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_real( str );
-		string_deallocate( str );
+		char buffer[64] = {0};
+		stream_read_string_buffer( stream, buffer, 64 );
+		value = string_to_float64( buffer );
 	}
 	return value;
 }
@@ -1018,7 +1018,7 @@ void stream_write_int16( stream_t* stream, int16_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 2 );
+			data = byteorder_swap16( data );
 		stream_write( stream, &data, 2 );
 	}
 	else
@@ -1044,7 +1044,7 @@ void stream_write_int32( stream_t* stream, int32_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 4 );
+			data = byteorder_swap32( data );
 		stream_write( stream, &data, 4 );
 	}
 	else
@@ -1070,7 +1070,7 @@ void stream_write_int64( stream_t* stream, int64_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 8 );
+			data = byteorder_swap64( data );
 		stream_write( stream, &data, 8 );
 	}
 	else
@@ -1096,8 +1096,16 @@ void stream_write_float32( stream_t* stream, float32_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 4 );
-		stream_write( stream, &data, 4 );
+		{
+			float32_cast_t cast;
+			cast.fval = data;
+			cast.ival = byteorder_swap32( cast.ival );
+			stream_write( stream, &cast.ival, 4 );
+		}
+		else
+		{
+			stream_write( stream, &data, 4 );
+		}
 	}
 	else
 		stream_write_string( stream, string_from_real_static( data, 0, 0, 0 ) );
@@ -1109,8 +1117,16 @@ void stream_write_float64( stream_t* stream, float64_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 8 );
-		stream_write( stream, &data, 8 );
+		{
+			float64_cast_t cast;
+			cast.fval = data;
+			cast.ival = byteorder_swap64( cast.ival );
+			stream_write( stream, &cast.ival, 8 );
+		}
+		else
+		{
+			stream_write( stream, &data, 8 );
+		}
 	}
 	else
 		stream_write_string( stream, string_from_real_static( (real)data, 0, 0, 0 ) );
