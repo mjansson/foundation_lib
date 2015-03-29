@@ -814,7 +814,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	EXPECT_EQ_MSG( stream_write( teststream, write_buffer, 1 ), 1, "write one byte failed" );
 	EXPECT_EQ_MSG( stream_write( teststream, write_buffer, 1024 ), 1024, "write 1024 bytes failed" );
 
-	stream_write_bool( teststream, true ); stream_write_endl( teststream );
+	stream_write_bool( teststream, false ); stream_write_endl( teststream );
 	stream_write_int8( teststream, 127 ); stream_write_endl( teststream );
 	stream_write_uint8( teststream, 178 ); stream_write_endl( teststream );
 	stream_write_int16( teststream, -1234 ); stream_write_endl( teststream );
@@ -828,7 +828,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	stream_write_string( teststream,  "test string\nwith some newlines\nin the string" ); stream_write_endl( teststream );
 	stream_write_format( teststream,  "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 ); stream_write_endl( teststream );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 74 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld) : %s", stream_tell( teststream ), stream_path( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 75 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld) : %s", stream_tell( teststream ), stream_path( teststream ) );
 	teststream->sequential = 0;
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
@@ -843,7 +843,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	for( i = 0; i < 1024; ++i )
 		EXPECT_EQ_MSGFORMAT( read_buffer[i], write_buffer[i], "data not read correctly in pos %d when reading 1024 bytes", i );
 
-	EXPECT_EQ_MSG( stream_read_bool( teststream ), true, "read boolean failed" );
+	EXPECT_EQ_MSG( stream_read_bool( teststream ), false, "read boolean failed" );
 	EXPECT_EQ_MSG( stream_read_int8( teststream ), 127, "read int8 failed" );
 	EXPECT_EQ_MSG( stream_read_uint8( teststream ), 178, "read uint8 failed" );
 	EXPECT_EQ_MSG( stream_read_int16( teststream ), -1234, "read int16 failed" );
