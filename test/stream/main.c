@@ -369,6 +369,13 @@ DECLARE_TEST( stream, readwrite_binary )
 	read_buffer[0] = 0;
 	EXPECT_EQ_MSGFORMAT( stream_read_line_buffer( teststream, read_buffer, 1024, '\n' ), 0, "read line buffer failed at end of stream, read %s", read_buffer );
 
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	stream_determine_binary_mode( teststream, 1024 );
+	EXPECT_EQ_MSG( stream_is_binary( teststream ), true, "Binary mode was not detected" );
+	stream_seek( teststream, -33, STREAM_SEEK_END ); //There is a terminating zero at end
+	stream_determine_binary_mode( teststream, 32 );
+	EXPECT_EQ_MSG( stream_is_binary( teststream ), false, "Text mode was not detected" );
+
 	stream_deallocate( teststream );
 	fs_remove_file( path );
 
@@ -613,6 +620,13 @@ DECLARE_TEST( stream, readwrite_text )
 
 	read_buffer[0] = 0;
 	EXPECT_EQ_MSGFORMAT( stream_read_line_buffer( teststream, read_buffer, 1024, '\n' ), 0, "read line buffer failed at end of stream, read %s", read_buffer );
+
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	stream_determine_binary_mode( teststream, 1024 );
+	EXPECT_EQ_MSG( stream_is_binary( teststream ), true, "Binary mode was not detected" );
+	stream_seek( teststream, -32, STREAM_SEEK_END );
+	stream_determine_binary_mode( teststream, 32 );
+	EXPECT_EQ_MSG( stream_is_binary( teststream ), false, "Text mode was not detected" );
 
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
@@ -888,6 +902,14 @@ DECLARE_TEST( stream, readwrite_sequential )
 	line = stream_read_line( teststream, '\n' );
 	EXPECT_STREQ_MSG( line, longline, "Long line read failed data" );
 	string_deallocate( line );
+
+	teststream->sequential = 0;
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	teststream->sequential = 1;
+	stream_set_binary( teststream, true );
+	stream_determine_binary_mode( teststream, 1024 );
+	EXPECT_EQ_MSG( stream_is_binary( teststream ), true, "Text mode was detected even if stream is sequential, expected to fail" );
+	stream_set_binary( teststream, false );
 
 	stream_deallocate( teststream );
 	fs_remove_file( path );
