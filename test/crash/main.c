@@ -60,7 +60,9 @@ static char handled_condition[32];
 static char handled_file[32];
 static int handled_line;
 static char handled_msg[32];
+#if BUILD_ENABLE_LOG
 static char handled_log[512];
+#endif
 
 static int handle_assert( uint64_t context, const char* condition, const char* file, int line, const char* msg )
 {
@@ -73,12 +75,16 @@ static int handle_assert( uint64_t context, const char* condition, const char* f
 }
 
 
+#if BUILD_ENABLE_LOG
+
 static void handle_log( uint64_t context, int severity, const char* msg )
 {
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
 	string_copy( handled_log, msg, 512 );
 }
+
+#endif
 
 
 static int instant_crash( void* arg )
@@ -116,12 +122,16 @@ DECLARE_TEST( crash, assert_callback )
 	assert_set_handler( 0 );
 	EXPECT_EQ( assert_handler(), 0 );
 
+#if BUILD_ENABLE_LOG
 	log_set_callback( handle_log );
+#endif
 	EXPECT_EQ( assert_report_formatted( 1, "assert_report_formatted", "file", 2, "%s", "msg" ), 1 );
 	EXPECT_EQ( error(), ERROR_ASSERT );
+#if BUILD_ENABLE_LOG
 	EXPECT_TRUE( string_find_string( handled_log, "assert_report_formatted", 0 ) != STRING_NPOS );
 	EXPECT_TRUE( string_find_string( handled_log, "msg", 0 ) != STRING_NPOS );
 	log_set_callback( 0 );
+#endif
 
 	return 0;
 }
