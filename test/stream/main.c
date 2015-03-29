@@ -546,6 +546,9 @@ DECLARE_TEST( stream, readwrite_text )
 	teststream = stream_open( path, STREAM_IN | STREAM_OUT | STREAM_CREATE );
 	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%s' not created", path );
 
+	//Make sure byte swap does not affect text mode
+	stream_set_byteorder( teststream, ( system_byteorder() == BYTEORDER_LITTLEENDIAN ) ? BYTEORDER_BIGENDIAN : BYTEORDER_LITTLEENDIAN );
+
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
 
@@ -1067,12 +1070,148 @@ DECLARE_TEST( stream, readwrite_sequential )
 }
 
 
+DECLARE_TEST( stream, readwrite_swap )
+{
+	stream_t* teststream;
+	char* path;
+	char* directory;
+	bool read_bool;
+	int8_t read_int8;
+	uint8_t read_uint8;
+	int16_t read_int16;
+	uint16_t read_uint16;
+	int32_t read_int32;
+	uint32_t read_uint32;
+	int64_t read_int64;
+	uint64_t read_uint64;
+	float32_cast_t cast32;
+	float64_cast_t cast64;
+
+	path = path_make_temporary();
+	directory = path_directory_name( path );
+	fs_make_directory( directory );
+
+	teststream = stream_open( path, STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%s' not created", path );
+
+	stream_set_byteorder( teststream, ( system_byteorder() == BYTEORDER_LITTLEENDIAN ) ? BYTEORDER_BIGENDIAN : BYTEORDER_LITTLEENDIAN );
+	EXPECT_EQ_MSG( stream_is_swapped( teststream ), true, "swap was not set correctly" );
+
+	stream_write_bool( teststream, true );
+	stream_write_int8( teststream, (int8_t)0x8f );
+	stream_write_uint8( teststream, (uint8_t)0xab );
+	stream_write_int16( teststream, (int16_t)0xfeef );
+	stream_write_uint16( teststream, (uint16_t)0xbaad );
+	stream_write_int32( teststream, (int32_t)0x12345678 );
+	stream_write_uint32( teststream, 0x98765432UL );
+	stream_write_int64( teststream, 0x1234567890abcdefLL );
+	stream_write_uint64( teststream, 0x1234567890abcdefULL );
+	stream_write_float32( teststream, 1.0f );
+	stream_write_float64( teststream, -1.0 );
+
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
+	stream_set_byteorder( teststream, system_byteorder() );
+	EXPECT_EQ_MSG( stream_is_swapped( teststream ), false, "swap was not set correctly" );
+
+	read_bool = stream_read_bool( teststream );
+	read_int8 = stream_read_int8( teststream );
+	read_uint8 = stream_read_uint8( teststream );
+	read_int16 = stream_read_int16( teststream );
+	read_uint16 = stream_read_uint16( teststream );
+	read_int32 = stream_read_int32( teststream );
+	read_uint32 = stream_read_uint32( teststream );
+	read_int64 = stream_read_int64( teststream );
+	read_uint64 = stream_read_uint64( teststream );
+
+	EXPECT_EQ_MSG( read_bool, true, "read boolean did not swap as expected" );
+	EXPECT_EQ_MSGFORMAT( read_int8, (int8_t)0x0000008f, "read int8 did not swap as expected (%02x)", (int)read_int8 );
+	EXPECT_EQ_MSGFORMAT( read_uint8, (uint8_t)0x000000ab, "read uint8 did not swap as expected (%02x)", (int)read_uint8 );
+	EXPECT_EQ_MSGFORMAT( read_int16, (int16_t)0x0000effe, "read int16 did not swap as expected (%04x)", (int)read_int16 );
+	EXPECT_EQ_MSGFORMAT( read_uint16, (uint16_t)0x0000adba, "read uint16 did not swap as expected (%04x)", (int)read_uint16 );
+	EXPECT_EQ_MSGFORMAT( read_int32, (int32_t)0x78563412, "read int32 did not swap as expected (%08x)", read_int32 );
+	EXPECT_EQ_MSGFORMAT( read_uint32, 0x32547698UL, "read uint32 did not swap as expected (%048x)", read_uint32 );
+	EXPECT_EQ_MSGFORMAT( read_int64, (int64_t)0xefcdab9078563412LL, "read int64 did not swap as expected (%016x)", read_int64 );
+	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%016x)", read_uint64 );
+
+	cast32.fval = stream_read_float32( teststream );
+	cast32.ival = byteorder_swap32( cast32.ival );
+	EXPECT_EQ_MSGFORMAT( cast32.fval, 1.0f, "read float32 did not swap as expected : %f", cast32.fval );
+
+	cast64.fval = stream_read_float64( teststream );
+	cast64.ival = byteorder_swap64( cast64.ival );
+	EXPECT_EQ_MSGFORMAT( cast64.fval, -1.0f, "read float64 did not swap as expected : %lf", cast64.fval );
+
+	stream_deallocate( teststream );
+	fs_remove_file( path );
+
+	teststream = stream_open( path, STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%s' not created", path );
+
+	EXPECT_EQ_MSG( stream_is_swapped( teststream ), false, "swap was not set correctly" );
+
+	stream_write_bool( teststream, true );
+	stream_write_int8( teststream, (int8_t)0x8f );
+	stream_write_uint8( teststream, (uint8_t)0xab );
+	stream_write_int16( teststream, (int16_t)0xfeef );
+	stream_write_uint16( teststream, (uint16_t)0xbaad );
+	stream_write_int32( teststream, (int32_t)0x12345678 );
+	stream_write_uint32( teststream, 0x98765432UL );
+	stream_write_int64( teststream, 0x1234567890abcdefLL );
+	stream_write_uint64( teststream, 0x1234567890abcdefULL );
+	stream_write_float32( teststream, 1.0f );
+	stream_write_float64( teststream, -1.0 );
+
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
+	stream_set_byteorder( teststream, ( system_byteorder() == BYTEORDER_LITTLEENDIAN ) ? BYTEORDER_BIGENDIAN : BYTEORDER_LITTLEENDIAN );
+	EXPECT_EQ_MSG( stream_is_swapped( teststream ), true, "swap was not set correctly" );
+
+	read_bool = stream_read_bool( teststream );
+	read_int8 = stream_read_int8( teststream );
+	read_uint8 = stream_read_uint8( teststream );
+	read_int16 = stream_read_int16( teststream );
+	read_uint16 = stream_read_uint16( teststream );
+	read_int32 = stream_read_int32( teststream );
+	read_uint32 = stream_read_uint32( teststream );
+	read_int64 = stream_read_int64( teststream );
+	read_uint64 = stream_read_uint64( teststream );
+
+	EXPECT_EQ_MSG( read_bool, true, "read boolean did not swap as expected" );
+	EXPECT_EQ_MSGFORMAT( read_int8, (int8_t)0x0000008f, "read int8 did not swap as expected (%02x)", (int)read_int8 );
+	EXPECT_EQ_MSGFORMAT( read_uint8, (uint8_t)0x000000ab, "read uint8 did not swap as expected (%02x)", (int)read_uint8 );
+	EXPECT_EQ_MSGFORMAT( read_int16, (int16_t)0x0000effe, "read int16 did not swap as expected (%04x)", (int)read_int16 );
+	EXPECT_EQ_MSGFORMAT( read_uint16, (uint16_t)0x0000adba, "read uint16 did not swap as expected (%04x)", (int)read_uint16 );
+	EXPECT_EQ_MSGFORMAT( read_int32, (int32_t)0x78563412, "read int32 did not swap as expected (%08x)", read_int32 );
+	EXPECT_EQ_MSGFORMAT( read_uint32, 0x32547698UL, "read uint32 did not swap as expected (%048x)", read_uint32 );
+	EXPECT_EQ_MSGFORMAT( read_int64, (int64_t)0xefcdab9078563412LL, "read int64 did not swap as expected (%016x)", read_int64 );
+	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%016x)", read_uint64 );
+
+	cast32.fval = stream_read_float32( teststream );
+	cast32.ival = byteorder_swap32( cast32.ival );
+	EXPECT_EQ_MSGFORMAT( cast32.fval, 1.0f, "read float32 did not swap as expected : %f", cast32.fval );
+
+	cast64.fval = stream_read_float64( teststream );
+	cast64.ival = byteorder_swap64( cast64.ival );
+	EXPECT_EQ_MSGFORMAT( cast64.fval, -1.0f, "read float64 did not swap as expected : %lf", cast64.fval );
+
+	stream_deallocate( teststream );
+	fs_remove_file( path );
+
+	string_deallocate( path );
+	string_deallocate( directory );
+
+	return 0;
+}
+
+
 static void test_stream_declare( void )
 {
 	ADD_TEST( stream, std );
 	ADD_TEST( stream, readwrite_binary );
 	ADD_TEST( stream, readwrite_text );
 	ADD_TEST( stream, readwrite_sequential );
+	ADD_TEST( stream, readwrite_swap );
 }
 
 
