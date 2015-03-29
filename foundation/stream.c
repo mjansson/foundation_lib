@@ -776,57 +776,95 @@ uint64_t stream_read_string_buffer( stream_t* stream, char* outbuffer, uint64_t 
 
 	--size;
 
-	//TODO: Implement per-byte reading for sequential streams
-	if( !binary )
+	if( stream_is_sequential( stream ) )
 	{
-		//Consume whitespace
-		while( !stream_eos( stream ) )
+		//Single byte reading since we can't seek backwards (and don't want to block on network sockets)
+		char c;
+		if( !binary )
 		{
-			read = (int)stream->vtable->read( stream, buffer, 16 );
+			//Consume whitespace
+			while( !stream_eos( stream ) )
+			{
+				read = (int)stream->vtable->read( stream, &c, 1 );
+				if( !read )
+					break;
+				if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
+				{
+					outbuffer[cursize++] = c;
+					break;
+				}
+			}
+		}
+
+		if( cursize > 0 )
+		{
+			while( !stream_eos( stream ) && ( cursize < (int)size ) )
+			{
+				read = (int)stream->vtable->read( stream, &c, 1 );
+				if( !read )
+					break;
+				if( !c )
+					break;
+				if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
+					break;
+				outbuffer[cursize++] = c;
+			}
+		}
+	}
+	else
+	{
+		if( !binary )
+		{
+			//Consume whitespace
+			while( !stream_eos( stream ) )
+			{
+				read = (int)stream->vtable->read( stream, buffer, 16 );
+				if( !read )
+					break;
+				for( i = 0; i < read; ++i )
+				{
+					char c = buffer[i];
+					if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
+						break;
+				}
+				if( i < read )
+				{
+					stream_seek( stream, i - read, STREAM_SEEK_CURRENT );
+					break;
+				}
+			}
+		}
+
+		while( !stream_eos( stream ) && ( cursize < (int)size ) )
+		{
+			read = (int)stream->vtable->read( stream, buffer, 128 );
 			if( !read )
 				break;
 			for( i = 0; i < read; ++i )
 			{
 				char c = buffer[i];
-				if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
+				if( !c )
+					break;
+				if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
 					break;
 			}
-			if( i < read )
+			if( !i )
+				break;
+			if( cursize + i > (int)size )
+				i = (int)size - cursize;
+			memcpy( outbuffer + cursize, buffer, i );
+			cursize += i;
+			if( i < 128 )
 			{
-				stream_seek( stream, i - read, STREAM_SEEK_CURRENT );
+				if( ( i + 1 ) < read )
+					stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
 				break;
 			}
 		}
 	}
 
-	while( !stream_eos( stream ) && ( cursize < (int)size ) )
-	{
-		read = (int)stream->vtable->read( stream, buffer, 128 );
-		if( !read )
-			break;
-		for( i = 0; i < read; ++i )
-		{
-			char c = buffer[i];
-			if( !c )
-				break;
-			if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
-				break;
-		}
-		if( !i )
-			break;
-		if( cursize + i > (int)size )
-			i = (int)size - cursize;
-		memcpy( outbuffer + cursize, buffer, i );
-		cursize += i;
-		if( i < 128 )
-		{
-			if( ( i + 1 ) < read )
-				stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
-			break;
-		}
-	}
-
-	outbuffer[cursize] = 0;
+	if( cursize < (int)size )
+		outbuffer[cursize] = 0;
 
 	return cursize;
 }
