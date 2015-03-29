@@ -183,7 +183,7 @@ extern int test_random_run( void );
 extern int test_ringbuffer_run( void );
 extern int test_semaphore_run( void );
 extern int test_stacktrace_run( void );
-extern int test_steam_run( void );
+extern int test_stream_run( void );
 extern int test_string_run( void );
 extern int test_uuid_run( void );
 typedef int (*test_run_fn)( void );

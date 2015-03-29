@@ -159,6 +159,11 @@ DECLARE_TEST( stream, std )
 	out_clone = stream_clone( out );
 	err_clone = stream_clone( err );
 
+	EXPECT_NE_MSG( in_clone, 0, "Clone stdin stream returned null" );
+	EXPECT_NE_MSG( out_clone, 0, "Clone stdout stream returned null" );
+	EXPECT_NE_MSG( err_clone, 0, "Clone stderr stream returned null" );
+	EXPECT_EQ_MSG( stream_clone( 0 ), 0, "Clone null stream returned non-null" );
+
 	EXPECT_STREQ_MSG( stream_path( in_clone ), "stdin://", "stdin clone has wrong path" );
 	EXPECT_STREQ_MSG( stream_path( out_clone ), "stdout://", "stdout clone has wrong path" );
 	EXPECT_STREQ_MSG( stream_path( err_clone ), "stderr://", "stderr clone has wrong path" );
