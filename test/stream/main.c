@@ -22,6 +22,45 @@
 #endif
 
 
+static const char longline[] = "Lorem ipsum dolor sit amet, eam mundi concludaturque id, cu sea modus saepe postea. Purto natum vel ex, est eius possim ex, vix at sumo reformidans. Eos oratio forensibus persequeris an, diam gubergren ne mea, tacimates postulant expetenda ut pri. Vel everti facilis nominati ea, eos eu quis molestiae assueverit. His paulo utroque officiis ut, eum eu mutat congue hendrerit. Luptatum consulatu in cum, ea posse pertinax vim."
+" Usu dicta audiam voluptatum in. Vis habeo molestiae rationibus ea. Paulo bonorum facilis cu quo. Sit in appetere concludaturque, ius cu zril invidunt patrioque, clita ceteros recteque sed in. Vim in graece prompta molestiae, vel enim magna ei."
+" Ne qui dicant comprehensam, ipsum scriptorem mei no. Odio appareat pericula no sit. Vix ad latine persius intellegam, eam movet altera ei. Minimum copiosae has no, ne utamur aliquando eam."
+" Verterem lucilius adversarium vix ne, brute laudem ex vel. Aperiri quaeque scribentur ei pri, ne mei copiosae complectitur. Ferri graece sed an. An usu etiam audire erroribus, vis commodo pertinax id."
+" Dicunt inimicus ei sit. Consequat prodesset te pri, dictas vidisse fierent est et. Cu qui omittam evertitur. Vim ad vidit erant expetenda. Ex duo nibh molestiae tincidunt."
+" Vel ad utroque inimicus definitionem, et posse consul aliquip per. Ne quaeque epicuri signiferumque est. Pri saepe doming partiendo ei. Ea nec vidit suscipit erroribus, odio nihil corrumpit qui ex, ne consulatu assentior pri. Eu qui dolore ubique, eos option albucius et."
+" Sea recteque cotidieque ea, mei tota paulo intellegebat ei, cu eam tation partem abhorreant. Mel luptatum mnesarchum liberavisse no, quis regione detraxit nam te. Nec ad everti nonumes, euismod tincidunt duo eu. Ea illud petentium pro, ex pro soluta necessitatibus."
+" Eum cu nonumes delicata, reque omnium fastidii in mel, eu eum dolore euismod. Noster insolens accusata in pri, eam dicam exerci instructior in. No posse maluisset abhorreant has, qui denique assentior ea, sea labore legendos vituperata te. Facer scripserit vis in."
+" Verterem mnesarchum scriptorem eam ex, pro semper theophrastus id. Sit ex inani iuvaret interpretaris, rebum labores consulatu te qui. Eu errem perpetua nam. Veniam elaboraret vel eu. Cum tation semper ex."
+" Illud eirmod ius at. Soleat animal eripuit mei ea, duo nominavi adipiscing eu. Utroque voluptatum no nam. Usu omnesque iracundia ad."
+" Magna detraxit ex nec, et nec impedit civibus scribentur. Sea et nibh appareat, postea sadipscing signiferumque an vim, alii vidisse qualisque eos ei. Nisl mnesarchum ad cum. Sint esse causae ius ex, scripta omittam probatus vix cu, legere persequeris ea mea."
+" Ad vel iriure propriae, et cum eripuit partiendo assueverit. Vix an velit dolorum prodesset, usu at utinam partem. Ius vide veniam tempor cu. Ut electram hendrerit est, est altera verterem in. Ius audire definiebas ea, eos ea semper moderatius intellegebat, his ei ludus libris fabellas. Vix cu malorum voluptaria, ne vix nostrum pericula persequeris."
+" Cum habemus fuisset delectus at. Vix dicta inani omnes ea, graecis offendit evertitur cu mel, no offendit oporteat mea. An alterum facilisis qui. Sed dicta mundi ubique cu, cu sonet everti regione vix. Qui intellegat adolescens at, ipsum tation interpretaris usu an, natum suscipit sadipscing est et. Mea esse scripta antiopam in, adhuc appetere moderatius mei eu."
+" Augue populo at mei, hinc graece qui id, cu cum summo epicurei intellegam. At vim habeo ullum labitur, in est aliquam fierent legendos, ne eam homero dolorem. Quo eu partiendo patrioque eloquentiam. Sonet prodesset posidonium mei ea, an mei vidit definiebas vituperata. Ne doming ullamcorper vim, et purto sale dicunt sit. Id legere perpetua est, mel cu erant petentium deterruisset. Ei eos errem vitae feugiat, te brute luptatum scripserit sit, per lorem persius ea."
+" In quo doctus invenire. Eos ancillae definiebas interesset at. Primis mucius mel ad, ea audiam nominavi has, veniam fuisset ei mei. Ut clita affert aliquando pro, no quem vero sea. Quas ridens dissentiunt ius ne, eos rationibus incorrupte ex, sea ei aperiri constituto."
+" Sit at detracto appetere, ut ius hinc vulputate. Et veniam populo reformidans vel, eum at nisl essent apeirian. Per iudicabit definitiones id, pertinax electram in sea, pro modo meis epicuri ea. Aliquando contentiones definitionem in ius, nec novum laoreet at, sonet quaerendum in qui."
+" Consulatu similique gloriatur ei vis. An quis temporibus usu, at sed ipsum discere. Te equidem laoreet suavitate mel, an ponderum deseruisse sea. Dico omittam ius ex. Quaeque incorrupte quo ea, causae qualisque ocurreret eu duo, exerci laboramus sed ei."
+" Vis solet torquatos ex, qui clita offendit ex, an consul moderatius conclusionemque vix. Eam oratio option in, per et unum fierent scripserit. Ea duo dicat omittantur. Ea unum debet noster est, mel putent laboramus in."
+" Vel purto indoctum an, tincidunt vituperata interpretaris an sit. Mei nostro graecis no, cu putant torquatos eos. Iuvaret mediocrem vix et. Esse commune suavitate ea qui, mea ut veri solet fuisset, in eros ludus accommodare eum. Qui novum nemore maiorum te, cu pertinax disputationi est. Torquatos democritum assueverit ad vim, quo clita corrumpit cu."
+" Esse possim ea has, option iracundia te nec, sea ei agam nostrud. Postea ancillae nominavi id vis, in sed liber dicant sensibus. Ut gubergren euripidis mnesarchum qui, habeo incorrupte ea mel. Vix ad enim ipsum concludaturque, has homero ignota pertinacia an, prima atomorum intellegebat cu sea."
+" Est ea altera prompta mediocritatem, ne quis omnis quo. Labore utamur pro in, mea te justo facete. Vim et mucius habemus delicata. Eum graece fierent propriae an. At vel solet dolores, justo zril cu est."
+" Case facer ad nec. Cum quod posse impetus et. Mazim alterum tacimates eum ea. Has graeci scribentur accommodare et."
+" Usu euismod invidunt lucilius ex, ornatus appareat has ut, ferri noster tamquam sit te. Autem illum quaestio vel ex, illum assum tractatos mea eu. In admodum singulis consetetur pro, unum etiam fabellas in eum, no mollis volutpat his. Prima placerat mediocrem has id. Qui novum zril liberavisse in, id petentium necessitatibus sed. Vim discere sententiae et."
+" Mei cu eius accusamus forensibus. Ubique principes at ius, ei quem eros sea. Ne sea nisl malorum instructior, affert pericula intellegebat has cu. Everti commodo eos ad."
+" Nostro labitur aliquando ei his, erant dignissim vis ea. Reque populo sapientem ne mea, aeque appareat eloquentiam no pro. Et his sensibus assentior. Quo et fierent nominati, sed inani causae animal et, cum ex nulla paulo facilisis. Et vim fabulas impedit, porro consul delenit vel et. Graecis prodesset eam at. Usu at modus quidam incorrupte."
+" Ad vim convenire molestiae. Sed in oporteat salutatus, te mazim erroribus principes ius, tempor hendrerit sed te. Ea mundi omittantur sit. Nec illum impetus forensibus te, odio percipit constituto nam ex, ei iusto sententiae voluptatibus nec. Est iudico possit omittam cu."
+" Mea electram efficiendi id. Ne ius idque ornatus persecuti, est ei rebum legimus hendrerit. Sit ea noluisse accusamus scripserit, ne dignissim consequuntur concludaturque ius. Elit mandamus intellegam per ne, adolescens referrentur pro et, pri veritus appareat abhorreant no. Mentitum posidonium ex cum, his stet sale atomorum ut. Fabellas platonem at vis. Eu mel doming impetus honestatis."
+" Ut has putant causae debitis, id duo mutat velit, facete offendit sit te. Vitae singulis suscipiantur mea cu, ei est graece signiferumque. Cum petentium sententiae ne. Has ea quas omnes, magna illum augue vix et, quot delectus perfecto usu eu. Pro natum voluptua euripidis te."
+" Audiam latine cu eum, has no diceret mentitum constituam. An vim elit maiestatis. Ei dicam epicurei disputando per, an modus meliore civibus per, id mazim iisque delenit eum. No duo nonumy singulis, debet facilisi pri ut. Facer utinam nec at. Dolores phaedrum at per, inciderint neglegentur delicatissimi et duo."
+" Mollis fabellas legendos in mel. Duo ei congue appareat consetetur, qui cu expetenda repudiandae. Delenit veritus admodum id nec, luptatum inimicus postulant qui eu. Interesset conclusionemque no vix, eu eius iudico mentitum pri. Usu ut sumo rationibus, etiam iisque conceptam vis at. Blandit consetetur ea duo, mea possit petentium euripidis no, habeo legimus in his."
+" Duo quas perfecto ne, odio iriure in usu. Vix no ponderum intellegat, eam lorem vidisse no. In nominati convenire petentium usu, eu vero ullum ignota his. Ne rebum diceret dissentiet per, per ne putent placerat, minimum dolores ullamcorper ex mei. Dignissim appellantur id nam, cu lucilius inimicus eum. Est tantas causae intellegat ut, dicta pericula definitiones eam in, eum modus omnesque delectus ea."
+" Ei deleniti phaedrum eum, pertinax comprehensam sea cu. Ut graeco alienum singulis ius, te veri luptatum convenire has. Perfecto torquatos eu eum. Verterem neglegentur ius eu. Eum an ridens feugait adversarium, per saepe singulis euripidis et. Nam periculis corrumpit at, eam cu omnes quodsi, ei mel explicari aliquando."
+" Vix ea erant iusto, porro incorrupte at per. An mel quodsi constituto, ex usu sonet verterem. Enim sale temporibus cum ad, an mea oporteat pertinacia. Id vim saepe aeterno, te ullum salutandi mea. Ea integre admodum assueverit mel. Ei ullum consul cotidieque vix."
+" Eu laudem fastidii recteque usu, docendi democritum delicatissimi sed eu. Has te scripta impedit feugait, et mea aeterno nostrud, sed copiosae partiendo sadipscing at. Erant ridens sententiae per in, ut solum posse propriae vim, sed ut wisi denique. Cu eam movet quodsi neglegentur, choro cetero menandri ex eum."
+" Pri malorum fabulas ne. Ex ullum omnes tollit per, dicit antiopam pro ut. Pri ex labore tamquam complectitur, rebum impetus gubergren eos at. Sed id quod tibique, ei quo decore tractatos inciderint, nobis iriure efficiantur at qui. Partem democritum philosophia mea ut, ex senserit repudiandae vix. Ea mel assum regione petentium, alia vide ex vel. Has ei brute dicunt similique, eu pri soleat tamquam."
+" Qui cu aperiam tibique verterem, no eam equidem voluptua accusata, nostro omnium suscipit qui ei. Mei ne vidisse indoctum. Iuvaret dolorum cu mei, dolor iudicabit ei mei. Cu unum ubique efficiendi quo, accommodare interpretaris ut sea. Commodo intellegat ex mea, tota postulant conceptam eam et.";
+static const int longlength = sizeof( longline );
+
+
 static application_t test_stream_application( void )
 {
 	application_t app;
@@ -575,6 +614,17 @@ DECLARE_TEST( stream, readwrite_text )
 	read_buffer[0] = 0;
 	EXPECT_EQ_MSGFORMAT( stream_read_line_buffer( teststream, read_buffer, 1024, '\n' ), 0, "read line buffer failed at end of stream, read %s", read_buffer );
 
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
+
+	EXPECT_EQ_MSG( stream_write( teststream, longline, longlength ), longlength, "Failed to write long line data to stream" );
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
+
+	line = stream_read_line( teststream, '\n' );
+	EXPECT_STREQ_MSG( line, longline, "Long line read failed data" );
+	string_deallocate( line );
+
 	stream_deallocate( teststream );
 	fs_remove_file( path );
 
@@ -823,6 +873,21 @@ DECLARE_TEST( stream, readwrite_sequential )
 
 	read_buffer[0] = 0;
 	EXPECT_EQ_MSGFORMAT( stream_read_line_buffer( teststream, read_buffer, 1024, '\n' ), 0, "read line buffer failed at end of stream, read %s", read_buffer );
+
+	teststream->sequential = 0;
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
+	teststream->sequential = 1;
+
+	EXPECT_EQ_MSG( stream_write( teststream, longline, longlength ), longlength, "Failed to write long line data to stream" );
+	teststream->sequential = 0;
+	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
+	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
+	teststream->sequential = 1;
+
+	line = stream_read_line( teststream, '\n' );
+	EXPECT_STREQ_MSG( line, longline, "Long line read failed data" );
+	string_deallocate( line );
 
 	stream_deallocate( teststream );
 	fs_remove_file( path );
