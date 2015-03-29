@@ -475,7 +475,7 @@ int16_t stream_read_int16( stream_t* stream )
 	{
 		stream_read( stream, &value, 2 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 2 );
+			value = byteorder_swap16( value );
 	}
 	else
 	{
@@ -513,7 +513,7 @@ int32_t stream_read_int32( stream_t* stream )
 	{
 		stream_read( stream, &value, 4 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 4 );
+			value = byteorder_swap32( value );
 	}
 	else
 	{
@@ -551,7 +551,7 @@ int64_t stream_read_int64( stream_t* stream )
 	{
 		stream_read( stream, &value, 8 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 8 );
+			value = byteorder_swap64( value );
 	}
 	else
 	{
@@ -589,7 +589,12 @@ float32_t stream_read_float32( stream_t* stream )
 	{
 		stream_read( stream, &value, 4 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 4 );
+		{
+			float32_cast_t cast;
+			cast.fval = value;
+			cast.ival = byteorder_swap32( cast.ival );
+			value = cast.fval;
+		}
 	}
 	else
 	{
@@ -608,7 +613,12 @@ float64_t stream_read_float64( stream_t* stream )
 	{
 		stream_read( stream, &value, 8 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 8 );
+		{
+			float64_cast_t cast;
+			cast.fval = value;
+			cast.ival = byteorder_swap64( cast.ival );
+			value = cast.fval;
+		}
 	}
 	else
 	{
