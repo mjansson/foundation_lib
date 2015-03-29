@@ -336,19 +336,25 @@ char* stream_read_line( stream_t* stream, char delimiter )
 		}
 		if( cursize + i > outsize )
 		{
-			if( !outsize )
+			unsigned int nextsize;
+			if( !outbuffer )
 			{
-				outsize = 32;
-				outbuffer = memory_allocate( 0, outsize + 1, 0, MEMORY_PERSISTENT );
+				nextsize = ( i >= 32 ? i + 1 : ( i > 1 ? i + 1 : 32 ) );
+				outbuffer = memory_allocate( 0, nextsize, 0, MEMORY_PERSISTENT );
 			}
 			else
 			{
-				outsize += 512;
-				outbuffer = memory_reallocate( outbuffer, outsize + 1, 0, cursize );
+				nextsize = ( outsize < 511 ? 512 : outsize + 513 ); //Always aligns to 512 multiples
+				FOUNDATION_ASSERT( !( nextsize % 512 ) );
+				outbuffer = memory_reallocate( outbuffer, nextsize, 0, outsize + 1 );
 			}
+			outsize = nextsize - 1;
 		}
-		memcpy( outbuffer + cursize, buffer, i );
-		cursize += i;
+		if( i )
+		{
+			memcpy( outbuffer + cursize, buffer, i );
+			cursize += i;
+		}
 		if( i < read )
 		{
 			if( ( i + 1 ) < read )
