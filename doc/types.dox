@@ -1246,6 +1246,30 @@ and reallocated to the required sizes.
 \brief Source control version/revision/identifier
 \details Source control version/revision/identifier
 
+\var float32_cast_t::ival
+\brief Integer interpretation
+\details Integer interpretation of 32-bit floating point value
+
+\var float32_cast_t::fval
+\brief Float interpretation
+\details Float interpretation of 32-bit floating point value
+
+\var float64_cast_t::ival
+\brief Integer interpretation
+\details Integer interpretation of 64-bit floating point value
+
+\var float64_cast_t::fval
+\brief Float interpretation
+\details Float interpretation of 64-bit floating point value
+
+\var real_cast_t::ival
+\brief Integer interpretation
+\details Integer interpretation of real floating point value
+
+\var real_cast_t::rval
+\brief Float interpretation
+\details Float interpretation of real floating point value
+
 \struct application_t
 \brief Application declaration
 \details Application declaration
