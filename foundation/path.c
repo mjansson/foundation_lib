@@ -302,21 +302,26 @@ char* path_file_name( const char* path )
 }
 
 
-char* path_path_name( const char* path )
+char* path_directory_name( const char* path )
 {
 	char* pathname;
+	unsigned int pathprotocol;
+	unsigned int pathstart = 0;
 	unsigned int end = string_find_last_of( path , "/\\", STRING_NPOS );
 	if( end == 0 )
 		return string_clone( "/" );
 	if( end == STRING_NPOS )
 		return string_allocate( 0 );
-	pathname = string_substr( path, 0, end );
+	pathprotocol = string_find_string( path, "://", 0 );
+	if( pathprotocol != STRING_NPOS )
+		pathstart = pathprotocol +=2; // add two to treat as absolute path
+	pathname = string_substr( path, pathstart, end - pathstart );
 	pathname = path_clean( pathname, path_is_absolute( pathname ) );
 	return pathname;
 }
 
 
-char* path_subpath_name( const char* path, const char* root )
+char* path_subdirectory_name( const char* path, const char* root )
 {
 	char* subpath;
 	char* testpath;
@@ -329,7 +334,7 @@ char* path_subpath_name( const char* path, const char* root )
 	cpath = path_clean( cpath, path_is_absolute( cpath ) );
 	croot = path_clean( croot, path_is_absolute( croot ) );
 
-	pathofpath = path_path_name( cpath );
+	pathofpath = path_directory_name( cpath );
 
 	testpath = pathofpath;
 	pathprotocol = string_find_string( testpath, "://", 0 );

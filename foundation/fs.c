@@ -736,7 +736,7 @@ void fs_copy_file( const char* source, const char* dest )
 	stream_t* outfile;
 	void* buffer;
 
-	char* destpath = path_path_name( dest );
+	char* destpath = path_directory_name( dest );
 	if( string_length( destpath ) )
 		fs_make_directory( destpath );
 	string_deallocate( destpath );

@@ -37,16 +37,16 @@ unknown formats
 \param path Full path
 \return File full name
 
-\fn char* path_path_name( const char* path )
+\fn char* path_directory_name( const char* path )
 \brief Get path name
-\details Get path name from full path name
+\details Get directory name from full path name. Any protocol in the path will be stripped.
 \param path Full path
 \return Path name
 
-\fn char* path_subpath_name( const char* path, const char* root )
-\brief Get subpath name
-\details Get subpath name from full path name and root path. If the full path is an absolute path,
-the root path must also be an absolute path (and vice versa). Protocols will be stripped
+\fn char* path_subdirectory_name( const char* path, const char* root )
+\brief Get subdirectory name
+\details Get subdirectory name from full path name and root directory. If the full path is an absolute path,
+the root directory must also be an absolute path (and vice versa). Protocols will be stripped
 before matching paths (which will then be treated as absolute paths).
 \param path Full path
 \param root Root full path

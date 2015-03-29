@@ -80,7 +80,7 @@ DECLARE_TEST( environment, workingdir )
 {
 	const char* working_dir = environment_current_working_directory();
 
-	char* new_working_dir = path_path_name( working_dir );
+	char* new_working_dir = path_directory_name( working_dir );
 
 	environment_set_current_working_directory( new_working_dir );
 	EXPECT_STREQ( environment_current_working_directory(), new_working_dir );
