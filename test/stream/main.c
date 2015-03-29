@@ -318,8 +318,9 @@ DECLARE_TEST( stream, readwrite_binary )
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
 	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_string( teststream, 0 );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld)", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2 + 1, "stream position not expected after writes (%lld)", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -366,13 +367,16 @@ DECLARE_TEST( stream, readwrite_binary )
 	EXPECT_STREQ_MSG( read_buffer, "formatted output with a null pointer 0x00000000", "read string buffer data failed" );
 #endif
 
+	line = stream_read_string( teststream );
+	EXPECT_EQ_MSG( line, 0, "Read empty string did not return null" );
+
 	read_buffer[0] = 0;
 	EXPECT_EQ_MSGFORMAT( stream_read_line_buffer( teststream, read_buffer, 1024, '\n' ), 0, "read line buffer failed at end of stream, read %s", read_buffer );
 
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	stream_determine_binary_mode( teststream, 1024 );
 	EXPECT_EQ_MSG( stream_is_binary( teststream ), true, "Binary mode was not detected" );
-	stream_seek( teststream, -33, STREAM_SEEK_END ); //There is a terminating zero at end
+	stream_seek( teststream, -34, STREAM_SEEK_END ); //There is a terminating zeros at end
 	stream_determine_binary_mode( teststream, 32 );
 	EXPECT_EQ_MSG( stream_is_binary( teststream ), false, "Text mode was not detected" );
 

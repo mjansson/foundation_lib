@@ -226,7 +226,7 @@ over an UDP socket are out-of-order.
 \brief Read string
 \details Read string from stream. Must be freed with a call to #string_deallocate
 \param stream Stream
-\return String, 0 if error or if no bytes could be read from stream
+\return String, 0 if error or if no bytes (or in binary mode, an empty string) could be read from stream
 
 \fn uint64_t stream_read_string_buffer( stream_t* stream, char* buffer, uint64_t size )
 \brief Read string
