@@ -435,7 +435,14 @@ bool stream_read_bool( stream_t* stream )
 int8_t stream_read_int8( stream_t* stream )
 {
 	int8_t value = 0;
-	stream_read( stream, &value, 1 );
+	if( stream_is_binary( stream ) )
+		stream_read( stream, &value, 1 );
+	else
+	{
+		char* str = stream_read_string( stream );
+		value = (int8_t)string_to_int( str );
+		string_deallocate( str );
+	}
 	return value;
 }
 
@@ -946,7 +953,10 @@ void stream_write_bool( stream_t* stream, bool data )
 
 void stream_write_int8( stream_t* stream, int8_t data )
 {
-	stream_write( stream, &data, 1 );
+	if( stream_is_binary( stream ) )
+		stream_write( stream, &data, 1 );
+	else
+		stream_write_string( stream, string_from_int_static( (int32_t)data, 0, 0 ) );
 }
 
 
