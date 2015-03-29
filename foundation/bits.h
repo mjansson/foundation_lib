@@ -36,11 +36,15 @@ static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_littleend
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 {
 #if FOUNDATION_COMPILER_MSVC
+#if _MSC_VER >= 1310
+	return _byteswap_ushort( arg );
+#else
 	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
 	u16cast in, out;
 	in.u16=arg;
 	out.u8[0]=in.u8[1]; out.u8[1]=in.u8[0];
 	return out.u16;
+#endif
 #else
 	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
 	u16cast in = { .u16=arg };
@@ -59,11 +63,15 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t byteorder_swap32( ui
 	return _bswap( arg );
 	/*lint -restore */
 #elif FOUNDATION_COMPILER_MSVC
+#if _MSC_VER >= 1310
+	return _byteswap_ulong( arg );
+#else
 	typedef union { uint32_t u32; uint8_t u8[4]; } u32cast;
 	u32cast in, out;
 	in.u32=arg;
 	out.u8[0]=in.u8[3]; out.u8[1]=in.u8[2]; out.u8[2]=in.u8[1]; out.u8[3]=in.u8[0];
 	return out.u32;
+#endif
 #else
 	typedef union { uint32_t u32; uint8_t u8[4]; } u32cast;
 	u32cast in = { .u32=arg };
@@ -82,11 +90,15 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_swap64( ui
 	return _bswap64( arg );
 	/*lint -restore */
 #elif FOUNDATION_COMPILER_MSVC
+#if _MSC_VER >= 1310
+	return _byteswap_uint64( arg );
+#else
 	typedef union { uint64_t u64; uint8_t u8[8]; } u64cast;
 	u64cast in, out;
 	in.u64=arg;
 	out.u8[0]=in.u8[7]; out.u8[1]=in.u8[6]; out.u8[2]=in.u8[5]; out.u8[3]=in.u8[4]; out.u8[4]=in.u8[3]; out.u8[5]=in.u8[2]; out.u8[6]=in.u8[1]; out.u8[7]=in.u8[0];
 	return out.u64;
+#endif
 #else
 	typedef union { uint64_t u64; uint8_t u8[8]; } u64cast;
 	u64cast in = { .u64=arg };
