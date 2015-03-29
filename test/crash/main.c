@@ -73,7 +73,7 @@ static int handle_assert( uint64_t context, const char* condition, const char* f
 }
 
 
-void handle_log( uint64_t context, int severity, const char* msg )
+static void handle_log( uint64_t context, int severity, const char* msg )
 {
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
