@@ -15,6 +15,16 @@
 
 #include <stdarg.h>
 
+#if FOUNDATION_PLATFORM_WINDOWS
+#  include <foundation/windows.h>
+#endif
+
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#  include <sys/select.h>
+#  include <sys/stat.h>
+#endif
+
 
 static hashtable64_t* _stream_protocol_table;
 
@@ -299,8 +309,8 @@ uint64_t stream_read_line_buffer( stream_t* stream, char* dest, unsigned int cou
 char* stream_read_line( stream_t* stream, char delimiter )
 {
 	char buffer[128];
-	char* outbuffer;
-	int outsize = 32;
+	char* outbuffer = 0;
+	int outsize = 0;
 	int cursize = 0;
 	int read, i;
 	int want_read = 128;
@@ -314,7 +324,6 @@ char* stream_read_line( stream_t* stream, char delimiter )
 	if( stream_is_sequential( stream ) ) //Need to read one byte at a time since we can't scan back if overreading
 		want_read = 1;
 
-	outbuffer = memory_allocate( 0, outsize + 1, 0, MEMORY_PERSISTENT );
 	while( !stream_eos( stream ) )
 	{
 		read = (int)stream->vtable->read( stream, buffer, want_read );
@@ -327,8 +336,16 @@ char* stream_read_line( stream_t* stream, char delimiter )
 		}
 		if( cursize + i > outsize )
 		{
-			outsize += 512;
-			outbuffer = memory_reallocate( outbuffer, outsize + 1, 0, cursize );
+			if( !outsize )
+			{
+				outsize = 32;
+				outbuffer = memory_allocate( 0, outsize + 1, 0, MEMORY_PERSISTENT );
+			}
+			else
+			{
+				outsize += 512;
+				outbuffer = memory_reallocate( outbuffer, outsize + 1, 0, cursize );
+			}
 		}
 		memcpy( outbuffer + cursize, buffer, i );
 		cursize += i;
@@ -343,7 +360,8 @@ char* stream_read_line( stream_t* stream, char delimiter )
 		}
 	}
 
-	outbuffer[cursize] = 0;
+	if( outbuffer )
+		outbuffer[cursize] = 0;
 
 	return outbuffer;
 }
@@ -592,8 +610,8 @@ float64_t stream_read_float64( stream_t* stream )
 char* stream_read_string( stream_t* stream )
 {
 	char buffer[128];
-	char* outbuffer;
-	int outsize = 128;
+	char* outbuffer = buffer;
+	int outsize = sizeof( buffer );
 	int cursize = 0;
 	int read, i;
 	bool binary = stream_is_binary( stream );
@@ -603,8 +621,6 @@ char* stream_read_string( stream_t* stream )
 		return 0;
 
 	FOUNDATION_ASSERT( stream->vtable->read );
-
-	outbuffer = memory_allocate( 0, outsize, 0, MEMORY_PERSISTENT );
 
 	if( stream_is_sequential( stream ) )
 	{
@@ -620,30 +636,44 @@ char* stream_read_string( stream_t* stream )
 					break;
 				if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
 				{
-					outbuffer[cursize++] = c;
+					buffer[cursize++] = c;
 					break;
 				}
 			}
 		}
 
-		while( !stream_eos( stream ) )
+		if( cursize > 0 )
 		{
-			read = (int)stream->vtable->read( stream, &c, 1 );
-			if( !read )
-				break;
-			if( !c )
-				break;
-			if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
-				break;
-			if( cursize + 1 > outsize )
+			while( !stream_eos( stream ) )
 			{
-				outsize += 512;
-				outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+				read = (int)stream->vtable->read( stream, &c, 1 );
+				if( !read )
+					break;
+				if( !c )
+					break;
+				if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
+					break;
+				if( cursize + 1 >= outsize )
+				{
+					if( !outbuffer )
+					{
+						outsize += 512;
+						if( outbuffer != buffer )
+						{
+							outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+						}
+						else
+						{
+							outbuffer = memory_allocate( 0, outsize, 0, MEMORY_PERSISTENT );
+							memcpy( outbuffer, buffer, sizeof( buffer ) );
+						}
+					}
+				}
+				outbuffer[cursize++] = c;
 			}
-			outbuffer[cursize++] = c;
-		}
 
-		outbuffer[cursize] = 0;
+			outbuffer[cursize] = 0;
+		}
 	}
 	else
 	{
@@ -684,10 +714,18 @@ char* stream_read_string( stream_t* stream )
 			}
 			if( i )
 			{
-				if( cursize + i > outsize )
+				if( cursize + i >= outsize )
 				{
 					outsize += 512;
-					outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+					if( outbuffer != buffer )
+					{
+						outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+					}
+					else
+					{
+						FOUNDATION_ASSERT( cursize == 0 ); //Or internal assumptions about code flow is incorrect
+						outbuffer = memory_allocate( 0, outsize, 0, MEMORY_PERSISTENT );
+					}
 				}
 				memcpy( outbuffer + cursize, buffer, i );
 				cursize += i;
@@ -702,6 +740,16 @@ char* stream_read_string( stream_t* stream )
 
 		outbuffer[cursize] = 0;
 	}
+
+	if( outbuffer == buffer )
+	{
+		if( cursize == 0 )
+			return 0;
+		outbuffer = memory_allocate( 0, cursize + 1, 0, MEMORY_PERSISTENT );
+		memcpy( outbuffer, buffer, cursize );
+		outbuffer[cursize] = 0;
+	}
+
 	return outbuffer;
 }
 
@@ -1080,6 +1128,7 @@ static uint64_t  _stream_stdout_write( stream_t*, const void*, uint64_t );
 static void      _stream_stdout_flush( stream_t* );
 static stream_t* _stream_std_clone( stream_t* );
 static bool      _stream_stdin_eos( stream_t* );
+static uint64_t  _stream_stdin_available_read( stream_t* stream );
 static uint64_t  _stream_std_last_modified( const stream_t* stream );
 
 static stream_vtable_t _stream_stdout_vtable = {
@@ -1112,7 +1161,7 @@ static stream_vtable_t _stream_stdin_vtable = {
 	_stream_std_last_modified,
 	0,
 	0,
-	0,
+	_stream_stdin_available_read,
 	0,
 	_stream_std_clone
 };
@@ -1179,6 +1228,7 @@ static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t siz
 		}
 		bytebuffer[read++] = (char)c;
 	}
+
 	return read;
 }
 
@@ -1209,6 +1259,44 @@ static stream_t* _stream_std_clone( stream_t* stream )
 static bool _stream_stdin_eos( stream_t* stream )
 {
 	return ((stream_std_t*)stream)->eos;
+}
+
+
+static uint64_t _stream_stdin_available_read( stream_t* stream )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+
+	HANDLE in_handle;
+	DWORD size;
+
+	in_handle = GetStdHandle( STD_INPUT_HANDLE );
+	size = GetFileSize( in_handle, 0 );
+	if( size > 0 )
+		return size;
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+	fd_set fds;
+	struct timeval timeout;
+	int res;
+
+	memset( &timeout, 0, sizeof( timeout ) );
+	FD_ZERO( &fds );
+	FD_SET( STDIN_FILENO, &fds );
+
+	res = select( STDIN_FILENO + 1, &fds, 0, 0, &timeout );
+	if( ( res > 0 ) && FD_ISSET( STDIN_FILENO, &fds ) )
+	{
+		struct stat buf;
+		if( fstat( STDIN_FILENO, &buf ) == 0 )
+			return (uint64_t)buf.st_size;
+		return 1;
+	}
+
+#endif
+
+	FOUNDATION_UNUSED( stream );
+	return 0;
 }
 
 
