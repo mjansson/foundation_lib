@@ -22,6 +22,11 @@ return value propagated.
 \param err            Error identifier
 \return               Return value from error callback if set, 0 if no callback set
 
+\fn error_callback_fn error_callback( void )
+\brief Get error callback
+\details Get per-thread error handling callback
+\return Error callback
+
 \fn void error_set_callback( error_callback_fn callback )
 \brief Set error callback
 \details Set new per-thread error handling callback. The callback will be called each time
@@ -38,6 +43,10 @@ Both context and data must be valid for as long as it remains on the stack.
 \def error_context_pop
 \brief Pop error context
 \details Pop the top error context off the error context stack
+
+\def error_context_clear
+\brief Clear error context
+\details Clear the error context
 
 \def error_context_buffer
 \brief Generate error context stack trace

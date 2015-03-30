@@ -26,6 +26,8 @@ static char handled_log[512];
 static log_callback_fn _global_log_callback = 0;
 #endif
 
+static error_level_t _error_level_test;
+static error_t _error_test;
 
 
 static application_t test_crash_application( void )
@@ -142,6 +144,79 @@ DECLARE_TEST( crash, assert_callback )
 }
 
 
+static int _error_callback_test( error_level_t level, error_t error )
+{
+	_error_level_test = level;
+	_error_test = error;
+	return 2;
+}
+
+
+DECLARE_TEST( crash, error )
+{
+	error_callback_fn callback;
+	int ret;
+
+	error();
+	EXPECT_EQ( error(), ERROR_NONE );
+
+	error_report( ERRORLEVEL_ERROR, ERROR_NONE );
+	EXPECT_EQ( error(), ERROR_NONE );
+
+	error_report( ERRORLEVEL_ERROR, ERROR_EXCEPTION );
+	EXPECT_EQ( error(), ERROR_EXCEPTION );
+
+	callback = error_callback();
+	error_set_callback( _error_callback_test );
+
+	ret = error_report( ERRORLEVEL_WARNING, ERROR_INVALID_VALUE );
+	EXPECT_EQ( error(), ERROR_INVALID_VALUE );
+	EXPECT_EQ( ret, 2 );
+	EXPECT_EQ( _error_level_test, ERRORLEVEL_WARNING );
+	EXPECT_EQ( _error_test, ERROR_INVALID_VALUE );
+	EXPECT_EQ( error_callback(), _error_callback_test );
+
+	error_set_callback( callback );
+
+	{
+		const char* context_data = "another message";
+		char context_buffer[512];
+		error_context_clear();
+		error_context_push( "test context", "some message" );
+		error_context_push( "foo bar", 0 );
+		error_context_pop();
+		error_context_pop();
+		error_context_pop();
+		error_context_push( "test context", context_data );
+
+#if BUILD_ENABLE_ERROR_CONTEXT
+		log_infof( HASH_TEST, "Check context" );
+		EXPECT_NE( error_context(), 0 );
+		EXPECT_EQ( error_context()->depth, 1 );
+		EXPECT_STREQ( error_context()->frame[0].name, "test context" );
+		EXPECT_EQ( error_context()->frame[0].data, context_data );
+#endif
+
+		log_infof( HASH_TEST, "Generate context buffer" );
+		error_context_buffer( context_buffer, 512 );
+#if BUILD_ENABLE_ERROR_CONTEXT
+		log_infof( HASH_TEST, "Check context buffer" );
+		EXPECT_NE_MSGFORMAT( string_find_string( context_buffer, "test context", 0 ), STRING_NPOS, "context name 'test context' not found in buffer: %s", context_buffer );
+		EXPECT_NE_MSGFORMAT( string_find_string( context_buffer, context_data, 0 ), STRING_NPOS, "context data '%s' not found in buffer: %s", context_data, context_buffer );
+#endif
+
+		log_infof( HASH_TEST, "Generate empty context buffer" );
+		error_context_clear();
+		error_context_buffer( context_buffer, 512 );
+#if BUILD_ENABLE_ERROR_CONTEXT
+		EXPECT_STREQ( context_buffer, "" );
+#endif
+	}
+
+	return 0;
+}
+
+
 DECLARE_TEST( crash, crash_guard )
 {
 	int crash_result;
@@ -190,6 +265,7 @@ DECLARE_TEST( crash, crash_thread )
 static void test_crash_declare( void )
 {
 	ADD_TEST( crash, assert_callback );
+	ADD_TEST( crash, error );
 	ADD_TEST( crash, crash_guard );
 	ADD_TEST( crash, crash_thread );
 }
