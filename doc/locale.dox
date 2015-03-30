@@ -6,31 +6,31 @@
 \details Locale definitions
 
 
-\def _LOCALE_DEF
+\def LOCALE_DEF
 \brief Define locale
 \details Define a locale with a four character code, two lowercase language characters and two uppercase country characters,
-for example _LOCALE_DEF('e','n','U','S')
+for example LOCALE_DEF('e','n','U','S')
 \param x First language character
 \param y Second language character
 \param z First country character
 \param w Second country character
 
-\def _LOCALE_FROM_LANGUAGE_COUNTRY
+\def LOCALE_FROM_LANGUAGE_COUNTRY
 \brief Define locale
 \details Define a locale from a compound language and country code, for example
-_LOCALE_FROM_LANGUAGE_COUNTRY( LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES )
+LOCALE_FROM_LANGUAGE_COUNTRY( LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES )
 \param lang Language code
 \param country Country code
 
-\def _LANGUAGE_DEF
-\brief Define language 
-\details Define a language with a two character lowercase code, for example _LANGUAGE_DEF('e','n')
+\def LANGUAGE_DEF
+\brief Define language
+\details Define a language with a two character lowercase code, for example LANGUAGE_DEF('e','n')
 \param x First character
 \param y Second character
 
-\def _COUNTRY_DEF
-\brief Define country 
-\details Define a country with a two character uppercase code, for example _COUNTRY_DEF('U','S')
+\def COUNTRY_DEF
+\brief Define country
+\details Define a country with a two character uppercase code, for example COUNTRY_DEF('U','S')
 \param x First character
 \param y Second character
 

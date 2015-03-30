@@ -88,5 +88,3 @@ FOUNDATION_API void          _error_context_clear( void );
 
 FOUNDATION_API void          _environment_main_args( int argc, const char* const* argv );
 
-FOUNDATION_API void          _system_set_device_orientation( device_orientation_t orientation );
-

@@ -154,14 +154,27 @@ void _system_shutdown( void )
 }
 
 
+
+int system_error( void )
+{
+	return GetLastError();
+}
+
+
+void system_error_reset( void )
+{
+	SetLastError( 0 );
+}
+
+
 const char* system_error_message( int code )
 {
 	static FOUNDATION_THREADLOCAL char errmsg[256];
 
 	if( !code )
-		code = GetLastError();
+		code = system_error();
 	if( !code )
-		return "";
+		return "<no error>";
 
 	errmsg[0] = 0;
 	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, 255, 0 );
@@ -306,10 +319,22 @@ void _system_shutdown( void )
 }
 
 
+int system_error( void )
+{
+	return errno;
+}
+
+
+void system_error_reset( void )
+{
+	errno = 0;
+}
+
+
 const char* system_error_message( int code )
 {
 	if( !code )
-		code = errno;
+		code = system_error();
 	if( !code )
 		return "<no error>";
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
@@ -616,11 +641,11 @@ uint32_t system_locale( void )
 	char localestr[4];
 
 	const char* locale = config_string( HASH_USER, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
 
 #define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (((unsigned char)(x)) | (32)) : (x)
@@ -638,6 +663,7 @@ uint32_t system_locale( void )
 const char* system_locale_string( void )
 {
 	static char localestr[5] = {0};
+	//TODO: Thread safety
 	uint32_t locale = system_locale();
 	memcpy( localestr, &locale, 4 );
 	return localestr;
@@ -646,17 +672,17 @@ const char* system_locale_string( void )
 
 uint16_t system_language( void )
 {
-	return (uint16_t)( ( system_locale() >> 16 ) & 0xFFFF );
+	return (uint16_t)( system_locale() & 0xFFFF );
 }
 
 
 uint16_t system_country( void )
 {
-	return (uint16_t)( system_locale() & 0xFFFF );
+	return (uint16_t)( ( system_locale() >> 16 ) & 0xFFFF );
 }
 
 
-void _system_set_device_orientation( device_orientation_t orientation )
+void system_set_device_orientation( device_orientation_t orientation )
 {
 	if( _system_device_orientation == orientation )
 		return;
