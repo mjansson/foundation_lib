@@ -180,6 +180,7 @@ extern int test_pipe_run( void );
 extern int test_profile_run( void );
 extern int test_radixsort_run( void );
 extern int test_random_run( void );
+extern int test_regex_run( void );
 extern int test_ringbuffer_run( void );
 extern int test_semaphore_run( void );
 extern int test_stacktrace_run( void );
@@ -284,6 +285,7 @@ int main_run( void* main_arg )
 		test_profile_run,
 		test_radixsort_run,
 		test_random_run,
+		test_regex_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
 		test_stacktrace_run,
