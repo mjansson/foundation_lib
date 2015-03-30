@@ -24,6 +24,7 @@ FOUNDATION_API void              log_errorf( uint64_t context, error_t err, cons
 FOUNDATION_API void              log_panicf( uint64_t context, error_t err, const char* format, ... );
 
 FOUNDATION_API void              log_error_context( uint64_t context, error_level_t error_level );
+FOUNDATION_API log_callback_fn   log_callback( void );
 FOUNDATION_API void              log_set_callback( log_callback_fn callback );
 FOUNDATION_API void              log_enable_stdout( bool enable );
 FOUNDATION_API void              log_enable_prefix( bool enable );

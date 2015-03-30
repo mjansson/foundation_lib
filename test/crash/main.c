@@ -14,6 +14,7 @@
 #include <test/test.h>
 
 
+static log_callback_fn _global_log_callback = 0;
 static bool _crash_callback_called = false;
 
 
@@ -82,6 +83,8 @@ static void handle_log( uint64_t context, int severity, const char* msg )
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
 	string_copy( handled_log, msg, 512 );
+	if( _global_log_callback )
+		_global_log_callback( context, severity, msg );
 }
 
 #endif
@@ -123,6 +126,7 @@ DECLARE_TEST( crash, assert_callback )
 	EXPECT_EQ( assert_handler(), 0 );
 
 #if BUILD_ENABLE_LOG
+	_global_log_callback = log_callback();
 	log_set_callback( handle_log );
 #endif
 	EXPECT_EQ( assert_report_formatted( 1, "assert_report_formatted", "file", 2, "%s", "msg" ), 1 );
@@ -130,7 +134,7 @@ DECLARE_TEST( crash, assert_callback )
 #if BUILD_ENABLE_LOG
 	EXPECT_TRUE( string_find_string( handled_log, "assert_report_formatted", 0 ) != STRING_NPOS );
 	EXPECT_TRUE( string_find_string( handled_log, "msg", 0 ) != STRING_NPOS );
-	log_set_callback( 0 );
+	log_set_callback( _global_log_callback );
 #endif
 
 	return 0;
