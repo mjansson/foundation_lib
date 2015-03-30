@@ -51,6 +51,7 @@
 		45551A871938D5D900CF089B /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455519BA1938BBDF00CF089B /* libtest.a */; };
 		4575861E1AC75B77009E9325 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4575861D1AC75B77009E9325 /* main.c */; };
 		45BB33991A601D9200D30F3E /* config in Resources */ = {isa = PBXBuildFile; fileRef = 45BB33981A601D9200D30F3E /* config */; };
+		45FD84751AC9300D004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84741AC9300D004357EA /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -124,6 +125,7 @@
 		45551A851938D5D400CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/ios/debug/libfoundation.a; sourceTree = "<group>"; };
 		4575861D1AC75B77009E9325 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/stream/main.c; sourceTree = "<group>"; };
 		45BB33981A601D9200D30F3E /* config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = config; path = ../../../config; sourceTree = "<group>"; };
+		45FD84741AC9300D004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/app/main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,6 +184,7 @@
 			children = (
 				455519E71938BDD400CF089B /* test */,
 				45551A221938D41900CF089B /* all */,
+				45FD84731AC92FF4004357EA /* app */,
 				45551A2C1938D50000CF089B /* array */,
 				45551A2F1938D55B00CF089B /* atomic */,
 				45551A311938D55B00CF089B /* base64 */,
@@ -509,6 +512,14 @@
 			name = stream;
 			sourceTree = "<group>";
 		};
+		45FD84731AC92FF4004357EA /* app */ = {
+			isa = PBXGroup;
+			children = (
+				45FD84741AC9300D004357EA /* main.c */,
+			);
+			name = app;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -621,6 +632,7 @@
 				45551A801938D55B00CF089B /* main.c in Sources */,
 				45551A6D1938D55B00CF089B /* main.c in Sources */,
 				45551A6E1938D55B00CF089B /* main.c in Sources */,
+				45FD84751AC9300D004357EA /* main.c in Sources */,
 				45551A7E1938D55B00CF089B /* main.c in Sources */,
 				45551A241938D43700CF089B /* main.c in Sources */,
 				45551A711938D55B00CF089B /* main.c in Sources */,
