@@ -251,10 +251,41 @@ DECLARE_TEST( uuid, threaded )
 }
 
 
+DECLARE_TEST( uuid, string )
+{
+	uuid_t uuid, uuidref;
+	char* str;
+
+	uuidref = uuid_generate_random();
+	EXPECT_FALSE( uuid_is_null( uuidref ) );
+
+	str = string_from_uuid( uuidref );
+	EXPECT_NE( str, 0 );
+
+	uuid = string_to_uuid( str );
+	EXPECT_FALSE( uuid_is_null( uuid ) );
+	EXPECT_TRUE( uuid_equal( uuid, uuidref ) );
+
+	string_deallocate( str );
+
+	uuid = string_to_uuid( "" );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "empty string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+
+	uuid = string_to_uuid( "0" );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "\"0\" string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+
+	uuid = string_to_uuid( string_from_uuid_static( uuid_null() ) );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "null uuid reconvert through string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+
+	return 0;
+}
+
+
 static void test_uuid_declare( void )
 {
 	ADD_TEST( uuid, generate );
 	ADD_TEST( uuid, threaded );
+	ADD_TEST( uuid, string );
 }
 
 
