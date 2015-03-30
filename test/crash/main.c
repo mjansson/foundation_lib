@@ -14,8 +14,18 @@
 #include <test/test.h>
 
 
-static log_callback_fn _global_log_callback = 0;
 static bool _crash_callback_called = false;
+
+static uint64_t handled_context;
+static char handled_condition[32];
+static char handled_file[32];
+static int handled_line;
+static char handled_msg[32];
+#if BUILD_ENABLE_LOG
+static char handled_log[512];
+static log_callback_fn _global_log_callback = 0;
+#endif
+
 
 
 static application_t test_crash_application( void )
@@ -55,15 +65,6 @@ static void test_crash_callback( const char* dump_path )
 	_crash_callback_called = true;
 }
 
-
-static uint64_t handled_context;
-static char handled_condition[32];
-static char handled_file[32];
-static int handled_line;
-static char handled_msg[32];
-#if BUILD_ENABLE_LOG
-static char handled_log[512];
-#endif
 
 static int handle_assert( uint64_t context, const char* condition, const char* file, int line, const char* msg )
 {
