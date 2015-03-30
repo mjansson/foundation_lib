@@ -58,7 +58,7 @@ static const char longline[] = "Lorem ipsum dolor sit amet, eam mundi concludatu
 " Eu laudem fastidii recteque usu, docendi democritum delicatissimi sed eu. Has te scripta impedit feugait, et mea aeterno nostrud, sed copiosae partiendo sadipscing at. Erant ridens sententiae per in, ut solum posse propriae vim, sed ut wisi denique. Cu eam movet quodsi neglegentur, choro cetero menandri ex eum."
 " Pri malorum fabulas ne. Ex ullum omnes tollit per, dicit antiopam pro ut. Pri ex labore tamquam complectitur, rebum impetus gubergren eos at. Sed id quod tibique, ei quo decore tractatos inciderint, nobis iriure efficiantur at qui. Partem democritum philosophia mea ut, ex senserit repudiandae vix. Ea mel assum regione petentium, alia vide ex vel. Has ei brute dicunt similique, eu pri soleat tamquam."
 " Qui cu aperiam tibique verterem, no eam equidem voluptua accusata, nostro omnium suscipit qui ei. Mei ne vidisse indoctum. Iuvaret dolorum cu mei, dolor iudicabit ei mei. Cu unum ubique efficiendi quo, accommodare interpretaris ut sea. Commodo intellegat ex mea, tota postulant conceptam eam et.";
-static const int longlength = sizeof( longline );
+static const unsigned int longlength = sizeof( longline );
 
 
 static application_t test_stream_application( void )
@@ -246,7 +246,7 @@ DECLARE_TEST( stream, std )
 	stream_buffer_read( out );
 	stream_buffer_read( err );
 
-	EXPECT_GE_MSG( stream_available_read( in ), 0, "stdin invalid value for available bytes to read" );
+	//EXPECT_GE_MSG( stream_available_read( in ), 0, "stdin invalid value for available bytes to read" );
 	EXPECT_EQ_MSG( stream_available_read( out ), 0, "stdout not empty as expected" );
 	EXPECT_EQ_MSG( stream_available_read( err ), 0, "stderr not empty as expected" );
 
@@ -262,7 +262,7 @@ DECLARE_TEST( stream, std )
 	stream_flush( out );
 	stream_flush( err );
 
-	EXPECT_GE_MSG( stream_available_read( in ), 0, "stdin invalid value for available bytes to read" );
+	//EXPECT_GE_MSG( stream_available_read( in ), 0, "stdin invalid value for available bytes to read" );
 	EXPECT_EQ_MSG( stream_available_read( out ), 0, "stdout not empty as expected" );
 	EXPECT_EQ_MSG( stream_available_read( err ), 0, "stderr not empty as expected" );
 

@@ -35,7 +35,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_littleend
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 {
-#if FOUNDATION_COMPILER_MSVC
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+	return __builtin_bswap16( arg );
+#elif FOUNDATION_COMPILER_MSVC
 #if _MSC_VER >= 1310
 	return _byteswap_ushort( arg );
 #else
