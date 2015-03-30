@@ -1522,7 +1522,7 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 		//writing to end of file. Try first with r+b to avoid truncation, then if it fails
 		//i.e file does not exist, create it with w+b
 		modestr = MODESTRING("w+b");
-	} while( retry-- > 0 );
+	} while( !fd && ( retry-- > 0 ) );
 
 
 	if( fd && ( mode & STREAM_ATEND ) )
