@@ -183,6 +183,7 @@ extern int test_random_run( void );
 extern int test_ringbuffer_run( void );
 extern int test_semaphore_run( void );
 extern int test_stacktrace_run( void );
+extern int test_stream_run( void );
 extern int test_string_run( void );
 extern int test_uuid_run( void );
 typedef int (*test_run_fn)( void );
@@ -286,6 +287,7 @@ int main_run( void* main_arg )
 		test_ringbuffer_run,
 		test_semaphore_run,
 		test_stacktrace_run,
+		test_stream_run, //stream test closes stdin
 		test_string_run,
 		test_uuid_run,
 		0

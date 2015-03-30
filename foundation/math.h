@@ -93,7 +93,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_lerp( real
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_unlerp( real v, real x, real y );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_linear_remap( real x, real xmin, real xmax, real ymin, real ymax );
 
-#define                                    math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
+#define                                                          math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realeq( real, real, int ulps );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realeqns( real, real, int ulps );
@@ -392,16 +392,12 @@ static FOUNDATION_FORCEINLINE int      math_trunc( real x ) { return (int)__buil
 
 #if FOUNDATION_SIZE_REAL == 64
 
-
-typedef union { int64_t ival; float64_t rval; } __real_convert;
-
-
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisnan( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	return ( ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) >> 55ULL ) == 0xff ) & ( ( (const uint64_t)conv.ival & 0xFFFFFFFFFFFFFULL ) != 0 );
 }
@@ -410,9 +406,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisnan( real val
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisinf( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	return ( ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) >> 55ULL ) == 0xff ) & ( ( (const uint64_t)conv.ival & 0xFFFFFFFFFFFFFULL ) == 0 );
 }
@@ -421,9 +417,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisinf( real val
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisuninitialized( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	return ( (const uint64_t)conv.ival == 0xCDCDCDCDCDCDCDCDULL ) | ( (const uint64_t)conv.ival == 0xFEEEFEEEFEEEFEEEULL );
 }
@@ -438,9 +434,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisfinite( real 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisdenormalized( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	return ( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) == 0 );
 }
@@ -449,9 +445,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisdenormalized(
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realundenormalize( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	if( ( (const uint64_t)conv.ival & 0x7F80000000000000ULL ) == 0 )
 		return 0;
@@ -461,8 +457,8 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realundenormalize( 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeq( real a, real b, int32_t ulps )
 {
-	__real_convert ca;
-	__real_convert cb;
+	real_cast_t ca;
+	real_cast_t cb;
 	int64_t ai, bi, diff;
 	ca.rval = a;
 	cb.rval = b;
@@ -485,8 +481,8 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeq( real a, rea
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeqns( real a, real b, int32_t ulps )
 {
-	__real_convert ca;
-	__real_convert cb;
+	real_cast_t ca;
+	real_cast_t cb;
 	int64_t diff;
 
 	ca.rval = a;
@@ -502,7 +498,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeqns( real a, r
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val )
 {
 #if 0
-	__real_convert ca;
+	real_cast_t ca;
 	int64_t ai;
 
 	ca.rval = val;
@@ -526,7 +522,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realone( real val )
 {
 #if 0
-	__real_convert ca;
+	real_cast_t ca;
 	int64_t ai, diff;
 	ca.rval = val;
 
@@ -547,7 +543,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realone( real val )
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realdec( real val, int units )
 {
-	__real_convert ca; ca.rval = val;
+	real_cast_t ca; ca.rval = val;
 
 	ca.ival -= ( ca.ival < 0 ? -units : units );
 
@@ -557,7 +553,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realdec( real val, 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realinc( real val, int units )
 {
-	__real_convert ca; ca.rval = val;
+	real_cast_t ca; ca.rval = val;
 
 	ca.ival += ( ca.ival < 0 ? -units : units );
 
@@ -566,16 +562,12 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realinc( real val, 
 
 #else
 
-
-typedef union { int32_t ival; float32_t rval; } __real_convert;
-
-
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisnan( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	return ( ( ( (const uint32_t)conv.ival & 0x7F800000 ) >> 23 ) == 0xFF ) & ( ( (const uint32_t)conv.ival & 0x7FFFFF ) != 0 );
 }
@@ -584,9 +576,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisnan( real val
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisinf( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	return ( ( ( (const uint32_t)conv.ival & 0x7F800000) >> 23 ) == 0xFF ) & ( ( (const uint32_t)conv.ival & 0x7FFFFF ) == 0 );
 }
@@ -595,9 +587,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisinf( real val
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisuninitialized( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	//Some common debugger uninitialized filler values
 	return ( (const uint32_t)conv.ival == 0xFEEEFEEEU ) || ( (const uint32_t)conv.ival == 0xCDCDCDCDU );
@@ -613,9 +605,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisfinite( real 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisdenormalized( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	return ( ( (const uint32_t)conv.ival & 0x7F800000ULL ) == 0 );
 }
@@ -624,9 +616,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisdenormalized(
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realundenormalize( real val )
 {
 #if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const __real_convert conv = { .rval=val };
+	const real_cast_t conv = { .rval=val };
 #else
-	__real_convert conv; conv.rval = val;
+	real_cast_t conv; conv.rval = val;
 #endif
 	if( ( (const uint32_t)conv.ival & 0x7F800000 ) == 0 )
 		return 0;
@@ -636,8 +628,8 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realundenormalize( 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeq( real a, real b, int ulps )
 {
-	__real_convert ca;
-	__real_convert cb;
+	real_cast_t ca;
+	real_cast_t cb;
 	int32_t ai, bi, diff;
 	ca.rval = a;
 	cb.rval = b;
@@ -660,8 +652,8 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeq( real a, rea
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeqns( real a, real b, int ulps )
 {
-	__real_convert ca;
-	__real_convert cb;
+	real_cast_t ca;
+	real_cast_t cb;
 	int32_t diff;
 	ca.rval = a;
 	cb.rval = b;
@@ -676,7 +668,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeqns( real a, r
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val )
 {
 #if 0
-	__real_convert ca;
+	real_cast_t ca;
 	int32_t ai;
 	ca.rval = val;
 
@@ -697,7 +689,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realone( real val )
 {
 #if 0
-	__real_convert ca;
+	real_cast_t ca;
 	int32_t ai, diff;
 	ca.rval = val;
 
@@ -718,7 +710,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realone( real val )
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realdec( real val, int units )
 {
-	__real_convert ca; ca.rval = val;
+	real_cast_t ca; ca.rval = val;
 
 	ca.ival -= ( ca.ival < 0 ? -units : units );
 
@@ -728,7 +720,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realdec( real val, 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realinc( real val, int units )
 {
-	__real_convert ca; ca.rval = val;
+	real_cast_t ca; ca.rval = val;
 
 	ca.ival += ( ca.ival < 0 ? -units : units );
 

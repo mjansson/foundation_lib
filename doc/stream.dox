@@ -139,10 +139,10 @@ over an UDP socket are out-of-order.
 
 \fn char* stream_read_line( stream_t* stream, char delimiter )
 \brief Read line and allocate buffer
-\details Read line as string, discarding delimiter. Allocates a new memory buffer for the string.
+\details Read line as string, discarding delimiter. Allocates a new memory buffer for the string, must be freed with a call to #string_deallocate
 \param stream Stream
 \param delimiter Delimiter, default '\n'
-\return String, must be freed with a call to #string_deallocate
+\return String read, 0 if error or if no bytes could be read from stream
 
 \fn uint64_t stream_size( stream_t* stream )
 \brief Get size
@@ -226,7 +226,7 @@ over an UDP socket are out-of-order.
 \brief Read string
 \details Read string from stream. Must be freed with a call to #string_deallocate
 \param stream Stream
-\return String, 0 if error
+\return String, 0 if error or if no bytes (or in binary mode, an empty string) could be read from stream
 
 \fn uint64_t stream_read_string_buffer( stream_t* stream, char* buffer, uint64_t size )
 \brief Read string
@@ -335,7 +335,7 @@ over an UDP socket are out-of-order.
 
 \fn void stream_write_endl( stream_t* stream )
 \brief Write end of line
-\details Write an endline character to the stream and flush.
+\details If the stream is in text mode, write an endline character to the stream and flush. If the stream is in binary mode, only flush.
 \param stream Stream
 
 \fn void stream_write_format( stream_t* stream, const char* format, ... )

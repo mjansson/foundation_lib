@@ -220,7 +220,10 @@ void* memory_allocate( uint64_t context, uint64_t size, unsigned int align, int 
 	if( ( hint & MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
 	{
 		align = _memory_get_align( align );
+		if( align < FOUNDATION_SIZE_POINTER )
+			align = FOUNDATION_SIZE_POINTER;
 		p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
+		FOUNDATION_ASSERT( !( (uintptr_t)p & 1 ) );
 		memset( p, 0, (size_t)size );
 	}
 	else
@@ -345,8 +348,10 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 			memory = raw_memory + padding; //Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
 			*( (void**)memory - 1 ) = raw_memory;
 			FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+			FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 #if BUILD_ENABLE_MEMORY_GUARD
 			memory = _memory_guard_initialize( memory, size );
+			FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 #endif
 			return memory;
 		}
@@ -354,12 +359,11 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 		return 0;
 	}
 
-	padding = ( align > FOUNDATION_SIZE_POINTER ) ? align : FOUNDATION_SIZE_POINTER;
 #    if BUILD_ENABLE_MEMORY_GUARD
 	extra_padding = FOUNDATION_MAX_ALIGN * 3;
 #    endif
 
-	allocate_size = size + padding + extra_padding + align;
+	allocate_size = size + FOUNDATION_SIZE_POINTER + extra_padding + align;
 	raw_memory = 0;
 
 	vmres = NtAllocateVirtualMemory( INVALID_HANDLE_VALUE, &raw_memory, 1, &allocate_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE );
@@ -369,12 +373,13 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 		return 0;
 	}
 
-	memory = _memory_align_pointer( raw_memory + padding, align );
+	memory = _memory_align_pointer( raw_memory + FOUNDATION_SIZE_POINTER, align );
 	*( (void**)memory - 1 ) = (void*)( (uintptr_t)raw_memory | 1 );
 #    if BUILD_ENABLE_MEMORY_GUARD
 	memory = _memory_guard_initialize( memory, size );
 #    endif
-
+	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+	FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 	return memory;
 #  endif
 
@@ -384,39 +389,42 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 	if( !( hint & MEMORY_32BIT_ADDRESS ) )
 #  endif
 	{
-		unsigned int extra_padding = 0;
-		unsigned int padding = ( align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER );
 #if BUILD_ENABLE_MEMORY_GUARD
-		extra_padding = FOUNDATION_MAX_ALIGN * 3;
+		unsigned int extra_padding = FOUNDATION_MAX_ALIGN * 3;
+#else
+		unsigned int extra_padding = 0;
 #endif
-		char* raw_memory = malloc( (size_t)size + align + padding + extra_padding );
+		size_t allocate_size = (size_t)size + align + FOUNDATION_SIZE_POINTER + extra_padding;
+		char* raw_memory = malloc( allocate_size );
 		if( raw_memory )
 		{
-			void* memory = _memory_align_pointer( raw_memory + padding, align );
+			void* memory = _memory_align_pointer( raw_memory + FOUNDATION_SIZE_POINTER, align );
 			*( (void**)memory - 1 ) = raw_memory;
 			FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+			FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 #if BUILD_ENABLE_MEMORY_GUARD
 			memory = _memory_guard_initialize( memory, size );
+			FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 #endif
 			return memory;
 		}
-		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory (%llu requested)", size, size + align + padding );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory (%llu requested)", (uint64_t)size, (uint64_t)allocate_size );
 		return 0;
 	}
 
 #  if FOUNDATION_SIZE_POINTER > 4
 
-	unsigned int padding = ( align > FOUNDATION_SIZE_POINTER*2 ? align : FOUNDATION_SIZE_POINTER*2 );
-	unsigned int extra_padding = 0;
 	size_t allocate_size;
 	char* raw_memory;
 	void* memory;
 
 #    if BUILD_ENABLE_MEMORY_GUARD
-	extra_padding = FOUNDATION_MAX_ALIGN * 3;
+	unsigned int extra_padding = FOUNDATION_MAX_ALIGN * 3;
+#else
+	unsigned int extra_padding = 0;
 #    endif
 
-	allocate_size = size + padding + extra_padding + align;
+	allocate_size = size + align + FOUNDATION_SIZE_POINTER*2 + extra_padding;
 
 	#ifndef MAP_UNINITIALIZED
 	#define MAP_UNINITIALIZED 0
@@ -455,16 +463,18 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #    endif
 	if( !raw_memory )
 	{
-		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", (uint64_t)size );
 		return 0;
 	}
 
-	memory = _memory_align_pointer( raw_memory + padding, align );
+	memory = _memory_align_pointer( raw_memory + FOUNDATION_SIZE_POINTER*2, align );
 	*( (uintptr_t*)memory - 1 ) = ( (uintptr_t)raw_memory | 1 );
 	*( (uintptr_t*)memory - 2 ) = allocate_size;
 	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
+	FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 #    if BUILD_ENABLE_MEMORY_GUARD
 	memory = _memory_guard_initialize( memory, size );
+	FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 #    endif
 
 	return memory;

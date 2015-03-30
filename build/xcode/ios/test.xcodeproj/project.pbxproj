@@ -49,6 +49,7 @@
 		45551A841938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A661938D55B00CF089B /* main.c */; };
 		45551A861938D5D400CF089B /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 45551A851938D5D400CF089B /* libfoundation.a */; };
 		45551A871938D5D900CF089B /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455519BA1938BBDF00CF089B /* libtest.a */; };
+		4575861E1AC75B77009E9325 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4575861D1AC75B77009E9325 /* main.c */; };
 		45BB33991A601D9200D30F3E /* config in Resources */ = {isa = PBXBuildFile; fileRef = 45BB33981A601D9200D30F3E /* config */; };
 /* End PBXBuildFile section */
 
@@ -121,6 +122,7 @@
 		45551A641938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/string/main.c; sourceTree = "<group>"; };
 		45551A661938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/uuid/main.c; sourceTree = "<group>"; };
 		45551A851938D5D400CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/ios/debug/libfoundation.a; sourceTree = "<group>"; };
+		4575861D1AC75B77009E9325 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/stream/main.c; sourceTree = "<group>"; };
 		45BB33981A601D9200D30F3E /* config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = config; path = ../../../config; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -209,6 +211,7 @@
 				45551A5F1938D55B00CF089B /* ringbuffer */,
 				45551A611938D55B00CF089B /* semaphore */,
 				45551A631938D55B00CF089B /* stacktrace */,
+				4575861C1AC75B5B009E9325 /* stream */,
 				45551A651938D55B00CF089B /* string */,
 				45551A671938D55B00CF089B /* uuid */,
 			);
@@ -498,6 +501,14 @@
 			name = bin;
 			sourceTree = "<group>";
 		};
+		4575861C1AC75B5B009E9325 /* stream */ = {
+			isa = PBXGroup;
+			children = (
+				4575861D1AC75B77009E9325 /* main.c */,
+			);
+			name = stream;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -598,6 +609,7 @@
 				45551A6A1938D55B00CF089B /* main.c in Sources */,
 				45551A7C1938D55B00CF089B /* main.c in Sources */,
 				45551A691938D55B00CF089B /* main.c in Sources */,
+				4575861E1AC75B77009E9325 /* main.c in Sources */,
 				45551A781938D55B00CF089B /* main.c in Sources */,
 				45551A6B1938D55B00CF089B /* main.c in Sources */,
 				45551A741938D55B00CF089B /* main.c in Sources */,

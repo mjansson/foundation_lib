@@ -124,6 +124,7 @@ static void* objectmap_thread( object_t thread, void* arg )
 	object_base_t* objects;
 	int obj;
 	int loop;
+	object_base_t* lookup;
 	FOUNDATION_UNUSED( thread );
 
 	map = arg;
@@ -138,19 +139,24 @@ static void* objectmap_thread( object_t thread, void* arg )
 		for( obj = 0; obj < 512; ++obj )
 		{
 			objects[obj].id = objectmap_reserve( map );
-			EXPECT_NE( objects[obj].id, 0 );
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), 0 );
+			EXPECT_NE_MSGFORMAT( objects[obj].id, 0, "Unable to reserve slot for object num %d", obj );
+			EXPECT_EQ_MSGFORMAT( objectmap_lookup( map, objects[obj].id ), 0, "Object num %d (%llx) already stored in map", obj, objects[obj].id );
 			objectmap_set( map, objects[obj].id, objects + obj );
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), objects + obj );
+			lookup = objectmap_lookup( map, objects[obj].id );
+			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects + obj, lookup );
 		}
 
 		thread_yield();
 
 		for( obj = 0; obj < 512; ++obj )
 		{
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), objects + obj );
+			lookup = objectmap_lookup( map, objects[obj].id );
+			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects + obj, lookup );
 			objectmap_free( map, objects[obj].id );
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), 0 );
+			lookup = objectmap_lookup( map, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, 0, "Object num %d (%llx) still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj, objects[obj].id, lookup );
 		}
 	}
 
@@ -166,6 +172,7 @@ DECLARE_TEST( objectmap, thread )
 	object_t thread[32];
 	int ith;
 	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	bool running = true;
 
 	map = objectmap_allocate( 32000 );
 
@@ -178,10 +185,29 @@ DECLARE_TEST( objectmap, thread )
 	test_wait_for_threads_startup( thread, num_threads );
 
 	for( ith = 0; ith < num_threads; ++ith )
-	{
 		thread_terminate( thread[ith] );
+
+	while( running )
+	{
+		running = false;
+		for( ith = 0; ith < num_threads; ++ith )
+		{
+			if( thread_is_running( thread[ith] ) )
+			{
+				running = true;
+				thread_yield();
+			}
+		}
+	}
+
+	for( ith = 0; ith < num_threads; ++ith )
+	{
+		EXPECT_EQ( thread_result( thread[ith] ), 0 );
+	}
+
+	for( ith = 0; ith < num_threads; ++ith )
+	{
 		thread_destroy( thread[ith] );
-		thread_yield();
 	}
 
 	test_wait_for_threads_exit( thread, num_threads );
