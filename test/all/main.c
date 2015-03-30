@@ -187,6 +187,7 @@ extern int test_stacktrace_run( void );
 extern int test_stream_run( void );
 extern int test_string_run( void );
 extern int test_system_run( void );
+extern int test_time_run( void );
 extern int test_uuid_run( void );
 typedef int (*test_run_fn)( void );
 
@@ -219,7 +220,7 @@ int main_run( void* main_arg )
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
 #endif
-#if BUILD_MONOLITHIC
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	int remain_counter = 0;
 #endif
 #if BUILD_DEBUG
@@ -293,6 +294,7 @@ int main_run( void* main_arg )
 		test_stream_run, //stream test closes stdin
 		test_string_run,
 		test_system_run,
+		test_time_run,
 		test_uuid_run,
 		0
 	};
@@ -334,7 +336,7 @@ int main_run( void* main_arg )
 	if( process_result != 0 )
 		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 
 	while( !_test_should_terminate && _test_have_focus && ( remain_counter < 50 ) )
 	{

@@ -52,6 +52,8 @@
 		4575861E1AC75B77009E9325 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4575861D1AC75B77009E9325 /* main.c */; };
 		45BB33991A601D9200D30F3E /* config in Resources */ = {isa = PBXBuildFile; fileRef = 45BB33981A601D9200D30F3E /* config */; };
 		45FD84751AC9300D004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84741AC9300D004357EA /* main.c */; };
+		45FD84791AC9531B004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84781AC9531B004357EA /* main.c */; };
+		45FD847B1AC95327004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD847A1AC95327004357EA /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -126,6 +128,8 @@
 		4575861D1AC75B77009E9325 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/stream/main.c; sourceTree = "<group>"; };
 		45BB33981A601D9200D30F3E /* config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = config; path = ../../../config; sourceTree = "<group>"; };
 		45FD84741AC9300D004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/app/main.c; sourceTree = "<group>"; };
+		45FD84781AC9531B004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/system/main.c; sourceTree = "<group>"; };
+		45FD847A1AC95327004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/time/main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -216,6 +220,8 @@
 				45551A631938D55B00CF089B /* stacktrace */,
 				4575861C1AC75B5B009E9325 /* stream */,
 				45551A651938D55B00CF089B /* string */,
+				45FD84761AC952F3004357EA /* system */,
+				45FD84771AC952FE004357EA /* time */,
 				45551A671938D55B00CF089B /* uuid */,
 			);
 			name = test;
@@ -520,6 +526,22 @@
 			name = app;
 			sourceTree = "<group>";
 		};
+		45FD84761AC952F3004357EA /* system */ = {
+			isa = PBXGroup;
+			children = (
+				45FD84781AC9531B004357EA /* main.c */,
+			);
+			name = system;
+			sourceTree = "<group>";
+		};
+		45FD84771AC952FE004357EA /* time */ = {
+			isa = PBXGroup;
+			children = (
+				45FD847A1AC95327004357EA /* main.c */,
+			);
+			name = time;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -644,9 +666,11 @@
 				45551A701938D55B00CF089B /* main.c in Sources */,
 				45551A7D1938D55B00CF089B /* main.c in Sources */,
 				451871BE19560285000E42C9 /* main.c in Sources */,
+				45FD84791AC9531B004357EA /* main.c in Sources */,
 				45551A681938D55B00CF089B /* main.c in Sources */,
 				45551A6C1938D55B00CF089B /* main.c in Sources */,
 				45551A7A1938D55B00CF089B /* main.c in Sources */,
+				45FD847B1AC95327004357EA /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
