@@ -369,12 +369,98 @@ DECLARE_TEST( random, threads )
 }
 
 
+DECLARE_TEST( random, util )
+{
+	int i;
+	int32_t ival32;
+	uint32_t val32;
+	uint64_t val64;
+	real val;
+	int num_passes = 512000;
+	real weights[] = { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f };
+	real noweights[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	for( i = 0; i < num_passes; ++i )
+	{
+		val32 = random32_range( 0, 100 );
+		EXPECT_GE( val32, 0 );
+		EXPECT_LT( val32, 100 );
+
+		val32 = random32_range( 100, 0 );
+		EXPECT_GE( val32, 0 );
+		EXPECT_LT( val32, 100 );
+
+		val64 = random64_range( 0, 100 );
+		EXPECT_GE( val64, 0 );
+		EXPECT_LT( val64, 100 );
+
+		val64 = random64_range( 100, 0 );
+		EXPECT_GE( val64, 0 );
+		EXPECT_LT( val64, 100 );
+
+		val = random_range( REAL_C( 0.0 ), REAL_C( 100.0 ) );
+		EXPECT_GE( val, REAL_C( 0.0 ) );
+		EXPECT_LT( val, REAL_C( 100.0 ) );
+
+		val = random_range( REAL_C( 100.0 ), REAL_C( 0.0 ) );
+		EXPECT_GE( val, REAL_C( 0.0 ) );
+		EXPECT_LT( val, REAL_C( 100.0 ) );
+
+		//TODO: Check distribution of these functions
+		ival32 = random32_gaussian_range( -32, 32 );
+		EXPECT_GE( ival32, -32 );
+		EXPECT_LT( ival32, 32 );
+
+		ival32 = random32_gaussian_range( 32, -32 );
+		EXPECT_GE( ival32, -32 );
+		EXPECT_LT( ival32, 32 );
+
+		val = random_gaussian_range( REAL_C( -32.0 ), REAL_C( 32.0 ) );
+		EXPECT_GE( val, REAL_C( -32.0 ) );
+		EXPECT_LT( val, REAL_C( 32.0 ) );
+
+		val = random_gaussian_range( REAL_C( 32.0 ), REAL_C( -32.0 ) );
+		EXPECT_GE( val, REAL_C( -32.0 ) );
+		EXPECT_LT( val, REAL_C( 32.0 ) );
+
+		ival32 = random32_triangle_range( -128, -64 );
+		EXPECT_GE( ival32, -128 );
+		EXPECT_LT( ival32, 64 );
+
+		ival32 = random32_triangle_range( 128, -64 );
+		EXPECT_GE( ival32, -64 );
+		EXPECT_LT( ival32, 128 );
+
+		val = random_triangle_range( REAL_C( -128.0 ), REAL_C( -64.0 ) );
+		EXPECT_GE( val, REAL_C( -128.0 ) );
+		EXPECT_LT( val, REAL_C( -64.0 ) );
+
+		val = random_triangle_range( REAL_C( 128.0 ), REAL_C( -64.0 ) );
+		EXPECT_GE( val, REAL_C( -64.0 ) );
+		EXPECT_LT( val, REAL_C( 128.0 ) );
+
+		val32 = random32_weighted( 10, weights );
+		EXPECT_GE( val32, 0 );
+		EXPECT_LT( val32, 10 );
+
+		val32 = random32_weighted( 10, noweights );
+		EXPECT_GE( val32, 0 );
+		EXPECT_LT( val32, 10 );
+
+		EXPECT_EQ( random32_weighted( 1, weights ), 0 );
+	}
+
+	return 0;
+}
+
+
 static void test_random_declare( void )
 {
 	ADD_TEST( random, distribution32 );
 	ADD_TEST( random, distribution64 );
 	ADD_TEST( random, distribution_real );
 	ADD_TEST( random, threads );
+	ADD_TEST( random, util );
 }
 
 
