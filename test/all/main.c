@@ -374,7 +374,7 @@ int main_run( void* main_arg )
 		if( regex_match( app_regex, subdirs[idir], string_length( subdirs[idir] ), 0, 0 ) )
 		{
 			array_push( exe_paths, string_substr( subdirs[idir], 0, string_length( subdirs[idir] ) - 4 ) );
-			array_push( exe_flags, PROCESS_OSX_USE_OPENAPPLICATION );
+			array_push( exe_flags, PROCESS_MACOSX_USE_OPENAPPLICATION );
 		}
 	}
 	string_array_deallocate( subdirs );

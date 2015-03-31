@@ -350,7 +350,7 @@ Create stdout/stdin pipes to process
 \var process_flag_t PROCESS_WINDOWS_USE_SHELLEXECUTE
 Windows platform only, use ShellExecute instead of CreateProcess
 
-\var process_flag_t PROCESS_OSX_USE_OPENAPPLICATION
+\var process_flag_t PROCESS_MACOSX_USE_OPENAPPLICATION
 MacOSX platform only, use LSOpenApplication instead of fork/execve
 
 

@@ -333,7 +333,7 @@ int process_spawn( process_t* proc )
 
 #if FOUNDATION_PLATFORM_MACOSX
 
-	if( proc->flags & PROCESS_OSX_USE_OPENAPPLICATION )
+	if( proc->flags & PROCESS_MACOSX_USE_OPENAPPLICATION )
 	{
 		proc->pid = 0;
 
@@ -471,7 +471,7 @@ int process_spawn( process_t* proc )
 		if( proc->pipein )
 			pipe_close_read( proc->pipein );
 
-		if( proc->flags & PROCESS_DETACHED )
+		/*if( proc->flags & PROCESS_DETACHED )
 		{
 			int cstatus = 0;
 			pid_t err = waitpid( pid, &cstatus, WNOHANG );
@@ -484,11 +484,12 @@ int process_spawn( process_t* proc )
 			if( err > 0 )
 			{
 				//Process exited, check code
+				proc->pid = 0;
 				proc->code = (int)((char)WEXITSTATUS( cstatus ));
 				log_debugf( 0, "Child process returned: %d", proc->code );
 				return proc->code;
 			}
-		}
+		}*/
 	}
 	else
 	{
@@ -576,7 +577,7 @@ int process_wait( process_t* proc )
 		return proc->code;
 
 #  if FOUNDATION_PLATFORM_MACOSX
-	if( proc->flags & PROCESS_OSX_USE_OPENAPPLICATION )
+	if( proc->flags & PROCESS_MACOSX_USE_OPENAPPLICATION )
 	{
 		if( proc->kq )
 		{
@@ -590,7 +591,7 @@ int process_wait( process_t* proc )
 		}
 		else
 		{
-			log_warnf( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_OSX_USE_OPENAPPLICATION and no kqueue" );
+			log_warnf( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue" );
 			return PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;

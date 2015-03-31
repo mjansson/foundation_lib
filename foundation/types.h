@@ -167,7 +167,7 @@ typedef enum
 	PROCESS_CONSOLE                           = 0x02,
 	PROCESS_STDSTREAMS                        = 0x04,
 	PROCESS_WINDOWS_USE_SHELLEXECUTE          = 0x08,
-	PROCESS_OSX_USE_OPENAPPLICATION           = 0x10
+	PROCESS_MACOSX_USE_OPENAPPLICATION        = 0x10
 } process_flag_t;
 
 typedef enum
@@ -658,6 +658,8 @@ FOUNDATION_ALIGNED_STRUCT( stream_buffer_t, 8 )
 FOUNDATION_ALIGNED_STRUCT( stream_pipe_t, 8 )
 {
 	FOUNDATION_DECLARE_STREAM;
+
+	bool                            eos;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	void*                           handle_read;

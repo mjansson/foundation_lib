@@ -40,7 +40,7 @@ test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.
 test_cases = [
   'app', 'array', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
   'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'library', 'math', 'md5', 'mutex', 'objectmap',
-  'path', 'pipe', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
+  'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'
 ]
 if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_pnacl():

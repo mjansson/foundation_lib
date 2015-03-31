@@ -183,7 +183,10 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 		{
 			unsigned long num_read = 0;
 			if( !ReadFile( pipestream->handle_read, pointer_offset( dest, total_read ), (unsigned int)( num - total_read ), &num_read, 0 ) )
+			{
+				pipestream->eos = true;
 				break;
+			}
 			total_read += num_read;
 		} while( total_read < num );
 		return total_read;
@@ -195,8 +198,11 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 		do
 		{
 			ssize_t num_read = read( pipestream->fd_read, pointer_offset( dest, total_read ), (size_t)( num - total_read ) );
-			if( num_read < 0 )
+			if( num_read <= 0 )
+			{
+				pipestream->eos = true;
 				break;
+			}
 			total_read += num_read;
 		} while( total_read < num );
 		return total_read;
@@ -219,7 +225,10 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 		{
 			unsigned long num_written = 0;
 			if( !WriteFile( pipestream->handle_write, pointer_offset_const( source, total_written ), (unsigned int)( num - total_written ), &num_written, 0 ) )
+			{
+				pipestream->eos = true;
 				break;
+			}
 			total_written += num_written;
 		} while( total_written < num );
 		return total_written;
@@ -231,8 +240,11 @@ static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64
 		do
 		{
 			ssize_t num_written = write( pipestream->fd_write, pointer_offset_const( source, total_written ), (size_t)( num - total_written ) );
-			if( num_written < 0 )
+			if( num_written <= 0 )
+			{
+				pipestream->eos = true;
 				break;
+			}
 			total_written += num_written;
 		} while( total_written < num );
 		return total_written;
@@ -247,11 +259,11 @@ static bool _pipe_stream_eos( stream_t* stream )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 #if FOUNDATION_PLATFORM_WINDOWS
-	return !stream || ( !pipestream->handle_read && !pipestream->handle_write );
+	return !stream || ( !pipestream->handle_read && !pipestream->handle_write ) || pipestream->eos;
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-	return !stream || ( !pipestream->fd_read && !pipestream->fd_write );
+	return !stream || ( !pipestream->fd_read && !pipestream->fd_write ) || pipestream->eos;
 #else
-	return !stream;
+	return !stream || pipestream->eos;
 #endif
 }
 
