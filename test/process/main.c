@@ -70,7 +70,7 @@ DECLARE_TEST( process, spawn )
 	process_set_working_directory( proc, "/" );
 	process_set_executable_path( proc, prog );
 	process_set_arguments( proc, args, sizeof( args ) / sizeof( args[0] ) );
-	process_set_flags( proc, PROCESS_DETACHED | PROCESS_CONSOLE | PROCESS_STDSTREAMS | PROCESS_WINDOWS_USE_SHELLEXECUTE );
+	process_set_flags( proc, PROCESS_DETACHED | PROCESS_CONSOLE | PROCESS_STDSTREAMS );
 	process_set_verb( proc, "open" );
 
 	ret = process_spawn( proc );
@@ -111,6 +111,12 @@ DECLARE_TEST( process, spawn )
 	} while( exit_code == PROCESS_STILL_ACTIVE );
 
 	EXPECT_EQ( exit_code, 0 );
+
+#if FOUNDATION_PLATFORM_WINDOWS
+
+	// PROCESS_WINDOWS_USE_SHELLEXECUTE
+
+#endif
 
 #if FOUNDATION_PLATFORM_MACOSX
 

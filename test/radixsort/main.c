@@ -292,10 +292,37 @@ DECLARE_TEST( radixsort, sort_real )
 		arr_32 = memory_allocate( 0, sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_64 = memory_allocate( 0, sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
 
+		//Mixed neg/pos
 		for( ival = 0; ival < num; ++ival )
 		{
 			arr_32[ival] = random_range( low_range, high_range );
 			arr_64[ival] = random_range( low_range, high_range );
+		}
+
+		sindex_32 = radixsort( sort_32, arr_32, num );
+		sindex_64 = radixsort( sort_64, arr_64, num );
+
+		if( num == 1 )
+		{
+			EXPECT_EQ( sindex_32[0], 0 );
+			EXPECT_EQ( sindex_64[0], 0 );
+		}
+		else for( ival = 1; ival < num; ++ival )
+		{
+			for( sval = 0; sval < ival; ++sval )
+			{
+				EXPECT_NE( sindex_32[sval], sindex_32[ival] );
+				EXPECT_NE( sindex_64[sval], sindex_64[ival] );
+			}
+			EXPECT_LE( arr_32[ sindex_32[ival-1] ], arr_32[ sindex_32[ival] ] );
+			EXPECT_LE( arr_64[ sindex_64[ival-1] ], arr_64[ sindex_64[ival] ] );
+		}
+
+		//Only neg
+		for( ival = 0; ival < num; ++ival )
+		{
+			arr_32[ival] = random_range( low_range, -1.0f );
+			arr_64[ival] = random_range( low_range, -1.0f );
 		}
 
 		sindex_32 = radixsort( sort_32, arr_32, num );
@@ -331,10 +358,37 @@ DECLARE_TEST( radixsort, sort_real )
 		arr_32 = memory_allocate( 0, sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_64 = memory_allocate( 0, sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
 
+		//Mixed neg/pos
 		for( ival = 0; ival < num; ++ival )
 		{
 			arr_32[ival] = random_range( low_range, high_range );
 			arr_64[ival] = random_range( low_range, high_range );
+		}
+
+		sindex_32 = radixsort( sort_32, arr_32, num );
+		sindex_64 = radixsort( sort_64, arr_64, num );
+
+		if( num == 1 )
+		{
+			EXPECT_EQ( sindex_32[0], 0 );
+			EXPECT_EQ( sindex_64[0], 0 );
+		}
+		else for( ival = 1; ival < num; ++ival )
+		{
+			for( sval = 0; sval < ival; ++sval )
+			{
+				EXPECT_NE( sindex_32[sval], sindex_32[ival] );
+				EXPECT_NE( sindex_64[sval], sindex_64[ival] );
+			}
+			EXPECT_LE( arr_32[ sindex_32[ival-1] ], arr_32[ sindex_32[ival] ] );
+			EXPECT_LE( arr_64[ sindex_64[ival-1] ], arr_64[ sindex_64[ival] ] );
+		}
+
+		//Only neg
+		for( ival = 0; ival < num; ++ival )
+		{
+			arr_32[ival] = random_range( low_range, -1.0f );
+			arr_64[ival] = random_range( low_range, -1.0f );
 		}
 
 		sindex_32 = radixsort( sort_32, arr_32, num );
