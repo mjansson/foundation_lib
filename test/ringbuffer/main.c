@@ -225,8 +225,6 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	loops = 16;
 #endif
 
-	FOUNDATION_UNUSED( throughput );
-
 	test.buffer_size = mbytes * 1024 * 1024;
 
 	srcbuffer = memory_allocate( 0, test.buffer_size, 0, MEMORY_PERSISTENT );
@@ -283,6 +281,8 @@ DECLARE_TEST( ringbufferstream, threadedio )
 
 	memory_deallocate( test.source_buffer );
 	memory_deallocate( test.dest_buffer );
+
+	FOUNDATION_UNUSED( throughput );
 
 	return 0;
 }
