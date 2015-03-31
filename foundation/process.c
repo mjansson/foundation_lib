@@ -287,8 +287,8 @@ int process_spawn( process_t* proc )
 
 			si.dwFlags |= STARTF_USESTDHANDLES;
 			si.hStdOutput = pipe_write_handle( proc->pipeout );
-			si.hStdError = pipe_write_handle( proc->pipeout );
 			si.hStdInput = pipe_read_handle( proc->pipein );
+			si.hStdError = GetStdHandle( STD_ERROR_HANDLE );
 
 			//Don't inherit wrong ends of pipes
 			SetHandleInformation( pipe_read_handle( proc->pipeout ), HANDLE_FLAG_INHERIT, 0 );
@@ -299,7 +299,7 @@ int process_spawn( process_t* proc )
 
 		log_debugf( 0, "Spawn process (CreateProcess): %s %s", proc->path, cmdline );
 
-		if( !CreateProcessW( 0/*wpath*/, wcmdline, 0, 0, inherit_handles, ( proc->flags & PROCESS_CONSOLE ) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi ) )
+		if( !CreateProcessW( 0, wcmdline, 0, 0, inherit_handles, ( proc->flags & PROCESS_CONSOLE ) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi ) )
 		{
 			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to spawn process (CreateProcess) for executable '%s': %s", proc->path, system_error_message( GetLastError() ) );
 
