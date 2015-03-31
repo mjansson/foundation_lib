@@ -158,7 +158,7 @@ typedef struct
 	semaphore_t   read;
 	semaphore_t   write;
 	int           loopcount;
-	int           counter;
+	atomic32_t    counter;
 } semaphore_test_t;
 
 static void* semaphore_waiter( object_t thread, void* arg )
@@ -171,7 +171,7 @@ static void* semaphore_waiter( object_t thread, void* arg )
 	{
 		thread_yield();
 		semaphore_wait( &sem->read );
-		++sem->counter;
+		atomic_incr32( &sem->counter );
 		semaphore_post( &sem->write );
 	}
 
@@ -189,7 +189,7 @@ DECLARE_TEST( semaphore, threaded )
 	semaphore_initialize( &test.read, 0 );
 	semaphore_initialize( &test.write, 0 );
 	test.loopcount = 128;
-	test.counter = 0;
+	atomic_store32( &test.counter, 0 );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
@@ -220,17 +220,17 @@ DECLARE_TEST( semaphore, threaded )
 
 	test_wait_for_threads_exit( thread, 32 );
 
-	EXPECT_EQ( test.counter, test.loopcount * 32 );
+	EXPECT_EQ( atomic_load32( &test.counter ), test.loopcount * 32 );
 	EXPECT_EQ( failed_waits, 0 );
 
 	semaphore_finalize( &test.read );
 	semaphore_finalize( &test.write );
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named( &test.read, "foundation_test", 0 );
-	semaphore_initialize_named( &test.write, "foundation_test", 0 );
+	semaphore_initialize_named( &test.read, "foundation_test_read", 0 );
+	semaphore_initialize_named( &test.write, "foundation_test_write", 0 );
 	test.loopcount = 128;
-	test.counter = 0;
+	atomic_store32( &test.counter, 0 );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
@@ -252,6 +252,9 @@ DECLARE_TEST( semaphore, threaded )
 		}
 	}
 
+	EXPECT_EQ( atomic_load32( &test.counter ), test.loopcount * 32 );
+	EXPECT_EQ( failed_waits, 0 );
+
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread_terminate( thread[ith] );
@@ -260,9 +263,6 @@ DECLARE_TEST( semaphore, threaded )
 	}
 
 	test_wait_for_threads_exit( thread, 32 );
-
-	EXPECT_EQ( test.counter, test.loopcount * 32 );
-	EXPECT_EQ( failed_waits, 0 );
 
 	semaphore_finalize( &test.read );
 	semaphore_finalize( &test.write );

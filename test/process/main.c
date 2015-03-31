@@ -53,8 +53,8 @@ DECLARE_TEST( process, spawn )
 	bool found_expected;
 	char line_buffer[512];
 #if FOUNDATION_PLATFORM_WINDOWS
-	const char* prog = "dir";
-	const char* args[] = { "/w", "/n" };
+	const char* prog = environment_variable( "comspec" );
+	const char* args[] = { "/C", "dir" };
 #elif FOUNDATION_PLATFORM_POSIX
 	const char* prog = "/bin/ls";
 	const char* args[] = { "-l", "-a" };
@@ -89,11 +89,13 @@ DECLARE_TEST( process, spawn )
 	do
 	{
 		stream_read_line_buffer( out, line_buffer, 512, '\n' );
+		string_strip( line_buffer, "\n\r" );
 		if( string_length( line_buffer ) )
 		{
 			++num_lines;
 #if FOUNDATION_PLATFORM_WINDOWS
-
+			if( ( string_find_string( line_buffer, "File(s)", 0 ) != STRING_NPOS ) && ( string_find_string( line_buffer, "bytes", 0 ) != STRING_NPOS ) )
+				found_expected = true;
 #else
 			if( ( string_find_string( line_buffer, "root", 0 ) != STRING_NPOS ) && ( string_find_string( line_buffer, "bin", 0 ) != STRING_NPOS ) )
 				found_expected = true;

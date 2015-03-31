@@ -54,6 +54,7 @@
 		45FD84751AC9300D004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84741AC9300D004357EA /* main.c */; };
 		45FD84791AC9531B004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84781AC9531B004357EA /* main.c */; };
 		45FD847B1AC95327004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD847A1AC95327004357EA /* main.c */; };
+		45FD84AC1ACAB455004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84AB1ACAB455004357EA /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -130,6 +131,7 @@
 		45FD84741AC9300D004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/app/main.c; sourceTree = "<group>"; };
 		45FD84781AC9531B004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/system/main.c; sourceTree = "<group>"; };
 		45FD847A1AC95327004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/time/main.c; sourceTree = "<group>"; };
+		45FD84AB1ACAB455004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/process/main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -211,6 +213,7 @@
 				45551A531938D55B00CF089B /* objectmap */,
 				45551A551938D55B00CF089B /* path */,
 				45551A571938D55B00CF089B /* pipe */,
+				45FD84AA1ACAB43E004357EA /* process */,
 				45551A591938D55B00CF089B /* profile */,
 				45551A5B1938D55B00CF089B /* radixsort */,
 				45551A5D1938D55B00CF089B /* random */,
@@ -542,6 +545,14 @@
 			name = time;
 			sourceTree = "<group>";
 		};
+		45FD84AA1ACAB43E004357EA /* process */ = {
+			isa = PBXGroup;
+			children = (
+				45FD84AB1ACAB455004357EA /* main.c */,
+			);
+			name = process;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -638,6 +649,7 @@
 				45551A791938D55B00CF089B /* main.c in Sources */,
 				45551A721938D55B00CF089B /* main.c in Sources */,
 				450F8C7D1AC02FB000688440 /* viewcontroller.m in Sources */,
+				45FD84AC1ACAB455004357EA /* main.c in Sources */,
 				45551A6F1938D55B00CF089B /* main.c in Sources */,
 				45551A6A1938D55B00CF089B /* main.c in Sources */,
 				45551A7C1938D55B00CF089B /* main.c in Sources */,
