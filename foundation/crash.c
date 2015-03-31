@@ -177,9 +177,7 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 		callback( _crash_dump_file );
 	}
 
-#if BUILD_ENABLE_ERROR_CONTEXT
-	_error_context_clear();
-#endif
+	error_context_clear();
 
 	crash_env_t guard_env = get_thread_crash_env();
 	if( guard_env )
@@ -207,9 +205,9 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	{
 		if( callback )
 			callback( _crash_dump_file );
-#if BUILD_ENABLE_ERROR_CONTEXT
-		_error_context_clear();
-#endif
+
+		error_context_clear();
+
 		return FOUNDATION_CRASH_DUMP_GENERATED;
 	}
 #  else

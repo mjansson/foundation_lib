@@ -64,6 +64,9 @@ class Toolchain(object):
       self.exe_suffix = ''
 
     #Set default values
+    self.build_monolithic = False
+    self.build_coverage = False
+
     self.android_ndkpath = ''
     self.android_sdkpath = ''
     self.android_keystore = os.path.join( os.path.expanduser( '~' ), '.android', 'debug.keystore' )
@@ -95,7 +98,11 @@ class Toolchain(object):
       else:
         iterator = iter( variables )
       for key, val in iterator:
-        if key == 'bundleidentifier':
+        if key == 'monolithic':
+          self.build_monolithic = self.get_boolean_flag( val )
+        elif key == 'coverage':
+          self.build_coverage = self.get_boolean_flag( val )
+        elif key == 'bundleidentifier':
           self.ios_bundleidentifier = val
           self.macosx_bundleidentifier = val
         elif key == 'organisation':
@@ -601,6 +608,13 @@ class Toolchain(object):
       pnaclprefs = prefs['pnacl']
       if 'sdkpath' in pnaclprefs:
         self.pnacl_sdkpath = pnaclprefs['sdkpath']
+    if 'monolithic' in prefs:
+      self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
+    if 'coverage' in prefs:
+      self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
+
+  def get_boolean_flag( self, val ):
+    return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
 
   def build_includepaths( self, includepaths ):
     finalpaths = []
@@ -642,6 +656,11 @@ class Toolchain(object):
         else:
           flags += '-O4'
         flags += ' -DBUILD_DEPLOY=1 -funroll-loops'
+      if self.is_monolithic():
+        flags += ' -DBUILD_MONOLITHIC=1'
+      if self.use_coverage():
+        if self.toolchain == 'gcc' or self.toolchain == 'clang':
+          flags += ' --coverage'
     elif self.toolchain == 'msvc':
       if config == 'debug':
         flags += '/Od /D "BUILD_DEBUG=1" /GF- /Gm-'
@@ -651,6 +670,8 @@ class Toolchain(object):
         flags += '/Ox /D "BUILD_PROFILE=1" /Ob2 /Ot /GT /GL /GF /Gm-'
       elif config == 'deploy':
         flags += '/Ox /D "BUILD_DEPLOY=1" /Ob2 /Ot /GT /GL /GF /Gm-'
+      if self.is_monolithic():
+        flags += ' /D "BUILD_MONOLITHIC=1"'
     return flags
 
   def make_carchflags( self, arch ):
@@ -786,6 +807,9 @@ class Toolchain(object):
         flags += ' /DEBUG /INCREMENTAL'
       else:
         flags += ' /DEBUG /LTCG /INCREMENTAL:NO /OPT:REF /OPT:ICF'
+    if self.use_coverage():
+      if self.toolchain == 'gcc' or self.toolchain == 'clang':
+        flags += ' --coverage'
     return flags.strip()
 
   def make_linkarchlibs( self, arch ):
@@ -812,6 +836,12 @@ class Toolchain(object):
 
   def is_intel( self ):
     return self.toolchain == 'intel'
+
+  def is_monolithic( self ):
+    return self.build_monolithic
+
+  def use_coverage( self ):
+    return self.build_coverage
 
   def cc( self ):
     return self.cc

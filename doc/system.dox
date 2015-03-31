@@ -5,6 +5,15 @@
 \brief System queries
 \details System queries and utility functions
 
+\fn int system_error( void )
+\brief Thread local system error code
+\details Get the current thread local system error code (errno in Posix, GetLastError on Windows)
+\return Error code
+
+\fn void system_error_reset( void )
+\brief Reset thread local system error code
+\details Reset the current thread local system error code to indicate no error
+
 \fn const char* system_error_message( int code )
 \brief Translate error code
 \details Translate given error code into error message. System errno (unix variants) or last error code (Windows)
@@ -80,6 +89,11 @@ will be used if the given code is 0.
 \brief Get current device orientation
 \details Get the current device orientation.
 \return Device orientation
+
+\fn system_set_device_orientation( device_orientation_t orientation )
+\brief Set current device orientation
+\details Set the current device orientation. Usually only called internally by system event listeners.
+\param orientation New device orientation
 
 \fn void system_process_events( void )
 \brief Process events

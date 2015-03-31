@@ -34,7 +34,7 @@
 
 \fn bool regex_match( regex_t* regex, const char* input, int inlength, regex_capture_t* captures, int maxcaptures )
 \brief Match input with expression
-\details Match input string with regular expression with optional captures
+\details Match input string with regular expression with optional captures. Note that captures array might be modified and contain invalid data if regex fails. If the regex matches, the captures array will contain valid data.
 \param regex Compiled expression
 \param input Input string
 \param inlength Input length (0 for input string length)

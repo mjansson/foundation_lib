@@ -49,7 +49,12 @@
 		45551A841938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A661938D55B00CF089B /* main.c */; };
 		45551A861938D5D400CF089B /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 45551A851938D5D400CF089B /* libfoundation.a */; };
 		45551A871938D5D900CF089B /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455519BA1938BBDF00CF089B /* libtest.a */; };
+		4575861E1AC75B77009E9325 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4575861D1AC75B77009E9325 /* main.c */; };
 		45BB33991A601D9200D30F3E /* config in Resources */ = {isa = PBXBuildFile; fileRef = 45BB33981A601D9200D30F3E /* config */; };
+		45FD84751AC9300D004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84741AC9300D004357EA /* main.c */; };
+		45FD84791AC9531B004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84781AC9531B004357EA /* main.c */; };
+		45FD847B1AC95327004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD847A1AC95327004357EA /* main.c */; };
+		45FD84AC1ACAB455004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84AB1ACAB455004357EA /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,7 +126,12 @@
 		45551A641938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/string/main.c; sourceTree = "<group>"; };
 		45551A661938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/uuid/main.c; sourceTree = "<group>"; };
 		45551A851938D5D400CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/ios/debug/libfoundation.a; sourceTree = "<group>"; };
+		4575861D1AC75B77009E9325 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/stream/main.c; sourceTree = "<group>"; };
 		45BB33981A601D9200D30F3E /* config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = config; path = ../../../config; sourceTree = "<group>"; };
+		45FD84741AC9300D004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/app/main.c; sourceTree = "<group>"; };
+		45FD84781AC9531B004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/system/main.c; sourceTree = "<group>"; };
+		45FD847A1AC95327004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/time/main.c; sourceTree = "<group>"; };
+		45FD84AB1ACAB455004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/process/main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -180,6 +190,7 @@
 			children = (
 				455519E71938BDD400CF089B /* test */,
 				45551A221938D41900CF089B /* all */,
+				45FD84731AC92FF4004357EA /* app */,
 				45551A2C1938D50000CF089B /* array */,
 				45551A2F1938D55B00CF089B /* atomic */,
 				45551A311938D55B00CF089B /* base64 */,
@@ -202,6 +213,7 @@
 				45551A531938D55B00CF089B /* objectmap */,
 				45551A551938D55B00CF089B /* path */,
 				45551A571938D55B00CF089B /* pipe */,
+				45FD84AA1ACAB43E004357EA /* process */,
 				45551A591938D55B00CF089B /* profile */,
 				45551A5B1938D55B00CF089B /* radixsort */,
 				45551A5D1938D55B00CF089B /* random */,
@@ -209,7 +221,10 @@
 				45551A5F1938D55B00CF089B /* ringbuffer */,
 				45551A611938D55B00CF089B /* semaphore */,
 				45551A631938D55B00CF089B /* stacktrace */,
+				4575861C1AC75B5B009E9325 /* stream */,
 				45551A651938D55B00CF089B /* string */,
+				45FD84761AC952F3004357EA /* system */,
+				45FD84771AC952FE004357EA /* time */,
 				45551A671938D55B00CF089B /* uuid */,
 			);
 			name = test;
@@ -498,6 +513,46 @@
 			name = bin;
 			sourceTree = "<group>";
 		};
+		4575861C1AC75B5B009E9325 /* stream */ = {
+			isa = PBXGroup;
+			children = (
+				4575861D1AC75B77009E9325 /* main.c */,
+			);
+			name = stream;
+			sourceTree = "<group>";
+		};
+		45FD84731AC92FF4004357EA /* app */ = {
+			isa = PBXGroup;
+			children = (
+				45FD84741AC9300D004357EA /* main.c */,
+			);
+			name = app;
+			sourceTree = "<group>";
+		};
+		45FD84761AC952F3004357EA /* system */ = {
+			isa = PBXGroup;
+			children = (
+				45FD84781AC9531B004357EA /* main.c */,
+			);
+			name = system;
+			sourceTree = "<group>";
+		};
+		45FD84771AC952FE004357EA /* time */ = {
+			isa = PBXGroup;
+			children = (
+				45FD847A1AC95327004357EA /* main.c */,
+			);
+			name = time;
+			sourceTree = "<group>";
+		};
+		45FD84AA1ACAB43E004357EA /* process */ = {
+			isa = PBXGroup;
+			children = (
+				45FD84AB1ACAB455004357EA /* main.c */,
+			);
+			name = process;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -594,10 +649,12 @@
 				45551A791938D55B00CF089B /* main.c in Sources */,
 				45551A721938D55B00CF089B /* main.c in Sources */,
 				450F8C7D1AC02FB000688440 /* viewcontroller.m in Sources */,
+				45FD84AC1ACAB455004357EA /* main.c in Sources */,
 				45551A6F1938D55B00CF089B /* main.c in Sources */,
 				45551A6A1938D55B00CF089B /* main.c in Sources */,
 				45551A7C1938D55B00CF089B /* main.c in Sources */,
 				45551A691938D55B00CF089B /* main.c in Sources */,
+				4575861E1AC75B77009E9325 /* main.c in Sources */,
 				45551A781938D55B00CF089B /* main.c in Sources */,
 				45551A6B1938D55B00CF089B /* main.c in Sources */,
 				45551A741938D55B00CF089B /* main.c in Sources */,
@@ -609,6 +666,7 @@
 				45551A801938D55B00CF089B /* main.c in Sources */,
 				45551A6D1938D55B00CF089B /* main.c in Sources */,
 				45551A6E1938D55B00CF089B /* main.c in Sources */,
+				45FD84751AC9300D004357EA /* main.c in Sources */,
 				45551A7E1938D55B00CF089B /* main.c in Sources */,
 				45551A241938D43700CF089B /* main.c in Sources */,
 				45551A711938D55B00CF089B /* main.c in Sources */,
@@ -620,9 +678,11 @@
 				45551A701938D55B00CF089B /* main.c in Sources */,
 				45551A7D1938D55B00CF089B /* main.c in Sources */,
 				451871BE19560285000E42C9 /* main.c in Sources */,
+				45FD84791AC9531B004357EA /* main.c in Sources */,
 				45551A681938D55B00CF089B /* main.c in Sources */,
 				45551A6C1938D55B00CF089B /* main.c in Sources */,
 				45551A7A1938D55B00CF089B /* main.c in Sources */,
+				45FD847B1AC95327004357EA /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -93,6 +93,11 @@ report the error code through error_report
 \param context Log context
 \param error_level Severity level
 
+\fn log_callback_fn log_callback( void )
+\brief Get log callback
+\details Get the currently set log callback
+\return Log callback
+
 \fn void log_set_callback( log_callback_fn callback )
 \brief Set log callback
 \details Set log callback

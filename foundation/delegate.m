@@ -192,8 +192,6 @@ void* delegate_nswindow( void )
 #import <Foundation/NSNotification.h>
 
 
-FOUNDATION_EXTERN void _system_set_device_orientation( device_orientation_t orientation );
-
 static __weak UIApplication*          _delegate_app;
 static __weak FoundationAppDelegate*  _delegate;
 
@@ -308,7 +306,7 @@ void* delegate_uiwindow( void )
 	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
 
 	log_debugf( 0, "Device orientation changed to %d", (int)orientation );
-	_system_set_device_orientation( (device_orientation_t)orientation );
+	system_set_device_orientation( (device_orientation_t)orientation );
 }
 
 

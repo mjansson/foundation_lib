@@ -156,7 +156,7 @@ int _environment_initialize( const application_t application )
 		array_push( _environment_argv, arg );
 	}
 
-	char* exe_path = path_append( path_path_name( android_app()->activity->internalDataPath ), "lib" );
+	char* exe_path = path_append( path_directory_name( android_app()->activity->internalDataPath ), "lib" );
 
 	// This will return something like "app_process" since we're just a dynamic
 	// library that gets invoked by a launcher process

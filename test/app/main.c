@@ -19,10 +19,10 @@ static application_t _global_app;
 
 static application_t test_app_application( void )
 {
-	_global_app.name = "Foundation application tests";
-	_global_app.short_name = "test_app";
-	_global_app.config_dir = "test_app";
-	_global_app.version = version_make( 1, 2, 3, 4, 5 );
+	_global_app.name = "Foundation library test suite";
+	_global_app.short_name = "test_all";
+	_global_app.config_dir = "test_all";
+	_global_app.version = foundation_version();
 	_global_app.flags = APPLICATION_UTILITY;
 	_global_app.dump_callback = test_crash_handler;
 	return _global_app;
@@ -52,6 +52,8 @@ DECLARE_TEST( app, environment )
 	EXPECT_STREQ( environment_application()->short_name, _global_app.short_name );
 	EXPECT_STREQ( environment_application()->config_dir, _global_app.config_dir );
 	EXPECT_TRUE( uint128_equal( environment_application()->version.version, _global_app.version.version ) );
+	EXPECT_EQ( environment_application()->flags, APPLICATION_UTILITY );
+	EXPECT_EQ( environment_application()->dump_callback, test_crash_handler );
 	return 0;
 }
 
@@ -71,7 +73,7 @@ test_suite_t test_app_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_app_run( void )
 {

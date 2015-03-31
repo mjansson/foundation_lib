@@ -77,13 +77,13 @@ DECLARE_TEST( profile, initialize )
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
-	profile_enable( 1 );
+	profile_enable( true );
 
 	profile_log( "testing" );
 
 	thread_sleep( 1000 );
 
-	profile_enable( 0 );
+	profile_enable( false );
 	profile_shutdown();
 
 #if BUILD_ENABLE_PROFILE
@@ -107,13 +107,13 @@ DECLARE_TEST( profile, output )
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
-	profile_enable( 1 );
+	profile_enable( true );
 
 	profile_log( "testing" );
 
 	thread_sleep( 1000 );
 
-	profile_enable( 0 );
+	profile_enable( false );
 	profile_shutdown();
 
 #if BUILD_ENABLE_PROFILE
@@ -130,13 +130,13 @@ DECLARE_TEST( profile, output )
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
-	profile_enable( 0 );
+	profile_enable( false );
 
 	profile_log( "testing again" );
 
 	thread_sleep( 1000 );
 
-	profile_enable( 0 );
+	profile_enable( false );
 	profile_shutdown();
 
 	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
@@ -200,7 +200,7 @@ DECLARE_TEST( profile, thread )
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, 30000/*_test_profile_buffer_size*/ );
-	profile_enable( 1 );
+	profile_enable( true );
 	profile_set_output_wait( 1 );
 
 	log_info( HASH_TEST, "This test will intentionally run out of memory in profiling system" );
@@ -229,7 +229,7 @@ DECLARE_TEST( profile, thread )
 
 	thread_sleep( 1000 );
 
-	profile_enable( 0 );
+	profile_enable( false );
 	profile_shutdown();
 
 	err = error();
@@ -325,7 +325,7 @@ DECLARE_TEST( profile, stream )
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
 	profile_set_output( _profile_file_writer );
 	profile_set_output_wait( 10 );
-	profile_enable( 1 );
+	profile_enable( true );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
@@ -338,7 +338,14 @@ DECLARE_TEST( profile, stream )
 	for( frame = 0; frame < 1000; ++frame )
 	{
 		thread_sleep( 16 );
+		profile_log( "This is a really long profile log line that should break into multiple profile blocks automatically without causing any issues whatsoever if everything works as expected which it should or the code needs to be fixed" );
 		profile_end_frame( frame++ );
+		if( ( frame % 30 ) == 0 )
+		{
+			profile_enable( false );
+			thread_sleep( 10 );
+			profile_enable( true );
+		}
 	}
 
 	for( ith = 0; ith < 32; ++ith )
@@ -355,13 +362,14 @@ DECLARE_TEST( profile, stream )
 
 	thread_sleep( 1000 );
 
-	profile_enable( 0 );
+	profile_enable( false );
 	profile_shutdown();
 
 	error();
 
 	stream_deallocate( _profile_stream );
 
+	//TODO: Validate that output is sane
 	log_debugf( HASH_TEST, "Generated %lld blocks", atomic_load64( &_profile_generated_blocks ) );
 
 	return 0;
@@ -386,7 +394,7 @@ test_suite_t test_profile_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_profile_run( void );
 int test_profile_run( void )

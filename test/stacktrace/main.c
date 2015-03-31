@@ -48,7 +48,10 @@ DECLARE_TEST( stacktrace, capture )
 {
 	#define TEST_DEPTH 64
 	void* trace[TEST_DEPTH];
-	unsigned int num_frames = 0;
+	unsigned int num_frames;
+
+	if( system_platform() == PLATFORM_PNACL )
+		return 0;
 
 	num_frames = stacktrace_capture( trace, TEST_DEPTH, 0 );
 	EXPECT_GT( num_frames, 3 );
@@ -61,8 +64,11 @@ DECLARE_TEST( stacktrace, resolve )
 {
 	#define TEST_DEPTH 64
 	void* trace[TEST_DEPTH];
-	unsigned int num_frames = 0;
-	char* resolved = 0;
+	unsigned int num_frames;
+	char* resolved;
+
+	if( system_platform() == PLATFORM_PNACL )
+		return 0;
 
 	num_frames = stacktrace_capture( trace, TEST_DEPTH, 0 );
 	EXPECT_GT( num_frames, 3 );
@@ -100,7 +106,7 @@ test_suite_t test_stacktrace_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_stacktrace_run( void );
 int test_stacktrace_run( void )

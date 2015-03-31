@@ -167,53 +167,53 @@ DECLARE_TEST( path, extract )
 	testpath = path_file_name( path22 ); EXPECT_STREQ( testpath, "file" ); string_deallocate( testpath );
 	testpath = path_file_name( path23 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
 
-	testpath = path_path_name( path1 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_path_name( path2 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_path_name( path3 ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
-	testpath = path_path_name( path4 ); EXPECT_STREQ( testpath, "path" ); string_deallocate( testpath );
-	testpath = path_path_name( path5 ); EXPECT_STREQ( testpath, "path" ); string_deallocate( testpath );
-	testpath = path_path_name( path6 ); EXPECT_STREQ( testpath, "path/dir" ); string_deallocate( testpath );
-	testpath = path_path_name( path7 ); EXPECT_STREQ( testpath, "more/some/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path8 ); EXPECT_STREQ( testpath, "more/some/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path9 ); EXPECT_STREQ( testpath, "more/some/path/dir" ); string_deallocate( testpath );
-	testpath = path_path_name( path10 ); EXPECT_STREQ( testpath, "/abs/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path11 ); EXPECT_STREQ( testpath, "/abs/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path12 ); EXPECT_STREQ( testpath, "/abs/path/dir" ); string_deallocate( testpath );
-	testpath = path_path_name( path13 ); EXPECT_STREQ( testpath, "C:/abs/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path14 ); EXPECT_STREQ( testpath, "C:/abs/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path15 ); EXPECT_STREQ( testpath, "C:/abs/path/dir" ); string_deallocate( testpath );
-	testpath = path_path_name( path16 ); EXPECT_STREQ( testpath, "vfs://abs/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path17 ); EXPECT_STREQ( testpath, "vfs://abs/path" ); string_deallocate( testpath );
-	testpath = path_path_name( path18 ); EXPECT_STREQ( testpath, "vfs://abs/path/dir" ); string_deallocate( testpath );
-	testpath = path_path_name( path19 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_path_name( path20 ); EXPECT_STREQ( testpath, "/" ); string_deallocate( testpath );
-	testpath = path_path_name( path21 ); EXPECT_STREQ( testpath, "asset://.path" ); string_deallocate( testpath );
-	testpath = path_path_name( path22 ); EXPECT_STREQ( testpath, "asset://.path" ); string_deallocate( testpath );
-	testpath = path_path_name( path23 ); EXPECT_STREQ( testpath, "asset://.path/.dir" ); string_deallocate( testpath );
+	testpath = path_directory_name( path1 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_directory_name( path2 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_directory_name( path3 ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
+	testpath = path_directory_name( path4 ); EXPECT_STREQ( testpath, "path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path5 ); EXPECT_STREQ( testpath, "path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path6 ); EXPECT_STREQ( testpath, "path/dir" ); string_deallocate( testpath );
+	testpath = path_directory_name( path7 ); EXPECT_STREQ( testpath, "more/some/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path8 ); EXPECT_STREQ( testpath, "more/some/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path9 ); EXPECT_STREQ( testpath, "more/some/path/dir" ); string_deallocate( testpath );
+	testpath = path_directory_name( path10 ); EXPECT_STREQ( testpath, "/abs/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path11 ); EXPECT_STREQ( testpath, "/abs/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path12 ); EXPECT_STREQ( testpath, "/abs/path/dir" ); string_deallocate( testpath );
+	testpath = path_directory_name( path13 ); EXPECT_STREQ( testpath, "C:/abs/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path14 ); EXPECT_STREQ( testpath, "C:/abs/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path15 ); EXPECT_STREQ( testpath, "C:/abs/path/dir" ); string_deallocate( testpath );
+	testpath = path_directory_name( path16 ); EXPECT_STREQ( testpath, "/abs/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path17 ); EXPECT_STREQ( testpath, "/abs/path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path18 ); EXPECT_STREQ( testpath, "/abs/path/dir" ); string_deallocate( testpath );
+	testpath = path_directory_name( path19 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_directory_name( path20 ); EXPECT_STREQ( testpath, "/" ); string_deallocate( testpath );
+	testpath = path_directory_name( path21 ); EXPECT_STREQ( testpath, "/.path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path22 ); EXPECT_STREQ( testpath, "/.path" ); string_deallocate( testpath );
+	testpath = path_directory_name( path23 ); EXPECT_STREQ( testpath, "/.path/.dir" ); string_deallocate( testpath );
 
-	testpath = path_subpath_name( path1, "file" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path2, "" ); EXPECT_STREQ( testpath, "file" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path3, "" ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path4, "path" ); EXPECT_STREQ( testpath, "file.ext" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path5, "file" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path6, "path/dir" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path7, "more" ); EXPECT_STREQ( testpath, "some/path/file.ext" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path8, "/more" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path9, "more/some/path" ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path10, "ab" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path11, "abs/path" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path12, "/abs" ); EXPECT_STREQ( testpath, "path/dir" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path13, "/ab" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path14, "C:/abs/" ); EXPECT_STREQ( testpath, "path/file" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path15, "C:" ); EXPECT_STREQ( testpath, "abs/path/dir" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path16, "abs/path" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path17, "/abs" ); EXPECT_STREQ( testpath, "path/file" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path18, "/abs/path/" ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path19, "/" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path20, "/" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path21, "/.path" ); EXPECT_STREQ( testpath, "file.ext" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path22, ".path" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
-	testpath = path_subpath_name( path23, "/" ); EXPECT_STREQ( testpath, ".path/.dir" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path1, "file" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path2, "" ); EXPECT_STREQ( testpath, "file" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path3, "" ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path4, "path" ); EXPECT_STREQ( testpath, "file.ext" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path5, "file" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path6, "path/dir" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path7, "more" ); EXPECT_STREQ( testpath, "some/path/file.ext" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path8, "/more" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path9, "more/some/path" ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path10, "ab" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path11, "abs/path" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path12, "/abs" ); EXPECT_STREQ( testpath, "path/dir" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path13, "/ab" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path14, "C:/abs/" ); EXPECT_STREQ( testpath, "path/file" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path15, "C:" ); EXPECT_STREQ( testpath, "abs/path/dir" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path16, "abs/path" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path17, "/abs" ); EXPECT_STREQ( testpath, "path/file" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path18, "/abs/path/" ); EXPECT_STREQ( testpath, "dir" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path19, "/" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path20, "/" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path21, "/.path" ); EXPECT_STREQ( testpath, "file.ext" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path22, ".path" ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
+	testpath = path_subdirectory_name( path23, "/" ); EXPECT_STREQ( testpath, ".path/.dir" ); string_deallocate( testpath );
 
 	testpath = path_protocol( path1 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
 	testpath = path_protocol( path2 ); EXPECT_STREQ( testpath, "" ); string_deallocate( testpath );
@@ -383,8 +383,8 @@ DECLARE_TEST( path, absolute )
 
 	const char* cwd = environment_current_working_directory();
 
-	char* cwd_sub = path_path_name( cwd );
-	char* cwd_sub_sub = path_path_name( cwd_sub );
+	char* cwd_sub = path_directory_name( cwd );
+	char* cwd_sub_sub = path_directory_name( cwd_sub );
 	char* cwd_test = path_merge( cwd, "test" );
 	char* cwd_test_path = path_merge( cwd, "test/path" );
 
@@ -584,7 +584,7 @@ test_suite_t test_path_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_path_run( void );
 int test_path_run( void )

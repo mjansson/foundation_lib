@@ -224,8 +224,6 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	mbytes = 256;
 	loops = 16;
 #endif
-	
-	FOUNDATION_UNUSED( throughput );
 
 	test.buffer_size = mbytes * 1024 * 1024;
 
@@ -284,6 +282,8 @@ DECLARE_TEST( ringbufferstream, threadedio )
 	memory_deallocate( test.source_buffer );
 	memory_deallocate( test.dest_buffer );
 
+	FOUNDATION_UNUSED( throughput );
+
 	return 0;
 }
 
@@ -306,7 +306,7 @@ test_suite_t test_ringbuffer_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_ringbuffer_run( void );
 int test_ringbuffer_run( void )

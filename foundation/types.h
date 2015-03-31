@@ -167,7 +167,7 @@ typedef enum
 	PROCESS_CONSOLE                           = 0x02,
 	PROCESS_STDSTREAMS                        = 0x04,
 	PROCESS_WINDOWS_USE_SHELLEXECUTE          = 0x08,
-	PROCESS_OSX_USE_OPENAPPLICATION           = 0x10
+	PROCESS_MACOSX_USE_OPENAPPLICATION        = 0x10
 } process_flag_t;
 
 typedef enum
@@ -234,6 +234,14 @@ typedef real          deltatime_t;
 typedef uint64_t      object_t;
 typedef uint16_t      radixsort_index_t;
 typedef uint128_t     uuid_t;
+
+typedef union { int32_t ival; float32_t fval; } float32_cast_t;
+typedef union { int64_t ival; float64_t fval; } float64_cast_t;
+#if FOUNDATION_SIZE_REAL == 64
+typedef union { int64_t ival; real rval; } real_cast_t;
+#else
+typedef union { int32_t ival; real rval; } real_cast_t;
+#endif
 
 typedef struct application_t                                  application_t;
 typedef struct bitbuffer_t                                    bitbuffer_t;
@@ -650,6 +658,8 @@ FOUNDATION_ALIGNED_STRUCT( stream_buffer_t, 8 )
 FOUNDATION_ALIGNED_STRUCT( stream_pipe_t, 8 )
 {
 	FOUNDATION_DECLARE_STREAM;
+
+	bool                            eos;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	void*                           handle_read;

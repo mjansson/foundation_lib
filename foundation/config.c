@@ -70,7 +70,7 @@ static int64_t _config_string_to_int( const char* str )
 		if( dot_position != STRING_NPOS )
 		{
 			if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
-				return (int64_t)( string_to_real( str ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) ) );
+				return (int64_t)( string_to_float64( str ) * ( 1024.0 * 1024.0 ) );
 			return string_to_int64( str ); //More than one dot
 		}
 		return string_to_int64( str ) * ( 1024LL * 1024LL );
@@ -81,7 +81,7 @@ static int64_t _config_string_to_int( const char* str )
 		if( dot_position != STRING_NPOS )
 		{
 			 if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
-				return (int64_t)( string_to_real( str ) * REAL_C( 1024.0 ) );
+				return (int64_t)( string_to_float64( str ) * 1024.0 );
 			 return string_to_int64( str ); //More than one dot
 		}
 		return string_to_int64( str ) * 1024LL;
@@ -147,7 +147,7 @@ static FOUNDATION_NOINLINE const char* _expand_environment( hash_t key, char* va
 		unsigned int end_pos = string_find( var, ']', 9 );
 		if( end_pos != STRING_NPOS )
 			var[end_pos] = 0;
-		value = environment_variable( var );
+		value = environment_variable( var + 9 );
 		if( end_pos != STRING_NPOS )
 			var[end_pos] = ']';
 		return value;
@@ -852,7 +852,7 @@ void config_parse_commandline( const char* const* cmdline, unsigned int num )
 }
 
 
-void config_write( stream_t* stream, hash_t filter_section )
+void config_write( stream_t* stream, hash_t filter_section, const char* (*string_mapper)( hash_t ) )
 {
 	config_section_t* csection;
 	config_key_t* bucket;
@@ -863,7 +863,7 @@ void config_write( stream_t* stream, hash_t filter_section )
 	//TODO: If random access stream, update section if available, else append at end of stream
 	//if( stream_is_sequential( stream ) )
 	{
-		stream_write_format( stream, "[%s]", hash_to_string( filter_section ) );
+		stream_write_format( stream, "[%s]", string_mapper( filter_section ) );
 		stream_write_endl( stream );
 
 		csection = config_section( filter_section, false );
@@ -872,7 +872,7 @@ void config_write( stream_t* stream, hash_t filter_section )
 			bucket = csection->key[ key ];
 			if( bucket ) for( ib = 0, bsize = array_size( bucket ); ib < bsize; ++ib )
 			{
-				stream_write_format( stream, "\t%s\t\t\t\t= ", hash_to_string( bucket[ib].name ) );
+				stream_write_format( stream, "\t%s\t\t\t\t= ", string_mapper( bucket[ib].name ) );
 				switch( bucket[ib].type )
 				{
 					case CONFIGVALUE_BOOL:
