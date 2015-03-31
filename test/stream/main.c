@@ -267,7 +267,13 @@ DECLARE_TEST( stream, std )
 	EXPECT_EQ_MSG( stream_available_read( err ), 0, "stderr not empty as expected" );
 
 	//Verify that eos is set when stdin is closed
+#if FOUNDATION_PLATFORM_WINDOWS
+	CloseHandle( GetStdHandle( STD_INPUT_HANDLE ) );
+#elif FOUNDATION_PLATFORM_POSIX
 	close( STDIN_FILENO );
+#else
+#  error Not implemented
+#endif
 	EXPECT_EQ_MSG( stream_read_int8( in ), 0, "stdin read when closed did not return 0" );
 	EXPECT_EQ_MSG( stream_eos( in ), true, "stdin not at eos when closed" );
 
