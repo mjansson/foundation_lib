@@ -382,20 +382,20 @@ DECLARE_TEST( random, util )
 
 	for( i = 0; i < num_passes; ++i )
 	{
-		val32 = random32_range( 0, 100 );
-		EXPECT_GE( val32, 0 );
+		val32 = random32_range( 10, 100 );
+		EXPECT_GE( val32, 10 );
 		EXPECT_LT( val32, 100 );
 
-		val32 = random32_range( 100, 0 );
-		EXPECT_GE( val32, 0 );
+		val32 = random32_range( 100, 10 );
+		EXPECT_GE( val32, 10 );
 		EXPECT_LT( val32, 100 );
 
-		val64 = random64_range( 0, 100 );
-		EXPECT_GE( val64, 0 );
+		val64 = random64_range( 10, 100 );
+		EXPECT_GE( val64, 10 );
 		EXPECT_LT( val64, 100 );
 
-		val64 = random64_range( 100, 0 );
-		EXPECT_GE( val64, 0 );
+		val64 = random64_range( 100, 10 );
+		EXPECT_GE( val64, 10 );
 		EXPECT_LT( val64, 100 );
 
 		val = random_range( REAL_C( 0.0 ), REAL_C( 100.0 ) );
@@ -440,11 +440,9 @@ DECLARE_TEST( random, util )
 		EXPECT_LT( val, REAL_C( 128.0 ) );
 
 		val32 = random32_weighted( 10, weights );
-		EXPECT_GE( val32, 0 );
 		EXPECT_LT( val32, 10 );
 
 		val32 = random32_weighted( 10, noweights );
-		EXPECT_GE( val32, 0 );
 		EXPECT_LT( val32, 10 );
 
 		EXPECT_EQ( random32_weighted( 1, weights ), 0 );
