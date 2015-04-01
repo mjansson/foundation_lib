@@ -59,7 +59,8 @@ DECLARE_TEST( process, spawn )
 	const char* prog = "/bin/ls";
 	const char* args[] = { "-l", "-a" };
 #else
-#  error Not implemented
+	const char* prog = "notimplemented";
+	const char* args[] = { "" };
 #endif
 
 	if( ( system_platform() == PLATFORM_IOS ) || ( system_platform() == PLATFORM_ANDROID ) || ( system_platform() == PLATFORM_PNACL ) )
