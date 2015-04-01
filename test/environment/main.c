@@ -53,7 +53,7 @@ DECLARE_TEST( environment, builtin )
 	EXPECT_NE( string_find_string( cmdline[0], "test-environment", 0 ), STRING_NPOS );
 
 	EXPECT_STREQ( environment_executable_name(), "test-environment" );
-#else
+#elif !FOUNDATION_PLATFORM_PNACL
 	EXPECT_NE( string_find_string( cmdline[0], "test-all", 0 ), STRING_NPOS );
 
 	EXPECT_STREQ( environment_executable_name(), "test-all" );
