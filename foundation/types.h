@@ -19,6 +19,11 @@
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
 #endif
 
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wpadded"
+#endif
+
 
 // PRIMITIVE TYPES
 
@@ -706,3 +711,8 @@ struct stream_vtable_t
 // UTILITY FUNCTIONS
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL version_t      version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control ) { version_t v; v.sub.major = (uint16_t)major; v.sub.minor = (uint16_t)minor; v.sub.revision = revision, v.sub.build = build; v.sub.control = control; return v; }
+
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif

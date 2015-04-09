@@ -650,7 +650,7 @@ void process_set_exit_code( int code )
 }
 
 
-void process_exit( int code )
+void FOUNDATION_ATTRIBUTE( noreturn ) process_exit( int code )
 {
 	_exit( code );
 }
