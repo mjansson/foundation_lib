@@ -449,7 +449,7 @@
 		CDCEF43116D2D11500198086 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
 			};
 			buildConfigurationList = CDCEF43416D2D11500198086 /* Build configuration list for PBXProject "foundation" */;
