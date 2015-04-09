@@ -35,6 +35,7 @@ static char*   _environment_var;
 
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
+extern void _environment_ns_command_line( char*** argv );
 extern void _environment_ns_home_directory( char* );
 extern void _environment_ns_temporary_directory( char* );
 #endif
@@ -124,15 +125,10 @@ int _environment_initialize( const application_t application )
 
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
-	for( int ia = 0; ia < _environment_main_argc; ++ia )
-		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
+	_environment_ns_command_line( &_environment_argv );
 
-	//TODO: Use NS api since argv[0] could contain anything
-	FOUNDATION_ASSERT( _environment_main_argc > 0 );
-	char* exe_path = path_make_absolute( _environment_main_argv[0] );
-
+	char* exe_path = path_make_absolute( _environment_argv[0] );
 	_environment_set_executable_paths( exe_path );
-
 	string_deallocate( exe_path );
 
 #elif FOUNDATION_PLATFORM_ANDROID
