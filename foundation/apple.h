@@ -206,13 +206,9 @@
 #    import <Foundation/NSUserNotification.h>
 #    import <Foundation/NSUserScriptTask.h>
 #    import <Foundation/NSXPCConnection.h>
-#    import <AppKit/NSAlert.h>
+#    import <AppKit/AppKit.h>
 #  elif FOUNDATION_PLATFORM_IOS
-#    import <UIKit/UIApplication.h>
-#    import <UIKit/UIWindow.h>
-#    import <UIKit/UIScreen.h>
-#    import <UIKit/UIView.h>
-#    import <UIKit/UIViewController.h>
+#    import <UIKit/UIKit.h>
 #    import <QuartzCore/QuartzCore.h>
 #  endif
 #else
