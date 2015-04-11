@@ -151,7 +151,8 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 			OutputDebugStringA( buffer );
 #endif
 #if FOUNDATION_PLATFORM_PNACL
-			pnacl_post_log( context, severity, buffer, need + more + 1 );
+			if( _log_stdout )
+				pnacl_post_log( context, severity, buffer, need + more + 1 );
 #endif
 #if FOUNDATION_PLATFORM_ANDROID
 			FOUNDATION_UNUSED( std );
