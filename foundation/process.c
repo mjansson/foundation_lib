@@ -378,6 +378,7 @@ int process_spawn( process_t* proc )
 		CFRelease( argvref );
 		for( i = 0, size = array_size( args ); i < size; ++i )
 			CFRelease( args[i] );
+		array_deallocate( args );
 
 		memory_deallocate( fsref );
 		string_deallocate( pathstripped );
