@@ -167,8 +167,6 @@ DECLARE_TEST( process, spawn )
 	string_deallocate( tmp_path );
 	string_deallocate( full_path );
 
-	process_exit( 0 );
-
 	return 0;
 }
 
