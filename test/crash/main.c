@@ -137,6 +137,36 @@ DECLARE_TEST( crash, assert_callback )
 #if BUILD_ENABLE_LOG
 	EXPECT_TRUE( string_find_string( handled_log, "assert_report_formatted", 0 ) != STRING_NPOS );
 	EXPECT_TRUE( string_find_string( handled_log, "msg", 0 ) != STRING_NPOS );
+
+	log_enable_stdout( false );
+	log_set_suppress( HASH_TEST, ERRORLEVEL_NONE );
+#if BUILD_ENABLE_LOG_DEBUG
+	log_debugf( HASH_TEST, "%s",
+#else
+	log_infof( HASH_TEST, "%s",
+#endif
+		"To test log callback and memory handling this test will print "
+		"a really long log line with complete nonsense. Log callbacks only occur for non-suppressed "
+		"log levels, which is why this will be visible. However, it will not be printed to stdout. "
+		"Lorem ipsum dolor sit amet, an quas vivendum sed, in est summo conclusionemque, an est nulla nonumy option. "
+		"Malorum invidunt et mel, mei et hinc adolescens, eu velit deleniti urbanitas cum. Ei pericula omittantur duo, "
+		"eam ei malis pertinacia, eum hinc dictas et. Duo et velit dolorem explicari, an tacimates abhorreant qui, "
+		"esse possit intellegat ad vis. Eros populo numquam pro ea. Eius altera volumus duo ex, offendit comprehensam "
+		"sit te. Ea facete nostrum fabellas sea. Vel ea rebum ridens quodsi, etiam urbanitas mea an. Ornatus commune et his, "
+		"quo habeo denique an, id his amet diceret. Eam ei essent denique, cu quaestio perpetua vim. Mei utamur maluisset ex, "
+		"iriure tritani eu per. Pro at rebum maluisset, nec ei eirmod scaevola consulatu, ius in meis patrioque. Vis at summo "
+		"ancillae omnesque, inani moderatius delicatissimi qui an. Et illum vocibus eum, aliquando intellegat ex ius. Ius at "
+		"tation veritus. Scripta reprehendunt at sed. Hinc idque mollis in cum, at elit habemus civibus eam, sea et modus "
+		"eripuit. Alii ipsum electram id vel, mei alterum percipitur cu. Pro cu minim erant graecis, no vis tation nominavi "
+		"imperdiet, mei affert probatus ut. Quo veri modus ad, solet nostrud atomorum ius ea. Everti aliquid ne usu, populo "
+		"sapientem pro te. Persecuti definitionem qui ei, dicit dicunt ea quo. Sed minimum copiosae ei, pri dicat possit "
+		"urbanitas eu. Tritani interesset theophrastus id sit, phaedrum facilisis his eu. Dictas accusam eu quo. Ea democritum "
+		"consetetur vel. Iudicabit definitionem est eu, oportere temporibus at nec."
+	);
+	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
+	log_enable_stdout( true );
+	EXPECT_TRUE( string_find_string( handled_log, "Lorem ipsum", 0 ) != STRING_NPOS );
+
 	log_set_callback( _global_log_callback );
 #endif
 

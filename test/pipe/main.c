@@ -141,6 +141,28 @@ DECLARE_TEST( pipe, readwrite )
 
 	pipe = pipe_allocate();
 
+#if FOUNDATION_PLATFORM_WINDOWS
+	EXPECT_NE( pipe_read_handle( pipe ), 0 );
+	EXPECT_NE( pipe_write_handle( pipe ), 0 );
+	EXPECT_EQ( pipe_read_handle( 0 ), 0 );
+	EXPECT_EQ( pipe_write_handle( 0 ), 0 );
+#elif FOUNDATION_PLATFORM_POSIX
+	EXPECT_NE( pipe_read_fd( pipe ), 0 );
+	EXPECT_NE( pipe_write_fd( pipe ), 0 );
+	EXPECT_EQ( pipe_read_fd( 0 ), 0 );
+	EXPECT_EQ( pipe_write_fd( 0 ), 0 );
+#endif
+
+	EXPECT_EQ( stream_size( pipe ), 0 );
+	EXPECT_EQ( stream_tell( pipe ), 0 );
+
+	stream_flush( pipe );
+	stream_truncate( pipe, 100 );
+	stream_seek( pipe, 10, STREAM_SEEK_BEGIN );
+
+	EXPECT_EQ( stream_tell( pipe ), 0 );
+	EXPECT_EQ( stream_available_read( pipe ), 0 );
+
 	reader = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
 	writer = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
 
