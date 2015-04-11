@@ -172,6 +172,7 @@ int process_spawn( process_t* proc )
 
 		++num_args;
 
+#if !FOUNDATION_PLATFORM_POSIX
 		if( string_find_first_not_of( arg, unescaped, 0 ) != STRING_NPOS )
 		{
 			if( arg[0] != '"' )
@@ -198,6 +199,7 @@ int process_spawn( process_t* proc )
 				proc->args[i] = arg;
 			}
 		}
+#endif
 	}
 
 #if FOUNDATION_PLATFORM_WINDOWS
