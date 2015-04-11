@@ -109,7 +109,6 @@ DECLARE_TEST( process, spawn )
 	{
 		stream_read_line_buffer( out, line_buffer, 512, '\n' );
 		string_strip( line_buffer, "\n\r" );
-		log_infof( HASH_TEST, "%s", line_buffer );
 		if( string_length( line_buffer ) )
 		{
 			++num_lines;
@@ -122,6 +121,7 @@ DECLARE_TEST( process, spawn )
 #endif
 			if( string_find_string( line_buffer, file_name, 0 ) != STRING_NPOS )
 				found_file = true;
+			log_debugf( HASH_TEST, "%s", line_buffer );
 		}
 	} while( !stream_eos( out ) );
 
