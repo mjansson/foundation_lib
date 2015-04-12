@@ -364,23 +364,22 @@ const char* system_username( void )
 	char* buffer;
 	struct passwd passwd;
 	struct passwd* result;
-	int ret;
 
 	buffer = _system_buffer();
-#if FOUNDATION_PLATFORM_ANDROID
-	string_copy( buffer, getlogin() ?: "unknown", SYSTEM_BUFFER_SIZE );
-#else
-	ret = getpwuid_r( getuid(), &passwd, buffer, SYSTEM_BUFFER_SIZE, &result );
+	getpwuid_r( getuid(), &passwd, buffer, SYSTEM_BUFFER_SIZE, &result );
 	if( !result )
 	{
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+		string_copy( buffer, getlogin() ?: "unknown", SYSTEM_BUFFER_SIZE );
+#else
 		if( getlogin_r( buffer, SYSTEM_BUFFER_SIZE ) != 0 )
 			string_copy( buffer, "unknown", SYSTEM_BUFFER_SIZE );
+#endif
 	}
 	else
 	{
 		return result->pw_name;
 	}
-#endif
 	return buffer;
 }
 
