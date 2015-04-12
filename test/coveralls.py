@@ -20,7 +20,7 @@ def gitlog( format ):
 
 def gitinfo():
   return {
-    'branch' : gitcmd( 'rev-parse', '--abbrev-ref', 'HEAD' ),
+    'branch' : gitcmd( 'rev-parse', '--abbrev-ref', 'HEAD' ).rstrip(),
     'remotes' : [ { 'name': remote.split()[0], 'url': remote.split()[1] } for remote in gitcmd( 'remote', '-v' ).split( '\n' ) if '(fetch)' in remote ],
     'head' : {
       'id' : gitlog( '%H' ),
