@@ -106,7 +106,9 @@ DECLARE_TEST( system, builtin )
 
 	EXPECT_NE( system_hostname(), 0 );
 	EXPECT_GT( string_length( system_hostname() ), 0 );
+#if !FOUNDATION_PLATFORM_PNACL
 	EXPECT_NE( system_hostid(), 0 );
+#endif
 	EXPECT_NE( system_username(), 0 );
 	EXPECT_GT( string_length( system_username() ), 0 );
 

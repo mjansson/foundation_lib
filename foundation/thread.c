@@ -591,6 +591,7 @@ void thread_finalize( void )
 {
 	_profile_thread_finalize();
 
+	system_thread_deallocate();
 	random_thread_deallocate();
 
 #if FOUNDATION_PLATFORM_ANDROID

@@ -3,7 +3,8 @@
 
 \file system.h
 \brief System queries
-\details System queries and utility functions
+\details System queries and utility functions. All functions returning a string (const char*) are thread safe and return a thread-local buffer that
+is valid until the next call to a system function returning a string or the termination of the thread.
 
 \fn int system_error( void )
 \brief Thread local system error code
