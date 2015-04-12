@@ -201,6 +201,7 @@ const char* system_error_message( int code )
 const char* system_hostname( void )
 {
 	char* hostname = _system_buffer();
+	unsigned int size = SYSTEM_BUFFER_SIZE;
 	if( !GetComputerNameA( hostname, &size ) )
 		string_copy( hostname, "unknown", SYSTEM_BUFFER_SIZE );
 	return hostname;
@@ -241,6 +242,7 @@ uint64_t system_hostid( void )
 const char* system_username( void )
 {
 	char* username = _system_buffer();
+	unsigned int size = SYSTEM_BUFFER_SIZE;
 	if( !GetUserNameA( username, &size ) )
 		string_copy( username, "unknown", SYSTEM_BUFFER_SIZE );
 	return username;
