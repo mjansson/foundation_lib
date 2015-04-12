@@ -41,6 +41,9 @@ extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
 #endif
 
+#define SYSTEM_BUFFER_SIZE 511
+FOUNDATION_DECLARE_THREAD_LOCAL( char*, system_buffer, 0 )
+
 static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNOWN;
 static event_stream_t* _system_event_stream;
 
@@ -111,6 +114,18 @@ BYTEORDER_BIGENDIAN
 };
 
 
+static char* _system_buffer()
+{
+	char* buffer = get_thread_system_buffer();
+	if( !buffer )
+	{
+		buffer = memory_allocate( 0, SYSTEM_BUFFER_SIZE + 1, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+		set_thread_system_buffer( buffer );
+	}
+	return buffer;
+}
+
+
 platform_t system_platform()
 {
 	return _platform_info.platform;
@@ -169,15 +184,14 @@ void system_error_reset( void )
 
 const char* system_error_message( int code )
 {
-	static FOUNDATION_THREADLOCAL char errmsg[256];
-
+	char* errmsg = _system_buffer();
 	if( !code )
 		code = system_error();
 	if( !code )
 		return "<no error>";
 
 	errmsg[0] = 0;
-	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, 255, 0 );
+	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, SYSTEM_BUFFER_SIZE, 0 );
 	string_strip( errmsg, STRING_WHITESPACE );
 
 	return errmsg;
@@ -186,13 +200,10 @@ const char* system_error_message( int code )
 
 const char* system_hostname( void )
 {
-	unsigned long size = 255;
-	static char hostname[256] = {0};
-	if( hostname[0] )
-		return hostname;
-	strcpy( hostname, "<unknown>" );
-	GetComputerNameA( hostname, &size );
-	hostname[255] = 0;
+	char* hostname = _system_buffer();
+	unsigned int size = SYSTEM_BUFFER_SIZE;
+	if( !GetComputerNameA( hostname, &size ) )
+		string_copy( hostname, "unknown", SYSTEM_BUFFER_SIZE );
 	return hostname;
 }
 
@@ -230,13 +241,10 @@ uint64_t system_hostid( void )
 
 const char* system_username( void )
 {
-	unsigned long size = 255;
-	static char username[256] = {0};
-	if( username[0] )
-		return username;
-	strcpy( username, "<unknown>" );
-	GetUserNameA( username, &size );
-	username[255] = 0;
+	char* username = _system_buffer();
+	unsigned int size = SYSTEM_BUFFER_SIZE;
+	if( !GetUserNameA( username, &size ) )
+		string_copy( username, "unknown", SYSTEM_BUFFER_SIZE );
 	return username;
 }
 
@@ -337,46 +345,44 @@ const char* system_error_message( int code )
 		code = system_error();
 	if( !code )
 		return "<no error>";
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
-	static char buffer[256]; //TODO: Thread safety
-#else
-	static FOUNDATION_THREADLOCAL char buffer[256];
-#endif
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
-	if( strerror_r( code, buffer, 256 ) == 0 )
+	char* buffer = _system_buffer();
+	if( strerror_r( code, buffer, SYSTEM_BUFFER_SIZE ) == 0 )
 		return buffer;
 	return "<no error string>";
-#else
-	return strerror_r( code, buffer, 256 );
-#endif
 }
 
 
 const char* system_hostname( void )
 {
-	static char hostname[256] = {0};
-	if( hostname[0] )
-		return hostname;
-	strcpy( hostname, "<unknown>" );
-	gethostname( hostname, 256 );
-	hostname[255] = 0;
+	char* hostname = _system_buffer();
+	if( gethostname( hostname, SYSTEM_BUFFER_SIZE ) < 0 )
+		string_copy( hostname, "unknown", SYSTEM_BUFFER_SIZE );
 	return hostname;
 }
 
 
 const char* system_username( void )
 {
-	static char username[64] = {0};
-	if( username[0] )
-		return username;
-	strcpy( username, "<unknown>" );
+	char* buffer;
+	struct passwd passwd;
+	struct passwd* result;
+
+	buffer = _system_buffer();
+	getpwuid_r( getuid(), &passwd, buffer, SYSTEM_BUFFER_SIZE, &result );
+	if( !result )
+	{
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
-	strncpy( username, getlogin(), 64 );
+		string_copy( buffer, getlogin() ?: "unknown", SYSTEM_BUFFER_SIZE );
 #else
-	getlogin_r( username, 64 );
+		if( getlogin_r( buffer, SYSTEM_BUFFER_SIZE ) != 0 )
+			string_copy( buffer, "unknown", SYSTEM_BUFFER_SIZE );
 #endif
-	username[63] = 0;
-	return username;
+	}
+	else
+	{
+		return result->pw_name;
+	}
+	return buffer;
 }
 
 
@@ -662,10 +668,10 @@ uint32_t system_locale( void )
 
 const char* system_locale_string( void )
 {
-	static char localestr[5] = {0};
-	//TODO: Thread safety
+	char* localestr = _system_buffer();
 	uint32_t locale = system_locale();
 	memcpy( localestr, &locale, 4 );
+	localestr[4] = 0;
 	return localestr;
 }
 
@@ -755,4 +761,15 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 	FOUNDATION_UNUSED( cancel_button );
 	return false;
 #endif
+}
+
+
+void system_thread_deallocate( void )
+{
+	char* buffer = get_thread_system_buffer();
+	if( !buffer )
+		return;
+
+	memory_deallocate( buffer );
+	set_thread_system_buffer( 0 );
 }
