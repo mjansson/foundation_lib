@@ -28,7 +28,7 @@ class Toolchain(object):
     self.archs = list( archs )
     self.configs = list( configs )
     if self.toolchain is None:
-      if target.is_android():
+      if target.is_android() or target.is_raspberrypi():
         self.toolchain = 'gcc'
       elif host.is_windows():
         self.toolchain = 'msvc'
@@ -64,6 +64,9 @@ class Toolchain(object):
       self.exe_suffix = ''
 
     #Set default values
+    self.build_monolithic = False
+    self.build_coverage = False
+
     self.android_ndkpath = ''
     self.android_sdkpath = ''
     self.android_keystore = os.path.join( os.path.expanduser( '~' ), '.android', 'debug.keystore' )
@@ -95,7 +98,11 @@ class Toolchain(object):
       else:
         iterator = iter( variables )
       for key, val in iterator:
-        if key == 'bundleidentifier':
+        if key == 'monolithic':
+          self.build_monolithic = self.get_boolean_flag( val )
+        elif key == 'coverage':
+          self.build_coverage = self.get_boolean_flag( val )
+        elif key == 'bundleidentifier':
           self.ios_bundleidentifier = val
           self.macosx_bundleidentifier = val
         elif key == 'organisation':
@@ -218,8 +225,7 @@ class Toolchain(object):
       self.ar = 'ar' + self.exe_suffix
       self.link = 'gcc' + self.exe_suffix
       self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
-                      '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
-                      '-Wno-unused-value',
+                      '-W', '-Wall', '-Werror',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
@@ -249,7 +255,9 @@ class Toolchain(object):
         self.cflags += [ '-std=c99', '-fno-omit-frame-pointer' ]
         self.extralibs += [ 'rt' ]
       elif target.is_android():
-        self.cflags += [ '-std=gnu11' ] #c11 gives errors in ndk cpu-features on android
+        self.cflags += [ '-std=gnu11' ] #c11 gives errors in NDK cpu-features on android
+        self.cflags += [ '-Wno-unused-function' ] #errors in NDK cpu-features on android
+        self.cflags += [ '-Wno-unused-parameter' ] #errors in NDK native-app-glue on android
       else:
         self.cflags += [ '-std=c11' ]
 
@@ -260,8 +268,8 @@ class Toolchain(object):
         self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
-        self.cflags += [ '-DANDROID', '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
-                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function', '-Wno-unused-variable' ]
+        self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
+                         '-finline-limit=300', '-no-canonical-prefixes', '-Wa,--noexecstack' ]
 
         self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
 
@@ -276,7 +284,7 @@ class Toolchain(object):
       self.ar = 'llvm-ar'
       self.link = 'clang'
       self.cflags = [ '-std=c11', '-D' + self.project.upper() + '_COMPILE=1',
-                      '-W', '-Wall', '-Werror', '-Wno-unused-parameter', '-Wno-missing-braces', '-Wno-missing-field-initializers',
+                      '-W', '-Wall', '-Werror',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
@@ -364,7 +372,7 @@ class Toolchain(object):
         self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer',
-                         '-no-canonical-prefixes', '-Wa,--noexecstack', '-Wno-unused-function' ]
+                         '-no-canonical-prefixes', '-Wa,--noexecstack' ]
 
         self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
 
@@ -600,6 +608,13 @@ class Toolchain(object):
       pnaclprefs = prefs['pnacl']
       if 'sdkpath' in pnaclprefs:
         self.pnacl_sdkpath = pnaclprefs['sdkpath']
+    if 'monolithic' in prefs:
+      self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
+    if 'coverage' in prefs:
+      self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
+
+  def get_boolean_flag( self, val ):
+    return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
 
   def build_includepaths( self, includepaths ):
     finalpaths = []
@@ -641,6 +656,11 @@ class Toolchain(object):
         else:
           flags += '-O4'
         flags += ' -DBUILD_DEPLOY=1 -funroll-loops'
+      if self.is_monolithic():
+        flags += ' -DBUILD_MONOLITHIC=1'
+      if self.use_coverage():
+        if self.toolchain == 'gcc' or self.toolchain == 'clang':
+          flags += ' --coverage'
     elif self.toolchain == 'msvc':
       if config == 'debug':
         flags += '/Od /D "BUILD_DEBUG=1" /GF- /Gm-'
@@ -650,6 +670,8 @@ class Toolchain(object):
         flags += '/Ox /D "BUILD_PROFILE=1" /Ob2 /Ot /GT /GL /GF /Gm-'
       elif config == 'deploy':
         flags += '/Ox /D "BUILD_DEPLOY=1" /Ob2 /Ot /GT /GL /GF /Gm-'
+      if self.is_monolithic():
+        flags += ' /D "BUILD_MONOLITHIC=1"'
     return flags
 
   def make_carchflags( self, arch ):
@@ -785,6 +807,9 @@ class Toolchain(object):
         flags += ' /DEBUG /INCREMENTAL'
       else:
         flags += ' /DEBUG /LTCG /INCREMENTAL:NO /OPT:REF /OPT:ICF'
+    if self.use_coverage():
+      if self.toolchain == 'gcc' or self.toolchain == 'clang':
+        flags += ' --coverage'
     return flags.strip()
 
   def make_linkarchlibs( self, arch ):
@@ -811,6 +836,12 @@ class Toolchain(object):
 
   def is_intel( self ):
     return self.toolchain == 'intel'
+
+  def is_monolithic( self ):
+    return self.build_monolithic
+
+  def use_coverage( self ):
+    return self.build_coverage
 
   def cc( self ):
     return self.cc
@@ -1264,6 +1295,8 @@ class Toolchain(object):
       binname = module
     if configs is None:
       configs = list( self.configs )
+    if libs is None:
+      libs = []
     if extralibs is None:
       extralibs = []
     if extraframeworks is None:

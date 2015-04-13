@@ -41,6 +41,7 @@ Platforms and architectures currently supported:
 * Raspberry Pi (ARM6)
 * PNaCl
 
+
 The latest source code maintained by Rampant Pixels is always available at
 
 https://github.com/rampantpixels/foundation_lib
@@ -60,6 +61,10 @@ http://martine.github.io/ninja
 The PNaCl build of the latest release can be tested at
 
 http://www.rampantpixels.com/foundation_lib/pnacl/
+
+Test suite coverage report:
+
+[![Coverage Status](https://coveralls.io/repos/rampantpixels/foundation_lib/badge.svg?branch=master)](https://coveralls.io/r/rampantpixels/foundation_lib?branch=master)
 
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 

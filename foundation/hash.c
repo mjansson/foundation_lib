@@ -1,11 +1,11 @@
 /* hash.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -15,23 +15,22 @@
 
 
 #if FOUNDATION_COMPILER_MSVC
-#  pragma intrinsic(_rotl)
-#  pragma intrinsic(_rotl64)
+#  include <stdlib.h>
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-#  define _rotl64(a, bits) (((a) << (bits)) | ((a) >> (64 - (bits))))
+#  define _rotl64(a, bits) (((a) << (uint64_t)(bits)) | ((a) >> (64ULL - (uint64_t)(bits))))
 #endif
 
 #define HASH_SEED 0xbaadf00d
 
 
-static FORCEINLINE CONSTCALL uint64_t fmix64( uint64_t k );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t fmix64( uint64_t k );
 
 
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned int i )
+static FOUNDATION_FORCEINLINE uint64_t getblock( const uint64_t* FOUNDATION_RESTRICT p, const unsigned int i )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return p[i];
@@ -41,7 +40,7 @@ static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned
 }
 
 #if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
-static FORCEINLINE uint64_t getblock_nonaligned( const char* RESTRICT p, const unsigned int i )
+static FOUNDATION_FORCEINLINE uint64_t getblock_nonaligned( const char* FOUNDATION_RESTRICT p, const unsigned int i )
 {
 	uint64_t ret;
 	memcpy( &ret, p + i*8, 8 );
@@ -75,7 +74,7 @@ static FORCEINLINE uint64_t getblock_nonaligned( const char* RESTRICT p, const u
 
 //----------
 // Finalization mix - avalanches all bits to within 0.05% bias
-static FORCEINLINE uint64_t fmix64( uint64_t k )
+static FOUNDATION_FORCEINLINE uint64_t fmix64( uint64_t k )
 {
 	k ^= k >> 33;
 	k *= 0xff51afd7ed558ccd;
@@ -115,16 +114,16 @@ hash_t hash( const void* key, const unsigned int len )
 		k1 = getblock_nonaligned(key,i*2);
 		k2 = getblock_nonaligned(key,i*2+1);
 
-		bmix64(h1,h2,k1,k2,c1,c2); 
+		bmix64(h1,h2,k1,k2,c1,c2);
 	}
 	else
-#endif	
+#endif
 	for( i = 0; i < nblocks; ++i )
 	{
 		k1 = getblock(blocks,i*2);
 		k2 = getblock(blocks,i*2+1);
 
-		bmix64(h1,h2,k1,k2,c1,c2); 
+		bmix64(h1,h2,k1,k2,c1,c2);
 	}
 
 	//----------
@@ -180,12 +179,14 @@ hash_t hash( const void* key, const unsigned int len )
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
 
-static hashtable64_t* _hash_lookup = 0;
+static hashtable64_t* _hash_lookup;
 
 
-void _static_hash_initialize( void )
+int _static_hash_initialize( void )
 {
-	_hash_lookup = hashtable64_allocate( BUILD_SIZE_STATIC_HASH_STORE + 1 );
+	if( !_hash_lookup )
+		_hash_lookup = hashtable64_allocate( BUILD_SIZE_STATIC_HASH_STORE + 1 );
+	return 0;
 }
 
 
@@ -198,7 +199,7 @@ void _static_hash_shutdown( void )
 		if( str )
 			string_deallocate( str );
 	}
-	
+
 	hashtable64_deallocate( _hash_lookup );
 	_hash_lookup = 0;
 }
@@ -239,8 +240,9 @@ const char* hash_to_string( const hash_t value )
 #else
 
 
-void _static_hash_initialize( void )
+int _static_hash_initialize( void )
 {
+	return 0;
 }
 
 

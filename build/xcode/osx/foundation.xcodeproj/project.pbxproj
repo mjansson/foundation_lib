@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		451871A3194EB67C000E42C9 /* regex.c in Sources */ = {isa = PBXBuildFile; fileRef = 451871A1194EB67C000E42C9 /* regex.c */; };
 		451871A4194EB67C000E42C9 /* regex.h in Headers */ = {isa = PBXBuildFile; fileRef = 451871A2194EB67C000E42C9 /* regex.h */; };
+		452A5FF31A9C638800A23D38 /* pnacl.c in Sources */ = {isa = PBXBuildFile; fileRef = 452A5FF01A9C638800A23D38 /* pnacl.c */; };
+		452A5FF41A9C638800A23D38 /* pnacl.h in Headers */ = {isa = PBXBuildFile; fileRef = 452A5FF11A9C638800A23D38 /* pnacl.h */; };
+		452A5FF51A9C638800A23D38 /* version.c in Sources */ = {isa = PBXBuildFile; fileRef = 452A5FF21A9C638800A23D38 /* version.c */; };
 		CD1C2FD616F25DEF00D36B24 /* system.m in Sources */ = {isa = PBXBuildFile; fileRef = CD1C2FD516F25DEF00D36B24 /* system.m */; };
 		CD1C2FD816F2640B00D36B24 /* environment.m in Sources */ = {isa = PBXBuildFile; fileRef = CD1C2FD716F2640B00D36B24 /* environment.m */; };
 		CD218122180C7D4000F65A1A /* fs.m in Sources */ = {isa = PBXBuildFile; fileRef = CD218121180C7D4000F65A1A /* fs.m */; };
@@ -112,6 +115,9 @@
 /* Begin PBXFileReference section */
 		451871A1194EB67C000E42C9 /* regex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = regex.c; path = ../../../foundation/regex.c; sourceTree = "<group>"; };
 		451871A2194EB67C000E42C9 /* regex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = regex.h; path = ../../../foundation/regex.h; sourceTree = "<group>"; };
+		452A5FF01A9C638800A23D38 /* pnacl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pnacl.c; path = ../../../foundation/pnacl.c; sourceTree = "<group>"; };
+		452A5FF11A9C638800A23D38 /* pnacl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pnacl.h; path = ../../../foundation/pnacl.h; sourceTree = "<group>"; };
+		452A5FF21A9C638800A23D38 /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = version.c; path = ../../../foundation/version.c; sourceTree = "<group>"; };
 		CD1C2FD516F25DEF00D36B24 /* system.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = system.m; path = ../../../foundation/system.m; sourceTree = "<group>"; };
 		CD1C2FD716F2640B00D36B24 /* environment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = environment.m; path = ../../../foundation/environment.m; sourceTree = "<group>"; };
 		CD218121180C7D4000F65A1A /* fs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = fs.m; path = ../../../foundation/fs.m; sourceTree = "<group>"; };
@@ -312,6 +318,8 @@
 				CDBE40AA172C546C00C7AC40 /* pipe.c */,
 				CDBE40AB172C546C00C7AC40 /* pipe.h */,
 				CDCEF47616D2D2B000198086 /* platform.h */,
+				452A5FF01A9C638800A23D38 /* pnacl.c */,
+				452A5FF11A9C638800A23D38 /* pnacl.h */,
 				CD7F382516E151E5000346C0 /* posix.h */,
 				CDCEF47716D2D2B000198086 /* process.c */,
 				CDCEF47816D2D2B000198086 /* process.h */,
@@ -343,6 +351,7 @@
 				CDCEF48B16D2D2B100198086 /* types.h */,
 				CD9097F917D5324F00607B9C /* uuid.c */,
 				CD9097FA17D5324F00607B9C /* uuid.h */,
+				452A5FF21A9C638800A23D38 /* version.c */,
 				CDCEF48C16D2D2B100198086 /* windows.h */,
 			);
 			name = foundation;
@@ -375,6 +384,7 @@
 				CDCEF4AB16D2D2B100198086 /* fs.h in Headers */,
 				CDCEF4AD16D2D2B100198086 /* hash.h in Headers */,
 				CDCEF4AE16D2D2B100198086 /* hashstrings.h in Headers */,
+				452A5FF41A9C638800A23D38 /* pnacl.h in Headers */,
 				CDCEF4AF16D2D2B100198086 /* internal.h in Headers */,
 				CDCEF4B116D2D2B100198086 /* library.h in Headers */,
 				CDCEF4B216D2D2B100198086 /* locale.h in Headers */,
@@ -419,6 +429,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CDCEF43D16D2D11500198086 /* Build configuration list for PBXNativeTarget "foundation" */;
 			buildPhases = (
+				452A5FEF1A9B778900A23D38 /* ShellScript */,
 				CDCEF43516D2D11500198086 /* Sources */,
 				CDCEF43616D2D11500198086 /* Frameworks */,
 				CDCEF43716D2D11500198086 /* Headers */,
@@ -438,7 +449,7 @@
 		CDCEF43116D2D11500198086 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
 			};
 			buildConfigurationList = CDCEF43416D2D11500198086 /* Build configuration list for PBXProject "foundation" */;
@@ -458,6 +469,23 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		452A5FEF1A9B778900A23D38 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+				foundation/version.c,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python ${PROJECT_DIR}/../../ninja/version.py foundation ${PROJECT_DIR}/../../../foundation";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		CDCEF43516D2D11500198086 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -472,12 +500,14 @@
 				CDCEF49B16D2D2B100198086 /* bufferstream.c in Sources */,
 				CDCEF49E16D2D2B100198086 /* config.c in Sources */,
 				CDCEF4A016D2D2B100198086 /* crash.c in Sources */,
+				452A5FF31A9C638800A23D38 /* pnacl.c in Sources */,
 				CDCEF4A216D2D2B100198086 /* environment.c in Sources */,
 				CDCEF4A416D2D2B100198086 /* error.c in Sources */,
 				CDCEF4A616D2D2B100198086 /* event.c in Sources */,
 				CDCEF4A816D2D2B100198086 /* foundation.c in Sources */,
 				CDCEF4AA16D2D2B100198086 /* fs.c in Sources */,
 				CDCEF4AC16D2D2B100198086 /* hash.c in Sources */,
+				452A5FF51A9C638800A23D38 /* version.c in Sources */,
 				CDCEF4B016D2D2B100198086 /* library.c in Sources */,
 				CDCEF4B316D2D2B100198086 /* log.c in Sources */,
 				CDCEF4B516D2D2B100198086 /* main.c in Sources */,
@@ -519,7 +549,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -563,6 +592,7 @@
 		CD6603E018F7A007001BDED3 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -577,7 +607,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -623,7 +652,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -667,13 +695,13 @@
 		CDCEF43E16D2D11500198086 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/debug;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FOUNDATION_COMPILE=1",
 				);
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = foundation;
 			};
 			name = Debug;
@@ -681,6 +709,7 @@
 		CDCEF43F16D2D11500198086 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/release;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -695,7 +724,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -739,6 +767,7 @@
 		CDCEF4DA16D2D44B00198086 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (

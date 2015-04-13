@@ -38,7 +38,7 @@
     <ClCompile Include="..\..\..\test\bitbuffer\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{c6800c87-1531-467e-81b2-aea170c9bad3}</ProjectGuid>
+    <ProjectGuid>{3E467006-26A5-430C-AE3B-F6D820FF5153}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>bitbuffer</RootNamespace>
   </PropertyGroup>

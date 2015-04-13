@@ -1,11 +1,11 @@
 /* main.c  -  Foundation radixsort test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_radixsort_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation radixsort tests";
 	app.short_name = "test_radixsort";
 	app.config_dir = "test_radixsort";
@@ -81,8 +82,8 @@ DECLARE_TEST( radixsort, sort_int32 )
 	{
 		radixsort_index_t ival, sval;
 		radixsort_index_t num = (radixsort_index_t)( ( 1ULL << (uint64_t)bits ) - 1 );
-		const radixsort_index_t* RESTRICT sindex_int;
-		const radixsort_index_t* RESTRICT sindex_uint;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_int;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_uint;
 
 		arr_int = memory_allocate( 0, sizeof( int32_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_uint = memory_allocate( 0, sizeof( uint32_t ) * num, 0, MEMORY_PERSISTENT );
@@ -120,8 +121,8 @@ DECLARE_TEST( radixsort, sort_int32 )
 	{
 		radixsort_index_t ival, sval;
 		radixsort_index_t num = (radixsort_index_t)( ( 1ULL << (uint64_t)bits ) - 1 );
-		const radixsort_index_t* RESTRICT sindex_int;
-		const radixsort_index_t* RESTRICT sindex_uint;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_int;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_uint;
 
 		arr_int = memory_allocate( 0, sizeof( int32_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_uint = memory_allocate( 0, sizeof( uint32_t ) * num, 0, MEMORY_PERSISTENT );
@@ -182,8 +183,8 @@ DECLARE_TEST( radixsort, sort_int64 )
 	{
 		radixsort_index_t ival, sval;
 		radixsort_index_t num = (radixsort_index_t)( ( 1ULL << (uint64_t)bits ) - 1 );
-		const radixsort_index_t* RESTRICT sindex_int;
-		const radixsort_index_t* RESTRICT sindex_uint;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_int;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_uint;
 
 		arr_int = memory_allocate( 0, sizeof( int64_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_uint = memory_allocate( 0, sizeof( uint64_t ) * num, 0, MEMORY_PERSISTENT );
@@ -221,8 +222,8 @@ DECLARE_TEST( radixsort, sort_int64 )
 	{
 		radixsort_index_t ival, sval;
 		radixsort_index_t num = (radixsort_index_t)( ( 1ULL << (uint64_t)bits ) - 1 );
-		const radixsort_index_t* RESTRICT sindex_int;
-		const radixsort_index_t* RESTRICT sindex_uint;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_int;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_uint;
 
 		arr_int = memory_allocate( 0, sizeof( int64_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_uint = memory_allocate( 0, sizeof( uint64_t ) * num, 0, MEMORY_PERSISTENT );
@@ -285,16 +286,43 @@ DECLARE_TEST( radixsort, sort_real )
 	{
 		radixsort_index_t ival, sval;
 		radixsort_index_t num = (radixsort_index_t)( ( 1ULL << (uint64_t)bits ) - 1 );
-		const radixsort_index_t* RESTRICT sindex_32;
-		const radixsort_index_t* RESTRICT sindex_64;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_32;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_64;
 
 		arr_32 = memory_allocate( 0, sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_64 = memory_allocate( 0, sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
 
+		//Mixed neg/pos
 		for( ival = 0; ival < num; ++ival )
 		{
 			arr_32[ival] = random_range( low_range, high_range );
 			arr_64[ival] = random_range( low_range, high_range );
+		}
+
+		sindex_32 = radixsort( sort_32, arr_32, num );
+		sindex_64 = radixsort( sort_64, arr_64, num );
+
+		if( num == 1 )
+		{
+			EXPECT_EQ( sindex_32[0], 0 );
+			EXPECT_EQ( sindex_64[0], 0 );
+		}
+		else for( ival = 1; ival < num; ++ival )
+		{
+			for( sval = 0; sval < ival; ++sval )
+			{
+				EXPECT_NE( sindex_32[sval], sindex_32[ival] );
+				EXPECT_NE( sindex_64[sval], sindex_64[ival] );
+			}
+			EXPECT_LE( arr_32[ sindex_32[ival-1] ], arr_32[ sindex_32[ival] ] );
+			EXPECT_LE( arr_64[ sindex_64[ival-1] ], arr_64[ sindex_64[ival] ] );
+		}
+
+		//Only neg
+		for( ival = 0; ival < num; ++ival )
+		{
+			arr_32[ival] = random_range( low_range, -1.0f );
+			arr_64[ival] = random_range( low_range, -1.0f );
 		}
 
 		sindex_32 = radixsort( sort_32, arr_32, num );
@@ -324,16 +352,43 @@ DECLARE_TEST( radixsort, sort_real )
 	{
 		radixsort_index_t ival, sval;
 		radixsort_index_t num = (radixsort_index_t)( ( 1ULL << (uint64_t)bits ) - 1 );
-		const radixsort_index_t* RESTRICT sindex_32;
-		const radixsort_index_t* RESTRICT sindex_64;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_32;
+		const radixsort_index_t* FOUNDATION_RESTRICT sindex_64;
 
 		arr_32 = memory_allocate( 0, sizeof( float32_t ) * num, 0, MEMORY_PERSISTENT );
 		arr_64 = memory_allocate( 0, sizeof( float64_t ) * num, 0, MEMORY_PERSISTENT );
 
+		//Mixed neg/pos
 		for( ival = 0; ival < num; ++ival )
 		{
 			arr_32[ival] = random_range( low_range, high_range );
 			arr_64[ival] = random_range( low_range, high_range );
+		}
+
+		sindex_32 = radixsort( sort_32, arr_32, num );
+		sindex_64 = radixsort( sort_64, arr_64, num );
+
+		if( num == 1 )
+		{
+			EXPECT_EQ( sindex_32[0], 0 );
+			EXPECT_EQ( sindex_64[0], 0 );
+		}
+		else for( ival = 1; ival < num; ++ival )
+		{
+			for( sval = 0; sval < ival; ++sval )
+			{
+				EXPECT_NE( sindex_32[sval], sindex_32[ival] );
+				EXPECT_NE( sindex_64[sval], sindex_64[ival] );
+			}
+			EXPECT_LE( arr_32[ sindex_32[ival-1] ], arr_32[ sindex_32[ival] ] );
+			EXPECT_LE( arr_64[ sindex_64[ival-1] ], arr_64[ sindex_64[ival] ] );
+		}
+
+		//Only neg
+		for( ival = 0; ival < num; ++ival )
+		{
+			arr_32[ival] = random_range( low_range, -1.0f );
+			arr_64[ival] = random_range( low_range, -1.0f );
 		}
 
 		sindex_32 = radixsort( sort_32, arr_32, num );
@@ -384,7 +439,7 @@ test_suite_t test_radixsort_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_radixsort_run( void );
 int test_radixsort_run( void )

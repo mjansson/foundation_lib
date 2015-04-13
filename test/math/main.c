@@ -1,11 +1,11 @@
 /* main.c  -  Foundation math test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -21,7 +21,8 @@
 
 static application_t test_math_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation math tests";
 	app.short_name = "test_math";
 	app.config_dir = "test_math";
@@ -85,7 +86,7 @@ DECLARE_TEST( math, trigonometry )
 	EXPECT_REALZERO( math_atan( REAL_ZERO ) );
 	EXPECT_REALEQ( math_atan( REAL_ONE ), REAL_HALFPI * REAL_HALF );
 	EXPECT_REALEQ( math_atan( -REAL_ONE ), -REAL_HALFPI * REAL_HALF );
-	
+
 	EXPECT_REALZERO( math_atan2( REAL_ZERO, REAL_ONE ) );
 	EXPECT_REALEQ( math_atan2( REAL_ONE, -REAL_ONE ), REAL_HALFPI * REAL_HALF * REAL_THREE );
 
@@ -108,7 +109,7 @@ DECLARE_TEST( math, squareroot )
 DECLARE_TEST( math, utility )
 {
 	int i;
-	
+
 	EXPECT_REALONE( math_abs( REAL_ONE ) );
 	EXPECT_REALONE( math_abs( -REAL_ONE ) );
 	EXPECT_REALZERO( math_abs( REAL_ZERO ) );
@@ -144,13 +145,13 @@ DECLARE_TEST( math, utility )
 	EXPECT_EQ( math_ceil64( REAL_C( -0.1 ) ), 0 );
 	EXPECT_EQ( math_ceil64( REAL_C( 42.5 ) ), 43 );
 	EXPECT_EQ( math_ceil64( REAL_C( 42.45 ) ), 43 );
-	
+
 	EXPECT_EQ( math_round( REAL_ZERO ), 0 );
 	EXPECT_EQ( math_round( REAL_C( 0.999 ) ), 1 );
 	EXPECT_EQ( math_round( REAL_C( -0.1 ) ), 0 );
 	EXPECT_EQ( math_round( REAL_C( 42.5 ) ), 43 );
 	EXPECT_EQ( math_round( REAL_C( 42.45 ) ), 42 );
-	
+
 	EXPECT_EQ( math_trunc( REAL_ZERO ), 0 );
 	EXPECT_EQ( math_trunc( REAL_C( 0.999 ) ), 0 );
 	EXPECT_EQ( math_trunc( REAL_C( -0.1 ) ), 0 );
@@ -181,7 +182,7 @@ DECLARE_TEST( math, utility )
 	EXPECT_REALZERO( math_smoothstep( REAL_ZERO ) );
 	EXPECT_REALONE( math_smoothstep( REAL_ONE ) );
 	EXPECT_REALEQ( math_smoothstep( REAL_HALF ), REAL_HALF );
-	
+
 	EXPECT_REALZERO( math_smootherstep( REAL_ZERO ) );
 	EXPECT_REALONE( math_smootherstep( REAL_ONE ) );
 	EXPECT_REALEQ( math_smootherstep( REAL_HALF ), REAL_HALF );
@@ -335,7 +336,7 @@ DECLARE_TEST( math, wrap )
 {
 	int32_t min32, max32;
 	int64_t min64, max64;
-	
+
 	EXPECT_EQ( math_inc_wrap_uint8( 0xFE, 0, 0xFF ), 0xFF );
 	EXPECT_EQ( math_inc_wrap_uint8( 0xFF, 0, 0xFF ), 0 );
 	EXPECT_EQ( math_inc_wrap_uint8( 1, 0, 1 ), 0 );
@@ -395,7 +396,7 @@ DECLARE_TEST( math, wrap )
 	EXPECT_EQ( math_inc_wrap_int64( -1, -1, 1 ), 0 );
 	EXPECT_EQ( math_inc_wrap_int64( 42, 40, 42 ), 40 );
 	EXPECT_EQ( math_inc_wrap_int64( 42, 40, 43 ), 43 );
-	
+
 	return 0;
 }
 
@@ -421,7 +422,7 @@ test_suite_t test_math_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_math_run( void );
 int test_math_run( void )

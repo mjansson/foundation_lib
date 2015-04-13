@@ -1,11 +1,11 @@
 /* main.c  -  Foundation mutex test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_mutex_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation mutex tests";
 	app.short_name = "test_mutex";
 	app.config_dir = "test_mutex";
@@ -54,7 +55,7 @@ DECLARE_TEST( mutex, basic )
 	EXPECT_TRUE( mutex_lock( mutex ) );
 	EXPECT_TRUE( mutex_try_lock( mutex ) );
 	EXPECT_TRUE( mutex_lock( mutex ) );
-	
+
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 	EXPECT_TRUE( mutex_unlock( mutex ) );
@@ -82,9 +83,9 @@ DECLARE_TEST( mutex, basic )
 	EXPECT_TRUE( mutex_unlock( mutex ) );
 	EXPECT_FALSE( mutex_unlock( mutex ) );
 	log_set_suppress( 0, ERRORLEVEL_INFO );
-	
+
 	mutex_deallocate( mutex );
-	
+
 	return 0;
 }
 
@@ -95,7 +96,9 @@ static void* mutex_thread( object_t thread, void* arg )
 {
 	mutex_t* mutex = arg;
 	int i;
-	
+	FOUNDATION_UNUSED( thread );
+	FOUNDATION_UNUSED( arg );
+
 	for( i = 0; i < 128; ++i )
 	{
 		if( !mutex_try_lock( mutex ) )
@@ -105,7 +108,7 @@ static void* mutex_thread( object_t thread, void* arg )
 
 		mutex_unlock( mutex );
 	}
-	
+
 	return 0;
 }
 
@@ -118,7 +121,7 @@ DECLARE_TEST( mutex, sync )
 
 	mutex = mutex_allocate( "test" );
 	mutex_lock( mutex );
-	
+
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread[ith] = thread_create( mutex_thread, "mutex_thread", THREAD_PRIORITY_NORMAL, 0 );
@@ -126,7 +129,7 @@ DECLARE_TEST( mutex, sync )
 	}
 
 	test_wait_for_threads_startup( thread, 32 );
-	
+
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread_terminate( thread[ith] );
@@ -136,11 +139,11 @@ DECLARE_TEST( mutex, sync )
 	mutex_unlock( mutex );
 
 	test_wait_for_threads_exit( thread, 32 );
-	
+
 	mutex_deallocate( mutex );
 
 	EXPECT_EQ( thread_counter, 32 * 128 );
-	
+
 	return 0;
 }
 
@@ -152,6 +155,8 @@ atomic32_t thread_waited = {0};
 static void* thread_wait( object_t thread, void* arg )
 {
 	mutex_t* mutex = arg;
+	FOUNDATION_UNUSED( thread );
+	FOUNDATION_UNUSED( arg );
 
 	atomic_incr32( &thread_waiting );
 
@@ -167,7 +172,7 @@ static void* thread_wait( object_t thread, void* arg )
 
 	return 0;
 }
-	
+
 
 DECLARE_TEST( mutex, signal )
 {
@@ -177,7 +182,7 @@ DECLARE_TEST( mutex, signal )
 
 	mutex = mutex_allocate( "test" );
 	mutex_lock( mutex );
-	
+
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread[ith] = thread_create( thread_wait, "thread_wait", THREAD_PRIORITY_NORMAL, 0 );
@@ -185,13 +190,13 @@ DECLARE_TEST( mutex, signal )
 	}
 
 	mutex_unlock( mutex );
-	
+
 	test_wait_for_threads_startup( thread, 32 );
 
 	while( atomic_load32( &thread_waiting ) < 32 )
 		thread_yield();
 	thread_sleep( 1000 ); //Hack wait to give threads time to progress from atomic_incr to mutex_wait
-	
+
 	mutex_signal( mutex );
 
 	for( ith = 0; ith < 32; ++ith )
@@ -199,13 +204,13 @@ DECLARE_TEST( mutex, signal )
 		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
 	}
-	
+
 	test_wait_for_threads_exit( thread, 32 );
 
 	EXPECT_EQ( atomic_load32( &thread_waited ), 32 );
 
 	EXPECT_FALSE( mutex_wait( mutex, 500 ) );
-	
+
 	mutex_deallocate( mutex );
 
 	return 0;
@@ -229,7 +234,7 @@ test_suite_t test_mutex_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_mutex_run( void );
 int test_mutex_run( void )

@@ -1,11 +1,11 @@
 /* thread.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -49,12 +49,12 @@ struct thread_local_block_t
 typedef struct thread_local_block_t thread_local_block_t;
 
 //TODO: Ugly hack, improve this shit
-static thread_local_block_t _thread_local_blocks[1024] = {{0}};
+static thread_local_block_t _thread_local_blocks[1024];
 
 void* _allocate_thread_local_block( unsigned int size )
 {
 	void* block = memory_allocate( 0, size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	
+
 	for( int i = 0; i < 1024; ++i )
 	{
 		if( !atomic_loadptr( &_thread_local_blocks[i].block ) )
@@ -66,7 +66,7 @@ void* _allocate_thread_local_block( unsigned int size )
 			}
 		}
 	}
-	
+
 	log_warnf( 0, WARNING_MEMORY, "Unable to locate thread local memory block slot, will leak %d bytes", size );
 	return block;
 }
@@ -74,7 +74,7 @@ void* _allocate_thread_local_block( unsigned int size )
 #endif
 
 
-ALIGNED_STRUCT( thread_t, 16 )
+FOUNDATION_ALIGNED_STRUCT( thread_t, 16 )
 {
 	FOUNDATION_DECLARE_OBJECT;
 
@@ -97,10 +97,10 @@ ALIGNED_STRUCT( thread_t, 16 )
 #  error Not implemented
 #endif
 };
-typedef ALIGNED_STRUCT( thread_t, 16 ) thread_t;
+typedef FOUNDATION_ALIGNED_STRUCT( thread_t, 16 ) thread_t;
 
-static uint64_t     _thread_main_id = 0;
-static objectmap_t* _thread_map = 0;
+static uint64_t     _thread_main_id;
+static objectmap_t* _thread_map;
 
 #define GET_THREAD( obj ) objectmap_lookup( _thread_map, obj )
 
@@ -147,6 +147,7 @@ void _thread_shutdown( void )
 static void _thread_destroy( object_t id, void* thread_raw )
 {
 	thread_t* thread = thread_raw;
+	FOUNDATION_UNUSED( id );
 	if( !thread )
 		return;
 	if( thread_is_running( thread->id ) )
@@ -162,7 +163,7 @@ static void _thread_destroy( object_t id, void* thread_raw )
 }
 
 
-static FORCEINLINE void _thread_unref( thread_t* thread )
+static FOUNDATION_FORCEINLINE void _thread_unref( thread_t* thread )
 {
 	if( thread )
 		objectmap_lookup_unref( _thread_map, thread->id, _thread_destroy );
@@ -184,7 +185,7 @@ object_t thread_create( thread_fn fn, const char* name, thread_priority_t priori
 	uint64_t id = objectmap_reserve( _thread_map );
 	if( !id )
 	{
-		log_error( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );	
+		log_error( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );
 		return 0;
 	}
 	thread = memory_allocate( 0, sizeof( thread_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
@@ -265,7 +266,7 @@ LONG WINAPI _thread_set_name_exception_filter( LPEXCEPTION_POINTERS pointers )
 }
 #endif
 
-static void NOINLINE _set_thread_name( const char* threadname )
+static void FOUNDATION_NOINLINE _set_thread_name( const char* threadname )
 {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
@@ -362,7 +363,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread, invalid thread object %" PRIfixPTR, thread );
 		return 0;
 	}
-	
+
 	atomic_cas32( &thread->started, 1, 0 );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
@@ -440,7 +441,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_UNUSED(thr_osid);
 	FOUNDATION_UNUSED(thr_id);
-	
+
 	return 0;
 }
 
@@ -569,7 +570,8 @@ unsigned int thread_hardware( void )
 
 void thread_set_hardware( uint64_t mask )
 {
-  //TODO: Implement
+	//TODO: Implement
+	FOUNDATION_UNUSED( mask );
 }
 
 
@@ -588,7 +590,8 @@ bool thread_is_main( void )
 void thread_finalize( void )
 {
 	_profile_thread_finalize();
-	
+
+	system_thread_deallocate();
 	random_thread_deallocate();
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -610,7 +613,7 @@ void thread_finalize( void )
 			memory_deallocate( block );
 		}
 	}
-#endif	
+#endif
 }
 
 

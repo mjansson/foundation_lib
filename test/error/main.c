@@ -1,11 +1,11 @@
 /* main.c  -  Foundation error test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_error_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation error tests";
 	app.short_name = "test_error";
 	app.config_dir = "test_error";
@@ -200,6 +201,8 @@ static void* error_test_thread( void )
 static void* error_thread( object_t thread, void* arg )
 {
 	int ipass = 0;
+	FOUNDATION_UNUSED( thread );
+	FOUNDATION_UNUSED( arg );
 
 	thread_sleep( 10 );
 
@@ -259,7 +262,7 @@ test_suite_t test_error_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_error_run( void );
 int test_error_run( void )

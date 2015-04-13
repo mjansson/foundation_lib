@@ -1,11 +1,11 @@
 /* main.c  -  Foundation objectmap test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_objectmap_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation objectmap tests";
 	app.short_name = "test_objectmap";
 	app.config_dir = "test_objectmap";
@@ -55,7 +56,7 @@ DECLARE_TEST( objectmap, initialize )
 	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );
 
 	objectmap_deallocate( map );
-	
+
 	return 0;
 }
 
@@ -63,9 +64,9 @@ DECLARE_TEST( objectmap, initialize )
 DECLARE_TEST( objectmap, store )
 {
 	objectmap_t* map;
-	object_base_t first = {0};
-	object_base_t second = {0};
-	
+	object_base_t first;
+	object_base_t second;
+
 	map = objectmap_allocate( 129 );
 
 	EXPECT_EQ( objectmap_lookup( map, 0 ), 0 );
@@ -86,31 +87,31 @@ DECLARE_TEST( objectmap, store )
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), &first );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );
-	
+
 	objectmap_set( map, second.id, &second );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), &first );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), &first );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), &second );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );
 
 	objectmap_free( map, first.id );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), 0 );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), &second );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );
 
 	objectmap_free( map, first.id );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), 0 );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), &second );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), &second );
 
 	objectmap_free( map, second.id );
 	EXPECT_EQ( objectmap_lookup( map, first.id ), 0 );
 	EXPECT_EQ( objectmap_raw_lookup( map, 0 ), 0 );
 	EXPECT_EQ( objectmap_lookup( map, second.id ), 0 );
-	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );	
-	
+	EXPECT_EQ( objectmap_raw_lookup( map, 1 ), 0 );
+
 	objectmap_deallocate( map );
 
 	return 0;
@@ -123,35 +124,42 @@ static void* objectmap_thread( object_t thread, void* arg )
 	object_base_t* objects;
 	int obj;
 	int loop;
+	object_base_t* lookup;
+	FOUNDATION_UNUSED( thread );
 
 	map = arg;
 	objects = memory_allocate( 0, sizeof( object_base_t ) * 512, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
-	
+
 	thread_sleep( 10 );
-	
+
 	for( loop = 0; loop < 32; ++loop )
 	{
 		thread_yield();
-	
+
 		for( obj = 0; obj < 512; ++obj )
 		{
 			objects[obj].id = objectmap_reserve( map );
-			EXPECT_NE( objects[obj].id, 0 );
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), 0 );
+			EXPECT_NE_MSGFORMAT( objects[obj].id, 0, "Unable to reserve slot for object num %d", obj );
+			EXPECT_EQ_MSGFORMAT( objectmap_lookup( map, objects[obj].id ), 0, "Object num %d (%llx) already stored in map", obj, objects[obj].id );
 			objectmap_set( map, objects[obj].id, objects + obj );
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), objects + obj );
+			lookup = objectmap_lookup( map, objects[obj].id );
+			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects + obj, lookup );
 		}
 
 		thread_yield();
-	
+
 		for( obj = 0; obj < 512; ++obj )
 		{
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), objects + obj );
+			lookup = objectmap_lookup( map, objects[obj].id );
+			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects + obj, lookup );
 			objectmap_free( map, objects[obj].id );
-			EXPECT_EQ( objectmap_lookup( map, objects[obj].id ), 0 );
+			lookup = objectmap_lookup( map, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, 0, "Object num %d (%llx) still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj, objects[obj].id, lookup );
 		}
 	}
-	
+
 	memory_deallocate( objects );
 
 	return 0;
@@ -164,6 +172,7 @@ DECLARE_TEST( objectmap, thread )
 	object_t thread[32];
 	int ith;
 	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	bool running = true;
 
 	map = objectmap_allocate( 32000 );
 
@@ -176,12 +185,31 @@ DECLARE_TEST( objectmap, thread )
 	test_wait_for_threads_startup( thread, num_threads );
 
 	for( ith = 0; ith < num_threads; ++ith )
-	{
 		thread_terminate( thread[ith] );
-		thread_destroy( thread[ith] );
-		thread_yield();
+
+	while( running )
+	{
+		running = false;
+		for( ith = 0; ith < num_threads; ++ith )
+		{
+			if( thread_is_running( thread[ith] ) )
+			{
+				running = true;
+				thread_yield();
+			}
+		}
 	}
-	
+
+	for( ith = 0; ith < num_threads; ++ith )
+	{
+		EXPECT_EQ( thread_result( thread[ith] ), 0 );
+	}
+
+	for( ith = 0; ith < num_threads; ++ith )
+	{
+		thread_destroy( thread[ith] );
+	}
+
 	test_wait_for_threads_exit( thread, num_threads );
 
 	objectmap_deallocate( map );
@@ -207,7 +235,7 @@ test_suite_t test_objectmap_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_objectmap_run( void );
 int test_objectmap_run( void )

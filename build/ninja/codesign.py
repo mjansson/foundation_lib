@@ -10,34 +10,33 @@ import shutil
 import json
 
 parser = argparse.ArgumentParser( description = 'Codesign utility for Ninja builds' )
-parser.add_argument( 'file',
-                     type=str,
+parser.add_argument( 'file', type=str,
                      help = 'Bundle/package to sign' )
-parser.add_argument( '--target',
+parser.add_argument( '--target', type=str,
                      help = 'Target',
                      choices = [ 'macosx', 'ios', 'android' ],
-                     default = [] )
-parser.add_argument( '--bundle',
+                     default = '' )
+parser.add_argument( '--bundle', type=str,
                      help = 'Bundle identifier (OSX/iOS)',
-                     default = [] )
-parser.add_argument( '--organisation',
+                     default = '' )
+parser.add_argument( '--organisation', type=str,
                      help = 'Organisation identifier (OSX/iOS)',
-                     default = [] )
-parser.add_argument( '--provisioning',
+                     default = '' )
+parser.add_argument( '--provisioning', type=str,
                      help = 'Provisioning profile (OSX/iOS)',
-                     default = [] )
-parser.add_argument( '--binname',
+                     default = '' )
+parser.add_argument( '--binname', type=str,
                      help = 'Binary name (OSX/iOS)',
-                     default = [] )
+                     default = '' )
 parser.add_argument( '--prefs', type=str,
                      help = 'Preferences file',
-                     default = [] )
+                     default = '' )
 parser.add_argument( '--builddir', type=str,
                      help = 'Build directory',
-                     default = [] )
+                     default = '' )
 parser.add_argument( '--config', type=str,
                      help = 'Build configuration',
-                     default = [] )
+                     default = '' )
 options = parser.parse_args()
 
 androidprefs = {}
@@ -126,7 +125,7 @@ def codesign_macosx():
 
   if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):
     os.remove( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) )
-  
+
   os.system( 'export CODESIGN_ALLOCATE=' + codesign_allocate + '; /usr/bin/codesign --force --sign ' + macosxprefs['signature'] + ' ' + options.file )
 
   if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):

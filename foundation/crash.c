@@ -1,11 +1,11 @@
 /* crash.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -51,21 +51,24 @@ typedef BOOL ( STDCALL *MiniDumpWriteDumpFn )( HANDLE, DWORD, HANDLE, MINIDUMP_T
 
 static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* name, char* dump_file )
 {
-    MINIDUMP_EXCEPTION_INFORMATION info;
+	MINIDUMP_EXCEPTION_INFORMATION info;
 
-    HANDLE     file;
-    SYSTEMTIME local_time;
+	HANDLE     file;
+	SYSTEMTIME local_time;
 
-    GetLocalTime( &local_time );
+	GetLocalTime( &local_time );
 
 	dump_file[0] = 0;
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
-		environment_temporary_directory(), name ? name : string_from_uuid_static( environment_application()->instance ), 
-		local_time.wYear, local_time.wMonth, local_time.wDay, 
-		local_time.wHour, local_time.wMinute, local_time.wSecond, 
+	if( !name )
+		name = environment_application()->short_name;
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
+		environment_temporary_directory(), name ? name : "", name ? "-" : "",
+		string_from_uuid_static( environment_application()->instance ),
+		local_time.wYear, local_time.wMonth, local_time.wDay,
+		local_time.wHour, local_time.wMinute, local_time.wSecond,
 		GetCurrentProcessId(), GetCurrentThreadId());
 	fs_make_directory( environment_temporary_directory() );
-    file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
+	file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
 
 	if( file && ( file != INVALID_HANDLE_VALUE ) )
 	{
@@ -92,7 +95,7 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 		{
 			FlushFileBuffers( file );
 		}
-	
+
 		CloseHandle( file );
 	}
 }
@@ -142,19 +145,29 @@ FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
 #  define crash_env_t struct __jmp_buf_tag*
 #endif
 FOUNDATION_DECLARE_THREAD_LOCAL( crash_env_t, crash_env, 0 )
-	
-	
+
+
 static void _crash_guard_minidump( void* context, const char* name, char* dump_file )
 {
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "/tmp/core.%s", name ? name : "unknown" );
+	if( !name )
+		name = environment_application()->short_name;
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%x.dmp",
+		environment_temporary_directory(), name ? name : "", name ? "-" : "",
+		string_from_uuid_static( environment_application()->instance ), time_system() );
+	fs_make_directory( environment_temporary_directory() );
 
 	//TODO: Write dump file
 	//ucontext_t* user_context = context;
+	FOUNDATION_UNUSED( context );
 }
 
 
 static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 {
+	FOUNDATION_UNUSED( sig );
+	FOUNDATION_UNUSED( info );
+	FOUNDATION_UNUSED( arg );
+
 	log_warnf( 0, WARNING_SUSPICIOUS, "Caught crash guard signal: %d", sig );
 
 	crash_dump_callback_fn callback = get_thread_crash_callback();
@@ -164,9 +177,7 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 		callback( _crash_dump_file );
 	}
 
-#if BUILD_ENABLE_ERROR_CONTEXT
-	_error_context_clear();
-#endif	
+	error_context_clear();
 
 	crash_env_t guard_env = get_thread_crash_env();
 	if( guard_env )
@@ -180,6 +191,9 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 
 int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name )
 {
+	//Make sure path is initialized
+	environment_temporary_directory();
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
@@ -191,9 +205,9 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	{
 		if( callback )
 			callback( _crash_dump_file );
-#if BUILD_ENABLE_ERROR_CONTEXT
-		_error_context_clear();
-#endif	
+
+		error_context_clear();
+
 		return FOUNDATION_CRASH_DUMP_GENERATED;
 	}
 #  else
@@ -204,18 +218,20 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #  endif
 
 #elif FOUNDATION_PLATFORM_POSIX
-	sigjmp_buf guard_env = {0};
-	
+	sigjmp_buf guard_env;
+
 	struct sigaction action;
 	memset( &action, 0, sizeof( action ) );
 
 	//Signals we process globally
 	action.sa_sigaction = _crash_guard_sigaction;
 	action.sa_flags = SA_SIGINFO;
-	if( ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
+	if( ( sigaction( SIGTRAP, &action, 0 ) < 0 ) ||
+	    ( sigaction( SIGABRT, &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGFPE,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSEGV, &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGBUS,  &action, 0 ) < 0 ) ||
+	    ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
 	{
 		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set crash guard signal actions" );
@@ -225,6 +241,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	set_thread_crash_callback( callback );
 	set_thread_crash_callback_name( name );
 
+	memset( &guard_env, 0, sizeof( guard_env ) );
 	int ret = sigsetjmp( guard_env, 1 );
 	if( ret == 0 )
 	{
@@ -232,8 +249,11 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 		return fn( data );
 	}
 	return ret;
-	
+
 #else
+
+	FOUNDATION_UNUSED( callback );
+	FOUNDATION_UNUSED( name );
 
 	//No guard mechanism in place yet for this platform
 	return fn( data );

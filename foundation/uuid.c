@@ -1,11 +1,11 @@
 /* uuid.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -47,12 +47,11 @@ typedef union
 } uuid_convert_t;
 
 
-static atomic32_t _uuid_last_counter = {0};
+static atomic32_t _uuid_last_counter;
 
 
 //682EAE88-339A-41B6-B8E3-997DAA0466D4
-const uuid_raw_t UUID_DNS_RAW = { 0x682eae88, 0x339a, 0x41b6, 0xb8, 0xe3, 0x99, 0x7d, 0xaa, 0x4, 0x66, 0xd4 };
-const uuid_t UUID_DNS = { 0x682EAE88339A41B6ULL, 0xB8E3997DAA0466D4ULL };
+const uuid_t UUID_DNS = { { 0x682EAE88339A41B6ULL, 0xB8E3997DAA0466D4ULL } };
 
 
 uuid_t uuid_generate_random( void )
@@ -121,7 +120,7 @@ uuid_t uuid_generate_time( void )
 }
 
 
-uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
+uuid_t uuid_generate_name( const uuid_t ns, const char* name )
 {
 	//v3 uuid, namespace and md5
 	md5_t md5;
@@ -131,7 +130,7 @@ uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
 	uint128_t digest;
 
 	//Namespace in network byte order
-	convert.uuid = namespace;
+	convert.uuid = ns;
 	namespace_id = convert.raw;
 	namespace_id.data1 = byteorder_bigendian32( namespace_id.data1 );
 	namespace_id.data2 = byteorder_bigendian16( namespace_id.data2 );
@@ -177,6 +176,8 @@ uuid_t string_to_uuid( const char* str )
 {
 	uuid_convert_t convert;
 	unsigned int data[10];
+	memset( data, 0, sizeof( data ) );
+	convert.raw.data1 = 0;
 	sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9] );
 	convert.raw.data2 = data[0];
 	convert.raw.data3 = data[1];

@@ -3,7 +3,8 @@
 
 \file thread.h
 \brief Threads
-\details Thread management
+\details Thread management. If you use the foundation library in threads created by other means than this thread interface
+you must remember to call thread_finalize() on thread termination to avoid memory leaks.
 
 
 \fn object_t thread_create( thread_fn fn, const char* name, thread_priority_t priority, unsigned int stacksize )
@@ -66,7 +67,7 @@
 \param thread Thread
 
 \fn bool thread_should_terminate( object_t thread )
-\brief Query if thread should terminate 
+\brief Query if thread should terminate
 \details Query if thread is scheduled for termination.
 \param thread Thread
 \return true if thread should terminate, false if not (keep running)

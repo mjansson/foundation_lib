@@ -28,51 +28,33 @@ extern int main( int, char** );
 #endif
 
 
-static bool _foundation_initialized = false;
+static bool _foundation_initialized;
 
+#define SUBSYSTEM_INIT( system, ... ) if( ret == 0 ) ret = _##system##_initialize( __VA_ARGS__ );
 
 int foundation_initialize( const memory_system_t memory, const application_t application )
 {
+	int ret = 0;
+
 	if( _foundation_initialized )
 		return 0;
 
-	if( _atomic_initialize() < 0 )
-		return -1;
+	SUBSYSTEM_INIT( atomic );
+	SUBSYSTEM_INIT( memory, memory );
+	SUBSYSTEM_INIT( static_hash );
+	SUBSYSTEM_INIT( log );
+	SUBSYSTEM_INIT( time );
+	SUBSYSTEM_INIT( thread );
+	SUBSYSTEM_INIT( random );
+	SUBSYSTEM_INIT( stream );
+	SUBSYSTEM_INIT( fs );
+	SUBSYSTEM_INIT( environment, application );
+	SUBSYSTEM_INIT( library );
+	SUBSYSTEM_INIT( system );
+	SUBSYSTEM_INIT( config );
 
-	if( _memory_initialize( memory ) < 0 )
-		return -1;
-
-	_static_hash_initialize();
-
-	if( _log_initialize() < 0 )
-		return -1;
-
-	if( _time_initialize() < 0 )
-		return -1;
-
-	if( _thread_initialize() < 0 )
-		return -1;
-
-	if( _random_initialize() < 0 )
-		return -1;
-
-    if( _stream_initialize() < 0 )
-        return -1;
-
-	if( _fs_initialize() < 0 )
-		return -1;
-
-	if( _environment_initialize( application ) < 0 )
-		return -1;
-
-	if( _library_initialize() < 0 )
-		return -1;
-
-	if( _system_initialize() < 0 )
-		return -1;
-
-	if( _config_initialize() < 0 )
-		return -1;
+	if( ret )
+		return ret;
 
 	//Parse built-in command line options
 	{
@@ -120,7 +102,7 @@ void foundation_shutdown( void )
 
 	_config_shutdown();
 	_fs_shutdown();
-    _stream_shutdown();
+	_stream_shutdown();
 	_system_shutdown();
 	_library_shutdown();
 	_environment_shutdown();
@@ -138,4 +120,3 @@ bool foundation_is_initialized( void )
 {
 	return _foundation_initialized;
 }
-

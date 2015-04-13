@@ -234,48 +234,48 @@ int val = currentarr[2];</pre>
 \param name    Variable name
 \param arrsize Size of array in number of elements
 
-\def RESTRICT
+\def FOUNDATION_RESTRICT
 \brief Restrict attribute
 \details Restrict attribute, defined to nothing if compiler does not support restrict
 
-\def THREADLOCAL
+\def FOUNDATION_THREADLOCAL
 \brief Thread local attribyte
 \details Thread local attribute, defined to nothing if the compiler/platform/architecture does not support thread local variables. For full platform support, use FOUNDATION_DECLARE_THREAD_LOCAL instead
 
-\def DEPRECATED
+\def FOUNDATION_DEPRECATED
 \brief Deprecated attribute
 \details Deprecated attribute, marking a function/variable as deprecated
 
-\def FORCEINLINE
+\def FOUNDATION_FORCEINLINE
 \brief Force inline attribute
 \details Attribute to force function to be inlined
 
-\def NOINLINE
+\def FOUNDATION_NOINLINE
 \brief Prevent inline attribute
 \details Attribute to prevent function from being inlined
 
-\def PURECALL
+\def FOUNDATION_PURECALL
 \brief Pure call attribute
 \details Attribute declaring function to be pure, meaning it has no effects except the return value and the return value depends only on the parameters and/or global variables
 
-\def CONSTCALL
+\def FOUNDATION_CONSTCALL
 \brief Const call attribute
 \details Attribute declaring function to be const, meaning it does not examine any values except the arguments, and has no effects except the return value.
 Basically this is just slightly more strict class than the PURECALL attribute, since function is not allowed to read global memory.
 Note that a function that has pointer arguments and examines the data pointed to must not be declared const. Likewise, a function that calls a non-const
 function usually must not be const. It does not make sense for a const function to return void.
 
-\def ALIGN
+\def FOUNDATION_ALIGN
 \brief Align attribute
 \details Variable or type attribute declaring the variable/type to have the specified memory alignment
 \param alignment Alignment
 
-\def ALIGNOF
+\def FOUNDATION_ALIGNOF
 \brief Get alignment
 \details Get the alignment of the given type or variable
 \param type Type or variable
 
-\def ALIGNED_STRUCT
+\def FOUNDATION_ALIGNED_STRUCT
 \brief Declare aligned struct
 \details Declare an aligned struct type
 \param name Struct name

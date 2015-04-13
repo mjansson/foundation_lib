@@ -16,7 +16,8 @@
 
 static application_t test_bufferstream_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation bufferstream tests";
 	app.short_name = "test_bufferstream";
 	app.config_dir = "test_bufferstream";
@@ -508,7 +509,7 @@ test_suite_t test_bufferstream_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_bufferstream_run( void );
 int test_bufferstream_run( void )

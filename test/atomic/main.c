@@ -1,11 +1,11 @@
 /* main.c  -  Foundation atomic test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_atomic_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation atomic tests";
 	app.short_name = "test_atomic";
 	app.config_dir = "test_atomic";
@@ -52,6 +53,7 @@ static void* inc_thread( object_t thread, void* arg )
 {
 	int loop = 0;
 	int icount = 0;
+	FOUNDATION_UNUSED( arg );
 	while( !thread_should_terminate( thread ) && ( loop < 65535 ) )
 	{
 		for( icount = 0; icount < 256; ++icount )
@@ -71,6 +73,7 @@ static void* dec_thread( object_t thread, void* arg )
 {
 	int loop = 0;
 	int icount = 0;
+	FOUNDATION_UNUSED( arg );
 	while( !thread_should_terminate( thread ) && ( loop < 65535 ) )
 	{
 		for( icount = 0; icount < 256; ++icount )
@@ -90,6 +93,7 @@ static void* add_thread( object_t thread, void* arg )
 {
 	int loop = 0;
 	int32_t icount = 0;
+	FOUNDATION_UNUSED( arg );
 	while( !thread_should_terminate( thread ) && ( loop < 65535 ) )
 	{
 		for( icount = 0; icount < 128; ++icount )
@@ -156,9 +160,9 @@ DECLARE_TEST( atomic, incdec )
 		threads[ithread] = thread_create( ithread % 2 ? dec_thread : inc_thread, ithread % 2 ? "dec" : "inc", THREAD_PRIORITY_NORMAL, 0 );
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], 0 );
-	
+
 	test_wait_for_threads_startup( threads, num_threads );
-	
+
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_destroy( threads[ithread] ); //No terminate, wait to self-exit
 
@@ -176,14 +180,14 @@ DECLARE_TEST( atomic, add )
 	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	int ithread;
 	object_t threads[32];
-	
+
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		threads[ithread] = thread_create( add_thread, "add", THREAD_PRIORITY_NORMAL, 0 );
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], 0 );
-	
+
 	test_wait_for_threads_startup( threads, num_threads );
-	
+
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_destroy( threads[ithread] ); //No terminate, wait to self-exit
 
@@ -202,7 +206,7 @@ DECLARE_TEST( atomic, cas )
 	int ithread;
 	object_t threads[32];
 	cas_value_t cas_values[32];
-	
+
 	for( ithread = 0; ithread < num_threads; ++ithread )
 	{
 		threads[ithread] = thread_create( cas_thread, "cas", THREAD_PRIORITY_NORMAL, 0 );
@@ -212,9 +216,9 @@ DECLARE_TEST( atomic, cas )
 	}
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], &cas_values[ithread] );
-	
+
 	test_wait_for_threads_startup( threads, num_threads );
-	
+
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_destroy( threads[ithread] ); //No terminate, wait to self-exit
 
@@ -245,7 +249,7 @@ test_suite_t test_atomic_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_atomic_run( void );
 int test_atomic_run( void )

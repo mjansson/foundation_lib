@@ -1,11 +1,11 @@
 /* main.c  -  Foundation pipe test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_pipe_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation pipe tests";
 	app.short_name = "test_pipe";
 	app.config_dir = "test_pipe";
@@ -41,7 +42,7 @@ static int test_pipe_initialize( void )
 static void test_pipe_shutdown( void )
 {
 }
-	
+
 
 static void* read_thread( object_t thread, void* arg )
 {
@@ -49,6 +50,7 @@ static void* read_thread( object_t thread, void* arg )
 	int i;
 	unsigned char dest_buffer[256];
 	uint64_t was_read, was_write;
+	FOUNDATION_UNUSED( thread );
 
 	for( i = 0; i < 64; ++i )
 	{
@@ -90,6 +92,7 @@ static void* write_thread( object_t thread, void* arg )
 	unsigned char src_buffer[256];
 	int i;
 	uint64_t was_read, was_write;
+	FOUNDATION_UNUSED( thread );
 
 	for( i = 0; i < 256; ++i )
 		src_buffer[i] = (unsigned char)i;
@@ -99,7 +102,7 @@ static void* write_thread( object_t thread, void* arg )
 	was_write = stream_write( pipe, src_buffer + 69, 256 - 69 );
 	EXPECT_EQ( was_write, 256 - 69 );
 	thread_sleep( 1000 );
-	
+
 	memset( src_buffer, 0, 256 );
 	was_read = stream_read( pipe, src_buffer, 137 );
 	EXPECT_EQ( was_read, 137 );
@@ -129,10 +132,39 @@ static void* write_thread( object_t thread, void* arg )
 
 DECLARE_TEST( pipe, readwrite )
 {
-	stream_t* pipe = pipe_allocate();
+	stream_t* pipe;
+	object_t reader;
+	object_t writer;
 
-	object_t reader = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
-	object_t writer = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
+	if( system_platform() == PLATFORM_PNACL )
+		return 0;
+
+	pipe = pipe_allocate();
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	EXPECT_NE( pipe_read_handle( pipe ), 0 );
+	EXPECT_NE( pipe_write_handle( pipe ), 0 );
+	EXPECT_EQ( pipe_read_handle( 0 ), 0 );
+	EXPECT_EQ( pipe_write_handle( 0 ), 0 );
+#elif FOUNDATION_PLATFORM_POSIX
+	EXPECT_NE( pipe_read_fd( pipe ), 0 );
+	EXPECT_NE( pipe_write_fd( pipe ), 0 );
+	EXPECT_EQ( pipe_read_fd( 0 ), 0 );
+	EXPECT_EQ( pipe_write_fd( 0 ), 0 );
+#endif
+
+	EXPECT_EQ( stream_size( pipe ), 0 );
+	EXPECT_EQ( stream_tell( pipe ), 0 );
+
+	stream_flush( pipe );
+	stream_truncate( pipe, 100 );
+	stream_seek( pipe, 10, STREAM_SEEK_BEGIN );
+
+	EXPECT_EQ( stream_tell( pipe ), 0 );
+	EXPECT_EQ( stream_available_read( pipe ), 0 );
+
+	reader = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
+	writer = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
 
 	thread_start( reader, pipe );
 	thread_start( writer, pipe );
@@ -148,7 +180,7 @@ DECLARE_TEST( pipe, readwrite )
 
 	while( thread_is_running( reader ) || thread_is_running( writer ) )
 		thread_sleep( 10 );
-	
+
 	EXPECT_EQ( thread_result( reader ), 0 );
 	EXPECT_EQ( thread_result( writer ), 0 );
 
@@ -176,7 +208,7 @@ test_suite_t test_pipe_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_pipe_run( void );
 int test_pipe_run( void )

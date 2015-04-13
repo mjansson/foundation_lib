@@ -1,11 +1,11 @@
 /* blowfish.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -415,14 +415,15 @@ void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned 
 
 void blowfish_finalize( blowfish_t* blowfish )
 {
+	FOUNDATION_UNUSED( blowfish );
 }
 
 
 void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec )
 {
 	/*lint --e{826} */
-	uint32_t* RESTRICT cur;
-	uint32_t* RESTRICT end;
+	uint32_t* FOUNDATION_RESTRICT cur;
+	uint32_t* FOUNDATION_RESTRICT end;
 	uint32_t chain[2];
 
 	if( length % 8 )
@@ -498,8 +499,8 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 
 void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec )
 {
-	uint32_t* RESTRICT cur;
-	uint32_t* RESTRICT end;
+	uint32_t* FOUNDATION_RESTRICT cur;
+	uint32_t* FOUNDATION_RESTRICT end;
 	uint32_t chain[2];
 	uint32_t prev_chain[2];
 	uint32_t swap_chain[2];

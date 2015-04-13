@@ -1,11 +1,11 @@
 /* main.c  -  Foundation random tests  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -24,7 +24,8 @@ static uint64_t     _test_slice64 = 0x400000000000000ULL;//( 1ULL << 64ULL ) / 6
 
 static application_t test_random_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation random tests";
 	app.short_name = "test_random";
 	app.config_dir = "test_random";
@@ -113,7 +114,7 @@ DECLARE_TEST( random, distribution32 )
 	EXPECT_LT( diff, 0.02 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
 	//log_debugf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
-	
+
 	//Verify range distribution
 	memset( _test_bits, 0, sizeof( unsigned int ) * 32 );
 	for( i = 0; i < num_passes; ++i )
@@ -123,7 +124,7 @@ DECLARE_TEST( random, distribution32 )
 		EXPECT_LT( num, ( j + 1 ) * 32U );
 		++_test_bits[ num % 32 ];
 	}
-	
+
 	//Verify distribution...
 	max_num = 0, min_num = 0xFFFFFFFF;
 	for( i = 0; i < 32; ++i )
@@ -152,7 +153,7 @@ DECLARE_TEST( random, distribution64 )
 	int i;
 	uint64_t j;
 	real diff;
-	
+
 	memset( _test_bits, 0, sizeof( unsigned int ) * 64 );
 	memset( _test_hist, 0, sizeof( unsigned int ) * 64 );
 	for( i = 0; i < num_passes; ++i )
@@ -204,7 +205,7 @@ DECLARE_TEST( random, distribution64 )
 	EXPECT_LT( diff, 0.02 );// << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
 	//log_debugf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
-	
+
 	//Verify range distribution
 	memset( _test_bits, 0, sizeof( unsigned int ) * 64 );
 	for( i = 0; i < num_passes; ++i )
@@ -214,7 +215,7 @@ DECLARE_TEST( random, distribution64 )
 		EXPECT_LT( num, ( j + 1 ) * 64U );
 		++_test_bits[ num % 64 ];
 	}
-	
+
 	//Verify distribution...
 	max_num = 0, min_num = 0xFFFFFFFF;
 	for( i = 0; i < 64; ++i )
@@ -281,6 +282,8 @@ static void* random_thread( object_t thread, void* arg )
 	int num_passes = 512000 * 8;
 	int i, j;
 	unsigned int num;
+	FOUNDATION_UNUSED( thread );
+	FOUNDATION_UNUSED( arg );
 
 	for( i = 0; i < num_passes; ++i )
 	{
@@ -321,7 +324,7 @@ DECLARE_TEST( random, threads )
 		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
 	}
-	
+
 	test_wait_for_threads_exit( thread, num_threads );
 
 	/*log_debugf( "Bit distribution:" );
@@ -366,12 +369,96 @@ DECLARE_TEST( random, threads )
 }
 
 
+DECLARE_TEST( random, util )
+{
+	int i;
+	int32_t ival32;
+	uint32_t val32;
+	uint64_t val64;
+	real val;
+	int num_passes = 512000;
+	real weights[] = { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f };
+	real noweights[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	for( i = 0; i < num_passes; ++i )
+	{
+		val32 = random32_range( 10, 100 );
+		EXPECT_GE( val32, 10 );
+		EXPECT_LT( val32, 100 );
+
+		val32 = random32_range( 100, 10 );
+		EXPECT_GE( val32, 10 );
+		EXPECT_LT( val32, 100 );
+
+		val64 = random64_range( 10, 100 );
+		EXPECT_GE( val64, 10 );
+		EXPECT_LT( val64, 100 );
+
+		val64 = random64_range( 100, 10 );
+		EXPECT_GE( val64, 10 );
+		EXPECT_LT( val64, 100 );
+
+		val = random_range( REAL_C( 0.0 ), REAL_C( 100.0 ) );
+		EXPECT_GE( val, REAL_C( 0.0 ) );
+		EXPECT_LT( val, REAL_C( 100.0 ) );
+
+		val = random_range( REAL_C( 100.0 ), REAL_C( 0.0 ) );
+		EXPECT_GE( val, REAL_C( 0.0 ) );
+		EXPECT_LT( val, REAL_C( 100.0 ) );
+
+		//TODO: Check distribution of these functions
+		ival32 = random32_gaussian_range( -32, 32 );
+		EXPECT_GE( ival32, -32 );
+		EXPECT_LT( ival32, 32 );
+
+		ival32 = random32_gaussian_range( 32, -32 );
+		EXPECT_GE( ival32, -32 );
+		EXPECT_LT( ival32, 32 );
+
+		val = random_gaussian_range( REAL_C( -32.0 ), REAL_C( 32.0 ) );
+		EXPECT_GE( val, REAL_C( -32.0 ) );
+		EXPECT_LT( val, REAL_C( 32.0 ) );
+
+		val = random_gaussian_range( REAL_C( 32.0 ), REAL_C( -32.0 ) );
+		EXPECT_GE( val, REAL_C( -32.0 ) );
+		EXPECT_LT( val, REAL_C( 32.0 ) );
+
+		ival32 = random32_triangle_range( -128, -64 );
+		EXPECT_GE( ival32, -128 );
+		EXPECT_LT( ival32, 64 );
+
+		ival32 = random32_triangle_range( 128, -64 );
+		EXPECT_GE( ival32, -64 );
+		EXPECT_LT( ival32, 128 );
+
+		val = random_triangle_range( REAL_C( -128.0 ), REAL_C( -64.0 ) );
+		EXPECT_GE( val, REAL_C( -128.0 ) );
+		EXPECT_LT( val, REAL_C( -64.0 ) );
+
+		val = random_triangle_range( REAL_C( 128.0 ), REAL_C( -64.0 ) );
+		EXPECT_GE( val, REAL_C( -64.0 ) );
+		EXPECT_LT( val, REAL_C( 128.0 ) );
+
+		val32 = random32_weighted( 10, weights );
+		EXPECT_LT( val32, 10 );
+
+		val32 = random32_weighted( 10, noweights );
+		EXPECT_LT( val32, 10 );
+
+		EXPECT_EQ( random32_weighted( 1, weights ), 0 );
+	}
+
+	return 0;
+}
+
+
 static void test_random_declare( void )
 {
 	ADD_TEST( random, distribution32 );
 	ADD_TEST( random, distribution64 );
 	ADD_TEST( random, distribution_real );
 	ADD_TEST( random, threads );
+	ADD_TEST( random, util );
 }
 
 
@@ -384,7 +471,7 @@ test_suite_t test_random_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_random_run( void );
 int test_random_run( void )

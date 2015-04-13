@@ -350,7 +350,7 @@ Create stdout/stdin pipes to process
 \var process_flag_t PROCESS_WINDOWS_USE_SHELLEXECUTE
 Windows platform only, use ShellExecute instead of CreateProcess
 
-\var process_flag_t PROCESS_OSX_USE_OPENAPPLICATION
+\var process_flag_t PROCESS_MACOSX_USE_OPENAPPLICATION
 MacOSX platform only, use LSOpenApplication instead of fork/execve
 
 
@@ -1245,6 +1245,30 @@ and reallocated to the required sizes.
 \var version_t::sub.revision
 \brief Source control version/revision/identifier
 \details Source control version/revision/identifier
+
+\var float32_cast_t::ival
+\brief Integer interpretation
+\details Integer interpretation of 32-bit floating point value
+
+\var float32_cast_t::fval
+\brief Float interpretation
+\details Float interpretation of 32-bit floating point value
+
+\var float64_cast_t::ival
+\brief Integer interpretation
+\details Integer interpretation of 64-bit floating point value
+
+\var float64_cast_t::fval
+\brief Float interpretation
+\details Float interpretation of 64-bit floating point value
+
+\var real_cast_t::ival
+\brief Integer interpretation
+\details Integer interpretation of real floating point value
+
+\var real_cast_t::rval
+\brief Float interpretation
+\details Float interpretation of real floating point value
 
 \struct application_t
 \brief Application declaration

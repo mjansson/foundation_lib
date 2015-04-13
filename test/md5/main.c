@@ -1,11 +1,11 @@
 /* main.c  -  Foundation md5 test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_md5_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation md5 tests";
 	app.short_name = "test_md5";
 	app.config_dir = "test_md5";
@@ -47,7 +48,7 @@ DECLARE_TEST( md5, empty )
 {
 	md5_t* md5;
 	char* md5str;
-	
+
 	md5 = md5_allocate();
 	md5_digest_finalize( md5 );
 	md5str = md5_get_digest( md5 );
@@ -63,7 +64,7 @@ DECLARE_TEST( md5, empty )
 	string_deallocate( md5str );
 
 	md5_deallocate( md5 );
-	
+
 	return 0;
 }
 
@@ -164,7 +165,7 @@ DECLARE_TEST( md5, streams )
 	"v4ixQn77l4M7zbRHgJ\r\n"
 	"DIVy0vvpNEzxFRyD3Z\r\n"
 	"5OrJvr\r\n";
-		
+
 	test_stream = buffer_stream_allocate( 0, STREAM_IN | STREAM_OUT | STREAM_BINARY, 0, 0, true, true );
 	stream_write( test_stream, digest_test_string, 2000 );
 
@@ -173,10 +174,10 @@ DECLARE_TEST( md5, streams )
 	stream_deallocate( test_stream );
 
 	EXPECT_TRUE( uint128_equal( digest, uint128_make( 0x230e0a23943c7d13ULL, 0xd2ccac7ec9df4d0cULL ) ) );
-	
+
 	unix_stream = buffer_stream_allocate( (void*)unix_buffer, STREAM_IN, string_length( unix_buffer ), string_length( unix_buffer ), false, false );
 	windows_stream = buffer_stream_allocate( (void*)windows_buffer, STREAM_IN, string_length( windows_buffer ), string_length( windows_buffer ), false, false );
-	
+
 	stream_set_binary( unix_stream, false );
 	stream_set_binary( windows_stream, false );
 
@@ -203,7 +204,7 @@ DECLARE_TEST( md5, streams )
 	stream_deallocate( windows_stream );
 
 	return 0;
-}	
+}
 
 
 static void test_md5_declare( void )
@@ -223,7 +224,7 @@ test_suite_t test_md5_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_md5_run( void );
 int test_md5_run( void )

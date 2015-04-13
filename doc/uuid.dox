@@ -15,10 +15,10 @@
 \details Generate UUID based on time (and host id) - version 1.
 \return Time-based UUID
 
-\fn uuid_t uuid_generate_name( const uuid_t namespace, const char* name )
+\fn uuid_t uuid_generate_name( const uuid_t ns, const char* name )
 \brief Generate name based UUID
 \details Generate UUID based on namespace and name - version 3.
-\param namespace Namespace
+\param ns Namespace
 \param name Name
 \return Name-based UUID
 

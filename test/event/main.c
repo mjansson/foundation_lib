@@ -1,11 +1,11 @@
 /* main.c  -  Foundation event test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_event_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation event tests";
 	app.short_name = "test_event";
 	app.config_dir = "test_event";
@@ -49,7 +50,7 @@ DECLARE_TEST( event, empty )
 	event_block_t* block;
 	event_block_t* old_block;
 	event_t* event;
-	
+
 	stream = event_stream_allocate( 0 );
 	block = event_stream_process( stream );
 
@@ -79,7 +80,7 @@ DECLARE_TEST( event, empty )
 	EXPECT_EQ( event, 0 );
 
 	event_stream_deallocate( stream );
-	
+
 
 	stream = event_stream_allocate( 4096 );
 	block = event_stream_process( stream );
@@ -118,8 +119,8 @@ DECLARE_TEST( event, immediate )
 	event_block_t* block;
 	event_t* event;
 	uint16_t last_serial = 0;
-	uint8_t buffer[128] = {0};
-	
+	uint8_t buffer[128];
+
 	stream = event_stream_allocate( 0 );
 
 	event_post( stream, FOUNDATIONEVENT_TERMINATE, 0, 0, 0, 0 );
@@ -177,7 +178,7 @@ DECLARE_TEST( event, immediate )
 }
 
 
-typedef struct ALIGN(16) _producer_thread_arg
+typedef FOUNDATION_ALIGNED_STRUCT( _producer_thread_arg, 16 )
 {
 	event_stream_t*        stream;
 	tick_t                 max_delay;
@@ -191,7 +192,7 @@ static void* producer_thread( object_t thread, void* arg )
 {
 	uint64_t random_delay;
 	uint16_t random_id, random_size;
-	uint8_t buffer[256] = {0};
+	uint8_t buffer[256];
 	producer_thread_arg_t* args = arg;
 	unsigned int produced = 0;
 	tick_t timestamp = 0;
@@ -221,7 +222,7 @@ static void* producer_thread( object_t thread, void* arg )
 DECLARE_TEST( event, immediate_threaded )
 {
 	object_t thread[32];
-	producer_thread_arg_t args[32] = {0};
+	producer_thread_arg_t args[32];
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
@@ -431,7 +432,7 @@ DECLARE_TEST( event, delay )
 	EXPECT_LE( time_current(), limit );
 
 	event_stream_deallocate( stream );
-	
+
 	return 0;
 }
 
@@ -439,7 +440,7 @@ DECLARE_TEST( event, delay )
 DECLARE_TEST( event, delay_threaded )
 {
 	object_t thread[32];
-	producer_thread_arg_t args[32] = {0};
+	producer_thread_arg_t args[32];
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
@@ -550,7 +551,7 @@ DECLARE_TEST( event, delay_threaded )
 	test_wait_for_threads_exit( thread, num_threads );
 
 	event_stream_deallocate( stream );
-	
+
 	return 0;
 }
 
@@ -574,7 +575,7 @@ test_suite_t test_event_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_event_run( void );
 int test_event_run( void )

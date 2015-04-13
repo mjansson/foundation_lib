@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		451244CD1AADB527000A744A /* version.c in Sources */ = {isa = PBXBuildFile; fileRef = 451244CC1AADB527000A744A /* version.c */; };
 		456F75A01949DF6D00D1D43B /* regex.h in Headers */ = {isa = PBXBuildFile; fileRef = 456F759F1949DF6D00D1D43B /* regex.h */; };
 		456F75A21949E16300D1D43B /* regex.c in Sources */ = {isa = PBXBuildFile; fileRef = 456F75A11949E16300D1D43B /* regex.c */; };
 		CD5ED14B17D6708400C94373 /* android.c in Sources */ = {isa = PBXBuildFile; fileRef = CD5ED0EF17D6708400C94373 /* android.c */; };
@@ -110,6 +111,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		451244CC1AADB527000A744A /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = version.c; path = ../../../foundation/version.c; sourceTree = "<group>"; };
 		456F759F1949DF6D00D1D43B /* regex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = regex.h; path = ../../../foundation/regex.h; sourceTree = "<group>"; };
 		456F75A11949E16300D1D43B /* regex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = regex.c; path = ../../../foundation/regex.c; sourceTree = "<group>"; };
 		CD5ED0D617D66F9B00C94373 /* libfoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -347,6 +349,7 @@
 				CD5ED14717D6708400C94373 /* types.h */,
 				CD5ED14817D6708400C94373 /* uuid.c */,
 				CD5ED14917D6708400C94373 /* uuid.h */,
+				451244CC1AADB527000A744A /* version.c */,
 				CD5ED14A17D6708400C94373 /* windows.h */,
 			);
 			name = foundation;
@@ -433,6 +436,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CD5ED0E317D66F9B00C94373 /* Build configuration list for PBXNativeTarget "foundation" */;
 			buildPhases = (
+				451244CB1AADB4F5000A744A /* ShellScript */,
 				CD5ED0D217D66F9A00C94373 /* Sources */,
 				CD5ED0D317D66F9A00C94373 /* Frameworks */,
 				CD5ED0D417D66F9A00C94373 /* Headers */,
@@ -452,7 +456,7 @@
 		CD5ED0CD17D66F9A00C94373 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0620;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
 			};
 			buildConfigurationList = CD5ED0D017D66F9A00C94373 /* Build configuration list for PBXProject "foundation" */;
@@ -471,6 +475,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		451244CB1AADB4F5000A744A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+				foundation/version.c,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python ${PROJECT_DIR}/../../ninja/version.py foundation ${PROJECT_DIR}/../../../foundation";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		CD5ED0D217D66F9A00C94373 /* Sources */ = {
@@ -498,6 +519,7 @@
 				CD5ED16E17D6708400C94373 /* hashmap.c in Sources */,
 				CD5ED17117D6708400C94373 /* hashtable.c in Sources */,
 				CD5ED17417D6708400C94373 /* library.c in Sources */,
+				451244CD1AADB527000A744A /* version.c in Sources */,
 				456F75A21949E16300D1D43B /* regex.c in Sources */,
 				CD5ED17717D6708400C94373 /* log.c in Sources */,
 				CD5ED17917D6708400C94373 /* main.c in Sources */,

@@ -1,11 +1,11 @@
 /* test.c  -  Foundation test library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -15,11 +15,9 @@
 #include <test/test.h>
 
 
-test_suite_t test_suite = {0};
-
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !BUILD_MONOLITHIC
 FOUNDATION_EXTERN test_suite_t test_suite_define( void );
-#elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#else
 extern volatile bool _test_should_terminate;
 #endif
 
@@ -35,17 +33,20 @@ typedef struct
 	test_case_t**     cases;
 } test_group_t;
 
-test_group_t** _test_groups = 0;
+test_group_t** _test_groups;
 
-static bool _test_failed = false;
+static bool _test_failed;
+
+test_suite_t test_suite;
 
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !BUILD_MONOLITHIC
 
 static void* test_event_thread( object_t thread, void* arg )
 {
 	event_block_t* block;
 	event_t* event = 0;
+	FOUNDATION_UNUSED( arg );
 
 	while( !thread_should_terminate( thread ) )
 	{
@@ -107,7 +108,7 @@ static void test_run( void )
 {
 	unsigned int ig, gsize, ic, csize;
 	void* result = 0;
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !BUILD_MONOLITHIC
 	object_t thread_event = 0;
 #endif
 
@@ -115,14 +116,14 @@ static void test_run( void )
 
 	_test_failed = false;
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !BUILD_MONOLITHIC
 	thread_event = thread_create( test_event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread_event, 0 );
 
 	while( !thread_is_running( thread_event ) )
 		thread_yield();
 #endif
-	
+
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
 		log_infof( HASH_TEST, "Running tests from group %s", _test_groups[ig]->name );
@@ -139,7 +140,7 @@ static void test_run( void )
 			{
 				log_info( HASH_TEST, "    PASSED" );
 			}
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 			if( _test_should_terminate )
 			{
 				_test_failed = true;
@@ -148,8 +149,8 @@ static void test_run( void )
 #endif
 		}
 	}
-	
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+
+#if !BUILD_MONOLITHIC
 	thread_terminate( thread_event );
 	thread_destroy( thread_event );
 	while( thread_is_running( thread_event ) || thread_is_thread( thread_event ) )
@@ -191,29 +192,30 @@ int test_run_all( void )
 	test_suite.shutdown();
 	if( _test_failed )
 	{
-		process_set_exit_code( -1 );		
+		process_set_exit_code( -1 );
 		return -1;
 	}
 	return 0;
 }
 
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !BUILD_MONOLITHIC
 
 int main_initialize( void )
 {
 	log_set_suppress( 0, ERRORLEVEL_INFO );
-	
+
 	test_suite = test_suite_define();
-	
+
 	return foundation_initialize( test_suite.memory_system(), test_suite.application() );
 }
 
 
 int main_run( void* main_arg )
 {
+	FOUNDATION_UNUSED( main_arg );
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
-    
+
 	return test_run_all();
 }
 
@@ -298,6 +300,7 @@ void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threa
 
 void test_crash_handler( const char* dump_file )
 {
+	FOUNDATION_UNUSED( dump_file );
 	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
 	process_exit( -1 );
 }

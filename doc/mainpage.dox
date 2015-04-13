@@ -44,32 +44,34 @@ asserts, logging and error handling. Profiling is also disabled. This configurat
 \subsection output Output
 Libraries will be placed in lib/[platform]/[configuration]/[architecture] with platform names
 <ul>
-<li>windows
-<li>linux
-<li>macosx
-<li>ios
-<li>android
-<li>raspberrypi
+<li>windows</li>
+<li>linux</li>
+<li>macosx</li>
+<li>ios</li>
+<li>android</li>
+<li>bsd</li>
+<li>raspberrypi</li>
+<li>pnacl</li>
 </ul>
 Configuration names are
 <ul>
-<li>debug
-<li>release
-<li>profile
-<li>deploy
+<li>debug</li>
+<li>release</li>
+<li>profile</li>
+<li>deploy</li>
 </ul>
 Architecture names are
 <ul>
-<li>arm6
-<li>arm7
-<li>arm64
-<li>x86
-<li>x86-64
-<li>mips
-<li>mips64
+<li>arm6</li>
+<li>arm7</li>
+<li>arm64</li>
+<li>x86</li>
+<li>x86-64</li>
+<li>mips</li>
+<li>mips64</li>
 </ul>
 
-For MacOSX and iOS builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
+For MacOSX, iOS and PNaCl builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
 
 Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for MacOSX and iOS since the binaries are universal).
 
@@ -91,10 +93,10 @@ There is currently support for four different toolchains depending on your host 
 host platforms. Specify which toolchain to use with the --toolchain switch. For example, to use gcc when building for Android use <code>--toolchain gcc</code>. The toolchain
 names are
 <ul>
-<li>gcc
-<li>clang
-<li>intel
-<li>msvc
+<li>gcc</li>
+<li>clang</li>
+<li>intel</li>
+<li>msvc</li>
 </ul>
 
 \subsection ninja_target Targets
@@ -128,40 +130,46 @@ through the build options. On Android the default settings is to use the normal 
 \subsection options Build options
 Some build variables can be set externally from the ninja build files. These variables are
 <ul>
-<li>android_ndkpath - Path to the Android NDK (no default)
-<li>android_sdkpath - Path to the Android SDK (no default)
-<li>android_keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")
-<li>android_keyalias = Key alias to use when signing API (default "androiddebugkey")
-<li>android_keystorepass - Password for keystore used when signing APK (default "android")
-<li>android_keypass - Password for key used when signing APK (default "android")
-<li>android_platformversion - Android platform version to use when building (default "21")
-<li>android_toolchainversion_gcc - GCC toolchain version to use when building (default "4.9")
-<li>android_toolchainversion_clang - CLang toolchain version to use when building (default "3.5")
-<li>ios_deploymenttarget - Minimum iOS target version (default "6.0")
-<li>ios_organisation - Organisation identifier on format "TDSNAF78CU" (no default)
-<li>ios_bundleidentifier - Bundle identifier on format "com.company.id" (no default)
-<li>ios_signature - Certificate signature (no default)
-<li>ios_provisioning - Mobile provisioning profile path (no default)
-<li>macosx_deploymenttarget - Minimum MacOS X target version (default "10.7")
-<li>macosx_organisation - Organisation identifier on format "TDSNAF78CU" (no default)
-<li>macosx_bundleidentifier - Bundle identifier on format "com.company.id" (no default)
+<li>android_ndkpath - Path to the Android NDK (no default)</li>
+<li>android_sdkpath - Path to the Android SDK (no default)</li>
+<li>android_keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")</li>
+<li>android_keyalias = Key alias to use when signing API (default "androiddebugkey")</li>
+<li>android_keystorepass - Password for keystore used when signing APK (default "android")</li>
+<li>android_keypass - Password for key used when signing APK (default "android")</li>
+<li>android_platformversion - Android platform version to use when building (default "21")</li>
+<li>android_toolchainversion_gcc - GCC toolchain version to use when building (default "4.9")</li>
+<li>android_toolchainversion_clang - CLang toolchain version to use when building (default "3.5")</li>
+<li>android_tsa - Location of the Timestamping Authority</li>
+<li>android_tsacert - Public key certificate for Timestamping Authority</li>
+<li>ios_deploymenttarget - Minimum iOS target version (default "6.0")</li>
+<li>ios_organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
+<li>ios_bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
+<li>ios_signature - Certificate signature (no default)</li>
+<li>ios_provisioning - Mobile provisioning profile path (no default)</li>
+<li>macosx_deploymenttarget - Minimum MacOS X target version (default "10.7")</li>
+<li>macosx_organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
+<li>macosx_bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
+<li>pnacl_sdkpath - Path to the PNaCl SDK (no default)</li>
+</ul>
 
 The bundle identifier variables can contain expansion variables which will be substituted during build. These include
 <ul>
-<li>$(binname) - Binary name (for example, "test-all")
+<li>\$(binname) - Binary name (for example, "test-all")</li>
+</ul>
 
 The variables can be set in four different ways, in increasing order of priority.
 <ul>
-<li>configure.py script variables passed to generator
-<li>build.json file in root project directory, read during configure.py execution
-<li>environment variables, read during configure.py execution
-<li>codesign.json file in root project directory, read at build time
+<li>configure.py script variables passed to generator</li>
+<li>build.json file in root project directory, read during configure.py execution</li>
+<li>environment variables, read during configure.py execution</li>
+<li>codesign.json file in root project directory, read at build time</li>
+</ul>
 
 Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.$(binname)' ) ]</code>.
 Any variables that have a identical name with different platform prefix can be passed without any platform name as in the example. The value will be applied to all platform specific variables.
 
-The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. And example build.json file:
-<code>{
+The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. An example build.json file:
+<pre>{
 	"android" : {
 		"ndkpath" : "~/android-ndk",
 		"sdkpath" : "~/android-sdk",
@@ -175,24 +183,47 @@ The build.json is a simple host-local file which can hold any variable values li
 	"macosx" : {
 		"deploymenttarget" : "10.7"
 	}
-}</code>
+}</pre>
 
 You can override configure.py and build.json values using environment variables. The environment variable names should be the variable name in upper case. For example, to set the Minimum iOS target version set <code>IOS_DEPLOYMENTVERSION="6.0"</code> in the environment prior to invoking configure.py
 
 Finally, the codesign.json is read by the codesigning phase at build time and can hold the secrets related to code signing. This allows you to have the secret locally on the build machine without requiring recreation of the build scripts or storing secrets in version control. The format is the same as for build.json and the variables used are:
 <ul>
-<li>android_keystore
-<li>android_keyalias
-<li>android_keystorepass
-<li>android_keypass
-<li>ios_organisation
-<li>ios_bundleidentifier
-<li>ios_signature
-<li>ios_provisioning
-<li>ios_organisation
-<li>ios_bundleidentifier
-<li>ios_signature
+<li>android_keystore</li>
+<li>android_keyalias</li>
+<li>android_keystorepass</li>
+<li>android_keypass</li>
+<li>android_tsa</li>
+<li>android_tsacert</li>
+<li>ios_organisation</li>
+<li>ios_bundleidentifier</li>
+<li>ios_signature</li>
+<li>ios_provisioning</li>
+<li>ios_organisation</li>
+<li>ios_bundleidentifier</li>
+<li>ios_signature</li>
+</ul>
 
+An example codesign.json file:
+<pre>{
+    "android" : {
+        "keystore" : "~/.android/debug.keystore",
+        "keyalias" : "androiddebugkey",
+        "keystorepass" : "android",
+        "keypass" : "android"
+    },
+    "ios" : {
+        "organisation" : "TXXXYZ12AB",
+        "bundleidentifier" : "com.mycompany.$(binname)",
+        "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+        "provisioning" : "01234567-89AB-CDEF-0123-456789ABCDEF.mobileprovision"
+    },
+    "macosx" : {
+        "organisation" : "TXXXYZ12AB",
+        "bundleidentifier" : "com.mycompany.$(binname)",
+        "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+    }
+}</pre>
 
 \section visual_studio Visual Studio
 On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013 Both 32-bit and 64-bit Windows are supported.
@@ -205,7 +236,58 @@ To build with XCode, open the XCode workspace in <code>build/xcode/foundation-os
 The workspace contains projects for both foundation library and test cases. The only supported architecture is x86-64 targetting MacOS X 10.7 or later,
 or for iOS arm7/arm64 targeting iOS 6.0 or later.
 
+\section external External
+For integration with other build systems, here is a list of the compiler/linker flags used during compilation and linking of the foundation library, test apps and tools.
 
+\subsection flags_generic Generic flags
+During compilation of the library itself, <code>FOUNDATION_COMPILE</code> should be defined to non-zero. This must not be defined when compiling projects that use the library.
+
+Depending on the build configuration wanted, the appropriate build configuration symbol should be defined to non-zero.
+<ul>
+<li><code>BUILD_DEBUG</code></li>
+<li><code>BUILD_RELEASE</code></li>
+<li><code>BUILD_PROFILE</code></li>
+<li><code>BUILD_DEPLOY</code></li>
+</ul>
+
+All other build control directives are defined in the build.h header.
+
+\subsection flags_clang CLang flags
+- Include/build: <code>-I. -Itest -DFOUNDATION_COMPILE=1 -DBUILD_<DEBUG|RELEASE|PROFILE|DEPLOY>=1</code>
+- Warning: <code>-W -Wall -Werror</code>
+- All builds: <code>-funit-at-a-time -fstrict-aliasing -fno-math-errno -ffinite-math-only -funsafe-math-optimizations -fno-trapping-math -ffast-math -g</code>
+- Debug: <code>-O0</code>
+- Release: <code>-funroll-loops -O3</code>
+- Profile/deploy: <code>-funroll-loops -O3</code>
+
+All platforms use <code>-std=c11</code> to define using the C11 standard.
+
+\subsection flags_gcc GCC flags
+- Include/build: <code>-I. -Itest -DFOUNDATION_COMPILE=1 -DBUILD_<DEBUG|RELEASE|PROFILE|DEPLOY>=1</code>
+- Warning: <code>-W -Wall -Werror</code>
+- All builds: <code>-funit-at-a-time -fstrict-aliasing -fno-math-errno -ffinite-math-only -funsafe-math-optimizations -fno-trapping-math -ffast-math -g</code>
+- Debug: <code>-O0</code>
+- Release: <code>-funroll-loops -O3</code>
+- Profile/deploy: <code>-funroll-loops -O4</code>
+
+Most platforms use <code>-std=c11</code> to define using the C11 standard. The exceptions for this is Android which uses <code>-std=gnu11</code> to work around issues in the NDK includes, and Raspberry Pi which uses <code>-std=c99</code> due to lack of compiler support at the time. Raspberry Pi builds also use <code>-fno-omit-frame-pointer</code> to make the stack walker work using frame pointers.
+
+Apart from this you should specify the appropriate machine flags for the architecture you are compiling for, like <code>-m64</code> for x86-64.
+
+\subsection flags_msc MSC flags
+- All builds: <code>/DFOUNDATION_COMPILE=1 /DBUILD_<DEBUG|RELEASE|PROFILE|DEPLOY>=1 /Zi /W3 /WX /Oi /Oy- /MT /GS- /Gy- /GF- /Gm- /Qpar- /fp:fast /fp:except- /Zc:forScope /Zc:wchar_t /GR- /openmp-</code>
+- Debug: <code>/Od</code>
+- Release: <code>/Od</code>
+- Profile: <code>/O2 /Ob2 /Ot /GT /GL</code>
+- Deploy: <code>/Ox /Ob2 /Ot /GT /GL</code>
+
+For x86 targets <code>/arch:SSE2</code> is used in all builds.
+
+For x86-64 targets no additional flags are used.
+
+\subsection flags_intel Intel flags
+
+To be written...
 
 \page test_page Running and verifying the test cases
 
@@ -213,9 +295,7 @@ The test cases is wrapped by a launcher application named test-all which will en
 in sequence, aborting on failure. For iOS and Android all test cases are linked into the launcher executable to avoid
 installing lots of small apps on the target device.
 
-To install the test launcher on Android, change to the build/android subdirectory and use the Android SDK ant build
-system to install it with "ant debug install". For more information on running and debugging apps on emulators and/or
-devices refer to the Android SDK documentation.
+To install the test launcher on Android, use the Android SDK "adb" tool to install the test apk. For more information on running and debugging apps on emulators and/or devices refer to the Android SDK documentation.
 
 \page tools_page Using the tools provided by the library
 

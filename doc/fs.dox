@@ -63,7 +63,8 @@ making up the path
 
 \fn void fs_touch( const char* path )
 \brief Touch file
-\details Touch file and update modification date
+\details Touch file and update modification date. Unlike the unix touch command this function
+will NOT create the file if it does not exist.
 \param path                 File path
 
 \fn uint128_t fs_md5( const char* path )

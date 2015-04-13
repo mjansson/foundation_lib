@@ -1,11 +1,11 @@
 /* android.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -19,9 +19,10 @@
 
 #include <android/sensor.h>
 
-static struct android_app*       _android_app = 0;
-static struct ASensorEventQueue* _android_sensor_queue = 0;
-static bool                      _android_sensor_enabled[16] = {0};
+static struct android_app*       _android_app;
+static struct ASensorEventQueue* _android_sensor_queue;
+static bool                      _android_sensor_enabled[16];
+static bool                      _android_destroyed = false;
 
 static void _android_enable_sensor( int sensor_type );
 static void _android_disable_sensor( int sensor_type );
@@ -34,21 +35,23 @@ void android_entry( struct android_app* app )
 
 	//Avoid glue code getting stripped
 	app_dummy();
-	
+
 	_android_app = app;
-	
+
 	_android_app->onAppCmd = android_handle_cmd;
 	_android_app->onInputEvent = 0;//android_handle_input;
 	_android_app->userData = 0;
 }
 
-	
+
 int android_initialize( void )
 {
 	//log_debug( 0, "Force window fullscreen" );
-	//ANativeActivity_setWindowFlags( app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_FORCE_NOT_FULLSCREEN );	
+	//ANativeActivity_setWindowFlags( app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_FORCE_NOT_FULLSCREEN );
 
-	log_debugf( 0, "Waiting for application window to be set" );
+	_android_destroyed = false;
+
+	log_debug( 0, "Waiting for application window to be set" );
 	{
 		int ident = 0;
 		int events = 0;
@@ -64,7 +67,7 @@ int android_initialize( void )
 			thread_sleep( 10 );
 		}
 	}
-	log_debugf( 0, "Application window set, continuing" );
+	log_debug( 0, "Application window set, continuing" );
 
 	log_debugf( 0, "Internal data path: %s", _android_app->activity->internalDataPath );
 	log_debugf( 0, "External data path: %s", _android_app->activity->externalDataPath );
@@ -81,7 +84,7 @@ int android_initialize( void )
 
 void android_shutdown( void )
 {
-	log_info( 0, "Exiting native android app" );
+	log_info( 0, "Native android app shutdown" );
 
 	_android_app->onAppCmd = 0;
     _android_app->onInputEvent = 0;
@@ -95,6 +98,8 @@ void android_shutdown( void )
 	_android_sensor_queue = 0;
 
 	ANativeActivity_finish( _android_app->activity );
+
+	while( !_android_destroyed )
 	{
 		int ident = 0;
 		int events = 0;
@@ -105,12 +110,13 @@ void android_shutdown( void )
 			if( source )
 				source->process( _android_app, source );
 		}
+
+		thread_sleep( 10 );
 	}
 
 	_android_app = 0;
 
-	//log_debug( 0, "Calling exit(0)" );
-	//exit( 0 );
+	log_debug( 0, "Exiting native android app" );
 }
 
 
@@ -126,7 +132,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 	{
 		case APP_CMD_INPUT_CHANGED:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_INPUT_CHANGED" );
+			log_info( 0, "System command: APP_CMD_INPUT_CHANGED" );
             break;
 		}
 
@@ -138,15 +144,15 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				int w = 0, h = 0;
 				w = ANativeWindow_getWidth( app->window );
 				h = ANativeWindow_getHeight( app->window );
-				log_infof( HASH_SYSTEM, "System command: APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
+				log_infof( 0, "System command: APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
 			}
 #endif
             break;
 		}
-        
+
 		case APP_CMD_TERM_WINDOW:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_TERM_WINDOW" );
+			log_info( 0, "System command: APP_CMD_TERM_WINDOW" );
             break;
 		}
 
@@ -158,7 +164,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				int w = 0, h = 0;
 				w = ANativeWindow_getWidth( app->window );
 				h = ANativeWindow_getHeight( app->window );
-				log_infof( HASH_SYSTEM, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
+				log_infof( 0, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
 			}
 #endif
             break;
@@ -166,79 +172,83 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_WINDOW_REDRAW_NEEDED:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_WINDOW_REDRAW_NEEDED" );
+			log_info( 0, "System command: APP_CMD_WINDOW_REDRAW_NEEDED" );
             break;
 		}
 
 		case APP_CMD_CONTENT_RECT_CHANGED:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_CONTENT_RECT_CHANGED" );
+			log_info( 0, "System command: APP_CMD_CONTENT_RECT_CHANGED" );
             break;
 		}
-        
+
 		case APP_CMD_GAINED_FOCUS:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_GAINED_FOCUS" );
+			log_info( 0, "System command: APP_CMD_GAINED_FOCUS" );
+			system_post_event( FOUNDATIONEVENT_FOCUS_GAIN );
 			_android_enable_sensor( ASENSOR_TYPE_ACCELEROMETER );
             break;
 		}
 
 		case APP_CMD_LOST_FOCUS:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_LOST_FOCUS" );
+			log_info( 0, "System command: APP_CMD_LOST_FOCUS" );
 			_android_disable_sensor( ASENSOR_TYPE_ACCELEROMETER );
+			system_post_event( FOUNDATIONEVENT_FOCUS_LOST );
             break;
 		}
 
 		case APP_CMD_CONFIG_CHANGED:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_CONFIG_CHANGED" );
+			log_info( 0, "System command: APP_CMD_CONFIG_CHANGED" );
             break;
 		}
 
 		case APP_CMD_LOW_MEMORY:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_LOW_MEMORY" );
+			log_info( 0, "System command: APP_CMD_LOW_MEMORY" );
             break;
 		}
 
 		case APP_CMD_START:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_START" );
+			log_info( 0, "System command: APP_CMD_START" );
             system_post_event( FOUNDATIONEVENT_START );
             break;
 		}
 
 		case APP_CMD_RESUME:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_RESUME" );
+			log_info( 0, "System command: APP_CMD_RESUME" );
 			system_post_event( FOUNDATIONEVENT_RESUME );
             break;
 		}
 
 		case APP_CMD_SAVE_STATE:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_SAVE_STATE" );
+			log_info( 0, "System command: APP_CMD_SAVE_STATE" );
             break;
 		}
 
 		case APP_CMD_PAUSE:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_PAUSE" );
+			log_info( 0, "System command: APP_CMD_PAUSE" );
 			system_post_event( FOUNDATIONEVENT_PAUSE );
             break;
 		}
 
 		case APP_CMD_STOP:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_STOP" );
+			log_info( 0, "System command: APP_CMD_STOP" );
+			system_post_event( FOUNDATIONEVENT_TERMINATE );
             break;
 		}
-		
+
 		case APP_CMD_DESTROY:
 		{
-			log_info( HASH_SYSTEM, "System command: APP_CMD_DESTROY" );
+			log_info( 0, "System command: APP_CMD_DESTROY" );
 			system_post_event( FOUNDATIONEVENT_TERMINATE );
+			_android_destroyed = true;
             break;
 		}
 
@@ -250,6 +260,9 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 int android_sensor_callback( int fd, int events, void* data )
 {
+	FOUNDATION_UNUSED( fd );
+	FOUNDATION_UNUSED( events );
+	FOUNDATION_UNUSED( data );
 	return 1;
 }
 
@@ -286,7 +299,7 @@ void _android_enable_sensor( int sensor_type )
 	}
 	else
 	{
-		log_warnf( 0, WARNING_UNSUPPORTED, "Unable to initialize sensors, no sensor manager" );
+		log_warn( 0, WARNING_UNSUPPORTED, "Unable to initialize sensors, no sensor manager" );
 	}
 }
 

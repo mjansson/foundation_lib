@@ -1,11 +1,11 @@
 /* system.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -36,12 +36,16 @@
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
+#include <sys/sysctl.h>
 extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
 #endif
 
+#define SYSTEM_BUFFER_SIZE 511
+FOUNDATION_DECLARE_THREAD_LOCAL( char*, system_buffer, 0 )
+
 static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNOWN;
-static event_stream_t* _system_event_stream = 0;
+static event_stream_t* _system_event_stream;
 
 struct platform_info_t
 {
@@ -110,6 +114,18 @@ BYTEORDER_BIGENDIAN
 };
 
 
+static char* _system_buffer()
+{
+	char* buffer = get_thread_system_buffer();
+	if( !buffer )
+	{
+		buffer = memory_allocate( 0, SYSTEM_BUFFER_SIZE + 1, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+		set_thread_system_buffer( buffer );
+	}
+	return buffer;
+}
+
+
 platform_t system_platform()
 {
 	return _platform_info.platform;
@@ -132,7 +148,7 @@ byteorder_t system_byteorder()
 
 #include <foundation/windows.h>
 
-object_t _system_library_iphlpapi = 0;
+object_t _system_library_iphlpapi;
 
 
 int _system_initialize( void )
@@ -153,17 +169,29 @@ void _system_shutdown( void )
 }
 
 
+
+int system_error( void )
+{
+	return GetLastError();
+}
+
+
+void system_error_reset( void )
+{
+	SetLastError( 0 );
+}
+
+
 const char* system_error_message( int code )
 {
-	static THREADLOCAL char errmsg[256];
-
+	char* errmsg = _system_buffer();
 	if( !code )
-		code = GetLastError();
+		code = system_error();
 	if( !code )
-		return "";
+		return "<no error>";
 
 	errmsg[0] = 0;
-	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, 255, 0 );
+	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, SYSTEM_BUFFER_SIZE, 0 );
 	string_strip( errmsg, STRING_WHITESPACE );
 
 	return errmsg;
@@ -172,13 +200,10 @@ const char* system_error_message( int code )
 
 const char* system_hostname( void )
 {
-	unsigned long size = 255;
-	static char hostname[256] = {0};
-	if( hostname[0] )
-		return hostname;
-	strcpy( hostname, "<unknown>" );
-	GetComputerNameA( hostname, &size );
-	hostname[255] = 0;
+	char* hostname = _system_buffer();
+	unsigned int size = SYSTEM_BUFFER_SIZE;
+	if( !GetComputerNameA( hostname, &size ) )
+		string_copy( hostname, "unknown", SYSTEM_BUFFER_SIZE );
 	return hostname;
 }
 
@@ -197,7 +222,7 @@ uint64_t system_hostid( void )
 		fn_get_adapters_info = (DWORD (STDCALL *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
 	if( !fn_get_adapters_info )
 		return 0;
-	
+
 	buffer_length = sizeof( adapter_info );  // Save memory size of buffer
 	memset( adapter_info, 0, sizeof( adapter_info ) );
 	status = fn_get_adapters_info( adapter_info, &buffer_length );
@@ -216,13 +241,10 @@ uint64_t system_hostid( void )
 
 const char* system_username( void )
 {
-	unsigned long size = 255;
-	static char username[256] = {0};
-	if( username[0] )
-		return username;
-	strcpy( username, "<unknown>" );
-	GetUserNameA( username, &size );
-	username[255] = 0;
+	char* username = _system_buffer();
+	unsigned int size = SYSTEM_BUFFER_SIZE;
+	if( !GetUserNameA( username, &size ) )
+		string_copy( username, "unknown", SYSTEM_BUFFER_SIZE );
 	return username;
 }
 
@@ -279,7 +301,7 @@ static uint32_t _system_user_locale( void )
 			return *(uint32_t*)locale_string;
 		}
 	}
-	
+
 	return _system_default_locale();
 }
 
@@ -305,52 +327,62 @@ void _system_shutdown( void )
 }
 
 
+int system_error( void )
+{
+	return errno;
+}
+
+
+void system_error_reset( void )
+{
+	errno = 0;
+}
+
+
 const char* system_error_message( int code )
 {
 	if( !code )
-		code = errno;
+		code = system_error();
 	if( !code )
 		return "<no error>";
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
-	static char buffer[256]; //TODO: Thread safety
-#else
-	static THREADLOCAL char buffer[256];
-#endif
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
-	if( strerror_r( code, buffer, 256 ) == 0 )
+	char* buffer = _system_buffer();
+	if( strerror_r( code, buffer, SYSTEM_BUFFER_SIZE ) == 0 )
 		return buffer;
 	return "<no error string>";
-#else
-	return strerror_r( code, buffer, 256 );
-#endif
 }
 
 
 const char* system_hostname( void )
 {
-	static char hostname[256] = {0};
-	if( hostname[0] )
-		return hostname;
-	strcpy( hostname, "<unknown>" );
-	gethostname( hostname, 256 );
-	hostname[255] = 0;
+	char* hostname = _system_buffer();
+	if( gethostname( hostname, SYSTEM_BUFFER_SIZE ) < 0 )
+		string_copy( hostname, "unknown", SYSTEM_BUFFER_SIZE );
 	return hostname;
 }
 
 
 const char* system_username( void )
 {
-	static char username[64] = {0};
-	if( username[0] )
-		return username;
-	strcpy( username, "<unknown>" );
+	char* buffer;
+	struct passwd passwd;
+	struct passwd* result;
+
+	buffer = _system_buffer();
+	getpwuid_r( getuid(), &passwd, buffer, SYSTEM_BUFFER_SIZE, &result );
+	if( !result )
+	{
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
-	strncpy( username, getlogin(), 64 );
+		string_copy( buffer, getlogin() ?: "unknown", SYSTEM_BUFFER_SIZE );
 #else
-	getlogin_r( username, 64 );
+		if( getlogin_r( buffer, SYSTEM_BUFFER_SIZE ) != 0 )
+			string_copy( buffer, "unknown", SYSTEM_BUFFER_SIZE );
 #endif
-	username[63] = 0;
-	return username;	
+	}
+	else
+	{
+		return result->pw_name;
+	}
+	return buffer;
 }
 
 
@@ -364,7 +396,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	union
 	{
 		uint64_t               id;
-		unsigned char ALIGN(8) buffer[8];
+		unsigned char FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
 	if( ifaddr->ifa_addr && ( ifaddr->ifa_addr->sa_family == AF_LINK ) )
@@ -378,7 +410,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 			return hostid.id;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -390,16 +422,16 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 	union
 	{
 		uint64_t               id;
-		unsigned char ALIGN(8) buffer[8];
+		unsigned char FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
-	
+
 	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
 		return 0;
-	
+
 	hostid.id = 0;
 	for( j = 0; j < 6; ++j )
 		hostid.buffer[5-j] = ifr->ifr_hwaddr.sa_data[j];
-	
+
 	return hostid.id;
 }
 
@@ -423,14 +455,14 @@ uint64_t system_hostid( void )
 	struct ifreq buffer;
 	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
 #endif
-	
+
 	if( getifaddrs( &ifaddr ) == 0 )
 	{
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
 			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
 				continue;
-			
+
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 			hostid = _system_hostid_lookup( ifa );
 #else
@@ -453,7 +485,7 @@ uint64_t system_hostid( void )
 
 	close( sock );
 #endif
-	
+
 	return hostid;
 #endif
 }
@@ -509,7 +541,7 @@ void system_process_events( void )
 			source->process( app, source );
 		++nummsg;
 	}
-	
+
 	profile_end_block();
 #endif
 }
@@ -517,7 +549,75 @@ void system_process_events( void )
 
 bool system_debugger_attached( void )
 {
+#if FOUNDATION_PLATFORM_APPLE
+
+	int mib[4];
+	struct kinfo_proc info;
+	size_t size;
+
+	memset( &info, 0, sizeof( info ) );
+	info.kp_proc.p_flag = 0;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_PROC;
+	mib[2] = KERN_PROC_PID;
+	mib[3] = getpid();
+
+	size = sizeof( info );
+	sysctl( mib, sizeof( mib ) / sizeof( *mib ), &info, &size, 0, 0 );
+
+	return ( ( info.kp_proc.p_flag & P_TRACED ) != 0 );
+
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+
+	int fd, ib, ofs, partial = 0;
+	bool read_pid = false;
+	ssize_t nread;
+	static const char tracer_pid[] = "TracerPid:";
+
+	fd = open( "/proc/self/status", O_RDONLY );
+	if( fd < 0 )
+		return false;
+
+	do
+	{
+		char buffer[128];
+		nread = read( fd, buffer, sizeof( buffer ) );
+		if( nread > 0 )
+		{
+			for( ib = 0; ( ib < nread ); ++ib )
+			{
+				if( read_pid )
+				{
+					if( ( buffer[ib] >= '1' ) && ( buffer[ib] <= '9' ) )
+						return true;
+					if( ( buffer[ib] != ' ' ) && ( buffer[ib] != '\t' ) )
+						return false;
+				}
+				else
+				{
+					for( ofs = 0; ( ib + ofs < nread ) && tracer_pid[partial]; ++partial, ++ofs )
+					{
+						if( buffer[ib+ofs] != tracer_pid[partial] )
+							break;
+					}
+					if( !tracer_pid[partial] )
+					{
+						ib += ofs;
+						read_pid = true;
+					}
+					else if( ib + partial < nread )
+						partial = 0;
+				}
+			}
+		}
+	} while( nread > 0 );
+
 	return false;
+
+#else
+	return false;
+#endif
 }
 
 
@@ -545,15 +645,15 @@ uint32_t system_locale( void )
 {
 	uint32_t localeval = 0;
 	char localestr[4];
-	
+
 	const char* locale = config_string( HASH_USER, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
-	
+
 #define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (((unsigned char)(x)) | (32)) : (x)
 #define _LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (((unsigned char)(x)) & (~32)) : (x)
 	localestr[0] = _LOCALE_CHAR_TO_LOWERCASE( locale[0] );
@@ -568,30 +668,31 @@ uint32_t system_locale( void )
 
 const char* system_locale_string( void )
 {
-	static char localestr[5] = {0};
+	char* localestr = _system_buffer();
 	uint32_t locale = system_locale();
 	memcpy( localestr, &locale, 4 );
+	localestr[4] = 0;
 	return localestr;
 }
 
 
 uint16_t system_language( void )
 {
-	return (uint16_t)( ( system_locale() >> 16 ) & 0xFFFF );
+	return (uint16_t)( system_locale() & 0xFFFF );
 }
 
 
 uint16_t system_country( void )
 {
-	return (uint16_t)( system_locale() & 0xFFFF );
+	return (uint16_t)( ( system_locale() >> 16 ) & 0xFFFF );
 }
 
 
-void _system_set_device_orientation( device_orientation_t orientation )
+void system_set_device_orientation( device_orientation_t orientation )
 {
 	if( _system_device_orientation == orientation )
 		return;
-	
+
 	_system_device_orientation = orientation;
 	system_post_event( FOUNDATIONEVENT_DEVICE_ORIENTATION );
 }
@@ -655,6 +756,20 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 	return false;
 #else
 	//Not implemented
+	FOUNDATION_UNUSED( message );
+	FOUNDATION_UNUSED( title );
+	FOUNDATION_UNUSED( cancel_button );
 	return false;
 #endif
+}
+
+
+void system_thread_deallocate( void )
+{
+	char* buffer = get_thread_system_buffer();
+	if( !buffer )
+		return;
+
+	memory_deallocate( buffer );
+	set_thread_system_buffer( 0 );
 }

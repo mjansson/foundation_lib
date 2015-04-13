@@ -1,11 +1,11 @@
 /* main.c  -  Foundation uuid test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,8 @@
 
 static application_t test_uuid_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation uuid tests";
 	app.short_name = "test_uuid";
 	app.config_dir = "test_uuid";
@@ -59,7 +60,7 @@ DECLARE_TEST( uuid, generate )
 	//Random based
 	uuid = uuid_generate_random();
 	uuid_ref = uuid_null();
-	
+
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_TRUE( uuid_is_null( uuid_ref ) );
 	EXPECT_FALSE( uuid_equal( uuid, uuid_ref ) );
@@ -78,7 +79,7 @@ DECLARE_TEST( uuid, generate )
 	EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 
 	uuid = uuid_ref;
-	
+
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_FALSE( uuid_is_null( uuid_ref ) );
 	EXPECT_TRUE( uuid_equal( uuid, uuid_ref ) );
@@ -90,7 +91,7 @@ DECLARE_TEST( uuid, generate )
 	{
 		uuid_ref = uuid;
 		uuid = uuid_generate_random();
-	
+
 		EXPECT_FALSE( uuid_is_null( uuid ) );
 		EXPECT_FALSE( uuid_is_null( uuid_ref ) );
 		EXPECT_FALSE( uuid_equal( uuid, uuid_ref ) );
@@ -98,11 +99,11 @@ DECLARE_TEST( uuid, generate )
 		EXPECT_TRUE( uuid_equal( uuid, uuid ) );
 		EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 	}
-	
+
 	//Time based
 	uuid = uuid_generate_time();
 	uuid_ref = uuid_null();
-	
+
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_TRUE( uuid_is_null( uuid_ref ) );
 	EXPECT_FALSE( uuid_equal( uuid, uuid_ref ) );
@@ -121,7 +122,7 @@ DECLARE_TEST( uuid, generate )
 	EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 
 	uuid = uuid_ref;
-	
+
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_FALSE( uuid_is_null( uuid_ref ) );
 	EXPECT_TRUE( uuid_equal( uuid, uuid_ref ) );
@@ -133,7 +134,7 @@ DECLARE_TEST( uuid, generate )
 	{
 		uuid_ref = uuid;
 		uuid = uuid_generate_time();
-	
+
 		EXPECT_FALSE( uuid_is_null( uuid ) );
 		EXPECT_FALSE( uuid_is_null( uuid_ref ) );
 		EXPECT_FALSE( uuid_equal( uuid, uuid_ref ) );
@@ -141,11 +142,11 @@ DECLARE_TEST( uuid, generate )
 		EXPECT_TRUE( uuid_equal( uuid, uuid ) );
 		EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 	}
-	
+
 	//Name based
 	uuid = uuid_generate_name( UUID_DNS, "com.rampantpixels.foundation.uuid" );
 	uuid_ref = uuid_null();
-	
+
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_TRUE( uuid_is_null( uuid_ref ) );
 	EXPECT_FALSE( uuid_equal( uuid, uuid_ref ) );
@@ -164,7 +165,7 @@ DECLARE_TEST( uuid, generate )
 	EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 
 	uuid = uuid_generate_name( UUID_DNS, "com.rampantpixels.foundation.uuid.2" );
-	
+
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_FALSE( uuid_is_null( uuid_ref ) );
 	EXPECT_TRUE( uuid_equal( uuid, uuid_ref ) );
@@ -175,10 +176,10 @@ DECLARE_TEST( uuid, generate )
 	for( iloop = 0; iloop < 10000; ++iloop )
 	{
 		string_format_buffer( name_str, 40, "com.rampantpixels.foundation.uuid.%05u", iloop );
-		
+
 		uuid_ref = uuid;
 		uuid = uuid_generate_name( UUID_DNS, name_str );
-	
+
 		EXPECT_FALSE( uuid_is_null( uuid ) );
 		EXPECT_FALSE( uuid_is_null( uuid_ref ) );
 		EXPECT_FALSE( uuid_equal( uuid, uuid_ref ) );
@@ -186,7 +187,7 @@ DECLARE_TEST( uuid, generate )
 		EXPECT_TRUE( uuid_equal( uuid, uuid ) );
 		EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 	}
-	
+
 	return 0;
 }
 
@@ -197,10 +198,11 @@ static void* uuid_thread_time( object_t thread, void* arg )
 {
 	int i;
 	int ithread = (int)(uintptr_t)arg;
+	FOUNDATION_UNUSED( thread );
 
 	for( i = 0; i < 8192; ++i )
 		uuid_thread_store[ithread][i] = uuid_generate_time();
-	
+
 	return 0;
 }
 
@@ -218,7 +220,7 @@ DECLARE_TEST( uuid, threaded )
 	}
 
 	test_wait_for_threads_startup( thread, num_threads );
-	
+
 	for( ith = 0; ith < num_threads; ++ith )
 	{
 		thread_terminate( thread[ith] );
@@ -244,7 +246,37 @@ DECLARE_TEST( uuid, threaded )
 			}
 		}
 	}
-	
+
+	return 0;
+}
+
+
+DECLARE_TEST( uuid, string )
+{
+	uuid_t uuid, uuidref;
+	char* str;
+
+	uuidref = uuid_generate_random();
+	EXPECT_FALSE( uuid_is_null( uuidref ) );
+
+	str = string_from_uuid( uuidref );
+	EXPECT_NE( str, 0 );
+
+	uuid = string_to_uuid( str );
+	EXPECT_FALSE( uuid_is_null( uuid ) );
+	EXPECT_TRUE( uuid_equal( uuid, uuidref ) );
+
+	string_deallocate( str );
+
+	uuid = string_to_uuid( "" );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "empty string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+
+	uuid = string_to_uuid( "0" );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "\"0\" string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+
+	uuid = string_to_uuid( string_from_uuid_static( uuid_null() ) );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "null uuid reconvert through string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+
 	return 0;
 }
 
@@ -253,6 +285,7 @@ static void test_uuid_declare( void )
 {
 	ADD_TEST( uuid, generate );
 	ADD_TEST( uuid, threaded );
+	ADD_TEST( uuid, string );
 }
 
 
@@ -265,7 +298,7 @@ test_suite_t test_uuid_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_uuid_run( void );
 int test_uuid_run( void )

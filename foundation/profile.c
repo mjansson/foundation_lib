@@ -1,11 +1,11 @@
 /* profile.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -66,18 +66,18 @@ FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, "profile_block_t size
 #define GET_BLOCK( index )          ( _profile_blocks + (index) )
 #define BLOCK_INDEX( block )        (uint16_t)((uintptr_t)( (block) - _profile_blocks ))
 
-static const char*                  _profile_identifier = 0;
-static atomic32_t                   _profile_counter = {0};
-static atomic32_t                   _profile_loopid = {0};
-static atomic32_t                   _profile_free = {0};
-static atomic32_t                   _profile_root = {0};
-static profile_block_t*             _profile_blocks = 0;
-static uint64_t                     _profile_ground_time = 0;
-static int                          _profile_enable = 0;
-static profile_write_fn             _profile_write = 0;
-static uint64_t                     _profile_num_blocks = 0;
+static const char*                  _profile_identifier;
+static atomic32_t                   _profile_counter;
+static atomic32_t                   _profile_loopid;
+static atomic32_t                   _profile_free;
+static atomic32_t                   _profile_root;
+static profile_block_t*             _profile_blocks;
+static uint64_t                     _profile_ground_time;
+static int                          _profile_enable;
+static profile_write_fn             _profile_write;
+static uint64_t                     _profile_num_blocks;
 static int                          _profile_wait = 100;
-static object_t                     _profile_io_thread = 0;
+static object_t                     _profile_io_thread;
 
 FOUNDATION_DECLARE_THREAD_LOCAL( uint32_t, profile_block, 0 )
 
@@ -264,7 +264,7 @@ static profile_block_t* _profile_process_block( profile_block_t* block )
 static void _profile_process_root_block( void )
 {
 	uint32_t block;
-			
+
 	do
 	{
 		block = atomic_load32( &_profile_root );
@@ -289,6 +289,7 @@ static void* _profile_io( object_t thread, void* arg )
 {
 	unsigned int system_info_counter = 0;
 	profile_block_t system_info;
+	FOUNDATION_UNUSED( arg );
 	memset( &system_info, 0, sizeof( profile_block_t ) );
 	system_info.data.id = PROFILE_ID_SYSTEMINFO;
 	system_info.data.start = time_ticks_per_second();
@@ -300,7 +301,7 @@ static void* _profile_io( object_t thread, void* arg )
 
 		if( !atomic_load32( &_profile_root ) )
 			continue;
-		
+
 		profile_begin_block( "profile_io" );
 
 		if( atomic_load32( &_profile_root ) )
@@ -314,7 +315,7 @@ static void* _profile_io( object_t thread, void* arg )
 
 			profile_end_block();
 		}
-		
+
 		if( system_info_counter++ > 10 )
 		{
 			if( _profile_write )
@@ -335,7 +336,7 @@ static void* _profile_io( object_t thread, void* arg )
 		terminate.data.id = PROFILE_ID_ENDOFSTREAM;
 		_profile_write( &terminate, sizeof( profile_block_t ) );
 	}
-	
+
 	return 0;
 }
 
@@ -349,7 +350,7 @@ void profile_initialize( const char* identifier, void* buffer, uint64_t size )
 
 	if( num_blocks > 65535 )
 		num_blocks = 65535;
-	
+
 	for( i = 0; i < ( num_blocks - 1 ); ++i, ++block )
 	{
 		block->child = ( i + 1 );
@@ -385,7 +386,7 @@ void profile_shutdown( void )
 	_profile_thread_finalize();
 	if( atomic_load32( &_profile_root ) )
 		_profile_process_root_block();
-	
+
 	//Sanity checks
 	{
 		uint64_t num_blocks = 0;
@@ -436,7 +437,7 @@ void profile_enable( bool enable )
 {
 	bool was_enabled = ( _profile_enable > 0 );
 	bool is_enabled = enable;
-	
+
 	if( is_enabled && !was_enabled )
 	{
 		_profile_enable = 1;
@@ -456,7 +457,7 @@ void profile_enable( bool enable )
 
 		while( thread_is_running( _profile_io_thread ) )
 			thread_yield();
-		
+
 		_profile_enable = 0;
 	}
 }
@@ -467,7 +468,7 @@ void profile_end_frame( uint64_t counter )
 	profile_block_t* block;
 	if( !_profile_enable )
 		return;
-	
+
 	//Allocate new master block
 	block = _profile_allocate_block();
 	if( !block )
@@ -487,7 +488,7 @@ void profile_begin_block( const char* message )
 	uint32_t parent;
 	if( !_profile_enable )
 		return;
-	
+
 	parent = get_thread_profile_block();
 	if( !parent )
 	{
@@ -538,13 +539,13 @@ void profile_update_block( void )
 	profile_block_t* block;
 	if( !_profile_enable || !block_index )
 		return;
-	
+
 	block = GET_BLOCK( block_index );
 	message = block->data.name;
 	processor = thread_hardware();
 	if( block->data.processor == processor )
 		return;
-	
+
 	//Thread migrated to another core, split into new block
 	profile_end_block();
 	profile_begin_block( message );
@@ -557,7 +558,7 @@ void profile_end_block( void )
 	profile_block_t* block;
 	if( !_profile_enable || !block_index )
 		return;
-	
+
 	block = GET_BLOCK( block_index );
 	block->data.end = time_current() - _profile_ground_time;
 
@@ -585,7 +586,7 @@ void profile_end_block( void )
 		FOUNDATION_ASSERT( parent_index != block_index );
 #endif
 		set_thread_profile_block( parent_index );
-		
+
 		processor = thread_hardware();
 		if( parent->data.processor != processor )
 		{

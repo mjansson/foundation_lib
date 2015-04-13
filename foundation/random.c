@@ -1,11 +1,11 @@
 /* random.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -40,9 +40,9 @@
 
 FOUNDATION_DECLARE_THREAD_LOCAL( unsigned int*, state, 0 )
 
-static mutex_t*       _random_mutex = 0;
-static unsigned int** _random_state = 0;
-static unsigned int** _random_available_state = 0;
+static mutex_t*       _random_mutex;
+static unsigned int** _random_state;
+static unsigned int** _random_available_state;
 
 
 static void _random_seed_buffer( unsigned int* buffer )
@@ -126,7 +126,7 @@ static unsigned int* _random_thread_allocate( void )
 	}
 
 	mutex_unlock( _random_mutex );
-	
+
 	set_thread_state( buffer );
 
 	return buffer;
@@ -146,7 +146,7 @@ void random_thread_deallocate( void )
 }
 
 
-static FORCEINLINE unsigned int random_from_state( unsigned int* RESTRICT state )
+static FOUNDATION_FORCEINLINE unsigned int random_from_state( unsigned int* FOUNDATION_RESTRICT state )
 {
 	unsigned int state_index = state[ RANDOM_STATE_SIZE ];
 	unsigned int bits0, bits1, bits2;
@@ -168,7 +168,7 @@ static FORCEINLINE unsigned int random_from_state( unsigned int* RESTRICT state 
 		state[ state_index ] = bits1 ^ bits2;
 		state[ state_index - 1 ] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT( 20, bits1 ) ^ RANDOM_TRANSFORM( 9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2 ) ^ state[ state_index ];
 		state[ RANDOM_STATE_SIZE ] = state_index = 0;
-		return ( state[ state_index ] ^ ( state[ state_index + RANDOM_HIGH_LIMIT + 1 ] & RANDOM_BITMASK ) ); 
+		return ( state[ state_index ] ^ ( state[ state_index + RANDOM_HIGH_LIMIT + 1 ] & RANDOM_BITMASK ) );
 	}
 	else if( state_index + RANDOM_LOW_LIMIT >= RANDOM_STATE_SIZE )
 	{
@@ -225,7 +225,6 @@ uint32_t random32( void )
 
 uint32_t random32_range( uint32_t low, uint32_t high )
 {
-	uint32_t rnum = random32();
 	if( low > high )
 	{
 		uint32_t tmp = low;
@@ -234,7 +233,7 @@ uint32_t random32_range( uint32_t low, uint32_t high )
 	}
 	if( high <= low + 1 )
 		return low;
-	return low + ( rnum % ( high - low ) );
+	return low + ( random32() % ( high - low ) );
 }
 
 
@@ -244,7 +243,7 @@ uint64_t random64( void )
 	unsigned int* state = get_thread_state();
 	if( !state )
 		state = _random_thread_allocate();
-	
+
 	low = random_from_state( state );
 	high = random_from_state( state );
 
@@ -254,7 +253,6 @@ uint64_t random64( void )
 
 uint64_t random64_range( uint64_t low, uint64_t high )
 {
-	uint64_t rnum = random64();
 	if( low > high )
 	{
 		uint64_t tmp = low;
@@ -263,7 +261,7 @@ uint64_t random64_range( uint64_t low, uint64_t high )
 	}
 	if( high <= low + 1 )
 		return low;
-	return low + ( rnum % ( high - low ) );
+	return low + ( random64() % ( high - low ) );
 }
 
 
@@ -305,13 +303,26 @@ real random_range( real low, real high )
 int32_t random32_gaussian_range( int32_t low, int32_t high )
 {
 	const uint64_t cubic = ( ( ( (uint64_t)random32() + (uint64_t)random32() ) + ( (uint64_t)random32() + (uint64_t)random32() ) + 2ULL ) >> 2ULL );
+	if( low > high )
+	{
+		int32_t tmp = low;
+		low = high;
+		high = tmp;
+	}
 	return low + (int32_t)( ( cubic * (uint64_t)( high - low ) ) >> 32ULL );
 }
 
 
 real random_gaussian_range( real low, real high )
 {
-	const real result = low + ( ( high - low ) * REAL_C( 0.33333333333333333333333333333 ) * ( random_normalized() + random_normalized() + random_normalized() ) );
+	real result;
+	if( low > high )
+	{
+		real tmp = low;
+		low = high;
+		high = tmp;
+	}
+	result = low + ( ( high - low ) * REAL_C( 0.33333333333333333333333333333 ) * ( random_normalized() + random_normalized() + random_normalized() ) );
 	if( result <= low )
 		return low;
 	else if( result >= high )
@@ -322,17 +333,29 @@ real random_gaussian_range( real low, real high )
 
 int32_t random32_triangle_range( int32_t low, int32_t high )
 {
-	const uint32_t t0 = random32(); 
+	const uint32_t t0 = random32();
 	const uint32_t t1  = random32();
 	const uint64_t tri = ( t0 >> 1 ) + ( t1 >> 1 ) + ( t0 & t1 & 1 );
-
+	if( low > high )
+	{
+		int32_t tmp = low;
+		low = high;
+		high = tmp;
+	}
 	return low + (int32_t)( ( tri * (uint64_t)( high - low ) ) >> 32ULL );
 }
 
 
 real random_triangle_range( real low, real high )
 {
-	const real result = low + ( high - low ) * REAL_C( 0.5 ) * ( random_normalized() + random_normalized() );
+	real result;
+	if( low > high )
+	{
+		real tmp = low;
+		low = high;
+		high = tmp;
+	}
+	result = low + ( high - low ) * REAL_C( 0.5 ) * ( random_normalized() + random_normalized() );
 	if( result <= low )
 		return low;
 	else if( result >= high )

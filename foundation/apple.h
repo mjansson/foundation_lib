@@ -1,11 +1,11 @@
 /* apple.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -13,12 +13,15 @@
 #pragma once
 
 #include <foundation/platform.h>
-#include <foundation/types.h>
 
-//NOTE - The base of all header problems with XCode is that
+//NOTE - The base of all header problems with XCode is that includes like
 //       #include <Foundation/Foundation.h>
-//       in system headers will actually map to our foundation/foundation.h
+//       in system headers will actually map to our foundation/foundation.h since the preprocessor
+//       seems to be case insensitive. Solution is to use this header which wraps the Cocoa includes
+//       #include <foundation/foundation.h>
+//       #include <foundation/apple.h>
 
+#include <foundation/types.h>
 #include <foundation/uuid.h>
 #include <foundation/radixsort.h>
 #include <foundation/semaphore.h>
@@ -50,36 +53,11 @@
 
 #ifdef __OBJC__
 #  import <CoreFoundation/CoreFoundation.h>
-#  import <Foundation/NSObject.h>
-#  import <Foundation/NSString.h>
-#  import <Foundation/NSThread.h>
-#  import <Foundation/NSProcessInfo.h>
-#  import <Foundation/NSString.h>
-#  import <Foundation/NSSet.h>
-#  import <Foundation/NSArray.h>
-#  import <Foundation/NSTimer.h>
-#  import <Foundation/NSUndoManager.h>
-#  import <Foundation/NSFileManager.h>
+#  include_next <Foundation/Foundation.h>
 #  if FOUNDATION_PLATFORM_MACOSX
-#    import <Foundation/NSRunLoop.h>
-#    import <Foundation/NSExtensionContext.h>
-#    import <AppKit/NSApplication.h>
-#    import <AppKit/NSAlert.h>
-#    import <AppKit/NSWindow.h>
-#    import <AppKit/NSViewController.h>
+#    import <AppKit/AppKit.h>
 #  elif FOUNDATION_PLATFORM_IOS
-#    import <Foundation/NSUUID.h>
-#    import <Foundation/NSCoder.h>
-#    import <Foundation/NSAttributedString.h>
-#    import <Foundation/NSIndexPath.h>
-#    import <Foundation/NSBundle.h>
-#    import <Foundation/NSUserActivity.h>
-#    import <Foundation/NSMapTable.h>
-#    import <UIKit/UIApplication.h>
-#    import <UIKit/UIWindow.h>
-#    import <UIKit/UIScreen.h>
-#    import <UIKit/UIView.h>
-#    import <UIKit/UIViewController.h>
+#    import <UIKit/UIKit.h>
 #    import <QuartzCore/QuartzCore.h>
 #  endif
 #else

@@ -30,13 +30,13 @@ void test_text_view_append( void* window, int tag, const char* msg )
 	if( !textview )
 		return;
 
-	char* logmsg = string_clone( msg );
-	
-	dispatch_after( dispatch_time( DISPATCH_TIME_NOW, NSEC_PER_SEC / 4 ), dispatch_get_main_queue(), ^{ @autoreleasepool {
-	//dispatch_async( dispatch_get_main_queue(), ^{ @autoreleasepool {
-		textview.text = [textview.text stringByAppendingString:[NSString stringWithUTF8String:logmsg]];
-		memory_deallocate( logmsg );
-	}});
+	@autoreleasepool
+	{
+		NSString* nsmsg = [NSString stringWithUTF8String:msg];
+		dispatch_async( dispatch_get_main_queue(), ^{ @autoreleasepool {
+			textview.text = [textview.text stringByAppendingString:nsmsg];
+		}});
+	}
 }
 
 #endif

@@ -39,6 +39,7 @@
     <ClInclude Include="..\..\foundation\assert.h" />
     <ClInclude Include="..\..\foundation\atomic.h" />
     <ClInclude Include="..\..\foundation\base64.h" />
+    <ClInclude Include="..\..\foundation\bitbuffer.h" />
     <ClInclude Include="..\..\foundation\bits.h" />
     <ClInclude Include="..\..\foundation\blowfish.h" />
     <ClInclude Include="..\..\foundation\bufferstream.h" />
@@ -89,6 +90,7 @@
     <ClCompile Include="..\..\foundation\assert.c" />
     <ClCompile Include="..\..\foundation\atomic.c" />
     <ClCompile Include="..\..\foundation\base64.c" />
+    <ClCompile Include="..\..\foundation\bitbuffer.c" />
     <ClCompile Include="..\..\foundation\blowfish.c" />
     <ClCompile Include="..\..\foundation\bufferstream.c" />
     <ClCompile Include="..\..\foundation\config.c" />
@@ -133,6 +135,7 @@
     <ClCompile Include="..\..\foundation\thread.c" />
     <ClCompile Include="..\..\foundation\time.c" />
     <ClCompile Include="..\..\foundation\uuid.c" />
+    <ClCompile Include="..\..\foundation\version.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt">

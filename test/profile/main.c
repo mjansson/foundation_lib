@@ -1,11 +1,11 @@
 /* main.c  -  Foundation profile test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -18,21 +18,23 @@
 #define TEST_PROFILE_BUFFER_SIZE  512000
 
 static const uint64_t       _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
-static char*                _test_profile_buffer = 0;
-static uint64_t             _test_profile_offset = 0;
-
-static atomic32_t           _test_profile_output_counter = {0};
+static char*                _test_profile_buffer;
+static uint64_t             _test_profile_offset;
+static atomic32_t           _test_profile_output_counter;
 
 
 static void test_profile_output( void* buffer, uint64_t size )
 {
+	FOUNDATION_UNUSED( buffer );
+	FOUNDATION_UNUSED( size );
 	atomic_incr32( &_test_profile_output_counter );
 }
 
 
 static application_t test_profile_application( void )
 {
-	application_t app = {0};
+	application_t app;
+	memset( &app, 0, sizeof( app ) );
 	app.name = "Foundation profile tests";
 	app.short_name = "test_profile";
 	app.config_dir = "test_profile";
@@ -55,7 +57,7 @@ static int test_profile_initialize( void )
 	_test_profile_buffer = memory_allocate( 0, TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT );
 
 	FOUNDATION_UNUSED( _test_profile_buffer_size );
-	
+
 	return 0;
 }
 
@@ -75,13 +77,13 @@ DECLARE_TEST( profile, initialize )
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
-	profile_enable( 1 );
+	profile_enable( true );
 
 	profile_log( "testing" );
 
 	thread_sleep( 1000 );
-	
-	profile_enable( 0 );
+
+	profile_enable( false );
 	profile_shutdown();
 
 #if BUILD_ENABLE_PROFILE
@@ -89,7 +91,7 @@ DECLARE_TEST( profile, initialize )
 #else
 	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 #endif
-	
+
 	err = error();
 	EXPECT_EQ( err, ERROR_NONE );
 
@@ -105,36 +107,36 @@ DECLARE_TEST( profile, output )
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
-	profile_enable( 1 );
+	profile_enable( true );
 
 	profile_log( "testing" );
 
 	thread_sleep( 1000 );
-	
-	profile_enable( 0 );
+
+	profile_enable( false );
 	profile_shutdown();
 
 #if BUILD_ENABLE_PROFILE
 	EXPECT_GT( atomic_load32( &_test_profile_output_counter ), 0 );
-	//TODO: Implement parsing output results	
+	//TODO: Implement parsing output results
 #else
 	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 #endif
 
 	err = error();
 	EXPECT_EQ( err, ERROR_NONE );
-	
+
 	_test_profile_offset = 0;
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
-	profile_enable( 0 );
-	
+	profile_enable( false );
+
 	profile_log( "testing again" );
 
 	thread_sleep( 1000 );
-	
-	profile_enable( 0 );
+
+	profile_enable( false );
 	profile_shutdown();
 
 	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
@@ -148,8 +150,9 @@ DECLARE_TEST( profile, output )
 
 static void* _profile_fail_thread( object_t thread, void* arg )
 {
+	FOUNDATION_UNUSED( arg );
 	thread_sleep( 10 );
-	
+
 	while( !thread_should_terminate( thread ) )
 	{
 		profile_log( "Thread message" );
@@ -181,7 +184,7 @@ static void* _profile_fail_thread( object_t thread, void* arg )
 		}
 		profile_end_block();
 	}
-	
+
 	return 0;
 }
 
@@ -197,7 +200,7 @@ DECLARE_TEST( profile, thread )
 	atomic_store32( &_test_profile_output_counter, 0 );
 
 	profile_initialize( "test_profile", _test_profile_buffer, 30000/*_test_profile_buffer_size*/ );
-	profile_enable( 1 );
+	profile_enable( true );
 	profile_set_output_wait( 1 );
 
 	log_info( HASH_TEST, "This test will intentionally run out of memory in profiling system" );
@@ -214,26 +217,26 @@ DECLARE_TEST( profile, thread )
 		thread_sleep( 16 );
 		profile_end_frame( frame );
 	}
-	
+
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
 		thread_yield();
 	}
-	
+
 	test_wait_for_threads_exit( thread, 32 );
 
 	thread_sleep( 1000 );
-	
-	profile_enable( 0 );
+
+	profile_enable( false );
 	profile_shutdown();
 
 	err = error();
 
 #if BUILD_ENABLE_PROFILE
 	EXPECT_GT( atomic_load32( &_test_profile_output_counter ), 0 );
-	//TODO: Implement parsing output results	
+	//TODO: Implement parsing output results
 #else
 	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 #endif
@@ -243,8 +246,8 @@ DECLARE_TEST( profile, thread )
 }
 
 
-static stream_t* _profile_stream = 0;
-static atomic64_t _profile_generated_blocks = {0};
+static stream_t* _profile_stream;
+static atomic64_t _profile_generated_blocks;
 
 
 static void _profile_file_writer( void* buffer, uint64_t size )
@@ -256,6 +259,7 @@ static void _profile_file_writer( void* buffer, uint64_t size )
 
 static void* _profile_stream_thread( object_t thread, void* arg )
 {
+	FOUNDATION_UNUSED( arg );
 	thread_yield();
 
 	while( !thread_should_terminate( thread ) )
@@ -277,7 +281,7 @@ static void* _profile_stream_thread( object_t thread, void* arg )
 				profile_signal( "Signal" );
 
 				thread_sleep( 2 );
-				
+
 				profile_unlock( "Trylock" );
 
 				profile_log( "End sub" );
@@ -289,7 +293,7 @@ static void* _profile_stream_thread( object_t thread, void* arg )
 
 			profile_lock( "Trylock" );
 			thread_sleep( 4 );
-			
+
 			profile_unlock( "Trylock" );
 		}
 		profile_end_block();
@@ -298,7 +302,7 @@ static void* _profile_stream_thread( object_t thread, void* arg )
 
 		atomic_add64( &_profile_generated_blocks, 12 );
 	}
-	
+
 	return 0;
 }
 
@@ -311,17 +315,17 @@ DECLARE_TEST( profile, stream )
 	char* filename;
 
 	error();
-	
+
 	filename = path_merge( environment_temporary_directory(), "test.profile" );
 	log_infof( HASH_TEST, "Output to profile file: %s", filename );
 	fs_make_directory( environment_temporary_directory() );
 	_profile_stream = fs_open_file( filename, STREAM_OUT | STREAM_BINARY );
 	string_deallocate( filename );
-	
+
 	profile_initialize( "test_profile", _test_profile_buffer, _test_profile_buffer_size );
 	profile_set_output( _profile_file_writer );
 	profile_set_output_wait( 10 );
-	profile_enable( 1 );
+	profile_enable( true );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
@@ -334,32 +338,40 @@ DECLARE_TEST( profile, stream )
 	for( frame = 0; frame < 1000; ++frame )
 	{
 		thread_sleep( 16 );
+		profile_log( "This is a really long profile log line that should break into multiple profile blocks automatically without causing any issues whatsoever if everything works as expected which it should or the code needs to be fixed" );
 		profile_end_frame( frame++ );
+		if( ( frame % 30 ) == 0 )
+		{
+			profile_enable( false );
+			thread_sleep( 10 );
+			profile_enable( true );
+		}
 	}
-	
+
 	for( ith = 0; ith < 32; ++ith )
 	{
 		thread_terminate( thread[ith] );
 		thread_destroy( thread[ith] );
 		thread_yield();
 	}
-	
+
 	test_wait_for_threads_exit( thread, 32 );
 
 	profile_end_frame( frame++ );
 	profile_set_output_wait( 100 );
-	
+
 	thread_sleep( 1000 );
-	
-	profile_enable( 0 );
+
+	profile_enable( false );
 	profile_shutdown();
 
 	error();
 
 	stream_deallocate( _profile_stream );
 
+	//TODO: Validate that output is sane
 	log_debugf( HASH_TEST, "Generated %lld blocks", atomic_load64( &_profile_generated_blocks ) );
-	
+
 	return 0;
 }
 
@@ -382,7 +394,7 @@ test_suite_t test_profile_suite = {
 };
 
 
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_PNACL
+#if BUILD_MONOLITHIC
 
 int test_profile_run( void );
 int test_profile_run( void )

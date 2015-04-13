@@ -38,18 +38,19 @@ includepaths = [ 'test' ]
 test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.c', 'test.m' ], includepaths = includepaths )
 
 test_cases = [
-  'array', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
+  'app', 'array', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
   'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'library', 'math', 'md5', 'mutex', 'objectmap',
-  'path', 'pipe', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
-  'string', 'uuid'
+  'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
+  'stream', 'string', 'system', 'time', 'uuid'
 ]
-if target.is_ios() or target.is_android() or target.is_pnacl():
+if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_pnacl():
   #Build one fat binary with all test cases
   test_resources = []
   test_extrasources = []
   test_cases += [ 'all' ]
   if target.is_ios():
     test_resources = [ os.path.join( 'all', 'ios', item ) for item in [ 'test-all.plist', 'Images.xcassets', 'test-all.xib' ] ]
+    test_extrasources = [ os.path.join( 'all', 'ios', 'viewcontroller.m' ) ]
   elif target.is_android():
     test_resources = [ os.path.join( 'all', 'android', item ) for item in [
       'AndroidManifest.xml', os.path.join( 'layout', 'main.xml' ), os.path.join( 'values', 'strings.xml' ),
@@ -59,10 +60,10 @@ if target.is_ios() or target.is_android() or target.is_pnacl():
     test_extrasources = [ os.path.join( 'all', 'android', 'java', 'com', 'rampantpixels', 'foundation', 'test', item ) for item in [
       'TestActivity.java'
     ] ]
-  if target.is_pnacl():
-    generator.bin( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ] + test_extrasources, binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
-  else:
+  if target.is_ios() or target.is_android():
     generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ] + test_extrasources, binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
+  else:
+    generator.bin( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ] + test_extrasources, binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
 else:
   #Build one binary per test case
   generator.bin( module = 'all', sources = [ 'main.c' ], binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], includepaths = includepaths )
