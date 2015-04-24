@@ -66,6 +66,7 @@ class Toolchain(object):
     #Set default values
     self.build_monolithic = False
     self.build_coverage = False
+    self.support_lua = False
 
     self.android_ndkpath = ''
     self.android_sdkpath = ''
@@ -102,6 +103,8 @@ class Toolchain(object):
           self.build_monolithic = self.get_boolean_flag( val )
         elif key == 'coverage':
           self.build_coverage = self.get_boolean_flag( val )
+        elif key == 'support_lua':
+          self.support_lua = self.get_boolean_flag( val )
         elif key == 'bundleidentifier':
           self.ios_bundleidentifier = val
           self.macosx_bundleidentifier = val
@@ -612,6 +615,8 @@ class Toolchain(object):
       self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
     if 'coverage' in prefs:
       self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
+    if 'support_lua' in prefs:
+      self.support_lua = self.get_boolean_flag( prefs['support_lua'] )
 
   def get_boolean_flag( self, val ):
     return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
@@ -631,6 +636,7 @@ class Toolchain(object):
         finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config ) ]
       else:
         finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config, arch ) ]
+    finalpaths += [ self.libpath ]
     if self.target.is_android():
       if arch == 'x86-64' or arch == 'mips64' or arch == 'arm64':
         finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib64' ) ]
@@ -763,10 +769,14 @@ class Toolchain(object):
         flags += ' -arch x86'
       elif arch == 'x86-64':
         flags += ' -arch x86_64'
+        if self.support_lua:
+          flags += ' -pagezero_size 10000 -image_base 100000000'
       elif arch == 'arm7':
         flags += ' -arch armv7'
       elif arch == 'arm64':
         flags += ' -arch arm64'
+        if self.support_lua:
+          flags += ' -pagezero_size 10000 -image_base 100000000'
     elif self.target.is_raspberrypi():
       pass
     elif self.target.is_android():
