@@ -1250,6 +1250,7 @@ class Toolchain(object):
       basepath = ''
     if configs is None:
       configs = list( self.configs )
+    decoratedmodule = module + self.make_pathhash( module )
     moreincludepaths = self.build_includepaths( includepaths )
     do_universal = True if self.target.is_macosx() or self.target.is_ios() else False
     for config in configs:
@@ -1267,7 +1268,7 @@ class Toolchain(object):
         localarvariables = [ ( 'ararchflags', localararchflags ), ( 'arconfigflags', localarconfigflags ) ]
         extraincludepaths = []
         if self.target.is_windows():
-          pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
+          pdbpath = os.path.join( buildpath, basepath, decoratedmodule, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ]
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
@@ -1279,10 +1280,10 @@ class Toolchain(object):
         for name in sources:
           if os.path.isabs( name ):
             infile = name
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.make_pathhash( infile ) + self.objext )
+            outfile = os.path.join( buildpath, basepath, decoratedmodule, os.path.splitext( os.path.basename( name ) )[0] + self.make_pathhash( infile ) + self.objext )
           else:
             infile = os.path.join( basepath, module, name )
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.make_pathhash( infile ) + self.objext )
+            outfile = os.path.join( buildpath, basepath, decoratedmodule, os.path.splitext( name )[0] + self.make_pathhash( infile ) + self.objext )
           if name.endswith( '.c' ):
             objs += writer.build( outfile, 'cc', infile, variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
