@@ -781,7 +781,7 @@ class Toolchain(object):
       pass
     elif self.target.is_android():
       if arch == 'arm7':
-        flags += ' -Wl,--no-warn-mismatch -Wl,--fix-cortex-a8'
+        flags += ' -lm_hard -Wl,--no-warn-mismatch -Wl,--fix-cortex-a8'
       if self.toolchain == 'clang':
         if arch == 'x86':
           flags += ' -target i686-none-linux-android'
