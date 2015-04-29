@@ -509,16 +509,16 @@ uint64_t system_hostid( void )
 			memset( &ifr, 0, sizeof( ifr ) );
 			string_copy( ifr.ifr_name, ifa->ifa_name, sizeof( ifr.ifr_name ) );
 
-			hostid = _system_hostid_lookup( sock, &buffer );
+			hostid = _system_hostid_lookup( sock, &ifr );
 		}
 		freeifaddrs( ifaddr );
 	}
 	else
 	{
-		memset( &buffer, 0, sizeof( buffer ) );
-		strcpy( buffer.ifr_name, "eth0" );
+		memset( &ifr, 0, sizeof( ifr ) );
+		strcpy( ifr.ifr_name, "eth0" );
 
-		hostid = _system_hostid_lookup( sock, &buffer );
+		hostid = _system_hostid_lookup( sock, &ifr );
 	}
 
 	close( sock );
