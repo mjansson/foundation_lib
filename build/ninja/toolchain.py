@@ -407,22 +407,9 @@ class Toolchain(object):
         self.sysroot = ''
         self.liblinkname = ''
 
-        #-O0 -g3 -Wall -c -fmessage-length=0 -target i386-tizen-linux-gnueabi
-        #-gcc-toolchain /Users/mjansson/projects/tizen-sdk/tools/smart-build-interface/../i386-linux-gnueabi-gcc-4.6/
-        #-ccc-gcc-name i386-linux-gnueabi-g++ -march=i386
-        #--sysroot="/Users/mjansson/projects/tizen-sdk/tools/smart-build-interface/../../platforms/mobile-2.3/rootstraps/mobile-2.3-emulator.core"
-        #-I"/Users/mjansson/projects/tizen-sdk/library"
-        #-I"/Users/mjansson/projects/tizen-sdk/tools/smart-build-interface/../../platforms/mobile-2.3/rootstraps/mobile-2.3-emulator.core/usr/include/evas-1"
-        #-I"/Users/mjansson/projects/tizen-sdk/tools/smart-build-interface/../../platforms/mobile-2.3/rootstraps/mobile-2.3-emulator.core/usr/include/fontconfig"
-
-        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -c $in -o $out'
+        self.arcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
-
-        self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer',
-                         '-no-canonical-prefixes', '-Wa,--noexecstack' ]
-
-        self.linkflags += [ '-no-canonical-prefixes', '-Wl,--no-undefined', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now' ]
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
 
@@ -802,6 +789,10 @@ class Toolchain(object):
         flags += ' -march=armv7-a -mhard-float -mfpu=vfpv3-d16 -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1 -marm'
       elif arch == 'arm64':
         pass
+    elif self.target.is_tizen():
+      if arch == 'x86':
+        flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.target.is_windows() and self.toolchain == 'msvc':
       if arch == 'x86':
         flags += ' /arch:SSE2'
@@ -1159,7 +1150,10 @@ class Toolchain(object):
     return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainprefix[arch] + '-gcc-' + self.tizen_gccversion )
 
   def make_tizen_sysroot_path( self, arch ):
-    return os.path.join( self.tizen_sdkpath, 'tools', 'mobile-' + self.tizen_platformversion, 'rootstraps', 'mobile-' + self.tizen_platformversion + '-emulator.core' )
+    return os.path.join( self.tizen_sdkpath, 'platforms', 'mobile-' + self.tizen_platformversion, 'rootstraps', 'mobile-' + self.tizen_platformversion + '-emulator.core' )
+
+  def make_tizen_ar_path( self, arch ):
+    return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainname[arch], 'bin', self.tizen_toolchainprefix[arch] + '-ar' )
 
   def make_bundleidentifier( self, binname ):
     if self.target.is_macosx():
@@ -1381,7 +1375,7 @@ class Toolchain(object):
         if self.target.is_tizen():
           sysroot = self.make_tizen_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
-          localarvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          localarvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'ar', self.make_tizen_ar_path( arch ) ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
@@ -1456,6 +1450,11 @@ class Toolchain(object):
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
           locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if self.target.is_tizen():
+          sysroot = self.make_tizen_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
