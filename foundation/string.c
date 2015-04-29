@@ -1426,10 +1426,3 @@ version_t string_to_version( const char* val )
 	return version_make( num[0], num[1], num[2], num[3], num[4] );
 }
 
-
-bool string_is_valid_email_address( const char* address )
-{
-	//TODO: Regexp '^[a-z0-9]+[a-z0-9_\\.-]*@([a-z0-9]+([\.-][a-z0-9]+)*)\\.[a-z]{2,4}$' or similar
-	return string_match_pattern( address, "*@*.*" );
-}
-

@@ -180,7 +180,15 @@
 #  endif
 
 // Traits
-#  if defined( __AARCH64EB__ )
+#  if FOUNDATION_ARCH_MIPS
+#    if defined( __MIPSEL__ ) || defined( __MIPSEL ) || defined( _MIPSEL )
+#      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    else
+#      undef  FOUNDATION_ARCH_ENDIAN_BIG
+#      define FOUNDATION_ARCH_ENDIAN_BIG 1
+#    endif
+#  elif defined( __AARCH64EB__ ) || defined( __ARMEB__ )
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #  else
@@ -349,8 +357,6 @@
 #  elif defined( __arm__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
-#    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
-#    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #    if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
 #      undef  FOUNDATION_ARCH_ARM7
 #      define FOUNDATION_ARCH_ARM7 1
@@ -365,7 +371,17 @@
 #    else
 #      error Unrecognized ARM architecture
 #    endif
-#  elif defined( __arm64__ )
+
+// Traits
+#    if defined( __ARMEB__ )
+#      undef  FOUNDATION_ARCH_ENDIAN_BIG
+#      define FOUNDATION_ARCH_ENDIAN_BIG 1
+#    else
+#      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    endif
+
+#  elif defined( __arm64__ ) || define( __aarch64__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    undef  FOUNDATION_ARCH_ARM_64
@@ -379,6 +395,16 @@
 #    else
 #      error Unrecognized ARM architecture
 #    endif
+
+// Traits
+#    if defined( __AARCH64EB__ )
+#      undef  FOUNDATION_ARCH_ENDIAN_BIG
+#      define FOUNDATION_ARCH_ENDIAN_BIG 1
+#    else
+#      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    endif
+
 #  else
 #    error Unknown architecture
 #  endif
@@ -682,6 +708,8 @@
 #  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
+
+#  pragma warning( disable : 4200 )
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall

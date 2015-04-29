@@ -68,6 +68,7 @@ class Toolchain(object):
     #Set default values
     self.build_monolithic = False
     self.build_coverage = False
+    self.support_lua = False
 
     self.android_ndkpath = ''
     self.android_sdkpath = ''
@@ -109,6 +110,8 @@ class Toolchain(object):
           self.build_monolithic = self.get_boolean_flag( val )
         elif key == 'coverage':
           self.build_coverage = self.get_boolean_flag( val )
+        elif key == 'support_lua':
+          self.support_lua = self.get_boolean_flag( val )
         elif key == 'bundleidentifier':
           self.ios_bundleidentifier = val
           self.macosx_bundleidentifier = val
@@ -689,6 +692,8 @@ class Toolchain(object):
       self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
     if 'coverage' in prefs:
       self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
+    if 'support_lua' in prefs:
+      self.support_lua = self.get_boolean_flag( prefs['support_lua'] )
 
   def get_boolean_flag( self, val ):
     return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
@@ -708,6 +713,7 @@ class Toolchain(object):
         finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config ) ]
       else:
         finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config, arch ) ]
+    finalpaths += [ self.libpath ]
     if self.target.is_android():
       if arch == 'x86-64' or arch == 'mips64' or arch == 'arm64':
         finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib64' ) ]
@@ -840,15 +846,19 @@ class Toolchain(object):
         flags += ' -arch x86'
       elif arch == 'x86-64':
         flags += ' -arch x86_64'
+        if self.support_lua:
+          flags += ' -pagezero_size 10000 -image_base 100000000'
       elif arch == 'arm7':
         flags += ' -arch armv7'
       elif arch == 'arm64':
         flags += ' -arch arm64'
+        if self.support_lua:
+          flags += ' -pagezero_size 10000 -image_base 100000000'
     elif self.target.is_raspberrypi():
       pass
     elif self.target.is_android():
       if arch == 'arm7':
-        flags += ' -Wl,--no-warn-mismatch -Wl,--fix-cortex-a8'
+        flags += ' -lm_hard -Wl,--no-warn-mismatch -Wl,--fix-cortex-a8'
       if self.toolchain == 'clang':
         if arch == 'x86':
           flags += ' -target i686-none-linux-android'
@@ -1343,6 +1353,7 @@ class Toolchain(object):
       basepath = ''
     if configs is None:
       configs = list( self.configs )
+    decoratedmodule = module + self.make_pathhash( module )
     moreincludepaths = self.build_includepaths( includepaths )
     do_universal = True if self.target.is_macosx() or self.target.is_ios() else False
     for config in configs:
@@ -1360,7 +1371,7 @@ class Toolchain(object):
         localarvariables = [ ( 'ararchflags', localararchflags ), ( 'arconfigflags', localarconfigflags ) ]
         extraincludepaths = []
         if self.target.is_windows():
-          pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
+          pdbpath = os.path.join( buildpath, basepath, decoratedmodule, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ]
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
@@ -1377,10 +1388,10 @@ class Toolchain(object):
         for name in sources:
           if os.path.isabs( name ):
             infile = name
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( os.path.basename( name ) )[0] + self.make_pathhash( infile ) + self.objext )
+            outfile = os.path.join( buildpath, basepath, decoratedmodule, os.path.splitext( os.path.basename( name ) )[0] + self.make_pathhash( infile ) + self.objext )
           else:
             infile = os.path.join( basepath, module, name )
-            outfile = os.path.join( buildpath, basepath, module, os.path.splitext( name )[0] + self.make_pathhash( infile ) + self.objext )
+            outfile = os.path.join( buildpath, basepath, decoratedmodule, os.path.splitext( name )[0] + self.make_pathhash( infile ) + self.objext )
           if name.endswith( '.c' ):
             objs += writer.build( outfile, 'cc', infile, variables = localvariables )
           elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
