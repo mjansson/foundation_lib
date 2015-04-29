@@ -15,10 +15,8 @@
 
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#  if !FOUNDATION_PLATFORM_ANDROID
-#    include <sys/socket.h>
-#    include <net/if.h>
-#  endif
+#  include <sys/socket.h>
+#  include <net/if.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -414,7 +412,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	return 0;
 }
 
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
 static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 {
@@ -440,21 +438,47 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 
 uint64_t system_hostid( void )
 {
-#if FOUNDATION_PLATFORM_ANDROID
-	//Not implemented yet, see https://code.google.com/p/libjingle/source/browse/trunk/talk/base/ifaddrs-android.cc
-	return 0;
-#elif FOUNDATION_PLATFORM_PNACL
-	//Not implemented yet, see https://code.google.com/p/libjingle/source/browse/trunk/talk/base/ifaddrs-android.cc
+#if FOUNDATION_PLATFORM_PNACL
+	//Not implemented yet
 	return 0;
 #else
-	struct ifaddrs* ifaddr;
-	struct ifaddrs* ifa;
 	uint64_t hostid = 0;
 
-#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
-	struct ifreq buffer;
+#if FOUNDATION_PLATFORM_ANDROID
+
+	struct ifconf ifc;
+	struct ifreq* ifrarr;
 	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
-#endif
+	if( sock < 0 )
+		return 0;
+
+	memset( &ifc, 0, sizeof( ifc ) );
+	if( ioctl( sock, SIOCGIFCONF, &ifc ) == 0 )
+	{
+		ifrarr = memory_allocate( 0, ifc.ifc_len, 0, MEMORY_TEMPORARY );
+		ifc.ifc_ifcu.ifcu_req = ifrarr;
+		if( ioctl( sock, SIOCGIFCONF, &ifc ) == 0 )
+		{
+			int numif = ifc.ifc_len / sizeof( struct ifreq );
+			int iif;
+			for( iif = 0; ( iif < numif ) && !hostid; ++iif )
+			{
+				struct ifreq* ifr = &ifrarr[iif];
+				if( string_equal_substr( ifr->ifr_name, "lo", 2 ) )
+					continue;
+
+				hostid = _system_hostid_lookup( sock, ifr );
+			}
+		}
+		memory_deallocate( ifrarr );
+	}
+
+	close( sock );
+
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+
+	struct ifaddrs* ifaddr;
+	struct ifaddrs* ifa;
 
 	if( getifaddrs( &ifaddr ) == 0 )
 	{
@@ -463,18 +487,32 @@ uint64_t system_hostid( void )
 			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
 				continue;
 
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 			hostid = _system_hostid_lookup( ifa );
-#else
-			memset( &buffer, 0, sizeof( buffer ) );
-			string_copy( buffer.ifr_name, ifa->ifa_name, sizeof( buffer.ifr_name ) );
-
-			hostid = _system_hostid_lookup( sock, &buffer );
-#endif
 		}
 		freeifaddrs( ifaddr );
 	}
-#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
+
+#else
+
+	struct ifaddrs* ifaddr;
+	struct ifaddrs* ifa;
+	struct ifreq ifr;
+	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
+
+	if( getifaddrs( &ifaddr ) == 0 )
+	{
+		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
+		{
+			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
+				continue;
+
+			memset( &ifr, 0, sizeof( ifr ) );
+			string_copy( ifr.ifr_name, ifa->ifa_name, sizeof( ifr.ifr_name ) );
+
+			hostid = _system_hostid_lookup( sock, &buffer );
+		}
+		freeifaddrs( ifaddr );
+	}
 	else
 	{
 		memset( &buffer, 0, sizeof( buffer ) );
@@ -484,6 +522,7 @@ uint64_t system_hostid( void )
 	}
 
 	close( sock );
+
 #endif
 
 	return hostid;
