@@ -413,7 +413,7 @@ class Toolchain(object):
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
 
-        self.extralibs += [ 'pthread', 'dl', 'rt_pic' ]
+        self.extralibs += [ 'capi-appfw-application', 'dlog', 'pthread', 'dl', 'rt_pic' ]
 
       elif target.is_pnacl():
         self.pnacl_sdkpath = os.path.expanduser( os.getenv( 'PNACL_SDKPATH', os.getenv( 'NACL_SDK_ROOT', self.pnacl_sdkpath ) ) )
@@ -1137,13 +1137,6 @@ class Toolchain(object):
   def make_android_sysroot_path( self, arch ):
     return os.path.join( self.android_ndkpath, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch] )
 
-  def make_bundleidentifier( self, binname ):
-    if self.target.is_macosx():
-      return self.macosx_bundleidentifier.replace( '$(binname)', binname )
-    elif self.target.is_ios():
-      return self.ios_bundleidentifier.replace( '$(binname)', binname )
-    return ''
-
   def make_tizen_toolchain_path( self, arch ):
     if self.toolchain == 'clang':
       return os.path.join( self.make_tizen_clang_path( arch ), 'bin', '' )
@@ -1382,7 +1375,7 @@ class Toolchain(object):
           sysroot = self.make_tizen_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
           localarvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'ar', self.make_tizen_ar_path( arch ) ) ]
-          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ), os.path.join( sysroot, 'usr', 'include', 'appfw' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
@@ -1461,7 +1454,7 @@ class Toolchain(object):
           sysroot = self.make_tizen_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
           locallinkvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
-          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ), os.path.join( sysroot, 'usr', 'include', 'appfw' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
