@@ -413,6 +413,8 @@ class Toolchain(object):
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
 
+        self.extralibs += [ 'pthread', 'dl', 'rt_pic' ]
+
       elif target.is_pnacl():
         self.pnacl_sdkpath = os.path.expanduser( os.getenv( 'PNACL_SDKPATH', os.getenv( 'NACL_SDK_ROOT', self.pnacl_sdkpath ) ) )
 
