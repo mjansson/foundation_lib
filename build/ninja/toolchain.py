@@ -407,9 +407,9 @@ class Toolchain(object):
         self.sysroot = ''
         self.liblinkname = ''
 
-        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -c $in -o $out'
+        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -D__TIZEN__=1 -D_GNU_SOURCE=1 -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
-        self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
+        self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -Xlinker --as-needed -pie -o $out $in $libs $archlibs'
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
 
@@ -866,6 +866,10 @@ class Toolchain(object):
         elif arch == 'mips64':
           flags += ' -target mips64el-none-linux-android'
         flags += ' -gcc-toolchain ' + self.make_android_gcc_path( arch )
+    elif self.target.is_tizen():
+      if arch == 'x86':
+        flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
