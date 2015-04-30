@@ -27,7 +27,7 @@ foundation_lib = generator.lib( module = 'foundation', sources = [
   'ringbuffer.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
   'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ] + extrasources )
 
-if not target.is_ios() and not target.is_android():
+if not target.is_ios() and not target.is_android() and not target.is_tizen():
   configs = [ config for config in toolchain.configs if config not in [ 'profile', 'deploy' ] ]
   if not configs == []:
     generator.bin( 'bin2hex', [ 'main.c' ], 'bin2hex', basepath = 'tools', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], configs = configs )
@@ -43,7 +43,7 @@ test_cases = [
   'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'
 ]
-if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_pnacl():
+if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_tizen() or target.is_pnacl():
   #Build one fat binary with all test cases
   test_resources = []
   test_extrasources = []

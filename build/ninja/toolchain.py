@@ -52,6 +52,8 @@ class Toolchain(object):
         self.archs = [ 'arm6' ]
       elif self.target.is_android():
         self.archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
+      elif self.target.is_tizen():
+        self.archs = [ 'x86', 'arm7' ]
 
     #PNaCl overrides
     if target.is_pnacl():
@@ -91,6 +93,11 @@ class Toolchain(object):
     self.macosx_provisioning = ''
 
     self.pnacl_sdkpath = ''
+
+    self.tizen_sdkpath = ''
+    self.tizen_platformversion = '2.3'
+    self.tizen_toolchainversion_gcc = '4.8'
+    self.tizen_toolchainversion_clang = '3.4'
 
     #Parse variables
     if variables:
@@ -157,6 +164,14 @@ class Toolchain(object):
           self.macosx_provisioning = val
         elif key == 'pnacl_sdkpath':
           self.pnacl_sdkpath = val
+        elif key == 'tizen_sdkpath':
+          self.tizen_sdkpath = val
+        elif key == 'tizen_platformversion':
+          self.tizen_platformversion = val
+        elif key == 'tizen_gccversion':
+          self.tizen_toolchainversion_gcc = val
+        elif key == 'tizen_clangversion':
+          self.tizen_toolchainversion_clang = val
 
     #Source in local build prefs
     self.read_prefs( 'build.json' )
@@ -166,6 +181,9 @@ class Toolchain(object):
       if int( self.android_platformversion ) < 21:
         self.archs = [ arch for arch in self.archs if not arch.endswith( '64' ) ]
       self.build_android_toolchain()
+
+    if target.is_tizen():
+      self.build_tizen_toolchain()
 
     self.cconfigflags = []
     self.carchflags = []
@@ -384,6 +402,19 @@ class Toolchain(object):
 
         self.extralibs += [ 'log' ]
 
+      elif target.is_tizen():
+
+        self.sysroot = ''
+        self.liblinkname = ''
+
+        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -D__TIZEN__=1 -D_GNU_SOURCE=1 -c $in -o $out'
+        self.arcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
+        self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -Xlinker --as-needed -pie -o $out $in $libs $archlibs'
+
+        self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
+
+        self.extralibs += [ 'pthread', 'dl', 'rt_pic' ]
+
       elif target.is_pnacl():
         self.pnacl_sdkpath = os.path.expanduser( os.getenv( 'PNACL_SDKPATH', os.getenv( 'NACL_SDK_ROOT', self.pnacl_sdkpath ) ) )
 
@@ -557,6 +588,33 @@ class Toolchain(object):
       self.zipalign = os.path.join( self.android_sdkpath, 'tools', 'zipalign' + self.exe_suffix )
     self.jarsigner = 'jarsigner'
 
+  def build_tizen_toolchain( self ):
+    self.tizen_platformversion = os.getenv( 'TIZEN_PLATFORMVERSION', self.tizen_platformversion )
+    self.tizen_toolchainversion_gcc = os.getenv( 'TIZEN_GCCVERSION', self.tizen_toolchainversion_gcc )
+    self.tizen_toolchainversion_clang = os.getenv( 'TIZEN_CLANGVERSION', self.tizen_toolchainversion_clang )
+    self.tizen_sdkpath = os.getenv( 'TIZEN_SDKPATH', os.getenv( 'TIZEN_SDK', os.getenv( 'TIZEN_HOME', self.tizen_sdkpath ) ) )
+
+    self.tizen_archname = dict()
+    self.tizen_archname['x86'] = 'i386'
+    self.tizen_archname['arm7'] = 'arm'
+
+    self.tizen_toolchainname = dict()
+    self.tizen_toolchainname['x86'] = 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc
+    self.tizen_toolchainname['arm7'] = 'arm-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc
+
+    self.tizen_toolchainprefix = dict()
+    self.tizen_toolchainprefix['x86'] = 'i386-linux-gnueabi'
+    self.tizen_toolchainprefix['arm7'] = 'arm-linux-gnueabi'
+
+    self.tizen_archpath = dict()
+    self.tizen_archpath['x86'] = 'x86'
+    self.tizen_archpath['x86-64'] = 'x86-64'
+    self.tizen_archpath['arm6'] = 'armeabi'
+    self.tizen_archpath['arm7'] = 'armeabi-v7a'
+    self.tizen_archpath['arm64'] = 'arm64-v8a'
+    self.tizen_archpath['mips'] = 'mips'
+    self.tizen_archpath['mips64'] = 'mips64'
+
   def read_prefs( self, filename ):
     if not os.path.isfile( filename ):
       return
@@ -581,7 +639,7 @@ class Toolchain(object):
         self.android_platformversion = androidprefs['platformversion']
       if 'gccversion' in androidprefs:
         self.android_gccversion = androidprefs['gccversion']
-      if 'platformversion' in androidprefs:
+      if 'clangversion' in androidprefs:
         self.android_clangversion = androidprefs['clangversion']
       if 'tsa' in androidprefs:
         self.android_tsa = androidprefs['tsa']
@@ -611,6 +669,14 @@ class Toolchain(object):
       pnaclprefs = prefs['pnacl']
       if 'sdkpath' in pnaclprefs:
         self.pnacl_sdkpath = pnaclprefs['sdkpath']
+    if 'tizen' in prefs:
+      tizenprefs = prefs['tizen']
+      if 'sdkpath' in tizenprefs:
+        self.tizen_sdkpath = tizenprefs['sdkpath']
+      if 'gccversion' in tizenprefs:
+        self.tizen_gccversion = tizenprefs['gccversion']
+      if 'clangversion' in tizenprefs:
+        self.tizen_clangversion = tizenprefs['clangversion']
     if 'monolithic' in prefs:
       self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
     if 'coverage' in prefs:
@@ -725,6 +791,10 @@ class Toolchain(object):
         flags += ' -march=armv7-a -mhard-float -mfpu=vfpv3-d16 -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1 -marm'
       elif arch == 'arm64':
         pass
+    elif self.target.is_tizen():
+      if arch == 'x86':
+        flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.target.is_windows() and self.toolchain == 'msvc':
       if arch == 'x86':
         flags += ' /arch:SSE2'
@@ -798,6 +868,10 @@ class Toolchain(object):
         elif arch == 'mips64':
           flags += ' -target mips64el-none-linux-android'
         flags += ' -gcc-toolchain ' + self.make_android_gcc_path( arch )
+    elif self.target.is_tizen():
+      if arch == 'x86':
+        flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -975,6 +1049,11 @@ class Toolchain(object):
       writer.variable( 'liblinkname', '' )
       writer.variable( 'aaptflags', '' )
       writer.variable( 'timestamp', '' )
+    if self.target.is_tizen():
+      writer.variable( 'sdk', self.tizen_sdkpath )
+      writer.variable( 'toolchain', '' )
+      writer.variable( 'toolchaintarget', '' )
+      writer.variable( 'sysroot', '' )
     if self.target.is_pnacl():
       writer.variable( 'finalize', self.finalize )
       writer.variable( 'nmf', self.nmf )
@@ -1057,6 +1136,30 @@ class Toolchain(object):
 
   def make_android_sysroot_path( self, arch ):
     return os.path.join( self.android_ndkpath, 'platforms', 'android-' + self.android_platformversion, 'arch-' + self.android_archname[arch] )
+
+  def make_bundleidentifier( self, binname ):
+    if self.target.is_macosx():
+      return self.macosx_bundleidentifier.replace( '$(binname)', binname )
+    elif self.target.is_ios():
+      return self.ios_bundleidentifier.replace( '$(binname)', binname )
+    return ''
+
+  def make_tizen_toolchain_path( self, arch ):
+    if self.toolchain == 'clang':
+      return os.path.join( self.make_tizen_clang_path( arch ), 'bin', '' )
+    return os.path.join( self.make_tizen_gcc_path( arch ), 'bin', '' )
+
+  def make_tizen_clang_path( self, arch ):
+    return os.path.join( self.tizen_sdkpath, 'tools', 'llvm-' + self.tizen_toolchainversion_clang )
+
+  def make_tizen_gcc_path( self, arch ):
+    return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainprefix[arch] + '-gcc-' + self.tizen_gccversion )
+
+  def make_tizen_sysroot_path( self, arch ):
+    return os.path.join( self.tizen_sdkpath, 'platforms', 'mobile-' + self.tizen_platformversion, 'rootstraps', 'mobile-' + self.tizen_platformversion + '-emulator.core' )
+
+  def make_tizen_ar_path( self, arch ):
+    return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainname[arch], 'bin', self.tizen_toolchainprefix[arch] + '-ar' )
 
   def make_bundleidentifier( self, binname ):
     if self.target.is_macosx():
@@ -1275,6 +1378,11 @@ class Toolchain(object):
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
           localarvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if self.target.is_tizen():
+          sysroot = self.make_tizen_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          localarvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'ar', self.make_tizen_ar_path( arch ) ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
         for name in sources:
@@ -1348,6 +1456,11 @@ class Toolchain(object):
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
           locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if self.target.is_tizen():
+          sysroot = self.make_tizen_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]

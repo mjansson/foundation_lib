@@ -47,6 +47,7 @@
 #define FOUNDATION_PLATFORM_MACOSX 0
 #define FOUNDATION_PLATFORM_WINDOWS 0
 #define FOUNDATION_PLATFORM_PNACL 0
+#define FOUNDATION_PLATFORM_TIZEN 0
 
 //Platform traits and groups
 #define FOUNDATION_PLATFORM_APPLE 0
@@ -189,6 +190,60 @@
 #      define FOUNDATION_ARCH_ENDIAN_BIG 1
 #    endif
 #  elif defined( __AARCH64EB__ ) || defined( __ARMEB__ )
+#    undef  FOUNDATION_ARCH_ENDIAN_BIG
+#    define FOUNDATION_ARCH_ENDIAN_BIG 1
+#  else
+#    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#  endif
+
+#  undef  FOUNDATION_PLATFORM_FAMILY_MOBILE
+#  define FOUNDATION_PLATFORM_FAMILY_MOBILE 1
+
+#  undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
+#  define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
+
+// Tizen
+#elif defined( __TIZEN__ )
+
+#  undef  FOUNDATION_PLATFORM_TIZEN
+#  define FOUNDATION_PLATFORM_TIZEN 1
+
+// Compatibile platforms
+#  undef  FOUNDATION_PLATFORM_POSIX
+#  define FOUNDATION_PLATFORM_POSIX 1
+
+#  define FOUNDATION_PLATFORM_NAME "Tizen"
+
+// Architecture and detailed description
+#  if defined( __arm__ )
+#    undef  FOUNDATION_ARCH_ARM
+#    define FOUNDATION_ARCH_ARM 1
+#    ifdef __ARM_ARCH_7A__
+#      undef  FOUNDATION_ARCH_ARM7
+#      define FOUNDATION_ARCH_ARM7 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Tizen ARMv7"
+#    elif defined(__ARM_ARCH_5TE__)
+#      undef  FOUNDATION_ARCH_ARM5
+#      define FOUNDATION_ARCH_ARM5 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Tizen ARMv5"
+#    else
+#      error Unsupported ARM architecture
+#    endif
+#  elif defined( __i386__ )
+#    undef  FOUNDATION_ARCH_X86
+#    define FOUNDATION_ARCH_X86 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Tizen x86"
+#  elif defined( __x86_64__ )
+#    undef  FOUNDATION_ARCH_X86_64
+#    define FOUNDATION_ARCH_X86_64 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Tizen x86-64"
+#  else
+#    error Unknown architecture
+#  endif
+
+// Traits
+#  if defined( __AARCH64EB__ ) || defined( __ARMEB__ )
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #  else
