@@ -393,7 +393,7 @@ const char* environment_home_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wpath );
 	}
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_TIZEN
 	const char* env_home = environment_variable( "HOME" );
 	if( !env_home )
 	{

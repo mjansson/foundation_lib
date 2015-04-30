@@ -64,6 +64,8 @@ DECLARE_TEST( system, builtin )
 	EXPECT_EQ( system_platform(), PLATFORM_PNACL );
 #elif FOUNDATION_PLATFORM_BSD
 	EXPECT_EQ( system_platform(), PLATFORM_BSD );
+#elif FOUNDATION_PLATFORM_TIZEN
+	EXPECT_EQ( system_platform(), PLATFORM_TIZEN );
 #else
 #  error Unknown platform
 #endif

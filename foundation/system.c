@@ -71,6 +71,8 @@ static platform_info_t _platform_info = {
 	PLATFORM_PNACL,
 #elif FOUNDATION_PLATFORM_BSD
 	PLATFORM_BSD,
+#elif FOUNDATION_PLATFORM_TIZEN
+	PLATFORM_TIZEN,
 #else
 #  error Unknown platform
 #endif
@@ -412,7 +414,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	return 0;
 }
 
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_POSIX
 
 static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 {
