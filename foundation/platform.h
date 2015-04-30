@@ -866,13 +866,13 @@ typedef   float32_t         real;
 //Atomic types
 FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 )
 {
-	uint32_t nonatomic;
+	int32_t nonatomic;
 };
 typedef FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 ) atomic32_t;
 
 FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 )
 {
-	uint64_t nonatomic;
+	int64_t nonatomic;
 };
 typedef FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 ) atomic64_t;
 

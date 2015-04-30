@@ -74,7 +74,7 @@ static FOUNDATION_FORCEINLINE int32_t atomic_load32( atomic32_t* val )
 static FOUNDATION_FORCEINLINE int64_t atomic_load64( atomic64_t* val )
 {
 #if FOUNDATION_ARCH_X86
-	uint64_t result;
+	int64_t result;
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
     __asm
 	{
