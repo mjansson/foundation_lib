@@ -44,6 +44,28 @@ static void test_system_shutdown( void )
 }
 
 
+DECLARE_TEST( system, align )
+{
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( atomic32_t ), 4 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( atomic64_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( atomicptr_t ), FOUNDATION_SIZE_POINTER );
+
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( event_stream_t ), 16 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( hashtable32_entry_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( hashtable64_entry_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( hashtable32_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( hashtable64_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( object_base_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( objectmap_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( stream_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( stream_ringbuffer_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( stream_pipe_t ), 8 );
+	EXPECT_INTGE( FOUNDATION_ALIGNOF( stream_buffer_t ), 8 );
+
+	return 0;
+}
+
+
 DECLARE_TEST( system, builtin )
 {
 	device_orientation_t orientation;
@@ -145,6 +167,7 @@ DECLARE_TEST( system, builtin )
 
 static void test_system_declare( void )
 {
+	ADD_TEST( system, align );
 	ADD_TEST( system, builtin );
 }
 
