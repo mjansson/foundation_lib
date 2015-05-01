@@ -98,6 +98,7 @@ class Toolchain(object):
     self.tizen_platformversion = '2.3'
     self.tizen_toolchainversion_gcc = '4.8'
     self.tizen_toolchainversion_clang = '3.4'
+    self.tizen_profile = ''
 
     #Parse variables
     if variables:
@@ -172,6 +173,8 @@ class Toolchain(object):
           self.tizen_toolchainversion_gcc = val
         elif key == 'tizen_clangversion':
           self.tizen_toolchainversion_clang = val
+        elif key == 'tizen_profile':
+          self.tizen_profile = val
 
     #Source in local build prefs
     self.read_prefs( 'build.json' )
@@ -593,6 +596,7 @@ class Toolchain(object):
     self.tizen_toolchainversion_gcc = os.getenv( 'TIZEN_GCCVERSION', self.tizen_toolchainversion_gcc )
     self.tizen_toolchainversion_clang = os.getenv( 'TIZEN_CLANGVERSION', self.tizen_toolchainversion_clang )
     self.tizen_sdkpath = os.getenv( 'TIZEN_SDKPATH', os.getenv( 'TIZEN_SDK', os.getenv( 'TIZEN_HOME', self.tizen_sdkpath ) ) )
+    self.tizen_profile = os.getenv( 'TIZEN_PROFILE', self.tizen_profile )
 
     self.tizen_archname = dict()
     self.tizen_archname['x86'] = 'i386'
@@ -638,9 +642,9 @@ class Toolchain(object):
       if 'platformversion' in androidprefs:
         self.android_platformversion = androidprefs['platformversion']
       if 'gccversion' in androidprefs:
-        self.android_gccversion = androidprefs['gccversion']
+        self.android_toolchainversion_gcc = androidprefs['gccversion']
       if 'clangversion' in androidprefs:
-        self.android_clangversion = androidprefs['clangversion']
+        self.android_toolchainversion_clang = androidprefs['clangversion']
       if 'tsa' in androidprefs:
         self.android_tsa = androidprefs['tsa']
       if 'tsacert' in androidprefs:
@@ -674,9 +678,11 @@ class Toolchain(object):
       if 'sdkpath' in tizenprefs:
         self.tizen_sdkpath = tizenprefs['sdkpath']
       if 'gccversion' in tizenprefs:
-        self.tizen_gccversion = tizenprefs['gccversion']
+        self.tizen_toolchainversion_gcc = tizenprefs['gccversion']
       if 'clangversion' in tizenprefs:
-        self.tizen_clangversion = tizenprefs['clangversion']
+        self.tizen_toolchainversion_clang = tizenprefs['clangversion']
+      if 'profile' in tizenprefs:
+        self.tizen_profile = tizenprefs['profile']
     if 'monolithic' in prefs:
       self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
     if 'coverage' in prefs:
@@ -1340,6 +1346,11 @@ class Toolchain(object):
     outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
     return outfile
 
+  def build_tpk( self, writer, config, basepath, module, binname, archbins, resources ):
+    buildpath = os.path.join( self.buildpath, config, "tpk", binname )
+
+    writer.comment('Make TPK')
+
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
     built = {}
     if basepath == None:
@@ -1504,6 +1515,8 @@ class Toolchain(object):
         builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, unibinary = archbins[config], resources = resources, codesign = codesign )
       elif self.target.is_android():
         builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources, javasources = [ os.path.join( basepath, module, name ) for name in sources if name.endswith( '.java' ) ] )
+      elif self.target.is_tizen():
+        builtbin += self.build_tpk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources ] )
       else:
         for _, value in archbins.iteritems():
           builtbin += value
