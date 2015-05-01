@@ -220,22 +220,22 @@ DECLARE_TEST( crash, error )
 		error_context_push( "test context", context_data );
 
 #if BUILD_ENABLE_ERROR_CONTEXT
-		log_infof( HASH_TEST, "Check context" );
+		log_info( HASH_TEST, "Check context" );
 		EXPECT_NE( error_context(), 0 );
 		EXPECT_EQ( error_context()->depth, 1 );
 		EXPECT_STREQ( error_context()->frame[0].name, "test context" );
 		EXPECT_EQ( error_context()->frame[0].data, context_data );
 #endif
 
-		log_infof( HASH_TEST, "Generate context buffer" );
+		log_info( HASH_TEST, "Generate context buffer" );
 		error_context_buffer( context_buffer, 512 );
 #if BUILD_ENABLE_ERROR_CONTEXT
-		log_infof( HASH_TEST, "Check context buffer" );
+		log_info( HASH_TEST, "Check context buffer" );
 		EXPECT_NE_MSGFORMAT( string_find_string( context_buffer, "test context", 0 ), STRING_NPOS, "context name 'test context' not found in buffer: %s", context_buffer );
 		EXPECT_NE_MSGFORMAT( string_find_string( context_buffer, context_data, 0 ), STRING_NPOS, "context data '%s' not found in buffer: %s", context_data, context_buffer );
 #endif
 
-		log_infof( HASH_TEST, "Generate empty context buffer" );
+		log_info( HASH_TEST, "Generate empty context buffer" );
 		error_context_clear();
 		error_context_buffer( context_buffer, 512 );
 #if BUILD_ENABLE_ERROR_CONTEXT
