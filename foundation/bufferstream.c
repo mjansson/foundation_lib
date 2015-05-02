@@ -19,7 +19,7 @@
 static stream_vtable_t _buffer_stream_vtable;
 
 
-stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
+stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, int64_t size, int64_t capacity, bool adopt, bool grow )
 {
 	stream_buffer_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_buffer_t ), 8, MEMORY_PERSISTENT );
 
@@ -29,7 +29,7 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size
 }
 
 
-void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
+void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, int64_t size, int64_t capacity, bool adopt, bool grow )
 {
 	memset( stream, 0, sizeof( stream_buffer_t ) );
 
@@ -78,12 +78,12 @@ static void _buffer_stream_finalize( stream_t* stream )
 }
 
 
-static uint64_t _buffer_stream_read( stream_t* stream, void* dest, uint64_t num )
+static int64_t _buffer_stream_read( stream_t* stream, void* dest, int64_t num )
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
-	uint64_t available = buffer_stream->size - buffer_stream->current;
-	uint64_t num_read = ( num < available ) ? num : available;
+	int64_t available = buffer_stream->size - buffer_stream->current;
+	int64_t num_read = ( num < available ) ? num : available;
 
 	if( num_read > 0 )
 	{
@@ -96,13 +96,13 @@ static uint64_t _buffer_stream_read( stream_t* stream, void* dest, uint64_t num 
 }
 
 
-static uint64_t _buffer_stream_write( stream_t* stream, const void* source, uint64_t num )
+static int64_t _buffer_stream_write( stream_t* stream, const void* source, int64_t num )
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
-	uint64_t available = buffer_stream->size - buffer_stream->current;
-	uint64_t want = num;
-	uint64_t num_write;
+	int64_t available = buffer_stream->size - buffer_stream->current;
+	int64_t want = num;
+	int64_t num_write;
 
 	if( want > available )
 	{

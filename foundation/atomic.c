@@ -39,26 +39,26 @@ __asm__(
 static  pthread_mutex_t _atomic_mutex;
 
 
-uint64_t __foundation_sync_fetch_and_add_8( uint64_t* val, uint64_t add )
+uint64_t __foundation_sync_fetch_and_add_8( int64_t* val, int64_t add )
 {
 	pthread_mutex_lock( &_atomic_mutex );
-	uint64_t prev = *val;
+	int64_t prev = *val;
 	*val += add;
 	pthread_mutex_unlock( &_atomic_mutex );
 	return prev;
 }
 
 
-uint64_t __foundation_sync_add_and_fetch_8( uint64_t* val, uint64_t add )
+uint64_t __foundation_sync_add_and_fetch_8( int64_t* val, int64_t add )
 {
 	pthread_mutex_lock( &_atomic_mutex );
-	uint64_t ret = ( *val += add );
+	int64_t ret = ( *val += add );
 	pthread_mutex_unlock( &_atomic_mutex );
 	return ret;
 }
 
 
-bool __foundation_sync_bool_compare_and_swap_8( uint64_t* val, uint64_t oldval, uint64_t newval )
+bool __foundation_sync_bool_compare_and_swap_8( int64_t* val, int64_t oldval, int64_t newval )
 {
 	bool res = false;
 	pthread_mutex_lock( &_atomic_mutex );

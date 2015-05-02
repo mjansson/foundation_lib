@@ -50,14 +50,14 @@ void* _array_resizefn( void** arr, int elements, int itemsize )
 
 void* _array_growfn( void** arr, int increment, int factor, int itemsize )
 {
-	int      prev_capacity = *arr ? _array_rawcapacity( *arr ) : 0;
-	int      capacity = *arr ? ( factor * prev_capacity + increment ) : increment;
-	int      prev_used_size = itemsize * prev_capacity;
-	int      storage_size = itemsize * capacity;
-	uint64_t header_size = 4ULL * _array_header_size;
-	uint64_t prev_used_buffer_size = (unsigned int)prev_used_size + header_size;
-	uint64_t buffer_size = (unsigned int)storage_size + header_size;
-	int*     buffer = *arr ? memory_reallocate( _array_raw( *arr ), buffer_size, ARRAY_DEFAULT_ALIGN, prev_used_buffer_size ) : memory_allocate( 0, buffer_size, ARRAY_DEFAULT_ALIGN, MEMORY_PERSISTENT );
+	int     prev_capacity = *arr ? _array_rawcapacity( *arr ) : 0;
+	int     capacity = *arr ? ( factor * prev_capacity + increment ) : increment;
+	int     prev_used_size = itemsize * prev_capacity;
+	int     storage_size = itemsize * capacity;
+	int     header_size = 4 * _array_header_size;
+	int64_t prev_used_buffer_size = prev_used_size + header_size;
+	int64_t buffer_size = storage_size + header_size;
+	int*    buffer = *arr ? memory_reallocate( _array_raw( *arr ), buffer_size, ARRAY_DEFAULT_ALIGN, prev_used_buffer_size ) : memory_allocate( 0, buffer_size, ARRAY_DEFAULT_ALIGN, MEMORY_PERSISTENT );
 	FOUNDATION_ASSERT_MSG( buffer, "Failed to reallocate array storage" );
 	if( buffer )
 	{

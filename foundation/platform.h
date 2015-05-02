@@ -620,6 +620,7 @@
 #  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
 #  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
 #  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
 #  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
@@ -667,6 +668,7 @@
 #  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
 #  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
 #  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
 #  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
@@ -717,6 +719,7 @@
 #  define FOUNDATION_ATTRIBUTE(x)
 #  define FOUNDATION_ATTRIBUTE2(x,y)
 #  define FOUNDATION_ATTRIBUTE3(x,y,z)
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w)
 
 #  define FOUNDATION_DEPRECATED
 #  define FOUNDATION_FORCEINLINE __forceinline
@@ -751,6 +754,7 @@
 #  define FOUNDATION_ATTRIBUTE(x)
 #  define FOUNDATION_ATTRIBUTE2(x,y)
 #  define FOUNDATION_ATTRIBUTE3(x,y,z)
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w)
 
 #  define FOUNDATION_RESTRICT __restrict
 #  define FOUNDATION_THREADLOCAL __declspec( thread )
@@ -915,7 +919,7 @@ FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static _pthread_key_t _##name##_key = 0; \
 static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) { pthread_key_create( &_##name##_key, 0 ); pthread_setspecific( _##name##_key, (init) ); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
+static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { void* val = pthread_getspecific( get_##name##_key() ); return (type)((uintptr_t)val); } \
 static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \

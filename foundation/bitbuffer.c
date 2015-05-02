@@ -153,9 +153,9 @@ uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
 float64_t bitbuffer_read_float64( bitbuffer_t* bitbuffer )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	const float64_cast_t conv = { .ival = bitbuffer_read64( bitbuffer, 64U ) };
+	const float64_cast_t conv = { .uival = bitbuffer_read64( bitbuffer, 64U ) };
 #else
-	float64_cast_t conv; conv.ival = bitbuffer_read64( bitbuffer, 64U );
+	float64_cast_t conv; conv.uival = bitbuffer_read64( bitbuffer, 64U );
 #endif
 	return conv.fval;
 }
@@ -164,9 +164,9 @@ float64_t bitbuffer_read_float64( bitbuffer_t* bitbuffer )
 float32_t bitbuffer_read_float32( bitbuffer_t* bitbuffer )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	const float32_cast_t conv = { .ival = bitbuffer_read32( bitbuffer, 32U ) };
+	const float32_cast_t conv = { .uival = bitbuffer_read32( bitbuffer, 32U ) };
 #else
-	float32_cast_t conv; conv.ival = bitbuffer_read32( bitbuffer, 32U );
+	float32_cast_t conv; conv.uival = bitbuffer_read32( bitbuffer, 32U );
 #endif
 	return conv.fval;
 }
@@ -251,7 +251,7 @@ void bitbuffer_write_float64( bitbuffer_t* bitbuffer, float64_t value )
 #else
 	float64_cast_t conv; conv.fval = value;
 #endif
-	bitbuffer_write64( bitbuffer, conv.ival, 64U );
+	bitbuffer_write64( bitbuffer, conv.uival, 64U );
 }
 
 
@@ -262,7 +262,7 @@ void bitbuffer_write_float32( bitbuffer_t* bitbuffer, float32_t value )
 #else
 	float32_cast_t conv; conv.fval = value;
 #endif
-	bitbuffer_write32( bitbuffer, conv.ival, 32U );
+	bitbuffer_write32( bitbuffer, conv.uival, 32U );
 }
 
 

@@ -214,7 +214,7 @@ static void* _memory_guard_verify( void* memory )
 #endif
 
 
-void* memory_allocate( uint64_t context, uint64_t size, unsigned int align, int hint )
+void* memory_allocate( uint64_t context, int64_t size, int align, int hint )
 {
 	void* p;
 	if( ( hint & MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
@@ -235,7 +235,7 @@ void* memory_allocate( uint64_t context, uint64_t size, unsigned int align, int 
 }
 
 
-void* memory_reallocate( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
+void* memory_reallocate( void* p, int64_t size, int align, int64_t oldsize )
 {
 	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p >= _memory_temporary.end ), "Trying to reallocate temporary memory" );
 	_memory_untrack( p );

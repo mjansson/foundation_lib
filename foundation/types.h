@@ -241,12 +241,12 @@ typedef uint64_t      object_t;
 typedef uint16_t      radixsort_index_t;
 typedef uint128_t     uuid_t;
 
-typedef union { int32_t ival; float32_t fval; } float32_cast_t;
-typedef union { int64_t ival; float64_t fval; } float64_cast_t;
+typedef union { int32_t ival; uint32_t uival; float32_t fval; } float32_cast_t;
+typedef union { int64_t ival; uint64_t uival; float64_t fval; } float64_cast_t;
 #if FOUNDATION_SIZE_REAL == 64
-typedef union { int64_t ival; real rval; } real_cast_t;
+typedef union { int64_t ival; uint64_t uival; real rval; } real_cast_t;
 #else
-typedef union { int32_t ival; real rval; } real_cast_t;
+typedef union { int32_t ival; uint32_t uival; real rval; } real_cast_t;
 #endif
 
 typedef struct application_t                 application_t;
@@ -445,7 +445,7 @@ struct event_t
 
 struct event_block_t
 {
-	int32_t                         used;
+	uint32_t                        used;
 	uint32_t                        capacity;
 	event_stream_t*                 stream;
 	event_t*                        events;
@@ -653,9 +653,9 @@ FOUNDATION_ALIGNED_STRUCT( stream_t, 8 )
 FOUNDATION_ALIGNED_STRUCT( stream_buffer_t, 8 )
 {
 	FOUNDATION_DECLARE_STREAM;
-	uint64_t                        current;
-	uint64_t                        size;
-	uint64_t                        capacity;
+	int64_t                         current;
+	int64_t                         size;
+	int64_t                         capacity;
 	void*                           buffer;
 	bool                            own;
 	bool                            grow;

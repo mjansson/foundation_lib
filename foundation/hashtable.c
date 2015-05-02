@@ -155,7 +155,7 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 }
 
 
-uint32_t hashtable32_raw( hashtable32_t* table, uint32_t slot )
+uint32_t hashtable32_raw( hashtable32_t* table, int slot )
 {
 	if( !atomic_load32( &table->entries[slot].key ) )
 		return 0;
@@ -303,7 +303,7 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 }
 
 
-uint64_t hashtable64_raw( hashtable64_t* table, uint64_t slot )
+uint64_t hashtable64_raw( hashtable64_t* table, int slot )
 {
 	if( !atomic_load64( &table->entries[slot].key ) )
 		return 0;

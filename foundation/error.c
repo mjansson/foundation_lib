@@ -98,14 +98,19 @@ void _error_context_clear( void )
 void _error_context_buffer( char* buffer, int size )
 {
 	error_context_t* context = get_thread_error_context();
-	buffer[0] = 0;
 	if( context )
 	{
 		int i, len;
 		error_frame_t* frame = context->frame;
 		for( i = 0; ( size > 1 ) && ( i < context->depth ); ++i, ++frame )
 		{
-			string_format_buffer( buffer, size, "When %s: %s\n", frame->name ? frame->name : "<something>", frame->data ? frame->data : "<something>" );
+			if( i )
+			{
+				*buffer++ = '\n';
+				--size;
+			}
+
+			string_format_buffer( buffer, size, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "<something>" );
 			len = string_length( buffer );
 			FOUNDATION_ASSERT( len < size );
 
@@ -113,6 +118,8 @@ void _error_context_buffer( char* buffer, int size )
 			size -= len;
 		}
 	}
+	if( size )
+		*buffer = 0;
 }
 
 

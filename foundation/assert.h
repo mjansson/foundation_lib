@@ -20,7 +20,7 @@
 FOUNDATION_API assert_handler_fn    assert_handler( void );
 FOUNDATION_API void                 assert_set_handler( assert_handler_fn new_handler );
 FOUNDATION_API int                  assert_report( uint64_t context, const char* condition, const char* file, int line, const char* msg );
-FOUNDATION_API int                  assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... );
+FOUNDATION_API int                  assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 5, 6);
 
 #if BUILD_ENABLE_ASSERT
 

@@ -25,9 +25,9 @@ FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 #endif
 
 
-char* string_allocate( unsigned int length )
+char* string_allocate( int length )
 {
-	char* str = memory_allocate( HASH_STRING, length + 1, 0, MEMORY_PERSISTENT );
+	char* str = memory_allocate( HASH_STRING, math_max( length, 0 ) + 1, 0, MEMORY_PERSISTENT );
 	str[0] = 0;
 	return str;
 }
@@ -43,7 +43,7 @@ char* string_clone( const char* str )
 {
 	if( str )
 	{
-		unsigned int len = string_length( str ) + 1;
+		int len = string_length( str ) + 1;
 		char* clone = memory_allocate( HASH_STRING, len, 0, MEMORY_PERSISTENT );
 		memcpy( clone, str, len );
 		return clone;
@@ -55,7 +55,7 @@ char* string_clone( const char* str )
 char* string_format( const char* format, ... )
 {
 	int n;
-	unsigned int capacity;
+	int capacity;
 	char* buffer;
 	va_list list;
 
@@ -86,7 +86,7 @@ char* string_format( const char* format, ... )
 }
 
 
-char* string_format_buffer( char* buffer, unsigned int maxlen, const char* format, ... )
+char* string_format_buffer( char* buffer, int maxlen, const char* format, ... )
 {
 	va_list list;
 
@@ -109,7 +109,7 @@ char* string_format_buffer( char* buffer, unsigned int maxlen, const char* forma
 char* string_vformat( const char* format, va_list list )
 {
 	int n;
-	unsigned int capacity;
+	int capacity;
 	char* buffer;
 	va_list copy_list;
 
@@ -140,7 +140,7 @@ char* string_vformat( const char* format, va_list list )
 }
 
 
-char* string_vformat_buffer( char* buffer, unsigned int maxlen, const char* format, va_list list )
+char* string_vformat_buffer( char* buffer, int maxlen, const char* format, va_list list )
 {
 	va_list copy_list;
 
@@ -160,9 +160,9 @@ char* string_vformat_buffer( char* buffer, unsigned int maxlen, const char* form
 }
 
 
-unsigned int string_length( const char* str )
+int string_length( const char* str )
 {
-	return str ? (unsigned int)strlen( str ) : 0;
+	return str ? strlen( str ) : 0;
 }
 
 
@@ -172,9 +172,9 @@ hash_t string_hash( const char* str )
 }
 
 
-char* string_resize( char* str, unsigned int length, char c )
+char* string_resize( char* str, int length, char c )
 {
-	unsigned int curlen = string_length( str );
+	int curlen = string_length( str );
 
 	if( curlen < length )
 	{
@@ -187,11 +187,11 @@ char* string_resize( char* str, unsigned int length, char c )
 }
 
 
-void string_copy( char* dst, const char* src, unsigned int limit )
+void string_copy( char* dst, const char* src, int limit )
 {
-	unsigned int length = string_length( src );
+	int length = string_length( src );
 	if( length >= limit )
-		length = limit - 1;
+		length = math_max( limit - 1, 0 );
 	if( dst )
 	{
 		memcpy( dst, src, length );
@@ -202,7 +202,7 @@ void string_copy( char* dst, const char* src, unsigned int limit )
 
 char* string_strip( char* str, const char* delimiters )
 {
-	unsigned int start, end, length, newlength;
+	int start, end, length, newlength;
 
 	if( !str )
 		return 0;
@@ -229,11 +229,11 @@ char* string_strip( char* str, const char* delimiters )
 }
 
 
-char* string_strip_substr( char* str, const char* delimiters, unsigned int length )
+char* string_strip_substr( char* str, const char* delimiters, int length )
 {
-	unsigned int start, end, newlength;
+	int start, end, newlength;
 
-	if( !str || !length )
+	if( !str || ( length <= 0 ) )
 		return 0;
 
 	start = string_find_first_not_of( str, delimiters, 0 );
@@ -259,16 +259,16 @@ char* string_strip_substr( char* str, const char* delimiters, unsigned int lengt
 
 char* string_replace( char* str, const char* key, const char* newkey, bool repeat )
 {
-	unsigned int pos, lastpos, keylen, newkeylen, slen;
+	int pos, lastpos, keylen, newkeylen, slen;
 	int lendiff, replaced;
 
-	slen = (unsigned int)string_length( str );
-	keylen = (unsigned int)string_length( key );
+	slen = string_length( str );
+	keylen = string_length( key );
 	if( !slen || !keylen || string_equal( key, newkey ) )
 		return str;
 
 	lastpos = STRING_NPOS;
-	newkeylen = newkey ? (unsigned int)string_length( newkey ) : 0;
+	newkeylen = newkey ? string_length( newkey ) : 0;
 	lendiff = (int)newkeylen - (int)keylen;
 	pos = 0;
 	replaced = 0;
@@ -314,9 +314,9 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 
 char* string_append( char* str, const char* suffix )
 {
-	unsigned int slen = str ? string_length( str ) : 0;
-	unsigned int suffixlen = suffix ? string_length( suffix ) : 0;
-	unsigned int totallen = slen + suffixlen;
+	int slen = str ? string_length( str ) : 0;
+	int suffixlen = suffix ? string_length( suffix ) : 0;
+	int totallen = slen + suffixlen;
 	if( !suffixlen )
 		return str;
 
@@ -329,9 +329,9 @@ char* string_append( char* str, const char* suffix )
 
 char* string_prepend( char* str, const char* prefix )
 {
-	unsigned int slen = str ? string_length( str ) : 0;
-	unsigned int prefixlen = prefix ? string_length( prefix ) : 0;
-	unsigned int totallen = slen + prefixlen;
+	int slen = str ? string_length( str ) : 0;
+	int prefixlen = prefix ? string_length( prefix ) : 0;
+	int totallen = slen + prefixlen;
 	if( !prefixlen )
 		return str;
 
@@ -348,8 +348,8 @@ char* string_prepend( char* str, const char* prefix )
 
 char* string_concat( const char* lhs, const char* rhs )
 {
-	unsigned int llen = string_length( lhs );
-	unsigned int rlen = string_length( rhs );
+	int llen = string_length( lhs );
+	int rlen = string_length( rhs );
 	char* buf = memory_allocate( HASH_STRING, llen + rlen + 1, 0, MEMORY_PERSISTENT );
 	if( llen )
 		memcpy( buf, lhs, llen );
@@ -362,7 +362,7 @@ char* string_concat( const char* lhs, const char* rhs )
 
 void string_split( const char* str, const char* separators, char** left, char** right, bool allowempty )
 {
-	unsigned int start, delim;
+	int start, delim;
 
 	start = ( allowempty ? 0 : string_find_first_not_of( str, separators, 0 ) );
 	if( start == STRING_NPOS )
@@ -398,11 +398,11 @@ void string_split( const char* str, const char* separators, char** left, char** 
 }
 
 
-char* string_substr( const char* str, unsigned int offset, unsigned int length )
+char* string_substr( const char* str, int offset, int length )
 {
 	char* buffer;
-	unsigned int newlen;
-	unsigned int slen = string_length( str );
+	int newlen;
+	int slen = string_length( str );
 	if( !str || ( offset >= slen ) || !slen )
 		return string_allocate( 0 );
 	newlen = slen - offset;
@@ -415,39 +415,39 @@ char* string_substr( const char* str, unsigned int offset, unsigned int length )
 }
 
 
-unsigned int string_find( const char* str, char c, unsigned int offset )
+int string_find( const char* str, char c, int offset )
 {
 	const char* found;
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
 		return STRING_NPOS;
 	found = strchr( str + offset, c );
 	if( found )
-		return (unsigned int)(uintptr_t)( found - str );
+		return (int)pointer_diff( found, str );
 	return STRING_NPOS;
 }
 
 
-unsigned int string_find_string( const char* str, const char* key, unsigned int offset )
+int string_find_string( const char* str, const char* key, int offset )
 {
 	const char* found;
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
 		return STRING_NPOS;
 	found = strstr( str + offset, key );
 	if( found )
-		return (unsigned int)(uintptr_t)( found - str );
+		return (int)pointer_diff( found, str );
 	return STRING_NPOS;
 }
 
 
-unsigned int string_rfind( const char* str, char c, unsigned int offset )
+int string_rfind( const char* str, char c, int offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1; //Wrap-around caught by if clause below
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
+		offset = string_length( str ) - 1;
 
-	while( offset != STRING_NPOS ) //Wrap-around terminates
+	while( offset >= 0 )
 	{
 		if( c == str[ offset ] )
 			return offset;
@@ -458,15 +458,15 @@ unsigned int string_rfind( const char* str, char c, unsigned int offset )
 }
 
 
-unsigned int string_rfind_string( const char* str, const char* key, unsigned int offset )
+int string_rfind_string( const char* str, const char* key, int offset )
 {
-	unsigned int keylen, slen;
+	int keylen, slen;
 
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
 
-	slen = (unsigned int)strlen( str );
-	keylen = (unsigned int)strlen( key );
-	if( slen && ( keylen <= slen ) )
+	slen = string_length( str );
+	keylen = string_length( key );
+	if( ( slen > 0 ) && ( keylen <= slen ) )
 	{
 		if( offset > slen )
 			offset = slen;
@@ -478,46 +478,46 @@ unsigned int string_rfind_string( const char* str, const char* key, unsigned int
 			if( !strncmp( str + offset, key, keylen ) )
 				return offset;
 			--offset;
-		} while( offset < slen ); //Breaks out when wrap around
+		} while( ( offset < slen ) && ( offset >= 0 ) );
 	}
 	return STRING_NPOS;
 }
 
 
-unsigned int string_find_first_of( const char* str, const char* tokens, unsigned int offset )
+int string_find_first_of( const char* str, const char* tokens, int offset )
 {
 	const char* found;
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
 		return STRING_NPOS;
 	found = strpbrk( str + offset, tokens );
 	if( found )
-		return (unsigned int)(uintptr_t)( found - str );
+		return (int)pointer_diff( found, str );
 	return STRING_NPOS;
 }
 
 
-unsigned int string_find_last_of( const char* str, const char* tokens, unsigned int offset )
+int string_find_last_of( const char* str, const char* tokens, int offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1; //Wrap-around caught by if clause below
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
+		offset = string_length( str ) - 1;
 
-	if( offset != STRING_NPOS ) do
+	if( offset >= 0 ) do
 	{
 		if( strchr( tokens, str[ offset ] ) && str[ offset ] )
 			return offset;
 		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	} while( offset >= 0 );
 
 	return STRING_NPOS;
 }
 
 
-unsigned int string_find_first_not_of( const char* str, const char* tokens, unsigned int offset )
+int string_find_first_not_of( const char* str, const char* tokens, int offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
 		return STRING_NPOS;
 	while( str[ offset ] )
 	{
@@ -529,52 +529,52 @@ unsigned int string_find_first_not_of( const char* str, const char* tokens, unsi
 }
 
 
-unsigned int string_find_last_not_of( const char* str, const char* tokens, unsigned int offset )
+int string_find_last_not_of( const char* str, const char* tokens, int offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1; //Wrap-around caught by if clause below
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
+		offset = string_length( str ) - 1;
 
-	if( offset != STRING_NPOS ) do
+	while( offset >= 0 )
 	{
 		if( !strchr( tokens, str[ offset ] ) )
 			return offset;
 		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
 
 
-unsigned int string_rfind_first_of( const char* str, const char* tokens, unsigned int offset )
+int string_rfind_first_of( const char* str, const char* tokens, int offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1; //Wrap-around caught by if clause below
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
+		offset = string_length( str ) - 1;
 
-	if( offset != STRING_NPOS ) do
+	while( offset >= 0 )
 	{
 		if( strchr( tokens, str[offset] ) )
 			return offset;
 		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
 
 
-unsigned int string_rfind_first_not_of( const char* str, const char* tokens, unsigned int offset )
+int string_rfind_first_not_of( const char* str, const char* tokens, int offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= strlen( str ) ) );
-	if( offset == STRING_NPOS )
+	FOUNDATION_ASSERT( offset <= string_length( str ) );
+	if( offset < 0 )
 		offset = string_length( str ) - 1; //Wrap-around caught by if clause below
 
-	if( offset != STRING_NPOS ) do
+	while( offset >= 0 )
 	{
 		if( !strchr( tokens, str[offset] ) )
 			return offset;
 		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
@@ -582,8 +582,8 @@ unsigned int string_rfind_first_not_of( const char* str, const char* tokens, uns
 
 bool string_ends_with( const char* str, const char* suffix )
 {
-	unsigned int len = string_length( str );
-	unsigned int suffix_len = string_length( suffix );
+	int len = string_length( str );
+	int suffix_len = string_length( suffix );
 	if( len < suffix_len )
 		return false;
 	return string_equal( str + ( len - suffix_len ), suffix );
@@ -596,7 +596,7 @@ bool string_equal( const char* rhs, const char* lhs )
 }
 
 
-bool string_equal_substr( const char* rhs, const char* lhs, unsigned int len )
+bool string_equal_substr( const char* rhs, const char* lhs, int len )
 {
 	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
 }
@@ -629,17 +629,17 @@ bool string_match_pattern( const char* element, const char* pattern )
 char** string_explode( const char* str, const char* delimiters, bool allow_empty )
 {
 	char** array;
-	unsigned int slen;
-	unsigned int delimlen;
-	unsigned int token;
-	unsigned int end;
+	int slen;
+	int delimlen;
+	int token;
+	int end;
 
 	slen = string_length( str );
 	if( !slen )
 		return 0;
 
 	array = 0;
-	delimlen = (unsigned int)strlen( delimiters );
+	delimlen = string_length( delimiters );
 	if( !delimlen )
 	{
 		array_push( array, string_clone( str ) );
@@ -665,12 +665,12 @@ char** string_explode( const char* str, const char* delimiters, bool allow_empty
 }
 
 
-char* string_merge( const char* const* array, unsigned int num, const char* delimiter )
+char* string_merge( const char* const* array, int num, const char* delimiter )
 {
 	char* result;
-	unsigned int i;
+	int i;
 
-	if( !num )
+	if( num <= 0 )
 		return string_allocate( 0 );
 
 	result = string_clone( array[0] );
@@ -692,9 +692,9 @@ void string_array_deallocate_elements( char** array )
 }
 
 
-int string_array_find( const char* const* array, const char* needle, unsigned int haystack_size )
+int string_array_find( const char* const* array, const char* needle, int haystack_size )
 {
-	unsigned int i;
+	int i;
 	for( i = 0; i < haystack_size; ++i, ++array )
 	{
 		if( string_equal( *array, needle ) )
@@ -708,7 +708,7 @@ int string_array_find( const char* const* array, const char* needle, unsigned in
 #define get_bit_mask( numbits ) ( ( 1 << (numbits) ) - 1 )
 
 
-static unsigned int get_num_bytes_utf8( uint8_t lead )
+static int get_num_bytes_utf8( uint8_t lead )
 {
 	if(      ( lead & 0xFC ) == 0xF8 ) return 5;
 	else if( ( lead & 0xF8 ) == 0xF0 ) return 4;
@@ -718,7 +718,7 @@ static unsigned int get_num_bytes_utf8( uint8_t lead )
 }
 
 
-static unsigned int get_num_bytes_as_utf8( uint32_t val )
+static int get_num_bytes_as_utf8( uint32_t val )
 {
 	if(      val >= 0x04000000 ) return 6;
 	else if( val >= 0x00200000 ) return 5;
@@ -729,9 +729,9 @@ static unsigned int get_num_bytes_as_utf8( uint32_t val )
 }
 
 
-static unsigned int encode_utf8( char* str, uint32_t val )
+static int encode_utf8( char* str, uint32_t val )
 {
-	unsigned int num, j;
+	int num, j;
 
 	if( val < 0x80 )
 	{
@@ -750,11 +750,11 @@ static unsigned int encode_utf8( char* str, uint32_t val )
 }
 
 
-uint32_t string_glyph( const char* str, unsigned int offset, unsigned int* consumed )
+uint32_t string_glyph( const char* str, int offset, int* consumed )
 {
 	uint32_t glyph = 0;
-	unsigned int num, j;
-	const char* cur = str + offset;
+	int num, j;
+	const char* cur = str + math_max( offset, 0 );
 
 	if( !( *cur & 0x80 ) )
 	{
@@ -777,9 +777,9 @@ uint32_t string_glyph( const char* str, unsigned int offset, unsigned int* consu
 }
 
 
-unsigned int string_glyphs( const char* str )
+int string_glyphs( const char* str )
 {
-	unsigned int num = 0;
+	int num = 0;
 	while( *str )
 	{
 		++num;
@@ -789,22 +789,22 @@ unsigned int string_glyphs( const char* str )
 }
 
 
-wchar_t* wstring_allocate_from_string( const char* cstr, unsigned int length )
+wchar_t* wstring_allocate_from_string( const char* cstr, int length )
 {
 	wchar_t* buffer;
 	wchar_t* dest;
-	unsigned int maxlen, num_chars, num_bytes, i, j;
+	int maxlen, num_chars, num_bytes, i, j;
 	uint32_t glyph;
 	const char* cur;
 
-	if( !cstr )
+	if( !cstr  || ( length < 0 ) )
 	{
 		buffer = memory_allocate( HASH_STRING, sizeof( wchar_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		return buffer;
 	}
 
-	maxlen = (unsigned int)strlen( cstr );
-	if( !length )
+	maxlen = string_length( cstr );
+	if( length < 0 )
 		length = maxlen;
 	else
 		length = ( length < maxlen ) ? length : maxlen;
@@ -874,13 +874,19 @@ wchar_t* wstring_allocate_from_string( const char* cstr, unsigned int length )
 }
 
 
-void wstring_from_string( wchar_t* dest, const char* source, unsigned int max_length )
+void wstring_from_string( wchar_t* dest, const char* source, int max_length, int length )
 {
-	unsigned int i, j, num;
+	int i, j, num, max_srclength;
 	uint32_t glyph, val;
 	wchar_t* last = dest + ( max_length - 2 );
 	const char* cur = source;
-	unsigned int length = (unsigned int)strlen( source );
+
+	max_srclength = string_length( source );
+	if( length < 0 )
+		length = 0
+	else
+		length = ( length < max_srclength ) ? length : max_srclength;
+
 	for( i = 0; ( i < length ) && ( dest < last ); ++i )
 	{
 		if( !( *cur & 0x80 ) )
@@ -917,7 +923,8 @@ void wstring_from_string( wchar_t* dest, const char* source, unsigned int max_le
 		}
 	}
 
-	*dest = 0;
+	if( max_length > 0 )
+		*dest = 0;
 }
 
 
@@ -927,9 +934,9 @@ void wstring_deallocate( wchar_t* str )
 }
 
 
-unsigned int wstring_length( const wchar_t* str )
+int wstring_length( const wchar_t* str )
 {
-	return (unsigned int)wcslen( str );
+	return wcslen( str );
 }
 
 
@@ -939,9 +946,9 @@ bool wstring_equal( const wchar_t* lhs, const wchar_t* rhs )
 }
 
 
-static unsigned int _string_length_utf16( const uint16_t* p_str )
+static int _string_length_utf16( const uint16_t* p_str )
 {
-	unsigned int len = 0;
+	int len = 0;
 	if( !p_str )
 		return 0;
 	while( *p_str )
@@ -953,9 +960,9 @@ static unsigned int _string_length_utf16( const uint16_t* p_str )
 }
 
 
-static unsigned int _string_length_utf32( const uint32_t* p_str )
+static int _string_length_utf32( const uint32_t* p_str )
 {
-	unsigned int len = 0;
+	int len = 0;
 	if( !p_str )
 		return 0;
 	while( *p_str )
@@ -967,7 +974,7 @@ static unsigned int _string_length_utf32( const uint32_t* p_str )
 }
 
 
-char* string_allocate_from_wstring( const wchar_t* str, unsigned int length )
+char* string_allocate_from_wstring( const wchar_t* str, int length )
 {
 	if( sizeof( wchar_t ) == 2 )
 		return string_allocate_from_utf16( (const uint16_t*)str, length );
@@ -976,16 +983,16 @@ char* string_allocate_from_wstring( const wchar_t* str, unsigned int length )
 }
 
 
-char* string_allocate_from_utf16( const uint16_t* str, unsigned int length )
+char* string_allocate_from_utf16( const uint16_t* str, int length )
 {
 	bool swap;
 	char* buf;
-	unsigned int i, curlen, inlength, maxlen;
+	int i, curlen, inlength, maxlen;
 	uint32_t glyph, lval;
 
 	maxlen = _string_length_utf16( str );
-	if( !length )
-		length = maxlen;
+	if( length < 0 )
+		length = 0;
 	else
 		length = ( length < maxlen ) ? length : maxlen;
 
@@ -1023,16 +1030,16 @@ char* string_allocate_from_utf16( const uint16_t* str, unsigned int length )
 }
 
 
-char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
+char* string_allocate_from_utf32( const uint32_t* str, int length )
 {
 	bool swap;
 	char* buf;
-	unsigned int i, curlen, inlength, maxlen;
+	int i, curlen, inlength, maxlen;
 	uint32_t glyph;
 
 	maxlen = _string_length_utf32( str );
-	if( !length )
-		length = maxlen;
+	if( length < 0 )
+		length = 0;
 	else
 		length = ( length < maxlen ) ? length : maxlen;
 
@@ -1061,12 +1068,12 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 }
 
 
-void string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize, unsigned int srclength )
+void string_convert_utf16( char* dst, const uint16_t* src, int dstsize, int srclength )
 {
 	bool swap = false;
 	uint32_t glyph, lval;
-	unsigned int curlen = 0, numbytes = 0;
-	unsigned int i;
+	int curlen = 0, numbytes = 0;
+	int i;
 
 	for( i = 0; ( i < srclength ) && ( curlen < dstsize ); ++i )
 	{
@@ -1097,12 +1104,12 @@ void string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize,
 }
 
 
-void string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize, unsigned int srclength )
+void string_convert_utf32( char* dst, const uint32_t* src, int dstsize, int srclength )
 {
 	bool swap = false;
 	uint32_t glyph;
-	unsigned int curlen = 0, numbytes = 0;
-	unsigned int i;
+	int curlen = 0, numbytes = 0;
+	int i;
 
 	swap = false;
 	for( i = 0; ( i < srclength ) && ( curlen < dstsize ); ++i )
@@ -1128,16 +1135,16 @@ void string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize,
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, 128 )
 
 
-char* string_from_int( int64_t val, unsigned int width, char fill )
+char* string_from_int( int64_t val, int width, char fill )
 {
 	char buf[32];
 	return string_clone( string_from_int_buffer( buf, val, width, fill ) );
 }
 
 
-char* string_from_int_buffer( char* buffer, int64_t val, unsigned int width, char fill )
+char* string_from_int_buffer( char* buffer, int64_t val, int width, char fill )
 {
-	unsigned int len = (unsigned int)sprintf( buffer, "%" PRId64, val );
+	int len = sprintf( buffer, "%" PRId64, val );
 	if( len < width )
 	{
 		memmove( buffer + ( width - len ), buffer, len + 1 );
@@ -1147,22 +1154,22 @@ char* string_from_int_buffer( char* buffer, int64_t val, unsigned int width, cha
 }
 
 
-const char* string_from_int_static( int64_t val, unsigned int width, char fill )
+const char* string_from_int_static( int64_t val, int width, char fill )
 {
 	return string_from_int_buffer( get_thread_convert_buffer(), val, width, fill );
 }
 
 
-char* string_from_uint( uint64_t val, bool hex, unsigned int width, char fill )
+char* string_from_uint( uint64_t val, bool hex, int width, char fill )
 {
 	char buf[32];
 	return string_clone( string_from_uint_buffer( buf, val, hex, width, fill ) );
 }
 
 
-char* string_from_uint_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char fill )
+char* string_from_uint_buffer( char* buffer, uint64_t val, bool hex, int width, char fill )
 {
-	unsigned int len = (unsigned int)sprintf( buffer, hex ? "%" PRIx64 : "%" PRIu64, val );
+	int len = sprintf( buffer, hex ? "%" PRIx64 : "%" PRIu64, val );
 	if( len < width )
 	{
 		memmove( buffer + ( width - len ), buffer, len + 1 );
@@ -1172,7 +1179,7 @@ char* string_from_uint_buffer( char* buffer, uint64_t val, bool hex, unsigned in
 }
 
 
-const char* string_from_uint_static( uint64_t val, bool hex, unsigned int width, char fill )
+const char* string_from_uint_static( uint64_t val, bool hex, int width, char fill )
 {
 	return string_from_uint_buffer( get_thread_convert_buffer(), val, hex, width, fill );
 }
@@ -1187,7 +1194,7 @@ char* string_from_uint128( const uint128_t val )
 
 char* string_from_uint128_buffer( char* buffer, const uint128_t val )
 {
-	/*unsigned int len = (unsigned int)*/sprintf( buffer, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1] );
+	sprintf( buffer, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1] );
 	return buffer;
 }
 
@@ -1198,7 +1205,7 @@ const char* string_from_uint128_static( const uint128_t val )
 }
 
 
-char* string_from_real( real val, unsigned int precision, unsigned int width, char fill )
+char* string_from_real( real val, int precision, int width, char fill )
 {
 	char str[64];
 	string_from_real_buffer( str, val, precision, width, fill );
@@ -1206,23 +1213,23 @@ char* string_from_real( real val, unsigned int precision, unsigned int width, ch
 }
 
 
-char* string_from_real_buffer( char* buffer, real val, unsigned int precision, unsigned int width, char fill )
+char* string_from_real_buffer( char* buffer, real val, int precision, int width, char fill )
 {
-	unsigned int len;
+	int len;
 #if FOUNDATION_SIZE_REAL == 64
 	if( precision )
-		len = (unsigned int)sprintf( buffer, "%.*lf", precision, val );
+		len = sprintf( buffer, "%.*lf", precision, val );
 	else
-		len = (unsigned int)sprintf( buffer, "%.16lf", val );
+		len = sprintf( buffer, "%.16lf", val );
 #else
 	if( precision )
-		len = (unsigned int)sprintf( buffer, "%.*f", precision, val );
+		len = sprintf( buffer, "%.*f", precision, val );
 	else
-		len = (unsigned int)sprintf( buffer, "%.7f", val );
+		len = sprintf( buffer, "%.7f", val );
 #endif
 	FOUNDATION_ASSERT( len > 0 && len < 64 );
 	{
-		unsigned int end = string_find_last_not_of( buffer, "0", STRING_NPOS );
+		int end = string_find_last_not_of( buffer, "0", STRING_NPOS );
 		if( end != STRING_NPOS )
 		{
 			if( buffer[ end ] == '.' )
@@ -1252,7 +1259,7 @@ char* string_from_real_buffer( char* buffer, real val, unsigned int precision, u
 }
 
 
-const char* string_from_real_static( real val, unsigned int precision, unsigned int width, char fill )
+const char* string_from_real_static( real val, int precision, int width, char fill )
 {
 	return string_from_real_buffer( get_thread_convert_buffer(), val, precision, width, fill );
 }

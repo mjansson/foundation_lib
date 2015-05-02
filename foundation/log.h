@@ -17,11 +17,11 @@
 #include <foundation/error.h>
 
 
-FOUNDATION_API void              log_debugf( uint64_t context, const char* format, ... );
-FOUNDATION_API void              log_infof( uint64_t context, const char* format, ... );
-FOUNDATION_API void              log_warnf( uint64_t context, warning_t warn, const char* format, ... );
-FOUNDATION_API void              log_errorf( uint64_t context, error_t err, const char* format, ... );
-FOUNDATION_API void              log_panicf( uint64_t context, error_t err, const char* format, ... );
+FOUNDATION_API void              log_debugf( uint64_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 2, 3);
+FOUNDATION_API void              log_infof( uint64_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 2, 3);
+FOUNDATION_API void              log_warnf( uint64_t context, warning_t warn, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 3, 4);
+FOUNDATION_API void              log_errorf( uint64_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 3, 4);
+FOUNDATION_API void              log_panicf( uint64_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 3, 4);
 
 FOUNDATION_API void              log_error_context( uint64_t context, error_level_t error_level );
 FOUNDATION_API log_callback_fn   log_callback( void );

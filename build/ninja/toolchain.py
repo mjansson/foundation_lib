@@ -305,7 +305,7 @@ class Toolchain(object):
       self.ar = 'llvm-ar'
       self.link = 'clang'
       self.cflags = [ '-std=c11', '-D' + self.project.upper() + '_COMPILE=1',
-                      '-W', '-Wall', '-Werror',
+                      '-W', '-Werror', '-pedantic', '-Wall', '-Weverything', '-Wno-padded',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []

@@ -22,9 +22,9 @@
 
 #if FOUNDATION_ARCH_MIPS || ( FOUNDATION_PLATFORM_LINUX_RASPBERRYPI && FOUNDATION_COMPILER_GCC && ( __GNUC__ <=4 || ( __GNUC__ == 4 && __GNUC_MINOR__ < 8 ) ) )
 #  define FOUNDATION_MUTEX_64BIT_ATOMIC 1
-FOUNDATION_API uint64_t __foundation_sync_fetch_and_add_8( uint64_t* val, uint64_t add );
-FOUNDATION_API uint64_t __foundation_sync_add_and_fetch_8( uint64_t* val, uint64_t add );
-FOUNDATION_API bool     __foundation_sync_bool_compare_and_swap_8( uint64_t* val, uint64_t oldval, uint64_t newval );
+FOUNDATION_API uint64_t __foundation_sync_fetch_and_add_8( int64_t* val, int64_t add );
+FOUNDATION_API uint64_t __foundation_sync_add_and_fetch_8( int64_t* val, int64_t add );
+FOUNDATION_API bool     __foundation_sync_bool_compare_and_swap_8( int64_t* val, int64_t oldval, int64_t newval );
 #else
 #  define FOUNDATION_MUTEX_64BIT_ATOMIC 0
 #endif

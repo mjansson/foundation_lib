@@ -57,9 +57,9 @@ static config_section_t* _config_section[CONFIG_SECTION_BUCKETS];
 
 static int64_t _config_string_to_int( const char* str )
 {
-	unsigned int length = string_length( str );
-	unsigned int first_nonnumeric;
-	unsigned int dot_position;
+	int length = string_length( str );
+	int first_nonnumeric;
+	int dot_position;
 	if( length < 2 )
 		return string_to_int64( str );
 
@@ -93,9 +93,9 @@ static int64_t _config_string_to_int( const char* str )
 
 static real _config_string_to_real( const char* str )
 {
-	unsigned int length = string_length( str );
-	unsigned int first_nonnumeric;
-	unsigned int dot_position;
+	int length = string_length( str );
+	int first_nonnumeric;
+	int dot_position;
 	if( length < 2 )
 		return string_to_real( str );
 
@@ -144,7 +144,7 @@ static FOUNDATION_NOINLINE const char* _expand_environment( hash_t key, char* va
 	else if( string_equal_substr( var, "variable[", 9 ) )  //variable[varname] - Environment variable named "varname"
 	{
 		const char* value;
-		unsigned int end_pos = string_find( var, ']', 9 );
+		int end_pos = string_find( var, ']', 9 );
 		if( end_pos != STRING_NPOS )
 			var[end_pos] = 0;
 		value = environment_variable( var + 9 );
@@ -160,7 +160,7 @@ static FOUNDATION_NOINLINE char* _expand_string( hash_t section_current, char* s
 {
 	char* expanded;
 	char* variable;
-	unsigned int var_pos, var_end_pos, variable_length, separator, var_offset;
+	int var_pos, var_end_pos, variable_length, separator, var_offset;
 	hash_t section, key;
 
 	expanded = str;
@@ -271,7 +271,6 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	/*lint --e{838} Safety null assign all pointers for all preprocessor paths */
 	/*lint --e{750} Unused macros in some paths */
 #define NUM_SEARCH_PATHS 10
-#define ANDROID_ASSET_PATH_INDEX 5
 	char* sub_exe_path = 0;
 	char* exe_parent_path = 0;
 	char* exe_processed_path = 0;
@@ -349,6 +348,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	bundle_path = path_merge( environment_executable_directory(), "config" );
 	paths[5] = bundle_path;
 #elif FOUNDATION_PLATFORM_ANDROID
+#define ANDROID_ASSET_PATH_INDEX 5
 	paths[5] = "/config";
 #else
 	paths[5] = 0;
@@ -595,7 +595,11 @@ const char* config_string( hash_t section, hash_t key )
 		case CONFIGVALUE_BOOL:  return key_val->bval ? "true" : "false";
 		case CONFIGVALUE_INT:   if( !key_val->sval ) key_val->sval = string_from_int( key_val->ival, 0, 0 ); return key_val->sval;
 		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = string_from_real( key_val->rval, 4, 0, '0' ); return key_val->sval;
-		default: break;
+		case CONFIGVALUE_STRING:
+		case CONFIGVALUE_STRING_CONST:
+		case CONFIGVALUE_STRING_VAR:
+		case CONFIGVALUE_STRING_CONST_VAR:
+			break;
 	}
 	//String value of some form
 	if( !key_val->sval )
@@ -719,7 +723,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	char* buffer;
 	hash_t section = 0;
 	hash_t key = 0;
-	unsigned int line = 0;
+	int line = 0;
 
 #if BUILD_ENABLE_CONFIG_DEBUG
 	log_debugf( HASH_CONFIG, "Parsing config stream: %s", stream_path( stream ) );
@@ -735,8 +739,8 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 		if( buffer[0] == '[' )
 		{
 			//Section declaration
-			unsigned int endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
-			if( ( endpos == STRING_NPOS ) || ( endpos < 1 ) )
+			int endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
+			if( endpos < 1 )
 			{
 				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
 				continue;
@@ -752,7 +756,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			//name=value declaration
 			char* name;
 			char* value;
-			unsigned int separator = string_find( buffer, '=', 0 );
+			int separator = string_find( buffer, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
 				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
@@ -794,21 +798,21 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 }
 
 
-void config_parse_commandline( const char* const* cmdline, unsigned int num )
+void config_parse_commandline( const char* const* cmdline, int num )
 {
 	//TODO: Implement, format --section:key=value
-	unsigned int arg;
+	int arg;
 	for( arg = 0; arg < num; ++arg )
 	{
 		if( string_match_pattern( cmdline[arg], "--*:*=*" ) )
 		{
-			unsigned int first_sep = string_find( cmdline[arg], ':', 0 );
-			unsigned int second_sep = string_find( cmdline[arg], '=', 0 );
+			int first_sep = string_find( cmdline[arg], ':', 0 );
+			int second_sep = string_find( cmdline[arg], '=', 0 );
 			if( ( first_sep != STRING_NPOS ) && ( second_sep != STRING_NPOS ) && ( first_sep < second_sep ) )
 			{
-				unsigned int section_length = first_sep - 2;
-				unsigned int end_pos = first_sep + 1;
-				unsigned int key_length = second_sep - end_pos;
+				int section_length = first_sep - 2;
+				int end_pos = first_sep + 1;
+				int key_length = second_sep - end_pos;
 
 				const char* section_str = cmdline[arg] + 2;
 				const char* key_str = pointer_offset_const( cmdline[arg], end_pos );
@@ -819,7 +823,7 @@ void config_parse_commandline( const char* const* cmdline, unsigned int num )
 				char* value = string_substr( cmdline[arg], second_sep + 1, STRING_NPOS );
 				char* set_value = value;
 
-				unsigned int value_length = string_length( value );
+				int value_length = string_length( value );
 
 				if( !value_length )
 					config_set_string( section, key, "" );
@@ -898,9 +902,6 @@ void config_write( stream_t* stream, hash_t filter_section, const char* (*string
 					case CONFIGVALUE_STRING_VAR:
 					case CONFIGVALUE_STRING_CONST_VAR:
 						stream_write_string( stream, bucket[ib].sval );
-						break;
-
-					default:
 						break;
 				}
 				stream_write_endl( stream );

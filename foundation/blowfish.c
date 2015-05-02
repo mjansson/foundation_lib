@@ -485,9 +485,6 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			}
 			break;
 		}
-
-		default:
-			break;
 	}
 
 	//Reset memory for paranoids
@@ -574,9 +571,6 @@ void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			}
 			break;
 		}
-
-		default:
-			break;
 	}
 
 	//Reset memory for paranoids

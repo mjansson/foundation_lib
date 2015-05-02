@@ -31,6 +31,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, u
 
 	//Events must have non-zero id
 	FOUNDATION_ASSERT_MSG( id, "Events must have non-zero id" );
+	FOUNDATION_ASSERT_MSGFORMAT( size < 0xFFFF - 16, "Events size must be less than %d", 0xFFFF - 16 );
 	if( !id )
 		return;
 
@@ -78,7 +79,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, u
 
 	event->id        = id;
 	event->serial    = (uint16_t)( atomic_exchange_and_add32( &_event_serial, 1 ) & 0xFFFF );
-	event->size      = allocsize;
+	event->size      = (uint16_t)allocsize;
 	event->flags     = flags;
 	event->object    = object;
 
@@ -141,8 +142,6 @@ event_t* event_next( const event_block_t* block, event_t* event )
 		//Re-post to next block
 		_event_post_delay_with_flags( block->stream, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
 	} while( true );
-
-	return 0;
 }
 
 

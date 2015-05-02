@@ -326,7 +326,6 @@ also reporting the number of consumed 8-bit characters in the process.
 will be reset to null.
 \param array Array of strings
 
-
 \fn wchar_t* wstring_allocate_from_string( const char* cstr, unsigned int length )
 \brief Allocate wide string
 \details Allocate a wide char string from utf-8 encoded string

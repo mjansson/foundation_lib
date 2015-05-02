@@ -60,7 +60,7 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	//Parse built-in command line options
 	{
 		const char* const* cmdline = environment_command_line();
-		unsigned int iarg, argsize;
+		int iarg, argsize;
 		for( iarg = 0, argsize = array_size( cmdline ); iarg < argsize; ++iarg )
 		{
 			if( string_equal( cmdline[iarg], "--log-debug" ) )
