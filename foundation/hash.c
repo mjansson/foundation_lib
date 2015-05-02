@@ -228,7 +228,7 @@ void _static_hash_store( const void* key, int len, hash_t value )
 }
 
 
-const char* hash_to_string( const hash_t value )
+const char* hash_to_string( hash_t value )
 {
 	if( !_hash_lookup )
 		return 0;

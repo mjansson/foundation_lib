@@ -150,7 +150,7 @@ static void _buffer_stream_flush( stream_t* stream )
 }
 
 
-static void _buffer_stream_truncate( stream_t* stream, uint64_t size )
+static void _buffer_stream_truncate( stream_t* stream, int64_t size )
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	if( buffer_stream->capacity >= size )
@@ -172,7 +172,7 @@ static void _buffer_stream_truncate( stream_t* stream, uint64_t size )
 }
 
 /*lint -e{818} Function prototype must match stream interface */
-static uint64_t _buffer_stream_size( stream_t* stream )
+static int64_t _buffer_stream_size( stream_t* stream )
 {
 	return ((const stream_buffer_t*)stream)->size;
 }
@@ -183,35 +183,35 @@ static void _buffer_stream_seek( stream_t* stream, int64_t offset, stream_seek_m
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	int64_t new_current = 0;
 	if( direction == STREAM_SEEK_CURRENT )
-		new_current = (int64_t)buffer_stream->current + offset;
+		new_current = buffer_stream->current + offset;
 	else if( direction == STREAM_SEEK_BEGIN )
 		new_current = offset;
 	else if( direction == STREAM_SEEK_END )
-		new_current = (int64_t)buffer_stream->size + offset;
+		new_current = buffer_stream->size + offset;
 
 	if( new_current < 0 )
 		buffer_stream->current = 0;
-	else if( new_current > (int64_t)buffer_stream->size )
+	else if( new_current > buffer_stream->size )
 		buffer_stream->current = buffer_stream->size;
 	else
-		buffer_stream->current = (uint64_t)new_current;
+		buffer_stream->current = new_current;
 }
 
-/*lint -e{818} Function prototype must match stream interface */
+
 static int64_t _buffer_stream_tell( stream_t* stream )
 {
-	return (int64_t)((const stream_buffer_t*)stream)->current;
+	return ((const stream_buffer_t*)stream)->current;
 }
 
-/*lint -e{550, 715} Function prototype must match stream interface */
-static uint64_t _buffer_stream_lastmod( const stream_t* stream )
+
+static tick_t _buffer_stream_lastmod( const stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 
-/*lint -e{818} Function prototype must match stream interface */
-static uint64_t _buffer_stream_available_read( stream_t* stream )
+
+static int64_t _buffer_stream_available_read( stream_t* stream )
 {
 	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream->size - buffer_stream->current;

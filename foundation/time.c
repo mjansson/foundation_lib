@@ -19,7 +19,7 @@
 #  include <foundation/apple.h>
 #  include <mach/mach_time.h>
 static mach_timebase_info_data_t _time_info;
-static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
+static void absolutetime_to_nanoseconds( tick_t mach_time, int64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #  include <unistd.h>
 #  include <time.h>
@@ -43,12 +43,12 @@ int _time_initialize( void )
 #elif FOUNDATION_PLATFORM_APPLE
 	if( mach_timebase_info( &_time_info ) )
 		return -1;
-	_time_freq = 1000000000ULL;
+	_time_freq = 1000000000LL;
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	if( clock_gettime( CLOCK_MONOTONIC, &ts ) )
 		return -1;
-	_time_freq = 1000000000ULL;
+	_time_freq = 1000000000LL;
 #else
 #  error Not implemented
 #endif
@@ -83,7 +83,7 @@ tick_t time_current( void )
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_MONOTONIC, &ts );
-	return ( (uint64_t)ts.tv_sec * 1000000000ULL ) + ts.tv_nsec;
+	return ( (uint64_t)ts.tv_sec * 1000000000LL ) + ts.tv_nsec;
 
 #else
 #  error Not implemented
@@ -105,8 +105,6 @@ tick_t time_ticks_per_second( void )
 
 tick_t time_diff( const tick_t from, const tick_t to )
 {
-	if( to <= from )
-		return 0;
 	return ( to - from );
 }
 
@@ -139,7 +137,7 @@ tick_t time_elapsed_ticks( const tick_t t )
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_MONOTONIC, &ts );
 
-	curclock = ( (tick_t)ts.tv_sec * 1000000000ULL ) + ts.tv_nsec;
+	curclock = ( (tick_t)ts.tv_sec * 1000000000LL ) + ts.tv_nsec;
 	dt = curclock - t;
 
 #else
@@ -172,19 +170,19 @@ tick_t time_system( void )
 
 	struct __timeb64 tb;
 	_ftime64_s( &tb );
-	return ( (tick_t)tb.time * 1000ULL ) + (tick_t)tb.millitm;
+	return ( (tick_t)tb.time * 1000LL ) + (tick_t)tb.millitm;
 
 #elif FOUNDATION_PLATFORM_APPLE
 
 	tick_t curclock = 0;
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
-	return ( curclock / 1000000ULL );
+	return ( curclock / 100000LL );
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_REALTIME, &ts );
-	return ( (uint64_t)ts.tv_sec * 1000ULL ) + ( ts.tv_nsec / 1000000ULL );
+	return ( (int64_t)ts.tv_sec * 1000LL ) + ( ts.tv_nsec / 1000000LL );
 
 #else
 #  error Not implemented

@@ -162,7 +162,7 @@ char* string_vformat_buffer( char* buffer, int maxlen, const char* format, va_li
 
 int string_length( const char* str )
 {
-	return str ? strlen( str ) : 0;
+	return str ? (int)strlen( str ) : 0;
 }
 
 
@@ -883,7 +883,7 @@ void wstring_from_string( wchar_t* dest, const char* source, int max_length, int
 
 	max_srclength = string_length( source );
 	if( length < 0 )
-		length = 0
+		length = 0;
 	else
 		length = ( length < max_srclength ) ? length : max_srclength;
 
@@ -936,7 +936,7 @@ void wstring_deallocate( wchar_t* str )
 
 int wstring_length( const wchar_t* str )
 {
-	return wcslen( str );
+	return (int)wcslen( str );
 }
 
 

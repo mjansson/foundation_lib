@@ -15,9 +15,9 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-FOUNDATION_API void                 event_post( event_stream_t* stream, uint16_t id, uint16_t size, object_t object, const void* payload, tick_t delivery );
+FOUNDATION_API void                 event_post( event_stream_t* stream, uint16_t id, int size, object_t object, const void* payload, tick_t delivery );
 FOUNDATION_API event_t*             event_next( const event_block_t* block, event_t* event );
-FOUNDATION_API uint16_t             event_payload_size( const event_t* event );
+FOUNDATION_API int                  event_payload_size( const event_t* event );
 
 FOUNDATION_API event_stream_t*      event_stream_allocate( unsigned int size );
 FOUNDATION_API void                 event_stream_deallocate( event_stream_t* stream );

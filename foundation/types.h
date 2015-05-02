@@ -235,7 +235,7 @@ typedef enum
 } device_orientation_t;
 
 typedef uint64_t      hash_t;
-typedef uint64_t      tick_t;
+typedef int64_t       tick_t;
 typedef real          deltatime_t;
 typedef uint64_t      object_t;
 typedef uint16_t      radixsort_index_t;
@@ -299,27 +299,27 @@ typedef int           (* assert_handler_fn )( uint64_t context, const char* cond
 typedef void          (* log_callback_fn )( uint64_t context, int severity, const char* msg );
 typedef int           (* system_initialize_fn )( void );
 typedef void          (* system_shutdown_fn )( void );
-typedef void*         (* memory_allocate_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
-typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
+typedef void*         (* memory_allocate_fn )( uint64_t context, int64_t size, int align, int hint );
+typedef void*         (* memory_reallocate_fn )( void* p, int64_t size, int align, int64_t oldsize );
 typedef void          (* memory_deallocate_fn )( void* p );
-typedef void          (* memory_track_fn )( void* p, uint64_t size );
+typedef void          (* memory_track_fn )( void* p, int64_t size );
 typedef void          (* memory_untrack_fn )( void* p );
-typedef void          (* profile_write_fn )( void* data, uint64_t size );
-typedef void          (* profile_read_fn )( void* data, uint64_t size );
+typedef void          (* profile_write_fn )( void* data, int64_t size );
+typedef void          (* profile_read_fn )( void* data, int64_t size );
 typedef void*         (* thread_fn )( object_t thread, void* arg );
 typedef int           (* crash_guard_fn )( void* arg );
 typedef void          (* crash_dump_callback_fn )( const char* file );
 typedef void          (* object_deallocate_fn )( object_t id, void* object );
 typedef stream_t*     (* stream_open_fn )( const char* path, unsigned int mode );
-typedef uint64_t      (* stream_read_fn )( stream_t* stream, void* dst, uint64_t size );
-typedef uint64_t      (* stream_write_fn )( stream_t* stream, const void* src, uint64_t size );
+typedef int64_t       (* stream_read_fn )( stream_t* stream, void* dst, int64_t size );
+typedef int64_t       (* stream_write_fn )( stream_t* stream, const void* src, int64_t size );
 typedef bool          (* stream_eos_fn )( stream_t* stream );
 typedef void          (* stream_flush_fn )( stream_t* stream );
-typedef void          (* stream_truncate_fn  )( stream_t* stream, uint64_t size );
-typedef uint64_t      (* stream_size_fn )( stream_t* stream );
+typedef void          (* stream_truncate_fn  )( stream_t* stream, int64_t size );
+typedef int64_t       (* stream_size_fn )( stream_t* stream );
 typedef void          (* stream_seek_fn )( stream_t* stream, int64_t offset, stream_seek_mode_t mode );
 typedef int64_t       (* stream_tell_fn )( stream_t* stream );
-typedef uint64_t      (* stream_lastmod_fn )( const stream_t* stream );
+typedef tick_t        (* stream_lastmod_fn )( const stream_t* stream );
 typedef uint128_t     (* stream_md5_fn)( stream_t* stream );
 typedef void          (* stream_buffer_read_fn )( stream_t* stream );
 typedef uint64_t      (* stream_available_read_fn )( stream_t* stream );
@@ -367,11 +367,11 @@ union version_t
 	uint128_t                       version;
 	struct
 	{
-		uint16_t                    major;
-		uint16_t                    minor;
-		uint32_t                    revision;
-		uint32_t                    build;
-		uint32_t                    control;
+		int16_t                     major;
+		int16_t                     minor;
+		int32_t                     revision;
+		int32_t                     build;
+		int32_t                     control;
 	}                               sub;
 };
 
@@ -406,12 +406,12 @@ struct bitbuffer_t
 	uint8_t*                        end;
 	stream_t*                       stream;
 	bool                            swap;
-	unsigned int                    pending_read;
-	unsigned int                    pending_write;
-	unsigned int                    offset_read;
-	unsigned int                    offset_write;
-	unsigned int                    count_read;
-	unsigned int                    count_write;
+	int                            pending_read;
+	int                            pending_write;
+	int                            offset_read;
+	int                            offset_write;
+	int                            count_read;
+	int                            count_write;
 };
 
 
@@ -522,12 +522,12 @@ FOUNDATION_ALIGNED_STRUCT( object_base_t, 8 )
 FOUNDATION_ALIGNED_STRUCT( objectmap_t, 16 )
 {
 	atomic64_t                      free;
-	uint64_t                        size;
+	int64_t                         size;
 	atomic64_t                      id;
-	uint64_t                        size_bits;
-	uint64_t                        id_max;
-	uint64_t                        mask_index;
-	uint64_t                        mask_id;
+	int64_t                         size_bits;
+	int64_t                         id_max;
+	int64_t                         mask_index;
+	int64_t                         mask_id;
 	void*                           map[];
 };
 
@@ -567,9 +567,9 @@ struct radixsort_t
 
 struct regex_t
 {
-	unsigned int                    num_captures;
-	unsigned int                    code_length;
-	unsigned int                    code_allocated;
+	int                             num_captures;
+	int                             code_length;
+	int                             code_allocated;
 	uint8_t                         code[];
 };
 
@@ -582,9 +582,9 @@ struct regex_capture_t
 #define FOUNDATION_DECLARE_RINGBUFFER              \
 	uint64_t                        total_read;    \
 	uint64_t                        total_write;   \
-	unsigned int                    offset_read;   \
-	unsigned int                    offset_write;  \
-	unsigned int                    buffer_size;   \
+	int64_t                         offset_read;   \
+	int64_t                         offset_write;  \
+	int64_t                         buffer_size;   \
 	char                            buffer[]
 
 struct ringbuffer_t
@@ -634,16 +634,16 @@ struct semaphore_t
 #endif
 
 #define FOUNDATION_DECLARE_STREAM                            \
-unsigned int                    type:16;                 \
-unsigned int                    sequential:1;            \
-unsigned int                    reliable:1;              \
-unsigned int                    inorder:1;               \
-unsigned int                    swap:1;                  \
-unsigned int                    byteorder:1;             \
-unsigned int                    unused_streamflags:11;   \
-unsigned int                    mode;                    \
-char*                           path;                    \
-stream_vtable_t*                vtable
+	unsigned int                    type:16;                 \
+	unsigned int                    sequential:1;            \
+	unsigned int                    reliable:1;              \
+	unsigned int                    inorder:1;               \
+	unsigned int                    swap:1;                  \
+	unsigned int                    byteorder:1;             \
+	unsigned int                    unused_streamflags:11;   \
+	unsigned int                    mode;                    \
+	char*                           path;                    \
+	stream_vtable_t*                vtable
 
 FOUNDATION_ALIGNED_STRUCT( stream_t, 8 )
 {

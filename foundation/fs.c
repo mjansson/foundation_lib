@@ -747,8 +747,8 @@ void fs_copy_file( const char* source, const char* dest )
 
 	while( !stream_eos( infile ) )
 	{
-		uint64_t numread = stream_read( infile, buffer, 64 * 1024 );
-		if( numread )
+		int64_t numread = stream_read( infile, buffer, 64 * 1024 );
+		if( numread > 0 )
 			stream_write( outfile, buffer, numread );
 	}
 
@@ -758,14 +758,14 @@ void fs_copy_file( const char* source, const char* dest )
 }
 
 
-uint64_t fs_last_modified( const char* path )
+int64_t fs_last_modified( const char* path )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	//This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan 1601" was
 	//a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date for unix time, 1 Jan 1970, is 116444736000000000
-	const uint64_t ms_offset_time = 116444736000000000ULL;
-	uint64_t last_write_time;
+	const int64_t ms_offset_time = 116444736000000000LL;
+	int64_t last_write_time;
 	wchar_t* wpath;
 	WIN32_FILE_ATTRIBUTE_DATA attrib;
 	BOOL success = 0;
@@ -781,27 +781,27 @@ uint64_t fs_last_modified( const char* path )
 	stime.wDay   = 1;
 	stime.wMonth = 1;
 	SystemTimeToFileTime( &stime, &basetime );
-	uint64_t ms_offset_time = (*(uint64_t*)&basetime);*/
+	int64_t ms_offset_time = (*(int64_t*)&basetime);*/
 
 	if( !success )
 		return 0;
 
-	last_write_time = ( (uint64_t)attrib.ftLastWriteTime.dwHighDateTime << 32ULL ) | (uint64_t)attrib.ftLastWriteTime.dwLowDateTime;
+	last_write_time = ( (int64_t)attrib.ftLastWriteTime.dwHighDateTime << 32ULL ) + (int64_t)attrib.ftLastWriteTime.dwLowDateTime;
 
 	return ( last_write_time > ms_offset_time ) ? ( ( last_write_time - ms_offset_time ) / 10000ULL ) : 0;
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	uint64_t tstamp = 0;
+	int64_t tstamp = 0;
 	struct stat st; memset( &st, 0, sizeof( st ) );
 	if( stat( _fs_path( path ), &st ) >= 0 )
-		tstamp = (uint64_t)st.st_mtime * 1000ULL;
+		tstamp = (int64_t)st.st_mtime * 1000LL;
 
 	return tstamp;
 
 #elif FOUNDATION_PLATFORM_PNACL
 
-	uint64_t tstamp = 0;
+	int64_t tstamp = 0;
 	char* fpath = path_make_absolute( path );
 	const char* localpath = 0;
 	PP_Resource fs = _fs_resolve_path( _fs_path( fpath ), &localpath );
@@ -812,7 +812,7 @@ uint64_t fs_last_modified( const char* path )
 		{
 			struct PP_FileInfo info;
 			if( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
-				tstamp = info.last_modified_time * 1000ULL;
+				tstamp = info.last_modified_time * 1000LL;
 
 			_pnacl_core->ReleaseResource( ref );
 		}
@@ -980,7 +980,7 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 }
 
 
-void fs_post_event( foundation_event_id id, const char* path, unsigned int pathlen )
+void fs_post_event( foundation_event_id id, const char* path, int pathlen )
 {
 	if( !pathlen )
 		pathlen = string_length( path );
@@ -1539,9 +1539,9 @@ static int64_t _fs_file_tell( stream_t* stream )
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return -1;
 #if FOUNDATION_PLATFORM_PNACL
-	return (int64_t)GET_FILE( stream )->position;
+	return GET_FILE( stream )->position;
 #else
-	return (int64_t)ftell( GET_FILE( stream )->fd );
+	return ftell( GET_FILE( stream )->fd );
 #endif
 }
 
@@ -1588,7 +1588,7 @@ static bool _fs_file_eos( stream_t* stream )
 }
 
 
-static uint64_t _fs_file_size( stream_t* stream )
+static int64_t _fs_file_size( stream_t* stream )
 {
 #if !FOUNDATION_PLATFORM_PNACL
 	int64_t cur;
@@ -1613,7 +1613,7 @@ static uint64_t _fs_file_size( stream_t* stream )
 }
 
 
-static void _fs_file_truncate( stream_t* stream, uint64_t length )
+static void _fs_file_truncate( stream_t* stream, int64_t length )
 {
 	stream_file_t* file;
 #if !FOUNDATION_PLATFORM_PNACL
@@ -1640,11 +1640,11 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 
 #else
 
-	if( (uint64_t)length >= _fs_file_size( stream ) )
+	if( length >= _fs_file_size( stream ) )
 		return;
 
 	cur = _fs_file_tell( stream );
-	if( cur > (int64_t)length )
+	if( cur > length )
 		cur = length;
 
 	file = GET_FILE( stream );
@@ -1702,11 +1702,11 @@ static void _fs_file_flush( stream_t* stream )
 }
 
 
-static uint64_t _fs_file_read( stream_t* stream, void* buffer, uint64_t num_bytes )
+static int64_t _fs_file_read( stream_t* stream, void* buffer, int64_t num_bytes )
 {
 	stream_file_t* file;
 	int64_t beforepos;
-	uint64_t was_read = 0;
+	int64_t was_read = 0;
 #if !FOUNDATION_PLATFORM_PNACL
 	size_t size;
 #endif
@@ -1725,7 +1725,7 @@ static uint64_t _fs_file_read( stream_t* stream, void* buffer, uint64_t num_byte
 	if( available > 0x7FFFFFFFLL )
 		available = 0x7FFFFFFFLL;
 
-	int32_t read = _pnacl_file_io->Read( file->fd, file->position, buffer, ( available < (int64_t)num_bytes ) ? (int32_t)available : (int32_t)num_bytes, PP_BlockUntilComplete() );
+	int32_t read = _pnacl_file_io->Read( file->fd, file->position, buffer, ( available < num_bytes ) ? (int32_t)available : (int32_t)num_bytes, PP_BlockUntilComplete() );
 	if( read == 0 )
 	{
 		was_read = ( file->size - file->position );
@@ -1764,10 +1764,10 @@ static uint64_t _fs_file_read( stream_t* stream, void* buffer, uint64_t num_byte
 }
 
 
-static uint64_t _fs_file_write( stream_t* stream, const void* buffer, uint64_t num_bytes )
+static int64_t _fs_file_write( stream_t* stream, const void* buffer, int64_t num_bytes )
 {
 	stream_file_t* file;
-	uint64_t was_written = 0;
+	int64_t was_written = 0;
 #if !FOUNDATION_PLATFORM_PNACL
 	size_t size;
 #endif
@@ -1779,10 +1779,10 @@ static uint64_t _fs_file_write( stream_t* stream, const void* buffer, uint64_t n
 
 	file = GET_FILE( stream );
 
-	if( file->position + (int64_t)num_bytes > file->size )
+	if( file->position + num_bytes > file->size )
 	{
 		if( _pnacl_file_io->SetLength( file->fd, file->size, PP_BlockUntilComplete() ) == PP_OK )
-			file->size = file->position + (int64_t)num_bytes;
+			file->size = file->position + num_bytes;
 	}
 
 	int32_t written = _pnacl_file_io->Write( file->fd, file->position, buffer, num_bytes, PP_BlockUntilComplete() );
@@ -1819,7 +1819,7 @@ static uint64_t _fs_file_write( stream_t* stream, const void* buffer, uint64_t n
 }
 
 
-static uint64_t _fs_file_last_modified( const stream_t* stream )
+static int64_t _fs_file_last_modified( const stream_t* stream )
 {
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo info;
@@ -1831,9 +1831,9 @@ static uint64_t _fs_file_last_modified( const stream_t* stream )
 }
 
 
-static uint64_t _fs_file_available_read( stream_t* stream )
+static int64_t _fs_file_available_read( stream_t* stream )
 {
-	int64_t size = (int64_t)_fs_file_size( stream );
+	int64_t size = _fs_file_size( stream );
 	int64_t cur = _fs_file_tell( stream );
 
 	if( size > cur )

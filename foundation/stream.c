@@ -1203,13 +1203,13 @@ struct stream_std_t
 typedef FOUNDATION_ALIGN(8) struct stream_std_t stream_std_t;
 
 
-static uint64_t  _stream_stdin_read( stream_t*, void*, uint64_t );
-static uint64_t  _stream_stdout_write( stream_t*, const void*, uint64_t );
+static int64_t   _stream_stdin_read( stream_t*, void*, int64_t );
+static int64_t   _stream_stdout_write( stream_t*, const void*, int64_t );
 static void      _stream_stdout_flush( stream_t* );
 static stream_t* _stream_std_clone( stream_t* );
 static bool      _stream_stdin_eos( stream_t* );
-static uint64_t  _stream_stdin_available_read( stream_t* stream );
-static uint64_t  _stream_std_last_modified( const stream_t* stream );
+static int64_t   _stream_stdin_available_read( stream_t* stream );
+static tick_t    _stream_std_last_modified( const stream_t* stream );
 
 static stream_vtable_t _stream_stdout_vtable = {
 	0,
@@ -1289,12 +1289,12 @@ stream_t* stream_open_stdin( void )
 }
 
 
-static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t size )
+static int64_t _stream_stdin_read( stream_t* stream, void* buffer, int64_t size )
 {
 	stream_std_t* stdstream = (stream_std_t*)stream;
 	FILE* stdfile = (FILE*)stdstream->std;
 	char* bytebuffer = (char*)buffer;
-	uint64_t read = 0;
+	int64_t read = 0;
 
 	stdstream->eos = false;
 
@@ -1313,10 +1313,10 @@ static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t siz
 }
 
 
-static uint64_t _stream_stdout_write( stream_t* stream, const void* buffer, uint64_t size )
+static int64_t _stream_stdout_write( stream_t* stream, const void* buffer, int64_t size )
 {
 	stream_std_t* stdstream = (stream_std_t*)stream;
-	uint64_t was_written = fwrite( buffer, 1, (size_t)size, stdstream->std );
+	int64_t was_written = fwrite( buffer, 1, (size_t)size, stdstream->std );
 	return was_written;
 }
 
@@ -1342,7 +1342,7 @@ static bool _stream_stdin_eos( stream_t* stream )
 }
 
 
-static uint64_t _stream_stdin_available_read( stream_t* stream )
+static int64_t _stream_stdin_available_read( stream_t* stream )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -1380,7 +1380,7 @@ static uint64_t _stream_stdin_available_read( stream_t* stream )
 }
 
 
-static uint64_t _stream_std_last_modified( const stream_t* stream )
+static tick_t _stream_std_last_modified( const stream_t* stream )
 {
 	FOUNDATION_ASSERT( stream );
 	return time_system();

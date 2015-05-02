@@ -23,7 +23,7 @@ FOUNDATION_API bool             fs_is_file( const char* path );
 FOUNDATION_API bool             fs_make_directory( const char* path );
 FOUNDATION_API bool             fs_remove_directory( const char* path );
 FOUNDATION_API bool             fs_is_directory( const char* path );
-FOUNDATION_API uint64_t         fs_last_modified( const char* path );
+FOUNDATION_API tick_t           fs_last_modified( const char* path );
 FOUNDATION_API void             fs_touch( const char* path );
 FOUNDATION_API uint128_t        fs_md5( const char* path );
 FOUNDATION_API char**           fs_matching_files( const char* path, const char* pattern, bool recurse );
@@ -32,6 +32,6 @@ FOUNDATION_API char**           fs_subdirs( const char* path );
 FOUNDATION_API void             fs_monitor( const char* path );
 FOUNDATION_API void             fs_unmonitor( const char* path );
 FOUNDATION_API stream_t*        fs_temporary_file( void );
-FOUNDATION_API void             fs_post_event( foundation_event_id id, const char* path, unsigned int pathlen );
+FOUNDATION_API void             fs_post_event( foundation_event_id id, const char* path, int pathlen );
 FOUNDATION_API event_stream_t*  fs_event_stream( void );
 

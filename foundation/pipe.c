@@ -181,18 +181,18 @@ int pipe_write_fd( stream_t* stream )
 #endif
 
 
-static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
+static int64_t _pipe_stream_read( stream_t* stream, void* dest, int64_t num )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
-		uint64_t total_read = 0;
+		int64_t total_read = 0;
 		do
 		{
-			unsigned long num_read = 0;
-			if( !ReadFile( pipestream->handle_read, pointer_offset( dest, total_read ), (unsigned int)( num - total_read ), &num_read, 0 ) )
+			long num_read = 0;
+			if( !ReadFile( pipestream->handle_read, pointer_offset( dest, total_read ), (int)( num - total_read ), &num_read, 0 ) )
 			{
 				int err = GetLastError();
 				if( err == ERROR_BROKEN_PIPE )
@@ -231,18 +231,18 @@ static uint64_t _pipe_stream_read( stream_t* stream, void* dest, uint64_t num )
 }
 
 
-static uint64_t _pipe_stream_write( stream_t* stream, const void* source, uint64_t num )
+static int64_t _pipe_stream_write( stream_t* stream, const void* source, int64_t num )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		uint64_t total_written = 0;
+		int64_t total_written = 0;
 		do
 		{
-			unsigned long num_written = 0;
-			if( !WriteFile( pipestream->handle_write, pointer_offset_const( source, total_written ), (unsigned int)( num - total_written ), &num_written, 0 ) )
+			long num_written = 0;
+			if( !WriteFile( pipestream->handle_write, pointer_offset_const( source, total_written ), (int)( num - total_written ), &num_written, 0 ) )
 			{
 				pipestream->eos = true;
 				break;
@@ -292,14 +292,14 @@ static void _pipe_stream_flush( stream_t* stream )
 }
 
 
-static void _pipe_stream_truncate( stream_t* stream, uint64_t size )
+static void _pipe_stream_truncate( stream_t* stream, int64_t size )
 {
 	FOUNDATION_UNUSED( stream );
 	FOUNDATION_UNUSED( size );
 }
 
 
-static uint64_t _pipe_stream_size( stream_t* stream )
+static int64_t _pipe_stream_size( stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return 0;
@@ -321,14 +321,14 @@ static int64_t _pipe_stream_tell( stream_t* stream )
 }
 
 
-static uint64_t _pipe_stream_lastmod( const stream_t* stream )
+static tick_t _pipe_stream_lastmod( const stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 
 
-static uint64_t _pipe_stream_available_read( stream_t* stream )
+static int64_t _pipe_stream_available_read( stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return 0;

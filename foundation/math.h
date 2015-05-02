@@ -98,6 +98,8 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_lerp( real
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_unlerp( real v, real x, real y );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_linear_remap( real x, real xmin, real xmax, real ymin, real ymax );
 
+#define                                                          math_max( x, y ) ( (x) < (y) ? (y) : (x) )
+#define                                                          math_min( x, y ) ( (x) < (y) ? (x) : (y) )
 #define                                                          math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realeq( real, real, int ulps );

@@ -20,13 +20,13 @@
 static atomic32_t _event_serial = {1};
 
 
-static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
+static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, int size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
 {
 	event_block_t* block;
 	event_t* event;
 	bool restored_block;
-	uint32_t basesize;
-	uint32_t allocsize;
+	int basesize;
+	int allocsize;
 	int32_t last_write;
 
 	//Events must have non-zero id
@@ -39,6 +39,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, u
 	basesize = sizeof( event_t ) + size;
 	if( basesize % 8 )
 		basesize += 8 - ( basesize % 8 );
+	basesize &= 0xFFF8;
 
 	//Delayed events have extra 8 bytes payload to hold timestamp
 	allocsize = basesize;
@@ -102,16 +103,16 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, u
 }
 
 
-uint16_t event_payload_size( const event_t* event )
+int event_payload_size( const event_t* event )
 {
-	uint16_t size = event->size - sizeof( event_t );
+	int size = (int)event->size - sizeof( event_t );
 	if( event->flags & EVENTFLAG_DELAY )
 		size -= 8;
 	return size;
 }
 
 
-void event_post( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, tick_t delivery )
+void event_post( event_stream_t* stream, uint16_t id, int size, uint64_t object, const void* payload, tick_t delivery )
 {
 	_event_post_delay_with_flags( stream, id, size, object, payload, 0, delivery );
 }

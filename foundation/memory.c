@@ -41,8 +41,8 @@ typedef FOUNDATION_ALIGN(8) struct
 	void*               end;
 	atomicptr_t         head;
 	void*               tail;
-	uint64_t            size;
-	uint64_t            maxchunk;
+	int64_t             size;
+	int64_t             maxchunk;
 } atomic_linear_memory_t;
 
 static atomic_linear_memory_t _memory_temporary;
@@ -65,7 +65,7 @@ static void _memory_untrack( void* addr );
 #endif
 
 
-static void _atomic_allocate_initialize( uint64_t storagesize )
+static void _atomic_allocate_initialize( int64_t storagesize )
 {
 	if( storagesize < 1024 )
 		storagesize = BUILD_SIZE_TEMPORARY_MEMORY;
@@ -85,7 +85,7 @@ static void _atomic_allocate_shutdown( void )
 }
 
 
-static void* _atomic_allocate_linear( uint64_t chunksize )
+static void* _atomic_allocate_linear( int64_t chunksize )
 {
 	void* old_head;
 	void* new_head;
@@ -109,13 +109,13 @@ static void* _atomic_allocate_linear( uint64_t chunksize )
 }
 
 
-static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE unsigned int _memory_get_align( unsigned int align )
+static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int _memory_get_align( int align )
 {
 	//All alignment in memory code is built around higher alignments
 	//being multiples of lower alignments (powers of two).
 	//4, 8, 16, ...
 #if FOUNDATION_PLATFORM_ANDROID
-	return align ? FOUNDATION_MAX_ALIGN : 0;
+	return align > 0 ? FOUNDATION_MAX_ALIGN : 0;
 #elif FOUNDATION_PLATFORM_WINDOWS
 	if( align < FOUNDATION_SIZE_POINTER )
 		return FOUNDATION_SIZE_POINTER;
@@ -130,7 +130,7 @@ static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE unsigned int _memory_get_alig
 }
 
 
-static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
+static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, int align )
 {
 	uintptr_t address;
 	if( !p || !align )
@@ -178,12 +178,12 @@ void _memory_shutdown( void )
 
 #if BUILD_ENABLE_MEMORY_GUARD
 
-static void* _memory_guard_initialize( void* memory, size_t size )
+static void* _memory_guard_initialize( void* memory, int64_t size )
 {
 	int guard_loop;
-	uint32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_ALIGN );
-	uint32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_ALIGN * 2 );
-	*(uint64_t*)memory = size;
+	int32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_ALIGN );
+	int32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_ALIGN * 2 );
+	*(int64_t*)memory = size;
 	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
 	{
 		*guard_header++ = MEMORY_GUARD_VALUE;
@@ -485,7 +485,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 }
 
 
-static void* _memory_allocate_malloc( uint64_t context, uint64_t size, unsigned int align, int hint )
+static void* _memory_allocate_malloc( uint64_t context, int64_t size, int align, int hint )
 {
 	void* block;
 	FOUNDATION_UNUSED( context );
@@ -544,7 +544,7 @@ static void _memory_deallocate_malloc( void* p )
 }
 
 
-static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int align, uint64_t oldsize )
+static void* _memory_reallocate_malloc( void* p, int64_t size, int align, int64_t oldsize )
 {
 #if ( FOUNDATION_SIZE_POINTER == 4 ) && FOUNDATION_PLATFORM_WINDOWS
 	align = _memory_get_align( align );
@@ -719,7 +719,7 @@ static void _memory_untrack( void* addr )
 struct memory_tag_t
 {
 	atomicptr_t   address;
-	uintptr_t     size;
+	int64_t       size;
 	void*         trace[14];
 };
 typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
@@ -770,7 +770,7 @@ static void _memory_tracker_shutdown( void )
 }
 
 
-static void _memory_tracker_track( void* addr, uint64_t size )
+static void _memory_tracker_track( void* addr, int64_t size )
 {
 	if( addr ) do
 	{

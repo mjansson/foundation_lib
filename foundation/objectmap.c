@@ -105,7 +105,7 @@ void objectmap_deallocate( objectmap_t* map )
 
 void objectmap_finalize( objectmap_t* map )
 {
-	uint64_t i;
+	int64_t i;
 
 	if( !map )
 		return;
@@ -143,7 +143,7 @@ void* objectmap_raw_lookup( const objectmap_t* map, unsigned int idx )
 
 object_t objectmap_reserve( objectmap_t* map )
 {
-	uint64_t idx, next, id;
+	int64_t idx, next, id;
 
 	FOUNDATION_ASSERT( map ); /*lint -esym(613,pool) */
 
