@@ -51,25 +51,25 @@
 #else
 #  define _array_verify(a)           ( a )
 #endif
-#define _array_raw(a)                ( (int32_t*)(a) - _array_header_size )
+#define _array_raw(a)                ( (uint32_t*)(a) - _array_header_size )
 #define _array_rawcapacity(a)        _array_raw(a)[0]
 #define _array_rawsize(a)            _array_raw(a)[1]
 #define _array_rawelementsize(a)     _array_raw(a)[3]
-#define _array_raw_const(a)          ( (const int32_t*)(a)-_array_header_size )
+#define _array_raw_const(a)          ( (const uint32_t*)(a)-_array_header_size )
 #define _array_rawcapacity_const(a)  _array_raw_const(a)[0]
 #define _array_rawsize_const(a)      _array_raw_const(a)[1]
 #define _array_rawelementsize_const(a) _array_raw_const(a)[3]
 
-#define _array_elementsize(a)        ( (int)(pointer_diff( &(a)[1], &(a)[0] )) )
+#define _array_elementsize(a)        ( (size_t)(pointer_diff( &(a)[1], &(a)[0] )) )
 #define _array_needgrow(a,n)         ( ((n)>0) && ( _array_verify(a)==0 || (_array_rawsize_const(a)+(n)) > _array_rawcapacity_const(a) ) )
 #define _array_maybegrow(a,n)        ( _array_needgrow(a,(n)) ? _array_grow(a,n,2) : (a) )
 #define _array_maybegrowfixed(a,n)   ( _array_needgrow(a,(n)) ? _array_grow(a,n,1) : (a) )
 #define _array_grow(a,n,f)           ( _array_growfn((void**)&(a),(n),(f),_array_elementsize(a)) )
 #define _array_resize(a,n)           ( _array_resizefn((void**)&(a),(n),_array_elementsize(a)) )
 
-#define _array_verify_index(a,n)     ( ( (int32_t)(n) < _array_rawsize(a) ) && ( (int32_t)(n) >= 0 ) )
+#define _array_verify_index(a,n)     ( (uint32_t)(n) < _array_rawsize(a) )
 
-FOUNDATION_API void*                 _array_growfn( void** arr, int increment, int factor, int itemsize );
-FOUNDATION_API void*                 _array_resizefn( void** arr, int elements, int itemsize );
+FOUNDATION_API void*                 _array_growfn( void** arr, unsigned int increment, unsigned int factor, size_t itemsize );
+FOUNDATION_API void*                 _array_resizefn( void** arr, unsigned int elements, size_t itemsize );
 FOUNDATION_API const void*           _array_verifyfn( const void* const* arr );
 

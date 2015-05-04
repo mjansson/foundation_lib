@@ -50,7 +50,7 @@ static void _bitbuffer_put( bitbuffer_t* FOUNDATION_RESTRICT bitbuffer )
 }
 
 
-bitbuffer_t* bitbuffer_allocate_buffer( void* buffer, unsigned int size, bool swap )
+bitbuffer_t* bitbuffer_allocate_buffer( void* buffer, size_t size, bool swap )
 {
 	bitbuffer_t* bitbuffer = memory_allocate( 0, sizeof( bitbuffer_t ), 0, MEMORY_PERSISTENT );
 
@@ -83,7 +83,7 @@ void bitbuffer_finalize( bitbuffer_t* bitbuffer )
 }
 
 
-void bitbuffer_initialize_buffer( bitbuffer_t* bitbuffer, void* buffer, unsigned int size, bool swap )
+void bitbuffer_initialize_buffer( bitbuffer_t* bitbuffer, void* buffer, size_t size, bool swap )
 {
 	FOUNDATION_ASSERT( !( size % 4 ) );
 	FOUNDATION_ASSERT( (uintptr_t)buffer );
@@ -127,7 +127,7 @@ uint128_t bitbuffer_read128( bitbuffer_t* bitbuffer, unsigned int bits )
 		if( bits > 128 )
 			bits = 128;
 
-		value.word[0] = bitbuffer_read64( bitbuffer, 64U );
+		value.word[0] = bitbuffer_read64( bitbuffer, 64 );
 		value.word[1] = bitbuffer_read64( bitbuffer, bits - 64 );
 		return value;
 	}
@@ -144,7 +144,7 @@ uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
 	if( bits > 64 )
 		bits = 64;
 
-	val0 = bitbuffer_read32( bitbuffer, 32U );
+	val0 = bitbuffer_read32( bitbuffer, 32 );
 	val1 = bitbuffer_read32( bitbuffer, bits - 32 );
 	return (uint64_t)val0 | ( (uint64_t)val1 << 32ULL );
 }
@@ -153,9 +153,9 @@ uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
 float64_t bitbuffer_read_float64( bitbuffer_t* bitbuffer )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	const float64_cast_t conv = { .uival = bitbuffer_read64( bitbuffer, 64U ) };
+	const float64_cast_t conv = { .uival = bitbuffer_read64( bitbuffer, 64 ) };
 #else
-	float64_cast_t conv; conv.uival = bitbuffer_read64( bitbuffer, 64U );
+	float64_cast_t conv; conv.uival = bitbuffer_read64( bitbuffer, 64 );
 #endif
 	return conv.fval;
 }
@@ -164,9 +164,9 @@ float64_t bitbuffer_read_float64( bitbuffer_t* bitbuffer )
 float32_t bitbuffer_read_float32( bitbuffer_t* bitbuffer )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	const float32_cast_t conv = { .uival = bitbuffer_read32( bitbuffer, 32U ) };
+	const float32_cast_t conv = { .uival = bitbuffer_read32( bitbuffer, 32 ) };
 #else
-	float32_cast_t conv; conv.uival = bitbuffer_read32( bitbuffer, 32U );
+	float32_cast_t conv; conv.uival = bitbuffer_read32( bitbuffer, 32 );
 #endif
 	return conv.fval;
 }
@@ -174,7 +174,7 @@ float32_t bitbuffer_read_float32( bitbuffer_t* bitbuffer )
 
 uint32_t bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits )
 {
-	unsigned int ret;
+	uint32_t ret;
 	unsigned int curbits;
 
 	if( !bits )
@@ -190,7 +190,7 @@ uint32_t bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits )
 	if( bits < curbits )
 		curbits = bits;
 
-	ret = ( curbits == 32 ) ? bitbuffer->pending_read : ( ( bitbuffer->pending_read >> bitbuffer->offset_read ) & ( ( 1U << curbits ) - 1 ) );
+	ret = ( curbits == 32 ) ? bitbuffer->pending_read : ( ( bitbuffer->pending_read >> bitbuffer->offset_read ) & ( ( 1 << curbits ) - 1 ) );
 
 	bitbuffer->offset_read += curbits;
 	bitbuffer->count_read  += curbits;
@@ -203,7 +203,7 @@ uint32_t bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits )
 
 	_bitbuffer_get( bitbuffer );
 
-	ret |= ( bitbuffer->pending_read & ( ( 1U << ( bits - curbits ) ) - 1 ) ) << curbits;
+	ret |= ( bitbuffer->pending_read & ( ( 1 << ( bits - curbits ) ) - 1 ) ) << curbits;
 
 	bitbuffer->offset_read  = ( bits - curbits );
 	bitbuffer->count_read  += ( bits - curbits );
@@ -223,7 +223,7 @@ void bitbuffer_write128( bitbuffer_t* bitbuffer, uint128_t value, unsigned int b
 	if( bits > 128 )
 		bits = 128;
 
-	bitbuffer_write64( bitbuffer, value.word[0], 64U );
+	bitbuffer_write64( bitbuffer, value.word[0], 64 );
 	bitbuffer_write64( bitbuffer, value.word[1], bits - 64 );
 }
 
@@ -239,7 +239,7 @@ void bitbuffer_write64( bitbuffer_t* bitbuffer, uint64_t value, unsigned int bit
 	if( bits > 64 )
 		bits = 64;
 
-	bitbuffer_write32( bitbuffer, (uint32_t)value, 32U );
+	bitbuffer_write32( bitbuffer, (uint32_t)value, 32 );
 	bitbuffer_write32( bitbuffer, (uint32_t)( value >> 32ULL ), bits - 32 );
 }
 
@@ -251,7 +251,7 @@ void bitbuffer_write_float64( bitbuffer_t* bitbuffer, float64_t value )
 #else
 	float64_cast_t conv; conv.fval = value;
 #endif
-	bitbuffer_write64( bitbuffer, conv.uival, 64U );
+	bitbuffer_write64( bitbuffer, conv.uival, 64 );
 }
 
 
@@ -262,7 +262,7 @@ void bitbuffer_write_float32( bitbuffer_t* bitbuffer, float32_t value )
 #else
 	float32_cast_t conv; conv.fval = value;
 #endif
-	bitbuffer_write32( bitbuffer, conv.uival, 32U );
+	bitbuffer_write32( bitbuffer, conv.uival, 32 );
 }
 
 
@@ -293,7 +293,7 @@ void bitbuffer_write32( bitbuffer_t* bitbuffer, uint32_t value, unsigned int bit
 
 	FOUNDATION_ASSERT( bits && curbits );
 
-	bitbuffer->pending_write = ( value >> curbits ) & ( ( 1U << ( bits - curbits ) ) - 1 );
+	bitbuffer->pending_write = ( value >> curbits ) & ( ( 1 << ( bits - curbits ) ) - 1 );
 	bitbuffer->offset_write  = bits - curbits;
 }
 

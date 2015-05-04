@@ -15,11 +15,11 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-FOUNDATION_API bitbuffer_t*  bitbuffer_allocate_buffer( void* buffer, unsigned int size, bool swap );
+FOUNDATION_API bitbuffer_t*  bitbuffer_allocate_buffer( void* buffer, size_t size, bool swap );
 FOUNDATION_API bitbuffer_t*  bitbuffer_allocate_stream( stream_t* stream );
 FOUNDATION_API void          bitbuffer_deallocate( bitbuffer_t* bitbuffer );
 
-FOUNDATION_API void          bitbuffer_initialize_buffer( bitbuffer_t* bitbuffer, void* buffer, unsigned int size, bool swap );
+FOUNDATION_API void          bitbuffer_initialize_buffer( bitbuffer_t* bitbuffer, void* buffer, size_t size, bool swap );
 FOUNDATION_API void          bitbuffer_initialize_stream( bitbuffer_t* bitbuffer, stream_t* stream );
 FOUNDATION_API void          bitbuffer_finalize( bitbuffer_t* bitbuffer );
 

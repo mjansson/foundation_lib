@@ -16,20 +16,20 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API objectmap_t*         objectmap_allocate( unsigned int size );
-FOUNDATION_API void                 objectmap_deallocate( objectmap_t* map );
+FOUNDATION_API objectmap_t*     objectmap_allocate( int size );
+FOUNDATION_API void             objectmap_deallocate( objectmap_t* map );
 
-FOUNDATION_API void                 objectmap_initialize( objectmap_t* map, unsigned int size );
-FOUNDATION_API void                 objectmap_finalize( objectmap_t* map );
+FOUNDATION_API void             objectmap_initialize( objectmap_t* map, int size );
+FOUNDATION_API void             objectmap_finalize( objectmap_t* map );
 
-FOUNDATION_API unsigned int         objectmap_size( const objectmap_t* map );
-FOUNDATION_API object_t             objectmap_reserve( objectmap_t* map );
-FOUNDATION_API void                 objectmap_free( objectmap_t* map, object_t id );
-FOUNDATION_API void                 objectmap_set( objectmap_t* map, object_t id, void* object );
+FOUNDATION_API int              objectmap_size( const objectmap_t* map );
+FOUNDATION_API object_t         objectmap_reserve( objectmap_t* map );
+FOUNDATION_API void             objectmap_free( objectmap_t* map, object_t id );
+FOUNDATION_API void             objectmap_set( objectmap_t* map, object_t id, void* object );
 
-FOUNDATION_API void*                objectmap_raw_lookup( const objectmap_t* map, unsigned int index );
-FOUNDATION_API void*                objectmap_lookup_ref( const objectmap_t* map, object_t id );
-FOUNDATION_API bool                 objectmap_lookup_unref( const objectmap_t* map, object_t id, object_deallocate_fn deallocate );
+FOUNDATION_API void*            objectmap_raw_lookup( const objectmap_t* map, int index );
+FOUNDATION_API void*            objectmap_lookup_ref( const objectmap_t* map, object_t id );
+FOUNDATION_API bool             objectmap_lookup_unref( const objectmap_t* map, object_t id, object_deallocate_fn deallocate );
 
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void* objectmap_lookup( const objectmap_t* map, object_t id )
 {

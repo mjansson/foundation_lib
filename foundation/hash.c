@@ -172,7 +172,7 @@ hash_t hash( const void* key, int len )
 
 	((uint64_t*)out)[0] = h1;
 	((uint64_t*)out)[1] = h2;*/
-	return h1;
+	return (hash_t)h1;
 }
 
 
@@ -212,7 +212,7 @@ void _static_hash_store( const void* key, int len, hash_t value )
 	if( !_hash_lookup )
 		return;
 
-	stored = (char*)((uintptr_t)hashtable64_get( _hash_lookup, value ));
+	stored = (char*)((uintptr_t)hashtable64_get( _hash_lookup, (int64_t)value ));
 	if( stored )
 	{
 		FOUNDATION_ASSERT_MSG( string_equal_substr( stored, key, len ), "Static hash collision" );
@@ -224,7 +224,7 @@ void _static_hash_store( const void* key, int len, hash_t value )
 	memcpy( stored, key, len );
 	stored[len] = 0;
 
-	hashtable64_set( _hash_lookup, value, (uint64_t)(uintptr_t)stored );
+	hashtable64_set( _hash_lookup, value, (ptrdiff_t)stored );
 }
 
 

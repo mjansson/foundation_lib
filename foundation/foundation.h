@@ -29,6 +29,7 @@
 #include <foundation/process.h>
 #include <foundation/uuid.h>
 #include <foundation/log.h>
+#include <foundation/version.h>
 
 #include <foundation/hash.h>
 #include <foundation/hashstrings.h>

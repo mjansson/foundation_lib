@@ -81,10 +81,10 @@ static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
 
 typedef struct _log_timestamp
 {
-	unsigned int   hours;
-	unsigned int   minutes;
-	unsigned int   seconds;
-	unsigned int   milliseconds;
+	int   hours;
+	int   minutes;
+	int   seconds;
+	int   milliseconds;
 } log_timestamp_t;
 
 
@@ -92,9 +92,9 @@ static log_timestamp_t _log_make_timestamp( void )
 {
 	tick_t elapsed;
 	tick_t ticks_per_sec;
-	uint64_t milliseconds;
-	uint64_t seconds;
-	uint64_t minutes;
+	tick_t milliseconds;
+	tick_t seconds;
+	tick_t minutes;
 
 	log_timestamp_t timestamp;
 
@@ -106,14 +106,14 @@ static log_timestamp_t _log_make_timestamp( void )
 	}
 
 	elapsed = time_current() - time_startup();
-	milliseconds = ( ( elapsed % ticks_per_sec ) * 1000ULL ) / ticks_per_sec;
+	milliseconds = ( ( elapsed % ticks_per_sec ) * 1000LL ) / ticks_per_sec;
 	seconds = elapsed / ticks_per_sec;
-	minutes = seconds / 60ULL;
+	minutes = seconds / 60LL;
 
-	timestamp.milliseconds = (unsigned int)( milliseconds % 1000ULL );
-	timestamp.seconds = (unsigned int)( seconds % 60ULL );
-	timestamp.minutes = (unsigned int)( minutes % 60ULL );
-	timestamp.hours = (unsigned int)( minutes / 24ULL );
+	timestamp.milliseconds = ( milliseconds % 1000LL );
+	timestamp.seconds = ( seconds % 60LL );
+	timestamp.minutes = ( minutes % 60LL );
+	timestamp.hours = (int)( minutes / 24LL );
 
 	return timestamp;
 }
@@ -122,7 +122,7 @@ static log_timestamp_t _log_make_timestamp( void )
 
 #if BUILD_ENABLE_LOG
 
-static void _log_outputf( uint64_t context, int severity, const char* prefix, const char* format, va_list list, void* std )
+static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t context, int severity, const char* prefix, const char* format, va_list list, void* std )
 {
 	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
@@ -197,7 +197,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 #if BUILD_ENABLE_LOG && BUILD_ENABLE_DEBUG_LOG
 
 
-void log_debugf( uint64_t context, const char* format, ... )
+void log_debugf( hash_t context, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
@@ -213,7 +213,7 @@ void log_debugf( uint64_t context, const char* format, ... )
 #if BUILD_ENABLE_LOG
 
 
-void log_infof( uint64_t context, const char* format, ... )
+void log_infof( hash_t context, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
@@ -223,7 +223,7 @@ void log_infof( uint64_t context, const char* format, ... )
 }
 
 
-void log_warnf( uint64_t context, warning_t warn, const char* format, ... )
+void log_warnf( hash_t context, warning_t warn, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
@@ -244,7 +244,7 @@ void log_warnf( uint64_t context, warning_t warn, const char* format, ... )
 }
 
 
-void log_errorf( uint64_t context, error_t err, const char* format, ... )
+void log_errorf( hash_t context, error_t err, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
@@ -267,7 +267,7 @@ void log_errorf( uint64_t context, error_t err, const char* format, ... )
 }
 
 
-void log_panicf( uint64_t context, error_t err, const char* format, ... )
+void log_panicf( hash_t context, error_t err, const char* format, ... )
 {
 	char prefix[32];
 	va_list list;
@@ -287,7 +287,7 @@ void log_panicf( uint64_t context, error_t err, const char* format, ... )
 }
 
 
-static void _log_error_contextf( uint64_t context, error_level_t error_level, void* std, const char* format, ... )
+static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 5 ) _log_error_contextf( hash_t context, error_level_t error_level, void* std, const char* format, ... )
 {
 	va_list list;
 	va_start( list, format );
@@ -296,7 +296,7 @@ static void _log_error_contextf( uint64_t context, error_level_t error_level, vo
 }
 
 
-void log_error_context( uint64_t context, error_level_t error_level )
+void log_error_context( hash_t context, error_level_t error_level )
 {
 	int i;
 	error_context_t* err_context = error_context();
@@ -333,24 +333,24 @@ void log_enable_prefix( bool enable )
 }
 
 
-void log_set_suppress( uint64_t context, error_level_t level )
+void log_set_suppress( hash_t context, error_level_t level )
 {
 	if( !context )
 		_log_suppress_default = level;
 	else if( _log_suppress )
-		hashtable64_set( _log_suppress, context, (uint64_t)level + 1ULL );
+		hashtable64_set( _log_suppress, context, level + 1 );
 }
 
 
-error_level_t log_suppress( uint64_t context )
+error_level_t log_suppress( hash_t context )
 {
 	if( !context )
 		return _log_suppress_default;
 	else if( _log_suppress )
 	{
-		uint64_t level = hashtable64_get( _log_suppress, context );
+		int64_t level = hashtable64_get( _log_suppress, context );
 		if( level > 0 )
-			return (error_level_t)( level - 1ULL );
+			return (error_level_t)( level - 1 );
 	}
 	return _log_suppress_default;
 }

@@ -15,10 +15,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#if FOUNDATION_PLATFORM_WINDOWS
-#  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
-#endif
-
 
 #define ASSERT_BUFFER_SIZE             2048U
 #define ASSERT_STACKTRACE_MAX_DEPTH    128U
@@ -47,7 +43,7 @@ void assert_set_handler( assert_handler_fn new_handler )
 }
 
 
-int assert_report( uint64_t context, const char* condition, const char* file, int line, const char* msg )
+int assert_report( hash_t context, const char* condition, const char* file, unsigned int line, const char* msg )
 {
 	static const char nocondition[] = "<Static fail>";
 	static const char nofile[] = "<No file>";
@@ -82,7 +78,7 @@ int assert_report( uint64_t context, const char* condition, const char* file, in
 		string_copy( _assert_stacktrace_buffer, "<no stacktrace - not initialized>", ASSERT_BUFFER_SIZE );
 	}
 
-	snprintf( _assert_box_buffer, (size_t)ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg, _assert_stacktrace_buffer );
+	string_format_buffer( _assert_box_buffer, ASSERT_BUFFER_SIZE, assert_format, condition, file, line, _assert_context_buffer, msg, _assert_stacktrace_buffer );
 
 	log_errorf( context, ERROR_ASSERT, "%s", _assert_box_buffer );
 
@@ -95,14 +91,14 @@ int assert_report( uint64_t context, const char* condition, const char* file, in
 }
 
 
-int assert_report_formatted( uint64_t context, const char* condition, const char* file, int line, const char* msg, ... )
+int assert_report_formatted( hash_t context, const char* condition, const char* file, unsigned int line, const char* msg, ... )
 {
 	if( msg )
 	{
 		/*lint --e{438} Lint gets confused about assignment to ap */
 		va_list ap;
 		va_start( ap, msg );
-		vsnprintf( _assert_buffer, (size_t)ASSERT_BUFFER_SIZE, msg, ap );
+		string_vformat_buffer( _assert_buffer, ASSERT_BUFFER_SIZE, msg, ap );
 		va_end( ap );
 	}
 	else

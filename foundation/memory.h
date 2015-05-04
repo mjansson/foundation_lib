@@ -16,13 +16,13 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API void*             memory_allocate( uint64_t context, int64_t size, int align, int hint );
-FOUNDATION_API void*             memory_reallocate( void* p, int64_t size, int align, int64_t oldsize );
+FOUNDATION_API void*             memory_allocate( hash_t context, size_t size, unsigned int align, unsigned int hint );
+FOUNDATION_API void*             memory_reallocate( void* p, size_t size, unsigned int align, size_t oldsize );
 FOUNDATION_API void              memory_deallocate( void* p );
 
-FOUNDATION_API void              memory_context_push( uint64_t context );
+FOUNDATION_API void              memory_context_push( hash_t context );
 FOUNDATION_API void              memory_context_pop( void );
-FOUNDATION_API uint64_t          memory_context( void );
+FOUNDATION_API hash_t            memory_context( void );
 FOUNDATION_API void              memory_context_thread_deallocate( void );
 
 FOUNDATION_API void              memory_set_tracker( memory_tracker_t tracker );

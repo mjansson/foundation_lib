@@ -144,10 +144,10 @@ void md5_deallocate( md5_t* digest )
 void md5_initialize( md5_t* digest )
 {
 	digest->init = false;
-	digest->state[0] = 0x67452301;
-	digest->state[1] = 0xefcdab89;
-	digest->state[2] = 0x98badcfe;
-	digest->state[3] = 0x10325476;
+	digest->state[0] = 0x67452301U;
+	digest->state[1] = 0xefcdab89U;
+	digest->state[2] = 0x98badcfeU;
+	digest->state[3] = 0x10325476U;
 	digest->count[0] = 0;
 	digest->count[1] = 0;
 
@@ -167,10 +167,11 @@ md5_t* md5_digest( md5_t* digest, const char* msg )
 }
 
 
-md5_t* md5_digest_raw( md5_t* digest, const void* buffer, size_t size )
+md5_t* md5_digest_raw( md5_t* digest, const void* buffer, int size )
 {
-	uint64_t index_in, index_buf;
-	uint64_t space_buf;
+	int index_in, index_buf;
+	int space_buf;
+	uint32_t prev_count, add_count;
 
 	if( !digest )
 		digest = md5_allocate();
@@ -179,29 +180,30 @@ md5_t* md5_digest_raw( md5_t* digest, const void* buffer, size_t size )
 
 	index_buf = ( ( digest->count[0] >> 3 ) & 0x3F );
 
-	digest->count[0] += ( (uint32_t)size << 3 );
+	prev_count = digest->count[0];
+	add_count = (uint32_t)( size << 3 );
 
-	if( digest->count[0] < ( (uint32_t)size << 3 ) )
+	digest->count[0] += add_count;
+	digest->count[1] += ( size >> 29 );
+	if( digest->count[0] < prev_count )
 		++digest->count[1];
-
-	digest->count[1] += ( (uint32_t)size >> 29 );
 
 	space_buf = 64 - index_buf;
 
 	if( size >= space_buf )
 	{
-		memcpy( digest->buffer + index_buf, buffer, (size_t)space_buf );
+		memcpy( digest->buffer + index_buf, buffer, space_buf );
 		md5_transform( digest, digest->buffer );
 
 		for( index_in = space_buf; index_in + 63 < size; index_in += 64 )
-			md5_transform( digest, (const unsigned char*)buffer + index_in );
+			md5_transform( digest, pointer_offset_const( buffer, index_in ) );
 
 		index_buf = 0;
 	}
 	else
 		index_in = 0;
 
-	memcpy( digest->buffer + index_buf, (const char*)buffer + index_in, (size_t)( size - index_in ) );
+	memcpy( digest->buffer + index_buf, pointer_offset_const( buffer, index_in ), size - index_in );
 
 	return digest;
 }

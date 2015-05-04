@@ -26,7 +26,7 @@
 #endif
 
 
-static hashtable64_t* _stream_protocol_table;
+static hashtable_t* _stream_protocol_table;
 
 
 static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
@@ -58,7 +58,7 @@ static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
 
 int _stream_initialize( void )
 {
-	_stream_protocol_table = hashtable64_allocate( 32 );
+	_stream_protocol_table = hashtable_allocate( 32 );
 
 	stream_set_protocol_handler( "", fs_open_file );
 #if FOUNDATION_PLATFORM_ANDROID
@@ -74,20 +74,20 @@ int _stream_initialize( void )
 
 void _stream_shutdown( void )
 {
-	hashtable64_deallocate( _stream_protocol_table );
+	hashtable_deallocate( _stream_protocol_table );
 	_stream_protocol_table = 0;
 }
 
 
 void stream_set_protocol_handler( const char* protocol, stream_open_fn fn )
 {
-	hashtable64_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (uint64_t)(uintptr_t)fn );
+	hashtable_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (ptrdiff_t)fn );
 }
 
 
 stream_open_fn stream_protocol_handler( const char* protocol, unsigned int length )
 {
-	return (stream_open_fn)(uintptr_t)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
+	return (stream_open_fn)(uintptr_t)hashtable_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
 }
 
 
@@ -219,7 +219,7 @@ const char* stream_path( const stream_t* stream )
 }
 
 
-uint64_t stream_last_modified( const stream_t* stream )
+tick_t stream_last_modified( const stream_t* stream )
 {
 	FOUNDATION_ASSERT( stream );
 	return ( stream->vtable->lastmod ? stream->vtable->lastmod( stream ) : 0 );
@@ -244,7 +244,7 @@ int64_t stream_tell( stream_t* stream )
 }
 
 
-uint64_t stream_read( stream_t* stream, void* buffer, uint64_t num_bytes )
+int64_t stream_read( stream_t* stream, void* buffer, int64_t num_bytes )
 {
 	FOUNDATION_ASSERT( stream );
 	if( !( stream->mode & STREAM_IN ) )
@@ -255,7 +255,7 @@ uint64_t stream_read( stream_t* stream, void* buffer, uint64_t num_bytes )
 }
 
 
-uint64_t stream_read_line_buffer( stream_t* stream, char* dest, unsigned int count, char delimiter )
+int64_t stream_read_line_buffer( stream_t* stream, char* dest, unsigned int count, char delimiter )
 {
 	int i, read, total, limit;
 
@@ -373,18 +373,18 @@ char* stream_read_line( stream_t* stream, char delimiter )
 }
 
 
-uint64_t stream_size( stream_t* stream )
+int64_t stream_size( stream_t* stream )
 {
 	FOUNDATION_ASSERT( stream );
 	return ( stream->vtable->size ? stream->vtable->size( stream ) : 0 );
 }
 
 
-void stream_determine_binary_mode( stream_t* stream, unsigned int num )
+void stream_determine_binary_mode( stream_t* stream, int num )
 {
 	char* buf;
 	int64_t cur;
-	uint64_t actual_read, i;
+	int64_t actual_read, i;
 
 	FOUNDATION_ASSERT( stream );
 	if( !( stream->mode & STREAM_IN ) || stream_is_sequential( stream ) )

@@ -17,19 +17,19 @@
 #include <foundation/error.h>
 
 
-FOUNDATION_API void              log_debugf( uint64_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 2, 3);
-FOUNDATION_API void              log_infof( uint64_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 2, 3);
-FOUNDATION_API void              log_warnf( uint64_t context, warning_t warn, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 3, 4);
-FOUNDATION_API void              log_errorf( uint64_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 3, 4);
-FOUNDATION_API void              log_panicf( uint64_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4(format, printf, 3, 4);
+FOUNDATION_API void              log_debugf( hash_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 3 );
+FOUNDATION_API void              log_infof( hash_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 3 );
+FOUNDATION_API void              log_warnf( hash_t context, warning_t warn, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
+FOUNDATION_API void              log_errorf( hash_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
+FOUNDATION_API void              log_panicf( hash_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
 
-FOUNDATION_API void              log_error_context( uint64_t context, error_level_t error_level );
+FOUNDATION_API void              log_error_context( hash_t context, error_level_t error_level );
 FOUNDATION_API log_callback_fn   log_callback( void );
 FOUNDATION_API void              log_set_callback( log_callback_fn callback );
 FOUNDATION_API void              log_enable_stdout( bool enable );
 FOUNDATION_API void              log_enable_prefix( bool enable );
-FOUNDATION_API void              log_set_suppress( uint64_t context, error_level_t level );
-FOUNDATION_API error_level_t     log_suppress( uint64_t context );
+FOUNDATION_API void              log_set_suppress( hash_t context, error_level_t level );
+FOUNDATION_API error_level_t     log_suppress( hash_t context );
 FOUNDATION_API void              log_suppress_clear( void );
 
 

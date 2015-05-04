@@ -41,8 +41,8 @@ typedef FOUNDATION_ALIGN(8) struct
 	void*               end;
 	atomicptr_t         head;
 	void*               tail;
-	int64_t             size;
-	int64_t             maxchunk;
+	size_t              size;
+	size_t              maxchunk;
 } atomic_linear_memory_t;
 
 static atomic_linear_memory_t _memory_temporary;
@@ -50,14 +50,14 @@ static atomic_linear_memory_t _memory_temporary;
 
 #if BUILD_ENABLE_MEMORY_TRACKER
 static memory_tracker_t _memory_tracker;
-static void _memory_track( void* addr, uint64_t size );
+static void _memory_track( void* addr, size_t size );
 static void _memory_untrack( void* addr );
 #else
 #define _memory_track( addr, size ) do { (void)sizeof( (addr) ); (void)sizeof( (size) ); } while(0)
 #define _memory_untrack( addr ) do { (void)sizeof( (addr) ); } while(0)
 #endif
 
-
+// Max align must at least be sizeof( size_t )
 #if FOUNDATION_PLATFORM_ANDROID
 #  define FOUNDATION_MAX_ALIGN  8
 #else
@@ -65,7 +65,7 @@ static void _memory_untrack( void* addr );
 #endif
 
 
-static void _atomic_allocate_initialize( int64_t storagesize )
+static void _atomic_allocate_initialize( size_t storagesize )
 {
 	if( storagesize < 1024 )
 		storagesize = BUILD_SIZE_TEMPORARY_MEMORY;
@@ -85,7 +85,7 @@ static void _atomic_allocate_shutdown( void )
 }
 
 
-static void* _atomic_allocate_linear( int64_t chunksize )
+static void* _atomic_allocate_linear( size_t chunksize )
 {
 	void* old_head;
 	void* new_head;
@@ -109,7 +109,7 @@ static void* _atomic_allocate_linear( int64_t chunksize )
 }
 
 
-static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int _memory_get_align( int align )
+static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int unsigned _memory_get_align( unsigned int align )
 {
 	//All alignment in memory code is built around higher alignments
 	//being multiples of lower alignments (powers of two).
@@ -130,16 +130,25 @@ static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int _memory_get_align( int al
 }
 
 
-static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, int align )
+static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int unsigned _memory_get_align_forced( unsigned int align )
+{
+	align = _memory_get_align( align );
+	return align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER;
+}
+
+
+static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 {
 	uintptr_t address;
+	unsigned int mask;
 	if( !p || !align )
 		return p;
 
 	address = (uintptr_t)p;
-	if( address % align )
+	mask = align - 1;
+	if( address & mask )
 	{
-		address = address + ( align - ( address % align ) );
+		address = ( address & ~mask ) + align;
 		p = (void*)address;
 	}
 
@@ -159,7 +168,7 @@ void _memory_preallocate( void )
 	hash_t tracker;
 
 	if( !_memory_temporary.storage )
-		_atomic_allocate_initialize( config_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY ) );
+		_atomic_allocate_initialize( (size_t)config_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY ) );
 
 	tracker = config_string_hash( HASH_FOUNDATION, HASH_MEMORY_TRACKER );
 	if( tracker == HASH_LOCAL )
@@ -178,12 +187,12 @@ void _memory_shutdown( void )
 
 #if BUILD_ENABLE_MEMORY_GUARD
 
-static void* _memory_guard_initialize( void* memory, int64_t size )
+static void* _memory_guard_initialize( void* memory, size_t size )
 {
 	int guard_loop;
-	int32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_ALIGN );
-	int32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_ALIGN * 2 );
-	*(int64_t*)memory = size;
+	uint32_t* guard_header = pointer_offset( memory, FOUNDATION_MAX_ALIGN );
+	uint32_t* guard_footer = pointer_offset( memory, size + FOUNDATION_MAX_ALIGN * 2 );
+	*(size_t*)memory = size;
 	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
 	{
 		*guard_header++ = MEMORY_GUARD_VALUE;
@@ -196,7 +205,7 @@ static void* _memory_guard_initialize( void* memory, int64_t size )
 static void* _memory_guard_verify( void* memory )
 {
 	int guard_loop;
-	uint64_t  size = *(uint64_t*)pointer_offset( memory, -FOUNDATION_MAX_ALIGN * 2 );
+	size_t    size = *(size_t*)pointer_offset( memory, -FOUNDATION_MAX_ALIGN * 2 );
 	uint32_t* guard_header = pointer_offset( memory, -FOUNDATION_MAX_ALIGN );
 	uint32_t* guard_footer = pointer_offset( memory, size );
 	for( guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop )
@@ -214,28 +223,28 @@ static void* _memory_guard_verify( void* memory )
 #endif
 
 
-void* memory_allocate( uint64_t context, int64_t size, int align, int hint )
+void* memory_allocate( hash_t context, size_t size, unsigned int align, unsigned int hint )
 {
-	void* p;
-	if( ( hint & MEMORY_TEMPORARY ) && _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
+	void* p = 0;
+	if( hint & MEMORY_TEMPORARY )
 	{
-		align = _memory_get_align( align );
-		if( align < FOUNDATION_SIZE_POINTER )
-			align = FOUNDATION_SIZE_POINTER;
-		p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
-		FOUNDATION_ASSERT( !( (uintptr_t)p & 1 ) );
-		memset( p, 0, (size_t)size );
+		align = _memory_get_align_forced( align );
+		if( _memory_temporary.storage && ( size + align < _memory_temporary.maxchunk ) )
+		{
+			p = _memory_align_pointer( _atomic_allocate_linear( size + align ), align );
+			FOUNDATION_ASSERT( !( (uintptr_t)p & 1 ) );
+			if( hint & MEMORY_ZERO_INITIALIZED )
+				memset( p, 0, (size_t)size );
+		}
 	}
-	else
-	{
+	if( !p )
 		p = _memory_system.allocate( context ? context : memory_context(), size, align, hint );
-	}
 	_memory_track( p, size );
 	return p;
 }
 
 
-void* memory_reallocate( void* p, int64_t size, int align, int64_t oldsize )
+void* memory_reallocate( void* p, size_t size, unsigned int align, size_t oldsize )
 {
 	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p >= _memory_temporary.end ), "Trying to reallocate temporary memory" );
 	_memory_untrack( p );
@@ -258,7 +267,7 @@ void memory_deallocate( void* p )
 
 FOUNDATION_DECLARE_THREAD_LOCAL( memory_context_t*, memory_context, 0 )
 
-void memory_context_push( uint64_t context_id )
+void memory_context_push( hash_t context_id )
 {
 	memory_context_t* context = get_thread_memory_context();
 	if( !context )
@@ -284,7 +293,7 @@ void memory_context_pop( void )
 }
 
 
-uint64_t memory_context( void )
+hash_t memory_context( void )
 {
 	memory_context_t* context = get_thread_memory_context();
 	return ( context && ( context->depth > 0 ) ) ? context->context[ context->depth - 1 ] : 0;
@@ -311,7 +320,7 @@ static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
 #endif
 
 
-static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int hint )
+static void* _memory_allocate_malloc_raw( size_t size, unsigned int align, unsigned int hint )
 {
 	FOUNDATION_UNUSED( hint );
 
@@ -390,11 +399,11 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #  endif
 	{
 #if BUILD_ENABLE_MEMORY_GUARD
-		unsigned int extra_padding = FOUNDATION_MAX_ALIGN * 3;
+		size_t extra_padding = FOUNDATION_MAX_ALIGN * 3;
 #else
-		unsigned int extra_padding = 0;
+		size_t extra_padding = 0;
 #endif
-		size_t allocate_size = (size_t)size + align + FOUNDATION_SIZE_POINTER + extra_padding;
+		size_t allocate_size = size + align + FOUNDATION_SIZE_POINTER + extra_padding;
 		char* raw_memory = malloc( allocate_size );
 		if( raw_memory )
 		{
@@ -408,7 +417,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #endif
 			return memory;
 		}
-		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory (%llu requested)", (uint64_t)size, (uint64_t)allocate_size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %" PRIsize " bytes of memory (%" PRIsize " requested)", size, allocate_size );
 		return 0;
 	}
 
@@ -463,13 +472,13 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 #    endif
 	if( !raw_memory )
 	{
-		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory in low 32bit address space", (uint64_t)size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %" PRIsize " bytes of memory in low 32bit address space", size );
 		return 0;
 	}
 
 	memory = _memory_align_pointer( raw_memory + FOUNDATION_SIZE_POINTER*2, align );
 	*( (uintptr_t*)memory - 1 ) = ( (uintptr_t)raw_memory | 1 );
-	*( (uintptr_t*)memory - 2 ) = allocate_size;
+	*( (uintptr_t*)memory - 2 ) = (uintptr_t)allocate_size;
 	FOUNDATION_ASSERT( !( (uintptr_t)raw_memory & 1 ) );
 	FOUNDATION_ASSERT( !( (uintptr_t)memory & 1 ) );
 #    if BUILD_ENABLE_MEMORY_GUARD
@@ -485,7 +494,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 }
 
 
-static void* _memory_allocate_malloc( uint64_t context, int64_t size, int align, int hint )
+static void* _memory_allocate_malloc( hash_t context, size_t size, unsigned  int align, unsigned int hint )
 {
 	void* block;
 	FOUNDATION_UNUSED( context );
@@ -544,7 +553,7 @@ static void _memory_deallocate_malloc( void* p )
 }
 
 
-static void* _memory_reallocate_malloc( void* p, int64_t size, int align, int64_t oldsize )
+static void* _memory_reallocate_malloc( void* p, size_t size, unsigned  int align, size_t oldsize )
 {
 #if ( FOUNDATION_SIZE_POINTER == 4 ) && FOUNDATION_PLATFORM_WINDOWS
 	align = _memory_get_align( align );
@@ -566,7 +575,7 @@ static void* _memory_reallocate_malloc( void* p, int64_t size, int align, int64_
 #  endif
 #else
 	void* memory;
-	void* raw_p FOUNDATION_ATTRIBUTE(unused);
+	void* raw_p;
 
 	align = _memory_get_align( align );
 
@@ -581,11 +590,11 @@ static void* _memory_reallocate_malloc( void* p, int64_t size, int align, int64_
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( raw_p && !( (uintptr_t)raw_p & 1 ) )
 	{
-		unsigned int padding = ( align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER );
+		size_t padding = ( align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER );
 #  if BUILD_ENABLE_MEMORY_GUARD
-		unsigned int extra_padding = FOUNDATION_MAX_ALIGN * 3;
+		size_t extra_padding = FOUNDATION_MAX_ALIGN * 3;
 #  else
-		unsigned int extra_padding = 0;
+		size_t extra_padding = 0;
 #  endif
 		void* raw_memory = _aligned_realloc( raw_p, size + padding + extra_padding, align ? align : 8 );
 		if( raw_memory )
@@ -630,6 +639,9 @@ static void* _memory_reallocate_malloc( void* p, int64_t size, int align, int64_
 #endif
 	{
 #  if FOUNDATION_SIZE_POINTER == 4
+#    if !BUILD_ENABLE_LOG
+		FOUNDATION_UNUSED( raw_p );
+#    endif
 		memory = _memory_allocate_malloc_raw( size, align, 0U );
 #  else
 		memory = _memory_allocate_malloc_raw( size, align, ( raw_p && ( (uintptr_t)raw_p < 0xFFFFFFFFULL) ) ? MEMORY_32BIT_ADDRESS : 0U );
@@ -642,9 +654,8 @@ static void* _memory_reallocate_malloc( void* p, int64_t size, int align, int64_
 #endif
 
 	if( !memory )
-	{
-		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s (%" PRIfixPTR ", raw %" PRIfixPTR ")", system_error_message( 0 ), p, raw_p );
-	}
+		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s (%" PRIfixPTR ", raw %" PRIfixPTR ")", system_error_message( 0 ), (uintptr_t)p, (uintptr_t)raw_p );
+
 	return memory;
 #endif
 }
@@ -700,7 +711,7 @@ void memory_set_tracker( memory_tracker_t tracker )
 
 #if BUILD_ENABLE_MEMORY_TRACKER
 
-static void _memory_track( void* addr, uint64_t size )
+static void _memory_track( void* addr, size_t size )
 {
 	if( _memory_tracker.track )
 		_memory_tracker.track( addr, size );
@@ -719,7 +730,7 @@ static void _memory_untrack( void* addr )
 struct memory_tag_t
 {
 	atomicptr_t   address;
-	int64_t       size;
+	size_t        size;
 	void*         trace[14];
 };
 typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
@@ -756,9 +767,12 @@ static void _memory_tracker_shutdown( void )
 			memory_tag_t* tag = _memory_tags + it;
 			if( atomic_loadptr( &tag->address ) )
 			{
+#if BUILD_ENABLE_LOG
 				char* trace = stacktrace_resolve( tag->trace, 14, 0 );
-				log_warnf( HASH_MEMORY, WARNING_MEMORY, "Memory leak: %d bytes @ 0x%" PRIfixPTR " : tag %d\n%s", (unsigned int)tag->size, atomic_loadptr( &tag->address ), it, trace );
+				void* addr = atomic_loadptr( &tag->address );
+				log_warnf( HASH_MEMORY, WARNING_MEMORY, "Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%s", tag->size, (uintptr_t)addr, it, trace );
 				string_deallocate( trace );
+#endif
 				got_leaks = true;
 			}
 		}
@@ -770,7 +784,7 @@ static void _memory_tracker_shutdown( void )
 }
 
 
-static void _memory_tracker_track( void* addr, int64_t size )
+static void _memory_tracker_track( void* addr, size_t size )
 {
 	if( addr ) do
 	{
@@ -783,7 +797,7 @@ static void _memory_tracker_track( void* addr, int64_t size )
 		}
 		if( !atomic_loadptr( &_memory_tags[ tag ].address ) && atomic_cas_ptr( &_memory_tags[ tag ].address, addr, 0 ) )
 		{
-			_memory_tags[ tag ].size = (uintptr_t)size;
+			_memory_tags[ tag ].size = size;
 			stacktrace_capture( _memory_tags[ tag ].trace, 14, 3 );
 			hashtable_set( _memory_table, (uintptr_t)addr, (uintptr_t)( tag + 1 ) );
 			return;

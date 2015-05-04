@@ -18,7 +18,7 @@ static const char _base64_decode[] = "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFG
 static const char _base64_encode[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
-int base64_encode( const void* src, char* dst, int srcsize, int dstsize )
+size_t base64_encode( const void* src, char* dst, size_t srcsize, size_t dstsize )
 {
 	char* ptr;
 	const unsigned char* carr;
@@ -26,7 +26,7 @@ int base64_encode( const void* src, char* dst, int srcsize, int dstsize )
 
 	if( dstsize > 0 )
 	{
-		int maxsrcsize = ( ( dstsize - 1 ) / 4 ) * 3;
+		size_t maxsrcsize = ( ( dstsize - 1 ) / 4 ) * 3;
 		if( maxsrcsize < srcsize )
 			srcsize = maxsrcsize;
 	}
@@ -63,7 +63,7 @@ int base64_encode( const void* src, char* dst, int srcsize, int dstsize )
 
 	*ptr++ = 0;
 
-	return (int)pointer_diff( ptr, dst );
+	return (size_t)pointer_diff( ptr, dst );
 }
 
 
@@ -72,9 +72,9 @@ int base64_encode( const void* src, char* dst, int srcsize, int dstsize )
     out[ 1 ] = (char)( in[1] << 4 | in[2] >> 2 ); \
     out[ 2 ] = (char)( ( ( in[2] << 6 ) & 0xc0 ) | in[3] );
 
-int base64_decode( const char* src, void* dst, int srcsize, int dstsize )
+size_t base64_decode( const char* src, void* dst, size_t srcsize, size_t dstsize )
 {
-	int i, length, blocksize;
+	size_t i, length, blocksize;
 	char* cdst = (char*)dst;
 	char* cdstend = ( dstsize ? cdst + dstsize : 0 );
 	length = srcsize ? srcsize : string_length( src );
@@ -106,5 +106,5 @@ int base64_decode( const char* src, void* dst, int srcsize, int dstsize )
 		}
 	}
 
-	return (int)pointer_diff( cdst, dst );
+	return (size_t)pointer_diff( cdst, dst );
 }

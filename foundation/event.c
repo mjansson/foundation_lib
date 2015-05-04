@@ -20,7 +20,7 @@
 static atomic32_t _event_serial = {1};
 
 
-static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, int size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
+static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, int size, object_t object, const void* payload, uint16_t flags, tick_t timestamp )
 {
 	event_block_t* block;
 	event_t* event;
@@ -36,7 +36,8 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 		return;
 
 	//Events must be aligned to an even 8 bytes
-	basesize = sizeof( event_t ) + size;
+	basesize = sizeof( event_t );
+	basesize += size;
 	if( basesize % 8 )
 		basesize += 8 - ( basesize % 8 );
 	basesize &= 0xFFF8;
@@ -59,7 +60,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
 	{
-		uint32_t prev_capacity = block->capacity + 2ULL;
+		int prev_capacity = block->capacity + 2;
 		if( block->capacity < BUILD_SIZE_EVENT_BLOCK_CHUNK )
 		{
 			block->capacity <<= 1;
@@ -73,7 +74,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 		}
 		if( block->capacity % 16 )
 			block->capacity += 16 - ( basesize % 16 );
-		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16, prev_capacity ) : memory_allocate( 0, block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
+		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2, 16, prev_capacity ) : memory_allocate( 0, block->capacity + 2, 16, MEMORY_PERSISTENT );
 	}
 
 	event = pointer_offset( block->events, block->used );
@@ -90,7 +91,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 	if( timestamp )
 	{
 		event->flags |= EVENTFLAG_DELAY;
-		*(uint64_t*)pointer_offset( event, basesize ) = timestamp;
+		*(tick_t*)pointer_offset( event, basesize ) = timestamp;
 	}
 
 	//Terminate with null id on next event
@@ -105,14 +106,15 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 
 int event_payload_size( const event_t* event )
 {
-	int size = (int)event->size - sizeof( event_t );
+	int size = (int)event->size;
+	size -= sizeof( event_t );
 	if( event->flags & EVENTFLAG_DELAY )
 		size -= 8;
 	return size;
 }
 
 
-void event_post( event_stream_t* stream, uint16_t id, int size, uint64_t object, const void* payload, tick_t delivery )
+void event_post( event_stream_t* stream, uint16_t id, int size, object_t object, const void* payload, tick_t delivery )
 {
 	_event_post_delay_with_flags( stream, id, size, object, payload, 0, delivery );
 }
@@ -120,8 +122,8 @@ void event_post( event_stream_t* stream, uint16_t id, int size, uint64_t object,
 
 event_t* event_next( const event_block_t* block, event_t* event )
 {
-	uint64_t curtime = 0;
-	uint64_t eventtime;
+	tick_t curtime = 0;
+	tick_t eventtime;
 
 	do
 	{
@@ -136,7 +138,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 		if( !curtime )
 			curtime = time_current();
 
-		eventtime = *(uint64_t*)pointer_offset( event, event->size - 8 );
+		eventtime = *(tick_t*)pointer_offset( event, event->size - 8 );
 		if( eventtime <= curtime )
 			return event;
 
@@ -146,7 +148,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 }
 
 
-event_stream_t* event_stream_allocate( unsigned int size )
+event_stream_t* event_stream_allocate( int size )
 {
 	event_stream_t* stream = memory_allocate( 0, sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
 
@@ -156,7 +158,7 @@ event_stream_t* event_stream_allocate( unsigned int size )
 }
 
 
-void event_stream_initialize( event_stream_t* stream, unsigned int size )
+void event_stream_initialize( event_stream_t* stream, int size )
 {
 	atomic_store32( &stream->write, 0 );
 	stream->read = 1;
