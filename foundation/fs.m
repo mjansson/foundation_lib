@@ -28,7 +28,7 @@ void  _fs_event_stream_flush( void* stream );
 //Memory allocation mania should really be cleaned up
 
 
-static void _fs_node_make_path( char* target, const char* first, unsigned int firstlen, const char* second, unsigned int secondlen )
+static void _fs_node_make_path( char* target, const char* first, size_t firstlen, const char* second, size_t secondlen )
 {
 	memcpy( target, first, firstlen );
 	if( first[firstlen-1] != '/' )
@@ -45,7 +45,7 @@ struct file_node_t
 	char*          name;
 	file_node_t**  subdirs;
 	char**         files;
-	uint64_t*      last_modified;
+	tick_t*        last_modified;
 };
 
 
@@ -53,7 +53,7 @@ static void _fs_node_deallocate( file_node_t* node )
 {
 	string_deallocate( node->name );
 	string_array_deallocate( node->files );
-	for( int isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
+	for( size_t isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
 		_fs_node_deallocate( node->subdirs[isub] );
 	array_deallocate( node->subdirs );
 	array_deallocate( node->last_modified );
@@ -64,7 +64,7 @@ static void _fs_node_deallocate( file_node_t* node )
 static void _fs_node_populate( file_node_t* node, const char* fullpath )
 {
 	char** subdirs = fs_subdirs( fullpath );
-	for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
+	for( size_t isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 	{
 		file_node_t* child = memory_allocate( 0, sizeof( file_node_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		child->name = subdirs[isub];
@@ -73,16 +73,16 @@ static void _fs_node_populate( file_node_t* node, const char* fullpath )
 	array_deallocate( subdirs ); //Only array, strings are kept in nodes
 
 	node->files = fs_files( fullpath );
-	for( int isub = 0, subsize = array_size( node->files ); isub < subsize; ++isub )
+	for( size_t isub = 0, subsize = array_size( node->files ); isub < subsize; ++isub )
 	{
 		char* filepath = path_merge( fullpath, node->files[isub] );
-		uint64_t last_modified = fs_last_modified( filepath );
+		tick_t last_modified = fs_last_modified( filepath );
 		array_push( node->last_modified, last_modified );
 		//log_debugf( HASH_FOUNDATION, "  populate found file: %s (%llx)", filepath, last_modified );
 		string_deallocate( filepath );
 	}
 
-	for( int isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
+	for( size_t isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
 	{
 		char* subpath = path_merge( fullpath, node->subdirs[isub]->name );
 		_fs_node_populate( node->subdirs[isub], subpath );
@@ -93,7 +93,7 @@ static void _fs_node_populate( file_node_t* node, const char* fullpath )
 
 static file_node_t* _fs_node_find( file_node_t* root, const char* path )
 {
-	unsigned int pathlen = string_length( path );
+	size_t pathlen = string_length( path );
 	if( !pathlen || string_equal( path, "/" ) )
 		return root;
 
@@ -101,8 +101,8 @@ static file_node_t* _fs_node_find( file_node_t* root, const char* path )
 	do
 	{
 		file_node_t* next = 0;
-		unsigned int separator = string_find( path, '/', 0 );
-		for( int isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
+		size_t separator = string_find( path, '/', 0 );
+		for( size_t isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
 		{
 			if( string_equal_substr( node->subdirs[isub]->name, path, separator != STRING_NPOS ? separator : string_length( path ) ) )
 			{
@@ -120,18 +120,18 @@ static file_node_t* _fs_node_find( file_node_t* root, const char* path )
 }
 
 
-static void _fs_node_send_deletions( file_node_t* node, const char* path, unsigned int pathlen )
+static void _fs_node_send_deletions( file_node_t* node, const char* path, size_t pathlen )
 {
 	char pathbuf[FOUNDATION_MAX_PATHLEN+1];
 
-	for( int ifile = 0, fsize = array_size( node->files ); ifile < fsize; ++ifile )
+	for( size_t ifile = 0, fsize = array_size( node->files ); ifile < fsize; ++ifile )
 	{
 		_fs_node_make_path( pathbuf, path, pathlen, node->files[ifile], string_length( node->files[ifile] ) );
 		//log_infof( HASH_FOUNDATION, "    subdeleted %s", filepath );
 		fs_post_event( FOUNDATIONEVENT_FILE_DELETED, pathbuf, 0 );
 	}
 
-	for( int isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
+	for( size_t isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
 	{
 		_fs_node_make_path( pathbuf, path, pathlen, node->subdirs[isub]->name, string_length( node->subdirs[isub]->name ) );
 		_fs_node_send_deletions( node->subdirs[isub], pathbuf, string_length( pathbuf ) );
@@ -139,18 +139,18 @@ static void _fs_node_send_deletions( file_node_t* node, const char* path, unsign
 }
 
 
-static void _fs_node_send_creations( file_node_t* node, const char* path, unsigned int pathlen )
+static void _fs_node_send_creations( file_node_t* node, const char* path, size_t pathlen )
 {
 	char pathbuf[FOUNDATION_MAX_PATHLEN+1];
 
-	for( int ifile = 0, fsize = array_size( node->files ); ifile < fsize; ++ifile )
+	for( size_t ifile = 0, fsize = array_size( node->files ); ifile < fsize; ++ifile )
 	{
 		_fs_node_make_path( pathbuf, path, pathlen, node->files[ifile], string_length( node->files[ifile] ) );
 		//log_infof( HASH_FOUNDATION, "    subcreated %s", filepath );
 		fs_post_event( FOUNDATIONEVENT_FILE_CREATED, pathbuf, 0 );
 	}
 
-	for( int isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
+	for( size_t isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
 	{
 		_fs_node_make_path( pathbuf, path, pathlen, node->subdirs[isub]->name, string_length( node->subdirs[isub]->name ) );
 		_fs_node_send_creations( node->subdirs[isub], pathbuf, string_length( pathbuf ) );
@@ -161,7 +161,7 @@ static void _fs_node_send_creations( file_node_t* node, const char* path, unsign
 static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* user_data, size_t num_events, const char *const event_paths[], const FSEventStreamEventFlags event_flags[], const FSEventStreamEventId event_ids[] )
 {
 	file_node_t* root_node = user_data;
-	unsigned int root_path_len = string_length( root_node->name );
+	size_t root_path_len = string_length( root_node->name );
 	char pathbuf[FOUNDATION_MAX_PATHLEN+1];
 	FOUNDATION_UNUSED( stream_ref );
 
@@ -170,8 +170,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 		for( size_t i = 0; i < num_events; ++i )
 		{
 			const char* rawpath = event_paths[i];
-
-			unsigned int rawpath_len = string_length( rawpath );
+			size_t rawpath_len = string_length( rawpath );
 
 			FSEventStreamEventFlags flags = event_flags[i];
 			FSEventStreamEventId identifier = event_ids[i];
@@ -188,12 +187,12 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 				FOUNDATION_UNUSED( identifier );
 				//log_debugf( HASH_FOUNDATION, "Got event for: %s (0x%x 0x%x)", rawpath, (unsigned int)flags, (unsigned int)identifier );
 
-				unsigned int root_ofs = string_find_string( rawpath, root_node->name, 0 );
+				size_t root_ofs = string_find_string( rawpath, root_node->name, 0 );
 				if( root_ofs == STRING_NPOS )
 					continue;
 
 				const char* path = rawpath + root_ofs;
-				unsigned int path_len = rawpath_len - root_ofs;
+				size_t path_len = rawpath_len - root_ofs;
 
 				const char* subpath = path + root_path_len + 1;
 
@@ -204,13 +203,14 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 				char** files = fs_files( rawpath );
 
 				//Check if file have been added, removed or modified
-				for( int isub = 0, subsize = array_size( node->files ); isub < subsize; )
+				for( size_t isub = 0, subsize = array_size( node->files ); isub < subsize; )
 				{
-					int ifile;
+					ssize_t ifile;
 
 					_fs_node_make_path( pathbuf, path, path_len, node->files[isub], string_length( node->files[isub] ) );
 
-					if( ( ifile = string_array_find( (const char* const*)files, node->files[isub], array_size( files ) ) ) == -1 )
+					ifile = string_array_find( (const char* const*)files, node->files[isub], array_size( files ) );
+					if( ifile < 0 )
 					{
 						//log_debugf( HASH_FOUNDATION, "  deleted: %s", pathbuf );
 						string_deallocate( node->files[isub] );
@@ -221,7 +221,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					}
 					else
 					{
-						uint64_t last_modified = fs_last_modified( pathbuf );
+						tick_t last_modified = fs_last_modified( pathbuf );
 						if( last_modified > node->last_modified[isub] )
 						{
 							//log_debugf( HASH_FOUNDATION, "  modified: %s (%llx > %llx)", pathbuf, ifile, last_modified, node->last_modified[isub] );
@@ -231,13 +231,13 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 						++isub;
 					}
 				}
-				for( int isub = 0, subsize = array_size( files ); isub < subsize; ++isub )
+				for( size_t isub = 0, subsize = array_size( files ); isub < subsize; ++isub )
 				{
 					if( string_array_find( (const char* const*)node->files, files[isub], array_size( node->files ) ) == -1 )
 					{
 						_fs_node_make_path( pathbuf, path, path_len, files[isub], string_length( files[isub] ) );
 
-						uint64_t last_mod = fs_last_modified( pathbuf );
+						tick_t last_mod = fs_last_modified( pathbuf );
 
 						array_push( node->last_modified, last_mod );
 						array_push( node->files, files[isub] );
@@ -251,10 +251,10 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 
 				//Check for subdir additions/removals
 				char** subdirs = fs_subdirs( rawpath );
-				for( int iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; )
+				for( size_t iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; )
 				{
 					bool found = false;
-					for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
+					for( size_t isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 					{
 						if( string_equal( node->subdirs[iexist]->name, subdirs[isub] ) )
 						{
@@ -280,10 +280,10 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 					}
 				}
 
-				for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
+				for( size_t isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 				{
 					bool found = false;
-					for( int iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; ++iexist )
+					for( size_t iexist = 0, existsize = array_size( node->subdirs ); iexist < existsize; ++iexist )
 					{
 						if( string_equal( node->subdirs[iexist]->name, subdirs[isub] ) )
 						{

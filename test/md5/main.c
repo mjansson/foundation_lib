@@ -69,7 +69,7 @@ DECLARE_TEST( md5, empty )
 }
 
 
-const char* digest_test_string =
+static const char* digest_test_string =
 "tvqy0C9TO2MI7uyUqrQVcrmjDKDEcB3e7dpMbMpRv6uH0LWPjvNcNpjpkje9KYXhJjSA2TBybTqnOPhOOZ5aWnUdgOfLapbWSZInasn1SJlkytNFKkASDln0"
 "5zw39XL8McmojqPmn41Y6CRNwZbKo0PZofDpbAMr1uu8GJIocbEBFzsyKo62FlQh1pjm9jBeoEJIHLv4ixQn77l4M7zbRHgJDIVy0vvpNEzxFRyD3Z5OrJvr"
 "sUpwyXzcX3cYoezA2ob0ECsSk9lki8SDaCRpMxC1x0vKLCdKBHIV0IOgSZcMQCz11enNRDsCxuG45EsFQfiw2gmfcg7nI4tfEAW6DdExDWcpE3yDD2GaFs9S"
@@ -215,7 +215,7 @@ static void test_md5_declare( void )
 }
 
 
-test_suite_t test_md5_suite = {
+static test_suite_t test_md5_suite = {
 	test_md5_application,
 	test_md5_memory_system,
 	test_md5_declare,

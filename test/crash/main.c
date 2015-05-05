@@ -16,10 +16,10 @@
 
 static bool _crash_callback_called = false;
 
-static uint64_t handled_context;
+static hash_t handled_context;
 static char handled_condition[32];
 static char handled_file[32];
-static int handled_line;
+static unsigned int handled_line;
 static char handled_msg[32];
 #if BUILD_ENABLE_LOG
 static char handled_log[512];
@@ -68,7 +68,7 @@ static void test_crash_callback( const char* dump_path )
 }
 
 
-static int handle_assert( uint64_t context, const char* condition, const char* file, int line, const char* msg )
+static int handle_assert( hash_t context, const char* condition, const char* file, unsigned int line, const char* msg )
 {
 	handled_context = context;
 	string_copy( handled_condition, condition, 32 );
@@ -81,7 +81,7 @@ static int handle_assert( uint64_t context, const char* condition, const char* f
 
 #if BUILD_ENABLE_LOG
 
-static void handle_log( uint64_t context, int severity, const char* msg )
+static void handle_log( hash_t context, error_level_t severity, const char* msg )
 {
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
@@ -97,7 +97,6 @@ static int instant_crash( void* arg )
 {
 	FOUNDATION_UNUSED( arg );
 	crash_debug_break();
-	return 1;
 }
 
 
@@ -140,7 +139,7 @@ DECLARE_TEST( crash, assert_callback )
 
 	log_enable_stdout( false );
 	log_set_suppress( HASH_TEST, ERRORLEVEL_NONE );
-#if BUILD_ENABLE_LOG_DEBUG
+#if BUILD_ENABLE_DEBUG_LOG
 	log_debugf( HASH_TEST, "%s",
 #else
 	log_infof( HASH_TEST, "%s",
@@ -301,7 +300,7 @@ static void test_crash_declare( void )
 }
 
 
-test_suite_t test_crash_suite = {
+static test_suite_t test_crash_suite = {
 	test_crash_application,
 	test_crash_memory_system,
 	test_crash_declare,

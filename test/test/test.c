@@ -33,11 +33,10 @@ typedef struct
 	test_case_t**     cases;
 } test_group_t;
 
-test_group_t** _test_groups;
+static test_group_t** _test_groups;
+static bool           _test_failed;
 
-static bool _test_failed;
-
-test_suite_t test_suite;
+test_suite_t          test_suite;
 
 
 #if !BUILD_MONOLITHIC
@@ -60,7 +59,6 @@ static void* test_event_thread( object_t thread, void* arg )
 				case FOUNDATIONEVENT_TERMINATE:
 					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating test due to event" );
 					process_exit( -2 );
-					break;
 
 				default:
 					break;
@@ -228,9 +226,9 @@ void main_shutdown( void )
 #endif
 
 
-void test_wait_for_threads_startup( const object_t* threads, unsigned int num_threads )
+void test_wait_for_threads_startup( const object_t* threads, size_t num_threads )
 {
-	unsigned int i;
+	size_t i;
 	bool waiting = true;
 
 	while( waiting )
@@ -251,9 +249,9 @@ void test_wait_for_threads_startup( const object_t* threads, unsigned int num_th
 }
 
 
-void test_wait_for_threads_finish( const object_t* threads, unsigned int num_threads )
+void test_wait_for_threads_finish( const object_t* threads, size_t num_threads )
 {
-	unsigned int i;
+	size_t i;
 	bool waiting = true;
 
 	while( waiting )
@@ -274,9 +272,9 @@ void test_wait_for_threads_finish( const object_t* threads, unsigned int num_thr
 }
 
 
-void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threads )
+void test_wait_for_threads_exit( const object_t* threads, size_t num_threads )
 {
-	unsigned int i;
+	size_t i;
 	bool keep_waiting;
 	do
 	{

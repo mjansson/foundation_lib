@@ -21,7 +21,7 @@
     *        Match zero or more times (longest possible match)
     *?       Match zero or more times (shortest possible match)
     ?        Match zero or once
-    \\XX      Match byte with hex value 0xXX
+    \\XX      Match byte with hex value 0xXX (must be two hex digits)
     \\meta    Match one of the meta characters ^$()[].*+?|\
 </pre>
 

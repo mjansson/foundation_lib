@@ -101,11 +101,11 @@ TEST_API void  test_text_view_append( void* window, int tag, const char* msg );
 #define EXPECT_REALEQULPS( var, expect, ulps ) do { if( !math_realeq( (var), (expect), (ulps) ) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Test failed, %s != %s real (at %s:%u): %.6" PRIREAL " : %.6" PRIREAL, FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (real)((var)), (real)((expect)) ); RETURN_FAILED_TEST; } } while(0)
 
 //No inline to make sure compiler does not inline and reorder instructions
-TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_startup( const object_t* threads, unsigned int num_threads );
-TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_finish( const object_t* threads, unsigned int num_threads );
-TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_exit( const object_t* threads, unsigned int num_threads );
+TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_startup( const object_t* threads, size_t num_threads );
+TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_finish( const object_t* threads, size_t num_threads );
+TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_exit( const object_t* threads, size_t num_threads );
 
-TEST_API void FOUNDATION_NOINLINE test_crash_handler( const char* );
+TEST_API void FOUNDATION_NOINLINE test_crash_handler( const char* ) FOUNDATION_ATTRIBUTE( noreturn );
 
 typedef struct _test_suite
 {

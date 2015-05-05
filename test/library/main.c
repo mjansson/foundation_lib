@@ -109,7 +109,7 @@ static void test_library_declare( void )
 }
 
 
-test_suite_t test_library_suite = {
+static test_suite_t test_library_suite = {
 	test_library_application,
 	test_library_memory_system,
 	test_library_declare,

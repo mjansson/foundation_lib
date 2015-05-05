@@ -35,7 +35,7 @@ FOUNDATION_API void               error_set_callback( error_callback_fn callback
 FOUNDATION_API void                           _error_context_push( const char* name, const char* data );
 FOUNDATION_API void                           _error_context_pop( void );
 FOUNDATION_API void                           _error_context_clear( void );
-FOUNDATION_API void                           _error_context_buffer( char* buffer, int size );
+FOUNDATION_API void                           _error_context_buffer( char* buffer, size_t size );
 FOUNDATION_API error_context_t*               _error_context( void );
 FOUNDATION_API void                           _error_context_thread_deallocate( void );
 

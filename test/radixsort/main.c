@@ -430,7 +430,7 @@ static void test_radixsort_declare( void )
 }
 
 
-test_suite_t test_radixsort_suite = {
+static test_suite_t test_radixsort_suite = {
 	test_radixsort_application,
 	test_radixsort_memory_system,
 	test_radixsort_declare,

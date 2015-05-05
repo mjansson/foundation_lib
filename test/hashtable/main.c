@@ -148,14 +148,14 @@ DECLARE_TEST( hashtable, 32bit_threaded )
 {
 	object_t thread[32];
 	producer32_arg_t args[32];
-	int i, j;
-	int num_threads = 32;
+	unsigned int i, j;
+	size_t num_threads = 32;
 
 	hashtable32_t* table = hashtable32_allocate( 32 * 16789 + 65536 );
 
 	EXPECT_EQ( hashtable32_size( table ), 0 );
 
-	num_threads = math_clamp( system_hardware_threads() * 2, 4, 32 );
+	num_threads = math_clamp( system_hardware_threads() * 2U, 4U, 32U );
 	for( i = 0; i < num_threads; ++i )
 	{
 		args[i].table = table;
@@ -229,14 +229,14 @@ DECLARE_TEST( hashtable, 64bit_threaded )
 {
 	object_t thread[32];
 	producer64_arg_t args[32];
-	int i, j;
-	int num_threads = 0;
+	unsigned int i, j;
+	size_t num_threads = 0;
 
 	hashtable64_t* table = hashtable64_allocate( 32 * 16789 + 65536 );
 
 	EXPECT_EQ( hashtable64_size( table ), 0 );
 
-	num_threads = math_clamp( system_hardware_threads() * 2, 4, 32 );
+	num_threads = math_clamp( system_hardware_threads() * 2U, 4U, 32U );
 	for( i = 0; i < num_threads; ++i )
 	{
 		args[i].table = table;
@@ -281,7 +281,7 @@ static void test_hashtable_declare( void )
 }
 
 
-test_suite_t test_hashtable_suite = {
+static test_suite_t test_hashtable_suite = {
 	test_hashtable_application,
 	test_hashtable_memory_system,
 	test_hashtable_declare,

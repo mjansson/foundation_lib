@@ -73,7 +73,7 @@ uuid_t uuid_generate_time( void )
 {
 	uuid_time_t time_uuid;
 	uuid_convert_t convert;
-	int64_t current_time;
+	tick_t current_time;
 	int32_t current_counter;
 	tick_t current_tick;
 	int in = 0;
@@ -84,14 +84,14 @@ uuid_t uuid_generate_time( void )
 	current_time = time_system();
 	current_counter = atomic_incr32( &_uuid_last_counter ) % 10000;
 
-	current_tick = ( (tick_t)current_time * 10000ULL ) + current_counter + 0x01B21DD213814000ULL; //Convert to 100ns since UUID UTC base time, October 15 1582, and add counter
+	current_tick = ( current_time * 10000LL ) + current_counter + 0x01B21DD213814000LL; //Convert to 100ns since UUID UTC base time, October 15 1582, and add counter
 
 	//We have no state so clock sequence is random
 	clock_seq = random32();
 
-	time_uuid.time_low = (uint32_t)( current_tick & 0xFFFFFFFFULL );
-	time_uuid.time_mid = (uint16_t)( ( current_tick >> 32ULL ) & 0xFFFFULL );
-	time_uuid.time_hi_and_version = (uint16_t)( current_tick >> 48ULL );
+	time_uuid.time_low = (uint32_t)( current_tick & 0xFFFFFFFFLL );
+	time_uuid.time_mid = (uint16_t)( ( current_tick >> 32LL ) & 0xFFFFLL );
+	time_uuid.time_hi_and_version = (uint16_t)( ( current_tick >> 48LL ) & 0xFFFFLL );
 	time_uuid.clock_seq_low = ( clock_seq & 0xFF );
 	time_uuid.clock_seq_hi_and_reserved = ( ( clock_seq & 0x3F00 ) >> 8 );
 
@@ -100,7 +100,7 @@ uuid_t uuid_generate_time( void )
 	if( host_id )
 	{
 		for( in = 0; in < 6; ++in )
-			time_uuid.node[5-in] = (uint8_t)( ( host_id >> ( 8ULL * in ) ) & 0xFF );
+			time_uuid.node[5-in] = (uint8_t)( ( host_id >> ( 8LL * in ) ) & 0xFF );
 	}
 	else
 	{
@@ -163,11 +163,24 @@ uuid_t uuid_generate_name( const uuid_t ns, const char* name )
 
 #include <stdio.h>
 
-char* string_from_uuid_buffer( char* buffer, const uuid_t val )
+char* string_from_uuid_buffer( char* buffer, size_t size, const uuid_t val )
 {
+	int len;
 	uuid_convert_t convert;
 	convert.uuid = val;
-	/*unsigned int len = (unsigned int)*/sprintf( buffer, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
+	len = snprintf( buffer, size, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
+	if( len < 0 )
+	{
+		if( size )
+			buffer[0] = 0;
+		return buffer;
+	}
+	if( (size_t)len > size )
+	{
+		if( size )
+			buffer[size-1] = 0;
+		return buffer;
+	}
 	return buffer;
 }
 
@@ -179,15 +192,15 @@ uuid_t string_to_uuid( const char* str )
 	memset( data, 0, sizeof( data ) );
 	convert.raw.data1 = 0;
 	sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9] );
-	convert.raw.data2 = data[0];
-	convert.raw.data3 = data[1];
-	convert.raw.data4[0] = data[2];
-	convert.raw.data4[1] = data[3];
-	convert.raw.data4[2] = data[4];
-	convert.raw.data4[3] = data[5];
-	convert.raw.data4[4] = data[6];
-	convert.raw.data4[5] = data[7];
-	convert.raw.data4[6] = data[8];
-	convert.raw.data4[7] = data[9];
+	convert.raw.data2 = (uint16_t)data[0];
+	convert.raw.data3 = (uint16_t)data[1];
+	convert.raw.data4[0] = (uint8_t)data[2];
+	convert.raw.data4[1] = (uint8_t)data[3];
+	convert.raw.data4[2] = (uint8_t)data[4];
+	convert.raw.data4[3] = (uint8_t)data[5];
+	convert.raw.data4[4] = (uint8_t)data[6];
+	convert.raw.data4[5] = (uint8_t)data[7];
+	convert.raw.data4[6] = (uint8_t)data[8];
+	convert.raw.data4[7] = (uint8_t)data[9];
 	return convert.uuid;
 }

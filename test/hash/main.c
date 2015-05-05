@@ -59,15 +59,15 @@ DECLARE_TEST( hash, known )
 DECLARE_TEST( hash, stability )
 {
 	//TODO: Implement a proper test instead of this crap
-	int i, j, k, len;
+	size_t i, j, k, len;
 	hash_t lhash, rhash, rhashref;
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-	int mult = 200;
-	int passes = 64;
+	size_t mult = 200;
+	size_t passes = 64;
 #else
-	int mult = 1000;
-	int passes = 128;
+	size_t mult = 1000;
+	size_t passes = 128;
 #endif
 
 	for( i = 0; i < passes; ++i )
@@ -105,7 +105,7 @@ DECLARE_TEST( hash, stability )
 		rhs[0] = 'f'; rhs[1] = 'n'; rhs[2] = 'd'; rhs[3] = '_';
 
 		for( k = 4; k < len; ++k )
-			lhs[k] = random32_range( 32, 128 );
+			lhs[k] = (char)random32_range( 32, 128 );
 		lhs[len] = 0;
 
 		lhash = hash( lhs, len );
@@ -114,7 +114,7 @@ DECLARE_TEST( hash, stability )
 		for( j = 0; j < 128 * mult; ++j )
 		{
 			for( k = 4; k < len; ++k )
-				rhs[k] = random32_range( 32, 128 );
+				rhs[k] = (char)random32_range( 32, 128 );
 			rhs[len] = 0;
 
 			rhashref = hash( rhs, len );
@@ -137,7 +137,7 @@ static void test_hash_declare( void )
 }
 
 
-test_suite_t test_hash_suite = {
+static test_suite_t test_hash_suite = {
 	test_hash_application,
 	test_hash_memory_system,
 	test_hash_declare,

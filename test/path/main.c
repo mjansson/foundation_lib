@@ -575,7 +575,7 @@ static void test_path_declare( void )
 }
 
 
-test_suite_t test_path_suite = {
+static test_suite_t test_path_suite = {
 	test_path_application,
 	test_path_memory_system,
 	test_path_declare,

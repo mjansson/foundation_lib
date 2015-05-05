@@ -16,12 +16,12 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API void profile_initialize( const char* identifier, void* buffer, uint64_t size );
+FOUNDATION_API void profile_initialize( const char* identifier, void* buffer, size_t size );
 FOUNDATION_API void profile_shutdown( void );
 FOUNDATION_API void profile_enable( bool enable );
 
 FOUNDATION_API void profile_set_output( profile_write_fn writer );
-FOUNDATION_API void profile_set_output_wait( int ms );
+FOUNDATION_API void profile_set_output_wait( unsigned int ms );
 
 FOUNDATION_API void profile_end_frame( uint64_t counter );
 FOUNDATION_API void profile_begin_block( const char* message );

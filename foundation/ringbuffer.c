@@ -19,7 +19,7 @@
 static stream_vtable_t _ringbuffer_stream_vtable;
 
 
-ringbuffer_t* ringbuffer_allocate( int64_t size )
+ringbuffer_t* ringbuffer_allocate( size_t size )
 {
 	ringbuffer_t* buffer = memory_allocate( 0, sizeof( ringbuffer_t ) + size, 0, MEMORY_PERSISTENT );
 
@@ -29,7 +29,7 @@ ringbuffer_t* ringbuffer_allocate( int64_t size )
 }
 
 
-void ringbuffer_initialize( ringbuffer_t* buffer, int64_t size )
+void ringbuffer_initialize( ringbuffer_t* buffer, size_t size )
 {
 	buffer->total_read = 0;
 	buffer->total_write = 0;
@@ -52,7 +52,7 @@ void ringbuffer_finalize( ringbuffer_t* buffer )
 }
 
 
-int64_t ringbuffer_size( ringbuffer_t* buffer )
+size_t ringbuffer_size( ringbuffer_t* buffer )
 {
 	FOUNDATION_ASSERT( buffer );
 	return buffer->buffer_size;
@@ -69,13 +69,13 @@ void ringbuffer_reset( ringbuffer_t* buffer )
 }
 
 
-int64_t ringbuffer_read( ringbuffer_t* buffer, void* dest, int64_t num )
+size_t ringbuffer_read( ringbuffer_t* buffer, void* dest, size_t num )
 {
-	int64_t do_read;
-	int64_t max_read;
-	int64_t buffer_size;
-	int64_t offset_read;
-	int64_t offset_write;
+	size_t do_read;
+	size_t max_read;
+	size_t buffer_size;
+	size_t offset_read;
+	size_t offset_write;
 
 	FOUNDATION_ASSERT( buffer );
 
@@ -112,13 +112,13 @@ int64_t ringbuffer_read( ringbuffer_t* buffer, void* dest, int64_t num )
 }
 
 
-int64_t ringbuffer_write( ringbuffer_t* buffer, const void* source, int64_t num )
+size_t ringbuffer_write( ringbuffer_t* buffer, const void* source, size_t num )
 {
-	int64_t do_write;
-	int64_t max_write;
-	int64_t buffer_size;
-	int64_t offset_read;
-	int64_t offset_write;
+	size_t do_write;
+	size_t max_write;
+	size_t buffer_size;
+	size_t offset_read;
+	size_t offset_write;
 
 	FOUNDATION_ASSERT( buffer );
 
@@ -162,14 +162,14 @@ int64_t ringbuffer_write( ringbuffer_t* buffer, const void* source, int64_t num 
 }
 
 
-int64_t ringbuffer_total_read( ringbuffer_t* buffer )
+uint64_t ringbuffer_total_read( ringbuffer_t* buffer )
 {
 	FOUNDATION_ASSERT( buffer );
 	return buffer->total_read;
 }
 
 
-int64_t ringbuffer_total_written( ringbuffer_t* buffer )
+uint64_t ringbuffer_total_written( ringbuffer_t* buffer )
 {
 	FOUNDATION_ASSERT( buffer );
 	return buffer->total_write;
@@ -177,12 +177,12 @@ int64_t ringbuffer_total_written( ringbuffer_t* buffer )
 
 
 
-static int64_t _ringbuffer_stream_read( stream_t* stream, void* dest, int64_t num )
+static size_t _ringbuffer_stream_read( stream_t* stream, void* dest, size_t num )
 {
 	stream_ringbuffer_t* rbstream = (stream_ringbuffer_t*)stream;
 	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM( rbstream );
 
-	int64_t num_read = ringbuffer_read( buffer, dest, num );
+	size_t num_read = ringbuffer_read( buffer, dest, num );
 
 	while( num_read < num )
 	{
@@ -204,12 +204,12 @@ static int64_t _ringbuffer_stream_read( stream_t* stream, void* dest, int64_t nu
 }
 
 
-static int64_t _ringbuffer_stream_write( stream_t* stream, const void* source, int64_t num )
+static size_t _ringbuffer_stream_write( stream_t* stream, const void* source, size_t num )
 {
 	stream_ringbuffer_t* rbstream = (stream_ringbuffer_t*)stream;
 	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM( rbstream );
 
-	int64_t num_write = ringbuffer_write( buffer, source, num );
+	size_t num_write = ringbuffer_write( buffer, source, num );
 
 	while( num_write < num )
 	{
@@ -244,20 +244,20 @@ static void _ringbuffer_stream_flush( stream_t* stream )
 }
 
 
-static void _ringbuffer_stream_truncate( stream_t* stream, int64_t size )
+static void _ringbuffer_stream_truncate( stream_t* stream, size_t size )
 {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
-	buffer->total_size = (unsigned int)size;
+	buffer->total_size = size;
 }
 
 
-static int64_t _ringbuffer_stream_size( stream_t* stream )
+static size_t _ringbuffer_stream_size( stream_t* stream )
 {
 	return ((stream_ringbuffer_t*)stream)->total_size;
 }
 
 
-static void _ringbuffer_stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
+static void _ringbuffer_stream_seek( stream_t* stream, ssize_t offset, stream_seek_mode_t direction )
 {
 	if( ( direction != STREAM_SEEK_CURRENT ) || ( offset < 0 ) )
 	{
@@ -265,32 +265,32 @@ static void _ringbuffer_stream_seek( stream_t* stream, int64_t offset, stream_se
 		return;
 	}
 
-	_ringbuffer_stream_read( stream, 0, offset );
+	_ringbuffer_stream_read( stream, 0, (size_t)offset );
 }
 
 
-static int64_t _ringbuffer_stream_tell( stream_t* stream )
+static size_t _ringbuffer_stream_tell( stream_t* stream )
 {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	return buffer->total_read;
 }
 
 
-static int64_t _ringbuffer_stream_lastmod( const stream_t* stream )
+static tick_t _ringbuffer_stream_lastmod( const stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 
 
-static int64_t _ringbuffer_stream_available_read( stream_t* stream )
+static size_t _ringbuffer_stream_available_read( stream_t* stream )
 {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	return buffer->total_write - buffer->total_read;
 }
 
 
-stream_t* ringbuffer_stream_allocate( int64_t buffer_size, int64_t total_size )
+stream_t* ringbuffer_stream_allocate( size_t buffer_size, size_t total_size )
 {
 	stream_ringbuffer_t* bufferstream = memory_allocate( 0, sizeof( stream_ringbuffer_t ) + buffer_size, 0, MEMORY_PERSISTENT );
 
@@ -300,7 +300,7 @@ stream_t* ringbuffer_stream_allocate( int64_t buffer_size, int64_t total_size )
 }
 
 
-void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, int64_t buffer_size, int64_t total_size )
+void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, size_t buffer_size, size_t total_size )
 {
 	memset( stream, 0, sizeof( stream_ringbuffer_t ) );
 
@@ -308,7 +308,7 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, int64_t buffer_s
 
 	stream->type = STREAMTYPE_RINGBUFFER;
 	stream->sequential = 1;
-	stream->path = string_format( "ringbuffer://0x%" PRIfixPTR, stream );
+	stream->path = string_format( "ringbuffer://0x%" PRIfixPTR, (uintptr_t)stream );
 	stream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 
 	ringbuffer_initialize( RINGBUFFER_FROM_STREAM( stream ), buffer_size );

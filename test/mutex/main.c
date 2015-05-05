@@ -90,12 +90,12 @@ DECLARE_TEST( mutex, basic )
 }
 
 
-unsigned int thread_counter = 0;
+static size_t thread_counter;
 
 static void* mutex_thread( object_t thread, void* arg )
 {
 	mutex_t* mutex = arg;
-	int i;
+	size_t i;
 	FOUNDATION_UNUSED( thread );
 	FOUNDATION_UNUSED( arg );
 
@@ -117,7 +117,7 @@ DECLARE_TEST( mutex, sync )
 {
 	mutex_t* mutex;
 	object_t thread[32];
-	int ith;
+	size_t ith;
 
 	mutex = mutex_allocate( "test" );
 	mutex_lock( mutex );
@@ -148,8 +148,8 @@ DECLARE_TEST( mutex, sync )
 }
 
 
-atomic32_t thread_waiting = {0};
-atomic32_t thread_waited = {0};
+static atomic32_t thread_waiting;
+static atomic32_t thread_waited;
 
 
 static void* thread_wait( object_t thread, void* arg )
@@ -178,7 +178,7 @@ DECLARE_TEST( mutex, signal )
 {
 	mutex_t* mutex;
 	object_t thread[32];
-	int ith;
+	size_t ith;
 
 	mutex = mutex_allocate( "test" );
 	mutex_lock( mutex );
@@ -225,7 +225,7 @@ static void test_mutex_declare( void )
 }
 
 
-test_suite_t test_mutex_suite = {
+static test_suite_t test_mutex_suite = {
 	test_mutex_application,
 	test_mutex_memory_system,
 	test_mutex_declare,

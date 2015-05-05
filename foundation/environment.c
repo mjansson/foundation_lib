@@ -64,7 +64,7 @@ void _environment_main_args( int argc, const char* const* argv )
 
 static void _environment_set_executable_paths( const char* executable_path )
 {
-	int last_path = string_rfind( executable_path, '/', STRING_NPOS );
+	size_t last_path = string_rfind( executable_path, '/', STRING_NPOS );
 	if( last_path != STRING_NPOS )
 	{
 		if( !string_length( _environment_executable_dir ) )
@@ -491,7 +491,7 @@ const char* environment_temporary_directory( void )
 	if( !_environment_temp_dir[0] )
 	{
 		string_copy( _environment_temp_dir, P_tmpdir, FOUNDATION_MAX_PATHLEN );
-		int len = string_length( _environment_temp_dir );
+		size_t len = string_length( _environment_temp_dir );
 		if( ( len > 1 ) && ( _environment_temp_dir[ len - 1 ] == '/' ) )
 			_environment_temp_dir[ len - 1 ] = 0;
 	}
@@ -499,9 +499,9 @@ const char* environment_temporary_directory( void )
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	if( _environment_app.config_dir )
 	{
-		int curlen = string_length( _environment_temp_dir );
-		int cfglen = string_length( _environment_app.config_dir );
-		if( ( curlen + cfglen + 39 ) < FOUNDATION_MAX_PATHLEN )
+		size_t curlen = string_length( _environment_temp_dir );
+		size_t cfglen = string_length( _environment_app.config_dir );
+		if( ( curlen < FOUNDATION_MAX_PATHLEN ) && ( cfglen < FOUNDATION_MAX_PATHLEN ) && ( ( curlen + cfglen + 39 ) < FOUNDATION_MAX_PATHLEN ) )
 		{
 			if( _environment_temp_dir[curlen-1] != '/' )
 				_environment_temp_dir[curlen++] = '/';
@@ -513,7 +513,7 @@ const char* environment_temporary_directory( void )
 	}
 #endif
 	{
-		int curlen = string_length( _environment_temp_dir );
+		size_t curlen = string_length( _environment_temp_dir );
 		if( _environment_temp_dir[curlen-1] == '/' )
 			_environment_temp_dir[curlen-1] = 0;
 	}

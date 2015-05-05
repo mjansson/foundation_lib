@@ -75,15 +75,6 @@ typedef enum
 
 typedef enum
 {
-	MEMORY_PERSISTENT          = 0x0000,
-	MEMORY_TEMPORARY           = 0x0001,
-	MEMORY_THREAD              = 0x0002,
-	MEMORY_32BIT_ADDRESS       = 0x0004,
-	MEMORY_ZERO_INITIALIZED    = 0x0008
-} memory_hint_t;
-
-typedef enum
-{
 	PLATFORM_WINDOWS   = 0,
 	PLATFORM_LINUX,
 	PLATFORM_MACOSX,
@@ -116,25 +107,8 @@ typedef enum
 typedef enum
 {
 	BYTEORDER_LITTLEENDIAN = 0,
-	BYTEORDER_BIGENDIAN    = 1
+	BYTEORDER_BIGENDIAN
 } byteorder_t;
-
-typedef enum
-{
-	APPLICATION_UTILITY        = 0x0001,
-	APPLICATION_DAEMON         = 0x0002
-} application_flag_t;
-
-typedef enum
-{
-	STREAM_IN                  = 0x0001,
-	STREAM_OUT                 = 0x0002,
-	STREAM_TRUNCATE            = 0x0010,
-	STREAM_CREATE              = 0x0020,
-	STREAM_ATEND               = 0x0040,
-	STREAM_BINARY              = 0x0100,
-	STREAM_SYNC                = 0x0200
-} stream_mode_t;
 
 typedef enum
 {
@@ -151,9 +125,9 @@ typedef enum
 
 typedef enum
 {
-	STREAM_SEEK_BEGIN          = 0x0000,
-	STREAM_SEEK_CURRENT        = 0x0001,
-	STREAM_SEEK_END            = 0x0002
+	STREAM_SEEK_BEGIN,
+	STREAM_SEEK_CURRENT,
+	STREAM_SEEK_END
 } stream_seek_mode_t;
 
 typedef enum
@@ -165,25 +139,6 @@ typedef enum
 	THREAD_PRIORITY_HIGHEST,
 	THREAD_PRIORITY_TIMECRITICAL
 } thread_priority_t;
-
-typedef enum
-{
-	PROCESS_ATTACHED                          = 0,
-	PROCESS_DETACHED                          = 0x01,
-	PROCESS_CONSOLE                           = 0x02,
-	PROCESS_STDSTREAMS                        = 0x04,
-	PROCESS_WINDOWS_USE_SHELLEXECUTE          = 0x08,
-	PROCESS_MACOSX_USE_OPENAPPLICATION        = 0x10
-} process_flag_t;
-
-typedef enum
-{
-	PROCESS_INVALID_ARGS                      = 0x7FFFFFF0,
-	PROCESS_TERMINATED_SIGNAL                 = 0x7FFFFFF1,
-	PROCESS_WAIT_INTERRUPTED                  = 0x7FFFFFF2,
-	PROCESS_WAIT_FAILED                       = 0x7FFFFFF3,
-	PROCESS_STILL_ACTIVE                      = 0x7FFFFFFF
-} process_status_t;
 
 typedef enum
 {
@@ -202,16 +157,11 @@ typedef enum
 
 typedef enum
 {
-	EVENTFLAG_DELAY  = 1
-} event_flag_t;
-
-typedef enum
-{
-	BLOWFISH_ECB = 0,
-	BLOWFISH_CBC,
-	BLOWFISH_CFB,
-	BLOWFISH_OFB
-} blowfish_mode_t;
+	BLOCKCIPHER_ECB = 0,
+	BLOCKCIPHER_CBC,
+	BLOCKCIPHER_CFB,
+	BLOCKCIPHER_OFB
+} blockcipher_mode_t;
 
 typedef enum
 {
@@ -233,6 +183,38 @@ typedef enum
 	DEVICEORIENTATION_FACEUP,
 	DEVICEORIENTATION_FACEDOWN
 } device_orientation_t;
+
+#define MEMORY_PERSISTENT          0
+#define MEMORY_TEMPORARY           (1U<<0)
+#define MEMORY_THREAD              (1U<<1)
+#define MEMORY_32BIT_ADDRESS       (1U<<2)
+#define MEMORY_ZERO_INITIALIZED    (1U<<3)
+
+#define EVENTFLAG_DELAY            (1U<<0)
+
+#define APPLICATION_UTILITY        (1U<<0)
+#define APPLICATION_DAEMON         (1U<<1)
+
+#define STREAM_IN                  (1U<<0)
+#define STREAM_OUT                 (1U<<1)
+#define STREAM_TRUNCATE            (1U<<2)
+#define STREAM_CREATE              (1U<<3)
+#define STREAM_ATEND               (1U<<4)
+#define STREAM_BINARY              (1U<<5)
+#define STREAM_SYNC                (1U<<6)
+
+#define PROCESS_ATTACHED                      0
+#define PROCESS_DETACHED                      (1U<<0)
+#define PROCESS_CONSOLE                       (1U<<1)
+#define PROCESS_STDSTREAMS                    (1U<<2)
+#define PROCESS_WINDOWS_USE_SHELLEXECUTE      (1U<<3)
+#define PROCESS_MACOSX_USE_OPENAPPLICATION    (1U<<4)
+
+#define PROCESS_INVALID_ARGS                  0x7FFFFFF0
+#define PROCESS_TERMINATED_SIGNAL             0x7FFFFFF1
+#define PROCESS_WAIT_INTERRUPTED              0x7FFFFFF2
+#define PROCESS_WAIT_FAILED                   0x7FFFFFF3
+#define PROCESS_STILL_ACTIVE                  0x7FFFFFFF
 
 typedef uint64_t      hash_t;
 typedef int64_t       tick_t;
@@ -311,18 +293,18 @@ typedef int           (* crash_guard_fn )( void* arg );
 typedef void          (* crash_dump_callback_fn )( const char* file );
 typedef void          (* object_deallocate_fn )( object_t id, void* object );
 typedef stream_t*     (* stream_open_fn )( const char* path, unsigned int mode );
-typedef int64_t       (* stream_read_fn )( stream_t* stream, void* dst, size_t size );
-typedef int64_t       (* stream_write_fn )( stream_t* stream, const void* src, size_t size );
+typedef size_t        (* stream_read_fn )( stream_t* stream, void* dst, size_t size );
+typedef size_t        (* stream_write_fn )( stream_t* stream, const void* src, size_t size );
 typedef bool          (* stream_eos_fn )( stream_t* stream );
 typedef void          (* stream_flush_fn )( stream_t* stream );
 typedef void          (* stream_truncate_fn  )( stream_t* stream, size_t size );
-typedef int64_t       (* stream_size_fn )( stream_t* stream );
-typedef void          (* stream_seek_fn )( stream_t* stream, off_t offset, stream_seek_mode_t mode );
-typedef int64_t       (* stream_tell_fn )( stream_t* stream );
+typedef size_t        (* stream_size_fn )( stream_t* stream );
+typedef void          (* stream_seek_fn )( stream_t* stream, ssize_t offset, stream_seek_mode_t mode );
+typedef size_t        (* stream_tell_fn )( stream_t* stream );
 typedef tick_t        (* stream_lastmod_fn )( const stream_t* stream );
 typedef uint128_t     (* stream_md5_fn)( stream_t* stream );
 typedef void          (* stream_buffer_read_fn )( stream_t* stream );
-typedef int64_t       (* stream_available_read_fn )( stream_t* stream );
+typedef size_t        (* stream_available_read_fn )( stream_t* stream );
 typedef void          (* stream_finalize_fn )( stream_t* stream );
 typedef stream_t*     (* stream_clone_fn )( stream_t* stream );
 
@@ -445,8 +427,8 @@ struct event_t
 
 struct event_block_t
 {
-	unsigned int                    used;
-	unsigned int                    capacity;
+	size_t                          used;
+	size_t                          capacity;
 	event_stream_t*                 stream;
 	event_t*                        events;
 };
@@ -478,14 +460,14 @@ struct hashmap_t
 FOUNDATION_ALIGNED_STRUCT( hashtable32_entry_t, 8 )
 {
 	atomic32_t                      key;
-	int32_t                         value;
+	uint32_t                        value;
 };
 
 
 FOUNDATION_ALIGNED_STRUCT( hashtable64_entry_t, 8 )
 {
 	atomic64_t                      key;
-	int64_t                         value;
+	uint64_t                        value;
 };
 
 
@@ -576,7 +558,7 @@ struct regex_t
 struct regex_capture_t
 {
 	const char*                     substring;
-	unsigned int                    length;
+	size_t                          length;
 };
 
 #define FOUNDATION_DECLARE_RINGBUFFER              \
@@ -683,8 +665,8 @@ FOUNDATION_ALIGNED_STRUCT( stream_ringbuffer_t, 8 )
 
 	semaphore_t                     signal_read;
 	semaphore_t                     signal_write;
-	volatile size_t                 pending_read;
-	volatile size_t                 pending_write;
+	volatile int                    pending_read;
+	volatile int                    pending_write;
 	size_t                          total_size;
 
 	FOUNDATION_DECLARE_RINGBUFFER;

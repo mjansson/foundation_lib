@@ -389,19 +389,19 @@ DECLARE_TEST( array, copy )
 
 		basic.intval = i;
 		basic.floatval = (float32_t)i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i;
-		combine.basicval.objval = i + 1;
+		combine.basicval.objval = (object_t)( i + 1 );
 		combine.intval = i + 2;
 		combine.ptrval = 0;
 		combine.charval = (char)i;
 		combine.unionval.basicval.intval = i + 3;
-		combine.unionval.basicval.objval = i + 4;
+		combine.unionval.basicval.objval = (object_t)( i + 4 );
 
 		array_push( array_ptr, (void*)((uintptr_t)i) );
 		array_push( array_int, i );
-		array_push( array_obj, i );
+		array_push( array_obj, (object_t)i );
 		array_push( array_basic, basic );
 		array_push( array_combine, combine );
 	}
@@ -454,19 +454,19 @@ DECLARE_TEST( array, copy )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i;
-		combine.basicval.objval = i + 1;
+		combine.basicval.objval = (object_t)( i + 1 );
 		combine.intval = i + 2;
 		combine.ptrval = 0;
 		combine.charval = (char)i;
 		combine.unionval.basicval.intval = i + 3;
-		combine.unionval.basicval.objval = i + 4;
+		combine.unionval.basicval.objval = (object_t)( i + 4 );
 
 		array_push( copy_ptr, (void*)((uintptr_t)i) );
 		array_push( copy_int, i );
-		array_push( copy_obj, i );
+		array_push( copy_obj, (object_t)i );
 		array_push( copy_basic, basic );
 		array_push( copy_combine, combine );
 	}
@@ -634,28 +634,28 @@ DECLARE_TEST( array, pushpop )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i;
-		combine.basicval.objval = i + 1;
+		combine.basicval.objval = (object_t)( i + 1 );
 		combine.intval = i + 2;
 		combine.ptrval = 0;
 		combine.charval = (char)i;
 		combine.unionval.basicval.intval = i + 3;
-		combine.unionval.basicval.objval = i + 4;
+		combine.unionval.basicval.objval = (object_t)( i + 4 );
 
 		if( !( i % 2 ) )
 		{
 			array_push( array_ptr, (void*)((uintptr_t)i) );
 			array_push( array_int, i );
-			array_push( array_obj, i );
+			array_push( array_obj, (object_t)i );
 			array_push( array_basic, basic );
 			array_push( array_combine, combine );
 		}
 		else
 		{
 			void* iptr = (void*)((uintptr_t)i);
-			object_t iobj = i;
+			object_t iobj = (object_t)i;
 			array_push_memcpy( array_ptr, &iptr );
 			array_push_memcpy( array_int, &i );
 			array_push_memcpy( array_obj, &iobj );
@@ -663,17 +663,17 @@ DECLARE_TEST( array, pushpop )
 			array_push_memcpy( array_combine, &combine );
 		}
 
-		EXPECT_EQ( array_size( array_ptr ), i + 1 );
-		EXPECT_EQ( array_size( array_int ), i + 1 );
-		EXPECT_EQ( array_size( array_obj ), i + 1 );
-		EXPECT_EQ( array_size( array_basic ), i + 1 );
-		EXPECT_EQ( array_size( array_combine ), i + 1 );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)i + 1 );
 
-		EXPECT_GE( array_capacity( array_ptr ), i + 1 );
-		EXPECT_GE( array_capacity( array_int ), i + 1 );
-		EXPECT_GE( array_capacity( array_obj ), i + 1 );
-		EXPECT_GE( array_capacity( array_basic ), i + 1 );
-		EXPECT_GE( array_capacity( array_combine ), i + 1 );
+		EXPECT_GE( array_capacity( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_int ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_obj ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_basic ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_combine ), (unsigned int)i + 1 );
 
 		for( j = 0; j <= i; ++j )
 		{
@@ -700,17 +700,17 @@ DECLARE_TEST( array, pushpop )
 		array_pop( array_basic );
 		array_pop( array_combine );
 
-		EXPECT_EQ( array_size( array_ptr ), i - 1 );
-		EXPECT_EQ( array_size( array_int ), i - 1 );
-		EXPECT_EQ( array_size( array_obj ), i - 1 );
-		EXPECT_EQ( array_size( array_basic ), i - 1 );
-		EXPECT_EQ( array_size( array_combine ), i - 1 );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)i - 1 );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)i - 1 );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)i - 1 );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)i - 1 );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)i - 1 );
 
-		EXPECT_GE( array_capacity( array_ptr ), i - 1 );
-		EXPECT_GE( array_capacity( array_int ), i - 1 );
-		EXPECT_GE( array_capacity( array_obj ), i - 1 );
-		EXPECT_GE( array_capacity( array_basic ), i - 1 );
-		EXPECT_GE( array_capacity( array_combine ), i - 1 );
+		EXPECT_GE( array_capacity( array_ptr ), (unsigned int)i - 1 );
+		EXPECT_GE( array_capacity( array_int ), (unsigned int)i - 1 );
+		EXPECT_GE( array_capacity( array_obj ), (unsigned int)i - 1 );
+		EXPECT_GE( array_capacity( array_basic ), (unsigned int)i - 1 );
+		EXPECT_GE( array_capacity( array_combine ), (unsigned int)i - 1 );
 
 		for( j = 0; j < i; ++j )
 		{
@@ -737,28 +737,28 @@ DECLARE_TEST( array, pushpop )
 		for( j = 0; j < 2; ++j )
 		{
 			basic.intval = i + j;
-			basic.objval = i + j + 1;
+			basic.objval = (object_t)( i + j + 1 );
 
 			combine.basicval.intval = i + j;
-			combine.basicval.objval = i + j + 1;
+			combine.basicval.objval = (object_t)( i + j + 1 );
 			combine.intval = i + j + 2;
 			combine.ptrval = 0;
 			combine.charval = (char)(i + j);
 			combine.unionval.basicval.intval = i + j + 3;
-			combine.unionval.basicval.objval = i + j + 4;
+			combine.unionval.basicval.objval = (object_t)( i + j + 4 );
 
 			if( !( i % 2 ) )
 			{
 				array_push( array_ptr, (void*)((uintptr_t)(i+j)) );
 				array_push( array_int, i+j );
-				array_push( array_obj, i+j );
+				array_push( array_obj, (object_t)( i+j ) );
 				array_push( array_basic, basic );
 				array_push( array_combine, combine );
 			}
 			else
 			{
 				void* iptr = (void*)((uintptr_t)(i+j));
-				object_t iobj = i + j;
+				object_t iobj = (object_t)( i + j );
 				int ii = i + j;
 				array_push_memcpy( array_ptr, &iptr );
 				array_push_memcpy( array_int, &ii );
@@ -774,17 +774,17 @@ DECLARE_TEST( array, pushpop )
 		array_pop( array_basic );
 		array_pop( array_combine );
 
-		EXPECT_EQ( array_size( array_ptr ), i + 1 );
-		EXPECT_EQ( array_size( array_int ), i + 1 );
-		EXPECT_EQ( array_size( array_obj ), i + 1 );
-		EXPECT_EQ( array_size( array_basic ), i + 1 );
-		EXPECT_EQ( array_size( array_combine ), i + 1 );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)i + 1 );
 
-		EXPECT_GE( array_capacity( array_ptr ), i + 1 );
-		EXPECT_GE( array_capacity( array_int ), i + 1 );
-		EXPECT_GE( array_capacity( array_obj ), i + 1 );
-		EXPECT_GE( array_capacity( array_basic ), i + 1 );
-		EXPECT_GE( array_capacity( array_combine ), i + 1 );
+		EXPECT_GE( array_capacity( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_int ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_obj ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_basic ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_combine ), (unsigned int)i + 1 );
 
 		for( j = 0; j <= i; ++j )
 		{
@@ -792,14 +792,14 @@ DECLARE_TEST( array, pushpop )
 			EXPECT_EQ( array_int[j], j );
 			EXPECT_EQ( array_obj[j], (object_t)j );
 			EXPECT_EQ( array_basic[j].intval, j );
-			EXPECT_EQ( array_basic[j].objval, (object_t)j + 1 );
+			EXPECT_EQ( array_basic[j].objval, (object_t)( j + 1 ) );
 			EXPECT_EQ( array_combine[j].basicval.intval, j );
-			EXPECT_EQ( array_combine[j].basicval.objval, (object_t)j + 1 );
+			EXPECT_EQ( array_combine[j].basicval.objval, (object_t)( j + 1 ) );
 			EXPECT_EQ( array_combine[j].intval, j + 2 );
 			EXPECT_EQ( array_combine[j].charval, (char)j );
 			EXPECT_EQ( array_combine[j].ptrval, 0 );
 			EXPECT_EQ( array_combine[j].unionval.basicval.intval, j + 3 );
-			EXPECT_EQ( array_combine[j].unionval.basicval.objval, (object_t)j + 4 );
+			EXPECT_EQ( array_combine[j].unionval.basicval.objval, (object_t)( j + 4 ) );
 		}
 	}
 
@@ -965,35 +965,35 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert_safe( array_ptr, 129 - i, (void*)((uintptr_t)i) );
 		array_insert_safe( array_int, 129 - i, i );
-		array_insert_safe( array_obj, 129 - i, i );
+		array_insert_safe( array_obj, 129 - i, (object_t)i );
 		array_insert_safe( array_basic, 129 - i, basic );
 		array_insert_safe( array_combine, 129 - i, combine );
 
-		EXPECT_EQ( array_size( array_ptr ), i + 1 );
-		EXPECT_EQ( array_size( array_int ), i + 1 );
-		EXPECT_EQ( array_size( array_obj ), i + 1 );
-		EXPECT_EQ( array_size( array_basic ), i + 1 );
-		EXPECT_EQ( array_size( array_combine ), i + 1 );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)i + 1 );
 
-		EXPECT_GE( array_capacity( array_ptr ), i + 1 );
-		EXPECT_GE( array_capacity( array_int ), i + 1 );
-		EXPECT_GE( array_capacity( array_obj ), i + 1 );
-		EXPECT_GE( array_capacity( array_basic ), i + 1 );
-		EXPECT_GE( array_capacity( array_combine ), i + 1 );
+		EXPECT_GE( array_capacity( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_int ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_obj ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_basic ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_combine ), (unsigned int)i + 1 );
 
 		EXPECT_EQ( array_ptr[clamped_i], (void*)((uintptr_t)i) );
 		EXPECT_EQ( array_int[clamped_i], i );
@@ -1015,35 +1015,35 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert( array_basic, clamped_i, basic );
 		array_insert( array_combine, clamped_i, combine );
 
-		EXPECT_EQ( array_size( array_ptr ), i + 1 );
-		EXPECT_EQ( array_size( array_int ), i + 1 );
-		EXPECT_EQ( array_size( array_obj ), i + 1 );
-		EXPECT_EQ( array_size( array_basic ), i + 1 );
-		EXPECT_EQ( array_size( array_combine ), i + 1 );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)i + 1 );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)i + 1 );
 
-		EXPECT_GE( array_capacity( array_ptr ), i + 1 );
-		EXPECT_GE( array_capacity( array_int ), i + 1 );
-		EXPECT_GE( array_capacity( array_obj ), i + 1 );
-		EXPECT_GE( array_capacity( array_basic ), i + 1 );
-		EXPECT_GE( array_capacity( array_combine ), i + 1 );
+		EXPECT_GE( array_capacity( array_ptr ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_int ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_obj ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_basic ), (unsigned int)i + 1 );
+		EXPECT_GE( array_capacity( array_combine ), (unsigned int)i + 1 );
 
 		EXPECT_EQ( array_ptr[clamped_i], (void*)((uintptr_t)i) );
 		EXPECT_EQ( array_int[clamped_i], i );
@@ -1065,21 +1065,21 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert( array_basic, clamped_i, basic );
 		array_insert( array_combine, clamped_i, combine );
 	}
@@ -1091,7 +1091,7 @@ DECLARE_TEST( array, inserterase )
 		basic_t basic;
 		combine_t combine;
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1111,11 +1111,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase( array_basic, clamped_i );
 		array_erase( array_combine, clamped_i );
 
-		EXPECT_EQ( array_size( array_ptr ), 254 - i );
-		EXPECT_EQ( array_size( array_int ), 254 - i );
-		EXPECT_EQ( array_size( array_obj ), 254 - i );
-		EXPECT_EQ( array_size( array_basic ), 254 - i );
-		EXPECT_EQ( array_size( array_combine ), 254 - i );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)( 254 - i ) );
 
 		for( j = 0; j < 254 - i; ++j )
 		{
@@ -1126,7 +1126,7 @@ DECLARE_TEST( array, inserterase )
 			EXPECT_NE( memcmp( array_combine + j, &combine, sizeof( combine ) ), 0 );
 		}
 
-		for( j = 0; j < array_size( copy_ptr ); ++j )
+		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
 			if( j == clamped_i )
 				continue;
@@ -1162,21 +1162,21 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert( array_basic, clamped_i, basic );
 		array_insert( array_combine, clamped_i, combine );
 	}
@@ -1191,7 +1191,7 @@ DECLARE_TEST( array, inserterase )
 		int large_neg = -1234;
 		int huge_neg = -123456;
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1217,11 +1217,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_safe( array_basic, 123456 );
 		array_erase_safe( array_combine, huge_neg );
 
-		EXPECT_EQ( array_size( array_ptr ), 254 - i );
-		EXPECT_EQ( array_size( array_int ), 254 - i );
-		EXPECT_EQ( array_size( array_obj ), 254 - i );
-		EXPECT_EQ( array_size( array_basic ), 254 - i );
-		EXPECT_EQ( array_size( array_combine ), 254 - i );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)( 254 - i ) );
 
 		for( j = 0; j < 254 - i; ++j )
 		{
@@ -1232,7 +1232,7 @@ DECLARE_TEST( array, inserterase )
 			EXPECT_NE( memcmp( array_combine + j, &combine, sizeof( combine ) ), 0 );
 		}
 
-		for( j = 0; j < array_size( copy_ptr ); ++j )
+		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
 			if( j == clamped_i )
 				continue;
@@ -1268,21 +1268,21 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert_memcpy( array_basic, clamped_i, &basic );
 		array_insert_memcpy( array_combine, clamped_i, &combine );
 	}
@@ -1294,7 +1294,7 @@ DECLARE_TEST( array, inserterase )
 		basic_t basic;
 		combine_t combine;
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1314,11 +1314,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_memcpy( array_basic, clamped_i );
 		array_erase_memcpy( array_combine, clamped_i );
 
-		EXPECT_EQ( array_size( array_ptr ), 254 - i );
-		EXPECT_EQ( array_size( array_int ), 254 - i );
-		EXPECT_EQ( array_size( array_obj ), 254 - i );
-		EXPECT_EQ( array_size( array_basic ), 254 - i );
-		EXPECT_EQ( array_size( array_combine ), 254 - i );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)( 254 - i ) );
 
 		for( j = 0; j < 254 - i; ++j )
 		{
@@ -1329,7 +1329,7 @@ DECLARE_TEST( array, inserterase )
 			EXPECT_NE( memcmp( array_combine + j, &combine, sizeof( combine ) ), 0 );
 		}
 
-		for( j = 0; j < array_size( copy_ptr ); ++j )
+		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
 			if( j == clamped_i )
 				continue;
@@ -1365,21 +1365,21 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert_memcpy( array_basic, clamped_i, &basic );
 		array_insert_memcpy( array_combine, clamped_i, &combine );
 	}
@@ -1394,7 +1394,7 @@ DECLARE_TEST( array, inserterase )
 		int large_neg = -1234;
 		int huge_neg = -123456;
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1420,11 +1420,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_memcpy_safe( array_basic, 123456 );
 		array_erase_memcpy_safe( array_combine, huge_neg );
 
-		EXPECT_EQ( array_size( array_ptr ), 254 - i );
-		EXPECT_EQ( array_size( array_int ), 254 - i );
-		EXPECT_EQ( array_size( array_obj ), 254 - i );
-		EXPECT_EQ( array_size( array_basic ), 254 - i );
-		EXPECT_EQ( array_size( array_combine ), 254 - i );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)( 254 - i ) );
 
 		for( j = 0; j < 254 - i; ++j )
 		{
@@ -1435,7 +1435,7 @@ DECLARE_TEST( array, inserterase )
 			EXPECT_NE( memcmp( array_combine + j, &combine, sizeof( combine ) ), 0 );
 		}
 
-		for( j = 0; j < array_size( copy_ptr ); ++j )
+		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
 			if( j == clamped_i )
 				continue;
@@ -1471,21 +1471,21 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert_memcpy( array_basic, clamped_i, &basic );
 		array_insert_memcpy( array_combine, clamped_i, &combine );
 	}
@@ -1497,7 +1497,7 @@ DECLARE_TEST( array, inserterase )
 		basic_t basic;
 		combine_t combine;
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1517,11 +1517,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_ordered( array_basic, clamped_i );
 		array_erase_ordered( array_combine, clamped_i );
 
-		EXPECT_EQ( array_size( array_ptr ), 254 - i );
-		EXPECT_EQ( array_size( array_int ), 254 - i );
-		EXPECT_EQ( array_size( array_obj ), 254 - i );
-		EXPECT_EQ( array_size( array_basic ), 254 - i );
-		EXPECT_EQ( array_size( array_combine ), 254 - i );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)( 254 - i ) );
 
 		for( j = 0; j < 254 - i; ++j )
 		{
@@ -1532,7 +1532,7 @@ DECLARE_TEST( array, inserterase )
 			EXPECT_NE( memcmp( array_combine + j, &combine, sizeof( combine ) ), 0 );
 		}
 
-		for( j = 0; j < array_size( copy_ptr ); ++j )
+		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
 			if( j == clamped_i )
 				continue;
@@ -1568,21 +1568,21 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert_memcpy( array_basic, clamped_i, &basic );
 		array_insert_memcpy( array_combine, clamped_i, &combine );
 	}
@@ -1597,7 +1597,7 @@ DECLARE_TEST( array, inserterase )
 		int large_neg = -1234;
 		int huge_neg = -123456;
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1623,11 +1623,11 @@ DECLARE_TEST( array, inserterase )
 		array_erase_ordered_safe( array_basic, 123456 );
 		array_erase_ordered_safe( array_combine, huge_neg );
 
-		EXPECT_EQ( array_size( array_ptr ), 254 - i );
-		EXPECT_EQ( array_size( array_int ), 254 - i );
-		EXPECT_EQ( array_size( array_obj ), 254 - i );
-		EXPECT_EQ( array_size( array_basic ), 254 - i );
-		EXPECT_EQ( array_size( array_combine ), 254 - i );
+		EXPECT_EQ( array_size( array_ptr ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_int ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_obj ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_basic ), (unsigned int)( 254 - i ) );
+		EXPECT_EQ( array_size( array_combine ), (unsigned int)( 254 - i ) );
 
 		for( j = 0; j < 254 - i; ++j )
 		{
@@ -1638,7 +1638,7 @@ DECLARE_TEST( array, inserterase )
 			EXPECT_NE( memcmp( array_combine + j, &combine, sizeof( combine ) ), 0 );
 		}
 
-		for( j = 0; j < array_size( copy_ptr ); ++j )
+		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
 			if( j == clamped_i )
 				continue;
@@ -1680,21 +1680,21 @@ DECLARE_TEST( array, inserterase )
 		combine_t combine;
 
 		basic.intval = i;
-		basic.objval = i + 1;
+		basic.objval = (object_t)( i + 1 );
 
 		combine.basicval.intval = i + 2;
-		combine.basicval.objval = i + 3;
-		combine.charval = i + 4;
+		combine.basicval.objval = (object_t)( i + 3 );
+		combine.charval = (char)( i + 4 );
 		combine.intval = i + 5;
 		combine.ptrval = (void*)((uintptr_t)(i + 6));
 		combine.unionval.basicval.intval = i + 7;
-		combine.unionval.basicval.objval = i + 8;
+		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, array_size( array_ptr ) );
+		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
-		array_insert( array_obj, clamped_i, i );
+		array_insert( array_obj, clamped_i, (object_t)i );
 		array_insert_memcpy( array_basic, clamped_i, &basic );
 		array_insert_memcpy( array_combine, clamped_i, &combine );
 	}
@@ -1739,11 +1739,11 @@ DECLARE_TEST( array, inserterase )
 	array_erase_ordered_range( array_basic, 0, 1 );
 	array_erase_ordered_range( array_combine, 0, 1 );
 
-	EXPECT_EQ( array_size( array_ptr ), 254 );
-	EXPECT_EQ( array_size( array_int ), 254 );
-	EXPECT_EQ( array_size( array_obj ), 254 );
-	EXPECT_EQ( array_size( array_basic ), 254 );
-	EXPECT_EQ( array_size( array_combine ), 254 );
+	EXPECT_EQ( array_size( array_ptr ), 254U );
+	EXPECT_EQ( array_size( array_int ), 254U );
+	EXPECT_EQ( array_size( array_obj ), 254U );
+	EXPECT_EQ( array_size( array_basic ), 254U );
+	EXPECT_EQ( array_size( array_combine ), 254U );
 
 	for( i = 0; i < 254; ++i )
 	{
@@ -2033,7 +2033,7 @@ static void test_array_declare( void )
 }
 
 
-test_suite_t test_array_suite = {
+static test_suite_t test_array_suite = {
 	test_array_application,
 	test_array_memory_system,
 	test_array_declare,

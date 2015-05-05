@@ -13,9 +13,12 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-volatile bool _test_should_start = false;
-volatile bool _test_should_terminate = false;
-volatile bool _test_have_focus = false;
+static volatile bool _test_should_start = false;
+static volatile bool _test_have_focus = false;
+
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+static volatile bool _test_should_terminate = false;
+#endif
 
 static void* event_thread( object_t thread, void* arg )
 {
@@ -43,11 +46,11 @@ static void* event_thread( object_t thread, void* arg )
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 					log_debug( HASH_TEST, "Application stop/terminate event received" );
 					_test_should_terminate = true;
+					break;
 #else
 					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating tests due to event" );
 					process_exit( -2 );
 #endif
-					break;
 
 				case FOUNDATIONEVENT_FOCUS_GAIN:
 					_test_have_focus = true;
@@ -216,7 +219,7 @@ int main_run( void* main_arg )
 #if !BUILD_MONOLITHIC
 	const char* pattern = 0;
 	char** exe_paths = 0;
-	unsigned int iexe, exesize;
+	size_t iexe, exesize;
 	process_t* process = 0;
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
@@ -371,7 +374,7 @@ int main_run( void* main_arg )
 	const char* app_pattern = "^test-.*\\.app$";
 	regex_t* app_regex = regex_compile( app_pattern );
 	char** subdirs = fs_subdirs( environment_executable_directory() );
-	for( int idir = 0, dirsize = array_size( subdirs ); idir < dirsize; ++idir )
+	for( size_t idir = 0, dirsize = array_size( subdirs ); idir < dirsize; ++idir )
 	{
 		if( regex_match( app_regex, subdirs[idir], string_length( subdirs[idir] ), 0, 0 ) )
 		{

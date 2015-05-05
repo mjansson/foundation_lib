@@ -16,20 +16,20 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API ringbuffer_t*   ringbuffer_allocate( int64_t size );
+FOUNDATION_API ringbuffer_t*   ringbuffer_allocate( size_t size );
 FOUNDATION_API void            ringbuffer_deallocate( ringbuffer_t* buffer );
 
-FOUNDATION_API void            ringbuffer_initialize( ringbuffer_t* buffer, int64_t size );
+FOUNDATION_API void            ringbuffer_initialize( ringbuffer_t* buffer, size_t size );
 FOUNDATION_API void            ringbuffer_finalize( ringbuffer_t* buffer );
 
-FOUNDATION_API int64_t         ringbuffer_size( ringbuffer_t* buffer );
+FOUNDATION_API size_t          ringbuffer_size( ringbuffer_t* buffer );
 FOUNDATION_API void            ringbuffer_reset( ringbuffer_t* buffer );
 
-FOUNDATION_API int64_t         ringbuffer_read( ringbuffer_t* buffer, void* dest, int64_t num );
-FOUNDATION_API int64_t         ringbuffer_write( ringbuffer_t* buffer, const void* source, int64_t num );
+FOUNDATION_API size_t          ringbuffer_read( ringbuffer_t* buffer, void* dest, size_t num );
+FOUNDATION_API size_t          ringbuffer_write( ringbuffer_t* buffer, const void* source, size_t num );
 
-FOUNDATION_API int64_t         ringbuffer_total_read( ringbuffer_t* buffer );
-FOUNDATION_API int64_t         ringbuffer_total_written( ringbuffer_t* buffer );
+FOUNDATION_API uint64_t        ringbuffer_total_read( ringbuffer_t* buffer );
+FOUNDATION_API uint64_t        ringbuffer_total_written( ringbuffer_t* buffer );
 
-FOUNDATION_API stream_t*       ringbuffer_stream_allocate( int64_t buffer_size, int64_t total_size );
-FOUNDATION_API void            ringbuffer_stream_initialize( stream_ringbuffer_t* stream, int64_t buffer_size, int64_t total_size );
+FOUNDATION_API stream_t*       ringbuffer_stream_allocate( size_t buffer_size, size_t total_size );
+FOUNDATION_API void            ringbuffer_stream_initialize( stream_ringbuffer_t* stream, size_t buffer_size, size_t total_size );

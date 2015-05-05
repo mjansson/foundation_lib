@@ -177,7 +177,7 @@ static void test_process_declare( void )
 }
 
 
-test_suite_t test_process_suite = {
+static test_suite_t test_process_suite = {
 	test_process_application,
 	test_process_memory_system,
 	test_process_declare,

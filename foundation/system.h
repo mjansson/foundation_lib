@@ -23,7 +23,7 @@ FOUNDATION_API const char*           system_error_message( int code );
 FOUNDATION_API platform_t            system_platform( void );
 FOUNDATION_API architecture_t        system_architecture( void );
 FOUNDATION_API byteorder_t           system_byteorder( void );
-FOUNDATION_API unsigned int          system_hardware_threads( void );
+FOUNDATION_API size_t                system_hardware_threads( void );
 FOUNDATION_API const char*           system_hostname( void );
 FOUNDATION_API uint64_t              system_hostid( void );
 FOUNDATION_API const char*           system_username( void );

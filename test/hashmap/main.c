@@ -177,7 +177,7 @@ static void test_hashmap_declare( void )
 }
 
 
-test_suite_t test_hashmap_suite = {
+static test_suite_t test_hashmap_suite = {
 	test_hashmap_application,
 	test_hashmap_memory_system,
 	test_hashmap_declare,

@@ -280,7 +280,7 @@ static void test_semaphore_declare( void )
 }
 
 
-test_suite_t test_semaphore_suite = {
+static test_suite_t test_semaphore_suite = {
 	test_semaphore_application,
 	test_semaphore_memory_system,
 	test_semaphore_declare,

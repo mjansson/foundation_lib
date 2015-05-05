@@ -19,7 +19,7 @@
 #  include <foundation/apple.h>
 #  include <mach/mach_time.h>
 static mach_timebase_info_data_t _time_info;
-static void absolutetime_to_nanoseconds( tick_t mach_time, int64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
+static void absolutetime_to_nanoseconds( uint64_t mach_time, tick_t* clock ) { *clock = (tick_t)( mach_time * _time_info.numer / _time_info.denom ); }
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #  include <unistd.h>
 #  include <time.h>
@@ -111,7 +111,8 @@ tick_t time_diff( const tick_t from, const tick_t to )
 
 deltatime_t time_elapsed( const tick_t t )
 {
-	return (deltatime_t)( (double)time_elapsed_ticks( t ) * _time_oofreq );
+	tick_t ticks = time_elapsed_ticks( t );
+	return (deltatime_t)( (double)ticks * _time_oofreq );
 }
 
 

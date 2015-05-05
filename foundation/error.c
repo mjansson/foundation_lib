@@ -95,12 +95,12 @@ void _error_context_clear( void )
 }
 
 
-void _error_context_buffer( char* buffer, int size )
+void _error_context_buffer( char* buffer, size_t size )
 {
 	error_context_t* context = get_thread_error_context();
 	if( context )
 	{
-		int i, len;
+		size_t i, len;
 		error_frame_t* frame = context->frame;
 		for( i = 0; ( size > 1 ) && ( i < context->depth ); ++i, ++frame )
 		{

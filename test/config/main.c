@@ -804,51 +804,51 @@ DECLARE_TEST( config, numbers )
 
 	config_set_string( test_section, test_key, "1M" );
 	EXPECT_EQ( config_int( test_section, test_key ), 1024 * 1024 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 1024.0 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 1024.0 * 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "2M" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 * 1024 * 1024 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.0 * 1024.0 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 2.0 * 1024.0 * 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "0.1000m" );
 	EXPECT_EQ( config_int( test_section, test_key ), (uint64_t)( 0.1 * 1024.0 * 1024.0 ) );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 0.1 * 1024.0 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 0.1 * 1024.0 * 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "2.0M" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 * 1024 * 1024 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.0 * 1024.0 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 2.0 * 1024.0 * 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "2.5m" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 * 1024 * 1024 + 512 * 1024 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.0 * 1024.0 * 1024.0 + 512.0 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 2.0 * 1024.0 * 1024.0 + 512.0 * 1024.0 ) );
 
 	config_set_string( test_section, test_key, "2.5.M" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.5 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), REAL_C( 2.5 ) );
 
 	config_set_string( test_section, test_key, "1k" );
 	EXPECT_EQ( config_int( test_section, test_key ), 1024 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), REAL_C( 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "2K" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 * 1024 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.0 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 2.0 * 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "0.1000k" );
 	EXPECT_EQ( config_int( test_section, test_key ), (uint64_t)( 0.1 * 1024.0 ) );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 0.1 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 0.1 * 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "2.0K" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 * 1024 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.0 * 1024.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 2.0 * 1024.0 ) );
 
 	config_set_string_constant( test_section, test_key, "2.500k" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 * 1024 + 512 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.0 * 1024.0 + 512.0 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), (real)( 2.0 * 1024.0 + 512.0 ) );
 
 	config_set_string( test_section, test_key, "2.5.K" );
 	EXPECT_EQ( config_int( test_section, test_key ), 2 );
-	EXPECT_REALEQ( config_real( test_section, test_key ), 2.5 );
+	EXPECT_REALEQ( config_real( test_section, test_key ), REAL_C( 2.5 ) );
 
 	return 0;
 }
@@ -933,15 +933,15 @@ DECLARE_TEST( config, commandline )
 	EXPECT_EQ( config_int( hash( "a", 1 ), hash( "nother", 6 ) ), 0 );
 
 	EXPECT_STREQ( config_string( hash( "a", 1 ), hash( "real", 4 ) ), "10.05" );
-	EXPECT_REALEQ( config_real( hash( "a", 1 ), hash( "real", 4 ) ), 10.05 );
+	EXPECT_REALEQ( config_real( hash( "a", 1 ), hash( "real", 4 ) ), REAL_C( 10.05 ) );
 
 	EXPECT_STREQ( config_string( hash( "a", 1 ), hash( "notnumber", 9 ) ), "1.0.1" );
 	EXPECT_EQ( config_int( hash( "a", 1 ), hash( "notnumber", 9 ) ), 1 );
-	EXPECT_REALEQ( config_real( hash( "a", 1 ), hash( "notnumber", 9 ) ), 1 );
+	EXPECT_REALEQ( config_real( hash( "a", 1 ), hash( "notnumber", 9 ) ), REAL_C( 1.0 ) );
 
 	EXPECT_STREQ( config_string( hash( "a", 1 ), hash( "number", 6 ) ), "101" );
 	EXPECT_EQ( config_int( hash( "a", 1 ), hash( "number", 6 ) ), 101 );
-	EXPECT_REALEQ( config_real( hash( "a", 1 ), hash( "number", 6 ) ), 101.0 );
+	EXPECT_REALEQ( config_real( hash( "a", 1 ), hash( "number", 6 ) ), REAL_C( 101.0 ) );
 
 	EXPECT_STREQ( config_string( hash( "a", 1 ), hash( "quoted", 6 ) ), "foobar" );
 	EXPECT_EQ( config_int( hash( "a", 1 ), hash( "quoted", 6 ) ), 0 );
@@ -967,7 +967,7 @@ DECLARE_TEST( config, readwrite )
 	config_set_string( write_section, write_key_0, "foobar" );
 	config_set_string_constant( write_section, write_key_1, "another string" );
 	config_set_int( write_section, write_key_2, 1234 );
-	config_set_real( write_section, write_key_3, 12.34 );
+	config_set_real( write_section, write_key_3, REAL_C( 12.34 ) );
 	config_set_bool( write_section, write_key_4, true );
 	config_set_bool( write_section, write_key_5, false );
 	config_set_string( write_section, write_key_6, "$(environment:initial_working_directory)" );
@@ -985,7 +985,7 @@ DECLARE_TEST( config, readwrite )
 	config_set_string( write_section, write_key_0, "asdf" );
 	config_set_string_constant( write_section, write_key_1, "qwerty" );
 	config_set_int( write_section, write_key_2, 54321 );
-	config_set_real( write_section, write_key_3, 32.78 );
+	config_set_real( write_section, write_key_3, REAL_C( 32.78 ) );
 	config_set_bool( write_section, write_key_4, false );
 	config_set_bool( write_section, write_key_5, true );
 	config_set_string( write_section, write_key_6, "notavariable" );
@@ -997,7 +997,7 @@ DECLARE_TEST( config, readwrite )
 	EXPECT_STREQ( config_string( write_section, write_key_0 ), "asdf" );
 	EXPECT_STREQ( config_string( write_section, write_key_1 ), "qwerty" );
 	EXPECT_EQ( config_int( write_section, write_key_2 ), 54321 );
-	EXPECT_REALEQ( config_real( write_section, write_key_3 ), 32.78 );
+	EXPECT_REALEQ( config_real( write_section, write_key_3 ), REAL_C( 32.78 ) );
 	EXPECT_EQ( config_bool( write_section, write_key_4 ), false );
 	EXPECT_EQ( config_bool( write_section, write_key_5 ), true );
 	EXPECT_STREQ( config_string( write_section, write_key_6 ), "notavariable" );
@@ -1009,7 +1009,7 @@ DECLARE_TEST( config, readwrite )
 	EXPECT_STREQ( config_string( write_section, write_key_0 ), "foobar" );
 	EXPECT_STREQ( config_string( write_section, write_key_1 ), "another string" );
 	EXPECT_EQ( config_int( write_section, write_key_2 ), 1234 );
-	EXPECT_REALEQ( config_real( write_section, write_key_3 ), 12.34 );
+	EXPECT_REALEQ( config_real( write_section, write_key_3 ), REAL_C( 12.34 ) );
 	EXPECT_EQ( config_bool( write_section, write_key_4 ), true );
 	EXPECT_EQ( config_bool( write_section, write_key_5 ), false );
 	EXPECT_STREQ( config_string( write_section, write_key_6 ), environment_initial_working_directory() );
@@ -1033,7 +1033,7 @@ static void test_config_declare( void )
 }
 
 
-test_suite_t test_config_suite = {
+static test_suite_t test_config_suite = {
 	test_config_application,
 	test_config_memory_system,
 	test_config_declare,

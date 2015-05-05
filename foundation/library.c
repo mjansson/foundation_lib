@@ -76,7 +76,7 @@ object_t library_load( const char* name )
 {
 	library_t* library;
 	hash_t namehash;
-	int i, size;
+	size_t i, size;
 	object_t id;
 #if FOUNDATION_PLATFORM_WINDOWS
 	char* dllname;

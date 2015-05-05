@@ -16,5 +16,5 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API stream_t*  buffer_stream_allocate( void* buffer, unsigned int mode, int64_t size, int64_t capacity, bool adopt, bool grow );
-FOUNDATION_API void       buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, int64_t size, int64_t capacity, bool adopt, bool grow );
+FOUNDATION_API stream_t*  buffer_stream_allocate( void* buffer, unsigned int mode, size_t size, size_t capacity, bool adopt, bool grow );
+FOUNDATION_API void       buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, size_t size, size_t capacity, bool adopt, bool grow );

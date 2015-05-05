@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 
-static FOUNDATION_FORCEINLINE int32_t _hashtable32_hash( int32_t key )
+static FOUNDATION_FORCEINLINE uint32_t _hashtable32_hash( uint32_t key )
 {
 	key ^= key >> 16;
 	key *= 0x85ebca6b;
@@ -25,7 +25,7 @@ static FOUNDATION_FORCEINLINE int32_t _hashtable32_hash( int32_t key )
 }
 
 
-static FOUNDATION_FORCEINLINE int64_t _hashtable64_hash( int64_t key )
+static FOUNDATION_FORCEINLINE uint64_t _hashtable64_hash( uint64_t key )
 {
 	key ^= key >> 33;
 	key *= 0xff51afd7ed558ccd;
@@ -36,9 +36,9 @@ static FOUNDATION_FORCEINLINE int64_t _hashtable64_hash( int64_t key )
 }
 
 
-hashtable32_t* hashtable32_allocate( int buckets )
+hashtable32_t* hashtable32_allocate( size_t buckets )
 {
-	hashtable32_t* table = memory_allocate( 0, (int64_t)sizeof( hashtable32_t ) + (int64_t)sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+	hashtable32_t* table = memory_allocate( 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
 
 	hashtable32_initialize( table, buckets );
 
@@ -46,9 +46,9 @@ hashtable32_t* hashtable32_allocate( int buckets )
 }
 
 
-void hashtable32_initialize( hashtable32_t* table, int buckets )
+void hashtable32_initialize( hashtable32_t* table, size_t buckets )
 {
-	memset( table, 0, (int64_t)sizeof( hashtable32_t ) + (int64_t)sizeof( hashtable32_entry_t ) * buckets );
+	memset( table, 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets );
 	table->capacity = buckets;
 }
 
@@ -66,9 +66,9 @@ void hashtable32_finalize( hashtable32_t* table )
 }
 
 
-void hashtable32_set( hashtable32_t* table, int32_t key, int32_t value )
+void hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value )
 {
-	int ie, eend;
+	size_t ie, eend;
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
@@ -77,11 +77,11 @@ void hashtable32_set( hashtable32_t* table, int32_t key, int32_t value )
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
-		int32_t current_key = atomic_load32( &table->entries[ie].key );
+		uint32_t current_key = (uint32_t)atomic_load32( &table->entries[ie].key );
 
 		if( current_key != key )
 		{
-			if( current_key || !atomic_cas32( &table->entries[ie].key, key, 0 ) )
+			if( current_key || !atomic_cas32( &table->entries[ie].key, (int32_t)key, 0 ) )
 			{
 				ie = ( ie + 1 ) % table->capacity;
 				if( ie == eend )
@@ -100,9 +100,9 @@ void hashtable32_set( hashtable32_t* table, int32_t key, int32_t value )
 }
 
 
-void hashtable32_erase( hashtable32_t* table, int32_t key )
+void hashtable32_erase( hashtable32_t* table, uint32_t key )
 {
-	int ie, eend;
+	size_t ie, eend;
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
@@ -110,7 +110,7 @@ void hashtable32_erase( hashtable32_t* table, int32_t key )
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
-		int32_t current_key = atomic_load32( &table->entries[ie].key );
+		uint32_t current_key = (uint32_t)atomic_load32( &table->entries[ie].key );
 
 		if( current_key == key )
 		{
@@ -128,9 +128,9 @@ void hashtable32_erase( hashtable32_t* table, int32_t key )
 }
 
 
-int32_t hashtable32_get( hashtable32_t* table, int32_t key )
+uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 {
-	int ie, eend;
+	size_t ie, eend;
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
@@ -138,7 +138,7 @@ int32_t hashtable32_get( hashtable32_t* table, int32_t key )
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
-		int32_t current_key = atomic_load32( &table->entries[ie].key );
+		uint32_t current_key = (uint32_t)atomic_load32( &table->entries[ie].key );
 
 		if( current_key == key )
 			return table->entries[ie].value;
@@ -153,7 +153,7 @@ int32_t hashtable32_get( hashtable32_t* table, int32_t key )
 }
 
 
-int32_t hashtable32_raw( hashtable32_t* table, int slot )
+uint32_t hashtable32_raw( hashtable32_t* table, size_t slot )
 {
 	if( !atomic_load32( &table->entries[slot].key ) )
 		return 0;
@@ -161,10 +161,10 @@ int32_t hashtable32_raw( hashtable32_t* table, int slot )
 }
 
 
-int hashtable32_size( hashtable32_t* table )
+size_t hashtable32_size( hashtable32_t* table )
 {
-	int count = 0;
-	int ie;
+	size_t count = 0;
+	size_t ie;
 	for( ie = 0; ie < table->capacity; ++ie )
 	{
 		if( atomic_load32( &table->entries[ie].key ) && table->entries[ie].value )
@@ -177,14 +177,14 @@ int hashtable32_size( hashtable32_t* table )
 void hashtable32_clear( hashtable32_t* table )
 {
 	FOUNDATION_ASSERT( table );
-	memset( table->entries, 0, (int64_t)sizeof( hashtable32_entry_t ) * table->capacity );
+	memset( table->entries, 0, sizeof( hashtable32_entry_t ) * table->capacity );
 }
 
 
 
-hashtable64_t* hashtable64_allocate( int buckets )
+hashtable64_t* hashtable64_allocate( size_t buckets )
 {
-	hashtable64_t* table = memory_allocate( 0, (int64_t)sizeof( hashtable64_t ) + (int64_t)sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
+	hashtable64_t* table = memory_allocate( 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
 
 	hashtable64_initialize( table, buckets );
 
@@ -192,9 +192,9 @@ hashtable64_t* hashtable64_allocate( int buckets )
 }
 
 
-void hashtable64_initialize( hashtable64_t* table, int buckets )
+void hashtable64_initialize( hashtable64_t* table, size_t buckets )
 {
-	memset( table, 0, (int64_t)sizeof( hashtable64_t ) + (int64_t)sizeof( hashtable64_entry_t ) * buckets );
+	memset( table, 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets );
 	table->capacity = buckets;
 }
 
@@ -212,9 +212,9 @@ void hashtable64_finalize( hashtable64_t* table )
 }
 
 
-void hashtable64_set( hashtable64_t* table, int64_t key, int64_t value )
+void hashtable64_set( hashtable64_t* table, uint64_t key, uint64_t value )
 {
-	int ie, eend;
+	size_t ie, eend;
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
@@ -223,11 +223,11 @@ void hashtable64_set( hashtable64_t* table, int64_t key, int64_t value )
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
-		int64_t current_key = atomic_load64( &table->entries[ie].key );
+		uint64_t current_key = (uint64_t)atomic_load64( &table->entries[ie].key );
 
 		if( current_key != key )
 		{
-			if( current_key || !atomic_cas64( &table->entries[ie].key, key, 0 ) )
+			if( current_key || !atomic_cas64( &table->entries[ie].key, (int64_t)key, 0 ) )
 			{
 				ie = ( ie + 1 ) % table->capacity;
 				if( ie == eend )
@@ -246,9 +246,9 @@ void hashtable64_set( hashtable64_t* table, int64_t key, int64_t value )
 }
 
 
-void hashtable64_erase( hashtable64_t* table, int64_t key )
+void hashtable64_erase( hashtable64_t* table, uint64_t key )
 {
-	int ie, eend;
+	size_t ie, eend;
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
@@ -256,7 +256,7 @@ void hashtable64_erase( hashtable64_t* table, int64_t key )
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
-		int64_t current_key = atomic_load64( &table->entries[ie].key );
+		uint64_t current_key = (uint64_t)atomic_load64( &table->entries[ie].key );
 
 		if( current_key == key )
 		{
@@ -274,9 +274,9 @@ void hashtable64_erase( hashtable64_t* table, int64_t key )
 }
 
 
-int64_t hashtable64_get( hashtable64_t* table, int64_t key )
+uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 {
-	int ie, eend;
+	size_t ie, eend;
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
@@ -284,7 +284,7 @@ int64_t hashtable64_get( hashtable64_t* table, int64_t key )
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
-		int64_t current_key = atomic_load64( &table->entries[ie].key );
+		uint64_t current_key = (uint64_t)atomic_load64( &table->entries[ie].key );
 
 		if( current_key == key )
 			return table->entries[ie].value;
@@ -299,7 +299,7 @@ int64_t hashtable64_get( hashtable64_t* table, int64_t key )
 }
 
 
-int64_t hashtable64_raw( hashtable64_t* table, int slot )
+uint64_t hashtable64_raw( hashtable64_t* table, size_t slot )
 {
 	if( !atomic_load64( &table->entries[slot].key ) )
 		return 0;
@@ -307,10 +307,10 @@ int64_t hashtable64_raw( hashtable64_t* table, int slot )
 }
 
 
-int hashtable64_size( hashtable64_t* table )
+size_t hashtable64_size( hashtable64_t* table )
 {
-	int count = 0;
-	int ie;
+	size_t count = 0;
+	size_t ie;
 	for( ie = 0; ie < table->capacity; ++ie )
 	{
 		if( atomic_load64( &table->entries[ie].key ) && table->entries[ie].value )
@@ -323,5 +323,5 @@ int hashtable64_size( hashtable64_t* table )
 void hashtable64_clear( hashtable64_t* table )
 {
 	FOUNDATION_ASSERT( table );
-	memset( table->entries, 0, (int64_t)sizeof( hashtable64_entry_t ) * table->capacity );
+	memset( table->entries, 0, sizeof( hashtable64_entry_t ) * table->capacity );
 }

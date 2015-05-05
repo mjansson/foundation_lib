@@ -17,13 +17,13 @@
 //Must be >30000 since we assume that in forced fail test
 #define TEST_PROFILE_BUFFER_SIZE  512000
 
-static const uint64_t       _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
+static const size_t         _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
 static char*                _test_profile_buffer;
-static uint64_t             _test_profile_offset;
+static size_t               _test_profile_offset;
 static atomic32_t           _test_profile_output_counter;
 
 
-static void test_profile_output( void* buffer, uint64_t size )
+static void test_profile_output( void* buffer, size_t size )
 {
 	FOUNDATION_UNUSED( buffer );
 	FOUNDATION_UNUSED( size );
@@ -193,7 +193,7 @@ DECLARE_TEST( profile, thread )
 {
 	object_t thread[32];
 	int ith;
-	int frame;
+	uint64_t frame;
 	error_t err = error();
 
 	_test_profile_offset = 0;
@@ -250,7 +250,7 @@ static stream_t* _profile_stream;
 static atomic64_t _profile_generated_blocks;
 
 
-static void _profile_file_writer( void* buffer, uint64_t size )
+static void _profile_file_writer( void* buffer, size_t size )
 {
 	if( _profile_stream )
 		stream_write( _profile_stream, buffer, size );
@@ -311,7 +311,7 @@ DECLARE_TEST( profile, stream )
 {
 	object_t thread[32];
 	int ith;
-	int frame;
+	uint64_t frame;
 	char* filename;
 
 	error();
@@ -385,7 +385,7 @@ static void test_profile_declare( void )
 }
 
 
-test_suite_t test_profile_suite = {
+static test_suite_t test_profile_suite = {
 	test_profile_application,
 	test_profile_memory_system,
 	test_profile_declare,
@@ -405,6 +405,7 @@ int test_profile_run( void )
 
 #else
 
+test_suite_t test_suite_define( void );
 test_suite_t test_suite_define( void )
 {
 	return test_profile_suite;

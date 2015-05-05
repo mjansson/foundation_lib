@@ -165,7 +165,7 @@ DECLARE_TEST( bufferstream, null_grow )
 	char readbuffer[1024] = {0};
 	char writebuffer[1024] = {0};
 	uint128_t md5null;
-	unsigned int slength;
+	size_t slength;
 
 	{
 		md5_t* md5 = md5_allocate();
@@ -231,7 +231,7 @@ DECLARE_TEST( bufferstream, zero_grow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 315, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	uint128_t md5null;
-	unsigned int slength;
+	size_t slength;
 
 	{
 		md5_t* md5 = md5_allocate();
@@ -297,7 +297,7 @@ DECLARE_TEST( bufferstream, zero_nogrow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
-	unsigned int slength;
+	size_t slength;
 
 	{
 		md5_t* md5 = md5_allocate();
@@ -363,7 +363,7 @@ DECLARE_TEST( bufferstream, sized_grow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
-	unsigned int slength;
+	size_t slength;
 
 	{
 		md5_t* md5 = md5_allocate();
@@ -429,7 +429,7 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 	char writebuffer[1024] = {0};
 	uint8_t* backing_store = memory_allocate( 0, 1024, 0, MEMORY_PERSISTENT );
 	uint128_t md5null;
-	unsigned int slength;
+	size_t slength;
 
 	{
 		md5_t* md5 = md5_allocate();
@@ -500,7 +500,7 @@ static void test_bufferstream_declare( void )
 }
 
 
-test_suite_t test_bufferstream_suite = {
+static test_suite_t test_bufferstream_suite = {
 	test_bufferstream_application,
 	test_bufferstream_memory_system,
 	test_bufferstream_declare,

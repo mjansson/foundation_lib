@@ -49,7 +49,7 @@ DECLARE_TEST( base64, encode_decode )
 	char test_string[2048];
 	uint64_t test_data64[128];
 	uint64_t verify_data64[128];
-	unsigned int written;
+	size_t written;
 	char prev_value;
 	char guard_value;
 	char* test_data = (void*)test_data64;
@@ -254,7 +254,7 @@ static void test_base64_declare( void )
 }
 
 
-test_suite_t test_base64_suite = {
+static test_suite_t test_base64_suite = {
 	test_base64_application,
 	test_base64_memory_system,
 	test_base64_declare,

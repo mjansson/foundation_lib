@@ -362,9 +362,9 @@ void blowfish_deallocate( blowfish_t* blowfish )
 }
 
 
-void blowfish_initialize( blowfish_t* blowfish, const void* key, const unsigned int length )
+void blowfish_initialize( blowfish_t* blowfish, const void* key, size_t length )
 {
-	unsigned int capped_length = ( length <= BLOWFISH_MAXKEY ) ? length : BLOWFISH_MAXKEY;
+	size_t capped_length = ( length <= BLOWFISH_MAXKEY ) ? length : BLOWFISH_MAXKEY;
 	const unsigned char* ckey = key;
 	uint32_t data, ldata, hdata;
 	unsigned int isub, ikey, iword, ibox, ientry;
@@ -419,7 +419,7 @@ void blowfish_finalize( blowfish_t* blowfish )
 }
 
 
-void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec )
+void blowfish_encrypt( const blowfish_t* blowfish, void* data, size_t length, blockcipher_mode_t mode, uint64_t vec )
 {
 	/*lint --e{826} */
 	uint32_t* FOUNDATION_RESTRICT cur;
@@ -442,14 +442,14 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 
 	switch( mode )
 	{
-		case BLOWFISH_ECB:
+		case BLOCKCIPHER_ECB:
 		{
 			for( ; cur < end; cur += 2 )
 				_blowfish_encrypt_words( blowfish, cur, cur + 1 );
 			break;
 		}
 
-		case BLOWFISH_CBC:
+		case BLOCKCIPHER_CBC:
 		{
 			for( ; cur < end; cur += 2 )
 			{
@@ -462,7 +462,7 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			break;
 		}
 
-		case BLOWFISH_CFB:
+		case BLOCKCIPHER_CFB:
 		{
 			for( ; cur < end; cur += 2 )
 			{
@@ -475,7 +475,7 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			break;
 		}
 
-		case BLOWFISH_OFB:
+		case BLOCKCIPHER_OFB:
 		{
 			for( ; cur < end; cur += 2 )
 			{
@@ -494,7 +494,7 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 }
 
 
-void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec )
+void blowfish_decrypt( const blowfish_t* blowfish, void* data, size_t length, blockcipher_mode_t mode, uint64_t vec )
 {
 	uint32_t* FOUNDATION_RESTRICT cur;
 	uint32_t* FOUNDATION_RESTRICT end;
@@ -516,14 +516,14 @@ void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 
 	switch( mode )
 	{
-		case BLOWFISH_ECB:
+		case BLOCKCIPHER_ECB:
 		{
 			for( ; cur < end; cur += 2 )
 				_blowfish_decrypt_words( blowfish, cur, cur + 1 );
 			break;
 		}
 
-		case BLOWFISH_CBC:
+		case BLOCKCIPHER_CBC:
 		{
 			for( ; cur < end; cur += 2 )
 			{
@@ -542,7 +542,7 @@ void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			break;
 		}
 
-		case BLOWFISH_CFB:
+		case BLOCKCIPHER_CFB:
 		{
 			for( ; cur < end; cur += 2 )
 			{
@@ -561,7 +561,7 @@ void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 			break;
 		}
 
-		case BLOWFISH_OFB:
+		case BLOCKCIPHER_OFB:
 		{
 			for( ; cur < end; cur += 2 )
 			{

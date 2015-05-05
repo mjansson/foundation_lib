@@ -44,7 +44,7 @@ void pipe_initialize( stream_pipe_t* pipestream )
 	stream_initialize( stream, system_byteorder() );
 
 	pipestream->type = STREAMTYPE_PIPE;
-	pipestream->path = string_format( "pipe://0x" PRIfixPTR, pipestream );
+	pipestream->path = string_format( "pipe://0x%" PRIfixPTR, (uintptr_t)pipestream );
 	pipestream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 	pipestream->sequential = true;
 
@@ -181,14 +181,14 @@ int pipe_write_fd( stream_t* stream )
 #endif
 
 
-static int64_t _pipe_stream_read( stream_t* stream, void* dest, int64_t num )
+static size_t _pipe_stream_read( stream_t* stream, void* dest, size_t num )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
-		int64_t total_read = 0;
+		size_t total_read = 0;
 		do
 		{
 			long num_read = 0;
@@ -212,7 +212,7 @@ static int64_t _pipe_stream_read( stream_t* stream, void* dest, int64_t num )
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pipestream->fd_read && ( ( pipestream->mode & STREAM_IN ) != 0 ) )
 	{
-		uint64_t total_read = 0;
+		size_t total_read = 0;
 		do
 		{
 			ssize_t num_read = read( pipestream->fd_read, pointer_offset( dest, total_read ), (size_t)( num - total_read ) );
@@ -221,7 +221,7 @@ static int64_t _pipe_stream_read( stream_t* stream, void* dest, int64_t num )
 				pipestream->eos = true;
 				break;
 			}
-			total_read += num_read;
+			total_read += (size_t)num_read;
 		} while( total_read < num );
 		return total_read;
 	}
@@ -231,14 +231,14 @@ static int64_t _pipe_stream_read( stream_t* stream, void* dest, int64_t num )
 }
 
 
-static int64_t _pipe_stream_write( stream_t* stream, const void* source, int64_t num )
+static size_t _pipe_stream_write( stream_t* stream, const void* source, size_t num )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( pipestream->handle_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		int64_t total_written = 0;
+		size_t total_written = 0;
 		do
 		{
 			long num_written = 0;
@@ -254,7 +254,7 @@ static int64_t _pipe_stream_write( stream_t* stream, const void* source, int64_t
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pipestream->fd_write && ( ( pipestream->mode & STREAM_OUT ) != 0 ) )
 	{
-		uint64_t total_written = 0;
+		size_t total_written = 0;
 		do
 		{
 			ssize_t num_written = write( pipestream->fd_write, pointer_offset_const( source, total_written ), (size_t)( num - total_written ) );
@@ -263,7 +263,7 @@ static int64_t _pipe_stream_write( stream_t* stream, const void* source, int64_t
 				pipestream->eos = true;
 				break;
 			}
-			total_written += num_written;
+			total_written += (size_t)num_written;
 		} while( total_written < num );
 		return total_written;
 	}
@@ -292,21 +292,21 @@ static void _pipe_stream_flush( stream_t* stream )
 }
 
 
-static void _pipe_stream_truncate( stream_t* stream, int64_t size )
+static void _pipe_stream_truncate( stream_t* stream, size_t size )
 {
 	FOUNDATION_UNUSED( stream );
 	FOUNDATION_UNUSED( size );
 }
 
 
-static int64_t _pipe_stream_size( stream_t* stream )
+static size_t _pipe_stream_size( stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return 0;
 }
 
 
-static void _pipe_stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
+static void _pipe_stream_seek( stream_t* stream, ssize_t offset, stream_seek_mode_t direction )
 {
 	FOUNDATION_UNUSED( stream );
 	FOUNDATION_UNUSED( offset );
@@ -314,7 +314,7 @@ static void _pipe_stream_seek( stream_t* stream, int64_t offset, stream_seek_mod
 }
 
 
-static int64_t _pipe_stream_tell( stream_t* stream )
+static size_t _pipe_stream_tell( stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return 0;
@@ -328,7 +328,7 @@ static tick_t _pipe_stream_lastmod( const stream_t* stream )
 }
 
 
-static int64_t _pipe_stream_available_read( stream_t* stream )
+static size_t _pipe_stream_available_read( stream_t* stream )
 {
 	FOUNDATION_UNUSED( stream );
 	return 0;

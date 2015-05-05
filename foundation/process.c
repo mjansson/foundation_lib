@@ -100,9 +100,9 @@ void process_set_executable_path( process_t* proc, const char* path )
 }
 
 
-void process_set_arguments( process_t* proc, const char** args, unsigned int num )
+void process_set_arguments( process_t* proc, const char** args, size_t num )
 {
-	unsigned int ia;
+	size_t ia;
 	if( !proc )
 		return;
 	string_array_deallocate( proc->args );
@@ -135,8 +135,8 @@ void process_set_verb( process_t* proc, const char* verb )
 int process_spawn( process_t* proc )
 {
 	static char unescaped[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:/\\";
-	int i, num_args;
-	int size;
+	size_t i, num_args;
+	size_t size;
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wcmdline;
 	wchar_t* wwd;
@@ -395,7 +395,7 @@ int process_spawn( process_t* proc )
 			proc->kq = kqueue();
 			if( proc->kq < 0 )
 			{
-				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create kqueue for process watch: %s (%d)", proc->kq, system_error_message( proc->kq ) );
+				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create kqueue for process watch: %s (%d)", system_error_message( proc->kq ), proc->kq );
 				proc->kq = 0;
 			}
 			else
@@ -405,7 +405,7 @@ int process_spawn( process_t* proc )
 				int ret = kevent( proc->kq, &changes, 1, &changes, 1, 0 );
 				if( ret != 1 )
 				{
-					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to setup kqueue for process watch, failed to add event to kqueue (%d)", ret );
+					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to setup kqueue for process watch, failed to add event to kqueue: %s (%d)", system_error_message( errno ), errno );
 					close( proc->kq );
 					proc->kq = 0;
 				}
@@ -419,9 +419,9 @@ int process_spawn( process_t* proc )
 #if FOUNDATION_PLATFORM_POSIX
 
 	//Insert executable arg at start and null ptr at end
-	int argc = array_size( proc->args ) + 1;
+	size_t argc = array_size( proc->args ) + 1;
 	array_grow( proc->args, 2 );
-	for( int arg = argc - 1; arg > 0; --arg )
+	for( size_t arg = argc - 1; arg > 0; --arg )
 		proc->args[arg] = proc->args[arg-1];
 	proc->args[0] = string_clone( proc->path );
 	proc->args[argc] = 0;

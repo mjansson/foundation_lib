@@ -183,7 +183,7 @@ typedef FOUNDATION_ALIGNED_STRUCT( _producer_thread_arg, 16 )
 	event_stream_t*        stream;
 	tick_t                 max_delay;
 	tick_t                 end_time;
-	tick_t                 sleep_time;
+	unsigned int           sleep_time;
 	unsigned int           id;
 } producer_thread_arg_t;
 
@@ -200,8 +200,8 @@ static void* producer_thread( object_t thread, void* arg )
 	do
 	{
 		if( args->sleep_time )
-			thread_sleep( (int)args->sleep_time );
-		random_delay = args->max_delay ? random64_range( 0, args->max_delay ) : 0;
+			thread_sleep( args->sleep_time );
+		random_delay = args->max_delay ? random64_range( 0, (uint64_t)args->max_delay ) : 0ULL;
 		random_id = (uint16_t)random32_range( 1, 65535 );
 		random_size = (uint16_t)random32_range( args->max_delay ? 8 : 0, 256 );
 		thread_yield();
@@ -209,7 +209,7 @@ static void* producer_thread( object_t thread, void* arg )
 		//If the producer thread is suspended between the timestamp calculation and event post
 		//an event with an old timestamp might be posted after the main test thread does an
 		//event process - test will fail (timestamp check will fail since it is old due to suspension)
-		timestamp = args->max_delay ? time_current() + random_delay : 0;
+		timestamp = args->max_delay ? time_current() + (tick_t)random_delay : 0;
 		memcpy( buffer, &timestamp, sizeof( tick_t ) );
 		event_post( args->stream, random_id, random_size, args->id, buffer, timestamp );
 		++produced;
@@ -226,10 +226,10 @@ DECLARE_TEST( event, immediate_threaded )
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
-	unsigned int read[32];
-	int i;
+	size_t read[32];
+	unsigned int i;
 	bool running = true;
-	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	size_t num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 
 	stream = event_stream_allocate( 0 );
 
@@ -286,7 +286,8 @@ DECLARE_TEST( event, immediate_threaded )
 
 	for( i = 0; i < num_threads; ++i )
 	{
-		unsigned int should_have_read = (unsigned int)((uintptr_t)thread_result( thread[i] ));
+		void* result = thread_result( thread[i] );
+		size_t should_have_read = (uintptr_t)result;
 		EXPECT_EQ( read[i], should_have_read );
 		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
@@ -308,6 +309,7 @@ DECLARE_TEST( event, delay )
 	tick_t delivery = 0;
 	tick_t limit = 0;
 	tick_t current = 0;
+	tick_t halfsecond, smalltick;
 	uint8_t expect_event = FOUNDATIONEVENT_TERMINATE;
 
 	stream = event_stream_allocate( 0 );
@@ -315,9 +317,11 @@ DECLARE_TEST( event, delay )
 	current = time_current();
 	delivery = current + ( time_ticks_per_second() / 2 );
 	limit = current + ( time_ticks_per_second() * 20 );
+	halfsecond = time_ticks_per_second() / 2;
+	smalltick = time_ticks_per_second() / 100;
 
-	event_post( stream, expect_event, 0, 0, 0, current + ( time_ticks_per_second() / 2 ) );
-	event_post( stream, expect_event + 1, 0, 0, 0, current + (tick_t)((real)time_ticks_per_second() * REAL_C( 0.51 )) );
+	event_post( stream, expect_event, 0, 0, 0, current + halfsecond );
+	event_post( stream, expect_event + 1, 0, 0, 0, current + halfsecond + smalltick );
 
 	do
 	{
@@ -373,11 +377,11 @@ DECLARE_TEST( event, delay )
 
 	//Reverse order of delivery
 	current = time_current();
-	delivery = current + ( time_ticks_per_second() / 2 );
-	limit = current + ( time_ticks_per_second() * 20 );
+	delivery = current + halfsecond;
+	limit = current + time_ticks_per_second();
 
-	event_post( stream, expect_event, 0, 0, 0, current + ( time_ticks_per_second() / 2 ) );
-	event_post( stream, expect_event + 1, 0, 0, 0, current + (tick_t)((real)time_ticks_per_second() * REAL_C( 0.41 )) );
+	event_post( stream, expect_event, 0, 0, 0, current + halfsecond );
+	event_post( stream, expect_event + 1, 0, 0, 0, current + halfsecond - smalltick );
 
 	do
 	{
@@ -445,10 +449,10 @@ DECLARE_TEST( event, delay_threaded )
 	event_block_t* block;
 	event_t* event;
 	tick_t endtime, curtime, payloadtime, begintime, prevtime;
-	unsigned int read[32];
-	int i;
+	size_t read[32];
+	unsigned int i;
 	bool running = true;
-	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	size_t num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 
 	stream = event_stream_allocate( 0 );
 	begintime = time_current();
@@ -542,7 +546,8 @@ DECLARE_TEST( event, delay_threaded )
 
 	for( i = 0; i < num_threads; ++i )
 	{
-		unsigned int should_have_read = (unsigned int)((uintptr_t)thread_result( thread[i] ));
+		void* result = thread_result( thread[i] );
+		size_t should_have_read = (size_t)((uintptr_t)result);
 		EXPECT_EQ( read[i], should_have_read );
 		thread_terminate( thread[i] );
 		thread_destroy( thread[i] );
@@ -566,7 +571,7 @@ static void test_event_declare( void )
 }
 
 
-test_suite_t test_event_suite = {
+static test_suite_t test_event_suite = {
 	test_event_application,
 	test_event_memory_system,
 	test_event_declare,

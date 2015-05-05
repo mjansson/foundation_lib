@@ -22,14 +22,14 @@ FOUNDATION_API void              stream_deallocate( stream_t* stream );
 FOUNDATION_API void              stream_initialize( stream_t* stream, byteorder_t order );
 FOUNDATION_API void              stream_finalize( stream_t* stream );
 
-FOUNDATION_API int64_t           stream_tell( stream_t* stream );
-FOUNDATION_API void              stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction );
+FOUNDATION_API size_t            stream_tell( stream_t* stream );
+FOUNDATION_API void              stream_seek( stream_t* stream, ssize_t offset, stream_seek_mode_t direction );
 FOUNDATION_API bool              stream_eos( stream_t* stream );
-FOUNDATION_API int64_t           stream_size( stream_t* stream );
+FOUNDATION_API size_t            stream_size( stream_t* stream );
 
 FOUNDATION_API void              stream_set_byteorder( stream_t* stream, byteorder_t byteorder );
 FOUNDATION_API void              stream_set_binary( stream_t* stream, bool binary );
-FOUNDATION_API void              stream_determine_binary_mode( stream_t* stream, int num );
+FOUNDATION_API void              stream_determine_binary_mode( stream_t* stream, size_t num );
 
 FOUNDATION_API bool              stream_is_binary( const stream_t* stream );
 FOUNDATION_API bool              stream_is_sequential( const stream_t* stream );
@@ -41,8 +41,8 @@ FOUNDATION_API byteorder_t       stream_byteorder( const stream_t* stream );
 FOUNDATION_API const char*       stream_path( const stream_t* stream );
 FOUNDATION_API tick_t            stream_last_modified( const stream_t* stream );
 
-FOUNDATION_API int64_t           stream_read( stream_t* stream, void* buffer, int64_t num_bytes );
-FOUNDATION_API int64_t           stream_read_line_buffer( stream_t* stream, char* dest, int64_t count, char delimiter );
+FOUNDATION_API size_t            stream_read( stream_t* stream, void* buffer, size_t num_bytes );
+FOUNDATION_API size_t            stream_read_line_buffer( stream_t* stream, char* dest, size_t count, char delimiter );
 FOUNDATION_API char*             stream_read_line( stream_t* stream, char delimiter );
 FOUNDATION_API bool              stream_read_bool( stream_t* stream );
 FOUNDATION_API int8_t            stream_read_int8( stream_t* stream );
@@ -56,9 +56,9 @@ FOUNDATION_API uint64_t          stream_read_uint64( stream_t* stream );
 FOUNDATION_API float32_t         stream_read_float32( stream_t* stream );
 FOUNDATION_API float64_t         stream_read_float64( stream_t* stream );
 FOUNDATION_API char*             stream_read_string( stream_t* stream );
-FOUNDATION_API int64_t           stream_read_string_buffer( stream_t* stream, char* buffer, int64_t size );
+FOUNDATION_API size_t            stream_read_string_buffer( stream_t* stream, char* buffer, size_t size );
 
-FOUNDATION_API int64_t           stream_write( stream_t* stream, const void* buffer, int64_t num_bytes );
+FOUNDATION_API size_t            stream_write( stream_t* stream, const void* buffer, size_t num_bytes );
 FOUNDATION_API void              stream_write_bool( stream_t* stream, bool data );
 FOUNDATION_API void              stream_write_int8( stream_t* stream, int8_t data );
 FOUNDATION_API void              stream_write_uint8( stream_t* stream, uint8_t data );
@@ -72,14 +72,14 @@ FOUNDATION_API void              stream_write_float32( stream_t* stream, float32
 FOUNDATION_API void              stream_write_float64( stream_t* stream, float64_t data );
 FOUNDATION_API void              stream_write_string( stream_t* stream, const char* data );
 FOUNDATION_API void              stream_write_endl( stream_t* stream );
-FOUNDATION_API void              stream_write_format( stream_t* stream, const char* format, ... );
+FOUNDATION_API void              stream_write_format( stream_t* stream, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 3 );
 
 FOUNDATION_API void              stream_buffer_read( stream_t* stream );
-FOUNDATION_API int64_t           stream_available_read( stream_t* stream );
+FOUNDATION_API size_t            stream_available_read( stream_t* stream );
 
 FOUNDATION_API uint128_t         stream_md5( stream_t* stream );
 
-FOUNDATION_API void              stream_truncate( stream_t* stream, int64_t length );
+FOUNDATION_API void              stream_truncate( stream_t* stream, size_t length );
 FOUNDATION_API void              stream_flush( stream_t* stream );
 
 FOUNDATION_API stream_t*         stream_open_stdout( void );
@@ -87,4 +87,4 @@ FOUNDATION_API stream_t*         stream_open_stderr( void );
 FOUNDATION_API stream_t*         stream_open_stdin( void );
 
 FOUNDATION_API void              stream_set_protocol_handler( const char* protocol, stream_open_fn fn );
-FOUNDATION_API stream_open_fn    stream_protocol_handler( const char* protocol, int length );
+FOUNDATION_API stream_open_fn    stream_protocol_handler( const char* protocol, size_t length );

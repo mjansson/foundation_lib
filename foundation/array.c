@@ -29,32 +29,32 @@ const void* _array_verifyfn( const void* const* arr )
 }
 
 
-void* _array_resizefn( void** arr, unsigned int elements, size_t itemsize )
+void* _array_resizefn( void** arr, size_t elements, size_t itemsize )
 {
 	if( !(*arr) )
 		_array_growfn( arr, elements, 1, itemsize );
 	else if( _array_rawcapacity( *arr ) < elements )
 		_array_growfn( arr, elements - _array_rawcapacity( *arr ), 1, itemsize );
 	if( *arr )
-		_array_rawsize( *arr ) = elements;
+		_array_rawsize( *arr ) = (uint32_t)elements;
 	return *arr;
 }
 
 
-void* _array_growfn( void** arr, unsigned int increment, unsigned int factor, size_t itemsize )
+void* _array_growfn( void** arr, size_t increment, size_t factor, size_t itemsize )
 {
-	unsigned int prev_capacity = *arr ? _array_rawcapacity( *arr ) : 0;
-	unsigned int capacity = *arr ? ( factor * prev_capacity + increment ) : increment;
-	size_t       prev_storage_size = itemsize * prev_capacity;
-	size_t       storage_size = itemsize * capacity;
-	unsigned int header_size = 4U * _array_header_size;
-	size_t       prev_used_buffer_size = prev_storage_size + header_size;
-	size_t       buffer_size = storage_size + header_size;
-	uint32_t*    buffer = *arr ? memory_reallocate( _array_raw( *arr ), buffer_size, ARRAY_DEFAULT_ALIGN, prev_used_buffer_size ) : memory_allocate( 0, buffer_size, ARRAY_DEFAULT_ALIGN, MEMORY_PERSISTENT );
+	size_t    prev_capacity = *arr ? _array_rawcapacity( *arr ) : 0;
+	size_t    capacity = *arr ? ( factor * prev_capacity + increment ) : increment;
+	size_t    prev_storage_size = itemsize * prev_capacity;
+	size_t    storage_size = itemsize * capacity;
+	size_t    header_size = 4U * _array_header_size;
+	size_t    prev_used_buffer_size = prev_storage_size + header_size;
+	size_t    buffer_size = storage_size + header_size;
+	uint32_t* buffer = *arr ? memory_reallocate( _array_raw( *arr ), buffer_size, ARRAY_DEFAULT_ALIGN, prev_used_buffer_size ) : memory_allocate( 0, buffer_size, ARRAY_DEFAULT_ALIGN, MEMORY_PERSISTENT );
 	FOUNDATION_ASSERT_MSG( buffer, "Failed to reallocate array storage" );
 	if( buffer )
 	{
-		buffer[0] = capacity;
+		buffer[0] = (uint32_t)capacity;
 		if( !*arr )
 		{
 			buffer[1] = 0;

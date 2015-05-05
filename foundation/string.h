@@ -21,10 +21,10 @@ FOUNDATION_API char*          string_allocate( size_t length );
 FOUNDATION_API void           string_deallocate( char* str );
 FOUNDATION_API char*          string_clone( const char* str );
 
-FOUNDATION_API char*          string_format( const char* format, ... );
-FOUNDATION_API char*          string_format_buffer( char* buffer, size_t maxlen, const char* format, ... );
-FOUNDATION_API char*          string_vformat( const char* format, va_list list );
-FOUNDATION_API char*          string_vformat_buffer( char* buffer, size_t maxlen, const char* format, va_list list );
+FOUNDATION_API char*          string_format( const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 2 );
+FOUNDATION_API char*          string_format_buffer( char* buffer, size_t maxlen, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
+FOUNDATION_API char*          string_vformat( const char* format, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 0 );
+FOUNDATION_API char*          string_vformat_buffer( char* buffer, size_t maxlen, const char* format, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 0 );
 
 FOUNDATION_API size_t         string_length( const char* str );
 FOUNDATION_API size_t         string_glyphs( const char* str );
@@ -41,16 +41,16 @@ FOUNDATION_API char*          string_concat( const char* lhs, const char* rhs );
 FOUNDATION_API void           string_split( const char* str, const char* separators, char** left, char** right, bool allowempty );
 FOUNDATION_API char*          string_substr( const char* str, size_t offset, size_t length );
 
-FOUNDATION_API ssize_t        string_find( const char* str, char c, ssize_t offset );
-FOUNDATION_API ssize_t        string_find_string( const char* str, const char* key, ssize_t offset );
-FOUNDATION_API ssize_t        string_rfind( const char* str, char c, ssize_t offset );
-FOUNDATION_API ssize_t        string_rfind_string( const char* str, const char* key, ssize_t offset );
-FOUNDATION_API ssize_t        string_find_first_of( const char* str, const char* key, ssize_t offset );
-FOUNDATION_API ssize_t        string_find_last_of( const char* str, const char* key, ssize_t offset );
-FOUNDATION_API ssize_t        string_find_first_not_of( const char* str, const char* key, ssize_t offset );
-FOUNDATION_API ssize_t        string_find_last_not_of( const char* str, const char* key, ssize_t offset );
-FOUNDATION_API ssize_t        string_rfind_first_of( const char* str, const char* key, ssize_t offset );
-FOUNDATION_API ssize_t        string_rfind_first_not_of( const char* str, const char* key, ssize_t offset );
+FOUNDATION_API size_t         string_find( const char* str, char c, size_t offset );
+FOUNDATION_API size_t         string_find_string( const char* str, const char* key, size_t offset );
+FOUNDATION_API size_t         string_rfind( const char* str, char c, size_t offset );
+FOUNDATION_API size_t         string_rfind_string( const char* str, const char* key, size_t offset );
+FOUNDATION_API size_t         string_find_first_of( const char* str, const char* key, size_t offset );
+FOUNDATION_API size_t         string_find_last_of( const char* str, const char* key, size_t offset );
+FOUNDATION_API size_t         string_find_first_not_of( const char* str, const char* key, size_t offset );
+FOUNDATION_API size_t         string_find_last_not_of( const char* str, const char* key, size_t offset );
+FOUNDATION_API size_t         string_rfind_first_of( const char* str, const char* key, size_t offset );
+FOUNDATION_API size_t         string_rfind_first_not_of( const char* str, const char* key, size_t offset );
 
 FOUNDATION_API bool           string_ends_with( const char* str, const char* suffix );
 FOUNDATION_API bool           string_equal( const char* lhs, const char* rhs );
@@ -82,24 +82,24 @@ FOUNDATION_API void           string_convert_utf32( char* dst, const uint32_t* s
 FOUNDATION_API char*          string_from_int( int64_t val, unsigned int width, char padding );
 FOUNDATION_API char*          string_from_uint( uint64_t val, bool hex, unsigned int width, char padding );
 FOUNDATION_API char*          string_from_uint128( const uint128_t val );
-FOUNDATION_API char*          string_from_real( real val, int precision, unsigned int width, char padding );
-FOUNDATION_API char*          string_from_time( uint64_t time );
+FOUNDATION_API char*          string_from_real( real val, unsigned int precision, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_time( tick_t time );
 FOUNDATION_API char*          string_from_uuid( const uuid_t uuid );
 FOUNDATION_API char*          string_from_version( const version_t version );
 
-FOUNDATION_API char*          string_from_int_buffer( char* buffer, int64_t val, unsigned int width, char padding );
-FOUNDATION_API char*          string_from_uint_buffer( char* buffer, uint64_t val, bool hex, unsigned int width, char padding );
-FOUNDATION_API char*          string_from_uint128_buffer( char* buffer, const uint128_t val );
-FOUNDATION_API char*          string_from_real_buffer( char* buffer, real val, int precision, unsigned int width, char padding );
-FOUNDATION_API char*          string_from_time_buffer( char* buffer, uint64_t time );
-FOUNDATION_API char*          string_from_uuid_buffer( char* buffer, const uuid_t uuid );
-FOUNDATION_API char*          string_from_version_buffer( char* buffer, const version_t version );
+FOUNDATION_API char*          string_from_int_buffer( char* buffer, size_t size, int64_t val, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_uint_buffer( char* buffer, size_t size, uint64_t val, bool hex, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_uint128_buffer( char* buffer, size_t size, const uint128_t val );
+FOUNDATION_API char*          string_from_real_buffer( char* buffer, size_t size, real val, unsigned int precision, unsigned int width, char padding );
+FOUNDATION_API char*          string_from_time_buffer( char* buffer, size_t size, tick_t time );
+FOUNDATION_API char*          string_from_uuid_buffer( char* buffer, size_t size, const uuid_t uuid );
+FOUNDATION_API char*          string_from_version_buffer( char* buffer, size_t size, const version_t version );
 
 FOUNDATION_API const char*    string_from_int_static( int64_t val, unsigned int width, char padding );
 FOUNDATION_API const char*    string_from_uint_static( uint64_t val, bool hex, unsigned int width, char padding );
 FOUNDATION_API const char*    string_from_uint128_static( const uint128_t val );
-FOUNDATION_API const char*    string_from_real_static( real val, int precision, unsigned int width, char padding );
-FOUNDATION_API const char*    string_from_time_static( uint64_t time );
+FOUNDATION_API const char*    string_from_real_static( real val, unsigned int precision, unsigned int width, char padding );
+FOUNDATION_API const char*    string_from_time_static( tick_t time );
 FOUNDATION_API const char*    string_from_uuid_static( const uuid_t uuid );
 FOUNDATION_API const char*    string_from_version_static( const version_t version );
 
@@ -114,6 +114,6 @@ FOUNDATION_API real           string_to_real( const char* val );
 FOUNDATION_API uuid_t         string_to_uuid( const char* val );
 FOUNDATION_API version_t      string_to_version( const char* val );
 
-#define STRING_NPOS           -1
+#define STRING_NPOS           ((size_t)-1)
 #define STRING_WHITESPACE     " \n\r\t\v\f"
 #define WSTRING_WHITESPACE   L" \n\r\t\v\f"

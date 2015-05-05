@@ -143,9 +143,9 @@ DECLARE_TEST( bitbuffer, readwrite )
 	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
 	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
 
-	int bits32[20] = {0};
-	int bits64[20] = {0};
-	int bits128[20] = {0};
+	unsigned int bits32[20] = {0};
+	unsigned int bits64[20] = {0};
+	unsigned int bits128[20] = {0};
 
 	for( ival = 0; ival < 4; ++ival )
 		val128[ival] = uint128_make( random64(), random64() );
@@ -204,18 +204,18 @@ DECLARE_TEST( bitbuffer, readwrite )
 
 		for( ival = 0; ival < 16; ++ival )
 		{
-			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival] ),   val32[0] & ( bits32[ival]   == 32 ? -1 : ( bits32[ival]   ? ( 1 << bits32[ival]   ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+1] ), val32[1] & ( bits32[ival+1] == 32 ? -1 : ( bits32[ival+1] ? ( 1 << bits32[ival+1] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+2] ), val32[2] & ( bits32[ival+2] == 32 ? -1 : ( bits32[ival+2] ? ( 1 << bits32[ival+2] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+3] ), val32[3] & ( bits32[ival+3] == 32 ? -1 : ( bits32[ival+3] ? ( 1 << bits32[ival+3] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival] ),   val32[0] & ( bits32[ival]   == 32 ? (uint32_t)-1 : ( bits32[ival]   ? ( 1U << bits32[ival]   ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+1] ), val32[1] & ( bits32[ival+1] == 32 ? (uint32_t)-1 : ( bits32[ival+1] ? ( 1U << bits32[ival+1] ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+2] ), val32[2] & ( bits32[ival+2] == 32 ? (uint32_t)-1 : ( bits32[ival+2] ? ( 1U << bits32[ival+2] ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( &bitbuffer, bits32[ival+3] ), val32[3] & ( bits32[ival+3] == 32 ? (uint32_t)-1 : ( bits32[ival+3] ? ( 1U << bits32[ival+3] ) - 1 : 0U ) ) );
 
 			if( !( ipass % 13 ) )
 				bitbuffer_align_read( &bitbuffer, false );
 
-			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival] ),   val64[0] & ( bits64[ival]   == 64 ? (uint64_t)-1 : ( bits64[ival]   ? ( 1ULL << bits64[ival]   ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+1] ), val64[1] & ( bits64[ival+1] == 64 ? (uint64_t)-1 : ( bits64[ival+1] ? ( 1ULL << bits64[ival+1] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+2] ), val64[2] & ( bits64[ival+2] == 64 ? (uint64_t)-1 : ( bits64[ival+2] ? ( 1ULL << bits64[ival+2] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+3] ), val64[3] & ( bits64[ival+3] == 64 ? (uint64_t)-1 : ( bits64[ival+3] ? ( 1ULL << bits64[ival+3] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival] ),   val64[0] & ( bits64[ival]   == 64 ? (uint64_t)-1 : ( bits64[ival]   ? ( 1ULL << bits64[ival]   ) - 1 : 0ULL ) ) );
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+1] ), val64[1] & ( bits64[ival+1] == 64 ? (uint64_t)-1 : ( bits64[ival+1] ? ( 1ULL << bits64[ival+1] ) - 1 : 0ULL ) ) );
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+2] ), val64[2] & ( bits64[ival+2] == 64 ? (uint64_t)-1 : ( bits64[ival+2] ? ( 1ULL << bits64[ival+2] ) - 1 : 0ULL ) ) );
+			EXPECT_EQ( bitbuffer_read64( &bitbuffer, bits64[ival+3] ), val64[3] & ( bits64[ival+3] == 64 ? (uint64_t)-1 : ( bits64[ival+3] ? ( 1ULL << bits64[ival+3] ) - 1 : 0ULL ) ) );
 
 			writeval128 = val128[0]; writeval128.word[0] &= ( bits128[ival] >= 64 ? (uint64_t)-1 : ( bits128[ival] ? ( 1ULL << bits128[ival] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival] == 128 ? (uint64_t)-1 : ( bits128[ival] > 64 ? ( 1ULL << ( bits128[ival] - 64 ) ) - 1 : 0 ) );
 			readval128 = bitbuffer_read128( &bitbuffer, bits128[ival] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
@@ -229,6 +229,12 @@ DECLARE_TEST( bitbuffer, readwrite )
 			if( !( ipass % 29 ) )
 				bitbuffer_align_read( &bitbuffer, true );
 
+#if FOUNDATION_COMPILER_CLANG
+// Yes, we want to compare floats to make sure bitwise write/read matches
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
+
 			EXPECT_EQ( bitbuffer_read_float32( &bitbuffer ), valf32[0] );
 			EXPECT_EQ( bitbuffer_read_float32( &bitbuffer ), valf32[1] );
 			EXPECT_EQ( bitbuffer_read_float32( &bitbuffer ), valf32[2] );
@@ -238,6 +244,10 @@ DECLARE_TEST( bitbuffer, readwrite )
 			EXPECT_EQ( bitbuffer_read_float64( &bitbuffer ), valf64[1] );
 			EXPECT_EQ( bitbuffer_read_float64( &bitbuffer ), valf64[2] );
 			EXPECT_EQ( bitbuffer_read_float64( &bitbuffer ), valf64[3] );
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 		}
 	}
 
@@ -258,9 +268,9 @@ DECLARE_TEST( bitbuffer, readwriteswap )
 	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
 	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
 
-	int bits32[20] = {0};
-	int bits64[20] = {0};
-	int bits128[20] = {0};
+	unsigned int bits32[20] = {0};
+	unsigned int bits64[20] = {0};
+	unsigned int bits128[20] = {0};
 
 
 
@@ -321,15 +331,15 @@ DECLARE_TEST( bitbuffer, readwriteswap )
 
 		for( ival = 0; ival < 16; ++ival )
 		{
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival] ),   val32[0] & ( bits32[ival]   == 32 ? -1 : ( bits32[ival]   ? ( 1 << bits32[ival]   ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+1] ), val32[1] & ( bits32[ival+1] == 32 ? -1 : ( bits32[ival+1] ? ( 1 << bits32[ival+1] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+2] ), val32[2] & ( bits32[ival+2] == 32 ? -1 : ( bits32[ival+2] ? ( 1 << bits32[ival+2] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+3] ), val32[3] & ( bits32[ival+3] == 32 ? -1 : ( bits32[ival+3] ? ( 1 << bits32[ival+3] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival] ),   val32[0] & ( bits32[ival]   == 32 ? (uint32_t)-1 : ( bits32[ival]   ? ( 1U << bits32[ival]   ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+1] ), val32[1] & ( bits32[ival+1] == 32 ? (uint32_t)-1 : ( bits32[ival+1] ? ( 1U << bits32[ival+1] ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+2] ), val32[2] & ( bits32[ival+2] == 32 ? (uint32_t)-1 : ( bits32[ival+2] ? ( 1U << bits32[ival+2] ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+3] ), val32[3] & ( bits32[ival+3] == 32 ? (uint32_t)-1 : ( bits32[ival+3] ? ( 1U << bits32[ival+3] ) - 1 : 0U ) ) );
 
-			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival] ),   val64[0] & ( bits64[ival]   == 64 ? (uint64_t)-1 : ( bits64[ival]   ? ( 1ULL << bits64[ival]   ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival+1] ), val64[1] & ( bits64[ival+1] == 64 ? (uint64_t)-1 : ( bits64[ival+1] ? ( 1ULL << bits64[ival+1] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival+2] ), val64[2] & ( bits64[ival+2] == 64 ? (uint64_t)-1 : ( bits64[ival+2] ? ( 1ULL << bits64[ival+2] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival+3] ), val64[3] & ( bits64[ival+3] == 64 ? (uint64_t)-1 : ( bits64[ival+3] ? ( 1ULL << bits64[ival+3] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival] ),   val64[0] & ( bits64[ival]   == 64 ? (uint64_t)-1 : ( bits64[ival]   ? ( 1ULL << bits64[ival]   ) - 1 : 0ULL ) ) );
+			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival+1] ), val64[1] & ( bits64[ival+1] == 64 ? (uint64_t)-1 : ( bits64[ival+1] ? ( 1ULL << bits64[ival+1] ) - 1 : 0ULL ) ) );
+			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival+2] ), val64[2] & ( bits64[ival+2] == 64 ? (uint64_t)-1 : ( bits64[ival+2] ? ( 1ULL << bits64[ival+2] ) - 1 : 0ULL ) ) );
+			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival+3] ), val64[3] & ( bits64[ival+3] == 64 ? (uint64_t)-1 : ( bits64[ival+3] ? ( 1ULL << bits64[ival+3] ) - 1 : 0ULL ) ) );
 
 			writeval128 = val128[0]; writeval128.word[0] &= ( bits128[ival] >= 64 ? (uint64_t)-1 : ( bits128[ival] ? ( 1ULL << bits128[ival] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival] == 128 ? (uint64_t)-1 : ( bits128[ival] > 64 ? ( 1ULL << ( bits128[ival] - 64 ) ) - 1 : 0 ) );
 			readval128 = bitbuffer_read128( bitbuffer, bits128[ival] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
@@ -340,6 +350,12 @@ DECLARE_TEST( bitbuffer, readwriteswap )
 			writeval128 = val128[3]; writeval128.word[0] &= ( bits128[ival+3] >= 64 ? (uint64_t)-1 : ( bits128[ival+3] ? ( 1ULL << bits128[ival+3] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival+3] == 128 ? (uint64_t)-1 : ( bits128[ival+3] > 64 ? ( 1ULL << ( bits128[ival+3] - 64 ) ) - 1 : 0 ) );
 			readval128 = bitbuffer_read128( bitbuffer, bits128[ival+3] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
 
+#if FOUNDATION_COMPILER_CLANG
+// Yes, we want to compare floats to make sure bitwise write/read matches
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
+
 			EXPECT_EQ( bitbuffer_read_float32( bitbuffer ), valf32[0] );
 			EXPECT_EQ( bitbuffer_read_float32( bitbuffer ), valf32[1] );
 			EXPECT_EQ( bitbuffer_read_float32( bitbuffer ), valf32[2] );
@@ -349,6 +365,10 @@ DECLARE_TEST( bitbuffer, readwriteswap )
 			EXPECT_EQ( bitbuffer_read_float64( bitbuffer ), valf64[1] );
 			EXPECT_EQ( bitbuffer_read_float64( bitbuffer ), valf64[2] );
 			EXPECT_EQ( bitbuffer_read_float64( bitbuffer ), valf64[3] );
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 		}
 
 		bitbuffer_align_read( bitbuffer, false );
@@ -378,9 +398,9 @@ DECLARE_TEST( bitbuffer, stream )
 	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
 	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
 
-	int bits32[20] = {0};
-	int bits64[20] = {0};
-	int bits128[20] = {0};
+	unsigned int bits32[20] = {0};
+	unsigned int bits64[20] = {0};
+	unsigned int bits128[20] = {0};
 
 	char* tmp_path = 0;
 
@@ -443,10 +463,10 @@ DECLARE_TEST( bitbuffer, stream )
 
 		for( ival = 0; ival < 16; ++ival )
 		{
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival] ),   val32[0] & ( bits32[ival]   == 32 ? -1 : ( bits32[ival]   ? ( 1 << bits32[ival]   ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+1] ), val32[1] & ( bits32[ival+1] == 32 ? -1 : ( bits32[ival+1] ? ( 1 << bits32[ival+1] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+2] ), val32[2] & ( bits32[ival+2] == 32 ? -1 : ( bits32[ival+2] ? ( 1 << bits32[ival+2] ) - 1 : 0 ) ) );
-			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+3] ), val32[3] & ( bits32[ival+3] == 32 ? -1 : ( bits32[ival+3] ? ( 1 << bits32[ival+3] ) - 1 : 0 ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival] ),   val32[0] & ( bits32[ival]   == 32 ? (uint32_t)-1 : ( bits32[ival]   ? ( 1U << bits32[ival]   ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+1] ), val32[1] & ( bits32[ival+1] == 32 ? (uint32_t)-1 : ( bits32[ival+1] ? ( 1U << bits32[ival+1] ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+2] ), val32[2] & ( bits32[ival+2] == 32 ? (uint32_t)-1 : ( bits32[ival+2] ? ( 1U << bits32[ival+2] ) - 1 : 0U ) ) );
+			EXPECT_EQ( bitbuffer_read32( bitbuffer, bits32[ival+3] ), val32[3] & ( bits32[ival+3] == 32 ? (uint32_t)-1 : ( bits32[ival+3] ? ( 1U << bits32[ival+3] ) - 1 : 0U ) ) );
 
 			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival] ),   val64[0] & ( bits64[ival]   == 64 ? (uint64_t)-1 : ( bits64[ival]   ? ( 1ULL << bits64[ival]   ) - 1 : 0 ) ) );
 			EXPECT_EQ( bitbuffer_read64( bitbuffer, bits64[ival+1] ), val64[1] & ( bits64[ival+1] == 64 ? (uint64_t)-1 : ( bits64[ival+1] ? ( 1ULL << bits64[ival+1] ) - 1 : 0 ) ) );
@@ -462,6 +482,12 @@ DECLARE_TEST( bitbuffer, stream )
 			writeval128 = val128[3]; writeval128.word[0] &= ( bits128[ival+3] >= 64 ? (uint64_t)-1 : ( bits128[ival+3] ? ( 1ULL << bits128[ival+3] ) - 1 : 0 ) ); writeval128.word[1] &= ( bits128[ival+3] == 128 ? (uint64_t)-1 : ( bits128[ival+3] > 64 ? ( 1ULL << ( bits128[ival+3] - 64 ) ) - 1 : 0 ) );
 			readval128 = bitbuffer_read128( bitbuffer, bits128[ival+3] ); EXPECT_TRUE( uint128_equal( readval128, writeval128 ) );
 
+#if FOUNDATION_COMPILER_CLANG
+// Yes, we want to compare floats to make sure bitwise write/read matches
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
+
 			EXPECT_EQ( bitbuffer_read_float32( bitbuffer ), valf32[0] );
 			EXPECT_EQ( bitbuffer_read_float32( bitbuffer ), valf32[1] );
 			EXPECT_EQ( bitbuffer_read_float32( bitbuffer ), valf32[2] );
@@ -471,6 +497,10 @@ DECLARE_TEST( bitbuffer, stream )
 			EXPECT_EQ( bitbuffer_read_float64( bitbuffer ), valf64[1] );
 			EXPECT_EQ( bitbuffer_read_float64( bitbuffer ), valf64[2] );
 			EXPECT_EQ( bitbuffer_read_float64( bitbuffer ), valf64[3] );
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 		}
 
 		bitbuffer_deallocate( bitbuffer );
@@ -492,7 +522,7 @@ static void test_bitbuffer_declare( void )
 }
 
 
-test_suite_t test_bitbuffer_suite = {
+static test_suite_t test_bitbuffer_suite = {
 	test_bitbuffer_application,
 	test_bitbuffer_memory_system,
 	test_bitbuffer_declare,
@@ -512,6 +542,7 @@ int test_bitbuffer_run( void )
 
 #else
 
+test_suite_t test_suite_define( void );
 test_suite_t test_suite_define( void )
 {
 	return test_bitbuffer_suite;

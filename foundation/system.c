@@ -249,7 +249,7 @@ const char* system_username( void )
 }
 
 
-unsigned int system_hardware_threads( void )
+size_t system_hardware_threads( void )
 {
 	SYSTEM_INFO system_info;
 	GetSystemInfo( &system_info );
@@ -395,18 +395,19 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	unsigned int j;
 	union
 	{
-		uint64_t               id;
-		unsigned char FOUNDATION_ALIGN(8) buffer[8];
+		uint64_t                    id;
+		uint8_t FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
 	if( ifaddr->ifa_addr && ( ifaddr->ifa_addr->sa_family == AF_LINK ) )
 	{
-		struct sockaddr_dl* addr_dl = (struct sockaddr_dl*)ifaddr->ifa_addr;
-		if( addr_dl->sdl_alen == 6 )
+		struct sockaddr_dl addr_dl;
+		memcpy( &addr_dl, ifaddr->ifa_addr, sizeof( addr_dl ) );
+		if( addr_dl.sdl_alen == 6 )
 		{
 			hostid.id = 0;
 			for( j = 0; j < 6; ++j )
-				hostid.buffer[5-j] = LLADDR(addr_dl)[j];
+				hostid.buffer[5-j] = (uint8_t)LLADDR(&addr_dl)[j];
 			return hostid.id;
 		}
 	}
@@ -421,8 +422,8 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 	unsigned int j;
 	union
 	{
-		uint64_t               id;
-		unsigned char FOUNDATION_ALIGN(8) buffer[8];
+		uint64_t                    id;
+		uint8_t FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
 	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
@@ -430,7 +431,7 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 
 	hostid.id = 0;
 	for( j = 0; j < 6; ++j )
-		hostid.buffer[5-j] = ifr->ifr_hwaddr.sa_data[j];
+		hostid.buffer[5-j] = (uint8_t)ifr->ifr_hwaddr.sa_data[j];
 
 	return hostid.id;
 }
@@ -532,7 +533,7 @@ uint64_t system_hostid( void )
 }
 
 
-unsigned int system_hardware_threads( void )
+size_t system_hardware_threads( void )
 {
 #if FOUNDATION_PLATFORM_APPLE
 	return _system_process_info_processor_count();
@@ -695,8 +696,8 @@ uint32_t system_locale( void )
 	if( !locale || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
 
-#define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (((unsigned char)(x)) | (32)) : (x)
-#define _LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (((unsigned char)(x)) & (~32)) : (x)
+#define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x))
+#define _LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x))
 	localestr[0] = _LOCALE_CHAR_TO_LOWERCASE( locale[0] );
 	localestr[1] = _LOCALE_CHAR_TO_LOWERCASE( locale[1] );
 	localestr[2] = _LOCALE_CHAR_TO_UPPERCASE( locale[2] );

@@ -270,8 +270,8 @@ static bool radixsort_create_histograms( radixsort_t* sort, const void* input_ra
 	{
 		for( ih = 0; ih < num; ++ih )
 		{
-			sort->indices[0][ih] = ih;
-			sort->indices[1][ih] = ih;
+			sort->indices[0][ih] = (radixsort_index_t)ih;
+			sort->indices[1][ih] = (radixsort_index_t)ih;
 		}
 	}
 

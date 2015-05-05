@@ -20,13 +20,13 @@
 static atomic32_t _event_serial = {1};
 
 
-static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, int size, object_t object, const void* payload, uint16_t flags, tick_t timestamp )
+static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, size_t size, object_t object, const void* payload, uint16_t flags, tick_t timestamp )
 {
 	event_block_t* block;
 	event_t* event;
 	bool restored_block;
-	int basesize;
-	int allocsize;
+	size_t basesize;
+	size_t allocsize;
 	int32_t last_write;
 
 	//Events must have non-zero id
@@ -36,8 +36,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 		return;
 
 	//Events must be aligned to an even 8 bytes
-	basesize = sizeof( event_t );
-	basesize += size;
+	basesize = sizeof( event_t ) + size;
 	if( basesize % 8 )
 		basesize += 8 - ( basesize % 8 );
 	basesize &= 0xFFF8;
@@ -60,7 +59,7 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
 	{
-		int prev_capacity = block->capacity + 2;
+		size_t prev_capacity = block->capacity + 2;
 		if( block->capacity < BUILD_SIZE_EVENT_BLOCK_CHUNK )
 		{
 			block->capacity <<= 1;
@@ -104,9 +103,9 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, i
 }
 
 
-int event_payload_size( const event_t* event )
+size_t event_payload_size( const event_t* event )
 {
-	int size = (int)event->size;
+	size_t size = event->size;
 	size -= sizeof( event_t );
 	if( event->flags & EVENTFLAG_DELAY )
 		size -= 8;
@@ -114,7 +113,7 @@ int event_payload_size( const event_t* event )
 }
 
 
-void event_post( event_stream_t* stream, uint16_t id, int size, object_t object, const void* payload, tick_t delivery )
+void event_post( event_stream_t* stream, uint16_t id, size_t size, object_t object, const void* payload, tick_t delivery )
 {
 	_event_post_delay_with_flags( stream, id, size, object, payload, 0, delivery );
 }
@@ -148,7 +147,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 }
 
 
-event_stream_t* event_stream_allocate( int size )
+event_stream_t* event_stream_allocate( size_t size )
 {
 	event_stream_t* stream = memory_allocate( 0, sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
 
@@ -158,7 +157,7 @@ event_stream_t* event_stream_allocate( int size )
 }
 
 
-void event_stream_initialize( event_stream_t* stream, int size )
+void event_stream_initialize( event_stream_t* stream, size_t size )
 {
 	atomic_store32( &stream->write, 0 );
 	stream->read = 1;

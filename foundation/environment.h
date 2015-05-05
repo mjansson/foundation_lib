@@ -31,6 +31,6 @@ FOUNDATION_API const application_t*   environment_application( void );
 
 #if FOUNDATION_PLATFORM_APPLE
 
-FOUNDATION_API void                   environment_bundle_identifier( char* buffer, unsigned int maxlength );
+FOUNDATION_API void                   environment_bundle_identifier( char* buffer, size_t maxlength );
 
 #endif

@@ -276,7 +276,7 @@ static void test_regex_declare( void )
 }
 
 
-test_suite_t test_regex_suite = {
+static test_suite_t test_regex_suite = {
 	test_regex_application,
 	test_regex_memory_system,
 	test_regex_declare,
@@ -296,6 +296,7 @@ int test_regex_run( void )
 
 #else
 
+test_suite_t test_suite_define( void );
 test_suite_t test_suite_define( void )
 {
 	return test_regex_suite;

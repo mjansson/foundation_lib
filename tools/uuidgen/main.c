@@ -89,7 +89,7 @@ int main_initialize( void )
 int main_run( void* main_arg )
 {
 	int result = 0;
-	int iinst, num_instance;
+	size_t iinst, num_instance;
 	uuid_t* output = 0;
 	uuidgen_input_t input = uuidgen_parse_command_line( environment_command_line() );
 	FOUNDATION_UNUSED( main_arg );
@@ -130,7 +130,7 @@ void main_shutdown( void )
 uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 {
 	uuidgen_input_t input;
-	int arg, asize;
+	size_t arg, asize;
 
 	memset( &input, 0, sizeof( input ) );
 
@@ -238,7 +238,7 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 	{
 		case METHOD_RANDOM:
 		{
-			unsigned int ii = 0;
+			size_t ii = 0;
 			for( ; ii < input.num; ++ii )
 				array_push( *uuid, uuid_generate_random() );
 			break;
@@ -246,7 +246,7 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 
 		case METHOD_TIME:
 		{
-			unsigned int ii = 0;
+			size_t ii = 0;
 			for( ; ii < input.num; ++ii )
 				array_push( *uuid, uuid_generate_time() );
 			break;
@@ -255,12 +255,6 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 		case METHOD_NAMESPACE_MD5:
 		{
 			array_push( *uuid, uuid_generate_name( input.namespace, input.name ) );
-			break;
-		}
-
-		default:
-		{
-			result = UUIDGEN_RESULT_UNKNOWN_METHOD;
 			break;
 		}
 	}
@@ -273,7 +267,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 {
 	if( output )
 	{
-		int i, uuidsize;
+		size_t i, uuidsize;
 		stream_t* stream = stream_open( output, STREAM_OUT | ( binary ? STREAM_BINARY : 0 ) );
 		if( !stream )
 			return UUIDGEN_RESULT_UNABLE_TO_OPEN_OUTPUT_FILE;
@@ -293,7 +287,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 	}
 	else
 	{
-		int i, uuidsize;
+		size_t i, uuidsize;
 		log_set_suppress( 0, ERRORLEVEL_DEBUG );
 		for( i = 0, uuidsize = array_size( uuid ); i < uuidsize; ++i )
 		{

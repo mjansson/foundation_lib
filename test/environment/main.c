@@ -101,7 +101,7 @@ static void test_environment_declare( void )
 }
 
 
-test_suite_t test_environment_suite = {
+static test_suite_t test_environment_suite = {
 	test_environment_application,
 	test_environment_memory_system,
 	test_environment_declare,

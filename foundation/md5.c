@@ -21,9 +21,9 @@
 #define MD5_STEP( f, a, b, c, d, t, s ) (a) += f((b), (c), (d)) + (t); (a) = (((a) << (s)) | ((a) >> (32 - (s)))); (a) += (b);
 
 
-static void md5_encode( unsigned char* dest, const uint32_t* src, uint32_t length )
+static void md5_encode( unsigned char* dest, const uint32_t* src, size_t length )
 {
-	unsigned int i, j;
+	size_t i, j;
 	for( i = 0, j = 0; j < length; ++i, j += 4 )
 	{
 		dest[j]   = (unsigned char)(   src[i]         & 0xff );
@@ -34,9 +34,9 @@ static void md5_encode( unsigned char* dest, const uint32_t* src, uint32_t lengt
 }
 
 
-static void md5_decode( uint32_t* dest, const unsigned char* src, uint32_t length )
+static void md5_decode( uint32_t* dest, const unsigned char* src, size_t length )
 {
-	unsigned int i, j;
+	size_t i, j;
 	for( i = 0, j = 0; j < length; ++i, j += 4 )
 		dest[i] = (uint32_t)src[j] | ( (uint32_t)src[j+1] << 8 ) | ( (uint32_t)src[j+2] << 16 ) | ( (uint32_t)src[j+3] << 24 );
 }
@@ -44,8 +44,8 @@ static void md5_decode( uint32_t* dest, const unsigned char* src, uint32_t lengt
 
 static void md5_transform( md5_t* digest, const unsigned char* buffer )
 {
-	unsigned int a = digest->state[0], b = digest->state[1], c = digest->state[2], d = digest->state[3];
-	unsigned int x[16];
+	uint32_t a = digest->state[0], b = digest->state[1], c = digest->state[2], d = digest->state[3];
+	uint32_t x[16];
 
 	md5_decode( x, buffer, 64 );
 
@@ -167,10 +167,10 @@ md5_t* md5_digest( md5_t* digest, const char* msg )
 }
 
 
-md5_t* md5_digest_raw( md5_t* digest, const void* buffer, int size )
+md5_t* md5_digest_raw( md5_t* digest, const void* buffer, size_t size )
 {
-	int index_in, index_buf;
-	int space_buf;
+	size_t index_in, index_buf;
+	size_t space_buf;
 	uint32_t prev_count, add_count;
 
 	if( !digest )
@@ -212,7 +212,7 @@ md5_t* md5_digest_raw( md5_t* digest, const void* buffer, int size )
 void md5_digest_finalize( md5_t* digest )
 {
 	unsigned char bits[8];
-	unsigned int idx, size_pad;
+	size_t idx, size_pad;
 	static const unsigned char padding[64] = {
 		0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

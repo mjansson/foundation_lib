@@ -103,7 +103,7 @@ void main_shutdown( void )
 hashify_input_t hashify_parse_command_line( const char* const* cmdline )
 {
 	hashify_input_t input;
-	int arg, asize;
+	size_t arg, asize;
 
 	memset( &input, 0, sizeof( input ) );
 	input.check_only = false;
@@ -147,7 +147,7 @@ hashify_input_t hashify_parse_command_line( const char* const* cmdline )
 
 int hashify_process_strings( const char* const* strings )
 {
-	int istr, strings_size;
+	size_t istr, strings_size;
 	for( istr = 0, strings_size = array_size( strings ); istr < strings_size; ++istr )
 	{
 		uint64_t hash_value = hash( strings[istr], string_length( strings[istr] ) );
@@ -161,7 +161,7 @@ int hashify_process_files( const char* const* files, bool check_only )
 {
 	int result = HASHIFY_RESULT_OK;
 	hashify_string_t* history = 0;
-	unsigned int ifile, files_size;
+	size_t ifile, files_size;
 	for( ifile = 0, files_size = array_size( files ); ( result == HASHIFY_RESULT_OK ) && ( ifile < files_size ); ++ifile )
 	{
 		char* input_filename;
@@ -251,7 +251,7 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 
 		if( string_length( value_string ) && ( value_string[0] == '"' ) && ( value_string[ string_length( value_string ) - 1 ] == '"' ) )
 		{
-			unsigned int len = string_length( value_string );
+			size_t len = string_length( value_string );
 			memmove( value_string, value_string + 1, len - 2 );
 			value_string[len-2] = 0;
 		}
@@ -406,8 +406,8 @@ int hashify_write_file( stream_t* generated_file, const char* output_filename )
 	if( need_update )
 	{
 		char local_buffer[1024];
-		uint64_t read = 0;
-		uint64_t written = 0;
+		size_t read = 0;
+		size_t written = 0;
 		uint64_t total_written = 0;
 
 		stream_seek( generated_file, 0, STREAM_SEEK_BEGIN );
@@ -424,7 +424,7 @@ int hashify_write_file( stream_t* generated_file, const char* output_filename )
 
 			if( written != read )
 			{
-				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to write to output file '%s': %llu of %llu bytes written", output_filename, written, read );
+				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to write to output file '%s': %" PRIsize " of %" PRIsize " bytes written", output_filename, written, read );
 				result = HASHIFY_RESULT_OUTPUT_FILE_WRITE_FAIL;
 				break;
 			}
@@ -449,7 +449,7 @@ int hashify_write_file( stream_t* generated_file, const char* output_filename )
 
 int hashify_check_local_consistency( const char* string, hash_t hash_value, const hashify_string_t* local_hashes )
 {
-	int ilocal, localsize;
+	size_t ilocal, localsize;
 	for( ilocal = 0, localsize = array_size( local_hashes ); ilocal < localsize; ++ilocal )
 	{
 		if( local_hashes[ilocal].hash == hash_value )
@@ -479,7 +479,7 @@ int hashify_check_local_consistency( const char* string, hash_t hash_value, cons
 
 int hashify_check_collisions( const char* string, hash_t hash_value, const hashify_string_t* history )
 {
-	int ihist, history_size;
+	size_t ihist, history_size;
 	for( ihist = 0, history_size = array_size( history ); ihist < history_size; ++ihist )
 	{
 		if( history[ihist].hash == hash_value )
@@ -505,7 +505,7 @@ int hashify_check_match( const hashify_string_t* hashes, const hashify_string_t*
 {
 	//From hashify_check_local_consistency we know that generated array already is a subset of hashes
 	//This test checks that hashes is a subset of generated, i.e sets are equal
-	int ihash, hashes_size, igen, generated_size;
+	size_t ihash, hashes_size, igen, generated_size;
 	for( ihash = 0, hashes_size = array_size( hashes ); ihash < hashes_size; ++ihash )
 	{
 		for( igen = 0, generated_size = array_size( generated ); igen < generated_size; ++igen )

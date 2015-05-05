@@ -44,9 +44,9 @@ static void test_atomic_shutdown( void )
 }
 
 
-atomic32_t  val_32  = {0};
-atomic64_t  val_64  = {0};
-atomicptr_t val_ptr = {0};
+static atomic32_t  val_32;
+static atomic64_t  val_64;
+static atomicptr_t val_ptr;
 
 
 static void* inc_thread( object_t thread, void* arg )
@@ -123,7 +123,7 @@ typedef struct
 
 static void* cas_thread( object_t thread, void* arg )
 {
-	int loop = 0;
+	unsigned int loop = 0;
 	cas_value_t val = *(cas_value_t*)arg;
 
 	thread_sleep( 10 );
@@ -152,8 +152,8 @@ static void* cas_thread( object_t thread, void* arg )
 
 DECLARE_TEST( atomic, incdec )
 {
-	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
-	int ithread;
+	size_t num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	size_t ithread;
 	object_t threads[32];
 
 	for( ithread = 0; ithread < num_threads; ++ithread )
@@ -177,8 +177,8 @@ DECLARE_TEST( atomic, incdec )
 
 DECLARE_TEST( atomic, add )
 {
-	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
-	int ithread;
+	size_t num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	size_t ithread;
 	object_t threads[32];
 
 	for( ithread = 0; ithread < num_threads; ++ithread )
@@ -202,16 +202,16 @@ DECLARE_TEST( atomic, add )
 
 DECLARE_TEST( atomic, cas )
 {
-	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
-	int ithread;
+	size_t num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	size_t ithread;
 	object_t threads[32];
 	cas_value_t cas_values[32];
 
 	for( ithread = 0; ithread < num_threads; ++ithread )
 	{
 		threads[ithread] = thread_create( cas_thread, "cas", THREAD_PRIORITY_NORMAL, 0 );
-		cas_values[ithread].val_32 = ithread;
-		cas_values[ithread].val_64 = ithread;
+		cas_values[ithread].val_32 = (int32_t)ithread;
+		cas_values[ithread].val_64 = (int64_t)ithread;
 		cas_values[ithread].val_ptr = (void*)(uintptr_t)ithread;
 	}
 	for( ithread = 0; ithread < num_threads; ++ithread )
@@ -240,7 +240,7 @@ static void test_atomic_declare( void )
 }
 
 
-test_suite_t test_atomic_suite = {
+static test_suite_t test_atomic_suite = {
 	test_atomic_application,
 	test_atomic_memory_system,
 	test_atomic_declare,

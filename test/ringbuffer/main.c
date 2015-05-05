@@ -297,7 +297,7 @@ static void test_ringbuffer_declare( void )
 }
 
 
-test_suite_t test_ringbuffer_suite = {
+static test_suite_t test_ringbuffer_suite = {
 	test_ringbuffer_application,
 	test_ringbuffer_memory_system,
 	test_ringbuffer_declare,

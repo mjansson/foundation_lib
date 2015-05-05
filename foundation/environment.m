@@ -28,7 +28,7 @@ extern void _environment_ns_home_directory( char* );
 extern void _environment_ns_temporary_directory( char* );
 
 
-void environment_bundle_identifier( char* target, unsigned int maxlength )
+void environment_bundle_identifier( char* target, size_t maxlength )
 {
 	@autoreleasepool
 	{

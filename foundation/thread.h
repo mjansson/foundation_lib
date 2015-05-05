@@ -39,7 +39,7 @@ FOUNDATION_API const char*     thread_name( void );
 FOUNDATION_API uint64_t        thread_id( void );
 FOUNDATION_API unsigned int    thread_hardware( void );
 
-FOUNDATION_API void            thread_sleep( int milliseconds );
+FOUNDATION_API void            thread_sleep( unsigned int milliseconds );
 FOUNDATION_API void            thread_yield( void );
 
 FOUNDATION_API void            thread_finalize( void );

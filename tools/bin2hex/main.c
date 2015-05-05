@@ -20,14 +20,14 @@ typedef struct
 {
 	char**       input_files;
 	char**       output_files;
-	int          columns;
+	size_t       columns;
 	bool         display_help;
 } bin2hex_input_t;
 
 static bin2hex_input_t      bin2hex_parse_command_line( char const* const* cmdline );
 
-static int                  bin2hex_process_files( char const* const* input, char const* const* output, int columns );
-static int                  bin2hex_process_file( stream_t* input, stream_t* output, int columns );
+static int                  bin2hex_process_files( char const* const* input, char const* const* output, size_t columns );
+static int                  bin2hex_process_file( stream_t* input, stream_t* output, size_t columns );
 
 static void                 bin2hex_print_usage( void );
 
@@ -88,7 +88,7 @@ void main_shutdown( void )
 bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 {
 	bin2hex_input_t input;
-	int arg, asize;
+	size_t arg, asize;
 
 	memset( &input, 0, sizeof( input ) );
 
@@ -102,7 +102,7 @@ bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 		else if( string_equal( cmdline[arg], "--columns" ) )
 		{
 			if( arg < ( asize - 1 ) )
-				input.columns = string_to_int( cmdline[++arg] );
+				input.columns = string_to_uint( cmdline[++arg], false );
 		}
 		else if( string_equal( cmdline[arg], "--" ) )
 			break; //Stop parsing cmdline options
@@ -123,10 +123,10 @@ bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 }
 
 
-int bin2hex_process_files( char const* const* input, char const* const* output, int columns )
+int bin2hex_process_files( char const* const* input, char const* const* output, size_t columns )
 {
 	int result = BIN2HEX_RESULT_OK;
-	unsigned int ifile, files_size;
+	size_t ifile, files_size;
 	for( ifile = 0, files_size = array_size( input ); ( result == BIN2HEX_RESULT_OK ) && ( ifile < files_size ); ++ifile )
 	{
 		char* input_filename = 0;
@@ -178,10 +178,10 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 }
 
 
-int bin2hex_process_file( stream_t* input, stream_t* output, int columns )
+int bin2hex_process_file( stream_t* input, stream_t* output, size_t columns )
 {
 	uint8_t block[512];
-	int64_t read, byte;
+	size_t read, byte;
 
 	if( !columns )
 		columns = 32;

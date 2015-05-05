@@ -122,7 +122,8 @@ static __weak FoundationAppDelegate*   _delegate;
 
 void* delegate_nswindow( void )
 {
-	return (__bridge void*)(_delegate ? [_delegate window] : 0);
+	__strong FoundationAppDelegate* delegate = _delegate;
+	return (__bridge void*)(delegate ? [delegate window] : 0);
 }
 
 
@@ -137,9 +138,9 @@ void* delegate_nswindow( void )
 }
 
 
-- (void)applicationDidFinishLaunching:(NSApplication*)application
+- (void)applicationDidFinishLaunching:(NSNotification*)notification
 {
-	FOUNDATION_UNUSED( application );
+	FOUNDATION_UNUSED( notification );
 	_delegate = self;
     _delegate_received_start = true;
 
@@ -147,24 +148,23 @@ void* delegate_nswindow( void )
 	system_post_event( FOUNDATIONEVENT_START );
 }
 
-- (void)applicationWillResignActive:(NSApplication*)application
+- (void)applicationWillResignActive:(NSNotification*)notification
 {
-	FOUNDATION_UNUSED( application );
+	FOUNDATION_UNUSED( notification );
 	log_debug( 0, "Application will resign active" );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
-- (void)applicationDidBecomeActive:(NSApplication*)application
+- (void)applicationDidBecomeActive:(NSNotification*)notification
 {
-	FOUNDATION_UNUSED( application );
 	log_debug( 0, "Application became active" );
-	_delegate_app = application;
+	_delegate_app = [notification object];
 	system_post_event( FOUNDATIONEVENT_RESUME );
 }
 
-- (void)applicationWillTerminate:(NSApplication*)application
+- (void)applicationWillTerminate:(NSNotification*)notification
 {
-	FOUNDATION_UNUSED( application );
+	FOUNDATION_UNUSED( notification );
 	_delegate_received_terminate = true;
 
 	if( foundation_is_initialized() )

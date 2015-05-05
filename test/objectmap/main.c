@@ -144,7 +144,7 @@ static void* objectmap_thread( object_t thread, void* arg )
 			objectmap_set( map, objects[obj].id, objects + obj );
 			lookup = objectmap_lookup( map, objects[obj].id );
 			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
-			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects + obj, lookup );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects[obj].id, (uintptr_t)( objects + obj ), (uintptr_t)lookup );
 		}
 
 		thread_yield();
@@ -153,10 +153,10 @@ static void* objectmap_thread( object_t thread, void* arg )
 		{
 			lookup = objectmap_lookup( map, objects[obj].id );
 			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
-			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects + obj, lookup );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects[obj].id, (uintptr_t)( objects + obj ), (uintptr_t)lookup );
 			objectmap_free( map, objects[obj].id );
 			lookup = objectmap_lookup( map, objects[obj].id );
-			EXPECT_EQ_MSGFORMAT( lookup, 0, "Object num %d (%llx) still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj, objects[obj].id, lookup );
+			EXPECT_EQ_MSGFORMAT( lookup, 0, "Object num %d (%llx) still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj, objects[obj].id, (uintptr_t)lookup );
 		}
 	}
 
@@ -170,8 +170,8 @@ DECLARE_TEST( objectmap, thread )
 {
 	objectmap_t* map;
 	object_t thread[32];
-	int ith;
-	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	size_t ith;
+	size_t num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	bool running = true;
 
 	map = objectmap_allocate( 32000 );
@@ -226,7 +226,7 @@ static void test_objectmap_declare( void )
 }
 
 
-test_suite_t test_objectmap_suite = {
+static test_suite_t test_objectmap_suite = {
 	test_objectmap_application,
 	test_objectmap_memory_system,
 	test_objectmap_declare,

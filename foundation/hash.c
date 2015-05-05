@@ -30,7 +30,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t fmix64( uint64_t k )
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-static FOUNDATION_FORCEINLINE uint64_t getblock( const uint64_t* FOUNDATION_RESTRICT p, int i )
+static FOUNDATION_FORCEINLINE uint64_t getblock( const uint64_t* FOUNDATION_RESTRICT p, size_t i )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return p[i];
@@ -40,7 +40,7 @@ static FOUNDATION_FORCEINLINE uint64_t getblock( const uint64_t* FOUNDATION_REST
 }
 
 #if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
-static FOUNDATION_FORCEINLINE uint64_t getblock_nonaligned( const char* FOUNDATION_RESTRICT p, int i )
+static FOUNDATION_FORCEINLINE uint64_t getblock_nonaligned( const char* FOUNDATION_RESTRICT p, size_t i )
 {
 	uint64_t ret;
 	memcpy( &ret, p + i*8, 8 );
@@ -86,11 +86,11 @@ static FOUNDATION_FORCEINLINE uint64_t fmix64( uint64_t k )
 }
 
 
-hash_t hash( const void* key, int len )
+hash_t hash( const void* key, size_t len )
 {
-	const int nblocks = len / 16;
+	const size_t nblocks = len / 16;
 	const uint64_t* blocks;
-	int i;
+	size_t i;
 	const uint8_t* tail;
 	uint64_t k1;
 	uint64_t k2;
@@ -172,7 +172,7 @@ hash_t hash( const void* key, int len )
 
 	((uint64_t*)out)[0] = h1;
 	((uint64_t*)out)[1] = h2;*/
-	return (hash_t)h1;
+	return h1;
 }
 
 
@@ -192,7 +192,7 @@ int _static_hash_initialize( void )
 
 void _static_hash_shutdown( void )
 {
-	int slot;
+	size_t slot;
 	for( slot = 0; slot < BUILD_SIZE_STATIC_HASH_STORE + 1; ++slot )
 	{
 		char* str = (char*)((uintptr_t)hashtable64_raw( _hash_lookup, slot ));
@@ -205,14 +205,14 @@ void _static_hash_shutdown( void )
 }
 
 
-void _static_hash_store( const void* key, int len, hash_t value )
+void _static_hash_store( const void* key, size_t len, hash_t value )
 {
 	char* stored;
 
 	if( !_hash_lookup )
 		return;
 
-	stored = (char*)((uintptr_t)hashtable64_get( _hash_lookup, (int64_t)value ));
+	stored = (char*)((uintptr_t)hashtable64_get( _hash_lookup, value ));
 	if( stored )
 	{
 		FOUNDATION_ASSERT_MSG( string_equal_substr( stored, key, len ), "Static hash collision" );
@@ -224,7 +224,7 @@ void _static_hash_store( const void* key, int len, hash_t value )
 	memcpy( stored, key, len );
 	stored[len] = 0;
 
-	hashtable64_set( _hash_lookup, value, (ptrdiff_t)stored );
+	hashtable64_set( _hash_lookup, value, (uintptr_t)stored );
 }
 
 

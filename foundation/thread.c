@@ -360,7 +360,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	if( !_object_ref( (object_base_t*)thread ) )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread, invalid thread object %" PRIfixPTR, thread );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread, invalid thread object %" PRIfixPTR, (uintptr_t)thread );
 		return 0;
 	}
 
@@ -406,7 +406,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
-	log_debugf( 0, "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_debugf( 0, "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	thread->osid  = 0;
 
@@ -419,7 +419,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		atomic_store32( &thread->running, 0 );
 	}
 
-	log_debugf( 0, "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, thread->ref );
+	log_debugf( 0, "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	_thread_unref( thread );
 
@@ -494,7 +494,7 @@ bool thread_should_terminate( object_t id )
 }
 
 
-void thread_sleep( int milliseconds )
+void thread_sleep( unsigned int milliseconds )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	SleepEx( milliseconds, 1 );

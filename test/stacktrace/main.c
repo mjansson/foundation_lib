@@ -97,7 +97,7 @@ static void test_stacktrace_declare( void )
 }
 
 
-test_suite_t test_stacktrace_suite = {
+static test_suite_t test_stacktrace_suite = {
 	test_stacktrace_application,
 	test_stacktrace_memory_system,
 	test_stacktrace_declare,

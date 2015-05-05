@@ -151,7 +151,7 @@ static void _crash_guard_minidump( void* context, const char* name, char* dump_f
 {
 	if( !name )
 		name = environment_application()->short_name;
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%x.dmp",
+	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%" PRIx64 ".dmp",
 		environment_temporary_directory(), name ? name : "", name ? "-" : "",
 		string_from_uuid_static( environment_application()->instance ), time_system() );
 	fs_make_directory( environment_temporary_directory() );

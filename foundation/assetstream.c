@@ -85,7 +85,7 @@ static uint64_t asset_stream_size( stream_t* stream )
 static void asset_stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
 {
 	stream_asset_t* asset = (stream_asset_t*)stream;
-	off_t newpos = AAsset_seek( asset->asset, offset, direction );
+	ssize_t newpos = AAsset_seek( asset->asset, offset, direction );
 	if( newpos >= 0 )
 		asset->position = newpos;
 }

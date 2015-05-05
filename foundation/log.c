@@ -122,7 +122,7 @@ static log_timestamp_t _log_make_timestamp( void )
 
 #if BUILD_ENABLE_LOG
 
-static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t context, int severity, const char* prefix, const char* format, va_list list, void* std )
+static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t context, error_level_t severity, const char* prefix, const char* format, va_list list, void* std )
 {
 	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
@@ -134,7 +134,7 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t c
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if( _log_prefix )
-			need = snprintf( buffer, size, "[%u:%02u:%02u.%03u] <%" PRIx64 ":%d> %s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, prefix );
+			need = snprintf( buffer, size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, prefix );
 		else
 			need = snprintf( buffer, size, "%s", prefix );
 
@@ -185,7 +185,7 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t c
 
 		if( buffer != local_buffer )
 			memory_deallocate( buffer );
-		buffer = memory_allocate( 0, size + 2, 0, MEMORY_TEMPORARY );
+		buffer = memory_allocate( 0, (size_t)size + 2, 0, MEMORY_TEMPORARY );
 	}
 	if( buffer != local_buffer )
 		memory_deallocate( buffer );
@@ -298,7 +298,7 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 5 ) _log_error_contextf( h
 
 void log_error_context( hash_t context, error_level_t error_level )
 {
-	int i;
+	size_t i;
 	error_context_t* err_context = error_context();
 	if( err_context && ( log_suppress( context ) < error_level ) )
 	{
@@ -348,7 +348,7 @@ error_level_t log_suppress( hash_t context )
 		return _log_suppress_default;
 	else if( _log_suppress )
 	{
-		int64_t level = hashtable64_get( _log_suppress, context );
+		uint64_t level = hashtable64_get( _log_suppress, context );
 		if( level > 0 )
 			return (error_level_t)( level - 1 );
 	}

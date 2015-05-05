@@ -23,7 +23,7 @@ FOUNDATION_API void             hashtable32_initialize( hashtable32_t* table, si
 FOUNDATION_API void             hashtable32_finalize( hashtable32_t* table );
 
 FOUNDATION_API void             hashtable32_set( hashtable32_t* table, uint32_t key, uint32_t value );
-FOUNDATION_API void             hashtable32_erase( hashtable32_t* table, int32_t key );
+FOUNDATION_API void             hashtable32_erase( hashtable32_t* table, uint32_t key );
 FOUNDATION_API uint32_t         hashtable32_get( hashtable32_t* table, uint32_t key );
 FOUNDATION_API size_t           hashtable32_size( hashtable32_t* table );
 FOUNDATION_API void             hashtable32_clear( hashtable32_t* table );

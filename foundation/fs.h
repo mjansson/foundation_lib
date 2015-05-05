@@ -32,6 +32,6 @@ FOUNDATION_API char**           fs_subdirs( const char* path );
 FOUNDATION_API void             fs_monitor( const char* path );
 FOUNDATION_API void             fs_unmonitor( const char* path );
 FOUNDATION_API stream_t*        fs_temporary_file( void );
-FOUNDATION_API void             fs_post_event( foundation_event_id id, const char* path, int pathlen );
+FOUNDATION_API void             fs_post_event( foundation_event_id id, const char* path, size_t pathlen );
 FOUNDATION_API event_stream_t*  fs_event_stream( void );
 

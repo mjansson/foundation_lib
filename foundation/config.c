@@ -57,9 +57,9 @@ static config_section_t* _config_section[CONFIG_SECTION_BUCKETS];
 
 static int64_t _config_string_to_int( const char* str )
 {
-	int length = string_length( str );
-	int first_nonnumeric;
-	int dot_position;
+	size_t length = string_length( str );
+	size_t first_nonnumeric;
+	size_t dot_position;
 	if( length < 2 )
 		return string_to_int64( str );
 
@@ -93,9 +93,9 @@ static int64_t _config_string_to_int( const char* str )
 
 static real _config_string_to_real( const char* str )
 {
-	int length = string_length( str );
-	int first_nonnumeric;
-	int dot_position;
+	size_t length = string_length( str );
+	size_t first_nonnumeric;
+	size_t dot_position;
 	if( length < 2 )
 		return string_to_real( str );
 
@@ -144,7 +144,7 @@ static FOUNDATION_NOINLINE const char* _expand_environment( hash_t key, char* va
 	else if( string_equal_substr( var, "variable[", 9 ) )  //variable[varname] - Environment variable named "varname"
 	{
 		const char* value;
-		int end_pos = string_find( var, ']', 9 );
+		size_t end_pos = string_find( var, ']', 9 );
 		if( end_pos != STRING_NPOS )
 			var[end_pos] = 0;
 		value = environment_variable( var + 9 );
@@ -160,7 +160,7 @@ static FOUNDATION_NOINLINE char* _expand_string( hash_t section_current, char* s
 {
 	char* expanded;
 	char* variable;
-	int var_pos, var_end_pos, variable_length, separator, var_offset;
+	size_t var_pos, var_end_pos, variable_length, separator, var_offset;
 	hash_t section, key;
 
 	expanded = str;
@@ -238,7 +238,7 @@ int _config_initialize( void )
 
 void _config_shutdown( void )
 {
-	int isb, is, ikb, ik, ssize, ksize;
+	size_t isb, is, ikb, ik, ssize, ksize;
 	config_section_t* section;
 	config_key_t* key;
 	for( isb = 0; isb < CONFIG_SECTION_BUCKETS; ++isb )
@@ -283,9 +283,9 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	const char* paths[NUM_SEARCH_PATHS];
 #if !FOUNDATION_PLATFORM_FAMILY_MOBILE && !FOUNDATION_PLATFORM_PNACL
 	const char* const* cmd_line;
-	int icl, clsize;
+	size_t icl, clsize;
 #endif
-	int start_path, i, j;
+	size_t start_path, i, j;
 
 	const char buildsuffix[4][9] = { "/debug", "/release", "/profile", "/deploy" };
 	const char platformsuffix[PLATFORM_INVALID+1][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/pnacl", "/bsd", "/unknown" };
@@ -494,7 +494,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 static FOUNDATION_NOINLINE config_section_t* config_section( hash_t section, bool create )
 {
 	config_section_t* bucket;
-	int ib, bsize;
+	size_t ib, bsize;
 
 	bucket = _config_section[ section % CONFIG_SECTION_BUCKETS ];
 	for( ib = 0, bsize = array_size( bucket ); ib < bsize; ++ib )
@@ -526,7 +526,7 @@ static FOUNDATION_NOINLINE config_key_t* config_key( hash_t section, hash_t key,
 	config_key_t new_key;
 	config_section_t* csection;
 	config_key_t* bucket;
-	int ib, bsize;
+	size_t ib, bsize;
 
 	csection = config_section( section, create );
 	if( !csection )
@@ -723,7 +723,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	char* buffer;
 	hash_t section = 0;
 	hash_t key = 0;
-	int line = 0;
+	unsigned int line = 0;
 
 #if BUILD_ENABLE_CONFIG_DEBUG
 	log_debugf( HASH_CONFIG, "Parsing config stream: %s", stream_path( stream ) );
@@ -739,7 +739,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 		if( buffer[0] == '[' )
 		{
 			//Section declaration
-			int endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
+			size_t endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
 			if( endpos < 1 )
 			{
 				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
@@ -756,7 +756,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			//name=value declaration
 			char* name;
 			char* value;
-			int separator = string_find( buffer, '=', 0 );
+			size_t separator = string_find( buffer, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
 				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
@@ -798,21 +798,21 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 }
 
 
-void config_parse_commandline( const char* const* cmdline, int num )
+void config_parse_commandline( const char* const* cmdline, size_t num )
 {
 	//TODO: Implement, format --section:key=value
-	int arg;
+	size_t arg;
 	for( arg = 0; arg < num; ++arg )
 	{
 		if( string_match_pattern( cmdline[arg], "--*:*=*" ) )
 		{
-			int first_sep = string_find( cmdline[arg], ':', 0 );
-			int second_sep = string_find( cmdline[arg], '=', 0 );
+			size_t first_sep = string_find( cmdline[arg], ':', 0 );
+			size_t second_sep = string_find( cmdline[arg], '=', 0 );
 			if( ( first_sep != STRING_NPOS ) && ( second_sep != STRING_NPOS ) && ( first_sep < second_sep ) )
 			{
-				int section_length = first_sep - 2;
-				int end_pos = first_sep + 1;
-				int key_length = second_sep - end_pos;
+				size_t section_length = first_sep - 2;
+				size_t end_pos = first_sep + 1;
+				size_t key_length = second_sep - end_pos;
 
 				const char* section_str = cmdline[arg] + 2;
 				const char* key_str = pointer_offset_const( cmdline[arg], end_pos );
@@ -823,7 +823,7 @@ void config_parse_commandline( const char* const* cmdline, int num )
 				char* value = string_substr( cmdline[arg], second_sep + 1, STRING_NPOS );
 				char* set_value = value;
 
-				int value_length = string_length( value );
+				size_t value_length = string_length( value );
 
 				if( !value_length )
 					config_set_string( section, key, "" );
@@ -849,7 +849,7 @@ void config_parse_commandline( const char* const* cmdline, int num )
 					}
 				}
 
-				log_infof( HASH_CONFIG, "Config value from command line: %.*s:%.*s = %s", section_length, section_str, key_length, key_str, set_value );
+				log_infof( HASH_CONFIG, "Config value from command line: %.*s:%.*s = %s", (int)section_length, section_str, (int)key_length, key_str, set_value );
 
 				string_deallocate( value );
 			}
@@ -862,7 +862,7 @@ void config_write( stream_t* stream, hash_t filter_section, const char* (*string
 {
 	config_section_t* csection;
 	config_key_t* bucket;
-	int key, ib, bsize;
+	size_t key, ib, bsize;
 
 	stream_set_binary( stream, false );
 

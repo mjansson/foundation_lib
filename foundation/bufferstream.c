@@ -19,7 +19,7 @@
 static stream_vtable_t _buffer_stream_vtable;
 
 
-stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, int64_t size, int64_t capacity, bool adopt, bool grow )
+stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, size_t size, size_t capacity, bool adopt, bool grow )
 {
 	stream_buffer_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_buffer_t ), 8, MEMORY_PERSISTENT );
 
@@ -29,7 +29,7 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, int64_t size,
 }
 
 
-void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, int64_t size, int64_t capacity, bool adopt, bool grow )
+void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, size_t size, size_t capacity, bool adopt, bool grow )
 {
 	memset( stream, 0, sizeof( stream_buffer_t ) );
 
@@ -48,7 +48,7 @@ void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned i
 		size = capacity;
 
 	stream->type = STREAMTYPE_MEMORY;
-	stream->path = string_format( "buffer://0x%" PRIfixPTR, stream );
+	stream->path = string_format( "buffer://0x%" PRIfixPTR, (uintptr_t)stream );
 	stream->mode = mode & ( STREAM_OUT | STREAM_IN | STREAM_BINARY );
 	stream->buffer = buffer;
 	stream->size = size;
@@ -78,16 +78,19 @@ static void _buffer_stream_finalize( stream_t* stream )
 }
 
 
-static int64_t _buffer_stream_read( stream_t* stream, void* dest, int64_t num )
+static size_t _buffer_stream_read( stream_t* stream, void* dest, size_t num )
 {
+	size_t available, num_read;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
-	int64_t available = buffer_stream->size - buffer_stream->current;
-	int64_t num_read = ( num < available ) ? num : available;
+	FOUNDATION_ASSERT( buffer_stream->size >= buffer_stream->current );
+
+	available = buffer_stream->size - buffer_stream->current;
+	num_read = ( num < available ) ? num : available;
 
 	if( num_read > 0 )
 	{
-		memcpy( dest, pointer_offset( buffer_stream->buffer, buffer_stream->current ), (size_t)num_read );
+		memcpy( dest, pointer_offset( buffer_stream->buffer, buffer_stream->current ), num_read );
 		buffer_stream->current += num_read;
 		return num_read;
 	}
@@ -96,13 +99,15 @@ static int64_t _buffer_stream_read( stream_t* stream, void* dest, int64_t num )
 }
 
 
-static int64_t _buffer_stream_write( stream_t* stream, const void* source, int64_t num )
+static size_t _buffer_stream_write( stream_t* stream, const void* source, size_t num )
 {
+	size_t available, want, num_write;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
-	int64_t available = buffer_stream->size - buffer_stream->current;
-	int64_t want = num;
-	int64_t num_write;
+	FOUNDATION_ASSERT( buffer_stream->size >= buffer_stream->current );
+
+	available = buffer_stream->size - buffer_stream->current;
+	want = num;
 
 	if( want > available )
 	{
@@ -128,7 +133,7 @@ static int64_t _buffer_stream_write( stream_t* stream, const void* source, int64
 	num_write = ( want < available ) ? want : available;
 	if( num_write > 0 )
 	{
-		memcpy( pointer_offset( buffer_stream->buffer, buffer_stream->current ), source, (size_t)num_write );
+		memcpy( pointer_offset( buffer_stream->buffer, buffer_stream->current ), source, num_write );
 		buffer_stream->current += num_write;
 		return num_write;
 	}
@@ -150,7 +155,7 @@ static void _buffer_stream_flush( stream_t* stream )
 }
 
 
-static void _buffer_stream_truncate( stream_t* stream, int64_t size )
+static void _buffer_stream_truncate( stream_t* stream, size_t size )
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	if( buffer_stream->capacity >= size )
@@ -172,33 +177,39 @@ static void _buffer_stream_truncate( stream_t* stream, int64_t size )
 }
 
 /*lint -e{818} Function prototype must match stream interface */
-static int64_t _buffer_stream_size( stream_t* stream )
+static size_t _buffer_stream_size( stream_t* stream )
 {
 	return ((const stream_buffer_t*)stream)->size;
 }
 
 
-static void _buffer_stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
+static void _buffer_stream_seek( stream_t* stream, ssize_t offset, stream_seek_mode_t direction )
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
-	int64_t new_current = 0;
+	size_t new_current = 0;
 	if( direction == STREAM_SEEK_CURRENT )
-		new_current = buffer_stream->current + offset;
+	{
+		if( offset < 0 )
+		{
+			size_t abs_offset = (size_t)(-offset);
+			new_current = ( abs_offset > buffer_stream->current ) ? 0 : ( buffer_stream->current - abs_offset );
+		}
+		else
+			new_current = buffer_stream->current + (size_t)offset;
+	}
 	else if( direction == STREAM_SEEK_BEGIN )
-		new_current = offset;
+		new_current = ( offset > 0 ) ? (size_t)offset : 0;
 	else if( direction == STREAM_SEEK_END )
-		new_current = buffer_stream->size + offset;
+		new_current = ( offset < 0 ) ? buffer_stream->size - (size_t)(-offset) : buffer_stream->size;
 
-	if( new_current < 0 )
-		buffer_stream->current = 0;
-	else if( new_current > buffer_stream->size )
+	if( new_current > buffer_stream->size )
 		buffer_stream->current = buffer_stream->size;
 	else
 		buffer_stream->current = new_current;
 }
 
 
-static int64_t _buffer_stream_tell( stream_t* stream )
+static size_t _buffer_stream_tell( stream_t* stream )
 {
 	return ((const stream_buffer_t*)stream)->current;
 }
@@ -211,7 +222,7 @@ static tick_t _buffer_stream_lastmod( const stream_t* stream )
 }
 
 
-static int64_t _buffer_stream_available_read( stream_t* stream )
+static size_t _buffer_stream_available_read( stream_t* stream )
 {
 	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream->size - buffer_stream->current;

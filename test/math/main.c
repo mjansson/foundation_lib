@@ -165,13 +165,13 @@ DECLARE_TEST( math, utility )
 
 	for( i = 1; i < 31; ++i )
 	{
-		EXPECT_TRUE( math_is_poweroftwo( math_align_poweroftwo( ( 2 << i ) - 1 ) ) );
-		EXPECT_TRUE( math_is_poweroftwo( math_align_poweroftwo( ( 2 << i )     ) ) );
-		EXPECT_TRUE( math_is_poweroftwo( math_align_poweroftwo( ( 2 << i ) + 1 ) ) );
+		EXPECT_TRUE( math_is_poweroftwo( math_align_poweroftwo( ( 2U << i ) - 1 ) ) );
+		EXPECT_TRUE( math_is_poweroftwo( math_align_poweroftwo( ( 2U << i )     ) ) );
+		EXPECT_TRUE( math_is_poweroftwo( math_align_poweroftwo( ( 2U << i ) + 1 ) ) );
 
-		EXPECT_FALSE( math_is_poweroftwo( ( 2 << i ) - 1 ) );
-		EXPECT_TRUE( math_is_poweroftwo( ( 2 << i )     ) );
-		EXPECT_FALSE( math_is_poweroftwo( ( 2 << i ) + 1 ) );
+		EXPECT_FALSE( math_is_poweroftwo( ( 2U << i ) - 1 ) );
+		EXPECT_TRUE(  math_is_poweroftwo( ( 2U << i )     ) );
+		EXPECT_FALSE( math_is_poweroftwo( ( 2U << i ) + 1 ) );
 	}
 
 	EXPECT_EQ( math_align_up( 1, 1 ), 1 );
@@ -242,6 +242,12 @@ DECLARE_TEST( math, comparison )
 
 	testreal = REAL_C( 42.42 );
 	refreal = testreal;
+
+#if FOUNDATION_COMPILER_CLANG
+// Yes, we want to compare floats
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
 
 	EXPECT_EQ( testreal, refreal );
 	EXPECT_TRUE( math_realeq( testreal, refreal, 0 ) );
@@ -328,6 +334,10 @@ DECLARE_TEST( math, comparison )
 	EXPECT_FALSE( math_realisdenormalized( REAL_ONE ) );
 	EXPECT_REALONE( math_realundenormalize( REAL_ONE ) );
 
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
+
 	return 0;
 }
 
@@ -413,7 +423,7 @@ static void test_math_declare( void )
 }
 
 
-test_suite_t test_math_suite = {
+static test_suite_t test_math_suite = {
 	test_math_application,
 	test_math_memory_system,
 	test_math_declare,

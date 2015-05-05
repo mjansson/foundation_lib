@@ -75,7 +75,7 @@ bool semaphore_wait( semaphore_t* semaphore )
 }
 
 
-bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
+bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 {
 	DWORD res = WaitForSingleObject( (HANDLE)*semaphore, milliseconds > 0 ? milliseconds : 0 );
 	return ( res == WAIT_OBJECT_0 );
@@ -161,7 +161,7 @@ bool semaphore_wait( semaphore_t* semaphore )
 		{
 			//Don't report error if interrupted
 			if( errno != EINTR )
-				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( 0 ) );
+				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( errno ), errno );
 			else
 				log_info( 0, "Semaphore wait interrupted by signal" );
 			return false;
@@ -171,14 +171,14 @@ bool semaphore_wait( semaphore_t* semaphore )
 }
 
 
-bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
+bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 {
 	if( !semaphore->name )
 	{
-		int duration = 0/*kDurationImmediate*/;
+		unsigned int duration = 0/*kDurationImmediate*/;
 		if( milliseconds > 0 )
 			duration = 1/*kDurationMillisecond*/ * milliseconds;
-		int ret = MPWaitOnSemaphore( semaphore->sem.unnamed, duration );
+		int ret = MPWaitOnSemaphore( semaphore->sem.unnamed, (int)duration );
 		if( ret < 0 )
 			return false;
 		return true;
@@ -188,7 +188,7 @@ bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
 		//TODO: Proper implementation (sem_timedwait not supported)
 		if( milliseconds > 0 )
 		{
-			tick_t wakeup = time_current() + ( ( (uint64_t)milliseconds * time_ticks_per_second() ) / 1000ULL );
+			tick_t wakeup = time_current() + ( ( (tick_t)milliseconds * time_ticks_per_second() ) / 1000LL );
 			do
 			{
 				if( sem_trywait( semaphore->sem.named ) == 0 )
@@ -256,7 +256,7 @@ bool semaphore_wait( semaphore_t* semaphore )
 }
 
 
-bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
+bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 {
 	long result = dispatch_semaphore_wait( *semaphore, ( milliseconds > 0 ) ? dispatch_time( DISPATCH_TIME_NOW, 1000000LL * (int64_t)milliseconds ) : DISPATCH_TIME_NOW );
 	return ( result == 0 );
@@ -336,7 +336,7 @@ bool semaphore_wait( semaphore_t* semaphore )
 }
 
 
-bool semaphore_try_wait( semaphore_t* semaphore, int milliseconds )
+bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 {
 	if( milliseconds > 0 )
 	{

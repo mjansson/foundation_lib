@@ -64,7 +64,7 @@ static void test_app_declare( void )
 }
 
 
-test_suite_t test_app_suite = {
+static test_suite_t test_app_suite = {
 	test_app_application,
 	test_app_memory_system,
 	test_app_declare,

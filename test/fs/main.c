@@ -47,7 +47,7 @@ static void test_fs_shutdown( void )
 DECLARE_TEST( fs, directory )
 {
 	char* longpath;
-	char* testpath = path_merge( environment_temporary_directory(), string_from_int_static( random64(), 0, 0 ) );
+	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
 
 	if( fs_is_file( testpath ) )
 		fs_remove_file( testpath );
@@ -59,7 +59,7 @@ DECLARE_TEST( fs, directory )
 	fs_remove_directory( testpath );
 	EXPECT_FALSE( fs_is_directory( testpath ) );
 
-	longpath = path_merge( testpath, string_from_int_static( random64(), 0, 0 ) );
+	longpath = path_merge( testpath, string_from_uint_static( random64(), true, 0, 0 ) );
 	EXPECT_FALSE( fs_is_directory( longpath ) );
 
 	fs_make_directory( longpath );
@@ -78,8 +78,8 @@ DECLARE_TEST( fs, directory )
 
 DECLARE_TEST( fs, file )
 {
-	char* testpath = path_merge( environment_temporary_directory(), string_from_int_static( random64(), 0, 0 ) );
-	char* copypath = path_merge( environment_temporary_directory(), string_from_int_static( random64(), 0, 0 ) );
+	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
+	char* copypath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
 	stream_t* teststream = 0;
 
 	if( !fs_is_directory( environment_temporary_directory() ) )
@@ -172,7 +172,7 @@ DECLARE_TEST( fs, util )
 {
 	tick_t systime = time_system();
 	tick_t lastmod = 0;
-	char* testpath = path_merge( environment_temporary_directory(), string_from_int_static( random64(), 0, 0 ) );
+	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
 
 	if( !fs_is_directory( environment_temporary_directory() ) )
 		fs_make_directory( environment_temporary_directory() );
@@ -217,8 +217,8 @@ DECLARE_TEST( fs, query )
 {
 	uint64_t subpathid = random64();
 	uint64_t subfileid = random64();
-	char* testpath = path_merge( environment_temporary_directory(), string_from_int_static( random64(), 0, 0 ) );
-	char* subtestpath = path_merge( testpath, string_from_int_static( subpathid, 0, 0 ) );
+	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
+	char* subtestpath = path_merge( testpath, string_from_uint_static( subpathid, true, 0, 0 ) );
 	char* filepath[8];
 	char** subdirs;
 	char** files;
@@ -234,12 +234,12 @@ DECLARE_TEST( fs, query )
 
 	for( ifp = 0; ifp < 8; ++ifp )
 	{
-		filepath[ifp] = path_merge( testpath, string_from_int_static( random64(), 0, 0 ) );
+		filepath[ifp] = path_merge( testpath, string_from_uint_static( random64(), true, 0, 0 ) );
 		filepath[ifp] = string_append( string_append( filepath[ifp], "." ), string_from_int_static( ifp, 0, 0 ) );
 		stream_deallocate( fs_open_file( filepath[ifp], STREAM_OUT | STREAM_CREATE ) );
 	}
 
-	subfilepath = path_merge( subtestpath, string_from_int_static( subfileid, 0, 0 ) );
+	subfilepath = path_merge( subtestpath, string_from_uint_static( subfileid, true, 0, 0 ) );
 	subfilepath = string_append( subfilepath, ".0" );
 	stream_deallocate( fs_open_file( subfilepath, STREAM_OUT | STREAM_CREATE ) );
 
@@ -286,8 +286,8 @@ DECLARE_TEST( fs, query )
 	files = fs_matching_files( testpath, "^.*\\..$", true );
 	EXPECT_EQ( array_size( files ), 9 );
 	{
-		char* verifypath = string_from_int( subpathid, 0, 0 );
-		verifypath = path_append( verifypath, string_from_int_static( subfileid, 0, 0 ) );
+		char* verifypath = string_from_uint( subpathid, true, 0, 0 );
+		verifypath = path_append( verifypath, string_from_uint_static( subfileid, true, 0, 0 ) );
 		verifypath = string_append( verifypath, ".0" );
 		EXPECT_STREQ( files[8], verifypath );
 		string_deallocate( verifypath );
@@ -623,7 +623,7 @@ static void test_fs_declare( void )
 }
 
 
-test_suite_t test_fs_suite = {
+static test_suite_t test_fs_suite = {
 	test_fs_application,
 	test_fs_memory_system,
 	test_fs_declare,

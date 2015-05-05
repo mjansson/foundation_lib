@@ -679,7 +679,7 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
 	char** symbols = 0;
-	char** resolved = backtrace_symbols( frames, max_frames );
+	char** resolved = backtrace_symbols( frames, (int)max_frames );
 	for( unsigned int iframe = 0; iframe < max_frames; ++iframe )
 	{
 		if( resolved[iframe] && string_length( resolved[iframe] ) )

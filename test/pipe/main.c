@@ -199,7 +199,7 @@ static void test_pipe_declare( void )
 }
 
 
-test_suite_t test_pipe_suite = {
+static test_suite_t test_pipe_suite = {
 	test_pipe_application,
 	test_pipe_memory_system,
 	test_pipe_declare,
@@ -219,6 +219,7 @@ int test_pipe_run( void )
 
 #else
 
+test_suite_t test_suite_define( void );
 test_suite_t test_suite_define( void )
 {
 	return test_pipe_suite;

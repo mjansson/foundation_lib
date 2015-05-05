@@ -253,7 +253,7 @@ static void test_error_declare( void )
 }
 
 
-test_suite_t test_error_suite = {
+static test_suite_t test_error_suite = {
 	test_error_application,
 	test_error_memory_system,
 	test_error_declare,

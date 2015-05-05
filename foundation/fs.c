@@ -74,8 +74,8 @@ struct stream_file_t
 	fs_file_descriptor     fd;
 
 #if FOUNDATION_PLATFORM_PNACL
-	int64_t                position;
-	int64_t                size;
+	size_t                 position;
+	size_t                 size;
 #endif
 };
 typedef FOUNDATION_ALIGN(8) struct stream_file_t stream_file_t;
@@ -157,12 +157,12 @@ PP_Resource _fs_resolve_path( const char* path, const char** localpath )
 
 void fs_monitor( const char* path )
 {
-	int mi;
+	size_t mi;
 	char* path_clone = 0;
 
 	//TODO: Full thread safety
 
-	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS;++mi )
+	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
 		if( string_equal( atomic_loadptr( &_fs_monitors[mi].path ), path ) )
 			return;
@@ -223,7 +223,7 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 
 void fs_unmonitor( const char* path )
 {
-	int mi;
+	size_t mi;
 	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
 		if( string_equal( atomic_loadptr( &_fs_monitors[mi].path ), path ) )
@@ -579,7 +579,7 @@ bool fs_remove_directory( const char* path )
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wfpath = 0;
 #endif
-	int i, num;
+	size_t i, num;
 
 	if( !fs_is_directory( fpath ) )
 		goto end;
@@ -665,8 +665,8 @@ bool fs_make_directory( const char* path )
 	char* fpath;
 	char** paths;
 	char* curpath;
-	int ipath;
-	int pathsize;
+	size_t ipath;
+	size_t pathsize;
 	bool result = true;
 
 	fpath = path_make_absolute( path );
@@ -747,7 +747,7 @@ void fs_copy_file( const char* source, const char* dest )
 
 	while( !stream_eos( infile ) )
 	{
-		int64_t numread = stream_read( infile, buffer, 64 * 1024 );
+		size_t numread = stream_read( infile, buffer, 64 * 1024 );
 		if( numread > 0 )
 			stream_write( outfile, buffer, numread );
 	}
@@ -758,7 +758,7 @@ void fs_copy_file( const char* source, const char* dest )
 }
 
 
-int64_t fs_last_modified( const char* path )
+tick_t fs_last_modified( const char* path )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -792,16 +792,16 @@ int64_t fs_last_modified( const char* path )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	int64_t tstamp = 0;
+	tick_t tstamp = 0;
 	struct stat st; memset( &st, 0, sizeof( st ) );
 	if( stat( _fs_path( path ), &st ) >= 0 )
-		tstamp = (int64_t)st.st_mtime * 1000LL;
+		tstamp = (tick_t)st.st_mtime * 1000LL;
 
 	return tstamp;
 
 #elif FOUNDATION_PLATFORM_PNACL
 
-	int64_t tstamp = 0;
+	tick_t tstamp = 0;
 	char* fpath = path_make_absolute( path );
 	const char* localpath = 0;
 	PP_Resource fs = _fs_resolve_path( _fs_path( fpath ), &localpath );
@@ -812,7 +812,7 @@ int64_t fs_last_modified( const char* path )
 		{
 			struct PP_FileInfo info;
 			if( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
-				tstamp = info.last_modified_time * 1000LL;
+				tstamp = (tick_t)info.last_modified_time * 1000LL;
 
 			_pnacl_core->ReleaseResource( ref );
 		}
@@ -980,7 +980,7 @@ char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 }
 
 
-void fs_post_event( foundation_event_id id, const char* path, int pathlen )
+void fs_post_event( foundation_event_id id, const char* path, size_t pathlen )
 {
 	if( !pathlen )
 		pathlen = string_length( path );
@@ -1006,8 +1006,9 @@ typedef struct fs_watch_t fs_watch_t;
 
 static void _fs_send_creations( const char* path )
 {
+	size_t ifile, isub, fsize, subsize;
 	char** files = fs_files( path );
-	for( int ifile = 0, fsize = array_size( files ); ifile < fsize; ++ifile )
+	for( ifile = 0, fsize = array_size( files ); ifile < fsize; ++ifile )
 	{
 		char* filepath = path_merge( path, files[ifile] );
 		fs_post_event( FOUNDATIONEVENT_FILE_CREATED, filepath, 0 );
@@ -1016,7 +1017,7 @@ static void _fs_send_creations( const char* path )
 	string_array_deallocate( files );
 
 	char** subdirs = fs_subdirs( path );
-	for( int isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
+	for( isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 	{
 		char* subpath = path_merge( path, subdirs[isub] );
 		_fs_send_creations( subpath );
@@ -1356,7 +1357,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 #endif
 	}
 
-	log_debugf( 0, "Stopped monitoring file system: %s", monitor->path );
+	log_debugf( 0, "Stopped monitoring file system: %s", atomic_loadptr( &monitor->path ) );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -1534,19 +1535,21 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 }
 
 
-static int64_t _fs_file_tell( stream_t* stream )
+static size_t _fs_file_tell( stream_t* stream )
 {
+	ssize_t pos;
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
-		return -1;
+		return 0;
 #if FOUNDATION_PLATFORM_PNACL
 	return GET_FILE( stream )->position;
 #else
-	return ftell( GET_FILE( stream )->fd );
+	pos = ftello( GET_FILE( stream )->fd );
+	return pos > 0 ? (size_t)pos : 0;
 #endif
 }
 
 
-static void _fs_file_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
+static void _fs_file_seek( stream_t* stream, ssize_t offset, stream_seek_mode_t direction )
 {
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return;
@@ -1588,11 +1591,11 @@ static bool _fs_file_eos( stream_t* stream )
 }
 
 
-static int64_t _fs_file_size( stream_t* stream )
+static size_t _fs_file_size( stream_t* stream )
 {
 #if !FOUNDATION_PLATFORM_PNACL
-	int64_t cur;
-	int64_t size;
+	size_t cur;
+	size_t size;
 #endif
 
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
@@ -1605,7 +1608,7 @@ static int64_t _fs_file_size( stream_t* stream )
 	cur = _fs_file_tell( stream );
 	_fs_file_seek( stream, 0, STREAM_SEEK_END );
 	size = _fs_file_tell( stream );
-	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
+	_fs_file_seek( stream, (ssize_t)cur, STREAM_SEEK_BEGIN );
 
 	return size;
 
@@ -1613,11 +1616,11 @@ static int64_t _fs_file_size( stream_t* stream )
 }
 
 
-static void _fs_file_truncate( stream_t* stream, int64_t length )
+static void _fs_file_truncate( stream_t* stream, size_t length )
 {
 	stream_file_t* file;
 #if !FOUNDATION_PLATFORM_PNACL
-	int64_t cur;
+	size_t cur;
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
@@ -1661,20 +1664,20 @@ static void _fs_file_truncate( stream_t* stream, int64_t length )
 	if( length < 0xFFFFFFFF )
 	{
 		if( SetFilePointer( fd, (LONG)length, 0, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
-			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
+			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%" PRIsize " bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
 	}
 	else
 	{
 		LONG high = (LONG)( length >> 32LL );
 		if( SetFilePointer( fd, (LONG)length, &high, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
-		   log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
+		   log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%" PRIsize " bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
 	}
 	SetEndOfFile( fd );
 	CloseHandle( fd );
 #elif FOUNDATION_PLATFORM_POSIX
 	int fd = open( _fs_path( file->path ), O_RDWR );
-	if( ftruncate( fd, length ) < 0 )
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%llu bytes): %s", _fs_path( file->path ), length, system_error_message( errno ) );
+	if( ftruncate( fd, (ssize_t)length ) < 0 )
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%" PRIsize " bytes): %s", _fs_path( file->path ), length, system_error_message( errno ) );
 	close( fd );
 #else
 #  error Not implemented
@@ -1682,7 +1685,7 @@ static void _fs_file_truncate( stream_t* stream, int64_t length )
 
 	file->fd = _fs_file_fopen( _fs_path( file->path ), stream->mode, 0 );
 
-	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
+	_fs_file_seek( stream, (ssize_t)cur, STREAM_SEEK_BEGIN );
 
 	//FOUNDATION_ASSERT( file_size( file ) == length );
 #endif
@@ -1702,24 +1705,22 @@ static void _fs_file_flush( stream_t* stream )
 }
 
 
-static int64_t _fs_file_read( stream_t* stream, void* buffer, int64_t num_bytes )
+static size_t _fs_file_read( stream_t* stream, void* buffer, size_t num_bytes )
 {
 	stream_file_t* file;
-	int64_t beforepos;
-	int64_t was_read = 0;
+	size_t was_read;
 #if !FOUNDATION_PLATFORM_PNACL
-	size_t size;
+	size_t beforepos;
 #endif
 
 	if( !stream || !( stream->mode & STREAM_IN ) || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
 
 	file = GET_FILE( stream );
-	beforepos = _fs_file_tell( stream );
 
 #if FOUNDATION_PLATFORM_PNACL
 
-	int64_t available = file->size - file->position;
+	size_t available = file->size - file->position;
 	if( !available || !num_bytes )
 		return 0;
 	if( available > 0x7FFFFFFFLL )
@@ -1737,25 +1738,22 @@ static int64_t _fs_file_read( stream_t* stream, void* buffer, int64_t num_bytes 
 		file->position += read;
 	}
 	else
-		return 0;
+		was_read = 0;
 
 	return was_read;
 
 #else
 
-	size = (size_t)( num_bytes & 0xFFFFFFFFULL );
-	was_read = fread( buffer, 1, size, file->fd );
-
-	//if( num_bytes > 0xFFFFFFFFULL )
-	//	was_read += fread( (void*)( (char*)buffer + size ), 0xFFFFFFFF, (size_t)( num_bytes >> 32LL ), file->fd );
-
+	beforepos = _fs_file_tell( stream );
+	was_read = fread( buffer, 1, num_bytes, file->fd );
 	if( was_read > 0 )
 		return was_read;
 
 	if( feof( file->fd ) )
 	{
-		was_read = ( _fs_file_tell( stream ) - beforepos );
-		return was_read;
+		size_t newpos = _fs_file_tell( stream );
+		if( newpos > beforepos )
+			return ( newpos - beforepos );
 	}
 
 	return 0;
@@ -1764,20 +1762,20 @@ static int64_t _fs_file_read( stream_t* stream, void* buffer, int64_t num_bytes 
 }
 
 
-static int64_t _fs_file_write( stream_t* stream, const void* buffer, int64_t num_bytes )
+static size_t _fs_file_write( stream_t* stream, const void* buffer, size_t num_bytes )
 {
 	stream_file_t* file;
-	int64_t was_written = 0;
+	size_t was_written;
 #if !FOUNDATION_PLATFORM_PNACL
-	size_t size;
+	size_t beforepos;
 #endif
 
 	if( !stream || !( stream->mode & STREAM_OUT ) || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
 
-#if FOUNDATION_PLATFORM_PNACL
-
 	file = GET_FILE( stream );
+
+#if FOUNDATION_PLATFORM_PNACL
 
 	if( file->position + num_bytes > file->size )
 	{
@@ -1797,21 +1795,23 @@ static int64_t _fs_file_write( stream_t* stream, const void* buffer, int64_t num
 		file->position += written;
 	}
 	else
-		return 0;
+		was_writter = 0;
 
 	return was_written;
 
 #else
 
-	file = GET_FILE( stream );
-	size = (size_t)( num_bytes & 0x7FFFFFFFLL );
-	was_written = fwrite( buffer, 1, size, file->fd );
-
-	//if( num_bytes > 0xFFFFFFFFLL )
-	//	was_written += fwrite( (const void*)( (const char*)buffer + size ), 0xFFFFFFFF, (size_t)( num_bytes >> 32LL ), file->fd );
-
+	beforepos = _fs_file_tell( stream );
+	was_written = fwrite( buffer, 1, num_bytes, file->fd );
 	if( was_written > 0 )
 		return was_written;
+
+	if( feof( file->fd ) )
+	{
+		size_t newpos = _fs_file_tell( stream );
+		if( newpos > beforepos )
+			return ( newpos - beforepos );
+	}
 
 	return 0;
 
@@ -1819,22 +1819,22 @@ static int64_t _fs_file_write( stream_t* stream, const void* buffer, int64_t num
 }
 
 
-static int64_t _fs_file_last_modified( const stream_t* stream )
+static tick_t _fs_file_last_modified( const stream_t* stream )
 {
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo info;
 	_pnacl_file_io->Query( GET_FILE_CONST( stream )->fd, &info, PP_BlockUntilComplete() );
-	return info.last_modified_time * 1000ULL;
+	return (tick_t)info.last_modified_time * 1000ULL;
 #else
 	return fs_last_modified( GET_FILE_CONST( stream )->path );
 #endif
 }
 
 
-static int64_t _fs_file_available_read( stream_t* stream )
+static size_t _fs_file_available_read( stream_t* stream )
 {
-	int64_t size = _fs_file_size( stream );
-	int64_t cur = _fs_file_tell( stream );
+	size_t size = _fs_file_size( stream );
+	size_t cur = _fs_file_tell( stream );
 
 	if( size > cur )
 		return size - cur;
