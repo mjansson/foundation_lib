@@ -210,8 +210,8 @@ static void* uuid_thread_time( object_t thread, void* arg )
 DECLARE_TEST( uuid, threaded )
 {
 	object_t thread[32];
-	int ith, i, jth, j;
-	int num_threads = math_clamp( system_hardware_threads() * 2, 4, 32 );
+	size_t ith, i, jth, j;
+	size_t num_threads = math_clamp( system_hardware_threads() * 2, 4, 32 );
 
 	for( ith = 0; ith < num_threads; ++ith )
 	{

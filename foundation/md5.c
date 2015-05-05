@@ -184,7 +184,7 @@ md5_t* md5_digest_raw( md5_t* digest, const void* buffer, size_t size )
 	add_count = (uint32_t)( size << 3 );
 
 	digest->count[0] += add_count;
-	digest->count[1] += ( size >> 29 );
+	digest->count[1] += (uint32_t)( size >> 29 );
 	if( digest->count[0] < prev_count )
 		++digest->count[1];
 

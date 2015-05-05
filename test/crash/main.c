@@ -97,6 +97,7 @@ static int instant_crash( void* arg )
 {
 	FOUNDATION_UNUSED( arg );
 	crash_debug_break();
+	return 1;
 }
 
 

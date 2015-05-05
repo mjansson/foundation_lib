@@ -673,7 +673,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 			size_t matchlen = regex->code[op++];
 			if( ( matchlen > ( inlength - inoffset ) ) || !string_equal_substr( input + inoffset, (const char*)regex->code + op, matchlen ) )
 				return _regex_context_nomatch( op + (int)matchlen );
-			op += matchlen;
+			op += (int)matchlen;
 			inoffset += matchlen;
 			break;
 		}

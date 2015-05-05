@@ -432,7 +432,7 @@ int hashify_write_file( stream_t* generated_file, const char* output_filename )
 
 		if( result == HASHIFY_RESULT_OK )
 		{
-			stream_truncate( output_file, total_written );
+			stream_truncate( output_file, (size_t)total_written );
 			log_infof( 0, "  wrote %s : %llu bytes", output_filename, total_written );
 		}
 	}

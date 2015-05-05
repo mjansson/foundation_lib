@@ -374,20 +374,20 @@ DECLARE_TEST( string, queries )
 		char* shortstr = string_clone( "short string" );
 		char* longstr  = string_clone( "testing utility string methods like finds, split, merge, explode and similar." );
 		{
-			unsigned int find     = string_find( longstr, ' ', 0 );
-			unsigned int find2    = string_find( longstr, 12, 0 );
-			unsigned int find3    = string_find( emptystr, ' ', 0 );
-			unsigned int find4    = string_find( shortstr, ' ', 0 );
-			unsigned int find5    = string_find( shortstr, 'z', 0 );
-			unsigned int findofs  = string_find( longstr, ' ', find );
-			unsigned int findofs2 = string_find( longstr, ' ', find + 1 );
-			unsigned int findofs3 = string_find( longstr, 'z', 10 );
-			unsigned int findofs4 = string_find( emptystr, 'z', STRING_NPOS );
-			unsigned int findofs5 = string_find( shortstr, 's', 10 );
-			unsigned int findofs6 = string_find( shortstr, 's', findofs5 );
-			unsigned int findofs7 = string_find( shortstr, 't', 0 );
-			unsigned int findofs8 = string_find( shortstr, ' ', 5 );
-			unsigned int findofs9 = string_find( longstr, ' ', STRING_NPOS );
+			size_t find     = string_find( longstr, ' ', 0 );
+			size_t find2    = string_find( longstr, 12, 0 );
+			size_t find3    = string_find( emptystr, ' ', 0 );
+			size_t find4    = string_find( shortstr, ' ', 0 );
+			size_t find5    = string_find( shortstr, 'z', 0 );
+			size_t findofs  = string_find( longstr, ' ', find );
+			size_t findofs2 = string_find( longstr, ' ', find + 1 );
+			size_t findofs3 = string_find( longstr, 'z', 10 );
+			size_t findofs4 = string_find( emptystr, 'z', STRING_NPOS );
+			size_t findofs5 = string_find( shortstr, 's', 10 );
+			size_t findofs6 = string_find( shortstr, 's', findofs5 );
+			size_t findofs7 = string_find( shortstr, 't', 0 );
+			size_t findofs8 = string_find( shortstr, ' ', 5 );
+			size_t findofs9 = string_find( longstr, ' ', STRING_NPOS );
 
 			EXPECT_EQ( find, 7U );
 			EXPECT_EQ( find2, STRING_NPOS );
@@ -405,18 +405,18 @@ DECLARE_TEST( string, queries )
 			EXPECT_EQ( findofs9, STRING_NPOS );
 		}
 		{
-			unsigned int rfind     = string_rfind( longstr, ' ', STRING_NPOS );
-			unsigned int rfind2    = string_rfind( longstr, ';', STRING_NPOS );
-			unsigned int rfind3    = string_rfind( emptystr, ';', STRING_NPOS );
-			unsigned int rfind4    = string_rfind( shortstr, 's', STRING_NPOS );
-			unsigned int rfind5    = string_rfind( shortstr, 'z', STRING_NPOS );
-			unsigned int rfindofs  = string_rfind( longstr, ' ', rfind );
-			unsigned int rfindofs2 = string_rfind( longstr, ' ', rfind - 1 );
-			unsigned int rfindofs3 = string_rfind( longstr, ' ', string_length( longstr ) - 1 );
-			unsigned int rfindofs4 = string_rfind( emptystr, ' ', 0 );
-			unsigned int rfindofs5 = string_rfind( longstr, ' ', 0 );
-			unsigned int rfindofs6 = string_rfind( shortstr, 's', 5 );
-			unsigned int rfindofs7 = string_rfind( shortstr, 's', 0 );
+			size_t rfind     = string_rfind( longstr, ' ', STRING_NPOS );
+			size_t rfind2    = string_rfind( longstr, ';', STRING_NPOS );
+			size_t rfind3    = string_rfind( emptystr, ';', STRING_NPOS );
+			size_t rfind4    = string_rfind( shortstr, 's', STRING_NPOS );
+			size_t rfind5    = string_rfind( shortstr, 'z', STRING_NPOS );
+			size_t rfindofs  = string_rfind( longstr, ' ', rfind );
+			size_t rfindofs2 = string_rfind( longstr, ' ', rfind - 1 );
+			size_t rfindofs3 = string_rfind( longstr, ' ', string_length( longstr ) - 1 );
+			size_t rfindofs4 = string_rfind( emptystr, ' ', 0 );
+			size_t rfindofs5 = string_rfind( longstr, ' ', 0 );
+			size_t rfindofs6 = string_rfind( shortstr, 's', 5 );
+			size_t rfindofs7 = string_rfind( shortstr, 's', 0 );
 
 			EXPECT_EQ( rfind, 68U );
 			EXPECT_EQ( rfind2, STRING_NPOS );
@@ -432,25 +432,25 @@ DECLARE_TEST( string, queries )
 			EXPECT_EQ( rfindofs7, 0U );
 		}
 		{
-			unsigned int findstr     = string_find_string( longstr, "st", 0 );
-			unsigned int findstr2    = string_find_string( longstr, "xwqz", 0 );
-			unsigned int findstr3    = string_find_string( emptystr, "xwqz", 0 );
-			unsigned int findstr4    = string_find_string( longstr, "", 0 );
-			unsigned int findstr5    = string_find_string( longstr, "dslike", 0 );
-			unsigned int findstr6    = string_find_string( shortstr, "rt", 0 );
-			unsigned int findstr7    = string_find_string( shortstr, "long key that does not exist", 0 );
-			unsigned int findstr8    = string_find_string( shortstr, "so", 0 );
-			unsigned int findstrofs   = string_find_string( longstr, "st", findstr );
-			unsigned int findstrofs2  = string_find_string( longstr, "st", findstr + 1 );
-			unsigned int findstrofs3  = string_find_string( longstr, "xwqz", string_length( longstr ) );
-			unsigned int findstrofs4  = string_find_string( emptystr, "xwqz", string_length( emptystr ) );
-			unsigned int findstrofs5  = string_find_string( shortstr, "", 5 );
-			unsigned int findstrofs6  = string_find_string( shortstr, "string", 0 );
-			unsigned int findstrofs7  = string_find_string( shortstr, "string", 7 );
-			unsigned int findstrofs8  = string_find_string( longstr, "utility", 14 );
-			unsigned int findstrofs9  = string_find_string( longstr, "", string_length( longstr ) );
-			unsigned int findstrofs10 = string_find_string( longstr, "", STRING_NPOS );
-			unsigned int findstrofs11 = string_find_string( longstr, "string", STRING_NPOS );
+			size_t findstr     = string_find_string( longstr, "st", 0 );
+			size_t findstr2    = string_find_string( longstr, "xwqz", 0 );
+			size_t findstr3    = string_find_string( emptystr, "xwqz", 0 );
+			size_t findstr4    = string_find_string( longstr, "", 0 );
+			size_t findstr5    = string_find_string( longstr, "dslike", 0 );
+			size_t findstr6    = string_find_string( shortstr, "rt", 0 );
+			size_t findstr7    = string_find_string( shortstr, "long key that does not exist", 0 );
+			size_t findstr8    = string_find_string( shortstr, "so", 0 );
+			size_t findstrofs   = string_find_string( longstr, "st", findstr );
+			size_t findstrofs2  = string_find_string( longstr, "st", findstr + 1 );
+			size_t findstrofs3  = string_find_string( longstr, "xwqz", string_length( longstr ) );
+			size_t findstrofs4  = string_find_string( emptystr, "xwqz", string_length( emptystr ) );
+			size_t findstrofs5  = string_find_string( shortstr, "", 5 );
+			size_t findstrofs6  = string_find_string( shortstr, "string", 0 );
+			size_t findstrofs7  = string_find_string( shortstr, "string", 7 );
+			size_t findstrofs8  = string_find_string( longstr, "utility", 14 );
+			size_t findstrofs9  = string_find_string( longstr, "", string_length( longstr ) );
+			size_t findstrofs10 = string_find_string( longstr, "", STRING_NPOS );
+			size_t findstrofs11 = string_find_string( longstr, "string", STRING_NPOS );
 
 			EXPECT_EQ( findstr, 2U );
 			EXPECT_EQ( findstr2, STRING_NPOS );
@@ -473,19 +473,19 @@ DECLARE_TEST( string, queries )
 			EXPECT_EQ( findstrofs11, STRING_NPOS );
 		}
 		{
-			unsigned int rfindstr     = string_rfind_string( longstr, ", ", STRING_NPOS );
-			unsigned int rfindstr2    = string_rfind_string( longstr, ":;", STRING_NPOS );
-			unsigned int rfindstr3    = string_rfind_string( emptystr, ":;", STRING_NPOS );
-			unsigned int rfindstr4    = string_rfind_string( longstr, "", STRING_NPOS );
-			unsigned int rfindstr5    = string_rfind_string( shortstr, "string", STRING_NPOS );
-			unsigned int rfindstr6    = string_rfind_string( shortstr, " tring", STRING_NPOS );
-			unsigned int rfindstrofs  = string_rfind_string( longstr, ", ", rfindstr );
-			unsigned int rfindstrofs2 = string_rfind_string( longstr, ", ", rfindstr - 1 );
-			unsigned int rfindstrofs3 = string_rfind_string( longstr, ":;", 0 );
-			unsigned int rfindstrofs4 = string_rfind_string( emptystr, ":;", 0 );
-			unsigned int rfindstrofs5 = string_rfind_string( longstr, "", 5 );
-			unsigned int rfindstrofs6 = string_rfind_string( shortstr, "ort str", 6 );
-			unsigned int rfindstrofs7 = string_rfind_string( shortstr, "ort str", 1 );
+			size_t rfindstr     = string_rfind_string( longstr, ", ", STRING_NPOS );
+			size_t rfindstr2    = string_rfind_string( longstr, ":;", STRING_NPOS );
+			size_t rfindstr3    = string_rfind_string( emptystr, ":;", STRING_NPOS );
+			size_t rfindstr4    = string_rfind_string( longstr, "", STRING_NPOS );
+			size_t rfindstr5    = string_rfind_string( shortstr, "string", STRING_NPOS );
+			size_t rfindstr6    = string_rfind_string( shortstr, " tring", STRING_NPOS );
+			size_t rfindstrofs  = string_rfind_string( longstr, ", ", rfindstr );
+			size_t rfindstrofs2 = string_rfind_string( longstr, ", ", rfindstr - 1 );
+			size_t rfindstrofs3 = string_rfind_string( longstr, ":;", 0 );
+			size_t rfindstrofs4 = string_rfind_string( emptystr, ":;", 0 );
+			size_t rfindstrofs5 = string_rfind_string( longstr, "", 5 );
+			size_t rfindstrofs6 = string_rfind_string( shortstr, "ort str", 6 );
+			size_t rfindstrofs7 = string_rfind_string( shortstr, "ort str", 1 );
 
 			EXPECT_EQ( rfindstr, 55U );
 			EXPECT_EQ( rfindstr2, STRING_NPOS );
@@ -502,20 +502,20 @@ DECLARE_TEST( string, queries )
 			EXPECT_EQ( rfindstrofs7, STRING_NPOS );
 		}
 		{
-			unsigned int findof        = string_find_first_of( longstr, "ui", 0 );
-			unsigned int findof2       = string_find_first_of( longstr, ";:", 0 );
-			unsigned int findof3       = string_find_first_of( emptystr, "", 0 );
-			unsigned int findof4       = string_find_first_of( emptystr, " ", 0 );
-			unsigned int findof5       = string_find_first_of( shortstr, "", 0 );
-			unsigned int findofofs     = string_find_first_of( longstr, "ui", findof );
-			unsigned int findofofs2    = string_find_first_of( longstr, "ui", findof - 1 );
-			unsigned int findofofs3    = string_find_first_of( longstr, "ui", findof + 1 );
-			unsigned int findofofs4    = string_find_first_of( longstr, "ui", string_length( longstr ) );
-			unsigned int findofofs5    = string_find_first_of( emptystr, "", string_length( emptystr ) );
-			unsigned int findofofs6    = string_find_first_of( shortstr, "string", 6 );
-			unsigned int findofofs7    = string_find_first_of( shortstr, "", 6 );
-			unsigned int findofofs8    = string_find_first_of( longstr, "", 10 );
-			unsigned int findofofs9    = string_find_first_of( longstr, "", string_length( longstr ) );
+			size_t findof        = string_find_first_of( longstr, "ui", 0 );
+			size_t findof2       = string_find_first_of( longstr, ";:", 0 );
+			size_t findof3       = string_find_first_of( emptystr, "", 0 );
+			size_t findof4       = string_find_first_of( emptystr, " ", 0 );
+			size_t findof5       = string_find_first_of( shortstr, "", 0 );
+			size_t findofofs     = string_find_first_of( longstr, "ui", findof );
+			size_t findofofs2    = string_find_first_of( longstr, "ui", findof - 1 );
+			size_t findofofs3    = string_find_first_of( longstr, "ui", findof + 1 );
+			size_t findofofs4    = string_find_first_of( longstr, "ui", string_length( longstr ) );
+			size_t findofofs5    = string_find_first_of( emptystr, "", string_length( emptystr ) );
+			size_t findofofs6    = string_find_first_of( shortstr, "string", 6 );
+			size_t findofofs7    = string_find_first_of( shortstr, "", 6 );
+			size_t findofofs8    = string_find_first_of( longstr, "", 10 );
+			size_t findofofs9    = string_find_first_of( longstr, "", string_length( longstr ) );
 
 			EXPECT_EQ( findof, 4U );
 			EXPECT_EQ( findof2, STRING_NPOS );
@@ -533,13 +533,13 @@ DECLARE_TEST( string, queries )
 			EXPECT_EQ( findofofs9, STRING_NPOS );
 		}
 		{
-			unsigned int findnotof     = string_find_first_not_of( longstr, "testing ", 0 );
-			unsigned int findnotof2    = string_find_first_not_of( longstr, longstr, 0 );
-			unsigned int findnotof3    = string_find_first_not_of( shortstr, "", 0 );
-			unsigned int findnotofofs  = string_find_first_not_of( longstr, "testing ", findnotof );
-			unsigned int findnotofofs2 = string_find_first_not_of( longstr, "testing ", findnotof + 1 );
-			unsigned int findnotofofs3 = string_find_first_not_of( longstr, "testing ", string_length( longstr ) );
-			unsigned int findnotofofs4 = string_find_first_not_of( shortstr, "", string_length( shortstr ) );
+			size_t findnotof     = string_find_first_not_of( longstr, "testing ", 0 );
+			size_t findnotof2    = string_find_first_not_of( longstr, longstr, 0 );
+			size_t findnotof3    = string_find_first_not_of( shortstr, "", 0 );
+			size_t findnotofofs  = string_find_first_not_of( longstr, "testing ", findnotof );
+			size_t findnotofofs2 = string_find_first_not_of( longstr, "testing ", findnotof + 1 );
+			size_t findnotofofs3 = string_find_first_not_of( longstr, "testing ", string_length( longstr ) );
+			size_t findnotofofs4 = string_find_first_not_of( shortstr, "", string_length( shortstr ) );
 
 			EXPECT_EQ( findnotof, 8U );
 			EXPECT_EQ( findnotof2, STRING_NPOS );
@@ -550,17 +550,17 @@ DECLARE_TEST( string, queries )
 			EXPECT_EQ( findnotofofs4, STRING_NPOS );
 		}
 		{
-			unsigned int findlastof        = string_find_last_of( longstr, "xp", STRING_NPOS );
-			unsigned int findlastof2       = string_find_last_of( longstr, ";:", STRING_NPOS );
-			unsigned int findlastof3       = string_find_last_of( emptystr, "", STRING_NPOS );
-			unsigned int findlastof4       = string_find_last_of( shortstr, "", STRING_NPOS );
-			unsigned int findlastofofs     = string_find_last_of( longstr, "xp", findlastof );
-			unsigned int findlastofofs2    = string_find_last_of( longstr, "xp", findlastof - 2 );
-			unsigned int findlastofofs3    = string_find_last_of( longstr, "xp", 0 );
-			unsigned int findlastofofs4    = string_find_last_of( emptystr, "", 0 );
-			unsigned int findlastofofs5    = string_find_last_of( shortstr, "", 5 );
-			unsigned int findlastofofs6    = string_find_last_of( shortstr, "", string_length( shortstr ) );
-			unsigned int findlastofofs7    = string_find_last_of( shortstr, "short", 5 );
+			size_t findlastof        = string_find_last_of( longstr, "xp", STRING_NPOS );
+			size_t findlastof2       = string_find_last_of( longstr, ";:", STRING_NPOS );
+			size_t findlastof3       = string_find_last_of( emptystr, "", STRING_NPOS );
+			size_t findlastof4       = string_find_last_of( shortstr, "", STRING_NPOS );
+			size_t findlastofofs     = string_find_last_of( longstr, "xp", findlastof );
+			size_t findlastofofs2    = string_find_last_of( longstr, "xp", findlastof - 2 );
+			size_t findlastofofs3    = string_find_last_of( longstr, "xp", 0 );
+			size_t findlastofofs4    = string_find_last_of( emptystr, "", 0 );
+			size_t findlastofofs5    = string_find_last_of( shortstr, "", 5 );
+			size_t findlastofofs6    = string_find_last_of( shortstr, "", string_length( shortstr ) );
+			size_t findlastofofs7    = string_find_last_of( shortstr, "short", 5 );
 
 			EXPECT_EQ( findlastof, 59U );
 			EXPECT_EQ( findlastof2, STRING_NPOS );
@@ -575,19 +575,19 @@ DECLARE_TEST( string, queries )
 			EXPECT_EQ( findlastofofs7, 4U );
 		}
 		{
-			unsigned int findlastnotof     = string_find_last_not_of( longstr, " similar.", STRING_NPOS );
-			unsigned int findlastnotof2    = string_find_last_not_of( longstr, longstr, STRING_NPOS );
-			unsigned int findlastnotof3    = string_find_last_not_of( emptystr, "", STRING_NPOS );
-			unsigned int findlastnotof4    = string_find_last_not_of( shortstr, "", STRING_NPOS );
-			unsigned int findlastnotof5    = string_find_last_not_of( longstr, " similar", STRING_NPOS );
-			unsigned int findlastnotofofs  = string_find_last_not_of( longstr, " similar.", findlastnotof );
-			unsigned int findlastnotofofs2 = string_find_last_not_of( longstr, " and similar.", findlastnotof - 1 );
-			unsigned int findlastnotofofs3 = string_find_last_not_of( longstr, longstr, 0 );
-			unsigned int findlastnotofofs4 = string_find_last_not_of( emptystr, "", 0 );
-			unsigned int findlastnotofofs5 = string_find_last_not_of( shortstr, "string", 5 );
-			unsigned int findlastnotofofs6 = string_find_last_not_of( shortstr, "string ", 5 );
-			unsigned int findlastnotofofs7 = string_find_last_not_of( shortstr, "", 5 );
-			unsigned int findlastnotofofs8 = string_find_last_not_of( longstr, "", string_length( longstr ) );
+			size_t findlastnotof     = string_find_last_not_of( longstr, " similar.", STRING_NPOS );
+			size_t findlastnotof2    = string_find_last_not_of( longstr, longstr, STRING_NPOS );
+			size_t findlastnotof3    = string_find_last_not_of( emptystr, "", STRING_NPOS );
+			size_t findlastnotof4    = string_find_last_not_of( shortstr, "", STRING_NPOS );
+			size_t findlastnotof5    = string_find_last_not_of( longstr, " similar", STRING_NPOS );
+			size_t findlastnotofofs  = string_find_last_not_of( longstr, " similar.", findlastnotof );
+			size_t findlastnotofofs2 = string_find_last_not_of( longstr, " and similar.", findlastnotof - 1 );
+			size_t findlastnotofofs3 = string_find_last_not_of( longstr, longstr, 0 );
+			size_t findlastnotofofs4 = string_find_last_not_of( emptystr, "", 0 );
+			size_t findlastnotofofs5 = string_find_last_not_of( shortstr, "string", 5 );
+			size_t findlastnotofofs6 = string_find_last_not_of( shortstr, "string ", 5 );
+			size_t findlastnotofofs7 = string_find_last_not_of( shortstr, "", 5 );
+			size_t findlastnotofofs8 = string_find_last_not_of( longstr, "", string_length( longstr ) );
 
 			EXPECT_EQ( findlastnotof, 67U );
 			EXPECT_EQ( findlastnotof2, STRING_NPOS );

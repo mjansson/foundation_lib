@@ -973,7 +973,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_is_null( co
 
 
 //Format specifiers for 64bit and pointers
-#if defined( _MSC_VER )
+#if FOUNDATION_COMPILER_MSVC
 #  define PRId64       "I64d"
 #  define PRIi64       "I64i"
 #  define PRIdPTR      "Id"

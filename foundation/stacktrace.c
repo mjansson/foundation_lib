@@ -660,7 +660,7 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 		module64.SizeOfStruct = sizeof( module64 );
 		if( CallSymGetModuleInfo64 && CallSymGetModuleInfo64( process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &module64 ) )
 		{
-			int last_slash = STRING_NPOS;
+			size_t last_slash = STRING_NPOS;
 			module_name = module64.ImageName;
 			last_slash = string_rfind( module_name, '\\', STRING_NPOS );
 			if( last_slash != STRING_NPOS )

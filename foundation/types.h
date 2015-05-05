@@ -216,6 +216,14 @@ typedef enum
 #define PROCESS_WAIT_FAILED                   0x7FFFFFF3
 #define PROCESS_STILL_ACTIVE                  0x7FFFFFFF
 
+#if FOUNDATION_COMPILER_MSVC
+#  if FOUNDATION_ARCH_X86
+typedef _W64 int      ssize_t;
+#  else
+typedef __int64       ssize_t;
+#  endif
+#endif
+
 typedef uint64_t      hash_t;
 typedef int64_t       tick_t;
 typedef real          deltatime_t;

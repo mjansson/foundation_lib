@@ -304,9 +304,9 @@ DECLARE_TEST( random, threads )
 {
 	//Launch 32 threads
 	object_t thread[32];
-	int num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
+	size_t num_threads = math_clamp( system_hardware_threads() * 4, 4, 32 );
 	int max_num = 0, min_num = 0x7FFFFFFF;
-	int i, j;
+	size_t i, j;
 	real diff;
 	memset( _test_thread_bits, 0, sizeof( atomic32_t ) * 32 );
 	memset( _test_thread_hist, 0, sizeof( atomic32_t ) * 32 );

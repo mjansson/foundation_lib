@@ -681,7 +681,7 @@ bool fs_make_directory( const char* path )
 	if( pathsize )
 	{
 		char* first = paths[ipath];
-		unsigned int flen = string_length( first );
+		size_t flen = string_length( first );
 		if( flen && ( first[ flen - 1 ] == ':' ) )
 		{
 			curpath = string_clone( first );
@@ -1542,6 +1542,9 @@ static size_t _fs_file_tell( stream_t* stream )
 		return 0;
 #if FOUNDATION_PLATFORM_PNACL
 	return GET_FILE( stream )->position;
+#elif FOUNDATION_PLATFORM_WINDOWS
+	pos = (ssize_t)_ftelli64( GET_FILE( stream )->fd );
+	return pos > 0 ? (size_t)pos : 0;
 #else
 	pos = ftello( GET_FILE( stream )->fd );
 	return pos > 0 ? (size_t)pos : 0;
@@ -1661,10 +1664,13 @@ static void _fs_file_truncate( stream_t* stream, size_t length )
 	wpath = wstring_allocate_from_string( _fs_path( file->path ), 0 );
 	fd = CreateFileW( wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0 );
 	wstring_deallocate( wpath );
+#  if FOUNDATION_ARCH_X86_64
 	if( length < 0xFFFFFFFF )
 	{
+#  endif
 		if( SetFilePointer( fd, (LONG)length, 0, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
 			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%" PRIsize " bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
+#  if FOUNDATION_ARCH_X86_64
 	}
 	else
 	{
@@ -1672,6 +1678,7 @@ static void _fs_file_truncate( stream_t* stream, size_t length )
 		if( SetFilePointer( fd, (LONG)length, &high, FILE_BEGIN ) == INVALID_SET_FILE_POINTER )
 		   log_warnf( 0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%" PRIsize " bytes): %s", _fs_path( file->path ), length, system_error_message( GetLastError() ) );
 	}
+#  endif
 	SetEndOfFile( fd );
 	CloseHandle( fd );
 #elif FOUNDATION_PLATFORM_POSIX

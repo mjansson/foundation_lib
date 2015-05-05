@@ -178,7 +178,7 @@ int process_spawn( process_t* proc )
 			if( arg[0] != '"' )
 			{
 				//Check if we need to escape " characters
-				unsigned int pos = string_find( arg, '"', 0 );
+				size_t pos = string_find( arg, '"', 0 );
 				while( pos != STRING_NPOS )
 				{
 					if( arg[ pos - 1 ] != '\\' )

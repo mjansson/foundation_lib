@@ -26,7 +26,7 @@
 #endif
 
 
-static hashtable_t* _stream_protocol_table;
+static hashtable64_t* _stream_protocol_table;
 
 
 static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
@@ -58,7 +58,7 @@ static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
 
 int _stream_initialize( void )
 {
-	_stream_protocol_table = hashtable_allocate( 32 );
+	_stream_protocol_table = hashtable64_allocate( 32 );
 
 	stream_set_protocol_handler( "", fs_open_file );
 #if FOUNDATION_PLATFORM_ANDROID
@@ -74,20 +74,20 @@ int _stream_initialize( void )
 
 void _stream_shutdown( void )
 {
-	hashtable_deallocate( _stream_protocol_table );
+	hashtable64_deallocate( _stream_protocol_table );
 	_stream_protocol_table = 0;
 }
 
 
 void stream_set_protocol_handler( const char* protocol, stream_open_fn fn )
 {
-	hashtable_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (uintptr_t)fn );
+	hashtable64_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (uintptr_t)fn );
 }
 
 
 stream_open_fn stream_protocol_handler( const char* protocol, size_t length )
 {
-	return (stream_open_fn)(uintptr_t)hashtable_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
+	return (stream_open_fn)(uintptr_t)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
 }
 
 

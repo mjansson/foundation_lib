@@ -272,7 +272,7 @@ static void _ringbuffer_stream_seek( stream_t* stream, ssize_t offset, stream_se
 static size_t _ringbuffer_stream_tell( stream_t* stream )
 {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
-	return buffer->total_read;
+	return (size_t)buffer->total_read;
 }
 
 
@@ -286,7 +286,7 @@ static tick_t _ringbuffer_stream_lastmod( const stream_t* stream )
 static size_t _ringbuffer_stream_available_read( stream_t* stream )
 {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
-	return buffer->total_write - buffer->total_read;
+	return (size_t)( buffer->total_write - buffer->total_read );
 }
 
 

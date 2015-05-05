@@ -184,7 +184,7 @@ void objectmap_free( objectmap_t* map, object_t id )
 
 	FOUNDATION_ASSERT( map );
 
-	idx = id & map->mask_index;
+	idx = (size_t)( id & map->mask_index );
 	if( (uintptr_t)map->map[idx] & 1 )
 		return; //Already free
 
@@ -202,7 +202,7 @@ void objectmap_set( objectmap_t* map, object_t id, void* object )
 
 	FOUNDATION_ASSERT( map );
 
-	idx = id & map->mask_index;
+	idx = (size_t)( id & map->mask_index );
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT( !(((uintptr_t)map->map[idx]) & 1 ) );
 	FOUNDATION_ASSERT( !((uintptr_t)map->map[idx]) );

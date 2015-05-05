@@ -163,6 +163,10 @@ uuid_t uuid_generate_name( const uuid_t ns, const char* name )
 
 #include <stdio.h>
 
+#if FOUNDATION_COMPILER_MSVC
+#  define snprintf _snprintf
+#endif
+
 char* string_from_uuid_buffer( char* buffer, size_t size, const uuid_t val )
 {
 	int len;

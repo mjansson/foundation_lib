@@ -17,7 +17,10 @@
 #include <string.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-FOUNDATION_EXTERN errno_t _ctime64_s( char*, size_t, const __time64_t* );;
+FOUNDATION_EXTERN errno_t _ctime64_s( char*, size_t, const __time64_t* );
+#  if FOUNDATION_COMPILER_MSVC
+#    define snprintf _snprintf
+#  endif
 #elif FOUNDATION_PLATFORM_APPLE
 FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
