@@ -367,7 +367,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	atomic_cas32( &thread->started, 1, 0 );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread %llx, already running", thread->id );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread %" PRIx64 ", already running", thread->id );
 		_thread_unref( thread );
 		return 0;
 	}
@@ -388,7 +388,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_ASSERT( atomic_load32( &thread->running ) == 1 );
 
-	log_debugf( 0, "Started thread '%s' (%llx) ID %llx%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
+	log_debugf( 0, "Started thread '%s' (%" PRIx64 ") ID %" PRIx64 "%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
 
 	if( system_debugger_attached() )
 	{
@@ -400,13 +400,13 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		if( crash_result == FOUNDATION_CRASH_DUMP_GENERATED )
 		{
 			thread->result = (void*)((uintptr_t)FOUNDATION_CRASH_DUMP_GENERATED);
-			log_warnf( 0, WARNING_SUSPICIOUS, "Thread '%s' (%llx) ID %llx crashed", thread->name, thread->osid, thread->id );
+			log_warnf( 0, WARNING_SUSPICIOUS, "Thread '%s' (%" PRIx64 ") ID %" PRIx64 " crashed", thread->name, thread->osid, thread->id );
 		}
 	}
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
-	log_debugf( 0, "Terminated thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
+	log_debugf( 0, "Terminated thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	thread->osid  = 0;
 
@@ -419,7 +419,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		atomic_store32( &thread->running, 0 );
 	}
 
-	log_debugf( 0, "Exiting thread '%s' (%llx) ID %llx with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
+	log_debugf( 0, "Exiting thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	_thread_unref( thread );
 
@@ -438,13 +438,13 @@ bool thread_start( object_t id, void* data )
 	thread_t* thread = GET_THREAD( id );
 	if( !thread )
 	{
-		log_errorf( 0, ERROR_INVALID_VALUE, "Unable to start thread %llx, invalid id", id );
+		log_errorf( 0, ERROR_INVALID_VALUE, "Unable to start thread %" PRIx64 ", invalid id", id );
 		return false; //Old/invalid id
 	}
 
 	if( atomic_load32( &thread->running ) > 0 )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to start thread %llx, already running", id );
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to start thread %" PRIx64 ", already running", id );
 		return false; //Thread already running
 	}
 
@@ -530,10 +530,11 @@ uint64_t thread_id( void )
 #elif FOUNDATION_PLATFORM_BSD
 	return pthread_getthreadid_np();
 #elif FOUNDATION_PLATFORM_POSIX
-	if( sizeof( pthread_t ) < 8 )
-		return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
-	else
-		return pthread_self();
+#  if FOUNDATION_SIZE_POINTER == 4
+	return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
+#  else
+	return pthread_self();
+#  endif
 #elif FOUNDATION_PLATFORM_PNACL
 	return (uintptr_t)pthread_self();
 #else
@@ -547,7 +548,7 @@ unsigned int thread_hardware( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _fnGetCurrentProcessorNumber();
 #elif FOUNDATION_PLATFORM_LINUX
-	return sched_getcpu();
+	return (unsigned int)sched_getcpu();
 #else
 	//TODO: Implement for other platforms
 	return 0;

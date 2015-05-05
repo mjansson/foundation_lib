@@ -185,7 +185,7 @@ bool mutex_lock( mutex_t* mutex )
 	profile_lock( mutex->name );
 #endif
 
-	FOUNDATION_ASSERT_MSGFORMAT( !mutex->lockcount || ( thread_id() == mutex->lockedthread ), "Mutex lock acquired with lockcount > 0 (%d) and locked thread not self (%llx != %llx)", mutex->lockcount, mutex->lockedthread, thread_id() );
+	FOUNDATION_ASSERT_MSGFORMAT( !mutex->lockcount || ( thread_id() == mutex->lockedthread ), "Mutex lock acquired with lockcount > 0 (%d) and locked thread not self (%" PRIx64 " != %" PRIx64 ")", mutex->lockcount, mutex->lockedthread, thread_id() );
 	if( !mutex->lockcount )
 		mutex->lockedthread = thread_id();
 	++mutex->lockcount;

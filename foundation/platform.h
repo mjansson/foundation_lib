@@ -821,6 +821,10 @@ typedef enum
 #include <float.h>
 #include <limits.h>
 
+#if FOUNDATION_PLATFORM_POSIX
+#include <unistd.h>
+#endif
+
 typedef float          float32_t;
 typedef double         float64_t;
 

@@ -140,11 +140,11 @@ static void* objectmap_thread( object_t thread, void* arg )
 		{
 			objects[obj].id = objectmap_reserve( map );
 			EXPECT_NE_MSGFORMAT( objects[obj].id, 0, "Unable to reserve slot for object num %d", obj );
-			EXPECT_EQ_MSGFORMAT( objectmap_lookup( map, objects[obj].id ), 0, "Object num %d (%llx) already stored in map", obj, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( objectmap_lookup( map, objects[obj].id ), 0, "Object num %d (%" PRIx64 ") already stored in map", obj, objects[obj].id );
 			objectmap_set( map, objects[obj].id, objects + obj );
 			lookup = objectmap_lookup( map, objects[obj].id );
-			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
-			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects[obj].id, (uintptr_t)( objects + obj ), (uintptr_t)lookup );
+			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup", obj, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects[obj].id, (uintptr_t)( objects + obj ), (uintptr_t)lookup );
 		}
 
 		thread_yield();
@@ -152,11 +152,11 @@ static void* objectmap_thread( object_t thread, void* arg )
 		for( obj = 0; obj < 512; ++obj )
 		{
 			lookup = objectmap_lookup( map, objects[obj].id );
-			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%llx) not set in map, got null on lookup", obj, objects[obj].id );
-			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%llx) 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects[obj].id, (uintptr_t)( objects + obj ), (uintptr_t)lookup );
+			EXPECT_NE_MSGFORMAT( lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup", obj, objects[obj].id );
+			EXPECT_EQ_MSGFORMAT( lookup, objects + obj, "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%" PRIfixPTR, obj, objects[obj].id, (uintptr_t)( objects + obj ), (uintptr_t)lookup );
 			objectmap_free( map, objects[obj].id );
 			lookup = objectmap_lookup( map, objects[obj].id );
-			EXPECT_EQ_MSGFORMAT( lookup, 0, "Object num %d (%llx) still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj, objects[obj].id, (uintptr_t)lookup );
+			EXPECT_EQ_MSGFORMAT( lookup, 0, "Object num %d (%" PRIx64 ") still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj, objects[obj].id, (uintptr_t)lookup );
 		}
 	}
 

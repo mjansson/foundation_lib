@@ -83,7 +83,7 @@ tick_t time_current( void )
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_MONOTONIC, &ts );
-	return ( (uint64_t)ts.tv_sec * 1000000000LL ) + ts.tv_nsec;
+	return ( (tick_t)ts.tv_sec * 1000000000LL ) + (tick_t)ts.tv_nsec;
 
 #else
 #  error Not implemented

@@ -47,7 +47,7 @@ FOUNDATION_API void                          _static_hash_store( const void* key
 static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, size_t len, hash_t value )
 {
 	hash_t ref = hash( key, len );
-	FOUNDATION_ASSERT_MSGFORMAT( !value || ( ref == value ), "Static hash fail: %s -> 0x%llx, expected 0x%llx", key, ref, value );
+	FOUNDATION_ASSERT_MSGFORMAT( !value || ( ref == value ), "Static hash fail: %s -> 0x%" PRIx64 ", expected 0x%" PRIx64, key, ref, value );
 	_static_hash_store( key, len, ref );
 	return ref;
 }

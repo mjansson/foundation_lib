@@ -97,7 +97,9 @@ static int instant_crash( void* arg )
 {
 	FOUNDATION_UNUSED( arg );
 	crash_debug_break();
+#if !FOUNDATION_COMPILER_CLANG
 	return 1;
+#endif
 }
 
 

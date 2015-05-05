@@ -54,10 +54,10 @@ static void test_random_shutdown( void )
 
 DECLARE_TEST( random, distribution32 )
 {
-	int num_passes = 512000 * 16;
+	unsigned int num_passes = 512000 * 16;
 	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
 	unsigned int num;
-	int i, j;
+	unsigned int i, j;
 	real diff;
 
 	//Force allocations

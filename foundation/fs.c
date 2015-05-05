@@ -1052,7 +1052,7 @@ static void _fs_add_notify_subdir( int notify_fd, const char* path, fs_watch_t**
 
 	//Recurse
 	subdirs = fs_subdirs( local_path );
-	for( int i = 0, size = array_size( subdirs ); i < size; ++i )
+	for( size_t i = 0, size = array_size( subdirs ); i < size; ++i )
 	{
 		char* subpath = path_merge( local_path, subdirs[i] );
 		_fs_add_notify_subdir( notify_fd, subpath, watch_arr, path_arr, send_create );
@@ -1065,7 +1065,7 @@ static void _fs_add_notify_subdir( int notify_fd, const char* path, fs_watch_t**
 static fs_watch_t* _lookup_watch( fs_watch_t* watch_arr, int fd )
 {
 	//TODO: If array is kept sorted on fd, this could be made faster
-	for( int i = 0, size = array_size( watch_arr ); i < size; ++i )
+	for( size_t i = 0, size = array_size( watch_arr ); i < size; ++i )
 	{
 		if( watch_arr[i].fd == fd )
 			return watch_arr + i;
@@ -1265,9 +1265,9 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 		//log_debugf( 0, "ioctl inotify: %d (%d)", avail, ret );
 		if( avail > 0 )
 		{
-			void* buffer = memory_allocate( HASH_STREAM, avail + 4, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+			void* buffer = memory_allocate( HASH_STREAM, (size_t)avail + 4, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 			int offset = 0;
-			int avail_read = read( notify_fd, buffer, avail );
+			ssize_t avail_read = read( notify_fd, buffer, (size_t)avail );
 			//log_debugf( 0, "inotify read: %d", avail_read );
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while( offset < avail_read )

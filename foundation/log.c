@@ -127,22 +127,23 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t c
 	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
 	unsigned int pid = thread_hardware();
-	int need, more, remain, size = 383;
+	int need, more, remain;
+	int size = 383;
 	char local_buffer[385];
 	char* buffer = local_buffer;
 	while(1)
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if( _log_prefix )
-			need = snprintf( buffer, size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, prefix );
+			need = snprintf( buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, prefix );
 		else
-			need = snprintf( buffer, size, "%s", prefix );
+			need = snprintf( buffer, (size_t)size, "%s", prefix );
 
 		remain = size - need;
 		{
 			va_list clist;
 			va_copy( clist, list );
-			more = vsnprintf( buffer + need, remain, format, clist );
+			more = vsnprintf( buffer + need, (size_t)remain, format, clist );
 			va_end( clist );
 		}
 

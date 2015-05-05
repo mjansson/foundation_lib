@@ -21,6 +21,11 @@
 #include <foundation/posix.h>
 #endif
 
+#if FOUNDATION_COMPILER_CLANG
+// Yes, we want to compare floats
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
 
 static const char longline[] = "Lorem ipsum dolor sit amet, eam mundi concludaturque id, cu sea modus saepe postea. Purto natum vel ex, est eius possim ex, vix at sumo reformidans. Eos oratio forensibus persequeris an, diam gubergren ne mea, tacimates postulant expetenda ut pri. Vel everti facilis nominati ea, eos eu quis molestiae assueverit. His paulo utroque officiis ut, eum eu mutat congue hendrerit. Luptatum consulatu in cum, ea posse pertinax vim."
 " Usu dicta audiam voluptatum in. Vis habeo molestiae rationibus ea. Paulo bonorum facilis cu quo. Sit in appetere concludaturque, ius cu zril invidunt patrioque, clita ceteros recteque sed in. Vim in graece prompta molestiae, vel enim magna ei."
@@ -321,10 +326,10 @@ DECLARE_TEST( stream, readwrite_binary )
 	stream_write_float64( teststream, -1.0 );
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 	stream_write_string( teststream, 0 );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2 + 1, "stream position not expected after writes (%lld)", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2 + 1, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -364,7 +369,7 @@ DECLARE_TEST( stream, readwrite_binary )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 39 + FOUNDATION_SIZE_POINTER*2, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 39 + FOUNDATION_SIZE_POINTER*2, "read string buffer failed (%" PRIu64 ")", was_read );
 #if FOUNDATION_SIZE_POINTER == 8
 	EXPECT_STREQ_MSG( read_buffer, "formatted output with a null pointer 0x0000000000000000", "read string buffer data failed" );
 #else
@@ -410,7 +415,7 @@ DECLARE_TEST( stream, readwrite_binary )
 	stream_write_float64( teststream, -1.0 );
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position in read-only stream not null after writes" );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
@@ -450,7 +455,7 @@ DECLARE_TEST( stream, readwrite_binary )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "", "read string buffer data failed" );
 
 	stream_deallocate( teststream );
@@ -479,9 +484,9 @@ DECLARE_TEST( stream, readwrite_binary )
 	stream_write_float64( teststream, -1.0 );
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld)", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -519,7 +524,7 @@ DECLARE_TEST( stream, readwrite_binary )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "", "read string buffer data failed" );
 
 	stream_deallocate( teststream );
@@ -572,9 +577,9 @@ DECLARE_TEST( stream, readwrite_text )
 	stream_write_float32( teststream, 1.0f ); stream_write_endl( teststream );
 	stream_write_float64( teststream, -1.0 ); stream_write_endl( teststream );
 	stream_write_string( teststream,  "test string\nwith some newlines\nin the string" ); stream_write_endl( teststream );
-	stream_write_format( teststream,  "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 ); stream_write_endl( teststream );
+	stream_write_format( teststream,  "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) ); stream_write_endl( teststream );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 74 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld) : %s", stream_tell( teststream ), stream_path( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 74 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ") : %s", stream_tell( teststream ), stream_path( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -619,7 +624,7 @@ DECLARE_TEST( stream, readwrite_text )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 9, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 9, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "formatted", "read string buffer data failed" );
 
 	EXPECT_EQ_MSG( stream_read_line_buffer( teststream, read_buffer, 1024, '\n' ), 29 + FOUNDATION_SIZE_POINTER*2, "read line buffer failed" );
@@ -676,7 +681,7 @@ DECLARE_TEST( stream, readwrite_text )
 	stream_write_float64( teststream, -1.0 );
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position in read-only stream not null after writes" );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
@@ -716,7 +721,7 @@ DECLARE_TEST( stream, readwrite_text )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "", "read string buffer data failed" );
 
 	stream_deallocate( teststream );
@@ -745,9 +750,9 @@ DECLARE_TEST( stream, readwrite_text )
 	stream_write_float64( teststream, -1.0 );
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld)", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -785,7 +790,7 @@ DECLARE_TEST( stream, readwrite_text )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "", "read string buffer data failed" );
 
 	stream_deallocate( teststream );
@@ -837,9 +842,9 @@ DECLARE_TEST( stream, readwrite_sequential )
 	stream_write_float32( teststream, 1.0f ); stream_write_endl( teststream );
 	stream_write_float64( teststream, -1.0 ); stream_write_endl( teststream );
 	stream_write_string( teststream,  "test string\nwith some newlines\nin the string" ); stream_write_endl( teststream );
-	stream_write_format( teststream,  "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 ); stream_write_endl( teststream );
+	stream_write_format( teststream,  "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) ); stream_write_endl( teststream );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 75 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld) : %s", stream_tell( teststream ), stream_path( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 75 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ") : %s", stream_tell( teststream ), stream_path( teststream ) );
 	teststream->sequential = 0;
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
@@ -886,7 +891,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 9, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 9, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "formatted", "read string buffer data failed" );
 
 	EXPECT_EQ_MSG( stream_read_line_buffer( teststream, read_buffer, 1024, '\n' ), 29 + FOUNDATION_SIZE_POINTER*2, "read line buffer failed" );
@@ -948,7 +953,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	stream_write_float64( teststream, -1.0 );
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
 	teststream->sequential = 0;
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position in read-only stream not null after writes" );
@@ -990,7 +995,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "", "read string buffer data failed" );
 
 	stream_deallocate( teststream );
@@ -1019,10 +1024,10 @@ DECLARE_TEST( stream, readwrite_sequential )
 	stream_write_float64( teststream, -1.0 );
 	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (void*)0 );
+	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
 	teststream->sequential = 0;
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%lld)", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 	teststream->sequential = 1;
@@ -1061,7 +1066,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 
 	read_buffer[0] = 0;
 	was_read = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%lld)", was_read );
+	EXPECT_EQ_MSGFORMAT( was_read, 0, "read string buffer failed (%" PRIu64 ")", was_read );
 	EXPECT_STREQ_MSG( read_buffer, "", "read string buffer data failed" );
 
 	stream_deallocate( teststream );
@@ -1139,11 +1144,11 @@ DECLARE_TEST( stream, readwrite_swap )
 	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%016x)", read_uint64 );
 
 	cast32.fval = stream_read_float32( teststream );
-	cast32.ival = byteorder_swap32( cast32.ival );
+	cast32.uival = byteorder_swap32( cast32.uival );
 	EXPECT_EQ_MSGFORMAT( cast32.fval, 1.0f, "read float32 did not swap as expected : %f", cast32.fval );
 
 	cast64.fval = stream_read_float64( teststream );
-	cast64.ival = byteorder_swap64( cast64.ival );
+	cast64.uival = byteorder_swap64( cast64.uival );
 	EXPECT_EQ_MSGFORMAT( cast64.fval, -1.0f, "read float64 did not swap as expected : %lf", cast64.fval );
 
 	stream_deallocate( teststream );
@@ -1192,11 +1197,11 @@ DECLARE_TEST( stream, readwrite_swap )
 	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%016x)", read_uint64 );
 
 	cast32.fval = stream_read_float32( teststream );
-	cast32.ival = byteorder_swap32( cast32.ival );
+	cast32.uival = byteorder_swap32( cast32.uival );
 	EXPECT_EQ_MSGFORMAT( cast32.fval, 1.0f, "read float32 did not swap as expected : %f", cast32.fval );
 
 	cast64.fval = stream_read_float64( teststream );
-	cast64.ival = byteorder_swap64( cast64.ival );
+	cast64.uival = byteorder_swap64( cast64.uival );
 	EXPECT_EQ_MSGFORMAT( cast64.fval, -1.0f, "read float64 did not swap as expected : %lf", cast64.fval );
 
 	stream_deallocate( teststream );
@@ -1245,4 +1250,8 @@ test_suite_t test_suite_define( void )
 	return test_stream_suite;
 }
 
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
 #endif

@@ -19,7 +19,8 @@
 #if FOUNDATION_PLATFORM_WINDOWS
 FOUNDATION_EXTERN errno_t _ctime64_s( char*, size_t, const __time64_t* );
 #  if FOUNDATION_COMPILER_MSVC
-#    define snprintf _snprintf
+#    define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
+#    define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 #  endif
 #elif FOUNDATION_PLATFORM_APPLE
 FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
@@ -819,15 +820,14 @@ wchar_t* wstring_allocate_from_string( const char* cstr, size_t length )
 	for( i = 0; i < length; )
 	{
 		num_bytes = get_num_bytes_utf8( (uint8_t)(*cur) );
-		if( sizeof( wchar_t ) == 2 )
-		{
-			if( num_bytes >= 4 )
-				num_chars += 2; // final glyph > 0xFFFF
-			else
-				++num_chars;
-		}
+#if FOUNDATION_SIZE_WCHAR == 2
+		if( num_bytes >= 4 )
+			num_chars += 2; // final glyph > 0xFFFF
 		else
-			++num_chars; //wchar_t == UTF-32
+			++num_chars;
+#else
+		++num_chars; //wchar_t == UTF-32
+#endif
 		cur += num_bytes;
 		i += num_bytes;
 	}
@@ -881,7 +881,7 @@ wchar_t* wstring_allocate_from_string( const char* cstr, size_t length )
 void wstring_from_string( wchar_t* dest, const char* source, size_t max_length, size_t length )
 {
 	size_t i, j, num, max_srclength;
-	uint32_t glyph, val;
+	uint32_t glyph;
 	wchar_t* last = dest + ( max_length - 2 );
 	const char* cur = source;
 
@@ -900,26 +900,23 @@ void wstring_from_string( wchar_t* dest, const char* source, size_t max_length, 
 			++cur;
 			for( j = 1; j <= num; ++j, ++cur )
 				glyph |= ( (uint32_t)(*cur) & 0x3F ) << ( 6 * ( num - j ) );
-			if( sizeof( wchar_t ) == 2 )
+#if FOUNDATION_SIZE_WCHAR == 2
+			FOUNDATION_ASSERT( ( glyph < 0xD800 ) || ( glyph > 0xDFFF ) );
+			FOUNDATION_ASSERT( glyph <= 0x10FFFF );
+			if( ( glyph < 0xD800 ) || ( glyph > 0xDFFF ) )
 			{
-				FOUNDATION_ASSERT( ( glyph < 0xD800 ) || ( glyph > 0xDFFF ) );
-				FOUNDATION_ASSERT( glyph <= 0x10FFFF );
-				if( ( glyph < 0xD800 ) || ( glyph > 0xDFFF ) )
+				if( glyph <= 0xFFFF )
+					*dest++ = (uint16_t)glyph;
+				else if( glyph <= 0x10FFFF )
 				{
-					if( glyph <= 0xFFFF )
-						*dest++ = (uint16_t)glyph;
-					else if( glyph <= 0x10FFFF )
-					{
-						val = glyph - 0x10000;
-						*dest++ = 0xD800 | ( ( val >> 10 ) & 0x3FF );
-						*dest++ = 0xDC00 | (   val         & 0x3FF );
-					}
+					uint32_t val = glyph - 0x10000;
+					*dest++ = 0xD800 | ( ( val >> 10 ) & 0x3FF );
+					*dest++ = 0xDC00 | (   val         & 0x3FF );
 				}
 			}
-			else
-			{
-				*dest++ = (wchar_t)glyph;
-			}
+#else
+			*dest++ = (wchar_t)glyph;
+#endif
 			i += num;
 		}
 	}
@@ -977,10 +974,11 @@ static size_t _string_length_utf32( const uint32_t* p_str )
 
 char* string_allocate_from_wstring( const wchar_t* str, size_t length )
 {
-	if( sizeof( wchar_t ) == 2 )
-		return string_allocate_from_utf16( (const uint16_t*)str, length );
-	else
-		return string_allocate_from_utf32( (const uint32_t*)str, length );
+#if FOUNDATION_SIZE_WCHAR == 2
+	return string_allocate_from_utf16( (const uint16_t*)str, length );
+#else
+	return string_allocate_from_utf32( (const uint32_t*)str, length );
+#endif		
 }
 
 
@@ -1154,8 +1152,9 @@ char* string_from_int_buffer( char* buffer, size_t size, int64_t val, unsigned i
 	}
 	if( (unsigned int)len < width )
 	{
-		memmove( buffer + ( width - (unsigned int)len ), buffer, len + 1 );
-		memset( buffer, fill, width - (unsigned int)len );
+		size_t diff = (size_t)width - (size_t)len;
+		memmove( buffer + diff, buffer, (size_t)len + 1 );
+		memset( buffer, fill, diff );
 	}
 	return buffer;
 }
@@ -1191,8 +1190,9 @@ char* string_from_uint_buffer( char* buffer, size_t size, uint64_t val, bool hex
 	}
 	if( (unsigned int)len < width )
 	{
-		memmove( buffer + ( width - (unsigned int)len ), buffer, len + 1 );
-		memset( buffer, fill, width - (unsigned int)len );
+		size_t diff = (size_t)width - (size_t)len;
+		memmove( buffer + diff, buffer, (size_t)len + 1 );
+		memset( buffer, fill, diff );
 	}
 	return buffer;
 }

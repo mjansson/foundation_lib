@@ -706,7 +706,7 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 			if( iaddr && !frames[iaddr] )
 				break;
 
-			array_push( lines, string_format( "[0x%" PRIfixPTR "]", frames[iaddr] ) );
+			array_push( lines, string_format( "[0x%" PRIfixPTR "]", (uintptr_t)frames[iaddr] ) );
 		}
 		return lines;
 	}
@@ -721,7 +721,7 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 		if( iaddr && !frames[iaddr] )
 			break;
 
-		char* addr = string_format( "0x%" PRIfixPTR, frames[iaddr] );
+		char* addr = string_format( "0x%" PRIfixPTR, (uintptr_t)frames[iaddr] );
 		array_push( addrs, addr );
 		array_push( args, addr );
 
@@ -742,7 +742,7 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 		char* filename = stream_read_line( procout, '\n' );
 
 		array_push( lines, string_format( "[0x%" PRIfixPTR "] %s (%s)",
-			frames[num_frames],
+		    (uintptr_t)frames[num_frames],
 			function && string_length( function ) ? function : "??",
 			filename && string_length( filename ) ? filename : "??"
 		) );

@@ -410,7 +410,7 @@ void profile_shutdown( void )
 		if( num_blocks != _profile_num_blocks )
 		{
 			//If profile output function (user) crashed, this will probably trigger since at least one block will be lost in space
-			log_errorf( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks (found %llu of %llu)", num_blocks, _profile_num_blocks );
+			log_errorf( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, lost blocks (found %" PRIu64 " of %" PRIu64 ")", num_blocks, _profile_num_blocks );
 		}
 	}
 

@@ -173,6 +173,11 @@ int main( int argc, char** argv )
 		struct sigaction action;
 		memset( &action, 0, sizeof( action ) );
 
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+#endif
+		
 		//Signals we process globally
 		action.sa_handler = sighandler;
 		sigaction( SIGKILL, &action, 0 );
@@ -184,6 +189,10 @@ int main( int argc, char** argv )
 		//Ignore sigpipe
 		action.sa_handler = SIG_IGN;
 		sigaction( SIGPIPE, &action, 0 );
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 	}
 
 #endif

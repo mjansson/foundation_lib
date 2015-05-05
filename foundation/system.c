@@ -559,8 +559,8 @@ size_t system_hardware_threads( void )
 	sched_setaffinity( 0, sizeof( testmask ), &testmask ); //Set zero mask
 	sched_getaffinity( 0, sizeof( testmask ), &testmask ); //Get mask for all CPUs
 	sched_setaffinity( 0, sizeof( prevmask ), &prevmask ); //Reset current mask
-	unsigned int num = CPU_COUNT( &testmask );
-	return ( num > 1 ? num : 1 );
+	int num = CPU_COUNT( &testmask );
+	return (size_t)( num > 1 ? num : 1 );
 #endif
 }
 

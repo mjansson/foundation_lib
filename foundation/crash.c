@@ -223,6 +223,11 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	struct sigaction action;
 	memset( &action, 0, sizeof( action ) );
 
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+#endif
+	
 	//Signals we process globally
 	action.sa_sigaction = _crash_guard_sigaction;
 	action.sa_flags = SA_SIGINFO;
@@ -238,6 +243,10 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 		return fn( data );
 	}
 
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
+	
 	set_thread_crash_callback( callback );
 	set_thread_crash_callback_name( name );
 
