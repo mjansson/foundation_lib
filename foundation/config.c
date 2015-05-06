@@ -35,8 +35,8 @@ struct config_key_t
 	config_value_type_t     type;
 	bool                    bval;
 	int64_t                 ival;
-	char*                   sval;
-	char*                   expanded;
+	string_t                sval;
+	string_t                expanded;
 	real                    rval;
 };
 typedef FOUNDATION_ALIGN(8) struct config_key_t config_key_t;
@@ -55,16 +55,15 @@ FOUNDATION_STATIC_ASSERT( FOUNDATION_ALIGNOF( config_section_t ) == 8, "config_s
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS];
 
 
-static int64_t _config_string_to_int( const char* str )
+static int64_t _config_string_to_int( string_const_t str )
 {
-	size_t length = string_length( str );
 	size_t first_nonnumeric;
 	size_t dot_position;
-	if( length < 2 )
+	if( str.length < 2 )
 		return string_to_int64( str );
 
 	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
-	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'm' ) || ( str[ first_nonnumeric ] == 'M' ) ) )
+	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'm' ) || ( str.str[ first_nonnumeric ] == 'M' ) ) )
 	{
 		dot_position = string_find( str, '.', 0 );
 		if( dot_position != STRING_NPOS )
@@ -75,7 +74,7 @@ static int64_t _config_string_to_int( const char* str )
 		}
 		return string_to_int64( str ) * ( 1024LL * 1024LL );
 	}
-	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'k' ) || ( str[ first_nonnumeric ] == 'K' ) ) )
+	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'k' ) || ( str.str[ first_nonnumeric ] == 'K' ) ) )
 	{
 		dot_position = string_find( str, '.', 0 );
 		if( dot_position != STRING_NPOS )
@@ -91,16 +90,15 @@ static int64_t _config_string_to_int( const char* str )
 }
 
 
-static real _config_string_to_real( const char* str )
+static real _config_string_to_real( string_const_t str )
 {
-	size_t length = string_length( str );
 	size_t first_nonnumeric;
 	size_t dot_position;
-	if( length < 2 )
+	if( str.length < 2 )
 		return string_to_real( str );
 
 	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
-	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'm' ) || ( str[ first_nonnumeric ] == 'M' ) ) )
+	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'm' ) || ( str.str[ first_nonnumeric ] == 'M' ) ) )
 	{
 		dot_position = string_find( str, '.', 0 );
 		if( dot_position != STRING_NPOS )
@@ -110,7 +108,7 @@ static real _config_string_to_real( const char* str )
 		}
 		return string_to_real( str ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) );
 	}
-	if( ( first_nonnumeric == ( length - 1 ) ) && ( ( str[ first_nonnumeric ] == 'k' ) || ( str[ first_nonnumeric ] == 'K' ) ) )
+	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'k' ) || ( str.str[ first_nonnumeric ] == 'K' ) ) )
 	{
 		dot_position = string_find( str, '.', 0 );
 		if( dot_position != STRING_NPOS )
@@ -125,7 +123,7 @@ static real _config_string_to_real( const char* str )
 }
 
 
-static FOUNDATION_NOINLINE const char* _expand_environment( hash_t key, char* var )
+static FOUNDATION_NOINLINE string_const_t _expand_environment( hash_t key, string_const_t var )
 {
 	if( key == HASH_EXECUTABLE_NAME )
 		return environment_executable_name();
@@ -141,30 +139,21 @@ static FOUNDATION_NOINLINE const char* _expand_environment( hash_t key, char* va
 		return environment_home_directory();
 	else if( key == HASH_TEMPORARY_DIRECTORY )
 		return environment_temporary_directory();
-	else if( string_equal_substr( var, "variable[", 9 ) )  //variable[varname] - Environment variable named "varname"
-	{
-		const char* value;
-		size_t end_pos = string_find( var, ']', 9 );
-		if( end_pos != STRING_NPOS )
-			var[end_pos] = 0;
-		value = environment_variable( var + 9 );
-		if( end_pos != STRING_NPOS )
-			var[end_pos] = ']';
-		return value;
-	}
-	return "";
+	else if( string_equal_substr( var, string_const( "variable[", 9 ), 9 ) )  //variable[varname] - Environment variable named "varname"
+		return environment_variable( string_substr_const( var, 9, var.length - 9 ) );
+	return string_null();
 }
 
 
-static FOUNDATION_NOINLINE char* _expand_string( hash_t section_current, char* str )
+static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, string_t str )
 {
-	char* expanded;
-	char* variable;
-	size_t var_pos, var_end_pos, variable_length, separator, var_offset;
+	string_t expanded;
+	string_t variable;
+	size_t var_pos, var_end_pos, separator, var_offset;
 	hash_t section, key;
 
 	expanded = str;
-	var_pos = string_find_string( expanded, "$(", 0 );
+	var_pos = string_find_string( expanded, string_const( "$(", 2 ), 0 );
 
 	while( var_pos != STRING_NPOS )
 	{
@@ -174,7 +163,6 @@ static FOUNDATION_NOINLINE char* _expand_string( hash_t section_current, char* s
 
 		section = section_current;
 		key = 0;
-		variable_length = string_length( variable );
 		separator = string_find( variable, ':', 0 );
 		if( separator != STRING_NPOS )
 		{
@@ -186,10 +174,10 @@ static FOUNDATION_NOINLINE char* _expand_string( hash_t section_current, char* s
 		{
 			var_offset = 2;
 		}
-		key = hash( variable + var_offset, variable_length - ( var_offset + ( variable[ variable_length - 1 ] == ')' ? 1 : 0 ) ) );
+		key = hash( variable + var_offset, variable.length - ( var_offset + ( variable.str[ variable.length - 1 ] == ')' ? 1 : 0 ) ) );
 
-		if( expanded == str )
-			expanded = string_clone( str );
+		if( expanded.str == str.str )
+			expanded = string_clone( string_const( str ) );
 
 		if( section != HASH_ENVIRONMENT )
 			expanded = string_replace( expanded, variable, config_string( section, key ), false );
@@ -221,7 +209,6 @@ static FOUNDATION_NOINLINE void _expand_string_val( hash_t section, config_key_t
 	key->ival = is_true ? 1 : _config_string_to_int( key->expanded );
 	key->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key->expanded );
 }
-
 
 
 int _config_initialize( void )

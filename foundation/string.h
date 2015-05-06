@@ -21,6 +21,10 @@ FOUNDATION_API string_t       string_allocate( size_t length );
 FOUNDATION_API void           string_deallocate( string_t str );
 FOUNDATION_API string_t       string_clone( string_const_t str );
 
+FOUNDATION_API string_const_t string_null( void );
+FOUNDATION_API string_const_t string_const( const char* str, size_t length );
+FOUNDATION_API string_const_t string_to_const( string_t str );
+
 FOUNDATION_API string_t       string_format( const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 2 );
 FOUNDATION_API string_t       string_format_string( string_t str, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 3 );
 FOUNDATION_API string_t       string_vformat( const char* format, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 0 );
@@ -31,14 +35,16 @@ FOUNDATION_API size_t         string_glyphs( string_const_t str );
 FOUNDATION_API hash_t         string_hash( string_const_t str );
 
 FOUNDATION_API string_t       string_resize( string_t str, size_t length, char fill );
-FOUNDATION_API void           string_copy( string_t dst, string_t src );
-FOUNDATION_API string_t       string_strip( string_t str, string_t delimiters );
+FOUNDATION_API string_t       string_copy( string_t dst, string_const_t src );
 FOUNDATION_API string_t       string_replace( string_t str, string_const_t key, string_const_t newkey, bool repeat );
 FOUNDATION_API string_t       string_append( string_t str, string_const_t suffix );
 FOUNDATION_API string_t       string_prepend( string_t str, string_const_t prefix );
 FOUNDATION_API string_t       string_concat( string_const_t lhs, string_const_t rhs );
-FOUNDATION_API void           string_split( string_const_t str, string_const_t separators, string_t* left, string_t* right, bool allowempty );
-FOUNDATION_API string_t       string_substr( string_const_t str, size_t offset, size_t length );
+FOUNDATION_API void           string_split( string_const_t str, string_const_t separators, string_const_t* left, string_const_t* right, bool allowempty );
+FOUNDATION_API string_t       string_substr( string_t str, size_t offset, size_t length );
+FOUNDATION_API string_const_t string_substr_const( string_const_t str, size_t offset, size_t length );
+FOUNDATION_API string_t       string_strip( string_t str, string_const_t delimiters );
+FOUNDATION_API string_const_t string_strip_const( string_const_t str, string_const_t delimiters );
 
 FOUNDATION_API size_t         string_find( string_const_t str, char c, size_t offset );
 FOUNDATION_API size_t         string_find_string( string_const_t str, string_const_t key, size_t offset );

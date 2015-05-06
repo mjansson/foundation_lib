@@ -18,7 +18,7 @@ static crash_dump_callback_fn  _crash_dump_callback;
 static const char*             _crash_dump_name;
 
 #if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX /*&& !FOUNDATION_PLATFORM_APPLE*/ )
-static char                    _crash_dump_file[FOUNDATION_MAX_PATHLEN+128];
+static char                    _crash_dump_file_buffer[FOUNDATION_MAX_PATHLEN+128];
 #endif
 
 
@@ -49,7 +49,7 @@ crash_dump_callback_fn crash_guard_callback( void )
 
 typedef BOOL ( STDCALL *MiniDumpWriteDumpFn )( HANDLE, DWORD, HANDLE, MINIDUMP_TYPE, CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION, CONST PMINIDUMP_CALLBACK_INFORMATION );
 
-static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* name, char* dump_file )
+static string_t _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, string_const_t name, string_t dump_file )
 {
 	MINIDUMP_EXCEPTION_INFORMATION info;
 
@@ -58,17 +58,16 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 
 	GetLocalTime( &local_time );
 
-	dump_file[0] = 0;
-	if( !name )
+	if( !name.length )
 		name = environment_application()->short_name;
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
-		environment_temporary_directory(), name ? name : "", name ? "-" : "",
+	dump_file = string_format_string( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
+		environment_temporary_directory(), name.length ? name.str : "", name.length ? "-" : "",
 		string_from_uuid_static( environment_application()->instance ),
 		local_time.wYear, local_time.wMonth, local_time.wDay,
 		local_time.wHour, local_time.wMinute, local_time.wSecond,
 		GetCurrentProcessId(), GetCurrentThreadId());
 	fs_make_directory( environment_temporary_directory() );
-	file = CreateFileA( dump_file, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
+	file = CreateFileA( dump_file.str, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0 );
 
 	if( file && ( file != INVALID_HANDLE_VALUE ) )
 	{
@@ -97,7 +96,11 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 		}
 
 		CloseHandle( file );
+
+		return dump-file;
 	}
+
+	return string_null();
 }
 
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -105,7 +108,7 @@ static void _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, const char* n
 struct crash_exception_closure_t
 {
 	crash_dump_callback_fn      callback;
-	const char*                 name;
+	string_const_t              name;
 };
 typedef struct crash_exception_closure_t crash_exception_closure_t;
 
@@ -114,7 +117,8 @@ crash_exception_closure_t _crash_exception_closure;
 
 LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 {
-	_crash_create_mini_dump( pointers, _crash_exception_closure.name, _crash_dump_file );
+	string_t dump_file = { _crash_dump_file_buffer, sizeof( _crash_dump_file_buffer ) };
+	_crash_create_mini_dump( pointers, _crash_exception_closure.name, dump_file );
 	if( _crash_exception_closure.callback )
 		_crash_exception_closure.callback( _crash_dump_file );
 	else
@@ -147,12 +151,12 @@ FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
 FOUNDATION_DECLARE_THREAD_LOCAL( crash_env_t, crash_env, 0 )
 
 
-static void _crash_guard_minidump( void* context, const char* name, char* dump_file )
+static void _crash_guard_minidump( void* context, string_const_t name, string_t dump_file )
 {
-	if( !name )
+	if( !name.length )
 		name = environment_application()->short_name;
-	string_format_buffer( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%" PRIx64 ".dmp",
-		environment_temporary_directory(), name ? name : "", name ? "-" : "",
+	dump_file = string_format_string( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%" PRIx64 ".dmp",
+		environment_temporary_directory(), name.str, name.length ? "-" : "",
 		string_from_uuid_static( environment_application()->instance ), time_system() );
 	fs_make_directory( environment_temporary_directory() );
 
@@ -173,8 +177,10 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 	crash_dump_callback_fn callback = get_thread_crash_callback();
 	if( callback )
 	{
-		_crash_guard_minidump( arg, get_thread_crash_callback_name(), _crash_dump_file );
-		callback( _crash_dump_file );
+		const char* name = get_thread_crash_callback_name();
+		string_t dump_file = { _crash_dump_file_buffer, sizeof( _crash_dump_file_buffer ) };
+		dump_file = _crash_guard_minidump( arg, string_const( name, string_length( name ) ), dump_file );
+		callback( dump_file );
 	}
 
 	error_context_clear();
@@ -189,7 +195,7 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 #endif
 
 
-int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name )
+int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, string_const_t name )
 {
 	//Make sure path is initialized
 	environment_temporary_directory();
@@ -227,7 +233,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 #endif
-	
+
 	//Signals we process globally
 	action.sa_sigaction = _crash_guard_sigaction;
 	action.sa_flags = SA_SIGINFO;
@@ -246,9 +252,9 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
 #endif
-	
+
 	set_thread_crash_callback( callback );
-	set_thread_crash_callback_name( name );
+	set_thread_crash_callback_name( name.length ? name.str : 0 );
 
 	memset( &guard_env, 0, sizeof( guard_env ) );
 	int ret = sigsetjmp( guard_env, 1 );

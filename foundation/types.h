@@ -287,7 +287,7 @@ typedef struct semaphore_t                   semaphore_t;
 #endif
 
 typedef int           (* error_callback_fn )( error_level_t level, error_t error );
-typedef int           (* assert_handler_fn )( hash_t context, const char* condition, const char* file, unsigned int line, const char* msg );
+typedef int           (* assert_handler_fn )( hash_t context, const char* condition, const char* file, unsigned int line, string_const_t msg );
 typedef void          (* log_callback_fn )( hash_t context, error_level_t severity, const char* msg );
 typedef int           (* system_initialize_fn )( void );
 typedef void          (* system_shutdown_fn )( void );
@@ -331,7 +331,7 @@ struct string_t
 	char*                           str;
 };
 
-struct string_t
+struct string_const_t
 {
 	size_t                          length;
 	const char*                     str;
@@ -382,9 +382,9 @@ union version_t
 
 struct application_t
 {
-	const char*                     name;
-	const char*                     short_name;
-	const char*                     config_dir;
+	string_const_t                  name;
+	string_const_t                  short_name;
+	string_const_t                  config_dir;
 	version_t                       version;
 	crash_dump_callback_fn          dump_callback;
 	unsigned int                    flags;
@@ -646,7 +646,7 @@ struct semaphore_t
 	unsigned int                    byteorder:1;             \
 	unsigned int                    unused_streamflags:11;   \
 	unsigned int                    mode;                    \
-	char*                           path;                    \
+	string_t                        path;                    \
 	stream_vtable_t*                vtable
 
 FOUNDATION_ALIGNED_STRUCT( stream_t, 8 )
