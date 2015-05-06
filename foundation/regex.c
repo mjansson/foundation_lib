@@ -22,9 +22,9 @@
 #define REGEXERR_INVALID_QUANTIFIER   -4
 #define REGEXERR_BRANCH_FAILURE       -5
 
-#define REGEXRES_INTERNAL_FAILURE     (size_t)-2
-#define REGEXRES_NOMATCH              (size_t)-1
-#define REGEXRES_MATCH                (size_t)0
+#define REGEXRES_INTERNAL_FAILURE     -2
+#define REGEXRES_NOMATCH              -1
+#define REGEXRES_MATCH                0
 
 #define REGEXCODE_NULL                (int16_t)0x0000
 #define REGEXCODE_WHITESPACE          (int16_t)0x0100
@@ -270,7 +270,7 @@ static regex_context_t _regex_consume_longest( regex_t* regex, size_t op, const 
 	}
 
 	//Make sure we return the next op (_regex_execute_single returns next op even on failure)
-	if( best_context.op > inlength )
+	if( best_context.op > regex->code_length )
 		best_context.op = context.op;
 
 	return best_context;
@@ -302,7 +302,7 @@ static regex_context_t _regex_consume_shortest( regex_t* regex, size_t op, const
 	}
 
 	//Make sure we return the next op (_regex_execute_single returns next op even on failure)
-	if( best_context.op > inlength )
+	if( best_context.op > regex->code_length )
 		best_context.op = context.op;
 
 	return best_context;
@@ -706,7 +706,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 		case REGEXOP_ONE_OR_MORE:
 		{
 			context = _regex_execute_single( regex, op, input, inoffset, inlength, captures, maxcaptures );
-			if( context.inoffset < REGEXRES_MATCH )
+			if( context.inoffset > inlength )
 				return context;
 
 			context = _regex_consume_longest( regex, op, input, context.inoffset, inlength, captures, maxcaptures );
@@ -730,7 +730,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 		case REGEXOP_ONE_OR_MORE_SHORTEST:
 		{
 			context = _regex_execute_single( regex, op, input, inoffset, inlength, captures, maxcaptures );
-			if( context.inoffset < REGEXRES_MATCH )
+			if( context.inoffset > inlength )
 				return context;
 
 			context = _regex_consume_shortest( regex, op, input, context.inoffset, inlength, captures, maxcaptures );
@@ -747,10 +747,10 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 
 			//Try matching with one, and if that succeeds verify complete match of remaining data
 			context = _regex_execute_single( regex, op, input, inoffset, inlength, captures, maxcaptures );
-			if( context.inoffset >= REGEXRES_MATCH )
+			if( context.inoffset <= inlength )
 			{
 				context = _regex_execute( regex, context.op, input, context.inoffset, inlength, captures, maxcaptures );
-				if( context.inoffset >= REGEXRES_MATCH )
+				if( context.inoffset <= inlength )
 				{
 					op = context.op;
 					inoffset = context.inoffset;
@@ -761,7 +761,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 			//Failed, try matching remainder with next op (now stored in context.op by _regex_execute_single above)
 			next_op = context.op;
 			context = _regex_execute( regex, next_op, input, inoffset, inlength, captures, maxcaptures );
-			if( context.inoffset >= REGEXRES_MATCH )
+			if( context.inoffset <= inlength )
 			{
 				op = context.op;
 				inoffset = context.inoffset;
@@ -775,7 +775,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 		{
 			size_t skip = regex->code[op++];
 			context = _regex_execute( regex, op, input, inoffset, inlength, captures, maxcaptures );
-			if( context.inoffset >= REGEXRES_MATCH )
+			if( context.inoffset <= inlength )
 			{
 				inoffset = context.inoffset;
 				op = context.op;
@@ -816,7 +816,7 @@ static regex_context_t _regex_execute( regex_t* regex, size_t op, const char* in
 	while( context.op < regex->code_length )
 	{
 		context = _regex_execute_single( regex, context.op, input, context.inoffset, inlength, captures, maxcaptures );
-		if( context.inoffset < REGEXRES_MATCH )
+		if( context.inoffset > inlength )
 			break;
 	}
 	return context;
@@ -854,13 +854,13 @@ bool regex_match( regex_t* regex, const char* input, size_t inlength, regex_capt
 	if( regex->code[0] == REGEXOP_BEGINNING_OF_LINE )
 	{
 		regex_context_t context = _regex_execute( regex, 0, input, 0, inlength, captures, maxcaptures );
-		if( context.inoffset >= REGEXRES_MATCH )
+		if( context.inoffset <= inlength )
 			return true;
 	}
 	else for( iin = 0; iin < inlength; ++iin )
 	{
 		regex_context_t context = _regex_execute( regex, 0, input, iin, inlength, captures, maxcaptures );
-		if( context.inoffset >= REGEXRES_MATCH )
+		if( context.inoffset <= inlength )
 			return true;
 	}
 
