@@ -140,12 +140,12 @@ static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int unsigned _memory_get_alig
 static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 {
 	uintptr_t address;
-	unsigned int mask;
+	uintptr_t mask;
 	if( !p || !align )
 		return p;
 
 	address = (uintptr_t)p;
-	mask = align - 1;
+	mask = (uintptr_t)align - 1; //Align is always power-of-two
 	if( address & mask )
 	{
 		address = ( address & ~mask ) + align;
