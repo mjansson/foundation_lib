@@ -526,12 +526,12 @@ size_t string_find_first_not_of( const char* str, const char* tokens, size_t off
 	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
 	if( offset == STRING_NPOS )
 		return STRING_NPOS;
-	if( str[ offset ] ) do
+	while( str[ offset ] )
 	{
 		if( !strchr( tokens, str[ offset ] ) )
 			return offset;
 		++offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
