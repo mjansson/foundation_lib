@@ -12,7 +12,7 @@
 \param src                   Source data
 \param dst                   Destination string
 \param srcsize               Size of source data in bytes
-\param dstsize               Size of destination string in bytes (assumed infinite if 0)
+\param dstsize               Size of destination string in bytes
 \return                      Number of bytes written to destination string including terminting zero
 
 \fn unsigned int      base64_decode( const char* src, void* dst, unsigned int srcsize, unsigned int dstsize )
@@ -21,7 +21,7 @@
 \param src                   Source string
 \param dst                   Destination array
 \param srcsize               Size of source data in bytes (run until zero termination if 0)
-\param dstsize               Destination size of data array in bytes (assumed infinite if 0)
+\param dstsize               Destination size of data array in bytes
 \return                      Number of bytes written to destination array
 
 */

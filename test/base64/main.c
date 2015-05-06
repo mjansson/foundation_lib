@@ -75,6 +75,10 @@ DECLARE_TEST( base64, encode_decode )
 		EXPECT_EQ( guard_value, test_data[0] );
 
 		written = base64_encode( test_data, test_string, 1, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( guard_value, test_data[0] );
+
+		written = base64_encode( test_data, test_string, 1, 5 );
 		EXPECT_EQ( written, 5 );
 		EXPECT_EQ( test_string[2], '=' );
 		EXPECT_EQ( test_string[3], '=' );
@@ -92,6 +96,11 @@ DECLARE_TEST( base64, encode_decode )
 		guard_value = test_data[1];
 		test_data[0] = ~prev_value;
 		written = base64_decode( test_string, test_data, 0, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( ~prev_value, test_data[0] );
+		EXPECT_EQ( guard_value, test_data[1] );
+
+		written = base64_decode( test_string, test_data, 0, 1 );
 		EXPECT_EQ( written, 1 );
 		EXPECT_EQ( prev_value, test_data[0] );
 		EXPECT_EQ( guard_value, test_data[1] );
@@ -148,38 +157,63 @@ DECLARE_TEST( base64, encode_decode )
 		prev_value = test_string[0];
 		test_string[0] = ~test_string[0];
 		written = base64_encode( test_data, test_string, 31, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( test_string[0], ~prev_value );
+
+		written = base64_encode( test_data, test_string, 31, 45 );
 		EXPECT_EQ( written, 45 );
 		EXPECT_EQ( test_string[44], 0 );
 		EXPECT_EQ( test_string[0], prev_value );
 
 		memset( verify_data, 0, 1024 );
 		written = base64_decode( test_string, verify_data, 44, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( verify_data[0], 0 );
+
+		written = base64_decode( test_string, verify_data, 44, 31 );
 		EXPECT_EQ( written, 31 );
 		EXPECT_EQ( memcmp( test_data, verify_data, written ), 0 );
 
 		prev_value = test_string[0];
 		test_string[0] = ~test_string[0];
 		written = base64_encode( test_data, test_string, 32, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( test_string[0], ~prev_value );
+
+		written = base64_encode( test_data, test_string, 32, 45 );
 		EXPECT_EQ( written, 45 );
 		EXPECT_EQ( test_string[44], 0 );
 		EXPECT_EQ( test_string[0], prev_value );
 
 		memset( verify_data, 0, 1024 );
 		written = base64_decode( test_string, verify_data, 44, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( verify_data[0], 0 );
+
+		written = base64_decode( test_string, verify_data, 44, 32 );
 		EXPECT_EQ( written, 32 );
 		EXPECT_EQ( memcmp( test_data, verify_data, written ), 0 );
 
 		prev_value = test_string[0];
 		test_string[0] = ~test_string[0];
 		written = base64_encode( test_data, test_string, 33, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( test_string[0], ~prev_value );
+
+		written = base64_encode( test_data, test_string, 33, 64 );
 		EXPECT_EQ( written, 45 );
 		EXPECT_EQ( test_string[44], 0 );
 		EXPECT_EQ( test_string[0], prev_value );
 
 		memset( verify_data, 0, 1024 );
 		written = base64_decode( test_string, verify_data, 44, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( verify_data[0], 0 );
+
+		written = base64_decode( test_string, verify_data, 44, 44 );
 		EXPECT_EQ( written, 33 );
 		EXPECT_EQ( memcmp( test_data, verify_data, written ), 0 );
+		EXPECT_EQ( verify_data[34], 0 );
 
 		memset( verify_data, 0, 1024 );
 		written = base64_decode( test_string, verify_data, 44, 33 );
@@ -203,18 +237,31 @@ DECLARE_TEST( base64, encode_decode )
 
 		memset( verify_data, 0, 1024 );
 		written = base64_decode( test_string, verify_data, 0, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( verify_data[0], 0 );
+
+		written = base64_decode( test_string, verify_data, 0, 33 );
 		EXPECT_EQ( written, 33 );
 		EXPECT_EQ( memcmp( test_data, verify_data, written ), 0 );
 
-		prev_value = test_string[5];
+		prev_value = test_string[0];
 		test_string[0] = ~test_string[0];
 		written = base64_encode( test_data, test_string, 1024, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( test_string[0], ~prev_value );
+
+		prev_value = test_string[5];
+		written = base64_encode( test_data, test_string, 1024, 1370 );
 		EXPECT_EQ( written, 1369 );
 		EXPECT_EQ( test_string[1368], 0 );
 		EXPECT_EQ( test_string[5], prev_value );
 
 		memset( verify_data, 0, 1024 );
 		written = base64_decode( test_string, verify_data, 1369, 0 );
+		EXPECT_EQ( written, 0 );
+		EXPECT_EQ( verify_data[0], 0 );
+
+		written = base64_decode( test_string, verify_data, 1369, 1024 );
 		EXPECT_EQ( written, 1024 );
 		EXPECT_EQ( memcmp( test_data, verify_data, written ), 0 );
 
@@ -239,8 +286,8 @@ DECLARE_TEST( base64, encode_decode )
 		EXPECT_EQ( memcmp( test_data, verify_data, written ), 0 );
 
 		memset( verify_data, 0, 1024 );
-		written = base64_decode( test_string, verify_data, 0, 0 );
-		EXPECT_EQ( written, 1024 );
+		written = base64_decode( test_string, verify_data, 0, 1 );
+		EXPECT_EQ( written, 1 );
 		EXPECT_EQ( memcmp( test_data, verify_data, written ), 0 );
 	}
 
