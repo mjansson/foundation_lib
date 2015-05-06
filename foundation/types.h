@@ -239,6 +239,8 @@ typedef union { int64_t ival; uint64_t uival; real rval; } real_cast_t;
 typedef union { int32_t ival; uint32_t uival; real rval; } real_cast_t;
 #endif
 
+typedef struct string_t                      string_t;
+typedef struct string_const_t                string_const_t;
 typedef struct application_t                 application_t;
 typedef struct bitbuffer_t                   bitbuffer_t;
 typedef struct blowfish_t                    blowfish_t;
@@ -322,6 +324,18 @@ typedef stream_t*     (* stream_clone_fn )( stream_t* stream );
 
 
 // COMPLEX TYPES
+
+struct string_t
+{
+	size_t                          length;
+	char*                           str;
+};
+
+struct string_t
+{
+	size_t                          length;
+	const char*                     str;
+};
 
 struct md5_t
 {
