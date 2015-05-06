@@ -201,7 +201,7 @@ DECLARE_TEST( array, allocation )
 		array_grow( array_int, -2 );
 		array_grow( array_obj, -3 );
 		array_grow( array_basic, -4 );
-		array_grow( array_combine, -5 );
+		array_grow( array_combine, 0 ); //Grow is not bounds checked
 
 		EXPECT_EQ( array_size( array_ptr ), 75284 * 2 - 1 );
 		EXPECT_EQ( array_size( array_int ), 8295 * 2 - 2 );
@@ -995,7 +995,7 @@ DECLARE_TEST( array, inserterase )
 		EXPECT_GE( array_capacity( array_basic ), (unsigned int)i + 1 );
 		EXPECT_GE( array_capacity( array_combine ), (unsigned int)i + 1 );
 
-		EXPECT_EQ( array_ptr[clamped_i], (void*)((uintptr_t)i) );
+		EXPECT_EQ_MSGFORMAT( array_ptr[clamped_i], (void*)((uintptr_t)i), "Pass %d", i );
 		EXPECT_EQ( array_int[clamped_i], i );
 		EXPECT_EQ( array_obj[clamped_i], (object_t)i );
 		EXPECT_EQ( memcmp( array_basic + clamped_i, &basic, sizeof( basic ) ), 0 );

@@ -31,9 +31,9 @@ const void* _array_verifyfn( const void* const* arr )
 
 void* _array_resizefn( void** arr, size_t elements, size_t itemsize )
 {
-	if( !(*arr) )
+	if( !(*arr) && elements )
 		_array_growfn( arr, elements, 1, itemsize );
-	else if( _array_rawcapacity( *arr ) < elements )
+	else if( *arr && ( _array_rawcapacity( *arr ) < elements ) )
 		_array_growfn( arr, elements - _array_rawcapacity( *arr ), 1, itemsize );
 	if( *arr )
 		_array_rawsize( *arr ) = (uint32_t)elements;
