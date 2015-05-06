@@ -260,7 +260,10 @@ int main( int argc, char** argv )
 		if( app->dump_callback )
 			crash_guard_set( app->dump_callback, name );
 
-		ret = crash_guard( main_run, 0, app->dump_callback, name );
+		if( system_debugger_attached() )
+			ret = main_run( 0 );
+		else
+			ret = crash_guard( main_run, 0, app->dump_callback, name );
 
 		string_deallocate( name );
 	}
