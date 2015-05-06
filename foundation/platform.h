@@ -821,8 +821,8 @@ typedef enum
 #include <float.h>
 #include <limits.h>
 
-#if FOUNDATION_PLATFORM_POSIX
-#include <unistd.h>
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE
+#include <sys/types.h>
 #endif
 
 typedef float          float32_t;

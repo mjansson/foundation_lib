@@ -1118,9 +1118,9 @@ DECLARE_TEST( string, format )
 		string_deallocate( teststr3 );
 	}
 	{
-		char* teststr1 = string_format( "0x%" PRIfixPTR, (void*)0 );
-		char* teststr2 = string_format( "0x%" PRIfixPTR, (void*)-1 );
-		char* teststr3 = string_format( "0x%" PRIfixPTR, (void*)0x1234abULL );
+		char* teststr1 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)0) );
+		char* teststr2 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)-1) );
+		char* teststr3 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)0x1234abULL) );
 
 #if FOUNDATION_SIZE_POINTER == 8
 		EXPECT_STREQ( teststr1, "0x0000000000000000" );
@@ -1151,7 +1151,7 @@ static void test_string_declare( void )
 }
 
 
-test_suite_t test_string_suite = {
+static test_suite_t test_string_suite = {
 	test_string_application,
 	test_string_memory_system,
 	test_string_declare,

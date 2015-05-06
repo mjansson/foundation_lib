@@ -41,28 +41,7 @@ static const char longline[] = "Lorem ipsum dolor sit amet, eam mundi concludatu
 " Ad vel iriure propriae, et cum eripuit partiendo assueverit. Vix an velit dolorum prodesset, usu at utinam partem. Ius vide veniam tempor cu. Ut electram hendrerit est, est altera verterem in. Ius audire definiebas ea, eos ea semper moderatius intellegebat, his ei ludus libris fabellas. Vix cu malorum voluptaria, ne vix nostrum pericula persequeris."
 " Cum habemus fuisset delectus at. Vix dicta inani omnes ea, graecis offendit evertitur cu mel, no offendit oporteat mea. An alterum facilisis qui. Sed dicta mundi ubique cu, cu sonet everti regione vix. Qui intellegat adolescens at, ipsum tation interpretaris usu an, natum suscipit sadipscing est et. Mea esse scripta antiopam in, adhuc appetere moderatius mei eu."
 " Augue populo at mei, hinc graece qui id, cu cum summo epicurei intellegam. At vim habeo ullum labitur, in est aliquam fierent legendos, ne eam homero dolorem. Quo eu partiendo patrioque eloquentiam. Sonet prodesset posidonium mei ea, an mei vidit definiebas vituperata. Ne doming ullamcorper vim, et purto sale dicunt sit. Id legere perpetua est, mel cu erant petentium deterruisset. Ei eos errem vitae feugiat, te brute luptatum scripserit sit, per lorem persius ea."
-" In quo doctus invenire. Eos ancillae definiebas interesset at. Primis mucius mel ad, ea audiam nominavi has, veniam fuisset ei mei. Ut clita affert aliquando pro, no quem vero sea. Quas ridens dissentiunt ius ne, eos rationibus incorrupte ex, sea ei aperiri constituto."
-" Sit at detracto appetere, ut ius hinc vulputate. Et veniam populo reformidans vel, eum at nisl essent apeirian. Per iudicabit definitiones id, pertinax electram in sea, pro modo meis epicuri ea. Aliquando contentiones definitionem in ius, nec novum laoreet at, sonet quaerendum in qui."
-" Consulatu similique gloriatur ei vis. An quis temporibus usu, at sed ipsum discere. Te equidem laoreet suavitate mel, an ponderum deseruisse sea. Dico omittam ius ex. Quaeque incorrupte quo ea, causae qualisque ocurreret eu duo, exerci laboramus sed ei."
-" Vis solet torquatos ex, qui clita offendit ex, an consul moderatius conclusionemque vix. Eam oratio option in, per et unum fierent scripserit. Ea duo dicat omittantur. Ea unum debet noster est, mel putent laboramus in."
-" Vel purto indoctum an, tincidunt vituperata interpretaris an sit. Mei nostro graecis no, cu putant torquatos eos. Iuvaret mediocrem vix et. Esse commune suavitate ea qui, mea ut veri solet fuisset, in eros ludus accommodare eum. Qui novum nemore maiorum te, cu pertinax disputationi est. Torquatos democritum assueverit ad vim, quo clita corrumpit cu."
-" Esse possim ea has, option iracundia te nec, sea ei agam nostrud. Postea ancillae nominavi id vis, in sed liber dicant sensibus. Ut gubergren euripidis mnesarchum qui, habeo incorrupte ea mel. Vix ad enim ipsum concludaturque, has homero ignota pertinacia an, prima atomorum intellegebat cu sea."
-" Est ea altera prompta mediocritatem, ne quis omnis quo. Labore utamur pro in, mea te justo facete. Vim et mucius habemus delicata. Eum graece fierent propriae an. At vel solet dolores, justo zril cu est."
-" Case facer ad nec. Cum quod posse impetus et. Mazim alterum tacimates eum ea. Has graeci scribentur accommodare et."
-" Usu euismod invidunt lucilius ex, ornatus appareat has ut, ferri noster tamquam sit te. Autem illum quaestio vel ex, illum assum tractatos mea eu. In admodum singulis consetetur pro, unum etiam fabellas in eum, no mollis volutpat his. Prima placerat mediocrem has id. Qui novum zril liberavisse in, id petentium necessitatibus sed. Vim discere sententiae et."
-" Mei cu eius accusamus forensibus. Ubique principes at ius, ei quem eros sea. Ne sea nisl malorum instructior, affert pericula intellegebat has cu. Everti commodo eos ad."
-" Nostro labitur aliquando ei his, erant dignissim vis ea. Reque populo sapientem ne mea, aeque appareat eloquentiam no pro. Et his sensibus assentior. Quo et fierent nominati, sed inani causae animal et, cum ex nulla paulo facilisis. Et vim fabulas impedit, porro consul delenit vel et. Graecis prodesset eam at. Usu at modus quidam incorrupte."
-" Ad vim convenire molestiae. Sed in oporteat salutatus, te mazim erroribus principes ius, tempor hendrerit sed te. Ea mundi omittantur sit. Nec illum impetus forensibus te, odio percipit constituto nam ex, ei iusto sententiae voluptatibus nec. Est iudico possit omittam cu."
-" Mea electram efficiendi id. Ne ius idque ornatus persecuti, est ei rebum legimus hendrerit. Sit ea noluisse accusamus scripserit, ne dignissim consequuntur concludaturque ius. Elit mandamus intellegam per ne, adolescens referrentur pro et, pri veritus appareat abhorreant no. Mentitum posidonium ex cum, his stet sale atomorum ut. Fabellas platonem at vis. Eu mel doming impetus honestatis."
-" Ut has putant causae debitis, id duo mutat velit, facete offendit sit te. Vitae singulis suscipiantur mea cu, ei est graece signiferumque. Cum petentium sententiae ne. Has ea quas omnes, magna illum augue vix et, quot delectus perfecto usu eu. Pro natum voluptua euripidis te."
-" Audiam latine cu eum, has no diceret mentitum constituam. An vim elit maiestatis. Ei dicam epicurei disputando per, an modus meliore civibus per, id mazim iisque delenit eum. No duo nonumy singulis, debet facilisi pri ut. Facer utinam nec at. Dolores phaedrum at per, inciderint neglegentur delicatissimi et duo."
-" Mollis fabellas legendos in mel. Duo ei congue appareat consetetur, qui cu expetenda repudiandae. Delenit veritus admodum id nec, luptatum inimicus postulant qui eu. Interesset conclusionemque no vix, eu eius iudico mentitum pri. Usu ut sumo rationibus, etiam iisque conceptam vis at. Blandit consetetur ea duo, mea possit petentium euripidis no, habeo legimus in his."
-" Duo quas perfecto ne, odio iriure in usu. Vix no ponderum intellegat, eam lorem vidisse no. In nominati convenire petentium usu, eu vero ullum ignota his. Ne rebum diceret dissentiet per, per ne putent placerat, minimum dolores ullamcorper ex mei. Dignissim appellantur id nam, cu lucilius inimicus eum. Est tantas causae intellegat ut, dicta pericula definitiones eam in, eum modus omnesque delectus ea."
-" Ei deleniti phaedrum eum, pertinax comprehensam sea cu. Ut graeco alienum singulis ius, te veri luptatum convenire has. Perfecto torquatos eu eum. Verterem neglegentur ius eu. Eum an ridens feugait adversarium, per saepe singulis euripidis et. Nam periculis corrumpit at, eam cu omnes quodsi, ei mel explicari aliquando."
-" Vix ea erant iusto, porro incorrupte at per. An mel quodsi constituto, ex usu sonet verterem. Enim sale temporibus cum ad, an mea oporteat pertinacia. Id vim saepe aeterno, te ullum salutandi mea. Ea integre admodum assueverit mel. Ei ullum consul cotidieque vix."
-" Eu laudem fastidii recteque usu, docendi democritum delicatissimi sed eu. Has te scripta impedit feugait, et mea aeterno nostrud, sed copiosae partiendo sadipscing at. Erant ridens sententiae per in, ut solum posse propriae vim, sed ut wisi denique. Cu eam movet quodsi neglegentur, choro cetero menandri ex eum."
-" Pri malorum fabulas ne. Ex ullum omnes tollit per, dicit antiopam pro ut. Pri ex labore tamquam complectitur, rebum impetus gubergren eos at. Sed id quod tibique, ei quo decore tractatos inciderint, nobis iriure efficiantur at qui. Partem democritum philosophia mea ut, ex senserit repudiandae vix. Ea mel assum regione petentium, alia vide ex vel. Has ei brute dicunt similique, eu pri soleat tamquam."
-" Qui cu aperiam tibique verterem, no eam equidem voluptua accusata, nostro omnium suscipit qui ei. Mei ne vidisse indoctum. Iuvaret dolorum cu mei, dolor iudicabit ei mei. Cu unum ubique efficiendi quo, accommodare interpretaris ut sea. Commodo intellegat ex mea, tota postulant conceptam eam et.";
+" In quo doctus invenire. Eos ancillae definiebas interesset at. Primis mucius mel ad, ea audiam nominavi has, veniam fuisset ei mei. Ut clita affert aliquando pro, no quem vero sea. Quas ridens dissentiunt ius ne, eos rationibus incorrupte ex, sea ei aperiri constituto.";
 static const unsigned int longlength = sizeof( longline );
 
 
@@ -329,7 +308,7 @@ DECLARE_TEST( stream, readwrite_binary )
 	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 	stream_write_string( teststream, 0 );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2 + 1, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025ULL + 43ULL + 45ULL + 40ULL + FOUNDATION_SIZE_POINTER*2 + 1, "stream position not expected after writes (%" PRIsize ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -486,7 +465,7 @@ DECLARE_TEST( stream, readwrite_binary )
 	stream_write_endl( teststream );
 	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -579,7 +558,7 @@ DECLARE_TEST( stream, readwrite_text )
 	stream_write_string( teststream,  "test string\nwith some newlines\nin the string" ); stream_write_endl( teststream );
 	stream_write_format( teststream,  "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) ); stream_write_endl( teststream );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 74 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ") : %s", stream_tell( teststream ), stream_path( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025ULL + 74ULL + 45ULL + 40ULL + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ") : %s", stream_tell( teststream ), stream_path( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -752,7 +731,7 @@ DECLARE_TEST( stream, readwrite_text )
 	stream_write_endl( teststream );
 	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -844,7 +823,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	stream_write_string( teststream,  "test string\nwith some newlines\nin the string" ); stream_write_endl( teststream );
 	stream_write_format( teststream,  "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) ); stream_write_endl( teststream );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 75 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ") : %s", stream_tell( teststream ), stream_path( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 75 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ") : %s", stream_tell( teststream ), stream_path( teststream ) );
 	teststream->sequential = 0;
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
@@ -1027,7 +1006,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
 
 	teststream->sequential = 0;
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIu64 ")", stream_tell( teststream ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 43 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ")", stream_tell( teststream ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 	teststream->sequential = 1;
@@ -1140,8 +1119,8 @@ DECLARE_TEST( stream, readwrite_swap )
 	EXPECT_EQ_MSGFORMAT( read_uint16, (uint16_t)0x0000adba, "read uint16 did not swap as expected (%04x)", (int)read_uint16 );
 	EXPECT_EQ_MSGFORMAT( read_int32, (int32_t)0x78563412, "read int32 did not swap as expected (%08x)", read_int32 );
 	EXPECT_EQ_MSGFORMAT( read_uint32, 0x32547698UL, "read uint32 did not swap as expected (%048x)", read_uint32 );
-	EXPECT_EQ_MSGFORMAT( read_int64, (int64_t)0xefcdab9078563412LL, "read int64 did not swap as expected (%016x)", read_int64 );
-	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%016x)", read_uint64 );
+	EXPECT_EQ_MSGFORMAT( read_int64, (int64_t)0xefcdab9078563412LL, "read int64 did not swap as expected (%" PRIx64 ")", read_int64 );
+	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%" PRIx64 ")", read_uint64 );
 
 	cast32.fval = stream_read_float32( teststream );
 	cast32.uival = byteorder_swap32( cast32.uival );
@@ -1193,8 +1172,8 @@ DECLARE_TEST( stream, readwrite_swap )
 	EXPECT_EQ_MSGFORMAT( read_uint16, (uint16_t)0x0000adba, "read uint16 did not swap as expected (%04x)", (int)read_uint16 );
 	EXPECT_EQ_MSGFORMAT( read_int32, (int32_t)0x78563412, "read int32 did not swap as expected (%08x)", read_int32 );
 	EXPECT_EQ_MSGFORMAT( read_uint32, 0x32547698UL, "read uint32 did not swap as expected (%048x)", read_uint32 );
-	EXPECT_EQ_MSGFORMAT( read_int64, (int64_t)0xefcdab9078563412LL, "read int64 did not swap as expected (%016x)", read_int64 );
-	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%016x)", read_uint64 );
+	EXPECT_EQ_MSGFORMAT( read_int64, (int64_t)0xefcdab9078563412LL, "read int64 did not swap as expected (%" PRIx64 ")", read_int64 );
+	EXPECT_EQ_MSGFORMAT( read_uint64, 0xefcdab9078563412ULL, "read uint64 did not swap as expected (%" PRIx64 ")", read_uint64 );
 
 	cast32.fval = stream_read_float32( teststream );
 	cast32.uival = byteorder_swap32( cast32.uival );
@@ -1224,7 +1203,7 @@ static void test_stream_declare( void )
 }
 
 
-test_suite_t test_stream_suite = {
+static test_suite_t test_stream_suite = {
 	test_stream_application,
 	test_stream_memory_system,
 	test_stream_declare,

@@ -98,7 +98,7 @@ static void test_time_declare( void )
 }
 
 
-test_suite_t test_time_suite = {
+static test_suite_t test_time_suite = {
 	test_time_application,
 	test_time_memory_system,
 	test_time_declare,
