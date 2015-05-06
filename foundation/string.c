@@ -805,14 +805,14 @@ wchar_t* wstring_allocate_from_string( const char* cstr, size_t length )
 	uint32_t glyph;
 	const char* cur;
 
-	if( !cstr || !length )
+	if( !cstr )
 	{
 		buffer = memory_allocate( HASH_STRING, sizeof( wchar_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		return buffer;
 	}
 
 	maxlen = string_length( cstr );
-	length = ( length < maxlen ) ? length : maxlen;
+	length = ( length && length < maxlen ) ? length : maxlen;
 
 	//Count number of wchar_t needed to represent string
 	num_chars = 0;
@@ -990,7 +990,7 @@ char* string_allocate_from_utf16( const uint16_t* str, size_t length )
 	uint32_t glyph, lval;
 
 	maxlen = _string_length_utf16( str );
-	length = ( length < maxlen ) ? length : maxlen;
+	length = ( length && length < maxlen ) ? length : maxlen;
 
 	inlength = length;
 	curlen = 0;
@@ -1034,7 +1034,7 @@ char* string_allocate_from_utf32( const uint32_t* str, size_t length )
 	uint32_t glyph;
 
 	maxlen = _string_length_utf32( str );
-	length = ( length < maxlen ) ? length : maxlen;
+	length = ( length && length < maxlen ) ? length : maxlen;
 
 	inlength = length;
 	curlen = 0;

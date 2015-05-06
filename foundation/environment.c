@@ -109,7 +109,7 @@ int _environment_initialize( const application_t application )
 
 	if( GetModuleFileNameW( 0, module_filename, FOUNDATION_MAX_PATHLEN ) )
 	{
-		char* exe_path = string_allocate_from_wstring( module_filename, 0 );
+		char* exe_path = string_allocate_from_wstring( module_filename, wstring_length( module_filename ) );
 		char* dir_path = path_make_absolute( exe_path );
 
 		_environment_set_executable_paths( dir_path );
