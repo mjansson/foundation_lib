@@ -293,7 +293,7 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 			if( lendiff < 0 )
 			{
 				memmove( str + pos + newkeylen, str + pos + keylen, slen - pos - keylen + 1 );
-				FOUNDATION_ASSERT( slen > (size_t)(-lendiff) );
+				FOUNDATION_ASSERT( slen >= (size_t)(-lendiff) );
 				slen -= (size_t)(-lendiff);
 			}
 		}
@@ -526,7 +526,7 @@ size_t string_find_first_not_of( const char* str, const char* tokens, size_t off
 	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
 	if( offset == STRING_NPOS )
 		return STRING_NPOS;
-	while( str[ offset ] )
+	if( str[ offset ] ) do
 	{
 		if( !strchr( tokens, str[ offset ] ) )
 			return offset;
