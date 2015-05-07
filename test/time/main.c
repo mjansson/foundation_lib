@@ -78,15 +78,14 @@ DECLARE_TEST( time, builtin )
 	EXPECT_EQ( tick, time_startup() );
 
 	tick = time_system();
-	EXPECT_GT( tick, 0 );
-
 	thread_sleep( 100 );
-
 	newtick = time_system();
+
+	EXPECT_GT( tick, 0 );
 	EXPECT_GT( newtick, 0 );
 	EXPECT_GT( newtick, tick );
-	EXPECT_GT( newtick - tick, 50 ); //more than 50 ms
-	EXPECT_LT( newtick - tick, 200 ); //less than 200 ms
+	EXPECT_GT_MSGFORMAT( newtick - tick, 50, "Elapsed system time less than 50ms, expected 100ms, got %lldms", newtick - tick );
+	EXPECT_LT_MSGFORMAT( newtick - tick, 200, "Elapsed system time more than 200ms, expected 100ms, got %lldms", newtick - tick );
 
 	return 0;
 }

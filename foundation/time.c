@@ -177,7 +177,7 @@ tick_t time_system( void )
 
 	tick_t curclock = 0;
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
-	return ( curclock / 100000LL );
+	return ( curclock / 1000000LL );
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
