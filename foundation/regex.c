@@ -24,7 +24,6 @@
 
 #define REGEXRES_INTERNAL_FAILURE     -2
 #define REGEXRES_NOMATCH              -1
-#define REGEXRES_MATCH                0
 
 #define REGEXCODE_NULL                (int16_t)0x0000
 #define REGEXCODE_WHITESPACE          (int16_t)0x0100
@@ -89,8 +88,8 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 static regex_context_t _regex_execute( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures );
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_nomatch( size_t next_op ) { const regex_context_t context = { next_op, REGEXRES_NOMATCH }; return context; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_internal_failure( size_t next_op ) { const regex_context_t context = { next_op, REGEXRES_INTERNAL_FAILURE }; return context; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_nomatch( size_t next_op ) { const regex_context_t context = { next_op, (size_t)REGEXRES_NOMATCH }; return context; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_internal_failure( size_t next_op ) { const regex_context_t context = { next_op, (size_t)REGEXRES_INTERNAL_FAILURE }; return context; }
 
 
 static bool _regex_is_hex( const char* p )
@@ -247,7 +246,7 @@ static int _regex_compile_quantifier( regex_t** target, bool allow_grow, size_t 
 static regex_context_t _regex_consume_longest( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures )
 {
 	regex_context_t context = { op, inoffset };
-	regex_context_t best_context = { REGEXRES_NOMATCH, inoffset };
+	regex_context_t best_context = { (size_t)REGEXRES_NOMATCH, inoffset };
 	regex_context_t next_context;
 
 	//TODO: Optimization would be to stack all offsets from execute single, then verify matching
@@ -280,7 +279,7 @@ static regex_context_t _regex_consume_longest( regex_t* regex, size_t op, const 
 static regex_context_t _regex_consume_shortest( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures )
 {
 	regex_context_t context = { op, inoffset };
-	regex_context_t best_context = { REGEXRES_NOMATCH, inoffset };
+	regex_context_t best_context = { (size_t)REGEXRES_NOMATCH, inoffset };
 	regex_context_t next_context;
 
 	while( true )

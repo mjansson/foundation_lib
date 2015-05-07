@@ -38,7 +38,7 @@
 #define array_erase_safe( array, pos )                      ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase( array, pos ) : 0 )
 #define array_erase_memcpy_safe( array, pos )               ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_memcpy( array, pos ) : 0 )
 #define array_erase_ordered( array, pos )                   ( _array_verify( array ) ? memmove( (array) + (pos), (array) + (pos) + 1, ( _array_rawsize( array ) - (pos) - 1U ) * _array_elementsize( array ) ), --_array_rawsize( array ) : 0 )
-#define array_erase_ordered_safe( array, pos )              ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_ordered( array, pos ) : 0 )
+#define array_erase_ordered_safe( array, pos )              ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_ordered( array, (uint32_t)pos ) : 0 )
 #define array_erase_ordered_range( array, pos, num )        ( _array_verify( array ) && ( (num) > 0 ) ? memmove( (array) + (pos), (array) + (pos) + (num), ( _array_rawsize( array ) - (pos) - (num) ) * _array_elementsize( array ) ), ( _array_rawsize( array ) -= (num) ) : 0 )
 #define array_erase_ordered_range_safe( array, pos, num )   do { uint32_t _arr_size = array_size( array ); uint32_t _clamped_start = ( (uint32_t)(pos) & 0x80000000U ) ? 0 : math_min( (uint32_t)(pos), _arr_size ); uint32_t _clamped_end = ( (uint32_t)( (pos) + (num) ) & 0x80000000U ) ? 0 : math_min( (uint32_t)( (pos) + (num) ), _arr_size ); if( _clamped_end > _clamped_start ) array_erase_ordered_range( array, _clamped_start, _clamped_end - _clamped_start ); } while(0)
 

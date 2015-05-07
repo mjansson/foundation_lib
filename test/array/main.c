@@ -815,8 +815,9 @@ DECLARE_TEST( array, pushpop )
 
 DECLARE_TEST( array, inserterase )
 {
-	int        i, clamped_i, j, k;
-	bool       found;
+	unsigned int clamped_i;
+	int          i, j, k;
+	bool         found;
 
 	void**     array_ptr = 0;
 	int*       array_int = 0;
@@ -975,7 +976,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert_safe( array_ptr, 129 - i, (void*)((uintptr_t)i) );
 		array_insert_safe( array_int, 129 - i, i );
@@ -1025,7 +1026,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1075,7 +1076,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1091,7 +1092,7 @@ DECLARE_TEST( array, inserterase )
 		basic_t basic;
 		combine_t combine;
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1128,7 +1129,7 @@ DECLARE_TEST( array, inserterase )
 
 		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
-			if( j == clamped_i )
+			if( j == (int)clamped_i )
 				continue;
 
 			found = false;
@@ -1172,7 +1173,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1191,7 +1192,7 @@ DECLARE_TEST( array, inserterase )
 		int large_neg = -1234;
 		int huge_neg = -123456;
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1234,7 +1235,7 @@ DECLARE_TEST( array, inserterase )
 
 		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
-			if( j == clamped_i )
+			if( j == (int)clamped_i )
 				continue;
 
 			found = false;
@@ -1278,7 +1279,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1294,7 +1295,7 @@ DECLARE_TEST( array, inserterase )
 		basic_t basic;
 		combine_t combine;
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1331,7 +1332,7 @@ DECLARE_TEST( array, inserterase )
 
 		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
-			if( j == clamped_i )
+			if( j == (int)clamped_i )
 				continue;
 
 			found = false;
@@ -1375,7 +1376,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1394,7 +1395,7 @@ DECLARE_TEST( array, inserterase )
 		int large_neg = -1234;
 		int huge_neg = -123456;
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1437,7 +1438,7 @@ DECLARE_TEST( array, inserterase )
 
 		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
-			if( j == clamped_i )
+			if( j == (int)clamped_i )
 				continue;
 
 			found = false;
@@ -1481,7 +1482,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1497,7 +1498,7 @@ DECLARE_TEST( array, inserterase )
 		basic_t basic;
 		combine_t combine;
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1534,7 +1535,7 @@ DECLARE_TEST( array, inserterase )
 
 		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
-			if( j == clamped_i )
+			if( j == (int)clamped_i )
 				continue;
 
 			found = false;
@@ -1578,7 +1579,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1597,7 +1598,7 @@ DECLARE_TEST( array, inserterase )
 		int large_neg = -1234;
 		int huge_neg = -123456;
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		ptrval = array_ptr[clamped_i];
 		intval = array_int[clamped_i];
@@ -1640,7 +1641,7 @@ DECLARE_TEST( array, inserterase )
 
 		for( j = 0; j < (int)array_size( copy_ptr ); ++j )
 		{
-			if( j == clamped_i )
+			if( j == (int)clamped_i )
 				continue;
 
 			found = false;
@@ -1690,7 +1691,7 @@ DECLARE_TEST( array, inserterase )
 		combine.unionval.basicval.intval = i + 7;
 		combine.unionval.basicval.objval = (object_t)( i + 8 );
 
-		clamped_i = math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
+		clamped_i = (unsigned int)math_clamp( 129 - i, 0, (int)array_size( array_ptr ) );
 
 		array_insert( array_ptr, clamped_i, (void*)((uintptr_t)i) );
 		array_insert( array_int, clamped_i, i );
@@ -1707,11 +1708,14 @@ DECLARE_TEST( array, inserterase )
 
 	//Erasing 0 is always safe
 	{
+		unsigned int zero = 0;
+		//Compiler catches negative (signed) values with -Weverything
+#if !FOUNDATION_COMPILER_CLANG
 		int small_neg = -1;
 		int large_neg = -1234;
-		int zero = 0;
 		array_erase_ordered_range( array_ptr, large_neg, zero );
 		array_erase_ordered_range( array_int, small_neg, zero );
+#endif
 		array_erase_ordered_range( array_obj, 0, zero );
 		array_erase_ordered_range( array_basic, 1, zero );
 		array_erase_ordered_range( array_combine, 1234, zero );
