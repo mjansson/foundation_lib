@@ -17,13 +17,13 @@
 
 
 #define ASSERT_BUFFER_SIZE             2048U
-#define ASSERT_STACKTRACE_MAX_DEPTH    128U
-#define ASSERT_STACKTRACE_SKIP_FRAMES  1U
 
 static assert_handler_fn _assert_handler;
-
 static char              _assert_buffer[ASSERT_BUFFER_SIZE];
+
 #if BUILD_ENABLE_ASSERT
+#define ASSERT_STACKTRACE_MAX_DEPTH    128U
+#define ASSERT_STACKTRACE_SKIP_FRAMES  1U
 static char              _assert_context_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_box_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];

@@ -483,7 +483,7 @@ size_t string_rfind_string( const char* str, const char* key, size_t offset )
 
 		do
 		{
-			if( !strncmp( str + offset, key, keylen ) )
+			if( string_equal_substr( str + offset, key, keylen ) )
 				return offset;
 			--offset;
 		} while( offset != STRING_NPOS );
@@ -607,7 +607,14 @@ bool string_equal( const char* rhs, const char* lhs )
 
 bool string_equal_substr( const char* rhs, const char* lhs, size_t len )
 {
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+#endif
 	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 }
 
 

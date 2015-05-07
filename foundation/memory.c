@@ -29,8 +29,6 @@
 #  include <stdlib.h>
 #endif
 
-#define MEMORY_GUARD_VALUE 0xDEADBEEF
-
 
 static memory_system_t _memory_system;
 static memory_tracker_t _memory_no_tracker;
@@ -47,6 +45,9 @@ typedef FOUNDATION_ALIGN(8) struct
 
 static atomic_linear_memory_t _memory_temporary;
 
+#if BUILD_ENABLE_MEMORY_GUARD
+#define MEMORY_GUARD_VALUE 0xDEADBEEF
+#endif
 
 #if BUILD_ENABLE_MEMORY_TRACKER
 static memory_tracker_t _memory_tracker;
