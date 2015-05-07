@@ -1546,7 +1546,7 @@ static size_t _fs_file_tell( stream_t* stream )
 	pos = (ssize_t)_ftelli64( GET_FILE( stream )->fd );
 	return pos > 0 ? (size_t)pos : 0;
 #else
-	pos = ftello( GET_FILE( stream )->fd );
+	pos = (ssize_t)ftello( GET_FILE( stream )->fd );
 	return pos > 0 ? (size_t)pos : 0;
 #endif
 }

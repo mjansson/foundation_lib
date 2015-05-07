@@ -224,7 +224,7 @@ void semaphore_post( semaphore_t* semaphore )
 void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 {
 	FOUNDATION_ASSERT( value <= 0xFFFF );
-	*semaphore = dispatch_semaphore_create( value );
+	*semaphore = dispatch_semaphore_create( (long)value );
 	if( !*semaphore )
 	{
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore" );

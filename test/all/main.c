@@ -15,10 +15,8 @@
 
 static volatile bool _test_should_start = false;
 static volatile bool _test_have_focus = false;
-
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 static volatile bool _test_should_terminate = false;
-#endif
+
 
 static void* event_thread( object_t thread, void* arg )
 {
@@ -84,7 +82,7 @@ static void* event_thread( object_t thread, void* arg )
 #include <foundation/delegate.h>
 #include <test/test.h>
 
-static void test_log_callback( uint64_t context, int severity, const char* msg )
+static void test_log_callback( hash_t context, error_level_t severity, const char* msg )
 {
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
@@ -123,6 +121,12 @@ void test_crash_handler( const char* dump_file )
 }
 
 #endif
+
+
+bool test_should_terminate( void )
+{
+	return _test_should_terminate;
+}
 
 
 int main_initialize( void )
@@ -236,6 +240,7 @@ int main_run( void* main_arg )
 #elif BUILD_DEPLOY
 	const char* build_name = "deploy";
 #endif
+	void* test_result;
 	int process_result = 0;
 	object_t thread = 0;
 	FOUNDATION_UNUSED( main_arg );
@@ -334,7 +339,8 @@ int main_run( void* main_arg )
 
 #else
 
-	process_result = (int)(intptr_t)test_runner( 0, tests );
+	test_result = test_runner( 0, tests );
+	process_result = (int)(intptr_t)test_result;
 
 #endif
 

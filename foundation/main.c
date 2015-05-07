@@ -177,7 +177,7 @@ int main( int argc, char** argv )
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 #endif
-		
+
 		//Signals we process globally
 		action.sa_handler = sighandler;
 		sigaction( SIGKILL, &action, 0 );
@@ -243,12 +243,14 @@ int main( int argc, char** argv )
 	}
 #endif
 
-#if FOUNDATION_PLATFORM_TIZEN
+#if !FOUNDATION_PLATFORM_IOS
+
+#  if FOUNDATION_PLATFORM_TIZEN
 	tizen_start_main_thread();
 	ret = tizen_app_main( argc, argv );
-#else
+#  else
 	{
-		char* name = 0;
+		char* name;
 		const application_t* app = environment_application();
 		{
 			const char* aname = app->short_name;
@@ -267,7 +269,7 @@ int main( int argc, char** argv )
 
 		string_deallocate( name );
 	}
-#endif
+#  endif
 
 	main_shutdown();
 
@@ -280,6 +282,7 @@ int main( int argc, char** argv )
 #endif
 
 	return ret;
+#endif
 }
 
 
