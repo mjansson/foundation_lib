@@ -246,7 +246,7 @@ class Toolchain(object):
       self.ar = 'ar' + self.exe_suffix
       self.link = 'gcc' + self.exe_suffix
       self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
-                      '-W', '-Wall', '-Werror',
+                      '-Wextra', '-Wall', '-Werror', '-pedantic',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []

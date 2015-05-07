@@ -1105,9 +1105,11 @@ DECLARE_TEST( string, utility )
 DECLARE_TEST( string, format )
 {
 	{
-		char* teststr1 = string_format( "%" PRId64, -1LL );
-		char* teststr2 = string_format( "0x%" PRIx64, -1LL );
-		char* teststr3 = string_format( "%016" PRIX64, 0x123456789abULL );
+		int64_t ival = -1;
+		uint64_t uval = 0x123456789abULL;
+		char* teststr1 = string_format( "%" PRId64, ival );
+		char* teststr2 = string_format( "0x%" PRIx64, ival );
+		char* teststr3 = string_format( "%016" PRIX64, uval );
 
 		EXPECT_STREQ( teststr1, "-1" );
 		EXPECT_STREQ( teststr2, "0xffffffffffffffff" );

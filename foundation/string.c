@@ -195,7 +195,7 @@ void string_copy( char* dst, const char* src, size_t limit )
 {
 	size_t length = string_length( src );
 	if( length >= limit )
-		length = math_max( limit - 1, 0 );
+		length = math_max( limit, 1 ) - 1;
 	if( dst )
 	{
 		memcpy( dst, src, length );
@@ -763,7 +763,7 @@ uint32_t string_glyph( const char* str, size_t offset, size_t* consumed )
 {
 	uint32_t glyph = 0;
 	size_t num, j;
-	const char* cur = str + math_max( offset, 0 );
+	const char* cur = str + offset;
 
 	if( !( *cur & 0x80 ) )
 	{
