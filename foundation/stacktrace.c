@@ -790,7 +790,7 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 			}
 		}
 
-		array_push( lines, string_format( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %s", frames[iaddr], relativeframe, module ) );
+		array_push( lines, string_format( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %s", (uintptr_t)frames[iaddr], (uintptr_t)relativeframe, module ) );
 	}
 
 	return lines;

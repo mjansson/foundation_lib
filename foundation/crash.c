@@ -128,8 +128,7 @@ LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 
 #if FOUNDATION_PLATFORM_POSIX //&& !FOUNDATION_PLATFORM_APPLE
 
-#include <signal.h>
-#include <setjmp.h>
+#include <foundation/posix.h>
 //#include <ucontext.h>
 
 FOUNDATION_DECLARE_THREAD_LOCAL( crash_dump_callback_fn, crash_callback, 0 )
@@ -227,7 +226,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 #endif
-	
+
 	//Signals we process globally
 	action.sa_sigaction = _crash_guard_sigaction;
 	action.sa_flags = SA_SIGINFO;
@@ -246,7 +245,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
 #endif
-	
+
 	set_thread_crash_callback( callback );
 	set_thread_crash_callback_name( name );
 

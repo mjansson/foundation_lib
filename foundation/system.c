@@ -372,7 +372,8 @@ const char* system_username( void )
 	if( !result )
 	{
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
-		string_copy( buffer, getlogin() ?: "unknown", SYSTEM_BUFFER_SIZE );
+		const char* login = getlogin();
+		string_copy( buffer, login ? login : "unknown", SYSTEM_BUFFER_SIZE );
 #else
 		if( getlogin_r( buffer, SYSTEM_BUFFER_SIZE ) != 0 )
 			string_copy( buffer, "unknown", SYSTEM_BUFFER_SIZE );

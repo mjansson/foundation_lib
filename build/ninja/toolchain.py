@@ -246,13 +246,16 @@ class Toolchain(object):
       self.ar = 'ar' + self.exe_suffix
       self.link = 'gcc' + self.exe_suffix
       self.cflags = [ '-D' + self.project.upper() + '_COMPILE=1',
-                      '-Wextra', '-Wall', '-Werror', '-pedantic',
+                      '-Wextra', '-Wall', '-Werror',
                       '-funit-at-a-time', '-fstrict-aliasing',
                       '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations','-fno-trapping-math', '-ffast-math' ]
       self.mflags = []
       self.arflags = []
       self.linkflags = []
       self.objext = '.o'
+
+      if not target.is_android():
+        self.cflags += [ '-Wpedantic' ]
 
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'

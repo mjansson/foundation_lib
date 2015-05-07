@@ -28,7 +28,14 @@
 #endif
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_COMPILER_GCC
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 #  include <sys/inotify.h>
+#if FOUNDATION_COMPILER_GCC
+#  pragma GCC diagnostic pop
+#endif
 #endif
 
 #if FOUNDATION_PLATFORM_PNACL

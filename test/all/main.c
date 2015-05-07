@@ -227,6 +227,8 @@ int main_run( void* main_arg )
 	process_t* process = 0;
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
+#else
+	void* test_result;
 #endif
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	int remain_counter = 0;
@@ -240,7 +242,6 @@ int main_run( void* main_arg )
 #elif BUILD_DEPLOY
 	const char* build_name = "deploy";
 #endif
-	void* test_result;
 	int process_result = 0;
 	object_t thread = 0;
 	FOUNDATION_UNUSED( main_arg );
@@ -328,7 +329,8 @@ int main_run( void* main_arg )
 		thread_sleep( 10 );
 	}
 
-	process_result = (int)(intptr_t)thread_result( test_thread );
+	test_result = thread_result( test_thread );
+	process_result = (int)(intptr_t)test_result;
 	thread_destroy( test_thread );
 
 	while( thread_is_thread( test_thread ) )

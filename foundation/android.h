@@ -17,6 +17,11 @@
 
 #if FOUNDATION_PLATFORM_ANDROID
 
+#if FOUNDATION_COMPILER_GCC
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -24,6 +29,9 @@
 
 #include <android_native_app_glue.h>
 
+#if FOUNDATION_COMPILER_GCC
+#  pragma GCC diagnostic pop
+#endif
 
 FOUNDATION_API void                  android_entry( struct android_app* app );
 FOUNDATION_API int                   android_initialize( void );
