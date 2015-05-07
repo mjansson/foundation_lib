@@ -281,7 +281,8 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 	{
 		if( repeat && ( lastpos != STRING_NPOS ) && ( lendiff > 0 ) && ( pos <= ( lastpos + (size_t)lendiff ) ) )
 		{
-			//Avoid infinite loop (same position, string did not reduce)
+			//Avoid infinite loop - found position did not move ahead more than
+			//newly introduced characters in the remaining part of the string
 			pos = lastpos + newkeylen;
 			continue;
 		}
