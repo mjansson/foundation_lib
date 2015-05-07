@@ -990,11 +990,11 @@ DECLARE_TEST( string, utility )
 			replacestr4 = string_replace( replacestr4, "foo", "bar", true );
 			replacestr5 = string_replace( replacestr5, "rep", "re", true );
 
-			EXPECT_TRUE( string_equal( replacestr, "testing testreplace" ) );
-			EXPECT_TRUE( string_equal( replacestr2, "testing testreplace" ) );
-			EXPECT_TRUE( string_equal( replacestr3, "testing testtestrep" ) );
-			EXPECT_TRUE( string_equal( replacestr4, "" ) );
-			EXPECT_TRUE( string_equal( replacestr5, "re" ) );
+			EXPECT_STREQ( replacestr, "testing testreplace" );
+			EXPECT_STREQ( replacestr2, "testing testreplace" );
+			EXPECT_STREQ( replacestr3, "testing testtestrep" );
+			EXPECT_STREQ( replacestr4, "" );
+			EXPECT_STREQ( replacestr5, "re" );
 
 			string_deallocate( replacestr );
 			string_deallocate( replacestr2 );

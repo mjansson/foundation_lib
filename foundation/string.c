@@ -279,7 +279,7 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 
 	while( ( pos = string_find_string( str, key, pos ) ) != STRING_NPOS )
 	{
-		if( repeat && ( lastpos != STRING_NPOS ) && ( pos <= (size_t)( (ssize_t)lastpos + lendiff ) ) )
+		if( repeat && ( lastpos != STRING_NPOS ) && ( lendiff > 0 ) && ( pos <= ( lastpos + (size_t)lendiff ) ) )
 		{
 			//Avoid infinite loop (same position, string did not reduce)
 			pos = lastpos + newkeylen;
@@ -978,7 +978,7 @@ char* string_allocate_from_wstring( const wchar_t* str, size_t length )
 	return string_allocate_from_utf16( (const uint16_t*)str, length );
 #else
 	return string_allocate_from_utf32( (const uint32_t*)str, length );
-#endif		
+#endif
 }
 
 
