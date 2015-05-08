@@ -536,7 +536,8 @@ uint64_t thread_id( void )
 	return pthread_self();
 #  endif
 #elif FOUNDATION_PLATFORM_PNACL
-	return (uintptr_t)pthread_self();
+	void* self = pthread_self();
+	return (uintptr_t)self;
 #else
 #  error Not implemented
 #endif

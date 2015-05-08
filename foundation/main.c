@@ -149,7 +149,7 @@ static void sighandler( int sig )
 int real_main( void )
 #elif FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */
-int real_main( PP_Instance instance )
+int pnacl_main( PP_Instance instance )
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
 int main( int argc, char** argv )

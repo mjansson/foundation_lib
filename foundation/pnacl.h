@@ -18,7 +18,11 @@
 
 #if FOUNDATION_PLATFORM_PNACL
 
-#define radixsort __stdlib_radixsort
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdocumentation"
+#endif
+
 #define __error_t_defined 1
 
 #include <unistd.h>
@@ -44,8 +48,8 @@
 
 typedef struct pnacl_array_t
 {
-	void*   data;
-	int     count;
+	void*         data;
+	unsigned int  count;
 } pnacl_array_t;
 
 
@@ -60,8 +64,12 @@ FOUNDATION_API const void* pnacl_interface( const char* interface );
 
 FOUNDATION_API void*       pnacl_array_output( void* arr, uint32_t count, uint32_t size );
 
-FOUNDATION_API void        pnacl_post_log( uint64_t context, int severity, const char* msg, unsigned int msglen );
+FOUNDATION_API void        pnacl_post_log( hash_t context, error_level_t severity, const char* msg, size_t msglen );
 
-#undef radixsort
+FOUNDATION_API int         pnacl_main( PP_Instance instance );
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 
 #endif

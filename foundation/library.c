@@ -16,9 +16,16 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
+#  define FOUNDATION_SUPPORT_LIBRARY_LOAD 1
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <dlfcn.h>
+#  define FOUNDATION_SUPPORT_LIBRARY_LOAD 1
+#else
+#  define FOUNDATION_SUPPORT_LIBRARY_LOAD 0
 #endif
+
+
+#if FOUNDATION_SUPPORT_LIBRARY_LOAD
 
 struct library_t
 {
@@ -133,26 +140,22 @@ object_t library_load( const char* name )
 #  endif
 	void* lib = dlopen( libname, RTLD_LAZY );
 	string_deallocate( libname );
-#if FOUNDATION_PLATFORM_ANDROID
+
+#  if FOUNDATION_PLATFORM_ANDROID
 	if( !lib )
 	{
 		libname = string_format( "%s/lib%s.so", environment_executable_directory(), name );
 		lib = dlopen( libname, RTLD_LAZY );
 		string_deallocate( libname );
 	}
-#endif
+#  endif
+
 	if( !lib )
 	{
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to load dynamic library '%s': %s", name, dlerror() );
 		error_context_pop();
 		return 0;
 	}
-
-#else
-
-	log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
-	error_context_pop();
-	return 0;
 
 #endif
 
@@ -230,3 +233,62 @@ bool library_valid( object_t id )
 {
 	return objectmap_lookup( _library_map, id ) != 0;
 }
+
+
+#else
+
+
+int _library_initialize( void )
+{
+	return 0;
+}
+
+
+void _library_shutdown( void )
+{
+}
+
+
+object_t library_load( const char* name )
+{
+	log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
+	return 0;
+}
+
+
+object_t library_ref( object_t id )
+{
+	FOUNDATION_UNUSED( id );
+	return 0;
+}
+
+
+void library_unload( object_t id )
+{
+	FOUNDATION_UNUSED( id );
+}
+
+
+void* library_symbol( object_t id, const char* name )
+{
+	FOUNDATION_UNUSED( id );
+	FOUNDATION_UNUSED( name );
+	return 0;
+}
+
+
+const char* library_name( object_t id )
+{
+	FOUNDATION_UNUSED( id );
+	return "";
+}
+
+
+bool library_valid( object_t id )
+{
+	FOUNDATION_UNUSED( id );
+	return false;
+}
+
+
+#endif

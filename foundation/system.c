@@ -541,7 +541,7 @@ size_t system_hardware_threads( void )
 #elif FOUNDATION_PLATFORM_ANDROID
 	return android_getCpuCount();
 #elif FOUNDATION_PLATFORM_PNACL
-	return sysconf( _SC_NPROCESSORS_ONLN );
+	return (size_t)sysconf( _SC_NPROCESSORS_ONLN );
 #elif FOUNDATION_PLATFORM_BSD
 	int ctlarg[2], ncpu;
 	size_t len;

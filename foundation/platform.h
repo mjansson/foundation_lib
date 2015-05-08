@@ -821,7 +821,7 @@ typedef enum
 #include <float.h>
 #include <limits.h>
 
-#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_PNACL || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
 #include <sys/types.h>
 #endif
 

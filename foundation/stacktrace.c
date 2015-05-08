@@ -804,7 +804,7 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 		if( iaddr && !frames[iaddr] )
 			break;
 
-		array_push( lines, string_format( "[0x%" PRIfixPTR "]", frames[iaddr] ) );
+		array_push( lines, string_format( "[0x%" PRIfixPTR "]", (uintptr_t)frames[iaddr] ) );
 	}
 
 	return lines;

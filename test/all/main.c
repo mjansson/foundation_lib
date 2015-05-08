@@ -34,14 +34,14 @@ static void* event_thread( object_t thread, void* arg )
 			switch( event->id )
 			{
 				case FOUNDATIONEVENT_START:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 					log_debug( HASH_TEST, "Application start event received" );
 					_test_should_start = true;
 #endif
 					break;
 
 				case FOUNDATIONEVENT_TERMINATE:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 					log_debug( HASH_TEST, "Application stop/terminate event received" );
 					_test_should_terminate = true;
 					break;
@@ -256,7 +256,7 @@ int main_run( void* main_arg )
 	while( !thread_is_running( thread ) )
 		thread_sleep( 10 );
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	while( !_test_should_start )
 	{
 #if FOUNDATION_PLATFORM_ANDROID

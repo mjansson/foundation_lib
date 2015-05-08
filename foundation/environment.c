@@ -332,6 +332,7 @@ const char* environment_current_working_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wd );
 	}
+	return _environment_current_working_dir;
 #elif FOUNDATION_PLATFORM_POSIX
 	char* path = memory_allocate( 0, FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
@@ -342,12 +343,12 @@ const char* environment_current_working_directory( void )
 	path = path_clean( path, true );
 	string_copy( _environment_current_working_dir, path, FOUNDATION_MAX_PATHLEN );
 	memory_deallocate( path );
+	return _environment_current_working_dir;
 #elif FOUNDATION_PLATFORM_PNACL
 	return "/persistent";
 #else
 #  error Not implemented
 #endif
-	return _environment_current_working_dir;
 }
 
 
@@ -363,19 +364,19 @@ void environment_set_current_working_directory( const char* path )
 			log_warnf( 0, WARNING_SUSPICIOUS, "Unable to set working directory: %ls", wpath );
 		wstring_deallocate( wpath );
 	}
+	_environment_current_working_dir[0] = 0;
 #elif FOUNDATION_PLATFORM_POSIX
 	if( chdir( path ) < 0 )
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set working directory: %s", path );
+	_environment_current_working_dir[0] = 0;
 #elif FOUNDATION_PLATFORM_PNACL
 	//Allow anything
 	char* abspath = path_make_absolute( path );
 	string_copy( _environment_current_working_dir, abspath, FOUNDATION_MAX_PATHLEN );
 	string_deallocate( abspath );
-	return;
 #else
 #  error Not implemented
 #endif
-	_environment_current_working_dir[0] = 0;
 }
 
 

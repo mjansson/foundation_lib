@@ -348,7 +348,7 @@ bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 		{
 			thread_yield();
 			tick_t elapsed = time_elapsed_ticks( start );
-			if( elapsed > ( ( (tick_t)milliseconds * ticks_per_sec ) / 1000ULL ) )
+			if( elapsed > ( ( (tick_t)milliseconds * ticks_per_sec ) / 1000LL ) )
 				return false;
 		}
 		return true;

@@ -167,7 +167,7 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t c
 #elif FOUNDATION_PLATFORM_PNACL
 			FOUNDATION_UNUSED( std );
 			if( _log_stdout )
-				pnacl_post_log( context, severity, buffer, need + more + 1 );
+				pnacl_post_log( context, severity, buffer, (size_t)( need + more + 1 ) );
 #else
 			if( _log_stdout && std )
 				fprintf( std, "%s", buffer );

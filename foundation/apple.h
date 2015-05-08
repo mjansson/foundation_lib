@@ -29,10 +29,14 @@
 
 #if FOUNDATION_PLATFORM_APPLE
 
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+
 #define __error_t_defined 1
 
 #define semaphore_t __system_semaphore_t
-#define radixsort __stdlib_radixsort
 #define _UUID_T
 #define uuid_generate_random __system_uuid_generate_random
 #define uuid_generate_time __system_uuid_generate_time
@@ -51,11 +55,6 @@
 #undef thread_create
 #undef thread_terminate
 
-#if FOUNDATION_COMPILER_CLANG
-#pragma clang diagnostic push 
-#pragma clang diagnostic ignored "-Wpedantic"         // error: #include_next is a language extension [-Werror,-Wpedantic]
-#endif
-
 #ifdef __OBJC__
 #  import <CoreFoundation/CoreFoundation.h>
 #  include_next <Foundation/Foundation.h>
@@ -73,21 +72,20 @@
 #  endif
 #endif
 
-#if FOUNDATION_COMPILER_CLANG
-#pragma clang diagnostic pop 
-#endif
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 
-#undef radixsort
 #undef semaphore_t
 #undef _UUID_T
 #undef uuid_generate_random
 #undef uuid_generate_time
 #undef uuid_is_null
 #undef task_t
+
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic pop
+#endif
 
 #endif

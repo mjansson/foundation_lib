@@ -38,8 +38,6 @@
 #include <ppapi/c/ppb_var.h>
 #include <ppapi/c/ppb_messaging.h>
 
-extern int real_main( PP_Instance instance );
-
 
 static PP_Module _pnacl_module;
 static PPB_GetInterface _pnacl_browser_interface;
@@ -114,7 +112,7 @@ PP_Instance pnacl_instance( void )
 static void* pnacl_instance_main_thread( void* arg )
 {
 	PP_Instance instance = (PP_Instance)(uintptr_t)arg;
-	int ret = real_main( instance );
+	int ret = pnacl_main( instance );
 
 	return (void*)(uintptr_t)ret;
 }
@@ -135,7 +133,7 @@ static int pnacl_instance_initialize( PP_Instance instance )
 static PP_Bool pnacl_instance_create( PP_Instance instance, uint32_t argc, const char* argn[], const char* argv[] )
 {
 	//TODO: Cleanup this to avoid memory allocs
-	unsigned int iout = 0;
+	int iout = 0;
 	char** argarr = malloc( sizeof( char* ) * argc * 2 + 1 );
 	for( unsigned int iarg = 0; iarg < argc; ++iarg )
 	{
@@ -241,7 +239,7 @@ void* pnacl_array_output( void* arr, uint32_t count, uint32_t size )
 }
 
 
-void pnacl_post_log( uint64_t context, int severity, const char* msg, unsigned int msglen )
+void pnacl_post_log( hash_t context, error_level_t severity, const char* msg, size_t msglen )
 {
 	if( !_pnacl_var || !_pnacl_messaging || !msglen )
 		return;
@@ -252,7 +250,7 @@ void pnacl_post_log( uint64_t context, int severity, const char* msg, unsigned i
 	cleanmsg = string_replace( string_clone( msg ), "\"", "'", false );
 	if( cleanmsg[msglen-1] == '\n' )
 		cleanmsg[msglen-1] = 0;
-	jsonmsg = string_format( "{\"type\":\"log\",\"context\":\"%llx\",\"severity\":\"%d\",\"msg\":\"%s\"}", context, severity, cleanmsg );
+	jsonmsg = string_format( "{\"type\":\"log\",\"context\":\"%" PRIx64 "\",\"severity\":\"%d\",\"msg\":\"%s\"}", context, severity, cleanmsg );
 
 	PP_Instance instance = pnacl_instance();
 	struct PP_Var msg_var = _pnacl_var->VarFromUtf8( jsonmsg, string_length( jsonmsg ) );

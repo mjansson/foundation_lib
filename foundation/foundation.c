@@ -19,7 +19,7 @@
 struct android_app;
 extern void android_main( struct android_app* );
 #elif FOUNDATION_PLATFORM_PNACL
-#include <ppapi/c/ppp.h>
+#include <foundation/pnacl.h>
 FOUNDATION_EXTERN PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser );
 FOUNDATION_EXTERN PP_EXPORT const void* PPP_GetInterface( const char* interface_name );
 FOUNDATION_EXTERN PP_EXPORT void PPP_ShutdownModule();

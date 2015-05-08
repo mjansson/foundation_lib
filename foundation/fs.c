@@ -109,7 +109,7 @@ static const char* _fs_path( const char* abspath )
 
 #if FOUNDATION_PLATFORM_PNACL
 
-PP_Resource _fs_resolve_path( const char* path, const char** localpath )
+static PP_Resource _fs_resolve_path( const char* path, const char** localpath )
 {
 	static const char rootpath[] = "/";
 	if( string_equal_substr( path, "/tmp", 4 ) )
@@ -408,7 +408,7 @@ char** fs_subdirs( const char* path )
 	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
-		for( int ient = 0; ient < entries.count; ++ient, ++entry )
+		for( unsigned int ient = 0; ient < entries.count; ++ient, ++entry )
 		{
 			if( entry->file_type == PP_FILETYPE_DIRECTORY )
 			{
@@ -507,7 +507,7 @@ char** fs_files( const char* path )
 	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
-		for( int ient = 0; ient < entries.count; ++ient, ++entry )
+		for( unsigned int ient = 0; ient < entries.count; ++ient, ++entry )
 		{
 			if( entry->file_type == PP_FILETYPE_REGULAR )
 			{
@@ -866,7 +866,7 @@ void fs_touch( const char* path )
 		PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
 		if( ref )
 		{
-			PP_Time tstamp = (PP_Time)( time_system() / 1000ULL );
+			PP_Time tstamp = (PP_Time)( time_system() / 1000LL );
 			_pnacl_file_ref->Touch( ref, tstamp, tstamp, PP_BlockUntilComplete() );
 			_pnacl_core->ReleaseResource( ref );
 		}
@@ -1548,14 +1548,13 @@ static size_t _fs_file_tell( stream_t* stream )
 	if( !stream || ( stream->type != STREAMTYPE_FILE ) || ( GET_FILE( stream )->fd == 0 ) )
 		return 0;
 #if FOUNDATION_PLATFORM_PNACL
-	return GET_FILE( stream )->position;
+	pos = (ssize_t)GET_FILE( stream )->position;
 #elif FOUNDATION_PLATFORM_WINDOWS
 	pos = (ssize_t)_ftelli64( GET_FILE( stream )->fd );
-	return pos > 0 ? (size_t)pos : 0;
 #else
 	pos = (ssize_t)ftello( GET_FILE( stream )->fd );
-	return pos > 0 ? (size_t)pos : 0;
 #endif
+	return pos > 0 ? (size_t)pos : 0;
 }
 
 
@@ -1566,13 +1565,16 @@ static void _fs_file_seek( stream_t* stream, ssize_t offset, stream_seek_mode_t 
 #if FOUNDATION_PLATFORM_PNACL
 	stream_file_t* file = GET_FILE( stream );
 	if( direction == STREAM_SEEK_BEGIN )
-		file->position = offset;
+		file->position = offset > 0 ? (size_t)offset : 0;
 	else if( direction == STREAM_SEEK_END )
-		file->position = file->size - offset;
+		file->position = file->size - ( offset < 0 ? (size_t)-offset : 0 );
 	else
-		file->position += offset;
-	if( file->position < 0 )
-		file->position = 0;
+	{
+		if( offset > 0 )
+			file->position += (size_t)offset;
+		else
+			file->position -= (size_t)-offset;
+	}
 	if( file->position > file->size )
 	{
 		if( _pnacl_file_io->SetLength( file->fd, file->size, PP_BlockUntilComplete() ) == PP_OK )
@@ -1737,8 +1739,8 @@ static size_t _fs_file_read( stream_t* stream, void* buffer, size_t num_bytes )
 	size_t available = file->size - file->position;
 	if( !available || !num_bytes )
 		return 0;
-	if( available > 0x7FFFFFFFLL )
-		available = 0x7FFFFFFFLL;
+	if( available > 0x7FFFFFFFULL )
+		available = 0x7FFFFFFFULL;
 
 	int32_t read = _pnacl_file_io->Read( file->fd, file->position, buffer, ( available < num_bytes ) ? (int32_t)available : (int32_t)num_bytes, PP_BlockUntilComplete() );
 	if( read == 0 )
@@ -1748,8 +1750,8 @@ static size_t _fs_file_read( stream_t* stream, void* buffer, size_t num_bytes )
 	}
 	else if( read > 0 )
 	{
-		was_read = read;
-		file->position += read;
+		was_read = (size_t)read;
+		file->position += was_read;
 	}
 	else
 		was_read = 0;
@@ -1791,13 +1793,16 @@ static size_t _fs_file_write( stream_t* stream, const void* buffer, size_t num_b
 
 #if FOUNDATION_PLATFORM_PNACL
 
+	if( num_bytes > 0x7FFFFFFFULL )
+		num_bytes = 0x7FFFFFFFULL;
+
 	if( file->position + num_bytes > file->size )
 	{
 		if( _pnacl_file_io->SetLength( file->fd, file->size, PP_BlockUntilComplete() ) == PP_OK )
 			file->size = file->position + num_bytes;
 	}
 
-	int32_t written = _pnacl_file_io->Write( file->fd, file->position, buffer, num_bytes, PP_BlockUntilComplete() );
+	int32_t written = _pnacl_file_io->Write( file->fd, file->position, buffer, (int32_t)num_bytes, PP_BlockUntilComplete() );
 	if( written == 0 )
 	{
 		was_written = ( file->size - file->position );
@@ -1805,8 +1810,8 @@ static size_t _fs_file_write( stream_t* stream, const void* buffer, size_t num_b
 	}
 	else if( written > 0 )
 	{
-		was_written = written;
-		file->position += written;
+		was_written = (size_t)written;
+		file->position += was_written;
 	}
 	else
 		was_writter = 0;
