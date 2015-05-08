@@ -1339,7 +1339,7 @@ char* string_from_time_buffer( char* buffer, size_t size, tick_t t )
 	time_t ts = t / 1000ULL;
 	string_copy( buffer, ctime( &ts ), size );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( size >= 26 )
 	{
 		time_t ts = (time_t)( t / 1000LL );

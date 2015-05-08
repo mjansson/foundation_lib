@@ -1814,7 +1814,7 @@ static size_t _fs_file_write( stream_t* stream, const void* buffer, size_t num_b
 		file->position += was_written;
 	}
 	else
-		was_writter = 0;
+		was_written = 0;
 
 	return was_written;
 
@@ -1843,7 +1843,7 @@ static tick_t _fs_file_last_modified( const stream_t* stream )
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo info;
 	_pnacl_file_io->Query( GET_FILE_CONST( stream )->fd, &info, PP_BlockUntilComplete() );
-	return (tick_t)info.last_modified_time * 1000ULL;
+	return (tick_t)info.last_modified_time * 1000LL;
 #else
 	return fs_last_modified( GET_FILE_CONST( stream )->path );
 #endif
@@ -1948,7 +1948,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo fileinfo;
 	_pnacl_file_io->Query( file->fd, &fileinfo, PP_BlockUntilComplete() );
-	file->size = fileinfo.size;
+	file->size = ( fileinfo.size > 0 ) ? (size_t)fileinfo.size : 0;
 #endif
 
 	if( dotrunc )
@@ -1997,15 +1997,15 @@ int _fs_initialize( void )
 	_pnacl_core = pnacl_interface( PPB_CORE_INTERFACE );
 
 	if( !_pnacl_file_system )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file system interface" );
+		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file system interface" );
 	if( !_pnacl_file_io )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file I/O interface" );
+		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file I/O interface" );
 	if( !_pnacl_file_ref )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file ref interface" );
+		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file ref interface" );
 	if( !_pnacl_var )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get var interface" );
+		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get var interface" );
 	if( !_pnacl_core )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get core interface" );
+		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to get core interface" );
 
 	if( _pnacl_file_system && _pnacl_file_io && _pnacl_file_ref && _pnacl_var && _pnacl_core )
 	{

@@ -651,7 +651,9 @@
 #  include <stdbool.h>
 #  include <stdarg.h>
 
+#  if !FOUNDATION_PLATFORM_WINDOWS
 #  include <wchar.h>
+#  endif
 
 // GCC
 #elif defined( __GNUC__ )

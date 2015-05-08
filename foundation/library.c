@@ -251,6 +251,7 @@ void _library_shutdown( void )
 
 object_t library_load( const char* name )
 {
+	FOUNDATION_UNUSED( name );
 	log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
 	return 0;
 }
