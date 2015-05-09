@@ -216,11 +216,15 @@ typedef enum
 #define PROCESS_WAIT_FAILED                   0x7FFFFFF3
 #define PROCESS_STILL_ACTIVE                  0x7FFFFFFF
 
-#if FOUNDATION_COMPILER_MSVC
+#if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86
+#    if FOUDATION_COMPILER_MSVC
 typedef _W64 int      ssize_t;
+#    else
+typedef int           ssize_t;
+#    endif
 #  else
-typedef __int64       ssize_t;
+typedef int64_t       ssize_t;
 #  endif
 #endif
 

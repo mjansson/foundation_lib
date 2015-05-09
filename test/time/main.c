@@ -60,8 +60,8 @@ DECLARE_TEST( time, builtin )
 	EXPECT_GT( newtick, tick );
 
 	EXPECT_GT( time_diff( tick, newtick ), 0 );
-	EXPECT_GT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 100LL ), "time elapsed not more than 10ms: %lld (%lld)", time_diff( tick, newtick ), ( tps / 100LL ) ); //more than 10 ms
-	EXPECT_LT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 30LL  ), "time elapsed not less than 30ms: %lld (%lld)", time_diff( tick, newtick ), ( tps / 33LL  ) ); //less than 30 ms
+	EXPECT_GT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 100LL ), "time elapsed not more than 10ms: %" PRId64 " (%" PRId64 ")", time_diff( tick, newtick ), ( tps / 100 ) ); //more than 10 ms
+	EXPECT_LT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 30LL  ), "time elapsed not less than 30ms: %" PRId64 " (%" PRId64 ")", time_diff( tick, newtick ), ( tps / 33  ) ); //less than 30 ms
 	EXPECT_GT( time_elapsed( tick ), 0 );
 	EXPECT_GT( time_elapsed( tick ), 0.01f ); //more than 10 ms
 	EXPECT_GT( time_elapsed_ticks( tick ), 0 );
@@ -78,15 +78,14 @@ DECLARE_TEST( time, builtin )
 	EXPECT_EQ( tick, time_startup() );
 
 	tick = time_system();
-	EXPECT_GT( tick, 0 );
-
 	thread_sleep( 100 );
-
 	newtick = time_system();
+
+	EXPECT_GT( tick, 0 );
 	EXPECT_GT( newtick, 0 );
 	EXPECT_GT( newtick, tick );
-	EXPECT_GT( newtick - tick, 50 ); //more than 50 ms
-	EXPECT_LT( newtick - tick, 200 ); //less than 200 ms
+	EXPECT_GT_MSGFORMAT( newtick - tick, 50, "Elapsed system time less than 50ms, expected 100ms, got %" PRId64 "ms", newtick - tick );
+	EXPECT_LT_MSGFORMAT( newtick - tick, 200, "Elapsed system time more than 200ms, expected 100ms, got %" PRId64 "ms", newtick - tick );
 
 	return 0;
 }
@@ -98,7 +97,7 @@ static void test_time_declare( void )
 }
 
 
-test_suite_t test_time_suite = {
+static test_suite_t test_time_suite = {
 	test_time_application,
 	test_time_memory_system,
 	test_time_declare,

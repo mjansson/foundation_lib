@@ -24,7 +24,7 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 #  if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
 #    include <sys/prctl.h>
 #  endif
-#  include <pthread.h>
+#  include <foundation/posix.h>
 #endif
 
 #if FOUNDATION_PLATFORM_PNACL
@@ -536,7 +536,8 @@ uint64_t thread_id( void )
 	return pthread_self();
 #  endif
 #elif FOUNDATION_PLATFORM_PNACL
-	return (uintptr_t)pthread_self();
+	void* self = pthread_self();
+	return (uintptr_t)self;
 #else
 #  error Not implemented
 #endif

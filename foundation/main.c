@@ -149,7 +149,7 @@ static void sighandler( int sig )
 int real_main( void )
 #elif FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */
-int real_main( PP_Instance instance )
+int pnacl_main( PP_Instance instance )
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
 int main( int argc, char** argv )
@@ -177,7 +177,7 @@ int main( int argc, char** argv )
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 #endif
-		
+
 		//Signals we process globally
 		action.sa_handler = sighandler;
 		sigaction( SIGKILL, &action, 0 );
@@ -243,12 +243,14 @@ int main( int argc, char** argv )
 	}
 #endif
 
-#if FOUNDATION_PLATFORM_TIZEN
+#if !FOUNDATION_PLATFORM_IOS
+
+#  if FOUNDATION_PLATFORM_TIZEN
 	tizen_start_main_thread();
 	ret = tizen_app_main( argc, argv );
-#else
+#  else
 	{
-		char* name = 0;
+		char* name;
 		const application_t* app = environment_application();
 		{
 			const char* aname = app->short_name;
@@ -260,11 +262,14 @@ int main( int argc, char** argv )
 		if( app->dump_callback )
 			crash_guard_set( app->dump_callback, name );
 
-		ret = crash_guard( main_run, 0, app->dump_callback, name );
+		if( system_debugger_attached() )
+			ret = main_run( 0 );
+		else
+			ret = crash_guard( main_run, 0, app->dump_callback, name );
 
 		string_deallocate( name );
 	}
-#endif
+#  endif
 
 	main_shutdown();
 
@@ -277,6 +282,7 @@ int main( int argc, char** argv )
 #endif
 
 	return ret;
+#endif
 }
 
 

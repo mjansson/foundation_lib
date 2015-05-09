@@ -17,8 +17,6 @@
 
 #if !BUILD_MONOLITHIC
 FOUNDATION_EXTERN test_suite_t test_suite_define( void );
-#else
-extern volatile bool _test_should_terminate;
 #endif
 
 typedef struct
@@ -139,7 +137,7 @@ static void test_run( void )
 				log_info( HASH_TEST, "    PASSED" );
 			}
 #if BUILD_MONOLITHIC
-			if( _test_should_terminate )
+			if( test_should_terminate() )
 			{
 				_test_failed = true;
 				goto exit;

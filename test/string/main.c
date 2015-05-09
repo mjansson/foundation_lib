@@ -990,11 +990,11 @@ DECLARE_TEST( string, utility )
 			replacestr4 = string_replace( replacestr4, "foo", "bar", true );
 			replacestr5 = string_replace( replacestr5, "rep", "re", true );
 
-			EXPECT_TRUE( string_equal( replacestr, "testing testreplace" ) );
-			EXPECT_TRUE( string_equal( replacestr2, "testing testreplace" ) );
-			EXPECT_TRUE( string_equal( replacestr3, "testing testtestrep" ) );
-			EXPECT_TRUE( string_equal( replacestr4, "" ) );
-			EXPECT_TRUE( string_equal( replacestr5, "re" ) );
+			EXPECT_STREQ( replacestr, "testing testreplace" );
+			EXPECT_STREQ( replacestr2, "testing testreplace" );
+			EXPECT_STREQ( replacestr3, "testing testtestrep" );
+			EXPECT_STREQ( replacestr4, "" );
+			EXPECT_STREQ( replacestr5, "re" );
 
 			string_deallocate( replacestr );
 			string_deallocate( replacestr2 );
@@ -1105,9 +1105,11 @@ DECLARE_TEST( string, utility )
 DECLARE_TEST( string, format )
 {
 	{
-		char* teststr1 = string_format( "%" PRId64, -1LL );
-		char* teststr2 = string_format( "0x%" PRIx64, -1LL );
-		char* teststr3 = string_format( "%016" PRIX64, 0x123456789abULL );
+		int64_t ival = -1;
+		uint64_t uval = 0x123456789abULL;
+		char* teststr1 = string_format( "%" PRId64, ival );
+		char* teststr2 = string_format( "0x%" PRIx64, ival );
+		char* teststr3 = string_format( "%016" PRIX64, uval );
 
 		EXPECT_STREQ( teststr1, "-1" );
 		EXPECT_STREQ( teststr2, "0xffffffffffffffff" );
@@ -1118,9 +1120,9 @@ DECLARE_TEST( string, format )
 		string_deallocate( teststr3 );
 	}
 	{
-		char* teststr1 = string_format( "0x%" PRIfixPTR, (void*)0 );
-		char* teststr2 = string_format( "0x%" PRIfixPTR, (void*)-1 );
-		char* teststr3 = string_format( "0x%" PRIfixPTR, (void*)0x1234abULL );
+		char* teststr1 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)0) );
+		char* teststr2 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)-1) );
+		char* teststr3 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)0x1234abULL) );
 
 #if FOUNDATION_SIZE_POINTER == 8
 		EXPECT_STREQ( teststr1, "0x0000000000000000" );
@@ -1151,7 +1153,7 @@ static void test_string_declare( void )
 }
 
 
-test_suite_t test_string_suite = {
+static test_suite_t test_string_suite = {
 	test_string_application,
 	test_string_memory_system,
 	test_string_declare,

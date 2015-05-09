@@ -106,6 +106,7 @@ TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_finish( const object_t* 
 TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_exit( const object_t* threads, size_t num_threads );
 
 TEST_API void FOUNDATION_NOINLINE test_crash_handler( const char* ) FOUNDATION_ATTRIBUTE( noreturn );
+TEST_API bool FOUNDATION_NOINLINE test_should_terminate( void );
 
 typedef struct _test_suite
 {

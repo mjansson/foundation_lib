@@ -76,7 +76,7 @@ size_t base64_decode( const char* src, void* dst, size_t srcsize, size_t dstsize
 {
 	size_t i, length, blocksize;
 	char* cdst = (char*)dst;
-	char* cdstend = ( dstsize ? cdst + dstsize : 0 );
+	char* cdstend = cdst + dstsize;
 	length = srcsize ? srcsize : string_length( src );
 	while( length )
 	{
@@ -101,7 +101,7 @@ size_t base64_decode( const char* src, void* dst, size_t srcsize, size_t dstsize
 		{
 			char out[3];
 			_base64_decodeblock( in, out );
-			for( i = 0; ( i < blocksize - 1 ) && ( !cdstend || ( cdst < cdstend ) ); ++i )
+			for( i = 0; ( i < blocksize - 1 ) && ( cdst < cdstend ); ++i )
 				*cdst++ = out[i];
 		}
 	}

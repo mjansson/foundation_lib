@@ -95,7 +95,7 @@ static volatile bool _delegate_received_terminate = false;
 		if( !_delegate_received_terminate )
 		{
 			if( ( environment_application()->flags & APPLICATION_UTILITY ) == 0 )
-				log_warnf( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
+				log_warn( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
 			exit( -1 );
 		}
 #endif
@@ -196,7 +196,8 @@ static __weak FoundationAppDelegate*  _delegate;
 
 void* delegate_uiwindow( void )
 {
-	return (__bridge void*)(_delegate ? [_delegate window] : 0);
+	__strong FoundationAppDelegate* delegate = _delegate;
+	return (__bridge void*)(delegate ? [delegate window] : 0);
 }
 
 
@@ -270,7 +271,7 @@ void* delegate_uiwindow( void )
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
 {
 	FOUNDATION_UNUSED( application );
-	log_warnf( 0, WARNING_MEMORY, "Application received memory warning" );
+	log_warn( 0, WARNING_MEMORY, "Application received memory warning" );
 	system_post_event( FOUNDATIONEVENT_LOW_MEMORY_WARNING );
 
 #if BUILD_DEBUG || BUILD_RELEASE

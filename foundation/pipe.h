@@ -28,7 +28,7 @@ FOUNDATION_API void*       pipe_write_handle( stream_t* pipe );
 
 #endif
 
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 FOUNDATION_API int         pipe_read_fd( stream_t* pipe );
 FOUNDATION_API int         pipe_write_fd( stream_t* pipe );

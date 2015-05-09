@@ -29,8 +29,6 @@
 #  include <stdlib.h>
 #endif
 
-#define MEMORY_GUARD_VALUE 0xDEADBEEF
-
 
 static memory_system_t _memory_system;
 static memory_tracker_t _memory_no_tracker;
@@ -47,6 +45,9 @@ typedef FOUNDATION_ALIGN(8) struct
 
 static atomic_linear_memory_t _memory_temporary;
 
+#if BUILD_ENABLE_MEMORY_GUARD
+#define MEMORY_GUARD_VALUE 0xDEADBEEF
+#endif
 
 #if BUILD_ENABLE_MEMORY_TRACKER
 static memory_tracker_t _memory_tracker;
@@ -140,12 +141,12 @@ static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int unsigned _memory_get_alig
 static FOUNDATION_CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 {
 	uintptr_t address;
-	unsigned int mask;
+	uintptr_t mask;
 	if( !p || !align )
 		return p;
 
 	address = (uintptr_t)p;
-	mask = align - 1;
+	mask = (uintptr_t)align - 1; //Align is always power-of-two
 	if( address & mask )
 	{
 		address = ( address & ~mask ) + align;

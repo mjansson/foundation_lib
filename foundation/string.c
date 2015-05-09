@@ -195,7 +195,7 @@ void string_copy( char* dst, const char* src, size_t limit )
 {
 	size_t length = string_length( src );
 	if( length >= limit )
-		length = math_max( limit - 1, 0 );
+		length = math_max( limit, 1 ) - 1;
 	if( dst )
 	{
 		memcpy( dst, src, length );
@@ -279,9 +279,10 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 
 	while( ( pos = string_find_string( str, key, pos ) ) != STRING_NPOS )
 	{
-		if( repeat && ( lastpos != STRING_NPOS ) && ( pos <= (size_t)( (ssize_t)lastpos + lendiff ) ) )
+		if( repeat && ( lastpos != STRING_NPOS ) && ( lendiff > 0 ) && ( pos <= ( lastpos + (size_t)lendiff ) ) )
 		{
-			//Avoid infinite loop (same position, string did not reduce)
+			//Avoid infinite loop - found position did not move ahead more than
+			//newly introduced characters in the remaining part of the string
 			pos = lastpos + newkeylen;
 			continue;
 		}
@@ -293,7 +294,7 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 			if( lendiff < 0 )
 			{
 				memmove( str + pos + newkeylen, str + pos + keylen, slen - pos - keylen + 1 );
-				FOUNDATION_ASSERT( slen > (size_t)(-lendiff) );
+				FOUNDATION_ASSERT( slen >= (size_t)(-lendiff) );
 				slen -= (size_t)(-lendiff);
 			}
 		}
@@ -482,7 +483,7 @@ size_t string_rfind_string( const char* str, const char* key, size_t offset )
 
 		do
 		{
-			if( !strncmp( str + offset, key, keylen ) )
+			if( string_equal_substr( str + offset, key, keylen ) )
 				return offset;
 			--offset;
 		} while( offset != STRING_NPOS );
@@ -531,7 +532,7 @@ size_t string_find_first_not_of( const char* str, const char* tokens, size_t off
 		if( !strchr( tokens, str[ offset ] ) )
 			return offset;
 		++offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
@@ -606,7 +607,14 @@ bool string_equal( const char* rhs, const char* lhs )
 
 bool string_equal_substr( const char* rhs, const char* lhs, size_t len )
 {
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+#endif
 	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 }
 
 
@@ -762,7 +770,7 @@ uint32_t string_glyph( const char* str, size_t offset, size_t* consumed )
 {
 	uint32_t glyph = 0;
 	size_t num, j;
-	const char* cur = str + math_max( offset, 0 );
+	const char* cur = str + offset;
 
 	if( !( *cur & 0x80 ) )
 	{
@@ -805,14 +813,14 @@ wchar_t* wstring_allocate_from_string( const char* cstr, size_t length )
 	uint32_t glyph;
 	const char* cur;
 
-	if( !cstr || !length )
+	if( !cstr )
 	{
 		buffer = memory_allocate( HASH_STRING, sizeof( wchar_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		return buffer;
 	}
 
 	maxlen = string_length( cstr );
-	length = ( length < maxlen ) ? length : maxlen;
+	length = ( length && length < maxlen ) ? length : maxlen;
 
 	//Count number of wchar_t needed to represent string
 	num_chars = 0;
@@ -978,7 +986,7 @@ char* string_allocate_from_wstring( const wchar_t* str, size_t length )
 	return string_allocate_from_utf16( (const uint16_t*)str, length );
 #else
 	return string_allocate_from_utf32( (const uint32_t*)str, length );
-#endif		
+#endif
 }
 
 
@@ -990,7 +998,7 @@ char* string_allocate_from_utf16( const uint16_t* str, size_t length )
 	uint32_t glyph, lval;
 
 	maxlen = _string_length_utf16( str );
-	length = ( length < maxlen ) ? length : maxlen;
+	length = ( length && length < maxlen ) ? length : maxlen;
 
 	inlength = length;
 	curlen = 0;
@@ -1034,7 +1042,7 @@ char* string_allocate_from_utf32( const uint32_t* str, size_t length )
 	uint32_t glyph;
 
 	maxlen = _string_length_utf32( str );
-	length = ( length < maxlen ) ? length : maxlen;
+	length = ( length && length < maxlen ) ? length : maxlen;
 
 	inlength = length;
 	curlen = 0;
@@ -1331,7 +1339,7 @@ char* string_from_time_buffer( char* buffer, size_t size, tick_t t )
 	time_t ts = t / 1000ULL;
 	string_copy( buffer, ctime( &ts ), size );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( size >= 26 )
 	{
 		time_t ts = (time_t)( t / 1000LL );

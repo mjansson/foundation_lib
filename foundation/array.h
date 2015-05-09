@@ -14,11 +14,12 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/math.h>
 
 
 #define array_deallocate( array )                           /*lint -e{522}*/ ( _array_verify( array ) ? memory_deallocate( _array_raw( array ) ), ( (array) = 0 ) : 0 )
 #define array_capacity( array )                             ( _array_verify( array ) ? _array_rawcapacity_const( array ) : 0U )
-#define array_reserve( array, capacity )                    ( (void)_array_maybegrowfixed( array, (size_t)(capacity) - array_capacity( array ) ) )
+#define array_reserve( array, capacity )                    ( (void)_array_maybegrowfixed( array, (capacity) - array_capacity( array ) ) )
 #define array_size( array )                                 ( _array_verify( array ) ? _array_rawsize_const( array ) : 0U )
 #define array_grow( array, num )                            ( (void)_array_resize( array, (size_t)( (ssize_t)array_size( array ) + (ssize_t)num ) ) )
 #define array_resize( array, num )                          ( (void)_array_resize( array, num ) )
@@ -26,20 +27,20 @@
 #define array_copy( dst, src )                              ( _array_verify( src ) && ( _array_elementsize( src ) == _array_elementsize( dst ) ) ? ( _array_maybegrowfixed( (dst), ( _array_rawsize_const( src ) - ( _array_verify( dst ) ? ( _array_rawsize( dst ) ) : 0 ) ) ) ), memcpy( (dst), (src), ( _array_rawsize_const( src ) ) * _array_elementsize( src ) ), ( _array_rawsize( dst ) = _array_rawsize_const( src ) ) : array_clear( dst ) )
 #define array_push( array, element )                        ( (void)_array_maybegrow( array, 1 ), (array)[ _array_rawsize( array )++ ] = (element) )
 #define array_push_memcpy( array, elementptr )              /*lint -e{506}*/ ( (void)_array_maybegrow( array, 1 ), memcpy( (array) + _array_rawsize( array )++, (elementptr), sizeof( *(array) ) ) )
-#define array_insert( array, pos, element )                 ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), _array_elementsize( array ) * ( _array_rawsize( array )++ - (uint32_t)(pos) ) ), (array)[(pos)] = (element) )
-#define array_insert_memcpy( array, pos, elementptr )       ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), _array_elementsize( array ) * ( _array_rawsize( array )++ - (uint32_t)(pos) ) ), memcpy( (array) + (pos), (elementptr), sizeof( *(array) ) ) )
-#define array_insert_safe( array, pos, element )            do { uint32_t _clamped_pos = math_min( (uint32_t)(pos), array_size( array ) ); array_insert( array, _clamped_pos, element ); } while(0)
-#define array_insert_memcpy_safe( array, pos, elementptr )  do { uint32_t _clamped_pos = math_min( (uint32_t)(pos), array_size( array ) ); array_insert_memcpy( array, _clamped_pos, elementptr ); } while(0)
+#define array_insert( array, pos, element )                 ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), _array_elementsize( array ) * ( _array_rawsize( array )++ - (pos) ) ), (array)[(pos)] = (element) )
+#define array_insert_memcpy( array, pos, elementptr )       ( (void)_array_maybegrow( array, 1 ), memmove( (array) + (pos) + 1, (array) + (pos), _array_elementsize( array ) * ( _array_rawsize( array )++ - (pos) ) ), memcpy( (array) + (pos), (elementptr), sizeof( *(array) ) ) )
+#define array_insert_safe( array, pos, element )            do { uint32_t _arr_size = array_size( array ); uint32_t _clamped_pos = ( (uint32_t)(pos) & 0x80000000U ) ? 0 : math_min( (uint32_t)(pos), _arr_size ); array_insert( array, _clamped_pos, element ); } while(0)
+#define array_insert_memcpy_safe( array, pos, elementptr )  do { uint32_t _arr_size = array_size( array ); uint32_t _clamped_pos = ( (uint32_t)(pos) & 0x80000000U ) ? 0 : math_min( (uint32_t)(pos), _arr_size ); array_insert_memcpy( array, _clamped_pos, elementptr ); } while(0)
 #define array_pop( array )                                  ( _array_verify( array ) ? --_array_rawsize( array ) : 0 )
 #define array_pop_safe( array )                             ( _array_verify( array ) && ( _array_rawsize( array ) > 0 ) ? --_array_rawsize( array ) : 0 )
 #define array_erase( array, pos )                           ( _array_verify( array ) ? *((array) + (pos)) = *((array) + ( _array_rawsize( array ) - 1 )), --_array_rawsize( array ) : 0 )
 #define array_erase_memcpy( array, pos )                    ( _array_verify( array ) ? memcpy( (array) + (pos), (array) + ( _array_rawsize( array ) - 1 ), _array_elementsize( array ) ), --_array_rawsize( array ) : 0 )
 #define array_erase_safe( array, pos )                      ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase( array, pos ) : 0 )
 #define array_erase_memcpy_safe( array, pos )               ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_memcpy( array, pos ) : 0 )
-#define array_erase_ordered( array, pos )                   ( _array_verify( array ) ? memmove( (array) + (pos), (array) + (pos) + 1, ( _array_rawsize( array ) - (uint32_t)(pos) - 1U ) * _array_elementsize( array ) ), --_array_rawsize( array ) : 0 )
-#define array_erase_ordered_safe( array, pos )              ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_ordered( array, pos ) : 0 )
-#define array_erase_ordered_range( array, pos, num )        ( _array_verify( array ) && ( (int32_t)(num) > 0 ) ? memmove( (array) + (pos), (array) + (pos) + (num), ( _array_rawsize( array ) - (uint32_t)(pos) - (uint32_t)(num) ) * _array_elementsize( array ) ), ( _array_rawsize( array ) -= (uint32_t)(num) ) : 0 )
-#define array_erase_ordered_range_safe( array, pos, num )   do { uint32_t _clamped_start = math_min( (uint32_t)(pos), array_size( array ) ); uint32_t _clamped_end = math_min( (uint32_t)( (pos) + (num) ), array_size( array ) ); if( _clamped_end > _clamped_start ) array_erase_ordered_range( array, _clamped_start, _clamped_end - _clamped_start ); } while(0)
+#define array_erase_ordered( array, pos )                   ( _array_verify( array ) ? memmove( (array) + (pos), (array) + (pos) + 1, ( _array_rawsize( array ) - (pos) - 1U ) * _array_elementsize( array ) ), --_array_rawsize( array ) : 0 )
+#define array_erase_ordered_safe( array, pos )              ( _array_verify( array ) && _array_verify_index( array, pos ) ? array_erase_ordered( array, (uint32_t)pos ) : 0 )
+#define array_erase_ordered_range( array, pos, num )        ( _array_verify( array ) && ( (num) > 0 ) ? memmove( (array) + (pos), (array) + (pos) + (num), ( _array_rawsize( array ) - (pos) - (num) ) * _array_elementsize( array ) ), ( _array_rawsize( array ) -= (num) ) : 0 )
+#define array_erase_ordered_range_safe( array, pos, num )   do { uint32_t _arr_size = array_size( array ); uint32_t _clamped_start = ( (uint32_t)(pos) & 0x80000000U ) ? 0 : math_min( (uint32_t)(pos), _arr_size ); uint32_t _clamped_end = ( (uint32_t)( (pos) + (num) ) & 0x80000000U ) ? 0 : math_min( (uint32_t)( (pos) + (num) ), _arr_size ); if( _clamped_end > _clamped_start ) array_erase_ordered_range( array, _clamped_start, _clamped_end - _clamped_start ); } while(0)
 
 
 // **** Internal implementation details below, not for direct use ****

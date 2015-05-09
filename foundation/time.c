@@ -20,7 +20,9 @@
 #  include <mach/mach_time.h>
 static mach_timebase_info_data_t _time_info;
 static void absolutetime_to_nanoseconds( uint64_t mach_time, tick_t* clock ) { *clock = (tick_t)( mach_time * _time_info.numer / _time_info.denom ); }
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#elif FOUNDATION_PLATFORM_PNACL
 #  include <unistd.h>
 #  include <time.h>
 #  include <string.h>
@@ -177,7 +179,7 @@ tick_t time_system( void )
 
 	tick_t curclock = 0;
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
-	return ( curclock / 100000LL );
+	return ( curclock / 1000000LL );
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 

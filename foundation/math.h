@@ -643,11 +643,11 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeq( real a, rea
 
 	ai = ca.ival;
 	if( ai < 0 )
-		ai = 0x80000000L - ai;
+		ai = (int32_t)0x80000000 - ai;
 
 	bi = cb.ival;
 	if( bi < 0 )
-		bi = 0x80000000L - bi;
+		bi = (int32_t)0x80000000 - bi;
 
 	diff = ( ai - bi );
 	if( ( diff <= ulps ) && ( diff >= -ulps ) )

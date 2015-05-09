@@ -172,7 +172,7 @@ static void test_system_declare( void )
 }
 
 
-test_suite_t test_system_suite = {
+static test_suite_t test_system_suite = {
 	test_system_application,
 	test_system_memory_system,
 	test_system_declare,

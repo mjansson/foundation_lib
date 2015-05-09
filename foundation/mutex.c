@@ -282,7 +282,7 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 	{
 		int ret;
 		gettimeofday( &now, 0 );
-		then.tv_sec  = now.tv_sec + ( timeout / 1000 );
+		then.tv_sec  = now.tv_sec + (time_t)( timeout / 1000 );
 		then.tv_nsec = ( now.tv_usec * 1000 ) + (long)( timeout % 1000 ) * 1000000L;
 		while( then.tv_nsec > 999999999 )
 		{

@@ -279,8 +279,8 @@ DECLARE_TEST( random, distribution_real )
 
 static void* random_thread( object_t thread, void* arg )
 {
-	int num_passes = 512000 * 8;
-	int i, j;
+	unsigned int num_passes = 512000 * 8;
+	unsigned int i, j;
 	unsigned int num;
 	FOUNDATION_UNUSED( thread );
 	FOUNDATION_UNUSED( arg );
@@ -462,7 +462,7 @@ static void test_random_declare( void )
 }
 
 
-test_suite_t test_random_suite = {
+static test_suite_t test_random_suite = {
 	test_random_application,
 	test_random_memory_system,
 	test_random_declare,

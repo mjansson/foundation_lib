@@ -132,8 +132,7 @@ LONG WINAPI _crash_exception_filter( LPEXCEPTION_POINTERS pointers )
 
 #if FOUNDATION_PLATFORM_POSIX //&& !FOUNDATION_PLATFORM_APPLE
 
-#include <signal.h>
-#include <setjmp.h>
+#include <foundation/posix.h>
 //#include <ucontext.h>
 
 FOUNDATION_DECLARE_THREAD_LOCAL( crash_dump_callback_fn, crash_callback, 0 )

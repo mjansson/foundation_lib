@@ -75,6 +75,7 @@ static test_suite_t test_app_suite = {
 
 #if BUILD_MONOLITHIC
 
+int test_app_run( void );
 int test_app_run( void )
 {
 	test_suite = test_app_suite;

@@ -224,7 +224,7 @@ void semaphore_post( semaphore_t* semaphore )
 void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 {
 	FOUNDATION_ASSERT( value <= 0xFFFF );
-	*semaphore = dispatch_semaphore_create( value );
+	*semaphore = dispatch_semaphore_create( (long)value );
 	if( !*semaphore )
 	{
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore" );
@@ -348,7 +348,7 @@ bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 		{
 			thread_yield();
 			tick_t elapsed = time_elapsed_ticks( start );
-			if( elapsed > ( ( (tick_t)milliseconds * ticks_per_sec ) / 1000ULL ) )
+			if( elapsed > ( ( (tick_t)milliseconds * ticks_per_sec ) / 1000LL ) )
 				return false;
 		}
 		return true;

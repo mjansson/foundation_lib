@@ -18,6 +18,11 @@
 
 #if FOUNDATION_PLATFORM_POSIX
 
+#if FOUNDATION_COMPILER_GCC
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
 #define radixsort __stdlib_radixsort
 #ifndef __error_t_defined
 #define __error_t_defined 1
@@ -37,6 +42,8 @@
 #include <time.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <setjmp.h>
 
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -46,10 +53,13 @@
 
 #undef radixsort
 
-
 #if FOUNDATION_PLATFORM_APPLE
 #undef _UUID_T
 #undef _UUID_UUID_H
+#endif
+
+#if FOUNDATION_COMPILER_GCC
+#  pragma GCC diagnostic pop
 #endif
 
 #endif

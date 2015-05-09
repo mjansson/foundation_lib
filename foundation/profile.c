@@ -196,7 +196,7 @@ static void _profile_put_message_block( int32_t id, const char* message )
 	block->data.end = atomic_add32( &_profile_counter, 1 );
 	memcpy( block->data.name, message, ( len >= MAX_MESSAGE_LENGTH ) ? MAX_MESSAGE_LENGTH : len );
 
-	len -= MAX_MESSAGE_LENGTH;
+	len = ( len > MAX_MESSAGE_LENGTH ? len - MAX_MESSAGE_LENGTH : 0 );
 	message += MAX_MESSAGE_LENGTH;
 	subblock = block;
 
@@ -223,7 +223,7 @@ static void _profile_put_message_block( int32_t id, const char* message )
 		cblock->previous = BLOCK_INDEX( subblock );
 		subblock = cblock;
 
-		len -= MAX_MESSAGE_LENGTH;
+		len = ( len > MAX_MESSAGE_LENGTH ? len - MAX_MESSAGE_LENGTH : 0 );
 		message += MAX_MESSAGE_LENGTH;
 	}
 

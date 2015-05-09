@@ -289,7 +289,7 @@ static void test_uuid_declare( void )
 }
 
 
-test_suite_t test_uuid_suite = {
+static test_suite_t test_uuid_suite = {
 	test_uuid_application,
 	test_uuid_memory_system,
 	test_uuid_declare,

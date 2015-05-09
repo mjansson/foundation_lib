@@ -15,10 +15,8 @@
 
 static volatile bool _test_should_start = false;
 static volatile bool _test_have_focus = false;
-
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 static volatile bool _test_should_terminate = false;
-#endif
+
 
 static void* event_thread( object_t thread, void* arg )
 {
@@ -36,14 +34,14 @@ static void* event_thread( object_t thread, void* arg )
 			switch( event->id )
 			{
 				case FOUNDATIONEVENT_START:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 					log_debug( HASH_TEST, "Application start event received" );
 					_test_should_start = true;
 #endif
 					break;
 
 				case FOUNDATIONEVENT_TERMINATE:
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 					log_debug( HASH_TEST, "Application stop/terminate event received" );
 					_test_should_terminate = true;
 					break;
@@ -84,7 +82,7 @@ static void* event_thread( object_t thread, void* arg )
 #include <foundation/delegate.h>
 #include <test/test.h>
 
-static void test_log_callback( uint64_t context, int severity, const char* msg )
+static void test_log_callback( hash_t context, error_level_t severity, const char* msg )
 {
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
@@ -123,6 +121,12 @@ void test_crash_handler( const char* dump_file )
 }
 
 #endif
+
+
+bool test_should_terminate( void )
+{
+	return _test_should_terminate;
+}
 
 
 int main_initialize( void )
@@ -223,6 +227,8 @@ int main_run( void* main_arg )
 	process_t* process = 0;
 	char* process_path = 0;
 	unsigned int* exe_flags = 0;
+#else
+	void* test_result;
 #endif
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	int remain_counter = 0;
@@ -250,7 +256,7 @@ int main_run( void* main_arg )
 	while( !thread_is_running( thread ) )
 		thread_sleep( 10 );
 
-#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	while( !_test_should_start )
 	{
 #if FOUNDATION_PLATFORM_ANDROID
@@ -323,7 +329,8 @@ int main_run( void* main_arg )
 		thread_sleep( 10 );
 	}
 
-	process_result = (int)(intptr_t)thread_result( test_thread );
+	test_result = thread_result( test_thread );
+	process_result = (int)(intptr_t)test_result;
 	thread_destroy( test_thread );
 
 	while( thread_is_thread( test_thread ) )
@@ -334,7 +341,8 @@ int main_run( void* main_arg )
 
 #else
 
-	process_result = (int)(intptr_t)test_runner( 0, tests );
+	test_result = test_runner( 0, tests );
+	process_result = (int)(intptr_t)test_result;
 
 #endif
 

@@ -651,7 +651,9 @@
 #  include <stdbool.h>
 #  include <stdarg.h>
 
+#  if !FOUNDATION_PLATFORM_WINDOWS
 #  include <wchar.h>
+#  endif
 
 // GCC
 #elif defined( __GNUC__ )
@@ -821,7 +823,7 @@ typedef enum
 #include <float.h>
 #include <limits.h>
 
-#if FOUNDATION_PLATFORM_LINUX
+#if FOUNDATION_PLATFORM_PNACL || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
 #include <sys/types.h>
 #endif
 
