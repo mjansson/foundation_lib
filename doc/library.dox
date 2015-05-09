@@ -12,6 +12,10 @@
 same library was already previously loaded, a new reference to the same library
 object will be returned, otherwise a new library object will be created and
 referenced. Use #library_unload to release a reference to a library object.
+If the given name does not contain the platform specific dynamic library prefix
+and extension, the function will also try loading the library with theis prefix and
+extension added. If the name contains a path, it should be on the standard format
+as returned by #path_clean
 \param name Dynamic library name (or optional path)
 \return Null if not found or error loading, library object reference if loaded successfully
 
