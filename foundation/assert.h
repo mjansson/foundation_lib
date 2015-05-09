@@ -15,6 +15,7 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 #include <foundation/crash.h>
+#include <foundation/string.h>
 
 
 FOUNDATION_API assert_handler_fn    assert_handler( void );

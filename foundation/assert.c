@@ -24,6 +24,7 @@ static char              _assert_buffer[ASSERT_BUFFER_SIZE];
 #if BUILD_ENABLE_ASSERT
 #define ASSERT_STACKTRACE_MAX_DEPTH    128U
 #define ASSERT_STACKTRACE_SKIP_FRAMES  1U
+static void*             _assert_stacktrace[ASSERT_STACKTRACE_MAX_DEPTH];
 static char              _assert_context_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
 static char              _assert_message_buffer[ASSERT_BUFFER_SIZE];

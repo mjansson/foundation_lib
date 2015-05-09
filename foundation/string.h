@@ -14,7 +14,6 @@
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
-#include <foundation/array.h>
 
 
 FOUNDATION_API string_t       string_allocate( size_t length );

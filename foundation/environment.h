@@ -16,21 +16,21 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API const char* const*     environment_command_line( void );
-FOUNDATION_API const char*            environment_executable_name( void );
-FOUNDATION_API const char*            environment_executable_directory( void );
-FOUNDATION_API const char*            environment_executable_path( void );
-FOUNDATION_API const char*            environment_initial_working_directory( void );
-FOUNDATION_API const char*            environment_current_working_directory( void );
-FOUNDATION_API void                   environment_set_current_working_directory( const char* path );
-FOUNDATION_API const char*            environment_home_directory( void );
-FOUNDATION_API const char*            environment_temporary_directory( void );
-FOUNDATION_API const char*            environment_variable( const char* var );
+FOUNDATION_API const string_const_t*  environment_command_line( void );
+FOUNDATION_API string_const_t         environment_executable_name( void );
+FOUNDATION_API string_const_t         environment_executable_directory( void );
+FOUNDATION_API string_const_t         environment_executable_path( void );
+FOUNDATION_API string_const_t         environment_initial_working_directory( void );
+FOUNDATION_API string_const_t         environment_current_working_directory( void );
+FOUNDATION_API void                   environment_set_current_working_directory( string_const_t path );
+FOUNDATION_API string_const_t         environment_home_directory( void );
+FOUNDATION_API string_const_t         environment_temporary_directory( void );
+FOUNDATION_API string_const_t         environment_variable( string_const_t var );
 FOUNDATION_API const application_t*   environment_application( void );
 
 
 #if FOUNDATION_PLATFORM_APPLE
 
-FOUNDATION_API void                   environment_bundle_identifier( char* buffer, size_t maxlength );
+FOUNDATION_API void                   environment_bundle_identifier( string_t buffer );
 
 #endif

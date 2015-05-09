@@ -62,7 +62,7 @@ static int64_t _config_string_to_int( string_const_t str )
 	if( str.length < 2 )
 		return string_to_int64( str );
 
-	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
+	first_nonnumeric = string_find_first_not_of( str, string_const( "0123456789.", 11 ), 0 );
 	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'm' ) || ( str.str[ first_nonnumeric ] == 'M' ) ) )
 	{
 		dot_position = string_find( str, '.', 0 );
@@ -97,7 +97,7 @@ static real _config_string_to_real( string_const_t str )
 	if( str.length < 2 )
 		return string_to_real( str );
 
-	first_nonnumeric = string_find_first_not_of( str, "0123456789.", 0 );
+	first_nonnumeric = string_find_first_not_of( str, string_const( "0123456789.", 11 ), 0 );
 	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'm' ) || ( str.str[ first_nonnumeric ] == 'M' ) ) )
 	{
 		dot_position = string_find( str, '.', 0 );
@@ -153,11 +153,11 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 	hash_t section, key;
 
 	expanded = str;
-	var_pos = string_find_string( expanded, string_const( "$(", 2 ), 0 );
+	var_pos = string_find_string( string_to_const( expanded ), string_const( "$(", 2 ), 0 );
 
 	while( var_pos != STRING_NPOS )
 	{
-		var_end_pos = string_find( expanded, ')', var_pos + 2 );
+		var_end_pos = string_find( string_to_const( expanded ), ')', var_pos + 2 );
 		FOUNDATION_ASSERT_MSG( var_end_pos != STRING_NPOS, "Malformed config variable statement" );
 		variable = string_substr( expanded, var_pos, ( var_end_pos != STRING_NPOS ) ? ( 1 + var_end_pos - var_pos ) : STRING_NPOS );
 
