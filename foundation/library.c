@@ -83,7 +83,6 @@ object_t library_load( const char* name )
 #if FOUNDATION_PLATFORM_WINDOWS
 	char* dllname;
 	HANDLE dll;
-	unsigned int last_dot;
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
@@ -98,6 +97,10 @@ object_t library_load( const char* name )
 
 	basename = name;
 	last_slash = string_rfind( name, '/', STRING_NPOS );
+#if FOUNDATION_PLATFORM_WINDOWS
+	if( last_slash == STRING_NPOS )
+		last_slash = string_rfind( name, '\\', STRING_NPOS );
+#endif
 	if( last_slash != STRING_NPOS )
 		basename = name + last_slash + 1;
 
@@ -120,16 +123,16 @@ object_t library_load( const char* name )
 	//Try loading library
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	last_dot = string_rfind( name, '.', STRING_NPOS );
-	if( ( last_slash == STRING_NPOS ) || ( ( last_dot != STRING_NPOS ) && ( last_dot > last_slash ) ) )
+	dll = LoadLibraryA( name );
+	if( !dll )
 	{
-		dll = LoadLibraryA( name );
-	}
-	else
-	{
-		dllname = string_format( "%s" FOUNDATION_LIB_EXT, name );
-		dll = LoadLibraryA( dllname );
-		string_deallocate( dllname );
+		unsigned int last_dot = string_rfind( name, '/', STRING_NPOS );
+		if( ( last_dot == STRING_NPOS ) || ( last_dot < last_slash ) )
+		{
+			dllname = string_format( "%s" FOUNDATION_LIB_EXT, name );
+			dll = LoadLibraryA( dllname );
+			string_deallocate( dllname );
+		}
 	}
 	if( !dll )
 	{
