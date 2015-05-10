@@ -33,9 +33,9 @@ static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, size_
 
 #else
 
-#  define static_hash( key, len, value )     ( (void)sizeof( key ), (void)sizeof( len ), (hash_t)(value) )
-#  define static_hash_string( key, value )   ( (void)sizeof( key ), (hash_t)(value) )
-#  define hash_to_string( str )              ( (void)sizeof( str ), (const char*)0 )
+#  define static_hash( key, len, value )        ( (void)sizeof( key ), (void)sizeof( len ), (hash_t)(value) )
+#  define static_hash_string( key, len, value ) ( (void)sizeof( key ), (void)sizeof( len ), (hash_t)(value) )
+#  define hash_to_string( value )               ( (void)sizeof( value ), (const char*)0 )
 
 #endif
 

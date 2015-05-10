@@ -16,5 +16,5 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API size_t  base64_encode( const void* src, char* dst, size_t srcsize, size_t dstsize );
-FOUNDATION_API size_t  base64_decode( const char* src, void* dst, size_t srcsize, size_t dstsize );
+FOUNDATION_API size_t  base64_encode( const void* src, size_t srcsize, char* dst, size_t dstsize );
+FOUNDATION_API size_t  base64_decode( const char* src, size_t srcsize, void* dst, size_t dstsize );

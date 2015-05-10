@@ -16,21 +16,21 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API char*      path_base_file_name( const char* path );
-FOUNDATION_API char*      path_base_file_name_with_path( const char* path );
-FOUNDATION_API char*      path_file_extension( const char* path );
-FOUNDATION_API char*      path_file_name( const char* path );
-FOUNDATION_API char*      path_directory_name( const char* path );
-FOUNDATION_API char*      path_subdirectory_name( const char* path, const char* root );
-FOUNDATION_API char*      path_protocol( const char* uri );
+FOUNDATION_API string_const_t   path_base_file_name( const char* path, size_t length );
+FOUNDATION_API string_const_t   path_base_file_name_with_directory( const char* path, size_t length );
+FOUNDATION_API string_const_t   path_file_extension( const char* path, size_t length );
+FOUNDATION_API string_const_t   path_file_name( const char* path, size_t length );
+FOUNDATION_API string_const_t   path_directory_name( const char* path, size_t length );
+FOUNDATION_API string_const_t   path_subdirectory_name( const char* path, size_t length, const char* root, size_t root_length );
+FOUNDATION_API string_const_t   path_protocol( const char* uri, size_t length );
 
-FOUNDATION_API char*      path_merge( const char* first, const char* second );
-FOUNDATION_API char*      path_append( char* base, const char* tail );
-FOUNDATION_API char*      path_prepend( char* tail, const char* base );
-FOUNDATION_API char*      path_clean( char* path, bool absolute );
+FOUNDATION_API string_t         path_merge( const char* first, size_t first_length, const char* second, size_t second_length);
+FOUNDATION_API string_t         path_append( char* base, size_t base_length, const char* tail, size_t tail_length );
+FOUNDATION_API string_t         path_prepend( char* tail, size_t tail_length, const char* base, size_t base_length );
+FOUNDATION_API string_t         path_clean( char* path, size_t length, bool absolute );
 
-FOUNDATION_API bool       path_is_absolute( const char* path );
+FOUNDATION_API bool             path_is_absolute( const char* path, size_t length );
 
-FOUNDATION_API char*      path_make_absolute( const char* path );
-FOUNDATION_API char*      path_make_temporary( void );
+FOUNDATION_API string_t         path_make_absolute( const char* path, size_t length );
+FOUNDATION_API string_t         path_make_temporary( void );
 

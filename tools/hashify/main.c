@@ -269,7 +269,7 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 			}
 			else
 			{
-				stream_write_format( output_file, "#define %s static_hash_string( \"%s\", 0x%" PRIx64 "ULL )\n", def_string, value_string, hash_value );
+				stream_write_format( output_file, "#define %s static_hash_string( STRING_CONST( \"%s\" ), 0x%" PRIx64 "ULL )\n", def_string, value_string, hash_value );
 			}
 
 			if( result == HASHIFY_RESULT_OK )

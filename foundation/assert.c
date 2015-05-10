@@ -43,46 +43,51 @@ void assert_set_handler( assert_handler_fn new_handler )
 }
 
 
-int assert_report( hash_t context, const char* condition, const char* file, unsigned int line, string_const_t msg )
+int assert_report( hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length, unsigned int line, const char* msg, size_t msg_length )
 {
 	static const char nocondition[] = "<Static fail>";
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
-	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %s\nFile/line: %s : %d\n%s%s\n%s\n";
+	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%.*s\n%.*s\n";
 	string_t tracestr = { ASSERT_BUFFER_SIZE, _assert_stacktrace_buffer };
 	string_t contextstr = { ASSERT_BUFFER_SIZE, _assert_context_buffer };
 	string_t messagestr = { ASSERT_BUFFER_SIZE, _assert_message_buffer };
 
-	if( !condition  ) condition = nocondition;
-	if( !file       ) file      = nofile;
-	if( !msg.length ) msg       = string_const( nomsg, sizeof( nomsg ) );
+	if( !condition  ) { condition = nocondition; cond_length = sizeof( nocondition ); }
+	if( !file ) { file = nofile; file_length = sizeof( nofile ); }
+	if( !msg ) { msg = nomsg; msg_length = sizeof( nomsg ); }
 
 	if( _assert_handler && ( _assert_handler != assert_report ) )
-		return (*_assert_handler)( context, condition, file, line, msg );
+		return (*_assert_handler)( context, condition, cond_length, file, file_length, line, msg, msg_length );
 
 #if BUILD_ENABLE_ASSERT
-	contextstr = error_context_string( contextstr );
+	contextstr = error_context_string( contextstr.str, contextstr.length );
 
 	if( foundation_is_initialized() )
 	{
 		unsigned int num_frames = stacktrace_capture( _assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, ASSERT_STACKTRACE_SKIP_FRAMES );
 		if( num_frames )
-			tracestr = stacktrace_resolve( tracestr, _assert_stacktrace, num_frames, 0U );
+			tracestr = stacktrace_resolve( tracestr.str, tracestr.length, _assert_stacktrace, num_frames, 0U );
 		else
-			tracestr = string_copy( tracestr, string_const( "<no stacktrace>", 15 ) );
+			tracestr = string_copy( tracestr.str, tracestr.length, "<no stacktrace>", 15 );
 	}
 	else
 	{
-		tracestr = string_copy( tracestr, string_const( "<no stacktrace - not initialized>", 32 ) );
+		tracestr = string_copy( tracestr.str, tracestr.length, "<no stacktrace - not initialized>", 32 );
 	}
 
-	messagestr = string_format_string( messagestr, assert_format, condition, file, line, contextstr.str, msg.str, tracestr.str );
+	messagestr = string_format_string( messagestr.str, messagestr.length, assert_format,
+		(int)condition.length, condition.str, (int)file_length, file, line,
+		(int)contextstr.length, contextstr.str, (int)msg.length, msg.str,
+		(int)tracestr.length, tracestr.str );
 
-	log_errorf( context, ERROR_ASSERT, "%s", messagestr.str );
+	log_errorf( context, ERROR_ASSERT, STRING_CONST( "%.*s" ), (int)messagestr.length, messagestr.str );
 
-	system_message_box( "Assert Failure", messagestr.str, false );
+	system_message_box( STRING_CONST( "Assert Failure" ), messagestr.str, messagestr.length, false );
 #else
-	log_errorf( context, ERROR_ASSERT, assert_format, condition, file, line, "", msg.str, "" );
+	log_errorf( context, ERROR_ASSERT, assert_format,
+		(int)condition.length, condition.str, (int)file_length, file, line,
+		0, "", (int)msg.length, msg.str, 0, "" );
 #endif
 
 	return 1;

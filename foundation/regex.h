@@ -15,7 +15,7 @@
 #include <foundation/platform.h>
 
 
-FOUNDATION_API regex_t*  regex_compile( const char* pattern );
+FOUNDATION_API regex_t*  regex_compile( const char* pattern, size_t length );
 FOUNDATION_API bool      regex_match( regex_t* regex, const char* input, size_t inlength, regex_capture_t* captures, size_t maxcaptures );
 FOUNDATION_API void      regex_deallocate( regex_t* regex );
 

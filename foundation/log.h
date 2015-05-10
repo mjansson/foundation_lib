@@ -17,11 +17,11 @@
 #include <foundation/error.h>
 
 
-FOUNDATION_API void              log_debugf( hash_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 3 );
-FOUNDATION_API void              log_infof( hash_t context, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 3 );
-FOUNDATION_API void              log_warnf( hash_t context, warning_t warn, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
-FOUNDATION_API void              log_errorf( hash_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
-FOUNDATION_API void              log_panicf( hash_t context, error_t err, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
+FOUNDATION_API void              log_debugf( hash_t context, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 4 );
+FOUNDATION_API void              log_infof( hash_t context, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 2, 4 );
+FOUNDATION_API void              log_warnf( hash_t context, warning_t warn, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
+FOUNDATION_API void              log_errorf( hash_t context, error_t err, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
+FOUNDATION_API void              log_panicf( hash_t context, error_t err, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
 
 FOUNDATION_API void              log_error_context( hash_t context, error_level_t error_level );
 FOUNDATION_API log_callback_fn   log_callback( void );
@@ -35,33 +35,33 @@ FOUNDATION_API void              log_suppress_clear( void );
 
 #if BUILD_ENABLE_LOG && BUILD_ENABLE_DEBUG_LOG
 
-#  define log_debug( context, msg )             log_debugf( context, "%s", msg )
+#  define log_debug( context, msg, length )             log_debugf( context, STRING_CONST( "%.*s" ), (int)length, msg )
 
 #else
 
-#  define log_debug( context, msg ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_debugf( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_debug( context, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_debugf( context, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
 
 #endif
 
 
 #if BUILD_ENABLE_LOG
 
-#  define log_info( context, msg )              log_infof( context, "%s", msg )
-#  define log_warn( context, warn, msg )        log_warnf( context, warn, "%s", msg )
-#  define log_error( context, err, msg )        log_errorf( context, err, "%s", msg )
-#  define log_panic( context, err, msg )        log_panicf( context, err, "%s", msg )
+#  define log_info( context, msg, length )              log_infof( context, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define log_warn( context, warn, msg, length )        log_warnf( context, warn, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define log_error( context, err, msg, length )        log_errorf( context, err, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define log_panic( context, err, msg, length )        log_panicf( context, err, STRING_CONST( "%.*s" ), (int)length, msg )
 
 #else
 
-#  define log_info( context, msg ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_infof( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_warn( context, warn, msg ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_warnf( context, warn, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_error( context, err, msg ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_errorf( context, err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_panic( context, err, msg ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
-#  define log_panicf( context, err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_info( context, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_infof( context, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_warn( context, warn, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_warnf( context, warn, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_error( context, err, msg, length ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_errorf( context, err, msg, length, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_panic( context, err, msg, length ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_panicf( context, err, msg, length, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
 #  define log_error_context( context, error_level ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( error_level ); } while(0) /*lint -restore */
 #  define log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( (void*)callback ); } while(0) /*lint -restore */
 #  define log_enable_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */

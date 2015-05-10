@@ -20,18 +20,18 @@
 
 FOUNDATION_API assert_handler_fn    assert_handler( void );
 FOUNDATION_API void                 assert_set_handler( assert_handler_fn new_handler );
-FOUNDATION_API int                  assert_report( hash_t context, const char* condition, const char* file, unsigned int line, string_const_t msg );
-FOUNDATION_API int                  assert_report_formatted( hash_t context, const char* condition, const char* file, unsigned int line, const char* msg, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 5, 6 );
+FOUNDATION_API int                  assert_report( hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length, unsigned int line, const char* msg, size_t msg_length );
+FOUNDATION_API int                  assert_report_formatted( hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length, unsigned int line, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 7, 9 );
 
 #if BUILD_ENABLE_ASSERT
 
-#  define FOUNDATION_ASSERT( cond ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, __FILE__, __LINE__, string_null() ) ) crash_debug_break(); } while(0)
-#  define FOUNDATION_ASSERT_MSG( cond, msg ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, __FILE__, __LINE__, string_const( (msg), string_length( (msg) ) ) ) ) crash_debug_break(); } while(0)
-#  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
-#  define FOUNDATION_ASSERT_FAIL( msg ) do { if( assert_report( 0ULL, 0, __FILE__, __LINE__, string_const( (msg), 0 ) ) ) crash_debug_break(); } while(0)
-#  define FOUNDATION_ASSERT_FAIL_LOG( context, msg ) do { if( assert_report( context, 0, __FILE__, __LINE__, string_const( (msg), string_length( (msg) ) ) ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
-#  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { if( assert_report_formatted( 0ULL, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
-#  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { if( assert_report_formatted( context, 0, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
+#  define FOUNDATION_ASSERT( cond ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, 0, 0 ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_MSG( cond, msg ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ) ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (mdg) ), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_FAIL( msg ) do { if( assert_report( 0ULL, 0, 0, __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ) ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_FAIL_LOG( context, msg ) do { if( assert_report( context, 0, 0, __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ) ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
+#  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { if( assert_report_formatted( 0ULL, 0, 0, __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_FAILFORMAT_LOG( context, msg, ... ) do { if( assert_report_formatted( context, 0, 0, __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ), __VA_ARGS__ ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
 
 #  define FOUNDATION_ASSERT_ALIGNMENT( addr, alignment ) do { FOUNDATION_ASSERT_MSG( ( (uintptr_t)(addr) % (uintptr_t)(alignment) ) == 0, "Mis-aligned memory" ); } while(0)
 #  if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
@@ -40,9 +40,9 @@ FOUNDATION_API int                  assert_report_formatted( hash_t context, con
 #  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT( addr, alignment ) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
 #endif
 
-#  define FOUNDATION_VALIDATE( cond ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, __FILE__, __LINE__, 0 ) ? ( crash_debug_break(), false ) : false ) : true )
-#  define FOUNDATION_VALIDATE_MSG( cond, msg ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, __FILE__, __LINE__, string_const( (msg), string_length( (msg) ) ) ) ? ( crash_debug_break(), false ) : false ) : true )
-#  define FOUNDATION_VALIDATE_MSGFORMAT( cond, msg, ... ) ( ( !(cond) ) ? ( assert_report_formatted( 0ULL, #cond, __FILE__, __LINE__, (msg), __VA_ARGS__ ) ? ( crash_debug_break(), false ) : false ) : true )
+#  define FOUNDATION_VALIDATE( cond ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, 0, 0 ) ? ( crash_debug_break(), false ) : false ) : true )
+#  define FOUNDATION_VALIDATE_MSG( cond, msg ) ( ( !(cond) ) ? ( assert_report( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ) ) ? ( crash_debug_break(), false ) : false ) : true )
+#  define FOUNDATION_VALIDATE_MSGFORMAT( cond, msg, ... ) ( ( !(cond) ) ? ( assert_report_formatted( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ), __VA_ARGS__ ) ? ( crash_debug_break(), false ) : false ) : true )
 
 #else
 

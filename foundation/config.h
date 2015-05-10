@@ -25,8 +25,8 @@ FOUNDATION_API hash_t         config_string_hash( hash_t section, hash_t key );
 FOUNDATION_API void           config_set_bool( hash_t section, hash_t key, bool value );
 FOUNDATION_API void           config_set_int( hash_t section, hash_t key, int64_t value );
 FOUNDATION_API void           config_set_real( hash_t section, hash_t key, real value );
-FOUNDATION_API void           config_set_string( hash_t section, hash_t key, string_const_t value );
-FOUNDATION_API void           config_set_string_constant( hash_t section, hash_t key, string_const_t value );
+FOUNDATION_API void           config_set_string( hash_t section, hash_t key, const char* value, size_t length );
+FOUNDATION_API void           config_set_string_constant( hash_t section, hash_t key, const char* value, size_t length );
 
 FOUNDATION_API void           config_load( string_const_t name, hash_t filter_section, bool built_in, bool overwrite );
 FOUNDATION_API void           config_parse( stream_t* stream, hash_t filter_section, bool overwrite );

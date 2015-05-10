@@ -16,9 +16,9 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API object_t      library_load( const char* name );
+FOUNDATION_API object_t      library_load( const char* name, size_t length );
 FOUNDATION_API object_t      library_ref( object_t library );
 FOUNDATION_API void          library_unload( object_t library );
-FOUNDATION_API void*         library_symbol( object_t library, const char* name );
+FOUNDATION_API void*         library_symbol( object_t library, const char* name, size_t length );
 FOUNDATION_API const char*   library_name( object_t library );
 FOUNDATION_API bool          library_valid( object_t library );

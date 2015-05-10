@@ -16,18 +16,18 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API mutex_t*      mutex_allocate( const char* name );
-FOUNDATION_API void          mutex_deallocate( mutex_t* mutex );
+FOUNDATION_API mutex_t*        mutex_allocate( const char* name, size_t length );
+FOUNDATION_API void            mutex_deallocate( mutex_t* mutex );
 
-FOUNDATION_API const char*   mutex_name( mutex_t* mutex );
-FOUNDATION_API bool          mutex_try_lock( mutex_t* mutex );
-FOUNDATION_API bool          mutex_lock( mutex_t* mutex );
-FOUNDATION_API bool          mutex_unlock( mutex_t* mutex );
-FOUNDATION_API bool          mutex_wait( mutex_t* mutex, unsigned int timeout );
-FOUNDATION_API void          mutex_signal( mutex_t* mutex );
+FOUNDATION_API string_const_t  mutex_name( mutex_t* mutex );
+FOUNDATION_API bool            mutex_try_lock( mutex_t* mutex );
+FOUNDATION_API bool            mutex_lock( mutex_t* mutex );
+FOUNDATION_API bool            mutex_unlock( mutex_t* mutex );
+FOUNDATION_API bool            mutex_wait( mutex_t* mutex, unsigned int timeout );
+FOUNDATION_API void            mutex_signal( mutex_t* mutex );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-FOUNDATION_API void*         mutex_event_object( mutex_t* mutex );
+FOUNDATION_API void*           mutex_event_object( mutex_t* mutex );
 
 #endif

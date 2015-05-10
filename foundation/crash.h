@@ -16,8 +16,8 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API int                     crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, string_const_t name );
-FOUNDATION_API void                    crash_guard_set( crash_dump_callback_fn callback, string_const_t name );
+FOUNDATION_API int                     crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name, size_t length );
+FOUNDATION_API void                    crash_guard_set( crash_dump_callback_fn callback, const char* name, size_t length );
 FOUNDATION_API string_const_t          crash_guard_name( void );
 FOUNDATION_API crash_dump_callback_fn  crash_guard_callback( void );
 

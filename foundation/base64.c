@@ -18,7 +18,7 @@ static const char _base64_decode[] = "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFG
 static const char _base64_encode[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
-size_t base64_encode( const void* src, char* dst, size_t srcsize, size_t dstsize )
+size_t base64_encode( const void* src, size_t srcsize, char* dst, size_t dstsize )
 {
 	char* ptr;
 	const unsigned char* carr;
@@ -72,7 +72,7 @@ size_t base64_encode( const void* src, char* dst, size_t srcsize, size_t dstsize
     out[ 1 ] = (char)( in[1] << 4 | in[2] >> 2 ); \
     out[ 2 ] = (char)( ( ( in[2] << 6 ) & 0xc0 ) | in[3] );
 
-size_t base64_decode( const char* src, void* dst, size_t srcsize, size_t dstsize )
+size_t base64_decode( const char* src, size_t srcsize, void* dst, size_t dstsize )
 {
 	size_t i, length, blocksize;
 	char* cdst = (char*)dst;

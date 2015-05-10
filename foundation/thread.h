@@ -16,7 +16,7 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API object_t        thread_create( thread_fn fn, const char* name, thread_priority_t priority, unsigned int stacksize );
+FOUNDATION_API object_t        thread_create( thread_fn fn, const char* name, size_t length, thread_priority_t priority, unsigned int stacksize );
 FOUNDATION_API object_t        thread_ref( object_t thread );
 FOUNDATION_API void            thread_destroy( object_t thread );
 
@@ -35,7 +35,7 @@ FOUNDATION_API void            thread_set_hardware( uint64_t mask );
 
 FOUNDATION_API void*           thread_result( object_t thread );
 FOUNDATION_API object_t        thread_self( void );
-FOUNDATION_API const char*     thread_name( void );
+FOUNDATION_API string_const_t  thread_name( void );
 FOUNDATION_API uint64_t        thread_id( void );
 FOUNDATION_API unsigned int    thread_hardware( void );
 

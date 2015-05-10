@@ -22,11 +22,11 @@ FOUNDATION_API void        process_deallocate( process_t* proc );
 FOUNDATION_API void        process_initialize( process_t* proc );
 FOUNDATION_API void        process_finalize( process_t* proc );
 
-FOUNDATION_API void        process_set_working_directory( process_t* proc, const char* path );
-FOUNDATION_API void        process_set_executable_path( process_t* proc, const char* path );
-FOUNDATION_API void        process_set_arguments( process_t* proc, const char** args, size_t num );
+FOUNDATION_API void        process_set_working_directory( process_t* proc, const char* path, size_t length );
+FOUNDATION_API void        process_set_executable_path( process_t* proc, const char* path, size_t length );
+FOUNDATION_API void        process_set_arguments( process_t* proc, const string_const_t* args, size_t num );
 FOUNDATION_API void        process_set_flags( process_t* proc, unsigned int flags );
-FOUNDATION_API void        process_set_verb( process_t* proc, const char* verb );
+FOUNDATION_API void        process_set_verb( process_t* proc, const char* verb, size_t length );
 FOUNDATION_API void        process_set_exit_code( int code );
 
 FOUNDATION_API int         process_spawn( process_t* proc );

@@ -161,13 +161,7 @@ void md5_finalize( md5_t* md5 )
 }
 
 
-md5_t* md5_digest( md5_t* digest, const char* msg )
-{
-	return md5_digest_raw( digest, msg, string_length( msg ) );
-}
-
-
-md5_t* md5_digest_raw( md5_t* digest, const void* buffer, size_t size )
+md5_t* md5_digest( md5_t* digest, const void* buffer, size_t size )
 {
 	size_t index_in, index_buf;
 	size_t space_buf;
