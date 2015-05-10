@@ -63,7 +63,7 @@ void error_set_callback( error_callback_fn callback )
 FOUNDATION_DECLARE_THREAD_LOCAL( error_context_t*, error_context, 0 )
 
 
-void _error_context_push( const char* name, const char* data )
+void _error_context_push( const char* name, size_t name_length, const char* data, size_t data_length )
 {
 	error_context_t* context = get_thread_error_context();
 	if( !context )
@@ -72,8 +72,10 @@ void _error_context_push( const char* name, const char* data )
 		set_thread_error_context( context );
 	}
 	FOUNDATION_ASSERT_MSG( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH, "Error context stack overflow" );
-	context->frame[ context->depth ].name = name;
-	context->frame[ context->depth ].data = data;
+	context->frame[ context->depth ].name = name ? name : "<something>";
+	context->frame[ context->depth ].name_length = name ? name_length : 11;
+	context->frame[ context->depth ].data = data ? data : "<something>";
+	context->frame[ context->depth ].data_length = data ? data_length : 11;
 	if( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH-1 )
 		++context->depth;
 }
@@ -95,12 +97,14 @@ void _error_context_clear( void )
 }
 
 
-void _error_context_buffer( char* buffer, size_t size )
+string_t _error_context_buffer( char* buffer, size_t size )
 {
 	error_context_t* context = get_thread_error_context();
+	string_t result = { buffer, size };
 	if( context )
 	{
-		size_t i, len;
+		size_t i;
+		string_t line;
 		error_frame_t* frame = context->frame;
 		for( i = 0; ( size > 1 ) && ( i < context->depth ); ++i, ++frame )
 		{
@@ -110,16 +114,16 @@ void _error_context_buffer( char* buffer, size_t size )
 				--size;
 			}
 
-			string_format_buffer( buffer, size, "When %s: %s", frame->name ? frame->name : "<something>", frame->data ? frame->data : "<something>" );
-			len = string_length( buffer );
-			FOUNDATION_ASSERT( len < size );
+			line = string_format_buffer( buffer, size, STRING_CONST( "When %.*s: %.*s" ), (int)frame->name_length, frame->name, (int)frame->data_length, frame->data );
 
-			buffer += len;
-			size -= len;
+			buffer += line.length;
+			size -= line.length;
 		}
 	}
 	if( size )
 		*buffer = 0;
+	result.length = (size_t)pointer_diff( buffer, result.str );
+	return result;
 }
 
 

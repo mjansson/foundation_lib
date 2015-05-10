@@ -24,10 +24,10 @@ FOUNDATION_API string_const_t  string_null( void );
 FOUNDATION_API string_const_t  string_const( const char* str, size_t length );
 FOUNDATION_API string_const_t  string_to_const( string_t str );
 
-FOUNDATION_API string_t        string_format( const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 2 );
-FOUNDATION_API string_t        string_format_buffer( char* str, size_t length, const char* format, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 4 );
-FOUNDATION_API string_t        string_vformat( const char* format, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 0 );
-FOUNDATION_API string_t        string_vformat_string( char* str, size_t length, const char* format, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 0 );
+FOUNDATION_API string_t        string_format( const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 3 );
+FOUNDATION_API string_t        string_format_buffer( char* str, size_t length, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
+FOUNDATION_API string_t        string_vformat( const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 0 );
+FOUNDATION_API string_t        string_vformat_buffer( char* str, size_t length, const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 0 );
 
 FOUNDATION_API size_t          string_length( const char* str );
 FOUNDATION_API size_t          string_glyphs( const char* str, size_t length );

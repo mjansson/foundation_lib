@@ -49,9 +49,9 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
 	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%.*s\n%.*s\n";
-	string_t tracestr = { ASSERT_BUFFER_SIZE, _assert_stacktrace_buffer };
-	string_t contextstr = { ASSERT_BUFFER_SIZE, _assert_context_buffer };
-	string_t messagestr = { ASSERT_BUFFER_SIZE, _assert_message_buffer };
+	string_t tracestr = { _assert_stacktrace_buffer, ASSERT_BUFFER_SIZE };
+	string_t contextstr = { _assert_context_buffer, ASSERT_BUFFER_SIZE };
+	string_t messagestr = { _assert_message_buffer, ASSERT_BUFFER_SIZE };
 
 	if( !condition  ) { condition = nocondition; cond_length = sizeof( nocondition ); }
 	if( !file ) { file = nofile; file_length = sizeof( nofile ); }
@@ -61,7 +61,7 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 		return (*_assert_handler)( context, condition, cond_length, file, file_length, line, msg, msg_length );
 
 #if BUILD_ENABLE_ASSERT
-	contextstr = error_context_string( contextstr.str, contextstr.length );
+	contextstr = error_context_buffer( contextstr.str, contextstr.length );
 
 	if( foundation_is_initialized() )
 	{
@@ -76,9 +76,9 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 		tracestr = string_copy( tracestr.str, tracestr.length, "<no stacktrace - not initialized>", 32 );
 	}
 
-	messagestr = string_format_string( messagestr.str, messagestr.length, assert_format,
-		(int)condition.length, condition.str, (int)file_length, file, line,
-		(int)contextstr.length, contextstr.str, (int)msg.length, msg.str,
+	messagestr = string_format_buffer( messagestr.str, messagestr.length, assert_format, sizeof( assert_format ),
+		(int)cond_length, condition, (int)file_length, file, line,
+		(int)contextstr.length, contextstr.str, (int)msg_length, msg,
 		(int)tracestr.length, tracestr.str );
 
 	log_errorf( context, ERROR_ASSERT, STRING_CONST( "%.*s" ), (int)messagestr.length, messagestr.str );
@@ -94,20 +94,18 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 }
 
 
-int assert_report_formatted( hash_t context, const char* condition, const char* file, unsigned int line, const char* msg, ... )
+int assert_report_formatted( hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length, unsigned int line, const char* msg, size_t msg_length, ... )
 {
-	string_t buffer = { ASSERT_BUFFER_SIZE, _assert_buffer };
 	if( msg )
 	{
 		/*lint --e{438} Lint gets confused about assignment to ap */
+		string_t buffer = { _assert_buffer, ASSERT_BUFFER_SIZE };
 		va_list ap;
-		va_start( ap, msg );
-		buffer = string_vformat_string( buffer, msg, ap );
+		va_start( ap, msg_length );
+		buffer = string_vformat_buffer( buffer.str, buffer.length, msg, msg_length, ap );
 		va_end( ap );
+		return assert_report( context, condition, cond_length, file, file_length, line, buffer.str, buffer.length );
 	}
-	else
-	{
-		buffer = string_resize( buffer, 0, 0 );
-	}
-	return assert_report( context, condition, file, line, string_to_const( buffer ) );
+
+	return assert_report( context, condition, cond_length, file, file_length, line, 0, 0 );
 }

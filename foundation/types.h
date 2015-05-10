@@ -291,8 +291,8 @@ typedef struct semaphore_t                   semaphore_t;
 #endif
 
 typedef int           (* error_callback_fn )( error_level_t level, error_t error );
-typedef int           (* assert_handler_fn )( hash_t context, const char* condition, const char* file, unsigned int line, string_const_t msg );
-typedef void          (* log_callback_fn )( hash_t context, error_level_t severity, const char* msg );
+typedef int           (* assert_handler_fn )( hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length, unsigned int line, const char* msg, size_t msg_length );
+typedef void          (* log_callback_fn )( hash_t context, error_level_t severity, const char* msg, size_t length );
 typedef int           (* system_initialize_fn )( void );
 typedef void          (* system_shutdown_fn )( void );
 typedef void*         (* memory_allocate_fn )( hash_t context, size_t size, unsigned int align, unsigned int hint );
@@ -304,9 +304,9 @@ typedef void          (* profile_write_fn )( void* data, size_t size );
 typedef void          (* profile_read_fn )( void* data, size_t size );
 typedef void*         (* thread_fn )( object_t thread, void* arg );
 typedef int           (* crash_guard_fn )( void* arg );
-typedef void          (* crash_dump_callback_fn )( const char* file );
+typedef void          (* crash_dump_callback_fn )( const char* file, size_t length );
 typedef void          (* object_deallocate_fn )( object_t id, void* object );
-typedef stream_t*     (* stream_open_fn )( const char* path, unsigned int mode );
+typedef stream_t*     (* stream_open_fn )( const char* path, size_t length, unsigned int mode );
 typedef size_t        (* stream_read_fn )( stream_t* stream, void* dst, size_t size );
 typedef size_t        (* stream_write_fn )( stream_t* stream, const void* src, size_t size );
 typedef bool          (* stream_eos_fn )( stream_t* stream );
@@ -331,14 +331,14 @@ typedef stream_t*     (* stream_clone_fn )( stream_t* stream );
 
 struct string_t
 {
-	size_t                          length;
 	char*                           str;
+	size_t                          length;
 };
 
 struct string_const_t
 {
-	size_t                          length;
 	const char*                     str;
+	size_t                          length;
 };
 
 struct md5_t
@@ -427,6 +427,8 @@ struct error_frame_t
 {
 	const char*                     name;
 	const char*                     data;
+	size_t                          name_length;
+	size_t                          data_length;
 };
 
 

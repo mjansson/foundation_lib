@@ -27,7 +27,7 @@ FOUNDATION_API int                  assert_report_formatted( hash_t context, con
 
 #  define FOUNDATION_ASSERT( cond ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, 0, 0 ) ) crash_debug_break(); } while(0)
 #  define FOUNDATION_ASSERT_MSG( cond, msg ) do { if( ( !(cond) ) && assert_report( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ) ) ) crash_debug_break(); } while(0)
-#  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (mdg) ), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
+#  define FOUNDATION_ASSERT_MSGFORMAT( cond, msg, ... ) do { if( ( !(cond) ) && assert_report_formatted( 0ULL, #cond, sizeof( #cond ), __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ), __VA_ARGS__ ) ) crash_debug_break(); } while(0)
 #  define FOUNDATION_ASSERT_FAIL( msg ) do { if( assert_report( 0ULL, 0, 0, __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ) ) ) crash_debug_break(); } while(0)
 #  define FOUNDATION_ASSERT_FAIL_LOG( context, msg ) do { if( assert_report( context, 0, 0, __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ) ) ) crash_debug_break(); (void)sizeof( context ); } while(0)
 #  define FOUNDATION_ASSERT_FAILFORMAT( msg, ... ) do { if( assert_report_formatted( 0ULL, 0, 0, __FILE__, sizeof( __FILE__ ), __LINE__, (msg), string_length( (msg) ), __VA_ARGS__ ) ) crash_debug_break(); } while(0)

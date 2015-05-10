@@ -17,7 +17,7 @@
 
 
 FOUNDATION_API stream_t*        fs_open_file( const char* path, size_t length, unsigned int mode );
-FOUNDATION_API void             fs_copy_file( const char* source size_t src_length, const char* dest, size_t dst_length );
+FOUNDATION_API void             fs_copy_file( const char* source, size_t src_length, const char* dest, size_t dst_length );
 FOUNDATION_API bool             fs_remove_file( const char* path, size_t length );
 FOUNDATION_API bool             fs_is_file( const char* path, size_t length );
 FOUNDATION_API bool             fs_make_directory( const char* path, size_t length );
