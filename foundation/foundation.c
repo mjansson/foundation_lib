@@ -59,13 +59,14 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 
 	//Parse built-in command line options
 	{
-		const char* const* cmdline = environment_command_line();
+		const string_const_t* cmdline = environment_command_line();
 		size_t iarg, argsize;
 		for( iarg = 0, argsize = array_size( cmdline ); iarg < argsize; ++iarg )
 		{
-			if( string_equal( cmdline[iarg], "--log-debug" ) )
+			string_const_t arg = cmdline[iarg];
+			if( string_equal( arg.str, arg.length, STRING_CONST( "--log-debug" ) ) )
 				log_set_suppress( 0, ERRORLEVEL_NONE );
-			else if( string_equal( cmdline[iarg], "--log-info" ) )
+			else if( string_equal( arg.str, arg.length, STRING_CONST( "--log-info" ) ) )
 				log_set_suppress( 0, ERRORLEVEL_DEBUG );
 		}
 

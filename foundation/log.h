@@ -35,33 +35,52 @@ FOUNDATION_API void              log_suppress_clear( void );
 
 #if BUILD_ENABLE_LOG && BUILD_ENABLE_DEBUG_LOG
 
-#  define log_debug( context, msg, length )             log_debugf( context, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define _log_debug( context, msg, length )            log_debugf( context, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define log_debug( ... )                              _log_debug( __VA_ARGS__ )
 
 #else
 
-#  define log_debug( context, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_debugf( context, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_debug( context, msg, length )            /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_debugf( context, msg, length, ... )      /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define log_debug( ... )                              _log_debug( __VA_ARGS__ )
+#  define log_debugf( ... )                             _log_debugf( __VA_ARGS__ )
 
 #endif
 
 
 #if BUILD_ENABLE_LOG
 
-#  define log_info( context, msg, length )              log_infof( context, STRING_CONST( "%.*s" ), (int)length, msg )
-#  define log_warn( context, warn, msg, length )        log_warnf( context, warn, STRING_CONST( "%.*s" ), (int)length, msg )
-#  define log_error( context, err, msg, length )        log_errorf( context, err, STRING_CONST( "%.*s" ), (int)length, msg )
-#  define log_panic( context, err, msg, length )        log_panicf( context, err, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define _log_info( context, msg, length )             log_infof( context, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define _log_warn( context, warn, msg, length )       log_warnf( context, warn, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define _log_error( context, err, msg, length )       log_errorf( context, err, STRING_CONST( "%.*s" ), (int)length, msg )
+#  define _log_panic( context, err, msg, length )       log_panicf( context, err, STRING_CONST( "%.*s" ), (int)length, msg )
+
+#  define log_info( ... )                               _log_info( __VA_ARGS__ )
+#  define log_warn( ... )                               _log_warn( __VA_ARGS__ )
+#  define log_error( ... )                              _log_error( __VA_ARGS__ )
+#  define log_panic( ... )                              _log_panic( __VA_ARGS__ )
 
 #else
 
-#  define log_info( context, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_infof( context, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_warn( context, warn, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_warnf( context, warn, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_error( context, err, msg, length ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_errorf( context, err, msg, length, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_panic( context, err, msg, length ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
-#  define log_panicf( context, err, msg, length, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_info( context, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_infof( context, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_warn( context, warn, msg, length ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_warnf( context, warn, msg, length, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_error( context, err, msg, length ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_errorf( context, err, msg, length, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_ERROR, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_panic( context, err, msg, length ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+#  define _log_panicf( context, err, msg, length, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); (void)sizeof( length ); } while(0) /*lint -restore */
+
+#  define log_info( ... )                               _log_info( __VA_ARGS__ )
+#  define log_warn( ... )                               _log_warn( __VA_ARGS__ )
+#  define log_error( ... )                              _log_error( __VA_ARGS__ )
+#  define log_panic( ... )                              _log_panic( __VA_ARGS__ )
+
+#  define log_infof( ... )                              _log_infof( __VA_ARGS__ )
+#  define log_warnf( ... )                              _log_warnf( __VA_ARGS__ )
+#  define log_errorf( ... )                             _log_errorf( __VA_ARGS__ )
+#  define log_panicf( ... )                             _log_panicf( __VA_ARGS__ )
+
 #  define log_error_context( context, error_level ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( error_level ); } while(0) /*lint -restore */
 #  define log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( (void*)callback ); } while(0) /*lint -restore */
 #  define log_enable_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */

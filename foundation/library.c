@@ -31,8 +31,9 @@ struct library_t
 {
 	FOUNDATION_DECLARE_OBJECT;
 
-	hash_t           namehash;
 	char             name[32];
+	hash_t           name_hash;
+	size_t           name_length;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE           dll;
@@ -79,14 +80,15 @@ static void _library_destroy( library_t* library )
 }
 
 
-object_t library_load( const char* name )
+object_t library_load( const char* name, size_t length )
 {
 	library_t* library;
-	hash_t namehash;
+	hash_t name_hash;
 	size_t i, size;
 	object_t id;
 	const char* basename;
 	size_t last_slash;
+	size_t base_length;
 #if FOUNDATION_PLATFORM_WINDOWS
 	char* dllname;
 	HANDLE dll;
@@ -103,29 +105,33 @@ object_t library_load( const char* name )
 #endif
 
 	basename = name;
-	last_slash = string_rfind( name, '/', STRING_NPOS );
+	base_length = length;
+	last_slash = string_rfind( name, length, '/', STRING_NPOS );
 #if FOUNDATION_PLATFORM_WINDOWS
 	if( last_slash == STRING_NPOS )
-		last_slash = string_rfind( name, '\\', STRING_NPOS );
+		last_slash = string_rfind( name, length, '\\', STRING_NPOS );
 #endif
 	if( last_slash != STRING_NPOS )
+	{
 		basename = name + last_slash + 1;
+		base_length = length - last_slash;
+	}
 
 	//Locate already loaded library
 	library = 0;
-	namehash = string_hash( basename );
+	name_hash = string_hash( basename, base_length );
 	for( i = 0, size = objectmap_size( _library_map ); i < size; ++i )
 	{
 		library = objectmap_raw_lookup( _library_map, i );
-		if( library && ( library->namehash == namehash ) )
+		if( library && ( library->name_hash == name_hash ) )
 		{
-			FOUNDATION_ASSERT( string_equal( library->name, basename ) );
+			FOUNDATION_ASSERT( string_equal( library->name, library->name_length, basename, base_length ) );
 			atomic_incr32( &library->ref );
 			return library->id;
 		}
 	}
 
-	error_context_push( "loading library", name );
+	error_context_push( STRING_CONST( "loading library" ), name, length );
 
 	//Try loading library
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -149,42 +155,46 @@ object_t library_load( const char* name )
 	}
 
 #elif FOUNDATION_PLATFORM_POSIX
-	char* libname;
 	void* lib = dlopen( name, RTLD_LAZY );
-	if( !lib && !string_ends_with( name, FOUNDATION_LIB_EXT ) )
+	if( !lib && !string_ends_with( name, length, STRING_CONST( FOUNDATION_LIB_EXT ) ) )
 	{
+		string_t libname = string_thread_buffer();
 		if( last_slash == STRING_NPOS )
 		{
-			libname = string_format( FOUNDATION_LIB_PRE "%s" FOUNDATION_LIB_EXT, name );
+			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+				(int)length, name );
 		}
 		else
 		{
-			char* path = path_directory_name( name );
-			char* file = path_file_name( name );
-			char* decorated_name = string_format( FOUNDATION_LIB_PRE "%s" FOUNDATION_LIB_EXT, file );
-			libname = path_merge( path, decorated_name );
-			string_deallocate( decorated_name );
-			string_deallocate( path );
-			string_deallocate( file );
+			string_const_t path = path_directory_name( name, length );
+			string_const_t file = path_file_name( name, length );
+			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+				(int)path.length, path.str, (int)file.length, file.str );
 		}
-		lib = dlopen( libname, RTLD_LAZY );
-		string_deallocate( libname );
+		lib = dlopen( libname.str, RTLD_LAZY );
 	}
 #if FOUNDATION_PLATFORM_ANDROID
 	if( !lib && ( last_slash == STRING_NPOS ) )
 	{
+		string_const_t exe_dir = environment_executable_directory();
+		string_t libname = string_thread_buffer();
 		if( !string_ends_with( name, FOUNDATION_LIB_EXT ) )
-			libname = string_format( "%s/" FOUNDATION_LIB_PRE "%s" FOUNDATION_LIB_EXT, environment_executable_directory(), name );
+		{
+			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+				(int)exe_dir.length, exe_dir.str, (int)length, name );
+		}
 		else
-			libname = string_format( "%s/" FOUNDATION_LIB_PRE "%s", environment_executable_directory(), name );
-		lib = dlopen( libname, RTLD_LAZY );
-		string_deallocate( libname );
+		{
+			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" ),
+				(int)exe_dir.length, exe_dir.str, (int)length, name );
+		}
+		lib = dlopen( libname.str, RTLD_LAZY );
 	}
 #  endif
 
 	if( !lib )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to load dynamic library '%s': %s", name, dlerror() );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to load dynamic library '%.*s': %s" ), (int)length, name, dlerror() );
 		error_context_pop();
 		return 0;
 	}
@@ -199,14 +209,14 @@ object_t library_load( const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		dlclose( lib );
 #endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to allocate new library '%.*s', map full" ), (int)length, name );
 		error_context_pop();
 		return 0;
 	}
 	library = memory_allocate( 0, sizeof( library_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_object_initialize( (object_base_t*)library, id );
-	library->namehash = namehash;
-	string_copy( library->name, basename, 32 );
+	library->name_hash = name_hash;
+	library->name_length = string_copy( library->name, sizeof( library->name ), basename, base_length ).length;
 #if FOUNDATION_PLATFORM_WINDOWS
 	library->dll = dll;
 #elif FOUNDATION_PLATFORM_POSIX
@@ -234,9 +244,10 @@ void library_unload( object_t id )
 }
 
 
-void* library_symbol( object_t id, const char* name )
+void* library_symbol( object_t id, const char* name, size_t length )
 {
 	library_t* library = objectmap_lookup( _library_map, id );
+	FOUNDATION_UNUSED( length );
 	if( library )
 	{
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -245,7 +256,7 @@ void* library_symbol( object_t id, const char* name )
 		return dlsym( library->lib, name );
 #else
 		FOUNDATION_UNUSED( name );
-		log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library symbol lookup implemented for this platform: %s not found", name );
+		log_errorf( 0, ERROR_NOT_IMPLEMENTED, STRING_CONST( "Dynamic library symbol lookup implemented for this platform" ) );
 #endif
 	}
 	return 0;

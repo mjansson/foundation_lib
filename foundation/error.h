@@ -24,10 +24,12 @@ FOUNDATION_API void               error_set_callback( error_callback_fn callback
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
-#define error_context_push( name, namelen, data, datalen ) do { _error_context_push( (name), (namelen), (data), (datalen) ); } while(0)
+#define _error_context_push_proxy( name, namelen, data, datalen ) do { _error_context_push( (name), (namelen), (data), (datalen) ); } while(0)
+#define error_context_push( ... )             do { _error_context_push_proxy( __VA_ARGS__ ); } while(0)
 #define error_context_pop()                   do { _error_context_pop(); } while(0)
 #define error_context_clear()                 do { _error_context_clear(); } while(0)
-#define error_context_buffer( str, length )   _error_context_buffer( str, length )
+#define _error_context_buffer_proxy( str, length )  _error_context_buffer( str, length )
+#define error_context_buffer( ... )           _error_context_buffer_proxy( __VA_ARGS__ )
 #define error_context()                       _error_context()
 #define error_context_declare_local( decl )   decl
 #define error_context_thread_deallocate()     do { _error_context_thread_deallocate(); } while(0)
@@ -41,10 +43,12 @@ FOUNDATION_API void                           _error_context_thread_deallocate( 
 
 #else
 
-#define error_context_push( name, namelen, data, datalen ) /*lint -save -e506 -e751 */ do { (void)sizeof( name ); (void)sizeof( namelen ); (void)sizeof( data ); (void)sizeof( datalen ); } while(0) /*lint -restore -e506 -e751 */
+#define _error_context_push( name, namelen, data, datalen ) /*lint -save -e506 -e751 */ do { (void)sizeof( name ); (void)sizeof( namelen ); (void)sizeof( data ); (void)sizeof( datalen ); } while(0) /*lint -restore -e506 -e751 */
+#define error_context_push( ... )             do { _error_context_push( __VA_ARGS__ ); } while(0)
 #define error_context_pop()                   do { /* */ } while(0)
 #define error_context_clear()                 do { /* */ } while(0)
-#define error_context_buffer( str, length )   (void)sizeof( str ); (void)sizeof( length ), string_null()
+#define _error_context_buffer( str, length )  (void)sizeof( str ); (void)sizeof( length ), string_null()
+#define error_context_buffer( ... )           _error_context_buffer( __VA_ARGS__ )
 #define error_context()                       0
 #define error_context_declare_local( decl )   do { /* */ } while(0)
 #define error_context_thread_deallocate()     do { /* */ } while(0)

@@ -215,7 +215,7 @@ void _static_hash_store( const void* key, size_t len, hash_t value )
 	stored = (char*)((uintptr_t)hashtable64_get( _hash_lookup, value ));
 	if( stored )
 	{
-		FOUNDATION_ASSERT_MSG( string_equal_substr( stored, key, len ), "Static hash collision" );
+		FOUNDATION_ASSERT_MSG( string_equal( stored, string_length( stored ), key, len ), "Static hash collision" );
 		FOUNDATION_ASSERT_MSG( string_length( stored ) == len, "Static hash collision" );
 		return;
 	}

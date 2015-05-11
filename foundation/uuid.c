@@ -120,7 +120,7 @@ uuid_t uuid_generate_time( void )
 }
 
 
-uuid_t uuid_generate_name( const uuid_t ns, const char* name )
+uuid_t uuid_generate_name( const uuid_t ns, const char* name, size_t length )
 {
 	//v3 uuid, namespace and md5
 	md5_t md5;
@@ -137,8 +137,8 @@ uuid_t uuid_generate_name( const uuid_t ns, const char* name )
 	namespace_id.data3 = byteorder_bigendian16( namespace_id.data3 );
 
 	md5_initialize( &md5 );
-	md5_digest_raw( &md5, &namespace_id, sizeof( namespace_id ) );
-	md5_digest( &md5, name );
+	md5_digest( &md5, &namespace_id, sizeof( namespace_id ) );
+	md5_digest( &md5, name, length );
 	md5_digest_finalize( &md5 );
 
 	//Convert to host order

@@ -27,7 +27,7 @@ FOUNDATION_API string_const_t   path_protocol( const char* uri, size_t length );
 FOUNDATION_API string_t         path_merge( const char* first, size_t first_length, const char* second, size_t second_length);
 FOUNDATION_API string_t         path_append( char* base, size_t base_length, const char* tail, size_t tail_length );
 FOUNDATION_API string_t         path_prepend( char* tail, size_t tail_length, const char* base, size_t base_length );
-FOUNDATION_API string_t         path_clean( char* path, size_t length, bool absolute );
+FOUNDATION_API string_t         path_clean( char* path, size_t length, size_t capacity, bool absolute, bool reallocate );
 
 FOUNDATION_API bool             path_is_absolute( const char* path, size_t length );
 

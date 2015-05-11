@@ -19,6 +19,7 @@
 FOUNDATION_API string_t        string_allocate( size_t length );
 FOUNDATION_API void            string_deallocate( char* str );
 FOUNDATION_API string_t        string_clone( const char* str, size_t length );
+FOUNDATION_API string_t        string_clone_string( string_const_t str );
 
 FOUNDATION_API string_const_t  string_null( void );
 FOUNDATION_API string_const_t  string_const( const char* str, size_t length );
@@ -117,6 +118,8 @@ FOUNDATION_API float64_t       string_to_float64( const char* str, size_t length
 FOUNDATION_API real            string_to_real( const char* str, size_t length );
 FOUNDATION_API uuid_t          string_to_uuid( const char* str, size_t length );
 FOUNDATION_API version_t       string_to_version( const char* str, size_t length );
+
+FOUNDATION_API string_t        string_thread_buffer( void );
 
 #define STRING_NPOS            ((size_t)-1)
 #define STRING_WHITESPACE      " \n\r\t\v\f"

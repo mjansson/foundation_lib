@@ -901,7 +901,7 @@ typedef struct atomicptr_t atomicptr_t;
 
 #include <string.h>
 
-#define STRING_CONST( str ) (str), sizeof(str)
+#define STRING_CONST( str ) (str), sizeof( (str) )
 
 
 // Base limits

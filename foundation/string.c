@@ -1132,7 +1132,7 @@ void string_convert_utf32( char* dst, const uint32_t* src, size_t dstsize, size_
 	dst[curlen] = 0;
 }
 
-#define THREAD_BUFFER_SIZE 128
+#define THREAD_BUFFER_SIZE FOUNDATION_MAX_PATHLEN
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, THREAD_BUFFER_SIZE )
 
 
@@ -1508,3 +1508,8 @@ version_t string_to_version( const char* val )
 	return version_make( num[0], num[1], num[2], num[3], num[4] );
 }
 
+
+string_t string_thread_local_buffer( void )
+{
+	return (string_t){ get_thread_convert_buffer(), THREAD_BUFFER_SIZE };
+}

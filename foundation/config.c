@@ -60,33 +60,33 @@ static int64_t _config_string_to_int( string_const_t str )
 	size_t first_nonnumeric;
 	size_t dot_position;
 	if( str.length < 2 )
-		return string_to_int64( str );
+		return string_to_int64( str.str, str.length );
 
-	first_nonnumeric = string_find_first_not_of( str, string_const( "0123456789.", 11 ), 0 );
+	first_nonnumeric = string_find_first_not_of( str.str, str.length, STRING_CONST( "0123456789." ), 0 );
 	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'm' ) || ( str.str[ first_nonnumeric ] == 'M' ) ) )
 	{
-		dot_position = string_find( str, '.', 0 );
+		dot_position = string_find( str.str, str.length, '.', 0 );
 		if( dot_position != STRING_NPOS )
 		{
-			if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
-				return (int64_t)( string_to_float64( str ) * ( 1024.0 * 1024.0 ) );
-			return string_to_int64( str ); //More than one dot
+			if( string_find( str.str, str.length, '.', dot_position + 1 ) == STRING_NPOS )
+				return (int64_t)( string_to_float64( str.str, str.length ) * ( 1024.0 * 1024.0 ) );
+			return string_to_int64( str.str, str.length ); //More than one dot
 		}
-		return string_to_int64( str ) * ( 1024LL * 1024LL );
+		return string_to_int64( str.str, str.length ) * ( 1024LL * 1024LL );
 	}
 	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'k' ) || ( str.str[ first_nonnumeric ] == 'K' ) ) )
 	{
-		dot_position = string_find( str, '.', 0 );
+		dot_position = string_find( str.str, str.length, '.', 0 );
 		if( dot_position != STRING_NPOS )
 		{
-			 if( string_find( str, '.', dot_position + 1 ) == STRING_NPOS )
-				return (int64_t)( string_to_float64( str ) * 1024.0 );
-			 return string_to_int64( str ); //More than one dot
+			 if( string_find( str.str, str.length, '.', dot_position + 1 ) == STRING_NPOS )
+				return (int64_t)( string_to_float64( str.str, str.length ) * 1024.0 );
+			 return string_to_int64( str.str, str.length ); //More than one dot
 		}
-		return string_to_int64( str ) * 1024LL;
+		return string_to_int64( str.str, str.length ) * 1024LL;
 	}
 
-	return string_to_int64( str );
+	return string_to_int64( str.str, str.length );
 }
 
 
@@ -95,31 +95,31 @@ static real _config_string_to_real( string_const_t str )
 	size_t first_nonnumeric;
 	size_t dot_position;
 	if( str.length < 2 )
-		return string_to_real( str );
+		return string_to_real( str.str, str.length );
 
-	first_nonnumeric = string_find_first_not_of( str, string_const( "0123456789.", 11 ), 0 );
+	first_nonnumeric = string_find_first_not_of( str.str, str.length, STRING_CONST( "0123456789." ), 0 );
 	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'm' ) || ( str.str[ first_nonnumeric ] == 'M' ) ) )
 	{
-		dot_position = string_find( str, '.', 0 );
+		dot_position = string_find( str.str, str.length, '.', 0 );
 		if( dot_position != STRING_NPOS )
 		{
-			if( string_find( str, '.', dot_position + 1 ) != STRING_NPOS )
-				return string_to_real( str ); //More than one dot
+			if( string_find( str.str, str.length, '.', dot_position + 1 ) != STRING_NPOS )
+				return string_to_real( str.str, str.length ); //More than one dot
 		}
-		return string_to_real( str ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) );
+		return string_to_real( str.str, str.length ) * ( REAL_C( 1024.0 ) * REAL_C( 1024.0 ) );
 	}
 	if( ( first_nonnumeric == ( str.length - 1 ) ) && ( ( str.str[ first_nonnumeric ] == 'k' ) || ( str.str[ first_nonnumeric ] == 'K' ) ) )
 	{
-		dot_position = string_find( str, '.', 0 );
+		dot_position = string_find( str.str, str.length, '.', 0 );
 		if( dot_position != STRING_NPOS )
 		{
-			if( string_find( str, '.', dot_position + 1 ) != STRING_NPOS )
-				return string_to_real( str ); //More than one dot
+			if( string_find( str.str, str.length, '.', dot_position + 1 ) != STRING_NPOS )
+				return string_to_real( str.str, str.length ); //More than one dot
 		}
-		return string_to_real( str ) * REAL_C( 1024.0 );
+		return string_to_real( str.str, str.length ) * REAL_C( 1024.0 );
 	}
 
-	return string_to_real( str );
+	return string_to_real( str.str, str.length );
 }
 
 
@@ -139,8 +139,11 @@ static FOUNDATION_NOINLINE string_const_t _expand_environment( hash_t key, strin
 		return environment_home_directory();
 	else if( key == HASH_TEMPORARY_DIRECTORY )
 		return environment_temporary_directory();
-	else if( string_equal_substr( var, string_const( "variable[", 9 ), 9 ) )  //variable[varname] - Environment variable named "varname"
-		return environment_variable( string_substr_const( var, 9, var.length - 9 ) );
+	else if( string_equal( var.str, var.length, STRING_CONST( "variable[" ) ) )  //variable[varname] - Environment variable named "varname"
+	{
+		string_const_t substr = string_substr_const( var.str, var.length, 9, var.length - 9 );
+		return environment_variable( substr.str, substr.length );
+	}
 	return string_null();
 }
 
@@ -148,48 +151,53 @@ static FOUNDATION_NOINLINE string_const_t _expand_environment( hash_t key, strin
 static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, string_t str )
 {
 	string_t expanded;
-	string_t variable;
+	string_const_t variable;
 	size_t var_pos, var_end_pos, separator, var_offset;
 	hash_t section, key;
 
 	expanded = str;
-	var_pos = string_find_string( string_to_const( expanded ), string_const( "$(", 2 ), 0 );
+	var_pos = string_find_string( expanded.str, expanded.length, STRING_CONST( "$(" ), 0 );
 
 	while( var_pos != STRING_NPOS )
 	{
-		var_end_pos = string_find( string_to_const( expanded ), ')', var_pos + 2 );
+		var_end_pos = string_find( expanded.str, expanded.length, ')', var_pos + 2 );
 		FOUNDATION_ASSERT_MSG( var_end_pos != STRING_NPOS, "Malformed config variable statement" );
-		variable = string_substr( expanded, var_pos, ( var_end_pos != STRING_NPOS ) ? ( 1 + var_end_pos - var_pos ) : STRING_NPOS );
+		variable = string_substr_const( expanded.str, expanded.length, var_pos, ( var_end_pos != STRING_NPOS ) ? ( 1 + var_end_pos - var_pos ) : STRING_NPOS );
 
 		section = section_current;
 		key = 0;
-		separator = string_find( variable, ':', 0 );
+		separator = string_find( variable.str, variable.length, ':', 0 );
 		if( separator != STRING_NPOS )
 		{
 			if( separator != 2 )
-				section = hash( variable + 2, separator - 2 );
+				section = hash( variable.str + 2, separator - 2 );
 			var_offset = separator + 1;
 		}
 		else
 		{
 			var_offset = 2;
 		}
-		key = hash( variable + var_offset, variable.length - ( var_offset + ( variable.str[ variable.length - 1 ] == ')' ? 1 : 0 ) ) );
+		key = hash( variable.str + var_offset, variable.length - ( var_offset + ( variable.str[ variable.length - 1 ] == ')' ? 1 : 0 ) ) );
 
 		if( expanded.str == str.str )
-			expanded = string_clone( string_const( str ) );
+			expanded = string_clone( str.str, str.length );
 
 		if( section != HASH_ENVIRONMENT )
-			expanded = string_replace( expanded, variable, config_string( section, key ), false );
+		{
+			string_const_t value = config_string( section, key );
+			expanded = string_replace( expanded.str, expanded.length, variable.str, variable.length, value.str, value.length, false );
+		}
 		else
-			expanded = string_replace( expanded, variable, _expand_environment( key, variable + var_offset ), false );
-		string_deallocate( variable );
+		{
+			string_const_t value = _expand_environment( key, string_substr_const( variable.str, variable.length, var_offset, variable.length - var_offset ) );
+			expanded = string_replace( expanded.str, expanded.length, variable.str, variable.length, value.str, value.length, false );
+		}
 
-		var_pos = string_find_string( expanded, "$(", 0 );
+		var_pos = string_find_string( expanded.str, expanded.length, STRING_CONST( "$(" ), 0 );
 	}
 #if BUILD_ENABLE_CONFIG_DEBUG
 	if( str != expanded )
-		log_debugf( HASH_CONFIG, "Expanded config value \"%s\" to \"%s\"", str, expanded );
+		log_debugf( HASH_CONFIG, STRING_CONST( "Expanded config value \"%.*s\" to \"%.*s\"" ), (int)str.length, str.str, (int)expanded.length, expanded.str );
 #endif
 
 	return expanded;
@@ -199,25 +207,27 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 static FOUNDATION_NOINLINE void _expand_string_val( hash_t section, config_key_t* key )
 {
 	bool is_true;
-	FOUNDATION_ASSERT( key->sval );
-	if( key->expanded != key->sval )
-		string_deallocate( key->expanded );
+	FOUNDATION_ASSERT( key->sval.str );
+	if( key->expanded.str != key->sval.str )
+		string_deallocate( key->expanded.str );
 	key->expanded = _expand_string( section, key->sval );
 
-	is_true = string_equal( key->expanded, "true" );
-	key->bval = ( string_equal( key->expanded, "false" ) || string_equal( key->expanded, "0" ) || !string_length( key->expanded ) ) ? false : true;
-	key->ival = is_true ? 1 : _config_string_to_int( key->expanded );
-	key->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key->expanded );
+	is_true = string_equal( key->expanded.str, key->expanded.length, STRING_CONST( "true" ) );
+	key->bval = ( string_equal( key->expanded.str, key->expanded.length, STRING_CONST( "false" ) ) ||
+				  string_equal( key->expanded.str, key->expanded.length, STRING_CONST( "0" ) ) ||
+				  !key->expanded.length ) ? false : true;
+	key->ival = is_true ? 1 : _config_string_to_int( string_to_const( key->expanded ) );
+	key->rval = is_true ? REAL_C(1.0) : _config_string_to_real( string_to_const( key->expanded ) );
 }
 
 
 int _config_initialize( void )
 {
-	config_load( "foundation", 0ULL, true, false );
-	config_load( "application", 0ULL, true, false );
+	config_load( STRING_CONST( "foundation" ), 0ULL, true, false );
+	config_load( STRING_CONST( "application" ), 0ULL, true, false );
 
 	//Load per-user config
-	config_load( "user", HASH_USER, false, true );
+	config_load( STRING_CONST( "user" ), HASH_USER, false, true );
 
 	return 0;
 }
@@ -240,10 +250,10 @@ void _config_shutdown( void )
 				for( ik = 0, ksize = array_size( key ); ik < ksize; ++ik )
 				{
 					/*lint --e{613} array_size( key ) in loop condition does the null pointer guard */
-					if( key[ik].expanded != key[ik].sval )
-						string_deallocate( key[ik].expanded );
+					if( key[ik].expanded.str != key[ik].sval.str )
+						string_deallocate( key[ik].expanded.str );
 					if( ( key[ik].type != CONFIGVALUE_STRING_CONST ) && ( key[ik].type != CONFIGVALUE_STRING_CONST_VAR ) )
-						string_deallocate( key[ik].sval );
+						string_deallocate( key[ik].sval.str );
 				}
 				array_deallocate( key );
 			}
@@ -253,124 +263,140 @@ void _config_shutdown( void )
 }
 
 
-void config_load( const char* name, hash_t filter_section, bool built_in, bool overwrite )
+void config_load( const char* name, size_t length, hash_t filter_section, bool built_in, bool overwrite )
 {
 	/*lint --e{838} Safety null assign all pointers for all preprocessor paths */
 	/*lint --e{750} Unused macros in some paths */
 #define NUM_SEARCH_PATHS 10
-	char* sub_exe_path = 0;
-	char* exe_parent_path = 0;
-	char* exe_processed_path = 0;
-	char* abs_exe_parent_path = 0;
-	char* abs_exe_processed_path = 0;
-	char* bundle_path = 0;
-	char* home_dir = 0;
-	char* cmdline_path = 0;
-	char* cwd_config_path = 0;
-	const char* paths[NUM_SEARCH_PATHS];
+	string_const_t exe_path;
+	string_t sub_exe_path = { 0, 0 };
+	string_t exe_parent_path = { 0, 0 };
+	string_t exe_processed_path = { 0, 0 };
+	string_t abs_exe_parent_path = { 0, 0 };
+	string_t abs_exe_processed_path = { 0, 0 };
+	string_t bundle_path = { 0, 0 };
+	string_t home_dir = { 0, 0 };
+	string_t cwd_config_path = { 0, 0 };
+	string_const_t paths[NUM_SEARCH_PATHS];
 #if !FOUNDATION_PLATFORM_FAMILY_MOBILE && !FOUNDATION_PLATFORM_PNACL
-	const char* const* cmd_line;
+	const string_const_t* cmd_line;
 	size_t icl, clsize;
 #endif
 	size_t start_path, i, j;
 
-	const char buildsuffix[4][9] = { "/debug", "/release", "/profile", "/deploy" };
-	const char platformsuffix[PLATFORM_INVALID+1][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/pnacl", "/bsd", "/unknown" };
-	const char binsuffix[1][5] = { "/bin" };
+	string_const_t buildsuffix[4] = {
+		(string_const_t){ STRING_CONST( "/debug" ) },
+		(string_const_t){ STRING_CONST( "/release" ) },
+		(string_const_t){ STRING_CONST( "/profile" ) },
+		(string_const_t){ STRING_CONST( "/deploy" ) }
+	};
+	string_const_t platformsuffix[PLATFORM_INVALID+1] = {
+		(string_const_t){ STRING_CONST( "/windows" ) },
+		(string_const_t){ STRING_CONST( "/osx" ) },
+		(string_const_t){ STRING_CONST( "/ios" ) },
+		(string_const_t){ STRING_CONST( "/android" ) },
+		(string_const_t){ STRING_CONST( "/raspberrypi" ) },
+		(string_const_t){ STRING_CONST( "/pnacl" ) },
+		(string_const_t){ STRING_CONST( "/bsd" ) },
+		(string_const_t){ STRING_CONST( "/tizen" ) },
+		(string_const_t){ STRING_CONST( "/unknown" ) }
+	};
+	string_const_t binsuffix[1] = {
+		(string_const_t){ STRING_CONST( "/bin" ) }
+	};
 
 	FOUNDATION_ASSERT( name );
 
-	sub_exe_path = path_merge( environment_executable_directory(), "config" );
-	exe_parent_path = path_merge( environment_executable_directory(), "../config" );
-	abs_exe_parent_path = path_make_absolute( exe_parent_path );
+	memset( paths, 0, sizeof( string_const_t ) * NUM_SEARCH_PATHS );
 
-	exe_processed_path = string_clone( environment_executable_directory() );
+	exe_path = environment_executable_directory();
+	sub_exe_path = path_merge( exe_path.str, exe_path.length, STRING_CONST( "config" ) );
+	exe_parent_path = path_merge( exe_path.str, exe_path.length, STRING_CONST( "../config" ) );
+	exe_parent_path = path_clean( exe_parent_path.str, exe_parent_path.length, exe_parent_path.length, path_is_absolute( exe_parent_path.str, exe_parent_path.length ), true );
+	abs_exe_parent_path = path_make_absolute( exe_parent_path.str, exe_parent_path.length );
+
+	exe_processed_path = string_clone( exe_path.str, exe_path.length );
 	for( i = 0; i < 4; ++i )
 	{
-		if( string_ends_with( exe_processed_path, buildsuffix[i] ) )
+		if( string_ends_with( exe_processed_path.str, exe_processed_path.length, buildsuffix[i].str, buildsuffix[i].length ) )
 		{
-			exe_processed_path[ string_length( exe_processed_path ) - string_length( buildsuffix[i] ) ] = 0;
+			exe_processed_path.length = exe_processed_path.length - buildsuffix[i].length;
+			exe_processed_path.str[ exe_processed_path.length ] = 0;
 			break;
 		}
 	}
 	for( i = 0; i < 7; ++i )
 	{
-		if( string_ends_with( exe_processed_path, platformsuffix[i] ) )
+		if( string_ends_with( exe_processed_path.str, exe_processed_path.length, platformsuffix[i].str, platformsuffix[i].length ) )
 		{
-			exe_processed_path[ string_length( exe_processed_path ) - string_length( platformsuffix[i] ) ] = 0;
+			exe_processed_path.length = exe_processed_path.length - platformsuffix[i].length;
+			exe_processed_path.str[ exe_processed_path.length ] = 0;
 			break;
 		}
 	}
 	for( i = 0; i < 1; ++i )
 	{
-		if( string_ends_with( exe_processed_path, binsuffix[i] ) )
+		if( string_ends_with( exe_processed_path.str, exe_processed_path.length, binsuffix[i].str, binsuffix[i].length ) )
 		{
-			exe_processed_path[ string_length( exe_processed_path ) - string_length( binsuffix[i] ) ] = 0;
+			exe_processed_path.length = exe_processed_path.length - binsuffix[i].length;
+			exe_processed_path.str[ exe_processed_path.length ] = 0;
 			break;
 		}
 	}
-	exe_processed_path = path_append( exe_processed_path, "config" );
-	abs_exe_processed_path = path_make_absolute( exe_processed_path );
+	exe_processed_path = path_append( exe_processed_path.str, exe_processed_path.length, STRING_CONST( "config" ) );
+	abs_exe_processed_path = path_make_absolute( exe_processed_path.str, exe_processed_path.length );
 
-	paths[0] = environment_executable_directory();
-#if FOUNDATION_PLATFORM_PNACL
-	paths[1] = 0;
-	paths[2] = 0;
-#else
-	paths[1] = sub_exe_path;
-	paths[2] = abs_exe_parent_path;
+	paths[0] = exe_path;
+#if !FOUNDATION_PLATFORM_PNACL
+	paths[1] = string_to_const( sub_exe_path );
+	paths[2] = string_to_const( abs_exe_parent_path );
 #endif
-	paths[3] = abs_exe_processed_path;
+	paths[3] = string_to_const( abs_exe_processed_path );
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
 	paths[4] = environment_initial_working_directory();
-#else
-	paths[4] = 0;
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
-	bundle_path = path_merge( environment_executable_directory(), "../Resources/config" );
-	paths[5] = bundle_path;
-#elif FOUNDATION_PLATFORM_IOS
-	bundle_path = path_merge( environment_executable_directory(), "config" );
-	paths[5] = bundle_path;
+#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+	bundle_path = string_clone_string( environment_executable_directory() );
+#  if FOUNDATION_PLATFORM_MACOSX
+	bundle_path = path_append( bundle_path.str, bundle_path.length, STRING_CONST( "../Resources/config" ) );
+#  else
+	bundle_path = path_append( bundle_path.str, bundle_path.length, STRING_CONST( "config" ) );
+#  endif
+	bundle_path = path_clean( bundle_path.str, bundle_path.length, bundle_path.length, path_is_absolute( bundle_path.str, bundle_path.length ), true );
+	paths[5] = string_to_const( bundle_path );
 #elif FOUNDATION_PLATFORM_ANDROID
 #define ANDROID_ASSET_PATH_INDEX 5
-	paths[5] = "/config";
-#else
-	paths[5] = 0;
+	paths[5] = (string_const_t){ STRING_CONST( "/config" ) };
 #endif
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
 	paths[6] = environment_current_working_directory();
-#else
-	paths[6] = 0;
 #endif
 
-	paths[7] = 0;
-	paths[8] = 0;
-
-	string_deallocate( exe_parent_path );
-	string_deallocate( exe_processed_path );
+	string_deallocate( exe_parent_path.str );
+	string_deallocate( exe_processed_path.str );
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-	cwd_config_path = path_merge( environment_current_working_directory(), "config" );
-	paths[7] = cwd_config_path;
+	cwd_config_path = string_clone_string( environment_current_working_directory());
+	cwd_config_path = path_append( cwd_config_path.str, cwd_config_path.length, STRING_CONST( "config" ) );
+	paths[7] = string_to_const( cwd_config_path );
 
 	cmd_line = environment_command_line();
 	/*lint -e{850} We modify loop var to skip extra arg */
 	for( icl = 0, clsize = array_size( cmd_line ); icl < clsize; ++icl )
 	{
 		/*lint -e{613} array_size( cmd_line ) in loop condition does the null pointer guard */
-		if( string_equal_substr( cmd_line[icl], "--configdir", 11 ) )
+		if( string_equal( cmd_line[icl].str, cmd_line[icl].length, STRING_CONST( "--configdir" ) ) )
 		{
-			if( string_equal_substr( cmd_line[icl], "--configdir=", 12 ) )
+			if( string_equal( cmd_line[icl].str, cmd_line[icl].length, STRING_CONST( "--configdir=" ) ) )
 			{
-				paths[8] = cmdline_path = string_substr( cmd_line[icl], 12, STRING_NPOS );
+				paths[8] = string_substr_const( cmd_line[icl].str, cmd_line[icl].length, 12, STRING_NPOS );
 			}
 			else if( icl < ( clsize - 1 ) )
 			{
-				paths[8] = cmdline_path = string_clone( cmd_line[++icl] );
+				paths[8] = cmd_line[++icl];
 			}
 		}
 	}
@@ -378,31 +404,29 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 
 	start_path = 0;
 
-	paths[9] = 0;
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
 	if( !built_in )
 	{
-#if FOUNDATION_PLATFORM_WINDOWS
-		home_dir = path_merge( environment_home_directory(), environment_application()->config_dir );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
-		home_dir = path_prepend( string_concat( ".", environment_application()->config_dir ), environment_home_directory() );
-#endif
-		if( home_dir )
-			paths[9] = home_dir;
+		string_const_t home_path = environment_home_directory();
+		home_dir = string_format( STRING_CONST( "%*.s/.%.*s" ), (int)home_path.length, home_path.str,
+			(int)environment_application()->config_dir.length, environment_application()->config_dir.str );
 		start_path = 9;
 	}
+#endif
 
 	for( i = start_path; i < NUM_SEARCH_PATHS; ++i )
 	{
-		char* filename;
+		char filename_buffer[FOUNDATION_MAX_PATHLEN];
+		string_t filename;
 		stream_t* istream;
 		bool path_already_searched = false;
 
-		if( !paths[i] )
+		if( !paths[i].length )
 			continue;
 
 		for( j = start_path; j < i; ++j )
 		{
-			if( paths[j] && string_equal( paths[j], paths[i] ) )
+			if( string_equal( paths[j].str, paths[j].length, paths[i].str, paths[i].length ) )
 			{
 				path_already_searched = true;
 				break;
@@ -412,24 +436,25 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 			continue;
 
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
-		filename = string_append( path_merge( paths[i], name ), ".ini" );
+		filename = string_format_buffer( filename_buffer, FOUNDATION_MAX_PATHLEN, STRING_CONST( "%.*s/%.*s.ini" ),
+			(int)paths[i].length, paths[i].str, (int)length, name );
+		filename = path_clean( filename.str, filename.length, FOUNDATION_MAX_PATHLEN, path_is_absolute( filename.str, filename.length ), false );
 		istream = 0;
 #if FOUNDATION_PLATFORM_ANDROID
 		if( i == ANDROID_ASSET_PATH_INDEX )
-			istream = asset_stream_open( filename, STREAM_IN );
+			istream = asset_stream_open( filename.str, filename.length, STREAM_IN );
 		else
 #endif
-		istream = stream_open( filename, STREAM_IN );
+		istream = stream_open( filename.str, filename.length, STREAM_IN );
 		if( istream )
 		{
 			config_parse( istream, filter_section, overwrite );
 			stream_deallocate( istream );
 		}
-		string_deallocate( filename );
 
 		if( built_in )
 		{
-			const char* FOUNDATION_PLATFORM_name =
+			const char* platform_name =
 #if FOUNDATION_PLATFORM_WINDOWS
 				"windows";
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
@@ -452,29 +477,29 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 #  error Insert platform name
 				"unknown";
 #endif
-			filename = string_append( path_append( path_merge( paths[i], FOUNDATION_PLATFORM_name ), name ), ".ini" );
+			filename = string_format_buffer( filename_buffer, FOUNDATION_MAX_PATHLEN, STRING_CONST( "%.*s/%s/%.*s.ini" ),
+				(int)paths[i].length, paths[i].str, platform_name, (int)length, name );
+			filename = path_clean( filename.str, filename.length, FOUNDATION_MAX_PATHLEN, path_is_absolute( filename.str, filename.length ), false );
 #if FOUNDATION_PLATFORM_ANDROID
 			if( i == ANDROID_ASSET_PATH_INDEX )
-				istream = asset_stream_open( filename, STREAM_IN );
+				istream = asset_stream_open( filename.str, filename.length, STREAM_IN );
 			else
 #endif
-			istream = stream_open( filename, STREAM_IN );
+			istream = stream_open( filename.str, filename.length, STREAM_IN );
 			if( istream )
 			{
 				config_parse( istream, filter_section, overwrite );
 				stream_deallocate( istream );
 			}
-			string_deallocate( filename );
 		}
 	}
 
-	string_deallocate( home_dir );
-	string_deallocate( cmdline_path );
-	string_deallocate( sub_exe_path );
-	string_deallocate( abs_exe_processed_path );
-	string_deallocate( abs_exe_parent_path );
-	string_deallocate( bundle_path );
-	string_deallocate( cwd_config_path );
+	string_deallocate( home_dir.str );
+	string_deallocate( sub_exe_path.str );
+	string_deallocate( abs_exe_processed_path.str );
+	string_deallocate( abs_exe_parent_path.str );
+	string_deallocate( bundle_path.str );
+	string_deallocate( cwd_config_path.str );
 }
 
 
@@ -570,18 +595,34 @@ real config_real( hash_t section, hash_t key )
 }
 
 
-const char* config_string( hash_t section, hash_t key )
+string_const_t config_string( hash_t section, hash_t key )
 {
 	config_key_t* key_val = config_key( section, key, false );
 	if( !key_val )
-		return "";
+		return string_const( "", 0 );
 	//Convert to string
 	/*lint --e{788} We use default for remaining enums */
 	switch( key_val->type )
 	{
-		case CONFIGVALUE_BOOL:  return key_val->bval ? "true" : "false";
-		case CONFIGVALUE_INT:   if( !key_val->sval ) key_val->sval = string_from_int( key_val->ival, 0, 0 ); return key_val->sval;
-		case CONFIGVALUE_REAL:  if( !key_val->sval ) key_val->sval = string_from_real( key_val->rval, 4, 0, '0' ); return key_val->sval;
+		case CONFIGVALUE_BOOL:
+		{
+			return key_val->bval ? (string_const_t){ STRING_CONST( "true" ) } : (string_const_t){ STRING_CONST( "false" ) };
+		}
+
+		case CONFIGVALUE_INT:
+		{
+			if( !key_val->sval.str )
+				key_val->sval = string_from_int( key_val->ival, 0, 0 );
+			return string_to_const( key_val->sval );
+		}
+
+		case CONFIGVALUE_REAL:
+		{
+			if( !key_val->sval.str )
+				key_val->sval = string_from_real( key_val->rval, 4, 0, '0' );
+			return string_to_const( key_val->sval );
+		}
+
 		case CONFIGVALUE_STRING:
 		case CONFIGVALUE_STRING_CONST:
 		case CONFIGVALUE_STRING_VAR:
@@ -589,22 +630,30 @@ const char* config_string( hash_t section, hash_t key )
 			break;
 	}
 	//String value of some form
-	if( !key_val->sval )
-		return "";
+	if( !key_val->sval.str )
+		return string_const( "", 0 );
 	if( key_val->type >= CONFIGVALUE_STRING_VAR )
 	{
 		_expand_string_val( section, key_val );
-		return key_val->expanded;
+		return string_to_const( key_val->expanded );
 	}
-	return key_val->sval;
+	return string_to_const( key_val->sval );
 }
 
 
 hash_t config_string_hash( hash_t section, hash_t key )
 {
-	const char* value = config_string( section, key );
-	return value ? hash( value, string_length( value ) ) : HASH_EMPTY_STRING;
+	string_const_t value = config_string( section, key );
+	return value.length ? hash( value.str, value.length ) : HASH_EMPTY_STRING;
 }
+
+
+#define CLEAR_KEY_STRINGS( key_val ) \
+	if( key_val->expanded.str != key_val->sval.str ) \
+		string_deallocate( key_val->expanded.str ); \
+	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) ) \
+		string_deallocate( key_val->sval.str ); \
+	key_val->expanded = key_val->sval = (string_t){ 0, 0 }
 
 
 void config_set_bool( hash_t section, hash_t key, bool value )
@@ -614,12 +663,7 @@ void config_set_bool( hash_t section, hash_t key, bool value )
 	key_val->bval = value;
 	key_val->ival = ( value ? 1 : 0 );
 	key_val->rval = ( value ? REAL_C( 1.0 ) : REAL_C( 0.0 ) );
-	if( key_val->expanded != key_val->sval )
-		string_deallocate( key_val->expanded );
-	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
-		string_deallocate( key_val->sval );
-	key_val->sval = 0;
-	key_val->expanded = 0;
+	CLEAR_KEY_STRINGS( key_val );
 	key_val->type = CONFIGVALUE_BOOL;
 }
 
@@ -631,12 +675,7 @@ void config_set_int( hash_t section, hash_t key, int64_t value )
 	key_val->bval = value ? true : false;
 	key_val->ival = value;
 	key_val->rval = (real)value;
-	if( key_val->expanded != key_val->sval )
-		string_deallocate( key_val->expanded );
-	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
-		string_deallocate( key_val->sval );
-	key_val->sval = 0;
-	key_val->expanded = 0;
+	CLEAR_KEY_STRINGS( key_val );
 	key_val->type = CONFIGVALUE_INT;
 }
 
@@ -648,51 +687,42 @@ void config_set_real( hash_t section, hash_t key, real value )
 	key_val->bval = !math_realzero( value );
 	key_val->ival = (int64_t)value;
 	key_val->rval = value;
-	if( key_val->expanded != key_val->sval )
-		string_deallocate( key_val->expanded );
-	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
-		string_deallocate( key_val->sval );
-	key_val->sval = 0;
-	key_val->expanded = 0;
+	CLEAR_KEY_STRINGS( key_val );
 	key_val->type = CONFIGVALUE_REAL;
 }
 
 
-void config_set_string( hash_t section, hash_t key, const char* value )
+void config_set_string( hash_t section, hash_t key, const char* value, size_t length )
 {
 	config_key_t* key_val = config_key( section, key, true );
 	if( !FOUNDATION_VALIDATE( key_val ) ) return;
-	if( key_val->expanded != key_val->sval )
-		string_deallocate( key_val->expanded );
-	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
-		string_deallocate( key_val->sval );
+	CLEAR_KEY_STRINGS( key_val );
 
-	key_val->sval = string_clone( value );
-	key_val->expanded = 0;
-	key_val->type = ( ( string_find_string( key_val->sval, "$(", 0 ) != STRING_NPOS ) ? CONFIGVALUE_STRING_VAR : CONFIGVALUE_STRING );
+	key_val->sval = string_clone( value, length );
+	key_val->type = ( ( string_find_string( key_val->sval.str, key_val->sval.length, STRING_CONST( "$(" ), 0 ) != STRING_NPOS ) ? CONFIGVALUE_STRING_VAR : CONFIGVALUE_STRING );
 
 	if( key_val->type == CONFIGVALUE_STRING )
 	{
-		bool is_true = string_equal( key_val->sval, "true" );
-		key_val->bval = ( string_equal( key_val->sval, "false" ) || string_equal( key_val->sval, "0" ) || !string_length( key_val->sval ) ) ? false : true;
+		bool is_true = string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "true" ) );
+		key_val->bval = ( string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "false" ) ) ||
+		                  string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "0" ) ) ||
+		                  !key_val->sval.length ) ? false : true;
 		key_val->ival = is_true ? 1 : _config_string_to_int( key_val->sval );
 		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key_val->sval );
 	}
 }
 
 
-void config_set_string_constant( hash_t section, hash_t key, const char* value )
+void config_set_string_constant( hash_t section, hash_t key, const char* value, size_t length )
 {
 	config_key_t* key_val = config_key( section, key, true );
 	if( !FOUNDATION_VALIDATE( key_val ) ) return;
 	if( !FOUNDATION_VALIDATE( value ) ) return;
-	if( key_val->expanded != key_val->sval )
-		string_deallocate( key_val->expanded );
-	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) )
-		string_deallocate( key_val->sval );
+	CLEAR_KEY_STRINGS( key_val );
+
 	//key_val->sval = (char*)value;
-	memcpy( &key_val->sval, &value, sizeof( char* ) ); //Yeah yeah, we're storing a const pointer in a non-const var
-	key_val->expanded = 0;
+	memcpy( &key_val->sval.str, &value, sizeof( char* ) ); //Yeah yeah, we're storing a const pointer in a non-const var
+	key_val->sval.length = length;
 	key_val->type = ( ( string_find_string( key_val->sval, "$(", 0 ) != STRING_NPOS ) ? CONFIGVALUE_STRING_CONST_VAR : CONFIGVALUE_STRING_CONST );
 
 	if( key_val->type == CONFIGVALUE_STRING_CONST )
@@ -713,7 +743,8 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	unsigned int line = 0;
 
 #if BUILD_ENABLE_CONFIG_DEBUG
-	log_debugf( HASH_CONFIG, "Parsing config stream: %s", stream_path( stream ) );
+	string_const_t path = stream_path( stream );
+	log_debugf( HASH_CONFIG, STRING_CONST( "Parsing config stream: %.*s" ), (int)path.length, path.str );
 #endif
 	buffer = memory_allocate( 0, 1024ULL, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	while( !stream_eos( stream ) )

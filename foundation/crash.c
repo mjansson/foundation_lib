@@ -15,21 +15,21 @@
 
 
 static crash_dump_callback_fn  _crash_dump_callback;
-static const char*             _crash_dump_name;
+static string_const_t          _crash_dump_name;
 
 #if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX /*&& !FOUNDATION_PLATFORM_APPLE*/ )
 static char                    _crash_dump_file_buffer[FOUNDATION_MAX_PATHLEN+128];
 #endif
 
 
-void crash_guard_set( crash_dump_callback_fn callback, const char* name )
+void crash_guard_set( crash_dump_callback_fn callback, const char* name, size_t length )
 {
 	_crash_dump_callback = callback;
-	_crash_dump_name     = name;
+	_crash_dump_name     = (string_const_t){ name, length };
 }
 
 
-const char* crash_guard_name( void )
+string_const_t crash_guard_name( void )
 {
 	return _crash_dump_name;
 }
@@ -150,18 +150,24 @@ FOUNDATION_DECLARE_THREAD_LOCAL( const char*, crash_callback_name, 0 )
 FOUNDATION_DECLARE_THREAD_LOCAL( crash_env_t, crash_env, 0 )
 
 
-static void _crash_guard_minidump( void* context, string_const_t name, string_t dump_file )
+static string_t _crash_guard_minidump( void* context, string_const_t name, string_t dump_file )
 {
+	string_const_t tmp_dir;
+	string_const_t uuid_str;
 	if( !name.length )
 		name = environment_application()->short_name;
-	dump_file = string_format_string( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%" PRIx64 ".dmp",
-		environment_temporary_directory(), name.str, name.length ? "-" : "",
-		string_from_uuid_static( environment_application()->instance ), time_system() );
-	fs_make_directory( environment_temporary_directory() );
+	tmp_dir = environment_temporary_directory();
+	uuid_str = string_from_uuid_static( environment_application()->instance );
+	dump_file = string_format_buffer( dump_file.str, dump_file.length, STRING_CONST( "%.*s/%.*s%s%.*s-%" PRIx64 ".dmp" ),
+		(int)tmp_dir.length, tmp_dir.str, (int)name.length, name.str, name.length ? "-" : "",
+		(int)uuid_str.length, uuid_str.str, time_system() );
+	fs_make_directory( tmp_dir.str, tmp_dir.length );
 
 	//TODO: Write dump file
 	//ucontext_t* user_context = context;
 	FOUNDATION_UNUSED( context );
+
+	return dump_file;
 }
 
 
@@ -171,15 +177,15 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 	FOUNDATION_UNUSED( info );
 	FOUNDATION_UNUSED( arg );
 
-	log_warnf( 0, WARNING_SUSPICIOUS, "Caught crash guard signal: %d", sig );
+	log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Caught crash guard signal: %d" ), sig );
 
 	crash_dump_callback_fn callback = get_thread_crash_callback();
 	if( callback )
 	{
 		const char* name = get_thread_crash_callback_name();
-		string_t dump_file = { _crash_dump_file_buffer, sizeof( _crash_dump_file_buffer ) };
-		dump_file = _crash_guard_minidump( arg, string_const( name, string_length( name ) ), dump_file );
-		callback( dump_file );
+		string_t dump_file = (string_t){ _crash_dump_file_buffer, sizeof( _crash_dump_file_buffer ) };
+		dump_file = _crash_guard_minidump( arg, (string_const_t){ name, string_length( name ) }, dump_file );
+		callback( dump_file.str, dump_file.length );
 	}
 
 	error_context_clear();
@@ -188,13 +194,13 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 	if( guard_env )
 		siglongjmp( guard_env, FOUNDATION_CRASH_DUMP_GENERATED );
 	else
-		log_warn( 0, WARNING_SUSPICIOUS, "No sigjmp_buf for thread" );
+		log_warn( 0, WARNING_SUSPICIOUS, STRING_CONST( "No sigjmp_buf for thread" ) );
 }
 
 #endif
 
 
-int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, string_const_t name )
+int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name, size_t length )
 {
 	//Make sure path is initialized
 	environment_temporary_directory();
@@ -244,7 +250,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	    ( sigaction( SIGILL,  &action, 0 ) < 0 ) ||
 	    ( sigaction( SIGSYS,  &action, 0 ) < 0 ) )
 	{
-		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set crash guard signal actions" );
+		log_warn( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to set crash guard signal actions" ) );
 		return fn( data );
 	}
 
@@ -253,7 +259,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 #endif
 
 	set_thread_crash_callback( callback );
-	set_thread_crash_callback_name( name.length ? name.str : 0 );
+	set_thread_crash_callback_name( length ? name : 0 );
 
 	memset( &guard_env, 0, sizeof( guard_env ) );
 	int ret = sigsetjmp( guard_env, 1 );
