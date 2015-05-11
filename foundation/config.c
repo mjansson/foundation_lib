@@ -196,7 +196,7 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 		var_pos = string_find_string( expanded.str, expanded.length, STRING_CONST( "$(" ), 0 );
 	}
 #if BUILD_ENABLE_CONFIG_DEBUG
-	if( str != expanded )
+	if( str.str != expanded.str )
 		log_debugf( HASH_CONFIG, STRING_CONST( "Expanded config value \"%.*s\" to \"%.*s\"" ), (int)str.length, str.str, (int)expanded.length, expanded.str );
 #endif
 
@@ -707,8 +707,8 @@ void config_set_string( hash_t section, hash_t key, const char* value, size_t le
 		key_val->bval = ( string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "false" ) ) ||
 		                  string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "0" ) ) ||
 		                  !key_val->sval.length ) ? false : true;
-		key_val->ival = is_true ? 1 : _config_string_to_int( key_val->sval );
-		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key_val->sval );
+		key_val->ival = is_true ? 1 : _config_string_to_int( string_to_const( key_val->sval ) );
+		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real( string_to_const( key_val->sval ) );
 	}
 }
 
@@ -723,65 +723,70 @@ void config_set_string_constant( hash_t section, hash_t key, const char* value, 
 	//key_val->sval = (char*)value;
 	memcpy( &key_val->sval.str, &value, sizeof( char* ) ); //Yeah yeah, we're storing a const pointer in a non-const var
 	key_val->sval.length = length;
-	key_val->type = ( ( string_find_string( key_val->sval, "$(", 0 ) != STRING_NPOS ) ? CONFIGVALUE_STRING_CONST_VAR : CONFIGVALUE_STRING_CONST );
+	key_val->type = ( ( string_find_string( key_val->sval.str, key_val->sval.length, STRING_CONST( "$(" ), 0 ) != STRING_NPOS ) ? CONFIGVALUE_STRING_CONST_VAR : CONFIGVALUE_STRING_CONST );
 
 	if( key_val->type == CONFIGVALUE_STRING_CONST )
 	{
-		bool is_true = string_equal( key_val->sval, "true" );
-		key_val->bval = ( string_equal( key_val->sval, "false" ) || string_equal( key_val->sval, "0" ) || !string_length( key_val->sval ) ) ? false : true;
-		key_val->ival = is_true ? 1 : _config_string_to_int( key_val->sval );
-		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real( key_val->sval );
+		bool is_true = string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "true" ) );
+		key_val->bval = ( string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "false" ) ) ||
+		                  string_equal( key_val->sval.str, key_val->sval.length, STRING_CONST( "0" ) ) ||
+		                  !key_val->sval.length ) ? false : true;
+		key_val->ival = is_true ? 1 : _config_string_to_int( string_to_const( key_val->sval ) );
+		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real( string_to_const( key_val->sval ) );
 	}
 }
 
 
 void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 {
-	char* buffer;
+	string_t buffer, stripped;
 	hash_t section = 0;
 	hash_t key = 0;
 	unsigned int line = 0;
+	size_t buffer_size;
+	string_const_t path;
 
+	path = stream_path( stream );
 #if BUILD_ENABLE_CONFIG_DEBUG
-	string_const_t path = stream_path( stream );
 	log_debugf( HASH_CONFIG, STRING_CONST( "Parsing config stream: %.*s" ), (int)path.length, path.str );
 #endif
-	buffer = memory_allocate( 0, 1024ULL, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
+	buffer.length = buffer_size = 1024;
+	buffer.str = memory_allocate( 0, buffer.length, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );	
 	while( !stream_eos( stream ) )
 	{
 		++line;
-		stream_read_line_buffer( stream, buffer, 1024, '\n' );
-		string_strip( buffer, " \t\n\r" );
-		if( !string_length( buffer ) || ( buffer[0] == ';' ) || ( buffer[0] == '#' ) )
+		buffer.length = stream_read_line_buffer( stream, buffer.str, buffer_size, '\n' );
+		stripped = string_strip( buffer.str, buffer.length, STRING_CONST( " \t\n\r" ) );
+		if( !stripped.length || ( stripped.str[0] == ';' ) || ( stripped.str[0] == '#' ) )
 			continue;
-		if( buffer[0] == '[' )
+		if( stripped.str[0] == '[' )
 		{
 			//Section declaration
-			size_t endpos = string_rfind( buffer, ']', string_length( buffer ) - 1 );
+			size_t endpos = string_rfind( stripped.str, stripped.length, ']', stripped.length - 1 );
 			if( endpos < 1 )
 			{
-				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid section declaration on line %d in config stream '%s'", line, stream_path( stream ) );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid section declaration on line %u in config stream '%.*s'", line, (int)path.length, path.str );
 				continue;
 			}
-			buffer[endpos] = 0;
-			section = hash( buffer + 1, endpos - 1 );
+			stripped.str[endpos] = 0;
+			section = hash( stripped.str + 1, endpos - 1 );
 #if BUILD_ENABLE_CONFIG_DEBUG
-			log_debugf( HASH_CONFIG, "  config: section set to '%s' (0x%llx)", buffer + 1, section );
+			log_debugf( HASH_CONFIG, "  config: section set to '%.*s' (0x%" PRIx64 ")", (int)endpos - 1, stripped.str + 1, section );
 #endif
 		}
 		else if( !filter_section || ( filter_section == section ) )
 		{
 			//name=value declaration
-			char* name;
-			char* value;
-			size_t separator = string_find( buffer, '=', 0 );
+			string_const_t name;
+			string_const_t value;
+			size_t separator = string_find( stripped.str, stripped.length, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
-				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %u in config stream '%.*s', missing assignment operator '=': %.*s", line, (int)path.length, path.str, (int)stripped.length, stripped.str );
 				continue;
 			}
 
-			name = string_strip_substr( buffer, " \t", separator );
+			name = string_strip_const( stripped.str, separator, STRING_CONST( " \t" ) );
 			value = string_strip( buffer + separator + 1, " \t" );
 			if( !string_length( name ) )
 			{
