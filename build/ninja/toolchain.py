@@ -472,14 +472,14 @@ class Toolchain(object):
 
       if target.is_windows():
         self.cflags = [
-          '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast=2', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-',
+          '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast=2', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-',
           '/Qrestrict', '/Qansi-alias', '/QxSSE3', '/Quse-intel-optimized-headers', '/Qstd=c99'
         ]
         self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
-        self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
+        self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /pdbfile:$pdbpath /nologo'
         self.ccdepfile = None
         self.ccdeps = 'msvc'
-        self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
+        self.arcmd = '$ar crs $arflags $ararchflags $arconfigflags $out $in'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
         self.objext = '.obj'
       else:
@@ -803,6 +803,9 @@ class Toolchain(object):
         flags += ' /arch:SSE2'
       elif arch == 'x86-64':
         pass
+    elif self.target.is_windows() and self.toolchain == 'intel':
+      if arch == 'x86':
+        flags += '/Oy-'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
