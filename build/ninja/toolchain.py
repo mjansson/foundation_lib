@@ -254,7 +254,7 @@ class Toolchain(object):
       self.linkflags = []
       self.objext = '.o'
 
-      if not target.is_android():
+      if not target.is_android() and not target.is_raspberrypi():
         self.cflags += [ '-Wpedantic' ]
 
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
