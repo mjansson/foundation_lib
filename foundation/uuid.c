@@ -163,7 +163,7 @@ uuid_t uuid_generate_name( const uuid_t ns, const char* name, size_t length )
 
 #include <stdio.h>
 
-#if FOUNDATION_COMPILER_MSVC
+#if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 #  define snprintf _snprintf
 #endif
 

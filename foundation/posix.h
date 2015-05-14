@@ -20,7 +20,14 @@
 
 #if FOUNDATION_COMPILER_GCC
 #  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wpedantic"
+#  if FOUNDATION_GCC_VERSION > 40700
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#  endif
+#elif FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  if __has_warning( "-Wreserved-id-macro" )
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
 #endif
 
 #define radixsort __stdlib_radixsort
@@ -31,6 +38,10 @@
 #if FOUNDATION_PLATFORM_APPLE
 #define _UUID_T
 #define _UUID_UUID_H
+#endif
+
+#ifndef _GNU_SOURCE
+#  define _GNU_SOURCE 1
 #endif
 
 #include <unistd.h>
@@ -60,6 +71,8 @@
 
 #if FOUNDATION_COMPILER_GCC
 #  pragma GCC diagnostic pop
+#elif FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
 #endif
 
 #endif

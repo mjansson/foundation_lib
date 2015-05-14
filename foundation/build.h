@@ -143,7 +143,7 @@
 #endif
 
 
-#define BUILD_DEFAULT_STREAM_BYTEORDER        BYTEORDER_LITTLEENDIAN
+#define BUILD_DEFAULT_STREAM_BYTEORDER             BYTEORDER_LITTLEENDIAN
 
 
 #define BUILD_SIZE_THREAD_MAP                      512
@@ -168,18 +168,4 @@
 #define BUILD_SIZE_STATIC_HASH_STORE               4192
 
 #define BUILD_SIZE_EVENT_BLOCK_CHUNK               ( 32 * 1024 )
-
-
-//Define appropriate "standard" macros
-#if BUILD_DEBUG
-#  undef DEBUG
-#  undef _DEBUG
-#  undef NDEBUG
-#  define _DEBUG 1
-#else
-#  undef DEBUG
-#  undef _DEBUG
-#  undef NDEBUG
-#  define NDEBUG 1
-#endif
 

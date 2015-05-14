@@ -18,7 +18,7 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 FOUNDATION_EXTERN errno_t _ctime64_s( char*, size_t, const __time64_t* );
-#  if FOUNDATION_COMPILER_MSVC
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 #    define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #    define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 #  endif

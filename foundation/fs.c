@@ -30,7 +30,9 @@
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 #if FOUNDATION_COMPILER_GCC
 #  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wpedantic"
+#  if FOUNDATION_GCC_VERSION > 40700
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#  endif
 #endif
 #  include <sys/inotify.h>
 #if FOUNDATION_COMPILER_GCC

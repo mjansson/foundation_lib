@@ -528,7 +528,7 @@ uint64_t thread_id( void )
 #elif FOUNDATION_PLATFORM_APPLE
 	return pthread_mach_thread_np( pthread_self() );
 #elif FOUNDATION_PLATFORM_BSD
-	return pthread_getthreadid_np();
+	return (uint64_t)pthread_getthreadid_np() & 0x00000000FFFFFFFFULL;
 #elif FOUNDATION_PLATFORM_POSIX
 #  if FOUNDATION_SIZE_POINTER == 4
 	return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
