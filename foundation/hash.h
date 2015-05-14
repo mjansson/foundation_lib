@@ -21,20 +21,21 @@
 #endif
 
 
-FOUNDATION_API FOUNDATION_PURECALL hash_t    hash( const void* key, size_t len );
-FOUNDATION_API const char*                   hash_to_string( hash_t value );
+FOUNDATION_API FOUNDATION_PURECALL hash_t       hash( const void* key, size_t len );
+FOUNDATION_API const char*                      hash_to_string( hash_t value );
 
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
-static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, size_t len, hash_t value );
+static FOUNDATION_FORCEINLINE hash_t            static_hash( const void* key, size_t len, hash_t value );
 
-#  define static_hash_string( key, value )   static_hash( key, string_length( key ), (hash_t)value )
+#  define static_hash_string( key, len, value ) static_hash( key, string_length( key ), (hash_t)value )
 
 #else
 
 #  define static_hash( key, len, value )        ( (void)sizeof( key ), (void)sizeof( len ), (hash_t)(value) )
-#  define static_hash_string( key, len, value ) ( (void)sizeof( key ), (void)sizeof( len ), (hash_t)(value) )
+#  define _static_hash_string( key, len, value ) ( (void)sizeof( key ), (void)sizeof( len ), (hash_t)(value) )
+#  define static_hash_string( ... )             _static_hash_string( __VA_ARGS__ )
 #  define hash_to_string( value )               ( (void)sizeof( value ), (const char*)0 )
 
 #endif
@@ -42,9 +43,9 @@ static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, size_
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
-FOUNDATION_API void                          _static_hash_store( const void* key, size_t len, hash_t value );
+FOUNDATION_API void                             _static_hash_store( const void* key, size_t len, hash_t value );
 
-static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, size_t len, hash_t value )
+static FOUNDATION_FORCEINLINE hash_t            static_hash( const void* key, size_t len, hash_t value )
 {
 	hash_t ref = hash( key, len );
 	FOUNDATION_ASSERT_MSGFORMAT( !value || ( ref == value ), "Static hash fail: %s -> 0x%" PRIx64 ", expected 0x%" PRIx64, (const char*)key, ref, value );
@@ -54,4 +55,4 @@ static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, size_
 
 #endif
 
-#define HASH_EMPTY_STRING                    0xC2D00F032E25E509LL
+#define HASH_EMPTY_STRING                       0xC2D00F032E25E509LL

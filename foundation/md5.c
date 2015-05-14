@@ -221,8 +221,8 @@ void md5_digest_finalize( md5_t* digest )
 	idx      = ( ( digest->count[0] >> 3 ) & 0x3f );
 	size_pad = ( idx < 56 ) ? ( 56 - idx ) : ( 120 - idx );
 
-	md5_digest_raw( digest, padding, size_pad );
-	md5_digest_raw( digest, bits, 8 );
+	md5_digest( digest, padding, size_pad );
+	md5_digest( digest, bits, 8 );
 
 	md5_encode( digest->digest, digest->state, 16 );
 
@@ -241,23 +241,26 @@ uint128_t md5_get_digest_raw( const md5_t* digest )
 }
 
 
-char* md5_get_digest( const md5_t* digest )
+string_t md5_get_digest( const md5_t* digest, char* str, size_t length )
 {
 	const char trn[17] = "0123456789ABCDEF";
-	int i, j;
-	char* str;
+	size_t i, j, num;
 
 	if( !digest )
 		return 0;
 
-	str = string_allocate( 32 );
-	for( i = 0, j = 0; i < 16; ++i, j += 2 )
+	num = length / 2;
+	if( num > 16 )
+		num = 16;
+
+	for( i = 0, j = 0; i < num; ++i, j += 2 )
 	{
 		str[j]   = trn[ digest->digest[i] / 16 ];
 		str[j+1] = trn[ digest->digest[i] % 16 ];
 	}
-	str[32] = 0;
+	if( length >= 32 )
+		str[32] = 0;
 
-	return str;
+	return (string_t){ str, num * 2 };
 }
 

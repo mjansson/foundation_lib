@@ -1160,14 +1160,14 @@ void stream_write_endl( stream_t* stream )
 }
 
 
-void stream_write_format( stream_t* stream, const char* format, ... )
+void stream_write_format( stream_t* stream, const char* format, size_t format_length, ... )
 {
 	va_list list;
 	char* buffer;
 
 	FOUNDATION_ASSERT( format );
 
-	va_start( list, format );
+	va_start( list, format_length );
 	buffer = string_vformat( format, list );
 	va_end( list );
 

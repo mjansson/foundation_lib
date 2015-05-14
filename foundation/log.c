@@ -47,7 +47,8 @@ static log_callback_fn  _log_callback;
 static hashtable64_t*   _log_suppress;
 static error_level_t    _log_suppress_default;
 
-static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
+#define LOG_WARNING_NAMES 9
+static char _log_warning_name[LOW_WARNING_NAMES][18] = {
 	"performance",
 	"deprecated",
 	"bad data",
@@ -59,7 +60,8 @@ static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
 	"script"
 };
 
-static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
+#define LOG_ERROR_NAMES 16
+static char _log_error_name[LOG_ERROR_NAMES][18] = {
 	"none",
 	"invalid value",
 	"unsupported",
@@ -122,7 +124,7 @@ static log_timestamp_t _log_make_timestamp( void )
 
 #if BUILD_ENABLE_LOG
 
-static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t context, error_level_t severity, const char* prefix, const char* format, va_list list, void* std )
+static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t context, error_level_t severity, const char* prefix, size_t prefix_length, const char* format, size_t format_length, va_list list, void* std )
 {
 	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
@@ -174,7 +176,7 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t c
 #endif
 
 			if( _log_callback )
-				_log_callback( context, severity, buffer );
+				_log_callback( context, severity, buffer, need + more );
 
 			break;
 		}
@@ -198,12 +200,12 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 0 ) _log_outputf( hash_t c
 #if BUILD_ENABLE_LOG && BUILD_ENABLE_DEBUG_LOG
 
 
-void log_debugf( hash_t context, const char* format, ... )
+void log_debugf( hash_t context, const char* format, size_t length, ... )
 {
 	va_list list;
-	va_start( list, format );
+	va_start( list, length );
 	if( log_suppress( context ) < ERRORLEVEL_DEBUG )
-		_log_outputf( context, ERRORLEVEL_DEBUG, "", format, list, stdout );
+		_log_outputf( context, ERRORLEVEL_DEBUG, "", 0, format, length, list, stdout );
 	va_end( list );
 }
 
@@ -214,19 +216,20 @@ void log_debugf( hash_t context, const char* format, ... )
 #if BUILD_ENABLE_LOG
 
 
-void log_infof( hash_t context, const char* format, ... )
+void log_infof( hash_t context, const char* format, size_t length, ... )
 {
 	va_list list;
-	va_start( list, format );
+	va_start( list, length );
 	if( log_suppress( context ) < ERRORLEVEL_INFO )
-		_log_outputf( context, ERRORLEVEL_INFO, "", format, list, stdout );
+		_log_outputf( context, ERRORLEVEL_INFO, "", 0, format, length, list, stdout );
 	va_end( list );
 }
 
 
-void log_warnf( hash_t context, warning_t warn, const char* format, ... )
+void log_warnf( hash_t context, warning_t warn, const char* format, size_t length, ... )
 {
-	char prefix[32];
+	char buffer[32];
+	string_t prefix;
 	va_list list;
 
 	if( log_suppress( context ) >= ERRORLEVEL_WARNING )
@@ -234,20 +237,21 @@ void log_warnf( hash_t context, warning_t warn, const char* format, ... )
 
 	log_error_context( context, ERRORLEVEL_WARNING );
 
-	if( warn < WARNING_LAST_BUILTIN )
-		string_format_buffer( prefix, 32, "WARNING [%s]: ", _log_warning_name[warn] );
+	if( warn < LOG_WARNING_NAMES )
+		prefix = string_format_buffer( buffer, 32, STRING_CONST( "WARNING [%.*s]: " ), (int)sizeof( _log_warning_name[warn] ), _log_warning_name[warn] );
 	else
-		string_format_buffer( prefix, 32, "WARNING [%d]: ", warn );
+		prefix = string_format_buffer( buffer, 32, STRING_CONST( "WARNING [%d]: " ), warn );
 
-	va_start( list, format );
-	_log_outputf( context, ERRORLEVEL_WARNING, prefix, format, list, stdout );
+	va_start( list, length );
+	_log_outputf( context, ERRORLEVEL_WARNING, prefix.str, prefix.length, format, length, list, stdout );
 	va_end( list );
 }
 
 
-void log_errorf( hash_t context, error_t err, const char* format, ... )
+void log_errorf( hash_t context, error_t err, const char* format, size_t length, ... )
 {
-	char prefix[32];
+	char buffer[32];
+	string_t prefix;
 	va_list list;
 
 	if( log_suppress( context ) >= ERRORLEVEL_ERROR )
@@ -255,43 +259,44 @@ void log_errorf( hash_t context, error_t err, const char* format, ... )
 
 	log_error_context( context, ERRORLEVEL_ERROR );
 
-	if( err < ERROR_LAST_BUILTIN )
-		string_format_buffer( prefix, 32, "ERROR [%s]: ", _log_error_name[err] );
+	if( err < LOG_ERROR_NAMES )
+		prefix = string_format_buffer( buffer, 32, STRING_CONST( "ERROR [%.*s]: " ), sizeof( _log_error_name[err] ), _log_error_name[err] );
 	else
-		string_format_buffer( prefix, 32, "ERROR [%d]: ", err );
+		prefix = string_format_buffer( buffer, 32, STRING_CONST( "ERROR [%d]: " ), err );
 
-	va_start( list, format );
-	_log_outputf( context, ERRORLEVEL_ERROR, prefix, format, list, stderr );
+	va_start( list, length );
+	_log_outputf( context, ERRORLEVEL_ERROR, prefix.str, prefix.length, format, length, list, stderr );
 	va_end( list );
 
 	error_report( ERRORLEVEL_ERROR, err );
 }
 
 
-void log_panicf( hash_t context, error_t err, const char* format, ... )
+void log_panicf( hash_t context, error_t err, const char* format, size_t length, ... )
 {
-	char prefix[32];
+	char buffer[32];
+	string_t prefix;
 	va_list list;
 
 	log_error_context( context, ERRORLEVEL_PANIC );
 
-	if( err < ERROR_LAST_BUILTIN )
-		string_format_buffer( prefix, 32, "PANIC [%s]: ", _log_error_name[err] );
+	if( err < LOG_ERROR_NAMES )
+		prefix = string_format_buffer( prefix, 32, STRING_CONST( "PANIC [%.*s]: " ), sizeof( _log_error_name[err] ), _log_error_name[err] );
 	else
-		string_format_buffer( prefix, 32, "PANIC [%d]: ", err );
+		prefix = string_format_buffer( prefix, 32, STRING_CONST( "PANIC [%d]: " ), err );
 
-	va_start( list, format );
-	_log_outputf( context, ERRORLEVEL_PANIC, prefix, format, list, stderr );
+	va_start( list, length );
+	_log_outputf( context, ERRORLEVEL_PANIC, prefix.str, prefix.length, format, length, list, stderr );
 	va_end( list );
 
 	error_report( ERRORLEVEL_PANIC, err );
 }
 
 
-static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 5 ) _log_error_contextf( hash_t context, error_level_t error_level, void* std, const char* format, ... )
+static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 5 ) _log_error_contextf( hash_t context, error_level_t error_level, void* std, const char* format, size_t length, ... )
 {
 	va_list list;
-	va_start( list, format );
+	va_start( list, length );
 	_log_outputf( context, error_level, "", format, list, std );
 	va_end( list );
 }

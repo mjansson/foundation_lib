@@ -751,7 +751,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	log_debugf( HASH_CONFIG, STRING_CONST( "Parsing config stream: %.*s" ), (int)path.length, path.str );
 #endif
 	buffer.length = buffer_size = 1024;
-	buffer.str = memory_allocate( 0, buffer.length, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );	
+	buffer.str = memory_allocate( 0, buffer.length, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
 	while( !stream_eos( stream ) )
 	{
 		++line;
@@ -765,13 +765,13 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			size_t endpos = string_rfind( stripped.str, stripped.length, ']', stripped.length - 1 );
 			if( endpos < 1 )
 			{
-				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid section declaration on line %u in config stream '%.*s'", line, (int)path.length, path.str );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, STRING_CONST( "Invalid section declaration on line %u in config stream '%.*s'" ), line, (int)path.length, path.str );
 				continue;
 			}
 			stripped.str[endpos] = 0;
 			section = hash( stripped.str + 1, endpos - 1 );
 #if BUILD_ENABLE_CONFIG_DEBUG
-			log_debugf( HASH_CONFIG, "  config: section set to '%.*s' (0x%" PRIx64 ")", (int)endpos - 1, stripped.str + 1, section );
+			log_debugf( HASH_CONFIG, STRING_CONST( "  config: section set to '%.*s' (0x%" PRIx64 ")" ), (int)endpos - 1, stripped.str + 1, section );
 #endif
 		}
 		else if( !filter_section || ( filter_section == section ) )
@@ -782,19 +782,19 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 			size_t separator = string_find( stripped.str, stripped.length, '=', 0 );
 			if( separator == STRING_NPOS )
 			{
-				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %u in config stream '%.*s', missing assignment operator '=': %.*s", line, (int)path.length, path.str, (int)stripped.length, stripped.str );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, STRING_CONST( "Invalid value declaration on line %u in config stream '%.*s', missing assignment operator '=': %.*s" ), line, (int)path.length, path.str, (int)stripped.length, stripped.str );
 				continue;
 			}
 
 			name = string_strip_const( stripped.str, separator, STRING_CONST( " \t" ) );
-			value = string_strip( buffer + separator + 1, " \t" );
-			if( !string_length( name ) )
+			value = string_strip_const( stripped.str + separator + 1, stripped.length - separator - 1, STRING_CONST( " \t" ) );
+			if( !name.length )
 			{
-				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', empty name string", line, stream_path( stream ) );
+				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, STRING_CONST( "Invalid value declaration on line %d in config stream '%.*s', empty name string: %.*s" ), line, (int)path.length, path.str, (int)stripped.length, stripped.str );
 				continue;
 			}
 
-			key = hash( name, string_length( name ) );
+			key = hash( name.str, name.length );
 
 			if( overwrite || !config_key( section, key, false ) )
 			{
@@ -802,16 +802,17 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 				log_debugf( HASH_CONFIG, "  config: %s (0x%llx) = %s", name, key, value );
 #endif
 
-				if( !string_length( value ) )
+				if( !value.length )
 					config_set_string( section, key, "" );
-				else if( string_equal( value, "false" ) )
+				else if( string_equal( value.str, value.length, STRING_CONST( "false" ) ) )
 					config_set_bool( section, key, false );
-				else if( string_equal( value, "true" ) )
+				else if( string_equal( value.str, value.length, STRING_CONST( "true" ) )
 					config_set_bool( section, key, true );
-				else if( ( string_find( value, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value, "0123456789.", 0 ) == STRING_NPOS ) && ( string_find( value, '.', string_find( value, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
-					config_set_real( section, key, string_to_real( value ) );
-				else if( string_find_first_not_of( value, "0123456789", 0 ) == STRING_NPOS )
-					config_set_int( section, key, string_to_int64( value ) );
+				else if( ( string_find( value.str, value.length, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value.str, value.length, STRING_CONST( "0123456789." ), 0 ) == STRING_NPOS ) &&
+				         ( string_find( value.str, value.length, '.', string_find( value.str, value.length, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
+					config_set_real( section, key, string_to_real( value.str, value.length ) );
+				else if( string_find_first_not_of( value.str, value.length, STRING_CONST( "0123456789" ), 0 ) == STRING_NPOS )
+					config_set_int( section, key, string_to_int64( value.str, value.length ) );
 				else
 					config_set_string( section, key, value );
 			}

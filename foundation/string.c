@@ -56,7 +56,7 @@ char* string_clone( const char* str )
 }
 
 
-char* string_format( const char* format, ... )
+char* string_format( const char* format, size_t length, ... )
 {
 	ssize_t n;
 	size_t capacity;
@@ -71,7 +71,7 @@ char* string_format( const char* format, ... )
 
 	while( 1 )
 	{
-		va_start( list, format );
+		va_start( list, length );
 		n = vsnprintf( buffer, capacity, format, list );
 		va_end( list );
 
@@ -90,7 +90,7 @@ char* string_format( const char* format, ... )
 }
 
 
-char* string_format_buffer( char* buffer, size_t maxlen, const char* format, ... )
+char* string_format_buffer( char* buffer, size_t maxlen, const char* format, size_t format_length, ... )
 {
 	va_list list;
 
@@ -102,7 +102,7 @@ char* string_format_buffer( char* buffer, size_t maxlen, const char* format, ...
 		return buffer;
 	}
 
-	va_start( list, format );
+	va_start( list, format_length );
 	vsnprintf( buffer, maxlen, format, list );
 	va_end( list );
 
