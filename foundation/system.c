@@ -697,12 +697,12 @@ uint32_t system_locale( void )
 	if( !locale || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
 
-#define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x))
-#define _LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x))
-	localestr[0] = _LOCALE_CHAR_TO_LOWERCASE( locale[0] );
-	localestr[1] = _LOCALE_CHAR_TO_LOWERCASE( locale[1] );
-	localestr[2] = _LOCALE_CHAR_TO_UPPERCASE( locale[2] );
-	localestr[3] = _LOCALE_CHAR_TO_UPPERCASE( locale[3] );
+#define LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x))
+#define LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x))
+	localestr[0] = LOCALE_CHAR_TO_LOWERCASE( locale[0] );
+	localestr[1] = LOCALE_CHAR_TO_LOWERCASE( locale[1] );
+	localestr[2] = LOCALE_CHAR_TO_UPPERCASE( locale[2] );
+	localestr[3] = LOCALE_CHAR_TO_UPPERCASE( locale[3] );
 
 	memcpy( &localeval, localestr, 4 );
 	return localeval;

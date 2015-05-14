@@ -472,10 +472,6 @@
 #  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
 #  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
-#  ifndef _GNU_SOURCE
-#    define _GNU_SOURCE
-#  endif
-
 //BSD family
 #elif ( defined( __BSD__ ) || defined( __FreeBSD__ ) )
 
@@ -561,15 +557,15 @@
 
 
 //Utility macros
-#define FOUNDATION_PREPROCESSOR_TOSTRING( x )          _FOUNDATION_PREPROCESSOR_TOSTRING(x)
-#define _FOUNDATION_PREPROCESSOR_TOSTRING( x )         #x
+#define FOUNDATION_PREPROCESSOR_TOSTRING( x )          FOUNDATION_PREPROCESSOR_TOSTRING_WRAP(x)
+#define FOUNDATION_PREPROCESSOR_TOSTRING_WRAP( x )     #x
 
-#define FOUNDATION_PREPROCESSOR_JOIN( a, b )           _FOUNDATION_PREPROCESSOR_JOIN( a, b )
-#define _FOUNDATION_PREPROCESSOR_JOIN( a, b )          _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b )
-#define _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b ) a##b
+#define FOUNDATION_PREPROCESSOR_JOIN( a, b )           FOUNDATION_PREPROCESSOR_JOIN_WRAP( a, b )
+#define FOUNDATION_PREPROCESSOR_JOIN_WRAP( a, b )      FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b )
+#define FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b )  a##b
 
-#define FOUNDATION_PREPROCESSOR_NARGS( ... )           _FOUNDATION_PREPROCESSOR_NARGS( __VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 )
-#define _FOUNDATION_PREPROCESSOR_NARGS( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _, ... ) _
+#define FOUNDATION_PREPROCESSOR_NARGS( ... )           FOUNDATION_PREPROCESSOR_NARGS_WRAP( __VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 )
+#define FOUNDATION_PREPROCESSOR_NARGS_WRAP( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _, ... ) _
 
 
 //Architecture details
@@ -601,7 +597,6 @@
 
 //Compilers
 
-// CLang
 #if defined( __clang__ )
 
 #  undef  FOUNDATION_COMPILER_CLANG
@@ -648,14 +643,6 @@
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
 #  endif
 
-#  include <stdbool.h>
-#  include <stdarg.h>
-
-#  if !FOUNDATION_PLATFORM_WINDOWS
-#  include <wchar.h>
-#  endif
-
-// GCC
 #elif defined( __GNUC__ )
 
 #  undef  FOUNDATION_COMPILER_GCC
@@ -696,11 +683,6 @@
 #      define _MSC_VER 1300
 #    endif
 #  endif
-
-#  include <stdbool.h>
-#  include <stdarg.h>
-
-#  include <wchar.h>
 
 // Intel
 #elif defined( __ICL ) || defined( __ICC ) || defined( __INTEL_COMPILER )
@@ -817,14 +799,35 @@ typedef enum
 
 #endif
 
+#if FOUNDATION_PLATFORM_POSIX
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wreserved-id-macro"
+#endif
+
+#ifndef _GNU_SOURCE
+#  define _GNU_SOURCE
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
+
+#endif
+
 //Base data types
+#include <stdbool.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <float.h>
 #include <limits.h>
-
+#if !FOUNDATION_PLATFORM_WINDOWS
+#  include <wchar.h>
+#endif
 #if FOUNDATION_PLATFORM_PNACL || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
-#include <sys/types.h>
+#  include <sys/types.h>
 #endif
 
 typedef float          float32_t;
@@ -994,9 +997,6 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_is_null( co
 #  define PRIXPTR      "IX"
 #  define PRIsize      "Iu"
 #else
-#  ifndef __STDC_FORMAT_MACROS
-#    define __STDC_FORMAT_MACROS
-#  endif
 #  include <inttypes.h>
 #  define PRIsize      "zu"
 #endif
