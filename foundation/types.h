@@ -283,6 +283,10 @@ typedef struct OpaqueMPSemaphoreID*          MPSemaphoreID;
 typedef struct semaphore_t                   semaphore_t;
 #elif FOUNDATION_PLATFORM_IOS
 typedef struct dispatch_semaphore_s*         semaphore_t;
+#elif FOUNDATION_PLATFORM_BSD
+#  include <semaphore.h>
+typedef sem_t                                semaphore_native_t;
+typedef struct semaphore_t                   semaphore_t;
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 typedef union semaphore_native_t             semaphore_native_t;
 typedef struct semaphore_t                   semaphore_t;
@@ -599,6 +603,15 @@ struct semaphore_t
 };
 
 #elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_BSD
+
+struct semaphore_t
+{
+	char*                           name;
+	semaphore_native_t*             sem;
+	semaphore_native_t              unnamed;
+};
+
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 union semaphore_native_t

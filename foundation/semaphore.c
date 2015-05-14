@@ -293,6 +293,11 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 	FOUNDATION_ASSERT( name );
 	FOUNDATION_ASSERT( value <= 0xFFFF );
 
+#if FOUNDATION_PLATFORM_BSD
+	if( name && ( name[0] != '/' ) )
+		semaphore->name = string_format( "/%s", name );
+	else
+#endif
 	semaphore->name = string_clone( name );
 
 	native_sem_t* sem = SEM_FAILED;
@@ -300,11 +305,11 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsig
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
 #else
-	sem = sem_open( name, O_CREAT, 0666, value );
+	sem = sem_open( semaphore->name, O_CREAT, (mode_t)0666, value );
 
 	if( sem == SEM_FAILED )
 	{
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", semaphore->name, system_error_message( 0 ) );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
 	}
 #endif

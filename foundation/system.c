@@ -550,7 +550,7 @@ size_t system_hardware_threads( void )
 	ctlarg[1] = HW_NCPU;
 	len = sizeof( ncpu );
 	if( sysctl( ctlarg, 2, &ncpu, &len, 0, 0 ) == 0 )
-		return ncpu;
+	  return (size_t)ncpu;
 	return 1;
 #else
 	cpu_set_t prevmask, testmask;

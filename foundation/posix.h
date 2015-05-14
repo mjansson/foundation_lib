@@ -25,7 +25,9 @@
 #  endif
 #elif FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  if __has_warning( "-Wreserved-id-macro" )
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
 #endif
 
 #define radixsort __stdlib_radixsort
