@@ -193,10 +193,10 @@ static bool _regex_match_escape( char c, int code )
 	switch( code )
 	{
 		case REGEXCODE_NULL:          return c == 0;
-		case REGEXCODE_WHITESPACE:    return string_find( STRING_WHITESPACE, c, 0 ) != STRING_NPOS;
-		case REGEXCODE_NONWHITESPACE: return string_find( STRING_WHITESPACE, c, 0 ) == STRING_NPOS;
-		case REGEXCODE_DIGIT:         return string_find( "0123456789", c, 0 ) != STRING_NPOS;
-		case REGEXCODE_NONDIGIT:      return string_find( "0123456789", c, 0 ) == STRING_NPOS;
+		case REGEXCODE_WHITESPACE:    return string_find( STRING_CONST( STRING_WHITESPACE ), c, 0 ) != STRING_NPOS;
+		case REGEXCODE_NONWHITESPACE: return string_find( STRING_CONST( STRING_WHITESPACE ), c, 0 ) == STRING_NPOS;
+		case REGEXCODE_DIGIT:         return string_find( STRING_CONST( "0123456789" ), c, 0 ) != STRING_NPOS;
+		case REGEXCODE_NONDIGIT:      return string_find( STRING_CONST( "0123456789" ), c, 0 ) == STRING_NPOS;
 		default: break;
 	}
 	return false;
@@ -540,7 +540,7 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 			//Exact match
 			size_t matchlen = 0;
 			const char* matchstart = --(*pattern);
-			while( **pattern && ( string_find( REGEX_META_CHARACTERS, **pattern, 0 ) == STRING_NPOS ) )
+			while( **pattern && ( string_find( STRING_CONST( REGEX_META_CHARACTERS ), **pattern, 0 ) == STRING_NPOS ) )
 			{
 				++matchlen;
 				++(*pattern);
@@ -670,7 +670,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 		case REGEXOP_EXACT_MATCH:
 		{
 			size_t matchlen = regex->code[op++];
-			if( ( matchlen > ( inlength - inoffset ) ) || !string_equal_substr( input + inoffset, (const char*)regex->code + op, matchlen ) )
+			if( ( matchlen > ( inlength - inoffset ) ) || !string_equal( input + inoffset, matchlen, (const char*)regex->code + op, matchlen ) )
 				return _regex_context_nomatch( op + matchlen );
 			op += matchlen;
 			inoffset += matchlen;
@@ -797,7 +797,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 
 		default:
 		{
-			log_errorf( 0, ERROR_INTERNAL_FAILURE, "Regex encountered an unsupported op: %02x", (unsigned int)regex->code[op] );
+			log_errorf( 0, ERROR_INTERNAL_FAILURE, STRING_CONST( "Regex encountered an unsupported op: %02x" ), (unsigned int)regex->code[op] );
 			return _regex_context_internal_failure( op );
 		}
 	}
@@ -822,9 +822,8 @@ static regex_context_t _regex_execute( regex_t* regex, size_t op, const char* in
 }
 
 
-regex_t* regex_compile( const char* pattern )
+regex_t* regex_compile( const char* pattern, size_t pattern_length )
 {
-	size_t pattern_length = string_length( pattern );
 	regex_t* compiled = memory_allocate( HASH_STRING, sizeof( regex_t ) + pattern_length + 1, 0, MEMORY_PERSISTENT );
 
 	compiled->num_captures = 0;

@@ -103,27 +103,29 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 	int ret = MPCreateSemaphore( 0xFFFF, value, &semaphore->sem.unnamed );
 	if( ret < 0 )
 	{
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize unnamed semaphore: %s", system_error_message( 0 ) );
+		string_const_t errmsg = system_error_message( 0 );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to initialize unnamed semaphore: %.*s" ), (int)errmsg.length, errmsg.str );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize unnamed semaphore" );
 		return;
 	}
 }
 
 
-void semaphore_initialize_named( semaphore_t* semaphore, const char* name, unsigned int value )
+void semaphore_initialize_named( semaphore_t* semaphore, const char* name, size_t length, unsigned int value )
 {
 	FOUNDATION_ASSERT( name );
 	FOUNDATION_ASSERT( value <= 0xFFFF );
 
-	semaphore->name = string_clone( name );
+	semaphore->name = string_clone( name, length );
 
 	sem_t* sem = SEM_FAILED;
 
-	sem = sem_open( name, O_CREAT, 0666, value );
+	sem = sem_open( semaphore->name.str, O_CREAT, 0666, value );
 
 	if( sem == SEM_FAILED )
 	{
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to initialize named semaphore (sem_open '%s'): %s", name, system_error_message( 0 ) );
+		string_const_t errmsg = system_error_message( 0 );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to initialize named semaphore (sem_open '%.*s'): %.*s" ), (int)semaphore->name.length, semaphore->name.str, (int)errmsg.length, errmsg.str );
 		FOUNDATION_ASSERT_FAIL( "Unable to initialize semaphore (sem_open)" );
 	}
 
@@ -161,9 +163,15 @@ bool semaphore_wait( semaphore_t* semaphore )
 		{
 			//Don't report error if interrupted
 			if( errno != EINTR )
-				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to wait for semaphore: %s (%d)", system_error_message( errno ), errno );
+			{
+				int err = errno;
+				string_const_t errmsg = system_error_message( err );
+				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait for semaphore: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
+			}
 			else
-				log_info( 0, "Semaphore wait interrupted by signal" );
+			{
+				log_info( 0, STRING_CONST( "Semaphore wait interrupted by signal" ) );
+			}
 			return false;
 		}
 	}

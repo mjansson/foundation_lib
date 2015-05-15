@@ -343,7 +343,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 			break;
 		}
 	}
-	exe_processed_path = path_append( exe_processed_path.str, exe_processed_path.length, STRING_CONST( "config" ) );
+	exe_processed_path = path_append( exe_processed_path.str, exe_processed_path.length, exe_path.length, STRING_CONST( "config" ) );
 	abs_exe_processed_path = path_make_absolute( exe_processed_path.str, exe_processed_path.length );
 
 	paths[0] = exe_path;
@@ -360,9 +360,9 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	bundle_path = string_clone_string( environment_executable_directory() );
 #  if FOUNDATION_PLATFORM_MACOSX
-	bundle_path = path_append( bundle_path.str, bundle_path.length, STRING_CONST( "../Resources/config" ) );
+	bundle_path = path_append( bundle_path.str, bundle_path.length, bundle_path.length, STRING_CONST( "../Resources/config" ) );
 #  else
-	bundle_path = path_append( bundle_path.str, bundle_path.length, STRING_CONST( "config" ) );
+	bundle_path = path_append( bundle_path.str, bundle_path.length, bundle_path.length, STRING_CONST( "config" ) );
 #  endif
 	bundle_path = path_clean( bundle_path.str, bundle_path.length, bundle_path.length, path_is_absolute( bundle_path.str, bundle_path.length ), true );
 	paths[5] = string_to_const( bundle_path );
@@ -380,7 +380,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
 	cwd_config_path = string_clone_string( environment_current_working_directory());
-	cwd_config_path = path_append( cwd_config_path.str, cwd_config_path.length, STRING_CONST( "config" ) );
+	cwd_config_path = path_append( cwd_config_path.str, cwd_config_path.length, cwd_config_path.length, STRING_CONST( "config" ) );
 	paths[7] = string_to_const( cwd_config_path );
 
 	cmd_line = environment_command_line();
@@ -803,10 +803,10 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 #endif
 
 				if( !value.length )
-					config_set_string( section, key, "" );
+					config_set_string( section, key, "", 0 );
 				else if( string_equal( value.str, value.length, STRING_CONST( "false" ) ) )
 					config_set_bool( section, key, false );
-				else if( string_equal( value.str, value.length, STRING_CONST( "true" ) )
+				else if( string_equal( value.str, value.length, STRING_CONST( "true" ) ) )
 					config_set_bool( section, key, true );
 				else if( ( string_find( value.str, value.length, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value.str, value.length, STRING_CONST( "0123456789." ), 0 ) == STRING_NPOS ) &&
 				         ( string_find( value.str, value.length, '.', string_find( value.str, value.length, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
@@ -814,75 +814,71 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 				else if( string_find_first_not_of( value.str, value.length, STRING_CONST( "0123456789" ), 0 ) == STRING_NPOS )
 					config_set_int( section, key, string_to_int64( value.str, value.length ) );
 				else
-					config_set_string( section, key, value );
+					config_set_string( section, key, value.str, value.length );
 			}
 		}
 	}
-	memory_deallocate( buffer );
+	memory_deallocate( buffer.str );
 }
 
 
-void config_parse_commandline( const char* const* cmdline, size_t num )
+void config_parse_commandline( const string_const_t* cmdline, size_t num )
 {
 	//TODO: Implement, format --section:key=value
 	size_t arg;
 	for( arg = 0; arg < num; ++arg )
 	{
-		if( string_match_pattern( cmdline[arg], "--*:*=*" ) )
+		if( string_match_pattern( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--*:*=*" ) ) )
 		{
-			size_t first_sep = string_find( cmdline[arg], ':', 0 );
-			size_t second_sep = string_find( cmdline[arg], '=', 0 );
+			size_t first_sep = string_find( cmdline[arg].str, cmdline[arg].length, ':', 0 );
+			size_t second_sep = string_find( cmdline[arg].str, cmdline[arg].length, '=', 0 );
 			if( ( first_sep != STRING_NPOS ) && ( second_sep != STRING_NPOS ) && ( first_sep < second_sep ) )
 			{
 				size_t section_length = first_sep - 2;
 				size_t end_pos = first_sep + 1;
 				size_t key_length = second_sep - end_pos;
 
-				const char* section_str = cmdline[arg] + 2;
-				const char* key_str = pointer_offset_const( cmdline[arg], end_pos );
+				const char* section_str = cmdline[arg].str + 2;
+				const char* key_str = pointer_offset_const( cmdline[arg].str, end_pos );
 
 				hash_t section = hash( section_str, section_length );
 				hash_t key = hash( key_str, key_length );
 
-				char* value = string_substr( cmdline[arg], second_sep + 1, STRING_NPOS );
-				char* set_value = value;
+				string_const_t value = string_substr_const( cmdline[arg].str, cmdline[arg].length, second_sep + 1, STRING_NPOS );
 
-				size_t value_length = string_length( value );
-
-				if( !value_length )
-					config_set_string( section, key, "" );
-				else if( string_equal( value, "false" ) )
+				if( !value.length )
+					config_set_string( section, key, "", 0 );
+				else if( string_equal( value.str, value.length, STRING_CONST( "false" ) ) )
 					config_set_bool( section, key, false );
-				else if( string_equal( value, "true" ) )
+				else if( string_equal( value.str, value.length, STRING_CONST( "true" ) ) )
 					config_set_bool( section, key, true );
-				else if( ( string_find( value, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value, "0123456789.", 0 ) == STRING_NPOS ) && ( string_find( value, '.', string_find( value, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
-					config_set_real( section, key, string_to_real( value ) );
-				else if( string_find_first_not_of( value, "0123456789", 0 ) == STRING_NPOS )
-					config_set_int( section, key, string_to_int64( value ) );
+				else if( ( string_find( value.str, value.length, '.', 0 ) != STRING_NPOS ) && ( string_find_first_not_of( value.str, value.length, STRING_CONST( "0123456789." ), 0 ) == STRING_NPOS ) &&
+				         ( string_find( value.str, value.length, '.', string_find( value.str, value.length, '.', 0 ) + 1 ) == STRING_NPOS ) ) //Exactly one "."
+					config_set_real( section, key, string_to_real( value.str, value.length ) );
+				else if( string_find_first_not_of( value.str, value.length, STRING_CONST( "0123456789" ), 0 ) == STRING_NPOS )
+					config_set_int( section, key, string_to_int64( value.str, value.length ) );
 				else
 				{
-					if( ( value_length > 1 ) && ( value[0] == '"' ) && ( value[ value_length - 1 ] == '"' ) )
+					if( ( value.length > 1 ) && ( value.str[0] == '"' ) && ( value.str[ value.length - 1 ] == '"' ) )
 					{
-						value[ value_length - 1 ] = 0;
-						set_value = value + 1;
-						config_set_string( section, key, set_value );
+						value.str++;
+						value.length--;
+						config_set_string( section, key, value.str, value.length );
 					}
 					else
 					{
-						config_set_string( section, key, value );
+						config_set_string( section, key, value.str, value.length );
 					}
 				}
 
-				log_infof( HASH_CONFIG, "Config value from command line: %.*s:%.*s = %s", (int)section_length, section_str, (int)key_length, key_str, set_value );
-
-				string_deallocate( value );
+				log_infof( HASH_CONFIG, STRING_CONST( "Config value from command line: %.*s:%.*s = %.*s" ), (int)section_length, section_str, (int)key_length, key_str, (int)value.length, value.str );
 			}
 		}
 	}
 }
 
 
-void config_write( stream_t* stream, hash_t filter_section, const char* (*string_mapper)( hash_t ) )
+void config_write( stream_t* stream, hash_t filter_section, string_const_t (*string_mapper)( hash_t ) )
 {
 	config_section_t* csection;
 	config_key_t* bucket;
@@ -893,7 +889,8 @@ void config_write( stream_t* stream, hash_t filter_section, const char* (*string
 	//TODO: If random access stream, update section if available, else append at end of stream
 	//if( stream_is_sequential( stream ) )
 	{
-		stream_write_format( stream, "[%s]", string_mapper( filter_section ) );
+		string_const_t section = string_mapper( filter_section );
+		stream_write_format( stream, STRING_CONST( "[%.*s]" ), (int)section.length, section.str );
 		stream_write_endl( stream );
 
 		csection = config_section( filter_section, false );
@@ -902,7 +899,8 @@ void config_write( stream_t* stream, hash_t filter_section, const char* (*string
 			bucket = csection->key[ key ];
 			if( bucket ) for( ib = 0, bsize = array_size( bucket ); ib < bsize; ++ib )
 			{
-				stream_write_format( stream, "\t%s\t\t\t\t= ", string_mapper( bucket[ib].name ) );
+				string_const_t bucketstr = string_mapper( bucket[ib].name );
+				stream_write_format( stream, STRING_CONST( "\t%.*s\t\t\t\t= " ), (int)bucketstr.length, bucketstr.str );
 				switch( bucket[ib].type )
 				{
 					case CONFIGVALUE_BOOL:
@@ -925,7 +923,7 @@ void config_write( stream_t* stream, hash_t filter_section, const char* (*string
 					case CONFIGVALUE_STRING_CONST:
 					case CONFIGVALUE_STRING_VAR:
 					case CONFIGVALUE_STRING_CONST_VAR:
-						stream_write_string( stream, bucket[ib].sval );
+						stream_write_string( stream, bucket[ib].sval.str, bucket[ib].sval.length );
 						break;
 				}
 				stream_write_endl( stream );

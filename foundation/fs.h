@@ -26,9 +26,9 @@ FOUNDATION_API bool             fs_is_directory( const char* path, size_t length
 FOUNDATION_API tick_t           fs_last_modified( const char* path, size_t length );
 FOUNDATION_API void             fs_touch( const char* path, size_t length );
 FOUNDATION_API uint128_t        fs_md5( const char* path, size_t length );
-FOUNDATION_API char**           fs_matching_files( const char* path, size_t length, const char* pattern, size_t pattern_length, bool recurse );
-FOUNDATION_API char**           fs_files( const char* path, size_t length );
-FOUNDATION_API char**           fs_subdirs( const char* path, size_t length );
+FOUNDATION_API string_t*        fs_matching_files( const char* path, size_t length, const char* pattern, size_t pattern_length, bool recurse );
+FOUNDATION_API string_t*        fs_files( const char* path, size_t length );
+FOUNDATION_API string_t*        fs_subdirs( const char* path, size_t length );
 FOUNDATION_API void             fs_monitor( const char* path, size_t length );
 FOUNDATION_API void             fs_unmonitor( const char* path, size_t length );
 FOUNDATION_API stream_t*        fs_temporary_file( void );

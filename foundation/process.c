@@ -65,49 +65,43 @@ void process_finalize( process_t* proc )
 
 	stream_deallocate( proc->pipeout );
 	stream_deallocate( proc->pipein );
-	string_deallocate( proc->wd );
-	string_deallocate( proc->path );
+	string_deallocate( proc->wd.str );
+	string_deallocate( proc->path.str );
 	string_array_deallocate( proc->args );
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_deallocate( proc->verb );
-#endif
-
-	proc->pipeout = 0;
-	proc->pipein = 0;
-	proc->wd = 0;
-	proc->path = 0;
-#if FOUNDATION_PLATFORM_WINDOWS
-	proc->verb = 0;
+	string_deallocate( proc->verb.str );
 #endif
 }
 
 
-void process_set_working_directory( process_t* proc, const char* path )
+void process_set_working_directory( process_t* proc, const char* path, size_t length )
 {
 	if( !proc )
 		return;
-	string_deallocate( proc->wd );
-	proc->wd = string_clone( path );
+	if( proc->wd.length < length)
+		proc->wd = string_resize( proc->wd.str, proc->wd.length, path, length, 0 );
+	proc->wd = string_copy( proc->wd.str, proc->wd.length, path, length );
 }
 
 
-void process_set_executable_path( process_t* proc, const char* path )
+void process_set_executable_path( process_t* proc, const char* path, size_t length )
 {
 	if( !proc )
 		return;
-	string_deallocate( proc->path );
-	proc->path = string_clone( path );
+	if( proc->path.length < length)
+		proc->path = string_resize( proc->path.str, proc->wd.length, path, length, 0 );
+	proc->path = string_copy( proc->path.str, proc->wd.length, path, length );
 }
 
 
-void process_set_arguments( process_t* proc, const char** args, size_t num )
+void process_set_arguments( process_t* proc, const string_const_t* args, size_t num )
 {
 	size_t ia;
 	if( !proc )
 		return;
 	string_array_deallocate( proc->args );
 	for( ia = 0; ia < num; ++ia )
-		array_push( proc->args, string_clone( args[ia] ) );
+		array_push( proc->args, string_clone( args[ia].str, args[ia].length ) );
 }
 
 

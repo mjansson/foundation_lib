@@ -101,22 +101,24 @@ static fs_monitor_t _fs_monitors[BUILD_SIZE_FS_MONITORS];
 static event_stream_t* _fs_event_stream;
 
 
-static const char* _fs_path( const char* abspath )
+static string_const_t _fs_path( const char* abspath, size_t length )
 {
-	bool has_protocol = string_equal_substr( abspath, "file://", 7 );
-	bool has_drive_letter = ( has_protocol && abspath[7] ) ? ( abspath[8] == ':' ) : false;
-	return( has_protocol ? abspath + ( has_drive_letter ? 7 : 6 ) : abspath );
+	bool has_protocol = ( length > 7 ) && string_equal( abspath, 7, STRING_CONST( "file://" ) );
+	bool has_drive_letter = ( has_protocol && ( length > 8 ) ) ? ( abspath[8] == ':' ) : false;
+	return( has_protocol ?
+		string_substr_const( abspath, length, ( has_drive_letter ? 7 : 6 ), length - ( has_drive_letter ? 7 : 6 ) ) :
+		(string_const_t){ abspath, length } );
 }
 
 
 #if FOUNDATION_PLATFORM_PNACL
 
-static PP_Resource _fs_resolve_path( const char* path, const char** localpath )
+static PP_Resource _fs_resolve_path( const char* path, size_t length, string_const_t* localpath )
 {
 	static const char rootpath[] = "/";
-	if( string_equal_substr( path, "/tmp", 4 ) )
+	if( string_equal_substr( path, length, STRING_CONST( "/tmp" ), 4 ) )
 	{
-		if( path[4] == 0 )
+		if( length == 0 )
 		{
 			*localpath = rootpath;
 			return _pnacl_fs_temporary;
@@ -127,9 +129,9 @@ static PP_Resource _fs_resolve_path( const char* path, const char** localpath )
 			return _pnacl_fs_temporary;
 		}
 	}
-	else if( string_equal_substr( path, "/persistent", 11 ) )
+	else if( string_equal_substr( path, length, STRING_CONST( "/persistent" ), 11 ) )
 	{
-		if( path[11] == 0 )
+		if( length == 11 )
 		{
 			*localpath = rootpath;
 			return _pnacl_fs_temporary;
@@ -140,7 +142,7 @@ static PP_Resource _fs_resolve_path( const char* path, const char** localpath )
 			return _pnacl_fs_persistent;
 		}
 	}
-	else if( string_equal_substr( path, "/cache", 6 ) )
+	else if( string_equal_substr( path, STRING_CONST( "/cache" ), 6 ) )
 	{
 		/* TODO: PNaCl implement
 		if( path[6] == 0 )
@@ -156,7 +158,7 @@ static PP_Resource _fs_resolve_path( const char* path, const char** localpath )
 		return 0;
 	}
 
-	log_warnf( HASH_PNACL, WARNING_BAD_DATA, "Invalid file path: %s", path );
+	log_warnf( HASH_PNACL, WARNING_BAD_DATA, STRING_CONST( "Invalid file path: %.*s" ), (int)length, path );
 
 	return 0;
 }
@@ -164,31 +166,32 @@ static PP_Resource _fs_resolve_path( const char* path, const char** localpath )
 #endif
 
 
-void fs_monitor( const char* path )
+void fs_monitor( const char* path, size_t length )
 {
 	size_t mi;
-	char* path_clone = 0;
+	string_t path_clone;
 
 	//TODO: Full thread safety
 
 	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
-		if( string_equal( atomic_loadptr( &_fs_monitors[mi].path ), path ) )
+		const char* monitor_path = atomic_loadptr( &_fs_monitors[mi].path );
+		if( string_equal( monitor_path, string_length( monitor_path ), path, length ) )
 			return;
 	}
 
 	memory_context_push( HASH_STREAM );
 
-	path_clone = path_clean( string_clone( path ), path_is_absolute( path ) );
+	path_clone = path_clean( string_clone( path, length ).str, length, length, path_is_absolute( path, length ), true );
 
 	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
 		if( !_fs_monitors[mi].thread && !atomic_loadptr( &_fs_monitors[mi].path ) && !_fs_monitors[mi].signal )
 		{
-			if( atomic_cas_ptr( &_fs_monitors[mi].path, path_clone, 0 ) )
+			if( atomic_cas_ptr( &_fs_monitors[mi].path, path_clone.str, 0 ) )
 			{
-				_fs_monitors[mi].thread = thread_create( _fs_monitor, "fs_monitor", THREAD_PRIORITY_BELOWNORMAL, 0 );
-				_fs_monitors[mi].signal = mutex_allocate( "fs_monitor_signal" );
+				_fs_monitors[mi].thread = thread_create( _fs_monitor, STRING_CONST( "fs_monitor" ), THREAD_PRIORITY_BELOWNORMAL, 0 );
+				_fs_monitors[mi].signal = mutex_allocate( STRING_CONST( "fs_monitor_signal" ) );
 				thread_start( _fs_monitors[mi].thread, _fs_monitors + mi );
 				break;
 			}
@@ -196,7 +199,10 @@ void fs_monitor( const char* path )
 	}
 
 	if( mi == BUILD_SIZE_FS_MONITORS )
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to monitor file system, no free monitor slots: %s", path );
+	{
+		string_deallocate( path_clone.str );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to monitor file system, no free monitor slots: %.*s" ), (int)length, path );
+	}
 
 	memory_context_pop();
 }
@@ -230,22 +236,24 @@ static void _fs_stop_monitor( fs_monitor_t* monitor )
 }
 
 
-void fs_unmonitor( const char* path )
+void fs_unmonitor( const char* path, size_t length )
 {
 	size_t mi;
 	for( mi = 0; mi < BUILD_SIZE_FS_MONITORS; ++mi )
 	{
-		if( string_equal( atomic_loadptr( &_fs_monitors[mi].path ), path ) )
+		const char* monitor_path = atomic_loadptr( &_fs_monitors[mi].path );
+		if( string_equal( monitor_path, string_length( monitor_path ), path, length ) )
 			_fs_stop_monitor( _fs_monitors + mi );
 	}
 }
 
 
-bool fs_is_file( const char* path )
+bool fs_is_file( const char* path, size_t length )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	wchar_t* wpath = wstring_allocate_from_string( _fs_path( path ), 0 );
+	string_const_t pathstr = _fs_path( path, length );
+	wchar_t* wpath = wstring_allocate_from_string( pathstr.str, pathstr.length );
 	unsigned int attribs = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
 	if( ( attribs != 0xFFFFFFFF ) && !( attribs & FILE_ATTRIBUTE_DIRECTORY ) )
@@ -253,20 +261,22 @@ bool fs_is_file( const char* path )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+	string_const_t pathstr = _fs_path( path, length );
 	struct stat st; memset( &st, 0, sizeof( st ) );
-	stat( _fs_path( path ), &st );
+	stat( pathstr.str, &st );
 	if( st.st_mode & S_IFREG )
 		return true;
 
 #elif FOUNDATION_PLATFORM_PNACL
 
 	bool is_file = false;
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path( _fs_path( path ), &localpath );
+	string_const_t pathstr = _fs_path( path, length );
+	string_const_t localpath;
+	PP_Resource fs = _fs_resolve_path( pathstr.str, pathstr.length, &localpath );
 	if( !fs )
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath.str );
 	if( !ref )
 		return 0;
 
@@ -286,11 +296,12 @@ bool fs_is_file( const char* path )
 }
 
 
-bool fs_is_directory( const char* path )
+bool fs_is_directory( const char* path, size_t length )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	wchar_t* wpath = wstring_allocate_from_string( path, 0 );
+	string_const_t pathstr = _fs_path( path, length );
+	wchar_t* wpath = wstring_allocate_from_string( pathstr.str, pathstr.length );
 	unsigned int attr = GetFileAttributesW( wpath );
 	wstring_deallocate( wpath );
 	if( ( attr == 0xFFFFFFFF ) || !( attr & FILE_ATTRIBUTE_DIRECTORY ) )
@@ -298,20 +309,22 @@ bool fs_is_directory( const char* path )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+	string_const_t pathstr = _fs_path( path, length );
 	struct stat st; memset( &st, 0, sizeof( st ) );
-	stat( path, &st );
+	stat( pathstr.str, &st );
 	if( !( st.st_mode & S_IFDIR ) )
 		return false;
 
 #elif FOUNDATION_PLATFORM_PNACL
 
 	bool is_dir = false;
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path( _fs_path( path ), &localpath );
+	string_const_t localpath;
+	string_const_t pathstr = _fs_path( path, length );
+	PP_Resource fs = _fs_resolve_path( pathstr.str, pathstr.length, &localpath );
 	if( !fs )
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath );
+	PP_Resource ref = _pnacl_file_ref->Create( fs, localpath.str );
 	if( !ref )
 		return 0;
 
@@ -331,17 +344,17 @@ bool fs_is_directory( const char* path )
 }
 
 
-char** fs_subdirs( const char* path )
+string_t* fs_subdirs( const char* path, size_t length )
 {
-	char** arr = 0;
+	string_t* arr = 0;
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	//Windows specific implementation of directory listing
 	HANDLE find;
 	WIN32_FIND_DATAW data;
-	char* pattern = path_append( string_clone( path ), "*" );
-	wchar_t* wpattern = wstring_allocate_from_string( pattern, 0 );
-	string_deallocate( pattern );
+	string_t pattern = path_append( string_clone( path, length ).str, length, STRING_CONST( "*" ) );
+	wchar_t* wpattern = wstring_allocate_from_string( pattern.str, pattern.length );
+	string_deallocate( pattern.str );
 
 	memory_context_push( HASH_STREAM );
 
@@ -375,6 +388,9 @@ char** fs_subdirs( const char* path )
 
 		memory_context_push( HASH_STREAM );
 
+		string_t foundpath = string_allocate( FOUNDATION_MAX_PATHLEN );
+		string_copy( foundpath.str, FOUNDATION_MAX_PATHLEN, path, length );
+
 		while( ( entry = readdir( dir ) ) != 0 )
 		{
 			if( entry->d_name[0] == '.' )
@@ -382,11 +398,13 @@ char** fs_subdirs( const char* path )
 				if( !entry->d_name[1] || ( entry->d_name[1] == '.' ) )
 					continue; //Don't include . and .. directories
 			}
-			char* found = path_append( string_clone( path ), entry->d_name );
-			if( !stat( found, &st ) && S_ISDIR( st.st_mode ) )
-				array_push( arr, string_clone( entry->d_name ) );
-			string_deallocate( found );
+			size_t entrylen = string_length( entry->d_name );
+			string_t thispath = path_append( foundpath.str, length, FOUNDATION_MAX_PATHLEN, entry->d_name, entrylen );
+			if( !stat( thispath.str, &st ) && S_ISDIR( st.st_mode ) )
+				array_push( arr, string_clone( entry->d_name, entrylen ) );
 		}
+
+		string_deallocate( foundpath.str );
 		closedir( dir );
 
 		memory_context_pop();
@@ -441,9 +459,9 @@ char** fs_subdirs( const char* path )
 }
 
 
-char** fs_files( const char* path )
+string_t* fs_files( const char* path, length )
 {
-	char** arr = 0;
+	string_t* arr = 0;
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	//Windows specific implementation of directory listing
@@ -479,13 +497,19 @@ char** fs_files( const char* path )
 
 		memory_context_push( HASH_STREAM );
 
+
+		string_t foundpath = string_allocate( FOUNDATION_MAX_PATHLEN );
+		string_copy( foundpath.str, FOUNDATION_MAX_PATHLEN, path, length );
+
 		while( ( entry = readdir( dir ) ) != 0 )
 		{
-			char* found = path_append( string_clone( path ), entry->d_name );
-			if( !stat( found, &st ) && S_ISREG( st.st_mode ) )
-				array_push( arr, string_clone( entry->d_name ) );
-			string_deallocate( found );
+			size_t entrylen = string_length( entry->d_name );
+			string_t thispath = path_append( foundpath.str, length, FOUNDATION_MAX_PATHLEN, entry->d_name, entrylen );
+			if( !stat( thispath.str, &st ) && S_ISREG( st.st_mode ) )
+				array_push( arr, string_clone( entry->d_name, entrylen ) );
 		}
+
+		string_deallocate( foundpath.str );
 		closedir( dir );
 
 		memory_context_pop();
@@ -540,20 +564,36 @@ char** fs_files( const char* path )
 }
 
 
-bool fs_remove_file( const char* path )
+bool fs_remove_file( const char* path, size_t length )
 {
 	bool result = false;
-	char* fpath = path_make_absolute( path );
+	string_const_t abspath, fspath;
+	string_t localpath = { 0, 0 };
+#if FOUNDATION_PLATFORM_WINDOWS
+	wchar_t* wpath;
+#endif
+
+	if( !path_is_absolute( path, length ) )
+	{
+		localpath = path_make_absolute( path, length );
+		abspath = string_to_const( localpath );
+	}
+	else
+	{
+		abspath = string_const( path, length );
+	}
+
+	fspath = _fs_path( abspath.str, abspath.length );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	wchar_t* wpath = wstring_allocate_from_string( _fs_path( fpath ), 0 );
+	wchar_t* wpath = wstring_allocate_from_string( fspath.str, fspath.length );
 	result = DeleteFileW( wpath );
 	wstring_deallocate( wpath );
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	result = ( unlink( _fs_path( fpath ) ) == 0 );
+	result = ( unlink( fspath.str ) == 0 );
 
 #elif FOUNDATION_PLATFORM_PNACL
 
@@ -573,13 +613,13 @@ bool fs_remove_file( const char* path )
 #  error Not implemented
 #endif
 
-	string_deallocate( fpath );
+	string_deallocate( localpath.str );
 
 	return result;
 }
 
 
-bool fs_remove_directory( const char* path )
+bool fs_remove_directory( const char* path, size_t length )
 {
 	bool result = false;
 	char* fpath = path_make_absolute( path );

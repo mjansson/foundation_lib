@@ -135,7 +135,7 @@ static void sighandler( int sig )
 		case SIGINT:  signame = "SIGINT"; break;
 		default: break;
 	}
-	log_infof( 0, "Caught signal: %s (%d)", signame, sig );
+	log_infof( 0, STRING_CONST( "Caught signal: %s (%d)" ), signame, sig );
 #else
 	FOUNDATION_UNUSED( sig );
 #endif
@@ -250,24 +250,25 @@ int main( int argc, char** argv )
 	ret = tizen_app_main( argc, argv );
 #  else
 	{
-		char* name;
+		string_t name;
 		const application_t* app = environment_application();
 		{
-			const char* aname = app->short_name;
-			name = string_clone( aname ? aname : "unknown" );
-			name = string_append( name, "-" );
-			name = string_append( name, string_from_version_static( app->version ) );
+			string_const_t vstr = string_from_version_static( app->version );
+			string_const_t aname = app->short_name;
+			if( !aname.length )
+				aname = string_const( STRING_CONST( "unknown" ) );
+			name = string_format( STRING_CONST( "%.*s-%.*s" ), (int)aname.length, aname.str, (int)vstr.length, vstr.str );
 		}
 
 		if( app->dump_callback )
-			crash_guard_set( app->dump_callback, name );
+			crash_guard_set( app->dump_callback, name.str, name.length );
 
 		if( system_debugger_attached() )
 			ret = main_run( 0 );
 		else
-			ret = crash_guard( main_run, 0, app->dump_callback, name );
+			ret = crash_guard( main_run, 0, app->dump_callback, name.str, name.length );
 
-		string_deallocate( name );
+		string_deallocate( name.str );
 	}
 #  endif
 

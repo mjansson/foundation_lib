@@ -62,31 +62,29 @@ void _environment_main_args( int argc, const char* const* argv )
 
 #if !FOUNDATION_PLATFORM_PNACL
 
-static void _environment_set_executable_paths( const char* executable_path )
+static void _environment_set_executable_paths( const char* executable_path, size_t length )
 {
-	size_t last_path = string_rfind( executable_path, '/', STRING_NPOS );
+	string_t exe_name;
+	size_t last_path = string_rfind( executable_path, length, '/', STRING_NPOS );
 	if( last_path != STRING_NPOS )
 	{
-		if( !string_length( _environment_executable_dir ) )
-			string_copy( _environment_executable_dir, executable_path, last_path + 1 );
-		if( !string_length( _environment_executable_name ) )
-		{
-			string_copy( _environment_executable_name, executable_path + last_path + 1, FOUNDATION_MAX_PATHLEN );
-		}
+		string_copy( _environment_executable_dir, FOUNDATION_MAX_PATHLEN, executable_path, last_path );
+		exe_name = string_copy( _environment_executable_name, FOUNDATION_MAX_PATHLEN, executable_path + last_path + 1, length - ( last_path + 1 ) );
 	}
 	else
 	{
-		if( !string_length( _environment_executable_dir ) )
-			_environment_executable_dir[0] = 0;
-		if( !string_length( _environment_executable_name ) )
-			string_copy( _environment_executable_name, executable_path, FOUNDATION_MAX_PATHLEN );
+		_environment_executable_dir[0] = 0;
+		exe_name = string_copy( _environment_executable_name, FOUNDATION_MAX_PATHLEN, executable_path, length );
 	}
 #if FOUNDATION_PLATFORM_WINDOWS
-	last_path = string_length( _environment_executable_name );
-	if( ( last_path > 4 ) && ( string_equal( _environment_executable_name + ( last_path - 4 ), ".exe" ) || string_equal( _environment_executable_name + ( last_path - 4 ), ".EXE" ) ) )
-		_environment_executable_name[ last_path - 4 ] = 0;
+	if( ( exe_name.length > 4 ) &&
+	    ( string_ends_with( exe_name.str, exe_name.length, STRING_CONST( ".exe" ) ) ||
+	      string_ends_with( exe_name.str, exe_name.length, STRING_CONST( ".EXE" ) ) ) )
+		_environment_executable_name[ exe_name.length - 4 ] = 0;
+#else
+	FOUNDATION_UNUSED( exe_name );
 #endif
-	string_copy( _environment_executable_path, executable_path, FOUNDATION_MAX_PATHLEN );
+	string_copy( _environment_executable_path, FOUNDATION_MAX_PATHLEN, executable_path, length );
 }
 
 #endif

@@ -418,7 +418,7 @@ static void* _memory_allocate_malloc_raw( size_t size, unsigned int align, unsig
 #endif
 			return memory;
 		}
-		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %" PRIsize " bytes of memory (%" PRIsize " requested)", size, allocate_size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to allocate %" PRIsize " bytes of memory (%" PRIsize " requested)" ), size, allocate_size );
 		return 0;
 	}
 
@@ -473,7 +473,7 @@ static void* _memory_allocate_malloc_raw( size_t size, unsigned int align, unsig
 #    endif
 	if( !raw_memory )
 	{
-		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %" PRIsize " bytes of memory in low 32bit address space", size );
+		log_errorf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to allocate %" PRIsize " bytes of memory in low 32bit address space" ), size );
 		return 0;
 	}
 
@@ -655,7 +655,10 @@ static void* _memory_reallocate_malloc( void* p, size_t size, unsigned  int alig
 #endif
 
 	if( !memory )
-		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to reallocate memory: %s (%" PRIfixPTR ", raw %" PRIfixPTR ")", system_error_message( 0 ), (uintptr_t)p, (uintptr_t)raw_p );
+	{
+		string_const_t errmsg = system_error_message( 0 );
+		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to reallocate memory: %.*s (%" PRIfixPTR ", raw %" PRIfixPTR ")" ), (int)errmsg.length, errmsg.str, (uintptr_t)p, (uintptr_t)raw_p );
+	}
 
 	return memory;
 #endif
@@ -744,7 +747,7 @@ static atomic32_t         _memory_tag_next;
 
 static int _memory_tracker_initialize( void )
 {
-	log_debug( HASH_MEMORY, "Initializing local memory tracker" );
+	log_debug( HASH_MEMORY, STRING_CONST( "Initializing local memory tracker" ) );
 	if( !_memory_tags )
 		_memory_tags = memory_allocate( 0, sizeof( memory_tag_t ) * BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	if( !_memory_table )
@@ -762,17 +765,17 @@ static void _memory_tracker_shutdown( void )
 		unsigned int it;
 		bool got_leaks = false;
 
-		log_debug( HASH_MEMORY, "Checking for memory leaks" );
+		log_debug( HASH_MEMORY, STRING_CONST( "Checking for memory leaks" ) );
 		for( it = 0; it < BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS; ++it )
 		{
 			memory_tag_t* tag = _memory_tags + it;
 			if( atomic_loadptr( &tag->address ) )
 			{
 #if BUILD_ENABLE_LOG
-				char* trace = stacktrace_resolve( tag->trace, 14, 0 );
+				char tracebuf[512];
+				string_t trace = stacktrace_resolve( tracebuf, 512, tag->trace, 14, 0 );
 				void* addr = atomic_loadptr( &tag->address );
-				log_warnf( HASH_MEMORY, WARNING_MEMORY, "Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%s", tag->size, (uintptr_t)addr, it, trace );
-				string_deallocate( trace );
+				log_warnf( HASH_MEMORY, WARNING_MEMORY, STRING_CONST( "Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s" ), tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str );
 #endif
 				got_leaks = true;
 			}
@@ -780,7 +783,7 @@ static void _memory_tracker_shutdown( void )
 		memory_deallocate( _memory_tags );
 
 		if( !got_leaks )
-			log_debug( HASH_MEMORY, "No memory leaks detected" );
+			log_debug( HASH_MEMORY, STRING_CONST( "No memory leaks detected" ) );
 	}
 }
 

@@ -24,7 +24,9 @@
 struct FOUNDATION_ALIGN(16) mutex_t
 {
 	//! Mutex name
-	char                   name[32];
+	char                   name_buffer[32];
+
+	string_const_t         name;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -60,9 +62,9 @@ struct FOUNDATION_ALIGN(16) mutex_t
 };
 
 
-static void _mutex_initialize( mutex_t* mutex, const char* name )
+static void _mutex_initialize( mutex_t* mutex, const char* name, size_t length )
 {
-	string_copy( mutex->name, name, 32 );
+	mutex->name = string_to_const( string_copy( mutex->name_buffer, 32, name, length ) );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	InitializeCriticalSectionAndSpinCount( (CRITICAL_SECTION*)mutex->csection, 4000 );
@@ -103,11 +105,11 @@ static void _mutex_shutdown( mutex_t* mutex )
 }
 
 
-mutex_t* mutex_allocate( const char* name )
+mutex_t* mutex_allocate( const char* name, size_t length )
 {
 	mutex_t* mutex = memory_allocate( 0, sizeof( mutex_t ), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
-	_mutex_initialize( mutex, name );
+	_mutex_initialize( mutex, name, length );
 
 	return mutex;
 }
@@ -124,7 +126,7 @@ void mutex_deallocate( mutex_t* mutex )
 }
 
 
-const char* mutex_name( mutex_t* mutex )
+string_const_t mutex_name( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( mutex );
 	return mutex->name;
@@ -137,7 +139,7 @@ bool mutex_try_lock( mutex_t* mutex )
 	FOUNDATION_ASSERT( mutex );
 
 #if !BUILD_DEPLOY
-	profile_trylock( mutex->name );
+	profile_trylock( mutex->name.str, mutex->name.length );
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -149,7 +151,7 @@ bool mutex_try_lock( mutex_t* mutex )
 #endif
 #if !BUILD_DEPLOY
 	if( was_locked )
-		profile_lock( mutex->name );
+		profile_lock( mutex->name.str, mutex->name.length );
 #endif
 	if( was_locked )
 	{
@@ -167,7 +169,7 @@ bool mutex_lock( mutex_t* mutex )
 	FOUNDATION_ASSERT( mutex );
 
 #if !BUILD_DEPLOY
-	profile_trylock( mutex->name );
+	profile_trylock( mutex->name.str, mutex->name.length );
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -175,14 +177,14 @@ bool mutex_lock( mutex_t* mutex )
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pthread_mutex_lock( &mutex->mutex ) != 0 )
 	{
-		FOUNDATION_ASSERT_FAILFORMAT( "unable to lock mutex %s", mutex->name );
+		FOUNDATION_ASSERT_FAILFORMAT( "unable to lock mutex %s", mutex->name.str );
 		return false;
 	}
 #else
 #  error mutex_lock not implemented
 #endif
 #if !BUILD_DEPLOY
-	profile_lock( mutex->name );
+	profile_lock( mutex->name.str, mutex->name.length );
 #endif
 
 	FOUNDATION_ASSERT_MSGFORMAT( !mutex->lockcount || ( thread_id() == mutex->lockedthread ), "Mutex lock acquired with lockcount > 0 (%d) and locked thread not self (%" PRIx64 " != %" PRIx64 ")", mutex->lockcount, mutex->lockedthread, thread_id() );
@@ -200,7 +202,7 @@ bool mutex_unlock( mutex_t* mutex )
 
 	if( !mutex->lockcount )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to unlock unlocked mutex %s", mutex->name );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to unlock unlocked mutex %.*s" ), (int)mutex->name.length, mutex->name.str );
 		return false;
 	}
 
@@ -208,7 +210,7 @@ bool mutex_unlock( mutex_t* mutex )
 	--mutex->lockcount;
 
 #if !BUILD_DEPLOY
-	profile_unlock( mutex->name );
+	profile_unlock( mutex->name.str, mutex->name.length );
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -216,7 +218,7 @@ bool mutex_unlock( mutex_t* mutex )
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pthread_mutex_unlock( &mutex->mutex ) != 0 )
 	{
-		FOUNDATION_ASSERT_FAILFORMAT( "unable to unlock mutex %s", mutex->name );
+		FOUNDATION_ASSERT_FAILFORMAT( "unable to unlock mutex %s", mutex->name.str );
 		return false;
 	}
 #else
@@ -275,7 +277,8 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		}
 		else
 		{
-			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to wait on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+			string_const_t errmsg = system_error_message( ret );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
 		}
 	}
 	else
@@ -296,7 +299,8 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		}
 		else if( ret != ETIMEDOUT )
 		{
-			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to wait (timed) on mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+			string_const_t errmsg = system_error_message( ret );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait (timed) on mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
 		}
 	}
 
@@ -321,7 +325,7 @@ void mutex_signal( mutex_t* mutex )
 	FOUNDATION_ASSERT( mutex );
 
 #if !BUILD_DEPLOY
-	profile_signal( mutex->name );
+	profile_signal( mutex->name.str, mutex->name.length );
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -335,7 +339,10 @@ void mutex_signal( mutex_t* mutex )
 
 	int ret = pthread_cond_broadcast( &mutex->cond );
 	if( ret != 0 )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to signal mutex '%s': %s (%d)", mutex->name, system_error_message( ret ), ret );
+	{
+		string_const_t errmsg = system_error_message( ret );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to signal mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
+	}
 
 	mutex_unlock( mutex );
 

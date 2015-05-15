@@ -44,7 +44,7 @@ void pipe_initialize( stream_pipe_t* pipestream )
 	stream_initialize( stream, system_byteorder() );
 
 	pipestream->type = STREAMTYPE_PIPE;
-	pipestream->path = string_format( "pipe://0x%" PRIfixPTR, (uintptr_t)pipestream );
+	pipestream->path = string_format( STRING_CONST( "pipe://0x%" PRIfixPTR ), (uintptr_t)pipestream );
 	pipestream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 	pipestream->sequential = true;
 
@@ -57,12 +57,18 @@ void pipe_initialize( stream_pipe_t* pipestream )
 		security_attribs.lpSecurityDescriptor = 0;
 
 		if( !CreatePipe( &pipestream->handle_read, &pipestream->handle_write, &security_attribs, 0 ) )
-			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( GetLastError() ) );
+		{
+			string_const_t errmsg = system_error_message( GetLastError() );
+			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create unnamed pipe: %.*s" ), (int)errmsg.length, errmsg.str );
+		}
 	}
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int fds[2] = { 0, 0 };
 	if( pipe( fds ) < 0 )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create unnamed pipe: %s", system_error_message( 0 ) );
+	{
+		string_const_t errmsg = system_error_message( 0 );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create unnamed pipe: %.*s" ), (int)errmsg.length, errmsg.str );
+	}
 	pipestream->fd_read = fds[0];
 	pipestream->fd_write = fds[1];
 #endif
@@ -195,12 +201,14 @@ static size_t _pipe_stream_read( stream_t* stream, void* dest, size_t num )
 			if( !ReadFile( pipestream->handle_read, pointer_offset( dest, total_read ), (int)( num - total_read ), &num_read, 0 ) )
 			{
 				int err = GetLastError();
+				string_const_t errmsg;
 				if( err == ERROR_BROKEN_PIPE )
 				{
 					pipestream->eos = true;
 					break;
 				}
-				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to read from pipe: %s (%d)", system_error_message( err ), err );
+				errmsg = system_error_message( err );
+				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read from pipe: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
 			}
 			else
 			{

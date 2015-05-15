@@ -547,16 +547,16 @@ FOUNDATION_ALIGNED_STRUCT( objectmap_t, 8 )
 
 struct process_t
 {
-	char*                           wd;
-	char*                           path;
-	char**                          args;
+	string_t                        wd;
+	string_t                        path;
+	string_t*                       args;
 	unsigned int                    flags;
 	int                             code;
 	stream_t*                       pipeout;
 	stream_t*                       pipein;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	char*                           verb;
+	string_t                        verb;
 	void*                           hp;
 	void*                           ht;
 #endif
@@ -610,7 +610,7 @@ struct ringbuffer_t
 
 struct semaphore_t
 {
-	char*                           name;
+	string_t                        name;
 	union
 	{
 		MPSemaphoreID               unnamed;
@@ -623,7 +623,7 @@ struct semaphore_t
 
 struct semaphore_t
 {
-	char*                           name;
+	string_t                        name;
 	semaphore_native_t*             sem;
 	semaphore_native_t              unnamed;
 };
@@ -649,7 +649,7 @@ union semaphore_native_t
 
 struct semaphore_t
 {
-	char*                           name;
+	string_t                        name;
 	semaphore_native_t*             sem;
 	semaphore_native_t              unnamed;
 };

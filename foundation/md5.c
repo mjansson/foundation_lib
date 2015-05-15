@@ -247,7 +247,7 @@ string_t md5_get_digest( const md5_t* digest, char* str, size_t length )
 	size_t i, j, num;
 
 	if( !digest )
-		return 0;
+		return (string_t){ 0, 0 };
 
 	num = length / 2;
 	if( num > 16 )

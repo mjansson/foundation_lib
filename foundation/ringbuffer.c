@@ -261,7 +261,7 @@ static void _ringbuffer_stream_seek( stream_t* stream, ssize_t offset, stream_se
 {
 	if( ( direction != STREAM_SEEK_CURRENT ) || ( offset < 0 ) )
 	{
-		log_error( 0, ERROR_UNSUPPORTED, "Invalid call, only forward seeking allowed on ringbuffer streams" );
+		log_error( 0, ERROR_UNSUPPORTED, STRING_CONST( "Invalid call, only forward seeking allowed on ringbuffer streams" ) );
 		return;
 	}
 
@@ -308,7 +308,7 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, size_t buffer_si
 
 	stream->type = STREAMTYPE_RINGBUFFER;
 	stream->sequential = 1;
-	stream->path = string_format( "ringbuffer://0x%" PRIfixPTR, (uintptr_t)stream );
+	stream->path = string_format( STRING_CONST( "ringbuffer://0x%" PRIfixPTR ), (uintptr_t)stream );
 	stream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 
 	ringbuffer_initialize( RINGBUFFER_FROM_STREAM( stream ), buffer_size );

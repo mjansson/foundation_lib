@@ -29,7 +29,8 @@ FOUNDATION_API const char*                      hash_to_string( hash_t value );
 
 static FOUNDATION_FORCEINLINE hash_t            static_hash( const void* key, size_t len, hash_t value );
 
-#  define static_hash_string( key, len, value ) static_hash( key, string_length( key ), (hash_t)value )
+#  define _static_hash_string( key, len, value ) static_hash( key, string_length( key ), (hash_t)value )
+#  define static_hash_string( ... ) _static_hash_string( __VA_ARGS__ )
 
 #else
 

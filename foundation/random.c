@@ -69,7 +69,7 @@ int _random_initialize( void )
 	if( !_random_mutex )
 	{
 		int i;
-		_random_mutex = mutex_allocate( "random" );
+		_random_mutex = mutex_allocate( STRING_CONST( "random" ) );
 
 		//Allocate and seed a number of state buffers
 		array_reserve( _random_state, 64 );
