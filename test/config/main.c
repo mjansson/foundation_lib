@@ -43,9 +43,9 @@ static application_t test_config_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation config tests";
-	app.short_name = "test_config";
-	app.config_dir = "test_config";
+	app.name = string_const( STRING_CONST( "Foundation config tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_config" ) );
+	app.config_dir = string_const( STRING_CONST( "test_config" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;

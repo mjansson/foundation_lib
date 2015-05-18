@@ -18,9 +18,9 @@ static application_t test_objectmap_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation objectmap tests";
-	app.short_name = "test_objectmap";
-	app.config_dir = "test_objectmap";
+	app.name = string_const( STRING_CONST( "Foundation objectmap tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_objectmap" ) );
+	app.config_dir = string_const( STRING_CONST( "test_objectmap" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
@@ -178,7 +178,7 @@ DECLARE_TEST( objectmap, thread )
 
 	for( ith = 0; ith < num_threads; ++ith )
 	{
-		thread[ith] = thread_create( objectmap_thread, "objectmap_thread", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( objectmap_thread, STRING_CONST( "objectmap_thread" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], map );
 	}
 

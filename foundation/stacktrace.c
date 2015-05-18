@@ -599,10 +599,10 @@ static bool _initialize_symbol_resolve()
 }
 
 
-static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_frames )
+static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t size, void** frames, unsigned int max_frames )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
-	char**              lines = 0;
+	string_t*           lines = 0;
 	char                symbol_buffer[ sizeof( IMAGEHLP_SYMBOL64 ) + 512 ];
 	PIMAGEHLP_SYMBOL64  symbol;
 	DWORD               displacement = 0;
@@ -678,13 +678,19 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
-	char** symbols = 0;
+	//TODO: Use dladdr instead to avoid memory allocation with malloc in backtrace_symbols
+	string_t symbols = (string_t){ buffer, 0 };
 	char** resolved = backtrace_symbols( frames, (int)max_frames );
 	for( unsigned int iframe = 0; iframe < max_frames; ++iframe )
 	{
-		if( resolved[iframe] && string_length( resolved[iframe] ) )
-			array_push( symbols, string_clone( resolved[iframe] ) );
+		size_t length;
+		if( resolved[iframe] && ( length = string_length( resolved[iframe] ) ) )
+		{
+			symbols = string_append( symbols.str, symbols.length, size, resolved[iframe], length, false );
+			symbols = string_append( symbols.str, symbols.length, size, STRING_CONST( STRING_NEWLINE ), false );
+		}
 	}
+	free( resolved );
 
 	return symbols;
 
@@ -813,11 +819,8 @@ static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned
 }
 
 
-char* stacktrace_resolve( void** trace, unsigned int max_depth, unsigned int skip_frames )
+string_t stacktrace_resolve( char* str, size_t length, void** trace, unsigned int max_depth, unsigned int skip_frames )
 {
-	char** lines;
-	char* resolved;
-
 	_initialize_symbol_resolve();
 
 	if( !max_depth )
@@ -825,11 +828,5 @@ char* stacktrace_resolve( void** trace, unsigned int max_depth, unsigned int ski
 	if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
 		max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
 
-	lines = _resolve_stack_frames( trace + skip_frames, max_depth );
-
-	resolved = string_merge( (const char* const*)lines, array_size( lines ), "\n" );
-
-	string_array_deallocate( lines );
-
-	return resolved;
+	return _resolve_stack_frames( str, length, trace + skip_frames, max_depth );
 }

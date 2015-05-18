@@ -30,7 +30,7 @@ FOUNDATION_API bool            thread_is_main( void );
 FOUNDATION_API bool            thread_should_terminate( object_t thread );
 
 FOUNDATION_API void            thread_set_main( void );
-FOUNDATION_API void            thread_set_name( const char* name );
+FOUNDATION_API void            thread_set_name( const char* name, size_t length );
 FOUNDATION_API void            thread_set_hardware( uint64_t mask );
 
 FOUNDATION_API void*           thread_result( object_t thread );

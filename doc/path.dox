@@ -47,7 +47,8 @@ unknown formats
 \brief Get subdirectory name
 \details Get subdirectory name from full path name and root directory. If the full path is an absolute path,
 the root directory must also be an absolute path (and vice versa). Protocols will be stripped
-before matching paths (which will then be treated as absolute paths).
+before matching paths (which will then be treated as absolute paths) and will not be included in the
+subpath returned.
 \param path Full path
 \param root Root full path
 \return Subpath name within root directory, empty string if not in root directory

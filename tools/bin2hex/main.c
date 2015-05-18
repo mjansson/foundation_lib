@@ -18,15 +18,15 @@
 
 typedef struct
 {
-	char**       input_files;
-	char**       output_files;
+	string_t*    input_files;
+	string_t*    output_files;
 	size_t       columns;
 	bool         display_help;
 } bin2hex_input_t;
 
-static bin2hex_input_t      bin2hex_parse_command_line( char const* const* cmdline );
+static bin2hex_input_t      bin2hex_parse_command_line( const string_const_t* cmdline );
 
-static int                  bin2hex_process_files( char const* const* input, char const* const* output, size_t columns );
+static int                  bin2hex_process_files( string_t* input, string_t* output, size_t columns );
 static int                  bin2hex_process_file( stream_t* input, stream_t* output, size_t columns );
 
 static void                 bin2hex_print_usage( void );
@@ -38,9 +38,9 @@ int main_initialize( void )
 
 	application_t application;
 	memset( &application, 0, sizeof( application ) );
-	application.name = "bin2hex";
-	application.short_name = "bin2hex";
-	application.config_dir = "bin2hex";
+	application.name = string_const( STRING_CONST( "bin2hex" ) );
+	application.short_name = string_const( STRING_CONST( "bin2hex" ) );
+	application.config_dir = string_const( STRING_CONST( "bin2hex" ) );
 	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix( false );
@@ -65,7 +65,7 @@ int main_run( void* main_arg )
 		bin2hex_print_usage();
 	else
 	{
-		result = bin2hex_process_files( (char const* const*)input.input_files, (char const* const*)input.output_files, input.columns );
+		result = bin2hex_process_files( input.input_files, input.output_files, input.columns );
 		if( result < 0 )
 			goto exit;
 	}
@@ -85,33 +85,36 @@ void main_shutdown( void )
 }
 
 
-bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
+bin2hex_input_t bin2hex_parse_command_line( const string_const_t* cmdline )
 {
 	bin2hex_input_t input;
 	size_t arg, asize;
 
 	memset( &input, 0, sizeof( input ) );
 
-	error_context_push( "parsing command line", "" );
+	error_context_push( STRING_CONST( "parsing command line" ), STRING_CONST( "" ) );
 	for( arg = 1, asize = array_size( cmdline ); arg < asize; ++arg )
 	{
-		if( string_equal( cmdline[arg], "--help" ) )
+		if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--help" ) ) )
 		{
 			input.display_help = true;
 		}
-		else if( string_equal( cmdline[arg], "--columns" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--columns" ) ) )
 		{
 			if( arg < ( asize - 1 ) )
-				input.columns = string_to_uint( cmdline[++arg], false );
+			{
+				++arg;
+				input.columns = string_to_uint( cmdline[arg].str, cmdline[arg].length, false );
+			}
 		}
-		else if( string_equal( cmdline[arg], "--" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--" ) ) )
 			break; //Stop parsing cmdline options
-		else if( ( string_length( cmdline[arg] ) > 2 ) && string_equal_substr( cmdline[arg], "--", 2 ) )
+		else if( ( cmdline[arg].length > 2 ) && string_equal( cmdline[arg].str, 2, "--", 2 ) )
 			continue; //Cmdline argument not parsed here
 		else
 		{
-			array_push( input.input_files, string_clone( cmdline[arg] ) );
-			array_push( input.output_files, string_format( "%s.hex", cmdline[arg] ) );
+			array_push( input.input_files, string_clone( cmdline[arg].str, cmdline[arg].length ) );
+			array_push( input.output_files, string_format( STRING_CONST( "%.*s.hex" ), (int)cmdline[arg].length, cmdline[arg].str ) );
 		}
 	}
 	error_context_pop();
@@ -123,38 +126,40 @@ bin2hex_input_t bin2hex_parse_command_line( char const* const* cmdline )
 }
 
 
-int bin2hex_process_files( char const* const* input, char const* const* output, size_t columns )
+int bin2hex_process_files( string_t* input, string_t* output, size_t columns )
 {
 	int result = BIN2HEX_RESULT_OK;
 	size_t ifile, files_size;
 	for( ifile = 0, files_size = array_size( input ); ( result == BIN2HEX_RESULT_OK ) && ( ifile < files_size ); ++ifile )
 	{
-		char* input_filename = 0;
-		char* output_filename = 0;
+		string_t input_filename ;
+		string_t output_filename;
 
 		stream_t* input_file = 0;
 		stream_t* output_file = 0;
 
-		input_filename = path_clean( string_clone( input[ifile] ), path_is_absolute( input[ifile] ) );
-		error_context_push( "parsing file", input_filename );
+		input_filename = string_clone( input[ifile].str, input[ifile].length );
+		input_filename = path_clean( input_filename.str, input_filename.length, input_filename.length + 1, path_is_absolute( input_filename.str, input_filename.length ), true );
+		error_context_push( STRING_CONST( "parsing file" ), input_filename.str, input_filename.length );
 
-		output_filename = path_clean( string_clone( output[ifile] ), path_is_absolute( output[ifile] ) );
+		output_filename = string_clone( output[ifile].str, output[ifile].length );
+		output_filename = path_clean( output_filename.str, output_filename.length, output_filename.length + 1, path_is_absolute( output_filename.str, output_filename.length ), true );
 
-		log_infof( 0, "bin2hex %s -> %s", input_filename, output_filename );
+		log_infof( 0, STRING_CONST( "bin2hex %.*s -> %.*s" ), (int)input_filename.length, input_filename.str, (int)output_filename.length, output_filename.str );
 
-		input_file = stream_open( input_filename, STREAM_IN | STREAM_BINARY );
+		input_file = stream_open( input_filename.str, input_filename.length, STREAM_IN | STREAM_BINARY );
 
 		if( !input_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, "Unable to open input file: %s", input_filename );
+			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open input file: %.*s" ), (int)input_filename.length, input_filename.str );
 			result = BIN2HEX_RESULT_MISSING_INPUT_FILE;
 		}
 		else
 		{
-			output_file = stream_open( output_filename, STREAM_OUT );
+			output_file = stream_open( output_filename.str, output_filename.length, STREAM_OUT );
 			if( !output_file )
 			{
-				log_warnf( 0, WARNING_BAD_DATA, "Unable to open output file: %s", output_filename );
+				log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), (int)output_filename.length, output_filename.str );
 				result = BIN2HEX_RESULT_UNABLE_TO_OPEN_OUTPUT_FILE;
 			}
 		}
@@ -165,14 +170,14 @@ int bin2hex_process_files( char const* const* input, char const* const* output, 
 		stream_deallocate( input_file );
 		stream_deallocate( output_file );
 
-		string_deallocate( output_filename );
+		string_deallocate( output_filename.str );
 
 		error_context_pop();
-		string_deallocate( input_filename );
+		string_deallocate( input_filename.str );
 	}
 
 	if( ( result == BIN2HEX_RESULT_OK ) && ( files_size > 0 ) )
-		log_info( 0, "All files generated" );
+		log_info( 0, STRING_CONST( "All files generated" ) );
 
 	return result;
 }
@@ -195,7 +200,7 @@ int bin2hex_process_file( stream_t* input, stream_t* output, size_t columns )
 			break;
 
 		for( byte = 0; byte < read; ++byte )
-			stream_write_format( output, "0x%02x, ", (unsigned int)block[byte] );
+			stream_write_format( output, STRING_CONST( "0x%02x, " ), (unsigned int)block[byte] );
 		stream_write_endl( output );
 	}
 	return BIN2HEX_RESULT_OK;
@@ -206,7 +211,7 @@ void bin2hex_print_usage( void )
 {
 	const error_level_t saved_level = log_suppress( 0 );
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
-	log_info( 0,
+	log_info( 0, STRING_CONST(
 		"bin2hex usage:\n"
 		"  bin2hex [--columns n] [--help] <file> <file> <file> <...> [--]\n"
 		"    Required arguments:\n"
@@ -215,6 +220,6 @@ void bin2hex_print_usage( void )
 		"      --columns n                  Print n bytes in each column (default is 32)\n"
 		"      --help                       Display this help message\n"
 		"      --                           Stop processing command line arguments"
-	);
+	) );
 	log_set_suppress( 0, saved_level );
 }

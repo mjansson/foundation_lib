@@ -929,7 +929,7 @@ FOUNDATION_EXTERN int pthread_key_create( _pthread_key_t*, void (*)(void*) );
 FOUNDATION_EXTERN int pthread_setspecific( _pthread_key_t, const void* );
 FOUNDATION_EXTERN void* pthread_getspecific( _pthread_key_t );
 
-FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
+FOUNDATION_API void* _allocate_thread_local_block( size_t size );
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static _pthread_key_t _##name##_key = 0; \
@@ -948,7 +948,7 @@ __declspec(dllimport) unsigned long STDCALL TlsAlloc();
 __declspec(dllimport) void* STDCALL TlsGetValue( unsigned long );
 __declspec(dllimport) int STDCALL TlsSetValue( unsigned long, void* );
 
-FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
+FOUNDATION_API void* _allocate_thread_local_block( size_t size );
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static unsigned long _##name##_key = 0; \

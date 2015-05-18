@@ -42,7 +42,7 @@ FOUNDATION_API string_const_t    stream_path( const stream_t* stream );
 FOUNDATION_API tick_t            stream_last_modified( const stream_t* stream );
 
 FOUNDATION_API size_t            stream_read( stream_t* stream, void* buffer, size_t num_bytes );
-FOUNDATION_API size_t            stream_read_line_buffer( stream_t* stream, char* dest, size_t count, char delimiter );
+FOUNDATION_API string_t          stream_read_line_buffer( stream_t* stream, char* dest, size_t count, char delimiter );
 FOUNDATION_API string_t          stream_read_line( stream_t* stream, char delimiter );
 FOUNDATION_API bool              stream_read_bool( stream_t* stream );
 FOUNDATION_API int8_t            stream_read_int8( stream_t* stream );
@@ -56,7 +56,7 @@ FOUNDATION_API uint64_t          stream_read_uint64( stream_t* stream );
 FOUNDATION_API float32_t         stream_read_float32( stream_t* stream );
 FOUNDATION_API float64_t         stream_read_float64( stream_t* stream );
 FOUNDATION_API string_t          stream_read_string( stream_t* stream );
-FOUNDATION_API size_t            stream_read_string_buffer( stream_t* stream, char* buffer, size_t size );
+FOUNDATION_API string_t          stream_read_string_buffer( stream_t* stream, char* buffer, size_t size );
 
 FOUNDATION_API size_t            stream_write( stream_t* stream, const void* buffer, size_t num_bytes );
 FOUNDATION_API void              stream_write_bool( stream_t* stream, bool data );

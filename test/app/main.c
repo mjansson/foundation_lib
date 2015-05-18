@@ -19,9 +19,9 @@ static application_t _global_app;
 
 static application_t test_app_application( void )
 {
-	_global_app.name = "Foundation library test suite";
-	_global_app.short_name = "test_all";
-	_global_app.config_dir = "test_all";
+	_global_app.name = string_const( STRING_CONST( "Foundation library test suite" ) );
+	_global_app.short_name = string_const( STRING_CONST( "test_all" ) );
+	_global_app.config_dir = string_const( STRING_CONST( "test_all" ) );
 	_global_app.version = foundation_version();
 	_global_app.flags = APPLICATION_UTILITY;
 	_global_app.dump_callback = test_crash_handler;

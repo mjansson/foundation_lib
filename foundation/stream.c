@@ -29,27 +29,30 @@
 static hashtable64_t* _stream_protocol_table;
 
 
-static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
+static stream_t* _stream_open_stdout( const char* path, size_t length, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( length );
 	stream_t* stream = stream_open_stdout();
 	stream->mode = ( mode & STREAM_BINARY ) | STREAM_OUT;
 	return stream;
 }
 
 
-static stream_t* _stream_open_stderr( const char* path, unsigned int mode )
+static stream_t* _stream_open_stderr( const char* path, size_t length, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( length );
 	stream_t* stream = stream_open_stderr();
 	stream->mode = ( mode & STREAM_BINARY ) | STREAM_OUT;
 	return stream;
 }
 
 
-static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
+static stream_t* _stream_open_stdin( const char* path, size_t length, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( length );
 	stream_t* stream = stream_open_stdin();
 	stream->mode = ( mode & STREAM_BINARY ) | STREAM_IN;
 	return stream;
@@ -60,14 +63,14 @@ int _stream_initialize( void )
 {
 	_stream_protocol_table = hashtable64_allocate( 32 );
 
-	stream_set_protocol_handler( "", fs_open_file );
+	stream_set_protocol_handler( STRING_CONST( "" ), fs_open_file );
 #if FOUNDATION_PLATFORM_ANDROID
-	stream_set_protocol_handler( "asset", asset_stream_open );
+	stream_set_protocol_handler( STRING_CONST( "asset" ), asset_stream_open );
 #endif
-	stream_set_protocol_handler( "file", fs_open_file );
-	stream_set_protocol_handler( "stdout", _stream_open_stdout );
-	stream_set_protocol_handler( "stderr", _stream_open_stderr );
-	stream_set_protocol_handler( "stdin", _stream_open_stdin );
+	stream_set_protocol_handler( STRING_CONST( "file" ), fs_open_file );
+	stream_set_protocol_handler( STRING_CONST( "stdout" ), _stream_open_stdout );
+	stream_set_protocol_handler( STRING_CONST( "stderr" ), _stream_open_stderr );
+	stream_set_protocol_handler( STRING_CONST( "stdin" ), _stream_open_stdin );
 	return 0;
 }
 
@@ -79,15 +82,15 @@ void _stream_shutdown( void )
 }
 
 
-void stream_set_protocol_handler( const char* protocol, stream_open_fn fn )
+void stream_set_protocol_handler( const char* protocol, size_t length, stream_open_fn fn )
 {
-	hashtable64_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (uintptr_t)fn );
+	hashtable64_set( _stream_protocol_table, hash( protocol, length ), (uintptr_t)fn );
 }
 
 
 stream_open_fn stream_protocol_handler( const char* protocol, size_t length )
 {
-	return (stream_open_fn)(uintptr_t)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
+	return (stream_open_fn)(uintptr_t)hashtable64_get( _stream_protocol_table, hash( protocol, length ) );
 }
 
 
@@ -99,20 +102,20 @@ void stream_initialize( stream_t* stream, byteorder_t order )
 	stream->inorder = 1;
 	stream->swap = ( stream->byteorder != system_byteorder() ) ? 1 : 0;
 	stream->mode = STREAM_BINARY;
-	stream->path = 0;
+	stream->path = (string_t){ 0, 0 };
 }
 
 
-stream_t* stream_open( const char* path, unsigned int mode )
+stream_t* stream_open( const char* path, size_t length, unsigned int mode )
 {
 	size_t protocol_end;
 	stream_open_fn open_fn = 0;
 
 	//Check if protocol was given
-	protocol_end = string_find_string( path, "://", 0 );
+	protocol_end = string_find_string( path, length, STRING_CONST( "://" ), 0 );
 	open_fn = stream_protocol_handler( ( protocol_end != STRING_NPOS ) ? path : "", ( protocol_end != STRING_NPOS ) ? protocol_end : 0 );
 
-	return open_fn ? open_fn( path, mode ) : 0;
+	return open_fn ? open_fn( path, length, mode ) : 0;
 }
 
 
@@ -130,9 +133,9 @@ void stream_finalize( stream_t* stream )
 	if( stream->vtable && stream->vtable->finalize )
 		stream->vtable->finalize( stream );
 
-	string_deallocate( stream->path );
+	string_deallocate( stream->path.str );
 
-	stream->path = 0;
+	stream->path = (string_t){ 0, 0 };
 	stream->type = STREAMTYPE_INVALID;
 }
 
@@ -212,10 +215,10 @@ byteorder_t stream_byteorder( const stream_t* stream )
 }
 
 
-const char* stream_path( const stream_t* stream )
+string_const_t stream_path( const stream_t* stream )
 {
 	FOUNDATION_ASSERT( stream );
-	return stream->path;
+	return string_to_const( stream->path );
 }
 
 
@@ -255,14 +258,18 @@ size_t stream_read( stream_t* stream, void* buffer, size_t num_bytes )
 }
 
 
-size_t stream_read_line_buffer( stream_t* stream, char* dest, size_t count, char delimiter )
+string_t stream_read_line_buffer( stream_t* stream, char* dest, size_t count, char delimiter )
 {
 	size_t i, read, total, limit;
 
 	FOUNDATION_ASSERT( stream );
 	FOUNDATION_ASSERT( dest );
-	if( !( stream->mode & STREAM_IN ) || ( count < 2 ) )
-		return 0;
+	if( !( stream->mode & STREAM_IN ) || !dest || ( count < 2 ) )
+	{
+		if( dest && count )
+			dest[0] = 0;
+		return (string_t){ dest, 0 };
+	}
 
 	FOUNDATION_ASSERT( stream->vtable->read );
 
@@ -302,11 +309,11 @@ size_t stream_read_line_buffer( stream_t* stream, char* dest, size_t count, char
 
 	dest[total] = 0;
 
-	return total;
+	return (string_t){ dest, total };
 }
 
 
-char* stream_read_line( stream_t* stream, char delimiter )
+string_t stream_read_line( stream_t* stream, char delimiter )
 {
 	char buffer[128];
 	char* outbuffer = 0;
@@ -317,7 +324,7 @@ char* stream_read_line( stream_t* stream, char delimiter )
 
 	FOUNDATION_ASSERT( stream );
 	if( !( stream->mode & STREAM_IN ) )
-		return 0;
+		return (string_t){ 0, 0 };
 
 	FOUNDATION_ASSERT( stream->vtable->read );
 
@@ -369,7 +376,7 @@ char* stream_read_line( stream_t* stream, char delimiter )
 	if( outbuffer )
 		outbuffer[cursize] = 0;
 
-	return outbuffer;
+	return (string_t){ outbuffer, cursize };
 }
 
 
@@ -430,8 +437,8 @@ bool stream_read_bool( stream_t* stream )
 	else
 	{
 		char buffer[6] = {0};
-		stream_read_string_buffer( stream, buffer, 6 );
-		value = !( !string_length( buffer ) || string_equal( buffer, "false" ) || ( string_equal( buffer, "0" ) ) );
+		string_t str = stream_read_string_buffer( stream, buffer, 6 );
+		value = !( !str.length || string_equal( str.str, str.length, STRING_CONST( "false" ) ) || ( string_equal( str.str, str.length, STRING_CONST( "0" ) ) ) );
 	}
 
 	return value;
@@ -446,8 +453,8 @@ int8_t stream_read_int8( stream_t* stream )
 	else
 	{
 		char buffer[6] = {0};
-		stream_read_string_buffer( stream, buffer, 6 );
-		value = (int8_t)string_to_int( buffer );
+		string_t str = stream_read_string_buffer( stream, buffer, 6 );
+		value = (int8_t)string_to_int( str.str, str.length );
 	}
 	return value;
 }
@@ -461,8 +468,8 @@ uint8_t stream_read_uint8( stream_t* stream )
 	else
 	{
 		char buffer[6] = {0};
-		stream_read_string_buffer( stream, buffer, 6 );
-		value = (uint8_t)string_to_uint( buffer, false );
+		string_t str = stream_read_string_buffer( stream, buffer, 6 );
+		value = (uint8_t)string_to_uint( str.str, str.length, false );
 	}
 	return value;
 }
@@ -480,8 +487,8 @@ int16_t stream_read_int16( stream_t* stream )
 	else
 	{
 		char buffer[8] = {0};
-		stream_read_string_buffer( stream, buffer, 8 );
-		value = (int16_t)string_to_int( buffer );
+		string_t str = stream_read_string_buffer( stream, buffer, 8 );
+		value = (int16_t)string_to_int( str.str, str.length );
 	}
 	return value;
 }
@@ -499,8 +506,8 @@ uint16_t stream_read_uint16( stream_t* stream )
 	else
 	{
 		char buffer[8] = {0};
-		stream_read_string_buffer( stream, buffer, 8 );
-		value = (uint16_t)string_to_uint( buffer, false );
+		string_t str = stream_read_string_buffer( stream, buffer, 8 );
+		value = (uint16_t)string_to_uint( str.str, str.length, false );
 	}
 	return value;
 }
@@ -518,8 +525,8 @@ int32_t stream_read_int32( stream_t* stream )
 	else
 	{
 		char buffer[12] = {0};
-		stream_read_string_buffer( stream, buffer, 12 );
-		value = (int32_t)string_to_int( buffer );
+		string_t str = stream_read_string_buffer( stream, buffer, 12 );
+		value = (int32_t)string_to_int( str.str, str.length );
 	}
 	return value;
 }
@@ -537,8 +544,8 @@ uint32_t stream_read_uint32( stream_t* stream )
 	else
 	{
 		char buffer[12] = {0};
-		stream_read_string_buffer( stream, buffer, 12 );
-		value = (uint32_t)string_to_uint( buffer, false );
+		string_t str = stream_read_string_buffer( stream, buffer, 12 );
+		value = (uint32_t)string_to_uint( str.str, str.length, false );
 	}
 	return value;
 }
@@ -556,8 +563,8 @@ int64_t stream_read_int64( stream_t* stream )
 	else
 	{
 		char buffer[22] = {0};
-		stream_read_string_buffer( stream, buffer, 22 );
-		value = string_to_int64( buffer );
+		string_t str = stream_read_string_buffer( stream, buffer, 22 );
+		value = string_to_int64( str.str, str.length );
 	}
 	return value;
 }
@@ -575,8 +582,8 @@ uint64_t stream_read_uint64( stream_t* stream )
 	else
 	{
 		char buffer[22] = {0};
-		stream_read_string_buffer( stream, buffer, 22 );
-		value = string_to_uint64( buffer, false );
+		string_t str = stream_read_string_buffer( stream, buffer, 22 );
+		value = string_to_uint64( str.str, str.length, false );
 	}
 	return value;
 }
@@ -599,8 +606,8 @@ float32_t stream_read_float32( stream_t* stream )
 	else
 	{
 		char buffer[32] = {0};
-		stream_read_string_buffer( stream, buffer, 32 );
-		value = string_to_float32( buffer );
+		string_t str = stream_read_string_buffer( stream, buffer, 32 );
+		value = string_to_float32( str.str, str.length );
 	}
 	return value;
 }
@@ -623,14 +630,14 @@ float64_t stream_read_float64( stream_t* stream )
 	else
 	{
 		char buffer[64] = {0};
-		stream_read_string_buffer( stream, buffer, 64 );
-		value = string_to_float64( buffer );
+		string_t str = stream_read_string_buffer( stream, buffer, 64 );
+		value = string_to_float64( str.str, str.length );
 	}
 	return value;
 }
 
 
-char* stream_read_string( stream_t* stream )
+string_t stream_read_string( stream_t* stream )
 {
 	char buffer[128];
 	char* outbuffer = buffer;
@@ -641,7 +648,7 @@ char* stream_read_string( stream_t* stream )
 
 	FOUNDATION_ASSERT( stream );
 	if( !( stream->mode & STREAM_IN ) )
-		return 0;
+		return (string_t){ 0, 0 };
 
 	FOUNDATION_ASSERT( stream->vtable->read );
 
@@ -767,17 +774,17 @@ char* stream_read_string( stream_t* stream )
 	if( outbuffer == buffer )
 	{
 		if( cursize == 0 )
-			return 0;
+			return (string_t){ 0, 0 };
 		outbuffer = memory_allocate( 0, cursize + 1, 0, MEMORY_PERSISTENT );
 		memcpy( outbuffer, buffer, cursize );
 		outbuffer[cursize] = 0;
 	}
 
-	return outbuffer;
+	return (string_t){ outbuffer, cursize };
 }
 
 
-size_t stream_read_string_buffer( stream_t* stream, char* outbuffer, size_t size )
+string_t stream_read_string_buffer( stream_t* stream, char* outbuffer, size_t size )
 {
 	char buffer[128];
 	size_t cursize = 0;
@@ -785,8 +792,12 @@ size_t stream_read_string_buffer( stream_t* stream, char* outbuffer, size_t size
 	bool binary = stream_is_binary( stream );
 
 	FOUNDATION_ASSERT( stream );
-	if( !( stream->mode & STREAM_IN ) || !size )
-		return 0;
+	if( !( stream->mode & STREAM_IN ) || !outbuffer || !size )
+	{
+		if( outbuffer && size )
+			outbuffer[0] = 0;
+		return (string_t){ outbuffer, 0 };
+	}
 
 	FOUNDATION_ASSERT( stream->vtable->read );
 
@@ -882,7 +893,7 @@ size_t stream_read_string_buffer( stream_t* stream, char* outbuffer, size_t size
 	if( cursize < size )
 		outbuffer[cursize] = 0;
 
-	return cursize;
+	return (string_t){ outbuffer, cursize };
 }
 
 
@@ -932,7 +943,7 @@ uint128_t stream_md5( stream_t* stream )
 		if( !num )
 			continue;
 		if( stream->mode & STREAM_BINARY )
-			md5_digest_raw( &md5, buf, (size_t)num );
+			md5_digest( &md5, buf, (size_t)num );
 		else
 		{
 			//If last buffer ended with CR, ignore a leading LF
@@ -954,14 +965,14 @@ uint128_t stream_md5( stream_t* stream )
 					if( was_cr && ( ic >= 1023 ) )
 						ignore_lf = true; //Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
-					md5_digest_raw( &md5, buf + lastc, (size_t)( ic - lastc + 1 ) ); //Include the LF
+					md5_digest( &md5, buf + lastc, (size_t)( ic - lastc + 1 ) ); //Include the LF
 					if( was_cr && ( buf[ic+1] == '\n' ) ) //Check for CR+LF
 						++ic;
 					lastc = ic + 1;
 				}
 			}
 			if( lastc < num )
-				md5_digest_raw( &md5, buf + lastc, (size_t)( num - lastc ) );
+				md5_digest( &md5, buf + lastc, (size_t)( num - lastc ) );
 		}
 	}
 
@@ -969,7 +980,6 @@ uint128_t stream_md5( stream_t* stream )
 
 	md5_digest_finalize( &md5 );
 	ret = md5_get_digest_raw( &md5 );
-
 	md5_finalize( &md5 );
 
 	return ret;
@@ -1010,7 +1020,10 @@ void stream_write_int8( stream_t* stream, int8_t data )
 	if( stream_is_binary( stream ) )
 		stream_write( stream, &data, 1 );
 	else
-		stream_write_string( stream, string_from_int_static( (int32_t)data, 0, 0 ) );
+	{
+		string_const_t value = string_from_int_static( (int32_t)data, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1019,7 +1032,10 @@ void stream_write_uint8( stream_t* stream, uint8_t data )
 	if( stream_is_binary( stream ) )
 		stream_write( stream, &data, 1 );
 	else
-		stream_write_string( stream, string_from_uint_static( (uint32_t)data, false, 0, 0 ) );
+	{
+		string_const_t value = string_from_uint_static( (uint32_t)data, false, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1032,7 +1048,10 @@ void stream_write_int16( stream_t* stream, int16_t data )
 		stream_write( stream, &data, 2 );
 	}
 	else
-		stream_write_string( stream, string_from_int_static( data, 0, 0 ) );
+	{
+		string_const_t value = string_from_int_static( data, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1045,7 +1064,10 @@ void stream_write_uint16( stream_t* stream, uint16_t data )
 		stream_write( stream, &data, 2 );
 	}
 	else
-		stream_write_string( stream, string_from_uint_static( data, false, 0, 0 ) );
+	{
+		string_const_t value = string_from_uint_static( data, false, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1058,7 +1080,10 @@ void stream_write_int32( stream_t* stream, int32_t data )
 		stream_write( stream, &data, 4 );
 	}
 	else
-		stream_write_string( stream, string_from_int_static( data, 0, 0 ) );
+	{
+		string_const_t value = string_from_int_static( data, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1071,7 +1096,10 @@ void stream_write_uint32( stream_t* stream, uint32_t data )
 		stream_write( stream, &data, 4 );
 	}
 	else
-		stream_write_string( stream, string_from_uint_static( data, false, 0, 0 ) );
+	{
+		string_const_t value = string_from_uint_static( data, false, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1084,7 +1112,10 @@ void stream_write_int64( stream_t* stream, int64_t data )
 		stream_write( stream, &data, 8 );
 	}
 	else
-		stream_write_string( stream, string_from_int_static( data, 0, 0 ) );
+	{
+		string_const_t value = string_from_int_static( data, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1097,7 +1128,10 @@ void stream_write_uint64( stream_t* stream, uint64_t data )
 		stream_write( stream, &data, 8 );
 	}
 	else
-		stream_write_string( stream, string_from_uint_static( data, false, 0, 0 ) );
+	{
+		string_const_t value = string_from_uint_static( data, false, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1118,7 +1152,10 @@ void stream_write_float32( stream_t* stream, float32_t data )
 		}
 	}
 	else
-		stream_write_string( stream, string_from_real_static( data, 0, 0, 0 ) );
+	{
+		string_const_t value = string_from_real_static( data, 0, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
@@ -1139,16 +1176,22 @@ void stream_write_float64( stream_t* stream, float64_t data )
 		}
 	}
 	else
-		stream_write_string( stream, string_from_real_static( (real)data, 0, 0, 0 ) );
+	{
+		string_const_t value = string_from_real_static( (real)data, 0, 0, 0 );
+		stream_write_string( stream, value.str, value.length );
+	}
 }
 
 
-void stream_write_string( stream_t* stream, const char* str )
+void stream_write_string( stream_t* stream, const char* str, size_t length )
 {
-	if( str )
-		stream_write( stream, str, string_length( str ) + ( stream_is_binary( stream ) ? 1 : 0 ) );
-	else if( stream_is_binary( stream ) )
-		stream_write( stream, &str, 1 ); //Points to null, so safe to use as ref value for null terminator char
+	if( str && length )
+		stream_write( stream, str, length );
+	if( stream_is_binary( stream ) )
+	{
+		char nullstr = 0;
+		stream_write( stream, &nullstr, 1 );
+	}
 }
 
 
@@ -1163,16 +1206,16 @@ void stream_write_endl( stream_t* stream )
 void stream_write_format( stream_t* stream, const char* format, size_t format_length, ... )
 {
 	va_list list;
-	char* buffer;
+	string_t buffer;
 
 	FOUNDATION_ASSERT( format );
 
 	va_start( list, format_length );
-	buffer = string_vformat( format, list );
+	buffer = string_vformat( format, format_length, list );
 	va_end( list );
 
-	stream_write_string( stream, buffer );
-	string_deallocate( buffer );
+	stream_write_string( stream, buffer.str, buffer.length );
+	string_deallocate( buffer.str );
 }
 
 
@@ -1255,7 +1298,7 @@ stream_t* stream_open_stdout( void )
 	stream->mode = STREAM_OUT;
 	stream->type = STREAMTYPE_STDSTREAM;
 	stream->vtable = &_stream_stdout_vtable;
-	stream->path = string_clone( "stdout://" );
+	stream->path = string_clone( STRING_CONST( "stdout://" ) );
 	stream->std = stdout;
 	return (stream_t*)stream;
 }
@@ -1269,7 +1312,7 @@ stream_t* stream_open_stderr( void )
 	stream->mode = STREAM_OUT;
 	stream->type = STREAMTYPE_STDSTREAM;
 	stream->vtable = &_stream_stdout_vtable;
-	stream->path = string_clone( "stderr://" );
+	stream->path = string_clone( STRING_CONST( "stderr://" ) );
 	stream->std = stderr;
 	return (stream_t*)stream;
 }
@@ -1283,7 +1326,7 @@ stream_t* stream_open_stdin( void )
 	stream->mode = STREAM_IN;
 	stream->type = STREAMTYPE_STDSTREAM;
 	stream->vtable = &_stream_stdin_vtable;
-	stream->path = string_clone( "stdin://" );
+	stream->path = string_clone( STRING_CONST( "stdin://" ) );
 	stream->std = stdin;
 	return (stream_t*)stream;
 }
@@ -1331,7 +1374,7 @@ static stream_t* _stream_std_clone( stream_t* stream )
 {
 	stream_std_t* clone = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	memcpy( clone, stream, sizeof( stream_std_t ) );
-	clone->path = string_clone( stream->path );
+	clone->path = string_clone( stream->path.str, stream->path.length );
 	return (stream_t*)clone;
 }
 

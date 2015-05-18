@@ -98,7 +98,7 @@ void semaphore_initialize( semaphore_t* semaphore, unsigned int value )
 {
 	FOUNDATION_ASSERT( value <= 0xFFFF );
 
-	semaphore->name = 0;
+	semaphore->name = (string_t){ 0, 0 };
 
 	int ret = MPCreateSemaphore( 0xFFFF, value, &semaphore->sem.unnamed );
 	if( ret < 0 )
@@ -135,22 +135,22 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, size_
 
 void semaphore_finalize( semaphore_t* semaphore )
 {
-	if( !semaphore->name )
+	if( !semaphore->name.length )
 	{
 		MPDeleteSemaphore( semaphore->sem.unnamed );
 	}
 	else
 	{
-		sem_unlink( semaphore->name );
+		sem_unlink( semaphore->name.str );
 		sem_close( semaphore->sem.named );
-		string_deallocate( semaphore->name );
+		string_deallocate( semaphore->name.str );
 	}
 }
 
 
 bool semaphore_wait( semaphore_t* semaphore )
 {
-	if( !semaphore->name )
+	if( !semaphore->name.length )
 	{
 		int ret = MPWaitOnSemaphore( semaphore->sem.unnamed, 0x7FFFFFFF/*kDurationForever*/ );
 		if( ret < 0 )
@@ -166,7 +166,7 @@ bool semaphore_wait( semaphore_t* semaphore )
 			{
 				int err = errno;
 				string_const_t errmsg = system_error_message( err );
-				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait for semaphore: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
+				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait for named semaphore '%.*s': %.*s (%d)" ), (int)semaphore->name.length, semaphore->name.str, (int)errmsg.length, errmsg.str, err );
 			}
 			else
 			{
@@ -181,7 +181,7 @@ bool semaphore_wait( semaphore_t* semaphore )
 
 bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 {
-	if( !semaphore->name )
+	if( !semaphore->name.length )
 	{
 		unsigned int duration = 0/*kDurationImmediate*/;
 		if( milliseconds > 0 )
@@ -212,7 +212,7 @@ bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 
 void semaphore_post( semaphore_t* semaphore )
 {
-	if( !semaphore->name )
+	if( !semaphore->name.length )
 	{
 		MPSignalSemaphore( semaphore->sem.unnamed );
 	}

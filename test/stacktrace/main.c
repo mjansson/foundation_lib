@@ -18,9 +18,9 @@ static application_t test_stacktrace_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation stacktrace tests";
-	app.short_name = "test_stacktrace";
-	app.config_dir = "test_stacktrace";
+	app.name = string_const( STRING_CONST( "Foundation stacktrace tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_stacktrace" ) );
+	app.config_dir = string_const( STRING_CONST( "test_stacktrace" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
@@ -65,7 +65,8 @@ DECLARE_TEST( stacktrace, resolve )
 	#define TEST_DEPTH 64
 	void* trace[TEST_DEPTH];
 	unsigned int num_frames;
-	char* resolved;
+	char* buffer;
+	string_t resolved;
 
 	if( system_platform() == PLATFORM_PNACL )
 		return 0;
@@ -73,18 +74,19 @@ DECLARE_TEST( stacktrace, resolve )
 	num_frames = stacktrace_capture( trace, TEST_DEPTH, 0 );
 	EXPECT_GT( num_frames, 3 );
 
-	resolved = stacktrace_resolve( trace, num_frames, 0 );
+	buffer = memory_allocate( 0, 1024, 0, MEMORY_TEMPORARY );
+	resolved = stacktrace_resolve( buffer, 1024, trace, num_frames, 0 );
 	EXPECT_NE( resolved, 0 );
 
-	log_infof( HASH_TEST, "Resolved stack trace:\n%s", resolved );
+	log_infof( HASH_TEST, STRING_CONST( "Resolved stack trace:\n%.*s" ), (int)resolved.length, resolved.str );
 
 #if !FOUNDATION_PLATFORM_ANDROID
-	EXPECT_NE( string_find_string( resolved, "stacktraceresolve_fn", 0 ), STRING_NPOS );
-	EXPECT_NE( string_find_string( resolved, "test_run", 0 ), STRING_NPOS );
-	//EXPECT_NE( string_find_string( resolved, "main_run", 0 ), STRING_NPOS );
+	EXPECT_NE( string_find_string( resolved.str, resolved.length, STRING_CONST( "stacktraceresolve_fn" ), 0 ), STRING_NPOS );
+	EXPECT_NE( string_find_string( resolved.str, resolved.length, STRING_CONST( "test_run" ), 0 ), STRING_NPOS );
+	//EXPECT_NE( string_find_string( resolved.str, resolved.length, STRING_CONST( "main_run" ), 0 ), STRING_NPOS );
 #endif
 
-	memory_deallocate( resolved );
+	memory_deallocate( buffer );
 
 	return 0;
 }

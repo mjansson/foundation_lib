@@ -21,13 +21,13 @@ FOUNDATION_EXTERN test_suite_t test_suite_define( void );
 
 typedef struct
 {
-	const char*       name;
+	string_const_t    name;
 	test_fn           fn;
 } test_case_t;
 
 typedef struct
 {
-	const char*       name;
+	string_const_     name;
 	test_case_t**     cases;
 } test_group_t;
 
@@ -55,7 +55,7 @@ static void* test_event_thread( object_t thread, void* arg )
 			switch( event->id )
 			{
 				case FOUNDATIONEVENT_TERMINATE:
-					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating test due to event" );
+					log_warn( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Terminating test due to event" ) );
 					process_exit( -2 );
 
 				default:
@@ -71,14 +71,14 @@ static void* test_event_thread( object_t thread, void* arg )
 #endif
 
 
-void test_add_test( test_fn fn, const char* group_name, const char* test_name )
+void test_add_test( test_fn fn, const char* group_name, size_t group_length, const char* test_name, size_t test_length )
 {
 	unsigned int ig, gsize;
 	test_group_t* test_group = 0;
 	test_case_t* test_case = 0;
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
-		if( string_equal( _test_groups[ig]->name, group_name ) )
+		if( string_equal( _test_groups[ig]->name.str, _test_groups[ig]->name.length, group_name, group_length ) )
 		{
 			test_group = _test_groups[ig];
 			break;
@@ -88,12 +88,12 @@ void test_add_test( test_fn fn, const char* group_name, const char* test_name )
 	if( !test_group )
 	{
 		test_group = memory_allocate( 0, sizeof( test_group_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-		test_group->name = group_name;
+		test_group->name = string_const( group_name, group_length );
 		array_push( _test_groups, test_group );
 	}
 
 	test_case = memory_allocate( 0, sizeof( test_case_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	test_case->name = test_name;
+	test_case->name = string_const( test_name, test_length );
 	test_case->fn = fn;
 
 	array_push( test_group->cases, test_case );
@@ -108,12 +108,12 @@ static void test_run( void )
 	object_t thread_event = 0;
 #endif
 
-	log_infof( HASH_TEST, "Running test suite: %s", test_suite.application().short_name );
+	log_infof( HASH_TEST, STRING_CONST( "Running test suite: %.*s" ), (int)test_suite.application().short_name.length, test_suite.application().short_name.str );
 
 	_test_failed = false;
 
 #if !BUILD_MONOLITHIC
-	thread_event = thread_create( test_event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
+	thread_event = thread_create( test_event_thread, STRING_CONST( "event_thread" ), THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread_event, 0 );
 
 	while( !thread_is_running( thread_event ) )
@@ -122,19 +122,19 @@ static void test_run( void )
 
 	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
 	{
-		log_infof( HASH_TEST, "Running tests from group %s", _test_groups[ig]->name );
+		log_infof( HASH_TEST, STRING_CONST( "Running tests from group %.*s" ), (int)_test_groups[ig]->name.length, _test_groups[ig]->name.str );
 		for( ic = 0, csize = array_size( _test_groups[ig]->cases ); ic < csize; ++ic )
 		{
-			log_infof( HASH_TEST, "  Running %s tests", _test_groups[ig]->cases[ic]->name );
+			log_infof( HASH_TEST, STRING_CONST( "  Running %.*s tests" ), (int)_test_groups[ig]->cases[ic]->name.length, _test_groups[ig]->cases[ic]->name.str );
 			result = _test_groups[ig]->cases[ic]->fn();
 			if( result != 0 )
 			{
-				log_warn( HASH_TEST, WARNING_SUSPICIOUS, "    FAILED" );
+				log_warn( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "    FAILED" ) );
 				_test_failed = true;
 			}
 			else
 			{
-				log_info( HASH_TEST, "    PASSED" );
+				log_info( HASH_TEST, STRING_CONST( "    PASSED" ) );
 			}
 #if BUILD_MONOLITHIC
 			if( test_should_terminate() )
@@ -155,7 +155,7 @@ static void test_run( void )
 	exit:
 #endif
 
-	log_infof( HASH_TEST, "Finished test suite: %s", test_suite.application().short_name );
+	log_infof( HASH_TEST, STRING_CONST( "Finished test suite: %.*s" ), (int)test_suite.application().short_name.length, , test_suite.application().short_name.str );
 }
 
 
@@ -294,10 +294,10 @@ void test_wait_for_threads_exit( const object_t* threads, size_t num_threads )
 }
 
 
-void test_crash_handler( const char* dump_file )
+void test_crash_handler( const char* dump_file, size_t length )
 {
 	FOUNDATION_UNUSED( dump_file );
-	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
+	log_error( HASH_TEST, ERROR_EXCEPTION, STRING_CONST( "Test crashed" ) );
 	process_exit( -1 );
 }
 

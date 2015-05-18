@@ -31,7 +31,7 @@ typedef struct
 
 	//For name based
 	uuid_t            namespace;
-	char*             name;
+	string_t          name;
 } uuid_instance_t;
 
 typedef struct
@@ -39,7 +39,7 @@ typedef struct
 	bool              display_help;
 	bool              output_lowercase;
 	bool              output_binary;
-	char*             output_file;
+	string_t          output_file;
 	uuid_instance_t*  generate;
 } uuidgen_input_t;
 
@@ -57,10 +57,10 @@ typedef union
 	uuid_t         uuid;
 } uuid_convert_t;
 
-static uuidgen_input_t      uuidgen_parse_command_line( const char* const* cmdline );
-static int                  uuidgen_generate( uuid_t** uuid, const uuid_instance_t input );
-static int                  uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercase );
-static void                 uuidgen_print_usage( void );
+static uuidgen_input_t   uuidgen_parse_command_line( const string_const_t* cmdline );
+static int               uuidgen_generate( uuid_t** uuid, const uuid_instance_t input );
+static int               uuidgen_output( uuid_t* uuid, string_t output, bool binary, bool lowercase );
+static void              uuidgen_print_usage( void );
 
 
 int main_initialize( void )
@@ -69,9 +69,9 @@ int main_initialize( void )
 
 	application_t application;
 	memset( &application, 0, sizeof( application ) );
-	application.name = "uuidgen";
-	application.short_name = "uuidgen";
-	application.config_dir = "uuidgen";
+	application.name = string_const( STRING_CONST( "uuidgen" ) );
+	application.short_name = string_const( STRING_CONST( "uuidgen" ) );
+	application.config_dir = string_const( STRING_CONST( "uuidgen" ) );
 	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix( false );
@@ -112,10 +112,10 @@ exit:
 		uuidgen_print_usage();
 
 	for( iinst = 0, num_instance = array_size( input.generate ); iinst < num_instance; ++iinst )
-		string_deallocate( input.generate[iinst].name );
+		string_deallocate( input.generate[iinst].name.str );
 	array_deallocate( input.generate );
 	array_deallocate( output );
-	string_deallocate( input.output_file );
+	string_deallocate( input.output_file.str );
 
 	return result;
 }
@@ -127,68 +127,68 @@ void main_shutdown( void )
 }
 
 
-uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
+uuidgen_input_t uuidgen_parse_command_line( const string_const_t* cmdline )
 {
 	uuidgen_input_t input;
 	size_t arg, asize;
 
 	memset( &input, 0, sizeof( input ) );
 
-	error_context_push( "parsing command line", "" );
+	error_context_push( STRING_CONST( "parsing command line" ), STRING_CONST( "" ) );
 	for( arg = 1, asize = array_size( cmdline ); arg < asize; ++arg )
 	{
-		if( string_equal( cmdline[arg], "--help" ) )
+		if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--help" ) ) )
 			input.display_help = true;
-		else if( string_equal( cmdline[arg], "--output" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--output" ) ) )
 		{
 			if( arg < asize - 1 )
 			{
 				++arg;
-				string_deallocate( input.output_file );
-				input.output_file = string_clone( cmdline[arg] );
+				string_deallocate( input.output_file.str );
+				input.output_file = string_clone( cmdline[arg].str, cmdline[arg].length );
 			}
 		}
-		else if( string_equal( cmdline[arg], "--binary" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--binary" ) ) )
 		{
 			input.output_binary = true;
 		}
-		else if( string_equal( cmdline[arg], "--lowercase" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--lowercase" ) ) )
 		{
 			input.output_lowercase = true;
 		}
-		else if( string_equal( cmdline[arg], "--uppercase" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--uppercase" ) ) )
 		{
 			input.output_lowercase = false;
 		}
-		else if( string_equal( cmdline[arg], "--random" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--random" ) ) )
 		{
 			uuid_instance_t instance;
 			instance.method = METHOD_RANDOM;
 			instance.num = 1;
-			if( ( arg < ( asize - 1 ) ) && ( cmdline[arg+1][0] != '-' ) )
+			if( ( arg < ( asize - 1 ) ) && ( cmdline[arg+1].str[0] != '-' ) )
 			{
 				++arg;
-				instance.num = string_to_uint( cmdline[arg], false );
+				instance.num = string_to_uint( cmdline[arg].str, cmdline[arg].length, false );
 			}
 			if( instance.num < 1 )
 				instance.num = 1;
 			array_push_memcpy( input.generate, &instance );
 		}
-		else if( string_equal( cmdline[arg], "--time" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--time" ) ) )
 		{
 			uuid_instance_t instance;
 			instance.method = METHOD_TIME;
 			instance.num = 1;
-			if( ( arg < ( asize - 1 ) ) && ( cmdline[arg+1][0] != '-' ) )
+			if( ( arg < ( asize - 1 ) ) && ( cmdline[arg+1].str[0] != '-' ) )
 			{
 				++arg;
-				instance.num = string_to_uint( cmdline[arg], false );
+				instance.num = string_to_uint( cmdline[arg].str, cmdline[arg].length, false );
 			}
 			if( instance.num < 1 )
 				instance.num = 1;
 			array_push_memcpy( input.generate, &instance );
 		}
-		else if( string_equal( cmdline[arg], "--md5" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--md5" ) ) )
 		{
 			uuid_instance_t instance;
 			instance.method = METHOD_NAMESPACE_MD5;
@@ -196,19 +196,20 @@ uuidgen_input_t uuidgen_parse_command_line( const char* const* cmdline )
 			if( arg < ( asize - 1 ) )
 			{
 				++arg;
-				if( string_equal( cmdline[arg], "dns" ) || string_equal( cmdline[arg], "DNS" ) )
+				if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "dns" ) ) ||
+				    string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "DNS" ) ) )
 					instance.namespace = UUID_DNS;
 				else
-					instance.namespace = string_to_uuid( cmdline[arg] );
+					instance.namespace = string_to_uuid( cmdline[arg].str, cmdline[arg].length );
 			}
 			if( arg < ( asize - 1 ) )
 			{
 				++arg;
-				instance.name = string_clone( cmdline[arg] );
+				instance.name = string_clone( cmdline[arg].str, cmdline[arg].length );
 			}
 			array_push_memcpy( input.generate, &instance );
 		}
-		else if( string_equal( cmdline[arg], "--" ) )
+		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--" ) ) )
 			break; //Stop parsing cmdline options
 		else
 		{
@@ -254,7 +255,7 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 
 		case METHOD_NAMESPACE_MD5:
 		{
-			array_push( *uuid, uuid_generate_name( input.namespace, input.name ) );
+			array_push( *uuid, uuid_generate_name( input.namespace, input.name.str, input.name.length ) );
 			break;
 		}
 	}
@@ -263,12 +264,12 @@ int uuidgen_generate( uuid_t** uuid, const uuid_instance_t input )
 }
 
 
-int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercase )
+int uuidgen_output( uuid_t* uuid, string_t output, bool binary, bool lowercase )
 {
-	if( output )
+	if( output.length )
 	{
 		size_t i, uuidsize;
-		stream_t* stream = stream_open( output, STREAM_OUT | ( binary ? STREAM_BINARY : 0 ) );
+		stream_t* stream = stream_open( output.str, output.length, STREAM_OUT | ( binary ? STREAM_BINARY : 0 ) );
 		if( !stream )
 			return UUIDGEN_RESULT_UNABLE_TO_OPEN_OUTPUT_FILE;
 		for( i = 0, uuidsize = array_size( uuid ); i < uuidsize; ++i )
@@ -279,7 +280,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 			{
 				uuid_convert_t convert;
 				convert.uuid = uuid[i];
-				stream_write_format( stream, lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
+				stream_write_format( stream, STRING_CONST( lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X" ), convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
 				stream_write_endl( stream );
 			}
 		}
@@ -293,7 +294,7 @@ int uuidgen_output( uuid_t* uuid, const char* output, bool binary, bool lowercas
 		{
 			uuid_convert_t convert;
 			convert.uuid = uuid[i];
-			log_infof( 0, lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X", convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
+			log_infof( 0, STRING_CONST( lowercase ? "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x" : "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X" ), convert.raw.data1, convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1], convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5], convert.raw.data4[6], convert.raw.data4[7] );
 		}
 	}
 	return UUIDGEN_RESULT_OK;
@@ -304,7 +305,7 @@ static void uuidgen_print_usage( void )
 {
 	const error_level_t saved_level = log_suppress( 0 );
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
-	log_info( 0,
+	log_info( 0, STRING_CONST(
 		"uuidgen usage:\n"
 		"  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help] [--]\n"
 		"    If no arguments are given, one random-based UUID is output to stdout\n"
@@ -319,6 +320,6 @@ static void uuidgen_print_usage( void )
 		"      --uppercase                  Output UUID in uppercase hex (default)\n"
 		"      --help                       Display this help message\n"
 		"      --                           Stop processing command line arguments"
-	);
+	) );
 	log_set_suppress( 0, saved_level );
 }

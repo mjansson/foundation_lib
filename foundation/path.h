@@ -24,13 +24,14 @@ FOUNDATION_API string_const_t   path_directory_name( const char* path, size_t le
 FOUNDATION_API string_const_t   path_subdirectory_name( const char* path, size_t length, const char* root, size_t root_length );
 FOUNDATION_API string_const_t   path_protocol( const char* uri, size_t length );
 
-FOUNDATION_API string_t         path_merge( const char* first, size_t first_length, const char* second, size_t second_length);
-FOUNDATION_API string_t         path_append( char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length );
-FOUNDATION_API string_t         path_prepend( char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length );
+FOUNDATION_API string_t         path_merge( const char* first, size_t first_length, const char* second, size_t second_length );
+
+FOUNDATION_API string_t         path_append( char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length, bool reallocate );
+FOUNDATION_API string_t         path_prepend( char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length, bool reallocate );
+FOUNDATION_API string_t         path_absolute( char* path, size_t length, size_t capacity, bool reallocate );
 FOUNDATION_API string_t         path_clean( char* path, size_t length, size_t capacity, bool absolute, bool reallocate );
 
 FOUNDATION_API bool             path_is_absolute( const char* path, size_t length );
 
-FOUNDATION_API string_t         path_make_absolute( const char* path, size_t length );
 FOUNDATION_API string_t         path_make_temporary( void );
 

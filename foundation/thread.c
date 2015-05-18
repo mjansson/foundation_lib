@@ -51,7 +51,7 @@ typedef struct thread_local_block_t thread_local_block_t;
 //TODO: Ugly hack, improve this shit
 static thread_local_block_t _thread_local_blocks[1024];
 
-void* _allocate_thread_local_block( unsigned int size )
+void* _allocate_thread_local_block( size_t size )
 {
 	void* block = memory_allocate( 0, size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
@@ -67,7 +67,7 @@ void* _allocate_thread_local_block( unsigned int size )
 		}
 	}
 
-	log_warnf( 0, WARNING_MEMORY, "Unable to locate thread local memory block slot, will leak %d bytes", size );
+	log_warnf( 0, WARNING_MEMORY, STRING_CONST( "Unable to locate thread local memory block slot, will leak %" PRIsize " bytes" ), size );
 	return block;
 }
 
@@ -179,19 +179,19 @@ static int _thread_guard_wrapper( void* data )
 }
 
 
-object_t thread_create( thread_fn fn, const char* name, thread_priority_t priority, unsigned int stacksize )
+object_t thread_create( thread_fn fn, const char* name, size_t length, thread_priority_t priority, unsigned int stacksize )
 {
 	thread_t* thread;
 	uint64_t id = objectmap_reserve( _thread_map );
 	if( !id )
 	{
-		log_error( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new thread, map full" );
+		log_error( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to allocate new thread, map full" ) );
 		return 0;
 	}
 	thread = memory_allocate( 0, sizeof( thread_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_object_initialize( (object_base_t*)thread, id );
 	thread->fn = fn;
-	string_copy( thread->name, name, 32 );
+	string_copy( thread->name, sizeof( thread->name ), name, length );
 	thread->priority = priority;
 	thread->stacksize = stacksize;
 	objectmap_set( _thread_map, id, thread );
@@ -239,9 +239,10 @@ void* thread_result( object_t id )
 }
 
 
-const char* thread_name( void )
+string_const_t thread_name( void )
 {
-	return get_thread_name();
+	const char* name = get_thread_name();
+	return string_const( name, string_length( name ) );
 }
 
 
@@ -294,7 +295,7 @@ static void FOUNDATION_NOINLINE _set_thread_name( const char* threadname )
 
 #endif
 
-void thread_set_name( const char* name )
+void thread_set_name( const char* name, size_t length )
 {
 	thread_t* self;
 
@@ -313,8 +314,6 @@ void thread_set_name( const char* name )
 #  endif
 #endif
 
-	set_thread_name( name );
-
 	self = get_thread_self();
 	if( self )
 	{
@@ -322,7 +321,12 @@ void thread_set_name( const char* name )
 		thread_t* check_self = GET_THREAD( self->id );
 		FOUNDATION_ASSERT( self == check_self );
 #endif
-		string_copy( self->name, name, 32 );
+		string_copy( self->name, sizeof( self->name ), name, length );
+		set_thread_name( self->name );
+	}
+	else
+	{
+		set_thread_name( name );
 	}
 }
 
@@ -360,14 +364,14 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	if( !_object_ref( (object_base_t*)thread ) )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread, invalid thread object %" PRIfixPTR, (uintptr_t)thread );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to enter thread, invalid thread object %" PRIfixPTR ), (uintptr_t)thread );
 		return 0;
 	}
 
 	atomic_cas32( &thread->started, 1, 0 );
 	if( !atomic_cas32( &thread->running, 1, 0 ) )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to enter thread %" PRIx64 ", already running", thread->id );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to enter thread %" PRIx64 ", already running" ), thread->id );
 		_thread_unref( thread );
 		return 0;
 	}
@@ -388,7 +392,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_ASSERT( atomic_load32( &thread->running ) == 1 );
 
-	log_debugf( 0, "Started thread '%s' (%" PRIx64 ") ID %" PRIx64 "%s", thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
+	log_debugf( 0, STRING_CONST( "Started thread '%s' (%" PRIx64 ") ID %" PRIx64 "%s" ), thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
 
 	if( system_debugger_attached() )
 	{
@@ -396,17 +400,18 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 	}
 	else
 	{
-		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), crash_guard_name() );
+		string_const_t guard_name = crash_guard_name();
+		int crash_result = crash_guard( _thread_guard_wrapper, thread, crash_guard_callback(), guard_name.str, guard_name.length );
 		if( crash_result == FOUNDATION_CRASH_DUMP_GENERATED )
 		{
 			thread->result = (void*)((uintptr_t)FOUNDATION_CRASH_DUMP_GENERATED);
-			log_warnf( 0, WARNING_SUSPICIOUS, "Thread '%s' (%" PRIx64 ") ID %" PRIx64 " crashed", thread->name, thread->osid, thread->id );
+			log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Thread '%s' (%" PRIx64 ") ID %" PRIx64 " crashed" ), thread->name, thread->osid, thread->id );
 		}
 	}
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
-	log_debugf( 0, "Terminated thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
+	log_debugf( 0, STRING_CONST( "Terminated thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs" ), thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	thread->osid  = 0;
 
@@ -419,7 +424,7 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		atomic_store32( &thread->running, 0 );
 	}
 
-	log_debugf( 0, "Exiting thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs", thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
+	log_debugf( 0, STRING_CONST( "Exiting thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs" ), thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	_thread_unref( thread );
 
@@ -438,13 +443,13 @@ bool thread_start( object_t id, void* data )
 	thread_t* thread = GET_THREAD( id );
 	if( !thread )
 	{
-		log_errorf( 0, ERROR_INVALID_VALUE, "Unable to start thread %" PRIx64 ", invalid id", id );
+		log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "Unable to start thread %" PRIx64 ", invalid id" ), id );
 		return false; //Old/invalid id
 	}
 
 	if( atomic_load32( &thread->running ) > 0 )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to start thread %" PRIx64 ", already running", id );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to start thread %" PRIx64 ", already running" ), id );
 		return false; //Thread already running
 	}
 
@@ -459,14 +464,17 @@ bool thread_start( object_t id, void* data )
 	thread->handle = CreateThread( 0, thread->stacksize, _thread_entry, thread, 0, &osid );
 	if( !thread->handle )
 	{
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to create thread: CreateThread failed: %s", system_error_message( GetLastError() ) );
+		int err = GetLastError();
+		string_const_t errmsg = system_error_message( err );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: CreateThread failed: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
 		return false;
 	}
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int err = pthread_create( &thread->thread, 0, _thread_entry, thread );
 	if( err )
 	{
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to create thread: pthread_create failed: %s", system_error_message( err ) );
+		string_const_t errmsg = system_error_message( err );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: pthread_create failed: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
 		return false;
 	}
 #else
@@ -629,7 +637,7 @@ void* thread_attach_jvm( void )
 	// TODO: According to the native activity, the java env can only be used in the main thread (calling ANativeActivityCallbacks)
 	jint result = (*app->activity->vm)->AttachCurrentThread( app->activity->vm, (const struct JNINativeInterface ***)&env, &attach_args );
 	if( result < 0 )
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to attach thread to Java VM (%d)", result );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to attach thread to Java VM (%d)" ), result );
 
 	return env;
 }

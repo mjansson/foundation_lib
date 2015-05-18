@@ -34,9 +34,9 @@ static application_t test_crash_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation crash tests";
-	app.short_name = "test_crash";
-	app.config_dir = "test_crash";
+	app.name = string_const( STRING_CONST( "Foundation crash tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_crash" ) );
+	app.config_dir = string_const( STRING_CONST( "test_crash" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;

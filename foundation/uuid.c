@@ -167,7 +167,7 @@ uuid_t uuid_generate_name( const uuid_t ns, const char* name, size_t length )
 #  define snprintf _snprintf
 #endif
 
-char* string_from_uuid_buffer( char* buffer, size_t size, const uuid_t val )
+string_t string_from_uuid_buffer( char* buffer, size_t size, const uuid_t val )
 {
 	int len;
 	uuid_convert_t convert;
@@ -177,25 +177,27 @@ char* string_from_uuid_buffer( char* buffer, size_t size, const uuid_t val )
 	{
 		if( size )
 			buffer[0] = 0;
-		return buffer;
+		return (string_t){ buffer, 0 };
 	}
 	if( (size_t)len > size )
 	{
 		if( size )
-			buffer[size-1] = 0;
-		return buffer;
+			buffer[ size - 1 ] = 0;
+		return (string_t){ buffer, size ? size - 1 : 0 };
 	}
-	return buffer;
+	return (string_t){ buffer, (size_t)len };
 }
 
 
-uuid_t string_to_uuid( const char* str )
+uuid_t string_to_uuid( const char* str, size_t length )
 {
 	uuid_convert_t convert;
 	unsigned int data[10];
+	FOUNDATION_UNUSED( length );
 	memset( data, 0, sizeof( data ) );
 	convert.raw.data1 = 0;
-	sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9] );
+	if( length )
+		sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9] );
 	convert.raw.data2 = (uint16_t)data[0];
 	convert.raw.data3 = (uint16_t)data[1];
 	convert.raw.data4[0] = (uint8_t)data[2];

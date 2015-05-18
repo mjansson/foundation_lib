@@ -18,9 +18,9 @@ static application_t test_time_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation time tests";
-	app.short_name = "test_time";
-	app.config_dir = "test_time";
+	app.name = string_const( STRING_CONST( "Foundation time tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_time" ) );
+	app.config_dir = string_const( STRING_CONST( "test_time" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;

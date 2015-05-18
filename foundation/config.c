@@ -141,7 +141,7 @@ static FOUNDATION_NOINLINE string_const_t _expand_environment( hash_t key, strin
 		return environment_temporary_directory();
 	else if( string_equal( var.str, var.length, STRING_CONST( "variable[" ) ) )  //variable[varname] - Environment variable named "varname"
 	{
-		string_const_t substr = string_substr_const( var.str, var.length, 9, var.length - 9 );
+		string_const_t substr = string_substr( var.str, var.length, 9, var.length - 9 );
 		return environment_variable( substr.str, substr.length );
 	}
 	return string_null();
@@ -162,7 +162,7 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 	{
 		var_end_pos = string_find( expanded.str, expanded.length, ')', var_pos + 2 );
 		FOUNDATION_ASSERT_MSG( var_end_pos != STRING_NPOS, "Malformed config variable statement" );
-		variable = string_substr_const( expanded.str, expanded.length, var_pos, ( var_end_pos != STRING_NPOS ) ? ( 1 + var_end_pos - var_pos ) : STRING_NPOS );
+		variable = string_substr( expanded.str, expanded.length, var_pos, ( var_end_pos != STRING_NPOS ) ? ( 1 + var_end_pos - var_pos ) : STRING_NPOS );
 
 		section = section_current;
 		key = 0;
@@ -189,7 +189,7 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 		}
 		else
 		{
-			string_const_t value = _expand_environment( key, string_substr_const( variable.str, variable.length, var_offset, variable.length - var_offset ) );
+			string_const_t value = _expand_environment( key, string_substr( variable.str, variable.length, var_offset, variable.length - var_offset ) );
 			expanded = string_replace( expanded.str, expanded.length, variable.str, variable.length, value.str, value.length, false );
 		}
 
@@ -313,7 +313,8 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 	sub_exe_path = path_merge( exe_path.str, exe_path.length, STRING_CONST( "config" ) );
 	exe_parent_path = path_merge( exe_path.str, exe_path.length, STRING_CONST( "../config" ) );
 	exe_parent_path = path_clean( exe_parent_path.str, exe_parent_path.length, exe_parent_path.length, path_is_absolute( exe_parent_path.str, exe_parent_path.length ), true );
-	abs_exe_parent_path = path_make_absolute( exe_parent_path.str, exe_parent_path.length );
+	abs_exe_parent_path = string_clone( exe_parent_path.str, exe_parent_path.length );
+	abs_exe_parent_path = path_absolute( abs_exe_parent_path.str, abs_exe_parent_path.length, abs_exe_parent_path.length, true );
 
 	exe_processed_path = string_clone( exe_path.str, exe_path.length );
 	for( i = 0; i < 4; ++i )
@@ -343,8 +344,9 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 			break;
 		}
 	}
-	exe_processed_path = path_append( exe_processed_path.str, exe_processed_path.length, exe_path.length, STRING_CONST( "config" ) );
-	abs_exe_processed_path = path_make_absolute( exe_processed_path.str, exe_processed_path.length );
+	exe_processed_path = path_append( exe_processed_path.str, exe_processed_path.length, exe_path.length, STRING_CONST( "config" ), true );
+	abs_exe_processed_path = string_clone( exe_processed_path.str, exe_processed_path.length );
+	abs_exe_processed_path = path_absolute( abs_exe_processed_path.str, abs_exe_processed_path.length, abs_exe_processed_path.length, true );
 
 	paths[0] = exe_path;
 #if !FOUNDATION_PLATFORM_PNACL
@@ -360,9 +362,9 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 	bundle_path = string_clone_string( environment_executable_directory() );
 #  if FOUNDATION_PLATFORM_MACOSX
-	bundle_path = path_append( bundle_path.str, bundle_path.length, bundle_path.length, STRING_CONST( "../Resources/config" ) );
+	bundle_path = path_append( bundle_path.str, bundle_path.length, bundle_path.length, STRING_CONST( "../Resources/config" ), true );
 #  else
-	bundle_path = path_append( bundle_path.str, bundle_path.length, bundle_path.length, STRING_CONST( "config" ) );
+	bundle_path = path_append( bundle_path.str, bundle_path.length, bundle_path.length, STRING_CONST( "config" ), true );
 #  endif
 	bundle_path = path_clean( bundle_path.str, bundle_path.length, bundle_path.length, path_is_absolute( bundle_path.str, bundle_path.length ), true );
 	paths[5] = string_to_const( bundle_path );
@@ -380,7 +382,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
 	cwd_config_path = string_clone_string( environment_current_working_directory());
-	cwd_config_path = path_append( cwd_config_path.str, cwd_config_path.length, cwd_config_path.length, STRING_CONST( "config" ) );
+	cwd_config_path = path_append( cwd_config_path.str, cwd_config_path.length, cwd_config_path.length, STRING_CONST( "config" ), true );
 	paths[7] = string_to_const( cwd_config_path );
 
 	cmd_line = environment_command_line();
@@ -392,7 +394,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 		{
 			if( string_equal( cmd_line[icl].str, cmd_line[icl].length, STRING_CONST( "--configdir=" ) ) )
 			{
-				paths[8] = string_substr_const( cmd_line[icl].str, cmd_line[icl].length, 12, STRING_NPOS );
+				paths[8] = string_substr( cmd_line[icl].str, cmd_line[icl].length, 12, STRING_NPOS );
 			}
 			else if( icl < ( clsize - 1 ) )
 			{
@@ -739,7 +741,8 @@ void config_set_string_constant( hash_t section, hash_t key, const char* value, 
 
 void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 {
-	string_t buffer, stripped;
+	string_t buffer;
+	string_const_t stripped;
 	hash_t section = 0;
 	hash_t key = 0;
 	unsigned int line = 0;
@@ -755,7 +758,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	while( !stream_eos( stream ) )
 	{
 		++line;
-		buffer.length = stream_read_line_buffer( stream, buffer.str, buffer_size, '\n' );
+		buffer = stream_read_line_buffer( stream, buffer.str, buffer_size, '\n' );
 		stripped = string_strip( buffer.str, buffer.length, STRING_CONST( " \t\n\r" ) );
 		if( !stripped.length || ( stripped.str[0] == ';' ) || ( stripped.str[0] == '#' ) )
 			continue;
@@ -768,7 +771,6 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, STRING_CONST( "Invalid section declaration on line %u in config stream '%.*s'" ), line, (int)path.length, path.str );
 				continue;
 			}
-			stripped.str[endpos] = 0;
 			section = hash( stripped.str + 1, endpos - 1 );
 #if BUILD_ENABLE_CONFIG_DEBUG
 			log_debugf( HASH_CONFIG, STRING_CONST( "  config: section set to '%.*s' (0x%" PRIx64 ")" ), (int)endpos - 1, stripped.str + 1, section );
@@ -786,8 +788,8 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 				continue;
 			}
 
-			name = string_strip_const( stripped.str, separator, STRING_CONST( " \t" ) );
-			value = string_strip_const( stripped.str + separator + 1, stripped.length - separator - 1, STRING_CONST( " \t" ) );
+			name = string_strip( stripped.str, separator, STRING_CONST( " \t" ) );
+			value = string_strip( stripped.str + separator + 1, stripped.length - separator - 1, STRING_CONST( " \t" ) );
 			if( !name.length )
 			{
 				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, STRING_CONST( "Invalid value declaration on line %d in config stream '%.*s', empty name string: %.*s" ), line, (int)path.length, path.str, (int)stripped.length, stripped.str );
@@ -844,7 +846,7 @@ void config_parse_commandline( const string_const_t* cmdline, size_t num )
 				hash_t section = hash( section_str, section_length );
 				hash_t key = hash( key_str, key_length );
 
-				string_const_t value = string_substr_const( cmdline[arg].str, cmdline[arg].length, second_sep + 1, STRING_NPOS );
+				string_const_t value = string_substr( cmdline[arg].str, cmdline[arg].length, second_sep + 1, STRING_NPOS );
 
 				if( !value.length )
 					config_set_string( section, key, "", 0 );

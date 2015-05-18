@@ -18,9 +18,9 @@ static application_t test_hashtable_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation hashtable tests";
-	app.short_name = "test_hashtable";
-	app.config_dir = "test_hashtable";
+	app.name = string_const( STRING_CONST( "Foundation hashtable tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_hashtable" ) );
+	app.config_dir = string_const( STRING_CONST( "test_hashtable" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;

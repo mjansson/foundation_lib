@@ -18,9 +18,9 @@ static application_t test_md5_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation md5 tests";
-	app.short_name = "test_md5";
-	app.config_dir = "test_md5";
+	app.name = string_const( STRING_CONST( "Foundation md5 tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_md5" ) );
+	app.config_dir = string_const( STRING_CONST( "test_md5" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
@@ -47,18 +47,18 @@ static void test_md5_shutdown( void )
 DECLARE_TEST( md5, empty )
 {
 	md5_t* md5;
-	char* md5str;
+	char md5str[32];
 
 	md5 = md5_allocate();
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5 );
+	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
 	EXPECT_STREQ( md5str, "D41D8CD98F00B204E9800998ECF8427E" );
 	string_deallocate( md5str );
 
 	md5_initialize( md5 );
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5 );
+	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
 	EXPECT_STREQ( md5str, "D41D8CD98F00B204E9800998ECF8427E" );
 	string_deallocate( md5str );
@@ -92,7 +92,7 @@ static const char* digest_test_string =
 DECLARE_TEST( md5, reference )
 {
 	md5_t* md5;
-	char* md5str;
+	char md5str[32];
 
 	md5 = md5_allocate();
 	md5_digest_finalize( md5 );
@@ -100,7 +100,7 @@ DECLARE_TEST( md5, reference )
 	md5_digest_raw( md5, "testing md5 implementation", 26 );
 	md5_digest_finalize( md5 );
 
-	md5str = md5_get_digest( md5 );
+	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
 	EXPECT_STREQ( md5str, "4E24E37E5E06F23210FA1518E97A50C4" );
 	string_deallocate( md5str );
@@ -109,14 +109,14 @@ DECLARE_TEST( md5, reference )
 	md5_digest_raw( md5, "", 0 );
 	md5_digest_raw( md5, "further testing md5 implementation with long buffer > 32 bytes", 62 );
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5 );
+	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
 	EXPECT_STREQ( md5str, "BD870884942EA7B32A9CB2547B02B871" );
 	string_deallocate( md5str );
 
 	md5_digest_raw( md5, digest_test_string, 2000 );
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5 );
+	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
 	EXPECT_STREQ( md5str, "137D3C94230A0E230C4DDFC97EACCCD2" );
 	string_deallocate( md5str );

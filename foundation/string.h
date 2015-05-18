@@ -37,14 +37,12 @@ FOUNDATION_API hash_t          string_hash( const char* str, size_t length );
 FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t new_length, char fill );
 FOUNDATION_API string_t        string_copy( char* dst, size_t dst_length, const char* src, size_t src_length );
 FOUNDATION_API string_t        string_replace( char* str, size_t length, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat );
-FOUNDATION_API string_t        string_append( char* str, size_t length, const char* suffix, size_t suffix_length );
-FOUNDATION_API string_t        string_prepend( char* str, size_t length, const char* prefix, size_t prefix_length );
+FOUNDATION_API string_t        string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, bool realloc );
+FOUNDATION_API string_t        string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, bool realloc );
 FOUNDATION_API string_t        string_concat( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length );
-FOUNDATION_API void            string_split( const char* str, size_t length, const char* separators, size_t sep_length, string_const_t* left, string_const_t* right, bool allowempty );
-FOUNDATION_API string_t        string_substr( char* str, size_t length, size_t offset, size_t sub_length );
-FOUNDATION_API string_const_t  string_substr_const( const char* str, size_t length, size_t offset, size_t sub_length );
-FOUNDATION_API string_t        string_strip( char* str, size_t length, const char* delimiters, size_t delim_length );
-FOUNDATION_API string_const_t  string_strip_const( const char* str, size_t length, const char* delimiters, size_t delim_length );
+
+FOUNDATION_API string_const_t  string_substr( const char* str, size_t length, size_t offset, size_t sub_length );
+FOUNDATION_API string_const_t  string_strip( const char* str, size_t length, const char* delimiters, size_t delim_length );
 
 FOUNDATION_API size_t          string_find( const char* str, size_t length, char c, size_t offset );
 FOUNDATION_API size_t          string_find_string( const char* str, size_t length, const char* key, size_t key_length, size_t offset );
@@ -62,6 +60,7 @@ FOUNDATION_API bool            string_equal( const char* lhs, size_t lhs_length,
 FOUNDATION_API bool            string_equal_substr( const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs, size_t rhs_length, size_t rhs_offset );
 FOUNDATION_API bool            string_match_pattern( const char* str, size_t length, const char* pattern, size_t pattern_length );
 
+FOUNDATION_API void            string_split( const char* str, size_t length, const char* separators, size_t sep_length, string_const_t* left, string_const_t* right, bool allowempty );
 FOUNDATION_API string_const_t* string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, bool allow_empty );
 FOUNDATION_API string_t        string_merge( string_const_t* array, size_t array_size, const char* delimiter, size_t delim_length );
 
@@ -124,3 +123,4 @@ FOUNDATION_API string_t        string_thread_buffer( void );
 #define STRING_NPOS            ((size_t)-1)
 #define STRING_WHITESPACE      " \n\r\t\v\f"
 #define WSTRING_WHITESPACE    L" \n\r\t\v\f"
+#define STRING_NEWLINE         "\n"

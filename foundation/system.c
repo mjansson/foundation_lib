@@ -36,7 +36,7 @@
 #if FOUNDATION_PLATFORM_APPLE
 #include <sys/sysctl.h>
 extern unsigned int _system_process_info_processor_count( void );
-extern int _system_show_alert( const char*, const char*, int );
+extern int _system_show_alert( const char*, size_t, const char*, size_t, int );
 #endif
 
 #define SYSTEM_BUFFER_SIZE 511
@@ -184,17 +184,16 @@ void system_error_reset( void )
 
 const char* system_error_message( int code )
 {
-	char* errmsg = _system_buffer();
+	char* errmsg;
 	if( !code )
 		code = system_error();
 	if( !code )
-		return "<no error>";
+		return string_const( STRING_CONST( "<no error>" ) );
 
+ 	errmsg = _system_buffer();
 	errmsg[0] = 0;
 	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, SYSTEM_BUFFER_SIZE, 0 );
-	string_strip( errmsg, STRING_WHITESPACE );
-
-	return errmsg;
+	return string_strip( errmsg, string_length( errmsg ), STRING_CONST( STRING_WHITESPACE ) );
 }
 
 
@@ -339,51 +338,47 @@ void system_error_reset( void )
 }
 
 
-const char* system_error_message( int code )
+string_const_t system_error_message( int code )
 {
 	if( !code )
 		code = system_error();
 	if( !code )
-		return "<no error>";
+		return string_const( STRING_CONST( "<no error>" ) );
 	char* buffer = _system_buffer();
 	if( strerror_r( code, buffer, SYSTEM_BUFFER_SIZE ) == 0 )
-		return buffer;
-	return "<no error string>";
+		return string_const( buffer, string_length( buffer ) );
+	return string_const( STRING_CONST( "<no error string>" ) );
 }
 
 
-const char* system_hostname( void )
+string_t system_hostname( char* buffer, size_t size )
 {
-	char* hostname = _system_buffer();
-	if( gethostname( hostname, SYSTEM_BUFFER_SIZE ) < 0 )
-		string_copy( hostname, "unknown", SYSTEM_BUFFER_SIZE );
-	return hostname;
+	if( gethostname( buffer, size ) < 0 )
+		return string_copy( buffer, size, STRING_CONST( "unknown" ) );
+	return (string_t){ buffer, string_length( buffer ) };
 }
 
 
-const char* system_username( void )
+string_t system_username( char* buffer, size_t size )
 {
-	char* buffer;
 	struct passwd passwd;
 	struct passwd* result;
 
-	buffer = _system_buffer();
-	getpwuid_r( getuid(), &passwd, buffer, SYSTEM_BUFFER_SIZE, &result );
+	getpwuid_r( getuid(), &passwd, buffer, size, &result );
 	if( !result )
 	{
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 		const char* login = getlogin();
-		string_copy( buffer, login ? login : "unknown", SYSTEM_BUFFER_SIZE );
+		if( !login )
+			return string_copy( buffer, size, STRING_CONST( "unknown" ) );
+		return string_copy( buffer, size, login, string_length( login ) );
 #else
-		if( getlogin_r( buffer, SYSTEM_BUFFER_SIZE ) != 0 )
-			string_copy( buffer, "unknown", SYSTEM_BUFFER_SIZE );
+		if( getlogin_r( buffer, size ) != 0 )
+			return string_copy( buffer, size, STRING_CONST( "unknown" ) );
+		return (string_t){ buffer, string_length( buffer ) };
 #endif
 	}
-	else
-	{
-		return result->pw_name;
-	}
-	return buffer;
+	return (string_t){ result->pw_name, string_length( result->pw_name ) };
 }
 
 
@@ -488,7 +483,7 @@ uint64_t system_hostid( void )
 	{
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
-			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
+			if( memcmp( ifa->ifa_name, "lo", 2 ) == 0 )
 				continue;
 
 			hostid = _system_hostid_lookup( ifa );
@@ -689,33 +684,35 @@ uint32_t system_locale( void )
 	uint32_t localeval = 0;
 	char localestr[4];
 
-	const char* locale = config_string( HASH_USER, HASH_LOCALE );
-	if( !locale || ( string_length( locale ) != 4 ) )
+	string_const_t locale = config_string( HASH_USER, HASH_LOCALE );
+	if( locale.length != 4 )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
-	if( !locale || ( string_length( locale ) != 4 ) )
+	if( locale.length != 4 )
 		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
-	if( !locale || ( string_length( locale ) != 4 ) )
+	if( locale.length != 4 )
 		return _system_user_locale();
 
 #define LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x))
 #define LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x))
-	localestr[0] = LOCALE_CHAR_TO_LOWERCASE( locale[0] );
-	localestr[1] = LOCALE_CHAR_TO_LOWERCASE( locale[1] );
-	localestr[2] = LOCALE_CHAR_TO_UPPERCASE( locale[2] );
-	localestr[3] = LOCALE_CHAR_TO_UPPERCASE( locale[3] );
+	localestr[0] = LOCALE_CHAR_TO_LOWERCASE( locale.str[0] );
+	localestr[1] = LOCALE_CHAR_TO_LOWERCASE( locale.str[1] );
+	localestr[2] = LOCALE_CHAR_TO_UPPERCASE( locale.str[2] );
+	localestr[3] = LOCALE_CHAR_TO_UPPERCASE( locale.str[3] );
 
 	memcpy( &localeval, localestr, 4 );
 	return localeval;
 }
 
 
-const char* system_locale_string( void )
+string_t system_locale_string( char* buffer, size_t length )
 {
-	char* localestr = _system_buffer();
 	uint32_t locale = system_locale();
-	memcpy( localestr, &locale, 4 );
-	localestr[4] = 0;
-	return localestr;
+	if( length < 4 )
+		return (string_t){ buffer, 0 };
+	memcpy( buffer, &locale, 4 );
+	if( length > 4 )
+		buffer[4] = 0;
+	return (string_t){ buffer, 4 };
 }
 
 
@@ -760,7 +757,7 @@ void system_post_event( foundation_event_id event )
 }
 
 
-bool system_message_box( const char* title, const char* message, bool cancel_button )
+bool system_message_box( const char* title, size_t title_length, const char* message, size_t message_length, bool cancel_button )
 {
 	if( environment_application()->flags & APPLICATION_UTILITY )
 		return true;
@@ -768,7 +765,7 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 #if FOUNDATION_PLATFORM_WINDOWS
 	return ( MessageBoxA( 0, message, title, cancel_button ? MB_OKCANCEL : MB_OK ) == IDOK );
 #elif FOUNDATION_PLATFORM_APPLE
-	return _system_show_alert( title, message, cancel_button ? 1 : 0 ) > 0;
+	return _system_show_alert( title, title_length, message, message_length, cancel_button ? 1 : 0 ) > 0;
 #elif 0//FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format( "%s\n\n%s\n", title, message );
 	pid_t pid = fork();
@@ -800,7 +797,9 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 #else
 	//Not implemented
 	FOUNDATION_UNUSED( message );
+	FOUNDATION_UNUSED( message_length );
 	FOUNDATION_UNUSED( title );
+	FOUNDATION_UNUSED( title_length );
 	FOUNDATION_UNUSED( cancel_button );
 	return false;
 #endif

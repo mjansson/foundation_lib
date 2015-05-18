@@ -23,9 +23,9 @@ static application_t test_math_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation math tests";
-	app.short_name = "test_math";
-	app.config_dir = "test_math";
+	app.name = string_const( STRING_CONST( "Foundation math tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_math" ) );
+	app.config_dir = string_const( STRING_CONST( "test_math" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;

@@ -15,7 +15,7 @@
 
 
 unsigned int _system_process_info_processor_count( void );
-int          _system_show_alert( const char* title, const char* message, int cancel_button );
+int          _system_show_alert( const char* title, size_t title_length, const char* message, size_t message_length, int cancel_button );
 
 
 unsigned int _system_process_info_processor_count( void )
@@ -25,10 +25,12 @@ unsigned int _system_process_info_processor_count( void )
 }
 
 
-int _system_show_alert( const char* title, const char* message, int cancel_button )
+int _system_show_alert( const char* title, size_t title_length, const char* message, size_t message_length, int cancel_button )
 {
 	//TODO: Use cancel_button control
 	FOUNDATION_UNUSED( cancel_button );
+	FOUNDATION_UNUSED( title_length );
+	FOUNDATION_UNUSED( message_length );
 	@autoreleasepool
 	{
 #if FOUNDATION_PLATFORM_MACOSX

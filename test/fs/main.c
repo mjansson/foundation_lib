@@ -18,9 +18,9 @@ static application_t test_fs_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = string_const( "Foundation filesystem tests", 27 );
-	app.short_name = string_const( "test_fs", 7 );
-	app.config_dir = string_const( "test_fs", 7 );
+	app.name = string_const( STRING_CONST( "Foundation filesystem tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_filesystem" ) );
+	app.config_dir = string_const( STRING_CONST( "test_filesystem" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;

@@ -18,9 +18,9 @@ static application_t test_uuid_application( void )
 {
 	application_t app;
 	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation uuid tests";
-	app.short_name = "test_uuid";
-	app.config_dir = "test_uuid";
+	app.name = string_const( STRING_CONST( "Foundation uuid tests" ) );
+	app.short_name = string_const( STRING_CONST( "test_uuid" ) );
+	app.config_dir = string_const( STRING_CONST( "test_uuid" ) );
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
@@ -144,7 +144,7 @@ DECLARE_TEST( uuid, generate )
 	}
 
 	//Name based
-	uuid = uuid_generate_name( UUID_DNS, "com.rampantpixels.foundation.uuid" );
+	uuid = uuid_generate_name( UUID_DNS, STRING_CONST( "com.rampantpixels.foundation.uuid" ) );
 	uuid_ref = uuid_null();
 
 	EXPECT_FALSE( uuid_is_null( uuid ) );
@@ -154,8 +154,8 @@ DECLARE_TEST( uuid, generate )
 	EXPECT_TRUE( uuid_equal( uuid, uuid ) );
 	EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 
-	uuid = uuid_generate_name( UUID_DNS, "com.rampantpixels.foundation.uuid.1" );
-	uuid_ref = uuid_generate_name( UUID_DNS, "com.rampantpixels.foundation.uuid.2" );
+	uuid = uuid_generate_name( UUID_DNS, STRING_CONST( "com.rampantpixels.foundation.uuid.1" ) );
+	uuid_ref = uuid_generate_name( UUID_DNS, STRING_CONST( "com.rampantpixels.foundation.uuid.2" ) );
 
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_FALSE( uuid_is_null( uuid_ref ) );
@@ -164,7 +164,7 @@ DECLARE_TEST( uuid, generate )
 	EXPECT_TRUE( uuid_equal( uuid, uuid ) );
 	EXPECT_TRUE( uuid_equal( uuid_ref, uuid_ref ) );
 
-	uuid = uuid_generate_name( UUID_DNS, "com.rampantpixels.foundation.uuid.2" );
+	uuid = uuid_generate_name( UUID_DNS, STRING_CONST( "com.rampantpixels.foundation.uuid.2" ) );
 
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_FALSE( uuid_is_null( uuid_ref ) );
@@ -175,10 +175,10 @@ DECLARE_TEST( uuid, generate )
 
 	for( iloop = 0; iloop < 10000; ++iloop )
 	{
-		string_format_buffer( name_str, 40, "com.rampantpixels.foundation.uuid.%05u", iloop );
+		string_t str = string_format_buffer( name_str, 40, STRING_CONST( "com.rampantpixels.foundation.uuid.%05u" ), iloop );
 
 		uuid_ref = uuid;
-		uuid = uuid_generate_name( UUID_DNS, name_str );
+		uuid = uuid_generate_name( UUID_DNS, str.str, str.length );
 
 		EXPECT_FALSE( uuid_is_null( uuid ) );
 		EXPECT_FALSE( uuid_is_null( uuid_ref ) );

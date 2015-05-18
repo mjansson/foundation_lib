@@ -12,6 +12,7 @@
 
 #include <foundation/platform.h>
 #include <foundation/string.h>
+#include <foundation/array.h>
 #include <foundation/environment.h>
 
 #import <CoreFoundation/CFString.h>
@@ -23,22 +24,23 @@
 #import <Foundation/NSProcessInfo.h>
 
 
-extern void _environment_ns_command_line( char*** argv );
-extern void _environment_ns_home_directory( char* );
-extern void _environment_ns_temporary_directory( char* );
+extern void _environment_ns_command_line( string_t** argv );
+extern void _environment_ns_home_directory( string_t* );
+extern void _environment_ns_temporary_directory( string_t* );
 
 
-void environment_bundle_identifier( char* target, size_t maxlength )
+string_t environment_bundle_identifier( char* target, size_t maxlength )
 {
 	@autoreleasepool
 	{
 		NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
-		string_copy( target, [bundle_identifier UTF8String], maxlength );
+		const char* bundlestr = [bundle_identifier UTF8String];
+		return string_copy( target, maxlength, bundlestr, string_length( bundlestr ) );
 	}
 }
 
 
-void _environment_ns_command_line( char*** argv )
+void _environment_ns_command_line( string_t** argv )
 {
 	@autoreleasepool
 	{
@@ -48,29 +50,29 @@ void _environment_ns_command_line( char*** argv )
 		{
 			CFStringRef argref = (__bridge CFStringRef)arg;
 			CFStringGetCString( argref, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
-			array_push( *argv, string_clone( buffer ) );
+			array_push( *argv, string_clone( buffer, string_length( buffer ) ) );
 		}
 	}
 }
 
 
-void _environment_ns_home_directory( char* buffer )
+void _environment_ns_home_directory( string_t* buffer )
 {
 	@autoreleasepool
 	{
 		NSString* homestr = NSHomeDirectory();
 		CFStringRef home = (__bridge CFStringRef)homestr;
-		CFStringGetCString( home, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+		CFStringGetCString( home, buffer->str, (CFIndex)buffer->length, kCFStringEncodingUTF8 );
 	}
 }
 
 
-void _environment_ns_temporary_directory( char* buffer )
+void _environment_ns_temporary_directory( string_t* buffer )
 {
 	@autoreleasepool
 	{
 		NSString* tmpstr = NSTemporaryDirectory();
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
-		CFStringGetCString( tmp, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+		CFStringGetCString( tmp, buffer->str, (CFIndex)buffer->length, kCFStringEncodingUTF8 );
 	}
 }
