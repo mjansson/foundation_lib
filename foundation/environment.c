@@ -192,7 +192,7 @@ int _environment_initialize( const application_t application )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
+	stream_t* cmdline = fs_open_file( STRING_CONST( "/proc/self/cmdline" ), STREAM_IN | STREAM_BINARY );
 	if( !cmdline )
 	{
 		log_error( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/cmdline" ) );
@@ -216,13 +216,15 @@ int _environment_initialize( const application_t application )
 	ssize_t exelength = readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN );
 	if( exelength < 0 )
 	{
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/exe link" ) );
+		int err = errno;
+		string_const_t errmsg = system_error_message( err );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/exe link: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
 		return -1;
 	}
 
-	string_t exe_path = path_clean( exelink, exelength, FOUNDATION_MAX_PATHLEN, path_is_absolute( exelink, exelength ), false );
+	string_t exe_path = path_clean( exelink, (size_t)exelength, FOUNDATION_MAX_PATHLEN, path_is_absolute( exelink, (size_t)exelength ), false );
 	exe_path = string_clone( exe_path.str, exe_path.length );
-	exe_path = path_absolute( exe_path.str, exe_path.length );
+	exe_path = path_absolute( STRING_ARGS_CAPACITY( exe_path ), true );
 
 	_environment_set_executable_paths( exe_path.str, exe_path.length ); //Adopts string
 
@@ -388,11 +390,10 @@ string_const_t environment_home_directory( void )
 		_environment_home_dir = path_clean( _environment_home_dir.str, _environment_home_dir.length, _environment_home_dir.length, true, true );
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_TIZEN
-	string_const_t env_home = environment_variable( "HOME" );
+	string_const_t env_home = environment_variable( STRING_CONST( "HOME" ) );
 	if( !env_home.length )
 	{
 		struct passwd* pw = getpwuid( getuid() );
-		string_deallocate( env_home.str );
 		env_home.str = pw->pw_dir;
 		env_home.length = string_length( env_home.str );
 	}

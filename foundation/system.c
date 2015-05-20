@@ -502,11 +502,12 @@ uint64_t system_hostid( void )
 	{
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
-			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
+			size_t ifa_length = string_length( ifa->ifa_name );
+			if( string_equal( ifa->ifa_name, ifa_length. "lo", 2 ) )
 				continue;
 
 			memset( &ifr, 0, sizeof( ifr ) );
-			string_copy( ifr.ifr_name, ifa->ifa_name, sizeof( ifr.ifr_name ) );
+			string_copy( ifr.ifr_name, sizeof( ifr.ifr_name ), ifa->ifa_name, ifa_length );
 
 			hostid = _system_hostid_lookup( sock, &ifr );
 		}
@@ -515,7 +516,7 @@ uint64_t system_hostid( void )
 	else
 	{
 		memset( &ifr, 0, sizeof( ifr ) );
-		strcpy( ifr.ifr_name, "eth0" );
+		string_copy( ifr.ifr_name, sizeof( ifr.ifr_name ), "eth0", 4 );
 
 		hostid = _system_hostid_lookup( sock, &ifr );
 	}
