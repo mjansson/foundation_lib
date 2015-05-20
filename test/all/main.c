@@ -35,18 +35,18 @@ static void* event_thread( object_t thread, void* arg )
 			{
 				case FOUNDATIONEVENT_START:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
-					log_debug( HASH_TEST, "Application start event received" );
+					log_debug( HASH_TEST, STRING_CONST( "Application start event received" ) );
 					_test_should_start = true;
 #endif
 					break;
 
 				case FOUNDATIONEVENT_TERMINATE:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
-					log_debug( HASH_TEST, "Application stop/terminate event received" );
+					log_debug( HASH_TEST, STRING_CONST( "Application stop/terminate event received" ) );
 					_test_should_terminate = true;
 					break;
 #else
-					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating tests due to event" );
+					log_warn( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Terminating tests due to event" ) );
 					process_exit( -2 );
 #endif
 
@@ -66,7 +66,7 @@ static void* event_thread( object_t thread, void* arg )
 		thread_sleep( 10 );
 	}
 
-	log_debug( HASH_TEST, "Application event thread exiting" );
+	log_debug( HASH_TEST, STRING_CONST( "Application event thread exiting" ) );
 
 	return 0;
 }
@@ -82,7 +82,7 @@ static void* event_thread( object_t thread, void* arg )
 #include <foundation/delegate.h>
 #include <test/test.h>
 
-static void test_log_callback( hash_t context, error_level_t severity, const char* msg )
+static void test_log_callback( hash_t context, error_level_t severity, const char* msg, size_t length )
 {
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
@@ -91,7 +91,7 @@ static void test_log_callback( hash_t context, error_level_t severity, const cha
 		return;
 
 #if FOUNDATION_PLATFORM_IOS
-	test_text_view_append( delegate_uiwindow(), 1 , msg );
+	test_text_view_append( delegate_uiwindow(), 1 , msg, length );
 #elif FOUNDATION_PLATFORM_ANDROID
 	jclass _test_log_class = 0;
 	jmethodID _test_log_append = 0;
@@ -106,6 +106,7 @@ static void test_log_callback( hash_t context, error_level_t severity, const cha
 		(*jnienv)->DeleteLocalRef( jnienv, jstr );
 	}
 	thread_detach_jvm();
+	FOUNDATION_UNUSED( length );
 #endif
 }
 
@@ -113,10 +114,11 @@ static void test_log_callback( hash_t context, error_level_t severity, const cha
 
 #if !BUILD_MONOLITHIC
 
-void test_crash_handler( const char* dump_file )
+void test_crash_handler( const char* dump_file, size_t length )
 {
 	FOUNDATION_UNUSED( dump_file );
-	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
+	FOUNDATION_UNUSED( length );
+	log_error( HASH_TEST, ERROR_EXCEPTION, STRING_CONST( "Test crashed" ) );
 	process_exit( -1 );
 }
 
@@ -133,9 +135,9 @@ int main_initialize( void )
 {
 	application_t application;
 	memset( &application, 0, sizeof( application ) );
-	application.name = "Foundation library test suite";
-	application.short_name = "test_all";
-	application.config_dir = "test_all";
+	application.name = string_const( STRING_CONST( "Foundation library test suite" ) );
+	application.short_name = string_const( STRING_CONST( "test_all" ) );
+	application.config_dir = string_const( STRING_CONST( "test_all" ) );
 	application.version = foundation_version();
 	application.flags = APPLICATION_UTILITY;
 	application.dump_callback = test_crash_handler;
@@ -209,7 +211,7 @@ static void* test_runner( object_t obj, void* arg )
 	while( tests[test_fn] && ( process_result >= 0 ) )
 	{
 		if( ( process_result = tests[test_fn]() ) >= 0 )
-			log_infof( HASH_TEST, "All tests passed (%d)", process_result );
+			log_infof( HASH_TEST, STRING_CONST( "All tests passed (%d)" ), process_result );
 		++test_fn;
 	}
 
@@ -221,11 +223,11 @@ static void* test_runner( object_t obj, void* arg )
 int main_run( void* main_arg )
 {
 #if !BUILD_MONOLITHIC
-	const char* pattern = 0;
-	char** exe_paths = 0;
+	string_const_t pattern;
+	string_t* exe_paths = 0;
 	size_t iexe, exesize;
 	process_t* process = 0;
-	char* process_path = 0;
+	string_t process_path = { 0, 0 };
 	unsigned int* exe_flags = 0;
 #else
 	void* test_result;
@@ -249,9 +251,9 @@ int main_run( void* main_arg )
 
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
-	log_infof( HASH_TEST, "Foundation library v%s built for %s using %s (%s)", string_from_version_static( foundation_version() ), FOUNDATION_PLATFORM_DESCRIPTION, FOUNDATION_COMPILER_DESCRIPTION, build_name );
+	log_infof( HASH_TEST, STRING_CONST( "Foundation library v%s built for %s using %s (%s)" ), string_from_version_static( foundation_version() ).str, FOUNDATION_PLATFORM_DESCRIPTION, FOUNDATION_COMPILER_DESCRIPTION, build_name );
 
-	thread = thread_create( event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
+	thread = thread_create( event_thread, STRING_CONST( "event_thread" ), THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
 	while( !thread_is_running( thread ) )
 		thread_sleep( 10 );
@@ -266,7 +268,7 @@ int main_run( void* main_arg )
 	}
 #endif
 
-	fs_remove_directory( environment_temporary_directory() );
+	fs_remove_directory( STRING_ARGS( environment_temporary_directory() ) );
 
 #if BUILD_MONOLITHIC
 
@@ -312,10 +314,10 @@ int main_run( void* main_arg )
 
 #if FOUNDATION_PLATFORM_ANDROID
 
-	object_t test_thread = thread_create( test_runner, "test_runner", THREAD_PRIORITY_NORMAL, 0 );
+	object_t test_thread = thread_create( test_runner, STRING_CONST( "test_runner" ), THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( test_thread, tests );
 
-	log_debug( HASH_TEST, "Starting test runner thread" );
+	log_debug( HASH_TEST, STRING_CONST( "Starting test runner thread" ) );
 
 	while( !thread_is_running( test_thread ) )
 	{
@@ -347,7 +349,7 @@ int main_run( void* main_arg )
 #endif
 
 	if( process_result != 0 )
-		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+		log_warnf( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Tests failed with exit code %d" ), process_result );
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 
@@ -360,33 +362,34 @@ int main_run( void* main_arg )
 
 #endif
 
-	log_debug( HASH_TEST, "Exiting main loop" );
+	log_debug( HASH_TEST, STRING_CONST( "Exiting main loop" ) );
 
 #else // !BUILD_MONOLITHIC
 
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
-	pattern = "^test-.*\\.exe$";
+	pattern = string_const( STRING_CONST( "^test-.*\\.exe$" ) );
 #elif FOUNDATION_PLATFORM_MACOSX
-	pattern = "^test-.*$";
+	pattern = string_const( STRING_CONST( "^test-.*$" ) );
 #elif FOUNDATION_PLATFORM_POSIX
-	pattern = "^test-.*$";
+	pattern = string_const( STRING_CONST( "^test-.*$" ) );
 #else
 #  error Not implemented
 #endif
-	exe_paths = fs_matching_files( environment_executable_directory(), pattern, false );
+	exe_paths = fs_matching_files( STRING_ARGS( environment_executable_directory() ), STRING_ARGS( pattern ), false );
 	array_resize( exe_flags, array_size( exe_paths ) );
 	memset( exe_flags, 0, sizeof( unsigned int ) * array_size( exe_flags ) );
 #if FOUNDATION_PLATFORM_MACOSX
 	//Also search for test applications
-	const char* app_pattern = "^test-.*\\.app$";
-	regex_t* app_regex = regex_compile( app_pattern );
-	char** subdirs = fs_subdirs( environment_executable_directory() );
+	string_const_t app_pattern = string_const( STRING_CONST( "^test-.*\\.app$" ) );
+	regex_t* app_regex = regex_compile( app_pattern.str, app_pattern.length );
+	string_t* subdirs = fs_subdirs( STRING_ARGS( environment_executable_directory() ) );
 	for( size_t idir = 0, dirsize = array_size( subdirs ); idir < dirsize; ++idir )
 	{
-		if( regex_match( app_regex, subdirs[idir], string_length( subdirs[idir] ), 0, 0 ) )
+		if( regex_match( app_regex, subdirs[idir].str, subdirs[idir].length, 0, 0 ) )
 		{
-			array_push( exe_paths, string_substr( subdirs[idir], 0, string_length( subdirs[idir] ) - 4 ) );
+			string_t exe_path = { subdirs[idir].str, subdirs[idir].length - 4 };
+			array_push( exe_paths, exe_path );
 			array_push( exe_flags, PROCESS_MACOSX_USE_OPENAPPLICATION );
 		}
 	}
@@ -395,23 +398,19 @@ int main_run( void* main_arg )
 #endif
 	for( iexe = 0, exesize = array_size( exe_paths ); iexe < exesize; ++iexe )
 	{
-		bool is_self = false;
-		char* exe_file_name = path_base_file_name( exe_paths[iexe] );
-		if( string_equal( exe_file_name, environment_executable_name() ) )
-			is_self = true;
-		string_deallocate( exe_file_name );
-		if( is_self )
+		string_const_t exe_file_name = path_base_file_name( STRING_ARGS( exe_paths[iexe] ) );
+		if( string_equal( STRING_ARGS( exe_file_name ), STRING_ARGS( environment_executable_name() ) ) )
 			continue; //Don't run self
 
-		process_path = path_merge( environment_executable_directory(), exe_paths[iexe] );
+		process_path = path_merge( STRING_ARGS( environment_executable_directory() ), STRING_ARGS( exe_paths[iexe] ) );
 
 		process = process_allocate();
 
-		process_set_executable_path( process, process_path );
-		process_set_working_directory( process, environment_executable_directory() );
+		process_set_executable_path( process, STRING_ARGS( process_path ) );
+		process_set_working_directory( process, STRING_ARGS( environment_executable_directory() ) );
 		process_set_flags( process, PROCESS_ATTACHED | exe_flags[iexe] );
 
-		log_infof( HASH_TEST, "Running test executable: %s", exe_paths[iexe] );
+		log_infof( HASH_TEST, STRING_CONST( "Running test executable: %.*s" ), STRING_FORMAT( exe_paths[iexe] ) );
 
 		process_result = process_spawn( process );
 		while( process_result == PROCESS_WAIT_INTERRUPTED )
@@ -421,22 +420,22 @@ int main_run( void* main_arg )
 		}
 		process_deallocate( process );
 
-		string_deallocate( process_path );
+		string_deallocate( process_path.str );
 
 		if( process_result != 0 )
 		{
 			if( process_result >= PROCESS_INVALID_ARGS )
-				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed, process terminated with error %x", process_result );
+				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Tests failed, process terminated with error %x" ), process_result );
 			else
-				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, "Tests failed with exit code %d", process_result );
+				log_warnf( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Tests failed with exit code %d" ), process_result );
 			process_set_exit_code( -1 );
 			goto exit;
 		}
 
-		log_infof( HASH_TEST, "All tests from %s passed (%d)", exe_paths[iexe], process_result );
+		log_infof( HASH_TEST, STRING_CONST( "All tests from %.*s passed (%d)" ), STRING_FORMAT( exe_paths[iexe] ), process_result );
 	}
 
-	log_info( HASH_TEST, "All tests passed" );
+	log_info( HASH_TEST, STRING_CONST( "All tests passed" ) );
 
 exit:
 
@@ -453,7 +452,7 @@ exit:
 	while( thread_is_thread( thread ) )
 		thread_sleep( 10 );
 
-	log_infof( HASH_TEST, "Tests exiting: %d", process_result );
+	log_infof( HASH_TEST, STRING_CONST( "Tests exiting: %d" ), process_result );
 
 	return process_result;
 }

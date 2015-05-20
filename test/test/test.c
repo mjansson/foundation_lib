@@ -27,7 +27,7 @@ typedef struct
 
 typedef struct
 {
-	string_const_     name;
+	string_const_t    name;
 	test_case_t**     cases;
 } test_group_t;
 
@@ -155,7 +155,7 @@ static void test_run( void )
 	exit:
 #endif
 
-	log_infof( HASH_TEST, STRING_CONST( "Finished test suite: %.*s" ), (int)test_suite.application().short_name.length, , test_suite.application().short_name.str );
+	log_infof( HASH_TEST, STRING_CONST( "Finished test suite: %.*s" ), (int)test_suite.application().short_name.length, test_suite.application().short_name.str );
 }
 
 
@@ -297,6 +297,7 @@ void test_wait_for_threads_exit( const object_t* threads, size_t num_threads )
 void test_crash_handler( const char* dump_file, size_t length )
 {
 	FOUNDATION_UNUSED( dump_file );
+	FOUNDATION_UNUSED( length );
 	log_error( HASH_TEST, ERROR_EXCEPTION, STRING_CONST( "Test crashed" ) );
 	process_exit( -1 );
 }

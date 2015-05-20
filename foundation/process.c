@@ -78,9 +78,9 @@ void process_set_working_directory( process_t* proc, const char* path, size_t le
 {
 	if( !proc )
 		return;
-	if( proc->wd.length < length)
-		proc->wd = string_resize( proc->wd.str, proc->wd.length, path, length, 0 );
-	proc->wd = string_copy( proc->wd.str, proc->wd.length, path, length );
+	if( proc->wd.length <= length )
+		proc->wd = string_resize( proc->wd.str, proc->wd.length, proc->wd.length ? proc->wd.length : 0, length + 1, 0, true );
+	proc->wd = string_copy( proc->wd.str, length + 1, path, length );
 }
 
 
@@ -88,9 +88,9 @@ void process_set_executable_path( process_t* proc, const char* path, size_t leng
 {
 	if( !proc )
 		return;
-	if( proc->path.length < length)
-		proc->path = string_resize( proc->path.str, proc->wd.length, path, length, 0 );
-	proc->path = string_copy( proc->path.str, proc->wd.length, path, length );
+	if( proc->path.length <= length )
+		proc->path = string_resize( proc->path.str, proc->path.length, proc->path.length ? proc->path.length + 1 : 0, length + 1, 0, true );
+	proc->path = string_copy( proc->path.str, length + 1, path, length );
 }
 
 
@@ -113,22 +113,24 @@ void process_set_flags( process_t* proc, unsigned int flags )
 }
 
 
-void process_set_verb( process_t* proc, const char* verb )
+void process_set_verb( process_t* proc, const char* verb, size_t length )
 {
 	if( !proc )
 		return;
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_deallocate( proc->verb );
-	proc->verb = string_clone( verb );
+	if( proc->verb.length <= length )
+		proc->verb = string_resize( proc->verb.str, proc->verb.length, proc->verb.length ? proc->verb.length + 1 : 0, length + 1, 0, true );
+	proc->verb = string_copy( proc->verb.str, length + 1, verb, length );
 #else
 	FOUNDATION_UNUSED( verb );
+	FOUNDATION_UNUSED( length );
 #endif
 }
 
 
 int process_spawn( process_t* proc )
 {
-	static char unescaped[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:/\\";
+	static string_const_t unescaped = { STRING_CONST( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:/\\" ) };
 	size_t i, num_args;
 	size_t size;
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -142,40 +144,40 @@ int process_spawn( process_t* proc )
 
 	proc->code = PROCESS_INVALID_ARGS;
 
-	if( !string_length( proc->path ) )
+	if( !proc->path.length )
 		return proc->code;
 
 	//Always escape path on Windows platforms
 #if FOUNDATION_PLATFORM_POSIX
-	if( string_find_first_not_of( proc->path, unescaped, 0 ) != STRING_NPOS )
+	if( string_find_first_not_of( STRING_ARGS( proc->path ), STRING_ARGS( unescaped ), 0 ) != STRING_NPOS )
 #endif
 	{
-		if( proc->path[0] != '"' )
-			proc->path = string_prepend( proc->path, "\"" );
-		if( proc->path[ string_length( proc->path ) - 1 ] != '"' )
-			proc->path = string_append( proc->path, "\"" );
+		if( proc->path.str[0] != '"' )
+			proc->path = string_prepend( STRING_ARGS_CAPACITY( proc->path ), STRING_CONST( "\"" ), true );
+		if( proc->path.str[ proc->path.length - 1 ] != '"' )
+			proc->path = string_append( STRING_ARGS_CAPACITY( proc->path ), STRING_CONST( "\"" ), true );
 	}
 
 	size = array_size( proc->args );
 	for( i = 0, num_args = 0; i < size; ++i )
 	{
-		char* arg = proc->args[i];
+		string_t arg = proc->args[i];
 
-		if( !string_length( arg ) )
+		if( !arg.length )
 			continue;
 
 		++num_args;
 
 #if !FOUNDATION_PLATFORM_POSIX
-		if( string_find_first_not_of( arg, unescaped, 0 ) != STRING_NPOS )
+		if( string_find_first_not_of( arg.str, arg.length, unescaped.str, unescaped.length, 0 ) != STRING_NPOS )
 		{
-			if( arg[0] != '"' )
+			if( arg.str[0] != '"' )
 			{
 				//Check if we need to escape " characters
-				size_t pos = string_find( arg, '"', 0 );
+				size_t pos = string_find( arg.str, arg.length, '"', 0 );
 				while( pos != STRING_NPOS )
 				{
-					if( arg[ pos - 1 ] != '\\' )
+					if( arg.str[ pos - 1 ] != '\\' )
 					{
 						char* escarg = string_substr( arg, 0, pos );
 						char* left = string_substr( arg, pos, STRING_NPOS );
@@ -203,7 +205,7 @@ int process_spawn( process_t* proc )
 #  endif
 
 	if( !( proc->flags & PROCESS_WINDOWS_USE_SHELLEXECUTE ) ) //Don't prepend exe path to parameters if using ShellExecute
-		cmdline = string_clone( proc->path );
+		cmdline = string_clone( proc->path.str, proc->path.length );
 
 	//Build command line string
 	for( i = 0; i < size; ++i )
@@ -340,19 +342,20 @@ int process_spawn( process_t* proc )
 		memset( &params, 0, sizeof( LSApplicationParameters ) );
 		memset( &psn, 0, sizeof( ProcessSerialNumber ) );
 
-		char* pathstripped = string_strip( string_clone( proc->path ), "\"" );
+		string_const_t pathstripped = string_strip( proc->path.str, proc->path.length, STRING_CONST( "\"" ) );
+		string_t localpath = string_clone( STRING_ARGS( pathstripped ) ); //Need it zero terminated
 
 		OSStatus status = 0;
-		status = FSPathMakeRef( (uint8_t*)pathstripped, fsref, 0 );
+		status = FSPathMakeRef( (uint8_t*)localpath.str, fsref, 0 );
 		if( status < 0 )
 		{
-			pathstripped = string_append( pathstripped, ".app" );
-			status = FSPathMakeRef( (uint8_t*)pathstripped, fsref, 0 );
+			localpath = string_append( localpath.str, localpath.length, localpath.length + 1, STRING_CONST( ".app" ), true );
+			status = FSPathMakeRef( (uint8_t*)localpath.str, fsref, 0 );
 		}
 
 		CFStringRef* args = 0;
 		for( i = 0, size = array_size( proc->args ); i < size; ++i ) //App gets executable path automatically, don't include
-			array_push( args, CFStringCreateWithCString( 0, proc->args[i], kCFStringEncodingUTF8 ) );
+			array_push( args, CFStringCreateWithCString( 0, proc->args[i].str, kCFStringEncodingUTF8 ) );
 
 		CFArrayRef argvref = CFArrayCreate( 0, (const void**)args, (CFIndex)array_size( args ), 0 );
 
@@ -360,13 +363,15 @@ int process_spawn( process_t* proc )
 		params.application = fsref;
 		params.argv = argvref;
 
-		log_debugf( 0, "Spawn process (LSOpenApplication): %s", pathstripped );
+		log_debugf( 0, STRING_CONST( "Spawn process (LSOpenApplication): %.*s" ), (int)localpath.length, localpath.str );
 
 		status = LSOpenApplication( &params, &psn );
 		if( status != 0 )
 		{
+			int err = status;
+			string_const_t errmsg = system_error_message( err );
 			proc->code = status;
-			log_warnf( 0, WARNING_BAD_DATA, "Unable to spawn process for executable '%s': %s", proc->path, system_error_message( status ) );
+			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to spawn process for executable '%.*s': %.*s (%d)" ), (int)localpath.length, localpath.str, (int)errmsg.length, errmsg.str, err );
 		}
 
 		CFRelease( argvref );
@@ -375,7 +380,7 @@ int process_spawn( process_t* proc )
 		array_deallocate( args );
 
 		memory_deallocate( fsref );
-		string_deallocate( pathstripped );
+		string_deallocate( localpath.str );
 
 		if( status == 0 )
 		{
@@ -389,7 +394,8 @@ int process_spawn( process_t* proc )
 			proc->kq = kqueue();
 			if( proc->kq < 0 )
 			{
-				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to create kqueue for process watch: %s (%d)", system_error_message( proc->kq ), proc->kq );
+				string_const_t errmsg = system_error_message( proc->kq );
+				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create kqueue for process watch: %.*s (%d)" ), (int)errmsg.length, errmsg.str, proc->kq );
 				proc->kq = 0;
 			}
 			else
@@ -399,7 +405,9 @@ int process_spawn( process_t* proc )
 				int ret = kevent( proc->kq, &changes, 1, &changes, 1, 0 );
 				if( ret != 1 )
 				{
-					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to setup kqueue for process watch, failed to add event to kqueue: %s (%d)", system_error_message( errno ), errno );
+					int err = erno;
+					string_const_t errmsg = system_error_message( err );
+					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to setup kqueue for process watch, failed to add event to kqueue: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
 					close( proc->kq );
 					proc->kq = 0;
 				}

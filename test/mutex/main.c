@@ -48,9 +48,9 @@ DECLARE_TEST( mutex, basic )
 {
 	mutex_t* mutex;
 
-	mutex = mutex_allocate( "test" );
+	mutex = mutex_allocate( STRING_CONST( "test" ) );
 
-	EXPECT_STREQ( mutex_name( mutex ), "test" );
+	EXPECT_STRINGEQ( mutex_name( mutex ), string_const( STRING_CONST( "test" ) ) );
 	EXPECT_TRUE( mutex_try_lock( mutex ) );
 	EXPECT_TRUE( mutex_lock( mutex ) );
 	EXPECT_TRUE( mutex_try_lock( mutex ) );
@@ -119,12 +119,12 @@ DECLARE_TEST( mutex, sync )
 	object_t thread[32];
 	size_t ith;
 
-	mutex = mutex_allocate( "test" );
+	mutex = mutex_allocate( STRING_CONST( "test" ) );
 	mutex_lock( mutex );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
-		thread[ith] = thread_create( mutex_thread, "mutex_thread", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( mutex_thread, STRING_CONST( "mutex_thread" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], mutex );
 	}
 
@@ -167,7 +167,7 @@ static void* thread_wait( object_t thread, void* arg )
 	}
 	else
 	{
-		log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Thread timeout" );
+		log_warn( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Thread timeout" ) );
 	}
 
 	return 0;
@@ -180,12 +180,12 @@ DECLARE_TEST( mutex, signal )
 	object_t thread[32];
 	size_t ith;
 
-	mutex = mutex_allocate( "test" );
+	mutex = mutex_allocate( STRING_CONST( "test" ) );
 	mutex_lock( mutex );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
-		thread[ith] = thread_create( thread_wait, "thread_wait", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( thread_wait, STRING_CONST( "thread_wait" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], mutex );
 	}
 

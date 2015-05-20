@@ -185,12 +185,12 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 		if( section != HASH_ENVIRONMENT )
 		{
 			string_const_t value = config_string( section, key );
-			expanded = string_replace( expanded.str, expanded.length, variable.str, variable.length, value.str, value.length, false );
+			expanded = string_replace( expanded.str, expanded.length, expanded.length + 1, variable.str, variable.length, value.str, value.length, false, true );
 		}
 		else
 		{
 			string_const_t value = _expand_environment( key, string_substr( variable.str, variable.length, var_offset, variable.length - var_offset ) );
-			expanded = string_replace( expanded.str, expanded.length, variable.str, variable.length, value.str, value.length, false );
+			expanded = string_replace( expanded.str, expanded.length, expanded.length + 1, variable.str, variable.length, value.str, value.length, false, true );
 		}
 
 		var_pos = string_find_string( expanded.str, expanded.length, STRING_CONST( "$(" ), 0 );
@@ -360,7 +360,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	bundle_path = string_clone_string( environment_executable_directory() );
+	bundle_path = string_clone( STRING_ARGS( environment_executable_directory() ) );
 #  if FOUNDATION_PLATFORM_MACOSX
 	bundle_path = path_append( bundle_path.str, bundle_path.length, bundle_path.length, STRING_CONST( "../Resources/config" ), true );
 #  else
@@ -381,7 +381,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 	string_deallocate( exe_processed_path.str );
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-	cwd_config_path = string_clone_string( environment_current_working_directory());
+	cwd_config_path = string_clone( STRING_ARGS( environment_current_working_directory() ) );
 	cwd_config_path = path_append( cwd_config_path.str, cwd_config_path.length, cwd_config_path.length, STRING_CONST( "config" ), true );
 	paths[7] = string_to_const( cwd_config_path );
 

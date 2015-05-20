@@ -311,7 +311,7 @@ void log_error_context( hash_t context, error_level_t error_level )
 	{
 		error_frame_t* frame = err_context->frame;
 		for( i = 0; i < err_context->depth; ++i, ++frame )
-			_log_error_contextf( context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout, STRING_CONST( "When %s: %s" ), frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
+			_log_error_contextf( context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout, STRING_CONST( "When %.*s: %.*s" ), (int)frame->name.length, frame->name.str, (int)frame->data.length, frame->data.str );
 	}
 }
 

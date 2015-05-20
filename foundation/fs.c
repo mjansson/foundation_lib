@@ -388,7 +388,7 @@ string_t* fs_subdirs( const char* path, size_t length )
 
 		memory_context_push( HASH_STREAM );
 
-		string_t foundpath = string_allocate( FOUNDATION_MAX_PATHLEN );
+		string_t foundpath = string_allocate( 0, FOUNDATION_MAX_PATHLEN, 0 );
 		string_copy( foundpath.str, FOUNDATION_MAX_PATHLEN, path, length );
 
 		while( ( entry = readdir( dir ) ) != 0 )
@@ -498,7 +498,7 @@ string_t* fs_files( const char* path, size_t length )
 		memory_context_push( HASH_STREAM );
 
 
-		string_t foundpath = string_allocate( FOUNDATION_MAX_PATHLEN );
+		string_t foundpath = string_allocate( 0, FOUNDATION_MAX_PATHLEN, 0 );
 		string_copy( foundpath.str, FOUNDATION_MAX_PATHLEN, path, length );
 
 		while( ( entry = readdir( dir ) ) != 0 )
@@ -634,12 +634,12 @@ bool fs_remove_directory( const char* path, size_t length )
 #endif
 	size_t i, num;
 
-	localpath = string_allocate( FOUNDATION_MAX_PATHLEN );
+	localpath = string_allocate( 0, FOUNDATION_MAX_PATHLEN, 0 );
 
 	if( !path_is_absolute( path, length ) )
 	{
-		localabspath = string_allocate( FOUNDATION_MAX_PATHLEN );
-		string_copy( localabspath.str, FOUNDATION_MAX_PATHLEN, path, length );
+		localabspath = string_allocate( 0, FOUNDATION_MAX_PATHLEN, 0 );
+		localabspath = string_copy( localabspath.str, FOUNDATION_MAX_PATHLEN, path, length );
 		localabspath = path_absolute( localabspath.str, localabspath.length, FOUNDATION_MAX_PATHLEN, true );
 		abspath = string_to_const( localabspath );
 	}
@@ -733,19 +733,19 @@ bool fs_make_directory( const char* path, size_t length )
 #else
 
 	string_const_t abspath, fspath;
-	string_t localpath = { 0, 0 };
+	string_t localpath;
 	string_t localabspath = { 0, 0 };
 	string_t curpath;
 	string_const_t* paths = 0;
 	size_t pathsize, ipath, capacity;
 	bool result = false;
 
-	localpath = string_allocate( FOUNDATION_MAX_PATHLEN );
+	localpath = string_allocate( 0, FOUNDATION_MAX_PATHLEN, 0 );
 
 	if( !path_is_absolute( path, length ) )
 	{
-		localabspath = string_allocate( FOUNDATION_MAX_PATHLEN );
-		string_copy( localabspath.str, FOUNDATION_MAX_PATHLEN, path, length );
+		localabspath = string_allocate( 0, FOUNDATION_MAX_PATHLEN, 0 );
+		localabspath = string_copy( localabspath.str, FOUNDATION_MAX_PATHLEN, path, length );
 		localabspath = path_absolute( localabspath.str, localabspath.length, FOUNDATION_MAX_PATHLEN, true );
 		abspath = string_to_const( localabspath );
 	}
@@ -1052,8 +1052,8 @@ static string_t* _fs_matching_files( const char* path, size_t length, regex_t* p
 	memory_context_push( HASH_STREAM );
 
 	capacity = FOUNDATION_MAX_PATHLEN;
-	localpath = string_allocate( capacity );
-	localpath = string_copy( localpath.str, localpath.length, path, length );
+	localpath = string_allocate( 0, capacity, 0 );
+	localpath = string_copy( localpath.str, FOUNDATION_MAX_PATHLEN, path, length );
 
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
@@ -1090,7 +1090,7 @@ string_t* fs_matching_files( const char* path, size_t length, const char* patter
 
 void fs_post_event( foundation_event_id id, const char* path, size_t pathlen )
 {
-	event_post( fs_event_stream(), id, pathlen + 1, 0, path, 0 );
+	event_post( fs_event_stream(), id, 0, 0, path, pathlen, &pathlen, sizeof( pathlen ), (void*)0 );
 }
 
 
@@ -2036,15 +2036,15 @@ stream_t* fs_open_file( const char* path, size_t length, unsigned int mode )
 	if( !path_is_absolute( path, length ) )
 	{
 		capacity = FOUNDATION_MAX_PATHLEN;
-		localpath = string_allocate( capacity );
-		localpath = string_copy( localpath.str, localpath.length, path, length );
+		localpath = string_allocate( 0, capacity, 0 );
+		localpath = string_copy( localpath.str, FOUNDATION_MAX_PATHLEN, path, length );
 		localpath = path_absolute( localpath.str, localpath.length, FOUNDATION_MAX_PATHLEN, true );
 	}
 	else
 	{
 		capacity = length + 7;
-		localpath = string_allocate( capacity );
-		localpath = string_copy( localpath.str, localpath.length, path, length );
+		localpath = string_allocate( 0, capacity, 0 );
+		localpath = string_copy( localpath.str, capacity, path, length );
 		localpath = path_clean( localpath.str, localpath.length, capacity, true, true );
 	}
 	if( localpath.length >= capacity )

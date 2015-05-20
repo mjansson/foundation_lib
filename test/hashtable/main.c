@@ -162,7 +162,7 @@ DECLARE_TEST( hashtable, 32bit_threaded )
 		args[i].key_offset = 1 + ( i * 16789 );
 		args[i].key_num = 65535;
 
-		thread[i] = thread_create( producer32_thread, "table_producer", THREAD_PRIORITY_NORMAL, 0 );
+		thread[i] = thread_create( producer32_thread, STRING_CONST( "table_producer" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[i], args + i );
 	}
 
@@ -243,7 +243,7 @@ DECLARE_TEST( hashtable, 64bit_threaded )
 		args[i].key_offset = 1 + ( i * 16789 );
 		args[i].key_num = 65535;
 
-		thread[i] = thread_create( producer64_thread, "table_producer", THREAD_PRIORITY_NORMAL, 0 );
+		thread[i] = thread_create( producer64_thread, STRING_CONST( "table_producer" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[i], args + i );
 	}
 

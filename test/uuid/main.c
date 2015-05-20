@@ -215,7 +215,7 @@ DECLARE_TEST( uuid, threaded )
 
 	for( ith = 0; ith < num_threads; ++ith )
 	{
-		thread[ith] = thread_create( uuid_thread_time, "uuid_thread", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( uuid_thread_time, STRING_CONST( "uuid_thread" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], (void*)(uintptr_t)ith );
 	}
 

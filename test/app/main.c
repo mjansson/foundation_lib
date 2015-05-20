@@ -48,9 +48,9 @@ static void test_app_shutdown( void )
 
 DECLARE_TEST( app, environment )
 {
-	EXPECT_STREQ( environment_application()->name, _global_app.name );
-	EXPECT_STREQ( environment_application()->short_name, _global_app.short_name );
-	EXPECT_STREQ( environment_application()->config_dir, _global_app.config_dir );
+	EXPECT_STREQ( environment_application()->name.str, environment_application()->name.length, _global_app.name.str, _global_app.name.length );
+	EXPECT_STREQ( environment_application()->short_name.str, environment_application()->short_name.length, _global_app.short_name.str, _global_app.short_name.length );
+	EXPECT_STREQ( environment_application()->config_dir.str, environment_application()->config_dir.length, _global_app.config_dir.str, _global_app.config_dir.length );
 	EXPECT_TRUE( uint128_equal( environment_application()->version.version, _global_app.version.version ) );
 	EXPECT_EQ( environment_application()->flags, APPLICATION_UTILITY );
 	EXPECT_EQ( environment_application()->dump_callback, test_crash_handler );

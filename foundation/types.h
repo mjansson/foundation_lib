@@ -269,7 +269,6 @@ typedef struct objectmap_t                   objectmap_t;
 typedef struct process_t                     process_t;
 typedef struct radixsort_t                   radixsort_t;
 typedef struct regex_t                       regex_t;
-typedef struct regex_capture_t               regex_capture_t;
 typedef struct ringbuffer_t                  ringbuffer_t;
 typedef struct stream_t                      stream_t;
 typedef struct stream_buffer_t               stream_buffer_t;
@@ -429,10 +428,8 @@ struct bitbuffer_t
 
 struct error_frame_t
 {
-	const char*                     name;
-	const char*                     data;
-	size_t                          name_length;
-	size_t                          data_length;
+	string_const_t                  name;
+	string_const_t                  data;
 };
 
 
@@ -585,12 +582,6 @@ struct regex_t
 	size_t                          code_length;
 	size_t                          code_allocated;
 	uint8_t                         code[];
-};
-
-struct regex_capture_t
-{
-	const char*                     substring;
-	size_t                          length;
 };
 
 #define FOUNDATION_DECLARE_RINGBUFFER              \

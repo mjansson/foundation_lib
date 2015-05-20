@@ -46,12 +46,12 @@ static void test_hash_shutdown( void )
 
 DECLARE_TEST( hash, known )
 {
-	EXPECT_EQ( hash( "engine", string_length( "engine" ) ), 0x39c8cc157cfd24f8ULL );
-	EXPECT_EQ( hash( "enable_remote_debugger", string_length( "enable_remote_debugger" ) ), 0xb760826929ca10a3ULL );
-	EXPECT_EQ( hash( "enable_profiler", string_length( "enable_profiler" ) ), 0xaa75bf69e488ba1cULL );
-	EXPECT_EQ( hash( "cache_directory", string_length( "cache_directory" ) ), 0x3e7b4931a3841da8ULL );
-	EXPECT_EQ( hash( "server_address", string_length( "server_address" ) ), 0x64fcf494cf8072f5ULL );
-	EXPECT_EQ( hash( "server_port", string_length( "server_port" ) ), 0xdd32e17d082c2959ULL );
+	EXPECT_EQ( hash( STRING_CONST( "engine" ) ), 0x39c8cc157cfd24f8ULL );
+	EXPECT_EQ( hash( STRING_CONST( "enable_remote_debugger" ) ), 0xb760826929ca10a3ULL );
+	EXPECT_EQ( hash( STRING_CONST( "enable_profiler" ) ), 0xaa75bf69e488ba1cULL );
+	EXPECT_EQ( hash( STRING_CONST( "cache_directory" ) ), 0x3e7b4931a3841da8ULL );
+	EXPECT_EQ( hash( STRING_CONST( "server_address" ) ), 0x64fcf494cf8072f5ULL );
+	EXPECT_EQ( hash( STRING_CONST( "server_port" ) ), 0xdd32e17d082c2959ULL );
 	return 0;
 }
 
@@ -121,7 +121,7 @@ DECLARE_TEST( hash, stability )
 			rhash = hash( rhs, len );
 
 			EXPECT_EQ( rhashref, rhash );
-			if( !string_equal_substr( lhs, rhs, len ) )
+			if( !string_equal( lhs, len, rhs, len ) )
 				EXPECT_NE( lhash, rhash );
 			EXPECT_NE( rhash, 0U );
 		}

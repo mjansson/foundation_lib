@@ -482,9 +482,9 @@ string_const_t environment_temporary_directory( void )
 		size_t totallen = curlen + cfglen + 40;
 		if( totallen < FOUNDATION_MAX_PATHLEN )
 		{
-			string_t modpath = string_allocate( totallen );
+			string_t modpath = string_allocate( 0, totallen, 0 );
 			string_const_t uuidstr = string_from_uuid_static( _environment_app.instance );
-			string_copy( modpath.str, totallen, _environment_temp_dir.str, _environment_temp_dir.length );
+			modpath = string_copy( modpath.str, totallen, _environment_temp_dir.str, _environment_temp_dir.length );
 			modpath = path_append( modpath.str, modpath.length, totallen, _environment_app.config_dir.str, _environment_app.config_dir.length, false );
 			modpath = path_append( modpath.str, modpath.length, totallen, uuidstr.str, uuidstr.length, false );
 			string_deallocate( _environment_temp_dir.str );

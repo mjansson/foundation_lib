@@ -76,7 +76,8 @@ DECLARE_TEST( stacktrace, resolve )
 
 	buffer = memory_allocate( 0, 1024, 0, MEMORY_TEMPORARY );
 	resolved = stacktrace_resolve( buffer, 1024, trace, num_frames, 0 );
-	EXPECT_NE( resolved, 0 );
+	EXPECT_NE( resolved.str, 0 );
+	EXPECT_NE( resolved.length, 0 );
 
 	log_infof( HASH_TEST, STRING_CONST( "Resolved stack trace:\n%.*s" ), (int)resolved.length, resolved.str );
 

@@ -46,23 +46,23 @@ static void test_regex_shutdown( void )
 
 DECLARE_TEST( regex, exact )
 {
-	regex_t* regex = regex_compile( "^(TEST REGEX)$" );
+	regex_t* regex = regex_compile( STRING_CONST( "^(TEST REGEX)$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "TEST REGEX", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, " TEST REGEX", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "TEST_REGEX", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "TEST REGEX" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( " TEST REGEX" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "TEST REGEX " ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "TEST_REGEX" ), 0, 0 ) );
 
 	regex_deallocate( regex );
 
-	regex = regex_compile( "(TEST REGEX)" );
+	regex = regex_compile( STRING_CONST( "(TEST REGEX)" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "TEST REGEX", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " TEST REGEX", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "TEST_REGEX", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "TEST REGEX" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " TEST REGEX" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "TEST REGEX " ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "TEST_REGEX" ), 0, 0 ) );
 
 	regex_deallocate( regex );
 
@@ -72,24 +72,24 @@ DECLARE_TEST( regex, exact )
 
 DECLARE_TEST( regex, any )
 {
-	regex_t* regex = regex_compile( "^(.TEST.REGEX).$" );
+	regex_t* regex = regex_compile( STRING_CONST( "^(.TEST.REGEX).$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_FALSE( regex_match( regex, "TEST REGEX", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, " TEST REGEX", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "TTEST_REGEX ", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "TEST REGEX" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( " TEST REGEX" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "TEST REGEX " ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "TTEST_REGEX " ), 0, 0 ) );
 
 	regex_deallocate( regex );
 
-	regex = regex_compile( "(.TEST.REGEX)." );
+	regex = regex_compile( STRING_CONST( "(.TEST.REGEX)." ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_FALSE( regex_match( regex, "TEST REGEX", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, " TEST REGEX", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "TEST REGEX ", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "TTEST_REGEX ", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "RANDOM CRAP TEST_REGEX RANDOM CRAP", 0, 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "TEST REGEX" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( " TEST REGEX" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "TEST REGEX " ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "TTEST_REGEX " ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "RANDOM CRAP TEST_REGEX RANDOM CRAP" ), 0, 0 ) );
 
 	regex_deallocate( regex );
 
@@ -99,25 +99,25 @@ DECLARE_TEST( regex, any )
 
 DECLARE_TEST( regex, any_block )
 {
-	regex_t* regex = regex_compile( "^([ \\n\\r\\0\\S\\s\\d\\\\TESTREGEX])$" );
+	regex_t* regex = regex_compile( STRING_CONST( "^([ \\n\\r\\0\\S\\s\\d\\\\TESTREGEX])$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "T", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, " TEST REGEX\t 0123456789 \n\r TEST!", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " ", 1, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "\0 ", 2, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "T" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( " TEST REGEX\t 0123456789 \n\r TEST!" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "\0" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " " ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "\0 " ), 0, 0 ) );
 
 	regex_deallocate( regex );
 
-	regex = regex_compile( "^([ \\n\\r\\0\\S\\s\\d\\\\T])" );
+	regex = regex_compile( STRING_CONST( "^([ \\n\\r\\0\\S\\s\\d\\\\T])" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "T", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " TEST REGEX\t 0123456789 \n\r TEST!", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "a", 1, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " ", 1, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "\0 ", 2, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "T" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " TEST REGEX\t 0123456789 \n\r TEST!" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "a" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " " ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "\0 " ), 0, 0 ) );
 
 	regex_deallocate( regex );
 
@@ -128,60 +128,60 @@ DECLARE_TEST( regex, any_block )
 DECLARE_TEST( regex, quantifier )
 {
 	regex_capture_t captures[16];
-	regex_t* regex = regex_compile( "^(.*)$" );
+	regex_t* regex = regex_compile( STRING_CONST( "^(.*)$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
-	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "\0" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " " ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), captures, 1 ) );
+	EXPECT_STREQ( captures[0].str, captures[0].length, STRING_CONST( "any string will match this regex" ) );
 
 	regex_deallocate( regex );
 
-	regex = regex_compile( "^(.+)$" );
+	regex = regex_compile( STRING_CONST( "^(.+)$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
-	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "\0" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " " ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), captures, 1 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].str, captures[0].length, STRING_CONST( "any string will match this regex" ) );
 
 	regex_deallocate( regex );
 
-	regex = regex_compile( "^(.*?)$" );
+	regex = regex_compile( STRING_CONST( "^(.*?)$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
-	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "\0" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " " ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), captures, 1 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].str, captures[0].length, STRING_CONST( "any string will match this regex" ) );
 
 	regex_deallocate( regex );
 
-	regex = regex_compile( "^(.+?)$" );
+	regex = regex_compile( STRING_CONST( "^(.+?)$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "\0", 1, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, " ", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "any string will match this regex", 0, captures, 1 ) );
-	EXPECT_STREQ_SUBSTR( captures[0].substring, "any string will match this regex", string_length( "any string will match this regex" ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "\0" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( " " ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "any string will match this regex" ), captures, 1 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].str, captures[0].length, STRING_CONST( "any string will match this regex" ) );
 
 	regex_deallocate( regex );
 
-	regex = regex_compile( "^a.b+?bcd?e*$" );
+	regex = regex_compile( STRING_CONST( "^a.b+?bcd?e*$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "aabbbbceeeeeee", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "abbbc", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "abbcde", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "aabbbbceeeeeee" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "abbbc" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "abbcde" ), 0, 0 ) );
 
 	regex_deallocate( regex );
 
@@ -192,14 +192,14 @@ DECLARE_TEST( regex, quantifier )
 DECLARE_TEST( regex, branch )
 {
 	regex_capture_t captures[16];
-	regex_t* regex = regex_compile( "^(\\s+|\\S+)$" );
+	regex_t* regex = regex_compile( STRING_CONST( "^(\\s+|\\S+)$" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "anynonwhitespacestringwillmatchthisregex", 0, 0, 0 ) );
-	EXPECT_TRUE( regex_match( regex, "   \t\t\n\r  \t\v\n  ", 0, 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "anynonwhitespacestringwillmatchthisregex" ), 0, 0 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "   \t\t\n\r  \t\v\n  " ), 0, 0 ) );
 
 	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
-	EXPECT_FALSE( regex_match( regex, "no mixed string will match this regex", 0, captures, 16 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "no mixed string will match this regex" ), captures, 16 ) );
 
 	regex_deallocate( regex );
 
@@ -210,13 +210,13 @@ DECLARE_TEST( regex, branch )
 DECLARE_TEST( regex, noanchor )
 {
 	regex_capture_t captures[16];
-	regex_t* regex = regex_compile( "matchthis(\\s+|\\S+)!" );
+	regex_t* regex = regex_compile( STRING_CONST( "matchthis(\\s+|\\S+)!" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_TRUE( regex_match( regex, "anynonwhitespacestringwillmatchthisregex!", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "   \t\t\n\r  \t\v\n  ", 0, 0, 0 ) );
-	EXPECT_FALSE( regex_match( regex, "no mixed strings at end will matchthis reg ex !", 0, captures, 16 ) );
-	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthisregex!", 0, captures, 16 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "anynonwhitespacestringwillmatchthisregex!" ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "   \t\t\n\r  \t\v\n  " ), 0, 0 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "no mixed strings at end will matchthis reg ex !" ), captures, 16 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "but nonmixed at end will matchthisregex!" ), captures, 16 ) );
 
 	regex_deallocate( regex );
 
@@ -227,36 +227,36 @@ DECLARE_TEST( regex, noanchor )
 DECLARE_TEST( regex, captures )
 {
 	regex_capture_t captures[16];
-	regex_t* regex = regex_compile( "matchthis(\\s+|\\S+)!endofline([abcd\\\\]*)" );
+	regex_t* regex = regex_compile( STRING_CONST( "matchthis(\\s+|\\S+)!endofline([abcd\\\\]*)" ) );
 	EXPECT_NE( regex, 0 );
 
-	EXPECT_FALSE( regex_match( regex, "no mixed strings at end will matchthis reg ex !endofline", 0, captures, 16 ) );
-	EXPECT_TRUE( regex_match( regex, "non mixed strings at end will matchthisregex!endofline", 0, captures, 16 ) );
-	EXPECT_TRUE( regex_match( regex, "non mixed strings at end will matchthis  \t\n\r  !endofline", 0, captures, 16 ) );
+	EXPECT_FALSE( regex_match( regex, STRING_CONST( "no mixed strings at end will matchthis reg ex !endofline" ), captures, 16 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "non mixed strings at end will matchthisregex!endofline" ), captures, 16 ) );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "non mixed strings at end will matchthis  \t\n\r  !endofline" ), captures, 16 ) );
 
 	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
-	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthisregex!endofline", 0, captures, 16 ) );
-	EXPECT_STREQ_SUBSTR( captures[0].substring, "regex", 5 );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "but nonmixed at end will matchthisregex!endofline" ), captures, 16 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].str, captures[0].length, STRING_CONST( "regex" ) );
 	EXPECT_INTEQ( captures[0].length, 5 );
 	EXPECT_EQ( captures[1].length, 0 );
-	EXPECT_EQ( captures[2].substring, 0 );
+	EXPECT_EQ( captures[2].str, 0 );
 	EXPECT_EQ( captures[2].length, 0 );
 
 	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
-	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthis  \t\n\r  !endofline", 0, captures, 16 ) );
-	EXPECT_STREQ_SUBSTR( captures[0].substring, "  \t\n\r  ", 7 );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "but nonmixed at end will matchthis  \t\n\r  !endofline" ), captures, 16 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].str, captures[0].length, STRING_CONST( "  \t\n\r  " ) );
 	EXPECT_INTEQ( captures[0].length, 7 );
 	EXPECT_EQ( captures[1].length, 0 );
 	EXPECT_EQ( captures[2].substring, 0 );
 	EXPECT_EQ( captures[2].length, 0 );
 
 	memset( captures, 0, sizeof( regex_capture_t ) * 16 );
-	EXPECT_TRUE( regex_match( regex, "but nonmixed at end will matchthisstring!endofline\\aabbcc\\", 0, captures, 16 ) );
-	EXPECT_STREQ_SUBSTR( captures[0].substring, "string", 6 );
+	EXPECT_TRUE( regex_match( regex, STRING_CONST( "but nonmixed at end will matchthisstring!endofline\\aabbcc\\" ), captures, 16 ) );
+	EXPECT_STREQ_SUBSTR( captures[0].str, captures[0].length, STRING_CONST( "string" ) );
 	EXPECT_INTEQ( captures[0].length, 6 );
-	EXPECT_STREQ_SUBSTR( captures[1].substring, "\\aabbcc\\", 8 );
+	EXPECT_STREQ_SUBSTR( captures[1].str, captures[1].length, STRING_CONST( "\\aabbcc\\" ) );
 	EXPECT_EQ( captures[1].length, 8 );
-	EXPECT_EQ( captures[2].substring, 0 );
+	EXPECT_EQ( captures[2].str, 0 );
 	EXPECT_EQ( captures[2].length, 0 );
 
 	regex_deallocate( regex );

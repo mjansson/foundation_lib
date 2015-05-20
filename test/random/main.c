@@ -313,7 +313,7 @@ DECLARE_TEST( random, threads )
 
 	for( i = 0; i < num_threads; ++i )
 	{
-		thread[i] = thread_create( random_thread, "random", THREAD_PRIORITY_NORMAL, 0 );
+		thread[i] = thread_create( random_thread, STRING_CONST( "random" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[i], 0 );
 	}
 

@@ -69,14 +69,14 @@ DECLARE_TEST( error, context )
 	if( context )
 		EXPECT_EQ( context->depth, 0 );
 
-	error_context_push( "error test", "data" );
+	error_context_push( STRING_CONST( "error test" ), STRING_CONST( "data" ) );
 	context = error_context();
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 	EXPECT_NE( context, 0 );
 	EXPECT_EQ( context->depth, 1 );
-	EXPECT_STREQ( context->frame[0].name, "error test" );
-	EXPECT_STREQ( context->frame[0].data, "data" );
+	EXPECT_STRINGEQ( context->frame[0].name, string_const( STRING_CONST( "error test" ) ) );
+	EXPECT_STRINGEQ( context->frame[0].data, string_const( STRING_CONST( "data" ) ) );
 #else
 	EXPECT_EQ( context, 0 );
 #endif
@@ -91,17 +91,17 @@ DECLARE_TEST( error, context )
 	EXPECT_EQ( context, 0 );
 #endif
 
-	error_context_push( "error test", "data" );
-	error_context_push( "another test", "more data" );
+	error_context_push( STRING_CONST( "error test" ), STRING_CONST( "data" ) );
+	error_context_push( STRING_CONST( "another test" ), STRING_CONST( "more data" ) );
 	context = error_context();
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 	EXPECT_NE( context, 0 );
 	EXPECT_EQ( context->depth, 2 );
-	EXPECT_STREQ( context->frame[0].name, "error test" );
-	EXPECT_STREQ( context->frame[0].data, "data" );
-	EXPECT_STREQ( context->frame[1].name, "another test" );
-	EXPECT_STREQ( context->frame[1].data, "more data" );
+	EXPECT_STRINGEQ( context->frame[0].name, string_const( STRING_CONST( "error test" ) ) );
+	EXPECT_STRINGEQ( context->frame[0].data, string_const( STRING_CONST( "data" ) ) );
+	EXPECT_STRINGEQ( context->frame[1].name, string_const( STRING_CONST( "another test" ) ) );
+	EXPECT_STRINGEQ( context->frame[1].data, string_const( STRING_CONST( "more data" ) ) );
 #else
 	EXPECT_EQ( context, 0 );
 #endif
@@ -112,8 +112,8 @@ DECLARE_TEST( error, context )
 #if BUILD_ENABLE_ERROR_CONTEXT
 	EXPECT_NE( context, 0 );
 	EXPECT_EQ( context->depth, 1 );
-	EXPECT_STREQ( context->frame[0].name, "error test" );
-	EXPECT_STREQ( context->frame[0].data, "data" );
+	EXPECT_STRINGEQ( context->frame[0].name, string_const( STRING_CONST( "error test" ) ) );
+	EXPECT_STRINGEQ( context->frame[0].data, string_const( STRING_CONST( "data" ) ) );
 #else
 	EXPECT_EQ( context, 0 );
 #endif
@@ -143,14 +143,14 @@ static void* error_test_thread( void )
 	if( context )
 		EXPECT_EQ( context->depth, 0 );
 
-	error_context_push( "error test", "data" );
+	error_context_push( STRING_CONST( "error test" ), STRING_CONST( "data" ) );
 	context = error_context();
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 	EXPECT_NE( context, 0 );
 	EXPECT_EQ( context->depth, 1 );
-	EXPECT_STREQ( context->frame[0].name, "error test" );
-	EXPECT_STREQ( context->frame[0].data, "data" );
+	EXPECT_STRINGEQ( context->frame[0].name, string_const( STRING_CONST( "error test" ) ) );
+	EXPECT_STRINGEQ( context->frame[0].data, string_const( STRING_CONST( "data" ) ) );
 #else
 	EXPECT_EQ( context, 0 );
 #endif
@@ -165,17 +165,17 @@ static void* error_test_thread( void )
 	EXPECT_EQ( context, 0 );
 #endif
 
-	error_context_push( "error test", "data" );
-	error_context_push( "another test", "more data" );
+	error_context_push( STRING_CONST( "error test" ), STRING_CONST( "data" ) );
+	error_context_push( STRING_CONST( "another test" ), STRING_CONST( "more data" ) );
 	context = error_context();
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 	EXPECT_NE( context, 0 );
 	EXPECT_EQ( context->depth, 2 );
-	EXPECT_STREQ( context->frame[0].name, "error test" );
-	EXPECT_STREQ( context->frame[0].data, "data" );
-	EXPECT_STREQ( context->frame[1].name, "another test" );
-	EXPECT_STREQ( context->frame[1].data, "more data" );
+	EXPECT_STRINGEQ( context->frame[0].name, string_const( STRING_CONST( "error test" ) ) );
+	EXPECT_STRINGEQ( context->frame[0].data, string_const( STRING_CONST( "data" ) ) );
+	EXPECT_STRINGEQ( context->frame[1].name, string_const( STRING_CONST( "another test" ) ) );
+	EXPECT_STRINGEQ( context->frame[1].data, string_const( STRING_CONST( "more data" ) ) );
 #else
 	EXPECT_EQ( context, 0 );
 #endif
@@ -186,8 +186,8 @@ static void* error_test_thread( void )
 #if BUILD_ENABLE_ERROR_CONTEXT
 	EXPECT_NE( context, 0 );
 	EXPECT_EQ( context->depth, 1 );
-	EXPECT_STREQ( context->frame[0].name, "error test" );
-	EXPECT_STREQ( context->frame[0].data, "data" );
+	EXPECT_STRINGEQ( context->frame[0].name, string_const( STRING_CONST( "error test" ) ) );
+	EXPECT_STRINGEQ( context->frame[0].data, string_const( STRING_CONST( "data" ) ) );
 #else
 	EXPECT_EQ( context, 0 );
 #endif
@@ -225,7 +225,7 @@ DECLARE_TEST( error, thread )
 
 	for( i = 0; i < 32; ++i )
 	{
-		thread[i] = thread_create( error_thread, "error", THREAD_PRIORITY_NORMAL, 0 );
+		thread[i] = thread_create( error_thread, STRING_CONST( "error" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[i], 0 );
 	}
 

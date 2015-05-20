@@ -15,7 +15,7 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-FOUNDATION_API void                 event_post( event_stream_t* stream, uint16_t id, size_t size, object_t object, const void* payload, tick_t delivery );
+FOUNDATION_API void                 event_post( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size, ... ) FOUNDATION_ATTRIBUTE(sentinel);
 FOUNDATION_API event_t*             event_next( const event_block_t* block, event_t* event );
 FOUNDATION_API size_t               event_payload_size( const event_t* event );
 

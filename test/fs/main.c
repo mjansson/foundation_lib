@@ -46,31 +46,33 @@ static void test_fs_shutdown( void )
 
 DECLARE_TEST( fs, directory )
 {
-	char* longpath;
-	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
+	string_t longpath;
+	string_const_t fname = string_from_uint_static( random64(), true, 0, 0 );
+	string_t testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 
-	if( fs_is_file( testpath ) )
-		fs_remove_file( testpath );
-	if( !fs_is_directory( testpath ) )
-		fs_make_directory( testpath );
+	if( fs_is_file( STRING_ARGS( testpath ) ) )
+		fs_remove_file( STRING_ARGS( testpath ) );
+	if( !fs_is_directory( STRING_ARGS( testpath ) ) )
+		fs_make_directory( STRING_ARGS( testpath ) );
 
-	EXPECT_TRUE( fs_is_directory( testpath ) );
+	EXPECT_TRUE( fs_is_directory( STRING_ARGS( testpath ) ) );
 
-	fs_remove_directory( testpath );
-	EXPECT_FALSE( fs_is_directory( testpath ) );
+	fs_remove_directory( STRING_ARGS( testpath ) );
+	EXPECT_FALSE( fs_is_directory( STRING_ARGS( testpath ) ) );
 
-	longpath = path_merge( testpath, string_from_uint_static( random64(), true, 0, 0 ) );
-	EXPECT_FALSE( fs_is_directory( longpath ) );
+	fname = string_from_uint_static( random64(), true, 0, 0 );
+	longpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+	EXPECT_FALSE( fs_is_directory( STRING_ARGS( longpath ) ) );
 
-	fs_make_directory( longpath );
-	EXPECT_TRUE( fs_is_directory( longpath ) );
+	fs_make_directory( STRING_ARGS( longpath ) );
+	EXPECT_TRUE( fs_is_directory( STRING_ARGS( longpath ) ) );
 
-	fs_remove_directory( testpath );
-	EXPECT_FALSE( fs_is_directory( testpath ) );
-	EXPECT_FALSE( fs_is_directory( longpath ) );
+	fs_remove_directory( STRING_ARGS( testpath ) );
+	EXPECT_FALSE( fs_is_directory( STRING_ARGS( testpath ) ) );
+	EXPECT_FALSE( fs_is_directory( STRING_ARGS( longpath ) ) );
 
-	string_deallocate( longpath );
-	string_deallocate( testpath );
+	string_deallocate( longpath.str );
+	string_deallocate( testpath.str );
 
 	return 0;
 }
@@ -78,91 +80,97 @@ DECLARE_TEST( fs, directory )
 
 DECLARE_TEST( fs, file )
 {
-	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
-	char* copypath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
-	stream_t* teststream = 0;
+	string_const_t fname;
+	string_t testpath;
+	string_t copypath;
+	stream_t* teststream;
 
-	if( !fs_is_directory( environment_temporary_directory() ) )
-		fs_make_directory( environment_temporary_directory() );
+	fname = string_from_uint_static( random64(), true, 0, 0 );
+	testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	fname = string_from_uint_static( random64(), true, 0, 0 );
+	copypath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 
-	if( fs_is_directory( testpath ) )
-		fs_remove_directory( testpath );
-	fs_remove_file( testpath );
+	if( !fs_is_directory( STRING_ARGS( environment_temporary_directory() ) ) )
+		fs_make_directory( STRING_ARGS( environment_temporary_directory() ) );
 
-	if( fs_is_directory( copypath ) )
-		fs_remove_directory( copypath );
-	fs_remove_file( copypath );
+	if( fs_is_directory( STRING_ARGS( testpath ) ) )
+		fs_remove_directory( STRING_ARGS( testpath ) );
+	fs_remove_file( STRING_ARGS( testpath ) );
+
+	if( fs_is_directory( STRING_ARGS( copypath ) ) )
+		fs_remove_directory( STRING_ARGS( copypath ) );
+	fs_remove_file( STRING_ARGS( copypath ) );
 
 
-	teststream = fs_open_file( testpath, STREAM_IN );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_IN );
 	EXPECT_EQ( teststream, 0 );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_OUT );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_OUT );
 	EXPECT_EQ( teststream, 0 );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_IN | STREAM_OUT );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_IN | STREAM_OUT );
 	EXPECT_EQ( teststream, 0 );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_IN | STREAM_CREATE );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_IN | STREAM_CREATE );
 	EXPECT_NE( teststream, 0 );
-	EXPECT_TRUE( fs_is_file( testpath ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( testpath ) ) );
 	stream_deallocate( teststream );
-	fs_remove_file( testpath );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	fs_remove_file( STRING_ARGS( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_OUT | STREAM_CREATE );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_OUT | STREAM_CREATE );
 	EXPECT_NE( teststream, 0 );
-	EXPECT_TRUE( fs_is_file( testpath ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( testpath ) ) );
 	stream_deallocate( teststream );
-	fs_remove_file( testpath );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	fs_remove_file( STRING_ARGS( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_IN | STREAM_OUT | STREAM_CREATE );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_IN | STREAM_OUT | STREAM_CREATE );
 	EXPECT_NE( teststream, 0 );
-	EXPECT_TRUE( fs_is_file( testpath ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( testpath ) ) );
 	stream_deallocate( teststream );
-	fs_remove_file( testpath );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	fs_remove_file( STRING_ARGS( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_IN );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_IN );
 	EXPECT_EQ( teststream, 0 );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_OUT | STREAM_CREATE );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_OUT | STREAM_CREATE );
 	EXPECT_NE( teststream, 0 );
-	EXPECT_TRUE( fs_is_file( testpath ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( testpath ) ) );
 	stream_deallocate( teststream );
 	teststream = 0;
 
-	fs_copy_file( testpath, copypath );
-	EXPECT_TRUE( fs_is_file( copypath ) );
+	fs_copy_file( STRING_ARGS( testpath ), STRING_ARGS( copypath ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( copypath ) ) );
 
-	fs_remove_file( copypath );
-	EXPECT_FALSE( fs_is_file( copypath ) );
+	fs_remove_file( STRING_ARGS( copypath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( copypath ) ) );
 
-	teststream = fs_open_file( testpath, STREAM_OUT );
+	teststream = fs_open_file( STRING_ARGS( testpath ), STREAM_OUT );
 	EXPECT_NE( teststream, 0 );
-	EXPECT_TRUE( fs_is_file( testpath ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( testpath ) ) );
 
-	stream_write_string( teststream, "testing testing" );
+	stream_write_string( teststream, STRING_CONST( "testing testing" ) );
 	stream_deallocate( teststream );
 	teststream = 0;
 
-	fs_copy_file( testpath, copypath );
-	EXPECT_TRUE( fs_is_file( copypath ) );
+	fs_copy_file( STRING_ARGS( testpath ), STRING_ARGS( copypath ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( copypath ) ) );
 
-	fs_remove_file( copypath );
-	EXPECT_FALSE( fs_is_file( copypath ) );
+	fs_remove_file( STRING_ARGS( copypath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( copypath ) ) );
 
-	fs_remove_file( testpath );
-	EXPECT_FALSE( fs_is_file( testpath ) );
+	fs_remove_file( STRING_ARGS( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
 	stream_deallocate( teststream );
-	string_deallocate( testpath );
-	string_deallocate( copypath );
+	string_deallocate( testpath.str );
+	string_deallocate( copypath.str );
 
 	return 0;
 }
@@ -172,42 +180,43 @@ DECLARE_TEST( fs, util )
 {
 	tick_t systime = time_system();
 	tick_t lastmod = 0;
-	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
+	string_const_t fname = string_from_uint_static( random64(), true, 0, 0 );
+	string_t testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 
-	if( !fs_is_directory( environment_temporary_directory() ) )
-		fs_make_directory( environment_temporary_directory() );
+	if( !fs_is_directory( STRING_ARGS( environment_temporary_directory() ) ) )
+		fs_make_directory( STRING_ARGS( environment_temporary_directory() ) );
 
-	if( fs_is_directory( testpath ) )
-		fs_remove_directory( testpath );
-	fs_remove_file( testpath );
+	if( fs_is_directory( STRING_ARGS( testpath ) ) )
+		fs_remove_directory( STRING_ARGS( testpath ) );
+	fs_remove_file( STRING_ARGS( testpath ) );
 
-	EXPECT_EQ( fs_last_modified( testpath ), 0 );
+	EXPECT_EQ( fs_last_modified( STRING_ARGS( testpath ) ), 0 );
 
 	thread_sleep( 2000 ); //For fs time granularity, make sure at least one second passed since systime
 
-	stream_deallocate( fs_open_file( testpath, STREAM_OUT | STREAM_CREATE ) );
-	EXPECT_TRUE( fs_is_file( testpath ) );
-	EXPECT_GE( fs_last_modified( testpath ), systime );
+	stream_deallocate( fs_open_file( STRING_ARGS( testpath ), STREAM_OUT | STREAM_CREATE ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( testpath ) ) );
+	EXPECT_GE( fs_last_modified( STRING_ARGS( testpath ) ), systime );
 
-	fs_remove_file( testpath );
-	EXPECT_FALSE( fs_is_file( testpath ) );
-	EXPECT_EQ( fs_last_modified( testpath ), 0 );
+	fs_remove_file( STRING_ARGS( testpath ) );
+	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
+	EXPECT_EQ( fs_last_modified( STRING_ARGS( testpath ) ), 0 );
 
-	stream_deallocate( fs_open_file( testpath, STREAM_OUT | STREAM_CREATE ) );
-	EXPECT_TRUE( fs_is_file( testpath ) );
-	EXPECT_GE( fs_last_modified( testpath ), systime );
+	stream_deallocate( fs_open_file( STRING_ARGS( testpath ), STREAM_OUT | STREAM_CREATE ) );
+	EXPECT_TRUE( fs_is_file( STRING_ARGS( testpath ) ) );
+	EXPECT_GE( fs_last_modified( STRING_ARGS( testpath ) ), systime );
 
-	lastmod = fs_last_modified( testpath );
+	lastmod = fs_last_modified( STRING_ARGS( testpath ) );
 
 	thread_sleep( 5000 );
 
-	EXPECT_EQ( fs_last_modified( testpath ), lastmod );
+	EXPECT_EQ( fs_last_modified( STRING_ARGS( testpath ) ), lastmod );
 
-	fs_touch( testpath );
-	EXPECT_GT( fs_last_modified( testpath ), lastmod );
+	fs_touch( STRING_ARGS( testpath ) );
+	EXPECT_GT( fs_last_modified( STRING_ARGS( testpath ) ), lastmod );
 
-	fs_remove_file( testpath );
-	string_deallocate( testpath );
+	fs_remove_file( STRING_ARGS( testpath ) );
+	string_deallocate( testpath.str );
 
 	return 0;
 }
@@ -217,92 +226,103 @@ DECLARE_TEST( fs, query )
 {
 	uint64_t subpathid = random64();
 	uint64_t subfileid = random64();
-	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), true, 0, 0 ) );
-	char* subtestpath = path_merge( testpath, string_from_uint_static( subpathid, true, 0, 0 ) );
-	char* filepath[8];
-	char** subdirs;
-	char** files;
+	string_const_t fname;
+	string_t testpath;
+	string_t subtestpath;
+	string_t filepath[8];
+	string_t* subdirs;
+	string_t* files;
 	int ifp = 0;
-	char* subfilepath;
+	string_t subfilepath;
 
-	if( fs_is_file( testpath ) )
-		fs_remove_file( testpath );
-	if( !fs_is_directory( testpath ) )
-		fs_make_directory( testpath );
-	if( !fs_is_directory( subtestpath ) )
-		fs_make_directory( subtestpath );
+	fname = string_from_uint_static( random64(), true, 0, 0 );
+	testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	fname = string_from_uint_static( subpathid, true, 0, 0 );
+	subtestpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+
+	if( fs_is_file( STRING_ARGS( testpath ) ) )
+		fs_remove_file( STRING_ARGS( testpath ) );
+	if( !fs_is_directory( STRING_ARGS( testpath ) ) )
+		fs_make_directory( STRING_ARGS( testpath ) );
+	if( !fs_is_directory( STRING_ARGS( subtestpath ) ) )
+		fs_make_directory( STRING_ARGS( subtestpath ) );
 
 	for( ifp = 0; ifp < 8; ++ifp )
 	{
-		filepath[ifp] = path_merge( testpath, string_from_uint_static( random64(), true, 0, 0 ) );
-		filepath[ifp] = string_append( string_append( filepath[ifp], "." ), string_from_int_static( ifp, 0, 0 ) );
-		stream_deallocate( fs_open_file( filepath[ifp], STREAM_OUT | STREAM_CREATE ) );
+		fname = string_from_uint_static( random64(), true, 0, 0 );
+		filepath[ifp] = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+		fname = string_from_int_static( ifp, 0, 0 );
+		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), STRING_CONST( "." ), true );
+		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), STRING_ARGS( fname ), true );
+		stream_deallocate( fs_open_file( STRING_ARGS( filepath[ifp] ), STREAM_OUT | STREAM_CREATE ) );
 	}
 
-	subfilepath = path_merge( subtestpath, string_from_uint_static( subfileid, true, 0, 0 ) );
-	subfilepath = string_append( subfilepath, ".0" );
-	stream_deallocate( fs_open_file( subfilepath, STREAM_OUT | STREAM_CREATE ) );
+	fname = string_from_uint_static( subfileid, true, 0, 0 );
+	subfilepath = path_merge( STRING_ARGS( subtestpath ), STRING_ARGS( fname ) );
+	subfilepath = string_append( STRING_ARGS_CAPACITY( subfilepath ), STRING_CONST( ".0" ), true );
+	stream_deallocate( fs_open_file( STRING_ARGS( subfilepath ), STREAM_OUT | STREAM_CREATE ) );
 
-	files = fs_files( filepath[0] );
+	files = fs_files( STRING_ARGS( filepath[0] ) );
 	EXPECT_EQ( array_size( files ), 0 );
 	string_array_deallocate( files );
 
-	subdirs = fs_subdirs( subtestpath );
+	subdirs = fs_subdirs( STRING_ARGS( subtestpath ) );
 	EXPECT_EQ( array_size( subdirs ), 0 );
 	string_array_deallocate( subdirs );
 
-	files = fs_files( testpath );
+	files = fs_files( STRING_ARGS( testpath ) );
 	EXPECT_EQ( array_size( files ), 8 );
 	string_array_deallocate( files );
 
-	subdirs = fs_subdirs( testpath );
+	subdirs = fs_subdirs( STRING_ARGS( testpath ) );
 	EXPECT_EQ( array_size( subdirs ), 1 );
 	string_array_deallocate( subdirs );
 
-	files = fs_matching_files( testpath, "^.*$", false );
+	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*$" ), false );
 	EXPECT_EQ( array_size( files ), 8 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "^.*$", true );
+	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*$" ), true );
 	EXPECT_EQ( array_size( files ), 9 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "^.*\\.0$", false );
+	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*\\.0$" ), false );
 	EXPECT_EQ( array_size( files ), 1 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "^.*\\.0$", true );
+	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*\\.0$" ), true );
 	EXPECT_EQ( array_size( files ), 2 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "^.*\\.1$", false );
+	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*\\.1$" ), false );
 	EXPECT_EQ( array_size( files ), 1 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "^.*\\.1$", true );
+	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*\\.1$" ), true );
 	EXPECT_EQ( array_size( files ), 1 );
 	string_array_deallocate( files );
 
-	files = fs_matching_files( testpath, "^.*\\..$", true );
+	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*\\..$" ), true );
 	EXPECT_EQ( array_size( files ), 9 );
 	{
-		char* verifypath = string_from_uint( subpathid, true, 0, 0 );
-		verifypath = path_append( verifypath, string_from_uint_static( subfileid, true, 0, 0 ) );
-		verifypath = string_append( verifypath, ".0" );
-		EXPECT_STREQ( files[8], verifypath );
-		string_deallocate( verifypath );
+		string_t verifypath = string_from_uint( subpathid, true, 0, 0 );
+		fname = string_from_uint_static( subfileid, true, 0, 0 );
+		verifypath = path_append( STRING_ARGS_CAPACITY( verifypath ), STRING_ARGS( fname ), true );
+		verifypath = string_append( STRING_ARGS_CAPACITY( verifypath ), STRING_CONST( ".0" ), true );
+		EXPECT_STRINGEQ( files[8], verifypath );
+		string_deallocate( verifypath.str );
 	}
 	string_array_deallocate( files );
 
-	fs_remove_directory( testpath );
+	fs_remove_directory( STRING_ARGS( testpath ) );
 
 	string_array_deallocate( subdirs );
 	string_array_deallocate( files );
-	string_deallocate( subfilepath );
+	string_deallocate( subfilepath.str );
 	for( ifp = 0; ifp < 8; ++ifp )
-		string_deallocate( filepath[ifp] );
-	string_deallocate( subtestpath );
-	string_deallocate( testpath );
+		string_deallocate( filepath[ifp].str );
+	string_deallocate( subtestpath.str );
+	string_deallocate( testpath.str );
 	return 0;
 }
 
@@ -318,14 +338,14 @@ DECLARE_TEST( fs, event )
 	stream = fs_event_stream();
 	EXPECT_NE( stream, 0 );
 
-	fs_post_event( FOUNDATIONEVENT_FILE_CREATED, pathstr, 36 );
+	fs_post_event( FOUNDATIONEVENT_FILE_CREATED, STRING_CONST( pathstr ) );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
-	EXPECT_STREQ( event->payload, pathstr );
+	EXPECT_STREQ( event->payload, event-> , STRING_CONST( pathstr ) );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );

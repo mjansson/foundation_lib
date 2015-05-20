@@ -48,20 +48,19 @@ DECLARE_TEST( md5, empty )
 {
 	md5_t* md5;
 	char md5str[32];
+	string_t digest;
 
 	md5 = md5_allocate();
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
+	digest = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
-	EXPECT_STREQ( md5str, "D41D8CD98F00B204E9800998ECF8427E" );
-	string_deallocate( md5str );
+	EXPECT_STRINGEQ( digest, string_const( STRING_CONST( "D41D8CD98F00B204E9800998ECF8427E" ) ) );
 
 	md5_initialize( md5 );
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
+	digest = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
-	EXPECT_STREQ( md5str, "D41D8CD98F00B204E9800998ECF8427E" );
-	string_deallocate( md5str );
+	EXPECT_STRINGEQ( digest, string_const( STRING_CONST( "D41D8CD98F00B204E9800998ECF8427E" ) ) );
 
 	md5_deallocate( md5 );
 
@@ -93,33 +92,31 @@ DECLARE_TEST( md5, reference )
 {
 	md5_t* md5;
 	char md5str[32];
+	string_t digest;
 
 	md5 = md5_allocate();
 	md5_digest_finalize( md5 );
 
-	md5_digest_raw( md5, "testing md5 implementation", 26 );
+	md5_digest( md5, "testing md5 implementation", 26 );
 	md5_digest_finalize( md5 );
 
-	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
+	digest = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
-	EXPECT_STREQ( md5str, "4E24E37E5E06F23210FA1518E97A50C4" );
-	string_deallocate( md5str );
+	EXPECT_STRINGEQ( digest, string_const( STRING_CONST( "4E24E37E5E06F23210FA1518E97A50C4" ) ) );
 
-	md5_digest_raw( md5, "testing md5 implementation", 26 );
-	md5_digest_raw( md5, "", 0 );
-	md5_digest_raw( md5, "further testing md5 implementation with long buffer > 32 bytes", 62 );
+	md5_digest( md5, "testing md5 implementation", 26 );
+	md5_digest( md5, "", 0 );
+	md5_digest( md5, "further testing md5 implementation with long buffer > 32 bytes", 62 );
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
+	digest = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
-	EXPECT_STREQ( md5str, "BD870884942EA7B32A9CB2547B02B871" );
-	string_deallocate( md5str );
+	EXPECT_STRINGEQ( digest, string_const( STRING_CONST( "BD870884942EA7B32A9CB2547B02B871" ) ) );
 
-	md5_digest_raw( md5, digest_test_string, 2000 );
+	md5_digest( md5, digest_test_string, 2000 );
 	md5_digest_finalize( md5 );
-	md5str = md5_get_digest( md5, md5str, sizeof( md5str ) );
+	digest = md5_get_digest( md5, md5str, sizeof( md5str ) );
 
-	EXPECT_STREQ( md5str, "137D3C94230A0E230C4DDFC97EACCCD2" );
-	string_deallocate( md5str );
+	EXPECT_STRINGEQ( digest, string_const( STRING_CONST( "137D3C94230A0E230C4DDFC97EACCCD2" ) ) );
 
 	md5_deallocate( md5 );
 

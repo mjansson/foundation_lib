@@ -46,31 +46,31 @@ static void test_environment_shutdown( void )
 
 DECLARE_TEST( environment, builtin )
 {
-	char const* const* cmdline = environment_command_line();
+	const string_const_t* cmdline = environment_command_line();
 
 	EXPECT_GE( array_size( cmdline ), 1 );
 #if !BUILD_MONOLITHIC
-	EXPECT_NE_MSGFORMAT( string_find_string( cmdline[0], "test-environment", 0 ), STRING_NPOS, "Commandline: %s", cmdline[0] );
-	EXPECT_STREQ( environment_executable_name(), "test-environment" );
+	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "test-environment" ), 0 ), STRING_NPOS, "Commandline: %.*s", (int)cmdline[0].length, cmdline[0].str );
+	EXPECT_STRINGEQ( environment_executable_name(), string_const( STRING_CONST( "test-environment" ) ) );
 #elif FOUNDATION_PLATFORM_ANDROID
-	EXPECT_NE_MSGFORMAT( string_find_string( cmdline[0], "com.rampantpixels.foundation.test", 0 ), STRING_NPOS, "Commandline: %s", cmdline[0] );
+	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "com.rampantpixels.foundation.test" ), 0 ), STRING_NPOS, "Commandline: %.*s", (int)cmdline[0].length, cmdline[0].str );
 #elif !FOUNDATION_PLATFORM_PNACL
-	EXPECT_NE_MSGFORMAT( string_find_string( cmdline[0], "test-all", 0 ), STRING_NPOS, "Commandline: %s", cmdline[0] );
-	EXPECT_STREQ( environment_executable_name(), "test-all" );
+	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "test-all" ), 0 ), STRING_NPOS, "Commandline: %.*s", (int)cmdline[0].length, cmdline[0].str );
+	EXPECT_STRINGEQ( environment_executable_name(), string_const( STRING_CONST( "test-all" ) ) );
 #endif
-	EXPECT_NE( environment_initial_working_directory(), 0 );
-	EXPECT_NE( string_length( environment_initial_working_directory() ), 0 );
-	EXPECT_STREQ( environment_initial_working_directory(), environment_current_working_directory() );
+	EXPECT_NE( environment_initial_working_directory().str, 0 );
+	EXPECT_NE( environment_initial_working_directory().length, 0 );
+	EXPECT_STRINGEQ( environment_initial_working_directory(), environment_current_working_directory() );
 
-	EXPECT_NE( environment_home_directory(), 0 );
-	EXPECT_NE( string_length( environment_home_directory() ), 0 );
+	EXPECT_NE( environment_home_directory().str, 0 );
+	EXPECT_NE( environment_home_directory().length, 0 );
 
-	EXPECT_NE( environment_temporary_directory(), 0 );
-	EXPECT_NE( string_length( environment_temporary_directory() ), 0 );
+	EXPECT_NE( environment_temporary_directory().str, 0 );
+	EXPECT_NE( environment_temporary_directory().length, 0 );
 
 #if !FOUNDATION_PLATFORM_PNACL
-	EXPECT_NE( environment_variable( "PATH" ), 0 );
-	EXPECT_NE( string_length( environment_variable( "PATH" ) ), 0 );
+	EXPECT_NE( environment_variable( STRING_CONST( "PATH" ) ).str, 0 );
+	EXPECT_NE( environment_variable( STRING_CONST( "PATH" ) ).length, 0 );
 #endif
 
 	return 0;
@@ -78,17 +78,16 @@ DECLARE_TEST( environment, builtin )
 
 DECLARE_TEST( environment, workingdir )
 {
-	const char* working_dir = environment_current_working_directory();
+	string_const_t working_dir = environment_current_working_directory();
+	string_const_t new_working_dir = path_directory_name( STRING_ARGS( working_dir ) );
 
-	char* new_working_dir = path_directory_name( working_dir );
+	EXPECT_STRINGNE( working_dir, new_working_dir );
 
-	environment_set_current_working_directory( new_working_dir );
-	EXPECT_STREQ( environment_current_working_directory(), new_working_dir );
+	environment_set_current_working_directory( STRING_ARGS( new_working_dir ) );
+	EXPECT_STRINGEQ( environment_current_working_directory(), new_working_dir );
 
-	environment_set_current_working_directory( working_dir );
-	EXPECT_STREQ( environment_current_working_directory(), working_dir );
-
-	string_deallocate( new_working_dir );
+	environment_set_current_working_directory( STRING_ARGS( working_dir ) );
+	EXPECT_STRINGEQ( environment_current_working_directory(), working_dir );
 
 	return 0;
 }

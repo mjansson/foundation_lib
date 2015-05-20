@@ -60,34 +60,34 @@ static void test_crash_shutdown( void )
 }
 
 
-static void test_crash_callback( const char* dump_path )
+static void test_crash_callback( const char* dump_path, size_t length )
 {
 	FOUNDATION_UNUSED( dump_path );
-	log_infof( HASH_TEST, "Crash callback called: %s", dump_path );
+	log_infof( HASH_TEST, STRING_CONST( "Crash callback called: %.*s" ), (int)length, dump_path );
 	_crash_callback_called = true;
 }
 
 
-static int handle_assert( hash_t context, const char* condition, const char* file, unsigned int line, const char* msg )
+static int handle_assert( hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length, unsigned int line, const char* msg, size_t msg_length )
 {
 	handled_context = context;
-	string_copy( handled_condition, condition, 32 );
-	string_copy( handled_file, file, 32 );
+	string_copy( handled_condition, sizeof( handled_condition ), condition, cond_length );
+	string_copy( handled_file, sizeof( handled_file ), file, file_length );
 	handled_line = line;
-	string_copy( handled_msg, msg, 32 );
+	string_copy( handled_msg, sizeof( handled_msg ), msg, msg_length );
 	return 1234;
 }
 
 
 #if BUILD_ENABLE_LOG
 
-static void handle_log( hash_t context, error_level_t severity, const char* msg )
+static void handle_log( hash_t context, error_level_t severity, const char* msg, size_t msg_length )
 {
 	FOUNDATION_UNUSED( context );
 	FOUNDATION_UNUSED( severity );
-	string_copy( handled_log, msg, 512 );
+	string_copy( handled_log, sizeof( handled_log ), msg, msg_length );
 	if( _global_log_callback )
-		_global_log_callback( context, severity, msg );
+		_global_log_callback( context, severity, msg, msg_length );
 }
 
 #endif
@@ -112,20 +112,20 @@ static void* thread_crash( object_t thread, void* arg )
 
 DECLARE_TEST( crash, assert_callback )
 {
-	log_info( HASH_TEST, "This test will intentionally generate assert errors" );
+	log_info( HASH_TEST, STRING_CONST( "This test will intentionally generate assert errors" ) );
 
 	EXPECT_EQ( assert_handler(), 0 );
 
 	assert_set_handler( handle_assert );
 	EXPECT_EQ( assert_handler(), handle_assert );
 
-	EXPECT_EQ( assert_report( 1, "condition", "file", 2, "msg" ), 1234 );
+	EXPECT_EQ( assert_report( 1, STRING_CONST( "condition" ), STRING_CONST( "file" ), 2, STRING_CONST( "msg" ) ), 1234 );
 	EXPECT_EQ( assert_handler(), handle_assert );
 	EXPECT_EQ( handled_context, 1 );
-	EXPECT_STREQ( handled_condition, "condition" );
-	EXPECT_STREQ( handled_file, "file" );
+	EXPECT_STREQ( handled_condition, string_length( handled_condition ), "condition", 9 );
+	EXPECT_STREQ( handled_file, string_length( handled_file ), "file", 4 );
 	EXPECT_EQ( handled_line, 2 );
-	EXPECT_STREQ( handled_msg, "msg" );
+	EXPECT_STREQ( handled_msg, string_length( handled_msg ), "msg", 3 );
 
 	assert_set_handler( 0 );
 	EXPECT_EQ( assert_handler(), 0 );
@@ -134,18 +134,18 @@ DECLARE_TEST( crash, assert_callback )
 	_global_log_callback = log_callback();
 	log_set_callback( handle_log );
 #endif
-	EXPECT_EQ( assert_report_formatted( 1, "assert_report_formatted", "file", 2, "%s", "msg" ), 1 );
+	EXPECT_EQ( assert_report_formatted( 1, STRING_CONST( "assert_report_formatted" ), STRING_CONST( "file" ), 2, STRING_CONST( "%.*s" ), 3, "msg" ), 1 );
 	EXPECT_EQ( error(), ERROR_ASSERT );
 #if BUILD_ENABLE_LOG
-	EXPECT_TRUE( string_find_string( handled_log, "assert_report_formatted", 0 ) != STRING_NPOS );
-	EXPECT_TRUE( string_find_string( handled_log, "msg", 0 ) != STRING_NPOS );
+	EXPECT_TRUE( string_find_string( handled_log, string_length( handled_log ), STRING_CONST( "assert_report_formatted" ), 0 ) != STRING_NPOS );
+	EXPECT_TRUE( string_find_string( handled_log, string_length( handled_log ), STRING_CONST( "msg" ), 0 ) != STRING_NPOS );
 
 	log_enable_stdout( false );
 	log_set_suppress( HASH_TEST, ERRORLEVEL_NONE );
 #if BUILD_ENABLE_DEBUG_LOG
-	log_debugf( HASH_TEST, "%s",
+	log_debugf( HASH_TEST, STRING_CONST( "%s" ),
 #else
-	log_infof( HASH_TEST, "%s",
+	log_infof( HASH_TEST, STRING_CONST( "%s" ),
 #endif
 		"To test log callback and memory handling this test will print "
 		"a really long log line with complete nonsense. Log callbacks only occur for non-suppressed "
@@ -167,7 +167,7 @@ DECLARE_TEST( crash, assert_callback )
 	);
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 	log_enable_stdout( true );
-	EXPECT_TRUE( string_find_string( handled_log, "Lorem ipsum", 0 ) != STRING_NPOS );
+	EXPECT_TRUE( string_find_string( handled_log, string_length( handled_log ), STRING_CONST( "Lorem ipsum" ), 0 ) != STRING_NPOS );
 
 	log_set_callback( _global_log_callback );
 #endif
@@ -211,37 +211,39 @@ DECLARE_TEST( crash, error )
 	error_set_callback( callback );
 
 	{
-		const char* context_data = "another message";
+		const char context_data[] = "another message";
 		char context_buffer[512];
+		string_t contextstr;
 		error_context_clear();
-		error_context_push( "test context", "some message" );
-		error_context_push( "foo bar", 0 );
+		error_context_push( STRING_CONST( "test context" ), STRING_CONST( "some message" ) );
+		error_context_push( STRING_CONST( "foo bar" ), 0, 0 );
 		error_context_pop();
 		error_context_pop();
 		error_context_pop();
-		error_context_push( "test context", context_data );
+		error_context_push( STRING_CONST( "test context" ), STRING_CONST( context_data ) );
 
 #if BUILD_ENABLE_ERROR_CONTEXT
-		log_info( HASH_TEST, "Check context" );
+		log_info( HASH_TEST, STRING_CONST( "Check context" ) );
 		EXPECT_NE( error_context(), 0 );
 		EXPECT_EQ( error_context()->depth, 1 );
-		EXPECT_STREQ( error_context()->frame[0].name, "test context" );
-		EXPECT_EQ( error_context()->frame[0].data, context_data );
+		EXPECT_STREQ( error_context()->frame[0].name.str, error_context()->frame[0].name.length, "test context", 12 );
+		EXPECT_EQ( error_context()->frame[0].data.str, context_data );
+		EXPECT_EQ( error_context()->frame[0].data.length, sizeof( context_data ) );
 #endif
 
-		log_info( HASH_TEST, "Generate context buffer" );
-		error_context_buffer( context_buffer, 512 );
+		log_info( HASH_TEST, STRING_CONST( "Generate context buffer" ) );
+		contextstr = error_context_buffer( context_buffer, 512 );
 #if BUILD_ENABLE_ERROR_CONTEXT
-		log_info( HASH_TEST, "Check context buffer" );
-		EXPECT_NE_MSGFORMAT( string_find_string( context_buffer, "test context", 0 ), STRING_NPOS, "context name 'test context' not found in buffer: %s", context_buffer );
-		EXPECT_NE_MSGFORMAT( string_find_string( context_buffer, context_data, 0 ), STRING_NPOS, "context data '%s' not found in buffer: %s", context_data, context_buffer );
+		log_info( HASH_TEST, STRING_CONST( "Check context buffer" ) );
+		EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( contextstr ), STRING_CONST( "test context" ), 0 ), STRING_NPOS, "context name 'test context' not found in buffer: %s", context_buffer );
+		EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( contextstr ), STRING_CONST( context_data ), 0 ), STRING_NPOS, "context data '%s' not found in buffer: %s", context_data, context_buffer );
 #endif
 
-		log_info( HASH_TEST, "Generate empty context buffer" );
+		log_info( HASH_TEST, STRING_CONST( "Generate empty context buffer" ) );
 		error_context_clear();
-		error_context_buffer( context_buffer, 512 );
+		contextstr = error_context_buffer( context_buffer, 512 );
 #if BUILD_ENABLE_ERROR_CONTEXT
-		EXPECT_STREQ( context_buffer, "" );
+		EXPECT_STREQ( contextstr.str, contextstr.length, "", 0 );
 #endif
 	}
 
@@ -256,10 +258,10 @@ DECLARE_TEST( crash, crash_guard )
 	if( system_debugger_attached() || ( system_platform() == PLATFORM_PNACL ) )
 		return 0; //Don't do crash tests with debugger attached
 
-	log_info( HASH_TEST, "This test will intentionally generate a crash" );
+	log_info( HASH_TEST, STRING_CONST( "This test will intentionally generate a crash" ) );
 
 	_crash_callback_called = false;
-	crash_result = crash_guard( instant_crash, 0, test_crash_callback, "instant_crash" );
+	crash_result = crash_guard( instant_crash, 0, test_crash_callback, STRING_CONST( "instant_crash" ) );
 	EXPECT_EQ( crash_result, FOUNDATION_CRASH_DUMP_GENERATED );
 	EXPECT_TRUE( _crash_callback_called );
 
@@ -274,12 +276,12 @@ DECLARE_TEST( crash, crash_thread )
 	if( system_debugger_attached() || ( system_platform() == PLATFORM_PNACL ) )
 		return 0; //Don't do crash tests with debugger attached
 
-	log_info( HASH_TEST, "This test will intentionally generate a crash" );
+	log_info( HASH_TEST, STRING_CONST( "This test will intentionally generate a crash" ) );
 
 	_crash_callback_called = false;
-	crash_guard_set( test_crash_callback, "thread_crash" );
+	crash_guard_set( test_crash_callback, STRING_CONST( "thread_crash" ) );
 
-	thread = thread_create( thread_crash, "crash", THREAD_PRIORITY_NORMAL, 0 );
+	thread = thread_create( thread_crash, STRING_CONST( "crash" ), THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
 	thread_sleep( 100 );
 	thread_terminate( thread );

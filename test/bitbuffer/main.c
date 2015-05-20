@@ -402,7 +402,7 @@ DECLARE_TEST( bitbuffer, stream )
 	unsigned int bits64[20] = {0};
 	unsigned int bits128[20] = {0};
 
-	char* tmp_path = 0;
+	string_t tmp_path;
 
 	for( ival = 0; ival < 4; ++ival )
 		val128[ival] = uint128_make( random64(), random64() );
@@ -420,7 +420,7 @@ DECLARE_TEST( bitbuffer, stream )
 		stream = fs_temporary_file();
 		EXPECT_NE( stream, 0 );
 
-		tmp_path = string_clone( stream_path( stream ) );
+		tmp_path = string_clone( STRING_ARGS( stream_path( stream ) ) );
 
 		bitbuffer = bitbuffer_allocate_stream( stream );
 
@@ -505,8 +505,8 @@ DECLARE_TEST( bitbuffer, stream )
 
 		bitbuffer_deallocate( bitbuffer );
 		stream_deallocate( stream );
-		fs_remove_file( tmp_path );
-		string_deallocate( tmp_path );
+		fs_remove_file( STRING_ARGS( tmp_path ) );
+		string_deallocate( tmp_path.str );
 	}
 
 	return 0;

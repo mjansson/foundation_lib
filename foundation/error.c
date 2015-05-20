@@ -72,10 +72,10 @@ void _error_context_push( const char* name, size_t name_length, const char* data
 		set_thread_error_context( context );
 	}
 	FOUNDATION_ASSERT_MSG( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH, "Error context stack overflow" );
-	context->frame[ context->depth ].name = name ? name : "<something>";
-	context->frame[ context->depth ].name_length = name ? name_length : 11;
-	context->frame[ context->depth ].data = data ? data : "<something>";
-	context->frame[ context->depth ].data_length = data ? data_length : 11;
+	context->frame[ context->depth ].name.str = name ? name : "<something>";
+	context->frame[ context->depth ].name.length = name ? name_length : 11;
+	context->frame[ context->depth ].data.str = data ? data : "<nothing>";
+	context->frame[ context->depth ].data.length = data ? data_length : 9;
 	if( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH-1 )
 		++context->depth;
 }
@@ -114,7 +114,7 @@ string_t _error_context_buffer( char* buffer, size_t size )
 				--size;
 			}
 
-			line = string_format_buffer( buffer, size, STRING_CONST( "When %.*s: %.*s" ), (int)frame->name_length, frame->name, (int)frame->data_length, frame->data );
+			line = string_format_buffer( buffer, size, STRING_CONST( "When %.*s: %.*s" ), (int)frame->name.length, frame->name.str, (int)frame->data.length, frame->data.str );
 
 			buffer += line.length;
 			size -= line.length;

@@ -4,26 +4,64 @@
 \file string.h
 \brief String utility functions
 \details String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion to and from pritimive integral
-data types. Unless otherwise noted in the function descripion it is safe to pass null pointers to any arguments.
+data types. Unless otherwise noted in the function descripion it is safe to pass null pointers to any arguments. Strings are
+declared with a pointer to a memory block and the length of the string. Zero terminated is generally NOT enforced. Functions
+that allocate or modify strings always return zero-terminated strings. Functions that find substrings and return const string
+arguments does not modify or allocate memory, and returns substrings which are NOT zero terminated. Check the documentation
+for each function for further details regarding zero termination state. All functions in the library taking string arguments
+respect given lengths and does not require zero termination. This design minimized calls to find string lengths and minimizes
+additional memory allocations to store zero terminated substrings by allowing substrings to be declared as a (pointer, length)
+tuple into the original string memory buffer.
 
-
-\fn char* string_allocate( unsigned int length )
+\fn string_t string_allocate( size_t length, size_t capacity, char fill )
 \brief Allocate string
-\details Allocate (length+1) bytes of memory for a string of length characters. The string will be empty, i.e first byte
-will be initialized to 0. The remainder of the memory block will be uninitialized
+\details Allocate capacity bytes of memory for a string of min(length, capacity-1) characters. The [0,length] string will be initialized
+with the given fill characters and zero terminated. The remainder of the memory block will be uninitialized.
 \param length Length of string
-\return Empty string stored in memory block of length (length+1)
+\param capacity Capacity of memory block allocated
+\param fill Fill character
+\return Zero terminated string of fill characters of given (clamped) length stored in a new memory block with given capacity
+
+\fn string_t string_clone( const char* str, size_t length )
+\brief Clone string
+\details Clone a string of the given length. Allocates a memory block of capacity (length+1) and copies the content of the given
+string. Zero terminates the new string.
+\param str String to clone
+\param length Length of string to clone
+\return Zero-terminated cloned string of given length stored in a new memory block of capacity (length+1)
 
 \fn void string_deallocate( char* str )
 \brief Dellocate string
 \details Deallocate memory used by the given string
-\param str String
+\param str String to deallocate
 
-\fn char* string_clone( const char* str )
-\brief Clone string
-\details Clone a string
-\param str String to clone
-\return Cloned string
+\fn string_const_t string_null( void );
+\brief Declare an null string
+\details Declare an null string of zero length pointing to null.
+\return String with zero length pointing to null.
+
+\fn string_const_t string_empty( void );
+\brief Declare an empty string
+\details Declare an empty string of zero length pointing to a zero-terminated empty string.
+\return String with zero length pointing to a zero-terminated empty string.
+
+\fn string_const_t string_const( const char* str, size_t length );
+\brief Declare a const string of given length
+\details Declare a const string of the given length pointing to a const memory block with the given address.
+String is not guaranteed to be zero terminated.
+\param str String memory block
+\param length length Length of string
+\return String with given length pointing to a const memory block of at least given length in size. Not guaranteed to be zero terminated.
+
+\fn string_const_t string_to_const( string_t str );
+\brief Cast a string to a const string
+\details Cast a given string to a const string with the same memory pointer and length.
+\param str String to cast
+\return Const string of same length pointing to same memory block as given string.
+
+
+
+
 
 \fn char* string_format( const char* format, ... )
 \brief Format string
@@ -234,22 +272,6 @@ discarded before processing split.
 \param key Key characters to invert search for
 \param offset Start offset of search within source string
 \return Offset of last occurrence of any character which is not part of the key string within str (greater or equal to offset). STRING_NPOS if none found
-
-\fn unsigned int string_rfind_first_of( const char* str, const char* key, unsigned int offset )
-\brief Reverse find first occurrence
-\details Reverse search for the first occurrence of any character in key string in a string from the given offset
-\param str Source string
-\param key Key characters to search for
-\param offset Start offset of search within source string
-\return Offset of first occurrence of any of the characters in the key string within str (greater or equal to offset). STRING_NPOS if none found
-
-\fn unsigned int string_rfind_first_not_of( const char* str, const char* key, unsigned int offset )
-\brief Reverse find inverse occurrence
-\details Search for the first occurrence of any character not present in key string in a string from the given offset
-\param str Source string
-\param key Key characters to invert search for
-\param offset Start offset of search within source string
-\return Offset of first occurrence of any character which is not part of the key string within str (greater or equal to offset). STRING_NPOS if none found
 
 \fn bool string_ends_with( const char* str, const char* suffix )
 \brief Query if end suffix

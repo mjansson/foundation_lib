@@ -25,7 +25,15 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool absolute, 
 	size_t inlength, curlength, remain, next, protocollen, up, last_up, prev_up, driveofs;
 
 	if( !path )
-		return string_allocate( 0 );
+	{
+		if( reallocate )
+		{
+			if( absolute )
+				return string_clone( STRING_CONST( "/" ) );
+			return string_clone( STRING_CONST( "" ) );
+		}
+		return (string_t){ 0, 0 };
+	}
 
 	inpath = path;
 	pathpart = inpath;
@@ -370,11 +378,13 @@ string_t path_merge( const char* first, size_t first_length, const char* second,
 		merged = string_clone( first, first_length );
 	else
 	{
-		merged = string_allocate( first_length + second_length + 2 );
+		size_t total_length = first_length + second_length + 1;
+		merged = string_allocate( 0, total_length + 1, 0 );
 		memcpy( merged.str, first, first_length );
 		merged.str[ first_length ] = '/';
 		memcpy( merged.str + first_length + 1, second, second_length );
-		merged.str[ merged.length - 1 ] = 0;
+		merged.length = total_length;
+		merged.str[ merged.length ] = 0;
 	}
 	return path_clean( merged.str, merged.length, merged.length, path_is_absolute( first, first_length ), true );
 }

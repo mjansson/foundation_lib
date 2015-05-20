@@ -81,11 +81,11 @@ struct regex_context_t
 typedef struct regex_context_t regex_context_t;
 
 
-static const char* REGEX_META_CHARACTERS = "^$()[].*+?|\\";
+static const char REGEX_META_CHARACTERS[] = "^$()[].*+?|\\";
 
 
-static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures );
-static regex_context_t _regex_execute( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures );
+static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, string_const_t* captures, size_t maxcaptures );
+static regex_context_t _regex_execute( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, string_const_t* captures, size_t maxcaptures );
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_nomatch( size_t next_op ) { const regex_context_t context = { next_op, (size_t)REGEXRES_NOMATCH }; return context; }
@@ -243,7 +243,7 @@ static int _regex_compile_quantifier( regex_t** target, bool allow_grow, size_t 
 }
 
 
-static regex_context_t _regex_consume_longest( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures )
+static regex_context_t _regex_consume_longest( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, string_const_t* captures, size_t maxcaptures )
 {
 	regex_context_t context = { op, inoffset };
 	regex_context_t best_context = { (size_t)REGEXRES_NOMATCH, inoffset };
@@ -276,7 +276,7 @@ static regex_context_t _regex_consume_longest( regex_t* regex, size_t op, const 
 }
 
 
-static regex_context_t _regex_consume_shortest( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures )
+static regex_context_t _regex_consume_shortest( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, string_const_t* captures, size_t maxcaptures )
 {
 	regex_context_t context = { op, inoffset };
 	regex_context_t best_context = { (size_t)REGEXRES_NOMATCH, inoffset };
@@ -561,7 +561,7 @@ static int _regex_parse( regex_t** target, const char** pattern, bool allow_grow
 }
 
 
-static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures )
+static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, string_const_t* captures, size_t maxcaptures )
 {
 	regex_context_t context;
 	switch( regex->code[op++] )
@@ -570,7 +570,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 		{
 			size_t capture = regex->code[op++];
 			if( captures && ( capture < maxcaptures ) )
-				captures[capture].substring = input + inoffset;
+				captures[capture].str = input + inoffset;
 			break;
 		}
 
@@ -578,7 +578,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 		{
 			size_t capture = regex->code[op++];
 			if( captures && ( capture < maxcaptures ) )
-				captures[capture].length = (size_t)pointer_diff( input + inoffset, captures[capture].substring );
+				captures[capture].length = (size_t)pointer_diff( input + inoffset, captures[capture].str );
 			break;
 		}
 
@@ -809,7 +809,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, size_t op, const c
 }
 
 
-static regex_context_t _regex_execute( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, regex_capture_t* captures, size_t maxcaptures )
+static regex_context_t _regex_execute( regex_t* regex, size_t op, const char* input, size_t inoffset, size_t inlength, string_const_t* captures, size_t maxcaptures )
 {
 	regex_context_t context = { op, inoffset };
 	while( context.op < regex->code_length )
@@ -839,7 +839,7 @@ regex_t* regex_compile( const char* pattern, size_t pattern_length )
 }
 
 
-bool regex_match( regex_t* regex, const char* input, size_t inlength, regex_capture_t* captures, size_t maxcaptures )
+bool regex_match( regex_t* regex, const char* input, size_t inlength, string_const_t* captures, size_t maxcaptures )
 {
 	size_t iin;
 

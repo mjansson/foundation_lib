@@ -157,7 +157,7 @@ DECLARE_TEST( atomic, incdec )
 	object_t threads[32];
 
 	for( ithread = 0; ithread < num_threads; ++ithread )
-		threads[ithread] = thread_create( ithread % 2 ? dec_thread : inc_thread, ithread % 2 ? "dec" : "inc", THREAD_PRIORITY_NORMAL, 0 );
+		threads[ithread] = thread_create( ithread % 2 ? dec_thread : inc_thread, ithread % 2 ? "dec" : "inc", 3, THREAD_PRIORITY_NORMAL, 0 );
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], 0 );
 
@@ -182,7 +182,7 @@ DECLARE_TEST( atomic, add )
 	object_t threads[32];
 
 	for( ithread = 0; ithread < num_threads; ++ithread )
-		threads[ithread] = thread_create( add_thread, "add", THREAD_PRIORITY_NORMAL, 0 );
+		threads[ithread] = thread_create( add_thread, STRING_CONST( "add" ), THREAD_PRIORITY_NORMAL, 0 );
 	for( ithread = 0; ithread < num_threads; ++ithread )
 		thread_start( threads[ithread], 0 );
 
@@ -209,7 +209,7 @@ DECLARE_TEST( atomic, cas )
 
 	for( ithread = 0; ithread < num_threads; ++ithread )
 	{
-		threads[ithread] = thread_create( cas_thread, "cas", THREAD_PRIORITY_NORMAL, 0 );
+		threads[ithread] = thread_create( cas_thread, STRING_CONST( "cas" ), THREAD_PRIORITY_NORMAL, 0 );
 		cas_values[ithread].val_32 = (int32_t)ithread;
 		cas_values[ithread].val_64 = (int64_t)ithread;
 		cas_values[ithread].val_ptr = (void*)(uintptr_t)ithread;

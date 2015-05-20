@@ -29,11 +29,20 @@ FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 #endif
 
 
-char* string_allocate( size_t length )
+string_t string_allocate( size_t length, size_t capacity, char fill )
 {
-	char* str = memory_allocate( HASH_STRING, length + 1, 0, MEMORY_PERSISTENT );
-	str[0] = 0;
-	return str;
+	char* str;
+	if( !capacity )
+		return (string_t){ 0, 0 };
+	if( length >= capacity )
+		length = capacity - 1;
+	str = memory_allocate( HASH_STRING, capacity, 0, MEMORY_PERSISTENT | ( !fill ? MEMORY_ZERO_INITIALIZED : 0 ) );
+	if( fill )
+	{
+		memset( str, fill, length );
+		str[ length ] = 0;
+	}
+	return (string_t){ str, length };
 }
 
 
@@ -43,31 +52,28 @@ void string_deallocate( char* str )
 }
 
 
-char* string_clone( const char* str )
+string_t string_clone( const char* str, size_t length )
 {
+	char* clone = memory_allocate( HASH_STRING, length + 1, 0, MEMORY_PERSISTENT );
 	if( str )
-	{
-		size_t len = string_length( str ) + 1;
-		char* clone = memory_allocate( HASH_STRING, len, 0, MEMORY_PERSISTENT );
-		memcpy( clone, str, len );
-		return clone;
-	}
-	return 0;
+		memcpy( clone, str, length );
+	clone[ length ] = 0;
+	return (string_t){ clone, length };
 }
 
 
-char* string_format( const char* format, size_t length, ... )
+string_t string_format( const char* format, size_t length, ... )
 {
 	ssize_t n;
-	size_t capacity;
+	size_t capacity, lastcapacity;
 	char* buffer;
 	va_list list;
 
 	if( !format )
-		return 0;
+		return (string_t){ 0, 0 };
 
-	capacity = string_length( format ) + 32;
-	buffer = memory_allocate( HASH_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
+	capacity = length + 32;
+	buffer = memory_allocate( HASH_STRING, capacity, 0, MEMORY_PERSISTENT );
 
 	while( 1 )
 	{
@@ -78,50 +84,56 @@ char* string_format( const char* format, size_t length, ... )
 		if( ( n > -1 ) && ( (size_t)n < capacity ) )
 			break;
 
+		lastcapacity = capacity;
 		if( n > -1 )
 			capacity = (size_t)n + 1;
 		else
 			capacity *= 2;
 
-		buffer = memory_reallocate( buffer, capacity + 1, 0, 0 );
+		buffer = memory_reallocate( buffer, capacity, 0, lastcapacity );
 	}
 
-	return buffer;
+	return (string_t){ buffer, (size_t)n };
 }
 
 
-char* string_format_buffer( char* buffer, size_t maxlen, const char* format, size_t format_length, ... )
+string_t string_format_buffer( char* buffer, size_t size, const char* format, size_t format_length, ... )
 {
 	va_list list;
+	ssize_t n;
 
-	if( !buffer )
-		return 0;
+	if( !buffer || !size )
+		return (string_t){ 0, 0 };
 	if( !format )
 	{
 		buffer[0] = 0;
-		return buffer;
+		return (string_t){ buffer, 0 };
 	}
 
 	va_start( list, format_length );
-	vsnprintf( buffer, maxlen, format, list );
+	n = vsnprintf( buffer, size, format, list );
 	va_end( list );
 
-	return buffer;
+	if( n < 0 )
+		return (string_t){ buffer, 0 };
+	if( (size_t)n < size )
+		return (string_t){ buffer, (size_t)n };
+	return (string_t){ buffer, size - 1 };
 }
 
 
-char* string_vformat( const char* format, va_list list )
+string_t string_vformat( const char* format, size_t size, va_list list )
 {
 	ssize_t n;
-	size_t capacity;
+	size_t capacity, lastcapacity;
 	char* buffer;
 	va_list copy_list;
 
 	if( !format )
-		return 0;
+		return (string_t){ 0, 0 };
 
-	capacity = string_length( format ) + 32;
-	buffer = memory_allocate( HASH_STRING, capacity + 1, 0, MEMORY_PERSISTENT );
+	capacity = size + 32;
+	buffer = memory_allocate( HASH_STRING, capacity, 0, MEMORY_PERSISTENT );
 
 	while( 1 )
 	{
@@ -132,35 +144,42 @@ char* string_vformat( const char* format, va_list list )
 		if( ( n > -1 ) && ( (size_t)n < capacity ) )
 			break;
 
+		lastcapacity = capacity;
 		if( n > -1 )
 			capacity = (size_t)n + 1;
 		else
 			capacity *= 2;
 
-		buffer = memory_reallocate( buffer, capacity + 1, 0, 0 );
+		buffer = memory_reallocate( buffer, capacity, 0, lastcapacity );
 	}
 
-	return buffer;
+	return (string_t){ buffer, (size_t)n };
 }
 
 
-char* string_vformat_buffer( char* buffer, size_t maxlen, const char* format, va_list list )
+string_t string_vformat_buffer( char* buffer, size_t size, const char* format, size_t format_length, va_list list )
 {
+	ssize_t n;
 	va_list copy_list;
+	FOUNDATION_UNUSED( format_length );
 
-	if( !buffer )
-		return 0;
+	if( !buffer || !size )
+		return (string_t){ 0, 0 };
 	if( !format )
 	{
 		buffer[0] = 0;
-		return buffer;
+		return (string_t){ buffer, 0 };
 	}
 
 	va_copy( copy_list, list );
-	vsnprintf( buffer, maxlen, format, copy_list );
+	n = vsnprintf( buffer, size, format, copy_list );
 	va_end( copy_list );
 
-	return buffer;
+	if( n < 0 )
+		return (string_t){ buffer, 0 };
+	if( (size_t)n < size )
+		return (string_t){ buffer, (size_t)n };
+	return (string_t){ buffer, size - 1 };
 }
 
 
@@ -170,509 +189,505 @@ size_t string_length( const char* str )
 }
 
 
-hash_t string_hash( const char* str )
+hash_t string_hash( const char* str, size_t length )
 {
-	return str ? hash( str, string_length( str ) ) : HASH_EMPTY_STRING;
+	return ( str && length ) ? hash( str, length ) : HASH_EMPTY_STRING;
 }
 
 
-char* string_resize( char* str, size_t length, char c )
+string_t string_resize( char* str, size_t length, size_t capacity, size_t new_length, char c, bool realloc )
 {
-	size_t curlen = string_length( str );
+	if( length > capacity )
+		length = capacity;
 
-	if( curlen < length )
+	if( !str || ( capacity <= new_length ) )
 	{
-		str = memory_reallocate( str, length + 1, 0, curlen );
-		memset( str + curlen, c, length - curlen );
+		if( realloc )
+			str = str ? memory_reallocate( str, new_length + 1, 0, capacity ) :
+			            memory_allocate( HASH_STRING, new_length + 1, 0, MEMORY_PERSISTENT );
+		else
+			new_length = capacity ? capacity - 1 : 0;
 	}
+	if( length < new_length )
+		memset( str + length, c, new_length - length );
 	if( str )
-		str[length] = 0;
-	return str;
+		str[ new_length ] = 0;
+	return (string_t){ str, new_length };
 }
 
 
-void string_copy( char* dst, const char* src, size_t limit )
+string_t string_copy( char* dst, size_t size, const char* src, size_t src_length )
 {
-	size_t length = string_length( src );
-	if( length >= limit )
-		length = math_max( limit, 1 ) - 1;
-	if( dst )
+	if( dst && size )
 	{
-		memcpy( dst, src, length );
-		dst[length] = 0;
+		size_t copy_size = src_length < size ? src_length : size - 1;
+		memcpy( dst, src, copy_size );
+		dst[ copy_size ] = 0;
+		return (string_t){ dst, copy_size };
 	}
+	return (string_t){ dst, 0 };
 }
 
 
-char* string_strip( char* str, const char* delimiters )
+string_const_t string_strip( const char* str, size_t length, const char* delimiters, size_t delim_length )
 {
-	size_t start, end, length, newlength;
+	size_t start, end, newlength;
 
-	if( !str )
-		return 0;
+	if( !str || !length )
+		return (string_const_t){ str, 0 };
 
-	length = string_length( str );
-	start = string_find_first_not_of( str, delimiters, 0 );
-	end   = string_rfind_first_not_of( str, delimiters, length - 1 );
+	start = string_find_first_not_of( str, length, delimiters, delim_length, 0 );
+	end   = string_find_last_not_of( str, length, delimiters, delim_length, length - 1 );
 
 	if( start != STRING_NPOS )
 	{
 		if( end == STRING_NPOS )
 			end = length - 1;
 		newlength = end - start + 1;
-		if( start != 0 )
-			memmove( str, str + start, newlength );
-		str[newlength] = 0;
-	}
-	else
-	{
-		str[0] = 0;
+		return (string_const_t){ str + start, newlength };
 	}
 
-	return str;
+	return (string_const_t){ str, 0 };
 }
 
 
-char* string_strip_substr( char* str, const char* delimiters, size_t length )
+string_t string_replace( char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat, bool realloc )
 {
-	size_t start, end, newlength;
-
-	if( !str || ( length <= 0 ) )
-		return 0;
-
-	start = string_find_first_not_of( str, delimiters, 0 );
-	end   = string_rfind_first_not_of( str, delimiters, length - 1 );
-
-	if( ( start != STRING_NPOS ) && ( start < length ) )
-	{
-		if( end == STRING_NPOS )
-			end = length - 1;
-		newlength = end - start + 1;
-		if( start != 0 )
-			memmove( str, str + start, newlength );
-		str[newlength] = 0;
-	}
-	else
-	{
-		str[0] = 0;
-	}
-
-	return str;
-}
-
-
-char* string_replace( char* str, const char* key, const char* newkey, bool repeat )
-{
-	size_t pos, lastpos, keylen, newkeylen, slen, replaced;
+	size_t pos, lastpos, replaced, needsize;
 	ssize_t lendiff;
 
-	slen = string_length( str );
-	keylen = string_length( key );
-	if( !slen || !keylen || string_equal( key, newkey ) )
-		return str;
+	if( length > capacity )
+		length = capacity;
+
+	if( !length || !key_length || string_equal( key, key_length, newkey, newkey_length ) )
+		return (string_t){ str, length };
 
 	lastpos = STRING_NPOS;
-	newkeylen = newkey ? string_length( newkey ) : 0;
-	lendiff = (ssize_t)newkeylen - (ssize_t)keylen;
+	lendiff = (ssize_t)newkey_length - (ssize_t)key_length;
 	pos = 0;
 	replaced = 0;
 
-	while( ( pos = string_find_string( str, key, pos ) ) != STRING_NPOS )
+	while( ( pos = string_find_string( str, length, key, key_length, pos ) ) != STRING_NPOS )
 	{
 		if( repeat && ( lastpos != STRING_NPOS ) && ( lendiff > 0 ) && ( pos <= ( lastpos + (size_t)lendiff ) ) )
 		{
 			//Avoid infinite loop - found position did not move ahead more than
 			//newly introduced characters in the remaining part of the string
-			pos = lastpos + newkeylen;
+			pos = lastpos + newkey_length;
 			continue;
-		}
-
-		if( lendiff <= 0 )
-		{
-			//String is reducing or keeping length, just overwrite
-			memcpy( str + pos, newkey, newkeylen );
-			if( lendiff < 0 )
-			{
-				memmove( str + pos + newkeylen, str + pos + keylen, slen - pos - keylen + 1 );
-				FOUNDATION_ASSERT( slen >= (size_t)(-lendiff) );
-				slen -= (size_t)(-lendiff);
-			}
-		}
-		else
-		{
-			str = memory_reallocate( str, slen + (size_t)lendiff + 1, 0, slen + 1 );
-			memmove( str + pos + newkeylen, str + pos + keylen, slen - pos - keylen + 1 );
-			memcpy( str + pos, newkey, newkeylen );
-			slen += (size_t)lendiff;
 		}
 
 		++replaced;
 
+		if( lendiff <= 0 )
+		{
+			//String is reducing or keeping length, just overwrite
+			memcpy( str + pos, newkey, newkey_length );
+			if( lendiff < 0 )
+			{
+				memmove( str + pos + newkey_length, str + pos + key_length, length - pos - key_length + 1 );
+				FOUNDATION_ASSERT( length >= (size_t)(-lendiff) );
+				length -= (size_t)(-lendiff);
+			}
+		}
+		else
+		{
+			needsize = length + (size_t)lendiff + 1;
+			if( needsize > capacity )
+			{
+				if( realloc )
+				{
+					needsize += (size_t)lendiff * 4; //Try to prevent further reallocs
+					str = memory_reallocate( str, needsize, 0, capacity );
+					capacity = needsize;
+				}
+				else
+				{
+					//Best effort
+					size_t dest_clamp = pos + newkey_length;
+					if( dest_clamp < capacity )
+					{
+						size_t size_clamp = length - pos - key_length + 1;
+						if( dest_clamp + size_clamp >= capacity )
+							size_clamp = capacity - dest_clamp - 1;
+						if( size_clamp > 0)
+							memmove( str + dest_clamp, str + pos + key_length, size_clamp );
+						memcpy( str + pos, newkey, newkey_length );
+						length = capacity - 1;
+					}
+					break;
+				}
+			}
+			memmove( str + pos + newkey_length, str + pos + key_length, length - pos - key_length + 1 );
+			memcpy( str + pos, newkey, newkey_length );
+			length += (size_t)lendiff;
+		}
+
 		lastpos = pos;
 		if( !repeat )
-			pos += newkeylen;
+			pos += newkey_length;
 	}
 
 	if( replaced )
-		str[ slen ] = 0;
+		str[ length ] = 0;
 
-	return str;
+	return (string_t){ str, length };
 }
 
 
-char* string_append( char* str, const char* suffix )
+string_t string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, bool realloc )
 {
-	size_t slen = str ? string_length( str ) : 0;
-	size_t suffixlen = suffix ? string_length( suffix ) : 0;
-	size_t totallen = slen + suffixlen;
-	if( !suffixlen )
-		return str;
+	size_t total_length;
+	if( !suffix_length )
+		return (string_t){ str, length };
 
-	str = str ? memory_reallocate( str, totallen + 1, 0, slen ) : memory_allocate( HASH_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
-	memcpy( str + slen, suffix, suffixlen + 1 ); //Include terminating zero
+	total_length = length + suffix_length;
+	if( total_length >= capacity )
+	{
+		if( realloc )
+		{
+			str = str ? memory_reallocate( str, total_length + 1, 0, capacity ) :
+			            memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
+		}
+		else
+		{
+			if( length >= capacity )
+				length = capacity - 1;
+			total_length = capacity ? capacity - 1 : 0;
+			suffix_length = capacity - length - 1;
+		}
+	}
 
-	return str;
+	if( suffix_length )
+		memcpy( str + length, suffix, suffix_length );
+	if( capacity )
+		str[ total_length ] = 0;
+
+	return (string_t){ str, total_length };
 }
 
 
-char* string_prepend( char* str, const char* prefix )
+string_t string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, bool realloc )
 {
-	size_t slen = str ? string_length( str ) : 0;
-	size_t prefixlen = prefix ? string_length( prefix ) : 0;
-	size_t totallen = slen + prefixlen;
-	if( !prefixlen )
-		return str;
+	size_t total_length, prefix_offset, prefix_mod;
+	if( !prefix_length )
+		return (string_t){ str, length };
 
-	str = str ? memory_reallocate( str, totallen + 1, 0, slen + 1 ) : memory_allocate( HASH_STRING, totallen + 1, 0, MEMORY_PERSISTENT );
-	if( slen )
-		memmove( str + prefixlen, str, slen + 1 ); //Include terminating zero
-	memcpy( str, prefix, prefixlen );
-	if( !slen )
-		str[prefixlen] = 0;
+	total_length = length + prefix_length;
+	prefix_offset = 0;
+	if( total_length >= capacity )
+	{
+		if( realloc )
+		{
+			str = str ? memory_reallocate( str, total_length + 1, 0, capacity ) :
+			            memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
+		}
+		else
+		{
+			if( length >= capacity )
+				length = capacity - 1;
+			total_length = capacity ? capacity - 1 : 0;
+			prefix_mod = capacity - length - 1;
+			prefix_offset = prefix_length - prefix_mod;
+			prefix_length = prefix_mod;
+		}
+	}
 
-	return str;
+	if( length && prefix_length )
+		memmove( str + prefix_length, str, length );
+	if( prefix_length )
+		memcpy( str, prefix + prefix_offset, prefix_length );
+	if( capacity )
+		str[ total_length ] = 0;
+
+	return (string_t){ str, total_length };
 }
 
 
-char* string_concat( const char* lhs, const char* rhs )
+string_t string_concat( const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length )
 {
-	size_t llen = string_length( lhs );
-	size_t rlen = string_length( rhs );
-	char* buf = memory_allocate( HASH_STRING, llen + rlen + 1, 0, MEMORY_PERSISTENT );
-	if( llen )
-		memcpy( buf, lhs, llen );
-	if( rlen )
-		memcpy( buf + llen, rhs, rlen );
-	buf[ llen + rlen ] = 0;
-	return buf;
+	char* buf = memory_allocate( HASH_STRING, lhs_length + rhs_length + 1, 0, MEMORY_PERSISTENT );
+	if( lhs_length )
+		memcpy( buf, lhs, lhs_length );
+	if( rhs_length )
+		memcpy( buf + lhs_length, rhs, rhs_length );
+	buf[ lhs_length + rhs_length ] = 0;
+	return (string_t){ buf, lhs_length + rhs_length };
 }
 
 
-void string_split( const char* str, const char* separators, char** left, char** right, bool allowempty )
+void string_split( const char* str, size_t length, const char* separators, size_t sep_length, string_const_t* left, string_const_t* right, bool allowempty )
 {
 	size_t start, delim;
 
-	start = ( allowempty ? 0 : string_find_first_not_of( str, separators, 0 ) );
+	start = ( allowempty ? 0 : string_find_first_not_of( str, length, separators, sep_length, 0 ) );
 	if( start == STRING_NPOS )
 	{
 		if( left )
-			*left = 0;
+			*left = string_const( str, 0 );
 		if( right )
-			*right = 0;
+			*right = string_const( str, 0 );
 		return;
 	}
 
-	delim = string_find_first_of( str, separators, start );
+	delim = string_find_first_of( str, length, separators, sep_length, start );
 	if( delim != STRING_NPOS )
 	{
 		if( left )
-			*left = string_substr( str, start, delim - start );
+			*left = string_const( str + start, delim - start );
 		if( right )
 		{
-			delim = ( allowempty ? ( delim + 1 ) : string_find_first_not_of( str, separators, delim ) );
+			delim = ( allowempty ? ( delim + 1 ) : string_find_first_not_of( str, length, separators, sep_length, delim ) );
 			if( delim != STRING_NPOS )
-				*right = string_substr( str, delim, STRING_NPOS );
+				*right = string_const( str + delim, length - delim );
 			else
-				*right = 0;
+				*right = string_const( str, 0 );
 		}
 	}
 	else
 	{
 		if( left )
-			*left = string_substr( str, start, STRING_NPOS );
+			*left = string_const( str + start, length - start );
 		if( right )
-			*right = 0;
+			*right = string_const( str, 0 );
 	}
 }
 
 
-char* string_substr( const char* str, size_t offset, size_t length )
+string_const_t string_substr( const char* str, size_t length, size_t offset, size_t sub_length )
 {
-	char* buffer;
-	size_t newlen;
-	size_t slen = string_length( str );
-	if( !str || ( offset >= slen ) || !slen )
-		return string_allocate( 0 );
-	newlen = slen - offset;
-	if( length < newlen )
-		newlen = length;
-	buffer = memory_allocate( HASH_STRING, newlen + 1, 0, MEMORY_PERSISTENT );
-	memcpy( buffer, str + offset, newlen );
-	buffer[newlen] = 0;
-	return buffer;
+	if( offset < length )
+	{
+		size_t end = offset + sub_length;
+		if( end <= length )
+			return (string_const_t){ str + offset, sub_length };
+		return (string_const_t){ str + offset, length - offset };
+	}
+	return (string_const_t){ str + length, 0 };
 }
 
 
-size_t string_find( const char* str, char c, size_t offset )
+size_t string_find( const char* str, size_t length, char c, size_t offset )
 {
-	const char* found;
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
+	const void* found;
+	if( offset >= length )
 		return STRING_NPOS;
-	found = strchr( str + offset, c );
+	found = memchr( str + offset, c, length - offset );
 	if( found )
 		return (size_t)pointer_diff( found, str );
 	return STRING_NPOS;
 }
 
 
-size_t string_find_string( const char* str, const char* key, size_t offset )
+size_t string_find_string( const char* str, size_t length, const char* key, size_t key_length, size_t offset )
 {
 	const char* found;
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
+	char keychar;
+	size_t last_offset;
+	if( !key_length )
+		return offset;
+	if( ( key_length > length ) || ( offset > ( length - key_length ) ) )
 		return STRING_NPOS;
-	found = strstr( str + offset, key );
-	if( found )
-		return (size_t)pointer_diff( found, str );
+
+	last_offset = length - key_length;
+
+	do
+	{
+		keychar = *key;
+		found = memchr( str + offset, keychar, 1 + last_offset - offset );
+		if( !found )
+			break;
+
+		if( memcmp( found, key, key_length ) == 0 )
+			return (size_t)pointer_diff( found, str );
+
+		offset = 1 + (size_t)pointer_diff( found, str );
+
+	} while( offset <= last_offset );
+
 	return STRING_NPOS;
 }
 
 
-size_t string_rfind( const char* str, char c, size_t offset )
+size_t string_rfind( const char* str, size_t length, char c, size_t offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1;
+	if( offset >= length )
+		offset = length - 1;
 
-	if( offset != STRING_NPOS ) do
+	while( offset != STRING_NPOS ) //Wrap-around terminates
 	{
 		if( c == str[ offset ] )
 			return offset;
 		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
 
 
-size_t string_rfind_string( const char* str, const char* key, size_t offset )
+size_t string_rfind_string( const char* str, size_t length, const char* key, size_t key_length, size_t offset )
 {
-	size_t keylen, slen;
+	if( key_length > length )
+		return STRING_NPOS;
+	if( !key_length )
+		return offset;
 
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
+	if( offset >= length - key_length )
+		offset = length - key_length;
 
-	slen = string_length( str );
-	keylen = string_length( key );
-	if( ( slen > 0 ) && ( keylen <= slen ) )
+	while( offset != STRING_NPOS ) //Wrap-around terminates
 	{
-		if( offset > slen )
-			offset = slen;
-		if( !keylen )
-			return ( offset <= slen ? offset : slen );
-
-		do
-		{
-			if( string_equal_substr( str + offset, key, keylen ) )
-				return offset;
-			--offset;
-		} while( offset != STRING_NPOS );
+		if( memcmp( str + offset, key, key_length ) == 0 )
+			return offset;
+		--offset;
 	}
 	return STRING_NPOS;
 }
 
 
-size_t string_find_first_of( const char* str, const char* tokens, size_t offset )
+size_t string_find_first_of( const char* str, size_t length, const char* tokens, size_t token_length, size_t offset )
 {
-	const char* found;
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
+	if( !token_length || ( offset >= length ) )
 		return STRING_NPOS;
-	found = strpbrk( str + offset, tokens );
-	if( found )
-		return (size_t)pointer_diff( found, str );
-	return STRING_NPOS;
-}
 
-
-size_t string_find_last_of( const char* str, const char* tokens, size_t offset )
-{
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1;
-
-	if( offset != STRING_NPOS ) do
+	while( offset < length )
 	{
-		if( strchr( tokens, str[ offset ] ) && str[ offset ] )
-			return offset;
-		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
-
-	return STRING_NPOS;
-}
-
-
-size_t string_find_first_not_of( const char* str, const char* tokens, size_t offset )
-{
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
-		return STRING_NPOS;
-	while( str[ offset ] )
-	{
-		if( !strchr( tokens, str[ offset ] ) )
+		if( string_find( tokens, token_length, str[ offset ], 0 ) != STRING_NPOS )
 			return offset;
 		++offset;
 	}
-
 	return STRING_NPOS;
 }
 
 
-size_t string_find_last_not_of( const char* str, const char* tokens, size_t offset )
+size_t string_find_last_of( const char* str, size_t length, const char* tokens, size_t token_length, size_t offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1;
+	if( !token_length )
+		return STRING_NPOS;
+	if( offset >= length )
+		offset = length - 1;
 
-	if( offset != STRING_NPOS ) do
+	while( offset != STRING_NPOS ) //Wrap-around terminates
 	{
-		if( !strchr( tokens, str[ offset ] ) )
+		if( string_find( tokens, token_length, str[ offset ], 0 ) != STRING_NPOS )
 			return offset;
 		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
 
 
-size_t string_rfind_first_of( const char* str, const char* tokens, size_t offset )
+size_t string_find_first_not_of( const char* str, size_t length, const char* tokens, size_t token_length, size_t offset )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1;
+	if( offset >= length )
+		return STRING_NPOS;
+	if( !token_length )
+		return offset;
 
-	if( offset != STRING_NPOS ) do
+	while( offset < length )
 	{
-		if( strchr( tokens, str[offset] ) )
+		if( string_find( tokens, token_length, str[ offset ], 0 ) == STRING_NPOS )
+			return offset;
+		++offset;
+	}
+	return STRING_NPOS;
+}
+
+
+size_t string_find_last_not_of( const char* str, size_t length, const char* tokens, size_t token_length, size_t offset )
+{
+	if( offset >= length )
+		offset = length - 1;
+	if( !token_length )
+		return offset;
+
+	while( offset != STRING_NPOS ) //Wrap-around terminates
+	{
+		if( string_find( tokens, token_length, str[ offset ], 0 ) == STRING_NPOS )
 			return offset;
 		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
+	}
 
 	return STRING_NPOS;
 }
 
 
-size_t string_rfind_first_not_of( const char* str, const char* tokens, size_t offset )
+bool string_ends_with( const char* str, size_t length, const char* suffix, size_t suffix_length )
 {
-	FOUNDATION_ASSERT( ( offset == STRING_NPOS ) || ( offset <= string_length( str ) ) );
-	if( offset == STRING_NPOS )
-		offset = string_length( str ) - 1; //Wrap-around caught by if clause below
-
-	if( offset != STRING_NPOS ) do
-	{
-		if( !strchr( tokens, str[offset] ) )
-			return offset;
-		--offset;
-	} while( offset != STRING_NPOS ); //Wrap-around terminates
-
-	return STRING_NPOS;
-}
-
-
-bool string_ends_with( const char* str, const char* suffix )
-{
-	size_t len = string_length( str );
-	size_t suffix_len = string_length( suffix );
-	if( len < suffix_len )
+	if( length < suffix_length )
 		return false;
-	return string_equal( str + ( len - suffix_len ), suffix );
+	return ( memcmp( str + ( length - suffix_length ), suffix, suffix_length ) == 0 );
 }
 
 
-bool string_equal( const char* rhs, const char* lhs )
+bool string_equal( const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_length )
 {
-	return ( rhs == lhs ) || ( rhs && lhs && ( strcmp( rhs, lhs ) == 0 ) ) || ( !rhs && lhs && lhs[0] == 0 ) || ( rhs && !lhs && rhs[0] == 0 );
+	if( rhs && lhs )
+		return ( rhs_length == lhs_length ) && ( !rhs_length || ( memcmp( rhs, lhs, rhs_length ) == 0 ) );
+	return ( !rhs_length && !lhs_length );
 }
 
 
-bool string_equal_substr( const char* rhs, const char* lhs, size_t len )
+bool string_equal_substr( const char* rhs, size_t rhs_length, size_t rhs_offset, const char* lhs, size_t lhs_length, size_t lhs_offset )
 {
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
-#endif
-	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
-#endif
+	size_t rhs_remain = ( rhs_offset < rhs_length ) ? ( rhs_length - rhs_offset ) : 0;
+	size_t lhs_remain = ( lhs_offset < lhs_length ) ? ( lhs_length - lhs_offset ) : 0;
+	return string_equal( rhs + rhs_offset, rhs_remain, lhs + lhs_offset, lhs_remain );
 }
 
 
-bool string_match_pattern( const char* element, const char* pattern )
+bool string_match_pattern( const char* element, size_t element_length, const char* pattern, size_t pattern_length )
 {
-	if( ( *pattern == '*') && !pattern[1] )
+	if( !pattern_length || ( ( *pattern == '*' ) && ( pattern_length == 1 ) ) )
 		return true;
-	else if( !*element && *pattern )
+	else if( !element_length && pattern_length )
 		return false;
-	else if( !*element )
+	else if( !element_length )
 		return true;
 
 	if( *pattern == '*' )
 	{
-		if( string_match_pattern( element, pattern + 1) )
+		if( string_match_pattern( element, element_length, pattern + 1, pattern_length - 1 ) )
 			return true;
-		return string_match_pattern( element + 1, pattern );
+		return string_match_pattern( element + 1, element_length - 1, pattern, pattern_length );
 	}
 	else if( *pattern == '?' )
-		return string_match_pattern( element + 1, pattern + 1 );
+		return string_match_pattern( element + 1, element_length - 1, pattern + 1, pattern_length - 1 );
 	else if( *element == *pattern )
-		return string_match_pattern( element + 1, pattern + 1 );
+		return string_match_pattern( element + 1, element_length - 1, pattern + 1, pattern_length - 1 );
 
 	return false;
 }
 
 
-char** string_explode( const char* str, const char* delimiters, bool allow_empty )
+string_const_t* string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, bool allow_empty )
 {
-	char** array;
-	size_t slen;
-	size_t delimlen;
+	string_const_t* array;
 	size_t token;
 	size_t end;
 
-	slen = string_length( str );
-	if( !slen )
+	if( !length )
 		return 0;
 
 	array = 0;
-	delimlen = string_length( delimiters );
-	if( !delimlen )
+	if( !delim_length )
 	{
-		array_push( array, string_clone( str ) );
+		array_push( array, string_const( str, length ) );
 		return array;
 	}
 
 	token = 0;
 	end   = 0;
 
-	while( end < slen )
+	while( end < length )
 	{
 		if( !allow_empty )
-			token = string_find_first_not_of( str, delimiters, end );
-		end = string_find_first_of( str, delimiters, token );
+			token = string_find_first_not_of( str, length, delimiters, delim_length, end );
+		end = string_find_first_of( str, length, delimiters, delim_length, token );
 
 		if( token != STRING_NPOS )
-			array_push( array, string_substr( str, token, ( end != STRING_NPOS ) ? ( end - token ) : STRING_NPOS ) );
+			array_push( array, string_const( str + token, ( end != STRING_NPOS ) ? ( end - token ) : ( length - token ) ) );
 		if( allow_empty )
 			token = end + 1;
 	}
@@ -681,39 +696,53 @@ char** string_explode( const char* str, const char* delimiters, bool allow_empty
 }
 
 
-char* string_merge( const char* const* array, size_t num, const char* delimiter )
+string_t string_merge( const string_const_t* array, size_t num, const char* delimiter, size_t delim_length )
 {
-	char* result;
-	size_t i;
+	string_t result;
+	size_t i, total_length;
+	char* loop;
 
-	if( num <= 0 )
-		return string_allocate( 0 );
+	if( !num )
+		return (string_t){ 0, 0 };
 
-	result = string_clone( array[0] );
-	for( i = 1; i < num; ++i )
+	total_length = 0;
+	for( i = 0; i < ( num - 1 ); ++i )
+		total_length += array[i].length + delim_length;
+	total_length += array[i].length;
+
+	result.str = memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
+	result.length = total_length;
+	loop = result.str;
+	for( i = 0; i < ( num - 1 ); ++i )
 	{
-		result = string_append( result, delimiter );
-		result = string_append( result, array[i] );
+		memcpy( loop, array[i].str, array[i].length );
+		loop += array[i].length;
+
+		memcpy( loop, delimiter, delim_length );
+		loop += delim_length;
 	}
+	memcpy( loop, array[i].str, array[i].length );
+	loop += array[i].length;
+	*loop = 0;
 
 	return result;
 }
 
 
-void string_array_deallocate_elements( char** array )
+void string_array_deallocate_elements( string_t* array )
 {
 	size_t i, size = array_size( array );
 	for( i = 0; i < size; ++i )
-		string_deallocate( array[i] );
+		string_deallocate( array[i].str );
 }
 
 
-ssize_t string_array_find( const char* const* array, const char* needle, size_t haystack_size )
+ssize_t string_array_find( const string_const_t* array, size_t haystack_size, const char* needle, size_t needle_length )
 {
 	size_t i;
 	for( i = 0; i < haystack_size; ++i, ++array )
 	{
-		if( string_equal( *array, needle ) )
+		if( string_equal( array->str, array->length, needle, needle_length ) )
 			return (ssize_t)i;
 	}
 	return -1;
@@ -766,12 +795,20 @@ static size_t encode_utf8( char* str, uint32_t val )
 }
 
 
-uint32_t string_glyph( const char* str, size_t offset, size_t* consumed )
+uint32_t string_glyph( const char* str, size_t length, size_t offset, size_t* consumed )
 {
 	uint32_t glyph = 0;
 	size_t num, j;
-	const char* cur = str + offset;
+	const char* cur;
 
+	if( offset >= length )
+	{
+		if( consumed )
+			*consumed = 0;
+		return 0;
+	}
+
+	cur = str + offset;
 	if( !( *cur & 0x80 ) )
 	{
 		glyph = (uint32_t)*cur++;
@@ -793,13 +830,14 @@ uint32_t string_glyph( const char* str, size_t offset, size_t* consumed )
 }
 
 
-size_t string_glyphs( const char* str )
+size_t string_glyphs( const char* str, size_t length )
 {
+	size_t offset = 0;
 	size_t num = 0;
-	while( *str )
+	while( offset < length )
 	{
 		++num;
-		str += get_num_bytes_utf8( (uint8_t)(*str) );
+		offset += get_num_bytes_utf8( (uint8_t)str[offset] );
 	}
 	return num;
 }
@@ -809,18 +847,15 @@ wchar_t* wstring_allocate_from_string( const char* cstr, size_t length )
 {
 	wchar_t* buffer;
 	wchar_t* dest;
-	size_t maxlen, num_chars, num_bytes, i, j;
+	size_t num_chars, num_bytes, i, j;
 	uint32_t glyph;
 	const char* cur;
 
-	if( !cstr )
+	if( !cstr || !length )
 	{
 		buffer = memory_allocate( HASH_STRING, sizeof( wchar_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		return buffer;
 	}
-
-	maxlen = string_length( cstr );
-	length = ( length && length < maxlen ) ? length : maxlen;
 
 	//Count number of wchar_t needed to represent string
 	num_chars = 0;
@@ -886,17 +921,17 @@ wchar_t* wstring_allocate_from_string( const char* cstr, size_t length )
 }
 
 
-void wstring_from_string( wchar_t* dest, const char* source, size_t max_length, size_t length )
+void wstring_from_string( wchar_t* dest, size_t length, const char* source, size_t cstr_length )
 {
-	size_t i, j, num, max_srclength;
+	size_t i, j, num;
 	uint32_t glyph;
-	wchar_t* last = dest + ( max_length - 2 );
+	wchar_t* last = ( dest + length ) - 1;
 	const char* cur = source;
 
-	max_srclength = string_length( source );
-	length = ( length < max_srclength ) ? length : max_srclength;
+	if( !length )
+		return;
 
-	for( i = 0; ( i < length ) && ( dest < last ); ++i )
+	for( i = 0; ( i < cstr_length ) && ( dest < last ); ++i )
 	{
 		if( !( *cur & 0x80 ) )
 			*dest++ = *cur++;
@@ -904,6 +939,8 @@ void wstring_from_string( wchar_t* dest, const char* source, size_t max_length, 
 		{
 			//Convert through UTF-32
 			num = get_num_bytes_utf8( (uint8_t)(*cur) ) - 1; //Subtract one to get number of _extra_ bytes
+			if( i + num + 1 >= cstr_length )
+				break;
 			glyph = ( (uint32_t)(*cur) & get_bit_mask( 6 - num ) ) << ( 6 * num );
 			++cur;
 			for( j = 1; j <= num; ++j, ++cur )
@@ -918,8 +955,13 @@ void wstring_from_string( wchar_t* dest, const char* source, size_t max_length, 
 				else if( glyph <= 0x10FFFF )
 				{
 					uint32_t val = glyph - 0x10000;
-					*dest++ = 0xD800 | ( ( val >> 10 ) & 0x3FF );
-					*dest++ = 0xDC00 | (   val         & 0x3FF );
+					if( dest < ( last - 1 ) )
+					{
+						*dest++ = 0xD800 | ( ( val >> 10 ) & 0x3FF );
+						*dest++ = 0xDC00 | (   val         & 0x3FF );
+					}
+					else
+						break;
 				}
 			}
 #else
@@ -929,8 +971,7 @@ void wstring_from_string( wchar_t* dest, const char* source, size_t max_length, 
 		}
 	}
 
-	if( max_length > 0 )
-		*dest = 0;
+	*dest = 0;
 }
 
 
@@ -980,7 +1021,7 @@ static size_t _string_length_utf32( const uint32_t* p_str )
 }
 
 
-char* string_allocate_from_wstring( const wchar_t* str, size_t length )
+string_t string_allocate_from_wstring( const wchar_t* str, size_t length )
 {
 #if FOUNDATION_SIZE_WCHAR == 2
 	return string_allocate_from_utf16( (const uint16_t*)str, length );
@@ -990,7 +1031,7 @@ char* string_allocate_from_wstring( const wchar_t* str, size_t length )
 }
 
 
-char* string_allocate_from_utf16( const uint16_t* str, size_t length )
+string_t string_allocate_from_utf16( const uint16_t* str, size_t length )
 {
 	bool swap;
 	char* buf;
@@ -1028,13 +1069,13 @@ char* string_allocate_from_utf16( const uint16_t* str, size_t length )
 
 	buf = memory_allocate( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
-	string_convert_utf16( buf, str, curlen + 1, inlength );
+	string_convert_utf16( buf, curlen + 1, str, inlength );
 
-	return buf;
+	return (string_t){ buf, curlen };
 }
 
 
-char* string_allocate_from_utf32( const uint32_t* str, size_t length )
+string_t string_allocate_from_utf32( const uint32_t* str, size_t length )
 {
 	bool swap;
 	char* buf;
@@ -1063,13 +1104,13 @@ char* string_allocate_from_utf32( const uint32_t* str, size_t length )
 
 	buf = memory_allocate( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
-	string_convert_utf32( buf, str, curlen + 1, inlength );
+	string_convert_utf32( buf, curlen + 1, str, inlength );
 
-	return buf;
+	return (string_t){ buf, curlen };
 }
 
 
-void string_convert_utf16( char* dst, const uint16_t* src, size_t dstsize, size_t srclength )
+void string_convert_utf16( char* dst, size_t dstsize, const uint16_t* src, size_t srclength )
 {
 	bool swap = false;
 	uint32_t glyph, lval;
@@ -1105,7 +1146,7 @@ void string_convert_utf16( char* dst, const uint16_t* src, size_t dstsize, size_
 }
 
 
-void string_convert_utf32( char* dst, const uint32_t* src, size_t dstsize, size_t srclength )
+void string_convert_utf32( char* dst, size_t dstsize, const uint32_t* src, size_t srclength )
 {
 	bool swap = false;
 	uint32_t glyph;
@@ -1136,121 +1177,125 @@ void string_convert_utf32( char* dst, const uint32_t* src, size_t dstsize, size_
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, THREAD_BUFFER_SIZE )
 
 
-char* string_from_int( int64_t val, unsigned int width, char fill )
+string_t string_from_int( int64_t val, unsigned int width, char fill )
 {
 	char buf[32];
-	return string_clone( string_from_int_buffer( buf, 32, val, width, fill ) );
+	string_t str = string_from_int_buffer( buf, 32, val, width, fill );
+	return string_clone( str.str, str.length );
 }
 
 
-char* string_from_int_buffer( char* buffer, size_t size, int64_t val, unsigned int width, char fill )
+string_t string_from_int_buffer( char* buffer, size_t size, int64_t val, unsigned int width, char fill )
 {
 	int len = snprintf( buffer, size, "%" PRId64, val );
-	if( len < 0 )
+	if( ( len < 0 ) || !size )
 	{
 		if( size )
 			buffer[0] = 0;
-		return buffer;
+		return (string_t){ buffer, 0 };
 	}
-	if( (size_t)len > size )
+	if( (size_t)len >= size )
 	{
-		if( size )
-			buffer[size-1] = 0;
-		return buffer;
+		buffer[ size - 1 ] = 0;
+		return (string_t){ buffer, size - 1 };
 	}
 	if( (unsigned int)len < width )
 	{
 		size_t diff = (size_t)width - (size_t)len;
 		memmove( buffer + diff, buffer, (size_t)len + 1 );
 		memset( buffer, fill, diff );
+		return (string_t){ buffer, width };
 	}
-	return buffer;
+	return (string_t){ buffer, (size_t)len };
 }
 
 
-const char* string_from_int_static( int64_t val, unsigned int width, char fill )
+string_const_t string_from_int_static( int64_t val, unsigned int width, char fill )
 {
-	return string_from_int_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, width, fill );
+	return string_to_const( string_from_int_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, width, fill ) );
 }
 
 
-char* string_from_uint( uint64_t val, bool hex, unsigned int width, char fill )
+string_t string_from_uint( uint64_t val, bool hex, unsigned int width, char fill )
 {
 	char buf[32];
-	return string_clone( string_from_uint_buffer( buf, 32, val, hex, width, fill ) );
+	string_t str = string_from_uint_buffer( buf, 32, val, hex, width, fill );
+	return string_clone( str.str, str.length );
 }
 
 
-char* string_from_uint_buffer( char* buffer, size_t size, uint64_t val, bool hex, unsigned int width, char fill )
+string_t string_from_uint_buffer( char* buffer, size_t size, uint64_t val, bool hex, unsigned int width, char fill )
 {
 	int len = snprintf( buffer, size, hex ? "%" PRIx64 : "%" PRIu64, val );
-	if( len < 0 )
+	if( ( len < 0 ) || !size )
 	{
 		if( size )
 			buffer[0] = 0;
-		return buffer;
+		return (string_t){ buffer, 0 };
 	}
-	if( (size_t)len > size )
+	if( (size_t)len >= size )
 	{
-		if( size )
-			buffer[size-1] = 0;
-		return buffer;
+		buffer[ size - 1 ] = 0;
+		return (string_t){ buffer, size - 1 };
 	}
 	if( (unsigned int)len < width )
 	{
 		size_t diff = (size_t)width - (size_t)len;
 		memmove( buffer + diff, buffer, (size_t)len + 1 );
 		memset( buffer, fill, diff );
+		return (string_t){ buffer, width };
 	}
-	return buffer;
+	return (string_t){ buffer, (size_t)len };
 }
 
 
-const char* string_from_uint_static( uint64_t val, bool hex, unsigned int width, char fill )
+string_const_t string_from_uint_static( uint64_t val, bool hex, unsigned int width, char fill )
 {
-	return string_from_uint_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, hex, width, fill );
+	return string_to_const( string_from_uint_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, hex, width, fill ) );
 }
 
 
-char* string_from_uint128( const uint128_t val )
+string_t string_from_uint128( const uint128_t val )
 {
 	char buf[34];
-	return string_clone( string_from_uint128_buffer( buf, 34, val ) );
+	string_t str = string_from_uint128_buffer( buf, 34, val );
+	return string_clone( str.str, str.length );
 }
 
 
-char* string_from_uint128_buffer( char* buffer, size_t size, const uint128_t val )
+string_t string_from_uint128_buffer( char* buffer, size_t size, const uint128_t val )
 {
 	int len = snprintf( buffer, size, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1] );
-	if( len < 0 )
+	if( ( len < 0 ) || !size )
 	{
 		if( size )
 			buffer[0] = 0;
+		return (string_t){ buffer, 0 };
 	}
-	if( (size_t)len > size )
+	if( (size_t)len >= size )
 	{
-		if( size )
-			buffer[size-1] = 0;
+		buffer[ size - 1 ] = 0;
+		return (string_t){ buffer, size - 1 };
 	}
-	return buffer;
+	return (string_t){ buffer, (size_t)len };
 }
 
 
-const char* string_from_uint128_static( const uint128_t val )
+string_const_t string_from_uint128_static( const uint128_t val )
 {
-	return string_from_uint128_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val );
+	return string_to_const( string_from_uint128_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val ) );
 }
 
 
-char* string_from_real( real val, unsigned int precision, unsigned int width, char fill )
+string_t string_from_real( real val, unsigned int precision, unsigned int width, char fill )
 {
-	char str[64];
-	string_from_real_buffer( str, 64, val, precision, width, fill );
-	return string_clone( str );
+	char buf[64];
+	string_t str = string_from_real_buffer( buf, 64, val, precision, width, fill );
+	return string_clone( str.str, str.length );
 }
 
 
-char* string_from_real_buffer( char* buffer, size_t size, real val, unsigned int precision, unsigned int width, char fill )
+string_t string_from_real_buffer( char* buffer, size_t size, real val, unsigned int precision, unsigned int width, char fill )
 {
 	int len;
 	unsigned int ulen;
@@ -1266,22 +1311,21 @@ char* string_from_real_buffer( char* buffer, size_t size, real val, unsigned int
 	else
 		len = snprintf( buffer, size, "%.7f", val );
 #endif
-	if( len < 0 )
+	if( ( len < 0 ) || !size )
 	{
 		if( size )
 			buffer[0] = 0;
-		return buffer;
+		return (string_t){ buffer, 0 };
 	}
 
 	ulen = (unsigned int)len;
-	if( ulen > size )
+	if( ulen >= size )
 	{
-		if( size )
-			buffer[size-1] = 0;
-		return buffer;
+		buffer[ size - 1 ] = 0;
+		return (string_t){ buffer, size - 1 };
 	}
 
-	end = string_find_last_not_of( buffer, "0", STRING_NPOS );
+	end = string_find_last_not_of( buffer, ulen, STRING_CONST( "0" ), STRING_NPOS );
 	if( end != STRING_NPOS )
 	{
 		if( buffer[ end ] == '.' )
@@ -1298,91 +1342,108 @@ char* string_from_real_buffer( char* buffer, size_t size, real val, unsigned int
 	{
 		memmove( buffer + ( width - ulen ), buffer, ulen + 1 );
 		memset( buffer, fill, width - ulen );
+		ulen = width;
 	}
 
 	//Some cleanups
-	if( string_equal( buffer, "-0" ) )
+	if( string_equal( buffer, ulen, "-0", 2 ) )
 	{
 		buffer[0] = '0';
 		buffer[1] = 0;
+		ulen = 1;
 	}
 
-	return buffer;
+	return (string_t){ buffer, ulen };
 }
 
 
-const char* string_from_real_static( real val, unsigned int precision, unsigned int width, char fill )
+string_const_t string_from_real_static( real val, unsigned int precision, unsigned int width, char fill )
 {
-	return string_from_real_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, precision, width, fill );
+	return string_to_const( string_from_real_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, precision, width, fill ) );
 }
 
 
-char* string_from_time( tick_t t )
+string_t string_from_time( tick_t t )
 {
 	char buf[64];
-	return string_clone( string_from_time_buffer( buf, 64, t ) );
+	string_t str = string_from_time_buffer( buf, 64, t );
+	return string_clone( str.str, str.length );
 }
 
 
-char* string_from_time_buffer( char* buffer, size_t size, tick_t t )
+string_t string_from_time_buffer( char* buffer, size_t size, tick_t t )
 {
-	if( !size )
-		return buffer;
+	if( !size || !buffer )
+		return (string_t){ buffer, 0 };
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		time_t timet = t / 1000ULL;
-		_ctime64_s( buffer, size, &timet );
-		buffer[size-1] = 0;
+		if( _ctime64_s( buffer, size, &timet ) != 0 )
+		{
+			buffer[0] = 0;
+			size = 0;
+		}
+		else
+		{
+			buffer[24] = 0;
+			size = 24;
+		}
 	}
-	return string_strip( buffer, STRING_WHITESPACE );
+	return (string_t){ buffer, size };
 #elif FOUNDATION_PLATFORM_ANDROID
 	time_t ts = t / 1000ULL;
-	string_copy( buffer, ctime( &ts ), size );
-	return string_strip( buffer, STRING_WHITESPACE );
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-	if( size >= 26 )
-	{
-		time_t ts = (time_t)( t / 1000LL );
-		ctime_r( &ts, buffer );
-	}
-	else
+	char* tstr = ctime( &ts );
+	if( !tstr )
 	{
 		buffer[0] = 0;
+		return (string_t){ buffer, 0 };
 	}
-	return string_strip( buffer, STRING_WHITESPACE );
+	return string_copy( buffer, size, tstr, 24 );
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+	time_t ts = (time_t)( t / 1000LL );
+	char* tstr = ( size >= 26 ) ? ctime_r( &ts, buffer ) : 0;
+	if( !tstr )
+	{
+		buffer[0] = 0;
+		return (string_t){ buffer, 0 };
+	}
+	buffer[24] = 0;
+	return (string_t){ buffer, 24 };
 #else
 # error Not implemented
 #endif
 }
 
 
-const char* string_from_time_static( tick_t t )
+string_const_t string_from_time_static( tick_t t )
 {
-	return string_from_time_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, t );
+	return string_to_const( string_from_time_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, t ) );
 }
 
 
-char* string_from_uuid( const uuid_t val )
+string_t string_from_uuid( const uuid_t val )
 {
 	char buf[38];
-	return string_clone( string_from_uuid_buffer( buf, 38, val ) );
+	string_t str = string_from_uuid_buffer( buf, 38, val );
+	return string_clone( str.str, str.length );
 }
 
 
-const char* string_from_uuid_static( const uuid_t val )
+string_const_t string_from_uuid_static( const uuid_t val )
 {
-	return string_from_uuid_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val );
+	return string_to_const( string_from_uuid_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val ) );
 }
 
 
-char* string_from_version( const version_t version )
+string_t string_from_version( const version_t version )
 {
 	char buf[128];
-	return string_clone( string_from_version_buffer( buf, 128, version ) );
+	string_t str = string_from_version_buffer( buf, 128, version );
+	return string_clone( str.str, str.length );
 }
 
 
-char* string_from_version_buffer( char* buffer, size_t size, const version_t version )
+string_t string_from_version_buffer( char* buffer, size_t size, const version_t version )
 {
 	int len;
 	if( version.sub.control )
@@ -1391,106 +1452,104 @@ char* string_from_version_buffer( char* buffer, size_t size, const version_t ver
 		len = snprintf( buffer, size, "%u.%u.%u-%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build );
 	else
 		len = snprintf( buffer, size, "%u.%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision );
-	if( len < 0 )
+	if( ( len < 0 ) || !size )
 	{
 		if( size )
 			buffer[0] = 0;
-		return buffer;
+		return (string_t){ buffer, 0 };
 	}
-	if( (size_t)len > size )
+	if( (size_t)len >= size )
 	{
-		if( size )
-			buffer[size-1] = 0;
-		return buffer;
+		buffer[ size - 1 ] = 0;
+		return (string_t){ buffer, size - 1 };
 	}
-	return buffer;
+	return (string_t){ buffer, (size_t)len };
 }
 
 
-const char* string_from_version_static( const version_t version )
+string_const_t string_from_version_static( const version_t version )
 {
-	return string_from_version_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, version );
+	return string_to_const( string_from_version_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, version ) );
 }
 
 
-
-int string_to_int( const char* val )
+int string_to_int( const char* val, size_t length )
 {
 	int ret = 0;
-	if( val )
+	if( val && length )
 		sscanf( val, "%d", &ret );
 	return ret;
 }
 
 
-unsigned int string_to_uint( const char* val, bool hex )
+unsigned int string_to_uint( const char* val, size_t length, bool hex )
 {
 	unsigned int ret = 0;
-	if( val )
+	if( val && length )
 		sscanf( val, hex ? "%x" : "%u", &ret );
 	return ret;
 }
 
 
-int64_t string_to_int64( const char* val )
+int64_t string_to_int64( const char* val, size_t length )
 {
 	int64_t ret = 0;
-	if( val )
+	if( val && length )
 		sscanf( val, "%" PRId64, &ret );
 	return ret;
 }
 
 
-uint64_t string_to_uint64( const char* val, bool hex )
+uint64_t string_to_uint64( const char* val, size_t length, bool hex )
 {
 	uint64_t ret = 0;
-	if( val )
+	if( val && length )
 		sscanf( val, hex ? "%" PRIx64 : "%" PRIu64, &ret );
 	return ret;
 }
 
 
-uint128_t string_to_uint128( const char* val )
+uint128_t string_to_uint128( const char* val, size_t length )
 {
 	uint128_t ret = uint128_null();
-	if( val )
+	if( val && length )
 		sscanf( val, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1] );
 	return ret;
 }
 
 
-float32_t string_to_float32( const char* val )
+float32_t string_to_float32( const char* val, size_t length )
 {
 	float32_t ret = 0.0f;
-	if( val )
+	if( val && length )
 		sscanf( val, "%f", &ret );
 	return ret;
 }
 
 
-float64_t string_to_float64( const char* val )
+float64_t string_to_float64( const char* val, size_t length )
 {
 	float64_t ret = 0.0;
-	if( val )
+	if( val && length )
 		sscanf( val, "%lf", &ret );
 	return ret;
 }
 
 
-real string_to_real( const char* val )
+real string_to_real( const char* val, size_t length )
 {
 #if ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE ) && ( FOUNDATION_SIZE_REAL == 64 )
 	long double ret = 0.0f;
 #else
 	real ret = 0.0f;
 #endif
-	if( val )
+	if( val && length )
 		sscanf( val, "%" PRIREAL, &ret );
 	return ret;
 }
 
 
-version_t string_to_version( const char* val )
+version_t string_to_version( const char* val, size_t length )
 {
 	//%u.%u.%u-%u.%u
 	uint32_t num[5];
@@ -1498,7 +1557,7 @@ version_t string_to_version( const char* val )
 	for( i = 0; i < 5; ++i )
 	{
 		num[i] = 0;
-		if( val && *val )
+		if( val && *val && length )
 		{
 			sscanf( val, i < 4 ? "%u" : "%x", num + i );
 			while( *val && ( ( *val >= '0' ) && ( *val < '9' ) ) ) val++;
@@ -1509,7 +1568,7 @@ version_t string_to_version( const char* val )
 }
 
 
-string_t string_thread_local_buffer( void )
+string_t string_thread_buffer( void )
 {
 	return (string_t){ get_thread_convert_buffer(), THREAD_BUFFER_SIZE };
 }

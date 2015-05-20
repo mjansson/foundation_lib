@@ -49,33 +49,33 @@ DECLARE_TEST( library, lookup )
 	object_t lib = 0;
 	object_t otherlib = 0;
 	void* symbol = 0;
-	const char* libraryname;
-	const char* symbolname;
+	string_const_t libraryname;
+	string_const_t symbolname;
 
 	if( system_platform() == PLATFORM_PNACL )
 		return 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	libraryname = "kernel32";
-	symbolname = "ExitProcess";
+	libraryname = string_const( STRING_CONST( "kernel32" ) );
+	symbolname = string_const( STRING_CONST( "ExitProcess" );
 #elif FOUNDATION_PLATFORM_APPLE
-	libraryname = "dl";
-	symbolname = "dlsym";
+	libraryname = string_const( STRING_CONST( "dl" ) );
+	symbolname = string_const( STRING_CONST( "dlsym" ) );
 #elif FOUNDATION_PLATFORM_BSD
-	libraryname = "execinfo";
-	symbolname = "backtrace";
+	libraryname = string_const( STRING_CONST( "execinfo" ) );
+	symbolname = string_const( STRING_CONST( "backtrace" ) );
 #elif FOUNDATION_PLATFORM_POSIX
-	libraryname = "dl";
-	symbolname = "dlsym";
+	libraryname = string_const( STRING_CONST( "dl" ) );
+	symbolname = string_const( STRING_CONST( "dlsym" ) );
 #else
-	libraryname = "somelib";
-	symbolname = "somesym";
+	libraryname = string_const( STRING_CONST( "somelib" ) );
+	symbolname = string_const( STRING_CONST( "somesym" ) );
 #endif
 
-	lib = library_load( libraryname );
+	lib = library_load( STRING_ARGS( libraryname ) );
 	EXPECT_NE( lib, 0 );
 
-	otherlib = library_load( libraryname );
+	otherlib = library_load( STRING_ARGS( libraryname ) );
 	EXPECT_EQ( lib, otherlib );
 
 	library_unload( otherlib );
@@ -83,19 +83,19 @@ DECLARE_TEST( library, lookup )
 	otherlib = 0;
 
 	log_set_suppress( 0, ERRORLEVEL_WARNING );
-	EXPECT_EQ( library_load( "this_library_should_not_exist" ), 0 );
+	EXPECT_EQ( library_load( STRING_CONST( "this_library_should_not_exist" ) ), 0 );
 	log_set_suppress( 0, ERRORLEVEL_DEBUG );
 
 	EXPECT_TRUE( library_valid( lib ) );
 	EXPECT_FALSE( library_valid( 0 ) );
 
-	symbol = library_symbol( lib, symbolname );
+	symbol = library_symbol( lib, STRING_ARGS( symbolname ) );
 	EXPECT_NE( symbol, 0 );
 
-	EXPECT_EQ( library_symbol( 0, symbolname ), 0 );
+	EXPECT_EQ( library_symbol( 0, STRING_ARGS( symbolname ) ), 0 );
 
 	library_unload( lib );
-	EXPECT_EQ( library_symbol( lib, symbolname ), 0 );
+	EXPECT_EQ( library_symbol( lib, STRING_ARGS( symbolname ) ), 0 );
 
 	EXPECT_FALSE( library_valid( lib ) );
 

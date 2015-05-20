@@ -16,27 +16,27 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API string_t        string_allocate( size_t length );
-FOUNDATION_API void            string_deallocate( char* str );
+FOUNDATION_API string_t        string_allocate( size_t length, size_t capacity, char fill );
 FOUNDATION_API string_t        string_clone( const char* str, size_t length );
-FOUNDATION_API string_t        string_clone_string( string_const_t str );
+FOUNDATION_API void            string_deallocate( char* str );
 
-FOUNDATION_API string_const_t  string_null( void );
-FOUNDATION_API string_const_t  string_const( const char* str, size_t length );
-FOUNDATION_API string_const_t  string_to_const( string_t str );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_null( void );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_empty( void );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_const( const char* str, size_t length );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_to_const( string_t str );
 
 FOUNDATION_API string_t        string_format( const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 3 );
-FOUNDATION_API string_t        string_format_buffer( char* str, size_t length, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
+FOUNDATION_API string_t        string_format_buffer( char* buffer, size_t size, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
 FOUNDATION_API string_t        string_vformat( const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 0 );
-FOUNDATION_API string_t        string_vformat_buffer( char* str, size_t length, const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 0 );
+FOUNDATION_API string_t        string_vformat_buffer( char* buffer, size_t size, const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 0 );
 
 FOUNDATION_API size_t          string_length( const char* str );
 FOUNDATION_API size_t          string_glyphs( const char* str, size_t length );
 FOUNDATION_API hash_t          string_hash( const char* str, size_t length );
 
-FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t new_length, char fill );
-FOUNDATION_API string_t        string_copy( char* dst, size_t dst_length, const char* src, size_t src_length );
-FOUNDATION_API string_t        string_replace( char* str, size_t length, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat );
+FOUNDATION_API string_t        string_copy( char* dst, size_t size, const char* src, size_t src_length );
+FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t capacity, size_t new_length, char fill, bool realloc );
+FOUNDATION_API string_t        string_replace( char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat, bool realloc );
 FOUNDATION_API string_t        string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, bool realloc );
 FOUNDATION_API string_t        string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, bool realloc );
 FOUNDATION_API string_t        string_concat( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length );
@@ -52,8 +52,6 @@ FOUNDATION_API size_t          string_find_first_of( const char* str, size_t len
 FOUNDATION_API size_t          string_find_last_of( const char* str, size_t length, const char* key, size_t key_length, size_t offset );
 FOUNDATION_API size_t          string_find_first_not_of( const char* str, size_t length, const char* key, size_t key_length, size_t offset );
 FOUNDATION_API size_t          string_find_last_not_of( const char* str, size_t length, const char* key, size_t key_length, size_t offset );
-FOUNDATION_API size_t          string_rfind_first_of( const char* str, size_t length, const char* key, size_t key_length, size_t offset );
-FOUNDATION_API size_t          string_rfind_first_not_of( const char* str, size_t length, const char* key, size_t key_length, size_t offset );
 
 FOUNDATION_API bool            string_ends_with( const char* str, size_t length, const char* suffix, size_t suffix_length );
 FOUNDATION_API bool            string_equal( const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length );
@@ -62,11 +60,11 @@ FOUNDATION_API bool            string_match_pattern( const char* str, size_t len
 
 FOUNDATION_API void            string_split( const char* str, size_t length, const char* separators, size_t sep_length, string_const_t* left, string_const_t* right, bool allowempty );
 FOUNDATION_API string_const_t* string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, bool allow_empty );
-FOUNDATION_API string_t        string_merge( string_const_t* array, size_t array_size, const char* delimiter, size_t delim_length );
+FOUNDATION_API string_t        string_merge( const string_const_t* array, size_t array_size, const char* delimiter, size_t delim_length );
 
 FOUNDATION_API uint32_t        string_glyph( const char* str, size_t length, size_t offset, size_t* consumed );
 
-FOUNDATION_API ssize_t         string_array_find( string_const_t* haystack, size_t haystack_size, const char* needle, size_t needle_length );
+FOUNDATION_API ssize_t         string_array_find( const string_const_t* haystack, size_t haystack_size, const char* needle, size_t needle_length );
 FOUNDATION_API void            string_array_deallocate_elements( string_t* array );
 #define                        string_array_deallocate( array ) ( string_array_deallocate_elements( array ), array_deallocate( array ), (array) = 0 )
 
@@ -121,6 +119,32 @@ FOUNDATION_API version_t       string_to_version( const char* str, size_t length
 FOUNDATION_API string_t        string_thread_buffer( void );
 
 #define STRING_NPOS            ((size_t)-1)
+#define STRING_NEWLINE         "\n"
+#define STRING_EMPTY           ""
 #define STRING_WHITESPACE      " \n\r\t\v\f"
 #define WSTRING_WHITESPACE    L" \n\r\t\v\f"
-#define STRING_NEWLINE         "\n"
+
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_null( void )
+{
+    return (string_const_t){ 0, 0 };
+}
+
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_empty( void )
+{
+    return (string_const_t){ STRING_EMPTY, 0 };
+}
+
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_const( const char* str, size_t length )
+{
+    return (string_const_t){ str, length };
+}
+
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_to_const( string_t str )
+{
+    return (string_const_t){ str.str, str.length };
+}
+

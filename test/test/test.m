@@ -21,7 +21,7 @@
 # import <UIKit/UITextView.h>
 
 
-void test_text_view_append( void* window, int tag, const char* msg )
+void test_text_view_append( void* window, int tag, const char* msg, size_t length )
 {
 	if( !window )
 		return;
@@ -37,6 +37,8 @@ void test_text_view_append( void* window, int tag, const char* msg )
 			textview.text = [textview.text stringByAppendingString:nsmsg];
 		}});
 	}
+
+	FOUNDATION_UNUSED( length );
 }
 
 #endif

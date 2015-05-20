@@ -20,7 +20,7 @@
 static atomic32_t _event_serial = {1};
 
 
-static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, size_t size, object_t object, const void* payload, uint16_t flags, tick_t timestamp )
+static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, object_t object, tick_t timestamp, uint16_t flags, const void* payload, size_t size, va_list list )
 {
 	event_block_t* block;
 	event_t* event;
@@ -28,6 +28,10 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, s
 	size_t basesize;
 	size_t allocsize;
 	int32_t last_write;
+	char* part;
+	void* ptr;
+	size_t psize;
+	va_list clist;
 
 	//Events must have non-zero id
 	FOUNDATION_ASSERT_MSG( id, "Events must have non-zero id" );
@@ -37,6 +41,16 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, s
 
 	//Events must be aligned to an even 8 bytes
 	basesize = sizeof( event_t ) + size;
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		basesize += psize;
+	}
+	va_end( clist );
 	if( basesize % 8 )
 		basesize += 8 - ( basesize % 8 );
 	basesize &= 0xFFF8;
@@ -84,8 +98,24 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, s
 	event->flags     = flags;
 	event->object    = object;
 
+	part = event->payload;
 	if( size )
-		memcpy( event->payload, payload, size );
+	{
+		memcpy( part, payload, size );
+		part += size;
+	}
+	while( true )
+	{
+		ptr = va_arg( list, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( list, size_t );
+		if( psize )
+		{
+			memcpy( part, ptr, psize );
+			part += psize;
+		}
+	}
 
 	if( timestamp )
 	{
@@ -113,9 +143,12 @@ size_t event_payload_size( const event_t* event )
 }
 
 
-void event_post( event_stream_t* stream, uint16_t id, size_t size, object_t object, const void* payload, tick_t delivery )
+void event_post( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size, ... )
 {
-	_event_post_delay_with_flags( stream, id, size, object, payload, 0, delivery );
+	va_list list;
+	va_start( list, size );
+	_event_post_delay_with_flags( stream, id, object, delivery, 0, payload, size, list );
+	va_end( list );
 }
 
 
@@ -142,7 +175,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 			return event;
 
 		//Re-post to next block
-		_event_post_delay_with_flags( block->stream, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
+		_event_post_delay_with_flags( block->stream, event->id, event->object, eventtime, event->flags, event->payload, event->size - ( sizeof( event_t ) + 8 ), (void*)0 );
 	} while( true );
 }
 
