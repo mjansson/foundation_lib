@@ -53,7 +53,7 @@ DECLARE_TEST( semaphore, initialize )
 	semaphore_finalize( &sem );
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named( &sem, "foundation_test", 0 );
+	semaphore_initialize_named( &sem, STRING_CONST( "foundation_test" ), 0 );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
 	semaphore_finalize( &sem );
 #endif
@@ -64,7 +64,7 @@ DECLARE_TEST( semaphore, initialize )
 	semaphore_finalize( &sem );
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named( &sem, "foundation_test", 1 );
+	semaphore_initialize_named( &sem, STRING_CONST( "foundation_test" ), 1 );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
 	semaphore_post( &sem ); //Restored value
 	semaphore_finalize( &sem );
@@ -79,7 +79,7 @@ DECLARE_TEST( semaphore, initialize )
 	semaphore_finalize( &sem );
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named( &sem, "foundation_test", 2 );
+	semaphore_initialize_named( &sem, STRING_CONST( "foundation_test" ), 2 );
 	EXPECT_TRUE( semaphore_wait( &sem ) );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
@@ -123,7 +123,7 @@ DECLARE_TEST( semaphore, postwait )
 	semaphore_finalize( &sem );
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named( &sem, "foundation_test", 0 );
+	semaphore_initialize_named( &sem, STRING_CONST( "foundation_test" ), 0 );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
 
 	semaphore_post( &sem );
@@ -193,7 +193,7 @@ DECLARE_TEST( semaphore, threaded )
 
 	for( ith = 0; ith < 32; ++ith )
 	{
-		thread[ith] = thread_create( semaphore_waiter, "semaphore_waiter", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( semaphore_waiter, STRING_CONST( "semaphore_waiter" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], &test );
 	}
 
@@ -227,14 +227,14 @@ DECLARE_TEST( semaphore, threaded )
 	semaphore_finalize( &test.write );
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named( &test.read, "foundation_test_read", 0 );
-	semaphore_initialize_named( &test.write, "foundation_test_write", 0 );
+	semaphore_initialize_named( &test.read, STRING_CONST( "foundation_test_read" ), 0 );
+	semaphore_initialize_named( &test.write, STRING_CONST( "foundation_test_write" ), 0 );
 	test.loopcount = 128;
 	atomic_store32( &test.counter, 0 );
 
 	for( ith = 0; ith < 32; ++ith )
 	{
-		thread[ith] = thread_create( semaphore_waiter, "semaphore_waiter", THREAD_PRIORITY_NORMAL, 0 );
+		thread[ith] = thread_create( semaphore_waiter, STRING_CONST( "semaphore_waiter" ), THREAD_PRIORITY_NORMAL, 0 );
 		thread_start( thread[ith], &test );
 	}
 

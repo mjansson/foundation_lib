@@ -408,8 +408,7 @@ string_const_t environment_home_directory( void )
 		char bundle_identifier[256];
 		string_t bundle = environment_bundle_identifier( bundle_identifier, 256 );
 
-		pathstr = path_append( pathstr.str, pathstr.length, FOUNDATION_MAX_PATHLEN, STRING_CONST( "Library/Application Support" ), false );
-		pathstr = path_append( pathstr.str, pathstr.length, FOUNDATION_MAX_PATHLEN, bundle.str, bundle.length, false );
+		pathstr = path_append_varg( pathstr.str, pathstr.length, FOUNDATION_MAX_PATHLEN, false, STRING_CONST( "Library/Application Support" ), bundle.str, bundle.length, nullptr );
 	}
 #  endif
 	_environment_home_dir = string_clone( pathstr.str, pathstr.length );
@@ -432,7 +431,8 @@ string_const_t environment_temporary_directory( void )
 		wchar_t wpath[FOUNDATION_MAX_PATHLEN];
 		GetTempPathW( FOUNDATION_MAX_PATHLEN, wpath );
 		_environment_temp_dir = string_allocate_from_wstring( wpath, 0 );
-		_environment_temp_dir = path_clean( _environment_temp_dir.str, _environment_temp_dir.length, _environment_temp_dir.length, true, true );
+		_environment_temp_dir = path_clean( _environment_temp_dir.str, _environment_temp_dir.length, _environment_temp_dir.length, true );
+		_environment_temp_dir = path_absolute( _environment_temp_dir.str, _environment_temp_dir.length, _environment_temp_dir.length, true );
 	}
 #endif
 #if FOUNDATION_PLATFORM_ANDROID
@@ -486,8 +486,7 @@ string_const_t environment_temporary_directory( void )
 			string_t modpath = string_allocate( 0, totallen, 0 );
 			string_const_t uuidstr = string_from_uuid_static( _environment_app.instance );
 			modpath = string_copy( modpath.str, totallen, _environment_temp_dir.str, _environment_temp_dir.length );
-			modpath = path_append( modpath.str, modpath.length, totallen, _environment_app.config_dir.str, _environment_app.config_dir.length, false );
-			modpath = path_append( modpath.str, modpath.length, totallen, uuidstr.str, uuidstr.length, false );
+			modpath = path_append_varg( modpath.str, modpath.length, totallen, false, _environment_app.config_dir.str, _environment_app.config_dir.length, uuidstr.str, uuidstr.length, nullptr );
 			string_deallocate( _environment_temp_dir.str );
 			_environment_temp_dir = modpath;
 			_environment_temp_dir_local = true;

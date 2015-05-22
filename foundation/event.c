@@ -98,24 +98,26 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, o
 	event->flags     = flags;
 	event->object    = object;
 
-	part = event->payload;
+	part = (void*)&event->payload[0];
 	if( size )
 	{
 		memcpy( part, payload, size );
 		part += size;
 	}
+	va_copy( clist, list );
 	while( true )
 	{
-		ptr = va_arg( list, void* );
+		ptr = va_arg( clist, void* );
 		if( !ptr )
 			break;
-		psize = va_arg( list, size_t );
+		psize = va_arg( clist, size_t );
 		if( psize )
 		{
 			memcpy( part, ptr, psize );
 			part += psize;
 		}
 	}
+	va_end( clist );
 
 	if( timestamp )
 	{
@@ -143,12 +145,24 @@ size_t event_payload_size( const event_t* event )
 }
 
 
-void event_post( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size, ... )
+void event_post( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size )
+{
+	_event_post_delay_with_flags( stream, id, object, delivery, 0, payload, size, 0 );
+}
+
+
+void event_post_varg( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size, ... )
 {
 	va_list list;
 	va_start( list, size );
 	_event_post_delay_with_flags( stream, id, object, delivery, 0, payload, size, list );
 	va_end( list );
+}
+
+
+void event_post_vlist( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size, va_list list )
+{
+	_event_post_delay_with_flags( stream, id, object, delivery, 0, payload, size, list );
 }
 
 
@@ -175,7 +189,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 			return event;
 
 		//Re-post to next block
-		_event_post_delay_with_flags( block->stream, event->id, event->object, eventtime, event->flags, event->payload, event->size - ( sizeof( event_t ) + 8 ), (void*)0 );
+		_event_post_delay_with_flags( block->stream, event->id, event->object, eventtime, event->flags, event->payload, event->size - ( sizeof( event_t ) + 8 ), nullptr );
 	} while( true );
 }
 

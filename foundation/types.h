@@ -253,6 +253,7 @@ typedef struct error_context_t               error_context_t;
 typedef struct event_t                       event_t;
 typedef struct event_block_t                 event_block_t;
 typedef struct event_stream_t                event_stream_t;
+typedef struct fs_event_payload_t            fs_event_payload_t;
 typedef struct hashmap_node_t                hashmap_node_t;
 typedef struct hashmap_t                     hashmap_t;
 typedef struct hashtable32_entry_t           hashtable32_entry_t;
@@ -450,7 +451,7 @@ struct error_context_t
 struct event_t
 {
 	FOUNDATION_DECLARE_EVENT;
-	char                            payload[];
+	size_t                          payload[];
 };
 
 
@@ -468,6 +469,13 @@ FOUNDATION_ALIGNED_STRUCT( event_stream_t, 16 )
 	atomic32_t                      write;
 	int32_t                         read;
 	event_block_t                   block[2];
+};
+
+
+struct fs_event_payload_t
+{
+	size_t                          length;
+	const char                      str[];
 };
 
 

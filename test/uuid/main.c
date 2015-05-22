@@ -254,7 +254,8 @@ DECLARE_TEST( uuid, threaded )
 DECLARE_TEST( uuid, string )
 {
 	uuid_t uuid, uuidref;
-	char* str;
+	string_t str;
+	string_const_t strref;
 
 	uuidref = uuid_generate_random();
 	EXPECT_FALSE( uuid_is_null( uuidref ) );
@@ -262,20 +263,24 @@ DECLARE_TEST( uuid, string )
 	str = string_from_uuid( uuidref );
 	EXPECT_NE( str, 0 );
 
-	uuid = string_to_uuid( str );
+	uuid = string_to_uuid( STRING_ARGS( str ) );
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_TRUE( uuid_equal( uuid, uuidref ) );
 
-	string_deallocate( str );
+	string_deallocate( str.str );
 
-	uuid = string_to_uuid( "" );
-	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "empty string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+	uuid = string_to_uuid( "", 0 );
+	strref = string_from_uuid_static( uuid );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, STRING_CONST( "empty string did not convert to null uuid: %.*s" ), STRING_FORMAT( strref ) );
 
-	uuid = string_to_uuid( "0" );
-	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "\"0\" string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+	uuid = string_to_uuid( "0", 1 );
+	strref = string_from_uuid_static( uuid );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "\"0\" string did not convert to null uuid: %.*s", STRING_FORMAT( strref ) );
 
-	uuid = string_to_uuid( string_from_uuid_static( uuid_null() ) );
-	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "null uuid reconvert through string did not convert to null uuid: %s", string_from_uuid_static( uuid ) );
+	strref = string_from_uuid_static( uuid_null() );
+	uuid = string_to_uuid( STRING_ARGS( strref ) );
+	strref = string_from_uuid_static( uuid );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "null uuid reconvert through string did not convert to null uuid: %.*s", STRING_FORMAT( strref ) );
 
 	return 0;
 }

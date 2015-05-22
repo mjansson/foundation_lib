@@ -67,7 +67,7 @@ FOUNDATION_STATIC_ASSERT( sizeof( profile_block_t ) == 64, "profile_block_t size
 #define GET_BLOCK( index )          ( _profile_blocks + (index) )
 #define BLOCK_INDEX( block )        (uint16_t)((uintptr_t)( (block) - _profile_blocks ))
 
-static const char*                  _profile_identifier;
+static string_const_t               _profile_identifier;
 static atomic32_t                   _profile_counter;
 static atomic32_t                   _profile_loopid;
 static atomic32_t                   _profile_free;
@@ -346,7 +346,7 @@ static void* _profile_io( object_t thread, void* arg )
 }
 
 
-void profile_initialize( const char* identifier, void* buffer, size_t size )
+void profile_initialize( const char* identifier, size_t length, void* buffer, size_t size )
 {
 	profile_block_t* root  = buffer;
 	profile_block_t* block = root;
@@ -368,7 +368,7 @@ void profile_initialize( const char* identifier, void* buffer, size_t size )
 	atomic_store32( &_profile_root, 0 );
 
 	_profile_num_blocks = num_blocks;
-	_profile_identifier = identifier;
+	_profile_identifier = string_const( identifier, length );
 	_profile_blocks = root;
 	atomic_store32( &_profile_free, 1 ); //TODO: Currently 0 is a no-block identifier, so we waste the first block
 	atomic_store32( &_profile_counter, 128 );
@@ -422,7 +422,7 @@ void profile_shutdown( void )
 	atomic_store32( &_profile_free, 0 );
 
 	_profile_num_blocks = 0;
-	_profile_identifier = 0;
+	_profile_identifier = string_null();
 }
 
 

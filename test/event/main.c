@@ -148,8 +148,8 @@ DECLARE_TEST( event, immediate )
 	EXPECT_EQ( event, 0 );
 
 
-	event_post( stream, FOUNDATIONEVENT_TERMINATE, 13, 0, buffer, 0 );
-	event_post( stream, FOUNDATIONEVENT_TERMINATE + 1, 37, 0, buffer, 0 );
+	event_post( stream, FOUNDATIONEVENT_TERMINATE, 0, 0, buffer, 13 );
+	event_post_fragmented( stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, 3, buffer + 3, 10, buffer + 13, 24, (void*)0 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -211,7 +211,7 @@ static void* producer_thread( object_t thread, void* arg )
 		//event process - test will fail (timestamp check will fail since it is old due to suspension)
 		timestamp = args->max_delay ? time_current() + (tick_t)random_delay : 0;
 		memcpy( buffer, &timestamp, sizeof( tick_t ) );
-		event_post( args->stream, random_id, random_size, args->id, buffer, timestamp );
+		event_post_fragmented( args->stream, random_id, args->id, timestamp, buffer, random_size / 2, buffer + ( random_size / 2 ), random_size - ( random_size / 2 ), (void*)0 );
 		++produced;
 	} while( !thread_should_terminate( thread ) && ( time_current() < args->end_time ) );
 
@@ -320,8 +320,8 @@ DECLARE_TEST( event, delay )
 	halfsecond = time_ticks_per_second() / 2;
 	smalltick = time_ticks_per_second() / 100;
 
-	event_post( stream, expect_event, 0, 0, 0, current + halfsecond );
-	event_post( stream, expect_event + 1, 0, 0, 0, current + halfsecond + smalltick );
+	event_post( stream, expect_event, 0, current + halfsecond, 0, 0 );
+	event_post( stream, expect_event + 1, 0, current + halfsecond + smalltick, 0, 0 );
 
 	do
 	{
@@ -380,8 +380,8 @@ DECLARE_TEST( event, delay )
 	delivery = current + halfsecond;
 	limit = current + time_ticks_per_second();
 
-	event_post( stream, expect_event, 0, 0, 0, current + halfsecond );
-	event_post( stream, expect_event + 1, 0, 0, 0, current + halfsecond - smalltick );
+	event_post( stream, expect_event, 0, current + halfsecond, 0, 0 );
+	event_post( stream, expect_event + 1, 0, current + halfsecond - smalltick, 0, 0 );
 
 	do
 	{

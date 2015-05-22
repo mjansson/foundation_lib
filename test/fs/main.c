@@ -332,6 +332,8 @@ DECLARE_TEST( fs, event )
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
+	size_t length;
+	char* payload;
 
 	char pathstr[] = "/some/path/to/some/file/being/tested";
 
@@ -342,10 +344,12 @@ DECLARE_TEST( fs, event )
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
+	length = *(size_t*)event->payload;
+	payload = pointer_offset( event->payload, sizeof( size_t ) );
 	EXPECT_NE( event, 0 );
 
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
-	EXPECT_STREQ( event->payload, event-> , STRING_CONST( pathstr ) );
+	EXPECT_STREQ( payload, length, pathstr, sizeof( pathstr ) );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
@@ -361,17 +365,19 @@ DECLARE_TEST( fs, event )
 
 DECLARE_TEST( fs, monitor )
 {
-	char* testpath = path_merge( environment_temporary_directory(), string_from_uint_static( random64(), false, 0, 0 ) );
-	char* filetestpath = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
-	char* subtestpath = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
-	char* filesubtestpath = path_merge( subtestpath, string_from_uint_static( random64(), false, 0, 0 ) );
+	string_const_t fname;
+	string_t testpath;
+	string_t filetestpath;
+	string_t subtestpath;
+	string_t filesubtestpath;
 
 #define MULTICOUNT 16
-	char* multisubtestpath[MULTICOUNT];
-	char* multifilesubtestpath[MULTICOUNT][MULTICOUNT];
+	string_t multisubtestpath[MULTICOUNT];
+	string_t multifilesubtestpath[MULTICOUNT][MULTICOUNT];
 	bool multifilesubtestfound[MULTICOUNT][MULTICOUNT];
 	int isub, ifilesub;
 	unsigned int processed;
+	size_t evtsize;
 
 	stream_t* test_stream;
 
@@ -379,29 +385,45 @@ DECLARE_TEST( fs, monitor )
 	event_block_t* block;
 	event_t* event;
 
+	fname = string_from_uint_static( random64(), false, 0, 0 );
+	testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+
+	fname = string_from_uint_static( random64(), false, 0, 0 );
+	filetestpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+
+	fname = string_from_uint_static( random64(), false, 0, 0 );
+	subtestpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+
+	fname = string_from_uint_static( random64(), false, 0, 0 );
+	filesubtestpath = path_merge( STRING_ARGS( subtestpath ), STRING_ARGS( fname ) );
+
 	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
-		multisubtestpath[isub] = path_merge( testpath, string_from_uint_static( random64(), false, 0, 0 ) );
+		fname = string_from_uint_static( random64(), false, 0, 0 );
+		multisubtestpath[isub] = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
 		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
-			multifilesubtestpath[isub][ifilesub] = path_merge( multisubtestpath[isub], string_from_uint_static( random64(), false, 0, 0 ) );
+		{
+			fname = string_from_uint_static( random64(), false, 0, 0 );
+			multifilesubtestpath[isub][ifilesub] = path_merge( STRING_ARGS( multisubtestpath[isub] ), STRING_ARGS( fname ) );
+		}
 	}
 
 	stream = fs_event_stream();
 
-	fs_remove_directory( testpath );
-	fs_make_directory( testpath );
+	fs_remove_directory( STRING_ARGS( testpath ) );
+	fs_make_directory( STRING_ARGS( testpath ) );
 
-	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT | STREAM_CREATE ) );
-	fs_remove_file( filetestpath );
+	stream_deallocate( fs_open_file( STRING_ARGS( filetestpath ), STREAM_OUT | STREAM_CREATE ) );
+	fs_remove_file( STRING_ARGS( filetestpath ) );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );
 
-	fs_monitor( testpath );
+	fs_monitor( STRING_ARGS( testpath ) );
 	thread_sleep( 1000 );
 
-	test_stream = fs_open_file( filetestpath, STREAM_OUT | STREAM_CREATE );
+	test_stream = fs_open_file( STRING_ARGS( filetestpath ), STREAM_OUT | STREAM_CREATE );
 	stream_deallocate( test_stream );
 	EXPECT_NE( test_stream, 0 );
 	thread_sleep( 3000 );
@@ -410,13 +432,15 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
-	EXPECT_STREQ( event->payload, filetestpath );
+
+	evtsize = event->payload[0];
+	EXPECT_STREQ( (char*)pointer_offset( event->payload, sizeof( size_t ) ), evtsize, filetestpath.str, filetestpath.length );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 
-	test_stream = fs_open_file( filetestpath, STREAM_IN | STREAM_OUT | STREAM_CREATE );
-	stream_write_string( test_stream, filetestpath );
+	test_stream = fs_open_file( STRING_ARGS( filetestpath ), STREAM_IN | STREAM_OUT | STREAM_CREATE );
+	stream_write_string( test_stream, STRING_ARGS( filetestpath ) );
 	stream_deallocate( test_stream );
 	thread_sleep( 3000 );
 
@@ -424,31 +448,35 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_MODIFIED );
-	EXPECT_STREQ( event->payload, filetestpath );
+
+	evtsize = event->payload[0];
+	EXPECT_STREQ( (char*)pointer_offset( event->payload, sizeof( size_t ) ), evtsize, filetestpath.str, filetestpath.length );
 
 	event = event_next( block, event );
-	EXPECT_EQ_MSGFORMAT( event, 0, "event not null (%d : %s)", event->id, event->payload );
+	EXPECT_EQ_MSGFORMAT( event, 0, "event not null (%d : %s)", event->id, (char*)pointer_offset( event->payload, sizeof( size_t ) ) );
 
-	fs_remove_file( filetestpath );
+	fs_remove_file( STRING_ARGS( filetestpath ) );
 	thread_sleep( 3000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
-	EXPECT_STREQ( event->payload, filetestpath );
+
+	evtsize = event->payload[0];
+	EXPECT_STREQ( (char*)pointer_offset( event->payload, sizeof( size_t ) ), evtsize, filetestpath.str, filetestpath.length );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 
-	fs_make_directory( subtestpath );
+	fs_make_directory( STRING_ARGS( subtestpath ) );
 	thread_sleep( 3000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );
 
-	test_stream = fs_open_file( filesubtestpath, STREAM_OUT | STREAM_CREATE );
+	test_stream = fs_open_file( STRING_ARGS( filesubtestpath ), STREAM_OUT | STREAM_CREATE );
 	stream_deallocate( test_stream );
 	EXPECT_NE( test_stream, 0 );
 	thread_sleep( 3000 );
@@ -457,13 +485,15 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
-	EXPECT_STREQ( event->payload, filesubtestpath );
+
+	evtsize = event->payload[0];
+	EXPECT_STREQ( (char*)pointer_offset( event->payload, sizeof( size_t ) ), evtsize, filesubtestpath.str, filesubtestpath.length );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 
-	test_stream = fs_open_file( filesubtestpath, STREAM_IN | STREAM_OUT | STREAM_CREATE );
-	stream_write_string( test_stream, filesubtestpath );
+	test_stream = fs_open_file( STRING_ARGS( filesubtestpath ), STREAM_IN | STREAM_OUT | STREAM_CREATE );
+	stream_write_string( test_stream, STRING_ARGS( filesubtestpath ) );
 	stream_deallocate( test_stream );
 	thread_sleep( 3000 );
 
@@ -471,29 +501,33 @@ DECLARE_TEST( fs, monitor )
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_MODIFIED );
-	EXPECT_STREQ( event->payload, filesubtestpath );
+
+	evtsize = event->payload[0];
+	EXPECT_STREQ( (char*)pointer_offset( event->payload, sizeof( size_t ) ), evtsize, filesubtestpath.str, filesubtestpath.length );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 
-	fs_remove_file( filesubtestpath );
+	fs_remove_file( STRING_ARGS( filesubtestpath ) );
 	thread_sleep( 3000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_NE( event, 0 );
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_DELETED );
-	EXPECT_STREQ( event->payload, filesubtestpath );
+
+	evtsize = event->payload[0];
+	EXPECT_STREQ( (char*)pointer_offset( event->payload, sizeof( size_t ) ), evtsize, filesubtestpath.str, filesubtestpath.length );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );
 
 	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
-		fs_make_directory( multisubtestpath[isub] );
+		fs_make_directory( STRING_ARGS( multisubtestpath[isub] ) );
 		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
-			test_stream = fs_open_file( multifilesubtestpath[isub][ifilesub], STREAM_IN | STREAM_OUT | STREAM_CREATE );
+			test_stream = fs_open_file( STRING_ARGS( multifilesubtestpath[isub][ifilesub] ), STREAM_IN | STREAM_OUT | STREAM_CREATE );
 			stream_deallocate( test_stream );
 			multifilesubtestfound[isub][ifilesub] = false;
 		}
@@ -510,14 +544,19 @@ DECLARE_TEST( fs, monitor )
 		{
 			bool found = false;
 			char eventstr[256];
-			string_format_buffer( eventstr, 256, "event %d:%d:%d:%d:%s", event->id, event->flags, event->serial, event->size, (const char*)event->payload );
+			char* evtpath;
+
+			evtsize = event->payload[0];
+			evtpath = pointer_offset( event->payload, sizeof( size_t ) );
+
+			string_format_buffer( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
 			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr );
 
 			for( isub = 0; isub < MULTICOUNT; ++isub )
 			{
 				for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 				{
-					if( string_equal( multifilesubtestpath[isub][ifilesub], event->payload ) )
+					if( string_equal( STRING_ARGS( multifilesubtestpath[isub][ifilesub] ), evtpath, evtsize ) )
 					{
 						multifilesubtestfound[isub][ifilesub] = true;
 						found = true;
@@ -541,7 +580,7 @@ DECLARE_TEST( fs, monitor )
 
 	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
-		fs_remove_directory( multisubtestpath[isub] );
+		fs_remove_directory( STRING_ARGS( multisubtestpath[isub] ) );
 		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
 			multifilesubtestfound[isub][ifilesub] = false;
@@ -559,15 +598,19 @@ DECLARE_TEST( fs, monitor )
 		{
 			bool found = false;
 			char eventstr[256];
-			string_format_buffer(eventstr, 256, "event %d:%d:%d:%d:%s", event->id, event->flags, event->serial, event->size, (const char*)event->payload);
+			char* evtpath;
 
-			EXPECT_EQ_MSG(event->id, FOUNDATIONEVENT_FILE_DELETED, eventstr);
+			evtsize = event->payload[0];
+			evtpath = pointer_offset( event->payload, sizeof( size_t ) );
+			string_format_buffer( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
+
+			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_DELETED, eventstr );
 
 			for( isub = 0; isub < MULTICOUNT; ++isub )
 			{
 				for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 				{
-					if( string_equal( multifilesubtestpath[isub][ifilesub], event->payload ) )
+					if( string_equal( STRING_ARGS( multifilesubtestpath[isub][ifilesub] ), evtpath, evtsize ) )
 					{
 						multifilesubtestfound[isub][ifilesub] = true;
 						found = true;
@@ -589,40 +632,40 @@ DECLARE_TEST( fs, monitor )
 		}
 	}
 
-	fs_unmonitor( testpath );
+	fs_unmonitor( STRING_ARGS( testpath ) );
 	thread_sleep( 1000 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );
 
-	stream_deallocate( fs_open_file( filetestpath, STREAM_OUT | STREAM_CREATE ) );
+	stream_deallocate( fs_open_file( STRING_ARGS( filetestpath ), STREAM_OUT | STREAM_CREATE ) );
 	thread_sleep( 100 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );
 
-	fs_remove_file( filetestpath );
+	fs_remove_file( STRING_ARGS( filetestpath ) );
 	thread_sleep( 100 );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
 	EXPECT_EQ( event, 0 );
 
-	fs_remove_directory( testpath );
+	fs_remove_directory( STRING_ARGS( testpath ) );
 
 	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
-		string_deallocate( multisubtestpath[isub] );
+		string_deallocate( multisubtestpath[isub].str );
 		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
-			string_deallocate( multifilesubtestpath[isub][ifilesub] );
+			string_deallocate( multifilesubtestpath[isub][ifilesub].str );
 	}
 
-	string_deallocate( subtestpath );
-	string_deallocate( filesubtestpath );
-	string_deallocate( testpath );
-	string_deallocate( filetestpath );
+	string_deallocate( subtestpath.str );
+	string_deallocate( filesubtestpath.str );
+	string_deallocate( testpath.str );
+	string_deallocate( filetestpath.str );
 
 	return 0;
 }

@@ -17,7 +17,7 @@
 
 #if BUILD_ENABLE_PROFILE
 
-FOUNDATION_API void profile_initialize( const char* identifier, void* buffer, size_t size );
+FOUNDATION_API void profile_initialize( const char* identifier, size_t length, void* buffer, size_t size );
 FOUNDATION_API void profile_shutdown( void );
 FOUNDATION_API void profile_enable( bool enable );
 

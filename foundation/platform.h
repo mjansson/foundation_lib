@@ -834,6 +834,8 @@ typedef enum
 #  include <sys/types.h>
 #endif
 
+#define nullptr ((void*)0)
+
 typedef float          float32_t;
 typedef double         float64_t;
 

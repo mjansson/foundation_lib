@@ -15,35 +15,29 @@
 #include <string.h>
 
 
-string_t path_clean( char* path, size_t length, size_t capacity, bool absolute, bool reallocate )
+string_t path_clean( char* path, size_t length, size_t capacity, bool reallocate )
 {
 	//Since this function is used a lot we want to perform as much operations
 	//in place instead of splicing up into a string array and remerge
 	char* replace;
 	char* inpath;
 	char* pathpart;
-	size_t inlength, curlength, remain, next, protocollen, up, last_up, prev_up, driveofs;
+	size_t inlength, curcapacity, curlength, remain, next, protocollen, up, last_up, prev_up, driveofs;
+	bool absolute;
 
 	if( !path )
-	{
-		if( reallocate )
-		{
-			if( absolute )
-				return string_clone( STRING_CONST( "/" ) );
-			return string_clone( STRING_CONST( "" ) );
-		}
-		return (string_t){ 0, 0 };
-	}
+		return reallocate ? string_clone( STRING_CONST( "" ) ) : (string_t){ 0, 0 };
 
 	inpath = path;
 	pathpart = inpath;
 	inlength = length;
+	curcapacity = capacity;
 	protocollen = string_find_string( path, length, STRING_CONST( "://" ), 0 );
-	if( ( protocollen != STRING_NPOS ) && ( protocollen > 1 ) )
+	if( protocollen != STRING_NPOS )
 	{
-		absolute = true;
 		protocollen += 3; //Also skip the "://" separator
 		inlength -= protocollen;
+		curcapacity -= protocollen;
 		pathpart += protocollen;
 	}
 	else
@@ -97,6 +91,7 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool absolute, 
 		}
 	}
 
+	absolute = path_is_absolute( inpath, curlength );
 	if( absolute )
 	{
 		if( !curlength )
@@ -107,7 +102,7 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool absolute, 
 				inpath = memory_reallocate( inpath, inlength + protocollen + 1, 0, protocollen + 1 );
 				pathpart = inpath + protocollen;
 			}
-			if( capacity )
+			if( curcapacity )
 			{
 				*pathpart = '/';
 				++curlength;
@@ -123,14 +118,15 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool absolute, 
 
 			if( curlength == 2 )
 			{
-				if( ( capacity <= 2 ) && reallocate )
+				if( ( curcapacity <= 2 ) && reallocate )
 				{
 					capacity = inlength + 2 + protocollen + 1;
 					inpath = memory_reallocate( inpath, capacity, 0, inlength + protocollen + 1 );
 					inlength += 2;
+					curcapacity = capacity - protocollen;
 					pathpart = inpath + protocollen;
 				}
-				if( capacity > 2 )
+				if( curcapacity > 2 )
 				{
 					pathpart[2] = '/';
 					++curlength;
@@ -139,14 +135,15 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool absolute, 
 			else if( pathpart[2] != '/' )
 			{
 				//splice in slash in weird-format paths (C:foo/bar/...)
-				if( ( capacity < ( curlength + 1 ) ) && reallocate )
+				if( ( curcapacity < ( curlength + 1 ) ) && reallocate )
 				{
 					capacity = curlength + protocollen + 2;
 					inpath = memory_reallocate( inpath, capacity, 0, inlength + protocollen + 1 );
 					inlength = curlength + 1;
+					curcapacity = capacity - protocollen;
 					path = inpath + protocollen;
 				}
-				if( capacity >= ( curlength + 1 ) )
+				if( curcapacity >= ( curlength + 1 ) )
 				{
 					memmove( pathpart + 3, pathpart + 2, curlength + 1 - 2 );
 					pathpart[2] = '/';
@@ -156,27 +153,20 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool absolute, 
 		}
 		else if( !protocollen && ( pathpart[0] != '/' ) )
 		{
-			if( ( capacity < ( curlength + 1 ) ) && reallocate )
+			if( ( curcapacity < ( curlength + 1 ) ) && reallocate )
 			{
 				capacity = curlength + protocollen + 2;
 				inpath = memory_reallocate( inpath, capacity, 0, inlength + protocollen + 1 );
 				inlength = curlength + 1;
+				curcapacity = capacity - protocollen;
 				path = inpath + protocollen;
 			}
-			if( capacity >= ( curlength + 1 ) )
+			if( curcapacity >= ( curlength + 1 ) )
 			{
 				memmove( pathpart + 1, pathpart, curlength + 1 );
 				pathpart[0] = '/';
 				++curlength;
 			}
-		}
-	}
-	else //relative
-	{
-		if( curlength && ( pathpart[0] == '/' ) )
-		{
-			memmove( pathpart, pathpart + 1, curlength - 1 );
-			--curlength;
 		}
 	}
 
@@ -371,42 +361,110 @@ string_const_t path_protocol( const char* uri, size_t length )
 
 string_t path_merge( const char* first, size_t first_length, const char* second, size_t second_length )
 {
-	string_t merged;
+	bool endsep, beginsep;
 	if( !first_length )
-		merged = string_clone( second, second_length );
+		return string_clone( second, second_length );
 	else if( !second_length )
-		merged = string_clone( first, first_length );
-	else
+		return string_clone( first, first_length );
+	beginsep = ( first[ first_length - 1 ] == '/' ) || ( first[ first_length - 1 ] == '\\' );
+	endsep = ( second[0] == '/' ) || ( second[0] == '\\' );
+	if( beginsep && endsep )
+		return string_concat( first, first_length, second + 1, second_length - 1 );
+	else if( beginsep || endsep )
+		return string_concat( first, first_length, second, second_length );
+	return string_merge_varg( '/', first, first_length, second, second_length, nullptr );
+}
+
+
+string_t path_append( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length )
+{
+	bool beginsep = ( base_length && ( ( base[ base_length - 1 ] == '/' ) || ( base[ base_length - 1 ] == '\\' ) ) );
+	bool endsep = ( tail_length && ( ( tail[0] == '/' ) || ( tail[0] == '\\' ) ) );
+	if( beginsep && endsep )
+		return string_append( base, base_length, base_capacity, reallocate, tail + 1, tail_length - 1 );
+	else if( beginsep || endsep )
+		return string_append( base, base_length, base_capacity, reallocate, tail, tail_length );
+	return string_append_varg( base, base_length, base_capacity, reallocate, STRING_CONST( "/" ), tail, tail_length, nullptr );
+}
+
+
+string_t path_append_varg( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length, ... )
+{
+	va_list list;
+	string_t result = path_append( base, base_length, base_capacity, reallocate, tail, tail_length );
+	va_start( list, tail_length );
+	result = path_append_vlist( result.str, result.length, ( result.length >= base_capacity ) ? result.length + 1 : base_capacity, reallocate, list );
+	va_end( list );
+	return result;
+}
+
+
+string_t path_append_vlist( char* base, size_t base_length, size_t base_capacity, bool reallocate, va_list list )
+{
+	va_list clist;
+	string_t result = (string_t){ base, base_length };
+	va_copy( clist, list );
+	while( true )
 	{
-		size_t total_length = first_length + second_length + 1;
-		merged = string_allocate( 0, total_length + 1, 0 );
-		memcpy( merged.str, first, first_length );
-		merged.str[ first_length ] = '/';
-		memcpy( merged.str + first_length + 1, second, second_length );
-		merged.length = total_length;
-		merged.str[ merged.length ] = 0;
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if( psize )
+		{
+			result = path_append( result.str, result.length, base_capacity, reallocate, ptr, psize );
+			if( result.length >= base_capacity )
+				base_capacity = result.length + 1;
+		}
 	}
-	return path_clean( merged.str, merged.length, merged.length, path_is_absolute( first, first_length ), true );
+	va_end( clist );
+	return result;
 }
 
 
-string_t path_append( char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length, bool reallocate )
+string_t path_prepend( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length )
 {
-	string_t merged;
-	if( base_length )
-		merged = string_append( base, base_length, base_capacity, STRING_CONST( "/" ), reallocate );
-	merged = string_append( merged.str, merged.length, base_capacity > merged.length ? base_capacity : merged.length + 1, tail, tail_length, reallocate );
-	return path_clean( merged.str, merged.length, base_capacity > merged.length ? base_capacity : merged.length + 1, path_is_absolute( base, base_length ), reallocate );
+	bool beginsep = ( base_length && ( ( base[ base_length - 1 ] == '/' ) || ( base[ base_length - 1 ] == '\\' ) ) );
+	bool endsep = ( tail_length && ( ( tail[0] == '/' ) || ( tail[0] == '\\' ) ) );
+	if( beginsep && endsep )
+		return string_prepend( tail, tail_length, tail_capacity, reallocate, base, base_length - 1 );
+	else if( beginsep || endsep )
+		return string_prepend( tail, tail_length, tail_capacity, reallocate, base, base_length );
+	return string_prepend_varg( tail, tail_length, tail_capacity, reallocate, STRING_CONST( "/" ), base, base_length, nullptr );
 }
 
 
-string_t path_prepend( char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length, bool reallocate )
+string_t path_prepend_varg( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length, ... )
 {
-	string_t merged;
-	if( tail_length )
-		merged = string_prepend( tail, tail_length, tail_capacity, STRING_CONST( "/" ), reallocate );
-	merged = string_prepend( merged.str, merged.length, tail_capacity > merged.length ? tail_capacity : merged.length + 1, base, base_length, reallocate );
-	return path_clean( merged.str, merged.length, tail_capacity > merged.length ? tail_capacity : merged.length + 1, path_is_absolute( base, base_length ), reallocate );
+	va_list list;
+	string_t result = path_prepend( tail, tail_length, tail_capacity, reallocate, base, base_length );
+	va_start( list, base_length );
+	result = path_prepend_vlist( result.str, result.length, ( result.length >= tail_capacity ) ? result.length + 1 : tail_capacity, reallocate, list );
+	va_end( list );
+	return result;
+}
+
+
+string_t path_prepend_vlist( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, va_list list )
+{
+	va_list clist;
+	string_t result = (string_t){ tail, tail_length };
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if( psize )
+		{
+			result = path_append( result.str, result.length, tail_capacity, reallocate, ptr, psize );
+			if( result.length >= tail_capacity )
+				tail_capacity = result.length + 1;
+		}
+	}
+	va_end( clist );
+	return result;
 }
 
 

@@ -44,11 +44,11 @@ static volatile bool _delegate_received_terminate = false;
 
 	_delegate_main_thread_running = true;
 
-	log_debug( 0, "Started main thread" );
+	log_debug( 0, STRING_CONST( "Started main thread" ) );
 
     if( !_delegate_received_start )
     {
-		log_debug( 0, "Waiting for application init" );
+		log_debug( 0, STRING_CONST( "Waiting for application init" ) );
         while( !_delegate_received_start )
             thread_sleep( 50 );
         thread_sleep( 1 );
@@ -56,27 +56,26 @@ static volatile bool _delegate_received_terminate = false;
 
 	@autoreleasepool
 	{
-		log_debug( 0, "Application init done, launching main" );
+		log_debug( 0, STRING_CONST( "Application init done, launching main" ) );
 		if( ![NSThread isMultiThreaded] )
-			log_warn( 0, WARNING_SUSPICIOUS, "Application is STILL not multithreaded!" );
+			log_warn( 0, WARNING_SUSPICIOUS, STRING_CONST( "Application is STILL not multithreaded!" ) );
     }
 
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
 		{
-			const char* aname = app->short_name;
-			name = string_clone( aname ? aname : "unknown" );
-			name = string_append( name, "-" );
-			name = string_append( name, string_from_version_static( app->version ) );
+			string_const_t aname = app->short_name.length ? app->short_name : string_const( STRING_CONST( "unknown" ) );
+			string_const_t vstr = string_from_version_static( app->version );
+			name = string_merge_varg( STRING_ARGS( aname ), STRING_CONST( "-" ), STRING_ARGS( vstr ) );
 		}
 
 		if( app->dump_callback )
-			crash_guard_set( app->dump_callback, name );
+			crash_guard_set( app->dump_callback, STRING_ARGS( name ) );
 
-		crash_guard( main_run, 0, app->dump_callback, name );
+		crash_guard( main_run, 0, app->dump_callback, STRING_ARGS( name ) );
 
-		string_deallocate( name );
+		string_deallocate( name.str );
 	}
 
 	main_shutdown();
@@ -84,10 +83,10 @@ static volatile bool _delegate_received_terminate = false;
 	@autoreleasepool
 	{
 #if FOUNDATION_PLATFORM_MACOSX
-		log_debug( 0, "Calling application terminate" );
+		log_debug( 0, STRING_CONST( "Calling application terminate" ) );
 		[NSApp terminate:nil];
 #endif
-		log_debug( 0, "Main thread exiting" );
+		log_debug( 0, STRING_CONST( "Main thread exiting" ) );
 
 		_delegate_main_thread_running = false;
 
@@ -95,7 +94,7 @@ static volatile bool _delegate_received_terminate = false;
 		if( !_delegate_received_terminate )
 		{
 			if( ( environment_application()->flags & APPLICATION_UTILITY ) == 0 )
-				log_warn( 0, WARNING_SUSPICIOUS, "Main loop terminated without applicationWillTerminate - force exit process" );
+				log_warn( 0, WARNING_SUSPICIOUS, STRING_CONST( "Main loop terminated without applicationWillTerminate - force exit process" ) );
 			exit( -1 );
 		}
 #endif
@@ -108,7 +107,7 @@ void delegate_start_main_ns_thread( void )
 {
 	delegate_reference_classes();
 
-	log_debug( 0, "Starting main thread" );
+	log_debug( 0, STRING_CONST( "Starting main thread" ) );
 	@autoreleasepool { [NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil]; }
 }
 
@@ -144,20 +143,20 @@ void* delegate_nswindow( void )
 	_delegate = self;
     _delegate_received_start = true;
 
-	log_debug( 0, "Application finished launching" );
+	log_debug( 0, STRING_CONST( "Application finished launching" ) );
 	system_post_event( FOUNDATIONEVENT_START );
 }
 
 - (void)applicationWillResignActive:(NSNotification*)notification
 {
 	FOUNDATION_UNUSED( notification );
-	log_debug( 0, "Application will resign active" );
+	log_debug( 0, STRING_CONST( "Application will resign active" ) );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
 - (void)applicationDidBecomeActive:(NSNotification*)notification
 {
-	log_debug( 0, "Application became active" );
+	log_debug( 0, STRING_CONST( "Application became active" ) );
 	_delegate_app = [notification object];
 	system_post_event( FOUNDATIONEVENT_RESUME );
 }
@@ -169,14 +168,14 @@ void* delegate_nswindow( void )
 
 	if( foundation_is_initialized() )
 	{
-		log_debug( 0, "Application will terminate" );
+		log_debug( 0, STRING_CONST( "Application will terminate" ) );
 		system_post_event( FOUNDATIONEVENT_TERMINATE );
 	}
 }
 
 - (void) dealloc
 {
-	log_debug( 0, "Application dealloc" );
+	log_debug( 0, STRING_CONST( "Application dealloc" ) );
 
 	_delegate_app = 0;
 	_delegate = 0;
@@ -218,7 +217,7 @@ void* delegate_uiwindow( void )
 	_delegate = self;
     _delegate_received_start = true;
 
-	log_debug( HASH_FOUNDATION, "Application finished launching" );
+	log_debug( HASH_FOUNDATION, STRING_CONST( "Application finished launching" ) );
 	system_post_event( FOUNDATIONEVENT_START );
 
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
@@ -229,7 +228,7 @@ void* delegate_uiwindow( void )
 - (void)applicationWillResignActive:(UIApplication*)application
 {
 	FOUNDATION_UNUSED( application );
-	log_debug( HASH_FOUNDATION, "Application will resign active" );
+	log_debug( HASH_FOUNDATION, STRING_CONST( "Application will resign active" ) );
 	system_post_event( FOUNDATIONEVENT_FOCUS_LOST );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
@@ -238,7 +237,7 @@ void* delegate_uiwindow( void )
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
 	FOUNDATION_UNUSED( application );
-	log_debug( HASH_FOUNDATION, "Application became active" );
+	log_debug( HASH_FOUNDATION, STRING_CONST( "Application became active" ) );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
 	system_post_event( FOUNDATIONEVENT_FOCUS_GAIN );
@@ -250,7 +249,7 @@ void* delegate_uiwindow( void )
 	FOUNDATION_UNUSED( application );
 	_delegate_received_terminate = true;
 
-	log_debug( HASH_FOUNDATION, "Application will terminate" );
+	log_debug( HASH_FOUNDATION, STRING_CONST( "Application will terminate" ) );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -264,14 +263,14 @@ void* delegate_uiwindow( void )
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
 	FOUNDATION_UNUSED( application );
-	log_debug( HASH_FOUNDATION, "Application entered background" );
+	log_debug( HASH_FOUNDATION, STRING_CONST( "Application entered background" ) );
 }
 
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
 {
 	FOUNDATION_UNUSED( application );
-	log_warn( 0, WARNING_MEMORY, "Application received memory warning" );
+	log_warn( 0, WARNING_MEMORY, STRING_CONST( "Application received memory warning" ) );
 	system_post_event( FOUNDATIONEVENT_LOW_MEMORY_WARNING );
 
 #if BUILD_DEBUG || BUILD_RELEASE
@@ -304,14 +303,14 @@ void* delegate_uiwindow( void )
 	FOUNDATION_UNUSED( notification );
 	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
 
-	log_debugf( 0, "Device orientation changed to %d", (int)orientation );
+	log_debugf( 0, STRING_CONST( "Device orientation changed to %d", (int)orientation ) );
 	system_set_device_orientation( (device_orientation_t)orientation );
 }
 
 
 - (void) dealloc
 {
-	log_debug( 0, "Application dealloc" );
+	log_debug( 0, STRING_CONST( "Application dealloc" ) );
 
 	_delegate_app = 0;
 	_delegate = 0;

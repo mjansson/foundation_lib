@@ -163,8 +163,8 @@ DECLARE_TEST( pipe, readwrite )
 	EXPECT_EQ( stream_tell( pipe ), 0 );
 	EXPECT_EQ( stream_available_read( pipe ), 0 );
 
-	reader = thread_create( read_thread, "reader", THREAD_PRIORITY_NORMAL, 0 );
-	writer = thread_create( write_thread, "writer", THREAD_PRIORITY_NORMAL, 0 );
+	reader = thread_create( read_thread, STRING_CONST( "reader" ), THREAD_PRIORITY_NORMAL, 0 );
+	writer = thread_create( write_thread, STRING_CONST( "writer" ), THREAD_PRIORITY_NORMAL, 0 );
 
 	thread_start( reader, pipe );
 	thread_start( writer, pipe );

@@ -1090,7 +1090,7 @@ string_t* fs_matching_files( const char* path, size_t length, const char* patter
 
 void fs_post_event( foundation_event_id id, const char* path, size_t pathlen )
 {
-	event_post( fs_event_stream(), id, 0, 0, path, pathlen, &pathlen, sizeof( pathlen ), (void*)0 );
+	event_post_varg( fs_event_stream(), id, 0, 0, &pathlen, sizeof( pathlen ), path, pathlen, nullptr );
 }
 
 

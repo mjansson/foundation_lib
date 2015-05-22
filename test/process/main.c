@@ -54,42 +54,44 @@ DECLARE_TEST( process, spawn )
 	bool found_file;
 	char line_buffer[512];
 #if FOUNDATION_PLATFORM_WINDOWS
-	const char* prog = environment_variable( "comspec" );
-	const char* args[] = { "/C", "dir", 0 };
+	string_const_t prog = environment_variable( "comspec" );
+	string_const_t args[] = { string_const( STRING_CONST( "/C" ) ), string_const( STRING_CONST( "dir" ) ), string_null() };
 #elif FOUNDATION_PLATFORM_POSIX
-	const char* prog = "/bin/ls";
-	const char* args[] = { "-l", "-a", 0 };
+	string_const_t prog = string_const( STRING_CONST( "/bin/ls" ) );
+	string_const_t args[] = { string_const( STRING_CONST( "-1" ) ), string_const( STRING_CONST( "-a" ) ), string_null() };
 #else
-	const char* prog = "notimplemented";
-	const char* args[] = { "", "", 0 };
+	string_const_t prog = string_const( STRING_CONST( "notimplemented" ) );
+	string_const_t args[] = { string_const( STRING_CONST( "" ) ), string_const( STRING_CONST( "" ) ), string_null() };
 #endif
-	char* tmp_path;
-	char* full_path;
+	string_t tmp_path;
+	string_t full_path;
 	stream_t* tmp_file;
-	const char* file_name = "test-file";
+	string_const_t fname;
+	string_const_t file_name = string_const( STRING_CONST( "test-file" ) );
 
 	if( ( system_platform() == PLATFORM_IOS ) || ( system_platform() == PLATFORM_ANDROID ) || ( system_platform() == PLATFORM_PNACL ) )
 		return 0;
 
-	tmp_path = path_merge( environment_temporary_directory(), "path with space " );
-	tmp_path = string_append( tmp_path, string_from_uint_static( (uint32_t)random32(), false, 0, '0' ) );
+	tmp_path = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_CONST( "path with space " ) );
+	fname = string_from_uint_static( (uint32_t)random32(), false, 0, '0' );
+	tmp_path = string_append( STRING_ARGS_CAPACITY( tmp_path ), STRING_ARGS( fname ), true );
 
-	EXPECT_TRUE( fs_make_directory( tmp_path ) );
+	EXPECT_TRUE( fs_make_directory( STRING_ARGS( tmp_path ) ) );
 
-	full_path = path_merge( tmp_path, file_name );
-	tmp_file = fs_open_file( full_path, STREAM_CREATE | STREAM_OUT );
+	full_path = path_merge( STRING_ARGS( tmp_path ), STRING_ARGS( file_name ) );
+	tmp_file = fs_open_file( STRING_ARGS( full_path ), STREAM_CREATE | STREAM_OUT );
 	EXPECT_NE( tmp_file, 0 );
 	stream_deallocate( tmp_file );
 
-	args[2] = tmp_path;
+	args[2] = string_to_const( tmp_path );
 
 	proc = process_allocate();
 
-	process_set_working_directory( proc, "/" );
-	process_set_executable_path( proc, prog );
+	process_set_working_directory( proc, STRING_CONST( "/" ) );
+	process_set_executable_path( proc, STRING_ARGS( prog ) );
 	process_set_arguments( proc, args, sizeof( args ) / sizeof( args[0] ) );
 	process_set_flags( proc, PROCESS_DETACHED | PROCESS_CONSOLE | PROCESS_STDSTREAMS );
-	process_set_verb( proc, "open" );
+	process_set_verb( proc, STRING_CONST( "open" ) );
 
 	ret = process_spawn( proc );
 	EXPECT_INTEQ( ret, PROCESS_STILL_ACTIVE );
@@ -100,28 +102,28 @@ DECLARE_TEST( process, spawn )
 	EXPECT_NE( out, 0 );
 	EXPECT_NE( in, 0 );
 
-	stream_write_string( in, "testing" );
+	stream_write_string( in, STRING_CONST( "testing" ) );
 
 	found_expected = false;
 	found_file = false;
 	num_lines = 0;
 	do
 	{
-		stream_read_line_buffer( out, line_buffer, 512, '\n' );
-		string_strip( line_buffer, "\n\r" );
-		if( string_length( line_buffer ) )
+		string_t fline = stream_read_line_buffer( out, line_buffer, 512, '\n' );
+		string_const_t line = string_strip( STRING_ARGS( fline ), STRING_CONST( "\n\r" ) );
+		if( line.length )
 		{
 			++num_lines;
 #if FOUNDATION_PLATFORM_WINDOWS
-			if( ( string_find_string( line_buffer, "File(s)", 0 ) != STRING_NPOS ) && ( string_find_string( line_buffer, "bytes", 0 ) != STRING_NPOS ) )
+			if( ( string_find_string( STRING_ARGS( line ), STRING_CONST( "File(s)" ), 0 ) != STRING_NPOS ) && ( string_find_string( STRING_ARGS( line ), STRING_CONST( "bytes" ), 0 ) != STRING_NPOS ) )
 				found_expected = true;
 #else
-			if( ( string_find_string( line_buffer, "drwx", 0 ) != STRING_NPOS ) && ( string_find_string( line_buffer, "..", 0 ) != STRING_NPOS ) )
+			if( ( string_find_string( STRING_ARGS( line ), STRING_CONST( "drwx" ), 0 ) != STRING_NPOS ) && ( string_find_string( STRING_ARGS( line ), STRING_CONST( ".." ), 0 ) != STRING_NPOS ) )
 				found_expected = true;
 #endif
-			if( string_find_string( line_buffer, file_name, 0 ) != STRING_NPOS )
+			if( string_find_string( STRING_ARGS( line ), STRING_ARGS( file_name ), 0 ) != STRING_NPOS )
 				found_file = true;
-			log_debugf( HASH_TEST, "%s", line_buffer );
+			log_debugf( HASH_TEST, STRING_CONST( "%.*s" ), STRING_FORMAT( fline ) );
 		}
 	} while( !stream_eos( out ) );
 
@@ -146,10 +148,10 @@ DECLARE_TEST( process, spawn )
 
 	process_finalize( proc );
 
-	args[0] = tmp_path;
+	args[0] = string_to_const( tmp_path );
 
-	process_set_working_directory( proc, "/" );
-	process_set_executable_path( proc, "/System/Library/CoreServices/Finder.app" );
+	process_set_working_directory( proc, STRING_CONST( "/" ) );
+	process_set_executable_path( proc, STRING_CONST( "/System/Library/CoreServices/Finder.app" ) );
 	process_set_flags( proc, PROCESS_DETACHED | PROCESS_MACOSX_USE_OPENAPPLICATION );
 	process_set_arguments( proc, args, 1 );
 
@@ -164,8 +166,8 @@ DECLARE_TEST( process, spawn )
 	EXPECT_EQ( process_exit_code(), -1 );
 	process_set_exit_code( 0 );
 
-	string_deallocate( tmp_path );
-	string_deallocate( full_path );
+	string_deallocate( tmp_path.str );
+	string_deallocate( full_path.str );
 
 	return 0;
 }

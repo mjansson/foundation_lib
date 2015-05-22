@@ -405,7 +405,7 @@ int process_spawn( process_t* proc )
 				int ret = kevent( proc->kq, &changes, 1, &changes, 1, 0 );
 				if( ret != 1 )
 				{
-					int err = erno;
+					int err = errno;
 					string_const_t errmsg = system_error_message( err );
 					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to setup kqueue for process watch, failed to add event to kqueue: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
 					close( proc->kq );
@@ -421,12 +421,18 @@ int process_spawn( process_t* proc )
 #if FOUNDATION_PLATFORM_POSIX
 
 	//Insert executable arg at start and null ptr at end
+	size_t arg;
 	size_t argc = array_size( proc->args ) + 1;
 	array_grow( proc->args, 2 );
-	for( size_t arg = argc - 1; arg > 0; --arg )
+	for( arg = argc - 1; arg > 0; --arg )
 		proc->args[arg] = proc->args[arg-1];
-	proc->args[0] = string_clone( proc->path );
-	proc->args[argc] = 0;
+	proc->args[0] = string_clone( STRING_ARGS( proc->path ) );
+	proc->args[argc] = (string_t){ 0, 0 };
+
+	char** argv = memory_allocate( 0, sizeof( char* ) * ( argc + 1 ), 0, MEMORY_PERSISTENT );
+	for( arg = 0; arg < argc; ++arg )
+		argv[arg] = proc->args[arg].str;
+	argv[argc] = 0;
 
 	if( proc->flags & PROCESS_STDSTREAMS )
 	{
@@ -440,13 +446,13 @@ int process_spawn( process_t* proc )
 	if( pid == 0 )
 	{
 		//Child
-		if( string_length( proc->wd ) )
+		if( proc->wd.length )
 		{
-			log_debugf( 0, "Spawned child process, setting working directory to %s", proc->wd );
-			environment_set_current_working_directory( proc->wd );
+			log_debugf( 0, STRING_CONST( "Spawned child process, setting working directory to %.*s" ), STRING_FORMAT( proc->wd ) );
+			environment_set_current_working_directory( STRING_ARGS( proc->wd ) );
 		}
 
-		log_debugf( 0, "Child process executing: %s", proc->path );
+		log_debugf( 0, STRING_CONST( "Child process executing: %.*s" ), STRING_FORMAT( proc->path ) );
 
 		if( proc->flags & PROCESS_STDSTREAMS )
 		{
@@ -457,17 +463,23 @@ int process_spawn( process_t* proc )
 			dup2( pipe_read_fd( proc->pipein ), STDIN_FILENO );
 		}
 
-		int code = execv( proc->path, proc->args );
+		int code = execv( proc->path.str, (char *const *)argv );
 		if( code < 0 ) //Will always be true since this point will never be reached if execve() is successful
-			log_warnf( 0, WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
+		{
+			int err = errno;
+			string_const_t errmsg = system_error_message( err );
+			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Child process failed execve() '%.*s': %.*s (%d)" ), STRING_FORMAT( proc->path ), STRING_FORMAT( errmsg ), err );
+		}
 
 		//Error
 		process_exit( -1 );
 	}
 
+	memory_deallocate( argv );
+
 	if( pid > 0 )
 	{
-		log_debugf( 0, "Child process forked, pid %d", pid );
+		log_debugf( 0, STRING_CONST( "Child process forked, pid %d" ), pid );
 
 		proc->pid = pid;
 
@@ -499,8 +511,10 @@ int process_spawn( process_t* proc )
 	else
 	{
 		//Error
+		string_const_t errmsg;
 		proc->code = errno;
-		log_warnf( 0, WARNING_BAD_DATA, "Unable to spawn process: %s : %s", proc->path, system_error_message( proc->code ) );
+		errmsg = system_error_message( proc->code );
+		log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to spawn process '%.*s': %.*s (%d)" ), STRING_FORMAT( proc->path ), STRING_FORMAT( errmsg ), proc->code );
 
 		if( proc->pipeout )
 			stream_deallocate( proc->pipeout );
@@ -546,7 +560,7 @@ int process_wait( process_t* proc )
 {
 #if FOUNDATION_PLATFORM_POSIX
 	int cstatus;
-	pid_t err;
+	pid_t ret;
 #endif
 
 	if( !proc )
@@ -587,16 +601,20 @@ int process_wait( process_t* proc )
 		if( proc->kq )
 		{
 			struct kevent event;
-			int ret = kevent( proc->kq, 0, 0, &event, 1, 0 );
+			ret = kevent( proc->kq, 0, 0, &event, 1, 0 );
 			if( ret != 1 )
-				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to wait on process, failed to read event from kqueue (%d)", ret );
+			{
+				int err = errno;
+				string_const_t errmsg = system_error_message( err );
+				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on process, failed to read event from kqueue: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
+			}
 
 			close( proc->kq );
 			proc->kq = 0;
 		}
 		else
 		{
-			log_warn( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue" );
+			log_warn( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue" ) );
 			return PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;
@@ -606,8 +624,8 @@ int process_wait( process_t* proc )
 #  endif
 
 	cstatus = 0;
-	err = waitpid( proc->pid, &cstatus, ( proc->flags & PROCESS_DETACHED ) ? WNOHANG : 0 );
-	if( err > 0 )
+	ret = waitpid( proc->pid, &cstatus, ( proc->flags & PROCESS_DETACHED ) ? WNOHANG : 0 );
+	if( ret > 0 )
 	{
 		if( WIFEXITED( cstatus ) )
 			proc->code = (int)((char)WEXITSTATUS( cstatus ));
@@ -624,12 +642,14 @@ int process_wait( process_t* proc )
 	}
 	else
 	{
-		int cur_errno = errno;
-		if( ( err == 0 ) && ( proc->flags & PROCESS_DETACHED ) )
+		int err = errno;
+		string_const_t errmsg;
+		if( ( ret == 0 ) && ( proc->flags & PROCESS_DETACHED ) )
 			return PROCESS_STILL_ACTIVE;
-		if( ( err < 0 ) && ( cur_errno == EINTR ) )
+		if( ( ret < 0 ) && ( err == EINTR ) )
 			return PROCESS_WAIT_INTERRUPTED;
-		log_warnf( 0, WARNING_BAD_DATA, "waitpid(%d) failed: %s (%d) (returned %d)", proc->pid, system_error_message( cur_errno ), cur_errno, err );
+		errmsg = system_error_message( err );
+		log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "waitpid(%d) failed: %.*s (%d) (returned %d)" ), proc->pid, STRING_FORMAT( errmsg ), err, ret );
 		return PROCESS_WAIT_FAILED;
 	}
 

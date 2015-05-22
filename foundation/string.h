@@ -35,11 +35,17 @@ FOUNDATION_API size_t          string_glyphs( const char* str, size_t length );
 FOUNDATION_API hash_t          string_hash( const char* str, size_t length );
 
 FOUNDATION_API string_t        string_copy( char* dst, size_t size, const char* src, size_t src_length );
-FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t capacity, size_t new_length, char fill, bool realloc );
-FOUNDATION_API string_t        string_replace( char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat, bool realloc );
-FOUNDATION_API string_t        string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, bool realloc );
-FOUNDATION_API string_t        string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, bool realloc );
+FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t capacity, bool realloc, size_t new_length, char fill );
+FOUNDATION_API string_t        string_replace( char* str, size_t length, size_t capacity, bool realloc, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat );
+FOUNDATION_API string_t        string_append( char* str, size_t length, size_t capacity, bool realloc, const char* suffix, size_t suffix_length );
+FOUNDATION_API string_t        string_append_varg( char* str, size_t length, size_t capacity, bool realloc, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_append_vlist( char* str, size_t length, size_t capacity, bool realloc, va_list list );
+FOUNDATION_API string_t        string_prepend( char* str, size_t length, size_t capacity, bool realloc, const char* prefix, size_t prefix_length );
+FOUNDATION_API string_t        string_prepend_varg( char* str, size_t length, size_t capacity, bool realloc, const char* prefix, size_t prefix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_prepend_vlist( char* str, size_t length, size_t capacity, bool realloc, va_list list );
 FOUNDATION_API string_t        string_concat( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length );
+FOUNDATION_API string_t        string_concat_varg( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_concat_vlist( const char* prefix, size_t prefix_length, va_list list );
 
 FOUNDATION_API string_const_t  string_substr( const char* str, size_t length, size_t offset, size_t sub_length );
 FOUNDATION_API string_const_t  string_strip( const char* str, size_t length, const char* delimiters, size_t delim_length );
@@ -61,6 +67,8 @@ FOUNDATION_API bool            string_match_pattern( const char* str, size_t len
 FOUNDATION_API void            string_split( const char* str, size_t length, const char* separators, size_t sep_length, string_const_t* left, string_const_t* right, bool allowempty );
 FOUNDATION_API string_const_t* string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, bool allow_empty );
 FOUNDATION_API string_t        string_merge( const string_const_t* array, size_t array_size, const char* delimiter, size_t delim_length );
+FOUNDATION_API string_t        string_merge_varg( const char* delimiter, size_t delim_length, const char* str, size_t length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_merge_vlist( const char* delimiter, size_t delim_length, va_list list );
 
 FOUNDATION_API uint32_t        string_glyph( const char* str, size_t length, size_t offset, size_t* consumed );
 
