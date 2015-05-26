@@ -195,7 +195,7 @@ hash_t string_hash( const char* str, size_t length )
 }
 
 
-string_t string_resize( char* str, size_t length, size_t capacity, size_t new_length, char c, bool realloc )
+string_t string_resize( char* str, size_t length, size_t capacity, bool realloc, size_t new_length, char c )
 {
 	if( length > capacity )
 		length = capacity;
@@ -251,7 +251,7 @@ string_const_t string_strip( const char* str, size_t length, const char* delimit
 }
 
 
-string_t string_replace( char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat, bool realloc )
+string_t string_replace( char* str, size_t length, size_t capacity, bool realloc, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat )
 {
 	size_t pos, lastpos, replaced, needsize;
 	ssize_t lendiff;
@@ -335,7 +335,7 @@ string_t string_replace( char* str, size_t length, size_t capacity, const char* 
 }
 
 
-string_t string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, bool realloc )
+string_t string_append( char* str, size_t length, size_t capacity, bool realloc, const char* suffix, size_t suffix_length )
 {
 	size_t total_length;
 	if( !suffix_length )
@@ -367,7 +367,7 @@ string_t string_append( char* str, size_t length, size_t capacity, const char* s
 }
 
 
-string_t string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, bool realloc )
+string_t string_prepend( char* str, size_t length, size_t capacity, bool realloc, const char* prefix, size_t prefix_length )
 {
 	size_t total_length, prefix_offset, prefix_mod;
 	if( !prefix_length )
@@ -1173,7 +1173,7 @@ void string_convert_utf32( char* dst, size_t dstsize, const uint32_t* src, size_
 	dst[curlen] = 0;
 }
 
-#define THREAD_BUFFER_SIZE FOUNDATION_MAX_PATHLEN
+#define THREAD_BUFFER_SIZE BUILD_MAX_PATHLEN
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, THREAD_BUFFER_SIZE )
 
 

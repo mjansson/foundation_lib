@@ -33,6 +33,14 @@ static memory_system_t test_process_memory_system( void )
 }
 
 
+static foundation_config_t test_process_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_process_initialize( void )
 {
 	return 0;
@@ -74,7 +82,7 @@ DECLARE_TEST( process, spawn )
 
 	tmp_path = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_CONST( "path with space " ) );
 	fname = string_from_uint_static( (uint32_t)random32(), false, 0, '0' );
-	tmp_path = string_append( STRING_ARGS_CAPACITY( tmp_path ), STRING_ARGS( fname ), true );
+	tmp_path = string_append( STRING_ARGS_CAPACITY( tmp_path ), true, STRING_ARGS( fname ) );
 
 	EXPECT_TRUE( fs_make_directory( STRING_ARGS( tmp_path ) ) );
 
@@ -182,6 +190,7 @@ static void test_process_declare( void )
 static test_suite_t test_process_suite = {
 	test_process_application,
 	test_process_memory_system,
+	test_process_config,
 	test_process_declare,
 	test_process_initialize,
 	test_process_shutdown

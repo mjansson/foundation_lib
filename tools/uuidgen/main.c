@@ -66,8 +66,11 @@ static void              uuidgen_print_usage( void );
 int main_initialize( void )
 {
 	int ret = 0;
-
 	application_t application;
+	foundation_config_t config;
+
+	memset( &config, 0, sizeof( config ) );
+
 	memset( &application, 0, sizeof( application ) );
 	application.name = string_const( STRING_CONST( "uuidgen" ) );
 	application.short_name = string_const( STRING_CONST( "uuidgen" ) );
@@ -77,7 +80,7 @@ int main_initialize( void )
 	log_enable_prefix( false );
 	log_set_suppress( 0, ERRORLEVEL_ERROR );
 
-	if( ( ret = foundation_initialize( memory_system_malloc(), application ) ) < 0 )
+	if( ( ret = foundation_initialize( memory_system_malloc(), application, config ) ) < 0 )
 		return ret;
 
 	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );

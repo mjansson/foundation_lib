@@ -17,10 +17,6 @@
 static crash_dump_callback_fn  _crash_dump_callback;
 static string_const_t          _crash_dump_name;
 
-#if FOUNDATION_PLATFORM_WINDOWS || ( FOUNDATION_PLATFORM_POSIX /*&& !FOUNDATION_PLATFORM_APPLE*/ )
-static char                    _crash_dump_file_buffer[FOUNDATION_MAX_PATHLEN+128];
-#endif
-
 
 void crash_guard_set( crash_dump_callback_fn callback, const char* name, size_t length )
 {
@@ -182,8 +178,9 @@ static void _crash_guard_sigaction( int sig, siginfo_t* info, void* arg )
 	crash_dump_callback_fn callback = get_thread_crash_callback();
 	if( callback )
 	{
+		char file_name_buffer[ BUILD_MAX_PATHLEN ];
 		const char* name = get_thread_crash_callback_name();
-		string_t dump_file = (string_t){ _crash_dump_file_buffer, sizeof( _crash_dump_file_buffer ) };
+		string_t dump_file = (string_t){ file_name_buffer, sizeof( file_name_buffer ) };
 		dump_file = _crash_guard_minidump( arg, (string_const_t){ name, string_length( name ) }, dump_file );
 		callback( dump_file.str, dump_file.length );
 	}

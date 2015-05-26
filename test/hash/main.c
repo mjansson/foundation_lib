@@ -33,6 +33,14 @@ static memory_system_t test_hash_memory_system( void )
 }
 
 
+static foundation_config_t test_hash_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_hash_initialize( void )
 {
 	return 0;
@@ -140,6 +148,7 @@ static void test_hash_declare( void )
 static test_suite_t test_hash_suite = {
 	test_hash_application,
 	test_hash_memory_system,
+	test_hash_config,
 	test_hash_declare,
 	test_hash_initialize,
 	test_hash_shutdown

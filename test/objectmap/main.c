@@ -33,6 +33,14 @@ static memory_system_t test_objectmap_memory_system( void )
 }
 
 
+static foundation_config_t test_objectmap_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_objectmap_initialize( void )
 {
 	return 0;
@@ -229,6 +237,7 @@ static void test_objectmap_declare( void )
 static test_suite_t test_objectmap_suite = {
 	test_objectmap_application,
 	test_objectmap_memory_system,
+	test_objectmap_config,
 	test_objectmap_declare,
 	test_objectmap_initialize,
 	test_objectmap_shutdown

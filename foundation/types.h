@@ -277,6 +277,7 @@ typedef struct stream_pipe_t                 stream_pipe_t;
 typedef struct stream_ringbuffer_t           stream_ringbuffer_t;
 typedef struct stream_vtable_t               stream_vtable_t;
 typedef union  version_t                     version_t;
+typedef struct foundation_config_t           foundation_config_t;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 typedef void*                                semaphore_t;
@@ -332,6 +333,22 @@ typedef stream_t*     (* stream_clone_fn )( stream_t* stream );
 
 
 // COMPLEX TYPES
+
+struct foundation_config_t
+{
+	size_t                          thread_max;
+	size_t                          library_max;
+	size_t                          memory_tracker_max;
+	size_t                          fs_monitor_max;
+	size_t                          temporary_memory;
+	size_t                          error_context_depth;
+	size_t                          memory_context_depth;
+	size_t                          stacktrace_depth;
+	size_t                          hash_store_size;
+	size_t                          event_block_chunk;
+	size_t                          event_block_limit;
+	size_t                          thread_stack_size;
+};
 
 struct string_t
 {
@@ -436,8 +453,8 @@ struct error_frame_t
 
 struct error_context_t
 {
-	error_frame_t                   frame[BUILD_SIZE_ERROR_CONTEXT_DEPTH];
 	unsigned int                    depth;
+	error_frame_t                   frame[];
 };
 
 
@@ -524,8 +541,8 @@ FOUNDATION_ALIGNED_STRUCT( hashtable64_t, 8 )
 
 struct memory_context_t
 {
-	hash_t                          context[BUILD_SIZE_MEMORY_CONTEXT_DEPTH];
 	unsigned int                    depth;
+	hash_t                          context[];
 };
 
 #define FOUNDATION_DECLARE_OBJECT               \

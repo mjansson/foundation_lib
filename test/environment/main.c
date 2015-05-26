@@ -33,6 +33,14 @@ static memory_system_t test_environment_memory_system( void )
 }
 
 
+static foundation_config_t test_environment_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_environment_initialize( void )
 {
 	return 0;
@@ -103,6 +111,7 @@ static void test_environment_declare( void )
 static test_suite_t test_environment_suite = {
 	test_environment_application,
 	test_environment_memory_system,
+	test_environment_config,
 	test_environment_declare,
 	test_environment_initialize,
 	test_environment_shutdown

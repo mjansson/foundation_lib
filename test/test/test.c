@@ -203,7 +203,7 @@ int main_initialize( void )
 
 	test_suite = test_suite_define();
 
-	return foundation_initialize( test_suite.memory_system(), test_suite.application() );
+	return foundation_initialize( test_suite.memory_system(), test_suite.application(), test_suite.config() );
 }
 
 

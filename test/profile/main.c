@@ -44,6 +44,14 @@ static application_t test_profile_application( void )
 }
 
 
+static foundation_config_t test_profile_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static memory_system_t test_profile_memory_system( void )
 {
 	return memory_system_malloc();
@@ -388,6 +396,7 @@ static void test_profile_declare( void )
 static test_suite_t test_profile_suite = {
 	test_profile_application,
 	test_profile_memory_system,
+	test_profile_config,
 	test_profile_declare,
 	test_profile_initialize,
 	test_profile_shutdown

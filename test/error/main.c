@@ -33,6 +33,14 @@ static memory_system_t test_error_memory_system( void )
 }
 
 
+static foundation_config_t test_error_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_error_initialize( void )
 {
 	return 0;
@@ -256,6 +264,7 @@ static void test_error_declare( void )
 static test_suite_t test_error_suite = {
 	test_error_application,
 	test_error_memory_system,
+	test_error_config,
 	test_error_declare,
 	test_error_initialize,
 	test_error_shutdown

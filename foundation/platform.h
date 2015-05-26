@@ -902,24 +902,21 @@ FOUNDATION_ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER )
 typedef struct atomicptr_t atomicptr_t;
 
 
-//Pointer arithmetic
+// Pointer arithmetic
 #define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
 #define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
 #define pointer_diff( first, second ) (ptrdiff_t)((const char*)(first) - (const char*)(second))
 
-
 #include <string.h>
 
+// String argument helpers
 #define STRING_CONST( s ) (s), sizeof( (s) )
 #define STRING_ARGS( s ) (s).str, (s).length
 #define STRING_ARGS_CAPACITY( s ) (s).str, (s).length, (s).length+1
 #define STRING_FORMAT( s ) (int)(s).length, (s).str
 
-
-// Base limits
-#define FOUNDATION_MAX_PATHLEN    512
-
-#define FOUNDATION_UNUSED(x) (void)(x)
+// Misc
+#define FOUNDATION_UNUSED(x) ((void)sizeof(x))
 
 // Wrappers for platforms that not yet support thread-local storage declarations
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID

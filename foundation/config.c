@@ -417,7 +417,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 
 	for( i = start_path; i < NUM_SEARCH_PATHS; ++i )
 	{
-		char filename_buffer[FOUNDATION_MAX_PATHLEN];
+		char filename_buffer[BUILD_MAX_PATHLEN];
 		string_t filename;
 		stream_t* istream;
 		bool path_already_searched = false;
@@ -437,8 +437,8 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 			continue;
 
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
-		filename = string_format_buffer( filename_buffer, FOUNDATION_MAX_PATHLEN, STRING_CONST( "%.*s/%.*s.ini" ), STRING_FORMAT( paths[i] ), (int)length, name );
-		filename = path_clean( STRING_ARGS( filename ), FOUNDATION_MAX_PATHLEN, false );
+		filename = string_format_buffer( filename_buffer, BUILD_MAX_PATHLEN, STRING_CONST( "%.*s/%.*s.ini" ), STRING_FORMAT( paths[i] ), (int)length, name );
+		filename = path_clean( STRING_ARGS( filename ), BUILD_MAX_PATHLEN, false );
 		istream = 0;
 #if FOUNDATION_PLATFORM_ANDROID
 		if( i == ANDROID_ASSET_PATH_INDEX )
@@ -476,9 +476,9 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 #  error Insert platform name
 			string_const_t platform_name = string_const( STRING_CONST( "unknown" ) );
 #endif
-			filename = string_format_buffer( filename_buffer, FOUNDATION_MAX_PATHLEN, STRING_CONST( "%.*s/%.*s/%.*s.ini" ),
+			filename = string_format_buffer( filename_buffer, BUILD_MAX_PATHLEN, STRING_CONST( "%.*s/%.*s/%.*s.ini" ),
 				STRING_FORMAT( paths[i] ), STRING_FORMAT( platform_name ), (int)length, name );
-			filename = path_clean( STRING_ARGS( filename ), FOUNDATION_MAX_PATHLEN, false );
+			filename = path_clean( STRING_ARGS( filename ), BUILD_MAX_PATHLEN, false );
 #if FOUNDATION_PLATFORM_ANDROID
 			if( i == ANDROID_ASSET_PATH_INDEX )
 				istream = asset_stream_open( STRING_ARGS( filename ), STREAM_IN );

@@ -33,6 +33,14 @@ static memory_system_t test_uuid_memory_system( void )
 }
 
 
+static foundation_config_t test_uuid_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_uuid_initialize( void )
 {
 	return 0;
@@ -261,7 +269,8 @@ DECLARE_TEST( uuid, string )
 	EXPECT_FALSE( uuid_is_null( uuidref ) );
 
 	str = string_from_uuid( uuidref );
-	EXPECT_NE( str, 0 );
+	EXPECT_NE( str.str, 0 );
+	EXPECT_GT( str.length, 0 );
 
 	uuid = string_to_uuid( STRING_ARGS( str ) );
 	EXPECT_FALSE( uuid_is_null( uuid ) );
@@ -271,7 +280,7 @@ DECLARE_TEST( uuid, string )
 
 	uuid = string_to_uuid( "", 0 );
 	strref = string_from_uuid_static( uuid );
-	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, STRING_CONST( "empty string did not convert to null uuid: %.*s" ), STRING_FORMAT( strref ) );
+	EXPECT_EQ_MSGFORMAT( uuid_is_null( uuid ), true, "empty string did not convert to null uuid: %.*s", STRING_FORMAT( strref ) );
 
 	uuid = string_to_uuid( "0", 1 );
 	strref = string_from_uuid_static( uuid );
@@ -297,6 +306,7 @@ static void test_uuid_declare( void )
 static test_suite_t test_uuid_suite = {
 	test_uuid_application,
 	test_uuid_memory_system,
+	test_uuid_config,
 	test_uuid_declare,
 	test_uuid_initialize,
 	test_uuid_shutdown

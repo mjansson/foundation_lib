@@ -33,6 +33,14 @@ static memory_system_t test_bufferstream_memory_system( void )
 }
 
 
+static foundation_config_t test_bufferstream_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_bufferstream_initialize( void )
 {
 	return 0;
@@ -498,6 +506,7 @@ static void test_bufferstream_declare( void )
 static test_suite_t test_bufferstream_suite = {
 	test_bufferstream_application,
 	test_bufferstream_memory_system,
+	test_bufferstream_config,
 	test_bufferstream_declare,
 	test_bufferstream_initialize,
 	test_bufferstream_shutdown

@@ -49,6 +49,14 @@ static memory_system_t test_crash_memory_system( void )
 }
 
 
+static foundation_config_t test_crash_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_crash_initialize( void )
 {
 	return 0;
@@ -308,6 +316,7 @@ static void test_crash_declare( void )
 static test_suite_t test_crash_suite = {
 	test_crash_application,
 	test_crash_memory_system,
+	test_crash_config,
 	test_crash_declare,
 	test_crash_initialize,
 	test_crash_shutdown

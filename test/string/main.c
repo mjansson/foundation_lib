@@ -33,6 +33,14 @@ static memory_system_t test_string_memory_system( void )
 }
 
 
+static foundation_config_t test_string_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_string_initialize( void )
 {
 	return 0;
@@ -47,20 +55,28 @@ static void test_string_shutdown( void )
 DECLARE_TEST( string, initialize )
 {
 	{
-		char* nullstr1 = string_allocate( 0 );
-		char* nullstr2 = string_allocate( 1 );
-		char* nullstr3 = string_allocate( 10 );
+		string_t nullstr1 = string_allocate( 0, 0, 0 );
+		string_t nullstr2 = string_allocate( 1, 0, ' ' );
+		string_t nullstr3 = string_allocate( 0, 1, '\t' );
+		string_t nullstr4 = string_allocate( 1, 1, '\n' );
+		string_t nullstr5 = string_allocate( 10, 32, 0 );
 
-		EXPECT_EQ( 0U, string_length( nullstr1 ) );
-		EXPECT_EQ( 0U, string_length( nullstr2 ) );
-		EXPECT_EQ( 0U, string_length( nullstr3 ) );
-		EXPECT_EQ( 0, strcmp( nullstr1, "" ) );
-		EXPECT_EQ( 0, strcmp( nullstr2, "" ) );
-		EXPECT_EQ( 0, strcmp( nullstr3, "" ) );
+		EXPECT_EQ( 0, nullstr1.length );
+		EXPECT_EQ( 0, nullstr2.length );
+		EXPECT_EQ( 0, nullstr3.length );
+		EXPECT_EQ( 0, nullstr4.length );
+		EXPECT_EQ( 10, nullstr5.length );
+		EXPECT_EQ( 0, strcmp( nullstr1.str, "" ) );
+		EXPECT_EQ( 0, strcmp( nullstr2.str, "" ) );
+		EXPECT_EQ( 0, strcmp( nullstr3.str, "" ) );
+		EXPECT_EQ( 0, strcmp( nullstr4.str, "" ) );
+		EXPECT_EQ( 0, strcmp( nullstr5.str, "" ) );
 
-		string_deallocate( nullstr1 );
-		string_deallocate( nullstr2 );
-		string_deallocate( nullstr3 );
+		string_deallocate( nullstr1.str );
+		string_deallocate( nullstr2.str );
+		string_deallocate( nullstr3.str );
+		string_deallocate( nullstr4.str );
+		string_deallocate( nullstr5.str );
 	}
 	{
 		char teststr1[] = "test";
@@ -1156,6 +1172,7 @@ static void test_string_declare( void )
 static test_suite_t test_string_suite = {
 	test_string_application,
 	test_string_memory_system,
+	test_string_config,
 	test_string_declare,
 	test_string_initialize,
 	test_string_shutdown

@@ -33,6 +33,14 @@ static memory_system_t test_library_memory_system( void )
 }
 
 
+static foundation_config_t test_library_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_library_initialize( void )
 {
 	return 0;
@@ -112,6 +120,7 @@ static void test_library_declare( void )
 static test_suite_t test_library_suite = {
 	test_library_application,
 	test_library_memory_system,
+	test_library_config,
 	test_library_declare,
 	test_library_initialize,
 	test_library_shutdown

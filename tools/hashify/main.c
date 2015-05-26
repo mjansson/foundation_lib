@@ -52,8 +52,11 @@ static int                  hashify_check_match( const hashify_string_t* hashes,
 int main_initialize( void )
 {
 	int ret = 0;
-
 	application_t application;
+	foundation_config_t config;
+
+	memset( &config, 0, sizeof( config ) );
+
 	memset( &application, 0, sizeof( application ) );
 	application.name = string_const( STRING_CONST( "hashify" ) );
 	application.short_name = string_const( STRING_CONST( "hashify" ) );
@@ -63,7 +66,7 @@ int main_initialize( void )
 	log_enable_prefix( false );
 	log_set_suppress( 0, ERRORLEVEL_ERROR );
 
-	if( ( ret = foundation_initialize( memory_system_malloc(), application ) ) < 0 )
+	if( ( ret = foundation_initialize( memory_system_malloc(), application, config ) ) < 0 )
 		return ret;
 
 	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );
@@ -112,30 +115,30 @@ hashify_input_t hashify_parse_command_line( const string_const_t* cmdline )
 	error_context_push( STRING_CONST( "parsing command line" ), STRING_CONST( "" ) );
 	for( arg = 1, asize = array_size( cmdline ); arg < asize; ++arg )
 	{
-		if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--help" ) ) )
+		if( string_equal( STRING_ARGS( cmdline[arg] ), STRING_CONST( "--help" ) ) )
 		{
 			hashify_print_usage();
 		}
-		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--validate" ) ) )
+		else if( string_equal( STRING_ARGS( cmdline[arg] ), STRING_CONST( "--validate" ) ) )
 		{
 			input.check_only = true;
 			continue;
 		}
-		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--generate-string" ) ) )
+		else if( string_equal( STRING_ARGS( cmdline[arg] ), STRING_CONST( "--generate-string" ) ) )
 		{
 			if( arg < asize - 1 )
 			{
 				++arg;
-				array_push( input.strings, string_clone( cmdline[arg].str, cmdline[arg].length ) );
+				array_push( input.strings, string_clone( STRING_ARGS( cmdline[arg] ) ) );
 			}
 			continue;
 		}
-		else if( string_equal( cmdline[arg].str, cmdline[arg].length, STRING_CONST( "--" ) ) )
+		else if( string_equal( STRING_ARGS( cmdline[arg] ), STRING_CONST( "--" ) ) )
 			break; //Stop parsing cmdline options
 		else if( ( cmdline[arg].length > 2 ) && string_equal( cmdline[arg].str, 2, "--", 2 ) )
 			continue; //Cmdline argument not parsed here
 
-		array_push( input.files, string_clone( cmdline[arg].str, cmdline[arg].length ) );
+		array_push( input.files, string_clone( STRING_ARGS( cmdline[arg] ) ) );
 	}
 	error_context_pop();
 
@@ -151,8 +154,8 @@ int hashify_process_strings( string_t* strings )
 	size_t istr, strings_size;
 	for( istr = 0, strings_size = array_size( strings ); istr < strings_size; ++istr )
 	{
-		uint64_t hash_value = hash( strings[istr].str, strings[istr].length );
-		log_infof( 0, STRING_CONST( "String '%.*s' hash: 0x%" PRIx64 ), (int)strings[istr].length, strings[istr].str, hash_value );
+		uint64_t hash_value = hash( STRING_ARGS( strings[istr] ) );
+		log_infof( 0, STRING_CONST( "String '%.*s' hash: 0x%" PRIx64 ), STRING_FORMAT( strings[istr] ), hash_value );
 	}
 	return 0;
 }
@@ -172,31 +175,31 @@ int hashify_process_files( string_t* files, bool check_only )
 		stream_t* input_file;
 		stream_t* output_file;
 
-		input_filename = string_clone( files[ifile].str, files[ifile].length );
-		input_filename = path_clean( input_filename.str, input_filename.length, input_filename.length + 1, path_is_absolute( input_filename.str, input_filename.length ), true );
-		error_context_push( STRING_CONST( "parsing file" ), input_filename.str, input_filename.length );
+		input_filename = string_clone( STRING_ARGS( files[ifile] ) );
+		input_filename = path_clean( STRING_ARGS_CAPACITY( input_filename ), true );
+		error_context_push( STRING_CONST( "parsing file" ), STRING_ARGS( input_filename ) );
 
-		base_filename = path_base_file_name_with_directory( input_filename.str, input_filename.length );
-		output_filename = string_format( STRING_CONST( "%.*s.h" ), (int)base_filename.length, base_filename.str );
+		base_filename = path_base_file_name_with_directory( STRING_ARGS( input_filename ) );
+		output_filename = string_format( STRING_CONST( "%.*s.h" ), STRING_FORMAT( base_filename ) );
 
-		log_infof( 0, STRING_CONST( "Hashifying %.*s -> %.*s" ), (int)input_filename.length, input_filename.str, (int)output_filename.length, output_filename.str );
+		log_infof( 0, STRING_CONST( "Hashifying %.*s -> %.*s" ), STRING_FORMAT( input_filename ), STRING_FORMAT( output_filename ) );
 
-		input_file  = stream_open( input_filename.str, input_filename.length, STREAM_IN );
+		input_file  = stream_open( STRING_ARGS( input_filename ), STREAM_IN );
 
 		//If only validating, open the final output file. If generating, make a memory buffer as intermediate storage
 		if( check_only )
-			output_file = stream_open( output_filename.str, output_filename.length, STREAM_IN );
+			output_file = stream_open( STRING_ARGS( output_filename ), STREAM_IN );
 		else
 			output_file = buffer_stream_allocate( memory_allocate( 0, 65536, 0, MEMORY_PERSISTENT ), STREAM_IN | STREAM_OUT, 0, 65536, true, true );
 
 		if( !input_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open input file: %.*s" ), (int)input_filename.length, input_filename.str );
+			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open input file: %.*s" ), STRING_FORMAT( input_filename ) );
 			result = HASHIFY_RESULT_MISSING_INPUT_FILE;
 		}
 		else if( !output_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), (int)output_filename.length, output_filename.str );
+			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
 			result = HASHIFY_RESULT_MISSING_OUTPUT_FILE;
 		}
 
@@ -249,10 +252,10 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 		string_const_t value_string;
 
 		line_string = stream_read_line_buffer( input_file, line_buffer, HASHIFY_LINEBUFFER_LENGTH, '\n' );
-		string_split( line_string.str, line_string.length, STRING_CONST( " \t" ), &def_string, &value_string, false );
+		string_split( STRING_ARGS( line_string ), STRING_CONST( " \t" ), &def_string, &value_string, false );
 
-		def_string = string_strip( def_string.str, def_string.length, STRING_CONST( STRING_WHITESPACE ) );
-		value_string = string_strip( value_string.str, value_string.length, STRING_CONST( STRING_WHITESPACE ) );
+		def_string = string_strip( STRING_ARGS( def_string ), STRING_CONST( STRING_WHITESPACE ) );
+		value_string = string_strip( STRING_ARGS( value_string ), STRING_CONST( STRING_WHITESPACE ) );
 
 		if( value_string.length && ( value_string.str[0] == '"' ) && ( value_string.str[ value_string.length - 1 ] == '"' ) )
 		{
@@ -262,9 +265,9 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 
 		if( def_string.length )
 		{
-			hash_t hash_value = hash( value_string.str, value_string.length );
+			hash_t hash_value = hash( STRING_ARGS( value_string ) );
 
-			log_infof( 0, STRING_CONST( "  %.*s: %.*s -> 0x%" PRIx64 ), (int)def_string.length, def_string.str, (int)value_string.length, value_string.str, hash_value );
+			log_infof( 0, STRING_CONST( "  %.*s: %.*s -> 0x%" PRIx64 ), STRING_FORMAT( def_string ), STRING_FORMAT( value_string ), hash_value );
 
 			if( check_only )
 			{
@@ -274,7 +277,7 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 			else
 			{
 				stream_write_format( output_file, STRING_CONST( "#define %.*s static_hash_string( \"%.*s\", %" PRIsize " ), 0x%" PRIx64 "ULL )\n" ),
-					(int)def_string.length, def_string.str, (int)value_string.length, value_string.str, value_string.length, hash_value );
+					STRING_FORMAT( def_string ), STRING_FORMAT( value_string ), value_string.length, hash_value );
 			}
 
 			if( result == HASHIFY_RESULT_OK )
@@ -285,7 +288,7 @@ int hashify_process_file( stream_t* input_file, stream_t* output_file, bool chec
 				result = hashify_check_collisions( value_string, hash_value, *history );
 
 				//Add to history
-				hash_string.string = string_copy( hash_string.buffer, HASHIFY_STRING_LENGTH, value_string.str, value_string.length );
+				hash_string.string = string_copy( hash_string.buffer, HASHIFY_STRING_LENGTH, STRING_ARGS( value_string ) );
 				hash_string.hash = hash_value;
 				array_push_memcpy( *history, &hash_string );
 				array_push_memcpy( local_generated, &hash_string );
@@ -318,20 +321,20 @@ int hashify_generate_preamble( stream_t* output_file )
 		string_const_t stripped_line;
 
 		line = stream_read_line_buffer( output_file, line_buffer, HASHIFY_LINEBUFFER_LENGTH-1, '\n' );
-		stripped_line = string_strip( line.str, line.length, STRING_CONST( "\n\r" ) );
+		stripped_line = string_strip( STRING_ARGS( line ), STRING_CONST( "\n\r" ) );
 
-		if( ( string_find_string( stripped_line.str, stripped_line.length, STRING_CONST( "pragma" ), 0 ) != STRING_NPOS ) &&
-		    ( string_find_string( stripped_line.str, stripped_line.length, STRING_CONST( "once" ), 0 ) != STRING_NPOS ) )
+		if( ( string_find_string( STRING_ARGS( stripped_line ), STRING_CONST( "pragma" ), 0 ) != STRING_NPOS ) &&
+		    ( string_find_string( STRING_ARGS( stripped_line ), STRING_CONST( "once" ), 0 ) != STRING_NPOS ) )
 			break;
 
-		preamble = string_append( preamble.str, preamble.length, preamble.length ? preamble.length + 1 : 0, stripped_line.str, stripped_line.length, true );
+		preamble = string_append( STRING_ARGS( preamble ), preamble.length ? preamble.length + 1 : 0, true, STRING_ARGS( stripped_line ) );
 		if( line.length < HASHIFY_LINEBUFFER_LENGTH )
-			preamble = string_append( preamble.str, preamble.length, preamble.length ? preamble.length + 1 : 0, STRING_CONST( STRING_NEWLINE ), true );
+			preamble = string_append( STRING_ARGS( preamble ), preamble.length ? preamble.length + 1 : 0, true, STRING_CONST( STRING_NEWLINE ) );
 	}
 
 	stream_seek( output_file, 0, STREAM_SEEK_BEGIN );
 	if( preamble.length )
-		stream_write_string( output_file, preamble.str, preamble.length );
+		stream_write_string( output_file, STRING_ARGS( preamble ) );
 	stream_write_string( output_file, STRING_CONST(
 		"#pragma once\n\n"
 		"#include <foundation/hash.h>\n\n"

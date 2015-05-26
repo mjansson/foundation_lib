@@ -33,6 +33,14 @@ static memory_system_t test_ringbuffer_memory_system( void )
 }
 
 
+static foundation_config_t test_ringbuffer_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_ringbuffer_initialize( void )
 {
 	return 0;
@@ -300,6 +308,7 @@ static void test_ringbuffer_declare( void )
 static test_suite_t test_ringbuffer_suite = {
 	test_ringbuffer_application,
 	test_ringbuffer_memory_system,
+	test_ringbuffer_config,
 	test_ringbuffer_declare,
 	test_ringbuffer_initialize,
 	test_ringbuffer_shutdown

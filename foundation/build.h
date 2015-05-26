@@ -143,29 +143,8 @@
 #endif
 
 
-#define BUILD_DEFAULT_STREAM_BYTEORDER             BYTEORDER_LITTLEENDIAN
+#define BUILD_DEFAULT_STREAM_BYTEORDER         BYTEORDER_LITTLEENDIAN
 
-
-#define BUILD_SIZE_THREAD_MAP                      512
-#define BUILD_SIZE_LIBRARY_MAP                     64
-
-#define BUILD_SIZE_TEMPORARY_MEMORY                ( 2 * 1024 * 1024 )
-
-#define BUILD_SIZE_EVENT_BLOCK_LIMIT               ( 1 * 1024 * 1024 )
-
-#define BUILD_SIZE_DEFAULT_THREAD_STACK            0x8000
-
-#define BUILD_SIZE_ERROR_CONTEXT_DEPTH             32
-
-#define BUILD_SIZE_MEMORY_CONTEXT_DEPTH            32
-
-#define BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS  ( 32 * 1024 )
-
-#define BUILD_SIZE_STACKTRACE_DEPTH                32
-
-#define BUILD_SIZE_FS_MONITORS                     32
-
-#define BUILD_SIZE_STATIC_HASH_STORE               4192
-
-#define BUILD_SIZE_EVENT_BLOCK_CHUNK               ( 32 * 1024 )
+// Base limits
+#define BUILD_MAX_PATHLEN                      512
 

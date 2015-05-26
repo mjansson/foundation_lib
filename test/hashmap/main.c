@@ -33,6 +33,14 @@ static memory_system_t test_hashmap_memory_system( void )
 }
 
 
+static foundation_config_t test_hashmap_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_hashmap_initialize( void )
 {
 	return 0;
@@ -180,6 +188,7 @@ static void test_hashmap_declare( void )
 static test_suite_t test_hashmap_suite = {
 	test_hashmap_application,
 	test_hashmap_memory_system,
+	test_hashmap_config,
 	test_hashmap_declare,
 	test_hashmap_initialize,
 	test_hashmap_shutdown

@@ -25,13 +25,14 @@ FOUNDATION_API string_const_t   path_subdirectory_name( const char* path, size_t
 FOUNDATION_API string_const_t   path_protocol( const char* uri, size_t length );
 
 FOUNDATION_API string_t         path_merge( const char* first, size_t first_length, const char* second, size_t second_length );
-
+FOUNDATION_API string_t         path_merge_varg( const char* first, size_t first_length, ... );
+FOUNDATION_API string_t         path_merge_vlist( const char* first, size_t first_length, va_list list );
 FOUNDATION_API string_t         path_append( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length );
 FOUNDATION_API string_t         path_append_varg( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
-FOUNDATION_API string_t         path_append_vlist( char* base, size_t base_length, size_t base_capacity, bool reallocate, va_list list );
+FOUNDATION_API string_t         path_append_vlist( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length, va_list list );
 FOUNDATION_API string_t         path_prepend( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length );
 FOUNDATION_API string_t         path_prepend_varg( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
-FOUNDATION_API string_t         path_prepend_vlist( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, va_list list );
+FOUNDATION_API string_t         path_prepend_vlist( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length, va_list list );
 FOUNDATION_API string_t         path_absolute( char* path, size_t length, size_t capacity, bool reallocate );
 FOUNDATION_API string_t         path_clean( char* path, size_t length, size_t capacity, bool reallocate );
 

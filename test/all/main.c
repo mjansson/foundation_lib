@@ -133,7 +133,11 @@ bool test_should_terminate( void )
 
 int main_initialize( void )
 {
+	foundation_config_t config;
 	application_t application;
+
+	memset( &config, 0, sizeof( config ) );
+
 	memset( &application, 0, sizeof( application ) );
 	application.name = string_const( STRING_CONST( "Foundation library test suite" ) );
 	application.short_name = string_const( STRING_CONST( "test_all" ) );
@@ -154,7 +158,7 @@ int main_initialize( void )
 
 #endif
 
-	return foundation_initialize( memory_system_malloc(), application );
+	return foundation_initialize( memory_system_malloc(), application, config );
 }
 
 

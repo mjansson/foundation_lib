@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 #define EVENT_BLOCK_POSTING  -1
@@ -73,21 +74,27 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, o
 
 	if( ( block->used + allocsize + 2 ) >= block->capacity )
 	{
-		size_t prev_capacity = block->capacity + 2;
-		if( block->capacity < BUILD_SIZE_EVENT_BLOCK_CHUNK )
+		size_t prev_capacity = block->capacity + 16;
+		if( prev_capacity < _foundation_def.event_block_chunk )
 		{
-			block->capacity <<= 1;
-			block->capacity += allocsize;
+			block->capacity = _foundation_def.event_block_chunk;
 		}
 		else
 		{
-			block->capacity += BUILD_SIZE_EVENT_BLOCK_CHUNK;
-			FOUNDATION_ASSERT_MSGFORMAT( block->capacity < BUILD_SIZE_EVENT_BLOCK_LIMIT, "Event stream block size > %d", BUILD_SIZE_EVENT_BLOCK_LIMIT );
-			error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
+			if( prev_capacity >= _foundation_def.event_block_limit )
+			{
+				FOUNDATION_ASSERT_FAILFORMAT_LOG( 0, "Event block size over limit of %" PRIsize " bytes", _foundation_def.event_block_limit );
+				error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
+				return;
+			}
+			block->capacity += _foundation_def.event_block_chunk;
+			if( block->capacity > _foundation_def.event_block_limit )
+				block->capacity = _foundation_def.event_block_limit;
 		}
 		if( block->capacity % 16 )
 			block->capacity += 16 - ( basesize % 16 );
-		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2, 16, prev_capacity ) : memory_allocate( 0, block->capacity + 2, 16, MEMORY_PERSISTENT );
+		block->capacity -= 16;
+		block->events = block->events ? memory_reallocate( block->events, block->capacity + 16, 16, prev_capacity ) : memory_allocate( 0, block->capacity + 16, 16, MEMORY_PERSISTENT );
 	}
 
 	event = pointer_offset( block->events, block->used );

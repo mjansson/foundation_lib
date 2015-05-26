@@ -33,6 +33,14 @@ static memory_system_t test_radixsort_memory_system( void )
 }
 
 
+static foundation_config_t test_radixsort_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_radixsort_initialize( void )
 {
 	return 0;
@@ -433,6 +441,7 @@ static void test_radixsort_declare( void )
 static test_suite_t test_radixsort_suite = {
 	test_radixsort_application,
 	test_radixsort_memory_system,
+	test_radixsort_config,
 	test_radixsort_declare,
 	test_radixsort_initialize,
 	test_radixsort_shutdown

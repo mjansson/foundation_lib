@@ -33,6 +33,14 @@ static memory_system_t test_atomic_memory_system( void )
 }
 
 
+static foundation_config_t test_atomic_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_atomic_initialize( void )
 {
 	return 0;
@@ -243,6 +251,7 @@ static void test_atomic_declare( void )
 static test_suite_t test_atomic_suite = {
 	test_atomic_application,
 	test_atomic_memory_system,
+	test_atomic_config,
 	test_atomic_declare,
 	test_atomic_initialize,
 	test_atomic_shutdown

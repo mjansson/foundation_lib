@@ -68,15 +68,14 @@ void _error_context_push( const char* name, size_t name_length, const char* data
 	error_context_t* context = get_thread_error_context();
 	if( !context )
 	{
-		context = memory_allocate( 0, sizeof( error_context_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+		context = memory_allocate( 0, sizeof( error_context_t ) + ( sizeof( error_frame_t ) * _foundation_def.error_context_depth ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 		set_thread_error_context( context );
 	}
-	FOUNDATION_ASSERT_MSG( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH, "Error context stack overflow" );
 	context->frame[ context->depth ].name.str = name ? name : "<something>";
 	context->frame[ context->depth ].name.length = name ? name_length : 11;
 	context->frame[ context->depth ].data.str = data ? data : "<nothing>";
 	context->frame[ context->depth ].data.length = data ? data_length : 9;
-	if( context->depth < BUILD_SIZE_ERROR_CONTEXT_DEPTH-1 )
+	if( context->depth < _foundation_def.error_context_depth - 1 )
 		++context->depth;
 }
 

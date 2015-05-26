@@ -33,6 +33,14 @@ static memory_system_t test_pipe_memory_system( void )
 }
 
 
+static foundation_config_t test_pipe_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_pipe_initialize( void )
 {
 	return 0;
@@ -202,6 +210,7 @@ static void test_pipe_declare( void )
 static test_suite_t test_pipe_suite = {
 	test_pipe_application,
 	test_pipe_memory_system,
+	test_pipe_config,
 	test_pipe_declare,
 	test_pipe_initialize,
 	test_pipe_shutdown

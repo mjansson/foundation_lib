@@ -35,6 +35,14 @@ static memory_system_t test_app_memory_system( void )
 }
 
 
+static foundation_config_t test_app_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_app_initialize( void )
 {
 	return 0;
@@ -67,6 +75,7 @@ static void test_app_declare( void )
 static test_suite_t test_app_suite = {
 	test_app_application,
 	test_app_memory_system,
+	test_app_config,
 	test_app_declare,
 	test_app_initialize,
 	test_app_shutdown

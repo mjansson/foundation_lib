@@ -33,6 +33,14 @@ static memory_system_t test_array_memory_system( void )
 }
 
 
+static foundation_config_t test_array_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_array_initialize( void )
 {
 	return 0;
@@ -2040,6 +2048,7 @@ static void test_array_declare( void )
 static test_suite_t test_array_suite = {
 	test_array_application,
 	test_array_memory_system,
+	test_array_config,
 	test_array_declare,
 	test_array_initialize,
 	test_array_shutdown

@@ -44,12 +44,12 @@ void _environment_ns_command_line( string_t** argv )
 {
 	@autoreleasepool
 	{
-		char buffer[FOUNDATION_MAX_PATHLEN];
+		char buffer[BUILD_MAX_PATHLEN];
 		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
 		for( id arg in arguments )
 		{
 			CFStringRef argref = (__bridge CFStringRef)arg;
-			CFStringGetCString( argref, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+			CFStringGetCString( argref, buffer, BUILD_MAX_PATHLEN, kCFStringEncodingUTF8 );
 			array_push( *argv, string_clone( buffer, string_length( buffer ) ) );
 		}
 	}

@@ -33,6 +33,14 @@ static memory_system_t test_stacktrace_memory_system( void )
 }
 
 
+static foundation_config_t test_stacktrace_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_stacktrace_initialize( void )
 {
 	return 0;
@@ -48,7 +56,7 @@ DECLARE_TEST( stacktrace, capture )
 {
 	#define TEST_DEPTH 64
 	void* trace[TEST_DEPTH];
-	unsigned int num_frames;
+	size_t num_frames;
 
 	if( system_platform() == PLATFORM_PNACL )
 		return 0;
@@ -64,7 +72,7 @@ DECLARE_TEST( stacktrace, resolve )
 {
 	#define TEST_DEPTH 64
 	void* trace[TEST_DEPTH];
-	unsigned int num_frames;
+	size_t num_frames;
 	char* buffer;
 	string_t resolved;
 
@@ -103,6 +111,7 @@ static void test_stacktrace_declare( void )
 static test_suite_t test_stacktrace_suite = {
 	test_stacktrace_application,
 	test_stacktrace_memory_system,
+	test_stacktrace_config,
 	test_stacktrace_declare,
 	test_stacktrace_initialize,
 	test_stacktrace_shutdown

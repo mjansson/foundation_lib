@@ -35,8 +35,11 @@ static void                 bin2hex_print_usage( void );
 int main_initialize( void )
 {
 	int ret = 0;
-
 	application_t application;
+	foundation_config_t config;
+
+	memset( &config, 0, sizeof( config ) );
+
 	memset( &application, 0, sizeof( application ) );
 	application.name = string_const( STRING_CONST( "bin2hex" ) );
 	application.short_name = string_const( STRING_CONST( "bin2hex" ) );
@@ -46,7 +49,7 @@ int main_initialize( void )
 	log_enable_prefix( false );
 	log_set_suppress( 0, ERRORLEVEL_ERROR );
 
-	if( ( ret = foundation_initialize( memory_system_malloc(), application ) ) < 0 )
+	if( ( ret = foundation_initialize( memory_system_malloc(), application, config ) ) < 0 )
 		return ret;
 
 	config_set_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024 );
@@ -138,28 +141,28 @@ int bin2hex_process_files( string_t* input, string_t* output, size_t columns )
 		stream_t* input_file = 0;
 		stream_t* output_file = 0;
 
-		input_filename = string_clone( input[ifile].str, input[ifile].length );
-		input_filename = path_clean( input_filename.str, input_filename.length, input_filename.length + 1, path_is_absolute( input_filename.str, input_filename.length ), true );
-		error_context_push( STRING_CONST( "parsing file" ), input_filename.str, input_filename.length );
+		input_filename = string_clone( STRING_ARGS( input[ifile] ) );
+		input_filename = path_clean( STRING_ARGS_CAPACITY( input_filename ), true );
+		error_context_push( STRING_CONST( "parsing file" ), STRING_ARGS( input_filename ) );
 
-		output_filename = string_clone( output[ifile].str, output[ifile].length );
-		output_filename = path_clean( output_filename.str, output_filename.length, output_filename.length + 1, path_is_absolute( output_filename.str, output_filename.length ), true );
+		output_filename = string_clone( STRING_ARGS( output[ifile] ) );
+		output_filename = path_clean( STRING_ARGS_CAPACITY( output_filename ), true );
 
-		log_infof( 0, STRING_CONST( "bin2hex %.*s -> %.*s" ), (int)input_filename.length, input_filename.str, (int)output_filename.length, output_filename.str );
+		log_infof( 0, STRING_CONST( "bin2hex %.*s -> %.*s" ), STRING_FORMAT( input_filename ), STRING_FORMAT( output_filename ) );
 
-		input_file = stream_open( input_filename.str, input_filename.length, STREAM_IN | STREAM_BINARY );
+		input_file = stream_open( STRING_ARGS( input_filename ), STREAM_IN | STREAM_BINARY );
 
 		if( !input_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open input file: %.*s" ), (int)input_filename.length, input_filename.str );
+			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open input file: %.*s" ), STRING_FORMAT( input_filename ) );
 			result = BIN2HEX_RESULT_MISSING_INPUT_FILE;
 		}
 		else
 		{
-			output_file = stream_open( output_filename.str, output_filename.length, STREAM_OUT );
+			output_file = stream_open( STRING_ARGS( output_filename ), STREAM_OUT );
 			if( !output_file )
 			{
-				log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), (int)output_filename.length, output_filename.str );
+				log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
 				result = BIN2HEX_RESULT_UNABLE_TO_OPEN_OUTPUT_FILE;
 			}
 		}

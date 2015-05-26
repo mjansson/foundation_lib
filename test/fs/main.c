@@ -33,6 +33,14 @@ static memory_system_t test_fs_memory_system( void )
 }
 
 
+static foundation_config_t test_fs_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_fs_initialize( void )
 {
 	return 0;
@@ -252,14 +260,14 @@ DECLARE_TEST( fs, query )
 		fname = string_from_uint_static( random64(), true, 0, 0 );
 		filepath[ifp] = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
 		fname = string_from_int_static( ifp, 0, 0 );
-		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), STRING_CONST( "." ), true );
-		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), STRING_ARGS( fname ), true );
+		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), true, STRING_CONST( "." ) );
+		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), true, STRING_ARGS( fname ) );
 		stream_deallocate( fs_open_file( STRING_ARGS( filepath[ifp] ), STREAM_OUT | STREAM_CREATE ) );
 	}
 
 	fname = string_from_uint_static( subfileid, true, 0, 0 );
 	subfilepath = path_merge( STRING_ARGS( subtestpath ), STRING_ARGS( fname ) );
-	subfilepath = string_append( STRING_ARGS_CAPACITY( subfilepath ), STRING_CONST( ".0" ), true );
+	subfilepath = string_append( STRING_ARGS_CAPACITY( subfilepath ), true, STRING_CONST( ".0" ) );
 	stream_deallocate( fs_open_file( STRING_ARGS( subfilepath ), STREAM_OUT | STREAM_CREATE ) );
 
 	files = fs_files( STRING_ARGS( filepath[0] ) );
@@ -307,8 +315,8 @@ DECLARE_TEST( fs, query )
 	{
 		string_t verifypath = string_from_uint( subpathid, true, 0, 0 );
 		fname = string_from_uint_static( subfileid, true, 0, 0 );
-		verifypath = path_append( STRING_ARGS_CAPACITY( verifypath ), STRING_ARGS( fname ), true );
-		verifypath = string_append( STRING_ARGS_CAPACITY( verifypath ), STRING_CONST( ".0" ), true );
+		verifypath = path_append( STRING_ARGS_CAPACITY( verifypath ), true, STRING_ARGS( fname ) );
+		verifypath = string_append( STRING_ARGS_CAPACITY( verifypath ), true, STRING_CONST( ".0" ) );
 		EXPECT_STRINGEQ( files[8], verifypath );
 		string_deallocate( verifypath.str );
 	}
@@ -689,6 +697,7 @@ static void test_fs_declare( void )
 static test_suite_t test_fs_suite = {
 	test_fs_application,
 	test_fs_memory_system,
+	test_fs_config,
 	test_fs_declare,
 	test_fs_initialize,
 	test_fs_shutdown

@@ -317,24 +317,28 @@ string_const_t environment_current_working_directory( void )
 		return string_to_const( _environment_current_working_dir );
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		string_t path;
-		wchar_t* wd = memory_allocate( 0, sizeof( wchar_t ) * FOUNDATION_MAX_PATHLEN, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
-		GetCurrentDirectoryW( FOUNDATION_MAX_PATHLEN-1, wd );
-		path = string_allocate_from_wstring( wd, 0 );
-		_environment_current_working_dir = path_clean( path.str, path.length, path.length, true, true );
-		memory_deallocate( wd );
+		string_t localpath;
+		wchar_t wd[BUILD_MAX_PATHLEN];
+		DWORD ret = GetCurrentDirectoryW( BUILD_MAX_PATHLEN, wd );
+		if( ret > BUILD_MAX_PATHLEN )
+		{
+			... alloc buffer ...
+		}
+		localpath = string_allocate_from_wstring( wd, ret );
+		_environment_current_working_dir = path_clean( STRING_ARGS_CAPACITY( localpath ), true );
 	}
 #elif FOUNDATION_PLATFORM_POSIX
-	char path[FOUNDATION_MAX_PATHLEN];
-	if( !getcwd( path, FOUNDATION_MAX_PATHLEN ) )
+	char path[BUILD_MAX_PATHLEN];
+	string_t localpath;
+	if( !getcwd( path, BUILD_MAX_PATHLEN ) )
 	{
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to get cwd: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to get cwd: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
 		return string_const( 0, 0 );
 	}
-	_environment_current_working_dir = path_clean( path, string_length( path ), FOUNDATION_MAX_PATHLEN, true, false );
-	_environment_current_working_dir = string_clone( _environment_current_working_dir.str, _environment_current_working_dir.length );
+	localpath = path_clean( path, string_length( path ), BUILD_MAX_PATHLEN, false );
+	_environment_current_working_dir = string_clone( STRING_ARGS( localpath ) );
 #elif FOUNDATION_PLATFORM_PNACL
 	_environment_current_working_dir = string_clone( STRING_CONST( "/persistent" ) );
 #else
@@ -399,16 +403,15 @@ string_const_t environment_home_directory( void )
 	}
 	_environment_home_dir = string_clone( env_home.str, env_home.length );
 #elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
-	char path[FOUNDATION_MAX_PATHLEN];
-	string_t pathstr = (string_t){ path, FOUNDATION_MAX_PATHLEN };
+	char path[BUILD_MAX_PATHLEN];
+	string_t pathstr = (string_t){ path, BUILD_MAX_PATHLEN };
 	_environment_ns_home_directory( &pathstr );
 #  if FOUNDATION_PLATFORM_MACOSX
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{
 		char bundle_identifier[256];
 		string_t bundle = environment_bundle_identifier( bundle_identifier, 256 );
-
-		pathstr = path_append_varg( pathstr.str, pathstr.length, FOUNDATION_MAX_PATHLEN, false, STRING_CONST( "Library/Application Support" ), bundle.str, bundle.length, nullptr );
+		pathstr = path_append_varg( STRING_ARGS( pathstr ), BUILD_MAX_PATHLEN, false, STRING_CONST( "Library/Application Support" ), STRING_ARGS( bundle ), nullptr );
 	}
 #  endif
 	_environment_home_dir = string_clone( pathstr.str, pathstr.length );
@@ -481,12 +484,12 @@ string_const_t environment_temporary_directory( void )
 		size_t curlen = _environment_temp_dir.length;
 		size_t cfglen = _environment_app.config_dir.length;
 		size_t totallen = curlen + cfglen + 40;
-		if( totallen < FOUNDATION_MAX_PATHLEN )
+		if( totallen < BUILD_MAX_PATHLEN )
 		{
 			string_t modpath = string_allocate( 0, totallen, 0 );
 			string_const_t uuidstr = string_from_uuid_static( _environment_app.instance );
-			modpath = string_copy( modpath.str, totallen, _environment_temp_dir.str, _environment_temp_dir.length );
-			modpath = path_append_varg( modpath.str, modpath.length, totallen, false, _environment_app.config_dir.str, _environment_app.config_dir.length, uuidstr.str, uuidstr.length, nullptr );
+			modpath = string_copy( modpath.str, totallen, STRING_ARGS( _environment_temp_dir ) );
+			modpath = path_append_varg( STRING_ARGS( modpath ), totallen, false, STRING_ARGS( _environment_app.config_dir ), STRING_ARGS( uuidstr ), nullptr );
 			string_deallocate( _environment_temp_dir.str );
 			_environment_temp_dir = modpath;
 			_environment_temp_dir_local = true;

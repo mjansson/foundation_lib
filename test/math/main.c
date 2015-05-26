@@ -38,6 +38,14 @@ static memory_system_t test_math_memory_system( void )
 }
 
 
+static foundation_config_t test_math_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_math_initialize( void )
 {
 	return 0;
@@ -426,6 +434,7 @@ static void test_math_declare( void )
 static test_suite_t test_math_suite = {
 	test_math_application,
 	test_math_memory_system,
+	test_math_config,
 	test_math_declare,
 	test_math_initialize,
 	test_math_shutdown

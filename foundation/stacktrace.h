@@ -15,5 +15,5 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-FOUNDATION_API unsigned int    stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames );
-FOUNDATION_API string_t        stacktrace_resolve( char* str, size_t length, void** trace, unsigned int max_depth, unsigned int skip_frames );
+FOUNDATION_API size_t      stacktrace_capture( void** trace, size_t max_depth, size_t skip_frames );
+FOUNDATION_API string_t    stacktrace_resolve( char* str, size_t length, void** trace, size_t max_depth, size_t skip_frames );

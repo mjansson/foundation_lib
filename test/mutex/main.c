@@ -33,6 +33,14 @@ static memory_system_t test_mutex_memory_system( void )
 }
 
 
+static foundation_config_t test_mutex_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_mutex_initialize( void )
 {
 	return 0;
@@ -228,6 +236,7 @@ static void test_mutex_declare( void )
 static test_suite_t test_mutex_suite = {
 	test_mutex_application,
 	test_mutex_memory_system,
+	test_mutex_config,
 	test_mutex_declare,
 	test_mutex_initialize,
 	test_mutex_shutdown

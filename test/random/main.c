@@ -41,6 +41,14 @@ static memory_system_t test_random_memory_system( void )
 }
 
 
+static foundation_config_t test_random_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_random_initialize( void )
 {
 	return 0;
@@ -465,6 +473,7 @@ static void test_random_declare( void )
 static test_suite_t test_random_suite = {
 	test_random_application,
 	test_random_memory_system,
+	test_random_config,
 	test_random_declare,
 	test_random_initialize,
 	test_random_shutdown

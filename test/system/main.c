@@ -33,6 +33,14 @@ static memory_system_t test_system_memory_system( void )
 }
 
 
+static foundation_config_t test_system_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_system_initialize( void )
 {
 	return 0;
@@ -69,6 +77,7 @@ DECLARE_TEST( system, align )
 DECLARE_TEST( system, builtin )
 {
 	device_orientation_t orientation;
+	char buffer[512];
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	EXPECT_EQ( system_platform(), PLATFORM_WINDOWS );
@@ -128,31 +137,38 @@ DECLARE_TEST( system, builtin )
 
 	EXPECT_GE( system_hardware_threads(), 1 );
 
-	EXPECT_NE( system_hostname(), 0 );
-	EXPECT_GT( string_length( system_hostname() ), 0 );
+	EXPECT_NE( system_hostname( buffer, sizeof( buffer ) ).str, 0 );
+	EXPECT_GT( system_hostname( buffer, sizeof( buffer ) ).length, 0 );
+	EXPECT_NE( system_username( buffer, sizeof( buffer ) ).str, 0 );
+	EXPECT_GT( system_username( buffer, sizeof( buffer ) ).length, 0 );
+	EXPECT_NE( system_hostname( buffer, 2 ).str, 0 );
+	EXPECT_EQ( system_hostname( buffer, 2 ).length, 1 );
+	EXPECT_NE( system_username( buffer, 2 ).str, 0 );
+	EXPECT_EQ( system_username( buffer, 2 ).length, 1 );
 #if !FOUNDATION_PLATFORM_PNACL
 	EXPECT_NE( system_hostid(), 0 );
 #endif
-	EXPECT_NE( system_username(), 0 );
-	EXPECT_GT( string_length( system_username() ), 0 );
 
 	system_error_reset();
 	EXPECT_EQ( system_error(), 0 );
 
-	EXPECT_STREQ( system_error_message( 0 ), "<no error>" );
-	EXPECT_NE( system_error_message( 1 ), 0 );
+	EXPECT_STRINGEQ( system_error_message( 0 ), string_const( STRING_CONST( "<no error>" ) ) );
+	EXPECT_NE( system_error_message( 1 ).str, 0 );
+	EXPECT_GT( system_error_message( 1 ).length, 0 );
 
 	EXPECT_NE( system_language(), 0 );
 	EXPECT_NE( system_country(), 0 );
 	EXPECT_NE( system_locale(), 0 );
-	EXPECT_NE( system_locale_string(), 0 );
-	EXPECT_EQ( string_length( system_locale_string() ), 4 );
+	EXPECT_NE( system_locale_string( buffer, sizeof( buffer ) ).str, 0 );
+	EXPECT_EQ( system_locale_string( buffer, sizeof( buffer ) ).length, 4 );
+	EXPECT_NE( system_locale_string( buffer, 2 ).str, 0 );
+	EXPECT_EQ( system_locale_string( buffer, 2 ).length, 1 );
 
-	config_set_string_constant( HASH_FOUNDATION, HASH_LOCALE, "svSE" );
+	config_set_string_constant( HASH_FOUNDATION, HASH_LOCALE, STRING_CONST( "svSE" ) );
 	EXPECT_EQ_MSGFORMAT( system_language(), LANGUAGE_SWEDISH, "config language change was not picked up: 0x%04x", system_language() );
 	EXPECT_EQ_MSGFORMAT( system_country(), COUNTRY_SWEDEN, "config country change was not picked up: 0x%04x", system_country() );
 	EXPECT_EQ_MSGFORMAT( system_locale(), LOCALE_FROM_LANGUAGE_COUNTRY( LANGUAGE_SWEDISH, COUNTRY_SWEDEN ), "config locale change was not picked up: 0x%08x", system_locale() );
-	EXPECT_STREQ_MSGFORMAT( system_locale_string(), "svSE", "config locale change was not picked up: %s", system_locale_string() );
+	EXPECT_STRINGEQ_MSGFORMAT( system_locale_string( buffer, sizeof( buffer ) ), string_const( STRING_CONST( "svSE" ) ), "config locale change was not picked up: %s", buffer );
 
 	orientation = system_device_orientation();
 	system_set_device_orientation( DEVICEORIENTATION_PORTRAIT );
@@ -175,6 +191,7 @@ static void test_system_declare( void )
 static test_suite_t test_system_suite = {
 	test_system_application,
 	test_system_memory_system,
+	test_system_config,
 	test_system_declare,
 	test_system_initialize,
 	test_system_shutdown

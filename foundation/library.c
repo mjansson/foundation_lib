@@ -49,7 +49,7 @@ static objectmap_t* _library_map;
 
 int _library_initialize( void )
 {
-	_library_map = objectmap_allocate( BUILD_SIZE_LIBRARY_MAP );
+	_library_map = objectmap_allocate( _foundation_def.library_max );
 	if( !_library_map )
 		return -1;
 	return 0;

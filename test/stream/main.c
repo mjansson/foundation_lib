@@ -64,6 +64,14 @@ static memory_system_t test_stream_memory_system( void )
 }
 
 
+static foundation_config_t test_stream_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_stream_initialize( void )
 {
 	return 0;
@@ -85,9 +93,9 @@ DECLARE_TEST( stream, std )
 	stream_t* out_clone;
 	stream_t* err_clone;
 
-	in = stream_open( "stdin://", STREAM_OUT | STREAM_IN | STREAM_BINARY );
-	out = stream_open( "stdout://", STREAM_OUT | STREAM_IN );
-	err = stream_open( "stderr://", STREAM_OUT | STREAM_IN | STREAM_BINARY );
+	in = stream_open( STRING_CONST( "stdin://" ), STREAM_OUT | STREAM_IN | STREAM_BINARY );
+	out = stream_open( STRING_CONST( "stdout://" ), STREAM_OUT | STREAM_IN );
+	err = stream_open( STRING_CONST( "stderr://" ), STREAM_OUT | STREAM_IN | STREAM_BINARY );
 
 	EXPECT_NE_MSG( in, 0, "Failed to open stdin://" );
 	EXPECT_NE_MSG( out, 0, "Failed to open stdout://" );
@@ -173,9 +181,9 @@ DECLARE_TEST( stream, std )
 	EXPECT_EQ_MSG( stream_is_binary( out ), false, "stdout did not set asii mode" );
 	EXPECT_EQ_MSG( stream_is_binary( err ), false, "stderr did not set ascii mode" );
 
-	EXPECT_STREQ_MSG( stream_path( in ), "stdin://", "stdin has wrong path" );
-	EXPECT_STREQ_MSG( stream_path( out ), "stdout://", "stdout has wrong path" );
-	EXPECT_STREQ_MSG( stream_path( err ), "stderr://", "stderr has wrong path" );
+	EXPECT_STRINGEQ_MSG( stream_path( in ), string_const( STRING_CONST( "stdin://" ) ), "stdin has wrong path" );
+	EXPECT_STRINGEQ_MSG( stream_path( out ), string_const( STRING_CONST( "stdout://" ) ), "stdout has wrong path" );
+	EXPECT_STRINGEQ_MSG( stream_path( err ), string_const( STRING_CONST( "stderr://" ) ), "stderr has wrong path" );
 
 	now = time_system();
 
@@ -194,9 +202,9 @@ DECLARE_TEST( stream, std )
 	EXPECT_NE_MSG( out_clone, 0, "Clone stdout stream returned null" );
 	EXPECT_NE_MSG( err_clone, 0, "Clone stderr stream returned null" );
 
-	EXPECT_STREQ_MSG( stream_path( in_clone ), "stdin://", "stdin clone has wrong path" );
-	EXPECT_STREQ_MSG( stream_path( out_clone ), "stdout://", "stdout clone has wrong path" );
-	EXPECT_STREQ_MSG( stream_path( err_clone ), "stderr://", "stderr clone has wrong path" );
+	EXPECT_STRINGEQ_MSG( stream_path( in_clone ), string_const( STRING_CONST( "stdin://" ) ), "stdin has wrong path" );
+	EXPECT_STRINGEQ_MSG( stream_path( out_clone ), string_const( STRING_CONST( "stdout://" ) ), "stdout has wrong path" );
+	EXPECT_STRINGEQ_MSG( stream_path( err_clone ), string_const( STRING_CONST( "stderr://" ) ), "stderr has wrong path" );
 
 	EXPECT_EQ_MSG( stream_is_binary( in_clone ), stream_is_binary( in ), "stdin did not preserve mode" );
 	EXPECT_EQ_MSG( stream_is_binary( out_clone ), stream_is_binary( out ), "stdout clone did not preserve mode" );
@@ -1206,6 +1214,7 @@ static void test_stream_declare( void )
 static test_suite_t test_stream_suite = {
 	test_stream_application,
 	test_stream_memory_system,
+	test_stream_config,
 	test_stream_declare,
 	test_stream_initialize,
 	test_stream_shutdown

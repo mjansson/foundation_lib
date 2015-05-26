@@ -33,6 +33,14 @@ static memory_system_t test_regex_memory_system( void )
 }
 
 
+static foundation_config_t test_regex_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_regex_initialize( void )
 {
 	return 0;
@@ -279,6 +287,7 @@ static void test_regex_declare( void )
 static test_suite_t test_regex_suite = {
 	test_regex_application,
 	test_regex_memory_system,
+	test_regex_config,
 	test_regex_declare,
 	test_regex_initialize,
 	test_regex_shutdown

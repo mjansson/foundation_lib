@@ -153,9 +153,9 @@ int process_spawn( process_t* proc )
 #endif
 	{
 		if( proc->path.str[0] != '"' )
-			proc->path = string_prepend( STRING_ARGS_CAPACITY( proc->path ), STRING_CONST( "\"" ), true );
+			proc->path = string_prepend( STRING_ARGS_CAPACITY( proc->path ), true, STRING_CONST( "\"" ) );
 		if( proc->path.str[ proc->path.length - 1 ] != '"' )
-			proc->path = string_append( STRING_ARGS_CAPACITY( proc->path ), STRING_CONST( "\"" ), true );
+			proc->path = string_append( STRING_ARGS_CAPACITY( proc->path ), true, STRING_CONST( "\"" ) );
 	}
 
 	size = array_size( proc->args );
@@ -349,7 +349,7 @@ int process_spawn( process_t* proc )
 		status = FSPathMakeRef( (uint8_t*)localpath.str, fsref, 0 );
 		if( status < 0 )
 		{
-			localpath = string_append( localpath.str, localpath.length, localpath.length + 1, STRING_CONST( ".app" ), true );
+			localpath = string_append( localpath.str, localpath.length, localpath.length + 1, true, STRING_CONST( ".app" ) );
 			status = FSPathMakeRef( (uint8_t*)localpath.str, fsref, 0 );
 		}
 

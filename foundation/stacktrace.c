@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -378,18 +379,18 @@ static bool _initialize_stackwalker()
 }
 
 
-unsigned int FOUNDATION_NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
+size_t FOUNDATION_NOINLINE stacktrace_capture( void** trace, size_t max_depth, size_t skip_frames )
 {
-	unsigned int num_frames = 0;
+	size_t num_frames = 0;
 
 	if( !trace )
 		return 0;
 
 	if( !max_depth )
-		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
+		max_depth = _foundation_def.stacktrace_depth;
 
-	if( max_depth > BUILD_SIZE_STACKTRACE_DEPTH )
-		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
+	if( max_depth > _foundation_def.stacktrace_depth )
+		max_depth = _foundation_def.stacktrace_depth;
 
 	if( !_stackwalk_initialized )
 	{
@@ -406,14 +407,9 @@ unsigned int FOUNDATION_NOINLINE stacktrace_capture( void** trace, unsigned int 
 #  if USE_CAPTURESTACKBACKTRACE
 	if( CallRtlCaptureStackBackTrace )
 	{
-		void* local_trace[BUILD_SIZE_STACKTRACE_DEPTH];
-		if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
-			max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
-		num_frames = (unsigned int)CallRtlCaptureStackBackTrace( skip_frames, max_depth, local_trace, 0 );
-		if( num_frames > max_depth )
-			num_frames = max_depth;
-		memcpy( trace, local_trace, sizeof( void* ) * num_frames );
-		memset( trace + num_frames, 0, sizeof( void* ) * ( max_depth - num_frames ) );
+		num_frames = CallRtlCaptureStackBackTrace( skip_frames, max_depth, trace, 0 );
+		if( num_frames < max_depth )
+			memset( trace + num_frames, 0, sizeof( void* ) * ( max_depth - num_frames ) );
 	}
 	else
 	{
@@ -508,18 +504,20 @@ unsigned int FOUNDATION_NOINLINE stacktrace_capture( void** trace, unsigned int 
 	// Add 1 skip frames for this function call
 	skip_frames += 1;
 
-	void* localframes[BUILD_SIZE_STACKTRACE_DEPTH];
-	num_frames = (unsigned int)backtrace( localframes, BUILD_SIZE_STACKTRACE_DEPTH );
-
-	if( num_frames > skip_frames )
+	void* localframes[64];
+	int ret = backtrace( localframes, 64 );
+	if( ret > (int)skip_frames )
 	{
-		num_frames -= skip_frames;
+		num_frames = (size_t)ret - skip_frames;
 		if( num_frames > max_depth )
 			num_frames = max_depth;
 		memcpy( trace, localframes + skip_frames, sizeof( void* ) * num_frames );
 	}
 	else
+	{
+		num_frames = 0;
 		trace[0] = 0;
+	}
 
 #else
 	FOUNDATION_UNUSED( skip_frames );
@@ -599,7 +597,7 @@ static bool _initialize_symbol_resolve()
 }
 
 
-static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t size, void** frames, unsigned int max_frames )
+static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t size, void** frames, size_t max_frames )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_t*           lines = 0;
@@ -683,12 +681,9 @@ static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t 
 	char** resolved = backtrace_symbols( frames, (int)max_frames );
 	for( unsigned int iframe = 0; iframe < max_frames; ++iframe )
 	{
-		size_t length;
-		if( resolved[iframe] && ( length = string_length( resolved[iframe] ) ) )
-		{
-			symbols = string_append( symbols.str, symbols.length, size, resolved[iframe], length, false );
-			symbols = string_append( symbols.str, symbols.length, size, STRING_CONST( STRING_NEWLINE ), false );
-		}
+		size_t length = string_length( resolved[iframe] );
+		if( length )
+			symbols = string_append_varg( symbols.str, symbols.length, size, false, resolved[iframe], length, STRING_CONST( STRING_NEWLINE ), nullptr );
 	}
 	free( resolved );
 
@@ -819,14 +814,14 @@ static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t 
 }
 
 
-string_t stacktrace_resolve( char* str, size_t length, void** trace, unsigned int max_depth, unsigned int skip_frames )
+string_t stacktrace_resolve( char* str, size_t length, void** trace, size_t max_depth, size_t skip_frames )
 {
 	_initialize_symbol_resolve();
 
 	if( !max_depth )
-		max_depth = BUILD_SIZE_STACKTRACE_DEPTH;
-	if( max_depth + skip_frames > BUILD_SIZE_STACKTRACE_DEPTH )
-		max_depth = BUILD_SIZE_STACKTRACE_DEPTH - skip_frames;
+		max_depth = _foundation_def.stacktrace_depth;
+	if( max_depth + skip_frames > _foundation_def.stacktrace_depth )
+		max_depth = _foundation_def.stacktrace_depth - skip_frames;
 
 	return _resolve_stack_frames( str, length, trace + skip_frames, max_depth );
 }

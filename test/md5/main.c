@@ -33,6 +33,14 @@ static memory_system_t test_md5_memory_system( void )
 }
 
 
+static foundation_config_t test_md5_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_md5_initialize( void )
 {
 	return 0;
@@ -215,6 +223,7 @@ static void test_md5_declare( void )
 static test_suite_t test_md5_suite = {
 	test_md5_application,
 	test_md5_memory_system,
+	test_md5_config,
 	test_md5_declare,
 	test_md5_initialize,
 	test_md5_shutdown

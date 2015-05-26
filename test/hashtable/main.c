@@ -33,6 +33,14 @@ static memory_system_t test_hashtable_memory_system( void )
 }
 
 
+static foundation_config_t test_hashtable_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_hashtable_initialize( void )
 {
 	return 0;
@@ -284,6 +292,7 @@ static void test_hashtable_declare( void )
 static test_suite_t test_hashtable_suite = {
 	test_hashtable_application,
 	test_hashtable_memory_system,
+	test_hashtable_config,
 	test_hashtable_declare,
 	test_hashtable_initialize,
 	test_hashtable_shutdown

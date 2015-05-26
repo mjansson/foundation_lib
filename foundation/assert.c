@@ -65,25 +65,25 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 
 	if( foundation_is_initialized() )
 	{
-		unsigned int num_frames = stacktrace_capture( _assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, ASSERT_STACKTRACE_SKIP_FRAMES );
+		size_t num_frames = stacktrace_capture( _assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, ASSERT_STACKTRACE_SKIP_FRAMES );
 		if( num_frames )
-			tracestr = stacktrace_resolve( tracestr.str, tracestr.length, _assert_stacktrace, num_frames, 0U );
+			tracestr = stacktrace_resolve( STRING_ARGS( tracestr ), _assert_stacktrace, num_frames, 0U );
 		else
-			tracestr = string_copy( tracestr.str, tracestr.length, "<no stacktrace>", 15 );
+			tracestr = string_copy( STRING_ARGS( tracestr ), STRING_CONST( "<no stacktrace>" ) );
 	}
 	else
 	{
-		tracestr = string_copy( tracestr.str, tracestr.length, "<no stacktrace - not initialized>", 32 );
+		tracestr = string_copy( STRING_ARGS( tracestr ), STRING_CONST( "<no stacktrace - not initialized>" ) );
 	}
 
-	messagestr = string_format_buffer( messagestr.str, messagestr.length, assert_format, sizeof( assert_format ),
+	messagestr = string_format_buffer( STRING_ARGS( messagestr ), assert_format, sizeof( assert_format ),
 		(int)cond_length, condition, (int)file_length, file, line,
-		(int)contextstr.length, contextstr.str, (int)msg_length, msg,
-		(int)tracestr.length, tracestr.str );
+		STRING_FORMAT( contextstr ), (int)msg_length, msg,
+		STRING_FORMAT( tracestr ) );
 
-	log_errorf( context, ERROR_ASSERT, STRING_CONST( "%.*s" ), (int)messagestr.length, messagestr.str );
+	log_errorf( context, ERROR_ASSERT, STRING_CONST( "%.*s" ), STRING_FORMAT( messagestr ) );
 
-	system_message_box( STRING_CONST( "Assert Failure" ), messagestr.str, messagestr.length, false );
+	system_message_box( STRING_CONST( "Assert Failure" ), STRING_ARGS( messagestr ), false );
 #else
 	log_errorf( context, ERROR_ASSERT, assert_format,
 		(int)condition.length, condition.str, (int)file_length, file, line,
@@ -102,9 +102,9 @@ int assert_report_formatted( hash_t context, const char* condition, size_t cond_
 		string_t buffer = { _assert_buffer, ASSERT_BUFFER_SIZE };
 		va_list ap;
 		va_start( ap, msg_length );
-		buffer = string_vformat_buffer( buffer.str, buffer.length, msg, msg_length, ap );
+		buffer = string_vformat_buffer( STRING_ARGS( buffer ), msg, msg_length, ap );
 		va_end( ap );
-		return assert_report( context, condition, cond_length, file, file_length, line, buffer.str, buffer.length );
+		return assert_report( context, condition, cond_length, file, file_length, line, STRING_ARGS( buffer ) );
 	}
 
 	return assert_report( context, condition, cond_length, file, file_length, line, 0, 0 );

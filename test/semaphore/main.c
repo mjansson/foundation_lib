@@ -33,6 +33,14 @@ static memory_system_t test_semaphore_memory_system( void )
 }
 
 
+static foundation_config_t test_semaphore_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_semaphore_initialize( void )
 {
 	return 0;
@@ -283,6 +291,7 @@ static void test_semaphore_declare( void )
 static test_suite_t test_semaphore_suite = {
 	test_semaphore_application,
 	test_semaphore_memory_system,
+	test_semaphore_config,
 	test_semaphore_declare,
 	test_semaphore_initialize,
 	test_semaphore_shutdown

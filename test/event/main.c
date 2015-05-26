@@ -33,6 +33,14 @@ static memory_system_t test_event_memory_system( void )
 }
 
 
+static foundation_config_t test_event_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_event_initialize( void )
 {
 	return 0;
@@ -149,7 +157,7 @@ DECLARE_TEST( event, immediate )
 
 
 	event_post( stream, FOUNDATIONEVENT_TERMINATE, 0, 0, buffer, 13 );
-	event_post_fragmented( stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, 3, buffer + 3, 10, buffer + 13, 24, (void*)0 );
+	event_post_varg( stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, 3, buffer + 3, 10, buffer + 13, 24, nullptr );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );
@@ -211,7 +219,7 @@ static void* producer_thread( object_t thread, void* arg )
 		//event process - test will fail (timestamp check will fail since it is old due to suspension)
 		timestamp = args->max_delay ? time_current() + (tick_t)random_delay : 0;
 		memcpy( buffer, &timestamp, sizeof( tick_t ) );
-		event_post_fragmented( args->stream, random_id, args->id, timestamp, buffer, random_size / 2, buffer + ( random_size / 2 ), random_size - ( random_size / 2 ), (void*)0 );
+		event_post_varg( args->stream, random_id, args->id, timestamp, buffer, random_size / 2, buffer + ( random_size / 2 ), random_size - ( random_size / 2 ), nullptr );
 		++produced;
 	} while( !thread_should_terminate( thread ) && ( time_current() < args->end_time ) );
 
@@ -574,6 +582,7 @@ static void test_event_declare( void )
 static test_suite_t test_event_suite = {
 	test_event_application,
 	test_event_memory_system,
+	test_event_config,
 	test_event_declare,
 	test_event_initialize,
 	test_event_shutdown

@@ -33,6 +33,14 @@ static memory_system_t test_base64_memory_system( void )
 }
 
 
+static foundation_config_t test_base64_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_base64_initialize( void )
 {
 	return 0;
@@ -304,6 +312,7 @@ static void test_base64_declare( void )
 static test_suite_t test_base64_suite = {
 	test_base64_application,
 	test_base64_memory_system,
+	test_base64_config,
 	test_base64_declare,
 	test_base64_initialize,
 	test_base64_shutdown

@@ -117,7 +117,7 @@ int _thread_initialize( void )
 		_fnGetCurrentProcessorNumber = getprocidfn;
 #endif
 
-	_thread_map = objectmap_allocate( BUILD_SIZE_THREAD_MAP );
+	_thread_map = objectmap_allocate( _foundation_def.thread_max );
 
 	return 0;
 }
@@ -458,7 +458,7 @@ bool thread_start( object_t id, void* data )
 	thread->arg = data;
 
 	if( !thread->stacksize )
-		thread->stacksize = BUILD_SIZE_DEFAULT_THREAD_STACK;
+		thread->stacksize = (uint32_t)_foundation_def.thread_stack_size;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	thread->handle = CreateThread( 0, thread->stacksize, _thread_entry, thread, 0, &osid );

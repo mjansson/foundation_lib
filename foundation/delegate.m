@@ -62,12 +62,12 @@ static volatile bool _delegate_received_terminate = false;
     }
 
 	{
-		char* name = 0;
+		string_t name = { 0, 0 };
 		const application_t* app = environment_application();
 		{
 			string_const_t aname = app->short_name.length ? app->short_name : string_const( STRING_CONST( "unknown" ) );
 			string_const_t vstr = string_from_version_static( app->version );
-			name = string_merge_varg( STRING_ARGS( aname ), STRING_CONST( "-" ), STRING_ARGS( vstr ) );
+			name = string_merge_varg( STRING_ARGS( aname ), STRING_CONST( "-" ), STRING_ARGS( vstr ), nullptr );
 		}
 
 		if( app->dump_callback )

@@ -33,6 +33,14 @@ static memory_system_t test_time_memory_system( void )
 }
 
 
+static foundation_config_t test_time_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_time_initialize( void )
 {
 	return 0;
@@ -100,6 +108,7 @@ static void test_time_declare( void )
 static test_suite_t test_time_suite = {
 	test_time_application,
 	test_time_memory_system,
+	test_time_config,
 	test_time_declare,
 	test_time_initialize,
 	test_time_shutdown

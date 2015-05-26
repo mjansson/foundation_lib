@@ -135,6 +135,14 @@ static memory_system_t test_blowfish_memory_system( void )
 }
 
 
+static foundation_config_t test_blowfish_config( void )
+{
+    foundation_config_t config;
+    memset( &config, 0, sizeof( config ) );
+    return config;
+}
+
+
 static int test_blowfish_initialize( void )
 {
 	return 0;
@@ -304,6 +312,7 @@ static void test_blowfish_declare( void )
 static test_suite_t test_blowfish_suite = {
 	test_blowfish_application,
 	test_blowfish_memory_system,
+    test_blowfish_config,
 	test_blowfish_declare,
 	test_blowfish_initialize,
 	test_blowfish_shutdown

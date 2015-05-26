@@ -33,6 +33,14 @@ static memory_system_t test_bitbuffer_memory_system( void )
 }
 
 
+static foundation_config_t test_bitbuffer_config( void )
+{
+	foundation_config_t config;
+	memset( &config, 0, sizeof( config ) );
+	return config;
+}
+
+
 static int test_bitbuffer_initialize( void )
 {
 	return 0;
@@ -525,6 +533,7 @@ static void test_bitbuffer_declare( void )
 static test_suite_t test_bitbuffer_suite = {
 	test_bitbuffer_application,
 	test_bitbuffer_memory_system,
+	test_bitbuffer_config,
 	test_bitbuffer_declare,
 	test_bitbuffer_initialize,
 	test_bitbuffer_shutdown
