@@ -150,12 +150,14 @@ static FOUNDATION_NOINLINE string_const_t _expand_environment( hash_t key, strin
 
 static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, string_t str )
 {
-	string_t expanded;
-	string_const_t variable;
-	size_t var_pos, var_end_pos, separator, var_offset;
+	string_const_t variable, value;
+	size_t var_pos, var_end_pos, separator, var_offset, capacity, newlength;
 	hash_t section, key;
+	string_t expanded;
 
-	expanded = str;
+	capacity = 0;
+	newlength = str.length + 1;
+
 	var_pos = string_find_string( STRING_ARGS( expanded ), STRING_CONST( "$(" ), 0 );
 
 	while( var_pos != STRING_NPOS )
@@ -179,21 +181,25 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 		}
 		key = hash( variable.str + var_offset, variable.length - ( var_offset + ( variable.str[ variable.length - 1 ] == ')' ? 1 : 0 ) ) );
 
-		if( expanded.str == str.str )
-			expanded = string_clone( str.str, str.length );
-
 		if( section != HASH_ENVIRONMENT )
-		{
-			string_const_t value = config_string( section, key );
-			expanded = string_replace( STRING_ARGS_CAPACITY( expanded ), true, STRING_ARGS( variable ), STRING_ARGS( value ), false );
-		}
+			value = config_string( section, key );
 		else
+			value = _expand_environment( key, string_substr( STRING_ARGS( variable ), var_offset, variable.length - var_offset ) );
+
+		newlength += ( value.length > variable.length ) ? value.length - variable.length : 0;
+		if( newlength >= capacity )
 		{
-			string_const_t value = _expand_environment( key, string_substr( STRING_ARGS( variable ), var_offset, variable.length - var_offset ) );
-			expanded = string_replace( STRING_ARGS_CAPACITY( expanded ), true, STRING_ARGS( variable ), STRING_ARGS( value ), false );
+			size_t allocsize = newlength + 32;
+			expanded.str = capacity ? memory_reallocate( expanded.str, allocsize, 0, capacity ) :
+			                          memory_allocate( HASH_STRING, allocsize, 0, MEMORY_PERSISTENT );
+			if( !capacity )
+				string_copy( expanded.str, capacity, STRING_ARGS( str ) );
+			capacity = allocsize;
 		}
 
-		var_pos = string_find_string( STRING_ARGS( expanded ), STRING_CONST( "$(" ), 0 );
+		expanded = string_replace( STRING_ARGS( expanded ), capacity, STRING_ARGS( variable ), STRING_ARGS( value ), false );
+
+		var_pos = string_find_string( STRING_ARGS( expanded ), STRING_CONST( "$(" ), var_pos );
 	}
 #if BUILD_ENABLE_CONFIG_DEBUG
 	if( str.str != expanded.str )
@@ -282,7 +288,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 	const string_const_t* cmd_line;
 	size_t icl, clsize;
 #endif
-	size_t start_path, i, j;
+	size_t start_path, i, j, capacity;
 
 	string_const_t buildsuffix[4] = {
 		(string_const_t){ STRING_CONST( "/debug" ) },
@@ -310,14 +316,15 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 	memset( paths, 0, sizeof( string_const_t ) * NUM_SEARCH_PATHS );
 
 	exe_path = environment_executable_directory();
-	sub_exe_path = path_merge( STRING_ARGS( exe_path ), STRING_CONST( "config" ) );
-	exe_parent_path = path_merge( STRING_ARGS( exe_path ), STRING_CONST( "../config" ) );
+	sub_exe_path = path_merge( 0, 0, true, STRING_ARGS( exe_path ), STRING_CONST( "config" ) );
+	exe_parent_path = path_merge( 0, 0, true, STRING_ARGS( exe_path ), STRING_CONST( "../config" ) );
 	exe_parent_path = path_clean( STRING_ARGS_CAPACITY( exe_parent_path ), true );
 	abs_exe_parent_path = string_clone( STRING_ARGS( exe_parent_path ) );
 	abs_exe_parent_path = path_absolute( STRING_ARGS_CAPACITY( abs_exe_parent_path ), true );
 
 	exe_processed_path = string_clone( STRING_ARGS( exe_path ) );
-	for( i = 0; i < 4; ++i )
+	capacity = exe_processed_path.length + 1;
+	for( i = 0; i < ( sizeof( buildsuffix ) / sizeof( buildsuffix[0] ) ); ++i )
 	{
 		if( string_ends_with( STRING_ARGS( exe_processed_path ), STRING_ARGS( buildsuffix[i] ) ) )
 		{
@@ -326,7 +333,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 			break;
 		}
 	}
-	for( i = 0; i < 7; ++i )
+	for( i = 0; i < ( sizeof( platformsuffix ) / sizeof( platformsuffix[0] ) ); ++i )
 	{
 		if( string_ends_with( STRING_ARGS( exe_processed_path ), STRING_ARGS( platformsuffix[i] ) ) )
 		{
@@ -335,7 +342,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 			break;
 		}
 	}
-	for( i = 0; i < 1; ++i )
+	for( i = 0; i < ( sizeof( binsuffix ) / sizeof( binsuffix[0] ) ); ++i )
 	{
 		if( string_ends_with( STRING_ARGS( exe_processed_path ), STRING_ARGS( binsuffix[i] ) ) )
 		{
@@ -344,7 +351,7 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 			break;
 		}
 	}
-	exe_processed_path = path_append( STRING_ARGS( exe_processed_path ), exe_path.length + 1, true, STRING_CONST( "config" ) );
+	exe_processed_path = path_append( STRING_ARGS( exe_processed_path ), capacity, true, STRING_CONST( "config" ) );
 	abs_exe_processed_path = string_clone( STRING_ARGS( exe_processed_path ) );
 	abs_exe_processed_path = path_absolute( STRING_ARGS_CAPACITY( abs_exe_processed_path ), true );
 
@@ -611,14 +618,14 @@ string_const_t config_string( hash_t section, hash_t key )
 		case CONFIGVALUE_INT:
 		{
 			if( !key_val->sval.str )
-				key_val->sval = string_from_int( key_val->ival, 0, 0 );
+				key_val->sval = string_clone_string( string_from_int_static( key_val->ival, 0, 0 ) );
 			return string_to_const( key_val->sval );
 		}
 
 		case CONFIGVALUE_REAL:
 		{
 			if( !key_val->sval.str )
-				key_val->sval = string_from_real( key_val->rval, 4, 0, '0' );
+				key_val->sval = string_clone_string( string_from_real_static( key_val->rval, 4, 0, '0' ) );
 			return string_to_const( key_val->sval );
 		}
 

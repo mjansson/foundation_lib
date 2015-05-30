@@ -406,7 +406,7 @@ int main_run( void* main_arg )
 		if( string_equal( STRING_ARGS( exe_file_name ), STRING_ARGS( environment_executable_name() ) ) )
 			continue; //Don't run self
 
-		process_path = path_merge( STRING_ARGS( environment_executable_directory() ), STRING_ARGS( exe_paths[iexe] ) );
+		process_path = path_merge( 0, 0, true, STRING_ARGS( environment_executable_directory() ), STRING_ARGS( exe_paths[iexe] ) );
 
 		process = process_allocate();
 

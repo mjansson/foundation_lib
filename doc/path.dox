@@ -80,12 +80,13 @@ subpath returned.
 \param base Path to prepend
 \return Merged path
 
-\fn char* path_clean( char* path, bool absolute )
-\brief Clean up path
-\details Clean up path by replacing windows backslash with slash and cleaning up multiple concurrent slashes. Any slash characters
-at end of path will be removed as well (except if resulting path is "/"). This method recognizes network protocol separator and will only clean file path part
-of such URI:s. Furthermore, any parts of the path of type "/./" will be condensed to "/". The operations are in-place,
-which means that the given string will be modified and potentially reallocated in case string needs to grow.
+\fn char* path_clean( char* path, size_t length, bool absolute )
+\brief Best effort path cleaner
+\details Clean up path in a best effort way by replacing windows backslash with slash and cleaning up multiple concurrent slashes. Any slash characters
+at end of path will be removed as well (except if resulting path is "/"). This method recognizes network protocol separator "://" and windows drive
+designations. Any colon characters appearing after the first path separator slash will be removed. Furthermore, any parts of the path of type "/./"
+will be condensed to "/". The operations are in-place, which means that the given string will be modified and potentially reallocated in case string
+needs to grow and the reallocate flag is true. If the reallocate flag is false, the longest possible part of the cleaned path will be produced.
 \param path Path string
 \param absolute Flag indicating absolute path. If true (default) a slash will be inserted at start of path if missing, if false any existing leading slashes will be removed
 \return Cleaned path string

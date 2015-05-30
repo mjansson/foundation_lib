@@ -683,7 +683,7 @@ static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t 
 	{
 		size_t length = string_length( resolved[iframe] );
 		if( length )
-			symbols = string_append_varg( symbols.str, symbols.length, size, false, resolved[iframe], length, STRING_CONST( STRING_NEWLINE ), nullptr );
+			symbols = string_append_varg( symbols.str, symbols.length, size, resolved[iframe], length, STRING_CONST( STRING_NEWLINE ), nullptr );
 	}
 	free( resolved );
 

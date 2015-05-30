@@ -167,7 +167,7 @@ uuid_t uuid_generate_name( const uuid_t ns, const char* name, size_t length )
 #  define snprintf _snprintf
 #endif
 
-string_t string_from_uuid_buffer( char* buffer, size_t size, const uuid_t val )
+string_t string_from_uuid( char* buffer, size_t size, const uuid_t val )
 {
 	int len;
 	uuid_convert_t convert;

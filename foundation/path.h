@@ -24,9 +24,9 @@ FOUNDATION_API string_const_t   path_directory_name( const char* path, size_t le
 FOUNDATION_API string_const_t   path_subdirectory_name( const char* path, size_t length, const char* root, size_t root_length );
 FOUNDATION_API string_const_t   path_protocol( const char* uri, size_t length );
 
-FOUNDATION_API string_t         path_merge( const char* first, size_t first_length, const char* second, size_t second_length );
-FOUNDATION_API string_t         path_merge_varg( const char* first, size_t first_length, ... );
-FOUNDATION_API string_t         path_merge_vlist( const char* first, size_t first_length, va_list list );
+FOUNDATION_API string_t         path_merge( char* dest, size_t capacity, bool reallocate, const char* first, size_t first_length, const char* second, size_t second_length );
+FOUNDATION_API string_t         path_merge_varg( char* dest, size_t capacity, bool reallocate, const char* first, size_t first_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t         path_merge_vlist( char* dest, size_t capacity, bool reallocate, const char* first, size_t first_length, va_list list );
 FOUNDATION_API string_t         path_append( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length );
 FOUNDATION_API string_t         path_append_varg( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
 FOUNDATION_API string_t         path_append_vlist( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length, va_list list );
@@ -38,5 +38,5 @@ FOUNDATION_API string_t         path_clean( char* path, size_t length, size_t ca
 
 FOUNDATION_API bool             path_is_absolute( const char* path, size_t length );
 
-FOUNDATION_API string_t         path_make_temporary( void );
+FOUNDATION_API string_t         path_make_temporary( char* buffer, size_t capacity, bool reallocate );
 

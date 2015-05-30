@@ -944,17 +944,12 @@ void fs_touch( const char* path, size_t length )
 
 stream_t* fs_temporary_file( void )
 {
-	stream_t* tempfile = 0;
-
-	string_t filename = path_make_temporary();
+	char buf[BUILD_MAX_PATHLEN];
+	string_t filename = path_make_temporary( buf, BUILD_MAX_PATHLEN, false );
 	string_const_t directory = path_directory_name( filename.str, filename.length );
 
 	fs_make_directory( directory.str, directory.length );
-	tempfile = fs_open_file( filename.str, filename.length, STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE );
-
-	string_deallocate( filename.str );
-
-	return tempfile;
+	return fs_open_file( filename.str, filename.length, STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE );
 }
 
 
@@ -1036,9 +1031,9 @@ static string_t* _fs_matching_files( const char* path, size_t length, regex_t* p
 		subnames = _fs_matching_files( STRING_ARGS( localpath ), pattern, true );
 
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
-			array_push( names, path_merge( STRING_ARGS( subdirs[id] ), STRING_ARGS( subnames[in] ) ) );
+			array_push( names, path_prepend( STRING_ARGS_CAPACITY( subnames[in] ), true, STRING_ARGS( subdirs[id] ) ) );
 
-		string_array_deallocate( subnames );
+		array_deallocate( subnames ); //Strings are now modified and owned in names array
 	}
 
 	string_deallocate( localpath.str );
@@ -2018,9 +2013,9 @@ stream_t* fs_open_file( const char* path, size_t length, unsigned int mode )
 	if( string_find_string( STRING_ARGS( finalpath ), STRING_CONST( "://" ), 0 ) == STRING_NPOS )
 	{
 		if( finalpath.str[0] == '/' )
-			finalpath = string_prepend( STRING_ARGS( finalpath ), capacity, true, STRING_CONST( "file:/" ) );
+			finalpath = string_prepend( STRING_ARGS( finalpath ), capacity, STRING_CONST( "file:/" ) );
 		else
-			finalpath = string_prepend( STRING_ARGS( finalpath ), capacity, true, STRING_CONST( "file://" ) );
+			finalpath = string_prepend( STRING_ARGS( finalpath ), capacity, STRING_CONST( "file://" ) );
 	}
 
 	dotrunc = false;

@@ -18,6 +18,7 @@
 
 FOUNDATION_API string_t        string_allocate( size_t length, size_t capacity, char fill );
 FOUNDATION_API string_t        string_clone( const char* str, size_t length );
+FOUNDATION_API string_t        string_clone_string( string_const_t str );
 FOUNDATION_API void            string_deallocate( char* str );
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_null( void );
@@ -35,14 +36,14 @@ FOUNDATION_API size_t          string_glyphs( const char* str, size_t length );
 FOUNDATION_API hash_t          string_hash( const char* str, size_t length );
 
 FOUNDATION_API string_t        string_copy( char* dst, size_t size, const char* src, size_t src_length );
-FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t capacity, bool realloc, size_t new_length, char fill );
-FOUNDATION_API string_t        string_replace( char* str, size_t length, size_t capacity, bool realloc, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat );
-FOUNDATION_API string_t        string_append( char* str, size_t length, size_t capacity, bool realloc, const char* suffix, size_t suffix_length );
-FOUNDATION_API string_t        string_append_varg( char* str, size_t length, size_t capacity, bool realloc, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
-FOUNDATION_API string_t        string_append_vlist( char* str, size_t length, size_t capacity, bool realloc, va_list list );
-FOUNDATION_API string_t        string_prepend( char* str, size_t length, size_t capacity, bool realloc, const char* prefix, size_t prefix_length );
-FOUNDATION_API string_t        string_prepend_varg( char* str, size_t length, size_t capacity, bool realloc, const char* prefix, size_t prefix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
-FOUNDATION_API string_t        string_prepend_vlist( char* str, size_t length, size_t capacity, bool realloc, va_list list );
+FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t capacity, size_t new_length, char fill );
+FOUNDATION_API string_t        string_replace( char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat );
+FOUNDATION_API string_t        string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length );
+FOUNDATION_API string_t        string_append_varg( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_append_vlist( char* str, size_t length, size_t capacity, va_list list );
+FOUNDATION_API string_t        string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length );
+FOUNDATION_API string_t        string_prepend_varg( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_prepend_vlist( char* str, size_t length, size_t capacity, va_list list );
 FOUNDATION_API string_t        string_concat( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length );
 FOUNDATION_API string_t        string_concat_varg( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
 FOUNDATION_API string_t        string_concat_vlist( const char* prefix, size_t prefix_length, va_list list );
@@ -65,10 +66,10 @@ FOUNDATION_API bool            string_equal_substr( const char* lhs, size_t lhs_
 FOUNDATION_API bool            string_match_pattern( const char* str, size_t length, const char* pattern, size_t pattern_length );
 
 FOUNDATION_API void            string_split( const char* str, size_t length, const char* separators, size_t sep_length, string_const_t* left, string_const_t* right, bool allowempty );
-FOUNDATION_API string_const_t* string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, bool allow_empty );
-FOUNDATION_API string_t        string_merge( const string_const_t* array, size_t array_size, const char* delimiter, size_t delim_length );
-FOUNDATION_API string_t        string_merge_varg( const char* delimiter, size_t delim_length, const char* str, size_t length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
-FOUNDATION_API string_t        string_merge_vlist( const char* delimiter, size_t delim_length, va_list list );
+FOUNDATION_API size_t          string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, string_const_t* arr, size_t arrsize, bool allow_empty );
+FOUNDATION_API string_t        string_merge( char* dst, size_t capacity, const string_const_t* array, size_t array_size, const char* delimiter, size_t delim_length );
+FOUNDATION_API string_t        string_merge_varg( char* dst, size_t capacity, const char* delimiter, size_t delim_length, const char* str, size_t length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_merge_vlist( char* dst, size_t capacity, const char* delimiter, size_t delim_length, va_list list );
 
 FOUNDATION_API uint32_t        string_glyph( const char* str, size_t length, size_t offset, size_t* consumed );
 
@@ -89,21 +90,13 @@ FOUNDATION_API string_t        string_allocate_from_utf32( const uint32_t* str, 
 FOUNDATION_API void            string_convert_utf16( char* dst, size_t dst_length, const uint16_t* src, size_t src_length );
 FOUNDATION_API void            string_convert_utf32( char* dst, size_t dst_length, const uint32_t* src, size_t src_length );
 
-FOUNDATION_API string_t        string_from_int( int64_t val, unsigned int width, char padding );
-FOUNDATION_API string_t        string_from_uint( uint64_t val, bool hex, unsigned int width, char padding );
-FOUNDATION_API string_t        string_from_uint128( const uint128_t val );
-FOUNDATION_API string_t        string_from_real( real val, unsigned int precision, unsigned int width, char padding );
-FOUNDATION_API string_t        string_from_time( tick_t time );
-FOUNDATION_API string_t        string_from_uuid( const uuid_t uuid );
-FOUNDATION_API string_t        string_from_version( const version_t version );
-
-FOUNDATION_API string_t        string_from_int_buffer( char* str, size_t length, int64_t val, unsigned int width, char padding );
-FOUNDATION_API string_t        string_from_uint_buffer( char* str, size_t length, uint64_t val, bool hex, unsigned int width, char padding );
-FOUNDATION_API string_t        string_from_uint128_buffer( char* str, size_t length, const uint128_t val );
-FOUNDATION_API string_t        string_from_real_buffer( char* str, size_t length, real val, unsigned int precision, unsigned int width, char padding );
-FOUNDATION_API string_t        string_from_time_buffer( char* str, size_t length, tick_t time );
-FOUNDATION_API string_t        string_from_uuid_buffer( char* str, size_t length, const uuid_t uuid );
-FOUNDATION_API string_t        string_from_version_buffer( char* str, size_t length, const version_t version );
+FOUNDATION_API string_t        string_from_int( char* str, size_t length, int64_t val, unsigned int width, char padding );
+FOUNDATION_API string_t        string_from_uint( char* str, size_t length, uint64_t val, bool hex, unsigned int width, char padding );
+FOUNDATION_API string_t        string_from_uint128( char* str, size_t length, const uint128_t val );
+FOUNDATION_API string_t        string_from_real( char* str, size_t length, real val, unsigned int precision, unsigned int width, char padding );
+FOUNDATION_API string_t        string_from_time( char* str, size_t length, tick_t time );
+FOUNDATION_API string_t        string_from_uuid( char* str, size_t length, const uuid_t uuid );
+FOUNDATION_API string_t        string_from_version( char* str, size_t length, const version_t version );
 
 FOUNDATION_API string_const_t  string_from_int_static( int64_t val, unsigned int width, char padding );
 FOUNDATION_API string_const_t  string_from_uint_static( uint64_t val, bool hex, unsigned int width, char padding );

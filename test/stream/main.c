@@ -280,18 +280,18 @@ DECLARE_TEST( stream, readwrite_binary )
 	char write_buffer[1024];
 	char read_buffer[1024];
 	stream_t* teststream;
-	char* path;
-	char* directory;
-	char* line;
+	string_t path;
+	string_const_t directory;
+	string_t line;
 	int i;
 	uint64_t was_read;
 
 	path = path_make_temporary();
 	directory = path_directory_name( path );
-	fs_make_directory( directory );
+	fs_make_directory( STRING_ARGS( directory ) );
 
-	teststream = stream_open( path, STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%s' not created", path );
+	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
+	EXPECT_NE_MSGFORMAT( teststream, 0, STRING_CONST( "test stream '%.*s' not created" ), STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -311,9 +311,9 @@ DECLARE_TEST( stream, readwrite_binary )
 	stream_write_uint64( teststream, 8712634987126ULL );
 	stream_write_float32( teststream, 1.0f );
 	stream_write_float64( teststream, -1.0 );
-	stream_write_string( teststream, "test string\nwith some newlines\nin the string" );
+	stream_write_string( teststream, STRING_CONST( "test string\nwith some newlines\nin the string" ) );
 	stream_write_endl( teststream );
-	stream_write_format( teststream, "formatted output with a null pointer 0x%" PRIfixPTR, (uintptr_t)((void*)0) );
+	stream_write_format( teststream, STRING_CONST( "formatted output with a null pointer 0x%" PRIfixPTR ), (uintptr_t)((void*)0) );
 	stream_write_string( teststream, 0 );
 
 	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025ULL + 43ULL + 45ULL + 40ULL + FOUNDATION_SIZE_POINTER*2 + 1, "stream position not expected after writes (%" PRIsize ")", stream_tell( teststream ) );

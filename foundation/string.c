@@ -62,6 +62,12 @@ string_t string_clone( const char* str, size_t length )
 }
 
 
+string_t string_clone_string( string_const_t str )
+{
+	return string_clone( STRING_ARGS( str ) );
+}
+
+
 string_t string_format( const char* format, size_t length, ... )
 {
 	ssize_t n;
@@ -195,18 +201,15 @@ hash_t string_hash( const char* str, size_t length )
 }
 
 
-string_t string_resize( char* str, size_t length, size_t capacity, bool realloc, size_t new_length, char c )
+string_t string_resize( char* str, size_t length, size_t capacity, size_t new_length, char c )
 {
 	if( length > capacity )
 		length = capacity;
 
-	if( !str || ( capacity <= new_length ) )
+	if( !str || ( new_length >= capacity ) )
 	{
-		if( realloc )
-			str = str ? memory_reallocate( str, new_length + 1, 0, capacity ) :
-			            memory_allocate( HASH_STRING, new_length + 1, 0, MEMORY_PERSISTENT );
-		else
-			new_length = capacity ? capacity - 1 : 0;
+		str = str ? memory_reallocate( str, new_length + 1, 0, capacity ) :
+		            memory_allocate( HASH_STRING, new_length + 1, 0, MEMORY_PERSISTENT );
 	}
 	if( length < new_length )
 		memset( str + length, c, new_length - length );
@@ -251,7 +254,7 @@ string_const_t string_strip( const char* str, size_t length, const char* delimit
 }
 
 
-string_t string_replace( char* str, size_t length, size_t capacity, bool realloc, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat )
+string_t string_replace( char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat )
 {
 	size_t pos, lastpos, replaced, needsize;
 	ssize_t lendiff;
@@ -295,32 +298,25 @@ string_t string_replace( char* str, size_t length, size_t capacity, bool realloc
 			needsize = length + (size_t)lendiff + 1;
 			if( needsize > capacity )
 			{
-				if( realloc )
+				//Best effort
+				size_t dest_clamp = pos + newkey_length;
+				if( dest_clamp < capacity )
 				{
-					needsize += (size_t)lendiff * 4; //Try to prevent further reallocs
-					str = memory_reallocate( str, needsize, 0, capacity );
-					capacity = needsize;
-				}
-				else
-				{
-					//Best effort
-					size_t dest_clamp = pos + newkey_length;
-					if( dest_clamp < capacity )
-					{
-						size_t size_clamp = length - pos - key_length + 1;
-						if( dest_clamp + size_clamp >= capacity )
-							size_clamp = capacity - dest_clamp - 1;
-						if( size_clamp > 0)
-							memmove( str + dest_clamp, str + pos + key_length, size_clamp );
-						memcpy( str + pos, newkey, newkey_length );
-						length = capacity - 1;
-					}
-					break;
+					size_t size_clamp = length - pos - key_length + 1;
+					if( dest_clamp + size_clamp >= capacity )
+						size_clamp = capacity - dest_clamp - 1;
+					if( size_clamp > 0 )
+						memmove( str + dest_clamp, str + pos + key_length, size_clamp );
+					memcpy( str + pos, newkey, newkey_length );
+					length = capacity - 1;
 				}
 			}
-			memmove( str + pos + newkey_length, str + pos + key_length, length - pos - key_length + 1 );
-			memcpy( str + pos, newkey, newkey_length );
-			length += (size_t)lendiff;
+			else
+			{
+				memmove( str + pos + newkey_length, str + pos + key_length, length - pos - key_length + 1 );
+				memcpy( str + pos, newkey, newkey_length );
+				length += (size_t)lendiff;
+			}
 		}
 
 		lastpos = pos;
@@ -335,7 +331,7 @@ string_t string_replace( char* str, size_t length, size_t capacity, bool realloc
 }
 
 
-string_t string_append( char* str, size_t length, size_t capacity, bool realloc, const char* suffix, size_t suffix_length )
+string_t string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length )
 {
 	size_t total_length;
 	if( !suffix_length )
@@ -344,18 +340,10 @@ string_t string_append( char* str, size_t length, size_t capacity, bool realloc,
 	total_length = length + suffix_length;
 	if( total_length >= capacity )
 	{
-		if( realloc )
-		{
-			str = str ? memory_reallocate( str, total_length + 1, 0, capacity ) :
-			            memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
-		}
-		else
-		{
-			if( length >= capacity )
-				length = capacity - 1;
-			total_length = capacity ? capacity - 1 : 0;
-			suffix_length = capacity - length - 1;
-		}
+		if( length >= capacity )
+			length = capacity - 1;
+		total_length = capacity ? capacity - 1 : 0;
+		suffix_length = capacity - length - 1;
 	}
 
 	if( suffix_length )
@@ -367,7 +355,7 @@ string_t string_append( char* str, size_t length, size_t capacity, bool realloc,
 }
 
 
-string_t string_prepend( char* str, size_t length, size_t capacity, bool realloc, const char* prefix, size_t prefix_length )
+string_t string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length )
 {
 	size_t total_length, prefix_offset, prefix_mod;
 	if( !prefix_length )
@@ -377,20 +365,12 @@ string_t string_prepend( char* str, size_t length, size_t capacity, bool realloc
 	prefix_offset = 0;
 	if( total_length >= capacity )
 	{
-		if( realloc )
-		{
-			str = str ? memory_reallocate( str, total_length + 1, 0, capacity ) :
-			            memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
-		}
-		else
-		{
-			if( length >= capacity )
-				length = capacity - 1;
-			total_length = capacity ? capacity - 1 : 0;
-			prefix_mod = capacity - length - 1;
-			prefix_offset = prefix_length - prefix_mod;
-			prefix_length = prefix_mod;
-		}
+		if( length >= capacity )
+			length = capacity - 1;
+		total_length = capacity ? capacity - 1 : 0;
+		prefix_mod = capacity - length - 1;
+		prefix_offset = prefix_length - prefix_mod;
+		prefix_length = prefix_mod;
 	}
 
 	if( length && prefix_length )
@@ -661,69 +641,76 @@ bool string_match_pattern( const char* element, size_t element_length, const cha
 }
 
 
-string_const_t* string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, bool allow_empty )
+size_t string_explode( const char* str, size_t length, const char* delimiters, size_t delim_length, string_const_t* arr, size_t arrsize, bool allow_empty )
 {
-	string_const_t* array;
 	size_t token;
 	size_t end;
+	size_t count = 0;
 
-	if( !length )
+	if( !length || !arrsize )
 		return 0;
 
-	array = 0;
 	if( !delim_length )
 	{
-		array_push( array, string_const( str, length ) );
-		return array;
+		arr[count++] = string_const( str, length );
+		return count;
 	}
 
 	token = 0;
 	end   = 0;
 
-	while( end < length )
+	while( ( end < length ) && ( count < arrsize ) )
 	{
 		if( !allow_empty )
 			token = string_find_first_not_of( str, length, delimiters, delim_length, end );
 		end = string_find_first_of( str, length, delimiters, delim_length, token );
 
 		if( token != STRING_NPOS )
-			array_push( array, string_const( str + token, ( end != STRING_NPOS ) ? ( end - token ) : ( length - token ) ) );
+			arr[count++] = string_const( str + token, ( end != STRING_NPOS ) ? ( end - token ) : ( length - token ) );
 		if( allow_empty )
 			token = end + 1;
 	}
 
-	return array;
+	return count;
 }
 
 
-string_t string_merge( const string_const_t* array, size_t num, const char* delimiter, size_t delim_length )
+string_t string_merge( char* dst, size_t capacity, const string_const_t* array, size_t num, const char* delimiter, size_t delim_length )
 {
 	string_t result;
-	size_t i, total_length;
-	char* loop;
+	size_t i, limit;
 
-	if( !num )
+	if( !num || !capacity )
 		return (string_t){ 0, 0 };
 
-	total_length = 0;
-	for( i = 0; i < ( num - 1 ); ++i )
-		total_length += array[i].length + delim_length;
-	total_length += array[i].length;
-
-	result.str = memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
-	result.length = total_length;
-	loop = result.str;
+	--capacity;
+	result.str = dst;
+	result.length = 0;
 	for( i = 0; i < ( num - 1 ); ++i )
 	{
-		memcpy( loop, array[i].str, array[i].length );
-		loop += array[i].length;
+		limit = capacity - result.length;
+		if( array[i].length < limit )
+			limit = array[i].length;
+		if( !limit )
+			break;
+		memcpy( result.str + result.length, array[i].str, limit );
+		result.length += limit;
 
-		memcpy( loop, delimiter, delim_length );
-		loop += delim_length;
+		limit = capacity - result.length;
+		if( delim_length < limit )
+			limit = delim_length;
+		if( !limit )
+			break;
+		memcpy( result.str + result.length, delimiter, limit );
+		result.length += limit;
 	}
-	memcpy( loop, array[i].str, array[i].length );
-	loop += array[i].length;
-	*loop = 0;
+
+	limit = capacity - result.length;
+	if( array[i].length < limit )
+		limit = array[i].length;
+	memcpy( result.str + result.length, array[i].str, limit );
+	result.length += limit;
+	result.str[result.length] = 0;
 
 	return result;
 }
@@ -1177,15 +1164,7 @@ void string_convert_utf32( char* dst, size_t dstsize, const uint32_t* src, size_
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( char, convert_buffer, THREAD_BUFFER_SIZE )
 
 
-string_t string_from_int( int64_t val, unsigned int width, char fill )
-{
-	char buf[32];
-	string_t str = string_from_int_buffer( buf, 32, val, width, fill );
-	return string_clone( str.str, str.length );
-}
-
-
-string_t string_from_int_buffer( char* buffer, size_t size, int64_t val, unsigned int width, char fill )
+string_t string_from_int( char* buffer, size_t size, int64_t val, unsigned int width, char fill )
 {
 	int len = snprintf( buffer, size, "%" PRId64, val );
 	if( ( len < 0 ) || !size )
@@ -1212,19 +1191,11 @@ string_t string_from_int_buffer( char* buffer, size_t size, int64_t val, unsigne
 
 string_const_t string_from_int_static( int64_t val, unsigned int width, char fill )
 {
-	return string_to_const( string_from_int_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, width, fill ) );
+	return string_to_const( string_from_int( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, width, fill ) );
 }
 
 
-string_t string_from_uint( uint64_t val, bool hex, unsigned int width, char fill )
-{
-	char buf[32];
-	string_t str = string_from_uint_buffer( buf, 32, val, hex, width, fill );
-	return string_clone( str.str, str.length );
-}
-
-
-string_t string_from_uint_buffer( char* buffer, size_t size, uint64_t val, bool hex, unsigned int width, char fill )
+string_t string_from_uint( char* buffer, size_t size, uint64_t val, bool hex, unsigned int width, char fill )
 {
 	int len = snprintf( buffer, size, hex ? "%" PRIx64 : "%" PRIu64, val );
 	if( ( len < 0 ) || !size )
@@ -1251,19 +1222,11 @@ string_t string_from_uint_buffer( char* buffer, size_t size, uint64_t val, bool 
 
 string_const_t string_from_uint_static( uint64_t val, bool hex, unsigned int width, char fill )
 {
-	return string_to_const( string_from_uint_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, hex, width, fill ) );
+	return string_to_const( string_from_uint( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, hex, width, fill ) );
 }
 
 
-string_t string_from_uint128( const uint128_t val )
-{
-	char buf[34];
-	string_t str = string_from_uint128_buffer( buf, 34, val );
-	return string_clone( str.str, str.length );
-}
-
-
-string_t string_from_uint128_buffer( char* buffer, size_t size, const uint128_t val )
+string_t string_from_uint128( char* buffer, size_t size, const uint128_t val )
 {
 	int len = snprintf( buffer, size, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1] );
 	if( ( len < 0 ) || !size )
@@ -1283,19 +1246,11 @@ string_t string_from_uint128_buffer( char* buffer, size_t size, const uint128_t 
 
 string_const_t string_from_uint128_static( const uint128_t val )
 {
-	return string_to_const( string_from_uint128_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val ) );
+	return string_to_const( string_from_uint128( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val ) );
 }
 
 
-string_t string_from_real( real val, unsigned int precision, unsigned int width, char fill )
-{
-	char buf[64];
-	string_t str = string_from_real_buffer( buf, 64, val, precision, width, fill );
-	return string_clone( str.str, str.length );
-}
-
-
-string_t string_from_real_buffer( char* buffer, size_t size, real val, unsigned int precision, unsigned int width, char fill )
+string_t string_from_real( char* buffer, size_t size, real val, unsigned int precision, unsigned int width, char fill )
 {
 	int len;
 	unsigned int ulen;
@@ -1359,19 +1314,11 @@ string_t string_from_real_buffer( char* buffer, size_t size, real val, unsigned 
 
 string_const_t string_from_real_static( real val, unsigned int precision, unsigned int width, char fill )
 {
-	return string_to_const( string_from_real_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, precision, width, fill ) );
+	return string_to_const( string_from_real( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, precision, width, fill ) );
 }
 
 
-string_t string_from_time( tick_t t )
-{
-	char buf[64];
-	string_t str = string_from_time_buffer( buf, 64, t );
-	return string_clone( str.str, str.length );
-}
-
-
-string_t string_from_time_buffer( char* buffer, size_t size, tick_t t )
+string_t string_from_time( char* buffer, size_t size, tick_t t )
 {
 	if( !size || !buffer )
 		return (string_t){ buffer, 0 };
@@ -1417,33 +1364,17 @@ string_t string_from_time_buffer( char* buffer, size_t size, tick_t t )
 
 string_const_t string_from_time_static( tick_t t )
 {
-	return string_to_const( string_from_time_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, t ) );
-}
-
-
-string_t string_from_uuid( const uuid_t val )
-{
-	char buf[38];
-	string_t str = string_from_uuid_buffer( buf, 38, val );
-	return string_clone( str.str, str.length );
+	return string_to_const( string_from_time( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, t ) );
 }
 
 
 string_const_t string_from_uuid_static( const uuid_t val )
 {
-	return string_to_const( string_from_uuid_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val ) );
+	return string_to_const( string_from_uuid( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val ) );
 }
 
 
-string_t string_from_version( const version_t version )
-{
-	char buf[128];
-	string_t str = string_from_version_buffer( buf, 128, version );
-	return string_clone( str.str, str.length );
-}
-
-
-string_t string_from_version_buffer( char* buffer, size_t size, const version_t version )
+string_t string_from_version( char* buffer, size_t size, const version_t version )
 {
 	int len;
 	if( version.sub.control )
@@ -1469,15 +1400,19 @@ string_t string_from_version_buffer( char* buffer, size_t size, const version_t 
 
 string_const_t string_from_version_static( const version_t version )
 {
-	return string_to_const( string_from_version_buffer( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, version ) );
+	return string_to_const( string_from_version( get_thread_convert_buffer(), THREAD_BUFFER_SIZE, version ) );
 }
 
 
 int string_to_int( const char* val, size_t length )
 {
 	int ret = 0;
+	char buf[16];
 	if( val && length )
-		sscanf( val, "%d", &ret );
+	{
+		string_copy( buf, 16, val, length );
+		sscanf( buf, "%d", &ret );
+	}
 	return ret;
 }
 
@@ -1485,8 +1420,12 @@ int string_to_int( const char* val, size_t length )
 unsigned int string_to_uint( const char* val, size_t length, bool hex )
 {
 	unsigned int ret = 0;
+	char buf[16];
 	if( val && length )
-		sscanf( val, hex ? "%x" : "%u", &ret );
+	{
+		string_copy( buf, 16, val, length );
+		sscanf( buf, hex ? "%x" : "%u", &ret );
+	}
 	return ret;
 }
 
@@ -1494,8 +1433,12 @@ unsigned int string_to_uint( const char* val, size_t length, bool hex )
 int64_t string_to_int64( const char* val, size_t length )
 {
 	int64_t ret = 0;
+	char buf[32];
 	if( val && length )
-		sscanf( val, "%" PRId64, &ret );
+	{
+		string_copy( buf, 32, val, length );
+		sscanf( buf, "%" PRId64, &ret );
+	}
 	return ret;
 }
 
@@ -1503,8 +1446,12 @@ int64_t string_to_int64( const char* val, size_t length )
 uint64_t string_to_uint64( const char* val, size_t length, bool hex )
 {
 	uint64_t ret = 0;
+	char buf[32];
 	if( val && length )
-		sscanf( val, hex ? "%" PRIx64 : "%" PRIu64, &ret );
+	{
+		string_copy( buf, 32, val, length );
+		sscanf( buf, hex ? "%" PRIx64 : "%" PRIu64, &ret );
+	}
 	return ret;
 }
 
@@ -1512,8 +1459,12 @@ uint64_t string_to_uint64( const char* val, size_t length, bool hex )
 uint128_t string_to_uint128( const char* val, size_t length )
 {
 	uint128_t ret = uint128_null();
+	char buf[64];
 	if( val && length )
+	{
+		string_copy( buf, 64, val, length );
 		sscanf( val, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1] );
+	}
 	return ret;
 }
 
@@ -1521,8 +1472,12 @@ uint128_t string_to_uint128( const char* val, size_t length )
 float32_t string_to_float32( const char* val, size_t length )
 {
 	float32_t ret = 0.0f;
+	char buf[32];
 	if( val && length )
+	{
+		string_copy( buf, 32, val, length );
 		sscanf( val, "%f", &ret );
+	}
 	return ret;
 }
 
@@ -1530,8 +1485,12 @@ float32_t string_to_float32( const char* val, size_t length )
 float64_t string_to_float64( const char* val, size_t length )
 {
 	float64_t ret = 0.0;
+	char buf[64];
 	if( val && length )
+	{
+		string_copy( buf, 64, val, length );
 		sscanf( val, "%lf", &ret );
+	}
 	return ret;
 }
 
@@ -1543,8 +1502,12 @@ real string_to_real( const char* val, size_t length )
 #else
 	real ret = 0.0f;
 #endif
+	char buf[64];
 	if( val && length )
+	{
+		string_copy( buf, 64, val, length );
 		sscanf( val, "%" PRIREAL, &ret );
+	}
 	return ret;
 }
 
@@ -1554,14 +1517,20 @@ version_t string_to_version( const char* val, size_t length )
 	//%u.%u.%u-%u.%u
 	uint32_t num[5];
 	size_t i;
-	for( i = 0; i < 5; ++i )
+	char buf[64];
+	if( val && length )
 	{
-		num[i] = 0;
-		if( val && *val && length )
+		char* loop = buf;
+		string_copy( buf, 32, val, length );
+		for( i = 0; i < 5; ++i )
 		{
-			sscanf( val, i < 4 ? "%u" : "%x", num + i );
-			while( *val && ( ( *val >= '0' ) && ( *val < '9' ) ) ) val++;
-			while( *val && ( ( *val  < '0' ) || ( *val > '9' ) ) ) val++;
+			num[i] = 0;
+			if( *loop )
+			{
+				sscanf( loop, i < 4 ? "%u" : "%x", num + i );
+				while( *loop && ( ( *loop >= '0' ) && ( *loop < '9' ) ) ) loop++;
+				while( *loop && ( ( *loop  < '0' ) || ( *loop > '9' ) ) ) loop++;
+			}
 		}
 	}
 	return version_make( num[0], num[1], num[2], num[3], num[4] );

@@ -313,23 +313,31 @@ int hashify_generate_preamble( stream_t* output_file )
 {
 	//Read and preserve everything before #pragma once in case it contains header comments to be preserved
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
-	string_t preamble = { 0, 0 };
+	size_t capacity = 1024;
+	string_t preamble = string_allocate( 0, capacity, 0 );
 
 	while( !stream_eos( output_file ) )
 	{
 		string_t line;
 		string_const_t stripped_line;
 
-		line = stream_read_line_buffer( output_file, line_buffer, HASHIFY_LINEBUFFER_LENGTH-1, '\n' );
+		line = stream_read_line_buffer( output_file, line_buffer, HASHIFY_LINEBUFFER_LENGTH - 1, '\n' );
 		stripped_line = string_strip( STRING_ARGS( line ), STRING_CONST( "\n\r" ) );
 
 		if( ( string_find_string( STRING_ARGS( stripped_line ), STRING_CONST( "pragma" ), 0 ) != STRING_NPOS ) &&
 		    ( string_find_string( STRING_ARGS( stripped_line ), STRING_CONST( "once" ), 0 ) != STRING_NPOS ) )
 			break;
 
-		preamble = string_append( STRING_ARGS( preamble ), preamble.length ? preamble.length + 1 : 0, true, STRING_ARGS( stripped_line ) );
+		if( preamble.length + stripped_line.length + 1 >= capacity )
+		{
+			size_t newcapacity = capacity + 1024 + stripped_line.length;
+			preamble.str = memory_reallocate( preamble.str, newcapacity, 0, capacity );
+			capacity = newcapacity;
+		}
+
+		preamble = string_append( STRING_ARGS( preamble ), capacity, STRING_ARGS( stripped_line ) );
 		if( line.length < HASHIFY_LINEBUFFER_LENGTH )
-			preamble = string_append( STRING_ARGS( preamble ), preamble.length ? preamble.length + 1 : 0, true, STRING_CONST( STRING_NEWLINE ) );
+			preamble = string_append( STRING_ARGS( preamble ), capacity, STRING_CONST( STRING_NEWLINE ) );
 	}
 
 	stream_seek( output_file, 0, STREAM_SEEK_BEGIN );
@@ -353,37 +361,35 @@ int hashify_read_hashes( stream_t* file, hashify_string_t** hashes )
 {
 	//Read in hashes in file
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
+	string_const_t tokens[32];
 
 	do
 	{
 		string_t line = stream_read_line_buffer( file, line_buffer, HASHIFY_LINEBUFFER_LENGTH-1, '\n' );
-		string_const_t stripped_line = string_strip( line.str, line.length, STRING_CONST( "\n\r" ) );
-		if( ( string_find_string( stripped_line.str, stripped_line.length, STRING_CONST( "define" ), 0 ) != STRING_NPOS ) &&
-		    ( string_find_string( stripped_line.str, stripped_line.length, STRING_CONST( "static_hash" ), 0 ) != STRING_NPOS ) )
+		string_const_t stripped_line = string_strip( STRING_ARGS( line ), STRING_CONST( "\n\r" ) );
+		if( ( string_find_string( STRING_ARGS( stripped_line ), STRING_CONST( "define" ), 0 ) != STRING_NPOS ) &&
+		    ( string_find_string( STRING_ARGS( stripped_line ), STRING_CONST( "static_hash" ), 0 ) != STRING_NPOS ) )
 		{
 			//Format is: #define HASH_<hashstring> static_hash_string( "<string>", 0x<hashvalue>ULL )
-			string_const_t* tokens = string_explode( stripped_line.str, stripped_line.length, STRING_CONST( " \t" ), false );
+			size_t num_tokens = string_explode( STRING_ARGS( stripped_line ), STRING_CONST( " \t" ), tokens, 32, false );
 
-			if( array_size( tokens ) >= 6 )
+			if( num_tokens >= 6 )
 			{
 				hashify_string_t hash_string;
-				string_const_t stripped = string_strip( tokens[3].str, tokens[3].length, STRING_CONST( "," ) );
-				stripped = string_strip( stripped.str, stripped.length, STRING_CONST( "\"" ) );
-				hash_string.string = string_copy( hash_string.buffer, HASHIFY_STRING_LENGTH, stripped.str, stripped.length );
-				hash_string.hash = string_to_uint64( tokens[4].str, tokens[4].length, true );
+				string_const_t stripped = string_strip( STRING_ARGS( tokens[3] ), STRING_CONST( "," ) );
+				stripped = string_strip( STRING_ARGS( stripped ), STRING_CONST( "\"" ) );
+				hash_string.string = string_copy( hash_string.buffer, HASHIFY_STRING_LENGTH, STRING_ARGS( stripped ) );
+				hash_string.hash = string_to_uint64( STRING_ARGS( tokens[4] ), true );
 
-				if( hash( hash_string.string.str, hash_string.string.length ) != hash_string.hash )
+				if( hash( STRING_ARGS( hash_string.string ) ) != hash_string.hash )
 				{
 					log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  hash output file is out of date, %.*s is set to 0x%" PRIx64 " but should be 0x%" PRIx64 ),
-					  (int)hash_string.string.length, hash_string.string.str, hash_string.hash, hash( hash_string.string.str, hash_string.string.length ) );
-					array_deallocate( tokens );
+					  STRING_FORMAT( hash_string.string ), hash_string.hash, hash( STRING_ARGS( hash_string.string ) ) );
 					return HASHIFY_RESULT_OUTPUT_FILE_OUT_OF_DATE;
 				}
 
 				array_push_memcpy( *hashes, &hash_string );
 			}
-
-			array_deallocate( tokens );
 		}
 	} while( !stream_eos( file ) );
 
@@ -397,14 +403,14 @@ int hashify_write_file( stream_t* generated_file, string_t output_filename )
 	stream_t* output_file = 0;
 	int result = HASHIFY_RESULT_OK;
 
-	output_file = stream_open( output_filename.str, output_filename.length, STREAM_OUT | STREAM_IN );
+	output_file = stream_open( STRING_ARGS( output_filename ), STREAM_OUT | STREAM_IN );
 	if( !output_file )
 	{
 		need_update = true;
-		output_file = stream_open( output_filename.str, output_filename.length, STREAM_OUT );
+		output_file = stream_open( STRING_ARGS( output_filename ), STREAM_OUT );
 		if( !output_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), (int)output_filename.length, output_filename.str );
+			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
 			return HASHIFY_RESULT_MISSING_OUTPUT_FILE;
 		}
 	}
@@ -434,7 +440,7 @@ int hashify_write_file( stream_t* generated_file, string_t output_filename )
 			if( written != read )
 			{
 				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to write to output file '%.*s': %" PRIsize " of %" PRIsize " bytes written" ),
-				  (int)output_filename.length, output_filename.str, written, read );
+				  STRING_FORMAT( output_filename ), written, read );
 				result = HASHIFY_RESULT_OUTPUT_FILE_WRITE_FAIL;
 				break;
 			}
@@ -443,7 +449,7 @@ int hashify_write_file( stream_t* generated_file, string_t output_filename )
 		if( result == HASHIFY_RESULT_OK )
 		{
 			stream_truncate( output_file, (size_t)total_written );
-			log_infof( 0, STRING_CONST( "  wrote %.*s : %" PRIu64 " bytes" ), (int)output_filename.length, output_filename.str, total_written );
+			log_infof( 0, STRING_CONST( "  wrote %.*s : %" PRIu64 " bytes" ), STRING_FORMAT( output_filename ), total_written );
 		}
 	}
 	else
@@ -467,8 +473,7 @@ int hashify_check_local_consistency( string_const_t string, hash_t hash_value, c
 			if( !string_equal( local_hashes[ilocal].string.str, local_hashes[ilocal].string.length, string.str, string.length ) )
 			{
 				log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  hash string mismatch, \"%.*s\" with hash 0x%" PRIx64 " stored in output file, read \"%.*s\" from input file" ),
-				  (int)local_hashes[ilocal].string.length, local_hashes[ilocal].string.str, local_hashes[ilocal].hash,
-				  (int)string.length, string.str );
+				  STRING_FORMAT( local_hashes[ilocal].string ), local_hashes[ilocal].hash, STRING_FORMAT( string ) );
 				return HASHIFY_RESULT_HASH_STRING_MISMATCH;
 			}
 			break;
@@ -476,14 +481,13 @@ int hashify_check_local_consistency( string_const_t string, hash_t hash_value, c
 		else if( string_equal( local_hashes[ilocal].string.str, local_hashes[ilocal].string.length, string.str, string.length ) )
 		{
 			log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  hash mismatch, \"%.*s\" with hash 0x%" PRIx64 " stored in output file, read \"%.*s\" with hash 0x%" PRIx64 " from input file" ),
-				  (int)local_hashes[ilocal].string.length, local_hashes[ilocal].string.str, local_hashes[ilocal].hash,
-				  (int)string.length, string.str, hash_value );
+				  STRING_FORMAT( local_hashes[ilocal].string ), local_hashes[ilocal].hash, STRING_FORMAT( string ), hash_value );
 			return HASHIFY_RESULT_HASH_MISMATCH;
 		}
 	}
 	if( ilocal == localsize )
 	{
-		log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  hash missing in output file, \"%.*s\" with hash 0x%" PRIx64 ), (int)string.length, string.str, hash_value );
+		log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  hash missing in output file, \"%.*s\" with hash 0x%" PRIx64 ), STRING_FORMAT( string ), hash_value );
 		return HASHIFY_RESULT_HASH_MISSING;
 	}
 
@@ -500,13 +504,13 @@ int hashify_check_collisions( string_const_t string, hash_t hash_value, const ha
 		{
 			if( string_equal( history[ihist].string.str, history[ihist].string.length, string.str, string.length ) )
 			{
-				log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  global string duplication, \"%.*s\"" ), (int)string.length, string.str );
+				log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  global string duplication, \"%.*s\"" ), STRING_FORMAT( string ) );
 				return HASHIFY_RESULT_STRING_COLLISION;
 			}
 			else
 			{
 				log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  global hash collision, 0x%" PRIx64 " between: \"%.*s\" and \"%.*s\" " ),
-				  hash_value, (int)string.length, string.str, (int)history[ihist].string.length, history[ihist].string.str );
+				  hash_value, STRING_FORMAT( string ), STRING_FORMAT( history[ihist].string ) );
 				return HASHIFY_RESULT_HASH_COLLISION;
 			}
 		}
@@ -530,7 +534,7 @@ int hashify_check_match( const hashify_string_t* hashes, const hashify_string_t*
 				if( !string_equal( hashes[ihash].string.str, hashes[ihash].string.length, generated[igen].string.str, generated[igen].string.length ) )
 				{
 					log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  hash string mismatch, \"%.*s\" with hash 0x%" PRIx64 " stored in output file, generated by \"%.*s\" from input file" ),
-					  (int)hashes[ihash].string.length, hashes[ihash].string.str, hashes[ihash].hash, (int)generated[igen].string.length, generated[igen].string.str );
+					  STRING_FORMAT( hashes[ihash].string ), hashes[ihash].hash, STRING_FORMAT( generated[igen].string ) );
 					return HASHIFY_RESULT_HASH_STRING_MISMATCH;
 				}
 				break;
@@ -538,14 +542,14 @@ int hashify_check_match( const hashify_string_t* hashes, const hashify_string_t*
 			else if( string_equal( hashes[ihash].string.str, hashes[ihash].string.length, generated[igen].string.str, generated[igen].string.length ) )
 			{
 				log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  hash mismatch, \"%.*s\" with hash 0x%" PRIx64 " stored in output file, \"%.*s\" generated hash 0x%" PRIx64 " from input file" ),
-				  (int)hashes[ihash].string.length, hashes[ihash].string.str, hashes[ihash].hash, (int)generated[igen].string.length, generated[igen].string.str, generated[igen].hash );
+				  STRING_FORMAT( hashes[ihash].string ), hashes[ihash].hash, STRING_FORMAT( generated[igen].string ), generated[igen].hash );
 				return HASHIFY_RESULT_HASH_MISMATCH;
 			}
 		}
 		if( igen == generated_size )
 		{
 			log_errorf( 0, ERROR_INVALID_VALUE, STRING_CONST( "  extra hash \"%.*s\" with hash 0x%" PRIx64 " not found in input file" ),
-			  (int)hashes[ihash].string.length, hashes[ihash].string.str, hashes[ihash].hash );
+			  STRING_FORMAT( hashes[ihash].string ), hashes[ihash].hash );
 			return HASHIFY_RESULT_EXTRA_STRING;
 		}
 	}
