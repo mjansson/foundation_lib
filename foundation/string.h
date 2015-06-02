@@ -16,7 +16,7 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API string_t        string_allocate( size_t length, size_t capacity, char fill );
+FOUNDATION_API string_t        string_allocate( size_t length, size_t capacity );
 FOUNDATION_API string_t        string_clone( const char* str, size_t length );
 FOUNDATION_API string_t        string_clone_string( string_const_t str );
 FOUNDATION_API void            string_deallocate( char* str );
@@ -26,10 +26,10 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_empty( 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_const( const char* str, size_t length );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t string_to_const( string_t str );
 
-FOUNDATION_API string_t        string_format( const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 3 );
-FOUNDATION_API string_t        string_format_buffer( char* buffer, size_t size, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
-FOUNDATION_API string_t        string_vformat( const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 0 );
-FOUNDATION_API string_t        string_vformat_buffer( char* buffer, size_t size, const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 0 );
+FOUNDATION_API string_t        string_allocate_format( const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 3 );
+FOUNDATION_API string_t        string_format( char* buffer, size_t size, const char* format, size_t format_length, ... ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 5 );
+FOUNDATION_API string_t        string_allocate_vformat( const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 1, 0 );
+FOUNDATION_API string_t        string_vformat( char* buffer, size_t size, const char* format, size_t format_length, va_list list ) FOUNDATION_ATTRIBUTE4( format, printf, 3, 0 );
 
 FOUNDATION_API size_t          string_length( const char* str );
 FOUNDATION_API size_t          string_glyphs( const char* str, size_t length );
@@ -38,15 +38,19 @@ FOUNDATION_API hash_t          string_hash( const char* str, size_t length );
 FOUNDATION_API string_t        string_copy( char* dst, size_t size, const char* src, size_t src_length );
 FOUNDATION_API string_t        string_resize( char* str, size_t length, size_t capacity, size_t new_length, char fill );
 FOUNDATION_API string_t        string_replace( char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey, size_t newkey_length, bool repeat );
+
+FOUNDATION_API string_t        string_allocate_concat( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length );
+FOUNDATION_API string_t        string_allocate_concat_varg( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_allocate_concat_vlist( const char* prefix, size_t prefix_length, va_list list );
+FOUNDATION_API string_t        string_concat( char* str, size_t capacity, const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length );
+FOUNDATION_API string_t        string_concat_varg( char* str, size_t capacity, const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
+FOUNDATION_API string_t        string_concat_vlist( char* str, size_t capacity, const char* prefix, size_t prefix_length, va_list list );
 FOUNDATION_API string_t        string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length );
 FOUNDATION_API string_t        string_append_varg( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
 FOUNDATION_API string_t        string_append_vlist( char* str, size_t length, size_t capacity, va_list list );
 FOUNDATION_API string_t        string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length );
 FOUNDATION_API string_t        string_prepend_varg( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
 FOUNDATION_API string_t        string_prepend_vlist( char* str, size_t length, size_t capacity, va_list list );
-FOUNDATION_API string_t        string_concat( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length );
-FOUNDATION_API string_t        string_concat_varg( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ... ) FOUNDATION_ATTRIBUTE( sentinel );
-FOUNDATION_API string_t        string_concat_vlist( const char* prefix, size_t prefix_length, va_list list );
 
 FOUNDATION_API string_const_t  string_substr( const char* str, size_t length, size_t offset, size_t sub_length );
 FOUNDATION_API string_const_t  string_strip( const char* str, size_t length, const char* delimiters, size_t delim_length );

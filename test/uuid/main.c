@@ -183,7 +183,7 @@ DECLARE_TEST( uuid, generate )
 
 	for( iloop = 0; iloop < 10000; ++iloop )
 	{
-		string_t str = string_format_buffer( name_str, 40, STRING_CONST( "com.rampantpixels.foundation.uuid.%05u" ), iloop );
+		string_t str = string_format( name_str, 40, STRING_CONST( "com.rampantpixels.foundation.uuid.%05u" ), iloop );
 
 		uuid_ref = uuid;
 		uuid = uuid_generate_name( UUID_DNS, str.str, str.length );
@@ -264,19 +264,18 @@ DECLARE_TEST( uuid, string )
 	uuid_t uuid, uuidref;
 	string_t str;
 	string_const_t strref;
+	char buffer[128];
 
 	uuidref = uuid_generate_random();
 	EXPECT_FALSE( uuid_is_null( uuidref ) );
 
-	str = string_from_uuid( uuidref );
+	str = string_from_uuid( buffer, sizeof( buffer ), uuidref );
 	EXPECT_NE( str.str, 0 );
 	EXPECT_GT( str.length, 0 );
 
 	uuid = string_to_uuid( STRING_ARGS( str ) );
 	EXPECT_FALSE( uuid_is_null( uuid ) );
 	EXPECT_TRUE( uuid_equal( uuid, uuidref ) );
-
-	string_deallocate( str.str );
 
 	uuid = string_to_uuid( "", 0 );
 	strref = string_from_uuid_static( uuid );

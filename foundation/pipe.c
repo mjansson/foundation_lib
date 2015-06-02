@@ -44,7 +44,7 @@ void pipe_initialize( stream_pipe_t* pipestream )
 	stream_initialize( stream, system_byteorder() );
 
 	pipestream->type = STREAMTYPE_PIPE;
-	pipestream->path = string_format( STRING_CONST( "pipe://0x%" PRIfixPTR ), (uintptr_t)pipestream );
+	pipestream->path = string_allocate_format( STRING_CONST( "pipe://0x%" PRIfixPTR ), (uintptr_t)pipestream );
 	pipestream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 	pipestream->sequential = true;
 

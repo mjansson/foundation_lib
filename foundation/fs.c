@@ -178,6 +178,7 @@ void fs_monitor( const char* path, size_t length )
 #if FOUNDATION_HAVE_FS_MONITOR
 
 	size_t mi;
+	char buf[BUILD_MAX_PATHLEN];
 	string_t path_clone;
 
 	//TODO: Full thread safety
@@ -191,8 +192,10 @@ void fs_monitor( const char* path, size_t length )
 
 	memory_context_push( HASH_STREAM );
 
-	path_clone = path_clean( string_clone( path, length ).str, length, length + 1, true );
-	path_clone = path_absolute( STRING_ARGS_CAPACITY( path_clone ), true );
+	path_clone = string_copy( buf, BUILD_MAX_PATHLEN, path, length );
+	path_clone = path_clean( STRING_ARGS( path_clone ), BUILD_MAX_PATHLEN );
+	path_clone = path_absolute( STRING_ARGS( path_clone ), BUILD_MAX_PATHLEN );
+	path_clone = string_clone( STRING_ARGS( path_clone ) );
 
 	for( mi = 0; mi < _foundation_def.fs_monitor_max; ++mi )
 	{
@@ -416,7 +419,7 @@ string_t* fs_subdirs( const char* path, size_t length )
 					continue; //Don't include . and .. directories
 			}
 			size_t entrylen = string_length( entry->d_name );
-			string_t thispath = path_append( foundpath_buffer, length, sizeof( foundpath_buffer ), false, entry->d_name, entrylen );
+			string_t thispath = path_append( foundpath_buffer, length, sizeof( foundpath_buffer ), entry->d_name, entrylen );
 			if( !stat( thispath.str, &st ) && S_ISDIR( st.st_mode ) )
 				array_push( arr, string_clone( entry->d_name, entrylen ) );
 		}
@@ -519,7 +522,7 @@ string_t* fs_files( const char* path, size_t length )
 		while( ( entry = readdir( dir ) ) != 0 )
 		{
 			size_t entrylen = string_length( entry->d_name );
-			string_t thispath = path_append( foundpath_buffer, length, BUILD_MAX_PATHLEN, false, entry->d_name, entrylen );
+			string_t thispath = path_append( foundpath_buffer, length, BUILD_MAX_PATHLEN, entry->d_name, entrylen );
 			if( !stat( thispath.str, &st ) && S_ISREG( st.st_mode ) )
 				array_push( arr, string_clone( entry->d_name, entrylen ) );
 		}
@@ -591,7 +594,7 @@ bool fs_remove_file( const char* path, size_t length )
 	if( !path_is_absolute( path, length ) )
 	{
 		string_copy( abspath_buffer, BUILD_MAX_PATHLEN, path, length );
-		localpath = path_absolute( abspath_buffer, length, BUILD_MAX_PATHLEN, false );
+		localpath = path_absolute( abspath_buffer, length, BUILD_MAX_PATHLEN );
 		abspath = string_to_const( localpath );
 	}
 	else
@@ -649,7 +652,7 @@ bool fs_remove_directory( const char* path, size_t length )
 
 	localpath = string_copy( abspath_buffer, BUILD_MAX_PATHLEN, path, length );
 	if( !path_is_absolute( STRING_ARGS( localpath ) ) )
-		localpath = path_absolute( STRING_ARGS( localpath ), BUILD_MAX_PATHLEN, false );
+		localpath = path_absolute( STRING_ARGS( localpath ), BUILD_MAX_PATHLEN );
 	abspath = string_to_const( localpath );
 
 	fspath = _fs_path( STRING_ARGS( abspath ) );
@@ -660,7 +663,7 @@ bool fs_remove_directory( const char* path, size_t length )
 	subpaths = fs_subdirs( STRING_ARGS( fspath ) );
 	for( i = 0, num = array_size( subpaths ); i < num; ++i )
 	{
-		localpath = path_append( (char*)fspath.str, fspath.length, remain, false, STRING_ARGS( subpaths[i] ) );
+		localpath = path_append( (char*)fspath.str, fspath.length, remain, STRING_ARGS( subpaths[i] ) );
 		fs_remove_directory( STRING_ARGS( localpath ) );
 	}
 	string_array_deallocate( subpaths );
@@ -668,7 +671,7 @@ bool fs_remove_directory( const char* path, size_t length )
 	subfiles = fs_files( STRING_ARGS( fspath ) );
 	for( i = 0, num = array_size( subfiles ); i < num; ++i )
 	{
-		localpath = path_append( (char*)fspath.str, fspath.length, remain, false, STRING_ARGS( subpaths[i] ) );
+		localpath = path_append( (char*)fspath.str, fspath.length, remain, STRING_ARGS( subpaths[i] ) );
 		fs_remove_file( STRING_ARGS( localpath ) );
 	}
 	string_array_deallocate( subfiles );
@@ -739,7 +742,7 @@ bool fs_make_directory( const char* path, size_t length )
 
 	localpath = string_copy( abspath_buffer, BUILD_MAX_PATHLEN, path, length );
 	if( !path_is_absolute( STRING_ARGS( localpath ) ) )
-		localpath = path_absolute( STRING_ARGS( localpath ), BUILD_MAX_PATHLEN, false );
+		localpath = path_absolute( STRING_ARGS( localpath ), BUILD_MAX_PATHLEN );
 
 	fspath = _fs_path( STRING_ARGS( localpath ) );
 	localpath = (string_t){ (char*)fspath.str, fspath.length };
@@ -945,7 +948,7 @@ void fs_touch( const char* path, size_t length )
 stream_t* fs_temporary_file( void )
 {
 	char buf[BUILD_MAX_PATHLEN];
-	string_t filename = path_make_temporary( buf, BUILD_MAX_PATHLEN, false );
+	string_t filename = path_make_temporary( buf, BUILD_MAX_PATHLEN );
 	string_const_t directory = path_directory_name( filename.str, filename.length );
 
 	fs_make_directory( directory.str, directory.length );
@@ -965,7 +968,7 @@ static string_t* _fs_matching_files( const char* path, size_t length, regex_t* p
 	//Windows specific implementation of directory listing
 	WIN32_FIND_DATAW data;
 	char filename[FOUNDATION_MAX_PATHLEN];
-	char* pathpattern = path_merge( path, "*" );
+	char* pathpattern = path_concat( path, "*" );
 	wchar_t* wpattern = wstring_allocate_from_string( pathpattern, 0 );
 
 	HANDLE find = FindFirstFileW( wpattern, &data );
@@ -1018,22 +1021,22 @@ static string_t* _fs_matching_files( const char* path, size_t length, regex_t* p
 	memory_context_push( HASH_STREAM );
 
 	capacity = BUILD_MAX_PATHLEN;
-	localpath = string_allocate( 0, capacity, 0 );
+	localpath = string_allocate( 0, capacity );
 	localpath = string_copy( localpath.str, BUILD_MAX_PATHLEN, path, length );
 
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
 		string_t* subnames;
-		localpath = path_append( localpath.str, length, capacity, true, STRING_ARGS( subdirs[id] ) );
+		localpath = path_append( localpath.str, length, capacity, STRING_ARGS( subdirs[id] ) );
 		if( localpath.length >= capacity )
 			capacity = localpath.length + 1;
 
 		subnames = _fs_matching_files( STRING_ARGS( localpath ), pattern, true );
 
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
-			array_push( names, path_prepend( STRING_ARGS_CAPACITY( subnames[in] ), true, STRING_ARGS( subdirs[id] ) ) );
+			array_push( names, path_allocate_concat( STRING_ARGS( subdirs[id] ), STRING_ARGS( subnames[in] ) ) );
 
-		array_deallocate( subnames ); //Strings are now modified and owned in names array
+		string_array_deallocate( subnames );
 	}
 
 	string_deallocate( localpath.str );
@@ -1082,7 +1085,7 @@ static void _fs_send_creations( const char* path )
 	char** files = fs_files( path );
 	for( ifile = 0, fsize = array_size( files ); ifile < fsize; ++ifile )
 	{
-		char* filepath = path_merge( path, files[ifile] );
+		char* filepath = path_concat( path, files[ifile] );
 		fs_post_event( FOUNDATIONEVENT_FILE_CREATED, filepath, 0 );
 		string_deallocate( filepath );
 	}
@@ -1091,7 +1094,7 @@ static void _fs_send_creations( const char* path )
 	char** subdirs = fs_subdirs( path );
 	for( isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 	{
-		char* subpath = path_merge( path, subdirs[isub] );
+		char* subpath = path_concat( path, subdirs[isub] );
 		_fs_send_creations( subpath );
 		string_deallocate( subpath );
 	}
@@ -1126,7 +1129,7 @@ static void _fs_add_notify_subdir( int notify_fd, const char* path, fs_watch_t**
 	subdirs = fs_subdirs( local_path );
 	for( size_t i = 0, size = array_size( subdirs ); i < size; ++i )
 	{
-		char* subpath = path_merge( local_path, subdirs[i] );
+		char* subpath = path_concat( local_path, subdirs[i] );
 		_fs_add_notify_subdir( notify_fd, subpath, watch_arr, path_arr, send_create );
 		string_deallocate( subpath );
 	}
@@ -1288,7 +1291,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 						info->FileName[ numchars ] = 0;
                         utfstr = string_allocate_from_wstring( info->FileName, 0 );
-                        fullpath = path_merge( monitor_path, utfstr );
+                        fullpath = path_concat( monitor_path, utfstr );
 
 						if( fs_is_directory( fullpath ) )
 						{
@@ -2003,12 +2006,12 @@ stream_t* fs_open_file( const char* path, size_t length, unsigned int mode )
 
 	capacity = BUILD_MAX_PATHLEN;
 	localpath = string_copy( buffer, capacity, path, length );
-	localpath = path_clean( STRING_ARGS( localpath ), capacity, false );
+	localpath = path_clean( STRING_ARGS( localpath ), capacity );
 	if( !path_is_absolute( STRING_ARGS( localpath ) ) )
-		localpath = path_absolute( STRING_ARGS( localpath ), capacity, false );
+		localpath = path_absolute( STRING_ARGS( localpath ), capacity );
 
 	capacity = localpath.length + 8;
-	finalpath = string_allocate( 0, capacity, 0 );
+	finalpath = string_allocate( 0, capacity );
 	finalpath = string_copy( finalpath.str, capacity, STRING_ARGS( localpath ) );
 	if( string_find_string( STRING_ARGS( finalpath ), STRING_CONST( "://" ), 0 ) == STRING_NPOS )
 	{

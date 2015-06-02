@@ -79,7 +79,7 @@ void process_set_working_directory( process_t* proc, const char* path, size_t le
 	if( !proc )
 		return;
 	if( proc->wd.length <= length )
-		proc->wd = string_resize( proc->wd.str, proc->wd.length, proc->wd.length ? proc->wd.length : 0, length + 1, 0, true );
+		proc->wd = string_resize( proc->wd.str, proc->wd.length, proc->wd.length ? proc->wd.length + 1 : 0, length + 1, 0 );
 	proc->wd = string_copy( proc->wd.str, length + 1, path, length );
 }
 
@@ -89,7 +89,7 @@ void process_set_executable_path( process_t* proc, const char* path, size_t leng
 	if( !proc )
 		return;
 	if( proc->path.length <= length )
-		proc->path = string_resize( proc->path.str, proc->path.length, proc->path.length ? proc->path.length + 1 : 0, length + 1, 0, true );
+		proc->path = string_resize( proc->path.str, proc->path.length, proc->path.length ? proc->path.length + 1 : 0, length + 1, 0 );
 	proc->path = string_copy( proc->path.str, length + 1, path, length );
 }
 
@@ -152,10 +152,19 @@ int process_spawn( process_t* proc )
 	if( string_find_first_not_of( STRING_ARGS( proc->path ), STRING_ARGS( unescaped ), 0 ) != STRING_NPOS )
 #endif
 	{
-		if( proc->path.str[0] != '"' )
-			proc->path = string_prepend( STRING_ARGS_CAPACITY( proc->path ), true, STRING_CONST( "\"" ) );
-		if( proc->path.str[ proc->path.length - 1 ] != '"' )
-			proc->path = string_append( STRING_ARGS_CAPACITY( proc->path ), true, STRING_CONST( "\"" ) );
+		bool preesc = ( proc->path.str[0] != '"' );
+		bool postesc = ( proc->path.str[ proc->path.length - 1 ] != '"' );
+		if( preesc || postesc )
+		{
+			char* buffer = memory_allocate( HASH_STRING, proc->path.length + 3, 0, MEMORY_PERSISTENT );
+			string_t pathesc = string_merge_varg( buffer, proc->path.length + 3,
+				preesc ? "\"" : 0, preesc ? 1 : 0,
+				STRING_ARGS( proc->path ),
+				postesc ? "\"" : 0, postesc ? 1 : 0,
+				nullptr );
+			string_deallocate( proc->path.str );
+			proc->path = pathesc;
+		}
 	}
 
 	size = array_size( proc->args );
@@ -343,13 +352,15 @@ int process_spawn( process_t* proc )
 		memset( &psn, 0, sizeof( ProcessSerialNumber ) );
 
 		string_const_t pathstripped = string_strip( proc->path.str, proc->path.length, STRING_CONST( "\"" ) );
-		string_t localpath = string_clone( STRING_ARGS( pathstripped ) ); //Need it zero terminated
+		size_t localcap = pathstripped.length + 5;
+		string_t localpath = string_allocate( 0, localcap - 1, 0 );
+		localpath = string_copy( localpath.str, localcap, STRING_ARGS( pathstripped ) ); //Need it zero terminated
 
 		OSStatus status = 0;
 		status = FSPathMakeRef( (uint8_t*)localpath.str, fsref, 0 );
 		if( status < 0 )
 		{
-			localpath = string_append( localpath.str, localpath.length, localpath.length + 1, true, STRING_CONST( ".app" ) );
+			localpath = string_append( localpath.str, localpath.length, localcap, STRING_CONST( ".app" ) );
 			status = FSPathMakeRef( (uint8_t*)localpath.str, fsref, 0 );
 		}
 

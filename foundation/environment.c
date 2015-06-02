@@ -153,7 +153,7 @@ int _environment_initialize( const application_t application )
 	stream_deallocate( cmdline );
 
 	string_const_t dir_name = path_directory_name( android_app()->activity->internalDataPath, string_length( android_app()->activity->internalDataPath ) );
-	string_t exe_path = path_merge( dir_name.str, dir_name.length, STRING_CONST( "lib" ) );
+	string_t exe_path = path_concat( dir_name.str, dir_name.length, STRING_CONST( "lib" ) );
 
 	// This will return something like "app_process" since we're just a dynamic
 	// library that gets invoked by a launcher process

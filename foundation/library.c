@@ -93,6 +93,7 @@ object_t library_load( const char* name, size_t length )
 	char* dllname;
 	HANDLE dll;
 #endif
+	char buf[BUILD_MAX_PATHLEN];
 
 #if FOUNDATION_PLATFORM_APPLE
 #  define FOUNDATION_LIB_PRE "lib"
@@ -142,9 +143,8 @@ object_t library_load( const char* name, size_t length )
 		size_t last_dot = string_rfind( name, '/', STRING_NPOS );
 		if( ( last_dot == STRING_NPOS ) || ( last_dot < last_slash ) )
 		{
-			dllname = string_format( "%s" FOUNDATION_LIB_EXT, name );
-			dll = LoadLibraryA( dllname );
-			string_deallocate( dllname );
+			dllname = string_concat( buf, sizeof( buf ), STRING_ARGS( name ), STRING_COUNT( FOUNDATION_LIB_EXT ) );
+			dll = LoadLibraryA( dllname.str );
 		}
 	}
 	if( !dll )
@@ -158,17 +158,17 @@ object_t library_load( const char* name, size_t length )
 	void* lib = dlopen( name, RTLD_LAZY );
 	if( !lib && !string_ends_with( name, length, STRING_CONST( FOUNDATION_LIB_EXT ) ) )
 	{
-		string_t libname = string_thread_buffer();
+		string_t libname;
 		if( last_slash == STRING_NPOS )
 		{
-			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
 				(int)length, name );
 		}
 		else
 		{
 			string_const_t path = path_directory_name( name, length );
 			string_const_t file = path_file_name( name, length );
-			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
 				(int)path.length, path.str, (int)file.length, file.str );
 		}
 		lib = dlopen( libname.str, RTLD_LAZY );
@@ -176,17 +176,17 @@ object_t library_load( const char* name, size_t length )
 #if FOUNDATION_PLATFORM_ANDROID
 	if( !lib && ( last_slash == STRING_NPOS ) )
 	{
+		string_t libname;
 		string_const_t exe_dir = environment_executable_directory();
-		string_t libname = string_thread_buffer();
 		if( !string_ends_with( name, FOUNDATION_LIB_EXT ) )
 		{
-			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
-				(int)exe_dir.length, exe_dir.str, (int)length, name );
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+				STRING_FORMAT( exe_dir ), (int)length, name );
 		}
 		else
 		{
-			libname = string_format_buffer( libname.str, libname.length, STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" ),
-				(int)exe_dir.length, exe_dir.str, (int)length, name );
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" ),
+				STRING_FORMAT( exe_dir ), (int)length, name );
 		}
 		lib = dlopen( libname.str, RTLD_LAZY );
 	}

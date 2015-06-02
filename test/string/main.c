@@ -622,119 +622,105 @@ DECLARE_TEST( string, append )
 	string_const_t shortstr = string_const( STRING_CONST( "short" ) );
 	string_const_t longstr = string_const( STRING_CONST( "long long long long long long long long long" ) );
 	string_t val;
+	char buffer[512];
 
-	val = string_append( 0, 0, 0, true, STRING_ARGS( nullstr ) );
+	val = string_append( 0, 0, 0, STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_EQ( val.str, 0 );
 
-	val = string_append( 0, 0, 0, true, STRING_ARGS( emptystr ) );
+	val = string_append( 0, 0, 0, STRING_ARGS( emptystr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_EQ( val.str, 0 );
 
-	val = string_append( 0, 0, 0, true, STRING_ARGS( nullstr ) );
+	val = string_append( buffer, 0, 0, STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_NE( val.str, 0 );
 
-	val = string_append_varg( 0, 0, 0, true, STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), nullptr );
+	val = string_append( buffer, 0, sizeof( buffer ), STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_EQ( val.str, buffer );
 
-	val = string_append( 0, 0, 0, true, STRING_ARGS( shortstr ) );
+	val = string_append_varg( buffer, 0, sizeof( buffer ), STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), nullptr );
+	EXPECT_STRINGEQ( val, nullstr );
+	EXPECT_STRINGEQ( val, emptystr );
+	EXPECT_EQ( val.str, buffer );
+
+	val = string_append( buffer, 0, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	EXPECT_STRINGEQ( val, shortstr );
+	EXPECT_EQ( val.str, buffer );
+
+	val = string_clone( STRING_ARGS( shortstr ) );
+	val = string_append( STRING_ARGS_CAPACITY( val ), STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, shortstr );
 	string_deallocate( val.str );
 
 	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( nullstr ) );
+	val = string_append( STRING_ARGS_CAPACITY( val ), STRING_ARGS( shortstr ) );
 	EXPECT_STRINGEQ( val, shortstr );
 	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( shortstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_append( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( emptystr ) );
 	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( emptystr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ) );
-	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
-
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( emptystr ) );
-	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
-
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_append( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( shortstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortshort" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append_varg( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_append_varg( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortshort" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append_varg( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_append_varg( STRING_ARGS_CAPACITY( val ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
 	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
 
-	val = string_append( 0, 0, 0, true, STRING_ARGS( longstr ) );
+	val = string_append( buffer, 0, sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( nullstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_append( STRING_ARGS_CAPACITY( val ), STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( emptystr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( emptystr ) );
+	val = string_append( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( emptystr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( emptystr ) );
+	val = string_append( STRING_ARGS_CAPACITY( val ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( emptystr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_append( STRING_ARGS_CAPACITY( val ), STRING_ARGS( emptystr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_append( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortlong long long long long long long long long" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_append( STRING_ARGS_CAPACITY( val ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_append( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( shortstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "long long long long long long long long longshort" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_append( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_append( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "long long long long long long long long longlong long long long long long long long long" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_append_varg( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), nullptr );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_append_varg( buffer, 0, sizeof( buffer ), STRING_ARGS( longstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), nullptr );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "long long long long long long long long longshortlong long long long long long long long longshort" ) ) );
-	string_deallocate( val.str );
 
-	val = string_allocate( 0, 32, 0 );
-	val = string_append_varg( val.str, 0, 32, false, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( longstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), nullptr );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_append_varg( val.str, 0, 32, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( longstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( longstr ), STRING_ARGS( nullstr ), nullptr );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortlong long long long long l" ) ) );
-	string_deallocate( val.str );
 
 	return 0;
 }
@@ -747,119 +733,105 @@ DECLARE_TEST( string, prepend )
 	string_const_t shortstr = string_const( STRING_CONST( "short" ) );
 	string_const_t longstr = string_const( STRING_CONST( "long long long long long long long long long" ) );
 	string_t val;
+	char buffer[512];
 
-	val = string_prepend( 0, 0, 0, true, STRING_ARGS( nullstr ) );
+	val = string_prepend( 0, 0, 0, STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_EQ( val.str, 0 );
 
-	val = string_prepend( 0, 0, 0, true, STRING_ARGS( emptystr ) );
+	val = string_prepend( 0, 0, 0, STRING_ARGS( emptystr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_EQ( val.str, 0 );
 
-	val = string_prepend( 0, 0, 0, true, STRING_ARGS( nullstr ) );
+	val = string_prepend( buffer, 0, 0, STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_NE( val.str, 0 );
 
-	val = string_prepend_varg( 0, 0, 0, true, STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), nullptr );
+	val = string_prepend( buffer, 0, sizeof( buffer ), STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, nullstr );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
+	EXPECT_EQ( val.str, buffer );
 
-	val = string_prepend( 0, 0, 0, true, STRING_ARGS( shortstr ) );
+	val = string_prepend_varg( buffer, 0, sizeof( buffer ), STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), STRING_ARGS( nullstr ), STRING_ARGS( emptystr ), nullptr );
+	EXPECT_STRINGEQ( val, nullstr );
+	EXPECT_STRINGEQ( val, emptystr );
+	EXPECT_EQ( val.str, buffer );
+
+	val = string_prepend( buffer, 0, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	EXPECT_STRINGEQ( val, shortstr );
+	EXPECT_EQ( val.str, buffer );
+
+	val = string_clone( STRING_ARGS( shortstr ) );
+	val = string_prepend( STRING_ARGS_CAPACITY( val ), STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, shortstr );
 	string_deallocate( val.str );
 
 	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( nullstr ) );
+	val = string_prepend( STRING_ARGS_CAPACITY( val ), STRING_ARGS( shortstr ) );
 	EXPECT_STRINGEQ( val, shortstr );
 	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( shortstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_prepend( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( emptystr ) );
 	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( emptystr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ) );
-	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
-
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( emptystr ) );
-	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
-
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_prepend( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( shortstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortshort" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend_varg( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_prepend_varg( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortshort" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend_varg( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_prepend_varg( STRING_ARGS_CAPACITY( val ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( emptystr ), nullptr );
 	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
 
-	val = string_prepend( 0, 0, 0, true, STRING_ARGS( longstr ) );
+	val = string_prepend( buffer, 0, sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( nullstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_prepend( STRING_ARGS_CAPACITY( val ), STRING_ARGS( nullstr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( emptystr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( emptystr ) );
+	val = string_prepend( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( emptystr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( emptystr ) );
+	val = string_prepend( STRING_ARGS_CAPACITY( val ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, emptystr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( emptystr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_prepend( STRING_ARGS_CAPACITY( val ), STRING_ARGS( emptystr ) );
 	EXPECT_STRINGEQ( val, longstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_prepend( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "long long long long long long long long longshort" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( shortstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), false, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_prepend( STRING_ARGS_CAPACITY( val ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, shortstr );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( shortstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_prepend( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( shortstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortlong long long long long long long long long" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_prepend( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ) );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_prepend( STRING_ARGS( val ), sizeof( buffer ), STRING_ARGS( longstr ) );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "long long long long long long long long longlong long long long long long long long long" ) ) );
-	string_deallocate( val.str );
 
-	val = string_clone( STRING_ARGS( longstr ) );
-	val = string_prepend_varg( STRING_ARGS_CAPACITY( val ), true, STRING_ARGS( longstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), nullptr );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( shortstr ) );
+	val = string_prepend_varg( buffer, 0, sizeof( buffer ), STRING_ARGS( longstr ), STRING_ARGS( nullstr ), STRING_ARGS( shortstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), nullptr );
 	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "shortlong long long long long long long long longshortlong long long long long long long long long" ) ) );
-	string_deallocate( val.str );
 
-	val = string_allocate( 0, 32, 0 );
-	val = string_prepend_varg( val.str, 0, 32, false, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( longstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), nullptr );
-	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "long long long long long lshort" ) ) );
-	string_deallocate( val.str );
+	val = string_copy( buffer, sizeof( buffer ), STRING_ARGS( longstr ) );
+	val = string_prepend_varg( val.str, 0, 32, STRING_ARGS( shortstr ), STRING_ARGS( nullstr ), STRING_ARGS( longstr ), STRING_ARGS( longstr ), STRING_ARGS( emptystr ), STRING_ARGS( shortstr ), STRING_ARGS( longstr ), STRING_ARGS( nullstr ), nullptr );
+	EXPECT_STRINGEQ( val, string_const( STRING_CONST( "long long long long long long l" ) ) );
 
 	return 0;
 }
@@ -965,209 +937,227 @@ DECLARE_TEST( string, utility )
 		string_deallocate( npath11.str );
 	}
 	{
-		string_const_t* explodearr = 0;
+		string_const_t explodearr[32];
 		string_const_t explodestr = string_const( STRING_CONST( "  .,testing,    .,utility.,string  methods ..., like,,,finds  split..merge     .,.explode.and. .., ., similar   .,,,. " ) );
 
-		char* mergestr = string_clone( "    testing   merge string   " );
-		char* mergestr2 = string_clone( " ., testing, .merge.string,. " );
-		char* merged = 0;
-		char** mergearr, **mergearr2, **mergearr3;
+		string_t mergestr = string_clone( STRING_CONST( "    testing   merge string   " ) );
+		string_t mergestr2 = string_clone( STRING_CONST( " ., testing, .merge.string,. " ) );
+		string_t merged;
 
-		char* splitstr = string_clone( " testing split" );
-		char* splitright = 0, *splitleft = 0;
-		char* splitright2 = 0, *splitleft2 = 0;
+		string_t splitstr = string_clone( STRING_CONST( " testing split" ) );
+		string_const_t splitright = string_null();
+		string_const_t splitleft = string_null();
+		string_const_t splitright2 = string_null();
+		string_const_t splitleft2 = string_null();
 
-		char* substrtest = string_clone( "testing substr" );
-		char* substr = 0;
+		string_t substrtest = string_clone( STRING_CONST( "testing substr" ) );
 
-		explodearr = string_explode( explodestr, " ,.", false );
-		mergearr = string_explode( mergestr, " .,", true );
-		mergearr2 = string_explode( mergestr, " .,", false );
-		mergearr3 = string_explode( mergestr, " .,", true );
-		merged = string_merge( (const char* const*)mergearr, array_size( mergearr ), " " );
+		size_t numtokens;
+		char buffer[512];
 
-		string_split( splitstr, " ", &splitleft, &splitright, false );
-		string_split( splitstr, " ", &splitleft2, &splitright2, true );
+		numtokens = string_explode( STRING_ARGS( explodestr ), STRING_CONST( " ,." ), explodearr, sizeof( explodearr ) / sizeof( explodearr[0] ), false );
 
-		EXPECT_EQ( array_size( explodearr ), 11 );
-		EXPECT_TRUE( string_equal( explodearr[0], "testing" ) );
-		EXPECT_TRUE( string_equal( explodearr[1], "utility" ) );
-		EXPECT_TRUE( string_equal( explodearr[2], "string" ) );
-		EXPECT_TRUE( string_equal( explodearr[3], "methods" ) );
-		EXPECT_TRUE( string_equal( explodearr[4], "like" ) );
-		EXPECT_TRUE( string_equal( explodearr[5], "finds" ) );
-		EXPECT_TRUE( string_equal( explodearr[6], "split" ) );
-		EXPECT_TRUE( string_equal( explodearr[7], "merge" ) );
-		EXPECT_TRUE( string_equal( explodearr[8], "explode" ) );
-		EXPECT_TRUE( string_equal( explodearr[9], "and" ) );
-		EXPECT_TRUE( string_equal( explodearr[10], "similar" ) );
+		EXPECT_EQ( numtokens, 11 );
+		EXPECT_STREQ( STRING_ARGS( explodearr[0] ), STRING_CONST( "testing" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[1] ), STRING_CONST( "utility" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[2] ), STRING_CONST( "string" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[3] ), STRING_CONST( "methods" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[4] ), STRING_CONST( "like" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[5] ), STRING_CONST( "finds" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[6] ), STRING_CONST( "split" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[7] ), STRING_CONST( "merge" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[8] ), STRING_CONST( "explode" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[9] ), STRING_CONST( "and" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[10] ), STRING_CONST( "similar" ) );
 
-		EXPECT_EQ( array_size( mergearr ), 12 );
-		EXPECT_TRUE( string_equal( mergearr[0], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[1], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[2], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[3], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[4], "testing" ) );
-		EXPECT_TRUE( string_equal( mergearr[5], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[6], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[7], "merge" ) );
-		EXPECT_TRUE( string_equal( mergearr[8], "string" ) );
-		EXPECT_TRUE( string_equal( mergearr[9], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[10], "" ) );
-		EXPECT_TRUE( string_equal( mergearr[11], "" ) );
+		memset( explodearr, 0, sizeof( explodearr ) );
+		numtokens = string_explode( STRING_ARGS( explodestr ), STRING_CONST( " ,." ), explodearr, 3, false );
 
-		EXPECT_EQ( array_size( mergearr2 ), 3 );
-		EXPECT_TRUE( string_equal( mergearr2[0], "testing" ) );
-		EXPECT_TRUE( string_equal( mergearr2[1], "merge" ) );
-		EXPECT_TRUE( string_equal( mergearr2[2], "string" ) );
-		EXPECT_TRUE( string_equal( merged, mergestr ) );
+		EXPECT_EQ( numtokens, 3 );
+		EXPECT_STREQ( STRING_ARGS( explodearr[0] ), STRING_CONST( "testing" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[1] ), STRING_CONST( "utility" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[2] ), STRING_CONST( "string" ) );
+		EXPECT_EQ( explodearr[3].str, 0 );
+		EXPECT_EQ( explodearr[3].length, 0 );
 
-		EXPECT_EQ( array_size( mergearr3 ), 12 );
-		EXPECT_TRUE( string_equal( mergearr3[0], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[1], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[2], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[3], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[4], "testing" ) );
-		EXPECT_TRUE( string_equal( mergearr3[5], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[6], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[7], "merge" ) );
-		EXPECT_TRUE( string_equal( mergearr3[8], "string" ) );
-		EXPECT_TRUE( string_equal( mergearr3[9], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[10], "" ) );
-		EXPECT_TRUE( string_equal( mergearr3[11], "" ) );
+		numtokens = string_explode( STRING_ARGS( mergestr2 ), STRING_CONST( " .," ), explodearr, 32, true );
 
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 0, 4 ), "test" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 0, 14 ), "testing substr" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 0, 20 ), "testing substr" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 3, 20 ), "ting substr" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 3, 11 ), "ting substr" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 3, 1 ), "t" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 3, 0 ), "" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 20, 0 ), "" ) ); string_deallocate( substr );
-		EXPECT_TRUE( string_equal( substr = string_substr( substrtest, 20, 20 ), "" ) ); string_deallocate( substr );
+		EXPECT_EQ( numtokens, 12 );
+		EXPECT_STREQ( STRING_ARGS( explodearr[0] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[1] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[2] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[3] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[4] ), STRING_CONST( "testing" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[5] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[6] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[7] ), STRING_CONST( "merge" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[8] ), STRING_CONST( "string" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[9] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[10] ), STRING_CONST( "" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[11] ), STRING_CONST( "" ) );
 
-		EXPECT_TRUE( string_equal( splitleft, "testing" ) );
-		EXPECT_TRUE( string_equal( splitright, "split" ) );
-		EXPECT_TRUE( string_equal( splitleft2, "" ) );
-		EXPECT_TRUE( string_equal( splitright2, "testing split" ) );
+		numtokens = string_explode( STRING_ARGS( mergestr2 ), STRING_CONST( " .," ), explodearr, 32, false );
+		EXPECT_EQ( numtokens, 3 );
+		EXPECT_STREQ( STRING_ARGS( explodearr[0] ), STRING_CONST( "testing" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[1] ), STRING_CONST( "merge" ) );
+		EXPECT_STREQ( STRING_ARGS( explodearr[2] ), STRING_CONST( "string" ) );
+
+		numtokens = string_explode( STRING_ARGS( mergestr2 ), STRING_CONST( " .," ), explodearr, 32, true );
+		merged = string_merge( buffer, sizeof( buffer ), explodearr, numtokens, STRING_CONST( " " ) );
+		EXPECT_STRINGEQ( merged, mergestr );
+
+		string_split( STRING_ARGS( splitstr ), STRING_CONST( " " ), &splitleft, &splitright, false );
+		string_split( STRING_ARGS( splitstr ), STRING_CONST( " " ), &splitleft2, &splitright2, true );
+
+		EXPECT_TRUE( string_equal( STRING_ARGS( splitleft ), STRING_CONST( "testing" ) ) );
+		EXPECT_TRUE( string_equal( STRING_ARGS( splitright ), STRING_CONST( "split" ) ) );
+		EXPECT_TRUE( string_equal( STRING_ARGS( splitleft2 ), STRING_CONST( "" ) ) );
+		EXPECT_TRUE( string_equal( STRING_ARGS( splitright2 ), STRING_CONST( "testing split" ) ) );
+
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 4 ), string_const( STRING_CONST( "test" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 14 ), string_const( STRING_CONST( "testing substr" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 20 ), string_const( STRING_CONST( "testing substr" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 20 ), string_const( STRING_CONST( "ting substr" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 11 ), string_const( STRING_CONST( "ting substr" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 1 ), string_const( STRING_CONST( "t" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 0 ), string_const( STRING_CONST( "" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 20, 0 ), string_const( STRING_CONST( "" ) ) );
+		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 20, 20 ), string_const( STRING_CONST( "" ) ) );
+
 		{
-			char* replacestr = string_clone( "testing replace" );
-			char* replacestr2 = string_clone( "testing replace" );
-			char* replacestr3 = string_clone( "testing replacelace" );
-			char* replacestr4 = string_clone( "" );
-			char* replacestr5 = string_clone( "repppppppppp" );
+			string_t replacestr = string_copy( buffer, sizeof( buffer ), STRING_CONST( "testing replace" ) );
+			replacestr = string_replace( STRING_ARGS( replacestr ), sizeof( buffer ), STRING_CONST( "rep" ), STRING_CONST( "testrep" ), false );
+			EXPECT_STRINGEQ( replacestr, string_const( STRING_CONST( "testing testreplace" ) ) );
 
-			replacestr = string_replace( replacestr, "rep", "testrep", false );
-			replacestr2 = string_replace( replacestr2, "rep", "testrep", true );
-			replacestr3 = string_replace( replacestr3, "replace", "testrep", true );
-			replacestr4 = string_replace( replacestr4, "foo", "bar", true );
-			replacestr5 = string_replace( replacestr5, "rep", "re", true );
+			replacestr = string_copy( buffer, sizeof( buffer ), STRING_CONST( "testing replace" ) );
+			replacestr = string_replace( STRING_ARGS( replacestr ), sizeof( buffer ), STRING_CONST( "rep" ), STRING_CONST( "testrep" ), true );
+			EXPECT_STRINGEQ( replacestr, string_const( STRING_CONST( "testing testreplace" ) ) );
 
-			EXPECT_STREQ( replacestr, "testing testreplace" );
-			EXPECT_STREQ( replacestr2, "testing testreplace" );
-			EXPECT_STREQ( replacestr3, "testing testtestrep" );
-			EXPECT_STREQ( replacestr4, "" );
-			EXPECT_STREQ( replacestr5, "re" );
+			replacestr = string_copy( buffer, sizeof( buffer ), STRING_CONST( "testing replacelace" ) );
+			replacestr = string_replace( STRING_ARGS( replacestr ), sizeof( buffer ), STRING_CONST( "replace" ), STRING_CONST( "testrep" ), true );
+			EXPECT_STRINGEQ( replacestr, string_const( STRING_CONST( "testing testtestrep" ) ) );
 
-			string_deallocate( replacestr );
-			string_deallocate( replacestr2 );
-			string_deallocate( replacestr3 );
-			string_deallocate( replacestr4 );
-			string_deallocate( replacestr5 );
+			replacestr = string_copy( buffer, sizeof( buffer ), STRING_CONST( "" ) );
+			replacestr = string_replace( STRING_ARGS( replacestr ), sizeof( buffer ), STRING_CONST( "foo" ), STRING_CONST( "bar" ), true );
+			EXPECT_STRINGEQ( replacestr, string_const( STRING_CONST( "" ) ) );
+
+			replacestr = string_copy( buffer, sizeof( buffer ), STRING_CONST( "repppppppppp" ) );
+			replacestr = string_replace( STRING_ARGS( replacestr ), sizeof( buffer ), STRING_CONST( "rep" ), STRING_CONST( "re" ), true );
+			EXPECT_STRINGEQ( replacestr, string_const( STRING_CONST( "re" ) ) );
 		}
 		{
-			char* stripstr = string_clone( "   testing strip :   " );
-			char* stripstr2 = string_clone( "   testing strip :   " );
-			char* stripstr3 = string_clone( "   testing strip :   " );
+			string_t stripstr = string_clone( STRING_CONST( "   testing strip :   " ) );
+			string_t stripstr2 = string_clone( STRING_CONST( "   testing strip :   " ) );
+			string_t stripstr3 = string_clone( STRING_CONST( "   testing strip :   " ) );
 
-			stripstr = string_strip( stripstr, " tp:   " );
-			stripstr2 = string_strip( stripstr2, "" );
-			stripstr3 = string_strip( stripstr3, " tesingrp:" );
+			string_const_t strippedstr = string_strip( STRING_ARGS( stripstr ), STRING_CONST( " tp:   " ) );
+			string_const_t strippedstr2 = string_strip( STRING_ARGS( stripstr2 ), STRING_CONST( "" ) );
+			string_const_t strippedstr3 = string_strip( STRING_ARGS( stripstr3 ), STRING_CONST( " tesingrp:" ) );
 
-			EXPECT_TRUE( string_equal( stripstr, "esting stri" ) );
-			EXPECT_TRUE( string_equal( stripstr2, "   testing strip :   " ) );
-			EXPECT_TRUE( string_equal( stripstr3, "" ) );
+			EXPECT_STRINGEQ( strippedstr, string_const( STRING_CONST( "esting stri" ) ) );
+			EXPECT_STRINGEQ( strippedstr2, string_const( STRING_CONST( "   testing strip :   " ) ) );
+			EXPECT_STRINGEQ( strippedstr3, string_const( STRING_CONST( "" ) ) );
 
-			string_deallocate( stripstr );
-			string_deallocate( stripstr2 );
-			string_deallocate( stripstr3 );
+			string_deallocate( stripstr.str );
+			string_deallocate( stripstr2.str );
+			string_deallocate( stripstr3.str );
 		}
-		string_array_deallocate( explodearr );
-		string_deallocate( explodestr );
-
-		string_deallocate( mergestr );
-		string_deallocate( mergestr2 );
-		string_deallocate( merged );
-		string_array_deallocate( mergearr );
-		string_array_deallocate( mergearr2 );
-		string_array_deallocate( mergearr3 );
-
-		string_deallocate( splitstr );
-		string_deallocate( splitright );
-		string_deallocate( splitleft );
-		string_deallocate( splitright2 );
-		string_deallocate( splitleft2 );
-
-		string_deallocate( substrtest );
+		string_deallocate( mergestr.str );
+		string_deallocate( mergestr2.str );
+		string_deallocate( merged.str );
+		string_deallocate( splitstr.str );
+		string_deallocate( substrtest.str );
 	}
 	{
 		#define SHORTSTRING "short"
 		#define LONGSTRING  "long string with dynamic buffer storage but with no real useful data"
-		char* clonestr = string_clone( "" );
-		char* clonestr2 = string_clone( SHORTSTRING );
-		char* clonestr3 = string_clone( LONGSTRING );
+		string_t clonestr = string_clone( STRING_CONST( "" ) );
+		string_t clonestr2 = string_clone( STRING_CONST( SHORTSTRING ) );
+		string_t clonestr3 = string_clone( STRING_CONST( LONGSTRING ) );
 
-		char* teststr = string_clone( clonestr );
-		char* teststr2 = string_clone( clonestr2 );
-		char* teststr3 = string_clone( clonestr3 );
+		string_t teststr = string_clone( STRING_ARGS( clonestr ) );
+		string_t teststr2 = string_clone( STRING_ARGS( clonestr2 ) );
+		string_t teststr3 = string_clone( STRING_ARGS( clonestr3 ) );
+		char buf[256];
 
-		char* concatstr = string_concat( clonestr, teststr );
-		char* concatstr2 = string_concat( clonestr, teststr2 );
-		char* concatstr3 = string_concat( teststr2, clonestr );
-		char* concatstr4 = string_concat( clonestr2, teststr2 );
-		char* concatstr5 = string_concat( clonestr, teststr3 );
-		char* concatstr6 = string_concat( teststr3, clonestr );
-		char* concatstr7 = string_concat( clonestr2, teststr3 );
-		char* concatstr8 = string_concat( teststr3, clonestr2 );
-		char* concatstr9 = string_concat( clonestr3, teststr3 );
-		char* concatstr10 = string_concat( teststr3, clonestr3 );
+		string_t concatstr = string_allocate_concat( STRING_ARGS( clonestr ), STRING_ARGS( teststr ) );
+		string_t concatstr2 = string_allocate_concat( STRING_ARGS( clonestr ), STRING_ARGS( teststr2 ) );
+		string_t concatstr3 = string_allocate_concat( STRING_ARGS( teststr2 ), STRING_ARGS( clonestr ) );
+		string_t concatstr4 = string_allocate_concat( STRING_ARGS( clonestr2 ), STRING_ARGS( teststr2 ) );
+		string_t concatstr5 = string_allocate_concat( STRING_ARGS( clonestr ), STRING_ARGS( teststr3 ) );
+		string_t concatstr6 = string_allocate_concat( STRING_ARGS( teststr3 ), STRING_ARGS( clonestr ) );
+		string_t concatstr7 = string_allocate_concat( STRING_ARGS( clonestr2 ), STRING_ARGS( teststr3 ) );
+		string_t concatstr8 = string_allocate_concat( STRING_ARGS( teststr3 ), STRING_ARGS( clonestr2 ) );
+		string_t concatstr9 = string_allocate_concat( STRING_ARGS( clonestr3 ), STRING_ARGS( teststr3 ) );
+		string_t concatstr10 = string_allocate_concat( STRING_ARGS( teststr3 ), STRING_ARGS( clonestr3 ) );
 
-		EXPECT_NE( teststr, clonestr );
-		EXPECT_TRUE( string_equal( teststr, clonestr ) );
+		EXPECT_NE( teststr.str, clonestr.str );
+		EXPECT_STRINGEQ( teststr, clonestr );
 
-		EXPECT_NE( teststr2, clonestr2 );
-		EXPECT_TRUE( string_equal( teststr2, clonestr2 ) );
+		EXPECT_NE( teststr2.str, clonestr2.str );
+		EXPECT_STRINGEQ( teststr2, clonestr2 );
 
-		EXPECT_NE( teststr3, clonestr3 );
-		EXPECT_TRUE( string_equal( teststr3, clonestr3 ) );
+		EXPECT_NE( teststr3.str, clonestr3.str );
+		EXPECT_STRINGEQ( teststr3, clonestr3 );
 
-		EXPECT_TRUE( string_equal( concatstr, "" ) );
-		EXPECT_TRUE( string_equal( concatstr2, SHORTSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr3, SHORTSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr4, SHORTSTRING SHORTSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr5, LONGSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr6, LONGSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr7, SHORTSTRING LONGSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr8, LONGSTRING SHORTSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr9, LONGSTRING LONGSTRING ) );
-		EXPECT_TRUE( string_equal( concatstr10, LONGSTRING LONGSTRING ) );
+		EXPECT_STRINGEQ( concatstr, string_const( STRING_CONST( "" ) ) );
+		EXPECT_STRINGEQ( concatstr2, string_const( STRING_CONST( SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr3, string_const( STRING_CONST( SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr4, string_const( STRING_CONST( SHORTSTRING SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr5, string_const( STRING_CONST( LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr6, string_const( STRING_CONST( LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr7, string_const( STRING_CONST( SHORTSTRING LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr8, string_const( STRING_CONST( LONGSTRING SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr9, string_const( STRING_CONST( LONGSTRING LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr10, string_const( STRING_CONST( LONGSTRING LONGSTRING ) ) );
 
-		string_deallocate( teststr );
-		string_deallocate( clonestr );
-		string_deallocate( teststr2 );
-		string_deallocate( clonestr2 );
-		string_deallocate( teststr3 );
-		string_deallocate( clonestr3 );
-		string_deallocate( concatstr );
-		string_deallocate( concatstr2 );
-		string_deallocate( concatstr3 );
-		string_deallocate( concatstr4 );
-		string_deallocate( concatstr5 );
-		string_deallocate( concatstr6 );
-		string_deallocate( concatstr7 );
-		string_deallocate( concatstr8 );
-		string_deallocate( concatstr9 );
-		string_deallocate( concatstr10 );
+		string_deallocate( teststr.str );
+		string_deallocate( clonestr.str );
+		string_deallocate( teststr2.str );
+		string_deallocate( clonestr2.str );
+		string_deallocate( teststr3.str );
+		string_deallocate( clonestr3.str );
+		string_deallocate( concatstr.str );
+		string_deallocate( concatstr2.str );
+		string_deallocate( concatstr3.str );
+		string_deallocate( concatstr4.str );
+		string_deallocate( concatstr5.str );
+		string_deallocate( concatstr6.str );
+		string_deallocate( concatstr7.str );
+		string_deallocate( concatstr8.str );
+		string_deallocate( concatstr9.str );
+		string_deallocate( concatstr10.str );
+
+		concatstr = string_concat( buf, sizeof( buf ), STRING_ARGS( clonestr ), STRING_ARGS( teststr ) );
+		concatstr2 = string_concat( buf, sizeof( buf ), STRING_ARGS( clonestr ), STRING_ARGS( teststr2 ) );
+		concatstr3 = string_concat( buf, sizeof( buf ), STRING_ARGS( teststr2 ), STRING_ARGS( clonestr ) );
+		concatstr4 = string_concat( buf, sizeof( buf ), STRING_ARGS( clonestr2 ), STRING_ARGS( teststr2 ) );
+		concatstr5 = string_concat( buf, sizeof( buf ), STRING_ARGS( clonestr ), STRING_ARGS( teststr3 ) );
+		concatstr6 = string_concat( buf, sizeof( buf ), STRING_ARGS( teststr3 ), STRING_ARGS( clonestr ) );
+		concatstr7 = string_concat( buf, sizeof( buf ), STRING_ARGS( clonestr2 ), STRING_ARGS( teststr3 ) );
+		concatstr8 = string_concat( buf, sizeof( buf ), STRING_ARGS( teststr3 ), STRING_ARGS( clonestr2 ) );
+		concatstr9 = string_concat( buf, sizeof( buf ), STRING_ARGS( clonestr3 ), STRING_ARGS( teststr3 ) );
+		concatstr10 = string_concat( buf, sizeof( buf ), STRING_ARGS( teststr3 ), STRING_ARGS( clonestr3 ) );
+
+		EXPECT_STRINGEQ( concatstr, string_const( STRING_CONST( "" ) ) );
+		EXPECT_STRINGEQ( concatstr2, string_const( STRING_CONST( SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr3, string_const( STRING_CONST( SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr4, string_const( STRING_CONST( SHORTSTRING SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr5, string_const( STRING_CONST( LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr6, string_const( STRING_CONST( LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr7, string_const( STRING_CONST( SHORTSTRING LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr8, string_const( STRING_CONST( LONGSTRING SHORTSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr9, string_const( STRING_CONST( LONGSTRING LONGSTRING ) ) );
+		EXPECT_STRINGEQ( concatstr10, string_const( STRING_CONST( LONGSTRING LONGSTRING ) ) );
+
+		concatstr = string_concat( buf, 4, STRING_ARGS( teststr3 ), STRING_ARGS( clonestr3 ) );
+		EXPECT_STRINGEQ( concatstr, string_const( STRING_CONST( "lon" ) ) );
+
+		concatstr = string_concat( buf, 0, STRING_ARGS( teststr3 ), STRING_ARGS( clonestr3 ) );
+		EXPECT_EQ( buf[0], 'l' ); //Expect buf to be unchanged from previous test
+		EXPECT_EQ( concatstr.length, 0 );
+		EXPECT_STRINGEQ( concatstr, string_const( STRING_CONST( "" ) ) );
+
 		#undef SHORTSTRING
 		#undef LONGSTRING
 	}
@@ -1177,39 +1167,75 @@ DECLARE_TEST( string, utility )
 
 DECLARE_TEST( string, format )
 {
+	char buffer[256];
 	{
 		int64_t ival = -1;
 		uint64_t uval = 0x123456789abULL;
-		char* teststr1 = string_format( "%" PRId64, ival );
-		char* teststr2 = string_format( "0x%" PRIx64, ival );
-		char* teststr3 = string_format( "%016" PRIX64, uval );
+		string_t teststr1 = string_allocate_format( STRING_CONST( "%" PRId64 ), ival );
+		string_t teststr2 = string_allocate_format( STRING_CONST( "0x%" PRIx64 ), ival );
+		string_t teststr3 = string_allocate_format( STRING_CONST( "%016" PRIX64 ), uval );
 
-		EXPECT_STREQ( teststr1, "-1" );
-		EXPECT_STREQ( teststr2, "0xffffffffffffffff" );
-		EXPECT_STREQ( teststr3, "00000123456789AB" );
+		EXPECT_STREQ( STRING_ARGS( teststr1 ), STRING_CONST( "-1" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr2 ), STRING_CONST( "0xffffffffffffffff" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr3 ), STRING_CONST( "00000123456789AB" ) );
 
-		string_deallocate( teststr1 );
-		string_deallocate( teststr2 );
-		string_deallocate( teststr3 );
+		string_deallocate( teststr1.str );
+		string_deallocate( teststr2.str );
+		string_deallocate( teststr3.str );
 	}
 	{
-		char* teststr1 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)0) );
-		char* teststr2 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)-1) );
-		char* teststr3 = string_format( "0x%" PRIfixPTR, (uintptr_t)((void*)0x1234abULL) );
+		int64_t ival = -1;
+		uint64_t uval = 0x123456789abULL;
+		string_t teststr1;
+		string_t teststr2;
+		string_t teststr3;
+
+		teststr1 = string_format( buffer, sizeof( buffer ), STRING_CONST( "%" PRId64 ), ival );
+		EXPECT_STREQ( STRING_ARGS( teststr1 ), STRING_CONST( "-1" ) );
+
+		teststr2 = string_format( buffer, sizeof( buffer ), STRING_CONST( "0x%" PRIx64 ), ival );
+		EXPECT_STREQ( STRING_ARGS( teststr2 ), STRING_CONST( "0xffffffffffffffff" ) );
+
+		teststr3 = string_format( buffer, 8, STRING_CONST( "%016" PRIX64 ), uval );
+		EXPECT_STREQ( STRING_ARGS( teststr3 ), STRING_CONST( "0000012" ) );
+	}
+	{
+		string_t teststr1 = string_allocate_format( STRING_CONST( "0x%" PRIfixPTR ), (uintptr_t)nullptr );
+		string_t teststr2 = string_allocate_format( STRING_CONST( "0x%" PRIfixPTR ), (uintptr_t)((void*)-1) );
+		string_t teststr3 = string_allocate_format( STRING_CONST( "0x%" PRIfixPTR ), (uintptr_t)((void*)0x1234abULL) );
 
 #if FOUNDATION_SIZE_POINTER == 8
-		EXPECT_STREQ( teststr1, "0x0000000000000000" );
-		EXPECT_STREQ( teststr2, "0xFFFFFFFFFFFFFFFF" );
-		EXPECT_STREQ( teststr3, "0x00000000001234AB" );
+		EXPECT_STREQ( STRING_ARGS( teststr1 ), STRING_CONST( "0x0000000000000000" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr2 ), STRING_CONST( "0xFFFFFFFFFFFFFFFF" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr3 ), STRING_CONST( "0x00000000001234AB" ) );
 #else
-		EXPECT_STREQ( teststr1, "0x00000000" );
-		EXPECT_STREQ( teststr2, "0xFFFFFFFF" );
-		EXPECT_STREQ( teststr3, "0x001234AB" );
+		EXPECT_STREQ( STRING_ARGS( teststr1 ), STRING_CONST( "0x00000000" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr2 ), STRING_CONST( "0xFFFFFFFF" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr3 ), STRING_CONST( "0x001234AB" ) );
 #endif
 
-		string_deallocate( teststr1 );
-		string_deallocate( teststr2 );
-		string_deallocate( teststr3 );
+		string_deallocate( teststr1.str );
+		string_deallocate( teststr2.str );
+		string_deallocate( teststr3.str );
+	}
+	{
+		string_t teststr1 = string_format( buffer, sizeof( buffer ), STRING_CONST( "0x%" PRIfixPTR ), (uintptr_t)nullptr );
+		string_t teststr2 = string_format( buffer, sizeof( buffer ), STRING_CONST( "0x%" PRIfixPTR ), (uintptr_t)((void*)-1) );
+		string_t teststr3 = string_format( buffer, 8, STRING_CONST( "0x%" PRIfixPTR ), (uintptr_t)((void*)0x1234abULL) );
+
+#if FOUNDATION_SIZE_POINTER == 8
+		EXPECT_STREQ( STRING_ARGS( teststr1 ), STRING_CONST( "0x0000000000000000" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr2 ), STRING_CONST( "0xFFFFFFFFFFFFFFFF" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr3 ), STRING_CONST( "0x00000" ) );
+#else
+		EXPECT_STREQ( STRING_ARGS( teststr1 ), STRING_CONST( "0x00000000" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr2 ), STRING_CONST( "0xFFFFFFFF" ) );
+		EXPECT_STREQ( STRING_ARGS( teststr3 ), STRING_CONST( "0x00123" ) );
+#endif
+
+		string_deallocate( teststr1.str );
+		string_deallocate( teststr2.str );
+		string_deallocate( teststr3.str );
 	}
 	return 0;
 }

@@ -1211,7 +1211,7 @@ void stream_write_format( stream_t* stream, const char* format, size_t format_le
 	FOUNDATION_ASSERT( format );
 
 	va_start( list, format_length );
-	buffer = string_vformat( format, format_length, list );
+	buffer = string_allocate_vformat( format, format_length, list );
 	va_end( list );
 
 	stream_write_string( stream, buffer.str, buffer.length );

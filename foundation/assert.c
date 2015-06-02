@@ -76,7 +76,7 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 		tracestr = string_copy( STRING_ARGS( tracestr ), STRING_CONST( "<no stacktrace - not initialized>" ) );
 	}
 
-	messagestr = string_format_buffer( STRING_ARGS( messagestr ), assert_format, sizeof( assert_format ),
+	messagestr = string_format( STRING_ARGS( messagestr ), assert_format, sizeof( assert_format ),
 		(int)cond_length, condition, (int)file_length, file, line,
 		STRING_FORMAT( contextstr ), (int)msg_length, msg,
 		STRING_FORMAT( tracestr ) );
@@ -102,7 +102,7 @@ int assert_report_formatted( hash_t context, const char* condition, size_t cond_
 		string_t buffer = { _assert_buffer, ASSERT_BUFFER_SIZE };
 		va_list ap;
 		va_start( ap, msg_length );
-		buffer = string_vformat_buffer( STRING_ARGS( buffer ), msg, msg_length, ap );
+		buffer = string_vformat( STRING_ARGS( buffer ), msg, msg_length, ap );
 		va_end( ap );
 		return assert_report( context, condition, cond_length, file, file_length, line, STRING_ARGS( buffer ) );
 	}

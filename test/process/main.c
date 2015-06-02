@@ -80,13 +80,13 @@ DECLARE_TEST( process, spawn )
 	if( ( system_platform() == PLATFORM_IOS ) || ( system_platform() == PLATFORM_ANDROID ) || ( system_platform() == PLATFORM_PNACL ) )
 		return 0;
 
-	tmp_path = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_CONST( "path with space " ) );
 	fname = string_from_uint_static( (uint32_t)random32(), false, 0, '0' );
-	tmp_path = string_append( STRING_ARGS_CAPACITY( tmp_path ), true, STRING_ARGS( fname ) );
+	tmp_path = path_allocate_concat_varg( STRING_ARGS( environment_temporary_directory() ), STRING_CONST( "path with space " ),
+	  STRING_ARGS( fname ), nullptr );
 
 	EXPECT_TRUE( fs_make_directory( STRING_ARGS( tmp_path ) ) );
 
-	full_path = path_merge( STRING_ARGS( tmp_path ), STRING_ARGS( file_name ) );
+	full_path = path_allocate_concat( STRING_ARGS( tmp_path ), STRING_ARGS( file_name ) );
 	tmp_file = fs_open_file( STRING_ARGS( full_path ), STREAM_CREATE | STREAM_OUT );
 	EXPECT_NE( tmp_file, 0 );
 	stream_deallocate( tmp_file );

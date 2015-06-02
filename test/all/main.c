@@ -240,14 +240,15 @@ int main_run( void* main_arg )
 	int remain_counter = 0;
 #endif
 #if BUILD_DEBUG
-	const char* build_name = "debug";
+	const string_const_t build_name = string_const( STRING_CONST( "debug" ) );
 #elif BUILD_RELEASE
-	const char* build_name = "release";
+	const string_const_t build_name = string_const( STRING_CONST( "release" ) );
 #elif BUILD_PROFILE
-	const char* build_name = "profile";
+	const string_const_t build_name = string_const( STRING_CONST( "profile" ) );
 #elif BUILD_DEPLOY
-	const char* build_name = "deploy";
+	const string_const_t build_name = string_const( STRING_CONST( "deploy" ) );
 #endif
+	char* pathbuf;
 	int process_result = 0;
 	object_t thread = 0;
 	FOUNDATION_UNUSED( main_arg );
@@ -255,10 +256,13 @@ int main_run( void* main_arg )
 
 	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
 
-	log_infof( HASH_TEST, STRING_CONST( "Foundation library v%s built for %s using %s (%s)" ), string_from_version_static( foundation_version() ).str, FOUNDATION_PLATFORM_DESCRIPTION, FOUNDATION_COMPILER_DESCRIPTION, build_name );
+	log_infof( HASH_TEST, STRING_CONST( "Foundation library v%s built for %s using %s (%s)" ), string_from_version_static( foundation_version() ).str, FOUNDATION_PLATFORM_DESCRIPTION, FOUNDATION_COMPILER_DESCRIPTION, build_name.str );
 
 	thread = thread_create( event_thread, STRING_CONST( "event_thread" ), THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( thread, 0 );
+
+	pathbuf = memory_allocate( HASH_STRING, BUILD_MAX_PATHLEN, 0, MEMORY_PERSISTENT );
+
 	while( !thread_is_running( thread ) )
 		thread_sleep( 10 );
 
@@ -406,7 +410,7 @@ int main_run( void* main_arg )
 		if( string_equal( STRING_ARGS( exe_file_name ), STRING_ARGS( environment_executable_name() ) ) )
 			continue; //Don't run self
 
-		process_path = path_merge( 0, 0, true, STRING_ARGS( environment_executable_directory() ), STRING_ARGS( exe_paths[iexe] ) );
+		process_path = path_concat( pathbuf, BUILD_MAX_PATHLEN, STRING_ARGS( environment_executable_directory() ), STRING_ARGS( exe_paths[iexe] ) );
 
 		process = process_allocate();
 
@@ -455,6 +459,8 @@ exit:
 		thread_sleep( 10 );
 	while( thread_is_thread( thread ) )
 		thread_sleep( 10 );
+
+	memory_deallocate( pathbuf );
 
 	log_infof( HASH_TEST, STRING_CONST( "Tests exiting: %d" ), process_result );
 

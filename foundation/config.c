@@ -269,189 +269,205 @@ void _config_shutdown( void )
 }
 
 
-void config_load( const char* name, size_t length, hash_t filter_section, bool built_in, bool overwrite )
+static string_const_t platformsuffix =
+#if FOUNDATION_PLATFORM_WINDOWS
+	(string_const_t){ STRING_CONST( "/windows" ) };
+#elif FOUNDATION_PLATFORM_MACOSX
+	(string_const_t){ STRING_CONST( "/macosx" ) };
+#elif FOUNDATION_PLATFORM_IOS
+	(string_const_t){ STRING_CONST( "/ios" ) };
+#elif FOUNDATION_PLATFORM_ANDROID
+	(string_const_t){ STRING_CONST( "/android" ) };
+#elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+	(string_const_t){ STRING_CONST( "/raspberrypi" ) };
+#elif FOUNDATION_PLATFORM_LINUX
+	(string_Const_t){ STRING_CONST( "/linux" ) };
+#elif FOUNDATION_PLATFORM_PNACL
+	(string_const_t){ STRING_CONST( "/pnacl" ) },
+#elif FOUNDATION_PLATFORM_BSD
+	(string_const_t){ STRING_CONST( "/bsd" ) },
+#elif FOUNDATION_PLATFORM_TIZEN
+	(string_const_t){ STRING_CONST( "/tizen" ) },
+#else
+	(string_const_t){ STRING_CONST( "/unknown" ) }
+#endif
+
+
+static string_t config_unsuffix_path( string_t path )
 {
-	/*lint --e{838} Safety null assign all pointers for all preprocessor paths */
-	/*lint --e{750} Unused macros in some paths */
-#define NUM_SEARCH_PATHS 10
-	string_const_t exe_path;
-	string_t sub_exe_path = { 0, 0 };
-	string_t exe_parent_path = { 0, 0 };
-	string_t exe_processed_path = { 0, 0 };
-	string_t abs_exe_parent_path = { 0, 0 };
-	string_t abs_exe_processed_path = { 0, 0 };
-	string_t bundle_path = { 0, 0 };
-	string_t home_dir = { 0, 0 };
-	string_t cwd_config_path = { 0, 0 };
-	string_const_t paths[NUM_SEARCH_PATHS];
+	string_const_t buildsuffix =
+#if BUILD_DEBUG
+		(string_const_t){ STRING_CONST( "/debug" ) };
+#elif BUILD_RELEASE
+		(string_const_t){ STRING_CONST( "/release" ) };
+#elif BUILD_PROFILE
+		(string_const_t){ STRING_CONST( "/profile" ) };
+#else
+		(string_const_t){ STRING_CONST( "/deploy" ) };
+#endif
+	string_const_t binsuffix =
+		(string_const_t){ STRING_CONST( "/bin" ) };
+
+	if( string_ends_with( STRING_ARGS( path ), STRING_ARGS( buildsuffix ) ) )
+	{
+		path.length = path.length - buildsuffix.length;
+		path.str[ path.length ] = 0;
+	}
+	if( string_ends_with( STRING_ARGS( path ), STRING_ARGS( platformsuffix ) ) )
+	{
+		path.length = path.length - platformsuffix.length;
+		path.str[ path.length ] = 0;
+	}
+	if( string_ends_with( STRING_ARGS( path ), STRING_ARGS( binsuffix ) ) )
+	{
+		path.length = path.length - binsuffix.length;
+		path.str[ path.length ] = 0;
+	}
+	return path;
+}
+
+static string_t config_make_path( int path, char* buffer, size_t capacity )
+{
+	string_t result;
+	string_const_t env_dir;
 #if !FOUNDATION_PLATFORM_FAMILY_MOBILE && !FOUNDATION_PLATFORM_PNACL
 	const string_const_t* cmd_line;
 	size_t icl, clsize;
 #endif
-	size_t start_path, i, j, capacity;
-
-	string_const_t buildsuffix[4] = {
-		(string_const_t){ STRING_CONST( "/debug" ) },
-		(string_const_t){ STRING_CONST( "/release" ) },
-		(string_const_t){ STRING_CONST( "/profile" ) },
-		(string_const_t){ STRING_CONST( "/deploy" ) }
-	};
-	string_const_t platformsuffix[PLATFORM_INVALID+1] = {
-		(string_const_t){ STRING_CONST( "/windows" ) },
-		(string_const_t){ STRING_CONST( "/osx" ) },
-		(string_const_t){ STRING_CONST( "/ios" ) },
-		(string_const_t){ STRING_CONST( "/android" ) },
-		(string_const_t){ STRING_CONST( "/raspberrypi" ) },
-		(string_const_t){ STRING_CONST( "/pnacl" ) },
-		(string_const_t){ STRING_CONST( "/bsd" ) },
-		(string_const_t){ STRING_CONST( "/tizen" ) },
-		(string_const_t){ STRING_CONST( "/unknown" ) }
-	};
-	string_const_t binsuffix[1] = {
-		(string_const_t){ STRING_CONST( "/bin" ) }
-	};
-
-	FOUNDATION_ASSERT( name );
-
-	memset( paths, 0, sizeof( string_const_t ) * NUM_SEARCH_PATHS );
-
-	exe_path = environment_executable_directory();
-	sub_exe_path = path_merge( 0, 0, true, STRING_ARGS( exe_path ), STRING_CONST( "config" ) );
-	exe_parent_path = path_merge( 0, 0, true, STRING_ARGS( exe_path ), STRING_CONST( "../config" ) );
-	exe_parent_path = path_clean( STRING_ARGS_CAPACITY( exe_parent_path ), true );
-	abs_exe_parent_path = string_clone( STRING_ARGS( exe_parent_path ) );
-	abs_exe_parent_path = path_absolute( STRING_ARGS_CAPACITY( abs_exe_parent_path ), true );
-
-	exe_processed_path = string_clone( STRING_ARGS( exe_path ) );
-	capacity = exe_processed_path.length + 1;
-	for( i = 0; i < ( sizeof( buildsuffix ) / sizeof( buildsuffix[0] ) ); ++i )
+	switch( path )
 	{
-		if( string_ends_with( STRING_ARGS( exe_processed_path ), STRING_ARGS( buildsuffix[i] ) ) )
-		{
-			exe_processed_path.length = exe_processed_path.length - buildsuffix[i].length;
-			exe_processed_path.str[ exe_processed_path.length ] = 0;
-			break;
-		}
-	}
-	for( i = 0; i < ( sizeof( platformsuffix ) / sizeof( platformsuffix[0] ) ); ++i )
-	{
-		if( string_ends_with( STRING_ARGS( exe_processed_path ), STRING_ARGS( platformsuffix[i] ) ) )
-		{
-			exe_processed_path.length = exe_processed_path.length - platformsuffix[i].length;
-			exe_processed_path.str[ exe_processed_path.length ] = 0;
-			break;
-		}
-	}
-	for( i = 0; i < ( sizeof( binsuffix ) / sizeof( binsuffix[0] ) ); ++i )
-	{
-		if( string_ends_with( STRING_ARGS( exe_processed_path ), STRING_ARGS( binsuffix[i] ) ) )
-		{
-			exe_processed_path.length = exe_processed_path.length - binsuffix[i].length;
-			exe_processed_path.str[ exe_processed_path.length ] = 0;
-			break;
-		}
-	}
-	exe_processed_path = path_append( STRING_ARGS( exe_processed_path ), capacity, true, STRING_CONST( "config" ) );
-	abs_exe_processed_path = string_clone( STRING_ARGS( exe_processed_path ) );
-	abs_exe_processed_path = path_absolute( STRING_ARGS_CAPACITY( abs_exe_processed_path ), true );
+		case 0:
+			env_dir = environment_executable_directory();
+			return string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
 
-	paths[0] = exe_path;
+		case 1:
 #if !FOUNDATION_PLATFORM_PNACL
-	paths[1] = string_to_const( sub_exe_path );
-	paths[2] = string_to_const( abs_exe_parent_path );
+			env_dir = environment_executable_directory();
+			return path_concat( buffer, capacity, STRING_ARGS( env_dir ), STRING_CONST( "config" ) );
+#else
+			break;
 #endif
-	paths[3] = string_to_const( abs_exe_processed_path );
 
+		case 2:
+#if !FOUNDATION_PLATFORM_PNACL
+			env_dir = environment_executable_directory();
+			result = string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
+			result = config_unsuffix_path( result );
+			if( result.length == env_dir.length )
+				return (string_t){ 0, 0 };
+			return path_append( STRING_ARGS( result ), capacity, STRING_CONST( "config" ) );
+#else
+			break;
+#endif
+
+		case 3:
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
-	paths[4] = environment_initial_working_directory();
+			env_dir = environment_initial_working_directory();
+			return string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
+#else
+			break;
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	bundle_path = string_clone( STRING_ARGS( environment_executable_directory() ) );
-#  if FOUNDATION_PLATFORM_MACOSX
-	bundle_path = path_append( STRING_ARGS_CAPACITY( bundle_path ), true, STRING_CONST( "../Resources/config" ) );
-#  else
-	bundle_path = path_append( STRING_ARGS_CAPACITY( bundle_path ), true, STRING_CONST( "config" ) );
-#  endif
-	bundle_path = path_clean( STRING_ARGS_CAPACITY( bundle_path ), true );
-	paths[5] = string_to_const( bundle_path );
+		case 4:
+#if FOUNDATION_PLATFORM_MACOSX
+			env_dir = environment_executable_directory();
+			result = string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
+			result = path_append( STRING_ARGS( result ), capacity, STRING_CONST( "../Resources/config" ) );
+			return path_clean( STRING_ARGS( result ), capacity );
 #elif FOUNDATION_PLATFORM_ANDROID
-#define ANDROID_ASSET_PATH_INDEX 5
-	paths[5] = (string_const_t){ STRING_CONST( "/config" ) };
+			return string_copy( buffer, capacity, STRING_CONST( "asset://config" ) );
+#else
+			break;
 #endif
 
+		case 5:
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-	paths[6] = environment_current_working_directory();
+			env_dir = environment_current_working_directory();
+			return string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
+#else
+			break;
 #endif
 
-	string_deallocate( exe_parent_path.str );
-	string_deallocate( exe_processed_path.str );
-
+		case 6:
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-	cwd_config_path = string_clone( STRING_ARGS( environment_current_working_directory() ) );
-	cwd_config_path = path_append( STRING_ARGS_CAPACITY( cwd_config_path ), true, STRING_CONST( "config" ) );
-	paths[7] = string_to_const( cwd_config_path );
-
-	cmd_line = environment_command_line();
-	/*lint -e{850} We modify loop var to skip extra arg */
-	for( icl = 0, clsize = array_size( cmd_line ); icl < clsize; ++icl )
-	{
-		/*lint -e{613} array_size( cmd_line ) in loop condition does the null pointer guard */
-		if( string_equal( STRING_ARGS( cmd_line[icl] ), STRING_CONST( "--configdir" ) ) )
-		{
-			if( string_equal( STRING_ARGS( cmd_line[icl] ), STRING_CONST( "--configdir=" ) ) )
-			{
-				paths[8] = string_substr( STRING_ARGS( cmd_line[icl] ), 12, STRING_NPOS );
-			}
-			else if( icl < ( clsize - 1 ) )
-			{
-				paths[8] = cmd_line[++icl];
-			}
-		}
-	}
+			env_dir = environment_current_working_directory();
+			result = string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
+			return path_append( STRING_ARGS( result ), capacity, STRING_CONST( "config" ) );
+#else
+			break;
 #endif
 
-	start_path = 0;
+		case 7:
+#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
+			cmd_line = environment_command_line();
+			env_dir = string_null();
+			/*lint -e{850} We modify loop var to skip extra arg */
+			for( icl = 0, clsize = array_size( cmd_line ); icl < clsize; ++icl )
+			{
+				/*lint -e{613} array_size( cmd_line ) in loop condition does the null pointer guard */
+				if( string_equal( STRING_ARGS( cmd_line[icl] ), STRING_CONST( "--configdir" ) ) )
+				{
+					if( string_equal( STRING_ARGS( cmd_line[icl] ), STRING_CONST( "--configdir=" ) ) )
+					{
+						env_dir = string_substr( STRING_ARGS( cmd_line[icl] ), 12, STRING_NPOS );
+						break;
+					}
+					else if( icl < ( clsize - 1 ) )
+					{
+						env_dir = cmd_line[++icl];
+						break;
+					}
+				}
+			}
+			if( env_dir.length )
+				return string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
+#else
+			break;
+#endif
 
+		case 8:
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
+			env_dir = environment_home_directory();
+			return string_concat_varg( buffer, capacity, STRING_ARGS( env_dir ),
+				STRING_CONST( "/." ), STRING_ARGS( environment_application()->config_dir ), nullptr );
+#else
+			break;
+#endif
+	}
+	return (string_t){ 0, 0 };
+}
+
+
+void config_load( const char* name, size_t length, hash_t filter_section, bool built_in, bool overwrite )
+{
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t pathname;
+	string_t filename;
+	stream_t* istream;
+	int start_path = 0;
+	int end_path = 8;
+	int ipath;
+
 	if( !built_in )
 	{
-		string_const_t home_path = environment_home_directory();
-		home_dir = string_format( STRING_CONST( "%*.s/.%.*s" ), STRING_FORMAT( home_path ), STRING_FORMAT( environment_application()->config_dir ) );
-		start_path = 9;
-	}
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
+		start_path = 8;
+		end_path = 9;
+#else
+		return;
 #endif
+	}
 
-	for( i = start_path; i < NUM_SEARCH_PATHS; ++i )
+	for( ipath = start_path; ipath < end_path; ++ipath )
 	{
-		char filename_buffer[BUILD_MAX_PATHLEN];
-		string_t filename;
-		stream_t* istream;
-		bool path_already_searched = false;
-
-		if( !paths[i].length )
-			continue;
-
-		for( j = start_path; j < i; ++j )
-		{
-			if( string_equal( STRING_ARGS( paths[j] ), STRING_ARGS( paths[i] ) ) )
-			{
-				path_already_searched = true;
-				break;
-			}
-		}
-		if( path_already_searched )
+		pathname = config_make_path( ipath, buffer, sizeof( buffer ) );
+		if( !pathname.length )
 			continue;
 
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
-		filename = string_format_buffer( filename_buffer, BUILD_MAX_PATHLEN, STRING_CONST( "%.*s/%.*s.ini" ), STRING_FORMAT( paths[i] ), (int)length, name );
-		filename = path_clean( STRING_ARGS( filename ), BUILD_MAX_PATHLEN, false );
-		istream = 0;
-#if FOUNDATION_PLATFORM_ANDROID
-		if( i == ANDROID_ASSET_PATH_INDEX )
-			istream = asset_stream_open( STRING_ARGS( filename ), STREAM_IN );
-		else
-#endif
+		filename = string_format( pathname.str + pathname.length, sizeof( buffer ) - pathname.length,
+			STRING_CONST( "/%.*s.ini" ), (int)length, name );
+		filename = path_clean( STRING_ARGS( filename ), sizeof( buffer ) );
 		istream = stream_open( STRING_ARGS( filename ), STREAM_IN );
 		if( istream )
 		{
@@ -461,36 +477,9 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 
 		if( built_in )
 		{
-#if FOUNDATION_PLATFORM_WINDOWS
-			string_const_t platform_name = string_const( STRING_CONST( "windows" ) );
-#elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-			string_const_t platform_name = string_const( STRING_CONST( "raspberrypi" ) );
-#elif FOUNDATION_PLATFORM_LINUX
-			string_const_t platform_name = string_const( STRING_CONST( "linux" ) );
-#elif FOUNDATION_PLATFORM_MACOSX
-			string_const_t platform_name = string_const( STRING_CONST( "macosx" ) );
-#elif FOUNDATION_PLATFORM_IOS
-			string_const_t platform_name = string_const( STRING_CONST( "ios" ) );
-#elif FOUNDATION_PLATFORM_ANDROID
-			string_const_t platform_name = string_const( STRING_CONST( "android" ) );
-#elif FOUNDATION_PLATFORM_PNACL
-			string_const_t platform_name = string_const( STRING_CONST( "pnacl" ) );
-#elif FOUNDATION_PLATFORM_BSD
-			string_const_t platform_name = string_const( STRING_CONST( "bsd" ) );
-#elif FOUNDATION_PLATFORM_TIZEN
-			string_const_t platform_name = string_const( STRING_CONST( "tizen" ) );
-#else
-#  error Insert platform name
-			string_const_t platform_name = string_const( STRING_CONST( "unknown" ) );
-#endif
-			filename = string_format_buffer( filename_buffer, BUILD_MAX_PATHLEN, STRING_CONST( "%.*s/%.*s/%.*s.ini" ),
-				STRING_FORMAT( paths[i] ), STRING_FORMAT( platform_name ), (int)length, name );
-			filename = path_clean( STRING_ARGS( filename ), BUILD_MAX_PATHLEN, false );
-#if FOUNDATION_PLATFORM_ANDROID
-			if( i == ANDROID_ASSET_PATH_INDEX )
-				istream = asset_stream_open( STRING_ARGS( filename ), STREAM_IN );
-			else
-#endif
+			filename = string_format( pathname.str + pathname.length, sizeof( buffer ) - pathname.length,
+				STRING_CONST( "%.*s/%.*s.ini" ), STRING_FORMAT( platformsuffix ), (int)length, name );
+			filename = path_clean( STRING_ARGS( filename ), sizeof( buffer ) );
 			istream = stream_open( STRING_ARGS( filename ), STREAM_IN );
 			if( istream )
 			{
@@ -499,13 +488,6 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 			}
 		}
 	}
-
-	string_deallocate( home_dir.str );
-	string_deallocate( sub_exe_path.str );
-	string_deallocate( abs_exe_processed_path.str );
-	string_deallocate( abs_exe_parent_path.str );
-	string_deallocate( bundle_path.str );
-	string_deallocate( cwd_config_path.str );
 }
 
 

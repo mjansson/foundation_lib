@@ -239,9 +239,9 @@ void log_warnf( hash_t context, warning_t warn, const char* format, size_t lengt
 	log_error_context( context, ERRORLEVEL_WARNING );
 
 	if( warn < LOG_WARNING_NAMES )
-		prefix = string_format_buffer( buffer, 32, STRING_CONST( "WARNING [%s]: " ), _log_warning_name[warn] );
+		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "WARNING [%s]: " ), _log_warning_name[warn] );
 	else
-		prefix = string_format_buffer( buffer, 32, STRING_CONST( "WARNING [%d]: " ), warn );
+		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "WARNING [%d]: " ), warn );
 
 	va_start( list, length );
 	_log_outputf( context, ERRORLEVEL_WARNING, prefix.str, prefix.length, format, length, list, stdout );
@@ -261,9 +261,9 @@ void log_errorf( hash_t context, error_t err, const char* format, size_t length,
 	log_error_context( context, ERRORLEVEL_ERROR );
 
 	if( err < LOG_ERROR_NAMES )
-		prefix = string_format_buffer( buffer, 32, STRING_CONST( "ERROR [%s]: " ), _log_error_name[err] );
+		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "ERROR [%s]: " ), _log_error_name[err] );
 	else
-		prefix = string_format_buffer( buffer, 32, STRING_CONST( "ERROR [%d]: " ), err );
+		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "ERROR [%d]: " ), err );
 
 	va_start( list, length );
 	_log_outputf( context, ERRORLEVEL_ERROR, prefix.str, prefix.length, format, length, list, stderr );
@@ -282,9 +282,9 @@ void log_panicf( hash_t context, error_t err, const char* format, size_t length,
 	log_error_context( context, ERRORLEVEL_PANIC );
 
 	if( err < LOG_ERROR_NAMES )
-		prefix = string_format_buffer( buffer, 32, STRING_CONST( "PANIC [%s]: " ), _log_error_name[err] );
+		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "PANIC [%s]: " ), _log_error_name[err] );
 	else
-		prefix = string_format_buffer( buffer, 32, STRING_CONST( "PANIC [%d]: " ), err );
+		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "PANIC [%d]: " ), err );
 
 	va_start( list, length );
 	_log_outputf( context, ERRORLEVEL_PANIC, prefix.str, prefix.length, format, length, list, stderr );

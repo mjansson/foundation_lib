@@ -175,12 +175,13 @@ int hashify_process_files( string_t* files, bool check_only )
 		stream_t* input_file;
 		stream_t* output_file;
 
-		input_filename = string_clone( STRING_ARGS( files[ifile] ) );
-		input_filename = path_clean( STRING_ARGS_CAPACITY( input_filename ), true );
+		input_filename = string_allocate( 0, BUILD_MAX_PATHLEN );
+		input_filename = string_copy( input_filename.str, BUILD_MAX_PATHLEN, STRING_ARGS( files[ifile] ) );
+		input_filename = path_clean( STRING_ARGS( input_filename ), BUILD_MAX_PATHLEN );
 		error_context_push( STRING_CONST( "parsing file" ), STRING_ARGS( input_filename ) );
 
 		base_filename = path_base_file_name_with_directory( STRING_ARGS( input_filename ) );
-		output_filename = string_format( STRING_CONST( "%.*s.h" ), STRING_FORMAT( base_filename ) );
+		output_filename = string_allocate_format( STRING_CONST( "%.*s.h" ), STRING_FORMAT( base_filename ) );
 
 		log_infof( 0, STRING_CONST( "Hashifying %.*s -> %.*s" ), STRING_FORMAT( input_filename ), STRING_FORMAT( output_filename ) );
 
@@ -314,7 +315,7 @@ int hashify_generate_preamble( stream_t* output_file )
 	//Read and preserve everything before #pragma once in case it contains header comments to be preserved
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	size_t capacity = 1024;
-	string_t preamble = string_allocate( 0, capacity, 0 );
+	string_t preamble = string_allocate( 0, capacity );
 
 	while( !stream_eos( output_file ) )
 	{

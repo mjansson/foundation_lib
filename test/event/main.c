@@ -514,7 +514,7 @@ DECLARE_TEST( event, delay_threaded )
 			++read[ event->object ];
 			memcpy( &payloadtime, event->payload, sizeof( tick_t ) );
 
-			string_format_buffer( msgbuf, 64, STRING_CONST( "payload %" PRIu64 " - previous %" PRIu64 " (%dms)" ), payloadtime, prevtime, (int)( time_ticks_to_seconds( time_diff( prevtime, payloadtime ) ) * REAL_C(1000.0) ) );
+			string_format( msgbuf, 64, STRING_CONST( "payload %" PRIu64 " - previous %" PRIu64 " (%dms)" ), payloadtime, prevtime, (int)( time_ticks_to_seconds( time_diff( prevtime, payloadtime ) ) * REAL_C(1000.0) ) );
 
 			EXPECT_GE( event_payload_size( event ), 8 );
 			EXPECT_LE( event_payload_size( event ), 256 );

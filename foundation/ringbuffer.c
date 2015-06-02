@@ -308,7 +308,7 @@ void ringbuffer_stream_initialize( stream_ringbuffer_t* stream, size_t buffer_si
 
 	stream->type = STREAMTYPE_RINGBUFFER;
 	stream->sequential = 1;
-	stream->path = string_format( STRING_CONST( "ringbuffer://0x%" PRIfixPTR ), (uintptr_t)stream );
+	stream->path = string_allocate_format( STRING_CONST( "ringbuffer://0x%" PRIfixPTR ), (uintptr_t)stream );
 	stream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 
 	ringbuffer_initialize( RINGBUFFER_FROM_STREAM( stream ), buffer_size );

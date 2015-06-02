@@ -324,7 +324,7 @@ DECLARE_TEST( profile, stream )
 
 	error(); //Clear error
 
-	filename = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_CONST( "test.profile" ) );
+	filename = path_allocate_concat( STRING_ARGS( environment_temporary_directory() ), STRING_CONST( "test.profile" ) );
 	log_infof( HASH_TEST, STRING_CONST( "Output to profile file: %.*s" ), STRING_FORMAT( filename ) );
 	fs_make_directory( STRING_ARGS( environment_temporary_directory() ) );
 	_profile_stream = fs_open_file( STRING_ARGS( filename ), STREAM_OUT | STREAM_BINARY );

@@ -15,7 +15,7 @@
 #include <string.h>
 
 
-string_t path_clean( char* path, size_t length, size_t capacity, bool reallocate )
+string_t path_clean( char* path, size_t length, size_t capacity )
 {
 	//Since this function is used a lot we want to perform as much operations
 	//in place instead of splicing up into a string array and remerge
@@ -26,7 +26,7 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool reallocate
 	bool absolute;
 
 	if( !path )
-		return reallocate ? string_clone( STRING_CONST( "" ) ) : (string_t){ 0, 0 };
+		return (string_t){ 0, 0 };
 
 	inpath = path;
 	pathpart = inpath;
@@ -96,12 +96,6 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool reallocate
 	{
 		if( !curlength )
 		{
-			if( !inlength && reallocate )
-			{
-				inlength = 2;
-				inpath = memory_reallocate( inpath, inlength + protocollen + 1, 0, protocollen + 1 );
-				pathpart = inpath + protocollen;
-			}
 			if( curcapacity )
 			{
 				*pathpart = '/';
@@ -118,14 +112,6 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool reallocate
 
 			if( curlength == 2 )
 			{
-				if( ( curcapacity <= 2 ) && reallocate )
-				{
-					capacity = inlength + 2 + protocollen + 1;
-					inpath = memory_reallocate( inpath, capacity, 0, inlength + protocollen + 1 );
-					inlength += 2;
-					curcapacity = capacity - protocollen;
-					pathpart = inpath + protocollen;
-				}
 				if( curcapacity > 2 )
 				{
 					pathpart[2] = '/';
@@ -135,14 +121,6 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool reallocate
 			else if( pathpart[2] != '/' )
 			{
 				//splice in slash in weird-format paths (C:foo/bar/...)
-				if( ( curcapacity < ( curlength + 1 ) ) && reallocate )
-				{
-					capacity = curlength + protocollen + 2;
-					inpath = memory_reallocate( inpath, capacity, 0, inlength + protocollen + 1 );
-					inlength = curlength + 1;
-					curcapacity = capacity - protocollen;
-					path = inpath + protocollen;
-				}
 				if( curcapacity >= ( curlength + 1 ) )
 				{
 					memmove( pathpart + 3, pathpart + 2, curlength + 1 - 2 );
@@ -153,14 +131,6 @@ string_t path_clean( char* path, size_t length, size_t capacity, bool reallocate
 		}
 		else if( !protocollen && ( pathpart[0] != '/' ) )
 		{
-			if( ( curcapacity < ( curlength + 1 ) ) && reallocate )
-			{
-				capacity = curlength + protocollen + 2;
-				inpath = memory_reallocate( inpath, capacity, 0, inlength + protocollen + 1 );
-				inlength = curlength + 1;
-				curcapacity = capacity - protocollen;
-				path = inpath + protocollen;
-			}
 			if( curcapacity >= ( curlength + 1 ) )
 			{
 				memmove( pathpart + 1, pathpart, curlength + 1 );
@@ -406,54 +376,37 @@ static string_t path_prepend_fragment( char* dst, size_t length, size_t capacity
 }
 
 
-string_t path_merge( char* dest, size_t capacity, bool reallocate, const char* first, size_t first_length, const char* second, size_t second_length )
-{
-	return path_merge_varg( dest, capacity, reallocate, first, first_length, second, second_length, nullptr );
-}
-
-
-string_t path_merge_varg( char* dest, size_t capacity, bool reallocate, const char* first, size_t first_length, ... )
-{
-	va_list list;
-	string_t result;
-	va_start( list, first_length );
-	result = path_merge_vlist( dest, capacity, reallocate, first, first_length, list );
-	va_end( list );
-	return result;
-}
-
-
-string_t path_merge_vlist( char* dest, size_t capacity, bool reallocate, const char* first, size_t first_length, va_list list )
+static string_t path_concat_impl( char* dest, size_t capacity, bool reallocate, const char* first, size_t first_length, va_list list )
 {
 	va_list clist;
 	string_t result;
 	void* ptr;
 	size_t psize;
-	size_t totalsize = first_length + 1;
 
-	va_copy( clist, list );
-	while( true )
+	if( reallocate )
 	{
-		ptr = va_arg( clist, void* );
-		if( !ptr )
-			break;
-		psize = va_arg( clist, size_t );
-		if( psize )
-			totalsize += psize + 1;
-	}
-	va_end( clist );
+		size_t totalsize = first_length + 1;
+		va_copy( clist, list );
+		while( true )
+		{
+			ptr = va_arg( clist, void* );
+			if( !ptr )
+				break;
+			psize = va_arg( clist, size_t );
+			if( psize )
+				totalsize += psize + 1;
+		}
+		va_end( clist );
 
-	++totalsize;
-	if( reallocate && ( totalsize > capacity ) )
-	{
-		result.str = dest ? memory_reallocate( dest, totalsize, 0, capacity ) :
-		                    memory_allocate( HASH_STRING, totalsize, 0, MEMORY_PERSISTENT );
-		capacity = totalsize;
+		if( totalsize >= capacity )
+		{
+			dest = dest ? memory_reallocate( dest, totalsize + 1, 0, capacity ) :
+			              memory_allocate( HASH_STRING, totalsize + 1, 0, MEMORY_PERSISTENT );
+			capacity = totalsize + 1;
+		}
 	}
-	else
-	{
-		result.str = dest;
-	}
+
+	result.str = dest;
 	result.length = 0;
 
 	if( first_length )
@@ -474,51 +427,75 @@ string_t path_merge_vlist( char* dest, size_t capacity, bool reallocate, const c
 }
 
 
-string_t path_append( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length )
+string_t path_concat( char* dest, size_t capacity, const char* first, size_t first_length, const char* second, size_t second_length )
 {
-	return path_append_varg( base, base_length, base_capacity, reallocate, tail, tail_length, nullptr );
+	return path_concat_varg( dest, capacity, first, first_length, second, second_length, nullptr );
 }
 
 
-string_t path_append_varg( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length, ... )
+string_t path_concat_varg( char* dest, size_t capacity, const char* first, size_t first_length, ... )
 {
 	va_list list;
 	string_t result;
-	va_start( list, tail_length );
-	result = path_append_vlist( base, base_length, base_capacity, reallocate, tail, tail_length, list );
+	va_start( list, first_length );
+	result = path_concat_vlist( dest, capacity, first, first_length, list );
 	va_end( list );
 	return result;
 }
 
 
-string_t path_append_vlist( char* base, size_t base_length, size_t base_capacity, bool reallocate, const char* tail, size_t tail_length, va_list list )
+string_t path_concat_vlist( char* dest, size_t capacity, const char* first, size_t first_length, va_list list )
+{
+	return path_concat_impl( dest, capacity, false, first, first_length, list );
+}
+
+
+string_t path_allocate_concat( const char* first, size_t first_length, const char* second, size_t second_length )
+{
+	return path_allocate_concat_varg( first, first_length, second, second_length, nullptr );
+}
+
+
+string_t path_allocate_concat_varg( const char* first, size_t first_length, ... )
+{
+	va_list list;
+	string_t result;
+	va_start( list, first_length );
+	result = path_allocate_concat_vlist( first, first_length, list );
+	va_end( list );
+	return result;
+}
+
+
+string_t path_allocate_concat_vlist( const char* first, size_t first_length, va_list list )
+{
+	return path_concat_impl( 0, 0, true, first, first_length, list );
+}
+
+
+string_t path_append( char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length )
+{
+	return path_append_varg( base, base_length, base_capacity, tail, tail_length, nullptr );
+}
+
+
+string_t path_append_varg( char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length, ... )
+{
+	va_list list;
+	string_t result;
+	va_start( list, tail_length );
+	result = path_append_vlist( base, base_length, base_capacity, tail, tail_length, list );
+	va_end( list );
+	return result;
+}
+
+
+string_t path_append_vlist( char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length, va_list list )
 {
 	va_list clist;
 	string_t result;
 	void* ptr;
 	size_t psize;
-
-	if( reallocate )
-	{
-		size_t totalsize = base_length + tail_length + 1;
-		va_copy( clist, list );
-		while( true )
-		{
-			ptr = va_arg( clist, void* );
-			if( !ptr )
-				break;
-			psize = va_arg( clist, size_t );
-			if( psize )
-				totalsize += 1 + psize;
-		}
-		if( totalsize >= base_capacity )
-		{
-			base = base ? memory_reallocate( base, totalsize + 1, 0, base_capacity ) :
-			              memory_allocate( HASH_STRING, totalsize + 1, 0, MEMORY_PERSISTENT );
-			base_capacity = totalsize + 1;
-		}
-		va_end( clist );
-	}
 
 	result = (string_t){ base, base_length };
 	result = path_append_fragment( STRING_ARGS( result ), base_capacity, tail, tail_length );
@@ -538,51 +515,29 @@ string_t path_append_vlist( char* base, size_t base_length, size_t base_capacity
 }
 
 
-string_t path_prepend( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length )
+string_t path_prepend( char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length )
 {
-	return path_prepend_varg( tail, tail_length, tail_capacity, reallocate, base, base_length, nullptr );
+	return path_prepend_varg( tail, tail_length, tail_capacity, base, base_length, nullptr );
 }
 
 
-string_t path_prepend_varg( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length, ... )
+string_t path_prepend_varg( char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length, ... )
 {
 	va_list list;
 	string_t result;
 	va_start( list, base_length );
-	result = path_prepend_vlist( tail, tail_length, tail_capacity, reallocate, base, base_length, list );
+	result = path_prepend_vlist( tail, tail_length, tail_capacity, base, base_length, list );
 	va_end( list );
 	return result;
 }
 
 
-string_t path_prepend_vlist( char* tail, size_t tail_length, size_t tail_capacity, bool reallocate, const char* base, size_t base_length, va_list list )
+string_t path_prepend_vlist( char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length, va_list list )
 {
 	va_list clist;
 	string_t result;
 	void* ptr;
 	size_t psize;
-
-	if( reallocate )
-	{
-		size_t totalsize = tail_length + base_length + 1;
-		va_copy( clist, list );
-		while( true )
-		{
-			ptr = va_arg( clist, void* );
-			if( !ptr )
-				break;
-			psize = va_arg( clist, size_t );
-			if( psize )
-				totalsize += 1 + psize;
-		}
-		if( totalsize >= tail_capacity )
-		{
-			tail = tail ? memory_reallocate( tail, totalsize + 1, 0, tail_capacity ) :
-			              memory_allocate( HASH_STRING, totalsize + 1, 0, MEMORY_PERSISTENT );
-			tail_capacity = totalsize + 1;
-		}
-		va_end( clist );
-	}
 
 	//TOSO: This should be done by putting fragments from back to front instead of prepending (which is a memmove) each
 	result = (string_t){ tail, tail_length };
@@ -617,19 +572,19 @@ bool path_is_absolute( const char* path, size_t length )
 }
 
 
-string_t path_absolute( char* path, size_t length, size_t capacity, bool reallocate )
+string_t path_absolute( char* path, size_t length, size_t capacity )
 {
 	string_t abspath;
 	size_t up, last, protocollen;
 	if( !path_is_absolute( path, length ) )
 	{
 		string_const_t cwd = environment_current_working_directory();
-		abspath = path_prepend( path, length, capacity, reallocate, cwd.str, cwd.length );
-		abspath = path_clean( abspath.str, abspath.length, capacity > abspath.length ? capacity : abspath.length + 1, reallocate );
+		abspath = path_prepend( path, length, capacity, cwd.str, cwd.length );
+		abspath = path_clean( abspath.str, abspath.length, capacity > abspath.length ? capacity : abspath.length + 1 );
 	}
 	else
 	{
-		abspath = path_clean( path, length, capacity, reallocate );
+		abspath = path_clean( path, length, capacity );
 	}
 
 	protocollen = string_find_string( abspath.str, abspath.length, STRING_CONST( "://" ), 0 );
@@ -683,11 +638,20 @@ string_t path_absolute( char* path, size_t length, size_t capacity, bool realloc
 }
 
 
-string_t path_make_temporary( char* buffer, size_t capacity, bool reallocate )
+string_t path_allocate_absolute( const char* path, size_t length )
+{
+	string_t buffer = string_thread_buffer();
+	string_t result = string_copy( STRING_ARGS( buffer ), path, length );
+	result = path_absolute( STRING_ARGS( result ), buffer.length );
+	return string_clone( STRING_ARGS( result ) );
+}
+
+
+string_t path_make_temporary( char* buffer, size_t capacity )
 {
 	char uintbuffer[18];
 	string_const_t tmpdir = environment_temporary_directory();
 	string_t filename = string_from_uint( uintbuffer, 18, random64(), true, 0, '0' );
-	return path_merge( buffer, capacity, reallocate, tmpdir.str, tmpdir.length, filename.str, filename.length );
+	return path_concat( buffer, capacity, tmpdir.str, tmpdir.length, filename.str, filename.length );
 }
 

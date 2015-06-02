@@ -117,7 +117,7 @@ bin2hex_input_t bin2hex_parse_command_line( const string_const_t* cmdline )
 		else
 		{
 			array_push( input.input_files, string_clone( cmdline[arg].str, cmdline[arg].length ) );
-			array_push( input.output_files, string_format( STRING_CONST( "%.*s.hex" ), (int)cmdline[arg].length, cmdline[arg].str ) );
+			array_push( input.output_files, string_allocate_format( STRING_CONST( "%.*s.hex" ), (int)cmdline[arg].length, cmdline[arg].str ) );
 		}
 	}
 	error_context_pop();
@@ -141,12 +141,14 @@ int bin2hex_process_files( string_t* input, string_t* output, size_t columns )
 		stream_t* input_file = 0;
 		stream_t* output_file = 0;
 
-		input_filename = string_clone( STRING_ARGS( input[ifile] ) );
-		input_filename = path_clean( STRING_ARGS_CAPACITY( input_filename ), true );
+		input_filename = string_allocate( 0, BUILD_MAX_PATHLEN );
+		input_filename = string_copy( input_filename.str, BUILD_MAX_PATHLEN, STRING_ARGS( input[ifile] ) );
+		input_filename = path_clean( STRING_ARGS( input_filename ), BUILD_MAX_PATHLEN );
 		error_context_push( STRING_CONST( "parsing file" ), STRING_ARGS( input_filename ) );
 
-		output_filename = string_clone( STRING_ARGS( output[ifile] ) );
-		output_filename = path_clean( STRING_ARGS_CAPACITY( output_filename ), true );
+		output_filename = string_allocate( 0, BUILD_MAX_PATHLEN );
+		output_filename = string_copy( output_filename.str, BUILD_MAX_PATHLEN, STRING_ARGS( output[ifile] ) );
+		output_filename = path_clean( STRING_ARGS( output_filename ), BUILD_MAX_PATHLEN );
 
 		log_infof( 0, STRING_CONST( "bin2hex %.*s -> %.*s" ), STRING_FORMAT( input_filename ), STRING_FORMAT( output_filename ) );
 

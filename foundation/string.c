@@ -29,19 +29,14 @@ FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
 #endif
 
 
-string_t string_allocate( size_t length, size_t capacity, char fill )
+string_t string_allocate( size_t length, size_t capacity )
 {
 	char* str;
 	if( !capacity )
 		return (string_t){ 0, 0 };
 	if( length >= capacity )
 		length = capacity - 1;
-	str = memory_allocate( HASH_STRING, capacity, 0, MEMORY_PERSISTENT | ( !fill ? MEMORY_ZERO_INITIALIZED : 0 ) );
-	if( fill )
-	{
-		memset( str, fill, length );
-		str[ length ] = 0;
-	}
+	str = memory_allocate( HASH_STRING, capacity, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	return (string_t){ str, length };
 }
 
@@ -68,7 +63,7 @@ string_t string_clone_string( string_const_t str )
 }
 
 
-string_t string_format( const char* format, size_t length, ... )
+string_t string_allocate_format( const char* format, size_t length, ... )
 {
 	ssize_t n;
 	size_t capacity, lastcapacity;
@@ -103,7 +98,7 @@ string_t string_format( const char* format, size_t length, ... )
 }
 
 
-string_t string_format_buffer( char* buffer, size_t size, const char* format, size_t format_length, ... )
+string_t string_format( char* buffer, size_t size, const char* format, size_t format_length, ... )
 {
 	va_list list;
 	ssize_t n;
@@ -128,7 +123,7 @@ string_t string_format_buffer( char* buffer, size_t size, const char* format, si
 }
 
 
-string_t string_vformat( const char* format, size_t size, va_list list )
+string_t string_allocate_vformat( const char* format, size_t size, va_list list )
 {
 	ssize_t n;
 	size_t capacity, lastcapacity;
@@ -163,7 +158,7 @@ string_t string_vformat( const char* format, size_t size, va_list list )
 }
 
 
-string_t string_vformat_buffer( char* buffer, size_t size, const char* format, size_t format_length, va_list list )
+string_t string_vformat( char* buffer, size_t size, const char* format, size_t format_length, va_list list )
 {
 	ssize_t n;
 	va_list copy_list;
@@ -384,7 +379,7 @@ string_t string_prepend( char* str, size_t length, size_t capacity, const char* 
 }
 
 
-string_t string_concat( const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length )
+string_t string_allocate_concat( const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length )
 {
 	char* buf = memory_allocate( HASH_STRING, lhs_length + rhs_length + 1, 0, MEMORY_PERSISTENT );
 	if( lhs_length )

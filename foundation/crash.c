@@ -56,7 +56,7 @@ static string_t _crash_create_mini_dump( EXCEPTION_POINTERS* pointers, string_co
 
 	if( !name.length )
 		name = environment_application()->short_name;
-	dump_file = string_format_string( dump_file, FOUNDATION_MAX_PATHLEN + 128, "%s/%s%s%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp",
+	dump_file = string_format( STRING_ARGS( dump_file ), STRING_CONST( "%s/%s%s%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp" ),
 		environment_temporary_directory(), name.length ? name.str : "", name.length ? "-" : "",
 		string_from_uuid_static( environment_application()->instance ),
 		local_time.wYear, local_time.wMonth, local_time.wDay,
@@ -154,9 +154,9 @@ static string_t _crash_guard_minidump( void* context, string_const_t name, strin
 		name = environment_application()->short_name;
 	tmp_dir = environment_temporary_directory();
 	uuid_str = string_from_uuid_static( environment_application()->instance );
-	dump_file = string_format_buffer( dump_file.str, dump_file.length, STRING_CONST( "%.*s/%.*s%s%.*s-%" PRIx64 ".dmp" ),
-		(int)tmp_dir.length, tmp_dir.str, (int)name.length, name.str, name.length ? "-" : "",
-		(int)uuid_str.length, uuid_str.str, time_system() );
+	dump_file = string_format( dump_file.str, dump_file.length, STRING_CONST( "%.*s/%.*s%s%.*s-%" PRIx64 ".dmp" ),
+		STRING_FORMAT( tmp_dir ), STRING_FORMAT( name ), name.length ? "-" : "",
+		STRING_FORMAT( uuid_str ), time_system() );
 	fs_make_directory( tmp_dir.str, tmp_dir.length );
 
 	//TODO: Write dump file

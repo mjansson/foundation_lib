@@ -42,16 +42,16 @@ typedef __attribute__((__aligned__(8))) struct file_node_t file_node_t;
 
 struct file_node_t
 {
-	char*          name;
+	string_t       name;
 	file_node_t**  subdirs;
-	char**         files;
+	string_t*      files;
 	tick_t*        last_modified;
 };
 
 
 static void _fs_node_deallocate( file_node_t* node )
 {
-	string_deallocate( node->name );
+	string_deallocate( node->name.str );
 	string_array_deallocate( node->files );
 	for( size_t isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
 		_fs_node_deallocate( node->subdirs[isub] );
@@ -75,7 +75,7 @@ static void _fs_node_populate( file_node_t* node, const char* fullpath )
 	node->files = fs_files( fullpath );
 	for( size_t isub = 0, subsize = array_size( node->files ); isub < subsize; ++isub )
 	{
-		char* filepath = path_merge( fullpath, node->files[isub] );
+		char* filepath = path_concat( fullpath, node->files[isub] );
 		tick_t last_modified = fs_last_modified( filepath );
 		array_push( node->last_modified, last_modified );
 		//log_debugf( HASH_FOUNDATION, "  populate found file: %s (%llx)", filepath, last_modified );
@@ -84,7 +84,7 @@ static void _fs_node_populate( file_node_t* node, const char* fullpath )
 
 	for( size_t isub = 0, subsize = array_size( node->subdirs ); isub < subsize; ++isub )
 	{
-		char* subpath = path_merge( fullpath, node->subdirs[isub]->name );
+		char* subpath = path_concat( fullpath, node->subdirs[isub]->name );
 		_fs_node_populate( node->subdirs[isub], subpath );
 		string_deallocate( subpath );
 	}

@@ -257,7 +257,7 @@ int main( int argc, char** argv )
 			string_const_t aname = app->short_name;
 			if( !aname.length )
 				aname = string_const( STRING_CONST( "unknown" ) );
-			name = string_format( STRING_CONST( "%.*s-%.*s" ), (int)aname.length, aname.str, (int)vstr.length, vstr.str );
+			name = string_allocate_format( STRING_CONST( "%.*s-%.*s" ), (int)aname.length, aname.str, (int)vstr.length, vstr.str );
 		}
 
 		if( app->dump_callback )

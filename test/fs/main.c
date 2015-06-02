@@ -54,9 +54,14 @@ static void test_fs_shutdown( void )
 
 DECLARE_TEST( fs, directory )
 {
+	char buf[BUILD_MAX_PATHLEN];
 	string_t longpath;
-	string_const_t fname = string_from_uint_static( random64(), true, 0, 0 );
-	string_t testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	string_const_t fname;
+	string_t testpath;
+	string_const_t subpath;
+
+	fname = string_from_uint_static( random64(), true, 0, 0 );
+	testpath = path_concat( buf, BUILD_MAX_PATHLEN, STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 
 	if( fs_is_file( STRING_ARGS( testpath ) ) )
 		fs_remove_file( STRING_ARGS( testpath ) );
@@ -69,18 +74,18 @@ DECLARE_TEST( fs, directory )
 	EXPECT_FALSE( fs_is_directory( STRING_ARGS( testpath ) ) );
 
 	fname = string_from_uint_static( random64(), true, 0, 0 );
-	longpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+	longpath = path_append( STRING_ARGS( testpath ), BUILD_MAX_PATHLEN, STRING_ARGS( fname ) );
 	EXPECT_FALSE( fs_is_directory( STRING_ARGS( longpath ) ) );
 
 	fs_make_directory( STRING_ARGS( longpath ) );
 	EXPECT_TRUE( fs_is_directory( STRING_ARGS( longpath ) ) );
 
-	fs_remove_directory( STRING_ARGS( testpath ) );
-	EXPECT_FALSE( fs_is_directory( STRING_ARGS( testpath ) ) );
-	EXPECT_FALSE( fs_is_directory( STRING_ARGS( longpath ) ) );
+	subpath = path_directory_name( STRING_ARGS( longpath ) );
 
-	string_deallocate( longpath.str );
-	string_deallocate( testpath.str );
+	fs_remove_directory( STRING_ARGS( subpath ) );
+	EXPECT_FALSE( fs_is_directory( STRING_ARGS( subpath ) ) );
+
+	EXPECT_FALSE( fs_is_directory( STRING_ARGS( longpath ) ) );
 
 	return 0;
 }
@@ -88,15 +93,17 @@ DECLARE_TEST( fs, directory )
 
 DECLARE_TEST( fs, file )
 {
+	char buf[BUILD_MAX_PATHLEN];
+	char copybuf[BUILD_MAX_PATHLEN];
 	string_const_t fname;
 	string_t testpath;
 	string_t copypath;
 	stream_t* teststream;
 
 	fname = string_from_uint_static( random64(), true, 0, 0 );
-	testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	testpath = path_concat( buf, BUILD_MAX_PATHLEN, STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 	fname = string_from_uint_static( random64(), true, 0, 0 );
-	copypath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	copypath = path_concat( copybuf, BUILD_MAX_PATHLEN, STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 
 	if( !fs_is_directory( STRING_ARGS( environment_temporary_directory() ) ) )
 		fs_make_directory( STRING_ARGS( environment_temporary_directory() ) );
@@ -177,8 +184,6 @@ DECLARE_TEST( fs, file )
 	EXPECT_FALSE( fs_is_file( STRING_ARGS( testpath ) ) );
 
 	stream_deallocate( teststream );
-	string_deallocate( testpath.str );
-	string_deallocate( copypath.str );
 
 	return 0;
 }
@@ -186,10 +191,11 @@ DECLARE_TEST( fs, file )
 
 DECLARE_TEST( fs, util )
 {
+	char buf[BUILD_MAX_PATHLEN];
 	tick_t systime = time_system();
 	tick_t lastmod = 0;
 	string_const_t fname = string_from_uint_static( random64(), true, 0, 0 );
-	string_t testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	string_t testpath = path_concat( buf, BUILD_MAX_PATHLEN, STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 
 	if( !fs_is_directory( STRING_ARGS( environment_temporary_directory() ) ) )
 		fs_make_directory( STRING_ARGS( environment_temporary_directory() ) );
@@ -235,6 +241,7 @@ DECLARE_TEST( fs, query )
 	uint64_t subpathid = random64();
 	uint64_t subfileid = random64();
 	string_const_t fname;
+	string_t filename;
 	string_t testpath;
 	string_t subtestpath;
 	string_t filepath[8];
@@ -242,11 +249,12 @@ DECLARE_TEST( fs, query )
 	string_t* files;
 	int ifp = 0;
 	string_t subfilepath;
+	char buf[32];
 
 	fname = string_from_uint_static( random64(), true, 0, 0 );
-	testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	testpath = path_allocate_concat( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 	fname = string_from_uint_static( subpathid, true, 0, 0 );
-	subtestpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+	subtestpath = path_allocate_concat( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
 
 	if( fs_is_file( STRING_ARGS( testpath ) ) )
 		fs_remove_file( STRING_ARGS( testpath ) );
@@ -257,17 +265,19 @@ DECLARE_TEST( fs, query )
 
 	for( ifp = 0; ifp < 8; ++ifp )
 	{
+		filename = string_from_int( buf + 1, 31, ifp, 0, 0 );
+		buf[0] = '.';
+		--filename.str;
+		++filename.length;
+
 		fname = string_from_uint_static( random64(), true, 0, 0 );
-		filepath[ifp] = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
-		fname = string_from_int_static( ifp, 0, 0 );
-		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), true, STRING_CONST( "." ) );
-		filepath[ifp] = string_append( STRING_ARGS_CAPACITY( filepath[ifp] ), true, STRING_ARGS( fname ) );
+		filepath[ifp] = path_allocate_concat_varg( STRING_ARGS( testpath ), STRING_ARGS( fname ), STRING_ARGS( filename ), nullptr );
 		stream_deallocate( fs_open_file( STRING_ARGS( filepath[ifp] ), STREAM_OUT | STREAM_CREATE ) );
 	}
 
-	fname = string_from_uint_static( subfileid, true, 0, 0 );
-	subfilepath = path_merge( STRING_ARGS( subtestpath ), STRING_ARGS( fname ) );
-	subfilepath = string_append( STRING_ARGS_CAPACITY( subfilepath ), true, STRING_CONST( ".0" ) );
+	filename = string_from_uint( buf, 32, subfileid, true, 0, 0 );
+	filename = string_append( STRING_ARGS( filename ), 32, STRING_CONST( ".0" ) );
+	subfilepath = path_allocate_concat( STRING_ARGS( subtestpath ), STRING_ARGS( filename ) );
 	stream_deallocate( fs_open_file( STRING_ARGS( subfilepath ), STREAM_OUT | STREAM_CREATE ) );
 
 	files = fs_files( STRING_ARGS( filepath[0] ) );
@@ -313,12 +323,12 @@ DECLARE_TEST( fs, query )
 	files = fs_matching_files( STRING_ARGS( testpath ), STRING_CONST( "^.*\\..$" ), true );
 	EXPECT_EQ( array_size( files ), 9 );
 	{
-		string_t verifypath = string_from_uint( subpathid, true, 0, 0 );
-		fname = string_from_uint_static( subfileid, true, 0, 0 );
-		verifypath = path_append( STRING_ARGS_CAPACITY( verifypath ), true, STRING_ARGS( fname ) );
-		verifypath = string_append( STRING_ARGS_CAPACITY( verifypath ), true, STRING_CONST( ".0" ) );
-		EXPECT_STRINGEQ( files[8], verifypath );
-		string_deallocate( verifypath.str );
+		fname = string_from_uint_static( subpathid, true, 0, 0 );
+		filename = string_from_uint( buf, 32, subfileid, true, 0, 0 );
+		filename = string_append( STRING_ARGS( filename ), 32, STRING_CONST( ".0" ) );
+		testpath = path_allocate_concat( STRING_ARGS( fname ),  STRING_ARGS( filename ) );
+		EXPECT_STRINGEQ( files[8], testpath );
+		string_deallocate( testpath.str );
 	}
 	string_array_deallocate( files );
 
@@ -394,25 +404,25 @@ DECLARE_TEST( fs, monitor )
 	event_t* event;
 
 	fname = string_from_uint_static( random64(), false, 0, 0 );
-	testpath = path_merge( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
+	testpath = path_allocate_concat( STRING_ARGS( environment_temporary_directory() ), STRING_ARGS( fname ) );
 
 	fname = string_from_uint_static( random64(), false, 0, 0 );
-	filetestpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+	filetestpath = path_allocate_concat( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
 
 	fname = string_from_uint_static( random64(), false, 0, 0 );
-	subtestpath = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+	subtestpath = path_allocate_concat( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
 
 	fname = string_from_uint_static( random64(), false, 0, 0 );
-	filesubtestpath = path_merge( STRING_ARGS( subtestpath ), STRING_ARGS( fname ) );
+	filesubtestpath = path_allocate_concat( STRING_ARGS( subtestpath ), STRING_ARGS( fname ) );
 
 	for( isub = 0; isub < MULTICOUNT; ++isub )
 	{
 		fname = string_from_uint_static( random64(), false, 0, 0 );
-		multisubtestpath[isub] = path_merge( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
+		multisubtestpath[isub] = path_allocate_concat( STRING_ARGS( testpath ), STRING_ARGS( fname ) );
 		for( ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub )
 		{
 			fname = string_from_uint_static( random64(), false, 0, 0 );
-			multifilesubtestpath[isub][ifilesub] = path_merge( STRING_ARGS( multisubtestpath[isub] ), STRING_ARGS( fname ) );
+			multifilesubtestpath[isub][ifilesub] = path_allocate_concat( STRING_ARGS( multisubtestpath[isub] ), STRING_ARGS( fname ) );
 		}
 	}
 
@@ -557,7 +567,7 @@ DECLARE_TEST( fs, monitor )
 			evtsize = event->payload[0];
 			evtpath = pointer_offset( event->payload, sizeof( size_t ) );
 
-			string_format_buffer( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
+			string_format( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
 			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr );
 
 			for( isub = 0; isub < MULTICOUNT; ++isub )
@@ -610,7 +620,7 @@ DECLARE_TEST( fs, monitor )
 
 			evtsize = event->payload[0];
 			evtpath = pointer_offset( event->payload, sizeof( size_t ) );
-			string_format_buffer( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
+			string_format( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
 
 			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_DELETED, eventstr );
 
