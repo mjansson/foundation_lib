@@ -1152,7 +1152,7 @@ static fs_watch_t* _lookup_watch( fs_watch_t* watch_arr, int fd )
 #elif FOUNDATION_PLATFORM_MACOSX
 
 
-extern void* _fs_event_stream_create( const char* path );
+extern void* _fs_event_stream_create( const char* path, size_t length );
 extern void  _fs_event_stream_destroy( void* stream );
 extern void  _fs_event_stream_flush( void* stream );
 
@@ -1210,7 +1210,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	memory_context_push( HASH_STREAM );
 
-	void* event_stream = _fs_event_stream_create( monitor_path );
+	void* event_stream = _fs_event_stream_create( monitor_path, string_length( monitor_path ) );
 
 #else
 

@@ -55,11 +55,11 @@ static void test_string_shutdown( void )
 DECLARE_TEST( string, initialize )
 {
 	{
-		string_t nullstr1 = string_allocate( 0, 0, 0 );
-		string_t nullstr2 = string_allocate( 1, 0, ' ' );
-		string_t nullstr3 = string_allocate( 0, 1, '\t' );
-		string_t nullstr4 = string_allocate( 1, 1, '\n' );
-		string_t nullstr5 = string_allocate( 10, 32, 0 );
+		string_t nullstr1 = string_allocate( 0, 0 );
+		string_t nullstr2 = string_allocate( 1, 0 );
+		string_t nullstr3 = string_allocate( 0, 1 );
+		string_t nullstr4 = string_allocate( 1, 1 );
+		string_t nullstr5 = string_allocate( 10, 32 );
 
 		EXPECT_EQ( 0, nullstr1.length );
 		EXPECT_EQ( 0, nullstr2.length );
@@ -839,103 +839,6 @@ DECLARE_TEST( string, prepend )
 
 DECLARE_TEST( string, utility )
 {
-	{
-		string_t path1 = string_clone( STRING_CONST( "" ) );
-		string_t path2 = string_clone( STRING_CONST( "/" ) );
-		string_t path3 = string_clone( STRING_CONST( "/." ) );
-		string_t path4 = string_clone( STRING_CONST( "./" ) );
-		string_t path5 = string_clone( STRING_CONST( "./." ) );
-		string_t path6 = string_clone( STRING_CONST( "././" ) );
-		string_t path7 = string_clone( STRING_CONST( "././//" ) );
-		string_t path8 = string_clone( STRING_CONST( "././//./////././////.//////.//." ) );
-		string_t path9 = string_clone( STRING_CONST( "http:/././//./////././////.//////.//." ) );
-		string_t path10 = string_clone( STRING_CONST( "this/\\is/broken\\http://././//./////" ) );
-		string_t path11 = string_clone( STRING_CONST( "C:path://path" ) );
-
-		string_t npath1 = string_clone( STRING_CONST( "" ) );
-		string_t npath2 = string_clone( STRING_CONST( "C:path" ) );
-		string_t npath3 = string_clone( STRING_CONST( "/\\." ) );
-		string_t npath4 = string_clone( STRING_CONST( ".\\/" ) );
-		string_t npath5 = string_clone( STRING_CONST( "./\\." ) );
-		string_t npath6 = string_clone( STRING_CONST( "c:.\\./://\\" ) );
-		string_t npath7 = string_clone( STRING_CONST( ".\\.\\\\\\" ) );
-		string_t npath8 = string_clone( STRING_CONST( ".\\.\\\\\\.\\\\////\\///\\\\.\\.\\\\\\\\\\.\\\\\\\\\\\\.\\\\." ) );
-		string_t npath9 = string_clone( STRING_CONST( "http:////\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\\\\\\\//\\.\\\\\\\\\\\\.\\\\./a/path" ) );
-		string_t npath10 = string_clone( STRING_CONST( "testing/path:///ext" ) );
-		string_t npath11 = string_clone( STRING_CONST( "testing/./\\\\/\\/./path/././//./extend:/\\\\:" ) );
-
-		path1 = path_clean( STRING_ARGS_CAPACITY( path1 ), true );
-		path2 = path_clean( STRING_ARGS_CAPACITY( path2 ), true );
-		path3 = path_clean( STRING_ARGS_CAPACITY( path3 ), true );
-		path4 = path_clean( STRING_ARGS_CAPACITY( path4 ), true );
-		path5 = path_clean( STRING_ARGS_CAPACITY( path5 ), true );
-		path6 = path_clean( STRING_ARGS_CAPACITY( path6 ), true );
-		path7 = path_clean( STRING_ARGS_CAPACITY( path7 ), true );
-		path8 = path_clean( STRING_ARGS_CAPACITY( path8 ), true );
-		path9 = path_clean( STRING_ARGS_CAPACITY( path9 ), true );
-		path10 = path_clean( STRING_ARGS_CAPACITY( path10 ), true );
-		path11 = path_clean( STRING_ARGS_CAPACITY( path11 ), true );
-
-		npath1 = path_clean( STRING_ARGS_CAPACITY( npath1 ), false );
-		npath2 = path_clean( STRING_ARGS_CAPACITY( npath2 ), false );
-		npath3 = path_clean( STRING_ARGS_CAPACITY( npath3 ), false );
-		npath4 = path_clean( STRING_ARGS_CAPACITY( npath4 ), false );
-		npath5 = path_clean( STRING_ARGS_CAPACITY( npath5 ), false );
-		npath6 = path_clean( STRING_ARGS_CAPACITY( npath6 ), false );
-		npath7 = path_clean( STRING_ARGS_CAPACITY( npath7 ), false );
-		npath8 = path_clean( STRING_ARGS_CAPACITY( npath8 ), false );
-		npath9 = path_clean( STRING_ARGS_CAPACITY( npath9 ), false );
-		npath10 = path_clean( STRING_ARGS_CAPACITY( npath10 ), false );
-		npath11 = path_clean( STRING_ARGS_CAPACITY( npath11 ), false );
-
-		EXPECT_STRINGEQ( path1, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path2, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path3, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path4, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path5, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path6, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path7, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path8, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( path9, string_const( STRING_CONST( "http://" ) ) );
-		EXPECT_STRINGEQ( path10, string_const( STRING_CONST( "this/is/broken/http" ) ) );
-		EXPECT_STRINGEQ( path11, string_const( STRING_CONST( "C:/path/path" ) ) );
-
-		EXPECT_STRINGEQ( npath1, string_const( STRING_CONST( "" ) ) );
-		EXPECT_STRINGEQ( npath2, string_const( STRING_CONST( "C:/pat" ) ) );
-		EXPECT_STRINGEQ( npath3, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( npath4, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( npath5, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( npath6, string_const( STRING_CONST( "c:/" ) ) );
-		EXPECT_STRINGEQ( npath7, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( npath8, string_const( STRING_CONST( "/" ) ) );
-		EXPECT_STRINGEQ( npath9, string_const( STRING_CONST( "http://a/path" ) ) );
-		EXPECT_STRINGEQ( npath10, string_const( STRING_CONST( "testing/path/ext" ) ) );
-		EXPECT_STRINGEQ( npath11, string_const( STRING_CONST( "testing/path/extend" ) ) );
-
-		string_deallocate( path1.str );
-		string_deallocate( path2.str );
-		string_deallocate( path3.str );
-		string_deallocate( path4.str );
-		string_deallocate( path5.str );
-		string_deallocate( path6.str );
-		string_deallocate( path7.str );
-		string_deallocate( path8.str );
-		string_deallocate( path9.str );
-		string_deallocate( path10.str );
-		string_deallocate( path11.str );
-
-		string_deallocate( npath1.str );
-		string_deallocate( npath2.str );
-		string_deallocate( npath3.str );
-		string_deallocate( npath4.str );
-		string_deallocate( npath5.str );
-		string_deallocate( npath6.str );
-		string_deallocate( npath7.str );
-		string_deallocate( npath8.str );
-		string_deallocate( npath9.str );
-		string_deallocate( npath10.str );
-		string_deallocate( npath11.str );
-	}
 	{
 		string_const_t explodearr[32];
 		string_const_t explodestr = string_const( STRING_CONST( "  .,testing,    .,utility.,string  methods ..., like,,,finds  split..merge     .,.explode.and. .., ., similar   .,,,. " ) );

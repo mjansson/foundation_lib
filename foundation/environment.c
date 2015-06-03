@@ -36,8 +36,8 @@ static string_t  _environment_var;
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
 extern void _environment_ns_command_line( string_t** argv );
-extern void _environment_ns_home_directory( string_t* );
-extern void _environment_ns_temporary_directory( string_t* );
+extern void _environment_ns_home_directory( char*, size_t );
+extern void _environment_ns_temporary_directory( char*, size_t );
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -84,8 +84,7 @@ static void _environment_set_executable_paths( char* executable_path, size_t len
 		_environment_executable_name.length -= 4;
 	}
 #endif
-	_environment_executable_path.str = executable_path;
-	_environment_executable_path.length = length;
+	_environment_executable_path = string_clone( executable_path, length );
 }
 
 #endif
@@ -93,6 +92,7 @@ static void _environment_set_executable_paths( char* executable_path, size_t len
 int _environment_initialize( const application_t application )
 {
 	string_const_t working_dir;
+	char buffer[BUILD_MAX_PATHLEN];
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ia;
@@ -110,10 +110,10 @@ int _environment_initialize( const application_t application )
 
 	if( GetModuleFileNameW( 0, module_filename, FOUNDATION_MAX_PATHLEN ) )
 	{
-		string_t exe_path = string_allocate_from_wstring( module_filename, wstring_length( module_filename ) );
-		exe_path = path_absolute( exe_path.str, exe_path.length );
+		string_t exe_path = string_convert_utf16( buffer, sizeof( buffer ), module_filename, wstring_length( module_filename ) );
+		exe_path = path_absolute( exe_path.str, exe_path.length, BUILD_MAX_PATHLEN );
 
-		_environment_set_executable_paths( exe_path.str, exe_path.length ); //Adopts string
+		_environment_set_executable_paths( exe_path.str, exe_path.length );
 	}
 	else
 	{
@@ -126,9 +126,9 @@ int _environment_initialize( const application_t application )
 	_environment_ns_command_line( &_environment_argv );
 
 	//TODO: Read executable name from system, not command line (might be set to anything)
-	string_t exe_path = string_clone( _environment_argv[0].str, _environment_argv[0].length );
-	exe_path = path_absolute( exe_path.str, exe_path.length, exe_path.length, true );
-	_environment_set_executable_paths( exe_path.str, exe_path.length ); //Adopts string
+	string_t exe_path = string_copy( buffer, sizeof( buffer ), _environment_argv[0].str, _environment_argv[0].length );
+	exe_path = path_absolute( exe_path.str, exe_path.length, BUILD_MAX_PATHLEN );
+	_environment_set_executable_paths( exe_path.str, exe_path.length );
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
@@ -153,7 +153,7 @@ int _environment_initialize( const application_t application )
 	stream_deallocate( cmdline );
 
 	string_const_t dir_name = path_directory_name( android_app()->activity->internalDataPath, string_length( android_app()->activity->internalDataPath ) );
-	string_t exe_path = path_concat( dir_name.str, dir_name.length, STRING_CONST( "lib" ) );
+	string_t exe_path = path_concat( buffer, sizeof( buffer ), STRING_ARGS( dir_name ), STRING_CONST( "lib" ) );
 
 	// This will return something like "app_process" since we're just a dynamic
 	// library that gets invoked by a launcher process
@@ -166,9 +166,9 @@ int _environment_initialize( const application_t application )
 	}
 
 	string_const_t exe_name = path_file_name( exelink, (size_t)exelength );
-	exe_path = path_append( exe_path.str, exe_path.length, exe_name.str, exe_name.length );
+	exe_path = path_append( exe_path.str, exe_path.length, BUILD_MAX_PATHLEN, exe_name.str, exe_name.length );
 
-	_environment_set_executable_paths( exe_path.str, exe_path.length ); //Adopts string
+	_environment_set_executable_paths( exe_path.str, exe_path.length );
 
 #elif FOUNDATION_PLATFORM_BSD
 
@@ -176,19 +176,17 @@ int _environment_initialize( const application_t application )
 		array_push( _environment_argv, string_clone( _environment_main_argv[ia], string_length( _environment_main_argv[ia] ) ) );
 
 	int callarg[4];
-	char buf[1024];
-	size_t size = sizeof( buf );
+	size_t size = sizeof( buffer );
 	callarg[0] = CTL_KERN;
 	callarg[1] = KERN_PROC;
 	callarg[2] = KERN_PROC_PATHNAME;
 	callarg[3] = -1;
-	sysctl(callarg, 4, buf, &size, 0, 0);
+	sysctl(callarg, 4, buffer, &size, 0, 0);
 
-	string_t exe_path = string_clone( buf, size );
-	exe_path = path_clean( exe_path.str, exe_path.length, path_is_absolute( exe_path.str, exe_path.length ) );
-	exe_path = path_absolute( exe_path.str, exe_path.length );
+	string_t exe_path = path_clean( buffer, size, BUILD_MAX_PATHLEN );
+	exe_path = path_absolute( exe_path.str, exe_path.length, BUILD_MAX_PATHLEN );
 
-	_environment_set_executable_paths( exe_path.str, exe_path.length ); //Adopts string
+	_environment_set_executable_paths( exe_path.str, exe_path.length );
 
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -212,21 +210,19 @@ int _environment_initialize( const application_t application )
 	}
 	stream_deallocate( cmdline );
 
-	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
-	ssize_t exelength = readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN );
+	ssize_t exelength = readlink( "/proc/self/exe", buffer, sizeof( buffer ) );
 	if( exelength < 0 )
 	{
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/exe link: %.*s (%d)" ), (int)errmsg.length, errmsg.str, err );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/exe link: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
 		return -1;
 	}
 
-	string_t exe_path = path_clean( exelink, (size_t)exelength, FOUNDATION_MAX_PATHLEN, path_is_absolute( exelink, (size_t)exelength ), false );
-	exe_path = string_clone( exe_path.str, exe_path.length );
-	exe_path = path_absolute( STRING_ARGS_CAPACITY( exe_path ), true );
+	string_t exe_path = path_clean( buffer, (size_t)exelength, sizeof( buffer ) );
+	exe_path = path_absolute( STRING_ARGS( exe_path ), sizeof( buffer ) );
 
-	_environment_set_executable_paths( exe_path.str, exe_path.length ); //Adopts string
+	_environment_set_executable_paths( exe_path.str, exe_path.length );
 
 #elif FOUNDATION_PLATFORM_PNACL
 
@@ -328,17 +324,18 @@ string_const_t environment_current_working_directory( void )
 		_environment_current_working_dir = path_clean( STRING_ARGS_CAPACITY( localpath ), true );
 	}
 #elif FOUNDATION_PLATFORM_POSIX
-	char path[BUILD_MAX_PATHLEN];
-	string_t localpath;
-	if( !getcwd( path, BUILD_MAX_PATHLEN ) )
+	string_t localpath = string_allocate( 0, BUILD_MAX_PATHLEN );
+	if( !getcwd( localpath.str, BUILD_MAX_PATHLEN ) )
 	{
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to get cwd: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
+		string_deallocate( localpath.str );
 		return string_const( 0, 0 );
 	}
-	localpath = path_clean( path, string_length( path ), BUILD_MAX_PATHLEN, false );
+	localpath = path_clean( STRING_ARGS( localpath ), BUILD_MAX_PATHLEN );
 	_environment_current_working_dir = string_clone( STRING_ARGS( localpath ) );
+	string_deallocate( localpath.str );
 #elif FOUNDATION_PLATFORM_PNACL
 	_environment_current_working_dir = string_clone( STRING_CONST( "/persistent" ) );
 #else
@@ -403,18 +400,18 @@ string_const_t environment_home_directory( void )
 	}
 	_environment_home_dir = string_clone( env_home.str, env_home.length );
 #elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
-	char path[BUILD_MAX_PATHLEN];
-	string_t pathstr = (string_t){ path, BUILD_MAX_PATHLEN };
-	_environment_ns_home_directory( &pathstr );
+	string_t pathstr = string_allocate( 0, BUILD_MAX_PATHLEN );
+	_environment_ns_home_directory( STRING_ARGS( pathstr ) );
 #  if FOUNDATION_PLATFORM_MACOSX
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{
 		char bundle_identifier[256];
 		string_t bundle = environment_bundle_identifier( bundle_identifier, 256 );
-		pathstr = path_append_varg( STRING_ARGS( pathstr ), BUILD_MAX_PATHLEN, false, STRING_CONST( "Library/Application Support" ), STRING_ARGS( bundle ), nullptr );
+		pathstr = path_append_varg( STRING_ARGS( pathstr ), BUILD_MAX_PATHLEN, STRING_CONST( "Library/Application Support" ), STRING_ARGS( bundle ), nullptr );
 	}
 #  endif
 	_environment_home_dir = string_clone( pathstr.str, pathstr.length );
+	string_deallocate( pathstr.str );
 #elif FOUNDATION_PLATFORM_ANDROID
 	_environment_home_dir = string_clone( android_app()->activity->internalDataPath, string_length( android_app()->activity->internalDataPath ) );
 #elif FOUNDATION_PLATFORM_PNACL
@@ -437,8 +434,7 @@ string_const_t environment_temporary_directory( void )
 		_environment_temp_dir = path_clean( _environment_temp_dir.str, _environment_temp_dir.length, _environment_temp_dir.length, true );
 		_environment_temp_dir = path_absolute( _environment_temp_dir.str, _environment_temp_dir.length, _environment_temp_dir.length, true );
 	}
-#endif
-#if FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_ANDROID
 	//Use application internal data path, or if that fails, external data path
 	struct android_app* app = android_app();
 	const char* test_path[] = { app && app->activity ? app->activity->internalDataPath : 0, app && app->activity ? app->activity->externalDataPath : 0 };
@@ -468,16 +464,18 @@ string_const_t environment_temporary_directory( void )
 			}
 		}
 	}
-#endif
-#if FOUNDATION_PLATFORM_APPLE
-	_environment_ns_temporary_directory( &_environment_temp_dir );
-#endif
-#if FOUNDATION_PLATFORM_IOS
+#else
+#  if FOUNDATION_PLATFORM_APPLE
+	char* buffer = memory_allocate( HASH_STRING, BUILD_MAX_PATHLEN, 0, MEMORY_PERSISTENT );
+	_environment_ns_temporary_directory( buffer, BUILD_MAX_PATHLEN );
+#    if FOUNDATION_PLATFORM_IOS
 	_environment_temp_dir_local = true;
-#endif
-#if FOUNDATION_PLATFORM_POSIX
+#    endif
+#  else
 	_environment_temp_dir = string_clone( P_tmpdir, string_length( P_tmpdir ) );
+#  endif
 #endif
+
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	if( _environment_app.config_dir.length )
 	{
@@ -486,15 +484,20 @@ string_const_t environment_temporary_directory( void )
 		size_t totallen = curlen + cfglen + 40;
 		if( totallen < BUILD_MAX_PATHLEN )
 		{
-			string_t modpath = string_allocate( 0, totallen, 0 );
+			string_t modpath = string_allocate( 0, totallen - 1 );
 			string_const_t uuidstr = string_from_uuid_static( _environment_app.instance );
 			modpath = string_copy( modpath.str, totallen, STRING_ARGS( _environment_temp_dir ) );
-			modpath = path_append_varg( STRING_ARGS( modpath ), totallen, false, STRING_ARGS( _environment_app.config_dir ), STRING_ARGS( uuidstr ), nullptr );
+			modpath = path_append_varg( STRING_ARGS( modpath ), totallen, STRING_ARGS( _environment_app.config_dir ), STRING_ARGS( uuidstr ), nullptr );
 			string_deallocate( _environment_temp_dir.str );
 			_environment_temp_dir = modpath;
 			_environment_temp_dir_local = true;
 		}
 	}
+#endif
+#  if FOUNDATION_PLATFORM_APPLE
+	if( _environment_temp_dir.str == buffer )
+		_environment_temp_dir = string_clone( STRING_ARGS( _environment_temp_dir ) );
+	string_deallocate( buffer );
 #endif
 	if( ( _environment_temp_dir.length > 1 ) && ( _environment_temp_dir.str[ _environment_temp_dir.length - 1 ] == '/' ) )
 	{

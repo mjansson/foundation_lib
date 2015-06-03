@@ -579,22 +579,23 @@ string_t path_absolute( char* path, size_t length, size_t capacity )
 	if( !path_is_absolute( path, length ) )
 	{
 		string_const_t cwd = environment_current_working_directory();
-		abspath = path_prepend( path, length, capacity, cwd.str, cwd.length );
-		abspath = path_clean( abspath.str, abspath.length, capacity > abspath.length ? capacity : abspath.length + 1 );
+		abspath = path_clean( path, length, capacity );
+		abspath = path_prepend( STRING_ARGS( abspath ), capacity, cwd.str, cwd.length );
+		abspath = path_clean( STRING_ARGS( abspath ), capacity );
 	}
 	else
 	{
 		abspath = path_clean( path, length, capacity );
 	}
 
-	protocollen = string_find_string( abspath.str, abspath.length, STRING_CONST( "://" ), 0 );
+	protocollen = string_find_string( STRING_ARGS( abspath ), STRING_CONST( "://" ), 0 );
 	if( protocollen != STRING_NPOS )
 		protocollen += 3; //Also skip the "://" separator
 	else
 		protocollen = 0;
 
 	//Deal with /../ references
-	while( ( up = string_find_string( abspath.str, abspath.length, STRING_CONST( "/../" ), protocollen ? protocollen - 1 : 0 ) ) != STRING_NPOS )
+	while( ( up = string_find_string( STRING_ARGS( abspath ), STRING_CONST( "/../" ), protocollen ? protocollen - 1 : 0 ) ) != STRING_NPOS )
 	{
 		if( ( protocollen && ( up == ( protocollen - 1 ) ) ) || ( !protocollen && ( up == 0 ) ) )
 		{
@@ -605,7 +606,7 @@ string_t path_absolute( char* path, size_t length, size_t capacity )
 			continue;
 		}
 		FOUNDATION_ASSERT( up > 0 );
-		last = string_rfind( abspath.str, abspath.length, '/', up - 1 );
+		last = string_rfind( STRING_ARGS( abspath ), '/', up - 1 );
 		if( last == STRING_NPOS )
 		{
 			//Must be a path like C:/../something since other absolute paths
@@ -624,7 +625,7 @@ string_t path_absolute( char* path, size_t length, size_t capacity )
 				abspath.length = 1;
 			else
 			{
-				up = string_rfind( abspath.str, abspath.length, '/', abspath.length - 4 );
+				up = string_rfind( STRING_ARGS( abspath ), '/', abspath.length - 4 );
 				if( up != STRING_NPOS )
 					abspath.length = up + 1;
 			}
