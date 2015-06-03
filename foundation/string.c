@@ -76,7 +76,7 @@ string_t string_allocate_format( const char* format, size_t length, ... )
 	capacity = length + 32;
 	buffer = memory_allocate( HASH_STRING, capacity, 0, MEMORY_PERSISTENT );
 
-	while( 1 )
+	while( true )
 	{
 		va_start( list, length );
 		n = vsnprintf( buffer, capacity, format, list );
@@ -136,7 +136,7 @@ string_t string_allocate_vformat( const char* format, size_t size, va_list list 
 	capacity = size + 32;
 	buffer = memory_allocate( HASH_STRING, capacity, 0, MEMORY_PERSISTENT );
 
-	while( 1 )
+	while( true )
 	{
 		va_copy( copy_list, list );
 		n = vsnprintf( buffer, capacity, format, copy_list );
@@ -326,7 +326,7 @@ string_t string_replace( char* str, size_t length, size_t capacity, const char* 
 }
 
 
-string_t string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length )
+static string_t string_append_fragment( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length )
 {
 	size_t total_length;
 	if( !suffix_length )
@@ -350,7 +350,47 @@ string_t string_append( char* str, size_t length, size_t capacity, const char* s
 }
 
 
-string_t string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length )
+string_t string_append( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length )
+{
+	return string_append_varg( str, length, capacity, suffix, suffix_length, nullptr );
+}
+
+
+string_t string_append_varg( char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length, ... )
+{
+	va_list list;
+	string_t result = string_append_fragment( str, length, capacity, suffix, suffix_length );
+	va_start( list, suffix_length );
+	result = string_append_vlist( STRING_ARGS( result ), capacity, list );
+	va_end( list );
+	return result;
+}
+
+
+string_t string_append_vlist( char* str, size_t length, size_t capacity, va_list list )
+{
+	va_list clist;
+	char* ptr;
+	size_t psize;
+	string_t result = { str, length };
+
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if( psize )
+			result = string_append_fragment( STRING_ARGS( result ), capacity, ptr, psize );
+	}
+	va_end( clist );
+
+	return result;
+}
+
+
+static string_t string_prepend_fragment( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length )
 {
 	size_t total_length, prefix_offset, prefix_mod;
 	if( !prefix_length )
@@ -379,15 +419,190 @@ string_t string_prepend( char* str, size_t length, size_t capacity, const char* 
 }
 
 
-string_t string_allocate_concat( const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length )
+string_t string_prepend( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length )
 {
-	char* buf = memory_allocate( HASH_STRING, lhs_length + rhs_length + 1, 0, MEMORY_PERSISTENT );
-	if( lhs_length )
-		memcpy( buf, lhs, lhs_length );
-	if( rhs_length )
-		memcpy( buf + lhs_length, rhs, rhs_length );
-	buf[ lhs_length + rhs_length ] = 0;
-	return (string_t){ buf, lhs_length + rhs_length };
+	return string_prepend_varg( str, length, capacity, prefix, prefix_length, nullptr );
+}
+
+
+string_t string_prepend_varg( char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, ... )
+{
+	va_list list;
+	string_t result = string_prepend_fragment( str, length, capacity, prefix, prefix_length );
+	va_start( list, prefix_length );
+	result = string_prepend_vlist( STRING_ARGS( result ), capacity, list );
+	va_end( list );
+	return result;
+}
+
+
+string_t string_prepend_vlist( char* str, size_t length, size_t capacity, va_list list )
+{
+	va_list clist;
+	char* ptr;
+	size_t psize;
+	string_t result = { str, length };
+
+	//TODO: Pre-calculate fragment positions and move directly into place to avoid multiple memmoves of same data
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if( psize )
+			result = string_prepend_fragment( STRING_ARGS( result ), capacity, ptr, psize );
+	}
+	va_end( clist );
+
+	return result;
+}
+
+
+string_t string_allocate_concat( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length )
+{
+	char* buf = memory_allocate( HASH_STRING, prefix_length + suffix_length + 1, 0, MEMORY_PERSISTENT );
+	if( prefix_length )
+		memcpy( buf, prefix, prefix_length );
+	if( suffix_length )
+		memcpy( buf + prefix_length, suffix, suffix_length );
+	buf[ prefix_length + suffix_length ] = 0;
+	return (string_t){ buf, prefix_length + suffix_length };
+}
+
+
+string_t string_allocate_concat_varg( const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ... )
+{
+	va_list list;
+	size_t length, total_length, psize;
+	char* buf;
+	void* ptr;
+
+	total_length = prefix_length + suffix_length;
+	va_start( list, suffix_length );
+	while( true )
+	{
+		ptr = va_arg( list, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( list, size_t );
+		if( psize )
+			total_length += psize;
+	}
+	va_end( list );
+
+	buf = memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
+	length = 0;
+	if( prefix_length )
+	{
+		memcpy( buf, prefix, prefix_length );
+		length += prefix_length;
+	}
+	if( suffix_length )
+	{
+		memcpy( buf + length, suffix, suffix_length );
+		length += suffix_length;
+	}
+	va_start( list, suffix_length );
+	while( true )
+	{
+		ptr = va_arg( list, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( list, size_t );
+		if( psize )
+		{
+			memcpy( buf + length, ptr, psize );
+			length += psize;
+		}
+	}
+	va_end( list );
+
+	buf[total_length] = 0;
+	return (string_t){ buf, total_length };
+}
+
+
+string_t string_allocate_concat_vlist( va_list list )
+{
+	va_list clist;
+	size_t length, total_length, psize;
+	char* buf;
+	void* ptr;
+
+	total_length = 0;
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if( psize )
+			total_length += psize;
+	}
+	va_end( clist );
+
+	buf = memory_allocate( HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT );
+	length = 0;
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if( psize )
+		{
+			memcpy( buf + length, ptr, psize );
+			length += psize;
+		}
+	}
+	va_end( clist );
+
+	buf[total_length] = 0;
+	return (string_t){ buf, total_length };}
+
+
+string_t string_concat( char* str, size_t capacity, const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length )
+{
+	string_t result = string_copy( str, capacity, prefix, prefix_length );
+	return string_append( STRING_ARGS( result ), capacity, suffix, suffix_length );
+}
+
+
+string_t string_concat_varg( char* str, size_t capacity, const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ... )
+{
+	va_list list;
+	string_t result = string_copy( str, capacity, prefix, prefix_length );
+	result = string_append( STRING_ARGS( result ), capacity, suffix, suffix_length );
+	va_start( list, suffix_length );
+	result = string_append_vlist( STRING_ARGS( result ), capacity, list );
+	va_end( list );
+	return result;
+}
+
+
+string_t string_concat_vlist( char* str, size_t capacity, va_list list )
+{
+	va_list clist;
+	void* ptr;
+	size_t psize;
+	string_t result = { str, 0 };
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if( psize )
+			result = string_append_fragment( STRING_ARGS( result ), capacity, ptr, psize );
+	}
+	va_end( clist );
+
+	return result;
 }
 
 
@@ -434,11 +649,11 @@ string_const_t string_substr( const char* str, size_t length, size_t offset, siz
 	if( offset < length )
 	{
 		size_t end = offset + sub_length;
-		if( end <= length )
+		if( ( end < length ) && ( sub_length < length ) )
 			return (string_const_t){ str + offset, sub_length };
 		return (string_const_t){ str + offset, length - offset };
 	}
-	return (string_const_t){ str + length, 0 };
+	return string_null();
 }
 
 
@@ -505,7 +720,7 @@ size_t string_rfind_string( const char* str, size_t length, const char* key, siz
 	if( key_length > length )
 		return STRING_NPOS;
 	if( !key_length )
-		return offset;
+		return offset > length ? length : offset;
 
 	if( offset >= length - key_length )
 		offset = length - key_length;
@@ -686,25 +901,104 @@ string_t string_merge( char* dst, size_t capacity, const string_const_t* array, 
 		limit = capacity - result.length;
 		if( array[i].length < limit )
 			limit = array[i].length;
-		if( !limit )
-			break;
-		memcpy( result.str + result.length, array[i].str, limit );
+		if( limit )
+			memcpy( result.str + result.length, array[i].str, limit );
 		result.length += limit;
 
 		limit = capacity - result.length;
 		if( delim_length < limit )
 			limit = delim_length;
-		if( !limit )
-			break;
-		memcpy( result.str + result.length, delimiter, limit );
+		if( limit )
+			memcpy( result.str + result.length, delimiter, limit );
 		result.length += limit;
 	}
 
 	limit = capacity - result.length;
 	if( array[i].length < limit )
 		limit = array[i].length;
-	memcpy( result.str + result.length, array[i].str, limit );
+	if( limit )
+		memcpy( result.str + result.length, array[i].str, limit );
 	result.length += limit;
+	result.str[result.length] = 0;
+
+	return result;
+}
+
+
+string_t string_merge_varg( char* dst, size_t capacity, const char* delimiter, size_t delim_length, const char* str, size_t length, ... )
+{
+	va_list list;
+	string_t result;
+	size_t prelimit, premerge;
+
+	if( !capacity )
+		return (string_t){ 0, 0 };
+
+	result = string_copy( dst, capacity, str, length );
+	if( result.length >= capacity - 1 )
+		return result;
+
+	prelimit = result.length;
+	result = string_append( STRING_ARGS( result ), capacity, delimiter, delim_length );
+
+	va_start( list, length );
+	premerge = result.length;
+	result = string_merge_vlist( result.str + result.length, capacity - result.length, delimiter, delim_length, list );
+	va_end( list );
+
+	if( result.length == premerge )
+	{
+		result.length = prelimit;
+		result.str[result.length] = 0;
+	}
+
+	return result;
+}
+
+
+string_t string_merge_vlist( char* dst, size_t capacity, const char* delimiter, size_t delim_length, va_list list )
+{
+	va_list clist;
+	string_t result;
+	size_t i, limit, psize;
+	void* ptr;
+
+	if( !capacity )
+		return (string_t){ 0, 0 };
+
+	--capacity;
+	result.str = dst;
+	result.length = 0;
+	i = 0;
+	va_copy( clist, list );
+	while( true )
+	{
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+
+		if( i > 0 )
+		{
+			limit = capacity - result.length;
+			if( delim_length < limit )
+				limit = delim_length;
+			if( !limit )
+				break;
+			memcpy( result.str + result.length, delimiter, limit );
+			result.length += limit;
+		}
+
+		limit = capacity - result.length;
+		if( psize < limit )
+			limit = psize;
+		if( !limit )
+			break;
+		memcpy( result.str + result.length, ptr, limit );
+		result.length += limit;
+
+		++i;
+	}
 	result.str[result.length] = 0;
 
 	return result;
@@ -975,34 +1269,6 @@ bool wstring_equal( const wchar_t* lhs, const wchar_t* rhs )
 }
 
 
-static size_t _string_length_utf16( const uint16_t* p_str )
-{
-	size_t len = 0;
-	if( !p_str )
-		return 0;
-	while( *p_str )
-	{
-		++len;
-		++p_str;
-	}
-	return len;
-}
-
-
-static size_t _string_length_utf32( const uint32_t* p_str )
-{
-	size_t len = 0;
-	if( !p_str )
-		return 0;
-	while( *p_str )
-	{
-		++len;
-		++p_str;
-	}
-	return len;
-}
-
-
 string_t string_allocate_from_wstring( const wchar_t* str, size_t length )
 {
 #if FOUNDATION_SIZE_WCHAR == 2
@@ -1017,17 +1283,13 @@ string_t string_allocate_from_utf16( const uint16_t* str, size_t length )
 {
 	bool swap;
 	char* buf;
-	size_t i, curlen, inlength, maxlen;
+	size_t i, curlen;
 	uint32_t glyph, lval;
 
-	maxlen = _string_length_utf16( str );
-	length = ( length && length < maxlen ) ? length : maxlen;
-
-	inlength = length;
 	curlen = 0;
 
 	swap = false;
-	for( i = 0; i < inlength; ++i )
+	for( i = 0; i < length; ++i )
 	{
 		glyph = str[i];
 		if( ( glyph == 0xFFFE ) || ( glyph == 0xFEFF ) )
@@ -1051,7 +1313,7 @@ string_t string_allocate_from_utf16( const uint16_t* str, size_t length )
 
 	buf = memory_allocate( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
-	string_convert_utf16( buf, curlen + 1, str, inlength );
+	string_convert_utf16( buf, curlen + 1, str, length );
 
 	return (string_t){ buf, curlen };
 }
@@ -1061,17 +1323,13 @@ string_t string_allocate_from_utf32( const uint32_t* str, size_t length )
 {
 	bool swap;
 	char* buf;
-	size_t i, curlen, inlength, maxlen;
+	size_t i, curlen;
 	uint32_t glyph;
 
-	maxlen = _string_length_utf32( str );
-	length = ( length && length < maxlen ) ? length : maxlen;
-
-	inlength = length;
 	curlen = 0;
 
 	swap = false;
-	for( i = 0; i < inlength; ++i )
+	for( i = 0; i < length; ++i )
 	{
 		glyph = str[i];
 		if( ( glyph == 0x0000FEFF ) || ( glyph == 0xFFFE0000 ) )
@@ -1086,7 +1344,7 @@ string_t string_allocate_from_utf32( const uint32_t* str, size_t length )
 
 	buf = memory_allocate( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
-	string_convert_utf32( buf, curlen + 1, str, inlength );
+	string_convert_utf32( buf, curlen + 1, str, length );
 
 	return (string_t){ buf, curlen };
 }

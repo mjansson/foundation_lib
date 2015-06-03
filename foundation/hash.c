@@ -193,7 +193,7 @@ int _static_hash_initialize( void )
 void _static_hash_shutdown( void )
 {
 	size_t slot;
-	for( slot = 0; slot < _foundation_def.hash_store_size + 1; ++slot )
+	if( _hash_lookup ) for( slot = 0; slot < _foundation_def.hash_store_size + 1; ++slot )
 	{
 		char* str = (char*)((uintptr_t)hashtable64_raw( _hash_lookup, slot ));
 		if( str )
