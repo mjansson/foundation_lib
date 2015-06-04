@@ -36,8 +36,8 @@ static string_t  _environment_var;
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
 extern void _environment_ns_command_line( string_t** argv );
-extern void _environment_ns_home_directory( char*, size_t );
-extern void _environment_ns_temporary_directory( char*, size_t );
+extern string_t _environment_ns_home_directory( char*, size_t );
+extern string_t _environment_ns_temporary_directory( char*, size_t );
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -333,7 +333,7 @@ string_const_t environment_current_working_directory( void )
 		string_deallocate( localpath.str );
 		return string_const( 0, 0 );
 	}
-	localpath = path_clean( STRING_ARGS( localpath ), BUILD_MAX_PATHLEN );
+	localpath = path_clean( localpath.str, string_length( localpath.str ), BUILD_MAX_PATHLEN );
 	_environment_current_working_dir = string_clone( STRING_ARGS( localpath ) );
 	string_deallocate( localpath.str );
 #elif FOUNDATION_PLATFORM_PNACL
@@ -401,7 +401,7 @@ string_const_t environment_home_directory( void )
 	_environment_home_dir = string_clone( env_home.str, env_home.length );
 #elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
 	string_t pathstr = string_allocate( 0, BUILD_MAX_PATHLEN );
-	_environment_ns_home_directory( STRING_ARGS( pathstr ) );
+	pathstr = _environment_ns_home_directory( pathstr.str, BUILD_MAX_PATHLEN );
 #  if FOUNDATION_PLATFORM_MACOSX
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{

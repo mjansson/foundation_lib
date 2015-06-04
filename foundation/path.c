@@ -17,201 +17,164 @@
 
 string_t path_clean( char* path, size_t length, size_t capacity )
 {
-	//Since this function is used a lot we want to perform as much operations
-	//in place instead of splicing up into a string array and remerge
-	char* replace;
-	char* inpath;
-	char* pathpart;
-	size_t inlength, curcapacity, curlength, remain, next, protocollen, up, last_up, prev_up, driveofs;
-	bool absolute;
+	size_t ofs;
+	size_t ahead, num, back, reduce;
+	size_t reduce_limit = 0;
+	size_t protocol = 0;
+	size_t inlength = length;
+	bool firstsep = true;
 
-	if( !path )
-		return (string_t){ 0, 0 };
+	FOUNDATION_UNUSED( capacity );
 
-	inpath = path;
-	pathpart = inpath;
-	inlength = length;
-	curcapacity = capacity;
-	protocollen = string_find_string( path, length, STRING_CONST( "://" ), 0 );
-	if( protocollen != STRING_NPOS )
+	for( ofs = 0; ofs < length; )
 	{
-		protocollen += 3; //Also skip the "://" separator
-		inlength -= protocollen;
-		curcapacity -= protocollen;
-		pathpart += protocollen;
-	}
-	else
-	{
-		protocollen = 0;
-	}
-	driveofs = 0;
-
-	replace = pathpart;
-	next = 0;
-	while( ( next = string_find( replace, inlength, '\\', next ) ) != STRING_NPOS )
-		replace[next] = '/';
-
-	replace = pathpart;
-	next = 0;
-	curlength = inlength;
-	while( ( next = string_find_string( replace, curlength, STRING_CONST( "/./" ), next ) ) != STRING_NPOS )
-	{
-		remain = ( curlength - ( next + 2 ) );
-		curlength -= 2;
-		memmove( pathpart + next + 1, pathpart + next + 3, remain );
-	}
-
-	replace = pathpart;
-	next = 0;
-	while( ( next = string_find_string( replace, curlength, STRING_CONST( "//" ), next ) ) != STRING_NPOS )
-	{
-		remain = ( curlength - ( next + 2 ) );
-		--curlength;
-		memmove( pathpart + next + 1, pathpart + next + 2, remain );
-	}
-
-	if( string_equal( pathpart, curlength, STRING_CONST( "." ) ) )
-		curlength = 0;
-
-	if( curlength > 1 )
-	{
-		if( ( pathpart[ curlength - 2 ] == '/' ) && ( pathpart[ curlength - 1 ] == '.' ) )
-			curlength -= 2;
-		if( string_equal( pathpart, curlength, STRING_CONST( "." ) ) )
-			curlength = 0;
-		if( string_equal( pathpart, curlength, STRING_CONST( "./" ) ) )
+		if( path[ofs] == ':' )
 		{
-			curlength = 1;
-			pathpart[0] = '/';
-		}
-		if( ( curlength > 1 ) && string_equal( pathpart, 2, STRING_CONST( "./" ) ) )
-		{
-			--curlength;
-			memmove( pathpart, pathpart + 1, curlength );
-		}
-	}
-
-	absolute = path_is_absolute( inpath, curlength );
-	if( absolute )
-	{
-		if( !curlength )
-		{
-			if( curcapacity )
+			if( firstsep )
 			{
-				*pathpart = '/';
-				++curlength;
-			}
-		}
-		else if( ( curlength >= 2 ) && ( pathpart[1] == ':' ) )
-		{
-			driveofs = 2;
-
-			//Make sure first character is upper case
-			if( ( pathpart[0] >= 'a' ) && ( pathpart[0] <= 'z' ) )
-				pathpart[0] = ( pathpart[0] - (char)( (int)'a' - (int)'A' ) );
-
-			if( curlength == 2 )
-			{
-				if( curcapacity > 2 )
+				if( !ofs )
 				{
-					pathpart[2] = '/';
-					++curlength;
+					length--;
+					memmove( path, path + 1, length );
+					path[length] = 0;
 				}
-			}
-			else if( pathpart[2] != '/' )
-			{
-				//splice in slash in weird-format paths (C:foo/bar/...)
-				if( curcapacity >= ( curlength + 1 ) )
+				else
 				{
-					memmove( pathpart + 3, pathpart + 2, curlength + 1 - 2 );
-					pathpart[2] = '/';
-					++curlength;
+					firstsep = false;
+					protocol = ofs++;
+					reduce_limit = protocol + 1;
+				}
+				continue;
+			}
+			else if( protocol )
+			{
+				//Corner case of "protocol://C:/" style paths to prevent drive
+				//letter from being reduced
+				if( ( path[ ofs - 2 ] == '/' ) || ( path[ ofs - 2 ] == ':' ) )
+				{
+					reduce_limit = ++ofs;
+					continue;
 				}
 			}
 		}
-		else if( !protocollen && ( pathpart[0] != '/' ) )
-		{
-			if( curcapacity >= ( curlength + 1 ) )
-			{
-				memmove( pathpart + 1, pathpart, curlength + 1 );
-				pathpart[0] = '/';
-				++curlength;
-			}
-		}
-	}
-
-	//Deal with .. references
-	last_up = driveofs;
-	while( ( up = string_find_string( pathpart, curlength, STRING_CONST( "/../" ), last_up ) ) != STRING_NPOS )
-	{
-		if( up >= curlength )
-			break;
-		if( up == driveofs )
-		{
-			if( absolute )
-			{
-				memmove( pathpart + driveofs + 1, pathpart + driveofs + 4, curlength - ( driveofs + 3 ) );
-				curlength -= 3;
-			}
-			else
-			{
-				last_up = driveofs + 3;
-			}
+		//Change backslash to forward slash and skip ahead
+		if( path[ofs] == '\\' )
+			path[ofs++] = '/';
+		else if( path[ofs++] != '/' )
 			continue;
-		}
-		prev_up = string_rfind( pathpart, curlength, '/', up - 1 );
-		if( prev_up == STRING_NPOS )
+		firstsep = false;
+
+		//Reduce multiple slashes "//./" unless directly after protocol separator
+		for( ahead = ofs; ahead < length; ++ahead )
 		{
-			if( absolute )
+			if( path[ahead] == '.' ) //Catch "/./" path segments
 			{
-				memmove( pathpart, pathpart + up + 3, curlength - up - 2 );
-				curlength -= ( up + 3 );
+				if( ( ahead + 1 < length ) && ( ( path[ ahead + 1 ] == '/' ) || ( path[ ahead + 1 ] == '\\' ) ) )
+				{
+					++ahead;
+					continue;
+				}
+				break;
+			}
+			else if( ( path[ahead] != '/' ) && ( path[ahead] != '\\' ) )
+				break;
+			//Check if protocol separator with double slash "://", if so keep it
+			//unless it's a drive designator (more than 1 char), then reduce to single slash
+			if( ( protocol > 1 ) && ( ahead == protocol + 2 ) && ( ahead + 1 < length ) )
+			{
+				if( path[ ahead ] == '\\' )
+					path[ ahead ] = '/';
+				if( path[ ahead ] == '/' )
+				{
+					reduce_limit = ofs++;
+					ahead = ofs;
+				}
+			}
+			//Continue as long as we keep getting separators
+		}
+		if( ahead > ofs )
+		{
+			memmove( path + ofs, path + ahead, length - ahead );
+			length -= ahead - ofs;
+			path[length] = 0;
+		}
+
+		//Catch and reduce "/../" path segments
+		ahead = ofs;
+		num = 0;
+		while( ( ahead + 1 < length ) && ( path[ ahead ] == '.' ) && ( path[ ahead + 1 ] == '.' ) )
+		{
+			if( ahead + 2 == length )
+			{
+				++num;
+			}
+			else if( ( path[ ahead + 2 ] == '/' ) || ( path[ ahead + 2 ] == '\\' ) )
+			{
+				++num;
+				ahead += 3;
 			}
 			else
 			{
-				memmove( pathpart, pathpart + up + 4, curlength - up - 3 );
-				curlength -= ( up + 4 );
+				break;
 			}
 		}
-		else if( prev_up >= last_up )
+		if( num > 0 )
 		{
-			memmove( pathpart + prev_up, pathpart + up + 3, curlength - up - 2 );
-			curlength -= ( up - prev_up + 3 );
-		}
-		else
-		{
-			last_up = up + 1;
-		}
-	}
-
-	if( curlength > 1 )
-	{
-		if( pathpart[ curlength - 1 ] == '/' )
-		{
-			pathpart[ curlength - 1 ] = 0;
-			--curlength;
-		}
-	}
-
-	if( protocollen )
-	{
-		if( pathpart[0] == '/' )
-		{
-			if( curlength == 1 )
-				curlength = 0;
-			else
+			reduce = 0;
+			back = ofs - 1;
+			while( ( back > reduce_limit ) && ( reduce < num ) )
 			{
-				memmove( pathpart, pathpart + 1, curlength );
-				--curlength;
+				if( path[ back - 1 ] == '.' )
+				{
+					 //Don't swallow "./" or "../" as paths
+					if( back == ( reduce_limit + 1 ) )
+						break;
+					if( path[ back - 2 ] == '/' )
+						break;
+					if( ( path[ back - 2 ] == '.' ) && ( ( back == ( reduce_limit + 2 ) ) || ( path[ back - 3 ] == '/' ) ) )
+						break;
+				}
+				--back;
+				++reduce;
+				while( ( back > reduce_limit ) && ( path[back] != '/' ) )
+					--back;
+			}
+			if( ( back == reduce_limit ) && ( path[back] == '/' ) )
+				reduce = num; //Path starts absolute, drop all "../"
+			if( reduce > 0 )
+			{
+				ofs = ( path[back] == '/' ) ? back + 1 : back;
+				if( reduce < num )
+					ahead -= 3 * ( num - reduce );
+				memmove( path + ofs, path + ahead, length - ahead );
+				length -= ahead - ofs;
+				path[length] = 0;
+				ofs = ( back > ( reduce_limit + 2 ) ) ? ofs - 2 : reduce_limit;
+				if( path[ofs] == ':' )
+					++ofs;
 			}
 		}
-		curlength += protocollen;
 	}
 
-	if( capacity > curlength )
-		inpath[curlength] = 0;
+	ofs = reduce_limit;
 
-	return (string_t){ inpath, curlength };
+	//Clean starting "./"
+	if( ( length > ofs + 1 ) && ( path[ofs] == '.' ) && ( path[ ofs + 1 ] == '/' ) )
+	{
+		memmove( path + ofs, path + ofs + 2, length - ( ofs + 2 ) );
+		length -= 2;
+	}
+
+	//Clean ending "/."
+	if( ( length > 1 ) && ( path[ length - 2 ] == '/' ) && ( path[ length - 1 ] == '.' ) )
+		--length;
+	if( ( length == 1 ) && ( path[0] == '.' ) )
+		--length;
+
+	if( length < inlength )
+		path[length] = 0;
+
+	return (string_t){ path, length };
 }
 
 

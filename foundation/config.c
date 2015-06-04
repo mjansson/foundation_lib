@@ -421,9 +421,8 @@ static string_t config_make_path( int path, char* buffer, size_t capacity )
 			}
 			if( env_dir.length )
 				return string_copy( buffer, capacity, STRING_ARGS( env_dir ) );
-#else
-			break;
 #endif
+			break;
 
 		case 8:
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
@@ -467,7 +466,8 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
 		filename = string_format( pathname.str + pathname.length, sizeof( buffer ) - pathname.length,
 			STRING_CONST( "/%.*s.ini" ), (int)length, name );
-		filename = path_clean( STRING_ARGS( filename ), sizeof( buffer ) );
+		filename.str = pathname.str;
+		filename.length += pathname.length;
 		istream = stream_open( STRING_ARGS( filename ), STREAM_IN );
 		if( istream )
 		{
@@ -479,7 +479,8 @@ void config_load( const char* name, size_t length, hash_t filter_section, bool b
 		{
 			filename = string_format( pathname.str + pathname.length, sizeof( buffer ) - pathname.length,
 				STRING_CONST( "%.*s/%.*s.ini" ), STRING_FORMAT( platformsuffix ), (int)length, name );
-			filename = path_clean( STRING_ARGS( filename ), sizeof( buffer ) );
+			filename.str = pathname.str;
+			filename.length += pathname.length;
 			istream = stream_open( STRING_ARGS( filename ), STREAM_IN );
 			if( istream )
 			{

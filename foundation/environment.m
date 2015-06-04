@@ -25,8 +25,8 @@
 
 
 extern void _environment_ns_command_line( string_t** argv );
-extern void _environment_ns_home_directory( char*, size_t );
-extern void _environment_ns_temporary_directory( char*, size_t );
+extern string_t _environment_ns_home_directory( char*, size_t );
+extern string_t _environment_ns_temporary_directory( char*, size_t );
 
 
 string_t environment_bundle_identifier( char* target, size_t maxlength )
@@ -56,23 +56,27 @@ void _environment_ns_command_line( string_t** argv )
 }
 
 
-void _environment_ns_home_directory( char* buffer, size_t capacity )
+string_t _environment_ns_home_directory( char* buffer, size_t capacity )
 {
 	@autoreleasepool
 	{
 		NSString* homestr = NSHomeDirectory();
 		CFStringRef home = (__bridge CFStringRef)homestr;
-		CFStringGetCString( home, buffer, (CFIndex)capacity, kCFStringEncodingUTF8 );
+		if( CFStringGetCString( home, buffer, (CFIndex)capacity, kCFStringEncodingUTF8 ) )
+			return (string_t){ buffer, string_length( buffer ) };
 	}
+	return (string_t){ buffer, 0 };
 }
 
 
-void _environment_ns_temporary_directory( char* buffer, size_t capacity )
+string_t _environment_ns_temporary_directory( char* buffer, size_t capacity )
 {
 	@autoreleasepool
 	{
 		NSString* tmpstr = NSTemporaryDirectory();
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
-		CFStringGetCString( tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8 );
+		if( CFStringGetCString( tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8 ) )
+			return (string_t){ buffer, string_length( buffer ) };
 	}
+	return (string_t){ buffer, 0 };
 }
