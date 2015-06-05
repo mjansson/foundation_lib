@@ -314,10 +314,10 @@ static string_t path_append_fragment( char* dst, size_t length, size_t capacity,
 	size_t offset;
 	bool lastsep, beginsep;
 	lastsep = length && ( ( dst[ length - 1 ] == '/' ) || ( dst[ length - 1 ] == '\\' ) );
-	beginsep = ( path[0] == '/' || path[0] == '\\' );
-	if( !lastsep && !beginsep && ( length + 1 < capacity ) )
+	beginsep = pathlen && ( ( path[0] == '/' ) || ( path[0] == '\\' ) );
+	if( !lastsep && !beginsep && length && ( length + 1 < capacity ) )
 		dst[ length++ ] = '/';
-	offset = ( lastsep && beginsep ) ? 1 : 0;
+	offset = ( ( lastsep && beginsep ) || ( !length && beginsep ) ) ? 1 : 0;
 	return string_append( dst, length, capacity, path + offset, pathlen - offset );
 }
 
@@ -540,14 +540,26 @@ string_t path_prepend_vlist( char* tail, size_t tail_length, size_t tail_capacit
 
 bool path_is_absolute( const char* path, size_t length )
 {
+	size_t firstsep;
 	if( !path || !length )
 		return false;
-	if( string_find_string( path, length, STRING_CONST( "://" ), 0 ) != STRING_NPOS )
-		return true;
 	if( ( path[0] == '/' ) || ( path[0] == '\\' ) )
 		return true;
-	if( ( length > 1 ) && ( path[1] == ':' ) ) //Skip separator test to treat weird formats like "C:path/to/something" as absolute
-		return true;
+
+	for( firstsep = 1; firstsep < length; ++firstsep )
+	{
+		if( path[firstsep] == ':' )
+		{
+			if( firstsep == 1 )
+				return true; //Windows style drive letter paths, "C:..."
+			++firstsep;
+			if( ( firstsep < length ) && ( ( path[firstsep] == '/' ) || ( path[firstsep] == '\\' ) ) )
+				return true;
+			return false;
+		}
+		if( ( path[firstsep] == '/' ) || ( path[firstsep] == '\\' ) )
+			return false;
+	}
 	return false;
 }
 

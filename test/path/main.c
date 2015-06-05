@@ -541,7 +541,7 @@ DECLARE_TEST( path, operations )
 	merge10 = path_allocate_concat( STRING_CONST( "test://" ), STRING_CONST( "/test" ) );
 	merge11 = path_allocate_concat( STRING_CONST( "test://" ), STRING_CONST( "../test" ) );
 	merge12 = path_allocate_concat( STRING_CONST( "test://test" ), STRING_CONST( "../test" ) );
-	merge13 = path_allocate_concat( STRING_CONST( "test://test" ), STRING_CONST( "../../test/" ) );
+	merge13 = path_allocate_concat( STRING_CONST( "test://test" ), STRING_CONST( "/../../test/" ) );
 	merge14 = path_allocate_concat( STRING_CONST( "c:" ), STRING_CONST( "test" ) );
 	merge15 = path_allocate_concat( STRING_CONST( "c:/" ), STRING_CONST( "/test" ) );
 
@@ -553,13 +553,13 @@ DECLARE_TEST( path, operations )
 	EXPECT_STRINGEQ( merge6, string_const( STRING_CONST( "test/test" ) ) );
 	EXPECT_STRINGEQ( merge7, string_const( STRING_CONST( "/" ) ) );
 	EXPECT_STRINGEQ( merge8, string_const( STRING_CONST( "test/test" ) ) );
-	EXPECT_STRINGEQ( merge9, string_const( STRING_CONST( "/test/test" ) ) );
+	EXPECT_STRINGEQ( merge9, string_const( STRING_CONST( "/test/test/" ) ) );
 	EXPECT_STRINGEQ( merge10, string_const( STRING_CONST( "test://test" ) ) );
-	EXPECT_STRINGEQ( merge11, string_const( STRING_CONST( "test://test" ) ) );
-	EXPECT_STRINGEQ( merge12, string_const( STRING_CONST( "test://test" ) ) );
-	EXPECT_STRINGEQ( merge13, string_const( STRING_CONST( "test://test" ) ) );
-	EXPECT_STRINGEQ( merge14, string_const( STRING_CONST( "C:/test" ) ) );
-	EXPECT_STRINGEQ( merge15, string_const( STRING_CONST( "C:/test" ) ) );
+	EXPECT_STRINGEQ( merge11, string_const( STRING_CONST( "test://../test" ) ) );
+	EXPECT_STRINGEQ( merge12, string_const( STRING_CONST( "test://test/../test" ) ) );
+	EXPECT_STRINGEQ( merge13, string_const( STRING_CONST( "test://test/../../test/" ) ) );
+	EXPECT_STRINGEQ( merge14, string_const( STRING_CONST( "c:/test" ) ) );
+	EXPECT_STRINGEQ( merge15, string_const( STRING_CONST( "c:/test" ) ) );
 
 	string_deallocate( merge1.str );
 	string_deallocate( merge2.str );
@@ -612,21 +612,21 @@ DECLARE_TEST( path, operations )
 	EXPECT_STRINGEQ( merge10, string_const( STRING_CONST( "test://test" ) ) );
 
 	buffer[9] = ' ';
-	merge11 = path_concat( buffer, 9, STRING_CONST( "test://" ), STRING_CONST( "../test" ) );
-	EXPECT_STRINGEQ( merge11, string_const( STRING_CONST( "test://t" ) ) );
+	merge11 = path_concat( buffer, 9, STRING_CONST( "test://" ), STRING_CONST( "/../test" ) );
+	EXPECT_STRINGEQ( merge11, string_const( STRING_CONST( "test://." ) ) );
 	EXPECT_EQ( buffer[9], ' ' );
 
 	merge12 = path_concat( buffer, sizeof( buffer ), STRING_CONST( "test://test" ), STRING_CONST( "../test" ) );
-	EXPECT_STRINGEQ( merge12, string_const( STRING_CONST( "test://test" ) ) );
+	EXPECT_STRINGEQ( merge12, string_const( STRING_CONST( "test://test/../test" ) ) );
 
-	merge13 = path_concat( buffer, sizeof( buffer ), STRING_CONST( "test://test" ), STRING_CONST( "../../test/" ) );
-	EXPECT_STRINGEQ( merge13, string_const( STRING_CONST( "test://test" ) ) );
+	merge13 = path_concat( buffer, sizeof( buffer ), STRING_CONST( "test:test" ), STRING_CONST( "../../test/" ) );
+	EXPECT_STRINGEQ( merge13, string_const( STRING_CONST( "test:test/../../test/" ) ) );
 
-	merge14 = path_concat( buffer, sizeof( buffer ), STRING_CONST( "c:" ), STRING_CONST( "test" ) );
-	EXPECT_STRINGEQ( merge14, string_const( STRING_CONST( "C:/test" ) ) );
+	merge14 = path_concat( buffer, 4, STRING_CONST( "c:" ), STRING_CONST( "test" ) );
+	EXPECT_STRINGEQ( merge14, string_const( STRING_CONST( "c:/" ) ) );
 
 	merge15 = path_concat( buffer, sizeof( buffer ), STRING_CONST( "c:/" ), STRING_CONST( "/test" ) );
-	EXPECT_STRINGEQ( merge15, string_const( STRING_CONST( "C:/test" ) ) );
+	EXPECT_STRINGEQ( merge15, string_const( STRING_CONST( "c:/test" ) ) );
 
 	//TODO:
 	//path_append
@@ -659,7 +659,8 @@ DECLARE_TEST( path, query )
 	EXPECT_TRUE( path_is_absolute( STRING_CONST( "vfs:///" ) ) );
 	EXPECT_FALSE( path_is_absolute( STRING_CONST( "./" ) ) );
 	EXPECT_FALSE( path_is_absolute( STRING_CONST( "test/" ) ) );
-	EXPECT_FALSE( path_is_absolute( STRING_CONST( "vfs:/test://foo" ) ) );
+	EXPECT_TRUE( path_is_absolute( STRING_CONST( "vfs:/test://foo" ) ) );
+	EXPECT_FALSE( path_is_absolute( STRING_CONST( "vfs:test://foo" ) ) );
 
 	return 0;
 }
