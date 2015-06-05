@@ -428,8 +428,6 @@ int main_run( void* main_arg )
 		}
 		process_deallocate( process );
 
-		string_deallocate( process_path.str );
-
 		if( process_result != 0 )
 		{
 			if( process_result >= PROCESS_INVALID_ARGS )

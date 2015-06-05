@@ -469,7 +469,8 @@ string_const_t environment_temporary_directory( void )
 #else
 #  if FOUNDATION_PLATFORM_APPLE
 	char* buffer = memory_allocate( HASH_STRING, BUILD_MAX_PATHLEN, 0, MEMORY_PERSISTENT );
-	_environment_ns_temporary_directory( buffer, BUILD_MAX_PATHLEN );
+	_environment_temp_dir = _environment_ns_temporary_directory( buffer, BUILD_MAX_PATHLEN );
+	_environment_temp_dir = string_clone( STRING_ARGS( _environment_temp_dir ) );
 #    if FOUNDATION_PLATFORM_IOS
 	_environment_temp_dir_local = true;
 #    endif

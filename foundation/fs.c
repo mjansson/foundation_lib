@@ -671,7 +671,7 @@ bool fs_remove_directory( const char* path, size_t length )
 	subfiles = fs_files( STRING_ARGS( fspath ) );
 	for( i = 0, num = array_size( subfiles ); i < num; ++i )
 	{
-		localpath = path_append( (char*)fspath.str, fspath.length, remain, STRING_ARGS( subpaths[i] ) );
+		localpath = path_append( (char*)fspath.str, fspath.length, remain, STRING_ARGS( subfiles[i] ) );
 		fs_remove_file( STRING_ARGS( localpath ) );
 	}
 	string_array_deallocate( subfiles );
@@ -790,8 +790,9 @@ bool fs_make_directory( const char* path, size_t length )
 		{
 			localpath.str[offset] = '/';
 			localpath.length = fspath.length;
+			++offset;
 		}
-	} while( offset != STRING_NPOS );
+	} while( offset < localpath.length );
 
 	end:
 
@@ -2060,7 +2061,7 @@ stream_t* fs_open_file( const char* path, size_t length, unsigned int mode )
 int _fs_initialize( void )
 {
 #if FOUNDATION_HAVE_FS_MONITOR
-	_fs_monitors = memory_allocate( HASH_STREAM, sizeof( fs_monitor_t ) * _foundation_def.fs_monitor_max, 0, MEMORY_PERSISTENT );
+	_fs_monitors = memory_allocate( HASH_STREAM, sizeof( fs_monitor_t ) * _foundation_def.fs_monitor_max, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 #else
 	_foundation_def.fs_monitor_max = 0;
 	_fs_monitors = 0;

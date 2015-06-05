@@ -157,7 +157,7 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 
 	capacity = 0;
 	newlength = str.length + 1;
-
+	expanded = str;
 	var_pos = string_find_string( STRING_ARGS( expanded ), STRING_CONST( "$(" ), 0 );
 
 	while( var_pos != STRING_NPOS )
