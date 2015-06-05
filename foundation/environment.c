@@ -334,6 +334,8 @@ string_const_t environment_current_working_directory( void )
 		return string_const( 0, 0 );
 	}
 	localpath = path_clean( localpath.str, string_length( localpath.str ), BUILD_MAX_PATHLEN );
+	if( localpath.length && ( localpath.str[ localpath.length - 1 ] == '/' ) )
+		localpath.str[ --localpath.length ] = 0;
 	_environment_current_working_dir = string_clone( STRING_ARGS( localpath ) );
 	string_deallocate( localpath.str );
 #elif FOUNDATION_PLATFORM_PNACL

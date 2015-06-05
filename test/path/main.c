@@ -283,6 +283,10 @@ DECLARE_TEST( path, clean )
 	string_t path28 = string_clone( STRING_CONST( "C:\\//http://.//test/../../../../foo//../bar//zed/../../..///path" ) );
 	string_t path29 = string_clone( STRING_CONST( "test/sub/../../../../foo//../bar//zed/../../..///path" ) );
 	string_t path30 = string_clone( STRING_CONST( "http:.//test/../../..//../a/.///../path" ) );
+	string_t path31 = string_clone( STRING_CONST( "\\.." ) );
+	string_t path32 = string_clone( STRING_CONST( ".." ) );
+	string_t path33 = string_clone( STRING_CONST( "vfs://test" ) );
+	string_t path34 = string_clone( STRING_CONST( "vfs://test/" ) );
 
 	path1 = path_clean( STRING_ARGS_CAPACITY( path1 ) );
 	path2 = path_clean( STRING_ARGS_CAPACITY( path2 ) );
@@ -314,6 +318,10 @@ DECLARE_TEST( path, clean )
 	path28 = path_clean( STRING_ARGS_CAPACITY( path28 ) );
 	path29 = path_clean( STRING_ARGS_CAPACITY( path29 ) );
 	path30 = path_clean( STRING_ARGS_CAPACITY( path30 ) );
+	path31 = path_clean( STRING_ARGS_CAPACITY( path31 ) );
+	path32 = path_clean( STRING_ARGS_CAPACITY( path32 ) );
+	path33 = path_clean( STRING_ARGS_CAPACITY( path33 ) );
+	path34 = path_clean( STRING_ARGS_CAPACITY( path34 ) );
 
 	EXPECT_STRINGEQ( path1, string_const( STRING_CONST( "" ) ) );
 	EXPECT_STRINGEQ( path2, string_const( STRING_CONST( "/" ) ) );
@@ -345,6 +353,10 @@ DECLARE_TEST( path, clean )
 	EXPECT_STRINGEQ( path28, string_const( STRING_CONST( "C:/path" ) ) );
 	EXPECT_STRINGEQ( path29, string_const( STRING_CONST( "../../../path" ) ) );
 	EXPECT_STRINGEQ( path30, string_const( STRING_CONST( "http:../../../path" ) ) );
+	EXPECT_STRINGEQ( path31, string_const( STRING_CONST( "/" ) ) );
+	EXPECT_STRINGEQ( path32, string_const( STRING_CONST( ".." ) ) );
+	EXPECT_STRINGEQ( path33, string_const( STRING_CONST( "vfs://test" ) ) );
+	EXPECT_STRINGEQ( path34, string_const( STRING_CONST( "vfs://test/" ) ) );
 
 	string_deallocate( path1.str );
 	string_deallocate( path2.str );
@@ -376,6 +388,10 @@ DECLARE_TEST( path, clean )
 	string_deallocate( path28.str );
 	string_deallocate( path29.str );
 	string_deallocate( path30.str );
+	string_deallocate( path31.str );
+	string_deallocate( path32.str );
+	string_deallocate( path33.str );
+	string_deallocate( path34.str );
 
 	return 0;
 }
@@ -409,55 +425,61 @@ DECLARE_TEST( path, absolute )
 
 	string_const_t cwd_sub = path_directory_name( STRING_ARGS( cwd ) );
 	string_const_t cwd_sub_sub = path_directory_name( STRING_ARGS( cwd_sub ) );
+	string_t cwd_sub_slash = string_allocate_concat( STRING_ARGS( cwd_sub ), STRING_CONST( "/" ) );
 	string_t cwd_test = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test" ) );
+	string_t cwd_test_slash = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/" ) );
 	string_t cwd_test_path = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/path" ) );
+	string_t cwd_test_path_slash = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/path/" ) );
 
 	cpath = string_const( STRING_CONST( "" ) ); path1 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "/" ) ); path2 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "./" ) ); path3 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "/." ) ); path4 = path_allocate_absolute( STRING_ARGS( cpath ) );
-	cpath = string_const( STRING_CONST( "../" ) ); path5 = path_allocate_absolute( STRING_ARGS( cpath ) );
+	cpath = string_const( STRING_CONST( "..\\" ) ); path5 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "/.." ) ); path6 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "../.." ) ); path7 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "test" ) ); path8 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "/test" ) ); path9 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "test/" ) ); path10 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "test/path" ) ); path11 = path_allocate_absolute( STRING_ARGS( cpath ) );
-	cpath = string_const( STRING_CONST( "/test/path" ) ); path12 = path_allocate_absolute( STRING_ARGS( cpath ) );
-	cpath = string_const( STRING_CONST( "/test/path/" ) ); path13 = path_allocate_absolute( STRING_ARGS( cpath ) );
-	cpath = string_const( STRING_CONST( "test/path/" ) ); path14 = path_allocate_absolute( STRING_ARGS( cpath ) );
+	cpath = string_const( STRING_CONST( "\\test/path" ) ); path12 = path_allocate_absolute( STRING_ARGS( cpath ) );
+	cpath = string_const( STRING_CONST( "/test/path\\" ) ); path13 = path_allocate_absolute( STRING_ARGS( cpath ) );
+	cpath = string_const( STRING_CONST( "test\\path/" ) ); path14 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "vfs://test" ) ); path15 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "vfs://test/path/" ) ); path16 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "vfs://../test/path/../file" ) ); path17 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "vfs://./test/.././///test/path/.dir/../.dir/file.ext" ) ); path18 = path_allocate_absolute( STRING_ARGS( cpath ) );
-	cpath = string_const( STRING_CONST( "C:/../../../../../../.../path/../file/./././." ) ); path19 = path_allocate_absolute( STRING_ARGS( cpath ) );
+	cpath = string_const( STRING_CONST( "C:/../../../../../../.../path/./../file/./././." ) ); path19 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "d:f/o/o/./.o/../../../../.f/.o/.o/./" ) ); path20 = path_allocate_absolute( STRING_ARGS( cpath ) );
-	cpath = string_const( STRING_CONST( "/../../test/../path/..\\.../" ) ); path21 = path_allocate_absolute( STRING_ARGS( cpath ) );
+	cpath = string_const( STRING_CONST( "\\\\/\\../../test/../path/..\\.../" ) ); path21 = path_allocate_absolute( STRING_ARGS( cpath ) );
 
 	EXPECT_STRINGEQ( path1, cwd );
 	EXPECT_STRINGEQ( path2, string_const( STRING_CONST( "/" ) ) );
 	EXPECT_STRINGEQ( path3, cwd );
 	EXPECT_STRINGEQ( path4, string_const( STRING_CONST( "/" ) ) );
-	EXPECT_STRINGEQ( path5, cwd_sub );
+	EXPECT_STRINGEQ( path5, cwd_sub_slash );
 	EXPECT_STRINGEQ( path6, string_const( STRING_CONST( "/" ) ) );
 	EXPECT_STRINGEQ( path7, cwd_sub_sub );
 	EXPECT_STRINGEQ( path8, cwd_test );
 	EXPECT_STRINGEQ( path9, string_const( STRING_CONST( "/test" ) ) );
-	EXPECT_STRINGEQ( path10, cwd_test );
+	EXPECT_STRINGEQ( path10, cwd_test_slash );
 	EXPECT_STRINGEQ( path11, cwd_test_path );
 	EXPECT_STRINGEQ( path12, string_const( STRING_CONST( "/test/path" ) ) );
-	EXPECT_STRINGEQ( path13, string_const( STRING_CONST( "/test/path" ) ) );
-	EXPECT_STRINGEQ( path14, cwd_test_path );
+	EXPECT_STRINGEQ( path13, string_const( STRING_CONST( "/test/path/" ) ) );
+	EXPECT_STRINGEQ( path14, cwd_test_path_slash );
 	EXPECT_STRINGEQ( path15, string_const( STRING_CONST( "vfs://test" ) ) );
-	EXPECT_STRINGEQ( path16, string_const( STRING_CONST( "vfs://test/path" ) ) );
+	EXPECT_STRINGEQ( path16, string_const( STRING_CONST( "vfs://test/path/" ) ) );
 	EXPECT_STRINGEQ( path17, string_const( STRING_CONST( "vfs://test/file" ) ) );
 	EXPECT_STRINGEQ( path18, string_const( STRING_CONST( "vfs://test/path/.dir/file.ext" ) ) );
-	EXPECT_STRINGEQ( path19, string_const( STRING_CONST( "C:/.../file" ) ) );
-	EXPECT_STRINGEQ( path20, string_const( STRING_CONST( "D:/.f/.o/.o" ) ) );
-	EXPECT_STRINGEQ( path21, string_const( STRING_CONST( "/..." ) ) );
+	EXPECT_STRINGEQ( path19, string_const( STRING_CONST( "C:/.../file/" ) ) );
+	EXPECT_STRINGEQ( path20, string_const( STRING_CONST( "d:.f/.o/.o/" ) ) );
+	EXPECT_STRINGEQ( path21, string_const( STRING_CONST( "/.../" ) ) );
 
+	string_deallocate( cwd_sub_slash.str );
 	string_deallocate( cwd_test.str );
+	string_deallocate( cwd_test_slash.str );
 	string_deallocate( cwd_test_path.str );
+	string_deallocate( cwd_test_path_slash.str );
 	string_deallocate( path1.str );
 	string_deallocate( path2.str );
 	string_deallocate( path3.str );

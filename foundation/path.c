@@ -23,6 +23,7 @@ string_t path_clean( char* path, size_t length, size_t capacity )
 	size_t protocol = 0;
 	size_t inlength = length;
 	bool firstsep = true;
+	bool clearsep;
 
 	FOUNDATION_UNUSED( capacity );
 
@@ -42,17 +43,33 @@ string_t path_clean( char* path, size_t length, size_t capacity )
 				{
 					firstsep = false;
 					protocol = ofs++;
-					reduce_limit = protocol + 1;
+					reduce_limit = ofs;
+					if( ( ofs < length ) && ( ( path[ofs] == '/' ) || ( path[ofs] == '\\' ) ) )
+					{
+						path[ofs] = '/';
+						//If protocol length is 1 it's a drive letter
+						if( ( protocol > 1 ) && ( ( ofs + 1 ) < length ) && ( ( path[ofs+1] == '/' ) || ( path[ofs+1] == '\\' ) ) )
+						{
+							++ofs;
+							path[ofs] = '/';
+						}
+						reduce_limit = ofs + 1;
+					}
 				}
 				continue;
 			}
-			else if( protocol )
+			else if( protocol && ( ofs > reduce_limit ) )
 			{
 				//Corner case of "protocol://C:/" style paths to prevent drive
 				//letter from being reduced
-				if( ( path[ ofs - 2 ] == '/' ) || ( path[ ofs - 2 ] == ':' ) )
+				if( ( path[ ofs - 2 ] == ':' ) || ( ( path[ ofs - 2 ] == '/' ) && ( ( path[ ofs - 3 ] == ':' ) || ( path[ ofs - 3 ] == '/' ) ) ) )
 				{
 					reduce_limit = ++ofs;
+					if( ( ofs < length ) && ( ( path[ofs] == '/' ) || ( path[ofs] == '\\' ) ) )
+					{
+						path[ofs] = '/';
+						reduce_limit = ofs + 1;
+					}
 					continue;
 				}
 			}
@@ -78,18 +95,6 @@ string_t path_clean( char* path, size_t length, size_t capacity )
 			}
 			else if( ( path[ahead] != '/' ) && ( path[ahead] != '\\' ) )
 				break;
-			//Check if protocol separator with double slash "://", if so keep it
-			//unless it's a drive designator (more than 1 char), then reduce to single slash
-			if( ( protocol > 1 ) && ( ahead == protocol + 2 ) && ( ahead + 1 < length ) )
-			{
-				if( path[ ahead ] == '\\' )
-					path[ ahead ] = '/';
-				if( path[ ahead ] == '/' )
-				{
-					reduce_limit = ofs++;
-					ahead = ofs;
-				}
-			}
 			//Continue as long as we keep getting separators
 		}
 		if( ahead > ofs )
@@ -107,6 +112,8 @@ string_t path_clean( char* path, size_t length, size_t capacity )
 			if( ahead + 2 == length )
 			{
 				++num;
+				ahead = length;
+				break;
 			}
 			else if( ( path[ ahead + 2 ] == '/' ) || ( path[ ahead + 2 ] == '\\' ) )
 			{
@@ -121,17 +128,22 @@ string_t path_clean( char* path, size_t length, size_t capacity )
 		if( num > 0 )
 		{
 			reduce = 0;
-			back = ofs - 1;
+			back = ( ofs > reduce_limit ) ? ofs - 1 : ofs;
 			while( ( back > reduce_limit ) && ( reduce < num ) )
 			{
 				if( path[ back - 1 ] == '.' )
 				{
-					 //Don't swallow "./" or "../" as paths
-					if( back == ( reduce_limit + 1 ) )
+					 //Only nuke starting "./" or "../" if we have an absolute protocol path
+					if( ( back == ( reduce_limit + 1 ) ) ||
+					    ( ( back == ( reduce_limit + 2 ) ) && ( path[ back - 2 ] == '.' ) ) )
+					{
+						if( ( reduce_limit > 2 ) && ( path[ reduce_limit - 1 ] == '/' ) )
+							back = reduce_limit;
+						break;
+					}
+					if( ( path[ back - 2 ] == '.' ) && ( path[ back - 3 ] == '/' ) )
 						break;
 					if( path[ back - 2 ] == '/' )
-						break;
-					if( ( path[ back - 2 ] == '.' ) && ( ( back == ( reduce_limit + 2 ) ) || ( path[ back - 3 ] == '/' ) ) )
 						break;
 				}
 				--back;
@@ -139,17 +151,22 @@ string_t path_clean( char* path, size_t length, size_t capacity )
 				while( ( back > reduce_limit ) && ( path[back] != '/' ) )
 					--back;
 			}
-			if( ( back == reduce_limit ) && ( path[back] == '/' ) )
+			if( ( back == reduce_limit ) && ( ( !back && ( path[back] == '/' ) ) || ( back && ( path[ back - 1 ] == '/' ) ) ) )
 				reduce = num; //Path starts absolute, drop all "../"
 			if( reduce > 0 )
 			{
+				clearsep = false;
 				ofs = ( path[back] == '/' ) ? back + 1 : back;
 				if( reduce < num )
 					ahead -= 3 * ( num - reduce );
+				if( length == ahead )
+					clearsep = ( path[ length - 1 ] != '/' );
 				memmove( path + ofs, path + ahead, length - ahead );
 				length -= ahead - ofs;
 				path[length] = 0;
-				ofs = ( back > ( reduce_limit + 2 ) ) ? ofs - 2 : reduce_limit;
+				if( ( length > 1 ) && clearsep && ( path[ length - 1 ] == '/' ) )
+					path[--length] = 0;
+				ofs = ( ofs > ( reduce_limit + 1 ) ) ? ofs - 1 : ( reduce_limit ? reduce_limit - 1 : 0 );
 				if( path[ofs] == ':' )
 					++ofs;
 			}
@@ -313,7 +330,7 @@ static string_t path_prepend_fragment( char* dst, size_t length, size_t capacity
 	lastsep = ( ( path[ pathlen - 1 ] == '/' ) || ( path[ pathlen - 1 ] == '\\' ) );
 	if( lastsep && beginsep )
 		--pathlen;
-	offset = ( !lastsep && !beginsep ) ? 1 : 0;
+	offset = ( !lastsep && !beginsep && length ) ? 1 : 0;
 
 	if( pathlen + offset < capacity )
 	{
@@ -538,7 +555,6 @@ bool path_is_absolute( const char* path, size_t length )
 string_t path_absolute( char* path, size_t length, size_t capacity )
 {
 	string_t abspath;
-	size_t up, last, protocollen;
 	if( !path_is_absolute( path, length ) )
 	{
 		string_const_t cwd = environment_current_working_directory();
@@ -551,48 +567,15 @@ string_t path_absolute( char* path, size_t length, size_t capacity )
 		abspath = path_clean( path, length, capacity );
 	}
 
-	protocollen = string_find_string( STRING_ARGS( abspath ), STRING_CONST( "://" ), 0 );
-	if( protocollen != STRING_NPOS )
-		protocollen += 3; //Also skip the "://" separator
-	else
-		protocollen = 0;
+	//Path is cleaned, discard any "/../" paths
+	abspath = string_replace( STRING_ARGS( abspath ), capacity, STRING_CONST( "/../" ), STRING_CONST( "/" ), true );
 
-	//Deal with /../ references
-	while( ( up = string_find_string( STRING_ARGS( abspath ), STRING_CONST( "/../" ), protocollen ? protocollen - 1 : 0 ) ) != STRING_NPOS )
+	if( abspath.length >= 3 && ( abspath.str[length-3] == '/' ) && ( abspath.str[length-2] == '.' ) && ( abspath.str[length-1] == '.' ) )
 	{
-		if( ( protocollen && ( up == ( protocollen - 1 ) ) ) || ( !protocollen && ( up == 0 ) ) )
-		{
-			//This moves mem so "prot://../path" ends up as "prot://path"
-			//and "/../path" ends up as "/path"
-			memmove( abspath.str + protocollen, abspath.str + 3 + protocollen, abspath.length - ( 3 + protocollen ) );
+		if( abspath.length == 3 )
+			abspath.length = 1;
+		else
 			abspath.length -= 3;
-			continue;
-		}
-		FOUNDATION_ASSERT( up > 0 );
-		last = string_rfind( STRING_ARGS( abspath ), '/', up - 1 );
-		if( last == STRING_NPOS )
-		{
-			//Must be a path like C:/../something since other absolute paths
-			last = up;
-		}
-		memmove( abspath.str + last, abspath.str + 3 + up, abspath.length  - ( 3 + up ) );
-		abspath.length -= 3 + ( up - last );
-	}
-
-	if( abspath.length >= 3 )
-	{
-		while( ( abspath.length >= 3 ) && ( abspath.str[length-3] == '/' ) && ( abspath.str[length-2] == '.' ) && ( abspath.str[length-1] == L'.' ) )
-		{
-			//Step up
-			if( abspath.length == 3 )
-				abspath.length = 1;
-			else
-			{
-				up = string_rfind( STRING_ARGS( abspath ), '/', abspath.length - 4 );
-				if( up != STRING_NPOS )
-					abspath.length = up + 1;
-			}
-		}
 	}
 
 	if( abspath.str )
