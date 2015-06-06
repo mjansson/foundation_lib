@@ -139,9 +139,9 @@ static FOUNDATION_NOINLINE string_const_t _expand_environment( hash_t key, strin
 		return environment_home_directory();
 	else if( key == HASH_TEMPORARY_DIRECTORY )
 		return environment_temporary_directory();
-	else if( string_equal( STRING_ARGS( var ), STRING_CONST( "variable[" ) ) )  //variable[varname] - Environment variable named "varname"
+	else if( ( var.length > 9 ) && string_equal( var.str, 9, STRING_CONST( "variable[" ) ) )  //variable[varname] - Environment variable named "varname"
 	{
-		string_const_t substr = string_substr( STRING_ARGS( var ), 9, var.length - 9 );
+		string_const_t substr = string_substr( STRING_ARGS( var ), 9, var.length - 10 );
 		return environment_variable( STRING_ARGS( substr ) );
 	}
 	return string_null();
@@ -184,7 +184,7 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 		if( section != HASH_ENVIRONMENT )
 			value = config_string( section, key );
 		else
-			value = _expand_environment( key, string_substr( STRING_ARGS( variable ), var_offset, variable.length - var_offset ) );
+			value = _expand_environment( key, string_substr( STRING_ARGS( variable ), var_offset, variable.length - var_offset - 1 ) );
 
 		newlength += ( value.length > variable.length ) ? value.length - variable.length : 0;
 		if( newlength >= capacity )
@@ -193,7 +193,7 @@ static FOUNDATION_NOINLINE string_t _expand_string( hash_t section_current, stri
 			expanded.str = capacity ? memory_reallocate( expanded.str, allocsize, 0, capacity ) :
 			                          memory_allocate( HASH_STRING, allocsize, 0, MEMORY_PERSISTENT );
 			if( !capacity )
-				string_copy( expanded.str, capacity, STRING_ARGS( str ) );
+				string_copy( expanded.str, allocsize, STRING_ARGS( str ) );
 			capacity = allocsize;
 		}
 
@@ -853,7 +853,7 @@ void config_parse_commandline( const string_const_t* cmdline, size_t num )
 					if( ( value.length > 1 ) && ( value.str[0] == '"' ) && ( value.str[ value.length - 1 ] == '"' ) )
 					{
 						value.str++;
-						value.length--;
+						value.length -= 2;
 						config_set_string( section, key, STRING_ARGS( value ) );
 					}
 					else

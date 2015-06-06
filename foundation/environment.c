@@ -526,9 +526,13 @@ static void _environment_clean_temporary_directory( bool recreate )
 
 string_const_t environment_variable( const char* var, size_t length )
 {
+#if !FOUNDATION_PLATFORM_PNACL
+	string_t buffer = string_thread_buffer();
+	string_t varstr = string_copy( STRING_ARGS( buffer ), var, length );
+#endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	unsigned int required;
-	wchar_t* key = wstring_allocate_from_string( var, length );
+	wchar_t* key = wstring_allocate_from_string( STRING_ARGS( varstr ) );
 	wchar_t val[FOUNDATION_MAX_PATHLEN]; val[0] = 0;
 	if( ( required = GetEnvironmentVariableW( key, val, FOUNDATION_MAX_PATHLEN ) ) > FOUNDATION_MAX_PATHLEN )
 	{
@@ -549,8 +553,7 @@ string_const_t environment_variable( const char* var, size_t length )
 	wstring_deallocate( key );
 	return _environment_var;
 #elif FOUNDATION_PLATFORM_POSIX
-	FOUNDATION_UNUSED( length );
-	const char* value = getenv( var );
+	const char* value = getenv( varstr.str );
 	return string_const( value, value ? string_length( value ) : 0 );
 #elif FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_UNUSED( var );

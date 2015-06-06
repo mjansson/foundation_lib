@@ -446,14 +446,14 @@ DECLARE_TEST( config, variables )
 {
 	string_const_t refstr;
 
-	hash_t invalid_section = hash( "__section", 9 );
-	hash_t invalid_key = hash( "__key", 5 );
+	hash_t invalid_section = hash( STRING_CONST( "__section" ) );
+	hash_t invalid_key = hash( STRING_CONST( "__key" ) );
 
-	hash_t test_section = hash( "__test_expand", 13 );
-	hash_t test_key = hash( "__test_var", 10 );
+	hash_t test_section = hash( STRING_CONST( "__test_expand" ) );
+	hash_t test_key = hash( STRING_CONST( "__test_var" ) );
 
-	hash_t expand_section = hash( "__expand_section", 16 );
-	hash_t expand_key = hash( "__expand_key", 12 );
+	hash_t expand_section = hash( STRING_CONST( "__expand_section" ) );
+	hash_t expand_key = hash( STRING_CONST( "__expand_key" ) );
 
 	EXPECT_FALSE( config_bool( invalid_section, invalid_key ) );
 	EXPECT_EQ( config_int( invalid_section, invalid_key ), 0 );
@@ -927,7 +927,7 @@ DECLARE_TEST( config, commandline )
 		string_const( STRING_CONST( "--this:is=notparsed" ) )
 	};
 
-	config_parse_commandline( cmdline, 12 );
+	config_parse_commandline( cmdline, sizeof( cmdline ) / sizeof( cmdline[0] ) );
 
 	EXPECT_STRINGEQ( config_string( hash( "foo", 3 ), hash( "bar", 3 ) ), string_const( STRING_CONST( "1234" ) ) );
 	EXPECT_EQ( config_int( hash( "foo", 3 ), hash( "bar", 3 ) ), 1234 );
