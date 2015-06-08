@@ -274,6 +274,21 @@ void _environment_shutdown( void )
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_deallocate( _environment_var );
 #endif
+	string_deallocate( _environment_executable_name.str );
+	string_deallocate( _environment_executable_dir.str );
+	string_deallocate( _environment_executable_path.str );
+	string_deallocate( _environment_initial_working_dir.str );
+	string_deallocate( _environment_current_working_dir.str );
+	string_deallocate( _environment_home_dir.str );
+	string_deallocate( _environment_temp_dir.str );
+
+	_environment_executable_name =
+	_environment_executable_dir =
+	_environment_executable_path =
+	_environment_initial_working_dir =
+	_environment_current_working_dir =
+	_environment_home_dir =
+	_environment_temp_dir = (string_t){ 0, 0 };
 }
 
 
@@ -324,20 +339,18 @@ string_const_t environment_current_working_directory( void )
 		_environment_current_working_dir = path_clean( STRING_ARGS_CAPACITY( localpath ), true );
 	}
 #elif FOUNDATION_PLATFORM_POSIX
-	string_t localpath = string_allocate( 0, BUILD_MAX_PATHLEN );
-	if( !getcwd( localpath.str, BUILD_MAX_PATHLEN ) )
+	string_t localpath = string_thread_buffer();
+	if( !getcwd( localpath.str, localpath.length ) )
 	{
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to get cwd: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
-		string_deallocate( localpath.str );
 		return string_const( 0, 0 );
 	}
-	localpath = path_clean( localpath.str, string_length( localpath.str ), BUILD_MAX_PATHLEN );
+	localpath = path_clean( localpath.str, string_length( localpath.str ), localpath.length );
 	if( localpath.length && ( localpath.str[ localpath.length - 1 ] == '/' ) )
 		localpath.str[ --localpath.length ] = 0;
 	_environment_current_working_dir = string_clone( STRING_ARGS( localpath ) );
-	string_deallocate( localpath.str );
 #elif FOUNDATION_PLATFORM_PNACL
 	_environment_current_working_dir = string_clone( STRING_CONST( "/persistent" ) );
 #else
@@ -349,6 +362,9 @@ string_const_t environment_current_working_directory( void )
 
 void environment_set_current_working_directory( const char* path, size_t length )
 {
+#if FOUNDATION_PLATFORM_POSIX
+	string_t buffer, pathstr;
+#endif
 	if( !path )
 		return;
 	log_debugf( 0, STRING_CONST( "Setting current working directory to: %.*s" ), (int)length, path );
@@ -362,7 +378,9 @@ void environment_set_current_working_directory( const char* path, size_t length 
 	string_deallocate( _environment_current_working_dir.str );
 	_environment_current_working_dir = (string_t){ 0, 0 };
 #elif FOUNDATION_PLATFORM_POSIX
-	if( chdir( path ) < 0 )
+	buffer = string_thread_buffer();
+	pathstr = string_copy( STRING_ARGS( buffer ), path, length );
+	if( chdir( pathstr.str ) < 0 )
 	{
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );

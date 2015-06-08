@@ -894,7 +894,7 @@ DECLARE_TEST( string, utility )
 
 		numtokens = string_explode( STRING_ARGS( mergestr2 ), STRING_CONST( " .," ), explodearr, 32, true );
 		merged = string_merge( buffer, sizeof( buffer ), explodearr, numtokens, STRING_CONST( " " ) );
-		EXPECT_STRINGEQ( merged, mergestr );
+		EXPECT_STRINGEQ( merged, string_const( STRING_ARGS( mergestr ) ) );
 
 		string_split( STRING_ARGS( splitstr ), STRING_CONST( " " ), &splitleft, &splitright, false );
 		string_split( STRING_ARGS( splitstr ), STRING_CONST( " " ), &splitleft2, &splitright2, true );
@@ -904,15 +904,15 @@ DECLARE_TEST( string, utility )
 		EXPECT_TRUE( string_equal( STRING_ARGS( splitleft2 ), STRING_CONST( "" ) ) );
 		EXPECT_TRUE( string_equal( STRING_ARGS( splitright2 ), STRING_CONST( "testing split" ) ) );
 
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 4 ), string_const( STRING_CONST( "test" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 14 ), string_const( STRING_CONST( "testing substr" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 20 ), string_const( STRING_CONST( "testing substr" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 20 ), string_const( STRING_CONST( "ting substr" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 11 ), string_const( STRING_CONST( "ting substr" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 1 ), string_const( STRING_CONST( "t" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 0 ), string_const( STRING_CONST( "" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 20, 0 ), string_const( STRING_CONST( "" ) ) );
-		EXPECT_STRINGEQ( string_substr( STRING_ARGS( substrtest ), 20, 20 ), string_const( STRING_CONST( "" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 4 ), string_const( STRING_CONST( "test" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 14 ), string_const( STRING_CONST( "testing substr" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 0, 20 ), string_const( STRING_CONST( "testing substr" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 20 ), string_const( STRING_CONST( "ting substr" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 11 ), string_const( STRING_CONST( "ting substr" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 1 ), string_const( STRING_CONST( "t" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 3, 0 ), string_const( STRING_CONST( "" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 20, 0 ), string_const( STRING_CONST( "" ) ) );
+		EXPECT_CONSTSTRINGEQ( string_substr( STRING_ARGS( substrtest ), 20, 20 ), string_const( STRING_CONST( "" ) ) );
 
 		{
 			string_t replacestr = string_copy( buffer, sizeof( buffer ), STRING_CONST( "testing replace" ) );
@@ -944,9 +944,9 @@ DECLARE_TEST( string, utility )
 			string_const_t strippedstr2 = string_strip( STRING_ARGS( stripstr2 ), STRING_CONST( "" ) );
 			string_const_t strippedstr3 = string_strip( STRING_ARGS( stripstr3 ), STRING_CONST( " tesingrp:" ) );
 
-			EXPECT_STRINGEQ( strippedstr, string_const( STRING_CONST( "esting stri" ) ) );
-			EXPECT_STRINGEQ( strippedstr2, string_const( STRING_CONST( "   testing strip :   " ) ) );
-			EXPECT_STRINGEQ( strippedstr3, string_const( STRING_CONST( "" ) ) );
+			EXPECT_CONSTSTRINGEQ( strippedstr, string_const( STRING_CONST( "esting stri" ) ) );
+			EXPECT_CONSTSTRINGEQ( strippedstr2, string_const( STRING_CONST( "   testing strip :   " ) ) );
+			EXPECT_CONSTSTRINGEQ( strippedstr3, string_const( STRING_CONST( "" ) ) );
 
 			string_deallocate( stripstr.str );
 			string_deallocate( stripstr2.str );
@@ -981,13 +981,13 @@ DECLARE_TEST( string, utility )
 		string_t concatstr10 = string_allocate_concat( STRING_ARGS( teststr3 ), STRING_ARGS( clonestr3 ) );
 
 		EXPECT_NE( teststr.str, clonestr.str );
-		EXPECT_STRINGEQ( teststr, clonestr );
+		EXPECT_STRINGEQ( teststr, string_const( STRING_ARGS( clonestr ) ) );
 
 		EXPECT_NE( teststr2.str, clonestr2.str );
-		EXPECT_STRINGEQ( teststr2, clonestr2 );
+		EXPECT_STRINGEQ( teststr2, string_const( STRING_ARGS( clonestr2 ) ) );
 
 		EXPECT_NE( teststr3.str, clonestr3.str );
-		EXPECT_STRINGEQ( teststr3, clonestr3 );
+		EXPECT_STRINGEQ( teststr3, string_const( STRING_ARGS( clonestr3 ) ) );
 
 		EXPECT_STRINGEQ( concatstr, string_const( STRING_CONST( "" ) ) );
 		EXPECT_STRINGEQ( concatstr2, string_const( STRING_CONST( SHORTSTRING ) ) );

@@ -236,7 +236,7 @@ DECLARE_TEST( crash, error )
 		EXPECT_EQ( error_context()->depth, 1 );
 		EXPECT_STREQ( error_context()->frame[0].name.str, error_context()->frame[0].name.length, "test context", 12 );
 		EXPECT_EQ( error_context()->frame[0].data.str, context_data );
-		EXPECT_EQ( error_context()->frame[0].data.length, sizeof( context_data ) );
+		EXPECT_EQ( error_context()->frame[0].data.length, sizeof( context_data ) - 1 );
 #endif
 
 		log_info( HASH_TEST, STRING_CONST( "Generate context buffer" ) );

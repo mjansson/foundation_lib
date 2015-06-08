@@ -66,7 +66,7 @@ DECLARE_TEST( process, spawn )
 	string_const_t args[] = { string_const( STRING_CONST( "/C" ) ), string_const( STRING_CONST( "dir" ) ), string_null() };
 #elif FOUNDATION_PLATFORM_POSIX
 	string_const_t prog = string_const( STRING_CONST( "/bin/ls" ) );
-	string_const_t args[] = { string_const( STRING_CONST( "-1" ) ), string_const( STRING_CONST( "-a" ) ), string_null() };
+	string_const_t args[] = { string_const( STRING_CONST( "-1" ) ), string_const( STRING_CONST( "-la" ) ), string_null() };
 #else
 	string_const_t prog = string_const( STRING_CONST( "notimplemented" ) );
 	string_const_t args[] = { string_const( STRING_CONST( "" ) ), string_const( STRING_CONST( "" ) ), string_null() };
@@ -135,7 +135,7 @@ DECLARE_TEST( process, spawn )
 		}
 	} while( !stream_eos( out ) );
 
-	EXPECT_GE( num_lines, 4 );
+	EXPECT_INTGE( num_lines, 4 );
 	EXPECT_TRUE( found_expected );
 	EXPECT_TRUE( found_file );
 
@@ -155,6 +155,7 @@ DECLARE_TEST( process, spawn )
 #if FOUNDATION_PLATFORM_MACOSX
 
 	process_finalize( proc );
+	process_initialize( proc );
 
 	args[0] = string_to_const( tmp_path );
 

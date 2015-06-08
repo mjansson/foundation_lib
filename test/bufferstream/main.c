@@ -400,7 +400,7 @@ DECLARE_TEST( bufferstream, sized_grow )
 
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 315 );
-	EXPECT_TRUE( string_equal( readbuffer, 315, writebuffer, 315 ) );
+	EXPECT_TRUE( string_equal( readbuffer, writestr.length, STRING_ARGS( writestr ) ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), 315 );
@@ -465,7 +465,7 @@ DECLARE_TEST( bufferstream, sized_nogrow )
 
 	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ( stream_read( stream, readbuffer, 1024 ), 315 );
-	EXPECT_TRUE( string_equal( readbuffer, 315, writebuffer, 315 ) );
+	EXPECT_TRUE( string_equal( readbuffer, writestr.length, STRING_ARGS( writestr ) ) );
 	EXPECT_TRUE( stream_eos( stream ) );
 	EXPECT_EQ( stream_size( stream ), 315 );
 	EXPECT_EQ( stream_tell( stream ), 315 );

@@ -157,7 +157,7 @@ DECLARE_TEST( event, immediate )
 
 
 	event_post( stream, FOUNDATIONEVENT_TERMINATE, 0, 0, buffer, 13 );
-	event_post_varg( stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, 3, buffer + 3, 10, buffer + 13, 24, nullptr );
+	event_post_varg( stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, (size_t)3, buffer + 3, (size_t)10, buffer + 13, (size_t)24, nullptr );
 
 	block = event_stream_process( stream );
 	event = event_next( block, 0 );

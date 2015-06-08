@@ -42,16 +42,19 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, o
 
 	//Events must be aligned to an even 8 bytes
 	basesize = sizeof( event_t ) + size;
-	va_copy( clist, list );
-	while( true )
+	if( list )
 	{
-		ptr = va_arg( clist, void* );
-		if( !ptr )
-			break;
-		psize = va_arg( clist, size_t );
-		basesize += psize;
+		va_copy( clist, list );
+		while( true )
+		{
+			ptr = va_arg( clist, void* );
+			if( !ptr )
+				break;
+			psize = va_arg( clist, size_t );
+			basesize += psize;
+		}
+		va_end( clist );
 	}
-	va_end( clist );
 	if( basesize % 8 )
 		basesize += 8 - ( basesize % 8 );
 	basesize &= 0xFFF8;
@@ -111,20 +114,23 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, o
 		memcpy( part, payload, size );
 		part += size;
 	}
-	va_copy( clist, list );
-	while( true )
+	if( list )
 	{
-		ptr = va_arg( clist, void* );
-		if( !ptr )
-			break;
-		psize = va_arg( clist, size_t );
-		if( psize )
+		va_copy( clist, list );
+		while( true )
 		{
-			memcpy( part, ptr, psize );
-			part += psize;
+			ptr = va_arg( clist, void* );
+			if( !ptr )
+				break;
+			psize = va_arg( clist, size_t );
+			if(	psize )
+			{
+				memcpy( part, ptr, psize );
+				part += psize;
+			}
 		}
+		va_end( clist );
 	}
-	va_end( clist );
 
 	if( timestamp )
 	{

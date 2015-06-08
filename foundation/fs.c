@@ -281,9 +281,11 @@ bool fs_is_file( const char* path, size_t length )
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+	char buffer[BUILD_MAX_PATHLEN];
 	string_const_t pathstr = _fs_path( path, length );
+	string_t finalpath = string_copy( buffer, sizeof( buffer ), STRING_ARGS( pathstr ) );
 	struct stat st; memset( &st, 0, sizeof( st ) );
-	stat( pathstr.str, &st );
+	stat( finalpath.str, &st );
 	if( st.st_mode & S_IFREG )
 		return true;
 
@@ -740,9 +742,9 @@ bool fs_make_directory( const char* path, size_t length )
 	string_t localpath;
 	string_const_t fspath;
 
-	localpath = string_copy( abspath_buffer, BUILD_MAX_PATHLEN, path, length );
+	localpath = string_copy( abspath_buffer, sizeof( abspath_buffer ), path, length );
 	if( !path_is_absolute( STRING_ARGS( localpath ) ) )
-		localpath = path_absolute( STRING_ARGS( localpath ), BUILD_MAX_PATHLEN );
+		localpath = path_absolute( STRING_ARGS( localpath ), sizeof( abspath_buffer ) );
 
 	fspath = _fs_path( STRING_ARGS( localpath ) );
 	localpath = (string_t){ (char*)fspath.str, fspath.length };
@@ -810,7 +812,7 @@ void fs_copy_file( const char* source, size_t source_length, const char* dest, s
 
 	string_const_t destpath = path_directory_name( dest, dest_length );
 	if( destpath.length )
-		fs_make_directory( dest, dest_length );
+		fs_make_directory( STRING_ARGS( destpath ) );
 
 	infile = fs_open_file( source, source_length, STREAM_IN );
 	outfile = fs_open_file( dest, dest_length, STREAM_OUT | STREAM_CREATE );
@@ -2005,7 +2007,7 @@ stream_t* fs_open_file( const char* path, size_t length, unsigned int mode )
 	if( !( mode & STREAM_IN ) && !( mode & STREAM_OUT ) )
 		mode |= STREAM_IN;
 
-	capacity = BUILD_MAX_PATHLEN;
+	capacity = sizeof( buffer );
 	localpath = string_copy( buffer, capacity, path, length );
 	localpath = path_clean( STRING_ARGS( localpath ), capacity );
 	if( !path_is_absolute( STRING_ARGS( localpath ) ) )

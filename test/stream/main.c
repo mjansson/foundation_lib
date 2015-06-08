@@ -181,9 +181,9 @@ DECLARE_TEST( stream, std )
 	EXPECT_EQ_MSG( stream_is_binary( out ), false, "stdout did not set asii mode" );
 	EXPECT_EQ_MSG( stream_is_binary( err ), false, "stderr did not set ascii mode" );
 
-	EXPECT_STRINGEQ_MSG( stream_path( in ), string_const( STRING_CONST( "stdin://" ) ), "stdin has wrong path" );
-	EXPECT_STRINGEQ_MSG( stream_path( out ), string_const( STRING_CONST( "stdout://" ) ), "stdout has wrong path" );
-	EXPECT_STRINGEQ_MSG( stream_path( err ), string_const( STRING_CONST( "stderr://" ) ), "stderr has wrong path" );
+	EXPECT_CONSTSTRINGEQ_MSG( stream_path( in ), string_const( STRING_CONST( "stdin://" ) ), "stdin has wrong path" );
+	EXPECT_CONSTSTRINGEQ_MSG( stream_path( out ), string_const( STRING_CONST( "stdout://" ) ), "stdout has wrong path" );
+	EXPECT_CONSTSTRINGEQ_MSG( stream_path( err ), string_const( STRING_CONST( "stderr://" ) ), "stderr has wrong path" );
 
 	now = time_system();
 
@@ -202,9 +202,9 @@ DECLARE_TEST( stream, std )
 	EXPECT_NE_MSG( out_clone, 0, "Clone stdout stream returned null" );
 	EXPECT_NE_MSG( err_clone, 0, "Clone stderr stream returned null" );
 
-	EXPECT_STRINGEQ_MSG( stream_path( in_clone ), string_const( STRING_CONST( "stdin://" ) ), "stdin has wrong path" );
-	EXPECT_STRINGEQ_MSG( stream_path( out_clone ), string_const( STRING_CONST( "stdout://" ) ), "stdout has wrong path" );
-	EXPECT_STRINGEQ_MSG( stream_path( err_clone ), string_const( STRING_CONST( "stderr://" ) ), "stderr has wrong path" );
+	EXPECT_CONSTSTRINGEQ_MSG( stream_path( in_clone ), string_const( STRING_CONST( "stdin://" ) ), "stdin has wrong path" );
+	EXPECT_CONSTSTRINGEQ_MSG( stream_path( out_clone ), string_const( STRING_CONST( "stdout://" ) ), "stdout has wrong path" );
+	EXPECT_CONSTSTRINGEQ_MSG( stream_path( err_clone ), string_const( STRING_CONST( "stderr://" ) ), "stderr has wrong path" );
 
 	EXPECT_EQ_MSG( stream_is_binary( in_clone ), stream_is_binary( in ), "stdin did not preserve mode" );
 	EXPECT_EQ_MSG( stream_is_binary( out_clone ), stream_is_binary( out ), "stdout clone did not preserve mode" );

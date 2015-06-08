@@ -230,7 +230,6 @@ DECLARE_TEST( fs, util )
 	EXPECT_GT( fs_last_modified( STRING_ARGS( testpath ) ), lastmod );
 
 	fs_remove_file( STRING_ARGS( testpath ) );
-	string_deallocate( testpath.str );
 
 	return 0;
 }
@@ -243,6 +242,7 @@ DECLARE_TEST( fs, query )
 	string_const_t fname;
 	string_t filename;
 	string_t testpath;
+	string_t verifypath;
 	string_t subtestpath;
 	string_t filepath[8];
 	string_t* subdirs;
@@ -271,7 +271,7 @@ DECLARE_TEST( fs, query )
 		++filename.length;
 
 		fname = string_from_uint_static( random64(), true, 0, 0 );
-		filepath[ifp] = path_allocate_concat_varg( STRING_ARGS( testpath ), STRING_ARGS( fname ), STRING_ARGS( filename ), nullptr );
+		filepath[ifp] = string_allocate_concat_varg( STRING_ARGS( testpath ), STRING_CONST( "/" ), STRING_ARGS( fname ), STRING_ARGS( filename ), nullptr );
 		stream_deallocate( fs_open_file( STRING_ARGS( filepath[ifp] ), STREAM_OUT | STREAM_CREATE ) );
 	}
 
@@ -326,9 +326,9 @@ DECLARE_TEST( fs, query )
 		fname = string_from_uint_static( subpathid, true, 0, 0 );
 		filename = string_from_uint( buf, 32, subfileid, true, 0, 0 );
 		filename = string_append( STRING_ARGS( filename ), 32, STRING_CONST( ".0" ) );
-		testpath = path_allocate_concat( STRING_ARGS( fname ),  STRING_ARGS( filename ) );
-		EXPECT_STRINGEQ( files[8], testpath );
-		string_deallocate( testpath.str );
+		verifypath = path_allocate_concat( STRING_ARGS( fname ),  STRING_ARGS( filename ) );
+		EXPECT_STRINGEQ( files[8], string_const( STRING_ARGS( verifypath ) ) );
+		string_deallocate( verifypath.str );
 	}
 	string_array_deallocate( files );
 
@@ -367,7 +367,7 @@ DECLARE_TEST( fs, event )
 	EXPECT_NE( event, 0 );
 
 	EXPECT_EQ( event->id, FOUNDATIONEVENT_FILE_CREATED );
-	EXPECT_STREQ( payload, length, pathstr, sizeof( pathstr ) );
+	EXPECT_STREQ( payload, length, pathstr, sizeof( pathstr ) - 1 );
 
 	event = event_next( block, event );
 	EXPECT_EQ( event, 0 );

@@ -152,7 +152,7 @@ DECLARE_TEST( system, builtin )
 	system_error_reset();
 	EXPECT_EQ( system_error(), 0 );
 
-	EXPECT_STRINGEQ( system_error_message( 0 ), string_const( STRING_CONST( "<no error>" ) ) );
+	EXPECT_CONSTSTRINGEQ( system_error_message( 0 ), string_const( STRING_CONST( "<no error>" ) ) );
 	EXPECT_NE( system_error_message( 1 ).str, 0 );
 	EXPECT_GT( system_error_message( 1 ).length, 0 );
 

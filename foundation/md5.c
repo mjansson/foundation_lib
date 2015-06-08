@@ -258,7 +258,7 @@ string_t md5_get_digest( const md5_t* digest, char* str, size_t length )
 		str[j]   = trn[ digest->digest[i] / 16 ];
 		str[j+1] = trn[ digest->digest[i] % 16 ];
 	}
-	if( length >= 32 )
+	if( length > 32 )
 		str[32] = 0;
 
 	return (string_t){ str, num * 2 };

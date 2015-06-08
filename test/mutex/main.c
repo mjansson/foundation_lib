@@ -58,7 +58,7 @@ DECLARE_TEST( mutex, basic )
 
 	mutex = mutex_allocate( STRING_CONST( "test" ) );
 
-	EXPECT_STRINGEQ( mutex_name( mutex ), string_const( STRING_CONST( "test" ) ) );
+	EXPECT_CONSTSTRINGEQ( mutex_name( mutex ), string_const( STRING_CONST( "test" ) ) );
 	EXPECT_TRUE( mutex_try_lock( mutex ) );
 	EXPECT_TRUE( mutex_lock( mutex ) );
 	EXPECT_TRUE( mutex_try_lock( mutex ) );
