@@ -708,12 +708,11 @@ uint32_t system_locale( void )
 string_t system_locale_string( char* buffer, size_t length )
 {
 	uint32_t locale = system_locale();
-	if( length < 4 )
-		return (string_t){ buffer, 0 };
-	memcpy( buffer, &locale, 4 );
-	if( length > 4 )
-		buffer[4] = 0;
-	return (string_t){ buffer, 4 };
+	size_t maxlength = ( length > 4 ) ? 4 : ( length ? length - 1 : 0 );
+	memcpy( buffer, &locale, maxlength );
+	if( maxlength )
+		buffer[ maxlength ] = 0;
+	return (string_t){ buffer, maxlength };
 }
 
 

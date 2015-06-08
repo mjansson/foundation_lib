@@ -42,7 +42,7 @@ static const char longline[] = "Lorem ipsum dolor sit amet, eam mundi concludatu
 " Cum habemus fuisset delectus at. Vix dicta inani omnes ea, graecis offendit evertitur cu mel, no offendit oporteat mea. An alterum facilisis qui. Sed dicta mundi ubique cu, cu sonet everti regione vix. Qui intellegat adolescens at, ipsum tation interpretaris usu an, natum suscipit sadipscing est et. Mea esse scripta antiopam in, adhuc appetere moderatius mei eu."
 " Augue populo at mei, hinc graece qui id, cu cum summo epicurei intellegam. At vim habeo ullum labitur, in est aliquam fierent legendos, ne eam homero dolorem. Quo eu partiendo patrioque eloquentiam. Sonet prodesset posidonium mei ea, an mei vidit definiebas vituperata. Ne doming ullamcorper vim, et purto sale dicunt sit. Id legere perpetua est, mel cu erant petentium deterruisset. Ei eos errem vitae feugiat, te brute luptatum scripserit sit, per lorem persius ea."
 " In quo doctus invenire. Eos ancillae definiebas interesset at. Primis mucius mel ad, ea audiam nominavi has, veniam fuisset ei mei. Ut clita affert aliquando pro, no quem vero sea. Quas ridens dissentiunt ius ne, eos rationibus incorrupte ex, sea ei aperiri constituto.";
-static const unsigned int longlength = sizeof( longline );
+static const unsigned int longlength = sizeof( longline ) - 1;
 
 
 static application_t test_stream_application( void )
@@ -286,6 +286,7 @@ DECLARE_TEST( stream, readwrite_binary )
 	int i;
 
 	path = path_make_temporary( write_buffer, 1024 );
+	path = string_clone( STRING_ARGS( path ) );
 	directory = path_directory_name( STRING_ARGS( path ) );
 	fs_make_directory( STRING_ARGS( directory ) );
 
@@ -365,7 +366,7 @@ DECLARE_TEST( stream, readwrite_binary )
 
 	read_buffer[0] = 0;
 	line = stream_read_line_buffer( teststream, read_buffer, 1024, '\n' );
-	EXPECT_EQ_MSGFORMAT( line.str, 0, "read line buffer failed at end of stream, read %s", read_buffer );
+	EXPECT_EQ_MSGFORMAT( line.length, 0, "read line buffer failed at end of stream, read %" PRIsize " bytes", line.length );
 
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	stream_determine_binary_mode( teststream, 1024 );
@@ -515,6 +516,7 @@ DECLARE_TEST( stream, readwrite_binary )
 
 	stream_deallocate( teststream );
 	fs_remove_file( STRING_ARGS( path ) );
+	string_deallocate( path.str );
 
 	return 0;
 }
@@ -531,6 +533,7 @@ DECLARE_TEST( stream, readwrite_text )
 	int i;
 
 	path = path_make_temporary( write_buffer, sizeof( write_buffer ) );
+	path = string_clone( STRING_ARGS( path ) );
 	directory = path_directory_name( STRING_ARGS( path ) );
 	fs_make_directory( STRING_ARGS( directory ) );
 
@@ -636,7 +639,7 @@ DECLARE_TEST( stream, readwrite_text )
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
 	line = stream_read_line( teststream, '\n' );
-	EXPECT_STREQ_MSG( STRING_ARGS( line ), STRING_CONST( longline ), "Long line read failed data" );
+	EXPECT_STRINGEQ_MSG( line, string_const( STRING_CONST( longline ) ), "Long line read failed data" );
 	string_deallocate( line.str );
 
 	stream_deallocate( teststream );
@@ -781,6 +784,7 @@ DECLARE_TEST( stream, readwrite_text )
 
 	stream_deallocate( teststream );
 	fs_remove_file( STRING_ARGS( path ) );
+	string_deallocate( path.str );
 
 	return 0;
 }
@@ -797,6 +801,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	int i;
 
 	path = path_make_temporary( write_buffer, 1024 );
+	path = string_clone( STRING_ARGS( path ) );
 	directory = path_directory_name( STRING_ARGS( path ) );
 	fs_make_directory( STRING_ARGS( directory ) );
 
@@ -854,7 +859,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	EXPECT_EQ_MSG( stream_read_float64( teststream ), -1.0, "read float64 failed" );
 
 	line = stream_read_line_buffer( teststream, read_buffer, 1024, '\n' );
-	EXPECT_EQ_MSG( line.length, 10, "read line buffer failed" );
+	EXPECT_EQ_MSG( line.length, 11, "read line buffer failed" );
 	EXPECT_STREQ_MSG( STRING_ARGS( line ), STRING_CONST( "test string" ), "read line buffer failed data" );
 
 	line = stream_read_line( teststream, '\n' );
@@ -874,11 +879,11 @@ DECLARE_TEST( stream, readwrite_sequential )
 
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer( teststream, read_buffer, 1024 );
-	EXPECT_EQ_MSGFORMAT( line.length, 8, "read string buffer failed (%" PRIsize ")", line.length );
+	EXPECT_EQ_MSGFORMAT( line.length, 9, "read string buffer failed (%" PRIsize ")", line.length );
 	EXPECT_STREQ_MSG( STRING_ARGS( line ), STRING_CONST( "formatted" ), "read string buffer data failed" );
 
 	line = stream_read_line_buffer( teststream, read_buffer, 1024, '\n' );
-	EXPECT_EQ_MSG( line.length, 28 + FOUNDATION_SIZE_POINTER*2, "read line buffer failed" );
+	EXPECT_EQ_MSGFORMAT( line.length, 29 + FOUNDATION_SIZE_POINTER*2, "read line buffer failed (%" PRIsize " read, %d expected)", line.length, 28 + FOUNDATION_SIZE_POINTER*2 );
 #if FOUNDATION_SIZE_POINTER == 8
 	EXPECT_STREQ_MSG( STRING_ARGS( line ), STRING_CONST( "output with a null pointer 0x0000000000000000" ), "read string buffer data failed" );
 #else
@@ -1058,6 +1063,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 
 	stream_deallocate( teststream );
 	fs_remove_file( STRING_ARGS( path ) );
+	string_deallocate( path.str );
 
 	return 0;
 }
@@ -1082,6 +1088,7 @@ DECLARE_TEST( stream, readwrite_swap )
 	char buf[BUILD_MAX_PATHLEN];
 
 	path = path_make_temporary( buf, sizeof( buf ) );
+	path = string_clone( STRING_ARGS( path ) );
 	directory = path_directory_name( STRING_ARGS( path ) );
 	fs_make_directory( STRING_ARGS( directory ) );
 
@@ -1191,6 +1198,7 @@ DECLARE_TEST( stream, readwrite_swap )
 
 	stream_deallocate( teststream );
 	fs_remove_file( STRING_ARGS( path ) );
+	string_deallocate( path.str );
 
 	return 0;
 }
