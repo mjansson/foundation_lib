@@ -777,8 +777,10 @@ bool fs_make_directory( const char* path, size_t length )
 #endif
 			if( !result )
 			{
+#if BUILD_ENABLE_LOG
 				int err = system_error();
 				string_const_t errmsg = system_error_message( err );
+#endif
 				log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Failed to create directory '%.*s': %.*s (%d)" ), STRING_FORMAT( localpath ), STRING_FORMAT( errmsg ), err );
 				goto end;
 			}
@@ -1769,8 +1771,10 @@ static void _fs_file_truncate( stream_t* stream, size_t length )
 	int fd = open( fspath.str, O_RDWR );
 	if( ftruncate( fd, (ssize_t)length ) < 0 )
 	{
+#if BUILD_ENABLE_LOG
 		int err = system_error();
 		string_const_t errmsg = system_error_message( err );
+#endif
 		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s (%d)" ), (int)fspath.length, fspath.str, length, (int)errmsg.length, errmsg.str, err );
 	}
 	close( fd );

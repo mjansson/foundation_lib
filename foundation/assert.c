@@ -16,18 +16,18 @@
 #include <stdarg.h>
 
 
-#define ASSERT_BUFFER_SIZE             2048U
+#define ASSERT_BUFFER_SIZE 1024
 
-static assert_handler_fn _assert_handler;
-static char              _assert_buffer[ASSERT_BUFFER_SIZE];
+static assert_handler_fn   _assert_handler;
+static char                _assert_buffer[ASSERT_BUFFER_SIZE];
 
 #if BUILD_ENABLE_ASSERT
 #define ASSERT_STACKTRACE_MAX_DEPTH    128U
 #define ASSERT_STACKTRACE_SKIP_FRAMES  1U
-static void*             _assert_stacktrace[ASSERT_STACKTRACE_MAX_DEPTH];
-static char              _assert_context_buffer[ASSERT_BUFFER_SIZE];
-static char              _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
-static char              _assert_message_buffer[ASSERT_BUFFER_SIZE];
+static void*               _assert_stacktrace[ASSERT_STACKTRACE_MAX_DEPTH];
+static char                _assert_context_buffer[ASSERT_BUFFER_SIZE];
+static char                _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
+static char                _assert_message_buffer[ASSERT_BUFFER_SIZE];
 #endif
 
 
@@ -49,9 +49,11 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
 	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%.*s\n%.*s\n";
-	string_t tracestr = { _assert_stacktrace_buffer, ASSERT_BUFFER_SIZE };
-	string_t contextstr = { _assert_context_buffer, ASSERT_BUFFER_SIZE };
-	string_t messagestr = { _assert_message_buffer, ASSERT_BUFFER_SIZE };
+#if BUILD_ENABLE_ASSERT
+	string_t tracestr = { _assert_stacktrace_buffer, sizeof( _assert_stacktrace_buffer ) };
+	string_t contextstr = { _assert_context_buffer, sizeof( _assert_context_buffer ) };
+	string_t messagestr = { _assert_message_buffer, sizeof( _assert_message_buffer ) };
+#endif
 
 	if( !condition  ) { condition = nocondition; cond_length = sizeof( nocondition ); }
 	if( !file ) { file = nofile; file_length = sizeof( nofile ); }
@@ -86,7 +88,7 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 	system_message_box( STRING_CONST( "Assert Failure" ), STRING_ARGS( messagestr ), false );
 #else
 	log_errorf( context, ERROR_ASSERT, assert_format,
-		(int)condition.length, condition.str, (int)file_length, file, line,
+		(int)cond_length, condition, (int)file_length, file, line,
 		0, "", (int)msg.length, msg.str, 0, "" );
 #endif
 
@@ -99,7 +101,7 @@ int assert_report_formatted( hash_t context, const char* condition, size_t cond_
 	if( msg )
 	{
 		/*lint --e{438} Lint gets confused about assignment to ap */
-		string_t buffer = { _assert_buffer, ASSERT_BUFFER_SIZE };
+		string_t buffer = { _assert_buffer, sizeof( _assert_buffer ) };
 		va_list ap;
 		va_start( ap, msg_length );
 		buffer = string_vformat( STRING_ARGS( buffer ), msg, msg_length, ap );

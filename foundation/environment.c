@@ -342,8 +342,10 @@ string_const_t environment_current_working_directory( void )
 	string_t localpath = string_thread_buffer();
 	if( !getcwd( localpath.str, localpath.length ) )
 	{
+#if BUILD_ENABLE_LOG
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
+#endif
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to get cwd: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
 		return string_const( 0, 0 );
 	}
@@ -382,8 +384,10 @@ void environment_set_current_working_directory( const char* path, size_t length 
 	pathstr = string_copy( STRING_ARGS( buffer ), path, length );
 	if( chdir( pathstr.str ) < 0 )
 	{
+#if BUILD_ENABLE_LOG
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
+#endif
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to set working directory to %.*s: %.*s (%d)" ), (int)length, path, (int)errmsg.length, errmsg.str, err );
 	}
 	string_deallocate( _environment_current_working_dir.str );

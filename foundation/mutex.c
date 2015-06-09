@@ -277,8 +277,10 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		}
 		else
 		{
+#if BUILD_ENABLE_LOG
 			string_const_t errmsg = system_error_message( ret );
-			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
+#endif
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
 		}
 	}
 	else
@@ -299,8 +301,10 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 		}
 		else if( ret != ETIMEDOUT )
 		{
+#if BUILD_ENABLE_LOG
 			string_const_t errmsg = system_error_message( ret );
-			log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait (timed) on mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
+#endif
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait (timed) on mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
 		}
 	}
 
@@ -340,8 +344,10 @@ void mutex_signal( mutex_t* mutex )
 	int ret = pthread_cond_broadcast( &mutex->cond );
 	if( ret != 0 )
 	{
+#if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( ret );
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to signal mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
+#endif
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to signal mutex '%.*s': %.*s (%d)" ), (int)mutex->name.length, mutex->name.str, (int)errmsg.length, errmsg.str, ret );
 	}
 
 	mutex_unlock( mutex );

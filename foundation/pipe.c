@@ -66,7 +66,9 @@ void pipe_initialize( stream_pipe_t* pipestream )
 	int fds[2] = { 0, 0 };
 	if( pipe( fds ) < 0 )
 	{
+#if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( 0 );
+#endif
 		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create unnamed pipe: %.*s" ), (int)errmsg.length, errmsg.str );
 	}
 	pipestream->fd_read = fds[0];
