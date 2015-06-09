@@ -303,7 +303,7 @@ void* delegate_uiwindow( void )
 	FOUNDATION_UNUSED( notification );
 	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
 
-	log_debugf( 0, STRING_CONST( "Device orientation changed to %d", (int)orientation ) );
+	log_debugf( 0, STRING_CONST( "Device orientation changed to %d" ), (int)orientation );
 	system_set_device_orientation( (device_orientation_t)orientation );
 }
 

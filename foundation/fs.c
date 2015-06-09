@@ -95,14 +95,13 @@ typedef FOUNDATION_ALIGN(8) struct stream_file_t stream_file_t;
 
 static stream_vtable_t _fs_file_vtable;
 
-static void* _fs_monitor( object_t, void* );
-
 static fs_monitor_t* _fs_monitors;
 static event_stream_t* _fs_event_stream;
 
 
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOSX
 #  define FOUNDATION_HAVE_FS_MONITOR 1
+static void* _fs_monitor( object_t, void* );
 #else
 #  define FOUNDATION_HAVE_FS_MONITOR 0
 #endif
@@ -1163,6 +1162,7 @@ extern void  _fs_event_stream_flush( void* stream );
 
 #endif
 
+#if FOUNDATION_HAVE_FS_MONITOR
 
 void* _fs_monitor( object_t thread, void* monitorptr )
 {
@@ -1466,6 +1466,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 	return 0;
 }
+
+#endif
 
 
 static fs_file_descriptor _fs_file_fopen( const char* path, size_t length, unsigned int mode, bool* dotrunc )
