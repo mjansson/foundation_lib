@@ -330,7 +330,7 @@ static string_t config_make_path( int path, char* buffer, size_t capacity )
 {
 	string_t result;
 	string_const_t env_dir;
-#if !FOUNDATION_PLATFORM_FAMILY_MOBILE && !FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
 	const string_const_t* cmd_line;
 	size_t icl, clsize;
 #endif

@@ -91,8 +91,10 @@ DECLARE_TEST( stacktrace, resolve )
 
 #if !FOUNDATION_PLATFORM_ANDROID
 	EXPECT_NE( string_find_string( resolved.str, resolved.length, STRING_CONST( "stacktraceresolve_fn" ), 0 ), STRING_NPOS );
+#if !BUILD_DEPLOY && !BUILD_PROFILE
 	EXPECT_NE( string_find_string( resolved.str, resolved.length, STRING_CONST( "test_run" ), 0 ), STRING_NPOS );
-	//EXPECT_NE( string_find_string( resolved.str, resolved.length, STRING_CONST( "main_run" ), 0 ), STRING_NPOS );
+#endif
+	EXPECT_NE( string_find_string( resolved.str, resolved.length, STRING_CONST( "main" ), 0 ), STRING_NPOS );
 #endif
 
 	memory_deallocate( buffer );

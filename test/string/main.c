@@ -981,13 +981,13 @@ DECLARE_TEST( string, utility )
 		string_t concatstr10 = string_allocate_concat( STRING_ARGS( teststr3 ), STRING_ARGS( clonestr3 ) );
 
 		EXPECT_NE( teststr.str, clonestr.str );
-		EXPECT_STRINGEQ( teststr, string_const( STRING_ARGS( clonestr ) ) );
+		EXPECT_STRINGEQ( teststr, string_const( STRING_CONST( "" ) ) );
 
 		EXPECT_NE( teststr2.str, clonestr2.str );
-		EXPECT_STRINGEQ( teststr2, string_const( STRING_ARGS( clonestr2 ) ) );
+		EXPECT_STRINGEQ( teststr2, string_const( STRING_CONST( SHORTSTRING ) ) );
 
 		EXPECT_NE( teststr3.str, clonestr3.str );
-		EXPECT_STRINGEQ( teststr3, string_const( STRING_ARGS( clonestr3 ) ) );
+		EXPECT_STRINGEQ( teststr3, string_const( STRING_CONST( LONGSTRING ) ) );
 
 		EXPECT_STRINGEQ( concatstr, string_const( STRING_CONST( "" ) ) );
 		EXPECT_STRINGEQ( concatstr2, string_const( STRING_CONST( SHORTSTRING ) ) );
@@ -1000,12 +1000,6 @@ DECLARE_TEST( string, utility )
 		EXPECT_STRINGEQ( concatstr9, string_const( STRING_CONST( LONGSTRING LONGSTRING ) ) );
 		EXPECT_STRINGEQ( concatstr10, string_const( STRING_CONST( LONGSTRING LONGSTRING ) ) );
 
-		string_deallocate( teststr.str );
-		string_deallocate( clonestr.str );
-		string_deallocate( teststr2.str );
-		string_deallocate( clonestr2.str );
-		string_deallocate( teststr3.str );
-		string_deallocate( clonestr3.str );
 		string_deallocate( concatstr.str );
 		string_deallocate( concatstr2.str );
 		string_deallocate( concatstr3.str );
@@ -1054,6 +1048,13 @@ DECLARE_TEST( string, utility )
 		EXPECT_EQ( buf[0], 'l' ); //Expect buf to be unchanged from previous test
 		EXPECT_EQ( concatstr.length, 0 );
 		EXPECT_STRINGEQ( concatstr, string_const( STRING_CONST( "" ) ) );
+
+		string_deallocate( teststr.str );
+		string_deallocate( clonestr.str );
+		string_deallocate( teststr2.str );
+		string_deallocate( clonestr2.str );
+		string_deallocate( teststr3.str );
+		string_deallocate( clonestr3.str );
 
 		#undef SHORTSTRING
 		#undef LONGSTRING

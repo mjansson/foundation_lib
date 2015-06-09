@@ -78,7 +78,7 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 		tracestr = string_copy( STRING_ARGS( tracestr ), STRING_CONST( "<no stacktrace - not initialized>" ) );
 	}
 
-	messagestr = string_format( STRING_ARGS( messagestr ), assert_format, sizeof( assert_format ),
+	messagestr = string_format( STRING_ARGS( messagestr ), assert_format, sizeof( assert_format ) - 1,
 		(int)cond_length, condition, (int)file_length, file, line,
 		STRING_FORMAT( contextstr ), (int)msg_length, msg,
 		STRING_FORMAT( tracestr ) );
@@ -87,9 +87,9 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 
 	system_message_box( STRING_CONST( "Assert Failure" ), STRING_ARGS( messagestr ), false );
 #else
-	log_errorf( context, ERROR_ASSERT, assert_format,
+	log_errorf( context, ERROR_ASSERT, assert_format, sizeof( assert_format ) - 1,
 		(int)cond_length, condition, (int)file_length, file, line,
-		0, "", (int)msg.length, msg.str, 0, "" );
+		0, "", (int)msg_length, msg, 0, "" );
 #endif
 
 	return 1;

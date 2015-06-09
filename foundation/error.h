@@ -47,8 +47,7 @@ FOUNDATION_API void                           _error_context_thread_deallocate( 
 #define error_context_push( ... )             do { _error_context_push( __VA_ARGS__ ); } while(0)
 #define error_context_pop()                   do { /* */ } while(0)
 #define error_context_clear()                 do { /* */ } while(0)
-#define _error_context_buffer( str, length )  (void)sizeof( str ); (void)sizeof( length ), string_null()
-#define error_context_buffer( ... )           _error_context_buffer( __VA_ARGS__ )
+#define error_context_buffer( str, length )   string_copy( str, length, 0, 0 )
 #define error_context()                       0
 #define error_context_declare_local( decl )   do { /* */ } while(0)
 #define error_context_thread_deallocate()     do { /* */ } while(0)

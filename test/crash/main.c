@@ -71,6 +71,9 @@ static void test_crash_shutdown( void )
 static void test_crash_callback( const char* dump_path, size_t length )
 {
 	FOUNDATION_UNUSED( dump_path );
+#if !BUILD_ENABLE_LOG
+	FOUNDATION_UNUSED( length );
+#endif
 	log_infof( HASH_TEST, STRING_CONST( "Crash callback called: %.*s" ), (int)length, dump_path );
 	_crash_callback_called = true;
 }

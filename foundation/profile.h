@@ -46,15 +46,15 @@ FOUNDATION_API void profile_signal( const char* name, size_t length );
 #define profile_set_output_wait( ms ) do{ (void)sizeof( ms ); } while(0)
 
 #define profile_end_frame( counter ) do { (void)sizeof( counter ); } while(0)
-#define profile_begin_block( msg, length ) do { (void)sizeof( msg ); (void)sizeof( length ); } while(0)
+#define profile_begin_block( ... ) do {} while(0)
 #define profile_update_block() do {} while(0)
 #define profile_end_block() do {} while(0)
 
-#define profile_log( message, length ) do { (void)sizeof( message ); (void)sizeof( length ); } while(0)
-#define profile_trylock( name, length ) do { (void)sizeof( name ); (void)sizeof( length ); } while(0)
-#define profile_lock( name, length ) do { (void)sizeof( name ); (void)sizeof( length ); } while(0)
-#define profile_unlock( name, length ) do { (void)sizeof( name ); (void)sizeof( length ); } while(0)
-#define profile_wait( name, length ) do { (void)sizeof( name ); (void)sizeof( length ); } while(0)
-#define profile_signal( name, length ) do { (void)sizeof( name ); (void)sizeof( length ); } while(0)
+#define profile_log( ... )  do {} while(0)
+#define profile_trylock( ... )  do {} while(0)
+#define profile_lock( ... )  do {} while(0)
+#define profile_unlock( ... )  do {} while(0)
+#define profile_wait( ... )  do {} while(0)
+#define profile_signal( ... )  do {} while(0)
 
 #endif

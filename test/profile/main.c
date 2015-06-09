@@ -17,7 +17,6 @@
 //Must be >30000 since we assume that in forced fail test
 #define TEST_PROFILE_BUFFER_SIZE  512000
 
-static const size_t         _test_profile_buffer_size = TEST_PROFILE_BUFFER_SIZE;
 static char*                _test_profile_buffer;
 static size_t               _test_profile_offset;
 static atomic32_t           _test_profile_output_counter;
@@ -64,8 +63,6 @@ static int test_profile_initialize( void )
 
 	_test_profile_buffer = memory_allocate( 0, TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT );
 
-	FOUNDATION_UNUSED( _test_profile_buffer_size );
-
 	return 0;
 }
 
@@ -84,7 +81,7 @@ DECLARE_TEST( profile, initialize )
 	_test_profile_offset = 0;
 	atomic_store32( &_test_profile_output_counter, 0 );
 
-	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, _test_profile_buffer_size );
+	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE );
 	profile_enable( true );
 
 	profile_log( STRING_CONST( "testing" ) );
@@ -114,7 +111,7 @@ DECLARE_TEST( profile, output )
 	_test_profile_offset = 0;
 	atomic_store32( &_test_profile_output_counter, 0 );
 
-	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, _test_profile_buffer_size );
+	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE );
 	profile_enable( true );
 
 	profile_log( STRING_CONST( "testing" ) );
@@ -137,7 +134,7 @@ DECLARE_TEST( profile, output )
 	_test_profile_offset = 0;
 	atomic_store32( &_test_profile_output_counter, 0 );
 
-	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, _test_profile_buffer_size );
+	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE );
 	profile_enable( false );
 
 	profile_log( STRING_CONST( "testing again" ) );
@@ -207,7 +204,7 @@ DECLARE_TEST( profile, thread )
 	_test_profile_offset = 0;
 	atomic_store32( &_test_profile_output_counter, 0 );
 
-	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, 30000/*_test_profile_buffer_size*/ );
+	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, 30000 );
 	profile_enable( true );
 	profile_set_output_wait( 1 );
 
@@ -330,7 +327,7 @@ DECLARE_TEST( profile, stream )
 	_profile_stream = fs_open_file( STRING_ARGS( filename ), STREAM_OUT | STREAM_BINARY );
 	string_deallocate( filename.str );
 
-	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, _test_profile_buffer_size );
+	profile_initialize( STRING_CONST( "test_profile" ), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE );
 	profile_set_output( _profile_file_writer );
 	profile_set_output_wait( 10 );
 	profile_enable( true );
