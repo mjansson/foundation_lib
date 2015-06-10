@@ -392,7 +392,8 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 
 	FOUNDATION_ASSERT( atomic_load32( &thread->running ) == 1 );
 
-	log_debugf( 0, STRING_CONST( "Started thread '%s' (%" PRIx64 ") ID %" PRIx64 "%s" ), thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
+	log_debugf( 0, STRING_CONST( "Started thread '%s' (%" PRIx64 ") ID %" PRIx64 "%s" ),
+		thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "" );
 
 	if( system_debugger_attached() )
 	{
@@ -405,13 +406,15 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		if( crash_result == FOUNDATION_CRASH_DUMP_GENERATED )
 		{
 			thread->result = (void*)((uintptr_t)FOUNDATION_CRASH_DUMP_GENERATED);
-			log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Thread '%s' (%" PRIx64 ") ID %" PRIx64 " crashed" ), thread->name, thread->osid, thread->id );
+			log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Thread '%s' (%" PRIx64 ") ID %" PRIx64 " crashed" ),
+				thread->name, thread->osid, thread->id );
 		}
 	}
 
 	thr_osid = thread->osid;
 	thr_id = thread->id;
-	log_debugf( 0, STRING_CONST( "Terminated thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs" ), thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
+	log_debugf( 0, STRING_CONST( "Terminated thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs" ),
+		thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	thread->osid  = 0;
 
@@ -424,7 +427,8 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		atomic_store32( &thread->running, 0 );
 	}
 
-	log_debugf( 0, STRING_CONST( "Exiting thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs" ), thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
+	log_debugf( 0, STRING_CONST( "Exiting thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs" ),
+		thread->name, thr_osid, thr_id, atomic_load32( &thread->ref ) );
 
 	_thread_unref( thread );
 
@@ -468,7 +472,8 @@ bool thread_start( object_t id, void* data )
 		int err = GetLastError();
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: CreateThread failed: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: CreateThread failed: %.*s (%d)" ),
+			STRING_FORMAT( errmsg ), err );
 		return false;
 	}
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
@@ -478,7 +483,8 @@ bool thread_start( object_t id, void* data )
 #if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: pthread_create failed: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: pthread_create failed: %.*s (%d)" ),
+			STRING_FORMAT( errmsg ), err );
 		return false;
 	}
 #else

@@ -346,7 +346,8 @@ string_const_t environment_current_working_directory( void )
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to get cwd: %.*s (%d)" ), STRING_FORMAT( errmsg ), err );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to get cwd: %.*s (%d)" ),
+			STRING_FORMAT( errmsg ), err );
 		return string_const( 0, 0 );
 	}
 	localpath = path_clean( localpath.str, string_length( localpath.str ), localpath.length );
@@ -388,7 +389,8 @@ void environment_set_current_working_directory( const char* path, size_t length 
 		int err = errno;
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to set working directory to %.*s: %.*s (%d)" ), (int)length, path, (int)errmsg.length, errmsg.str, err );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to set working directory to %.*s: %.*s (%d)" ),
+			(int)length, path, STRING_FORMAT( errmsg ), err );
 	}
 	string_deallocate( _environment_current_working_dir.str );
 	_environment_current_working_dir = (string_t){ 0, 0 };
@@ -412,7 +414,7 @@ string_const_t environment_home_directory( void )
 		wchar_t wpath[FOUNDATION_MAX_PATHLEN];
 		SHGetFolderPathW( 0, CSIDL_LOCAL_APPDATA, 0, 0, wpath );
 		_environment_home_dir = string_allocate_from_wstring( wpath, 0 );
-		_environment_home_dir = path_clean( _environment_home_dir.str, _environment_home_dir.length, _environment_home_dir.length, true, true );
+		_environment_home_dir = path_clean( STRING_ARGS_CAPACITY( _environment_home_dir ), true, true );
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_TIZEN
 	string_const_t env_home = environment_variable( STRING_CONST( "HOME" ) );
@@ -431,7 +433,8 @@ string_const_t environment_home_directory( void )
 	{
 		char bundle_identifier[256];
 		string_t bundle = environment_bundle_identifier( bundle_identifier, 256 );
-		pathstr = path_append_varg( STRING_ARGS( pathstr ), BUILD_MAX_PATHLEN, STRING_CONST( "Library/Application Support" ), STRING_ARGS( bundle ), nullptr );
+		pathstr = path_append_varg( STRING_ARGS( pathstr ), BUILD_MAX_PATHLEN, STRING_CONST( "Library/Application Support" ),
+			STRING_ARGS( bundle ), nullptr );
 	}
 #  endif
 	_environment_home_dir = string_clone( pathstr.str, pathstr.length );

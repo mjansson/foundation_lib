@@ -21,6 +21,7 @@ static char*                _test_profile_buffer;
 static size_t               _test_profile_offset;
 static atomic32_t           _test_profile_output_counter;
 
+#if BUILD_ENABLE_PROFILE
 
 static void test_profile_output( void* buffer, size_t size )
 {
@@ -28,6 +29,8 @@ static void test_profile_output( void* buffer, size_t size )
 	FOUNDATION_UNUSED( size );
 	atomic_incr32( &_test_profile_output_counter );
 }
+
+#endif
 
 
 static application_t test_profile_application( void )
@@ -254,6 +257,7 @@ DECLARE_TEST( profile, thread )
 static stream_t* _profile_stream;
 static atomic64_t _profile_generated_blocks;
 
+#if BUILD_ENABLE_PROFILE
 
 static void _profile_file_writer( void* buffer, size_t size )
 {
@@ -261,6 +265,7 @@ static void _profile_file_writer( void* buffer, size_t size )
 		stream_write( _profile_stream, buffer, size );
 }
 
+#endif
 
 static void* _profile_stream_thread( object_t thread, void* arg )
 {

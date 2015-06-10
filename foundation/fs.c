@@ -780,7 +780,8 @@ bool fs_make_directory( const char* path, size_t length )
 				int err = system_error();
 				string_const_t errmsg = system_error_message( err );
 #endif
-				log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Failed to create directory '%.*s': %.*s (%d)" ), STRING_FORMAT( localpath ), STRING_FORMAT( errmsg ), err );
+				log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Failed to create directory '%.*s': %.*s (%d)" ),
+					STRING_FORMAT( localpath ), STRING_FORMAT( errmsg ), err );
 				goto end;
 			}
 		}
@@ -1660,7 +1661,8 @@ static void _fs_file_seek( stream_t* stream, ssize_t offset, stream_seek_mode_t 
 		}
 	}
 #else
-	fseek( GET_FILE( stream )->fd, (long)offset, ( direction == STREAM_SEEK_BEGIN ) ? SEEK_SET : ( ( direction == STREAM_SEEK_END ) ? SEEK_END : SEEK_CUR ) );
+	fseek( GET_FILE( stream )->fd, (long)offset,
+		( direction == STREAM_SEEK_BEGIN ) ? SEEK_SET : ( ( direction == STREAM_SEEK_END ) ? SEEK_END : SEEK_CUR ) );
 #endif
 }
 
@@ -1777,7 +1779,8 @@ static void _fs_file_truncate( stream_t* stream, size_t length )
 		int err = system_error();
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s (%d)" ), (int)fspath.length, fspath.str, length, (int)errmsg.length, errmsg.str, err );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s (%d)" ),
+			STRING_FORMAT( fspath ), length, STRING_FORMAT( errmsg ), err );
 	}
 	close( fd );
 #else

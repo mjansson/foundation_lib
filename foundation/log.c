@@ -211,6 +211,12 @@ void log_debugf( hash_t context, const char* format, size_t length, ... )
 }
 
 
+void log_debug( hash_t context, const char* msg, size_t length )
+{
+	log_debugf( context, STRING_CONST( "%.*s" ), (int)length, msg );
+}
+
+
 #endif
 
 
@@ -224,6 +230,12 @@ void log_infof( hash_t context, const char* format, size_t length, ... )
 	if( log_suppress( context ) < ERRORLEVEL_INFO )
 		_log_outputf( context, ERRORLEVEL_INFO, "", 0, format, length, list, stdout );
 	va_end( list );
+}
+
+
+void log_info( hash_t context, const char* msg, size_t length )
+{
+	log_infof( context, STRING_CONST( "%.*s" ), (int)length, msg );
 }
 
 
@@ -246,6 +258,12 @@ void log_warnf( hash_t context, warning_t warn, const char* format, size_t lengt
 	va_start( list, length );
 	_log_outputf( context, ERRORLEVEL_WARNING, prefix.str, prefix.length, format, length, list, stdout );
 	va_end( list );
+}
+
+
+void log_warn( hash_t context, warning_t warn, const char* msg, size_t length )
+{
+	log_warnf( context, warn, STRING_CONST( "%.*s" ), (int)length, msg );
 }
 
 
@@ -273,6 +291,12 @@ void log_errorf( hash_t context, error_t err, const char* format, size_t length,
 }
 
 
+void log_error( hash_t context, error_t err, const char* msg, size_t length )
+{
+	log_errorf( context, err, STRING_CONST( "%.*s" ), (int)length, msg );
+}
+
+
 void log_panicf( hash_t context, error_t err, const char* format, size_t length, ... )
 {
 	char buffer[32];
@@ -291,6 +315,12 @@ void log_panicf( hash_t context, error_t err, const char* format, size_t length,
 	va_end( list );
 
 	error_report( ERRORLEVEL_PANIC, err );
+}
+
+
+void log_panic( hash_t context, error_t err, const char* msg, size_t length )
+{
+	log_panicf( context, err, STRING_CONST( "%.*s" ), (int)length, msg );
 }
 
 
