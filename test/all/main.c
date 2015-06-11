@@ -418,7 +418,7 @@ int main_run( void* main_arg )
 		process_set_working_directory( process, STRING_ARGS( environment_executable_directory() ) );
 		process_set_flags( process, PROCESS_ATTACHED | exe_flags[iexe] );
 
-		log_infof( HASH_TEST, STRING_CONST( "Running test executable: %.*s" ), STRING_FORMAT( exe_paths[iexe] ) );
+		log_infof( HASH_TEST, STRING_CONST( "Running test executable: %*s" ), STRING_FORMAT( exe_paths[iexe] ) );
 
 		process_result = process_spawn( process );
 		while( process_result == PROCESS_WAIT_INTERRUPTED )
@@ -438,7 +438,7 @@ int main_run( void* main_arg )
 			goto exit;
 		}
 
-		log_infof( HASH_TEST, STRING_CONST( "All tests from %.*s passed (%d)" ), STRING_FORMAT( exe_paths[iexe] ), process_result );
+		log_infof( HASH_TEST, STRING_CONST( "All tests from %*s passed (%d)" ), STRING_FORMAT( exe_paths[iexe] ), process_result );
 	}
 
 	log_info( HASH_TEST, STRING_CONST( "All tests passed" ) );

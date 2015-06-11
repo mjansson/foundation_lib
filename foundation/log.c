@@ -138,9 +138,9 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 5, 0 ) _log_outputf( hash_t c
 	{
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if( _log_prefix )
-			need = snprintf( buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %.*s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length, prefix );
+			need = snprintf( buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %*s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length, prefix );
 		else
-			need = snprintf( buffer, (size_t)size, "%.*s", (int)prefix_length, prefix );
+			need = snprintf( buffer, (size_t)size, "%*s", (int)prefix_length, prefix );
 
 		remain = size - need;
 		{
@@ -213,7 +213,7 @@ void log_debugf( hash_t context, const char* format, size_t length, ... )
 
 void log_debug( hash_t context, const char* msg, size_t length )
 {
-	log_debugf( context, STRING_CONST( "%.*s" ), (int)length, msg );
+	log_debugf( context, STRING_CONST( "%*s" ), (int)length, msg );
 }
 
 
@@ -235,7 +235,7 @@ void log_infof( hash_t context, const char* format, size_t length, ... )
 
 void log_info( hash_t context, const char* msg, size_t length )
 {
-	log_infof( context, STRING_CONST( "%.*s" ), (int)length, msg );
+	log_infof( context, STRING_CONST( "%*s" ), (int)length, msg );
 }
 
 
@@ -263,7 +263,7 @@ void log_warnf( hash_t context, warning_t warn, const char* format, size_t lengt
 
 void log_warn( hash_t context, warning_t warn, const char* msg, size_t length )
 {
-	log_warnf( context, warn, STRING_CONST( "%.*s" ), (int)length, msg );
+	log_warnf( context, warn, STRING_CONST( "%*s" ), (int)length, msg );
 }
 
 
@@ -293,7 +293,7 @@ void log_errorf( hash_t context, error_t err, const char* format, size_t length,
 
 void log_error( hash_t context, error_t err, const char* msg, size_t length )
 {
-	log_errorf( context, err, STRING_CONST( "%.*s" ), (int)length, msg );
+	log_errorf( context, err, STRING_CONST( "%*s" ), (int)length, msg );
 }
 
 
@@ -320,7 +320,7 @@ void log_panicf( hash_t context, error_t err, const char* format, size_t length,
 
 void log_panic( hash_t context, error_t err, const char* msg, size_t length )
 {
-	log_panicf( context, err, STRING_CONST( "%.*s" ), (int)length, msg );
+	log_panicf( context, err, STRING_CONST( "%*s" ), (int)length, msg );
 }
 
 
@@ -341,7 +341,7 @@ void log_error_context( hash_t context, error_level_t error_level )
 	{
 		error_frame_t* frame = err_context->frame;
 		for( i = 0; i < err_context->depth; ++i, ++frame )
-			_log_error_contextf( context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout, STRING_CONST( "When %.*s: %.*s" ), (int)frame->name.length, frame->name.str, (int)frame->data.length, frame->data.str );
+			_log_error_contextf( context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout, STRING_CONST( "When %*s: %*s" ), (int)frame->name.length, frame->name.str, (int)frame->data.length, frame->data.str );
 	}
 }
 

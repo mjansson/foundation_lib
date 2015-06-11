@@ -58,12 +58,12 @@ DECLARE_TEST( environment, builtin )
 
 	EXPECT_GE( array_size( cmdline ), 1 );
 #if !BUILD_MONOLITHIC
-	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "test-environment" ), 0 ), STRING_NPOS, "Commandline: %.*s", (int)cmdline[0].length, cmdline[0].str );
+	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "test-environment" ), 0 ), STRING_NPOS, "Commandline: %*s", (int)cmdline[0].length, cmdline[0].str );
 	EXPECT_CONSTSTRINGEQ( environment_executable_name(), string_const( STRING_CONST( "test-environment" ) ) );
 #elif FOUNDATION_PLATFORM_ANDROID
-	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "com.rampantpixels.foundation.test" ), 0 ), STRING_NPOS, "Commandline: %.*s", (int)cmdline[0].length, cmdline[0].str );
+	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "com.rampantpixels.foundation.test" ), 0 ), STRING_NPOS, "Commandline: %*s", (int)cmdline[0].length, cmdline[0].str );
 #elif !FOUNDATION_PLATFORM_PNACL
-	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "test-all" ), 0 ), STRING_NPOS, "Commandline: %.*s", (int)cmdline[0].length, cmdline[0].str );
+	EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( cmdline[0] ), STRING_CONST( "test-all" ), 0 ), STRING_NPOS, "Commandline: %*s", (int)cmdline[0].length, cmdline[0].str );
 	EXPECT_CONSTSTRINGEQ( environment_executable_name(), string_const( STRING_CONST( "test-all" ) ) );
 #endif
 	EXPECT_NE( environment_initial_working_directory().str, 0 );

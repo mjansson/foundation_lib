@@ -567,7 +567,7 @@ DECLARE_TEST( fs, monitor )
 			evtsize = event->payload[0];
 			evtpath = pointer_offset( event->payload, sizeof( size_t ) );
 
-			string_format( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
+			string_format( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
 			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr );
 
 			for( isub = 0; isub < MULTICOUNT; ++isub )
@@ -620,7 +620,7 @@ DECLARE_TEST( fs, monitor )
 
 			evtsize = event->payload[0];
 			evtpath = pointer_offset( event->payload, sizeof( size_t ) );
-			string_format( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%.*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
+			string_format( eventstr, 256, STRING_CONST( "event %d:%d:%d:%d:%*s" ), event->id, event->flags, event->serial, event->size, (int)evtsize, evtpath );
 
 			EXPECT_EQ_MSG( event->id, FOUNDATIONEVENT_FILE_DELETED, eventstr );
 

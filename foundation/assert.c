@@ -48,7 +48,7 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 	static const char nocondition[] = "<Static fail>";
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
-	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%.*s\n%.*s\n";
+	static const char assert_format[] = "****** ASSERT FAILED ******\nCondition: %*s\nFile/line: %*s : %d\n%*s%*s\n%*s\n";
 #if BUILD_ENABLE_ASSERT
 	string_t tracestr = { _assert_stacktrace_buffer, sizeof( _assert_stacktrace_buffer ) };
 	string_t contextstr = { _assert_context_buffer, sizeof( _assert_context_buffer ) };
@@ -83,7 +83,7 @@ int assert_report( hash_t context, const char* condition, size_t cond_length, co
 		STRING_FORMAT( contextstr ), (int)msg_length, msg,
 		STRING_FORMAT( tracestr ) );
 
-	log_errorf( context, ERROR_ASSERT, STRING_CONST( "%.*s" ), STRING_FORMAT( messagestr ) );
+	log_errorf( context, ERROR_ASSERT, STRING_CONST( "%*s" ), STRING_FORMAT( messagestr ) );
 
 	system_message_box( STRING_CONST( "Assert Failure" ), STRING_ARGS( messagestr ), false );
 #else

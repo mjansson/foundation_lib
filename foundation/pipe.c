@@ -61,7 +61,7 @@ void pipe_initialize( stream_pipe_t* pipestream )
 #if BUILD_ENABLE_LOG
 			string_const_t errmsg = system_error_message( GetLastError() );
 #endif
-			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create unnamed pipe: %.*s" ), STRING_FORMAT( errmsg ) );
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create unnamed pipe: %*s" ), STRING_FORMAT( errmsg ) );
 		}
 	}
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
@@ -71,7 +71,7 @@ void pipe_initialize( stream_pipe_t* pipestream )
 #if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( 0 );
 #endif
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create unnamed pipe: %.*s" ), STRING_FORMAT( errmsg ) );
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create unnamed pipe: %*s" ), STRING_FORMAT( errmsg ) );
 	}
 	pipestream->fd_read = fds[0];
 	pipestream->fd_write = fds[1];
@@ -215,7 +215,7 @@ static size_t _pipe_stream_read( stream_t* stream, void* dest, size_t num )
 #if BUILD_ENABLE_LOG
 					string_const_t errmsg = system_error_message( err );
 #endif
-					log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read from pipe: %.*s (%d)" ),
+					log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read from pipe: %*s (%d)" ),
 						STRING_FORMAT( errmsg ), err );
 				}
 			}

@@ -291,7 +291,7 @@ DECLARE_TEST( stream, readwrite_binary )
 	fs_make_directory( STRING_ARGS( directory ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -379,7 +379,7 @@ DECLARE_TEST( stream, readwrite_binary )
 	fs_remove_file( STRING_ARGS( path ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -449,7 +449,7 @@ DECLARE_TEST( stream, readwrite_binary )
 	fs_remove_file( STRING_ARGS( path ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -538,7 +538,7 @@ DECLARE_TEST( stream, readwrite_text )
 	fs_make_directory( STRING_ARGS( directory ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_OUT | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	//Make sure byte swap does not affect text mode
 	stream_set_byteorder( teststream, ( system_byteorder() == BYTEORDER_LITTLEENDIAN ) ? BYTEORDER_BIGENDIAN : BYTEORDER_LITTLEENDIAN );
@@ -564,7 +564,7 @@ DECLARE_TEST( stream, readwrite_text )
 	stream_write_string( teststream, STRING_CONST( "test string\nwith some newlines\nin the string" ) ); stream_write_endl( teststream );
 	stream_write_format( teststream, STRING_CONST( "formatted output with a null pointer 0x%" PRIfixPTR ), (uintptr_t)nullptr ); stream_write_endl( teststream );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025ULL + 74ULL + 45ULL + 40ULL + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ") : %.*s", stream_tell( teststream ), STRING_FORMAT( stream_path( teststream ) ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025ULL + 74ULL + 45ULL + 40ULL + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ") : %*s", stream_tell( teststream ), STRING_FORMAT( stream_path( teststream ) ) );
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
 
@@ -646,7 +646,7 @@ DECLARE_TEST( stream, readwrite_text )
 	fs_remove_file( STRING_ARGS( path ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -716,7 +716,7 @@ DECLARE_TEST( stream, readwrite_text )
 	fs_remove_file( STRING_ARGS( path ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -806,7 +806,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	fs_make_directory( STRING_ARGS( directory ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_OUT | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	teststream->sequential = 1;
 
@@ -831,7 +831,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	stream_write_string( teststream, STRING_CONST( "test string\nwith some newlines\nin the string" ) ); stream_write_endl( teststream );
 	stream_write_format( teststream, STRING_CONST( "formatted output with a null pointer 0x%" PRIfixPTR ), (uintptr_t)nullptr ); stream_write_endl( teststream );
 
-	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 75 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ") : %.*s", stream_tell( teststream ), STRING_FORMAT( stream_path( teststream ) ) );
+	EXPECT_EQ_MSGFORMAT( stream_tell( teststream ), 1025 + 75 + 45 + 40 + FOUNDATION_SIZE_POINTER*2, "stream position not expected after writes (%" PRIsize ") : %*s", stream_tell( teststream ), STRING_FORMAT( stream_path( teststream ) ) );
 	teststream->sequential = 0;
 	stream_seek( teststream, 0, STREAM_SEEK_BEGIN );
 	EXPECT_EQ_MSG( stream_tell( teststream ), 0, "stream position not null after seek" );
@@ -921,7 +921,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	fs_remove_file( STRING_ARGS( path ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -993,7 +993,7 @@ DECLARE_TEST( stream, readwrite_sequential )
 	fs_remove_file( STRING_ARGS( path ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	for( i = 0; i < 1024; ++i )
 		write_buffer[i] = (char)( i + 63 );
@@ -1093,7 +1093,7 @@ DECLARE_TEST( stream, readwrite_swap )
 	fs_make_directory( STRING_ARGS( directory ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	stream_set_byteorder( teststream, ( system_byteorder() == BYTEORDER_LITTLEENDIAN ) ? BYTEORDER_BIGENDIAN : BYTEORDER_LITTLEENDIAN );
 	EXPECT_EQ_MSG( stream_is_swapped( teststream ), true, "swap was not set correctly" );
@@ -1147,7 +1147,7 @@ DECLARE_TEST( stream, readwrite_swap )
 	fs_remove_file( STRING_ARGS( path ) );
 
 	teststream = stream_open( STRING_ARGS( path ), STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE );
-	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%.*s' not created", STRING_FORMAT( path ) );
+	EXPECT_NE_MSGFORMAT( teststream, 0, "test stream '%*s' not created", STRING_FORMAT( path ) );
 
 	EXPECT_EQ_MSG( stream_is_swapped( teststream ), false, "swap was not set correctly" );
 

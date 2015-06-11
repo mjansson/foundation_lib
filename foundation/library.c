@@ -161,14 +161,14 @@ object_t library_load( const char* name, size_t length )
 		string_t libname;
 		if( last_slash == STRING_NPOS )
 		{
-			libname = string_format( buf, sizeof( buf ), STRING_CONST( FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( FOUNDATION_LIB_PRE "%*s" FOUNDATION_LIB_EXT ),
 				(int)length, name );
 		}
 		else
 		{
 			string_const_t path = path_directory_name( name, length );
 			string_const_t file = path_file_name( name, length );
-			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%*s/" FOUNDATION_LIB_PRE "%*s" FOUNDATION_LIB_EXT ),
 				(int)path.length, path.str, (int)file.length, file.str );
 		}
 		lib = dlopen( libname.str, RTLD_LAZY );
@@ -180,12 +180,12 @@ object_t library_load( const char* name, size_t length )
 		string_const_t exe_dir = environment_executable_directory();
 		if( !string_ends_with( name, length, STRING_CONST( FOUNDATION_LIB_EXT ) ) )
 		{
-			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%*s/" FOUNDATION_LIB_PRE "%*s" FOUNDATION_LIB_EXT ),
 				STRING_FORMAT( exe_dir ), (int)length, name );
 		}
 		else
 		{
-			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" ),
+			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%*s/" FOUNDATION_LIB_PRE "%*s" ),
 				STRING_FORMAT( exe_dir ), (int)length, name );
 		}
 		lib = dlopen( libname.str, RTLD_LAZY );
@@ -194,7 +194,7 @@ object_t library_load( const char* name, size_t length )
 
 	if( !lib )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to load dynamic library '%.*s': %s" ), (int)length, name, dlerror() );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to load dynamic library '%*s': %s" ), (int)length, name, dlerror() );
 		error_context_pop();
 		return 0;
 	}
@@ -209,7 +209,7 @@ object_t library_load( const char* name, size_t length )
 #elif FOUNDATION_PLATFORM_POSIX
 		dlclose( lib );
 #endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to allocate new library '%.*s', map full" ), (int)length, name );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to allocate new library '%*s', map full" ), (int)length, name );
 		error_context_pop();
 		return 0;
 	}

@@ -805,7 +805,7 @@ static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t 
 			}
 		}
 
-		line = string_format( linebuf, sizeof( linebuf ), STRING_CONST( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %.*s\n" ),
+		line = string_format( linebuf, sizeof( linebuf ), STRING_CONST( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %*s\n" ),
 			(uintptr_t)frames[iaddr], (uintptr_t)relativeframe, STRING_FORMAT( module ) );
 		symbols = string_append( STRING_ARGS( symbols ), size, STRING_ARGS( line ) );
 	}

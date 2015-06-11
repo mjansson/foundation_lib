@@ -113,7 +113,7 @@ string_t _error_context_buffer( char* buffer, size_t size )
 				--size;
 			}
 
-			line = string_format( buffer, size, STRING_CONST( "When %.*s: %.*s" ), (int)frame->name.length, frame->name.str, (int)frame->data.length, frame->data.str );
+			line = string_format( buffer, size, STRING_CONST( "When %*s: %*s" ), (int)frame->name.length, frame->name.str, (int)frame->data.length, frame->data.str );
 
 			buffer += line.length;
 			size -= line.length;

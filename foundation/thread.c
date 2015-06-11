@@ -472,7 +472,7 @@ bool thread_start( object_t id, void* data )
 		int err = GetLastError();
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: CreateThread failed: %.*s (%d)" ),
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: CreateThread failed: %*s (%d)" ),
 			STRING_FORMAT( errmsg ), err );
 		return false;
 	}
@@ -483,7 +483,7 @@ bool thread_start( object_t id, void* data )
 #if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: pthread_create failed: %.*s (%d)" ),
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to create thread: pthread_create failed: %*s (%d)" ),
 			STRING_FORMAT( errmsg ), err );
 		return false;
 	}

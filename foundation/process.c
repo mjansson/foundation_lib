@@ -374,7 +374,7 @@ int process_spawn( process_t* proc )
 		params.application = fsref;
 		params.argv = argvref;
 
-		log_debugf( 0, STRING_CONST( "Spawn process (LSOpenApplication): %.*s" ), STRING_FORMAT( localpath ) );
+		log_debugf( 0, STRING_CONST( "Spawn process (LSOpenApplication): %*s" ), STRING_FORMAT( localpath ) );
 
 		status = LSOpenApplication( &params, &psn );
 		if( status != 0 )
@@ -384,7 +384,7 @@ int process_spawn( process_t* proc )
 			string_const_t errmsg = system_error_message( err );
 #endif
 			proc->code = status;
-			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to spawn process for executable '%.*s': %.*s (%d)" ),
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to spawn process for executable '%*s': %*s (%d)" ),
 				STRING_FORMAT( localpath ), STRING_FORMAT( errmsg ), err );
 		}
 
@@ -411,7 +411,7 @@ int process_spawn( process_t* proc )
 #if BUILD_ENABLE_LOG
 				string_const_t errmsg = system_error_message( proc->kq );
 #endif
-				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create kqueue for process watch: %.*s (%d)" ),
+				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create kqueue for process watch: %*s (%d)" ),
 					STRING_FORMAT( errmsg ), proc->kq );
 				proc->kq = 0;
 			}
@@ -426,7 +426,7 @@ int process_spawn( process_t* proc )
 					int err = errno;
 					string_const_t errmsg = system_error_message( err );
 #endif
-					log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to setup kqueue for process watch, failed to add event to kqueue: %.*s (%d)" ),
+					log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to setup kqueue for process watch, failed to add event to kqueue: %*s (%d)" ),
 						STRING_FORMAT( errmsg ), err );
 					close( proc->kq );
 					proc->kq = 0;
@@ -468,11 +468,11 @@ int process_spawn( process_t* proc )
 		//Child
 		if( proc->wd.length )
 		{
-			log_debugf( 0, STRING_CONST( "Spawned child process, setting working directory to %.*s" ), STRING_FORMAT( proc->wd ) );
+			log_debugf( 0, STRING_CONST( "Spawned child process, setting working directory to %*s" ), STRING_FORMAT( proc->wd ) );
 			environment_set_current_working_directory( STRING_ARGS( proc->wd ) );
 		}
 
-		log_debugf( 0, STRING_CONST( "Child process executing: %.*s" ), STRING_FORMAT( proc->path ) );
+		log_debugf( 0, STRING_CONST( "Child process executing: %*s" ), STRING_FORMAT( proc->path ) );
 
 		if( proc->flags & PROCESS_STDSTREAMS )
 		{
@@ -490,7 +490,7 @@ int process_spawn( process_t* proc )
 			int err = errno;
 			string_const_t errmsg = system_error_message( err );
 #endif
-			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Child process failed execve() '%.*s': %.*s (%d)" ),
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Child process failed execve() '%*s': %*s (%d)" ),
 				STRING_FORMAT( proc->path ), STRING_FORMAT( errmsg ), err );
 		}
 
@@ -539,7 +539,7 @@ int process_spawn( process_t* proc )
 		string_const_t errmsg;
 		errmsg = system_error_message( proc->code );
 #endif
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to spawn process '%.*s': %.*s (%d)" ),
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to spawn process '%*s': %*s (%d)" ),
 			STRING_FORMAT( proc->path ), STRING_FORMAT( errmsg ), proc->code );
 
 		if( proc->pipeout )
@@ -634,7 +634,7 @@ int process_wait( process_t* proc )
 				int err = errno;
 				string_const_t errmsg = system_error_message( err );
 #endif
-				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on process, failed to read event from kqueue: %.*s (%d)" ),
+				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on process, failed to read event from kqueue: %*s (%d)" ),
 					STRING_FORMAT( errmsg ), err );
 			}
 
@@ -679,7 +679,7 @@ int process_wait( process_t* proc )
 #if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "waitpid(%d) failed: %.*s (%d) (returned %d)" ),
+		log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "waitpid(%d) failed: %*s (%d) (returned %d)" ),
 			proc->pid, STRING_FORMAT( errmsg ), err, ret );
 		return PROCESS_WAIT_FAILED;
 	}

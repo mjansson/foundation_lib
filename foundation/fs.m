@@ -168,7 +168,7 @@ static void _fs_event_stream_callback( ConstFSEventStreamRef stream_ref, void* u
 			if( ( flags & kFSEventStreamEventFlagMustScanSubDirs ) != 0 )
 			{
 				//TODO: Implement
-				log_warnf( 0, WARNING_UNSUPPORTED, STRING_CONST( "Got kFSEventStreamEventFlagMustScanSubDirs: %.*s (0x%x 0x%x)" ),
+				log_warnf( 0, WARNING_UNSUPPORTED, STRING_CONST( "Got kFSEventStreamEventFlagMustScanSubDirs: %*s (0x%x 0x%x)" ),
 					(int)rawpath_len, rawpath, (unsigned int)flags, (unsigned int)identifier );
 			}
 			else
@@ -355,7 +355,7 @@ void* _fs_event_stream_create( const char* path, size_t length )
 			log_error( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to create FS event stream" ) );
 		}
 
-		log_debugf( 0, STRING_CONST( "Started FS event stream for: %.*s" ), (int)length, path );
+		log_debugf( 0, STRING_CONST( "Started FS event stream for: %*s" ), (int)length, path );
 
 		return stream;
 	}

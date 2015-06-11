@@ -202,7 +202,7 @@ bool mutex_unlock( mutex_t* mutex )
 
 	if( !mutex->lockcount )
 	{
-		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to unlock unlocked mutex %.*s" ), (int)mutex->name.length, mutex->name.str );
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to unlock unlocked mutex %*s" ), (int)mutex->name.length, mutex->name.str );
 		return false;
 	}
 
@@ -280,7 +280,7 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 #if BUILD_ENABLE_LOG
 			string_const_t errmsg = system_error_message( ret );
 #endif
-			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on mutex '%.*s': %.*s (%d)" ),
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait on mutex '%*s': %*s (%d)" ),
 				STRING_FORMAT( mutex->name ), STRING_FORMAT( errmsg ), ret );
 		}
 	}
@@ -305,7 +305,7 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 #if BUILD_ENABLE_LOG
 			string_const_t errmsg = system_error_message( ret );
 #endif
-			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait (timed) on mutex '%.*s': %.*s (%d)" ),
+			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to wait (timed) on mutex '%*s': %*s (%d)" ),
 				STRING_FORMAT( mutex->name ), STRING_FORMAT( errmsg ), ret );
 		}
 	}
@@ -349,7 +349,7 @@ void mutex_signal( mutex_t* mutex )
 #if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( ret );
 #endif
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to signal mutex '%.*s': %.*s (%d)" ),
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to signal mutex '%*s': %*s (%d)" ),
 			STRING_FORMAT( mutex->name ), STRING_FORMAT( errmsg ), ret );
 	}
 

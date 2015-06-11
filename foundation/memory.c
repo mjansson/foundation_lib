@@ -655,7 +655,7 @@ static void* _memory_reallocate_malloc( void* p, size_t size, unsigned  int alig
 #if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message( 0 );
 #endif
-		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to reallocate memory: %.*s (%" PRIfixPTR ", raw %" PRIfixPTR ")" ),
+		log_panicf( HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to reallocate memory: %*s (%" PRIfixPTR ", raw %" PRIfixPTR ")" ),
 			STRING_FORMAT( errmsg ), (uintptr_t)p, (uintptr_t)raw_p );
 	}
 
@@ -774,7 +774,7 @@ static void _memory_tracker_shutdown( void )
 				char tracebuf[512];
 				string_t trace = stacktrace_resolve( tracebuf, 512, tag->trace, 14, 0 );
 				void* addr = atomic_loadptr( &tag->address );
-				log_warnf( HASH_MEMORY, WARNING_MEMORY, STRING_CONST( "Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s" ), tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str );
+				log_warnf( HASH_MEMORY, WARNING_MEMORY, STRING_CONST( "Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%*s" ), tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str );
 #endif
 				got_leaks = true;
 			}

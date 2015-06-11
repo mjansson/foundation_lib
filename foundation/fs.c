@@ -164,7 +164,7 @@ static PP_Resource _fs_resolve_path( const char* path, size_t length, string_con
 		return 0;
 	}
 
-	log_warnf( HASH_PNACL, WARNING_BAD_DATA, STRING_CONST( "Invalid file path: %.*s" ), (int)length, path );
+	log_warnf( HASH_PNACL, WARNING_BAD_DATA, STRING_CONST( "Invalid file path: %*s" ), (int)length, path );
 
 	return 0;
 }
@@ -213,7 +213,7 @@ void fs_monitor( const char* path, size_t length )
 	if( mi == _foundation_def.fs_monitor_max )
 	{
 		string_deallocate( path_clone.str );
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to monitor file system, no free monitor slots: %.*s" ), (int)length, path );
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, STRING_CONST( "Unable to monitor file system, no free monitor slots: %*s" ), (int)length, path );
 	}
 
 	memory_context_pop();
@@ -780,7 +780,7 @@ bool fs_make_directory( const char* path, size_t length )
 				int err = system_error();
 				string_const_t errmsg = system_error_message( err );
 #endif
-				log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Failed to create directory '%.*s': %.*s (%d)" ),
+				log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Failed to create directory '%*s': %*s (%d)" ),
 					STRING_FORMAT( localpath ), STRING_FORMAT( errmsg ), err );
 				goto end;
 			}
@@ -1114,7 +1114,7 @@ static void _fs_add_notify_subdir( int notify_fd, char* path, size_t length, siz
 	int fd = inotify_add_watch( notify_fd, path, IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVE );
 	if( fd < 0 )
 	{
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Failed watching subdir: %.*s (%d)" ), (int)length, path, fd );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Failed watching subdir: %*s (%d)" ), (int)length, path, fd );
 		return;
 	}
 
@@ -1783,7 +1783,7 @@ static void _fs_file_truncate( stream_t* stream, size_t length )
 		int err = system_error();
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s (%d)" ),
+		log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "Unable to truncate real file %*s (%" PRIsize " bytes): %*s (%d)" ),
 			STRING_FORMAT( fspath ), length, STRING_FORMAT( errmsg ), err );
 	}
 	close( fd );

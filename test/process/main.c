@@ -131,7 +131,7 @@ DECLARE_TEST( process, spawn )
 #endif
 			if( string_find_string( STRING_ARGS( line ), STRING_ARGS( file_name ), 0 ) != STRING_NPOS )
 				found_file = true;
-			log_debugf( HASH_TEST, STRING_CONST( "%.*s" ), STRING_FORMAT( fline ) );
+			log_debugf( HASH_TEST, STRING_CONST( "%*s" ), STRING_FORMAT( fline ) );
 		}
 	} while( !stream_eos( out ) );
 
