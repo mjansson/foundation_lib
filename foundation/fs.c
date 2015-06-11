@@ -1079,7 +1079,7 @@ event_stream_t* fs_event_stream( void )
 struct fs_watch_t
 {
 	int      fd;
-	char*    path;
+	string_t path;
 };
 typedef struct fs_watch_t fs_watch_t;
 
@@ -1128,7 +1128,7 @@ static void _fs_add_notify_subdir( int notify_fd, char* path, size_t length, siz
 
 	fs_watch_t watch;
 	watch.fd = fd;
-	watch.path = stored_path.str;
+	watch.path = stored_path;
 	array_push( (*watch_arr), watch );
 
 	//Recurse
@@ -1198,7 +1198,7 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
-	char buffer[BUILD_MAX_PATHLEN];
+	char pathbuffer[BUILD_MAX_PATHLEN];
 	string_t local_path;
 	char* monitor_path = atomic_loadptr( &monitor->path );
 	int notify_fd = inotify_init();
@@ -1210,8 +1210,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 	array_reserve( watch, 1024 );
 
 	//Recurse and add all subdirs
-	local_path = string_copy( buffer, sizeof( buffer ), monitor_path, string_length( monitor_path ) );
-	_fs_add_notify_subdir( notify_fd, STRING_ARGS( local_path ), sizeof( buffer ), &watch, &paths, false );
+	local_path = string_copy( pathbuffer, sizeof( pathbuffer ), monitor_path, string_length( monitor_path ) );
+	_fs_add_notify_subdir( notify_fd, STRING_ARGS( local_path ), sizeof( pathbuffer ), &watch, &paths, false );
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
@@ -1359,15 +1359,14 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				fs_watch_t* curwatch = _lookup_watch( watch, event->wd );
 				if( !curwatch )
 				{
-					log_warnf( 0, WARNING_SUSPICIOUS, "inotify watch not found: %d %x %x %" PRIsize " bytes: %s",
-						event->wd, event->mask, event->cookie, event->len, event->name );
+					log_warnf( 0, WARNING_SUSPICIOUS, STRING_CONST( "inotify watch not found: %d %x %x %" PRIsize " bytes: %*s" ),
+						event->wd, event->mask, event->cookie, (size_t)event->len, (int)event->len, event->name );
 					goto skipwatch;
 				}
 
 				//log_debugf( 0, "inotify event: %d %x %x %u bytes: %s in path %s", event->wd, event->mask, event->cookie, event->len, event->name, curwatch->path );
-
-				char* curpath = string_clone( curwatch->path );
-				curpath = string_append( curpath, event->name );
+				string_t curpath = string_copy( pathbuffer, sizeof( pathbuffer ), STRING_ARGS( curwatch->path ) );
+				curpath = string_append( STRING_ARGS( curpath ), sizeof( pathbuffer ), event->name, event->len );
 
 				bool is_dir = ( ( event->mask & IN_ISDIR ) != 0 );
 
@@ -1375,25 +1374,25 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				{
 					if( is_dir )
 					{
-						_fs_add_notify_subdir( notify_fd, curpath, &watch, &paths, true );
+						_fs_add_notify_subdir( notify_fd, STRING_ARGS( curpath ), sizeof( pathbuffer ), &watch, &paths, true );
 					}
 					else
 					{
-						fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
+						fs_post_event( FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS( curpath ) );
 					}
 				}
 				if( ( event->mask & IN_DELETE ) || ( event->mask & IN_MOVED_FROM ) )
 				{
 					if( !is_dir )
 					{
-						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
+						fs_post_event( FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS( curpath ) );
 					}
 				}
 				if( event->mask & IN_MODIFY )
 				{
 					if( !is_dir )
 					{
-						fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, curpath, 0 );
+						fs_post_event( FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS( curpath ) );
 					}
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
@@ -1407,8 +1406,6 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 					//log_debugf( 0, "  IN_MOVED_TO : %s", curpath );
 					fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
 				}*/
-
-				string_deallocate( curpath );
 
 			skipwatch:
 
