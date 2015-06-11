@@ -132,7 +132,7 @@ int _environment_initialize( const application_t application )
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
-	stream_t* cmdline = fs_open_file( "/proc/self/cmdline", STREAM_IN | STREAM_BINARY );
+	stream_t* cmdline = fs_open_file( STRING_CONST( "/proc/self/cmdline" ), STREAM_IN | STREAM_BINARY );
 	if( !cmdline )
 	{
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/cmdline" ) );
@@ -157,8 +157,8 @@ int _environment_initialize( const application_t application )
 
 	// This will return something like "app_process" since we're just a dynamic
 	// library that gets invoked by a launcher process
-	char exelink[FOUNDATION_MAX_PATHLEN] = {0};
-	ssize_t exelength = readlink( "/proc/self/exe", exelink, FOUNDATION_MAX_PATHLEN );
+	char exelink[BUILD_MAX_PATHLEN] = {0};
+	ssize_t exelength = readlink( "/proc/self/exe", exelink, sizeof( exelink ) );
 	if( exelength < 0 )
 	{
 		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/exe link" ) );
@@ -166,7 +166,7 @@ int _environment_initialize( const application_t application )
 	}
 
 	string_const_t exe_name = path_file_name( exelink, (size_t)exelength );
-	exe_path = path_append( exe_path.str, exe_path.length, BUILD_MAX_PATHLEN, exe_name.str, exe_name.length );
+	exe_path = path_append( exe_path.str, exe_path.length, sizeof( exelink ), exe_name.str, exe_name.length );
 
 	_environment_set_executable_paths( exe_path.str, exe_path.length );
 
@@ -465,27 +465,27 @@ string_const_t environment_temporary_directory( void )
 	//Use application internal data path, or if that fails, external data path
 	struct android_app* app = android_app();
 	const char* test_path[] = { app && app->activity ? app->activity->internalDataPath : 0, app && app->activity ? app->activity->externalDataPath : 0 };
-	char path[FOUNDATION_MAX_PATHLEN];
+	char path[BUILD_MAX_PATHLEN];
 	for( int itest = 0; !_environment_temp_dir.str && ( itest < 2 ); ++itest )
 	{
 		if( test_path[itest] && test_path[itest][0] )
 		{
-			string_t pathstr = string_copy( path, FOUNDATION_MAX_PATHLEN, test_path[itest], string_length( test_path[itest] ) );
-			pathstr = path_clean( pathstr.str, pathstr.length, FOUNDATION_MAX_PATHLEN, true, false );
+			string_t pathstr = string_copy( path, sizeof( path ), test_path[itest], string_length( test_path[itest] ) );
+			pathstr = path_clean( STRING_ARGS( pathstr ), sizeof( path ) );
 
-			fs_make_directory( pathstr.str, pathstr.length );
+			fs_make_directory( STRING_ARGS( pathstr ) );
 
-			string_t temp_path = path_append( pathstr.str, pathstr.length, FOUNDATION_MAX_PATHLEN, STRING_CONST( ".tmp-" ) );
+			string_t temp_path = path_append( STRING_ARGS( pathstr ), sizeof( path ), STRING_CONST( ".tmp-" ) );
 			string_const_t uuidstr = string_from_uuid_static( uuid_generate_random() );
-			temp_path = string_append( temp_path.str, temp_path.length, FOUNDATION_MAX_PATHLEN, uuidstr.str, uuidstr.length, false );
+			temp_path = string_append( STRING_ARGS( temp_path ), sizeof( path ), STRING_ARGS( uuidstr ) );
 
-			stream_t* temp_stream = fs_open_file( temp_path.str, temp_path.length, STREAM_CREATE | STREAM_OUT | STREAM_BINARY );
+			stream_t* temp_stream = fs_open_file( STRING_ARGS( temp_path ), STREAM_CREATE | STREAM_OUT | STREAM_BINARY );
 			if( temp_stream )
 			{
 				stream_deallocate( temp_stream );
 
-				_environment_temp_dir = path_append( pathstr.str, pathstr.length, FOUNDATION_MAX_PATHLEN, STRING_CONST( ".tmp" ) );
-				_environment_temp_dir = string_clone( _environment_temp_dir.str, _environment_temp_dir.length );
+				_environment_temp_dir = path_append( STRING_ARGS( pathstr ), sizeof( path ), STRING_CONST( ".tmp" ) );
+				_environment_temp_dir = string_clone( STRING_ARGS( _environment_temp_dir ) );
 
 				_environment_temp_dir_local = true;
 			}

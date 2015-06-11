@@ -248,6 +248,8 @@ DECLARE_TEST( crash, error )
 		log_info( HASH_TEST, STRING_CONST( "Check context buffer" ) );
 		EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( contextstr ), STRING_CONST( "test context" ), 0 ), STRING_NPOS, "context name 'test context' not found in buffer: %s", context_buffer );
 		EXPECT_NE_MSGFORMAT( string_find_string( STRING_ARGS( contextstr ), STRING_CONST( context_data ), 0 ), STRING_NPOS, "context data '%s' not found in buffer: %s", context_data, context_buffer );
+#else
+		EXPECT_EQ( contextstr.length, 0 );
 #endif
 
 		log_info( HASH_TEST, STRING_CONST( "Generate empty context buffer" ) );

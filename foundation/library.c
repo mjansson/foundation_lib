@@ -178,7 +178,7 @@ object_t library_load( const char* name, size_t length )
 	{
 		string_t libname;
 		string_const_t exe_dir = environment_executable_directory();
-		if( !string_ends_with( name, FOUNDATION_LIB_EXT ) )
+		if( !string_ends_with( name, length, STRING_CONST( FOUNDATION_LIB_EXT ) ) )
 		{
 			libname = string_format( buf, sizeof( buf ), STRING_CONST( "%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT ),
 				STRING_FORMAT( exe_dir ), (int)length, name );

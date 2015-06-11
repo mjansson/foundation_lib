@@ -162,11 +162,11 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 5, 0 ) _log_outputf( hash_t c
 #if FOUNDATION_PLATFORM_ANDROID
 			FOUNDATION_UNUSED( std );
 			if( _log_stdout )
-				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name, buffer );
+				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name.str, buffer );
 #elif FOUNDATION_PLATFORM_TIZEN
 			FOUNDATION_UNUSED( std );
 			if( _log_stdout )
-				dlog_print( DLOG_DEBUG + severity - 1, environment_application()->short_name, "%s", buffer );
+				dlog_print( DLOG_DEBUG + severity - 1, environment_application()->short_name.str, "%s", buffer );
 #elif FOUNDATION_PLATFORM_PNACL
 			FOUNDATION_UNUSED( std );
 			if( _log_stdout )

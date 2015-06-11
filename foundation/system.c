@@ -463,7 +463,7 @@ uint64_t system_hostid( void )
 			for( iif = 0; ( iif < numif ) && !hostid; ++iif )
 			{
 				struct ifreq* ifr = &ifrarr[iif];
-				if( string_equal_substr( ifr->ifr_name, "lo", 2 ) )
+				if( ifr->ifr_name && string_equal( ifr->ifr_name, 2, "lo", 2 ) )
 					continue;
 
 				hostid = _system_hostid_lookup( sock, ifr );
@@ -565,7 +565,7 @@ size_t system_hardware_threads( void )
 void system_process_events( void )
 {
 #if FOUNDATION_PLATFORM_ANDROID
-	profile_begin_block( "system events" );
+	profile_begin_block( STRING_CONST( "system events" ) );
 
 	int ident = 0;
 	int events = 0;

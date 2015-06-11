@@ -335,7 +335,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, size_
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_ASSERT_FAIL( "Named semaphores not supported on this platform" );
 #else
-	sem = sem_open( semaphore->name, O_CREAT, (mode_t)0666, value );
+	sem = sem_open( semaphore->name.str, O_CREAT, (mode_t)0666, value );
 
 	if( sem == SEM_FAILED )
 	{
@@ -343,7 +343,7 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, size_
 		int err = system_error();
 		string_const_t errmsg = system_error_message( err );
 #endif
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to initialize named semaphore (sem_open '%.*s'): %.*s (%d)",
+		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to initialize named semaphore (sem_open '%.*s'): %.*s (%d)" ),
 			STRING_FORMAT( semaphore->name ), STRING_FORMAT( errmsg ), err );
 		return;
 	}
@@ -355,17 +355,17 @@ void semaphore_initialize_named( semaphore_t* semaphore, const char* name, size_
 
 void semaphore_finalize( semaphore_t* semaphore )
 {
-	if( !semaphore->name )
+	if( !semaphore->name.length )
 	{
 		sem_destroy( (native_sem_t*)semaphore->sem );
 	}
 	else
 	{
 #if !FOUNDATION_PLATFORM_PNACL
-		sem_unlink( semaphore->name );
+		sem_unlink( semaphore->name.str );
 		sem_close( (native_sem_t*)semaphore->sem );
 #endif
-		string_deallocate( semaphore->name );
+		string_deallocate( semaphore->name.str );
 	}
 }
 

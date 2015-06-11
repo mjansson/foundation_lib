@@ -46,12 +46,12 @@ void android_entry( struct android_app* app )
 
 int android_initialize( void )
 {
-	//log_debug( 0, "Force window fullscreen" );
+	//log_debug( 0, STRING_CONST( "Force window fullscreen" ) );
 	//ANativeActivity_setWindowFlags( app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_FORCE_NOT_FULLSCREEN );
 
 	_android_destroyed = false;
 
-	log_debug( 0, "Waiting for application window to be set" );
+	log_debug( 0, STRING_CONST( "Waiting for application window to be set" ) );
 	{
 		int ident = 0;
 		int events = 0;
@@ -67,10 +67,10 @@ int android_initialize( void )
 			thread_sleep( 10 );
 		}
 	}
-	log_debug( 0, "Application window set, continuing" );
+	log_debug( 0, STRING_CONST( "Application window set, continuing" ) );
 
-	log_debugf( 0, "Internal data path: %s", _android_app->activity->internalDataPath );
-	log_debugf( 0, "External data path: %s", _android_app->activity->externalDataPath );
+	log_debugf( 0, STRING_CONST( "Internal data path: %s" ), _android_app->activity->internalDataPath );
+	log_debugf( 0, STRING_CONST( "External data path: %s" ), _android_app->activity->externalDataPath );
 
 	ASensorManager* sensor_manager = ASensorManager_getInstance();
 	_android_sensor_queue = ASensorManager_createEventQueue( sensor_manager, _android_app->looper, 0, android_sensor_callback, 0 );
@@ -84,7 +84,7 @@ int android_initialize( void )
 
 void android_shutdown( void )
 {
-	log_info( 0, "Native android app shutdown" );
+	log_info( 0, STRING_CONST( "Native android app shutdown" ) );
 
 	_android_app->onAppCmd = 0;
     _android_app->onInputEvent = 0;
@@ -116,7 +116,7 @@ void android_shutdown( void )
 
 	_android_app = 0;
 
-	log_debug( 0, "Exiting native android app" );
+	log_debug( 0, STRING_CONST( "Exiting native android app" ) );
 }
 
 
@@ -132,7 +132,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 	{
 		case APP_CMD_INPUT_CHANGED:
 		{
-			log_info( 0, "System command: APP_CMD_INPUT_CHANGED" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_INPUT_CHANGED" ) );
             break;
 		}
 
@@ -144,7 +144,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				int w = 0, h = 0;
 				w = ANativeWindow_getWidth( app->window );
 				h = ANativeWindow_getHeight( app->window );
-				log_infof( 0, "System command: APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
+				log_infof( 0, STRING_CONST( "System command: APP_CMD_INIT_WINDOW dimensions %dx%d" ), w, h );
 			}
 #endif
             break;
@@ -152,7 +152,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_TERM_WINDOW:
 		{
-			log_info( 0, "System command: APP_CMD_TERM_WINDOW" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_TERM_WINDOW" ) );
             break;
 		}
 
@@ -164,7 +164,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				int w = 0, h = 0;
 				w = ANativeWindow_getWidth( app->window );
 				h = ANativeWindow_getHeight( app->window );
-				log_infof( 0, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
+				log_infof( 0, STRING_CONST( "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d" ), w, h );
 			}
 #endif
             break;
@@ -172,19 +172,19 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_WINDOW_REDRAW_NEEDED:
 		{
-			log_info( 0, "System command: APP_CMD_WINDOW_REDRAW_NEEDED" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_WINDOW_REDRAW_NEEDED" ) );
             break;
 		}
 
 		case APP_CMD_CONTENT_RECT_CHANGED:
 		{
-			log_info( 0, "System command: APP_CMD_CONTENT_RECT_CHANGED" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_CONTENT_RECT_CHANGED" ) );
             break;
 		}
 
 		case APP_CMD_GAINED_FOCUS:
 		{
-			log_info( 0, "System command: APP_CMD_GAINED_FOCUS" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_GAINED_FOCUS" ) );
 			system_post_event( FOUNDATIONEVENT_FOCUS_GAIN );
 			_android_enable_sensor( ASENSOR_TYPE_ACCELEROMETER );
             break;
@@ -192,7 +192,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_LOST_FOCUS:
 		{
-			log_info( 0, "System command: APP_CMD_LOST_FOCUS" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_LOST_FOCUS" ) );
 			_android_disable_sensor( ASENSOR_TYPE_ACCELEROMETER );
 			system_post_event( FOUNDATIONEVENT_FOCUS_LOST );
             break;
@@ -200,53 +200,53 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_CONFIG_CHANGED:
 		{
-			log_info( 0, "System command: APP_CMD_CONFIG_CHANGED" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_CONFIG_CHANGED" ) );
             break;
 		}
 
 		case APP_CMD_LOW_MEMORY:
 		{
-			log_info( 0, "System command: APP_CMD_LOW_MEMORY" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_LOW_MEMORY" ) );
             break;
 		}
 
 		case APP_CMD_START:
 		{
-			log_info( 0, "System command: APP_CMD_START" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_START" ) );
             system_post_event( FOUNDATIONEVENT_START );
             break;
 		}
 
 		case APP_CMD_RESUME:
 		{
-			log_info( 0, "System command: APP_CMD_RESUME" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_RESUME" ) );
 			system_post_event( FOUNDATIONEVENT_RESUME );
             break;
 		}
 
 		case APP_CMD_SAVE_STATE:
 		{
-			log_info( 0, "System command: APP_CMD_SAVE_STATE" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_SAVE_STATE" ) );
             break;
 		}
 
 		case APP_CMD_PAUSE:
 		{
-			log_info( 0, "System command: APP_CMD_PAUSE" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_PAUSE" ) );
 			system_post_event( FOUNDATIONEVENT_PAUSE );
             break;
 		}
 
 		case APP_CMD_STOP:
 		{
-			log_info( 0, "System command: APP_CMD_STOP" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_STOP" ) );
 			system_post_event( FOUNDATIONEVENT_TERMINATE );
             break;
 		}
 
 		case APP_CMD_DESTROY:
 		{
-			log_info( 0, "System command: APP_CMD_DESTROY" );
+			log_info( 0, STRING_CONST( "System command: APP_CMD_DESTROY" ) );
 			system_post_event( FOUNDATIONEVENT_TERMINATE );
 			_android_destroyed = true;
             break;
@@ -279,18 +279,18 @@ void _android_enable_sensor( int sensor_type )
 		const ASensor* sensor = ASensorManager_getDefaultSensor( sensor_manager, sensor_type );
 		if( sensor )
 		{
-			log_debugf( 0, "Initializing sensor of type %d", sensor_type );
+			log_debugf( 0, STRING_CONST( "Initializing sensor of type %d" ), sensor_type );
 			if( _android_sensor_queue )
 			{
 				if( ASensorEventQueue_enableSensor( _android_sensor_queue, sensor ) < 0 )
-					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to enable sensor of type %d", sensor_type );
+					log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to enable sensor of type %d" ), sensor_type );
 				else
 				{
 					int min_delay = ASensor_getMinDelay( sensor );
 					if( min_delay < 60000 )
 						min_delay = 60000;
 					if( ASensorEventQueue_setEventRate( _android_sensor_queue, sensor, min_delay ) < 0 )
-						log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to set event rate %d for sensor of type %d", min_delay, sensor_type );
+						log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to set event rate %d for sensor of type %d" ), min_delay, sensor_type );
 
 					_android_sensor_enabled[sensor_type] = true;
 				}
@@ -299,7 +299,7 @@ void _android_enable_sensor( int sensor_type )
 	}
 	else
 	{
-		log_warn( 0, WARNING_UNSUPPORTED, "Unable to initialize sensors, no sensor manager" );
+		log_warn( 0, WARNING_UNSUPPORTED, STRING_CONST( "Unable to initialize sensors, no sensor manager" ) );
 	}
 }
 

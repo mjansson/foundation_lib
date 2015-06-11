@@ -231,81 +231,89 @@ static void _load_process_modules()
 
 #if FOUNDATION_PLATFORM_ANDROID
 
-#define FOUNDATION_MAX_MODULES 256
-
-struct arm_trace_t
+struct android_trace_t
 {
 	void**        trace;
 	unsigned int  cur_depth;
 	unsigned int  max_depth;
 	unsigned int  skip_frames;
 };
-typedef struct arm_trace_t arm_trace_t;
+typedef struct android_trace_t android_trace_t;
 
-#if FOUNDATION_PLATFORM_ANDROID
-
-struct arm_module_t
+struct android_module_t
 {
 	uintptr_t           address_start;
 	uintptr_t           address_end;
-	char                name[64];
+	char                namebuf[64];
+	string_t            name;
 };
-typedef struct arm_module_t arm_module_t;
+typedef struct android_module_t android_module_t;
 
-arm_module_t _process_modules[FOUNDATION_MAX_MODULES];
+static android_module_t* _process_modules;
+static size_t            _process_modules_size;
 
-static void _load_process_modules()
+static void _load_process_modules( void )
 {
-	int imod = 0;
+	size_t imod = 0;
 	char line_buffer[256];
+	string_t line;
 
-	memset( _process_modules, 0, sizeof( arm_module_t ) * FOUNDATION_MAX_MODULES );
+	if( _process_modules )
+		memset( _process_modules, 0, sizeof( android_module_t ) * _process_modules_size );
 
-	stream_t* maps = fs_open_file( "/proc/self/maps", STREAM_IN );
+	stream_t* maps = fs_open_file( STRING_CONST( "/proc/self/maps" ), STREAM_IN );
 	if( !maps )
 	{
-		log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to read /proc/self/maps" );
+		log_error( 0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST( "Unable to read /proc/self/maps" ) );
 		return;
 	}
 
-	while( !stream_eos( maps ) && ( imod < FOUNDATION_MAX_MODULES ) )
+	while( !stream_eos( maps ) && ( !_process_modules || ( imod < _process_modules_size ) ) )
 	{
-		line_buffer[0] = 0;
-		stream_read_line_buffer( maps, line_buffer, 256, '\n' );
+		line = stream_read_line_buffer( maps, line_buffer, sizeof( line_buffer ), '\n' );
 
-		if( !line_buffer[0] )
+		if( !line.length )
 			continue;
 
-		uintptr_t start = (uintptr_t)string_to_uint64( line_buffer, true );
-		uintptr_t end = (uintptr_t)string_to_uint64( line_buffer + string_find( line_buffer, '-', 0 ) + 1, true );
-		const char* module = line_buffer + string_rfind_first_of( line_buffer, "/ ", STRING_NPOS ) + 1;
+		uintptr_t start = (uintptr_t)string_to_uint64( STRING_ARGS( line ), true );
+		size_t dashofs = string_find( STRING_ARGS( line ), '-', 0 ) + 1;
+		uintptr_t end = (uintptr_t)string_to_uint64( line.str + dashofs, line.length - dashofs, true );
+		size_t modofs = ( string_find_last_of( STRING_ARGS( line ), STRING_CONST( "/ " ), STRING_NPOS ) + 1 );
+		const char* module = line.str + modofs;
 
-		if( !module[0] || ( string_find_first_not_of( module, "0123456789", 0 ) == STRING_NPOS ) )
+		if( !module[0] || ( string_find_first_not_of( module, line.length - modofs, STRING_CONST( "0123456789" ), 0 ) == STRING_NPOS ) )
 			continue;
 
-		if( ( imod > 0 ) && /*( start == _process_modules[imod].address_end ) && */string_equal( module, _process_modules[imod-1].name ) )
+		if( ( imod > 0 ) && /*( start == _process_modules[imod].address_end ) && */string_equal( module, line.length - modofs, STRING_ARGS( _process_modules[imod-1].name ) ) )
 		{
-			_process_modules[imod-1].address_end = end;
+			if( _process_modules )
+				_process_modules[imod-1].address_end = end;
 			continue;
 		}
 
-		_process_modules[imod].address_start = start;
-		_process_modules[imod].address_end = end;
-		string_copy( _process_modules[imod].name, module, 64 );
-
+		if( _process_modules )
+		{
+			_process_modules[imod].address_start = start;
+			_process_modules[imod].address_end = end;
+			_process_modules[imod].name = string_copy( _process_modules[imod].namebuf, sizeof( _process_modules[imod].namebuf ), module, line.length - modofs );
+		}
 		++imod;
 	}
+
+	stream_deallocate( maps );
 
 	//for( int i = 0; i < imod; ++i )
 	//	log_infof( HASH_TEST, "%" PRIfixPTR "-%" PRIfixPTR ": %s", _process_modules[i].address_start, _process_modules[i].address_end, _process_modules[i].name );
 
-	if( imod == FOUNDATION_MAX_MODULES )
-		log_warnf( 0, WARNING_MEMORY, "Too many modules encountered" );
+	if( _process_modules && ( imod == _process_modules_size ) )
+		log_warn( 0, WARNING_MEMORY, STRING_CONST( "Too many modules encountered" ) );
 
-	stream_deallocate( maps );
+	if( !_process_modules )
+	{
+		_process_modules_size = imod + 16;
+		_process_modules = memory_allocate( 0, sizeof( android_module_t ) * _process_modules_size, 0, MEMORY_PERSISTENT );
+	}
 }
-
-#endif
 
 #if FOUNDATION_COMPILER_CLANG && FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
 
@@ -330,7 +338,7 @@ uintptr_t _Unwind_GetIP( struct _Unwind_Context* ctx )
 
 static _Unwind_Reason_Code unwind_stack( struct _Unwind_Context* context, void* arg )
 {
-	arm_trace_t* trace = arg;
+	android_trace_t* trace = arg;
 	void* ip = (void*)_Unwind_GetIP( context );
 	if( trace->skip_frames )
 		--trace->skip_frames;
@@ -454,7 +462,7 @@ size_t FOUNDATION_NOINLINE stacktrace_capture( void** trace, size_t max_depth, s
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
-	arm_trace_t stack_trace = {
+	android_trace_t stack_trace = {
 		.trace = trace,
 		.cur_depth = 0,
 		.max_depth = max_depth,
@@ -586,6 +594,10 @@ static bool _initialize_symbol_resolve()
 	_load_process_modules();
 
 	_symbol_resolve_initialized = true;
+
+#elif FOUNDATION_PLATFORM_ANDROID
+
+	_load_process_modules();
 
 #else
 
@@ -767,7 +779,9 @@ static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t 
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
-	char** lines = 0;
+	string_t symbols = (string_t){ buffer, 0 };
+	string_t line;
+	char linebuf[128];
 
 	_load_process_modules();
 
@@ -779,33 +793,39 @@ static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t 
 
 		//Find the module and relative address
 		uintptr_t relativeframe = (uintptr_t)frames[iaddr];
-		const char* module = "<no module found>";
+		string_const_t module = string_const( STRING_CONST( "<no module found>" ) );
 
-		for( int imod = 0; imod < FOUNDATION_MAX_MODULES; ++imod )
+		for( size_t imod = 0; imod < _process_modules_size; ++imod )
 		{
 			if( ( relativeframe >= _process_modules[imod].address_start ) && ( relativeframe < _process_modules[imod].address_end ) )
 			{
 				relativeframe -= _process_modules[imod].address_start;
-				module = _process_modules[imod].name;
+				module = string_const( STRING_ARGS( _process_modules[imod].name ) );
 				break;
 			}
 		}
 
-		array_push( lines, string_format( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %s", (uintptr_t)frames[iaddr], (uintptr_t)relativeframe, module ) );
+		line = string_format( linebuf, sizeof( linebuf ), STRING_CONST( "[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %.*s\n" ),
+			(uintptr_t)frames[iaddr], (uintptr_t)relativeframe, STRING_FORMAT( module ) );
+		symbols = string_append( STRING_ARGS( symbols ), size, STRING_ARGS( line ) );
 	}
 
-	return lines;
+	return symbols;
 
 #else
 
-	char** lines = 0;
+	string_t symbols = (string_t){ buffer, 0 };
+	string_t line;
+	char linebuf[64];
+
 	for( unsigned int iaddr = 0; iaddr < max_frames; ++iaddr )
 	{
 		//Allow first frame to be null in case of a function call to a null pointer
 		if( iaddr && !frames[iaddr] )
 			break;
 
-		array_push( lines, string_format( "[0x%" PRIfixPTR "]", (uintptr_t)frames[iaddr] ) );
+		line = string_format( linebuf, sizeof( linebuf ), STRING_CONST( "[0x%" PRIfixPTR "]\n" ), (uintptr_t)frames[iaddr] ) );
+		symbols = string_append( STRING_ARGS( symbols ), size, STRING_ARGS( line ) );
 	}
 
 	return lines;
@@ -825,3 +845,22 @@ string_t stacktrace_resolve( char* str, size_t length, void** trace, size_t max_
 
 	return _resolve_stack_frames( str, length, trace + skip_frames, max_depth );
 }
+
+
+int _stacktrace_initialize( void )
+{
+#if FOUNDATION_PLATFORM_ANDROID
+	_load_process_modules();
+#endif
+	return 0;
+}
+
+
+void _stacktrace_shutdown( void )
+{
+#if FOUNDATION_PLATFORM_ANDROID
+	memory_deallocate( _process_modules );
+	_process_modules = 0;
+#endif
+}
+

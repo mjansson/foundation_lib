@@ -271,25 +271,25 @@ void _config_shutdown( void )
 
 static string_const_t platformsuffix =
 #if FOUNDATION_PLATFORM_WINDOWS
-	(string_const_t){ STRING_CONST( "/windows" ) };
+	{ STRING_CONST( "/windows" ) };
 #elif FOUNDATION_PLATFORM_MACOSX
-	(string_const_t){ STRING_CONST( "/macosx" ) };
+	{ STRING_CONST( "/macosx" ) };
 #elif FOUNDATION_PLATFORM_IOS
-	(string_const_t){ STRING_CONST( "/ios" ) };
+	{ STRING_CONST( "/ios" ) };
 #elif FOUNDATION_PLATFORM_ANDROID
-	(string_const_t){ STRING_CONST( "/android" ) };
+	{ STRING_CONST( "/android" ) };
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-	(string_const_t){ STRING_CONST( "/raspberrypi" ) };
+	{ STRING_CONST( "/raspberrypi" ) };
 #elif FOUNDATION_PLATFORM_LINUX
-	(string_Const_t){ STRING_CONST( "/linux" ) };
+	{ STRING_CONST( "/linux" ) };
 #elif FOUNDATION_PLATFORM_PNACL
-	(string_const_t){ STRING_CONST( "/pnacl" ) },
+	{ STRING_CONST( "/pnacl" ) };
 #elif FOUNDATION_PLATFORM_BSD
-	(string_const_t){ STRING_CONST( "/bsd" ) },
+	{ STRING_CONST( "/bsd" ) };
 #elif FOUNDATION_PLATFORM_TIZEN
-	(string_const_t){ STRING_CONST( "/tizen" ) },
+	{ STRING_CONST( "/tizen" ) };
 #else
-	(string_const_t){ STRING_CONST( "/unknown" ) }
+	{ STRING_CONST( "/unknown" ) };
 #endif
 
 
@@ -734,9 +734,11 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 	hash_t key = 0;
 	unsigned int line = 0;
 	size_t buffer_size;
-	string_const_t path;
 
-	path = stream_path( stream );
+#if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
+	string_const_t path = stream_path( stream );
+#endif
+
 #if BUILD_ENABLE_CONFIG_DEBUG
 	log_debugf( HASH_CONFIG, STRING_CONST( "Parsing config stream: %.*s" ), STRING_FORMAT( path ) );
 #endif

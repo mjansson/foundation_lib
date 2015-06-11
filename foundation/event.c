@@ -42,19 +42,17 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, o
 
 	//Events must be aligned to an even 8 bytes
 	basesize = sizeof( event_t ) + size;
-	if( list )
+	va_copy( clist, list );
+	while( true )
 	{
-		va_copy( clist, list );
-		while( true )
-		{
-			ptr = va_arg( clist, void* );
-			if( !ptr )
-				break;
-			psize = va_arg( clist, size_t );
-			basesize += psize;
-		}
-		va_end( clist );
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		basesize += psize;
 	}
+	va_end( clist );
+
 	if( basesize % 8 )
 		basesize += 8 - ( basesize % 8 );
 	basesize &= 0xFFF8;
@@ -114,23 +112,20 @@ static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, o
 		memcpy( part, payload, size );
 		part += size;
 	}
-	if( list )
+	va_copy( clist, list );
+	while( true )
 	{
-		va_copy( clist, list );
-		while( true )
+		ptr = va_arg( clist, void* );
+		if( !ptr )
+			break;
+		psize = va_arg( clist, size_t );
+		if(	psize )
 		{
-			ptr = va_arg( clist, void* );
-			if( !ptr )
-				break;
-			psize = va_arg( clist, size_t );
-			if(	psize )
-			{
-				memcpy( part, ptr, psize );
-				part += psize;
-			}
+			memcpy( part, ptr, psize );
+			part += psize;
 		}
-		va_end( clist );
 	}
+	va_end( clist );
 
 	if( timestamp )
 	{
@@ -160,7 +155,7 @@ size_t event_payload_size( const event_t* event )
 
 void event_post( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size )
 {
-	_event_post_delay_with_flags( stream, id, object, delivery, 0, payload, size, 0 );
+	event_post_varg( stream, id, object, delivery, payload, size, nullptr );
 }
 
 
@@ -176,6 +171,15 @@ void event_post_varg( event_stream_t* stream, uint16_t id, object_t object, tick
 void event_post_vlist( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, const void* payload, size_t size, va_list list )
 {
 	_event_post_delay_with_flags( stream, id, object, delivery, 0, payload, size, list );
+}
+
+
+static void event_post_varg_flags( event_stream_t* stream, uint16_t id, object_t object, tick_t delivery, uint16_t flags, const void* payload, size_t size, ... )
+{
+	va_list list;
+	va_start( list, size );
+	_event_post_delay_with_flags( stream, id, object, delivery, flags, payload, size, list );
+	va_end( list );
 }
 
 
@@ -202,7 +206,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 			return event;
 
 		//Re-post to next block
-		_event_post_delay_with_flags( block->stream, event->id, event->object, eventtime, event->flags, event->payload, event->size - ( sizeof( event_t ) + 8 ), nullptr );
+		event_post_varg_flags( block->stream, event->id, event->object, eventtime, event->flags, event->payload, event->size - ( sizeof( event_t ) + 8 ), nullptr );
 	} while( true );
 }
 

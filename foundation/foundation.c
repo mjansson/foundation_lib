@@ -69,6 +69,7 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	SUBSYSTEM_INIT( thread );
 	SUBSYSTEM_INIT( random );
 	SUBSYSTEM_INIT( stream );
+	SUBSYSTEM_INIT( stacktrace );
 	SUBSYSTEM_INIT( fs );
 	SUBSYSTEM_INIT_ARGS( environment, application );
 	SUBSYSTEM_INIT( library );
@@ -133,6 +134,7 @@ void foundation_shutdown( void )
 	_thread_shutdown();
 	_time_shutdown();
 	_log_shutdown();
+	_stacktrace_shutdown();
 	_static_hash_shutdown();
 	_memory_shutdown();
 	_atomic_shutdown();

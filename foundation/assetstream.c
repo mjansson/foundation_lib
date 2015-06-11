@@ -128,26 +128,37 @@ static void asset_stream_finalize( stream_t* stream )
 
 static stream_t* asset_stream_clone( stream_t* stream )
 {
-	return stream ? asset_stream_open( stream->path, stream->mode ) : 0;
+	return stream ? asset_stream_open( STRING_ARGS( stream->path ), stream->mode ) : 0;
 }
 
 
-stream_t* asset_stream_open( const char* path, unsigned int mode )
+stream_t* asset_stream_open( const char* path, size_t length, unsigned int mode )
 {
-	if( !path || !path[0] )
+	string_t finalpath;
+	char* pathptr;
+	char buffer[BUILD_MAX_PATHLEN];
+
+	if( !path || !length )
 		return 0;
 
-	if( string_equal_substr( path, "asset://", 8 ) )
-		path += 8;
-	if( *path == '/' )
+	if( ( length >= 6 ) && string_equal( path, 6, STRING_CONST( "asset:" ) ) )
+	{
+		finalpath = string_copy( buffer, sizeof( buffer ), path, length );
+		pathptr = finalpath.str + 6;
+		if( *pathptr == '/' )
+			++path;
+	}
+	else
+	{
+		finalpath = string_concat( buffer, sizeof( buffer ), "asset://", path[0] == '/' ? 7 : 8, path, length );
+		pathptr = finalpath.str + 8;
+	}
+	if( *pathptr == '/' )
 		++path;
 
-	AAsset* assetobj = AAssetManager_open( android_app()->activity->assetManager, path, AASSET_MODE_RANDOM );
+	AAsset* assetobj = AAssetManager_open( android_app()->activity->assetManager, pathptr, AASSET_MODE_RANDOM );
 	if( !assetobj )
-	{
-		//warn_logf( WARNING_SYSTEM_CALL_FAIL, "Unable to open asset: asset://%s", path );
 		return 0;
-	}
 
 	stream_asset_t* asset = memory_allocate( HASH_STREAM, sizeof( stream_asset_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream_t* stream = (stream_t*)asset;
@@ -159,7 +170,7 @@ stream_t* asset_stream_open( const char* path, unsigned int mode )
 	stream->reliable = 1;
 	stream->inorder = 1;
 	stream->swap = 0;
-	stream->path = string_format( "asset://%s", path );
+	stream->path = string_clone( STRING_ARGS( finalpath ) );
 	stream->mode = ( mode & STREAM_BINARY ) | STREAM_IN;
 	stream->vtable = &_asset_stream_vtable;
 

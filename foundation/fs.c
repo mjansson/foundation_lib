@@ -1084,59 +1084,59 @@ struct fs_watch_t
 typedef struct fs_watch_t fs_watch_t;
 
 
-static void _fs_send_creations( const char* path )
+static void _fs_send_creations( char* path, size_t length, size_t capacity )
 {
 	size_t ifile, isub, fsize, subsize;
-	char** files = fs_files( path );
+
+	string_t* files = fs_files( path, length );
 	for( ifile = 0, fsize = array_size( files ); ifile < fsize; ++ifile )
 	{
-		char* filepath = path_concat( path, files[ifile] );
-		fs_post_event( FOUNDATIONEVENT_FILE_CREATED, filepath, 0 );
-		string_deallocate( filepath );
+		string_t filepath = path_append( path, length, capacity, STRING_ARGS( files[ifile] ) );
+		fs_post_event( FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS( filepath ) );
 	}
 	string_array_deallocate( files );
 
-	char** subdirs = fs_subdirs( path );
+	string_t* subdirs = fs_subdirs( path, length );
 	for( isub = 0, subsize = array_size( subdirs ); isub < subsize; ++isub )
 	{
-		char* subpath = path_concat( path, subdirs[isub] );
-		_fs_send_creations( subpath );
-		string_deallocate( subpath );
+		string_t subpath = path_append( path, length, capacity, STRING_ARGS( subdirs[isub] ) );
+		_fs_send_creations( STRING_ARGS( subpath ), capacity );
 	}
 	string_array_deallocate( subdirs );
 }
 
 
-static void _fs_add_notify_subdir( int notify_fd, const char* path, fs_watch_t** watch_arr, char*** path_arr, bool send_create )
+static void _fs_add_notify_subdir( int notify_fd, char* path, size_t length, size_t capacity, fs_watch_t** watch_arr, string_t** path_arr, bool send_create )
 {
-	char** subdirs = 0;
-	char* local_path = 0;
+	string_t* subdirs = 0;
+	string_t local_path;
+	string_t stored_path;
 	int fd = inotify_add_watch( notify_fd, path, IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVE );
 	if( fd < 0 )
 	{
-		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Failed watching subdir: %s (%d)", path, fd );
+		log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST( "Failed watching subdir: %.*s (%d)" ), (int)length, path, fd );
 		return;
 	}
 
 	if( send_create )
-		_fs_send_creations( path );
+		_fs_send_creations( path, length, capacity );
 
 	//Include terminating / in paths stored in path_arr/watch_arr
-	local_path = string_format( "%s/", path ? path : "" );
-	array_push( (*path_arr), local_path );
+	local_path = string_append( path, length, capacity, STRING_CONST( "/" ) );
+	stored_path = string_clone( STRING_ARGS( local_path ) );
+	array_push( (*path_arr), stored_path );
 
 	fs_watch_t watch;
 	watch.fd = fd;
-	watch.path = local_path;
+	watch.path = stored_path.str;
 	array_push( (*watch_arr), watch );
 
 	//Recurse
-	subdirs = fs_subdirs( local_path );
+	subdirs = fs_subdirs( STRING_ARGS( local_path ) );
 	for( size_t i = 0, size = array_size( subdirs ); i < size; ++i )
 	{
-		char* subpath = path_concat( local_path, subdirs[i] );
-		_fs_add_notify_subdir( notify_fd, subpath, watch_arr, path_arr, send_create );
-		string_deallocate( subpath );
+		string_t subpath = string_append( STRING_ARGS( local_path ), capacity, STRING_ARGS( subdirs[i] ) );
+		_fs_add_notify_subdir( notify_fd, STRING_ARGS( subpath ), capacity, watch_arr, path_arr, send_create );
 	}
 	string_array_deallocate( subdirs );
 }
@@ -1198,17 +1198,20 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t local_path;
 	char* monitor_path = atomic_loadptr( &monitor->path );
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
-	char** paths = 0;
+	string_t* paths = 0;
 
 	memory_context_push( HASH_STREAM );
 
 	array_reserve( watch, 1024 );
 
 	//Recurse and add all subdirs
-	_fs_add_notify_subdir( notify_fd, monitor_path, &watch, &paths, false );
+	local_path = string_copy( buffer, sizeof( buffer ), monitor_path, string_length( monitor_path ) );
+	_fs_add_notify_subdir( notify_fd, STRING_ARGS( local_path ), sizeof( buffer ), &watch, &paths, false );
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
@@ -1356,7 +1359,8 @@ void* _fs_monitor( object_t thread, void* monitorptr )
 				fs_watch_t* curwatch = _lookup_watch( watch, event->wd );
 				if( !curwatch )
 				{
-					log_warnf( 0, WARNING_SUSPICIOUS, "inotify watch not found: %d %x %x %u bytes: %s", event->wd, event->mask, event->cookie, event->len, event->name );
+					log_warnf( 0, WARNING_SUSPICIOUS, "inotify watch not found: %d %x %x %" PRIsize " bytes: %s",
+						event->wd, event->mask, event->cookie, event->len, event->name );
 					goto skipwatch;
 				}
 
