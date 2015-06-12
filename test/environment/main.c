@@ -86,10 +86,17 @@ DECLARE_TEST( environment, builtin )
 
 DECLARE_TEST( environment, workingdir )
 {
+	char buffer[BUILD_MAX_PATHLEN];
 	string_const_t working_dir = environment_current_working_directory();
 	string_const_t new_working_dir = path_directory_name( STRING_ARGS( working_dir ) );
 	string_t working_dir_copy = string_clone( STRING_ARGS( working_dir ) );
 
+	if( string_equal( STRING_ARGS( working_dir ), STRING_CONST( "/" ) ) )
+	{
+		string_t tmpwork = path_make_temporary( buffer, sizeof( buffer ) );
+		new_working_dir = path_directory_name( STRING_ARGS( tmpwork ) );
+	}
+	
 	EXPECT_CONSTSTRINGNE( working_dir, new_working_dir );
 
 	environment_set_current_working_directory( STRING_ARGS( new_working_dir ) );

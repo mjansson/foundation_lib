@@ -421,15 +421,26 @@ DECLARE_TEST( path, absolute )
 	string_t path20;
 	string_t path21;
 	string_const_t cpath;
+	string_const_t cwd_sub, cwd_sub_sub;
+	string_t cwd_sub_slash, cwd_test, cwd_test_slash, cwd_test_path, cwd_test_path_slash;
 	string_const_t cwd = environment_current_working_directory();
 
-	string_const_t cwd_sub = path_directory_name( STRING_ARGS( cwd ) );
-	string_const_t cwd_sub_sub = path_directory_name( STRING_ARGS( cwd_sub ) );
-	string_t cwd_sub_slash = string_allocate_concat( STRING_ARGS( cwd_sub ), STRING_CONST( "/" ) );
-	string_t cwd_test = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test" ) );
-	string_t cwd_test_slash = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/" ) );
-	string_t cwd_test_path = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/path" ) );
-	string_t cwd_test_path_slash = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/path/" ) );
+	if( string_equal( STRING_ARGS( cwd ), STRING_CONST( "/" ) ) )
+	{
+		char buffer[BUILD_MAX_PATHLEN];
+		string_t newcwd = path_make_temporary( buffer, sizeof( buffer ) );
+		cwd = path_directory_name( STRING_ARGS( newcwd ) );
+		fs_make_directory( STRING_ARGS( cwd ) );
+		environment_set_current_working_directory( STRING_ARGS( cwd ) );
+	}
+	
+	cwd_sub = path_directory_name( STRING_ARGS( cwd ) );
+	cwd_sub_sub = path_directory_name( STRING_ARGS( cwd_sub ) );
+	cwd_sub_slash = string_allocate_concat( STRING_ARGS( cwd_sub ), STRING_CONST( "/" ) );
+	cwd_test = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test" ) );
+	cwd_test_slash = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/" ) );
+	cwd_test_path = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/path" ) );
+	cwd_test_path_slash = path_allocate_concat( STRING_ARGS( cwd ), STRING_CONST( "test/path/" ) );
 
 	cpath = string_const( STRING_CONST( "" ) ); path1 = path_allocate_absolute( STRING_ARGS( cpath ) );
 	cpath = string_const( STRING_CONST( "/" ) ); path2 = path_allocate_absolute( STRING_ARGS( cpath ) );
