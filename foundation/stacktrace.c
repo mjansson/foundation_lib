@@ -824,11 +824,11 @@ static FOUNDATION_NOINLINE string_t _resolve_stack_frames( char* buffer, size_t 
 		if( iaddr && !frames[iaddr] )
 			break;
 
-		line = string_format( linebuf, sizeof( linebuf ), STRING_CONST( "[0x%" PRIfixPTR "]\n" ), (uintptr_t)frames[iaddr] ) );
+		line = string_format( linebuf, sizeof( linebuf ), STRING_CONST( "[0x%" PRIfixPTR "]\n" ), (uintptr_t)frames[iaddr] );
 		symbols = string_append( STRING_ARGS( symbols ), size, STRING_ARGS( line ) );
 	}
 
-	return lines;
+	return symbols;
 
 #endif
 }

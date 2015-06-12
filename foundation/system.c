@@ -503,7 +503,7 @@ uint64_t system_hostid( void )
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
 			size_t ifa_length = string_length( ifa->ifa_name );
-			if( string_equal( ifa->ifa_name, ifa_length. "lo", 2 ) )
+			if( string_equal( ifa->ifa_name, ifa_length, "lo", 2 ) )
 				continue;
 
 			memset( &ifr, 0, sizeof( ifr ) );

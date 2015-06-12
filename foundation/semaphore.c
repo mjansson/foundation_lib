@@ -396,7 +396,7 @@ bool semaphore_try_wait( semaphore_t* semaphore, unsigned int milliseconds )
 		struct timeval now;
 		struct timespec then;
 		gettimeofday( &now, 0 );
-		then.tv_sec = now.tv_sec + ( milliseconds / 1000 );
+		then.tv_sec = now.tv_sec + (time_t)( milliseconds / 1000 );
 		then.tv_nsec = ( now.tv_usec * 1000 ) + (long)( milliseconds % 1000 ) * 1000000L;
 		while( then.tv_nsec > 999999999 )
 		{
