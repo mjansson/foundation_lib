@@ -226,6 +226,7 @@ class Toolchain(object):
     self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && ' + self.copy + ' $apksource $apk && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner $timestamp -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
+    self.zipcmd = '$zip -r -9 $out $in $implicitin'
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
@@ -410,9 +411,11 @@ class Toolchain(object):
         self.sysroot = ''
         self.liblinkname = ''
 
+        self.cflags += [ '-fPIE' ]
+
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -D__TIZEN__=1 -D_GNU_SOURCE=1 -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
-        self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -Xlinker --as-needed -pie -o $out $in $libs $archlibs'
+        self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
 
@@ -619,6 +622,8 @@ class Toolchain(object):
     self.tizen_archpath['mips'] = 'mips'
     self.tizen_archpath['mips64'] = 'mips64'
 
+    self.zip = 'zip'
+
   def read_prefs( self, filename ):
     if not os.path.isfile( filename ):
       return
@@ -801,6 +806,9 @@ class Toolchain(object):
       if arch == 'x86':
         flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
         flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
+      elif arch == 'arm7':
+        flags += ' -target arm-tizen-linux-gnueabi -ccc-gcc-name arm-linux-gnueabi-g++ -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16 -mtune=cortex-a8'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'arm-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.target.is_windows() and self.toolchain == 'msvc':
       if arch == 'x86':
         flags += ' /arch:SSE2'
@@ -878,6 +886,9 @@ class Toolchain(object):
       if arch == 'x86':
         flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
         flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
+      elif arch == 'arm7':
+        flags += ' -target arm-tizen-linux-gnueabi -ccc-gcc-name arm-linux-gnueabi-g++ -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16 -mtune=cortex-a8'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'arm-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -996,7 +1007,6 @@ class Toolchain(object):
     writer.rule( 'ar', command = self.arcmd, description = 'LIB $out')
     writer.rule( 'link', command = self.linkcmd, description = 'LINK $out')
     writer.rule( 'copy', command = self.copycmd, description = 'COPY $in -> $outpath')
-
     if self.target.is_macosx() or self.target.is_ios():
       writer.rule( 'cm', command = self.cmcmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in' )
       writer.rule( 'lipo', command = self.lipocmd, description = 'LIPO $out' )
@@ -1005,7 +1015,6 @@ class Toolchain(object):
       writer.rule( 'xcassets', command = self.xcassetscmd, description = 'XCASSETS $outpath' )
       writer.rule( 'xib', command = self.xibcmd, description = 'XIB $outpath' )
       writer.rule( 'codesign', command = self.codesigncmd, description = 'CODESIGN $outpath' )
-
     if self.target.is_android():
       writer.rule( 'aapt', command = self.aaptcmd, description = 'AAPT $out' )
       writer.rule( 'aaptdeploy', command = self.aaptdeploycmd, description = 'AAPT $out' )
@@ -1014,10 +1023,12 @@ class Toolchain(object):
       writer.rule( 'dex', command = self.dexcmd, description = 'DEX $out' )
       writer.rule( 'jarsigner', command = self.jarsignercmd, description = 'JARSIGNER $out' )
       writer.rule( 'zipalign', command = self.zipaligncmd, description = 'ZIPALIGN $out' )
-
     if self.target.is_pnacl():
       writer.rule( 'finalize', command = self.finalizecmd, description = 'FINALIZE $out' )
       writer.rule( 'nmf', command = self.nmfcmd, description = 'NMF $out' )
+    if self.target.is_tizen():
+      writer.rule( 'zip', command = self.zipcmd, description = 'ZIP $out' )
+    writer.newline()
 
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
@@ -1063,6 +1074,8 @@ class Toolchain(object):
     if self.target.is_pnacl():
       writer.variable( 'finalize', self.finalize )
       writer.variable( 'nmf', self.nmf )
+    if self.target.is_tizen():
+      writer.variable( 'zip', self.zip )
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
@@ -1099,6 +1112,7 @@ class Toolchain(object):
     writer.variable( 'libpaths', ' '.join( self.shell_escape( path ) for path in self.make_libpaths( self.libpaths ) ) )
     writer.variable( 'libs', ' ' )
     writer.variable( 'archlibs', ' ' )
+    writer.variable( 'implicitin', '' )
     writer.newline()
 
   def make_libs( self, libs ):
@@ -1155,6 +1169,8 @@ class Toolchain(object):
     return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainprefix[arch] + '-gcc-' + self.tizen_gccversion )
 
   def make_tizen_sysroot_path( self, arch ):
+    if arch == 'arm7':
+      return os.path.join( self.tizen_sdkpath, 'platforms', 'mobile-' + self.tizen_platformversion, 'rootstraps', 'mobile-' + self.tizen_platformversion + '-device.core' )
     return os.path.join( self.tizen_sdkpath, 'platforms', 'mobile-' + self.tizen_platformversion, 'rootstraps', 'mobile-' + self.tizen_platformversion + '-emulator.core' )
 
   def make_tizen_ar_path( self, arch ):
@@ -1348,8 +1364,27 @@ class Toolchain(object):
 
   def build_tpk( self, writer, config, basepath, module, binname, archbins, resources ):
     buildpath = os.path.join( self.buildpath, config, "tpk", binname )
-
-    writer.comment('Make TPK')
+    tpks = []
+    writer.comment('Make TPK in ' + buildpath)
+    for _, value in archbins.iteritems():
+      for archbin in value:
+        tpkdeps = []
+        writer.comment("Archbin " + archbin)
+        pathname = os.path.split( archbin )[0]
+        archname = os.path.split( pathname )[1]
+        filename = os.path.split( archbin )[1]
+        tpkdeps += self.build_copy( writer, os.path.join( buildpath, archname, 'bin', filename ), archbin )
+        for resource in resources:
+          filename = os.path.split( resource )[1]
+          if filename == 'tizen-manifest.xml':
+            tpkdeps += self.build_copy( writer, os.path.join( buildpath, archname, 'tizen-manifest.xml' ), os.path.join( basepath, module, resource ) )
+          else:
+            restype = os.path.split( os.path.split( resource )[0] )[1]
+            tpkdeps += self.build_copy( writer, os.path.join( buildpath, archname, 'shared', restype, filename ), os.path.join( basepath, module, resource ) )
+        tpkname = binname + '.tpk'
+        zipvars = [ ( 'implicitin', os.path.join( buildpath, archname ) ) ]
+        tpks += writer.build( os.path.join( self.binpath, config, archname, tpkname ), 'zip', None, variables = zipvars, implicit = tpkdeps )
+    return tpks
 
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
     built = {}
@@ -1516,7 +1551,7 @@ class Toolchain(object):
       elif self.target.is_android():
         builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources, javasources = [ os.path.join( basepath, module, name ) for name in sources if name.endswith( '.java' ) ] )
       elif self.target.is_tizen():
-        builtbin += self.build_tpk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources ] )
+        builtbin += self.build_tpk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources )
       else:
         for _, value in archbins.iteritems():
           builtbin += value

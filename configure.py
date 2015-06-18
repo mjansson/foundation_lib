@@ -60,6 +60,10 @@ if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target
     test_extrasources = [ os.path.join( 'all', 'android', 'java', 'com', 'rampantpixels', 'foundation', 'test', item ) for item in [
       'TestActivity.java'
     ] ]
+  elif target.is_tizen():
+    test_resources = [ os.path.join( 'all', 'tizen', item ) for item in [
+      'tizen-manifest.xml', os.path.join( 'res', 'tizenapp.png' )
+    ] ]
   if target.is_ios() or target.is_android() or target.is_tizen():
     generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ] + test_extrasources, binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
   else:
