@@ -292,10 +292,11 @@ void _library_shutdown( void )
 }
 
 
-object_t library_load( const char* name )
+object_t library_load( const char* name, size_t length )
 {
 	FOUNDATION_UNUSED( name );
-	log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
+	FOUNDATION_UNUSED( length );
+	log_error( 0, ERROR_NOT_IMPLEMENTED, STRING_CONST( "Dynamic library loading not implemented for this platform" ) );
 	return 0;
 }
 
@@ -313,10 +314,11 @@ void library_unload( object_t id )
 }
 
 
-void* library_symbol( object_t id, const char* name )
+void* library_symbol( object_t id, const char* name, size_t length )
 {
 	FOUNDATION_UNUSED( id );
 	FOUNDATION_UNUSED( name );
+	FOUNDATION_UNUSED( length );
 	return 0;
 }
 

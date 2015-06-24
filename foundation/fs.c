@@ -122,7 +122,7 @@ static string_const_t _fs_path( const char* abspath, size_t length )
 static PP_Resource _fs_resolve_path( const char* path, size_t length, string_const_t* localpath )
 {
 	static const char rootpath[] = "/";
-	if( string_equal_substr( path, length, STRING_CONST( "/tmp" ), 4 ) )
+	if( string_equal( path, length, STRING_CONST( "/tmp" ) ) )
 	{
 		if( length == 0 )
 		{
@@ -135,7 +135,7 @@ static PP_Resource _fs_resolve_path( const char* path, size_t length, string_con
 			return _pnacl_fs_temporary;
 		}
 	}
-	else if( string_equal_substr( path, length, STRING_CONST( "/persistent" ), 11 ) )
+	else if( string_equal( path, length, STRING_CONST( "/persistent" ) ) )
 	{
 		if( length == 11 )
 		{
@@ -148,7 +148,7 @@ static PP_Resource _fs_resolve_path( const char* path, size_t length, string_con
 			return _pnacl_fs_persistent;
 		}
 	}
-	else if( string_equal_substr( path, STRING_CONST( "/cache" ), 6 ) )
+	else if( string_equal( path, STRING_CONST( "/cache" ) ) )
 	{
 		/* TODO: PNaCl implement
 		if( path[6] == 0 )

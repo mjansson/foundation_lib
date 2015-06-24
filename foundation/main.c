@@ -313,7 +313,7 @@ PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface ge
 
 PP_EXPORT const void* PPP_GetInterface( const char* interface_name )
 {
-	return pnacl_module_interface( interface_name );
+	return pnacl_module_interface( interface_name, string_length( interface_name ) );
 }
 
 

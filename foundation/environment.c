@@ -92,7 +92,9 @@ static void _environment_set_executable_paths( char* executable_path, size_t len
 int _environment_initialize( const application_t application )
 {
 	string_const_t working_dir;
+#if !FOUNDATION_PLATFORM_PNACL
 	char buffer[BUILD_MAX_PATHLEN];
+#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ia;
@@ -396,9 +398,11 @@ void environment_set_current_working_directory( const char* path, size_t length 
 	_environment_current_working_dir = (string_t){ 0, 0 };
 #elif FOUNDATION_PLATFORM_PNACL
 	//Allow anything
+	char buffer[BUILD_MAX_PATHLEN];
 	string_deallocate( _environment_current_working_dir.str );
-	_environment_current_working_dir = string_clone( path, length );
-	_environment_current_working_dir = path_absolute( _environment_current_working_dir.str, _environment_current_working_dir.length );
+	_environment_current_working_dir = string_copy( buffer, sizeof( buffer ), path, length );
+	_environment_current_working_dir = path_absolute( _environment_current_working_dir.str, _environment_current_working_dir.length, sizeof( buffer ) );
+	_environment_current_working_dir = string_clone( STRING_ARGS( _environment_current_working_dir ) );
 #else
 #  error Not implemented
 #endif
@@ -499,7 +503,7 @@ string_const_t environment_temporary_directory( void )
 #    if FOUNDATION_PLATFORM_IOS
 	_environment_temp_dir_local = true;
 #    endif
-#  else
+#  elif FOUNDATION_PLATFORM_POSIX
 	_environment_temp_dir = string_clone( P_tmpdir, string_length( P_tmpdir ) );
 #  endif
 #endif

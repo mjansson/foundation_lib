@@ -293,6 +293,8 @@ static string_const_t platformsuffix =
 #endif
 
 
+#if !FOUNDATION_PLATFORM_PNACL
+
 static string_t config_unsuffix_path( string_t path )
 {
 	string_const_t buildsuffix =
@@ -326,9 +328,14 @@ static string_t config_unsuffix_path( string_t path )
 	return path;
 }
 
+#endif
+
+
 static string_t config_make_path( int path, char* buffer, size_t capacity )
 {
+#if !FOUNDATION_PLATFORM_PNACL
 	string_t result;
+#endif
 	string_const_t env_dir;
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
 	const string_const_t* cmd_line;

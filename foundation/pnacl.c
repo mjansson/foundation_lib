@@ -196,9 +196,9 @@ int pnacl_module_initialize( PP_Module module_id, PPB_GetInterface browser )
 }
 
 
-const void* pnacl_module_interface( const char* interface_name )
+const void* pnacl_module_interface( const char* interface_name, size_t length )
 {
-	if( string_equal( interface_name, PPP_INSTANCE_INTERFACE ) == 0 )
+	if( string_equal( interface_name, length, STRING_CONST( PPP_INSTANCE_INTERFACE ) ) == 0 )
 	{
 		static PPP_Instance instance_interface = {
 			&pnacl_instance_create,
