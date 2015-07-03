@@ -596,9 +596,29 @@ bool string_equal( const char* rhs, const char* lhs )
 }
 
 
+bool string_equal_nocase( const char* rhs, const char* lhs )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+	return ( rhs == lhs ) || ( rhs && lhs && ( _stricmp( rhs, lhs ) == 0 ) ) || ( !rhs && lhs && lhs[0] == 0 ) || ( rhs && !lhs && rhs[0] == 0 );
+#else
+	return ( rhs == lhs ) || ( rhs && lhs && ( strcasecmp( rhs, lhs ) == 0 ) ) || ( !rhs && lhs && lhs[0] == 0 ) || ( rhs && !lhs && rhs[0] == 0 );
+#endif
+}
+
+
 bool string_equal_substr( const char* rhs, const char* lhs, unsigned int len )
 {
 	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+}
+
+
+bool string_equal_substr_nocase( const char* rhs, const char* lhs, unsigned int len )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+	return ( rhs == lhs ) || ( rhs && lhs && ( _strnicmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+#else
+	return ( rhs == lhs ) || ( rhs && lhs && ( strncasecmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+#endif
 }
 
 

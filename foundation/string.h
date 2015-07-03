@@ -54,7 +54,9 @@ FOUNDATION_API unsigned int   string_rfind_first_not_of( const char* str, const 
 
 FOUNDATION_API bool           string_ends_with( const char* str, const char* suffix );
 FOUNDATION_API bool           string_equal( const char* lhs, const char* rhs );
+FOUNDATION_API bool           string_equal_nocase( const char* lhs, const char* rhs );
 FOUNDATION_API bool           string_equal_substr( const char* lhs, const char* rhs, unsigned int length );
+FOUNDATION_API bool           string_equal_substr_nocase( const char* lhs, const char* rhs, unsigned int length );
 FOUNDATION_API bool           string_match_pattern( const char* element, const char* pattern );
 
 FOUNDATION_API char**         string_explode( const char* str, const char* delimiters, bool allow_empty );

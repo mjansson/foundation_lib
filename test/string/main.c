@@ -370,6 +370,26 @@ DECLARE_TEST( string, queries )
 		string_deallocate( str9 );
 	}
 	{
+		char *nullstr = 0;
+		EXPECT_TRUE( string_equal( "foo", "foo" ) );
+		EXPECT_TRUE( string_equal( "foo bar foo bar foo bar foo bar foo bar foo bar", "foo bar foo bar foo bar foo bar foo bar foo bar" ) );
+		EXPECT_FALSE( string_equal( "foo", "Foo" ) );
+		EXPECT_FALSE( string_equal( "bfoo", "foo" ) );
+		EXPECT_TRUE( string_equal( nullstr, "" ) );
+		EXPECT_TRUE( string_equal( "", nullstr ) );
+		EXPECT_FALSE( string_equal( " string", nullstr ) );
+		EXPECT_FALSE( string_equal( nullstr, "0" ) );
+
+		EXPECT_TRUE( string_equal_nocase( "foo", "Foo" ) );
+		EXPECT_TRUE( string_equal_nocase( "foo bar foo Bar foo bar foo bar foo bar foo baR", "Foo Bar foo bar foo bar foo bar FOO bar foo bar" ) );
+		EXPECT_FALSE( string_equal_nocase( "foo", "Foob" ) );
+		EXPECT_FALSE( string_equal_nocase( "bfoo", "foo" ) );
+		EXPECT_TRUE( string_equal_nocase( nullstr, "" ) );
+		EXPECT_TRUE( string_equal_nocase( "", nullstr ) );
+		EXPECT_FALSE( string_equal_nocase( " String", nullstr ) );
+		EXPECT_FALSE( string_equal_nocase( nullstr, "0" ) );
+	}
+	{
 		char* emptystr = string_allocate( 0 );
 		char* shortstr = string_clone( "short string" );
 		char* longstr  = string_clone( "testing utility string methods like finds, split, merge, explode and similar." );
