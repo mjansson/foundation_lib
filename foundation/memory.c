@@ -171,7 +171,7 @@ void _memory_preallocate( void )
 	if( !_memory_temporary.storage )
 		_atomic_allocate_initialize( (size_t)config_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY ) );
 
-	tracker = config_string_hash( HASH_FOUNDATION, HASH_MEMORY_TRACKER );
+	tracker = config_hash( HASH_FOUNDATION, HASH_MEMORY_TRACKER );
 	if( tracker == HASH_LOCAL )
 		memory_set_tracker( memory_tracker_local() );
 }

@@ -17,24 +17,28 @@
 
 #include <foundation/apple.h>
 
-
 #if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
-FOUNDATION_API void delegate_start_main_ns_thread( void );
-FOUNDATION_API void delegate_reference_classes( void );
+FOUNDATION_API void
+delegate_start_main_ns_thread(void);
+
+FOUNDATION_API void
+delegate_reference_classes(void);
 
 #endif
 
 
 #if FOUNDATION_PLATFORM_MACOSX
 
-FOUNDATION_API void* delegate_nswindow( void );
+FOUNDATION_API void*
+delegate_nswindow(void);
 
 #ifdef __OBJC__
 
-@interface FoundationAppDelegate : NSObject <NSApplicationDelegate>
-@property (nonatomic, retain) IBOutlet NSWindow *window;
-+ (void)referenceClass;
+@interface FoundationAppDelegate :
+           NSObject <NSApplicationDelegate>
+  @property(nonatomic, retain) IBOutlet NSWindow* window;
+  + (void)referenceClass;
 @end
 
 #endif
@@ -44,18 +48,19 @@ FOUNDATION_API void* delegate_nswindow( void );
 
 #if FOUNDATION_PLATFORM_IOS
 
-FOUNDATION_API void* delegate_uiwindow( void );
+FOUNDATION_API void*
+delegate_uiwindow(void);
 
 #ifdef __OBJC__
 
-@interface FoundationAppDelegate : NSObject <UIApplicationDelegate>
-@property (nonatomic, retain) IBOutlet UIWindow *window;
-+ (void)referenceClass;
+@interface FoundationAppDelegate :
+           NSObject <UIApplicationDelegate>
+  @property(nonatomic, retain) IBOutlet UIWindow* window;
+  + (void)referenceClass;
 @end
 
-@interface FoundationAlertViewDelegate : NSObject <UIAlertViewDelegate>
-{
-}
+@interface FoundationAlertViewDelegate :
+           NSObject <UIAlertViewDelegate>
 @end
 
 #endif

@@ -96,7 +96,7 @@ DECLARE_TEST( config, getset )
 	EXPECT_EQ( config_int( invalid_section, invalid_key ), 0 );
 	EXPECT_REALZERO( config_real( invalid_section, invalid_key ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( invalid_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, invalid_key ), HASH_EMPTY_STRING );
 
 	config_set_bool( test_section, test_key, true );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -111,9 +111,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "true" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_TRUE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_TRUE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_bool( test_section, test_key, false );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -128,9 +128,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "false" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_FALSE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_FALSE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_int( test_section, test_key, 0xdeadf00d );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -145,9 +145,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "3735941133" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "3735941133", 10 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "3735941133", 10 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_int( test_section, test_key, -(int64_t)0x1001f00d );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -162,9 +162,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "-268562445" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "-268562445", 10 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "-268562445", 10 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_int( test_section, test_key, 0 );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -179,9 +179,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "0" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "0", 1 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "0", 1 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_real( test_section, test_key, REAL_C(1234.5678) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -196,9 +196,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_from_real_static( REAL_C(1234.5678), 4, 0, '0' ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( STRING_ARGS( string_from_real_static( REAL_C(1234.5678), 4, 0, '0' ) ) ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( STRING_ARGS( string_from_real_static( REAL_C(1234.5678), 4, 0, '0' ) ) ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_real( test_section, test_key, REAL_C(-1234.5678) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -213,9 +213,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_from_real_static( REAL_C(-1234.5678), 4, 0, '0' ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( STRING_ARGS( string_from_real_static( REAL_C(-1234.5678), 4, 0, '0' ) ) ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( STRING_ARGS( string_from_real_static( REAL_C(-1234.5678), 4, 0, '0' ) ) ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_real( test_section, test_key, REAL_C(0.0) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -230,9 +230,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "0" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "0", 1 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "0", 1 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( test_section, test_key, STRING_CONST( "stringvalue" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -247,9 +247,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "stringvalue" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( test_section, test_key, STRING_CONST( "1234" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -264,9 +264,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "1234" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "1234", 4 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "1234", 4 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( test_section, test_key, STRING_CONST( "-1234.1" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -281,9 +281,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "-1234.1" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( test_section, test_key, STRING_CONST( "" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -298,9 +298,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( test_section, test_key, STRING_CONST( "true" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -315,9 +315,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "true" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_TRUE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_TRUE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( test_section, test_key, STRING_CONST( "false" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -332,9 +332,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "false" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_FALSE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_FALSE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( test_section, test_key, STRING_CONST( "stringvalue" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -349,9 +349,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "stringvalue" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( test_section, test_key, STRING_CONST( "1234" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -366,9 +366,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "1234" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "1234", 4 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "1234", 4 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( test_section, test_key, STRING_CONST( "-1234.1" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -383,9 +383,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "-1234.1" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( test_section, test_key, STRING_CONST( "" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -400,9 +400,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( test_section, test_key, STRING_CONST( "true" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -417,9 +417,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "true" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_TRUE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_TRUE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( test_section, test_key, STRING_CONST( "false" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -434,9 +434,9 @@ DECLARE_TEST( config, getset )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "false" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_FALSE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_FALSE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	return 0;
 }
@@ -459,7 +459,7 @@ DECLARE_TEST( config, variables )
 	EXPECT_EQ( config_int( invalid_section, invalid_key ), 0 );
 	EXPECT_REALZERO( config_real( invalid_section, invalid_key ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( invalid_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, invalid_key ), HASH_EMPTY_STRING );
 
 	config_set_string( test_section, test_key, STRING_CONST( "$(__expand_section:__expand_key)" ) );
 
@@ -476,9 +476,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "true" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_TRUE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_TRUE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_bool( expand_section, expand_key, false );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -493,9 +493,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "false" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_FALSE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_FALSE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_int( expand_section, expand_key, 0xdeadf00d );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -510,9 +510,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "3735941133" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "3735941133", 10 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "3735941133", 10 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_int( expand_section, expand_key, -(int64_t)0x1001f00d );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -527,9 +527,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "-268562445" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "-268562445", 10 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "-268562445", 10 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_int( expand_section, expand_key, 0 );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -544,9 +544,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "0" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "0", 1 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "0", 1 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_real( expand_section, expand_key, REAL_C(1234.5678) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -561,9 +561,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_from_real_static( REAL_C(1234.5678), 4, 0, '0' ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	refstr = string_from_real_static( REAL_C(1234.5678), 4, 0, '0' ); EXPECT_EQ( config_string_hash( test_section, test_key ), hash( STRING_ARGS( refstr ) ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	refstr = string_from_real_static( REAL_C(1234.5678), 4, 0, '0' ); EXPECT_EQ( config_hash( test_section, test_key ), hash( STRING_ARGS( refstr ) ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_real( expand_section, expand_key, REAL_C(-1234.5678) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -578,9 +578,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_from_real_static( REAL_C(-1234.5678), 4, 0, '0' ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	refstr = string_from_real_static( REAL_C(-1234.5678), 4, 0, '0' ); EXPECT_EQ( config_string_hash( test_section, test_key ), hash( STRING_ARGS( refstr ) ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	refstr = string_from_real_static( REAL_C(-1234.5678), 4, 0, '0' ); EXPECT_EQ( config_hash( test_section, test_key ), hash( STRING_ARGS( refstr ) ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_real( expand_section, expand_key, REAL_C(0.0) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -595,9 +595,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "0" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "0", 1 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "0", 1 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( expand_section, expand_key, STRING_CONST( "stringvalue" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -612,9 +612,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "stringvalue" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( expand_section, expand_key, STRING_CONST( "1234" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -629,9 +629,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "1234" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "1234", 4 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "1234", 4 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( expand_section, expand_key, STRING_CONST( "-1234.1" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -646,9 +646,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "-1234.1" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( expand_section, expand_key, STRING_CONST( "" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -663,9 +663,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( expand_section, expand_key, STRING_CONST( "true" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -680,9 +680,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "true" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_TRUE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_TRUE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string( expand_section, expand_key, STRING_CONST( "false" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -697,9 +697,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "false" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_FALSE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_FALSE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( expand_section, expand_key, STRING_CONST( "stringvalue" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -714,9 +714,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "stringvalue" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "stringvalue", 11 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( expand_section, expand_key, STRING_CONST( "1234" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -731,9 +731,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "1234" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "1234", 4 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "1234", 4 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( expand_section, expand_key, STRING_CONST( "-1234.1" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -748,9 +748,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "-1234.1" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), hash( "-1234.1", 7 ) );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( expand_section, expand_key, STRING_CONST( "" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -765,9 +765,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( expand_section, expand_key, STRING_CONST( "true" ) );
 	EXPECT_TRUE( config_bool( test_section, test_key ) );
@@ -782,9 +782,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "true" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_TRUE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_TRUE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	config_set_string_constant( expand_section, expand_key, STRING_CONST( "false" ) );
 	EXPECT_FALSE( config_bool( test_section, test_key ) );
@@ -799,9 +799,9 @@ DECLARE_TEST( config, variables )
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, test_key ), string_const( STRING_CONST( "false" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( test_section, invalid_key ), string_const( STRING_CONST( "" ) ) );
 	EXPECT_CONSTSTRINGEQ( config_string( invalid_section, test_key ), string_const( STRING_CONST( "" ) ) );
-	EXPECT_EQ( config_string_hash( test_section, test_key ), HASH_FALSE );
-	EXPECT_EQ( config_string_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
-	EXPECT_EQ( config_string_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( test_section, test_key ), HASH_FALSE );
+	EXPECT_EQ( config_hash( test_section, invalid_key ), HASH_EMPTY_STRING );
+	EXPECT_EQ( config_hash( invalid_section, test_key ), HASH_EMPTY_STRING );
 
 	return 0;
 }

@@ -23,60 +23,46 @@
 #import <Foundation/NSURL.h>
 #import <Foundation/NSProcessInfo.h>
 
+extern void _environment_ns_command_line(string_t** argv);
+extern string_t _environment_ns_home_directory(char*, size_t);
+extern string_t _environment_ns_temporary_directory(char*, size_t);
 
-extern void _environment_ns_command_line( string_t** argv );
-extern string_t _environment_ns_home_directory( char*, size_t );
-extern string_t _environment_ns_temporary_directory( char*, size_t );
-
-
-string_t environment_bundle_identifier( char* target, size_t maxlength )
-{
-	@autoreleasepool
-	{
+string_t environment_bundle_identifier(char* target, size_t maxlength) {
+	@autoreleasepool {
 		NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
 		const char* bundlestr = [bundle_identifier UTF8String];
-		return string_copy( target, maxlength, bundlestr, string_length( bundlestr ) );
+		return string_copy(target, maxlength, bundlestr, string_length(bundlestr));
 	}
 }
 
-
-void _environment_ns_command_line( string_t** argv )
-{
-	@autoreleasepool
-	{
+void _environment_ns_command_line(string_t** argv) {
+	@autoreleasepool {
 		char buffer[BUILD_MAX_PATHLEN];
 		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
-		for( id arg in arguments )
-		{
+		for (id arg in arguments) {
 			CFStringRef argref = (__bridge CFStringRef)arg;
-			CFStringGetCString( argref, buffer, BUILD_MAX_PATHLEN, kCFStringEncodingUTF8 );
-			array_push( *argv, string_clone( buffer, string_length( buffer ) ) );
+			CFStringGetCString(argref, buffer, BUILD_MAX_PATHLEN, kCFStringEncodingUTF8);
+			array_push(*argv, string_clone(buffer, string_length(buffer)));
 		}
 	}
 }
 
-
-string_t _environment_ns_home_directory( char* buffer, size_t capacity )
-{
-	@autoreleasepool
-	{
+string_t _environment_ns_home_directory(char* buffer, size_t capacity) {
+	@autoreleasepool {
 		NSString* homestr = NSHomeDirectory();
 		CFStringRef home = (__bridge CFStringRef)homestr;
-		if( CFStringGetCString( home, buffer, (CFIndex)capacity, kCFStringEncodingUTF8 ) )
-			return (string_t){ buffer, string_length( buffer ) };
+		if (CFStringGetCString(home, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
+			return (string_t) { buffer, string_length(buffer) };
 	}
-	return (string_t){ buffer, 0 };
+	return (string_t) { buffer, 0 };
 }
 
-
-string_t _environment_ns_temporary_directory( char* buffer, size_t capacity )
-{
-	@autoreleasepool
-	{
+string_t _environment_ns_temporary_directory(char* buffer, size_t capacity) {
+	@autoreleasepool {
 		NSString* tmpstr = NSTemporaryDirectory();
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
-		if( CFStringGetCString( tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8 ) )
-			return (string_t){ buffer, string_length( buffer ) };
+		if (CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
+			return (string_t) { buffer, string_length(buffer) };
 	}
-	return (string_t){ buffer, 0 };
+	return (string_t) { buffer, 0 };
 }

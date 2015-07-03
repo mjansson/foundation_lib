@@ -15,12 +15,13 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+FOUNDATION_API blowfish_t* blowfish_allocate(void);
+FOUNDATION_API void blowfish_deallocate(blowfish_t* blowfish);
 
-FOUNDATION_API blowfish_t*  blowfish_allocate( void );
-FOUNDATION_API void         blowfish_deallocate( blowfish_t* blowfish );
+FOUNDATION_API void blowfish_initialize(blowfish_t* blowfish, const void* key, size_t length);
+FOUNDATION_API void blowfish_finalize(blowfish_t* blowfish);
 
-FOUNDATION_API void         blowfish_initialize( blowfish_t* blowfish, const void* key, size_t length );
-FOUNDATION_API void         blowfish_finalize( blowfish_t* blowfish );
-
-FOUNDATION_API void         blowfish_encrypt( const blowfish_t* blowfish, void* data, size_t length, blockcipher_mode_t mode, uint64_t vec );
-FOUNDATION_API void         blowfish_decrypt( const blowfish_t* blowfish, void* data, size_t length, blockcipher_mode_t mode, uint64_t vec );
+FOUNDATION_API void blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length,
+                                     blockcipher_mode_t mode, uint64_t vec);
+FOUNDATION_API void blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length,
+                                     blockcipher_mode_t mode, uint64_t vec);

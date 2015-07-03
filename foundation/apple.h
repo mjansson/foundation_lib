@@ -12,26 +12,28 @@
 
 #pragma once
 
-#include <foundation/platform.h>
+/*! \file apple.h
+\brief Apple system header includes
+\details Safe inclusion of mach and Apple headers for both OSX and iOS targets. Use this header
+instead of direct inclusion of mach/Apple headers to avoid compilation problems with
+multiple or missing definitions.
 
-//NOTE - The base of all header problems with XCode is that includes like
-//       #include <Foundation/Foundation.h>
-//       in system headers will actually map to our foundation/foundation.h since the preprocessor
-//       seems to be case insensitive. Solution is to use this header which wraps the Cocoa includes
-//       #include <foundation/foundation.h>
-//       #include <foundation/apple.h>
+\internal NOTE - The base of all header problems with XCode is that
+<code>#include <Foundation/Foundation.h></code> in system headers will actually map
+to our foundation/foundation.h \endinternal */
+
+#include <foundation/platform.h>
 
 #include <foundation/types.h>
 #include <foundation/uuid.h>
 #include <foundation/radixsort.h>
 #include <foundation/semaphore.h>
 
-
 #if FOUNDATION_PLATFORM_APPLE
 
 #if FOUNDATION_COMPILER_CLANG
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpedantic"
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wpedantic"
 #endif
 
 #define __error_t_defined 1
@@ -85,7 +87,7 @@
 #undef task_t
 
 #if FOUNDATION_COMPILER_CLANG
-#pragma clang diagnostic pop
+#  pragma clang diagnostic pop
 #endif
 
 #endif

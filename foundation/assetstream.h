@@ -12,14 +12,21 @@
 
 #pragma once
 
+/*! \file assetstream.h
+\brief Stream for Android application assets
+\details Stream for reading Android application assets */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-
 #if FOUNDATION_PLATFORM_ANDROID
 
-
-FOUNDATION_API stream_t*  asset_stream_open( const char* path, size_t length, unsigned int mode );
-
+/*! \brief Open an Android application asset as a stream
+Open an Android application asset as a stream. Assets can only be read, not written.
+\param path Asset path within the package asset paths
+\param mode Open mode
+\return New stream, null if path not found or invalid mode */
+FOUNDATION_API stream_t*
+asset_stream_open(const char* path, size_t length, unsigned int mode);
 
 #endif
