@@ -12,42 +12,102 @@
 
 #pragma once
 
+/*! \file bits.h
+\brief Bit tricks and byte order utility functions
+\details Bit tricks and byte order utility functions */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+/*! \brief Swap byte order, 16 bit
+Swap byte order, 16 bit
+\param arg      Value
+\return         Byte-order swapped value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t
 byteorder_swap16(uint16_t arg);
 
+/*! \brief Swap byte order, 32 bit
+Swap byte order, 32 bit
+\param arg      Value
+\return         Byte-order swapped value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t
 byteorder_swap32(uint32_t arg);
 
+/*! \brief Swap byte order, 64 bit
+Swap byte order, 64 bit
+\param arg      Value
+\return         Byte-order swapped value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t
 byteorder_swap64(uint64_t arg);
 
+/*! \brief Swap byte order, generic data
+Swap byte order, generic data
+\param buffer   Pointer to value, swapped in-place
+\param size     Number of bytes in data */
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
 byteorder_swap(void* buffer, const size_t size);
 
+/*! \brief Convert 16-bit native to big endian
+Convert from 16-bit native byte order to big endian byte order
+(no-op for big endian systems)
+\param arg      Value
+\return         Big endian value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t
 byteorder_bigendian16(uint16_t arg);
 
+/*! \brief Convert 32-bit native to big endian
+Convert from 32-bit native byte order to big endian byte order
+(no-op for big endian systems)
+\param arg      Value
+\return         Big endian value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t
 byteorder_bigendian32(uint32_t arg);
 
+/*! \brief Convert 64-bit native to big endian
+Convert from 64-bit native byte order to big endian byte order
+(no-op for big endian systems)
+\param arg      Value
+\return         Big endian value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t
 byteorder_bigendian64(uint64_t arg);
 
+/*! \brief Convert generic data from native to big endian
+Convert generic data from native byte order to big endian
+byte order (no-op for big endian systems)
+\param buffer   Pointer to value, converted in-place to big endian
+\param size     Number of bytes in data */
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
 byteorder_bigendian(void* buffer, const size_t size);
 
+/*! \brief Convert from 16-bit native to little endian
+Convert from 16-bit native byte order to little endian
+byte order (no-op for little endian systems)
+\param arg      Value
+\return         Little endian value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t
 byteorder_littleendian16(uint16_t arg);
 
+/*! \brief Convert from 32-bit native to little endian
+Convert from 32-bit native byte order to little endian
+byte order (no-op for little endian systems)
+\param arg      Value
+\return         Little endian value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t
 byteorder_littleendian32(uint32_t arg);
 
+/*! \brief Convert from 64-bit native to little endian
+Convert from 64-bit native byte order to little endian
+byte order (no-op for little endian systems)
+\param arg      Value
+\return         Little endian value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t
 byteorder_littleendian64(uint64_t arg);
 
+/*! \brief Convert generic data from native to little endian
+Convert generic data from native byte order to little endian
+byte order (no-op for little endian systems)
+\param buffer   Pointer to value, converted in-place to little endian
+\param size     Number of bytes in data */
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
 byteorder_littleendian(void* buffer, const size_t size);
 

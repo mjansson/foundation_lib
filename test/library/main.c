@@ -47,7 +47,7 @@ static int test_library_initialize( void )
 }
 
 
-static void test_library_shutdown( void )
+static void test_library_finalize( void )
 {
 }
 
@@ -123,7 +123,7 @@ static test_suite_t test_library_suite = {
 	test_library_config,
 	test_library_declare,
 	test_library_initialize,
-	test_library_shutdown
+	test_library_finalize
 };
 
 

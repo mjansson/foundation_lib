@@ -158,7 +158,7 @@ int _system_initialize( void )
 }
 
 
-void _system_shutdown( void )
+void _system_finalize( void )
 {
 	if( _system_library_iphlpapi )
 		library_unload( _system_library_iphlpapi );
@@ -319,7 +319,7 @@ int _system_initialize( void )
 }
 
 
-void _system_shutdown( void )
+void _system_finalize( void )
 {
 	event_stream_deallocate( _system_event_stream );
 	_system_event_stream = 0;

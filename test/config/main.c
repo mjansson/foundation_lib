@@ -72,7 +72,7 @@ static foundation_config_t test_config_config( void )
 }
 
 
-static void test_config_shutdown( void )
+static void test_config_finalize( void )
 {
 }
 
@@ -1060,7 +1060,7 @@ static test_suite_t test_config_suite = {
 	test_config_config,
 	test_config_declare,
 	test_config_initialize,
-	test_config_shutdown
+	test_config_finalize
 };
 
 

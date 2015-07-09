@@ -18,4 +18,4 @@
 
 extern int         main_initialize( void );
 extern int         main_run( void* arg );
-extern void        main_shutdown( void );
+extern void        main_finalize( void );

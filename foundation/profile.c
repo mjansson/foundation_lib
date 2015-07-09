@@ -379,7 +379,7 @@ void profile_initialize( const char* identifier, size_t length, void* buffer, si
 }
 
 
-void profile_shutdown( void )
+void profile_finalize( void )
 {
 	profile_enable( 0 );
 

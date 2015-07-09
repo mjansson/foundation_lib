@@ -213,7 +213,7 @@ const void* pnacl_module_interface( const char* interface_name, size_t length )
 }
 
 
-void pnacl_module_shutdown()
+void pnacl_module_finalize()
 {
 }
 

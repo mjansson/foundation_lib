@@ -98,9 +98,9 @@ exit:
 }
 
 
-void main_shutdown( void )
+void main_finalize( void )
 {
-	foundation_shutdown();
+	foundation_finalize();
 }
 
 

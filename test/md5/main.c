@@ -47,7 +47,7 @@ static int test_md5_initialize( void )
 }
 
 
-static void test_md5_shutdown( void )
+static void test_md5_finalize( void )
 {
 }
 
@@ -226,7 +226,7 @@ static test_suite_t test_md5_suite = {
 	test_md5_config,
 	test_md5_declare,
 	test_md5_initialize,
-	test_md5_shutdown
+	test_md5_finalize
 };
 
 

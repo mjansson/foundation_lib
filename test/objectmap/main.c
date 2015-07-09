@@ -47,7 +47,7 @@ static int test_objectmap_initialize( void )
 }
 
 
-static void test_objectmap_shutdown( void )
+static void test_objectmap_finalize( void )
 {
 }
 
@@ -240,7 +240,7 @@ static test_suite_t test_objectmap_suite = {
 	test_objectmap_config,
 	test_objectmap_declare,
 	test_objectmap_initialize,
-	test_objectmap_shutdown
+	test_objectmap_finalize
 };
 
 

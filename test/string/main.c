@@ -47,7 +47,7 @@ static int test_string_initialize( void )
 }
 
 
-static void test_string_shutdown( void )
+static void test_string_finalize( void )
 {
 }
 
@@ -1159,7 +1159,7 @@ static test_suite_t test_string_suite = {
 	test_string_config,
 	test_string_declare,
 	test_string_initialize,
-	test_string_shutdown
+	test_string_finalize
 };
 
 

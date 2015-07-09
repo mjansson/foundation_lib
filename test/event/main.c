@@ -47,7 +47,7 @@ static int test_event_initialize( void )
 }
 
 
-static void test_event_shutdown( void )
+static void test_event_finalize( void )
 {
 }
 
@@ -585,7 +585,7 @@ static test_suite_t test_event_suite = {
 	test_event_config,
 	test_event_declare,
 	test_event_initialize,
-	test_event_shutdown
+	test_event_finalize
 };
 
 

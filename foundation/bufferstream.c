@@ -17,17 +17,18 @@
 
 static stream_vtable_t _buffer_stream_vtable;
 
-
-stream_t* buffer_stream_allocate(void* buffer, unsigned int mode, size_t size, size_t capacity,
-                                 bool adopt, bool grow) {
+stream_t*
+buffer_stream_allocate(void* buffer, unsigned int mode, size_t size, size_t capacity,
+                       bool adopt, bool grow) {
 	stream_buffer_t* stream = memory_allocate(HASH_STREAM, sizeof(stream_buffer_t), 8,
 	                                          MEMORY_PERSISTENT);
 	buffer_stream_initialize(stream, buffer, mode, size, capacity, adopt, grow);
 	return (stream_t*)stream;
 }
 
-void buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mode, size_t size,
-                              size_t capacity, bool adopt, bool grow) {
+void
+buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mode, size_t size,
+                         size_t capacity, bool adopt, bool grow) {
 	memset(stream, 0, sizeof(stream_buffer_t));
 	stream_initialize((stream_t*)stream, system_byteorder());
 
@@ -49,6 +50,7 @@ void buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned in
 	stream->capacity = capacity;
 	stream->own = adopt;
 	stream->grow = (adopt && grow);
+	stream->lastmod = time_current();
 
 	if (mode & STREAM_TRUNCATE)
 		stream->size = 0;
@@ -58,7 +60,8 @@ void buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned in
 	stream->vtable = &_buffer_stream_vtable;
 }
 
-static void _buffer_stream_finalize(stream_t* stream) {
+static void
+_buffer_stream_finalize(stream_t* stream) {
 	stream_buffer_t* bufferstream = (stream_buffer_t*)stream;
 
 	if (!bufferstream || (stream->type != STREAMTYPE_MEMORY))
@@ -69,7 +72,8 @@ static void _buffer_stream_finalize(stream_t* stream) {
 	bufferstream->buffer = 0;
 }
 
-static size_t _buffer_stream_read(stream_t* stream, void* dest, size_t num) {
+static size_t
+_buffer_stream_read(stream_t* stream, void* dest, size_t num) {
 	size_t available, num_read;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
@@ -87,7 +91,8 @@ static size_t _buffer_stream_read(stream_t* stream, void* dest, size_t num) {
 	return 0;
 }
 
-static size_t _buffer_stream_write(stream_t* stream, const void* source, size_t num) {
+static size_t
+_buffer_stream_write(stream_t* stream, const void* source, size_t num) {
 	size_t available, want, num_write;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
@@ -106,13 +111,15 @@ static size_t _buffer_stream_write(stream_t* stream, const void* source, size_t 
 			buffer_stream->size = buffer_stream->current + want;
 			buffer_stream->capacity = (buffer_stream->size < 1024) ? 1024 : buffer_stream->size + 1024;
 			buffer_stream->buffer = memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0,
-			                        buffer_stream->current);  //tail segment from current to size will be overwritten
+			                                          buffer_stream->current);  //tail segment from current to size will be overwritten
 		}
 		else {
 			available = buffer_stream->capacity - buffer_stream->current;
 			buffer_stream->size = buffer_stream->capacity;
 		}
 	}
+
+	buffer_stream->lastmod = time_current();
 
 	num_write = (want < available) ? want : available;
 	if (num_write > 0) {
@@ -124,17 +131,20 @@ static size_t _buffer_stream_write(stream_t* stream, const void* source, size_t 
 	return 0;
 }
 
-static bool _buffer_stream_eos(stream_t* stream) {
+static bool
+_buffer_stream_eos(stream_t* stream) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	return buffer_stream->current >= buffer_stream->size;
 }
 
-static void _buffer_stream_flush(stream_t* stream) {
+static void
+_buffer_stream_flush(stream_t* stream) {
 	//lint --e{715, 818} stream unused and count be const, but it's really a vtable function
 	FOUNDATION_UNUSED(stream);
 }
 
-static void _buffer_stream_truncate(stream_t* stream, size_t size) {
+static void
+_buffer_stream_truncate(stream_t* stream, size_t size) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	if (buffer_stream->capacity >= size) {
 		buffer_stream->size = size;
@@ -142,7 +152,7 @@ static void _buffer_stream_truncate(stream_t* stream, size_t size) {
 	else if (buffer_stream->grow) {
 		buffer_stream->capacity = size;
 		buffer_stream->buffer = memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0,
-		                        buffer_stream->current);
+		                                          buffer_stream->current);
 		buffer_stream->size = buffer_stream->capacity;
 	}
 	else {
@@ -150,14 +160,17 @@ static void _buffer_stream_truncate(stream_t* stream, size_t size) {
 	}
 	if (buffer_stream->current > buffer_stream->size)
 		buffer_stream->current = buffer_stream->size;
+	buffer_stream->lastmod = time_current();
 }
 
 /*lint -e{818} Function prototype must match stream interface */
-static size_t _buffer_stream_size(stream_t* stream) {
+static size_t
+_buffer_stream_size(stream_t* stream) {
 	return ((const stream_buffer_t*)stream)->size;
 }
 
-static void _buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
+static void
+_buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	size_t new_current = 0;
 	if (direction == STREAM_SEEK_CURRENT) {
@@ -179,21 +192,25 @@ static void _buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mo
 		buffer_stream->current = new_current;
 }
 
-static size_t _buffer_stream_tell(stream_t* stream) {
+static size_t
+_buffer_stream_tell(stream_t* stream) {
 	return ((const stream_buffer_t*)stream)->current;
 }
 
-static tick_t _buffer_stream_lastmod(const stream_t* stream) {
-	FOUNDATION_UNUSED(stream);
-	return time_current();
+static tick_t
+_buffer_stream_lastmod(const stream_t* stream) {
+	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
+	return buffer_stream->lastmod;
 }
 
-static size_t _buffer_stream_available_read(stream_t* stream) {
+static size_t
+_buffer_stream_available_read(stream_t* stream) {
 	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream->size - buffer_stream->current;
 }
 
-void _buffer_stream_initialize(void) {
+void
+_buffer_stream_initialize(void) {
 	memset(&_buffer_stream_vtable, 0, sizeof(_buffer_stream_vtable));
 	_buffer_stream_vtable.read = _buffer_stream_read;
 	_buffer_stream_vtable.write = _buffer_stream_write;

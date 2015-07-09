@@ -47,7 +47,7 @@ static int test_error_initialize( void )
 }
 
 
-static void test_error_shutdown( void )
+static void test_error_finalize( void )
 {
 }
 
@@ -267,7 +267,7 @@ static test_suite_t test_error_suite = {
 	test_error_config,
 	test_error_declare,
 	test_error_initialize,
-	test_error_shutdown
+	test_error_finalize
 };
 
 

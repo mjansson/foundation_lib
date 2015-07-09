@@ -16,16 +16,19 @@
 static crash_dump_callback_fn  _crash_dump_callback;
 static string_const_t          _crash_dump_name;
 
-void crash_guard_set(crash_dump_callback_fn callback, const char* name, size_t length) {
+void
+crash_guard_set(crash_dump_callback_fn callback, const char* name, size_t length) {
 	_crash_dump_callback = callback;
 	_crash_dump_name     = (string_const_t) { name, length };
 }
 
-string_const_t crash_guard_name(void) {
+string_const_t
+crash_guard_name(void) {
 	return _crash_dump_name;
 }
 
-crash_dump_callback_fn crash_guard_callback(void) {
+crash_dump_callback_fn
+crash_guard_callback(void) {
 	return _crash_dump_callback;
 }
 
@@ -36,11 +39,11 @@ crash_dump_callback_fn crash_guard_callback(void) {
 #  include <stdarg.h>
 
 typedef BOOL (STDCALL* MiniDumpWriteDumpFn)(HANDLE, DWORD, HANDLE, MINIDUMP_TYPE,
-    CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION,
-    CONST PMINIDUMP_CALLBACK_INFORMATION);
+                                            CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION,
+                                            CONST PMINIDUMP_CALLBACK_INFORMATION);
 
-static string_t _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name,
-                                        string_t dump_file) {
+static string_t
+_crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, string_t dump_file) {
 	MINIDUMP_EXCEPTION_INFORMATION info;
 	HANDLE file;
 	SYSTEMTIME local_time;
@@ -101,7 +104,8 @@ typedef struct crash_exception_closure_t crash_exception_closure_t;
 //TODO: Set per-thread
 crash_exception_closure_t _crash_exception_closure;
 
-LONG WINAPI _crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
+LONG WINAPI
+_crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
 	string_t dump_file = { _crash_dump_file_buffer, sizeof(_crash_dump_file_buffer) };
 	_crash_create_mini_dump(pointers, _crash_exception_closure.name, dump_file);
 	if (_crash_exception_closure.callback)
@@ -134,7 +138,8 @@ FOUNDATION_DECLARE_THREAD_LOCAL(const char*, crash_callback_name, 0)
 #endif
 FOUNDATION_DECLARE_THREAD_LOCAL(crash_env_t, crash_env, 0)
 
-static string_t _crash_guard_minidump(void* context, string_const_t name, string_t dump_file) {
+static string_t
+_crash_guard_minidump(void* context, string_const_t name, string_t dump_file) {
 	string_const_t tmp_dir;
 	string_const_t uuid_str;
 	if (!name.length)
@@ -154,8 +159,8 @@ static string_t _crash_guard_minidump(void* context, string_const_t name, string
 	return dump_file;
 }
 
-
-static void _crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
+static void
+_crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
 	FOUNDATION_UNUSED(sig);
 	FOUNDATION_UNUSED(info);
 	FOUNDATION_UNUSED(arg);
@@ -166,8 +171,8 @@ static void _crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
 	if (callback) {
 		char file_name_buffer[ BUILD_MAX_PATHLEN ];
 		const char* name = get_thread_crash_callback_name();
-		string_t dump_file = (string_t){file_name_buffer, sizeof(file_name_buffer)};
-		dump_file = _crash_guard_minidump(arg, (string_const_t){name, string_length(name)}, dump_file);
+		string_t dump_file = (string_t) {file_name_buffer, sizeof(file_name_buffer)};
+		dump_file = _crash_guard_minidump(arg, (string_const_t) {name, string_length(name)}, dump_file);
 		callback(dump_file.str, dump_file.length);
 	}
 
@@ -182,8 +187,9 @@ static void _crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
 
 #endif
 
-int crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
-                size_t length) {
+int
+crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
+            size_t length) {
 	//Make sure path is initialized
 	environment_temporary_directory();
 
@@ -264,7 +270,8 @@ int crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, 
 extern __declspec(dllimport) void STDCALL DebugBreak(void);
 #endif
 
-void crash_debug_break(void) {
+void
+crash_debug_break(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DebugBreak();
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -274,7 +281,8 @@ void crash_debug_break(void) {
 #endif
 }
 
-void crash_dump(void) {
+void
+crash_dump(void) {
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	__builtin_trap();
 #else

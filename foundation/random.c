@@ -84,7 +84,7 @@ int _random_initialize( void )
 }
 
 
-void _random_shutdown( void )
+void _random_finalize( void )
 {
 	size_t i, size;
 

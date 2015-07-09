@@ -47,7 +47,7 @@ static int test_regex_initialize( void )
 }
 
 
-static void test_regex_shutdown( void )
+static void test_regex_finalize( void )
 {
 }
 
@@ -290,7 +290,7 @@ static test_suite_t test_regex_suite = {
 	test_regex_config,
 	test_regex_declare,
 	test_regex_initialize,
-	test_regex_shutdown
+	test_regex_finalize
 };
 
 

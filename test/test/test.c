@@ -216,9 +216,9 @@ int main_run( void* main_arg )
 }
 
 
-void main_shutdown( void )
+void main_finalize( void )
 {
-	foundation_shutdown();
+	foundation_finalize();
 }
 
 #endif

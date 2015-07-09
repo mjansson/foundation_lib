@@ -31,7 +31,7 @@
 #include <dlog/dlog.h>
 
 FOUNDATION_API int       tizen_initialize( void );
-FOUNDATION_API void      tizen_shutdown( void );
+FOUNDATION_API void      tizen_finalize( void );
 FOUNDATION_API void      tizen_start_main_thread( void );
 FOUNDATION_API int       tizen_app_main( int argc, char** argv );
 

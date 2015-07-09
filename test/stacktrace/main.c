@@ -47,7 +47,7 @@ static int test_stacktrace_initialize( void )
 }
 
 
-static void test_stacktrace_shutdown( void )
+static void test_stacktrace_finalize( void )
 {
 }
 
@@ -116,7 +116,7 @@ static test_suite_t test_stacktrace_suite = {
 	test_stacktrace_config,
 	test_stacktrace_declare,
 	test_stacktrace_initialize,
-	test_stacktrace_shutdown
+	test_stacktrace_finalize
 };
 
 

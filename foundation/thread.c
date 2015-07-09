@@ -123,7 +123,7 @@ int _thread_initialize( void )
 }
 
 
-void _thread_shutdown( void )
+void _thread_finalize( void )
 {
 	objectmap_deallocate( _thread_map );
 

@@ -47,7 +47,7 @@ static int test_environment_initialize( void )
 }
 
 
-static void test_environment_shutdown( void )
+static void test_environment_finalize( void )
 {
 }
 
@@ -96,7 +96,7 @@ DECLARE_TEST( environment, workingdir )
 		string_t tmpwork = path_make_temporary( buffer, sizeof( buffer ) );
 		new_working_dir = path_directory_name( STRING_ARGS( tmpwork ) );
 	}
-	
+
 	EXPECT_CONSTSTRINGNE( working_dir, new_working_dir );
 
 	environment_set_current_working_directory( STRING_ARGS( new_working_dir ) );
@@ -124,7 +124,7 @@ static test_suite_t test_environment_suite = {
 	test_environment_config,
 	test_environment_declare,
 	test_environment_initialize,
-	test_environment_shutdown
+	test_environment_finalize
 };
 
 

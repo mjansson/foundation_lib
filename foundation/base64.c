@@ -18,7 +18,8 @@ static const char _base64_decode[] =
 static const char _base64_encode[] =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-size_t base64_encode(const void* src, size_t srcsize, char* dst, size_t dstsize) {
+size_t
+base64_encode(const void* src, size_t srcsize, char* dst, size_t dstsize) {
 	char* ptr;
 	const unsigned char* carr;
 	unsigned char bits;
@@ -69,7 +70,8 @@ size_t base64_encode(const void* src, size_t srcsize, char* dst, size_t dstsize)
 	return (size_t)pointer_diff(ptr, dst);
 }
 
-size_t base64_decode(const char* src, size_t srcsize, void* dst, size_t dstsize) {
+size_t
+base64_decode(const char* src, size_t srcsize, void* dst, size_t dstsize) {
 	size_t i, length, blocksize;
 	char* cdst = (char*)dst;
 	char* cdstend = cdst + dstsize;

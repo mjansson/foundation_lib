@@ -100,7 +100,7 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 	}
 #endif
 
-	main_shutdown();
+	main_finalize();
 
 	return ret;
 }
@@ -272,14 +272,14 @@ int main( int argc, char** argv )
 	}
 #  endif
 
-	main_shutdown();
+	main_finalize();
 
 #if FOUNDATION_PLATFORM_ANDROID
-	android_shutdown();
+	android_finalize();
 #endif
 
 #if FOUNDATION_PLATFORM_TIZEN
-	tizen_shutdown();
+	tizen_finalize();
 #endif
 
 	return ret;
@@ -319,7 +319,7 @@ PP_EXPORT const void* PPP_GetInterface( const char* interface_name )
 
 PP_EXPORT void PPP_ShutdownModule()
 {
-	pnacl_module_shutdown();
+	pnacl_module_finalize();
 }
 
 #endif

@@ -47,7 +47,7 @@ static int test_radixsort_initialize( void )
 }
 
 
-static void test_radixsort_shutdown( void )
+static void test_radixsort_finalize( void )
 {
 }
 
@@ -444,7 +444,7 @@ static test_suite_t test_radixsort_suite = {
 	test_radixsort_config,
 	test_radixsort_declare,
 	test_radixsort_initialize,
-	test_radixsort_shutdown
+	test_radixsort_finalize
 };
 
 

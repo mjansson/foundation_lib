@@ -413,7 +413,7 @@ int _log_initialize( void )
 }
 
 
-void _log_shutdown( void )
+void _log_finalize( void )
 {
 #if BUILD_ENABLE_LOG
 	hashtable64_deallocate( _log_suppress );

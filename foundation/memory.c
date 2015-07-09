@@ -78,7 +78,7 @@ static void _atomic_allocate_initialize( size_t storagesize )
 }
 
 
-static void _atomic_allocate_shutdown( void )
+static void _atomic_allocate_finalize( void )
 {
 	if( _memory_temporary.storage )
 		memory_deallocate( _memory_temporary.storage );
@@ -177,11 +177,11 @@ void _memory_preallocate( void )
 }
 
 
-void _memory_shutdown( void )
+void _memory_finalize( void )
 {
 	memory_set_tracker( _memory_no_tracker );
 
-	_atomic_allocate_shutdown();
+	_atomic_allocate_finalize();
 	_memory_system.shutdown();
 }
 
@@ -673,7 +673,7 @@ static int _memory_initialize_malloc( void )
 }
 
 
-static void _memory_shutdown_malloc( void )
+static void _memory_finalize_malloc( void )
 {
 }
 
@@ -685,7 +685,7 @@ memory_system_t memory_system_malloc( void )
 	memsystem.reallocate = _memory_reallocate_malloc;
 	memsystem.deallocate = _memory_deallocate_malloc;
 	memsystem.initialize = _memory_initialize_malloc;
-	memsystem.shutdown = _memory_shutdown_malloc;
+	memsystem.shutdown = _memory_finalize_malloc;
 	return memsystem;
 }
 
@@ -755,7 +755,7 @@ static int _memory_tracker_initialize( void )
 }
 
 
-static void _memory_tracker_shutdown( void )
+static void _memory_tracker_finalize( void )
 {
 	if( _memory_table )
 		hashtable_deallocate( _memory_table );
@@ -832,7 +832,7 @@ memory_tracker_t memory_tracker_local( void )
 	tracker.track = _memory_tracker_track;
 	tracker.untrack = _memory_tracker_untrack;
 	tracker.initialize = _memory_tracker_initialize;
-	tracker.shutdown = _memory_tracker_shutdown;
+	tracker.shutdown = _memory_tracker_finalize;
 #endif
 	return tracker;
 }

@@ -75,7 +75,7 @@ int _stream_initialize( void )
 }
 
 
-void _stream_shutdown( void )
+void _stream_finalize( void )
 {
 	hashtable64_deallocate( _stream_protocol_table );
 	_stream_protocol_table = 0;

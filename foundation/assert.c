@@ -29,16 +29,19 @@ static char  _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
 static char  _assert_message_buffer[ASSERT_BUFFER_SIZE];
 #endif
 
-assert_handler_fn assert_handler(void) {
+assert_handler_fn
+assert_handler(void) {
 	return _assert_handler;
 }
 
-void assert_set_handler(assert_handler_fn new_handler) {
+void
+assert_set_handler(assert_handler_fn new_handler) {
 	_assert_handler = new_handler;
 }
 
-int assert_report(hash_t context, const char* condition, size_t cond_length, const char* file,
-                  size_t file_length, unsigned int line, const char* msg, size_t msg_length) {
+int
+assert_report(hash_t context, const char* condition, size_t cond_length, const char* file,
+              size_t file_length, unsigned int line, const char* msg, size_t msg_length) {
 	static const char nocondition[] = "<Static fail>";
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
@@ -91,9 +94,10 @@ int assert_report(hash_t context, const char* condition, size_t cond_length, con
 }
 
 
-int assert_report_formatted(hash_t context, const char* condition, size_t cond_length,
-                            const char* file, size_t file_length, unsigned int line,
-                            const char* msg, size_t msg_length, ...) {
+int
+assert_report_formatted(hash_t context, const char* condition, size_t cond_length,
+                        const char* file, size_t file_length, unsigned int line,
+                        const char* msg, size_t msg_length, ...) {
 	if (msg) {
 		/*lint --e{438} Lint gets confused about assignment to ap */
 		string_t buffer = { _assert_buffer, sizeof(_assert_buffer) };

@@ -149,7 +149,7 @@ static int test_blowfish_initialize( void )
 }
 
 
-static void test_blowfish_shutdown( void )
+static void test_blowfish_finalize( void )
 {
 }
 
@@ -315,7 +315,7 @@ static test_suite_t test_blowfish_suite = {
     test_blowfish_config,
 	test_blowfish_declare,
 	test_blowfish_initialize,
-	test_blowfish_shutdown
+	test_blowfish_finalize
 };
 
 

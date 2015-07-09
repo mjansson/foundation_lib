@@ -47,7 +47,7 @@ static int test_hashmap_initialize( void )
 }
 
 
-static void test_hashmap_shutdown( void )
+static void test_hashmap_finalize( void )
 {
 }
 
@@ -191,7 +191,7 @@ static test_suite_t test_hashmap_suite = {
 	test_hashmap_config,
 	test_hashmap_declare,
 	test_hashmap_initialize,
-	test_hashmap_shutdown
+	test_hashmap_finalize
 };
 
 

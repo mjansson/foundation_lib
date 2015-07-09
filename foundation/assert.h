@@ -25,14 +25,14 @@ statement (depending on the type of assert). */
 
 /*! \brief Get the currently set global assert handler
 Get the currently set global assert handler
-\return Assert handler */
+\return             Assert handler */
 FOUNDATION_API assert_handler_fn
 assert_handler(void);
 
 /*! \brief Set global assert handlder
 Set the current global assert handler. This will be called for each triggered assert and thus
 needs to be thread safe. Set to null to disable assert callbacks and use the default behaviour.
-\param new_handler New global assert handler
+\param new_handler  New global assert handler
 \see assert_report */
 FOUNDATION_API void
 assert_set_handler(assert_handler_fn new_handler);
@@ -41,16 +41,16 @@ assert_set_handler(assert_handler_fn new_handler);
 \details Report assert to the global assert handler. If the global assert handler is set
 to null use the default behaviour, which is to print the assert report to the log (error level)
 and popup a system message box for UI applications.
-\param context Log context
-\param condition Assert condition expression
-\param cond_length Length of condition expression in bytes
-\param file Name of source file triggering assert
-\param file_length Length of file name in bytes
-\param line Line number triggering assert
-\param msg Assert information message
-\param msg_length Length of information message in bytes
-\return 1 if assert was not handled and execution should break,
-        0 if assert handled and execution can continue */
+\param context      Log context
+\param condition    Assert condition expression
+\param cond_length  Length of condition expression in bytes
+\param file         Name of source file triggering assert
+\param file_length  Length of file name in bytes
+\param line         Line number triggering assert
+\param msg          Assert information message
+\param msg_length   Length of information message in bytes
+\return             1 if assert was not handled and execution should break,
+                    0 if assert handled and execution can continue */
 FOUNDATION_API int
 assert_report(hash_t context, const char* condition,
               size_t cond_length, const char* file, size_t file_length, unsigned int line,
@@ -59,16 +59,16 @@ assert_report(hash_t context, const char* condition,
 /*! \brief Report assert
 Report assert with a formatted message. Will call assert_report with the final formatted message.
 \see assert_report
-\param context Log context
-\param condition Assert condition expression
-\param cond_length Length of condition expression in bytes
-\param file Name of source file triggering assert
-\param file_length Length of file name in bytes
-\param line Line number triggering assert
-\param format Assert information message format specifier
+\param context       Log context
+\param condition     Assert condition expression
+\param cond_length   Length of condition expression in bytes
+\param file          Name of source file triggering assert
+\param file_length   Length of file name in bytes
+\param line          Line number triggering assert
+\param format        Assert information message format specifier
 \param format_length Length of information message format specifier in bytes
-\return 1 if assert was not handled and execution should break,
-        0 if assert handled and execution can continue */
+\return              1 if assert was not handled and execution should break,
+                     0 if assert handled and execution can continue */
 FOUNDATION_API int
 assert_report_formatted(hash_t context, const char* condition,
                         size_t cond_length, const char* file, size_t file_length, unsigned int line,
@@ -80,8 +80,8 @@ assert_report_formatted(hash_t context, const char* condition,
 /*! \brief Base assert with message
 Assert the given condition. If assert fails, call the assert report callback with the given
 message and optionally (depending on callback) cause a breakpoint.
-\param cond Assert condition
-\param msg Assert message */
+\param cond     Assert condition
+\param msg      Assert message */
 #define FOUNDATION_ASSERT(cond) do { \
   if ((!(cond)) && assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
                                  __LINE__, 0, 0)) \
@@ -91,8 +91,8 @@ message and optionally (depending on callback) cause a breakpoint.
 /*! \brief Base assert with pre-formatted message
 Assert the given condition. If assert fails, call the assert report callback with the given
 pre-formatted message and optionally (depending on callback) cause a breakpoint.
-\param cond Assert condition
-\param msg Assert message */
+\param cond     Assert condition
+\param msg      Assert message */
 #define FOUNDATION_ASSERT_MSG(cond, msg) do { \
   if ((!(cond)) && assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
                                  __LINE__, (msg), string_length((msg)))) \
@@ -102,8 +102,8 @@ pre-formatted message and optionally (depending on callback) cause a breakpoint.
 /*! \brief Base assert with formatted message
 Assert the given condition. If assert fails, call the assert report callback with the given
 formatted message and optionally (depending on callback) cause a breakpoint.
-\param cond Assert condition
-\param msg Assert message format specifier */
+\param cond     Assert condition
+\param msg      Assert message format specifier */
 #define FOUNDATION_ASSERT_MSGFORMAT(cond, msg, ...) do { \
   if ((!(cond)) && assert_report_formatted(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
                                            __LINE__, (msg), string_length((msg)), __VA_ARGS__)) \
@@ -113,7 +113,7 @@ formatted message and optionally (depending on callback) cause a breakpoint.
 /*! \brief Statically failed assert
 Statically fail assert, call the assert report callback with the given message and optionally
 (depending on callback) cause a breakpoint.
-\param msg Assert message */
+\param msg      Assert message */
 #define FOUNDATION_ASSERT_FAIL(msg) do { \
   if (assert_report(0ULL, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, (msg), string_length((msg)))) \
     crash_debug_break(); \
@@ -123,8 +123,8 @@ Statically fail assert, call the assert report callback with the given message a
 Statically fail assert, call the assert report callback with the given message and optionally
 (depending on callback) cause a breakpoint. If asserts are not enabled in build config the
 message will be logged as an error in the given log context.
-\param context Log context
-\param msg Assert and log message */
+\param context  Log context
+\param msg      Assert and log message */
 #define FOUNDATION_ASSERT_FAIL_LOG(context, msg) do { \
   if (assert_report(context, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, (msg), string_length((msg)))) \
     crash_debug_break(); \
@@ -133,7 +133,7 @@ message will be logged as an error in the given log context.
 /*! \brief Statically failed assert with formatted message
 Statically fail assert, call the assert report callback with the given formatted message and
 optionally (depending on callback) cause a breakpoint.
-\param msg Assert message format specifier */
+\param msg      Assert message format specifier */
 #define FOUNDATION_ASSERT_FAILFORMAT(msg, ...) do { \
   if (assert_report_formatted(0ULL, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                               (msg), string_length((msg)), __VA_ARGS__)) \
@@ -144,8 +144,8 @@ optionally (depending on callback) cause a breakpoint.
 Statically fail assert, call the assert report callback with the given formatted message and
 optionally (depending on callback) cause a breakpoint. If asserts are not enabled in build
 config the formatted message will be logged as an error in the given log context.
-\param context Log context
-\param msg Assert and log message format specifier */
+\param context  Log context
+\param msg      Assert and log message format specifier */
 #define FOUNDATION_ASSERT_FAILFORMAT_LOG(context, msg, ...) do { \
   if (assert_report_formatted(context, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                               (msg), string_length((msg)), __VA_ARGS__)) \
@@ -154,10 +154,10 @@ config the formatted message will be logged as an error in the given log context
 
 /*! \brief Assert memory alignment
 Assert that the given memory address has the given alignment
-\param addr Memory address
-\param alignment Alignment requirement */
-#define FOUNDATION_ASSERT_ALIGNMENT(addr, alignment) do { \
-  FOUNDATION_ASSERT_MSG(((uintptr_t)(addr) % (uintptr_t)(alignment)) == 0, "Mis-aligned memory"); \
+\param addr     Memory address
+\param align    Alignment requirement */
+#define FOUNDATION_ASSERT_ALIGNMENT(addr, align) do { \
+  FOUNDATION_ASSERT_MSG(((uintptr_t)(addr) % (uintptr_t)(align)) == 0, "Mis-aligned memory"); \
   } while(0)
 
 /*! \def FOUNDATION_ASSERT_PLATFORM_ALIGNMENT
@@ -165,16 +165,16 @@ Assert that the given memory address has the given alignment
 Assert that the given memory address has the given alignment if the platform
 requires specific alignments for some data types. Evaluates to a no-op if the
 platform does not require specific alignments.
-\param addr Memory address
-\param alignment Alignment requirement */
+\param addr     Memory address
+\param align    Alignment requirement */
 #if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
-#define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT(addr, alignment) do { \
-  FOUNDATION_ASSERT_ALIGNMENT(addr, alignment); \
+#define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT(addr, align) do { \
+  FOUNDATION_ASSERT_ALIGNMENT(addr, align); \
   } while(0)
 #else
-#define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT(addr, alignment) do { \
+#define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT(addr, align) do { \
   (void)sizeof(addr); \
-  (void)sizeof(alignment); \
+  (void)sizeof(align); \
   } while(0)
 #endif
 
@@ -185,7 +185,7 @@ validate expression will be true if condition is true and false if the condition
 even if asserts are disabled in the build config. This allows constructs such as
 <code>if( !FOUNDATION_VALIDATE( condition ) ) return;</code> to remain safe and properly
 evaluated even when asserts are statically disabled.
-\param cond Assert condition */
+\param cond     Assert condition */
 #define FOUNDATION_VALIDATE(cond) ( \
   (!(cond)) ? \
     (assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, 0, 0) ? \
@@ -200,8 +200,8 @@ the validate expression will be true if condition is true and false if the condi
 fails, even if asserts are disabled in the build config. This allows constructs such as
 <code>if( !FOUNDATION_VALIDATE_MSG( condition, "message" ) ) return;</code> to
 remain safe and properly evaluated even when asserts are statically disabled.
-\param cond Assert condition
-\param msg Assert message */
+\param cond     Assert condition
+\param msg      Assert message */
 #define FOUNDATION_VALIDATE_MSG(cond, msg) ( \
   (!(cond)) ? \
     (assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
@@ -217,8 +217,8 @@ value of the validate expression will be true if condition is true and false if 
 condition fails, even if asserts are disabled in the build config. This allows constructs
 such as <code>if( !FOUNDATION_VALIDATE_MSGFORMAT( condition, "%s", message ) ) return;</code>
 to remain safe and properly evaluated even when asserts are statically disabled.
-\param cond Assert condition
-\param msg Assert message format specifier */
+\param cond     Assert condition
+\param msg      Assert message format specifier */
 #define FOUNDATION_VALIDATE_MSGFORMAT(cond, msg, ...) ( \
   (!(cond)) ? \
     (assert_report_formatted(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
@@ -247,9 +247,9 @@ to remain safe and properly evaluated even when asserts are statically disabled.
 /*! \def FOUNDATION_STATIC_ASSERT
 \brief Static assert
 Static assert evaluated at compile time
-\param cond Assert condition
-\param msg Assert "message" identifier which should be unquoted on the form
-<code>some_kind_of_message</code> */
+\param cond     Assert condition
+\param msg      Assert "message" identifier which should be unquoted on the form
+                <code>some_kind_of_message</code> */
 #if FOUNDATION_COMPILER_CLANG || (FOUNDATION_COMPILER_GCC && (FOUNDATIN_GCC_VERSION >= 40600))
 #  define FOUNDATION_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #elif FOUNDATION_COMPILER_MSVC && ( _MSC_VER > 1600 )

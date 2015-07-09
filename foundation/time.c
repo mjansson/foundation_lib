@@ -62,7 +62,7 @@ int _time_initialize( void )
 }
 
 
-void _time_shutdown( void )
+void _time_finalize( void )
 {
 }
 

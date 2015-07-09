@@ -856,7 +856,7 @@ int _stacktrace_initialize( void )
 }
 
 
-void _stacktrace_shutdown( void )
+void _stacktrace_finalize( void )
 {
 #if FOUNDATION_PLATFORM_ANDROID
 	memory_deallocate( _process_modules );

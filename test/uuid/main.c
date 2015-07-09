@@ -47,7 +47,7 @@ static int test_uuid_initialize( void )
 }
 
 
-static void test_uuid_shutdown( void )
+static void test_uuid_finalize( void )
 {
 }
 
@@ -308,7 +308,7 @@ static test_suite_t test_uuid_suite = {
 	test_uuid_config,
 	test_uuid_declare,
 	test_uuid_initialize,
-	test_uuid_shutdown
+	test_uuid_finalize
 };
 
 

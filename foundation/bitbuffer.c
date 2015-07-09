@@ -12,7 +12,8 @@
 
 #include <foundation/foundation.h>
 
-static void _bitbuffer_get(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
+static void
+_bitbuffer_get(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
 	if (bitbuffer->buffer < bitbuffer->end) {
 		//For alignment required archs, we know it is 32-bit aligned already so safe casts below
 		void* bufferptr = bitbuffer->buffer;
@@ -29,7 +30,8 @@ static void _bitbuffer_get(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
 	bitbuffer->offset_read = 0;
 }
 
-static void _bitbuffer_put(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
+static void
+_bitbuffer_put(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
 	if (bitbuffer->buffer < bitbuffer->end) {
 		//For alignment required archs, we know it is 32-bit aligned already so safe casts below
 		void* bufferptr = bitbuffer->buffer;
@@ -44,28 +46,33 @@ static void _bitbuffer_put(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
 	bitbuffer->pending_write = 0;
 }
 
-bitbuffer_t* bitbuffer_allocate_buffer(void* buffer, size_t size, bool swap) {
+bitbuffer_t*
+bitbuffer_allocate_buffer(void* buffer, size_t size, bool swap) {
 	bitbuffer_t* bitbuffer = memory_allocate(0, sizeof(bitbuffer_t), 0, MEMORY_PERSISTENT);
 	bitbuffer_initialize_buffer(bitbuffer, buffer, size, swap);
 	return bitbuffer;
 }
 
-bitbuffer_t* bitbuffer_allocate_stream(stream_t* stream) {
+bitbuffer_t*
+bitbuffer_allocate_stream(stream_t* stream) {
 	bitbuffer_t* bitbuffer = memory_allocate(0, sizeof(bitbuffer_t), 0, MEMORY_PERSISTENT);
 	bitbuffer_initialize_stream(bitbuffer, stream);
 	return bitbuffer;
 }
 
-void bitbuffer_deallocate(bitbuffer_t* bitbuffer) {
+void
+bitbuffer_deallocate(bitbuffer_t* bitbuffer) {
 	bitbuffer_finalize(bitbuffer);
 	memory_deallocate(bitbuffer);
 }
 
-void bitbuffer_finalize(bitbuffer_t* bitbuffer) {
+void
+bitbuffer_finalize(bitbuffer_t* bitbuffer) {
 	FOUNDATION_UNUSED(bitbuffer);
 }
 
-void bitbuffer_initialize_buffer(bitbuffer_t* bitbuffer, void* buffer, size_t size, bool swap) {
+void
+bitbuffer_initialize_buffer(bitbuffer_t* bitbuffer, void* buffer, size_t size, bool swap) {
 	FOUNDATION_ASSERT(!(size % 4));
 	FOUNDATION_ASSERT((uintptr_t)buffer);
 	FOUNDATION_ASSERT(!((uintptr_t)buffer % FOUNDATION_SIZE_POINTER));
@@ -76,14 +83,16 @@ void bitbuffer_initialize_buffer(bitbuffer_t* bitbuffer, void* buffer, size_t si
 	bitbuffer->swap = swap;
 }
 
-void bitbuffer_initialize_stream(bitbuffer_t* bitbuffer, stream_t* stream) {
+void
+bitbuffer_initialize_stream(bitbuffer_t* bitbuffer, stream_t* stream) {
 	memset(bitbuffer, 0, sizeof(bitbuffer_t));
 	bitbuffer->offset_read = 32;
 	bitbuffer->stream = stream;
 	stream_set_binary(stream, true);
 }
 
-uint128_t bitbuffer_read128(bitbuffer_t* bitbuffer, unsigned int bits) {
+uint128_t
+bitbuffer_read128(bitbuffer_t* bitbuffer, unsigned int bits) {
 	if (bits <= 64) {
 #if !FOUNDATION_COMPILER_MSVC
 		const uint128_t value = {
@@ -108,7 +117,8 @@ uint128_t bitbuffer_read128(bitbuffer_t* bitbuffer, unsigned int bits) {
 	}
 }
 
-uint64_t bitbuffer_read64(bitbuffer_t* bitbuffer, unsigned int bits) {
+uint64_t
+bitbuffer_read64(bitbuffer_t* bitbuffer, unsigned int bits) {
 	uint32_t val0, val1;
 
 	if (bits <= 32)
@@ -121,7 +131,8 @@ uint64_t bitbuffer_read64(bitbuffer_t* bitbuffer, unsigned int bits) {
 	return (uint64_t)val0 | ((uint64_t)val1 << 32ULL);
 }
 
-float64_t bitbuffer_read_float64(bitbuffer_t* bitbuffer) {
+float64_t
+bitbuffer_read_float64(bitbuffer_t* bitbuffer) {
 #if !FOUNDATION_COMPILER_MSVC
 	const float64_cast_t conv = { .uival = bitbuffer_read64(bitbuffer, 64) };
 #else
@@ -130,7 +141,8 @@ float64_t bitbuffer_read_float64(bitbuffer_t* bitbuffer) {
 	return conv.fval;
 }
 
-float32_t bitbuffer_read_float32(bitbuffer_t* bitbuffer) {
+float32_t
+bitbuffer_read_float32(bitbuffer_t* bitbuffer) {
 #if !FOUNDATION_COMPILER_MSVC
 	const float32_cast_t conv = { .uival = bitbuffer_read32(bitbuffer, 32) };
 #else
@@ -139,7 +151,8 @@ float32_t bitbuffer_read_float32(bitbuffer_t* bitbuffer) {
 	return conv.fval;
 }
 
-uint32_t bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
+uint32_t
+bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
 	uint32_t ret;
 	unsigned int curbits;
 
@@ -156,7 +169,7 @@ uint32_t bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
 		curbits = bits;
 
 	ret = (curbits == 32) ? bitbuffer->pending_read : ((bitbuffer->pending_read >>
-	      bitbuffer->offset_read) & ((1 << curbits) - 1));
+	                                                    bitbuffer->offset_read) & ((1 << curbits) - 1));
 
 	bitbuffer->offset_read += curbits;
 	bitbuffer->count_read  += curbits;
@@ -177,7 +190,8 @@ uint32_t bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
 	return ret;
 }
 
-void bitbuffer_write128(bitbuffer_t* bitbuffer, uint128_t value, unsigned int bits) {
+void
+bitbuffer_write128(bitbuffer_t* bitbuffer, uint128_t value, unsigned int bits) {
 	if (bits <= 64) {
 		bitbuffer_write64(bitbuffer, value.word[0], bits);
 		return;
@@ -190,7 +204,8 @@ void bitbuffer_write128(bitbuffer_t* bitbuffer, uint128_t value, unsigned int bi
 	bitbuffer_write64(bitbuffer, value.word[1], bits - 64);
 }
 
-void bitbuffer_write64(bitbuffer_t* bitbuffer, uint64_t value, unsigned int bits) {
+void
+bitbuffer_write64(bitbuffer_t* bitbuffer, uint64_t value, unsigned int bits) {
 	if (bits <= 32) {
 		bitbuffer_write32(bitbuffer, (uint32_t)value, bits);
 		return;
@@ -203,7 +218,8 @@ void bitbuffer_write64(bitbuffer_t* bitbuffer, uint64_t value, unsigned int bits
 	bitbuffer_write32(bitbuffer, (uint32_t)(value >> 32ULL), bits - 32);
 }
 
-void bitbuffer_write_float64(bitbuffer_t* bitbuffer, float64_t value) {
+void
+bitbuffer_write_float64(bitbuffer_t* bitbuffer, float64_t value) {
 #if !FOUNDATION_COMPILER_MSVC
 	float64_cast_t conv = { .fval = value };
 #else
@@ -212,7 +228,8 @@ void bitbuffer_write_float64(bitbuffer_t* bitbuffer, float64_t value) {
 	bitbuffer_write64(bitbuffer, conv.uival, 64);
 }
 
-void bitbuffer_write_float32(bitbuffer_t* bitbuffer, float32_t value) {
+void
+bitbuffer_write_float32(bitbuffer_t* bitbuffer, float32_t value) {
 #if !FOUNDATION_COMPILER_MSVC
 	float32_cast_t conv = { .fval = value };
 #else
@@ -221,7 +238,8 @@ void bitbuffer_write_float32(bitbuffer_t* bitbuffer, float32_t value) {
 	bitbuffer_write32(bitbuffer, conv.uival, 32);
 }
 
-void bitbuffer_write32(bitbuffer_t* bitbuffer, uint32_t value, unsigned int bits) {
+void
+bitbuffer_write32(bitbuffer_t* bitbuffer, uint32_t value, unsigned int bits) {
 	unsigned int curbits;
 
 	if (!bits)
@@ -251,7 +269,8 @@ void bitbuffer_write32(bitbuffer_t* bitbuffer, uint32_t value, unsigned int bits
 	bitbuffer->offset_write  = bits - curbits;
 }
 
-void bitbuffer_align_read(bitbuffer_t* bitbuffer, bool force) {
+void
+bitbuffer_align_read(bitbuffer_t* bitbuffer, bool force) {
 	if (!(bitbuffer->offset_read & 31)) {  //0 or 32
 		if (!force)
 			return;
@@ -262,19 +281,22 @@ void bitbuffer_align_read(bitbuffer_t* bitbuffer, bool force) {
 	bitbuffer->offset_read = 32;
 }
 
-void bitbuffer_align_write(bitbuffer_t* bitbuffer, bool force) {
+void
+bitbuffer_align_write(bitbuffer_t* bitbuffer, bool force) {
 	if (!bitbuffer->offset_write && !force)
 		return;
 	bitbuffer->count_write += 32 - bitbuffer->offset_write;
 	_bitbuffer_put(bitbuffer);
 }
 
-void bitbuffer_discard_read(bitbuffer_t* bitbuffer) {
+void
+bitbuffer_discard_read(bitbuffer_t* bitbuffer) {
 	if (bitbuffer->offset_read != 32)
 		bitbuffer->offset_read = 0;
 }
 
-void bitbuffer_discard_write(bitbuffer_t* bitbuffer) {
+void
+bitbuffer_discard_write(bitbuffer_t* bitbuffer) {
 	bitbuffer->offset_write = 0;
 	bitbuffer->pending_write = 0;
 }

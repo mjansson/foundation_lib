@@ -49,7 +49,7 @@ static int test_app_initialize( void )
 }
 
 
-static void test_app_shutdown( void )
+static void test_app_finalize( void )
 {
 }
 
@@ -78,7 +78,7 @@ static test_suite_t test_app_suite = {
 	test_app_config,
 	test_app_declare,
 	test_app_initialize,
-	test_app_shutdown
+	test_app_finalize
 };
 
 

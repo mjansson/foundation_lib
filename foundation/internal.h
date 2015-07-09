@@ -22,7 +22,7 @@
 //Internal entry points
 
 FOUNDATION_API int _atomic_initialize( void );
-FOUNDATION_API void _atomic_shutdown( void );
+FOUNDATION_API void _atomic_finalize( void );
 
 FOUNDATION_API void _ringbuffer_stream_initialize( void );
 FOUNDATION_API void _buffer_stream_initialize( void );
@@ -32,46 +32,46 @@ FOUNDATION_API void _asset_stream_initialize( void );
 FOUNDATION_API void _pipe_stream_initialize( void );
 
 FOUNDATION_API int _log_initialize( void );
-FOUNDATION_API void _log_shutdown( void );
+FOUNDATION_API void _log_finalize( void );
 
 FOUNDATION_API int _memory_initialize( const memory_system_t memory );
 FOUNDATION_API void _memory_preallocate( void );
-FOUNDATION_API void _memory_shutdown( void );
+FOUNDATION_API void _memory_finalize( void );
 
 FOUNDATION_API int _time_initialize( void );
-FOUNDATION_API void _time_shutdown( void );
+FOUNDATION_API void _time_finalize( void );
 
 FOUNDATION_API int _thread_initialize( void );
-FOUNDATION_API void _thread_shutdown( void );
+FOUNDATION_API void _thread_finalize( void );
 
 FOUNDATION_API int _environment_initialize( const application_t application );
-FOUNDATION_API void _environment_shutdown( void );
+FOUNDATION_API void _environment_finalize( void );
 
 FOUNDATION_API int _library_initialize( void );
-FOUNDATION_API void _library_shutdown( void );
+FOUNDATION_API void _library_finalize( void );
 
 FOUNDATION_API int _system_initialize( void );
-FOUNDATION_API void _system_shutdown( void );
+FOUNDATION_API void _system_finalize( void );
 
 FOUNDATION_API int _stream_initialize( void );
-FOUNDATION_API void _stream_shutdown( void );
+FOUNDATION_API void _stream_finalize( void );
 
 FOUNDATION_API int _fs_initialize( void );
-FOUNDATION_API void _fs_shutdown( void );
+FOUNDATION_API void _fs_finalize( void );
 
 FOUNDATION_API int _random_initialize( void );
-FOUNDATION_API void _random_shutdown( void );
+FOUNDATION_API void _random_finalize( void );
 
 FOUNDATION_API int _config_initialize( void );
-FOUNDATION_API void _config_shutdown( void );
+FOUNDATION_API void _config_finalize( void );
 
 FOUNDATION_API void _profile_thread_finalize( void );
 
 FOUNDATION_API int _static_hash_initialize( void );
-FOUNDATION_API void _static_hash_shutdown( void );
+FOUNDATION_API void _static_hash_finalize( void );
 
 FOUNDATION_API int _stacktrace_initialize( void );
-FOUNDATION_API void _stacktrace_shutdown( void );
+FOUNDATION_API void _stacktrace_finalize( void );
 
 FOUNDATION_API void foundation_startup( void );
 

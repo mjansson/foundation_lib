@@ -90,7 +90,7 @@ static void _mutex_initialize( mutex_t* mutex, const char* name, size_t length )
 }
 
 
-static void _mutex_shutdown( mutex_t* mutex )
+static void _mutex_finalize( mutex_t* mutex )
 {
 	FOUNDATION_ASSERT( !mutex->lockcount );
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -120,7 +120,7 @@ void mutex_deallocate( mutex_t* mutex )
 	if( !mutex )
 		return;
 
-	_mutex_shutdown( mutex );
+	_mutex_finalize( mutex );
 
 	memory_deallocate( mutex );
 }

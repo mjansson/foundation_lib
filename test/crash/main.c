@@ -63,7 +63,7 @@ static int test_crash_initialize( void )
 }
 
 
-static void test_crash_shutdown( void )
+static void test_crash_finalize( void )
 {
 }
 
@@ -324,7 +324,7 @@ static test_suite_t test_crash_suite = {
 	test_crash_config,
 	test_crash_declare,
 	test_crash_initialize,
-	test_crash_shutdown
+	test_crash_finalize
 };
 
 

@@ -47,7 +47,7 @@ static int test_path_initialize( void )
 }
 
 
-static void test_path_shutdown( void )
+static void test_path_finalize( void )
 {
 }
 
@@ -433,7 +433,7 @@ DECLARE_TEST( path, absolute )
 		fs_make_directory( STRING_ARGS( cwd ) );
 		environment_set_current_working_directory( STRING_ARGS( cwd ) );
 	}
-	
+
 	cwd_sub = path_directory_name( STRING_ARGS( cwd ) );
 	cwd_sub_sub = path_directory_name( STRING_ARGS( cwd_sub ) );
 	cwd_sub_slash = string_allocate_concat( STRING_ARGS( cwd_sub ), STRING_CONST( "/" ) );
@@ -693,7 +693,7 @@ static test_suite_t test_path_suite = {
 	test_path_config,
 	test_path_declare,
 	test_path_initialize,
-	test_path_shutdown
+	test_path_finalize
 };
 
 

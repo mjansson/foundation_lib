@@ -47,7 +47,7 @@ static int test_bitbuffer_initialize( void )
 }
 
 
-static void test_bitbuffer_shutdown( void )
+static void test_bitbuffer_finalize( void )
 {
 }
 
@@ -536,7 +536,7 @@ static test_suite_t test_bitbuffer_suite = {
 	test_bitbuffer_config,
 	test_bitbuffer_declare,
 	test_bitbuffer_initialize,
-	test_bitbuffer_shutdown
+	test_bitbuffer_finalize
 };
 
 

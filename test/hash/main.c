@@ -47,7 +47,7 @@ static int test_hash_initialize( void )
 }
 
 
-static void test_hash_shutdown( void )
+static void test_hash_finalize( void )
 {
 }
 
@@ -151,7 +151,7 @@ static test_suite_t test_hash_suite = {
 	test_hash_config,
 	test_hash_declare,
 	test_hash_initialize,
-	test_hash_shutdown
+	test_hash_finalize
 };
 
 

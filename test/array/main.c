@@ -47,7 +47,7 @@ static int test_array_initialize( void )
 }
 
 
-static void test_array_shutdown( void )
+static void test_array_finalize( void )
 {
 }
 
@@ -2051,7 +2051,7 @@ static test_suite_t test_array_suite = {
 	test_array_config,
 	test_array_declare,
 	test_array_initialize,
-	test_array_shutdown
+	test_array_finalize
 };
 
 

@@ -23,10 +23,14 @@ static struct ASensorEventQueue* _android_sensor_queue;
 static bool _android_sensor_enabled[16];
 static bool _android_destroyed = false;
 
-static void _android_enable_sensor(int sensor_type);
-static void _android_disable_sensor(int sensor_type);
+static void
+_android_enable_sensor(int sensor_type);
 
-void android_entry(struct android_app* app) {
+static void
+_android_disable_sensor(int sensor_type);
+
+void
+android_entry(struct android_app* app) {
 	if (!app || !app->activity)
 		return;
 
@@ -39,7 +43,8 @@ void android_entry(struct android_app* app) {
 	_android_app->userData = 0;
 }
 
-int android_initialize(void) {
+int
+android_initialize(void) {
 	_android_destroyed = false;
 
 	log_debug(0, STRING_CONST("Waiting for application window to be set"));
@@ -72,7 +77,8 @@ int android_initialize(void) {
 	return 0;
 }
 
-void android_shutdown(void) {
+void
+android_finalize(void) {
 	log_info(0, STRING_CONST("Native android app shutdown"));
 
 	_android_app->onAppCmd = 0;
@@ -105,11 +111,13 @@ void android_shutdown(void) {
 	log_debug(0, STRING_CONST("Exiting native android app"));
 }
 
-struct android_app* android_app(void) {
+struct android_app*
+android_app(void) {
 	return _android_app;
 }
 
-void android_handle_cmd(struct android_app* app, int32_t cmd) {
+void
+android_handle_cmd(struct android_app* app, int32_t cmd) {
 	switch (cmd) {
 	case APP_CMD_INPUT_CHANGED:
 		log_info(0, STRING_CONST("System command: APP_CMD_INPUT_CHANGED"));
@@ -206,14 +214,16 @@ void android_handle_cmd(struct android_app* app, int32_t cmd) {
 	}
 }
 
-int android_sensor_callback(int fd, int events, void* data) {
+int
+android_sensor_callback(int fd, int events, void* data) {
 	FOUNDATION_UNUSED(fd);
 	FOUNDATION_UNUSED(events);
 	FOUNDATION_UNUSED(data);
 	return 1;
 }
 
-void _android_enable_sensor(int type) {
+void
+_android_enable_sensor(int type) {
 	FOUNDATION_ASSERT(type > 0 && type < 16);
 	if (_android_sensor_enabled[type])
 		return;
@@ -244,7 +254,8 @@ void _android_enable_sensor(int type) {
 	}
 }
 
-void _android_disable_sensor(int sensor_type) {
+void
+_android_disable_sensor(int sensor_type) {
 	FOUNDATION_ASSERT(sensor_type > 0 && sensor_type < 16);
 	if (!_android_sensor_enabled[sensor_type])
 		return;

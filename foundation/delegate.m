@@ -19,7 +19,8 @@ extern int app_main(void* arg);
 extern volatile int _delegate_dummy;
 volatile int _delegate_dummy;
 
-FOUNDATION_NOINLINE void delegate_reference_classes(void) {
+FOUNDATION_NOINLINE void
+delegate_reference_classes(void) {
 	_delegate_dummy = 1;
 	[FoundationAppDelegate referenceClass];
 }
@@ -73,7 +74,7 @@ static volatile bool _delegate_received_terminate = false;
 
 	string_deallocate(name.str);
 
-	main_shutdown();
+	main_finalize();
 
 	@autoreleasepool {
 #if FOUNDATION_PLATFORM_MACOSX
@@ -97,7 +98,8 @@ static volatile bool _delegate_received_terminate = false;
 
 @end
 
-void delegate_start_main_ns_thread(void) {
+void
+delegate_start_main_ns_thread(void) {
 	delegate_reference_classes();
 
 	log_debug(0, STRING_CONST("Starting main thread"));
@@ -109,7 +111,8 @@ void delegate_start_main_ns_thread(void) {
 static __weak NSApplication* _delegate_app;
 static __weak FoundationAppDelegate* _delegate;
 
-void* delegate_nswindow(void) {
+void*
+delegate_nswindow(void) {
 	__strong FoundationAppDelegate* delegate = _delegate;
 	return (__bridge void*)(delegate ? [delegate window] : 0);
 }
@@ -169,7 +172,8 @@ void* delegate_nswindow(void) {
 static __weak UIApplication* _delegate_app;
 static __weak FoundationAppDelegate* _delegate;
 
-void* delegate_uiwindow(void) {
+void*
+delegate_uiwindow(void) {
 	__strong FoundationAppDelegate* delegate = _delegate;
 	return (__bridge void*)(delegate ? [delegate window] : 0);
 }

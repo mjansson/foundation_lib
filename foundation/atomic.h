@@ -37,136 +37,136 @@ system */
 
 /*! \brief Atomically load value
 Atomically load 32 bit value
-\param src Value
-\return Current value */
+\param src   Value
+\return      Current value */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_load32(atomic32_t* src);
 
 /*! \brief Atomically load value
 Atomically load 64 bit value
-\param src Value
-\return Current value */
+\param src   Value
+\return      Current value */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_load64(atomic64_t* src);
 
 /*! \brief Atomically load value
 Atomically load pointer value
-\param src Value
-\return Current value */
+\param src   Value
+\return      Current value */
 static FOUNDATION_FORCEINLINE void*
 atomic_loadptr(atomicptr_t* src);
 
 /*! \brief Atomically store value
 Atomically store 32 bit value
-\param dst Target
-\param val Value to store */
+\param dst   Target
+\param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_store32(atomic32_t* dst, int32_t val);
 
 /*! \brief Atomically store value
 Atomically store 64 bit value
-\param dst Target
-\param val Value to store */
+\param dst   Target
+\param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_store64(atomic64_t* dst, int64_t val);
 
 /*! \brief Atomically store value
 Atomically store pointer value
-\param dst Target
-\param val Value to store */
+\param dst   Target
+\param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_storeptr(atomicptr_t* dst, void* val);
 
 /*! \brief Atomically add value
 Atomically add to the value of the 32 bit integer and returns its new value
-\param val Value to change
-\param add Value to add
-\return New value after addition */
+\param val   Value to change
+\param add   Value to add
+\return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_add32(atomic32_t* val, int32_t add);
 
 /*! \brief Atomically add value
 Atomically add to the value of the 64 bit integer and returns its new value
-\param val Value to change
-\param add Value to add
-\return New value after addition */
+\param val   Value to change
+\param add   Value to add
+\return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_add64(atomic64_t* val, int64_t add);
 
 /*! \brief Atomically increase value
 Atomically increases the value of the 32 bit integer and returns its new value
-\param val Value to change
-\return New value after addition */
+\param val   Value to change
+\return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_incr32(atomic32_t* val);
 
 /*! \brief Atomically increase value
 Atomically increases the value of the 64 bit integer and returns its new value
-\param val Value to change
-\return New value after addition */
+\param val   Value to change
+\return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_incr64(atomic64_t* val);
 
 /*! \brief Atomically decrease value
 Atomically decreases the value of the 32 bit integer and returns its new value
-\param val Value to change
-\return New value after addition */
+\param val   Value to change
+\return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_decr32(atomic32_t* val);
 
 /*! \brief Atomically decrease value
 Atomically decreases the value of the 64 bit integer and returns its new value
-\param val Value to change
-\return New value after addition */
+\param val   Value to change
+\return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_decr64(atomic64_t* val);
 
 /*! \brief Atomically add value
 Atomically add to the value of the 32 bit integer and returns its old value
-\param val Value to change
-\param add Value to add
-\return Old value before addition */
+\param val   Value to change
+\param add   Value to add
+\return      Old value before addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_exchange_and_add32(atomic32_t* val, int32_t add);
 
 /*! \brief Atomically add value
 Atomically add to the value of the 64 bit integer and returns its old value
-\param val Value to change
-\param add Value to add
-\return Old value before addition */
+\param val   Value to change
+\param add   Value to add
+\return      Old value before addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_exchange_and_add64(atomic64_t* val, int64_t add);
 
 /*! \brief Atomically compare and swap (CAS)
 Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
-\param dst Value to change
-\param val Value to set
-\param ref Reference value
-\return true if operation was successful and new value stored,
-        false if comparison failed and value was unchanged */
+\param dst   Value to change
+\param val   Value to set
+\param ref   Reference value
+\return      true if operation was successful and new value stored,
+             false if comparison failed and value was unchanged */
 static FOUNDATION_FORCEINLINE bool
 atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref);
 
 /*! \brief Atomically compare and swap (CAS)
 Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
-\param dst Value to change
-\param val Value to set
-\param ref Reference value
-\return true if operation was successful and new value stored,
-        false if comparison failed and value was unchanged */
+\param dst   Value to change
+\param val   Value to set
+\param ref   Reference value
+\return      true if operation was successful and new value stored,
+             false if comparison failed and value was unchanged */
 static FOUNDATION_FORCEINLINE bool
 atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref);
 
 /*! \brief Atomically compare and swap (CAS)
 Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
-\param dst Value to change
-\param val Value to set
-\param ref Reference value
-\return true if operation was successful and new value stored,
-        false if comparison failed and value was unchanged */
+\param dst   Value to change
+\param val   Value to set
+\param ref   Reference value
+\return      true if operation was successful and new value stored,
+             false if comparison failed and value was unchanged */
 static FOUNDATION_FORCEINLINE bool
 atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref);
 
@@ -212,16 +212,19 @@ atomic_thread_fence_sequentially_consistent(void);
 #  define FOUNDATION_MUTEX_64BIT_ATOMIC 1
 FOUNDATION_API int64_t __foundation_sync_fetch_and_add_8(int64_t* val, int64_t add);
 FOUNDATION_API int64_t __foundation_sync_add_and_fetch_8(int64_t* val, int64_t add);
-FOUNDATION_API bool    __foundation_sync_bool_compare_and_swap_8(int64_t* val, int64_t oldval, int64_t newval);
+FOUNDATION_API bool    __foundation_sync_bool_compare_and_swap_8(int64_t* val, int64_t oldval,
+    int64_t newval);
 #else
 #  define FOUNDATION_MUTEX_64BIT_ATOMIC 0
 #endif
 
-static FOUNDATION_FORCEINLINE int32_t atomic_load32(atomic32_t* val) {
+static FOUNDATION_FORCEINLINE int32_t
+atomic_load32(atomic32_t* val) {
 	return val->nonatomic;
 }
 
-static FOUNDATION_FORCEINLINE int64_t atomic_load64(atomic64_t* val) {
+static FOUNDATION_FORCEINLINE int64_t
+atomic_load64(atomic64_t* val) {
 #if FOUNDATION_ARCH_X86
 	int64_t result;
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
@@ -247,15 +250,18 @@ static FOUNDATION_FORCEINLINE int64_t atomic_load64(atomic64_t* val) {
 #endif
 }
 
-static FOUNDATION_FORCEINLINE void* atomic_loadptr(atomicptr_t* val) {
+static FOUNDATION_FORCEINLINE void*
+atomic_loadptr(atomicptr_t* val) {
 	return val->nonatomic;
 }
 
-static FOUNDATION_FORCEINLINE void atomic_store32(atomic32_t* dst, int32_t val) {
+static FOUNDATION_FORCEINLINE void
+atomic_store32(atomic32_t* dst, int32_t val) {
 	dst->nonatomic = val;
 }
 
-static FOUNDATION_FORCEINLINE void atomic_store64(atomic64_t* dst, int64_t val) {
+static FOUNDATION_FORCEINLINE void
+atomic_store64(atomic64_t* dst, int64_t val) {
 #if FOUNDATION_ARCH_X86
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 	__asm {
@@ -283,11 +289,13 @@ static FOUNDATION_FORCEINLINE void atomic_store64(atomic64_t* dst, int64_t val) 
 #endif
 }
 
-static FOUNDATION_FORCEINLINE void atomic_storeptr(atomicptr_t* dst, void* val) {
+static FOUNDATION_FORCEINLINE void
+atomic_storeptr(atomicptr_t* dst, void* val) {
 	dst->nonatomic = val;
 }
 
-static FOUNDATION_FORCEINLINE int32_t atomic_exchange_and_add32(atomic32_t* val, int32_t add) {
+static FOUNDATION_FORCEINLINE int32_t
+atomic_exchange_and_add32(atomic32_t* val, int32_t add) {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return _InterlockedExchangeAdd((volatile long*)&val->nonatomic, add);
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -297,7 +305,8 @@ static FOUNDATION_FORCEINLINE int32_t atomic_exchange_and_add32(atomic32_t* val,
 #endif
 }
 
-static FOUNDATION_FORCEINLINE int atomic_add32(atomic32_t* val, int32_t add) {
+static FOUNDATION_FORCEINLINE int
+atomic_add32(atomic32_t* val, int32_t add) {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	int32_t old = (int32_t)_InterlockedExchangeAdd((volatile long*)&val->nonatomic, add);
 	return (old + add);
@@ -310,15 +319,18 @@ static FOUNDATION_FORCEINLINE int atomic_add32(atomic32_t* val, int32_t add) {
 #endif
 }
 
-static FOUNDATION_FORCEINLINE int atomic_incr32(atomic32_t* val) {
+static FOUNDATION_FORCEINLINE int
+atomic_incr32(atomic32_t* val) {
 	return atomic_add32(val, 1);
 }
 
-static FOUNDATION_FORCEINLINE int atomic_decr32(atomic32_t* val) {
+static FOUNDATION_FORCEINLINE int
+atomic_decr32(atomic32_t* val) {
 	return atomic_add32(val, -1);
 }
 
-static FOUNDATION_FORCEINLINE int64_t atomic_exchange_and_add64(atomic64_t* val, int64_t add) {
+static FOUNDATION_FORCEINLINE int64_t
+atomic_exchange_and_add64(atomic64_t* val, int64_t add) {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_ARCH_X86
 	long long ref;
@@ -342,7 +354,8 @@ static FOUNDATION_FORCEINLINE int64_t atomic_exchange_and_add64(atomic64_t* val,
 #endif
 }
 
-static FOUNDATION_FORCEINLINE int64_t atomic_add64(atomic64_t* val, int64_t add) {
+static FOUNDATION_FORCEINLINE int64_t
+atomic_add64(atomic64_t* val, int64_t add) {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 #  if FOUNDATION_ARCH_X86
 	return atomic_exchange_and_add64(val, add) + add;
@@ -360,15 +373,18 @@ static FOUNDATION_FORCEINLINE int64_t atomic_add64(atomic64_t* val, int64_t add)
 #endif
 }
 
-static FOUNDATION_FORCEINLINE int64_t atomic_incr64(atomic64_t* val) {
+static FOUNDATION_FORCEINLINE int64_t
+atomic_incr64(atomic64_t* val) {
 	return atomic_add64(val, 1LL);
 }
 
-static FOUNDATION_FORCEINLINE int64_t atomic_decr64(atomic64_t* val) {
+static FOUNDATION_FORCEINLINE int64_t
+atomic_decr64(atomic64_t* val) {
 	return atomic_add64(val, -1LL);
 }
 
-static FOUNDATION_FORCEINLINE bool atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref) {
+static FOUNDATION_FORCEINLINE bool
+atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref) {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return (_InterlockedCompareExchange((volatile long*)&dst->nonatomic, val,
 	                                    ref) == ref) ? true : false;
@@ -381,7 +397,8 @@ static FOUNDATION_FORCEINLINE bool atomic_cas32(atomic32_t* dst, int32_t val, in
 #endif
 }
 
-static FOUNDATION_FORCEINLINE bool atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref) {
+static FOUNDATION_FORCEINLINE bool
+atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref) {
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
 	return (_InterlockedCompareExchange64((volatile long long*)&dst->nonatomic, val,
 	                                      ref) == ref) ? true : false;
@@ -396,7 +413,8 @@ static FOUNDATION_FORCEINLINE bool atomic_cas64(atomic64_t* dst, int64_t val, in
 #endif
 }
 
-static FOUNDATION_FORCEINLINE bool atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref) {
+static FOUNDATION_FORCEINLINE bool
+atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref) {
 #  if FOUNDATION_SIZE_POINTER == 8
 	return atomic_cas64((atomic64_t*)dst, (int64_t)(uintptr_t)val, (int64_t)(uintptr_t)ref);
 #  elif FOUNDATION_SIZE_POINTER == 4

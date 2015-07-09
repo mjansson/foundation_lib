@@ -18,7 +18,7 @@
 #if BUILD_ENABLE_PROFILE
 
 FOUNDATION_API void profile_initialize( const char* identifier, size_t length, void* buffer, size_t size );
-FOUNDATION_API void profile_shutdown( void );
+FOUNDATION_API void profile_finalize( void );
 FOUNDATION_API void profile_enable( bool enable );
 
 FOUNDATION_API void profile_set_output( profile_write_fn writer );
@@ -39,7 +39,7 @@ FOUNDATION_API void profile_signal( const char* name, size_t length );
 #else
 
 #define profile_initialize( ... ) do { FOUNDATION_UNUSED_ARGS_4( __VA_ARGS__ ); } while(0)
-#define profile_shutdown() do {} while(0)
+#define profile_finalize() do {} while(0)
 #define profile_enable( ... ) do { FOUNDATION_UNUSED_ARGS_1( __VA_ARGS__ ); } while(0)
 #define profile_set_output( ... ) do { /*FOUNDATION_UNUSED_ARGS_1( __VA_ARGS__ );*/ } while(0)
 #define profile_set_output_wait( ... ) do { FOUNDATION_UNUSED_ARGS_1( __VA_ARGS__ ); } while(0)

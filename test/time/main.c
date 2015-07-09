@@ -47,7 +47,7 @@ static int test_time_initialize( void )
 }
 
 
-static void test_time_shutdown( void )
+static void test_time_finalize( void )
 {
 }
 
@@ -111,7 +111,7 @@ static test_suite_t test_time_suite = {
 	test_time_config,
 	test_time_declare,
 	test_time_initialize,
-	test_time_shutdown
+	test_time_finalize
 };
 
 

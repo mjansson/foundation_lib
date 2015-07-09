@@ -47,7 +47,7 @@ static int test_system_initialize( void )
 }
 
 
-static void test_system_shutdown( void )
+static void test_system_finalize( void )
 {
 }
 
@@ -194,7 +194,7 @@ static test_suite_t test_system_suite = {
 	test_system_config,
 	test_system_declare,
 	test_system_initialize,
-	test_system_shutdown
+	test_system_finalize
 };
 
 

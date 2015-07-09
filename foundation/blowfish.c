@@ -287,14 +287,17 @@ static const uint32_t _blowfish_sboxes_init[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIE
 	}
 };
 
-void _blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
-void _blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
+void
+_blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
+
+void
+_blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
 
 #define FEISTEL( val ) (((blowfish->sboxes[0][(val>>24) & 0xFF] + blowfish->sboxes[1][(val>>16) & 0xFF]) ^ \
                           blowfish->sboxes[2][(val>>8) & 0xFF]) + blowfish->sboxes[3][val & 0xFF])
 
-void _blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres,
-                             uint32_t* hvalres) {
+void
+_blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres) {
 	uint32_t lval = *lvalres;
 	uint32_t hval = *hvalres;
 
@@ -318,8 +321,8 @@ void _blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres,
 	hval = 0;
 }
 
-void _blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres,
-                             uint32_t* hvalres) {
+void
+_blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres) {
 	uint32_t lval = *lvalres;
 	uint32_t hval = *hvalres;
 
@@ -345,16 +348,19 @@ void _blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres,
 
 #undef FEISTEL
 
-blowfish_t* blowfish_allocate(void) {
+blowfish_t*
+blowfish_allocate(void) {
 	return memory_allocate(0, sizeof(blowfish_t), 0U, MEMORY_PERSISTENT);
 }
 
-void blowfish_deallocate(blowfish_t* blowfish) {
+void
+blowfish_deallocate(blowfish_t* blowfish) {
 	blowfish_finalize(blowfish);
 	memory_deallocate(blowfish);
 }
 
-void blowfish_initialize(blowfish_t* blowfish, const void* key, size_t length) {
+void
+blowfish_initialize(blowfish_t* blowfish, const void* key, size_t length) {
 	size_t capped_length = (length <= BLOWFISH_MAXKEY) ? length : BLOWFISH_MAXKEY;
 	const unsigned char* ckey = key;
 	uint32_t data, ldata, hdata;
@@ -398,12 +404,14 @@ void blowfish_initialize(blowfish_t* blowfish, const void* key, size_t length) {
 	hdata = 0;
 }
 
-void blowfish_finalize(blowfish_t* blowfish) {
+void
+blowfish_finalize(blowfish_t* blowfish) {
 	FOUNDATION_UNUSED(blowfish);
 }
 
-void blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length,
-                      blockcipher_mode_t mode, uint64_t vec) {
+void
+blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length,
+                 blockcipher_mode_t mode, uint64_t vec) {
 	/*lint --e{826} */
 	uint32_t* FOUNDATION_RESTRICT cur;
 	uint32_t* FOUNDATION_RESTRICT end;
@@ -464,8 +472,9 @@ void blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length,
 	chain[1] = 0;
 }
 
-void blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length,
-                      blockcipher_mode_t mode, uint64_t vec) {
+void
+blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length,
+                 blockcipher_mode_t mode, uint64_t vec) {
 	uint32_t* FOUNDATION_RESTRICT cur;
 	uint32_t* FOUNDATION_RESTRICT end;
 	uint32_t chain[2];

@@ -52,7 +52,8 @@ FOUNDATION_STATIC_ASSERT(FOUNDATION_ALIGNOF(config_section_t) == 8, "config_sect
 //Global config store
 static config_section_t* _config_section[CONFIG_SECTION_BUCKETS];
 
-static int64_t _config_string_to_int(string_const_t str) {
+static int64_t
+_config_string_to_int(string_const_t str) {
 	size_t first_nonnumeric;
 	size_t dot_position;
 	if (str.length < 2)
@@ -60,7 +61,7 @@ static int64_t _config_string_to_int(string_const_t str) {
 
 	first_nonnumeric = string_find_first_not_of(STRING_ARGS(str), STRING_CONST("0123456789."), 0);
 	if ((first_nonnumeric == (str.length - 1)) && ((str.str[ first_nonnumeric ] == 'm') ||
-	    (str.str[ first_nonnumeric ] == 'M'))) {
+	                                               (str.str[ first_nonnumeric ] == 'M'))) {
 		dot_position = string_find(STRING_ARGS(str), '.', 0);
 		if (dot_position != STRING_NPOS) {
 			if (string_find(STRING_ARGS(str), '.', dot_position + 1) == STRING_NPOS)
@@ -70,7 +71,7 @@ static int64_t _config_string_to_int(string_const_t str) {
 		return string_to_int64(STRING_ARGS(str)) * (1024LL * 1024LL);
 	}
 	if ((first_nonnumeric == (str.length - 1)) && ((str.str[ first_nonnumeric ] == 'k') ||
-	    (str.str[ first_nonnumeric ] == 'K'))) {
+	                                               (str.str[ first_nonnumeric ] == 'K'))) {
 		dot_position = string_find(STRING_ARGS(str), '.', 0);
 		if (dot_position != STRING_NPOS) {
 			if (string_find(STRING_ARGS(str), '.', dot_position + 1) == STRING_NPOS)
@@ -83,7 +84,8 @@ static int64_t _config_string_to_int(string_const_t str) {
 	return string_to_int64(STRING_ARGS(str));
 }
 
-static real _config_string_to_real(string_const_t str) {
+static real
+_config_string_to_real(string_const_t str) {
 	size_t first_nonnumeric;
 	size_t dot_position;
 	if (str.length < 2)
@@ -91,7 +93,7 @@ static real _config_string_to_real(string_const_t str) {
 
 	first_nonnumeric = string_find_first_not_of(STRING_ARGS(str), STRING_CONST("0123456789."), 0);
 	if ((first_nonnumeric == (str.length - 1)) && ((str.str[ first_nonnumeric ] == 'm') ||
-	    (str.str[ first_nonnumeric ] == 'M'))) {
+	                                               (str.str[ first_nonnumeric ] == 'M'))) {
 		dot_position = string_find(STRING_ARGS(str), '.', 0);
 		if (dot_position != STRING_NPOS) {
 			if (string_find(STRING_ARGS(str), '.', dot_position + 1) != STRING_NPOS)
@@ -100,7 +102,7 @@ static real _config_string_to_real(string_const_t str) {
 		return string_to_real(STRING_ARGS(str)) * (REAL_C(1024.0) * REAL_C(1024.0));
 	}
 	if ((first_nonnumeric == (str.length - 1)) && ((str.str[ first_nonnumeric ] == 'k') ||
-	    (str.str[ first_nonnumeric ] == 'K'))) {
+	                                               (str.str[ first_nonnumeric ] == 'K'))) {
 		dot_position = string_find(STRING_ARGS(str), '.', 0);
 		if (dot_position != STRING_NPOS) {
 			if (string_find(STRING_ARGS(str), '.', dot_position + 1) != STRING_NPOS)
@@ -112,7 +114,8 @@ static real _config_string_to_real(string_const_t str) {
 	return string_to_real(STRING_ARGS(str));
 }
 
-static FOUNDATION_NOINLINE string_const_t _expand_environment(hash_t key, string_const_t var) {
+static FOUNDATION_NOINLINE string_const_t
+_expand_environment(hash_t key, string_const_t var) {
 	if (key == HASH_EXECUTABLE_NAME)
 		return environment_executable_name();
 	else if (key == HASH_EXECUTABLE_DIRECTORY)
@@ -135,7 +138,8 @@ static FOUNDATION_NOINLINE string_const_t _expand_environment(hash_t key, string
 	return string_null();
 }
 
-static FOUNDATION_NOINLINE string_t _expand_string(hash_t section_current, string_t str) {
+static FOUNDATION_NOINLINE string_t
+_expand_string(hash_t section_current, string_t str) {
 	string_const_t variable, value;
 	size_t var_pos, var_end_pos, separator, var_offset, capacity, newlength;
 	hash_t section, key;
@@ -170,7 +174,7 @@ static FOUNDATION_NOINLINE string_t _expand_string(hash_t section_current, strin
 			value = config_string(section, key);
 		else
 			value = _expand_environment(key, string_substr(STRING_ARGS(variable), var_offset,
-			                            variable.length - var_offset - 1));
+			                                               variable.length - var_offset - 1));
 
 		newlength += (value.length > variable.length) ? value.length - variable.length : 0;
 		if (newlength >= capacity) {
@@ -196,7 +200,8 @@ static FOUNDATION_NOINLINE string_t _expand_string(hash_t section_current, strin
 	return expanded;
 }
 
-static FOUNDATION_NOINLINE void _expand_string_val(hash_t section, config_key_t* key) {
+static FOUNDATION_NOINLINE void
+_expand_string_val(hash_t section, config_key_t* key) {
 	bool is_true;
 	FOUNDATION_ASSERT(key->sval.str);
 	if (key->expanded.str != key->sval.str)
@@ -221,7 +226,8 @@ int _config_initialize(void) {
 	return 0;
 }
 
-void _config_shutdown(void) {
+void
+_config_finalize(void) {
 	size_t isb, is, ikb, ik, ssize, ksize;
 	config_section_t* section;
 	config_key_t* key;
@@ -270,7 +276,8 @@ static string_const_t platformsuffix =
 
 #if !FOUNDATION_PLATFORM_PNACL
 
-static string_t config_unsuffix_path(string_t path) {
+static string_t
+config_unsuffix_path(string_t path) {
 	string_const_t buildsuffix =
 #if BUILD_DEBUG
 	(string_const_t) { STRING_CONST("/debug") };
@@ -301,7 +308,8 @@ static string_t config_unsuffix_path(string_t path) {
 
 #endif
 
-static string_t config_make_path(int path, char* buffer, size_t capacity) {
+static string_t
+config_make_path(int path, char* buffer, size_t capacity) {
 #if !FOUNDATION_PLATFORM_PNACL
 	string_t result;
 #endif
@@ -329,7 +337,7 @@ static string_t config_make_path(int path, char* buffer, size_t capacity) {
 		result = string_copy(buffer, capacity, STRING_ARGS(env_dir));
 		result = config_unsuffix_path(result);
 		if (result.length == env_dir.length)
-			return (string_t) { 0, 0 };
+			return (string_t) {0, 0};
 		return path_append(STRING_ARGS(result), capacity, STRING_CONST("config"));
 #else
 		break;
@@ -396,7 +404,7 @@ static string_t config_make_path(int path, char* buffer, size_t capacity) {
 		break;
 
 	case 8:
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
+#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
 		env_dir = environment_home_directory();
 		return string_concat_varg(buffer, capacity, STRING_ARGS(env_dir),
 		                          STRING_CONST("/."), STRING_ARGS(environment_application()->config_dir), nullptr);
@@ -407,8 +415,8 @@ static string_t config_make_path(int path, char* buffer, size_t capacity) {
 	return (string_t) { 0, 0 };
 }
 
-void config_load(const char* name, size_t length, hash_t filter_section, bool built_in,
-                 bool overwrite) {
+void
+config_load(const char* name, size_t length, hash_t filter_section, bool built_in, bool overwrite) {
 	char buffer[BUILD_MAX_PATHLEN];
 	string_t pathname;
 	string_t filename;
@@ -456,7 +464,8 @@ void config_load(const char* name, size_t length, hash_t filter_section, bool bu
 	}
 }
 
-static FOUNDATION_NOINLINE config_section_t* config_section(hash_t section, bool create) {
+static FOUNDATION_NOINLINE config_section_t*
+config_section(hash_t section, bool create) {
 	config_section_t* bucket;
 	size_t ib, bsize;
 
@@ -483,7 +492,8 @@ static FOUNDATION_NOINLINE config_section_t* config_section(hash_t section, bool
 	return bucket + bsize;
 }
 
-static FOUNDATION_NOINLINE config_key_t* config_key(hash_t section, hash_t key, bool create) {
+static FOUNDATION_NOINLINE config_key_t*
+config_key(hash_t section, hash_t key, bool create) {
 	config_key_t new_key;
 	config_section_t* csection;
 	config_key_t* bucket;
@@ -514,49 +524,51 @@ static FOUNDATION_NOINLINE config_key_t* config_key(hash_t section, hash_t key, 
 	return bucket + bsize;
 }
 
-bool config_bool(hash_t section, hash_t key) {
+bool
+config_bool(hash_t section, hash_t key) {
 	config_key_t* key_val = config_key(section, key, false);
 	if (key_val && (key_val->type >= CONFIGVALUE_STRING_VAR))
 		_expand_string_val(section, key_val);
 	return key_val ? key_val->bval : false;
 }
 
-int64_t config_int(hash_t section, hash_t key) {
+int64_t
+config_int(hash_t section, hash_t key) {
 	config_key_t* key_val = config_key(section, key, false);
 	if (key_val && (key_val->type >= CONFIGVALUE_STRING_VAR))
 		_expand_string_val(section, key_val);
 	return key_val ? key_val->ival : 0;
 }
 
-real config_real(hash_t section, hash_t key) {
+real
+config_real(hash_t section, hash_t key) {
 	config_key_t* key_val = config_key(section, key, false);
 	if (key_val && (key_val->type >= CONFIGVALUE_STRING_VAR))
 		_expand_string_val(section, key_val);
 	return key_val ? key_val->rval : 0;
 }
 
-string_const_t config_string(hash_t section, hash_t key) {
+string_const_t
+config_string(hash_t section, hash_t key) {
 	config_key_t* key_val = config_key(section, key, false);
 	if (!key_val)
 		return string_const("", 0);
 	//Convert to string
 	/*lint --e{788} We use default for remaining enums */
 	switch (key_val->type) {
-	case CONFIGVALUE_BOOL: {
-return key_val->bval ? (string_const_t) { STRING_CONST("true") } : (string_const_t) { STRING_CONST("false") };
-		}
+	case CONFIGVALUE_BOOL:
+		return key_val->bval ? (string_const_t) {STRING_CONST("true")} :
+		                       (string_const_t) {STRING_CONST("false")};
 
-	case CONFIGVALUE_INT: {
-			if (!key_val->sval.str)
-				key_val->sval = string_clone_string(string_from_int_static(key_val->ival, 0, 0));
-			return string_to_const(key_val->sval);
-		}
+	case CONFIGVALUE_INT:
+		if (!key_val->sval.str)
+			key_val->sval = string_clone_string(string_from_int_static(key_val->ival, 0, 0));
+		return string_to_const(key_val->sval);
 
-	case CONFIGVALUE_REAL: {
-			if (!key_val->sval.str)
-				key_val->sval = string_clone_string(string_from_real_static(key_val->rval, 4, 0, '0'));
-			return string_to_const(key_val->sval);
-		}
+	case CONFIGVALUE_REAL:
+		if (!key_val->sval.str)
+			key_val->sval = string_clone_string(string_from_real_static(key_val->rval, 4, 0, '0'));
+		return string_to_const(key_val->sval);
 
 	case CONFIGVALUE_STRING:
 	case CONFIGVALUE_STRING_CONST:
@@ -574,7 +586,8 @@ return key_val->bval ? (string_const_t) { STRING_CONST("true") } : (string_const
 	return string_to_const(key_val->sval);
 }
 
-hash_t config_hash(hash_t section, hash_t key) {
+hash_t
+config_hash(hash_t section, hash_t key) {
 	string_const_t value = config_string(section, key);
 	return value.length ? hash(STRING_ARGS(value)) : HASH_EMPTY_STRING;
 }
@@ -586,7 +599,8 @@ hash_t config_hash(hash_t section, hash_t key) {
 		string_deallocate( key_val->sval.str ); \
 	key_val->expanded = key_val->sval = (string_t){ 0, 0 }
 
-void config_set_bool(hash_t section, hash_t key, bool value) {
+void
+config_set_bool(hash_t section, hash_t key, bool value) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
 	key_val->bval = value;
@@ -596,7 +610,8 @@ void config_set_bool(hash_t section, hash_t key, bool value) {
 	key_val->type = CONFIGVALUE_BOOL;
 }
 
-void config_set_int(hash_t section, hash_t key, int64_t value) {
+void
+config_set_int(hash_t section, hash_t key, int64_t value) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
 	key_val->bval = value ? true : false;
@@ -606,7 +621,8 @@ void config_set_int(hash_t section, hash_t key, int64_t value) {
 	key_val->type = CONFIGVALUE_INT;
 }
 
-void config_set_real(hash_t section, hash_t key, real value) {
+void
+config_set_real(hash_t section, hash_t key, real value) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
 	key_val->bval = !math_realzero(value);
@@ -616,7 +632,8 @@ void config_set_real(hash_t section, hash_t key, real value) {
 	key_val->type = CONFIGVALUE_REAL;
 }
 
-void config_set_string(hash_t section, hash_t key, const char* value, size_t length) {
+void
+config_set_string(hash_t section, hash_t key, const char* value, size_t length) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
 	CLEAR_KEY_STRINGS(key_val);
@@ -635,7 +652,8 @@ void config_set_string(hash_t section, hash_t key, const char* value, size_t len
 	}
 }
 
-void config_set_string_constant(hash_t section, hash_t key, const char* value, size_t length) {
+void
+config_set_string_constant(hash_t section, hash_t key, const char* value, size_t length) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
 	if (!FOUNDATION_VALIDATE(value)) return;
@@ -658,7 +676,8 @@ void config_set_string_constant(hash_t section, hash_t key, const char* value, s
 	}
 }
 
-void config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
+void
+config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 	string_t buffer;
 	string_const_t stripped;
 	hash_t section = 0;
@@ -746,8 +765,8 @@ void config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 }
 
 
-void config_parse_commandline(const string_const_t* cmdline, size_t num) {
-	//TODO: Implement, format --section:key=value
+void
+config_parse_commandline(const string_const_t* cmdline, size_t num) {
 	size_t arg;
 	for (arg = 0; arg < num; ++arg) {
 		if (string_match_pattern(STRING_ARGS(cmdline[arg]), STRING_CONST("--*:*=*"))) {
@@ -775,7 +794,7 @@ void config_parse_commandline(const string_const_t* cmdline, size_t num) {
 				else if ((string_find(STRING_ARGS(value), '.', 0) != STRING_NPOS) &&
 				         (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789."), 0) == STRING_NPOS) &&
 				         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.',
-				                      0) + 1) == STRING_NPOS))            //Exactly one "."
+				                                                           0) + 1) == STRING_NPOS))            //Exactly one "."
 					config_set_real(section, key, string_to_real(STRING_ARGS(value)));
 				else if (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789"), 0) == STRING_NPOS)
 					config_set_int(section, key, string_to_int64(STRING_ARGS(value)));
@@ -798,8 +817,8 @@ void config_parse_commandline(const string_const_t* cmdline, size_t num) {
 }
 
 
-void config_write(stream_t* stream, hash_t filter_section,
-                  string_const_t (*string_mapper)(hash_t)) {
+void
+config_write(stream_t* stream, hash_t filter_section, string_const_t (*string_mapper)(hash_t)) {
 	config_section_t* csection;
 	config_key_t* bucket;
 	size_t key, ib, bsize;

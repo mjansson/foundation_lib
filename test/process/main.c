@@ -47,7 +47,7 @@ static int test_process_initialize( void )
 }
 
 
-static void test_process_shutdown( void )
+static void test_process_finalize( void )
 {
 }
 
@@ -194,7 +194,7 @@ static test_suite_t test_process_suite = {
 	test_process_config,
 	test_process_declare,
 	test_process_initialize,
-	test_process_shutdown
+	test_process_finalize
 };
 
 

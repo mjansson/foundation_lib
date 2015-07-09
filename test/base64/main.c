@@ -47,7 +47,7 @@ static int test_base64_initialize( void )
 }
 
 
-static void test_base64_shutdown( void )
+static void test_base64_finalize( void )
 {
 }
 
@@ -315,7 +315,7 @@ static test_suite_t test_base64_suite = {
 	test_base64_config,
 	test_base64_declare,
 	test_base64_initialize,
-	test_base64_shutdown
+	test_base64_finalize
 };
 
 

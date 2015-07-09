@@ -52,7 +52,7 @@ static int test_math_initialize( void )
 }
 
 
-static void test_math_shutdown( void )
+static void test_math_finalize( void )
 {
 }
 
@@ -437,7 +437,7 @@ static test_suite_t test_math_suite = {
 	test_math_config,
 	test_math_declare,
 	test_math_initialize,
-	test_math_shutdown
+	test_math_finalize
 };
 
 

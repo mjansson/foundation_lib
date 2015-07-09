@@ -47,7 +47,7 @@ static int test_pipe_initialize( void )
 }
 
 
-static void test_pipe_shutdown( void )
+static void test_pipe_finalize( void )
 {
 }
 
@@ -213,7 +213,7 @@ static test_suite_t test_pipe_suite = {
 	test_pipe_config,
 	test_pipe_declare,
 	test_pipe_initialize,
-	test_pipe_shutdown
+	test_pipe_finalize
 };
 
 

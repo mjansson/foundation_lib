@@ -33,7 +33,7 @@ Adapted and extended from stb_arr at http://nothings.org/stb.h */
 
 /*! \brief Deallocate array
 Free array memory and reset array pointer to zero.
-\param array Array pointer */
+\param array      Array pointer */
 #define array_deallocate(array) /*lint -e{522}*/ ( \
   _array_verify(array) ? \
     memory_deallocate(_array_raw(array)), ((array) = 0) : \
@@ -42,7 +42,7 @@ Free array memory and reset array pointer to zero.
 /*!\brief Array capacity
 Get capacity of array in number of elements. Capacity indicates the size of the allocated
 memory block. To get the currently stored number of elements, use array_size instead.
-\param array Array pointer */
+\param array      Array pointer */
 #define array_capacity(array) ( \
   _array_verify(array) ? \
     _array_rawcapacity_const(array) : \
@@ -51,14 +51,14 @@ memory block. To get the currently stored number of elements, use array_size ins
 /*! \brief Reserve storage
 Reserve storage for given number of elements. Never reduces storage and does not affect
 number of currently stored elements.
-\param array Array pointer
-\param capacity New capacity */
+\param array      Array pointer
+\param capacity   New capacity */
 #define array_reserve(array, capacity) ( \
   (void)_array_maybegrowfixed(array, (capacity) - array_capacity(array)))
 
 /*! \brief Array size
 Get number of currently stored elements.
-\param array Array pointer */
+\param array      Array pointer */
 #define array_size(array) ( \
   _array_verify(array) ? \
     _array_rawsize_const(array) : \
@@ -67,22 +67,22 @@ Get number of currently stored elements.
 /*! \brief Change size
 Add or remove elements without initialization, if size is positive or negative respectively.
 Sets new size to array_size(array)+num and allocates new storage if needed.
-\param array Array pointer
-\param num Number of elements to grow/shrink */
+\param array      Array pointer
+\param num        Number of elements to grow/shrink */
 #define array_grow(array, num) ( \
   (void)_array_resize(array, (size_t)((ssize_t)array_size(array) + (ssize_t)num)))
 
 /*! \brief Resize to given size
 Resize to given absolute size without initialization. Sets new size to num and allocate
 new storage if needed.
-\param array Array pointer
-\param num New size */
+\param array      Array pointer
+\param num        New size */
 #define array_resize(array, num) ( \
   (void)_array_resize(array, num))
 
 /*! \brief Set size to 0
 Set size to 0. Does not affect capacity or resize storage buffer.
-\param array Array pointer */
+\param array      Array pointer */
 #define array_clear(array) ( \
   _array_verify(array) ? \
     (_array_rawsize(array) = 0) : \
@@ -90,8 +90,8 @@ Set size to 0. Does not affect capacity or resize storage buffer.
 
 /*! \brief Copy array
 Copy content of one array to another, allocating more storage if needed.
-\param dst Destination array
-\param src Source array */
+\param dst        Destination array
+\param src        Source array */
 #define array_copy(dst, src) ( \
   _array_verify(src) && \
   (_array_elementsize(src) == _array_elementsize(dst)) ? \
@@ -107,15 +107,15 @@ Copy content of one array to another, allocating more storage if needed.
 
 /*! \brief Add elemend at end
 Add element at end of array
-\param array Array pointer
-\param element New element */
+\param array      Array pointer
+\param element    New element */
 #define array_push(array, element) ( \
   (void)_array_maybegrow(array, 1), \
   (array)[_array_rawsize(array)++] = (element))
 
 /*! \brief Add element at end
 Add element at end of array copying data with memcpy
-\param array Array pointer
+\param array      Array pointer
 \param elementptr Pointer to new element */
 #define array_push_memcpy(array, elementptr) /*lint -e{506}*/ ( \
   (void)_array_maybegrow(array, 1), \
@@ -124,9 +124,9 @@ Add element at end of array copying data with memcpy
 /*! \brief Add element at given position
 Add element at given position in array. Position is NOT range checked. Existing elements
 are moved using memmove.
-\param array Array pointer
-\param pos Position
-\param element New element */
+\param array      Array pointer
+\param pos        Position
+\param element    New element */
 #define array_insert(array, pos, element) ( \
   (void)_array_maybegrow(array, 1), \
   memmove((array) + (pos) + 1, (array) + (pos), \
@@ -136,8 +136,8 @@ are moved using memmove.
 /*! \brief Add element at given position
 Add element at given position in array, copy data using memcpy. Position is NOT range
 checked. Existing elements are moved using memmove.
-\param array Array pointer
-\param pos Position
+\param array      Array pointer
+\param pos        Position
 \param elementptr Pointer to new element */
 #define array_insert_memcpy(array, pos, elementptr) ( \
   (void)_array_maybegrow(array, 1), \
@@ -148,9 +148,9 @@ checked. Existing elements are moved using memmove.
 /*! \brief Checked add element at given position
 Add element at given position in array. Position IS range checked and clamped to array
 size. Existing elements are moved using memmove.
-\param array Array pointer
-\param pos Position
-\param element New element */
+\param array      Array pointer
+\param pos        Position
+\param element    New element */
 #define array_insert_safe( array, pos, element ) do { \
   uint32_t _arr_size = array_size(array); \
   uint32_t _clamped_pos = ((uint32_t)(pos) & 0x80000000U) ? \
@@ -161,8 +161,8 @@ size. Existing elements are moved using memmove.
 /*! \brief Checked add element at given position
 Add element at given position in array, copy data using memcpy. Position IS range
 checked and clamped to array size. Existing elements are moved using memmove.
-\param array Array pointer
-\param pos Position
+\param array      Array pointer
+\param pos        Position
 \param elementptr Pointer to new element */
 #define array_insert_memcpy_safe(array, pos, elementptr) do { \
   uint32_t _arr_size = array_size(array); \
@@ -174,7 +174,7 @@ checked and clamped to array size. Existing elements are moved using memmove.
 /*! \brief Remove last element
 Remove last element. Array size is NOT validated, will cause undefined behaviour if
 called on an empty array
-\param array Array pointer */
+\param array      Array pointer */
 #define array_pop(array) ( \
   _array_verify(array) ? \
     --_array_rawsize(array) : \
@@ -201,8 +201,8 @@ Erase element without preserving order (swap-with-last). Position is NOT ranged 
 /*! \brief Erase element at given position
 Erase element without preserving order (swap-with-last), copy data using memcpy. Position
 is NOT ranged checked.
-\param array Array pointer
-\param pos Position */
+\param array      Array pointer
+\param pos        Position */
 #define array_erase_memcpy(array, pos) ( \
   _array_verify(array) ? \
     memcpy((array) + (pos), (array) + (_array_rawsize(array) - 1), \
@@ -212,8 +212,8 @@ is NOT ranged checked.
 
 /*! \brief Erase element at given position
 Erase element without preserving order (swap-with-last). Position IS ranged checked.
-\param array Array pointer
-\param pos Position */
+\param array      Array pointer
+\param pos        Position */
 #define array_erase_safe(array, pos) ( \
   _array_verify(array) && _array_verify_index(array, pos) ? \
     array_erase(array, pos) : \
@@ -222,8 +222,8 @@ Erase element without preserving order (swap-with-last). Position IS ranged chec
 /*! \brief Erase element at given position
 Erase element without preserving order (swap-with-last), copy data using memcpy.
 Position IS ranged checked.
-\param array Array pointer
-\param pos Position */
+\param array      Array pointer
+\param pos        Position */
 #define array_erase_memcpy_safe(array, pos) ( \
   _array_verify( array ) && _array_verify_index( array, pos ) ? \
     array_erase_memcpy(array, pos) : \
@@ -232,8 +232,8 @@ Position IS ranged checked.
 /*! \brief Erase element at given position preserving order
 Erase element and preserve order (memmove remaining elements in array).
 Position is NOT ranged checked
-\param array Array pointer
-\param pos Position */
+\param array      Array pointer
+\param pos        Position */
 #define array_erase_ordered(array, pos) ( \
   _array_verify(array) ? \
     memmove((array) + (pos), (array) + (pos) + 1, \
@@ -244,8 +244,8 @@ Position is NOT ranged checked
 /*! \brief Erase element at given position preserving order
 Erase element and preserve order (memmove remaining elements in array).
 Position IS ranged checked
-\param array Array pointer
-\param pos Position */
+\param array      Array pointer
+\param pos        Position */
 #define array_erase_ordered_safe(array, pos) ( \
   _array_verify(array) && _array_verify_index(array, pos) ? \
     array_erase_ordered(array, (uint32_t)pos) : \
@@ -254,9 +254,9 @@ Position IS ranged checked
 /*! \brief Erase rage of elements starting at given position preserving order
 Erase a range of elements and preserve order (memmove remaining elements
 in array). Position and number of elements are NOT ranged checked
-\param array Array pointer
-\param pos Starting position
-\param num Number of elements to erase */
+\param array      Array pointer
+\param pos        Starting position
+\param num        Number of elements to erase */
 #define array_erase_ordered_range(array, pos, num) ( \
   _array_verify(array) && \
     ((num) > 0) ? \
@@ -268,9 +268,9 @@ in array). Position and number of elements are NOT ranged checked
 /*! \brief Erase rage of elements starting at given position preserving order
 Erase a range of elements and preserve order (memmove remaining elements
 in array). Position and number of elements ARE ranged checked
-\param array Array pointer
-\param pos Starting position
-\param num Number of elements to erase */
+\param array      Array pointer
+\param pos        Starting position
+\param num        Number of elements to erase */
 #define array_erase_ordered_range_safe(array, pos, num) do { \
   uint32_t _arr_size = array_size(array); \
   uint32_t _clamped_start = ((uint32_t)(pos) & 0x80000000U) ? \
@@ -335,8 +335,8 @@ _array_resizefn(void** arr, size_t elements, size_t itemsize);
 
 /*! \brief Array verification
 Verify array integrity. Will cause an assert if array is not valid.
-\param arr Pointer to array
-\return    Array if valid, null if invalid */
+\param arr      Pointer to array
+\return         Array if valid, null if invalid */
 FOUNDATION_API const void*
 _array_verifyfn(const void* const* arr);
 

@@ -23,9 +23,9 @@
 
 /*! \brief Open an Android application asset as a stream
 Open an Android application asset as a stream. Assets can only be read, not written.
-\param path Asset path within the package asset paths
-\param mode Open mode
-\return New stream, null if path not found or invalid mode */
+\param path   Asset path within the package asset paths
+\param mode   Open mode
+\return       New stream, null if path not found or invalid mode */
 FOUNDATION_API stream_t*
 asset_stream_open(const char* path, size_t length, unsigned int mode);
 

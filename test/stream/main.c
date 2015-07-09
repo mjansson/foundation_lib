@@ -78,7 +78,7 @@ static int test_stream_initialize( void )
 }
 
 
-static void test_stream_shutdown( void )
+static void test_stream_finalize( void )
 {
 }
 
@@ -1220,7 +1220,7 @@ static test_suite_t test_stream_suite = {
 	test_stream_config,
 	test_stream_declare,
 	test_stream_initialize,
-	test_stream_shutdown
+	test_stream_finalize
 };
 
 

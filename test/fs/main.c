@@ -47,7 +47,7 @@ static int test_fs_initialize( void )
 }
 
 
-static void test_fs_shutdown( void )
+static void test_fs_finalize( void )
 {
 }
 
@@ -710,7 +710,7 @@ static test_suite_t test_fs_suite = {
 	test_fs_config,
 	test_fs_declare,
 	test_fs_initialize,
-	test_fs_shutdown
+	test_fs_finalize
 };
 
 

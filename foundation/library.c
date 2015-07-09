@@ -56,7 +56,7 @@ int _library_initialize( void )
 }
 
 
-void _library_shutdown( void )
+void _library_finalize( void )
 {
 	objectmap_deallocate( _library_map );
 	_library_map = 0;
@@ -287,7 +287,7 @@ int _library_initialize( void )
 }
 
 
-void _library_shutdown( void )
+void _library_finalize( void )
 {
 }
 

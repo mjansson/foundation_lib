@@ -12,26 +12,166 @@
 
 #pragma once
 
+/*! \file fs.h
+\brief File system operations
+\details File system operations acting on the local operating system file system. All paths
+are either absolute paths, or relative paths to the current working directory.
+Absolute paths can optionally contain a file protocol declarator (file://)
+
+Also provides an interface to monitor local file system changes through
+events on platforms supporting this. */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+/*! \brief Open file
+Open a file in the file system
+\param path      File system path
+\param length    Length of path
+\param mode      Open mode
+\return          File stream, 0 if file not found */
+FOUNDATION_API stream_t*
+fs_open_file(const char* path, size_t length, unsigned int mode);
 
-FOUNDATION_API stream_t*        fs_open_file( const char* path, size_t length, unsigned int mode );
-FOUNDATION_API void             fs_copy_file( const char* source, size_t src_length, const char* dest, size_t dst_length );
-FOUNDATION_API bool             fs_remove_file( const char* path, size_t length );
-FOUNDATION_API bool             fs_is_file( const char* path, size_t length );
-FOUNDATION_API bool             fs_make_directory( const char* path, size_t length );
-FOUNDATION_API bool             fs_remove_directory( const char* path, size_t length );
-FOUNDATION_API bool             fs_is_directory( const char* path, size_t length );
-FOUNDATION_API tick_t           fs_last_modified( const char* path, size_t length );
-FOUNDATION_API void             fs_touch( const char* path, size_t length );
-FOUNDATION_API uint128_t        fs_md5( const char* path, size_t length );
-FOUNDATION_API string_t*        fs_matching_files( const char* path, size_t length, const char* pattern, size_t pattern_length, bool recurse );
-FOUNDATION_API string_t*        fs_files( const char* path, size_t length );
-FOUNDATION_API string_t*        fs_subdirs( const char* path, size_t length );
-FOUNDATION_API void             fs_monitor( const char* path, size_t length );
-FOUNDATION_API void             fs_unmonitor( const char* path, size_t length );
-FOUNDATION_API stream_t*        fs_temporary_file( void );
-FOUNDATION_API void             fs_post_event( foundation_event_id id, const char* path, size_t length );
-FOUNDATION_API event_stream_t*  fs_event_stream( void );
+/*! \brief Copy file
+Copy source file to destination path in the file system, creating directories if needed
+\param source    Source file path
+\param srclen    Length of source file path
+\param dest      Destination file path
+\param destlen   Length of destination file path
+\return          true if successful, false if failure */
+FOUNDATION_API bool
+fs_copy_file(const char* source, size_t srclen, const char* dest, size_t destlen);
+
+/*! \brief Remove file
+Remove a file from the file system
+\param path      Path
+\param length    Length of path
+\return          true if file was removed, false if not */
+FOUNDATION_API bool
+fs_remove_file(const char* path, size_t length);
+
+/*! \brief Check if file exists
+Check if the given file exists in the file system
+\param path      Path
+\param length    Length of path
+\return          true if the file exists, false if not */
+FOUNDATION_API bool
+fs_is_file(const char* path, size_t length);
+
+/*! \brief Create path
+Create path in the file system. Will recursively create directories making up the path
+\param path      Path
+\param length    Length of path
+\return          true if success, false if not */
+FOUNDATION_API bool
+fs_make_directory(const char* path, size_t length);
+
+/*! \brief Remove path
+Remove a directory recursively from the file system
+\param path      Path
+\param length    Length of path
+\return          true if directory was removed, false if not */
+FOUNDATION_API bool
+fs_remove_directory(const char* path, size_t length);
+
+/*! \brief Check if path exists
+Check if the given directory exists in the file system
+\param path      Path
+\param length    Length of path
+\return          true if the directory exists, false if not */
+FOUNDATION_API bool
+fs_is_directory(const char* path, size_t length);
+
+/*! \brief Get last modification time
+Get last modification time (last write) in milliseconds since the epoch (UNIX time)
+\param path      File path
+\param length    Length of path
+\return          File modification time, 0 if not an existing file */
+FOUNDATION_API tick_t
+fs_last_modified(const char* path, size_t length);
+
+/*! \brief Touch file
+Touch file and update modification date. Unlike the unix touch command this function
+will NOT create the file if it does not exist.
+\param path      File path
+\param length    Length of path */
+FOUNDATION_API void
+fs_touch(const char* path, size_t length);
+
+/*! \brief Get file MD5 digest
+Get file MD5 digest. Will read and digest the file contents on each call
+of this function (slow)
+\param path      File path
+\param length    Length of path
+\return          md5 digest, 0 if not an existing file or unreadable */
+FOUNDATION_API uint128_t
+fs_md5(const char* path, size_t length);
+
+/*! \brief Get matching files
+Get files matching the given pattern. The pattern should be a regular
+expression supported by the regex parser in the library (see regex.h documentation).
+For example, to find all files with a given extension ".ext", use the regex "^.*\\.ext$"
+Free the returned array with #string_array_deallocate
+\param path       File path
+\param length     Length of path
+\param pattern    File name pattern
+\param patternlen Length of pattern
+\param recurse    Recursion flag
+\return           Array of matching file names */
+FOUNDATION_API string_t*
+fs_matching_files(const char* path, size_t length, const char* pattern, size_t patternlen,
+                  bool recurse);
+
+/*! \brief Get files
+Get files in the given directory path. Free the returned array with #string_array_deallocate
+\param path      Path of directory
+\param length    Length of path
+\return          Array of file names */
+FOUNDATION_API string_t*
+fs_files(const char* path, size_t length);
+
+/*! \brief Get subdirectories
+\details Get subdirectories in the given directory path. Free the returned
+array with #string_array_deallocate
+\param path      Path of directory
+\param length    Length of path
+\return          Array of subdirectory names */
+FOUNDATION_API string_t*
+fs_subdirs(const char* path, size_t length);
+
+/*! \brief Monitor file system changes
+Monitor the path (recursive) for file system changes. Changes are
+notified as file system events in the event stream returned by #fs_event_stream
+\param path      File system path
+\param length    Length of path */
+FOUNDATION_API void
+fs_monitor(const char* path, size_t length);
+
+/*! \brief Stop file system monitor
+Stop monitoring the path (recursive) for file system changes
+\param path      File system path
+\param length    Length of path */
+FOUNDATION_API void
+fs_unmonitor(const char* path, size_t length);
+
+/*! \brief Create temporary file
+Create a temporary file
+\return          Temporary file */
+FOUNDATION_API stream_t*
+fs_temporary_file(void);
+
+/*! \brief Post file event
+Post a file event
+\param id        Event id
+\param path      Path
+\param length    Length of path */
+FOUNDATION_API void
+fs_post_event(foundation_event_id id, const char* path, size_t length);
+
+/*! \brief Get file system event stream
+Get file system event stream
+\return          File system event stream */
+FOUNDATION_API event_stream_t*
+fs_event_stream(void);
 

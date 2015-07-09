@@ -27,7 +27,8 @@ extern void _environment_ns_command_line(string_t** argv);
 extern string_t _environment_ns_home_directory(char*, size_t);
 extern string_t _environment_ns_temporary_directory(char*, size_t);
 
-string_t environment_bundle_identifier(char* target, size_t maxlength) {
+string_t
+environment_bundle_identifier(char* target, size_t maxlength) {
 	@autoreleasepool {
 		NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
 		const char* bundlestr = [bundle_identifier UTF8String];
@@ -35,7 +36,8 @@ string_t environment_bundle_identifier(char* target, size_t maxlength) {
 	}
 }
 
-void _environment_ns_command_line(string_t** argv) {
+void
+_environment_ns_command_line(string_t** argv) {
 	@autoreleasepool {
 		char buffer[BUILD_MAX_PATHLEN];
 		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
@@ -47,7 +49,8 @@ void _environment_ns_command_line(string_t** argv) {
 	}
 }
 
-string_t _environment_ns_home_directory(char* buffer, size_t capacity) {
+string_t
+_environment_ns_home_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
 		NSString* homestr = NSHomeDirectory();
 		CFStringRef home = (__bridge CFStringRef)homestr;
@@ -57,7 +60,8 @@ string_t _environment_ns_home_directory(char* buffer, size_t capacity) {
 	return (string_t) { buffer, 0 };
 }
 
-string_t _environment_ns_temporary_directory(char* buffer, size_t capacity) {
+string_t
+_environment_ns_temporary_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
 		NSString* tmpstr = NSTemporaryDirectory();
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;

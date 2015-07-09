@@ -97,7 +97,7 @@ int tizen_initialize( void )
 }
 
 
-void tizen_shutdown( void )
+void tizen_finalize( void )
 {
 }
 

@@ -299,7 +299,7 @@ typedef int           (* error_callback_fn )( error_level_t level, error_t error
 typedef int           (* assert_handler_fn )( hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length, unsigned int line, const char* msg, size_t msg_length );
 typedef void          (* log_callback_fn )( hash_t context, error_level_t severity, const char* msg, size_t length );
 typedef int           (* system_initialize_fn )( void );
-typedef void          (* system_shutdown_fn )( void );
+typedef void          (* system_finalize_fn )( void );
 typedef void*         (* memory_allocate_fn )( hash_t context, size_t size, unsigned int align, unsigned int hint );
 typedef void*         (* memory_reallocate_fn )( void* p, size_t size, unsigned int align, size_t oldsize );
 typedef void          (* memory_deallocate_fn )( void* p );
@@ -378,7 +378,7 @@ struct memory_system_t
 	memory_reallocate_fn            reallocate;
 	memory_deallocate_fn            deallocate;
 	system_initialize_fn            initialize;
-	system_shutdown_fn              shutdown;
+	system_finalize_fn              shutdown;
 };
 
 
@@ -387,7 +387,7 @@ struct memory_tracker_t
 	memory_track_fn                 track;
 	memory_untrack_fn               untrack;
 	system_initialize_fn            initialize;
-	system_shutdown_fn              shutdown;
+	system_finalize_fn              shutdown;
 };
 
 
@@ -698,6 +698,7 @@ FOUNDATION_ALIGNED_STRUCT( stream_buffer_t, 8 )
 	void*                           buffer;
 	bool                            own;
 	bool                            grow;
+	tick_t                          lastmod;
 };
 
 FOUNDATION_ALIGNED_STRUCT( stream_pipe_t, 8 )

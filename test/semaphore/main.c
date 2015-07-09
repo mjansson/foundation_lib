@@ -47,7 +47,7 @@ static int test_semaphore_initialize( void )
 }
 
 
-static void test_semaphore_shutdown( void )
+static void test_semaphore_finalize( void )
 {
 }
 
@@ -294,7 +294,7 @@ static test_suite_t test_semaphore_suite = {
 	test_semaphore_config,
 	test_semaphore_declare,
 	test_semaphore_initialize,
-	test_semaphore_shutdown
+	test_semaphore_finalize
 };
 
 

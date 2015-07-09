@@ -47,7 +47,7 @@ static int test_bufferstream_initialize( void )
 }
 
 
-static void test_bufferstream_shutdown( void )
+static void test_bufferstream_finalize( void )
 {
 }
 
@@ -509,7 +509,7 @@ static test_suite_t test_bufferstream_suite = {
 	test_bufferstream_config,
 	test_bufferstream_declare,
 	test_bufferstream_initialize,
-	test_bufferstream_shutdown
+	test_bufferstream_finalize
 };
 
 

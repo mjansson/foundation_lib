@@ -55,7 +55,7 @@ typedef struct pnacl_array_t
 
 FOUNDATION_API int             pnacl_module_initialize( PP_Module module_id, PPB_GetInterface get_browser );
 FOUNDATION_API const void*     pnacl_module_interface( const char* interface_name, size_t length );
-FOUNDATION_API void            pnacl_module_shutdown( void );
+FOUNDATION_API void            pnacl_module_finalize( void );
 
 FOUNDATION_API string_const_t  pnacl_error_message( int err );
 

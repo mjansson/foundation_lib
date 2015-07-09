@@ -55,7 +55,7 @@ static int test_random_initialize( void )
 }
 
 
-static void test_random_shutdown( void )
+static void test_random_finalize( void )
 {
 }
 
@@ -476,7 +476,7 @@ static test_suite_t test_random_suite = {
 	test_random_config,
 	test_random_declare,
 	test_random_initialize,
-	test_random_shutdown
+	test_random_finalize
 };
 
 

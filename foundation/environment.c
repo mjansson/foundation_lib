@@ -35,9 +35,16 @@ static string_t _environment_var;
 
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
-extern void _environment_ns_command_line(string_t** argv);
-extern string_t _environment_ns_home_directory(char*, size_t);
-extern string_t _environment_ns_temporary_directory(char*, size_t);
+
+extern void
+_environment_ns_command_line(string_t** argv);
+
+extern string_t
+_environment_ns_home_directory(char*, size_t);
+
+extern string_t
+_environment_ns_temporary_directory(char*, size_t);
+
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -50,16 +57,19 @@ static string_t* _environment_argv;
 static int _environment_main_argc;
 static const char* const* _environment_main_argv;
 
-static void _environment_clean_temporary_directory(bool recreate);
+static void
+_environment_clean_temporary_directory(bool recreate);
 
-void _environment_main_args(int argc, const char* const* argv) {
+void
+_environment_main_args(int argc, const char* const* argv) {
 	_environment_main_argc = argc;
 	_environment_main_argv = argv;
 }
 
 #if !FOUNDATION_PLATFORM_PNACL
 
-static void _environment_set_executable_paths(char* executable_path, size_t length) {
+static void
+_environment_set_executable_paths(char* executable_path, size_t length) {
 	size_t last_path = string_rfind(executable_path, length, '/', STRING_NPOS);
 	if (last_path != STRING_NPOS) {
 		_environment_executable_dir = string_clone(executable_path, last_path);
@@ -85,7 +95,8 @@ static void _environment_set_executable_paths(char* executable_path, size_t leng
 
 #endif
 
-int _environment_initialize(const application_t application) {
+int
+_environment_initialize(const application_t application) {
 	string_const_t working_dir;
 #if !FOUNDATION_PLATFORM_PNACL
 	char buffer[BUILD_MAX_PATHLEN];
@@ -261,7 +272,8 @@ int _environment_initialize(const application_t application) {
 	return 0;
 }
 
-void _environment_shutdown(void) {
+void
+_environment_finalize(void) {
 	_environment_clean_temporary_directory(false);
 
 	string_array_deallocate(_environment_argv);
@@ -278,35 +290,41 @@ void _environment_shutdown(void) {
 	string_deallocate(_environment_temp_dir.str);
 
 	_environment_executable_name =
-	_environment_executable_dir =
-	_environment_executable_path =
-	_environment_initial_working_dir =
-	_environment_current_working_dir =
-	_environment_home_dir =
-	_environment_temp_dir = (string_t){0, 0};
+	  _environment_executable_dir =
+	    _environment_executable_path =
+	      _environment_initial_working_dir =
+	        _environment_current_working_dir =
+	          _environment_home_dir =
+	_environment_temp_dir = (string_t) {0, 0};
 }
 
-const string_const_t* environment_command_line(void) {
+const string_const_t*
+environment_command_line(void) {
 	return (const string_const_t*)_environment_argv;
 }
 
-string_const_t environment_executable_name(void) {
+string_const_t
+environment_executable_name(void) {
 	return string_to_const(_environment_executable_name);
 }
 
-string_const_t environment_executable_directory(void) {
+string_const_t
+environment_executable_directory(void) {
 	return string_to_const(_environment_executable_dir);
 }
 
-string_const_t environment_executable_path(void) {
+string_const_t
+environment_executable_path(void) {
 	return string_to_const(_environment_executable_path);
 }
 
-string_const_t environment_initial_working_directory(void) {
+string_const_t
+environment_initial_working_directory(void) {
 	return string_to_const(_environment_initial_working_dir);
 }
 
-string_const_t environment_current_working_directory(void) {
+string_const_t
+environment_current_working_directory(void) {
 	if (_environment_current_working_dir.str)
 		return string_to_const(_environment_current_working_dir);
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -343,7 +361,8 @@ string_const_t environment_current_working_directory(void) {
 	return string_to_const(_environment_current_working_dir);
 }
 
-void environment_set_current_working_directory(const char* path, size_t length) {
+void
+environment_set_current_working_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_POSIX
 	string_t buffer, pathstr;
 #endif
@@ -386,7 +405,8 @@ void environment_set_current_working_directory(const char* path, size_t length) 
 #endif
 }
 
-string_const_t environment_home_directory(void) {
+string_const_t
+environment_home_directory(void) {
 	if (_environment_home_dir.str)
 		return string_to_const(_environment_home_dir);
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -428,7 +448,8 @@ string_const_t environment_home_directory(void) {
 	return string_to_const(_environment_home_dir);
 }
 
-string_const_t environment_temporary_directory(void) {
+string_const_t
+environment_temporary_directory(void) {
 	if (_environment_temp_dir.str)
 		return string_to_const(_environment_temp_dir);
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -513,7 +534,8 @@ string_const_t environment_temporary_directory(void) {
 	return string_to_const(_environment_temp_dir);
 }
 
-static void _environment_clean_temporary_directory(bool recreate) {
+static void
+_environment_clean_temporary_directory(bool recreate) {
 	string_const_t path = environment_temporary_directory();
 
 	if (_environment_temp_dir_local && fs_is_directory(path.str, path.length)) {
@@ -523,7 +545,8 @@ static void _environment_clean_temporary_directory(bool recreate) {
 	}
 }
 
-string_const_t environment_variable(const char* var, size_t length) {
+string_const_t
+environment_variable(const char* var, size_t length) {
 #if !FOUNDATION_PLATFORM_PNACL
 	string_t buffer = string_thread_buffer();
 	string_t varstr = string_copy(STRING_ARGS(buffer), var, length);
@@ -561,6 +584,7 @@ string_const_t environment_variable(const char* var, size_t length) {
 #endif
 }
 
-const application_t* environment_application(void) {
+const application_t*
+environment_application(void) {
 	return &_environment_app;
 }

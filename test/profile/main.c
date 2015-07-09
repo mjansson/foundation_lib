@@ -70,7 +70,7 @@ static int test_profile_initialize( void )
 }
 
 
-static void test_profile_shutdown( void )
+static void test_profile_finalize( void )
 {
 	profile_set_output( 0 );
 	memory_deallocate( _test_profile_buffer );
@@ -92,7 +92,7 @@ DECLARE_TEST( profile, initialize )
 	thread_sleep( 1000 );
 
 	profile_enable( false );
-	profile_shutdown();
+	profile_finalize();
 
 #if BUILD_ENABLE_PROFILE
 	EXPECT_GT( atomic_load32( &_test_profile_output_counter ), 0 );
@@ -122,7 +122,7 @@ DECLARE_TEST( profile, output )
 	thread_sleep( 1000 );
 
 	profile_enable( false );
-	profile_shutdown();
+	profile_finalize();
 
 #if BUILD_ENABLE_PROFILE
 	EXPECT_GT( atomic_load32( &_test_profile_output_counter ), 0 );
@@ -145,7 +145,7 @@ DECLARE_TEST( profile, output )
 	thread_sleep( 1000 );
 
 	profile_enable( false );
-	profile_shutdown();
+	profile_finalize();
 
 	EXPECT_EQ( atomic_load32( &_test_profile_output_counter ), 0 );
 
@@ -238,7 +238,7 @@ DECLARE_TEST( profile, thread )
 	thread_sleep( 1000 );
 
 	profile_enable( false );
-	profile_shutdown();
+	profile_finalize();
 
 	err = error();
 
@@ -373,7 +373,7 @@ DECLARE_TEST( profile, stream )
 	thread_sleep( 1000 );
 
 	profile_enable( false );
-	profile_shutdown();
+	profile_finalize();
 
 	error();
 
@@ -401,7 +401,7 @@ static test_suite_t test_profile_suite = {
 	test_profile_config,
 	test_profile_declare,
 	test_profile_initialize,
-	test_profile_shutdown
+	test_profile_finalize
 };
 
 

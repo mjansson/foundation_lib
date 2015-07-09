@@ -47,7 +47,7 @@ static int test_hashtable_initialize( void )
 }
 
 
-static void test_hashtable_shutdown( void )
+static void test_hashtable_finalize( void )
 {
 }
 
@@ -295,7 +295,7 @@ static test_suite_t test_hashtable_suite = {
 	test_hashtable_config,
 	test_hashtable_declare,
 	test_hashtable_initialize,
-	test_hashtable_shutdown
+	test_hashtable_finalize
 };
 
 

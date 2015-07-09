@@ -12,6 +12,12 @@
 
 #pragma once
 
+/*! \file hash.h
+\brief Murmur3 hash
+\details Murmur3 hash from http://code.google.com/p/smhasher/
+Also wrapper macros around predefined static hashed strings
+See hashify utility for creating static hashes */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
 #include <foundation/assert.h>
@@ -20,37 +26,66 @@
 #include <foundation/string.h>
 #endif
 
+/*! \brief Hash data
+Hash data memory blob. Pointer must be aligned to 8 bytes
+\param key    Key to hash
+\param len    Length of key in bytes
+\return       Hash of key */
+FOUNDATION_API FOUNDATION_PURECALL hash_t
+hash(const void* key, size_t len);
 
-FOUNDATION_API FOUNDATION_PURECALL hash_t       hash( const void* key, size_t len );
-FOUNDATION_API const char*                      hash_to_string( hash_t value );
-
+/*! \brief Reverse hash lookup
+Reverse hash lookup. Only available if #BUILD_ENABLE_STATIC_HASH_DEBUG is
+enabled, otherwise if will always return an empty string
+\param value  Hash value
+\return       String matching hash value, or empty string if not found */
+FOUNDATION_API const char*
+hash_to_string(hash_t value);
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
-static FOUNDATION_FORCEINLINE hash_t            static_hash( const void* key, size_t len, hash_t value );
+static FOUNDATION_FORCEINLINE hash_t
+static_hash(const void* key, size_t len, hash_t value);
 
 #else
 
-#  define static_hash( key, len, value )        ( (void)sizeof( key ), (void)sizeof( len ), (hash_t)(value) )
-#  define hash_to_string( value )               ( (void)sizeof( value ), (const char*)0 )
+#  define static_hash( key, len, value ) \
+  ( (void)sizeof( key ), (void)sizeof( len ), \
+    (hash_t)(value) )
+
+#  define hash_to_string( value ) \
+  ( (void)sizeof( value ), (const char*)0 )
 
 #endif
 
-#define static_hash_string( key, len, value )   static_hash( key, string_length( key ), (hash_t)value )
-
+/*! \brief Declare statically hashed string
+Declare a statically hashed string. If #BUILD_ENABLE_STATIC_HASH_DEBUG is enabled
+in the build config this will allow the string to be reverse looked up with hash_to_string.
+Static hash strings are usually defined by using the hashify tool on a declaration file,
+see the hashstrings.txt and corresponding hashstrings.h header
+\param key    Key string
+\param len    Length of key in bytes
+\param value  Hash value */
+#define static_hash_string( key, len, value ) \
+  static_hash( key, string_length( key ), (hash_t)value )
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
-FOUNDATION_API void                             _static_hash_store( const void* key, size_t len, hash_t value );
+FOUNDATION_API void
+_static_hash_store(const void* key, size_t len, hash_t value);
 
-static FOUNDATION_FORCEINLINE hash_t            static_hash( const void* key, size_t len, hash_t value )
-{
-	hash_t ref = hash( key, len );
-	FOUNDATION_ASSERT_MSGFORMAT( !value || ( ref == value ), "Static hash fail: %s -> 0x%" PRIx64 ", expected 0x%" PRIx64, (const char*)key, ref, value );
-	_static_hash_store( key, len, ref );
-	return ref;
+static FOUNDATION_FORCEINLINE hash_t
+static_hash(const void* key, size_t len, hash_t value) {
+  hash_t ref = hash(key, len);
+  FOUNDATION_ASSERT_MSGFORMAT(!value || (ref == value),
+                              "Static hash fail: %s -> 0x%" PRIx64 ", expected 0x%" PRIx64,
+                              (const char*)key, ref, value);
+  _static_hash_store(key, len, ref);
+  return ref;
 }
 
 #endif
 
-#define HASH_EMPTY_STRING                       0xC2D00F032E25E509LL
+/*! \brief Hash of empty string
+Hash of an empty string (length 0) */
+#define HASH_EMPTY_STRING 0xC2D00F032E25E509LL

@@ -42,7 +42,7 @@ automatically compiled and linked by the build system) */
 /*! \brief Entry point for android native app
 Entry point for android native applications. Called internally at process launch,
 unless you write your own main wrapper you do not need to call this function.
-\param app Native glue application data */
+\param app     Native glue application data */
 FOUNDATION_API void
 android_entry(struct android_app* app);
 
@@ -50,38 +50,38 @@ android_entry(struct android_app* app);
 Initialize android integration, such as initial event processing and sesor setup.
 Called internally after main_initialize(), unless you write your own main wrapper
 you do not need to call this function.
-\return 0 on success, <0 if error */
+\return        0 on success, <0 if error */
 FOUNDATION_API int
 android_initialize(void);
 
 /*! \brief Shutdown and cleanup android integration
-Shutdown and cleanup android integration. Called internally after main_shutdown(),
+Shutdown and cleanup android integration. Called internally after main_finalize(),
 unless you write your own main wrapper you do not need to call this function. */
 FOUNDATION_API void
-android_shutdown(void);
+android_finalize(void);
 
 /*! \brief Access the native glue application data
 Access the native glue application data. See the Android NDK documentation and
 headers for details about this structure.
-\return Native glue application data */
+\return        Native glue application data */
 FOUNDATION_API struct android_app*
 android_app(void);
 
 /*! \brief Process callback
 Process callback for native application commands. Unless you write your own
 application wrapper you do not need to call or use this function.
-\param app Native glue application data
-\param cmd Application command */
+\param app     Native glue application data
+\param cmd     Application command */
 FOUNDATION_API void
 android_handle_cmd(struct android_app* app, int32_t cmd);
 
 /*! \brief Process callback
 Process callback for sensor events. Unless you write your own application
 wrapper you do not need to call or use this function.
-\param fd Associated file descriptor
-\param events Events bitmask
-\param data Event data
-\return 1, to continue propagation */
+\param fd      Associated file descriptor
+\param events  Events bitmask
+\param data    Event data
+\return        1, to continue propagation */
 FOUNDATION_API int
 android_sensor_callback(int fd, int events, void* data);
 
