@@ -540,6 +540,34 @@ stream_t* process_stdin( process_t* proc )
 }
 
 
+bool process_kill( process_t* proc )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+
+	if( !proc->hp )
+		return false;
+
+	if( !TerminateProcess( proc->hp, PROCESS_TERMINATED_SIGNAL ) )
+		return false;
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+	if( !proc->pid )
+		return false;
+
+	if( kill( proc->pid, SIGKILL ) < 0 )
+		return false;
+
+#elif FOUNDATION_PLATFORM_PNACL
+	//Not supported
+#else
+#error Not implemented
+#endif
+
+	return true;
+}
+
+
 int process_wait( process_t* proc )
 {
 #if FOUNDATION_PLATFORM_POSIX
