@@ -35,7 +35,12 @@ static memory_system_t test_process_memory_system( void )
 
 static int test_process_initialize( void )
 {
-	return 0;
+	const char* const* cmdline = environment_command_line();
+	if( string_array_find( cmdline, "--wait-for-kill", array_size( cmdline ) ) < 0 )
+		return 0;
+
+	while( true )
+		thread_sleep( 100 );
 }
 
 
@@ -171,9 +176,44 @@ DECLARE_TEST( process, spawn )
 }
 
 
+DECLARE_TEST( process, kill )
+{
+	process_t* proc;
+	const char* args[] = { "--wait-for-kill" };
+	int ret;
+
+	if( ( system_platform() == PLATFORM_IOS ) || ( system_platform() == PLATFORM_ANDROID ) || ( system_platform() == PLATFORM_PNACL ) )
+		return 0;
+
+	proc = process_allocate();
+
+	process_set_working_directory( proc, environment_current_working_directory() );
+	process_set_executable_path( proc, environment_executable_path() );
+	process_set_arguments( proc, args, sizeof( args ) / sizeof( args[0] ) );
+	process_set_flags( proc, PROCESS_DETACHED );
+
+	ret = process_spawn( proc );
+	EXPECT_INTEQ( ret, PROCESS_STILL_ACTIVE );
+
+	thread_sleep( 500 );
+
+	EXPECT_TRUE( process_kill( proc ) );
+
+	thread_sleep( 500 );
+
+	ret = process_wait( proc );
+	EXPECT_EQ_MSGFORMAT( ret, PROCESS_TERMINATED_SIGNAL, "ret: 0x%x", ret );
+
+	process_deallocate( proc );
+
+	return 0;
+}
+
+
 static void test_process_declare( void )
 {
 	ADD_TEST( process, spawn );
+	ADD_TEST( process, kill );
 }
 
 
