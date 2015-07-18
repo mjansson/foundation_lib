@@ -80,18 +80,17 @@ static char _log_error_name[LOG_ERROR_NAMES][18] = {
 	"script"
 };
 
+struct _log_timestamp {
+	int hours;
+	int minutes;
+	int seconds;
+	int milliseconds;
+};
 
-typedef struct _log_timestamp
-{
-	int   hours;
-	int   minutes;
-	int   seconds;
-	int   milliseconds;
-} log_timestamp_t;
+typedef struct _log_timestamp log_timestamp_t;
 
-
-static log_timestamp_t _log_make_timestamp( void )
-{
+static log_timestamp_t
+_log_make_timestamp(void) {
 	tick_t elapsed;
 	tick_t ticks_per_sec;
 	tick_t milliseconds;
@@ -101,21 +100,20 @@ static log_timestamp_t _log_make_timestamp( void )
 	log_timestamp_t timestamp;
 
 	ticks_per_sec = time_ticks_per_second();
-	if( !ticks_per_sec )
-	{
-		memset( &timestamp, 0, sizeof( timestamp ) );
+	if (!ticks_per_sec) {
+		memset(&timestamp, 0, sizeof(timestamp));
 		return timestamp;
 	}
 
 	elapsed = time_current() - time_startup();
-	milliseconds = ( ( elapsed % ticks_per_sec ) * 1000LL ) / ticks_per_sec;
+	milliseconds = ((elapsed % ticks_per_sec) * 1000LL) / ticks_per_sec;
 	seconds = elapsed / ticks_per_sec;
 	minutes = seconds / 60LL;
 
-	timestamp.milliseconds = ( milliseconds % 1000LL );
-	timestamp.seconds = ( seconds % 60LL );
-	timestamp.minutes = ( minutes % 60LL );
-	timestamp.hours = (int)( minutes / 24LL );
+	timestamp.milliseconds = (milliseconds % 1000LL);
+	timestamp.seconds = (seconds % 60LL);
+	timestamp.minutes = (minutes % 60LL);
+	timestamp.hours = (int)(minutes / 24LL);
 
 	return timestamp;
 }
@@ -124,8 +122,9 @@ static log_timestamp_t _log_make_timestamp( void )
 
 #if BUILD_ENABLE_LOG
 
-static void FOUNDATION_ATTRIBUTE4( format, printf, 5, 0 ) _log_outputf( hash_t context, error_level_t severity, const char* prefix, size_t prefix_length, const char* format, size_t format_length, va_list list, void* std )
-{
+static void FOUNDATION_ATTRIBUTE4(format, printf, 5, 0)
+_log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t prefix_length,
+             const char* format, size_t format_length, va_list list, void* std) {
 	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
 	unsigned int pid = thread_hardware();
@@ -133,290 +132,267 @@ static void FOUNDATION_ATTRIBUTE4( format, printf, 5, 0 ) _log_outputf( hash_t c
 	int size = 383;
 	char local_buffer[385];
 	char* buffer = local_buffer;
-	FOUNDATION_UNUSED( format_length );
-	while(1)
-	{
+	FOUNDATION_UNUSED(format_length);
+	while (1) {
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
-		if( _log_prefix )
-			need = snprintf( buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %*s", timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length, prefix );
+		if (_log_prefix)
+			need = snprintf(buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %*s", timestamp.hours,
+			                timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length, prefix);
 		else
-			need = snprintf( buffer, (size_t)size, "%*s", (int)prefix_length, prefix );
+			need = snprintf(buffer, (size_t)size, "%*s", (int)prefix_length, prefix);
 
 		remain = size - need;
 		{
 			va_list clist;
-			va_copy( clist, list );
-			more = vsnprintf( buffer + need, (size_t)remain, format, clist );
-			va_end( clist );
+			va_copy(clist, list);
+			more = vsnprintf(buffer + need, (size_t)remain, format, clist);
+			va_end(clist);
 		}
 
-		if( ( more > -1 ) && ( more < remain ) )
-		{
-			buffer[need+more] = '\n';
-			buffer[need+more+1] = 0;
+		if ((more > -1) && (more < remain)) {
+			buffer[need + more] = '\n';
+			buffer[need + more + 1] = 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-			OutputDebugStringA( buffer );
+			OutputDebugStringA(buffer);
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
-			FOUNDATION_UNUSED( std );
-			if( _log_stdout )
-				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name.str, buffer );
+			FOUNDATION_UNUSED(std);
+			if (_log_stdout)
+				__android_log_write(ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name.str,
+				                    buffer);
 #elif FOUNDATION_PLATFORM_TIZEN
-			FOUNDATION_UNUSED( std );
-			if( _log_stdout )
-				dlog_print( DLOG_DEBUG + severity - 1, environment_application()->short_name.str, "%s", buffer );
+			FOUNDATION_UNUSED(std);
+			if (_log_stdout)
+				dlog_print(DLOG_DEBUG + severity - 1, environment_application()->short_name.str, "%s", buffer);
 #elif FOUNDATION_PLATFORM_PNACL
-			FOUNDATION_UNUSED( std );
-			if( _log_stdout )
-				pnacl_post_log( context, severity, buffer, (size_t)( need + more + 1 ) );
+			FOUNDATION_UNUSED(std);
+			if (_log_stdout)
+				pnacl_post_log(context, severity, buffer, (size_t)(need + more + 1));
 #else
-			if( _log_stdout && std )
-				fprintf( std, "%s", buffer );
+			if (_log_stdout && std)
+				fprintf(std, "%s", buffer);
 #endif
 
-			if( _log_callback )
-				_log_callback( context, severity, buffer, (size_t)( need + more ) );
+			if (_log_callback)
+				_log_callback(context, severity, buffer, (size_t)(need + more));
 
 			break;
 		}
 
-		if( ( more > -1 ) && ( need > -1 ) )
+		if ((more > -1) && (need > -1))
 			size = more + need + 1;
 		else
 			size *= 2;
 
-		if( buffer != local_buffer )
-			memory_deallocate( buffer );
-		buffer = memory_allocate( 0, (size_t)size + 2, 0, MEMORY_TEMPORARY );
+		if (buffer != local_buffer)
+			memory_deallocate(buffer);
+		buffer = memory_allocate(0, (size_t)size + 2, 0, MEMORY_TEMPORARY);
 	}
-	if( buffer != local_buffer )
-		memory_deallocate( buffer );
+	if (buffer != local_buffer)
+		memory_deallocate(buffer);
 }
 
 #endif
-
 
 #if BUILD_ENABLE_LOG && BUILD_ENABLE_DEBUG_LOG
 
-
-void log_debugf( hash_t context, const char* format, size_t length, ... )
-{
+void
+log_debugf(hash_t context, const char* format, size_t length, ...) {
 	va_list list;
-	va_start( list, length );
-	if( log_suppress( context ) < ERRORLEVEL_DEBUG )
-		_log_outputf( context, ERRORLEVEL_DEBUG, "", 0, format, length, list, stdout );
-	va_end( list );
+	va_start(list, length);
+	if (log_suppress(context) < ERRORLEVEL_DEBUG)
+		_log_outputf(context, ERRORLEVEL_DEBUG, "", 0, format, length, list, stdout);
+	va_end(list);
 }
 
-
-void log_debug( hash_t context, const char* msg, size_t length )
-{
-	log_debugf( context, STRING_CONST( "%*s" ), (int)length, msg );
+void
+log_debug(hash_t context, const char* msg, size_t length) {
+	log_debugf(context, STRING_CONST("%*s"), (int)length, msg);
 }
-
 
 #endif
 
-
 #if BUILD_ENABLE_LOG
 
-
-void log_infof( hash_t context, const char* format, size_t length, ... )
-{
+void
+log_infof(hash_t context, const char* format, size_t length, ...) {
 	va_list list;
-	va_start( list, length );
-	if( log_suppress( context ) < ERRORLEVEL_INFO )
-		_log_outputf( context, ERRORLEVEL_INFO, "", 0, format, length, list, stdout );
-	va_end( list );
+	va_start(list, length);
+	if (log_suppress(context) < ERRORLEVEL_INFO)
+		_log_outputf(context, ERRORLEVEL_INFO, "", 0, format, length, list, stdout);
+	va_end(list);
 }
 
-
-void log_info( hash_t context, const char* msg, size_t length )
-{
-	log_infof( context, STRING_CONST( "%*s" ), (int)length, msg );
+void
+log_info(hash_t context, const char* msg, size_t length) {
+	log_infof(context, STRING_CONST("%*s"), (int)length, msg);
 }
 
-
-void log_warnf( hash_t context, warning_t warn, const char* format, size_t length, ... )
-{
+void
+log_warnf(hash_t context, warning_t warn, const char* format, size_t length, ...) {
 	char buffer[32];
 	string_t prefix;
 	va_list list;
 
-	if( log_suppress( context ) >= ERRORLEVEL_WARNING )
+	if (log_suppress(context) >= ERRORLEVEL_WARNING)
 		return;
 
-	log_error_context( context, ERRORLEVEL_WARNING );
+	log_error_context(context, ERRORLEVEL_WARNING);
 
-	if( warn < LOG_WARNING_NAMES )
-		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "WARNING [%s]: " ), _log_warning_name[warn] );
+	if (warn < LOG_WARNING_NAMES)
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%s]: "),
+		                       _log_warning_name[warn]);
 	else
-		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "WARNING [%d]: " ), warn );
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%d]: "), warn);
 
-	va_start( list, length );
-	_log_outputf( context, ERRORLEVEL_WARNING, prefix.str, prefix.length, format, length, list, stdout );
-	va_end( list );
+	va_start(list, length);
+	_log_outputf(context, ERRORLEVEL_WARNING, prefix.str, prefix.length, format, length, list, stdout);
+	va_end(list);
 }
 
-
-void log_warn( hash_t context, warning_t warn, const char* msg, size_t length )
-{
-	log_warnf( context, warn, STRING_CONST( "%*s" ), (int)length, msg );
+void
+log_warn(hash_t context, warning_t warn, const char* msg, size_t length) {
+	log_warnf(context, warn, STRING_CONST("%*s"), (int)length, msg);
 }
 
-
-void log_errorf( hash_t context, error_t err, const char* format, size_t length, ... )
-{
+void
+log_errorf(hash_t context, error_t err, const char* format, size_t length, ...) {
 	char buffer[32];
 	string_t prefix;
 	va_list list;
 
-	if( log_suppress( context ) >= ERRORLEVEL_ERROR )
+	if (log_suppress(context) >= ERRORLEVEL_ERROR)
 		return;
 
-	log_error_context( context, ERRORLEVEL_ERROR );
+	log_error_context(context, ERRORLEVEL_ERROR);
 
-	if( err < LOG_ERROR_NAMES )
-		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "ERROR [%s]: " ), _log_error_name[err] );
+	if (err < LOG_ERROR_NAMES)
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("ERROR [%s]: "), _log_error_name[err]);
 	else
-		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "ERROR [%d]: " ), err );
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("ERROR [%d]: "), err);
 
-	va_start( list, length );
-	_log_outputf( context, ERRORLEVEL_ERROR, prefix.str, prefix.length, format, length, list, stderr );
-	va_end( list );
+	va_start(list, length);
+	_log_outputf(context, ERRORLEVEL_ERROR, prefix.str, prefix.length, format, length, list, stderr);
+	va_end(list);
 
-	error_report( ERRORLEVEL_ERROR, err );
+	error_report(ERRORLEVEL_ERROR, err);
 }
 
-
-void log_error( hash_t context, error_t err, const char* msg, size_t length )
-{
-	log_errorf( context, err, STRING_CONST( "%*s" ), (int)length, msg );
+void
+log_error(hash_t context, error_t err, const char* msg, size_t length) {
+	log_errorf(context, err, STRING_CONST("%*s"), (int)length, msg);
 }
 
-
-void log_panicf( hash_t context, error_t err, const char* format, size_t length, ... )
-{
+void
+log_panicf(hash_t context, error_t err, const char* format, size_t length, ...) {
 	char buffer[32];
 	string_t prefix;
 	va_list list;
 
-	log_error_context( context, ERRORLEVEL_PANIC );
+	log_error_context(context, ERRORLEVEL_PANIC);
 
-	if( err < LOG_ERROR_NAMES )
-		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "PANIC [%s]: " ), _log_error_name[err] );
+	if (err < LOG_ERROR_NAMES)
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("PANIC [%s]: "), _log_error_name[err]);
 	else
-		prefix = string_format( buffer, sizeof( buffer ), STRING_CONST( "PANIC [%d]: " ), err );
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("PANIC [%d]: "), err);
 
-	va_start( list, length );
-	_log_outputf( context, ERRORLEVEL_PANIC, prefix.str, prefix.length, format, length, list, stderr );
-	va_end( list );
+	va_start(list, length);
+	_log_outputf(context, ERRORLEVEL_PANIC, prefix.str, prefix.length, format, length, list, stderr);
+	va_end(list);
 
-	error_report( ERRORLEVEL_PANIC, err );
+	error_report(ERRORLEVEL_PANIC, err);
 }
 
-
-void log_panic( hash_t context, error_t err, const char* msg, size_t length )
-{
-	log_panicf( context, err, STRING_CONST( "%*s" ), (int)length, msg );
+void
+log_panic(hash_t context, error_t err, const char* msg, size_t length) {
+	log_panicf(context, err, STRING_CONST("%*s"), (int)length, msg);
 }
 
-
-static void FOUNDATION_ATTRIBUTE4( format, printf, 4, 6 ) _log_error_contextf( hash_t context, error_level_t error_level, void* std, const char* format, size_t length, ... )
-{
+static void FOUNDATION_ATTRIBUTE4(format, printf, 4, 6)
+_log_error_contextf(hash_t context, error_level_t error_level, void* std, const char* format,
+                    size_t length, ...) {
 	va_list list;
-	va_start( list, length );
-	_log_outputf( context, error_level, "", 0, format, length, list, std );
-	va_end( list );
+	va_start(list, length);
+	_log_outputf(context, error_level, "", 0, format, length, list, std);
+	va_end(list);
 }
 
-
-void log_error_context( hash_t context, error_level_t error_level )
-{
+void
+log_error_context(hash_t context, error_level_t error_level) {
 	size_t i;
 	error_context_t* err_context = error_context();
-	if( err_context && ( log_suppress( context ) < error_level ) )
-	{
+	if (err_context && (log_suppress(context) < error_level)) {
 		error_frame_t* frame = err_context->frame;
-		for( i = 0; i < err_context->depth; ++i, ++frame )
-			_log_error_contextf( context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout, STRING_CONST( "When %*s: %*s" ), (int)frame->name.length, frame->name.str, (int)frame->data.length, frame->data.str );
+		for (i = 0; i < err_context->depth; ++i, ++frame)
+			_log_error_contextf(context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout,
+			                    STRING_CONST("When %*s: %*s"), (int)frame->name.length, frame->name.str, (int)frame->data.length,
+			                    frame->data.str);
 	}
 }
 
-
-void log_enable_stdout( bool enable )
-{
+void
+log_enable_stdout(bool enable) {
 	_log_stdout = enable;
 }
 
-
-log_callback_fn log_callback( void )
-{
+log_callback_fn
+log_callback(void) {
 	return _log_callback;
 }
 
-
-void log_set_callback( log_callback_fn callback )
-{
+void
+log_set_callback(log_callback_fn callback) {
 	_log_callback = callback;
 }
 
-
-void log_enable_prefix( bool enable )
-{
+void
+log_enable_prefix(bool enable) {
 	_log_prefix = enable;
 }
 
-
-void log_set_suppress( hash_t context, error_level_t level )
-{
-	if( !context )
+void
+log_set_suppress(hash_t context, error_level_t level) {
+	if (!context)
 		_log_suppress_default = level;
-	else if( _log_suppress )
-		hashtable64_set( _log_suppress, context, level + 1 );
+	else if (_log_suppress)
+		hashtable64_set(_log_suppress, context, level + 1);
 }
 
-
-error_level_t log_suppress( hash_t context )
-{
-	if( !context )
+error_level_t
+log_suppress(hash_t context) {
+	if (!context)
 		return _log_suppress_default;
-	else if( _log_suppress )
-	{
-		uint64_t level = hashtable64_get( _log_suppress, context );
-		if( level > 0 )
-			return (error_level_t)( level - 1 );
+	else if (_log_suppress) {
+		uint64_t level = hashtable64_get(_log_suppress, context);
+		if (level > 0)
+			return (error_level_t)(level - 1);
 	}
 	return _log_suppress_default;
 }
 
-
-void log_suppress_clear( void )
-{
+void
+log_suppress_clear(void) {
 	_log_suppress_default = ERRORLEVEL_NONE;
-    if( _log_suppress )
-        hashtable64_clear( _log_suppress );
+	if (_log_suppress)
+		hashtable64_clear(_log_suppress);
 }
-
 
 #endif
 
-
-int _log_initialize( void )
-{
+int
+_log_initialize(void) {
 #if BUILD_ENABLE_LOG
-	_log_suppress = hashtable64_allocate( 149 );
+	_log_suppress = hashtable64_allocate(149);
 #endif
 	return 0;
 }
 
-
-void _log_finalize( void )
-{
+void
+_log_finalize(void) {
 #if BUILD_ENABLE_LOG
-	hashtable64_deallocate( _log_suppress );
+	hashtable64_deallocate(_log_suppress);
 	_log_suppress = 0;
 #endif
 }

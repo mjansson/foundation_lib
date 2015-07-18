@@ -34,8 +34,8 @@ hashmap_allocate(size_t buckets, size_t bucketsize) {
 	return map;
 }
 
-
-void hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize) {
+void
+hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize) {
 	size_t ibucket;
 
 	if (buckets < HASHMAP_MINBUCKETS)
@@ -52,21 +52,21 @@ void hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize) {
 	}
 }
 
-
-void hashmap_deallocate(hashmap_t* map) {
+void
+hashmap_deallocate(hashmap_t* map) {
 	hashmap_finalize(map);
 	memory_deallocate(map);
 }
 
-
-void hashmap_finalize(hashmap_t* map) {
+void
+hashmap_finalize(hashmap_t* map) {
 	size_t ibucket;
 	for (ibucket = 0; ibucket < map->num_buckets; ++ibucket)
 		array_deallocate(map->bucket[ibucket]);
 }
 
-
-void* hashmap_insert(hashmap_t* map, hash_t key, void* value) {
+void*
+hashmap_insert(hashmap_t* map, hash_t key, void* value) {
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
@@ -85,8 +85,8 @@ void* hashmap_insert(hashmap_t* map, hash_t key, void* value) {
 	return 0;
 }
 
-
-void* hashmap_erase(hashmap_t* map, hash_t key) {
+void*
+hashmap_erase(hashmap_t* map, hash_t key) {
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
@@ -101,8 +101,8 @@ void* hashmap_erase(hashmap_t* map, hash_t key) {
 	return 0;
 }
 
-
-void* hashmap_lookup(hashmap_t* map, hash_t key) {
+void*
+hashmap_lookup(hashmap_t* map, hash_t key) {
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
@@ -113,8 +113,8 @@ void* hashmap_lookup(hashmap_t* map, hash_t key) {
 	return 0;
 }
 
-
-bool hashmap_has_key(hashmap_t* map, hash_t key) {
+bool
+hashmap_has_key(hashmap_t* map, hash_t key) {
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
@@ -125,13 +125,13 @@ bool hashmap_has_key(hashmap_t* map, hash_t key) {
 	return false;
 }
 
-
-size_t hashmap_size(hashmap_t* map) {
+size_t
+hashmap_size(hashmap_t* map) {
 	return map->num_nodes;
 }
 
-
-void hashmap_clear(hashmap_t* map) {
+void
+hashmap_clear(hashmap_t* map) {
 	size_t ibucket;
 	for (ibucket = 0; ibucket < map->num_buckets; ++ibucket)
 		array_clear(map->bucket[ibucket]);

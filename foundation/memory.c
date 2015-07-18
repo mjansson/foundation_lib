@@ -182,7 +182,7 @@ void _memory_finalize( void )
 	memory_set_tracker( _memory_no_tracker );
 
 	_atomic_allocate_finalize();
-	_memory_system.shutdown();
+	_memory_system.finalize();
 }
 
 
@@ -685,7 +685,7 @@ memory_system_t memory_system_malloc( void )
 	memsystem.reallocate = _memory_reallocate_malloc;
 	memsystem.deallocate = _memory_deallocate_malloc;
 	memsystem.initialize = _memory_initialize_malloc;
-	memsystem.shutdown = _memory_finalize_malloc;
+	memsystem.finalize = _memory_finalize_malloc;
 	return memsystem;
 }
 
@@ -702,8 +702,8 @@ void memory_set_tracker( memory_tracker_t tracker )
 
 	_memory_tracker = _memory_no_tracker;
 
-	if( old_tracker.shutdown )
-		old_tracker.shutdown();
+	if( old_tracker.finalize )
+		old_tracker.finalize();
 
 	if( tracker.initialize )
 		tracker.initialize();
@@ -832,7 +832,7 @@ memory_tracker_t memory_tracker_local( void )
 	tracker.track = _memory_tracker_track;
 	tracker.untrack = _memory_tracker_untrack;
 	tracker.initialize = _memory_tracker_initialize;
-	tracker.shutdown = _memory_tracker_finalize;
+	tracker.finalize = _memory_tracker_finalize;
 #endif
 	return tracker;
 }

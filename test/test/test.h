@@ -129,10 +129,10 @@ typedef struct _test_suite
 {
 	application_t       (*application)( void );
 	memory_system_t     (*memory_system)( void );
-    foundation_config_t (*config)( void );
+  foundation_config_t (*config)( void );
 	void                (*declare)( void );
 	int                 (*initialize)( void );
-	void                (*shutdown)( void );
+	void                (*finalize)( void );
 } test_suite_t;
 
 TEST_API test_suite_t  test_suite;

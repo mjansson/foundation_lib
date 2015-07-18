@@ -398,13 +398,13 @@ void profile_finalize( void )
 		uint32_t free_block = atomic_load32( &_profile_free ) & 0xffff;
 
 		if( atomic_load32( &_profile_root ) )
-			log_error( 0, ERROR_INTERNAL_FAILURE, STRING_CONST( "Profile module state inconsistent on shutdown, at least one root block still allocated/active" ) );
+			log_error( 0, ERROR_INTERNAL_FAILURE, STRING_CONST( "Profile module state inconsistent on finalize, at least one root block still allocated/active" ) );
 
 		while( free_block )
 		{
 			profile_block_t* block = GET_BLOCK( free_block );
 			if( block->sibling )
-			       log_errorf( 0, ERROR_INTERNAL_FAILURE, STRING_CONST( "Profile module state inconsistent on shutdown, block %d has sibling set" ), free_block );
+			       log_errorf( 0, ERROR_INTERNAL_FAILURE, STRING_CONST( "Profile module state inconsistent on finalize, block %d has sibling set" ), free_block );
 			++num_blocks;
 			free_block = GET_BLOCK( free_block )->child;
 		}
@@ -414,7 +414,7 @@ void profile_finalize( void )
 		if( num_blocks != _profile_num_blocks )
 		{
 			//If profile output function (user) crashed, this will probably trigger since at least one block will be lost in space
-			log_errorf( 0, ERROR_INTERNAL_FAILURE, STRING_CONST( "Profile module state inconsistent on shutdown, lost blocks (found %" PRIu64 " of %" PRIu64 ")" ), num_blocks, _profile_num_blocks );
+			log_errorf( 0, ERROR_INTERNAL_FAILURE, STRING_CONST( "Profile module state inconsistent on finalize, lost blocks (found %" PRIu64 " of %" PRIu64 ")" ), num_blocks, _profile_num_blocks );
 		}
 	}
 

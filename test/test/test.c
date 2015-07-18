@@ -185,7 +185,7 @@ int test_run_all( void )
 	test_run();
 	test_free();
 
-	test_suite.shutdown();
+	test_suite.finalize();
 	if( _test_failed )
 	{
 		process_set_exit_code( -1 );

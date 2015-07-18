@@ -378,7 +378,7 @@ struct memory_system_t
 	memory_reallocate_fn            reallocate;
 	memory_deallocate_fn            deallocate;
 	system_initialize_fn            initialize;
-	system_finalize_fn              shutdown;
+	system_finalize_fn              finalize;
 };
 
 
@@ -387,7 +387,7 @@ struct memory_tracker_t
 	memory_track_fn                 track;
 	memory_untrack_fn               untrack;
 	system_initialize_fn            initialize;
-	system_finalize_fn              shutdown;
+	system_finalize_fn              finalize;
 };
 
 

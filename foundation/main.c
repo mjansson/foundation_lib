@@ -26,77 +26,75 @@
 
 #  include <foundation/windows.h>
 
-
-BOOL STDCALL _main_console_handler( DWORD control_type )
-{
+static BOOL STDCALL
+_main_console_handler(DWORD control_type) {
 	const char* control_name = "UNKNOWN";
 	bool post_terminate = false;
 	bool handled = true;
 
-	switch( control_type )
-	{
-		case CTRL_C_EVENT:         control_name = "CTRL_C"; post_terminate = true; break;
-		case CTRL_BREAK_EVENT:     control_name = "CTRL_BREAK"; break;
-		case CTRL_CLOSE_EVENT:     control_name = "CTRL_CLOSE"; post_terminate = true; break;
-		case CTRL_LOGOFF_EVENT:    control_name = "CTRL_LOGOFF"; post_terminate = !config_bool( HASH_APPLICATION, HASH_DAEMON ); break;
-		case CTRL_SHUTDOWN_EVENT:  control_name = "CTRL_SHUTDOWN"; post_terminate = true; break;
-		default:                   handled = false; break;
+	switch (control_type) {
+	case CTRL_C_EVENT:         control_name = "CTRL_C"; post_terminate = true; break;
+	case CTRL_BREAK_EVENT:     control_name = "CTRL_BREAK"; break;
+	case CTRL_CLOSE_EVENT:     control_name = "CTRL_CLOSE"; post_terminate = true; break;
+	case CTRL_LOGOFF_EVENT:    control_name = "CTRL_LOGOFF";
+		post_terminate = !config_bool(HASH_APPLICATION, HASH_DAEMON); break;
+	case CTRL_SHUTDOWN_EVENT:  control_name = "CTRL_SHUTDOWN"; post_terminate = true; break;
+	default:                   handled = false; break;
 	}
-	log_infof( 0, "Caught console control: %s (%d)", control_name, control_type );
-	if( post_terminate )
-	{
+	log_infof(0, "Caught console control: %s (%d)", control_name, control_type);
+	if (post_terminate) {
 		unsigned long level = 0, flags = 0;
 
-		system_post_event( FOUNDATIONEVENT_TERMINATE );
+		system_post_event(FOUNDATIONEVENT_TERMINATE);
 
-		GetProcessShutdownParameters( &level, &flags );
-		SetProcessShutdownParameters( level, SHUTDOWN_NORETRY );
+		GetProcessShutdownParameters(&level, &flags);
+		SetProcessShutdownParameters(level, SHUTDOWN_NORETRY);
 
-		thread_sleep( 1000 );
+		thread_sleep(1000);
 	}
 	return handled;
 }
 
-
 /*! Win32 UI application entry point, credits to Microsoft for ignoring yet another standard... */
 #  if FOUNDATION_COMPILER_MSVC
-FOUNDATION_API int APIENTRY WinMain( HINSTANCE, HINSTANCE, LPSTR, int );
+FOUNDATION_API int APIENTRY
+WinMain(HINSTANCE, HINSTANCE, LPSTR, int);
 #  endif
 
-int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show )
-{
+int STDCALL
+WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 	int ret = -1;
 
-	if( main_initialize() < 0 )
+	if (main_initialize() < 0)
 		return -1;
 
-	SetConsoleCtrlHandler( _main_console_handler, TRUE );
+	SetConsoleCtrlHandler(_main_console_handler, TRUE);
 
 	thread_set_main();
 
 	foundation_startup();
 
-	system_post_event( FOUNDATIONEVENT_START );
+	system_post_event(FOUNDATIONEVENT_START);
 
 #if BUILD_DEBUG
-	ret = main_run( 0 );
+	ret = main_run(0);
 #else
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
 		{
 			const char* aname = app->short_name;
-			name = string_clone( aname ? aname : "unknown" );
-			name = string_append( name, "-" );
-			name = string_append( name, string_from_version_static( app->version ) );
+			name = string_clone(aname ? aname : "unknown");
+			name = string_append(name, "-");
+			name = string_append(name, string_from_version_static(app->version));
 		}
 
-		if( app->dump_callback )
-			crash_guard_set( app->dump_callback, name );
+		if (app->dump_callback)
+			crash_guard_set(app->dump_callback, name);
 
-		ret = crash_guard( main_run, 0, app->dump_callback, name );
+		ret = crash_guard(main_run, 0, app->dump_callback, name);
 
-		string_deallocate( name );
+		string_deallocate(name);
 	}
 #endif
 
@@ -104,7 +102,6 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 
 	return ret;
 }
-
 
 #elif FOUNDATION_PLATFORM_ANDROID
 #include <foundation/android.h>
@@ -122,48 +119,49 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 #include <foundation/delegate.h>
 #endif
 
-
-static void sighandler( int sig )
-{
+static void
+sighandler(int sig) {
 #if BUILD_ENABLE_LOG
 	const char* signame = "UNKNOWN";
-	switch( sig )
-	{
-		case SIGKILL: signame = "SIGKILL"; break;
-		case SIGTERM: signame = "SIGTERM"; break;
-		case SIGQUIT: signame = "SIGQUIT"; break;
-		case SIGINT:  signame = "SIGINT"; break;
-		default: break;
+	switch (sig) {
+	case SIGKILL: signame = "SIGKILL"; break;
+	case SIGTERM: signame = "SIGTERM"; break;
+	case SIGQUIT: signame = "SIGQUIT"; break;
+	case SIGINT:  signame = "SIGINT"; break;
+	default: break;
 	}
-	log_infof( 0, STRING_CONST( "Caught signal: %s (%d)" ), signame, sig );
+	log_infof(0, STRING_CONST("Caught signal: %s (%d)"), signame, sig);
 #else
-	FOUNDATION_UNUSED( sig );
+	FOUNDATION_UNUSED(sig);
 #endif
-	system_post_event( FOUNDATIONEVENT_TERMINATE );
+	system_post_event(FOUNDATIONEVENT_TERMINATE);
 }
 
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
 /*! Aliased entry point */
-int real_main( void )
+int
+real_main(void)
 #elif FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */
-int pnacl_main( PP_Instance instance )
+int
+pnacl_main(PP_Instance instance)
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
-int main( int argc, char** argv )
+int
+main(int argc, char** argv)
 #endif
 {
 	int ret = -1;
 
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	_environment_main_args( argc, (const char* const*)argv );
+	_environment_main_args(argc, (const char* const*)argv);
 #elif FOUNDATION_PLATFORM_PNACL
-	FOUNDATION_UNUSED( instance );
+	FOUNDATION_UNUSED(instance);
 #endif
 
-	if( ( ret = main_initialize() ) < 0 )
+	if ((ret = main_initialize()) < 0)
 		return ret;
 
 #if FOUNDATION_PLATFORM_POSIX
@@ -171,7 +169,7 @@ int main( int argc, char** argv )
 	//Set signal handlers
 	{
 		struct sigaction action;
-		memset( &action, 0, sizeof( action ) );
+		memset(&action, 0, sizeof(action));
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic push
@@ -180,15 +178,15 @@ int main( int argc, char** argv )
 
 		//Signals we process globally
 		action.sa_handler = sighandler;
-		sigaction( SIGKILL, &action, 0 );
-		sigaction( SIGTERM, &action, 0 );
-		sigaction( SIGQUIT, &action, 0 );
-		sigaction( SIGINT,  &action, 0 );
-		sigaction( SIGABRT, &action, 0 );
+		sigaction(SIGKILL, &action, 0);
+		sigaction(SIGTERM, &action, 0);
+		sigaction(SIGQUIT, &action, 0);
+		sigaction(SIGINT,  &action, 0);
+		sigaction(SIGABRT, &action, 0);
 
 		//Ignore sigpipe
 		action.sa_handler = SIG_IGN;
-		sigaction( SIGPIPE, &action, 0 );
+		sigaction(SIGPIPE, &action, 0);
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
@@ -198,18 +196,18 @@ int main( int argc, char** argv )
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
-	if( ( ret = android_initialize() ) < 0 )
+	if ((ret = android_initialize()) < 0)
 		return ret;
 #endif
 
 #if FOUNDATION_PLATFORM_TIZEN
-	if( ( ret = tizen_initialize() ) < 0 )
+	if ((ret = tizen_initialize()) < 0)
 		return ret;
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	SetConsoleCtrlHandler( _main_console_handler, TRUE );
+	SetConsoleCtrlHandler(_main_console_handler, TRUE);
 
 #endif
 
@@ -218,24 +216,24 @@ int main( int argc, char** argv )
 	foundation_startup();
 
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
-	system_post_event( FOUNDATIONEVENT_START );
+	system_post_event(FOUNDATIONEVENT_START);
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
 #  if FOUNDATION_PLATFORM_MACOSX
-	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
-	{
+	if (!(environment_application()->flags & APPLICATION_UTILITY)) {
 		delegate_start_main_ns_thread();
 
-		extern int NSApplicationMain( int argc, const char *argv[] );
-		ret = NSApplicationMain( argc, (const char**)argv );
+		extern int NSApplicationMain(int argc, const char* argv[]);
+		ret = NSApplicationMain(argc, (const char**)argv);
 
 #  elif FOUNDATION_PLATFORM_IOS
 	{
 		delegate_start_main_ns_thread();
 
-		extern int UIApplicationMain( int argc, char *argv[], void *principalClassName, void *delegateClassName );
-		ret = UIApplicationMain( argc, (char**)argv, 0, 0 );
+		extern int UIApplicationMain(int argc, char* argv[], void* principalClassName,
+		                             void* delegateClassName);
+		ret = UIApplicationMain(argc, (char**)argv, 0, 0);
 
 #  endif
 		//NSApplicationMain and UIApplicationMain never returns though
@@ -247,28 +245,29 @@ int main( int argc, char** argv )
 
 #  if FOUNDATION_PLATFORM_TIZEN
 	tizen_start_main_thread();
-	ret = tizen_app_main( argc, argv );
+	ret = tizen_app_main(argc, argv);
 #  else
 	{
 		string_t name;
 		const application_t* app = environment_application();
 		{
-			string_const_t vstr = string_from_version_static( app->version );
+			string_const_t vstr = string_from_version_static(app->version);
 			string_const_t aname = app->short_name;
-			if( !aname.length )
-				aname = string_const( STRING_CONST( "unknown" ) );
-			name = string_allocate_format( STRING_CONST( "%*s-%*s" ), (int)aname.length, aname.str, (int)vstr.length, vstr.str );
+			if (!aname.length)
+				aname = string_const(STRING_CONST("unknown"));
+			name = string_allocate_format(STRING_CONST("%*s-%*s"), (int)aname.length, aname.str,
+			                              (int)vstr.length, vstr.str);
 		}
 
-		if( app->dump_callback )
-			crash_guard_set( app->dump_callback, name.str, name.length );
+		if (app->dump_callback)
+			crash_guard_set(app->dump_callback, name.str, name.length);
 
-		if( system_debugger_attached() )
-			ret = main_run( 0 );
+		if (system_debugger_attached())
+			ret = main_run(0);
 		else
-			ret = crash_guard( main_run, 0, app->dump_callback, name.str, name.length );
+			ret = crash_guard(main_run, 0, app->dump_callback, name.str, name.length);
 
-		string_deallocate( name.str );
+		string_deallocate(name.str);
 	}
 #  endif
 
@@ -286,39 +285,34 @@ int main( int argc, char** argv )
 #endif
 }
 
-
 #if FOUNDATION_PLATFORM_ANDROID
 
 /*! Android native glue entry point */
-void android_main( struct android_app* app )
-{
-	if( !app )
+void
+android_main(struct android_app * app) {
+	if (!app)
 		return;
-	android_entry( app );
+	android_entry(app);
 	real_main();
 }
 
 #endif
 
-
 #if FOUNDATION_PLATFORM_PNACL
 
 /*! PNaCl glue entry points */
-
-PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser )
-{
-	return pnacl_module_initialize( module_id, get_browser );
+PP_EXPORT int32_t
+PPP_InitializeModule(PP_Module module_id, PPB_GetInterface get_browser) {
+	return pnacl_module_initialize(module_id, get_browser);
 }
 
-
-PP_EXPORT const void* PPP_GetInterface( const char* interface_name )
-{
-	return pnacl_module_interface( interface_name, string_length( interface_name ) );
+PP_EXPORT const void*
+PPP_GetInterface(const char* interface_name) {
+	return pnacl_module_interface(interface_name, string_length(interface_name));
 }
 
-
-PP_EXPORT void PPP_ShutdownModule()
-{
+PP_EXPORT void
+PPP_ShutdownModule() {
 	pnacl_module_finalize();
 }
 
