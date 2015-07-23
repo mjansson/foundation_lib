@@ -12,8 +12,29 @@
 
 #pragma once
 
+/*! \file stacktrace.h
+\brief Stacktrace utilities
+\details Stacktrace utilities */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-FOUNDATION_API size_t      stacktrace_capture( void** trace, size_t max_depth, size_t skip_frames );
-FOUNDATION_API string_t    stacktrace_resolve( char* str, size_t length, void** trace, size_t max_depth, size_t skip_frames );
+/*! \brief Capture stack trace
+Capture stack trace. If not supported, number of captured frames will be zero.
+\param trace Stack trace buffer. Must be able to hold max_depth number of frame pointers.
+\param max_depth Maximum call stack depth to capture
+\param skip_frames Number of initial frames to skip before starting capture
+\return Number of stack frames captured */
+FOUNDATION_API size_t
+stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames);
+
+/*! \brief Resolve stack trace
+Resolve a previously captured stack trace
+\param str Buffer for resolved stack trace string
+\param capacity Capacity of buffer
+\param trace Stack trace buffer
+\param max_depth Maximum call stack depth to resolve
+\param skip_frames Number of initial frames to skip before starting resolve
+\return Resolved stack trace string, empty string if unable to resolve */
+FOUNDATION_API string_t
+stacktrace_resolve(char* str, size_t capacity, void** trace, size_t max_depth, size_t skip_frames);

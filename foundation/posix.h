@@ -12,9 +12,12 @@
 
 #pragma once
 
+/*! \file posix.h
+\brief Safe inclusion of posix headers
+\details Safe inclusion of posix headers */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
-
 
 #if FOUNDATION_PLATFORM_POSIX
 

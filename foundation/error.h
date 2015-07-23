@@ -104,8 +104,8 @@ to void and not evaluate any code.
 
 /*! \brief Clean up memory
 Clean up thread local storage related to error context on thread exit */
-#define error_context_thread_deallocate() do { \
-  _error_context_thread_deallocate(); \
+#define error_context_thread_finalize() do { \
+  _error_context_thread_finalize(); \
   } while(0)
 
 FOUNDATION_API void
@@ -124,7 +124,7 @@ FOUNDATION_API error_context_t*
 _error_context(void);
 
 FOUNDATION_API void
-_error_context_thread_deallocate(void);
+_error_context_thread_finalize(void);
 
 #else
 
@@ -150,6 +150,6 @@ _error_context_thread_deallocate(void);
 
 #define error_context_declare_local( decl ) do { /* */ } while(0)
 
-#define error_context_thread_deallocate() do { /* */ } while(0)
+#define error_context_thread_finalize() do { /* */ } while(0)
 
 #endif

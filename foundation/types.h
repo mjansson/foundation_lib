@@ -348,6 +348,7 @@ struct foundation_config_t
 	size_t                          event_block_chunk;
 	size_t                          event_block_limit;
 	size_t                          thread_stack_size;
+	size_t                          random_state_prealloc;
 };
 
 struct string_t

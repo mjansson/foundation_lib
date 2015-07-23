@@ -46,29 +46,31 @@ static bool _foundation_initialized;
 
 static void
 foundation_initialize_config(const foundation_config_t config) {
-	_foundation_def.thread_max           = config.thread_max           ?
-	                                       config.thread_max           : 128;
-	_foundation_def.library_max          = config.library_max          ?
-	                                       config.library_max          : 32;
-	_foundation_def.memory_tracker_max   = config.memory_tracker_max   ?
-	                                       config.memory_tracker_max   : (32 * 1024);
-	_foundation_def.temporary_memory     = config.temporary_memory     ?
-	                                       config.temporary_memory     : (512 * 1024);
-	_foundation_def.fs_monitor_max       = config.fs_monitor_max       ?
-	                                       config.fs_monitor_max       : 16;
-	_foundation_def.error_context_depth  = config.error_context_depth  ?
-	                                       config.error_context_depth  : 32;
-	_foundation_def.memory_context_depth = config.memory_context_depth ?
-	                                       config.memory_context_depth : 32;
-	_foundation_def.stacktrace_depth     = config.stacktrace_depth     ?
-	                                       config.stacktrace_depth     : 32;
-	_foundation_def.hash_store_size      = config.hash_store_size;
-	_foundation_def.event_block_chunk    = config.event_block_chunk    ?
-	                                       config.event_block_chunk    : (8 * 1024);
-	_foundation_def.event_block_limit    = config.event_block_limit    ?
-	                                       config.event_block_limit    : (512 * 1024);
-	_foundation_def.thread_stack_size    = config.thread_stack_size    ?
-	                                       config.thread_stack_size    : 0x8000;
+	_foundation_def.thread_max            = config.thread_max            ?
+	                                        config.thread_max            : 128;
+	_foundation_def.library_max           = config.library_max           ?
+	                                        config.library_max           : 32;
+	_foundation_def.memory_tracker_max    = config.memory_tracker_max    ?
+	                                        config.memory_tracker_max    : (32 * 1024);
+	_foundation_def.temporary_memory      = config.temporary_memory      ?
+	                                        config.temporary_memory      : (512 * 1024);
+	_foundation_def.fs_monitor_max        = config.fs_monitor_max        ?
+	                                        config.fs_monitor_max        : 16;
+	_foundation_def.error_context_depth   = config.error_context_depth   ?
+	                                        config.error_context_depth   : 32;
+	_foundation_def.memory_context_depth  = config.memory_context_depth  ?
+	                                        config.memory_context_depth  : 32;
+	_foundation_def.stacktrace_depth      = config.stacktrace_depth      ?
+	                                        config.stacktrace_depth      : 32;
+	_foundation_def.hash_store_size       = config.hash_store_size;
+	_foundation_def.event_block_chunk     = config.event_block_chunk     ?
+	                                        config.event_block_chunk     : (8 * 1024);
+	_foundation_def.event_block_limit     = config.event_block_limit     ?
+	                                        config.event_block_limit     : (512 * 1024);
+	_foundation_def.thread_stack_size     = config.thread_stack_size     ?
+	                                        config.thread_stack_size     : 0x8000;
+	_foundation_def.random_state_prealloc = config.random_state_prealloc ?
+	                                        config.random_state_prealloc : 4;
 }
 
 #define SUBSYSTEM_INIT( system ) if( ret == 0 ) ret = _##system##_initialize()

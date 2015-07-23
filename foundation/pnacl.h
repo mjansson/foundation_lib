@@ -12,9 +12,12 @@
 
 #pragma once
 
+/*! \file pnacl.h
+\brief Safe inclusion of PNaCl headers
+\details Safe inclusion of PNaCl headers, and PNaCl specific entry points */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
-
 
 #if FOUNDATION_PLATFORM_PNACL
 
@@ -45,28 +48,37 @@
 #include <ppapi/c/pp_resource.h>
 #include <ppapi/c/pp_errors.h>
 
-
-typedef struct pnacl_array_t
-{
-	void*         data;
-	unsigned int  count;
+typedef struct pnacl_array_t {
+  void*         data;
+  unsigned int  count;
 } pnacl_array_t;
 
+FOUNDATION_API int
+pnacl_module_initialize(PP_Module module_id, PPB_GetInterface get_browser);
 
-FOUNDATION_API int             pnacl_module_initialize( PP_Module module_id, PPB_GetInterface get_browser );
-FOUNDATION_API const void*     pnacl_module_interface( const char* interface_name, size_t length );
-FOUNDATION_API void            pnacl_module_finalize( void );
+FOUNDATION_API const void*
+pnacl_module_interface(const char* interface_name, size_t length);
 
-FOUNDATION_API string_const_t  pnacl_error_message( int err );
+FOUNDATION_API void
+pnacl_module_finalize(void);
 
-FOUNDATION_API PP_Instance     pnacl_instance( void );
-FOUNDATION_API const void*     pnacl_interface( const char* interface, size_t length );
+FOUNDATION_API string_const_t
+pnacl_error_message(int err);
 
-FOUNDATION_API void*           pnacl_array_output( void* arr, uint32_t count, uint32_t size );
+FOUNDATION_API PP_Instance
+pnacl_instance(void);
 
-FOUNDATION_API void            pnacl_post_log( hash_t context, error_level_t severity, const char* msg, size_t msglen );
+FOUNDATION_API const void*
+pnacl_interface(const char* interface, size_t length);
 
-FOUNDATION_API int             pnacl_main( PP_Instance instance );
+FOUNDATION_API void*
+pnacl_array_output(void* arr, uint32_t count, uint32_t size);
+
+FOUNDATION_API void
+pnacl_post_log(hash_t context, error_level_t severity, const char* msg, size_t msglen);
+
+FOUNDATION_API int
+pnacl_main(PP_Instance instance);
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop

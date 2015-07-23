@@ -12,8 +12,11 @@
 
 #pragma once
 
-#include <foundation/platform.h>
+/*! \file tizen.h
+\brief Tizen platform safe header inclusion and entry points
+\details Tizen platform safe header inclusion and entry points */
 
+#include <foundation/platform.h>
 
 #if FOUNDATION_PLATFORM_TIZEN
 
@@ -30,9 +33,28 @@
 #include <system/system_settings.h>
 #include <dlog/dlog.h>
 
-FOUNDATION_API int       tizen_initialize( void );
-FOUNDATION_API void      tizen_finalize( void );
-FOUNDATION_API void      tizen_start_main_thread( void );
-FOUNDATION_API int       tizen_app_main( int argc, char** argv );
+/*! \brief Initialize Tizen app
+Initialize Tizen app
+\return 0 if success, <0 if error */
+FOUNDATION_API int
+tizen_initialize(void);
+
+/*! \brief Finalize Tizen app
+Finalize Tizen app */
+FOUNDATION_API void
+tizen_finalize(void);
+
+/*! \brief Start main thread
+Start main application thread */
+FOUNDATION_API void
+tizen_start_main_thread(void);
+
+/*! \brief Main entry point
+Main entry point
+\param argc Argument count
+\param argb Argument array
+\return Application return code */
+FOUNDATION_API int
+tizen_app_main(int argc, char** argv);
 
 #endif

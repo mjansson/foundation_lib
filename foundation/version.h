@@ -12,17 +12,34 @@
 
 #pragma once
 
+/*! \file version.h
+\brief Version utilities
+\details Version utilities */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+/*! \brief Make version identifier
+Make version identifier from parts
+\param major Major version
+\param minor Minor version
+\param revision Revision number
+\param build Build number
+\param control Source control identifier */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL version_t
+version_make(unsigned int major, unsigned int minor, unsigned int revision, unsigned int build,
+             unsigned int control);
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL version_t  version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control )
-{
-    version_t v;
-    v.sub.major = (uint16_t)major;
-    v.sub.minor = (uint16_t)minor;
-    v.sub.revision = revision;
-    v.sub.build = build;
-    v.sub.control = control;
-    return v;
+//Implementation
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL version_t
+version_make(unsigned int major, unsigned int minor, unsigned int revision, unsigned int build,
+             unsigned int control) {
+  version_t v;
+  v.sub.major = (uint16_t)major;
+  v.sub.minor = (uint16_t)minor;
+  v.sub.revision = revision;
+  v.sub.build = build;
+  v.sub.control = control;
+  return v;
 }
