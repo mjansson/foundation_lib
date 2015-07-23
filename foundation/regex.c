@@ -301,7 +301,6 @@ _regex_consume_shortest(regex_t* regex, size_t op, const char* input, size_t ino
 }
 
 static int _regex_parse_capture(regex_t** target, const char** pattern, bool allow_grow) {
-	size_t last_offset = (*target)->code_length;
 	uint8_t local_buffer[64];
 	uint8_t* buffer = local_buffer;
 	size_t buffer_len = 0;
@@ -314,52 +313,47 @@ static int _regex_parse_capture(regex_t** target, const char** pattern, bool all
 		op = REGEXOP_ANY_BUT;
 	}
 
-	last_offset = (*target)->code_length;
-
-	while (!closed &&** pattern) {
+	while (!closed && (**pattern)) {
 		if (buffer_len >= (buffer_maxlen - 1)) {
-			uint8_t* new_buffer = memory_allocate(0, buffer_maxlen << 1, 0, MEMORY_TEMPORARY);
+			uint8_t* new_buffer = memory_allocate(0, buffer_maxlen * 2, 0, MEMORY_TEMPORARY);
 			memcpy(new_buffer, buffer, buffer_len);
 			if (buffer != local_buffer)
 				memory_deallocate(buffer);
 			buffer = new_buffer;
-			buffer_maxlen <<= 1;
+			buffer_maxlen *= 2;
 		}
 
 		switch (**pattern) {
-		case ']': {
-				_regex_emit(target, allow_grow, 2, op, (int)buffer_len);
-				if (buffer_len)
-					_regex_emit_buffer(target, allow_grow, buffer_len, buffer);
-				buffer_len = 0;
-				closed = true;
-				break;
+		case ']':
+			_regex_emit(target, allow_grow, 2, op, (int)buffer_len);
+			if (buffer_len)
+				_regex_emit_buffer(target, allow_grow, buffer_len, buffer);
+			buffer_len = 0;
+			closed = true;
+			break;
+
+		case '\\':
+			++*pattern;
+
+			if (_regex_is_hex(*pattern)) {
+				buffer[buffer_len++] = _regex_parse_hex(*pattern);
+				++(*pattern);
 			}
-
-		case '\\': {
-				++*pattern;
-
-				if (_regex_is_hex(*pattern)) {
-					buffer[buffer_len++] = _regex_parse_hex(*pattern);
-					++(*pattern);
+			else {
+				code = _regex_encode_escape(**pattern);
+				if (!code || (code > 0xFF)) {
+					buffer[buffer_len++] = 0;
+					buffer[buffer_len++] = (code >> 8) & 0xFF;
 				}
 				else {
-					code = _regex_encode_escape(**pattern);
-					if (!code || (code > 0xFF)) {
-						buffer[buffer_len++] = 0;
-						buffer[buffer_len++] = (code >> 8) & 0xFF;
-					}
-					else {
-						buffer[buffer_len++] = code & 0xFF;
-					}
+					buffer[buffer_len++] = code & 0xFF;
 				}
-				break;
 			}
+			break;
 
-		default: {
-				buffer[buffer_len++] = (uint8_t)** pattern;
-				break;
-			}
+		default:
+			buffer[buffer_len++] = (uint8_t)** pattern;
+			break;
 		}
 		++*pattern;
 	}
@@ -422,8 +416,9 @@ _regex_parse(regex_t** target, const char** pattern, bool allow_grow, size_t lev
 			return REGEXERR_OK;
 
 		case '[':
-			if (_regex_parse_capture(target, pattern, allow_grow))
-				return REGEXERR_MISMATCHED_BLOCKS;
+			last_offset = (*target)->code_length;
+			if ((ret = _regex_parse_capture(target, pattern, allow_grow)))
+				return ret;
 			break;
 
 		case '.':

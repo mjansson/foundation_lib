@@ -12,6 +12,16 @@
 
 #pragma once
 
+/*!
+
+\file math.h
+\brief Math functions
+\details Core math functionality, providing single entry points to common math
+functions across platforms and floating point notations used (32 or 64 bit real numbers).
+
+Increment/decrement and wrap functions from
+http://cellperformance.beyond3d.com/articles/2006/07/increment-and-decrement-wrapping-values.html */
+
 #include <foundation/platform.h>
 #include <foundation/types.h>
 #include <foundation/assert.h>
@@ -28,94 +38,305 @@
 #  pragma clang diagnostic ignored "-Wbad-function-cast"
 #endif
 
+#if FOUNDATION_SIZE_REAL == 32
 
-#if FOUNDATION_SIZE_REAL == 64
+/*! \brief Epsilon value
+Epsilon value. This represents a small number close to zero that can be used
+for comparisons or thresholds. Roughly equals 100 floating point units at 1.0 */
+#define REAL_EPSILON  0.00001f
 
-#define REAL_EPSILON                       0.00000000000002
+/*! \brief Maximum finite number
+Maximum finite number representable in the current real number format */
+#define REAL_MAX      FLT_MAX
 
-#define REAL_MAX                           DBL_MAX
-#define REAL_MIN                           DBL_MIN
+/*! \brief Minimum finite number
+Minimum finite number representable in the current real number format */
+#define REAL_MIN      FLT_MIN
 
 #else
 
-#define REAL_EPSILON                       0.00001f
+#define REAL_EPSILON  0.00000000000002
 
-#define REAL_MAX                           FLT_MAX
-#define REAL_MIN                           FLT_MIN
+#define REAL_MAX      DBL_MAX
+#define REAL_MIN      DBL_MIN
 
 #endif
 
-#define REAL_ZERO                          REAL_C( 0.0 )
-#define REAL_ONE                           REAL_C( 1.0 )
-#define REAL_TWO                           REAL_C( 2.0 )
-#define REAL_THREE                         REAL_C( 3.0 )
-#define REAL_FOUR                          REAL_C( 4.0 )
-#define REAL_HALF                          REAL_C( 0.5 )
-#define REAL_QUARTER                       REAL_C( 0.25 )
+/*! \brief Constant zero (0.0)
+Constant zero (0.0) */
+#define REAL_ZERO     REAL_C( 0.0 )
 
-#define REAL_PI                            REAL_C( 3.1415926535897932384626433832795 )
-#define REAL_HALFPI                        REAL_C( 1.5707963267948966192313216916398 )
-#define REAL_TWOPI                         REAL_C( 6.2831853071795864769252867665590 )
-#define REAL_SQRT2                         REAL_C( 1.4142135623730950488016887242097 )
-#define REAL_SQRT3                         REAL_C( 1.7320508075688772935274463415059 )
-#define REAL_E                             REAL_C( 2.7182818284590452353602874713527 )
-#define REAL_LOGN2                         REAL_C( 0.6931471805599453094172321214582 )
-#define REAL_LOGN10                        REAL_C( 2.3025850929940456840179914546844 )
+/*! \brief Constant one (1.0)
+Constant one (1.0) */
+#define REAL_ONE      REAL_C( 1.0 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_sin( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_cos( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_tan( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_asin( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_acos( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_atan( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_atan2( real x, real y );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_sqrt( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_rsqrt( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_abs( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_mod( real x, real y );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_exp( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_pow( real x, real y );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_logn( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_log2( real x );
+/*! \brief Constant two (2.0)
+Constant two (2.0) */
+#define REAL_TWO      REAL_C( 2.0 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int           math_floor( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int           math_ceil( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int           math_round( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int           math_trunc( real x );
+/*! \brief Constant three (3.0)
+Constant three (3.0) */
+#define REAL_THREE    REAL_C( 3.0 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t       math_floor64( real x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t       math_ceil64( real x );
+/*! \brief Constant four (4.0)
+Constant four (4.0) */
+#define REAL_FOUR     REAL_C( 4.0 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL unsigned int  math_align_poweroftwo( unsigned int x );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_is_poweroftwo( unsigned int x );
+/*! \brief Constant half (0.5)
+Constant half (0.5) */
+#define REAL_HALF     REAL_C( 0.5 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL unsigned int  math_align_up( unsigned int x, unsigned int alignment );
+/*! \brief Constant quarter (0.25)
+Constant quarter (0.25) */
+#define REAL_QUARTER  REAL_C( 0.25 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_smoothstep( real t );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_smootherstep( real t );
+/*! \brief Constant pi (3.141592...)
+Constant pi (3.141592...) */
+#define REAL_PI       REAL_C( 3.1415926535897932384626433832795 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_lerp( real t, real x, real y );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_unlerp( real v, real x, real y );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_linear_remap( real x, real xmin, real xmax, real ymin, real ymax );
+/*! \brief Constant half pi (1.570796...)
+Constant half pi (1.570796...) */
+#define REAL_HALFPI   REAL_C( 1.5707963267948966192313216916398 )
 
-#define                                                          math_max( x, y ) ( (x) < (y) ? (y) : (x) )
-#define                                                          math_min( x, y ) ( (x) < (y) ? (x) : (y) )
-#define                                                          math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
+/*! \brief Constant two pi (6.283185...)
+Constant two pi (6.283185...) */
+#define REAL_TWOPI    REAL_C( 6.2831853071795864769252867665590 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realeq( real, real, int ulps );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realeqns( real, real, int ulps );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realzero( real val );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realone( real val );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_realdec( real val, int units );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_realinc( real val, int units );
+/*! \brief Constant square root of two (1.414213...)
+Constant square root of two (1.414213...) */
+#define REAL_SQRT2    REAL_C( 1.4142135623730950488016887242097 )
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realisnan( real val );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realisinf( real val );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realisuninitialized( real val );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realisfinite( real val );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool          math_realisdenormalized( real val );
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real          math_realundenormalize( real val );
+/*! \brief Constant square root of three (1.732050...)
+Constant square root of three (1.732050...) */
+#define REAL_SQRT3    REAL_C( 1.7320508075688772935274463415059 )
 
+/*! \brief Constant number e (2.718281...)
+Constant number e (2.718281...) */
+#define REAL_E        REAL_C( 2.7182818284590452353602874713527 )
+
+/*! \brief Constant natural logarithm of two (0.693147...)
+Constant natural logarithm of two (0.693147...) */
+#define REAL_LOGN2    REAL_C( 0.6931471805599453094172321214582 )
+
+/*! \brief Constant natural logarithm of ten (2.302585...)
+Constant natural logarithm of ten (2.302585...) */
+#define REAL_LOGN10   REAL_C( 2.3025850929940456840179914546844 )
+
+/*! \brief Sine function
+Sine function
+\param x Argument
+\return Sine of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sin( real x );
+
+/*! \brief Cosine function
+Cosine function
+\param x Argument
+\return Cosine of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_cos( real x );
+
+/*! \brief Tangent function
+Tangent function
+\param x Argument
+\return Tangent of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_tan( real x );
+
+/*! \brief Arcsine function
+Arcsine function
+\param x Argument
+\return Arcsine of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_asin( real x );
+
+/*! \brief Arccosine function
+Arccosine function
+\param x Argument
+\return Arccosine of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_acos( real x );
+
+/*! \brief Arctangent function
+Arctangent function
+\param x Argument
+\return Arctangent of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan( real x );
+
+/*! \brief Calculate angle for point
+Calculate the angle in radians between the positive x-axis of a plane and the point given
+by the coordinates (x, y) on it. The angle is positive for counter-clockwise angles (upper
+half-plane, y > 0), and negative for clockwise angles (lower half-plane, y < 0).
+\param x X coordinate
+\param y Y coordinate
+\return Angle in radians */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan2( real x, real y );
+
+/*! \brief Square root function
+Square root function
+\param x Argument
+\return Square root of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sqrt( real x );
+
+/*! \brief Inverse square root
+Inverse square root (1/sqrt) function
+\param x Argument
+\return Inverse square root of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt( real x );
+
+/*! \brief Absolute function
+Absolute function
+\param x Argument
+\return Absulute of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_abs( real x );
+
+/*! \brief Modulo function
+Floating point modulo function
+\param x Value
+\param y Base
+\return x modulo y */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_mod( real x, real y );
+
+/*! \brief Natural exponential function
+Natural exponential function
+\param x Argument
+\return e^x */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_exp( real x );
+
+/*! \brief Power (exponential) function
+Power (exponential) function
+\param x Base
+\param y Exponent
+\return x^y */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_pow( real x, real y );
+
+/*! \brief Natural logarithm function
+Natural logarithm function
+\param x Argument
+\return Natural logarithm of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_logn( real x );
+
+/*! \brief Binary logarithm (base 2) function
+\details Binary logarithm (base 2) function
+\param x Argument
+\return Binary logarithm of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_log2( real x );
+
+/*! \brief Floor function
+Floor (largest previous integer) function
+\param x Argument
+\return Largest integer not greater than x */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_floor( real x );
+
+/*! \brief Floor function
+Floor (largest previous 64 bit integer) function
+\param x Argument
+\return Largest 64 bit integer not greater than x */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_floor64( real x );
+
+/*! \brief Ceiling function
+Ceiling (smallest following integer) function
+\param x Argument
+\return Smallest integer greater than x */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_ceil( real x );
+
+/*! \brief Ceiling function
+Ceiling (smallest following 64 bit integer) function
+\param x Argument
+\return Smallest 64 bit integer greater than x */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_ceil64( real x );
+
+/*! \brief Round function
+Round to nearest floating point function
+\param x Argument
+\return Argument rounded to nearest integer */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round( real x );
+
+/*! \brief Truncation (integral part) function
+Truncation (integral part) function
+\param x Argument
+\return Integral part of argument */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc( real x );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL unsigned int
+math_align_poweroftwo( unsigned int x );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_is_poweroftwo( unsigned int x );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL unsigned int
+math_align_up( unsigned int x, unsigned int alignment );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_smoothstep( real t );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_smootherstep( real t );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_lerp( real t, real x, real y );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_unlerp( real v, real x, real y );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_linear_remap( real x, real xmin, real xmax, real ymin, real ymax );
+
+#define math_max( x, y ) ( (x) < (y) ? (y) : (x) )
+#define math_min( x, y ) ( (x) < (y) ? (x) : (y) )
+#define math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realeq( real, real, int ulps );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realeqns( real, real, int ulps );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realiszero( real val );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realisone( real val );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_realdec( real val, int units );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_realinc( real val, int units );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realisnan( real val );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realisinf( real val );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realisuninitialized( real val );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realisfinite( real val );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+math_realisdenormalized( real val );
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_realundenormalize( real val );
 
 #if BUILD_ENABLE_ASSERT
 #  define FOUNDATION_ASSERT_FINITE( value ) \
@@ -502,7 +723,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeqns( real a, r
 }
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realiszero( real val )
 {
 #if 0
 	real_cast_t ca;
@@ -526,7 +747,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val 
 }
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realone( real val )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisone( real val )
 {
 #if 0
 	real_cast_t ca;
@@ -672,7 +893,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realeqns( real a, r
 }
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realiszero( real val )
 {
 #if 0
 	real_cast_t ca;
@@ -693,7 +914,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realzero( real val 
 }
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realone( real val )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool math_realisone( real val )
 {
 #if 0
 	real_cast_t ca;

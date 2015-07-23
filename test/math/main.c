@@ -260,8 +260,8 @@ DECLARE_TEST( math, comparison )
 	EXPECT_EQ( testreal, refreal );
 	EXPECT_TRUE( math_realeq( testreal, refreal, 0 ) );
 	EXPECT_TRUE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realzero( testreal ) );
-	EXPECT_FALSE( math_realone( testreal ) );
+	EXPECT_FALSE( math_realiszero( testreal ) );
+	EXPECT_FALSE( math_realisone( testreal ) );
 	EXPECT_FALSE( math_realisnan( testreal ) );
 	EXPECT_FALSE( math_realisinf( testreal ) );
 	EXPECT_FALSE( math_realisuninitialized( testreal ) );
@@ -273,8 +273,8 @@ DECLARE_TEST( math, comparison )
 	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
 	EXPECT_TRUE( math_realeq( testreal, refreal, 10 ) );
 	EXPECT_TRUE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realzero( testreal ) );
-	EXPECT_FALSE( math_realone( testreal ) );
+	EXPECT_FALSE( math_realiszero( testreal ) );
+	EXPECT_FALSE( math_realisone( testreal ) );
 	EXPECT_FALSE( math_realisnan( testreal ) );
 	EXPECT_FALSE( math_realisinf( testreal ) );
 	EXPECT_FALSE( math_realisuninitialized( testreal ) );
@@ -286,8 +286,8 @@ DECLARE_TEST( math, comparison )
 	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
 	EXPECT_FALSE( math_realeq( testreal, refreal, 10 ) );
 	EXPECT_FALSE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realzero( testreal ) );
-	EXPECT_FALSE( math_realone( testreal ) );
+	EXPECT_FALSE( math_realiszero( testreal ) );
+	EXPECT_FALSE( math_realisone( testreal ) );
 	EXPECT_FALSE( math_realisnan( testreal ) );
 	EXPECT_FALSE( math_realisinf( testreal ) );
 	EXPECT_FALSE( math_realisuninitialized( testreal ) );
@@ -297,8 +297,8 @@ DECLARE_TEST( math, comparison )
 	EXPECT_EQ( testreal, refreal );
 	EXPECT_TRUE( math_realeq( testreal, refreal, 0 ) );
 	EXPECT_TRUE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realzero( testreal ) );
-	EXPECT_FALSE( math_realone( testreal ) );
+	EXPECT_FALSE( math_realiszero( testreal ) );
+	EXPECT_FALSE( math_realisone( testreal ) );
 	EXPECT_FALSE( math_realisnan( testreal ) );
 	EXPECT_FALSE( math_realisinf( testreal ) );
 	EXPECT_FALSE( math_realisuninitialized( testreal ) );
@@ -310,8 +310,8 @@ DECLARE_TEST( math, comparison )
 	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
 	EXPECT_TRUE( math_realeq( testreal, refreal, 10 ) );
 	EXPECT_TRUE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realzero( testreal ) );
-	EXPECT_FALSE( math_realone( testreal ) );
+	EXPECT_FALSE( math_realiszero( testreal ) );
+	EXPECT_FALSE( math_realisone( testreal ) );
 	EXPECT_FALSE( math_realisnan( testreal ) );
 	EXPECT_FALSE( math_realisinf( testreal ) );
 	EXPECT_FALSE( math_realisuninitialized( testreal ) );
@@ -323,8 +323,8 @@ DECLARE_TEST( math, comparison )
 	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
 	EXPECT_FALSE( math_realeq( testreal, refreal, 10 ) );
 	EXPECT_FALSE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realzero( testreal ) );
-	EXPECT_FALSE( math_realone( testreal ) );
+	EXPECT_FALSE( math_realiszero( testreal ) );
+	EXPECT_FALSE( math_realisone( testreal ) );
 	EXPECT_FALSE( math_realisnan( testreal ) );
 	EXPECT_FALSE( math_realisinf( testreal ) );
 	EXPECT_FALSE( math_realisuninitialized( testreal ) );
