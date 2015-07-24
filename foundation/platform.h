@@ -845,8 +845,8 @@ typedef enum {
 
 #define nullptr ((void*)0)
 
-typedef float          float32_t;
-typedef double         float64_t;
+typedef float  float32_t;
+typedef double float64_t;
 
 struct uint128_t {
   uint64_t word[2];
@@ -861,7 +861,7 @@ typedef struct uint256_t uint256_t;
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
 
-#define FOUNDATION_SIZE_REAL 32U
+#define FOUNDATION_SIZE_REAL 32
 
 #if FOUNDATION_SIZE_REAL == 64
 typedef   float64_t    real;
@@ -873,19 +873,19 @@ typedef   float32_t    real;
 
 //Pointer size
 #if FOUNDATION_ARCH_ARM_64 || FOUNDATION_ARCH_X86_64 || FOUNDATION_ARCH_PPC_64 || FOUNDATION_ARCH_IA64 || FOUNDATION_ARCH_MIPS_64
-#  define FOUNDATION_SIZE_POINTER 8U
+#  define FOUNDATION_SIZE_POINTER 8
 #else
-#  define FOUNDATION_SIZE_POINTER 4U
+#  define FOUNDATION_SIZE_POINTER 4
 #endif
 
 //wchar_t size
 #if FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-#  define FOUNDATION_SIZE_WCHAR 4U
+#  define FOUNDATION_SIZE_WCHAR 4
 #else
 #  if WCHAR_MAX > 0xffff
-#    define FOUNDATION_SIZE_WCHAR 4U
+#    define FOUNDATION_SIZE_WCHAR 4
 #  else
-#    define FOUNDATION_SIZE_WCHAR 2U
+#    define FOUNDATION_SIZE_WCHAR 2
 #  endif
 #endif
 
@@ -1105,7 +1105,7 @@ uint256_is_null(const uint256_t u0) {
 #endif
 
 #if FOUNDATION_SIZE_REAL == 64
-#  define PRIREAL      "llf"
+#  define PRIREAL      "lf"
 #else
 #  define PRIREAL      "f"
 #endif

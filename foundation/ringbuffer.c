@@ -119,13 +119,14 @@ ringbuffer_write(ringbuffer_t* buffer, const void* source, size_t num) {
 
 	if (offset_write >= offset_read) {
 		max_write = buffer_size - offset_write;
-		if (max_write &&
-		    !buffer->offset_read)  //Don't read so write aligns to read, then the entire buffer is discarded
+		//Don't read so write aligns to read, then the entire buffer is discarded
+		if (max_write && !buffer->offset_read)
 			--max_write;
 	}
-	else
-		max_write = offset_read - offset_write -
-		            1; //Don't read so write aligns to read, then the entire buffer is discarded
+	else {
+		//Don't read so write aligns to read, then the entire buffer is discarded
+		max_write = offset_read - offset_write - 1;
+	}
 
 	do_write = num;
 	if (do_write > max_write)

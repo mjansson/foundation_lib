@@ -290,7 +290,7 @@ random_normalized(void) {
 #endif
 	//Deal with floating point roundoff issues
 	if (result >= REAL_C(1.0))
-		return math_realdec(REAL_C(1.0), 1);
+		return math_real_dec(REAL_C(1.0), 1);
 	else if (result < 0)
 		return 0;
 	return result;
@@ -309,7 +309,7 @@ random_range(real low, real high) {
 	if (result <= low)
 		return low;
 	else if (result >= high)
-		return math_realdec(high, 1);
+		return math_real_dec(high, 1);
 	return result;
 }
 
@@ -338,7 +338,7 @@ random_gaussian_range(real low, real high) {
 	if (result <= low)
 		return low;
 	else if (result >= high)
-		return math_realdec(high, 1);
+		return math_real_dec(high, 1);
 	return result;
 }
 
@@ -367,7 +367,7 @@ random_triangle_range(real low, real high) {
 	if (result <= low)
 		return low;
 	else if (result >= high)
-		return math_realdec(high, 1);
+		return math_real_dec(high, 1);
 	return result;
 }
 

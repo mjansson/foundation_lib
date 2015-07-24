@@ -68,17 +68,237 @@ DECLARE_TEST( math, constants )
 }
 
 
+DECLARE_TEST( math, comparison )
+{
+	real testreal, refreal;
+	real onereal = REAL_ONE;
+	real zeroreal = REAL_ZERO;
+
+	testreal = REAL_C( 42.42 );
+	refreal = testreal;
+
+#if FOUNDATION_COMPILER_CLANG
+// Yes, we want to compare floats
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
+
+	EXPECT_EQ( testreal, refreal );
+	EXPECT_TRUE( math_real_eq( testreal, refreal, 0 ) );
+	EXPECT_TRUE( math_real_eqns( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_dec( testreal, 10 );
+	EXPECT_NE( testreal, refreal );
+	EXPECT_FALSE( math_real_eq( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, refreal, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, refreal, 10 ) );
+	EXPECT_TRUE( math_real_eqns( testreal, refreal, 10 ) );
+	EXPECT_FALSE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_dec( testreal, 10 );
+	EXPECT_NE( testreal, refreal );
+	EXPECT_FALSE( math_real_eq( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_eq( testreal, refreal, 10 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, refreal, 10 ) );
+	EXPECT_FALSE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_inc( testreal, 20 );
+	EXPECT_EQ( testreal, refreal );
+	EXPECT_TRUE( math_real_eq( testreal, refreal, 0 ) );
+	EXPECT_TRUE( math_real_eqns( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_inc( testreal, 10 );
+	EXPECT_NE( testreal, refreal );
+	EXPECT_FALSE( math_real_eq( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, refreal, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, refreal, 10 ) );
+	EXPECT_TRUE( math_real_eqns( testreal, refreal, 10 ) );
+	EXPECT_FALSE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_inc( testreal, 10 );
+	EXPECT_NE( testreal, refreal );
+	EXPECT_FALSE( math_real_eq( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, refreal, 0 ) );
+	EXPECT_FALSE( math_real_eq( testreal, refreal, 10 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, refreal, 10 ) );
+	EXPECT_FALSE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_inc( REAL_ZERO, 10 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+	EXPECT_TRUE( math_real_is_denormalized( testreal ) );
+
+	testreal = math_real_inc( REAL_ZERO, 100 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+	EXPECT_TRUE( math_real_is_denormalized( testreal ) );
+
+	testreal = math_real_dec( REAL_ZERO, 10 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	//EXPECT_TRUE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+	EXPECT_TRUE( math_real_is_denormalized( testreal ) );
+
+	testreal = math_real_dec( REAL_ZERO, 100 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+	EXPECT_TRUE( math_real_is_denormalized( testreal ) );
+
+	testreal = math_real_inc( REAL_ZERO, 5 );
+	testreal = math_real_dec( testreal, 10 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	//EXPECT_TRUE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_dec( REAL_ZERO, 5 );
+	testreal = math_real_inc( testreal, 10 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_inc( REAL_ZERO, -5 );
+	testreal = math_real_dec( testreal, -10 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	testreal = math_real_dec( REAL_ZERO, -5 );
+	testreal = math_real_inc( testreal, -10 );
+	EXPECT_NE( testreal, REAL_ZERO );
+	EXPECT_FALSE( math_real_eq( testreal, REAL_ZERO, 0 ) );
+	EXPECT_FALSE( math_real_eqns( testreal, REAL_ZERO, 0 ) );
+	EXPECT_TRUE( math_real_eq( testreal, REAL_ZERO, 10 ) );
+	//EXPECT_TRUE( math_real_eqns( testreal, REAL_ZERO, 10 ) );
+	EXPECT_TRUE( math_real_is_zero( testreal ) );
+	EXPECT_FALSE( math_real_is_one( testreal ) );
+	EXPECT_FALSE( math_real_is_nan( testreal ) );
+	EXPECT_FALSE( math_real_is_inf( testreal ) );
+	EXPECT_FALSE( math_real_is_uninitialized( testreal ) );
+	EXPECT_TRUE( math_real_is_finite( testreal ) );
+
+	EXPECT_TRUE( math_real_is_nan( math_sqrt( REAL_C( -1.0 ) ) ) );
+	EXPECT_TRUE( math_real_is_inf( onereal / zeroreal ) );
+	EXPECT_TRUE( math_real_is_nan( -math_sqrt( REAL_C( -1.0 ) ) ) );
+	EXPECT_TRUE( math_real_is_inf( -onereal / zeroreal ) );
+
+	testreal = REAL_ONE / REAL_MAX;
+	EXPECT_REALNE( testreal, REAL_ZERO );
+	EXPECT_TRUE( math_real_is_denormalized( testreal ) );
+	EXPECT_REALZERO( math_real_undenormalize( testreal ) );
+	EXPECT_FALSE( math_real_is_denormalized( REAL_ONE ) );
+	EXPECT_REALONE( math_real_undenormalize( REAL_ONE ) );
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
+
+	return 0;
+}
+
+
 DECLARE_TEST( math, trigonometry )
 {
 	EXPECT_REALZERO( math_sin( REAL_ZERO ) );
-	EXPECT_REALZERO( math_sin( REAL_PI ) );
-	EXPECT_REALZERO( math_sin( REAL_TWOPI ) );
+	EXPECT_REALEPSILONZERO( math_sin( REAL_PI ) );
+	EXPECT_REALEPSILONZERO( math_sin( REAL_TWOPI ) );
 	EXPECT_REALONE(  math_sin( REAL_HALFPI ) );
 
 	EXPECT_REALONE( math_cos( REAL_ZERO ) );
 	EXPECT_REALONE( -math_cos( REAL_PI ) );
 	EXPECT_REALONE( math_cos( REAL_TWOPI ) );
-	EXPECT_REALZERO( math_cos( REAL_HALFPI ) );
+	EXPECT_REALEPSILONZERO( math_cos( REAL_HALFPI ) );
 
 	EXPECT_REALONE( math_tan( REAL_HALFPI * REAL_HALF ) );
 	EXPECT_REALONE( -math_tan( REAL_HALFPI * REAL_HALF * REAL_THREE ) );
@@ -89,7 +309,7 @@ DECLARE_TEST( math, trigonometry )
 
 	EXPECT_REALEQ( math_acos( -REAL_ONE ), REAL_PI );
 	EXPECT_REALEQ( math_acos( REAL_ZERO ), REAL_HALFPI );
-	EXPECT_REALZERO( math_acos( REAL_ONE ) );
+	EXPECT_REALEPSILONZERO( math_acos( REAL_ONE ) );
 
 	EXPECT_REALZERO( math_atan( REAL_ZERO ) );
 	EXPECT_REALEQ( math_atan( REAL_ONE ), REAL_HALFPI * REAL_HALF );
@@ -242,114 +462,6 @@ DECLARE_TEST( math, exponentials )
 }
 
 
-DECLARE_TEST( math, comparison )
-{
-	real testreal, refreal;
-	real onereal = REAL_ONE;
-	real zeroreal = REAL_ZERO;
-
-	testreal = REAL_C( 42.42 );
-	refreal = testreal;
-
-#if FOUNDATION_COMPILER_CLANG
-// Yes, we want to compare floats
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wfloat-equal"
-#endif
-
-	EXPECT_EQ( testreal, refreal );
-	EXPECT_TRUE( math_realeq( testreal, refreal, 0 ) );
-	EXPECT_TRUE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realiszero( testreal ) );
-	EXPECT_FALSE( math_realisone( testreal ) );
-	EXPECT_FALSE( math_realisnan( testreal ) );
-	EXPECT_FALSE( math_realisinf( testreal ) );
-	EXPECT_FALSE( math_realisuninitialized( testreal ) );
-	EXPECT_TRUE( math_realisfinite( testreal ) );
-
-	testreal = math_realdec( testreal, 10 );
-	EXPECT_NE( testreal, refreal );
-	EXPECT_FALSE( math_realeq( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_TRUE( math_realeq( testreal, refreal, 10 ) );
-	EXPECT_TRUE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realiszero( testreal ) );
-	EXPECT_FALSE( math_realisone( testreal ) );
-	EXPECT_FALSE( math_realisnan( testreal ) );
-	EXPECT_FALSE( math_realisinf( testreal ) );
-	EXPECT_FALSE( math_realisuninitialized( testreal ) );
-	EXPECT_TRUE( math_realisfinite( testreal ) );
-
-	testreal = math_realdec( testreal, 10 );
-	EXPECT_NE( testreal, refreal );
-	EXPECT_FALSE( math_realeq( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realeq( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realiszero( testreal ) );
-	EXPECT_FALSE( math_realisone( testreal ) );
-	EXPECT_FALSE( math_realisnan( testreal ) );
-	EXPECT_FALSE( math_realisinf( testreal ) );
-	EXPECT_FALSE( math_realisuninitialized( testreal ) );
-	EXPECT_TRUE( math_realisfinite( testreal ) );
-
-	testreal = math_realinc( testreal, 20 );
-	EXPECT_EQ( testreal, refreal );
-	EXPECT_TRUE( math_realeq( testreal, refreal, 0 ) );
-	EXPECT_TRUE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realiszero( testreal ) );
-	EXPECT_FALSE( math_realisone( testreal ) );
-	EXPECT_FALSE( math_realisnan( testreal ) );
-	EXPECT_FALSE( math_realisinf( testreal ) );
-	EXPECT_FALSE( math_realisuninitialized( testreal ) );
-	EXPECT_TRUE( math_realisfinite( testreal ) );
-
-	testreal = math_realinc( testreal, 10 );
-	EXPECT_NE( testreal, refreal );
-	EXPECT_FALSE( math_realeq( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_TRUE( math_realeq( testreal, refreal, 10 ) );
-	EXPECT_TRUE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realiszero( testreal ) );
-	EXPECT_FALSE( math_realisone( testreal ) );
-	EXPECT_FALSE( math_realisnan( testreal ) );
-	EXPECT_FALSE( math_realisinf( testreal ) );
-	EXPECT_FALSE( math_realisuninitialized( testreal ) );
-	EXPECT_TRUE( math_realisfinite( testreal ) );
-
-	testreal = math_realinc( testreal, 10 );
-	EXPECT_NE( testreal, refreal );
-	EXPECT_FALSE( math_realeq( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realeqns( testreal, refreal, 0 ) );
-	EXPECT_FALSE( math_realeq( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realeqns( testreal, refreal, 10 ) );
-	EXPECT_FALSE( math_realiszero( testreal ) );
-	EXPECT_FALSE( math_realisone( testreal ) );
-	EXPECT_FALSE( math_realisnan( testreal ) );
-	EXPECT_FALSE( math_realisinf( testreal ) );
-	EXPECT_FALSE( math_realisuninitialized( testreal ) );
-	EXPECT_TRUE( math_realisfinite( testreal ) );
-
-	EXPECT_TRUE( math_realisnan( math_sqrt( REAL_C( -1.0 ) ) ) );
-	EXPECT_TRUE( math_realisinf( onereal / zeroreal ) );
-	EXPECT_TRUE( math_realisnan( -math_sqrt( REAL_C( -1.0 ) ) ) );
-	EXPECT_TRUE( math_realisinf( -onereal / zeroreal ) );
-
-	testreal = REAL_ONE / REAL_MAX;
-	EXPECT_REALNE( testreal, REAL_ZERO );
-	EXPECT_TRUE( math_realisdenormalized( testreal ) );
-	EXPECT_REALZERO( math_realundenormalize( testreal ) );
-	EXPECT_FALSE( math_realisdenormalized( REAL_ONE ) );
-	EXPECT_REALONE( math_realundenormalize( REAL_ONE ) );
-
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
-#endif
-
-	return 0;
-}
-
-
 DECLARE_TEST( math, wrap )
 {
 	int32_t min32, max32;
@@ -422,11 +534,11 @@ DECLARE_TEST( math, wrap )
 static void test_math_declare( void )
 {
 	ADD_TEST( math, constants );
+	ADD_TEST( math, comparison );
 	ADD_TEST( math, trigonometry );
 	ADD_TEST( math, squareroot );
 	ADD_TEST( math, utility );
 	ADD_TEST( math, exponentials );
-	ADD_TEST( math, comparison );
 	ADD_TEST( math, wrap );
 }
 

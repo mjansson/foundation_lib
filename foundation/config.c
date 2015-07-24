@@ -625,7 +625,7 @@ void
 config_set_real(hash_t section, hash_t key, real value) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
-	key_val->bval = !math_realiszero(value);
+	key_val->bval = !math_real_is_zero(value);
 	key_val->ival = (int64_t)value;
 	key_val->rval = value;
 	CLEAR_KEY_STRINGS(key_val);

@@ -1,145 +1,4 @@
 
-/*!
-
-\file string.h
-\brief String utility functions
-\details String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion to and from pritimive integral
-data types. Unless otherwise noted in the function descripion it is safe to pass null pointers to any arguments. Strings are
-declared with a pointer to a memory block and the length of the string. Zero terminated is generally NOT enforced. Functions
-that allocate or modify strings always return zero-terminated strings. Functions that find substrings and return const string
-arguments does not modify or allocate memory, and returns substrings which are NOT zero terminated. Check the documentation
-for each function for further details regarding zero termination state. All functions in the library taking string arguments
-respect given lengths and does not require zero termination. This design minimized calls to find string lengths and minimizes
-additional memory allocations to store zero terminated substrings by allowing substrings to be declared as a (pointer, length)
-tuple into the original string memory buffer.
-
-\fn string_t string_allocate( size_t length, size_t capacity, char fill )
-\brief Allocate string
-\details Allocate capacity bytes of memory for a string of min(length, capacity-1) characters. The [0,length] string will be initialized
-with the given fill characters and zero terminated. The remainder of the memory block will be uninitialized.
-\param length Length of string
-\param capacity Capacity of memory block allocated
-\param fill Fill character
-\return Zero terminated string of fill characters of given (clamped) length stored in a new memory block with given capacity
-
-\fn string_t string_clone( const char* str, size_t length )
-\brief Clone string
-\details Clone a string of the given length. Allocates a memory block of capacity (length+1) and copies the content of the given
-string. Zero terminates the new string.
-\param str String to clone
-\param length Length of string to clone
-\return Zero-terminated cloned string of given length stored in a new memory block of capacity (length+1)
-
-\fn void string_deallocate( char* str )
-\brief Dellocate string
-\details Deallocate memory used by the given string
-\param str String to deallocate
-
-\fn string_const_t string_null( void );
-\brief Declare an null string
-\details Declare an null string of zero length pointing to null.
-\return String with zero length pointing to null.
-
-\fn string_const_t string_empty( void );
-\brief Declare an empty string
-\details Declare an empty string of zero length pointing to a zero-terminated empty string.
-\return String with zero length pointing to a zero-terminated empty string.
-
-\fn string_const_t string_const( const char* str, size_t length );
-\brief Declare a const string of given length
-\details Declare a const string of the given length pointing to a const memory block with the given address.
-String is not guaranteed to be zero terminated.
-\param str String memory block
-\param length length Length of string
-\return String with given length pointing to a const memory block of at least given length in size. Not guaranteed to be zero terminated.
-
-\fn string_const_t string_to_const( string_t str );
-\brief Cast a string to a const string
-\details Cast a given string to a const string with the same memory pointer and length.
-\param str String to cast
-\return Const string of same length pointing to same memory block as given string.
-
-
-
-
-
-\fn char* string_format( const char* format, ... )
-\brief Format string
-\details Create a string from a format specifier and variable data, printf style.
-\param format Format specifier
-\return Formatted string
-
-\fn char* string_format_buffer( char* buffer, unsigned int maxlen, const char* format, ... )
-\brief Format string in buffer
-\details In-memory string formatting from a format specifier and variable data, printf style. Will print at most
-(maxlen - 1) characters into the buffer and always zero terminate.
-\param buffer Destination buffer
-\param maxlen Maximum number of characters to print into buffer, including zero termination
-\param format Format specifier
-\return Formatted string (buffer)
-
-\fn char* string_vformat( const char* format, va_list list )
-\brief Format string
-\details Create a string from a format specifier and variable data given as a va_list, printf style.
-\param format Format specifier
-\param list Variable argument list
-\return Formatted string
-
-\fn char* string_vformat_buffer( char* buffer, unsigned int maxlen, const char* format, va_list list )
-\brief Format string in buffer
-\details In-memory string formatting from a format specifier and variable data given as a va_list, printf style. Will print at most
-(maxlen - 1) characters into the buffer and always zero terminate.
-\param buffer Destination buffer
-\param maxlen Maximum number of characters to print into buffer, including zero termination
-\param format Format specifier
-\param list Variable argument list
-\return Formatted string (buffer)
-
-\fn unsigned int string_length( const char* str )
-\brief Get string length
-\details Get length of string in bytes
-\param str String
-\return Length of string in bytes
-
-\fn unsigned int string_glyphs( const char* str )
-\brief Get number of glyphs
-\details Get number of unicode glyphs stored in utf-8 string
-\param str String in utf-8 encoding
-\return Number of unicode glyphs in string
-
-\fn hash_t string_hash( const char* str )
-\brief Get string hash
-\details Calculate hash of string. A null pointer is treated as an empty string
-\param str String
-\return Hash of string
-
-\fn char* string_resize( char* str, unsigned int length, char fill )
-\brief Resize string
-\details Reallocate a string and fill with the given character. If the current string length
-is greater or equal to the requested length the string is zero terminated at the
-requested length but not reallocated.
-\param str String
-\param length New requested length
-\param fill Fill character
-\return New string of requested length
-
-\fn void string_copy( char* dst, const char* src, unsigned int limit )
-\brief Copy string
-\details Copy one string to another. Like strlcpy in that dst will always be zero
-terminated (i.e copies at most limit-1 characters from src)
-\param dst Destination string
-\param src Source string
-\param limit Maximum number of bytes to store in dst string, including zero terminator
-
-\fn char* string_strip( char* str, const char* delimiters )
-\brief Strip string
-\details Strip a string (in-place) of given characters at start and end.
-Modifies the passed string and returns a new pointer to it. If null is passed as string
-to strip, a new empty string is returned.
-\param str String to strip
-\param delimiters Characters to strip
-\return Stipped string
-
 \fn char* string_strip_substr( char* str, const char* delimiters, unsigned int length )
 \brief Strip substring
 \details Strip a substring (in-place) of given characters at start end end of the given sub-string.
@@ -150,27 +9,6 @@ and returns a new pointer to it. If null is passed as string to strip, a new emp
 \param length Length of substring to strip
 \return Stipped string
 
-\fn char* string_replace( char* str, const char* key, const char* newkey, bool repeat )
-\brief Replace substrings
-\details Replace all occurrences of the given key string inside the given string, optionally repeating the
-replace after an occurrence have been replaced. If repeat is set to false, the newly replaced part of
-the string is not rechecked for replacement. The repeat is recursion safe and will not endlessly loop,
-like repat replacing "foo" with "foobar". The string will be reallocated if the replacement string
-is longer than the key string, so always replace and use of the old string pointer with value returned.
-\param str String to replace in
-\param key Key string
-\param newkey String to replace key with
-\param repeat Repeat flag
-\return New (potentially reallocated) string pointer
-
-\fn char* string_append( char* str, const char* suffix )
-\brief Append suffix
-\details Append a suffix to a string. Will reallocate the given string so
-use the returned pointer as a replacement for the passed string.
-\param str Base string
-\param suffix Suffix string
-\return New string which is base string with suffix string appended (base+suffix)
-
 \fn char* string_prepend( char* str, const char* prefix )
 \brief Prepend prefix
 \details Prepend a prefix to a string. Will reallocate the given string so
@@ -178,14 +16,6 @@ use the returned pointer as a replacement for the passed string.
 \param str Base string
 \param prefix Prefix string
 \return New string which is base string with prefix string prepended (prefix+base)
-
-\fn char* string_concat( const char* lhs, const char* rhs )
-\brief Concatenate strings
-\details Concatenate two strings. Does not modify arguments, will allocate
-a new string to hold the result.
-\param lhs First string
-\param rhs Second string
-\return New concatenated string (lhs+rhs)
 
 \fn void string_split( const char* str, const char* separators, char** left, char** right, bool allowempty )
 \brief Split string
@@ -201,13 +31,6 @@ discarded before processing split.
 \param right Pointer to string pointer which will receive new right part of split result
 \param allowempty Empty flag
 
-\fn char* string_substr( const char* str, unsigned int offset, unsigned int length )
-\brief Substring
-\details Get substring of a string. Substring range will be clamped to source string limits
-\param str Source string
-\param offset Start offset
-\param length Length of substring
-\return New substring
 
 \fn unsigned int string_find( const char* str, char c, unsigned int offset )
 \brief Find character
