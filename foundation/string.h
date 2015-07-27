@@ -399,7 +399,7 @@ string_substr(const char* str, size_t length, size_t offset, size_t sub_length);
 Strip a string of given characters at start and end by returning a substring with offset
 and length calculated to strip the given characters. The returned substring is NOT zero
 terminated. If null is passed as string to strip, or if all characters are stripped,
-a null string is returned.
+an empty string is returned.
 \param str String to strip
 \param length Length of string
 \param delimiters Characters to strip
@@ -408,137 +408,435 @@ a null string is returned.
 FOUNDATION_API string_const_t
 string_strip(const char* str, size_t length, const char* delimiters, size_t delim_length);
 
+/*! \brief Find character
+Search for a character in a string from the given offset
+\param str Source string
+\param length Length of source string
+\param c Character to search for
+\param offset Start offset of search within source string
+\return Offset of first occurrence of c within str (greater or equal to offset).
+        STRING_NPOS if not found */
 FOUNDATION_API size_t
 string_find(const char* str, size_t length, char c, size_t offset);
 
+/*! \brief Find string
+Search for a key string in a string from the given offset
+\param str Source string
+\param length Length of source string
+\param key Key string to search for
+\param key_length Length of key string
+\param offset Start offset of search within source string
+\return Offset of first occurrence of key string within str (greater or equal to offset).
+        STRING_NPOS if not found */
 FOUNDATION_API size_t
 string_find_string(const char* str, size_t length, const char* key, size_t key_length,
                    size_t offset);
 
+/*! \brief Reverse find character
+Reverse search for a character in a string from the given offset
+\param str Source string
+\param length Length of source string
+\param c Character to search for
+\param offset Start offset of search within source string. Pass STRING_NPOS to
+              search from end.
+\return Offset of first occurrence of c within str (less or equal to offset).
+        STRING_NPOS if not found */
 FOUNDATION_API size_t
 string_rfind(const char* str, size_t length, char c, size_t offset);
 
+/*! \brief Reverse find string
+Reverse search for a key string in a string from the given offset
+\param str Source string
+\param length Length of source string
+\param key Key string to search for
+\param key_length Length of key string
+\param offset Start offset of search within source string. Pass STRING_NPOS to search
+              from end.
+\return Offset of first occurrence of key string within str (less or equal to offset).
+        STRING_NPOS if not found */
 FOUNDATION_API size_t
 string_rfind_string(const char* str, size_t length, const char* key, size_t key_length,
                     size_t offset);
 
+/*! \brief Find first occurrence
+Search for the first occurrence of any character in key string in a string from the
+given offset
+\param str Source string
+\param length Length of source string
+\param key Key characters to search for
+\param key_length Length of key characters string
+\param offset Start offset of search within source string
+\return Offset of first occurrence of any of the characters in the key string within
+        str (greater or equal to offset). STRING_NPOS if none found */
 FOUNDATION_API size_t
 string_find_first_of(const char* str, size_t length, const char* key, size_t key_length,
                      size_t offset);
 
+/*! \brief Find last occurrence
+Search for the last occurrence of any character in key string in a string from the
+given offset
+\param str Source string
+\param length Length of source string
+\param key Key characters to search for
+\param key_length Length of key characters string
+\param offset Start offset of search within source string
+\return Offset of last occurrence of any of the characters in the key string within
+        str (greater or equal to offset). STRING_NPOS if none found */
 FOUNDATION_API size_t
 string_find_last_of(const char* str, size_t length, const char* key, size_t key_length,
                     size_t offset);
 
+/*! \brief Find first inverse occurrence
+Search for the first occurrence of any character not present in key string in a string
+from the given offset
+\param str Source string
+\param length Length of source string
+\param key Key characters to search for
+\param key_length Length of key characters string
+\param offset Start offset of search within source string
+\return Offset of first occurrence of any character which is not part of the key string
+        within str (greater or equal to offset). STRING_NPOS if none found */
 FOUNDATION_API size_t
 string_find_first_not_of(const char* str, size_t length, const char* key, size_t key_length,
                          size_t offset);
 
+/*! \brief Find last inverse occurrence
+Search for the last occurrence of any character not present in key string in a string
+from the given offset
+\param str Source string
+\param length Length of source string
+\param key Key characters to search for
+\param key_length Length of key characters string
+\param offset Start offset of search within source string
+\return Offset of last occurrence of any character which is not part of the key string
+        within str (greater or equal to offset). STRING_NPOS if none found */
 FOUNDATION_API size_t
 string_find_last_not_of(const char* str, size_t length, const char* key, size_t key_length,
                         size_t offset);
 
+/*! \brief Query if end suffix
+Query if string ends with the given suffix
+\param str String
+\param length Length of string
+\param suffix Suffix
+\param suffix_length Length of suffix
+\return True if string ends with the given suffix, false if not */
 FOUNDATION_API bool
 string_ends_with(const char* str, size_t length, const char* suffix, size_t suffix_length);
 
+/*! \brief Query if equal
+Query if strings are equal (case sensitive)
+\param lhs First string
+\param lhs_length Length of first string
+\param rhs Second string
+\param rhs_length Length of second string
+\return True if equal, false if not */
 FOUNDATION_API bool
 string_equal(const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length);
 
+/*! \brief Query if substring equal
+Query if substrings are equal (case sensitive)
+\param lhs First string
+\param lhs_length Length of first string
+\param lhs_offset Offset in first string
+\param rhs Second string
+\param rhs_length Length of second string
+\param rhs_offset Offset in second string
+\return True if substrings are equal in [offset,length) range, false if not */
 FOUNDATION_API bool
 string_equal_substr(const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs,
                     size_t rhs_length, size_t rhs_offset);
 
+/*! \brief Query if pattern match
+Check if a string matches a given pattern using ? and * wildcards. For regular expression
+matching see the regex.h module.
+\param str String
+\param length Length of string
+\param pattern Pattern with ? and * wildcards
+\param pattern_length Length of pattern
+\return true if string matches given pattern, false if not */
 FOUNDATION_API bool
 string_match_pattern(const char* str, size_t length, const char* pattern, size_t pattern_length);
 
+/*! \brief Split string
+Split a string into two strings along the first occurrence of any of the given separator
+characters. The entire group of separators following the initial occurrence will be
+removed in the split. For example, splitting "this is insidious" with separators "is "
+will yield resulting strings "th" and "nsidious". Unless null the left and right string
+pointers will be set to the found substrings. The allowempty flag controls if an
+empty left part is allowed. If not, any leading separator characters will first be
+discarded before processing split.
+\param str Source string
+\param length Length of source string
+\param separators Separator characters
+\param sep_length Length of separator characters
+\param left Pointer to string which will receive new left part of split result
+\param right Pointer to string which will receive new right part of split result
+\param allowempty Empty flag */
 FOUNDATION_API void
 string_split(const char* str, size_t length, const char* separators, size_t sep_length,
              string_const_t* left, string_const_t* right, bool allowempty);
 
+/*! \brief Explode into substrings
+Explode a string into substrings along given separator characters, optinally ignoring or
+including empty substrings (consecutive separator characters).
+\param str Source string
+\param length Length of source string
+\param delimiters Separator characters
+\param delim_length Length of separator characters
+\param arr Array of substrings
+\param arrsize Size of substring array
+\param allow_empty Flag to include empty substrings if true, ignore if false
+\return Number of substrings stored in array */
 FOUNDATION_API size_t
 string_explode(const char* str, size_t length, const char* delimiters, size_t delim_length,
                string_const_t* arr, size_t arrsize, bool allow_empty);
 
+/*! \brief Merge string array
+Merge a string array using the given separator string
+\param dst Destination string buffer
+\param capacity Capacity of the destination buffer
+\param array Source string array
+\param array_size Number of string in array to use in merge
+\param delimiter Separator string to add between all source strings
+\param delim_length Length of separator string
+\return Merged string in destination buffer */
 FOUNDATION_API string_t
 string_merge(char* dst, size_t capacity, const string_const_t* array, size_t array_size,
              const char* delimiter, size_t delim_length);
 
+/*! \brief Merge string list
+Merge a string list using the given separator string. The variable argument list shoud
+be (const char*, size_t) pairs of strings to merge, terminated by a null pointer.
+\param dst Destination string buffer
+\param capacity Capacity of the destination buffer
+\param delimiter Separator string to add between all source strings
+\param delim_length Length of separator string
+\param str First string
+\param length Length of first string
+\return Merged string in destination buffer */
 FOUNDATION_API string_t
 string_merge_varg(char* dst, size_t capacity, const char* delimiter, size_t delim_length,
                   const char* str, size_t length, ...)
 FOUNDATION_ATTRIBUTE(sentinel);
 
+/*! \brief Merge string list
+Merge a string list using the given separator string. The variable argument list shoud
+be (const char*, size_t) pairs of strings to merge, terminated by a null pointer.
+\param dst Destination string buffer
+\param capacity Capacity of the destination buffer
+\param delimiter Separator string to add between all source strings
+\param delim_length Length of separator string
+\param list Variable argument list
+\return Merged string in destination buffer */
 FOUNDATION_API string_t
 string_merge_vlist(char* dst, size_t capacity, const char* delimiter, size_t delim_length,
                    va_list list);
 
+/*! \brief Get unicode glyph
+Get unicode glyph represented by the utf-8 enconding in the source string at the given
+offset, optionally also reporting the number of consumed 8-bit characters in the process.
+\param str utf-8 encoded string
+\param length Length of string
+\param offset Offset in source string
+\param consumed Optional pointer to an unsigned int receiving the number of consumed
+                8-bit characters used in constructing the unicode glyph
+\return Unicode glyph constructed */
 FOUNDATION_API uint32_t
 string_glyph(const char* str, size_t length, size_t offset, size_t* consumed);
 
+/*! \brief Find string in array
+Find a specific string in an array of strings
+\param haystack Array of strings to check
+\param haystack_size Size of array
+\param needle String to find
+\param needle_length Length of string to find
+\return Index of string found, or <0 if no string matching */
 FOUNDATION_API ssize_t
 string_array_find(const string_const_t* haystack, size_t haystack_size, const char* needle,
                   size_t needle_length);
 
+/*! \brief Deallocate strings in array
+Deallocate all strings in an array of strings. Does not deallocate array itself.
+\param array Array of strings */
 FOUNDATION_API void
 string_array_deallocate_elements(string_t* array);
 
+/*! \brief Deallocate array and strings in array
+Deallocate all strings in an array and deallocate array itself. Array
+will be reset to null.
+\param array Array of strings */
 #define string_array_deallocate( array ) \
   string_array_deallocate_elements( array ); \
   array_deallocate( array ); \
   (array) = 0
 
+/*! \brief Allocate wide string
+Allocate a wide char string from utf-8 encoded string
+\param cstr Source utf-8 encoded string
+\param length Length of source string in bytes (NOT unicode glyphs)
+\return Wide char string */
 FOUNDATION_API wchar_t*
-wstring_allocate_from_string(const char* cstr, size_t cstr_length);
+wstring_allocate_from_string(const char* cstr, size_t length);
 
+/*! \brief Convert to wide string
+Convert a utf-8 encoded string into a preallocated wide char string
+\param str Destination wide-char string
+\param capacity Maximum number of wide characters to store in destination string,
+                including null terminator
+\param cstr Source utf-8 encoded string
+\param length Length of source string in bytes (NOT unicode glyphs) */
 FOUNDATION_API void
-wstring_from_string(wchar_t* str, size_t length, const char* cstr, size_t cstr_length);
+wstring_from_string(wchar_t* str, size_t capactiy, const char* cstr, size_t length);
 
+/*! \brief Deallocate wide string
+Deallocate a wide character string
+\param str String */
 FOUNDATION_API void
 wstring_deallocate(wchar_t* str);
 
+/*! \brief Get length of wide string
+Get length of a wide character string
+\param str Wide character string
+\return Length in number of wide characters (not bytes) */
 FOUNDATION_API size_t
 wstring_length(const wchar_t* str);
 
+/*! \brief QUery if wide strings equal
+Compare wide character strings, case sensitive
+\param lhs First string
+\param rhs Second string
+\return true if strings are equal, false if not */
 FOUNDATION_API bool
 wstring_equal(const wchar_t* lhs, const wchar_t* rhs);
 
+/*! \brief Allocate string from wide string
+Allocate a new utf-8 string representing the given wide character string
+\param str Wide character string
+\param length Length of wide character string in number of wide characters (not bytes)
+\return Newly allocated utf-8 encoded string */
 FOUNDATION_API string_t
 string_allocate_from_wstring(const wchar_t* str, size_t length);
 
+/*! \brief Allocate string from utf-16 string
+Allocate a new utf-8 string representing the given utf-16 encoded string
+\param str utf-16 encoded string
+\param length Length of utf-16 string in number of 16-bit characters (not bytes)
+\return Newly allocated utf-8 encoded string */
 FOUNDATION_API string_t
 string_allocate_from_utf16(const uint16_t* str, size_t length);
 
+/*! \brief Allocate string from utf-32 string
+Allocate a new utf-8 string representing the given utf-32 encoded string
+\param str utf-32 encoded string
+\param length Length of utf-32 string in number of 32-bit characters (not bytes)
+\return Newly allocated utf-8 encoded string */
 FOUNDATION_API string_t
 string_allocate_from_utf32(const uint32_t* str, size_t length);
 
+/*! \brief Convert from utf-16 string
+Convert an utf-16 string into a preallocated utf-8 string. Returned string will be
+zero terminated (included in capacity).
+\param dst Destination utf-8 string
+\param capacity Capacity of destination buffer
+\param src Source utf-16 string
+\param length Length of source string in utf-16 characters (not bytes),
+              not including terminating zero */
 FOUNDATION_API void
-string_convert_utf16(char* dst, size_t dst_length, const uint16_t* src, size_t src_length);
+string_convert_utf16(char* dst, size_t capacity, const uint16_t* src, size_t length);
 
+/*! \brief Convert from utf-32 string
+Convert an utf-32 string into a preallocated utf-8 string. Returned string will be
+zero terminated (included in capacity).
+\param dst Destination utf-8 string
+\param capacity Capacity of destination buffer
+\param src Source utf-32 string
+\param length Length of source string in utf-32 characters (not bytes),
+              not including terminating zero */
 FOUNDATION_API void
 string_convert_utf32(char* dst, size_t dst_length, const uint32_t* src, size_t src_length);
 
+/*! \brief Convert from int
+Convert an integer to a string, with optional field width and fill character. String buffer
+should be at least 12 bytes (11 characters + terminating zero). String will be zero
+terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Integer value
+\param width Field width
+\param padding Fill character
+\return String in given buffer */
 FOUNDATION_API string_t
-string_from_int(char* str, size_t length, int64_t val, unsigned int width, char padding);
+string_from_int(char* str, size_t capacity, int64_t val, unsigned int width, char padding);
 
+/*! \brief Convert from unsigned int
+Convert an unsigned integer to a string, with optional hexadecimal base and base prefix,
+field width and fill character. String buffer should be at least 12 bytes (11 characters
++ terminating zero). String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Integer value
+\param hex Hexadecimal flag
+\param width Field width
+\param padding Fill character
+\return String in given buffer */
 FOUNDATION_API string_t
-string_from_uint(char* str, size_t length, uint64_t val, bool hex, unsigned int width,
+string_from_uint(char* str, size_t capacity, uint64_t val, bool hex, unsigned int width,
                  char padding);
 
+/*! \brief Convert from 128-bit unsigned int
+Convert an 128-bit unsigned integer to a string (represented in hex format). String buffer
+should be at least 33 bytes (32 characters + terminating zero). String will be zero
+terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Integer value
+\return String in given buffer */
 FOUNDATION_API string_t
-string_from_uint128(char* str, size_t length, const uint128_t val);
+string_from_uint128(char* str, size_t capacity, const uint128_t val);
 
+/*! \brief Convert from float
+Convert a float to a string, with optional fixed notation, field width, precision and
+fill character. String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in given buffer */
 FOUNDATION_API string_t
-string_from_real(char* str, size_t length, real val, unsigned int precision, unsigned int width,
+string_from_real(char* str, size_t capacity, real val, unsigned int precision, unsigned int width,
                  char padding);
 
+/*! \brief Convert from timestamp
+Get a formatted string of the given timestamp. String buffer should be at least
+26 bytes (25 characters + terminating zero). String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param time Timestamp
+\return String in given buffer */
 FOUNDATION_API string_t
-string_from_time(char* str, size_t length, tick_t time);
+string_from_time(char* str, size_t capacity, tick_t time);
 
+/*! \brief Convert from UUID
+Get a formatted string of the given UUID. String buffer should be at least
+37 bytes (36 characters + terminating zero). String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param uuid UUID
+\return String in given buffer */
 FOUNDATION_API string_t
-string_from_uuid(char* str, size_t length, const uuid_t uuid);
+string_from_uuid(char* str, size_t capacity, const uuid_t uuid);
 
+/*! \brief Convert from version
+Get a formatted string of the given version. String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param version Version
+\return String in given buffer */
 FOUNDATION_API string_t
-string_from_version(char* str, size_t length, const version_t version);
+string_from_version(char* str, size_t capacity, const version_t version);
 
 FOUNDATION_API string_const_t
 string_from_int_static(int64_t val, unsigned int width, char padding);

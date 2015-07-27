@@ -1124,22 +1124,22 @@ wstring_allocate_from_string(const char* cstr, size_t length) {
 }
 
 void
-wstring_from_string(wchar_t* dest, size_t length, const char* source, size_t cstr_length) {
+wstring_from_string(wchar_t* dest, size_t capacity, const char* source, size_t length) {
 	size_t i, j, num;
 	uint32_t glyph;
-	wchar_t* last = (dest + length) - 1;
+	wchar_t* last = (dest + capacity) - 1;
 	const char* cur = source;
 
-	if (!length)
+	if (!capacity)
 		return;
 
-	for (i = 0; (i < cstr_length) && (dest < last); ++i) {
+	for (i = 0; (i < length) && (dest < last); ++i) {
 		if (!(*cur & 0x80))
 			*dest++ = *cur++;
 		else {
 			//Convert through UTF-32
 			num = get_num_bytes_utf8((uint8_t)(*cur)) - 1;   //Subtract one to get number of _extra_ bytes
-			if (i + num + 1 >= cstr_length)
+			if (i + num + 1 >= length)
 				break;
 			glyph = ((uint32_t)(*cur) & get_bit_mask(6 - num)) << (6 * num);
 			++cur;
@@ -1260,13 +1260,13 @@ string_allocate_from_utf32(const uint32_t* str, size_t length) {
 }
 
 void
-string_convert_utf16(char* dst, size_t dstsize, const uint16_t* src, size_t srclength) {
+string_convert_utf16(char* dst, size_t capacity, const uint16_t* src, size_t length) {
 	bool swap = false;
 	uint32_t glyph, lval;
 	size_t curlen = 0, numbytes = 0;
 	size_t i;
 
-	for (i = 0; (i < srclength) && (curlen < dstsize); ++i) {
+	for (i = 0; (i < length) && (curlen < capacity); ++i) {
 		//Convert through full UTF-32
 		glyph = src[i];
 		if ((glyph == 0xFFFE) || (glyph == 0xFEFF)) {
@@ -1284,7 +1284,7 @@ string_convert_utf16(char* dst, size_t dstsize, const uint16_t* src, size_t srcl
 		}
 
 		numbytes = get_num_bytes_as_utf8(glyph);
-		if ((curlen + numbytes) < dstsize)
+		if ((curlen + numbytes) < capacity)
 			curlen += encode_utf8(dst + curlen, glyph);
 	}
 
@@ -1292,14 +1292,14 @@ string_convert_utf16(char* dst, size_t dstsize, const uint16_t* src, size_t srcl
 }
 
 void
-string_convert_utf32(char* dst, size_t dstsize, const uint32_t* src, size_t srclength) {
+string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t length) {
 	bool swap = false;
 	uint32_t glyph;
 	size_t curlen = 0, numbytes = 0;
 	size_t i;
 
 	swap = false;
-	for (i = 0; (i < srclength) && (curlen < dstsize); ++i) {
+	for (i = 0; (i < length) && (curlen < capacity); ++i) {
 		glyph = src[i];
 		if ((glyph == 0x0000FEFF) || (glyph == 0xFFFE0000)) {
 			swap = (glyph != 0x0000FEFF);
@@ -1309,7 +1309,7 @@ string_convert_utf32(char* dst, size_t dstsize, const uint32_t* src, size_t srcl
 			glyph = byteorder_swap32(glyph);
 
 		numbytes = get_num_bytes_as_utf8(glyph);
-		if ((curlen + numbytes) < dstsize)
+		if ((curlen + numbytes) < capacity)
 			curlen += encode_utf8(dst + curlen, glyph);
 	}
 
@@ -1320,16 +1320,16 @@ string_convert_utf32(char* dst, size_t dstsize, const uint32_t* src, size_t srcl
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(char, convert_buffer, THREAD_BUFFER_SIZE)
 
 string_t
-string_from_int(char* buffer, size_t size, int64_t val, unsigned int width, char fill) {
-	int len = snprintf(buffer, size, "%" PRId64, val);
-	if ((len < 0) || !size) {
-		if (size)
+string_from_int(char* buffer, size_t capacity, int64_t val, unsigned int width, char fill) {
+	int len = snprintf(buffer, capacity, "%" PRId64, val);
+	if ((len < 0) || !capacity) {
+		if (capacity)
 			buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
-	if ((size_t)len >= size) {
-		buffer[ size - 1 ] = 0;
-		return (string_t){ buffer, size - 1 };
+	if ((size_t)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t){ buffer, capacity - 1 };
 	}
 	if ((unsigned int)len < width) {
 		size_t diff = (size_t)width - (size_t)len;
@@ -1347,16 +1347,16 @@ string_from_int_static(int64_t val, unsigned int width, char fill) {
 }
 
 string_t
-string_from_uint(char* buffer, size_t size, uint64_t val, bool hex, unsigned int width, char fill) {
-	int len = snprintf(buffer, size, hex ? "%" PRIx64 : "%" PRIu64, val);
-	if ((len < 0) || !size) {
-		if (size)
+string_from_uint(char* buffer, size_t capacity, uint64_t val, bool hex, unsigned int width, char fill) {
+	int len = snprintf(buffer, capacity, hex ? "%" PRIx64 : "%" PRIu64, val);
+	if ((len < 0) || !capacity) {
+		if (capacity)
 			buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
-	if ((size_t)len >= size) {
-		buffer[ size - 1 ] = 0;
-		return (string_t){ buffer, size - 1 };
+	if ((size_t)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t){ buffer, capacity - 1 };
 	}
 	if ((unsigned int)len < width) {
 		size_t diff = (size_t)width - (size_t)len;
@@ -1374,16 +1374,16 @@ string_from_uint_static(uint64_t val, bool hex, unsigned int width, char fill) {
 }
 
 string_t
-string_from_uint128(char* buffer, size_t size, const uint128_t val) {
-	int len = snprintf(buffer, size, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1]);
-	if ((len < 0) || !size) {
-		if (size)
+string_from_uint128(char* buffer, size_t capacity, const uint128_t val) {
+	int len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1]);
+	if ((len < 0) || !capacity) {
+		if (capacity)
 			buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
-	if ((size_t)len >= size) {
-		buffer[ size - 1 ] = 0;
-		return (string_t){ buffer, size - 1 };
+	if ((size_t)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t){ buffer, capacity - 1 };
 	}
 	return (string_t){ buffer, (size_t)len };
 }
@@ -1394,32 +1394,32 @@ string_from_uint128_static(const uint128_t val) {
 }
 
 string_t
-string_from_real(char* buffer, size_t size, real val, unsigned int precision, unsigned int width,
+string_from_real(char* buffer, size_t capacity, real val, unsigned int precision, unsigned int width,
                  char fill) {
 	int len;
 	unsigned int ulen;
 	size_t end;
 #if FOUNDATION_SIZE_REAL == 64
 	if (precision)
-		len = snprintf(buffer, size, "%.*lf", precision, val);
+		len = snprintf(buffer, capacity, "%.*lf", precision, val);
 	else
-		len = snprintf(buffer, size, "%.16lf", val);
+		len = snprintf(buffer, capacity, "%.16lf", val);
 #else
 	if (precision)
-		len = snprintf(buffer, size, "%.*f", precision, val);
+		len = snprintf(buffer, capacity, "%.*f", precision, val);
 	else
-		len = snprintf(buffer, size, "%.7f", val);
+		len = snprintf(buffer, capacity, "%.7f", val);
 #endif
-	if ((len < 0) || !size) {
-		if (size)
+	if ((len < 0) || !capacity) {
+		if (capacity)
 			buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
 
 	ulen = (unsigned int)len;
-	if (ulen >= size) {
-		buffer[ size - 1 ] = 0;
-		return (string_t){ buffer, size - 1 };
+	if (ulen >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t){ buffer, capacity - 1 };
 	}
 
 	end = string_find_last_not_of(buffer, ulen, STRING_CONST("0"), STRING_NPOS);
@@ -1456,22 +1456,22 @@ string_from_real_static(real val, unsigned int precision, unsigned int width, ch
 }
 
 string_t
-string_from_time(char* buffer, size_t size, tick_t t) {
-	if (!size || !buffer)
+string_from_time(char* buffer, size_t capacity, tick_t t) {
+	if (!capacity || !buffer)
 		return (string_t){ buffer, 0 };
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		time_t timet = t / 1000ULL;
-		if (_ctime64_s(buffer, size, &timet) != 0) {
+		if (_ctime64_s(buffer, capacity, &timet) != 0) {
 			buffer[0] = 0;
-			size = 0;
+			capacity = 0;
 		}
 		else {
 			buffer[24] = 0;
-			size = 24;
+			capacity = 24;
 		}
 	}
-	return (string_t){ buffer, size };
+	return (string_t){ buffer, capacity };
 #elif FOUNDATION_PLATFORM_ANDROID
 	time_t ts = t / 1000ULL;
 	char* tstr = ctime(&ts);
@@ -1479,10 +1479,10 @@ string_from_time(char* buffer, size_t size, tick_t t) {
 		buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
-	return string_copy(buffer, size, tstr, 24);
+	return string_copy(buffer, capacity, tstr, 24);
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	time_t ts = (time_t)(t / 1000LL);
-	char* tstr = (size >= 26) ? ctime_r(&ts, buffer) : 0;
+	char* tstr = (capacity >= 26) ? ctime_r(&ts, buffer) : 0;
 	if (!tstr) {
 		buffer[0] = 0;
 		return (string_t){ buffer, 0 };
@@ -1505,25 +1505,25 @@ string_from_uuid_static(const uuid_t val) {
 }
 
 string_t
-string_from_version(char* buffer, size_t size, const version_t version) {
+string_from_version(char* buffer, size_t capacity, const version_t version) {
 	int len;
 	if (version.sub.control)
-		len = snprintf(buffer, size, "%u.%u.%u-%u-%x", (uint32_t)version.sub.major,
+		len = snprintf(buffer, capacity, "%u.%u.%u-%u-%x", (uint32_t)version.sub.major,
 		               (uint32_t)version.sub.minor, version.sub.revision, version.sub.build, version.sub.control);
 	else if (version.sub.build)
-		len = snprintf(buffer, size, "%u.%u.%u-%u", (uint32_t)version.sub.major,
+		len = snprintf(buffer, capacity, "%u.%u.%u-%u", (uint32_t)version.sub.major,
 		               (uint32_t)version.sub.minor, version.sub.revision, version.sub.build);
 	else
-		len = snprintf(buffer, size, "%u.%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor,
+		len = snprintf(buffer, capacity, "%u.%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor,
 		               version.sub.revision);
-	if ((len < 0) || !size) {
-		if (size)
+	if ((len < 0) || !capacity) {
+		if (capacity)
 			buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
-	if ((size_t)len >= size) {
-		buffer[ size - 1 ] = 0;
-		return (string_t){ buffer, size - 1 };
+	if ((size_t)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t){ buffer, capacity - 1 };
 	}
 	return (string_t){ buffer, (size_t)len };
 }
