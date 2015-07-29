@@ -610,7 +610,7 @@ process_wait(process_t* proc) {
 			proc->kq = 0;
 		}
 		else {
-			log_warn(0, WARNING_BAD_DATA,
+			log_warn(0, WARNING_INVALID_VALUE,
 			         STRING_CONST("Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue"));
 			return PROCESS_WAIT_FAILED;
 		}
@@ -644,7 +644,7 @@ process_wait(process_t* proc) {
 #if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message(err);
 #endif
-		log_warnf(0, WARNING_BAD_DATA, STRING_CONST("waitpid(%d) failed: %*s (%d) (returned %d)"),
+		log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("waitpid(%d) failed: %*s (%d) (returned %d)"),
 		          proc->pid, STRING_FORMAT(errmsg), err, ret);
 		return PROCESS_WAIT_FAILED;
 	}

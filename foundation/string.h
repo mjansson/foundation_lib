@@ -838,65 +838,182 @@ Get a formatted string of the given version. String will be zero terminated.
 FOUNDATION_API string_t
 string_from_version(char* str, size_t capacity, const version_t version);
 
+/*! \brief Convert int into static buffer
+Convert an integer into a thread-local conversion buffer, with optional field width and
+fill character. The buffer is shared between all string_from_*_static functions and
+only valid until next call to one of these functions.
+\param val Integer value
+\param width Field width
+\param padding Fill character
+\return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_int_static(int64_t val, unsigned int width, char padding);
 
+/*! \brief Convert unsigned int into static buffer
+Convert an unsigned integer into a thread-local conversion buffer, with optional
+hexadecimal base and base prefix, field width and fill character. The buffer is
+shared between all string_from_*_static functions and only valid until next call to one
+of these functions.
+\param val Integer value
+\param hex Hexadecimal flag
+\param width Field width
+\param padding Fill character
+\return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_uint_static(uint64_t val, bool hex, unsigned int width, char padding);
 
+/*! \brief Convert 128-bit unsigned int into static buffer
+Convert an 128-bit unsigned integer into a thread-local conversion buffer. The
+buffer is shared between all string_from_*_static functions and only valid until next
+call to one of these functions.
+\param val Integer value
+\return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_uint128_static(const uint128_t val);
 
+/*! \brief Convert float into static buffer
+Convert a float into a thread-local conversion buffer, with optional fixed notation,
+field width, precision and fill character. The buffer is shared between all
+string_from_*_static functions and only valid until next call to one of these functions.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_real_static(real val, unsigned int precision, unsigned int width, char padding);
 
+/*! \brief Convert timestamp into static buffer
+Convert a timestamp into a thread-local conversion buffer. The buffer is shared between all
+string_from_*_static functions and only valid until next call to one of these functions.
+\param time Timestamp
+\return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_time_static(tick_t time);
 
+/*! \brief Convert UUID into static buffer
+Convert an UUID into a thread-local conversion buffer. The buffer is shared between all
+string_from_*_static functions and only valid until next call to one of these functions.
+\param uuid UUID
+\return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_uuid_static(const uuid_t uuid);
 
+/*! \brief Convert version into static buffer
+Convert a version identifier into a thread-local conversion buffer. The buffer is shared
+between all string_from_*_static functions and only valid until next call to one of
+these functions.
+\param version Version
+\return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_version_static(const version_t version);
 
+/*! \brief Convert string to int
+Convert a string to a signed integer
+\param str String
+\param length Length of string
+\return Integer value, 0 if conversion failed */
 FOUNDATION_API int
 string_to_int(const char* str, size_t length);
 
+/*! \brief Convert string to unsigned int
+Convert a string to an unsigned integer
+\param str String
+\param length Length of string
+\param hex Hexadecimal flag
+\return Unsigned integer value, 0 if conversion failed */
 FOUNDATION_API unsigned int
 string_to_uint(const char* str, size_t length, bool hex);
 
+/*! \brief Convert string to 64-bit int
+Convert a string to a signed 64-bit integer
+\param str String
+\param length Length of string
+\return 64-bit integer value, 0 if conversion failed */
 FOUNDATION_API int64_t
 string_to_int64(const char* str, size_t length);
 
+/*! \brief Convert string to 64-bit unsigned int
+Convert a string to an unsigned 64-bit integer
+\param str String
+\param length Length of string
+\param hex Hexadecimal flag
+\return 64-bit unsigned integer value, 0 if conversion failed */
 FOUNDATION_API uint64_t
 string_to_uint64(const char* str, size_t length, bool hex);
 
+/*! \brief Convert string to 128-bit unsigned int
+Convert a string to an unsigned 128-bit integer in hex format
+\param str String
+\param length Length of string
+\return 128-bit integer value, 0 if conversion failed */
 FOUNDATION_API uint128_t
 string_to_uint128(const char* str, size_t length);
 
+/*! \brief Convert string to float
+Convert a string to a 32-bit float
+\param str String
+\param length Length of string
+\return Floating point value, 0 if conversion failed */
 FOUNDATION_API float32_t
 string_to_float32(const char* str, size_t length);
 
+/*! \brief Convert string to float
+Convert a string to a 64-bit float
+\param str String
+\param length Length of string
+\return Floating point value, 0 if conversion failed */
 FOUNDATION_API float64_t
 string_to_float64(const char* str, size_t length);
 
+/*! \brief Convert string to real
+Convert a string to a real
+\param str String
+\param length Length of string
+\return Floating point value, 0 if conversion failed */
 FOUNDATION_API real
 string_to_real(const char* str, size_t length);
 
+/*! \brief Convert to UUID
+Convert a string to a UUID
+\param str String
+\param length Length of string
+\return UUID, null UUID if conversion failed */
 FOUNDATION_API uuid_t
 string_to_uuid(const char* str, size_t length);
 
+/*! \brief Convert to version
+Convert a string to a version identifier
+\param str String
+\param length Length of string
+\return Version identifier, each field zero if conversion failed or data missing */
 FOUNDATION_API version_t
 string_to_version(const char* str, size_t length);
 
+/*! \brief Thread local buffer
+Thread local buffer for string operations and conversions */
 FOUNDATION_API string_t
 string_thread_buffer(void);
 
-#define STRING_NPOS            ((size_t)-1)
-#define STRING_NEWLINE         "\n"
-#define STRING_EMPTY           ""
-#define STRING_WHITESPACE      " \n\r\t\v\f"
-#define WSTRING_WHITESPACE    L" \n\r\t\v\f"
+/*! \brief Invalid string position (-1)
+Denotes an invalid string position (-1) */
+#define STRING_NPOS ((size_t)-1)
+
+/*! \brief Newline character
+Newline character */
+#define STRING_NEWLINE "\n"
+
+/*! \brief Empty string
+Empty string */
+#define STRING_EMPTY ""
+
+/*! \brief Default whitespace characters
+Default whitespace characters */
+#define STRING_WHITESPACE " \n\r\t\v\f"
+
+/*! \brief Default whitespace wide characters
+Default whitespace wide characters */
+#define WSTRING_WHITESPACE L" \n\r\t\v\f"
 
 // Implementation
 

@@ -14,7 +14,8 @@
 
 /*! \file apple.h
 \brief Apple system header includes
-\details Safe inclusion of mach and Apple headers for both OSX and iOS targets. Use this header
+
+Safe inclusion of mach and Apple headers for both OSX and iOS targets. Use this header
 instead of direct inclusion of mach/Apple headers to avoid compilation problems with
 multiple or missing definitions.
 

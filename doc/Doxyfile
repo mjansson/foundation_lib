@@ -98,7 +98,7 @@ OUTPUT_LANGUAGE        = English
 # documentation (similar to Javadoc). Set to NO to disable this.
 # The default value is: YES.
 
-BRIEF_MEMBER_DESC      = YES
+BRIEF_MEMBER_DESC      = NO
 
 # If the REPEAT_BRIEF tag is set to YES doxygen will prepend the brief
 # description of a member or function before the detailed description
@@ -1993,7 +1993,8 @@ PREDEFINED             = FOUNDATION_PLATFORM_DOXYGEN:=1 \
                          FOUNDATION_PLATFORM_WINDOWS:=1 \
                          FOUNDATION_PLATFORM_APPLE:=1 \
                          FOUNDATION_PLATFORM_POSIX:=1 \
-                         BUILD_ENABLE_LOG:=1
+                         BUILD_ENABLE_LOG:=1 \
+                         BUILD_ENABLE_ASSERT:=1
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

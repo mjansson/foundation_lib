@@ -156,7 +156,7 @@ int bin2hex_process_files( string_t* input, string_t* output, size_t columns )
 
 		if( !input_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open input file: %.*s" ), STRING_FORMAT( input_filename ) );
+			log_warnf( 0, WARNING_INVALID_VALUE, STRING_CONST( "Unable to open input file: %.*s" ), STRING_FORMAT( input_filename ) );
 			result = BIN2HEX_RESULT_MISSING_INPUT_FILE;
 		}
 		else
@@ -164,7 +164,7 @@ int bin2hex_process_files( string_t* input, string_t* output, size_t columns )
 			output_file = stream_open( STRING_ARGS( output_filename ), STREAM_OUT );
 			if( !output_file )
 			{
-				log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
+				log_warnf( 0, WARNING_INVALID_VALUE, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
 				result = BIN2HEX_RESULT_UNABLE_TO_OPEN_OUTPUT_FILE;
 			}
 		}

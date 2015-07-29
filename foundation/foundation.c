@@ -69,8 +69,7 @@ foundation_initialize_config(const foundation_config_t config) {
 	                                        config.event_block_limit     : (512 * 1024);
 	_foundation_def.thread_stack_size     = config.thread_stack_size     ?
 	                                        config.thread_stack_size     : 0x8000;
-	_foundation_def.random_state_prealloc = config.random_state_prealloc ?
-	                                        config.random_state_prealloc : 4;
+	_foundation_def.random_state_prealloc = config.random_state_prealloc;
 }
 
 #define SUBSYSTEM_INIT( system ) if( ret == 0 ) ret = _##system##_initialize()

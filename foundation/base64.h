@@ -14,28 +14,46 @@
 
 /*! \file base64.h
 \brief Base64 encoding and decoding
-\details Base64 encoding and decoding */
+
+Base64 encoding and decoding, using [A-Z][a-z][0-9][+/] as encoding characters. For more
+information, see https://en.wikipedia.org/wiki/Base64 */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Encode base64
-Encode data in base64
-\param src      Source data
-\param dst      Destination string
-\param srcsize  Size of source data in bytes
-\param dstsize  Size of destination string in bytes
-\return         Number of bytes written to destination string including terminting zero */
-FOUNDATION_API size_t
-base64_encode(const void* src, size_t srcsize, char* dst, size_t dstsize);
+/*! Encode data in base64. Source and destination buffers must NOT be equal, encoding cannot
+be in-place as encoded base64 data occupies more memory space than input data (3 input bytes
+generate 4 output bytes).
 
-/*! \brief Decode base64
-Decode base64-encoded data. Any invalid characters, linebreaks and noise will be
-silently discarded.
-\param src      Source string
-\param dst      Destination array
-\param srcsize  Size of source data in bytes (run until zero termination if 0)
-\param dstsize  Destination size of data array in bytes
-\return         Number of bytes written to destination array */
+To encode entire source buffer, the destination buffer must be at least
+1+(ceil(size/3)*4) bytes, including space for the terminating zero character. If the
+destination buffer is not large enough, the function will encode as much of source data that
+fits into the destination buffer, including a terminating zero (i.e ((capacity-1)/4)*3 bytes
+of source data).
+
+The destination buffer string will always be zero terminated.
+
+\param source      Source data buffer
+\param size        Size of source data buffer in bytes
+\param destination Destination string buffer
+\param capacity    Capacity of destination string buffer in bytes
+\return            Number of bytes written to destination string including terminating zero */
 FOUNDATION_API size_t
-base64_decode(const char* src, size_t srcsize, void* dst, size_t dstsize);
+base64_encode(const void* source, size_t size, char* destination, size_t capacity);
+
+/*! Decode base64-encoded data. Any invalid characters, linebreaks and noise will be
+silently discarded. Source and destination buffers can be equal, since decoded data takes
+less space than source encoded data (4 input bytes generate 3 output bytes).
+
+To decode the entire source buffer, the destination buffer must be at least
+((size-1)/4)*3 bytes. If the destination buffer is not large enough, the function will
+decode as much of the source data that fits into the destination buffer (i.e
+1+(ceil(capacity/3)*4) bytes of source data).
+
+\param source      Source string buffer
+\param size        Size of source string buffer in bytes (NOT including zero terminator)
+\param destination Destination buffer
+\param capacity    Capacity of destination buffer in bytes
+\return            Number of bytes written to destination buffer */
+FOUNDATION_API size_t
+base64_decode(const char* source, size_t size, void* destination, size_t capacity);

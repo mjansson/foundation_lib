@@ -153,7 +153,7 @@ _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
 		return 0;
 	}
 
-	log_warnf(HASH_PNACL, WARNING_BAD_DATA, STRING_CONST("Invalid file path: %*s"), (int)length, path);
+	log_warnf(HASH_PNACL, WARNING_INVALID_VALUE, STRING_CONST("Invalid file path: %*s"), (int)length, path);
 
 	return 0;
 }

@@ -195,12 +195,12 @@ int hashify_process_files( string_t* files, bool check_only )
 
 		if( !input_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open input file: %.*s" ), STRING_FORMAT( input_filename ) );
+			log_warnf( 0, WARNING_INVALID_VALUE, STRING_CONST( "Unable to open input file: %.*s" ), STRING_FORMAT( input_filename ) );
 			result = HASHIFY_RESULT_MISSING_INPUT_FILE;
 		}
 		else if( !output_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
+			log_warnf( 0, WARNING_INVALID_VALUE, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
 			result = HASHIFY_RESULT_MISSING_OUTPUT_FILE;
 		}
 
@@ -411,7 +411,7 @@ int hashify_write_file( stream_t* generated_file, string_t output_filename )
 		output_file = stream_open( STRING_ARGS( output_filename ), STREAM_OUT );
 		if( !output_file )
 		{
-			log_warnf( 0, WARNING_BAD_DATA, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
+			log_warnf( 0, WARNING_INVALID_VALUE, STRING_CONST( "Unable to open output file: %.*s" ), STRING_FORMAT( output_filename ) );
 			return HASHIFY_RESULT_MISSING_OUTPUT_FILE;
 		}
 	}

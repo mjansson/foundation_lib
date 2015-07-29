@@ -704,7 +704,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			//Section declaration
 			size_t endpos = string_rfind(STRING_ARGS(stripped), ']', STRING_NPOS);
 			if (endpos < 1) {
-				log_warnf(HASH_CONFIG, WARNING_BAD_DATA,
+				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
 				          STRING_CONST("Invalid section declaration on line %u in config stream '%*s'"), line,
 				          STRING_FORMAT(path));
 				continue;
@@ -721,7 +721,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			string_const_t value;
 			size_t separator = string_find(STRING_ARGS(stripped), '=', 0);
 			if (separator == STRING_NPOS) {
-				log_warnf(HASH_CONFIG, WARNING_BAD_DATA,
+				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
 				          STRING_CONST("Invalid value declaration on line %u in config stream '%*s', missing assignment operator '=': %*s"),
 				          line, STRING_FORMAT(path), STRING_FORMAT(stripped));
 				continue;
@@ -731,7 +731,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			value = string_strip(stripped.str + separator + 1, stripped.length - separator - 1,
 			                     STRING_CONST(" \t"));
 			if (!name.length) {
-				log_warnf(HASH_CONFIG, WARNING_BAD_DATA,
+				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
 				          STRING_CONST("Invalid value declaration on line %d in config stream '%*s', empty name string: %*s"),
 				          line, STRING_FORMAT(path), STRING_FORMAT(stripped));
 				continue;
