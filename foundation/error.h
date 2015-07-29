@@ -52,12 +52,12 @@ error_set_callback(error_callback_fn callback);
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
-#define _error_context_push_proxy( name, namelen, data, datalen ) do { \
-  _error_context_push( (name), (namelen), (data), (datalen) ); \
+#define _error_context_push_proxy(...) do { \
+  _error_context_push(__VA_ARGS__); \
   } while(0)
 
-#define _error_context_buffer_proxy( str, length ) \
-  _error_context_buffer( str, length )
+#define _error_context_buffer_proxy(...) \
+  _error_context_buffer(__VA_ARGS__)
 
 /*! \brief Push error context
 Push a new error context and associated data on the error context stack.
@@ -65,8 +65,8 @@ Both context and data must be valid for as long as it remains on the stack.
 \param name Context name
 \param data Context data buffer
 \param data_length Context data buffer size */
-#define error_context_push( ... ) do { \
-  _error_context_push_proxy( __VA_ARGS__ ); \
+#define error_context_push(...) do { \
+  _error_context_push_proxy(__VA_ARGS__); \
   } while(0)
 
 /*! \brief Pop error context
@@ -86,8 +86,8 @@ Generate a error context stack description string in the given buffer, limited
 to the given size
 \param buffer  Destination buffer
 \param size    Maximum buffer size */
-#define error_context_buffer( ... ) \
-  _error_context_buffer_proxy( __VA_ARGS__ )
+#define error_context_buffer(...) \
+  _error_context_buffer_proxy(__VA_ARGS__)
 
 /*! \brief Get error context
 Get the current error context, or 0 if no context set/available */
@@ -99,7 +99,7 @@ Make a local declaration depending on if error contexts are enabled
 in the build or not. If error contexts are disabled the expression will evaluate
 to void and not evaluate any code.
 \param decl    Declaration */
-#define error_context_declare_local( decl ) \
+#define error_context_declare_local(decl) \
   decl
 
 /*! \brief Clean up memory
@@ -128,27 +128,27 @@ _error_context_thread_finalize(void);
 
 #else
 
-#define _error_context_push( name, namelen, data, datalen ) /*lint -save -e506 -e751 */ do { \
-  (void)sizeof( name );
-  (void)sizeof( namelen );
-  (void)sizeof( data );
-  (void)sizeof( datalen );
+#define _error_context_push(name, namelen, data, datalen) /*lint -save -e506 -e751 */ do { \
+  (void)sizeof(name);
+  (void)sizeof(namelen);
+  (void)sizeof(data);
+  (void)sizeof(datalen);
   } while(0) /*lint -restore -e506 -e751 */
 
-#define error_context_push( ... ) do { \
-  _error_context_push( __VA_ARGS__ ); \
+#define error_context_push(...) do { \
+  _error_context_push(__VA_ARGS__); \
   } while(0)
 
 #define error_context_pop() do { /* */ } while(0)
 
 #define error_context_clear()  do { /* */ } while(0)
 
-#define error_context_buffer( str, length ) \
-  string_copy( str, length, 0, 0 )
+#define error_context_buffer(str, length) \
+  string_copy(str, length, 0, 0)
 
 #define error_context() 0
 
-#define error_context_declare_local( decl ) do { /* */ } while(0)
+#define error_context_declare_local(decl) do { /* */ } while(0)
 
 #define error_context_thread_finalize() do { /* */ } while(0)
 

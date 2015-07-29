@@ -106,7 +106,7 @@ _environment_initialize(const application_t application) {
 	int ia;
 	int num_args = 0;
 	DWORD ret = 0;
-	wchar_t module_filename[FOUNDATION_MAX_PATHLEN];
+	wchar_t module_filename[BUILD_MAX_PATHLEN];
 	LPWSTR* arg_list = CommandLineToArgvW(GetCommandLineW(), &num_args);
 	if (!arg_list)
 		return -1;
@@ -116,7 +116,7 @@ _environment_initialize(const application_t application) {
 
 	LocalFree(arg_list);
 
-	if (GetModuleFileNameW(0, module_filename, FOUNDATION_MAX_PATHLEN)) {
+	if (GetModuleFileNameW(0, module_filename, BUILD_MAX_PATHLEN)) {
 		string_t exe_path = string_convert_utf16(buffer, sizeof(buffer), module_filename,
 		                                         wstring_length(module_filename));
 		exe_path = path_absolute(exe_path.str, exe_path.length, BUILD_MAX_PATHLEN);
@@ -279,7 +279,7 @@ _environment_finalize(void) {
 	string_array_deallocate(_environment_argv);
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_deallocate(_environment_var);
+	string_deallocate(_environment_var.str);
 #endif
 	string_deallocate(_environment_executable_name.str);
 	string_deallocate(_environment_executable_dir.str);
@@ -330,13 +330,17 @@ environment_current_working_directory(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		string_t localpath;
-		wchar_t wd[BUILD_MAX_PATHLEN];
+		wchar_t wdbuffer[BUILD_MAX_PATHLEN];
+		wchar_t* wd = wdbuffer;
 		DWORD ret = GetCurrentDirectoryW(BUILD_MAX_PATHLEN, wd);
 		if (ret > BUILD_MAX_PATHLEN) {
-			... alloc buffer ...
+			wd = memory_allocate(0, ret * sizeof(wchar_t), 0, MEMORY_TEMPORARY);
+			ret = GetCurrentDirectoryW(BUILD_MAX_PATHLEN, wd);
 		}
 		localpath = string_allocate_from_wstring(wd, ret);
-		_environment_current_working_dir = path_clean(STRING_ARGS_CAPACITY(localpath), true);
+		if (wd != wdbuffer)
+			memory_deallocate(wd);
+		_environment_current_working_dir = path_clean(STRING_ARGS_CAPACITY(localpath));
 	}
 #elif FOUNDATION_PLATFORM_POSIX
 	string_t localpath = string_thread_buffer();
@@ -411,10 +415,10 @@ environment_home_directory(void) {
 		return string_to_const(_environment_home_dir);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		wchar_t wpath[FOUNDATION_MAX_PATHLEN];
+		wchar_t wpath[BUILD_MAX_PATHLEN];
 		SHGetFolderPathW(0, CSIDL_LOCAL_APPDATA, 0, 0, wpath);
 		_environment_home_dir = string_allocate_from_wstring(wpath, 0);
-		_environment_home_dir = path_clean(STRING_ARGS_CAPACITY(_environment_home_dir), true, true);
+		_environment_home_dir = path_clean(STRING_ARGS_CAPACITY(_environment_home_dir));
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_TIZEN
 	string_const_t env_home = environment_variable(STRING_CONST("HOME"));
@@ -454,13 +458,11 @@ environment_temporary_directory(void) {
 		return string_to_const(_environment_temp_dir);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		wchar_t wpath[FOUNDATION_MAX_PATHLEN];
-		GetTempPathW(FOUNDATION_MAX_PATHLEN, wpath);
+		wchar_t wpath[BUILD_MAX_PATHLEN];
+		GetTempPathW(BUILD_MAX_PATHLEN, wpath);
 		_environment_temp_dir = string_allocate_from_wstring(wpath, 0);
-		_environment_temp_dir = path_clean(_environment_temp_dir.str, _environment_temp_dir.length,
-		                                   _environment_temp_dir.length, true);
-		_environment_temp_dir = path_absolute(_environment_temp_dir.str, _environment_temp_dir.length,
-		                                      _environment_temp_dir.length, true);
+		_environment_temp_dir = path_clean(STRING_ARGS_CAPACITY(_environment_temp_dir));
+		_environment_temp_dir = path_absolute(STRING_ARGS_CAPACITY(_environment_temp_dir));
 	}
 #elif FOUNDATION_PLATFORM_ANDROID
 	//Use application internal data path, or if that fails, external data path

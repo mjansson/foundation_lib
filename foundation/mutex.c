@@ -205,7 +205,7 @@ mutex_wait(mutex_t* mutex, unsigned int timeout) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #if !BUILD_DEPLOY
-	profile_wait(mutex->name);
+	profile_wait(STRING_ARGS(mutex->name));
 #endif
 
 	atomic_incr32(&mutex->waiting);

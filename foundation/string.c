@@ -1259,7 +1259,7 @@ string_allocate_from_utf32(const uint32_t* str, size_t length) {
 	return (string_t){ buf, curlen };
 }
 
-void
+string_t
 string_convert_utf16(char* dst, size_t capacity, const uint16_t* src, size_t length) {
 	bool swap = false;
 	uint32_t glyph, lval;
@@ -1289,9 +1289,10 @@ string_convert_utf16(char* dst, size_t capacity, const uint16_t* src, size_t len
 	}
 
 	dst[curlen] = 0;
+	return (string_t){dst, curlen};
 }
 
-void
+string_t
 string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t length) {
 	bool swap = false;
 	uint32_t glyph;
@@ -1314,6 +1315,7 @@ string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t len
 	}
 
 	dst[curlen] = 0;
+	return (string_t){dst, curlen};
 }
 
 #define THREAD_BUFFER_SIZE BUILD_MAX_PATHLEN

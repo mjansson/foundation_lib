@@ -741,8 +741,9 @@ zero terminated (included in capacity).
 \param capacity Capacity of destination buffer
 \param src Source utf-16 string
 \param length Length of source string in utf-16 characters (not bytes),
-              not including terminating zero */
-FOUNDATION_API void
+              not including terminating zero
+\return Converted string in given buffer */
+FOUNDATION_API string_t
 string_convert_utf16(char* dst, size_t capacity, const uint16_t* src, size_t length);
 
 /*! \brief Convert from utf-32 string
@@ -752,8 +753,9 @@ zero terminated (included in capacity).
 \param capacity Capacity of destination buffer
 \param src Source utf-32 string
 \param length Length of source string in utf-32 characters (not bytes),
-              not including terminating zero */
-FOUNDATION_API void
+              not including terminating zero
+\return Converted string in given buffer */
+FOUNDATION_API string_t
 string_convert_utf32(char* dst, size_t dst_length, const uint32_t* src, size_t src_length);
 
 /*! \brief Convert from int

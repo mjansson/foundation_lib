@@ -83,7 +83,7 @@ library_load(const char* name, size_t length) {
 	size_t last_slash;
 	size_t base_length;
 #if FOUNDATION_PLATFORM_WINDOWS
-	char* dllname;
+	string_t dllname;
 	HANDLE dll;
 #endif
 	char buf[BUILD_MAX_PATHLEN];
@@ -129,14 +129,15 @@ library_load(const char* name, size_t length) {
 
 	dll = LoadLibraryA(name);
 	if (!dll) {
-		size_t last_dot = string_rfind(name, '/', STRING_NPOS);
+		size_t last_dot = string_rfind(name, length, '/', STRING_NPOS);
 		if ((last_dot == STRING_NPOS) || (last_dot < last_slash)) {
-			dllname = string_concat(buf, sizeof(buf), STRING_ARGS(name), STRING_COUNT(FOUNDATION_LIB_EXT));
+			dllname = string_concat(buf, sizeof(buf), name, length, STRING_CONST(FOUNDATION_LIB_EXT));
 			dll = LoadLibraryA(dllname.str);
 		}
 	}
 	if (!dll) {
-		log_warnf(0, WARNING_SUSPICIOUS, "Unable to load DLL '%s': %s", name, system_error_message(0));
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%*s': %s"),
+		          name, length, system_error_message(0));
 		error_context_pop();
 		return 0;
 	}

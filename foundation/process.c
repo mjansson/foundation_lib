@@ -110,7 +110,7 @@ process_set_verb(process_t* proc, const char* verb, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (proc->verb.length <= length)
 		proc->verb = string_resize(proc->verb.str, proc->verb.length,
-		                           proc->verb.length ? proc->verb.length + 1 : 0, length + 1, 0, true);
+		                           proc->verb.length ? proc->verb.length + 1 : 0, length + 1, 0);
 	proc->verb = string_copy(proc->verb.str, length + 1, verb, length);
 #else
 	FOUNDATION_UNUSED(verb);
@@ -173,15 +173,17 @@ process_spawn(process_t* proc) {
 				size_t pos = string_find(arg.str, arg.length, '"', 0);
 				while (pos != STRING_NPOS) {
 					if (arg.str[ pos - 1 ] != '\\') {
-						char* escarg = string_substr(arg, 0, pos);
-						char* left = string_substr(arg, pos, STRING_NPOS);
-						escarg = string_append(escarg, "\\");
-						escarg = string_append(escarg, left);
-						string_deallocate(left);
-						string_deallocate(arg);
+						string_const_t right = string_substr(STRING_ARGS(arg), 0, pos);
+						string_const_t left = string_substr(STRING_ARGS(arg), pos, STRING_NPOS);
+						size_t capacity = arg.length + 2;
+						string_t escarg = string_allocate(0, capacity);
+						escarg = string_concat(STRING_ARGS(escarg), capacity,
+						                       STRING_ARGS(right), STRING_CONST("\\"));
+						escarg = string_append(STRING_ARGS(escarg), capacity, STRING_ARGS(left));
+						string_deallocate(arg.str);
 						arg = escarg;
 					}
-					pos = string_find(arg, '"', pos + 2);
+					pos = string_find(STRING_ARGS(arg), '"', pos + 2);
 				}
 				arg = string_prepend(arg, "\"");
 				arg = string_append(arg, "\"");

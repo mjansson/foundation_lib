@@ -174,7 +174,7 @@ system_error_reset(void) {
 	SetLastError(0);
 }
 
-const char*
+string_const_t
 system_error_message(int code) {
 	char* errmsg;
 	if (!code)
@@ -190,13 +190,13 @@ system_error_message(int code) {
 	return string_strip(errmsg, string_length(errmsg), STRING_CONST(STRING_WHITESPACE));
 }
 
-const char*
+string_const_t
 system_hostname(void) {
 	char* hostname = _system_buffer();
 	unsigned int size = SYSTEM_BUFFER_SIZE;
 	if (!GetComputerNameA(hostname, &size))
 		string_copy(hostname, "unknown", SYSTEM_BUFFER_SIZE);
-	return hostname;
+	return string_const(hostname, size);
 }
 
 uint64_t

@@ -59,7 +59,7 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 	                          local_time.wYear, local_time.wMonth, local_time.wDay,
 	                          local_time.wHour, local_time.wMinute, local_time.wSecond,
 	                          GetCurrentProcessId(), GetCurrentThreadId());
-	fs_make_directory(environment_temporary_directory());
+	fs_make_directory(STRING_ARGS(environment_temporary_directory()));
 	file = CreateFileA(dump_file.str, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0,
 	                   CREATE_ALWAYS, 0, 0);
 
