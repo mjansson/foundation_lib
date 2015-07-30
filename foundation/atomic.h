@@ -14,8 +14,9 @@
 
 /*! \file atomic.h
 \brief Atomic operations and memory fences
-\details Atomic operations and memory fences. For an excellent source of information on memory
-models, atomic instructions and memory barrier/fences, go to
+
+Atomic operations and memory fences. For an excellent source of information on memory models,
+atomic instructions and memory barrier/fences, go to
 http://mintomic.github.io/lock-free/memory-model/
 and/or
 http://en.cppreference.com/w/cpp/atomic/memory_order
@@ -35,110 +36,95 @@ system */
 #  include <libkern/OSAtomic.h>
 #endif
 
-/*! \brief Atomically load value
-Atomically load 32 bit value
+/*! Atomically load 32 bit value
 \param src   Value
 \return      Current value */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_load32(atomic32_t* src);
 
-/*! \brief Atomically load value
-Atomically load 64 bit value
+/*! Atomically load 64 bit value
 \param src   Value
 \return      Current value */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_load64(atomic64_t* src);
 
-/*! \brief Atomically load value
-Atomically load pointer value
+/*! Atomically load pointer value
 \param src   Value
 \return      Current value */
 static FOUNDATION_FORCEINLINE void*
 atomic_loadptr(atomicptr_t* src);
 
-/*! \brief Atomically store value
-Atomically store 32 bit value
+/*! Atomically store 32 bit value
 \param dst   Target
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_store32(atomic32_t* dst, int32_t val);
 
-/*! \brief Atomically store value
-Atomically store 64 bit value
+/*! Atomically store 64 bit value
 \param dst   Target
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_store64(atomic64_t* dst, int64_t val);
 
-/*! \brief Atomically store value
-Atomically store pointer value
+/*! Atomically store pointer value
 \param dst   Target
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_storeptr(atomicptr_t* dst, void* val);
 
-/*! \brief Atomically add value
-Atomically add to the value of the 32 bit integer and returns its new value
+/*! Atomically add to the value of the 32 bit integer and returns its new value
 \param val   Value to change
 \param add   Value to add
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_add32(atomic32_t* val, int32_t add);
 
-/*! \brief Atomically add value
-Atomically add to the value of the 64 bit integer and returns its new value
+/*! Atomically add to the value of the 64 bit integer and returns its new value
 \param val   Value to change
 \param add   Value to add
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_add64(atomic64_t* val, int64_t add);
 
-/*! \brief Atomically increase value
-Atomically increases the value of the 32 bit integer and returns its new value
+/*! Atomically increases the value of the 32 bit integer and returns its new value
 \param val   Value to change
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_incr32(atomic32_t* val);
 
-/*! \brief Atomically increase value
-Atomically increases the value of the 64 bit integer and returns its new value
+/*! Atomically increases the value of the 64 bit integer and returns its new value
 \param val   Value to change
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_incr64(atomic64_t* val);
 
-/*! \brief Atomically decrease value
-Atomically decreases the value of the 32 bit integer and returns its new value
+/*! Atomically decreases the value of the 32 bit integer and returns its new value
 \param val   Value to change
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_decr32(atomic32_t* val);
 
-/*! \brief Atomically decrease value
-Atomically decreases the value of the 64 bit integer and returns its new value
+/*! Atomically decreases the value of the 64 bit integer and returns its new value
 \param val   Value to change
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_decr64(atomic64_t* val);
 
-/*! \brief Atomically add value
-Atomically add to the value of the 32 bit integer and returns its old value
+/*! Atomically add to the value of the 32 bit integer and returns its old value
 \param val   Value to change
 \param add   Value to add
 \return      Old value before addition */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_exchange_and_add32(atomic32_t* val, int32_t add);
 
-/*! \brief Atomically add value
-Atomically add to the value of the 64 bit integer and returns its old value
+/*! Atomically add to the value of the 64 bit integer and returns its old value
 \param val   Value to change
 \param add   Value to add
 \return      Old value before addition */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_exchange_and_add64(atomic64_t* val, int64_t add);
 
-/*! \brief Atomically compare and swap (CAS)
-Atomically compare and swap (CAS). The value in the destination location is compared to
+/*! Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
 \param dst   Value to change
 \param val   Value to set
@@ -148,8 +134,7 @@ the reference value, and if equal the new value is stored in the destination loc
 static FOUNDATION_FORCEINLINE bool
 atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref);
 
-/*! \brief Atomically compare and swap (CAS)
-Atomically compare and swap (CAS). The value in the destination location is compared to
+/*! Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
 \param dst   Value to change
 \param val   Value to set
@@ -159,8 +144,7 @@ the reference value, and if equal the new value is stored in the destination loc
 static FOUNDATION_FORCEINLINE bool
 atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref);
 
-/*! \brief Atomically compare and swap (CAS)
-Atomically compare and swap (CAS). The value in the destination location is compared to
+/*! Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
 \param dst   Value to change
 \param val   Value to set
@@ -170,38 +154,33 @@ the reference value, and if equal the new value is stored in the destination loc
 static FOUNDATION_FORCEINLINE bool
 atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref);
 
-/*! \brief Signal acquire fence
-Signal fence to make prior writes to other memory locations visible. Implemented as a
-compile barrier on all supported platforms */
+/*! Signal fence making prior writes made to other memory locations done by a thread on
+the same core doing a release fence visible to the calling thread. Implemented as a compile
+barrier on all supported platforms */
 static FOUNDATION_FORCEINLINE void
 atomic_signal_fence_acquire(void);
 
-/*! \brief Signal release fence
-Signal fence to make prior writes to other memory locations visible to functions doing
-an acquire fence. Implemented as a compile barrier on all supported platforms */
+/*! Signal fence to make prior writes to functions doing an acquire fence in threads on
+the same core. Implemented as a compile barrier on all supported platforms */
 static FOUNDATION_FORCEINLINE void
 atomic_signal_fence_release(void);
 
-/*! \brief Signal total order fence
-Signal fence combining acquire and release order as well as providing a single total
-order on all sequentially consistent fences. Implemented as a compile barrier on all
-supported platforms */
+/*! Signal fence combining acquire and release order as well as providing a single total
+order on all sequentially consistent fences for threads on the same core. Implemented as
+a compile barrier on all supported platforms */
 static FOUNDATION_FORCEINLINE void
 atomic_signal_fence_sequentially_consistent(void);
 
-/*! \brief Thread acquire fence
-Thread fence making prior writes made to other memory locations done by a thread doing
+/*! Thread fence making prior writes made to other memory locations done by a thread doing
 a release fence visible to the calling thread. */
 static FOUNDATION_FORCEINLINE void
 atomic_thread_fence_acquire(void);
 
-/*! \brief Thread release fence
-Thread fence making prior writes visible to other thread to do an acquire fence. */
+/*! Thread fence making prior writes visible to other threads to do an acquire fence. */
 static FOUNDATION_FORCEINLINE void
 atomic_thread_fence_release(void);
 
-/*! \brief Thread total order fence
-Thread fence combining an acquire and release fence as well as enforcing a single
+/*! Thread fence combining an acquire and release fence as well as enforcing a single
 total order on all sequentially consistent fences. */
 static FOUNDATION_FORCEINLINE void
 atomic_thread_fence_sequentially_consistent(void);

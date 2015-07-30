@@ -557,8 +557,8 @@ config_string(hash_t section, hash_t key) {
 	/*lint --e{788} We use default for remaining enums */
 	switch (key_val->type) {
 	case CONFIGVALUE_BOOL:
-		return key_val->bval ? (string_const_t) {STRING_CONST("true")} :
-		                       (string_const_t) {STRING_CONST("false")};
+return key_val->bval ? (string_const_t) {STRING_CONST("true")} :
+		(string_const_t) {STRING_CONST("false")};
 
 	case CONFIGVALUE_INT:
 		if (!key_val->sval.str)
@@ -639,8 +639,9 @@ config_set_string(hash_t section, hash_t key, const char* value, size_t length) 
 	CLEAR_KEY_STRINGS(key_val);
 
 	key_val->sval = string_clone(value, length);
-	key_val->type = ((string_find_string(key_val->sval.str, key_val->sval.length, STRING_CONST("$("),
-	                                     0) != STRING_NPOS) ? CONFIGVALUE_STRING_VAR : CONFIGVALUE_STRING);
+	key_val->type = ((string_find_string(key_val->sval.str, key_val->sval.length,
+	                                     STRING_CONST("$("), 0) != STRING_NPOS) ?
+	                 CONFIGVALUE_STRING_VAR : CONFIGVALUE_STRING);
 
 	if (key_val->type == CONFIGVALUE_STRING) {
 		bool is_true = string_equal(STRING_ARGS(key_val->sval), STRING_CONST("true"));
@@ -663,8 +664,9 @@ config_set_string_constant(hash_t section, hash_t key, const char* value, size_t
 	memcpy(&key_val->sval.str, &value,
 	       sizeof(char*));     //Yeah yeah, we're storing a const pointer in a non-const var
 	key_val->sval.length = length;
-	key_val->type = ((string_find_string(STRING_ARGS(key_val->sval), STRING_CONST("$("),
-	                                     0) != STRING_NPOS) ? CONFIGVALUE_STRING_CONST_VAR : CONFIGVALUE_STRING_CONST);
+	key_val->type = ((string_find_string(STRING_ARGS(key_val->sval),
+	                                     STRING_CONST("$("), 0) != STRING_NPOS) ?
+	                 CONFIGVALUE_STRING_CONST_VAR : CONFIGVALUE_STRING_CONST);
 
 	if (key_val->type == CONFIGVALUE_STRING_CONST) {
 		bool is_true = string_equal(STRING_ARGS(key_val->sval), STRING_CONST("true"));

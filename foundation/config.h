@@ -14,6 +14,7 @@
 
 /*! \file config.h
 \brief Configuration repository
+
 Simple configuration repository and configuration file parsing. Configuration value are stored
 by section and key, normally indexed by hash of the section/key string. Different sections can
 have the same key stored without interfering.
@@ -53,53 +54,51 @@ kil = 100k
 meg = 4M
 ; comment
 \# comment
-</pre> */
+</pre>
+
+Config repository is not inherently thread safe, synchronization must be done by caller
+in a multithreaded use case */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Get boolean value
-Get config value as boolean
+/*! Get config value as boolean
 \param section  Section
 \param key      Key
 \return         Boolean value, default to false if section:key store not set */
 FOUNDATION_API bool
 config_bool(hash_t section, hash_t key);
 
-/*! \brief Get integer value
-Get config value as integer
+/*! Get config value as integer
 \param section  Section
 \param key      Key
 \return         Integer value, default to 0 if section:key store not set */
 FOUNDATION_API int64_t
 config_int(hash_t section, hash_t key);
 
-/*! \brief Get real value
-Get config value as real
+/*! Get config value as real
 \param section  Section
 \param key      Key
 \return         Real value, default to 0 if section:key store not set */
 FOUNDATION_API real
 config_real(hash_t section, hash_t key);
 
-/*! \brief Get string hash value
-Get config value as hash of the string value
+/*! Get config value as hash of the string value
 \param section  Section
 \param key      Key
-\return         Hash of string value, default to hash of an empty string if section:key store not set */
+\return         Hash of string value, default to hash of an empty string if
+                section:key store not set */
 FOUNDATION_API hash_t
 config_hash(hash_t section, hash_t key);
 
-/*! \brief Get string value
-Get config value as string
+/*! Get config value as string
 \param section  Section
 \param key      Key
-\return         String value, default to empty string ("") if section:key store not set  */
+\return         String value, default to empty string ("") if section:key store not set */
 FOUNDATION_API string_const_t
 config_string(hash_t section, hash_t key);
 
-/*! \brief Set boolean value
-Set boolean config value. Will auto-translate to integer value 0/1, real value 0/1 and
+/*! Set boolean config value. Will auto-translate to integer value 0/1, real value 0/1 and
 string value "false"/"true"
 \param section  Section
 \param key      Key
@@ -107,8 +106,7 @@ string value "false"/"true"
 FOUNDATION_API void
 config_set_bool(hash_t section, hash_t key, bool value);
 
-/*! \brief Set integer value
-Set integer config value. Will auto-translate to boolean value false/true (with 0 mapping
+/*! Set integer config value. Will auto-translate to boolean value false/true (with 0 mapping
 to false and all other values mapping to true) and corresponding real and string values
 (using string_from_int)
 \param section  Section
@@ -117,8 +115,7 @@ to false and all other values mapping to true) and corresponding real and string
 FOUNDATION_API void
 config_set_int(hash_t section, hash_t key, int64_t value);
 
-/*! \brief Set real value
-Set real config value. Will auto-translate to boolean value false/true (with 0 mapping
+/*! Set real config value. Will auto-translate to boolean value false/true (with 0 mapping
 to false and all other values mapping to true) and corresponding integer and string
 values (using string_from_real)
 \param section  Section
@@ -127,8 +124,7 @@ values (using string_from_real)
 FOUNDATION_API void
 config_set_real(hash_t section, hash_t key, real value);
 
-/*! \brief Set string value
-Set string config value. Will auto-translate to boolean value false/true (with "false"
+/*! Set string config value. Will auto-translate to boolean value false/true (with "false"
 and "0" mapping to false and all other values mapping to true) and corresponding integer
 and real values (using string_to_int and string_to_real)
 \param section  Section
@@ -137,8 +133,7 @@ and real values (using string_to_int and string_to_real)
 FOUNDATION_API void
 config_set_string(hash_t section, hash_t key, const char* value, size_t length);
 
-/*! \brief Set constant string value
-Set constand string config value. Will auto-translate to boolean value false/true
+/*! Set constand string config value. Will auto-translate to boolean value false/true
 (with "false" and "0" mapping to false and all other values mapping to true) and
 corresponding integer and real values (using string_to_int and string_to_real).
 Does not allocate memory but will rather store the constant string pointer, and
@@ -149,9 +144,8 @@ requires the pointer to be valid as long as the config value is stored.
 FOUNDATION_API void
 config_set_string_constant(hash_t section, hash_t key, const char* value, size_t length);
 
-/*! \brief Load config
-\details Load config values from a file/stream, optionally filtering by section.
-Look for config files in the following order in order to allow easy overloading of default values
+/*! Load config values from a file/stream, optionally filtering by section. Look for
+config files in the following order in order to allow easy overloading of default values
 (for each directory, a platform subdirectory is also searched)
 <ul>
 <li>1) Executable directory (C:/path/bin/platform/build/exe)
@@ -205,8 +199,7 @@ For MacOSX development, the user app directory
 FOUNDATION_API void
 config_load(const char* name, size_t length, hash_t section, bool built_in, bool overwrite);
 
-/*! \brief Parse config
-Parse config declarations from a stream, optionally filtering on a specific section
+/*! Parse config declarations from a stream, optionally filtering on a specific section
 \param stream    Stream to read from (will read until EOS encountered)
 \param section   Optional filter, which will only load the section matching the
                  given filter_section. Set to 0 to parse all sections
@@ -215,16 +208,14 @@ Parse config declarations from a stream, optionally filtering on a specific sect
 FOUNDATION_API void
 config_parse(stream_t* stream, hash_t section, bool overwrite);
 
-/*! \brief Write config
-Write config declarations to a stream, optionally filtering on a specific section
+/*! Write config declarations to a stream, optionally filtering on a specific section
 \param stream    Stream to write to
 \param section   Optional filter, which will only write section matching the
                  given filter_section. Set to 0 to write all sections */
 FOUNDATION_API void
 config_write(stream_t* stream, hash_t section, string_const_t (*string_mapper)(hash_t));
 
-/*! \brief Parse config command line
-Parse config declarations given on command line
+/*! Parse config declarations given on command line
 \param cmdline   Command line array
 \param num       Number of arguments on command line */
 FOUNDATION_API void

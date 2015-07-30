@@ -14,13 +14,14 @@
 
 /*! \file bufferstream.h
 \brief Stream for memory buffer
-\details Stream for memory buffer */
+
+Stream for memory buffer, both statically sized and dynamically reallocated buffers. Streams are
+not inherently thread safe, synchronization in a multithread use case must be done by caller. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Allocate stream for memory buffer
-Allocate a new stream for memory buffers from an (optionally) existing buffer.
+/*! Allocate a new stream for memory buffers from an (optionally) existing buffer.
 The buffer can grow up to the given capacity. If adopt and grow flags set it
 will grow to any required size reallocating memory. The stream should be
 deallocated with a call to #stream_deallocate.
@@ -35,8 +36,7 @@ FOUNDATION_API stream_t*
 buffer_stream_allocate(void* buffer, unsigned int mode, size_t size,
                        size_t capacity, bool adopt, bool grow);
 
-/*! \brief Initialize stream for memory buffer
-Initialize a new stream for memory buffers from an (optionally) existing buffer.
+/*! Initialize a new stream for memory buffers from an (optionally) existing buffer.
 The buffer can grow up to the given capacity. If adopt and grow flags set it will
 grow to any required size reallocating memory. The stream should be finalized with
 a call to #stream_finalize

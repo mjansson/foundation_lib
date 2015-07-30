@@ -22,12 +22,15 @@ considered a valid array (array storage will be allocated and assigned as needed
 Note that all public APIs are defines as macros. Some calls might evaluate argument expressions
 multiple times.
 
+Arrays are not inherently thread safe. Synchronization in a multithreaded use case must be done
+by caller.
+
 Example usage:
 
-<pre>int** arr = 0;
+<code>int** arr = 0;
 array_push( arr, 10 ); //arr is now allocated and arr[0] now equals 10
 array_pop( arr ); //arr size is now 0, arr still allocated
-array_deallocate( arr ); //arr is now deallocated and arr now equals null</pre>
+array_deallocate( arr ); //arr is now deallocated and arr now equals null</code>
 
 Adapted and extended from stb_arr at http://nothings.org/stb.h */
 
