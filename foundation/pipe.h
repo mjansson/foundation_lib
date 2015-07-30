@@ -28,7 +28,7 @@ pipe_allocate(void);
 
 /*! \brief Initialize unnamed pipe stream
 Initialize an unnamed pipe stream. Finalize the stream with a call to #stream_finalize
-\param stream Pipe stream */
+\param pipe Pipe stream */
 FOUNDATION_API void
 pipe_initialize(stream_pipe_t* pipe);
 

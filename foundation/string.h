@@ -14,7 +14,8 @@
 
 /*! \file string.h
 \brief String utility functions
-\details String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion
+
+String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion
 to and from pritimive integral data types. Unless otherwise noted in the function descripion it
 is safe to pass null pointers to any arguments.
 
@@ -58,7 +59,6 @@ Clone a string. Allocates a memory block of capacity (length+1) and copies the c
 the given string. Zero terminates the new string. Will allocate a new memory block even
 for a null/empty string argument.
 \param str String to clone
-\param length Length of string to clone
 \return Zero-terminated cloned string of given length stored in a new memory block
         of capacity (length+1) */
 FOUNDATION_API string_t
@@ -113,7 +113,7 @@ FOUNDATION_ATTRIBUTE4(format, printf, 1, 3);
 In-memory string formatting from a format specifier and variable data, printf style. Will print
 at most (capacity-1) characters into the buffer and always zero terminate.
 \param buffer Destination buffer
-\param capactiy Capacity of destination buffer
+\param capacity Capacity of destination buffer
 \param format Format specifier
 \param format_length Length of format specifier
 \return Formatted string in given buffer, zero terminated */
@@ -135,7 +135,7 @@ FOUNDATION_ATTRIBUTE4(format, printf, 1, 0);
 In-memory string formatting from a format specifier and variable data given as a va_list, printf
 style. Will print at most (capacity-1) characters into the buffer and always zero terminate.
 \param buffer Destination buffer
-\param capactiy Capacity of destination buffer
+\param capacity Capacity of destination buffer
 \param format Format specifier
 \param format_length Length of format specifier
 \param list Variable argument list
@@ -687,7 +687,7 @@ Convert a utf-8 encoded string into a preallocated wide char string
 \param cstr Source utf-8 encoded string
 \param length Length of source string in bytes (NOT unicode glyphs) */
 FOUNDATION_API void
-wstring_from_string(wchar_t* str, size_t capactiy, const char* cstr, size_t length);
+wstring_from_string(wchar_t* str, size_t capacity, const char* cstr, size_t length);
 
 /*! \brief Deallocate wide string
 Deallocate a wide character string
@@ -756,7 +756,7 @@ zero terminated (included in capacity).
               not including terminating zero
 \return Converted string in given buffer */
 FOUNDATION_API string_t
-string_convert_utf32(char* dst, size_t dst_length, const uint32_t* src, size_t src_length);
+string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t length);
 
 /*! \brief Convert from int
 Convert an integer to a string, with optional field width and fill character. String buffer

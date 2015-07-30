@@ -667,7 +667,7 @@ typedef void* (* thread_fn)(object_t thread, void* arg);
  Any function to be used in conjunction with the crash guard functionality
 of the library should have this prototype to allow the crash guard to catch
 and handle exceptions correctly
-\param Implementation specific argument passed to crash_guard
+\param arg Implementation specific argument passed to crash_guard
 \return Implementation specific return value which is forwarded as return value
         from crash_guard (note that FOUNDATION_CRASH_DUMP_GENERATED is reserved) */
 typedef int (* crash_guard_fn)(void* arg);

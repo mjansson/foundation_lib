@@ -222,7 +222,9 @@ DECLARE_TEST( crash, error )
 	error_set_callback( callback );
 
 	{
+#if BUILD_ENABLE_ERROR_CONTEXT
 		const char context_data[] = "another message";
+#endif
 		char context_buffer[512];
 		string_t contextstr;
 		error_context_clear();

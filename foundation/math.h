@@ -370,7 +370,7 @@ Compare two floats with epsilon tolerance expressed as number of adjacent float 
 \param ulps Number of float values in tolerance
 \return True if float values are in tolerance range of eachother, false if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_eq(real, real, int ulps);
+math_real_eq(real rval, real lval, int ulps);
 
 /*! \brief Compare with tolerance (not sign safe)
 Compare two floats with epsilon tolerance expressed as number of adjacent float values.
@@ -381,7 +381,7 @@ of x will yield incorrect results. Most notably will -0 and +0 not be equal.
 \param ulps Number of float values in tolerance
 \return True if float values are in tolerance range of eachother, false if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_eqns(real, real, int ulps);
+math_real_eqns(real rval, real lval, int ulps);
 
 /*! \brief Compare to zero with tolerance
 Test if value is zero. A value is interpreted as zero if it is either positive
@@ -1155,7 +1155,7 @@ math_real_dec(real val, int units) {
 	ca.rval = val;
 	cb.ival = ca.ival - (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
-		cb.ival = 0x80000000 - cb.ival;
+		cb.ival = (int32_t)0x80000000 - cb.ival;
 
 	return cb.rval;
 }
@@ -1167,7 +1167,7 @@ math_real_inc(real val, int units) {
 	ca.rval = val;
 	cb.ival = ca.ival + (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
-		cb.ival = 0x80000000 - cb.ival;
+		cb.ival = (int32_t)0x80000000 - cb.ival;
 
 	return cb.rval;
 }

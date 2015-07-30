@@ -47,8 +47,7 @@ hashtable32_deallocate(hashtable32_t* table);
 Initialize a 32-bit hash table of given size. The returned hash table should be finalized with
 a call to #hashtable32_finalize.
 \param table Hash table
-\param buckets Number of buckets
-\return New hash table */
+\param buckets Number of buckets */
 FOUNDATION_API void
 hashtable32_initialize(hashtable32_t* table, size_t buckets);
 
@@ -116,8 +115,7 @@ hashtable64_deallocate(hashtable64_t* table);
 Initialize a 64-bit hash table of given size. The returned hash table should
 be finalized with a call to #hashtable64_finalize.
 \param table Hash table
-\param buckets Number of buckets
-\return New hash table */
+\param buckets Number of buckets */
 FOUNDATION_API void
 hashtable64_initialize(hashtable64_t* table, size_t buckets);
 
