@@ -16,7 +16,8 @@
 
 \file math.h
 \brief Math functions
-\details Core math functionality, providing single entry points to common math
+
+Core math functionality, providing single entry points to common math
 functions across platforms and floating point notations used (32 or 64 bit real numbers).
 
 Increment/decrement and wrap functions from
@@ -40,17 +41,14 @@ http://cellperformance.beyond3d.com/articles/2006/07/increment-and-decrement-wra
 
 #if FOUNDATION_SIZE_REAL == 32
 
-/*! \brief Epsilon value
-Epsilon value. This represents a small number close to zero that can be used
+/*! Epsilon value. This represents a small number close to zero that can be used
 for comparisons or thresholds. Roughly equals 100 floating point units at 1.0 */
 #define REAL_EPSILON  0.00001f
 
-/*! \brief Maximum finite number
-Maximum finite number representable in the current real number format */
+/*! Maximum finite number representable in the current real number format */
 #define REAL_MAX      FLT_MAX
 
-/*! \brief Minimum finite number
-Minimum finite number representable in the current real number format */
+/*! Minimum finite number representable in the current real number format */
 #define REAL_MIN      FLT_MIN
 
 #else
@@ -62,110 +60,88 @@ Minimum finite number representable in the current real number format */
 
 #endif
 
-/*! \brief Constant zero (0.0)
-Constant zero (0.0) */
+/*! Constant zero (0.0) */
 #define REAL_ZERO     REAL_C( 0.0 )
 
-/*! \brief Constant one (1.0)
-Constant one (1.0) */
+/*! Constant one (1.0) */
 #define REAL_ONE      REAL_C( 1.0 )
 
-/*! \brief Constant two (2.0)
-Constant two (2.0) */
+/*! Constant two (2.0) */
 #define REAL_TWO      REAL_C( 2.0 )
 
-/*! \brief Constant three (3.0)
-Constant three (3.0) */
+/*! Constant three (3.0) */
 #define REAL_THREE    REAL_C( 3.0 )
 
-/*! \brief Constant four (4.0)
-Constant four (4.0) */
+/*! Constant four (4.0) */
 #define REAL_FOUR     REAL_C( 4.0 )
 
-/*! \brief Constant half (0.5)
-Constant half (0.5) */
+/*! Constant half (0.5) */
 #define REAL_HALF     REAL_C( 0.5 )
 
-/*! \brief Constant quarter (0.25)
-Constant quarter (0.25) */
+/*! Constant quarter (0.25) */
 #define REAL_QUARTER  REAL_C( 0.25 )
 
-/*! \brief Constant pi (3.141592...)
-Constant pi (3.141592...) */
+/*! Constant pi (3.141592...) */
 #define REAL_PI       REAL_C( 3.1415926535897932384626433832795 )
 
-/*! \brief Constant half pi (1.570796...)
-Constant half pi (1.570796...) */
+/*! Constant half pi (1.570796...) */
 #define REAL_HALFPI   REAL_C( 1.5707963267948966192313216916398 )
 
-/*! \brief Constant two pi (6.283185...)
-Constant two pi (6.283185...) */
+/*! Constant two pi (6.283185...) */
 #define REAL_TWOPI    REAL_C( 6.2831853071795864769252867665590 )
 
-/*! \brief Constant square root of two (1.414213...)
-Constant square root of two (1.414213...) */
+/*! Constant square root of two (1.414213...) */
 #define REAL_SQRT2    REAL_C( 1.4142135623730950488016887242097 )
 
-/*! \brief Constant square root of three (1.732050...)
-Constant square root of three (1.732050...) */
+/*! Constant square root of three (1.732050...) */
 #define REAL_SQRT3    REAL_C( 1.7320508075688772935274463415059 )
 
-/*! \brief Constant number e (2.718281...)
-Constant number e (2.718281...) */
+/*! Constant number e (2.718281...) */
 #define REAL_E        REAL_C( 2.7182818284590452353602874713527 )
 
-/*! \brief Constant natural logarithm of two (0.693147...)
-Constant natural logarithm of two (0.693147...) */
+/*! Constant natural logarithm of two (0.693147...) */
 #define REAL_LOGN2    REAL_C( 0.6931471805599453094172321214582 )
 
-/*! \brief Constant natural logarithm of ten (2.302585...)
-Constant natural logarithm of ten (2.302585...) */
+/*! Constant natural logarithm of ten (2.302585...) */
 #define REAL_LOGN10   REAL_C( 2.3025850929940456840179914546844 )
 
-/*! \brief Sine function
-Sine function
+/*! Sine function
 \param x Argument
 \return Sine of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_sin(real x);
 
-/*! \brief Cosine function
-Cosine function
+/*! Cosine function
 \param x Argument
 \return Cosine of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_cos(real x);
 
-/*! \brief Tangent function
-Tangent function
+/*! Tangent function
 \param x Argument
 \return Tangent of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_tan(real x);
 
-/*! \brief Arcsine function
-Arcsine function
+/*! Arcsine function
 \param x Argument
 \return Arcsine of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_asin(real x);
 
-/*! \brief Arccosine function
-Arccosine function
+/*! Arccosine function
 \param x Argument
 \return Arccosine of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_acos(real x);
 
-/*! \brief Arctangent function
-Arctangent function
+/*! Arctangent function
 \param x Argument
 \return Arctangent of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_atan(real x);
 
-/*! \brief Calculate angle for point
-Calculate the angle in radians between the positive x-axis of a plane and the point given
+/*! Calculate the angle in radians between the positive x-axis of a plane and the point given
 by the coordinates (x, y) on it. The angle is positive for counter-clockwise angles (upper
 half-plane, y > 0), and negative for clockwise angles (lower half-plane, y < 0).
 \param x X coordinate
@@ -174,146 +150,126 @@ half-plane, y > 0), and negative for clockwise angles (lower half-plane, y < 0).
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_atan2(real x, real y);
 
-/*! \brief Square root function
-Square root function
+/*! Square root function
 \param x Argument
 \return Square root of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_sqrt(real x);
 
-/*! \brief Inverse square root
-Inverse square root (1/sqrt) function
+/*! Inverse square root (1/sqrt) function
 \param x Argument
 \return Inverse square root of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_rsqrt(real x);
 
-/*! \brief Absolute function
-Absolute function
+/*! Absolute function
 \param x Argument
 \return Absulute of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_abs(real x);
 
-/*! \brief Modulo function
-Floating point modulo function
+/*! Floating point modulo function
 \param x Value
 \param y Base
 \return x modulo y */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_mod(real x, real y);
 
-/*! \brief Natural exponential function
-Natural exponential function
+/*! Natural exponential function
 \param x Argument
 \return e^x */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_exp(real x);
 
-/*! \brief Power (exponential) function
-Power (exponential) function
+/*! Power (exponential) function
 \param x Base
 \param y Exponent
 \return x^y */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_pow(real x, real y);
 
-/*! \brief Natural logarithm function
-Natural logarithm function
+/*! Natural logarithm function
 \param x Argument
 \return Natural logarithm of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_logn(real x);
 
-/*! \brief Binary logarithm (base 2) function
-\details Binary logarithm (base 2) function
+/*! Binary logarithm (base 2) function
 \param x Argument
 \return Binary logarithm of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_log2(real x);
 
-/*! \brief Floor function
-Floor (largest previous integer) function
+/*! Floor (largest previous integer) function
 \param x Argument
 \return Largest integer not greater than x */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
 math_floor(real x);
 
-/*! \brief Floor function
-Floor (largest previous 64 bit integer) function
+/*! Floor (largest previous 64 bit integer) function
 \param x Argument
 \return Largest 64 bit integer not greater than x */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
 math_floor64(real x);
 
-/*! \brief Ceiling function
-Ceiling (smallest following integer) function
+/*! Ceiling (smallest following integer) function
 \param x Argument
 \return Smallest integer greater than x */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
 math_ceil(real x);
 
-/*! \brief Ceiling function
-Ceiling (smallest following 64 bit integer) function
+/*! Ceiling (smallest following 64 bit integer) function
 \param x Argument
 \return Smallest 64 bit integer greater than x */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
 math_ceil64(real x);
 
-/*! \brief Round function
-Round to nearest floating point function
+/*! Round to nearest floating point function
 \param x Argument
 \return Argument rounded to nearest integer */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
 math_round(real x);
 
-/*! \brief Truncation (integral part) function
-Truncation (integral part) function
+/*! Truncation (integral part) function
 \param x Argument
 \return Integral part of argument */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
 math_trunc(real x);
 
-/*! \brief Get smallest greater power-of-two
-Calculate smallest greater power-of-two. Argument MUST be > 1 or results are undefined
+/*! Calculate smallest greater power-of-two. Argument MUST be > 1 or results are undefined
 \param x Argument (MUST be >1)
 \return Smallest greater power-of-two (or x if it is a power-of-two) */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL unsigned int
 math_align_poweroftwo(unsigned int x);
 
-/*! \brief Query if power-of-two
-Query if power-of-two
+/*! Query if argument is power-of-two
 \param x Argument
 \return true if x is a power-of-two, false if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_is_poweroftwo(unsigned int x);
 
-/*! \brief Get smallest greater multiple
-Calculate smallest greater multiple of the given base
+/*! Calculate smallest greater multiple of the given base
 \param x Argument
 \param alignment Alignment
 \return Smallest greater multiple of the given alignment */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL unsigned int
 math_align_up(unsigned int x, unsigned int alignment);
 
-/*! \brief Scalar interpolation function
-Scalar interpolation function with zero first-order derivative at endpoints,
+/*! Scalar interpolation function with zero first-order derivative at endpoints,
 smoothstep(t) = 3t^2 - 2t^3
 \param t Argument in [0..1]
 \return Smoothed value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_smoothstep(real t);
 
-/*! \brief Scalar interpolation function
-Scalar interpolation function with zero first-order and second-order derivative
+/*! Scalar interpolation function with zero first-order and second-order derivative
 at endpoints, smoothstep(t) = 6t^5 - 15t^4 + 10t^3
 \param t Argument in [0..1]
 \return Smoothed value */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_smootherstep(real t);
 
-/*! \brief Linear interpolation function
-Linear interpolation function
+/*! Linear interpolation function
 \param t Interpolation factor in [0..1] range
 \param x Start value
 \param y End value
@@ -321,8 +277,7 @@ Linear interpolation function
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_lerp(real t, real x, real y);
 
-/*! \brief Inverse linear interpolation function
-Inverse linear interpolation function
+/*! Inverse linear interpolation function
 \param v Current value
 \param x Start value
 \param y End value
@@ -330,41 +285,36 @@ Inverse linear interpolation function
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_unlerp(real v, real x, real y);
 
-/*! \brief Remap value between intervals
-Remap a value from source interval to destination interval
+/*! Remap a value from source interval to destination interval
 \param x Current value
 \param xmin Start of source interval
 \param xmax End of source interval
 \param ymin Start of destination interval
 \param ymax End of destination interval
-\return Linear remapped value v = ymin + ((x-xmin) / (xmax-xmin)) * (ymax-ymin) */
+\return Linear remapped value <code>v = ymin + ((x-xmin) / (xmax-xmin)) * (ymax-ymin)</code> */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_linear_remap(real x, real xmin, real xmax, real ymin, real ymax);
 
-/*! \brief Maximum function
-Get maximum of two values. Note that as a macro it can evaluate arguments multiple times.
+/*! Get maximum of two values. Note that as a macro it can evaluate arguments multiple times.
 \param x First value
 \param y Second value
 \return Maximum of x and y */
 #define math_max( x, y ) ( (x) < (y) ? (y) : (x) )
 
-/*! \brief Minimum function
-Get minimum of two values. Note that as a macro it can evaluate arguments multiple times.
+/*! Get minimum of two values. Note that as a macro it can evaluate arguments multiple times.
 \param x First value
 \param y Second value
 \return Minimum of x and y */
 #define math_min( x, y ) ( (x) < (y) ? (x) : (y) )
 
-/*! \brief Clamp function
-Clamp value to interval. Note that as a macro it can evaluate arguments multiple times.
+/*! Clamp value to interval. Note that as a macro it can evaluate arguments multiple times.
 \param x Value to clamp
 \param minval Start of interval
 \param maxval End of interval
 \return Value x clamped to [minval,maxval] interval */
 #define math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
 
-/*! \brief Compare with tolerance
-Compare two floats with epsilon tolerance expressed as number of adjacent float values.
+/*! Compare two floats with epsilon tolerance expressed as number of adjacent float values.
 \param rval First float
 \param lval Second float
 \param ulps Number of float values in tolerance
@@ -372,8 +322,7 @@ Compare two floats with epsilon tolerance expressed as number of adjacent float 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_eq(real rval, real lval, int ulps);
 
-/*! \brief Compare with tolerance (not sign safe)
-Compare two floats with epsilon tolerance expressed as number of adjacent float values.
+/*! Compare two floats with epsilon tolerance expressed as number of adjacent float values.
 This method (unlike #math_realeq) is not sign safe, comparing -x to x for small values
 of x will yield incorrect results. Most notably will -0 and +0 not be equal.
 \param rval First float
@@ -383,30 +332,26 @@ of x will yield incorrect results. Most notably will -0 and +0 not be equal.
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_eqns(real rval, real lval, int ulps);
 
-/*! \brief Compare to zero with tolerance
-Test if value is zero. A value is interpreted as zero if it is either positive
+/*! Test if value is zero. A value is interpreted as zero if it is either positive
 or negative zero, or a denormalized value (i.e less than smallest normalized value)
 \param val Float
 \return True if float is within epsilon distance of zero */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_zero(real val);
 
-/*! \brief Compare to zero with tolerance
-Test if value is within epsilon distance of zero
+/*! Test if value is within epsilon distance of zero
 \param val Float
 \return True if float is within epsilon distance of zero */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_epsilon_zero(real val);
 
-/*! \brief Compare to one with tolerance
-Test if float is near one (within epsilon distance)
+/*! Test if float is near one (within epsilon distance)
 \param val Float
 \return True if float is within epsilon distance of one */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_one(real val);
 
-/*! \brief Decrease floating point value
-Decrease a floating point value the given number of units. Safe to traverse
+/*! Decrease a floating point value the given number of units. Safe to traverse
 the zero threshold and switch sign
 \param val Float
 \param units Units
@@ -414,16 +359,14 @@ the zero threshold and switch sign
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_real_dec(real val, int units);
 
-/*! \brief Increase floating point value
-Increase a floating point value the given number of units
+/*! Increase a floating point value the given number of units
 \param val Float
 \param units Units
 \return Resulting float */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_real_inc(real val, int units);
 
-/*! \brief Query if value is NaN
-Query if value is NaN (not-a-number, exponent all 1, fraction non-zero)
+/*! Query if value is NaN (not-a-number, exponent all 1, fraction non-zero)
 <pre>+NAN float: 0x7f8xxxxx
 -NAN float: 0x7f8xxxxx
 +NAN double: 0x7ffxxxxxxxxxxxxx
@@ -433,48 +376,42 @@ Query if value is NaN (not-a-number, exponent all 1, fraction non-zero)
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_nan(real val);
 
-/*! \brief Query if value is infinite
-Query if value is infinite (exponent all 1, fraction all 0)
-<pre>+NAN float: 0x7f800000
--NAN float: 0x7f800000
-+NAN double: 0x7ff0000000000000
--NAN double: 0x7ff0000000000000</pre>
+/*! Query if value is infinite (exponent all 1, fraction all 0)
+<pre>+inf float: 0x7f800000
+-inf float: 0x7f800000
++inf double: 0x7ff0000000000000
+-inf double: 0x7ff0000000000000</pre>
 \param val Value
 \return true if infinite, false if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_inf(real val);
 
-/*! \brief Query if uninitialized
-Query if value is a compiler specific uninitialized value identifier
+/*! Query if value is a compiler specific uninitialized value identifier
 \param val Value
 \return true if value is an uninitialized value, false if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_uninitialized(real val);
 
-/*! \brief Query if value is finite
-Query if value is finite (not NaN, inf or uninitialized)
+/*! Query if value is finite (not NaN, inf or uninitialized)
 \param val Value
 \return true if finite, false if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_finite(real val);
 
-/*! \brief Query if value is denormalized
-Query if value is denormalized (close to zero, exponent all 0)
+/*! Query if value is denormalized (close to zero, exponent all 0)
 \param val Value
 \return true if value is denormalized, false if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_denormalized(real val);
 
-/*! \brief Un-denormalize a value
-Un-denormalize a value by clamping denormals to zero
+/*! Un-denormalize a value by clamping denormals to zero
 \param val Value
 \return 0 if value is denormalized, value if not */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_real_undenormalize(real val);
 
 #if BUILD_ENABLE_ASSERT
-/*!\brief Assert that a value is finite
-Assert that a value is finite. Like all assert macros it will evaluate to a void
+/*! Assert that a value is finite. Like all assert macros it will evaluate to a void
 expression if asserts are disabled.
 \param value Value */
 #  define FOUNDATION_ASSERT_FINITE( value ) \

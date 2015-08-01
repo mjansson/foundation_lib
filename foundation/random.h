@@ -14,10 +14,15 @@
 
 /*! \file random.h
 \brief Pseudorandom number generator
-\details Pseudorandom number generator. The generator is thread-safe and lock-free, except for the
+
+Pseudorandom number generator. The generator is thread-safe and lock-free, except for the
 thread init/shutdown sequences which will use a mutex to synchronize threads. Memory
 allocated for thread-local state buffers will be reused by new threads once an old
-thread has exited and released ownership of such buffers. */
+thread has exited and released ownership of such buffers.
+
+All random functions generate values in ranges where low limit of the range is included
+in the set of value, while the high limit is excluded. This is denoted [low,high) in the
+documentation for each function. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>

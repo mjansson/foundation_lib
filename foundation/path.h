@@ -14,7 +14,8 @@
 
 /*! \file path.h
 \brief Path utilities
-\details Path utilities for unifying, merging, cleaning and extracting path parts.
+
+Path utilities for unifying, merging, cleaning and extracting path parts.
 
 All function expect the path to be of a well formed format using forward
 slashes only, such as [protocol:[//]][drive:][/]path/to/some/file[.ext],
@@ -26,51 +27,45 @@ but return const strings specifying given substring of the input buffer. */
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Get base file name
-Get base file name (no path and no extension) from full path name
+/*! Get base file name (no path and no extension) from full path name
 \param path Full path
 \param length Length of path
 \return File base name */
 FOUNDATION_API string_const_t
 path_base_file_name(const char* path, size_t length);
 
-/*! \brief Get base file name with directory
-\details Get base file name with directory (i.e no extension) from full path name
+/*! \details Get base file name with directory (i.e no extension) from full path name
 \param path Full path
 \param length Length of path
 \return File base name with path */
 FOUNDATION_API string_const_t
 path_base_file_name_with_directory(const char* path, size_t length);
 
-/*! \brief Get file extension
-Get file extension (string after last dot) from full path name, not including the dot.
+/*! Get file extension (string after last dot) from full path name, not including the dot.
 \param path Full path
 \param length Length of path
 \return File extension */
 FOUNDATION_API string_const_t
 path_file_extension(const char* path, size_t length);
 
-/*! \brief Get file name
-\details Get file name (no directory but with extension) from full path name
+/*! Get file name (no directory but with extension) from full path name
 \param path Full path
 \param length Length of path
 \return File full name */
 FOUNDATION_API string_const_t
 path_file_name(const char* path, size_t length);
 
-/*! \brief Get directory name
-Get directory name from full path name. Any protocol in the path will be stripped.
+/*! Get directory name from full path name. Any protocol in the path will be stripped.
 \param path Full path
 \param length Length of path
 \return Path name */
 FOUNDATION_API string_const_t
 path_directory_name(const char* path, size_t length);
 
-/*! \brief Get subdirectory name
-\details Get subdirectory name from full path name and root directory. If the full path is an absolute path,
-the root directory must also be an absolute path (and vice versa). Protocols will be stripped
-before matching paths (which will then be treated as absolute paths) and will not be included in the
-subpath returned.
+/*! Get subdirectory name from full path name and root directory. If the full path is an
+absolute path, the root directory must also be an absolute path (and vice versa). Protocols
+will be stripped before matching paths (which will then be treated as absolute paths) and
+will not be included in the subpath returned.
 \param path Full path
 \param length Length of path
 \param root Root full path
@@ -79,16 +74,14 @@ subpath returned.
 FOUNDATION_API string_const_t
 path_subdirectory_name(const char* path, size_t length, const char* root, size_t root_length);
 
-/*! \brief Get protocol
-Get protocol from full URI (for example, "http://foo.com/some.file" will return "http")
+/*! Get protocol from full URI (for example, "http://foo.com/some.file" will return "http")
 \param uri URI
 \param length Length of URI
 \return Protocol */
 FOUNDATION_API string_const_t
 path_protocol(const char* uri, size_t length);
 
-/*! \brief Concatenate paths
-Allocate a new string which is the concatenation of the given paths
+/*! Allocate a new string which is the concatenation of the given paths
 \param first First path
 \param first_length Length of first path
 \param second Second path
@@ -98,8 +91,7 @@ FOUNDATION_API string_t
 path_allocate_concat(const char* first, size_t first_length, const char* second,
                      size_t second_length);
 
-/*! \brief Concatenate paths
-Allocate a new string which is the concatenation of the given paths. The path
+/*! Allocate a new string which is the concatenation of the given paths. The path
 list should be terminated by a null pointer.
 \param first First path
 \param first_length Length of first path
@@ -108,8 +100,7 @@ FOUNDATION_API string_t
 path_allocate_concat_varg(const char* first, size_t first_length, ...)
 FOUNDATION_ATTRIBUTE(sentinel);
 
-/*! \brief Concatenate paths
-Allocate a new string which is the concatenation of the given paths. The path
+/*! Allocate a new string which is the concatenation of the given paths. The path
 list should be terminated by a null pointer.
 \param first First path
 \param first_length Length of first path
@@ -118,8 +109,7 @@ list should be terminated by a null pointer.
 FOUNDATION_API string_t
 path_allocate_concat_vlist(const char* first, size_t first_length, va_list list);
 
-/*! \brief Concatenate paths
-Concatenation of the given paths into the given buffer. If the concatenated path does
+/*! Concatenation of the given paths into the given buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. Returned path
 is always zero terminated except if capacity is zero, in which case an empty string
 is returned.
@@ -134,8 +124,7 @@ FOUNDATION_API string_t
 path_concat(char* dest, size_t capacity, const char* first, size_t first_length,
             const char* second, size_t second_length);
 
-/*! \brief Concatenate paths
-Concatenation of the given paths into the given buffer. If the concatenated path does
+/*! Concatenation of the given paths into the given buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
 list should be pairs of pointer and length arguments (const char*, size_t), terminated
 by a null pointer. Returned path is always zero terminated except if capacity is zero,
@@ -149,8 +138,7 @@ FOUNDATION_API string_t
 path_concat_varg(char* dest, size_t capacity, const char* first, size_t first_length, ...)
 FOUNDATION_ATTRIBUTE(sentinel);
 
-/*! \brief Concatenate paths
-Concatenation of the given paths into the given buffer. If the concatenated path does
+/*! Concatenation of the given paths into the given buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
 list should be pairs of pointer and length arguments (const char*, size_t), terminated
 by a null pointer. Returned path is always zero terminated except if capacity is zero,
@@ -165,8 +153,7 @@ FOUNDATION_API string_t
 path_concat_vlist(char* dest, size_t capacity, const char* first, size_t first_length,
                   va_list list);
 
-/*! \brief Append path
-Append given path at the end of the given path buffer. If the concatenated path does
+/*! Append given path at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. Returned path is
 always zero terminated except if capacity is zero, in which case an empty string is
 returned.
@@ -180,8 +167,7 @@ FOUNDATION_API string_t
 path_append(char* base, size_t base_length, size_t base_capacity, const char* tail,
             size_t tail_length);
 
-/*! \brief Append paths
-Append given paths at the end of the given path buffer. If the concatenated path does
+/*! Append given paths at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
 list should be pairs of pointer and length arguments (const char*, size_t), terminated
 by a null pointer. Returned path is always zero terminated except if capacity is zero,
@@ -197,8 +183,7 @@ path_append_varg(char* base, size_t base_length, size_t base_capacity, const cha
                  size_t tail_length, ...)
 FOUNDATION_ATTRIBUTE(sentinel);
 
-/*! \brief Append paths
-Append given paths at the end of the given path buffer. If the concatenated path does
+/*! Append given paths at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
 list should be pairs of pointer and length arguments (const char*, size_t), terminated
 by a null pointer. Returned path is always zero terminated except if capacity is zero,
@@ -214,8 +199,7 @@ FOUNDATION_API string_t
 path_append_vlist(char* base, size_t base_length, size_t base_capacity, const char* tail,
                   size_t tail_length, va_list list);
 
-/*! \brief Prepend path
-Prepend given path at the start of the given path buffer. If the concatenated path does
+/*! Prepend given path at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. Returned path is
 always zero terminated except if capacity is zero, in which case an empty string is
 returned.
@@ -229,8 +213,7 @@ FOUNDATION_API string_t
 path_prepend(char* tail, size_t tail_length, size_t tail_capacity, const char* base,
              size_t base_length);
 
-/*! \brief Prepend paths
-Prepend given paths at the start of the given path buffer. If the concatenated path does
+/*! Prepend given paths at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
 list should be pairs of pointer and length arguments (const char*, size_t), terminated
 by a null pointer. Returned path is always zero terminated except if capacity is zero,
@@ -247,8 +230,7 @@ path_prepend_varg(char* tail, size_t tail_length, size_t tail_capacity, const ch
                   size_t base_length, ...)
 FOUNDATION_ATTRIBUTE(sentinel);
 
-/*! \brief Prepend paths
-Prepend given paths at the start of the given path buffer. If the concatenated path does
+/*! Prepend given paths at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
 list should be pairs of pointer and length arguments (const char*, size_t), terminated
 by a null pointer. Returned path is always zero terminated except if capacity is zero,
@@ -265,8 +247,7 @@ FOUNDATION_API string_t
 path_prepend_vlist(char* tail, size_t tail_length, size_t tail_capacity, const char* base,
                    size_t base_length, va_list list);
 
-/*! \brief Make path absolute
-Make the path in real filesystem absolute by prepending the current working directory
+/*! Make the path in real filesystem absolute by prepending the current working directory
 if the path is relative, and cleaning out ".." and "." directories. Returns empty string
 if error (invalid path). If the final path does not fit in the buffer capacity, the longest
 possible part of the cleaned path will be produced. Returned path is always zero terminated
@@ -276,8 +257,7 @@ except if capacity is zero.
 FOUNDATION_API string_t
 path_absolute(char* path, size_t length, size_t capacity);
 
-/*! \brief Make path absolute
-Make the path in real filesystem absolute by prepending the current working directory
+/*! Make the path in real filesystem absolute by prepending the current working directory
 if the path is relative, and cleaning out ".." and "." directories. Returns empty string
 if error (invalid path). The final path is stored in a newly allocated buffer large enough
 to the cleaned path. Returned path is always zero terminated.
@@ -286,8 +266,7 @@ to the cleaned path. Returned path is always zero terminated.
 FOUNDATION_API string_t
 path_allocate_absolute(const char* path, size_t length);
 
-/* \brief Best effort path cleaner
-Clean up path in a best effort way by replacing windows backslash with slash and cleaning
+/* Clean up path in a best effort way by replacing windows backslash with slash and cleaning
 up multiple concurrent slashes. Any slash characters at end of path will be removed as well
 (except if resulting path is "/"). This method recognizes network protocol separator "://"
 and windows drive designations. Any colon characters appearing after the first path separator
@@ -303,8 +282,7 @@ is zero,
 FOUNDATION_API string_t
 path_clean(char* path, size_t length, size_t capacity);
 
-/*! \brief Check if absolute
-Check if path is absolute. An absolute path is either an URI or a file path that starts
+/*! Check if path is absolute. An absolute path is either an URI or a file path that starts
 with a directory separator or a volume identificator
 \param path Path
 \param length Length of path
@@ -312,8 +290,7 @@ with a directory separator or a volume identificator
 FOUNDATION_API bool
 path_is_absolute(const char* path, size_t length);
 
-/*! \brief Create a temporary path
-\details Create a temporary path, without extension mapping to a suitable filesystem
+/*! Create a temporary path, without extension mapping to a suitable filesystem
 temporary storage
 \param buffer Path buffer
 \param capacity Capacity of buffer

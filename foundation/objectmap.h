@@ -14,80 +14,72 @@
 
 /*! \file objectmap.h
 \brief Mapping of object handles to pointers
-\details Mapping of object handles to object pointers, thread safe and lock free */
+
+Mapping of object handles to object pointers, thread safe and lock free. Used for all
+reference counted data in the library. Capacity of a map is fixed at allocation. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Allocate map
-Allocate storage for new map with the given number of object slots. The object map
+/*! Allocate storage for new map with the given number of object slots. The object map
 should be deallocated with a call to #objectmap_deallocate.
 \param size Number of slots
 \return New object map */
 FOUNDATION_API objectmap_t*
 objectmap_allocate(size_t size);
 
-/*! \brief Deallocate map
-Deallocate an object map previously allocated with a call to #objectmap_allocate.
+/*! Deallocate an object map previously allocated with a call to #objectmap_allocate.
 Does not free the stored objects, only map storage.
 \param map Object map */
 FOUNDATION_API void
 objectmap_deallocate(objectmap_t* map);
 
-/*! \brief Initialize map
-Initialize object mapwith the given number of object slots. The object map
+/*! Initialize object mapwith the given number of object slots. The object map
 should be finalized with a call to #objectmap_finalize.
 \param map Object map
 \param size Number of slots */
 FOUNDATION_API void
 objectmap_initialize(objectmap_t* map, size_t size);
 
-/*! \brief Finalize map
-Finalize an object map previously initialized with a call to #objectmap_initialize.
+/*! Finalize an object map previously initialized with a call to #objectmap_initialize.
 Does not free the stored objects.
 \param map Object map */
 FOUNDATION_API void
 objectmap_finalize(objectmap_t* map);
 
-/*! \brief Get size of map
-Get size of map (number of object slots)
+/*! Get size of map (number of object slots)
 \param map Object map
 \return Size of map */
 FOUNDATION_API size_t
 objectmap_size(const objectmap_t* map);
 
-/*! \brief Reserve slot
-Reserve a slot in the map
+/*! Reserve a slot in the map
 \param map Object map
 \return New object handle, 0 if none available */
 FOUNDATION_API object_t
 objectmap_reserve(objectmap_t* map);
 
-/*! \brief Free slot
-Free a slot in the map
+/*! Free a slot in the map
 \param map Object map
 \param id Object handle to free */
 FOUNDATION_API void
 objectmap_free(objectmap_t* map, object_t id);
 
-/*! \brief Set object pointer
-Set object pointer for given slot
+/*! Set object pointer for given slot
 \param map Object map
 \param id Object handle
 \param object Object pointer */
 FOUNDATION_API void
 objectmap_set(objectmap_t* map, object_t id, void* object);
 
-/*! \brief Raw lookup
-Raw lookup of object pointer for map index
+/*! Raw lookup of object pointer for map index
 \param map Object map
 \param index Map index
 \return Object pointer */
 FOUNDATION_API void*
 objectmap_raw_lookup(const objectmap_t* map, size_t index);
 
-/*! \brief Map object to pointer
-Map object handle to object pointer. This function is unsafe in the sense that it
+/*! Map object handle to object pointer. This function is unsafe in the sense that it
 might return an object pointer which points to an invalid (deallocated) object if
 the object reference count was decreased in another thread while this function is
 executing. The object lifetime is also not guaranteed in any code using the returned

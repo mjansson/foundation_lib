@@ -14,6 +14,7 @@
 
 /*! \file platform.h
 \brief Platform abstractions
+
 This file unifies platform definitions and data types across supported platforms
 and compilers. If you need to override platform or architecture, predefine one of
 <code>FOUNDATION_PLATFORM_[...]</code> and <code>FOUNDATION_ARCH_[...]</code> to 1

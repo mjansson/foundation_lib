@@ -14,9 +14,11 @@
 
 /*! \file hash.h
 \brief Murmur3 hash
-\details Murmur3 hash from http://code.google.com/p/smhasher/
-Also wrapper macros around predefined static hashed strings
-See hashify utility for creating static hashes */
+
+Murmur3 hash from http://code.google.com/p/smhasher/
+
+Wrapper macros around predefined static hashed strings. See hashify utility for
+creating static hashes */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -26,19 +28,17 @@ See hashify utility for creating static hashes */
 #include <foundation/string.h>
 #endif
 
-/*! \brief Hash data
-Hash data memory blob. Pointer must be aligned to 8 bytes
-\param key    Key to hash
-\param len    Length of key in bytes
-\return       Hash of key */
+/*! Hash data memory blob. Pointer must be aligned to 8 bytes
+\param key Key to hash
+\param len Length of key in bytes
+\return    Hash of key */
 FOUNDATION_API FOUNDATION_PURECALL hash_t
 hash(const void* key, size_t len);
 
-/*! \brief Reverse hash lookup
-Reverse hash lookup. Only available if #BUILD_ENABLE_STATIC_HASH_DEBUG is
+/*! Reverse hash lookup. Only available if #BUILD_ENABLE_STATIC_HASH_DEBUG is
 enabled, otherwise if will always return an empty string
-\param value  Hash value
-\return       String matching hash value, or empty string if not found */
+\param value Hash value
+\return      String matching hash value, or empty string if not found */
 FOUNDATION_API const char*
 hash_to_string(hash_t value);
 
@@ -58,8 +58,7 @@ static_hash(const void* key, size_t len, hash_t value);
 
 #endif
 
-/*! \brief Declare statically hashed string
-Declare a statically hashed string. If #BUILD_ENABLE_STATIC_HASH_DEBUG is enabled
+/*! Declare a statically hashed string. If #BUILD_ENABLE_STATIC_HASH_DEBUG is enabled
 in the build config this will allow the string to be reverse looked up with hash_to_string.
 Static hash strings are usually defined by using the hashify tool on a declaration file,
 see the hashstrings.txt and corresponding hashstrings.h header
@@ -86,6 +85,5 @@ static_hash(const void* key, size_t len, hash_t value) {
 
 #endif
 
-/*! \brief Hash of empty string
-Hash of an empty string (length 0) */
+/*! Hash of an empty/null string (length 0) */
 #define HASH_EMPTY_STRING 0xC2D00F032E25E509LL

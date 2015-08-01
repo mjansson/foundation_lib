@@ -14,47 +14,42 @@
 
 /*! \file pipe.h
 \brief Unnamed pipe stream
-\details Stream for unnamed pipes, usable for inter-process communication. Pipe
-read/write calls are blocking. */
+
+Stream for unnamed pipes, usable for inter-process communication. Pipe read/write calls
+are blocking. Pipe streams are sequential (non-seekable). */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Allocate unnamed pipe stream
-Allocate an unnamed pipe stream. Deallocate the stream with a call to #stream_deallocate
+/*! Allocate an unnamed pipe stream. Deallocate the stream with a call to #stream_deallocate
 \return New pipe stream */
 FOUNDATION_API stream_t*
 pipe_allocate(void);
 
-/*! \brief Initialize unnamed pipe stream
-Initialize an unnamed pipe stream. Finalize the stream with a call to #stream_finalize
+/*! Initialize an unnamed pipe stream. Finalize the stream with a call to #stream_finalize
 \param pipe Pipe stream */
 FOUNDATION_API void
 pipe_initialize(stream_pipe_t* pipe);
 
-/*! \brief Close read end
-Close read end of pipe
+/*! Close read end of pipe
 \param pipe Pipe stream */
 FOUNDATION_API void
 pipe_close_read(stream_t* pipe);
 
-/*! \brief Close write end
-Close write end of pipe
+/*! Close write end of pipe
 \param pipe Pipe stream */
 FOUNDATION_API void
 pipe_close_write(stream_t* pipe);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-/*! \brief Get read handle
-Windows only, get OS handle for read end of pipe
+/*! Windows only, get OS handle for read end of pipe
 \param pipe Pipe stream
 \return Read object handle */
 FOUNDATION_API void*
 pipe_read_handle(stream_t* pipe);
 
-/*! \brief Get write handle
-Windows only, get OS handle for write end of pipe
+/*! Windows only, get OS handle for write end of pipe
 \param pipe Pipe stream
 \return Write object handle */
 FOUNDATION_API void*
@@ -64,15 +59,13 @@ pipe_write_handle(stream_t* pipe);
 
 #if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-/*! \brief Get read file descriptor
-Posix only, get OS file descriptor for read end of pipe
+/*! Posix only, get OS file descriptor for read end of pipe
 \param pipe Pipe stream
 \return Read file descriptor */
 FOUNDATION_API int
 pipe_read_fd(stream_t* pipe);
 
-/*! \brief Get write file descriptor
-Posix only, get OS file descriptor for write end of pipe
+/*! Posix only, get OS file descriptor for write end of pipe
 \param pipe Pipe stream
 \return Write file descriptor */
 FOUNDATION_API int

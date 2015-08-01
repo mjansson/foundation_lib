@@ -13,7 +13,10 @@
 #pragma once
 
 /*! \file internal.h
-    Internal types */
+\brief Internal types and function
+
+Internal types and functions which are not for public use. The symbols defined in this
+file may change at any time. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>

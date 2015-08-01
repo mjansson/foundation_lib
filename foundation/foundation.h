@@ -14,7 +14,8 @@
 
 /*! \file foundation.h
 \brief Foundation library main header and entry points
-\details Wrapper for foundation library headers and main entry/exit points */
+
+Wrapper for foundation library headers and main entry/exit points */
 
 #include <foundation/platform.h>
 
@@ -73,8 +74,7 @@
 
 #include <foundation/main.h>
 
-/*! \brief Main entry point
-Main entry point. Call this in your main_initialize function to bootstrap the foundation
+/*! Main entry point. Call this in your #main_initialize function to bootstrap the foundation
 library and initialize all functionality.
 \param memory       Memory system declaration (use memory_system_malloc for
                     default system allocator)
@@ -85,21 +85,18 @@ FOUNDATION_API int
 foundation_initialize(const memory_system_t memory, const application_t application,
                       const foundation_config_t config);
 
-/*! \brief Main exit point
-Main exit point. Call this in your main_finalize function to cleanup the foundation library
+/*! Main exit point. Call this in your #main_finalize function to cleanup the foundation library
 and terminate all functionality. */
 FOUNDATION_API void
 foundation_finalize(void);
 
-/*! \brief Query if initialized
-Query if foundation library is initialized properly
-\return             true if initialized, false if not */
+/*! Query if foundation library is initialized properly
+\return true if initialized, false if not */
 FOUNDATION_API bool
 foundation_is_initialized(void);
 
-/*! \brief Query version
-Query foundation library build version
-\return             Version of foundation library */
+/*! Query foundation library build version
+\return Version of foundation library */
 FOUNDATION_API version_t
 foundation_version(void);
 

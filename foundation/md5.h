@@ -14,50 +14,49 @@
 
 /*! \file md5.h
 \brief MD5 algorithm
-\details MD5 message-digest algorithm. Inspired by Alexander Peslyak's public domain implementation
+
+MD5 message-digest algorithm. Inspired by Alexander Peslyak's public domain implementation
 available at http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
 
-Normal use case is to first allocate the md5 block, then do any number of initialize-digest-finalize
-call sequences:
+Normal use case is to first allocate/initialize the md5 block, then do any number of
+initialize-digest-finalize call sequences:
 
 <pre>md5_initialize()
 md5_digest()
 md5_digest_raw()
-...
-md5_finalize()
+... //More digest operations
+md5_digest_finalize()
 md5_get_digest()
-md5_get_digest_raw()</pre> */
+md5_get_digest_raw()
+... //More initialize, digest sequences
+md5_finalize()</pre> */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Allocate block
-Allocate a new MD5 block and initialize for digestion.
+/*! Allocate a new MD5 block and initialize for digestion.
 \return New MD5 block */
 FOUNDATION_API md5_t*
 md5_allocate(void);
 
-/*!\brief Deallocate block
-Deallocate MD5 block
+/*! Deallocate MD5 block
 \param digest MD5 block */
 FOUNDATION_API void
 md5_deallocate(md5_t* digest);
 
-/*! \brief Initialize block
-Initialize MD5 block. Must be called before each block of digest operations
+/*! Initialize MD5 block. Must be called before each block of digest operations
 with #md5_digest and #md5_digest_raw
 \param digest MD5 block */
 FOUNDATION_API void
 md5_initialize(md5_t* digest);
 
-/*! \brief Finalize block
-Finalize MD5 block previously initialized with #md5_initialize
+/*! Finalize MD5 block previously initialized with #md5_initialize. After this call the
+block may no longer be used until a new #md5_initialize call is made.
 \param digest MD5 block */
 FOUNDATION_API void
 md5_finalize(md5_t* digest);
 
-/*! \brief Digest data buffer
-Digest a raw data buffer.
+/*! Digest a raw data buffer.
 \param digest MD5 block
 \param buffer Data to digest
 \param size Size of buffer
@@ -65,15 +64,14 @@ Digest a raw data buffer.
 FOUNDATION_API md5_t*
 md5_digest(md5_t* digest, const void* buffer, size_t size);
 
-/*! \brief Finalize digest
-Finalize digest. Must be called between digesting data with #md5_digest/#md5_digest_raw and getting the
-final message digest with #md5_get_digest/#md5_get_digest_raw
+/*! Finalize digest. Must be called between digesting data with #md5_digest/#md5_digest_raw
+and getting the final message digest with #md5_get_digest/#md5_get_digest_raw. If a new
+digest sequence is required the block must be re-initialized with a call to #md5_initialize.
 \param digest MD5 block */
 FOUNDATION_API void
 md5_digest_finalize(md5_t* digest);
 
-/*! \brief Get digest string
-Get digest as string. Before getting the digest string the MD5 block must be
+/*! Get digest as string. Before getting the digest string the MD5 block must be
 finalized with a call to #md5_digest_finalize.
 \param digest MD5 block
 \param str String buffer
@@ -82,8 +80,7 @@ finalized with a call to #md5_digest_finalize.
 FOUNDATION_API string_t
 md5_get_digest(const md5_t* digest, char* str, size_t length);
 
-/*! \brief Get raw digest
-Get digest as raw 128-bit value. Before getting the raw digest the MD5 block must be
+/*! Get digest as raw 128-bit value. Before getting the raw digest the MD5 block must be
 finalized with a call to #md5_digest_finalize.
 \param digest MD5 block
 \return Message digest */

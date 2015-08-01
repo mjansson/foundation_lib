@@ -6,20 +6,20 @@
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
+ * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.∫
  *
  */
 
 #pragma once
 
 /*! \file locale.h
-\brief Locale definitions
-\details Locale definitions */
+Locale definitions
+
+Locale definitions. */
 
 #include <foundation/platform.h>
 
-/*! \brief Define locale
-Define a locale with a four character code, two lowercase language characters and two
+/*! Define a locale with a four character code, two lowercase language characters and two
 uppercase country characters, for example LOCALE_DEF('e','n','U','S')
 \param x First language character
 \param y Second language character
@@ -27,44 +27,41 @@ uppercase country characters, for example LOCALE_DEF('e','n','U','S')
 \param w Second country character */
 #define LOCALE_DEF(x,y,z,w)          ((uint32_t)x|((uint32_t)y<<8)|((uint32_t)z<<16)|((uint32_t)w<<24))
 
-/*! \brief Define language
-Define a language with a two character lowercase code, for example LANGUAGE_DEF('e','n')
+/*! Define a language with a two character lowercase code, for example LANGUAGE_DEF('e','n')
 \param x First character
 \param y Second character */
 #define LANGUAGE_DEF(x,y)            ((uint16_t)x|((uint16_t)y<<8))
 
-/*! \brief Define country
-Define a country with a two character uppercase code, for example COUNTRY_DEF('U','S')
+/*! Define a country with a two character uppercase code, for example COUNTRY_DEF('U','S')
 \param x First character
 \param y Second character */
 #define COUNTRY_DEF(x,y)             ((uint16_t)x|((uint16_t)y<<8))
 
-/*! \brief Define locale
-Define a locale from a compound language and country code, for example
-LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES)
+/*! Define a locale from a compound language and country code, for example
+<code>LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES)</code>
 \param lang Language code
 \param country Country code */
 #define LOCALE_FROM_LANGUAGE_COUNTRY(lang,country)  ((uint32_t)(lang)|((uint32_t)(country)<<16))
 
-/*! \brief Blank locale */
+/*! Blank locale */
 #define LOCALE_BLANK                 LOCALE_DEF(0,0,0,0)
 
-/*! \brief Wildcard language */
+/*! Wildcard language */
 #define LANGUAGE_WILDCARD            LANGUAGE_DEF('*','*')
 
-/*! \brief Wildcard country */
+/*! Wildcard country */
 #define COUNTRY_WILDCARD             COUNTRY_DEF('*','*')
 
-/*! \brief Wildcard locale */
+/*! Wildcard locale */
 #define LOCALE_WILDCARD              LOCALE_DEF('*','*','*','*')
 
-/*! \brief Unknown language */
+/*! Unknown language */
 #define LANGUAGE_UNKNOWN             LANGUAGE_DEF('z','z')
 
-/*! \brief Unknown country */
+/*! Unknown country */
 #define COUNTRY_UNKNOWN              COUNTRY_DEF('Z','Z')
 
-/*! \brief Unknown locale */
+/*! Unknown locale */
 #define LOCALE_UNKNOWN               LOCALE_DEF('z','z','Z','Z')
 
 // Predefined language identifiers
@@ -471,1212 +468,1212 @@ LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES)
 #define COUNTRY_ZAMBIA                                           COUNTRY_DEF('Z','M')
 #define COUNTRY_ZIMBABWE                                         COUNTRY_DEF('Z','W')
 
-/*! \brief Default country */
+/*! Default country */
 #define COUNTRY_DEFAULT                                          COUNTRY_UNITED_STATES
 
 // Predefined standard locales
 
-/*! \brief Predefined 'enUS' locale */
+/*! Predefined 'enUS' locale */
 #define LOCALE_EN_US     LOCALE_FROM_LANGUAGE_COUNTRY( LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES )
 
-/*! \brief Predefined default locale */
+/*! Predefined default locale */
 #define LOCALE_DEFAULT   LOCALE_EN_US
 
 /*!
 \def LANGUAGE_AFAN_OROMO
-\brief Afan oromo language
+Afan oromo language
 
 \def LANGUAGE_ABKHAZIAN
-\brief Abkhazian language
+Abkhazian language
 
 \def LANGUAGE_AFAR
-\brief Afar language
+Afar language
 
 \def LANGUAGE_AFRIKAANS
-\brief Afrikaans language
+Afrikaans language
 
 \def LANGUAGE_ALBANIAN
-\brief Albanian language
+Albanian language
 
 \def LANGUAGE_AMHARIC
-\brief Amharic language
+Amharic language
 
 \def LANGUAGE_ARABIC
-\brief Arabic language
+Arabic language
 
 \def LANGUAGE_ARMENIAN
-\brief Armenian language
+Armenian language
 
 \def LANGUAGE_ASSAMESE
-\brief Assamese language
+Assamese language
 
 \def LANGUAGE_AYMARA
-\brief Aymara language
+Aymara language
 
 \def LANGUAGE_AZERBAIJANI
-\brief Azerbaijani language
+Azerbaijani language
 
 \def LANGUAGE_BASHKIR
-\brief Bashkir language
+Bashkir language
 
 \def LANGUAGE_BASQUE
-\brief Basque language
+Basque language
 
 \def LANGUAGE_BENGALI
-\brief Bengali language
+Bengali language
 
 \def LANGUAGE_BHUTANI
-\brief Bhutani language
+Bhutani language
 
 \def LANGUAGE_BIHARI
-\brief Bihari language
+Bihari language
 
 \def LANGUAGE_BISLAMA
-\brief Bislama language
+Bislama language
 
 \def LANGUAGE_BOSNIAN
-\brief Bosnian language
+Bosnian language
 
 \def LANGUAGE_BRETON
-\brief Breton language
+Breton language
 
 \def LANGUAGE_BULGARIAN
-\brief Bulgarian language
+Bulgarian language
 
 \def LANGUAGE_BURMESE
-\brief Burmese language
+Burmese language
 
 \def LANGUAGE_BYELORUSSIAN
-\brief Byelorussian language
+Byelorussian language
 
 \def LANGUAGE_CAMBODIAN
-\brief Cambodian language
+Cambodian language
 
 \def LANGUAGE_CATALAN
-\brief Catalan language
+Catalan language
 
 \def LANGUAGE_CHINESE
-\brief Chinese language
+Chinese language
 
 \def LANGUAGE_CORSICAN
-\brief Corsican language
+Corsican language
 
 \def LANGUAGE_CROATIAN
-\brief Croatian language
+Croatian language
 
 \def LANGUAGE_CZECH
-\brief Czech language
+Czech language
 
 \def LANGUAGE_DANISH
-\brief Danish language
+Danish language
 
 \def LANGUAGE_DIVEHI
-\brief Divehi language
+Divehi language
 
 \def LANGUAGE_DUTCH
-\brief Dutch language
+Dutch language
 
 \def LANGUAGE_ENGLISH
-\brief English language
+English language
 
 \def LANGUAGE_ESPERANTO
-\brief Esperanto language
+Esperanto language
 
 \def LANGUAGE_ESTONIAN
-\brief Estonian language
+Estonian language
 
 \def LANGUAGE_FAEROESE
-\brief Faeroese language
+Faeroese language
 
 \def LANGUAGE_FIJI
-\brief Fiji language
+Fiji language
 
 \def LANGUAGE_FINNISH
-\brief Finnish language
+Finnish language
 
 \def LANGUAGE_FRENCH
-\brief French language
+French language
 
 \def LANGUAGE_FRISIAN
-\brief Frisian language
+Frisian language
 
 \def LANGUAGE_GALICIAN
-\brief Galician language
+Galician language
 
 \def LANGUAGE_GEORGIAN
-\brief Georgian language
+Georgian language
 
 \def LANGUAGE_GERMAN
-\brief German language
+German language
 
 \def LANGUAGE_GREEK
-\brief Greek language
+Greek language
 
 \def LANGUAGE_GREENLANDIC
-\brief Greenlandic language
+Greenlandic language
 
 \def LANGUAGE_GUARANI
-\brief Guarani language
+Guarani language
 
 \def LANGUAGE_GUJARATI
-\brief Gujarati language
+Gujarati language
 
 \def LANGUAGE_HAUSA
-\brief Hausa language
+Hausa language
 
 \def LANGUAGE_HEBREW
-\brief Hebrew language
+Hebrew language
 
 \def LANGUAGE_HINDI
-\brief Hindi language
+Hindi language
 
 \def LANGUAGE_HUNGARIAN
-\brief Hungarian language
+Hungarian language
 
 \def LANGUAGE_ICELANDIC
-\brief Icelandic language
+Icelandic language
 
 \def LANGUAGE_IGBO
-\brief Igbo language
+Igbo language
 
 \def LANGUAGE_INDONESIAN
-\brief Indonesian language
+Indonesian language
 
 \def LANGUAGE_INTERLINGUA
-\brief Interlingua language
+Interlingua language
 
 \def LANGUAGE_INTERLINGUE
-\brief Interlingue language
+Interlingue language
 
 \def LANGUAGE_INUPIAK
-\brief Inupiak language
+Inupiak language
 
 \def LANGUAGE_INUKTITUT
-\brief Inuktitut language
+Inuktitut language
 
 \def LANGUAGE_IRISH
-\brief Irish language
+Irish language
 
 \def LANGUAGE_ITALIAN
-\brief Italian language
+Italian language
 
 \def LANGUAGE_JAPANESE
-\brief Japanese language
+Japanese language
 
 \def LANGUAGE_JAVANESE
-\brief Javanese language
+Javanese language
 
 \def LANGUAGE_KANNADA
-\brief Kannada language
+Kannada language
 
 \def LANGUAGE_KASHMIRI
-\brief Kashmiri language
+Kashmiri language
 
 \def LANGUAGE_KAZAKH
-\brief Kazakh language
+Kazakh language
 
 \def LANGUAGE_KINYARWANDA
-\brief Kinyarwanda language
+Kinyarwanda language
 
 \def LANGUAGE_KIRGHIZ
-\brief Kirghiz language
+Kirghiz language
 
 \def LANGUAGE_KIRUNDI
-\brief Kirundi language
+Kirundi language
 
 \def LANGUAGE_KOREAN
-\brief Korean language
+Korean language
 
 \def LANGUAGE_KURDISH
-\brief Kurdish language
+Kurdish language
 
 \def LANGUAGE_LAOTHIAN
-\brief Laothian language
+Laothian language
 
 \def LANGUAGE_LATIN
-\brief Latin language
+Latin language
 
 \def LANGUAGE_LATVIAN_LETTISH
-\brief Latvian lettish language
+Latvian lettish language
 
 \def LANGUAGE_LINGALA
-\brief Lingala language
+Lingala language
 
 \def LANGUAGE_LITHUANIAN
-\brief Lithuanian language
+Lithuanian language
 
 \def LANGUAGE_LUXEMBOURGISH
-\brief Luxembourgish language
+Luxembourgish language
 
 \def LANGUAGE_MACEDONIAN
-\brief Macedonian language
+Macedonian language
 
 \def LANGUAGE_MALAGASY
-\brief Malagasy language
+Malagasy language
 
 \def LANGUAGE_MALAY
-\brief Malay language
+Malay language
 
 \def LANGUAGE_MALAYALAM
-\brief Malayalam language
+Malayalam language
 
 \def LANGUAGE_MALTESE
-\brief Maltese language
+Maltese language
 
 \def LANGUAGE_MAORI
-\brief Maori language
+Maori language
 
 \def LANGUAGE_MARATHI
-\brief Marathi language
+Marathi language
 
 \def LANGUAGE_MOLDAVIAN
-\brief Moldavian language
+Moldavian language
 
 \def LANGUAGE_MONGOLIAN
-\brief Mongolian language
+Mongolian language
 
 \def LANGUAGE_NAURU
-\brief Nauru language
+Nauru language
 
 \def LANGUAGE_NEPALI
-\brief Nepali language
+Nepali language
 
 \def LANGUAGE_NORWEGIAN
-\brief Norwegian language
+Norwegian language
 
 \def LANGUAGE_NORWEGIAN_BOKMAL
-\brief Norwegian bokmal language
+Norwegian bokmal language
 
 \def LANGUAGE_NORWEGIAN_NYNORSK
-\brief Norwegian nynorsk language
+Norwegian nynorsk language
 
 \def LANGUAGE_OCCITAN
-\brief Occitan language
+Occitan language
 
 \def LANGUAGE_ORIYA
-\brief Oriya language
+Oriya language
 
 \def LANGUAGE_PASHTO_PUSHTO
-\brief Pashto pushto language
+Pashto pushto language
 
 \def LANGUAGE_PERSIAN
-\brief Persian language
+Persian language
 
 \def LANGUAGE_POLISH
-\brief Polish language
+Polish language
 
 \def LANGUAGE_PORTUGUESE
-\brief Portuguese language
+Portuguese language
 
 \def LANGUAGE_PUNJABI
-\brief Punjabi language
+Punjabi language
 
 \def LANGUAGE_QUECHUA
-\brief Quechua language
+Quechua language
 
 \def LANGUAGE_RHAETO_ROMANCE
-\brief Rhaeto romance language
+Rhaeto romance language
 
 \def LANGUAGE_ROMANIAN
-\brief Romanian language
+Romanian language
 
 \def LANGUAGE_RUSSIAN
-\brief Russian language
+Russian language
 
 \def LANGUAGE_SAMI
-\brief Sami language
+Sami language
 
 \def LANGUAGE_SAMOAN
-\brief Samoan language
+Samoan language
 
 \def LANGUAGE_SANGRO
-\brief Sangro language
+Sangro language
 
 \def LANGUAGE_SANSKRIT
-\brief Sanskrit language
+Sanskrit language
 
 \def LANGUAGE_SCOTS_GAELIC
-\brief Scots gaelic language
+Scots gaelic language
 
 \def LANGUAGE_SERBIAN
-\brief Serbian language
+Serbian language
 
 \def LANGUAGE_SERBO_CROATIAN
-\brief Serbo croatian language
+Serbo croatian language
 
 \def LANGUAGE_SESOTHO
-\brief Sesotho language
+Sesotho language
 
 \def LANGUAGE_SETSWANA
-\brief Setswana language
+Setswana language
 
 \def LANGUAGE_SHONA
-\brief Shona language
+Shona language
 
 \def LANGUAGE_SINDHI
-\brief Sindhi language
+Sindhi language
 
 \def LANGUAGE_SINGHALESE
-\brief Singhalese language
+Singhalese language
 
 \def LANGUAGE_SISWATI
-\brief Siswati language
+Siswati language
 
 \def LANGUAGE_SLOVAK
-\brief Slovak language
+Slovak language
 
 \def LANGUAGE_SLOVENIAN
-\brief Slovenian language
+Slovenian language
 
 \def LANGUAGE_SOMALI
-\brief Somali language
+Somali language
 
 \def LANGUAGE_SPANISH
-\brief Spanish language
+Spanish language
 
 \def LANGUAGE_SUDANESE
-\brief Sudanese language
+Sudanese language
 
 \def LANGUAGE_SWAHILI
-\brief Swahili language
+Swahili language
 
 \def LANGUAGE_SWEDISH
-\brief Swedish language
+Swedish language
 
 \def LANGUAGE_TAGALOG
-\brief Tagalog language
+Tagalog language
 
 \def LANGUAGE_TAJIK
-\brief Tajik language
+Tajik language
 
 \def LANGUAGE_TAMIL
-\brief Tamil language
+Tamil language
 
 \def LANGUAGE_TATAR
-\brief Tatar language
+Tatar language
 
 \def LANGUAGE_TELUGU
-\brief Telugu language
+Telugu language
 
 \def LANGUAGE_THAI
-\brief Thai language
+Thai language
 
 \def LANGUAGE_TIBETAN
-\brief Tibetan language
+Tibetan language
 
 \def LANGUAGE_TIGRINYA
-\brief Tigrinya language
+Tigrinya language
 
 \def LANGUAGE_TONGA
-\brief Tonga language
+Tonga language
 
 \def LANGUAGE_TSONGA
-\brief Tsonga language
+Tsonga language
 
 \def LANGUAGE_TURKISH
-\brief Turkish language
+Turkish language
 
 \def LANGUAGE_TURKMEN
-\brief Turkmen language
+Turkmen language
 
 \def LANGUAGE_TWI
-\brief Twi language
+Twi language
 
 \def LANGUAGE_UIGHUR
-\brief Uighur language
+Uighur language
 
 \def LANGUAGE_UKRAINIAN
-\brief Ukrainian language
+Ukrainian language
 
 \def LANGUAGE_URDU
-\brief Urdu language
+Urdu language
 
 \def LANGUAGE_UZBEK
-\brief Uzbek language
+Uzbek language
 
 \def LANGUAGE_VIETNAMESE
-\brief Vietnamese language
+Vietnamese language
 
 \def LANGUAGE_VOLAPUK
-\brief Volapuk language
+Volapuk language
 
 \def LANGUAGE_WELSH
-\brief Welsh language
+Welsh language
 
 \def LANGUAGE_WOLOF
-\brief Wolof language
+Wolof language
 
 \def LANGUAGE_XHOSA
-\brief Xhosa language
+Xhosa language
 
 \def LANGUAGE_YI
-\brief Yi language
+Yi language
 
 \def LANGUAGE_YIDDISH
-\brief Yiddish language
+Yiddish language
 
 \def LANGUAGE_YORUBA
-\brief Yoruba language
+Yoruba language
 
 \def LANGUAGE_ZHUANG
-\brief Zhuang language
+Zhuang language
 
 \def LANGUAGE_ZULU
-\brief Zulu language
+Zulu language
 
 \def LANGUAGE_DEFAULT
-\brief Default language
+Default language
 
 \def COUNTRY_AFGHANISTAN
-\brief Afghanistan country
+Afghanistan country
 
 \def COUNTRY_ALBANIA
-\brief Albania country
+Albania country
 
 \def COUNTRY_ALGERIA
-\brief Algeria country
+Algeria country
 
 \def COUNTRY_AMERICAN_SAMOA
-\brief American Samoa country
+American Samoa country
 
 \def COUNTRY_ANDORRA
-\brief Andorra country
+Andorra country
 
 \def COUNTRY_ANGOLA
-\brief Angola country
+Angola country
 
 \def COUNTRY_ANGUILLA
-\brief Anguilla country
+Anguilla country
 
 \def COUNTRY_ANTARCTICA
-\brief Antarctica country
+Antarctica country
 
 \def COUNTRY_ANTIGUA_BARBUDA
-\brief Antigua Barbuda country
+Antigua Barbuda country
 
 \def COUNTRY_ARGENTINA
-\brief Argentina country
+Argentina country
 
 \def COUNTRY_ARMENIA
-\brief Armenia country
+Armenia country
 
 \def COUNTRY_ARUBA
-\brief Aruba country
+Aruba country
 
 \def COUNTRY_AUSTRALIA
-\brief Australia country
+Australia country
 
 \def COUNTRY_AUSTRIA
-\brief Austria country
+Austria country
 
 \def COUNTRY_AZERBAIJAN
-\brief Azerbaijan country
+Azerbaijan country
 
 \def COUNTRY_BAHAMAS
-\brief Bahamas country
+Bahamas country
 
 \def COUNTRY_BAHRAIN
-\brief Bahrain country
+Bahrain country
 
 \def COUNTRY_BANGLADESH
-\brief Bangladesh country
+Bangladesh country
 
 \def COUNTRY_BARBADOS
-\brief Barbados country
+Barbados country
 
 \def COUNTRY_BELARUS
-\brief Belarus country
+Belarus country
 
 \def COUNTRY_BELGIUM
-\brief Belgium country
+Belgium country
 
 \def COUNTRY_BELIZE
-\brief Belize country
+Belize country
 
 \def COUNTRY_BENIN
-\brief Benin country
+Benin country
 
 \def COUNTRY_BERMUDA
-\brief Bermuda country
+Bermuda country
 
 \def COUNTRY_BHUTAN
-\brief Bhutan country
+Bhutan country
 
 \def COUNTRY_BOLIVIA
-\brief Bolivia country
+Bolivia country
 
 \def COUNTRY_BOSNIA_HERZEGOVINA
-\brief Bosnia Herzegovina country
+Bosnia Herzegovina country
 
 \def COUNTRY_BOTSWANA
-\brief Botswana country
+Botswana country
 
 \def COUNTRY_BOUVET_ISLAND
-\brief Bouvet Island country
+Bouvet Island country
 
 \def COUNTRY_BRAZIL
-\brief Brazil country
+Brazil country
 
 \def COUNTRY_BRITISH_INDIAN_OCEAN_TERRITORY
-\brief British Indian Ocean Territory country
+British Indian Ocean Territory country
 
 \def COUNTRY_BRUNEI_DARUSSALAM
-\brief Brunei Darussalam country
+Brunei Darussalam country
 
 \def COUNTRY_BULGARIA
-\brief Bulgaria country
+Bulgaria country
 
 \def COUNTRY_BURKINA_FASO
-\brief Burkina Faso country
+Burkina Faso country
 
 \def COUNTRY_BURUNDI
-\brief Burundi country
+Burundi country
 
 \def COUNTRY_CAMBODIA
-\brief Cambodia country
+Cambodia country
 
 \def COUNTRY_CAMEROON
-\brief Cameroon country
+Cameroon country
 
 \def COUNTRY_CANADA
-\brief Canada country
+Canada country
 
 \def COUNTRY_CAPE_VERDE
-\brief Cape Verde country
+Cape Verde country
 
 \def COUNTRY_CAYMAN_ISLANDS
-\brief Cayman Islands country
+Cayman Islands country
 
 \def COUNTRY_CENTRAL_AFRICAN_REPUBLIC
-\brief Central African Republic country
+Central African Republic country
 
 \def COUNTRY_CHAD
-\brief Chad country
+Chad country
 
 \def COUNTRY_CHILE
-\brief Chile country
+Chile country
 
 \def COUNTRY_CHINA
-\brief China country
+China country
 
 \def COUNTRY_CHRISTMAS_ISLAND
-\brief Christmas Island country
+Christmas Island country
 
 \def COUNTRY_COCOS_KEELING_ISLANDS
-\brief Cocos Keeling Islands country
+Cocos Keeling Islands country
 
 \def COUNTRY_COLOMBIA
-\brief Colombia country
+Colombia country
 
 \def COUNTRY_COMOROS
-\brief Comoros country
+Comoros country
 
 \def COUNTRY_CONGO
-\brief Congo country
+Congo country
 
 \def COUNTRY_CONGO_DRC
-\brief Congo DRC country
+Congo DRC country
 
 \def COUNTRY_COOK_ISLANDS
-\brief Cook Islands country
+Cook Islands country
 
 \def COUNTRY_COSTA_RICA
-\brief Costa Rica country
+Costa Rica country
 
 \def COUNTRY_COTE_DIVOIRE
-\brief Cote Divoire country
+Cote Divoire country
 
 \def COUNTRY_CROATIA
-\brief Croatia country
+Croatia country
 
 \def COUNTRY_CUBA
-\brief Cuba country
+Cuba country
 
 \def COUNTRY_CYPRUS
-\brief Cyprus country
+Cyprus country
 
 \def COUNTRY_CZECH_REPUBLIC
-\brief Czech Republic country
+Czech Republic country
 
 \def COUNTRY_DENMARK
-\brief Denmark country
+Denmark country
 
 \def COUNTRY_DJIBOUTI
-\brief Djibouti country
+Djibouti country
 
 \def COUNTRY_DOMINICA
-\brief Dominica country
+Dominica country
 
 \def COUNTRY_DOMINICAN_REPUBLIC
-\brief Dominican Republic country
+Dominican Republic country
 
 \def COUNTRY_EAST_TIMOR
-\brief East Timor country
+East Timor country
 
 \def COUNTRY_ECUADOR
-\brief Ecuador country
+Ecuador country
 
 \def COUNTRY_EGYPT
-\brief Egypt country
+Egypt country
 
 \def COUNTRY_EL_SALVADOR
-\brief El Salvador country
+El Salvador country
 
 \def COUNTRY_EQUATORIAL_GUINEA
-\brief Equatorial Guinea country
+Equatorial Guinea country
 
 \def COUNTRY_ERITREA
-\brief Eritrea country
+Eritrea country
 
 \def COUNTRY_ESTONIA
-\brief Estonia country
+Estonia country
 
 \def COUNTRY_ETHIOPIA
-\brief Ethiopia country
+Ethiopia country
 
 \def COUNTRY_EUROPE_SSGFI_ONLY
-\brief Europe SSGFI only country
+Europe SSGFI only country
 
 \def COUNTRY_FALKLAND_ISLANDS
-\brief Falkland Islands country
+Falkland Islands country
 
 \def COUNTRY_FAEROE_ISLANDS
-\brief Faeroe Islands country
+Faeroe Islands country
 
 \def COUNTRY_FIJI
-\brief Fiji country
+Fiji country
 
 \def COUNTRY_FINLAND
-\brief Finland country
+Finland country
 
 \def COUNTRY_FRANCE
-\brief France country
+France country
 
 \def COUNTRY_FRANCE_METROPOLITAN
-\brief France Metropolitan country
+France Metropolitan country
 
 \def COUNTRY_FRENCH_GUIANA
-\brief French Guiana country
+French Guiana country
 
 \def COUNTRY_FRENCH_POLYNESIA
-\brief French Polynesia country
+French Polynesia country
 
 \def COUNTRY_FRENCH_SOUTHERN_TERRITORIES
-\brief French Southern Territories country
+French Southern Territories country
 
 \def COUNTRY_GABON
-\brief Gabon country
+Gabon country
 
 \def COUNTRY_GAMBIA
-\brief Gambia country
+Gambia country
 
 \def COUNTRY_GEORGIA
-\brief Georgia country
+Georgia country
 
 \def COUNTRY_GERMANY
-\brief Germany country
+Germany country
 
 \def COUNTRY_GHANA
-\brief Ghana country
+Ghana country
 
 \def COUNTRY_GIBRALTAR
-\brief Gibraltar country
+Gibraltar country
 
 \def COUNTRY_GREECE
-\brief Greece country
+Greece country
 
 \def COUNTRY_GREENLAND
-\brief Greenland country
+Greenland country
 
 \def COUNTRY_GRENADA
-\brief Grenada country
+Grenada country
 
 \def COUNTRY_GUADELOUPE
-\brief Guadeloupe country
+Guadeloupe country
 
 \def COUNTRY_GUAM
-\brief Guam country
+Guam country
 
 \def COUNTRY_GUATEMALA
-\brief Guatemala country
+Guatemala country
 
 \def COUNTRY_GUERNSEY
-\brief Guernsey country
+Guernsey country
 
 \def COUNTRY_GUINEA
-\brief Guinea country
+Guinea country
 
 \def COUNTRY_GUINEA_BISSAU
-\brief Guinea Bissau country
+Guinea Bissau country
 
 \def COUNTRY_GUYANA
-\brief Guyana country
+Guyana country
 
 \def COUNTRY_HAITI
-\brief Haiti country
+Haiti country
 
 \def COUNTRY_HEARD_AND_MC_DONALD_ISLANDS
-\brief Heard And Mc Donald Islands country
+Heard And Mc Donald Islands country
 
 \def COUNTRY_HONDURAS
-\brief Honduras country
+Honduras country
 
 \def COUNTRY_HONG_KONG
-\brief Hong_kong country
+Hong_kong country
 
 \def COUNTRY_HUNGARY
-\brief Hungary country
+Hungary country
 
 \def COUNTRY_ICELAND
-\brief Iceland country
+Iceland country
 
 \def COUNTRY_INDIA
-\brief India country
+India country
 
 \def COUNTRY_INDONESIA
-\brief Indonesia country
+Indonesia country
 
 \def COUNTRY_INTERNATIONAL_SSGFI_ONLY
-\brief International SSGFI only country
+International SSGFI only country
 
 \def COUNTRY_IRAN
-\brief Iran country
+Iran country
 
 \def COUNTRY_IRAQ
-\brief Iraq country
+Iraq country
 
 \def COUNTRY_IRELAND
-\brief Ireland country
+Ireland country
 
 \def COUNTRY_ISLE_OF_MAN
-\brief Isle of Man country
+Isle of Man country
 
 \def COUNTRY_ISRAEL
-\brief Israel country
+Israel country
 
 \def COUNTRY_ITALY
-\brief Italy country
+Italy country
 
 \def COUNTRY_JAMAICA
-\brief Jamaica country
+Jamaica country
 
 \def COUNTRY_JAPAN
-\brief Japan country
+Japan country
 
 \def COUNTRY_JERSEY
-\brief Jersey country
+Jersey country
 
 \def COUNTRY_JORDAN
-\brief Jordan country
+Jordan country
 
 \def COUNTRY_KAZAKHSTAN
-\brief Kazakhstan country
+Kazakhstan country
 
 \def COUNTRY_KENYA
-\brief Kenya country
+Kenya country
 
 \def COUNTRY_KIRIBATI
-\brief Kiribati country
+Kiribati country
 
 \def COUNTRY_KOREA_DEMOCRATIC_PEOPLES_REPUBLIC_OF
-\brief Democratic Peoples Republic of Korea country
+Democratic Peoples Republic of Korea country
 
 \def COUNTRY_KOREA_REPUBLIC_OF
-\brief Republic of Korea country
+Republic of Korea country
 
 \def COUNTRY_KUWAIT
-\brief Kuwait country
+Kuwait country
 
 \def COUNTRY_KYRGYZSTAN
-\brief Kyrgyzstan country
+Kyrgyzstan country
 
 \def COUNTRY_LAO_PEOPLES_DEMOCRATIC_REPUBLIC
-\brief Lao Peoples Democratic Republic country
+Lao Peoples Democratic Republic country
 
 \def COUNTRY_LATVIA
-\brief Latvia country
+Latvia country
 
 \def COUNTRY_LEBANON
-\brief Lebanon country
+Lebanon country
 
 \def COUNTRY_LESOTHO
-\brief Lesotho country
+Lesotho country
 
 \def COUNTRY_LIBERIA
-\brief Liberia country
+Liberia country
 
 \def COUNTRY_LIBYAN_ARAB_JAMAHIRIYA
-\brief Libyan Arab Jamahiriya country
+Libyan Arab Jamahiriya country
 
 \def COUNTRY_LIECHTENSTEIN
-\brief Liechtenstein country
+Liechtenstein country
 
 \def COUNTRY_LITHUANIA
-\brief Lithuania country
+Lithuania country
 
 \def COUNTRY_LUXEMBOURG
-\brief Luxembourg country
+Luxembourg country
 
 \def COUNTRY_MACAU
-\brief Macau country
+Macau country
 
 \def COUNTRY_MACEDONIA_THE_FORMER_YUGOSLAV_REPUBLIC_OF
-\brief The Former Yugoslav Republic of Macedonia country
+The Former Yugoslav Republic of Macedonia country
 
 \def COUNTRY_MADAGASCAR
-\brief Madagascar country
+Madagascar country
 
 \def COUNTRY_MALAWI
-\brief Malawi country
+Malawi country
 
 \def COUNTRY_MALAYSIA
-\brief Malaysia country
+Malaysia country
 
 \def COUNTRY_MALDIVES
-\brief Maldives country
+Maldives country
 
 \def COUNTRY_MALI
-\brief Mali country
+Mali country
 
 \def COUNTRY_MALTA
-\brief Malta country
+Malta country
 
 \def COUNTRY_MARSHALL_ISLANDS
-\brief Marshall Islands country
+Marshall Islands country
 
 \def COUNTRY_MARTINIQUE
-\brief Martinique country
+Martinique country
 
 \def COUNTRY_MAURITANIA
-\brief Mauritania country
+Mauritania country
 
 \def COUNTRY_MAURITIUS
-\brief Mauritius country
+Mauritius country
 
 \def COUNTRY_MAYOTTE
-\brief Mayotte country
+Mayotte country
 
 \def COUNTRY_MEXICO
-\brief Mexico country
+Mexico country
 
 \def COUNTRY_MICRONESIA_FEDERATED_STATES_OF
-\brief Federated States of Micronesia country
+Federated States of Micronesia country
 
 \def COUNTRY_MOLDOVA_REPUBLIC_OF
-\brief Republic of Moldova country
+Republic of Moldova country
 
 \def COUNTRY_MONACO
-\brief Monaco country
+Monaco country
 
 \def COUNTRY_MONGOLIA
-\brief Mongolia country
+Mongolia country
 
 \def COUNTRY_MONTENEGRO
-\brief Montenegro country
+Montenegro country
 
 \def COUNTRY_MONTSERRAT
-\brief Montserrat country
+Montserrat country
 
 \def COUNTRY_MOROCCO
-\brief Morocco country
+Morocco country
 
 \def COUNTRY_MOZAMBIQUE
-\brief Mozambique country
+Mozambique country
 
 \def COUNTRY_MYANMAR
-\brief Myanmar country
+Myanmar country
 
 \def COUNTRY_NAMIBIA
-\brief Namibia country
+Namibia country
 
 \def COUNTRY_NAURU
-\brief Nauru country
+Nauru country
 
 \def COUNTRY_NEPAL
-\brief Nepal country
+Nepal country
 
 \def COUNTRY_NETHERLANDS
-\brief Netherlands country
+Netherlands country
 
 \def COUNTRY_NETHERLANDS_ANTILLES
-\brief Netherlands Antilles country
+Netherlands Antilles country
 
 \def COUNTRY_NEW_CALEDONIA
-\brief New Caledonia country
+New Caledonia country
 
 \def COUNTRY_NEW_ZEALAND
-\brief New Zealand country
+New Zealand country
 
 \def COUNTRY_NICARAGUA
-\brief Nicaragua country
+Nicaragua country
 
 \def COUNTRY_NIGER
-\brief Niger country
+Niger country
 
 \def COUNTRY_NIGERIA
-\brief Nigeria country
+Nigeria country
 
 \def COUNTRY_NIUE
-\brief Niue country
+Niue country
 
 \def COUNTRY_NORFOLK_ISLAND
-\brief Norfolk Island country
+Norfolk Island country
 
 \def COUNTRY_NORTHERN_MARIANA_ISLANDS
-\brief Northern Mariana Islands country
+Northern Mariana Islands country
 
 \def COUNTRY_NORWAY
-\brief Norway country
+Norway country
 
 \def COUNTRY_OMAN
-\brief Oman country
+Oman country
 
 \def COUNTRY_PAKISTAN
-\brief Pakistan country
+Pakistan country
 
 \def COUNTRY_PALAU
-\brief Palau country
+Palau country
 
 \def COUNTRY_PALESTINIAN_TERRITORY
-\brief Palestinian Territory country
+Palestinian Territory country
 
 \def COUNTRY_PANAMA
-\brief Panama country
+Panama country
 
 \def COUNTRY_PAPUA_NEW_GUINEA
-\brief Papua New Guinea country
+Papua New Guinea country
 
 \def COUNTRY_PARAGUAY
-\brief Paraguay country
+Paraguay country
 
 \def COUNTRY_PERU
-\brief Peru country
+Peru country
 
 \def COUNTRY_PHILIPPINES
-\brief Philippines country
+Philippines country
 
 \def COUNTRY_PITCAIRN
-\brief Pitcairn country
+Pitcairn country
 
 \def COUNTRY_POLAND
-\brief Poland country
+Poland country
 
 \def COUNTRY_PORTUGAL
-\brief Portugal country
+Portugal country
 
 \def COUNTRY_PUERTO_RICO
-\brief Puerto Rico country
+Puerto Rico country
 
 \def COUNTRY_QATAR
-\brief Qatar country
+Qatar country
 
 \def COUNTRY_REUNION
-\brief Reunion country
+Reunion country
 
 \def COUNTRY_ROMANIA
-\brief Romania country
+Romania country
 
 \def COUNTRY_RUSSIAN_FEDERATION
-\brief Russian Federation country
+Russian Federation country
 
 \def COUNTRY_RWANDA
-\brief Rwanda country
+Rwanda country
 
 \def COUNTRY_SAINT_KITTS_AND_NEVIS
-\brief Saint Kitts and Nevis country
+Saint Kitts and Nevis country
 
 \def COUNTRY_SAINT_LUCIA
-\brief Saint Lucia country
+Saint Lucia country
 
 \def COUNTRY_SAINT_VINCENT_AND_THE_GRENADINES
-\brief Saint Vincent and the Grenadines country
+Saint Vincent and the Grenadines country
 
 \def COUNTRY_SAMOA
-\brief Samoa country
+Samoa country
 
 \def COUNTRY_SAN_MARINO
-\brief San Marino country
+San Marino country
 
 \def COUNTRY_SAO_TOME_AND_PRINCIPE
-\brief Sao Tome and Principe country
+Sao Tome and Principe country
 
 \def COUNTRY_SAUDI_ARABIA
-\brief Saudi Arabia country
+Saudi Arabia country
 
 \def COUNTRY_SENEGAL
-\brief Senegal country
+Senegal country
 
 \def COUNTRY_SERBIA
-\brief Serbia country
+Serbia country
 
 \def COUNTRY_SERBIA_AND_MONTENEGRO
-\brief Serbia and Montenegro country
+Serbia and Montenegro country
 
 \def COUNTRY_SEYCHELLES
-\brief Seychelles country
+Seychelles country
 
 \def COUNTRY_SIERRA_LEONE
-\brief Sierra Leone country
+Sierra Leone country
 
 \def COUNTRY_SINGAPORE
-\brief Singapore country
+Singapore country
 
 \def COUNTRY_SLOVAKIA
-\brief Slovakia country
+Slovakia country
 
 \def COUNTRY_SLOVENIA
-\brief Slovenia country
+Slovenia country
 
 \def COUNTRY_SOLOMON_ISLANDS
-\brief Solomon Islands country
+Solomon Islands country
 
 \def COUNTRY_SOMALIA
-\brief Somalia country
+Somalia country
 
 \def COUNTRY_SOUTH_AFRICA
-\brief South Africa country
+South Africa country
 
 \def COUNTRY_SOUTH_GEORGIA_AND_THE_SOUTH_SANDWICH_ISLANDS
-\brief South Georgia and the South Sandwich Islands country
+South Georgia and the South Sandwich Islands country
 
 \def COUNTRY_SPAIN
-\brief Spain country
+Spain country
 
 \def COUNTRY_SRI_LANKA
-\brief Sri Lanka country
+Sri Lanka country
 
 \def COUNTRY_ST_HELENA
-\brief St Helena country
+St Helena country
 
 \def COUNTRY_ST_PIERRE_AND_MIQUELON
-\brief St Pierre and Miquelon country
+St Pierre and Miquelon country
 
 \def COUNTRY_ST_HELENA_ASCENSION_AND_TRISTAN_DA_CUNHA
-\brief St Helena Ascension and Tristan da Cunha country
+St Helena Ascension and Tristan da Cunha country
 
 \def COUNTRY_SUDAN
-\brief Sudan country
+Sudan country
 
 \def COUNTRY_SURINAME
-\brief Suriname country
+Suriname country
 
 \def COUNTRY_SVALBARD_AND_JAN_MAYEN_ISLANDS
-\brief Svalbard and Jan Mayen Islands country
+Svalbard and Jan Mayen Islands country
 
 \def COUNTRY_SWAZILAND
-\brief Swaziland country
+Swaziland country
 
 \def COUNTRY_SWEDEN
-\brief Sweden country
+Sweden country
 
 \def COUNTRY_SWITZERLAND
-\brief Switzerland country
+Switzerland country
 
 \def COUNTRY_SYRIAN_ARAB_REPUBLIC
-\brief Syrian Arab Republic country
+Syrian Arab Republic country
 
 \def COUNTRY_TAIWAN
-\brief Taiwan country
+Taiwan country
 
 \def COUNTRY_TAJIKISTAN
-\brief Tajikistan country
+Tajikistan country
 
 \def COUNTRY_TANZANIA_UNITED_REPUBLIC_OF
-\brief United Republic of Tanzania country
+United Republic of Tanzania country
 
 \def COUNTRY_THAILAND
-\brief Thailand country
+Thailand country
 
 \def COUNTRY_TIMOR_LESTE
-\brief Timor Leste country
+Timor Leste country
 
 \def COUNTRY_TOGO
-\brief Togo country
+Togo country
 
 \def COUNTRY_TOKELAU
-\brief Tokelau country
+Tokelau country
 
 \def COUNTRY_TONGA
-\brief Tonga country
+Tonga country
 
 \def COUNTRY_TRINIDAD_AND_TOBAGO
-\brief Trinidad and Tobago country
+Trinidad and Tobago country
 
 \def COUNTRY_TUNISIA
-\brief Tunisia country
+Tunisia country
 
 \def COUNTRY_TURKEY
-\brief Turkey country
+Turkey country
 
 \def COUNTRY_TURKMENISTAN
-\brief Turkmenistan country
+Turkmenistan country
 
 \def COUNTRY_TURKS_AND_CAICOS_ISLANDS
-\brief Turks and Caicos Islands country
+Turks and Caicos Islands country
 
 \def COUNTRY_TUVALU
-\brief Tuvalu country
+Tuvalu country
 
 \def COUNTRY_UGANDA
-\brief Uganda country
+Uganda country
 
 \def COUNTRY_UKRAINE
-\brief Ukraine country
+Ukraine country
 
 \def COUNTRY_UNITED_ARAB_EMIRATES
-\brief United Arab Emirates country
+United Arab Emirates country
 
 \def COUNTRY_UNITED_KINGDOM
-\brief United_kingdom country
+United_kingdom country
 
 \def COUNTRY_UNITED_STATES
-\brief United States country
+United States country
 
 \def COUNTRY_UNITED_STATES_MINOR_OUTLYING_ISLANDS
-\brief United States Minor Outlying Islands country
+United States Minor Outlying Islands country
 
 \def COUNTRY_URUGUAY
-\brief Uruguay country
+Uruguay country
 
 \def COUNTRY_UZBEKISTAN
-\brief Uzbekistan country
+Uzbekistan country
 
 \def COUNTRY_VANUATU
-\brief Vanuatu country
+Vanuatu country
 
 \def COUNTRY_VATICAN_CITY_STATE
-\brief Vatican City State country
+Vatican City State country
 
 \def COUNTRY_VENEZUELA
-\brief Venezuela country
+Venezuela country
 
 \def COUNTRY_VIETNAM
-\brief Vietnam country
+Vietnam country
 
 \def COUNTRY_VIRGIN_ISLANDS_BRITISH
-\brief Virgin Islands British country
+Virgin Islands British country
 
 \def COUNTRY_VIRGIN_ISLANDS_US
-\brief Virgin Islands US country
+Virgin Islands US country
 
 \def COUNTRY_WALLIS_AND_FUTUNA_ISLANDS
-\brief Wallis and Futuna Islands country
+Wallis and Futuna Islands country
 
 \def COUNTRY_WESTERN_SAHARA
-\brief Western Sahara country
+Western Sahara country
 
 \def COUNTRY_YEMEN
-\brief Yemen country
+Yemen country
 
 \def COUNTRY_YUGOSLAVIA
-\brief Yugoslavia country
+Yugoslavia country
 
 \def COUNTRY_ZAIRE
-\brief Zaire country
+Zaire country
 
 \def COUNTRY_ZAMBIA
-\brief Zambia country
+Zambia country
 
 \def COUNTRY_ZIMBABWE
-\brief Zimbabwe country
+Zimbabwe country
 */

@@ -14,7 +14,8 @@
 
 /*! \file log.h
 \brief Log output, filtering, context handling and callbacks
-\details Log output, filtering, context handling and callbacks. Logging is centered around two concepts,
+
+Log output, filtering, context handling and callbacks. Logging is centered around two concepts,
 a context and a level. Log messages can be filtered on both, with a specific threshold available
 for each context.
 
@@ -34,16 +35,14 @@ filter a runtime selection of log messages can be selected instead. */
 
 #if BUILD_ENABLE_LOG && BUILD_ENABLE_DEBUG_LOG
 
-/*! \brief Log unformatted debug message
-Log an unformatted debug message in the specific context
+/*! Log an unformatted debug message in the specific context
 \param context Log context
 \param msg Log message
 \param msg_length Length of message */
 FOUNDATION_API void
 log_debug(hash_t context, const char* msg, size_t msg_length);
 
-/*! \brief Log formatted debug message
-Log formatted debug message in specified log context
+/*! Log formatted debug message in specified log context
 \param context Log context
 \param format Log message format specifier
 \param format_length Length of log message format specifier */
@@ -55,16 +54,14 @@ FOUNDATION_ATTRIBUTE4(format, printf, 2, 4);
 
 #if BUILD_ENABLE_LOG
 
-/*! \brief Log formatted info message
-Log an unformatted info message in the specific context
+/*! Log an unformatted info message in the specific context
 \param context Log context
 \param msg Log message
 \param msg_length Length of message */
 FOUNDATION_API void
 log_info(hash_t context, const char* msg, size_t msg_length);
 
-/*! \brief Log formatted info message
-Log formatted info message in specified log context
+/*! Log formatted info message in specified log context
 \param context Log context
 \param format Log message format
 \param format_length Length of log message format specifier */
@@ -72,8 +69,7 @@ FOUNDATION_API void
 log_infof(hash_t context, const char* format, size_t format_length, ...)
 FOUNDATION_ATTRIBUTE4(format, printf, 2, 4);
 
-/*! \brief Log unformatted warning message
-Log an unformatted warning message in the specific context
+/*! Log an unformatted warning message in the specific context
 \param context Log context
 \param warn Warning type
 \param msg Log message
@@ -81,8 +77,7 @@ Log an unformatted warning message in the specific context
 FOUNDATION_API void
 log_warn(hash_t context, warning_t warn, const char* msg, size_t msg_length);
 
-/*! \brief Log formatted warning message
-Log formatted warning message in specified log context
+/*! Log formatted warning message in specified log context
 \param context Log context
 \param warn Warning type
 \param format Log message format
@@ -91,8 +86,7 @@ FOUNDATION_API void
 log_warnf(hash_t context, warning_t warn, const char* format, size_t format_length, ...)
 FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
 
-/*! \brief Log unformatted error message
-Log an unformatted error message in the specific context. Will also
+/*! Log an unformatted error message in the specific context. Will also
 report the error code through error_report
 \param context Log context
 \param err Error code
@@ -101,8 +95,7 @@ report the error code through error_report
 FOUNDATION_API void
 log_error(hash_t context, error_t err, const char* msg, size_t msg_length);
 
-/*! \brief Log formatted error message
-Log formatted error message in specified log context. Will also
+/*! Log formatted error message in specified log context. Will also
 report the error code through error_report
 \param context Log context
 \param err Error code
@@ -112,8 +105,7 @@ FOUNDATION_API void
 log_errorf(hash_t context, error_t err, const char* format, size_t format_length, ...)
 FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
 
-/*! \brief Log unformatted panic message
-Log an unformatted panic message in the specific context. Will also
+/*! Log an unformatted panic message in the specific context. Will also
 report the error code through error_report
 \param context Log context
 \param err Error code
@@ -122,8 +114,7 @@ report the error code through error_report
 FOUNDATION_API void
 log_panic(hash_t context, error_t err, const char* msg, size_t msg_length);
 
-/*! \brief Log formatted panic message
-\details Log formatted panic message in specified log context
+/*! Log formatted panic message in specified log context
 \param context Log context
 \param err Error code
 \param format Log message format
@@ -132,40 +123,34 @@ FOUNDATION_API void
 log_panicf(hash_t context, error_t err, const char* format, size_t format_length, ...)
 FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
 
-/*! \brief Log current error context
- Log the current error context in the specified log context. The log output is filtered
+/*! Log the current error context in the specified log context. The log output is filtered
 at the given severity level
 \param context Log context
 \param error_level Severity level */
 FOUNDATION_API void
 log_error_context(hash_t context, error_level_t error_level);
 
-/*! \brief Get log callback
-Get the currently set log callback
+/*! Get the currently set log callback
 \return Log callback */
 FOUNDATION_API log_callback_fn
 log_callback(void);
 
-/*! \brief Set log callback
-Set log callback
+/*! Set log callback
 \param callback New callback */
 FOUNDATION_API void
 log_set_callback(log_callback_fn callback);
 
-/*! \brief Control log output to stdout
-Control log output to stdout
+/*! Control log output to stdout
 \param enable Flag to enable/disable output to stdout */
 FOUNDATION_API void
 log_enable_stdout(bool enable);
 
-/*! \brief Control output of prefix information
-Control output of prefix information
+/*! Control output of prefix information
 \param enable Flag to enable/disable prefix output */
 FOUNDATION_API void
 log_enable_prefix(bool enable);
 
-/*! \brief Control log suppression
-Control log suppression based on severity level. Any messages at the
+/*! Control log suppression based on severity level. Any messages at the
 given severity level or lower will be filtered and discarded. If a log context
 has no explicit supression level the default (0) context supression level will be used.
 \param context Log context
@@ -173,15 +158,13 @@ has no explicit supression level the default (0) context supression level will b
 FOUNDATION_API void
 log_set_suppress(hash_t context, error_level_t level);
 
-/*! \brief Get current log suppression
-Get current log supression level for the given context
+/*! Get current log supression level for the given context
 \param context Log context
 \return Severity level being discarded for the given context */
 FOUNDATION_API error_level_t
 log_suppress(hash_t context);
 
-/*! \brief Clear all log suppression for all contexts
-Clear all log suppression for all contexts */
+/*! Clear all log suppression for all contexts */
 FOUNDATION_API void
 log_suppress_clear(void);
 

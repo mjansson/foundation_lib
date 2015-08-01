@@ -14,44 +14,47 @@
 
 /*! \file library.h
 \brief Dynamic library loader
-\details Dynamic library loader for platforms supporting this concept */
+
+Dynamic library loader for platforms supporting this concept. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Load library
-Load library. Where libraries are searched is system dependent. If the
+/*! Load library. Where libraries are searched is system dependent. If the
 same library was already previously loaded, a new reference to the same library
 object will be returned, otherwise a new library object will be created and
-referenced. Use #library_unload to release a reference to a library object.
+referenced.
+
+Use #library_unload to release a reference to a library object.
+
 If the given name does not contain the platform specific dynamic library prefix
 and extension, the function will also try loading the library with this prefix and
 extension added. If the name contains a path, it should be on the standard format
 as returned by #path_clean
+
+On platforms where dynamic library loading is not supported a not implemented
+error will be reported.
 \param name Dynamic library name (or optional path)
 \param length Length of name/path
 \return Null if not found or error loading, library object reference if loaded successfully */
 FOUNDATION_API object_t
 library_load(const char* name, size_t length);
 
-/*! \brief Reference library
-Reference library, explicitly increase the reference count of the library object.
+/*! Reference library, explicitly increase the reference count of the library object.
 Use #library_unload to release a reference to a library object.
 \param library Library object
 \return Object handle if library object is still valid, 0 if library object is no longer valid */
 FOUNDATION_API object_t
 library_ref(object_t library);
 
-/*! \brief Unload library
-Unload library, release a reference to the library object. Once the library object
+/*! Unload library, release a reference to the library object. Once the library object
 has no more references, the underlying structure will be deallocated and the system resources
 associated will be released.
 \param library Library object */
 FOUNDATION_API void
 library_unload(object_t library);
 
-/*! \brief Symbol lookup
-Lookup a symbol by name in the library.
+/*! Lookup a symbol by name in the library.
 \param library Library object
 \param name Symbol name
 \param length Length of symbol name
@@ -59,15 +62,13 @@ Lookup a symbol by name in the library.
 FOUNDATION_API void*
 library_symbol(object_t library, const char* name, size_t length);
 
-/*! \brief Get library name
-Get library name
+/*! Get library name
 \param library Library object
 \return Library name, empty string if not a valid library */
 FOUNDATION_API string_const_t
 library_name(object_t library);
 
-/*! \brief Query if valid library
-Query if valid library
+/*! Query if valid library
 \param library Library object
 \return true if loaded and valid, false if not */
 FOUNDATION_API bool

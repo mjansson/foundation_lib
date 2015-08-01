@@ -14,7 +14,8 @@
 
 /*! \file main.h
 \brief Main entry points
-\details Main application entry points. The library implements the platform specific
+
+Main application entry points. The library implements the platform specific
 entry points into the application (like <code>int main(...)</code> for normal
 C library based applications) and handles the initial setup.
 
@@ -25,8 +26,7 @@ event (initialize, run and finalize). */
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Main initialization
-Main initialization entry point. This must be implemented by the application.
+/*! Main initialization entry point. This must be implemented by the application.
 The expectation is that this function will call foundation_initialize
 to initialize the foundation library, and return an error code
 to indicate success or failure. If this method returns an error initialization
@@ -35,8 +35,7 @@ will abort and the program will terminate.
 extern int
 main_initialize( void );
 
-/*! \brief Main loop
-Main loop. This must be implementation by the application and should
+/*! Main loop. This must be implementation by the application and should
 contain the main run loop. Once this function returns the application
 will terminate. The return code is used as the process exit code
 for normal termination. Will be called after #main_initialize
@@ -45,8 +44,7 @@ for normal termination. Will be called after #main_initialize
 extern int
 main_run( void* arg );
 
-/*! \brief Main finalization
-Main exit point. This must be implemented by the application.
+/*! Main exit point. This must be implemented by the application.
 The expectation is that this function will call foundation_finalize
 to terminate the foundation library. Will be called after #main_run */
 extern void

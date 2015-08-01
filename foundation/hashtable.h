@@ -14,7 +14,8 @@
 
 /*! \file hashtable.h
 \brief Lock-free key-value mapping container
-\details Simple lock-free container mapping 32/64-bit keys to values. Fixed size, thread-safe.
+
+Simple lock-free container mapping 32/64-bit keys to values. Fixed size, thread-safe.
 Limitation are:
 <ul>
 <li>Only maps 32/64 bit integers to 32/64 bit integers
@@ -28,137 +29,119 @@ Limitation are:
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Allocate 32-bit hash table
-Allocate storage for a 32-bit hash table of given size. The returned hash table should
+/*! Allocate storage for a 32-bit hash table of given size. The returned hash table should
 be deallocated with a call to #hashtable32_deallocate.
 \param buckets Number of buckets
 \return New hash table */
 FOUNDATION_API hashtable32_t*
 hashtable32_allocate(size_t buckets);
 
-/*! \brief Deallocate hash table
-Deallocate hash table previously allocated by a call to #hashtable32_allocate and free
+/*! Deallocate hash table previously allocated by a call to #hashtable32_allocate and free
 resources and storage used by hash table
 \param table Hash table object to deallocate */
 FOUNDATION_API void
 hashtable32_deallocate(hashtable32_t* table);
 
-/*! \brief Initialize 32-bit hash table
-Initialize a 32-bit hash table of given size. The returned hash table should be finalized with
-a call to #hashtable32_finalize.
+/*! Initialize a 32-bit hash table of given size. The returned hash table should be finalized
+with a call to #hashtable32_finalize.
 \param table Hash table
 \param buckets Number of buckets */
 FOUNDATION_API void
 hashtable32_initialize(hashtable32_t* table, size_t buckets);
 
-/*! \brief Finalize hash table
-Finalize hash table previously initialized by a call to #hashtable32_initialize
+/*! Finalize hash table previously initialized by a call to #hashtable32_initialize
 \param table Hash table object to finalize */
 FOUNDATION_API void
 hashtable32_finalize(hashtable32_t* table);
 
-/*! \brief Set value
-Set stored value for the given key
+/*! Set stored value for the given key
 \param table Hash table
 \param key Key
 \param value New value */
 FOUNDATION_API void
 hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value);
 
-/*! \brief Erase (set to zero)
-Erase the value for a key by setting the value to zero. Erasing is limited by
+/*! Erase the value for a key by setting the value to zero. Erasing is limited by
 the key still holding a slot in the table.
 \param table Hash table
 \param key Key */
 FOUNDATION_API void
 hashtable32_erase(hashtable32_t* table, uint32_t key);
 
-/*! \brief Get value
-Get the value stored for the given key, or zero if no value stored
+/*! Get the value stored for the given key, or zero if no value stored
 \param table Hash table
 \param key Key
 \return Value stored for key, zero if not found */
 FOUNDATION_API uint32_t
 hashtable32_get(hashtable32_t* table, uint32_t key);
 
-/*! \brief Get value count
-Get number of stored keys with non-zero values. Walks the table
+/*! Get number of stored keys with non-zero values. Walks the table
 so potentially slow.
 \param table Hash table
 \return Number of keys with non-zero values */
 FOUNDATION_API size_t
 hashtable32_size(hashtable32_t* table);
 
-/*! \brief Clear table
-Clear the entire table, resetting the stat to the state after
+/*! Clear the entire table, resetting the stat to the state after
 initial allocation, freeing up all slots in the table.
 \param table Hash table */
 FOUNDATION_API void
 hashtable32_clear(hashtable32_t* table);
 
-/*! \brief Allocate 64-bit hash table
-Allocate storage for a 64-bit hash table of given size. The returned hash table should
+/*! Allocate storage for a 64-bit hash table of given size. The returned hash table should
 be deallocated with a call to #hashtable64_deallocate.
 \param buckets Number of buckets
 \return New hash table */
 FOUNDATION_API hashtable64_t*
 hashtable64_allocate(size_t buckets);
 
-/*! \brief Deallocate hash table
-Deallocate hash table previously allocated by a call to #hashtable64_allocate and free
+/*! Deallocate hash table previously allocated by a call to #hashtable64_allocate and free
 resources and storage used by hash table
 \param table Hash table object to deallocate */
 FOUNDATION_API void
 hashtable64_deallocate(hashtable64_t* table);
 
-/*! \brief Initialize 64-bit hash table
-Initialize a 64-bit hash table of given size. The returned hash table should
+/*! Initialize a 64-bit hash table of given size. The returned hash table should
 be finalized with a call to #hashtable64_finalize.
 \param table Hash table
 \param buckets Number of buckets */
 FOUNDATION_API void
 hashtable64_initialize(hashtable64_t* table, size_t buckets);
 
-/*! \brief Finalize hash table
-Finalize hash table previously initialized by a call to #hashtable64_initialize
+/*! Finalize hash table previously initialized by a call to #hashtable64_initialize
 \param table Hash table object to finalize */
 FOUNDATION_API void
 hashtable64_finalize(hashtable64_t* table);
 
-/*! \brief Set value
-Set stored value for the given key
+/*! Set stored value for the given key
 \param table Hash table
 \param key Key
 \param value New value */
 FOUNDATION_API void
 hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value);
 
-/*! \brief Erase (set to zero)
-Erase the value for a key by setting the value to zero. Erasing is limited by
+/*! Erase the value for a key by setting the value to zero. Erasing is limited by
 the key still holding a slot in the table.
 \param table Hash table
 \param key Key */
 FOUNDATION_API void
 hashtable64_erase(hashtable64_t* table, uint64_t key);
 
-/*! \brief Get value
-Get the value stored for the given key, or zero if no value stored
+/*! Get the value stored for the given key, or zero if no value stored
 \param table Hash table
 \param key Key
 \return Value stored for key, zero if not found */
 FOUNDATION_API uint64_t
 hashtable64_get(hashtable64_t* table, uint64_t key);
 
-/*! \brief Get value count
-Get number of stored keys with non-zero values. Walks the table
+/*! Get number of stored keys with non-zero values. Walks the table
 so potentially slow.
 \param table Hash table
 \return Number of keys with non-zero values */
 FOUNDATION_API size_t
 hashtable64_size(hashtable64_t* table);
 
-/*! \brief Clear table
-Clear the entire table, resetting the stat to the state after
+/*! Clear the entire table, resetting the stat to the state after
 initial allocation.
 \param table Hash table */
 FOUNDATION_API void
@@ -166,45 +149,36 @@ hashtable64_clear(hashtable64_t* table);
 
 /*!
 \def hashtable_t
-\brief Pointer sized hash table
-\details Defined alias for a hash table storing values the size of a pointer,
+Defined alias for a hash table storing values the size of a pointer,
 so 32 or 64 bit depending on architecture.
 
 \def hashtable_clear
-\brief Clear table
-\details Clear the entire table, resetting the stat to the state after
+Clear the entire table, resetting the stat to the state after
 initial allocation.
 
 \def hashtable_allocate
-\brief Allocate pointer sized hash table
-\details Allocate storage for a pointer sized hash table of given size
+Allocate storage for a pointer sized hash table of given size
 
 \def hashtable_deallocate
-\brief Deallocate hash table
-\details Deallocate storage used by hash table
+Deallocate storage used by hash table
 
 \def hashtable_set
-\brief Set value
-\details Set stored value for the given key
+Set stored value for the given key
 
 \def hashtable_erase
-\brief Erase (set to zero)
-\details Erase the value for a key by setting the value to zero. The key still holds
+Erase the value for a key by setting the value to zero. The key still holds
 a slot in the table.
 
 \def hashtable_get
-\brief Get value
-\details Get the value stored for the given key, or zero if no value stored
+Get the value stored for the given key, or zero if no value stored
 
 \def hashtable_size
-\brief Get value count
-\details Get number of stored keys with non-zero values. Walks the table
+Get number of stored keys with non-zero values. Walks the table
 so potentially slow.
 
 \def hashtable_clear
-\brief Clear table
-\details Clear the entire table, resetting the stat to the state after
-initial allocation.
+Clear the entire table, resetting the stat to the state after
+initialization.
 */
 
 #if FOUNDATION_SIZE_POINTER == 4

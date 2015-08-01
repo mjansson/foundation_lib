@@ -14,7 +14,8 @@
 
 /*! \file memory.h
 \brief Memory management
-\details Memory allocation and deallocation. The actual implementation of allocation/deallocation can be
+
+Memory allocation and deallocation. The actual implementation of allocation/deallocation can be
 controlled with the memory system declaration given to #foundation_initialize at startup.
 
 Memory allocation/deallocation can be tracked with memory_set_tracker if the build configuration
@@ -28,8 +29,7 @@ removed and context 0 is used everywhere. Memory contexts are stored per thread.
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Allocate memory
-Allocate memory. Memory will be aligned to the given alingment unless
+/*! Allocate memory. Memory will be aligned to the given alingment unless
 set to 0, which will cause alignment to be ignored. Memory hints can be given to allow the
 memory system to make better choises of how to allocate the memory (see #memory_hint_t).
 If context is 0, the currently set memory context scope is used (see #memory_context,
@@ -43,8 +43,7 @@ If context is 0, the currently set memory context scope is used (see #memory_con
 FOUNDATION_API void*
 memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hint);
 
-/*! \brief Reallocate memory
-Reallocate a memory block. Old memory content will be preserved, and if requested size is
+/*! Reallocate a memory block. Old memory content will be preserved, and if requested size is
 larger than the current size the new memory area above the old size will be uninitialized.
 The currently set memory context is used for any allocation. It is safe to pass null
 as the current memory block pointer.
@@ -57,14 +56,12 @@ as the current memory block pointer.
 FOUNDATION_API void*
 memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize);
 
-/*! \brief Deallocate memory
-Deallocate a memory block. Safe to pass a null pointer.
+/*! Deallocate a memory block. Safe to pass a null pointer.
 \param p Memory block pointer */
 FOUNDATION_API void
 memory_deallocate(void* p);
 
-/*! \brief Push context on memory context stack
-Set a new current memory context by pushing it onto the context stack. A call
+/*! Set a new current memory context by pushing it onto the context stack. A call
 to #memory_context_pop will restore the previous memory context. Memory context
 stack is thread-local, setting a new memory context will not affect the
 current memory context of any other thread.
@@ -72,40 +69,34 @@ current memory context of any other thread.
 FOUNDATION_API void
 memory_context_push(hash_t context);
 
-/*! \brief Pop context from memory context stack
-Pop the current memory context off the context stack and set the new current
+/*! Pop the current memory context off the context stack and set the new current
 memory context to the previous memory context (the one below on the context stack).
 If no previous memory context is available on the stack, the current memory
 context is set to 0. */
 FOUNDATION_API void
 memory_context_pop(void);
 
-/*! \brief Get current memory context
-Get the current memory context, or 0 if no context is set
+/*! Get the current memory context, or 0 if no context is set
 \return Current memory context */
 FOUNDATION_API hash_t
 memory_context(void);
 
-/*! \brief Cleanup memory context stack
-Cleanup and deallocate any memory used for thread-local memory context data.
+/*! Cleanup and deallocate any memory used for thread-local memory context data.
 Called internally when a foundation thread is about to exit. */
 FOUNDATION_API void
 memory_context_thread_finalize(void);
 
-/*! \brief Set current memory tracker
-Set the current memory tracker, see #memory_tracker_local for a default implementation
+/*! Set the current memory tracker, see #memory_tracker_local for a default implementation
 \param tracker New memory tracker declaration */
 FOUNDATION_API void
 memory_set_tracker(memory_tracker_t tracker);
 
-/*! \brief Default malloc based memory system
-Get the default malloc based memory system declaration for passing to #foundation_initialize
+/*! Get the default malloc based memory system declaration for passing to #foundation_initialize
 \return Default malloc based memory system declation */
 FOUNDATION_API memory_system_t
 memory_system_malloc(void);
 
-/*! \brief Default local memory tracker
-Get the default local memory tracker declaration for passing to #memory_set_tracker
+/*! Get the default local memory tracker declaration for passing to #memory_set_tracker
 \return Default local memory tracker declaration */
 FOUNDATION_API memory_tracker_t
 memory_tracker_local(void);
