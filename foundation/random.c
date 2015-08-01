@@ -281,7 +281,7 @@ random64_range(uint64_t low, uint64_t high) {
 
 real
 random_normalized(void) {
-#if FOUNDATION_SIZE_REAL == 64
+#if FOUNDATION_SIZE_REAL == 8
 	const uint64_t rng = random64();
 	const real result = (real)rng * (REAL_C(1.0) / REAL_C(18446744073709551616.0L));
 #else

@@ -14,7 +14,8 @@
 
 /*! \file types.h
 \brief Foundation data types
-\details Foundation data types, enumerations and typedefs. Provides platform abstractions
+
+Foundation data types, enumerations and typedefs. Provides platform abstractions
 of system specific data types and provides the base language used in all libraries built
 on this foundation library. */
 
@@ -32,8 +33,7 @@ on this foundation library. */
 
 // PRIMITIVE TYPES
 
-/*! \brief Error severity level
-Error severity level. The higher the value, the more severe the error. Error level 0
+/*! Error severity level. The higher the value, the more severe the error. Error level 0
 (ERRORLEVEL_NONE) is used to indicate no error
 \internal Do not change order! \endinternal */
 typedef enum {
@@ -56,8 +56,7 @@ typedef enum {
 	ERRORLEVEL_PANIC
 } error_level_t;
 
-/*! \brief Error identifiers
-\details Error identifiers. Error 0 (ERROR_NONE) is used to indicate no error.
+/*! Error identifiers. Error 0 (ERROR_NONE) is used to indicate no error.
 \internal Do not change order, only append! \endinternal */
 typedef enum {
 	/*! No error */
@@ -97,8 +96,7 @@ typedef enum {
 	ERROR_LAST_BUILTIN  = 0x0fff
 } error_t;
 
-/*! \brief Warning classes
-Warning classes. Indicate which type/group of warning message that was generated
+/*! Warning classes. Indicate which type/group of warning message that was generated
 \internal Do not change order, only append! \endinternal */
 typedef enum {
 	/*! Performance warning */
@@ -125,8 +123,7 @@ typedef enum {
 	WARNING_LAST_BUILTIN  = 0x0fff
 } warning_t;
 
-/*! \brief Platform identifiers
-Platform identifiers. For compile-time platform selection, use the
+/*! Platform identifiers. For compile-time platform selection, use the
 FOUNDATION_PLATFORM_[...] preprocessor macros
 \internal Do not change order, only append! \endinternal */
 typedef enum {
@@ -152,9 +149,7 @@ typedef enum {
 	PLATFORM_INVALID
 } platform_t;
 
-/*! \enum architecture_t
-\brief Architecture identifiers
-Architecture identifiers for all architectures the engine supports. For compile-time
+/*! Architecture identifiers for all architectures the engine supports. For compile-time
 selection of architecture, use the <code>FOUNDATION_ARCH_[...]</code> preprocessor macros.
 \internal Do not change order, only append! \endinternal */
 typedef enum {
@@ -184,8 +179,7 @@ typedef enum {
 	ARCHITECTURE_GENERIC
 } architecture_t;
 
-/*! \brief Machine byte order identifiers
-Machine byte order identifiers */
+/*! Machine byte order identifiers */
 typedef enum {
 	/*! Little endian */
 	BYTEORDER_LITTLEENDIAN = 0,
@@ -193,8 +187,7 @@ typedef enum {
 	BYTEORDER_BIGENDIAN
 } byteorder_t;
 
-/*! \brief Stream type identifiers
-Stream type identifiers. Only lists built-in types, application specific types
+/*! Stream type identifiers. Only lists built-in types, application specific types
 can be added below the STREAMTYPE_LAST_RESERVED value.
 \internal Do not change order, only append! \endinternal */
 typedef enum {
@@ -218,8 +211,7 @@ typedef enum {
 	STREAMTYPE_LAST_RESERVED   = 0x0FFF
 } stream_type_t;
 
-/*! \brief Stream seek directions
-Stream seek directions */
+/*! Stream seek directions */
 typedef enum {
 	/*! Seek from start of stream */
 	STREAM_SEEK_BEGIN,
@@ -229,8 +221,7 @@ typedef enum {
 	STREAM_SEEK_END
 } stream_seek_mode_t;
 
-/*! \brief Thread priority
-Thread priority */
+/*! Thread priority */
 typedef enum {
 	/*! Lowest possible priority */
 	THREAD_PRIORITY_LOW = 0,
@@ -246,8 +237,7 @@ typedef enum {
 	THREAD_PRIORITY_TIMECRITICAL
 } thread_priority_t;
 
-/*! \brief Event identifiers
-Foundation library level event identifiers. These event identifiers are only
+/*! Foundation library level event identifiers. These event identifiers are only
 valid in conjunction with foundation event streams. Other event streams will use
 their own event identifiers with the same value, and event streams should be treated
 as separate "namespaces" for event identifiers. */
@@ -276,8 +266,7 @@ typedef enum {
 	FOUNDATIONEVENT_DEVICE_ORIENTATION
 } foundation_event_id;
 
-/*! \brief Cipher mode
-Block cipher mode of operation, see
+/*! Block cipher mode of operation, see
 http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation */
 typedef enum {
 	/*! Electronic codebook */
@@ -290,8 +279,7 @@ typedef enum {
 	BLOCKCIPHER_OFB
 } blockcipher_mode_t;
 
-/*! \brief Radix sort data types
-Radix sort data types */
+/*! Radix sort data types */
 typedef enum {
 	/*! 32-bit signed integer */
 	RADIXSORT_INT32 = 0,
@@ -307,8 +295,7 @@ typedef enum {
 	RADIXSORT_FLOAT64
 } radixsort_data_t;
 
-/*! \brief Device orientation
-Device orientation */
+/*! Device orientation */
 typedef enum {
 	/*! Orientation not known or not supported */
 	DEVICEORIENTATION_UNKNOWN = 0,
@@ -402,148 +389,106 @@ typedef int64_t       ssize_t;
 #  endif
 #endif
 
-/*! \brief Hash value
-Hash value */
+/*! Hash value */
 typedef uint64_t      hash_t;
-/*! \brief Tick
-Tick type used for absolute time measurements or timestamps */
+/*! Tick type used for absolute time measurements or timestamps */
 typedef int64_t       tick_t;
-/*! \brief Deltatime
-Deltatime type used for floating point time differences */
+/*! Deltatime type used for floating point time differences */
 typedef real          deltatime_t;
-/*! \brief Object handle
-Object handle used for identifying reference counted objects */
+/*! Object handle used for identifying reference counted objects */
 typedef uint64_t      object_t;
-/*! \brief Index for radix sorter
-Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array */
+/*! Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array */
 typedef uint16_t      radixsort_index_t;
-/*! \brief UUID
-UUID, 128-bit unique identifier */
+/*! UUID, 128-bit unique identifier */
 typedef uint128_t     uuid_t;
 
-/*! \brief Float 32-bit representation
-Used to bit manipulate 32-bit floating point values in a alias safe way */
+/*! Used to bit manipulate 32-bit floating point values in a alias safe way */
 typedef union { int32_t ival; uint32_t uival; float32_t fval; } float32_cast_t;
-/*! \brief Float 64-bit representation
-Used to bit manipulate 64-bit floating point values in a alias safe way */
+/*! \Used to bit manipulate 64-bit floating point values in a alias safe way */
 typedef union { int64_t ival; uint64_t uival; float64_t fval; } float64_cast_t;
-#if FOUNDATION_SIZE_REAL == 64
-/*! \brief Real representation
-Used to bit manipulate real values in a alias safe way */
+#if FOUNDATION_SIZE_REAL == 8
+/*! Used to bit manipulate real values in a alias safe way */
 typedef union { int64_t ival; uint64_t uival; real rval; } real_cast_t;
 #else
-/*! \brief Real representation
-Used to bit manipulate real values in a alias safe way */
+/*! Used to bit manipulate real values in a alias safe way */
 typedef union { int32_t ival; uint32_t uival; real rval; } real_cast_t;
 #endif
 
+/*! String */
 typedef struct string_t               string_t;
+/*! Constant immutable string */
 typedef struct string_const_t         string_const_t;
-/*! \brief Application declaration
-Application declaration and configuration */
+/*! Application declaration and configuration */
 typedef struct application_t          application_t;
-/*! \brief Bit buffer
-Bit buffer instance */
+/*! Bit buffer instance */
 typedef struct bitbuffer_t            bitbuffer_t;
-/*! \brief Blowfish
-Blowfish cipher instance */
+/*! Blowfish cipher instance */
 typedef struct blowfish_t             blowfish_t;
-/*! \brief Error frame
-Error frame holding debug data for an entry in the frame stack in the error context */
+/*! Error frame holding debug data for an entry in the frame stack in the error context */
 typedef struct error_frame_t          error_frame_t;
-/*! \brief Error context
-Error context holding error frame stack for a thread */
+/*! Error context holding error frame stack for a thread */
 typedef struct error_context_t        error_context_t;
-/*! \brief Evenbt
-Event base structure */
+/*! Event base structure */
 typedef struct event_t                event_t;
-/*! \brief Event block
-Event block holding a chunk of events from a single stream */
+/*! Event block holding a chunk of events from a single stream */
 typedef struct event_block_t          event_block_t;
-/*! \brief Event stream
-Event stream instance producing event blocks of events */
+/*! Event stream instance producing event blocks of events */
 typedef struct event_stream_t         event_stream_t;
-/*! \brief File system event payload
-Payload for a file system event */
+/*! Payload for a file system event */
 typedef struct fs_event_payload_t     fs_event_payload_t;
-/*! \brief Hash map node
-Node in a hash map */
+/*! Node in a hash map */
 typedef struct hashmap_node_t         hashmap_node_t;
-/*! \brief Hash map
-Hash map mapping hash value keys to pointer values */
+/*! Hash map mapping hash value keys to pointer values */
 typedef struct hashmap_t              hashmap_t;
-/*! \brief Hash table entry
-Entry in a 32-bit hash table */
+/*! Entry in a 32-bit hash table */
 typedef struct hashtable32_entry_t    hashtable32_entry_t;
-/*! \brief Hash table entry
-Entry in a 64-bit hash table */
+/*! Entry in a 64-bit hash table */
 typedef struct hashtable64_entry_t    hashtable64_entry_t;
-/*! \brief Hash table
-Hash table mapping 32-bit keys to 32-bit values */
+/*! Hash table mapping 32-bit keys to 32-bit values */
 typedef struct hashtable32_t          hashtable32_t;
-/*! \brief Hash table
-Hash table mapping 64-bit keys to 64-bit values */
+/*! Hash table mapping 64-bit keys to 64-bit values */
 typedef struct hashtable64_t          hashtable64_t;
-/*! \brief MD5
-MD5 control block */
+/*! MD5 control block */
 typedef struct md5_t                  md5_t;
-/*! \brief Memory context
-Memory context holding the allocation context stack */
+/*! Memory context holding the allocation context stack */
 typedef struct memory_context_t       memory_context_t;
-/*! \brief Memory system
-Memory system declaration */
+/*! Memory system declaration */
 typedef struct memory_system_t        memory_system_t;
-/*! \brief Memory tracker
-Memory tracker declaration */
+/*! Memory tracker declaration */
 typedef struct memory_tracker_t       memory_tracker_t;
-/*! \brief Mutex
-Platform specific mutex representation */
+/*! Platform specific mutex representation */
 typedef struct mutex_t                mutex_t;
-/*! \brief Object
-Base object type all reference counted object types are based on */
+/*! Base object type all reference counted object types are based on */
 typedef struct object_base_t          object_base_t;
-/*! \brief Object map
-Object map mapping object handles to object instance pointers */
+/*! Object map mapping object handles to object instance pointers */
 typedef struct objectmap_t            objectmap_t;
-/*! \brief Process
-Child process control block */
+/*! Child process control block */
 typedef struct process_t              process_t;
-/*! \brief Radix sorter
-Radix sorter control block */
+/*! Radix sorter control block */
 typedef struct radixsort_t            radixsort_t;
-/*! \brief Compiled regex
-Compiled regex */
+/*! Compiled regex */
 typedef struct regex_t                regex_t;
-/*! \brief Ring buffer
-Memory ring buffer */
+/*! Memory ring buffer */
 typedef struct ringbuffer_t           ringbuffer_t;
-/*! \brief Stream
-Base stream type all stream types are based on */
+/*! Base stream type all stream types are based on */
 typedef struct stream_t               stream_t;
-/*! \brief Memory buffer stream
-Memory buffer stream */
+/*! Memory buffer stream */
 typedef struct stream_buffer_t        stream_buffer_t;
-/*! \brief Pipe stream
-Pipe stream */
+/*! Pipe stream */
 typedef struct stream_pipe_t          stream_pipe_t;
-/*! \brief Ring buffer stream
-Ring buffer stream */
+/*! Ring buffer stream */
 typedef struct stream_ringbuffer_t    stream_ringbuffer_t;
-/*! \brief Vtable for streams
-Vtable for streams providing stream type specific implementations
+/*! Vtable for streams providing stream type specific implementations
 of stream operations */
 typedef struct stream_vtable_t        stream_vtable_t;
-/*! \brief Version
-Version declaration */
+/*! Version declaration */
 typedef union  version_t              version_t;
-/*! \brief Library configuration
-Library configuration block controlling limits, functionality and memory
+/*! Library configuration block controlling limits, functionality and memory
 usage of the library */
 typedef struct foundation_config_t    foundation_config_t;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-/*! \brief Semaphore
-Platform specific representation of a semaphore */
+/*! Platform specific representation of a semaphore */
 typedef void*                         semaphore_t;
 #elif FOUNDATION_PLATFORM_MACOSX
 typedef struct OpaqueMPSemaphoreID*   MPSemaphoreID;
@@ -559,16 +504,14 @@ typedef union semaphore_native_t      semaphore_native_t;
 typedef struct semaphore_t            semaphore_t;
 #endif
 
-/*! \brief Error handler callback
-Error handler callback which is passed the error level and reported error. It should return
+/*! Error handler callback which is passed the error level and reported error. It should return
 an implementation specific code which is then returned from the call to error_report
 \param level Error level
 \param error Error code
 \return Implementation specific code which is passed back as return from error_report */
 typedef int (* error_callback_fn)(error_level_t level, error_t error);
 
-/*! \brief Assert handler callback
-Assert handler callback which is passed assert data and should do impementation specific
+/*! Assert handler callback which is passed assert data and should do impementation specific
 processing and return a code indicating if execution can continue or need to be aborted.
 \param context Error context
 \param condition String expressing the condition that failed
@@ -583,8 +526,7 @@ typedef int (* assert_handler_fn)(hash_t context, const char* condition, size_t 
                                   const char* file, size_t file_length, unsigned int line,
                                   const char* msg, size_t msg_length);
 
-/*! \brief Log output callback
-Log output callback. Called after each log message processed and output by the log functions.
+/*! Log output callback. Called after each log message processed and output by the log functions.
 \param context Log context
 \param severity Log severity
 \param msg Log message
@@ -592,20 +534,17 @@ Log output callback. Called after each log message processed and output by the l
 typedef void (* log_callback_fn)(hash_t context, error_level_t severity, const char* msg,
                                  size_t length);
 
-/*! \brief Subsystem initialization
-Subsystem initialization function prototype. Return value should be the success
+/*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
 \return 0 on success, <0 if failure (errors should be reported through log_error
         or error_report) */
 typedef int (* system_initialize_fn)(void);
 
-/*! \brief Subsystem finalization
-Subsystem finalization function prototype. Will be called for each successfully
+/*! Subsystem finalization function prototype. Will be called for each successfully
 initialized subsystem on global finalization */
 typedef void (* system_finalize_fn)(void);
 
-/*! \brief Memory allocation
-Memory system allocation function prototype. Implementation of a memory system must
+/*! Memory system allocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for allocating memory
 \param context Memory context
 \param size Requested size
@@ -615,8 +554,7 @@ provide an implementation with this prototype for allocating memory
 typedef void* (* memory_allocate_fn)(hash_t context, size_t size, unsigned int align,
                                      unsigned int hint);
 
-/*! \brief Memory reallocation
-Memory system reallocation function prototype. Implementation of a memory system must
+/*! Memory system reallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for reallocating memory
 \param p Pointer to previous memory block
 \param size Requested size
@@ -625,46 +563,39 @@ provide an implementation with this prototype for reallocating memory
 \return Pointer to allocated memory block if successful, 0 if error */
 typedef void* (* memory_reallocate_fn)(void* p, size_t size, unsigned int align, size_t oldsize);
 
-/*! \brief Memory deallocation
-Memory system deallocation function prototype. Implementation of a memory system must
+/*! Memory system deallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for deallocating memory
 \param p Pointer to memory block */
 typedef void (* memory_deallocate_fn)(void* p);
 
-/*! \brief Memory tracking
-Memory tracker tracking function prototype. Implementation of a memory tracker must
+/*! Memory tracker tracking function prototype. Implementation of a memory tracker must
 provide an implementation with this prototype for tracking memory allocations
 \param p Pointer to allocated memory block
 \param size Size of memory block */
 typedef void (* memory_track_fn)(void* p, size_t size);
 
-/*! \brief Memory tracking
-Memory tracker untracking function prototype. Implementation of a memory tracker must
+/*! Memory tracker untracking function prototype. Implementation of a memory tracker must
 provide an implementation with this prototype for untracking memory allocations
 \param p Pointer to deallocated memory block */
 typedef void (* memory_untrack_fn)(void* p);
 
-/*! \brief Profile data output callback
-Callback function for writing profiling data to a stream
+/*! Callback function for writing profiling data to a stream
 \param data Pointer to data block
 \param size Size of data block */
 typedef void (* profile_write_fn)(void* data, size_t size);
 
-/*! \brief Profile data input callback
-Callback function for reading profiling data from a stream
+/*! Callback function for reading profiling data from a stream
 \param data Pointer to data block
 \param size Size of data block */
 typedef void (* profile_read_fn)(void* data, size_t size);
 
-/*! \brief Thread entry point
-Thread entry point function prototype
+/*! Thread entry point function prototype
 \param thread Thread object handle
 \param arg Argument passed by caller when starting the thread
 \return Implementation specific data which can be obtained through thread_result */
 typedef void* (* thread_fn)(object_t thread, void* arg);
 
-/*! \brief Function prototype for crash guards
- Any function to be used in conjunction with the crash guard functionality
+/*! Any function to be used in conjunction with the crash guard functionality
 of the library should have this prototype to allow the crash guard to catch
 and handle exceptions correctly
 \param arg Implementation specific argument passed to crash_guard
@@ -672,125 +603,106 @@ and handle exceptions correctly
         from crash_guard (note that FOUNDATION_CRASH_DUMP_GENERATED is reserved) */
 typedef int (* crash_guard_fn)(void* arg);
 
-/*! \brief Crash callback
-Crash callback function prototype, used to notify that an exception occurred
+/*! Crash callback function prototype, used to notify that an exception occurred
 and the process state was saved to a dump file
 \param file Dump file path
 \param length Length of file path */
 typedef void (* crash_dump_callback_fn)(const char* file, size_t length);
 
-/*! \brief Object deallocation
-Object deallocation function prototype, used to deallocate an object of a specific type
+/*! Object deallocation function prototype, used to deallocate an object of a specific type
 \param id Object handle
 \param object Object pointer */
 typedef void (* object_deallocate_fn)(object_t id, void* object);
 
-/*! \brief Stream open
-Generic function to open a stream with the given path and mode
+/*! Generic function to open a stream with the given path and mode
 \param path Path, optionally including protocol
 \param length Length of path
 \param mode Open mode
 \return Newly allocated stream, null if it could not be opened */
 typedef stream_t* (* stream_open_fn)(const char* path, size_t length, unsigned int mode);
 
-/*! \brief Stream read
-Generic function to read data from a stream
+/*! Generic function to read data from a stream
 \param stream Stream to read from
 \param dst Destination buffer
 \param size Number of bytes to read
 \return Number of bytes actually read */
 typedef size_t (* stream_read_fn)(stream_t* stream, void* dst, size_t size);
 
-/*! \brief Stream write
-Generic function to write data to a stream
+/*! Generic function to write data to a stream
 \param stream Stream to write to
 \param src Source buffer
 \param size Number of bytes to write
 \return Number of bytes actually written */
 typedef size_t (* stream_write_fn)(stream_t* stream, const void* src, size_t size);
 
-/*! \brief Query if end of stream
-Query if end of stream
+/*! Query if end of stream
 \param stream Stream
 \return true if stream at end, false if not */
 typedef bool (* stream_eos_fn)(stream_t* stream);
 
-/*! \brief Flush stream
-Flush stream output buffers
+/*! Flush stream output buffers
 \param stream Stream */
 typedef void (* stream_flush_fn)(stream_t* stream);
 
-/*! \brief Truncate stream
-Truncate stream size to the given size
+/*! Truncate stream size to the given size
 \param stream Stream
 \param size Size to truncate stream to */
 typedef void (* stream_truncate_fn)(stream_t* stream, size_t size);
 
-/*! \brief Get stream size
-Get stream size
+/*! Get stream size
 \param stream Stream
 \return Stream size, 0 if invalid stream or unknown (like a network stream) */
 typedef size_t (* stream_size_fn)(stream_t* stream);
 
-/*! \brief Seek in stream
-Seek in the stream. Only available if stream is seekable and not a sequential stream like
+/*! Seek in the stream. Only available if stream is seekable and not a sequential stream like
 a network stream.
 \param stream Stream
 \param offset Seek offset
 \param mode Seek mode (see #stream_seek_mode_t) */
 typedef void (* stream_seek_fn)(stream_t* stream, ssize_t offset, stream_seek_mode_t mode);
 
-/*! \brief Get current stream position
-Get current stream position
+/*! Get current stream position
 \param stream Stream
 \return Current stream position, 0 if invalid stream or unknown */
 typedef size_t (* stream_tell_fn)(stream_t* stream);
 
-/*! \brief Get last modification timestamp
-Get timestamp when stream was last modified (written to or attributes/size changed)
+/*! Get timestamp when stream was last modified (written to or attributes/size changed)
 \param stream Stream
 \return Last modification timestamp, 0 if invalid stream or unknown */
 typedef tick_t (* stream_lastmod_fn)(const stream_t* stream);
 
-/*! \brief Get stream digest
-Get stream digest. Only available if stream size is known and stream is seekable. Does
+/*! Get stream digest. Only available if stream size is known and stream is seekable. Does
 not modify the current stream position.
 \param stream Stream
 \return Digest of stream content, 0 if invalid stream or unknown */
 typedef uint128_t (* stream_md5_fn)(stream_t* stream);
 
-/*! \brief Buffer available data
-If the stream has available data to be read from an external source (like a socket for
+/*! If the stream has available data to be read from an external source (like a socket for
 network streams), read and buffer the available data without blocking.
 \param stream Stream */
 typedef void (* stream_buffer_read_fn)(stream_t* stream);
 
-/*! \brief Query available data
-Query how much data can be read from the stream without blocking
+/*! Query how much data can be read from the stream without blocking
 \param stream Stream
 \return Number of bytes that can be read without blocking */
 typedef size_t (* stream_available_read_fn)(stream_t* stream);
 
-/*! \brief Finalize stream object
-Finalize a stream object that was previously initialized with a call to a specific
+/*! Finalize a stream object that was previously initialized with a call to a specific
 stream initialization function and free any associated resources.
 \param stream Stream */
 typedef void (* stream_finalize_fn)(stream_t* stream);
 
-/*! \brief Clone stream
-Clone stream, allocating a duplicate copy of the stream if the stream type supports it.
+/*! Clone stream, allocating a duplicate copy of the stream if the stream type supports it.
 \param stream Stream
 \return Clone of stream, 0 if not supported or invalid source stream */
 typedef stream_t* (* stream_clone_fn)(stream_t* stream);
 
-/*! \brief Crash identifier
-Identifier returned from threads and crash guards after a fatal exception (crash) has been caught */
+/*! Identifier returned from threads and crash guards after a fatal exception (crash) has been caught */
 #define FOUNDATION_CRASH_DUMP_GENERATED 0x0badf00dL
 
 // COMPLEX TYPES
 
-/*! \brief Library configuration
-Library configuration with runtime controlled configuration parameters */
+/*! Library configuration with runtime controlled configuration parameters */
 struct foundation_config_t {
 	/*! Maximum number of concurrently allocated threads. Zero for default (128) */
 	size_t thread_max;
@@ -820,24 +732,25 @@ struct foundation_config_t {
 	size_t random_state_prealloc;
 };
 
-/*! \brief String tuple
-String tuple holding string data pointer and length. This is used to avoid extra calls
+/*! String tuple holding string data pointer and length. This is used to avoid extra calls
 to determine string length in each API call */
 struct string_t {
+	/*! String buffer */
 	char* str;
+	/*! Length of string, not including any (optional) zero terminator */
 	size_t length;
 };
 
-/*! Constant string tuple
-Constant string tuple holding unmutable string data pointer and length.
+/*! Constant string tuple holding unmutable string data pointer and length.
 \see string_t */
 struct string_const_t {
+	/*! String buffer */
 	const char* str;
+	/*! Length of string, not including any (optional) zero terminator */
 	size_t length;
 };
 
-/*! \brief MD5 state
-MD5 state */
+/*! MD5 state */
 struct md5_t {
 	/*! Flag indicating the md5 state has been initialized and ready for digestion of data */
 	bool init;
@@ -851,8 +764,7 @@ struct md5_t {
 	unsigned char digest[16];
 };
 
-/*! \brief Memory management system declaration
-Memory management system declaration with function pointers for all memory system entry points. */
+/*! Memory management system declaration with function pointers for all memory system entry points. */
 struct memory_system_t {
 	/*! Memory allocation */
 	memory_allocate_fn allocate;
@@ -866,13 +778,21 @@ struct memory_system_t {
 	system_finalize_fn finalize;
 };
 
+/*! Memory tracking system declarations with function pointers for all memory tracking
+entry points */
 struct memory_tracker_t {
+	/*! Track a memory allocation */
 	memory_track_fn track;
+	/*! Untrack a memory allocation */
 	memory_untrack_fn untrack;
+	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
+	/*! Shutdown memory tracker */
 	system_finalize_fn finalize;
 };
 
+/*! Version identifier expressed as an 128-bit integer with major, minor,
+revision, build and control version number components */
 union version_t {
 	uint128_t version;
 	struct {

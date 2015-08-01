@@ -14,7 +14,8 @@
 
 /*! \file windows.h
 \brief Safe inclusion of windows.h
-\details Safe inclusion of windows.h without collisions with foundation library symbols. */
+
+Safe inclusion of windows.h without collisions with foundation library symbols. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>

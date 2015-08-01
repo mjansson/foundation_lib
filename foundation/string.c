@@ -1401,7 +1401,7 @@ string_from_real(char* buffer, size_t capacity, real val, unsigned int precision
 	int len;
 	unsigned int ulen;
 	size_t end;
-#if FOUNDATION_SIZE_REAL == 64
+#if FOUNDATION_SIZE_REAL == 8
 	if (precision)
 		len = snprintf(buffer, capacity, "%.*lf", precision, val);
 	else

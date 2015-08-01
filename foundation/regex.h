@@ -14,7 +14,8 @@
 
 /*! \file regex.h
 \brief Small regular expression implementation
-\details Small regular expression implementation matching a subset of Perl regular expression syntax.
+
+Small regular expression implementation matching a subset of Perl regular expression syntax.
 <pre>^        Match beginning of string
     $        Match end of string
     .        Match one character
@@ -38,16 +39,14 @@
 
 #include <foundation/platform.h>
 
-/*! \brief Precompile expression
-Precompile a regular expression
+/*! Compile a regular expression
 \param pattern Pattern string
 \param length Length of pattern string
 \return Compiled expression, null if error */
 FOUNDATION_API regex_t*
 regex_compile(const char* pattern, size_t length);
 
-/*! \brief Match input with expression
-Match input string with regular expression with optional captures. Note that captures array
+/*! Match input string with regular expression with optional captures. Note that captures array
 might be modified and contain invalid data even if regex fails. If the regex matches, the
 captures array will contain valid data.
 \param regex Compiled expression
@@ -60,8 +59,7 @@ FOUNDATION_API bool
 regex_match(regex_t* regex, const char* input, size_t inlength, string_const_t* captures,
             size_t maxcaptures);
 
-/*! \brief Free expression
-Free a compiled expression
+/*! Free a compiled expression
 \param regex Compiled expression */
 FOUNDATION_API void
 regex_deallocate(regex_t* regex);

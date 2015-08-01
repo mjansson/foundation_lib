@@ -39,7 +39,7 @@ http://cellperformance.beyond3d.com/articles/2006/07/increment-and-decrement-wra
 #  pragma clang diagnostic ignored "-Wbad-function-cast"
 #endif
 
-#if FOUNDATION_SIZE_REAL == 32
+#if FOUNDATION_SIZE_REAL == 4
 
 /*! Epsilon value. This represents a small number close to zero that can be used
 for comparisons or thresholds. Roughly equals 100 floating point units at 1.0 */
@@ -669,7 +669,7 @@ math_real_is_epsilon_zero(real val) {
 
 #if FOUNDATION_COMPILER_MSVC
 
-#if FOUNDATION_SIZE_REAL == 64
+#if FOUNDATION_SIZE_REAL == 8
 
 static FOUNDATION_FORCEINLINE real     math_sin(real x) { return sin(x); }
 static FOUNDATION_FORCEINLINE real     math_cos(real x) { return cos(x); }
@@ -748,7 +748,7 @@ static FOUNDATION_FORCEINLINE int64_t  math_ceil64(real x) { return (int64_t)cei
 
 #elif FOUNDATION_COMPILER_INTEL
 
-#if FOUNDATION_SIZE_REAL == 64
+#if FOUNDATION_SIZE_REAL == 8
 
 static FOUNDATION_FORCEINLINE real     math_sin(real x) { return sin(x); }
 static FOUNDATION_FORCEINLINE real     math_cos(real x) { return cos(x); }
@@ -813,7 +813,7 @@ static FOUNDATION_FORCEINLINE real     math_exp(real x) { return (real)__builtin
 static FOUNDATION_FORCEINLINE real     math_pow(real x, real y) { return (real)__builtin_pow(x, y); }
 static FOUNDATION_FORCEINLINE real     math_logn(real x) { return (real)__builtin_log(x); }
 
-#if FOUNDATION_SIZE_REAL == 64
+#if FOUNDATION_SIZE_REAL == 8
 
 static FOUNDATION_FORCEINLINE int      math_floor(real x) { return (int)__builtin_floor(x); }
 static FOUNDATION_FORCEINLINE int      math_ceil(real x) { return (int)__builtin_ceil(x); }
@@ -847,7 +847,7 @@ static FOUNDATION_FORCEINLINE int      math_trunc(real x) { return (int)__builti
 #  error Unknown compiler
 #endif
 
-#if FOUNDATION_SIZE_REAL == 64
+#if FOUNDATION_SIZE_REAL == 8
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_is_nan(real val) {

@@ -14,55 +14,49 @@
 
 /*! \file process.h
 \brief Process execution and control
-\details Abstraction of processes, allowing launching of new processes and reading return
+
+Abstraction of processes, allowing launching of new processes and reading return
 codes. All set functions should be called before launching a process, except for set exit
 code which should be set before exiting a process. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Allocate process
-Allocate a new process object. Deallocate the process object with a call to #process_deallocate.
+/*! Allocate a new process object. Deallocate the process object with a call to #process_deallocate.
 \return New process object */
 FOUNDATION_API process_t*
 process_allocate(void);
 
-/*! \brief Deallocate process
-Deallocate process object previously allocated with a call to #process_allocate.
+/*! Deallocate process object previously allocated with a call to #process_allocate.
 \param proc Process object */
 FOUNDATION_API void
 process_deallocate(process_t* proc);
 
-/*! \brief Initialize process
-Initialize a new process object. Finalize the process object with a call to #process_finalize.
+/*! Initialize a new process object. Finalize the process object with a call to #process_finalize.
 \param proc Process object */
 FOUNDATION_API void
 process_initialize(process_t* proc);
 
-/*! \brief Finalize process
-Finalize process object previously initialized with a call to #process_initialize.
+/*! Finalize process object previously initialized with a call to #process_initialize.
 \param proc Process object */
 FOUNDATION_API void
 process_finalize(process_t* proc);
 
-/*! \brief Set working directory
-Set working directory for process.
+/*! Set working directory for process.
 \param proc Process object
 \param path Working directory
 \param length Length of working directory */
 FOUNDATION_API void
 process_set_working_directory(process_t* proc, const char* path, size_t length);
 
-/*! \brief Set executable path
-Set executable path.
+/*! Set executable path.
 \param proc Process object
 \param path Path
 \param length Length of path */
 FOUNDATION_API void
 process_set_executable_path(process_t* proc, const char* path, size_t length);
 
-/*! \brief Set arguments
-Set arguments passed on the command line to the new process. Should not contain
+/*! Set arguments passed on the command line to the new process. Should not contain
 the standard first argument of the executable path, it will be automatically added.
 \param proc Process object
 \param args Arguments array
@@ -70,15 +64,13 @@ the standard first argument of the executable path, it will be automatically add
 FOUNDATION_API void
 process_set_arguments(process_t* proc, const string_const_t* args, size_t num);
 
-/*! \brief Set flags
-Set execution flags, see #process_flag_t for a list of available flags.
+/*! Set execution flags, see #process_flag_t for a list of available flags.
 \param proc Process object
 \param flags Flags */
 FOUNDATION_API void
 process_set_flags(process_t* proc, unsigned int flags);
 
-/*! \brief Set execution verb
-Only used on Windows platforms. Set the execution verb when using ShellExecute
+/*! Only used on Windows platforms. Set the execution verb when using ShellExecute
 to launch process (i.e if the #PROCESS_WINDOWS_USE_SHELLEXECUTE flag is set).
 By default the "runas" verb is used.
 \param proc Process object
@@ -87,51 +79,45 @@ By default the "runas" verb is used.
 FOUNDATION_API void
 process_set_verb(process_t* proc, const char* verb, size_t length);
 
-/*! \brief Set exit code
-Set process exit code for current process.
+/*! Set process exit code for current process.
 \param code New exit code */
 FOUNDATION_API void
 process_set_exit_code(int code);
 
-/*! \brief Spawn process
-Spawn process
+/*! Spawn process. Call #process_wait to reap the child process once processing is
+done, to avoid zombie processes.
 \param proc Process object
 \return Exit code if attached, #PROCESS_STILL_ACTIVE if detached,
         #PROCESS_INVALID_ARGS if error due to invalid arguments */
 FOUNDATION_API int
 process_spawn(process_t* proc);
 
-/*! \brief Get stdout pipe
-Get pipe to read stdout from process (read-only stream). Only available if the
+/*! Get pipe to read stdout from process (read-only stream). Only available if the
 #PROCESS_STDSTREAMS flag was set prior to spawning the process.
 \param proc Process object
 \return Stdout pipe */
 FOUNDATION_API stream_t*
 process_stdout(process_t* proc);
 
-/*! \brief Get stdin pipe
-Get pipe to write stdin to process (write-only stream). Only available
+/*! Get pipe to write stdin to process (write-only stream). Only available
 if the #PROCESS_STDSTREAMS flag was set prior to spawning the process.
 \param proc Process object
 \return Stdin pipe */
 FOUNDATION_API stream_t*
 process_stdin(process_t* proc);
 
-/*! \brief Wait for termination
-Wait for process termination.
+/*! Wait for process termination.
 \param proc Process object
 \return Exit code */
 FOUNDATION_API int
 process_wait(process_t* proc);
 
-/*! \brief Get pending exit code
-Get current process pending exit code.
+/*! Get current process pending exit code.
 \return Pending process exit code */
 FOUNDATION_API int
 process_exit_code(void);
 
-/*! \brief Terminate
-Terminate current process with given code.
+/*! Terminate current process with given code.
 \param code Exit code */
 FOUNDATION_API void
 process_exit(int code)

@@ -45,51 +45,51 @@ static PP_Instance _pnacl_instance;
 static const PPB_Var* _pnacl_var;
 static const PPB_Messaging* _pnacl_messaging;
 
-const char*
+string_const_t
 pnacl_error_message(int err) {
 	switch (err) {
-	case PP_OK: return "ok";
-	case PP_OK_COMPLETIONPENDING: return "completion pending";
-	case PP_ERROR_FAILED: return "failed";
-	case PP_ERROR_ABORTED: return "aborted";
-	case PP_ERROR_BADARGUMENT: return "bad argument";
-	case PP_ERROR_BADRESOURCE: return "bad resource";
-	case PP_ERROR_NOINTERFACE: return "no interface";
-	case PP_ERROR_NOACCESS: return "no access";
-	case PP_ERROR_NOMEMORY: return "no memory";
-	case PP_ERROR_NOSPACE: return "no space";
-	case PP_ERROR_NOQUOTA: return "no quota";
-	case PP_ERROR_INPROGRESS: return "in progress";
-	case PP_ERROR_NOTSUPPORTED: return "not supported";
-	case PP_ERROR_BLOCKS_MAIN_THREAD: return "blocks main thread";
-	case PP_ERROR_MALFORMED_INPUT: return "malformed input";
-	case PP_ERROR_RESOURCE_FAILED: return "resource failed";
-	case PP_ERROR_FILENOTFOUND: return "file not found";
-	case PP_ERROR_FILEEXISTS: return "file exists";
-	case PP_ERROR_FILETOOBIG: return "file too big";
-	case PP_ERROR_FILECHANGED: return "file changed";
-	case PP_ERROR_NOTAFILE: return "not a file";
-	case PP_ERROR_TIMEDOUT: return "timeout";
-	case PP_ERROR_USERCANCEL: return "user cancel";
-	case PP_ERROR_NO_USER_GESTURE: return "no user gesture";
-	case PP_ERROR_CONTEXT_LOST: return "context lost";
-	case PP_ERROR_NO_MESSAGE_LOOP: return "no message loop";
-	case PP_ERROR_WRONG_THREAD: return "wrong thread";
-	case PP_ERROR_WOULD_BLOCK_THREAD: return "would block thread";
-	case PP_ERROR_CONNECTION_CLOSED: return "connection closed";
-	case PP_ERROR_CONNECTION_RESET: return "connection reset";
-	case PP_ERROR_CONNECTION_REFUSED: return "connection refused";
-	case PP_ERROR_CONNECTION_ABORTED: return "connection aborted";
-	case PP_ERROR_CONNECTION_FAILED: return "connection failed";
-	case PP_ERROR_CONNECTION_TIMEDOUT: return "connection timeout";
-	case PP_ERROR_ADDRESS_INVALID: return "address invalid";
-	case PP_ERROR_ADDRESS_UNREACHABLE: return "address unreachable";
-	case PP_ERROR_ADDRESS_IN_USE: return "address in use";
-	case PP_ERROR_MESSAGE_TOO_BIG: return "message too big";
-	case PP_ERROR_NAME_NOT_RESOLVED: return "name not resolved";
+	case PP_OK: return string_const(STRING_CONST("ok"));
+	case PP_OK_COMPLETIONPENDING: return string_const(STRING_CONST("completion pending"));
+	case PP_ERROR_FAILED: return string_const(STRING_CONST("failed"));
+	case PP_ERROR_ABORTED: return string_const(STRING_CONST("aborted"));
+	case PP_ERROR_BADARGUMENT: return string_const(STRING_CONST("bad argument"));
+	case PP_ERROR_BADRESOURCE: return string_const(STRING_CONST("bad resource"));
+	case PP_ERROR_NOINTERFACE: return string_const(STRING_CONST("no interface"));
+	case PP_ERROR_NOACCESS: return string_const(STRING_CONST("no access"));
+	case PP_ERROR_NOMEMORY: return string_const(STRING_CONST("no memory"));
+	case PP_ERROR_NOSPACE: return string_const(STRING_CONST("no space"));
+	case PP_ERROR_NOQUOTA: return string_const(STRING_CONST("no quota"));
+	case PP_ERROR_INPROGRESS: return string_const(STRING_CONST("in progress"));
+	case PP_ERROR_NOTSUPPORTED: return string_const(STRING_CONST("not supported"));
+	case PP_ERROR_BLOCKS_MAIN_THREAD: return string_const(STRING_CONST("blocks main thread"));
+	case PP_ERROR_MALFORMED_INPUT: return string_const(STRING_CONST("malformed input"));
+	case PP_ERROR_RESOURCE_FAILED: return string_const(STRING_CONST("resource failed"));
+	case PP_ERROR_FILENOTFOUND: return string_const(STRING_CONST("file not found"));
+	case PP_ERROR_FILEEXISTS: return string_const(STRING_CONST("file exists"));
+	case PP_ERROR_FILETOOBIG: return string_const(STRING_CONST("file too big"));
+	case PP_ERROR_FILECHANGED: return string_const(STRING_CONST("file changed"));
+	case PP_ERROR_NOTAFILE: return string_const(STRING_CONST("not a file"));
+	case PP_ERROR_TIMEDOUT: return string_const(STRING_CONST("timeout"));
+	case PP_ERROR_USERCANCEL: return string_const(STRING_CONST("user cancel"));
+	case PP_ERROR_NO_USER_GESTURE: return string_const(STRING_CONST("no user gesture"));
+	case PP_ERROR_CONTEXT_LOST: return string_const(STRING_CONST("context lost"));
+	case PP_ERROR_NO_MESSAGE_LOOP: return string_const(STRING_CONST("no message loop"));
+	case PP_ERROR_WRONG_THREAD: return string_const(STRING_CONST("wrong thread"));
+	case PP_ERROR_WOULD_BLOCK_THREAD: return string_const(STRING_CONST("would block thread"));
+	case PP_ERROR_CONNECTION_CLOSED: return string_const(STRING_CONST("connection closed"));
+	case PP_ERROR_CONNECTION_RESET: return string_const(STRING_CONST("connection reset"));
+	case PP_ERROR_CONNECTION_REFUSED: return string_const(STRING_CONST("connection refused"));
+	case PP_ERROR_CONNECTION_ABORTED: return string_const(STRING_CONST("connection aborted"));
+	case PP_ERROR_CONNECTION_FAILED: return string_const(STRING_CONST("connection failed"));
+	case PP_ERROR_CONNECTION_TIMEDOUT: return string_const(STRING_CONST("connection timeout"));
+	case PP_ERROR_ADDRESS_INVALID: return string_const(STRING_CONST("address invalid"));
+	case PP_ERROR_ADDRESS_UNREACHABLE: return string_const(STRING_CONST("address unreachable"));
+	case PP_ERROR_ADDRESS_IN_USE: return string_const(STRING_CONST("address in use"));
+	case PP_ERROR_MESSAGE_TOO_BIG: return string_const(STRING_CONST("message too big"));
+	case PP_ERROR_NAME_NOT_RESOLVED: return string_const(STRING_CONST("name not resolved"));
 	default: break;
 	}
-	return "UNKNOWN";
+	return string_const(STRING_CONST("unknown error"));
 }
 
 const void*
@@ -116,6 +116,7 @@ pnacl_instance_initialize(PP_Instance instance) {
 	//TODO: Make this non-static
 	_pnacl_instance = instance;
 	_pnacl_var = _pnacl_browser_interface(PPB_VAR_INTERFACE);
+	_pnacl_messaging = _pnacl_browser_interface(PPB_MESSAGING_INTERFACE);
 	_pnacl_messaging = _pnacl_browser_interface(PPB_MESSAGING_INTERFACE);
 	return 0;
 }

@@ -384,7 +384,7 @@ extends these types with floating point data types:
 <li><i>real</i> for a configurable generic floating point data type
 </ul>
 
-To set the <i>real</i> data type format set the #FOUNDATION_SIZE_REAL preprocessor macro to 32 or 64, or change the defined value in platform.h (default is 32 bit floating point values).
+To set the <i>real</i> data type format set the #FOUNDATION_SIZE_REAL preprocessor macro to 4 or 8, or change the defined value in platform.h (default is 32 bit floating point values).
 
 \section object_lifetime Object lifetime
 Complex data types (objects) are handled in two ways. Either the caller have explicit lifetime control and accessed through raw pointers, or else has implicit control where

@@ -431,29 +431,6 @@ and reallocated to the required sizes.
 \details Compiled regex code
 
 
-\struct memory_tracker_t
-\brief Memory tracking system declaration
-\details Memory tracking system declarations with function pointers for all memory tracking entry points
-
-\var memory_tracker_t::track
-\brief Track a memory allocation
-\details Track a memory allocation
-
-\var memory_tracker_t::untrack
-\brief Untrack a memory allocation
-\details Untrack a memory allocation
-
-\var memory_tracker_t::initialize
-\brief Initialize memory tracker
-\details Initialize memory tracker
-
-\var memory_tracker_t::shutdown
-\brief Shutdown memory tracker
-\details Shutdown memory tracker
-
-\union version_t
-\brief Version identifier
-\details Version identifier expressed as an 128-bit integer with major, minor, revision, build and control version number components
 
 \var version_t::version
 \brief Compound version

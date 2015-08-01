@@ -850,7 +850,7 @@ config_write(stream_t* stream, hash_t filter_section, string_const_t (*string_ma
 							break;
 
 						case CONFIGVALUE_REAL:
-#if FOUNDATION_SIZE_REAL == 64
+#if FOUNDATION_SIZE_REAL == 8
 							stream_write_float64(stream, bucket[ib].rval);
 #else
 							stream_write_float32(stream, bucket[ib].rval);

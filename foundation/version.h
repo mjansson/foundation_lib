@@ -14,13 +14,13 @@
 
 /*! \file version.h
 \brief Version utilities
-\details Version utilities */
+
+Version utilities */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! \brief Make version identifier
-Make version identifier from parts
+/*! Make version identifier from parts
 \param major Major version
 \param minor Minor version
 \param revision Revision number

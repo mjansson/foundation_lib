@@ -14,7 +14,8 @@
 
 /*! \file tizen.h
 \brief Tizen platform safe header inclusion and entry points
-\details Tizen platform safe header inclusion and entry points */
+
+Tizen platform safe header inclusion and entry points */
 
 #include <foundation/platform.h>
 
@@ -33,24 +34,20 @@
 #include <system/system_settings.h>
 #include <dlog/dlog.h>
 
-/*! \brief Initialize Tizen app
-Initialize Tizen app
+/*! Initialize Tizen app
 \return 0 if success, <0 if error */
 FOUNDATION_API int
 tizen_initialize(void);
 
-/*! \brief Finalize Tizen app
-Finalize Tizen app */
+/*! Finalize Tizen app */
 FOUNDATION_API void
 tizen_finalize(void);
 
-/*! \brief Start main thread
-Start main application thread */
+/*! Start main application thread */
 FOUNDATION_API void
 tizen_start_main_thread(void);
 
-/*! \brief Main entry point
-Main entry point
+/*! Main entry point
 \param argc Argument count
 \param argb Argument array
 \return Application return code */
