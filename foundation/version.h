@@ -20,7 +20,7 @@ Version utilities */
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! Make version identifier from parts
+/*! Make version identifier from parts, packing into a 128-bit integer
 \param major Major version
 \param minor Minor version
 \param revision Revision number
