@@ -700,64 +700,77 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
 
-	char** addrs = 0;
-	char** lines = 0;
-	const char** args = 0;
+	string_const_t* args = 0;
 	process_t* proc = process_allocate();
 	unsigned int num_frames = 0;
 	unsigned int requested_frames = 0;
 	bool last_was_main = false;
+	string_t resolved = (string_t){buffer, 0};
+	string_t line, filename, function;
+	stream_t* procout;
 
-	if (!string_length(environment_executable_path())) {
+	if (!environment_executable_path().length) {
 		for (unsigned int iaddr = 0; iaddr < max_frames; ++iaddr) {
 			//Allow first frame to be null in case of a function call to a null pointer
 			if (iaddr && !frames[iaddr])
 				break;
-
-			array_push(lines, string_format("[0x%" PRIfixPTR "]", (uintptr_t)frames[iaddr]));
+			line = string_format(resolved.str + resolved.length, size - resolved.length,
+								 STRING_CONST("[0x%" PRIfixPTR "]" STRING_NEWLINE),
+								 (uintptr_t)frames[iaddr]);
+			resolved.length += line.length;
 		}
-		return lines;
+		return resolved;
 	}
 
-	array_push(args, "-e");
+	array_push(args, string_const(STRING_CONST("-e")));
 	array_push(args, environment_executable_path());
-	array_push(args, "-f");
+	array_push(args, string_const(STRING_CONST("-f")));
 
 	for (unsigned int iaddr = 0; iaddr < max_frames; ++iaddr) {
 		//Allow first frame to be null in case of a function call to a null pointer
 		if (iaddr && !frames[iaddr])
 			break;
 
-		char* addr = string_format("0x%" PRIfixPTR, (uintptr_t)frames[iaddr]);
-		array_push(addrs, addr);
-		array_push(args, addr);
-
+		line = string_format(resolved.str + resolved.length, size - resolved.length,
+							 STRING_CONST("0x%" PRIfixPTR), (uintptr_t)frames[iaddr]);
+		resolved.length += line.length;
+		
+		array_push(args, string_const(STRING_ARGS(line)));
 		++requested_frames;
 	}
 
-	process_set_working_directory(proc, environment_initial_working_directory());
-	process_set_executable_path(proc, "/usr/bin/addr2line");
+	process_set_working_directory(proc, STRING_ARGS(environment_initial_working_directory()));
+	process_set_executable_path(proc, STRING_CONST("/usr/bin/addr2line"));
 	process_set_arguments(proc, args, array_size(args));
 	process_set_flags(proc, PROCESS_ATTACHED | PROCESS_STDSTREAMS);
 
 	process_spawn(proc);
+	procout = process_stdout(proc);
 
-	stream_t* procout = process_stdout(proc);
+	resolved.length = 0;
 	while (!stream_eos(procout) && (num_frames < requested_frames) && !last_was_main) {
-		char* function = stream_read_line(procout, '\n');
-		char* filename = stream_read_line(procout, '\n');
+		line = string_format(resolved.str + resolved.length, size - resolved.length,
+							 STRING_CONST("[0x%" PRIfixPTR "] "), (uintptr_t)frames[num_frames]);
+		resolved.length += line.length;
+		
+		function = stream_read_line_buffer(procout, resolved.str + resolved.length, size - resolved.length, '\n');
+		if (!function.length)
+			function = string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST("??"));
+		resolved.length += function.length;
 
-		array_push(lines, string_format("[0x%" PRIfixPTR "] %s (%s)",
-		                                (uintptr_t)frames[num_frames],
-		                                function && string_length(function) ? function : "??",
-		                                filename && string_length(filename) ? filename : "??"
-		                               ));
+		string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST(" ("));
+		resolved.length += 2;
+		
+		filename = stream_read_line_buffer(procout, resolved.str + resolved.length, size - resolved.length, '\n');
+		if (!filename.length)
+			filename = string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST("??"));
+		resolved.length += filename.length;
 
-		if (string_equal(function, "main"))
+		string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST(")" STRING_NEWLINE));
+		resolved.length += 2;
+
+		if (string_equal(STRING_ARGS(function), STRING_CONST("main")))
 			last_was_main = true;
-
-		string_deallocate(function);
-		string_deallocate(filename);
 
 		++num_frames;
 	}
@@ -765,10 +778,9 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 	process_wait(proc);
 	process_deallocate(proc);
 
-	string_array_deallocate(addrs);
 	array_deallocate(args);
 
-	return lines;
+	return resolved;
 
 #elif FOUNDATION_PLATFORM_ANDROID
 

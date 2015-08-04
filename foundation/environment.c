@@ -219,8 +219,10 @@ _environment_initialize(const application_t application) {
 
 	ssize_t exelength = readlink("/proc/self/exe", buffer, sizeof(buffer));
 	if (exelength < 0) {
+#if BUILD_ENABLE_LOG
 		int err = errno;
 		string_const_t errmsg = system_error_message(err);
+#endif
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to read /proc/self/exe link: %*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
 		return -1;
