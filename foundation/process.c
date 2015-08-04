@@ -126,7 +126,8 @@ process_spawn(process_t* proc) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wcmdline;
 	wchar_t* wwd;
-	char* cmdline = 0;
+	string_t cmdline = (string_t){0, 0};
+	size_t capacity;
 #endif
 
 	if (!proc)
@@ -200,20 +201,28 @@ process_spawn(process_t* proc) {
 #    define SEE_MASK_NOASYNC 0x00000100
 #  endif
 
-	if (!(proc->flags &
-	      PROCESS_WINDOWS_USE_SHELLEXECUTE))    //Don't prepend exe path to parameters if using ShellExecute
-		cmdline = string_clone(proc->path.str, proc->path.length);
+	capacity = BUILD_MAX_PATHLEN;
+	cmdline = string_allocate(0, capacity);
+
+	//Don't prepend exe path to parameters if using ShellExecute
+	if (!(proc->flags & PROCESS_WINDOWS_USE_SHELLEXECUTE))
+		cmdline = string_copy(cmdline.str, capacity, STRING_ARGS(proc->path));
 
 	//Build command line string
 	for (i = 0; i < size; ++i) {
-		char* arg = proc->args[i];
+		string_t arg = proc->args[i];
 
-		if (!string_length(arg))
+		if (!arg.length)
 			continue;
-
-		if (cmdline)
-			cmdline = string_append(cmdline, " ");
-		cmdline = string_append(cmdline, arg);
+		if (cmdline.length + arg.length + 2 >= capacity) {
+			string_t newline;
+			capacity *= 2;
+			newline = string_allocate(0, capacity);
+			newline = string_copy(newline.str, capacity, STRING_ARGS(cmdline));
+		}
+		if (cmdline.length)
+			cmdline = string_append(STRING_ARGS(cmdline), capacity, STRING_CONST(" "));
+		cmdline = string_append(STRING_ARGS(cmdline), capacity, STRING_ARGS(arg));
 	}
 
 	if (!string_length(proc->wd))

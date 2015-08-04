@@ -558,9 +558,8 @@ environment_variable(const char* var, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	unsigned int required;
 	wchar_t* key = wstring_allocate_from_string(STRING_ARGS(varstr));
-	wchar_t val[FOUNDATION_MAX_PATHLEN]; val[0] = 0;
-	if ((required = GetEnvironmentVariableW(key, val,
-	                                        FOUNDATION_MAX_PATHLEN)) > FOUNDATION_MAX_PATHLEN) {
+	wchar_t val[BUILD_MAX_PATHLEN]; val[0] = 0;
+	if ((required = GetEnvironmentVariableW(key, val, BUILD_MAX_PATHLEN)) > BUILD_MAX_PATHLEN) {
 		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * (required + 2), 0, MEMORY_TEMPORARY);
 		val_local[0] = 0;
 		required = GetEnvironmentVariableW(key, val_local, required + 1);
