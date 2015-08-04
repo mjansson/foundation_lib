@@ -93,8 +93,10 @@ pnacl_error_message(int err) {
 }
 
 const void*
-pnacl_interface(const char* interface) {
-	return _pnacl_browser_interface ? _pnacl_browser_interface(interface) : 0;
+pnacl_interface(const char* interface, size_t length) {
+	string_t interfacestr = string_thread_buffer();
+	interfacestr = string_copy(STRING_ARGS(interfacestr), interface, length);
+	return _pnacl_browser_interface ? _pnacl_browser_interface(interfacestr.str) : 0;
 }
 
 PP_Instance
@@ -140,8 +142,12 @@ pnacl_instance_create(PP_Instance instance, uint32_t argc, const char* argn[], c
 	pthread_t main_thread;
 	int err = pthread_create(&main_thread, 0, pnacl_instance_main_thread, (void*)(uintptr_t)instance);
 	if (err) {
-		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, "Unable to create main thread: pthread_create failed: %s",
-		           system_error_message(err));
+#if BUILD_ENABLE_LOG
+		string_const_t errmsg = pnacl_error_message(err);
+#endif
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
+		           STRING_CONST("Unable to create main thread: pthread_create failed: %*s"),
+		           STRING_FORMAT(errmsg));
 		return PP_FALSE;
 	}
 
@@ -181,8 +187,8 @@ pnacl_module_initialize(PP_Module module_id, PPB_GetInterface browser) {
 }
 
 const void*
-pnacl_module_interface(const char* interface_name, size_t length) {
-	if (string_equal(interface_name, length, STRING_CONST(PPP_INSTANCE_INTERFACE)) == 0) {
+pnacl_module_interface(const char* interface, size_t length) {
+	if (string_equal(interface, length, STRING_CONST(PPP_INSTANCE_INTERFACE)) == 0) {
 		static PPP_Instance instance_interface = {
 			&pnacl_instance_create,
 			&pnacl_instance_destroy,
@@ -223,22 +229,25 @@ pnacl_post_log(hash_t context, error_level_t severity, const char* msg, size_t m
 	if (!_pnacl_var || !_pnacl_messaging || !msglen)
 		return;
 
-	char* jsonmsg;
-	char* cleanmsg;
+	string_t jsonmsg;
+	string_const_t cleanmsg;
 
-	cleanmsg = string_replace(string_clone(msg), "\"", "'", false);
-	if (cleanmsg[msglen - 1] == '\n')
-		cleanmsg[msglen - 1] = 0;
-	jsonmsg = string_format("{\"type\":\"log\",\"context\":\"%" PRIx64
-	                        "\",\"severity\":\"%d\",\"msg\":\"%s\"}", context, severity, cleanmsg);
+	cleanmsg = string_const(msg, msglen);
+	if (cleanmsg.str[msglen - 1] == '\n')
+		--cleanmsg.length;
+
+	jsonmsg = string_allocate_format(STRING_CONST("{\"type\":\"log\",\"context\":\"%" PRIx64
+	                                              "\",\"severity\":\"%d\",\"msg\":\"%*s\"}"),
+	                                 context, severity, STRING_FORMAT(cleanmsg));
+	string_replace(jsonmsg.str + (jsonmsg.length - cleanmsg.length + 2), cleanmsg.length,
+	               cleanmsg.length, STRING_CONST("\""), STRING_CONST("'"), false);
 
 	PP_Instance instance = pnacl_instance();
-	struct PP_Var msg_var = _pnacl_var->VarFromUtf8(jsonmsg, string_length(jsonmsg));
+	struct PP_Var msg_var = _pnacl_var->VarFromUtf8(STRING_ARGS(jsonmsg));
 	_pnacl_messaging->PostMessage(instance, msg_var);
 	_pnacl_var->Release(msg_var);
 
-	string_deallocate(jsonmsg);
-	string_deallocate(cleanmsg);
+	string_deallocate(jsonmsg.str);
 }
 
 #endif

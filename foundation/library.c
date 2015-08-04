@@ -296,10 +296,10 @@ library_symbol(object_t id, const char* name, size_t length) {
 	return 0;
 }
 
-const char*
+string_const_t
 library_name(object_t id) {
 	FOUNDATION_UNUSED(id);
-	return "";
+	return string_empty();
 }
 
 bool

@@ -117,14 +117,14 @@ _fs_path(const char* abspath, size_t length) {
 
 static PP_Resource
 _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
-	static const char rootpath[] = "/";
+	static string_const_t rootpath = (string_const_t){STRING_CONST("/")};
 	if (string_equal(path, length, STRING_CONST("/tmp"))) {
 		if (length == 0) {
 			*localpath = rootpath;
 			return _pnacl_fs_temporary;
 		}
 		else if (path[4] == '/') {
-			*localpath = path + 4;
+			*localpath = string_substr(path, length, 4, length - 4);
 			return _pnacl_fs_temporary;
 		}
 	}
@@ -134,11 +134,11 @@ _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
 			return _pnacl_fs_temporary;
 		}
 		else if (path[11] == '/') {
-			*localpath = path + 11;
+			*localpath = string_substr(path, length, 11, length - 11);
 			return _pnacl_fs_persistent;
 		}
 	}
-	else if (string_equal(path, STRING_CONST("/cache"))) {
+	else if (string_equal(path, length, STRING_CONST("/cache"))) {
 		/* TODO: PNaCl implement
 		if( path[6] == 0 )
 		{
@@ -272,13 +272,15 @@ fs_is_file(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_PNACL
 
 	bool is_file = false;
-	string_const_t pathstr = _fs_path(path, length);
 	string_const_t localpath;
+	string_const_t pathstr = _fs_path(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath.str);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
 
@@ -325,7 +327,9 @@ fs_is_directory(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath.str);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
 
@@ -409,12 +413,15 @@ fs_subdirs(const char* path, size_t length) {
 
 	memory_context_push(HASH_STREAM);
 
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(_fs_path(path), &localpath);
+	string_const_t localpath;
+	string_const_t pathstr = _fs_path(path, length);
+	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return arr;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return arr;
 
@@ -427,10 +434,7 @@ fs_subdirs(const char* path, size_t length) {
 				uint32_t varlen = 0;
 				const struct PP_Var namevar = _pnacl_file_ref->GetName(entry->file_ref);
 				const char* utfname = _pnacl_var->VarToUtf8(namevar, &varlen);
-				char* copyname = memory_allocate(0, varlen + 1, 0, MEMORY_PERSISTENT);
-
-				memcpy(copyname, utfname, varlen);
-				copyname[varlen] = 0;
+				string_t copyname = string_clone(utfname, varlen);
 				array_push(arr, copyname);
 			}
 		}
@@ -507,12 +511,15 @@ fs_files(const char* path, size_t length) {
 
 	memory_context_push(HASH_STREAM);
 
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(_fs_path(path), &localpath);
+	string_const_t localpath;
+	string_const_t pathstr = _fs_path(path, length);
+	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return arr;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return arr;
 
@@ -525,10 +532,7 @@ fs_files(const char* path, size_t length) {
 				uint32_t varlen = 0;
 				const struct PP_Var namevar = _pnacl_file_ref->GetName(entry->file_ref);
 				const char* utfname = _pnacl_var->VarToUtf8(namevar, &varlen);
-				char* copyname = memory_allocate(0, varlen + 1, 0, MEMORY_PERSISTENT);
-
-				memcpy(copyname, utfname, varlen);
-				copyname[varlen] = 0;
+				string_t copyname = string_clone(utfname, varlen);
 				array_push(arr, copyname);
 			}
 		}
@@ -581,12 +585,13 @@ fs_remove_file(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_PNACL
 
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(_fs_path(fpath), &localpath);
+	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
 	if (!fs)
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
 
@@ -650,12 +655,13 @@ fs_remove_directory(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_PNACL
 
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(_fs_path(fpath), &localpath);
+	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
 	if (!fs)
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
 
@@ -675,22 +681,25 @@ bool
 fs_make_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_PNACL
 
-	char* fpath = path_make_absolute(path);
+	char abspath_buffer[BUILD_MAX_PATHLEN];
+	string_t abspath = string_copy(abspath_buffer, sizeof(abspath_buffer), path, length);
+	if (!path_is_absolute(STRING_ARGS(abspath)))
+		abspath = path_absolute(STRING_ARGS(abspath), sizeof(abspath_buffer));
+	string_const_t fspath = _fs_path(STRING_ARGS(abspath));
 
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(_fs_path(fpath), &localpath);
+	string_const_t localpath;
+	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, &localpath);
 	if (!fs)
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+	string_t finalpath = string_copy(abspath_buffer, sizeof(abspath_buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
 
 	bool result = (_pnacl_file_ref->MakeDirectory(ref, PP_MAKEDIRECTORYFLAG_WITH_ANCESTORS,
 	                                              PP_BlockUntilComplete()) == PP_OK);
 	_pnacl_core->ReleaseResource(ref);
-
-	string_deallocate(fpath);
 
 	return result;
 
@@ -843,11 +852,13 @@ fs_last_modified(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_PNACL
 
 	tick_t tstamp = 0;
-	char* fpath = path_make_absolute(path);
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(_fs_path(fpath), &localpath);
+	string_const_t localpath;
+	string_const_t pathstr = _fs_path(path, length);
+	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
-		PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+		char buffer[BUILD_MAX_PATHLEN];
+		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+		PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 		if (ref) {
 			struct PP_FileInfo info;
 			if (_pnacl_file_ref->Query(ref, &info, PP_BlockUntilComplete()) == PP_OK)
@@ -856,8 +867,6 @@ fs_last_modified(const char* path, size_t length) {
 			_pnacl_core->ReleaseResource(ref);
 		}
 	}
-
-	string_deallocate(fpath);
 
 	return tstamp;
 
@@ -888,19 +897,19 @@ fs_touch(const char* path, size_t length) {
 	utime(fspath.str, 0);
 #elif FOUNDATION_PLATFORM_PNACL
 
-	char* fpath = path_make_absolute(path);
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(_fs_path(fpath), &localpath);
+	string_const_t localpath;
+	string_const_t pathstr = _fs_path(path, length);
+	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
-		PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+		char buffer[BUILD_MAX_PATHLEN];
+		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+		PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 		if (ref) {
 			PP_Time tstamp = (PP_Time)(time_system() / 1000LL);
 			_pnacl_file_ref->Touch(ref, tstamp, tstamp, PP_BlockUntilComplete());
 			_pnacl_core->ReleaseResource(ref);
 		}
 	}
-
-	string_deallocate(fpath);
 
 #else
 #  error Not implemented
@@ -1414,12 +1423,15 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_UNUSED(dotrunc);
 
-	const char* localpath = 0;
-	PP_Resource fs = _fs_resolve_path(path, &localpath);
+	string_const_t localpath;
+	string_const_t pathstr = _fs_path(path, length);
+	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return 0;
 
-	PP_Resource ref = _pnacl_file_ref->Create(fs, localpath);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
 
@@ -1638,6 +1650,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_UNUSED(length);
+	FOUNDATION_UNUSED(fspath);
 	file = GET_FILE(stream);
 
 	if (_pnacl_file_io->SetLength(file->fd, 0, PP_BlockUntilComplete()) == PP_OK) {
@@ -2003,35 +2016,42 @@ _fs_initialize(void) {
 	int ret;
 	PP_Instance instance = pnacl_instance();
 
-	_pnacl_file_system = pnacl_interface(PPB_FILESYSTEM_INTERFACE);
-	_pnacl_file_io = pnacl_interface(PPB_FILEIO_INTERFACE);
-	_pnacl_file_ref = pnacl_interface(PPB_FILEREF_INTERFACE);
-	_pnacl_var = pnacl_interface(PPB_VAR_INTERFACE);
-	_pnacl_core = pnacl_interface(PPB_CORE_INTERFACE);
+	_pnacl_file_system = pnacl_interface(STRING_CONST(PPB_FILESYSTEM_INTERFACE));
+	_pnacl_file_io = pnacl_interface(STRING_CONST(PPB_FILEIO_INTERFACE));
+	_pnacl_file_ref = pnacl_interface(STRING_CONST(PPB_FILEREF_INTERFACE));
+	_pnacl_var = pnacl_interface(STRING_CONST(PPB_VAR_INTERFACE));
+	_pnacl_core = pnacl_interface(STRING_CONST(PPB_CORE_INTERFACE));
 
 	if (!_pnacl_file_system)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file system interface");
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get file system interface"));
 	if (!_pnacl_file_io)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file I/O interface");
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get file I/O interface"));
 	if (!_pnacl_file_ref)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, "Unable to get file ref interface");
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get file ref interface"));
 	if (!_pnacl_var)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, "Unable to get var interface");
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get var interface"));
 	if (!_pnacl_core)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, "Unable to get core interface");
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get core interface"));
 
 	if (_pnacl_file_system && _pnacl_file_io && _pnacl_file_ref && _pnacl_var && _pnacl_core) {
 		_pnacl_fs_temporary = _pnacl_file_system->Create(instance, PP_FILESYSTEMTYPE_LOCALTEMPORARY);
 		_pnacl_fs_persistent = _pnacl_file_system->Create(instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT);
 
-		if ((ret = _pnacl_file_system->Open(_pnacl_fs_temporary, 100000, PP_BlockUntilComplete())) != PP_OK)
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, "Unable to open temporary file system: %s (%d)",
-			          pnacl_error_message(ret), ret);
+		if ((ret = _pnacl_file_system->Open(_pnacl_fs_temporary, 100000, PP_BlockUntilComplete())) != PP_OK) {
+#if BUILD_ENABLE_LOG
+			string_const_t errmsg = pnacl_error_message(ret);
+#endif
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open temporary file system: %*s (%d)"),
+			          STRING_FORMAT(errmsg), ret);
+		}
 
-		if ((ret = _pnacl_file_system->Open(_pnacl_fs_persistent, 100000,
-		                                    PP_BlockUntilComplete()) != PP_OK))
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, "Unable to open persistent file system: %s (%d)",
-			          pnacl_error_message(ret), ret);
+		if ((ret = _pnacl_file_system->Open(_pnacl_fs_persistent, 100000, PP_BlockUntilComplete()) != PP_OK)) {
+#if BUILD_ENABLE_LOG
+			string_const_t errmsg = pnacl_error_message(ret);
+#endif
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open persistent file system: %*s (%d)"),
+			          STRING_FORMAT(errmsg), ret);
+		}
 	}
 
 #endif

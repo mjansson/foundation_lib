@@ -244,9 +244,10 @@ string_strip(const char* str, size_t length, const char* delimiters, size_t deli
 string_t
 string_replace(char* str, size_t length, size_t capacity, const char* key, size_t key_length,
                const char* newkey, size_t newkey_length, bool repeat) {
-	size_t pos, lastpos, replaced, needsize;
+	size_t pos, oldlength, lastpos, replaced, needsize;
 	ssize_t lendiff;
 
+	oldlength = length;
 	if (length > capacity)
 		length = capacity;
 
@@ -304,8 +305,8 @@ string_replace(char* str, size_t length, size_t capacity, const char* key, size_
 			pos += newkey_length;
 	}
 
-	if (replaced)
-		str[ length ] = 0;
+	if (replaced && (length != oldlength))
+		str[length] = 0;
 
 	return (string_t){ str, length };
 }

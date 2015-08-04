@@ -179,11 +179,17 @@ FOUNDATION_API string_t
 string_resize(char* str, size_t length, size_t capacity, size_t new_length, char fill);
 
 /*! Replace all occurrences of the given key string inside the given string, optionally repeating
-the replace after an occurrence have been replaced. If repeat is set to false, the newly
-replaced part of the string is not rechecked for replacement. The repeat is recursion safe
-and will not endlessly loop, like repeat replacing "foo" with "foobar". The string will not
-be reallocated, replacement will continue in a best effort way until the capacity of the
-string buffer is reached.
+the replace after an occurrence have been replaced.
+
+If repeat is set to false, the newly replaced part of the string is not rechecked for
+replacement. The repeat is recursion safe and will not endlessly loop, like repeat replacing
+"foo" with "foobar".
+
+The string will not be reallocated, replacement will continue in a best effort way until the
+capacity of the string buffer is reached.
+
+If string length is modified it will be zero terminated. If the length is unmodified the zero
+termination state will be unmodified as well.
 \param str String to replace in
 \param length Length of string
 \param capacity Capacity of string bufgfer

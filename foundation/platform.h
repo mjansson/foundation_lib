@@ -914,10 +914,10 @@ typedef struct atomicptr_t atomicptr_t;
 #include <string.h>
 
 // String argument helpers
-#define STRING_CONST( s ) (s), (sizeof((s))-1)
-#define STRING_ARGS( s ) (s).str, (s).length
-#define STRING_ARGS_CAPACITY( s ) (s).str, (s).length, (s).length+1
-#define STRING_FORMAT( s ) (int)(s).length, (s).str
+#define STRING_CONST(s) (s), (sizeof((s))-1)
+#define STRING_ARGS(s) (s).str, (s).length
+#define STRING_ARGS_CAPACITY(s) (s).str, (s).length, (s).length+1
+#define STRING_FORMAT(s) (int)(s).length, (s).str
 
 // Misc
 #define FOUNDATION_UNUSED(x) ((void)sizeof(x))
@@ -1462,5 +1462,25 @@ Use like other standard PRI* format specifiers, like
 Printf-style format declaration for a pointer variable producing a fixed-size string
 (padding with zeroes). Use like other standard PRI* format specifiers, like
 <code>string_format( "Value: %" PRIfixPTR, ptr );</code>
+
+\def STRING_CONST
+Expand to two arguments, string pointer and length, as in <code>s, sizeof(s)-1</code>.
+Useful when declaring constant strings as arguments to string functions, for example
+<code>string_hash(STRING_CONST("foo"))</code>
+\param s Constant string declaration
+
+\def STRING_ARGS
+Expand to two arguments, string pointer and length, as in <code>s.str, s.length</code>.
+Useful when passing a string_t to string functions, for example
+<code>string_t mystr = ...; string_hash(STRING_ARGS(mystr));</code>
+
+\def STRING_ARGS_CAPACITY
+Expand to three arguments, string pointer, length and capacity, as in
+<code>s.str, s.length, s.length+1</code>
+
+\def STRING_FORMAT
+Expand to two arguments, legnth and string pointer, as in <code>(int)s.length, s.str</code>.
+Useful when passing a string_t to a string format argument, for example
+<code>string_t mystr = ...; log_infof(0, STRING_CONST("Mystring: %*s"), STRING_FORMAT(mystr));</code>
 
 */

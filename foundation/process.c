@@ -166,29 +166,29 @@ process_spawn(process_t* proc) {
 		++num_args;
 
 #if !FOUNDATION_PLATFORM_POSIX
-		if (string_find_first_not_of(arg.str, arg.length, unescaped.str, unescaped.length,
-		                             0) != STRING_NPOS) {
+		if (string_find_first_not_of(arg.str, arg.length,
+		                             unescaped.str, unescaped.length, 0) != STRING_NPOS) {
 			if (arg.str[0] != '"') {
 				//Check if we need to escape " characters
+				string_t escarg;
 				size_t pos = string_find(arg.str, arg.length, '"', 0);
 				while (pos != STRING_NPOS) {
 					if (arg.str[ pos - 1 ] != '\\') {
 						string_const_t right = string_substr(STRING_ARGS(arg), 0, pos);
 						string_const_t left = string_substr(STRING_ARGS(arg), pos, STRING_NPOS);
 						size_t capacity = arg.length + 2;
-						string_t escarg = string_allocate(0, capacity);
-						escarg = string_concat(STRING_ARGS(escarg), capacity,
-						                       STRING_ARGS(right), STRING_CONST("\\"));
+						escarg = string_allocate(0, capacity);
+						escarg = string_concat(escarg.str, capacity, STRING_ARGS(right), STRING_CONST("\\"));
 						escarg = string_append(STRING_ARGS(escarg), capacity, STRING_ARGS(left));
 						string_deallocate(arg.str);
 						arg = escarg;
 					}
 					pos = string_find(STRING_ARGS(arg), '"', pos + 2);
 				}
-				arg = string_prepend(arg, "\"");
-				arg = string_append(arg, "\"");
-
-				proc->args[i] = arg;
+				escarg = string_allocate_concat_varg(STRING_CONST("\""), STRING_ARGS(arg),
+				                                     STRING_CONST("\""), nullptr);
+				string_deallocate(arg.str);
+				proc->args[i] = escarg;
 			}
 		}
 #endif
