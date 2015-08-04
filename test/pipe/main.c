@@ -13,199 +13,184 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-
-static application_t test_pipe_application( void )
-{
+static application_t
+test_pipe_application(void) {
 	application_t app;
-	memset( &app, 0, sizeof( app ) );
-	app.name = string_const( STRING_CONST( "Foundation pipe tests" ) );
-	app.short_name = string_const( STRING_CONST( "test_pipe" ) );
-	app.config_dir = string_const( STRING_CONST( "test_pipe" ) );
+	memset(&app, 0, sizeof(app));
+	app.name = string_const(STRING_CONST("Foundation pipe tests"));
+	app.short_name = string_const(STRING_CONST("test_pipe"));
+	app.config_dir = string_const(STRING_CONST("test_pipe"));
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
 }
 
-
-static memory_system_t test_pipe_memory_system( void )
-{
+static memory_system_t
+test_pipe_memory_system(void) {
 	return memory_system_malloc();
 }
 
-
-static foundation_config_t test_pipe_config( void )
-{
+static foundation_config_t
+test_pipe_config(void) {
 	foundation_config_t config;
-	memset( &config, 0, sizeof( config ) );
+	memset(&config, 0, sizeof(config));
 	return config;
 }
 
-
-static int test_pipe_initialize( void )
-{
+static int
+test_pipe_initialize(void) {
 	return 0;
 }
 
-
-static void test_pipe_finalize( void )
-{
+static void
+test_pipe_finalize(void) {
 }
 
-
-static void* read_thread( object_t thread, void* arg )
-{
+static void*
+read_thread(object_t thread, void* arg) {
 	stream_t* pipe = arg;
 	int i;
 	unsigned char dest_buffer[256];
 	uint64_t was_read, was_write;
-	FOUNDATION_UNUSED( thread );
+	FOUNDATION_UNUSED(thread);
 
-	for( i = 0; i < 64; ++i )
-	{
-		was_read = stream_read( pipe, dest_buffer + i*4, 4 );
-		EXPECT_EQ( was_read, 4 );
+	for (i = 0; i < 64; ++i) {
+		was_read = stream_read(pipe, dest_buffer + i * 4, 4);
+		EXPECT_EQ(was_read, 4);
 	}
-	for( i = 0; i < 256; ++i )
-		EXPECT_EQ( dest_buffer[i], (unsigned char)i );
+	for (i = 0; i < 256; ++i)
+		EXPECT_EQ(dest_buffer[i], (unsigned char)i);
 
-	for( i = 0; i < 64; ++i )
-	{
-		was_write = stream_write( pipe, dest_buffer + i*4, 4 );
-		EXPECT_EQ( was_write, 4 );
+	for (i = 0; i < 64; ++i) {
+		was_write = stream_write(pipe, dest_buffer + i * 4, 4);
+		EXPECT_EQ(was_write, 4);
 	}
-	thread_sleep( 2000 );
+	thread_sleep(2000);
 
-	memset( dest_buffer, 0, 256 );
-	for( i = 0; i < 64; ++i )
-	{
-		was_read = stream_read( pipe, dest_buffer + i*4, 4 );
-		EXPECT_EQ( was_read, 4 );
+	memset(dest_buffer, 0, 256);
+	for (i = 0; i < 64; ++i) {
+		was_read = stream_read(pipe, dest_buffer + i * 4, 4);
+		EXPECT_EQ(was_read, 4);
 	}
-	for( i = 0; i < 256; ++i )
-		EXPECT_EQ( dest_buffer[i], (unsigned char)i );
+	for (i = 0; i < 256; ++i)
+		EXPECT_EQ(dest_buffer[i], (unsigned char)i);
 
-	for( i = 0; i < 64; ++i )
-	{
-		was_write = stream_write( pipe, dest_buffer + i*4, 4 );
-		EXPECT_EQ( was_write, 4 );
+	for (i = 0; i < 64; ++i) {
+		was_write = stream_write(pipe, dest_buffer + i * 4, 4);
+		EXPECT_EQ(was_write, 4);
 	}
 
 	return 0;
 }
 
-
-static void* write_thread( object_t thread, void* arg )
-{
+static void*
+write_thread(object_t thread, void* arg) {
 	stream_t* pipe = arg;
 	unsigned char src_buffer[256];
 	int i;
 	uint64_t was_read, was_write;
-	FOUNDATION_UNUSED( thread );
+	FOUNDATION_UNUSED(thread);
 
-	for( i = 0; i < 256; ++i )
+	for (i = 0; i < 256; ++i)
 		src_buffer[i] = (unsigned char)i;
-	was_write = stream_write( pipe, src_buffer, 69 );
-	EXPECT_EQ( was_write, 69 );
-	thread_sleep( 100 );
-	was_write = stream_write( pipe, src_buffer + 69, 256 - 69 );
-	EXPECT_EQ( was_write, 256 - 69 );
-	thread_sleep( 1000 );
+	was_write = stream_write(pipe, src_buffer, 69);
+	EXPECT_EQ(was_write, 69);
+	thread_sleep(100);
+	was_write = stream_write(pipe, src_buffer + 69, 256 - 69);
+	EXPECT_EQ(was_write, 256 - 69);
+	thread_sleep(1000);
 
-	memset( src_buffer, 0, 256 );
-	was_read = stream_read( pipe, src_buffer, 137 );
-	EXPECT_EQ( was_read, 137 );
-	was_read = stream_read( pipe, src_buffer + 137, 256 - 137 );
-	EXPECT_EQ( was_read, 256 - 137 );
-	for( i = 0; i < 256; ++i )
-		EXPECT_EQ( src_buffer[i], (unsigned char)i );
+	memset(src_buffer, 0, 256);
+	was_read = stream_read(pipe, src_buffer, 137);
+	EXPECT_EQ(was_read, 137);
+	was_read = stream_read(pipe, src_buffer + 137, 256 - 137);
+	EXPECT_EQ(was_read, 256 - 137);
+	for (i = 0; i < 256; ++i)
+		EXPECT_EQ(src_buffer[i], (unsigned char)i);
 
-	was_write = stream_write( pipe, src_buffer, 199 );
-	EXPECT_EQ( was_write, 199 );
-	thread_sleep( 100 );
-	was_write = stream_write( pipe, src_buffer + 199, 256 - 199 );
-	EXPECT_EQ( was_write, 256 - 199 );
-	thread_sleep( 3000 );
+	was_write = stream_write(pipe, src_buffer, 199);
+	EXPECT_EQ(was_write, 199);
+	thread_sleep(100);
+	was_write = stream_write(pipe, src_buffer + 199, 256 - 199);
+	EXPECT_EQ(was_write, 256 - 199);
+	thread_sleep(3000);
 
-	memset( src_buffer, 0, 256 );
-	was_read = stream_read( pipe, src_buffer, 255 );
-	EXPECT_EQ( was_read, 255 );
-	was_read = stream_read( pipe, src_buffer + 255, 256 - 255 );
-	EXPECT_EQ( was_read, 256 - 255 );
-	for( i = 0; i < 256; ++i )
-		EXPECT_EQ( src_buffer[i], (unsigned char)i );
+	memset(src_buffer, 0, 256);
+	was_read = stream_read(pipe, src_buffer, 255);
+	EXPECT_EQ(was_read, 255);
+	was_read = stream_read(pipe, src_buffer + 255, 256 - 255);
+	EXPECT_EQ(was_read, 256 - 255);
+	for (i = 0; i < 256; ++i)
+		EXPECT_EQ(src_buffer[i], (unsigned char)i);
 
 	return 0;
 }
 
-
-DECLARE_TEST( pipe, readwrite )
-{
+DECLARE_TEST(pipe, readwrite) {
 	stream_t* pipe;
 	object_t reader;
 	object_t writer;
 
-	if( system_platform() == PLATFORM_PNACL )
+	if (system_platform() == PLATFORM_PNACL)
 		return 0;
 
 	pipe = pipe_allocate();
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	EXPECT_NE( pipe_read_handle( pipe ), 0 );
-	EXPECT_NE( pipe_write_handle( pipe ), 0 );
-	EXPECT_EQ( pipe_read_handle( 0 ), 0 );
-	EXPECT_EQ( pipe_write_handle( 0 ), 0 );
+	EXPECT_NE(pipe_read_handle(pipe), 0);
+	EXPECT_NE(pipe_write_handle(pipe), 0);
+	EXPECT_EQ(pipe_read_handle(0), 0);
+	EXPECT_EQ(pipe_write_handle(0), 0);
 #elif FOUNDATION_PLATFORM_POSIX
-	EXPECT_NE( pipe_read_fd( pipe ), 0 );
-	EXPECT_NE( pipe_write_fd( pipe ), 0 );
-	EXPECT_EQ( pipe_read_fd( 0 ), 0 );
-	EXPECT_EQ( pipe_write_fd( 0 ), 0 );
+	EXPECT_NE(pipe_read_fd(pipe), 0);
+	EXPECT_NE(pipe_write_fd(pipe), 0);
+	EXPECT_EQ(pipe_read_fd(0), 0);
+	EXPECT_EQ(pipe_write_fd(0), 0);
 #endif
 
-	EXPECT_EQ( stream_size( pipe ), 0 );
-	EXPECT_EQ( stream_tell( pipe ), 0 );
+	EXPECT_EQ(stream_size(pipe), 0);
+	EXPECT_EQ(stream_tell(pipe), 0);
 
-	stream_flush( pipe );
-	stream_truncate( pipe, 100 );
-	stream_seek( pipe, 10, STREAM_SEEK_BEGIN );
+	stream_flush(pipe);
+	stream_truncate(pipe, 100);
+	stream_seek(pipe, 10, STREAM_SEEK_BEGIN);
 
-	EXPECT_EQ( stream_tell( pipe ), 0 );
-	EXPECT_EQ( stream_available_read( pipe ), 0 );
+	EXPECT_EQ(stream_tell(pipe), 0);
+	EXPECT_EQ(stream_available_read(pipe), 0);
 
-	reader = thread_create( read_thread, STRING_CONST( "reader" ), THREAD_PRIORITY_NORMAL, 0 );
-	writer = thread_create( write_thread, STRING_CONST( "writer" ), THREAD_PRIORITY_NORMAL, 0 );
+	reader = thread_create(read_thread, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
+	writer = thread_create(write_thread, STRING_CONST("writer"), THREAD_PRIORITY_NORMAL, 0);
 
-	thread_start( reader, pipe );
-	thread_start( writer, pipe );
-	thread_sleep( 100 );
+	thread_start(reader, pipe);
+	thread_start(writer, pipe);
+	thread_sleep(100);
 
-	while( thread_is_running( reader ) && thread_is_running( writer ) )
-		thread_sleep( 10 );
+	while (thread_is_running(reader) && thread_is_running(writer))
+		thread_sleep(10);
 
-	if( !thread_is_running( reader ) )
-		EXPECT_EQ( thread_result( reader ), 0 );
-	if( !thread_is_running( writer ) )
-		EXPECT_EQ( thread_result( writer ), 0 );
+	if (!thread_is_running(reader))
+		EXPECT_EQ(thread_result(reader), 0);
+	if (!thread_is_running(writer))
+		EXPECT_EQ(thread_result(writer), 0);
 
-	while( thread_is_running( reader ) || thread_is_running( writer ) )
-		thread_sleep( 10 );
+	while (thread_is_running(reader) || thread_is_running(writer))
+		thread_sleep(10);
 
-	EXPECT_EQ( thread_result( reader ), 0 );
-	EXPECT_EQ( thread_result( writer ), 0 );
+	EXPECT_EQ(thread_result(reader), 0);
+	EXPECT_EQ(thread_result(writer), 0);
 
-	thread_destroy( reader );
-	thread_destroy( writer );
+	thread_destroy(reader);
+	thread_destroy(writer);
 
-	stream_deallocate( pipe );
+	stream_deallocate(pipe);
 
 	return 0;
 }
 
-
-static void test_pipe_declare( void )
-{
-	ADD_TEST( pipe, readwrite );
+static void
+test_pipe_declare(void) {
+	ADD_TEST(pipe, readwrite);
 }
-
 
 static test_suite_t test_pipe_suite = {
 	test_pipe_application,
@@ -216,21 +201,24 @@ static test_suite_t test_pipe_suite = {
 	test_pipe_finalize
 };
 
-
 #if BUILD_MONOLITHIC
 
-int test_pipe_run( void );
-int test_pipe_run( void )
-{
+int
+test_pipe_run(void);
+
+int
+test_pipe_run(void) {
 	test_suite = test_pipe_suite;
 	return test_run_all();
 }
 
 #else
 
-test_suite_t test_suite_define( void );
-test_suite_t test_suite_define( void )
-{
+test_suite_t
+test_suite_define(void);
+
+test_suite_t
+test_suite_define(void) {
 	return test_pipe_suite;
 }
 

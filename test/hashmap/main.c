@@ -13,175 +13,160 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-
-static application_t test_hashmap_application( void )
-{
+static application_t
+test_hashmap_application(void) {
 	application_t app;
-	memset( &app, 0, sizeof( app ) );
-	app.name = string_const( STRING_CONST( "Foundation hashmap tests" ) );
-	app.short_name = string_const( STRING_CONST( "test_hashmap" ) );
-	app.config_dir = string_const( STRING_CONST( "test_hashmap" ) );
+	memset(&app, 0, sizeof(app));
+	app.name = string_const(STRING_CONST("Foundation hashmap tests"));
+	app.short_name = string_const(STRING_CONST("test_hashmap"));
+	app.config_dir = string_const(STRING_CONST("test_hashmap"));
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
 }
 
-
-static memory_system_t test_hashmap_memory_system( void )
-{
+static memory_system_t
+test_hashmap_memory_system(void) {
 	return memory_system_malloc();
 }
 
-
-static foundation_config_t test_hashmap_config( void )
-{
+static foundation_config_t
+test_hashmap_config(void) {
 	foundation_config_t config;
-	memset( &config, 0, sizeof( config ) );
+	memset(&config, 0, sizeof(config));
 	return config;
 }
 
-
-static int test_hashmap_initialize( void )
-{
+static int
+test_hashmap_initialize(void) {
 	return 0;
 }
 
-
-static void test_hashmap_finalize( void )
-{
+static void
+test_hashmap_finalize(void) {
 }
 
+DECLARE_TEST(hashmap, allocation) {
+	hashmap_t* map = hashmap_allocate(0, 0);
 
-DECLARE_TEST( hashmap, allocation )
-{
-	hashmap_t* map = hashmap_allocate( 0, 0 );
+	EXPECT_EQ(hashmap_size(map), 0);
+	EXPECT_EQ(hashmap_lookup(map, 0), 0);
+	EXPECT_EQ(hashmap_lookup(map, (hash_t)(uintptr_t)map), 0);
 
-	EXPECT_EQ( hashmap_size( map ), 0 );
-	EXPECT_EQ( hashmap_lookup( map, 0 ), 0 );
-	EXPECT_EQ( hashmap_lookup( map, (hash_t)(uintptr_t)map ), 0 );
+	hashmap_deallocate(map);
 
-	hashmap_deallocate( map );
+	map = hashmap_allocate(13, 127);
 
-	map = hashmap_allocate( 13, 127 );
+	EXPECT_EQ(hashmap_size(map), 0);
+	EXPECT_EQ(hashmap_lookup(map, 0), 0);
+	EXPECT_EQ(hashmap_lookup(map, (hash_t)(uintptr_t)map), 0);
 
-	EXPECT_EQ( hashmap_size( map ), 0 );
-	EXPECT_EQ( hashmap_lookup( map, 0 ), 0 );
-	EXPECT_EQ( hashmap_lookup( map, (hash_t)(uintptr_t)map ), 0 );
-
-	hashmap_deallocate( map );
+	hashmap_deallocate(map);
 
 	return 0;
 }
 
-
-DECLARE_TEST( hashmap, insert )
-{
-	hashmap_t* map = hashmap_allocate( 0, 0 );
+DECLARE_TEST(hashmap, insert) {
+	hashmap_t* map = hashmap_allocate(0, 0);
 	void* prev = 0;
 
-	EXPECT_EQ( hashmap_lookup( map, 0 ), 0 );
+	EXPECT_EQ(hashmap_lookup(map, 0), 0);
 
-	prev = hashmap_insert( map, 0, map );
-	EXPECT_EQ( prev, 0 );
+	prev = hashmap_insert(map, 0, map);
+	EXPECT_EQ(prev, 0);
 
-	prev = hashmap_insert( map, 0, map );
-	EXPECT_EQ( prev, map );
+	prev = hashmap_insert(map, 0, map);
+	EXPECT_EQ(prev, map);
 
-	prev = hashmap_insert( map, 0, 0 );
-	EXPECT_EQ( prev, map );
+	prev = hashmap_insert(map, 0, 0);
+	EXPECT_EQ(prev, map);
 
-	prev = hashmap_insert( map, 0, map );
-	EXPECT_EQ( prev, 0 );
+	prev = hashmap_insert(map, 0, map);
+	EXPECT_EQ(prev, 0);
 
-	prev = hashmap_insert( map, (hash_t)(uintptr_t)map, map );
-	EXPECT_EQ( prev, 0 );
+	prev = hashmap_insert(map, (hash_t)(uintptr_t)map, map);
+	EXPECT_EQ(prev, 0);
 
-	EXPECT_EQ( hashmap_size( map ), 2 );
-	EXPECT_EQ( hashmap_lookup( map, 0 ), map );
-	EXPECT_EQ( hashmap_lookup( map, (hash_t)(uintptr_t)map ), map );
+	EXPECT_EQ(hashmap_size(map), 2);
+	EXPECT_EQ(hashmap_lookup(map, 0), map);
+	EXPECT_EQ(hashmap_lookup(map, (hash_t)(uintptr_t)map), map);
 
-	hashmap_insert( map, 0, 0 );
-	hashmap_insert( map, (hash_t)(uintptr_t)map, 0 );
+	hashmap_insert(map, 0, 0);
+	hashmap_insert(map, (hash_t)(uintptr_t)map, 0);
 
-	EXPECT_EQ( hashmap_size( map ), 2 );
-	EXPECT_EQ( hashmap_lookup( map, 0 ), 0 );
-	EXPECT_EQ( hashmap_lookup( map, (hash_t)(uintptr_t)map ), 0 );
+	EXPECT_EQ(hashmap_size(map), 2);
+	EXPECT_EQ(hashmap_lookup(map, 0), 0);
+	EXPECT_EQ(hashmap_lookup(map, (hash_t)(uintptr_t)map), 0);
 
-	hashmap_deallocate( map );
+	hashmap_deallocate(map);
 
 	return 0;
 }
 
-
-DECLARE_TEST( hashmap, erase )
-{
-	hashmap_t* map = hashmap_allocate( 0, 0 );
+DECLARE_TEST(hashmap, erase) {
+	hashmap_t* map = hashmap_allocate(0, 0);
 	void* prev = 0;
 
-	EXPECT_EQ( hashmap_lookup( map, 0 ), 0 );
-	EXPECT_EQ( hashmap_size( map ), 0 );
+	EXPECT_EQ(hashmap_lookup(map, 0), 0);
+	EXPECT_EQ(hashmap_size(map), 0);
 
-	prev = hashmap_insert( map, 0, map );
-	EXPECT_EQ( prev, 0 );
-	EXPECT_EQ( hashmap_size( map ), 1 );
-	EXPECT_TRUE( hashmap_has_key( map, 0 ) );
+	prev = hashmap_insert(map, 0, map);
+	EXPECT_EQ(prev, 0);
+	EXPECT_EQ(hashmap_size(map), 1);
+	EXPECT_TRUE(hashmap_has_key(map, 0));
 
-	prev = hashmap_erase( map, 0 );
-	EXPECT_EQ( prev, map );
-	EXPECT_EQ( hashmap_size( map ), 0 );
-	EXPECT_FALSE( hashmap_has_key( map, 0 ) );
+	prev = hashmap_erase(map, 0);
+	EXPECT_EQ(prev, map);
+	EXPECT_EQ(hashmap_size(map), 0);
+	EXPECT_FALSE(hashmap_has_key(map, 0));
 
-	prev = hashmap_erase( map, 0 );
-	EXPECT_EQ( prev, 0 );
-	EXPECT_EQ( hashmap_size( map ), 0 );
-	EXPECT_FALSE( hashmap_has_key( map, 0 ) );
+	prev = hashmap_erase(map, 0);
+	EXPECT_EQ(prev, 0);
+	EXPECT_EQ(hashmap_size(map), 0);
+	EXPECT_FALSE(hashmap_has_key(map, 0));
 
-	prev = hashmap_erase( map, (hash_t)(uintptr_t)map );
-	EXPECT_EQ( prev, 0 );
-	EXPECT_EQ( hashmap_size( map ), 0 );
-	EXPECT_FALSE( hashmap_has_key( map, (hash_t)(uintptr_t)map ) );
+	prev = hashmap_erase(map, (hash_t)(uintptr_t)map);
+	EXPECT_EQ(prev, 0);
+	EXPECT_EQ(hashmap_size(map), 0);
+	EXPECT_FALSE(hashmap_has_key(map, (hash_t)(uintptr_t)map));
 
-	hashmap_deallocate( map );
+	hashmap_deallocate(map);
 
 	return 0;
 }
 
-
-DECLARE_TEST( hashmap, lookup )
-{
-	hashmap_t* map = hashmap_allocate( 31, 0 );
+DECLARE_TEST(hashmap, lookup) {
+	hashmap_t* map = hashmap_allocate(31, 0);
 	char* value = (void*)(uintptr_t)1234;
 	hash_t key = (hash_t)4321;
 	unsigned int ikey = 0;
 
-	for( ; ikey < 1024; ++ikey, ++key, ++value )
-	{
-		void* prev = hashmap_insert( map, key, value );
-		EXPECT_EQ( prev, 0 );
+	for (; ikey < 1024; ++ikey, ++key, ++value) {
+		void* prev = hashmap_insert(map, key, value);
+		EXPECT_EQ(prev, 0);
 	}
 
-	for( ikey = 0, key = (hash_t)4321, value = (void*)(uintptr_t)1234; ikey < 1024; ++ikey, ++key, ++value )
-	{
-		void* prev = hashmap_lookup( map, key );
-		EXPECT_EQ( prev, value );
+	for (ikey = 0, key = (hash_t)4321, value = (void*)(uintptr_t)1234; ikey < 1024;
+	     ++ikey, ++key, ++value) {
+		void* prev = hashmap_lookup(map, key);
+		EXPECT_EQ(prev, value);
 
-		EXPECT_TRUE( hashmap_has_key( map, key ) );
-		hashmap_erase( map, key );
-		EXPECT_FALSE( hashmap_has_key( map, key ) );
+		EXPECT_TRUE(hashmap_has_key(map, key));
+		hashmap_erase(map, key);
+		EXPECT_FALSE(hashmap_has_key(map, key));
 	}
 
-	hashmap_deallocate( map );
+	hashmap_deallocate(map);
 
 	return 0;
 }
 
-
-static void test_hashmap_declare( void )
-{
-	ADD_TEST( hashmap, allocation );
-	ADD_TEST( hashmap, insert );
-	ADD_TEST( hashmap, erase );
-	ADD_TEST( hashmap, lookup );
+static void
+test_hashmap_declare(void) {
+	ADD_TEST(hashmap, allocation);
+	ADD_TEST(hashmap, insert);
+	ADD_TEST(hashmap, erase);
+	ADD_TEST(hashmap, lookup);
 }
 
 
@@ -194,21 +179,24 @@ static test_suite_t test_hashmap_suite = {
 	test_hashmap_finalize
 };
 
-
 #if BUILD_MONOLITHIC
 
-int test_hashmap_run( void );
-int test_hashmap_run( void )
-{
+int
+test_hashmap_run(void);
+
+int
+test_hashmap_run(void) {
 	test_suite = test_hashmap_suite;
 	return test_run_all();
 }
 
 #else
 
-test_suite_t test_suite_define( void );
-test_suite_t test_suite_define( void )
-{
+test_suite_t
+test_suite_define(void);
+
+test_suite_t
+test_suite_define(void) {
 	return test_hashmap_suite;
 }
 

@@ -17,10 +17,8 @@
 
 #ifdef __OBJC__
 
-
-@interface ViewController : UIViewController
-{
-	@public
+@interface ViewController : UIViewController {
+@public
 }
 @end
 

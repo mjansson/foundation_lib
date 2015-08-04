@@ -14,7 +14,6 @@
 
 #include <foundation/foundation.h>
 
-
 #if defined( TEST_COMPILE ) && TEST_COMPILE
 #  ifdef __cplusplus
 #  define TEST_EXTERN extern "C"
@@ -34,14 +33,19 @@
 
 #define FAILED_TEST ((void*)(uintptr_t)1)
 
-typedef void* (* test_fn)( void );
+typedef void* (* test_fn)(void);
 
-TEST_API void test_add_test( test_fn test, const char* group_name, size_t group_length, const char* test_name, size_t test_length );
-TEST_API int  test_run_all( void );
+TEST_API void
+test_add_test(test_fn test, const char* group_name, size_t group_length, const char* test_name,
+              size_t test_length);
+
+TEST_API int
+test_run_all(void);
 
 #if FOUNDATION_PLATFORM_IOS
 
-TEST_API void  test_text_view_append( void* window, int tag, const char* msg, size_t length );
+TEST_API void
+test_text_view_append(void* window, int tag, const char* msg, size_t length);
 
 #endif
 
@@ -119,21 +123,28 @@ TEST_API void  test_text_view_append( void* window, int tag, const char* msg, si
 #define EXPECT_REALEQULPS( var, expect, ulps ) do { if( !math_real_eq( (var), (expect), (ulps) ) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Test failed, %s != %s real (at %s:%u): %.6" PRIREAL " : %.6" PRIREAL ), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (real)((var)), (real)((expect)) ); RETURN_FAILED_TEST; } } while(0)
 
 //No inline to make sure compiler does not inline and reorder instructions
-TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_startup( const object_t* threads, size_t num_threads );
-TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_finish( const object_t* threads, size_t num_threads );
-TEST_API void FOUNDATION_NOINLINE test_wait_for_threads_exit( const object_t* threads, size_t num_threads );
+TEST_API void FOUNDATION_NOINLINE
+test_wait_for_threads_startup(const object_t* threads, size_t num_threads);
 
-TEST_API void FOUNDATION_NOINLINE test_crash_handler( const char*, size_t length ) FOUNDATION_ATTRIBUTE( noreturn );
-TEST_API bool FOUNDATION_NOINLINE test_should_terminate( void );
+TEST_API void FOUNDATION_NOINLINE
+test_wait_for_threads_finish(const object_t* threads, size_t num_threads);
 
-typedef struct _test_suite
-{
-	application_t       (*application)( void );
-	memory_system_t     (*memory_system)( void );
-  foundation_config_t (*config)( void );
-	void                (*declare)( void );
-	int                 (*initialize)( void );
-	void                (*finalize)( void );
+TEST_API void FOUNDATION_NOINLINE
+test_wait_for_threads_exit(const object_t* threads, size_t num_threads);
+
+TEST_API void FOUNDATION_NOINLINE
+test_crash_handler(const char*, size_t length) FOUNDATION_ATTRIBUTE(noreturn);
+
+TEST_API bool FOUNDATION_NOINLINE
+test_should_terminate(void);
+
+typedef struct _test_suite {
+  application_t (*application)(void);
+  memory_system_t (*memory_system)(void);
+  foundation_config_t (*config)(void);
+  void (*declare)(void);
+  int (*initialize)(void);
+  void (*finalize)(void);
 } test_suite_t;
 
-TEST_API test_suite_t  test_suite;
+TEST_API test_suite_t test_suite;

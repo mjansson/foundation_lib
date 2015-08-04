@@ -13,64 +13,58 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-
 static application_t _global_app;
 
-
-static application_t test_app_application( void )
-{
-	_global_app.name = string_const( STRING_CONST( "Foundation library test suite" ) );
-	_global_app.short_name = string_const( STRING_CONST( "test_all" ) );
-	_global_app.config_dir = string_const( STRING_CONST( "test_all" ) );
+static application_t
+test_app_application(void) {
+	_global_app.name = string_const(STRING_CONST("Foundation library test suite"));
+	_global_app.short_name = string_const(STRING_CONST("test_all"));
+	_global_app.config_dir = string_const(STRING_CONST("test_all"));
 	_global_app.version = foundation_version();
 	_global_app.flags = APPLICATION_UTILITY;
 	_global_app.dump_callback = test_crash_handler;
 	return _global_app;
 }
 
-
-static memory_system_t test_app_memory_system( void )
-{
+static memory_system_t
+test_app_memory_system(void) {
 	return memory_system_malloc();
 }
 
-
-static foundation_config_t test_app_config( void )
-{
+static foundation_config_t
+test_app_config(void) {
 	foundation_config_t config;
-	memset( &config, 0, sizeof( config ) );
+	memset(&config, 0, sizeof(config));
 	return config;
 }
 
-
-static int test_app_initialize( void )
-{
+static int
+test_app_initialize(void) {
 	return 0;
 }
 
-
-static void test_app_finalize( void )
-{
+static void
+test_app_finalize(void) {
 }
 
-
-DECLARE_TEST( app, environment )
-{
-	EXPECT_STREQ( environment_application()->name.str, environment_application()->name.length, _global_app.name.str, _global_app.name.length );
-	EXPECT_STREQ( environment_application()->short_name.str, environment_application()->short_name.length, _global_app.short_name.str, _global_app.short_name.length );
-	EXPECT_STREQ( environment_application()->config_dir.str, environment_application()->config_dir.length, _global_app.config_dir.str, _global_app.config_dir.length );
-	EXPECT_TRUE( uint128_equal( environment_application()->version.version, _global_app.version.version ) );
-	EXPECT_EQ( environment_application()->flags, APPLICATION_UTILITY );
-	EXPECT_EQ( environment_application()->dump_callback, test_crash_handler );
+DECLARE_TEST(app, environment) {
+	EXPECT_STREQ(STRING_ARGS(environment_application()->name),
+	             STRING_ARGS(_global_app.name));
+	EXPECT_STREQ(STRING_ARGS(environment_application()->short_name),
+	             STRING_ARGS(_global_app.short_name));
+	EXPECT_STREQ(STRING_ARGS(environment_application()->config_dir),
+	             STRING_ARGS(_global_app.config_dir));
+	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
+	                          _global_app.version.version));
+	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);
+	EXPECT_EQ(environment_application()->dump_callback, test_crash_handler);
 	return 0;
 }
 
-
-static void test_app_declare( void )
-{
-	ADD_TEST( app, environment );
+static void
+test_app_declare(void) {
+	ADD_TEST(app, environment);
 }
-
 
 static test_suite_t test_app_suite = {
 	test_app_application,
@@ -81,21 +75,24 @@ static test_suite_t test_app_suite = {
 	test_app_finalize
 };
 
-
 #if BUILD_MONOLITHIC
 
-int test_app_run( void );
-int test_app_run( void )
-{
+int
+test_app_run(void);
+
+int
+test_app_run(void) {
 	test_suite = test_app_suite;
 	return test_run_all();
 }
 
 #else
 
-test_suite_t test_suite_define( void );
-test_suite_t test_suite_define( void )
-{
+test_suite_t
+test_suite_define(void);
+
+test_suite_t
+test_suite_define(void) {
 	return test_app_suite;
 }
 

@@ -12,36 +12,26 @@
 
 #include "viewcontroller.h"
 
-
-@interface ViewController ()
-
+@interface ViewController()
 @end
-
 
 @implementation ViewController
 
+- (void)viewDidLoad {
+  [super viewDidLoad];
 
-- (void)viewDidLoad
-{
-	[super viewDidLoad];
-
-	if( [self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)] )
-		[self setNeedsStatusBarAppearanceUpdate];
-	else
-		[[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+  if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)])
+    [self setNeedsStatusBarAppearanceUpdate];
+  else
+    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 }
 
-
-- (void)didReceiveMemoryWarning
-{
-	[super didReceiveMemoryWarning];
+- (void)didReceiveMemoryWarning {
+  [super didReceiveMemoryWarning];
 }
 
-
-- (BOOL)prefersStatusBarHidden
-{
-	return TRUE;
+- (BOOL)prefersStatusBarHidden {
+  return TRUE;
 }
-
 
 @end

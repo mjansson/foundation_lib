@@ -13,97 +13,96 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-
-static application_t test_time_application( void )
-{
+static application_t
+test_time_application(void) {
 	application_t app;
-	memset( &app, 0, sizeof( app ) );
-	app.name = string_const( STRING_CONST( "Foundation time tests" ) );
-	app.short_name = string_const( STRING_CONST( "test_time" ) );
-	app.config_dir = string_const( STRING_CONST( "test_time" ) );
+	memset(&app, 0, sizeof(app));
+	app.name = string_const(STRING_CONST("Foundation time tests"));
+	app.short_name = string_const(STRING_CONST("test_time"));
+	app.config_dir = string_const(STRING_CONST("test_time"));
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
 }
 
-
-static memory_system_t test_time_memory_system( void )
-{
+static memory_system_t
+test_time_memory_system(void) {
 	return memory_system_malloc();
 }
 
-
-static foundation_config_t test_time_config( void )
-{
+static foundation_config_t
+test_time_config(void) {
 	foundation_config_t config;
-	memset( &config, 0, sizeof( config ) );
+	memset(&config, 0, sizeof(config));
 	return config;
 }
 
-
-static int test_time_initialize( void )
-{
+static int
+test_time_initialize(void) {
 	return 0;
 }
 
-
-static void test_time_finalize( void )
-{
+static void
+test_time_finalize(void) {
 }
 
-
-DECLARE_TEST( time, builtin )
-{
+DECLARE_TEST(time, builtin) {
 	tick_t tick, newtick, tps;
 	deltatime_t dt;
 
 	tps = time_ticks_per_second();
-	EXPECT_GT( tps, 0 );
+	EXPECT_GT(tps, 0);
 
 	tick = time_current();
-	thread_sleep( 20 );
+	thread_sleep(20);
 	newtick = time_current();
 
-	EXPECT_NE( tick, 0 );
-	EXPECT_GT( newtick, tick );
+	EXPECT_NE(tick, 0);
+	EXPECT_GT(newtick, tick);
 
-	EXPECT_GT( time_diff( tick, newtick ), 0 );
-	EXPECT_GT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 100LL ), "time elapsed not more than 10ms: %" PRId64 " (%" PRId64 ")", time_diff( tick, newtick ), ( tps / 100 ) ); //more than 10 ms
-	EXPECT_LT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 30LL  ), "time elapsed not less than 30ms: %" PRId64 " (%" PRId64 ")", time_diff( tick, newtick ), ( tps / 33  ) ); //less than 30 ms
-	EXPECT_GT( time_elapsed( tick ), 0 );
-	EXPECT_GT( time_elapsed( tick ), 0.01f ); //more than 10 ms
-	EXPECT_GT( time_elapsed_ticks( tick ), 0 );
-	EXPECT_GT( time_elapsed_ticks( tick ), ( tps / 100 ) ); //more than 10 ms
+	EXPECT_GT(time_diff(tick, newtick), 0);
+	EXPECT_GT_MSGFORMAT(time_diff(tick, newtick), (tps / 100LL),
+	                    "time elapsed not more than 10ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
+	                    (tps / 100)); //more than 10 ms
+	EXPECT_LT_MSGFORMAT(time_diff(tick, newtick), (tps / 30LL),
+	                    "time elapsed not less than 30ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
+	                    (tps / 33)); //less than 30 ms
+	EXPECT_GT(time_elapsed(tick), 0);
+	EXPECT_GT(time_elapsed(tick), 0.01f);     //more than 10 ms
+	EXPECT_GT(time_elapsed_ticks(tick), 0);
+	EXPECT_GT(time_elapsed_ticks(tick), (tps / 100));       //more than 10 ms
 
-	dt = time_ticks_to_seconds( newtick - tick );
-	EXPECT_GT( dt, 0 );
-	EXPECT_GT_MSGFORMAT( dt, 0.01f, "time elapsed in seconds not more than 10ms: %.5f", dt ); //more than 10 ms
-	EXPECT_LT_MSGFORMAT( dt, 0.03f, "time elapsed in seconds not less than 30ms: %.5f", dt ); //less than 30 ms
+	dt = time_ticks_to_seconds(newtick - tick);
+	EXPECT_GT(dt, 0);
+	EXPECT_GT_MSGFORMAT(dt, 0.01f, "time elapsed in seconds not more than 10ms: %.5f",
+	                    dt);   //more than 10 ms
+	EXPECT_LT_MSGFORMAT(dt, 0.03f, "time elapsed in seconds not less than 30ms: %.5f",
+	                    dt);   //less than 30 ms
 
 	tick = time_startup();
-	EXPECT_GT( tick, 0 );
-	EXPECT_LT( tick, newtick );
-	EXPECT_EQ( tick, time_startup() );
+	EXPECT_GT(tick, 0);
+	EXPECT_LT(tick, newtick);
+	EXPECT_EQ(tick, time_startup());
 
 	tick = time_system();
-	thread_sleep( 100 );
+	thread_sleep(100);
 	newtick = time_system();
 
-	EXPECT_GT( tick, 0 );
-	EXPECT_GT( newtick, 0 );
-	EXPECT_GT( newtick, tick );
-	EXPECT_GT_MSGFORMAT( newtick - tick, 50, "Elapsed system time less than 50ms, expected 100ms, got %" PRId64 "ms", newtick - tick );
-	EXPECT_LT_MSGFORMAT( newtick - tick, 200, "Elapsed system time more than 200ms, expected 100ms, got %" PRId64 "ms", newtick - tick );
+	EXPECT_GT(tick, 0);
+	EXPECT_GT(newtick, 0);
+	EXPECT_GT(newtick, tick);
+	EXPECT_GT_MSGFORMAT(newtick - tick, 50,
+	                    "Elapsed system time less than 50ms, expected 100ms, got %" PRId64 "ms", newtick - tick);
+	EXPECT_LT_MSGFORMAT(newtick - tick, 200,
+	                    "Elapsed system time more than 200ms, expected 100ms, got %" PRId64 "ms", newtick - tick);
 
 	return 0;
 }
 
-
-static void test_time_declare( void )
-{
-	ADD_TEST( time, builtin );
+static void
+test_time_declare(void) {
+	ADD_TEST(time, builtin);
 }
-
 
 static test_suite_t test_time_suite = {
 	test_time_application,
@@ -114,21 +113,24 @@ static test_suite_t test_time_suite = {
 	test_time_finalize
 };
 
-
 #if BUILD_MONOLITHIC
 
-int test_time_run( void );
-int test_time_run( void )
-{
+int
+test_time_run(void);
+
+int
+test_time_run(void) {
 	test_suite = test_time_suite;
 	return test_run_all();
 }
 
 #else
 
-test_suite_t test_suite_define( void );
-test_suite_t test_suite_define( void )
-{
+test_suite_t
+test_suite_define(void);
+
+test_suite_t
+test_suite_define(void) {
 	return test_time_suite;
 }
 

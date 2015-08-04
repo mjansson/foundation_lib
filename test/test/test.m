@@ -15,30 +15,28 @@
 
 #include <test/test.h>
 
-
 #if FOUNDATION_PLATFORM_IOS
 
 # import <UIKit/UITextView.h>
 
-
-void test_text_view_append( void* window, int tag, const char* msg, size_t length )
-{
-	if( !window )
+void
+test_text_view_append(void* window, int tag, const char* msg, size_t length) {
+	if (!window)
 		return;
 
 	__strong UITextView* textview = (UITextView*)[(__bridge UIWindow*)window viewWithTag:tag];
-	if( !textview )
+	if (!textview)
 		return;
 
-	@autoreleasepool
-	{
+	@autoreleasepool {
 		NSString* nsmsg = [NSString stringWithUTF8String:msg];
-		dispatch_async( dispatch_get_main_queue(), ^{ @autoreleasepool {
-			textview.text = [textview.text stringByAppendingString:nsmsg];
-		}});
+		dispatch_async(dispatch_get_main_queue(), ^ { @autoreleasepool {
+				textview.text = [textview.text stringByAppendingString:nsmsg];
+			}
+		});
 	}
 
-	FOUNDATION_UNUSED( length );
+	FOUNDATION_UNUSED(length);
 }
 
 #endif
