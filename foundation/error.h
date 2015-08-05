@@ -62,7 +62,7 @@ error_set_callback(error_callback_fn callback);
 Both context and data must be valid for as long as it remains on the stack.
 \param name Context name
 \param data Context data buffer
-\param data_length Context data buffer size */
+\param length Context data buffer size */
 #define error_context_push(...) do { \
   _error_context_push_proxy(__VA_ARGS__); \
   } while(0)

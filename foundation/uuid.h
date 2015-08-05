@@ -31,6 +31,7 @@ uuid_generate_time(void);
 /*! Generate UUID based on namespace and name - version 3.
 \param ns Namespace
 \param name Name
+\param length Length of name
 \return Name-based UUID */
 FOUNDATION_API uuid_t
 uuid_generate_name(const uuid_t ns, const char* name, size_t length);

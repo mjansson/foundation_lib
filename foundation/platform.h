@@ -1277,9 +1277,6 @@ for 32 and 64 bit architectures, respectively.
 \def FOUNDATION_SIZE_WCHAR
 Defines the size of the wchar_t type, in bytes, depending on platform
 
-\def FOUNDATION_MAX_PATHLEN
-Defines the maximum length of a path
-
 \def FOUNDATION_DECLARE_THREAD_LOCAL
 Declare a thread-local variable of the given type, name and initial value. Only works
 for types that can be safely cast through a uintptr_t (integers, pointers...). This will

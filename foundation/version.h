@@ -25,7 +25,8 @@ Version utilities */
 \param minor Minor version
 \param revision Revision number
 \param build Build number
-\param control Source control identifier */
+\param control Source control identifier
+\return Packet version definition */
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL version_t
 version_make(unsigned int major, unsigned int minor, unsigned int revision, unsigned int build,
              unsigned int control);

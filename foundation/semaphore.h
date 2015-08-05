@@ -29,7 +29,8 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value);
 
 /*! Initialize a named semaphore with the given value.
 \param semaphore Semaphore
-\param name  Global name
+\param name Global name
+\param length Length of name
 \param value Initial value */
 FOUNDATION_API void
 semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,

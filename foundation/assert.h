@@ -81,9 +81,8 @@ assert_report_formatted(hash_t context, const char* condition,
 #if BUILD_ENABLE_ASSERT
 
 /*! Assert the given condition. If assert fails, call the #assert_report function with
-the given message and optionally (depending on callback) cause a breakpoint.
-\param cond Assert condition
-\param msg  Assert message */
+a null message and optionally (depending on callback) cause a breakpoint.
+\param cond Assert condition */
 #define FOUNDATION_ASSERT(cond) do { \
   if ((!(cond)) && assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
                                  __LINE__, 0, 0)) \
@@ -240,7 +239,7 @@ to remain safe and properly evaluated even when asserts are statically disabled.
 /*! Static assert evaluated at compile time
 \param cond Assert condition
 \param msg  Assert "message" identifier which should be unquoted on the form
-            code>some_kind_of_message</code> */
+            <code>some_kind_of_message</code> */
 #if FOUNDATION_COMPILER_CLANG || (FOUNDATION_COMPILER_GCC && (FOUNDATIN_GCC_VERSION >= 40600))
 #  define FOUNDATION_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #elif FOUNDATION_COMPILER_MSVC && ( _MSC_VER > 1600 )

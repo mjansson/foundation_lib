@@ -1994,7 +1994,19 @@ PREDEFINED             = FOUNDATION_PLATFORM_DOXYGEN:=1 \
                          FOUNDATION_PLATFORM_APPLE:=1 \
                          FOUNDATION_PLATFORM_POSIX:=1 \
                          BUILD_ENABLE_LOG:=1 \
-                         BUILD_ENABLE_ASSERT:=1
+                         BUILD_ENABLE_ASSERT:=1 \
+                         BUILD_ENABLE_ERROR_CONTEXT:=1 \
+                         BUILD_DEBUG:=1 \
+                         BUILD_RELEASE:=1 \
+                         BUILD_PROFILE:=1 \
+                         BUILD_DEPLOY:=1 \
+                         BUILD_ENABLE_DEBUG_LOG:=1 \
+                         BUILD_ENABLE_PROFILE:=1 \
+                         BUILD_ENABLE_MEMORY_CONTEXT:=1 \
+                         BUILD_ENABLE_MEMORY_TRACKER:=1 \
+                         BUILD_ENABLE_MEMORY_GUARD:=1 \
+                         BUILD_ENABLE_STATIC_HASH_DEBUG:=1 \
+                         BUILD_MONOLITHIC:=0
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

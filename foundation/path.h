@@ -253,6 +253,8 @@ if error (invalid path). If the final path does not fit in the buffer capacity, 
 possible part of the cleaned path will be produced. Returned path is always zero terminated
 except if capacity is zero.
 \param path Path
+\param length Length of path
+\param capacity Capacity of path buffer
 \return Absolute path, empty string if error */
 FOUNDATION_API string_t
 path_absolute(char* path, size_t length, size_t capacity);
@@ -262,11 +264,12 @@ if the path is relative, and cleaning out ".." and "." directories. Returns empt
 if error (invalid path). The final path is stored in a newly allocated buffer large enough
 to the cleaned path. Returned path is always zero terminated.
 \param path Path
+\param length Length of path
 \return Absolute path, empty string if error */
 FOUNDATION_API string_t
 path_allocate_absolute(const char* path, size_t length);
 
-/* Clean up path in a best effort way by replacing windows backslash with slash and cleaning
+/*! Clean up path in a best effort way by replacing windows backslash with slash and cleaning
 up multiple concurrent slashes. Any slash characters at end of path will be removed as well
 (except if resulting path is "/"). This method recognizes network protocol separator "://"
 and windows drive designations. Any colon characters appearing after the first path separator

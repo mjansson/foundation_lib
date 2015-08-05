@@ -129,7 +129,8 @@ and "0" mapping to false and all other values mapping to true) and corresponding
 and real values (using string_to_int and string_to_real)
 \param section  Section
 \param key      Key
-\param value    New string value */
+\param value    New string value
+\param length   Length of new string value */
 FOUNDATION_API void
 config_set_string(hash_t section, hash_t key, const char* value, size_t length);
 
@@ -140,7 +141,8 @@ Does not allocate memory but will rather store the constant string pointer, and
 requires the pointer to be valid as long as the config value is stored.
 \param section  Section
 \param key      Key
-\param value    New constant string value */
+\param value    New constant string value
+\param length   Length of new string value */
 FOUNDATION_API void
 config_set_string_constant(hash_t section, hash_t key, const char* value, size_t length);
 
@@ -191,6 +193,7 @@ For MacOSX development, the user app directory
 <li>9) /Users/[username]/.[config_dir]
 </ul>
 \param name      File/stream name (will be opened with stream_open)
+\param length    Length of stream name
 \param section   Optional filter, which will only load the section matching
                  the given filter_section. Set to 0 to load all sections
 \param built_in  Flag indicating that only built-in config files should be loaded
@@ -211,9 +214,10 @@ config_parse(stream_t* stream, hash_t section, bool overwrite);
 /*! Write config declarations to a stream, optionally filtering on a specific section
 \param stream    Stream to write to
 \param section   Optional filter, which will only write section matching the
-                 given filter_section. Set to 0 to write all sections */
+                 given filter_section. Set to 0 to write all sections
+\param map       Function mapping hash values to strings */
 FOUNDATION_API void
-config_write(stream_t* stream, hash_t section, string_const_t (*string_mapper)(hash_t));
+config_write(stream_t* stream, hash_t section, string_const_t (*map)(hash_t));
 
 /*! Parse config declarations given on command line
 \param cmdline   Command line array

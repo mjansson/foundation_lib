@@ -23,7 +23,7 @@ Base abstraction of I/O streams. */
 /*! Open stream with the given path, which may include a protocol specifier.
 \param path Path
 \param length Length of path
-\param mode Open mode (read, write, ...), see #stream_mode_t
+\param mode Open mode (read, write, ...), see STREAM_[*] mode/flags
 \return New stream, null if error or invalid path/mode */
 FOUNDATION_API stream_t*
 stream_open(const char* path, size_t length, unsigned int mode);
@@ -398,6 +398,7 @@ stream_open_stdin(void);
 
 /*! Set function to handle opening streams for the given protocol
 \param protocol Protocol
+\param length Length of protocol
 \param fn Handler function */
 FOUNDATION_API void
 stream_set_protocol_handler(const char* protocol, size_t length, stream_open_fn fn);

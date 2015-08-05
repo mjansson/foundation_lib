@@ -396,7 +396,7 @@ for example md5_allocate and md5_deallocate in md5.h. The corresponding calls fo
 Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
 for example #thread_create, #thread_ref and #thread_destroy in thread.h. Implicitly allocated objects does not need to be initialized/finalized.
 
-Reference counted data types have a predefined maximum number of concurrently allocated objects defined in build.h named BUILD_SIZE_\<module>_MAP, for example #BUILD_SIZE_THREAD_MAP for threads.
+Reference counted data types have a predefined maximum number of concurrently allocated objects defined in the #foundation_config_t object passed to foundation_initialize, for example #foundation_config_t::thread_max for threads.
 
 
 \page features_page Details on specific submodules and features provided by the library
@@ -404,9 +404,11 @@ Reference counted data types have a predefined maximum number of concurrently al
 \section build_config Build configuration
 Static build configuration is done in the build.h header by defining a set of preprocessor directives. All values can be set on compilation command line since the build declarations are checked for pre-existing definitions. It is, however, recommended to use the build header file to ensure the library and projects using the library have the same set of definitions.
 
-Most important is the build type definition
+Most important is the build type definition, #BUILD_DEBUG, #BUILD_RELEASE, #BUILD_PROFILE and #BUILD_DEPLOY. For a full list and documentation of the build configuration preprocessor definitions, check the documentation for the build.h header
 
-For a full list and documentation of the build configuration preprocessor definitions, check the documentation for the build.h header
+
+\section runtime_config Runtime configuration
+Most of the library configuration is done in runtime with a #foundation_config_t structure passed to #foundation_initialize. This config block controls sizes and limits of various subsystems and can be used to tweak the memory and resource usage of the library.
 
 
 \section memory_management Memory management
@@ -414,9 +416,9 @@ Memory management is handled through a memory system implementation, which is ba
 
 Memory allocations will belong to a memory context, which is usually a hash value of a module name (for example, #HASH_STREAM). This allows the memory tracker to place allocations in buckets to see how much memory each part/module of the software allocates at any given time. Memory context can be set explicitly with an argument to #memory_allocate or implicitly through the thread local memory context stack controlled with #memory_context_push and #memory_context_pop. The thread local context is used if you pass 0 as context to #memory_allocate and in #memory_reallocate when passed a null pointer.
 
-Memory allocations can also give hint flags of the usage of the requested memory buffer. This allows the implementation to make optimizations and extra requirements during allocation. The memory hint flags are documented in #memory_hint_t with the most common flags being #MEMORY_TEMPORARY and #MEMORY_ZERO_INITIALIZED for temporary (scope level) allocations and initialization to zero, respectively.
+Memory allocations can also give hint flags of the usage of the requested memory buffer. This allows the implementation to make optimizations and extra requirements during allocation. The memory hint flags are documented in MEMORY_[*] defines with the most common flags being #MEMORY_TEMPORARY and #MEMORY_ZERO_INITIALIZED for temporary (scope level) allocations and initialization to zero, respectively.
 
-The memory management module also provides memory tracking if compiled with #BUILD_ENABLE_MEMORY_TRACKER set to 1, which tracks all allocations and deallocations and enable memory leak detection. A memory tracker is declared with the #memory_tracker_t struct, and the library provides a default local implementation in #memory_tracker_local. The maximum number of concurrent allocations the local memory tracker can keep track of is set with the #BUILD_SIZE_MEMORY_TRACKER_MAX_ALLOCATIONS preprocessor directive in build.h header. A networked memory tracker will be provided in a network library, and further entry points to query the tracker during runtime will be added in a later release. Right now the tracker only prints detected leaks on application termination.
+The memory management module also provides memory tracking if compiled with #BUILD_ENABLE_MEMORY_TRACKER set to 1, which tracks all allocations and deallocations and enable memory leak detection. A memory tracker is declared with the #memory_tracker_t struct, and the library provides a default local implementation in #memory_tracker_local. The maximum number of concurrent allocations the local memory tracker can keep track of is set with the #foundation_config_t::memory_tracker_max config directive passed to #foundation_initialize. A networked memory tracker will be provided in a network library, and further entry points to query the tracker during runtime will be added in a later release. Right now the tracker only prints detected leaks on application termination.
 
 Finally there is a memory overwrite/underwrite guard functionality built in and enabled with the #BUILD_ENABLE_MEMORY_GUARD build.h preprocessor directive. This will incur a slight memory overhead on each allocation, adding a dead zone before and after each allocated memory block for detecting invalid memory writes outside the allocated area. This functionality is built on top of the memory system implementation which does not need to provide a guard implementation internally.
 
@@ -513,7 +515,7 @@ The stream traits are inorder, reliable, sequential, binary, and swapped. The tr
 <li><b>swap:</b> Multi-byte data byte order will be swapped before write or after read operations (only for binary streams).
 </ul>
 
-Streams are opened with a specific open mode, see #stream_mode_t. Some streams will enforce specific modes (like read-only or write-only). Operations unsupported by the current mode will be silently ignored (like reading from a write-only mode stream). If the requested mode is unavailable for a given stream implementation or trait set it will be silently ignored.
+Streams are opened with a specific open mode, see STREAM_[*] mode/flag definitions with #STREAM_IN and #STREAM_OUT being the main I/O modes. Some streams will enforce specific modes (like read-only or write-only). Operations unsupported by the current mode will be silently ignored (like reading from a write-only mode stream). If the requested mode is unavailable for a given stream implementation or trait set it will be silently ignored.
 
 \subsection stream_special Special streams
 The standard library stdout, stderr and stdin files are wrapped in special streams available through the #stream_open_stdout, #stream_open_stderr and #stream_open_stdin functions. Stdout and stderr are write-only, while stdin is read-only.
@@ -582,9 +584,9 @@ Substring capturing is optional, and if performed it will capture start pointers
 
 \section template_app Template application
 
-\subsection template_initialization Initialization
+\subsection template_initialize Initialization
 
-\subsection template_shutdown Shutdown
+\subsection template_finalize Finalization
 
 \subsection template_environment Environment
 

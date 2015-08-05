@@ -412,7 +412,7 @@ typedef union {
 	float32_t fval;
 } float32_cast_t;
 
-/*! \Used to bit manipulate 64-bit floating point values in a alias safe way */
+/*! Used to bit manipulate 64-bit floating point values in a alias safe way */
 typedef union {
 	/*! Signed integer representation */
 	int64_t ival;
@@ -1303,7 +1303,7 @@ FOUNDATION_ALIGNED_STRUCT(stream_t, 8) {
 	Stream byte order indicator (0 = little endian, 1 = big endian)
 
 	\var stream_t::mode
-	Stream open mode (see #stream_mode_t)
+	Stream open mode (see STREAM_* modes/flags)
 
 	\var stream_t::path
 	Stream path

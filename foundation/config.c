@@ -820,7 +820,7 @@ config_parse_commandline(const string_const_t* cmdline, size_t num) {
 
 
 void
-config_write(stream_t* stream, hash_t filter_section, string_const_t (*string_mapper)(hash_t)) {
+config_write(stream_t* stream, hash_t filter_section, string_const_t (*map)(hash_t)) {
 	config_section_t* csection;
 	config_key_t* bucket;
 	size_t key, ib, bsize;
@@ -830,7 +830,7 @@ config_write(stream_t* stream, hash_t filter_section, string_const_t (*string_ma
 	//TODO: If random access stream, update section if available, else append at end of stream
 	//if( stream_is_sequential( stream ) )
 	{
-		string_const_t section = string_mapper(filter_section);
+		string_const_t section = map(filter_section);
 		stream_write_format(stream, STRING_CONST("[%*s]"), STRING_FORMAT(section));
 		stream_write_endl(stream);
 
@@ -838,7 +838,7 @@ config_write(stream_t* stream, hash_t filter_section, string_const_t (*string_ma
 		if (csection) for (key = 0; key < CONFIG_KEY_BUCKETS; ++key) {
 				bucket = csection->key[ key ];
 				if (bucket) for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-						string_const_t bucketstr = string_mapper(bucket[ib].name);
+						string_const_t bucketstr = map(bucket[ib].name);
 						stream_write_format(stream, STRING_CONST("\t%*s\t\t\t\t= "), STRING_FORMAT(bucketstr));
 						switch (bucket[ib].type) {
 						case CONFIGVALUE_BOOL:

@@ -23,7 +23,7 @@ initialize-digest-finalize call sequences:
 
 <pre>md5_initialize()
 md5_digest()
-md5_digest_raw()
+md5_digest()
 ... //More digest operations
 md5_digest_finalize()
 md5_get_digest()
@@ -45,7 +45,7 @@ FOUNDATION_API void
 md5_deallocate(md5_t* digest);
 
 /*! Initialize MD5 block. Must be called before each block of digest operations
-with #md5_digest and #md5_digest_raw
+with #md5_digest
 \param digest MD5 block */
 FOUNDATION_API void
 md5_initialize(md5_t* digest);
@@ -64,7 +64,7 @@ md5_finalize(md5_t* digest);
 FOUNDATION_API md5_t*
 md5_digest(md5_t* digest, const void* buffer, size_t size);
 
-/*! Finalize digest. Must be called between digesting data with #md5_digest/#md5_digest_raw
+/*! Finalize digest. Must be called between digesting data with #md5_digest
 and getting the final message digest with #md5_get_digest/#md5_get_digest_raw. If a new
 digest sequence is required the block must be re-initialized with a call to #md5_initialize.
 \param digest MD5 block */

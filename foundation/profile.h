@@ -26,7 +26,7 @@ otherwise all profiling function calls will evaluate to void and not generate an
 /*! Initialize profiling module.
 
 The string passed to the function must be constant over the execution of the application
-(until #profile_shutdown is called) and should identify the application/build/machine or
+(until #profile_finalize is called) and should identify the application/build/machine or
 whatever you want it to identify.
 
 Memory buffer should be large enough to hold data for ~100ms to avoid excessive calls to

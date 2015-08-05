@@ -64,7 +64,7 @@ the standard first argument of the executable path, it will be automatically add
 FOUNDATION_API void
 process_set_arguments(process_t* proc, const string_const_t* args, size_t num);
 
-/*! Set execution flags, see #process_flag_t for a list of available flags.
+/*! Set execution flags, see PROCESS_[*] flag definitions for a list of available flags.
 \param proc Process object
 \param flags Flags */
 FOUNDATION_API void

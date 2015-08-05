@@ -323,7 +323,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_real_eq(real rval, real lval, int ulps);
 
 /*! Compare two floats with epsilon tolerance expressed as number of adjacent float values.
-This method (unlike #math_realeq) is not sign safe, comparing -x to x for small values
+This method (unlike #math_real_eq) is not sign safe, comparing -x to x for small values
 of x will yield incorrect results. Most notably will -0 and +0 not be equal.
 \param rval First float
 \param lval Second float

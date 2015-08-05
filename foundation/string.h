@@ -142,7 +142,7 @@ string_length(const char* str);
 
 /*! Get number of unicode glyphs stored in utf-8 string
 \param str String in utf-8 encoding
-\parma length Length of string
+\param length Length of string
 \return Number of unicode glyphs in string */
 FOUNDATION_API size_t
 string_glyphs(const char* str, size_t length);
@@ -161,7 +161,8 @@ pointers in both pointer arguments.
 \param dst Destination buffer
 \param capacity Capacity of destination buffer
 \param src Source string
-\param length Length of source string */
+\param length Length of source string
+\return Destination string in given buffer */
 FOUNDATION_API string_t
 string_copy(char* dst, size_t capacity, const char* src, size_t length);
 
@@ -913,7 +914,8 @@ string_to_uuid(const char* str, size_t length);
 FOUNDATION_API version_t
 string_to_version(const char* str, size_t length);
 
-/*! Thread local buffer for string operations and conversions */
+/*! Thread local buffer for string operations and conversions.
+\return String thread local buffer with size indicating capacity */
 FOUNDATION_API string_t
 string_thread_buffer(void);
 

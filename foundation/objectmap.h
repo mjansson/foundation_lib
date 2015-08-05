@@ -105,8 +105,8 @@ objectmap_lookup_ref(const objectmap_t* map, object_t id);
 
 /*! Map object handle to object pointer and decrease ref count. If the object reference count
 reaches zero the object is deallocated by a call to the deallocation function. This function
-is safe in the sense that it will work correctly across threads also using the #object_lookup_ref
-and #object_lookup_unref functions.
+is safe in the sense that it will work correctly across threads also using the
+#objectmap_lookup_ref and #objectmap_lookup_unref functions.
 \param map Object map
 \param id Object handle
 \param deallocate Deallocation function
