@@ -39,7 +39,12 @@ test_process_config(void) {
 
 static int
 test_process_initialize(void) {
-	return 0;
+	const string_const_t* cmdline = environment_command_line();
+	if (string_array_find(cmdline, array_size(cmdline), STRING_CONST("wait for kill")) < 0)
+		return 0;
+
+	while (true)
+		thread_sleep(100);
 }
 
 static void
@@ -177,9 +182,43 @@ DECLARE_TEST(process, spawn) {
 	return 0;
 }
 
+DECLARE_TEST(process, kill) {
+	process_t* proc;
+	string_const_t args[] = { string_const(STRING_CONST("wait for kill")) };
+	int ret;
+
+	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID) ||
+	    (system_platform() == PLATFORM_PNACL))
+		return 0;
+
+	proc = process_allocate();
+
+	process_set_working_directory(proc, STRING_ARGS(environment_current_working_directory()));
+	process_set_executable_path(proc, STRING_ARGS(environment_executable_path()));
+	process_set_arguments(proc, args, sizeof(args) / sizeof(args[0]));
+	process_set_flags(proc, PROCESS_DETACHED);
+
+	ret = process_spawn(proc);
+	EXPECT_INTEQ(ret, PROCESS_STILL_ACTIVE);
+
+	thread_sleep(500);
+
+	EXPECT_TRUE(process_kill(proc));
+
+	thread_sleep(500);
+
+	ret = process_wait(proc);
+	EXPECT_EQ_MSGFORMAT(ret, PROCESS_TERMINATED_SIGNAL, "ret: 0x%x", ret);
+
+	process_deallocate(proc);
+
+	return 0;
+}
+
 static void
 test_process_declare(void) {
 	ADD_TEST(process, spawn);
+	ADD_TEST(process, kill);
 }
 
 static test_suite_t test_process_suite = {

@@ -112,6 +112,12 @@ process_stdin(process_t* proc);
 FOUNDATION_API int
 process_wait(process_t* proc);
 
+/*! Kill child process
+\param proc Process
+\return true if process killed, false if not */
+FOUNDATION_API bool
+process_kill(process_t* proc);
+
 /*! Get current process pending exit code.
 \return Pending process exit code */
 FOUNDATION_API int

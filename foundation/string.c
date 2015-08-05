@@ -773,11 +773,29 @@ string_equal(const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_len
 }
 
 bool
+string_equal_nocase(const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_length) {
+#if FOUNDATION_PLATFORM_WINDOWS
+#  define strncasecmp _strnicmp
+#endif
+	if (rhs && lhs)
+		return (rhs_length == lhs_length) && (!rhs_length || (strncasecmp(rhs, lhs, rhs_length) == 0));
+	return (!rhs_length && !lhs_length);
+}
+
+bool
 string_equal_substr(const char* rhs, size_t rhs_length, size_t rhs_offset, const char* lhs,
                     size_t lhs_length, size_t lhs_offset) {
 	size_t rhs_remain = (rhs_offset < rhs_length) ? (rhs_length - rhs_offset) : 0;
 	size_t lhs_remain = (lhs_offset < lhs_length) ? (lhs_length - lhs_offset) : 0;
 	return string_equal(rhs + rhs_offset, rhs_remain, lhs + lhs_offset, lhs_remain);
+}
+
+bool
+string_equal_substr_nocase(const char* rhs, size_t rhs_length, size_t rhs_offset, const char* lhs,
+                    size_t lhs_length, size_t lhs_offset) {
+	size_t rhs_remain = (rhs_offset < rhs_length) ? (rhs_length - rhs_offset) : 0;
+	size_t lhs_remain = (lhs_offset < lhs_length) ? (lhs_length - lhs_offset) : 0;
+	return string_equal_nocase(rhs + rhs_offset, rhs_remain, lhs + lhs_offset, lhs_remain);
 }
 
 bool

@@ -374,6 +374,28 @@ DECLARE_TEST(string, queries) {
 		string_deallocate(str7.str);
 	}
 	{
+		string_const_t nullstr = string_null();
+		EXPECT_TRUE(string_equal(STRING_CONST("foo"), STRING_CONST("foo")));
+		EXPECT_TRUE(string_equal(STRING_CONST("foo bar foo bar foo bar foo bar foo bar foo bar"),
+		                         STRING_CONST("foo bar foo bar foo bar foo bar foo bar foo bar")));
+		EXPECT_FALSE(string_equal(STRING_CONST("foo"), STRING_CONST("Foo")));
+		EXPECT_FALSE(string_equal(STRING_CONST("bfoo"), STRING_CONST("foo")));
+		EXPECT_TRUE(string_equal(STRING_ARGS(nullstr), STRING_CONST("")));
+		EXPECT_TRUE(string_equal(STRING_CONST(""), STRING_ARGS(nullstr)));
+		EXPECT_FALSE(string_equal(STRING_CONST(" string"), STRING_ARGS(nullstr)));
+		EXPECT_FALSE(string_equal(STRING_ARGS(nullstr), STRING_CONST("0")));
+
+		EXPECT_TRUE(string_equal_nocase(STRING_CONST("foo"), STRING_CONST("Foo")));
+		EXPECT_TRUE(string_equal_nocase(STRING_CONST("foo bar foo Bar foo bar foo bar foo bar foo baR"),
+		                                STRING_CONST("Foo Bar foo bar foo bar foo bar FOO bar foo bar")));
+		EXPECT_FALSE(string_equal_nocase(STRING_CONST("foo"), STRING_CONST("Foob")));
+		EXPECT_FALSE(string_equal_nocase(STRING_CONST("bfoo"), STRING_CONST("foo")));
+		EXPECT_TRUE(string_equal_nocase(STRING_ARGS(nullstr), STRING_CONST("")));
+		EXPECT_TRUE(string_equal_nocase(STRING_CONST(""), STRING_ARGS(nullstr)));
+		EXPECT_FALSE(string_equal_nocase(STRING_CONST(" String"), STRING_ARGS(nullstr)));
+		EXPECT_FALSE(string_equal_nocase(STRING_ARGS(nullstr), STRING_CONST("0")));
+	}
+	{
 		string_const_t emptystr = string_null();
 		string_const_t shortstr = string_const(STRING_CONST("short string"));
 		string_const_t longstr  = string_const(

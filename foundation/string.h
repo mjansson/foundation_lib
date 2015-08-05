@@ -501,6 +501,15 @@ string_ends_with(const char* str, size_t length, const char* suffix, size_t suff
 FOUNDATION_API bool
 string_equal(const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length);
 
+/*! Query if strings are equal (case insensitive)
+\param lhs First string
+\param lhs_length Length of first string
+\param rhs Second string
+\param rhs_length Length of second string
+\return True if equal, false if not */
+FOUNDATION_API bool
+string_equal_nocase(const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_length);
+
 /*! Query if substrings are equal (case sensitive)
 \param lhs First string
 \param lhs_length Length of first string
@@ -511,6 +520,18 @@ string_equal(const char* lhs, size_t lhs_length, const char* rhs, size_t rhs_len
 \return True if substrings are equal in [offset,length) range, false if not */
 FOUNDATION_API bool
 string_equal_substr(const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs,
+                    size_t rhs_length, size_t rhs_offset);
+
+/*! Query if substrings are equal (case insensitive)
+\param lhs First string
+\param lhs_length Length of first string
+\param lhs_offset Offset in first string
+\param rhs Second string
+\param rhs_length Length of second string
+\param rhs_offset Offset in second string
+\return True if substrings are equal in [offset,length) range, false if not */
+FOUNDATION_API bool
+string_equal_substr_nocase(const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs,
                     size_t rhs_length, size_t rhs_offset);
 
 /*! Check if a string matches a given pattern using ? and * wildcards. For regular expression
