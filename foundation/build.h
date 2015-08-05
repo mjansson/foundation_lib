@@ -238,7 +238,7 @@ Default value is little endian, matching most supported architectures. */
 #define BUILD_MAX_PATHLEN                     512
 
 
-#if FOUNDATION_PLATFORM_DOXYGEN
+#if defined(FOUNDATION_PLATFORM_DOXYGEN) && FOUNDATION_PLATFORM_DOXYGEN
 
 #define BUILD_DEBUG
 #define BUILD_RELEASE

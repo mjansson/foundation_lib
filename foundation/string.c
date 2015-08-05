@@ -336,7 +336,7 @@ string_append_fragment(char* str, size_t length, size_t capacity, const char* su
 
 string_t
 string_append(char* str, size_t length, size_t capacity, const char* suffix, size_t suffix_length) {
-	return string_append_varg(str, length, capacity, suffix, suffix_length, nullptr);
+	return string_append_fragment(str, length, capacity, suffix, suffix_length);
 }
 
 string_t

@@ -1317,9 +1317,9 @@ _fs_monitor(object_t thread, void* monitorptr) {
 					goto skipwatch;
 				}
 
-				//log_debugf( 0, "inotify event: %d %x %x %u bytes: %s in path %s", event->wd, event->mask, event->cookie, event->len, event->name, curwatch->path );
 				string_t curpath = string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(curwatch->path));
-				curpath = string_append(STRING_ARGS(curpath), sizeof(pathbuffer), event->name, event->len);
+				curpath = string_append(STRING_ARGS(curpath), sizeof(pathbuffer),
+				                        event->name, string_length(event->name));
 
 				bool is_dir = ((event->mask & IN_ISDIR) != 0);
 
