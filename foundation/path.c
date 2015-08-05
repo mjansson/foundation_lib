@@ -413,7 +413,7 @@ path_allocate_concat_vlist(const char* first, size_t first_length, va_list list)
 string_t
 path_append(char* base, size_t base_length, size_t base_capacity, const char* tail,
             size_t tail_length) {
-	return path_append_varg(base, base_length, base_capacity, tail, tail_length, nullptr);
+	return path_append_fragment(base, base_length, base_capacity, tail, tail_length);
 }
 
 string_t
@@ -454,7 +454,7 @@ path_append_vlist(char* base, size_t base_length, size_t base_capacity, const ch
 string_t
 path_prepend(char* tail, size_t tail_length, size_t tail_capacity, const char* base,
              size_t base_length) {
-	return path_prepend_varg(tail, tail_length, tail_capacity, base, base_length, nullptr);
+	return path_prepend_fragment(tail, tail_length, tail_capacity, base, base_length);
 }
 
 string_t

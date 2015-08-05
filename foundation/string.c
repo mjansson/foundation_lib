@@ -402,7 +402,7 @@ string_prepend_fragment(char* str, size_t length, size_t capacity, const char* p
 string_t
 string_prepend(char* str, size_t length, size_t capacity, const char* prefix,
                size_t prefix_length) {
-	return string_prepend_varg(str, length, capacity, prefix, prefix_length, nullptr);
+	return string_prepend_fragment(str, length, capacity, prefix, prefix_length);
 }
 
 string_t
