@@ -772,6 +772,11 @@ DECLARE_TEST(string, append) {
 	EXPECT_STRINGEQ(val, shortstr);
 	string_deallocate(val.str);
 
+	val = string_copy(buffer, sizeof(buffer), nullptr, 32);
+	EXPECT_EQ(val.str, buffer);
+	EXPECT_EQ(val.length, 0);
+	EXPECT_STRINGEQ(val, string_empty());
+
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_append(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(emptystr));
 	EXPECT_STRINGEQ(val, shortstr);
@@ -1086,6 +1091,34 @@ DECLARE_TEST(string, utility) {
 			replacestr = string_replace(STRING_ARGS(replacestr), sizeof(buffer), STRING_CONST("rep"),
 			                            STRING_CONST("re"), true);
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("re")));
+
+			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing replace"));
+			replacestr = string_replace(STRING_ARGS(replacestr), 7, STRING_CONST("ting"),
+			                            STRING_CONST("1234"), true);
+			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes1234")));
+
+			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing replace"));
+			replacestr = string_replace(STRING_ARGS(replacestr), 7, STRING_CONST("ting"),
+			                            STRING_CONST("12345"), true);
+			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes1234")));
+			EXPECT_EQ(replacestr.str[7], ' ');
+
+			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing repting"));
+			replacestr = string_replace(STRING_ARGS(replacestr), sizeof(buffer), STRING_CONST("ting"),
+			                            STRING_CONST("123456"), true);
+			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes123456 rep123456")));
+
+			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing repting"));
+			replacestr = string_replace(STRING_ARGS(replacestr), replacestr.length + 1, STRING_CONST("ting"),
+			                            STRING_CONST("123456"), true);
+			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes123456 repti")));
+			EXPECT_EQ(replacestr.str[replacestr.length], 0);
+
+			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing repting"));
+			replacestr = string_replace(STRING_ARGS(replacestr), replacestr.length + 1, STRING_CONST(" "),
+			                            STRING_CONST("12345678"), true);
+			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("testing12345678")));
+			EXPECT_EQ(replacestr.str[replacestr.length], 0);
 		}
 		{
 			string_t stripstr = string_clone(STRING_CONST("   testing strip :   "));

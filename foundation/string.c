@@ -246,9 +246,9 @@ string_replace(char* str, size_t length, size_t capacity, const char* key, size_
 	size_t pos, oldlength, lastpos, replaced, needsize;
 	ssize_t lendiff;
 
-	oldlength = length;
 	if (length > capacity)
 		length = capacity;
+	oldlength = length;
 
 	if (!length || !key_length || string_equal(key, key_length, newkey, newkey_length))
 		return (string_t){ str, length };
@@ -290,6 +290,11 @@ string_replace(char* str, size_t length, size_t capacity, const char* key, size_
 						memmove(str + dest_clamp, str + pos + key_length, size_clamp);
 					memcpy(str + pos, newkey, newkey_length);
 					length = capacity - 1;
+				}
+				else {
+					size_t size_clamp = capacity - pos;
+					if (size_clamp > 0)
+						memcpy(str + pos, newkey, size_clamp);
 				}
 			}
 			else {
