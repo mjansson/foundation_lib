@@ -46,39 +46,45 @@ static void
 test_string_finalize(void) {
 }
 
-DECLARE_TEST(string, initialize) {
+DECLARE_TEST(string, allocate) {
 	{
 		string_t nullstr1 = string_allocate(0, 0);
 		string_t nullstr2 = string_allocate(1, 0);
 		string_t nullstr3 = string_allocate(0, 1);
 		string_t nullstr4 = string_allocate(1, 1);
 		string_t nullstr5 = string_allocate(10, 32);
+		string_t nullstr6 = string_allocate(32, 10);
 
 		EXPECT_EQ(0, nullstr1.length);
 		EXPECT_EQ(0, nullstr2.length);
 		EXPECT_EQ(0, nullstr3.length);
 		EXPECT_EQ(0, nullstr4.length);
 		EXPECT_EQ(10, nullstr5.length);
+		EXPECT_EQ(9, nullstr6.length);
 		EXPECT_EQ(0, nullstr1.str);
 		EXPECT_EQ(0, nullstr2.str);
 		EXPECT_EQ(0, strcmp(nullstr3.str, ""));
 		EXPECT_EQ(0, strcmp(nullstr4.str, ""));
 		EXPECT_EQ(0, strcmp(nullstr5.str, ""));
+		EXPECT_EQ(0, strcmp(nullstr6.str, ""));
 
 		string_deallocate(nullstr1.str);
 		string_deallocate(nullstr2.str);
 		string_deallocate(nullstr3.str);
 		string_deallocate(nullstr4.str);
 		string_deallocate(nullstr5.str);
+		string_deallocate(nullstr6.str);
 	}
 	{
 		char teststr1[] = "test";
 		char teststr2[] = "testing long string with more than 16 characters";
 		char teststr3[] =
-		  "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x09";
+		  "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90"
+		  "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90"
+		  "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x09";
 		string_const_t substr;
 		string_t str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14,
-		         str15, str16;
+		         str15, str16, str17;
 
 		str1 = string_clone(STRING_CONST(teststr1));
 		substr = string_substr(STRING_CONST(teststr1), 0, 3); str2 = string_clone(STRING_ARGS(substr));
@@ -98,12 +104,13 @@ DECLARE_TEST(string, initialize) {
 		str11 = string_clone(STRING_ARGS(substr));
 
 		str12 = string_clone(STRING_CONST(teststr3));
-		substr = string_substr(STRING_CONST(teststr3), 0, 3); str13 = string_clone(STRING_ARGS(substr));
-		substr = string_substr(STRING_CONST(teststr3), 0, 20); str14 = string_clone(STRING_ARGS(substr));
+		substr = string_substr(STRING_CONST(teststr3), 0, 3); str13 = string_clone_string(substr);
+		substr = string_substr(STRING_CONST(teststr3), 0, 20); str14 = string_clone_string(substr);
 		substr = string_substr(STRING_CONST(teststr3), 0, STRING_NPOS);
 		str15 = string_clone(STRING_ARGS(substr));
 		substr = string_substr(STRING_CONST(teststr3), STRING_NPOS, STRING_NPOS);
 		str16 = string_clone(STRING_ARGS(substr));
+		str17 = string_clone(nullptr, 64);
 
 		EXPECT_EQ(0, strcmp(str1.str, teststr1));
 		EXPECT_EQ(0, strcmp(str2.str, "tes"));
@@ -124,6 +131,7 @@ DECLARE_TEST(string, initialize) {
 		                    "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02"));
 		EXPECT_EQ(0, strcmp(str15.str, teststr3));
 		EXPECT_EQ(0, strcmp(str16.str, ""));
+		EXPECT_EQ(64, str17.length);
 
 		string_deallocate(str1.str);
 		string_deallocate(str2.str);
@@ -141,6 +149,26 @@ DECLARE_TEST(string, initialize) {
 		string_deallocate(str14.str);
 		string_deallocate(str15.str);
 		string_deallocate(str16.str);
+		string_deallocate(str17.str);
+	}
+	{
+		char conststr[] = "foobar barfoo foobar barfoo foobar barfoo foobar barfoo foobar barfoo foobar barfoo";
+		EXPECT_EQ(nullptr, string_null().str);
+		EXPECT_EQ(0, string_null().length);
+
+		EXPECT_NE(nullptr, string_empty().str);
+		EXPECT_EQ(0, string_empty().str[0]);
+		EXPECT_EQ(0, string_empty().length);
+
+		EXPECT_EQ(conststr, string_const(conststr, sizeof(conststr)).str);
+		EXPECT_EQ(sizeof(conststr), string_const(conststr, sizeof(conststr)).length);
+		EXPECT_EQ(nullptr, string_const(nullptr, sizeof(conststr)).str);
+		EXPECT_EQ(0, string_const(conststr, 0).length);
+
+		EXPECT_EQ(conststr, string_to_const((string_t){conststr, sizeof(conststr)}).str);
+		EXPECT_EQ(sizeof(conststr), string_to_const((string_t){conststr, sizeof(conststr)}).length);
+		EXPECT_EQ(nullptr, string_to_const((string_t){nullptr, sizeof(conststr)}).str);
+		EXPECT_EQ(0, string_to_const((string_t){conststr, 0}).length);
 	}
 	{
 		wchar_t teststr1[] = L"test";
@@ -303,6 +331,40 @@ DECLARE_TEST(string, initialize) {
 }
 
 DECLARE_TEST(string, queries) {
+	{
+		EXPECT_EQ(string_length(nullptr), 0);
+		EXPECT_EQ(string_length(""), 0);
+		EXPECT_EQ(string_length("test"), 4);
+		EXPECT_EQ(string_length("test\0test"), 4);
+		EXPECT_EQ(string_length("test test test test test test test test test test test test test test "), 70);
+	}
+	{
+		//"®᧼aҖ<BOM>𤭢b<INV>c" where <BOM> is byte order mark, will be treated as two glyphs,
+		//and <INV> is an utf-8 invalid 6-byte sequence (but we treat is as one glyph, like wtf-8)
+		unsigned char utfstr[] = { 0xC2, 0xAE, 0xE1, 0xA7, 0xBC, 0x61, 0xD2, 0x96, 0xFE, 0xFF,
+		                           0xF0, 0xA4, 0xAD, 0xA2, 0x62, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x63, 0 };
+		//Invalid, byte sequence is incomplete, but should be safe in string_glyphs calls
+		unsigned char invalidstr[] = { 0xFC, 0xA4, 0 };
+		unsigned char twostr[] = { 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0 };
+		unsigned char bomstr[] = { 0xFF, 0xFE, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0 };
+
+		EXPECT_EQ(string_glyphs(nullptr, 0), 0);
+		EXPECT_EQ(string_glyphs(nullptr, 32), 0);
+		EXPECT_EQ(string_glyphs("foobar", 0), 0);
+		EXPECT_EQ(string_glyphs("foobar", 4), 4);
+		EXPECT_INTEQ(string_glyphs((const char*)invalidstr, sizeof(invalidstr)-1), 1);
+		EXPECT_INTEQ(string_glyphs((const char*)twostr, sizeof(twostr)-1), 2);
+		EXPECT_INTEQ(string_glyphs((const char*)bomstr, sizeof(bomstr)-1), 4);
+		EXPECT_INTEQ(string_glyphs((const char*)utfstr, sizeof(utfstr)-1), 10);
+	}
+	{
+		EXPECT_EQ(string_hash(nullptr, 0), HASH_EMPTY_STRING);
+		EXPECT_EQ(string_hash(nullptr, 32), HASH_EMPTY_STRING);
+		EXPECT_EQ(string_hash("foobar", 0), HASH_EMPTY_STRING);
+		EXPECT_EQ(string_hash(STRING_CONST("")), HASH_EMPTY_STRING);
+		EXPECT_EQ(string_hash(STRING_CONST("foundation")), HASH_FOUNDATION);
+		EXPECT_EQ(string_hash("foundation string", 10), HASH_FOUNDATION);
+	}
 	{
 		char teststr[]  = "";
 		char teststr2[] = "test";
@@ -1152,29 +1214,163 @@ DECLARE_TEST(string, utility) {
 	return 0;
 }
 
+static string_t
+string_allocate_vformat_wrapper(const char* format, size_t length, ...)
+FOUNDATION_ATTRIBUTE4(format, printf, 1, 3);
+
+static string_t
+string_vformat_wrapper(char* buffer, size_t capacity, const char* format, size_t length, ...)
+FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
+
+static string_t
+string_allocate_vformat_wrapper(const char* format, size_t length, ...) {
+	va_list list;
+	string_t result;
+	va_start(list, length);
+	result = string_allocate_vformat(format, length, list);
+	va_end(list);
+	return result;
+}
+
+static string_t
+string_vformat_wrapper(char* buffer, size_t capacity, const char* format, size_t length, ...) {
+	va_list list;
+	string_t result;
+	va_start(list, length);
+	result = string_vformat(buffer, capacity, format, length, list);
+	va_end(list);
+	return result;
+}
+
+
 DECLARE_TEST(string, format) {
 	char buffer[256];
 	{
 		int64_t ival = -1;
 		uint64_t uval = 0x123456789abULL;
-		string_t teststr1 = string_allocate_format(STRING_CONST("%" PRId64), ival);
-		string_t teststr2 = string_allocate_format(STRING_CONST("0x%" PRIx64), ival);
-		string_t teststr3 = string_allocate_format(STRING_CONST("%016" PRIX64), uval);
+		const char longstr[] = "A really long string"
+		                       "to force reallocation of output buffer in format loop, which"
+		                       "should be length + 32 bytes by default... this is more!";
+		string_t teststr;
 
-		EXPECT_STREQ(STRING_ARGS(teststr1), STRING_CONST("-1"));
-		EXPECT_STREQ(STRING_ARGS(teststr2), STRING_CONST("0xffffffffffffffff"));
-		EXPECT_STREQ(STRING_ARGS(teststr3), STRING_CONST("00000123456789AB"));
+		teststr = string_allocate_format(STRING_CONST("%" PRId64), ival);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("-1"));
+		string_deallocate(teststr.str);
 
-		string_deallocate(teststr1.str);
-		string_deallocate(teststr2.str);
-		string_deallocate(teststr3.str);
+		teststr = string_allocate_format(STRING_CONST("0x%" PRIx64), ival);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("0xffffffffffffffff"));
+		string_deallocate(teststr.str);
+
+		teststr = string_allocate_format(STRING_CONST("%016" PRIX64), uval);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("00000123456789AB"));
+		string_deallocate(teststr.str);
+
+		teststr = string_allocate_format(nullptr, 32);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_allocate_format(STRING_CONST("%s"), longstr);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		string_deallocate(teststr.str);
+
+		teststr = string_allocate_format("%s", 0, longstr);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		//This test passed invalid data (string not zero terminated at the given length)
+		//Verify the function uses the entire string literal
+		teststr = string_allocate_format("%s", 1, longstr);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		string_deallocate(teststr.str);
+	}
+	{
+		string_t teststr;
+		teststr = string_format(nullptr, 32, STRING_CONST("foobar %d"), 10);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_format(buffer, 0, STRING_CONST("foobar %d"), 10);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_format(buffer, sizeof(buffer), nullptr, 32);
+		EXPECT_EQ(teststr.str, buffer);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_format(buffer, sizeof(buffer), "foobar %d", 0, 10);
+		EXPECT_EQ(teststr.str, buffer);
+		EXPECT_EQ(teststr.length, 0);
+
+		//This test passed invalid data (string not zero terminated at the given length)
+		//Verify the function uses the entire string literal
+		teststr = string_format(buffer, sizeof(buffer), "%d", 1, 10);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("10"));
 	}
 	{
 		int64_t ival = -1;
 		uint64_t uval = 0x123456789abULL;
-		string_t teststr1;
-		string_t teststr2;
-		string_t teststr3;
+		const char longstr[] = "A really long string"
+		                       "to force reallocation of output buffer in format loop, which"
+		                       "should be length + 32 bytes by default... this is more!";
+		string_t teststr;
+
+		teststr = string_allocate_vformat_wrapper(STRING_CONST("%" PRId64), ival);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("-1"));
+		string_deallocate(teststr.str);
+
+		teststr = string_allocate_vformat_wrapper(STRING_CONST("0x%" PRIx64), ival);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("0xffffffffffffffff"));
+		string_deallocate(teststr.str);
+
+		teststr = string_allocate_vformat_wrapper(STRING_CONST("%016" PRIX64), uval);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("00000123456789AB"));
+		string_deallocate(teststr.str);
+
+		teststr = string_allocate_vformat_wrapper(nullptr, 32);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_allocate_vformat_wrapper(STRING_CONST("%s"), longstr);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		string_deallocate(teststr.str);
+
+		teststr = string_allocate_vformat_wrapper("%s", 0, longstr);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		//This test passed invalid data (string not zero terminated at the given length)
+		//Verify the function uses the entire string literal
+		teststr = string_allocate_vformat_wrapper("%s", 1, longstr);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		string_deallocate(teststr.str);
+	}
+	{
+		string_t teststr;
+		teststr = string_vformat_wrapper(nullptr, 32, STRING_CONST("foobar %d"), 10);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_vformat_wrapper(buffer, 0, STRING_CONST("foobar %d"), 10);
+		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_vformat_wrapper(buffer, sizeof(buffer), nullptr, 32);
+		EXPECT_EQ(teststr.str, buffer);
+		EXPECT_EQ(teststr.length, 0);
+
+		teststr = string_vformat_wrapper(buffer, sizeof(buffer), "foobar %d", 0, 10);
+		EXPECT_EQ(teststr.str, buffer);
+		EXPECT_EQ(teststr.length, 0);
+
+		//This test passed invalid data (string not zero terminated at the given length)
+		//Verify the function uses the entire string literal
+		teststr = string_vformat_wrapper(buffer, sizeof(buffer), "%d", 1, 10);
+		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("10"));
+	}
+	{
+		int64_t ival = -1;
+		uint64_t uval = 0x123456789abULL;
+		string_t teststr1, teststr2, teststr3;
 
 		teststr1 = string_format(buffer, sizeof(buffer), STRING_CONST("%" PRId64), ival);
 		EXPECT_STREQ(STRING_ARGS(teststr1), STRING_CONST("-1"));
@@ -1235,7 +1431,7 @@ DECLARE_TEST(string, format) {
 
 static void
 test_string_declare(void) {
-	ADD_TEST(string, initialize);
+	ADD_TEST(string, allocate);
 	ADD_TEST(string, queries);
 	ADD_TEST(string, utility);
 	ADD_TEST(string, append);

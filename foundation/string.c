@@ -72,7 +72,7 @@ string_allocate_format(const char* format, size_t length, ...) {
 	char* buffer;
 	va_list list;
 
-	if (!format)
+	if (!format || !length)
 		return (string_t){ 0, 0 };
 
 	capacity = length + 32;
@@ -99,18 +99,18 @@ string_allocate_format(const char* format, size_t length, ...) {
 }
 
 string_t
-string_format(char* buffer, size_t capacity, const char* format, size_t format_length, ...) {
+string_format(char* buffer, size_t capacity, const char* format, size_t length, ...) {
 	va_list list;
 	ssize_t n;
 
 	if (!buffer || !capacity)
 		return (string_t){ 0, 0 };
-	if (!format) {
+	if (!format || !length) {
 		buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
 
-	va_start(list, format_length);
+	va_start(list, length);
 	n = vsnprintf(buffer, capacity, format, list);
 	va_end(list);
 
@@ -122,16 +122,16 @@ string_format(char* buffer, size_t capacity, const char* format, size_t format_l
 }
 
 string_t
-string_allocate_vformat(const char* format, size_t format_length, va_list list) {
+string_allocate_vformat(const char* format, size_t length, va_list list) {
 	ssize_t n;
 	size_t capacity, lastcapacity;
 	char* buffer;
 	va_list copy_list;
 
-	if (!format)
+	if (!format || !length)
 		return (string_t){ 0, 0 };
 
-	capacity = format_length + 32;
+	capacity = length + 32;
 	buffer = memory_allocate(HASH_STRING, capacity, 0, MEMORY_PERSISTENT);
 
 	while (true) {
@@ -155,14 +155,13 @@ string_allocate_vformat(const char* format, size_t format_length, va_list list) 
 }
 
 string_t
-string_vformat(char* buffer, size_t capacity, const char* format, size_t format_length, va_list list) {
+string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list list) {
 	ssize_t n;
 	va_list copy_list;
-	FOUNDATION_UNUSED(format_length);
 
 	if (!buffer || !capacity)
 		return (string_t){ 0, 0 };
-	if (!format) {
+	if (!format || !length) {
 		buffer[0] = 0;
 		return (string_t){ buffer, 0 };
 	}
@@ -992,7 +991,8 @@ string_array_find(const string_const_t* array, size_t haystack_size, const char*
 
 static size_t
 get_num_bytes_utf8(uint8_t lead) {
-	if ((lead & 0xFC) == 0xF8) return 5;
+	if ((lead & 0xFE) == 0xFC) return 6;
+	else if ((lead & 0xFC) == 0xF8) return 5;
 	else if ((lead & 0xF8) == 0xF0) return 4;
 	else if ((lead & 0xF0) == 0xE0) return 3;
 	else if ((lead & 0xE0) == 0xC0) return 2;
@@ -1062,11 +1062,12 @@ string_glyph(const char* str, size_t length, size_t offset, size_t* consumed) {
 
 size_t
 string_glyphs(const char* str, size_t length) {
-	size_t offset = 0;
+	const char* end = pointer_offset(str, length);
 	size_t num = 0;
-	while (offset < length) {
+	while (str && (str < end)) {
 		++num;
-		offset += get_num_bytes_utf8((uint8_t)str[offset]);
+		//Will catch invalid utf-8 sequences by overflowing str < end terminator
+		str += get_num_bytes_utf8((uint8_t)*str);
 	}
 	return num;
 }

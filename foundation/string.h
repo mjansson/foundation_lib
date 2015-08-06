@@ -93,45 +93,53 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_to_const(string_t str);
 
 /*! Allocate a new string from a format specifier and variable data, printf style.
+The format specifier must be a string literal of specified length, zero terminated.
 \param format Format specifier
-\param format_length Length of format specifier
+\param length Length of format specifier
 \return Formatted string in a newly allocate memory buffer, zero terminated */
 FOUNDATION_API string_t
-string_allocate_format(const char* format, size_t format_length, ...)
+string_allocate_format(const char* format, size_t length, ...)
 FOUNDATION_ATTRIBUTE4(format, printf, 1, 3);
 
 /*! In-memory string formatting from a format specifier and variable data, printf style.
+The format specifier must be a string literal of specified length, zero terminated.
 Will print at most (capacity-1) characters into the buffer and always zero terminate.
+If buffer or capacity is null the returned string is null, otherwise the string is always
+returned with buffer pointer and length [0, capacity-1].
 \param buffer Destination buffer
 \param capacity Capacity of destination buffer
 \param format Format specifier
-\param format_length Length of format specifier
+\param length Length of format specifier
 \return Formatted string in given buffer, zero terminated */
 FOUNDATION_API string_t
-string_format(char* buffer, size_t capacity, const char* format, size_t format_length, ...)
+string_format(char* buffer, size_t capacity, const char* format, size_t length, ...)
 FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
 
 /*! Allocate a new string from a format specifier and variable data given as a va_list,
-printf style.
+printf style. The format specifier must be a string literal of specified length,
+zero terminated. If format or length is null the returned string is null, otherwise
+a string buffer is always allocated and returned.
 \param format Format specifier
-\param format_length Length of format specifier
+\param length Length of format specifier
 \param list Variable argument list
 \return Formatted string in a newly allocate memory buffer, zero terminated */
 FOUNDATION_API string_t
-string_allocate_vformat(const char* format, size_t format_length, va_list list)
+string_allocate_vformat(const char* format, size_t length, va_list list)
 FOUNDATION_ATTRIBUTE4(format, printf, 1, 0);
 
 /*! In-memory string formatting from a format specifier and variable data given as a va_list,
-printf style. Will print at most (capacity-1) characters into the buffer and always zero
-terminate the string.
+printf style. The format specifier must be a string literal of specified length, zero
+terminated. Will print at most (capacity-1) characters into the buffer and always zero
+terminate the string. If buffer or capacity is null the returned string is null, otherwise
+the string is always returned with buffer pointer and length [0, capacity-1].
 \param buffer Destination buffer
 \param capacity Capacity of destination buffer
 \param format Format specifier
-\param format_length Length of format specifier
+\param length Length of format specifier
 \param list Variable argument list
 \return Formatted string in given buffer, zero terminated */
 FOUNDATION_API string_t
-string_vformat(char* buffer, size_t capacity, const char* format, size_t format_length, va_list list)
+string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list list)
 FOUNDATION_ATTRIBUTE4(format, printf, 3, 0);
 
 /*! Get length of string in bytes. String must be zero terminated.
@@ -140,7 +148,8 @@ FOUNDATION_ATTRIBUTE4(format, printf, 3, 0);
 FOUNDATION_API size_t
 string_length(const char* str);
 
-/*! Get number of unicode glyphs stored in utf-8 string
+/*! Get number of unicode glyphs stored in utf-8 string. This method is safe to call with
+invalid utf-8 sequences, even with incomplete sequences at end of string.
 \param str String in utf-8 encoding
 \param length Length of string
 \return Number of unicode glyphs in string */
