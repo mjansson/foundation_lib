@@ -189,7 +189,9 @@ string_hash(const char* str, size_t length) {
 
 string_t
 string_resize(char* str, size_t length, size_t capacity, size_t new_length, char c) {
-	if (length > capacity)
+	if (!str)
+		length = capacity = 0;
+	else if (length > capacity)
 		length = capacity;
 
 	if (!str || (new_length >= capacity)) {
@@ -319,6 +321,8 @@ static string_t
 string_append_fragment(char* str, size_t length, size_t capacity, const char* suffix,
                        size_t suffix_length) {
 	size_t total_length;
+	if (!suffix)
+		suffix_length = 0;
 	if (!suffix_length)
 		return (string_t){ str, length };
 
@@ -379,6 +383,8 @@ static string_t
 string_prepend_fragment(char* str, size_t length, size_t capacity, const char* prefix,
                         size_t prefix_length) {
 	size_t total_length, prefix_offset, prefix_mod;
+	if (!prefix)
+		prefix_length = 0;
 	if (!prefix_length)
 		return (string_t){ str, length };
 
@@ -445,7 +451,12 @@ string_prepend_vlist(char* str, size_t length, size_t capacity, va_list list) {
 string_t
 string_allocate_concat(const char* prefix, size_t prefix_length, const char* suffix,
                        size_t suffix_length) {
-	char* buf = memory_allocate(HASH_STRING, prefix_length + suffix_length + 1, 0, MEMORY_PERSISTENT);
+	char* buf;
+	if (!prefix)
+		prefix_length = 0;
+	if (!suffix)
+		suffix_length = 0;
+	buf = memory_allocate(HASH_STRING, prefix_length + suffix_length + 1, 0, MEMORY_PERSISTENT);
 	if (prefix_length)
 		memcpy(buf, prefix, prefix_length);
 	if (suffix_length)
@@ -461,6 +472,11 @@ string_allocate_concat_varg(const char* prefix, size_t prefix_length, const char
 	size_t length, total_length, psize;
 	char* buf;
 	void* ptr;
+
+	if (!prefix)
+		prefix_length = 0;
+	if (!suffix)
+		suffix_length = 0;
 
 	total_length = prefix_length + suffix_length;
 	va_start(list, suffix_length);

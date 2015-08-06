@@ -213,8 +213,9 @@ FOUNDATION_API string_t
 string_replace(char* str, size_t length, size_t capacity, const char* key, size_t key_length,
                const char* newkey, size_t newkey_length, bool repeat);
 
-/*! Allocate a new string which is the concatenation of the given two strings. The allocated
-string will be zero terminated.
+/*! Allocate a new string which is the concatenation of the given two strings. Safe to pass
+null pointers and zero length. Returned string is never null, a string is always allocated
+and is always zero terminated.
 \param prefix Prefix string
 \param prefix_length Length of prefix string
 \param suffix Suffix string
@@ -225,9 +226,10 @@ string_allocate_concat(const char* prefix, size_t prefix_length, const char* suf
                        size_t suffix_length);
 
 /*! Allocate a new string which is the concatenation of the given variable number of strings.
-The argument list should be pairs of (char*, size_t) arguments specifying strings with
-given length to concatenate. The list should be terminated with a null pointer. The
-resulting allocated string will be zero terminated.
+The argument list must be pairs of (char*, size_t) arguments specifying strings with
+given length to concatenate. The list must be terminated with a null pointer. Safe to pass
+null pointers and zero length in other arguments. Returned string is never null, a string is
+always allocated and is always zero terminated.
 \param prefix Prefix string
 \param prefix_length Length of prefix string
 \param suffix Suffix string
@@ -239,8 +241,8 @@ string_allocate_concat_varg(const char* prefix, size_t prefix_length, const char
 FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Allocate a new string which is the concatenation of the given variable number of strings.
-The argument list should be pairs of (char*, size_t) arguments specifying strings with
-given length to concatenate. The list should be terminated with a null pointer. The
+The argument list must be pairs of (char*, size_t) arguments specifying strings with
+given length to concatenate. The list must be terminated with a null pointer. The
 resulting allocated string will be zero terminated.
 \param list Variable argument list of (char*, size_t) tuples
 \return Newly allocated string which is concatenation of all given strings */
@@ -262,8 +264,8 @@ string_concat(char* str, size_t capacity, const char* prefix, size_t prefix_leng
 
 /*! Concatenate variable number of strings into the given buffer. The resulting string will be
 zero terminated. Will copy at most (capacity-1) bytes from source strings. The argument list
-should be pairs of (char*, size_t) arguments specifying strings with given length to
-concatenate. The list should be terminated with a null pointer.
+must be pairs of (char*, size_t) arguments specifying strings with given length to
+concatenate. The list must be terminated with a null pointer.
 \param str Destination string buffer
 \param capacity Capacity of destination string buffer.
 \param prefix Prefix string
@@ -278,8 +280,8 @@ FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Concatenate variable number of strings into the given buffer. The resulting string will be
 zero terminated. Will copy at most (capacity-1) bytes from source strings. The argument list
-should be pairs of (char*, size_t) arguments specifying strings with given length to
-concatenate. The list should be terminated with a null pointer.
+must be pairs of (char*, size_t) arguments specifying strings with given length to
+concatenate. The list must be terminated with a null pointer.
 \param str Destination string buffer
 \param capacity Capacity of destination string buffer.
 \param list Variable argument list of (char*, size_t) tuples
@@ -301,7 +303,7 @@ string_append(char* str, size_t length, size_t capacity, const char* suffix, siz
 
 /*! Append a variable number of suffix strings to a base string. The string will not be reallocated,
 the appending will continue in a best effort way until the capacity of the destination buffer
-is reached. The variable argument list should be (char*, size_t) tuples giving additional
+is reached. The variable argument list must be (char*, size_t) tuples giving additional
 suffix strings to append, terminated by a null pointer argument. The resulting string will be
 zero terminated.
 \param str Base string
@@ -317,7 +319,7 @@ FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Append a variable number of suffix strings to a base string. The string will not be reallocated,
 the appending will continue in a best effort way until the capacity of the destination buffer
-is reached. The variable argument list should be (char*, size_t) tuples giving additional
+is reached. The variable argument list must be (char*, size_t) tuples giving additional
 suffix strings to append, terminated by a null pointer argument. The resulting string will be
 zero terminated.
 \param str Base string
@@ -343,7 +345,7 @@ string_prepend(char* str, size_t length, size_t capacity, const char* prefix, si
 
 /*! Prepend a variable number of prefix strings to a base string. The string will not be reallocated,
 the prepending will continue in a best effort way until the capacity of the destination buffer
-is reached. The variable argument list should be (char*, size_t) tuples giving additional
+is reached. The variable argument list must be (char*, size_t) tuples giving additional
 suffix strings to append, terminated by a null pointer argument. The resulting string will be
 zero terminated. Given prefix fragments are prepended in order, meaning the last argument will
 be the first string fragment in the concatenated final string.
@@ -360,7 +362,7 @@ FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Prepend a variable number of prefix strings to a base string. The string will not be reallocated,
 the prepending will continue in a best effort way until the capacity of the destination buffer
-is reached. The variable argument list should be (char*, size_t) tuples giving additional
+is reached. The variable argument list must be (char*, size_t) tuples giving additional
 suffix strings to append, terminated by a null pointer argument. The resulting string will be
 zero terminated. Given prefix fragments are prepended in order, meaning the last argument will
 be the first string fragment in the concatenated final string.
