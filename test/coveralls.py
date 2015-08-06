@@ -135,7 +135,7 @@ coveralls['git'] = gitinfo()
 
 if options.post:
   result = post_report( coveralls )
-  print
+  print result
 else:
   with open( 'coverallsreport.json', 'w' ) as outfile:
     json.dump( coveralls, outfile )
