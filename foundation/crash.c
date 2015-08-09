@@ -77,7 +77,7 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 				success = write(GetCurrentProcess(), GetCurrentProcessId(), file,
 				                MiniDumpWithDataSegs | MiniDumpWithProcessThreadData | MiniDumpWithThreadInfo, &info, 0, 0);
 				if (!success)
-					dump_file[0] = 0;
+					dump_file.length = 0;
 			}
 
 			FreeLibrary(lib);
@@ -86,10 +86,10 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 			FlushFileBuffers(file);
 		CloseHandle(file);
 
-		return dump - file;
+		return dump_file;
 	}
 
-	return string_null();
+	return (string_t){0, 0};
 }
 
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -190,6 +190,11 @@ _crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
 int
 crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
             size_t length) {
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
+	string_t crash_dump_file;
+	crash_dump_file = string_allocate(0, BUILD_MAX_PATHLEN);
+#endif
+
 	//Make sure path is initialized
 	environment_temporary_directory();
 
@@ -199,15 +204,16 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 	__try {
 		return fn(data);
 	}
-	__except (_crash_create_mini_dump(GetExceptionInformation(), name, _crash_dump_file),
+	__except (_crash_create_mini_dump(GetExceptionInformation(), string_const(name, length), crash_dump_file),
 	          EXCEPTION_EXECUTE_HANDLER) {
 		if (callback)
-			callback(_crash_dump_file);
+			callback(STRING_ARGS(crash_dump_file));
 
 		error_context_clear();
 
 		return FOUNDATION_CRASH_DUMP_GENERATED;
 	}
+	string_deallocatre(crash_dump_file.str);
 #  else
 	SetUnhandledExceptionFilter(_crash_exception_filter);
 	_crash_exception_closure.callback = callback;

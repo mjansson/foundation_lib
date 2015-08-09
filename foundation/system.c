@@ -195,7 +195,7 @@ system_hostname(void) {
 	char* hostname = _system_buffer();
 	unsigned int size = SYSTEM_BUFFER_SIZE;
 	if (!GetComputerNameA(hostname, &size))
-		string_copy(hostname, "unknown", SYSTEM_BUFFER_SIZE);
+		string_copy(hostname, size, STRING_CONST("unknown"));
 	return string_const(hostname, size);
 }
 

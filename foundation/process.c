@@ -225,11 +225,11 @@ process_spawn(process_t* proc) {
 		cmdline = string_append(STRING_ARGS(cmdline), capacity, STRING_ARGS(arg));
 	}
 
-	if (!string_length(proc->wd))
-		proc->wd = string_clone(environment_current_working_directory());
+	if (!proc->wd.length)
+		proc->wd = string_clone(STRING_ARGS(environment_current_working_directory()));
 
-	wcmdline = wstring_allocate_from_string(cmdline, 0);
-	wwd = wstring_allocate_from_string(proc->wd, 0);
+	wcmdline = wstring_allocate_from_string(STRING_ARGS(cmdline));
+	wwd = wstring_allocate_from_string(STRING_ARGS(proc->wd));
 
 	if (proc->flags & PROCESS_WINDOWS_USE_SHELLEXECUTE) {
 		SHELLEXECUTEINFOW sei;

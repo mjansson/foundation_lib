@@ -52,10 +52,12 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 }
 
 void
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, unsigned int value) {
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
-	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, name);
+	char buffer[256];
+	string_t namestr =string_copy(buffer, sizeof(buffer), name, length);
+	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, namestr.str);
 }
 
 void

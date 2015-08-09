@@ -574,7 +574,7 @@ environment_variable(const char* var, size_t length) {
 		_environment_var = string_allocate_from_wstring(val, required);
 	}
 	wstring_deallocate(key);
-	return _environment_var;
+	return string_to_const(_environment_var);
 #elif FOUNDATION_PLATFORM_POSIX
 	const char* value = getenv(varstr.str);
 	return string_const(value, value ? string_length(value) : 0);
