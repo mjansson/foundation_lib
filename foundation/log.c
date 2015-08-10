@@ -263,6 +263,8 @@ log_errorf(hash_t context, error_t err, const char* format, size_t length, ...) 
 	string_t prefix;
 	va_list list;
 
+	error_report(ERRORLEVEL_ERROR, err);
+
 	if (log_suppress(context) >= ERRORLEVEL_ERROR)
 		return;
 
@@ -276,8 +278,6 @@ log_errorf(hash_t context, error_t err, const char* format, size_t length, ...) 
 	va_start(list, length);
 	_log_outputf(context, ERRORLEVEL_ERROR, prefix.str, prefix.length, format, length, list, stderr);
 	va_end(list);
-
-	error_report(ERRORLEVEL_ERROR, err);
 }
 
 void
@@ -291,6 +291,8 @@ log_panicf(hash_t context, error_t err, const char* format, size_t length, ...) 
 	string_t prefix;
 	va_list list;
 
+	error_report(ERRORLEVEL_PANIC, err);
+
 	log_error_context(context, ERRORLEVEL_PANIC);
 
 	if (err < LOG_ERROR_NAMES)
@@ -301,8 +303,6 @@ log_panicf(hash_t context, error_t err, const char* format, size_t length, ...) 
 	va_start(list, length);
 	_log_outputf(context, ERRORLEVEL_PANIC, prefix.str, prefix.length, format, length, list, stderr);
 	va_end(list);
-
-	error_report(ERRORLEVEL_PANIC, err);
 }
 
 void

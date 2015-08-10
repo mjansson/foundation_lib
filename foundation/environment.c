@@ -111,8 +111,10 @@ _environment_initialize(const application_t application) {
 	if (!arg_list)
 		return -1;
 
-	for (ia = 0; ia < num_args; ++ia)
-		array_push(_environment_argv, string_allocate_from_wstring(arg_list[ia], 0));
+	for (ia = 0; ia < num_args; ++ia) {
+		array_push(_environment_argv, 
+		           string_allocate_from_wstring(arg_list[ia], wstring_length(arg_list[ia])));
+	}
 
 	LocalFree(arg_list);
 
@@ -292,11 +294,11 @@ _environment_finalize(void) {
 	string_deallocate(_environment_temp_dir.str);
 
 	_environment_executable_name =
-	  _environment_executable_dir =
-	    _environment_executable_path =
-	      _environment_initial_working_dir =
-	        _environment_current_working_dir =
-	          _environment_home_dir =
+	_environment_executable_dir =
+	_environment_executable_path =
+	_environment_initial_working_dir =
+	_environment_current_working_dir =
+	_environment_home_dir =
 	_environment_temp_dir = (string_t) {0, 0};
 }
 
@@ -372,9 +374,7 @@ environment_set_current_working_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_POSIX
 	string_t buffer, pathstr;
 #endif
-	if (!path)
-		return;
-	log_debugf(0, STRING_CONST("Setting current working directory to: %*s"), (int)length, path);
+	log_debugf(0, STRING_CONST("Setting current working directory to: %*s"), 0, (int)length, path);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string(path, length);
@@ -419,7 +419,7 @@ environment_home_directory(void) {
 	{
 		wchar_t wpath[BUILD_MAX_PATHLEN];
 		SHGetFolderPathW(0, CSIDL_LOCAL_APPDATA, 0, 0, wpath);
-		_environment_home_dir = string_allocate_from_wstring(wpath, 0);
+		_environment_home_dir = string_allocate_from_wstring(wpath, wstring_length(wpath));
 		_environment_home_dir = path_clean(STRING_ARGS_CAPACITY(_environment_home_dir));
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_TIZEN
@@ -462,7 +462,7 @@ environment_temporary_directory(void) {
 	{
 		wchar_t wpath[BUILD_MAX_PATHLEN];
 		GetTempPathW(BUILD_MAX_PATHLEN, wpath);
-		_environment_temp_dir = string_allocate_from_wstring(wpath, 0);
+		_environment_temp_dir = string_allocate_from_wstring(wpath, wstring_length(wpath));
 		_environment_temp_dir = path_clean(STRING_ARGS_CAPACITY(_environment_temp_dir));
 		_environment_temp_dir = path_absolute(STRING_ARGS_CAPACITY(_environment_temp_dir));
 	}

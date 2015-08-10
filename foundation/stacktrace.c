@@ -446,7 +446,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 		memset(&context, 0, sizeof(CONTEXT));
 		context.ContextFlags = CONTEXT_FULL;
 
-		log_warnf(0, WARNING_DEPRECATED, "********** REIMPLEMENT FALLBACK STACKTRACE **********");
+		log_warn(0, WARNING_DEPRECATED, STRING_CONST("********** REIMPLEMENT FALLBACK STACKTRACE **********"));
 		/* Use a fake function call to pop the return address and retrieve EIP.*/
 		__asm
 		{

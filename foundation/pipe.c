@@ -53,9 +53,7 @@ pipe_initialize(stream_pipe_t* pipestream) {
 		security_attribs.lpSecurityDescriptor = 0;
 
 		if (!CreatePipe(&pipestream->handle_read, &pipestream->handle_write, &security_attribs, 0)) {
-#if BUILD_ENABLE_LOG
 			string_const_t errmsg = system_error_message(GetLastError());
-#endif
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe: %*s"),
 			           STRING_FORMAT(errmsg));
 		}
@@ -189,9 +187,7 @@ _pipe_stream_read(stream_t* stream, void* dest, size_t num) {
 					break;
 				}
 				else {
-#if BUILD_ENABLE_LOG
 					string_const_t errmsg = system_error_message(err);
-#endif
 					log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to read from pipe: %*s (%d)"),
 					           STRING_FORMAT(errmsg), err);
 				}

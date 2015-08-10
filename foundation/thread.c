@@ -452,10 +452,8 @@ thread_start(object_t id, void* data) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	thread->handle = CreateThread(0, thread->stacksize, _thread_entry, thread, 0, &osid);
 	if (!thread->handle) {
-#if BUILD_ENABLE_LOG
 		int err = GetLastError();
 		string_const_t errmsg = system_error_message(err);
-#endif
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to create thread: CreateThread failed: %*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
@@ -464,9 +462,7 @@ thread_start(object_t id, void* data) {
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int err = pthread_create(&thread->thread, 0, _thread_entry, thread);
 	if (err) {
-#if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message(err);
-#endif
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to create thread: pthread_create failed: %*s (%d)"),
 		           STRING_FORMAT(errmsg), err);

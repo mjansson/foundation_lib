@@ -626,9 +626,7 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 #endif
 
 	if (!memory) {
-#if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message(0);
-#endif
 		log_panicf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to reallocate memory: %*s (%" PRIfixPTR ", raw %" PRIfixPTR ")"),
 		           STRING_FORMAT(errmsg), (uintptr_t)p, (uintptr_t)raw_p);

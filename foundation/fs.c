@@ -376,7 +376,7 @@ fs_subdirs(const char* path, size_t length) {
 					if (!data.cFileName[1] || (data.cFileName[1] == L'.'))
 						continue; //Don't include . and .. directories
 				}
-				array_push(arr, string_allocate_from_wstring(data.cFileName, 0));
+				array_push(arr, string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName)));
 			}
 		}
 		while (FindNextFileW(find, &data));
@@ -484,7 +484,7 @@ fs_files(const char* path, size_t length) {
 	find = FindFirstFileW(wpattern, &data);
 	if (find != INVALID_HANDLE_VALUE) do {
 			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-				array_push(arr, string_allocate_from_wstring(data.cFileName, 0));
+				array_push(arr, string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName)));
 		}
 		while (FindNextFileW(find, &data));
 	FindClose(find);
@@ -754,10 +754,8 @@ fs_make_directory(const char* path, size_t length) {
 #  error Not implemented
 #endif
 			if (!result) {
-#if BUILD_ENABLE_LOG
 				int err = system_error();
 				string_const_t errmsg = system_error_message(err);
-#endif
 				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%*s': %*s (%d)"),
 				          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
 				goto end;
@@ -1170,9 +1168,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 	handles[1] = CreateEvent(0, FALSE, FALSE, 0);
 
 	if (handles[1] == INVALID_HANDLE_VALUE) {
-#if BUILD_ENABLE_LOG
 		string_const_t errstr = system_error_message(GetLastError());
-#endif
 		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %s : %*s"),
 		          monitor_path, STRING_FORMAT(errstr));
 		goto exit_thread;
@@ -1215,16 +1211,14 @@ _fs_monitor(object_t thread, void* monitorptr) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		wfpath = wstring_allocate_from_string(monitor_path, 0);
+		wfpath = wstring_allocate_from_string(monitor_path, string_length(monitor_path));
 		dir = CreateFileW(wfpath, FILE_LIST_DIRECTORY,
 		                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0, OPEN_EXISTING,
 		                  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, 0);
 		wstring_deallocate(wfpath);
 	}
 	if (dir == INVALID_HANDLE_VALUE) {
-#if BUILD_ENABLE_LOG
 		string_const_t errstr = system_error_message(GetLastError());
-#endif
 		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %s : %*s"),
 		          monitor_path, STRING_FORMAT(errstr));
 		goto exit_thread;
@@ -1246,9 +1240,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size,
 		                                &overlap, 0);
 		if (!success) {
-#if BUILD_ENABLE_LOG
 			string_const_t errstr = system_error_message(GetLastError());
-#endif
 			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %*s"),
 			          monitor_path, STRING_FORMAT(errstr));
 			goto exit_thread;
@@ -1272,9 +1264,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 
 				success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
 				if (!success) {
-#if BUILD_ENABLE_LOG
 					string_const_t errstr = system_error_message(GetLastError());
-#endif
 					log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %*s"),
 					          monitor_path, STRING_FORMAT(errstr));
 				}
@@ -1291,6 +1281,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 
 						info->FileName[ numchars ] = 0;
 						utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
+						utfstr = path_clean(STRING_ARGS_CAPACITY(utfstr));
 						fullpath = path_allocate_concat(monitor_path, string_length(monitor_path), STRING_ARGS(utfstr));
 
 						if (fs_is_directory(STRING_ARGS(fullpath))) {
@@ -1722,9 +1713,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #  endif
 	{
 		if (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-#if BUILD_ENABLE_LOG
 			string_const_t errstr = system_error_message(GetLastError());
-#endif
 			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s"),
 			          STRING_ARGS(cpath), length, STRING_ARGS(errstr));
 		}
@@ -1733,9 +1722,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	else {
 		LONG high = (LONG)(length >> 32LL);
 		if (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-#if BUILD_ENABLE_LOG
 			string_const_t errstr = system_error_message(GetLastError());
-#endif
 			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s"),
 			          STRING_ARGS(cpath), length, STRING_ARGS(errstr));
 		}

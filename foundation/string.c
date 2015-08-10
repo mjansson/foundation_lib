@@ -122,8 +122,7 @@ string_format(char* buffer, size_t capacity, const char* format, size_t length, 
 	n = vsnprintf(buffer, capacity, format, list);
 	va_end(list);
 
-	if (n < 0)
-		return (string_t){ buffer, 0 };
+	//if n<0 will fall through and return capacity-1
 	if ((size_t)n < capacity)
 		return (string_t){ buffer, (size_t)n };
 	return (string_t){ buffer, capacity - 1 };
@@ -1198,7 +1197,7 @@ wstring_allocate_from_string(const char* cstr, size_t length) {
 				glyph |= ((uint32_t)(*cur) & 0x3F) << (6 * (num_bytes - j));
 			if (sizeof(wchar_t) == 2) {
 				FOUNDATION_ASSERT((glyph < 0xD800) || (glyph > 0xDFFF));
-				FOUNDATION_ASSERT(glyph <= 0x10FFFF);
+				//FOUNDATION_ASSERT(glyph <= 0x10FFFF);
 				if ((glyph < 0xD800) || (glyph > 0xDFFF)) {
 					if (glyph <= 0xFFFF)
 						*dest++ = (uint16_t)glyph;

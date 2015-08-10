@@ -148,9 +148,9 @@ process_spawn(process_t* proc) {
 		if (preesc || postesc) {
 			char* buffer = memory_allocate(HASH_STRING, proc->path.length + 4, 0, MEMORY_PERSISTENT);
 			string_t pathesc = string_concat_varg(buffer, proc->path.length + 4,
-			                                      "\"", preesc ? 1 : 0,
+			                                      "\"", (size_t)(preesc ? 1 : 0),
 			                                      STRING_ARGS(proc->path),
-			                                      "\"", postesc ? 1 : 0,
+			                                      "\"", (size_t)(postesc ? 1 : 0),
 			                                      nullptr);
 			string_deallocate(proc->path.str);
 			proc->path = pathesc;
@@ -261,9 +261,7 @@ process_spawn(process_t* proc) {
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
-#if BUILD_ENABLE_LOG
 			string_const_t errstr = system_error_message(GetLastError());
-#endif
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%*s': %s"),
 					  STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
@@ -307,9 +305,7 @@ process_spawn(process_t* proc) {
 
 		if (!CreateProcessW(0, wcmdline, 0, 0, inherit_handles,
 		                    (proc->flags & PROCESS_CONSOLE) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi)) {
-#if BUILD_ENABLE_LOG
 			string_const_t errstr = system_error_message(GetLastError());
-#endif
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 			          STRING_CONST("Unable to spawn process (CreateProcess) for executable '%*s': %*s"),
 			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));

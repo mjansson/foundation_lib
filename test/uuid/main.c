@@ -190,7 +190,8 @@ DECLARE_TEST(uuid, generate) {
 	return 0;
 }
 
-static uuid_t uuid_thread_store[32][8192];
+#define NUM_UUIDS 4096
+static uuid_t uuid_thread_store[32][NUM_UUIDS];
 
 static void*
 uuid_thread_time(object_t thread, void* arg) {
@@ -198,7 +199,7 @@ uuid_thread_time(object_t thread, void* arg) {
 	int ithread = (int)(uintptr_t)arg;
 	FOUNDATION_UNUSED(thread);
 
-	for (i = 0; i < 8192; ++i)
+	for (i = 0; i < NUM_UUIDS; ++i)
 		uuid_thread_store[ithread][i] = uuid_generate_time();
 
 	return 0;
@@ -207,11 +208,11 @@ uuid_thread_time(object_t thread, void* arg) {
 DECLARE_TEST(uuid, threaded) {
 	object_t thread[32];
 	size_t ith, i, jth, j;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
+	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 8);
 
 	for (ith = 0; ith < num_threads; ++ith) {
-		thread[ith] = thread_create(uuid_thread_time, STRING_CONST("uuid_thread"), THREAD_PRIORITY_NORMAL,
-		                            0);
+		thread[ith] = thread_create(uuid_thread_time, STRING_CONST("uuid_thread"),
+		                            THREAD_PRIORITY_NORMAL, 0);
 		thread_start(thread[ith], (void*)(uintptr_t)ith);
 	}
 
@@ -225,13 +226,13 @@ DECLARE_TEST(uuid, threaded) {
 	test_wait_for_threads_exit(thread, num_threads);
 
 	for (ith = 0; ith < num_threads; ++ith) {
-		for (i = 0; i < 8192; ++i) {
+		for (i = 0; i < NUM_UUIDS; ++i) {
 			for (jth = ith + 1; jth < num_threads; ++jth) {
-				for (j = 0; j < 8192; ++j) {
+				for (j = 0; j < NUM_UUIDS; ++j) {
 					EXPECT_FALSE(uuid_equal(uuid_thread_store[ith][i], uuid_thread_store[jth][j]));
 				}
 			}
-			for (j = i + 1; j < 8192; ++j) {
+			for (j = i + 1; j < NUM_UUIDS; ++j) {
 				EXPECT_FALSE(uuid_equal(uuid_thread_store[ith][i], uuid_thread_store[ith][j]));
 			}
 		}

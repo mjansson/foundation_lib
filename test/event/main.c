@@ -206,7 +206,8 @@ producer_thread(object_t thread, void* arg) {
 		timestamp = args->max_delay ? time_current() + (tick_t)random_delay : 0;
 		memcpy(buffer, &timestamp, sizeof(tick_t));
 		event_post_varg(args->stream, random_id, args->id, timestamp, buffer, random_size / 2,
-		                buffer + (random_size / 2), random_size - (random_size / 2), nullptr);
+		                buffer + (random_size / 2), (size_t)(random_size - (random_size / 2)),
+		                nullptr);
 		++produced;
 	}
 	while (!thread_should_terminate(thread) && (time_current() < args->end_time));

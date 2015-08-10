@@ -80,21 +80,21 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 	ret = main_run(0);
 #else
 	{
-		char* name = 0;
+		string_t name;
 		const application_t* app = environment_application();
-		{
-			const char* aname = app->short_name;
-			name = string_clone(aname ? aname : "unknown");
-			name = string_append(name, "-");
-			name = string_append(name, string_from_version_static(app->version));
-		}
+		string_const_t aname = app->short_name;
+		string_const_t vstr = string_from_version_static(app->version);
+		name = string_allocate_concat_varg(
+			aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
+			STRING_CONST("-"),
+			STRING_CONST(vstr));
 
 		if (app->dump_callback)
-			crash_guard_set(app->dump_callback, name);
+			crash_guard_set(app->dump_callback, STRING_ARGS(name));
 
-		ret = crash_guard(main_run, 0, app->dump_callback, name);
+		ret = crash_guard(main_run, 0, app->dump_callback, STRING_ARGS(name));
 
-		string_deallocate(name);
+		string_deallocate(name.str);
 	}
 #endif
 
