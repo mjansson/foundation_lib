@@ -1247,21 +1247,29 @@ DECLARE_TEST(string, utility) {
 			EXPECT_EQ(replacestr.str[replacestr.length], 0);
 		}
 		{
-			string_t stripstr = string_clone(STRING_CONST("   testing strip :   "));
-			string_t stripstr2 = string_clone(STRING_CONST("   testing strip :   "));
-			string_t stripstr3 = string_clone(STRING_CONST("   testing strip :   "));
+			string_const_t strippedstr;
 
-			string_const_t strippedstr = string_strip(STRING_ARGS(stripstr), STRING_CONST(" tp:   "));
-			string_const_t strippedstr2 = string_strip(STRING_ARGS(stripstr2), STRING_CONST(""));
-			string_const_t strippedstr3 = string_strip(STRING_ARGS(stripstr3), STRING_CONST(" tesingrp:"));
-
+			strippedstr = string_strip(STRING_CONST("\t   testing strip :   "), STRING_CONST(" tp: \t  "));
 			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("esting stri")));
-			EXPECT_CONSTSTRINGEQ(strippedstr2, string_const(STRING_CONST("   testing strip :   ")));
-			EXPECT_CONSTSTRINGEQ(strippedstr3, string_const(STRING_CONST("")));
 
-			string_deallocate(stripstr.str);
-			string_deallocate(stripstr2.str);
-			string_deallocate(stripstr3.str);
+			strippedstr = string_strip(STRING_CONST("   testing strip :   "), STRING_CONST(""));
+			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("   testing strip :   ")));
+
+			strippedstr = string_strip(STRING_CONST("   testing strip :   "), STRING_CONST(" tesingrp:"));
+			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("")));
+
+			strippedstr = string_strip(STRING_CONST("   testing strip :   "), " tesingrp:", 0);
+			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("   testing strip :   ")));
+
+			strippedstr = string_strip(STRING_CONST("   testing strip :   "), nullptr, 16);
+			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("   testing strip :   ")));
+
+			strippedstr = string_strip("   testing strip :   ", 0, STRING_CONST(" tp:   "));
+			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("")));
+
+			strippedstr = string_strip(nullptr, 16, STRING_CONST(" tp:   "));
+			EXPECT_EQ(strippedstr.str, nullptr);
+			EXPECT_EQ(strippedstr.length, 0);
 		}
 		string_deallocate(mergestr.str);
 		string_deallocate(mergestr2.str);

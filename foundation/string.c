@@ -643,7 +643,7 @@ string_substr(const char* str, size_t length, size_t offset, size_t sub_length) 
 size_t
 string_find(const char* str, size_t length, char c, size_t offset) {
 	const void* found;
-	if (offset >= length)
+	if (!str || offset >= length)
 		return STRING_NPOS;
 	found = memchr(str + offset, c, length - offset);
 	if (found)
@@ -657,9 +657,9 @@ string_find_string(const char* str, size_t length, const char* key, size_t key_l
 	const char* found;
 	char keychar;
 	size_t last_offset;
-	if (!key_length)
+	if (!key || !key_length)
 		return offset;
-	if ((key_length > length) || (offset > (length - key_length)))
+	if (!str || (key_length > length) || (offset > (length - key_length)))
 		return STRING_NPOS;
 
 	last_offset = length - key_length;
@@ -683,6 +683,8 @@ string_find_string(const char* str, size_t length, const char* key, size_t key_l
 
 size_t
 string_rfind(const char* str, size_t length, char c, size_t offset) {
+	if (!str)
+		length = 0;
 	if (offset >= length)
 		offset = length - 1;
 
@@ -698,9 +700,11 @@ string_rfind(const char* str, size_t length, char c, size_t offset) {
 size_t
 string_rfind_string(const char* str, size_t length, const char* key, size_t key_length,
                     size_t offset) {
+	if (!str)
+		length = 0;
 	if (key_length > length)
 		return STRING_NPOS;
-	if (!key_length)
+	if (!key || !key_length)
 		return offset > length ? length : offset;
 
 	if (offset >= length - key_length)
@@ -717,7 +721,9 @@ string_rfind_string(const char* str, size_t length, const char* key, size_t key_
 size_t
 string_find_first_of(const char* str, size_t length, const char* tokens, size_t token_length,
                      size_t offset) {
-	if (!token_length || (offset >= length))
+	if (!str)
+		length = 0;
+	if (!tokens || !token_length || (offset >= length))
 		return STRING_NPOS;
 
 	while (offset < length) {
@@ -731,7 +737,9 @@ string_find_first_of(const char* str, size_t length, const char* tokens, size_t 
 size_t
 string_find_last_of(const char* str, size_t length, const char* tokens, size_t token_length,
                     size_t offset) {
-	if (!token_length)
+	if (!str)
+		length = 0;
+	if (!tokens || !token_length)
 		return STRING_NPOS;
 	if (offset >= length)
 		offset = length - 1;
@@ -748,9 +756,11 @@ string_find_last_of(const char* str, size_t length, const char* tokens, size_t t
 size_t
 string_find_first_not_of(const char* str, size_t length, const char* tokens, size_t token_length,
                          size_t offset) {
+	if (!str)
+		length = 0;
 	if (offset >= length)
 		return STRING_NPOS;
-	if (!token_length)
+	if (!tokens || !token_length)
 		return offset;
 
 	while (offset < length) {
@@ -764,9 +774,11 @@ string_find_first_not_of(const char* str, size_t length, const char* tokens, siz
 size_t
 string_find_last_not_of(const char* str, size_t length, const char* tokens, size_t token_length,
                         size_t offset) {
+	if (!str)
+		length = 0;
 	if (offset >= length)
 		offset = length - 1;
-	if (!token_length)
+	if (!tokens || !token_length)
 		return offset;
 
 	while (offset != STRING_NPOS){ //Wrap-around terminates
@@ -780,8 +792,10 @@ string_find_last_not_of(const char* str, size_t length, const char* tokens, size
 
 bool
 string_ends_with(const char* str, size_t length, const char* suffix, size_t suffix_length) {
-	if (length < suffix_length)
+	if (!str || (length < suffix_length))
 		return false;
+	if (!suffix || !suffix_length)
+		return true;
 	return (memcmp(str + (length - suffix_length), suffix, suffix_length) == 0);
 }
 
@@ -815,7 +829,9 @@ string_equal_substr_nocase(const char* rhs, size_t rhs_length, size_t rhs_offset
                     size_t lhs_length, size_t lhs_offset) {
 	size_t rhs_remain = (rhs_offset < rhs_length) ? (rhs_length - rhs_offset) : 0;
 	size_t lhs_remain = (lhs_offset < lhs_length) ? (lhs_length - lhs_offset) : 0;
-	return string_equal_nocase(rhs + rhs_offset, rhs_remain, lhs + lhs_offset, lhs_remain);
+	if (rhs && lhs)
+		return string_equal_nocase(rhs + rhs_offset, rhs_remain, lhs + lhs_offset, lhs_remain);
+	return (!rhs_remain && !lhs_remain);
 }
 
 bool
