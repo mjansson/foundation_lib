@@ -17,7 +17,8 @@
 
 String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion
 to and from pritimive integral data types. Unless otherwise noted in the function descripion it
-is safe to pass null pointers to any arguments.
+is only safe to pass null pointers to any arguments if the corresponding length and/or capacity
+argument is also zero..
 
 Strings are declared with a pointer to a memory block and the length of the string. Zero
 termination is generally NOT enforced. Functions that allocate or modify strings always return
@@ -35,7 +36,8 @@ memory buffer. */
 #include <foundation/types.h>
 
 /*! Allocate capacity bytes of memory for a string of length characters. The memory block will be
-initialized to zero. The length is capped to [0,capacity-1].
+initialized to zero. The length is capped to [0,capacity-1]. A null string is returned if
+a zero capacity is given.
 \param length Length of string
 \param capacity Capacity of memory block allocated
 \return String with given length in zero initialized memory block with given capacity */
@@ -142,7 +144,8 @@ FOUNDATION_API string_t
 string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list list)
 FOUNDATION_ATTRIBUTE4(format, printf, 3, 0);
 
-/*! Get length of string in bytes. String must be zero terminated.
+/*! Get length of string in bytes. String must be zero terminated. Safe to pass a null
+pointer, in which case the string length returned is zero.
 \param str String
 \return Length of string in bytes */
 FOUNDATION_API size_t
@@ -156,8 +159,7 @@ invalid utf-8 sequences, even with incomplete sequences at end of string.
 FOUNDATION_API size_t
 string_glyphs(const char* str, size_t length);
 
-/*! Calculate hash of string. A null pointer is treated as an empty string, in which
-case the length is disregarded.
+/*! Calculate hash of string.
 \param str String
 \param length Length of string
 \return Hash of string */
@@ -213,8 +215,8 @@ FOUNDATION_API string_t
 string_replace(char* str, size_t length, size_t capacity, const char* key, size_t key_length,
                const char* newkey, size_t newkey_length, bool repeat);
 
-/*! Allocate a new string which is the concatenation of the given two strings. Safe to pass
-null pointers and zero length. Returned string is never null, a string is always allocated
+/*! Allocate a new string which is the concatenation of the given two strings.. Returned
+string is never null, a string is always allocated
 and is always zero terminated.
 \param prefix Prefix string
 \param prefix_length Length of prefix string
@@ -227,9 +229,8 @@ string_allocate_concat(const char* prefix, size_t prefix_length, const char* suf
 
 /*! Allocate a new string which is the concatenation of the given variable number of strings.
 The argument list must be pairs of (char*, size_t) arguments specifying strings with
-given length to concatenate. The list must be terminated with a null pointer. Safe to pass
-null pointers and zero length in other arguments. Returned string is never null, a string is
-always allocated and is always zero terminated.
+given length to concatenate. The list must be terminated with a null pointer. Returned
+string is never null, a string is always allocated and is always zero terminated.
 \param prefix Prefix string
 \param prefix_length Length of prefix string
 \param suffix Suffix string

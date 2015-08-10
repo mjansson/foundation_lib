@@ -412,7 +412,7 @@ DECLARE_TEST(string, queries) {
 	}
 	{
 		EXPECT_EQ(string_hash(nullptr, 0), HASH_EMPTY_STRING);
-		EXPECT_EQ(string_hash(nullptr, 32), HASH_EMPTY_STRING);
+		EXPECT_EQ(string_hash("", 0), HASH_EMPTY_STRING);
 		EXPECT_EQ(string_hash("foobar", 0), HASH_EMPTY_STRING);
 		EXPECT_EQ(string_hash(STRING_CONST("")), HASH_EMPTY_STRING);
 		EXPECT_EQ(string_hash(STRING_CONST("foundation")), HASH_FOUNDATION);
