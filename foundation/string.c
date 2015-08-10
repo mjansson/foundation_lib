@@ -204,6 +204,7 @@ string_hash(const char* str, size_t length) {
 
 string_t
 string_resize(char* str, size_t length, size_t capacity, size_t new_length, char c) {
+	FOUNDATION_ASSERT(length <= capacity);
 	if (new_length >= capacity) {
 		str = capacity ? memory_reallocate(str, new_length + 1, 0, capacity) :
 		                 memory_allocate(HASH_STRING, new_length + 1, 0, MEMORY_PERSISTENT);
@@ -258,6 +259,7 @@ string_replace(char* str, size_t length, size_t capacity, const char* key, size_
 	size_t pos, oldlength, lastpos, replaced, needsize;
 	ssize_t lendiff;
 
+	FOUNDATION_ASSERT(length <= capacity);
 	if (!capacity || !length || !key_length ||
 		  string_equal(key, key_length, newkey, newkey_length))
 		return (string_t){ str, length };
@@ -499,15 +501,15 @@ string_allocate_concat_varg(const char* prefix, size_t prefix_length, const char
 	va_end(list);
 
 	buf = memory_allocate(HASH_STRING, total_length + 1, 0, MEMORY_PERSISTENT);
-	length = prefix_length + suffix_length;
 	if (prefix_length) {
 		FOUNDATION_ASSERT(prefix);
 		memcpy(buf, prefix, prefix_length);
 	}
 	if (suffix_length) {
 		FOUNDATION_ASSERT(suffix);
-		memcpy(buf + length, suffix, suffix_length);
+		memcpy(buf + prefix_length, suffix, suffix_length);
 	}
+	length = prefix_length + suffix_length;
 	va_start(list, suffix_length);
 	while (true) {
 		ptr = va_arg(list, void*);

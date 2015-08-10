@@ -49,31 +49,28 @@ test_string_finalize(void) {
 DECLARE_TEST(string, allocate) {
 	{
 		string_t nullstr1 = string_allocate(0, 0);
-		string_t nullstr2 = string_allocate(1, 0);
-		string_t nullstr3 = string_allocate(0, 1);
-		string_t nullstr4 = string_allocate(1, 1);
+		string_t nullstr2 = string_allocate(0, 1);
+		string_t nullstr3 = string_allocate(0, 32);
+		string_t nullstr4 = string_allocate(1, 2);
 		string_t nullstr5 = string_allocate(10, 32);
-		string_t nullstr6 = string_allocate(32, 10);
 
 		EXPECT_EQ(0, nullstr1.length);
 		EXPECT_EQ(0, nullstr2.length);
 		EXPECT_EQ(0, nullstr3.length);
-		EXPECT_EQ(0, nullstr4.length);
+		EXPECT_EQ(1, nullstr4.length);
 		EXPECT_EQ(10, nullstr5.length);
-		EXPECT_EQ(9, nullstr6.length);
 		EXPECT_EQ(0, nullstr1.str);
-		EXPECT_EQ(0, nullstr2.str);
+		EXPECT_NE(0, nullstr2.str);
+		EXPECT_EQ(0, strcmp(nullstr2.str, ""));
 		EXPECT_EQ(0, strcmp(nullstr3.str, ""));
 		EXPECT_EQ(0, strcmp(nullstr4.str, ""));
 		EXPECT_EQ(0, strcmp(nullstr5.str, ""));
-		EXPECT_EQ(0, strcmp(nullstr6.str, ""));
 
 		string_deallocate(nullstr1.str);
 		string_deallocate(nullstr2.str);
 		string_deallocate(nullstr3.str);
 		string_deallocate(nullstr4.str);
 		string_deallocate(nullstr5.str);
-		string_deallocate(nullstr6.str);
 	}
 	{
 		char teststr1[] = "test";
@@ -110,7 +107,7 @@ DECLARE_TEST(string, allocate) {
 		str15 = string_clone(STRING_ARGS(substr));
 		substr = string_substr(STRING_CONST(teststr3), STRING_NPOS, STRING_NPOS);
 		str16 = string_clone(STRING_ARGS(substr));
-		str17 = string_clone(nullptr, 64);
+		str17 = string_clone(nullptr, 0);
 
 		EXPECT_EQ(0, strcmp(str1.str, teststr1));
 		EXPECT_EQ(0, strcmp(str2.str, "tes"));
@@ -131,7 +128,7 @@ DECLARE_TEST(string, allocate) {
 		                    "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02"));
 		EXPECT_EQ(0, strcmp(str15.str, teststr3));
 		EXPECT_EQ(0, strcmp(str16.str, ""));
-		EXPECT_EQ(64, str17.length);
+		EXPECT_EQ(0, str17.length);
 
 		string_deallocate(str1.str);
 		string_deallocate(str2.str);
@@ -336,21 +333,6 @@ DECLARE_TEST(string, allocate) {
 		EXPECT_EQ(result.str[result.length], 0);
 		string_deallocate(result.str);
 
-		result = string_resize(nullptr, 0, 32, 8, ' ');
-		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        ")));
-		EXPECT_EQ(result.str[result.length], 0);
-		string_deallocate(result.str);
-
-		result = string_resize(nullptr, 32, 0, 8, ' ');
-		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        ")));
-		EXPECT_EQ(result.str[result.length], 0);
-		string_deallocate(result.str);
-
-		result = string_resize(nullptr, 32, 16, 8, ' ');
-		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        ")));
-		EXPECT_EQ(result.str[result.length], 0);
-		string_deallocate(result.str);
-
  		buffer = memory_allocate(0, 64, 0, MEMORY_PERSISTENT);
  		result = string_resize(buffer, 0, 64, 8, ' ');
 		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        ")));
@@ -367,6 +349,22 @@ DECLARE_TEST(string, allocate) {
  		buffer = memory_allocate(0, 8, 0, MEMORY_PERSISTENT);
  		string_copy(buffer, 8, STRING_CONST("        "));
 		result = string_resize(buffer, 7, 8, 8, ' ');
+		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        ")));
+		EXPECT_NE(result.str, buffer);
+		EXPECT_EQ(result.str[result.length], 0);
+		string_deallocate(result.str);
+		
+		buffer = memory_allocate(0, 8, 0, MEMORY_PERSISTENT);
+		memset(buffer, ' ', 8);
+		result = string_resize(buffer, 8, 8, 12, 'a');
+		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        aaaa")));
+		EXPECT_NE(result.str, buffer);
+		EXPECT_EQ(result.str[result.length], 0);
+		string_deallocate(result.str);
+		
+		buffer = memory_allocate(0, 8, 0, MEMORY_PERSISTENT);
+		memset(buffer, ' ', 8);
+		result = string_resize(buffer, 8, 8, 8, 'a');
 		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        ")));
 		EXPECT_NE(result.str, buffer);
 		EXPECT_EQ(result.str[result.length], 0);
@@ -402,7 +400,6 @@ DECLARE_TEST(string, queries) {
 		unsigned char bomstr[] = { 0xFF, 0xFE, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0 };
 
 		EXPECT_EQ(string_glyphs(nullptr, 0), 0);
-		EXPECT_EQ(string_glyphs(nullptr, 32), 0);
 		EXPECT_EQ(string_glyphs("foobar", 0), 0);
 		EXPECT_EQ(string_glyphs("foobar", 4), 4);
 		EXPECT_INTEQ(string_glyphs((const char*)invalidstr, sizeof(invalidstr)-1), 1);
@@ -825,11 +822,6 @@ DECLARE_TEST(string, append) {
 	EXPECT_STRINGEQ(val, shortstr);
 	string_deallocate(val.str);
 
-	val = string_copy(buffer, sizeof(buffer), nullptr, 32);
-	EXPECT_EQ(val.str, buffer);
-	EXPECT_EQ(val.length, 0);
-	EXPECT_STRINGEQ(val, string_empty());
-
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_append(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(emptystr));
 	EXPECT_STRINGEQ(val, shortstr);
@@ -900,14 +892,14 @@ DECLARE_TEST(string, append) {
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortlong long long long long l")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
-	val = string_append_varg(STRING_ARGS(val), sizeof(buffer), nullptr, 128, STRING_ARGS(emptystr),
+	val = string_append_varg(STRING_ARGS(val), sizeof(buffer), nullptr, 0, STRING_ARGS(emptystr),
 	                         STRING_ARGS(shortstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
 	                         STRING_ARGS(nullstr), nullptr, 32, STRING_ARGS(longstr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("long long long long long long long long long"
 	                                               "shortlong long long long long long long long longshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
-	val = string_append_varg(STRING_ARGS(val), 2, nullptr, 128, STRING_ARGS(emptystr),
+	val = string_append_varg(STRING_ARGS(val), 2, nullptr, 0, STRING_ARGS(emptystr),
 	                         STRING_ARGS(shortstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
 	                         STRING_ARGS(nullstr), nullptr, 32, STRING_ARGS(longstr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("l")));
@@ -1033,7 +1025,7 @@ DECLARE_TEST(string, prepend) {
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("g long long long long longshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
-	val = string_prepend_varg(STRING_ARGS(val), sizeof(buffer), nullptr, 32, STRING_ARGS(emptystr),
+	val = string_prepend_varg(STRING_ARGS(val), sizeof(buffer), nullptr, 0, STRING_ARGS(emptystr),
 	                          STRING_ARGS(shortstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
 	                          STRING_ARGS(nullstr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortlong long long long long long long long longshortshort")));
@@ -1061,10 +1053,6 @@ DECLARE_TEST(string, utility) {
 		EXPECT_EQ(result.str, nullptr);
 		EXPECT_EQ(result.length, 0);
 
-		result = string_copy(nullptr, 32, STRING_CONST("foobar"));
-		EXPECT_EQ(result.str, nullptr);
-		EXPECT_EQ(result.length, 0);
-
 		result = string_copy(buffer, 0, STRING_CONST("foobar"));
 		EXPECT_EQ(result.str, buffer);
 		EXPECT_EQ(result.length, 0);
@@ -1087,11 +1075,6 @@ DECLARE_TEST(string, utility) {
 		EXPECT_EQ(result.str[result.length], 0);
 
 		result = string_copy(buffer, sizeof(buffer), nullptr, 0);
-		EXPECT_EQ(result.str, buffer);
-		EXPECT_EQ(result.length, 0);
-		EXPECT_EQ(result.str[result.length], 0);
-
-		result = string_copy(buffer, sizeof(buffer), nullptr, 32);
 		EXPECT_EQ(result.str, buffer);
 		EXPECT_EQ(result.length, 0);
 		EXPECT_EQ(result.str[result.length], 0);
@@ -1219,12 +1202,12 @@ DECLARE_TEST(string, utility) {
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("re")));
 
 			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing replace"));
-			replacestr = string_replace(STRING_ARGS(replacestr), 7, STRING_CONST("ting"),
+			replacestr = string_replace(replacestr.str, 7, 7, STRING_CONST("ting"),
 			                            STRING_CONST("1234"), true);
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes1234")));
 
 			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing replace"));
-			replacestr = string_replace(STRING_ARGS(replacestr), 7, STRING_CONST("ting"),
+			replacestr = string_replace(replacestr.str, 7, 7, STRING_CONST("ting"),
 			                            STRING_CONST("12345"), true);
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes1234")));
 			EXPECT_EQ(replacestr.str[7], ' ');
@@ -1261,13 +1244,13 @@ DECLARE_TEST(string, utility) {
 			strippedstr = string_strip(STRING_CONST("   testing strip :   "), " tesingrp:", 0);
 			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("   testing strip :   ")));
 
-			strippedstr = string_strip(STRING_CONST("   testing strip :   "), nullptr, 16);
+			strippedstr = string_strip(STRING_CONST("   testing strip :   "), nullptr, 0);
 			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("   testing strip :   ")));
 
 			strippedstr = string_strip("   testing strip :   ", 0, STRING_CONST(" tp:   "));
 			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("")));
 
-			strippedstr = string_strip(nullptr, 16, STRING_CONST(" tp:   "));
+			strippedstr = string_strip(nullptr, 0, STRING_CONST(" tp:   "));
 			EXPECT_EQ(strippedstr.str, nullptr);
 			EXPECT_EQ(strippedstr.length, 0);
 		}
@@ -1371,13 +1354,6 @@ DECLARE_TEST(string, utility) {
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
 		string_deallocate(concatstr.str);
 
-		concatstr = string_allocate_concat_varg(nullptr, 32, nullptr, 16,
-		                                        STRING_CONST(LONGSTRING LONGSTRING),
-		                                        STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING),
-		                                        nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
-		string_deallocate(concatstr.str);
-
 		concatstr = string_allocate_concat_varg(STRING_CONST(""), STRING_CONST(LONGSTRING),
 		                                        STRING_CONST(LONGSTRING LONGSTRING),
 		                                        STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING),
@@ -1419,7 +1395,7 @@ DECLARE_TEST(string, utility) {
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
 		string_deallocate(concatstr.str);
 
-		concatstr = string_concat(nullptr, sizeof(buf), STRING_ARGS(clonestr), STRING_ARGS(teststr));
+		concatstr = string_concat(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr));
 		EXPECT_EQ(concatstr.str, nullptr);
 		EXPECT_EQ(concatstr.length, 0);
 
@@ -1427,7 +1403,7 @@ DECLARE_TEST(string, utility) {
 		EXPECT_EQ(concatstr.str, buf);
 		EXPECT_EQ(concatstr.length, 0);
 
-		concatstr = string_concat(buf, sizeof(buf), nullptr, 32, nullptr, 0);
+		concatstr = string_concat(buf, sizeof(buf), nullptr, 0, nullptr, 0);
 		EXPECT_EQ(concatstr.str, buf);
 		EXPECT_EQ(concatstr.length, 0);
 
@@ -1438,7 +1414,7 @@ DECLARE_TEST(string, utility) {
 		concatstr = string_concat(buf, sizeof(buf), STRING_ARGS(clonestr3), teststr.str, 0);
 		EXPECT_STRINGEQ(concatstr, string_to_const(clonestr3));
 
-		concatstr = string_concat(buf, sizeof(buf), clonestr3.str, 4, nullptr, 4);
+		concatstr = string_concat(buf, sizeof(buf), clonestr3.str, 4, nullptr, 0);
 		EXPECT_STRINGEQ(concatstr, string_substr(STRING_ARGS(clonestr3), 0, 4));
 
 		concatstr = string_concat(buf, sizeof(buf), STRING_ARGS(clonestr), STRING_ARGS(teststr));
@@ -1479,7 +1455,7 @@ DECLARE_TEST(string, utility) {
 		EXPECT_EQ(concatstr.length, 0);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("")));
 
-		concatstr = string_concat_varg(nullptr, sizeof(buf), STRING_ARGS(clonestr), STRING_ARGS(teststr),
+		concatstr = string_concat_varg(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr),
 		                               nullptr);
 		EXPECT_EQ(concatstr.str, nullptr);
 		EXPECT_EQ(concatstr.length, 0);
@@ -1489,7 +1465,7 @@ DECLARE_TEST(string, utility) {
 		EXPECT_EQ(concatstr.str, buf);
 		EXPECT_EQ(concatstr.length, 0);
 
-		concatstr = string_concat_varg(buf, sizeof(buf), nullptr, 32, nullptr, 0,
+		concatstr = string_concat_varg(buf, sizeof(buf), nullptr, 0, nullptr, 0,
 		                               STRING_CONST(""), nullptr);
 		EXPECT_EQ(concatstr.str, buf);
 		EXPECT_EQ(concatstr.length, 0);
@@ -1502,7 +1478,7 @@ DECLARE_TEST(string, utility) {
 		                               STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING)));
 
-		concatstr = string_concat_varg(buf, sizeof(buf), "testing", 4, nullptr, 4,
+		concatstr = string_concat_varg(buf, sizeof(buf), "testing", 4, nullptr, 0,
 		                               STRING_CONST(SHORTSTRING), nullptr);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("test" SHORTSTRING)));
 
@@ -1578,17 +1554,19 @@ DECLARE_TEST(string, format) {
 		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("00000123456789AB"));
 		string_deallocate(teststr.str);
 
-		teststr = string_allocate_format(nullptr, 32);
-		EXPECT_EQ(teststr.str, nullptr);
+		teststr = string_allocate_format(nullptr, 0);
+		EXPECT_NE(teststr.str, nullptr);
 		EXPECT_EQ(teststr.length, 0);
+		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(STRING_CONST("%s"), longstr);
 		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format("%s", 0, longstr);
-		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_NE(teststr.str, nullptr);
 		EXPECT_EQ(teststr.length, 0);
+		string_deallocate(teststr.str);
 
 		//This test passed invalid data (string not zero terminated at the given length)
 		//Verify the function uses the entire string literal
@@ -1598,15 +1576,15 @@ DECLARE_TEST(string, format) {
 	}
 	{
 		string_t teststr;
-		teststr = string_format(nullptr, 32, STRING_CONST("foobar %d"), 10);
+		teststr = string_format(nullptr, 0, STRING_CONST("foobar %d"), 10);
 		EXPECT_EQ(teststr.str, nullptr);
 		EXPECT_EQ(teststr.length, 0);
 
 		teststr = string_format(buffer, 0, STRING_CONST("foobar %d"), 10);
-		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.str, buffer);
 		EXPECT_EQ(teststr.length, 0);
 
-		teststr = string_format(buffer, sizeof(buffer), nullptr, 32);
+		teststr = string_format(buffer, sizeof(buffer), nullptr, 0);
 		EXPECT_EQ(teststr.str, buffer);
 		EXPECT_EQ(teststr.length, 0);
 
@@ -1639,17 +1617,19 @@ DECLARE_TEST(string, format) {
 		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("00000123456789AB"));
 		string_deallocate(teststr.str);
 
-		teststr = string_allocate_vformat_wrapper(nullptr, 32);
-		EXPECT_EQ(teststr.str, nullptr);
+		teststr = string_allocate_vformat_wrapper(nullptr, 0);
+		EXPECT_NE(teststr.str, nullptr);
 		EXPECT_EQ(teststr.length, 0);
+		string_deallocate(teststr.str);
 
 		teststr = string_allocate_vformat_wrapper(STRING_CONST("%s"), longstr);
 		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_vformat_wrapper("%s", 0, longstr);
-		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_NE(teststr.str, nullptr);
 		EXPECT_EQ(teststr.length, 0);
+		string_deallocate(teststr.str);
 
 		//This test passed invalid data (string not zero terminated at the given length)
 		//Verify the function uses the entire string literal
@@ -1659,15 +1639,15 @@ DECLARE_TEST(string, format) {
 	}
 	{
 		string_t teststr;
-		teststr = string_vformat_wrapper(nullptr, 32, STRING_CONST("foobar %d"), 10);
+		teststr = string_vformat_wrapper(nullptr, 0, STRING_CONST("foobar %d"), 10);
 		EXPECT_EQ(teststr.str, nullptr);
 		EXPECT_EQ(teststr.length, 0);
 
 		teststr = string_vformat_wrapper(buffer, 0, STRING_CONST("foobar %d"), 10);
-		EXPECT_EQ(teststr.str, nullptr);
+		EXPECT_EQ(teststr.str, buffer);
 		EXPECT_EQ(teststr.length, 0);
 
-		teststr = string_vformat_wrapper(buffer, sizeof(buffer), nullptr, 32);
+		teststr = string_vformat_wrapper(buffer, sizeof(buffer), nullptr, 0);
 		EXPECT_EQ(teststr.str, buffer);
 		EXPECT_EQ(teststr.length, 0);
 
