@@ -122,10 +122,10 @@ DECLARE_TEST(crash, assert_callback) {
 	          1234);
 	EXPECT_EQ(assert_handler(), handle_assert);
 	EXPECT_EQ(handled_context, 1);
-	EXPECT_STREQ(handled_condition, string_length(handled_condition), "condition", 9);
-	EXPECT_STREQ(handled_file, string_length(handled_file), "file", 4);
+	EXPECT_STRINGEQ(string(handled_condition, string_length(handled_condition)), string_const(STRING_CONST("condition")));
+	EXPECT_STRINGEQ(string(handled_file, string_length(handled_file)), string_const(STRING_CONST("file")));
 	EXPECT_EQ(handled_line, 2);
-	EXPECT_STREQ(handled_msg, string_length(handled_msg), "msg", 3);
+	EXPECT_STRINGEQ(string(handled_msg, string_length(handled_msg)), string_const(STRING_CONST("msg")));
 
 	assert_set_handler(0);
 	EXPECT_EQ(assert_handler(), 0);
@@ -229,8 +229,7 @@ DECLARE_TEST(crash, error) {
 		log_info(HASH_TEST, STRING_CONST("Check context"));
 		EXPECT_NE(error_context(), 0);
 		EXPECT_EQ(error_context()->depth, 1);
-		EXPECT_STREQ(error_context()->frame[0].name.str, error_context()->frame[0].name.length,
-		             "test context", 12);
+		EXPECT_CONSTSTRINGEQ(error_context()->frame[0].name, string_const(STRING_CONST("test context")));
 		EXPECT_EQ(error_context()->frame[0].data.str, context_data);
 		EXPECT_EQ(error_context()->frame[0].data.length, sizeof(context_data) - 1);
 #endif
@@ -251,7 +250,7 @@ DECLARE_TEST(crash, error) {
 		error_context_clear();
 		contextstr = error_context_buffer(context_buffer, 512);
 #if BUILD_ENABLE_ERROR_CONTEXT
-		EXPECT_STREQ(contextstr.str, contextstr.length, "", 0);
+		EXPECT_STRINGEQ(contextstr, string_empty());
 #endif
 	}
 

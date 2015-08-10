@@ -1103,49 +1103,49 @@ DECLARE_TEST(string, utility) {
 		                           sizeof(explodearr) / sizeof(explodearr[0]), false);
 
 		EXPECT_EQ(numtokens, 11);
-		EXPECT_STREQ(STRING_ARGS(explodearr[0]), STRING_CONST("testing"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[1]), STRING_CONST("utility"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[2]), STRING_CONST("string"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[3]), STRING_CONST("methods"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[4]), STRING_CONST("like"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[5]), STRING_CONST("finds"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[6]), STRING_CONST("split"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[7]), STRING_CONST("merge"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[8]), STRING_CONST("explode"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[9]), STRING_CONST("and"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[10]), STRING_CONST("similar"));
+		EXPECT_CONSTSTRINGEQ(explodearr[0], string_const(STRING_CONST("testing")));
+		EXPECT_CONSTSTRINGEQ(explodearr[1], string_const(STRING_CONST("utility")));
+		EXPECT_CONSTSTRINGEQ(explodearr[2], string_const(STRING_CONST("string")));
+		EXPECT_CONSTSTRINGEQ(explodearr[3], string_const(STRING_CONST("methods")));
+		EXPECT_CONSTSTRINGEQ(explodearr[4], string_const(STRING_CONST("like")));
+		EXPECT_CONSTSTRINGEQ(explodearr[5], string_const(STRING_CONST("finds")));
+		EXPECT_CONSTSTRINGEQ(explodearr[6], string_const(STRING_CONST("split")));
+		EXPECT_CONSTSTRINGEQ(explodearr[7], string_const(STRING_CONST("merge")));
+		EXPECT_CONSTSTRINGEQ(explodearr[8], string_const(STRING_CONST("explode")));
+		EXPECT_CONSTSTRINGEQ(explodearr[9], string_const(STRING_CONST("and")));
+		EXPECT_CONSTSTRINGEQ(explodearr[10], string_const(STRING_CONST("similar")));
 
 		memset(explodearr, 0, sizeof(explodearr));
 		numtokens = string_explode(STRING_ARGS(explodestr), STRING_CONST(" ,."), explodearr, 3, false);
 
 		EXPECT_EQ(numtokens, 3);
-		EXPECT_STREQ(STRING_ARGS(explodearr[0]), STRING_CONST("testing"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[1]), STRING_CONST("utility"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[2]), STRING_CONST("string"));
+		EXPECT_CONSTSTRINGEQ(explodearr[0], string_const(STRING_CONST("testing")));
+		EXPECT_CONSTSTRINGEQ(explodearr[1], string_const(STRING_CONST("utility")));
+		EXPECT_CONSTSTRINGEQ(explodearr[2], string_const(STRING_CONST("string")));
 		EXPECT_EQ(explodearr[3].str, 0);
 		EXPECT_EQ(explodearr[3].length, 0);
 
 		numtokens = string_explode(STRING_ARGS(mergestr2), STRING_CONST(" .,"), explodearr, 32, true);
 
 		EXPECT_EQ(numtokens, 12);
-		EXPECT_STREQ(STRING_ARGS(explodearr[0]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[1]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[2]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[3]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[4]), STRING_CONST("testing"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[5]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[6]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[7]), STRING_CONST("merge"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[8]), STRING_CONST("string"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[9]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[10]), STRING_CONST(""));
-		EXPECT_STREQ(STRING_ARGS(explodearr[11]), STRING_CONST(""));
+		EXPECT_CONSTSTRINGEQ(explodearr[0], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[1], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[2], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[3], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[4], string_const(STRING_CONST("testing")));
+		EXPECT_CONSTSTRINGEQ(explodearr[5], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[6], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[7], string_const(STRING_CONST("merge")));
+		EXPECT_CONSTSTRINGEQ(explodearr[8], string_const(STRING_CONST("string")));
+		EXPECT_CONSTSTRINGEQ(explodearr[9], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[10], string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(explodearr[11], string_const(STRING_CONST("")));
 
 		numtokens = string_explode(STRING_ARGS(mergestr2), STRING_CONST(" .,"), explodearr, 32, false);
 		EXPECT_EQ(numtokens, 3);
-		EXPECT_STREQ(STRING_ARGS(explodearr[0]), STRING_CONST("testing"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[1]), STRING_CONST("merge"));
-		EXPECT_STREQ(STRING_ARGS(explodearr[2]), STRING_CONST("string"));
+		EXPECT_CONSTSTRINGEQ(explodearr[0], string_const(STRING_CONST("testing")));
+		EXPECT_CONSTSTRINGEQ(explodearr[1], string_const(STRING_CONST("merge")));
+		EXPECT_CONSTSTRINGEQ(explodearr[2], string_const(STRING_CONST("string")));
 
 		numtokens = string_explode(STRING_ARGS(mergestr2), STRING_CONST(" .,"), explodearr, 32, true);
 		merged = string_merge(buffer, sizeof(buffer), explodearr, numtokens, STRING_CONST(" "));
@@ -1543,15 +1543,15 @@ DECLARE_TEST(string, format) {
 		string_t teststr;
 
 		teststr = string_allocate_format(STRING_CONST("%" PRId64), ival);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("-1"));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("-1")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(STRING_CONST("0x%" PRIx64), ival);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("0xffffffffffffffff"));
+		EXPECT_STRINGEQ(teststr,  string_const(STRING_CONST("0xffffffffffffffff")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(STRING_CONST("%016" PRIX64), uval);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("00000123456789AB"));
+		EXPECT_STRINGEQ(teststr,  string_const(STRING_CONST("00000123456789AB")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(nullptr, 0);
@@ -1560,7 +1560,7 @@ DECLARE_TEST(string, format) {
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(STRING_CONST("%s"), longstr);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		EXPECT_STRINGEQ(teststr,  string_const(STRING_CONST(longstr)));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format("%s", 0, longstr);
@@ -1571,7 +1571,7 @@ DECLARE_TEST(string, format) {
 		//This test passed invalid data (string not zero terminated at the given length)
 		//Verify the function uses the entire string literal
 		teststr = string_allocate_format("%s", 1, longstr);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST(longstr)));
 		string_deallocate(teststr.str);
 	}
 	{
@@ -1595,7 +1595,7 @@ DECLARE_TEST(string, format) {
 		//This test passed invalid data (string not zero terminated at the given length)
 		//Verify the function uses the entire string literal
 		teststr = string_format(buffer, sizeof(buffer), "%d", 1, 10);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("10"));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("10")));
 	}
 	{
 		int64_t ival = -1;
@@ -1606,15 +1606,15 @@ DECLARE_TEST(string, format) {
 		string_t teststr;
 
 		teststr = string_allocate_vformat_wrapper(STRING_CONST("%" PRId64), ival);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("-1"));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("-1")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_vformat_wrapper(STRING_CONST("0x%" PRIx64), ival);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("0xffffffffffffffff"));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("0xffffffffffffffff")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_vformat_wrapper(STRING_CONST("%016" PRIX64), uval);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("00000123456789AB"));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("00000123456789AB")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_vformat_wrapper(nullptr, 0);
@@ -1623,7 +1623,7 @@ DECLARE_TEST(string, format) {
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_vformat_wrapper(STRING_CONST("%s"), longstr);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST(longstr)));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_vformat_wrapper("%s", 0, longstr);
@@ -1634,7 +1634,7 @@ DECLARE_TEST(string, format) {
 		//This test passed invalid data (string not zero terminated at the given length)
 		//Verify the function uses the entire string literal
 		teststr = string_allocate_vformat_wrapper("%s", 1, longstr);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST(longstr));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST(longstr)));
 		string_deallocate(teststr.str);
 	}
 	{
@@ -1658,7 +1658,7 @@ DECLARE_TEST(string, format) {
 		//This test passed invalid data (string not zero terminated at the given length)
 		//Verify the function uses the entire string literal
 		teststr = string_vformat_wrapper(buffer, sizeof(buffer), "%d", 1, 10);
-		EXPECT_STREQ(STRING_ARGS(teststr), STRING_CONST("10"));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("10")));
 	}
 	{
 		int64_t ival = -1;
@@ -1666,13 +1666,13 @@ DECLARE_TEST(string, format) {
 		string_t teststr1, teststr2, teststr3;
 
 		teststr1 = string_format(buffer, sizeof(buffer), STRING_CONST("%" PRId64), ival);
-		EXPECT_STREQ(STRING_ARGS(teststr1), STRING_CONST("-1"));
+		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("-1")));
 
 		teststr2 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIx64), ival);
-		EXPECT_STREQ(STRING_ARGS(teststr2), STRING_CONST("0xffffffffffffffff"));
+		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xffffffffffffffff")));
 
 		teststr3 = string_format(buffer, 8, STRING_CONST("%016" PRIX64), uval);
-		EXPECT_STREQ(STRING_ARGS(teststr3), STRING_CONST("0000012"));
+		EXPECT_STRINGEQ(teststr3, string_const(STRING_CONST("0000012")));
 	}
 	{
 		string_t teststr1 = string_allocate_format(STRING_CONST("0x%" PRIfixPTR), (uintptr_t)nullptr);
@@ -1681,13 +1681,13 @@ DECLARE_TEST(string, format) {
 		                                           (uintptr_t)((void*)0x1234abULL));
 
 #if FOUNDATION_SIZE_POINTER == 8
-		EXPECT_STREQ(STRING_ARGS(teststr1), STRING_CONST("0x0000000000000000"));
-		EXPECT_STREQ(STRING_ARGS(teststr2), STRING_CONST("0xFFFFFFFFFFFFFFFF"));
-		EXPECT_STREQ(STRING_ARGS(teststr3), STRING_CONST("0x00000000001234AB"));
+		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("0x0000000000000000")));
+		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xFFFFFFFFFFFFFFFF")));
+		EXPECT_STRINGEQ(teststr3, string_const(STRING_CONST("0x00000000001234AB")));
 #else
-		EXPECT_STREQ(STRING_ARGS(teststr1), STRING_CONST("0x00000000"));
-		EXPECT_STREQ(STRING_ARGS(teststr2), STRING_CONST("0xFFFFFFFF"));
-		EXPECT_STREQ(STRING_ARGS(teststr3), STRING_CONST("0x001234AB"));
+		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("0x00000000")));
+		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xFFFFFFFF")));
+		EXPECT_STRINGEQ(teststr3, string_const(STRING_CONST("0x001234AB")));
 #endif
 
 		string_deallocate(teststr1.str);
@@ -1698,25 +1698,25 @@ DECLARE_TEST(string, format) {
 		string_t teststr1 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIfixPTR),
 		                                  (uintptr_t)nullptr);
 #if FOUNDATION_SIZE_POINTER == 8
-		EXPECT_STREQ(STRING_ARGS(teststr1), STRING_CONST("0x0000000000000000"));
+		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("0x0000000000000000")));
 #else
-		EXPECT_STREQ(STRING_ARGS(teststr1), STRING_CONST("0x00000000"));
+		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("0x00000000")));
 #endif
 
 		string_t teststr2 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIfixPTR),
 		                                  (uintptr_t)((void*) - 1));
 #if FOUNDATION_SIZE_POINTER == 8
-		EXPECT_STREQ(STRING_ARGS(teststr2), STRING_CONST("0xFFFFFFFFFFFFFFFF"));
+		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xFFFFFFFFFFFFFFFF")));
 #else
-		EXPECT_STREQ(STRING_ARGS(teststr2), STRING_CONST("0xFFFFFFFF"));
+		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xFFFFFFFF")));
 #endif
 
 		string_t teststr3 = string_format(buffer, 8, STRING_CONST("0x%" PRIfixPTR),
 		                                  (uintptr_t)((void*)0x1234abULL));
 #if FOUNDATION_SIZE_POINTER == 8
-		EXPECT_STREQ(STRING_ARGS(teststr3), STRING_CONST("0x00000"));
+		EXPECT_STRINGEQ(teststr3, string_const(STRING_CONST("0x00000")));
 #else
-		EXPECT_STREQ(STRING_ARGS(teststr3), STRING_CONST("0x00123"));
+		EXPECT_STRINGEQ(teststr3, string_const(STRING_CONST("0x00123")));
 #endif
 	}
 	return 0;

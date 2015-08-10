@@ -213,7 +213,7 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 
 		return FOUNDATION_CRASH_DUMP_GENERATED;
 	}
-	string_deallocatre(crash_dump_file.str);
+	string_deallocate(crash_dump_file.str);
 #  else
 	SetUnhandledExceptionFilter(_crash_exception_filter);
 	_crash_exception_closure.callback = callback;

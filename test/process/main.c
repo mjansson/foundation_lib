@@ -60,7 +60,7 @@ DECLARE_TEST(process, spawn) {
 	bool found_file;
 	char line_buffer[512];
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_const_t prog = environment_variable("comspec");
+	string_const_t prog = environment_variable(STRING_CONST("comspec"));
 	string_const_t args[] = { string_const(STRING_CONST("/C")), string_const(STRING_CONST("dir")), string_null() };
 #elif FOUNDATION_PLATFORM_POSIX
 	string_const_t prog = string_const(STRING_CONST("/bin/ls"));

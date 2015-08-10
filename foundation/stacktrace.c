@@ -117,7 +117,7 @@ _stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
 #  endif
 
 static int
-_capture_stack_trace_helper(void** trace, unsigned int max_depth, unsigned int skip_frames,
+_capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
                             CONTEXT* context) {
 	STACKFRAME64   stack_frame;
 	HANDLE         process_handle;
@@ -376,7 +376,8 @@ _initialize_stackwalker() {
 		void* dll = LoadLibraryA("DBGHELP.DLL");
 		CallStackWalk64 = dll ? (StackWalk64Fn)GetProcAddress(dll, "StackWalk64") : 0;
 		if (!CallStackWalk64) {
-			log_warn(0, WARNING_SYSTEM_CALL_FAIL, "Unable to load dbghelp DLL for StackWalk64");
+			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
+			         STRING_CONST("Unable to load dbghelp DLL for StackWalk64"));
 			return false;
 		}
 
@@ -384,7 +385,8 @@ _initialize_stackwalker() {
 		CallRtlCaptureStackBackTrace = dll ? (RtlCaptureStackBackTraceFn)GetProcAddress(dll,
 		                               "RtlCaptureStackBackTrace") : 0;
 		if (!CallRtlCaptureStackBackTrace) {
-			log_warn(0, WARNING_SYSTEM_CALL_FAIL, "Unable to load ntdll DLL for RtlCaptureStackBackTrace");
+			log_warn(0, WARNING_SYSTEM_CALL_FAIL, 
+			         STRING_CONST("Unable to load ntdll DLL for RtlCaptureStackBackTrace"));
 			return false;
 		}
 	}
@@ -419,7 +421,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	++skip_frames;
 #  if USE_CAPTURESTACKBACKTRACE
 	if (CallRtlCaptureStackBackTrace) {
-		num_frames = CallRtlCaptureStackBackTrace(skip_frames, max_depth, trace, 0);
+		num_frames = CallRtlCaptureStackBackTrace((DWORD)skip_frames, (DWORD)max_depth, trace, 0);
 		if (num_frames < max_depth)
 			memset(trace + num_frames, 0, sizeof(void*) * (max_depth - num_frames));
 	}
@@ -606,7 +608,7 @@ _initialize_symbol_resolve() {
 }
 
 static FOUNDATION_NOINLINE string_t
-_resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frames) {
+_resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_frames) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_t*           lines = 0;
 	char                symbol_buffer[ sizeof(IMAGEHLP_SYMBOL64) + 512 ];
@@ -621,9 +623,10 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 	bool                last_was_main = false;
 	IMAGEHLP_LINE64     line64;
 	IMAGEHLP_MODULE64   module64;
+	string_t            resolved = {buffer, 0};
 
-	for (iaddr = 0; (iaddr < max_frames) && !last_was_main; ++iaddr) {
-		char* resolved = 0;
+	for (iaddr = 0; (iaddr < max_frames) && !last_was_main && (resolved.length < capacity-1); ++iaddr) {
+		string_t line;
 		const char* function_name = "??";
 		const char* file_name = "??";
 		const char* module_name = "??";
@@ -668,20 +671,24 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 		    CallSymGetModuleInfo64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &module64)) {
 			size_t last_slash = STRING_NPOS;
 			module_name = module64.ImageName;
-			last_slash = string_rfind(module_name, '\\', STRING_NPOS);
+			last_slash = string_rfind(module_name, string_length(module_name), '\\', STRING_NPOS);
 			if (last_slash != STRING_NPOS)
 				module_name += last_slash + 1;
 		}
 
-		resolved = string_format("[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]", frames[iaddr],
-		                         function_name, file_name, line_number, displacement, module_name);
-		array_push(lines, resolved);
+		if (resolved.length)
+			resolved.str[resolved.length++] = '\n';
+		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
+		                         STRING_CONST("[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]"),
+		                         frames[iaddr], function_name, file_name, line_number,
+		                         displacement, module_name);
+		resolved.length += line.length;
 
-		if (string_equal(function_name, "main"))
+		if (string_equal(function_name, string_length(function_name), STRING_CONST("main")))
 			last_was_main = true;
 	}
 
-	return lines;
+	return resolved;
 
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
@@ -691,7 +698,7 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 	for (unsigned int iframe = 0; iframe < max_frames; ++iframe) {
 		size_t length = string_length(resolved[iframe]);
 		if (length)
-			symbols = string_append_varg(symbols.str, symbols.length, size, resolved[iframe], length,
+			symbols = string_append_varg(symbols.str, symbols.length, capacity, resolved[iframe], length,
 			                             STRING_CONST(STRING_NEWLINE), nullptr);
 	}
 	free(resolved);
@@ -714,7 +721,7 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 			//Allow first frame to be null in case of a function call to a null pointer
 			if (iaddr && !frames[iaddr])
 				break;
-			line = string_format(resolved.str + resolved.length, size - resolved.length,
+			line = string_format(resolved.str + resolved.length, capacity - resolved.length,
 								 STRING_CONST("[0x%" PRIfixPTR "]" STRING_NEWLINE),
 								 (uintptr_t)frames[iaddr]);
 			resolved.length += line.length;
@@ -731,7 +738,7 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 		if (iaddr && !frames[iaddr])
 			break;
 
-		line = string_format(resolved.str + resolved.length, size - resolved.length,
+		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
 							 STRING_CONST("0x%" PRIfixPTR), (uintptr_t)frames[iaddr]);
 		resolved.length += line.length;
 		
@@ -749,24 +756,24 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 
 	resolved.length = 0;
 	while (!stream_eos(procout) && (num_frames < requested_frames) && !last_was_main) {
-		line = string_format(resolved.str + resolved.length, size - resolved.length,
+		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
 							 STRING_CONST("[0x%" PRIfixPTR "] "), (uintptr_t)frames[num_frames]);
 		resolved.length += line.length;
 		
-		function = stream_read_line_buffer(procout, resolved.str + resolved.length, size - resolved.length, '\n');
+		function = stream_read_line_buffer(procout, resolved.str + resolved.length, capacity - resolved.length, '\n');
 		if (!function.length)
-			function = string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST("??"));
+			function = string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST("??"));
 		resolved.length += function.length;
 
-		string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST(" ("));
+		string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST(" ("));
 		resolved.length += 2;
 		
-		filename = stream_read_line_buffer(procout, resolved.str + resolved.length, size - resolved.length, '\n');
+		filename = stream_read_line_buffer(procout, resolved.str + resolved.length, capacity - resolved.length, '\n');
 		if (!filename.length)
-			filename = string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST("??"));
+			filename = string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST("??"));
 		resolved.length += filename.length;
 
-		string_copy(resolved.str + resolved.length, size - resolved.length, STRING_CONST(")" STRING_NEWLINE));
+		string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST(")" STRING_NEWLINE));
 		resolved.length += 2;
 
 		if (string_equal(STRING_ARGS(function), STRING_CONST("main")))
@@ -811,7 +818,7 @@ _resolve_stack_frames(char* buffer, size_t size, void** frames, size_t max_frame
 		line = string_format(linebuf, sizeof(linebuf),
 		                     STRING_CONST("[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %*s\n"),
 		                     (uintptr_t)frames[iaddr], (uintptr_t)relativeframe, STRING_FORMAT(module));
-		symbols = string_append(STRING_ARGS(symbols), size, STRING_ARGS(line));
+		symbols = string_append(STRING_ARGS(symbols), capacity, STRING_ARGS(line));
 	}
 
 	return symbols;

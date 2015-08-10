@@ -58,7 +58,7 @@ DECLARE_TEST(library, lookup) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	libraryname = string_const(STRING_CONST("kernel32"));
-	symbolname = string_const(STRING_CONST("ExitProcess");
+	symbolname = string_const(STRING_CONST("ExitProcess"));
 #elif FOUNDATION_PLATFORM_APPLE
 	libraryname = string_const(STRING_CONST("dl"));
 	symbolname = string_const(STRING_CONST("dlsym"));

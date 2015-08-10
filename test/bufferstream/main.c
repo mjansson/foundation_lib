@@ -64,7 +64,7 @@ DECLARE_TEST(bufferstream, null) {
 	EXPECT_FALSE(stream_is_sequential(stream));
 	EXPECT_TRUE(stream_is_reliable(stream));
 	EXPECT_TRUE(stream_is_inorder(stream));
-	EXPECT_STREQ(stream_path(stream).str, 11, "buffer://0x", 11);
+	EXPECT_CONSTSTRINGEQ(string_const(stream_path(stream).str, 11), string_const(STRING_CONST("buffer://0x")));
 	EXPECT_GE(stream_last_modified(stream), curtime);
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5zero));
@@ -122,7 +122,7 @@ DECLARE_TEST(bufferstream, zero) {
 	EXPECT_FALSE(stream_is_sequential(stream));
 	EXPECT_TRUE(stream_is_reliable(stream));
 	EXPECT_TRUE(stream_is_inorder(stream));
-	EXPECT_STREQ(stream_path(stream).str, 11, "buffer://0x", 11);
+	EXPECT_CONSTSTRINGEQ(string_const(stream_path(stream).str, 11), string_const(STRING_CONST("buffer://0x")));
 	EXPECT_GE(stream_last_modified(stream), curtime);
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));
@@ -180,7 +180,7 @@ DECLARE_TEST(bufferstream, null_grow) {
 	EXPECT_FALSE(stream_is_sequential(stream));
 	EXPECT_TRUE(stream_is_reliable(stream));
 	EXPECT_TRUE(stream_is_inorder(stream));
-	EXPECT_STREQ(stream_path(stream).str, 11, "buffer://0x", 11);
+	EXPECT_CONSTSTRINGEQ(string_const(stream_path(stream).str, 11), string_const(STRING_CONST("buffer://0x")));
 	EXPECT_GE(stream_last_modified(stream), curtime);
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));

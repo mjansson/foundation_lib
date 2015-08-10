@@ -356,11 +356,18 @@ fs_subdirs(const char* path, size_t length) {
 	//Windows specific implementation of directory listing
 	HANDLE find;
 	WIN32_FIND_DATAW data;
-	string_t pattern = path_append(string_clone(path, length).str, length, STRING_CONST("*"));
-	wchar_t* wpattern = wstring_allocate_from_string(pattern.str, pattern.length);
-	string_deallocate(pattern.str);
+	wchar_t* wpattern;
+	size_t wsize = length;
+	size_t capacity = length + 2;
 
 	memory_context_push(HASH_STREAM);
+
+	wpattern = memory_allocate(0, sizeof(wchar_t) * capacity, 0, MEMORY_TEMPORARY);
+	wstring_from_string(wpattern, capacity, path, length);
+	if (length && (path[length-1] != '/'))
+		wpattern[wsize++] = L'/';
+	wpattern[wsize++] = L'*';
+	wpattern[wsize] = 0;
 
 	find = FindFirstFileW(wpattern, &data);
 	if (find != INVALID_HANDLE_VALUE) do {
@@ -375,9 +382,8 @@ fs_subdirs(const char* path, size_t length) {
 		while (FindNextFileW(find, &data));
 	FindClose(find);
 
+	memory_deallocate(wpattern);
 	memory_context_pop();
-
-	wstring_deallocate(wpattern);
 
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -462,11 +468,18 @@ fs_files(const char* path, size_t length) {
 	//Windows specific implementation of directory listing
 	HANDLE find;
 	WIN32_FIND_DATAW data;
-	char* pattern = path_append(string_clone(path), "*");
-	wchar_t* wpattern = wstring_allocate_from_string(pattern, 0);
-	string_deallocate(pattern);
+	wchar_t* wpattern;
+	size_t wsize = length;
+	size_t capacity = length + 2;
 
 	memory_context_push(HASH_STREAM);
+
+	wpattern = memory_allocate(0, sizeof(wchar_t) * capacity, 0, MEMORY_TEMPORARY);
+	wstring_from_string(wpattern, capacity, path, length);
+	if (length && (path[length-1] != '/'))
+		wpattern[wsize++] = L'/';
+	wpattern[wsize++] = L'*';
+	wpattern[wsize] = 0;
 
 	find = FindFirstFileW(wpattern, &data);
 	if (find != INVALID_HANDLE_VALUE) do {
@@ -476,9 +489,8 @@ fs_files(const char* path, size_t length) {
 		while (FindNextFileW(find, &data));
 	FindClose(find);
 
+	memory_deallocate(wpattern);
 	memory_context_pop();
-
-	wstring_deallocate(wpattern);
 
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -575,7 +587,7 @@ fs_remove_file(const char* path, size_t length) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	wchar_t* wpath = wstring_allocate_from_string(fspath.str, fspath.length);
+	wpath = wstring_allocate_from_string(fspath.str, fspath.length);
 	result = DeleteFileW(wpath);
 	wstring_deallocate(wpath);
 
@@ -817,9 +829,11 @@ fs_last_modified(const char* path, size_t length) {
 	wchar_t* wpath;
 	WIN32_FILE_ATTRIBUTE_DATA attrib;
 	BOOL success = 0;
+	string_const_t cpath;
 	memset(&attrib, 0, sizeof(attrib));
 
-	wpath = wstring_allocate_from_string(_fs_path(path), 0);
+	cpath = _fs_path(path, length);
+	wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 	success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
 	wstring_deallocate(wpath);
 
@@ -889,7 +903,8 @@ fs_md5(const char* path, size_t length) {
 void
 fs_touch(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	wchar_t* wpath = wstring_allocate_from_string(_fs_path(path), 0);
+	string_const_t cpath = _fs_path(path, length);
+	wchar_t* wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 	_wutime(wpath, 0);
 	wstring_deallocate(wpath);
 #elif FOUNDATION_PLATFORM_POSIX
@@ -938,30 +953,38 @@ _fs_matching_files(const char* path, size_t length, regex_t* pattern, bool recur
 
 	//Windows specific implementation of directory listing
 	WIN32_FIND_DATAW data;
-	char filename[FOUNDATION_MAX_PATHLEN];
-	char* pathpattern = path_concat(path, "*");
-	wchar_t* wpattern = wstring_allocate_from_string(pathpattern, 0);
-
-	HANDLE find = FindFirstFileW(wpattern, &data);
+	char filename[BUILD_MAX_PATHLEN];
+	wchar_t* wpattern;
+	size_t wsize = length;
+	capacity = length + 2;
 
 	memory_context_push(HASH_STREAM);
 
+	wpattern = memory_allocate(0, sizeof(wchar_t) * capacity, 0, MEMORY_TEMPORARY);
+	wstring_from_string(wpattern, capacity, path, length);
+	if (length && (path[length-1] != '/'))
+		wpattern[wsize++] = L'/';
+	wpattern[wsize++] = L'*';
+	wpattern[wsize] = 0;
+
+	HANDLE find = FindFirstFileW(wpattern, &data);
+
 	if (find != INVALID_HANDLE_VALUE) do {
 			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				string_convert_utf16(filename, data.cFileName, FOUNDATION_MAX_PATHLEN,
-				                     wstring_length(data.cFileName));
-				if (regex_match(pattern, filename, string_length(filename), 0, 0))
-					array_push(names, path_clean(string_clone(filename), false));
+				string_t filestr = string_convert_utf16(filename, BUILD_MAX_PATHLEN, data.cFileName,
+				                                        wstring_length(data.cFileName));
+				if (regex_match(pattern, STRING_ARGS(filestr), 0, 0)) {
+					filestr = string_clone(STRING_ARGS(filestr));
+					array_push(names, path_clean(STRING_ARGS(filestr), false));
+				}
 			}
 		}
 		while (FindNextFileW(find, &data));
 
+	memory_deallocate(wpattern);
 	memory_context_pop();
 
 	FindClose(find);
-
-	wstring_deallocate(wpattern);
-	string_deallocate(pathpattern);
 
 #else
 
@@ -1147,8 +1170,11 @@ _fs_monitor(object_t thread, void* monitorptr) {
 	handles[1] = CreateEvent(0, FALSE, FALSE, 0);
 
 	if (handles[1] == INVALID_HANDLE_VALUE) {
-		log_warnf(0, WARNING_SUSPICIOUS, "Unable to create event to monitor path: %s : %s", monitor_path,
-		          system_error_message(GetLastError()));
+#if BUILD_ENABLE_LOG
+		string_const_t errstr = system_error_message(GetLastError());
+#endif
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %s : %*s"),
+		          monitor_path, STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
 
@@ -1196,8 +1222,11 @@ _fs_monitor(object_t thread, void* monitorptr) {
 		wstring_deallocate(wfpath);
 	}
 	if (dir == INVALID_HANDLE_VALUE) {
-		log_warnf(0, WARNING_SUSPICIOUS, "Unable to open handle for path: %s : %s", monitor_path,
-		          system_error_message(GetLastError()));
+#if BUILD_ENABLE_LOG
+		string_const_t errstr = system_error_message(GetLastError());
+#endif
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %s : %*s"),
+		          monitor_path, STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
 
@@ -1217,8 +1246,11 @@ _fs_monitor(object_t thread, void* monitorptr) {
 		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size,
 		                                &overlap, 0);
 		if (!success) {
-			log_warnf(0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor_path,
-			          system_error_message(GetLastError()));
+#if BUILD_ENABLE_LOG
+			string_const_t errstr = system_error_message(GetLastError());
+#endif
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %*s"),
+			          monitor_path, STRING_FORMAT(errstr));
 			goto exit_thread;
 		}
 
@@ -1240,8 +1272,11 @@ _fs_monitor(object_t thread, void* monitorptr) {
 
 				success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
 				if (!success) {
-					log_warnf(0, WARNING_SUSPICIOUS, "Unable to read directory changes for path: %s : %s", monitor_path,
-					          system_error_message(GetLastError()));
+#if BUILD_ENABLE_LOG
+					string_const_t errstr = system_error_message(GetLastError());
+#endif
+					log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %*s"),
+					          monitor_path, STRING_FORMAT(errstr));
 				}
 				else {
 					//log_debugf( 0, "File system changed: %s (%d bytes)", monitor_path, transferred );
@@ -1250,15 +1285,15 @@ _fs_monitor(object_t thread, void* monitorptr) {
 					do {
 						int numchars = info->FileNameLength / sizeof(wchar_t);
 						wchar_t term = info->FileName[ numchars ];
-						char* utfstr;
-						char* fullpath;
+						string_t utfstr;
+						string_t fullpath;
 						foundation_event_id event = 0;
 
 						info->FileName[ numchars ] = 0;
-						utfstr = string_allocate_from_wstring(info->FileName, 0);
-						fullpath = path_concat(monitor_path, utfstr);
+						utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
+						fullpath = path_allocate_concat(monitor_path, string_length(monitor_path), STRING_ARGS(utfstr));
 
-						if (fs_is_directory(fullpath)) {
+						if (fs_is_directory(STRING_ARGS(fullpath))) {
 							//Ignore directory changes
 						}
 						else {
@@ -1266,7 +1301,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 							switch (info->Action) {
 							case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
 							case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
-							case FILE_ACTION_MODIFIED:  if (fs_is_file(fullpath)) event = FOUNDATIONEVENT_FILE_MODIFIED; break;
+							case FILE_ACTION_MODIFIED:  if (fs_is_file(STRING_ARGS(fullpath))) event = FOUNDATIONEVENT_FILE_MODIFIED; break;
 
 							//Treat rename as delete/add pair
 							case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
@@ -1276,10 +1311,10 @@ _fs_monitor(object_t thread, void* monitorptr) {
 							}
 
 							if (event)
-								fs_post_event(event, fullpath, 0);
+								fs_post_event(event, STRING_ARGS(fullpath));
 						}
-						string_deallocate(utfstr);
-						string_deallocate(fullpath);
+						string_deallocate(utfstr.str);
+						string_deallocate(fullpath.str);
 
 						info->FileName[ numchars ] = term;
 
@@ -1641,6 +1676,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
+	string_const_t cpath;
 	wchar_t* wpath;
 #endif
 
@@ -1677,23 +1713,32 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	fspath = _fs_path(file->path.str, file->path.length);
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	wpath = wstring_allocate_from_string(_fs_path(file->path), 0);
+	cpath = _fs_path(STRING_ARGS(file->path));
+	wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 	fd = CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0);
 	wstring_deallocate(wpath);
 #  if FOUNDATION_ARCH_X86_64
 	if (length < 0xFFFFFFFF)
 #  endif
 	{
-		if (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
-			log_warnf(0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%" PRIsize " bytes): %s",
-			          _fs_path(file->path), length, system_error_message(GetLastError()));
+		if (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
+#if BUILD_ENABLE_LOG
+			string_const_t errstr = system_error_message(GetLastError());
+#endif
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s"),
+			          STRING_ARGS(cpath), length, STRING_ARGS(errstr));
+		}
 	}
 #  if FOUNDATION_ARCH_X86_64
 	else {
 		LONG high = (LONG)(length >> 32LL);
-		if (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
-			log_warnf(0, WARNING_SUSPICIOUS, "Unable to truncate real file %s (%" PRIsize " bytes): %s",
-			          _fs_path(file->path), length, system_error_message(GetLastError()));
+		if (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
+#if BUILD_ENABLE_LOG
+			string_const_t errstr = system_error_message(GetLastError());
+#endif
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s"),
+			          STRING_ARGS(cpath), length, STRING_ARGS(errstr));
+		}
 	}
 #  endif
 	SetEndOfFile(fd);

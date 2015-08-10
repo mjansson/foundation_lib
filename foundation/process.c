@@ -81,7 +81,7 @@ process_set_executable_path(process_t* proc, const char* path, size_t length) {
 	if (!proc)
 		return;
 	if (proc->path.length <= length)
-		proc->path = string_resize(proc->path.str, proc->path.length,
+		proc->path = string_resize(STRING_ARGS(proc->path),
 		                           proc->path.length ? proc->path.length + 1 : 0, length + 1, 0);
 	proc->path = string_copy(proc->path.str, length + 1, path, length);
 }
@@ -146,12 +146,12 @@ process_spawn(process_t* proc) {
 		bool preesc = (proc->path.str[0] != '"');
 		bool postesc = (proc->path.str[ proc->path.length - 1 ] != '"');
 		if (preesc || postesc) {
-			char* buffer = memory_allocate(HASH_STRING, proc->path.length + 3, 0, MEMORY_PERSISTENT);
-			string_t pathesc = string_merge_varg(buffer, proc->path.length + 3,
-			                                     preesc ? "\"" : 0, preesc ? 1 : 0,
-			                                     STRING_ARGS(proc->path),
-			                                     postesc ? "\"" : 0, postesc ? 1 : 0,
-			                                     nullptr);
+			char* buffer = memory_allocate(HASH_STRING, proc->path.length + 4, 0, MEMORY_PERSISTENT);
+			string_t pathesc = string_concat_varg(buffer, proc->path.length + 4,
+			                                      "\"", preesc ? 1 : 0,
+			                                      STRING_ARGS(proc->path),
+			                                      "\"", postesc ? 1 : 0,
+			                                      nullptr);
 			string_deallocate(proc->path.str);
 			proc->path = pathesc;
 		}
@@ -236,8 +236,8 @@ process_spawn(process_t* proc) {
 		wchar_t* wverb;
 		wchar_t* wpath;
 
-		wverb = (proc->verb && string_length(proc->verb)) ? wstring_allocate_from_string(proc->verb, 0) : 0;
-		wpath = wstring_allocate_from_string(proc->path, 0);
+		wverb = (proc->verb.length ? wstring_allocate_from_string(STRING_ARGS(proc->verb)) : 0);
+		wpath = wstring_allocate_from_string(STRING_ARGS(proc->path));
 
 		ZeroMemory(&sei, sizeof(sei));
 
@@ -254,15 +254,19 @@ process_spawn(process_t* proc) {
 			sei.fMask      |= SEE_MASK_NO_CONSOLE;
 
 		if (proc->flags & PROCESS_STDSTREAMS)
-			log_warn(0, WARNING_UNSUPPORTED,
-			         "Unable to redirect standard in/out through pipes when using ShellExecute for process spawning");
+			log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to redirect standard in/out"
+			         " through pipes when using ShellExecute for process spawning"));
 
-		log_debugf(0, "Spawn process (ShellExecute): %s %s", proc->path, cmdline);
+		log_debugf(0, "Spawn process (ShellExecute): %*s %*s", 
+		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
+#if BUILD_ENABLE_LOG
+			string_const_t errstr = system_error_message(GetLastError());
+#endif
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          "Unable to spawn process (ShellExecute) for executable '%s': %s", proc->path,
-			          system_error_message(GetLastError()));
+			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%*s': %s"),
+					  STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 		}
 		else {
 			proc->hp   = sei.hProcess;
@@ -298,13 +302,17 @@ process_spawn(process_t* proc) {
 			inherit_handles = TRUE;
 		}
 
-		log_debugf(0, "Spawn process (CreateProcess): %s %s", proc->path, cmdline);
+		log_debugf(0, "Spawn process (CreateProcess): %*s %*s",
+		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!CreateProcessW(0, wcmdline, 0, 0, inherit_handles,
 		                    (proc->flags & PROCESS_CONSOLE) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi)) {
+#if BUILD_ENABLE_LOG
+			string_const_t errstr = system_error_message(GetLastError());
+#endif
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          "Unable to spawn process (CreateProcess) for executable '%s': %s", proc->path,
-			          system_error_message(GetLastError()));
+			          STRING_CONST("Unable to spawn process (CreateProcess) for executable '%*s': %*s"),
+			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 
 			stream_deallocate(proc->pipeout);
 			stream_deallocate(proc->pipein);
@@ -326,7 +334,7 @@ process_spawn(process_t* proc) {
 
 	wstring_deallocate(wcmdline);
 	wstring_deallocate(wwd);
-	string_deallocate(cmdline);
+	string_deallocate(cmdline.str);
 
 	if (proc->code < 0)
 		return proc->code; //Error

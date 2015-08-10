@@ -79,6 +79,15 @@ string pointer must not be deallocated.
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_empty(void);
 
+/*! Declare a string of the given length pointing to a memory block with the
+given address. String is not guaranteed to be zero terminated.
+\param str String memory block
+\param length length Length of string
+\return String with given length pointing to a const memory block of at least given
+        length in size. Not guaranteed to be zero terminated. */
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_t
+string(char* str, size_t length);
+
 /*! Declare a const string of the given length pointing to a const memory block with the
 given address. String is not guaranteed to be zero terminated.
 \param str String memory block
@@ -978,6 +987,12 @@ string_null(void) {
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_empty(void) {
   return (string_const_t) { STRING_EMPTY, 0 };
+}
+
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_t
+string(char* str, size_t length) {
+  return (string_t) { str, length };
 }
 
 

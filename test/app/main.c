@@ -48,12 +48,9 @@ test_app_finalize(void) {
 }
 
 DECLARE_TEST(app, environment) {
-	EXPECT_STREQ(STRING_ARGS(environment_application()->name),
-	             STRING_ARGS(_global_app.name));
-	EXPECT_STREQ(STRING_ARGS(environment_application()->short_name),
-	             STRING_ARGS(_global_app.short_name));
-	EXPECT_STREQ(STRING_ARGS(environment_application()->config_dir),
-	             STRING_ARGS(_global_app.config_dir));
+	EXPECT_CONSTSTRINGEQ(environment_application()->name, _global_app.name);
+	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, _global_app.short_name);
+	EXPECT_CONSTSTRINGEQ(environment_application()->config_dir, _global_app.config_dir);
 	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
 	                          _global_app.version.version));
 	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);

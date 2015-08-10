@@ -353,25 +353,25 @@ DECLARE_TEST(stream, readwrite_binary) {
 	EXPECT_EQ_MSG(stream_read_float64(teststream), -1.0, "read float64 failed");
 
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("test string"), "read line buffer failed");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("test string")), "read line buffer failed");
 
 	line = stream_read_line(teststream, '\n');
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("with some newlines"), "read line failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("with some newlines")), "read line failed data");
 	string_deallocate(line.str);
 
 	line = stream_read_string(teststream);
 	EXPECT_NE_MSG(line.length, 0, "read string failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("in the string"), "read string failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("in the string")), "read string failed data");
 	string_deallocate(line.str);
 
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 #if FOUNDATION_SIZE_POINTER == 8
-	EXPECT_STREQ_MSG(STRING_ARGS(line),
-	                 STRING_CONST("formatted output with a null pointer 0x0000000000000000"),
+	EXPECT_STRINGEQ_MSG(line,
+	                 string_const(STRING_CONST("formatted output with a null pointer 0x0000000000000000")),
 	                 "read string buffer data failed");
 #else
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("formatted output with a null pointer 0x00000000"),
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("formatted output with a null pointer 0x00000000")),
 	                 "read string buffer data failed");
 #endif
 
@@ -456,7 +456,7 @@ DECLARE_TEST(stream, readwrite_binary) {
 	read_buffer[0] = 0;
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 0, "read line buffer did not fail as expected");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST(""), "read line buffer failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("")), "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
 	EXPECT_EQ_MSG(line.length, 0, "read line did not fail as expected");
@@ -467,7 +467,7 @@ DECLARE_TEST(stream, readwrite_binary) {
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 	EXPECT_EQ_MSGFORMAT(line.length, 0, "read string buffer failed (%" PRIsize ")", line.length);
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), "", 0, "read string buffer data failed");
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(), "read string buffer data failed");
 
 	stream_deallocate(teststream);
 	fs_remove_file(STRING_ARGS(path));
@@ -532,7 +532,7 @@ DECLARE_TEST(stream, readwrite_binary) {
 	read_buffer[0] = 0;
 	EXPECT_EQ_MSG(stream_read_line_buffer(teststream, read_buffer, 1024, '\n').length, 0,
 	              "read line buffer did not fail as expected");
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
@@ -544,7 +544,7 @@ DECLARE_TEST(stream, readwrite_binary) {
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 	EXPECT_EQ_MSGFORMAT(line.length, 0, "read string buffer failed (%" PRIsize ")", line.length);
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST(""), "read string buffer data failed");
+	EXPECT_STRINGEQ_MSG(line, string_empty(), "read string buffer data failed");
 
 	stream_deallocate(teststream);
 	fs_remove_file(STRING_ARGS(path));
@@ -628,34 +628,34 @@ DECLARE_TEST(stream, readwrite_text) {
 
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 11, "read line buffer failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("test string"), "read line buffer failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("test string")), "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
 	EXPECT_NE_MSG(line.length, 0, "read line failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("with some newlines"), "read line failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("with some newlines")), "read line failed data");
 	string_deallocate(line.str);
 
 	line = stream_read_string(teststream);
 	EXPECT_NE_MSG(line.length, 0, "read string failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("in"), "read string failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("in")), "read string failed data");
 	string_deallocate(line.str);
 
 	line = stream_read_line(teststream, '\n');
 	EXPECT_NE_MSG(line.length, 0, "read line failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("the string"), "read line failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("the string")), "read line failed data");
 	string_deallocate(line.str);
 
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("formatted"), "read string buffer data failed");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("formatted")), "read string buffer data failed");
 
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 29 + FOUNDATION_SIZE_POINTER * 2, "read line buffer failed");
 #if FOUNDATION_SIZE_POINTER == 8
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("output with a null pointer 0x0000000000000000"),
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("output with a null pointer 0x0000000000000000")),
 	                 "read string buffer data failed");
 #else
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("output with a null pointer 0x00000000"),
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("output with a null pointer 0x00000000")),
 	                 "read string buffer data failed");
 #endif
 
@@ -749,7 +749,7 @@ DECLARE_TEST(stream, readwrite_text) {
 	read_buffer[0] = 0;
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 0, "read line buffer did not fail as expected");
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
@@ -761,7 +761,7 @@ DECLARE_TEST(stream, readwrite_text) {
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 	EXPECT_EQ_MSG(line.length, 0, "read string buffer did not fail as expected");
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read string buffer failed data");
 
 	stream_deallocate(teststream);
@@ -827,7 +827,7 @@ DECLARE_TEST(stream, readwrite_text) {
 	read_buffer[0] = 0;
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 0, "read line buffer did not fail as expected");
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
@@ -839,7 +839,7 @@ DECLARE_TEST(stream, readwrite_text) {
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 	EXPECT_EQ_MSG(line.length, 0, "read string buffer did not fail as expected");
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read string buffer data failed");
 
 	stream_deallocate(teststream);
@@ -923,37 +923,37 @@ DECLARE_TEST(stream, readwrite_sequential) {
 
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 11, "read line buffer failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("test string"), "read line buffer failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("test string")), "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
 	EXPECT_NE_MSG(line.length, 0, "read line failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("with some newlines"), "read line failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("with some newlines")), "read line failed data");
 	string_deallocate(line.str);
 
 	line = stream_read_string(teststream);
 	EXPECT_NE_MSG(line.length, 0, "read string failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("in"), "read string failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("in")), "read string failed data");
 	string_deallocate(line.str);
 
 	line = stream_read_line(teststream, '\n');
 	EXPECT_NE_MSG(line.length, 0, "read line failed");
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("the string"), "read line failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("the string")), "read line failed data");
 	string_deallocate(line.str);
 
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 	EXPECT_EQ_MSGFORMAT(line.length, 9, "read string buffer failed (%" PRIsize ")", line.length);
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("formatted"), "read string buffer data failed");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("formatted")), "read string buffer data failed");
 
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSGFORMAT(line.length, 29 + FOUNDATION_SIZE_POINTER * 2,
 	                    "read line buffer failed (%" PRIsize " read, %d expected)", line.length,
 	                    28 + FOUNDATION_SIZE_POINTER * 2);
 #if FOUNDATION_SIZE_POINTER == 8
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("output with a null pointer 0x0000000000000000"),
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("output with a null pointer 0x0000000000000000")),
 	                 "read string buffer data failed");
 #else
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST("output with a null pointer 0x00000000"),
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST("output with a null pointer 0x00000000")),
 	                 "read string buffer data failed");
 #endif
 
@@ -975,7 +975,7 @@ DECLARE_TEST(stream, readwrite_sequential) {
 	teststream->sequential = 1;
 
 	line = stream_read_line(teststream, '\n');
-	EXPECT_STREQ_MSG(STRING_ARGS(line), STRING_CONST(longline), "Long line read failed data");
+	EXPECT_STRINGEQ_MSG(line, string_const(STRING_CONST(longline)), "Long line read failed data");
 	string_deallocate(line.str);
 
 	teststream->sequential = 0;
@@ -1055,7 +1055,7 @@ DECLARE_TEST(stream, readwrite_sequential) {
 	read_buffer[0] = 0;
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 0, "read line buffer did not fail as expected");
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
@@ -1067,7 +1067,7 @@ DECLARE_TEST(stream, readwrite_sequential) {
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 	EXPECT_EQ_MSGFORMAT(line.length, 0, "read string buffer failed (%" PRIsize ")", line.length);
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read string buffer data failed");
 
 	stream_deallocate(teststream);
@@ -1135,7 +1135,7 @@ DECLARE_TEST(stream, readwrite_sequential) {
 	read_buffer[0] = 0;
 	line = stream_read_line_buffer(teststream, read_buffer, 1024, '\n');
 	EXPECT_EQ_MSG(line.length, 0, "read line buffer did not fail as expected");
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read line buffer failed data");
 
 	line = stream_read_line(teststream, '\n');
@@ -1147,7 +1147,7 @@ DECLARE_TEST(stream, readwrite_sequential) {
 	read_buffer[0] = 0;
 	line = stream_read_string_buffer(teststream, read_buffer, 1024);
 	EXPECT_EQ_MSGFORMAT(line.length, 0, "read string buffer failed (%" PRIsize ")", line.length);
-	EXPECT_STREQ_MSG(read_buffer, string_length(read_buffer), STRING_CONST(""),
+	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read string buffer data failed");
 
 	stream_deallocate(teststream);

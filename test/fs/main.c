@@ -356,7 +356,7 @@ DECLARE_TEST(fs, event) {
 	EXPECT_NE(event, 0);
 
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
-	EXPECT_STREQ(payload, length, pathstr, sizeof(pathstr) - 1);
+	EXPECT_STRINGEQ(string(payload, length), string_const(pathstr, sizeof(pathstr) - 1));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -439,8 +439,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
 
 	evtsize = event->payload[0];
-	EXPECT_STREQ((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize, filetestpath.str,
-	             filetestpath.length);
+	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filetestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -456,8 +455,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_MODIFIED);
 
 	evtsize = event->payload[0];
-	EXPECT_STREQ((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize, filetestpath.str,
-	             filetestpath.length);
+	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filetestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ_MSGFORMAT(event, 0, "event not null (%d : %s)", event->id,
@@ -472,8 +470,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_DELETED);
 
 	evtsize = event->payload[0];
-	EXPECT_STREQ((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize, filetestpath.str,
-	             filetestpath.length);
+	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filetestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -496,8 +493,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
 
 	evtsize = event->payload[0];
-	EXPECT_STREQ((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize, filesubtestpath.str,
-	             filesubtestpath.length);
+	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filesubtestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -513,8 +509,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_MODIFIED);
 
 	evtsize = event->payload[0];
-	EXPECT_STREQ((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize, filesubtestpath.str,
-	             filesubtestpath.length);
+	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filesubtestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -528,8 +523,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_DELETED);
 
 	evtsize = event->payload[0];
-	EXPECT_STREQ((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize, filesubtestpath.str,
-	             filesubtestpath.length);
+	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filesubtestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);

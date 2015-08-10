@@ -190,13 +190,12 @@ system_error_message(int code) {
 	return string_strip(errmsg, string_length(errmsg), STRING_CONST(STRING_WHITESPACE));
 }
 
-string_const_t
-system_hostname(void) {
-	char* hostname = _system_buffer();
-	unsigned int size = SYSTEM_BUFFER_SIZE;
-	if (!GetComputerNameA(hostname, &size))
-		string_copy(hostname, size, STRING_CONST("unknown"));
-	return string_const(hostname, size);
+string_t
+system_hostname(char* buffer, size_t capacity) {
+	DWORD size = (DWORD)capacity;
+	if (!GetComputerNameA(buffer, &size))
+		return string_copy(buffer, capacity, STRING_CONST("unknown"));
+	return (string_t){ buffer, size };
 }
 
 uint64_t
@@ -208,10 +207,10 @@ system_hostid(void) {
 	DWORD (STDCALL * fn_get_adapters_info)(PIP_ADAPTER_INFO, PULONG) = 0;
 
 	if (!_system_library_iphlpapi)
-		_system_library_iphlpapi = library_load("iphlpapi");
+		_system_library_iphlpapi = library_load(STRING_CONST("iphlpapi"));
 	if (_system_library_iphlpapi)
-		fn_get_adapters_info = (DWORD (STDCALL*)(PIP_ADAPTER_INFO,
-		                                         PULONG))library_symbol(_system_library_iphlpapi, "GetAdaptersInfo");
+		fn_get_adapters_info = (DWORD (STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(
+		                       _system_library_iphlpapi, STRING_CONST("GetAdaptersInfo"));
 	if (!fn_get_adapters_info)
 		return 0;
 
@@ -228,13 +227,12 @@ system_hostid(void) {
 	return *(uint64_t*)hostid;
 }
 
-const char*
-system_username(void) {
-	char* username = _system_buffer();
-	unsigned int size = SYSTEM_BUFFER_SIZE;
-	if (!GetUserNameA(username, &size))
-		string_copy(username, "unknown", SYSTEM_BUFFER_SIZE);
-	return username;
+string_t
+system_username(char* buffer, size_t capacity) {
+	DWORD size = (DWORD)capacity;
+	if (!GetUserNameA(buffer, &size))
+		return string_copy(buffer, capacity, STRING_CONST("unknown"));
+	return (string_t){ buffer, size };
 }
 
 size_t
@@ -271,16 +269,15 @@ _system_user_locale(void) {
 	                                      GetModuleHandleA("kernel32.dll"), "GetLocaleInfoEx");
 	if (get_locale_info) {
 		wchar_t locale_sname[128] = {0};
-		char locale_string[8] = {0};
+		char locale_buffer[8] = {0};
+		string_t locale_string;
 		get_locale_info(0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname, 32);
-		string_convert_utf16(locale_string, (uint16_t*)locale_sname, 8, (unsigned int)wcslen(locale_sname));
-		locale_string[5] = 0;
-		if (string_match_pattern(locale_string, "??" "-" "??")) {
-			locale_string[2] = locale_string[3];
-			locale_string[3] = locale_string[4];
-			locale_string[4] = 0;
-			//log_infof( 0, "User default locale: %s", locale_string );
-			return *(uint32_t*)locale_string;
+		locale_string = string_convert_utf16(locale_buffer, 8, (uint16_t*)locale_sname, wstring_length(locale_sname));
+		if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("??" "-" "??"))) {
+			locale_buffer[2] = locale_buffer[3];
+			locale_buffer[3] = locale_buffer[4];
+			locale_buffer[4] = 0;
+			return *(uint32_t*)locale_string.str;
 		}
 	}
 
