@@ -142,9 +142,7 @@ pnacl_instance_create(PP_Instance instance, uint32_t argc, const char* argn[], c
 	pthread_t main_thread;
 	int err = pthread_create(&main_thread, 0, pnacl_instance_main_thread, (void*)(uintptr_t)instance);
 	if (err) {
-#if BUILD_ENABLE_LOG
 		string_const_t errmsg = pnacl_error_message(err);
-#endif
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 		           STRING_CONST("Unable to create main thread: pthread_create failed: %*s"),
 		           STRING_FORMAT(errmsg));

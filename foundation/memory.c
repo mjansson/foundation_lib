@@ -731,14 +731,12 @@ _memory_tracker_finalize(void) {
 		for (it = 0; it < _foundation_def.memory_tracker_max; ++it) {
 			memory_tag_t* tag = _memory_tags + it;
 			if (atomic_loadptr(&tag->address)) {
-#if BUILD_ENABLE_LOG
 				char tracebuf[512];
 				string_t trace = stacktrace_resolve(tracebuf, 512, tag->trace, 14, 0);
 				void* addr = atomic_loadptr(&tag->address);
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
 				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%*s"),
 				          tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str);
-#endif
 				got_leaks = true;
 			}
 		}

@@ -1733,10 +1733,8 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 	int fd = open(fspath.str, O_RDWR);
 	if (ftruncate(fd, (ssize_t)length) < 0) {
-#if BUILD_ENABLE_LOG
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
-#endif
 		log_warnf(0, WARNING_SUSPICIOUS,
 		          STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s (%d)"),
 		          STRING_FORMAT(fspath), length, STRING_FORMAT(errmsg), err);
@@ -2070,17 +2068,13 @@ _fs_initialize(void) {
 		_pnacl_fs_persistent = _pnacl_file_system->Create(instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT);
 
 		if ((ret = _pnacl_file_system->Open(_pnacl_fs_temporary, 100000, PP_BlockUntilComplete())) != PP_OK) {
-#if BUILD_ENABLE_LOG
 			string_const_t errmsg = pnacl_error_message(ret);
-#endif
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open temporary file system: %*s (%d)"),
 			          STRING_FORMAT(errmsg), ret);
 		}
 
 		if ((ret = _pnacl_file_system->Open(_pnacl_fs_persistent, 100000, PP_BlockUntilComplete()) != PP_OK)) {
-#if BUILD_ENABLE_LOG
 			string_const_t errmsg = pnacl_error_message(ret);
-#endif
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open persistent file system: %*s (%d)"),
 			          STRING_FORMAT(errmsg), ret);
 		}

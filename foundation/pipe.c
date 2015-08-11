@@ -61,9 +61,7 @@ pipe_initialize(stream_pipe_t* pipestream) {
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int fds[2] = { 0, 0 };
 	if (pipe(fds) < 0) {
-#if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message(0);
-#endif
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe: %*s"),
 		           STRING_FORMAT(errmsg));
 	}

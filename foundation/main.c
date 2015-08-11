@@ -121,7 +121,6 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 
 static void
 sighandler(int sig) {
-#if BUILD_ENABLE_LOG
 	const char* signame = "UNKNOWN";
 	switch (sig) {
 	case SIGKILL: signame = "SIGKILL"; break;
@@ -131,9 +130,6 @@ sighandler(int sig) {
 	default: break;
 	}
 	log_infof(0, STRING_CONST("Caught signal: %s (%d)"), signame, sig);
-#else
-	FOUNDATION_UNUSED(sig);
-#endif
 	system_post_event(FOUNDATIONEVENT_TERMINATE);
 }
 

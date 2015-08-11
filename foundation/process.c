@@ -257,7 +257,7 @@ process_spawn(process_t* proc) {
 			log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to redirect standard in/out"
 			         " through pipes when using ShellExecute for process spawning"));
 
-		log_debugf(0, "Spawn process (ShellExecute): %*s %*s", 
+		log_debugf(0, "Spawn process (ShellExecute): %*s %*s",
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
@@ -377,10 +377,8 @@ process_spawn(process_t* proc) {
 
 		status = LSOpenApplication(&params, &psn);
 		if (status != 0) {
-#if BUILD_ENABLE_LOG
 			int err = status;
 			string_const_t errmsg = system_error_message(err);
-#endif
 			proc->code = status;
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 			           STRING_CONST("Unable to spawn process for executable '%*s': %*s (%d)"),
@@ -405,9 +403,7 @@ process_spawn(process_t* proc) {
 			//Setup a kqueue to watch when process terminates so we can emulate a wait
 			proc->kq = kqueue();
 			if (proc->kq < 0) {
-#if BUILD_ENABLE_LOG
 				string_const_t errmsg = system_error_message(proc->kq);
-#endif
 				log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 				           STRING_CONST("Unable to create kqueue for process watch: %*s (%d)"),
 				           STRING_FORMAT(errmsg), proc->kq);
@@ -418,10 +414,8 @@ process_spawn(process_t* proc) {
 				EV_SET(&changes, (pid_t)pid, EVFILT_PROC, EV_ADD | EV_RECEIPT, NOTE_EXIT, 0, 0);
 				int ret = kevent(proc->kq, &changes, 1, &changes, 1, 0);
 				if (ret != 1) {
-#if BUILD_ENABLE_LOG
 					int err = errno;
 					string_const_t errmsg = system_error_message(err);
-#endif
 					log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 					           STRING_CONST("Unable to setup kqueue for process watch, failed to add event to kqueue: %*s (%d)"),
 					           STRING_FORMAT(errmsg), err);
@@ -480,10 +474,8 @@ process_spawn(process_t* proc) {
 		int code = execv(proc->path.str, (char* const*)argv);
 		if (code <
 		    0) { //Will always be true since this point will never be reached if execve() is successful
-#if BUILD_ENABLE_LOG
 			int err = errno;
 			string_const_t errmsg = system_error_message(err);
-#endif
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Child process failed execve() '%*s': %*s (%d)"),
 			           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err);
 		}
@@ -524,10 +516,8 @@ process_spawn(process_t* proc) {
 	else {
 		//Error
 		proc->code = errno;
-#if BUILD_ENABLE_LOG
 		string_const_t errmsg;
 		errmsg = system_error_message(proc->code);
-#endif
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%*s': %*s (%d)"),
 		          STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
 
@@ -639,10 +629,8 @@ process_wait(process_t* proc) {
 			struct kevent event;
 			ret = kevent(proc->kq, 0, 0, &event, 1, 0);
 			if (ret != 1) {
-#if BUILD_ENABLE_LOG
 				int err = errno;
 				string_const_t errmsg = system_error_message(err);
-#endif
 				log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 				          STRING_CONST("Unable to wait on process, failed to read event from kqueue: %*s (%d)"),
 				          STRING_FORMAT(errmsg), err);
@@ -683,9 +671,7 @@ process_wait(process_t* proc) {
 			return PROCESS_STILL_ACTIVE;
 		if ((ret < 0) && (err == EINTR))
 			return PROCESS_WAIT_INTERRUPTED;
-#if BUILD_ENABLE_LOG
 		string_const_t errmsg = system_error_message(err);
-#endif
 		log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("waitpid(%d) failed: %*s (%d) (returned %d)"),
 		          proc->pid, STRING_FORMAT(errmsg), err, ret);
 		return PROCESS_WAIT_FAILED;

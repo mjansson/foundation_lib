@@ -112,7 +112,7 @@ _environment_initialize(const application_t application) {
 		return -1;
 
 	for (ia = 0; ia < num_args; ++ia) {
-		array_push(_environment_argv, 
+		array_push(_environment_argv,
 		           string_allocate_from_wstring(arg_list[ia], wstring_length(arg_list[ia])));
 	}
 
@@ -221,10 +221,8 @@ _environment_initialize(const application_t application) {
 
 	ssize_t exelength = readlink("/proc/self/exe", buffer, sizeof(buffer));
 	if (exelength < 0) {
-#if BUILD_ENABLE_LOG
 		int err = errno;
 		string_const_t errmsg = system_error_message(err);
-#endif
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to read /proc/self/exe link: %*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
 		return -1;
@@ -349,10 +347,8 @@ environment_current_working_directory(void) {
 #elif FOUNDATION_PLATFORM_POSIX
 	string_t localpath = string_thread_buffer();
 	if (!getcwd(localpath.str, localpath.length)) {
-#if BUILD_ENABLE_LOG
 		int err = errno;
 		string_const_t errmsg = system_error_message(err);
-#endif
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get cwd: %*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
 		return string_const(0, 0);
@@ -374,7 +370,7 @@ environment_set_current_working_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_POSIX
 	string_t buffer, pathstr;
 #endif
-	log_debugf(0, STRING_CONST("Setting current working directory to: %*s"), 0, (int)length, path);
+	log_debugf(0, STRING_CONST("Setting current working directory to: %*s"), (int)length, path);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string(path, length);
@@ -388,10 +384,8 @@ environment_set_current_working_directory(const char* path, size_t length) {
 	buffer = string_thread_buffer();
 	pathstr = string_copy(STRING_ARGS(buffer), path, length);
 	if (chdir(pathstr.str) < 0) {
-#if BUILD_ENABLE_LOG
 		int err = errno;
 		string_const_t errmsg = system_error_message(err);
-#endif
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 		          STRING_CONST("Unable to set working directory to %*s: %*s (%d)"),
 		          (int)length, path, STRING_FORMAT(errmsg), err);
