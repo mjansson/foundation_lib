@@ -242,8 +242,8 @@ string_strip(const char* str, size_t length, const char* delimiters, size_t deli
 	end   = string_find_last_not_of(str, length, delimiters, delim_length, length - 1);
 
 	if (start != STRING_NPOS) {
-		if (end == STRING_NPOS)
-			end = length - 1;
+		//Should always at least find same as start
+		FOUNDATION_ASSERT(end != STRING_NPOS);
 		newlength = end - start + 1;
 		return (string_const_t){ str + start, newlength };
 	}
@@ -632,7 +632,7 @@ string_split(const char* str, size_t length, const char* separators, size_t sep_
 		if (left)
 			*left = string_const(str + start, length - start);
 		if (right)
-			*right = string_const(str, 0);
+			*right = string_const(str + length, 0);
 	}
 }
 
@@ -846,7 +846,7 @@ string_equal_substr(const char* rhs, size_t rhs_length, size_t rhs_offset, const
 
 bool
 string_equal_substr_nocase(const char* rhs, size_t rhs_length, size_t rhs_offset, const char* lhs,
-                    size_t lhs_length, size_t lhs_offset) {
+                           size_t lhs_length, size_t lhs_offset) {
 	size_t rhs_remain = (rhs_offset < rhs_length) ? (rhs_length - rhs_offset) : 0;
 	size_t lhs_remain = (lhs_offset < lhs_length) ? (lhs_length - lhs_offset) : 0;
 	return string_equal_nocase(rhs + rhs_offset, rhs_remain, lhs + lhs_offset, lhs_remain);
@@ -857,19 +857,20 @@ string_match_pattern(const char* element, size_t element_length, const char* pat
                      size_t pattern_length) {
 	if (!pattern_length || ((*pattern == '*') && (pattern_length == 1)))
 		return true;
-	else if (!element_length && pattern_length)
-		return false;
-	else if (!element_length)
-		return true;
-	FOUNDATION_ASSERT(element);
 	FOUNDATION_ASSERT(pattern);
 
 	if (*pattern == '*') {
 		if (string_match_pattern(element, element_length, pattern + 1, pattern_length - 1))
 			return true;
-		return string_match_pattern(element + 1, element_length - 1, pattern, pattern_length);
+		if (element_length)
+			return string_match_pattern(element + 1, element_length - 1, pattern, pattern_length);
 	}
-	else if (*pattern == '?')
+
+	if (!element_length)
+		return false;
+	FOUNDATION_ASSERT(element);
+
+	if (*pattern == '?')
 		return string_match_pattern(element + 1, element_length - 1, pattern + 1, pattern_length - 1);
 	else if (*element == *pattern)
 		return string_match_pattern(element + 1, element_length - 1, pattern + 1, pattern_length - 1);
@@ -1006,7 +1007,7 @@ string_merge_vlist(char* dst, size_t capacity, const char* delimiter, size_t del
 	void* ptr;
 
 	if (!capacity)
-		return (string_t){ 0, 0 };
+		return (string_t){ dst, 0 };
 	FOUNDATION_ASSERT(dst);
 	FOUNDATION_ASSERT(!delim_length || delimiter);
 
@@ -1233,7 +1234,7 @@ void
 wstring_from_string(wchar_t* dest, size_t capacity, const char* source, size_t length) {
 	size_t i, j, num;
 	uint32_t glyph;
-	wchar_t* last = (dest + capacity) - 1;
+	wchar_t* last = dest + (capacity - 1);
 	const char* cur = source;
 	const char* end = source + length;
 
