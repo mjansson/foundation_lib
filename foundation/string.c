@@ -184,8 +184,7 @@ string_vformat(char* buffer, size_t capacity, const char* format, size_t length,
 	n = vsnprintf(buffer, capacity, format, copy_list);
 	va_end(copy_list);
 
-	if (n < 0)
-		return (string_t){ buffer, 0 };
+	//if n<0 will fall through and return capacity-1
 	if ((size_t)n < capacity)
 		return (string_t){ buffer, (size_t)n };
 	return (string_t){ buffer, capacity - 1 };
@@ -622,8 +621,7 @@ string_split(const char* str, size_t length, const char* separators, size_t sep_
 		if (left)
 			*left = string_const(str + start, delim - start);
 		if (right) {
-			delim = (allowempty ? (delim + 1) : string_find_first_not_of(str, length, separators, sep_length,
-			         delim));
+			delim = string_find_first_not_of(str, length, separators, sep_length, delim);
 			if (delim != STRING_NPOS)
 				*right = string_const(str + delim, length - delim);
 			else
@@ -921,7 +919,11 @@ string_merge(char* dst, size_t capacity, const string_const_t* array, size_t num
 	size_t i, limit;
 
 	if (!num || !capacity)
-		return (string_t){ 0, 0 };
+	{
+		if (capacity)
+			dst[0] = 0;
+		return (string_t){ dst, 0 };
+	}
 	FOUNDATION_ASSERT(dst);
 	FOUNDATION_ASSERT(array);
 	FOUNDATION_ASSERT(!delim_length || delimiter);
@@ -964,7 +966,7 @@ string_merge_varg(char* dst, size_t capacity, const char* delimiter, size_t deli
 	size_t prelimit, premerge;
 
 	if (!capacity)
-		return (string_t){ 0, 0 };
+		return (string_t){ dst, 0 };
 	FOUNDATION_ASSERT(dst);
 
 	result = string_copy(dst, capacity, str, length);
@@ -978,12 +980,19 @@ string_merge_varg(char* dst, size_t capacity, const char* delimiter, size_t deli
 	premerge = result.length;
 	result = string_merge_vlist(result.str + result.length, capacity - result.length, delimiter,
 	                            delim_length, list);
-	va_end(list);
-
-	if (result.length == premerge) {
-		result.length = prelimit;
+	result.str = dst;
+	if (!result.length) {
+		size_t newlength = prelimit;
+		void* ptr = va_arg(list, void*);
+		if (ptr)
+			newlength = premerge;
+		result.length = newlength;
 		result.str[result.length] = 0;
 	}
+	else {
+		result.length += premerge;
+	}
+	va_end(list);
 
 	return result;
 }

@@ -351,14 +351,14 @@ DECLARE_TEST(string, allocate) {
 		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        ")));
 		EXPECT_EQ(result.str[result.length], 0);
 		string_deallocate(result.str);
-		
+
 		buffer = memory_allocate(0, 8, 0, MEMORY_PERSISTENT);
 		memset(buffer, ' ', 8);
 		result = string_resize(buffer, 8, 8, 12, 'a');
 		EXPECT_STRINGEQ(result, string_const(STRING_CONST("        aaaa")));
 		EXPECT_EQ(result.str[result.length], 0);
 		string_deallocate(result.str);
-		
+
 		buffer = memory_allocate(0, 8, 0, MEMORY_PERSISTENT);
 		memset(buffer, ' ', 8);
 		result = string_resize(buffer, 8, 8, 8, 'a');
@@ -390,10 +390,11 @@ DECLARE_TEST(string, queries) {
 		//and <INV> is an utf-8 invalid 6-byte sequence (but we treat is as one glyph, like wtf-8)
 		unsigned char utfstr[] = { 0xC2, 0xAE, 0xE1, 0xA7, 0xBC, 0x61, 0xD2, 0x96, 0xFE, 0xFF,
 		                           0xF0, 0xA4, 0xAD, 0xA2, 0x62, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x63, 0 };
-		//Invalid, byte sequence is incomplete, but should be safe in string_glyphs calls
+		//Invalid, byte sequence is incomplete, but should be safe in string_glyphs/string_glyph calls
 		unsigned char invalidstr[] = { 0xFC, 0xA4, 0 };
 		unsigned char twostr[] = { 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0 };
 		unsigned char bomstr[] = { 0xFF, 0xFE, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0 };
+		size_t consumed, offset;
 
 		EXPECT_EQ(string_glyphs(nullptr, 0), 0);
 		EXPECT_EQ(string_glyphs("foobar", 0), 0);
@@ -402,6 +403,47 @@ DECLARE_TEST(string, queries) {
 		EXPECT_INTEQ(string_glyphs((const char*)twostr, sizeof(twostr)-1), 2);
 		EXPECT_INTEQ(string_glyphs((const char*)bomstr, sizeof(bomstr)-1), 4);
 		EXPECT_INTEQ(string_glyphs((const char*)utfstr, sizeof(utfstr)-1), 10);
+
+		offset = 0;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'®');
+		EXPECT_EQ(consumed, 2);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'᧼');
+		EXPECT_EQ(consumed, 3);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'a');
+		EXPECT_EQ(consumed, 1);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'Җ');
+		EXPECT_EQ(consumed, 2);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)0xFE & 0x3F);
+		EXPECT_EQ(consumed, 1);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)0xFF & 0x3F);
+		EXPECT_EQ(consumed, 1);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'𤭢');
+		EXPECT_EQ(consumed, 4);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'b');
+		EXPECT_EQ(consumed, 1);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)0x248E2821);
+		EXPECT_EQ(consumed, 6);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'c');
+		EXPECT_EQ(consumed, 1);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0);
+		EXPECT_EQ(consumed, 0);
+
+		offset = 0;
+		EXPECT_INTEQ(string_glyph((const char*)invalidstr, sizeof(invalidstr)-1, offset, &consumed), 0x24000000);
+		EXPECT_EQ(consumed, 2);
+		offset += consumed;
+		EXPECT_EQ(string_glyph((const char*)invalidstr, sizeof(invalidstr)-1, offset, &consumed), 0);
+		EXPECT_EQ(consumed, 0);
 	}
 	{
 		EXPECT_EQ(string_hash(nullptr, 0), HASH_EMPTY_STRING);
@@ -502,6 +544,20 @@ DECLARE_TEST(string, queries) {
 		EXPECT_TRUE(string_equal_nocase(STRING_CONST(""), STRING_ARGS(nullstr)));
 		EXPECT_FALSE(string_equal_nocase(STRING_CONST(" String"), STRING_ARGS(nullstr)));
 		EXPECT_FALSE(string_equal_nocase(STRING_ARGS(nullstr), STRING_CONST("0")));
+
+		EXPECT_TRUE(string_equal_substr(STRING_CONST("foo"), 1, STRING_CONST("foo"), 1));
+		EXPECT_FALSE(string_equal_substr(STRING_CONST("foo"), 1, STRING_CONST("foo"), 2));
+		EXPECT_TRUE(string_equal_substr(STRING_CONST("foo"), 4, STRING_CONST("foo"), STRING_NPOS));
+		EXPECT_FALSE(string_equal_substr(STRING_CONST("foo"), 0, STRING_CONST("Foo"), 0));
+		EXPECT_TRUE(string_equal_substr(STRING_CONST("foo"), 0, STRING_CONST("foo"), 0));
+		EXPECT_TRUE(string_equal_substr(STRING_ARGS(string_empty()), 0, STRING_ARGS(string_null()), 0));
+
+		EXPECT_TRUE(string_equal_substr_nocase(STRING_CONST("foo"), 1, STRING_CONST("FoO"), 1));
+		EXPECT_FALSE(string_equal_substr_nocase(STRING_CONST("Foo"), 1, STRING_CONST("foo"), 2));
+		EXPECT_TRUE(string_equal_substr_nocase(STRING_CONST("Foo"), 4, STRING_CONST("foo"), STRING_NPOS));
+		EXPECT_TRUE(string_equal_substr_nocase(STRING_CONST("foo"), 0, STRING_CONST("Foo"), 0));
+		EXPECT_TRUE(string_equal_substr_nocase(STRING_CONST("FoO"), 0, STRING_CONST("foo"), 0));
+		EXPECT_TRUE(string_equal_substr_nocase(STRING_ARGS(string_empty()), 0, STRING_ARGS(string_null()), 0));
 	}
 	{
 		string_const_t emptystr = string_null();
@@ -767,6 +823,29 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(findlastnotofofs8, longstr.length - 1);
 		}
 	}
+	{
+		EXPECT_TRUE(string_ends_with(STRING_CONST("foobar"), STRING_CONST("bar")));
+		EXPECT_FALSE(string_ends_with(STRING_CONST("foobar"), STRING_CONST("foo")));
+		EXPECT_FALSE(string_ends_with(STRING_CONST("foobar"), STRING_CONST("foofoobar")));
+		EXPECT_TRUE(string_ends_with(STRING_CONST("foobar"), STRING_CONST("")));
+	}
+	{
+		EXPECT_TRUE(string_match_pattern(STRING_CONST(""), STRING_CONST("*")));
+		EXPECT_TRUE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("*")));
+		EXPECT_TRUE(string_match_pattern(STRING_CONST(""), STRING_CONST("")));
+		EXPECT_FALSE(string_match_pattern(STRING_CONST(""), STRING_CONST("?")));
+		EXPECT_FALSE(string_match_pattern(STRING_CONST(""), STRING_CONST("?*")));
+
+		EXPECT_TRUE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("foo?bar")));
+		EXPECT_FALSE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("foo bar?")));
+		EXPECT_TRUE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("fo?*?ar")));
+
+		EXPECT_TRUE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("foo bar")));
+		EXPECT_FALSE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("foo_bar")));
+		EXPECT_TRUE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("?oo bar")));
+		EXPECT_TRUE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("?oo ba?")));
+		EXPECT_TRUE(string_match_pattern(STRING_CONST("foo bar"), STRING_CONST("?*?")));
+	}
 	return 0;
 }
 
@@ -947,6 +1026,11 @@ DECLARE_TEST(string, prepend) {
 	string_deallocate(val.str);
 
 	val = string_clone(STRING_ARGS(shortstr));
+	val = string_prepend(STRING_ARGS(val), val.length, STRING_CONST("nullstr"));
+	EXPECT_STRINGEQ(val, string_const(STRING_ARGS(shortstr)-1));
+	string_deallocate(val.str);
+
+	val = string_clone(STRING_ARGS(shortstr));
 	val = string_prepend(STRING_ARGS_CAPACITY(val), STRING_ARGS(shortstr));
 	EXPECT_STRINGEQ(val, shortstr);
 	string_deallocate(val.str);
@@ -1030,6 +1114,16 @@ DECLARE_TEST(string, prepend) {
 }
 
 static string_t
+string_concat_vlist_wrapper(char* str, size_t capacity, ...) {
+	va_list list;
+	string_t result;
+	va_start(list, capacity);
+	result = string_concat_vlist(str, capacity, list);
+	va_end(list);
+	return result;
+}
+
+static string_t
 string_allocate_concat_vlist_wrapper(int token, ...) {
 	va_list list;
 	string_t result;
@@ -1039,6 +1133,9 @@ string_allocate_concat_vlist_wrapper(int token, ...) {
 	va_end(list);
 	return result;
 }
+
+#define SHORTSTRING "short"
+#define LONGSTRING  "long string with dynamic buffer storage but with no real useful data"
 
 DECLARE_TEST(string, utility) {
 	{
@@ -1147,13 +1244,94 @@ DECLARE_TEST(string, utility) {
 		merged = string_merge(buffer, sizeof(buffer), explodearr, numtokens, STRING_CONST(" "));
 		EXPECT_STRINGEQ(merged, string_const(STRING_ARGS(mergestr)));
 
+		memset(explodearr, 0, sizeof(explodearr));
+		numtokens = string_explode(mergestr2.str, 0, STRING_CONST(" .,"), explodearr, 32, true);
+		EXPECT_EQ(numtokens, 0);
+		EXPECT_EQ(explodearr[0].str, nullptr);
+		EXPECT_EQ(explodearr[0].length, 0);
+
+		memset(explodearr, 0, sizeof(explodearr));
+		numtokens = string_explode(STRING_ARGS(mergestr2), " .,", 0, explodearr, 32, true);
+		EXPECT_EQ(numtokens, 1);
+		EXPECT_STRINGEQ(mergestr2, explodearr[0]);
+		EXPECT_EQ(explodearr[1].str, nullptr);
+		EXPECT_EQ(explodearr[1].length, 0);
+
+		merged = string_merge(buffer, 0, explodearr, 8, STRING_CONST("foo"));
+		EXPECT_EQ(merged.str, buffer);
+		EXPECT_EQ(merged.length, 0);
+
+		merged = string_merge(buffer, 1, explodearr, 1, STRING_CONST("foo"));
+		EXPECT_EQ(merged.str, buffer);
+		EXPECT_EQ(merged.str[0], 0);
+		EXPECT_EQ(merged.length, 0);
+
+		merged = string_merge(buffer, 2, explodearr, 1, STRING_CONST("foo"));
+		EXPECT_EQ(merged.str, buffer);
+		EXPECT_EQ(merged.str[0], explodearr[0].str[0]);
+		EXPECT_EQ(merged.length, 1);
+
+		merged = string_merge_varg(buffer, 0, STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
+		                           STRING_CONST(LONGSTRING), nullptr);
+		EXPECT_EQ(merged.str, buffer);
+		EXPECT_EQ(merged.length, 0);
+
+		merged = string_merge_varg(buffer, 1, STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
+		                           STRING_CONST(LONGSTRING), nullptr);
+		EXPECT_EQ(merged.str, buffer);
+		EXPECT_EQ(merged.str[0], 0);
+		EXPECT_EQ(merged.length, 0);
+
+		merged = string_merge_varg(buffer, 2, STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
+		                           STRING_CONST(LONGSTRING), nullptr);
+		EXPECT_EQ(merged.str, buffer);
+		EXPECT_EQ(merged.str[0], SHORTSTRING[0]);
+		EXPECT_EQ(merged.str[1], 0);
+		EXPECT_EQ(merged.length, 1);
+
+		merged = string_merge_varg(buffer, sizeof(buffer), STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
+		                           STRING_ARGS(string_null()), nullptr, (size_t)0, STRING_CONST("bar"), nullptr);
+		EXPECT_STRINGEQ(merged, string_const(STRING_CONST(SHORTSTRING)));
+
+		merged = string_merge_varg(buffer, sizeof(buffer), STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
+		                           STRING_CONST(""), nullptr, (size_t)0, STRING_CONST("bar"), nullptr);
+		EXPECT_STRINGEQ(merged, string_const(STRING_CONST(SHORTSTRING "foo")));
+
+		merged = string_merge_varg(buffer, sizeof(buffer), STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
+		                           STRING_CONST(LONGSTRING), nullptr, (size_t)0, STRING_CONST("bar"), nullptr);
+		EXPECT_STRINGEQ(merged, string_const(STRING_CONST(SHORTSTRING "foo" LONGSTRING)));
+
+		merged = string_merge_varg(buffer, sizeof(buffer), STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
+		                           STRING_CONST(LONGSTRING), STRING_CONST(LONGSTRING), STRING_CONST("bar"), nullptr);
+		EXPECT_STRINGEQ(merged, string_const(STRING_CONST(SHORTSTRING "foo" LONGSTRING "foo" LONGSTRING "foo" "bar")));
+
+		merged = string_merge_varg(buffer, 4, STRING_CONST("foo"), STRING_CONST("bar"),
+		                           STRING_CONST(LONGSTRING), STRING_CONST(LONGSTRING), STRING_CONST("bar"), nullptr);
+		EXPECT_STRINGEQ(merged, string_const(STRING_CONST("bar")));
+
 		string_split(STRING_ARGS(splitstr), STRING_CONST(" "), &splitleft, &splitright, false);
 		string_split(STRING_ARGS(splitstr), STRING_CONST(" "), &splitleft2, &splitright2, true);
 
-		EXPECT_TRUE(string_equal(STRING_ARGS(splitleft), STRING_CONST("testing")));
-		EXPECT_TRUE(string_equal(STRING_ARGS(splitright), STRING_CONST("split")));
-		EXPECT_TRUE(string_equal(STRING_ARGS(splitleft2), STRING_CONST("")));
-		EXPECT_TRUE(string_equal(STRING_ARGS(splitright2), STRING_CONST("testing split")));
+		EXPECT_CONSTSTRINGEQ(splitleft, string_const(STRING_CONST("testing")));
+		EXPECT_CONSTSTRINGEQ(splitright, string_const(STRING_CONST("split")));
+		EXPECT_CONSTSTRINGEQ(splitleft2, string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(splitright2, string_const(STRING_CONST("testing split")));
+
+		string_split(STRING_ARGS(splitstr), STRING_ARGS(splitstr), &splitleft, &splitright, false);
+		string_split(STRING_ARGS(splitstr), STRING_ARGS(splitstr), &splitleft2, &splitright2, true);
+
+		EXPECT_CONSTSTRINGEQ(splitleft, string_empty());
+		EXPECT_CONSTSTRINGEQ(splitright, string_empty());
+		EXPECT_CONSTSTRINGEQ(splitleft2, string_empty());
+		EXPECT_CONSTSTRINGEQ(splitright2, string_empty());
+
+		string_split(STRING_ARGS(splitstr), STRING_CONST("ng \t"), &splitleft, &splitright, false);
+		string_split(STRING_ARGS(splitstr), STRING_CONST("ng \t"), &splitleft2, &splitright2, true);
+
+		EXPECT_CONSTSTRINGEQ(splitleft, string_const(STRING_CONST("testi")));
+		EXPECT_CONSTSTRINGEQ(splitright, string_const(STRING_CONST("split")));
+		EXPECT_CONSTSTRINGEQ(splitleft2, string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(splitright2, string_const(STRING_CONST("testing split")));
 
 		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 0, 4),
 		                     string_const(STRING_CONST("test")));
@@ -1231,6 +1409,9 @@ DECLARE_TEST(string, utility) {
 			strippedstr = string_strip(STRING_CONST("\t   testing strip :   "), STRING_CONST(" tp: \t  "));
 			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("esting stri")));
 
+			strippedstr = string_strip(STRING_CONST("\t   testing strip :   !"), STRING_CONST(" tp: \t  "));
+			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("esting strip :   !")));
+
 			strippedstr = string_strip(STRING_CONST("   testing strip :   "), STRING_CONST(""));
 			EXPECT_CONSTSTRINGEQ(strippedstr, string_const(STRING_CONST("   testing strip :   ")));
 
@@ -1257,8 +1438,6 @@ DECLARE_TEST(string, utility) {
 	}
 	{
 		char buf[256];
-#define SHORTSTRING "short"
-#define LONGSTRING  "long string with dynamic buffer storage but with no real useful data"
 		string_t clonestr = string_clone(STRING_CONST(""));
 		string_t clonestr2 = string_clone(STRING_CONST(SHORTSTRING));
 		string_t clonestr3 = string_clone(STRING_CONST(LONGSTRING));
@@ -1486,18 +1665,53 @@ DECLARE_TEST(string, utility) {
 		                               STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar" "tes")));
 
+		concatstr = string_concat_vlist_wrapper(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr),
+		                               nullptr);
+		EXPECT_EQ(concatstr.str, nullptr);
+		EXPECT_EQ(concatstr.length, 0);
+
+		concatstr = string_concat_vlist_wrapper(buf, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr),
+			                             STRING_CONST(LONGSTRING), nullptr);
+		EXPECT_EQ(concatstr.str, buf);
+		EXPECT_EQ(concatstr.length, 0);
+
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), nullptr, (size_t)0, nullptr, (size_t)0,
+		                               STRING_CONST(""), nullptr);
+		EXPECT_EQ(concatstr.str, buf);
+		EXPECT_EQ(concatstr.length, 0);
+
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), clonestr3.str, (size_t)0, teststr.str, (size_t)0,
+		                               STRING_CONST(LONGSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING)));
+
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), STRING_CONST(LONGSTRING), teststr.str, (size_t)0,
+		                               STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING)));
+
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), "testing", (size_t)4, "", (size_t)0,
+		                               STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("test" SHORTSTRING)));
+
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), STRING_CONST("foobar"), "testing", (size_t)4,
+		                               STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar" "test" LONGSTRING SHORTSTRING)));
+
+		concatstr = string_concat_vlist_wrapper(buf, 10, STRING_CONST("foobar"), "testing", (size_t)4,
+		                               STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar" "tes")));
+
 		string_deallocate(teststr.str);
 		string_deallocate(clonestr.str);
 		string_deallocate(teststr2.str);
 		string_deallocate(clonestr2.str);
 		string_deallocate(teststr3.str);
 		string_deallocate(clonestr3.str);
-
-#undef SHORTSTRING
-#undef LONGSTRING
 	}
 	return 0;
 }
+
+#undef SHORTSTRING
+#undef LONGSTRING
 
 static string_t
 string_allocate_vformat_wrapper(const char* format, size_t length, ...)
