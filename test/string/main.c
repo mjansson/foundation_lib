@@ -2057,6 +2057,79 @@ DECLARE_TEST(string, format) {
 	return 0;
 }
 
+DECLARE_TEST(string, convert) {
+	char buffer[128];
+	string_t str;
+	string_const_t conststr;
+
+	str = string_from_int(buffer, 0, 0, 0, 0);
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_int(buffer, 1, 42, 8, 0);
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_int(buffer, 2, 42, 8, 0);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("4")));
+
+	str = string_from_int(buffer, 3, 42, 8, 0);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("42")));
+
+	str = string_from_int(buffer, sizeof(buffer), -42, 32, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============================-42")));
+
+	conststr = string_from_int_static(-12345678901234567LL, 7, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("-12345678901234567")));
+
+	str = string_from_uint(buffer, 0, 0, false, 0, 0);
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_uint(buffer, 1, 42, true, 8, 0);
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_uint(buffer, 2, 42, false, 8, 0);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("4")));
+
+	str = string_from_uint(buffer, 3, 42, false, 8, 0);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("42")));
+
+	str = string_from_uint(buffer, 2, 42, true, 8, 0);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("2")));
+
+	str = string_from_uint(buffer, 3, 42, true, 8, 0);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("2a")));
+
+	str = string_from_uint(buffer, sizeof(buffer), 42, false, 32, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("==============================42")));
+
+	str = string_from_uint(buffer, sizeof(buffer), 42, true, 32, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("==============================2a")));
+
+	conststr = string_from_uint_static(12345678901234567ULL, false, 7, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("12345678901234567")));
+
+	conststr = string_from_uint_static(12345678901234567ULL, true, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("==2bdc545d6b4b87")));
+
+	str = string_from_uint128(buffer, 1, uint128_make(1, 2));
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_uint128(buffer, 3, uint128_make(0x1234567890234567ULL, 0x2345678902345678ULL));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("12")));
+
+	str = string_from_uint128(buffer, sizeof(buffer), uint128_make(0xa234567890234567ULL, 0xb345678902345678ULL));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b345678902345678")));
+
+	return 0;
+}
+
 static void
 test_string_declare(void) {
 	ADD_TEST(string, allocate);
@@ -2065,6 +2138,7 @@ test_string_declare(void) {
 	ADD_TEST(string, append);
 	ADD_TEST(string, prepend);
 	ADD_TEST(string, format);
+	ADD_TEST(string, convert);
 }
 
 static test_suite_t test_string_suite = {

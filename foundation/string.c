@@ -1443,6 +1443,8 @@ string_from_int(char* buffer, size_t capacity, int64_t val, unsigned int width, 
 		buffer[ capacity - 1 ] = 0;
 		return (string_t){ buffer, capacity - 1 };
 	}
+	if (width >= capacity)
+		width = (unsigned int)capacity - 1;
 	if ((unsigned int)len < width) {
 		size_t diff = (size_t)width - (size_t)len;
 		memmove(buffer + diff, buffer, (size_t)len + 1);
@@ -1469,6 +1471,8 @@ string_from_uint(char* buffer, size_t capacity, uint64_t val, bool hex, unsigned
 		buffer[ capacity - 1 ] = 0;
 		return (string_t){ buffer, capacity - 1 };
 	}
+	if (width >= capacity)
+		width = (unsigned int)capacity - 1;
 	if ((unsigned int)len < width) {
 		size_t diff = (size_t)width - (size_t)len;
 		memmove(buffer + diff, buffer, (size_t)len + 1);
@@ -1529,6 +1533,8 @@ string_from_real(char* buffer, size_t capacity, real val, unsigned int precision
 		buffer[ capacity - 1 ] = 0;
 		return (string_t){ buffer, capacity - 1 };
 	}
+	if (width >= capacity)
+		width = (unsigned int)capacity - 1;
 
 	end = string_find_last_not_of(buffer, ulen, STRING_CONST("0"), STRING_NPOS);
 	if (end != STRING_NPOS) {
