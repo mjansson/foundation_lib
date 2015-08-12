@@ -1247,9 +1247,7 @@ wstring_from_string(wchar_t* dest, size_t capacity, const char* source, size_t l
 			*dest++ = *cur++;
 		else {
 			//Convert through UTF-32
-			num = get_num_bytes_utf8((uint8_t)(*cur)) - 1;   //Subtract one to get number of _extra_ bytes
-			if (i + num + 1 >= length)
-				break;
+			num = get_num_bytes_utf8((uint8_t)(*cur)) - 1; //Subtract one to get number of _extra_ bytes
 			glyph = ((uint32_t)(*cur) & get_bit_mask(6 - num)) << (6 * num);
 			++cur;
 			for (j = 1; (j <= num) && (cur < end); ++j, ++cur)
@@ -1436,12 +1434,11 @@ FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(char, convert_buffer, THREAD_BUFFER_SIZE)
 
 string_t
 string_from_int(char* buffer, size_t capacity, int64_t val, unsigned int width, char fill) {
-	int len = capacity ? snprintf(buffer, capacity, "%" PRId64, val) : -1;
-	if (len < 0) {
-		if (capacity)
-			buffer[0] = 0;
+	int len;
+	if (!capacity)
 		return (string_t){ buffer, 0 };
-	}
+	FOUNDATION_ASSERT(buffer);
+	len = snprintf(buffer, capacity, "%" PRId64, val);
 	if ((size_t)len >= capacity) {
 		buffer[ capacity - 1 ] = 0;
 		return (string_t){ buffer, capacity - 1 };
@@ -1463,12 +1460,11 @@ string_from_int_static(int64_t val, unsigned int width, char fill) {
 
 string_t
 string_from_uint(char* buffer, size_t capacity, uint64_t val, bool hex, unsigned int width, char fill) {
-	int len = capacity ? snprintf(buffer, capacity, hex ? "%" PRIx64 : "%" PRIu64, val) : -1;
-	if (len < 0) {
-		if (capacity)
-			buffer[0] = 0;
+	int len;
+	if (!capacity)
 		return (string_t){ buffer, 0 };
-	}
+	FOUNDATION_ASSERT(buffer);
+	len = snprintf(buffer, capacity, hex ? "%" PRIx64 : "%" PRIu64, val);
 	if ((size_t)len >= capacity) {
 		buffer[ capacity - 1 ] = 0;
 		return (string_t){ buffer, capacity - 1 };
@@ -1490,12 +1486,11 @@ string_from_uint_static(uint64_t val, bool hex, unsigned int width, char fill) {
 
 string_t
 string_from_uint128(char* buffer, size_t capacity, const uint128_t val) {
-	int len = capacity ? snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1]) : -1;
-	if (len < 0) {
-		if (capacity)
-			buffer[0] = 0;
+	int len;
+	if (!capacity)
 		return (string_t){ buffer, 0 };
-	}
+	FOUNDATION_ASSERT(buffer);
+	len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1]);
 	if ((size_t)len >= capacity) {
 		buffer[ capacity - 1 ] = 0;
 		return (string_t){ buffer, capacity - 1 };
@@ -1514,25 +1509,20 @@ string_from_real(char* buffer, size_t capacity, real val, unsigned int precision
 	unsigned int ulen;
 	size_t end;
 	int len = -1;
-	if (capacity) {
-		FOUNDATION_ASSERT(buffer);
-#if FOUNDATION_SIZE_REAL == 8
-		if (precision)
-			len = snprintf(buffer, capacity, "%.*lf", precision, val);
-		else
-			len = snprintf(buffer, capacity, "%.16lf", val);
-#else
-		if (precision)
-			len = snprintf(buffer, capacity, "%.*f", precision, val);
-		else
-			len = snprintf(buffer, capacity, "%.7f", val);
-#endif
-	}
-	if (len < 0) {
-		if (capacity)
-			buffer[0] = 0;
+	if (!capacity)
 		return (string_t){ buffer, 0 };
-	}
+	FOUNDATION_ASSERT(buffer);
+#if FOUNDATION_SIZE_REAL == 8
+	if (precision)
+		len = snprintf(buffer, capacity, "%.*lf", precision, val);
+	else
+		len = snprintf(buffer, capacity, "%.16lf", val);
+#else
+	if (precision)
+		len = snprintf(buffer, capacity, "%.*f", precision, val);
+	else
+		len = snprintf(buffer, capacity, "%.7f", val);
+#endif
 
 	ulen = (unsigned int)len;
 	if (ulen >= capacity) {
@@ -1626,24 +1616,19 @@ string_from_uuid_static(const uuid_t val) {
 string_t
 string_from_version(char* buffer, size_t capacity, const version_t version) {
 	int len = -1;
-	if (capacity) {
-		FOUNDATION_ASSERT(buffer);
-		if (version.sub.control)
-			len = snprintf(buffer, capacity, "%u.%u.%u-%u-%x", (uint32_t)version.sub.major,
-			               (uint32_t)version.sub.minor, version.sub.revision, version.sub.build,
-			               version.sub.control);
-		else if (version.sub.build)
-			len = snprintf(buffer, capacity, "%u.%u.%u-%u", (uint32_t)version.sub.major,
-			               (uint32_t)version.sub.minor, version.sub.revision, version.sub.build);
-		else
-			len = snprintf(buffer, capacity, "%u.%u.%u", (uint32_t)version.sub.major,
-			               (uint32_t)version.sub.minor, version.sub.revision);
-	}
-	if (len < 0) {
-		if (capacity)
-			buffer[0] = 0;
+	if (!capacity)
 		return (string_t){ buffer, 0 };
-	}
+	FOUNDATION_ASSERT(buffer);
+	if (version.sub.control)
+		len = snprintf(buffer, capacity, "%u.%u.%u-%u-%x", (uint32_t)version.sub.major,
+		               (uint32_t)version.sub.minor, version.sub.revision, version.sub.build,
+		               version.sub.control);
+	else if (version.sub.build)
+		len = snprintf(buffer, capacity, "%u.%u.%u-%u", (uint32_t)version.sub.major,
+		               (uint32_t)version.sub.minor, version.sub.revision, version.sub.build);
+	else
+		len = snprintf(buffer, capacity, "%u.%u.%u", (uint32_t)version.sub.major,
+		               (uint32_t)version.sub.minor, version.sub.revision);
 	if ((size_t)len >= capacity) {
 		buffer[ capacity - 1 ] = 0;
 		return (string_t){ buffer, capacity - 1 };
