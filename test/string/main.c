@@ -2127,6 +2127,192 @@ DECLARE_TEST(string, convert) {
 	str = string_from_uint128(buffer, sizeof(buffer), uint128_make(0xa234567890234567ULL, 0xb345678902345678ULL));
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b345678902345678")));
 
+	conststr = string_from_uint128_static(uint128_make(0x1234567890234567ULL, 0x2345678902345678ULL));
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("12345678902345672345678902345678")));
+
+	conststr = string_from_uint128_static(uint128_make(0xa234567890234567ULL, 0xb345678902345678ULL));
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("a234567890234567b345678902345678")));
+
+	str = string_from_real(buffer, 0, 1, 0, 0, '=');
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_real(buffer, 1, 1, 0, 0, '=');
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_real(buffer, 3, 1, 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.")));
+
+	str = string_from_real(buffer, 3, REAL_C(1.1), 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.")));
+
+	str = string_from_real(buffer, sizeof(buffer), REAL_C(1.1), 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.1")));
+
+	str = string_from_real(buffer, sizeof(buffer), REAL_C(0.1), 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
+
+	str = string_from_real(buffer, sizeof(buffer), -REAL_ZERO, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
+
+	conststr = string_from_real_static(REAL_C(1.1), 0, 0, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.1")));
+
+	conststr = string_from_real_static(REAL_C(0.1), 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
+
+	conststr = string_from_real_static(-REAL_ZERO, 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
+
+	str = string_from_time(buffer, 0, time_system());
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_time(buffer, 1, time_system());
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_time(buffer, 26, 0);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
+
+	str = string_from_time(buffer, 26, time_system());
+	EXPECT_INTEQ(str.length, 24);
+
+	conststr = string_from_time_static(0);
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
+
+	conststr = string_from_time_static(time_system());
+	EXPECT_INTEQ(conststr.length, 24);
+
+	str = string_from_uuid(buffer, 0, UUID_DNS);
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_uuid(buffer, 1, UUID_DNS);
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_uuid(buffer, 10, UUID_DNS);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("6ba7b810-")));
+
+	str = string_from_uuid(buffer, sizeof(buffer), UUID_DNS);
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("6ba7b810-9dad-11d1-80b4-00c04fd430c8")));
+
+	conststr = string_from_uuid_static(UUID_DNS);
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("6ba7b810-9dad-11d1-80b4-00c04fd430c8")));
+
+	str = string_from_version(buffer, 0, version_make(0, 0, 0, 0, 0));
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_version(buffer, 1, version_make(0, 0, 0, 0, 0));
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_version(buffer, 5, version_make(1, 2, 3, 0, 0));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.2.")));
+
+	str = string_from_version(buffer, sizeof(buffer), version_make(1, 2, 3, 0, 0));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.2.3")));
+
+	str = string_from_version(buffer, 7, version_make(1, 2, 3, 4, 0));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.2.3-")));
+
+	str = string_from_version(buffer, sizeof(buffer), version_make(1, 2, 3, 4, 0));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.2.3-4")));
+
+	str = string_from_version(buffer, 9, version_make(1, 2, 3, 4, 42));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.2.3-4-")));
+
+	str = string_from_version(buffer, sizeof(buffer), version_make(1, 2, 3, 4, 42));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.2.3-4-2a")));
+
+	conststr = string_from_version_static(version_make(1, 2, 3, 4, 42));
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.2.3-4-2a")));
+
+	EXPECT_INTEQ(string_to_int(nullptr, 0), 0);
+	EXPECT_INTEQ(string_to_int("1", 0), 0);
+	EXPECT_INTEQ(string_to_int(STRING_CONST("1")), 1);
+	EXPECT_INTEQ(string_to_int(STRING_CONST("-12345abvs")), -12345);
+	EXPECT_INTEQ(string_to_int("-12345abvs", 3), -12);
+	EXPECT_INTEQ(string_to_int(STRING_CONST("a-12345abvs")), 0);
+
+	EXPECT_INTEQ(string_to_uint(nullptr, 0, false), 0);
+	EXPECT_INTEQ(string_to_uint("1", 0, false), 0);
+	EXPECT_INTEQ(string_to_uint(STRING_CONST("1"), false), 1);
+	EXPECT_INTEQ(string_to_uint(STRING_CONST("123456asv"), false), 123456);
+	EXPECT_INTEQ(string_to_uint(STRING_CONST("-123456asv"), false), (unsigned int)-123456);
+	EXPECT_INTEQ(string_to_uint("-123456asv", 3, false), (unsigned int)-12);
+	EXPECT_INTEQ(string_to_uint(STRING_CONST("abc"), false), 0);
+	EXPECT_INTEQ(string_to_uint(STRING_CONST("abc"), true), 0xabc);
+
+	EXPECT_INTEQ(string_to_int64(nullptr, 0), 0);
+	EXPECT_INTEQ(string_to_int64("1", 0), 0);
+	EXPECT_INTEQ(string_to_int64(STRING_CONST("1")), 1);
+	EXPECT_INTEQ(string_to_int64(STRING_CONST("-1234567890123456789abvs")), -1234567890123456789);
+	EXPECT_INTEQ(string_to_int64("-1234567890123456789abvs", 4), -123);
+	EXPECT_INTEQ(string_to_int64(STRING_CONST("a-12345abvs")), 0);
+
+	EXPECT_INTEQ(string_to_uint64(nullptr, 0, false), 0);
+	EXPECT_INTEQ(string_to_uint64("1", 0, false), 0);
+	EXPECT_INTEQ(string_to_uint64(STRING_CONST("1"), false), 1);
+	EXPECT_INTEQ(string_to_uint64(STRING_CONST("1234567890123456789asv"), false), 1234567890123456789);
+	EXPECT_INTEQ(string_to_uint64(STRING_CONST("-1234567890123456789asv"), false), (uint64_t)-1234567890123456789);
+	EXPECT_INTEQ(string_to_uint64(STRING_CONST("abcdef123456"), false), 0);
+	EXPECT_INTEQ(string_to_uint64(STRING_CONST("abcdef123456"), true), 0xabcdef123456ULL);
+	EXPECT_INTEQ(string_to_uint64("abcdef123456", 5, true), 0xabcdeULL);
+
+	EXPECT_TRUE(uint128_equal(string_to_uint128(nullptr, 0), uint128_make(0, 0)));
+	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 0), uint128_make(0, 0)));
+	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 12), uint128_make(0x1234567890abULL, 0)));
+	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 24), uint128_make(0x1234567890abcdefULL, 0x00112233ULL)));
+	EXPECT_TRUE(uint128_equal(string_to_uint128(STRING_CONST("1234567890abcdef00112233aabbccdd")), uint128_make(0x1234567890abcdefULL, 0x00112233aabbccddULL)));
+
+	EXPECT_REALEQ(string_to_float32(nullptr, 0), 0);
+	EXPECT_REALEQ(string_to_float32(STRING_CONST("0")), 0);
+	EXPECT_REALEQ(string_to_float32(STRING_CONST("-0")), 0);
+	EXPECT_REALEQ(string_to_float32(STRING_CONST("1234.5f")), REAL_C(1234.5));
+	EXPECT_REALEQ(string_to_float32(STRING_CONST("-1234.5f")), REAL_C(-1234.5));
+	EXPECT_REALEQ(string_to_float32(STRING_CONST("a1234.5f")), 0);
+	EXPECT_REALEQ(string_to_float32(STRING_CONST("b-1234.5f")), 0);
+
+	EXPECT_REALEQ((real)string_to_float64(nullptr, 0), 0);
+	EXPECT_REALEQ((real)string_to_float64(STRING_CONST("0")), 0);
+	EXPECT_REALEQ((real)string_to_float64(STRING_CONST("-0")), 0);
+	EXPECT_REALEQ((real)string_to_float64(STRING_CONST("1234.5")), REAL_C(1234.5));
+	EXPECT_REALEQ((real)string_to_float64(STRING_CONST("-1234.5")), REAL_C(-1234.5));
+	EXPECT_REALEQ((real)string_to_float64(STRING_CONST("a1234.5f")), 0);
+	EXPECT_REALEQ((real)string_to_float64(STRING_CONST("b-1234.5f")), 0);
+
+	EXPECT_REALEQ((real)string_to_real(nullptr, 0), 0);
+	EXPECT_REALEQ((real)string_to_real(STRING_CONST("0")), 0);
+	EXPECT_REALEQ((real)string_to_real(STRING_CONST("-0")), 0);
+	EXPECT_REALEQ((real)string_to_real(STRING_CONST("1234.5")), REAL_C(1234.5));
+	EXPECT_REALEQ((real)string_to_real(STRING_CONST("-1234.5")), REAL_C(-1234.5));
+	EXPECT_REALEQ((real)string_to_real(STRING_CONST("a1234.5f")), 0);
+	EXPECT_REALEQ((real)string_to_real(STRING_CONST("b-1234.5f")), 0);
+
+	EXPECT_TRUE(uuid_equal(string_to_uuid(nullptr, 0), uuid_null()));
+	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("0")), uuid_null()));
+	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("6ba7b810-9dad-11d1-80b4-00c04fd430c8")), UUID_DNS));
+	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("00000000-0000-0000-0000-000000000000")), uuid_null()));
+	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("0-0-0-0-0")), uuid_null()));
+	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("just-string")), uuid_null()));
+
+	EXPECT_TRUE(uint128_equal(string_to_version(nullptr, 0).version, uint128_make(0, 0)));
+	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 0).version, uint128_make(0, 0)));
+	EXPECT_TRUE(uint128_equal(string_to_version(STRING_CONST("1.2.3-4-2abversion")).version, version_make(1, 2, 3, 4, 0x2ab).version));
+	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-2abc", 8).version, version_make(1, 2, 3, 4, 0).version));
+	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 6).version, version_make(1, 2, 3, 0, 0).version));
+	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 3).version, version_make(1, 2, 0, 0, 0).version));
+	/*
+	string_to_version*/
+
 	return 0;
 }
 

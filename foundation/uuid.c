@@ -43,8 +43,12 @@ typedef union {
 
 static atomic32_t _uuid_last_counter;
 
-//682EAE88-339A-41B6-B8E3-997DAA0466D4
-const uuid_t UUID_DNS = { { 0x682EAE88339A41B6ULL, 0xB8E3997DAA0466D4ULL } };
+//6ba7b810-9dad-11d1-80b4-00c04fd430c8
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
+const uuid_t UUID_DNS = { { 0x11d19dad6ba7b810ULL, 0xc830d44fc000b480ULL } };
+#else
+const uuid_t UUID_DNS = { { 0x6ba7b8109dad11d1ULL, 0x80b400c04fd430c8ULL } };
+#endif
 
 uuid_t
 uuid_generate_random(void) {

@@ -1547,17 +1547,17 @@ string_from_real(char* buffer, size_t capacity, real val, unsigned int precision
 		}
 	}
 
-	if (ulen < width) {
-		memmove(buffer + (width - ulen), buffer, ulen + 1);
-		memset(buffer, fill, width - ulen);
-		ulen = width;
-	}
-
 	//Some cleanups
 	if (string_equal(buffer, ulen, "-0", 2)) {
 		buffer[0] = '0';
 		buffer[1] = 0;
 		ulen = 1;
+	}
+
+	if (ulen < width) {
+		memmove(buffer + (width - ulen), buffer, ulen + 1);
+		memset(buffer, fill, width - ulen);
+		ulen = width;
 	}
 
 	return (string_t){ buffer, ulen };
@@ -1575,7 +1575,10 @@ string_from_time(char* buffer, size_t capacity, tick_t t) {
 		return (string_t){ buffer, 0 };
 	FOUNDATION_ASSERT(buffer);
 #if FOUNDATION_PLATFORM_WINDOWS
-	{
+	if (capacity < 25) {
+		buffer[0] = 0;
+	}
+	else {
 		time_t timet = t / 1000ULL;
 		if (_ctime64_s(buffer, capacity, &timet) != 0) {
 			buffer[0] = 0;
@@ -1703,7 +1706,7 @@ string_to_uint128(const char* val, size_t length) {
 	if (length) {
 		FOUNDATION_ASSERT(val);
 		string_copy(buf, sizeof(buf), val, length);
-		sscanf(val, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1]);
+		sscanf(buf, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1]);
 	}
 	return ret;
 }
@@ -1715,7 +1718,7 @@ string_to_float32(const char* val, size_t length) {
 	if (length) {
 		FOUNDATION_ASSERT(val);
 		string_copy(buf, sizeof(buf), val, length);
-		sscanf(val, "%f", &ret);
+		sscanf(buf, "%f", &ret);
 	}
 	return ret;
 }
@@ -1727,7 +1730,7 @@ string_to_float64(const char* val, size_t length) {
 	if (length) {
 		FOUNDATION_ASSERT(val);
 		string_copy(buf, sizeof(buf), val, length);
-		sscanf(val, "%lf", &ret);
+		sscanf(buf, "%lf", &ret);
 	}
 	return ret;
 }
@@ -1739,7 +1742,7 @@ string_to_real(const char* val, size_t length) {
 	if (length) {
 		FOUNDATION_ASSERT(val);
 		string_copy(buf, sizeof(buf), val, length);
-		sscanf(val, "%" PRIREAL, &ret);
+		sscanf(buf, "%" PRIREAL, &ret);
 	}
 	return ret;
 }
