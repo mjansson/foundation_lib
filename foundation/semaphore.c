@@ -284,7 +284,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 
 #if FOUNDATION_PLATFORM_BSD
 	if (name && (length > 0) && (name[0] != '/'))
-		semaphore->name = string_format("/%s", name);
+		semaphore->name = string_allocate_format(STRING_CONST("/%s"), name);
 	else
 #endif
 		semaphore->name = string_clone(name, length);

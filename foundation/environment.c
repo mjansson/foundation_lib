@@ -197,9 +197,9 @@ _environment_initialize(const application_t application) {
 	sysctl(callarg, 4, buffer, &size, 0, 0);
 
 	string_t exe_path = path_clean(buffer, size, BUILD_MAX_PATHLEN);
-	exe_path = path_absolute(exe_path.str, exe_path.length, BUILD_MAX_PATHLEN);
+	exe_path = path_absolute(STRING_ARGS(exe_path), BUILD_MAX_PATHLEN);
 
-	_environment_set_executable_paths(exe_path.str, exe_path.length);
+	_environment_set_executable_paths(STRING_ARGS(exe_path));
 
 #elif FOUNDATION_PLATFORM_POSIX
 

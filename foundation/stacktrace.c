@@ -511,7 +511,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	skip_frames += 1;
 
 	void* localframes[64];
-	int ret = backtrace(localframes, 64);
+	int ret = (int)backtrace(localframes, 64);
 	if (ret > (int)skip_frames) {
 		num_frames = (size_t)ret - skip_frames;
 		if (num_frames > max_depth)
