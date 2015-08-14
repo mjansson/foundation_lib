@@ -1750,10 +1750,10 @@ string_to_real(const char* val, size_t length) {
 version_t
 string_to_version(const char* val, size_t length) {
 	//%u.%u.%u-%u.%u
-	uint32_t num[5];
-	size_t i;
-	char buf[64];
 	if (length) {
+		uint32_t num[5];
+		size_t i;
+		char buf[64];
 		char* loop = buf;
 		FOUNDATION_ASSERT(val);
 		string_copy(buf, sizeof(buf), val, length);
@@ -1765,8 +1765,9 @@ string_to_version(const char* val, size_t length) {
 				while (*loop && ((*loop  < '0') || (*loop > '9'))) loop++;
 			}
 		}
+		return version_make(num[0], num[1], num[2], num[3], num[4]);
 	}
-	return version_make(num[0], num[1], num[2], num[3], num[4]);
+	return version_make(0, 0, 0, 0, 0);
 }
 
 string_t

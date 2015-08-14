@@ -72,6 +72,8 @@ DECLARE_TEST(path, extract) {
 	const char path23[] = "asset://.path/.dir/";
 	string_const_t testpath;
 
+	testpath = path_base_file_name(nullptr, 0);
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
 	testpath = path_base_file_name(STRING_CONST(path1));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file")));
 	testpath = path_base_file_name(STRING_CONST(path2));
@@ -119,6 +121,8 @@ DECLARE_TEST(path, extract) {
 	testpath = path_base_file_name(STRING_CONST(path23));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
 
+	testpath = path_base_file_name_with_directory(nullptr, 0);
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
 	testpath = path_base_file_name_with_directory(STRING_CONST(path1));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file")));
 	testpath = path_base_file_name_with_directory(STRING_CONST(path2));
@@ -166,6 +170,8 @@ DECLARE_TEST(path, extract) {
 	testpath = path_base_file_name_with_directory(STRING_CONST(path23));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("asset://.path/.dir/")));
 
+	testpath = path_file_extension(nullptr, 0);
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
 	testpath = path_file_extension(STRING_CONST(path1));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("ext")));
 	testpath = path_file_extension(STRING_CONST(path2));
@@ -213,6 +219,8 @@ DECLARE_TEST(path, extract) {
 	testpath = path_file_extension(STRING_CONST(path23));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
 
+	testpath = path_file_name(nullptr, 0);
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
 	testpath = path_file_name(STRING_CONST(path1));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file.ext")));
 	testpath = path_file_name(STRING_CONST(path2));
@@ -260,6 +268,8 @@ DECLARE_TEST(path, extract) {
 	testpath = path_file_name(STRING_CONST(path23));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
 
+	testpath = path_directory_name(nullptr, 0);
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
 	testpath = path_directory_name(STRING_CONST(path1));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
 	testpath = path_directory_name(STRING_CONST(path2));
@@ -307,6 +317,12 @@ DECLARE_TEST(path, extract) {
 	testpath = path_directory_name(STRING_CONST(path23));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/.path/.dir")));
 
+	testpath = path_subdirectory_name(nullptr, 0, nullptr, 0);
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
+	testpath = path_subdirectory_name(nullptr, 0, STRING_CONST(""));
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
+	testpath = path_subdirectory_name(nullptr, 0, STRING_CONST("file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
 	testpath = path_subdirectory_name(STRING_CONST(path1), STRING_CONST("file"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
 	testpath = path_subdirectory_name(STRING_CONST(path2), STRING_CONST(""));
@@ -354,6 +370,8 @@ DECLARE_TEST(path, extract) {
 	testpath = path_subdirectory_name(STRING_CONST(path23), STRING_CONST("/"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST(".path/.dir")));
 
+	testpath = path_protocol(nullptr, 0);
+	EXPECT_CONSTSTRINGEQ(testpath, string_null());
 	testpath = path_protocol(STRING_CONST(path1));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
 	testpath = path_protocol(STRING_CONST(path2));
@@ -686,7 +704,7 @@ DECLARE_TEST(path, absolute) {
 DECLARE_TEST(path, operations) {
 	string_t temp1;
 	string_t temp2;
-
+	string_t merge;
 	string_t merge1;
 	string_t merge2;
 	string_t merge3;
@@ -752,6 +770,26 @@ DECLARE_TEST(path, operations) {
 	string_deallocate(merge13.str);
 	string_deallocate(merge14.str);
 	string_deallocate(merge15.str);
+
+	merge = path_allocate_concat_varg(nullptr, 0, STRING_CONST("/test"), STRING_CONST("/foo/"),
+	                                  STRING_CONST("bar/"), nullptr, 10, STRING_CONST("fail"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("test/foo/bar/")));
+	string_deallocate(merge.str);
+
+	merge = path_allocate_concat_varg(STRING_CONST("/abs"), STRING_CONST("/test"), STRING_CONST("/foo/"),
+	                                  STRING_CONST("bar/"), nullptr, 10, STRING_CONST("fail"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("/abs/test/foo/bar/")));
+	string_deallocate(merge.str);
+
+	merge = path_allocate_concat_varg("nein", 0, STRING_CONST("test/"), STRING_CONST("/foo/"),
+	                                  STRING_CONST("/bar/"), STRING_CONST(""), STRING_CONST("/"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("test/foo/bar/")));
+	string_deallocate(merge.str);
+
+	merge = path_allocate_concat_varg("nicht", 0, nullptr, 10, STRING_CONST("test/"), STRING_CONST("/foo/"),
+	                                  STRING_CONST("/bar/"), STRING_CONST(""), STRING_CONST("/"), nullptr);
+	EXPECT_STRINGEQ(merge, string_null());
+	string_deallocate(merge.str);
 
 	merge1 = path_concat(buffer, sizeof(buffer), STRING_CONST(""), STRING_CONST(""));
 	EXPECT_STRINGEQ(merge1, string_const(STRING_CONST("")));

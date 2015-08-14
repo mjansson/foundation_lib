@@ -2310,8 +2310,6 @@ DECLARE_TEST(string, convert) {
 	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-2abc", 8).version, version_make(1, 2, 3, 4, 0).version));
 	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 6).version, version_make(1, 2, 3, 0, 0).version));
 	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 3).version, version_make(1, 2, 0, 0, 0).version));
-	/*
-	string_to_version*/
 
 	return 0;
 }

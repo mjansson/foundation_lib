@@ -81,7 +81,9 @@ path_subdirectory_name(const char* path, size_t length, const char* root, size_t
 FOUNDATION_API string_const_t
 path_protocol(const char* uri, size_t length);
 
-/*! Allocate a new string which is the concatenation of the given paths
+/*! Allocate a new string which is the concatenation of the given paths. The first
+path part determines if path is absolute or relative. Note that an emtpy string
+is considered to be a relative path.
 \param first First path
 \param first_length Length of first path
 \param second Second path
@@ -91,8 +93,10 @@ FOUNDATION_API string_t
 path_allocate_concat(const char* first, size_t first_length, const char* second,
                      size_t second_length);
 
-/*! Allocate a new string which is the concatenation of the given paths. The path
-list should be terminated by a null pointer.
+/*! Allocate a new string which is the concatenation of the given paths. The first
+path part determines if path is absolute or relative. Note that an emtpy string
+is considered to be a relative path. The path list must be pairs of (const char*,
+size_t) arguments and terminated by a null pointer.
 \param first First path
 \param first_length Length of first path
 \return Concatenated path in new allocated memory buffer */
@@ -100,8 +104,10 @@ FOUNDATION_API string_t
 path_allocate_concat_varg(const char* first, size_t first_length, ...)
 FOUNDATION_ATTRIBUTE(sentinel);
 
-/*! Allocate a new string which is the concatenation of the given paths. The path
-list should be terminated by a null pointer.
+/*! Allocate a new string which is the concatenation of the given paths. The first
+path part determines if path is absolute or relative. Note that an emtpy string
+is considered to be a relative path. The path list must be pairs of (const char*,
+size_t) arguments and terminated by a null pointer.
 \param first First path
 \param first_length Length of first path
 \param list Additional paths argument list
@@ -112,7 +118,8 @@ path_allocate_concat_vlist(const char* first, size_t first_length, va_list list)
 /*! Concatenation of the given paths into the given buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. Returned path
 is always zero terminated except if capacity is zero, in which case an empty string
-is returned.
+is returned. The first path part determines if path is absolute or relative. Note that
+an emtpy string is considered to be a relative path.
 \param dest Destination buffer
 \param capacity Capacity of destination buffer
 \param first First path
@@ -125,10 +132,11 @@ path_concat(char* dest, size_t capacity, const char* first, size_t first_length,
             const char* second, size_t second_length);
 
 /*! Concatenation of the given paths into the given buffer. If the concatenated path does
-not fit into the capacity of the buffer, the path will be truncated. The path argument
-list should be pairs of pointer and length arguments (const char*, size_t), terminated
-by a null pointer. Returned path is always zero terminated except if capacity is zero,
-in which case an empty string is returned.
+not fit into the capacity of the buffer, the path will be truncated. The first path part
+determines if path is absolute or relative. Note that an emtpy string is considered to be
+a relative path. The path list must be pairs of (const char*, size_t) arguments and
+terminated by a null pointer. Returned path is always zero terminated except if capacity
+is zero, in which case an empty string is returned.
 \param dest Destination buffer
 \param capacity Capacity of destination buffer
 \param first First path
@@ -139,10 +147,11 @@ path_concat_varg(char* dest, size_t capacity, const char* first, size_t first_le
 FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Concatenation of the given paths into the given buffer. If the concatenated path does
-not fit into the capacity of the buffer, the path will be truncated. The path argument
-list should be pairs of pointer and length arguments (const char*, size_t), terminated
-by a null pointer. Returned path is always zero terminated except if capacity is zero,
-in which case an empty string is returned.
+not fit into the capacity of the buffer, the path will be truncated. The first path part
+determines if path is absolute or relative. Note that an emtpy string is considered to be
+a relative path. The path list must be pairs of (const char*, size_t) arguments and
+terminated by a null pointer. Returned path is always zero terminated except if capacity
+is zero, in which case an empty string is returned.
 \param dest Destination buffer
 \param capacity Capacity of destination buffer
 \param first First path
@@ -169,9 +178,9 @@ path_append(char* base, size_t base_length, size_t base_capacity, const char* ta
 
 /*! Append given paths at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
-list should be pairs of pointer and length arguments (const char*, size_t), terminated
-by a null pointer. Returned path is always zero terminated except if capacity is zero,
-in which case an empty string is returned.
+list must be pairs of (const char*, size_t) arguments, terminated by a null pointer.
+Returned path is always zero terminated except if capacity is zero, in which case an
+empty string is returned.
 \param base Base path and target buffer
 \param base_length Length of base path
 \param base_capacity Capacity of buffer
@@ -185,9 +194,9 @@ FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Append given paths at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
-list should be pairs of pointer and length arguments (const char*, size_t), terminated
-by a null pointer. Returned path is always zero terminated except if capacity is zero,
-in which case an empty string is returned.
+list must be pairs of (const char*, size_t) arguments, terminated by a null pointer.
+Returned path is always zero terminated except if capacity is zero, in which case an
+empty string is returned.
 \param base Base path and target buffer
 \param base_length Length of base path
 \param base_capacity Capacity of buffer
@@ -215,10 +224,10 @@ path_prepend(char* tail, size_t tail_length, size_t tail_capacity, const char* b
 
 /*! Prepend given paths at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
-list should be pairs of pointer and length arguments (const char*, size_t), terminated
-by a null pointer. Returned path is always zero terminated except if capacity is zero,
-in which case an empty string is returned. Given path fragments are prepended in order,
-meaning the last argument will be the first path fragment in the concatenated final path.
+list must be pairs of (const char*, size_t) arguments, terminated by a null pointer.
+Returned path is always zero terminated except if capacity is zero, in which case an empty
+string is returned. Given path fragments are prepended in order, meaning the last argument
+will be the first path fragment in the concatenated final path.
 \param tail Tail path and target buffer
 \param tail_length Length of tail path
 \param tail_capacity Capacity of buffer
@@ -232,10 +241,10 @@ FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Prepend given paths at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
-list should be pairs of pointer and length arguments (const char*, size_t), terminated
-by a null pointer. Returned path is always zero terminated except if capacity is zero,
-in which case an empty string is returned. Given path fragments are prepended in order,
-meaning the last argument will be the first path fragment in the concatenated final path.
+list must be pairs of (const char*, size_t) arguments, terminated by a null pointer.
+Returned path is always zero terminated except if capacity is zero, in which case an empty
+string is returned. Given path fragments are prepended in order, meaning the last argument
+will be the first path fragment in the concatenated final path.
 \param tail Tail path and target buffer
 \param tail_length Length of tail path
 \param tail_capacity Capacity of buffer
