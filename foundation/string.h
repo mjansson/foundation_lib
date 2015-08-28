@@ -184,7 +184,7 @@ pointers in both pointer arguments.
 \param length Length of source string
 \return Destination string in given buffer */
 FOUNDATION_API string_t
-string_copy(char* dst, size_t capacity, const char* src, size_t length);
+string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src, size_t length);
 
 /*! Reallocate a string and fill with the given character. If the current buffer capacity
 is greater than the requested length the buffer is not reallocated. If the requested

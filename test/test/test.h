@@ -42,6 +42,9 @@ test_add_test(test_fn test, const char* group_name, size_t group_length, const c
 TEST_API int
 test_run_all(void);
 
+TEST_API FOUNDATION_NOINLINE void*
+test_failed(void);
+
 #if FOUNDATION_PLATFORM_IOS
 
 TEST_API void
@@ -51,9 +54,9 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 
 #define MAKE_TEST_FN( test_group, test_name ) FOUNDATION_PREPROCESSOR_JOIN( FOUNDATION_PREPROCESSOR_JOIN( test_group, test_name ), _fn )
 
-#define DECLARE_TEST( test_group, test_name ) static void* MAKE_TEST_FN( test_group, test_name )( void )
+#define DECLARE_TEST( test_group, test_name ) static FOUNDATION_NOINLINE void* MAKE_TEST_FN( test_group, test_name )( void )
 #define ADD_TEST( test_group, test_name ) test_add_test( MAKE_TEST_FN( test_group, test_name ), STRING_CONST( FOUNDATION_PREPROCESSOR_TOSTRING( test_group ) ), STRING_CONST( FOUNDATION_PREPROCESSOR_TOSTRING( test_name ) ) )
-#define RETURN_FAILED_TEST return FAILED_TEST
+#define RETURN_FAILED_TEST return test_failed()
 
 #define EXPECT_EQ( var, expect ) do { if( !((var) == (expect)) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Test failed, %s != %s (at %s:%u)" ), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); RETURN_FAILED_TEST; } } while(0)
 #define EXPECT_NE( var, expect ) do { if( ((var) == (expect)) ) { log_warnf( HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST( "Test failed, %s == %s (at %s:%u)" ), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__ ); RETURN_FAILED_TEST; } } while(0)

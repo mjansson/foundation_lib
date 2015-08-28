@@ -416,12 +416,14 @@ static FOUNDATION_FORCEINLINE void atomic_thread_fence_sequentially_consistent(v
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
+#include <intrin.h>
+
 #define atomic_signal_fence_acquire() _ReadWriteBarrier()
 #define atomic_signal_fence_release() _ReadWriteBarrier()
 #define atomic_signal_fence_sequentially_consistent() _ReadWriteBarrier()
 #define atomic_thread_fence_acquire() _ReadWriteBarrier()
 #define atomic_thread_fence_release() _ReadWriteBarrier()
-#define atomic_thread_fence_sequentially_consistent() MemoryBarrier()
+#define atomic_thread_fence_sequentially_consistent() _ReadWriteBarrier()
 
 #else
 

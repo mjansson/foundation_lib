@@ -215,7 +215,7 @@ string_resize(char* str, size_t length, size_t capacity, size_t new_length, char
 }
 
 string_t
-string_copy(char* dst, size_t capacity, const char* src, size_t length) {
+string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src, size_t length) {
 	if (capacity) {
 		FOUNDATION_ASSERT(dst);
 		if (length) {
@@ -1577,19 +1577,15 @@ string_from_time(char* buffer, size_t capacity, tick_t t) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (capacity < 25) {
 		buffer[0] = 0;
+		return (string_t){ buffer, 0 };
 	}
-	else {
-		time_t timet = t / 1000ULL;
-		if (_ctime64_s(buffer, capacity, &timet) != 0) {
-			buffer[0] = 0;
-			capacity = 0;
-		}
-		else {
-			buffer[24] = 0;
-			capacity = 24;
-		}
+	time_t timet = t / 1000ULL;
+	if (_ctime64_s(buffer, capacity, &timet) != 0) {
+		buffer[0] = 0;
+		return (string_t){ buffer, 0 };
 	}
-	return (string_t){ buffer, capacity };
+	buffer[24] = 0;
+	return (string_t){ buffer, 24 };
 #elif FOUNDATION_PLATFORM_ANDROID
 	time_t ts = t / 1000ULL;
 	char* tstr = ctime(&ts);

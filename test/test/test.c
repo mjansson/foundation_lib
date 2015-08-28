@@ -275,3 +275,7 @@ test_crash_handler(const char* dump_file, size_t length) {
 	process_exit(-1);
 }
 
+void*
+test_failed(void) {
+    return FAILED_TEST;
+}

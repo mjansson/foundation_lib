@@ -372,6 +372,7 @@ DECLARE_TEST(string, allocate) {
 		}
 
 		{
+            size_t expected_length;
 			uint32_t wteststr[] = { 0x0000FEFF, 0x00000100, 0x0000078f, 0x00001234, 0x0000FF03, 0x000D0854, 0x000D0C53, 0x00000032, 0xFFFE0000, 0x12340000, 0xFF030000, 0 };
 #if FOUNDATION_SIZE_WCHAR == 4
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x000D0C53, 0x0032, 0x3412, 0x03FF, 0 };
@@ -380,9 +381,17 @@ DECLARE_TEST(string, allocate) {
 #endif
 			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr));
 			wstring_from_string(wbuffer, 6, STRING_ARGS(utf8_teststr));
-			wtestcmpstr[5] = 0;
+#if FOUNDATION_SIZE_WCHAR == 4
+            expected_length = 5;
+#else
+            //Final glyph > 0x10FFFF will not be output since it requires
+            //two 16-bit wide characters which will not fit in given buffer
+			expected_length = 4;
+			EXPECT_EQ(wbuffer[4], 0);
+#endif
+			wtestcmpstr[expected_length] = 0;
 			EXPECT_TRUE(wstring_equal(wtestcmpstr, wbuffer));
-			EXPECT_EQ(wstring_length(wbuffer), 5);
+			EXPECT_EQ(wstring_length(wbuffer), expected_length);
 			string_deallocate(utf8_teststr.str);
 		}
 
@@ -494,16 +503,16 @@ DECLARE_TEST(string, queries) {
 		EXPECT_INTEQ(string_glyphs((const char*)utfstr, sizeof(utfstr)-1), 10);
 
 		offset = 0;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'®');
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0xAE);//'®'
 		EXPECT_EQ(consumed, 2);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'᧼');
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0x19FC); //L'᧼'
 		EXPECT_EQ(consumed, 3);
 		offset += consumed;
 		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'a');
 		EXPECT_EQ(consumed, 1);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'Җ');
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0x496); //L'Җ'
 		EXPECT_EQ(consumed, 2);
 		offset += consumed;
 		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)0xFE & 0x3F);
@@ -512,7 +521,7 @@ DECLARE_TEST(string, queries) {
 		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)0xFF & 0x3F);
 		EXPECT_EQ(consumed, 1);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'𤭢');
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0x24B62); //'𤭢'
 		EXPECT_EQ(consumed, 4);
 		offset += consumed;
 		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'b');
@@ -2176,13 +2185,23 @@ DECLARE_TEST(string, convert) {
 	EXPECT_EQ(str.length, 0);
 
 	str = string_from_time(buffer, 26, 0);
+#if FOUNDATION_PLATFORM_WINDOWS
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan 01 01:00:00 1970")));
+#else
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
+#endif
 
 	str = string_from_time(buffer, 26, time_system());
+    EXPECT_FALSE(string_equal(STRING_ARGS(str), STRING_CONST("Thu Jan 01 01:00:00 1970")));
+    EXPECT_FALSE(string_equal(STRING_ARGS(str), STRING_CONST("Thu Jan  1 01:00:00 1970")));
 	EXPECT_INTEQ(str.length, 24);
 
 	conststr = string_from_time_static(0);
+#if FOUNDATION_PLATFORM_WINDOWS
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan 01 01:00:00 1970")));
+#else
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
+#endif
 
 	conststr = string_from_time_static(time_system());
 	EXPECT_INTEQ(conststr.length, 24);
