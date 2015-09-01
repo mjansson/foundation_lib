@@ -418,12 +418,15 @@ static FOUNDATION_FORCEINLINE void atomic_thread_fence_sequentially_consistent(v
 
 #include <intrin.h>
 
+FOUNDATION_API void
+_atomic_thread_fence_sequentially_consistent(void);
+
 #define atomic_signal_fence_acquire() _ReadWriteBarrier()
 #define atomic_signal_fence_release() _ReadWriteBarrier()
 #define atomic_signal_fence_sequentially_consistent() _ReadWriteBarrier()
 #define atomic_thread_fence_acquire() _ReadWriteBarrier()
 #define atomic_thread_fence_release() _ReadWriteBarrier()
-#define atomic_thread_fence_sequentially_consistent() _ReadWriteBarrier()
+#define atomic_thread_fence_sequentially_consistent() _atomic_thread_fence_sequentially_consistent()
 
 #else
 

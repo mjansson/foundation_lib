@@ -67,6 +67,17 @@ __foundation_sync_bool_compare_and_swap_8(int64_t* val, int64_t oldval, int64_t 
 
 #endif
 
+#if FOUNDATION_PLATFORM_WINDOWS
+
+#include <foundation/windows.h>
+
+void
+_atomic_thread_fence_sequentially_consistent() {
+  MemoryBarrier();
+}
+
+#endif
+
 int
 _atomic_initialize(void) {
 #if FOUNDATION_MUTEX_64BIT_ATOMIC
