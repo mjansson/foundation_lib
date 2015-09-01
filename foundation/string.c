@@ -1145,7 +1145,7 @@ string_glyph(const char* str, size_t length, size_t offset, size_t* consumed) {
 
 size_t
 string_glyphs(const char* str, size_t length) {
-	const char* end = pointer_offset(str, length);
+	const char* end = pointer_offset_const(str, length);
 	size_t num = 0;
 	FOUNDATION_ASSERT(!length || str);
 	while (str && (str < end)) {

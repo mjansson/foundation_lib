@@ -578,6 +578,7 @@ process_kill(process_t* proc) {
 
 #elif FOUNDATION_PLATFORM_PNACL
 	//Not supported
+    FOUNDATION_UNUSED(proc);
 #else
 #error Not implemented
 #endif

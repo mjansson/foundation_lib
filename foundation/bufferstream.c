@@ -199,7 +199,7 @@ _buffer_stream_tell(stream_t* stream) {
 
 static tick_t
 _buffer_stream_lastmod(const stream_t* stream) {
-	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
+	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream->lastmod;
 }
 

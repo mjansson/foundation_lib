@@ -625,6 +625,7 @@ fs_remove_directory(const char* path, size_t length) {
 	string_const_t abspath, fspath;
 	string_t localpath = { 0, 0 };
 	char abspath_buffer[BUILD_MAX_PATHLEN];
+    size_t fspathofs;
 	size_t remain;
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wfpath = 0;
@@ -640,17 +641,18 @@ fs_remove_directory(const char* path, size_t length) {
 	if (!fs_is_directory(STRING_ARGS(fspath)))
 		goto end;
 
-	remain = BUILD_MAX_PATHLEN - (size_t)pointer_diff(fspath.str, abspath_buffer);
+    fspathofs = (size_t)pointer_diff(fspath.str, abspath_buffer);
+	remain = BUILD_MAX_PATHLEN - fspathofs;
 	subpaths = fs_subdirs(STRING_ARGS(fspath));
 	for (i = 0, num = array_size(subpaths); i < num; ++i) {
-		localpath = path_append((char*)fspath.str, fspath.length, remain, STRING_ARGS(subpaths[i]));
+		localpath = path_append(abspath_buffer + fspathofs, fspath.length, remain, STRING_ARGS(subpaths[i]));
 		fs_remove_directory(STRING_ARGS(localpath));
 	}
 	string_array_deallocate(subpaths);
 
 	subfiles = fs_files(STRING_ARGS(fspath));
 	for (i = 0, num = array_size(subfiles); i < num; ++i) {
-		localpath = path_append((char*)fspath.str, fspath.length, remain, STRING_ARGS(subfiles[i]));
+		localpath = path_append(abspath_buffer + fspathofs, fspath.length, remain, STRING_ARGS(subfiles[i]));
 		fs_remove_file(STRING_ARGS(localpath));
 	}
 	string_array_deallocate(subfiles);

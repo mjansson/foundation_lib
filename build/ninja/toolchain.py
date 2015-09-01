@@ -65,6 +65,8 @@ class Toolchain(object):
     else:
       self.exe_suffix = ''
 
+    self.python = 'python'
+
     #Set default values
     self.build_monolithic = False
     self.build_coverage = False
@@ -422,7 +424,7 @@ class Toolchain(object):
       elif target.is_pnacl():
         self.pnacl_sdkpath = os.path.expanduser( os.getenv( 'PNACL_SDKPATH', os.getenv( 'NACL_SDK_ROOT', self.pnacl_sdkpath ) ) )
 
-        pnacl_osname = subprocess.check_output( [ 'python', os.path.join( self.pnacl_sdkpath, 'tools', 'getos.py' ) ] ).strip()
+        pnacl_osname = subprocess.check_output( [ self.python, os.path.join( self.pnacl_sdkpath, 'tools', 'getos.py' ) ] ).strip()
         pnacl_toolchainpath = os.path.join( self.pnacl_sdkpath, 'toolchain', pnacl_osname + '_pnacl' )
 
         shsuffix = ''
@@ -437,7 +439,7 @@ class Toolchain(object):
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
         self.finalizecmd = '$finalize -o $out $in'
-        self.nmfcmd = 'python $nmf -o $out $in'
+        self.nmfcmd = self.python + ' $nmf -o $out $in'
 
         self.includepaths += [ os.path.join( self.pnacl_sdkpath, 'include' ) ]
 
@@ -687,6 +689,8 @@ class Toolchain(object):
       self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
     if 'support_lua' in prefs:
       self.support_lua = self.get_boolean_flag( prefs['support_lua'] )
+    if 'python' in prefs:
+      self.python = prefs['python']
 
   def get_boolean_flag( self, val ):
     return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
