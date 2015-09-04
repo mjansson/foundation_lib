@@ -18,7 +18,7 @@
 String handling and utility functions in UTF-8, conversion to/from UTF-16. Conversion
 to and from pritimive integral data types. Unless otherwise noted in the function descripion it
 is only safe to pass null pointers to any arguments if the corresponding length and/or capacity
-argument is also zero..
+argument is also zero.
 
 Strings are declared with a pointer to a memory block and the length of the string. Zero
 termination is generally NOT enforced. Functions that allocate or modify strings always return
