@@ -102,7 +102,7 @@ class Toolchain(object):
     self.tizen_toolchainversion_clang = '3.4'
 
     self.msvc_toolchain = ''
-    self.msvc_sdkdir = ''
+    self.msvc_sdkpath = ''
 
     #Parse variables
     if variables:
@@ -177,6 +177,10 @@ class Toolchain(object):
           self.tizen_toolchainversion_gcc = val
         elif key == 'tizen_clangversion':
           self.tizen_toolchainversion_clang = val
+        elif key == 'msvc_toolchain':
+          self.msvc_toolchain = val
+        elif key == 'msvc_sdkpath':
+          self.msvc_sdkpath = val
 
     #Source in local build prefs
     self.read_prefs( 'build.json' )
@@ -347,15 +351,15 @@ class Toolchain(object):
         if target.is_macosx():
           sdk = 'macosx'
           deploytarget = 'MACOSX_DEPLOYMENT_TARGET=' + self.macosx_deploymenttarget
-          self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=' + self.macosx_deploymenttarget, '-isysroot', '$sdkdir' ]
+          self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=' + self.macosx_deploymenttarget, '-isysroot', '$sdkpath' ]
           self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
-          self.linkflags += [ '-isysroot', '$sdkdir' ]
+          self.linkflags += [ '-isysroot', '$sdkpath' ]
         elif target.is_ios():
           sdk = 'iphoneos'
           deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=' + self.ios_deploymenttarget
-          self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=' + self.ios_deploymenttarget, '-isysroot', '$sdkdir' ]
+          self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=' + self.ios_deploymenttarget, '-isysroot', '$sdkpath' ]
           self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
-          self.linkflags += [ '-isysroot', '$sdkdir' ]
+          self.linkflags += [ '-isysroot', '$sdkpath' ]
 
         platformpath = subprocess.check_output( [ 'xcrun', '--sdk', sdk, '--show-sdk-platform-path' ] ).strip()
         localpath = platformpath + "/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -519,6 +523,83 @@ class Toolchain(object):
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
 
+  def read_prefs( self, filename ):
+    if not os.path.isfile( filename ):
+      return
+    file = open( filename, 'r' )
+    prefs = json.load( file )
+    file.close()
+    if 'android' in prefs:
+      androidprefs = prefs['android']
+      if 'ndkpath' in androidprefs:
+        self.android_ndkpath = androidprefs['ndkpath']
+      if 'sdkpath' in androidprefs:
+        self.android_sdkpath = androidprefs['sdkpath']
+      if 'keystore' in androidprefs:
+        self.android_keystore = androidprefs['keystore']
+      if 'keyalias' in androidprefs:
+        self.android_keyalias = androidprefs['keyalias']
+      if 'keystorepass' in androidprefs:
+        self.android_keystorepass = androidprefs['keystorepass']
+      if 'keypass' in androidprefs:
+        self.android_keypass = androidprefs['keypass']
+      if 'platformversion' in androidprefs:
+        self.android_platformversion = androidprefs['platformversion']
+      if 'gccversion' in androidprefs:
+        self.android_gccversion = androidprefs['gccversion']
+      if 'clangversion' in androidprefs:
+        self.android_clangversion = androidprefs['clangversion']
+      if 'tsa' in androidprefs:
+        self.android_tsa = androidprefs['tsa']
+      if 'tsacert' in androidprefs:
+        self.android_tsacert = androidprefs['tsacert']
+    if 'ios' in prefs:
+      iosprefs = prefs['ios']
+      if 'deploymenttarget' in iosprefs:
+        self.ios_deploymenttarget = iosprefs['deploymenttarget']
+      if 'organisation' in iosprefs:
+        self.ios_organisation = iosprefs['organisation']
+      if 'bundleidentifier' in iosprefs:
+        self.ios_bundleidentifier = iosprefs['bundleidentifier']
+      if 'provisioning' in iosprefs:
+        self.ios_provisioning = iosprefs['provisioning']
+    if 'macosx' in prefs:
+      macosxprefs = prefs['macosx']
+      if 'deploymenttarget' in macosxprefs:
+        self.macosx_deploymenttarget = macosxprefs['deploymenttarget']
+      if 'organisation' in macosxprefs:
+        self.macosx_organisation = macosxprefs['organisation']
+      if 'bundleidentifier' in macosxprefs:
+        self.macosx_bundleidentifier = macosxprefs['bundleidentifier']
+      if 'provisioning' in macosxprefs:
+        self.macosx_provisioning = macosxprefs['provisioning']
+    if 'pnacl' in prefs:
+      pnaclprefs = prefs['pnacl']
+      if 'sdkpath' in pnaclprefs:
+        self.pnacl_sdkpath = pnaclprefs['sdkpath']
+    if 'tizen' in prefs:
+      tizenprefs = prefs['tizen']
+      if 'sdkpath' in tizenprefs:
+        self.tizen_sdkpath = tizenprefs['sdkpath']
+      if 'gccversion' in tizenprefs:
+        self.tizen_gccversion = tizenprefs['gccversion']
+      if 'clangversion' in tizenprefs:
+        self.tizen_clangversion = tizenprefs['clangversion']
+    if 'msvc' in prefs:
+      msvcprefs = prefs['msvc']
+      if 'sdkpath' in msvcprefs:
+        self.msvc_sdkpath = msvcprefs['sdkpath']
+      if 'toolchain' in msvcprefs:
+        self.msvc_toolchain = msvcprefs['toolchain']
+    if 'monolithic' in prefs:
+      self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
+    if 'coverage' in prefs:
+      self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
+    if 'support_lua' in prefs:
+      self.support_lua = self.get_boolean_flag( prefs['support_lua'] )
+    if 'python' in prefs:
+      self.python = prefs['python']
+
   def build_android_toolchain( self ):
     self.android_platformversion = os.getenv( 'ANDROID_PLATFORMVERSION', self.android_platformversion )
     self.android_toolchainversion_gcc = os.getenv( 'ANDROID_GCCVERSION', self.android_toolchainversion_gcc )
@@ -627,122 +708,52 @@ class Toolchain(object):
     self.tizen_archpath['mips64'] = 'mips64'
 
   def build_msvc_toolchain( self ):
-    versions = [ '13.0', '12.0', '11.0', '10.0' ]
-    keys = [
-      'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
-      'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
-      'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7',
-      'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7'
-    ]
-    msvc_toolchain = ''
-    for version in versions:
+    if self.msvc_toolchain == '':
+      versions = [ '13.0', '12.0', '11.0', '10.0' ]
+      keys = [
+        'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
+        'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
+        'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7',
+        'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7'
+      ]
+      msvc_toolchain = ''
+      for version in versions:
+        for key in keys:
+          try:
+            query = subprocess.check_output( [ 'reg', 'query', key, '/v', version ], stderr=subprocess.STDOUT ).strip().splitlines()
+            if len(query) == 2:
+              msvc_toolchain = query[1].split('REG_SZ')[-1].strip()
+          except:
+            continue
+          if not msvc_toolchain == '':
+            self.includepaths += [ os.path.join(msvc_toolchain, 'include' ) ]
+            self.msvc_toolchain = msvc_toolchain
+            break
+        if not msvc_toolchain == '':
+          break
+    if self.msvc_sdkpath == '':
+      keys = [
+        'HKLM\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
+        'HKCU\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
+        'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
+        'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1'
+      ]
+      msvc_sdkpath = ''
       for key in keys:
         try:
-          query = subprocess.check_output( [ 'reg', 'query', key, '/v', version ], stderr=subprocess.STDOUT ).strip().splitlines()
+          query = subprocess.check_output( [ 'reg', 'query', key, '/v', 'InstallationFolder' ], stderr=subprocess.STDOUT ).strip().splitlines()
           if len(query) == 2:
-            msvc_toolchain = query[1].split('REG_SZ')[-1].strip()
-        except:
+            msvc_sdkpath = query[1].split('REG_SZ')[-1].strip()
+        except subprocess.CalledProcessError as e:
           continue
-        if not msvc_toolchain == '':
-          self.includepaths += [ os.path.join(msvc_toolchain, 'include' ) ]
-          self.msvc_toolchain = msvc_toolchain
+        if not msvc_sdkpath == '':
+          self.includepaths += [
+            os.path.join( msvc_sdkpath, 'include', 'shared' ),
+            os.path.join( msvc_sdkpath, 'include', 'um' ),
+            os.path.join( msvc_sdkpath, 'include', 'winrt' )
+          ]
+          self.msvc_sdkpath = msvc_sdkpath
           break
-      if not msvc_toolchain == '':
-        break
-
-    keys = [
-      'HKLM\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
-      'HKCU\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
-      'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
-      'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1'
-    ]
-    msvc_sdkdir = ''
-    for key in keys:
-      try:
-        query = subprocess.check_output( [ 'reg', 'query', key, '/v', 'InstallationFolder' ], stderr=subprocess.STDOUT ).strip().splitlines()
-        if len(query) == 2:
-          msvc_sdkdir = query[1].split('REG_SZ')[-1].strip()
-      except subprocess.CalledProcessError as e:
-        continue
-      if not msvc_sdkdir == '':
-        self.includepaths += [
-          os.path.join( msvc_sdkdir, 'include', 'shared' ),
-          os.path.join( msvc_sdkdir, 'include', 'um' ),
-          os.path.join( msvc_sdkdir, 'include', 'winrt' )
-        ]
-        self.msvc_sdkdir = msvc_sdkdir
-        break
-
-  def read_prefs( self, filename ):
-    if not os.path.isfile( filename ):
-      return
-    file = open( filename, 'r' )
-    prefs = json.load( file )
-    file.close()
-    if 'android' in prefs:
-      androidprefs = prefs['android']
-      if 'ndkpath' in androidprefs:
-        self.android_ndkpath = androidprefs['ndkpath']
-      if 'sdkpath' in androidprefs:
-        self.android_sdkpath = androidprefs['sdkpath']
-      if 'keystore' in androidprefs:
-        self.android_keystore = androidprefs['keystore']
-      if 'keyalias' in androidprefs:
-        self.android_keyalias = androidprefs['keyalias']
-      if 'keystorepass' in androidprefs:
-        self.android_keystorepass = androidprefs['keystorepass']
-      if 'keypass' in androidprefs:
-        self.android_keypass = androidprefs['keypass']
-      if 'platformversion' in androidprefs:
-        self.android_platformversion = androidprefs['platformversion']
-      if 'gccversion' in androidprefs:
-        self.android_gccversion = androidprefs['gccversion']
-      if 'clangversion' in androidprefs:
-        self.android_clangversion = androidprefs['clangversion']
-      if 'tsa' in androidprefs:
-        self.android_tsa = androidprefs['tsa']
-      if 'tsacert' in androidprefs:
-        self.android_tsacert = androidprefs['tsacert']
-    if 'ios' in prefs:
-      iosprefs = prefs['ios']
-      if 'deploymenttarget' in iosprefs:
-        self.ios_deploymenttarget = iosprefs['deploymenttarget']
-      if 'organisation' in iosprefs:
-        self.ios_organisation = iosprefs['organisation']
-      if 'bundleidentifier' in iosprefs:
-        self.ios_bundleidentifier = iosprefs['bundleidentifier']
-      if 'provisioning' in iosprefs:
-        self.ios_provisioning = iosprefs['provisioning']
-    if 'macosx' in prefs:
-      macosxprefs = prefs['macosx']
-      if 'deploymenttarget' in macosxprefs:
-        self.macosx_deploymenttarget = macosxprefs['deploymenttarget']
-      if 'organisation' in macosxprefs:
-        self.macosx_organisation = macosxprefs['organisation']
-      if 'bundleidentifier' in macosxprefs:
-        self.macosx_bundleidentifier = macosxprefs['bundleidentifier']
-      if 'provisioning' in macosxprefs:
-        self.macosx_provisioning = macosxprefs['provisioning']
-    if 'pnacl' in prefs:
-      pnaclprefs = prefs['pnacl']
-      if 'sdkpath' in pnaclprefs:
-        self.pnacl_sdkpath = pnaclprefs['sdkpath']
-    if 'tizen' in prefs:
-      tizenprefs = prefs['tizen']
-      if 'sdkpath' in tizenprefs:
-        self.tizen_sdkpath = tizenprefs['sdkpath']
-      if 'gccversion' in tizenprefs:
-        self.tizen_gccversion = tizenprefs['gccversion']
-      if 'clangversion' in tizenprefs:
-        self.tizen_clangversion = tizenprefs['clangversion']
-    if 'monolithic' in prefs:
-      self.build_monolithic = self.get_boolean_flag( prefs['monolithic'] )
-    if 'coverage' in prefs:
-      self.build_coverage = self.get_boolean_flag( prefs['coverage'] )
-    if 'support_lua' in prefs:
-      self.support_lua = self.get_boolean_flag( prefs['support_lua'] )
-    if 'python' in prefs:
-      self.python = prefs['python']
 
   def get_boolean_flag( self, val ):
     return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
@@ -767,13 +778,13 @@ class Toolchain(object):
       if arch == 'x86-64' or arch == 'mips64' or arch == 'arm64':
         finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib64' ) ]
       finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib' ) ]
-    if self.target.is_windows() and self.msvc_sdkdir != '':
+    if self.target.is_windows() and self.msvc_sdkpath != '':
       if arch == 'x86':
         finalpaths += [ os.path.join( self.msvc_toolchain, 'lib' ) ]
-        finalpaths += [ os.path.join( self.msvc_sdkdir, 'lib', 'winv6.3', 'um', 'x86' ) ]
+        finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', 'winv6.3', 'um', 'x86' ) ]
       else:
         finalpaths += [ os.path.join( self.msvc_toolchain, 'lib', 'amd64' ) ]
-        finalpaths += [ os.path.join( self.msvc_sdkdir, 'lib', 'winv6.3', 'um', 'x64' ) ]
+        finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', 'winv6.3', 'um', 'x64' ) ]
     return finalpaths
 
   def make_cconfigflags( self, config ):
@@ -1089,11 +1100,11 @@ class Toolchain(object):
     writer.variable( 'config', '' )
     if self.host.is_macosx() and (self.target.is_macosx() or self.target.is_ios()):
       if self.target.is_macosx():
-        sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
+        sdkpath = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
       elif self.target.is_ios():
-        sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-path' ] ).strip()
-      if sdkdir:
-        writer.variable( 'sdkdir', sdkdir )
+        sdkpath = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-path' ] ).strip()
+      if sdkpath:
+        writer.variable( 'sdkpath', sdkpath )
     if self.target.is_windows():
       writer.variable( 'pdbpath', '' )
     if self.target.is_android():
@@ -1432,7 +1443,10 @@ class Toolchain(object):
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
-        libpath = os.path.join( self.libpath, config, arch )
+        if self.target.is_macosx() or self.target.is_ios() or self.target.is_pnacl():
+          libpath = os.path.join( self.libpath, config )
+        else:
+          libpath = os.path.join( self.libpath, config, arch )
         localvariables = [ ( 'carchflags', self.make_carchflags( arch ) ),
                            ( 'cconfigflags', self.make_cconfigflags( config ) ) ]
         localarvariables = [ ( 'ararchflags', self.make_ararchflags( arch ) ),
@@ -1505,14 +1519,12 @@ class Toolchain(object):
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
-        if self.target.is_pnacl():
+        if self.target.is_macosx() or self.target.is_ios() or self.target.is_pnacl():
+          libpath = os.path.join( self.libpath, config )
           binpath = os.path.join( self.binpath, config )
         else:
-          binpath = os.path.join( self.binpath, config, arch )
-        if self.target.is_macosx() or self.target.is_ios():
-          libpath = os.path.join( self.libpath, config ) #Use universal libraries
-        else:
           libpath = os.path.join( self.libpath, config, arch )
+          binpath = os.path.join( self.binpath, config, arch )
         localcarchflags = self.make_carchflags( arch )
         locallinkarchflags = self.make_linkarchflags( arch )
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
