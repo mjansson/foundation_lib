@@ -282,7 +282,7 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, bool check_onl
 			}
 			else {
 				stream_write_format(output_file,
-				                    STRING_CONST("#define %.*s static_hash_string( \"%.*s\", %" PRIsize ", 0x%" PRIx64 "ULL )\n"),
+				                    STRING_CONST("#define %.*s static_hash_string(\"%.*s\", %" PRIsize ", 0x%" PRIx64 "ULL)\n"),
 				                    STRING_FORMAT(def_string), STRING_FORMAT(value_string), value_string.length, hash_value);
 			}
 
