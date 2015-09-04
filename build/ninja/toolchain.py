@@ -101,6 +101,9 @@ class Toolchain(object):
     self.tizen_toolchainversion_gcc = '4.8'
     self.tizen_toolchainversion_clang = '3.4'
 
+    self.msvc_toolchain = ''
+    self.msvc_sdkdir = ''
+
     #Parse variables
     if variables:
       if isinstance( variables, dict ):
@@ -236,11 +239,13 @@ class Toolchain(object):
       self.linkflags = []
       self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
       self.objext = '.obj'
-      self.cccmd = '$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
+      self.cccmd = '$toolchain$cc /showIncludes $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
       self.ccdepfile = None
       self.ccdeps = 'msvc'
-      self.arcmd = '$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
-      self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
+      self.arcmd = '$toolchain$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
+      self.linkcmd = '$toolchain$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
+
+      self.build_msvc_toolchain()
 
     elif self.toolchain.startswith('gcc') or self.toolchain.startswith('gnu'):
       self.toolchain = 'gcc' + self.exe_suffix
@@ -621,6 +626,53 @@ class Toolchain(object):
     self.tizen_archpath['mips'] = 'mips'
     self.tizen_archpath['mips64'] = 'mips64'
 
+  def build_msvc_toolchain( self ):
+    versions = [ '13.0', '12.0', '11.0', '10.0' ]
+    keys = [
+      'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
+      'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
+      'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7',
+      'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7'
+    ]
+    msvc_toolchain = ''
+    for version in versions:
+      for key in keys:
+        try:
+          query = subprocess.check_output( [ 'reg', 'query', key, '/v', version ], stderr=subprocess.STDOUT ).strip().splitlines()
+          if len(query) == 2:
+            msvc_toolchain = query[1].split('REG_SZ')[-1].strip()
+        except:
+          continue
+        if not msvc_toolchain == '':
+          self.includepaths += [ os.path.join(msvc_toolchain, 'include' ) ]
+          self.msvc_toolchain = msvc_toolchain
+          break
+      if not msvc_toolchain == '':
+        break
+
+    keys = [
+      'HKLM\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
+      'HKCU\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
+      'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
+      'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1'
+    ]
+    msvc_sdkdir = ''
+    for key in keys:
+      try:
+        query = subprocess.check_output( [ 'reg', 'query', key, '/v', 'InstallationFolder' ], stderr=subprocess.STDOUT ).strip().splitlines()
+        if len(query) == 2:
+          msvc_sdkdir = query[1].split('REG_SZ')[-1].strip()
+      except subprocess.CalledProcessError as e:
+        continue
+      if not msvc_sdkdir == '':
+        self.includepaths += [
+          os.path.join( msvc_sdkdir, 'include', 'shared' ),
+          os.path.join( msvc_sdkdir, 'include', 'um' ),
+          os.path.join( msvc_sdkdir, 'include', 'winrt' )
+        ]
+        self.msvc_sdkdir = msvc_sdkdir
+        break
+
   def read_prefs( self, filename ):
     if not os.path.isfile( filename ):
       return
@@ -715,6 +767,13 @@ class Toolchain(object):
       if arch == 'x86-64' or arch == 'mips64' or arch == 'arm64':
         finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib64' ) ]
       finalpaths += [ os.path.join( self.make_android_sysroot_path( arch ), 'usr', 'lib' ) ]
+    if self.target.is_windows() and self.msvc_sdkdir != '':
+      if arch == 'x86':
+        finalpaths += [ os.path.join( self.msvc_toolchain, 'lib' ) ]
+        finalpaths += [ os.path.join( self.msvc_sdkdir, 'lib', 'winv6.3', 'um', 'x86' ) ]
+      else:
+        finalpaths += [ os.path.join( self.msvc_toolchain, 'lib', 'amd64' ) ]
+        finalpaths += [ os.path.join( self.msvc_sdkdir, 'lib', 'winv6.3', 'um', 'x64' ) ]
     return finalpaths
 
   def make_cconfigflags( self, config ):
@@ -1065,6 +1124,8 @@ class Toolchain(object):
       writer.variable( 'toolchain', '' )
       writer.variable( 'toolchaintarget', '' )
       writer.variable( 'sysroot', '' )
+    if self.is_msvc():
+      writer.variable( 'toolchain', self.msvc_toolchain )
     if self.target.is_pnacl():
       writer.variable( 'finalize', self.finalize )
       writer.variable( 'nmf', self.nmf )
@@ -1377,6 +1438,13 @@ class Toolchain(object):
         if self.target.is_windows():
           pdbpath = os.path.join( buildpath, basepath, decoratedmodule, 'ninja.pdb' )
           localvariables += [ ( 'pdbpath', pdbpath ) ]
+          if self.is_msvc():
+            if arch == 'x86-64':
+              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
+              localarvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
+            else:
+              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
+              localarvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
@@ -1456,6 +1524,13 @@ class Toolchain(object):
           localvariables += [ ( 'pdbpath', pdbpath ) ]
           linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
           locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
+          if self.is_msvc():
+            if arch == 'x86-64':
+              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
+              locallinkvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
+            else:
+              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
+              locallinkvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
