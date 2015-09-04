@@ -889,6 +889,17 @@ fs_last_modified(const char* path, size_t length) {
 #endif
 }
 
+size_t
+fs_size(const char* path, size_t length) {
+	size_t size = 0;
+	stream_t* file = fs_open_file(path, length, STREAM_IN | STREAM_BINARY);
+	if (file) {
+		size = stream_size(file);
+		stream_deallocate(file);
+	}
+	return size;
+}
+
 uint128_t
 fs_md5(const char* path, size_t length) {
 	uint128_t digest = uint128_null();

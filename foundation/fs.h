@@ -94,6 +94,13 @@ will NOT create the file if it does not exist.
 FOUNDATION_API void
 fs_touch(const char* path, size_t length);
 
+/*! Get file size
+\param path   File path
+\param length Length of path
+\return       Size of file, 0 if not an existing file or unreadable */
+FOUNDATION_API size_t
+fs_size(const char* path, size_t length);
+
 /*! Get file MD5 digest. Will read and digest the file contents on each call
 of this function (slow)
 \param path   File path
