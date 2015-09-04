@@ -1226,6 +1226,11 @@ class Toolchain(object):
   def make_tizen_ar_path( self, arch ):
     return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainname[arch], 'bin', self.tizen_toolchainprefix[arch] + '-ar' )
 
+  def make_msvc_toolchain_path( self, arch ):
+    if arch == 'x86-64':
+      return os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' )
+    return os.path.join( self.msvc_toolchain, 'bin\\' )
+
   def make_bundleidentifier( self, binname ):
     if self.target.is_macosx():
       return self.macosx_bundleidentifier.replace( '$(binname)', binname )
@@ -1424,36 +1429,34 @@ class Toolchain(object):
     for config in configs:
       archlibs = []
       built[config] = []
-      localcconfigflags = self.make_cconfigflags( config )
       for arch in self.archs:
         objs = []
         buildpath = os.path.join( self.buildpath, config, arch )
         libpath = os.path.join( self.libpath, config, arch )
-        localcarchflags = self.make_carchflags( arch )
-        localararchflags = self.make_ararchflags( arch )
-        localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
-        localarconfigflags = self.make_arconfigflags( arch, config )
-        localarvariables = [ ( 'ararchflags', localararchflags ), ( 'arconfigflags', localarconfigflags ) ]
+        localvariables = [ ( 'carchflags', self.make_carchflags( arch ) ),
+                           ( 'cconfigflags', self.make_cconfigflags( config ) ) ]
+        localarvariables = [ ( 'ararchflags', self.make_ararchflags( arch ) ),
+                             ( 'arconfigflags', self.make_arconfigflags( arch, config ) ) ]
         extraincludepaths = []
         if self.target.is_windows():
-          pdbpath = os.path.join( buildpath, basepath, decoratedmodule, 'ninja.pdb' )
-          localvariables += [ ( 'pdbpath', pdbpath ) ]
+          localvariables += [ ( 'pdbpath', os.path.join( buildpath, basepath, decoratedmodule, 'ninja.pdb' ) ) ]
           if self.is_msvc():
-            if arch == 'x86-64':
-              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
-              localarvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
-            else:
-              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
-              localarvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
+            localvariables += [ ( 'toolchain', self.make_msvc_toolchain_path( arch ) ) ]
+            localarvariables += [ ( 'toolchain', self.make_msvc_toolchain_path( arch ) ) ]
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
-          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
-          localarvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
+          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                              ( 'sysroot', sysroot ) ]
+          localarvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                                ( 'sysroot', sysroot ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
         if self.target.is_tizen():
           sysroot = self.make_tizen_sysroot_path( arch )
-          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
-          localarvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'ar', self.make_tizen_ar_path( arch ) ) ]
+          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ),
+                              ( 'sysroot', sysroot ) ]
+          localarvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ),
+                                ( 'sysroot', sysroot ),
+                                ( 'ar', self.make_tizen_ar_path( arch ) ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ), os.path.join( sysroot, 'usr', 'include', 'appfw' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
@@ -1515,31 +1518,35 @@ class Toolchain(object):
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
         locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libpath ], arch, config ) )
         localarchlibs = self.make_linkarchlibs( arch )
-        localvariables = [ ( 'carchflags', localcarchflags ), ( 'cconfigflags', localcconfigflags ) ]
-        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + extralibs + self.extralibs ) + self.make_frameworks( extraframeworks ) ), ( 'archlibs', self.make_libs( localarchlibs ) ),
-                               ( 'linkconfigflags', locallinkconfigflags ), ( 'linkarchflags', locallinkarchflags ), ( 'libpaths', locallibpaths ) ]
+        localvariables = [ ( 'carchflags', localcarchflags ),
+                           ( 'cconfigflags', localcconfigflags ) ]
+        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + extralibs + self.extralibs ) + self.make_frameworks( extraframeworks ) ),
+                               ( 'archlibs', self.make_libs( localarchlibs ) ),
+                               ( 'linkconfigflags', locallinkconfigflags ),
+                               ( 'linkarchflags', locallinkarchflags ),
+                               ( 'libpaths', locallibpaths ) ]
         extraincludepaths = []
         if self.target.is_windows():
-          pdbpath = os.path.join( buildpath, basepath, module, 'ninja.pdb' )
-          localvariables += [ ( 'pdbpath', pdbpath ) ]
-          linkpdbpath = os.path.join( binpath, self.binprefix + binname + '.pdb' )
-          locallinkvariables += [ ( 'pdbpath', linkpdbpath ) ]
+          localvariables += [ ( 'pdbpath', os.path.join( buildpath, basepath, module, 'ninja.pdb' ) ) ]
+          locallinkvariables += [ ( 'pdbpath', os.path.join( binpath, self.binprefix + binname + '.pdb' ) ) ]
           if self.is_msvc():
-            if arch == 'x86-64':
-              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
-              locallinkvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin', 'amd64\\' ) ) ]
-            else:
-              localvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
-              locallinkvariables += [ ( 'toolchain', os.path.join( self.msvc_toolchain, 'bin\\' ) ) ]
+            localvariables += [ ( 'toolchain', self.make_msvc_toolchain_path( arch ) ) ]
+            locallinkvariables += [ ( 'toolchain', self.make_msvc_toolchain_path( arch ) ) ]
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
-          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
-          locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
+          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                              ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                                  ( 'sysroot', sysroot ),
+                                  ( 'liblinkname', self.binprefix + binname + self.binext ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
         if self.target.is_tizen():
           sysroot = self.make_tizen_sysroot_path( arch )
-          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ) ]
-          locallinkvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ), ( 'sysroot', sysroot ), ( 'liblinkname', self.binprefix + binname + self.binext ) ]
+          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ),
+                              ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ),
+                                  ( 'sysroot', sysroot ),
+                                  ( 'liblinkname', self.binprefix + binname + self.binext ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ), os.path.join( sysroot, 'usr', 'include', 'appfw' ) ]
         if moreincludepaths != [] or extraincludepaths != []:
           localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
