@@ -191,8 +191,8 @@ int
 crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
             size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
-	string_t crash_dump_file;
-	crash_dump_file = string_allocate(0, BUILD_MAX_PATHLEN);
+	int ret = FOUNDATION_CRASH_DUMP_GENERATED;
+	string_t crash_dump_file = string_allocate(0, BUILD_MAX_PATHLEN);
 #endif
 
 	//Make sure path is initialized
@@ -202,7 +202,7 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
 	__try {
-		return fn(data);
+		ret = fn(data);
 	}
 	__except (_crash_create_mini_dump(GetExceptionInformation(), string_const(name, length), crash_dump_file),
 	          EXCEPTION_EXECUTE_HANDLER) {
@@ -210,10 +210,9 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 			callback(STRING_ARGS(crash_dump_file));
 
 		error_context_clear();
-
-		return FOUNDATION_CRASH_DUMP_GENERATED;
 	}
 	string_deallocate(crash_dump_file.str);
+	return ret;
 #  else
 	SetUnhandledExceptionFilter(_crash_exception_filter);
 	_crash_exception_closure.callback = callback;
