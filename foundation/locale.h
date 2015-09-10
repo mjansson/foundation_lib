@@ -13,7 +13,7 @@
 #pragma once
 
 /*! \file locale.h
-Locale definitions
+\brief Locale definitions
 
 Locale definitions. */
 

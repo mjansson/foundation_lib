@@ -1,13 +1,13 @@
 /* log.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
@@ -48,13 +48,14 @@ log_debug(hash_t context, const char* msg, size_t msg_length);
 \param format_length Length of log message format specifier */
 FOUNDATION_API void
 log_debugf(hash_t context, const char* format, size_t format_length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 2, 4);
+FOUNDATION_PRINTFCALL(2, 4);
 
 #endif
 
 #if BUILD_ENABLE_LOG
 
-/*! Log an unformatted info message in the specific context
+/*! \fn void log_info(hash_t context, const char* msg, size_t msg_length)
+Log an unformatted info message in the specific context
 \param context Log context
 \param msg Log message
 \param msg_length Length of message */
@@ -67,9 +68,10 @@ log_info(hash_t context, const char* msg, size_t msg_length);
 \param format_length Length of log message format specifier */
 FOUNDATION_API void
 log_infof(hash_t context, const char* format, size_t format_length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 2, 4);
+FOUNDATION_PRINTFCALL(2, 4);
 
-/*! Log an unformatted warning message in the specific context
+/*! \fn void log_warn(hash_t context, warning_t warn, const char* msg, size_t msg_length)
+Log an unformatted warning message in the specific context
 \param context Log context
 \param warn Warning type
 \param msg Log message
@@ -84,9 +86,10 @@ log_warn(hash_t context, warning_t warn, const char* msg, size_t msg_length);
 \param format_length Length of log message format specifier */
 FOUNDATION_API void
 log_warnf(hash_t context, warning_t warn, const char* format, size_t format_length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
+FOUNDATION_PRINTFCALL(3, 5);
 
-/*! Log an unformatted error message in the specific context. Will also
+/*! \fn void log_error(hash_t context, error_t err, const char* msg, size_t msg_length)
+Log an unformatted error message in the specific context. Will also
 report the error code through error_report
 \param context Log context
 \param err Error code
@@ -103,9 +106,10 @@ report the error code through error_report
 \param format_length Length of log message format specifier */
 FOUNDATION_API void
 log_errorf(hash_t context, error_t err, const char* format, size_t format_length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
+FOUNDATION_PRINTFCALL(3, 5);
 
-/*! Log an unformatted panic message in the specific context. Will also
+/*! \fn void log_panic(hash_t context, error_t err, const char* msg, size_t msg_length)
+Log an unformatted panic message in the specific context. Will also
 report the error code through error_report
 \param context Log context
 \param err Error code
@@ -121,9 +125,10 @@ log_panic(hash_t context, error_t err, const char* msg, size_t msg_length);
 \param format_length Length of log message format specifier */
 FOUNDATION_API void
 log_panicf(hash_t context, error_t err, const char* format, size_t format_length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
+FOUNDATION_PRINTFCALL(3, 5);
 
-/*! Log the current error context in the specified log context. The log output is filtered
+/*! \fn void log_error_context(hash_t context, error_level_t error_level)
+Log the current error context in the specified log context. The log output is filtered
 at the given severity level
 \param context Log context
 \param error_level Severity level */

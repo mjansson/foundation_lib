@@ -1,13 +1,13 @@
 /* string.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
@@ -103,16 +103,18 @@ string_const(const char* str, size_t length);
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_to_const(string_t str);
 
-/*! Allocate a new string from a format specifier and variable data, printf style.
+/*! \fn string_t string_allocate_format(const char* format, size_t length, ...)
+Allocate a new string from a format specifier and variable data, printf style.
 The format specifier must be a string literal of specified length, zero terminated.
 \param format Format specifier
 \param length Length of format specifier
 \return Formatted string in a newly allocate memory buffer, zero terminated */
 FOUNDATION_API string_t
 string_allocate_format(const char* format, size_t length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 1, 3);
+FOUNDATION_PRINTFCALL(1, 3);
 
-/*! In-memory string formatting from a format specifier and variable data, printf style.
+/*! \fn string_t string_format(char* buffer, size_t capacity, const char* format, size_t length, ...)
+In-memory string formatting from a format specifier and variable data, printf style.
 The format specifier must be a string literal of specified length, zero terminated.
 Will print at most (capacity-1) characters into the buffer and always zero terminate.
 If buffer or capacity is null the returned string is null, otherwise the string is always
@@ -124,9 +126,10 @@ returned with buffer pointer and length [0, capacity-1].
 \return Formatted string in given buffer, zero terminated */
 FOUNDATION_API string_t
 string_format(char* buffer, size_t capacity, const char* format, size_t length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
+FOUNDATION_PRINTFCALL(3, 5);
 
-/*! Allocate a new string from a format specifier and variable data given as a va_list,
+/*! \fn string_t string_allocate_vformat(const char* format, size_t length, va_list list)
+Allocate a new string from a format specifier and variable data given as a va_list,
 printf style. The format specifier must be a string literal of specified length,
 zero terminated. If format or length is null the returned string is null, otherwise
 a string buffer is always allocated and returned.
@@ -136,9 +139,10 @@ a string buffer is always allocated and returned.
 \return Formatted string in a newly allocate memory buffer, zero terminated */
 FOUNDATION_API string_t
 string_allocate_vformat(const char* format, size_t length, va_list list)
-FOUNDATION_ATTRIBUTE4(format, printf, 1, 0);
+FOUNDATION_PRINTFCALL(1, 0);
 
-/*! In-memory string formatting from a format specifier and variable data given as a va_list,
+/*! \fn string_t string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list list)
+In-memory string formatting from a format specifier and variable data given as a va_list,
 printf style. The format specifier must be a string literal of specified length, zero
 terminated. Will print at most (capacity-1) characters into the buffer and always zero
 terminate the string. If buffer or capacity is null the returned string is null, otherwise
@@ -151,9 +155,10 @@ the string is always returned with buffer pointer and length [0, capacity-1].
 \return Formatted string in given buffer, zero terminated */
 FOUNDATION_API string_t
 string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list list)
-FOUNDATION_ATTRIBUTE4(format, printf, 3, 0);
+FOUNDATION_PRINTFCALL(3, 0);
 
-/*! Get length of string in bytes. String must be zero terminated. Safe to pass a null
+/*! \fn size_t string_length(const char* str)
+Get length of string in bytes. String must be zero terminated. Safe to pass a null
 pointer, in which case the string length returned is zero.
 \param str String
 \return Length of string in bytes */

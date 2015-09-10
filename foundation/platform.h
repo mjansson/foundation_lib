@@ -1,13 +1,13 @@
 /* platform.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
@@ -655,6 +655,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
 #  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
 #  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
+#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
 #  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
 #  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
@@ -699,6 +700,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
 #  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
 #  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
+#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
 #  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
 #  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct FOUNDATION_ALIGN( alignment ) name
@@ -745,6 +747,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_NOINLINE __declspec( noinline )
 #  define FOUNDATION_PURECALL
 #  define FOUNDATION_CONSTCALL
+#  define FOUNDATION_PRINTFCALL( start, num )
 #  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
@@ -783,6 +786,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_NOINLINE __declspec( noinline )
 #  define FOUNDATION_PURECALL
 #  define FOUNDATION_CONSTCALL
+#  define FOUNDATION_PRINTFCALL( start, num )
 #  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
@@ -1130,6 +1134,10 @@ uint256_is_null(const uint256_t u0) {
 #  else
 #    define PRIfixPTR  "08" PRIXPTR
 #  endif
+#endif
+
+#if defined(FOUNDATION_PLATFORM_DOXYGEN) && FOUNDATION_PLATFORM_DOXYGEN
+#  define FOUNDATION_PRINTFCALL(x,y)
 #endif
 
 #include <foundation/build.h>

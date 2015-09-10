@@ -76,12 +76,10 @@ For MacOSX, iOS and PNaCl builds the libraries and binaries/apps will be univers
 Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for MacOSX and iOS since the binaries are universal).
 
 \section ninja Ninja
-Building with Ninja is almost identical across all supported platforms. Use the build configuration python script in the root directory to set the architectures and build
-configurations you want, along with any configuration options.
+Building with Ninja is almost identical across all supported platforms. Use the build configuration python script in the root directory to set the architectures and build configurations you want, along with any configuration options.
 
 \subsection ninja_configurations Configurations
-Any combination of configurations can be built in one build. Specify which configurations to build with the -c switch. For example, to build all configurations use
-<code>-c debug -c release -c profile -c deploy</code>.
+Any combination of configurations can be built in one build. Specify which configurations to build with the -c switch. For example, to build all configurations use <code>-c debug -c release -c profile -c deploy</code>.
 
 \subsection ninja_arch Architectures
 Any combination of architectures supported by the host, target and toolchain combination can be built in one build. By default (if no other directive is given) all architectures
@@ -89,9 +87,7 @@ supported will be built. Specify which architectures to build with the -a switch
 <code>-a arm6 -a arm7 -a arm64 -a mips -a mips64 -a x86 -a x86-64</code>
 
 \subsection ninja_toolchain Toolchains
-There is currently support for four different toolchains depending on your host platform. These are GCC, CLang, Intel and Microsoft. Not all toolchains are supported on all
-host platforms. Specify which toolchain to use with the --toolchain switch. For example, to use gcc when building for Android use <code>--toolchain gcc</code>. The toolchain
-names are
+There is currently support for four different toolchains depending on your host platform. These are GCC, CLang, Intel and Microsoft. Not all toolchains are supported on all host platforms. Specify which toolchain to use with the <code>--toolchain</code> switch. For example, to use gcc when building for Android use <code>--toolchain gcc</code>. The toolchain names are
 <ul>
 <li>gcc</li>
 <li>clang</li>
@@ -100,8 +96,7 @@ names are
 </ul>
 
 \subsection ninja_target Targets
-By using the target switch (-t) you can cross-compile to a secondary target platform. Currently you can cross compile for iOS on MacOS X, and for Android on Windows,
-Linux and MacOS X.
+By using the target switch (-t) you can cross-compile to a secondary target platform. Currently you can cross compile for iOS on MacOS X, and for Android on Windows, Linux and MacOS X.
 
 Use the <code>-t ios</code> target switch to specify iOS builds. By default arm7 and arm64 architectures will be built (universal).
 
@@ -150,6 +145,12 @@ Some build variables can be set externally from the ninja build files. These var
 <li>macosx_organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
 <li>macosx_bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
 <li>pnacl_sdkpath - Path to the PNaCl SDK (no default)</li>
+<li>tizen_sdkpath - Path to the Tizen SDK (no default)</li>
+<li>tizen_platformversion - Version of the Tizen platform to use (default "2.3")</li>
+<li>tizen_gccversion - GCC toolchain version to use when building (default "4.8")</li>
+<li>tizen_clangversion - CLang toolchain version to use when building (default "3.4")</li>
+<li>msvc_toolchain - Path to Visual Studio toolchain to use (default value is autodetected)</li>
+<li>msvc_sdkpath - Path to Windows SDK to use (default value is autodetected)</li>
 </ul>
 
 The bundle identifier variables can contain expansion variables which will be substituted during build. These include
@@ -183,6 +184,9 @@ The build.json is a simple host-local file which can hold any variable values li
 	"macosx" : {
 		"deploymenttarget" : "10.7"
 	}
+    "msvc" : {
+        "toolchain" : "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/bin"
+    }
 }</pre>
 
 You can override configure.py and build.json values using environment variables. The environment variable names should be the variable name in upper case. For example, to set the Minimum iOS target version set <code>IOS_DEPLOYMENTVERSION="6.0"</code> in the environment prior to invoking configure.py
@@ -387,16 +391,13 @@ extends these types with floating point data types:
 To set the <i>real</i> data type format set the #FOUNDATION_SIZE_REAL preprocessor macro to 4 or 8, or change the defined value in platform.h (default is 32 bit floating point values).
 
 \section object_lifetime Object lifetime
-Complex data types (objects) are handled in two ways. Either the caller have explicit lifetime control and accessed through raw pointers, or else has implicit control where
-the lifetime is handled by reference counting and accessed through object handles of type object_t (basically a 64-bit handle mapping into a lookup table).
+Complex data types (objects) are handled in two ways. Either the caller have explicit lifetime control and accessed through raw pointers, or else has implicit control where the lifetime is handled by reference counting and accessed through object handles of type object_t (basically a 64-bit handle mapping into a lookup table).
 
-Explicit allocations are always handled by function calls of the format <i>\<module>_t* \<module>_allocate(...)</i> to allocate the object and <i>void \<module>_deallocate(\<module>_t* ptr)</i> to deallocate it,
-for example md5_allocate and md5_deallocate in md5.h. The corresponding calls for initializing/finalizing a struct places on the stack is <i>void \<module>_initialize(\<module>_t* ptr)</i> and <i>void \<module>_initialize(\<module>_t* ptr)</i>. All objects that are initialized must be finalized in order to free any allocated resources correctly. Objects that are allocated on the heap with allocate/deallocate should not be initialized/finalized as this is done implicitly by the allocation and deallocation.
+Explicit allocations are always handled by function calls of the format <i>\<module>_t* \<module>_allocate(...)</i> to allocate the object and <i>void \<module>_deallocate(\<module>_t* ptr)</i> to deallocate it, for example md5_allocate and md5_deallocate in md5.h. The corresponding calls for initializing/finalizing a struct places on the stack is <i>void \<module>_initialize(\<module>_t* ptr)</i> and <i>void \<module>_finalize(\<module>_t* ptr)</i>. All objects that are initialized must be finalized in order to free any allocated resources correctly. Objects that are allocated on the heap with allocate/deallocate should not be initialized/finalized as this is done implicitly by the allocation and deallocation.
 
-Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero),
-for example #thread_create, #thread_ref and #thread_destroy in thread.h. Implicitly allocated objects does not need to be initialized/finalized.
+Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero), for example #thread_create, #thread_ref and #thread_destroy in thread.h. Implicitly allocated objects does not need to be initialized/finalized.
 
-Reference counted data types have a predefined maximum number of concurrently allocated objects defined in the #foundation_config_t object passed to foundation_initialize, for example #foundation_config_t::thread_max for threads.
+Reference counted data types have a predefined maximum number of concurrently allocated objects defined in the #foundation_config_t object passed to #foundation_initialize, for example #foundation_config_t::thread_max for threads.
 
 
 \page features_page Details on specific submodules and features provided by the library
@@ -541,15 +542,19 @@ All strings are considered to be on UTF-8 format. However, most length, offset a
 There are utility functions to convert to and from wide character strings, UTF-16 strings and UTF-32 strings. The API is designed around performing all operations in UTF-8 format and only using wide string formats in external APIs.
 
 \subsection string_handling String functions
-The module provides functions to allocate, initialize, format and deallocate strings both allocating new memory buffers as well as working with existing pre-allocated buffers. Unless otherwise noted in the API documentation, all functions allow null pointers to be passed as arguments (treated as empty strings).
+The module provides functions to allocate, initialize, format and deallocate strings both allocating new memory buffers as well as working with existing pre-allocated buffers. Unless otherwise noted in the API documentation, all functions allow null pointers to be passed as arguments if the corresponding length and/or capacity argument are also zero. It is an error to pass a null pointer with a non-zero length/capacity argument.
 
-In general, all arguments of type <code>char*</code> are expected to be strings allocated by the string module or #memory_allocate. These arguments can be modified and reallocated by the function, and generally a new string pointer is returned by the function. Arguments of type <code>const char*</code> can be any string, including static compile time strings and stack based data. These arguments will never be modified or reallocated. The function will allocate a new string if the return type is a <code>char*</code>. For more details, check the API documentation for each function.
+Strings are declared with a pointer to a memory block and the length of the string. Zero termination is generally NOT enforced. Functions that allocate or modify strings always return zero-terminated strings. Functions that find substrings and return const string arguments does not modify or allocate memory, and returns substrings which are NOT zero terminated. Check the documentation for each function for further details regarding zero termination state.
 
-The #string_find find family of functions takes offset arguments which are byte offsets into the given string argument. Invalid offsets are denoted by the STRING_NPOS constant (-1). If reverse find functions (last of and rfind), STRING_NPOS will mean searching from the end of the string. Apart from the special STRING_NPOS offset, all other offset arguments are expected to be valid in [0..string_length] interval.
+All functions in the library taking string arguments as (pointer, length) tuples respect given lengths and does not require zero termination. This design minimized calls to find string lengths and minimizes additional memory allocations to store zero terminated substrings by allowing substrings to be declared as a (pointer, length) tuple into the original string memory buffer.
+
+In general, all arguments of type <code>char*</code> are expected to be strings allocated by the string module or #memory_allocate. Arguments of type <code>const char*</code> can be any string, including static compile time strings and stack based data. String arguments will never be modified or reallocated unless explicitly stated in the function API documentation (generally only allocate and resize functions). For more details, check the API documentation for each function.
+
+The #string_find find family of functions takes offset arguments which are byte offsets into the given string argument. Invalid offsets are denoted by the #STRING_NPOS constant (-1). If reverse find functions (last of and rfind), #STRING_NPOS will mean searching from the end of the string. Apart from the special #STRING_NPOS offset, all other offset arguments are expected to be valid in [0..length) interval.
 
 \subsection string_regex Regular expressions
 Apart from the simple wildcard #string_match_pattern function, the regex.h provides a limited regular expression module with a subset of perl regex features. The regex module supports the following features:
-<pre>^        Match beginning of string
+<pre>    ^        Match beginning of string
     $        Match end of string
     .        Match one character
     ()       Group and capture substring

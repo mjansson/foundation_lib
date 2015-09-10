@@ -1,13 +1,13 @@
 /* assert.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
@@ -76,7 +76,7 @@ FOUNDATION_API int
 assert_report_formatted(hash_t context, const char* condition,
                         size_t cond_length, const char* file, size_t file_length, unsigned int line,
                         const char* format, size_t format_length, ...)
-                        FOUNDATION_ATTRIBUTE4(format, printf, 7, 9);
+                        FOUNDATION_PRINTFCALL(7, 9);
 
 #if BUILD_ENABLE_ASSERT
 

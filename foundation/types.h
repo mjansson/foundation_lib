@@ -1,13 +1,13 @@
 /* types.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
@@ -555,12 +555,14 @@ processing and return a code indicating if execution can continue or need to be 
 \param line Source line triggering the assert
 \param msg Assert message, if any
 \param msg_length Length of assert message
-\return 1 if assert was not handled and execution should break, 0 if assert handled and execution can continue */
+\return 1 if assert was not handled and execution should break, 0 if assert handled and
+        execution can continue */
 typedef int (* assert_handler_fn)(hash_t context, const char* condition, size_t cond_length,
                                   const char* file, size_t file_length, unsigned int line,
                                   const char* msg, size_t msg_length);
 
-/*! Log output callback. Called after each log message processed and output by the log functions.
+/*! Log output callback. Called after each log message processed and output by
+the log functions.
 \param context Log context
 \param severity Log severity
 \param msg Log message
@@ -731,7 +733,8 @@ typedef void (* stream_finalize_fn)(stream_t* stream);
 \return Clone of stream, 0 if not supported or invalid source stream */
 typedef stream_t* (* stream_clone_fn)(stream_t* stream);
 
-/*! Identifier returned from threads and crash guards after a fatal exception (crash) has been caught */
+/*! Identifier returned from threads and crash guards after a fatal exception (crash)
+has been caught */
 #define FOUNDATION_CRASH_DUMP_GENERATED 0x0badf00dL
 
 // COMPLEX TYPES
@@ -798,7 +801,8 @@ struct md5_t {
 	unsigned char digest[16];
 };
 
-/*! Memory management system declaration with function pointers for all memory system entry points. */
+/*! Memory management system declaration with function pointers for all memory system
+entry points. */
 struct memory_system_t {
 	/*! Memory allocation */
 	memory_allocate_fn allocate;
@@ -1050,8 +1054,8 @@ struct memory_context_t {
 	hash_t context[];
 };
 
-/*! Declares the base object data layout. Object structures should be 8-byte align for platform
-compatibility. Use the macro as first declaration in an object struct:
+/*! Declares the base object data layout. Object structures should be 8-byte align for
+platform compatibility. Use the macro as first declaration in an object struct:
 <code>typedef struct ALIGN(8)
 {
   FOUNDATION_DECLARE_OBJECT;
@@ -1255,8 +1259,8 @@ struct semaphore_t {
 
 #endif
 
-/*! Declares the base stream data layout. Stream structures should be 8-byte align for platform
-compatibility. Use the macro as first declaration in a stream struct:
+/*! Declares the base stream data layout. Stream structures should be 8-byte align for
+platform compatibility. Use the macro as first declaration in a stream struct:
 <code>typedef FOUNDATION_ALIGNED_STRUCT(my_stream_t, 8)
 {
   FOUNDATION_DECLARE_STREAM;

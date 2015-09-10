@@ -1,13 +1,13 @@
 /* stream.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
@@ -351,9 +351,10 @@ stream_write_endl(stream_t* stream);
 \param format_length Length of format declaration string */
 FOUNDATION_API void
 stream_write_format(stream_t* stream, const char* format, size_t format_length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 2, 4);
+FOUNDATION_PRINTFCALL(2, 4);
 
-/*! Buffer any pending incoming data (network streams).
+/*! \fn void stream_buffer_read(stream_t* stream)
+Buffer any pending incoming data (network streams).
 \param stream Stream */
 FOUNDATION_API void
 stream_buffer_read(stream_t* stream);

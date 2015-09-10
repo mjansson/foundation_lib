@@ -1,13 +1,13 @@
 /* log.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #include <foundation/foundation.h>
@@ -122,7 +122,7 @@ _log_make_timestamp(void) {
 
 #if BUILD_ENABLE_LOG
 
-static void FOUNDATION_ATTRIBUTE4(format, printf, 5, 0)
+static void FOUNDATION_PRINTFCALL(5, 0)
 _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t prefix_length,
              const char* format, size_t format_length, va_list list, void* std) {
 	log_timestamp_t timestamp = _log_make_timestamp();
@@ -310,7 +310,7 @@ log_panic(hash_t context, error_t err, const char* msg, size_t length) {
 	log_panicf(context, err, STRING_CONST("%*s"), (int)length, msg);
 }
 
-static void FOUNDATION_ATTRIBUTE4(format, printf, 4, 6)
+static void FOUNDATION_PRINTFCALL(4, 6)
 _log_error_contextf(hash_t context, error_level_t error_level, void* std, const char* format,
                     size_t length, ...) {
 	va_list list;
