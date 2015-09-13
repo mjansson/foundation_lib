@@ -103,6 +103,8 @@ class Toolchain(object):
 
     self.msvc_toolchain = ''
     self.msvc_sdkpath = ''
+    msvc_sdkversion = ''
+    msvc_sdkversionpath = ''
 
     #Parse variables
     if variables:
@@ -709,7 +711,7 @@ class Toolchain(object):
 
   def build_msvc_toolchain( self ):
     if self.msvc_toolchain == '':
-      versions = [ '13.0', '12.0', '11.0', '10.0' ]
+      versions = [ '14.0', '13.0', '12.0', '11.0', '10.0' ]
       keys = [
         'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
         'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
@@ -732,29 +734,49 @@ class Toolchain(object):
         if not msvc_toolchain == '':
           break
     if self.msvc_sdkpath == '':
+      versions = [ 'v10.0', 'v8.1' ]
       keys = [
-        'HKLM\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
-        'HKCU\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
-        'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1',
-        'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.1'
+        'HKLM\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows',
+        'HKCU\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows',
+        'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows',
+        'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows'
       ]
       msvc_sdkpath = ''
-      for key in keys:
-        try:
-          query = subprocess.check_output( [ 'reg', 'query', key, '/v', 'InstallationFolder' ], stderr=subprocess.STDOUT ).strip().splitlines()
-          if len(query) == 2:
-            msvc_sdkpath = query[1].split('REG_SZ')[-1].strip()
-        except subprocess.CalledProcessError as e:
-          continue
-        if not msvc_sdkpath == '':
-          self.includepaths += [
-            os.path.join( msvc_sdkpath, 'include', 'shared' ),
-            os.path.join( msvc_sdkpath, 'include', 'um' ),
-            os.path.join( msvc_sdkpath, 'include', 'winrt' )
-          ]
-          self.msvc_sdkpath = msvc_sdkpath
+      include_path = 'include'
+      for version in versions:
+        for key in keys:
+          try:
+            query = subprocess.check_output( [ 'reg', 'query', key + '\\' + version, '/v', 'InstallationFolder' ], stderr=subprocess.STDOUT ).strip().splitlines()
+            if len(query) == 2:
+              msvc_sdkpath = query[1].split('REG_SZ')[-1].strip()
+              if not msvc_sdkpath == '' and version == 'v10.0':
+                base_path = msvc_sdkpath
+                msvc_sdkpath = ''
+                query = subprocess.check_output( [ 'reg', 'query', key + '\\' + version, '/v', 'ProductVersion' ], stderr=subprocess.STDOUT ).strip().splitlines()
+                if len(query) == 2:
+                  version_path = query[1].split('REG_SZ')[-1].strip()
+                  if not version_path == '':
+                    msvc_sdkpath = base_path
+                    self.msvc_sdkversionpath = version_path + '.0'
+                    include_path = os.path.join( include_path, self.msvc_sdkversionpath )
+          except subprocess.CalledProcessError as e:
+            continue
+          if not msvc_sdkpath == '':
+            self.includepaths += [
+              os.path.join( msvc_sdkpath, include_path, 'shared' ),
+              os.path.join( msvc_sdkpath, include_path, 'um' ),
+              os.path.join( msvc_sdkpath, include_path, 'winrt' )
+            ]
+            if version == 'v10.0':
+              self.includepaths += [
+                os.path.join( msvc_sdkpath, include_path, 'ucrt' )
+              ]
+            self.msvc_sdkpath = msvc_sdkpath
+            self.msvc_sdkversion = version
+            break
+        if not msvc_toolchain == '':
           break
-
+    
   def get_boolean_flag( self, val ):
     return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
 
@@ -781,10 +803,18 @@ class Toolchain(object):
     if self.target.is_windows() and self.msvc_sdkpath != '':
       if arch == 'x86':
         finalpaths += [ os.path.join( self.msvc_toolchain, 'lib' ) ]
-        finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', 'winv6.3', 'um', 'x86' ) ]
+        if self.msvc_sdkversion == 'v8.1':
+          finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', 'winv6.3', 'um', 'x86' ) ]
+        if self.msvc_sdkversion == 'v10.0':
+          finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', self.msvc_sdkversionpath, 'um', 'x86' ) ]
+          finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', self.msvc_sdkversionpath, 'ucrt', 'x86' ) ]
       else:
         finalpaths += [ os.path.join( self.msvc_toolchain, 'lib', 'amd64' ) ]
-        finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', 'winv6.3', 'um', 'x64' ) ]
+        if self.msvc_sdkversion == 'v8.1':
+          finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', 'winv6.3', 'um', 'x64' ) ]
+        if self.msvc_sdkversion == 'v10.0':
+          finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', self.msvc_sdkversionpath, 'um', 'x64' ) ]
+          finalpaths += [ os.path.join( self.msvc_sdkpath, 'lib', self.msvc_sdkversionpath, 'ucrt', 'x64' ) ]
     return finalpaths
 
   def make_cconfigflags( self, config ):
