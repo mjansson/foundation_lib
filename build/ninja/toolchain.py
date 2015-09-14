@@ -741,10 +741,10 @@ class Toolchain(object):
         'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows',
         'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows'
       ]
-      msvc_sdkpath = ''
       include_path = 'include'
       for version in versions:
         for key in keys:
+          msvc_sdkpath = ''
           try:
             query = subprocess.check_output( [ 'reg', 'query', key + '\\' + version, '/v', 'InstallationFolder' ], stderr=subprocess.STDOUT ).strip().splitlines()
             if len(query) == 2:
@@ -774,7 +774,7 @@ class Toolchain(object):
             self.msvc_sdkpath = msvc_sdkpath
             self.msvc_sdkversion = version
             break
-        if not msvc_toolchain == '':
+        if not msvc_sdkpath == '':
           break
     
   def get_boolean_flag( self, val ):
@@ -939,6 +939,7 @@ class Toolchain(object):
   def make_arconfigflags( self, arch, config ):
     flags = ''
     if self.toolchain == 'msvc':
+      flags += ' /ignore:4221' #Ignore empty object file warning
       if config != 'debug':
         flags += ' /LTCG'
     return flags.strip()
