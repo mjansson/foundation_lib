@@ -95,6 +95,11 @@ foundation_finalize(void);
 FOUNDATION_API bool
 foundation_is_initialized(void);
 
+/*! Query foundation config
+\return Foundation library config */
+FOUNDATION_API foundation_config_t
+foundation_config(void);
+
 /*! Query foundation library build version
 \return Version of foundation library */
 FOUNDATION_API version_t

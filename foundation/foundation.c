@@ -166,3 +166,8 @@ bool
 foundation_is_initialized(void) {
 	return _foundation_initialized;
 }
+
+foundation_config_t
+foundation_config(void) {
+	return _foundation_def;
+}
