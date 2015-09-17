@@ -945,7 +945,11 @@ typedef struct atomicptr_t atomicptr_t;
 #define STRING_FORMAT(s) (int)(s).length, (s).str
 
 // Misc
+#if FOUNDATION_COMPILER_GCC
+#define FOUNDATION_UNUSED(x) ((void)sizeof((x)))
+#else
 #define FOUNDATION_UNUSED(x) ((void)sizeof((x), 0))
+#endif
 
 #define FOUNDATION_UNUSED_ARGS_0(...)
 #define FOUNDATION_UNUSED_ARGS_1(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__))

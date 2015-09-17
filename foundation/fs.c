@@ -1352,7 +1352,8 @@ _fs_monitor(object_t thread, void* monitorptr) {
 				if (!curwatch) {
 					log_warnf(0, WARNING_SUSPICIOUS,
 					          STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %*s"),
-					          event->wd, event->mask, event->cookie, (size_t)event->len, (int)event->len, event->name);
+					          event->wd, event->mask, event->cookie, (size_t)event->len,
+					          (int)event->len, (const char*)event->name);
 					goto skipwatch;
 				}
 
