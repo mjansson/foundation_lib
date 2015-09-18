@@ -71,19 +71,19 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 
 	if ((block->used + allocsize + 2) >= block->capacity) {
 		size_t prev_capacity = block->capacity + 16;
-		if (prev_capacity < _foundation_def.event_block_chunk) {
-			block->capacity = _foundation_def.event_block_chunk;
+		if (prev_capacity < _foundation_config.event_block_chunk) {
+			block->capacity = _foundation_config.event_block_chunk;
 		}
 		else {
-			if (prev_capacity >= _foundation_def.event_block_limit) {
+			if (prev_capacity >= _foundation_config.event_block_limit) {
 				FOUNDATION_ASSERT_FAILFORMAT_LOG(0, "Event block size over limit of %" PRIsize " bytes",
-				                                 _foundation_def.event_block_limit);
+				                                 _foundation_config.event_block_limit);
 				error_report(ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY);
 				return;
 			}
-			block->capacity += _foundation_def.event_block_chunk;
-			if (block->capacity > _foundation_def.event_block_limit)
-				block->capacity = _foundation_def.event_block_limit;
+			block->capacity += _foundation_config.event_block_chunk;
+			if (block->capacity > _foundation_config.event_block_limit)
+				block->capacity = _foundation_config.event_block_limit;
 		}
 		if (block->capacity % 16)
 			block->capacity += 16 - (basesize % 16);

@@ -152,4 +152,4 @@ _environment_main_args(int argc, const char* const* argv);
 
 // Global data
 
-FOUNDATION_API foundation_config_t _foundation_def;
+FOUNDATION_API foundation_config_t _foundation_config;

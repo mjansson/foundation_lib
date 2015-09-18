@@ -404,10 +404,10 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 		return 0;
 
 	if (!max_depth)
-		max_depth = _foundation_def.stacktrace_depth;
+		max_depth = _foundation_config.stacktrace_depth;
 
-	if (max_depth > _foundation_def.stacktrace_depth)
-		max_depth = _foundation_def.stacktrace_depth;
+	if (max_depth > _foundation_config.stacktrace_depth)
+		max_depth = _foundation_config.stacktrace_depth;
 
 	if (!_stackwalk_initialized) {
 		if (!_initialize_stackwalker()) {
@@ -849,9 +849,9 @@ stacktrace_resolve(char* str, size_t length, void** trace, size_t max_depth, siz
 	_initialize_symbol_resolve();
 
 	if (!max_depth)
-		max_depth = _foundation_def.stacktrace_depth;
-	if (max_depth + skip_frames > _foundation_def.stacktrace_depth)
-		max_depth = _foundation_def.stacktrace_depth - skip_frames;
+		max_depth = _foundation_config.stacktrace_depth;
+	if (max_depth + skip_frames > _foundation_config.stacktrace_depth)
+		max_depth = _foundation_config.stacktrace_depth - skip_frames;
 
 	return _resolve_stack_frames(str, length, trace + skip_frames, max_depth);
 }

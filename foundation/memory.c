@@ -74,7 +74,7 @@ _memory_untrack(void* addr);
 static void
 _atomic_allocate_initialize(size_t storagesize) {
 	if (storagesize < 1024)
-		storagesize = _foundation_def.temporary_memory;
+		storagesize = _foundation_config.temporary_memory;
 	_memory_temporary.storage   = memory_allocate(0, storagesize, 16, MEMORY_PERSISTENT);
 	_memory_temporary.end       = pointer_offset(_memory_temporary.storage, storagesize);
 	_memory_temporary.size      = storagesize;
@@ -258,11 +258,11 @@ memory_context_push(hash_t context_id) {
 	memory_context_t* context = get_thread_memory_context();
 	if (!context) {
 		context = memory_allocate(0, sizeof(memory_context_t) + (sizeof(hash_t) *
-		                                                         _foundation_def.memory_context_depth), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		                                                         _foundation_config.memory_context_depth), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_memory_context(context);
 	}
 	context->context[ context->depth ] = context_id;
-	if (context->depth < (_foundation_def.memory_context_depth - 1))
+	if (context->depth < (_foundation_config.memory_context_depth - 1))
 		++context->depth;
 }
 
@@ -712,10 +712,10 @@ static int
 _memory_tracker_initialize(void) {
 	log_debug(HASH_MEMORY, STRING_CONST("Initializing local memory tracker"));
 	if (!_memory_tags)
-		_memory_tags = memory_allocate(0, sizeof(memory_tag_t) * _foundation_def.memory_tracker_max, 16,
+		_memory_tags = memory_allocate(0, sizeof(memory_tag_t) * _foundation_config.memory_tracker_max, 16,
 		                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	if (!_memory_table)
-		_memory_table = hashtable_allocate(_foundation_def.memory_tracker_max);
+		_memory_table = hashtable_allocate(_foundation_config.memory_tracker_max);
 	return 0;
 }
 
@@ -728,7 +728,7 @@ _memory_tracker_finalize(void) {
 		bool got_leaks = false;
 
 		log_debug(HASH_MEMORY, STRING_CONST("Checking for memory leaks"));
-		for (it = 0; it < _foundation_def.memory_tracker_max; ++it) {
+		for (it = 0; it < _foundation_config.memory_tracker_max; ++it) {
 			memory_tag_t* tag = _memory_tags + it;
 			if (atomic_loadptr(&tag->address)) {
 				char tracebuf[512];
@@ -751,8 +751,8 @@ static void
 _memory_tracker_track(void* addr, size_t size) {
 	if (addr) do {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
-			if (tag >= (int32_t)_foundation_def.memory_tracker_max) {
-				int32_t newtag = tag % (int32_t)_foundation_def.memory_tracker_max;
+			if (tag >= (int32_t)_foundation_config.memory_tracker_max) {
+				int32_t newtag = tag % (int32_t)_foundation_config.memory_tracker_max;
 				atomic_cas32(&_memory_tag_next, newtag, tag + 1);
 				tag = newtag;
 			}

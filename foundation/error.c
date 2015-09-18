@@ -61,14 +61,14 @@ _error_context_push(const char* name, size_t name_length, const char* data, size
 	if (!context) {
 		context = memory_allocate(0, sizeof(error_context_t) +
 		                          (sizeof(error_frame_t) *
-		                           _foundation_def.error_context_depth), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		                           _foundation_config.error_context_depth), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_error_context(context);
 	}
 	context->frame[ context->depth ].name.str = name ? name : "<something>";
 	context->frame[ context->depth ].name.length = name ? name_length : 11;
 	context->frame[ context->depth ].data.str = data ? data : "<nothing>";
 	context->frame[ context->depth ].data.length = data ? data_length : 9;
-	if (context->depth < _foundation_def.error_context_depth - 1)
+	if (context->depth < _foundation_config.error_context_depth - 1)
 		++context->depth;
 }
 

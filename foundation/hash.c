@@ -172,15 +172,15 @@ static hashtable64_t* _hash_lookup;
 
 int
 _static_hash_initialize(void) {
-	if (!_hash_lookup && _foundation_def.hash_store_size)
-		_hash_lookup = hashtable64_allocate(_foundation_def.hash_store_size + 1);
+	if (!_hash_lookup && _foundation_config.hash_store_size)
+		_hash_lookup = hashtable64_allocate(_foundation_config.hash_store_size + 1);
 	return 0;
 }
 
 void
 _static_hash_finalize(void) {
 	size_t slot;
-	if (_hash_lookup) for (slot = 0; slot < _foundation_def.hash_store_size + 1; ++slot) {
+	if (_hash_lookup) for (slot = 0; slot < _foundation_config.hash_store_size + 1; ++slot) {
 			char* str = (char*)((uintptr_t)hashtable64_raw(_hash_lookup, slot));
 			if (str)
 				string_deallocate(str);
