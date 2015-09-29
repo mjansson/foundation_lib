@@ -758,7 +758,8 @@ fs_make_directory(const char* path, size_t length) {
 			if (!result) {
 				int err = system_error();
 				string_const_t errmsg = system_error_message(err);
-				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%*s': %*s (%d)"),
+				system_message_box(STRING_CONST("foo"), STRING_CONST("bar"), false);
+				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed! to create directory '%*s': %*s (%d)"),
 				          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
 				goto end;
 			}
@@ -953,8 +954,8 @@ fs_temporary_file(void) {
 	                    STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
 }
 
-static string_t*
-_fs_matching_files(const char* path, size_t length, regex_t* pattern, bool recurse) {
+string_t*
+fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool recurse) {
 	string_t* names = 0;
 	string_t* subdirs = 0;
 	string_t localpath;
@@ -1033,7 +1034,7 @@ _fs_matching_files(const char* path, size_t length, regex_t* pattern, bool recur
 		if (localpath.length >= capacity)
 			capacity = localpath.length + 1;
 
-		subnames = _fs_matching_files(STRING_ARGS(localpath), pattern, true);
+		subnames = fs_matching_files_regex(STRING_ARGS(localpath), pattern, true);
 
 		for (in = 0, nsize = array_size(subnames); in < nsize; ++in)
 			array_push(names, path_allocate_concat(STRING_ARGS(subdirs[id]), STRING_ARGS(subnames[in])));
@@ -1053,7 +1054,7 @@ string_t*
 fs_matching_files(const char* path, size_t length, const char* pattern,
                   size_t pattern_length, bool recurse) {
 	regex_t* regex = regex_compile(pattern, pattern_length);
-	string_t* names = _fs_matching_files(path, length, regex, recurse);
+	string_t* names = fs_matching_files_regex(path, length, regex, recurse);
 	regex_deallocate(regex);
 	return names;
 }

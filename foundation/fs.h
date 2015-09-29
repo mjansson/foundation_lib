@@ -123,6 +123,15 @@ FOUNDATION_API string_t*
 fs_matching_files(const char* path, size_t length, const char* pattern, size_t patternlen,
                   bool recurse);
 
+/*! Get files matching the given regex. Free the returned array with #string_array_deallocate
+\param path       File path
+\param length     Length of path
+\param regex      Regex
+\param recurse    Recursion flag
+\return           Array of matching file names */
+FOUNDATION_API string_t*
+fs_matching_files_regex(const char* path, size_t length, regex_t* regex, bool recurse);
+
 /*! Get files in the given directory path. Free the returned array with #string_array_deallocate
 \param path   Path of directory
 \param length Length of path
