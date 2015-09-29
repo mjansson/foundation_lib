@@ -80,7 +80,7 @@ class Toolchain(object):
     self.android_keypass = 'android'
     self.android_platformversion = '21'
     self.android_toolchainversion_gcc = '4.9'
-    self.android_toolchainversion_clang = '3.5'
+    self.android_toolchainversion_clang = '3.6'
     self.android_tsa = ''
     self.android_tsacert = ''
 
