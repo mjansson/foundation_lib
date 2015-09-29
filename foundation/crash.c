@@ -47,19 +47,24 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 	MINIDUMP_EXCEPTION_INFORMATION info;
 	HANDLE file;
 	SYSTEMTIME local_time;
+	string_const_t temp_dir;
+	string_const_t uuid;
 
 	GetLocalTime(&local_time);
 
 	if (!name.length)
 		name = environment_application()->short_name;
+	temp_dir = environment_temporary_directory();
+	uuid = string_from_uuid_static(environment_application()->instance);
 	dump_file = string_format(STRING_ARGS(dump_file),
-	                          STRING_CONST("%s/%s%s%s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp"),
-	                          environment_temporary_directory(), name.length ? name.str : "", name.length ? "-" : "",
-	                          string_from_uuid_static(environment_application()->instance),
+	                          STRING_CONST("%*s/%s%s%*s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp"),
+	                          STRING_FORMAT(temp_dir), name.length ? name.str : "", name.length ? "-" : "",
+	                          STRING_FORMAT(uuid),
 	                          local_time.wYear, local_time.wMonth, local_time.wDay,
 	                          local_time.wHour, local_time.wMinute, local_time.wSecond,
 	                          GetCurrentProcessId(), GetCurrentThreadId());
-	fs_make_directory(STRING_ARGS(environment_temporary_directory()));
+	if (!fs_is_directory(STRING_ARGS(temp_dir)))
+		fs_make_directory(STRING_ARGS(temp_dir));
 	file = CreateFileA(dump_file.str, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0,
 	                   CREATE_ALWAYS, 0, 0);
 
