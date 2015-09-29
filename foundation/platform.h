@@ -1497,6 +1497,6 @@ Expand to three arguments, string pointer, length and capacity, as in
 \def STRING_FORMAT
 Expand to two arguments, legnth and string pointer, as in <code>(int)s.length, s.str</code>.
 Useful when passing a string_t to a string format argument, for example
-<code>string_t mystr = ...; log_infof(0, STRING_CONST("Mystring: %*s"), STRING_FORMAT(mystr));</code>
+<code>string_t mystr = ...; log_infof(0, STRING_CONST("Mystring: %.*s"), STRING_FORMAT(mystr));</code>
 
 */

@@ -301,7 +301,7 @@ DECLARE_TEST(profile, stream) {
 
 	filename = path_allocate_concat(STRING_ARGS(environment_temporary_directory()),
 	                                STRING_CONST("test.profile"));
-	log_infof(HASH_TEST, STRING_CONST("Output to profile file: %*s"), STRING_FORMAT(filename));
+	log_infof(HASH_TEST, STRING_CONST("Output to profile file: %.*s"), STRING_FORMAT(filename));
 	fs_make_directory(STRING_ARGS(environment_temporary_directory()));
 	_profile_stream = fs_open_file(STRING_ARGS(filename), STREAM_OUT | STREAM_BINARY);
 	string_deallocate(filename.str);

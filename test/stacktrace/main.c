@@ -78,7 +78,7 @@ DECLARE_TEST(stacktrace, resolve) {
 	EXPECT_NE(resolved.str, 0);
 	EXPECT_NE(resolved.length, 0);
 
-	log_infof(HASH_TEST, STRING_CONST("Resolved stack trace:\n%*s"), (int)resolved.length,
+	log_infof(HASH_TEST, STRING_CONST("Resolved stack trace:\n%.*s"), (int)resolved.length,
 	          resolved.str);
 
 #if !FOUNDATION_PLATFORM_ANDROID

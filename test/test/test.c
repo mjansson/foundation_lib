@@ -100,7 +100,7 @@ test_run(void) {
 	object_t thread_event = 0;
 #endif
 
-	log_infof(HASH_TEST, STRING_CONST("Running test suite: %*s"),
+	log_infof(HASH_TEST, STRING_CONST("Running test suite: %.*s"),
 	          (int)test_suite.application().short_name.length, test_suite.application().short_name.str);
 
 	_test_failed = false;
@@ -115,10 +115,10 @@ test_run(void) {
 #endif
 
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
-		log_infof(HASH_TEST, STRING_CONST("Running tests from group %*s"),
+		log_infof(HASH_TEST, STRING_CONST("Running tests from group %.*s"),
 		          (int)_test_groups[ig]->name.length, _test_groups[ig]->name.str);
 		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic) {
-			log_infof(HASH_TEST, STRING_CONST("  Running %*s tests"),
+			log_infof(HASH_TEST, STRING_CONST("  Running %.*s tests"),
 			          (int)_test_groups[ig]->cases[ic]->name.length, _test_groups[ig]->cases[ic]->name.str);
 			result = _test_groups[ig]->cases[ic]->fn();
 			if (result != 0) {
@@ -146,7 +146,7 @@ test_run(void) {
 exit:
 #endif
 
-	log_infof(HASH_TEST, STRING_CONST("Finished test suite: %*s"),
+	log_infof(HASH_TEST, STRING_CONST("Finished test suite: %.*s"),
 	          (int)test_suite.application().short_name.length, test_suite.application().short_name.str);
 }
 

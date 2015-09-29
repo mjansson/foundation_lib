@@ -144,7 +144,7 @@ pnacl_instance_create(PP_Instance instance, uint32_t argc, const char* argn[], c
 	if (err) {
 		string_const_t errmsg = pnacl_error_message(err);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-		           STRING_CONST("Unable to create main thread: pthread_create failed: %*s"),
+		           STRING_CONST("Unable to create main thread: pthread_create failed: %.*s"),
 		           STRING_FORMAT(errmsg));
 		return PP_FALSE;
 	}
@@ -235,7 +235,7 @@ pnacl_post_log(hash_t context, error_level_t severity, const char* msg, size_t m
 		--cleanmsg.length;
 
 	jsonmsg = string_allocate_format(STRING_CONST("{\"type\":\"log\",\"context\":\"%" PRIx64
-	                                              "\",\"severity\":\"%d\",\"msg\":\"%*s\"}"),
+	                                              "\",\"severity\":\"%d\",\"msg\":\"%.*s\"}"),
 	                                 context, severity, STRING_FORMAT(cleanmsg));
 	string_replace(jsonmsg.str + (jsonmsg.length - cleanmsg.length + 2), cleanmsg.length,
 	               cleanmsg.length, STRING_CONST("\""), STRING_CONST("'"), false);

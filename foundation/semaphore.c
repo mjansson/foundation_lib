@@ -97,7 +97,7 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	int ret = MPCreateSemaphore(0xFFFF, value, &semaphore->sem.unnamed);
 	if (ret < 0) {
 		string_const_t errmsg = system_error_message(0);
-		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize unnamed semaphore: %*s"),
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize unnamed semaphore: %.*s"),
 		           STRING_FORMAT(errmsg));
 		FOUNDATION_ASSERT_FAIL("Unable to initialize unnamed semaphore");
 		return;
@@ -119,7 +119,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 	if (sem == SEM_FAILED) {
 		string_const_t errmsg = system_error_message(0);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-		           STRING_CONST("Unable to initialize named semaphore (sem_open '%*s'): %*s"),
+		           STRING_CONST("Unable to initialize named semaphore (sem_open '%.*s'): %.*s"),
 		           STRING_FORMAT(semaphore->name), STRING_FORMAT(errmsg));
 	}
 	else {
@@ -154,7 +154,7 @@ semaphore_wait(semaphore_t* semaphore) {
 				int err = errno;
 				string_const_t errmsg = system_error_message(err);
 				log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-				           STRING_CONST("Unable to wait for named semaphore '%*s': %*s (%d)"),
+				           STRING_CONST("Unable to wait for named semaphore '%.*s': %.*s (%d)"),
 				           STRING_FORMAT(semaphore->name), STRING_FORMAT(errmsg), err);
 			}
 			else {
@@ -217,7 +217,7 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	if (!*semaphore) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
-		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize semaphore: %*s"),
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize semaphore: %.*s"),
 		           STRING_FORMAT(errmsg));
 	}
 }
@@ -268,7 +268,7 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	if (sem_init((native_sem_t*)&semaphore->unnamed, 0, value)) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
-		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize semaphore: %*s (%d)"),
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize semaphore: %.*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
 		return;
 	}
@@ -300,7 +300,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-		           STRING_CONST("Unable to initialize named semaphore (sem_open '%*s'): %*s (%d)"),
+		           STRING_CONST("Unable to initialize named semaphore (sem_open '%.*s'): %.*s (%d)"),
 		           STRING_FORMAT(semaphore->name), STRING_FORMAT(errmsg), err);
 		return;
 	}

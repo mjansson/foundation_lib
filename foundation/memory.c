@@ -628,7 +628,7 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);
 		log_panicf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to reallocate memory: %*s (%" PRIfixPTR ", raw %" PRIfixPTR ")"),
+		           STRING_CONST("Unable to reallocate memory: %.*s (%" PRIfixPTR ", raw %" PRIfixPTR ")"),
 		           STRING_FORMAT(errmsg), (uintptr_t)p, (uintptr_t)raw_p);
 	}
 
@@ -735,7 +735,7 @@ _memory_tracker_finalize(void) {
 				string_t trace = stacktrace_resolve(tracebuf, 512, tag->trace, 14, 0);
 				void* addr = atomic_loadptr(&tag->address);
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
-				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%*s"),
+				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s"),
 				          tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str);
 				got_leaks = true;
 			}

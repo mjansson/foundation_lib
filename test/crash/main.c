@@ -67,7 +67,7 @@ test_crash_callback(const char* dump_path, size_t length) {
 #if !BUILD_ENABLE_LOG
 	FOUNDATION_UNUSED(length);
 #endif
-	log_infof(HASH_TEST, STRING_CONST("Crash callback called: %*s"), (int)length, dump_path);
+	log_infof(HASH_TEST, STRING_CONST("Crash callback called: %.*s"), (int)length, dump_path);
 	_crash_callback_called = true;
 }
 
@@ -135,7 +135,7 @@ DECLARE_TEST(crash, assert_callback) {
 	log_set_callback(handle_log);
 #endif
 	EXPECT_EQ(assert_report_formatted(1, STRING_CONST("assert_report_formatted"), STRING_CONST("file"),
-	                                  2, STRING_CONST("%*s"), 3, "msg"), 1);
+	                                  2, STRING_CONST("%.*s"), 3, "msg"), 1);
 	EXPECT_EQ(error(), ERROR_ASSERT);
 #if BUILD_ENABLE_LOG
 	EXPECT_TRUE(string_find_string(handled_log, string_length(handled_log),

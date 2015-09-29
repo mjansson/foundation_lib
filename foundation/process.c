@@ -257,13 +257,13 @@ process_spawn(process_t* proc) {
 			log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to redirect standard in/out"
 			         " through pipes when using ShellExecute for process spawning"));
 
-		log_debugf(0, "Spawn process (ShellExecute): %*s %*s",
+		log_debugf(0, "Spawn process (ShellExecute): %.*s %.*s",
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
 			string_const_t errstr = system_error_message(GetLastError());
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%*s': %s"),
+			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%.*s': %s"),
 					  STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 		}
 		else {
@@ -300,14 +300,14 @@ process_spawn(process_t* proc) {
 			inherit_handles = TRUE;
 		}
 
-		log_debugf(0, "Spawn process (CreateProcess): %*s %*s",
+		log_debugf(0, "Spawn process (CreateProcess): %.*s %.*s",
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!CreateProcessW(0, wcmdline, 0, 0, inherit_handles,
 		                    (proc->flags & PROCESS_CONSOLE) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi)) {
 			string_const_t errstr = system_error_message(GetLastError());
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Unable to spawn process (CreateProcess) for executable '%*s': %*s"),
+			          STRING_CONST("Unable to spawn process (CreateProcess) for executable '%.*s': %.*s"),
 			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 
 			stream_deallocate(proc->pipeout);
@@ -373,7 +373,7 @@ process_spawn(process_t* proc) {
 		params.application = fsref;
 		params.argv = argvref;
 
-		log_debugf(0, STRING_CONST("Spawn process (LSOpenApplication): %*s"), STRING_FORMAT(localpath));
+		log_debugf(0, STRING_CONST("Spawn process (LSOpenApplication): %.*s"), STRING_FORMAT(localpath));
 
 		status = LSOpenApplication(&params, &psn);
 		if (status != 0) {
@@ -381,7 +381,7 @@ process_spawn(process_t* proc) {
 			string_const_t errmsg = system_error_message(err);
 			proc->code = status;
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-			           STRING_CONST("Unable to spawn process for executable '%*s': %*s (%d)"),
+			           STRING_CONST("Unable to spawn process for executable '%.*s': %.*s (%d)"),
 			           STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
 		}
 
@@ -405,7 +405,7 @@ process_spawn(process_t* proc) {
 			if (proc->kq < 0) {
 				string_const_t errmsg = system_error_message(proc->kq);
 				log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-				           STRING_CONST("Unable to create kqueue for process watch: %*s (%d)"),
+				           STRING_CONST("Unable to create kqueue for process watch: %.*s (%d)"),
 				           STRING_FORMAT(errmsg), proc->kq);
 				proc->kq = 0;
 			}
@@ -417,7 +417,7 @@ process_spawn(process_t* proc) {
 					int err = errno;
 					string_const_t errmsg = system_error_message(err);
 					log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-					           STRING_CONST("Unable to setup kqueue for process watch, failed to add event to kqueue: %*s (%d)"),
+					           STRING_CONST("Unable to setup kqueue for process watch, failed to add event to kqueue: %.*s (%d)"),
 					           STRING_FORMAT(errmsg), err);
 					close(proc->kq);
 					proc->kq = 0;
@@ -456,12 +456,12 @@ process_spawn(process_t* proc) {
 	if (pid == 0) {
 		//Child
 		if (proc->wd.length) {
-			log_debugf(0, STRING_CONST("Spawned child process, setting working directory to %*s"),
+			log_debugf(0, STRING_CONST("Spawned child process, setting working directory to %.*s"),
 			           STRING_FORMAT(proc->wd));
 			environment_set_current_working_directory(STRING_ARGS(proc->wd));
 		}
 
-		log_debugf(0, STRING_CONST("Child process executing: %*s"), STRING_FORMAT(proc->path));
+		log_debugf(0, STRING_CONST("Child process executing: %.*s"), STRING_FORMAT(proc->path));
 
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			pipe_close_read(proc->pipeout);
@@ -476,7 +476,7 @@ process_spawn(process_t* proc) {
 		    0) { //Will always be true since this point will never be reached if execve() is successful
 			int err = errno;
 			string_const_t errmsg = system_error_message(err);
-			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Child process failed execve() '%*s': %*s (%d)"),
+			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Child process failed execve() '%.*s': %.*s (%d)"),
 			           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err);
 		}
 
@@ -518,7 +518,7 @@ process_spawn(process_t* proc) {
 		proc->code = errno;
 		string_const_t errmsg;
 		errmsg = system_error_message(proc->code);
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%*s': %*s (%d)"),
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%.*s': %.*s (%d)"),
 		          STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
 
 		if (proc->pipeout)
@@ -633,7 +633,7 @@ process_wait(process_t* proc) {
 				int err = errno;
 				string_const_t errmsg = system_error_message(err);
 				log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-				          STRING_CONST("Unable to wait on process, failed to read event from kqueue: %*s (%d)"),
+				          STRING_CONST("Unable to wait on process, failed to read event from kqueue: %.*s (%d)"),
 				          STRING_FORMAT(errmsg), err);
 			}
 
@@ -673,7 +673,7 @@ process_wait(process_t* proc) {
 		if ((ret < 0) && (err == EINTR))
 			return PROCESS_WAIT_INTERRUPTED;
 		string_const_t errmsg = system_error_message(err);
-		log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("waitpid(%d) failed: %*s (%d) (returned %d)"),
+		log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("waitpid(%d) failed: %.*s (%d) (returned %d)"),
 		          proc->pid, STRING_FORMAT(errmsg), err, ret);
 		return PROCESS_WAIT_FAILED;
 	}

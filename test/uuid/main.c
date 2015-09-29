@@ -260,19 +260,19 @@ DECLARE_TEST(uuid, string) {
 
 	uuid = string_to_uuid("", 0);
 	strref = string_from_uuid_static(uuid);
-	EXPECT_EQ_MSGFORMAT(uuid_is_null(uuid), true, "empty string did not convert to null uuid: %*s",
+	EXPECT_EQ_MSGFORMAT(uuid_is_null(uuid), true, "empty string did not convert to null uuid: %.*s",
 	                    STRING_FORMAT(strref));
 
 	uuid = string_to_uuid("0", 1);
 	strref = string_from_uuid_static(uuid);
-	EXPECT_EQ_MSGFORMAT(uuid_is_null(uuid), true, "\"0\" string did not convert to null uuid: %*s",
+	EXPECT_EQ_MSGFORMAT(uuid_is_null(uuid), true, "\"0\" string did not convert to null uuid: %.*s",
 	                    STRING_FORMAT(strref));
 
 	strref = string_from_uuid_static(uuid_null());
 	uuid = string_to_uuid(STRING_ARGS(strref));
 	strref = string_from_uuid_static(uuid);
 	EXPECT_EQ_MSGFORMAT(uuid_is_null(uuid), true,
-	                    "null uuid reconvert through string did not convert to null uuid: %*s", STRING_FORMAT(strref));
+	                    "null uuid reconvert through string did not convert to null uuid: %.*s", STRING_FORMAT(strref));
 
 	return 0;
 }

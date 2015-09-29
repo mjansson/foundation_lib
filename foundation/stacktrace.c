@@ -816,7 +816,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		}
 
 		line = string_format(linebuf, sizeof(linebuf),
-		                     STRING_CONST("[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %*s\n"),
+		                     STRING_CONST("[0x%" PRIfixPTR "] 0x%" PRIfixPTR " %.*s\n"),
 		                     (uintptr_t)frames[iaddr], (uintptr_t)relativeframe, STRING_FORMAT(module));
 		symbols = string_append(STRING_ARGS(symbols), capacity, STRING_ARGS(line));
 	}

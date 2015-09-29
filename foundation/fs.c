@@ -153,7 +153,7 @@ _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
 		return 0;
 	}
 
-	log_warnf(HASH_PNACL, WARNING_INVALID_VALUE, STRING_CONST("Invalid file path: %*s"), (int)length, path);
+	log_warnf(HASH_PNACL, WARNING_INVALID_VALUE, STRING_CONST("Invalid file path: %.*s"), (int)length, path);
 
 	return 0;
 }
@@ -198,7 +198,7 @@ fs_monitor(const char* path, size_t length) {
 	if (mi == _foundation_config.fs_monitor_max) {
 		string_deallocate(path_clone.str);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to monitor file system, no free monitor slots: %*s"), (int)length, path);
+		           STRING_CONST("Unable to monitor file system, no free monitor slots: %.*s"), (int)length, path);
 	}
 
 	memory_context_pop();
@@ -758,8 +758,7 @@ fs_make_directory(const char* path, size_t length) {
 			if (!result) {
 				int err = system_error();
 				string_const_t errmsg = system_error_message(err);
-				system_message_box(STRING_CONST("foo"), STRING_CONST("bar"), false);
-				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed! to create directory '%*s': %*s (%d)"),
+				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
 				          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
 				goto end;
 			}
@@ -1104,7 +1103,7 @@ _fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
 	string_t stored_path;
 	int fd = inotify_add_watch(notify_fd, path, IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVE);
 	if (fd < 0) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Failed watching subdir: %*s (%d)"),
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Failed watching subdir: %.*s (%d)"),
 		          (int)length, path, fd);
 		return;
 	}
@@ -1183,7 +1182,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 
 	if (handles[1] == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(GetLastError());
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %s : %*s"),
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %s : %.*s"),
 		          monitor_path, STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
@@ -1233,7 +1232,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 	}
 	if (dir == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(GetLastError());
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %s : %*s"),
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %s : %.*s"),
 		          monitor_path, STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
@@ -1255,7 +1254,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 		                                &overlap, 0);
 		if (!success) {
 			string_const_t errstr = system_error_message(GetLastError());
-			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %*s"),
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %.*s"),
 			          monitor_path, STRING_FORMAT(errstr));
 			goto exit_thread;
 		}
@@ -1279,7 +1278,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 				success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
 				if (!success) {
 					string_const_t errstr = system_error_message(GetLastError());
-					log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %*s"),
+					log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %s : %.*s"),
 					          monitor_path, STRING_FORMAT(errstr));
 				}
 				else {
@@ -1352,7 +1351,7 @@ _fs_monitor(object_t thread, void* monitorptr) {
 				fs_watch_t* curwatch = _lookup_watch(watch, event->wd);
 				if (!curwatch) {
 					log_warnf(0, WARNING_SUSPICIOUS,
-					          STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %*s"),
+					          STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %.*s"),
 					          event->wd, event->mask, event->cookie, (size_t)event->len,
 					          (int)event->len, (const char*)event->name);
 					goto skipwatch;
@@ -1729,7 +1728,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	{
 		if (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
 			string_const_t errstr = system_error_message(GetLastError());
-			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s"),
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
 			          STRING_ARGS(cpath), length, STRING_ARGS(errstr));
 		}
 	}
@@ -1738,7 +1737,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 		LONG high = (LONG)(length >> 32LL);
 		if (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
 			string_const_t errstr = system_error_message(GetLastError());
-			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s"),
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
 			          STRING_ARGS(cpath), length, STRING_ARGS(errstr));
 		}
 	}
@@ -1751,7 +1750,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
 		log_warnf(0, WARNING_SUSPICIOUS,
-		          STRING_CONST("Unable to truncate real file %*s (%" PRIsize " bytes): %*s (%d)"),
+		          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s (%d)"),
 		          STRING_FORMAT(fspath), length, STRING_FORMAT(errmsg), err);
 	}
 	close(fd);
@@ -2084,13 +2083,13 @@ _fs_initialize(void) {
 
 		if ((ret = _pnacl_file_system->Open(_pnacl_fs_temporary, 100000, PP_BlockUntilComplete())) != PP_OK) {
 			string_const_t errmsg = pnacl_error_message(ret);
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open temporary file system: %*s (%d)"),
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open temporary file system: %.*s (%d)"),
 			          STRING_FORMAT(errmsg), ret);
 		}
 
 		if ((ret = _pnacl_file_system->Open(_pnacl_fs_persistent, 100000, PP_BlockUntilComplete()) != PP_OK)) {
 			string_const_t errmsg = pnacl_error_message(ret);
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open persistent file system: %*s (%d)"),
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to open persistent file system: %.*s (%d)"),
 			          STRING_FORMAT(errmsg), ret);
 		}
 	}

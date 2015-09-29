@@ -193,7 +193,7 @@ _expand_string(hash_t section_current, string_t str) {
 	}
 #if BUILD_ENABLE_CONFIG_DEBUG
 	if (str.str != expanded.str)
-		log_debugf(HASH_CONFIG, STRING_CONST("Expanded config value \"%*s\" to \"%*s\""),
+		log_debugf(HASH_CONFIG, STRING_CONST("Expanded config value \"%.*s\" to \"%.*s\""),
 		           STRING_FORMAT(str), STRING_FORMAT(expanded));
 #endif
 
@@ -441,7 +441,7 @@ config_load(const char* name, size_t length, hash_t filter_section, bool built_i
 
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
 		filename = string_format(pathname.str + pathname.length, sizeof(buffer) - pathname.length,
-		                         STRING_CONST("/%*s.ini"), (int)length, name);
+		                         STRING_CONST("/%.*s.ini"), (int)length, name);
 		filename.str = pathname.str;
 		filename.length += pathname.length;
 		istream = stream_open(STRING_ARGS(filename), STREAM_IN);
@@ -452,7 +452,7 @@ config_load(const char* name, size_t length, hash_t filter_section, bool built_i
 
 		if (built_in) {
 			filename = string_format(pathname.str + pathname.length, sizeof(buffer) - pathname.length,
-			                         STRING_CONST("%*s/%*s.ini"), STRING_FORMAT(platformsuffix), (int)length, name);
+			                         STRING_CONST("%.*s/%.*s.ini"), STRING_FORMAT(platformsuffix), (int)length, name);
 			filename.str = pathname.str;
 			filename.length += pathname.length;
 			istream = stream_open(STRING_ARGS(filename), STREAM_IN);
@@ -692,7 +692,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 #endif
 
 #if BUILD_ENABLE_CONFIG_DEBUG
-	log_debugf(HASH_CONFIG, STRING_CONST("Parsing config stream: %*s"), STRING_FORMAT(path));
+	log_debugf(HASH_CONFIG, STRING_CONST("Parsing config stream: %.*s"), STRING_FORMAT(path));
 #endif
 	buffer.length = buffer_size = 1024;
 	buffer.str = memory_allocate(0, buffer.length, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
@@ -708,14 +708,14 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			if (endpos < 1) {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
 				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
-				          STRING_CONST("Invalid section declaration on line %u in config stream '%*s'"), line,
+				          STRING_CONST("Invalid section declaration on line %u in config stream '%.*s'"), line,
 				          STRING_FORMAT(path));
 #endif
 				continue;
 			}
 			section = hash(stripped.str + 1, endpos - 1);
 #if BUILD_ENABLE_CONFIG_DEBUG
-			log_debugf(HASH_CONFIG, STRING_CONST("  config: section set to '%*s' (0x%" PRIx64 ")"),
+			log_debugf(HASH_CONFIG, STRING_CONST("  config: section set to '%.*s' (0x%" PRIx64 ")"),
 			           (int)endpos - 1, stripped.str + 1, section);
 #endif
 		}
@@ -727,7 +727,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			if (separator == STRING_NPOS) {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
 				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
-				          STRING_CONST("Invalid value declaration on line %u in config stream '%*s', missing assignment operator '=': %*s"),
+				          STRING_CONST("Invalid value declaration on line %u in config stream '%.*s', missing assignment operator '=': %.*s"),
 				          line, STRING_FORMAT(path), STRING_FORMAT(stripped));
 #endif
 				continue;
@@ -739,7 +739,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			if (!name.length) {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
 				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
-				          STRING_CONST("Invalid value declaration on line %d in config stream '%*s', empty name string: %*s"),
+				          STRING_CONST("Invalid value declaration on line %d in config stream '%.*s', empty name string: %.*s"),
 				          line, STRING_FORMAT(path), STRING_FORMAT(stripped));
 #endif
 				continue;
@@ -749,7 +749,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 
 			if (overwrite || !config_key(section, key, false)) {
 #if BUILD_ENABLE_CONFIG_DEBUG
-				log_debugf(HASH_CONFIG, STRING_CONST("  config: %*s (0x%llx) = %s"), name, key, value);
+				log_debugf(HASH_CONFIG, STRING_CONST("  config: %.*s (0x%llx) = %s"), name, key, value);
 #endif
 
 				if (!value.length)
@@ -817,7 +817,7 @@ config_parse_commandline(const string_const_t* cmdline, size_t num) {
 					}
 				}
 
-				log_infof(HASH_CONFIG, STRING_CONST("Config value from command line: %*s:%*s = %*s"),
+				log_infof(HASH_CONFIG, STRING_CONST("Config value from command line: %.*s:%.*s = %.*s"),
 				          (int)section_length, section_str, (int)key_length, key_str, STRING_FORMAT(value));
 			}
 		}
@@ -837,7 +837,7 @@ config_write(stream_t* stream, hash_t filter_section, string_const_t (*map)(hash
 	//if( stream_is_sequential( stream ) )
 	{
 		string_const_t section = map(filter_section);
-		stream_write_format(stream, STRING_CONST("[%*s]"), STRING_FORMAT(section));
+		stream_write_format(stream, STRING_CONST("[%.*s]"), STRING_FORMAT(section));
 		stream_write_endl(stream);
 
 		csection = config_section(filter_section, false);
@@ -845,7 +845,7 @@ config_write(stream_t* stream, hash_t filter_section, string_const_t (*map)(hash
 				bucket = csection->key[ key ];
 				if (bucket) for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
 						string_const_t bucketstr = map(bucket[ib].name);
-						stream_write_format(stream, STRING_CONST("\t%*s\t\t\t\t= "), STRING_FORMAT(bucketstr));
+						stream_write_format(stream, STRING_CONST("\t%.*s\t\t\t\t= "), STRING_FORMAT(bucketstr));
 						switch (bucket[ib].type) {
 						case CONFIGVALUE_BOOL:
 							stream_write_bool(stream, bucket[ib].bval);
