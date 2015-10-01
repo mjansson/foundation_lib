@@ -2185,7 +2185,7 @@ DECLARE_TEST(string, convert) {
 	EXPECT_EQ(str.length, 0);
 
 	str = string_from_time(buffer, 26, 0);
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC && (_MSC_VER < 1900)
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan 01 01:00:00 1970")));
 #else
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
@@ -2197,7 +2197,7 @@ DECLARE_TEST(string, convert) {
 	EXPECT_INTEQ(str.length, 24);
 
 	conststr = string_from_time_static(0);
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC && (_MSC_VER < 1900)
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan 01 01:00:00 1970")));
 #else
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
