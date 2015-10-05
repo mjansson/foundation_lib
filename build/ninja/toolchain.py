@@ -1329,7 +1329,7 @@ class Toolchain(object):
         else:
           resfiles += self.build_copy( writer, os.path.join( buildpath, 'res', restype, filename ), os.path.join( basepath, module, resource ) )
     aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', baseapkname ) ]
-    aaptout = [ os.path.join( buildpath, baseapkname ), os.path.join( buildpath, 'gen' ), os.path.join( buildpath, 'gen', 'R.class' ) ]
+    aaptout = [ os.path.join( buildpath, baseapkname ), os.path.join( buildpath, 'gen' ) ]
     if config == 'deploy':
       baseapkfile = writer.build( aaptout, 'aaptdeploy', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
     else:
