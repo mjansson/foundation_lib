@@ -567,7 +567,7 @@ hashify_print_usage(void) {
 	log_set_suppress(0, ERRORLEVEL_DEBUG);
 	log_info(0, STRING_CONST(
 	           "hashify usage:\n"
-	           "  hashify [--validate] [--generate-string <string>] [<filename> <filename> ...] [--help] [--]\n"
+	           "  hashify [--validate] [--generate-string <string>] [<filename> <filename> ...] [--debug] [--help] [--]\n"
 	           "    Generated files have the same file name as the input file, with the extension replaced by .h\n"
 	           "    Optional arguments:\n"
 	           "      --validate                   Suppress output and only validate existing hashes\n"

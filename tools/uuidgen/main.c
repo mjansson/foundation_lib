@@ -295,7 +295,7 @@ uuidgen_print_usage(void) {
 	log_set_suppress(0, ERRORLEVEL_DEBUG);
 	log_info(0, STRING_CONST(
 	           "uuidgen usage:\n"
-	           "  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--help] [--]\n"
+	           "  uuidgen [--time n] [--random n] [--md5 <namespace> <name>] [--output <filename>] [--debug] [--help] [--]\n"
 	           "    If no arguments are given, one random-based UUID is output to stdout\n"
 	           "    Optional arguments:\n"
 	           "      --time n                     Generate n time-based UUIDs\n"

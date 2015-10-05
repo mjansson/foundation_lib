@@ -210,7 +210,7 @@ bin2hex_print_usage(void) {
 	log_set_suppress(0, ERRORLEVEL_DEBUG);
 	log_info(0, STRING_CONST(
 	           "bin2hex usage:\n"
-	           "  bin2hex [--columns n] [--help] <file> <file> <file> <...> [--]\n"
+	           "  bin2hex [--columns n] [--debug] [--help] <file> <file> <file> <...> [--]\n"
 	           "    Required arguments:\n"
 	           "      <file>                       Input filename (any number of input files allowed). Output will be named \"<file>.hex\"\n"
 	           "    Optional arguments:\n"
