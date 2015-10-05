@@ -25,9 +25,9 @@ foundation_lib = generator.lib( module = 'foundation', sources = [
   'hash.c', 'hashmap.c', 'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'pnacl.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
-  'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ] + extrasources )
+  'tizen.c', 'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ] + extrasources )
 
-if not target.is_ios() and not target.is_android():
+if not target.is_ios() and not target.is_android() and not target.is_tizen():
   configs = [ config for config in toolchain.configs if config not in [ 'profile', 'deploy' ] ]
   if not configs == []:
     generator.bin( 'bin2hex', [ 'main.c' ], 'bin2hex', basepath = 'tools', implicit_deps = [ foundation_lib ], libs = [ 'foundation' ], configs = configs )
@@ -43,7 +43,7 @@ test_cases = [
   'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'
 ]
-if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_pnacl():
+if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_tizen() or target.is_pnacl():
   #Build one fat binary with all test cases
   test_resources = []
   test_extrasources = []
@@ -60,7 +60,11 @@ if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target
     test_extrasources = [ os.path.join( 'all', 'android', 'java', 'com', 'rampantpixels', 'foundation', 'test', item ) for item in [
       'TestActivity.java'
     ] ]
-  if target.is_ios() or target.is_android():
+  elif target.is_tizen():
+    test_resources = [ os.path.join( 'all', 'tizen', item ) for item in [
+      'tizen-manifest.xml', os.path.join( 'res', 'tizenapp.png' )
+    ] ]
+  if target.is_ios() or target.is_android() or target.is_tizen():
     generator.app( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ] + test_extrasources, binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )
   else:
     generator.bin( module = '', sources = [ os.path.join( module, 'main.c' ) for module in test_cases ] + test_extrasources, binname = 'test-all', basepath = 'test', implicit_deps = [ foundation_lib, test_lib ], libs = [ 'test', 'foundation' ], resources = test_resources, includepaths = includepaths )

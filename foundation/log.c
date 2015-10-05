@@ -27,6 +27,10 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #  include <android/log.h>
 #endif
 
+#if FOUNDATION_PLATFORM_TIZEN
+#  include <foundation/tizen.h>
+#endif
+
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #endif
@@ -43,7 +47,8 @@ static log_callback_fn  _log_callback;
 static hashtable64_t*   _log_suppress;
 static error_level_t    _log_suppress_default;
 
-static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
+#define LOG_WARNING_NAMES 9
+static char _log_warning_name[LOG_WARNING_NAMES][18] = {
 	"performance",
 	"deprecated",
 	"bad data",
@@ -55,7 +60,8 @@ static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
 	"script"
 };
 
-static char _log_error_name[ERROR_LAST_BUILTIN][18] = {
+#define LOG_ERROR_NAMES 16
+static char _log_error_name[LOG_ERROR_NAMES][18] = {
 	"none",
 	"invalid value",
 	"unsupported",
@@ -150,14 +156,19 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 #if FOUNDATION_PLATFORM_WINDOWS
 			OutputDebugStringA( buffer );
 #endif
-#if FOUNDATION_PLATFORM_PNACL
-			if( _log_stdout )
-				pnacl_post_log( context, severity, buffer, need + more + 1 );
-#endif
+
 #if FOUNDATION_PLATFORM_ANDROID
 			FOUNDATION_UNUSED( std );
 			if( _log_stdout )
 				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name, buffer );
+#elif FOUNDATION_PLATFORM_TIZEN
+			FOUNDATION_UNUSED( std );
+			if( _log_stdout )
+				dlog_print( DLOG_DEBUG + severity - 1, environment_application()->short_name, "%s", buffer );
+#elif FOUNDATION_PLATFORM_PNACL
+			FOUNDATION_UNUSED( std );
+			if( _log_stdout )
+				pnacl_post_log( context, severity, buffer, need + more + 1 );
 #else
 			if( _log_stdout && std )
 				fprintf( std, "%s", buffer );
@@ -224,7 +235,7 @@ void log_warnf( uint64_t context, warning_t warn, const char* format, ... )
 
 	log_error_context( context, ERRORLEVEL_WARNING );
 
-	if( warn < WARNING_LAST_BUILTIN )
+	if( warn < LOG_WARNING_NAMES )
 		string_format_buffer( prefix, 32, "WARNING [%s]: ", _log_warning_name[warn] );
 	else
 		string_format_buffer( prefix, 32, "WARNING [%d]: ", warn );
@@ -245,7 +256,7 @@ void log_errorf( uint64_t context, error_t err, const char* format, ... )
 
 	log_error_context( context, ERRORLEVEL_ERROR );
 
-	if( err < ERROR_LAST_BUILTIN )
+	if( err < LOG_ERROR_NAMES )
 		string_format_buffer( prefix, 32, "ERROR [%s]: ", _log_error_name[err] );
 	else
 		string_format_buffer( prefix, 32, "ERROR [%d]: ", err );
@@ -265,7 +276,7 @@ void log_panicf( uint64_t context, error_t err, const char* format, ... )
 
 	log_error_context( context, ERRORLEVEL_PANIC );
 
-	if( err < ERROR_LAST_BUILTIN )
+	if( err < LOG_ERROR_NAMES )
 		string_format_buffer( prefix, 32, "PANIC [%s]: ", _log_error_name[err] );
 	else
 		string_format_buffer( prefix, 32, "PANIC [%d]: ", err );

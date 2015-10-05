@@ -34,14 +34,14 @@ static void* event_thread( object_t thread, void* arg )
 			{
 				case FOUNDATIONEVENT_START:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
-					log_debugf( HASH_TEST, "Application start event received" );
+					log_debug( HASH_TEST, "Application start event received" );
 					_test_should_start = true;
 #endif
 					break;
 
 				case FOUNDATIONEVENT_TERMINATE:
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
-					log_debugf( HASH_TEST, "Application stop/terminate event received" );
+					log_debug( HASH_TEST, "Application stop/terminate event received" );
 					_test_should_terminate = true;
 #else
 					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating tests due to event" );
@@ -65,7 +65,7 @@ static void* event_thread( object_t thread, void* arg )
 		thread_sleep( 10 );
 	}
 
-	log_debugf( HASH_TEST, "Application event thread exiting" );
+	log_debug( HASH_TEST, "Application event thread exiting" );
 
 	return 0;
 }
@@ -306,7 +306,7 @@ int main_run( void* main_arg )
 	object_t test_thread = thread_create( test_runner, "test_runner", THREAD_PRIORITY_NORMAL, 0 );
 	thread_start( test_thread, tests );
 
-	log_debugf( HASH_TEST, "Starting test runner thread" );
+	log_debug( HASH_TEST, "Starting test runner thread" );
 
 	while( !thread_is_running( test_thread ) )
 	{

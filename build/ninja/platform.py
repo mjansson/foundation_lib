@@ -5,7 +5,7 @@
 import sys
 
 def supported_platforms():
-  return [ 'windows', 'linux', 'macosx', 'bsd', 'ios', 'android', 'raspberrypi', 'pnacl' ]
+  return [ 'windows', 'linux', 'macosx', 'bsd', 'ios', 'android', 'raspberrypi', 'pnacl', 'tizen' ]
 
 class Platform(object):
   def __init__(self, platform):
@@ -13,23 +13,25 @@ class Platform(object):
     if self.platform is None:
       self.platform = sys.platform
     if self.platform.startswith('linux'):
-      self.platform = 'linux' 
+      self.platform = 'linux'
     elif self.platform.startswith('darwin'):
-      self.platform = 'macosx' 
+      self.platform = 'macosx'
     elif self.platform.startswith('macos'):
-      self.platform = 'macosx' 
+      self.platform = 'macosx'
     elif self.platform.startswith('win'):
-      self.platform = 'windows' 
+      self.platform = 'windows'
     elif 'bsd' in self.platform:
-      self.platform = 'bsd' 
+      self.platform = 'bsd'
     elif self.platform.startswith('ios'):
-      self.platform = 'ios' 
+      self.platform = 'ios'
     elif self.platform.startswith('android'):
-      self.platform = 'android' 
+      self.platform = 'android'
     elif self.platform.startswith('raspberry'):
-      self.platform = 'raspberrypi' 
+      self.platform = 'raspberrypi'
     elif self.platform.startswith('pnacl'):
-      self.platform = 'pnacl' 
+      self.platform = 'pnacl'
+    elif self.platform.startswith('tizen'):
+      self.platform = 'tizen'
 
   def platform(self):
     return self.platform
@@ -45,7 +47,7 @@ class Platform(object):
 
   def is_bsd(self):
     return self.platform == 'bsd'
-  
+
   def is_ios(self):
     return self.platform == 'ios'
 
@@ -57,3 +59,6 @@ class Platform(object):
 
   def is_pnacl(self):
     return self.platform == 'pnacl'
+
+  def is_tizen(self):
+    return self.platform == 'tizen'

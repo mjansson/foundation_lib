@@ -596,9 +596,29 @@ bool string_equal( const char* rhs, const char* lhs )
 }
 
 
+bool string_equal_nocase( const char* rhs, const char* lhs )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+	return ( rhs == lhs ) || ( rhs && lhs && ( _stricmp( rhs, lhs ) == 0 ) ) || ( !rhs && lhs && lhs[0] == 0 ) || ( rhs && !lhs && rhs[0] == 0 );
+#else
+	return ( rhs == lhs ) || ( rhs && lhs && ( strcasecmp( rhs, lhs ) == 0 ) ) || ( !rhs && lhs && lhs[0] == 0 ) || ( rhs && !lhs && rhs[0] == 0 );
+#endif
+}
+
+
 bool string_equal_substr( const char* rhs, const char* lhs, unsigned int len )
 {
 	return ( rhs == lhs ) || ( rhs && lhs && ( strncmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+}
+
+
+bool string_equal_substr_nocase( const char* rhs, const char* lhs, unsigned int len )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+	return ( rhs == lhs ) || ( rhs && lhs && ( _strnicmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+#else
+	return ( rhs == lhs ) || ( rhs && lhs && ( strncasecmp( rhs, lhs, len ) == 0 ) ) || ( !rhs && lhs && ( !len || lhs[0] == 0 ) ) || ( rhs && !lhs && ( !len || rhs[0] == 0 ) );
+#endif
 }
 
 
@@ -1272,14 +1292,14 @@ char* string_from_time_buffer( char* buffer, uint64_t t )
 	buffer[0] = 0;
 	_ctime64_s( buffer, 64, &timet );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
-	buffer[0] = 0;
-	time_t ts = (time_t)( t / 1000ULL );
-	ctime_r( &ts, buffer );
-	return string_strip( buffer, STRING_WHITESPACE );
 #elif FOUNDATION_PLATFORM_ANDROID
 	time_t ts = t / 1000ULL;
 	strcpy( buffer, ctime( &ts ) );
+	return string_strip( buffer, STRING_WHITESPACE );
+#elif FOUNDATION_PLATFORM_POSIX
+	buffer[0] = 0;
+	time_t ts = (time_t)( t / 1000ULL );
+	ctime_r( &ts, buffer );
 	return string_strip( buffer, STRING_WHITESPACE );
 #else
 # error Not implemented
@@ -1424,12 +1444,5 @@ version_t string_to_version( const char* val )
 		}
 	}
 	return version_make( num[0], num[1], num[2], num[3], num[4] );
-}
-
-
-bool string_is_valid_email_address( const char* address )
-{
-	//TODO: Regexp '^[a-z0-9]+[a-z0-9_\\.-]*@([a-z0-9]+([\.-][a-z0-9]+)*)\\.[a-z]{2,4}$' or similar
-	return string_match_pattern( address, "*@*.*" );
 }
 

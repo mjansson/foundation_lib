@@ -53,15 +53,15 @@ DECLARE_TEST( time, builtin )
 	EXPECT_GT( tps, 0 );
 
 	tick = time_current();
-	EXPECT_NE( tick, 0 );
-
 	thread_sleep( 20 );
 	newtick = time_current();
+
+	EXPECT_NE( tick, 0 );
 	EXPECT_GT( newtick, tick );
 
 	EXPECT_GT( time_diff( tick, newtick ), 0 );
-	EXPECT_GT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 100 ), "time elapsed not more than 10ms: %d (%d)", time_diff( tick, newtick ), ( tps / 100 ) ); //more than 10 ms
-	EXPECT_LT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 33 ), "time elapsed not less than 33ms: %d (%d)", time_diff( tick, newtick ), ( tps / 33 ) ); //less than 30 ms
+	EXPECT_GT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 100LL ), "time elapsed not more than 10ms: %lld (%lld)", time_diff( tick, newtick ), ( tps / 100LL ) ); //more than 10 ms
+	EXPECT_LT_MSGFORMAT( time_diff( tick, newtick ), ( tps / 30LL  ), "time elapsed not less than 30ms: %lld (%lld)", time_diff( tick, newtick ), ( tps / 33LL  ) ); //less than 30 ms
 	EXPECT_GT( time_elapsed( tick ), 0 );
 	EXPECT_GT( time_elapsed( tick ), 0.01f ); //more than 10 ms
 	EXPECT_GT( time_elapsed_ticks( tick ), 0 );
@@ -69,8 +69,8 @@ DECLARE_TEST( time, builtin )
 
 	dt = time_ticks_to_seconds( newtick - tick );
 	EXPECT_GT( dt, 0 );
-	EXPECT_GT( dt, 0.01f ); //more than 10 ms
-	EXPECT_LT( dt, 0.03f ); //less than 30 ms
+	EXPECT_GT_MSGFORMAT( dt, 0.01f, "time elapsed in seconds not more than 10ms: %.5f", dt ); //more than 10 ms
+	EXPECT_LT_MSGFORMAT( dt, 0.03f, "time elapsed in seconds not less than 30ms: %.5f", dt ); //less than 30 ms
 
 	tick = time_startup();
 	EXPECT_GT( tick, 0 );

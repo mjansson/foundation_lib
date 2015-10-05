@@ -87,7 +87,7 @@ requested length but not reallocated.
 
 \fn void string_copy( char* dst, const char* src, unsigned int limit )
 \brief Copy string
-\details Copy one string to another. Like strncpy, except that dst will always be zero
+\details Copy one string to another. Like strlcpy in that dst will always be zero
 terminated (i.e copies at most limit-1 characters from src)
 \param dst Destination string
 \param src Source string
@@ -95,7 +95,7 @@ terminated (i.e copies at most limit-1 characters from src)
 
 \fn char* string_strip( char* str, const char* delimiters )
 \brief Strip string
-\details Strip a string (in-place) of given characters at start and end. 
+\details Strip a string (in-place) of given characters at start and end.
 Modifies the passed string and returns a new pointer to it. If null is passed as string
 to strip, a new empty string is returned.
 \param str String to strip
@@ -104,7 +104,7 @@ to strip, a new empty string is returned.
 
 \fn char* string_strip_substr( char* str, const char* delimiters, unsigned int length )
 \brief Strip substring
-\details Strip a substring (in-place) of given characters at start end end of the given sub-string. 
+\details Strip a substring (in-place) of given characters at start end end of the given sub-string.
 Modifies the passed string (starting at str and ending at str+length)
 and returns a new pointer to it. If null is passed as string to strip, a new empty string is returned.
 \param str String to strip

@@ -52,7 +52,7 @@ DECLARE_TEST( semaphore, initialize )
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
 	semaphore_finalize( &sem );
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	semaphore_initialize_named( &sem, "foundation_test", 0 );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
 	semaphore_finalize( &sem );
@@ -63,7 +63,7 @@ DECLARE_TEST( semaphore, initialize )
 	semaphore_post( &sem ); //Restored value
 	semaphore_finalize( &sem );
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	semaphore_initialize_named( &sem, "foundation_test", 1 );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
 	semaphore_post( &sem ); //Restored value
@@ -78,7 +78,7 @@ DECLARE_TEST( semaphore, initialize )
 	semaphore_post( &sem ); //Restored value
 	semaphore_finalize( &sem );
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	semaphore_initialize_named( &sem, "foundation_test", 2 );
 	EXPECT_TRUE( semaphore_wait( &sem ) );
 	EXPECT_TRUE( semaphore_try_wait( &sem, 100 ) );
@@ -122,7 +122,7 @@ DECLARE_TEST( semaphore, postwait )
 
 	semaphore_finalize( &sem );
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	semaphore_initialize_named( &sem, "foundation_test", 0 );
 	EXPECT_FALSE( semaphore_try_wait( &sem, 100 ) );
 
@@ -226,7 +226,7 @@ DECLARE_TEST( semaphore, threaded )
 	semaphore_finalize( &test.read );
 	semaphore_finalize( &test.write );
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	semaphore_initialize_named( &test.read, "foundation_test_read", 0 );
 	semaphore_initialize_named( &test.write, "foundation_test_write", 0 );
 	test.loopcount = 128;

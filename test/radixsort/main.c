@@ -94,8 +94,8 @@ DECLARE_TEST( radixsort, sort_int32 )
 			arr_uint[ival] = random32();
 		}
 
-		sindex_int = radixsort( sort_int, arr_int, num );
-		sindex_uint = radixsort( sort_uint, arr_uint, num );
+		sindex_int = radixsort_sort( sort_int, arr_int, num );
+		sindex_uint = radixsort_sort( sort_uint, arr_uint, num );
 
 		if( num == 1 )
 		{
@@ -133,8 +133,8 @@ DECLARE_TEST( radixsort, sort_int32 )
 			arr_uint[ival] = random32();
 		}
 
-		sindex_int = radixsort( sort_int, arr_int, num );
-		sindex_uint = radixsort( sort_uint, arr_uint, num );
+		sindex_int = radixsort_sort( sort_int, arr_int, num );
+		sindex_uint = radixsort_sort( sort_uint, arr_uint, num );
 
 		if( num == 1 )
 		{
@@ -195,8 +195,8 @@ DECLARE_TEST( radixsort, sort_int64 )
 			arr_uint[ival] = random64();
 		}
 
-		sindex_int = radixsort( sort_int, arr_int, num );
-		sindex_uint = radixsort( sort_uint, arr_uint, num );
+		sindex_int = radixsort_sort( sort_int, arr_int, num );
+		sindex_uint = radixsort_sort( sort_uint, arr_uint, num );
 
 		if( num == 1 )
 		{
@@ -234,8 +234,8 @@ DECLARE_TEST( radixsort, sort_int64 )
 			arr_uint[ival] = random64();
 		}
 
-		sindex_int = radixsort( sort_int, arr_int, num );
-		sindex_uint = radixsort( sort_uint, arr_uint, num );
+		sindex_int = radixsort_sort( sort_int, arr_int, num );
+		sindex_uint = radixsort_sort( sort_uint, arr_uint, num );
 
 		if( num == 1 )
 		{
@@ -299,8 +299,8 @@ DECLARE_TEST( radixsort, sort_real )
 			arr_64[ival] = random_range( low_range, high_range );
 		}
 
-		sindex_32 = radixsort( sort_32, arr_32, num );
-		sindex_64 = radixsort( sort_64, arr_64, num );
+		sindex_32 = radixsort_sort( sort_32, arr_32, num );
+		sindex_64 = radixsort_sort( sort_64, arr_64, num );
 
 		if( num == 1 )
 		{
@@ -325,8 +325,8 @@ DECLARE_TEST( radixsort, sort_real )
 			arr_64[ival] = random_range( low_range, -1.0f );
 		}
 
-		sindex_32 = radixsort( sort_32, arr_32, num );
-		sindex_64 = radixsort( sort_64, arr_64, num );
+		sindex_32 = radixsort_sort( sort_32, arr_32, num );
+		sindex_64 = radixsort_sort( sort_64, arr_64, num );
 
 		if( num == 1 )
 		{
@@ -365,8 +365,8 @@ DECLARE_TEST( radixsort, sort_real )
 			arr_64[ival] = random_range( low_range, high_range );
 		}
 
-		sindex_32 = radixsort( sort_32, arr_32, num );
-		sindex_64 = radixsort( sort_64, arr_64, num );
+		sindex_32 = radixsort_sort( sort_32, arr_32, num );
+		sindex_64 = radixsort_sort( sort_64, arr_64, num );
 
 		if( num == 1 )
 		{
@@ -391,8 +391,8 @@ DECLARE_TEST( radixsort, sort_real )
 			arr_64[ival] = random_range( low_range, -1.0f );
 		}
 
-		sindex_32 = radixsort( sort_32, arr_32, num );
-		sindex_64 = radixsort( sort_64, arr_64, num );
+		sindex_32 = radixsort_sort( sort_32, arr_32, num );
+		sindex_64 = radixsort_sort( sort_64, arr_64, num );
 
 		if( num == 1 )
 		{

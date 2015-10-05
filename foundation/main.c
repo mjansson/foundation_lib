@@ -18,6 +18,9 @@
 #  include <ppapi/c/ppp_instance.h>
 #endif
 
+#if FOUNDATION_PLATFORM_TIZEN
+#  include <foundation/tizen.h>
+#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -190,6 +193,11 @@ int main( int argc, char** argv )
 		return ret;
 #endif
 
+#if FOUNDATION_PLATFORM_TIZEN
+	if( ( ret = tizen_initialize() ) < 0 )
+		return ret;
+#endif
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	SetConsoleCtrlHandler( _main_console_handler, TRUE );
@@ -226,6 +234,10 @@ int main( int argc, char** argv )
 	}
 #endif
 
+#if FOUNDATION_PLATFORM_TIZEN
+	tizen_start_main_thread();
+	ret = tizen_app_main( argc, argv );
+#else
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
@@ -243,12 +255,16 @@ int main( int argc, char** argv )
 
 		string_deallocate( name );
 	}
-//#endif
+#endif
 
 	main_shutdown();
 
 #if FOUNDATION_PLATFORM_ANDROID
 	android_shutdown();
+#endif
+
+#if FOUNDATION_PLATFORM_TIZEN
+	tizen_shutdown();
 #endif
 
 	return ret;
