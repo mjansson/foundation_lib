@@ -100,6 +100,7 @@ class Toolchain(object):
     self.tizen_platformversion = '2.3'
     self.tizen_toolchainversion_gcc = '4.8'
     self.tizen_toolchainversion_clang = '3.4'
+    self.tizen_profile = ''
 
     self.msvc_toolchain = ''
     self.msvc_sdkpath = ''
@@ -183,6 +184,8 @@ class Toolchain(object):
           self.msvc_toolchain = val
         elif key == 'msvc_sdkpath':
           self.msvc_sdkpath = val
+        elif key == 'tizen_profile':
+          self.tizen_profile = val
 
     #Source in local build prefs
     self.read_prefs( 'build.json' )
@@ -215,11 +218,11 @@ class Toolchain(object):
     if host.is_windows():
       self.rmcmd = 'cmd /C del /F /Q'
       self.cdcmd = 'cmd /C cd'
-      self.mkdircmd = 'cmd /C mkdir'
+      self.mkdircmd = lambda p: 'cmd /C IF NOT exist ' + p + ' mkdir ' + p
     else:
       self.rmcmd = 'rm -f'
       self.cdcmd = 'cd'
-      self.mkdircmd = 'mkdir -p'
+      self.mkdircmd = lambda p: 'mkdir -p ' + p
 
     self.copycmd = '$copy $in $outpath'
     if host.is_windows():
@@ -227,13 +230,16 @@ class Toolchain(object):
     else:
       self.copy = 'cp -f'
 
-    self.javaccmd = self.mkdircmd + ' $outpath && $javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
+    self.zip = 'zip'
+
+    self.javaccmd = self.mkdircmd('$outpath') + ' && $javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
     self.dexcmd = '$dex --dex --output $out $in'
-    self.aaptcmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' gen && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
-    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && ' + self.mkdircmd + ' gen && $aapt c -S res -C bin/res; $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
+    self.aaptcmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd('gen') + ' && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd('bin') + ' && ' + self.mkdircmd(os.path.join('bin', 'res')) + ' && ' + self.mkdircmd('gen') + ' && $aapt c -S res -C bin/res && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
     self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && ' + self.copy + ' $apksource $apk && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner $timestamp -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
+    self.zipcmd = '$zip -r -9 $out $in $implicitin'
 
     if self.toolchain.startswith('ms'):
       self.toolchain = 'msvc'
@@ -294,6 +300,7 @@ class Toolchain(object):
       elif target.is_android():
         self.cflags += [ '-std=gnu11' ] #c11 gives errors in NDK cpu-features on android
         self.cflags += [ '-Wno-unused-function' ] #errors in NDK cpu-features on android
+        self.cflags += [ '-Wno-unused-variable' ] #errors in NDK cpu-features on android
         self.cflags += [ '-Wno-unused-parameter' ] #errors in NDK native-app-glue on android
       else:
         self.cflags += [ '-std=c11' ]
@@ -401,7 +408,6 @@ class Toolchain(object):
         self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --builddir $builddir --binname $binname --config $config $outpath'
 
       elif target.is_android():
-
         self.sysroot = ''
         self.liblinkname = ''
 
@@ -420,13 +426,14 @@ class Toolchain(object):
         self.extralibs += [ 'log' ]
 
       elif target.is_tizen():
-
         self.sysroot = ''
         self.liblinkname = ''
 
+        self.cflags += [ '-fPIE' ]
+
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -D__TIZEN__=1 -D_GNU_SOURCE=1 -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
-        self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -Xlinker --as-needed -pie -o $out $in $libs $archlibs'
+        self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
 
@@ -584,9 +591,11 @@ class Toolchain(object):
       if 'sdkpath' in tizenprefs:
         self.tizen_sdkpath = tizenprefs['sdkpath']
       if 'gccversion' in tizenprefs:
-        self.tizen_gccversion = tizenprefs['gccversion']
+        self.tizen_toolchainversion_gcc = tizenprefs['gccversion']
       if 'clangversion' in tizenprefs:
-        self.tizen_clangversion = tizenprefs['clangversion']
+        self.tizen_toolchainversion_clang = tizenprefs['clangversion']
+      if 'profile' in tizenprefs:
+        self.tizen_profile = tizenprefs['profile']
     if 'msvc' in prefs:
       msvcprefs = prefs['msvc']
       if 'sdkpath' in msvcprefs:
@@ -673,7 +682,10 @@ class Toolchain(object):
     self.android_jar = os.path.join( self.android_sdkpath, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
 
     self.javac = 'javac'
-    self.dex = os.path.join( self.android_buildtools_path, 'dx' + self.exe_suffix )
+    if self.host.is_windows():
+      self.dex = os.path.join( self.android_buildtools_path, 'dx.bat' )
+    else:
+      self.dex = os.path.join( self.android_buildtools_path, 'dx' + self.exe_suffix )
     if not os.path.isfile( self.dex ):
       self.dex = os.path.join( self.android_sdkpath, 'tools', 'dx' + self.exe_suffix )
     self.aapt = os.path.join( self.android_buildtools_path, 'aapt' + self.exe_suffix )
@@ -687,6 +699,7 @@ class Toolchain(object):
     self.tizen_toolchainversion_gcc = os.getenv( 'TIZEN_GCCVERSION', self.tizen_toolchainversion_gcc )
     self.tizen_toolchainversion_clang = os.getenv( 'TIZEN_CLANGVERSION', self.tizen_toolchainversion_clang )
     self.tizen_sdkpath = os.getenv( 'TIZEN_SDKPATH', os.getenv( 'TIZEN_SDK', os.getenv( 'TIZEN_HOME', self.tizen_sdkpath ) ) )
+    self.tizen_profile = os.getenv( 'TIZEN_PROFILE', self.tizen_profile )
 
     self.tizen_archname = dict()
     self.tizen_archname['x86'] = 'i386'
@@ -776,7 +789,7 @@ class Toolchain(object):
             break
         if not msvc_sdkpath == '':
           break
-    
+
   def get_boolean_flag( self, val ):
     return ( val == True or val == "True" or val == "true" or val == "1" or val == 1 )
 
@@ -903,6 +916,9 @@ class Toolchain(object):
       if arch == 'x86':
         flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
         flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
+      elif arch == 'arm7':
+        flags += ' -target arm-tizen-linux-gnueabi -ccc-gcc-name arm-linux-gnueabi-g++ -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16 -mtune=cortex-a8'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'arm-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.target.is_windows() and self.toolchain == 'msvc':
       if arch == 'x86':
         flags += ' /arch:SSE2'
@@ -984,6 +1000,9 @@ class Toolchain(object):
       if arch == 'x86':
         flags += ' -target i386-tizen-linux-gnueabi -ccc-gcc-name i386-linux-gnueabi-g++ -march=i386'
         flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'i386-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
+      elif arch == 'arm7':
+        flags += ' -target arm-tizen-linux-gnueabi -ccc-gcc-name arm-linux-gnueabi-g++ -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16 -mtune=cortex-a8'
+        flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'arm-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
         flags += ' -m32'
@@ -1102,7 +1121,6 @@ class Toolchain(object):
     writer.rule( 'ar', command = self.arcmd, description = 'LIB $out')
     writer.rule( 'link', command = self.linkcmd, description = 'LINK $out')
     writer.rule( 'copy', command = self.copycmd, description = 'COPY $in -> $outpath')
-
     if self.target.is_macosx() or self.target.is_ios():
       writer.rule( 'cm', command = self.cmcmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in' )
       writer.rule( 'lipo', command = self.lipocmd, description = 'LIPO $out' )
@@ -1111,7 +1129,6 @@ class Toolchain(object):
       writer.rule( 'xcassets', command = self.xcassetscmd, description = 'XCASSETS $outpath' )
       writer.rule( 'xib', command = self.xibcmd, description = 'XIB $outpath' )
       writer.rule( 'codesign', command = self.codesigncmd, description = 'CODESIGN $outpath' )
-
     if self.target.is_android():
       writer.rule( 'aapt', command = self.aaptcmd, description = 'AAPT $out' )
       writer.rule( 'aaptdeploy', command = self.aaptdeploycmd, description = 'AAPT $out' )
@@ -1120,10 +1137,12 @@ class Toolchain(object):
       writer.rule( 'dex', command = self.dexcmd, description = 'DEX $out' )
       writer.rule( 'jarsigner', command = self.jarsignercmd, description = 'JARSIGNER $out' )
       writer.rule( 'zipalign', command = self.zipaligncmd, description = 'ZIPALIGN $out' )
-
     if self.target.is_pnacl():
       writer.rule( 'finalize', command = self.finalizecmd, description = 'FINALIZE $out' )
       writer.rule( 'nmf', command = self.nmfcmd, description = 'NMF $out' )
+    if self.target.is_tizen():
+      writer.rule( 'zip', command = self.zipcmd, description = 'ZIP $out' )
+    writer.newline()
 
   def write_variables( self, writer ):
     writer.variable( 'builddir', self.buildpath )
@@ -1171,6 +1190,8 @@ class Toolchain(object):
     if self.target.is_pnacl():
       writer.variable( 'finalize', self.finalize )
       writer.variable( 'nmf', self.nmf )
+    if self.target.is_tizen():
+      writer.variable( 'zip', self.zip )
     writer.variable( 'cc', self.cc )
     writer.variable( 'ar', self.ar )
     writer.variable( 'link', self.link )
@@ -1207,6 +1228,7 @@ class Toolchain(object):
     writer.variable( 'libpaths', ' '.join( self.shell_escape( path ) for path in self.make_libpaths( self.libpaths ) ) )
     writer.variable( 'libs', ' ' )
     writer.variable( 'archlibs', ' ' )
+    writer.variable( 'implicitin', '' )
     writer.newline()
 
   def make_libs( self, libs ):
@@ -1263,6 +1285,8 @@ class Toolchain(object):
     return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainprefix[arch] + '-gcc-' + self.tizen_gccversion )
 
   def make_tizen_sysroot_path( self, arch ):
+    if arch == 'arm7':
+      return os.path.join( self.tizen_sdkpath, 'platforms', 'mobile-' + self.tizen_platformversion, 'rootstraps', 'mobile-' + self.tizen_platformversion + '-device.core' )
     return os.path.join( self.tizen_sdkpath, 'platforms', 'mobile-' + self.tizen_platformversion, 'rootstraps', 'mobile-' + self.tizen_platformversion + '-emulator.core' )
 
   def make_tizen_ar_path( self, arch ):
@@ -1436,7 +1460,11 @@ class Toolchain(object):
       #self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
       #self.dexcmd = '$dex --dex --output $out $in'
       javasourcepath = 'test/all/android/java'
-      javasourcepath += ':' + os.path.join( buildpath, 'gen' )
+      if self.target.is_windows():
+        javasourcepath += ';'
+      else:
+        javasourcepath += ':'
+      javasourcepath += os.path.join( buildpath, 'gen' )
       classpath = os.path.join( buildpath, 'classes' )
       javavars = [ ( 'outpath', classpath ), ( 'sourcepath', javasourcepath ) ]
       javaclasses = writer.build( classpath, 'javac', javasources, variables = javavars )
@@ -1458,6 +1486,30 @@ class Toolchain(object):
     #Run zipalign
     outfile = writer.build( os.path.join( self.binpath, config, apkname ), 'zipalign', unalignedapkfile )
     return outfile
+
+  def build_tpk( self, writer, config, basepath, module, binname, archbins, resources ):
+    buildpath = os.path.join( self.buildpath, config, "tpk", binname )
+    tpks = []
+    writer.comment('Make TPK in ' + buildpath)
+    for _, value in archbins.iteritems():
+      for archbin in value:
+        tpkdeps = []
+        writer.comment("Archbin " + archbin)
+        pathname = os.path.split( archbin )[0]
+        archname = os.path.split( pathname )[1]
+        filename = os.path.split( archbin )[1]
+        tpkdeps += self.build_copy( writer, os.path.join( buildpath, archname, 'bin', filename ), archbin )
+        for resource in resources:
+          filename = os.path.split( resource )[1]
+          if filename == 'tizen-manifest.xml':
+            tpkdeps += self.build_copy( writer, os.path.join( buildpath, archname, 'tizen-manifest.xml' ), os.path.join( basepath, module, resource ) )
+          else:
+            restype = os.path.split( os.path.split( resource )[0] )[1]
+            tpkdeps += self.build_copy( writer, os.path.join( buildpath, archname, 'shared', restype, filename ), os.path.join( basepath, module, resource ) )
+        tpkname = binname + '.tpk'
+        zipvars = [ ( 'implicitin', os.path.join( buildpath, archname ) ) ]
+        tpks += writer.build( os.path.join( self.binpath, config, archname, tpkname ), 'zip', None, variables = zipvars, implicit = tpkdeps )
+    return tpks
 
   def lib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
     built = {}
@@ -1640,6 +1692,8 @@ class Toolchain(object):
         builtbin += self.build_app( writer, config, basepath, module, binpath = binpath, binname = binname, unibinary = archbins[config], resources = resources, codesign = codesign )
       elif self.target.is_android():
         builtbin += self.build_apk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources, javasources = [ os.path.join( basepath, module, name ) for name in sources if name.endswith( '.java' ) ] )
+      elif self.target.is_tizen():
+        builtbin += self.build_tpk( writer, config, basepath, module, binname = binname, archbins = archbins, resources = resources )
       else:
         for _, value in archbins.iteritems():
           builtbin += value
