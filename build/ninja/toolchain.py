@@ -282,6 +282,7 @@ class Toolchain(object):
       elif target.is_android():
         self.cflags += [ '-std=gnu11' ] #c11 gives errors in NDK cpu-features on android
         self.cflags += [ '-Wno-unused-function' ] #errors in NDK cpu-features on android
+        self.cflags += [ '-Wno-unused-variable' ] #errors in NDK cpu-features on android
         self.cflags += [ '-Wno-unused-parameter' ] #errors in NDK native-app-glue on android
       else:
         self.cflags += [ '-std=c11' ]
@@ -1339,7 +1340,7 @@ class Toolchain(object):
       #self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
       #self.dexcmd = '$dex --dex --output $out $in'
       javasourcepath = 'test/all/android/java'
-      javasourcepath += ':' + os.path.join( buildpath, 'gen' )
+      javasourcepath += ';' + os.path.join( buildpath, 'gen' )
       classpath = os.path.join( buildpath, 'classes' )
       javavars = [ ( 'outpath', classpath ), ( 'sourcepath', javasourcepath ) ]
       javaclasses = writer.build( classpath, 'javac', javasources, variables = javavars )
