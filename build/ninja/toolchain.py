@@ -207,11 +207,11 @@ class Toolchain(object):
     if host.is_windows():
       self.rmcmd = 'cmd /C del /F /Q'
       self.cdcmd = 'cmd /C cd'
-      self.mkdircmd = 'cmd /C mkdir'
+      self.mkdircmd = lambda p: 'cmd /C IF NOT exist ' + p + ' mkdir ' + p
     else:
       self.rmcmd = 'rm -f'
       self.cdcmd = 'cd'
-      self.mkdircmd = 'mkdir -p'
+      self.mkdircmd = lambda p: 'mkdir -p ' + p
 
     self.copycmd = '$copy $in $outpath'
     if host.is_windows():
@@ -219,10 +219,10 @@ class Toolchain(object):
     else:
       self.copy = 'cp -f'
 
-    self.javaccmd = self.mkdircmd + ' $outpath && $javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
+    self.javaccmd = self.mkdircmd('$outpath') + ' && $javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
     self.dexcmd = '$dex --dex --output $out $in'
-    self.aaptcmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' gen && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
-    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd + ' bin && ' + self.mkdircmd + ' ' + os.path.join( 'bin', 'res' ) + ' && ' + self.mkdircmd + ' gen && $aapt c -S res -C bin/res; $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
+    self.aaptcmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd('gen') + ' && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
+    self.aaptdeploycmd = self.cdcmd + ' $apkbuildpath && ' + self.mkdircmd('bin') + ' && ' + self.mkdircmd(os.path.join('bin', 'res')) + ' && ' + self.mkdircmd('gen') + ' && $aapt c -S res -C bin/res && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
     self.aaptaddcmd = self.cdcmd + ' $apkbuildpath && ' + self.copy + ' $apksource $apk && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner $timestamp -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias'
@@ -585,7 +585,10 @@ class Toolchain(object):
     self.android_jar = os.path.join( self.android_sdkpath, 'platforms', 'android-' + self.android_platformversion, 'android.jar' )
 
     self.javac = 'javac'
-    self.dex = os.path.join( self.android_buildtools_path, 'dx' + self.exe_suffix )
+    if self.host.is_windows():
+      self.dex = os.path.join( self.android_buildtools_path, 'dx.bat' )
+    else:
+      self.dex = os.path.join( self.android_buildtools_path, 'dx' + self.exe_suffix )
     if not os.path.isfile( self.dex ):
       self.dex = os.path.join( self.android_sdkpath, 'tools', 'dx' + self.exe_suffix )
     self.aapt = os.path.join( self.android_buildtools_path, 'aapt' + self.exe_suffix )
@@ -1326,7 +1329,7 @@ class Toolchain(object):
         else:
           resfiles += self.build_copy( writer, os.path.join( buildpath, 'res', restype, filename ), os.path.join( basepath, module, resource ) )
     aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', baseapkname ) ]
-    aaptout = [ os.path.join( buildpath, baseapkname ), os.path.join( buildpath, 'gen' ) ]
+    aaptout = [ os.path.join( buildpath, baseapkname ), os.path.join( buildpath, 'gen' ), os.path.join( buildpath, 'gen', 'R.class' ) ]
     if config == 'deploy':
       baseapkfile = writer.build( aaptout, 'aaptdeploy', manifestfile, variables = aaptvars, implicit = manifestfile + resfiles )
     else:
@@ -1339,7 +1342,7 @@ class Toolchain(object):
       #self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
       #self.dexcmd = '$dex --dex --output $out $in'
       javasourcepath = 'test/all/android/java'
-      javasourcepath += ':' + os.path.join( buildpath, 'gen' )
+      javasourcepath += ';' + os.path.join( buildpath, 'gen' )
       classpath = os.path.join( buildpath, 'classes' )
       javavars = [ ( 'outpath', classpath ), ( 'sourcepath', javasourcepath ) ]
       javaclasses = writer.build( classpath, 'javac', javasources, variables = javavars )
