@@ -1,0 +1,22 @@
+
+1.4.0
+
+base64_decode no longer does automatic input string length calculation when passing 0 as length.
+Explicit length must be passed to the function at all times.
+
+All string APIs and functions taking string arguments have been extended to take and supply
+an explicit length argument/result, in order to avoid extra strlen calls to determine an
+already known length.
+
+Path and string functions no longer automagically reallocate passed arguments. Functions
+now exist in two flavours, one acting on a passed buffer (best effort) and one allocating
+a new buffer.
+
+Build time size limit configuration in build.h have been moved to a run time configuration
+block passed to foundation_initialize.
+
+All shutdown functions have been renamed to finalize to better match the initialize function
+naming scheme.
+
+system_* functions returning strings now take a buffer argument for thread safety. Returned
+string will be in supplied buffer.

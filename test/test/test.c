@@ -1,72 +1,62 @@
 /* test.c  -  Foundation test library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #include <foundation/foundation.h>
 
 #include <test/test.h>
 
-
 #if !BUILD_MONOLITHIC
-FOUNDATION_EXTERN test_suite_t test_suite_define( void );
-#else
-extern volatile bool _test_should_terminate;
+FOUNDATION_EXTERN test_suite_t
+test_suite_define(void);
 #endif
 
-typedef struct
-{
-	const char*       name;
+typedef struct {
+	string_const_t    name;
 	test_fn           fn;
 } test_case_t;
 
-typedef struct
-{
-	const char*       name;
+typedef struct {
+	string_const_t    name;
 	test_case_t**     cases;
 } test_group_t;
 
-test_group_t** _test_groups;
+static test_group_t** _test_groups;
+static bool           _test_failed;
 
-static bool _test_failed;
-
-test_suite_t test_suite;
-
+test_suite_t          test_suite;
 
 #if !BUILD_MONOLITHIC
 
-static void* test_event_thread( object_t thread, void* arg )
-{
+static void*
+test_event_thread(object_t thread, void* arg) {
 	event_block_t* block;
 	event_t* event = 0;
-	FOUNDATION_UNUSED( arg );
+	FOUNDATION_UNUSED(arg);
 
-	while( !thread_should_terminate( thread ) )
-	{
-		block = event_stream_process( system_event_stream() );
+	while (!thread_should_terminate(thread)) {
+		block = event_stream_process(system_event_stream());
 		event = 0;
 
-		while( ( event = event_next( block, event ) ) )
-		{
-			switch( event->id )
-			{
-				case FOUNDATIONEVENT_TERMINATE:
-					log_warn( HASH_TEST, WARNING_SUSPICIOUS, "Terminating test due to event" );
-					process_exit( -2 );
-					break;
+		while ((event = event_next(block, event))) {
+			switch (event->id) {
+			case FOUNDATIONEVENT_TERMINATE:
+				log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Terminating test due to event"));
+				process_exit(-2);
 
-				default:
-					break;
+			default:
+				break;
 			}
 		}
-		thread_sleep( 10 );
+		thread_sleep(10);
 	}
 
 	return 0;
@@ -74,75 +64,72 @@ static void* test_event_thread( object_t thread, void* arg )
 
 #endif
 
-
-void test_add_test( test_fn fn, const char* group_name, const char* test_name )
-{
+void
+test_add_test(test_fn fn, const char* group_name, size_t group_length, const char* test_name,
+              size_t test_length) {
 	unsigned int ig, gsize;
 	test_group_t* test_group = 0;
 	test_case_t* test_case = 0;
-	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
-	{
-		if( string_equal( _test_groups[ig]->name, group_name ) )
-		{
+	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
+		if (string_equal(_test_groups[ig]->name.str, _test_groups[ig]->name.length, group_name,
+		                 group_length)) {
 			test_group = _test_groups[ig];
 			break;
 		}
 	}
 
-	if( !test_group )
-	{
-		test_group = memory_allocate( 0, sizeof( test_group_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-		test_group->name = group_name;
-		array_push( _test_groups, test_group );
+	if (!test_group) {
+		test_group = memory_allocate(0, sizeof(test_group_t), 0,
+		                             MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		test_group->name = string_const(group_name, group_length);
+		array_push(_test_groups, test_group);
 	}
 
-	test_case = memory_allocate( 0, sizeof( test_case_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	test_case->name = test_name;
+	test_case = memory_allocate(0, sizeof(test_case_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	test_case->name = string_const(test_name, test_length);
 	test_case->fn = fn;
 
-	array_push( test_group->cases, test_case );
+	array_push(test_group->cases, test_case);
 }
 
-
-static void test_run( void )
-{
+static void
+test_run(void) {
 	unsigned int ig, gsize, ic, csize;
 	void* result = 0;
 #if !BUILD_MONOLITHIC
 	object_t thread_event = 0;
 #endif
 
-	log_infof( HASH_TEST, "Running test suite: %s", test_suite.application().short_name );
+	log_infof(HASH_TEST, STRING_CONST("Running test suite: %.*s"),
+	          (int)test_suite.application().short_name.length, test_suite.application().short_name.str);
 
 	_test_failed = false;
 
 #if !BUILD_MONOLITHIC
-	thread_event = thread_create( test_event_thread, "event_thread", THREAD_PRIORITY_NORMAL, 0 );
-	thread_start( thread_event, 0 );
+	thread_event = thread_create(test_event_thread, STRING_CONST("event_thread"),
+	                             THREAD_PRIORITY_NORMAL, 0);
+	thread_start(thread_event, 0);
 
-	while( !thread_is_running( thread_event ) )
+	while (!thread_is_running(thread_event))
 		thread_yield();
 #endif
 
-	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
-	{
-		log_infof( HASH_TEST, "Running tests from group %s", _test_groups[ig]->name );
-		for( ic = 0, csize = array_size( _test_groups[ig]->cases ); ic < csize; ++ic )
-		{
-			log_infof( HASH_TEST, "  Running %s tests", _test_groups[ig]->cases[ic]->name );
+	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
+		log_infof(HASH_TEST, STRING_CONST("Running tests from group %.*s"),
+		          (int)_test_groups[ig]->name.length, _test_groups[ig]->name.str);
+		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic) {
+			log_infof(HASH_TEST, STRING_CONST("  Running %.*s tests"),
+			          (int)_test_groups[ig]->cases[ic]->name.length, _test_groups[ig]->cases[ic]->name.str);
 			result = _test_groups[ig]->cases[ic]->fn();
-			if( result != 0 )
-			{
-				log_warn( HASH_TEST, WARNING_SUSPICIOUS, "    FAILED" );
+			if (result != 0) {
+				log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("    FAILED"));
 				_test_failed = true;
 			}
-			else
-			{
-				log_info( HASH_TEST, "    PASSED" );
+			else {
+				log_info(HASH_TEST, STRING_CONST("    PASSED"));
 			}
 #if BUILD_MONOLITHIC
-			if( _test_should_terminate )
-			{
+			if (test_should_terminate()) {
 				_test_failed = true;
 				goto exit;
 			}
@@ -151,98 +138,88 @@ static void test_run( void )
 	}
 
 #if !BUILD_MONOLITHIC
-	thread_terminate( thread_event );
-	thread_destroy( thread_event );
-	while( thread_is_running( thread_event ) || thread_is_thread( thread_event ) )
+	thread_terminate(thread_event);
+	thread_destroy(thread_event);
+	while (thread_is_running(thread_event) || thread_is_thread(thread_event))
 		thread_yield();
 #else
-	exit:
+exit:
 #endif
 
-	log_infof( HASH_TEST, "Finished test suite: %s", test_suite.application().short_name );
+	log_infof(HASH_TEST, STRING_CONST("Finished test suite: %.*s"),
+	          (int)test_suite.application().short_name.length, test_suite.application().short_name.str);
 }
 
-
-static void test_free( void )
-{
+static void
+test_free(void) {
 	unsigned int ig, gsize, ic, csize;
-	for( ig = 0, gsize = array_size( _test_groups ); ig < gsize; ++ig )
-	{
-		for( ic = 0, csize = array_size( _test_groups[ig]->cases ); ic < csize; ++ic )
-		{
-			memory_deallocate( _test_groups[ig]->cases[ic] );
+	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
+		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic) {
+			memory_deallocate(_test_groups[ig]->cases[ic]);
 		}
-		array_deallocate( _test_groups[ig]->cases );
-		memory_deallocate( _test_groups[ig] );
+		array_deallocate(_test_groups[ig]->cases);
+		memory_deallocate(_test_groups[ig]);
 	}
-	array_deallocate( _test_groups );
+	array_deallocate(_test_groups);
 	_test_groups = 0;
 }
 
-
-int test_run_all( void )
-{
-	if( test_suite.initialize() < 0 )
+int
+test_run_all(void) {
+	if (test_suite.initialize() < 0)
 		return -1;
 	test_suite.declare();
 
 	test_run();
 	test_free();
 
-	test_suite.shutdown();
-	if( _test_failed )
-	{
-		process_set_exit_code( -1 );
+	test_suite.finalize();
+	if (_test_failed) {
+		process_set_exit_code(-1);
 		return -1;
 	}
 	return 0;
 }
 
-
 #if !BUILD_MONOLITHIC
 
-int main_initialize( void )
-{
-	log_set_suppress( 0, ERRORLEVEL_INFO );
+int
+main_initialize(void) {
+	log_set_suppress(0, ERRORLEVEL_INFO);
 
 	test_suite = test_suite_define();
 
-	return foundation_initialize( test_suite.memory_system(), test_suite.application() );
+	return foundation_initialize(test_suite.memory_system(), test_suite.application(),
+	                             test_suite.config());
 }
 
-
-int main_run( void* main_arg )
-{
-	FOUNDATION_UNUSED( main_arg );
-	log_set_suppress( HASH_TEST, ERRORLEVEL_DEBUG );
+int
+main_run(void* main_arg) {
+	FOUNDATION_UNUSED(main_arg);
+	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 
 	return test_run_all();
 }
 
-
-void main_shutdown( void )
-{
-	foundation_shutdown();
+void
+main_finalize(void) {
+	foundation_finalize();
 }
 
 #endif
 
-
-void test_wait_for_threads_startup( const object_t* threads, unsigned int num_threads )
-{
-	unsigned int i;
+void
+test_wait_for_threads_startup(const object_t* threads, size_t num_threads) {
+	size_t i;
 	bool waiting = true;
 
-	while( waiting )
-	{
+	while (waiting) {
 		waiting = false;
 
 		atomic_thread_fence_acquire();
 
-		for( i = 0; i < num_threads; ++i )
-		{
-			if( !thread_is_started( threads[i] ) )
-			{
+		for (i = 0; i < num_threads; ++i) {
+			if (!thread_is_started(threads[i])) {
 				waiting = true;
 				break;
 			}
@@ -250,22 +227,18 @@ void test_wait_for_threads_startup( const object_t* threads, unsigned int num_th
 	}
 }
 
-
-void test_wait_for_threads_finish( const object_t* threads, unsigned int num_threads )
-{
-	unsigned int i;
+void
+test_wait_for_threads_finish(const object_t* threads, size_t num_threads) {
+	size_t i;
 	bool waiting = true;
 
-	while( waiting )
-	{
+	while (waiting) {
 		waiting = false;
 
 		atomic_thread_fence_acquire();
 
-		for( i = 0; i < num_threads; ++i )
-		{
-			if( thread_is_running( threads[i] ) )
-			{
+		for (i = 0; i < num_threads; ++i) {
+			if (thread_is_running(threads[i])) {
 				waiting = true;
 				break;
 			}
@@ -273,35 +246,36 @@ void test_wait_for_threads_finish( const object_t* threads, unsigned int num_thr
 	}
 }
 
-
-void test_wait_for_threads_exit( const object_t* threads, unsigned int num_threads )
-{
-	unsigned int i;
+void
+test_wait_for_threads_exit(const object_t* threads, size_t num_threads) {
+	size_t i;
 	bool keep_waiting;
-	do
-	{
+	do {
 		keep_waiting = false;
 
 		atomic_thread_fence_acquire();
 
-		for( i = 0; i < num_threads; ++i )
-		{
-			if( thread_is_thread( threads[i] ) )
-			{
+		for (i = 0; i < num_threads; ++i) {
+			if (thread_is_thread(threads[i])) {
 				keep_waiting = true;
 				break;
 			}
 		}
-		if( keep_waiting )
-			thread_sleep( 10 );
-	} while( keep_waiting );
+		if (keep_waiting)
+			thread_sleep(10);
+	}
+	while (keep_waiting);
 }
 
-
-void test_crash_handler( const char* dump_file )
-{
-	FOUNDATION_UNUSED( dump_file );
-	log_error( HASH_TEST, ERROR_EXCEPTION, "Test crashed" );
-	process_exit( -1 );
+void
+test_crash_handler(const char* dump_file, size_t length) {
+	FOUNDATION_UNUSED(dump_file);
+	FOUNDATION_UNUSED(length);
+	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test crashed"));
+	process_exit(-1);
 }
 
+void*
+test_failed(void) {
+    return FAILED_TEST;
+}

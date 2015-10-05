@@ -1,16 +1,23 @@
 /* types.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
+
+/*! \file types.h
+\brief Foundation data types
+
+Foundation data types, enumerations and typedefs. Provides platform abstractions
+of system specific data types and provides the base language used in all libraries built
+on this foundation library. */
 
 #include <foundation/platform.h>
 #include <foundation/build.h>
@@ -24,695 +31,1395 @@
 #  pragma clang diagnostic ignored "-Wpadded"
 #endif
 
-
 // PRIMITIVE TYPES
 
-typedef enum
-{
+/*! Error severity level. The higher the value, the more severe the error. Error level 0
+(ERRORLEVEL_NONE) is used to indicate no error
+\internal Do not change order! \endinternal */
+typedef enum {
+	/*! No error */
 	ERRORLEVEL_NONE    = 0,
+	/*! Debug level, usually ignored in anything except debug builds.
+	Execution will continue as expected. */
 	ERRORLEVEL_DEBUG,
+	/*! Information level, contains generally useful information.
+	Execution will continue as expected. */
 	ERRORLEVEL_INFO,
+	/*! Warning level, contains important information.
+	Operation failed, but execution can continue. */
 	ERRORLEVEL_WARNING,
+	/*! Error level, contains vital information.
+	Operation failed and execution might be affected. */
 	ERRORLEVEL_ERROR,
+	/*! Panic level, contains vital information.
+	Operation failed and execution cannot continue. */
 	ERRORLEVEL_PANIC
 } error_level_t;
 
-typedef enum
-{
+/*! Error identifiers. Error 0 (ERROR_NONE) is used to indicate no error.
+\internal Do not change order, only append! \endinternal */
+typedef enum {
+	/*! No error */
 	ERROR_NONE              = 0,
+	/*! An invalid value was passed to the function */
 	ERROR_INVALID_VALUE,
+	/*! The function is unsupported on the current system */
 	ERROR_UNSUPPORTED,
+	/*! The function is not yet implemented */
 	ERROR_NOT_IMPLEMENTED,
+	/*! The function could not allocate the needed memory and/or resources */
 	ERROR_OUT_OF_MEMORY,
+	/*! A memory leak was detected */
 	ERROR_MEMORY_LEAK,
+	/*! Memory alignment check failed */
 	ERROR_MEMORY_ALIGNMENT,
+	/*! Internal failed, unspecified. The function encountered a state it did not
+	expect or support */
 	ERROR_INTERNAL_FAILURE,
+	/*! The function call was not allowed */
 	ERROR_ACCESS_DENIED,
+	/*! An exception was thrown */
 	ERROR_EXCEPTION,
+	/*! A system call failed */
 	ERROR_SYSTEM_CALL_FAIL,
+	/*! The function encountered an unsupported data type for the requested operation */
 	ERROR_UNKNOWN_TYPE,
+	/*! The function could not resolve the resource to use in the requested operation */
 	ERROR_UNKNOWN_RESOURCE,
+	/*! The function is deprecated and should not be used */
 	ERROR_DEPRECATED,
+	/*! An assert triggered */
 	ERROR_ASSERT,
+	/*! A script generated an error */
 	ERROR_SCRIPT,
+	/*! Marker, last reserved internal error identifier */
 	ERROR_LAST_BUILTIN  = 0x0fff
 } error_t;
 
-typedef enum
-{
+/*! Warning classes. Indicate which type/group of warning message that was generated
+\internal Do not change order, only append! \endinternal */
+typedef enum {
+	/*! Performance warning */
 	WARNING_PERFORMANCE = 0,
+	/*! Function is deprecated */
 	WARNING_DEPRECATED,
-	WARNING_BAD_DATA,
+	/*! An invalid value was passed to the function */
+	WARNING_INVALID_VALUE,
+	/*! Memory issues (running low, leaks, ...) */
 	WARNING_MEMORY,
+	/*! Unsupported function */
 	WARNING_UNSUPPORTED,
+	/*! General warning, function encountered a suspicious state */
 	WARNING_SUSPICIOUS,
+	/*! System call failed */
 	WARNING_SYSTEM_CALL_FAIL,
+	/*! Potential deadlock encountered */
 	WARNING_DEADLOCK,
+	/*! Script generated warning */
 	WARNING_SCRIPT,
+	/*! Resource was missing or corrupt */
 	WARNING_RESOURCE,
+	/*! Marker, last reserved inernal warning identifier */
 	WARNING_LAST_BUILTIN  = 0x0fff
 } warning_t;
 
-typedef enum
-{
-	MEMORY_PERSISTENT          = 0x0000,
-	MEMORY_TEMPORARY           = 0x0001,
-	MEMORY_THREAD              = 0x0002,
-	MEMORY_32BIT_ADDRESS       = 0x0004,
-	MEMORY_ZERO_INITIALIZED    = 0x0008
-} memory_hint_t;
-
-typedef enum
-{
+/*! Platform identifiers. For compile-time platform selection, use the
+FOUNDATION_PLATFORM_[...] preprocessor macros
+\internal Do not change order, only append! \endinternal */
+typedef enum {
+	/*! Windows */
 	PLATFORM_WINDOWS   = 0,
+	/*! Linux */
 	PLATFORM_LINUX,
+	/*! MacOS X */
 	PLATFORM_MACOSX,
+	/*! iOS (iPhone, iPad) */
 	PLATFORM_IOS,
+	/*! Android */
 	PLATFORM_ANDROID,
+	/*! Raspberry Pi (linux flavour) */
 	PLATFORM_RASPBERRYPI,
+	/*! PNaCl (unknown host platform) */
 	PLATFORM_PNACL,
+	/*! BSD */
 	PLATFORM_BSD,
+	/*! Tizen */
 	PLATFORM_TIZEN,
-
+	/*! Invalid platform identifier */
 	PLATFORM_INVALID
 } platform_t;
 
-typedef enum
-{
+/*! Architecture identifiers for all architectures the engine supports. For compile-time
+selection of architecture, use the <code>FOUNDATION_ARCH_[...]</code> preprocessor macros.
+\internal Do not change order, only append! \endinternal */
+typedef enum {
+	/*! x86 (Classic 32-bit x86 compatible CPUs) */
 	ARCHITECTURE_X86          = 0,
+	/*! x86-64 (x86 with 64-bit extensions) */
 	ARCHITECTURE_X86_64,
+	/*! PowerPC 32-bit */
 	ARCHITECTURE_PPC,
+	/*! PowerPC 64-bit */
 	ARCHITECTURE_PPC_64,
+	/*! ARM 5 */
 	ARCHITECTURE_ARM5,
+	/*! ARM 6 */
 	ARCHITECTURE_ARM6,
+	/*! ARM 7 */
 	ARCHITECTURE_ARM7,
+	/*! ARM 8 */
 	ARCHITECTURE_ARM8,
+	/*! ARM 8 64-bit */
 	ARCHITECTURE_ARM8_64,
+	/*! MIPS */
 	ARCHITECTURE_MIPS,
+	/*! MIPS 64-bit */
 	ARCHITECTURE_MIPS_64,
+	/*! Generic/unknown (for PNaCl) */
 	ARCHITECTURE_GENERIC
 } architecture_t;
 
-typedef enum
-{
+/*! Machine byte order identifiers */
+typedef enum {
+	/*! Little endian */
 	BYTEORDER_LITTLEENDIAN = 0,
-	BYTEORDER_BIGENDIAN    = 1
+	/*! Big endian */
+	BYTEORDER_BIGENDIAN
 } byteorder_t;
 
-typedef enum
-{
-	APPLICATION_UTILITY        = 0x0001,
-	APPLICATION_DAEMON         = 0x0002
-} application_flag_t;
-
-typedef enum
-{
-	STREAM_IN                  = 0x0001,
-	STREAM_OUT                 = 0x0002,
-	STREAM_TRUNCATE            = 0x0010,
-	STREAM_CREATE              = 0x0020,
-	STREAM_ATEND               = 0x0040,
-	STREAM_BINARY              = 0x0100,
-	STREAM_SYNC                = 0x0200
-} stream_mode_t;
-
-typedef enum
-{
+/*! Stream type identifiers. Only lists built-in types, application specific types
+can be added below the STREAMTYPE_LAST_RESERVED value.
+\internal Do not change order, only append! \endinternal */
+typedef enum {
+	/*! Invalid identifier */
 	STREAMTYPE_INVALID         = 0,
+	/*! Memory buffer stream */
 	STREAMTYPE_MEMORY,
+	/*! File system stream */
 	STREAMTYPE_FILE,
+	/*! Network socket stream */
 	STREAMTYPE_SOCKET,
+	/*! Memory ring buffer stream */
 	STREAMTYPE_RINGBUFFER,
+	/*! Asset stream (Android only) */
 	STREAMTYPE_ASSET,
+	/*! Pipe stream */
 	STREAMTYPE_PIPE,
+	/*! Standard stream (stdin, stderr, stdout) */
 	STREAMTYPE_STDSTREAM,
+	/*! Last reserved built-in stream type, not a valid type */
 	STREAMTYPE_LAST_RESERVED   = 0x0FFF
 } stream_type_t;
 
-typedef enum
-{
-	STREAM_SEEK_BEGIN          = 0x0000,
-	STREAM_SEEK_CURRENT        = 0x0001,
-	STREAM_SEEK_END            = 0x0002
+/*! Stream seek directions */
+typedef enum {
+	/*! Seek from start of stream */
+	STREAM_SEEK_BEGIN,
+	/*! Seek from current position of stream */
+	STREAM_SEEK_CURRENT,
+	/*! Seek from end of stream */
+	STREAM_SEEK_END
 } stream_seek_mode_t;
 
-typedef enum
-{
+/*! Thread priority */
+typedef enum {
+	/*! Lowest possible priority */
 	THREAD_PRIORITY_LOW = 0,
+	/*! Unimportant priority */
 	THREAD_PRIORITY_BELOWNORMAL,
+	/*! Normal priority */
 	THREAD_PRIORITY_NORMAL,
+	/*! Important priority */
 	THREAD_PRIORITY_ABOVENORMAL,
+	/*! Highest priority */
 	THREAD_PRIORITY_HIGHEST,
+	/*! Absolutely critical */
 	THREAD_PRIORITY_TIMECRITICAL
 } thread_priority_t;
 
-typedef enum
-{
-	PROCESS_ATTACHED                          = 0,
-	PROCESS_DETACHED                          = 0x01,
-	PROCESS_CONSOLE                           = 0x02,
-	PROCESS_STDSTREAMS                        = 0x04,
-	PROCESS_WINDOWS_USE_SHELLEXECUTE          = 0x08,
-	PROCESS_MACOSX_USE_OPENAPPLICATION        = 0x10
-} process_flag_t;
-
-typedef enum
-{
-	PROCESS_INVALID_ARGS                      = 0x7FFFFFF0,
-	PROCESS_TERMINATED_SIGNAL                 = 0x7FFFFFF1,
-	PROCESS_WAIT_INTERRUPTED                  = 0x7FFFFFF2,
-	PROCESS_WAIT_FAILED                       = 0x7FFFFFF3,
-	PROCESS_STILL_ACTIVE                      = 0x7FFFFFFF
-} process_status_t;
-
-typedef enum
-{
+/*! Foundation library level event identifiers. These event identifiers are only
+valid in conjunction with foundation event streams. Other event streams will use
+their own event identifiers with the same value, and event streams should be treated
+as separate "namespaces" for event identifiers. */
+typedef enum {
+	/*! Application has been asked to start */
 	FOUNDATIONEVENT_START = 1,
+	/*! Application has been asked to terminate */
 	FOUNDATIONEVENT_TERMINATE,
+	/*! Application has been asked to pause */
 	FOUNDATIONEVENT_PAUSE,
+	/*! Application has been asked to resume */
 	FOUNDATIONEVENT_RESUME,
+	/*! Application gained focus */
 	FOUNDATIONEVENT_FOCUS_GAIN,
+	/*! Application lost focus */
 	FOUNDATIONEVENT_FOCUS_LOST,
+	/*! File was created */
 	FOUNDATIONEVENT_FILE_CREATED,
+	/*! File was deleted */
 	FOUNDATIONEVENT_FILE_DELETED,
+	/*! File was modified */
 	FOUNDATIONEVENT_FILE_MODIFIED,
+	/*! Low memory warning */
 	FOUNDATIONEVENT_LOW_MEMORY_WARNING,
+	/*! Device orientation changed */
 	FOUNDATIONEVENT_DEVICE_ORIENTATION
 } foundation_event_id;
 
-typedef enum
-{
-	EVENTFLAG_DELAY  = 1
-} event_flag_t;
+/*! Block cipher mode of operation, see
+http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation */
+typedef enum {
+	/*! Electronic codebook */
+	BLOCKCIPHER_ECB = 0,
+	/*! Cipher-block chaining */
+	BLOCKCIPHER_CBC,
+	/*! Cipher feedback */
+	BLOCKCIPHER_CFB,
+	/*! Output feedback */
+	BLOCKCIPHER_OFB
+} blockcipher_mode_t;
 
-typedef enum
-{
-	BLOWFISH_ECB = 0,
-	BLOWFISH_CBC,
-	BLOWFISH_CFB,
-	BLOWFISH_OFB
-} blowfish_mode_t;
-
-typedef enum
-{
+/*! Radix sort data types */
+typedef enum {
+	/*! 32-bit signed integer */
 	RADIXSORT_INT32 = 0,
+	/*! 32-bit unsigned integer */
 	RADIXSORT_UINT32,
+	/*! 64-bit signed integer */
 	RADIXSORT_INT64,
+	/*! 64-bit unsigned integer */
 	RADIXSORT_UINT64,
+	/*! 32-bit floating point */
 	RADIXSORT_FLOAT32,
+	/*! 64-bit floating point */
 	RADIXSORT_FLOAT64
 } radixsort_data_t;
 
-typedef enum
-{
+/*! Device orientation */
+typedef enum {
+	/*! Orientation not known or not supported */
 	DEVICEORIENTATION_UNKNOWN = 0,
+	/*! Device oriented vertically, bottom of device down */
 	DEVICEORIENTATION_PORTRAIT,
+	/*! Device oriented vertically, bottom of device up */
 	DEVICEORIENTATION_PORTRAIT_FLIPPED,
+	/*! Device oriented horizontally, bottom of device to the right,
+	rotated counter-clockwise from portrait mode */
 	DEVICEORIENTATION_LANDSCAPE_CCW,
+	/*! Device oriented horizontally, bottom of device to the left,
+	rotated clockwise from portrait mode */
 	DEVICEORIENTATION_LANDSCAPE_CW,
+	/*! Device oriented flat, face up */
 	DEVICEORIENTATION_FACEUP,
+	/*! Device oriented flat, face down */
 	DEVICEORIENTATION_FACEDOWN
 } device_orientation_t;
 
-typedef uint64_t      hash_t;
-typedef uint64_t      tick_t;
-typedef real          deltatime_t;
-typedef uint64_t      object_t;
-typedef uint16_t      radixsort_index_t;
-typedef uint128_t     uuid_t;
+/*! Memory hint, memory allocationis persistent (retained when function returns) */
+#define MEMORY_PERSISTENT       0
+/*! Memory hint, memory is temporary (extremely short lived and generally freed
+before function returns or scope ends) */
+#define MEMORY_TEMPORARY        (1U<<0)
+/*! Memory hint, memory allocation is local to the calling thread */
+#define MEMORY_THREAD           (1U<<1)
+/*! Memory flag, memory should be allocated in low 32-bit address space */
+#define MEMORY_32BIT_ADDRESS    (1U<<2)
+/*! Memory flag, memory should be initialized to zero during allocation */
+#define MEMORY_ZERO_INITIALIZED (1U<<3)
 
-typedef union { int32_t ival; float32_t fval; } float32_cast_t;
-typedef union { int64_t ival; float64_t fval; } float64_cast_t;
-#if FOUNDATION_SIZE_REAL == 64
-typedef union { int64_t ival; real rval; } real_cast_t;
-#else
-typedef union { int32_t ival; real rval; } real_cast_t;
-#endif
+/*! Event flag, event is delayed and will be delivered at a later timestamp */
+#define EVENTFLAG_DELAY (1U<<0)
 
-typedef struct application_t                 application_t;
-typedef struct bitbuffer_t                   bitbuffer_t;
-typedef struct blowfish_t                    blowfish_t;
-typedef struct error_frame_t                 error_frame_t;
-typedef struct error_context_t               error_context_t;
-typedef struct event_t                       event_t;
-typedef struct event_block_t                 event_block_t;
-typedef struct event_stream_t                event_stream_t;
-typedef struct hashmap_node_t                hashmap_node_t;
-typedef struct hashmap_t                     hashmap_t;
-typedef struct hashtable32_entry_t           hashtable32_entry_t;
-typedef struct hashtable64_entry_t           hashtable64_entry_t;
-typedef struct hashtable32_t                 hashtable32_t;
-typedef struct hashtable64_t                 hashtable64_t;
-typedef struct md5_t                         md5_t;
-typedef struct memory_context_t              memory_context_t;
-typedef struct memory_system_t               memory_system_t;
-typedef struct memory_tracker_t              memory_tracker_t;
-typedef struct mutex_t                       mutex_t;
-typedef struct object_base_t                 object_base_t;
-typedef struct objectmap_t                   objectmap_t;
-typedef struct process_t                     process_t;
-typedef struct radixsort_t                   radixsort_t;
-typedef struct regex_t                       regex_t;
-typedef struct regex_capture_t               regex_capture_t;
-typedef struct ringbuffer_t                  ringbuffer_t;
-typedef struct stream_t                      stream_t;
-typedef struct stream_buffer_t               stream_buffer_t;
-typedef struct stream_pipe_t                 stream_pipe_t;
-typedef struct stream_ringbuffer_t           stream_ringbuffer_t;
-typedef struct stream_vtable_t               stream_vtable_t;
-typedef union  version_t                     version_t;
+/*! Application flag, application is a command line utility and should not have
+a normal windowing system interaction loop */
+#define APPLICATION_UTILITY (1U<<0)
+/*! Application flag, application is a daemon/service */
+#define APPLICATION_DAEMON  (1U<<1)
+
+/*! Stream mode/flag, stream is readable */
+#define STREAM_IN       (1U<<0)
+/*! Stream mode/flag, stream is writable */
+#define STREAM_OUT      (1U<<1)
+/*! Stream flag, stream is truncated on open */
+#define STREAM_TRUNCATE (1U<<2)
+/*! Stream flag, stream target is created if it does not previously exist */
+#define STREAM_CREATE   (1U<<3)
+/*! Stream flag, stream position is set to end on open */
+#define STREAM_ATEND    (1U<<4)
+/*! Stream flag/mode, stream I/O is binary (I/O is in ascii if flag not set) */
+#define STREAM_BINARY   (1U<<5)
+/*! Stream flag, stream is synchronized on each write */
+#define STREAM_SYNC     (1U<<6)
+
+/*! Process flag, spawn method will block until process ends and then return
+process exit code */
+#define PROCESS_ATTACHED                   0
+/*! Process flag, spawn method will immediately return with code 0 unless
+an error occurs during spawning */
+#define PROCESS_DETACHED                   (1U<<0)
+/*! Process flag, create a console window for process */
+#define PROCESS_CONSOLE                    (1U<<1)
+/*! Process flag, create stdout/stdin pipes to process */
+#define PROCESS_STDSTREAMS                 (1U<<2)
+/*! Process flag, use ShellExecute instead of CreateProcess (Windows platform only) */
+#define PROCESS_WINDOWS_USE_SHELLEXECUTE   (1U<<3)
+/*! Process flag, use LSOpenApplication instead of fork/execve (MacOSX platform only) */
+#define PROCESS_MACOSX_USE_OPENAPPLICATION (1U<<4)
+
+/*! Process exit code, returned when given invalid arguments */
+#define PROCESS_INVALID_ARGS      0x7FFFFFF0
+/*! Process exit code, returned when process was terminated by signal */
+#define PROCESS_TERMINATED_SIGNAL 0x7FFFFFF1
+/*! Process exit code, returned when process wait was interrupted */
+#define PROCESS_WAIT_INTERRUPTED  0x7FFFFFF2
+/*! Process exit code, returned when process wait failed for unknown reasons */
+#define PROCESS_WAIT_FAILED       0x7FFFFFF3
+/*! Process exit code, returned when detached process is still running */
+#define PROCESS_STILL_ACTIVE      0x7FFFFFFF
 
 #if FOUNDATION_PLATFORM_WINDOWS
-typedef void*                                semaphore_t;
-#elif FOUNDATION_PLATFORM_MACOSX
-typedef struct OpaqueMPSemaphoreID*          MPSemaphoreID;
-typedef struct semaphore_t                   semaphore_t;
-#elif FOUNDATION_PLATFORM_IOS
-typedef struct dispatch_semaphore_s*         semaphore_t;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-typedef union semaphore_native_t             semaphore_native_t;
-typedef struct semaphore_t                   semaphore_t;
+#  if FOUNDATION_ARCH_X86
+#    if FOUDATION_COMPILER_MSVC
+typedef _W64 int      ssize_t;
+#    else
+typedef int           ssize_t;
+#    endif
+#  else
+typedef int64_t       ssize_t;
+#  endif
 #endif
 
-typedef int           (* error_callback_fn )( error_level_t level, error_t error );
-typedef int           (* assert_handler_fn )( uint64_t context, const char* condition, const char* file, int line, const char* msg );
-typedef void          (* log_callback_fn )( uint64_t context, int severity, const char* msg );
-typedef int           (* system_initialize_fn )( void );
-typedef void          (* system_shutdown_fn )( void );
-typedef void*         (* memory_allocate_fn )( uint64_t context, uint64_t size, unsigned int align, int hint );
-typedef void*         (* memory_reallocate_fn )( void* p, uint64_t size, unsigned int align, uint64_t oldsize );
-typedef void          (* memory_deallocate_fn )( void* p );
-typedef void          (* memory_track_fn )( void* p, uint64_t size );
-typedef void          (* memory_untrack_fn )( void* p );
-typedef void          (* profile_write_fn )( void* data, uint64_t size );
-typedef void          (* profile_read_fn )( void* data, uint64_t size );
-typedef void*         (* thread_fn )( object_t thread, void* arg );
-typedef int           (* crash_guard_fn )( void* arg );
-typedef void          (* crash_dump_callback_fn )( const char* file );
-typedef void          (* object_deallocate_fn )( object_t id, void* object );
-typedef stream_t*     (* stream_open_fn )( const char* path, unsigned int mode );
-typedef uint64_t      (* stream_read_fn )( stream_t* stream, void* dst, uint64_t size );
-typedef uint64_t      (* stream_write_fn )( stream_t* stream, const void* src, uint64_t size );
-typedef bool          (* stream_eos_fn )( stream_t* stream );
-typedef void          (* stream_flush_fn )( stream_t* stream );
-typedef void          (* stream_truncate_fn  )( stream_t* stream, uint64_t size );
-typedef uint64_t      (* stream_size_fn )( stream_t* stream );
-typedef void          (* stream_seek_fn )( stream_t* stream, int64_t offset, stream_seek_mode_t mode );
-typedef int64_t       (* stream_tell_fn )( stream_t* stream );
-typedef uint64_t      (* stream_lastmod_fn )( const stream_t* stream );
-typedef uint128_t     (* stream_md5_fn)( stream_t* stream );
-typedef void          (* stream_buffer_read_fn )( stream_t* stream );
-typedef uint64_t      (* stream_available_read_fn )( stream_t* stream );
-typedef void          (* stream_finalize_fn )( stream_t* stream );
-typedef stream_t*     (* stream_clone_fn )( stream_t* stream );
+/*! Hash value */
+typedef uint64_t      hash_t;
+/*! Tick type used for absolute time measurements or timestamps */
+typedef int64_t       tick_t;
+/*! Deltatime type used for floating point time differences */
+typedef real          deltatime_t;
+/*! Object handle used for identifying reference counted objects */
+typedef uint64_t      object_t;
+/*! Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array */
+typedef uint16_t      radixsort_index_t;
+/*! UUID, 128-bit unique identifier */
+typedef uint128_t     uuid_t;
 
+/*! Used to bit manipulate 32-bit floating point values in a alias safe way */
+typedef union {
+	/*! Signed integer representation */
+	int32_t ival;
+	/*! Unsigned integer representation */
+	uint32_t uival;
+	/*! Floating point representation */
+	float32_t fval;
+} float32_cast_t;
 
-// Identifier returned from threads and crash guards after a fatal exception (crash) has been caught
-#define FOUNDATION_CRASH_DUMP_GENERATED        0x0badf00dL
+/*! Used to bit manipulate 64-bit floating point values in a alias safe way */
+typedef union {
+	/*! Signed integer representation */
+	int64_t ival;
+	/*! Unsigned integer representation */
+	uint64_t uival;
+	/*! Floating point representation */
+	float64_t fval;
+} float64_cast_t;
 
+#if FOUNDATION_SIZE_REAL == 8
+
+/*! Used to bit manipulate real values in a alias safe way */
+typedef union {
+	/*! Signed integer representation */
+	int64_t ival;
+	/*! Unsigned integer representation */
+	uint64_t uival;
+	/*! Floating point representation */
+	real rval;
+} real_cast_t;
+
+#else
+
+/*! Used to bit manipulate real values in a alias safe way */
+typedef union {
+	/*! Signed integer representation */
+	int32_t ival;
+	/*! Unsigned integer representation */
+	uint32_t uival;
+	/*! Floating point representation */
+	real rval;
+} real_cast_t;
+
+#endif
+
+/*! String */
+typedef struct string_t               string_t;
+/*! Constant immutable string */
+typedef struct string_const_t         string_const_t;
+/*! Application declaration and configuration */
+typedef struct application_t          application_t;
+/*! Bit buffer instance */
+typedef struct bitbuffer_t            bitbuffer_t;
+/*! Blowfish cipher instance */
+typedef struct blowfish_t             blowfish_t;
+/*! Error frame holding debug data for an entry in the frame stack in the error context */
+typedef struct error_frame_t          error_frame_t;
+/*! Error context holding error frame stack for a thread */
+typedef struct error_context_t        error_context_t;
+/*! Event base structure */
+typedef struct event_t                event_t;
+/*! Event block holding a chunk of events from a single stream */
+typedef struct event_block_t          event_block_t;
+/*! Event stream instance producing event blocks of events */
+typedef struct event_stream_t         event_stream_t;
+/*! Payload for a file system event */
+typedef struct fs_event_payload_t     fs_event_payload_t;
+/*! Node in a hash map */
+typedef struct hashmap_node_t         hashmap_node_t;
+/*! Hash map mapping hash value keys to pointer values */
+typedef struct hashmap_t              hashmap_t;
+/*! Entry in a 32-bit hash table */
+typedef struct hashtable32_entry_t    hashtable32_entry_t;
+/*! Entry in a 64-bit hash table */
+typedef struct hashtable64_entry_t    hashtable64_entry_t;
+/*! Hash table mapping 32-bit keys to 32-bit values */
+typedef struct hashtable32_t          hashtable32_t;
+/*! Hash table mapping 64-bit keys to 64-bit values */
+typedef struct hashtable64_t          hashtable64_t;
+/*! MD5 control block */
+typedef struct md5_t                  md5_t;
+/*! Memory context holding the allocation context stack */
+typedef struct memory_context_t       memory_context_t;
+/*! Memory system declaration */
+typedef struct memory_system_t        memory_system_t;
+/*! Memory tracker declaration */
+typedef struct memory_tracker_t       memory_tracker_t;
+/*! Platform specific mutex representation, opaque data type */
+typedef struct mutex_t                mutex_t;
+/*! Base object type all reference counted object types are based on */
+typedef struct object_base_t          object_base_t;
+/*! Object map mapping object handles to object instance pointers */
+typedef struct objectmap_t            objectmap_t;
+/*! Child process control block */
+typedef struct process_t              process_t;
+/*! Radix sorter control block */
+typedef struct radixsort_t            radixsort_t;
+/*! Compiled regex */
+typedef struct regex_t                regex_t;
+/*! Memory ring buffer */
+typedef struct ringbuffer_t           ringbuffer_t;
+/*! Base stream type all stream types are based on */
+typedef struct stream_t               stream_t;
+/*! Memory buffer stream */
+typedef struct stream_buffer_t        stream_buffer_t;
+/*! Pipe stream */
+typedef struct stream_pipe_t          stream_pipe_t;
+/*! Ring buffer stream */
+typedef struct stream_ringbuffer_t    stream_ringbuffer_t;
+/*! Vtable for streams providing stream type specific implementations
+of stream operations */
+typedef struct stream_vtable_t        stream_vtable_t;
+/*! Version declaration */
+typedef union  version_t              version_t;
+/*! Library configuration block controlling limits, functionality and memory
+usage of the library */
+typedef struct foundation_config_t    foundation_config_t;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+/*! Platform specific representation of a semaphore */
+typedef void*                         semaphore_t;
+#elif FOUNDATION_PLATFORM_MACOSX
+typedef struct OpaqueMPSemaphoreID*   MPSemaphoreID;
+typedef struct semaphore_t            semaphore_t;
+#elif FOUNDATION_PLATFORM_IOS
+typedef struct dispatch_semaphore_s*  semaphore_t;
+#elif FOUNDATION_PLATFORM_BSD
+#  include <semaphore.h>
+typedef sem_t                         semaphore_native_t;
+typedef struct semaphore_t            semaphore_t;
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+typedef union semaphore_native_t      semaphore_native_t;
+typedef struct semaphore_t            semaphore_t;
+#endif
+
+/*! Error handler callback which is passed the error level and reported error. It should return
+an implementation specific code which is then returned from the call to error_report
+\param level Error level
+\param error Error code
+\return Implementation specific code which is passed back as return from error_report */
+typedef int (* error_callback_fn)(error_level_t level, error_t error);
+
+/*! Assert handler callback which is passed assert data and should do impementation specific
+processing and return a code indicating if execution can continue or need to be aborted.
+\param context Error context
+\param condition String expressing the condition that failed
+\param cond_length Length of condition string
+\param file Source file triggering the assert
+\param file_length Length of source file string
+\param line Source line triggering the assert
+\param msg Assert message, if any
+\param msg_length Length of assert message
+\return 1 if assert was not handled and execution should break, 0 if assert handled and
+        execution can continue */
+typedef int (* assert_handler_fn)(hash_t context, const char* condition, size_t cond_length,
+                                  const char* file, size_t file_length, unsigned int line,
+                                  const char* msg, size_t msg_length);
+
+/*! Log output callback. Called after each log message processed and output by
+the log functions.
+\param context Log context
+\param severity Log severity
+\param msg Log message
+\param length Length of message */
+typedef void (* log_callback_fn)(hash_t context, error_level_t severity, const char* msg,
+                                 size_t length);
+
+/*! Subsystem initialization function prototype. Return value should be the success
+state of initialization
+\return 0 on success, <0 if failure (errors should be reported through log_error
+        or error_report) */
+typedef int (* system_initialize_fn)(void);
+
+/*! Subsystem finalization function prototype. Will be called for each successfully
+initialized subsystem on global finalization */
+typedef void (* system_finalize_fn)(void);
+
+/*! Memory system allocation function prototype. Implementation of a memory system must
+provide an implementation with this prototype for allocating memory
+\param context Memory context
+\param size Requested size
+\param align Aligmnent requirement
+\param hint Memory hitn (see memory_hint_t)
+\return Pointer to allocated memory block if successful, 0 if error */
+typedef void* (* memory_allocate_fn)(hash_t context, size_t size, unsigned int align,
+                                     unsigned int hint);
+
+/*! Memory system reallocation function prototype. Implementation of a memory system must
+provide an implementation with this prototype for reallocating memory
+\param p Pointer to previous memory block
+\param size Requested size
+\param align Aligmnent requirement
+\param oldsize Size of previous memory block
+\return Pointer to allocated memory block if successful, 0 if error */
+typedef void* (* memory_reallocate_fn)(void* p, size_t size, unsigned int align, size_t oldsize);
+
+/*! Memory system deallocation function prototype. Implementation of a memory system must
+provide an implementation with this prototype for deallocating memory
+\param p Pointer to memory block */
+typedef void (* memory_deallocate_fn)(void* p);
+
+/*! Memory tracker tracking function prototype. Implementation of a memory tracker must
+provide an implementation with this prototype for tracking memory allocations
+\param p Pointer to allocated memory block
+\param size Size of memory block */
+typedef void (* memory_track_fn)(void* p, size_t size);
+
+/*! Memory tracker untracking function prototype. Implementation of a memory tracker must
+provide an implementation with this prototype for untracking memory allocations
+\param p Pointer to deallocated memory block */
+typedef void (* memory_untrack_fn)(void* p);
+
+/*! Callback function for writing profiling data to a stream
+\param data Pointer to data block
+\param size Size of data block */
+typedef void (* profile_write_fn)(void* data, size_t size);
+
+/*! Callback function for reading profiling data from a stream
+\param data Pointer to data block
+\param size Size of data block */
+typedef void (* profile_read_fn)(void* data, size_t size);
+
+/*! Thread entry point function prototype
+\param thread Thread object handle
+\param arg Argument passed by caller when starting the thread
+\return Implementation specific data which can be obtained through thread_result */
+typedef void* (* thread_fn)(object_t thread, void* arg);
+
+/*! Any function to be used in conjunction with the crash guard functionality
+of the library should have this prototype to allow the crash guard to catch
+and handle exceptions correctly
+\param arg Implementation specific argument passed to crash_guard
+\return Implementation specific return value which is forwarded as return value
+        from crash_guard (note that FOUNDATION_CRASH_DUMP_GENERATED is reserved) */
+typedef int (* crash_guard_fn)(void* arg);
+
+/*! Crash callback function prototype, used to notify that an exception occurred
+and the process state was saved to a dump file
+\param file Dump file path
+\param length Length of file path */
+typedef void (* crash_dump_callback_fn)(const char* file, size_t length);
+
+/*! Object deallocation function prototype, used to deallocate an object of a specific type
+\param id Object handle
+\param object Object pointer */
+typedef void (* object_deallocate_fn)(object_t id, void* object);
+
+/*! Generic function to open a stream with the given path and mode
+\param path Path, optionally including protocol
+\param length Length of path
+\param mode Open mode
+\return Newly allocated stream, null if it could not be opened */
+typedef stream_t* (* stream_open_fn)(const char* path, size_t length, unsigned int mode);
+
+/*! Generic function to read data from a stream
+\param stream Stream to read from
+\param dst Destination buffer
+\param size Number of bytes to read
+\return Number of bytes actually read */
+typedef size_t (* stream_read_fn)(stream_t* stream, void* dst, size_t size);
+
+/*! Generic function to write data to a stream
+\param stream Stream to write to
+\param src Source buffer
+\param size Number of bytes to write
+\return Number of bytes actually written */
+typedef size_t (* stream_write_fn)(stream_t* stream, const void* src, size_t size);
+
+/*! Query if end of stream
+\param stream Stream
+\return true if stream at end, false if not */
+typedef bool (* stream_eos_fn)(stream_t* stream);
+
+/*! Flush stream output buffers
+\param stream Stream */
+typedef void (* stream_flush_fn)(stream_t* stream);
+
+/*! Truncate stream size to the given size
+\param stream Stream
+\param size Size to truncate stream to */
+typedef void (* stream_truncate_fn)(stream_t* stream, size_t size);
+
+/*! Get stream size
+\param stream Stream
+\return Stream size, 0 if invalid stream or unknown (like a network stream) */
+typedef size_t (* stream_size_fn)(stream_t* stream);
+
+/*! Seek in the stream. Only available if stream is seekable and not a sequential stream like
+a network stream.
+\param stream Stream
+\param offset Seek offset
+\param mode Seek mode (see #stream_seek_mode_t) */
+typedef void (* stream_seek_fn)(stream_t* stream, ssize_t offset, stream_seek_mode_t mode);
+
+/*! Get current stream position
+\param stream Stream
+\return Current stream position, 0 if invalid stream or unknown */
+typedef size_t (* stream_tell_fn)(stream_t* stream);
+
+/*! Get timestamp when stream was last modified (written to or attributes/size changed)
+\param stream Stream
+\return Last modification timestamp, 0 if invalid stream or unknown */
+typedef tick_t (* stream_lastmod_fn)(const stream_t* stream);
+
+/*! Get stream digest. Only available if stream size is known and stream is seekable. Does
+not modify the current stream position.
+\param stream Stream
+\return Digest of stream content, 0 if invalid stream or unknown */
+typedef uint128_t (* stream_md5_fn)(stream_t* stream);
+
+/*! If the stream has available data to be read from an external source (like a socket for
+network streams), read and buffer the available data without blocking.
+\param stream Stream */
+typedef void (* stream_buffer_read_fn)(stream_t* stream);
+
+/*! Query how much data can be read from the stream without blocking
+\param stream Stream
+\return Number of bytes that can be read without blocking */
+typedef size_t (* stream_available_read_fn)(stream_t* stream);
+
+/*! Finalize a stream object that was previously initialized with a call to a specific
+stream initialization function and free any associated resources.
+\param stream Stream */
+typedef void (* stream_finalize_fn)(stream_t* stream);
+
+/*! Clone stream, allocating a duplicate copy of the stream if the stream type supports it.
+\param stream Stream
+\return Clone of stream, 0 if not supported or invalid source stream */
+typedef stream_t* (* stream_clone_fn)(stream_t* stream);
+
+/*! Identifier returned from threads and crash guards after a fatal exception (crash)
+has been caught */
+#define FOUNDATION_CRASH_DUMP_GENERATED 0x0badf00dL
 
 // COMPLEX TYPES
 
-struct md5_t
-{
-	bool                            init;
-	uint32_t                        state[4];
-	uint32_t                        count[2];
-	unsigned char                   buffer[64];
-	unsigned char                   digest[16];
+/*! Library configuration with runtime controlled configuration parameters */
+struct foundation_config_t {
+	/*! Maximum number of concurrently allocated threads. Zero for default (128) */
+	size_t thread_max;
+	/*! Maximum number of concurrently allocated libraries. Zero for default (32) */
+	size_t library_max;
+	/*! Maximum number of concurrent allocations in memory tracker. Zero for default (32k) */
+	size_t memory_tracker_max;
+	/*! Maximum number of file system monitors. Zero for default (16) */
+	size_t fs_monitor_max;
+	/*! Size of temporary memory pool (short lived allocations). Zero for default (512KiB) */
+	size_t temporary_memory;
+	/*! Maximum depth of an error context. Zero for default (32) */
+	size_t error_context_depth;
+	/*! Maximum depth of a memory context. Zero for default (32) */
+	size_t memory_context_depth;
+	/*! Maximum depth of a stack trace. Zero for default (32) */
+	size_t stacktrace_depth;
+	/*! Maximum number of hash values stored in reverse lookup. Zero for default (0) */
+	size_t hash_store_size;
+	/*! Default size of an event block. Zero for default (8KiB) */
+	size_t event_block_chunk;
+	/*! Maximum size of an event block. Zero for default (512KiB) */
+	size_t event_block_limit;
+	/*! Default thread stack size. Zero for default (32KiB) */
+	size_t thread_stack_size;
+	/*! Number of random state blocks to preallocate on thread startup. Zero for default (0) */
+	size_t random_state_prealloc;
 };
 
-
-struct memory_system_t
-{
-	memory_allocate_fn              allocate;
-	memory_reallocate_fn            reallocate;
-	memory_deallocate_fn            deallocate;
-	system_initialize_fn            initialize;
-	system_shutdown_fn              shutdown;
+/*! String tuple holding string data pointer and length. This is used to avoid extra calls
+to determine string length in each API call */
+struct string_t {
+	/*! String buffer */
+	char* str;
+	/*! Length of string, not including any (optional) zero terminator */
+	size_t length;
 };
 
-
-struct memory_tracker_t
-{
-	memory_track_fn                 track;
-	memory_untrack_fn               untrack;
-	system_initialize_fn            initialize;
-	system_shutdown_fn              shutdown;
+/*! Constant string tuple holding unmutable string data pointer and length.
+\see string_t */
+struct string_const_t {
+	/*! String buffer */
+	const char* str;
+	/*! Length of string, not including any (optional) zero terminator */
+	size_t length;
 };
 
-
-union version_t
-{
-	uint128_t                       version;
-	struct
-	{
-		uint16_t                    major;
-		uint16_t                    minor;
-		uint32_t                    revision;
-		uint32_t                    build;
-		uint32_t                    control;
-	}                               sub;
+/*! MD5 state */
+struct md5_t {
+	/*! Flag indicating the md5 state has been initialized and ready for digestion of data */
+	bool init;
+	/*! Internal state during data digestion */
+	uint32_t state[4];
+	/*! Internal counters during data digestion */
+	uint32_t count[2];
+	/*! Internal buffer during data digestion */
+	unsigned char buffer[64];
+	/*! Internal digest data buffer */
+	unsigned char digest[16];
 };
 
-
-struct application_t
-{
-	const char*                     name;
-	const char*                     short_name;
-	const char*                     config_dir;
-	version_t                       version;
-	crash_dump_callback_fn          dump_callback;
-	unsigned int                    flags;
-	uuid_t                          instance;
+/*! Memory management system declaration with function pointers for all memory system
+entry points. */
+struct memory_system_t {
+	/*! Memory allocation */
+	memory_allocate_fn allocate;
+	/*! Memory reallocation */
+	memory_reallocate_fn reallocate;
+	/*! Memory deallocation */
+	memory_deallocate_fn deallocate;
+	/*! System initialization */
+	system_initialize_fn initialize;
+	/*! System finalization */
+	system_finalize_fn finalize;
 };
 
+/*! Memory tracking system declarations with function pointers for all memory tracking
+entry points */
+struct memory_tracker_t {
+	/*! Track a memory allocation */
+	memory_track_fn track;
+	/*! Untrack a memory allocation */
+	memory_untrack_fn untrack;
+	/*! Initialize memory tracker */
+	system_initialize_fn initialize;
+	/*! Shutdown memory tracker */
+	system_finalize_fn finalize;
+};
+
+/*! Version identifier expressed as an 128-bit integer with major, minor,
+revision, build and control version number components */
+union version_t {
+	/*! Compound version identifier */
+	uint128_t version;
+	/*! Version numbers separated into sections, when serialized into strig form
+	representing "major.minor.revision-revision (control)" */
+	struct {
+		/*! Major version */
+		uint16_t major;
+		/*! Minor version */
+		uint16_t minor;
+		/*! Revision number */
+		uint32_t revision;
+		/*! Build number */
+		uint32_t build;
+		/*! Source control version/revision/identifier */
+		uint32_t control;
+	} sub;
+};
+
+/*! Application declaration. String pointers passed in this struct must be
+constant and valid for the entire life time and execution of the application. */
+struct application_t {
+	/*! Long descriptive name */
+	string_const_t name;
+	/*! Short name, must only contain [a-z][A-Z][-_.] */
+	string_const_t short_name;
+	/*! Config directory name, must only contain characters valid in a file name */
+	string_const_t config_dir;
+	/*! Version declaration */
+	version_t version;
+	/*! Optional crash dump callback function */
+	crash_dump_callback_fn dump_callback;
+	/*! Application flags, see APPLICATION_[*] definitions */
+	unsigned int flags;
+	/*! Instance UUID, generated by the foundation library on foundation initialization */
+	uuid_t instance;
+};
 
 #define BLOWFISH_SUBKEYS            18U
 #define BLOWFISH_SBOXES             4U
 #define BLOWFISH_SBOXENTRIES        256U
 #define BLOWFISH_MAXKEY             56U
 
-struct blowfish_t
-{
-	uint32_t                        parray[BLOWFISH_SUBKEYS];
-	uint32_t                        sboxes[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIES];
+/*! State for a blowfish encryption block */
+struct blowfish_t {
+	/*! Blowfish P-array */
+	uint32_t parray[BLOWFISH_SUBKEYS];
+	/*! Blowfish S-boxes */
+	uint32_t sboxes[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIES];
 };
 
-
-struct bitbuffer_t
-{
-	uint8_t*                        buffer;
-	uint8_t*                        end;
-	stream_t*                       stream;
-	bool                            swap;
-	unsigned int                    pending_read;
-	unsigned int                    pending_write;
-	unsigned int                    offset_read;
-	unsigned int                    offset_write;
-	unsigned int                    count_read;
-	unsigned int                    count_write;
+/*! Bit buffer for bit based I/O to a memory buffer or stream */
+struct bitbuffer_t {
+	/*! Memory buffer for buffer based I/O */
+	uint8_t* buffer;
+	/*! End of buffer indicator */
+	uint8_t* end;
+	/*! Stream for stream based I/O */
+	stream_t* stream;
+	/*! Swap flag for compatibility between machines with different endian architectures */
+	bool swap;
+	/*! Pending data to be read */
+	uint32_t pending_read;
+	/*! Pending data to be written */
+	uint32_t pending_write;
+	/*! Current read offset in bits into pending data */
+	unsigned int offset_read;
+	/*! Current write offset in bits into pending data */
+	unsigned int offset_write;
+	/*! Total number of read bits */
+	uint64_t count_read;
+	/*! Total number of written bits */
+	uint64_t count_write;
 };
 
-
-struct error_frame_t
-{
-	const char*                     name;
-	const char*                     data;
+/*! Data for a frame in the error context stack */
+struct error_frame_t {
+	/*! Frame description */
+	string_const_t name;
+	/*! Data associated with frame */
+	string_const_t data;
 };
 
-
-struct error_context_t
-{
-	error_frame_t                   frame[BUILD_SIZE_ERROR_CONTEXT_DEPTH];
-	int                             depth;
+/*! Error context stack */
+struct error_context_t {
+	/*! Current depth of error context stack */
+	unsigned int depth;
+	/*! Error context stack */
+	error_frame_t frame[];
 };
 
-
-#define FOUNDATION_DECLARE_EVENT                 \
-	uint16_t                        id;          \
-	uint16_t                        flags;       \
-	uint16_t                        serial;      \
-	uint16_t                        size;        \
-	object_t                        object
-
-struct event_t
+/*! Declares the base event data layout. Event structures should use the macro as first
+declaration in an event struct to place the base data in the correct place:
+<code>typedef struct
 {
+  FOUNDATION_DECLARE_EVENT;
+  int some_other_data;
+  //[...]
+} my_event_t;</code> */
+#define FOUNDATION_DECLARE_EVENT \
+	uint16_t id; \
+	uint16_t flags; \
+	uint16_t serial; \
+	uint16_t size; \
+	object_t object
+
+/*! Event base structure. All event structures must have this layout at the start of
+the structure. See #FOUNDATION_DECLARE_EVENT for a macro to declare the base layout
+in a structure. */
+struct event_t {
 	FOUNDATION_DECLARE_EVENT;
-	char                            payload[];
+	/*!
+	\var event_t::id
+	Event ID
+
+	\var event_t::flags
+	Event flags
+
+	\var event_t::serial
+	Event serial number
+
+	\var event_t::size
+	Size of event data payload
+
+	\var event_t::object
+	Object associated with event
+	*/
+	/*! Event data payload */
+	size_t payload[];
 };
 
-
-struct event_block_t
-{
-	int32_t                         used;
-	uint32_t                        capacity;
-	event_stream_t*                 stream;
-	event_t*                        events;
+/*! Event block holding a number of events for processing. Block can be of a maximum
+size specified in the #foundation_config_t at library initialization */
+struct event_block_t {
+	/*! Number of events pending */
+	size_t used;
+	/*! Capacity of event store buffer */
+	size_t capacity;
+	/*! Event stream owning this event block */
+	event_stream_t* stream;
+	/*! Memory buffer holding event data */
+	event_t* events;
 };
 
-
-FOUNDATION_ALIGNED_STRUCT( event_stream_t, 16 )
-{
-	atomic32_t                      write;
-	int32_t                         read;
-	event_block_t                   block[2];
+/*! Event stream from a single module. Event streams produce event blocks for processing */
+FOUNDATION_ALIGNED_STRUCT(event_stream_t, 16) {
+	/*! Write block index */
+	atomic32_t write;
+	/*! Read block index */
+	int32_t read;
+	/*! Event blocks, double buffered for concurrent read/write access */
+	event_block_t block[2];
 };
 
-
-struct hashmap_node_t
-{
-	hash_t                          key;
-	void*                           value;
+/*! Payload layout for a file system event */
+struct fs_event_payload_t {
+	/*! Length of path string */
+	size_t length;
+	/*! Path string */
+	const char str[];
 };
 
-
-struct hashmap_t
-{
-	unsigned int                    num_buckets;
-	unsigned int                    num_nodes;
-	hashmap_node_t*                 bucket[];
+/*! Single node in a hash map, mapping a single key to a single data value (pointer). */
+struct hashmap_node_t {
+	/*! Key for the hash map node */
+	hash_t key;
+	/*! Value for the hash map node */
+	void* value;
 };
 
-
-FOUNDATION_ALIGNED_STRUCT( hashtable32_entry_t, 8 )
-{
-	atomic32_t                      key;
-	uint32_t                        value;
+/*! Hash map container, mapping hash values to data pointers */
+struct hashmap_t {
+	/*! Number of buckets in the hash map */
+	size_t num_buckets;
+	/*! Total number of nodes in the hash map across all buckets */
+	size_t num_nodes;
+	/*! Bucket array, represented as an array of hashmap_node_t arrays, which will be
+	    dynamically allocated and reallocated to the required sizes. */
+	hashmap_node_t* bucket[];
 };
 
-
-FOUNDATION_ALIGNED_STRUCT( hashtable64_entry_t, 8 )
-{
-	atomic64_t                      key;
-	uint64_t                        value;
+/*! Node in 32-bit hash table holding key and value for a single node. */
+FOUNDATION_ALIGNED_STRUCT(hashtable32_entry_t, 8) {
+	/*! Hash key for node in hash table */
+	atomic32_t key;
+	/*! Value for the corresponding hash key. If the value is zero the node is
+	    considered unused/erased. */
+	uint32_t value;
 };
 
-
-FOUNDATION_ALIGNED_STRUCT( hashtable32_t, 8 )
-{
-	uint32_t                        capacity;
-	hashtable32_entry_t             entries[];
+/*! Node in 64-bit hash table holding key and value for a single node. */
+FOUNDATION_ALIGNED_STRUCT(hashtable64_entry_t, 8) {
+	/*! Hash key for node in hash table. */
+	atomic64_t key;
+	/*! Value for the corresponding hash key. If the value is zero the node is
+	    considered unused/erased. */
+	uint64_t value;
 };
 
-
-FOUNDATION_ALIGNED_STRUCT( hashtable64_t, 8 )
-{
-	uint64_t                        capacity;
-	hashtable64_entry_t             entries[];
+/*! Hash table, a lock free mapping of 32-but values to 32 bit integer data. */
+FOUNDATION_ALIGNED_STRUCT(hashtable32_t, 8) {
+	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
+	size_t capacity;
+	/*! Hash table storage as array of nodes where each node is a key-value pair. */
+	hashtable32_entry_t entries[];
 };
 
-
-struct memory_context_t
-{
-	uint64_t                        context[BUILD_SIZE_MEMORY_CONTEXT_DEPTH];
-	int                             depth;
+/*! Hash table, a lock free mapping of 64-bit values to 64-bit integer data. */
+FOUNDATION_ALIGNED_STRUCT(hashtable64_t, 8) {
+	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
+	size_t capacity;
+	/*! Hash table storage as array of nodes where each node is a key-value pair. */
+	hashtable64_entry_t entries[];
 };
 
-#define FOUNDATION_DECLARE_OBJECT               \
-	atomic32_t                      ref;        \
-	uint32_t                        flags;      \
-	object_t                        id
+/*! Memory context stack */
+struct memory_context_t {
+	/*! Current depth of memory context stack */
+	unsigned int depth;
+	/*! Memory context stack */
+	hash_t context[];
+};
 
-FOUNDATION_ALIGNED_STRUCT( object_base_t, 8 )
+/*! Declares the base object data layout. Object structures should be 8-byte align for
+platform compatibility. Use the macro as first declaration in an object struct:
+<code>typedef struct ALIGN(8)
 {
+  FOUNDATION_DECLARE_OBJECT;
+  int       some_other_data;
+  //[...]
+} my_object_t;</code>
+\internal If changing base object layout, change #objectmap_lookup and
+#objectmap_lookup_ref \endinternal */
+#define FOUNDATION_DECLARE_OBJECT \
+	atomic32_t ref; \
+	uint32_t flags; \
+	object_t id
+
+/*! Object base structure. All object-based designs must have this layout at the start of
+the structure. See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in
+a structure. */
+FOUNDATION_ALIGNED_STRUCT(object_base_t, 8) {
+	/*!
+	\var object_base_t::ref
+	Object reference count
+
+	\var object_base_t::flags
+	Object flags
+
+	\var object_base_t::id
+	Object ID and handle (self)
+	*/
 	FOUNDATION_DECLARE_OBJECT;
 };
 
-FOUNDATION_ALIGNED_STRUCT( objectmap_t, 16 )
-{
-	atomic64_t                      free;
-	uint64_t                        size;
-	atomic64_t                      id;
-	uint64_t                        size_bits;
-	uint64_t                        id_max;
-	uint64_t                        mask_index;
-	uint64_t                        mask_id;
-	void*                           map[];
+/*! Object map which maps object handles to object pointers. As object lifetime is managed
+by reference counting, objects that are deallocated will invalidate the handle in the
+corresponding object map. */
+FOUNDATION_ALIGNED_STRUCT(objectmap_t, 8) {
+	/*! Current first free slot */
+	atomic64_t free;
+	/*! Counter for next available ID */
+	atomic64_t id;
+	/*! Number of slots in map */
+	size_t size;
+	/*! Number of bits needed for slot index */
+	unsigned int size_bits;
+	/*! Maximum ID depending on how many bits are used by size */
+	uint64_t id_max;
+	/*! Bitmask for slot index */
+	uint64_t mask_index;
+	/*! Bitmask for ID */
+	uint64_t mask_id;
+	/*! Slot array */
+	void* map[];
 };
 
-struct process_t
-{
-	char*                           wd;
-	char*                           path;
-	char**                          args;
-	unsigned int                    flags;
-	int                             code;
-	stream_t*                       pipeout;
-	stream_t*                       pipein;
-
+/*! State for a child process */
+struct process_t {
+	/*! Working directory */
+	string_t wd;
+	/*! Executable path */
+	string_t path;
+	/*! Array of argument strings */
+	string_t* args;
+	/*! Flags, see PROCESS_[*] flags */
+	unsigned int flags;
+	/*! Exit code for the process */
+	int code;
+	/*! Pipe stream for stdout */
+	stream_t* pipeout;
+	/*! Pipe stream for stdin */
+	stream_t* pipein;
 #if FOUNDATION_PLATFORM_WINDOWS
-	char*                           verb;
-	void*                           hp;
-	void*                           ht;
+	/*! Windows only, shell verb used when launching process with ShellExecute */
+	string_t verb;
+	/*! Windows only, process handle */
+	void* hp;
+	/*! Windows only, thread handle */
+	void* ht;
 #endif
 #if FOUNDATION_PLATFORM_POSIX
-	int                             pid;
+	/*! Posix only, process identifier */
+	int pid;
 #endif
-
 #if FOUNDATION_PLATFORM_MACOSX
-	int                             kq;
+	/*! MaxOS X only, kqueue for watching for process termination when launching
+	    process with LSOpenApplication */
+	int kq;
 #endif
 };
 
-struct radixsort_t
-{
-	radixsort_data_t                type;
-	radixsort_index_t               size;
-	radixsort_index_t               lastused;
-	radixsort_index_t*              indices[2];
-	radixsort_index_t*              histogram;
-	radixsort_index_t*              offset;
+/*! State for a radix sorter for a defined data type. */
+struct radixsort_t {
+	/*! Data type being sorted */
+	radixsort_data_t type;
+	/*! Maximum number of elements that can be sorted */
+	radixsort_index_t size;
+	/*! Number of elements in last call to #radixsort_sort */
+	radixsort_index_t lastused;
+	/*! Index buffers holding sorted result */
+	radixsort_index_t* indices[2];
+	/*! Buffer for histogram data */
+	radixsort_index_t* histogram;
+	/*! Offset table */
+	radixsort_index_t* offset;
 };
 
-struct regex_t
-{
-	unsigned int                    num_captures;
-	unsigned int                    code_length;
-	unsigned int                    code_allocated;
-	uint8_t                         code[];
+/*! Compiled regular expression */
+struct regex_t {
+	/*! Counter during regex matching keeping number of currently captured substrings */
+	unsigned int num_captures;
+	/*! Length of the compiled code array */
+	size_t code_length;
+	/*! Capacity of the code array (number of bytes) */
+	size_t code_allocated;
+	/*! Compiled regex code */
+	uint8_t code[];
 };
 
-struct regex_capture_t
+/*! Declares the base ring buffer data layout. Use the macro as first declaration in
+a ring buffer struct:
+<code>typedef struct
 {
-	const char*                     substring;
-	int                             length;
-};
+  FOUNDATION_DECLARE_RINGBUFFER;
+  int       some_other_data;
+  //[...]
+} my_ringbuffer_t;</code> */
+#define FOUNDATION_DECLARE_RINGBUFFER \
+	uint64_t total_read; \
+	uint64_t total_write; \
+	size_t  offset_read; \
+	size_t offset_write; \
+	size_t buffer_size; \
+	char buffer[]
 
-#define FOUNDATION_DECLARE_RINGBUFFER              \
-	uint64_t                        total_read;    \
-	uint64_t                        total_write;   \
-	unsigned int                    offset_read;   \
-	unsigned int                    offset_write;  \
-	unsigned int                    buffer_size;   \
-	char                            buffer[]
+/*! Ring buffer, a shared memory area wrapped to a circular buffer with one read
+and one get pointer. */
+struct ringbuffer_t {
+	/*!
+	\var ringbuffer_t::total_read
+	Total number of bytes read from ring buffer
 
-struct ringbuffer_t
-{
+	\var ringbuffer_t::total_write
+	Total number of bytes written to ring buffer
+
+	\var ringbuffer_t::offset_read
+	Current read offset
+
+	\var ringbuffer_t::offset_write
+	Current write offset
+
+	\var ringbuffer_t::buffer_size
+	Size of buffer in bytes
+
+	\var ringbuffer_t::buffer
+	Memory buffer
+	*/
 	FOUNDATION_DECLARE_RINGBUFFER;
 };
 
 #if FOUNDATION_PLATFORM_MACOSX
 
-struct semaphore_t
-{
-	char*                           name;
-	union
-	{
-		MPSemaphoreID               unnamed;
-		int*                        named;
+/*! Semaphore for thread synchronization and communication. Actual type specifics depend
+on platform, the semaphore_t type should be treated as an opaque data struct. */
+struct semaphore_t {
+	string_t name;
+	union {
+		MPSemaphoreID unnamed;
+		int* named;
 	} sem;
 };
 
 #elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_BSD
+
+struct semaphore_t {
+	string_t name;
+	semaphore_native_t* sem;
+	semaphore_native_t unnamed;
+};
+
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-union semaphore_native_t
-{
+union semaphore_native_t {
 #  if FOUNDATION_PLATFORM_ANDROID
-	volatile unsigned int           count;
+	volatile unsigned int count;
 #  elif FOUNDATION_PLATFORM_PNACL
-	volatile int                    count;
-	volatile int                    nwaiters;
+	volatile int count;
+	volatile int nwaiters;
 #else
 #  if FOUNDATION_ARCH_X86_64
-	char                            __size[64];
+	char __size[64];
 #  else
-	char                            __size[32];
+	char __size[32];
 #  endif
-	long int                        __align;
+	long int __align;
 #endif
 };
 
-struct semaphore_t
-{
-	char*                           name;
-	semaphore_native_t*             sem;
-	semaphore_native_t              unnamed;
+struct semaphore_t {
+	string_t name;
+	semaphore_native_t* sem;
+	semaphore_native_t unnamed;
 };
 
 #endif
 
-#define FOUNDATION_DECLARE_STREAM                            \
-unsigned int                    type:16;                 \
-unsigned int                    sequential:1;            \
-unsigned int                    reliable:1;              \
-unsigned int                    inorder:1;               \
-unsigned int                    swap:1;                  \
-unsigned int                    byteorder:1;             \
-unsigned int                    unused_streamflags:11;   \
-unsigned int                    mode;                    \
-char*                           path;                    \
-stream_vtable_t*                vtable
-
-FOUNDATION_ALIGNED_STRUCT( stream_t, 8 )
+/*! Declares the base stream data layout. Stream structures should be 8-byte align for
+platform compatibility. Use the macro as first declaration in a stream struct:
+<code>typedef FOUNDATION_ALIGNED_STRUCT(my_stream_t, 8)
 {
+  FOUNDATION_DECLARE_STREAM;
+  int       some_other_data;
+  //[...]
+};</code> */
+#define FOUNDATION_DECLARE_STREAM \
+	unsigned int type:16; \
+	unsigned int sequential:1; \
+	unsigned int reliable:1; \
+	unsigned int inorder:1; \
+	unsigned int swap:1; \
+	unsigned int byteorder:1; \
+	unsigned int unused_streamflags:11; \
+	unsigned int mode; \
+	string_t path; \
+	stream_vtable_t* vtable
+
+/*! Base stream type from which all streams are derived. All stream-based designs
+must have this layout at the start of the structure. See #FOUNDATION_DECLARE_STREAM
+for a macro to declare the base layout in a structure. */
+FOUNDATION_ALIGNED_STRUCT(stream_t, 8) {
+	/*!
+	\var stream_t::type
+	\details Stream type identifier
+
+	\var stream_t::sequential
+	Flag indicating stream is sequential, meaning it can only read/write sequentially
+	and only seek forward from current position. Generally stream size is unavailable
+	for sequential streams.
+
+	\var stream_t::reliable
+	Flag indicating stream is reliable, meaning data written is guaranteed to be readable.
+
+	\var stream_t::inorder
+	Flag indicating stream is in-order, meaning data written is guaranteed to be read in
+	the same order as it was written.
+
+	\var stream_t::swap
+	Flag indicating stream is byte order swapped, meaning multi-byte data will be byte
+	order swapped on read/write.
+
+	\var stream_t::byteorder
+	Stream byte order indicator (0 = little endian, 1 = big endian)
+
+	\var stream_t::mode
+	Stream open mode (see STREAM_* modes/flags)
+
+	\var stream_t::path
+	Stream path
+
+	\var stream_t::vtable
+	Stream virtual table with stream type specific implementation function pointers
+	*/
 	FOUNDATION_DECLARE_STREAM;
 };
 
-FOUNDATION_ALIGNED_STRUCT( stream_buffer_t, 8 )
-{
+/*! Stream interface for read/write to a memory buffer. This struct is also a stream_t
+(stream struct type declared at start of struct) and can be used in all functions
+operating on a stream_t. The memory buffer is allocated separately from the stream buffer. */
+FOUNDATION_ALIGNED_STRUCT(stream_buffer_t, 8) {
 	FOUNDATION_DECLARE_STREAM;
-	uint64_t                        current;
-	uint64_t                        size;
-	uint64_t                        capacity;
-	void*                           buffer;
-	bool                            own;
-	bool                            grow;
+	/*! Current read/write offset */
+	size_t current;
+	/*! Current size of buffer (always less or equal than capacity) */
+	size_t size;
+	/*! Current allocated capacity of buffer */
+	size_t capacity;
+	/*! Memory buffer */
+	void* buffer;
+	/*! If this flag is set the memory buffer is owned internally by the stream buffer
+	and will be deallocated together with the stream buffer. If not set, the ownership
+	of the memory buffer is handled externally. */
+	bool own;
+	/*! If this flag is set (and if the memory buffer is owned by the stream buffer),
+	the memory buffer can grow by reallocating memory if write requests increase size
+	beyond the capacity of the memory buffer. If not set, any write requests beyond
+	the capacity will fail. */
+	bool grow;
+	/*! Timestamp of last modification */
+	tick_t lastmod;
 };
 
-FOUNDATION_ALIGNED_STRUCT( stream_pipe_t, 8 )
-{
+/*! Stream interface for read/write to a pipe. This struct is also a stream_t
+(stream struct type declared at start of struct) and can be used in all functions
+operating on a stream_t. Pipe streams are sequential. */
+FOUNDATION_ALIGNED_STRUCT(stream_pipe_t, 8) {
 	FOUNDATION_DECLARE_STREAM;
-
-	bool                            eos;
-
+	/*! End of stream flag indicating the pipe has reached end of stream and
+	is considered closed. */
+	bool eos;
 #if FOUNDATION_PLATFORM_WINDOWS
-	void*                           handle_read;
-	void*                           handle_write;
+	/*! Windows only, file handle for read end of the pipe. */
+	void* handle_read;
+	/*! Windows only, file handle for write end of the pipe. */
+	void* handle_write;
 #endif
 #if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-	int                             fd_read;
-	int                             fd_write;
+	/*! Posix/PNaCl only, file descriptor for read end of the pipe. */
+	int fd_read;
+	/*! Posix/PNaCl only, file descriptor for write end of the pipe. */
+	int fd_write;
 #endif
 };
 
-FOUNDATION_ALIGNED_STRUCT( stream_ringbuffer_t, 8 )
-{
+/*! Stream interface for read/write to a ring buffer. This struct is also a stream_t
+(stream struct type declared at start of struct) and can be used in all functions
+operating on a stream_t. Read and write operation can be concurrent (one single
+thread reading, one single thread writing) as availability of data is flagged with
+semaphores. Multiple readers and/or writers are not supported. Stream is sequential. */
+FOUNDATION_ALIGNED_STRUCT(stream_ringbuffer_t, 8) {
 	FOUNDATION_DECLARE_STREAM;
-
-	semaphore_t                     signal_read;
-	semaphore_t                     signal_write;
-	volatile int32_t                pending_read;
-	volatile int32_t                pending_write;
-	uint64_t                        total_size;
-
+	/*! Semaphore signalling availability of data for reading */
+	semaphore_t signal_read;
+	/*! Semaphore signalling availability of data for writing */
+	semaphore_t signal_write;
+	/*! Number of bytes pending for reading */
+	volatile int pending_read;
+	/*! Number of bytes pending for writing */
+	volatile int pending_write;
+	/*! Number of bytes written (total size of stream) */
+	size_t total_size;
 	FOUNDATION_DECLARE_RINGBUFFER;
 };
 
-struct stream_vtable_t
-{
-	stream_read_fn                  read;
-	stream_write_fn                 write;
-	stream_eos_fn                   eos;
-	stream_flush_fn                 flush;
-	stream_truncate_fn              truncate;
-	stream_size_fn                  size;
-	stream_seek_fn                  seek;
-	stream_tell_fn                  tell;
-	stream_lastmod_fn               lastmod;
-	stream_md5_fn                   md5;
-	stream_buffer_read_fn           buffer_read;
-	stream_available_read_fn        available_read;
-	stream_finalize_fn              finalize;
-	stream_clone_fn                 clone;
+/*! Virtual function table for stream implementations. Each stream type must provide
+implementation for the basic stream operations in this struct or set the entry to null
+to indicate that the functionality is not supported by the stream type. */
+struct stream_vtable_t {
+	/*! Function to read data from stream. */
+	stream_read_fn read;
+	/*! Function to write data to stream. */
+	stream_write_fn write;
+	/*! Function to query if current position is at end of stream. */
+	stream_eos_fn eos;
+	/*! Function to flush any pending data to stream. */
+	stream_flush_fn flush;
+	/*! Function to truncate stream to current position. */
+	stream_truncate_fn truncate;
+	/*! Function to query size of stream */
+	stream_size_fn size;
+	/*! Function to seek in stream. */
+	stream_seek_fn seek;
+	/*! Function to query the current position in the stream. */
+	stream_tell_fn tell;
+	/*! Function to query the last modification timestamp of the stream. */
+	stream_lastmod_fn lastmod;
+	/*! Function to query the MD5 of the stream content */
+	stream_md5_fn md5;
+	/*! Function to buffer any incoming data for the stream. */
+	stream_buffer_read_fn buffer_read;
+	/*! Function to query the amount of data that can be read without blocking. */
+	stream_available_read_fn available_read;
+	/*! Function to finalize the stream, free memory and release any resources associated
+	with the stream. */
+	stream_finalize_fn finalize;
+	/*! Function to clone the stream. */
+	stream_clone_fn clone;
 };
-
-
-// UTILITY FUNCTIONS
-
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL version_t      version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control ) { version_t v; v.sub.major = (uint16_t)major; v.sub.minor = (uint16_t)minor; v.sub.revision = revision, v.sub.build = build; v.sub.control = control; return v; }
-
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop

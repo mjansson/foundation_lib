@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		450D74051B21D9B8007796DD /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455516951936208A00CF089B /* libtest.a */; };
+		450D74061B21D9B8007796DD /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172E19363AF800CF089B /* libfoundation.a */; };
+		450D74071B21D9B8007796DD /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172F19363AF800CF089B /* Carbon.framework */; };
+		450D74081B21D9B8007796DD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
+		450D74091B21D9B8007796DD /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
+		450D74141B21DA0E007796DD /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 450D74131B21DA0E007796DD /* main.c */; };
 		451871AC194EC6DF000E42C9 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455516951936208A00CF089B /* libtest.a */; };
 		451871AD194EC6DF000E42C9 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172E19363AF800CF089B /* libfoundation.a */; };
 		451871AE194EC6DF000E42C9 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172F19363AF800CF089B /* Carbon.framework */; };
@@ -228,6 +234,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		450D74011B21D9B8007796DD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4555167719360C7500CF089B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 455516941936208A00CF089B;
+			remoteInfo = test;
+		};
+		450D74151B21DA19007796DD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4555167719360C7500CF089B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 450D73FF1B21D9B8007796DD;
+			remoteInfo = "test-bitbuffer";
+		};
 		451871A8194EC6DF000E42C9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4555167719360C7500CF089B /* Project object */;
@@ -728,6 +748,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		450D740A1B21D9B8007796DD /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		451871B1194EC6DF000E42C9 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1055,6 +1084,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		450D74101B21D9B8007796DD /* test-bitbiffer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-bitbiffer"; sourceTree = BUILT_PRODUCTS_DIR; };
+		450D74131B21DA0E007796DD /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/bitbuffer/main.c; sourceTree = "<group>"; };
 		451871B7194EC6DF000E42C9 /* test-regex */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-regex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		451871BA194EC703000E42C9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/regex/main.c; sourceTree = "<group>"; };
 		455516951936208A00CF089B /* libtest.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtest.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1137,6 +1168,18 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		450D74041B21D9B8007796DD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				450D74051B21D9B8007796DD /* libtest.a in Frameworks */,
+				450D74061B21D9B8007796DD /* libfoundation.a in Frameworks */,
+				450D74071B21D9B8007796DD /* Carbon.framework in Frameworks */,
+				450D74081B21D9B8007796DD /* Cocoa.framework in Frameworks */,
+				450D74091B21D9B8007796DD /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		451871AB194EC6DF000E42C9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1579,6 +1622,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		450D73FE1B21D9A7007796DD /* bitbuffer */ = {
+			isa = PBXGroup;
+			children = (
+				450D74131B21DA0E007796DD /* main.c */,
+			);
+			name = bitbuffer;
+			sourceTree = "<group>";
+		};
 		451871A5194EC6CF000E42C9 /* regex */ = {
 			isa = PBXGroup;
 			children = (
@@ -1595,6 +1646,7 @@
 				455516E51936388B00CF089B /* array */,
 				455516E71936388B00CF089B /* atomic */,
 				455516E91936388B00CF089B /* base64 */,
+				450D73FE1B21D9A7007796DD /* bitbuffer */,
 				455516EB1936388B00CF089B /* blowfish */,
 				455516ED1936388B00CF089B /* bufferstream */,
 				455516EF1936388B00CF089B /* config */,
@@ -1674,6 +1726,7 @@
 				45FD848D1AC953CB004357EA /* test-system */,
 				45FD849F1AC953EC004357EA /* test-time */,
 				45FD84BE1ACAB575004357EA /* test-process */,
+				450D74101B21D9B8007796DD /* test-bitbiffer */,
 			);
 			name = lib;
 			sourceTree = "<group>";
@@ -1999,6 +2052,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		450D73FF1B21D9B8007796DD /* test-bitbuffer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 450D740B1B21D9B8007796DD /* Build configuration list for PBXNativeTarget "test-bitbuffer" */;
+			buildPhases = (
+				450D74021B21D9B8007796DD /* Sources */,
+				450D74041B21D9B8007796DD /* Frameworks */,
+				450D740A1B21D9B8007796DD /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				450D74001B21D9B8007796DD /* PBXTargetDependency */,
+			);
+			name = "test-bitbuffer";
+			productName = "test-all";
+			productReference = 450D74101B21D9B8007796DD /* test-bitbiffer */;
+			productType = "com.apple.product-type.tool";
+		};
 		451871A6194EC6DF000E42C9 /* test-regex */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 451871B2194EC6DF000E42C9 /* Build configuration list for PBXNativeTarget "test-regex" */;
@@ -2045,6 +2116,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				450D74161B21DA19007796DD /* PBXTargetDependency */,
 				455519761936647900CF089B /* PBXTargetDependency */,
 				455519781936647900CF089B /* PBXTargetDependency */,
 				4555197A1936647900CF089B /* PBXTargetDependency */,
@@ -2725,6 +2797,7 @@
 				4555174E19365CCD00CF089B /* test-array */,
 				4555176119365D1C00CF089B /* test-atomic */,
 				4555177419365D3800CF089B /* test-base64 */,
+				450D73FF1B21D9B8007796DD /* test-bitbuffer */,
 				4555178719365D5F00CF089B /* test-blowfish */,
 				4555179A19365D7D00CF089B /* test-bufferstream */,
 				455517AD193661C300CF089B /* test-config */,
@@ -2761,6 +2834,14 @@
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		450D74021B21D9B8007796DD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				450D74141B21DA0E007796DD /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		451871A9194EC6DF000E42C9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3060,6 +3141,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		450D74001B21D9B8007796DD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 455516941936208A00CF089B /* test */;
+			targetProxy = 450D74011B21D9B8007796DD /* PBXContainerItemProxy */;
+		};
+		450D74161B21DA19007796DD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 450D73FF1B21D9B8007796DD /* test-bitbuffer */;
+			targetProxy = 450D74151B21DA19007796DD /* PBXContainerItemProxy */;
+		};
 		451871A7194EC6DF000E42C9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 455516941936208A00CF089B /* test */;
@@ -3418,6 +3509,38 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		450D740C1B21D9B8007796DD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				PRODUCT_NAME = "test-bitbiffer";
+			};
+			name = Debug;
+		};
+		450D740D1B21D9B8007796DD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				PRODUCT_NAME = "test-bitbiffer";
+			};
+			name = Release;
+		};
+		450D740E1B21D9B8007796DD /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				PRODUCT_NAME = "test-bitbiffer";
+			};
+			name = Profile;
+		};
+		450D740F1B21D9B8007796DD /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				PRODUCT_NAME = "test-bitbiffer";
+			};
+			name = Deploy;
+		};
 		451871B3194EC6DF000E42C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4815,6 +4938,17 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		450D740B1B21D9B8007796DD /* Build configuration list for PBXNativeTarget "test-bitbuffer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				450D740C1B21D9B8007796DD /* Debug */,
+				450D740D1B21D9B8007796DD /* Release */,
+				450D740E1B21D9B8007796DD /* Profile */,
+				450D740F1B21D9B8007796DD /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
+		};
 		451871B2194EC6DF000E42C9 /* Build configuration list for PBXNativeTarget "test-regex" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -1,165 +1,162 @@
 /* main.c  -  Foundation hash test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-
-static application_t test_hash_application( void )
-{
+static application_t
+test_hash_application(void) {
 	application_t app;
-	memset( &app, 0, sizeof( app ) );
-	app.name = "Foundation hash tests";
-	app.short_name = "test_hash";
-	app.config_dir = "test_hash";
+	memset(&app, 0, sizeof(app));
+	app.name = string_const(STRING_CONST("Foundation hash tests"));
+	app.short_name = string_const(STRING_CONST("test_hash"));
+	app.config_dir = string_const(STRING_CONST("test_hash"));
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
 }
 
-
-static memory_system_t test_hash_memory_system( void )
-{
+static memory_system_t
+test_hash_memory_system(void) {
 	return memory_system_malloc();
 }
 
+static foundation_config_t
+test_hash_config(void) {
+	foundation_config_t config;
+	memset(&config, 0, sizeof(config));
+	return config;
+}
 
-static int test_hash_initialize( void )
-{
+static int
+test_hash_initialize(void) {
 	return 0;
 }
 
-
-static void test_hash_shutdown( void )
-{
+static void
+test_hash_finalize(void) {
 }
 
-
-DECLARE_TEST( hash, known )
-{
-	EXPECT_EQ( hash( "engine", string_length( "engine" ) ), 0x39c8cc157cfd24f8ULL );
-	EXPECT_EQ( hash( "enable_remote_debugger", string_length( "enable_remote_debugger" ) ), 0xb760826929ca10a3ULL );
-	EXPECT_EQ( hash( "enable_profiler", string_length( "enable_profiler" ) ), 0xaa75bf69e488ba1cULL );
-	EXPECT_EQ( hash( "cache_directory", string_length( "cache_directory" ) ), 0x3e7b4931a3841da8ULL );
-	EXPECT_EQ( hash( "server_address", string_length( "server_address" ) ), 0x64fcf494cf8072f5ULL );
-	EXPECT_EQ( hash( "server_port", string_length( "server_port" ) ), 0xdd32e17d082c2959ULL );
+DECLARE_TEST(hash, known) {
+	EXPECT_EQ(hash(STRING_CONST("engine")), 0x39c8cc157cfd24f8ULL);
+	EXPECT_EQ(hash(STRING_CONST("enable_remote_debugger")), 0xb760826929ca10a3ULL);
+	EXPECT_EQ(hash(STRING_CONST("enable_profiler")), 0xaa75bf69e488ba1cULL);
+	EXPECT_EQ(hash(STRING_CONST("cache_directory")), 0x3e7b4931a3841da8ULL);
+	EXPECT_EQ(hash(STRING_CONST("server_address")), 0x64fcf494cf8072f5ULL);
+	EXPECT_EQ(hash(STRING_CONST("server_port")), 0xdd32e17d082c2959ULL);
 	return 0;
 }
 
-
-DECLARE_TEST( hash, stability )
-{
+DECLARE_TEST(hash, stability) {
 	//TODO: Implement a proper test instead of this crap
-	int i, j, k, len;
+	size_t i, j, k, len;
 	hash_t lhash, rhash, rhashref;
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-	int mult = 200;
-	int passes = 64;
+	size_t mult = 200;
+	size_t passes = 64;
 #else
-	int mult = 1000;
-	int passes = 128;
+	size_t mult = 1000;
+	size_t passes = 128;
 #endif
 
-	for( i = 0; i < passes; ++i )
-	{
+	for (i = 0; i < passes; ++i) {
 		uint32_t lhs[129], rhs[129];
 		len = i + 1;
 
-		for( k = 0; k < len; ++k )
+		for (k = 0; k < len; ++k)
 			lhs[k] = random32();
 
-		lhash = hash( lhs, len * sizeof( uint32_t ) );
-		EXPECT_NE( lhash, 0U );
+		lhash = hash(lhs, len * sizeof(uint32_t));
+		EXPECT_NE(lhash, 0U);
 
-		for( j = 0; j < 64 * mult; ++j )
-		{
-			for( k = 0; k < len; ++k )
+		for (j = 0; j < 64 * mult; ++j) {
+			for (k = 0; k < len; ++k)
 				rhs[k] = random32();
 
-			rhashref = hash( rhs, len * sizeof( uint32_t ) );
-			rhash = hash( rhs, len * sizeof( uint32_t ) );
+			rhashref = hash(rhs, len * sizeof(uint32_t));
+			rhash = hash(rhs, len * sizeof(uint32_t));
 
-			EXPECT_EQ( rhashref, rhash );
-			if( memcmp( lhs, rhs, len * sizeof( uint32_t ) ) )
-				EXPECT_NE( lhash, rhash );
-			EXPECT_NE( rhash, 0U );
+			EXPECT_EQ(rhashref, rhash);
+			if (memcmp(lhs, rhs, len * sizeof(uint32_t)))
+				EXPECT_NE(lhash, rhash);
+			EXPECT_NE(rhash, 0U);
 		}
 	}
 
-	for( i = 4; i < passes; ++i )
-	{
+	for (i = 4; i < passes; ++i) {
 		char lhs[130], rhs[130];
 		len = i + 1;
 
 		lhs[0] = 'f'; lhs[1] = 'n'; lhs[2] = 'd'; lhs[3] = '_';
 		rhs[0] = 'f'; rhs[1] = 'n'; rhs[2] = 'd'; rhs[3] = '_';
 
-		for( k = 4; k < len; ++k )
-			lhs[k] = random32_range( 32, 128 );
+		for (k = 4; k < len; ++k)
+			lhs[k] = (char)random32_range(32, 128);
 		lhs[len] = 0;
 
-		lhash = hash( lhs, len );
-		EXPECT_NE( lhash, 0U );
+		lhash = hash(lhs, len);
+		EXPECT_NE(lhash, 0U);
 
-		for( j = 0; j < 128 * mult; ++j )
-		{
-			for( k = 4; k < len; ++k )
-				rhs[k] = random32_range( 32, 128 );
+		for (j = 0; j < 128 * mult; ++j) {
+			for (k = 4; k < len; ++k)
+				rhs[k] = (char)random32_range(32, 128);
 			rhs[len] = 0;
 
-			rhashref = hash( rhs, len );
-			rhash = hash( rhs, len );
+			rhashref = hash(rhs, len);
+			rhash = hash(rhs, len);
 
-			EXPECT_EQ( rhashref, rhash );
-			if( !string_equal_substr( lhs, rhs, len ) )
-				EXPECT_NE( lhash, rhash );
-			EXPECT_NE( rhash, 0U );
+			EXPECT_EQ(rhashref, rhash);
+			if (!string_equal(lhs, len, rhs, len))
+				EXPECT_NE(lhash, rhash);
+			EXPECT_NE(rhash, 0U);
 		}
 	}
 	return 0;
 }
 
-
-static void test_hash_declare( void )
-{
-	ADD_TEST( hash, known );
-	ADD_TEST( hash, stability );
+static void
+test_hash_declare(void) {
+	ADD_TEST(hash, known);
+	ADD_TEST(hash, stability);
 }
 
-
-test_suite_t test_hash_suite = {
+static test_suite_t test_hash_suite = {
 	test_hash_application,
 	test_hash_memory_system,
+	test_hash_config,
 	test_hash_declare,
 	test_hash_initialize,
-	test_hash_shutdown
+	test_hash_finalize
 };
-
 
 #if BUILD_MONOLITHIC
 
-int test_hash_run( void );
-int test_hash_run( void )
-{
+int
+test_hash_run(void);
+
+int
+test_hash_run(void) {
 	test_suite = test_hash_suite;
 	return test_run_all();
 }
 
 #else
 
-test_suite_t test_suite_define( void );
-test_suite_t test_suite_define( void )
-{
+test_suite_t
+test_suite_define(void);
+
+test_suite_t
+test_suite_define(void) {
 	return test_hash_suite;
 }
 

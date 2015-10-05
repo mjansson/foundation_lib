@@ -6,28 +6,62 @@
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
+ * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.∫
  *
  */
 
 #pragma once
 
+/*! \file locale.h
+\brief Locale definitions
+
+Locale definitions. */
+
 #include <foundation/platform.h>
 
+/*! Define a locale with a four character code, two lowercase language characters and two
+uppercase country characters, for example LOCALE_DEF('e','n','U','S')
+\param x First language character
+\param y Second language character
+\param z First country character
+\param w Second country character */
 #define LOCALE_DEF(x,y,z,w)          ((uint32_t)x|((uint32_t)y<<8)|((uint32_t)z<<16)|((uint32_t)w<<24))
+
+/*! Define a language with a two character lowercase code, for example LANGUAGE_DEF('e','n')
+\param x First character
+\param y Second character */
 #define LANGUAGE_DEF(x,y)            ((uint16_t)x|((uint16_t)y<<8))
+
+/*! Define a country with a two character uppercase code, for example COUNTRY_DEF('U','S')
+\param x First character
+\param y Second character */
 #define COUNTRY_DEF(x,y)             ((uint16_t)x|((uint16_t)y<<8))
 
+/*! Define a locale from a compound language and country code, for example
+<code>LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES)</code>
+\param lang Language code
+\param country Country code */
 #define LOCALE_FROM_LANGUAGE_COUNTRY(lang,country)  ((uint32_t)(lang)|((uint32_t)(country)<<16))
 
+/*! Blank locale */
 #define LOCALE_BLANK                 LOCALE_DEF(0,0,0,0)
 
+/*! Wildcard language */
 #define LANGUAGE_WILDCARD            LANGUAGE_DEF('*','*')
+
+/*! Wildcard country */
 #define COUNTRY_WILDCARD             COUNTRY_DEF('*','*')
+
+/*! Wildcard locale */
 #define LOCALE_WILDCARD              LOCALE_DEF('*','*','*','*')
 
+/*! Unknown language */
 #define LANGUAGE_UNKNOWN             LANGUAGE_DEF('z','z')
+
+/*! Unknown country */
 #define COUNTRY_UNKNOWN              COUNTRY_DEF('Z','Z')
+
+/*! Unknown locale */
 #define LOCALE_UNKNOWN               LOCALE_DEF('z','z','Z','Z')
 
 // Predefined language identifiers
@@ -434,9 +468,1212 @@
 #define COUNTRY_ZAMBIA                                           COUNTRY_DEF('Z','M')
 #define COUNTRY_ZIMBABWE                                         COUNTRY_DEF('Z','W')
 
+/*! Default country */
 #define COUNTRY_DEFAULT                                          COUNTRY_UNITED_STATES
 
 // Predefined standard locales
+
+/*! Predefined 'enUS' locale */
 #define LOCALE_EN_US     LOCALE_FROM_LANGUAGE_COUNTRY( LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES )
+
+/*! Predefined default locale */
 #define LOCALE_DEFAULT   LOCALE_EN_US
 
+/*!
+\def LANGUAGE_AFAN_OROMO
+Afan oromo language
+
+\def LANGUAGE_ABKHAZIAN
+Abkhazian language
+
+\def LANGUAGE_AFAR
+Afar language
+
+\def LANGUAGE_AFRIKAANS
+Afrikaans language
+
+\def LANGUAGE_ALBANIAN
+Albanian language
+
+\def LANGUAGE_AMHARIC
+Amharic language
+
+\def LANGUAGE_ARABIC
+Arabic language
+
+\def LANGUAGE_ARMENIAN
+Armenian language
+
+\def LANGUAGE_ASSAMESE
+Assamese language
+
+\def LANGUAGE_AYMARA
+Aymara language
+
+\def LANGUAGE_AZERBAIJANI
+Azerbaijani language
+
+\def LANGUAGE_BASHKIR
+Bashkir language
+
+\def LANGUAGE_BASQUE
+Basque language
+
+\def LANGUAGE_BENGALI
+Bengali language
+
+\def LANGUAGE_BHUTANI
+Bhutani language
+
+\def LANGUAGE_BIHARI
+Bihari language
+
+\def LANGUAGE_BISLAMA
+Bislama language
+
+\def LANGUAGE_BOSNIAN
+Bosnian language
+
+\def LANGUAGE_BRETON
+Breton language
+
+\def LANGUAGE_BULGARIAN
+Bulgarian language
+
+\def LANGUAGE_BURMESE
+Burmese language
+
+\def LANGUAGE_BYELORUSSIAN
+Byelorussian language
+
+\def LANGUAGE_CAMBODIAN
+Cambodian language
+
+\def LANGUAGE_CATALAN
+Catalan language
+
+\def LANGUAGE_CHINESE
+Chinese language
+
+\def LANGUAGE_CORSICAN
+Corsican language
+
+\def LANGUAGE_CROATIAN
+Croatian language
+
+\def LANGUAGE_CZECH
+Czech language
+
+\def LANGUAGE_DANISH
+Danish language
+
+\def LANGUAGE_DIVEHI
+Divehi language
+
+\def LANGUAGE_DUTCH
+Dutch language
+
+\def LANGUAGE_ENGLISH
+English language
+
+\def LANGUAGE_ESPERANTO
+Esperanto language
+
+\def LANGUAGE_ESTONIAN
+Estonian language
+
+\def LANGUAGE_FAEROESE
+Faeroese language
+
+\def LANGUAGE_FIJI
+Fiji language
+
+\def LANGUAGE_FINNISH
+Finnish language
+
+\def LANGUAGE_FRENCH
+French language
+
+\def LANGUAGE_FRISIAN
+Frisian language
+
+\def LANGUAGE_GALICIAN
+Galician language
+
+\def LANGUAGE_GEORGIAN
+Georgian language
+
+\def LANGUAGE_GERMAN
+German language
+
+\def LANGUAGE_GREEK
+Greek language
+
+\def LANGUAGE_GREENLANDIC
+Greenlandic language
+
+\def LANGUAGE_GUARANI
+Guarani language
+
+\def LANGUAGE_GUJARATI
+Gujarati language
+
+\def LANGUAGE_HAUSA
+Hausa language
+
+\def LANGUAGE_HEBREW
+Hebrew language
+
+\def LANGUAGE_HINDI
+Hindi language
+
+\def LANGUAGE_HUNGARIAN
+Hungarian language
+
+\def LANGUAGE_ICELANDIC
+Icelandic language
+
+\def LANGUAGE_IGBO
+Igbo language
+
+\def LANGUAGE_INDONESIAN
+Indonesian language
+
+\def LANGUAGE_INTERLINGUA
+Interlingua language
+
+\def LANGUAGE_INTERLINGUE
+Interlingue language
+
+\def LANGUAGE_INUPIAK
+Inupiak language
+
+\def LANGUAGE_INUKTITUT
+Inuktitut language
+
+\def LANGUAGE_IRISH
+Irish language
+
+\def LANGUAGE_ITALIAN
+Italian language
+
+\def LANGUAGE_JAPANESE
+Japanese language
+
+\def LANGUAGE_JAVANESE
+Javanese language
+
+\def LANGUAGE_KANNADA
+Kannada language
+
+\def LANGUAGE_KASHMIRI
+Kashmiri language
+
+\def LANGUAGE_KAZAKH
+Kazakh language
+
+\def LANGUAGE_KINYARWANDA
+Kinyarwanda language
+
+\def LANGUAGE_KIRGHIZ
+Kirghiz language
+
+\def LANGUAGE_KIRUNDI
+Kirundi language
+
+\def LANGUAGE_KOREAN
+Korean language
+
+\def LANGUAGE_KURDISH
+Kurdish language
+
+\def LANGUAGE_LAOTHIAN
+Laothian language
+
+\def LANGUAGE_LATIN
+Latin language
+
+\def LANGUAGE_LATVIAN_LETTISH
+Latvian lettish language
+
+\def LANGUAGE_LINGALA
+Lingala language
+
+\def LANGUAGE_LITHUANIAN
+Lithuanian language
+
+\def LANGUAGE_LUXEMBOURGISH
+Luxembourgish language
+
+\def LANGUAGE_MACEDONIAN
+Macedonian language
+
+\def LANGUAGE_MALAGASY
+Malagasy language
+
+\def LANGUAGE_MALAY
+Malay language
+
+\def LANGUAGE_MALAYALAM
+Malayalam language
+
+\def LANGUAGE_MALTESE
+Maltese language
+
+\def LANGUAGE_MAORI
+Maori language
+
+\def LANGUAGE_MARATHI
+Marathi language
+
+\def LANGUAGE_MOLDAVIAN
+Moldavian language
+
+\def LANGUAGE_MONGOLIAN
+Mongolian language
+
+\def LANGUAGE_NAURU
+Nauru language
+
+\def LANGUAGE_NEPALI
+Nepali language
+
+\def LANGUAGE_NORWEGIAN
+Norwegian language
+
+\def LANGUAGE_NORWEGIAN_BOKMAL
+Norwegian bokmal language
+
+\def LANGUAGE_NORWEGIAN_NYNORSK
+Norwegian nynorsk language
+
+\def LANGUAGE_OCCITAN
+Occitan language
+
+\def LANGUAGE_ORIYA
+Oriya language
+
+\def LANGUAGE_PASHTO_PUSHTO
+Pashto pushto language
+
+\def LANGUAGE_PERSIAN
+Persian language
+
+\def LANGUAGE_POLISH
+Polish language
+
+\def LANGUAGE_PORTUGUESE
+Portuguese language
+
+\def LANGUAGE_PUNJABI
+Punjabi language
+
+\def LANGUAGE_QUECHUA
+Quechua language
+
+\def LANGUAGE_RHAETO_ROMANCE
+Rhaeto romance language
+
+\def LANGUAGE_ROMANIAN
+Romanian language
+
+\def LANGUAGE_RUSSIAN
+Russian language
+
+\def LANGUAGE_SAMI
+Sami language
+
+\def LANGUAGE_SAMOAN
+Samoan language
+
+\def LANGUAGE_SANGRO
+Sangro language
+
+\def LANGUAGE_SANSKRIT
+Sanskrit language
+
+\def LANGUAGE_SCOTS_GAELIC
+Scots gaelic language
+
+\def LANGUAGE_SERBIAN
+Serbian language
+
+\def LANGUAGE_SERBO_CROATIAN
+Serbo croatian language
+
+\def LANGUAGE_SESOTHO
+Sesotho language
+
+\def LANGUAGE_SETSWANA
+Setswana language
+
+\def LANGUAGE_SHONA
+Shona language
+
+\def LANGUAGE_SINDHI
+Sindhi language
+
+\def LANGUAGE_SINGHALESE
+Singhalese language
+
+\def LANGUAGE_SISWATI
+Siswati language
+
+\def LANGUAGE_SLOVAK
+Slovak language
+
+\def LANGUAGE_SLOVENIAN
+Slovenian language
+
+\def LANGUAGE_SOMALI
+Somali language
+
+\def LANGUAGE_SPANISH
+Spanish language
+
+\def LANGUAGE_SUDANESE
+Sudanese language
+
+\def LANGUAGE_SWAHILI
+Swahili language
+
+\def LANGUAGE_SWEDISH
+Swedish language
+
+\def LANGUAGE_TAGALOG
+Tagalog language
+
+\def LANGUAGE_TAJIK
+Tajik language
+
+\def LANGUAGE_TAMIL
+Tamil language
+
+\def LANGUAGE_TATAR
+Tatar language
+
+\def LANGUAGE_TELUGU
+Telugu language
+
+\def LANGUAGE_THAI
+Thai language
+
+\def LANGUAGE_TIBETAN
+Tibetan language
+
+\def LANGUAGE_TIGRINYA
+Tigrinya language
+
+\def LANGUAGE_TONGA
+Tonga language
+
+\def LANGUAGE_TSONGA
+Tsonga language
+
+\def LANGUAGE_TURKISH
+Turkish language
+
+\def LANGUAGE_TURKMEN
+Turkmen language
+
+\def LANGUAGE_TWI
+Twi language
+
+\def LANGUAGE_UIGHUR
+Uighur language
+
+\def LANGUAGE_UKRAINIAN
+Ukrainian language
+
+\def LANGUAGE_URDU
+Urdu language
+
+\def LANGUAGE_UZBEK
+Uzbek language
+
+\def LANGUAGE_VIETNAMESE
+Vietnamese language
+
+\def LANGUAGE_VOLAPUK
+Volapuk language
+
+\def LANGUAGE_WELSH
+Welsh language
+
+\def LANGUAGE_WOLOF
+Wolof language
+
+\def LANGUAGE_XHOSA
+Xhosa language
+
+\def LANGUAGE_YI
+Yi language
+
+\def LANGUAGE_YIDDISH
+Yiddish language
+
+\def LANGUAGE_YORUBA
+Yoruba language
+
+\def LANGUAGE_ZHUANG
+Zhuang language
+
+\def LANGUAGE_ZULU
+Zulu language
+
+\def LANGUAGE_DEFAULT
+Default language
+
+\def COUNTRY_AFGHANISTAN
+Afghanistan country
+
+\def COUNTRY_ALBANIA
+Albania country
+
+\def COUNTRY_ALGERIA
+Algeria country
+
+\def COUNTRY_AMERICAN_SAMOA
+American Samoa country
+
+\def COUNTRY_ANDORRA
+Andorra country
+
+\def COUNTRY_ANGOLA
+Angola country
+
+\def COUNTRY_ANGUILLA
+Anguilla country
+
+\def COUNTRY_ANTARCTICA
+Antarctica country
+
+\def COUNTRY_ANTIGUA_BARBUDA
+Antigua Barbuda country
+
+\def COUNTRY_ARGENTINA
+Argentina country
+
+\def COUNTRY_ARMENIA
+Armenia country
+
+\def COUNTRY_ARUBA
+Aruba country
+
+\def COUNTRY_AUSTRALIA
+Australia country
+
+\def COUNTRY_AUSTRIA
+Austria country
+
+\def COUNTRY_AZERBAIJAN
+Azerbaijan country
+
+\def COUNTRY_BAHAMAS
+Bahamas country
+
+\def COUNTRY_BAHRAIN
+Bahrain country
+
+\def COUNTRY_BANGLADESH
+Bangladesh country
+
+\def COUNTRY_BARBADOS
+Barbados country
+
+\def COUNTRY_BELARUS
+Belarus country
+
+\def COUNTRY_BELGIUM
+Belgium country
+
+\def COUNTRY_BELIZE
+Belize country
+
+\def COUNTRY_BENIN
+Benin country
+
+\def COUNTRY_BERMUDA
+Bermuda country
+
+\def COUNTRY_BHUTAN
+Bhutan country
+
+\def COUNTRY_BOLIVIA
+Bolivia country
+
+\def COUNTRY_BOSNIA_HERZEGOVINA
+Bosnia Herzegovina country
+
+\def COUNTRY_BOTSWANA
+Botswana country
+
+\def COUNTRY_BOUVET_ISLAND
+Bouvet Island country
+
+\def COUNTRY_BRAZIL
+Brazil country
+
+\def COUNTRY_BRITISH_INDIAN_OCEAN_TERRITORY
+British Indian Ocean Territory country
+
+\def COUNTRY_BRUNEI_DARUSSALAM
+Brunei Darussalam country
+
+\def COUNTRY_BULGARIA
+Bulgaria country
+
+\def COUNTRY_BURKINA_FASO
+Burkina Faso country
+
+\def COUNTRY_BURUNDI
+Burundi country
+
+\def COUNTRY_CAMBODIA
+Cambodia country
+
+\def COUNTRY_CAMEROON
+Cameroon country
+
+\def COUNTRY_CANADA
+Canada country
+
+\def COUNTRY_CAPE_VERDE
+Cape Verde country
+
+\def COUNTRY_CAYMAN_ISLANDS
+Cayman Islands country
+
+\def COUNTRY_CENTRAL_AFRICAN_REPUBLIC
+Central African Republic country
+
+\def COUNTRY_CHAD
+Chad country
+
+\def COUNTRY_CHILE
+Chile country
+
+\def COUNTRY_CHINA
+China country
+
+\def COUNTRY_CHRISTMAS_ISLAND
+Christmas Island country
+
+\def COUNTRY_COCOS_KEELING_ISLANDS
+Cocos Keeling Islands country
+
+\def COUNTRY_COLOMBIA
+Colombia country
+
+\def COUNTRY_COMOROS
+Comoros country
+
+\def COUNTRY_CONGO
+Congo country
+
+\def COUNTRY_CONGO_DRC
+Congo DRC country
+
+\def COUNTRY_COOK_ISLANDS
+Cook Islands country
+
+\def COUNTRY_COSTA_RICA
+Costa Rica country
+
+\def COUNTRY_COTE_DIVOIRE
+Cote Divoire country
+
+\def COUNTRY_CROATIA
+Croatia country
+
+\def COUNTRY_CUBA
+Cuba country
+
+\def COUNTRY_CYPRUS
+Cyprus country
+
+\def COUNTRY_CZECH_REPUBLIC
+Czech Republic country
+
+\def COUNTRY_DENMARK
+Denmark country
+
+\def COUNTRY_DJIBOUTI
+Djibouti country
+
+\def COUNTRY_DOMINICA
+Dominica country
+
+\def COUNTRY_DOMINICAN_REPUBLIC
+Dominican Republic country
+
+\def COUNTRY_EAST_TIMOR
+East Timor country
+
+\def COUNTRY_ECUADOR
+Ecuador country
+
+\def COUNTRY_EGYPT
+Egypt country
+
+\def COUNTRY_EL_SALVADOR
+El Salvador country
+
+\def COUNTRY_EQUATORIAL_GUINEA
+Equatorial Guinea country
+
+\def COUNTRY_ERITREA
+Eritrea country
+
+\def COUNTRY_ESTONIA
+Estonia country
+
+\def COUNTRY_ETHIOPIA
+Ethiopia country
+
+\def COUNTRY_EUROPE_SSGFI_ONLY
+Europe SSGFI only country
+
+\def COUNTRY_FALKLAND_ISLANDS
+Falkland Islands country
+
+\def COUNTRY_FAEROE_ISLANDS
+Faeroe Islands country
+
+\def COUNTRY_FIJI
+Fiji country
+
+\def COUNTRY_FINLAND
+Finland country
+
+\def COUNTRY_FRANCE
+France country
+
+\def COUNTRY_FRANCE_METROPOLITAN
+France Metropolitan country
+
+\def COUNTRY_FRENCH_GUIANA
+French Guiana country
+
+\def COUNTRY_FRENCH_POLYNESIA
+French Polynesia country
+
+\def COUNTRY_FRENCH_SOUTHERN_TERRITORIES
+French Southern Territories country
+
+\def COUNTRY_GABON
+Gabon country
+
+\def COUNTRY_GAMBIA
+Gambia country
+
+\def COUNTRY_GEORGIA
+Georgia country
+
+\def COUNTRY_GERMANY
+Germany country
+
+\def COUNTRY_GHANA
+Ghana country
+
+\def COUNTRY_GIBRALTAR
+Gibraltar country
+
+\def COUNTRY_GREECE
+Greece country
+
+\def COUNTRY_GREENLAND
+Greenland country
+
+\def COUNTRY_GRENADA
+Grenada country
+
+\def COUNTRY_GUADELOUPE
+Guadeloupe country
+
+\def COUNTRY_GUAM
+Guam country
+
+\def COUNTRY_GUATEMALA
+Guatemala country
+
+\def COUNTRY_GUERNSEY
+Guernsey country
+
+\def COUNTRY_GUINEA
+Guinea country
+
+\def COUNTRY_GUINEA_BISSAU
+Guinea Bissau country
+
+\def COUNTRY_GUYANA
+Guyana country
+
+\def COUNTRY_HAITI
+Haiti country
+
+\def COUNTRY_HEARD_AND_MC_DONALD_ISLANDS
+Heard And Mc Donald Islands country
+
+\def COUNTRY_HONDURAS
+Honduras country
+
+\def COUNTRY_HONG_KONG
+Hong_kong country
+
+\def COUNTRY_HUNGARY
+Hungary country
+
+\def COUNTRY_ICELAND
+Iceland country
+
+\def COUNTRY_INDIA
+India country
+
+\def COUNTRY_INDONESIA
+Indonesia country
+
+\def COUNTRY_INTERNATIONAL_SSGFI_ONLY
+International SSGFI only country
+
+\def COUNTRY_IRAN
+Iran country
+
+\def COUNTRY_IRAQ
+Iraq country
+
+\def COUNTRY_IRELAND
+Ireland country
+
+\def COUNTRY_ISLE_OF_MAN
+Isle of Man country
+
+\def COUNTRY_ISRAEL
+Israel country
+
+\def COUNTRY_ITALY
+Italy country
+
+\def COUNTRY_JAMAICA
+Jamaica country
+
+\def COUNTRY_JAPAN
+Japan country
+
+\def COUNTRY_JERSEY
+Jersey country
+
+\def COUNTRY_JORDAN
+Jordan country
+
+\def COUNTRY_KAZAKHSTAN
+Kazakhstan country
+
+\def COUNTRY_KENYA
+Kenya country
+
+\def COUNTRY_KIRIBATI
+Kiribati country
+
+\def COUNTRY_KOREA_DEMOCRATIC_PEOPLES_REPUBLIC_OF
+Democratic Peoples Republic of Korea country
+
+\def COUNTRY_KOREA_REPUBLIC_OF
+Republic of Korea country
+
+\def COUNTRY_KUWAIT
+Kuwait country
+
+\def COUNTRY_KYRGYZSTAN
+Kyrgyzstan country
+
+\def COUNTRY_LAO_PEOPLES_DEMOCRATIC_REPUBLIC
+Lao Peoples Democratic Republic country
+
+\def COUNTRY_LATVIA
+Latvia country
+
+\def COUNTRY_LEBANON
+Lebanon country
+
+\def COUNTRY_LESOTHO
+Lesotho country
+
+\def COUNTRY_LIBERIA
+Liberia country
+
+\def COUNTRY_LIBYAN_ARAB_JAMAHIRIYA
+Libyan Arab Jamahiriya country
+
+\def COUNTRY_LIECHTENSTEIN
+Liechtenstein country
+
+\def COUNTRY_LITHUANIA
+Lithuania country
+
+\def COUNTRY_LUXEMBOURG
+Luxembourg country
+
+\def COUNTRY_MACAU
+Macau country
+
+\def COUNTRY_MACEDONIA_THE_FORMER_YUGOSLAV_REPUBLIC_OF
+The Former Yugoslav Republic of Macedonia country
+
+\def COUNTRY_MADAGASCAR
+Madagascar country
+
+\def COUNTRY_MALAWI
+Malawi country
+
+\def COUNTRY_MALAYSIA
+Malaysia country
+
+\def COUNTRY_MALDIVES
+Maldives country
+
+\def COUNTRY_MALI
+Mali country
+
+\def COUNTRY_MALTA
+Malta country
+
+\def COUNTRY_MARSHALL_ISLANDS
+Marshall Islands country
+
+\def COUNTRY_MARTINIQUE
+Martinique country
+
+\def COUNTRY_MAURITANIA
+Mauritania country
+
+\def COUNTRY_MAURITIUS
+Mauritius country
+
+\def COUNTRY_MAYOTTE
+Mayotte country
+
+\def COUNTRY_MEXICO
+Mexico country
+
+\def COUNTRY_MICRONESIA_FEDERATED_STATES_OF
+Federated States of Micronesia country
+
+\def COUNTRY_MOLDOVA_REPUBLIC_OF
+Republic of Moldova country
+
+\def COUNTRY_MONACO
+Monaco country
+
+\def COUNTRY_MONGOLIA
+Mongolia country
+
+\def COUNTRY_MONTENEGRO
+Montenegro country
+
+\def COUNTRY_MONTSERRAT
+Montserrat country
+
+\def COUNTRY_MOROCCO
+Morocco country
+
+\def COUNTRY_MOZAMBIQUE
+Mozambique country
+
+\def COUNTRY_MYANMAR
+Myanmar country
+
+\def COUNTRY_NAMIBIA
+Namibia country
+
+\def COUNTRY_NAURU
+Nauru country
+
+\def COUNTRY_NEPAL
+Nepal country
+
+\def COUNTRY_NETHERLANDS
+Netherlands country
+
+\def COUNTRY_NETHERLANDS_ANTILLES
+Netherlands Antilles country
+
+\def COUNTRY_NEW_CALEDONIA
+New Caledonia country
+
+\def COUNTRY_NEW_ZEALAND
+New Zealand country
+
+\def COUNTRY_NICARAGUA
+Nicaragua country
+
+\def COUNTRY_NIGER
+Niger country
+
+\def COUNTRY_NIGERIA
+Nigeria country
+
+\def COUNTRY_NIUE
+Niue country
+
+\def COUNTRY_NORFOLK_ISLAND
+Norfolk Island country
+
+\def COUNTRY_NORTHERN_MARIANA_ISLANDS
+Northern Mariana Islands country
+
+\def COUNTRY_NORWAY
+Norway country
+
+\def COUNTRY_OMAN
+Oman country
+
+\def COUNTRY_PAKISTAN
+Pakistan country
+
+\def COUNTRY_PALAU
+Palau country
+
+\def COUNTRY_PALESTINIAN_TERRITORY
+Palestinian Territory country
+
+\def COUNTRY_PANAMA
+Panama country
+
+\def COUNTRY_PAPUA_NEW_GUINEA
+Papua New Guinea country
+
+\def COUNTRY_PARAGUAY
+Paraguay country
+
+\def COUNTRY_PERU
+Peru country
+
+\def COUNTRY_PHILIPPINES
+Philippines country
+
+\def COUNTRY_PITCAIRN
+Pitcairn country
+
+\def COUNTRY_POLAND
+Poland country
+
+\def COUNTRY_PORTUGAL
+Portugal country
+
+\def COUNTRY_PUERTO_RICO
+Puerto Rico country
+
+\def COUNTRY_QATAR
+Qatar country
+
+\def COUNTRY_REUNION
+Reunion country
+
+\def COUNTRY_ROMANIA
+Romania country
+
+\def COUNTRY_RUSSIAN_FEDERATION
+Russian Federation country
+
+\def COUNTRY_RWANDA
+Rwanda country
+
+\def COUNTRY_SAINT_KITTS_AND_NEVIS
+Saint Kitts and Nevis country
+
+\def COUNTRY_SAINT_LUCIA
+Saint Lucia country
+
+\def COUNTRY_SAINT_VINCENT_AND_THE_GRENADINES
+Saint Vincent and the Grenadines country
+
+\def COUNTRY_SAMOA
+Samoa country
+
+\def COUNTRY_SAN_MARINO
+San Marino country
+
+\def COUNTRY_SAO_TOME_AND_PRINCIPE
+Sao Tome and Principe country
+
+\def COUNTRY_SAUDI_ARABIA
+Saudi Arabia country
+
+\def COUNTRY_SENEGAL
+Senegal country
+
+\def COUNTRY_SERBIA
+Serbia country
+
+\def COUNTRY_SERBIA_AND_MONTENEGRO
+Serbia and Montenegro country
+
+\def COUNTRY_SEYCHELLES
+Seychelles country
+
+\def COUNTRY_SIERRA_LEONE
+Sierra Leone country
+
+\def COUNTRY_SINGAPORE
+Singapore country
+
+\def COUNTRY_SLOVAKIA
+Slovakia country
+
+\def COUNTRY_SLOVENIA
+Slovenia country
+
+\def COUNTRY_SOLOMON_ISLANDS
+Solomon Islands country
+
+\def COUNTRY_SOMALIA
+Somalia country
+
+\def COUNTRY_SOUTH_AFRICA
+South Africa country
+
+\def COUNTRY_SOUTH_GEORGIA_AND_THE_SOUTH_SANDWICH_ISLANDS
+South Georgia and the South Sandwich Islands country
+
+\def COUNTRY_SPAIN
+Spain country
+
+\def COUNTRY_SRI_LANKA
+Sri Lanka country
+
+\def COUNTRY_ST_HELENA
+St Helena country
+
+\def COUNTRY_ST_PIERRE_AND_MIQUELON
+St Pierre and Miquelon country
+
+\def COUNTRY_ST_HELENA_ASCENSION_AND_TRISTAN_DA_CUNHA
+St Helena Ascension and Tristan da Cunha country
+
+\def COUNTRY_SUDAN
+Sudan country
+
+\def COUNTRY_SURINAME
+Suriname country
+
+\def COUNTRY_SVALBARD_AND_JAN_MAYEN_ISLANDS
+Svalbard and Jan Mayen Islands country
+
+\def COUNTRY_SWAZILAND
+Swaziland country
+
+\def COUNTRY_SWEDEN
+Sweden country
+
+\def COUNTRY_SWITZERLAND
+Switzerland country
+
+\def COUNTRY_SYRIAN_ARAB_REPUBLIC
+Syrian Arab Republic country
+
+\def COUNTRY_TAIWAN
+Taiwan country
+
+\def COUNTRY_TAJIKISTAN
+Tajikistan country
+
+\def COUNTRY_TANZANIA_UNITED_REPUBLIC_OF
+United Republic of Tanzania country
+
+\def COUNTRY_THAILAND
+Thailand country
+
+\def COUNTRY_TIMOR_LESTE
+Timor Leste country
+
+\def COUNTRY_TOGO
+Togo country
+
+\def COUNTRY_TOKELAU
+Tokelau country
+
+\def COUNTRY_TONGA
+Tonga country
+
+\def COUNTRY_TRINIDAD_AND_TOBAGO
+Trinidad and Tobago country
+
+\def COUNTRY_TUNISIA
+Tunisia country
+
+\def COUNTRY_TURKEY
+Turkey country
+
+\def COUNTRY_TURKMENISTAN
+Turkmenistan country
+
+\def COUNTRY_TURKS_AND_CAICOS_ISLANDS
+Turks and Caicos Islands country
+
+\def COUNTRY_TUVALU
+Tuvalu country
+
+\def COUNTRY_UGANDA
+Uganda country
+
+\def COUNTRY_UKRAINE
+Ukraine country
+
+\def COUNTRY_UNITED_ARAB_EMIRATES
+United Arab Emirates country
+
+\def COUNTRY_UNITED_KINGDOM
+United_kingdom country
+
+\def COUNTRY_UNITED_STATES
+United States country
+
+\def COUNTRY_UNITED_STATES_MINOR_OUTLYING_ISLANDS
+United States Minor Outlying Islands country
+
+\def COUNTRY_URUGUAY
+Uruguay country
+
+\def COUNTRY_UZBEKISTAN
+Uzbekistan country
+
+\def COUNTRY_VANUATU
+Vanuatu country
+
+\def COUNTRY_VATICAN_CITY_STATE
+Vatican City State country
+
+\def COUNTRY_VENEZUELA
+Venezuela country
+
+\def COUNTRY_VIETNAM
+Vietnam country
+
+\def COUNTRY_VIRGIN_ISLANDS_BRITISH
+Virgin Islands British country
+
+\def COUNTRY_VIRGIN_ISLANDS_US
+Virgin Islands US country
+
+\def COUNTRY_WALLIS_AND_FUTUNA_ISLANDS
+Wallis and Futuna Islands country
+
+\def COUNTRY_WESTERN_SAHARA
+Western Sahara country
+
+\def COUNTRY_YEMEN
+Yemen country
+
+\def COUNTRY_YUGOSLAVIA
+Yugoslavia country
+
+\def COUNTRY_ZAIRE
+Zaire country
+
+\def COUNTRY_ZAMBIA
+Zambia country
+
+\def COUNTRY_ZIMBABWE
+Zimbabwe country
+*/
