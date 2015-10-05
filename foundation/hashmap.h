@@ -29,12 +29,12 @@ count is 13, minimum bucket size is 8. Hash map should be deallocated with a cal
 \param bucketsize Bucket size
 \return New hash map */
 FOUNDATION_API hashmap_t*
-hashmap_allocate( size_t buckets, size_t bucketsize );
+hashmap_allocate(size_t buckets, size_t bucketsize);
 
 /*! Deallocate a hash map previously allocated with #hashmap_allocate
 \param map Hash map */
 FOUNDATION_API void
-hashmap_deallocate( hashmap_t* map );
+hashmap_deallocate(hashmap_t* map);
 
 /*! Initialize new hash map with the given bucket count and size. Minimum bucket
 count is 13, minimum bucket size is 8. Hash map should be finalized with a call to
@@ -43,12 +43,12 @@ count is 13, minimum bucket size is 8. Hash map should be finalized with a call 
 \param buckets Bucket count
 \param bucketsize Bucket size */
 FOUNDATION_API void
-hashmap_initialize( hashmap_t* map, size_t buckets, size_t bucketsize );
+hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize);
 
 /*! Finalize a hash map previously initialized with #hashmap_initialize and free resources
 \param map Hash map */
 FOUNDATION_API void
-hashmap_finalize( hashmap_t* map );
+hashmap_finalize(hashmap_t* map);
 
 /*! Insert a new key-value mapping. Will replace any previously stored mapping for the
 given key.
@@ -57,36 +57,36 @@ given key.
 \param value Value
 \return Previously stored value, 0 if no value previously stored for key */
 FOUNDATION_API void*
-hashmap_insert( hashmap_t* map, hash_t key, void* value );
+hashmap_insert(hashmap_t* map, hash_t key, void* value);
 
 /*! Erase any value mapping for the given key.
 \param map Hash map
 \param key Key
 \return Previously stored value, 0 if no value previously stored for key */
 FOUNDATION_API void*
-hashmap_erase( hashmap_t* map, hash_t key );
+hashmap_erase(hashmap_t* map, hash_t key);
 
 /*! Lookup the stored value mapping for the given key
 \param map Hash map
 \param key Key
 \return Stored value, 0 if no value stored for key */
 FOUNDATION_API void*
-hashmap_lookup( hashmap_t* map, hash_t key );
+hashmap_lookup(hashmap_t* map, hash_t key);
 
 /*! Query if there is any value mapping stored for the given key.
 \param map Hash map
 \param key Key
 \return true if there is a value mapping stored for the key, false if not */
 FOUNDATION_API bool
-hashmap_has_key( hashmap_t* map, hash_t key );
+hashmap_has_key(hashmap_t* map, hash_t key);
 
 /*! Get the number of key-value mappings stored in the hash map.
 \param map Hash map
 \return Number of keys stored */
 FOUNDATION_API size_t
-hashmap_size( hashmap_t* map );
+hashmap_size(hashmap_t* map);
 
 /*! Clear map and erase all key-value mappings.
 \param map Hash map */
 FOUNDATION_API void
-hashmap_clear( hashmap_t* map );
+hashmap_clear(hashmap_t* map);

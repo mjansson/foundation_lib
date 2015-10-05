@@ -39,7 +39,7 @@ hash(const void* key, size_t len);
 enabled, otherwise if will always return an empty string
 \param value Hash value
 \return      String matching hash value, or empty string if not found */
-FOUNDATION_API const char*
+FOUNDATION_API string_const_t
 hash_to_string(hash_t value);
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG

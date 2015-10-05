@@ -212,12 +212,15 @@ _static_hash_store(const void* key, size_t len, hash_t value) {
 	hashtable64_set(_hash_lookup, value, (uintptr_t)stored);
 }
 
-const char*
+string_const_t
 hash_to_string(hash_t value) {
-	if (!_hash_lookup)
-		return 0;
+	const char* val;
 
-	return (const char*)(uintptr_t)hashtable64_get(_hash_lookup, value);
+	if (!_hash_lookup)
+		return string_null();
+
+	val = (const char*)(uintptr_t)hashtable64_get(_hash_lookup, value);
+	return string_const(val, string_length(val));
 }
 
 #else
