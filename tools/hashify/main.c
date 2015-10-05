@@ -130,6 +130,7 @@ hashify_parse_command_line(const string_const_t* cmdline) {
 	for (arg = 1, asize = array_size(cmdline); arg < asize; ++arg) {
 		if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--help"))) {
 			hashify_print_usage();
+			continue;
 		}
 		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--validate"))) {
 			input.check_only = true;
@@ -142,9 +143,13 @@ hashify_parse_command_line(const string_const_t* cmdline) {
 			}
 			continue;
 		}
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--debug"))) {
+			log_set_suppress(0, ERRORLEVEL_NONE);
+			continue;
+		}
 		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--")))
 			break; //Stop parsing cmdline options
-		else if ((cmdline[arg].length > 2) && string_equal(cmdline[arg].str, 2, "--", 2))
+		else if ((cmdline[arg].length > 2) && string_equal(cmdline[arg].str, 2, STRING_CONST("--")))
 			continue; //Cmdline argument not parsed here
 
 		array_push(input.files, string_clone(STRING_ARGS(cmdline[arg])));
@@ -569,6 +574,7 @@ hashify_print_usage(void) {
 	           "      --generate-string <string>   Generate hash of the given string\n"
 	           "      <filename> <filename> ...    Any number of input files\n"
 	           "      --help                       Display this help message\n"
+	           "      --debug                      Enable debug output\n"
 	           "      --                           Stop processing command line arguments"
 	         ));
 	log_set_suppress(0, saved_level);

@@ -94,18 +94,21 @@ bin2hex_parse_command_line(const string_const_t* cmdline) {
 
 	error_context_push(STRING_CONST("parsing command line"), STRING_CONST(""));
 	for (arg = 1, asize = array_size(cmdline); arg < asize; ++arg) {
-		if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--help"))) {
+		if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--help"))) {
 			input.display_help = true;
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--columns"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--columns"))) {
 			if (arg < (asize - 1)) {
 				++arg;
 				input.columns = string_to_uint(cmdline[arg].str, cmdline[arg].length, false);
 			}
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--")))
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--debug"))) {
+			log_set_suppress(0, ERRORLEVEL_NONE);
+		}
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--")))
 			break; //Stop parsing cmdline options
-		else if ((cmdline[arg].length > 2) && string_equal(cmdline[arg].str, 2, "--", 2))
+		else if ((cmdline[arg].length > 2) && string_equal(cmdline[arg].str, 2, STRING_CONST("--")))
 			continue; //Cmdline argument not parsed here
 		else {
 			array_push(input.input_files, string_clone(cmdline[arg].str, cmdline[arg].length));
@@ -212,6 +215,7 @@ bin2hex_print_usage(void) {
 	           "      <file>                       Input filename (any number of input files allowed). Output will be named \"<file>.hex\"\n"
 	           "    Optional arguments:\n"
 	           "      --columns n                  Print n bytes in each column (default is 32)\n"
+	           "      --debug                      Enable debug output\n"
 	           "      --help                       Display this help message\n"
 	           "      --                           Stop processing command line arguments"
 	         ));

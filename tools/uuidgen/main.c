@@ -135,56 +135,56 @@ uuidgen_parse_command_line(const string_const_t* cmdline) {
 
 	error_context_push(STRING_CONST("parsing command line"), STRING_CONST(""));
 	for (arg = 1, asize = array_size(cmdline); arg < asize; ++arg) {
-		if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--help")))
+		if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--help")))
 			input.display_help = true;
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--output"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--output"))) {
 			if (arg < asize - 1) {
 				++arg;
 				string_deallocate(input.output_file.str);
 				input.output_file = string_clone(cmdline[arg].str, cmdline[arg].length);
 			}
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--binary"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--binary"))) {
 			input.output_binary = true;
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--lowercase"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--lowercase"))) {
 			input.output_lowercase = true;
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--uppercase"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--uppercase"))) {
 			input.output_lowercase = false;
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--random"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--random"))) {
 			uuid_instance_t instance;
 			instance.method = METHOD_RANDOM;
 			instance.num = 1;
 			if ((arg < (asize - 1)) && (cmdline[arg + 1].str[0] != '-')) {
 				++arg;
-				instance.num = string_to_uint(cmdline[arg].str, cmdline[arg].length, false);
+				instance.num = string_to_uint(STRING_ARGS(cmdline[arg]), false);
 			}
 			if (instance.num < 1)
 				instance.num = 1;
 			array_push_memcpy(input.generate, &instance);
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--time"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--time"))) {
 			uuid_instance_t instance;
 			instance.method = METHOD_TIME;
 			instance.num = 1;
 			if ((arg < (asize - 1)) && (cmdline[arg + 1].str[0] != '-')) {
 				++arg;
-				instance.num = string_to_uint(cmdline[arg].str, cmdline[arg].length, false);
+				instance.num = string_to_uint(STRING_ARGS(cmdline[arg]), false);
 			}
 			if (instance.num < 1)
 				instance.num = 1;
 			array_push_memcpy(input.generate, &instance);
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--md5"))) {
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--md5"))) {
 			uuid_instance_t instance;
 			instance.method = METHOD_NAMESPACE_MD5;
 			instance.num = 1;
 			if (arg < (asize - 1)) {
 				++arg;
-				if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("dns")) ||
-				    string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("DNS")))
+				if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("dns")) ||
+				    string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("DNS")))
 					instance.namespace = UUID_DNS;
 				else
 					instance.namespace = string_to_uuid(cmdline[arg].str, cmdline[arg].length);
@@ -195,7 +195,10 @@ uuidgen_parse_command_line(const string_const_t* cmdline) {
 			}
 			array_push_memcpy(input.generate, &instance);
 		}
-		else if (string_equal(cmdline[arg].str, cmdline[arg].length, STRING_CONST("--")))
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--debug"))) {
+			log_set_suppress(0, ERRORLEVEL_NONE);
+		}
+		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--")))
 			break; //Stop parsing cmdline options
 		else {
 			//Unknown argument, display help
@@ -303,6 +306,7 @@ uuidgen_print_usage(void) {
 	           "      --binary                     Output binary data instead of ASCII (stdout is always ASCII)\n"
 	           "      --lowercase                  Output UUID in lowercase hex\n"
 	           "      --uppercase                  Output UUID in uppercase hex (default)\n"
+	           "      --debug                      Enable debug output\n"
 	           "      --help                       Display this help message\n"
 	           "      --                           Stop processing command line arguments"
 	         ));
