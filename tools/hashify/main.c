@@ -573,8 +573,8 @@ hashify_print_usage(void) {
 	           "      --validate                   Suppress output and only validate existing hashes\n"
 	           "      --generate-string <string>   Generate hash of the given string\n"
 	           "      <filename> <filename> ...    Any number of input files\n"
-	           "      --help                       Display this help message\n"
 	           "      --debug                      Enable debug output\n"
+	           "      --help                       Display this help message\n"
 	           "      --                           Stop processing command line arguments"
 	         ));
 	log_set_suppress(0, saved_level);
