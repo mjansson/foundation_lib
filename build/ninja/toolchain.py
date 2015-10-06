@@ -19,7 +19,7 @@ def supported_architectures():
   return [ 'x86', 'x86-64', 'ppc', 'ppc64', 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'generic' ]
 
 class Toolchain(object):
-  def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, variables, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
+  def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, libpaths, variables, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
     self.project = project
     self.toolchain = toolchain
     self.host = host
@@ -205,7 +205,7 @@ class Toolchain(object):
     self.arconfigflags = []
     self.linkarchflags = []
     self.linkconfigflags = []
-    self.libpaths = []
+    self.libpaths = [] + libpaths
     self.includepaths = [ '.' ] + self.build_includepaths( includepaths )
     self.extralibs = []
 
@@ -805,9 +805,9 @@ class Toolchain(object):
       finalpaths += list( libpaths )
     for deplib in self.dependlibs:
       if self.target.is_macosx() or self.target.is_ios():
-        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config ) ]
+        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform), os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config ) ]
       else:
-        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config, arch ) ]
+        finalpaths += [ os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, arch), os.path.join( '..', deplib + '_lib', 'lib', self.target.platform, config, arch ) ]
     finalpaths += [ self.libpath ]
     if self.target.is_android():
       if arch == 'x86-64' or arch == 'mips64' or arch == 'arm64':
@@ -1604,14 +1604,16 @@ class Toolchain(object):
         buildpath = os.path.join( self.buildpath, config, arch )
         if self.target.is_macosx() or self.target.is_ios() or self.target.is_pnacl():
           libpath = os.path.join( self.libpath, config )
+          libarchpath = os.path.join( self.libpath )
           binpath = os.path.join( self.binpath, config )
         else:
           libpath = os.path.join( self.libpath, config, arch )
+          libarchpath = os.path.join( self.libpath, arch )
           binpath = os.path.join( self.binpath, config, arch )
         localcarchflags = self.make_carchflags( arch )
         locallinkarchflags = self.make_linkarchflags( arch )
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
-        locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libpath ], arch, config ) )
+        locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libarchpath, libpath ], arch, config ) )
         localarchlibs = self.make_linkarchlibs( arch )
         localvariables = [ ( 'carchflags', localcarchflags ),
                            ( 'cconfigflags', localcconfigflags ) ]
