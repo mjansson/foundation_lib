@@ -38,7 +38,7 @@ on this foundation library. */
 \internal Do not change order! \endinternal */
 typedef enum {
 	/*! No error */
-	ERRORLEVEL_NONE    = 0,
+	ERRORLEVEL_NONE = 0,
 	/*! Debug level, usually ignored in anything except debug builds.
 	Execution will continue as expected. */
 	ERRORLEVEL_DEBUG,
@@ -60,7 +60,7 @@ typedef enum {
 \internal Do not change order, only append! \endinternal */
 typedef enum {
 	/*! No error */
-	ERROR_NONE              = 0,
+	ERROR_NONE = 0,
 	/*! An invalid value was passed to the function */
 	ERROR_INVALID_VALUE,
 	/*! The function is unsupported on the current system */
@@ -93,7 +93,7 @@ typedef enum {
 	/*! A script generated an error */
 	ERROR_SCRIPT,
 	/*! Marker, last reserved internal error identifier */
-	ERROR_LAST_BUILTIN  = 0x0fff
+	ERROR_LAST_BUILTIN = 0x0fff
 } error_t;
 
 /*! Warning classes. Indicate which type/group of warning message that was generated
@@ -120,7 +120,7 @@ typedef enum {
 	/*! Resource was missing or corrupt */
 	WARNING_RESOURCE,
 	/*! Marker, last reserved inernal warning identifier */
-	WARNING_LAST_BUILTIN  = 0x0fff
+	WARNING_LAST_BUILTIN = 0x0fff
 } warning_t;
 
 /*! Platform identifiers. For compile-time platform selection, use the
@@ -128,7 +128,7 @@ FOUNDATION_PLATFORM_[...] preprocessor macros
 \internal Do not change order, only append! \endinternal */
 typedef enum {
 	/*! Windows */
-	PLATFORM_WINDOWS   = 0,
+	PLATFORM_WINDOWS = 0,
 	/*! Linux */
 	PLATFORM_LINUX,
 	/*! MacOS X */
@@ -154,7 +154,7 @@ selection of architecture, use the <code>FOUNDATION_ARCH_[...]</code> preprocess
 \internal Do not change order, only append! \endinternal */
 typedef enum {
 	/*! x86 (Classic 32-bit x86 compatible CPUs) */
-	ARCHITECTURE_X86          = 0,
+	ARCHITECTURE_X86 = 0,
 	/*! x86-64 (x86 with 64-bit extensions) */
 	ARCHITECTURE_X86_64,
 	/*! PowerPC 32-bit */
@@ -192,7 +192,7 @@ can be added below the STREAMTYPE_LAST_RESERVED value.
 \internal Do not change order, only append! \endinternal */
 typedef enum {
 	/*! Invalid identifier */
-	STREAMTYPE_INVALID         = 0,
+	STREAMTYPE_INVALID = 0,
 	/*! Memory buffer stream */
 	STREAMTYPE_MEMORY,
 	/*! File system stream */
@@ -208,13 +208,13 @@ typedef enum {
 	/*! Standard stream (stdin, stderr, stdout) */
 	STREAMTYPE_STDSTREAM,
 	/*! Last reserved built-in stream type, not a valid type */
-	STREAMTYPE_LAST_RESERVED   = 0x0FFF
+	STREAMTYPE_LAST_RESERVED = 0x0FFF
 } stream_type_t;
 
 /*! Stream seek directions */
 typedef enum {
 	/*! Seek from start of stream */
-	STREAM_SEEK_BEGIN,
+	STREAM_SEEK_BEGIN = 0,
 	/*! Seek from current position of stream */
 	STREAM_SEEK_CURRENT,
 	/*! Seek from end of stream */

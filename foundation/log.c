@@ -51,7 +51,7 @@ static error_level_t    _log_suppress_default;
 static char _log_warning_name[LOG_WARNING_NAMES][18] = {
 	"performance",
 	"deprecated",
-	"bad data",
+	"invalid value",
 	"memory",
 	"unsupported",
 	"suspicious",
