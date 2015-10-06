@@ -12,7 +12,7 @@ import toolchain
 import syntax
 
 class Generator(object):
-  def __init__( self, project, includepaths = [], dependlibs = [], variables = None ):
+  def __init__( self, project, includepaths = [], dependlibs = [], libpaths = [], variables = None ):
     parser = argparse.ArgumentParser( description = 'Ninja build generator' )
     parser.add_argument( '-t', '--target',
                          help = 'Target platform',
@@ -89,7 +89,8 @@ class Generator(object):
       else:
         variables += [ ( 'coverage', True ) ]
 
-    self.toolchain = toolchain.Toolchain( project, options.toolchain, self.host, self.target, archs, configs, includepaths, dependlibs, variables,
+    self.toolchain = toolchain.Toolchain( project, options.toolchain, self.host, self.target,
+                                          archs, configs, includepaths, dependlibs, libpaths, variables,
                                           configure_env.get( 'CC' ),
                                           configure_env.get( 'AR' ),
                                           configure_env.get( 'LINK' ),
