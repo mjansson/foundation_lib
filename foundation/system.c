@@ -344,7 +344,7 @@ system_username(char* buffer, size_t size) {
 			return string_copy(buffer, size, STRING_CONST("unknown"));
 		return string_copy(buffer, size, login, string_length(login));
 #else
-		if (getlogin_r(buffer, (int)size) != 0)
+		if (getlogin_r(buffer, size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
 		return (string_t) { buffer, string_length(buffer) };
 #endif

@@ -49,8 +49,10 @@ test_app_finalize(void) {
 
 DECLARE_TEST(app, environment) {
 	EXPECT_CONSTSTRINGEQ(environment_application()->name, _global_app.name);
+#if !BUILD_MONOLITHIC
 	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, _global_app.short_name);
 	EXPECT_CONSTSTRINGEQ(environment_application()->config_dir, _global_app.config_dir);
+#endif
 	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
 	                          _global_app.version.version));
 	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);
