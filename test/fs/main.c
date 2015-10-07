@@ -34,6 +34,7 @@ static foundation_config_t
 test_fs_config(void) {
 	foundation_config_t config;
 	memset(&config, 0, sizeof(config));
+	config.fs_monitor_max = 1;
 	return config;
 }
 
@@ -52,10 +53,12 @@ DECLARE_TEST(fs, directory) {
 	string_const_t fname;
 	string_t testpath;
 	string_const_t subpath;
+	string_const_t testlocalpath;
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
 	                       STRING_ARGS(fname));
+	testlocalpath = string_const(STRING_CONST("local.path"));
 
 	if (fs_is_file(STRING_ARGS(testpath)))
 		fs_remove_file(STRING_ARGS(testpath));
@@ -64,8 +67,20 @@ DECLARE_TEST(fs, directory) {
 
 	EXPECT_TRUE(fs_is_directory(STRING_ARGS(testpath)));
 
-	fs_remove_directory(STRING_ARGS(testpath));
+	EXPECT_TRUE(fs_remove_directory(STRING_ARGS(testpath)));
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(testpath)));
+
+	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testpath)));
+
+	if (!fs_is_directory(STRING_ARGS(testlocalpath)))
+		fs_make_directory(STRING_ARGS(testlocalpath));
+
+	EXPECT_TRUE(fs_is_directory(STRING_ARGS(testlocalpath)));
+
+	EXPECT_TRUE(fs_remove_directory(STRING_ARGS(testlocalpath)));
+	EXPECT_FALSE(fs_is_directory(STRING_ARGS(testlocalpath)));
+
+	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testlocalpath)));
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	longpath = path_append(STRING_ARGS(testpath), BUILD_MAX_PATHLEN, STRING_ARGS(fname));
@@ -80,6 +95,8 @@ DECLARE_TEST(fs, directory) {
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(subpath)));
 
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(longpath)));
+
+	EXPECT_FALSE(fs_make_directory(STRING_CONST("/this[]is{}not:an~allowed;name")));
 
 	return 0;
 }
@@ -134,8 +151,20 @@ DECLARE_TEST(fs, file) {
 	EXPECT_NE(teststream, 0);
 	EXPECT_TRUE(fs_is_file(STRING_ARGS(testpath)));
 	stream_deallocate(teststream);
-	fs_remove_file(STRING_ARGS(testpath));
+	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
+
+	EXPECT_FALSE(fs_remove_file(STRING_ARGS(testpath)));
+	EXPECT_FALSE(fs_remove_file(STRING_CONST("/this/path/should/not/exist")));
+
+	teststream = fs_open_file(STRING_CONST("test.local.file.path"), STREAM_OUT | STREAM_CREATE);
+	EXPECT_NE(teststream, 0);
+	EXPECT_TRUE(fs_is_file(STRING_CONST("test.local.file.path")));
+	stream_deallocate(teststream);
+	EXPECT_TRUE(fs_remove_file(STRING_CONST("test.local.file.path")));
+	EXPECT_FALSE(fs_is_file(STRING_CONST("test.local.file.path")));
+
+	EXPECT_FALSE(fs_remove_file(STRING_CONST("test.local.file.path")));
 
 	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN | STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE(teststream, 0);
@@ -154,7 +183,7 @@ DECLARE_TEST(fs, file) {
 	stream_deallocate(teststream);
 	teststream = 0;
 
-	fs_copy_file(STRING_ARGS(testpath), STRING_ARGS(copypath));
+	EXPECT_TRUE(fs_copy_file(STRING_ARGS(testpath), STRING_ARGS(copypath)));
 	EXPECT_TRUE(fs_is_file(STRING_ARGS(copypath)));
 
 	fs_remove_file(STRING_ARGS(copypath));
@@ -168,11 +197,14 @@ DECLARE_TEST(fs, file) {
 	stream_deallocate(teststream);
 	teststream = 0;
 
-	fs_copy_file(STRING_ARGS(testpath), STRING_ARGS(copypath));
+	EXPECT_TRUE(fs_copy_file(STRING_ARGS(testpath), STRING_ARGS(copypath)));
 	EXPECT_TRUE(fs_is_file(STRING_ARGS(copypath)));
 
 	fs_remove_file(STRING_ARGS(copypath));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(copypath)));
+
+	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath), STRING_CONST("/;:this/:is/;not=a-valid<>name")));
+	EXPECT_FALSE(fs_copy_file(STRING_CONST("/does/not/exist/at/all"), STRING_CONST("/;:this/is/;not=a-valid<>name")));
 
 	fs_remove_file(STRING_ARGS(testpath));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
@@ -186,6 +218,8 @@ DECLARE_TEST(fs, util) {
 	char buf[BUILD_MAX_PATHLEN];
 	tick_t systime = time_system();
 	tick_t lastmod = 0;
+	md5_t nullmd5;
+	stream_t* teststream;
 	string_const_t fname = string_from_uint_static(random64(), true, 0, 0);
 	string_t testpath = path_concat(buf, BUILD_MAX_PATHLEN,
 	                                STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
@@ -221,8 +255,51 @@ DECLARE_TEST(fs, util) {
 
 	fs_touch(STRING_ARGS(testpath));
 	EXPECT_GT(fs_last_modified(STRING_ARGS(testpath)), lastmod);
+	EXPECT_EQ(fs_size(STRING_ARGS(testpath)), 0);
+
+	lastmod = fs_last_modified(STRING_ARGS(testpath));
+
+	md5_initialize(&nullmd5);
+	md5_digest_finalize(&nullmd5);
+	EXPECT_TRUE(uint128_equal(md5_get_digest_raw(&nullmd5), fs_md5(STRING_ARGS(testpath))));
+	md5_finalize(&nullmd5);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_CREATE);
+	lastmod = fs_last_modified(STRING_ARGS(testpath));
+
+	thread_sleep(1500);
+	stream_write_string(teststream, STRING_CONST("foobar barfoo"));
+	stream_flush(teststream);
+	EXPECT_EQ(stream_size(teststream), 13);
+	stream_deallocate(teststream);
+
+	EXPECT_GT(fs_last_modified(STRING_ARGS(testpath)), lastmod);
+	EXPECT_EQ(fs_size(STRING_ARGS(testpath)), 13);
+
+	lastmod = fs_last_modified(STRING_ARGS(testpath));
+
+	md5_initialize(&nullmd5);
+	md5_digest(&nullmd5, STRING_CONST("foobar barfoo"));
+	md5_digest_finalize(&nullmd5);
+	EXPECT_TRUE(uint128_equal(md5_get_digest_raw(&nullmd5), fs_md5(STRING_ARGS(testpath))));
+	md5_finalize(&nullmd5);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT);
+
+	stream_truncate(teststream, 100);
+	EXPECT_EQ(stream_size(teststream), 13);
+	EXPECT_EQ(stream_last_modified(teststream), lastmod);
+	stream_truncate(teststream, 4);
+	EXPECT_EQ(stream_size(teststream), 4);
+	stream_deallocate(teststream);
+
+	EXPECT_GT(fs_last_modified(STRING_ARGS(testpath)), lastmod);
 
 	fs_remove_file(STRING_ARGS(testpath));
+
+	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
+	EXPECT_EQ(fs_size(STRING_ARGS(testpath)), 0);
+	EXPECT_TRUE(uint128_equal(uint128_null(), fs_md5(STRING_ARGS(testpath))));
 
 	return 0;
 }
@@ -376,6 +453,7 @@ DECLARE_TEST(fs, monitor) {
 	string_t filetestpath;
 	string_t subtestpath;
 	string_t filesubtestpath;
+	size_t imon, monmax;
 
 #define MULTICOUNT 16
 	string_t multisubtestpath[MULTICOUNT];
@@ -425,7 +503,15 @@ DECLARE_TEST(fs, monitor) {
 	event = event_next(block, 0);
 	EXPECT_EQ(event, 0);
 
-	fs_monitor(STRING_ARGS(testpath));
+	for (imon = 0, monmax = foundation_config().fs_monitor_max; imon <= monmax + 1; ++imon) {
+		bool did_monitor = fs_monitor(STRING_ARGS(testpath));
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOSX
+		EXPECT_TRUE(did_monitor);
+#else
+		FOUNDATION_UNUSED(did_monitor);
+#endif
+	}
+	EXPECT_FALSE(fs_monitor(STRING_CONST("/this/should/fail/from/not/enough/monitors")));
 	thread_sleep(1000);
 
 	test_stream = fs_open_file(STRING_ARGS(filetestpath), STREAM_OUT | STREAM_CREATE);

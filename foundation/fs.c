@@ -160,19 +160,20 @@ _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
 
 #endif
 
-void
+bool
 fs_monitor(const char* path, size_t length) {
 #if FOUNDATION_HAVE_FS_MONITOR
 
 	size_t mi;
 	char buf[BUILD_MAX_PATHLEN];
 	string_t path_clone;
+	bool ret = false;
 
 	//TODO: Full thread safety
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
 		const char* monitor_path = atomic_loadptr(&_fs_monitors[mi].path);
 		if (string_equal(monitor_path, string_length(monitor_path), path, length))
-			return;
+			return true;
 	}
 
 	memory_context_push(HASH_STREAM);
@@ -190,6 +191,7 @@ fs_monitor(const char* path, size_t length) {
 				                                        THREAD_PRIORITY_BELOWNORMAL, 0);
 				_fs_monitors[mi].signal = mutex_allocate(STRING_CONST("fs_monitor_signal"));
 				thread_start(_fs_monitors[mi].thread, _fs_monitors + mi);
+				ret = true;
 				break;
 			}
 		}
@@ -209,6 +211,7 @@ fs_monitor(const char* path, size_t length) {
 	FOUNDATION_UNUSED(length);
 
 #endif
+	return ret;
 }
 
 static void

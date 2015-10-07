@@ -130,6 +130,10 @@ main_initialize(void) {
 	application_t application;
 
 	memset(&config, 0, sizeof(config));
+#if BUILD_MONOLITHIC
+	//For fs monitor test
+	config.fs_monitor_max = 1;
+#endif
 
 	memset(&application, 0, sizeof(application));
 	application.name = string_const(STRING_CONST("Foundation library test suite"));

@@ -150,8 +150,9 @@ fs_subdirs(const char* path, size_t length);
 /*! Monitor the path (recursive) for file system changes. Changes are notified as file system
 events in the event stream returned by #fs_event_stream
 \param path   File system path
-\param length Length of path */
-FOUNDATION_API void
+\param length Length of path
+\return true if successful, false if not */
+FOUNDATION_API bool
 fs_monitor(const char* path, size_t length);
 
 /*! Stop monitoring the path (recursive) for file system changes
