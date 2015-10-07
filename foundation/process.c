@@ -257,7 +257,7 @@ process_spawn(process_t* proc) {
 			log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to redirect standard in/out"
 			         " through pipes when using ShellExecute for process spawning"));
 
-		log_debugf(0, "Spawn process (ShellExecute): %.*s %.*s",
+		log_debugf(0, STRING_CONST("Spawn process (ShellExecute): %.*s %.*s"),
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
@@ -300,7 +300,7 @@ process_spawn(process_t* proc) {
 			inherit_handles = TRUE;
 		}
 
-		log_debugf(0, "Spawn process (CreateProcess): %.*s %.*s",
+		log_debugf(0, STRING_CONST("Spawn process (CreateProcess): %.*s %.*s"),
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!CreateProcessW(0, wcmdline, 0, 0, inherit_handles,
@@ -508,7 +508,7 @@ process_spawn(process_t* proc) {
 				//Process exited, check code
 				proc->pid = 0;
 				proc->code = (int)((char)WEXITSTATUS(cstatus));
-				log_debugf(0, "Child process returned: %d", proc->code);
+				log_debugf(0, STRING_CONST("Child process returned: %d"), proc->code);
 				return proc->code;
 			}
 		}*/

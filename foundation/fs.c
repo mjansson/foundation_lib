@@ -1259,8 +1259,6 @@ _fs_monitor(object_t thread, void* monitorptr) {
 			goto exit_thread;
 		}
 
-		//log_debugf( 0, "Read directory changes for path: %s", monitor_path );
-
 		wait_status = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
 
 		switch (wait_status) {
@@ -1273,8 +1271,6 @@ _fs_monitor(object_t thread, void* monitorptr) {
 				DWORD transferred = 0;
 
 				//File system change
-				//log_debugf( 0, "File system changed: %s", monitor_path );
-
 				success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
 				if (!success) {
 					string_const_t errstr = system_error_message(GetLastError());
@@ -1282,8 +1278,6 @@ _fs_monitor(object_t thread, void* monitorptr) {
 					          monitor_path, STRING_FORMAT(errstr));
 				}
 				else {
-					//log_debugf( 0, "File system changed: %s (%d bytes)", monitor_path, transferred );
-
 					PFILE_NOTIFY_INFORMATION info = buffer;
 					do {
 						int numchars = info->FileNameLength / sizeof(wchar_t);
@@ -1301,7 +1295,6 @@ _fs_monitor(object_t thread, void* monitorptr) {
 							//Ignore directory changes
 						}
 						else {
-							//log_infof(HASH_TEST, "File system changed: %s (%s) (%d) (dir: %s) (file: %s)", fullpath, utfstr, info->Action, fs_is_directory( fullpath ) ? "yes" : "no", fs_is_file( fullpath ) ? "yes" : "no" );
 							switch (info->Action) {
 							case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
 							case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
@@ -1339,13 +1332,11 @@ _fs_monitor(object_t thread, void* monitorptr) {
 		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
 		/*int ret =*/ ioctl(notify_fd, FIONREAD, &avail);
-		//log_debugf( 0, "ioctl inotify: %d (%d)", avail, ret );
 		if (avail > 0) {
 			void* buffer = memory_allocate(HASH_STREAM, (size_t)avail + 4, 8,
 			                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 			int offset = 0;
 			ssize_t avail_read = read(notify_fd, buffer, (size_t)avail);
-			//log_debugf( 0, "inotify read: %d", avail_read );
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while (offset < avail_read) {
 				fs_watch_t* curwatch = _lookup_watch(watch, event->wd);
@@ -1382,16 +1373,8 @@ _fs_monitor(object_t thread, void* monitorptr) {
 					}
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
-				if( event->mask & IN_MOVED_FROM )
-				{
-					//log_debugf( 0, "  IN_MOVED_FROM : %s", curpath );
-					fs_post_event( FOUNDATIONEVENT_FILE_DELETED, curpath, 0 );
-				}
-				if( event->mask & IN_MOVED_TO )
-				{
-					//log_debugf( 0, "  IN_MOVED_TO : %s", curpath );
-					fs_post_event( FOUNDATIONEVENT_FILE_CREATED, curpath, 0 );
-				}*/
+				if (event->mask & IN_MOVED_FROM)
+				if (event->mask & IN_MOVED_TO)*/
 
 skipwatch:
 
@@ -1992,7 +1975,6 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 	fspath = _fs_path(STRING_ARGS(finalpath));
 	fd = _fs_file_fopen(STRING_ARGS(fspath), mode, &dotrunc);
 	if (!fd) {
-		//log_debugf( 0, "Unable to open file: %s (mode %d): %s", file->path, in_mode, system_error_message( 0 ) );
 		string_deallocate(finalpath.str);
 		return 0;
 	}

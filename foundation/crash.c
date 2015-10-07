@@ -116,7 +116,7 @@ _crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
 	if (_crash_exception_closure.callback)
 		_crash_exception_closure.callback(_crash_dump_file);
 	else
-		log_errorf(0, ERROR_EXCEPTION, "Exception occurred! Minidump written to: %ls", _crash_dump_file);
+		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %ls"), _crash_dump_file);
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 

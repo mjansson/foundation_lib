@@ -749,7 +749,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 
 			if (overwrite || !config_key(section, key, false)) {
 #if BUILD_ENABLE_CONFIG_DEBUG
-				log_debugf(HASH_CONFIG, STRING_CONST("  config: %.*s (0x%llx) = %s"), name, key, value);
+				log_debugf(HASH_CONFIG, STRING_CONST("  config: %.*s (0x%" PRIx64 ") = %s"), name, key, value);
 #endif
 
 				if (!value.length)

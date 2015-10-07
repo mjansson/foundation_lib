@@ -339,7 +339,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #endif
 			return memory;
 		}
-		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY, "Unable to allocate %llu bytes of memory", size);
+		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
 		return 0;
 	}
 
@@ -354,7 +354,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	                                MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	if (vmres != 0) {
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           "Unable to allocate %llu bytes of memory in low 32bit address space", size);
+		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory in low 32bit address space"), size);
 		return 0;
 	}
 
@@ -774,8 +774,8 @@ _memory_tracker_untrack(void* addr) {
 		--tag;
 		atomic_storeptr(&_memory_tags[ tag ].address, 0);
 	}
-	//else if( addr )
-	//	log_warnf( HASH_MEMORY, WARNING_SUSPICIOUS, "Untracked deallocation: " PRIfixPTR, addr );
+	//else if (addr)
+	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: " PRIfixPTR), addr);
 }
 
 #endif

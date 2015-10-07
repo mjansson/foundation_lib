@@ -67,7 +67,6 @@ _fs_node_populate(file_node_t* node, const char* fullpath, size_t length) {
 		string_t filepath = path_allocate_concat(fullpath, length, STRING_ARGS(node->files[isub]));
 		tick_t last_modified = fs_last_modified(STRING_ARGS(filepath));
 		array_push(node->last_modified, last_modified);
-		//log_debugf( HASH_FOUNDATION, "  populate found file: %s (%llx)", filepath, last_modified );
 		string_deallocate(filepath.str);
 	}
 
@@ -111,7 +110,6 @@ _fs_node_send_deletions(file_node_t* node, const char* path, size_t pathlen) {
 	for (size_t ifile = 0, fsize = array_size(node->files); ifile < fsize; ++ifile) {
 		string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), path, pathlen,
 		                               STRING_ARGS(node->files[ifile]));
-		//log_infof( HASH_FOUNDATION, "    subdeleted %s", filepath );
 		fs_post_event(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(pathstr));
 	}
 
@@ -129,7 +127,6 @@ _fs_node_send_creations(file_node_t* node, const char* path, size_t pathlen) {
 	for (size_t ifile = 0, fsize = array_size(node->files); ifile < fsize; ++ifile) {
 		string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), path, pathlen,
 		                               STRING_ARGS(node->files[ifile]));
-		//log_infof( HASH_FOUNDATION, "    subcreated %s", filepath );
 		fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(pathstr));
 	}
 
@@ -167,7 +164,6 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 			}
 			else {
 				FOUNDATION_UNUSED(identifier);
-				//log_debugf( HASH_FOUNDATION, "Got event for: %s (0x%x 0x%x)", rawpath, (unsigned int)flags, (unsigned int)identifier );
 
 				size_t root_ofs = string_find_string(rawpath, rawpath_len, STRING_ARGS(root_node->name), 0);
 				if (root_ofs == STRING_NPOS)
@@ -195,7 +191,6 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 					ifile = string_array_find((const string_const_t*)files, array_size(files),
 					                          STRING_ARGS(node->files[isub]));
 					if (ifile < 0) {
-						//log_debugf( HASH_FOUNDATION, "  deleted: %s", pathbuf );
 						string_deallocate(node->files[isub].str);
 						array_erase_memcpy(node->files, isub);
 						array_erase_memcpy(node->last_modified, isub);
@@ -205,7 +200,6 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 					else {
 						tick_t last_modified = fs_last_modified(STRING_ARGS(pathstr));
 						if (last_modified > node->last_modified[isub]) {
-							//log_debugf( HASH_FOUNDATION, "  modified: %s (%llx > %llx)", pathbuf, ifile, last_modified, node->last_modified[isub] );
 							node->last_modified[isub] = last_modified;
 							fs_post_event(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(pathstr));
 						}
@@ -221,7 +215,6 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 						array_push(node->last_modified, last_mod);
 						array_push(node->files, files[isub]);
 						files[isub] = (string_t) { 0, 0 };
-						//log_debugf( HASH_FOUNDATION, "  created: %s (%llx)", pathbuf, last_mod );
 						fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(pathstr));
 					}
 				}
@@ -240,8 +233,6 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 					}
 
 					if (!found) {
-						//log_debugf( HASH_FOUNDATION, "  del subdir: %s %s", node->name, node->subdirs[iexist]->name );
-
 						//Recurse and send out file deletion events
 						string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), rawpath, rawpath_len,
 						                               STRING_ARGS(node->subdirs[iexist]->name));
@@ -268,7 +259,6 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 						file_node_t* child = memory_allocate(0, sizeof(file_node_t), 0,
 						                                     MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
-						//log_debugf( HASH_FOUNDATION, "  add subdir: %s %s", node->name, subdirs[isub] );
 						child->name = subdirs[isub];
 						subdirs[isub] = (string_t) { 0, 0 };
 

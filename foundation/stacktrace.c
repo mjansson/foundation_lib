@@ -110,7 +110,7 @@ static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
 LONG WINAPI
 _stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
-	log_errorf(0, ERROR_EXCEPTION, "Exception occurred in stack trace!");
+	log_error(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred in stack trace!"));
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -312,7 +312,7 @@ _load_process_modules(void) {
 	stream_deallocate(maps);
 
 	//for( int i = 0; i < imod; ++i )
-	//	log_infof( HASH_TEST, "%" PRIfixPTR "-%" PRIfixPTR ": %s", _process_modules[i].address_start, _process_modules[i].address_end, _process_modules[i].name );
+	//	log_infof(0, STRING_CONST("%" PRIfixPTR "-%" PRIfixPTR ": %.*s"), _process_modules[i].address_start, _process_modules[i].address_end, STRING_FORMAT(_process_modules[i].name));
 
 	if (_process_modules && (imod == _process_modules_size))
 		log_warn(0, WARNING_MEMORY, STRING_CONST("Too many modules encountered"));
