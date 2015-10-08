@@ -562,10 +562,6 @@ thread local storage to ensure maximum portability across supported platforms */
 #  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
 #  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
-#  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
-#    define _CRT_SECURE_NO_WARNINGS 1
-#  endif
-
 #else
 #  error Unknown platform
 #endif
@@ -661,6 +657,10 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
+#    pragma clang diagnostic push
+#    if __has_warning( "-Wreserved-id-macro" )
+#      pragma clang diagnostic ignored "-Wreserved-id-macro"
+#    endif
 #    define STDCALL
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
@@ -675,6 +675,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #      define _MSC_VER 1300
 #    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
+#    pragma clang diagnostic pop
 #  endif
 
 #elif defined( __GNUC__ )
@@ -795,6 +796,10 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
+#  endif
+
+#  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
+#    define _CRT_SECURE_NO_WARNINGS 1
 #  endif
 
 #  ifndef __cplusplus
