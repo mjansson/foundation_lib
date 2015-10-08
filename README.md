@@ -64,7 +64,7 @@ http://www.rampantpixels.com/foundation_lib/pnacl/
 
 Test suite coverage report:
 
-[![Coverage Status](https://coveralls.io/repos/rampantpixels/foundation_lib/badge.svg?branch=develop&service=github)](https://coveralls.io/github/rampantpixels/foundation_lib?branch=develop)
+[![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)
 
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
