@@ -162,12 +162,11 @@ _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
 
 bool
 fs_monitor(const char* path, size_t length) {
+	bool ret = false;
 #if FOUNDATION_HAVE_FS_MONITOR
-
 	size_t mi;
 	char buf[BUILD_MAX_PATHLEN];
 	string_t path_clone;
-	bool ret = false;
 
 	//TODO: Full thread safety
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
@@ -204,12 +203,9 @@ fs_monitor(const char* path, size_t length) {
 	}
 
 	memory_context_pop();
-
 #else
-
 	FOUNDATION_UNUSED(path);
 	FOUNDATION_UNUSED(length);
-
 #endif
 	return ret;
 }

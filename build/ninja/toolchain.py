@@ -191,14 +191,6 @@ class Toolchain(object):
     self.read_prefs( 'build.json' )
     self.read_prefs( os.path.join( 'build', 'ninja', 'build.json' ) )
 
-    if target.is_android():
-      if int( self.android_platformversion ) < 21:
-        self.archs = [ arch for arch in self.archs if not arch.endswith( '64' ) ]
-      self.build_android_toolchain()
-
-    if target.is_tizen():
-      self.build_tizen_toolchain()
-
     self.cconfigflags = []
     self.carchflags = []
     self.ararchflags = []
@@ -208,6 +200,17 @@ class Toolchain(object):
     self.libpaths = [] + libpaths
     self.includepaths = [ '.' ] + self.build_includepaths( includepaths )
     self.extralibs = []
+
+    if target.is_android():
+      if int( self.android_platformversion ) < 21:
+        self.archs = [ arch for arch in self.archs if not arch.endswith( '64' ) ]
+      self.build_android_toolchain()
+
+    if target.is_tizen():
+      self.build_tizen_toolchain()
+
+    if target.is_windows():
+      self.build_msvc_toolchain()
 
     # TODO: Add dependent lib search
     self.includepaths += [ os.path.join( '..', deplib + '_lib' ) for deplib in self.dependlibs ]
@@ -256,8 +259,6 @@ class Toolchain(object):
       self.ccdeps = 'msvc'
       self.arcmd = '$toolchain$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
       self.linkcmd = '$toolchain$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
-
-      self.build_msvc_toolchain()
 
     elif self.toolchain.startswith('gcc') or self.toolchain.startswith('gnu'):
       self.toolchain = 'gcc' + self.exe_suffix
@@ -462,6 +463,12 @@ class Toolchain(object):
         self.includepaths += [ os.path.join( self.pnacl_sdkpath, 'include' ) ]
 
         self.extralibs += [ 'ppapi', 'm' ]
+
+      elif target.is_windows():
+
+        self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
+        self.cflags += [ '-Wno-reserved-id-macro' ] #errors in Windows SDK headers
 
       else:
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
@@ -1112,7 +1119,7 @@ class Toolchain(object):
     return str
 
   def path_escape( self, str ):
-    if self.is_msvc():
+    if self.host.is_windows():
       return "\"%s\"" % str.replace( "\"", "'" )
     return str
 
@@ -1244,12 +1251,12 @@ class Toolchain(object):
   def make_includepaths( self, includepaths ):
     if self.is_msvc():
       return [ '/I' + self.path_escape(path) for path in includepaths ]
-    return [ '-I' + path for path in includepaths ]
+    return [ '-I' + self.path_escape(path) for path in includepaths ]
 
   def make_libpaths( self, libpaths ):
     if self.is_msvc():
       return [ '/LIBPATH:' + self.path_escape(path) for path in libpaths ]
-    return [ '-L' + path for path in libpaths ]
+    return [ '-L' + self.path_escape(path) for path in libpaths ]
 
   def list_per_config( self, config_dicts, config ):
     if config_dicts is None:
