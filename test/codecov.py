@@ -54,9 +54,9 @@ def merge_reports( basereport, addreport ):
       basereport[line] += addreport[line]
   return basereport
 
-def post_report( coverage ):
-  #curl -X POST -d @codecovreport.json "https://codecov.io/upload/v2?token=<token>&commit=<commit>&branch=<branch>&job=<job>"
-  response = requests.post( 'https://coveralls.io/api/v1/jobs', files= { 'json_file': json.dumps( coverage ) } )
+def post_report(prefs, coverage):
+  info = gitinfo()
+  response = requests.post('https://codecov.io/upload/v2?token=' + prefs['token'] + '&commit=' + info['head']['id'] + '&branch=' + info['branch'] + '&job=' + prefs['job'], data = json.dumps(coverage))
   try:
     result = response.json()
   except ValueError:
@@ -131,7 +131,7 @@ codecov = {}
 codecov['coverage'] = coverage
 
 if options.post:
-  result = post_report( codecov )
+  result = post_report(prefs, codecov)
   print result
 else:
   with open( 'codecovreport.json', 'w' ) as outfile:
