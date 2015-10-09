@@ -289,6 +289,7 @@ DECLARE_TEST(fs, util) {
 	stream_truncate(teststream, 100);
 	EXPECT_EQ(stream_size(teststream), 13);
 	EXPECT_EQ(stream_last_modified(teststream), lastmod);
+	thread_sleep(1500);
 	stream_truncate(teststream, 4);
 	EXPECT_EQ(stream_size(teststream), 4);
 	stream_deallocate(teststream);
