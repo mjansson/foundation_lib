@@ -20,6 +20,7 @@
 #define REGEXERR_MISMATCHED_BLOCKS    -3
 #define REGEXERR_INVALID_QUANTIFIER   -4
 #define REGEXERR_BRANCH_FAILURE       -5
+#define REGEXERR_INTERNAL_FAILURE     -6
 
 #define REGEXRES_INTERNAL_FAILURE     -2
 #define REGEXRES_NOMATCH              -1
@@ -209,24 +210,15 @@ _regex_compile_quantifier(regex_t** target, bool allow_grow, size_t last_offset,
 	if (((*target)->code[last_offset] == REGEXOP_EXACT_MATCH) &&
 	    ((*target)->code[last_offset + 1] > 1)) {
 		uint8_t last_char = (*target)->code[(*target)->code_length - 1];
-		if ((*target)->code[(*target)->code_length - 2] == 0) { //Check if meta char
-			if ((*target)->code[last_offset + 1] > 2) {
-				(*target)->code[last_offset + 1] -= 2;
-				(*target)->code_length -= 2;
-				if ((ret = _regex_emit(target, allow_grow, 5, (int)quantifier, REGEXOP_EXACT_MATCH, 2, 0,
-				                       (int)last_char)))
-					return ret;
-				return REGEXERR_OK;
-			}
-		}
-		else {
-			--(*target)->code[last_offset + 1];
-			--(*target)->code_length;
-			if ((ret = _regex_emit(target, allow_grow, 4, (int)quantifier, REGEXOP_EXACT_MATCH, 1,
-			                       (int)last_char)))
-				return ret;
-			return REGEXERR_OK;
-		}
+		// The parser should break an REGEXOP_EXACT_MATCH block at a meta character
+		if (!FOUNDATION_VALIDATE((*target)->code[(*target)->code_length - 2] != 0))
+			return REGEXERR_INTERNAL_FAILURE;
+		--(*target)->code[last_offset + 1];
+		--(*target)->code_length;
+		if ((ret = _regex_emit(target, allow_grow, 4, (int)quantifier, REGEXOP_EXACT_MATCH, 1,
+			                    (int)last_char)))
+			return ret;
+		return REGEXERR_OK;
 	}
 
 	move_size = 1 + (*target)->code_length - last_offset;
@@ -302,7 +294,7 @@ _regex_consume_shortest(regex_t* regex, size_t op, const char* input, size_t ino
 }
 
 static int
-_regex_parse_capture(regex_t** target, const char** pattern, bool allow_grow) {
+_regex_parse_group(regex_t** target, const char** pattern, bool allow_grow) {
 	uint8_t local_buffer[64];
 	uint8_t* buffer = local_buffer;
 	size_t buffer_len = 0;
@@ -362,7 +354,7 @@ _regex_parse_capture(regex_t** target, const char** pattern, bool allow_grow) {
 	}
 	if (buffer != local_buffer)
 		memory_deallocate(buffer);
-	if (buffer_len)
+	if (!closed)
 		return REGEXERR_MISMATCHED_BLOCKS;
 	return REGEXERR_OK;
 }
@@ -417,7 +409,7 @@ _regex_parse(regex_t** target, const char** pattern, bool allow_grow, size_t lev
 
 		case '[':
 			last_offset = (*target)->code_length;
-			if ((ret = _regex_parse_capture(target, pattern, allow_grow)))
+			if ((ret = _regex_parse_group(target, pattern, allow_grow)))
 				return ret;
 			break;
 
@@ -485,8 +477,8 @@ _regex_parse(regex_t** target, const char** pattern, bool allow_grow, size_t lev
 				return REGEXERR_BRANCH_FAILURE;
 
 			size = (*target)->code_length - branch_begin;
-			if ((ret = _regex_emit(target, allow_grow, 4, 0, 0, REGEXOP_BRANCH_END,
-			                       0)))      //Make sure we have buffer space
+			//Make sure we have buffer space
+			if ((ret = _regex_emit(target, allow_grow, 4, 0, 0, REGEXOP_BRANCH_END, 0)))
 				return ret;
 
 			memmove((*target)->code + branch_begin + 2, (*target)->code + branch_begin, size);
@@ -518,6 +510,8 @@ _regex_parse(regex_t** target, const char** pattern, bool allow_grow, size_t lev
 	return REGEXERR_OK;
 }
 
+//Returns a context with the next op offset to execute and the next input offset
+//to read (or error code if no match)
 static regex_context_t
 _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoffset,
                       size_t inlength, string_const_t* captures, size_t maxcaptures) {
@@ -660,11 +654,11 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		//Try matching with one, and if that succeeds verify complete match of remaining data
 		context = _regex_execute_single(regex, op, input, inoffset, inlength, captures, maxcaptures);
 		if (context.inoffset <= inlength) {
-			context = _regex_execute(regex, context.op, input, context.inoffset, inlength, captures,
-			                         maxcaptures);
-			if (context.inoffset <= inlength) {
-				op = context.op;
-				inoffset = context.inoffset;
+			regex_context_t maybe_context = _regex_execute(regex, context.op, input, context.inoffset, 
+			                                               inlength, captures, maxcaptures);
+			if (maybe_context.inoffset <= inlength) {
+				op = maybe_context.op;
+				inoffset = maybe_context.inoffset;
 				break; // Match with one
 			}
 		}
@@ -739,6 +733,12 @@ regex_compile(const char* pattern, size_t pattern_length) {
 }
 
 bool
+regex_parse(regex_t* regex, const char* pattern, size_t pattern_length) {
+	regex_t* result = regex;
+	return (_regex_parse(&result, &pattern, false, 0) == REGEXERR_OK);
+}
+
+bool
 regex_match(regex_t* regex, const char* input, size_t inlength, string_const_t* captures,
             size_t maxcaptures) {
 	size_t iin;
@@ -746,19 +746,21 @@ regex_match(regex_t* regex, const char* input, size_t inlength, string_const_t* 
 	if (!regex || !regex->code_length)
 		return true;
 
-	if (!inlength)
-		inlength = string_length(input);
-
 	if (regex->code[0] == REGEXOP_BEGINNING_OF_LINE) {
 		regex_context_t context = _regex_execute(regex, 0, input, 0, inlength, captures, maxcaptures);
 		if (context.inoffset <= inlength)
 			return true;
 	}
-	else for (iin = 0; iin < inlength; ++iin) {
+	else
+	{
+		for (iin = 0; iin < inlength; ++iin) {
 			regex_context_t context = _regex_execute(regex, 0, input, iin, inlength, captures, maxcaptures);
 			if (context.inoffset <= inlength)
 				return true;
+			if (context.inoffset == (size_t)REGEXRES_INTERNAL_FAILURE)
+				return false;
 		}
+	}
 
 	return false;
 }

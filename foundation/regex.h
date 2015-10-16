@@ -39,12 +39,20 @@ Small regular expression implementation matching a subset of Perl regular expres
 
 #include <foundation/platform.h>
 
-/*! Compile a regular expression
+/*! Compile (allocate and parse) a regular expression
 \param pattern Pattern string
 \param length Length of pattern string
 \return Compiled expression, null if error */
 FOUNDATION_API regex_t*
 regex_compile(const char* pattern, size_t length);
+
+/*! Compile (parse) a regular expression into a predefined expression buffer
+\param regex Predefined expression buffer
+\param pattern Pattern string
+\param length Length of pattern string
+\return true if successful, false if not */
+FOUNDATION_API bool
+regex_parse(regex_t* regex, const char* pattern, size_t length);
 
 /*! Match input string with regular expression with optional captures. Note that captures array
 might be modified and contain invalid data even if regex fails. If the regex matches, the

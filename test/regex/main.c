@@ -47,7 +47,7 @@ test_regex_finalize(void) {
 }
 
 DECLARE_TEST(regex, exact) {
-	regex_t* regex = regex_compile(STRING_CONST("^(TEST REGEX)$"));
+	regex_t* regex = regex_compile(STRING_CONST("^(TEST\\20REGEX)$"));
 	EXPECT_NE(regex, 0);
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("TEST REGEX"), 0, 0));
@@ -64,8 +64,15 @@ DECLARE_TEST(regex, exact) {
 	EXPECT_TRUE(regex_match(regex, STRING_CONST(" TEST REGEX"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("TEST REGEX "), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("TEST_REGEX"), 0, 0));
+	EXPECT_TRUE(regex_match(0, "zero length string", 0, 0, 0));
+
+	log_info(HASH_TEST, STRING_CONST("This test will generate an internal failure"));
+	regex->code[0] = 128;
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("TEST_REGEX"), 0, 0));
 
 	regex_deallocate(regex);
+
+	EXPECT_TRUE(regex_match(0, STRING_CONST("TEST REGEX"), 0, 0));
 
 	return 0;
 }
@@ -100,19 +107,24 @@ DECLARE_TEST(regex, any_block) {
 	EXPECT_NE(regex, 0);
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("T"), 0, 0));
-	EXPECT_FALSE(regex_match(regex, STRING_CONST(" TEST REGEX\t 0123456789 \n\r TEST!"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST(" TEST \\REGEX\t 0123456789 \n\r TEST!"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("\0"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST(" "), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("alphanum3r1CS"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("a"), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("\0 "), 0, 0));
 
 	regex_deallocate(regex);
 
-	regex = regex_compile(STRING_CONST("^([ \\n\\r\\0\\S\\s\\d\\\\T])"));
+	regex = regex_compile(STRING_CONST("^([ \\n\\r\\0\\t\\D\\\\T])"));
 	EXPECT_NE(regex, 0);
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("T"), 0, 0));
-	EXPECT_TRUE(regex_match(regex, STRING_CONST(" TEST REGEX\t 0123456789 \n\r TEST!"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST(" TEST REGEX\t 0123456789 \n\r \\TEST!"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("a"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("0"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("a0"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("0a"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST(" "), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("\0 "), 0, 0));
 
@@ -171,12 +183,16 @@ DECLARE_TEST(regex, quantifier) {
 
 	regex_deallocate(regex);
 
-	regex = regex_compile(STRING_CONST("^a.b+?bcd?e*$"));
+	//The \\d\\64 construct is to be able to have meta \\d followed by literal 'd' without it
+	//being parsed as \\dd hex value
+	regex = regex_compile(STRING_CONST("^a.b+?b\\d\\64+?e*$"));
 	EXPECT_NE(regex, 0);
 
-	EXPECT_TRUE(regex_match(regex, STRING_CONST("aabbbbceeeeeee"), 0, 0));
-	EXPECT_TRUE(regex_match(regex, STRING_CONST("abbbc"), 0, 0));
-	EXPECT_FALSE(regex_match(regex, STRING_CONST("abbcde"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("aabbbb0deeeeeee"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbeeeeeee"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("abbb1d"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("abb2de"), 0, 0)); //group before decimal must be at least 4 chars
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabb2de0"), 0, 0));
 
 	regex_deallocate(regex);
 
@@ -202,7 +218,7 @@ DECLARE_TEST(regex, branch) {
 
 DECLARE_TEST(regex, noanchor) {
 	string_const_t captures[16];
-	regex_t* regex = regex_compile(STRING_CONST("matchthis(\\s+|\\S+)!"));
+	regex_t* regex = regex_compile(STRING_CONST("\\6datchthis(\\s+|\\S+)!"));
 	EXPECT_NE(regex, 0);
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("anynonwhitespacestringwillmatchthisregex!"), 0, 0));
@@ -259,6 +275,32 @@ DECLARE_TEST(regex, captures) {
 
 	regex_deallocate(regex);
 
+	regex = regex_compile(STRING_CONST("([^\\s]*)$"));
+
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("something at endofline"), captures, 16));
+	EXPECT_CONSTSTRINGEQ(captures[0], string_const(STRING_CONST("endofline")));
+
+	regex_deallocate(regex);
+
+	return 0;
+}
+
+DECLARE_TEST(regex, invalid) {
+	regex_t* regex;
+	regex_t predef;
+
+	regex = regex_compile(STRING_CONST("++??.+*?"));
+	EXPECT_EQ(regex, nullptr);
+
+	regex = regex_compile(STRING_CONST("(())()("));
+	EXPECT_EQ(regex, nullptr);
+
+	regex = regex_compile(STRING_CONST("[\\s]["));
+	EXPECT_EQ(regex, nullptr);
+
+	memset(&predef, 0, sizeof(predef));
+	EXPECT_FALSE(regex_parse(&predef, STRING_CONST("test")));
+
 	return 0;
 }
 
@@ -271,6 +313,7 @@ test_regex_declare(void) {
 	ADD_TEST(regex, branch);
 	ADD_TEST(regex, noanchor);
 	ADD_TEST(regex, captures);
+	ADD_TEST(regex, invalid);
 }
 
 static test_suite_t test_regex_suite = {
