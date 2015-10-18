@@ -35,6 +35,7 @@ to our foundation/foundation.h \endinternal */
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wpedantic"
+#  pragma clang diagnostic ignored "-Wreserved-id-macro"
 #endif
 
 #define __error_t_defined 1

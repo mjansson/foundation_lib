@@ -729,7 +729,7 @@ fs_make_directory(const char* path, size_t length) {
 		localpath = path_absolute(STRING_ARGS(localpath), sizeof(abspath_buffer));
 
 	fspath = _fs_path(STRING_ARGS(localpath));
-	localpath = (string_t) { (char*)fspath.str, fspath.length };
+	localpath = (string_t) { localpath.str + pointer_diff(fspath.str, localpath.str), fspath.length };
 	offset = 1;
 
 #if FOUNDATION_PLATFORM_WINDOWS

@@ -292,8 +292,15 @@ _fs_event_stream_retain(const void* info) {
 
 static void
 _fs_event_stream_release(const void* info) {
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wcast-qual"
+#endif
 	if (info)
 		_fs_node_deallocate((file_node_t*)info);
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 }
 
 void*

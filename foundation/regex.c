@@ -735,6 +735,7 @@ regex_compile(const char* pattern, size_t pattern_length) {
 bool
 regex_parse(regex_t* regex, const char* pattern, size_t pattern_length) {
 	regex_t* result = regex;
+	FOUNDATION_UNUSED(pattern_length);
 	return (_regex_parse(&result, &pattern, false, 0) == REGEXERR_OK);
 }
 
