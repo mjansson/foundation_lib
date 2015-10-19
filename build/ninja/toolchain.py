@@ -404,7 +404,7 @@ class Toolchain(object):
                              ' --target-device iphone --target-device ipad --compress-pngs --compile $outpath $in >/dev/null'
           self.xibcmd = '$xib --target-device iphone --target-device ipad --module $module --minimum-deployment-target ' + self.ios_deploymenttarget + \
                         ' --output-partial-info-plist $outplist --auto-activate-custom-fonts' \
-                        ' --output-format human-readable-text --compile $outpath $in'
+                        ' --output-format human-readable-text --compile $outpath $in &> /dev/null '
         self.dsymutilcmd = '$dsymutil $in -o $outpath'
         self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --builddir $builddir --binname $binname --config $config $outpath'
 
