@@ -55,6 +55,8 @@ DECLARE_TEST(fs, directory) {
 	string_const_t subpath;
 	string_const_t testlocalpath;
 
+	log_infof(HASH_TEST, STRING_CONST("This test will intentionally fail to create directories"));
+
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
 	                       STRING_ARGS(fname));
@@ -108,6 +110,8 @@ DECLARE_TEST(fs, file) {
 	string_t testpath;
 	string_t copypath;
 	stream_t* teststream;
+
+	log_infof(HASH_TEST, STRING_CONST("This test will intentionally fail to create directories"));
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
@@ -469,6 +473,8 @@ DECLARE_TEST(fs, monitor) {
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
+
+	log_infof(HASH_TEST, STRING_CONST("This test will intentionally run out of memory in file system monitors"));
 
 	fname = string_from_uint_static(random64(), false, 0, 0);
 	testpath = path_allocate_concat(STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
