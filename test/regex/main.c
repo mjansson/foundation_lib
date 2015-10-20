@@ -196,6 +196,33 @@ DECLARE_TEST(regex, quantifier) {
 
 	regex_deallocate(regex);
 
+	regex = regex_compile(STRING_CONST("^[abcd]+en?d*$"));
+
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabendddd"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("aen"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("den"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbecdend"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("end"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbcdd"), 0, 0));
+
+	regex_deallocate(regex);
+
+	regex = regex_compile(STRING_CONST("^[abcd]+"));
+
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabendddd"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("as long as it starts ok"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("will not match abcd"), 0, 0));
+
+	regex_deallocate(regex);
+
+	regex = regex_compile(STRING_CONST("^[abcd]+?"));
+
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabendddd"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("as long as it starts ok"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("will not match abcd"), 0, 0));
+
+	regex_deallocate(regex);
+
 	return 0;
 }
 
@@ -218,7 +245,7 @@ DECLARE_TEST(regex, branch) {
 
 DECLARE_TEST(regex, noanchor) {
 	string_const_t captures[16];
-	regex_t* regex = regex_compile(STRING_CONST("\\6datchthis(\\s+|\\S+)!"));
+	regex_t* regex = regex_compile(STRING_CONST("\\6D\\61tchthis(\\s+|\\S+)!"));
 	EXPECT_NE(regex, 0);
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("anynonwhitespacestringwillmatchthisregex!"), 0, 0));
@@ -235,7 +262,7 @@ DECLARE_TEST(regex, noanchor) {
 
 DECLARE_TEST(regex, captures) {
 	string_const_t captures[16];
-	regex_t* regex = regex_compile(STRING_CONST("matchthis(\\s+|\\S+)!endofline([abcd\\\\]*)"));
+	regex_t* regex = regex_compile(STRING_CONST("matchthis(\\s+|\\S+)!endof\\6cine([abcd\\\\]*)"));
 	EXPECT_NE(regex, 0);
 
 	EXPECT_FALSE(regex_match(regex,
