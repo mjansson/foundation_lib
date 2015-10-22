@@ -98,8 +98,10 @@ for file in os.listdir( options.sourcedir ):
 
 for key, pair in infiles.iteritems():
   if pair[0] and pair[1]:
-    #subprocess.check_output( [ "gcov", "-gcda=" + os.path.join( options.objectdir, key + ".gcda" ), "-gcno=" + os.path.join( options.objectdir, key + ".gcno" ), "source" ] )
-    subprocess.check_output( [ "gcov", "-o", options.objectdir, "-s", options.sourcedir, key + ".o" ] )
+    if sys.platform == "darwin":
+      subprocess.check_output( [ "gcov", "-gcda=" + os.path.join( options.objectdir, key + ".gcda" ), "-gcno=" + os.path.join( options.objectdir, key + ".gcno" ), "source" ] )
+    else:
+      subprocess.check_output( [ "gcov", "-o", options.objectdir, "-s", options.sourcedir, key + ".o" ] )
     for file in os.listdir('.'):
       if file.endswith(".gcov"):
         sourcefile = os.path.splitext(file)[0]
