@@ -319,8 +319,13 @@ system_error_message(int code) {
 	if (!code)
 		return string_const(STRING_CONST("<no error>"));
 	char* buffer = _system_buffer();
+#if defined(_GNU_SOURCE)
+	if ((buffer = strerror_r(code, buffer, SYSTEM_BUFFER_SIZE)) != nullptr)
+		return string_const(buffer, string_length(buffer));
+#else
 	if (strerror_r(code, buffer, SYSTEM_BUFFER_SIZE) == 0)
 		return string_const(buffer, string_length(buffer));
+#endif
 	return string_const(STRING_CONST("<no error string>"));
 }
 
