@@ -1467,7 +1467,7 @@ class Toolchain(object):
       #self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
       #self.dexcmd = '$dex --dex --output $out $in'
       javasourcepath = 'test/all/android/java'
-      if self.target.is_windows():
+      if self.host.is_windows():
         javasourcepath += ';'
       else:
         javasourcepath += ':'
