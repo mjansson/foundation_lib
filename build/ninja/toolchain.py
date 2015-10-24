@@ -562,9 +562,9 @@ class Toolchain(object):
       if 'platformversion' in androidprefs:
         self.android_platformversion = androidprefs['platformversion']
       if 'gccversion' in androidprefs:
-        self.android_gccversion = androidprefs['gccversion']
+        self.android_toolchainversion_gcc = androidprefs['gccversion']
       if 'clangversion' in androidprefs:
-        self.android_clangversion = androidprefs['clangversion']
+        self.android_toolchainversion_clang = androidprefs['clangversion']
       if 'tsa' in androidprefs:
         self.android_tsa = androidprefs['tsa']
       if 'tsacert' in androidprefs:
@@ -1289,7 +1289,7 @@ class Toolchain(object):
     return os.path.join( self.tizen_sdkpath, 'tools', 'llvm-' + self.tizen_toolchainversion_clang )
 
   def make_tizen_gcc_path( self, arch ):
-    return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainprefix[arch] + '-gcc-' + self.tizen_gccversion )
+    return os.path.join( self.tizen_sdkpath, 'tools', self.tizen_toolchainprefix[arch] + '-gcc-' + self.tizen_toolchainversion_gcc )
 
   def make_tizen_sysroot_path( self, arch ):
     if arch == 'arm7':

@@ -319,7 +319,7 @@ system_error_message(int code) {
 	if (!code)
 		return string_const(STRING_CONST("<no error>"));
 	char* buffer = _system_buffer();
-#if defined(_GNU_SOURCE)
+#if FOUNDATION_PLATFORM_LINUX && defined(_GNU_SOURCE)
 	if ((buffer = strerror_r(code, buffer, SYSTEM_BUFFER_SIZE)) != nullptr)
 		return string_const(buffer, string_length(buffer));
 #else
@@ -341,7 +341,11 @@ system_username(char* buffer, size_t size) {
 	struct passwd passwd;
 	struct passwd* result;
 
+#if FOUNDATION_PLATFORM_ANDROID && (__ANDROID_API__ <= 19)
+	result = 0;
+#else
 	getpwuid_r(getuid(), &passwd, buffer, size, &result);
+#endif
 	if (!result) {
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 		const char* login = getlogin();
