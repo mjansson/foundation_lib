@@ -93,8 +93,8 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	SUBSYSTEM_INIT(thread);
 	SUBSYSTEM_INIT(random);
 	SUBSYSTEM_INIT(stream);
-	SUBSYSTEM_INIT(stacktrace);
 	SUBSYSTEM_INIT(fs);
+	SUBSYSTEM_INIT(stacktrace);
 	SUBSYSTEM_INIT_ARGS(environment, application);
 	SUBSYSTEM_INIT(library);
 	SUBSYSTEM_INIT(system);

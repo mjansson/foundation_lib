@@ -292,11 +292,10 @@ _load_process_modules(void) {
 		                              0) == STRING_NPOS))
 			continue;
 
-		if ((imod > 0) &&
-		    /*( start == _process_modules[imod].address_end ) && */string_equal(module, line.length - modofs,
-		        STRING_ARGS(_process_modules[imod - 1].name))) {
-			if (_process_modules)
-				_process_modules[imod - 1].address_end = end;
+		if (_process_modules && (imod > 0) &&
+		    /*( start == _process_modules[imod].address_end ) && */
+		    string_equal(module, line.length - modofs, STRING_ARGS(_process_modules[imod - 1].name))) {
+			_process_modules[imod - 1].address_end = end;
 			continue;
 		}
 
@@ -304,7 +303,8 @@ _load_process_modules(void) {
 			_process_modules[imod].address_start = start;
 			_process_modules[imod].address_end = end;
 			_process_modules[imod].name = string_copy(_process_modules[imod].namebuf,
-			                                          sizeof(_process_modules[imod].namebuf), module, line.length - modofs);
+			                                          sizeof(_process_modules[imod].namebuf),
+			                                          module, line.length - modofs);
 		}
 		++imod;
 	}

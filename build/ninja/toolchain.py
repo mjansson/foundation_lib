@@ -1123,6 +1123,9 @@ class Toolchain(object):
       return "\"%s\"" % str.replace( "\"", "'" )
     return str
 
+  def paths_forward_slash( self, paths ):
+    return [ path.replace( '\\', '/' ) for path in paths ]
+
   def write_rules( self, writer ):
     writer.rule( 'cc', command = self.cccmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in' )
     writer.rule( 'ar', command = self.arcmd, description = 'LIB $out')
@@ -1429,7 +1432,7 @@ class Toolchain(object):
     apkname = binname + ".apk"
     apkfiles = []
     libfiles = []
-    locallibs = ''
+    locallibs = []
     resfiles = []
     manifestfile = []
 
@@ -1441,7 +1444,7 @@ class Toolchain(object):
         arch = os.path.split( archpair[0] )[1]
         locallibpath = os.path.join( 'lib', self.android_archpath[arch], libname )
         archpath = os.path.join( buildpath, locallibpath )
-        locallibs += locallibpath + ' '
+        locallibs += [ locallibpath + ' ' ]
         libfiles += self.build_copy( writer, archpath, archbin )
     for resource in resources:
       filename = os.path.split( resource )[1]
@@ -1462,7 +1465,7 @@ class Toolchain(object):
 
     #Compile java code
     javafiles = []
-    localjava = ''
+    localjava = []
     if javasources != []:
       #self.javaccmd = '$javac -d $outpath -classpath $outpath -sourcepath $sourcepath -target 1.5 -bootclasspath $androidjar -g -source 1.5 -Xlint:-options $in'
       #self.dexcmd = '$dex --dex --output $out $in'
@@ -1475,11 +1478,11 @@ class Toolchain(object):
       classpath = os.path.join( buildpath, 'classes' )
       javavars = [ ( 'outpath', classpath ), ( 'sourcepath', javasourcepath ) ]
       javaclasses = writer.build( classpath, 'javac', javasources, variables = javavars )
-      localjava = 'classes.dex'
+      localjava += [ 'classes.dex' ]
       javafiles += writer.build( os.path.join( buildpath, 'classes.dex' ), 'dex', classpath )
 
     #Add native libraries and java classes to apk
-    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apksource', baseapkname ), ( 'apkaddfiles', locallibs + localjava ) ]
+    aaptvars = [ ( 'apkbuildpath', buildpath ), ( 'apk', unsignedapkname ), ( 'apksource', baseapkname ), ( 'apkaddfiles', self.paths_forward_slash( locallibs + localjava ) ) ]
     unsignedapkfile = writer.build( os.path.join( buildpath, unsignedapkname ), 'aaptadd', baseapkfile, variables = aaptvars, implicit = libfiles + javafiles )
 
     #Sign the APK

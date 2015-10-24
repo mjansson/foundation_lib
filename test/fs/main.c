@@ -60,7 +60,6 @@ DECLARE_TEST(fs, directory) {
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
 	                       STRING_ARGS(fname));
-	testlocalpath = string_const(STRING_CONST("local.path"));
 
 	if (fs_is_file(STRING_ARGS(testpath)))
 		fs_remove_file(STRING_ARGS(testpath));
@@ -74,6 +73,9 @@ DECLARE_TEST(fs, directory) {
 
 	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testpath)));
 
+#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE
+	testlocalpath = string_const(STRING_CONST("local.path"));
+
 	if (!fs_is_directory(STRING_ARGS(testlocalpath)))
 		fs_make_directory(STRING_ARGS(testlocalpath));
 
@@ -83,6 +85,7 @@ DECLARE_TEST(fs, directory) {
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(testlocalpath)));
 
 	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testlocalpath)));
+#endif
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	longpath = path_append(STRING_ARGS(testpath), BUILD_MAX_PATHLEN, STRING_ARGS(fname));
@@ -161,6 +164,7 @@ DECLARE_TEST(fs, file) {
 	EXPECT_FALSE(fs_remove_file(STRING_ARGS(testpath)));
 	EXPECT_FALSE(fs_remove_file(STRING_CONST("/this/path/should/not/exist")));
 
+#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE
 	teststream = fs_open_file(STRING_CONST("test.local.file.path"), STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE(teststream, 0);
 	EXPECT_TRUE(fs_is_file(STRING_CONST("test.local.file.path")));
@@ -169,6 +173,7 @@ DECLARE_TEST(fs, file) {
 	EXPECT_FALSE(fs_is_file(STRING_CONST("test.local.file.path")));
 
 	EXPECT_FALSE(fs_remove_file(STRING_CONST("test.local.file.path")));
+#endif
 
 	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN | STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE(teststream, 0);
