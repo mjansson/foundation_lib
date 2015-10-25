@@ -1577,7 +1577,7 @@ string_from_time(char* buffer, size_t capacity, tick_t t) {
 	struct tm tm;
 	time_t ts = (time_t)(t / 1000LL);
 	struct tm* gtm = gmtime_r(&ts, &tm);
-	size_t len = !gtm ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", gtm) : 0;
+	size_t len = gtm ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", gtm) : 0;
 	return (string_t) { buffer, len };
 #endif
 }
