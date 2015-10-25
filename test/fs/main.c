@@ -103,7 +103,7 @@ DECLARE_TEST(fs, directory) {
 
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(longpath)));
 
-	EXPECT_FALSE(fs_make_directory(STRING_CONST("/this[*]is{?}not:an~allowed;name")));
+	EXPECT_FALSE(fs_make_directory(STRING_CONST("/../@this[*]is{?}not:an~allowed;name")));
 
 	return 0;
 }
@@ -214,8 +214,8 @@ DECLARE_TEST(fs, file) {
 	fs_remove_file(STRING_ARGS(copypath));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(copypath)));
 
-	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath), STRING_CONST("/;:*this/:is/;not=?a-valid<*>name")));
-	EXPECT_FALSE(fs_copy_file(STRING_CONST("/does/not/exist/at/all"), STRING_CONST("/;:*this/:is/;not=?a-valid<*>name")));
+	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
+	EXPECT_FALSE(fs_copy_file(STRING_CONST("/does/not/exist/at/all"), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
 
 	fs_remove_file(STRING_ARGS(testpath));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
