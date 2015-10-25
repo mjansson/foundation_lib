@@ -1561,8 +1561,11 @@ string_from_real_static(real val, unsigned int precision, unsigned int width, ch
 
 string_t
 string_from_time(char* buffer, size_t capacity, tick_t t) {
-	if (!capacity)
-		return (string_t){ buffer, 0 };
+	if (capacity < 26) {
+		if (capacity)
+			buffer[0] = 0;
+		return (string_t) { buffer, 0 };
+	}
 	FOUNDATION_ASSERT(buffer);
 #if FOUNDATION_PLATFORM_WINDOWS
 	struct tm tm;
