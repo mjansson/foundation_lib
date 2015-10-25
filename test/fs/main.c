@@ -85,6 +85,8 @@ DECLARE_TEST(fs, directory) {
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(testlocalpath)));
 
 	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testlocalpath)));
+#else
+	FOUNDATION_UNUSED(testlocalpath);
 #endif
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
