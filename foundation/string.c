@@ -17,23 +17,13 @@
 #include <string.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-
-FOUNDATION_EXTERN errno_t
-_ctime64_s(char*, size_t, const __time64_t*);
-
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 #    define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #    define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 #  endif
-
-#elif FOUNDATION_PLATFORM_APPLE
-
-FOUNDATION_EXTERN char*
-ctime_r(const time_t*, char*);
-
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-#include <time.h>
 #endif
+
+#include <time.h>
 
 string_t
 string_allocate(size_t length, size_t capacity) {
@@ -1575,36 +1565,17 @@ string_from_time(char* buffer, size_t capacity, tick_t t) {
 		return (string_t){ buffer, 0 };
 	FOUNDATION_ASSERT(buffer);
 #if FOUNDATION_PLATFORM_WINDOWS
-	if (capacity < 25) {
-		buffer[0] = 0;
-		return (string_t){ buffer, 0 };
-	}
+	struct tm tm;
 	time_t timet = t / 1000ULL;
-	if (_ctime64_s(buffer, capacity, &timet) != 0) {
-		buffer[0] = 0;
-		return (string_t){ buffer, 0 };
-	}
-	buffer[24] = 0;
-	return (string_t){ buffer, 24 };
-#elif FOUNDATION_PLATFORM_ANDROID
-	time_t ts = t / 1000ULL;
-	char* tstr = ctime(&ts);
-	if (!tstr) {
-		buffer[0] = 0;
-		return (string_t){ buffer, 0 };
-	}
-	return string_copy(buffer, capacity, tstr, 24);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-	time_t ts = (time_t)(t / 1000LL);
-	char* tstr = (capacity >= 26) ? ctime_r(&ts, buffer) : 0;
-	if (!tstr) {
-		buffer[0] = 0;
-		return (string_t){ buffer, 0 };
-	}
-	buffer[24] = 0;
-	return (string_t){ buffer, 24 };
+	errno_t err = gmtime_s(&tm, &timet);
+	size_t len = !err ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", &tm) : 0;
+	return (string_t){ buffer, len };
 #else
-# error Not implemented
+	struct tm tm;
+	time_t ts = (time_t)(t / 1000LL);
+	struct tm* gtm = gmtime_r(&ts, &tm);
+	size_t len = !gtm ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", gtm) : 0;
+	return (string_t) { buffer, len };
 #endif
 }
 

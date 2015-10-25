@@ -352,6 +352,10 @@ system_username(char* buffer, size_t size) {
 		if (!login)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
 		return string_copy(buffer, size, login, string_length(login));
+#elif FOUNDATION_PLATFORM_BSD
+		if (getlogin_r(buffer, (int)size) != 0)
+			return string_copy(buffer, size, STRING_CONST("unknown"));
+		return (string_t) { buffer, string_length(buffer) };
 #else
 		if (getlogin_r(buffer, size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));

@@ -2184,24 +2184,20 @@ DECLARE_TEST(string, convert) {
 	EXPECT_EQ(str.str[0], 0);
 	EXPECT_EQ(str.length, 0);
 
+	str = string_from_time(buffer, 10, time_system());
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
 	str = string_from_time(buffer, 26, 0);
-#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC && (_MSC_VER < 1900)
-	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan 01 01:00:00 1970")));
-#else
-	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
-#endif
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan 01 00:00:00 1970")));
 
 	str = string_from_time(buffer, 26, time_system());
-    EXPECT_FALSE(string_equal(STRING_ARGS(str), STRING_CONST("Thu Jan 01 01:00:00 1970")));
-    EXPECT_FALSE(string_equal(STRING_ARGS(str), STRING_CONST("Thu Jan  1 01:00:00 1970")));
+    EXPECT_FALSE(string_equal(STRING_ARGS(str), STRING_CONST("Thu Jan 01 00:00:00 1970")));
 	EXPECT_INTEQ(str.length, 24);
 
 	conststr = string_from_time_static(0);
-#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC && (_MSC_VER < 1900)
-	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan 01 01:00:00 1970")));
-#else
-	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan  1 01:00:00 1970")));
-#endif
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan 01 00:00:00 1970")));
 
 	conststr = string_from_time_static(time_system());
 	EXPECT_INTEQ(conststr.length, 24);

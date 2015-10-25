@@ -801,7 +801,10 @@ string_from_real(char* str, size_t capacity, real val, unsigned int precision, u
                  char padding);
 
 /*! Get a formatted string of the given timestamp. String buffer should be at least
-26 bytes (25 characters + terminating zero). String will be zero terminated.
+26 bytes (25 characters + terminating zero). A capacity of less than 26 characters
+will result in an empty string result. The string will be formetted like
+"Thu Jan 01 00:00:00 1970" and the timestamp is treated as UTC (no local
+timezone is taken into consideration). String will be zero terminated.
 \param str String buffer
 \param capacity Capacity of string buffer.
 \param time Timestamp
