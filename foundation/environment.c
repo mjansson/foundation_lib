@@ -196,7 +196,7 @@ _environment_initialize(const application_t application) {
 	callarg[3] = -1;
 	sysctl(callarg, 4, buffer, &size, 0, 0);
 
-	string_t exe_path = path_clean(buffer, size, BUILD_MAX_PATHLEN);
+	string_t exe_path = path_clean(buffer, size ? size - 1 : 0, BUILD_MAX_PATHLEN);
 	exe_path = path_absolute(STRING_ARGS(exe_path), BUILD_MAX_PATHLEN);
 
 	_environment_set_executable_paths(STRING_ARGS(exe_path));
