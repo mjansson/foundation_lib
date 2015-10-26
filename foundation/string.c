@@ -1560,8 +1560,8 @@ string_from_real_static(real val, unsigned int precision, unsigned int width, ch
 }
 
 string_t
-string_from_time(char* buffer, size_t capacity, tick_t t) {
-	if (capacity < 26) {
+string_from_time(char* buffer, size_t capacity, tick_t t, bool local) {
+	if (capacity < 25) {
 		if (capacity)
 			buffer[0] = 0;
 		return (string_t) { buffer, 0 };
@@ -1569,22 +1569,22 @@ string_from_time(char* buffer, size_t capacity, tick_t t) {
 	FOUNDATION_ASSERT(buffer);
 #if FOUNDATION_PLATFORM_WINDOWS
 	struct tm tm;
-	time_t timet = t / 1000ULL;
-	errno_t err = gmtime_s(&tm, &timet);
+	time_t ts = (time_t)(t / 1000ULL);
+	errno_t err = local ? localtime_s(&tm, &ts) : gmtime_s(&tm, &ts);
 	size_t len = !err ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", &tm) : 0;
 	return (string_t){ buffer, len };
 #else
 	struct tm tm;
 	time_t ts = (time_t)(t / 1000LL);
-	struct tm* gtm = gmtime_r(&ts, &tm);
+	struct tm* gtm = local ? localtime_r(&ts, &tm) : gmtime_r(&ts, &tm);
 	size_t len = gtm ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", gtm) : 0;
 	return (string_t) { buffer, len };
 #endif
 }
 
 string_const_t
-string_from_time_static(tick_t t) {
-	return string_to_const(string_from_time(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, t));
+string_from_time_static(tick_t t, bool local) {
+	return string_to_const(string_from_time(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, t, local));
 }
 
 string_const_t

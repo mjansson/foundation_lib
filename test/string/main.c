@@ -2070,6 +2070,7 @@ DECLARE_TEST(string, convert) {
 	char buffer[128];
 	string_t str;
 	string_const_t conststr;
+	tick_t systime;
 
 	str = string_from_int(buffer, 0, 0, 0, 0);
 	EXPECT_EQ(str.str, buffer);
@@ -2175,32 +2176,34 @@ DECLARE_TEST(string, convert) {
 	conststr = string_from_real_static(-REAL_ZERO, 8, 16, '=');
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
 
-	str = string_from_time(buffer, 0, time_system());
+	str = string_from_time(buffer, 0, time_system(), false);
 	EXPECT_EQ(str.str, buffer);
 	EXPECT_EQ(str.length, 0);
 
-	str = string_from_time(buffer, 1, time_system());
-	EXPECT_EQ(str.str, buffer);
-	EXPECT_EQ(str.str[0], 0);
-	EXPECT_EQ(str.length, 0);
-
-	str = string_from_time(buffer, 10, time_system());
+	str = string_from_time(buffer, 1, time_system(), true);
 	EXPECT_EQ(str.str, buffer);
 	EXPECT_EQ(str.str[0], 0);
 	EXPECT_EQ(str.length, 0);
 
-	str = string_from_time(buffer, 26, 0);
+	str = string_from_time(buffer, 10, time_system(), false);
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_time(buffer, 25, 0, false);
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("Thu Jan 01 00:00:00 1970")));
 
-	str = string_from_time(buffer, 26, time_system());
+	conststr = string_from_time_static(0, false);
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan 01 00:00:00 1970")));
+
+	systime = time_system();
+	str = string_from_time(buffer, 25, systime, false);
     EXPECT_FALSE(string_equal(STRING_ARGS(str), STRING_CONST("Thu Jan 01 00:00:00 1970")));
 	EXPECT_INTEQ(str.length, 24);
 
-	conststr = string_from_time_static(0);
-	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("Thu Jan 01 00:00:00 1970")));
-
-	conststr = string_from_time_static(time_system());
+	conststr = string_from_time_static(systime, false);
 	EXPECT_INTEQ(conststr.length, 24);
+	EXPECT_TRUE(string_equal(STRING_ARGS(str), STRING_ARGS(conststr)));
 
 	str = string_from_uuid(buffer, 0, UUID_DNS);
 	EXPECT_EQ(str.str, buffer);

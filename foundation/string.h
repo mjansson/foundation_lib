@@ -801,16 +801,17 @@ string_from_real(char* str, size_t capacity, real val, unsigned int precision, u
                  char padding);
 
 /*! Get a formatted string of the given timestamp. String buffer should be at least
-26 bytes (25 characters + terminating zero). A capacity of less than 26 characters
+25 bytes (24 characters + terminating zero). A capacity of less than 25 characters
 will result in an empty string result. The string will be formetted like
-"Thu Jan 01 00:00:00 1970" and the timestamp is treated as UTC (no local
-timezone is taken into consideration). String will be zero terminated.
+"Thu Jan 01 00:00:00 1970" and the timestamp is treated as either local time or as
+UTC (no local timezone is taken into consideration). String will be zero terminated.
 \param str String buffer
 \param capacity Capacity of string buffer.
 \param time Timestamp
+\param local Local time if true, UTC if false
 \return String in given buffer */
 FOUNDATION_API string_t
-string_from_time(char* str, size_t capacity, tick_t time);
+string_from_time(char* str, size_t capacity, tick_t time, bool local);
 
 /*! Get a formatted string of the given UUID. String buffer should be at least
 37 bytes (36 characters + terminating zero). String will be zero terminated.
@@ -872,10 +873,14 @@ string_from_real_static(real val, unsigned int precision, unsigned int width, ch
 
 /*! Convert a timestamp into a thread-local conversion buffer. The buffer is shared between all
 string_from_*_static functions and only valid until next call to one of these functions.
+The string will be formetted like "Thu Jan 01 00:00:00 1970" and the timestamp is treated
+as either local time or as UTC (no local timezone is taken into consideration).
+String will be zero terminated.
 \param time Timestamp
+\param local Local time if true, UTC if false
 \return String in thread-local buffer */
 FOUNDATION_API string_const_t
-string_from_time_static(tick_t time);
+string_from_time_static(tick_t time, bool local);
 
 /*! Convert an UUID into a thread-local conversion buffer. The buffer is shared between all
 string_from_*_static functions and only valid until next call to one of these functions.
