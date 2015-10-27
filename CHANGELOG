@@ -1,0 +1,28 @@
+
+1.4.0
+
+Major API changes, 1.4.x is not in any way compatible with previous releases.
+
+All string APIs and functions taking string arguments have been extended to take and supply
+an explicit length argument/result, in order to avoid extra strlen calls to determine an
+already known length. All length arguments are explicit, zero no longer implicitly mean
+length of zero-terminated string passed in pointer. Pointer is assumed to be valid if length
+is non-zero, no additional null pointer checks are done.
+
+Path and string functions no longer automagically reallocate passed arguments. Functions
+now exist in two flavours, one acting on a passed buffer (best effort) and one allocating
+a new buffer.
+
+Size of buffers and objects are now denoted by size_t type arguments, not unsigned int.
+
+Functions returning arrays as result now generally take a preallocated array of given size
+as argument to avoid extra memory allocations.
+
+Build time size limit configuration in build.h have been moved to a run time configuration
+block passed to foundation_initialize.
+
+All shutdown functions have been renamed to finalize to better match the initialize function
+naming scheme.
+
+system_* functions returning strings now take a buffer argument for thread safety. Returned
+string will be in supplied buffer.

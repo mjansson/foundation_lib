@@ -36,16 +36,20 @@ def generate_version_string(libname):
     version_build = tokens[1]
     version_scm = tokens[2][1:]
 
+  module = ""
+  if not libname == "foundation":
+    module = "_module"
+
   source = """/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
    This file is generated from the git describe command.
    Run the configure script to regeneerate this file */
 
 #include <foundation/foundation.h>
 
-version_t """ + libname + """_version( void )
-{
+version_t
+""" + libname + module + """_version(void) {
 """
-  source += "	return version_make( " + version_major + ", " + version_minor + ", " + version_revision + ", " + version_build + ", 0x" + version_scm + " );\n}\n"
+  source += "	return version_make(" + version_major + ", " + version_minor + ", " + version_revision + ", " + version_build + ", 0x" + version_scm + ");\n}\n"
   return source
 
 def read_version_string(input_path):

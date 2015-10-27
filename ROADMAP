@@ -5,14 +5,12 @@ Fix broken Android implementations
 1.4.0
 Update all int type usage and apis to be properly sign aware and pass clang -Weverything -Wpedantic
 Unify all string apis to be inherently length aware to increase security and minimize memory allocations
+90%+ code coverage in test suite
 
 1.4.1
 Pass PC-Lint tests with minimal suppressions
-90%+ code coverage in test suite
-
-1.4.2
 100% code coverage in test suite
 
-1.4.3
+1.4.2
 Example application and documentation
 Improve overview and setup documentation

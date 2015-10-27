@@ -1,19 +1,35 @@
 /* platform.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
- * This library provides a cross-platform foundation library in C11 providing basic support data types and
- * functions to write applications and games in a platform-independent fashion. The latest source code is
- * always available at
+ * This library provides a cross-platform foundation library in C11 providing basic support
+ * data types and functions to write applications and games in a platform-independent fashion.
+ * The latest source code is always available at
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
- *
+ * This library is put in the public domain; you can redistribute it and/or modify it without
+ * any restrictions.
  */
 
 #pragma once
 
-//Lint warning inhibitors
-/*lint -e717    We use do {} while(0) constructs in macros deliberately */
+/*! \file platform.h
+\brief Platform abstractions
+
+This file unifies platform definitions and data types across supported platforms
+and compilers. If you need to override platform or architecture, predefine one of
+<code>FOUNDATION_PLATFORM_[...]</code> and <code>FOUNDATION_ARCH_[...]</code> to 1
+
+All preprocessor macros are designed to be always defined and used by value, i.e
+a check should be performed like <code>\#if FOUNDATION_PLATFORM_[...]</code> rather
+than <code>\#ifdef FOUNDATION_PLATFORM_[...]</code>, since this solves the potential
+problem of typos in preprocessor checks (the <code>\#if</code> test will most likely
+catch the typo with an not defined error, whereas the <code>\#ifdef</code> macro
+will just resolve to false)
+
+Use the macros defined in this file for platform/arch definitions, attributes and
+thread local storage to ensure maximum portability across supported platforms */
+
+/*lint -e717 We use do {} while(0) constructs in macros deliberately */
 
 #if !defined( FOUNDATION_COMPILE )
 #  define FOUNDATION_COMPILE 0
@@ -90,7 +106,6 @@
 #define FOUNDATION_COMPILER_GCC 0
 #define FOUNDATION_COMPILER_MSVC 0
 #define FOUNDATION_COMPILER_INTEL 0
-
 
 //First, platforms and architectures
 
@@ -472,10 +487,6 @@
 #  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
 #  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
-#  ifndef _GNU_SOURCE
-#    define _GNU_SOURCE
-#  endif
-
 //BSD family
 #elif ( defined( __BSD__ ) || defined( __FreeBSD__ ) )
 
@@ -551,26 +562,41 @@
 #  undef  FOUNDATION_PLATFORM_FAMILY_DESKTOP
 #  define FOUNDATION_PLATFORM_FAMILY_DESKTOP 1
 
-#  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
-#    define _CRT_SECURE_NO_WARNINGS 1
-#  endif
-
 #else
 #  error Unknown platform
 #endif
 
-
 //Utility macros
-#define FOUNDATION_PREPROCESSOR_TOSTRING( x )          _FOUNDATION_PREPROCESSOR_TOSTRING(x)
-#define _FOUNDATION_PREPROCESSOR_TOSTRING( x )         #x
+#define FOUNDATION_PREPROCESSOR_TOSTRING(x)            FOUNDATION_PREPROCESSOR_TOSTRING_IMPL(x)
+#define FOUNDATION_PREPROCESSOR_TOSTRING_IMPL(x)       #x
 
-#define FOUNDATION_PREPROCESSOR_JOIN( a, b )           _FOUNDATION_PREPROCESSOR_JOIN( a, b )
-#define _FOUNDATION_PREPROCESSOR_JOIN( a, b )          _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b )
-#define _FOUNDATION_PREPROCESSOR_JOIN_INTERNAL( a, b ) a##b
+#define FOUNDATION_PREPROCESSOR_JOIN(a, b)             FOUNDATION_PREPROCESSOR_JOIN_WRAP(a, b)
+#define FOUNDATION_PREPROCESSOR_JOIN_WRAP(a, b)        FOUNDATION_PREPROCESSOR_JOIN_IMPL(a, b)
+#define FOUNDATION_PREPROCESSOR_JOIN_IMPL(a, b)        a##b
 
-#define FOUNDATION_PREPROCESSOR_NARGS( ... )           _FOUNDATION_PREPROCESSOR_NARGS( __VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 )
-#define _FOUNDATION_PREPROCESSOR_NARGS( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _, ... ) _
+#define FOUNDATION_PREPROCESSOR_NARGS( ... )           FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_NARGS_WRAP( __VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, ),)
+#define FOUNDATION_PREPROCESSOR_NARGS_WRAP( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _, ... ) _
 
+#define FOUNDATION_PREPROCESSOR_ELEM(n, ...)           FOUNDATION_PREPROCESSOR_ELEM_I(n,__VA_ARGS__)
+#define FOUNDATION_PREPROCESSOR_ELEM_I(n, ...)         FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_ELEM_, n)(__VA_ARGS__,),)
+
+#define FOUNDATION_PREPROCESSOR_ELEM_0(_0, ...) _0
+#define FOUNDATION_PREPROCESSOR_ELEM_1(_0, _1, ...) _1
+#define FOUNDATION_PREPROCESSOR_ELEM_2(_0, _1, _2, ...) _2
+#define FOUNDATION_PREPROCESSOR_ELEM_3(_0, _1, _2, _3, ...) _3
+#define FOUNDATION_PREPROCESSOR_ELEM_4(_0, _1, _2, _3, _4, ...) _4
+#define FOUNDATION_PREPROCESSOR_ELEM_5(_0, _1, _2, _3, _4, _5, ...) _5
+#define FOUNDATION_PREPROCESSOR_ELEM_6(_0, _1, _2, _3, _4, _5, _6, ...) _6
+#define FOUNDATION_PREPROCESSOR_ELEM_7(_0, _1, _2, _3, _4, _5, _6, _7, ...) _7
+#define FOUNDATION_PREPROCESSOR_ELEM_8(_0, _1, _2, _3, _4, _5, _6, _7, _8, ...) _8
+#define FOUNDATION_PREPROCESSOR_ELEM_9(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, ...) _9
+#define FOUNDATION_PREPROCESSOR_ELEM_10(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, ...) _10
+#define FOUNDATION_PREPROCESSOR_ELEM_11(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, ...) _11
+#define FOUNDATION_PREPROCESSOR_ELEM_12(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, ...) _12
+#define FOUNDATION_PREPROCESSOR_ELEM_13(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, ...) _13
+#define FOUNDATION_PREPROCESSOR_ELEM_14(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, ...) _14
+#define FOUNDATION_PREPROCESSOR_ELEM_15(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
+#define FOUNDATION_PREPROCESSOR_ELEM_16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, ...) _16
 
 //Architecture details
 #ifdef __SSE2__
@@ -598,10 +624,8 @@
 #  define FOUNDATION_ARCH_THUMB 1
 #endif
 
-
 //Compilers
 
-// CLang
 #if defined( __clang__ )
 
 #  undef  FOUNDATION_COMPILER_CLANG
@@ -620,17 +644,23 @@
 #  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
 #  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
 #  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
 #  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
 #  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
 #  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
 #  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
+#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
 #  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
 #  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
+#    pragma clang diagnostic push
+#    if __has_warning( "-Wreserved-id-macro" )
+#      pragma clang diagnostic ignored "-Wreserved-id-macro"
+#    endif
 #    define STDCALL
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
@@ -645,14 +675,9 @@
 #      define _MSC_VER 1300
 #    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
+#    pragma clang diagnostic pop
 #  endif
 
-#  include <stdbool.h>
-#  include <stdarg.h>
-
-#  include <wchar.h>
-
-// GCC
 #elif defined( __GNUC__ )
 
 #  undef  FOUNDATION_COMPILER_GCC
@@ -661,18 +686,22 @@
 #  define FOUNDATION_COMPILER_NAME "gcc"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
 
+#  define FOUNDATIN_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+
 #  define FOUNDATION_RESTRICT __restrict
 #  define FOUNDATION_THREADLOCAL __thread
 
 #  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
 #  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
 #  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
 #  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
 #  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
 #  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
 #  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
+#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
 #  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
 #  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct FOUNDATION_ALIGN( alignment ) name
@@ -693,11 +722,6 @@
 #    endif
 #  endif
 
-#  include <stdbool.h>
-#  include <stdarg.h>
-
-#  include <wchar.h>
-
 // Intel
 #elif defined( __ICL ) || defined( __ICC ) || defined( __INTEL_COMPILER )
 
@@ -717,12 +741,14 @@
 #  define FOUNDATION_ATTRIBUTE(x)
 #  define FOUNDATION_ATTRIBUTE2(x,y)
 #  define FOUNDATION_ATTRIBUTE3(x,y,z)
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w)
 
 #  define FOUNDATION_DEPRECATED
 #  define FOUNDATION_FORCEINLINE __forceinline
 #  define FOUNDATION_NOINLINE __declspec( noinline )
 #  define FOUNDATION_PURECALL
 #  define FOUNDATION_CONSTCALL
+#  define FOUNDATION_PRINTFCALL( start, num )
 #  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
@@ -751,6 +777,7 @@
 #  define FOUNDATION_ATTRIBUTE(x)
 #  define FOUNDATION_ATTRIBUTE2(x,y)
 #  define FOUNDATION_ATTRIBUTE3(x,y,z)
+#  define FOUNDATION_ATTRIBUTE4(x,y,z,w)
 
 #  define FOUNDATION_RESTRICT __restrict
 #  define FOUNDATION_THREADLOCAL __declspec( thread )
@@ -760,6 +787,7 @@
 #  define FOUNDATION_NOINLINE __declspec( noinline )
 #  define FOUNDATION_PURECALL
 #  define FOUNDATION_CONSTCALL
+#  define FOUNDATION_PRINTFCALL( start, num )
 #  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
@@ -770,11 +798,14 @@
 #    define STDCALL __stdcall
 #  endif
 
+#  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
+#    define _CRT_SECURE_NO_WARNINGS 1
+#  endif
+
 #  ifndef __cplusplus
-typedef enum
-{
-	false = 0,
-	true  = 1
+typedef enum {
+  false = 0,
+  true  = 1
 } bool;
 #  endif
 
@@ -803,46 +834,72 @@ typedef enum
 #  define FOUNDATION_ALIGNOF
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
 
-typedef enum
-{
+typedef enum {
   false = 0,
   true  = 1
 } bool;
 
 #endif
 
+#if FOUNDATION_PLATFORM_POSIX
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  if __has_warning( "-Wreserved-id-macro" )
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
+#endif
+
+#ifndef _GNU_SOURCE
+#  define _GNU_SOURCE
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
+
+#endif
+
 //Base data types
+#include <stdbool.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <float.h>
 #include <limits.h>
+#if !FOUNDATION_PLATFORM_WINDOWS
+#  include <wchar.h>
+#endif
+#if FOUNDATION_PLATFORM_PNACL || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
+#  include <sys/types.h>
+#endif
 
-typedef float          float32_t;
-typedef double         float64_t;
+#define nullptr ((void*)0)
 
-struct uint128_t
-{
-	uint64_t word[2];
+typedef float  float32_t;
+typedef double float64_t;
+
+struct uint128_t {
+  uint64_t word[2];
 };
 typedef struct uint128_t uint128_t;
 
-struct uint256_t
-{
-	uint64_t word[4];
+struct uint256_t {
+  uint64_t word[4];
 };
 typedef struct uint256_t uint256_t;
 
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
 
-#define FOUNDATION_SIZE_REAL 32
+#define FOUNDATION_SIZE_REAL 4
 
-#if FOUNDATION_SIZE_REAL == 64
-typedef   float64_t         real;
-#  define REAL_C(x)         FLOAT64_C(x)
+#if FOUNDATION_SIZE_REAL == 8
+typedef   float64_t    real;
+#  define REAL_C(x)    FLOAT64_C(x)
 #else
-typedef   float32_t         real;
-#  define REAL_C(x)         FLOAT32_C(x)
+typedef   float32_t    real;
+#  define REAL_C(x)    FLOAT32_C(x)
 #endif
 
 //Pointer size
@@ -864,38 +921,62 @@ typedef   float32_t         real;
 #endif
 
 //Atomic types
-FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 )
-{
-	int32_t nonatomic;
+FOUNDATION_ALIGNED_STRUCT(atomic32_t, 4) {
+  int32_t nonatomic;
 };
 typedef struct atomic32_t atomic32_t;
 
-FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 )
-{
-	int64_t nonatomic;
+FOUNDATION_ALIGNED_STRUCT(atomic64_t, 8) {
+  int64_t nonatomic;
 };
 typedef struct atomic64_t atomic64_t;
 
-FOUNDATION_ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER )
-{
-	void* nonatomic;
+FOUNDATION_ALIGNED_STRUCT(atomicptr_t, FOUNDATION_SIZE_POINTER) {
+  void* nonatomic;
 };
 typedef struct atomicptr_t atomicptr_t;
 
-
-//Pointer arithmetic
+// Pointer arithmetic
 #define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
 #define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
 #define pointer_diff( first, second ) (ptrdiff_t)((const char*)(first) - (const char*)(second))
 
-
 #include <string.h>
 
+// String argument helpers
+#define STRING_CONST(s) (s), (sizeof((s))-1)
+#define STRING_ARGS(s) (s).str, (s).length
+#define STRING_ARGS_CAPACITY(s) (s).str, (s).length, (s).length+1
+#define STRING_FORMAT(s) (int)(s).length, (s).str
 
-// Base limits
-#define FOUNDATION_MAX_PATHLEN    512
+// Misc
+#if FOUNDATION_COMPILER_GCC
+#define FOUNDATION_UNUSED(x) ((void)sizeof((x)))
+#else
+#define FOUNDATION_UNUSED(x) ((void)sizeof((x), 0))
+#endif
 
-#define FOUNDATION_UNUSED(x) (void)(x)
+#define FOUNDATION_UNUSED_ARGS_0(...)
+#define FOUNDATION_UNUSED_ARGS_1(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_2(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_3(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_4(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_5(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_6(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_7(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_8(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_9(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_10(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_9(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_11(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_9(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_10(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_12(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_9(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_10(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_11(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_13(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_9(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_10(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_11(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_12(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_14(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_9(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_10(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_11(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_12(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_13(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_15(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_9(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_10(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_11(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_12(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_13(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_14(__VA_ARGS__))
+#define FOUNDATION_UNUSED_ARGS_16(...) FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_0(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_1(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_2(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_3(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_4(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_5(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_6(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_7(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_8(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_9(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_10(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_11(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_12(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_13(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_14(__VA_ARGS__)); FOUNDATION_UNUSED(FOUNDATION_PREPROCESSOR_ELEM_15(__VA_ARGS__))
+
+#define FOUNDATION_UNUSED_VARARGS(...) FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_UNUSED_VARARGS_WRAP(FOUNDATION_PREPROCESSOR_NARGS(__VA_ARGS__), __VA_ARGS__),)
+#define FOUNDATION_UNUSED_VARARGS_WRAP(n, ...) FOUNDATION_UNUSED_VARARGS_IMPL(n, __VA_ARGS__)
+#define FOUNDATION_UNUSED_VARARGS_IMPL(n, ...) FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_UNUSED_ARGS_, n)(__VA_ARGS__,),)
 
 // Wrappers for platforms that not yet support thread-local storage declarations
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
@@ -906,16 +987,16 @@ typedef __darwin_pthread_key_t _pthread_key_t;
 #else
 typedef int _pthread_key_t;
 #  endif
-FOUNDATION_EXTERN int pthread_key_create( _pthread_key_t*, void (*)(void*) );
-FOUNDATION_EXTERN int pthread_setspecific( _pthread_key_t, const void* );
-FOUNDATION_EXTERN void* pthread_getspecific( _pthread_key_t );
+FOUNDATION_EXTERN int pthread_key_create(_pthread_key_t*, void (*)(void*));
+FOUNDATION_EXTERN int pthread_setspecific(_pthread_key_t, const void*);
+FOUNDATION_EXTERN void* pthread_getspecific(_pthread_key_t);
 
-FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
+FOUNDATION_API void* _allocate_thread_local_block(size_t size);
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static _pthread_key_t _##name##_key = 0; \
 static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) { pthread_key_create( &_##name##_key, 0 ); pthread_setspecific( _##name##_key, (init) ); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
+static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { void* val = pthread_getspecific( get_##name##_key() ); return (type)((uintptr_t)val); } \
 static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
@@ -926,10 +1007,10 @@ static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t k
 #elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
 
 __declspec(dllimport) unsigned long STDCALL TlsAlloc();
-__declspec(dllimport) void* STDCALL TlsGetValue( unsigned long );
-__declspec(dllimport) int STDCALL TlsSetValue( unsigned long, void* );
+__declspec(dllimport) void* STDCALL TlsGetValue(unsigned long);
+__declspec(dllimport) int STDCALL TlsSetValue(unsigned long, void*);
 
-FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
+FOUNDATION_API void* _allocate_thread_local_block(size_t size);
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static unsigned long _##name##_key = 0; \
@@ -955,21 +1036,77 @@ static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { return _thread_#
 
 #endif
 
-
 //Utility functions for large integer types
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t uint128_make( const uint64_t low, const uint64_t high ) { uint128_t u = { { low, high } }; return u; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t uint128_null( void ) { return uint128_make( 0, 0 ); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint128_equal( const uint128_t u0, const uint128_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1]; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint128_is_null( const uint128_t u0 ) { return !u0.word[0] && !u0.word[1]; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
+uint128_make(const uint64_t low, const uint64_t high);
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 ) { uint256_t u = { { w0, w1, w2, w3 } }; return u; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t uint256_null( void ) { return uint256_make( 0, 0, 0, 0 ); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_equal( const uint256_t u0, const uint256_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] && u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3]; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
+uint128_null(void);
 
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint128_equal(const uint128_t u0, const uint128_t u1);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint128_is_null(const uint128_t u0);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
+uint256_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
+uint256_null(void);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint256_equal(const uint256_t u0, const uint256_t u1);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint256_is_null(const uint256_t u0);
+
+//Implementations
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
+uint128_make(const uint64_t low, const uint64_t high) {
+  uint128_t u = { { low, high } };
+  return u;
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
+uint128_null(void) {
+  return uint128_make(0, 0);
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint128_equal(const uint128_t u0, const uint128_t u1) {
+  return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1];
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint128_is_null(const uint128_t u0) {
+  return !u0.word[0] && !u0.word[1];
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
+uint256_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3) {
+  uint256_t u = { { w0, w1, w2, w3 } };
+  return u;
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
+uint256_null(void) {
+  return uint256_make(0, 0, 0, 0);
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint256_equal(const uint256_t u0, const uint256_t u1) {
+  return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] &&
+         u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3];
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint256_is_null(const uint256_t u0) {
+  return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3];
+}
 
 //Format specifiers for 64bit and pointers
-#if defined( _MSC_VER )
+#if FOUNDATION_COMPILER_MSVC
 #  define PRId64       "I64d"
 #  define PRIi64       "I64i"
 #  define PRIdPTR      "Id"
@@ -982,15 +1119,14 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_is_null( co
 #  define PRIuPTR      "Iu"
 #  define PRIxPTR      "Ix"
 #  define PRIXPTR      "IX"
+#  define PRIsize      "Iu"
 #else
-#  ifndef __STDC_FORMAT_MACROS
-#    define __STDC_FORMAT_MACROS
-#  endif
 #  include <inttypes.h>
+#  define PRIsize      "zu"
 #endif
 
-#if FOUNDATION_SIZE_REAL == 64
-#  define PRIREAL      "llf"
+#if FOUNDATION_SIZE_REAL == 8
+#  define PRIREAL      "lf"
 #else
 #  define PRIREAL      "f"
 #endif
@@ -1003,10 +1139,369 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_is_null( co
 #  endif
 #else
 #  if FOUNDATION_SIZE_POINTER == 8
-#    define PRIfixPTR  "016llX"
+#    define PRIfixPTR  "016" PRIXPTR
 #  else
-#    define PRIfixPTR  "08X"
+#    define PRIfixPTR  "08" PRIXPTR
 #  endif
 #endif
 
+#if defined(FOUNDATION_PLATFORM_DOXYGEN) && FOUNDATION_PLATFORM_DOXYGEN
+#  define FOUNDATION_PRINTFCALL(x,y)
+#endif
+
 #include <foundation/build.h>
+
+/*!
+\def FOUNDATION_COMPILE
+Defined to 1 when compiling the foundation library, undefined (or zero) when using the library
+
+\def FOUNDATION_EXTERN
+Declare a variable visible to users of the library
+
+\def FOUNDATION_API
+Declare a function visible to users of the library
+
+\def FOUNDATION_PLATFORM_ANDROID
+Defined to 1 if compiling for android platforms, 0 otherwise
+
+\def FOUNDATION_PLATFORM_IOS
+Defined to 1 if compiling for iOS platforms (iPhone/iPad and simulators), 0 otherwise
+
+\def FOUNDATION_PLATFORM_IOS_SIMULATOR
+Defined to 1 if compiling for iOS simulator (also has FOUNDATION_PLATFORM_IOS defined to 1), 0 otherwise
+
+\def FOUNDATION_PLATFORM_MACOSX
+Defined to 1 if compiling for MacOS X, 0 otherwise
+
+\def FOUNDATION_PLATFORM_LINUX
+Defined to 1 if compiling for Linux, 0 otherwise
+
+\def FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
+Defined to 1 if compiling for Raspberry Pi (also has FOUNDATION_PLATFORM_LINUX defined to 1), 0 otherwise
+
+\def FOUNDATION_PLATFORM_BSD
+Defined to 1 if compiling for BSD, 0 otherwise
+
+\def FOUNDATION_PLATFORM_WINDOWS
+Defined to 1 if compiling for Windows, 0 otherwise
+
+\def FOUNDATION_PLATFORM_PNACL
+Defined to 1 if compiling for PNaCl, 0 otherwise
+
+\def FOUNDATION_PLATFORM_TIZEN
+Defined to 1 if compiling for Tizen, 0 otherwise
+
+\def FOUNDATION_PLATFORM_APPLE
+Defined to 1 if compiling for Apple platforms (MacOS X, iOS, iOS simulator), 0 otherwise
+
+\def FOUNDATION_PLATFORM_POSIX
+Defined to 1 if compiling for POSIX platforms (Linux, BSD, MacOS X, iOS, iOS simulator, Android), 0 otherwise
+
+\def FOUNDATION_PLATFORM_FAMILY_MOBILE
+Defined to 1 if compiling for mobile platforms (iOS, iOS simulator, Android), 0 otherwise
+
+\def FOUNDATION_PLATFORM_FAMILY_DESKTOP
+Defined to 1 if compiling for desktop platforms (Windows, MacOS X, Linux, Raspberry Pi, BSD), 0 otherwise
+
+\def FOUNDATION_PLATFORM_FAMILY_CONSOLE
+Defined to 1 if compiling for console platforms (iOS, iOS simulator, Android, Tizen), 0 otherwise
+
+\def FOUNDATION_ARCH_ARM
+Defined to 1 if compiling for ARM architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_ARM5
+Defined to 1 if compiling for ARMv5 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_ARM6
+Defined to 1 if compiling for ARMv6 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_ARM7
+Defined to 1 if compiling for ARMv7 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_ARM8
+Defined to 1 if compiling for ARMv8 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_ARM_64
+Defined to 1 if compiling for 64-bit ARM architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_ARM8_64
+Defined to 1 if compiling for 64-bit ARMv8 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_X86
+Defined to 1 if compiling for x86 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_X86_64
+Defined to 1 if compiling for x86-64 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_PPC
+Defined to 1 if compiling for PPC architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_PPC_64
+Defined to 1 if compiling for 64-bit PPC architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_IA64
+Defined to 1 if compiling for IA64 architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_MIPS
+Defined to 1 if compiling for MIPS architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_MIPS_64
+Defined to 1 if compiling for 64-bit MIPS architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_SSE2
+Defined to 1 if compiling with SSE2 instruction set enabled, 0 otherwise
+
+\def FOUNDATION_ARCH_SSE3
+Defined to 1 if compiling with SSE3 instruction set enabled, 0 otherwise
+
+\def FOUNDATION_ARCH_SSE4
+Defined to 1 if compiling with SSE4 instruction set enabled, 0 otherwise
+
+\def FOUNDATION_ARCH_SSE4_FMA3
+Defined to 1 if compiling with SSE4 instruction set (including FMA3 instruction) enabled, 0 otherwise
+
+\def FOUNDATION_ARCH_NEON
+Defined to 1 if compiling with NEON instruction set enabled, 0 otherwise
+
+\def FOUNDATION_ARCH_THUMB
+Defined to 1 if compiling for ARM THUMB instruction set, 0 otherwise
+
+\def FOUNDATION_ARCH_ENDIAN_LITTLE
+Defined to 1 if compiling for little endian architectures, 0 otherwise
+
+\def FOUNDATION_ARCH_ENDIAN_BIG
+Defined to 1 if compiling for big endian architectures, 0 otherwise
+
+\def FOUNDATION_COMPILER_CLANG
+Defined to 1 if compiling with clang, 0 otherwise
+
+\def FOUNDATION_COMPILER_GCC
+Defined to 1 if compiling with GCC, 0 otherwise
+
+\def FOUNDATION_COMPILER_MSVC
+Defined to 1 if compiling with Microsoft compiler, 0 otherwise
+
+\def FOUNDATION_COMPILER_INTEL
+Defined to 1 if compiling with Intel compiler, 0 otherwise
+
+\def FOUNDATION_COMPILER_NAME
+A string naming the compiler used
+
+\def FOUNDATION_COMPILER_DESCRIPTION
+A string with a more detailed description of the compiler used, name and version.
+
+\def FOUNDATION_SIZE_REAL
+Declare the size of a real number, in bytes. Either 4 or 8 for 32 or 64 bit float
+point values, respectively. Default to 4 bytes (32 bit).
+
+\def FOUNDATION_SIZE_POINTER
+Defines the size of a pointer on the current architecture, in bytes. Either 4 or 8 bytes
+for 32 and 64 bit architectures, respectively.
+
+\def FOUNDATION_SIZE_WCHAR
+Defines the size of the wchar_t type, in bytes, depending on platform
+
+\def FOUNDATION_DECLARE_THREAD_LOCAL
+Declare a thread-local variable of the given type, name and initial value. Only works
+for types that can be safely cast through a uintptr_t (integers, pointers...). This will
+also declare and implement two inlined functions to set and get value of the variable,
+called get_thread_[name] and set_thread_[name]. For example, to declare a thread-local
+integer and use the get/set functions:
+<code>FOUNDATION_DECLARE_THREAD_LOCAL( int, myvar, 0 );
+set_thread_myvar( 1 );
+int currentval = get_thread_myvar();</code>
+This macro is guaranteed to work across all supported platforms even when TLS is not
+available. For maximum portability use these macros instead of THREADLOCAL.
+\param type    Data type
+\param name    Variable name
+\param init    Initial value
+
+\def FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY
+Declare a thread-local array of the given type, name and array size. This will also declare
+and implement one inlined function to get the array pointer value of the variable, called
+get_thread_[name]. For example, to declare a thread-local integer array and use the get/set
+functions:
+<code>FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( int, myvar, 10 );
+int* currentarr = get_thread_myvar(); //Get thread-local array storage
+currentarr[2] = 10;
+int val = currentarr[2];</code>
+\param type    Data type
+\param name    Variable name
+\param arrsize Size of array in number of elements
+
+\def FOUNDATION_RESTRICT
+Restrict attribute, defined to nothing if compiler does not support restrict
+
+\def FOUNDATION_THREADLOCAL
+Thread local attribute, defined to nothing if the compiler/platform/architecture does not
+support thread local variables. For full platform support, use #FOUNDATION_DECLARE_THREAD_LOCAL
+instead.
+
+\def FOUNDATION_DEPRECATED
+Deprecated attribute, marking a function/variable as deprecated
+
+\def FOUNDATION_FORCEINLINE
+Attribute to force function to be inlined
+
+\def FOUNDATION_NOINLINE
+Attribute to prevent function from being inlined
+
+\def FOUNDATION_PURECALL
+Attribute declaring function to be pure, meaning it has no effects except the return value
+and the return value depends only on the parameters and/or global variables.
+
+\def FOUNDATION_CONSTCALL
+Attribute declaring function to be const, meaning it does not examine any values except
+the arguments, and has no effects except the return value. Basically this is just slightly
+more strict class than the PURECALL attribute, since function is not allowed to read global
+memory. Note that a function that has pointer arguments and examines the data pointed to
+must not be declared const. Likewise, a function that calls a non-const function must
+usually not be const. It does not make sense for a const function to return void.
+
+\def FOUNDATION_ALIGN
+Variable or type attribute declaring the variable/type to have the specifiedmemory alignment
+\param alignment Alignment
+
+\def FOUNDATION_ALIGNOF
+Get the alignment of the given type or variable
+\param type Type or variable
+
+\def FOUNDATION_ALIGNED_STRUCT
+Declare an aligned struct type
+\param name Struct name
+\param alignment Alignment
+
+\typedef float32_t
+Floating point type guaranteed to be 32-bit in size
+
+\typedef float64_t
+Floating point type guaranteed to be 64-bit in size
+
+\typedef real
+Floating point type of the size chosen in build config (32 or 64 bit). See
+#FOUNDATION_SIZE_REAL for declaring size used.
+
+\def FLOAT32_C
+Declare a 32-bit floating point constant. Use for automatic suffixing, for example
+FLOAT32_C(1.0)
+\param x Constant value
+
+\def FLOAT64_C
+Declare a 64-bit floating point constant. Use for automatic suffixing, for example
+FLOAT64_C(1.0)
+\param x Constant value
+
+\def REAL_C
+Declare a real constant. Use for automatic suffixing depending on floating point notation used,
+for example REAL_C(1.0)
+\param x Constant value
+
+\struct uint128_t
+128-bit unsigned integer type
+
+\struct uint256_t
+256-bit unsigned integer type
+
+\struct atomic32_t
+32-bit atomic integer, use atomic_* functions to load/store values atomically
+(see atomic.h documentation)
+
+\struct atomic64_t
+64-bit atomic integer, use atomic_* functions to load/store values atomically
+(see atomic.h documentation)
+
+\struct atomicptr_t
+Atomic pointer, use atomic_* functions to load/store values atomically
+(see atomic.h documentation)
+
+\fn uint128_t uint128_make( const uint64_t low, const uint64_t high )
+Declare a 128-bit unsigned int value from low and high 64-bit components
+\param low     Low 64 bits
+\param high    High 64 bits
+\return        128-bit integer value
+
+\fn bool uint128_equal( const uint128_t u0, const uint128_t u1 )
+Query if two 128-bit unsigned int values are equal
+\param u0      First value
+\param u1      Second value
+\return        true if values are equal, false if not
+
+\fn uint128_t uint128_null( void )
+Declare a zero (null) 128-bit unsigned int value
+\return        Zero 128-bit value
+
+\fn bool uint128_is_null( const uint128_t u0 )
+Query if a 128-bit unsigned int value is zero (null)
+\param u0      value
+\return        true if value is zero (null), false if not
+
+\fn uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 )
+Declare a 256-bit unsigned int value from four 64-bit components
+\param w0      First (lowest) 64 bits
+\param w1      Second 64 bits
+\param w2      Third 64 bits
+\param w3      Fourth (highest) 64 bits
+\return        256-bit integer value
+
+\fn bool uint256_equal( const uint256_t u0, const uint256_t u1 )
+Query if two 256-bit unsigned int values are equal
+\param u0      First value
+\param u1      Second value
+\return        true if values are equal, false if not
+
+\fn uint256_t uint256_null( void )
+Declare a zero (null) 256-bit unsigned int value
+\return        Zero 256-bit value
+
+\fn bool uint256_is_null( const uint256_t u0 )
+Query if a 256-bit unsigned int value is zero (null)
+\param u0      Value
+\return        true if value is zero (null), false if not
+
+\def pointer_offset
+Offset a non-const pointer the given number of bytes, disregarding type of pointer
+\param ptr     Pointer
+\param ofs     Offset in bytes (positive or negative)
+
+\def pointer_offset_const
+Offset a const pointer the given number of bytes, disregarding type of pointer
+\param ptr     Pointer
+\param ofs     Offset in bytes (positive or negative)
+
+\def pointer_diff
+Calculate the offset in bytes between two pointers (from first to second), disregarding
+type of pointer
+\param first   First pointer
+\param second  Second pointer
+
+\def PRIREAL
+Printf-style format declaration for a real variable.
+Use like other standard PRI* format specifiers, like
+<code>string_format( "Value: %" PRIREAL, realval );</code>
+
+\def PRIfixPTR
+Printf-style format declaration for a pointer variable producing a fixed-size string
+(padding with zeroes). Use like other standard PRI* format specifiers, like
+<code>string_format( "Value: %" PRIfixPTR, ptr );</code>
+
+\def STRING_CONST
+Expand to two arguments, string pointer and length, as in <code>s, sizeof(s)-1</code>.
+Useful when declaring constant strings as arguments to string functions, for example
+<code>string_hash(STRING_CONST("foo"))</code>
+\param s Constant string declaration
+
+\def STRING_ARGS
+Expand to two arguments, string pointer and length, as in <code>s.str, s.length</code>.
+Useful when passing a string_t to string functions, for example
+<code>string_t mystr = ...; string_hash(STRING_ARGS(mystr));</code>
+
+\def STRING_ARGS_CAPACITY
+Expand to three arguments, string pointer, length and capacity, as in
+<code>s.str, s.length, s.length+1</code>
+
+\def STRING_FORMAT
+Expand to two arguments, legnth and string pointer, as in <code>(int)s.length, s.str</code>.
+Useful when passing a string_t to a string format argument, for example
+<code>string_t mystr = ...; log_infof(0, STRING_CONST("Mystring: %.*s"), STRING_FORMAT(mystr));</code>
+
+*/

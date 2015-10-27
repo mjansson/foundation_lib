@@ -220,4 +220,5 @@ build.json
 codesign.json
 coveralls.json
 coverallsreport.json
-
+codecov.json
+codecovreport.json
