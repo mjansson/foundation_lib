@@ -38,8 +38,6 @@ void
 hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize) {
 	size_t ibucket;
 
-	if (buckets < HASHMAP_MINBUCKETS)
-		buckets = HASHMAP_MINBUCKETS;
 	if (bucketsize < HASHMAP_MINBUCKETSIZE)
 		bucketsize = HASHMAP_MINBUCKETSIZE;
 

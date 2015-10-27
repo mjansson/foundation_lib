@@ -1012,6 +1012,12 @@ struct hashmap_t {
 	hashmap_node_t* bucket[];
 };
 
+/*! Declare an inlined hashmap of given size */
+#define FOUNDATION_DECLARE_HASHMAP(size) \
+	size_t num_buckets; \
+	size_t num_nodes; \
+	hashmap_node_t* bucket[size]
+
 /*! Node in 32-bit hash table holding key and value for a single node. */
 FOUNDATION_ALIGNED_STRUCT(hashtable32_entry_t, 8) {
 	/*! Hash key for node in hash table */
