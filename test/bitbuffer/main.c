@@ -462,6 +462,8 @@ DECLARE_TEST(bitbuffer, stream) {
 	bitbuffer_t* bitbuffer;
 	stream_t* stream;
 	uint128_t readval128, writeval128;
+	float32_cast_t convread32, convwant32;
+	float64_cast_t convread64, convwant64;
 
 	uint32_t  val32[4]  = { random32(), random32(), random32(), random32() };
 	uint64_t  val64[4]  = { random64(), random64(), random64(), random64() };
@@ -585,25 +587,37 @@ DECLARE_TEST(bitbuffer, stream) {
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival + 3]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 
-#if FOUNDATION_COMPILER_CLANG
-// Yes, we want to compare floats to make sure bitwise write/read matches
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wfloat-equal"
-#endif
+			convread32.fval = bitbuffer_read_float32(bitbuffer);
+			convwant32.fval = valf32[0];
+			EXPECT_EQ(convread32.uival, convwant32.uival);
 
-			EXPECT_EQ(bitbuffer_read_float32(bitbuffer), valf32[0]);
-			EXPECT_EQ(bitbuffer_read_float32(bitbuffer), valf32[1]);
-			EXPECT_EQ(bitbuffer_read_float32(bitbuffer), valf32[2]);
-			EXPECT_EQ(bitbuffer_read_float32(bitbuffer), valf32[3]);
+			convread32.fval = bitbuffer_read_float32(bitbuffer);
+			convwant32.fval = valf32[1];
+			EXPECT_EQ(convread32.uival, convwant32.uival);
 
-			EXPECT_EQ(bitbuffer_read_float64(bitbuffer), valf64[0]);
-			EXPECT_EQ(bitbuffer_read_float64(bitbuffer), valf64[1]);
-			EXPECT_EQ(bitbuffer_read_float64(bitbuffer), valf64[2]);
-			EXPECT_EQ(bitbuffer_read_float64(bitbuffer), valf64[3]);
+			convread32.fval = bitbuffer_read_float32(bitbuffer);
+			convwant32.fval = valf32[2];
+			EXPECT_EQ(convread32.uival, convwant32.uival);
 
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
-#endif
+			convread32.fval = bitbuffer_read_float32(bitbuffer);
+			convwant32.fval = valf32[3];
+			EXPECT_EQ(convread32.uival, convwant32.uival);
+
+			convread64.fval = bitbuffer_read_float64(bitbuffer);
+			convwant64.fval = valf64[0];
+			EXPECT_EQ(convread64.uival, convwant64.uival);
+
+			convread64.fval = bitbuffer_read_float64(bitbuffer);
+			convwant64.fval = valf64[1];
+			EXPECT_EQ(convread64.uival, convwant64.uival);
+
+			convread64.fval = bitbuffer_read_float64(bitbuffer);
+			convwant64.fval = valf64[2];
+			EXPECT_EQ(convread64.uival, convwant64.uival);
+
+			convread64.fval = bitbuffer_read_float64(bitbuffer);
+			convwant64.fval = valf64[3];
+			EXPECT_EQ(convread64.uival, convwant64.uival);
 		}
 
 		bitbuffer_deallocate(bitbuffer);
