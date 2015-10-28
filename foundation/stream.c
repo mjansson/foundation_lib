@@ -350,6 +350,7 @@ stream_size(stream_t* stream) {
 
 void
 stream_determine_binary_mode(stream_t* stream, size_t num) {
+	char fixed_buffer[32];
 	char* buf;
 	size_t cur;
 	size_t actual_read, i;
@@ -361,7 +362,8 @@ stream_determine_binary_mode(stream_t* stream, size_t num) {
 	if (!num)
 		num = 8;
 
-	buf = memory_allocate(0, num, 0, MEMORY_TEMPORARY);
+	buf = (num <= sizeof(fixed_buffer)) ?
+	      fixed_buffer : memory_allocate(0, num, 0, MEMORY_TEMPORARY);
 	memset(buf, 32, num);
 
 	cur = stream_tell(stream);
@@ -379,7 +381,8 @@ stream_determine_binary_mode(stream_t* stream, size_t num) {
 		}
 	}
 
-	memory_deallocate(buf);
+	if (buf != fixed_buffer)
+		memory_deallocate(buf);
 }
 
 bool
