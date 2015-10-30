@@ -474,6 +474,8 @@ typedef struct fs_event_payload_t     fs_event_payload_t;
 typedef struct hashmap_node_t         hashmap_node_t;
 /*! Hash map mapping hash value keys to pointer values */
 typedef struct hashmap_t              hashmap_t;
+/*! Hash map of fixed size */
+typedef struct hashmap_fixed_t        hashmap_fixed_t;
 /*! Entry in a 32-bit hash table */
 typedef struct hashtable32_entry_t    hashtable32_entry_t;
 /*! Entry in a 64-bit hash table */
@@ -1017,6 +1019,13 @@ struct hashmap_t {
 	size_t num_buckets; \
 	size_t num_nodes; \
 	hashmap_node_t* bucket[size]
+
+/*! Hashmap of default size. Initialize with a call to 
+<code>hashmap_fixed_t map;
+hashmap_initialize((hashmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
+struct hashmap_fixed_t {
+	FOUNDATION_DECLARE_HASHMAP(13);
+};
 
 /*! Node in 32-bit hash table holding key and value for a single node. */
 FOUNDATION_ALIGNED_STRUCT(hashtable32_entry_t, 8) {
