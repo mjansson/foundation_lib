@@ -73,7 +73,7 @@ DECLARE_TEST(fs, directory) {
 
 	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testpath)));
 
-#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE
+#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE && !FOUNDATION_PLATFORM_PNACL
 	testlocalpath = string_const(STRING_CONST("local.path"));
 
 	if (!fs_is_directory(STRING_ARGS(testlocalpath)))
@@ -166,7 +166,7 @@ DECLARE_TEST(fs, file) {
 	EXPECT_FALSE(fs_remove_file(STRING_ARGS(testpath)));
 	EXPECT_FALSE(fs_remove_file(STRING_CONST("/this/path/should/not/exist")));
 
-#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE
+#if !FOUNDATION_PLATFORM_FAMILY_CONSOLE && !FOUNDATION_PLATFORM_PNACL
 	teststream = fs_open_file(STRING_CONST("test.local.file.path"), STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE(teststream, 0);
 	EXPECT_TRUE(fs_is_file(STRING_CONST("test.local.file.path")));

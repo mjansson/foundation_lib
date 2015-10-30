@@ -606,7 +606,7 @@ fs_remove_file(const char* path, size_t length) {
 	if (!ref)
 		return 0;
 
-	_pnacl_file_ref->Delete(ref, PP_BlockUntilComplete());
+	result = (_pnacl_file_ref->Delete(ref, PP_BlockUntilComplete()) == PP_OK);
 	_pnacl_core->ReleaseResource(ref);
 
 #else
@@ -678,7 +678,7 @@ fs_remove_directory(const char* path, size_t length) {
 	if (!ref)
 		return 0;
 
-	_pnacl_file_ref->Delete(ref, PP_BlockUntilComplete());
+	result = (_pnacl_file_ref->Delete(ref, PP_BlockUntilComplete()) == PP_OK);
 	_pnacl_core->ReleaseResource(ref);
 
 #else
@@ -1658,9 +1658,7 @@ static void
 _fs_file_truncate(stream_t* stream, size_t length) {
 	stream_file_t* file;
 	string_const_t fspath;
-#if !FOUNDATION_PLATFORM_PNACL
 	size_t cur;
-#endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
 	string_const_t cpath;
@@ -1670,6 +1668,13 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	if (!stream || !(stream->mode & STREAM_OUT) || (stream->type != STREAMTYPE_FILE) ||
 	    (GET_FILE(stream)->fd == 0))
 		return;
+
+	if (length >= _fs_file_size(stream))
+		return;
+
+	cur = _fs_file_tell(stream);
+	if (cur > length)
+		cur = length;
 
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_UNUSED(length);
@@ -1682,14 +1687,10 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 		_pnacl_file_io->Flush(file->fd, PP_BlockUntilComplete());
 	}
 
+	file->size = length;
+	file->position = cur;
+
 #else
-
-	if (length >= _fs_file_size(stream))
-		return;
-
-	cur = _fs_file_tell(stream);
-	if (cur > length)
-		cur = length;
 
 	file = GET_FILE(stream);
 	if (file->fd) {
