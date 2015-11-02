@@ -1125,10 +1125,13 @@ uint256_is_null(const uint256_t u0) {
 #  define PRIsize      "zu"
 #endif
 
+#define PRItick        PRIi64
+#define PRIhash        PRIx64
+
 #if FOUNDATION_SIZE_REAL == 8
-#  define PRIREAL      "lf"
+#  define PRIreal      "lf"
 #else
-#  define PRIREAL      "f"
+#  define PRIreal      "f"
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -1474,10 +1477,20 @@ type of pointer
 \param first   First pointer
 \param second  Second pointer
 
-\def PRIREAL
+\def PRIreal
 Printf-style format declaration for a real variable.
 Use like other standard PRI* format specifiers, like
-<code>string_format( "Value: %" PRIREAL, realval );</code>
+<code>string_format( "Value: %" PRIreal, realval );</code>
+
+\def PRItick
+Printf-style format declaration for a tick_t variable.
+Use like other standard PRI* format specifiers, like
+<code>string_format( "Value: %" PRItick, tickval );</code>
+
+\def PRIhash
+Printf-style format declaration for a hash_t variable.
+Use like other standard PRI* format specifiers, like
+<code>string_format( "Value: %" PRIhash, hashval );</code>
 
 \def PRIfixPTR
 Printf-style format declaration for a pointer variable producing a fixed-size string

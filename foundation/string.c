@@ -1712,7 +1712,7 @@ string_to_real(const char* val, size_t length) {
 	if (length) {
 		FOUNDATION_ASSERT(val);
 		string_copy(buf, sizeof(buf), val, length);
-		sscanf(buf, "%" PRIREAL, &ret);
+		sscanf(buf, "%" PRIreal, &ret);
 	}
 	return ret;
 }
