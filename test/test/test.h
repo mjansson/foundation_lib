@@ -96,12 +96,12 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 #define EXPECT_TYPELE(var, expect, type, fmt) do { if (!((type)(var) <= (type)(expect))) { atomic_thread_fence_sequentially_consistent(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s > %s (%" fmt " > %" fmt ") (at %s:%u)" ), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), (type)(var), (type)(expect), __FILE__, __LINE__ ); RETURN_FAILED_TEST; } } while(0)
 #define EXPECT_TYPELT(var, expect, type, fmt) do { if (!((type)(var)  < (type)(expect))) { atomic_thread_fence_sequentially_consistent(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s >= %s (%" fmt " >= %" fmt ") (at %s:%u)" ), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), (type)(var), (type)(expect), __FILE__, __LINE__ ); RETURN_FAILED_TEST; } } while(0)
 
-#define EXPECT_INTEQ(var, expect) EXPECT_TYPEEQ(var, expect, int, PRIint)
-#define EXPECT_INTNE(var, expect) EXPECT_TYPENE(var, expect, int, PRIint)
-#define EXPECT_INTGE(var, expect) EXPECT_TYPEGE(var, expect, int, PRIint)
-#define EXPECT_INTGT(var, expect) EXPECT_TYPEGT(var, expect, int, PRIint)
-#define EXPECT_INTLE(var, expect) EXPECT_TYPELE(var, expect, int, PRIint)
-#define EXPECT_INTLT(var, expect) EXPECT_TYPELT(var, expect, int, PRIint)
+#define EXPECT_INTEQ(var, expect) EXPECT_TYPEEQ(var, expect, int, "d")
+#define EXPECT_INTNE(var, expect) EXPECT_TYPENE(var, expect, int, "d")
+#define EXPECT_INTGE(var, expect) EXPECT_TYPEGE(var, expect, int, "d")
+#define EXPECT_INTGT(var, expect) EXPECT_TYPEGT(var, expect, int, "d")
+#define EXPECT_INTLE(var, expect) EXPECT_TYPELE(var, expect, int, "d")
+#define EXPECT_INTLT(var, expect) EXPECT_TYPELT(var, expect, int, "d")
 
 #define EXPECT_SIZEEQ(var, expect) EXPECT_TYPEEQ(var, expect, size_t, PRIsize)
 #define EXPECT_SIZENE(var, expect) EXPECT_TYPENE(var, expect, size_t, PRIsize)
