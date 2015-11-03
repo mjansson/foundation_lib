@@ -84,15 +84,30 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 				if (!success)
 					dump_file.length = 0;
 			}
+			else {
+				string_const_t errmsg = system_error_message(0);
+				log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable open get symbol from dbghelp library: %.*s"), STRING_FORMAT(errmsg));
+			}
 
 			FreeLibrary(lib);
 		}
-		if (success)
+		else {
+			string_const_t errmsg = system_error_message(0);
+			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable open dbghelp library: %.*s"), STRING_FORMAT(errmsg));
+		}
+		if (success) {
+			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"), STRING_FORMAT(dump_file));
 			FlushFileBuffers(file);
+		}
 		CloseHandle(file);
-
-		return dump_file;
+		if (success)
+			return dump_file;
 	}
+	else {
+		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable to write mini dump to: %.*s"), STRING_FORMAT(dump_file));
+	}
+
+	//TODO: At least print out the exception records in log	
 
 	return (string_t){0, 0};
 }
@@ -198,6 +213,7 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	int ret = FOUNDATION_CRASH_DUMP_GENERATED;
 	string_t crash_dump_file = string_allocate(0, BUILD_MAX_PATHLEN);
+	crash_dump_file.length = BUILD_MAX_PATHLEN;
 #endif
 
 	//Make sure path is initialized

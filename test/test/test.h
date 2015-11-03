@@ -35,7 +35,7 @@
 #  endif
 #endif
 
-#define FAILED_TEST ((void*)(uintptr_t)1)
+#define FAILED_TEST ((void*)(uintptr_t)-1)
 
 typedef void* (* test_fn)(void);
 

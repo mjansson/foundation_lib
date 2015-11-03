@@ -146,8 +146,9 @@ test_run(void) {
 exit:
 #endif
 
-	log_infof(HASH_TEST, STRING_CONST("Finished test suite: %.*s"),
-	          (int)test_suite.application().short_name.length, test_suite.application().short_name.str);
+	log_infof(HASH_TEST, STRING_CONST("Finished test suite: %.*s%.*s"),
+	          STRING_FORMAT(test_suite.application().short_name),
+	          !_test_failed ? 0 : 9, " (FAILED)");
 }
 
 static void
