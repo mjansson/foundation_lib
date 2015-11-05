@@ -494,20 +494,19 @@ fs_files(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	//POSIX specific implementation of directory listing
-	DIR* dir = opendir(path);
+	char localpath[BUILD_MAX_PATHLEN];
+	string_copy(localpath, sizeof(localpath), path, length);
+	DIR* dir = opendir(localpath);
 	if (dir) {
 		//We have a directory, parse and create virtual file system
 		struct dirent* entry = 0;
 		struct stat st;
-		char foundpath_buffer[BUILD_MAX_PATHLEN];
 
 		memory_context_push(HASH_STREAM);
 
-		string_copy(foundpath_buffer, sizeof(foundpath_buffer), path, length);
-
 		while ((entry = readdir(dir)) != 0) {
 			size_t entrylen = string_length(entry->d_name);
-			string_t thispath = path_append(foundpath_buffer, length, BUILD_MAX_PATHLEN, entry->d_name,
+			string_t thispath = path_append(localpath, length, sizeof(localpath), entry->d_name,
 			                                entrylen);
 			if (!stat(thispath.str, &st) && S_ISREG(st.st_mode))
 				array_push(arr, string_clone(entry->d_name, entrylen));
@@ -1003,7 +1002,7 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 	memory_context_push(HASH_STREAM);
 
 	for (in = 0, nsize = array_size(fnames); in < nsize; ++in) {
-		if (regex_match(pattern, fnames[in].str, fnames[in].length, 0, 0)) {
+		if (regex_match(pattern, STRING_ARGS(fnames[in]), 0, 0)) {
 			array_push(names, fnames[in]);
 			fnames[in] = (string_t) { 0, 0 };
 		}
