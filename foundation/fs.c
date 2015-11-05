@@ -152,6 +152,11 @@ _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
 		}*/
 		return 0;
 	}
+	else if (length && (path[0] != '/')) {
+		//Current working dir is always /tmp on PNaCl
+		*localpath = string_const(path, length);
+		return _pnacl_fs_temporary;
+	}
 
 	log_warnf(HASH_PNACL, WARNING_INVALID_VALUE, STRING_CONST("Invalid file path: %.*s"), (int)length, path);
 
@@ -261,9 +266,10 @@ fs_is_file(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	char buffer[BUILD_MAX_PATHLEN];
+	struct stat st;
 	string_const_t pathstr = _fs_path(path, length);
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
-	struct stat st; memset(&st, 0, sizeof(st));
+	memset(&st, 0, sizeof(st));
 	stat(finalpath.str, &st);
 	if (st.st_mode & S_IFREG)
 		return true;
@@ -311,9 +317,12 @@ fs_is_directory(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
+	char buffer[BUILD_MAX_PATHLEN];
+	struct stat st;
 	string_const_t pathstr = _fs_path(path, length);
-	struct stat st; memset(&st, 0, sizeof(st));
-	stat(pathstr.str, &st);
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
+	memset(&st, 0, sizeof(st));
+	stat(finalpath.str, &st);
 	if (!(st.st_mode & S_IFDIR))
 		return false;
 
@@ -387,15 +396,14 @@ fs_subdirs(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	//POSIX specific implementation of directory listing
-	DIR* dir = opendir(path);
+	char foundpath_buffer[BUILD_MAX_PATHLEN];
+	string_t cleanpath = string_copy(foundpath_buffer, sizeof(foundpath_buffer), path, length);
+	DIR* dir = opendir(cleanpath.str);
 	if (dir) {
 		struct dirent* entry = 0;
 		struct stat st;
-		char foundpath_buffer[BUILD_MAX_PATHLEN];
 
 		memory_context_push(HASH_STREAM);
-
-		string_copy(foundpath_buffer, sizeof(foundpath_buffer), path, length);
 
 		while ((entry = readdir(dir)) != 0) {
 			if (entry->d_name[0] == '.') {
@@ -565,23 +573,12 @@ fs_files(const char* path, size_t length) {
 bool
 fs_remove_file(const char* path, size_t length) {
 	bool result = false;
-	string_const_t abspath, fspath;
-	string_t localpath = { 0, 0 };
-	char abspath_buffer[BUILD_MAX_PATHLEN];
+	string_const_t fspath;
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wpath;
 #endif
 
-	if (!path_is_absolute(path, length)) {
-		string_copy(abspath_buffer, BUILD_MAX_PATHLEN, path, length);
-		localpath = path_absolute(abspath_buffer, length, BUILD_MAX_PATHLEN);
-		abspath = string_to_const(localpath);
-	}
-	else {
-		abspath = string_const(path, length);
-	}
-
-	fspath = _fs_path(abspath.str, abspath.length);
+	fspath = _fs_path(path, length);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -591,10 +588,13 @@ fs_remove_file(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	result = (unlink(fspath.str) == 0);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
+	result = (unlink(finalpath.str) == 0);
 
 #elif FOUNDATION_PLATFORM_PNACL
 
+	string_const_t localpath;
 	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
 	if (!fs)
 		return 0;
@@ -631,8 +631,6 @@ fs_remove_directory(const char* path, size_t length) {
 	size_t i, num;
 
 	localpath = string_copy(abspath_buffer, BUILD_MAX_PATHLEN, path, length);
-	if (!path_is_absolute(STRING_ARGS(localpath)))
-		localpath = path_absolute(STRING_ARGS(localpath), BUILD_MAX_PATHLEN);
 	abspath = string_to_const(localpath);
 
 	fspath = _fs_path(STRING_ARGS(abspath));
@@ -663,7 +661,9 @@ fs_remove_directory(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	result = (rmdir(fspath.str) == 0);
+	//Re-terminate string at base path
+	abspath_buffer[fspathofs + fspath.length] = 0;
+	result = (rmdir(abspath_buffer) == 0);
 
 #elif FOUNDATION_PLATFORM_PNACL
 
@@ -695,8 +695,6 @@ fs_make_directory(const char* path, size_t length) {
 
 	char abspath_buffer[BUILD_MAX_PATHLEN];
 	string_t abspath = string_copy(abspath_buffer, sizeof(abspath_buffer), path, length);
-	if (!path_is_absolute(STRING_ARGS(abspath)))
-		abspath = path_absolute(STRING_ARGS(abspath), sizeof(abspath_buffer));
 	string_const_t fspath = _fs_path(STRING_ARGS(abspath));
 
 	string_const_t localpath;
@@ -724,9 +722,6 @@ fs_make_directory(const char* path, size_t length) {
 	string_const_t fspath;
 
 	localpath = string_copy(abspath_buffer, sizeof(abspath_buffer), path, length);
-	if (!path_is_absolute(STRING_ARGS(localpath)))
-		localpath = path_absolute(STRING_ARGS(localpath), sizeof(abspath_buffer));
-
 	fspath = _fs_path(STRING_ARGS(localpath));
 	localpath = (string_t) { localpath.str + pointer_diff(fspath.str, localpath.str), fspath.length };
 	offset = 1;
@@ -854,9 +849,12 @@ fs_last_modified(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	tick_t tstamp = 0;
+	char buffer[BUILD_MAX_PATHLEN];
+	struct stat st;
 	string_const_t fspath = _fs_path(path, length);
-	struct stat st; memset(&st, 0, sizeof(st));
-	if (stat(fspath.str, &st) >= 0)
+	memset(&st, 0, sizeof(st));
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
+	if (stat(finalpath.str, &st) >= 0)
 		tstamp = (tick_t)st.st_mtime * 1000LL;
 
 	return tstamp;
@@ -918,7 +916,9 @@ fs_touch(const char* path, size_t length) {
 	wstring_deallocate(wpath);
 #elif FOUNDATION_PLATFORM_POSIX
 	string_const_t fspath = _fs_path(path, length);
-	utime(fspath.str, 0);
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
+	utime(finalpath.str, 0);
 #elif FOUNDATION_PLATFORM_PNACL
 
 	string_const_t localpath;

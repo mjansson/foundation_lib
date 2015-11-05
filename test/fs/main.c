@@ -41,6 +41,7 @@ test_fs_config(void) {
 static int
 test_fs_initialize(void) {
 	string_const_t tempdir = environment_temporary_directory();
+	fs_make_directory(STRING_ARGS(tempdir));
 	environment_set_current_working_directory(STRING_ARGS(tempdir));
 	return 0;
 }
@@ -100,12 +101,12 @@ DECLARE_TEST(fs, directory) {
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(longpath)));
 	unterminate(STRING_ARGS(longpath));
 
-	fs_make_directory(STRING_ARGS(longpath));
+	EXPECT_TRUE(fs_make_directory(STRING_ARGS(longpath)));
 	EXPECT_TRUE(fs_is_directory(STRING_ARGS(longpath)));
 
 	subpath = path_directory_name(STRING_ARGS(longpath));
 
-	fs_remove_directory(STRING_ARGS(subpath));
+	EXPECT_TRUE(fs_remove_directory(STRING_ARGS(subpath)));
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(subpath)));
 
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(longpath)));

@@ -240,7 +240,7 @@ _environment_initialize(const application_t application) {
 		                                           string_length(_environment_main_argv[ia])));
 
 	_environment_executable_dir = string_clone(STRING_CONST("/cache"));
-	_environment_current_working_dir = string_clone(STRING_CONST("/cache"));
+	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
 	_environment_home_dir = string_clone(STRING_CONST("/persistent"));
 	_environment_temp_dir = string_clone(STRING_CONST("/tmp"));
 	_environment_executable_path = string_clone(STRING_ARGS(application.short_name));
@@ -358,7 +358,7 @@ environment_current_working_directory(void) {
 		localpath.str[ --localpath.length ] = 0;
 	_environment_current_working_dir = string_clone(STRING_ARGS(localpath));
 #elif FOUNDATION_PLATFORM_PNACL
-	_environment_current_working_dir = string_clone(STRING_CONST("/persistent"));
+	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
 #else
 #  error Not implemented
 #endif
@@ -393,13 +393,7 @@ environment_set_current_working_directory(const char* path, size_t length) {
 	string_deallocate(_environment_current_working_dir.str);
 	_environment_current_working_dir = (string_t) { 0, 0 };
 #elif FOUNDATION_PLATFORM_PNACL
-	//Allow anything
-	char buffer[BUILD_MAX_PATHLEN];
-	string_deallocate(_environment_current_working_dir.str);
-	_environment_current_working_dir = string_copy(buffer, sizeof(buffer), path, length);
-	_environment_current_working_dir = path_absolute(_environment_current_working_dir.str,
-	                                                 _environment_current_working_dir.length, sizeof(buffer));
-	_environment_current_working_dir = string_clone(STRING_ARGS(_environment_current_working_dir));
+	//Allow nothing, always set to /tmp
 #else
 #  error Not implemented
 #endif
