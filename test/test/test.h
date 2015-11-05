@@ -103,6 +103,13 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 #define EXPECT_INTLE(var, expect) EXPECT_TYPELE(var, expect, int, "d")
 #define EXPECT_INTLT(var, expect) EXPECT_TYPELT(var, expect, int, "d")
 
+#define EXPECT_UINTEQ(var, expect) EXPECT_TYPEEQ(var, expect, unsigned int, "u")
+#define EXPECT_UINTNE(var, expect) EXPECT_TYPENE(var, expect, unsigned int, "u")
+#define EXPECT_UINTGE(var, expect) EXPECT_TYPEGE(var, expect, unsigned int, "u")
+#define EXPECT_UINTGT(var, expect) EXPECT_TYPEGT(var, expect, unsigned int, "u")
+#define EXPECT_UINTLE(var, expect) EXPECT_TYPELE(var, expect, unsigned int, "u")
+#define EXPECT_UINTLT(var, expect) EXPECT_TYPELT(var, expect, unsigned int, "u")
+
 #define EXPECT_SIZEEQ(var, expect) EXPECT_TYPEEQ(var, expect, size_t, PRIsize)
 #define EXPECT_SIZENE(var, expect) EXPECT_TYPENE(var, expect, size_t, PRIsize)
 #define EXPECT_SIZEGE(var, expect) EXPECT_TYPEGE(var, expect, size_t, PRIsize)
