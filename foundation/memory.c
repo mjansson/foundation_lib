@@ -75,6 +75,10 @@ static void
 _atomic_allocate_initialize(size_t storagesize) {
 	if (storagesize < 1024)
 		storagesize = _foundation_config.temporary_memory;
+	if (!storagesize) {
+		memset(&_memory_temporary, 0, sizeof(_memory_temporary));
+		return;
+	}
 	_memory_temporary.storage   = memory_allocate(0, storagesize, 16, MEMORY_PERSISTENT);
 	_memory_temporary.end       = pointer_offset(_memory_temporary.storage, storagesize);
 	_memory_temporary.size      = storagesize;
@@ -217,10 +221,10 @@ _memory_guard_verify(void* memory) {
 void*
 memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hint) {
 	void* p = 0;
-	if (hint & MEMORY_TEMPORARY) {
-		align = _memory_get_align_forced(align);
-		if (_memory_temporary.storage && (size + align < _memory_temporary.maxchunk)) {
-			p = _memory_align_pointer(_atomic_allocate_linear(size + align), align);
+	if (_memory_temporary.storage && (hint & MEMORY_TEMPORARY)) {
+		unsigned int tmpalign = _memory_get_align_forced(align);
+		if (size + tmpalign < _memory_temporary.maxchunk) {
+			p = _memory_align_pointer(_atomic_allocate_linear(size + tmpalign), tmpalign);
 			FOUNDATION_ASSERT(!((uintptr_t)p & 1));
 			if (hint & MEMORY_ZERO_INITIALIZED)
 				memset(p, 0, (size_t)size);

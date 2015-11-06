@@ -366,7 +366,7 @@ fs_subdirs(const char* path, size_t length) {
 	WIN32_FIND_DATAW data;
 	wchar_t* wpattern;
 	size_t wsize = length;
-	size_t capacity = length + 2;
+	size_t capacity = length + 4;
 
 	memory_context_push(HASH_STREAM);
 
@@ -477,7 +477,7 @@ fs_files(const char* path, size_t length) {
 	WIN32_FIND_DATAW data;
 	wchar_t* wpattern;
 	size_t wsize = length;
-	size_t capacity = length + 2;
+	size_t capacity = length + 4;
 
 	memory_context_push(HASH_STREAM);
 
@@ -965,7 +965,7 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 	char filename[BUILD_MAX_PATHLEN];
 	wchar_t* wpattern;
 	size_t wsize = length;
-	capacity = length + 2;
+	capacity = length + 4;
 
 	memory_context_push(HASH_STREAM);
 

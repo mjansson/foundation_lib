@@ -53,7 +53,7 @@ foundation_initialize_config(const foundation_config_t config) {
 	_foundation_config.memory_tracker_max    = config.memory_tracker_max    ?
 	                                        config.memory_tracker_max    : (32 * 1024);
 	_foundation_config.temporary_memory      = config.temporary_memory      ?
-	                                        config.temporary_memory      : (512 * 1024);
+	                                        config.temporary_memory      : 0;
 	_foundation_config.fs_monitor_max        = config.fs_monitor_max        ?
 	                                        config.fs_monitor_max        : 16;
 	_foundation_config.error_context_depth   = config.error_context_depth   ?
