@@ -645,7 +645,10 @@ stream_read_string(stream_t* stream) {
 		}
 
 		while (!stream_eos(stream)) {
-			read = stream->vtable->read(stream, buffer, 128);
+			if (outbuffer != buffer)
+				read = stream->vtable->read(stream, buffer, sizeof(buffer));
+			else
+				read = stream->vtable->read(stream, buffer + cursize, sizeof(buffer) - cursize);
 			if (!read)
 				break;
 			for (i = 0; i < read; ++i) {
@@ -664,12 +667,14 @@ stream_read_string(stream_t* stream) {
 					else {
 						FOUNDATION_ASSERT(cursize == 0);   //Or internal assumptions about code flow is incorrect
 						outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
+						memcpy(outbuffer, buffer, i);
 					}
 				}
-				memcpy(outbuffer + cursize, buffer, i);
+				else if (outbuffer != buffer)
+					memcpy(outbuffer + cursize, buffer, i);
 				cursize += i;
 			}
-			if (i < 128) {
+			if (i < sizeof(buffer)) {
 				if ((i + 1) < read)
 					stream_seek(stream, (ssize_t)(1 + i) - (ssize_t)read, STREAM_SEEK_CURRENT);
 				break;
