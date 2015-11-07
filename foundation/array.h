@@ -198,9 +198,12 @@ using memcpy. Position is NOT ranged checked.
 \param pos   Position */
 #define array_erase_memcpy(array, pos) ( \
   _array_verify(array) ? \
-    memcpy((array) + (pos), (array) + (_array_rawsize(array) - 1), \
-        _array_elementsize(array)), \
-      --_array_rawsize(array ) : \
+    ( \
+      ((uint32_t)(pos) != (_array_rawsize(array) - 1) ? \
+        memcpy((array) + (pos), (array) + (_array_rawsize(array) - 1), _array_elementsize(array)) : \
+        0), \
+        --_array_rawsize(array) \
+    ) : \
     0)
 
 /*! Erase element at given position without preserving order, swap-with-last using assignment.

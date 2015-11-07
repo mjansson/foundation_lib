@@ -380,10 +380,12 @@ DECLARE_TEST(array, copy) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.floatval = (float32_t)i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i;
 		combine.basicval.objval = (object_t)(i + 1);
 		combine.intval = i + 2;
@@ -443,9 +445,11 @@ DECLARE_TEST(array, copy) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i;
 		combine.basicval.objval = (object_t)(i + 1);
 		combine.intval = i + 2;
@@ -541,9 +545,11 @@ DECLARE_TEST(array, pushpop) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = 1;
 		basic.objval = 2;
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = 3;
 		combine.basicval.objval = 4;
 		combine.charval = 5;
@@ -618,9 +624,11 @@ DECLARE_TEST(array, pushpop) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i;
 		combine.basicval.objval = (object_t)(i + 1);
 		combine.intval = i + 2;
@@ -713,6 +721,8 @@ DECLARE_TEST(array, pushpop) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
+		memset(&combine, 0, sizeof(combine));
 		for (j = 0; j < 2; ++j) {
 			basic.intval = i + j;
 			basic.objval = (object_t)(i + j + 1);
@@ -809,9 +819,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = 1;
 		basic.objval = 2;
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = 3;
 		combine.basicval.objval = 4;
 		combine.charval = 5;
@@ -891,9 +903,11 @@ DECLARE_TEST(array, inserterase) {
 		int small_neg = -1;
 		int large_neg = -1234;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = 1;
 		basic.objval = 2;
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = 3;
 		combine.basicval.objval = 4;
 		combine.charval = 5;
@@ -937,9 +951,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -986,9 +1002,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -1035,9 +1053,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -1126,9 +1146,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -1226,9 +1248,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -1317,9 +1341,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -1417,9 +1443,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -1508,9 +1536,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
@@ -1614,9 +1644,11 @@ DECLARE_TEST(array, inserterase) {
 		basic_t basic;
 		combine_t combine;
 
+		memset(&basic, 0, sizeof(basic));
 		basic.intval = i;
 		basic.objval = (object_t)(i + 1);
 
+		memset(&combine, 0, sizeof(combine));
 		combine.basicval.intval = i + 2;
 		combine.basicval.objval = (object_t)(i + 3);
 		combine.charval = (char)(i + 4);
