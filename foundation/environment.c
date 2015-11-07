@@ -354,8 +354,8 @@ environment_current_working_directory(void) {
 		return string_const(0, 0);
 	}
 	localpath = path_clean(localpath.str, string_length(localpath.str), localpath.length);
-	if ((localpath.length > 1) && (localpath.str[ localpath.length - 1 ] == '/'))
-		localpath.str[ --localpath.length ] = 0;
+	if ((localpath.length > 1) && (localpath.str[localpath.length - 1] == '/'))
+		localpath.str[--localpath.length] = 0;
 	_environment_current_working_dir = string_clone(STRING_ARGS(localpath));
 #elif FOUNDATION_PLATFORM_PNACL
 	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
