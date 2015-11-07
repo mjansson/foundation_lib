@@ -88,9 +88,10 @@ _atomic_allocate_initialize(size_t storagesize) {
 
 static void
 _atomic_allocate_finalize(void) {
-	if (_memory_temporary.storage)
-		memory_deallocate(_memory_temporary.storage);
+	void* storage = _memory_temporary.storage;
 	memset(&_memory_temporary, 0, sizeof(_memory_temporary));
+	if (storage)
+		memory_deallocate(storage);
 }
 
 static void*
@@ -179,7 +180,6 @@ _memory_preallocate(void) {
 void
 _memory_finalize(void) {
 	memory_set_tracker(_memory_no_tracker);
-
 	_atomic_allocate_finalize();
 	_memory_system.finalize();
 }
