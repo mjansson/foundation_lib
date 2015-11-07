@@ -169,6 +169,19 @@ _thread_unref(thread_t* thread) {
 		objectmap_lookup_unref(_thread_map, thread->id, _thread_destroy);
 }
 
+static void
+_thread_join(object_t id) {
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+	thread_t* thread = GET_THREAD(id);
+	if (thread) {
+		void* result = 0;
+		pthread_join(thread->thread, &result);
+	}
+#else
+	FOUNDATION_UNUSED(id);
+#endif
+}
+
 static int
 _thread_guard_wrapper(void* data) {
 	thread_t* thread = data;
@@ -203,6 +216,8 @@ thread_ref(object_t id) {
 
 void
 thread_destroy(object_t id) {
+	thread_terminate(id);
+	_thread_join(id);
 	_thread_unref(GET_THREAD(id));
 }
 
@@ -486,7 +501,7 @@ bool
 thread_should_terminate(object_t id) {
 	thread_t* thread = GET_THREAD(id);
 	if (thread)
-		return atomic_load32(&thread->terminate)  > 0;
+		return atomic_load32(&thread->terminate) > 0;
 	return true;
 }
 

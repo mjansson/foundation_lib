@@ -17,7 +17,15 @@
 
 Thread management. If you use the foundation library in threads created by other
 means than this thread interface you must remember to call #thread_finalize on thread
-termination to avoid memory leaks. */
+termination to avoid memory leaks.
+
+Normal thread usage is to use the following flow:
+<code>thread = thread_create(...);
+thread_start(thread, data);
+//...do other things...
+//Optional if thread needs signal to terminate
+//thread_terminate(thread);
+thread_destroy(thread);</code> */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -39,8 +47,9 @@ thread_create(thread_fn fn, const char* name, size_t length, thread_priority_t p
 FOUNDATION_API object_t
 thread_ref(object_t thread);
 
-/*! Decrease reference count and destroy thread if it reaches zero. Stops the thread
-if it is running.
+/*! Decrease reference count and destroy thread if it reaches zero (terminates the thread
+if it is running). The destruction of the thread will block until thread terminates, then
+joins the thread to free up system resources.
 \param thread Thread */
 FOUNDATION_API void
 thread_destroy(object_t thread);
