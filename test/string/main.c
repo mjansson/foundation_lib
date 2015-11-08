@@ -259,7 +259,7 @@ DECLARE_TEST(string, allocate) {
 
 		{
 			wchar_t wteststr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xD854, 0xDC53, 0x0032, 0 };
-			string_t utf8_teststr = string_allocate_from_wstring(wteststr, sizeof(wteststr));
+			string_t utf8_teststr = string_allocate_from_wstring(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
 			wchar_t* wchar_teststr = wstring_allocate_from_string(STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wteststr, wchar_teststr));
 			wstring_deallocate(wchar_teststr);
@@ -273,7 +273,7 @@ DECLARE_TEST(string, allocate) {
 #else
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0x3412, 0x03FF, 0 };
 #endif
-			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr));
+			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
 			wchar_t* wchar_teststr = wstring_allocate_from_string(STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wtestcmpstr, wchar_teststr));
 			wstring_deallocate(wchar_teststr);
@@ -287,7 +287,7 @@ DECLARE_TEST(string, allocate) {
 #else
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0xDB03, 0xDC53, 0x0032, 0x3412, 0x03FF, 0 };
 #endif
-			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr));
+			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
 			wchar_t* wchar_teststr = wstring_allocate_from_string(STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wtestcmpstr, wchar_teststr));
 			wstring_deallocate(wchar_teststr);
@@ -351,7 +351,7 @@ DECLARE_TEST(string, allocate) {
 
 		{
 			wchar_t wteststr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xD854, 0xDC53, 0x0032, 0 };
-			string_t utf8_teststr = string_allocate_from_wstring(wteststr, sizeof(wteststr));
+			string_t utf8_teststr = string_allocate_from_wstring(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
 			wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wteststr, wbuffer));
 			string_deallocate(utf8_teststr.str);
@@ -364,7 +364,7 @@ DECLARE_TEST(string, allocate) {
 #else
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0x3412, 0x03FF, 0 };
 #endif
-			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr));
+			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
 			wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wtestcmpstr, wbuffer));
 			EXPECT_EQ(wstring_length(wbuffer), (sizeof(wtestcmpstr)/sizeof(wtestcmpstr[0]))-1);
@@ -379,7 +379,7 @@ DECLARE_TEST(string, allocate) {
 #else
 			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0xDB03, 0xDC53, 0x0032, 0x3412, 0x03FF, 0 };
 #endif
-			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr));
+			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
 			wstring_from_string(wbuffer, 6, STRING_ARGS(utf8_teststr));
 #if FOUNDATION_SIZE_WCHAR == 4
             expected_length = 5;
