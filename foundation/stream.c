@@ -375,7 +375,7 @@ stream_determine_binary_mode(stream_t* stream, size_t num) {
 	for (i = 0; i < actual_read; ++i) {
 		//TODO: What about UTF-8?
 		if (((buf[i] < 0x20) && (buf[i] != 0x09) && (buf[i] != 0x0a) && (buf[i] != 0x0d)) ||
-		    (buf[i] > 0x7e)) {
+		        (buf[i] > 0x7e)) {
 			stream->mode |= STREAM_BINARY;
 			break;
 		}
@@ -787,7 +787,7 @@ stream_read_string_buffer(stream_t* stream, char* outbuffer, size_t size) {
 	if (cursize < size)
 		outbuffer[cursize] = 0;
 
-	return (string_t) { outbuffer, cursize };
+	return (string_t) {outbuffer, cursize};
 }
 
 void

@@ -950,10 +950,10 @@ typedef struct atomicptr_t atomicptr_t;
 #define STRING_FORMAT(s) (int)(s).length, (s).str
 
 // Misc
-#if FOUNDATION_COMPILER_GCC
+#if FOUNDATION_COMPILER_GCC || defined(__COVERITY__)
 #define FOUNDATION_UNUSED(x) ((void)sizeof((x)))
 #else
-#define FOUNDATION_UNUSED(x) (/* coverity[extra_comma] */(void)sizeof((x), 0))
+#define FOUNDATION_UNUSED(x) ((void)sizeof((x), 0))
 #endif
 
 #define FOUNDATION_UNUSED_ARGS_0(...)

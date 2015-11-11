@@ -1564,7 +1564,6 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 	}
 	while (!fd && (retry-- > 0));
 
-
 	if (fd && (mode & STREAM_ATEND)) {
 		if (fseek(fd, 0, SEEK_END))
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to end of stream '%.*s'"),

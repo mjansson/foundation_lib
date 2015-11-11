@@ -37,6 +37,7 @@
 			{
 				"style" : "attach",
 				"pad-oper": false,
+				"pad-header": true,
 				"indent-switches" : false,
 				"indent-cases" : true,
 				"unpad-paren": true,
