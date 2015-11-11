@@ -1565,8 +1565,11 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 	while (!fd && (retry-- > 0));
 
 
-	if (fd && (mode & STREAM_ATEND))
-		fseek(fd, 0, SEEK_END);
+	if (fd && (mode & STREAM_ATEND)) {
+		if (fseek(fd, 0, SEEK_END))
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to end of stream '%.*s'"),
+			          (int)length, path);
+	}
 
 #endif
 
@@ -1615,9 +1618,11 @@ _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 		}
 	}
 #else
-	fseek(GET_FILE(stream)->fd, (long)offset,
-	      (direction == STREAM_SEEK_BEGIN) ? SEEK_SET :
-	      ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR));
+	if (fseek(GET_FILE(stream)->fd, (long)offset,
+	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET :
+	          ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR)))
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"),
+		          (int)offset, (int)direction, STRING_FORMAT(stream->path));
 #endif
 }
 
