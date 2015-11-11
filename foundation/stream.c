@@ -807,7 +807,7 @@ stream_available_read(stream_t* stream) {
 
 uint128_t
 stream_md5(stream_t* stream) {
-	size_t cur, ic, lastc, num;
+	size_t cur, ic, lastc, num, limit;
 	md5_t md5;
 	uint128_t ret = uint128_null();
 	unsigned char buf[1025];
@@ -826,10 +826,11 @@ stream_md5(stream_t* stream) {
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
 
 	md5_initialize(&md5);
-	buf[1024] = 0;
+	limit = sizeof(buf)-1;
+	buf[limit] = 0;
 
 	while (!stream_eos(stream)) {
-		num = stream->vtable->read(stream, buf, 1024);
+		num = stream->vtable->read(stream, buf, limit);
 		if (!num)
 			continue;
 		if (stream->mode & STREAM_BINARY)
@@ -845,11 +846,11 @@ stream_md5(stream_t* stream) {
 			//Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line endings
 			//(for example, one line ending in a single CR and next is empty and ending in a single LF),
 			//it will not work!
-			for (ic = lastc; ic < num; ++ic) {
+			for (ic = lastc; ic < num && ic < limit; ++ic) {
 				bool was_cr = (buf[ic] == '\r');
 				bool was_lf = (buf[ic] == '\n');
 				if (was_cr || was_lf) {
-					if (was_cr && (ic >= 1023))
+					if (was_cr && (ic == limit-1))
 						ignore_lf = true; //Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
 					md5_digest(&md5, buf + lastc, (size_t)(ic - lastc + 1));     //Include the LF
