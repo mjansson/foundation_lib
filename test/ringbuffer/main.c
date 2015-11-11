@@ -169,8 +169,8 @@ DECLARE_TEST(ringbuffer, io) {
 typedef struct {
 	stream_t* stream;
 
-	object_t read_thread;
-	object_t write_thread;
+	thread_t read_thread;
+	thread_t write_thread;
 
 	char*    source_buffer;
 	char*    dest_buffer;
@@ -182,18 +182,16 @@ typedef struct {
 } ringbufferstream_test_t;
 
 static void*
-read_thread(object_t thread, void* arg) {
+read_thread(void* arg) {
 	ringbufferstream_test_t* test = arg;
-	FOUNDATION_UNUSED(thread);
 	stream_read(test->stream, test->dest_buffer, test->buffer_size);
 	test->end_time = time_current();
 	return 0;
 }
 
 static void*
-write_thread(object_t thread, void* arg) {
+write_thread(void* arg) {
 	ringbufferstream_test_t* test = arg;
-	FOUNDATION_UNUSED(thread);
 	test->start_time = time_current();
 	stream_write(test->stream, test->source_buffer, test->buffer_size);
 	return 0;
@@ -232,18 +230,20 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 		test.stream = ringbuffer_stream_allocate(23477, test.buffer_size);
 		EXPECT_NE(test.stream, 0);
 
-		test.read_thread = thread_create(read_thread, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
-		test.write_thread = thread_create(write_thread, STRING_CONST("writer"), THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&test.read_thread, read_thread, &test, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&test.write_thread, write_thread, &test, STRING_CONST("writer"), THREAD_PRIORITY_NORMAL, 0);
 
-		thread_start(test.read_thread, &test);
-		thread_start(test.write_thread, &test);
-		thread_sleep(100);
+		thread_start(&test.read_thread);
+		thread_start(&test.write_thread);
 
-		while (thread_is_running(test.read_thread) || thread_is_running(test.write_thread))
+		while (!thread_is_started(&test.read_thread) || !thread_is_started(&test.write_thread))
 			thread_sleep(10);
 
-		thread_destroy(test.read_thread);
-		thread_destroy(test.write_thread);
+		while (thread_is_running(&test.read_thread) || thread_is_running(&test.write_thread))
+			thread_sleep(10);
+
+		thread_finalize(&test.read_thread);
+		thread_finalize(&test.write_thread);
 
 		for (si = 0; si < test.buffer_size; ++si)
 			EXPECT_EQ(test.source_buffer[si], test.dest_buffer[si]);

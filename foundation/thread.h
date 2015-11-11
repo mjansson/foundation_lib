@@ -16,79 +16,88 @@
 \brief Threads
 
 Thread management. If you use the foundation library in threads created by other
-means than this thread interface you must remember to call #thread_finalize on thread
+means than this thread interface you must remember to call #thread_exit on thread
 termination to avoid memory leaks.
 
 Normal thread usage is to use the following flow:
-<code>thread = thread_create(...);
-thread_start(thread, data);
+<code>thread = thread_allocate(...);
+thread_start(thread);
 //...do other things...
-//Optional if thread needs signal to terminate
-//thread_terminate(thread);
-thread_destroy(thread);</code> */
+thread_join(thread);
+thread_deallocate(thread);</code> */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
-/*! Create new thread.
+/*! Allocate a new thread.
 \param fn Thread execution function
+\param data Argument sent to execution function
 \param name Thread name
 \param length Length of thread name
 \param priority Thread priority
 \param stacksize Thread stack size
-\return New thread object */
-FOUNDATION_API object_t
-thread_create(thread_fn fn, const char* name, size_t length, thread_priority_t priority,
-              unsigned int stacksize);
+\return New thread  */
+FOUNDATION_API thread_t*
+thread_allocate(thread_fn fn, void* data, const char* name, size_t length,
+                thread_priority_t priority, unsigned int stacksize);
 
-/*! Reference thread, explicitly increase the reference count of the thread object.
+/*! Initialize a new thread.
 \param thread Thread
-\return Object handle if thread object is still valid, 0 if thread object is no longer valid */
-FOUNDATION_API object_t
-thread_ref(object_t thread);
+\param fn Thread execution function
+\param data Argument sent to execution function
+\param name Thread name
+\param length Length of thread name
+\param priority Thread priority
+\param stacksize Thread stack size */
+FOUNDATION_API void
+thread_initialize(thread_t* thread, thread_fn fn, void* data, const char* name, size_t length,
+                  thread_priority_t priority, unsigned int stacksize);
 
-/*! Decrease reference count and destroy thread if it reaches zero (terminates the thread
-if it is running). The destruction of the thread will block until thread terminates, then
-joins the thread to free up system resources.
+/* Finalize a thread
 \param thread Thread */
 FOUNDATION_API void
-thread_destroy(object_t thread);
+thread_finalize(thread_t* thread);
 
-/*! Start a thread if it is not already running.
-\param thread Thread
-\param data Argument
-\return true if thread was started, false if error or already running */
-FOUNDATION_API bool
-thread_start(object_t thread, void* data);
-
-/*! Terminate thread execution.
+/* Deallocate a thread
 \param thread Thread */
 FOUNDATION_API void
-thread_terminate(object_t thread);
+thread_deallocate(thread_t* thread);
 
-/*! Query if thread is scheduled for termination.
+/*! Start execution of a thread. Must be paired with a corresponding call
+to #thread_join
 \param thread Thread
-\return true if thread should terminate, false if not (keep running) */
+\return true if successful, false if failure */
 FOUNDATION_API bool
-thread_should_terminate(object_t thread);
+thread_start(thread_t* thread);
 
-/*! Query if thread has been started.
+/*! Join an execution thread and free system resources. Must be paired with a
+corresponding call to #thread_start
+\param thread Thread
+\return Thread exit code */
+FOUNDATION_API void*
+thread_join(thread_t* thread);
+
+/*! Query if thread has started execution
 \param thread Thread
 \return true if started, false if not */
 FOUNDATION_API bool
-thread_is_started(object_t thread);
+thread_is_started(const thread_t* thread);
 
-/*! Query if thread is running.
+/*! Query if thread is running
 \param thread Thread
 \return true if running, false if not */
 FOUNDATION_API bool
-thread_is_running(object_t thread);
+thread_is_running(const thread_t* thread);
 
-/*! Query if object is a valid thread.
-\param thread Thread object
-\return true if a valid thread, false if not */
+/*! Signal thread (post thread semaphore)
+\param thread Thread */
+FOUNDATION_API void
+thread_signal(thread_t* thread);
+
+/*! Query if calling thread is signalled
+\return true if signalled, false if not */
 FOUNDATION_API bool
-thread_is_thread(object_t thread);
+thread_is_signalled(void);
 
 /*! Query if calling thread is the main thread.
 \return true if main thread, false if not */
@@ -109,17 +118,6 @@ thread_set_name(const char* name, size_t length);
 \param mask CPU core mask for which the thread is allowed to execute on */
 FOUNDATION_API void
 thread_set_hardware(uint64_t mask);
-
-/*! Get thread result (exit value).
-\param thread Thread handle
-\return Thread result */
-FOUNDATION_API void*
-thread_result(object_t thread);
-
-/*! Get object handle for calling thread.
-\return Thread object, null if not a foundation-created thread (like main application thread) */
-FOUNDATION_API object_t
-thread_self(void);
 
 /*! Get name for calling thread.
 \return Thread name */
@@ -147,7 +145,7 @@ thread_yield(void);
 
 /*! Finalize on thread exit and free thread local resources. */
 FOUNDATION_API void
-thread_finalize(void);
+thread_exit(void);
 
 #if FOUNDATION_PLATFORM_ANDROID
 

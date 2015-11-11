@@ -59,12 +59,11 @@ typedef struct {
 } producer64_arg_t;
 
 static void*
-producer32_thread(object_t thread, void* arg) {
+producer32_thread(void* arg) {
 	producer32_arg_t* parg = arg;
 	hashtable32_t* table = parg->table;
 	uint32_t key_offset = parg->key_offset;
 	uint32_t key;
-	FOUNDATION_UNUSED(thread);
 
 	for (key = 1; key < parg->key_num; ++key)
 		hashtable32_set(table, key + key_offset, key + key_offset);
@@ -83,12 +82,11 @@ producer32_thread(object_t thread, void* arg) {
 }
 
 static void*
-producer64_thread(object_t thread, void* arg) {
+producer64_thread(void* arg) {
 	producer64_arg_t* parg = arg;
 	hashtable64_t* table = parg->table;
 	uint64_t key_offset = parg->key_offset;
 	uint64_t key;
-	FOUNDATION_UNUSED(thread);
 
 	for (key = 1; key < parg->key_num; ++key)
 		hashtable64_set(table, key + key_offset, key + key_offset);
@@ -139,7 +137,7 @@ DECLARE_TEST(hashtable, 32bit_basic) {
 }
 
 DECLARE_TEST(hashtable, 32bit_threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	producer32_arg_t args[32];
 	unsigned int i, j;
 	size_t num_threads = 32;
@@ -154,19 +152,17 @@ DECLARE_TEST(hashtable, 32bit_threaded) {
 		args[i].key_offset = 1 + (i * 16789);
 		args[i].key_num = 65535;
 
-		thread[i] = thread_create(producer32_thread, STRING_CONST("table_producer"), THREAD_PRIORITY_NORMAL,
-		                          0);
-		thread_start(thread[i], args + i);
+		thread_initialize(&thread[i], producer32_thread, args + i, STRING_CONST("table_producer"),
+		                  THREAD_PRIORITY_NORMAL, 0);
 	}
+	for (i = 0; i < num_threads; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
 
-	for (i = 0; i < num_threads; ++i) {
-		thread_terminate(thread[i]);
-		thread_destroy(thread[i]);
-	}
-
-	test_wait_for_threads_exit(thread, num_threads);
+	for (i = 0; i < num_threads; ++i)
+		thread_finalize(&thread[i]);
 
 	for (i = 0; i < num_threads; ++i) {
 		for (j = 1; j < 65535; ++j) {
@@ -213,7 +209,7 @@ DECLARE_TEST(hashtable, 64bit_basic) {
 }
 
 DECLARE_TEST(hashtable, 64bit_threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	producer64_arg_t args[32];
 	unsigned int i, j;
 	size_t num_threads = 0;
@@ -228,19 +224,17 @@ DECLARE_TEST(hashtable, 64bit_threaded) {
 		args[i].key_offset = 1 + (i * 16789);
 		args[i].key_num = 65535;
 
-		thread[i] = thread_create(producer64_thread, STRING_CONST("table_producer"), THREAD_PRIORITY_NORMAL,
-		                          0);
-		thread_start(thread[i], args + i);
+		thread_initialize(&thread[i], producer64_thread, args + i, STRING_CONST("table_producer"),
+		                  THREAD_PRIORITY_NORMAL, 0);
 	}
+	for (i = 0; i < num_threads; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
 
-	for (i = 0; i < num_threads; ++i) {
-		thread_terminate(thread[i]);
-		thread_destroy(thread[i]);
-	}
-
-	test_wait_for_threads_exit(thread, num_threads);
+	for (i = 0; i < num_threads; ++i)
+		thread_finalize(&thread[i]);
 
 	for (i = 0; i < num_threads; ++i) {
 		for (j = 1; j < 65535; ++j) {

@@ -56,7 +56,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 	char buffer[256];
-	string_t namestr =string_copy(buffer, sizeof(buffer), name, length);
+	string_t namestr = string_copy(buffer, sizeof(buffer), name, length);
 	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, namestr.str);
 }
 

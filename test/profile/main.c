@@ -142,11 +142,11 @@ DECLARE_TEST(profile, output) {
 }
 
 static void*
-_profile_fail_thread(object_t thread, void* arg) {
+_profile_fail_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	thread_sleep(10);
 
-	while (!thread_should_terminate(thread)) {
+	while (!thread_is_signalled()) {
 		profile_log(STRING_CONST("Thread message"));
 
 		profile_begin_block(STRING_CONST("Thread block"));
@@ -181,7 +181,7 @@ _profile_fail_thread(object_t thread, void* arg) {
 }
 
 DECLARE_TEST(profile, thread) {
-	object_t thread[32];
+	thread_t thread[32];
 	int ith;
 	uint64_t frame;
 	error_t err = error();
@@ -195,11 +195,11 @@ DECLARE_TEST(profile, thread) {
 
 	log_info(HASH_TEST,
 	         STRING_CONST("This test will intentionally run out of memory in profiling system"));
-	for (ith = 0; ith < 32; ++ith) {
-		thread[ith] = thread_create(_profile_fail_thread, STRING_CONST("profile_thread"),
-		                            THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], 0);
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_initialize(&thread[ith], _profile_fail_thread, 0, STRING_CONST("profile_thread"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < 32; ++ith)
+		thread_start(&thread[ith]);
 
 	test_wait_for_threads_startup(thread, 32);
 
@@ -208,13 +208,13 @@ DECLARE_TEST(profile, thread) {
 		profile_end_frame(frame);
 	}
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread_terminate(thread[ith]);
-		thread_destroy(thread[ith]);
-		thread_yield();
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_signal(&thread[ith]);
 
-	test_wait_for_threads_exit(thread, 32);
+	test_wait_for_threads_finish(thread, 32);
+
+	for (ith = 0; ith < 32; ++ith)
+		thread_finalize(&thread[ith]);
 
 	thread_sleep(1000);
 
@@ -244,11 +244,11 @@ _profile_file_writer(void* buffer, size_t size) {
 }
 
 static void*
-_profile_stream_thread(object_t thread, void* arg) {
+_profile_stream_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	thread_yield();
 
-	while (!thread_should_terminate(thread)) {
+	while (!thread_is_signalled()) {
 		profile_log(STRING_CONST("Thread message"));
 
 		profile_begin_block(STRING_CONST("Thread block"));
@@ -292,7 +292,7 @@ _profile_stream_thread(object_t thread, void* arg) {
 }
 
 DECLARE_TEST(profile, stream) {
-	object_t thread[32];
+	thread_t thread[32];
 	int ith;
 	uint64_t frame;
 	string_t filename;
@@ -311,18 +311,18 @@ DECLARE_TEST(profile, stream) {
 	profile_set_output_wait(10);
 	profile_enable(true);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread[ith] = thread_create(_profile_stream_thread, STRING_CONST("profile_thread"),
-		                            THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], 0);
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_initialize(&thread[ith], _profile_stream_thread, 0, STRING_CONST("profile_thread"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < 32; ++ith)
+		thread_start(&thread[ith]);
 
 	test_wait_for_threads_startup(thread, 32);
 
 	for (frame = 0; frame < 1000; ++frame) {
 		thread_sleep(16);
 		profile_log(
-		  STRING_CONST("This is a really long profile log line that should break into multiple profile blocks automatically without causing any issues whatsoever if everything works as expected which it should or the code needs to be fixed"));
+		    STRING_CONST("This is a really long profile log line that should break into multiple profile blocks automatically without causing any issues whatsoever if everything works as expected which it should or the code needs to be fixed"));
 		profile_end_frame(frame++);
 		if ((frame % 30) == 0) {
 			profile_enable(false);
@@ -331,13 +331,13 @@ DECLARE_TEST(profile, stream) {
 		}
 	}
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread_terminate(thread[ith]);
-		thread_destroy(thread[ith]);
-		thread_yield();
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_signal(&thread[ith]);
 
-	test_wait_for_threads_exit(thread, 32);
+	test_wait_for_threads_finish(thread, 32);
+
+	for (ith = 0; ith < 32; ++ith)
+		thread_finalize(&thread[ith]);
 
 	profile_end_frame(frame++);
 	profile_set_output_wait(100);
@@ -351,7 +351,7 @@ DECLARE_TEST(profile, stream) {
 
 	stream_deallocate(_profile_stream);
 
-	//TODO: Validate that output is sane
+//TODO: Validate that output is sane
 	log_debugf(HASH_TEST, STRING_CONST("Generated %" PRId64 " blocks"),
 	           atomic_load64(&_profile_generated_blocks));
 

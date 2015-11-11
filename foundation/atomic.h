@@ -40,13 +40,13 @@ system */
 \param src   Value
 \return      Current value */
 static FOUNDATION_FORCEINLINE int32_t
-atomic_load32(atomic32_t* src);
+atomic_load32(const atomic32_t* src);
 
 /*! Atomically load 64 bit value
 \param src   Value
 \return      Current value */
 static FOUNDATION_FORCEINLINE int64_t
-atomic_load64(atomic64_t* src);
+atomic_load64(const atomic64_t* src);
 
 /*! Atomically load pointer value
 \param src   Value
@@ -198,12 +198,12 @@ FOUNDATION_API bool    __foundation_sync_bool_compare_and_swap_8(int64_t* val, i
 #endif
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_load32(atomic32_t* val) {
+atomic_load32(const atomic32_t* val) {
 	return val->nonatomic;
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_load64(atomic64_t* val) {
+atomic_load64(const atomic64_t* val) {
 #if FOUNDATION_ARCH_X86
 	int64_t result;
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL

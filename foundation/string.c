@@ -332,7 +332,7 @@ string_append_fragment(char* str, size_t length, size_t capacity, const char* su
 	if (total_length >= capacity) {
 		if (length >= capacity)
 			length = capacity - 1;
-		total_length = capacity ? capacity - 1 : 0;
+		total_length = capacity - 1;
 		suffix_length = capacity - length - 1;
 	}
 
@@ -396,7 +396,7 @@ string_prepend_fragment(char* str, size_t length, size_t capacity, const char* p
 	if (total_length >= capacity) {
 		if (length >= capacity)
 			length = capacity - 1;
-		total_length = capacity ? capacity - 1 : 0;
+		total_length = capacity - 1;
 		prefix_mod = capacity - length - 1;
 		prefix_offset = prefix_length - prefix_mod;
 		prefix_length = prefix_mod;
@@ -805,10 +805,10 @@ string_ends_with(const char* str, size_t length, const char* suffix, size_t suff
 
 bool
 string_equal(const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_length) {
-	if (rhs_length && lhs_length) {
+	if (rhs_length && (lhs_length == rhs_length)) {
 		FOUNDATION_ASSERT(rhs);
 		FOUNDATION_ASSERT(lhs);
-		return (rhs_length == lhs_length) && (memcmp(rhs, lhs, rhs_length) == 0);
+		return (memcmp(rhs, lhs, rhs_length) == 0);
 	}
 	return (!rhs_length && !lhs_length);
 }

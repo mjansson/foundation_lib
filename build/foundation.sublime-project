@@ -36,7 +36,7 @@
 			"options_default":
 			{
 				"style" : "attach",
-				"pad-oper": true,
+				"pad-oper": false,
 				"indent-switches" : false,
 				"indent-cases" : true,
 				"unpad-paren": true,

@@ -608,15 +608,13 @@ stream_read_string(stream_t* stream) {
 				if (!binary && ((c == ' ') || (c == '\n') || (c == '\r') || (c == '\t')))
 					break;
 				if (cursize + 1 >= outsize) {
-					if (!outbuffer) {
-						outsize += 512;
-						if (outbuffer != buffer) {
-							outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize);
-						}
-						else {
-							outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
-							memcpy(outbuffer, buffer, sizeof(buffer));
-						}
+					outsize += 512;
+					if (outbuffer != buffer) {
+						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize);
+					}
+					else {
+						outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
+						memcpy(outbuffer, buffer, sizeof(buffer));
 					}
 				}
 				outbuffer[cursize++] = c;
@@ -819,7 +817,7 @@ stream_md5(stream_t* stream) {
 	if (stream->vtable->md5)
 		return stream->vtable->md5(stream);
 
-	if (!stream || stream_is_sequential(stream) || !(stream->mode & STREAM_IN))
+	if (stream_is_sequential(stream) || !(stream->mode & STREAM_IN))
 		return ret;
 
 	FOUNDATION_ASSERT(stream->vtable->read);

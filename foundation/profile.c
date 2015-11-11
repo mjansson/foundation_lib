@@ -76,7 +76,8 @@ static int              _profile_enable;
 static profile_write_fn _profile_write;
 static uint64_t         _profile_num_blocks;
 static unsigned int     _profile_wait = 100;
-static object_t         _profile_io_thread;
+static thread_t         _profile_io_thread;
+static semaphore_t      _profile_io_exit;
 
 FOUNDATION_DECLARE_THREAD_LOCAL(int32_t, profile_block, 0)
 
@@ -271,7 +272,7 @@ _profile_process_root_block(void) {
 }
 
 static void*
-_profile_io(object_t thread, void* arg) {
+_profile_io(void* arg) {
 	unsigned int system_info_counter = 0;
 	profile_block_t system_info;
 	FOUNDATION_UNUSED(arg);
@@ -280,8 +281,7 @@ _profile_io(object_t thread, void* arg) {
 	system_info.data.start = time_ticks_per_second();
 	string_copy(system_info.data.name, sizeof(system_info.data.name), "sysinfo", 7);
 
-	while (!thread_should_terminate(thread)) {
-		thread_sleep(_profile_wait);
+	while (!semaphore_try_wait(&_profile_io_exit, _profile_wait)) {
 
 		if (!atomic_load32(&_profile_root))
 			continue;
@@ -344,11 +344,15 @@ profile_initialize(const char* identifier, size_t length, void* buffer, size_t s
 	_profile_num_blocks = num_blocks;
 	_profile_identifier = string_const(identifier, length);
 	_profile_blocks = root;
-	atomic_store32(&_profile_free,
-	               1);   //TODO: Currently 0 is a no-block identifier, so we waste the first block
+	//TODO: Currently 0 is a no-block identifier, so we waste the first block
+	atomic_store32(&_profile_free, 1);
 	atomic_store32(&_profile_counter, 128);
 	_profile_ground_time = time_current();
 	set_thread_profile_block(0);
+
+	semaphore_initialize(&_profile_io_exit, 0);
+	thread_initialize(&_profile_io_thread, _profile_io, 0, STRING_CONST("profile_io"),
+	                  THREAD_PRIORITY_BELOWNORMAL, 0);
 
 	log_debugf(0, STRING_CONST("Initialize profiling system with %u blocks (%" PRIsize "KiB)"),
 	           num_blocks, size / 1024);
@@ -358,9 +362,9 @@ void
 profile_finalize(void) {
 	profile_enable(0);
 
-	while (thread_is_thread(_profile_io_thread))
-		thread_sleep(1);
-	_profile_io_thread = 0;
+	semaphore_post(&_profile_io_exit);
+	thread_finalize(&_profile_io_thread);
+	semaphore_try_wait(&_profile_io_exit, 0);
 
 	//Discard and free up blocks remaining in queue
 	_profile_thread_finalize();
@@ -375,7 +379,7 @@ profile_finalize(void) {
 		if (atomic_load32(&_profile_root))
 			log_error(0, ERROR_INTERNAL_FAILURE,
 			          STRING_CONST("Profile module state inconsistent on finalize, "
-			          	           "at least one root block still allocated/active"));
+			                       "at least one root block still allocated/active"));
 
 		while (free_block) {
 			profile_block_t* block = GET_BLOCK(free_block);
@@ -394,8 +398,8 @@ profile_finalize(void) {
 			//since at least one block will be lost in space
 			log_errorf(0, ERROR_INTERNAL_FAILURE,
 			           STRING_CONST("Profile module state inconsistent on finalize, lost blocks "
-			           	            "(found %" PRIu64 " of %" PRIu64 ")"),
-			                        num_blocks, _profile_num_blocks);
+			                        "(found %" PRIu64 " of %" PRIu64 ")"),
+			           num_blocks, _profile_num_blocks);
 		}
 	}
 
@@ -422,24 +426,15 @@ profile_enable(bool enable) {
 	bool is_enabled = enable;
 
 	if (is_enabled && !was_enabled) {
-		_profile_enable = 1;
-
 		//Start output thread
-		_profile_io_thread = thread_create(_profile_io, STRING_CONST("profile_io"),
-		                                   THREAD_PRIORITY_BELOWNORMAL, 0);
-		thread_start(_profile_io_thread, 0);
-
-		while (!thread_is_running(_profile_io_thread))
-			thread_yield();
+		_profile_enable = 1;
+		thread_start(&_profile_io_thread);
 	}
 	else if (!is_enabled && was_enabled) {
 		//Stop output thread
-		thread_terminate(_profile_io_thread);
-		thread_destroy(_profile_io_thread);
-
-		while (thread_is_running(_profile_io_thread))
-			thread_yield();
-
+		semaphore_post(&_profile_io_exit);
+		thread_join(&_profile_io_thread);
+		semaphore_try_wait(&_profile_io_exit, 0);
 		_profile_enable = 0;
 	}
 }
@@ -632,6 +627,7 @@ _profile_thread_finalize(void) {
 			break;
 		}
 		profile_end_block();
+		last_block = block_index;
 	}
 #endif
 }

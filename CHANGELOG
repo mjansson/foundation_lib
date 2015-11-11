@@ -1,4 +1,11 @@
 
+1.4.1
+
+Thread API change. Threads are now explicit structures instead of reference counted
+resources. Thread notification changed to a signal state semaphore. Finalizing a
+thread will join the thread and free resources.
+
+
 1.4.0
 
 Major API changes, 1.4.x is not in any way compatible with previous releases.

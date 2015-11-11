@@ -517,6 +517,8 @@ typedef struct stream_ringbuffer_t    stream_ringbuffer_t;
 /*! Vtable for streams providing stream type specific implementations
 of stream operations */
 typedef struct stream_vtable_t        stream_vtable_t;
+/*! Thread */
+typedef struct thread_t               thread_t;
 /*! Version declaration */
 typedef union  version_t              version_t;
 /*! Library configuration block controlling limits, functionality and memory
@@ -631,7 +633,7 @@ typedef void (* profile_read_fn)(void* data, size_t size);
 \param thread Thread object handle
 \param arg Argument passed by caller when starting the thread
 \return Implementation specific data which can be obtained through thread_result */
-typedef void* (* thread_fn)(object_t thread, void* arg);
+typedef void* (* thread_fn)(void* arg);
 
 /*! Any function to be used in conjunction with the crash guard functionality
 of the library should have this prototype to allow the crash guard to catch
@@ -1273,6 +1275,40 @@ struct semaphore_t {
 };
 
 #endif
+
+/*! Thread representation */
+struct thread_t {
+	/*! OS specific ID */
+	uint64_t osid;
+	/*! Buffer for name string */
+	char namebuffer[32];
+	/*! Name string */
+	string_const_t name;
+	/*! Thread priority */
+	thread_priority_t priority;
+	/*! Stack size */
+    unsigned int stacksize;
+	/*! Thread execution function */
+	thread_fn fn;
+	/*! Argument given to thread execution function */
+	void* arg;
+	/*! Result code from thread execution function */
+	void* result;
+	/*! Thread state */
+	atomic32_t state;
+	/*! Notification semaphore */
+	semaphore_t signal;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	/*! OS handle */
+	uintptr_t handle;
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+	/*! OS handle */
+	pthread_t thread;
+#else
+#  error Not implemented
+#endif
+};
 
 /*! Declares the base stream data layout. Stream structures should be 8-byte align for
 platform compatibility. Use the macro as first declaration in a stream struct:
