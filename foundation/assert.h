@@ -240,7 +240,7 @@ to remain safe and properly evaluated even when asserts are statically disabled.
 \param cond Assert condition
 \param msg  Assert "message" identifier which should be unquoted on the form
             <code>some_kind_of_message</code> */
-#if FOUNDATION_COMPILER_CLANG || (FOUNDATION_COMPILER_GCC && (FOUNDATIN_GCC_VERSION >= 40600))
+#if FOUNDATION_COMPILER_CLANG || (FOUNDATION_COMPILER_GCC && (FOUNDATION_GCC_VERSION >= 40600))
 #  define FOUNDATION_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #elif FOUNDATION_COMPILER_MSVC && ( _MSC_VER > 1600 )
 #  define FOUNDATION_STATIC_ASSERT(cond, msg) static_assert(cond, msg)

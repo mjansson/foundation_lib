@@ -953,7 +953,7 @@ typedef struct atomicptr_t atomicptr_t;
 #if FOUNDATION_COMPILER_GCC || defined(__COVERITY__)
 #define FOUNDATION_UNUSED(x) ((void)sizeof((x)))
 #else
-#define FOUNDATION_UNUSED(x) ((void)sizeof((x), 0))
+#define FOUNDATION_UNUSED(x) (/*lint --e{505,550,818,866} */(void)sizeof((x), 0))
 #endif
 
 #define FOUNDATION_UNUSED_ARGS_0(...)

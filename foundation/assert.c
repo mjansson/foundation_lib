@@ -12,7 +12,6 @@
 
 #include <foundation/foundation.h>
 
-#include <stdio.h>
 #include <stdarg.h>
 
 #define ASSERT_BUFFER_SIZE 1024

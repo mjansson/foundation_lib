@@ -319,7 +319,7 @@ typedef enum {
 #define MEMORY_PERSISTENT       0
 /*! Memory hint, memory is temporary (extremely short lived and generally freed
 before function returns or scope ends) */
-#define MEMORY_TEMPORARY        (1U<<0)
+#define MEMORY_TEMPORARY        1U
 /*! Memory hint, memory allocation is local to the calling thread */
 #define MEMORY_THREAD           (1U<<1)
 /*! Memory flag, memory should be allocated in low 32-bit address space */
@@ -328,7 +328,7 @@ before function returns or scope ends) */
 #define MEMORY_ZERO_INITIALIZED (1U<<3)
 
 /*! Event flag, event is delayed and will be delivered at a later timestamp */
-#define EVENTFLAG_DELAY (1U<<0)
+#define EVENTFLAG_DELAY 1U
 
 /*! Application flag, application is a command line utility and should not have
 a normal windowing system interaction loop */
@@ -337,7 +337,7 @@ a normal windowing system interaction loop */
 #define APPLICATION_DAEMON  (1U<<1)
 
 /*! Stream mode/flag, stream is readable */
-#define STREAM_IN       (1U<<0)
+#define STREAM_IN       1U
 /*! Stream mode/flag, stream is writable */
 #define STREAM_OUT      (1U<<1)
 /*! Stream flag, stream is truncated on open */
