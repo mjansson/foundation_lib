@@ -757,10 +757,12 @@ static void
 _memory_tracker_track(void* addr, size_t size) {
 	if (addr) do {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
-			if (tag >= (int32_t)_foundation_config.memory_tracker_max) {
+			while (tag >= (int32_t)_foundation_config.memory_tracker_max) {
 				int32_t newtag = tag % (int32_t)_foundation_config.memory_tracker_max;
-				atomic_cas32(&_memory_tag_next, newtag, tag + 1);
-				tag = newtag;
+				if (atomic_cas32(&_memory_tag_next, newtag, tag + 1))
+					tag = newtag;
+				else
+					tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			}
 			if (!atomic_loadptr(&_memory_tags[ tag ].address) &&
 			    atomic_cas_ptr(&_memory_tags[ tag ].address, addr, 0)) {

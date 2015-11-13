@@ -47,12 +47,11 @@ test_pipe_finalize(void) {
 }
 
 static void*
-read_thread(object_t thread, void* arg) {
+read_thread(void* arg) {
 	stream_t* pipe = arg;
 	int i;
 	unsigned char dest_buffer[256];
 	uint64_t was_read, was_write;
-	FOUNDATION_UNUSED(thread);
 
 	for (i = 0; i < 64; ++i) {
 		was_read = stream_read(pipe, dest_buffer + i * 4, 4);
@@ -84,12 +83,11 @@ read_thread(object_t thread, void* arg) {
 }
 
 static void*
-write_thread(object_t thread, void* arg) {
+write_thread(void* arg) {
 	stream_t* pipe = arg;
 	unsigned char src_buffer[256];
 	int i;
 	uint64_t was_read, was_write;
-	FOUNDATION_UNUSED(thread);
 
 	for (i = 0; i < 256; ++i)
 		src_buffer[i] = (unsigned char)i;
@@ -128,8 +126,8 @@ write_thread(object_t thread, void* arg) {
 
 DECLARE_TEST(pipe, readwrite) {
 	stream_t* pipe;
-	object_t reader;
-	object_t writer;
+	thread_t reader;
+	thread_t writer;
 
 	if (system_platform() == PLATFORM_PNACL)
 		return 0;
@@ -158,29 +156,31 @@ DECLARE_TEST(pipe, readwrite) {
 	EXPECT_EQ(stream_tell(pipe), 0);
 	EXPECT_EQ(stream_available_read(pipe), 0);
 
-	reader = thread_create(read_thread, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
-	writer = thread_create(write_thread, STRING_CONST("writer"), THREAD_PRIORITY_NORMAL, 0);
+	thread_initialize(&reader, read_thread, pipe, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
+	thread_initialize(&writer, write_thread, pipe, STRING_CONST("writer"), THREAD_PRIORITY_NORMAL, 0);
 
-	thread_start(reader, pipe);
-	thread_start(writer, pipe);
-	thread_sleep(100);
+	thread_start(&reader);
+	thread_start(&writer);
 
-	while (thread_is_running(reader) && thread_is_running(writer))
+	while (!thread_is_started(&reader) || !thread_is_started(&writer))
 		thread_sleep(10);
 
-	if (!thread_is_running(reader))
-		EXPECT_EQ(thread_result(reader), 0);
-	if (!thread_is_running(writer))
-		EXPECT_EQ(thread_result(writer), 0);
-
-	while (thread_is_running(reader) || thread_is_running(writer))
+	while (thread_is_running(&reader) && thread_is_running(&writer))
 		thread_sleep(10);
 
-	EXPECT_EQ(thread_result(reader), 0);
-	EXPECT_EQ(thread_result(writer), 0);
+	if (!thread_is_running(&reader))
+		EXPECT_EQ(reader.result, 0);
+	if (!thread_is_running(&writer))
+		EXPECT_EQ(writer.result, 0);
 
-	thread_destroy(reader);
-	thread_destroy(writer);
+	while (thread_is_running(&reader) || thread_is_running(&writer))
+		thread_sleep(10);
+
+	EXPECT_EQ(reader.result, 0);
+	EXPECT_EQ(writer.result, 0);
+
+	thread_finalize(&reader);
+	thread_finalize(&writer);
 
 	stream_deallocate(pipe);
 

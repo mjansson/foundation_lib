@@ -196,9 +196,8 @@ error_test_thread(void) {
 }
 
 static void*
-error_thread(object_t thread, void* arg) {
+error_thread(void* arg) {
 	int ipass = 0;
-	FOUNDATION_UNUSED(thread);
 	FOUNDATION_UNUSED(arg);
 
 	thread_sleep(10);
@@ -214,24 +213,21 @@ error_thread(object_t thread, void* arg) {
 
 DECLARE_TEST(error, thread) {
 	//Launch 32 threads
-	object_t thread[32];
+	thread_t thread[32];
 	int i;
 
-	for (i = 0; i < 32; ++i) {
-		thread[i] = thread_create(error_thread, STRING_CONST("error"), THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[i], 0);
-	}
+	for (i = 0; i < 32; ++i)
+		thread_initialize(&thread[i], error_thread, 0, STRING_CONST("error"), THREAD_PRIORITY_NORMAL, 0);
+	for (i = 0; i < 32; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, 32);
-
 	test_wait_for_threads_finish(thread, 32);
 
 	for (i = 0; i < 32; ++i) {
-		EXPECT_EQ(thread_result(thread[i]), 0);
-		thread_destroy(thread[i]);
+		EXPECT_EQ(thread[i].result, 0);
+		thread_finalize(&thread[i]);
 	}
-
-	test_wait_for_threads_exit(thread, 32);
 
 	return 0;
 }

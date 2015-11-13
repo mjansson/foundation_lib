@@ -194,10 +194,9 @@ DECLARE_TEST(uuid, generate) {
 static uuid_t uuid_thread_store[32][NUM_UUIDS];
 
 static void*
-uuid_thread_time(object_t thread, void* arg) {
+uuid_thread_time(void* arg) {
 	int i;
 	int ithread = (int)(uintptr_t)arg;
-	FOUNDATION_UNUSED(thread);
 
 	for (i = 0; i < NUM_UUIDS; ++i)
 		uuid_thread_store[ithread][i] = uuid_generate_time();
@@ -206,24 +205,21 @@ uuid_thread_time(object_t thread, void* arg) {
 }
 
 DECLARE_TEST(uuid, threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	size_t ith, i, jth, j;
 	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 8);
 
-	for (ith = 0; ith < num_threads; ++ith) {
-		thread[ith] = thread_create(uuid_thread_time, STRING_CONST("uuid_thread"),
-		                            THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], (void*)(uintptr_t)ith);
-	}
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_initialize(&thread[ith], uuid_thread_time, (void*)(uintptr_t)ith,
+		                  STRING_CONST("uuid_thread"), THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_start(&thread[ith]);
 
 	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
 
-	for (ith = 0; ith < num_threads; ++ith) {
-		thread_terminate(thread[ith]);
-		thread_destroy(thread[ith]);
-	}
-
-	test_wait_for_threads_exit(thread, num_threads);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_finalize(&thread[ith]);
 
 	for (ith = 0; ith < num_threads; ++ith) {
 		for (i = 0; i < NUM_UUIDS; ++i) {

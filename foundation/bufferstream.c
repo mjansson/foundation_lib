@@ -173,18 +173,18 @@ static void
 _buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	size_t new_current = 0;
+	/*lint --e{571} Used when offset < 0*/
+	size_t abs_offset = (size_t)(-offset);
 	if (direction == STREAM_SEEK_CURRENT) {
-		if (offset < 0) {
-			size_t abs_offset = (size_t)(-offset);
+		if (offset < 0)
 			new_current = (abs_offset > buffer_stream->current) ? 0 : (buffer_stream->current - abs_offset);
-		}
 		else
-			new_current = buffer_stream->current + (size_t)offset;
+			new_current = buffer_stream->current + abs_offset;
 	}
 	else if (direction == STREAM_SEEK_BEGIN)
-		new_current = (offset > 0) ? (size_t)offset : 0;
+		new_current = (offset > 0) ? abs_offset : 0;
 	else if (direction == STREAM_SEEK_END)
-		new_current = (offset < 0) ? buffer_stream->size - (size_t)(-offset) : buffer_stream->size;
+		new_current = (offset < 0) ? buffer_stream->size - abs_offset : buffer_stream->size;
 
 	if (new_current > buffer_stream->size)
 		buffer_stream->current = buffer_stream->size;

@@ -266,12 +266,10 @@ DECLARE_TEST(random, distribution_real) {
 }
 
 static void*
-random_thread(object_t thread, void* arg) {
+random_thread(void* arg) {
 	unsigned int num_passes = 512000 * 8;
 	unsigned int i, j;
 	unsigned int num;
-	FOUNDATION_UNUSED(thread);
-	FOUNDATION_UNUSED(arg);
 
 	for (i = 0; i < num_passes; ++i) {
 		num = random32();
@@ -286,8 +284,8 @@ random_thread(object_t thread, void* arg) {
 }
 
 DECLARE_TEST(random, threads) {
-	//Launch 32 threads
-	object_t thread[32];
+	//Launch max 32 threads
+	thread_t thread[32];
 	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
 	int max_num = 0, min_num = 0x7FFFFFFF;
 	size_t i, j;
@@ -295,19 +293,16 @@ DECLARE_TEST(random, threads) {
 	memset(_test_thread_bits, 0, sizeof(atomic32_t) * 32);
 	memset(_test_thread_hist, 0, sizeof(atomic32_t) * 32);
 
-	for (i = 0; i < num_threads; ++i) {
-		thread[i] = thread_create(random_thread, STRING_CONST("random"), THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[i], 0);
-	}
+	for (i = 0; i < num_threads; ++i)
+		thread_initialize(&thread[i], random_thread, 0, STRING_CONST("random"), THREAD_PRIORITY_NORMAL, 0);
+	for (i = 0; i < num_threads; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
 
-	for (i = 0; i < num_threads; ++i) {
-		thread_terminate(thread[i]);
-		thread_destroy(thread[i]);
-	}
-
-	test_wait_for_threads_exit(thread, num_threads);
+	for (i = 0; i < num_threads; ++i)
+		thread_finalize(&thread[i]);
 
 	/*log_debugf( "Bit distribution:" );
 	for( j = 0; j < 32; ++j )

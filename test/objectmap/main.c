@@ -117,13 +117,12 @@ DECLARE_TEST(objectmap, store) {
 }
 
 static void*
-objectmap_thread(object_t thread, void* arg) {
+objectmap_thread(void* arg) {
 	objectmap_t* map;
 	object_base_t* objects;
 	int obj;
 	int loop;
 	object_base_t* lookup;
-	FOUNDATION_UNUSED(thread);
 
 	map = arg;
 	objects = memory_allocate(0, sizeof(object_base_t) * 512, 0,
@@ -172,43 +171,27 @@ objectmap_thread(object_t thread, void* arg) {
 
 DECLARE_TEST(objectmap, thread) {
 	objectmap_t* map;
-	object_t thread[32];
+	thread_t thread[32];
 	size_t ith;
 	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
 	bool running = true;
 
 	map = objectmap_allocate(32000);
 
-	for (ith = 0; ith < num_threads; ++ith) {
-		thread[ith] = thread_create(objectmap_thread, STRING_CONST("objectmap_thread"),
-		                            THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], map);
-	}
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_initialize(&thread[ith], objectmap_thread, map, STRING_CONST("objectmap_thread"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_start(&thread[ith]);
 
 	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
 
 	for (ith = 0; ith < num_threads; ++ith)
-		thread_terminate(thread[ith]);
+		EXPECT_EQ(thread[ith].result, 0);
 
-	while (running) {
-		running = false;
-		for (ith = 0; ith < num_threads; ++ith) {
-			if (thread_is_running(thread[ith])) {
-				running = true;
-				thread_yield();
-			}
-		}
-	}
-
-	for (ith = 0; ith < num_threads; ++ith) {
-		EXPECT_EQ(thread_result(thread[ith]), 0);
-	}
-
-	for (ith = 0; ith < num_threads; ++ith) {
-		thread_destroy(thread[ith]);
-	}
-
-	test_wait_for_threads_exit(thread, num_threads);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_finalize(&thread[ith]);
 
 	objectmap_deallocate(map);
 

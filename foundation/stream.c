@@ -375,7 +375,7 @@ stream_determine_binary_mode(stream_t* stream, size_t num) {
 	for (i = 0; i < actual_read; ++i) {
 		//TODO: What about UTF-8?
 		if (((buf[i] < 0x20) && (buf[i] != 0x09) && (buf[i] != 0x0a) && (buf[i] != 0x0d)) ||
-		    (buf[i] > 0x7e)) {
+		        (buf[i] > 0x7e)) {
 			stream->mode |= STREAM_BINARY;
 			break;
 		}
@@ -608,15 +608,13 @@ stream_read_string(stream_t* stream) {
 				if (!binary && ((c == ' ') || (c == '\n') || (c == '\r') || (c == '\t')))
 					break;
 				if (cursize + 1 >= outsize) {
-					if (!outbuffer) {
-						outsize += 512;
-						if (outbuffer != buffer) {
-							outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize);
-						}
-						else {
-							outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
-							memcpy(outbuffer, buffer, sizeof(buffer));
-						}
+					outsize += 512;
+					if (outbuffer != buffer) {
+						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize);
+					}
+					else {
+						outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
+						memcpy(outbuffer, buffer, sizeof(buffer));
 					}
 				}
 				outbuffer[cursize++] = c;
@@ -789,7 +787,7 @@ stream_read_string_buffer(stream_t* stream, char* outbuffer, size_t size) {
 	if (cursize < size)
 		outbuffer[cursize] = 0;
 
-	return (string_t) { outbuffer, cursize };
+	return (string_t) {outbuffer, cursize};
 }
 
 void
@@ -809,7 +807,7 @@ stream_available_read(stream_t* stream) {
 
 uint128_t
 stream_md5(stream_t* stream) {
-	size_t cur, ic, lastc, num;
+	size_t cur, ic, lastc, num, limit;
 	md5_t md5;
 	uint128_t ret = uint128_null();
 	unsigned char buf[1025];
@@ -819,7 +817,7 @@ stream_md5(stream_t* stream) {
 	if (stream->vtable->md5)
 		return stream->vtable->md5(stream);
 
-	if (!stream || stream_is_sequential(stream) || !(stream->mode & STREAM_IN))
+	if (stream_is_sequential(stream) || !(stream->mode & STREAM_IN))
 		return ret;
 
 	FOUNDATION_ASSERT(stream->vtable->read);
@@ -828,10 +826,11 @@ stream_md5(stream_t* stream) {
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
 
 	md5_initialize(&md5);
-	buf[1024] = 0;
+	limit = sizeof(buf)-1;
+	buf[limit] = 0;
 
 	while (!stream_eos(stream)) {
-		num = stream->vtable->read(stream, buf, 1024);
+		num = stream->vtable->read(stream, buf, limit);
 		if (!num)
 			continue;
 		if (stream->mode & STREAM_BINARY)
@@ -847,11 +846,11 @@ stream_md5(stream_t* stream) {
 			//Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line endings
 			//(for example, one line ending in a single CR and next is empty and ending in a single LF),
 			//it will not work!
-			for (ic = lastc; ic < num; ++ic) {
+			for (ic = lastc; ic < num && ic < limit; ++ic) {
 				bool was_cr = (buf[ic] == '\r');
 				bool was_lf = (buf[ic] == '\n');
 				if (was_cr || was_lf) {
-					if (was_cr && (ic >= 1023))
+					if (was_cr && (ic == limit-1))
 						ignore_lf = true; //Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
 					md5_digest(&md5, buf + lastc, (size_t)(ic - lastc + 1));     //Include the LF

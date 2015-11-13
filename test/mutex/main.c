@@ -93,11 +93,9 @@ DECLARE_TEST(mutex, basic) {
 static size_t thread_counter;
 
 static void*
-mutex_thread(object_t thread, void* arg) {
+mutex_thread(void* arg) {
 	mutex_t* mutex = arg;
 	size_t i;
-	FOUNDATION_UNUSED(thread);
-	FOUNDATION_UNUSED(arg);
 
 	for (i = 0; i < 128; ++i) {
 		if (!mutex_try_lock(mutex))
@@ -113,27 +111,26 @@ mutex_thread(object_t thread, void* arg) {
 
 DECLARE_TEST(mutex, sync) {
 	mutex_t* mutex;
-	object_t thread[32];
+	thread_t thread[32];
 	size_t ith;
 
 	mutex = mutex_allocate(STRING_CONST("test"));
 	mutex_lock(mutex);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread[ith] = thread_create(mutex_thread, STRING_CONST("mutex_thread"), THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], mutex);
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_initialize(&thread[ith], mutex_thread, mutex, STRING_CONST("mutex_thread"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < 32; ++ith)
+		thread_start(&thread[ith]);
 
 	test_wait_for_threads_startup(thread, 32);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread_terminate(thread[ith]);
-		thread_destroy(thread[ith]);
-	}
-
 	mutex_unlock(mutex);
 
-	test_wait_for_threads_exit(thread, 32);
+	test_wait_for_threads_finish(thread, 32);
+
+	for (ith = 0; ith < 32; ++ith)
+		thread_finalize(&thread[ith]);
 
 	mutex_deallocate(mutex);
 
@@ -146,10 +143,8 @@ static atomic32_t thread_waiting;
 static atomic32_t thread_waited;
 
 static void*
-thread_wait(object_t thread, void* arg) {
+thread_wait(void* arg) {
 	mutex_t* mutex = arg;
-	FOUNDATION_UNUSED(thread);
-	FOUNDATION_UNUSED(arg);
 
 	atomic_incr32(&thread_waiting);
 
@@ -166,16 +161,17 @@ thread_wait(object_t thread, void* arg) {
 
 DECLARE_TEST(mutex, signal) {
 	mutex_t* mutex;
-	object_t thread[32];
+	thread_t thread[32];
 	size_t ith;
 
 	mutex = mutex_allocate(STRING_CONST("test"));
 	mutex_lock(mutex);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread[ith] = thread_create(thread_wait, STRING_CONST("thread_wait"), THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], mutex);
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_initialize(&thread[ith], thread_wait, mutex, STRING_CONST("thread_wait"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < 32; ++ith)
+		thread_start(&thread[ith]);
 
 	mutex_unlock(mutex);
 
@@ -187,12 +183,10 @@ DECLARE_TEST(mutex, signal) {
 
 	mutex_signal(mutex);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread_terminate(thread[ith]);
-		thread_destroy(thread[ith]);
-	}
+	test_wait_for_threads_finish(thread, 32);
 
-	test_wait_for_threads_exit(thread, 32);
+	for (ith = 0; ith < 32; ++ith)
+		thread_finalize(&thread[ith]);
 
 	EXPECT_EQ(atomic_load32(&thread_waited), 32);
 

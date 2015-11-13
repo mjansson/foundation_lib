@@ -169,7 +169,7 @@ bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
 		curbits = bits;
 
 	ret = (curbits == 32) ? bitbuffer->pending_read : ((bitbuffer->pending_read >>
-	                                                    bitbuffer->offset_read) & ((1 << curbits) - 1));
+	                                                    bitbuffer->offset_read) & ((1U << curbits) - 1));
 
 	bitbuffer->offset_read += curbits;
 	bitbuffer->count_read  += curbits;
@@ -182,7 +182,7 @@ bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
 
 	_bitbuffer_get(bitbuffer);
 
-	ret |= (bitbuffer->pending_read & ((1 << (bits - curbits)) - 1)) << curbits;
+	ret |= (bitbuffer->pending_read & ((1U << (bits - curbits)) - 1)) << curbits;
 
 	bitbuffer->offset_read  = (bits - curbits);
 	bitbuffer->count_read  += (bits - curbits);
@@ -265,7 +265,7 @@ bitbuffer_write32(bitbuffer_t* bitbuffer, uint32_t value, unsigned int bits) {
 
 	FOUNDATION_ASSERT(bits && curbits);
 
-	bitbuffer->pending_write = (value >> curbits) & ((1 << (bits - curbits)) - 1);
+	bitbuffer->pending_write = (value >> curbits) & ((1U << (bits - curbits)) - 1);
 	bitbuffer->offset_write  = bits - curbits;
 }
 

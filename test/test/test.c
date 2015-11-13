@@ -37,12 +37,12 @@ test_suite_t          test_suite;
 #if !BUILD_MONOLITHIC
 
 static void*
-test_event_thread(object_t thread, void* arg) {
+test_event_thread(void* arg) {
 	event_block_t* block;
 	event_t* event = 0;
 	FOUNDATION_UNUSED(arg);
 
-	while (!thread_should_terminate(thread)) {
+	while (!thread_is_signalled()) {
 		block = event_stream_process(system_event_stream());
 		event = 0;
 
@@ -97,7 +97,7 @@ test_run(void) {
 	unsigned int ig, gsize, ic, csize;
 	void* result = 0;
 #if !BUILD_MONOLITHIC
-	object_t thread_event = 0;
+	thread_t thread_event;
 #endif
 
 	log_infof(HASH_TEST, STRING_CONST("Running test suite: %.*s"),
@@ -106,11 +106,11 @@ test_run(void) {
 	_test_failed = false;
 
 #if !BUILD_MONOLITHIC
-	thread_event = thread_create(test_event_thread, STRING_CONST("event_thread"),
-	                             THREAD_PRIORITY_NORMAL, 0);
-	thread_start(thread_event, 0);
+	thread_initialize(&thread_event, test_event_thread, 0, STRING_CONST("event_thread"),
+	                  THREAD_PRIORITY_NORMAL, 0);
+	thread_start(&thread_event);
 
-	while (!thread_is_running(thread_event))
+	while (!thread_is_started(&thread_event))
 		thread_yield();
 #endif
 
@@ -138,10 +138,8 @@ test_run(void) {
 	}
 
 #if !BUILD_MONOLITHIC
-	thread_terminate(thread_event);
-	thread_destroy(thread_event);
-	while (thread_is_running(thread_event) || thread_is_thread(thread_event))
-		thread_yield();
+	thread_signal(&thread_event);
+	thread_finalize(&thread_event);
 #else
 exit:
 #endif
@@ -210,7 +208,7 @@ main_finalize(void) {
 #endif
 
 void
-test_wait_for_threads_startup(const object_t* threads, size_t num_threads) {
+test_wait_for_threads_startup(const thread_t* threads, size_t num_threads) {
 	size_t i;
 	bool waiting = true;
 
@@ -220,16 +218,19 @@ test_wait_for_threads_startup(const object_t* threads, size_t num_threads) {
 		atomic_thread_fence_acquire();
 
 		for (i = 0; i < num_threads; ++i) {
-			if (!thread_is_started(threads[i])) {
+			if (!thread_is_started(threads + i)) {
 				waiting = true;
 				break;
 			}
 		}
+
+		if (waiting)
+			thread_yield();
 	}
 }
 
 void
-test_wait_for_threads_finish(const object_t* threads, size_t num_threads) {
+test_wait_for_threads_finish(const thread_t* threads, size_t num_threads) {
 	size_t i;
 	bool waiting = true;
 
@@ -239,33 +240,25 @@ test_wait_for_threads_finish(const object_t* threads, size_t num_threads) {
 		atomic_thread_fence_acquire();
 
 		for (i = 0; i < num_threads; ++i) {
-			if (thread_is_running(threads[i])) {
+			if (thread_is_running(threads + i)) {
 				waiting = true;
 				break;
 			}
 		}
+
+		if (waiting)
+			thread_yield();
 	}
 }
 
 void
-test_wait_for_threads_exit(const object_t* threads, size_t num_threads) {
+test_wait_for_threads_join(thread_t* threads, size_t num_threads) {
 	size_t i;
-	bool keep_waiting;
-	do {
-		keep_waiting = false;
 
-		atomic_thread_fence_acquire();
+	atomic_thread_fence_acquire();
 
-		for (i = 0; i < num_threads; ++i) {
-			if (thread_is_thread(threads[i])) {
-				keep_waiting = true;
-				break;
-			}
-		}
-		if (keep_waiting)
-			thread_sleep(10);
-	}
-	while (keep_waiting);
+	for (i = 0; i < num_threads; ++i)
+		thread_join(threads + i);
 }
 
 void
@@ -278,5 +271,5 @@ test_crash_handler(const char* dump_file, size_t length) {
 
 void*
 test_failed(void) {
-    return FAILED_TEST;
+	return FAILED_TEST;
 }

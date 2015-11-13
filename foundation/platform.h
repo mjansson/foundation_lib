@@ -802,6 +802,8 @@ thread local storage to ensure maximum portability across supported platforms */
 #    define _CRT_SECURE_NO_WARNINGS 1
 #  endif
 
+#  define _Static_assert static_assert
+
 #  ifndef __cplusplus
 typedef enum {
   false = 0,
@@ -950,10 +952,10 @@ typedef struct atomicptr_t atomicptr_t;
 #define STRING_FORMAT(s) (int)(s).length, (s).str
 
 // Misc
-#if FOUNDATION_COMPILER_GCC
+#if FOUNDATION_COMPILER_GCC || defined(__COVERITY__)
 #define FOUNDATION_UNUSED(x) ((void)sizeof((x)))
 #else
-#define FOUNDATION_UNUSED(x) ((void)sizeof((x), 0))
+#define FOUNDATION_UNUSED(x) (/*lint --e{505,550,818,866} */(void)sizeof((x), 0))
 #endif
 
 #define FOUNDATION_UNUSED_ARGS_0(...)

@@ -105,8 +105,7 @@ instant_crash(void* arg) {
 }
 
 static void*
-thread_crash(object_t thread, void* arg) {
-	FOUNDATION_UNUSED(thread);
+thread_crash(void* arg) {
 	return (void*)(uintptr_t)instant_crash(arg);
 }
 
@@ -274,7 +273,7 @@ DECLARE_TEST(crash, crash_guard) {
 }
 
 DECLARE_TEST(crash, crash_thread) {
-	object_t thread = 0;
+	thread_t thread;
 
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
 		return 0; //Don't do crash tests with debugger attached
@@ -284,14 +283,11 @@ DECLARE_TEST(crash, crash_thread) {
 	_crash_callback_called = false;
 	crash_guard_set(test_crash_callback, STRING_CONST("thread_crash"));
 
-	thread = thread_create(thread_crash, STRING_CONST("crash"), THREAD_PRIORITY_NORMAL, 0);
-	thread_start(thread, 0);
-	thread_sleep(100);
-	thread_terminate(thread);
-	thread_destroy(thread);
-	while (thread_is_thread(thread))
-		thread_yield();
-	thread_sleep(100);
+	thread_initialize(&thread, thread_crash, 0, STRING_CONST("crash"), THREAD_PRIORITY_NORMAL, 0);
+	thread_start(&thread);
+	while (!thread_is_started(&thread))
+		thread_sleep(100);
+	thread_finalize(&thread);
 
 	EXPECT_TRUE(_crash_callback_called);
 

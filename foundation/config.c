@@ -29,12 +29,12 @@ enum config_type_t {
 
 struct config_key_t {
 	hash_t name;
-	enum config_type_t type;
-	bool bval;
 	int64_t ival;
 	string_t sval;
 	string_t expanded;
 	real rval;
+	enum config_type_t type;
+	bool bval;
 };
 
 struct config_section_t {
