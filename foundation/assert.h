@@ -221,29 +221,26 @@ to remain safe and properly evaluated even when asserts are statically disabled.
 
 #else
 
-#  define FOUNDATION_ASSERT(cond) do { (void)sizeof( cond ); } while(0)
-#  define FOUNDATION_ASSERT_MSG(cond, msg) do { (void)sizeof( cond ); (void)sizeof( msg ); } while(0)
-#  define FOUNDATION_ASSERT_MSGFORMAT(cond, msg, ...) do { (void)sizeof( cond ); (void)sizeof( msg ); } while(0)
-#  define FOUNDATION_ASSERT_FAIL(msg) do { (void)sizeof( msg ); } while(0)
-#  define FOUNDATION_ASSERT_FAIL_LOG(context, msg) do { log_errorf( context, ERROR_ASSERT, STRING_CONST( "%s" ), msg ); } while(0)
-#  define FOUNDATION_ASSERT_FAILFORMAT(msg, ...) do { (void)sizeof( msg ); } while(0)
-#  define FOUNDATION_ASSERT_FAILFORMAT_LOG(context, msg, ...) do { log_errorf( context, ERROR_ASSERT, msg, string_length( msg ), __VA_ARGS__ ); } while(0)
-#  define FOUNDATION_ASSERT_ALIGNMENT(addr, alignment) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
-#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT(addr, alignment) do { (void)sizeof(addr); (void)sizeof( alignment ); } while(0)
+#  define FOUNDATION_ASSERT(cond) do { (void)sizeof(cond); } while(0)
+#  define FOUNDATION_ASSERT_MSG(cond, msg) do { (void)sizeof(cond); (void)sizeof(msg); } while(0)
+#  define FOUNDATION_ASSERT_MSGFORMAT(cond, msg, ...) do { (void)sizeof(cond); (void)sizeof(msg); } while(0)
+#  define FOUNDATION_ASSERT_FAIL(msg) do { (void)sizeof(msg); } while(0)
+#  define FOUNDATION_ASSERT_FAIL_LOG(context, msg) do { log_errorf(context, ERROR_ASSERT, STRING_CONST("%s"), msg); } while(0)
+#  define FOUNDATION_ASSERT_FAILFORMAT(msg, ...) do { (void)sizeof(msg); } while(0)
+#  define FOUNDATION_ASSERT_FAILFORMAT_LOG(context, msg, ...) do { log_errorf(context, ERROR_ASSERT, msg, string_length(msg), __VA_ARGS__); } while(0)
+#  define FOUNDATION_ASSERT_ALIGNMENT(addr, alignment) do { (void)sizeof(addr); (void)sizeof(alignment); } while(0)
+#  define FOUNDATION_ASSERT_PLATFORM_ALIGNMENT(addr, alignment) do { (void)sizeof(addr); (void)sizeof(alignment); } while(0)
 #  define FOUNDATION_VALIDATE(cond) (cond)
-#  define FOUNDATION_VALIDATE_MSG(cond, msg) ( ( !(cond) ) ? ( (void)sizeof( msg ), false ) : true )
-#  define FOUNDATION_VALIDATE_MSGFORMAT(cond, msg, ...) ( ( !(cond) ) ? ( (void)sizeof( msg ), false ) : true )
+#  define FOUNDATION_VALIDATE_MSG(cond, msg) ((!(cond)) ? ((void)sizeof(msg), false) : true)
+#  define FOUNDATION_VALIDATE_MSGFORMAT(cond, msg, ...) ((!(cond)) ? ((void)sizeof(msg), false) : true)
 
 #endif
 
 /*! Static assert evaluated at compile time
 \param cond Assert condition
-\param msg  Assert "message" identifier which should be unquoted on the form
-            <code>some_kind_of_message</code> */
-#if FOUNDATION_COMPILER_CLANG || (FOUNDATION_COMPILER_GCC && (FOUNDATION_GCC_VERSION >= 40600))
+\param msg  Assert "message" identifier which should be a quoted literal string */
+#if FOUNDATION_COMPILER_CLANG || (FOUNDATION_COMPILER_GCC && (FOUNDATION_GCC_VERSION >= 40600)) || (FOUNDATION_COMPILER_MSVC && (_MSC_VER > 1600))
 #  define FOUNDATION_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
-#elif FOUNDATION_COMPILER_MSVC && ( _MSC_VER > 1600 )
-#  define FOUNDATION_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
 #elif defined( __COUNTER__ )
 #  define FOUNDATION_STATIC_ASSERT(cond, msg) /*lint -e{506, 751, 778} */ \
   typedef char FOUNDATION_PREPROCESSOR_JOIN(_static_assert_number_, __COUNTER__)[(cond)? 1 : -1]
