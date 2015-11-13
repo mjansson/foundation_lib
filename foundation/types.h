@@ -492,6 +492,8 @@ typedef struct memory_context_t       memory_context_t;
 typedef struct memory_system_t        memory_system_t;
 /*! Memory tracker declaration */
 typedef struct memory_tracker_t       memory_tracker_t;
+/*! Memory statistics */
+typedef struct memory_statistics_t    memory_statistics_t;
 /*! Platform specific mutex representation, opaque data type */
 typedef struct mutex_t                mutex_t;
 /*! Base object type all reference counted object types are based on */
@@ -618,6 +620,11 @@ typedef void (* memory_track_fn)(void* p, size_t size);
 provide an implementation with this prototype for untracking memory allocations
 \param p Pointer to deallocated memory block */
 typedef void (* memory_untrack_fn)(void* p);
+
+/*! Memory tracker statistics function prototype. Implementation of a memory tracker must
+provide an implementation with this prototype for memory statistics
+\return Memory statistics */
+typedef memory_statistics_t (* memory_statistics_fn)(void);
 
 /*! Callback function for writing profiling data to a stream
 \param data Pointer to data block
@@ -826,10 +833,24 @@ struct memory_tracker_t {
 	memory_track_fn track;
 	/*! Untrack a memory allocation */
 	memory_untrack_fn untrack;
+	/*! Statistics */
+	memory_statistics_fn statistics;
 	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
 	/*! Shutdown memory tracker */
 	system_finalize_fn finalize;
+};
+
+/*! Memory statistics */
+struct memory_statistics_t {
+	/*! Number of allocations in total, running counter */
+	uint64_t allocations_total;
+	/*! Number fo allocations, current */
+	uint64_t allocations_current;
+	/*! Number of allocated bytes in total, running counter */
+	uint64_t allocated_total;
+	/*! Number of allocated bytes, current */
+	uint64_t allocated_current;
 };
 
 /*! Version identifier expressed as an 128-bit integer with major, minor,

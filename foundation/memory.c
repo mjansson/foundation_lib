@@ -41,7 +41,15 @@ typedef FOUNDATION_ALIGN(8) struct {
 	size_t              maxchunk;
 } atomic_linear_memory_t;
 
+typedef FOUNDATION_ALIGN(8) struct {
+	atomic64_t allocations_total;
+	atomic64_t allocations_current;
+	atomic64_t allocated_total;
+	atomic64_t allocated_current;
+} memory_statistics_atomic_t;
+
 static atomic_linear_memory_t _memory_temporary;
+static memory_statistics_atomic_t _memory_stats;
 
 #if BUILD_ENABLE_MEMORY_GUARD
 #define MEMORY_GUARD_VALUE 0xDEADBEEF
@@ -162,6 +170,7 @@ _memory_align_pointer(void* p, unsigned int align) {
 int
 _memory_initialize(const memory_system_t memory) {
 	_memory_system = memory;
+	memset(&_memory_stats, 0, sizeof(_memory_stats));
 	return _memory_system.initialize();
 }
 
@@ -253,6 +262,11 @@ memory_deallocate(void* p) {
 	_memory_untrack(p);
 }
 
+memory_statistics_t
+memory_statistics(void) {
+	return *(memory_statistics_t*)&_memory_stats;
+}
+
 #if BUILD_ENABLE_MEMORY_CONTEXT
 
 FOUNDATION_DECLARE_THREAD_LOCAL(memory_context_t*, memory_context, 0)
@@ -261,8 +275,9 @@ void
 memory_context_push(hash_t context_id) {
 	memory_context_t* context = get_thread_memory_context();
 	if (!context) {
-		context = memory_allocate(0, sizeof(memory_context_t) + (sizeof(hash_t) *
-		                                                         _foundation_config.memory_context_depth), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		context = memory_allocate(0, sizeof(memory_context_t) +
+		                             (sizeof(hash_t) * _foundation_config.memory_context_depth),
+		                          0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_memory_context(context);
 	}
 	context->context[ context->depth ] = context_id;
@@ -755,24 +770,32 @@ _memory_tracker_finalize(void) {
 
 static void
 _memory_tracker_track(void* addr, size_t size) {
-	if (addr) do {
+	if (addr) {
+		do {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			while (tag >= (int32_t)_foundation_config.memory_tracker_max) {
 				int32_t newtag = tag % (int32_t)_foundation_config.memory_tracker_max;
-				if (atomic_cas32(&_memory_tag_next, newtag, tag + 1))
+				if (atomic_cas32(&_memory_tag_next, newtag + 1, tag + 1))
 					tag = newtag;
 				else
 					tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			}
-			if (!atomic_loadptr(&_memory_tags[ tag ].address) &&
-			    atomic_cas_ptr(&_memory_tags[ tag ].address, addr, 0)) {
+			if (atomic_cas_ptr(&_memory_tags[ tag ].address, addr, 0)) {
 				_memory_tags[ tag ].size = size;
 				stacktrace_capture(_memory_tags[ tag ].trace, 14, 3);
 				hashtable_set(_memory_table, (uintptr_t)addr, (uintptr_t)(tag + 1));
-				return;
+				break;
 			}
 		}
 		while (true);
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		atomic_incr64(&_memory_stats.allocations_total);
+		atomic_incr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_total, (int64_t)size);
+		atomic_add64(&_memory_stats.allocated_current, (int64_t)size);
+#endif
+	}
 }
 
 static void
@@ -780,10 +803,14 @@ _memory_tracker_untrack(void* addr) {
 	uintptr_t tag = addr ? hashtable_get(_memory_table, (uintptr_t)addr) : 0;
 	if (tag) {
 		--tag;
-		atomic_storeptr(&_memory_tags[ tag ].address, 0);
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		atomic_decr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_current, -(int64_t)_memory_tags[tag].size);
+#endif
+		atomic_storeptr(&_memory_tags[tag].address, 0);
 	}
-	//else if (addr)
-	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: " PRIfixPTR), addr);
+	else if (addr)
+		log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: %" PRIfixPTR), (uintptr_t)addr);
 }
 
 #endif

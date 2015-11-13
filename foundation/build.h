@@ -107,6 +107,10 @@ builds, and disabled in profile and deploy builds. Memory guarding incurs a slig
 overhead on each allocation, and enables over/underwrite detection on memory deallocation.
 For more information on memory guarding, check the memory.h documentation.
 
+\def BUILD_ENABLE_MEMORY_STATISTICS
+Enable gathering of memory allocation statistics. By default enabled in debug and release
+builds, disabled in profile and deploy builds.
+
 \def BUILD_ENABLE_STATIC_HASH_DEBUG
 Control if static string hashing debugging is enabled. Default value is enabled in debug
 and release builds on desktop platforms, and disabled all other build configurations
@@ -212,6 +216,14 @@ and disabled in all other configurations.
 #define BUILD_ENABLE_MEMORY_GUARD             1
 #else
 #define BUILD_ENABLE_MEMORY_GUARD             0
+#endif
+#endif
+
+#ifndef BUILD_ENABLE_MEMORY_STATISTICS
+#if BUILD_DEBUG || BUILD_RELEASE
+#define BUILD_ENABLE_MEMORY_STATISTICS        1
+#else
+#define BUILD_ENABLE_MEMORY_STATISTICS        0
 #endif
 #endif
 

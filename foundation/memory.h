@@ -101,6 +101,11 @@ memory_system_malloc(void);
 FOUNDATION_API memory_tracker_t
 memory_tracker_local(void);
 
+/*! Get the memory statistics since initialization
+\return Memory statistics */
+FOUNDATION_API memory_statistics_t
+memory_statistics(void);
+
 #if !BUILD_ENABLE_MEMORY_CONTEXT
 
 #define memory_context_push(context) /*lint -save -e506 -e751 */ do { (void)sizeof( context ); } while(0) /*lint -restore -e506 -e751 */
