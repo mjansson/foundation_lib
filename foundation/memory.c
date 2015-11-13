@@ -440,7 +440,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 			atomic_storeptr(&baseaddr, pointer_offset(raw_memory, allocate_size));
 			break;
 		}
-		if (raw_memory)
+		if (raw_memory && (raw_memory != MAP_FAILED))
 			munmap(raw_memory, allocate_size);
 		raw_memory = 0;
 		if (retried)
@@ -452,6 +452,8 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #    else
 	raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
 	                  MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
+	if (raw_memory == MAP_FAILED)
+		raw_memory = 0;
 #    endif
 	if (!raw_memory) {
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
