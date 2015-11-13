@@ -196,11 +196,6 @@ thread_set_name(const char* name, size_t length) {
 	}
 }
 
-void*
-thread_self(void) {
-	return get_thread_self();
-}
-
 #if FOUNDATION_PLATFORM_WINDOWS
 
 typedef unsigned thread_return_t;
@@ -292,6 +287,7 @@ thread_initialize(thread_t* thread, thread_fn fn, void* data, const char* name, 
 	thread->arg = data;
  	thread->name = string_to_const(newname);
 	thread->fn = fn;
+	thread->priority = priority;
 	thread->stacksize = stacksize;
 	semaphore_initialize(&thread->signal, 0);
 }
@@ -310,6 +306,8 @@ thread_finalize(thread_t* thread) {
 
 bool
 thread_start(thread_t* thread) {
+	//Reset signal
+	semaphore_try_wait(&thread->signal, 0);
 #if FOUNDATION_PLATFORM_WINDOWS
 	FOUNDATION_ASSERT(!thread->handle);
 	thread->handle = _beginthreadex(nullptr, thread->stacksize, _thread_entry, thread, 0, nullptr);
@@ -323,7 +321,7 @@ thread_start(thread_t* thread) {
 	}
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_ASSERT(!thread->handle);
-	int err = pthread_create(&thread->thread, 0, _thread_entry, thread);
+	int err = pthread_create(&thread->handle, 0, _thread_entry, thread);
 	if (err) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,

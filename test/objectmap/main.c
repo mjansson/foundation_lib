@@ -174,7 +174,6 @@ DECLARE_TEST(objectmap, thread) {
 	thread_t thread[32];
 	size_t ith;
 	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
-	bool running = true;
 
 	map = objectmap_allocate(32000);
 

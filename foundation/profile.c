@@ -77,7 +77,7 @@ static profile_write_fn _profile_write;
 static uint64_t         _profile_num_blocks;
 static unsigned int     _profile_wait = 100;
 static thread_t         _profile_io_thread;
-static semaphore_t      _profile_io_exit;
+static bool             _profile_initialized;
 
 FOUNDATION_DECLARE_THREAD_LOCAL(int32_t, profile_block, 0)
 
@@ -281,7 +281,7 @@ _profile_io(void* arg) {
 	system_info.data.start = time_ticks_per_second();
 	string_copy(system_info.data.name, sizeof(system_info.data.name), "sysinfo", 7);
 
-	while (!semaphore_try_wait(&_profile_io_exit, _profile_wait)) {
+	while (!semaphore_try_wait(&_profile_io_thread.signal, _profile_wait)) {
 
 		if (!atomic_load32(&_profile_root))
 			continue;
@@ -350,21 +350,23 @@ profile_initialize(const char* identifier, size_t length, void* buffer, size_t s
 	_profile_ground_time = time_current();
 	set_thread_profile_block(0);
 
-	semaphore_initialize(&_profile_io_exit, 0);
 	thread_initialize(&_profile_io_thread, _profile_io, 0, STRING_CONST("profile_io"),
 	                  THREAD_PRIORITY_BELOWNORMAL, 0);
+	log_info(HASH_TEST, STRING_CONST("Profile thread initialized"));
 
 	log_debugf(0, STRING_CONST("Initialize profiling system with %u blocks (%" PRIsize "KiB)"),
 	           num_blocks, size / 1024);
+	_profile_initialized = true;
 }
 
 void
 profile_finalize(void) {
+	if (!_profile_initialized)
+		return;
+	
 	profile_enable(0);
 
-	semaphore_post(&_profile_io_exit);
 	thread_finalize(&_profile_io_thread);
-	semaphore_try_wait(&_profile_io_exit, 0);
 
 	//Discard and free up blocks remaining in queue
 	_profile_thread_finalize();
@@ -408,6 +410,7 @@ profile_finalize(void) {
 
 	_profile_num_blocks = 0;
 	_profile_identifier = string_null();
+	_profile_initialized = false;
 }
 
 void
@@ -425,6 +428,9 @@ profile_enable(bool enable) {
 	bool was_enabled = (_profile_enable > 0);
 	bool is_enabled = enable;
 
+	if (!_profile_initialized)
+		return;
+	
 	if (is_enabled && !was_enabled) {
 		//Start output thread
 		_profile_enable = 1;
@@ -432,9 +438,8 @@ profile_enable(bool enable) {
 	}
 	else if (!is_enabled && was_enabled) {
 		//Stop output thread
-		semaphore_post(&_profile_io_exit);
+		thread_signal(&_profile_io_thread);
 		thread_join(&_profile_io_thread);
-		semaphore_try_wait(&_profile_io_exit, 0);
 		_profile_enable = 0;
 	}
 }

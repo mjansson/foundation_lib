@@ -678,6 +678,10 @@ thread local storage to ensure maximum portability across supported platforms */
 #    pragma clang diagnostic pop
 #  endif
 
+#  if __has_warning("-Wcovered-switch-default")
+#    pragma clang diagnostic ignored "-Wcovered-switch-default"
+#  endif
+
 #elif defined( __GNUC__ )
 
 #  undef  FOUNDATION_COMPILER_GCC

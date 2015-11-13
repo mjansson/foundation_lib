@@ -270,6 +270,7 @@ random_thread(void* arg) {
 	unsigned int num_passes = 512000 * 8;
 	unsigned int i, j;
 	unsigned int num;
+	FOUNDATION_UNUSED(arg);
 
 	for (i = 0; i < num_passes; ++i) {
 		num = random32();

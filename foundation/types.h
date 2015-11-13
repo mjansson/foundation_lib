@@ -630,7 +630,6 @@ typedef void (* profile_write_fn)(void* data, size_t size);
 typedef void (* profile_read_fn)(void* data, size_t size);
 
 /*! Thread entry point function prototype
-\param thread Thread object handle
 \param arg Argument passed by caller when starting the thread
 \return Implementation specific data which can be obtained through thread_result */
 typedef void* (* thread_fn)(void* arg);
@@ -1302,9 +1301,10 @@ struct thread_t {
 #if FOUNDATION_PLATFORM_WINDOWS
 	/*! OS handle */
 	uintptr_t handle;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#endif
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	/*! OS handle */
-	pthread_t thread;
+	pthread_t handle;
 #else
 #  error Not implemented
 #endif
