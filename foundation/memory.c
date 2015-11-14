@@ -467,13 +467,22 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #    else
 	raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
 	                  MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
-	if (raw_memory == MAP_FAILED)
-		raw_memory = 0;
+	if (raw_memory == MAP_FAILED) {
+		raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
+	                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
+		if (raw_memory == MAP_FAILED)
+			raw_memory = 0;
+		if ((uintptr_t)raw_memory > 0xFFFFFFFFULL) {
+			munmap(raw_memory, allocate_size);
+			raw_memory = 0;
+		}
+	}
 #    endif
 	if (!raw_memory) {
+		string_const_t errmsg = system_error_message(0);
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory in low 32bit address space"),
-		           size);
+		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory in low 32bit address space: %.*s"),
+		           size, STRING_FORMAT(errmsg));
 		return 0;
 	}
 
@@ -649,8 +658,8 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);
 		log_panicf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to reallocate memory: %.*s (%" PRIfixPTR ", raw %" PRIfixPTR ")"),
-		           STRING_FORMAT(errmsg), (uintptr_t)p, (uintptr_t)raw_p);
+		           STRING_CONST("Unable to reallocate memory (%" PRIsize " -> %" PRIsize " @ 0x%" PRIfixPTR ", raw 0x%" PRIfixPTR "): %.*s"),
+		           oldsize, size, (uintptr_t)p, (uintptr_t)raw_p, STRING_FORMAT(errmsg));
 	}
 
 	return memory;
@@ -725,7 +734,7 @@ struct memory_tag_t {
 
 typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
 
-static hashtable_t*  _memory_table;
+//static hashtable_t*  _memory_table;
 static memory_tag_t* _memory_tags;
 static atomic32_t    _memory_tag_next;
 
@@ -735,15 +744,15 @@ _memory_tracker_initialize(void) {
 	if (!_memory_tags)
 		_memory_tags = memory_allocate(0, sizeof(memory_tag_t) * _foundation_config.memory_tracker_max, 16,
 		                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-	if (!_memory_table)
-		_memory_table = hashtable_allocate(_foundation_config.memory_tracker_max);
+	//if (!_memory_table)
+	//	_memory_table = hashtable_allocate(_foundation_config.memory_tracker_max);
 	return 0;
 }
 
 static void
 _memory_tracker_finalize(void) {
-	if (_memory_table)
-		hashtable_deallocate(_memory_table);
+	//if (_memory_table)
+	//	hashtable_deallocate(_memory_table);
 	if (_memory_tags) {
 		unsigned int it;
 		bool got_leaks = false;
@@ -780,10 +789,10 @@ _memory_tracker_track(void* addr, size_t size) {
 				else
 					tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			}
-			if (atomic_cas_ptr(&_memory_tags[ tag ].address, addr, 0)) {
-				_memory_tags[ tag ].size = size;
-				stacktrace_capture(_memory_tags[ tag ].trace, 14, 3);
-				hashtable_set(_memory_table, (uintptr_t)addr, (uintptr_t)(tag + 1));
+			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, 0)) {
+				_memory_tags[tag].size = size;
+				stacktrace_capture(_memory_tags[tag].trace, 14, 3);
+				//hashtable_set(_memory_table, (uintptr_t)addr, (uintptr_t)(tag + 1));
 				break;
 			}
 		}
@@ -800,7 +809,19 @@ _memory_tracker_track(void* addr, size_t size) {
 
 static void
 _memory_tracker_untrack(void* addr) {
-	uintptr_t tag = addr ? hashtable_get(_memory_table, (uintptr_t)addr) : 0;
+	int32_t tag = 0;//addr ? (int32_t)hashtable_get(_memory_table, (uintptr_t)addr) : 0;
+	if (addr && !tag) {
+		int32_t iend = atomic_load32(&_memory_tag_next);
+		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
+		for (; itag != iend; --itag) {
+			if (atomic_loadptr(&_memory_tags[itag].address) == addr) {
+				tag = itag + 1;
+				break;
+			}
+			if (itag == 0)
+				itag = (int32_t)_foundation_config.memory_tracker_max;
+		}
+	}
 	if (tag) {
 		--tag;
 #if BUILD_ENABLE_MEMORY_STATISTICS
@@ -808,9 +829,10 @@ _memory_tracker_untrack(void* addr) {
 		atomic_add64(&_memory_stats.allocated_current, -(int64_t)_memory_tags[tag].size);
 #endif
 		atomic_storeptr(&_memory_tags[tag].address, 0);
+		//hashtable_erase(_memory_table, (uintptr_t)addr);
 	}
-	else if (addr)
-		log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: %" PRIfixPTR), (uintptr_t)addr);
+	//else if (addr)
+	//	log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
 }
 
 #endif

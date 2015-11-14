@@ -754,7 +754,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
 
 	string_const_t* args = 0;
-	process_t* proc = process_allocate();
+	process_t* proc;
 	unsigned int num_frames = 0;
 	unsigned int requested_frames = 0;
 	bool last_was_main = false;
@@ -792,6 +792,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		++requested_frames;
 	}
 
+	proc = process_allocate();
 	process_set_working_directory(proc, STRING_ARGS(environment_initial_working_directory()));
 	process_set_executable_path(proc, STRING_CONST("/usr/bin/addr2line"));
 	process_set_arguments(proc, args, array_size(args));

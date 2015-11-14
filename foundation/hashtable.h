@@ -57,8 +57,9 @@ hashtable32_finalize(hashtable32_t* table);
 /*! Set stored value for the given key
 \param table Hash table
 \param key Key
-\param value New value */
-FOUNDATION_API void
+\param value New value
+\return true if value set, false if table full */
+FOUNDATION_API bool
 hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value);
 
 /*! Erase the value for a key by setting the value to zero. Erasing is limited by
@@ -116,8 +117,9 @@ hashtable64_finalize(hashtable64_t* table);
 /*! Set stored value for the given key
 \param table Hash table
 \param key Key
-\param value New value */
-FOUNDATION_API void
+\param value New value
+\return true if value set, false if table full */
+FOUNDATION_API bool
 hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value);
 
 /*! Erase the value for a key by setting the value to zero. Erasing is limited by

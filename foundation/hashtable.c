@@ -60,7 +60,7 @@ hashtable32_finalize(hashtable32_t* table) {
 	FOUNDATION_UNUSED(table);
 }
 
-void
+bool
 hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value) {
 	size_t ie, eend;
 
@@ -75,12 +75,9 @@ hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value) {
 		if (current_key != key) {
 			if (current_key || !atomic_cas32(&table->entries[ie].key, (int32_t)key, 0)) {
 				ie = (ie + 1) % table->capacity;
-				if (ie == eend) {
-					FOUNDATION_ASSERT_FAIL("Hashtable set looped, out-out-memory");
-					//Keep looping until slot frees up
-					thread_yield();
-				}
-				continue;
+				if (ie != eend)
+					continue;
+				return false;
 			}
 		}
 
@@ -88,6 +85,8 @@ hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value) {
 		break;
 	}
 	while (true);
+
+	return true;
 }
 
 void
@@ -191,7 +190,7 @@ hashtable64_finalize(hashtable64_t* table) {
 	FOUNDATION_UNUSED(table);
 }
 
-void
+bool
 hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value) {
 	size_t ie, eend;
 
@@ -206,12 +205,9 @@ hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value) {
 		if (current_key != key) {
 			if (current_key || !atomic_cas64(&table->entries[ie].key, (int64_t)key, 0)) {
 				ie = (ie + 1) % table->capacity;
-				if (ie == eend) {
-					FOUNDATION_ASSERT_FAIL("Hashtable set looped, out-out-memory");
-					//Keep looping until slot frees up
-					thread_yield();
-				}
-				continue;
+				if (ie != eend)
+					continue;
+				return false;
 			}
 		}
 
@@ -219,6 +215,8 @@ hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value) {
 		break;
 	}
 	while (true);
+
+	return true;
 }
 
 void
