@@ -116,10 +116,10 @@ test_run(void) {
 
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
 		log_infof(HASH_TEST, STRING_CONST("Running tests from group %.*s"),
-		          (int)_test_groups[ig]->name.length, _test_groups[ig]->name.str);
+		          STRING_FORMAT(_test_groups[ig]->name));
 		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic) {
 			log_infof(HASH_TEST, STRING_CONST("  Running %.*s tests"),
-			          (int)_test_groups[ig]->cases[ic]->name.length, _test_groups[ig]->cases[ic]->name.str);
+			          STRING_FORMAT(_test_groups[ig]->cases[ic]->name));
 			result = _test_groups[ig]->cases[ic]->fn();
 			if (result != 0) {
 				log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("    FAILED"));
@@ -153,9 +153,8 @@ static void
 test_free(void) {
 	unsigned int ig, gsize, ic, csize;
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
-		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic) {
+		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic)
 			memory_deallocate(_test_groups[ig]->cases[ic]);
-		}
 		array_deallocate(_test_groups[ig]->cases);
 		memory_deallocate(_test_groups[ig]);
 	}
