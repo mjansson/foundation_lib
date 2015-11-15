@@ -455,8 +455,11 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 			atomic_storeptr(&baseaddr, pointer_offset(raw_memory, allocate_size));
 			break;
 		}
-		if (raw_memory && (raw_memory != MAP_FAILED))
-			munmap(raw_memory, allocate_size);
+		if (raw_memory && (raw_memory != MAP_FAILED)) {
+			if (munmap(raw_memory, allocate_size) < 0)
+				log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+				         STRING_CONST("Failed to munmap pages outside 32-bit range"));
+		}
 		raw_memory = 0;
 		if (retried)
 			break;
@@ -473,7 +476,9 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 		if (raw_memory == MAP_FAILED)
 			raw_memory = 0;
 		if ((uintptr_t)raw_memory > 0xFFFFFFFFULL) {
-			munmap(raw_memory, allocate_size);
+			if (munmap(raw_memory, allocate_size) < 0)
+				log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+				         STRING_CONST("Failed to munmap pages outside 32-bit range"));
 			raw_memory = 0;
 		}
 	}
@@ -540,11 +545,15 @@ _memory_deallocate_malloc(void* p) {
 #  endif
 	raw_ptr = *((uintptr_t*)p - 1);
 	if (raw_ptr & 1) {
+		raw_ptr &= ~(uintptr_t)1;
 #  if FOUNDATION_PLATFORM_WINDOWS
 		VirtualFree((void*)raw_ptr, 0, MEM_RELEASE);
 #  else
 		uintptr_t raw_size = *((uintptr_t*)p - 2);
-		munmap((void*)raw_ptr, raw_size);
+		if (munmap((void*)raw_ptr, raw_size) < 0)
+			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+			          STRING_CONST("Failed to munmap 0x%" PRIfixPTR " size %" PRIsize),
+			          (uintptr_t)raw_ptr, raw_size);
 #  endif
 	}
 	else {
@@ -741,11 +750,21 @@ static atomic32_t    _memory_tag_next;
 static int
 _memory_tracker_initialize(void) {
 	log_debug(HASH_MEMORY, STRING_CONST("Initializing local memory tracker"));
-	if (!_memory_tags)
-		_memory_tags = memory_allocate(0, sizeof(memory_tag_t) * _foundation_config.memory_tracker_max, 16,
-		                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	if (!_memory_tags) {
+		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
+		_memory_tags = memory_allocate(0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		atomic_incr64(&_memory_stats.allocations_total);
+		atomic_incr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_total, (int64_t)size);
+		atomic_add64(&_memory_stats.allocated_current, (int64_t)size);
+#endif
+	}
+	
 	//if (!_memory_table)
 	//	_memory_table = hashtable_allocate(_foundation_config.memory_tracker_max);
+
 	return 0;
 }
 
@@ -771,6 +790,12 @@ _memory_tracker_finalize(void) {
 			}
 		}
 		memory_deallocate(_memory_tags);
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
+		atomic_decr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
+#endif
 
 		if (!got_leaks)
 			log_debug(HASH_MEMORY, STRING_CONST("No memory leaks detected"));
