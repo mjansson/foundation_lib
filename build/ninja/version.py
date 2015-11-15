@@ -42,7 +42,7 @@ def generate_version_string(libname):
 
   source = """/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******
    This file is generated from the git describe command.
-   Run the configure script to regeneerate this file */
+   Run the configure script to regenerate this file */
 
 #include <foundation/version.h>
 #include <""" + libname + "/" + libname + """.h>
