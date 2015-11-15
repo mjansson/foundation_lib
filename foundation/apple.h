@@ -50,6 +50,7 @@ to our foundation/foundation.h \endinternal */
 #define thread_create __system_thread_create
 #define thread_terminate __system_thread_terminate
 #define task_t __system_task_t
+#define thread_t __system_thread_t
 
 #include <mach/mach_types.h>
 #include <mach/mach_interface.h>
@@ -87,6 +88,7 @@ to our foundation/foundation.h \endinternal */
 #undef uuid_generate_time
 #undef uuid_is_null
 #undef task_t
+#undef thread_t
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
