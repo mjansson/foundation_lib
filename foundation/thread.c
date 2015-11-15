@@ -321,7 +321,8 @@ thread_start(thread_t* thread) {
 	}
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_ASSERT(!thread->handle);
-	int err = pthread_create(&thread->handle, 0, _thread_entry, thread);
+	pthread_t id = 0;
+	int err = pthread_create(&id, 0, _thread_entry, thread);
 	if (err) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
@@ -329,6 +330,7 @@ thread_start(thread_t* thread) {
 		           STRING_FORMAT(errmsg), err);
 		return false;
 	}
+	thread->handle = (uintptr_t)id;
 #else
 #  error Not implemented
 #endif
@@ -348,7 +350,7 @@ thread_join(thread_t* thread) {
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	void* result = 0;
 	if (thread->handle) {
-		pthread_join(thread->handle, &result);
+		pthread_join((pthread_t)thread->handle, &result);
 		atomic_store32(&thread->state, 3);
 	}
 	thread->handle = 0;

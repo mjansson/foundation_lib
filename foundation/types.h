@@ -1325,7 +1325,7 @@ struct thread_t {
 #endif
 #if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	/*! OS handle */
-	pthread_t handle;
+	uintptr_t handle;
 #else
 #  error Not implemented
 #endif

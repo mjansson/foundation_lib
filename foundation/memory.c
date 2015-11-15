@@ -48,6 +48,9 @@ typedef FOUNDATION_ALIGN(8) struct {
 	atomic64_t allocated_current;
 } memory_statistics_atomic_t;
 
+FOUNDATION_STATIC_ASSERT(sizeof(memory_statistics_t) == sizeof(memory_statistics_atomic_t),
+                         "statistics sizes differs");
+
 static atomic_linear_memory_t _memory_temporary;
 static memory_statistics_atomic_t _memory_stats;
 
@@ -264,7 +267,9 @@ memory_deallocate(void* p) {
 
 memory_statistics_t
 memory_statistics(void) {
-	return *(memory_statistics_t*)&_memory_stats;
+	memory_statistics_t stats;
+	memcpy(&stats, &_memory_stats, sizeof(memory_statistics_t));
+	return stats;
 }
 
 #if BUILD_ENABLE_MEMORY_CONTEXT
