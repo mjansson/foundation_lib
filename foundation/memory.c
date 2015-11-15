@@ -547,7 +547,10 @@ _memory_deallocate_malloc(void* p) {
 	if (raw_ptr & 1) {
 		raw_ptr &= ~(uintptr_t)1;
 #  if FOUNDATION_PLATFORM_WINDOWS
-		VirtualFree((void*)raw_ptr, 0, MEM_RELEASE);
+		if (VirtualFree((void*)raw_ptr, 0, MEM_RELEASE) == 0)
+			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+				STRING_CONST("Failed to VirtualFree 0x%" PRIfixPTR),
+				(uintptr_t)raw_ptr);
 #  else
 		uintptr_t raw_size = *((uintptr_t*)p - 2);
 		if (munmap((void*)raw_ptr, raw_size) < 0)
