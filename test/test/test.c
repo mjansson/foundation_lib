@@ -112,6 +112,8 @@ test_run(void) {
 
 	while (!thread_is_started(&thread_event))
 		thread_yield();
+
+	error_set_callback(test_error_handler);
 #endif
 
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
@@ -266,6 +268,16 @@ test_crash_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(length);
 	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test crashed"));
 	process_exit(-1);
+}
+
+int
+test_error_handler(error_level_t level, error_t err) {
+	FOUNDATION_UNUSED(err);
+	if (level == ERRORLEVEL_PANIC) {
+		log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test panic"));
+		process_exit(-2);
+	}
+	return 0;
 }
 
 void*

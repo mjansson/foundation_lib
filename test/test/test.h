@@ -174,6 +174,9 @@ test_wait_for_threads_join(thread_t* threads, size_t num_threads);
 TEST_API void FOUNDATION_NOINLINE
 test_crash_handler(const char*, size_t length) FOUNDATION_ATTRIBUTE(noreturn);
 
+TEST_API int FOUNDATION_NOINLINE
+test_error_handler(error_level_t level, error_t err);
+
 TEST_API bool FOUNDATION_NOINLINE
 test_should_terminate(void);
 
