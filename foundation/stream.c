@@ -259,10 +259,13 @@ stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimit
 		if (stream_is_sequential(stream))
 			limit = 1;
 
+		//This will initialize range [total,total+read) in dest array, making
+		//access of potentially uninitialized dest array safe (see coverity markup below)
 		read = stream->vtable->read(stream, dest + total, limit);
 		if (!read)
 			break;
 		for (i = 0; i < read; ++i) {
+			/* coverity[read_parm] */
 			if (dest[total + i] == delimiter)
 				break;
 		}
