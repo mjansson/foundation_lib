@@ -68,8 +68,6 @@ process_finalize(process_t* proc) {
 
 void
 process_set_working_directory(process_t* proc, const char* path, size_t length) {
-	if (!proc)
-		return;
 	if (proc->wd.length <= length)
 		proc->wd = string_resize(proc->wd.str, proc->wd.length, proc->wd.length ? proc->wd.length + 1 : 0,
 		                         length + 1, 0);
@@ -78,8 +76,6 @@ process_set_working_directory(process_t* proc, const char* path, size_t length) 
 
 void
 process_set_executable_path(process_t* proc, const char* path, size_t length) {
-	if (!proc)
-		return;
 	if (proc->path.length <= length)
 		proc->path = string_resize(STRING_ARGS(proc->path),
 		                           proc->path.length ? proc->path.length + 1 : 0, length + 1, 0);
@@ -89,8 +85,6 @@ process_set_executable_path(process_t* proc, const char* path, size_t length) {
 void
 process_set_arguments(process_t* proc, const string_const_t* args, size_t num) {
 	size_t ia;
-	if (!proc)
-		return;
 	string_array_deallocate(proc->args);
 	for (ia = 0; ia < num; ++ia)
 		array_push(proc->args, string_clone(args[ia].str, args[ia].length));
@@ -98,15 +92,11 @@ process_set_arguments(process_t* proc, const string_const_t* args, size_t num) {
 
 void
 process_set_flags(process_t* proc, unsigned int flags) {
-	if (!proc)
-		return;
 	proc->flags = flags;
 }
 
 void
 process_set_verb(process_t* proc, const char* verb, size_t length) {
-	if (!proc)
-		return;
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (proc->verb.length <= length)
 		proc->verb = string_resize(proc->verb.str, proc->verb.length,
@@ -126,15 +116,11 @@ process_spawn(process_t* proc) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wcmdline;
 	wchar_t* wwd;
-	string_t cmdline = (string_t){0, 0};
+	string_t cmdline = (string_t) {0, 0};
 	size_t capacity;
 #endif
 
-	if (!proc)
-		return PROCESS_INVALID_ARGS;
-
 	proc->code = PROCESS_INVALID_ARGS;
-
 	if (!proc->path.length)
 		return proc->code;
 
@@ -255,7 +241,7 @@ process_spawn(process_t* proc) {
 
 		if (proc->flags & PROCESS_STDSTREAMS)
 			log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to redirect standard in/out"
-			         " through pipes when using ShellExecute for process spawning"));
+			                                              " through pipes when using ShellExecute for process spawning"));
 
 		log_debugf(0, STRING_CONST("Spawn process (ShellExecute): %.*s %.*s"),
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
@@ -264,7 +250,7 @@ process_spawn(process_t* proc) {
 			string_const_t errstr = system_error_message(GetLastError());
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%.*s': %s"),
-					  STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
+			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 		}
 		else {
 			proc->hp   = sei.hProcess;
@@ -364,7 +350,7 @@ process_spawn(process_t* proc) {
 
 		CFStringRef* args = 0;
 		for (i = 0, size = array_size(proc->args); i < size;
-		     ++i)    //App gets executable path automatically, don't include
+		        ++i)    //App gets executable path automatically, don't include
 			array_push(args, CFStringCreateWithCString(0, proc->args[i].str, kCFStringEncodingUTF8));
 
 		CFArrayRef argvref = CFArrayCreate(0, (const void**)args, (CFIndex)array_size(args), 0);
@@ -472,16 +458,17 @@ process_spawn(process_t* proc) {
 		}
 
 		int code = execv(proc->path.str, (char* const*)argv);
-		if (code <
-		    0) { //Will always be true since this point will never be reached if execve() is successful
+		//Will always be true since this point will never be reached if execve() is successful
+		if (code < 0) {
 			int err = errno;
 			string_const_t errmsg = system_error_message(err);
-			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Child process failed execve() '%.*s': %.*s (%d)"),
+			log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
+			           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d)"),
 			           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err);
 		}
 
 		//Error
-		process_exit(-1);
+		process_exit(PROCESS_INVALID_ARGS);
 	}
 
 	memory_deallocate(argv);
@@ -562,23 +549,17 @@ bool
 process_kill(process_t* proc) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	if (!proc->hp)
-		return false;
-
-	if (!TerminateProcess(proc->hp, PROCESS_TERMINATED_SIGNAL))
+	if (!proc->hp || !TerminateProcess(proc->hp, PROCESS_TERMINATED_SIGNAL))
 		return false;
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	if (!proc->pid)
-		return false;
-
-	if (kill(proc->pid, SIGKILL) < 0)
-		return false;
+	if (!proc->pid || (kill(proc->pid, SIGKILL) < 0))
+	        return false;
 
 #elif FOUNDATION_PLATFORM_PNACL
 	//Not supported
-    FOUNDATION_UNUSED(proc);
+	FOUNDATION_UNUSED(proc);
 #else
 #error Not implemented
 #endif
@@ -592,9 +573,6 @@ process_wait(process_t* proc) {
 	int cstatus;
 	pid_t ret;
 #endif
-
-	if (!proc)
-		return PROCESS_INVALID_ARGS;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 

@@ -66,12 +66,29 @@ typedef FOUNDATION_ALIGNED_STRUCT(_combined_type, 8) {
 	void*      ptrval;
 } combine_t;
 
+static int
+assert_ignore(hash_t context, const char* condition, size_t cond_length,
+              const char* file, size_t file_length, unsigned int line,
+              const char* msg, size_t msg_length) {
+	FOUNDATION_UNUSED(context);
+	FOUNDATION_UNUSED(condition);
+	FOUNDATION_UNUSED(cond_length);
+	FOUNDATION_UNUSED(file);
+	FOUNDATION_UNUSED(file_length);
+	FOUNDATION_UNUSED(line);
+	FOUNDATION_UNUSED(msg);
+	FOUNDATION_UNUSED(msg_length);
+	return 0;
+}
+
 DECLARE_TEST(array, allocation) {
 	void**     array_ptr = 0;
 	int*       array_int = 0;
 	object_t*  array_obj = 0;
 	basic_t*   array_basic = 0;
 	combine_t* array_combine = 0;
+	int        array_fail[_array_header_size+1] = {0, 0, 0, 0, 0};
+	int*       array_fail_ptr = array_fail + _array_header_size;
 
 	EXPECT_EQ(array_size(array_ptr), 0);
 	EXPECT_EQ(array_size(array_int), 0);
@@ -84,6 +101,16 @@ DECLARE_TEST(array, allocation) {
 	EXPECT_EQ(array_capacity(array_obj), 0);
 	EXPECT_EQ(array_capacity(array_basic), 0);
 	EXPECT_EQ(array_capacity(array_combine), 0);
+
+	// Verify invalid arrays are caught (bad watermark and size/capacity)
+	assert_set_handler(assert_ignore);
+	EXPECT_EQ(_array_verifyfn(&array_fail_ptr), nullptr);
+	array_fail[2] = 0x52524145U;
+	array_fail[1] = 32;
+	EXPECT_EQ(_array_verifyfn(&array_fail_ptr), nullptr);
+	array_fail[0] = 32;
+	EXPECT_NE(_array_verifyfn(&array_fail_ptr), nullptr);
+	assert_set_handler(0);
 
 	// Reserve
 	{

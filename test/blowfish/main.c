@@ -221,19 +221,20 @@ DECLARE_TEST(blowfish, known_data) {
   for (i = 0; i < NUM_VARIABLEKEYTESTS; ++i) {
     blowfish_initialize(blowfish, _test_key_variable[i], 8);
 
-    blowfish_encrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_ECB, init_vector);
-    blowfish_decrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_ECB, init_vector);
+    //Add some unalignment to size of buffer to test re-alignment in implementation
+    blowfish_encrypt(blowfish, plaintext[0], 1 + NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_ECB, init_vector);
+    blowfish_decrypt(blowfish, plaintext[0], 2 + NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_ECB, init_vector);
     EXPECT_EQ(memcmp(plaintext[0], plaintext[1], NUM_VARIABLEKEYTESTS * 8), 0);
 
-    blowfish_encrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CBC, init_vector);
-    blowfish_decrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CBC, init_vector);
+    blowfish_encrypt(blowfish, plaintext[0], 3 + NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CBC, init_vector);
+    blowfish_decrypt(blowfish, plaintext[0], 4 + NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CBC, init_vector);
     EXPECT_EQ(memcmp(plaintext[0], plaintext[1], NUM_VARIABLEKEYTESTS * 8), 0);
 
-    blowfish_encrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CFB, init_vector);
-    blowfish_decrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CFB, init_vector);
+    blowfish_encrypt(blowfish, plaintext[0], 5 + NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CFB, init_vector);
+    blowfish_decrypt(blowfish, plaintext[0], 6 + NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_CFB, init_vector);
     EXPECT_EQ(memcmp(plaintext[0], plaintext[1], NUM_VARIABLEKEYTESTS * 8), 0);
 
-    blowfish_encrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_OFB, init_vector);
+    blowfish_encrypt(blowfish, plaintext[0], 7 + NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_OFB, init_vector);
     blowfish_decrypt(blowfish, plaintext[0], NUM_VARIABLEKEYTESTS * 8, BLOCKCIPHER_OFB, init_vector);
     EXPECT_EQ(memcmp(plaintext[0], plaintext[1], NUM_VARIABLEKEYTESTS * 8), 0);
 

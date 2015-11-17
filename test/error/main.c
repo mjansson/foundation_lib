@@ -232,11 +232,199 @@ DECLARE_TEST(error, thread) {
 	return 0;
 }
 
+static int
+ignore_error_handler(error_level_t level, error_t err) {
+	FOUNDATION_UNUSED(level);
+	FOUNDATION_UNUSED(err);
+	return 0;
+}
+
+static hash_t _last_log_context;
+static error_level_t _last_log_severity;
+static const char* _last_log_msg;
+static size_t _last_log_length;
+
+static void
+log_verify_callback(hash_t context, error_level_t severity, const char* msg, size_t length) {
+	_last_log_context = context;
+	_last_log_severity = severity;
+	_last_log_msg = msg;
+	_last_log_length = length;
+}
+
+DECLARE_TEST(error, output) {
+#if BUILD_ENABLE_LOG
+	error_callback_fn callback_error = error_callback();
+	log_callback_fn callback_log = log_callback();
+	string_const_t shortmsg = string_const(STRING_CONST("Short message with prefix"));
+    string_const_t longmsg = string_const(STRING_CONST("Longer message which should be output without a prefix"));
+
+	error_set_callback(ignore_error_handler);
+	log_set_callback(log_verify_callback);
+
+    log_enable_stdout(false);
+    log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_ARGS(shortmsg));
+    log_enable_stdout(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
+	EXPECT_GE(_last_log_length, shortmsg.length);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), 0);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("WARNING [suspicious]"), 0), STRING_NPOS);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+    log_enable_stdout(false);
+	log_warn(HASH_TEST, 0x1000, STRING_ARGS(shortmsg));
+    log_enable_stdout(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
+	EXPECT_GE(_last_log_length, shortmsg.length);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), 0);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("WARNING [4096]"), 0), STRING_NPOS);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+    log_enable_prefix(false);
+    log_enable_stdout(false);
+	log_warn(HASH_TEST, WARNING_SYSTEM_CALL_FAIL, STRING_ARGS(longmsg));
+    log_enable_stdout(true);
+    log_enable_prefix(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), 0);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+    log_enable_stdout(false);
+	log_error(HASH_TEST, ERROR_DEPRECATED, STRING_ARGS(shortmsg));
+    log_enable_stdout(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_ERROR);
+	EXPECT_GE(_last_log_length, shortmsg.length);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), 0);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("ERROR [deprecated]"), 0), STRING_NPOS);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+    log_enable_stdout(false);
+	log_error(HASH_TEST, 0x1000, STRING_ARGS(shortmsg));
+    log_enable_stdout(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_ERROR);
+	EXPECT_GE(_last_log_length, shortmsg.length);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), 0);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("ERROR [4096]"), 0), STRING_NPOS);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+	log_enable_prefix(false);
+    log_enable_stdout(false);
+	log_error(HASH_TEST, ERROR_INVALID_VALUE, STRING_ARGS(longmsg));
+    log_enable_stdout(true);
+    log_enable_prefix(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_ERROR);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), 0);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+    log_enable_stdout(false);
+	log_panic(HASH_TEST, ERROR_DEPRECATED, STRING_ARGS(shortmsg));
+    log_enable_stdout(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);
+	EXPECT_GE(_last_log_length, shortmsg.length);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), 0);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("PANIC [deprecated]"), 0), STRING_NPOS);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+    log_enable_stdout(false);
+	log_panic(HASH_TEST, 0x1000, STRING_ARGS(shortmsg));
+    log_enable_stdout(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);
+	EXPECT_GE(_last_log_length, shortmsg.length);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), 0);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("PANIC [4096]"), 0), STRING_NPOS);
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+	log_enable_prefix(false);
+    log_enable_stdout(false);
+	log_panic(HASH_TEST, ERROR_INVALID_VALUE, STRING_ARGS(longmsg));
+    log_enable_stdout(true);
+    log_enable_prefix(true);
+	EXPECT_EQ(_last_log_context, HASH_TEST);
+	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), STRING_NPOS);
+	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), 0);
+    
+	error_context_push(STRING_CONST("one"), STRING_CONST("dataone"));
+	error_context_push(STRING_CONST("two"), STRING_CONST("datatwo"));
+	error_context_push(STRING_CONST("three"), STRING_CONST("datathree"));
+
+	_last_log_context = 0;
+	_last_log_severity = ERRORLEVEL_NONE;
+	_last_log_msg = nullptr;
+	_last_log_length = 0;
+
+    log_enable_stdout(false);
+	log_error_context(HASH_TEST, ERRORLEVEL_INFO);
+    log_enable_stdout(true);
+
+    error_context_pop();
+    error_context_pop();
+    error_context_pop();
+
+	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When one: dataone"), 0), STRING_NPOS);
+	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When two: datatwo"), 0), STRING_NPOS);
+	EXPECT_SIZENE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When three: datathree"), 0), STRING_NPOS);
+
+	log_set_callback(callback_log);
+	error_set_callback(callback_error);
+#endif
+	return 0;
+}
+
 static void
 test_error_declare(void) {
 	ADD_TEST(error, error);
 	ADD_TEST(error, context);
 	ADD_TEST(error, thread);
+	ADD_TEST(error, output);
 }
 
 static test_suite_t test_error_suite = {

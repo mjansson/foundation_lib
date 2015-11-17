@@ -100,7 +100,7 @@ DECLARE_TEST(bitbuffer, basics) {
 	EXPECT_EQ(buffer[3], 0x00000678);
 	EXPECT_EQ(buffer[4], 0xFFFFFFFF);
 
-	bitbuffer_initialize_buffer(&bitbuffer, buffer, 1024 * 4, false);
+	bitbuffer_initialize_buffer(&bitbuffer, buffer, 5 * 4, false);
 
 	bitbuffer_discard_read(&bitbuffer);
 	read = bitbuffer_read32(&bitbuffer, 32);
@@ -109,14 +109,16 @@ DECLARE_TEST(bitbuffer, basics) {
 	EXPECT_EQ(read, 0x12345678);
 
 	read = bitbuffer_read32(&bitbuffer, 32);
-	bitbuffer_align_read(&bitbuffer, true);
 
 	EXPECT_EQ(read, 0x00000000);
 
+    //Should skip buffer[2] (0x00000078)
+	bitbuffer_align_read(&bitbuffer, true);
 	read = bitbuffer_read32(&bitbuffer, 12);
 
 	EXPECT_EQ(read, 0x00000678);
 
+    //Re-read
 	bitbuffer_discard_read(&bitbuffer);
 	read = bitbuffer_read32(&bitbuffer, 12);
 	bitbuffer_align_read(&bitbuffer, false);
@@ -126,6 +128,11 @@ DECLARE_TEST(bitbuffer, basics) {
 	read = bitbuffer_read32(&bitbuffer, 31);
 
 	EXPECT_EQ(read, 0x7FFFFFFF);
+
+	//Read past end
+	read = bitbuffer_read32(&bitbuffer, 31);
+
+	EXPECT_UINTEQ(read, 1);
 
 	return 0;
 }

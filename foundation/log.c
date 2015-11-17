@@ -154,7 +154,8 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 			buffer[need + more + 1] = 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-			OutputDebugStringA(buffer);
+			if (_log_stdout)
+    			OutputDebugStringA(buffer);
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID

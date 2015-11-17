@@ -50,7 +50,8 @@ FOUNDATION_API void
 blowfish_finalize(blowfish_t* blowfish);
 
 /*! Encrypt data using the given blowfish state object. Encryption is done in-place,
-no memory allocation is done internally.
+no memory allocation is done internally. Length is expected to be a multiple of 8
+bytes (any extra unaligned data will be ignored).
 \param blowfish Blowfish state object
 \param data     Data buffer
 \param length   Length of data buffer in bytes
@@ -61,7 +62,8 @@ blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length,
                  blockcipher_mode_t mode, uint64_t vec);
 
 /*! Decrypt data using the given blowfish state object. Decryption is done in-place,
-no memory allocation is done internally.
+no memory allocation is done internally. Length is expected to be a multiple of 8
+bytes (any extra unaligned data will be ignored).
 \param blowfish Blowfish state object
 \param data     Data buffer
 \param length   Length of data buffer in bytes

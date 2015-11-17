@@ -54,7 +54,11 @@ hashtable32_initialize(hashtable32_t* table, size_t buckets);
 FOUNDATION_API void
 hashtable32_finalize(hashtable32_t* table);
 
-/*! Set stored value for the given key
+/*! Set stored value for the given key. If multiple thread are concurrently setting
+values for the same key there could be multiple slots holding values for the key
+when the operations finish. This only affects "size" of the table and the rate at
+which the table fills, but not get/set operations (which will act on the first found
+slot for the key).
 \param table Hash table
 \param key Key
 \param value New value

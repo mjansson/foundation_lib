@@ -13,8 +13,6 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-/*lint --e{754} Lint gets confused about initialized fields, we use memory_allocate so safe to inhibit */
-
 static stream_vtable_t _buffer_stream_vtable;
 
 stream_t*
@@ -32,8 +30,10 @@ buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mod
 	memset(stream, 0, sizeof(stream_buffer_t));
 	stream_initialize((stream_t*)stream, system_byteorder());
 
-	if (!FOUNDATION_VALIDATE_MSG(adopt || !grow, "Cannot grow buffer streams that are not adopted"))
+	if (!adopt && grow) {
+		log_warn(0, WARNING_INVALID_VALUE, STRING_CONST("Cannot grow buffer streams that are not adopted"));
 		grow = false;
+	}
 
 	if (!buffer) {
 		size = 0;
@@ -107,11 +107,13 @@ _buffer_stream_write(stream_t* stream, const void* source, size_t num) {
 			buffer_stream->size = buffer_stream->current + want;
 		}
 		else if (buffer_stream->grow) {
+			size_t prev_capacity = buffer_stream->capacity;
 			available = want;
 			buffer_stream->size = buffer_stream->current + want;
 			buffer_stream->capacity = (buffer_stream->size < 1024) ? 1024 : buffer_stream->size + 1024;
+			//tail segment from current to size will be overwritten
 			buffer_stream->buffer = memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0,
-			                                          buffer_stream->current);  //tail segment from current to size will be overwritten
+			                                          prev_capacity);
 		}
 		else {
 			available = buffer_stream->capacity - buffer_stream->current;
@@ -139,7 +141,7 @@ _buffer_stream_eos(stream_t* stream) {
 
 static void
 _buffer_stream_flush(stream_t* stream) {
-	//lint --e{715, 818} stream unused and count be const, but it's really a vtable function
+	//lint --e{715, 818} stream unused and could be const, but it's really a vtable function
 	FOUNDATION_UNUSED(stream);
 }
 
@@ -174,7 +176,7 @@ _buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t directi
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	size_t new_current = 0;
 	/*lint --e{571} Used when offset < 0*/
-	size_t abs_offset = (size_t)(-offset);
+	size_t abs_offset = (size_t)((offset < 0) ? -offset : offset);
 	if (direction == STREAM_SEEK_CURRENT) {
 		if (offset < 0)
 			new_current = (abs_offset > buffer_stream->current) ? 0 : (buffer_stream->current - abs_offset);

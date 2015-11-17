@@ -177,42 +177,42 @@ log_suppress_clear(void);
 
 #if !BUILD_ENABLE_LOG || !BUILD_ENABLE_DEBUG_LOG
 
-#define log_debug_( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_debug( ... ) log_debug_( __VA_ARGS__ )
+#define log_debug_( ... ) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_debug( ... ) log_debug_(__VA_ARGS__)
 #define log_debugf_( ... ) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
-#define log_debugf( ... ) log_debugf_( __VA_ARGS__ )
+#define log_debugf( ... ) log_debugf_(__VA_ARGS__)
 
 #endif
 
 #if !BUILD_ENABLE_LOG
 
-#define log_info_( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_info( ... ) log_info_( __VA_ARGS__ )
-#define log_infof_( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_infof( ... ) log_infof_( __VA_ARGS__ )
+#define log_info_( ... ) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_info( ... ) log_info_(__VA_ARGS__)
+#define log_infof_( ... ) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_infof( ... ) log_infof_(__VA_ARGS__)
 
-#define log_warn_( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_warn( ... ) log_warn_( __VA_ARGS__ )
-#define log_warnf_( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_warnf( ... ) log_warnf_( __VA_ARGS__ )
+#define log_warn_( ... ) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_warn( ... ) log_warn_(__VA_ARGS__)
+#define log_warnf_( ... ) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_warnf( ... ) log_warnf_(__VA_ARGS__)
 
-#define log_error_( ... ) do { error_report(ERRORLEVEL_ERROR, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_error( ... ) log_error_( __VA_ARGS__ )
-#define log_errorf_( ... ) do { error_report(ERRORLEVEL_ERROR, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_errorf( ... ) log_errorf_( __VA_ARGS__ )
+#define log_error_( ... ) do { error_report(ERRORLEVEL_ERROR, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_error( ... ) log_error_(__VA_ARGS__)
+#define log_errorf_( ... ) do { error_report(ERRORLEVEL_ERROR, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_errorf( ... ) log_errorf_(__VA_ARGS__)
 
-#define log_panic_( ... ) do { error_report(ERRORLEVEL_PANIC, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_panic( ... ) log_panic_( __VA_ARGS__ )
-#define log_panicf_( ... ) do { error_report(ERRORLEVEL_PANIC, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_panicf( ... ) log_panicf_( __VA_ARGS__ )
+#define log_panic_( ... ) do { error_report(ERRORLEVEL_PANIC, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_panic( ... ) log_panic_(__VA_ARGS__)
+#define log_panicf_( ... ) do { error_report(ERRORLEVEL_PANIC, FOUNDATION_PREPROCESSOR_ELEM(1, __VA_ARGS__)); FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_panicf( ... ) log_panicf_(__VA_ARGS__)
 
-#define log_error_context( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_callback() do {} while(0)
-#define log_set_callback( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_enable_stdout( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_enable_prefix( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_set_suppress( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
-#define log_suppress( ... ) do { FOUNDATION_UNUSED_VARARGS( __VA_ARGS__ ); } while(0)
+#define log_error_context(context, level) do { FOUNDATION_UNUSED(context); FOUNDATION_UNUSED(level); } while(0)
+#define log_callback() 0
+#define log_set_callback(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_enable_stdout(enable) do { FOUNDATION_UNUSED(enable); } while(0)
+#define log_enable_prefix(enable) do { FOUNDATION_UNUSED(enable); } while(0)
+#define log_set_suppress(context, level) do { FOUNDATION_UNUSED(context); FOUNDATION_UNUSED(level); } while(0)
+#define log_suppress(context) ERRORLEVEL_NONE
 #define log_suppress_clear() do {} while(0)
 
 #endif

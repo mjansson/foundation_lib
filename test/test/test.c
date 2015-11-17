@@ -266,6 +266,7 @@ void
 test_crash_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
+	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test crashed"));
 	process_exit(-1);
 }
@@ -274,6 +275,7 @@ int
 test_error_handler(error_level_t level, error_t err) {
 	FOUNDATION_UNUSED(err);
 	if (level == ERRORLEVEL_PANIC) {
+		log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 		log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test panic"));
 		process_exit(-2);
 	}
