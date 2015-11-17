@@ -95,31 +95,33 @@ capacity.
 \param dst Destination array
 \param src Source array */
 #define array_copy(dst, src) ( \
-  _array_verify(src) && \
-  (_array_elementsize(src) == _array_elementsize(dst)) ? \
-    ( \
-      (_array_maybegrowfixed( \
+  ( \
+    _array_verify(src) && \
+    _array_elementsize(src) == _array_elementsize(dst) && \
+    _array_maybegrowfixed( \
         (dst), \
         (_array_rawsize_const(src) - (_array_verify(dst) ? (_array_rawsize(dst)) : 0))) \
-      ), \
-      memcpy((dst), (src), (_array_rawsize_const(src)) * _array_elementsize(src)), \
-      (_array_rawsize(dst) = _array_rawsize_const(src)) \
-    ) : \
+  ) ? ( \
+    memcpy((dst), (src), (_array_rawsize_const(src)) * _array_elementsize(src)), \
+    (_array_rawsize(dst) = _array_rawsize_const(src)) \
+  ) : \
     array_clear(dst))
 
 /*! Add element at end of array with assignment
 \param array   Array pointer
 \param element New element */
 #define array_push(array, element) ( \
-  (void)_array_maybegrow(array, 1), \
-  (array)[_array_rawsize(array)++] = (element))
+  _array_maybegrow(array, 1) ? \
+    (array)[_array_rawsize(array)++] = (element), (array) : \
+    (array))
 
 /*! Add element at end of array copying data with memcpy
 \param array      Array pointer
 \param elementptr Pointer to new element */
 #define array_push_memcpy(array, elementptr) /*lint -e{506}*/ ( \
-  (void)_array_maybegrow(array, 1), \
-  memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))))
+  _array_maybegrow(array, 1) ? \
+    memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array) : \
+    (array))
 
 /*! Add element at given position in array with assignment. Position is NOT range checked.
 Existing elements are moved using memmove.
@@ -127,10 +129,11 @@ Existing elements are moved using memmove.
 \param pos     Position
 \param element New element */
 #define array_insert(array, pos, element) ( \
-  (void)_array_maybegrow(array, 1), \
-  memmove((array) + (pos) + 1, (array) + (pos), \
-    _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
-  (array)[(pos)] = (element))
+  _array_maybegrow(array, 1) ? \
+    memmove((array) + (pos) + 1, (array) + (pos), \
+      _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
+    (array)[(pos)] = (element), (array) : \
+    (array))
 
 /*! Add element at given position in array, copy data using memcpy. Position is NOT range
 checked. Existing elements are moved using memmove.
@@ -138,10 +141,11 @@ checked. Existing elements are moved using memmove.
 \param pos        Position
 \param elementptr Pointer to new element */
 #define array_insert_memcpy(array, pos, elementptr) ( \
-  (void)_array_maybegrow(array, 1), \
-  memmove((array) + (pos) + 1, (array) + (pos), \
-    _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
-  memcpy((array) + (pos), (elementptr), sizeof(*(array))))
+  _array_maybegrow(array, 1) ? \
+    memmove((array) + (pos) + 1, (array) + (pos), \
+      _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
+    memcpy((array) + (pos), (elementptr), sizeof(*(array))), (array) : \
+    (array))
 
 /*! Add element at given position in array with assignment. Position IS range checked and
 clamped to array size. Existing elements are moved using memmove.

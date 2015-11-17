@@ -60,6 +60,7 @@ _array_growfn(void** arr, size_t increment, size_t factor, size_t itemsize) {
 			buffer[3] = (uint32_t)itemsize;
 		}
 		*arr = buffer + _array_header_size;
+		return *arr;
 	}
-	return *arr;
+	return nullptr;
 }
