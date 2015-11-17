@@ -63,8 +63,6 @@ DECLARE_TEST(fs, directory) {
 	string_const_t subpath;
 	string_t testlocalpath;
 
-	log_infof(HASH_TEST, STRING_CONST("This test will intentionally fail to create directories"));
-
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
 	                       STRING_ARGS(fname));
@@ -111,7 +109,9 @@ DECLARE_TEST(fs, directory) {
 
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(longpath)));
 
+	log_enable_stdout(false);
 	EXPECT_FALSE(fs_make_directory(STRING_CONST("/../@this[*]is{?}not:an~allowed;name")));
+	log_enable_stdout(true);
 
 	return 0;
 }
@@ -124,8 +124,6 @@ DECLARE_TEST(fs, file) {
 	string_t copypath;
 	string_t testlocalpath;
 	stream_t* teststream;
-
-	log_infof(HASH_TEST, STRING_CONST("This test will intentionally fail to create directories"));
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
 	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
@@ -229,8 +227,10 @@ DECLARE_TEST(fs, file) {
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(copypath)));
 
 	//This will fail on POSIX if you have write access to filesystem root
+	log_enable_stdout(false);
 	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
 	EXPECT_FALSE(fs_copy_file(STRING_CONST("/does/not/exist/at/all"), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
+	log_enable_stdout(true);
 
 	fs_remove_file(STRING_ARGS(testpath));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
@@ -502,8 +502,6 @@ DECLARE_TEST(fs, monitor) {
 	event_block_t* block;
 	event_t* event;
 
-	log_infof(HASH_TEST, STRING_CONST("This test will intentionally run out of memory in file system monitors"));
-
 	fname = string_from_uint_static(random64(), false, 0, 0);
 	testpath = path_allocate_concat(STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(testpath));
@@ -551,7 +549,9 @@ DECLARE_TEST(fs, monitor) {
 		FOUNDATION_UNUSED(did_monitor);
 #endif
 	}
+	log_enable_stdout(false);
 	EXPECT_FALSE(fs_monitor(STRING_CONST("/this/should/fail/from/not/enough/monitors")));
+	log_enable_stdout(true);
 	thread_sleep(1000);
 
 	test_stream = fs_open_file(STRING_ARGS(filetestpath), STREAM_OUT | STREAM_CREATE);

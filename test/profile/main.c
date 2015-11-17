@@ -193,8 +193,7 @@ DECLARE_TEST(profile, thread) {
 	profile_enable(true);
 	profile_set_output_wait(1);
 
-	log_info(HASH_TEST,
-	         STRING_CONST("This test will intentionally run out of memory in profiling system"));
+	log_enable_stdout(false);
 	for (ith = 0; ith < 32; ++ith)
 		thread_initialize(&thread[ith], _profile_fail_thread, 0, STRING_CONST("profile_thread"),
 		                  THREAD_PRIORITY_NORMAL, 0);
@@ -215,6 +214,7 @@ DECLARE_TEST(profile, thread) {
 
 	for (ith = 0; ith < 32; ++ith)
 		thread_finalize(&thread[ith]);
+	log_enable_stdout(true);
 
 	thread_sleep(1000);
 
@@ -301,7 +301,7 @@ DECLARE_TEST(profile, stream) {
 
 	filename = path_allocate_concat(STRING_ARGS(environment_temporary_directory()),
 	                                STRING_CONST("test.profile"));
-	log_infof(HASH_TEST, STRING_CONST("Output to profile file: %.*s"), STRING_FORMAT(filename));
+	//log_infof(HASH_TEST, STRING_CONST("Output to profile file: %.*s"), STRING_FORMAT(filename));
 	fs_make_directory(STRING_ARGS(environment_temporary_directory()));
 	_profile_stream = fs_open_file(STRING_ARGS(filename), STREAM_OUT | STREAM_BINARY);
 	string_deallocate(filename.str);

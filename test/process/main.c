@@ -215,12 +215,13 @@ DECLARE_TEST(process, kill) {
 	process_set_arguments(proc, args, sizeof(args) / sizeof(args[0]));
 	process_set_flags(proc, PROCESS_ATTACHED);
 
-	log_info(HASH_TEST, STRING_CONST("This test generates warnings for invalid executable path"));
+	log_enable_stdout(false);
 	process_spawn(proc);
 
 	thread_sleep(500);
 
 	ret = process_wait(proc);
+	log_enable_stdout(true);
 	EXPECT_INTEQ(ret, PROCESS_INVALID_ARGS);
 
 	EXPECT_FALSE(process_kill(proc));

@@ -66,9 +66,10 @@ DECLARE_TEST(regex, exact) {
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("TEST_REGEX"), 0, 0));
 	EXPECT_TRUE(regex_match(0, "zero length string", 0, 0, 0));
 
-	log_info(HASH_TEST, STRING_CONST("This test will generate an internal failure"));
+	log_enable_stdout(false);
 	regex->code[0] = 128;
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("TEST_REGEX"), 0, 0));
+	log_enable_stdout(true);
 
 	regex_deallocate(regex);
 

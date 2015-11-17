@@ -267,6 +267,7 @@ test_crash_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
+	log_enable_stdout(true);
 	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test crashed"));
 	process_exit(-1);
 }
@@ -276,10 +277,18 @@ test_error_handler(error_level_t level, error_t err) {
 	FOUNDATION_UNUSED(err);
 	if (level == ERRORLEVEL_PANIC) {
 		log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
+		log_enable_stdout(true);
 		log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test panic"));
 		process_exit(-2);
 	}
 	return 0;
+}
+
+void
+test_prefail(void) {
+	atomic_thread_fence_sequentially_consistent();
+	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
+	log_enable_stdout(true);
 }
 
 void*

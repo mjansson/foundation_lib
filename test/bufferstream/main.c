@@ -217,8 +217,9 @@ DECLARE_TEST(bufferstream, null_grow) {
 	stream_deallocate(stream);
 
 	//Test invalid parameter combo (size > capacity) (!adopt && grow)
-	log_info(HASH_TEST, STRING_CONST("This test generates invalid value warnings"));
+	log_enable_stdout(false);
 	stream = buffer_stream_allocate(0, STREAM_IN | STREAM_OUT, 256, 0, false, true);
+	log_enable_stdout(true);
 	EXPECT_NE(stream, 0);
 	EXPECT_TRUE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), 0);
