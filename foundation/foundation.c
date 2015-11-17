@@ -83,6 +83,8 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	if (_foundation_initialized)
 		return 0;
 
+	process_set_exit_code(PROCESS_EXIT_SUCCESS);
+	
 	foundation_initialize_config(config);
 
 	SUBSYSTEM_INIT(atomic);

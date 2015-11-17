@@ -128,6 +128,7 @@ int
 main_initialize(void) {
 	foundation_config_t config;
 	application_t application;
+	int ret;
 
 	memset(&config, 0, sizeof(config));
 #if BUILD_MONOLITHIC
@@ -155,7 +156,20 @@ main_initialize(void) {
 
 #endif
 
-	return foundation_initialize(memory_system_malloc(), application, config);
+	ret = foundation_initialize(memory_system_malloc(), application, config);
+
+#if BUILD_MONOLITHIC
+	//For monolithic process test
+	{
+		const string_const_t* cmdline = environment_command_line();
+		if (string_array_find(cmdline, array_size(cmdline), STRING_CONST("wait for kill")) >= 0)
+		{
+			while (true)
+				thread_sleep(100);
+		}
+	}
+#endif
+	return ret;
 }
 
 #if FOUNDATION_PLATFORM_ANDROID

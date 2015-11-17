@@ -871,6 +871,7 @@ typedef enum {
 #include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <float.h>
 #include <limits.h>
 #if !FOUNDATION_PLATFORM_WINDOWS

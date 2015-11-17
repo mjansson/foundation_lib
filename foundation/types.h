@@ -376,6 +376,10 @@ an error occurs during spawning */
 #define PROCESS_WAIT_FAILED       0x7FFFFFF3
 /*! Process exit code, returned when detached process is still running */
 #define PROCESS_STILL_ACTIVE      0x7FFFFFFF
+/*! Process exit code, generic failure */
+#define PROCESS_EXIT_FAILURE      EXIT_FAILURE
+/*! Process exit code, generic success */
+#define PROCESS_EXIT_SUCCESS      EXIT_SUCCESS
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86

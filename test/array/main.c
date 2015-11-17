@@ -104,12 +104,12 @@ DECLARE_TEST(array, allocation) {
 
 	// Verify invalid arrays are caught (bad watermark and size/capacity)
 	assert_set_handler(assert_ignore);
-	EXPECT_EQ(_array_verifyfn(&array_fail_ptr), nullptr);
+	EXPECT_EQ(_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
 	array_fail[2] = 0x52524145U;
 	array_fail[1] = 32;
-	EXPECT_EQ(_array_verifyfn(&array_fail_ptr), nullptr);
+	EXPECT_EQ(_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
 	array_fail[0] = 32;
-	EXPECT_NE(_array_verifyfn(&array_fail_ptr), nullptr);
+	EXPECT_NE(_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
 	assert_set_handler(0);
 
 	// Reserve

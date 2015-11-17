@@ -103,6 +103,7 @@ process_set_verb(process_t* proc, const char* verb, size_t length) {
 		                           proc->verb.length ? proc->verb.length + 1 : 0, length + 1, 0);
 	proc->verb = string_copy(proc->verb.str, length + 1, verb, length);
 #else
+	FOUNDATION_UNUSED(proc);
 	FOUNDATION_UNUSED(verb);
 	FOUNDATION_UNUSED(length);
 #endif
@@ -458,17 +459,15 @@ process_spawn(process_t* proc) {
 		}
 
 		int code = execv(proc->path.str, (char* const*)argv);
-		//Will always be true since this point will never be reached if execve() is successful
-		if (code < 0) {
-			int err = errno;
-			string_const_t errmsg = system_error_message(err);
-			log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-			           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d)"),
-			           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err);
-		}
 
 		//Error
-		process_exit(PROCESS_INVALID_ARGS);
+		int err = errno;
+		string_const_t errmsg = system_error_message(err);
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
+		           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d) (%d)"),
+			       STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
+		process_exit(PROCESS_EXIT_FAILURE);
+		FOUNDATION_UNUSED(code);
 	}
 
 	memory_deallocate(argv);
@@ -502,11 +501,10 @@ process_spawn(process_t* proc) {
 	}
 	else {
 		//Error
-		proc->code = errno;
 		string_const_t errmsg;
 		errmsg = system_error_message(proc->code);
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%.*s': %.*s (%d)"),
-		          STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%.*s': %.*s (%d)"),
+		           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
 
 		if (proc->pipeout)
 			stream_deallocate(proc->pipeout);
@@ -515,6 +513,7 @@ process_spawn(process_t* proc) {
 
 		proc->pipeout = 0;
 		proc->pipein = 0;
+		proc->code = PROCESS_INVALID_ARGS;
 
 		return proc->code;
 	}
@@ -641,6 +640,9 @@ process_wait(process_t* proc) {
 			//...
 #endif
 			//proc->signal = WTERMSIG( cstatus );
+		}
+		else {
+			proc->code = PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;
 	}

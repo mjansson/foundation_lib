@@ -216,13 +216,14 @@ DECLARE_TEST(process, kill) {
 	process_set_flags(proc, PROCESS_ATTACHED);
 
 	log_enable_stdout(false);
-	process_spawn(proc);
-
-	thread_sleep(500);
-
-	ret = process_wait(proc);
-	log_enable_stdout(true);
+	ret = process_spawn(proc);
+#if FOUNDATION_PLATFORM_WINDOWS
 	EXPECT_INTEQ(ret, PROCESS_INVALID_ARGS);
+#else	
+	EXPECT_INTEQ(ret, PROCESS_EXIT_FAILURE);
+#endif
+
+	log_enable_stdout(true);
 
 	EXPECT_FALSE(process_kill(proc));
 
