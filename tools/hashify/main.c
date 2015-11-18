@@ -43,11 +43,11 @@ static int
 hashify_process_files(string_t* files, bool check_only);
 
 static int
-hashify_process_file(stream_t* input_file, stream_t* output_file, bool check_only,
-                     hashify_string_t** history);
+hashify_process_file(stream_t* input_file, stream_t* output_file, string_t output_filename,
+                     bool check_only, hashify_string_t** history);
 
 static int
-hashify_generate_preamble(stream_t* output_file);
+hashify_generate_preamble(stream_t* output_file, string_t output_filename);
 
 static int
 hashify_read_hashes(stream_t* file, hashify_string_t** hashes);
@@ -179,7 +179,7 @@ hashify_process_files(string_t* files, bool check_only) {
 	hashify_string_t* history = 0;
 	size_t ifile, files_size;
 	for (ifile = 0, files_size = array_size(files); (result == HASHIFY_RESULT_OK) &&
-	     (ifile < files_size); ++ifile) {
+	        (ifile < files_size); ++ifile) {
 		string_t input_filename;
 		string_t output_filename;
 		string_const_t base_filename;
@@ -219,7 +219,7 @@ hashify_process_files(string_t* files, bool check_only) {
 		}
 
 		if (input_file && output_file) {
-			result = hashify_process_file(input_file, output_file, check_only, &history);
+			result = hashify_process_file(input_file, output_file, output_filename, check_only, &history);
 			if ((result == HASHIFY_RESULT_OK) && !check_only)
 				result = hashify_write_file(output_file, output_filename);
 		}
@@ -246,8 +246,8 @@ hashify_process_files(string_t* files, bool check_only) {
 }
 
 int
-hashify_process_file(stream_t* input_file, stream_t* output_file, bool check_only,
-                     hashify_string_t** history) {
+hashify_process_file(stream_t* input_file, stream_t* output_file, string_t output_filename,
+                     bool check_only, hashify_string_t** history) {
 	int result = HASHIFY_RESULT_OK;
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	hashify_string_t* local_hashes = 0;
@@ -256,21 +256,22 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, bool check_onl
 	if (check_only)
 		result = hashify_read_hashes(output_file, &local_hashes);
 	else
-		result = hashify_generate_preamble(output_file);
+		result = hashify_generate_preamble(output_file, output_filename);
 
+	memset(line_buffer, 0, sizeof(line_buffer));
 	while (!stream_eos(input_file) && (result == HASHIFY_RESULT_OK)) {
 		string_t line_string;
 		string_const_t def_string;
 		string_const_t value_string;
 
-		line_string = stream_read_line_buffer(input_file, line_buffer, HASHIFY_LINEBUFFER_LENGTH, '\n');
+		line_string = stream_read_line_buffer(input_file, line_buffer, sizeof(line_buffer), '\n');
 		string_split(STRING_ARGS(line_string), STRING_CONST(" \t"), &def_string, &value_string, false);
 
 		def_string = string_strip(STRING_ARGS(def_string), STRING_CONST(STRING_WHITESPACE));
 		value_string = string_strip(STRING_ARGS(value_string), STRING_CONST(STRING_WHITESPACE));
 
 		if (value_string.length && (value_string.str[0] == '"') &&
-		    (value_string.str[ value_string.length - 1 ] == '"')) {
+		        (value_string.str[ value_string.length - 1 ] == '"')) {
 			++value_string.str;
 			value_string.length -= 2;
 		}
@@ -319,21 +320,23 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, bool check_onl
 }
 
 int
-hashify_generate_preamble(stream_t* output_file) {
+hashify_generate_preamble(stream_t* output_file, string_t output_filename) {
 	//Read and preserve everything before #pragma once in case it contains header comments to be preserved
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	size_t capacity = 1024;
 	string_t preamble = string_allocate(0, capacity);
+	stream_t* prev_file = stream_open(STRING_ARGS(output_filename), STREAM_IN);
 
-	while (!stream_eos(output_file)) {
+	memset(line_buffer, 0, sizeof(line_buffer));
+	while (!stream_eos(prev_file)) {
 		string_t line;
 		string_const_t stripped_line;
 
-		line = stream_read_line_buffer(output_file, line_buffer, HASHIFY_LINEBUFFER_LENGTH - 1, '\n');
+		line = stream_read_line_buffer(prev_file, line_buffer, sizeof(line_buffer), '\n');
 		stripped_line = string_strip(STRING_ARGS(line), STRING_CONST("\n\r"));
 
 		if ((string_find_string(STRING_ARGS(stripped_line), STRING_CONST("pragma"), 0) != STRING_NPOS) &&
-		    (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("once"), 0) != STRING_NPOS))
+		        (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("once"), 0) != STRING_NPOS))
 			break;
 
 		if (preamble.length + stripped_line.length + 1 >= capacity) {
@@ -343,19 +346,20 @@ hashify_generate_preamble(stream_t* output_file) {
 		}
 
 		preamble = string_append(STRING_ARGS(preamble), capacity, STRING_ARGS(stripped_line));
-		if (line.length < HASHIFY_LINEBUFFER_LENGTH)
+		if (line.length < sizeof(line_buffer))
 			preamble = string_append(STRING_ARGS(preamble), capacity, STRING_CONST(STRING_NEWLINE));
 	}
+	stream_deallocate(prev_file);
 
 	stream_seek(output_file, 0, STREAM_SEEK_BEGIN);
 	if (preamble.length)
 		stream_write_string(output_file, STRING_ARGS(preamble));
 	stream_write_string(output_file, STRING_CONST(
-	                      "#pragma once\n\n"
-	                      "#include <foundation/hash.h>\n\n"
-	                      "/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******\n"
-	                      "    Edit corresponding definitions file and rerun\n"
-	                      "    the foundation hashify tool to update this file */\n\n"
+	                        "#pragma once\n\n"
+	                        "#include <foundation/hash.h>\n\n"
+	                        "/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******\n"
+	                        "    Edit corresponding definitions file and rerun\n"
+	                        "    the foundation hashify tool to update this file */\n\n"
 	                    ));
 
 	string_deallocate(preamble.str);
@@ -369,11 +373,12 @@ hashify_read_hashes(stream_t* file, hashify_string_t** hashes) {
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	string_const_t tokens[32];
 
+	memset(line_buffer, 0, sizeof(line_buffer));
 	do {
-		string_t line = stream_read_line_buffer(file, line_buffer, HASHIFY_LINEBUFFER_LENGTH - 1, '\n');
+		string_t line = stream_read_line_buffer(file, line_buffer, sizeof(line_buffer), '\n');
 		string_const_t stripped_line = string_strip(STRING_ARGS(line), STRING_CONST("\n\r"));
 		if ((string_find_string(STRING_ARGS(stripped_line), STRING_CONST("define"), 0) != STRING_NPOS) &&
-		    (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("static_hash"), 0) != STRING_NPOS)) {
+		        (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("static_hash"), 0) != STRING_NPOS)) {
 			//Format is: #define HASH_<hashstring> static_hash_string( "<string>", 0x<hashvalue>ULL )
 			size_t num_tokens = string_explode(STRING_ARGS(stripped_line), STRING_CONST(" \t"), tokens, 32,
 			                                   false);
@@ -566,16 +571,16 @@ hashify_print_usage(void) {
 	const error_level_t saved_level = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_DEBUG);
 	log_info(0, STRING_CONST(
-	           "hashify usage:\n"
-	           "  hashify [--validate] [--generate-string <string>] [<filename> <filename> ...] [--debug] [--help] [--]\n"
-	           "    Generated files have the same file name as the input file, with the extension replaced by .h\n"
-	           "    Optional arguments:\n"
-	           "      --validate                   Suppress output and only validate existing hashes\n"
-	           "      --generate-string <string>   Generate hash of the given string\n"
-	           "      <filename> <filename> ...    Any number of input files\n"
-	           "      --debug                      Enable debug output\n"
-	           "      --help                       Display this help message\n"
-	           "      --                           Stop processing command line arguments"
+	             "hashify usage:\n"
+	             "  hashify [--validate] [--generate-string <string>] [<filename> <filename> ...] [--debug] [--help] [--]\n"
+	             "    Generated files have the same file name as the input file, with the extension replaced by .h\n"
+	             "    Optional arguments:\n"
+	             "      --validate                   Suppress output and only validate existing hashes\n"
+	             "      --generate-string <string>   Generate hash of the given string\n"
+	             "      <filename> <filename> ...    Any number of input files\n"
+	             "      --debug                      Enable debug output\n"
+	             "      --help                       Display this help message\n"
+	             "      --                           Stop processing command line arguments"
 	         ));
 	log_set_suppress(0, saved_level);
 }
