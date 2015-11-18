@@ -216,7 +216,6 @@ fs_monitor(const char* path, size_t length) {
 
 static void
 _fs_stop_monitor(fs_monitor_t* monitor) {
-	mutex_t* notify = monitor->signal;
 	char* localpath = atomic_loadptr(&monitor->path);
 	thread_t thread = monitor->thread;
 	mutex_t* signal = monitor->signal;

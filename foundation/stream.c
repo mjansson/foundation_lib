@@ -1131,6 +1131,7 @@ _stream_stdin_available_read(stream_t* stream) {
 
 static tick_t
 _stream_std_last_modified(const stream_t* stream) {
+	FOUNDATION_UNUSED(stream);
 	return time_system();
 }
 

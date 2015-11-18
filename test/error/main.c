@@ -278,7 +278,7 @@ DECLARE_TEST(error, output) {
 	_last_log_length = 0;
 
     log_enable_stdout(false);
-	log_warn(HASH_TEST, 0x1000, STRING_ARGS(shortmsg));
+	log_warn(HASH_TEST, (warning_t)0x1000, STRING_ARGS(shortmsg));
     log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
@@ -323,7 +323,7 @@ DECLARE_TEST(error, output) {
 	_last_log_length = 0;
 
     log_enable_stdout(false);
-	log_error(HASH_TEST, 0x1000, STRING_ARGS(shortmsg));
+	log_error(HASH_TEST, (error_t)0x1000, STRING_ARGS(shortmsg));
     log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_ERROR);
@@ -368,7 +368,7 @@ DECLARE_TEST(error, output) {
 	_last_log_length = 0;
 
     log_enable_stdout(false);
-	log_panic(HASH_TEST, 0x1000, STRING_ARGS(shortmsg));
+	log_panic(HASH_TEST, (error_t)0x1000, STRING_ARGS(shortmsg));
     log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);

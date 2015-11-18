@@ -80,7 +80,7 @@ memory_thread(void* arg) {
 			max = mem;
 	}
 
-	diff = pointer_diff(max, min);
+	diff = (uintptr_t)pointer_diff(max, min);
 	EXPECT_SIZELE(diff, 128 * 1024);
 	EXPECT_SIZEGE(diff, 32);
 
