@@ -22,37 +22,12 @@ _object_initialize(object_base_t* obj, object_t id) {
 	atomic_store32(&obj->ref, 1);
 }
 
-object_t
-_object_ref(object_base_t* obj) {
-	int32_t ref;
-	if (obj) do {
-			ref = atomic_load32(&obj->ref);
-			if ((ref > 0) && atomic_cas32(&obj->ref, ref + 1, ref))
-				return obj->id;
-		}
-		while (ref > 0);
-	return 0;
-}
-
-object_t
-_object_unref(object_base_t* obj) {
-	int32_t ref;
-	if (obj) do {
-			ref = atomic_load32(&obj->ref);
-			if ((ref > 0) && atomic_cas32(&obj->ref, ref - 1, ref))
-				return (ref == 1) ? 0 : obj->id;
-		}
-		while (ref > 0);
-	return 0;
-}
-
 objectmap_t*
 objectmap_allocate(size_t size) {
 	objectmap_t* map;
 
-	FOUNDATION_ASSERT_MSG(size > 2, "Invalid objectmap size");
-	if (size <= 2)
-		size = 2;
+	if (size < 3)
+		size = 3;
 
 	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(void*) * size), 16, MEMORY_PERSISTENT);
 
@@ -68,8 +43,8 @@ objectmap_initialize(objectmap_t* map, size_t size) {
 	uintptr_t next_indexshift;
 	void** slot;
 
-	FOUNDATION_ASSERT_MSG(size > 2, "Invalid objectmap size");
-	bits = (unsigned int)math_round(math_log2((real)size));     //Number of bits needed
+	//Number of bits needed to represent index
+	bits = (unsigned int)math_round(math_log2((real)size));
 	FOUNDATION_ASSERT_MSGFORMAT(bits < 50, "Invalid objectmap size %" PRIsize, size);
 
 	memset(map, 0, sizeof(objectmap_t) + (sizeof(void*) * size));
@@ -114,7 +89,6 @@ objectmap_finalize(objectmap_t* map) {
 
 size_t
 objectmap_size(const objectmap_t* map) {
-	FOUNDATION_ASSERT(map);
 	return (unsigned int)map->size;
 }
 
@@ -123,8 +97,6 @@ objectmap_raw_lookup(const objectmap_t* map, size_t idx) {
 	uintptr_t ptr;
 
 	/*lint --e{613} Performance path (no ptr checks)*/
-	FOUNDATION_ASSERT(map);
-	FOUNDATION_ASSERT(idx < map->size);
 	ptr = (uintptr_t)map->map[idx];
 	return (ptr & 1) ? 0 : (void*)ptr;
 }
@@ -132,8 +104,6 @@ objectmap_raw_lookup(const objectmap_t* map, size_t idx) {
 object_t
 objectmap_reserve(objectmap_t* map) {
 	size_t idx, next, id;
-
-	FOUNDATION_ASSERT(map);
 
 	//Reserve spot in array
 	//TODO: Look into double-ended implementation with allocation from tail and free push to head
@@ -169,8 +139,6 @@ void
 objectmap_free(objectmap_t* map, object_t id) {
 	size_t idx, last;
 
-	FOUNDATION_ASSERT(map);
-
 	idx = (size_t)(id & map->mask_index);
 	if ((uintptr_t)map->map[idx] & 1)
 		return; //Already free
@@ -186,8 +154,6 @@ void
 objectmap_set(objectmap_t* map, object_t id, void* object) {
 	size_t idx;
 
-	FOUNDATION_ASSERT(map);
-
 	idx = (size_t)(id & map->mask_index);
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT(!(((uintptr_t)map->map[idx]) & 1));
@@ -202,12 +168,15 @@ objectmap_lookup_ref(const objectmap_t* map, object_t id) {
 	do {
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
-		    //ID in object is offset by 8 bytes
-		    ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
+		        //ID in object is offset by 8 bytes
+		        ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
 			int32_t ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref + 1, ref))
 				return object;
+		}
+		else {
+			object = nullptr;
 		}
 	}
 	while (object);
@@ -220,8 +189,8 @@ objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn
 	do {
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
-		    //ID in object is offset by 8 bytes
-		    ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
+		        //ID in object is offset by 8 bytes
+		        ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
 			int32_t ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref - 1, ref)) {
@@ -231,6 +200,9 @@ objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn
 				}
 				return true;
 			}
+		}
+		else {
+			object = nullptr;
 		}
 	}
 	while (object);

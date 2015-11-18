@@ -52,10 +52,11 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 }
 
 void
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value) {
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
+                           unsigned int value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
-	char buffer[256];
+	char buffer[128];
 	string_t namestr = string_copy(buffer, sizeof(buffer), name, length);
 	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, namestr.str);
 }
@@ -67,13 +68,13 @@ semaphore_finalize(semaphore_t* semaphore) {
 
 bool
 semaphore_wait(semaphore_t* semaphore) {
-	DWORD res = WaitForSingleObject((HANDLE) * semaphore, INFINITE);
+	DWORD res = WaitForSingleObject((HANDLE)*semaphore, INFINITE);
 	return (res == WAIT_OBJECT_0);
 }
 
 bool
 semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
-	DWORD res = WaitForSingleObject((HANDLE) * semaphore, milliseconds > 0 ? milliseconds : 0);
+	DWORD res = WaitForSingleObject((HANDLE)*semaphore, milliseconds > 0 ? milliseconds : 0);
 	return (res == WAIT_OBJECT_0);
 }
 

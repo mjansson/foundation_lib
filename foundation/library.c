@@ -58,11 +58,10 @@ _library_finalize(void) {
 }
 
 static void
-_library_destroy(library_t* library) {
-	if (!library)
-		return;
+_library_destroy(object_t id, void* obj) {
+	library_t* library = obj;
 
-	objectmap_free(_library_map, library->id);
+	objectmap_free(_library_map, id);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	FreeLibrary(library->dll);
@@ -216,14 +215,12 @@ library_load(const char* name, size_t length) {
 
 object_t
 library_ref(object_t id) {
-	return _object_ref(objectmap_lookup(_library_map, id));
+	return objectmap_lookup_ref(_library_map, id) ? id : 0;
 }
 
 void
 library_unload(object_t id) {
-	void* library = objectmap_lookup(_library_map, id);
-	if (!_object_unref(library))
-		_library_destroy(library);
+	objectmap_lookup_unref(_library_map, id, _library_destroy);
 }
 
 void*

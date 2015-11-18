@@ -65,6 +65,7 @@ DECLARE_TEST(objectmap, store) {
 	objectmap_t* map;
 	object_base_t first;
 	object_base_t second;
+	object_base_t third;
 
 	map = objectmap_allocate(129);
 
@@ -112,6 +113,57 @@ DECLARE_TEST(objectmap, store) {
 	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
 
 	objectmap_deallocate(map);
+
+	//Size should be clamped to three
+	map = objectmap_allocate(1);
+
+	EXPECT_EQ(objectmap_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup(map, 1), 0);
+
+	first.id = objectmap_reserve(map);
+	EXPECT_TYPENE(first.id, 0, object_t, PRIx64);
+	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+
+	second.id = objectmap_reserve(map);
+	EXPECT_TYPENE(second.id, 0, object_t, PRIx64);
+	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup(map, second.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+
+	third.id = objectmap_reserve(map);
+	EXPECT_TYPENE(third.id, 0, object_t, PRIx64);
+	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup(map, second.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+	EXPECT_EQ(objectmap_lookup(map, third.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+
+	objectmap_set(map, first.id, &first);
+	objectmap_set(map, second.id, &second);
+	objectmap_set(map, third.id, &third);
+
+	log_enable_stdout(false);
+	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx64);
+	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx64);
+	log_enable_stdout(true);
+
+	objectmap_free(map, first.id);
+	objectmap_free(map, second.id);
+	//Leak one object
+	//objectmap_free(map, third.id);
+	EXPECT_EQ(objectmap_lookup_ref(map, first.id), nullptr);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup_ref(map, second.id), nullptr);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+	EXPECT_NE(objectmap_lookup_ref(map, third.id), nullptr);
+	EXPECT_NE(objectmap_raw_lookup(map, 2), 0);
+
+	log_enable_stdout(false);
+	objectmap_deallocate(map);
+	log_enable_stdout(true);
 
 	return 0;
 }

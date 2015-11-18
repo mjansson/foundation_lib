@@ -440,25 +440,25 @@ DECLARE_TEST(path, clean) {
 	string_t path15 = string_clone(STRING_CONST(".\\.//\\"));
 	string_t path16 = string_clone(STRING_CONST("\\.\\.\\\\\\"));
 	string_t path17 = string_clone(
-	                    STRING_CONST("\\/.\\.\\\\\\.\\\\////\\///\\\\.\\.\\\\\\\\\\.\\\\\\\\\\\\.\\\\."));
+	                      STRING_CONST("\\/.\\.\\\\\\.\\\\////\\///\\\\.\\.\\\\\\\\\\.\\\\\\\\\\\\.\\\\."));
 	string_t path18 = string_clone(
-	                    STRING_CONST("http://\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\."));
+	                      STRING_CONST("http://\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\."));
 	string_t path19 = string_clone(STRING_CONST("testing/.../path/ext"));
 	string_t path20 = string_clone(STRING_CONST("./..//../testing/.path//..extend/."));
 	string_t path21 = string_clone(STRING_CONST("testing/path://extend/dyn"));
 	string_t path22 = string_clone(
-	                    STRING_CONST("/../../../testing/./\\\\/\\/./path:///C:://././//./extend/\\\\"));
+	                      STRING_CONST("/../../../testing/./\\\\/\\/./path:///C:://././//./extend/\\\\"));
 	string_t path23 = string_clone(
-	                    STRING_CONST("http://///\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\.///some/file"));
+	                      STRING_CONST("http://///\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\.///some/file"));
 	string_t path24 = string_clone(STRING_CONST("http://:test/../../././../../path"));
 	string_t path25 = string_clone(STRING_CONST("http:/C://.//test/../../path"));
 	string_t path26 = string_clone(STRING_CONST("http::.//test/../../..//.././//../path"));
 	string_t path27 = string_clone(
-	                    STRING_CONST("http://.//test/../../.././foo//../bar//zed/./.././//path"));
+	                      STRING_CONST("http://.//test/../../.././foo//../bar//zed/./.././//path"));
 	string_t path28 = string_clone(
-	                    STRING_CONST("C:\\//http://.//test/../../../../foo//../bar//zed/../../..///path"));
+	                      STRING_CONST("C:\\//http://.//test/../../../../foo//../bar//zed/../../..///path"));
 	string_t path29 = string_clone(
-	                    STRING_CONST("test/sub/../../../../foo//../bar//zed/../../..///path"));
+	                      STRING_CONST("test/sub/../../../../foo//../bar//zed/../../..///path"));
 	string_t path30 = string_clone(STRING_CONST("http:.//test/../../..//../a/.///../path"));
 	string_t path31 = string_clone(STRING_CONST("\\.."));
 	string_t path32 = string_clone(STRING_CONST(".."));
@@ -779,7 +779,8 @@ DECLARE_TEST(path, operations) {
 	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("test/foo/bar/")));
 	string_deallocate(merge.str);
 
-	merge = path_allocate_concat_varg(STRING_CONST("/abs"), STRING_CONST("/test"), STRING_CONST("/foo/"),
+	merge = path_allocate_concat_varg(STRING_CONST("/abs"), STRING_CONST("/test"),
+	                                  STRING_CONST("/foo/"),
 	                                  STRING_CONST("bar/"), nullptr, 10, STRING_CONST("fail"), nullptr);
 	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("/abs/test/foo/bar/")));
 	string_deallocate(merge.str);
@@ -789,7 +790,8 @@ DECLARE_TEST(path, operations) {
 	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("test/foo/bar/")));
 	string_deallocate(merge.str);
 
-	merge = path_allocate_concat_varg("nicht", 0, nullptr, 10, STRING_CONST("test/"), STRING_CONST("/foo/"),
+	merge = path_allocate_concat_varg("nicht", 0, nullptr, 10, STRING_CONST("test/"),
+	                                  STRING_CONST("/foo/"),
 	                                  STRING_CONST("/bar/"), STRING_CONST(""), STRING_CONST("/"), nullptr);
 	EXPECT_STRINGEQ(merge, string_null());
 	string_deallocate(merge.str);
@@ -846,9 +848,25 @@ DECLARE_TEST(path, operations) {
 	merge15 = path_concat(buffer, sizeof(buffer), STRING_CONST("c:/"), STRING_CONST("/test"));
 	EXPECT_STRINGEQ(merge15, string_const(STRING_CONST("c:/test")));
 
-	//TODO:
-	//path_append
-	//path_prepend
+	merge = path_append_varg(buffer, 0, sizeof(buffer), STRING_CONST("C:/"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("C:/test/foo")));
+
+	merge = path_append_varg(buffer, 0, 6, STRING_CONST("C:/"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("C:/te")));
+
+	merge = path_prepend_varg(buffer, 0, sizeof(buffer), STRING_CONST("snarf"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("/foo/test/snarf")));
+
+	merge = path_prepend_varg(buffer, 0, 9, STRING_CONST("snarf"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("/foo/tes")));
 
 	temp1 = path_make_temporary(buffer, sizeof(buffer));
 	temp2 = path_make_temporary(secbuffer, sizeof(secbuffer));

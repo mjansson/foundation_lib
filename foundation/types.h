@@ -340,7 +340,7 @@ a normal windowing system interaction loop */
 #define STREAM_IN       1U
 /*! Stream mode/flag, stream is writable */
 #define STREAM_OUT      (1U<<1)
-/*! Stream flag, stream is truncated on open */
+/*! Stream flag, stream is truncated on open if writable */
 #define STREAM_TRUNCATE (1U<<2)
 /*! Stream flag, stream target is created if it does not previously exist */
 #define STREAM_CREATE   (1U<<3)

@@ -35,6 +35,7 @@ static foundation_config_t
 test_app_config(void) {
 	foundation_config_t config;
 	memset(&config, 0, sizeof(config));
+	config.temporary_memory = 128 * 1024;
 	return config;
 }
 
@@ -60,9 +61,69 @@ DECLARE_TEST(app, environment) {
 	return 0;
 }
 
+static void*
+memory_thread(void* arg) {
+	FOUNDATION_UNUSED(arg);
+	int iloop, lsize;
+	void* min = 0;
+	void* max = 0;
+	size_t diff;
+
+	for (iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
+		void* mem = memory_allocate(0, 17, 16, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
+		EXPECT_EQ((uintptr_t)mem & 0x0F, 0);
+		thread_yield();
+		memory_deallocate(mem);
+		if (!min || (mem < min))
+			min = mem;
+		if (!max || (mem > max))
+			max = mem;
+	}
+
+	diff = pointer_diff(max, min);
+	EXPECT_SIZELE(diff, 128 * 1024);
+	EXPECT_SIZEGE(diff, 32);
+
+	return 0;
+}
+
+DECLARE_TEST(app, memory) {
+	thread_t thread[32];
+	size_t ith;
+	size_t num_threads = math_clamp(system_hardware_threads() * 2, 2, 32);
+	memory_statistics_t oldstats, newstats;
+
+	oldstats = memory_statistics();
+
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_initialize(&thread[ith], memory_thread, 0, STRING_CONST("memory_thread"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_start(&thread[ith]);
+
+	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
+
+	for (ith = 0; ith < num_threads; ++ith)
+		EXPECT_EQ(thread[ith].result, 0);
+
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_finalize(&thread[ith]);
+
+	newstats = memory_statistics();
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+	EXPECT_SIZEEQ(oldstats.allocated_current, newstats.allocated_current);
+#endif
+
+	return 0;
+}
+
 static void
 test_app_declare(void) {
 	ADD_TEST(app, environment);
+	ADD_TEST(app, memory);
 }
 
 static test_suite_t test_app_suite = {

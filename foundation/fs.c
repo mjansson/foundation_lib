@@ -218,19 +218,15 @@ static void
 _fs_stop_monitor(fs_monitor_t* monitor) {
 	mutex_t* notify = monitor->signal;
 	char* localpath = atomic_loadptr(&monitor->path);
+	thread_t thread = monitor->thread;
+	mutex_t* signal = monitor->signal;
+	if (!localpath || !atomic_cas_ptr(&monitor->path, 0, localpath))
+		return;
 
-	if (notify)
-		mutex_signal(notify);
-	thread_finalize(&monitor->thread);
-
-	atomic_storeptr(&monitor->path, 0);
-	monitor->signal = 0;
-
-	if (localpath)
-		string_deallocate(localpath);
-
-	if (notify)
-		mutex_deallocate(notify);
+	mutex_signal(signal);
+	thread_finalize(&thread);
+	mutex_deallocate(signal);
+	string_deallocate(localpath);
 }
 
 void
@@ -775,7 +771,7 @@ fs_copy_file(const char* source, size_t srclen, const char* dest, size_t destlen
 	void* buffer;
 	string_const_t destpath;
 
-	infile = fs_open_file(source, srclen, STREAM_IN);
+	infile = fs_open_file(source, srclen, STREAM_IN | STREAM_BINARY);
 	if (!infile)
 		return false;
 
@@ -783,7 +779,7 @@ fs_copy_file(const char* source, size_t srclen, const char* dest, size_t destlen
 	if (destpath.length)
 		fs_make_directory(STRING_ARGS(destpath));
 
-	outfile = fs_open_file(dest, destlen, STREAM_OUT | STREAM_CREATE);
+	outfile = fs_open_file(dest, destlen, STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
 	if (!outfile) {
 		stream_deallocate(infile);
 		return false;
@@ -1021,9 +1017,6 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 	for (id = 0, dsize = array_size(subdirs); id < dsize; ++id) {
 		string_t* subnames;
 		localpath = path_append(localpath.str, length, capacity, STRING_ARGS(subdirs[id]));
-		if (localpath.length >= capacity)
-			capacity = localpath.length + 1;
-
 		subnames = fs_matching_files_regex(STRING_ARGS(localpath), pattern, true);
 
 		for (in = 0, nsize = array_size(subnames); in < nsize; ++in)
@@ -1370,7 +1363,6 @@ _fs_monitor(void* monitorptr) {
 				if (event->mask & IN_MOVED_TO)*/
 
 skipwatch:
-
 				offset += event->len + sizeof(struct inotify_event);
 				event = (struct inotify_event*)pointer_offset(buffer, offset);
 			}
@@ -1509,16 +1501,8 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 			}
 		}
 		else {
-			if (mode & STREAM_TRUNCATE) {
-				if (mode & STREAM_CREATE)
-					modestr = MODESTRING("w+b");
-				else {
-					modestr = MODESTRING("r+b");
-					if (dotrunc)
-						*dotrunc = true;
-				}
-			}
-			else if (mode & STREAM_CREATE) {
+			//truncate is ignored for read-only files
+			if (mode & STREAM_CREATE) {
 				modestr = MODESTRING("r+b");
 				retry = 1;
 			}
@@ -1578,7 +1562,7 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 static size_t
 _fs_file_tell(stream_t* stream) {
 	ssize_t pos;
-	if (!stream || (stream->type != STREAMTYPE_FILE) || (GET_FILE(stream)->fd == 0))
+	if (GET_FILE(stream)->fd == 0)
 		return 0;
 #if FOUNDATION_PLATFORM_PNACL
 	pos = (ssize_t)GET_FILE(stream)->position;
@@ -1592,8 +1576,6 @@ _fs_file_tell(stream_t* stream) {
 
 static void
 _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
-	if (!stream || (stream->type != STREAMTYPE_FILE) || (GET_FILE(stream)->fd == 0))
-		return;
 #if FOUNDATION_PLATFORM_PNACL
 	stream_file_t* file = GET_FILE(stream);
 	if (direction == STREAM_SEEK_BEGIN)
@@ -1627,30 +1609,20 @@ _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 
 static bool
 _fs_file_eos(stream_t* stream) {
-	if (!stream || (stream->type != STREAMTYPE_FILE) || (GET_FILE(stream)->fd == 0))
-		return true;
-
 #if FOUNDATION_PLATFORM_PNACL
 	stream_file_t* file = GET_FILE(stream);
 	return (file->position >= file->size);
 #else
-	return (feof(GET_FILE(stream)->fd) != 0);
+	return (GET_FILE(stream)->fd == 0) || (feof(GET_FILE(stream)->fd) != 0);
 #endif
 }
 
 static size_t
 _fs_file_size(stream_t* stream) {
-#if !FOUNDATION_PLATFORM_PNACL
-	size_t cur;
-	size_t size;
-#endif
-
-	if (!stream || (stream->type != STREAMTYPE_FILE) || (GET_FILE(stream)->fd == 0))
-		return 0;
-
 #if FOUNDATION_PLATFORM_PNACL
 	return GET_FILE(stream)->size;
 #else
+	size_t cur, size;
 
 	cur = _fs_file_tell(stream);
 	_fs_file_seek(stream, 0, STREAM_SEEK_END);
@@ -1658,7 +1630,6 @@ _fs_file_size(stream_t* stream) {
 	_fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
 
 	return size;
-
 #endif
 }
 
@@ -1673,7 +1644,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	wchar_t* wpath;
 #endif
 
-	if (!stream || !(stream->mode & STREAM_OUT) || (stream->type != STREAMTYPE_FILE) ||
+	if (!(stream->mode & STREAM_OUT) ||
 	        (GET_FILE(stream)->fd == 0))
 		return;
 
@@ -1701,10 +1672,8 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #else
 
 	file = GET_FILE(stream);
-	if (file->fd) {
-		fclose(file->fd);
-		file->fd = 0;
-	}
+	fclose(file->fd);
+	file->fd = 0;
 
 	fspath = _fs_path(file->path.str, file->path.length);
 
@@ -1760,7 +1729,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 
 static void
 _fs_file_flush(stream_t* stream) {
-	if (!stream || (stream->type != STREAMTYPE_FILE) || (GET_FILE(stream)->fd == 0))
+	if (GET_FILE(stream)->fd == 0)
 		return;
 
 #if FOUNDATION_PLATFORM_PNACL
@@ -1778,7 +1747,7 @@ _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 	size_t beforepos;
 #endif
 
-	if (!stream || !(stream->mode & STREAM_IN) || (stream->type != STREAMTYPE_FILE) ||
+	if (!(stream->mode & STREAM_IN) ||
 	        (GET_FILE(stream)->fd == 0))
 		return 0;
 
@@ -1833,7 +1802,7 @@ _fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
 	size_t beforepos;
 #endif
 
-	if (!stream || !(stream->mode & STREAM_OUT) || (stream->type != STREAMTYPE_FILE) ||
+	if (!(stream->mode & STREAM_OUT) ||
 	        (GET_FILE(stream)->fd == 0))
 		return 0;
 
@@ -1886,7 +1855,7 @@ static tick_t
 _fs_file_last_modified(const stream_t* stream) {
 	const stream_file_t* fstream = GET_FILE_CONST(stream);
 #if FOUNDATION_PLATFORM_PNACL
-	struct PP_FileInfo info;
+	struct PP_FileInfo info = {0};
 	_pnacl_file_io->Query(fstream->fd, &info, PP_BlockUntilComplete());
 	return (tick_t)info.last_modified_time * 1000LL;
 #else
@@ -1913,7 +1882,7 @@ static stream_t* _fs_file_clone(stream_t* stream) {
 static void
 _fs_file_finalize(stream_t* stream) {
 	stream_file_t* file = GET_FILE(stream);
-	if (!file || (stream->type != STREAMTYPE_FILE))
+	if (file->fd == 0)
 		return;
 
 	if (file->mode & STREAM_SYNC) {
@@ -1955,14 +1924,6 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 	size_t capacity;
 	bool dotrunc;
 	char buffer[BUILD_MAX_PATHLEN];
-
-	if (!path || !length)
-		return 0;
-
-	if (!mode)
-		mode = STREAM_IN | STREAM_BINARY;
-	if (!(mode & STREAM_IN) && !(mode & STREAM_OUT))
-		mode |= STREAM_IN;
 
 	capacity = sizeof(buffer);
 	localpath = string_copy(buffer, capacity, path, length);

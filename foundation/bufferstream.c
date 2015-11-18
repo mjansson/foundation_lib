@@ -52,7 +52,7 @@ buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mod
 	stream->grow = (adopt && grow);
 	stream->lastmod = time_current();
 
-	if (mode & STREAM_TRUNCATE)
+	if ((mode & STREAM_OUT) && (mode & STREAM_TRUNCATE))
 		stream->size = 0;
 	if (mode & STREAM_ATEND)
 		stream->current = stream->size;

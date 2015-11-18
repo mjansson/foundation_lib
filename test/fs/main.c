@@ -119,6 +119,7 @@ DECLARE_TEST(fs, directory) {
 DECLARE_TEST(fs, file) {
 	char buf[BUILD_MAX_PATHLEN];
 	char copybuf[BUILD_MAX_PATHLEN];
+    char data[1024];
 	string_const_t fname;
 	string_t testpath;
 	string_t copypath;
@@ -168,8 +169,97 @@ DECLARE_TEST(fs, file) {
 
 	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE(teststream, 0);
-	EXPECT_TRUE(fs_is_file(STRING_ARGS(testpath)));
+	memset(data, 0, sizeof(data));
+	stream_write(teststream, data, sizeof(data));
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
 	stream_deallocate(teststream);
+	EXPECT_TRUE(fs_is_file(STRING_ARGS(testpath)));
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN);
+	EXPECT_NE(teststream, 0);
+	EXPECT_SIZEEQ(stream_tell(teststream), 0);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
+	EXPECT_SIZEEQ(stream_tell(teststream), 0);
+	stream_deallocate(teststream);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_TRUNCATE);
+	EXPECT_EQ(teststream, 0);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_ATEND);
+	EXPECT_NE(teststream, 0);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data));
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data));
+	stream_write(teststream, data, sizeof(data));
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)*2);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
+	stream_deallocate(teststream);
+
+    //Vefify truncate is ignored for read-only files
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN | STREAM_TRUNCATE | STREAM_ATEND);
+	EXPECT_NE(teststream, 0);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)*2);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
+	stream_deallocate(teststream);
+
+	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
+	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN | STREAM_TRUNCATE);
+	EXPECT_EQ(teststream, nullptr);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_TRUNCATE);
+	EXPECT_EQ(teststream, nullptr);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_CREATE);
+	EXPECT_NE(teststream, 0);
+	EXPECT_TRUE(fs_is_file(STRING_ARGS(testpath)));
+	stream_write(teststream, data, sizeof(data));
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
+	stream_deallocate(teststream);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_TRUNCATE);
+	EXPECT_NE(teststream, 0);
+	EXPECT_SIZEEQ(stream_tell(teststream), 0);
+	EXPECT_SIZEEQ(stream_size(teststream), 0);
+	EXPECT_SIZEEQ(stream_tell(teststream), 0);
+	stream_deallocate(teststream);
+
+	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
+	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_CREATE);
+	EXPECT_NE(teststream, 0);
+	EXPECT_TRUE(fs_is_file(STRING_ARGS(testpath)));
+	stream_write(teststream, data, sizeof(data));
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
+	stream_deallocate(teststream);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN | STREAM_OUT | STREAM_TRUNCATE);
+	EXPECT_SIZEEQ(stream_tell(teststream), 0);
+	EXPECT_SIZEEQ(stream_size(teststream), 0);
+	EXPECT_SIZEEQ(stream_tell(teststream), 0);
+	stream_write(teststream, data, sizeof(data));
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
+	stream_deallocate(teststream);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_ATEND);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data));
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data));
+	stream_write(teststream, data, 1);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)+1);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)+1);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)+1);
+    stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	stream_write(teststream, data, 1);
+	EXPECT_SIZEEQ(stream_tell(teststream), 1);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)+1);
+	EXPECT_SIZEEQ(stream_tell(teststream), 1);
+	stream_deallocate(teststream);
+
 	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(testpath)));
 

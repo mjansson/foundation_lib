@@ -134,6 +134,8 @@ main_initialize(void) {
 #if BUILD_MONOLITHIC
 	//For fs monitor test
 	config.fs_monitor_max = 1;
+	//For temporary allocator test, 128KiB
+	config.temporary_memory = 128 * 1024;
 #endif
 
 	memset(&application, 0, sizeof(application));
