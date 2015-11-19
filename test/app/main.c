@@ -81,7 +81,7 @@ memory_thread(void* arg) {
 	}
 
 	diff = (uintptr_t)pointer_diff(max, min);
-	EXPECT_SIZELE(diff, 128 * 1024);
+	EXPECT_SIZELT(diff, 128 * 1024);
 	EXPECT_SIZEGE(diff, 32);
 
 	return 0;
@@ -120,10 +120,75 @@ DECLARE_TEST(app, memory) {
 	return 0;
 }
 
+static void*
+test_thread(void* arg) {
+	EXPECT_FALSE(thread_is_main());
+	
+	EXPECT_CONSTSTRINGEQ(thread_name(), string_const(STRING_CONST("test_thread")));
+	thread_set_name(STRING_CONST("other_thread"));
+	EXPECT_CONSTSTRINGEQ(thread_name(), string_const(STRING_CONST("other_thread")));
+
+	thread_set_main();
+	EXPECT_TRUE(thread_is_main());
+	
+	thread_set_name(STRING_CONST("test_thread"));
+	EXPECT_CONSTSTRINGEQ(thread_name(), string_const(STRING_CONST("test_thread")));
+
+	if (system_hardware_threads() > 1) {
+        uint64_t core = random64_range(0, system_hardware_threads());
+        uint64_t mask = (1ULL << core);
+		thread_set_hardware(mask);
+		for (size_t iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
+            random64();
+			EXPECT_UINTEQ(thread_hardware(), core);
+			thread_yield();
+		}
+	}
+
+	return 0;
+}
+
+DECLARE_TEST(app, thread) {
+	thread_t* testthread = 0;
+    thread_t thread[32];
+    size_t ithread;
+	size_t num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
+
+	EXPECT_TRUE(thread_is_main());
+
+	testthread = thread_allocate(test_thread, 0, STRING_CONST("test_thread"), THREAD_PRIORITY_NORMAL, 0);
+    thread_start(testthread);
+
+    test_wait_for_threads_startup(testthread, 1);
+    test_wait_for_threads_finish(testthread, 1);
+
+    EXPECT_EQ(thread_join(testthread), nullptr);
+    thread_deallocate(testthread);
+
+    for (ithread = 0; ithread < num_threads; ++ithread)
+	    thread_initialize(&thread[ithread], test_thread, 0, STRING_CONST("test_thread"), THREAD_PRIORITY_NORMAL, 0);
+    for (ithread = 0; ithread < num_threads; ++ithread)
+    	thread_start(&thread[ithread]);
+
+	test_wait_for_threads_startup(thread, num_threads);
+    test_wait_for_threads_finish(thread, num_threads);
+	
+    for (ithread = 0; ithread < num_threads; ++ithread) {
+    	EXPECT_EQ(thread_join(&thread[ithread]), nullptr);
+        thread_finalize(&thread[ithread]);
+    }
+
+	EXPECT_FALSE(thread_is_main());
+	thread_set_main();
+
+	return 0;
+}
+
 static void
 test_app_declare(void) {
 	ADD_TEST(app, environment);
 	ADD_TEST(app, memory);
+	ADD_TEST(app, thread);
 }
 
 static test_suite_t test_app_suite = {

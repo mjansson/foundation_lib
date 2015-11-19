@@ -68,19 +68,24 @@ DECLARE_TEST(mutex, basic) {
 
 	mutex_signal(mutex);
 	thread_yield();
-	EXPECT_TRUE(mutex_wait(mutex, 1));
+	EXPECT_TRUE(mutex_try_wait(mutex, 1));
+	EXPECT_TRUE(mutex_unlock(mutex));
+
+	mutex_signal(mutex);
+	thread_yield();
+	EXPECT_TRUE(mutex_wait(mutex));
 	EXPECT_TRUE(mutex_unlock(mutex));
 
 	log_set_suppress(0, ERRORLEVEL_WARNING);
-	EXPECT_FALSE(mutex_wait(mutex, 100));
+	EXPECT_FALSE(mutex_try_wait(mutex, 100));
 	EXPECT_FALSE(mutex_unlock(mutex));
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
 	mutex_signal(mutex);
 	thread_yield();
-	EXPECT_TRUE(mutex_wait(mutex, 1));
+	EXPECT_TRUE(mutex_try_wait(mutex, 1));
 	log_set_suppress(0, ERRORLEVEL_WARNING);
-	EXPECT_FALSE(mutex_wait(mutex, 100));
+	EXPECT_FALSE(mutex_try_wait(mutex, 100));
 	EXPECT_TRUE(mutex_unlock(mutex));
 	EXPECT_FALSE(mutex_unlock(mutex));
 	log_set_suppress(0, ERRORLEVEL_INFO);
@@ -143,12 +148,12 @@ static atomic32_t thread_waiting;
 static atomic32_t thread_waited;
 
 static void*
-thread_wait(void* arg) {
+thread_waiter(void* arg) {
 	mutex_t* mutex = arg;
 
 	atomic_incr32(&thread_waiting);
 
-	if (mutex_wait(mutex, 30000)) {
+	if (mutex_try_wait(mutex, 30000)) {
 		atomic_incr32(&thread_waited);
 		mutex_unlock(mutex);
 	}
@@ -168,7 +173,7 @@ DECLARE_TEST(mutex, signal) {
 	mutex_lock(mutex);
 
 	for (ith = 0; ith < 32; ++ith)
-		thread_initialize(&thread[ith], thread_wait, mutex, STRING_CONST("thread_wait"),
+		thread_initialize(&thread[ith], thread_waiter, mutex, STRING_CONST("thread_wait"),
 		                  THREAD_PRIORITY_NORMAL, 0);
 	for (ith = 0; ith < 32; ++ith)
 		thread_start(&thread[ith]);
@@ -190,7 +195,7 @@ DECLARE_TEST(mutex, signal) {
 
 	EXPECT_EQ(atomic_load32(&thread_waited), 32);
 
-	EXPECT_FALSE(mutex_wait(mutex, 500));
+	EXPECT_FALSE(mutex_try_wait(mutex, 500));
 
 	mutex_deallocate(mutex);
 

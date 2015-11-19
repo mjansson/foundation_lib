@@ -55,7 +55,7 @@ inc_thread(void* arg) {
 	int loop = 0;
 	int icount = 0;
 	FOUNDATION_UNUSED(arg);
-	while (!thread_is_signalled() && (loop < 65535)) {
+	while (!thread_try_wait(0) && (loop < 65535)) {
 		for (icount = 0; icount < 256; ++icount) {
 			atomic_incr32(&val_32);
 			atomic_incr64(&val_64);
@@ -72,7 +72,7 @@ dec_thread(void* arg) {
 	int loop = 0;
 	int icount = 0;
 	FOUNDATION_UNUSED(arg);
-	while (!thread_is_signalled() && (loop < 65535)) {
+	while (!thread_try_wait(0) && (loop < 65535)) {
 		for (icount = 0; icount < 256; ++icount) {
 			atomic_decr32(&val_32);
 			atomic_decr64(&val_64);
@@ -89,7 +89,7 @@ add_thread(void* arg) {
 	int loop = 0;
 	int32_t icount = 0;
 	FOUNDATION_UNUSED(arg);
-	while (!thread_is_signalled() && (loop < 65535)) {
+	while (!thread_try_wait(0) && (loop < 65535)) {
 		for (icount = 0; icount < 128; ++icount) {
 			atomic_add32(&val_32, icount % 2 ? -icount : icount);
 			atomic_exchange_and_add64(&val_64, icount % 2 ? -icount : icount);
@@ -118,7 +118,7 @@ cas_thread(void* arg) {
 
 	thread_sleep(10);
 
-	while (!thread_is_signalled() && (loop < 65535)) {
+	while (!thread_try_wait(0) && (loop < 65535)) {
 		while (!atomic_cas32(&val_32, val.val_32, 0))
 			thread_yield();
 		while (!atomic_cas32(&val_32, 0, val.val_32))

@@ -31,6 +31,7 @@ typedef struct {
 
 static test_group_t** _test_groups;
 static bool           _test_failed;
+static bool           _test_exiting;
 
 test_suite_t          test_suite;
 
@@ -42,10 +43,11 @@ test_event_thread(void* arg) {
 	event_t* event = 0;
 	FOUNDATION_UNUSED(arg);
 
-	while (!thread_is_signalled()) {
-		block = event_stream_process(system_event_stream());
-		event = 0;
+	event_stream_set_signal(system_event_stream(), &thread_self()->signal);
 
+	while (!_test_exiting) {
+		thread_wait();
+		block = event_stream_process(system_event_stream());
 		while ((event = event_next(block, event))) {
 			switch (event->id) {
 			case FOUNDATIONEVENT_TERMINATE:
@@ -56,7 +58,7 @@ test_event_thread(void* arg) {
 				break;
 			}
 		}
-		thread_sleep(10);
+		event = 0;
 	}
 
 	return 0;
@@ -140,6 +142,7 @@ test_run(void) {
 	}
 
 #if !BUILD_MONOLITHIC
+	_test_exiting = true;
 	thread_signal(&thread_event);
 	thread_finalize(&thread_event);
 #else

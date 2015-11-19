@@ -71,7 +71,6 @@ typedef FILE* fs_file_descriptor;
 struct fs_monitor_t {
 	atomicptr_t path;
 	thread_t    thread;
-	mutex_t*    signal;
 };
 
 struct stream_file_t {
@@ -190,8 +189,6 @@ fs_monitor(const char* path, size_t length) {
 
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
 		if (atomic_cas_ptr(&_fs_monitors[mi].path, path_clone.str, 0)) {
-			if (!_fs_monitors[mi].signal)
-				_fs_monitors[mi].signal = mutex_allocate(STRING_CONST("fs_monitor_signal"));
 			thread_initialize(&_fs_monitors[mi].thread, _fs_monitor, _fs_monitors + mi,
 			                  STRING_CONST("fs_monitor"), THREAD_PRIORITY_BELOWNORMAL, 0);
 			thread_start(&_fs_monitors[mi].thread);
@@ -218,13 +215,11 @@ static void
 _fs_stop_monitor(fs_monitor_t* monitor) {
 	char* localpath = atomic_loadptr(&monitor->path);
 	thread_t thread = monitor->thread;
-	mutex_t* signal = monitor->signal;
 	if (!localpath || !atomic_cas_ptr(&monitor->path, 0, localpath))
 		return;
 
-	mutex_signal(signal);
+	thread_signal(&thread);
 	thread_finalize(&thread);
-	mutex_deallocate(signal);
 	string_deallocate(localpath);
 }
 
@@ -1160,7 +1155,7 @@ _fs_monitor(void* monitorptr) {
 
 	buffer = memory_allocate(0, buffer_size, 8, MEMORY_PERSISTENT);
 
-	handles[0] = mutex_event_object(monitor->signal);
+	handles[0] = semaphore_event_object(&thread_self()->signal);
 	handles[1] = CreateEvent(0, FALSE, FALSE, 0);
 
 	if (handles[1] == INVALID_HANDLE_VALUE) {
@@ -1367,32 +1362,23 @@ skipwatch:
 			}
 			memory_deallocate(buffer);
 		}
-		if (monitor->signal) {
-			if (mutex_wait(monitor->signal, 100)) {
-				keep_running = false;
-				mutex_unlock(monitor->signal);
-			}
-		}
+		
+		if (thread_try_wait(100))
+			keep_running = false;
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
 		if (event_stream)
 			_fs_event_stream_flush(event_stream);
 
-		if (monitor->signal) {
-			if (mutex_wait(monitor->signal, 100)) {
-				keep_running = false;
-				mutex_unlock(monitor->signal);
-			}
-		}
+		if (thread_try_wait(100))
+			keep_running = false;
 
 #else
 		log_debug(0, STRING_CONST("Filesystem watcher not implemented on this platform"));
 		//Not implemented yet, just wait for signal to simulate thread
-		if (mutex_wait(monitor->signal, 0)) {
-			keep_running = false;
-			mutex_unlock(monitor->signal);
-		}
+		thread_wait();
+		keep_running = false;
 #endif
 	}
 
@@ -2060,7 +2046,7 @@ void
 _fs_finalize(void) {
 	size_t mi;
 	if (_fs_monitors) for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi)
-			_fs_stop_monitor(_fs_monitors + mi);
+		_fs_stop_monitor(_fs_monitors + mi);
 
 	event_stream_deallocate(_fs_event_stream);
 	_fs_event_stream = 0;

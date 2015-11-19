@@ -1011,6 +1011,8 @@ FOUNDATION_ALIGNED_STRUCT(event_stream_t, 16) {
 	int32_t read;
 	/*! Event blocks, double buffered for concurrent read/write access */
 	event_block_t block[2];
+	/*! Optional signal */
+	semaphore_t* signal;
 };
 
 /*! Payload layout for a file system event */

@@ -178,14 +178,11 @@ thread_set_name(const char* name, size_t length) {
 #  if FOUNDATION_PLATFORM_WINDOWS
 	_set_thread_name(name);
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	if (!thread_is_main())  //Don't set main thread (i.e process) name
-		prctl(PR_SET_NAME, name, 0, 0, 0);
+	prctl(PR_SET_NAME, name, 0, 0, 0);
 #  elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	if (!thread_is_main())  //Don't set main thread (i.e process) name
-		pthread_setname_np(name);
+	pthread_setname_np(name);
 #  elif FOUNDATION_PLATFORM_BSD
-	if (!thread_is_main())  //Don't set main thread (i.e process) name
-		pthread_set_name_np(pthread_self(), name);
+	pthread_set_name_np(pthread_self(), name);
 #  endif
 #endif
 
@@ -268,7 +265,7 @@ _thread_entry(thread_arg_t data) {
 
 thread_t*
 thread_allocate(thread_fn fn, void* data, const char* name, size_t length,
-                  thread_priority_t priority, unsigned int stacksize) {
+                thread_priority_t priority, unsigned int stacksize) {
 	thread_t* thread = memory_allocate(0, sizeof(thread_t), 0,
 	                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	thread_initialize(thread, fn, data, name, length, priority, stacksize);
@@ -285,7 +282,7 @@ thread_initialize(thread_t* thread, thread_fn fn, void* data, const char* name, 
 	memset(thread, 0, sizeof(thread_t));
 	newname = string_copy(thread->namebuffer, sizeof(thread->namebuffer), name, length);
 	thread->arg = data;
- 	thread->name = string_to_const(newname);
+	thread->name = string_to_const(newname);
 	thread->fn = fn;
 	thread->priority = priority;
 	thread->stacksize = stacksize;
@@ -378,9 +375,15 @@ thread_signal(thread_t* thread) {
 }
 
 bool
-thread_is_signalled(void) {
+thread_wait(void) {
 	thread_t* thread = get_thread_self();
-	return thread ? semaphore_try_wait(&thread->signal, 0) : false;
+	return thread ? semaphore_wait(&thread->signal) : false;
+}
+
+bool
+thread_try_wait(unsigned int milliseconds) {
+	thread_t* thread = get_thread_self();
+	return thread ? semaphore_try_wait(&thread->signal, milliseconds) : false;
 }
 
 string_const_t
@@ -450,8 +453,24 @@ thread_hardware(void) {
 
 void
 thread_set_hardware(uint64_t mask) {
+#if FOUNDATION_PLATFORM_WINDOWS
+	DWORD_PTR procmask = 0;
+	DWORD_PTR sysmask = 0;
+	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
+	SetThreadAffinityMask(GetCurrentThread(), mask & procmask);
+#elif FOUNDATION_PLATFORM_LINUX
+	uint64_t ibit, bsize;
+	cpu_set_t set;
+	CPU_ZERO(&set);
+	for (ibit = 0, bsize = math_min(64, CPU_SETSIZE); ibit < bsize; ++ibit) {
+		if (mask & (1 << bit))
+			CPU_SET(ibit, &set);
+	}
+	sched_setaffinity(ibit, sizeof(set), &set);
+#else
 	//TODO: Implement
 	FOUNDATION_UNUSED(mask);
+#endif
 }
 
 void
@@ -462,6 +481,11 @@ thread_set_main(void) {
 bool
 thread_is_main(void) {
 	return thread_id() == _thread_main_id;
+}
+
+thread_t*
+thread_self(void) {
+	return get_thread_self();
 }
 
 void

@@ -74,13 +74,18 @@ semaphore_wait(semaphore_t* semaphore) {
 
 bool
 semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
-	DWORD res = WaitForSingleObject((HANDLE)*semaphore, milliseconds > 0 ? milliseconds : 0);
+	DWORD res = WaitForSingleObject((HANDLE)*semaphore, milliseconds);
 	return (res == WAIT_OBJECT_0);
 }
 
 void
 semaphore_post(semaphore_t* semaphore) {
 	ReleaseSemaphore((HANDLE)*semaphore, 1, 0);
+}
+
+void*
+semaphore_event_object(semaphore_t* semaphore) {
+	return *semaphore;
 }
 
 #elif FOUNDATION_PLATFORM_MACOSX
@@ -337,7 +342,7 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 		tick_t start = time_current();
 		tick_t ticks_per_sec = time_ticks_per_second();
 		while (sem_trywait((native_sem_t*)semaphore->sem) != 0) {
-			thread_yield();
+			thread_sleep(1);
 			tick_t elapsed = time_elapsed_ticks(start);
 			if (elapsed > (((tick_t)milliseconds * ticks_per_sec) / 1000LL))
 				return false;

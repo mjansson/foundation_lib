@@ -210,7 +210,7 @@ producer_thread(void* arg) {
 		                nullptr);
 		++produced;
 	}
-	while (!thread_is_signalled() && (time_current() < args->end_time));
+	while (!thread_try_wait(0) && (time_current() < args->end_time));
 
 	return (void*)((uintptr_t)produced);
 }

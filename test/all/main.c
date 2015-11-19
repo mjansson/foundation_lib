@@ -13,9 +13,9 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-static volatile bool _test_should_start = false;
-static volatile bool _test_have_focus = false;
-static volatile bool _test_should_terminate = false;
+static volatile bool _test_should_start;
+static volatile bool _test_have_focus;
+static volatile bool _test_should_terminate;
 
 static void*
 event_loop(void* arg) {
@@ -23,7 +23,10 @@ event_loop(void* arg) {
 	event_t* event = 0;
 	FOUNDATION_UNUSED(arg);
 
-	while (!thread_is_signalled()) {
+	event_stream_set_signal(system_event_stream(), &thread_self()->signal);
+
+	while (!_test_should_terminate) {
+		thread_wait();
 		block = event_stream_process(system_event_stream());
 		event = 0;
 
@@ -58,8 +61,6 @@ event_loop(void* arg) {
 				break;
 			}
 		}
-
-		thread_sleep(10);
 	}
 
 	log_debug(HASH_TEST, STRING_CONST("Application event thread exiting"));
@@ -462,6 +463,8 @@ exit:
 	array_deallocate(exe_flags);
 
 #endif
+
+	_test_should_terminate = true;
 
 	thread_signal(&event_thread);
 	thread_finalize(&event_thread);

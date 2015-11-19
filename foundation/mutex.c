@@ -193,8 +193,18 @@ mutex_unlock(mutex_t* mutex) {
 	return true;
 }
 
+
 bool
-mutex_wait(mutex_t* mutex, unsigned int timeout) {
+mutex_wait(mutex_t* mutex) {
+#if FOUNDATION_PLATFORM_WINDOWS
+	return mutex_try_wait(mutex, INFINITE);
+#else
+	return mutex_try_wait(mutex, 0xFFFFFFFF);
+#endif
+}
+
+bool
+mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DWORD ret;
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
@@ -210,7 +220,7 @@ mutex_wait(mutex_t* mutex, unsigned int timeout) {
 
 	atomic_incr32(&mutex->waiting);
 
-	ret = WaitForSingleObject(mutex->event, (timeout == 0) ? INFINITE : timeout);
+	ret = WaitForSingleObject(mutex->event, milliseconds);
 
 	if (ret == WAIT_OBJECT_0)
 		mutex_lock(mutex);
@@ -228,11 +238,15 @@ mutex_wait(mutex_t* mutex, unsigned int timeout) {
 		mutex->pending = false;
 		return true;
 	}
+	if (!milliseconds) {
+		mutex_unlock(mutex);
+		return false;
+	}
 
 	--mutex->lockcount;
 
 	bool was_signal = false;
-	if (!timeout) {
+	if (milliseconds == 0xFFFFFFFF) {
 		int ret = pthread_cond_wait(&mutex->cond, &mutex->mutex);
 		if (ret == 0) {
 			was_signal = true;
@@ -246,8 +260,8 @@ mutex_wait(mutex_t* mutex, unsigned int timeout) {
 	else {
 		int ret;
 		gettimeofday(&now, 0);
-		then.tv_sec  = now.tv_sec + (time_t)(timeout / 1000);
-		then.tv_nsec = (now.tv_usec * 1000) + (long)(timeout % 1000) * 1000000L;
+		then.tv_sec  = now.tv_sec + (time_t)(milliseconds / 1000);
+		then.tv_nsec = (now.tv_usec * 1000) + (long)(milliseconds % 1000) * 1000000L;
 		while (then.tv_nsec > 999999999) {
 			++then.tv_sec;
 			then.tv_nsec -= 1000000000L;

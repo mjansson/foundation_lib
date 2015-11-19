@@ -146,7 +146,7 @@ _profile_fail_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	thread_sleep(10);
 
-	while (!thread_is_signalled()) {
+	while (!thread_try_wait(1)) {
 		profile_log(STRING_CONST("Thread message"));
 
 		profile_begin_block(STRING_CONST("Thread block"));
@@ -171,8 +171,6 @@ _profile_fail_thread(void* arg) {
 				thread_yield();
 			}
 			profile_end_block();
-
-			thread_sleep(1);
 		}
 		profile_end_block();
 	}
@@ -248,7 +246,7 @@ _profile_stream_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	thread_yield();
 
-	while (!thread_is_signalled()) {
+	while (!thread_try_wait(4)) {
 		profile_log(STRING_CONST("Thread message"));
 
 		profile_begin_block(STRING_CONST("Thread block"));
@@ -282,8 +280,6 @@ _profile_stream_thread(void* arg) {
 			profile_unlock(STRING_CONST("Trylock"));
 		}
 		profile_end_block();
-
-		thread_sleep(4);
 
 		atomic_add64(&_profile_generated_blocks, 12);
 	}

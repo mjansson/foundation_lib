@@ -97,7 +97,13 @@ thread_signal(thread_t* thread);
 /*! Query if calling thread is signalled
 \return true if signalled, false if not */
 FOUNDATION_API bool
-thread_is_signalled(void);
+thread_wait(void);
+
+/*! Wait for calling thread to be signalled for the given amount of time
+\param milliseconds Time in milliseconds to wait, 0 means indefinitely
+\return true if signalled, false if not */
+FOUNDATION_API bool
+thread_try_wait(unsigned int milliseconds);
 
 /*! Query if calling thread is the main thread.
 \return true if main thread, false if not */
@@ -114,7 +120,10 @@ thread_set_main(void);
 FOUNDATION_API void
 thread_set_name(const char* name, size_t length);
 
-/*! Set thread CPU core affinity for the calling thread.
+/*! Set thread CPU core affinity for the calling thread. The affinity is
+represented by a bitfield, where a set bit indicates affinity for the
+corresponding core. For example, to set affinity to core 2 and 3, use
+(1<<2)|(1<<3) as mask.
 \param mask CPU core mask for which the thread is allowed to execute on */
 FOUNDATION_API void
 thread_set_hardware(uint64_t mask);
@@ -142,6 +151,11 @@ thread_sleep(unsigned int milliseconds);
 /*! Yield calling thread remaining timeslice to other threads. */
 FOUNDATION_API void
 thread_yield(void);
+
+/*! Get thread control block for the calling thread, 0 if not a foundation thread
+\return Thread */
+FOUNDATION_API thread_t*
+thread_self(void);
 
 /*! Finalize on thread exit and free thread local resources. */
 FOUNDATION_API void
