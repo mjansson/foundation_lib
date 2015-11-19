@@ -232,6 +232,8 @@ DECLARE_TEST(error, thread) {
 	return 0;
 }
 
+#if BUILD_ENABLE_LOG
+
 static int
 ignore_error_handler(error_level_t level, error_t err) {
 	FOUNDATION_UNUSED(level);
@@ -251,6 +253,8 @@ log_verify_callback(hash_t context, error_level_t severity, const char* msg, siz
 	_last_log_msg = msg;
 	_last_log_length = length;
 }
+
+#endif
 
 DECLARE_TEST(error, output) {
 #if BUILD_ENABLE_LOG

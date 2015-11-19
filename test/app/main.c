@@ -91,9 +91,12 @@ DECLARE_TEST(app, memory) {
 	thread_t thread[32];
 	size_t ith;
 	size_t num_threads = math_clamp(system_hardware_threads() * 2, 2, 32);
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
 	memory_statistics_t oldstats, newstats;
 
 	oldstats = memory_statistics();
+#endif
 
 	for (ith = 0; ith < num_threads; ++ith)
 		thread_initialize(&thread[ith], memory_thread, 0, STRING_CONST("memory_thread"),
@@ -111,9 +114,8 @@ DECLARE_TEST(app, memory) {
 	for (ith = 0; ith < num_threads; ++ith)
 		thread_finalize(&thread[ith]);
 
-	newstats = memory_statistics();
-
 #if BUILD_ENABLE_MEMORY_STATISTICS
+	newstats = memory_statistics();
 	EXPECT_SIZEEQ(oldstats.allocated_current, newstats.allocated_current);
 #endif
 
@@ -122,6 +124,8 @@ DECLARE_TEST(app, memory) {
 
 static void*
 test_thread(void* arg) {
+	FOUNDATION_UNUSED(arg);
+
 	EXPECT_FALSE(thread_is_main());
 	
 	EXPECT_CONSTSTRINGEQ(thread_name(), string_const(STRING_CONST("test_thread")));
@@ -178,8 +182,7 @@ DECLARE_TEST(app, thread) {
         thread_finalize(&thread[ithread]);
     }
 
-	EXPECT_FALSE(thread_is_main());
-	thread_set_main();
+	EXPECT_TRUE(thread_is_main());
 
 	return 0;
 }

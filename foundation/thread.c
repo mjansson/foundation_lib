@@ -81,6 +81,7 @@ _allocate_thread_local_block(size_t size) {
 #endif
 
 FOUNDATION_DECLARE_THREAD_LOCAL(thread_t*, self, 0)
+static uint64_t _thread_initial_main_id;
 static uint64_t _thread_main_id;
 
 int
@@ -93,6 +94,8 @@ _thread_initialize(void) {
 	if (getprocidfn)
 		_fnGetCurrentProcessorNumber = getprocidfn;
 #endif
+
+	_thread_initial_main_id = _thread_main_id = thread_id();
 
 	return 0;
 }
@@ -256,6 +259,9 @@ _thread_entry(thread_arg_t data) {
 	thread->osid = 0;
 	atomic_store32(&thread->state, 2);
 	atomic_thread_fence_release();
+
+	if (thread_is_main())
+		_thread_main_id = _thread_initial_main_id;
 
 	set_thread_self(0);
 	thread_exit();
@@ -463,10 +469,10 @@ thread_set_hardware(uint64_t mask) {
 	cpu_set_t set;
 	CPU_ZERO(&set);
 	for (ibit = 0, bsize = math_min(64, CPU_SETSIZE); ibit < bsize; ++ibit) {
-		if (mask & (1 << bit))
+		if (mask & (1 << ibit))
 			CPU_SET(ibit, &set);
 	}
-	sched_setaffinity(ibit, sizeof(set), &set);
+	sched_setaffinity(0, sizeof(set), &set);
 #else
 	//TODO: Implement
 	FOUNDATION_UNUSED(mask);
