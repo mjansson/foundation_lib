@@ -458,6 +458,8 @@ typedef struct string_t               string_t;
 typedef struct string_const_t         string_const_t;
 /*! Application declaration and configuration */
 typedef struct application_t          application_t;
+/*! Beacon for waiting */
+typedef struct beacon_t               beacon_t;
 /*! Bit buffer instance */
 typedef struct bitbuffer_t            bitbuffer_t;
 /*! Blowfish cipher instance */
@@ -1011,8 +1013,8 @@ FOUNDATION_ALIGNED_STRUCT(event_stream_t, 16) {
 	int32_t read;
 	/*! Event blocks, double buffered for concurrent read/write access */
 	event_block_t block[2];
-	/*! Optional signal */
-	semaphore_t* signal;
+	/*! Optional beacon */
+	beacon_t* beacon;
 };
 
 /*! Payload layout for a file system event */
@@ -1302,6 +1304,20 @@ struct semaphore_t {
 
 #endif
 
+/*! Beacon */
+struct beacon_t {
+	size_t count;
+#if FOUNDATION_PLATFORM_WINDOWS
+	void** dynamic;
+	void* event;
+	void* all[5];
+#elif FOUNDATION_PLATFORM_LINUX
+	int* dynamic;
+	int fd;
+	int all[6];
+#endif
+};
+
 /*! Thread representation */
 struct thread_t {
 	/*! OS specific ID */
@@ -1322,8 +1338,8 @@ struct thread_t {
 	void* result;
 	/*! Thread state */
 	atomic32_t state;
-	/*! Notification semaphore */
-	semaphore_t signal;
+	/*! Notification beacon */
+	beacon_t beacon;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	/*! OS handle */

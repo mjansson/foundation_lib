@@ -43,7 +43,7 @@ test_event_thread(void* arg) {
 	event_t* event = 0;
 	FOUNDATION_UNUSED(arg);
 
-	event_stream_set_signal(system_event_stream(), &thread_self()->signal);
+	event_stream_set_beacon(system_event_stream(), &thread_self()->beacon);
 
 	while (!_test_exiting) {
 		thread_wait();

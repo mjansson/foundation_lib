@@ -281,7 +281,7 @@ _profile_io(void* arg) {
 	system_info.data.start = time_ticks_per_second();
 	string_copy(system_info.data.name, sizeof(system_info.data.name), "sysinfo", 7);
 
-	while (!semaphore_try_wait(&_profile_io_thread.signal, _profile_wait)) {
+	while (!beacon_try_wait(&_profile_io_thread.beacon, _profile_wait)) {
 
 		if (!atomic_load32(&_profile_root))
 			continue;

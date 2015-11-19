@@ -124,8 +124,8 @@ single thread at any given moment (not thread-safe).
 FOUNDATION_API event_block_t*
 event_stream_process(event_stream_t* stream);
 
-/*! Set semaphore to signal when an event is posted in the pending event block
+/*! Set beacon to fire when an event is posted in the pending event block
 \param stream Event stream
-\param signal Semaphore to signal */
+\param beacon Beacon to fire */
 FOUNDATION_API void
-event_stream_set_signal(event_stream_t* stream, semaphore_t* signal);
+event_stream_set_beacon(event_stream_t* stream, beacon_t* beacon);

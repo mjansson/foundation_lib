@@ -128,9 +128,9 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 	block->used += allocsize;
 	((event_t*)pointer_offset(block->events, block->used))->id = 0;
 
-	//Signal if first event
-	if ((last_write == 0) && stream->signal)
-		semaphore_post(stream->signal);
+	//Fire beacon
+	if ((last_write == 0) && stream->beacon)
+		beacon_fire(stream->beacon);
 
 	//Now unlock the event block
 	restored_block = atomic_cas32(&stream->write, last_write, EVENT_BLOCK_POSTING);
@@ -232,7 +232,7 @@ event_stream_initialize(event_stream_t* stream, size_t size) {
 	stream->block[0].stream = stream;
 	stream->block[1].stream = stream;
 
-    stream->signal = nullptr;
+    stream->beacon = nullptr;
 }
 
 void
@@ -249,10 +249,6 @@ event_stream_finalize(event_stream_t* stream) {
 		memory_deallocate(stream->block[0].events);
 	if (stream->block[1].events)
 		memory_deallocate(stream->block[1].events);
-
-	stream->block[0].events = nullptr;
-	stream->block[1].events = nullptr;
-	stream->signal = nullptr;
 }
 
 event_block_t*
@@ -288,6 +284,6 @@ event_stream_process(event_stream_t* stream) {
 }
 
 void
-event_stream_set_signal(event_stream_t* stream, semaphore_t* signal) {
-	stream->signal = signal;
+event_stream_set_beacon(event_stream_t* stream, beacon_t* beacon) {
+	stream->beacon = beacon;
 }

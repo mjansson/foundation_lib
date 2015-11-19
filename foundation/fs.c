@@ -1140,30 +1140,31 @@ _fs_monitor(void* monitorptr) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	HANDLE handles[2];
 	DWORD buffer_size = 63 * 1024;
 	DWORD out_size = 0;
 	OVERLAPPED overlap;
 	BOOL success = FALSE;
 	HANDLE dir = 0;
-	unsigned int wait_status = 0;
 	wchar_t* wfpath = 0;
 	void* buffer = 0;
+	HANDLE handle = INVALID_HANDLE_VALUE;
+	int event;
+	int wait_status;
 	char* monitor_path = atomic_loadptr(&monitor->path);
+	beacon_t* beacon = &thread_self()->beacon;
 
 	memory_context_push(HASH_STREAM);
 
 	buffer = memory_allocate(0, buffer_size, 8, MEMORY_PERSISTENT);
-
-	handles[0] = semaphore_event_object(&thread_self()->signal);
-	handles[1] = CreateEvent(0, FALSE, FALSE, 0);
-
-	if (handles[1] == INVALID_HANDLE_VALUE) {
+	handle = CreateEvent(0, FALSE, FALSE, 0);
+	if (handle == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(GetLastError());
 		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %s : %.*s"),
 		          monitor_path, STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
+
+	event = beacon_add(beacon, handle);
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
@@ -1216,7 +1217,7 @@ _fs_monitor(void* monitorptr) {
 	}
 
 	memset(&overlap, 0, sizeof(overlap));
-	overlap.hEvent = handles[1];
+	overlap.hEvent = handle;
 #endif
 
 	while (keep_running) {
@@ -1224,7 +1225,7 @@ _fs_monitor(void* monitorptr) {
 		DWORD transferred;
 
 		memset(&overlap, 0, sizeof(overlap));
-		overlap.hEvent = handles[1];
+		overlap.hEvent = handle;
 
 		out_size = 0;
 
@@ -1239,15 +1240,13 @@ _fs_monitor(void* monitorptr) {
 			goto exit_thread;
 		}
 
-		wait_status = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+		wait_status = beacon_wait(beacon);
 
-		switch (wait_status) {
-		case WAIT_OBJECT_0:
-			//Signal thread
+		if (wait_status <= 0) {
+			//Thread signalled or error
 			keep_running = false;
-			continue;
-
-		case WAIT_OBJECT_0+1:
+		}
+		else if (wait_status == event) {
 			//File system change
 			transferred = 0;
 			success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
@@ -1300,11 +1299,6 @@ _fs_monitor(void* monitorptr) {
 				}
 				while (info);
 			}
-			break;
-
-		case WAIT_TIMEOUT:
-		default:
-			break;
 		}
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
@@ -1391,8 +1385,8 @@ exit_thread:
 
 	CloseHandle(dir);
 
-	if (handles[1])
-		CloseHandle(handles[1]);
+	if (handle != INVALID_HANDLE_VALUE)
+		CloseHandle(handle);
 
 	memory_deallocate(buffer);
 

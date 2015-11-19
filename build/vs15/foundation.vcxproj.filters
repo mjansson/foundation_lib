@@ -50,6 +50,7 @@
     <ClInclude Include="..\..\foundation\hashtable.h" />
     <ClInclude Include="..\..\foundation\regex.h" />
     <ClInclude Include="..\..\foundation\bitbuffer.h" />
+    <ClInclude Include="..\..\foundation\beacon.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -93,6 +94,7 @@
     <ClCompile Include="..\..\foundation\regex.c" />
     <ClCompile Include="..\..\foundation\version.c" />
     <ClCompile Include="..\..\foundation\bitbuffer.c" />
+    <ClCompile Include="..\..\foundation\beacon.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt" />

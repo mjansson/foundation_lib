@@ -292,7 +292,7 @@ thread_initialize(thread_t* thread, thread_fn fn, void* data, const char* name, 
 	thread->fn = fn;
 	thread->priority = priority;
 	thread->stacksize = stacksize;
-	semaphore_initialize(&thread->signal, 0);
+	beacon_initialize(&thread->beacon);
 }
 
 void
@@ -304,13 +304,13 @@ thread_deallocate(thread_t* thread) {
 void
 thread_finalize(thread_t* thread) {
 	thread_join(thread);
-	semaphore_finalize(&thread->signal);
+	beacon_finalize(&thread->beacon);
 }
 
 bool
 thread_start(thread_t* thread) {
-	//Reset signal
-	semaphore_try_wait(&thread->signal, 0);
+	//Reset beacon
+	beacon_try_wait(&thread->beacon, 0);
 #if FOUNDATION_PLATFORM_WINDOWS
 	FOUNDATION_ASSERT(!thread->handle);
 	thread->handle = _beginthreadex(nullptr, thread->stacksize, _thread_entry, thread, 0, nullptr);
@@ -377,19 +377,19 @@ thread_is_running(const thread_t* thread) {
 
 void
 thread_signal(thread_t* thread) {
-	semaphore_post(&thread->signal);
+	beacon_fire(&thread->beacon);
 }
 
 bool
 thread_wait(void) {
 	thread_t* thread = get_thread_self();
-	return thread ? semaphore_wait(&thread->signal) : false;
+	return thread ? beacon_wait(&thread->beacon) : false;
 }
 
 bool
 thread_try_wait(unsigned int milliseconds) {
 	thread_t* thread = get_thread_self();
-	return thread ? semaphore_try_wait(&thread->signal, milliseconds) : false;
+	return thread ? beacon_try_wait(&thread->beacon, milliseconds) : false;
 }
 
 string_const_t
