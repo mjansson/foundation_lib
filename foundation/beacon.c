@@ -13,6 +13,10 @@
 #include <foundation/foundation.h>
 #include <foundation/windows.h>
 
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#  define BEACON_MAX_FD 32
+#endif
+
 beacon_t*
 beacon_allocate(void) {
 	beacon_t* beacon = memory_allocate(0, sizeof(beacon_t*), 0, MEMORY_PERSISTENT);
@@ -26,8 +30,16 @@ beacon_initialize(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	beacon->event = CreateEventA(nullptr, FALSE, FALSE, nullptr);
 	beacon->all[0] = beacon->event;
-	beacon->dynamic = beacon->all;
 	beacon->count = 1;
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	beacon->fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | EFD_SEMAPHORE);
+	beacon->poll = epoll_create(BEACON_MAX_FD);
+	beacon->count = 1;
+	beacon->all[0] = beacon->fd;
+	struct epoll_event event;
+	event.events = EPOLLIN | EPOLLERR | EPOLLHUP;
+	event.data.fd = 0;
+	epoll_ctl(beacon->poll, EPOLL_CTL_ADD, beacon->fd, &event);
 #endif
 }
 
@@ -35,35 +47,57 @@ void
 beacon_finalize(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	CloseHandle(beacon->event);
-	if (beacon->dynamic != beacon->all)
-		array_deallocate(beacon->dynamic);
+#elif FOUNDATION_PLATFORM_LINUX
+	close(beacon->poll);
+	close(beacon->fd);
 #endif
 }
 
 void
 beacon_deallocate(beacon_t* beacon) {
 	beacon_finalize(beacon);
+	memory_deallocate(beacon);
 }
 
 int
 beacon_wait(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return beacon_try_wait(beacon, INFINITE);
-#else
-	FOUNDATION_UNUSED(beacon);
-	return -1;
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	return beacon_try_wait(beacon, (unsigned int)-1);
 #endif
+	return -1;
 }
 
 int
 beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	unsigned int wait_status = WaitForMultipleObjects((DWORD)beacon->count, beacon->dynamic, FALSE,
-	                                                  milliseconds);
-	if ((wait_status >= WAIT_OBJECT_0) && (wait_status < (WAIT_OBJECT_0 + beacon->count)))
+	unsigned int count = (unsigned int)beacon->count;
+	unsigned int wait_status = WaitForMultipleObjects(count, (HANDLE*)beacon->all,
+	                                                  FALSE, milliseconds);
+	if ((wait_status >= WAIT_OBJECT_0) && (wait_status < (WAIT_OBJECT_0 + count)))
 		return (int)(wait_status - WAIT_OBJECT_0);
-#else
-	FOUNDATION_UNUSED(beacon);
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	if (atomic_cas32(&beacon->fired, 0, 1)) {
+		eventfd_t value = 0;
+		eventfd_read(beacon->fd, &value);
+		if (value > 0)
+			return 0;
+	}
+	struct epoll_event event = {0};
+	int ret = epoll_wait(beacon->poll, &event, 1, (int)milliseconds);
+	if (ret < 0)
+		return -1;
+	int slot = event.data.fd;
+	if (slot == 0) {
+		if (atomic_cas32(&beacon->fired, 0, 1))
+		{
+			eventfd_t value = 0;
+			eventfd_read(beacon->fd, &value);
+			return (value > 0);
+		}
+	}
+	return slot;
 #endif
 	return -1;
 }
@@ -72,8 +106,12 @@ void
 beacon_fire(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	SetEvent(beacon->event);
-#else
-	FOUNDATION_UNUSED(beacon);
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	if (atomic_cas32(&beacon->fired, 1, 0))
+	{
+		eventfd_t value = 1;
+		eventfd_write(beacon->fd, &value);
+	}
 #endif
 }
 
@@ -81,35 +119,20 @@ beacon_fire(beacon_t* beacon) {
 
 int
 beacon_add(beacon_t* beacon, void* handle) {
-	const size_t fixedsize = (sizeof(beacon->all)/sizeof(beacon->all[0]));
-	if (beacon->count < fixedsize)
-		beacon->all[beacon->count++] = handle;
-	else {
-		if (beacon->count == fixedsize) {
-			size_t ihandle;
-			beacon->dynamic = 0;
-			array_reserve(beacon->dynamic, fixedsize*2);
-			array_resize(beacon->dynamic, fixedsize);
-			beacon->count = array_size(beacon->dynamic);
-			for (ihandle = 0; ihandle < beacon->count; ++ihandle)
-				beacon->dynamic[ihandle] = beacon->all[ihandle];
-		}
-		array_push(beacon->dynamic, handle);
-		beacon->count = array_size(beacon->dynamic);
+	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
+	if (beacon->count < numslots) {
+		beacon->all[beacon->count] = handle;
+		return (int)beacon->count++;
 	}
-	return (int)beacon->count - 1;
+	return -1;
 }
 
 void
 beacon_remove(beacon_t* beacon, void* handle) {
-	const size_t fixedsize = (sizeof(beacon->all)/sizeof(beacon->all[0]));
-	size_t ihandle;
-	void** arr = beacon->all;
-	if (beacon->count >= fixedsize)
-		arr = beacon->dynamic;
-	for (ihandle = 0; ihandle < beacon->count; ++ihandle) {
-		if (arr[ihandle] == handle)
-			arr[ihandle] = arr[--beacon->count];
+	size_t islot;
+	for (islot = 1; islot < beacon->count; ++islot) {
+		if (beacon->all[islot] == handle)
+			beacon->all[islot] = beacon->all[--beacon->count];
 	}
 }
 
@@ -120,19 +143,38 @@ beacon_event_object(beacon_t* beacon) {
 
 #endif
 
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
-bool
+int
 beacon_add(beacon_t* beacon, int fd) {
-	FOUNDATION_UNUSED(beacon);
-	FOUNDATION_UNUSED(fd);
-	return false;
+	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
+	if (beacon->count < numslots) {
+		beacon->all[beacon->count] = fd;
+		struct epoll_event event = {0};
+		event.events = EPOLLIN | EPOLLERR | EPOLLHUP;
+		event.data.fd = beacon->count;
+		epoll_ctl(beacon->poll, EPOLL_CTL_ADD, fd, &event);
+		return (int)beacon->count++;
+	}
+	return -1;
 }
 
-void
+int
 beacon_remove(beacon_t* beacon, int fd) {
-	FOUNDATION_UNUSED(beacon);
-	FOUNDATION_UNUSED(fd);
+	size_t islot;
+	for (islot = 1; islot < beacon->count; ++islot) {
+		if (beacon->all[islot] == handle) {
+			struct epoll_event event = {0};
+			epoll_ctl(beacon->poll, EPOLL_CTL_DEL, fd, &event);
+			--beacon->count;
+			if (islot < beacon->count) {
+				beacon->all[islot] = beacon->all[beacon->count];
+				event.events = EPOLLIN | EPOLLERR | EPOLLHUP;
+				event.data.fd = (int)islot;
+				epoll_ctl(beacon->poll, EPOLL_CTL_MOD, beacon->all[islot], &event);
+			}
+		}
+	}
 }
 
 #endif

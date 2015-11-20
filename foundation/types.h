@@ -1308,13 +1308,13 @@ struct semaphore_t {
 struct beacon_t {
 	size_t count;
 #if FOUNDATION_PLATFORM_WINDOWS
-	void** dynamic;
 	void* event;
-	void* all[5];
-#elif FOUNDATION_PLATFORM_LINUX
-	int* dynamic;
+	void* all[8];
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	int fd;
-	int all[6];
+	int poll;
+	int all[8];
+	atomic32_t fired;
 #endif
 };
 

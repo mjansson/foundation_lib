@@ -66,6 +66,10 @@ Safe inclusion of posix headers */
 #include <sys/errno.h>
 #include <sys/time.h>
 
+#if FOUNDATION_PLATFORM_LINUX
+#include <sys/eventfd.h>
+#endif
+
 #undef radixsort
 
 #if FOUNDATION_PLATFORM_APPLE

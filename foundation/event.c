@@ -128,7 +128,7 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 	block->used += allocsize;
 	((event_t*)pointer_offset(block->events, block->used))->id = 0;
 
-	//Fire beacon
+	//Re-fire beacon
 	if ((last_write == 0) && stream->beacon)
 		beacon_fire(stream->beacon);
 

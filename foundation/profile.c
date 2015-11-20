@@ -281,7 +281,7 @@ _profile_io(void* arg) {
 	system_info.data.start = time_ticks_per_second();
 	string_copy(system_info.data.name, sizeof(system_info.data.name), "sysinfo", 7);
 
-	while (!beacon_try_wait(&_profile_io_thread.beacon, _profile_wait)) {
+	while (!thread_try_wait(_profile_wait)) {
 
 		if (!atomic_load32(&_profile_root))
 			continue;
@@ -352,7 +352,6 @@ profile_initialize(const char* identifier, size_t length, void* buffer, size_t s
 
 	thread_initialize(&_profile_io_thread, _profile_io, 0, STRING_CONST("profile_io"),
 	                  THREAD_PRIORITY_BELOWNORMAL, 0);
-	log_info(HASH_TEST, STRING_CONST("Profile thread initialized"));
 
 	log_debugf(0, STRING_CONST("Initialize profiling system with %u blocks (%" PRIsize "KiB)"),
 	           num_blocks, size / 1024);
@@ -366,6 +365,7 @@ profile_finalize(void) {
 	
 	profile_enable(0);
 
+	thread_signal(&_profile_io_thread);
 	thread_finalize(&_profile_io_thread);
 
 	//Discard and free up blocks remaining in queue

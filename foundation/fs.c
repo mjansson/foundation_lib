@@ -1457,6 +1457,8 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 #  define MODESTRING(x) L##x
 	const wchar_t* modestr;
 	wchar_t* wpath;
+#elif FOUNDATION_PLATFORM_LINUX
+#  define MODESTRING(x) x##"e"
 #else
 #  define MODESTRING(x) x
 	const char* modestr;

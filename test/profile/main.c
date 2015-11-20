@@ -214,20 +214,19 @@ DECLARE_TEST(profile, thread) {
 		thread_finalize(&thread[ith]);
 	log_enable_stdout(true);
 
+	err = error();
 	thread_sleep(1000);
 
 	profile_enable(false);
 	profile_finalize();
 
-	err = error();
-
 #if BUILD_ENABLE_PROFILE
-	EXPECT_GT(atomic_load32(&_test_profile_output_counter), 0);
+	EXPECT_INTGT(atomic_load32(&_test_profile_output_counter), 0);
 	//TODO: Implement parsing output results
 #else
-	EXPECT_EQ(atomic_load32(&_test_profile_output_counter), 0);
+	EXPECT_INTEQ(atomic_load32(&_test_profile_output_counter), 0);
 #endif
-	EXPECT_EQ(err, ERROR_NONE);
+	EXPECT_INTEQ(err, ERROR_OUT_OF_MEMORY);
 
 	return 0;
 }
