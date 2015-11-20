@@ -13,8 +13,8 @@
 #include <foundation/foundation.h>
 #include <foundation/windows.h>
 
-#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-#  define BEACON_MAX_FD 32
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+static atomic32_t _user_id;
 #endif
 
 beacon_t*
@@ -40,6 +40,12 @@ beacon_initialize(beacon_t* beacon) {
 	event.events = EPOLLIN | EPOLLERR | EPOLLHUP;
 	event.data.fd = 0;
 	epoll_ctl(beacon->poll, EPOLL_CTL_ADD, beacon->fd, &event);
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+	beacon->kq = kqueue();
+	beacon->event = atomic_incr32(&_user_id);
+	struct kevent changes;
+	EV_SET(&changes, beacon->event, EVFILT_USER, EV_ADD, NOTE_FFCOPY, 0, nullptr);
+	kevent(beacon->kq, &changes, 1, &changes, 1, 0);
 #endif
 }
 
@@ -50,6 +56,8 @@ beacon_finalize(beacon_t* beacon) {
 #elif FOUNDATION_PLATFORM_LINUX
 	close(beacon->poll);
 	close(beacon->fd);
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+	close(beacon->kq);
 #endif
 }
 
@@ -64,6 +72,8 @@ beacon_wait(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return beacon_try_wait(beacon, INFINITE);
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	return beacon_try_wait(beacon, (unsigned int)-1);
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	return beacon_try_wait(beacon, (unsigned int)-1);
 #endif
 	return -1;
@@ -90,14 +100,44 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 		return -1;
 	int slot = event.data.fd;
 	if (slot == 0) {
-		if (atomic_cas32(&beacon->fired, 0, 1))
-		{
+		if (atomic_cas32(&beacon->fired, 0, 1)) {
 			eventfd_t value = 0;
 			eventfd_read(beacon->fd, &value);
 			return (value > 0);
 		}
 	}
 	return slot;
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+	int slot = -1;
+	struct kevent event = {0};
+	struct timespec tspec = {0};
+	struct timespec* timeout = nullptr;
+	if (atomic_cas32(&beacon->fired, 0, 1)) {
+		EV_SET(&event, beacon->event, EVFILT_USER, EV_DISABLE, EV_CLEAR | NOTE_FFCOPY, 0, nullptr);
+		kevent(beacon->kq, &event, 1, &event, 1, 0);
+		return 0;
+	}
+	if (milliseconds != (unsigned int)-1) {
+		struct timeval now = {0};
+		gettimeofday(&now, 0);
+		tspec.tv_sec  = now.tv_sec + (time_t)(milliseconds / 1000);
+		tspec.tv_nsec = (now.tv_usec * 1000) + (long)(milliseconds % 1000) * 1000000L;
+		while (tspec.tv_nsec >= 1000000000L) {
+			++tspec.tv_sec;
+			tspec.tv_nsec -= 1000000000L;
+		}
+		timeout = tspec;
+	}
+	if (kevent(beacon->kq, 0, 0, &event, 1, timeout) > 0) {
+		//...
+	}
+	if (slot == 0) {
+		if (atomic_cas32(&beacon->fired, 0, 1)) {
+			EV_SET(&event, beacon->event, EVFILT_USER, EV_DISABLE, EV_CLEAR | NOTE_FFCOPY, 0, nullptr);
+			kevent(beacon->kq, &event, 1, &event, 1, 0);
+			return 0;
+		}
+	}
 #endif
 	return -1;
 }
@@ -107,10 +147,15 @@ beacon_fire(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	SetEvent(beacon->event);
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	if (atomic_cas32(&beacon->fired, 1, 0))
-	{
+	if (atomic_cas32(&beacon->fired, 1, 0)) {
 		eventfd_t value = 1;
 		eventfd_write(beacon->fd, &value);
+	}
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+	if (atomic_cas32(&beacon->fired, 1, 0)) {
+		struct kevent changes;
+		EV_SET(&changes, 0, EVFILT_USER, EV_ENABLE, NOTE_FFCOPY | NOTE_TRIGGER | 0x1, 0, nullptr);
+		kevent(beacon->kq, &changes, 1, &changes, 1, 0);
 	}
 #endif
 }
@@ -159,7 +204,7 @@ beacon_add(beacon_t* beacon, int fd) {
 	return -1;
 }
 
-int
+void
 beacon_remove(beacon_t* beacon, int fd) {
 	size_t islot;
 	for (islot = 1; islot < beacon->count; ++islot) {
@@ -175,6 +220,31 @@ beacon_remove(beacon_t* beacon, int fd) {
 			}
 		}
 	}
+}
+
+int
+beacon_event_handle(beacon_t* beacon) {
+	return beacon->fd;
+}
+
+#endif
+
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+
+int
+beacon_add(beacon_t* beacon, int fd) {
+	//...
+	return -1;
+}
+
+void
+beacon_remove(beacon_t* beacon, int fd) {
+	//...
+}
+
+int
+beacon_event_handle(beacon_t* beacon) {
+	return beacon->event;
 }
 
 #endif

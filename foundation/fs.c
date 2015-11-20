@@ -1368,6 +1368,10 @@ skipwatch:
 		if (thread_try_wait(100))
 			keep_running = false;
 
+//#elif FOUNDATION_PLATFORM_BSD
+//  TODO: Implement using kqueue and directory watching using open with O_EVTONLY
+//        https://github.com/emcrisostomo/fswatch/blob/master/libfswatch/src/libfswatch/c%2B%2B/kqueue_monitor.cpp
+
 #else
 		log_debug(0, STRING_CONST("Filesystem watcher not implemented on this platform"));
 		//Not implemented yet, just wait for signal to simulate thread

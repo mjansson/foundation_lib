@@ -15,7 +15,8 @@
 /*! \file beacon.h
 \brief Beacon for event wait
 
-A beacon can wait on a single or multiple event sources. */
+A beacon can wait on a single or multiple event sources. Note that there can be spurious
+wakeups when waiting on events even if no event fired. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -83,11 +84,11 @@ beacon_event_handle(beacon_t* beacon);
 
 #endif
 
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 
 /*! Add another event source to the beacon, for example a socket,
 a pipe or another beacon. Any file descriptor handle that can be used
-in a select call can be added to the beacon.
+in a select/kevent call can be added to the beacon.
 \param beacon Beacon
 \param fd File descriptor to add
 \return index of file descriptor in beacon, negative if error */

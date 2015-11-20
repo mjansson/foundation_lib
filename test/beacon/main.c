@@ -89,11 +89,11 @@ DECLARE_TEST(beacon, multiwait) {
 	pipe_initialize(&pipe);
 #endif
 
-	beacon_add(beacon[0], beacon_event_handle(beacon[1]));
+	EXPECT_INTEQ(beacon_add(beacon[0], beacon_event_handle(beacon[1])), 1);
 #if FOUNDATION_PLATFORM_WINDOWS
-	beacon_add(beacon[0], semaphore_event_handle(&semaphore));
+	EXPECT_INTEQ(beacon_add(beacon[0], semaphore_event_handle(&semaphore)), 2);
 #else
-	beacon_add(beacon[0], pipe_read_handle((stream_t*)&pipe));
+	EXPECT_INTEQ(beacon_add(beacon[0], pipe_read_handle((stream_t*)&pipe)), 2);
 #endif
 
 	EXPECT_INTLT(beacon_try_wait(beacon[0], 0), 0);
