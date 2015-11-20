@@ -19,7 +19,7 @@
 
 beacon_t*
 beacon_allocate(void) {
-	beacon_t* beacon = memory_allocate(0, sizeof(beacon_t*), 0, MEMORY_PERSISTENT);
+	beacon_t* beacon = memory_allocate(0, sizeof(beacon_t), 0, MEMORY_PERSISTENT);
 	beacon_initialize(beacon);
 	return beacon;
 }
@@ -137,7 +137,7 @@ beacon_remove(beacon_t* beacon, void* handle) {
 }
 
 void*
-beacon_event_object(beacon_t* beacon) {
+beacon_event_handle(beacon_t* beacon) {
 	return beacon->event;
 }
 

@@ -155,13 +155,13 @@ pipe_write_handle(stream_t* stream) {
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 int
-pipe_read_fd(stream_t* stream) {
+pipe_read_handle(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	return stream && (stream->type == STREAMTYPE_PIPE) ? pipestream->fd_read : 0;
 }
 
 int
-pipe_write_fd(stream_t* stream) {
+pipe_write_handle(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	return stream && (stream->type == STREAMTYPE_PIPE) ? pipestream->fd_write : 0;
 }

@@ -38,7 +38,7 @@ includepaths = [ 'test' ]
 test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.c', 'test.m' ], includepaths = includepaths )
 
 test_cases = [
-  'app', 'array', 'atomic', 'base64', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
+  'app', 'array', 'atomic', 'base64', 'beacon', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
   'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'library', 'math', 'md5', 'mutex', 'objectmap',
   'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'

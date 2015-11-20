@@ -63,12 +63,12 @@ pipe_write_handle(stream_t* pipe);
 \param pipe Pipe stream
 \return Read file descriptor */
 FOUNDATION_API int
-pipe_read_fd(stream_t* pipe);
+pipe_read_handle(stream_t* pipe);
 
 /*! Posix only, get OS file descriptor for write end of pipe
 \param pipe Pipe stream
 \return Write file descriptor */
 FOUNDATION_API int
-pipe_write_fd(stream_t* pipe);
+pipe_write_handle(stream_t* pipe);
 
 #endif

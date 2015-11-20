@@ -101,6 +101,6 @@ mutex_signal(mutex_t* mutex);
 \param mutex Mutex
 \return Event object handle */
 FOUNDATION_API void*
-mutex_event_object(mutex_t* mutex);
+mutex_event_handle(mutex_t* mutex);
 
 #endif

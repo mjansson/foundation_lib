@@ -84,7 +84,7 @@ semaphore_post(semaphore_t* semaphore) {
 }
 
 void*
-semaphore_event_object(semaphore_t* semaphore) {
+semaphore_event_handle(semaphore_t* semaphore) {
 	return *semaphore;
 }
 

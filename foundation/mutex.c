@@ -327,7 +327,7 @@ mutex_signal(mutex_t* mutex) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 void*
-mutex_event_object(mutex_t* mutex) {
+mutex_event_handle(mutex_t* mutex) {
 	FOUNDATION_ASSERT(mutex);
 	return mutex->event;
 }

@@ -79,7 +79,7 @@ beacon_remove(beacon_t* beacon, void* handle);
 \param beacon Beacon
 \return Object handle */
 FOUNDATION_API void*
-beacon_event_object(beacon_t* beacon);
+beacon_event_handle(beacon_t* beacon);
 
 #endif
 
@@ -99,5 +99,11 @@ beacon_add(beacon_t* beacon, int fd);
 \param fd File descriptor to remove */
 FOUNDATION_API void
 beacon_remove(beacon_t* beacon, int fd);
+
+/*! Get OS file descriptor for beacon base event
+\param beacon Beacon
+\return File descriptor */
+FOUNDATION_API int
+beacon_event_handle(beacon_t* beacon);
 
 #endif

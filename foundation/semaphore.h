@@ -66,6 +66,6 @@ semaphore_post(semaphore_t* semaphore);
 \param semaphore Semaphore
 \return Object handle */
 FOUNDATION_API void*
-semaphore_event_object(semaphore_t* semaphore);
+semaphore_event_handle(semaphore_t* semaphore);
 
 #endif
