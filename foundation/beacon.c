@@ -12,6 +12,7 @@
 
 #include <foundation/foundation.h>
 #include <foundation/windows.h>
+#include <foundation/posix.h>
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 static atomic32_t _user_id;
@@ -33,7 +34,7 @@ beacon_initialize(beacon_t* beacon) {
 	beacon->count = 1;
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	beacon->fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | EFD_SEMAPHORE);
-	beacon->poll = epoll_create(BEACON_MAX_FD);
+	beacon->poll = epoll_create(sizeof(beacon->all)/sizeof(beacon->all[0]));
 	beacon->count = 1;
 	beacon->all[0] = beacon->fd;
 	struct epoll_event event;
@@ -96,7 +97,7 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	}
 	struct epoll_event event = {0};
 	int ret = epoll_wait(beacon->poll, &event, 1, (int)milliseconds);
-	if (ret < 0)
+	if (ret <= 0)
 		return -1;
 	int slot = event.data.fd;
 	if (slot == 0) {
@@ -149,7 +150,7 @@ beacon_fire(beacon_t* beacon) {
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	if (atomic_cas32(&beacon->fired, 1, 0)) {
 		eventfd_t value = 1;
-		eventfd_write(beacon->fd, &value);
+		eventfd_write(beacon->fd, value);
 	}
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	if (atomic_cas32(&beacon->fired, 1, 0)) {
@@ -208,7 +209,7 @@ void
 beacon_remove(beacon_t* beacon, int fd) {
 	size_t islot;
 	for (islot = 1; islot < beacon->count; ++islot) {
-		if (beacon->all[islot] == handle) {
+		if (beacon->all[islot] == fd) {
 			struct epoll_event event = {0};
 			epoll_ctl(beacon->poll, EPOLL_CTL_DEL, fd, &event);
 			--beacon->count;

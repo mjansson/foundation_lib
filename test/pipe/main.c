@@ -134,16 +134,11 @@ DECLARE_TEST(pipe, readwrite) {
 
 	pipe = pipe_allocate();
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_POSIX
 	EXPECT_NE(pipe_read_handle(pipe), 0);
 	EXPECT_NE(pipe_write_handle(pipe), 0);
 	EXPECT_EQ(pipe_read_handle(0), 0);
 	EXPECT_EQ(pipe_write_handle(0), 0);
-#elif FOUNDATION_PLATFORM_POSIX
-	EXPECT_NE(pipe_read_fd(pipe), 0);
-	EXPECT_NE(pipe_write_fd(pipe), 0);
-	EXPECT_EQ(pipe_read_fd(0), 0);
-	EXPECT_EQ(pipe_write_fd(0), 0);
 #endif
 
 	EXPECT_EQ(stream_size(pipe), 0);
