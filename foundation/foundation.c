@@ -72,8 +72,8 @@ foundation_initialize_config(const foundation_config_t config) {
 	_foundation_config.random_state_prealloc = config.random_state_prealloc;
 }
 
-#define SUBSYSTEM_INIT( system ) if( ret == 0 ) ret = _##system##_initialize()
-#define SUBSYSTEM_INIT_ARGS( system, ... ) if( ret == 0 ) ret = _##system##_initialize( __VA_ARGS__ )
+#define SUBSYSTEM_INIT(system) if (ret == 0) ret = _##system##_initialize()
+#define SUBSYSTEM_INIT_ARGS(system, ...) if (ret == 0) ret = _##system##_initialize( __VA_ARGS__ )
 
 int
 foundation_initialize(const memory_system_t memory, const application_t application,

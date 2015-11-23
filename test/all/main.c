@@ -473,7 +473,8 @@ exit:
 
 	memory_deallocate(pathbuf);
 
-	log_infof(HASH_TEST, STRING_CONST("Tests exiting: %d"), process_result);
+	log_infof(HASH_TEST, STRING_CONST("Tests exiting: %s (%d)"),
+	          process_result ? "FAILED" : "PASSED", process_result);
 
 	return process_result;
 }
