@@ -86,8 +86,9 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	unsigned int count = (unsigned int)beacon->count;
 	unsigned int wait_status = WaitForMultipleObjects(count, (HANDLE*)beacon->all,
 	                                                  FALSE, milliseconds);
-	if ((wait_status >= WAIT_OBJECT_0) && (wait_status < (WAIT_OBJECT_0 + count)))
-		return (int)(wait_status - WAIT_OBJECT_0);
+	//WAIT_OBJECT_0 value is 0, so this checks range [WAIT_OBJECT_0, WAIT_OBJECT_0+count)
+	if (wait_status < count)
+		return (int)wait_status;
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	if (atomic_cas32(&beacon->fired, 0, 1)) {
 		eventfd_t value = 0;

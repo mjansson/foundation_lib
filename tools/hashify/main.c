@@ -328,7 +328,7 @@ hashify_generate_preamble(stream_t* output_file, string_t output_filename) {
 	stream_t* prev_file = stream_open(STRING_ARGS(output_filename), STREAM_IN);
 
 	memset(line_buffer, 0, sizeof(line_buffer));
-	while (!stream_eos(prev_file)) {
+	while (prev_file && !stream_eos(prev_file)) {
 		string_t line;
 		string_const_t stripped_line;
 

@@ -604,8 +604,8 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	if (memory)
 		memory = _memory_guard_verify(memory);
 #  endif
-	raw_p = memory ? *((void**)memory - 1) : 0;
-	memory = 0;
+	raw_p = memory ? *((void**)memory - 1) : nullptr;
+	memory = nullptr;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (raw_p && !((uintptr_t)raw_p & 1)) {
@@ -619,10 +619,10 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 		if (raw_memory) {
 			memory = pointer_offset(raw_memory, padding);
 			*((void**)memory - 1) = raw_memory;
-		}
 #  if BUILD_ENABLE_MEMORY_GUARD
-		memory = _memory_guard_initialize(memory, size);
+			memory = _memory_guard_initialize(memory, size);
 #  endif
+		}
 	}
 	else {
 #  if FOUNDATION_SIZE_POINTER == 4
