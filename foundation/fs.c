@@ -1109,7 +1109,7 @@ _fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
 }
 
 static fs_watch_t*
-_lookup_watch(fs_watch_t* watch_arr, int fd) {
+_fs_lookup_watch(fs_watch_t* watch_arr, int fd) {
 	//TODO: If array is kept sorted on fd, this could be made faster
 	for (size_t i = 0, size = array_size(watch_arr); i < size; ++i) {
 		if (watch_arr[i].fd == fd)
@@ -1174,6 +1174,7 @@ _fs_monitor(void* monitorptr) {
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
 	string_t* paths = 0;
+	beacon_t* beacon = &thread_self()->beacon;
 
 	memory_context_push(HASH_STREAM);
 
@@ -1183,6 +1184,8 @@ _fs_monitor(void* monitorptr) {
 	local_path = string_copy(pathbuffer, sizeof(pathbuffer), monitor_path, string_length(monitor_path));
 	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths,
 	                      false);
+
+	beacon_add(notify_fd);
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
@@ -1303,9 +1306,11 @@ _fs_monitor(void* monitorptr) {
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
-		//Not ideal implementation, would really want to watch both signal and inotify fd at the same time
 		int avail = 0;
-		/*int ret =*/ ioctl(notify_fd, FIONREAD, &avail);
+		if (beacon_wait(beacon) == 0)
+			keep_running = false;
+		else
+			ioctl(notify_fd, FIONREAD, &avail);
 		if (avail > 0) {
 			void* buffer = memory_allocate(HASH_STREAM, (size_t)avail + 4, 8,
 			                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -1313,7 +1318,7 @@ _fs_monitor(void* monitorptr) {
 			ssize_t avail_read = read(notify_fd, buffer, (size_t)avail);
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while (offset < avail_read) {
-				fs_watch_t* curwatch = _lookup_watch(watch, event->wd);
+				fs_watch_t* curwatch = _fs_lookup_watch(watch, event->wd);
 				if (!curwatch) {
 					log_warnf(0, WARNING_SUSPICIOUS,
 					          STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %.*s"),
@@ -1329,22 +1334,18 @@ _fs_monitor(void* monitorptr) {
 				bool is_dir = ((event->mask & IN_ISDIR) != 0);
 
 				if ((event->mask & IN_CREATE) || (event->mask & IN_MOVED_TO)) {
-					if (is_dir) {
+					if (is_dir)
 						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer), &watch, &paths, true);
-					}
-					else {
+					else
 						fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
-					}
 				}
 				if ((event->mask & IN_DELETE) || (event->mask & IN_MOVED_FROM)) {
-					if (!is_dir) {
+					if (!is_dir)
 						fs_post_event(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(curpath));
-					}
 				}
 				if (event->mask & IN_MODIFY) {
-					if (!is_dir) {
+					if (!is_dir)
 						fs_post_event(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(curpath));
-					}
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
 				if (event->mask & IN_MOVED_FROM)
@@ -1357,9 +1358,6 @@ skipwatch:
 			memory_deallocate(buffer);
 		}
 		
-		if (thread_try_wait(100))
-			keep_running = false;
-
 #elif FOUNDATION_PLATFORM_MACOSX
 
 		if (event_stream)
