@@ -144,7 +144,9 @@ test_thread(void* arg) {
 		thread_set_hardware(mask);
 		for (size_t iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
 			random64();
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 			EXPECT_UINTEQ(thread_hardware(), core);
+#endif
 			thread_yield();
 		}
 	}
