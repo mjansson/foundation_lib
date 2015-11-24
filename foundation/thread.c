@@ -383,13 +383,13 @@ thread_signal(thread_t* thread) {
 bool
 thread_wait(void) {
 	thread_t* thread = get_thread_self();
-	return thread ? beacon_wait(&thread->beacon) : false;
+	return thread ? (beacon_wait(&thread->beacon) >= 0) : false;
 }
 
 bool
 thread_try_wait(unsigned int milliseconds) {
 	thread_t* thread = get_thread_self();
-	return thread ? beacon_try_wait(&thread->beacon, milliseconds) : false;
+	return thread ? (beacon_try_wait(&thread->beacon, milliseconds) >= 0) : false;
 }
 
 string_const_t
@@ -449,7 +449,7 @@ unsigned int
 thread_hardware(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _fnGetCurrentProcessorNumber();
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	return (unsigned int)sched_getcpu();
 #else
 	//TODO: Implement for other platforms
@@ -464,7 +464,7 @@ thread_set_hardware(uint64_t mask) {
 	DWORD_PTR sysmask = 0;
 	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
 	SetThreadAffinityMask(GetCurrentThread(), mask & procmask);
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	uint64_t ibit, bsize;
 	cpu_set_t set;
 	CPU_ZERO(&set);
@@ -482,10 +482,12 @@ thread_set_hardware(uint64_t mask) {
 void
 thread_set_main(void) {
 	_thread_main_id = thread_id();
+	atomic_thread_fence_release();
 }
 
 bool
 thread_is_main(void) {
+	atomic_thread_fence_acquire();
 	return thread_id() == _thread_main_id;
 }
 

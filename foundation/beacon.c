@@ -129,8 +129,11 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	struct kevent event;
 	if (atomic_cas32(&beacon->fired, 0, 1)) {
 		char data[8];
-		while (read(beacon->all[0], data, 8) == 8);
-		return 0;
+		int numread = 0;
+		while (read(beacon->all[0], data, 8) > 0)
+			++numread;
+		if (numread > 0)
+			return 0;
 	}
 	if (milliseconds != (unsigned int)-1) {
 		tspec.tv_sec  = (time_t)(milliseconds / 1000);
@@ -147,9 +150,13 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	if (slot == 0) {
 		if (atomic_cas32(&beacon->fired, 0, 1)) {
 			char data[8];
-			while (read(beacon->all[0], data, 8) == 8);
-			return 0;
+			int numread = 0;
+			while (read(beacon->all[0], data, 8) > 0)
+				++numread;
+			if (numread > 0)
+				return 0;
 		}
+		slot = -1;
 	}
 #endif
 	return slot;
