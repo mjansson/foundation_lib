@@ -1185,7 +1185,7 @@ _fs_monitor(void* monitorptr) {
 	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths,
 	                      false);
 
-	beacon_add(notify_fd);
+	beacon_add(beacon, notify_fd);
 
 #elif FOUNDATION_PLATFORM_MACOSX
 

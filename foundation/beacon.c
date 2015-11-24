@@ -84,8 +84,9 @@ beacon_wait(beacon_t* beacon) {
 	return beacon_try_wait(beacon, (unsigned int)-1);
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	return beacon_try_wait(beacon, (unsigned int)-1);
-#endif
+#else
 	return -1;
+#endif
 }
 
 int
@@ -110,7 +111,7 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 		if (value > 0)
 			return 0;
 	}
-	struct epoll_event event = {0};
+	struct epoll_event event;
 	int ret = epoll_wait(beacon->poll, &event, 1, (int)milliseconds);
 	if (ret > 0)
 		slot = event.data.fd;
@@ -123,9 +124,9 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	}
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	int ret;
-	struct timespec tspec = {0};
+	struct timespec tspec;
 	struct timespec* timeout = nullptr;
-	struct kevent event = {0};
+	struct kevent event;
 	if (atomic_cas32(&beacon->fired, 0, 1)) {
 		char data[8];
 		while (read(beacon->all[0], data, 8) == 8);
@@ -206,9 +207,9 @@ beacon_add(beacon_t* beacon, int fd) {
 	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
 	if (beacon->count < numslots) {
 		beacon->all[beacon->count] = fd;
-		struct epoll_event event = {0};
+		struct epoll_event event;
 		event.events = EPOLLIN | EPOLLERR | EPOLLHUP;
-		event.data.fd = beacon->count;
+		event.data.fd = (int)beacon->count;
 		epoll_ctl(beacon->poll, EPOLL_CTL_ADD, fd, &event);
 		return (int)beacon->count++;
 	}
@@ -220,7 +221,7 @@ beacon_remove(beacon_t* beacon, int fd) {
 	size_t islot;
 	for (islot = 1; islot < beacon->count; ++islot) {
 		if (beacon->all[islot] == fd) {
-			struct epoll_event event = {0};
+			struct epoll_event event;
 			epoll_ctl(beacon->poll, EPOLL_CTL_DEL, fd, &event);
 			--beacon->count;
 			if (islot < beacon->count) {
