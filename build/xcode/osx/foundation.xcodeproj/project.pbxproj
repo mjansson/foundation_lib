@@ -19,6 +19,8 @@
 		CD7F382916E151E5000346C0 /* radixsort.c in Sources */ = {isa = PBXBuildFile; fileRef = CD7F382616E151E5000346C0 /* radixsort.c */; };
 		CD7F382A16E151E5000346C0 /* radixsort.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382716E151E5000346C0 /* radixsort.h */; };
 		CD7F382C16E21705000346C0 /* apple.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7F382B16E21705000346C0 /* apple.h */; };
+		CD8391951C044D50003C9154 /* beacon.c in Sources */ = {isa = PBXBuildFile; fileRef = CD8391931C044D50003C9154 /* beacon.c */; };
+		CD8391961C044D50003C9154 /* beacon.h in Headers */ = {isa = PBXBuildFile; fileRef = CD8391941C044D50003C9154 /* beacon.h */; };
 		CD9097FB17D5324F00607B9C /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9097F517D5324E00607B9C /* hashtable.c */; };
 		CD9097FC17D5324F00607B9C /* hashtable.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9097F617D5324E00607B9C /* hashtable.h */; };
 		CD9097FD17D5324F00607B9C /* stacktrace.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9097F717D5324F00607B9C /* stacktrace.c */; };
@@ -125,6 +127,8 @@
 		CD7F382616E151E5000346C0 /* radixsort.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = radixsort.c; path = ../../../foundation/radixsort.c; sourceTree = "<group>"; };
 		CD7F382716E151E5000346C0 /* radixsort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = radixsort.h; path = ../../../foundation/radixsort.h; sourceTree = "<group>"; };
 		CD7F382B16E21705000346C0 /* apple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = apple.h; path = ../../../foundation/apple.h; sourceTree = "<group>"; };
+		CD8391931C044D50003C9154 /* beacon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = beacon.c; path = ../../../foundation/beacon.c; sourceTree = "<group>"; };
+		CD8391941C044D50003C9154 /* beacon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = beacon.h; path = ../../../foundation/beacon.h; sourceTree = "<group>"; };
 		CD9097F517D5324E00607B9C /* hashtable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hashtable.c; path = ../../../foundation/hashtable.c; sourceTree = "<group>"; };
 		CD9097F617D5324E00607B9C /* hashtable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hashtable.h; path = ../../../foundation/hashtable.h; sourceTree = "<group>"; };
 		CD9097F717D5324F00607B9C /* stacktrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stacktrace.c; path = ../../../foundation/stacktrace.c; sourceTree = "<group>"; };
@@ -263,6 +267,8 @@
 				CDCEF44916D2D2B000198086 /* atomic.h */,
 				CDCEF44A16D2D2B000198086 /* base64.c */,
 				CDCEF44B16D2D2B000198086 /* base64.h */,
+				CD8391931C044D50003C9154 /* beacon.c */,
+				CD8391941C044D50003C9154 /* beacon.h */,
 				CDF5F019190505B7005EE9AF /* bitbuffer.c */,
 				CDF5F01A190505B7005EE9AF /* bitbuffer.h */,
 				CDCEF44C16D2D2B000198086 /* bits.h */,
@@ -402,6 +408,7 @@
 				CDCEF4CA16D2D2B100198086 /* ringbuffer.h in Headers */,
 				CDCEF4CC16D2D2B100198086 /* semaphore.h in Headers */,
 				CDCEF4CE16D2D2B100198086 /* stream.h in Headers */,
+				CD8391961C044D50003C9154 /* beacon.h in Headers */,
 				CDCEF4D016D2D2B100198086 /* string.h in Headers */,
 				CDCEF4D216D2D2B100198086 /* system.h in Headers */,
 				CDCEF4D416D2D2B100198086 /* thread.h in Headers */,
@@ -497,6 +504,7 @@
 				CDCEF49316D2D2B100198086 /* assetstream.c in Sources */,
 				CDCEF49616D2D2B100198086 /* base64.c in Sources */,
 				CDCEF49916D2D2B100198086 /* blowfish.c in Sources */,
+				CD8391951C044D50003C9154 /* beacon.c in Sources */,
 				CDCEF49B16D2D2B100198086 /* bufferstream.c in Sources */,
 				CDCEF49E16D2D2B100198086 /* config.c in Sources */,
 				CDCEF4A016D2D2B100198086 /* crash.c in Sources */,

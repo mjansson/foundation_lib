@@ -111,14 +111,16 @@ DECLARE_TEST(beacon, multiwait) {
 
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 0), 0);
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 1);
-	EXPECT_INTLT(beacon_try_wait(beacon[1], 0), 0);
+	EXPECT_INTEQ(beacon_try_wait(beacon[1], 0), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
+	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
 
 	beacon_fire(beacon[1]);
 
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 0), 1);
+	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 1);
+	EXPECT_INTEQ(beacon_try_wait(beacon[1], 0), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
-	EXPECT_INTLT(beacon_try_wait(beacon[1], 0), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
 
 	beacon_fire(beacon[1]);
@@ -133,7 +135,7 @@ DECLARE_TEST(beacon, multiwait) {
 
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 0), 0);
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 1);
-	EXPECT_INTLT(beacon_try_wait(beacon[1], 0), 0);
+	EXPECT_INTEQ(beacon_try_wait(beacon[1], 0), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 2);
 

@@ -231,6 +231,12 @@
 		45FD84B61ACAB575004357EA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
 		45FD84B71ACAB575004357EA /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
 		45FD84C11ACAB5CC004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84C01ACAB5CC004357EA /* main.c */; };
+		CD8391A51C0450FC003C9154 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD8391A41C0450FC003C9154 /* main.c */; };
+		CD8391A61C045124003C9154 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455516951936208A00CF089B /* libtest.a */; };
+		CD8391A91C045138003C9154 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172F19363AF800CF089B /* Carbon.framework */; };
+		CD8391AA1C045138003C9154 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
+		CD8391AB1C045138003C9154 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
+		CD8391AF1C048959003C9154 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD8391AE1C048959003C9154 /* libfoundation.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -745,6 +751,13 @@
 			remoteGlobalIDString = 45FD84AD1ACAB575004357EA;
 			remoteInfo = "test-process";
 		};
+		CD8391AC1C048939003C9154 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4555167719360C7500CF089B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CD83919A1C044FA8003C9154;
+			remoteInfo = "test-beacon";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1081,6 +1094,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CD8391991C044FA8003C9154 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -1165,6 +1187,9 @@
 		45FD84A31AC9545F004357EA /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/time/main.c; sourceTree = "<group>"; };
 		45FD84BE1ACAB575004357EA /* test-process */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-process"; sourceTree = BUILT_PRODUCTS_DIR; };
 		45FD84C01ACAB5CC004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/process/main.c; sourceTree = "<group>"; };
+		CD83919B1C044FA8003C9154 /* test-beacon */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-beacon"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD8391A41C0450FC003C9154 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../../test/beacon/main.c; sourceTree = "<group>"; };
+		CD8391AE1C048959003C9154 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1619,6 +1644,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CD8391981C044FA8003C9154 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD8391AF1C048959003C9154 /* libfoundation.a in Frameworks */,
+				CD8391A61C045124003C9154 /* libtest.a in Frameworks */,
+				CD8391A91C045138003C9154 /* Carbon.framework in Frameworks */,
+				CD8391AA1C045138003C9154 /* Cocoa.framework in Frameworks */,
+				CD8391AB1C045138003C9154 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -1646,6 +1683,7 @@
 				455516E51936388B00CF089B /* array */,
 				455516E71936388B00CF089B /* atomic */,
 				455516E91936388B00CF089B /* base64 */,
+				CD83919C1C044FA8003C9154 /* beacon */,
 				450D73FE1B21D9A7007796DD /* bitbuffer */,
 				455516EB1936388B00CF089B /* blowfish */,
 				455516ED1936388B00CF089B /* bufferstream */,
@@ -1689,6 +1727,7 @@
 		455516961936208A00CF089B /* lib */ = {
 			isa = PBXGroup;
 			children = (
+				CD8391AE1C048959003C9154 /* libfoundation.a */,
 				4555172E19363AF800CF089B /* libfoundation.a */,
 				455516951936208A00CF089B /* libtest.a */,
 				4555174C19363BA500CF089B /* test-app */,
@@ -1727,6 +1766,7 @@
 				45FD849F1AC953EC004357EA /* test-time */,
 				45FD84BE1ACAB575004357EA /* test-process */,
 				450D74101B21D9B8007796DD /* test-bitbiffer */,
+				CD83919B1C044FA8003C9154 /* test-beacon */,
 			);
 			name = lib;
 			sourceTree = "<group>";
@@ -2038,6 +2078,15 @@
 			name = process;
 			sourceTree = "<group>";
 		};
+		CD83919C1C044FA8003C9154 /* beacon */ = {
+			isa = PBXGroup;
+			children = (
+				CD8391A41C0450FC003C9154 /* main.c */,
+			);
+			name = beacon;
+			path = "test-beacon";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -2116,6 +2165,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CD8391AD1C048939003C9154 /* PBXTargetDependency */,
 				450D74161B21DA19007796DD /* PBXTargetDependency */,
 				455519761936647900CF089B /* PBXTargetDependency */,
 				455519781936647900CF089B /* PBXTargetDependency */,
@@ -2771,6 +2821,23 @@
 			productReference = 45FD84BE1ACAB575004357EA /* test-process */;
 			productType = "com.apple.product-type.tool";
 		};
+		CD83919A1C044FA8003C9154 /* test-beacon */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD8391A31C044FA8003C9154 /* Build configuration list for PBXNativeTarget "test-beacon" */;
+			buildPhases = (
+				CD8391971C044FA8003C9154 /* Sources */,
+				CD8391981C044FA8003C9154 /* Frameworks */,
+				CD8391991C044FA8003C9154 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "test-beacon";
+			productName = "test-beacon";
+			productReference = CD83919B1C044FA8003C9154 /* test-beacon */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -2778,6 +2845,11 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0710;
+				TargetAttributes = {
+					CD83919A1C044FA8003C9154 = {
+						CreatedOnToolsVersion = 7.1;
+					};
+				};
 			};
 			buildConfigurationList = 4555167A19360C7500CF089B /* Build configuration list for PBXProject "test" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -2829,6 +2901,7 @@
 				45FD847C1AC953CB004357EA /* test-system */,
 				45FD848E1AC953EC004357EA /* test-time */,
 				455519621936645600CF089B /* test-uuid */,
+				CD83919A1C044FA8003C9154 /* test-beacon */,
 			);
 		};
 /* End PBXProject section */
@@ -3135,6 +3208,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				45FD84C11ACAB5CC004357EA /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD8391971C044FA8003C9154 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD8391A51C0450FC003C9154 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3505,6 +3586,11 @@
 			isa = PBXTargetDependency;
 			target = 45FD84AD1ACAB575004357EA /* test-process */;
 			targetProxy = 45FD84C21ACAB616004357EA /* PBXContainerItemProxy */;
+		};
+		CD8391AD1C048939003C9154 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CD83919A1C044FA8003C9154 /* test-beacon */;
+			targetProxy = CD8391AC1C048939003C9154 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -4935,6 +5021,35 @@
 			};
 			name = Deploy;
 		};
+		CD83919F1C044FA8003C9154 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD8391A01C044FA8003C9154 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD8391A11C044FA8003C9154 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD8391A21C044FA8003C9154 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -5363,6 +5478,17 @@
 				45FD84BB1ACAB575004357EA /* Release */,
 				45FD84BC1ACAB575004357EA /* Profile */,
 				45FD84BD1ACAB575004357EA /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
+		};
+		CD8391A31C044FA8003C9154 /* Build configuration list for PBXNativeTarget "test-beacon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD83919F1C044FA8003C9154 /* Debug */,
+				CD8391A01C044FA8003C9154 /* Release */,
+				CD8391A11C044FA8003C9154 /* Profile */,
+				CD8391A21C044FA8003C9154 /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;

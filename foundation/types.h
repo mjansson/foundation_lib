@@ -1317,7 +1317,8 @@ struct beacon_t {
 	atomic32_t fired;
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	int kq;
-	int event;
+	int writefd;
+	int all[8];
 	atomic32_t fired;
 #endif
 };

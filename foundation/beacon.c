@@ -13,9 +13,10 @@
 #include <foundation/foundation.h>
 #include <foundation/windows.h>
 #include <foundation/posix.h>
+#include <foundation/apple.h>
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
-static atomic32_t _user_id;
+#  include <sys/event.h>
 #endif
 
 beacon_t*
@@ -42,11 +43,16 @@ beacon_initialize(beacon_t* beacon) {
 	event.data.fd = 0;
 	epoll_ctl(beacon->poll, EPOLL_CTL_ADD, beacon->fd, &event);
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+	int pipefd[2];
 	beacon->kq = kqueue();
-	beacon->event = atomic_incr32(&_user_id);
+	pipe(pipefd);
+	fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
+	beacon->all[0] = pipefd[0];
+	beacon->writefd = pipefd[1];
 	struct kevent changes;
-	EV_SET(&changes, beacon->event, EVFILT_USER, EV_ADD, NOTE_FFCOPY, 0, nullptr);
-	kevent(beacon->kq, &changes, 1, &changes, 1, 0);
+	EV_SET(&changes, beacon->all[0], EVFILT_READ, EV_ADD, 0, 0, nullptr);
+	kevent(beacon->kq, &changes, 1, 0, 0, 0);
+	beacon->count = 1;
 #endif
 }
 
@@ -59,6 +65,8 @@ beacon_finalize(beacon_t* beacon) {
 	close(beacon->fd);
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	close(beacon->kq);
+	close(beacon->all[0]);
+	close(beacon->writefd);
 #endif
 }
 
@@ -82,13 +90,19 @@ beacon_wait(beacon_t* beacon) {
 
 int
 beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
+	int slot = -1;
 #if FOUNDATION_PLATFORM_WINDOWS
 	unsigned int count = (unsigned int)beacon->count;
 	unsigned int wait_status = WaitForMultipleObjects(count, (HANDLE*)beacon->all,
 	                                                  FALSE, milliseconds);
 	//WAIT_OBJECT_0 value is 0, so this checks range [WAIT_OBJECT_0, WAIT_OBJECT_0+count)
-	if (wait_status < count)
+	if (wait_status < count) {
+		//Same behaviour as linux/bsd implementations, where auxiliary beacons added
+		//will remain fired after a beacon has seen it
+		if (wait_status > 0)
+			SetEvent(beacon->all[wait_status]);
 		return (int)wait_status;
+	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	if (atomic_cas32(&beacon->fired, 0, 1)) {
 		eventfd_t value = 0;
@@ -98,9 +112,8 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	}
 	struct epoll_event event = {0};
 	int ret = epoll_wait(beacon->poll, &event, 1, (int)milliseconds);
-	if (ret <= 0)
-		return -1;
-	int slot = event.data.fd;
+	if (ret > 0)
+		slot = event.data.fd;
 	if (slot == 0) {
 		if (atomic_cas32(&beacon->fired, 0, 1)) {
 			eventfd_t value = 0;
@@ -108,40 +121,37 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 			return (value > 0);
 		}
 	}
-	return slot;
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
-	int slot = -1;
-	struct kevent event = {0};
+	int ret;
 	struct timespec tspec = {0};
 	struct timespec* timeout = nullptr;
+	struct kevent event = {0};
 	if (atomic_cas32(&beacon->fired, 0, 1)) {
-		EV_SET(&event, beacon->event, EVFILT_USER, EV_DISABLE, EV_CLEAR | NOTE_FFCOPY, 0, nullptr);
-		kevent(beacon->kq, &event, 1, &event, 1, 0);
+		char data[8];
+		while (read(beacon->all[0], data, 8) == 8);
 		return 0;
 	}
 	if (milliseconds != (unsigned int)-1) {
-		struct timeval now = {0};
-		gettimeofday(&now, 0);
-		tspec.tv_sec  = now.tv_sec + (time_t)(milliseconds / 1000);
-		tspec.tv_nsec = (now.tv_usec * 1000) + (long)(milliseconds % 1000) * 1000000L;
+		tspec.tv_sec  = (time_t)(milliseconds / 1000);
+		tspec.tv_nsec = (long)(milliseconds % 1000) * 1000000L;
 		while (tspec.tv_nsec >= 1000000000L) {
 			++tspec.tv_sec;
 			tspec.tv_nsec -= 1000000000L;
 		}
-		timeout = tspec;
+		timeout = &tspec;
 	}
-	if (kevent(beacon->kq, 0, 0, &event, 1, timeout) > 0) {
-		//...
-	}
+	ret = kevent(beacon->kq, nullptr, 0, &event, 1, timeout);
+	if (ret > 0)
+		slot = (int)(uintptr_t)event.udata;
 	if (slot == 0) {
 		if (atomic_cas32(&beacon->fired, 0, 1)) {
-			EV_SET(&event, beacon->event, EVFILT_USER, EV_DISABLE, EV_CLEAR | NOTE_FFCOPY, 0, nullptr);
-			kevent(beacon->kq, &event, 1, &event, 1, 0);
+			char data[8];
+			while (read(beacon->all[0], data, 8) == 8);
 			return 0;
 		}
 	}
 #endif
-	return -1;
+	return slot;
 }
 
 void
@@ -155,9 +165,8 @@ beacon_fire(beacon_t* beacon) {
 	}
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	if (atomic_cas32(&beacon->fired, 1, 0)) {
-		struct kevent changes;
-		EV_SET(&changes, 0, EVFILT_USER, EV_ENABLE, NOTE_FFCOPY | NOTE_TRIGGER | 0x1, 0, nullptr);
-		kevent(beacon->kq, &changes, 1, &changes, 1, 0);
+		char data = 0;
+		write(beacon->writefd, &data, 1);
 	}
 #endif
 }
@@ -235,18 +244,39 @@ beacon_event_handle(beacon_t* beacon) {
 
 int
 beacon_add(beacon_t* beacon, int fd) {
-	//...
+	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
+	if (beacon->count < numslots) {
+		beacon->all[beacon->count] = fd;
+		struct kevent changes;
+		EV_SET(&changes, fd, EVFILT_READ, EV_ADD, 0, 0, (void*)(uintptr_t)beacon->count);
+		kevent(beacon->kq, &changes, 1, 0, 0, 0);
+		return (int)beacon->count++;
+	}
 	return -1;
 }
 
 void
 beacon_remove(beacon_t* beacon, int fd) {
-	//...
+	size_t islot;
+	for (islot = 1; islot < beacon->count; ++islot) {
+		if (beacon->all[islot] == fd) {
+			struct kevent changes;
+			EV_SET(&changes, fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
+			kevent(beacon->kq, &changes, 1, 0, 0, 0);
+			--beacon->count;
+			if (islot < beacon->count) {
+				beacon->all[islot] = beacon->all[beacon->count];
+				//Re-add acts as mosify
+				EV_SET(&changes, beacon->all[islot], EVFILT_READ, EV_ADD, 0, 0, (void*)(uintptr_t)islot);
+				kevent(beacon->kq, &changes, 1, 0, 0, 0);
+			}
+		}
+	}
 }
 
 int
 beacon_event_handle(beacon_t* beacon) {
-	return beacon->event;
+	return beacon->all[0];
 }
 
 #endif

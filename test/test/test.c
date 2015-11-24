@@ -19,6 +19,8 @@ FOUNDATION_EXTERN test_suite_t
 test_suite_define(void);
 #endif
 
+test_suite_t          test_suite;
+
 typedef struct {
 	string_const_t    name;
 	test_fn           fn;
@@ -31,11 +33,9 @@ typedef struct {
 
 static test_group_t** _test_groups;
 static bool           _test_failed;
-static bool           _test_exiting;
-
-test_suite_t          test_suite;
 
 #if !BUILD_MONOLITHIC
+static bool           _test_exiting;
 
 static void*
 test_event_thread(void* arg) {
