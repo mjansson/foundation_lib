@@ -39,7 +39,11 @@ beacon_initialize(beacon_t* beacon) {
 	beacon->all[0] = beacon->event;
 	beacon->count = 1;
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#  if FOUNDATION_PLATFORM_LINUX
 	beacon->fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | EFD_SEMAPHORE);
+#  else
+	beacon->fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+#  endif
 	beacon->poll = epoll_create(sizeof(beacon->all)/sizeof(beacon->all[0]));
 	beacon->count = 1;
 	beacon->all[0] = beacon->fd;

@@ -219,8 +219,7 @@ extern int test_uuid_run(void);
 typedef int (*test_run_fn)(void);
 
 static void*
-test_runner(object_t obj, void* arg) {
-	FOUNDATION_UNUSED(obj);
+test_runner(void* arg) {
 	test_run_fn* tests = (test_run_fn*)arg;
 	int test_fn = 0;
 	int process_result = 0;
@@ -336,34 +335,31 @@ main_run(void* main_arg) {
 
 #if FOUNDATION_PLATFORM_ANDROID
 
-	object_t test_thread = thread_create(test_runner, STRING_CONST("test_runner"),
-	                                     THREAD_PRIORITY_NORMAL, 0);
-	thread_start(test_thread, tests);
+	thread_t test_thread;
+	thread_initialize(&test_thread, test_runner, tests, STRING_CONST("test_runner"),
+	                  THREAD_PRIORITY_NORMAL, 0);
+	thread_start(&test_thread);
 
 	log_debug(HASH_TEST, STRING_CONST("Starting test runner thread"));
 
-	while (!thread_is_running(test_thread)) {
+	while (!thread_is_running(&test_thread)) {
 		system_process_events();
 		thread_sleep(10);
 	}
 
-	while (thread_is_running(test_thread)) {
+	while (thread_is_running(&test_thread)) {
 		system_process_events();
 		thread_sleep(10);
 	}
 
-	test_result = thread_result(test_thread);
+	test_result = thread_join(&test_thread);
 	process_result = (int)(intptr_t)test_result;
-	thread_destroy(test_thread);
-
-	while (thread_is_thread(test_thread)) {
-		system_process_events();
-		thread_sleep(10);
-	}
+	
+	thread_finalize(&test_thread);
 
 #else
 
-	test_result = test_runner(0, tests);
+	test_result = test_runner(tests);
 	process_result = (int)(intptr_t)test_result;
 
 #endif

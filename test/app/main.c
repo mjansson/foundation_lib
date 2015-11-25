@@ -71,7 +71,11 @@ memory_thread(void* arg) {
 
 	for (iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
 		void* mem = memory_allocate(0, 17, 16, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
+#if FOUNDATION_PLATFORM_ANDROID
+		EXPECT_EQ((uintptr_t)mem & 0x07, 0);
+#else
 		EXPECT_EQ((uintptr_t)mem & 0x0F, 0);
+#endif
 		thread_yield();
 		memory_deallocate(mem);
 		if (!min || (mem < min))
@@ -146,7 +150,8 @@ test_thread(void* arg) {
 		thread_set_hardware(mask);
 		for (size_t iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
 			random64();
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+			//Not all platforms support setting thread cpu affinity
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
 			EXPECT_UINTEQ(thread_hardware(), core);
 #endif
 			thread_yield();

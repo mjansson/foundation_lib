@@ -448,8 +448,13 @@ unsigned int
 thread_hardware(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _fnGetCurrentProcessorNumber();
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX
 	return (unsigned int)sched_getcpu();
+#elif FOUNDATION_PLATFORM_ANDROID
+	unsigned int cpu;
+	if (syscall(__NR_getcpu, &cpu, nullptr, nullptr) < 0)
+		return 0;
+	return cpu;
 #else
 	//TODO: Implement for other platforms
 	return 0;
@@ -463,7 +468,7 @@ thread_set_hardware(uint64_t mask) {
 	DWORD_PTR sysmask = 0;
 	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
 	SetThreadAffinityMask(GetCurrentThread(), mask & procmask);
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX
 	uint64_t ibit, bsize;
 	cpu_set_t set;
 	CPU_ZERO(&set);
