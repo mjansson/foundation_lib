@@ -75,7 +75,7 @@ _mutex_finalize(mutex_t* mutex) {
 	pthread_mutex_destroy(&mutex->mutex);
 	pthread_cond_destroy(&mutex->cond);
 #else
-#  error mutex_deallocate not implemented
+#  error _mutex_finalize not implemented
 #endif
 }
 

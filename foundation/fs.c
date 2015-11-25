@@ -69,8 +69,9 @@ typedef FILE* fs_file_descriptor;
 #endif
 
 struct fs_monitor_t {
-	atomicptr_t path;
-	thread_t    thread;
+	bool       inuse;
+	string_t   path;
+	thread_t   thread;
 };
 
 struct stream_file_t {
@@ -93,6 +94,7 @@ typedef FOUNDATION_ALIGN(8) struct stream_file_t stream_file_t;
 
 static stream_vtable_t _fs_file_vtable;
 
+static mutex_t* _fs_monitor_lock;
 static fs_monitor_t* _fs_monitors;
 static event_stream_t* _fs_event_stream;
 
@@ -173,11 +175,14 @@ fs_monitor(const char* path, size_t length) {
 	char buf[BUILD_MAX_PATHLEN];
 	string_t path_clone;
 
-	//TODO: Full thread safety
+	mutex_lock(_fs_monitor_lock);
+	
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
-		const char* monitor_path = atomic_loadptr(&_fs_monitors[mi].path);
-		if (string_equal(monitor_path, string_length(monitor_path), path, length))
+		if (_fs_monitors[mi].inuse &&
+		      string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
+			mutex_unlock(_fs_monitor_lock);
 			return true;
+		}
 	}
 
 	memory_context_push(HASH_STREAM);
@@ -188,7 +193,9 @@ fs_monitor(const char* path, size_t length) {
 	path_clone = string_clone(STRING_ARGS(path_clone));
 
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
-		if (atomic_cas_ptr(&_fs_monitors[mi].path, path_clone.str, 0)) {
+		if (!_fs_monitors[mi].inuse) {
+			_fs_monitors[mi].inuse = true;
+			_fs_monitors[mi].path = path_clone;
 			thread_initialize(&_fs_monitors[mi].thread, _fs_monitor, _fs_monitors + mi,
 			                  STRING_CONST("fs_monitor"), THREAD_PRIORITY_BELOWNORMAL, 0);
 			thread_start(&_fs_monitors[mi].thread);
@@ -204,6 +211,8 @@ fs_monitor(const char* path, size_t length) {
 	}
 
 	memory_context_pop();
+	mutex_unlock(_fs_monitor_lock);
+	
 #else
 	FOUNDATION_UNUSED(path);
 	FOUNDATION_UNUSED(length);
@@ -213,24 +222,28 @@ fs_monitor(const char* path, size_t length) {
 
 static void
 _fs_stop_monitor(fs_monitor_t* monitor) {
-	char* localpath = atomic_loadptr(&monitor->path);
-	thread_t thread = monitor->thread;
-	if (!localpath || !atomic_cas_ptr(&monitor->path, 0, localpath))
+	if (!monitor->inuse)
 		return;
-
-	thread_signal(&thread);
-	thread_finalize(&thread);
-	string_deallocate(localpath);
+	
+	thread_signal(&monitor->thread);
+	thread_finalize(&monitor->thread);
+	string_deallocate(monitor->path.str);
+	monitor->inuse = false;
 }
 
 void
 fs_unmonitor(const char* path, size_t length) {
 	size_t mi;
+	
+	mutex_lock(_fs_monitor_lock);
+	
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
-		const char* monitor_path = atomic_loadptr(&_fs_monitors[mi].path);
-		if (string_equal(monitor_path, string_length(monitor_path), path, length))
+		if (_fs_monitors[mi].inuse &&
+		      string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
 			_fs_stop_monitor(_fs_monitors + mi);
 	}
+
+	mutex_unlock(_fs_monitor_lock);
 }
 
 bool
@@ -1150,7 +1163,6 @@ _fs_monitor(void* monitorptr) {
 	HANDLE handle = INVALID_HANDLE_VALUE;
 	int event;
 	int wait_status;
-	char* monitor_path = atomic_loadptr(&monitor->path);
 	beacon_t* beacon = &thread_self()->beacon;
 
 	memory_context_push(HASH_STREAM);
@@ -1159,8 +1171,8 @@ _fs_monitor(void* monitorptr) {
 	handle = CreateEvent(0, FALSE, FALSE, 0);
 	if (handle == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(GetLastError());
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %s : %.*s"),
-		          monitor_path, STRING_FORMAT(errstr));
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %.*s : %.*s"),
+		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
 
@@ -1170,7 +1182,6 @@ _fs_monitor(void* monitorptr) {
 
 	char pathbuffer[BUILD_MAX_PATHLEN];
 	string_t local_path;
-	char* monitor_path = atomic_loadptr(&monitor->path);
 	int notify_fd = inotify_init();
 	fs_watch_t* watch = 0;
 	string_t* paths = 0;
@@ -1181,7 +1192,7 @@ _fs_monitor(void* monitorptr) {
 	array_reserve(watch, 1024);
 
 	//Recurse and add all subdirs
-	local_path = string_copy(pathbuffer, sizeof(pathbuffer), monitor_path, string_length(monitor_path));
+	local_path = string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(monitor->path));
 	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths,
 	                      false);
 
@@ -1189,11 +1200,9 @@ _fs_monitor(void* monitorptr) {
 
 #elif FOUNDATION_PLATFORM_MACOSX
 
-	char* monitor_path = atomic_loadptr(&monitor->path);
-
 	memory_context_push(HASH_STREAM);
 
-	void* event_stream = _fs_event_stream_create(monitor_path, string_length(monitor_path));
+	void* event_stream = _fs_event_stream_create(STRING_ARGS(monitor->path));
 
 #else
 
@@ -1201,12 +1210,12 @@ _fs_monitor(void* monitorptr) {
 
 #endif
 
-	log_debugf(0, STRING_CONST("Monitoring file system: %s"),
-	           (const char*)atomic_loadptr(&monitor->path));
+	log_debugf(0, STRING_CONST("Monitoring file system: %.*s"),
+	           STRING_FORMAT(monitor->path));
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		wfpath = wstring_allocate_from_string(monitor_path, string_length(monitor_path));
+		wfpath = wstring_allocate_from_string(STRING_ARGS(monitor->path));
 		dir = CreateFileW(wfpath, FILE_LIST_DIRECTORY,
 		                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0, OPEN_EXISTING,
 		                  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, 0);
@@ -1214,8 +1223,8 @@ _fs_monitor(void* monitorptr) {
 	}
 	if (dir == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(GetLastError());
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %s : %.*s"),
-		          monitor_path, STRING_FORMAT(errstr));
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %.*s : %.*s"),
+		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
 
@@ -1238,8 +1247,8 @@ _fs_monitor(void* monitorptr) {
 		if (!success) {
 			string_const_t errstr = system_error_message(GetLastError());
 			log_warnf(0, WARNING_SUSPICIOUS,
-			          STRING_CONST("Unable to read directory changes for path: %s : %.*s"),
-			          monitor_path, STRING_FORMAT(errstr));
+			          STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
+			          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 			goto exit_thread;
 		}
 
@@ -1256,8 +1265,8 @@ _fs_monitor(void* monitorptr) {
 			if (!success) {
 				string_const_t errstr = system_error_message(GetLastError());
 				log_warnf(0, WARNING_SUSPICIOUS,
-				          STRING_CONST("Unable to read directory changes for path: %s : %.*s"),
-				          monitor_path, STRING_FORMAT(errstr));
+				          STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
+				          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 			}
 			else {
 				PFILE_NOTIFY_INFORMATION info = buffer;
@@ -1271,7 +1280,7 @@ _fs_monitor(void* monitorptr) {
 					info->FileName[ numchars ] = 0;
 					utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
 					utfstr = path_clean(STRING_ARGS_CAPACITY(utfstr));
-					fullpath = path_allocate_concat(monitor_path, string_length(monitor_path), STRING_ARGS(utfstr));
+					fullpath = path_allocate_concat(STRING_ARGS(monitor->path), STRING_ARGS(utfstr));
 
 					if (fs_is_directory(STRING_ARGS(fullpath))) {
 						//Ignore directory changes
@@ -1378,8 +1387,8 @@ skipwatch:
 #endif
 	}
 
-	log_debugf(0, STRING_CONST("Stopped monitoring file system: %s"),
-	           (const char*)atomic_loadptr(&monitor->path));
+	log_debugf(0, STRING_CONST("Stopped monitoring file system: %.*s"),
+	           STRING_FORMAT(monitor->path));
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -1965,9 +1974,11 @@ _fs_initialize(void) {
 	_fs_monitors = memory_allocate(HASH_STREAM,
 	                               sizeof(fs_monitor_t) * _foundation_config.fs_monitor_max,
 	                               0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	_fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
 #else
 	_foundation_config.fs_monitor_max = 0;
 	_fs_monitors = 0;
+	_fs_monitor_lock = 0;
 #endif
 
 	_fs_event_stream = event_stream_allocate(512);
@@ -2046,7 +2057,8 @@ _fs_finalize(void) {
 	size_t mi;
 	if (_fs_monitors) for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi)
 		_fs_stop_monitor(_fs_monitors + mi);
-
+	mutex_deallocate(_fs_monitor_lock);
+	
 	event_stream_deallocate(_fs_event_stream);
 	_fs_event_stream = 0;
 
