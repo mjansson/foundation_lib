@@ -116,7 +116,8 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 		eventfd_t value = 0;
 		eventfd_read(beacon->fd, &value);
 		atomic_cas32(&beacon->fired, BEACON_FIRE_NONE, BEACON_FIRE_READING);
-		return (value > 0)
+		if (value > 0)
+			return 0;
 	}
 	struct epoll_event event;
 	int ret = epoll_wait(beacon->poll, &event, 1, (int)milliseconds);
@@ -127,8 +128,10 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 			eventfd_t value = 0;
 			eventfd_read(beacon->fd, &value);
 			atomic_cas32(&beacon->fired, BEACON_FIRE_NONE, BEACON_FIRE_READING);
-			return (value > 0);
+			if (value > 0)
+				return 0;
 		}
+		slot = -1;
 	}
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	int ret;
