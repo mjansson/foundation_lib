@@ -94,6 +94,8 @@ _thread_initialize(void) {
 		_fnGetCurrentProcessorNumber = getprocidfn;
 #endif
 
+	_thread_main_id = thread_id();
+
 	return 0;
 }
 
@@ -252,6 +254,9 @@ _thread_entry(thread_arg_t data) {
 
 	log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
 	           STRING_FORMAT(thread->name), thread->osid);
+
+	if (thread_is_main())
+		_thread_main_id = (uint64_t)-1;
 
 	thread->osid = 0;
 	atomic_store32(&thread->state, 2);
