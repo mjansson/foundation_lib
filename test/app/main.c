@@ -124,7 +124,7 @@ DECLARE_TEST(app, memory) {
 
 static void*
 test_thread(void* arg) {
-	FOUNDATION_UNUSED(arg);
+	semaphore_t* sync = (semaphore_t*)arg;
 
 	EXPECT_FALSE(thread_is_main());
 
@@ -132,8 +132,10 @@ test_thread(void* arg) {
 	thread_set_name(STRING_CONST("other_thread"));
 	EXPECT_CONSTSTRINGEQ(thread_name(), string_const(STRING_CONST("other_thread")));
 
+	semaphore_wait(sync);
 	thread_set_main();
 	EXPECT_TRUE(thread_is_main());
+	semaphore_post(sync);
 
 	thread_set_name(STRING_CONST("test_thread"));
 	EXPECT_CONSTSTRINGEQ(thread_name(), string_const(STRING_CONST("test_thread")));
@@ -173,11 +175,13 @@ DECLARE_TEST(app, thread) {
 	thread_t thread[32];
 	size_t ithread;
 	size_t num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
+	semaphore_t sync;
 
 	EXPECT_TRUE(thread_is_main());
 
-	testthread = thread_allocate(test_thread, 0, STRING_CONST("test_thread"), THREAD_PRIORITY_NORMAL,
-	                             0);
+	semaphore_initialize(&sync, 1);
+	testthread = thread_allocate(test_thread, &sync, STRING_CONST("test_thread"),
+	                             THREAD_PRIORITY_NORMAL, 0);
 	thread_start(testthread);
 
 	test_wait_for_threads_startup(testthread, 1);
@@ -187,7 +191,7 @@ DECLARE_TEST(app, thread) {
 	thread_deallocate(testthread);
 
 	for (ithread = 0; ithread < num_threads; ++ithread)
-		thread_initialize(&thread[ithread], test_thread, 0, STRING_CONST("test_thread"),
+		thread_initialize(&thread[ithread], test_thread, &sync, STRING_CONST("test_thread"),
 		                  THREAD_PRIORITY_NORMAL, 0);
 	for (ithread = 0; ithread < num_threads; ++ithread)
 		thread_start(&thread[ithread]);
@@ -200,7 +204,10 @@ DECLARE_TEST(app, thread) {
 		thread_finalize(&thread[ithread]);
 	}
 
-	EXPECT_TRUE(thread_is_main());
+	EXPECT_FALSE(thread_is_main());
+	thread_set_main();
+
+	semaphore_finalize(&sync);
 
 	testthread = thread_allocate(sleep_thread, 0, STRING_CONST("sleep_thread"), THREAD_PRIORITY_NORMAL,
 	                             0);
