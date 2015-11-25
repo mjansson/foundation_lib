@@ -68,6 +68,16 @@ DECLARE_TEST(objectmap, store) {
 	object_base_t third;
 
 	map = objectmap_allocate(129);
+	
+	memset(&first, 0, sizeof(first));
+	memset(&second, 0, sizeof(first));
+	memset(&third, 0, sizeof(first));
+	atomic_store32(&first.ref, 1);
+	atomic_store32(&second.ref, 1);
+	atomic_store32(&third.ref, 1);
+	first.id = 1;
+	second.id = 2;
+	third.id = 3;
 
 	EXPECT_EQ(objectmap_lookup(map, 0), 0);
 	EXPECT_EQ(objectmap_lookup(map, 1), 0);

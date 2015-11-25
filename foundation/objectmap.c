@@ -165,34 +165,35 @@ objectmap_set(objectmap_t* map, object_t id, void* object) {
 void*
 objectmap_lookup_ref(const objectmap_t* map, object_t id) {
 	void* object;
+	int32_t ref;
 	do {
+		ref = 0;
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
 		        //ID in object is offset by 8 bytes
 		        ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
-			int32_t ref = atomic_load32(&base_obj->ref);
+			ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref + 1, ref))
 				return object;
 		}
-		else {
-			object = nullptr;
-		}
 	}
-	while (object);
+	while (ref);
 	return 0;
 }
 
 bool
 objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn deallocate) {
 	void* object;
+	int32_t ref;
 	do {
+		ref = 0;
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
 		        //ID in object is offset by 8 bytes
 		        ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
-			int32_t ref = atomic_load32(&base_obj->ref);
+			ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref - 1, ref)) {
 				if (ref == 1) {
 					deallocate(id, object);
@@ -201,11 +202,8 @@ objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn
 				return true;
 			}
 		}
-		else {
-			object = nullptr;
-		}
 	}
-	while (object);
+	while (ref);
 	return false;
 }
 
