@@ -226,7 +226,7 @@ DECLARE_TEST(profile, thread) {
 #else
 	EXPECT_INTEQ(atomic_load32(&_test_profile_output_counter), 0);
 #endif
-	EXPECT_INTEQ(err, ERROR_OUT_OF_MEMORY);
+	EXPECT_INTEQ(err, ERROR_NONE);
 
 	return 0;
 }
