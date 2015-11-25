@@ -26,10 +26,8 @@ event_loop(void* arg) {
 	event_stream_set_beacon(system_event_stream(), &thread_self()->beacon);
 
 	while (!_test_should_terminate) {
-		thread_wait();
 		block = event_stream_process(system_event_stream());
 		event = 0;
-
 		while ((event = event_next(block, event))) {
 			switch (event->id) {
 			case FOUNDATIONEVENT_START:
@@ -61,6 +59,7 @@ event_loop(void* arg) {
 				break;
 			}
 		}
+		thread_wait();
 	}
 
 	log_debug(HASH_TEST, STRING_CONST("Application event thread exiting"));

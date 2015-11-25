@@ -46,7 +46,6 @@ test_event_thread(void* arg) {
 	event_stream_set_beacon(system_event_stream(), &thread_self()->beacon);
 
 	while (!_test_exiting) {
-		thread_wait();
 		block = event_stream_process(system_event_stream());
 		while ((event = event_next(block, event))) {
 			switch (event->id) {
@@ -59,6 +58,7 @@ test_event_thread(void* arg) {
 			}
 		}
 		event = 0;
+		thread_wait();
 	}
 
 	return 0;
@@ -106,6 +106,7 @@ test_run(void) {
 	          (int)test_suite.application().short_name.length, test_suite.application().short_name.str);
 
 	_test_failed = false;
+	thread_set_main();
 
 #if !BUILD_MONOLITHIC
 	thread_initialize(&thread_event, test_event_thread, 0, STRING_CONST("event_thread"),

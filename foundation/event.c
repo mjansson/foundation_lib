@@ -286,4 +286,6 @@ event_stream_process(event_stream_t* stream) {
 void
 event_stream_set_beacon(event_stream_t* stream, beacon_t* beacon) {
 	stream->beacon = beacon;
+	if (beacon && (atomic_load32(&stream->write) > 0))
+		beacon_fire(beacon);
 }
