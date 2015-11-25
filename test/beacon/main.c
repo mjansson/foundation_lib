@@ -73,6 +73,7 @@ DECLARE_TEST(beacon, fire) {
 }
 
 DECLARE_TEST(beacon, multiwait) {
+#if !FOUNDATION_PLATFORM_PNACL
 	beacon_t* beacon[2];
 #if FOUNDATION_PLATFORM_WINDOWS
 	semaphore_t semaphore;
@@ -155,7 +156,7 @@ DECLARE_TEST(beacon, multiwait) {
 #else
 	stream_finalize((stream_t*)&pipe);
 #endif
-
+#endif
 	return 0;
 }
 

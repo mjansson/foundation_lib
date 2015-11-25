@@ -1848,9 +1848,10 @@ static tick_t
 _fs_file_last_modified(const stream_t* stream) {
 	const stream_file_t* fstream = GET_FILE_CONST(stream);
 #if FOUNDATION_PLATFORM_PNACL
-	struct PP_FileInfo info = {0};
-	_pnacl_file_io->Query(fstream->fd, &info, PP_BlockUntilComplete());
-	return (tick_t)info.last_modified_time * 1000LL;
+	struct PP_FileInfo info;
+	if (_pnacl_file_io->Query(fstream->fd, &info, PP_BlockUntilComplete()) == PP_OK)
+		return (tick_t)info.last_modified_time * 1000LL;
+	return 0;
 #else
 	return fs_last_modified(fstream->path.str, fstream->path.length);
 #endif

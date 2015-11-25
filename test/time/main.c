@@ -69,7 +69,7 @@ DECLARE_TEST(time, builtin) {
 	                    (tps / 33)); //less than 30 ms
 	EXPECT_REALGT(time_elapsed(tick), 0);
 	EXPECT_REALGT(time_elapsed(tick), 0.01f); //more than 10 ms
-	EXPECT_REALGT(time_elapsed_ticks(tick), 0);
+	EXPECT_TICKGT(time_elapsed_ticks(tick), 0);
 	EXPECT_TICKGT(time_elapsed_ticks(tick), (tps / 100)); //more than 10 ms
 	EXPECT_TICKLT(time_elapsed_ticks(tick), (tps / 20));  //less than 50 ms
 

@@ -354,7 +354,7 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 		gettimeofday(&now, 0);
 		then.tv_sec = now.tv_sec + (time_t)(milliseconds / 1000);
 		then.tv_nsec = (now.tv_usec * 1000) + (long)(milliseconds % 1000) * 1000000L;
-		while (then.tv_nsec > 999999999) {
+		while (then.tv_nsec >= 1000000000L) {
 			++then.tv_sec;
 			then.tv_nsec -= 1000000000L;
 		}

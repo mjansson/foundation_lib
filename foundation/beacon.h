@@ -84,7 +84,8 @@ beacon_event_handle(beacon_t* beacon);
 
 #endif
 
-#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || \
+    FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 
 /*! Add another event source to the beacon, for example a socket,
 a pipe or another beacon. Any file descriptor handle that can be used

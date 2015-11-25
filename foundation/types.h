@@ -1320,6 +1320,8 @@ struct beacon_t {
 	int writefd;
 	int all[8];
 	atomic32_t fired;
+#elif FOUNDATION_PLATFORM_PNACL
+	mutex_t* mutex;
 #endif
 };
 

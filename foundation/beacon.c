@@ -14,15 +14,18 @@
 #include <foundation/windows.h>
 #include <foundation/posix.h>
 #include <foundation/apple.h>
+#include <foundation/pnacl.h>
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 #  include <sys/event.h>
 #endif
 
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_POSIX
 #define BEACON_FIRE_NONE    0
 #define BEACON_FIRE_PENDING 1
 #define BEACON_FIRE_DONE    2
 #define BEACON_FIRE_READING 3
+#endif
 
 beacon_t*
 beacon_allocate(void) {
@@ -62,6 +65,8 @@ beacon_initialize(beacon_t* beacon) {
 	EV_SET(&changes, beacon->all[0], EVFILT_READ, EV_ADD, 0, 0, nullptr);
 	kevent(beacon->kq, &changes, 1, 0, 0, 0);
 	beacon->count = 1;
+#elif FOUNDATION_PLATFORM_PNACL
+	beacon->mutex = mutex_allocate(STRING_CONST("beacon"));
 #endif
 }
 
@@ -76,6 +81,8 @@ beacon_finalize(beacon_t* beacon) {
 	close(beacon->kq);
 	close(beacon->all[0]);
 	close(beacon->writefd);
+#elif FOUNDATION_PLATFORM_PNACL
+	mutex_deallocate(beacon->mutex);
 #endif
 }
 
@@ -91,12 +98,8 @@ int
 beacon_wait(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return beacon_try_wait(beacon, INFINITE);
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	return beacon_try_wait(beacon, (unsigned int)-1);
-#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
-	return beacon_try_wait(beacon, (unsigned int)-1);
 #else
-	return -1;
+	return beacon_try_wait(beacon, (unsigned int)-1);
 #endif
 }
 
@@ -162,6 +165,8 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	ret = kevent(beacon->kq, nullptr, 0, &event, 1, timeout);
 	if (ret > 0)
 		slot = (int)(uintptr_t)event.udata;
+	else if ((ret < 0) && timeout)
+		thread_sleep(milliseconds);
 	if (slot == 0) {
 		if (atomic_cas32(&beacon->fired, BEACON_FIRE_READING, BEACON_FIRE_DONE)) {
 			char data[8];
@@ -172,6 +177,16 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 			return 0;
 		}
 		slot = -1;
+	}
+#elif FOUNDATION_PLATFORM_PNACL
+	bool got = false;
+	if (milliseconds != (unsigned int)-1)
+		got = mutex_try_wait(beacon->mutex, milliseconds);
+	else
+		got = mutex_wait(beacon->mutex);
+	if (got) {
+		slot = 0;
+		mutex_unlock(beacon->mutex);
 	}
 #endif
 	return slot;
@@ -190,9 +205,12 @@ beacon_fire(beacon_t* beacon) {
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	if (atomic_cas32(&beacon->fired, BEACON_FIRE_PENDING, BEACON_FIRE_NONE)) {
 		char data = 0;
+		log_info(HASH_TEST, STRING_CONST("beacon firing"));
 		write(beacon->writefd, &data, 1);
 		atomic_cas32(&beacon->fired, BEACON_FIRE_DONE, BEACON_FIRE_PENDING);
 	}
+#elif FOUNDATION_PLATFORM_PNACL
+	mutex_signal(beacon->mutex);
 #endif
 }
 
