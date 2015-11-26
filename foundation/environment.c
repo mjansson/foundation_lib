@@ -365,17 +365,20 @@ environment_current_working_directory(void) {
 	return string_to_const(_environment_current_working_dir);
 }
 
-void
+bool
 environment_set_current_working_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_POSIX
 	string_t buffer, pathstr;
 #endif
+	bool result = true;
 	log_debugf(0, STRING_CONST("Setting current working directory to: %.*s"), (int)length, path);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string(path, length);
-		if (!SetCurrentDirectoryW(wpath))
+		if (!SetCurrentDirectoryW(wpath)) {
 			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to set working directory: %ls"), wpath);
+			result = false;
+		}
 		wstring_deallocate(wpath);
 	}
 	string_deallocate(_environment_current_working_dir.str);
@@ -389,14 +392,17 @@ environment_set_current_working_directory(const char* path, size_t length) {
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 		          STRING_CONST("Unable to set working directory to %.*s: %.*s (%d)"),
 		          (int)length, path, STRING_FORMAT(errmsg), err);
+		result = false;
 	}
 	string_deallocate(_environment_current_working_dir.str);
 	_environment_current_working_dir = (string_t) { 0, 0 };
 #elif FOUNDATION_PLATFORM_PNACL
 	//Allow nothing, always set to /tmp
+	result = false;
 #else
 #  error Not implemented
 #endif
+	return result;
 }
 
 string_const_t

@@ -99,12 +99,18 @@ DECLARE_TEST(environment, workingdir) {
 
 	EXPECT_CONSTSTRINGNE(working_dir, new_working_dir);
 
-	environment_set_current_working_directory(STRING_ARGS(new_working_dir));
+#if FOUNDATION_PLATFORM_PNACL
+	EXPECT_FALSE(environment_set_current_working_directory(STRING_ARGS(new_working_dir)));
+	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),
+	                     string_const(STRING_ARGS(working_dir_copy)));
+#else
+	EXPECT_TRUE(environment_set_current_working_directory(STRING_ARGS(new_working_dir)));
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(), new_working_dir);
 
 	environment_set_current_working_directory(STRING_ARGS(working_dir_copy));
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),
 	                     string_const(STRING_ARGS(working_dir_copy)));
+#endif
 
 	string_deallocate(new_working_dir_copy.str);
 	string_deallocate(working_dir_copy.str);
