@@ -81,11 +81,10 @@ DECLARE_TEST(fs, directory) {
 	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testpath)));
 
 	testlocalpath = string_clone(STRING_CONST("local.path"));
-	unterminate(STRING_ARGS(testlocalpath));	
+	unterminate(STRING_ARGS(testlocalpath));
 
 	if (!fs_is_directory(STRING_ARGS(testlocalpath)))
-		fs_make_directory(STRING_ARGS(testlocalpath));
-
+		EXPECT_TRUE(fs_make_directory(STRING_ARGS(testlocalpath)));
 	EXPECT_TRUE(fs_is_directory(STRING_ARGS(testlocalpath)));
 
 	EXPECT_TRUE(fs_remove_directory(STRING_ARGS(testlocalpath)));

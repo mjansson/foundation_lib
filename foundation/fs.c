@@ -159,9 +159,8 @@ _fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
 		return _pnacl_fs_temporary;
 	}
 
-	log_warnf(HASH_PNACL, WARNING_INVALID_VALUE, STRING_CONST("Invalid file path: %.*s"), (int)length,
-	          path);
-
+	//log_warnf(HASH_PNACL, WARNING_INVALID_VALUE, STRING_CONST("Invalid file path: %.*s"),
+	//          (int)length, path);
 	return 0;
 }
 
@@ -277,8 +276,12 @@ fs_is_file(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
@@ -329,8 +332,12 @@ fs_is_directory(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
@@ -426,8 +433,12 @@ fs_subdirs(const char* path, size_t length) {
 	if (!fs)
 		return arr;
 
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return arr;
@@ -529,8 +540,12 @@ fs_files(const char* path, size_t length) {
 	if (!fs)
 		return arr;
 
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return arr;
@@ -593,8 +608,12 @@ fs_remove_file(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
@@ -667,8 +686,12 @@ fs_remove_directory(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
@@ -689,19 +712,23 @@ bool
 fs_make_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_PNACL
 
-	char abspath_buffer[BUILD_MAX_PATHLEN];
-	string_t abspath = string_copy(abspath_buffer, sizeof(abspath_buffer), path, length);
-	string_const_t fspath = _fs_path(STRING_ARGS(abspath));
+	string_const_t fspath;
+	fspath = _fs_path(path, length);
 
 	string_const_t localpath;
-	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, &localpath);
+	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
 	if (!fs)
-		return 0;
+		return false;
 
-	string_t finalpath = string_copy(abspath_buffer, sizeof(abspath_buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
-		return 0;
+		return false;
 
 	bool result = (_pnacl_file_ref->MakeDirectory(ref, PP_MAKEDIRECTORYFLAG_WITH_ANCESTORS,
 	                                              PP_BlockUntilComplete()) == PP_OK);
@@ -862,8 +889,12 @@ fs_last_modified(const char* path, size_t length) {
 	string_const_t pathstr = _fs_path(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
-		char buffer[BUILD_MAX_PATHLEN];
-		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+		char buffer[BUILD_MAX_PATHLEN+1];
+		string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+		if (finalpath.str[0] != '/') {
+			*(--finalpath.str) = '/';
+			finalpath.length++;
+		}
 		PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 		if (ref) {
 			struct PP_FileInfo info;
@@ -921,8 +952,12 @@ fs_touch(const char* path, size_t length) {
 	string_const_t pathstr = _fs_path(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
-		char buffer[BUILD_MAX_PATHLEN];
-		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+		char buffer[BUILD_MAX_PATHLEN+1];
+		string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+		if (finalpath.str[0] != '/') {
+			*(--finalpath.str) = '/';
+			finalpath.length++;
+		}
 		PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 		if (ref) {
 			PP_Time tstamp = (PP_Time)(time_system() / 1000LL);
@@ -1427,14 +1462,21 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_UNUSED(dotrunc);
 
+	if (!(mode & (STREAM_IN | STREAM_OUT)))
+		return 0;
+
 	string_const_t localpath;
 	string_const_t pathstr = _fs_path(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN+1];
+	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	if (finalpath.str[0] != '/') {
+		*(--finalpath.str) = '/';
+		finalpath.length++;
+	}
 	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
 	if (!ref)
 		return 0;
@@ -1445,10 +1487,11 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 
 		if (mode & STREAM_IN)
 			flags |= PP_FILEOPENFLAG_READ;
-		if (mode & STREAM_OUT)
+		if (mode & STREAM_OUT) {
 			flags |= PP_FILEOPENFLAG_WRITE;
-		if (mode & STREAM_TRUNCATE)
-			flags |= PP_FILEOPENFLAG_TRUNCATE;
+			if (mode & STREAM_TRUNCATE)
+				flags |= PP_FILEOPENFLAG_TRUNCATE;
+		}
 		if (mode & STREAM_CREATE)
 			flags |= PP_FILEOPENFLAG_CREATE;
 
@@ -1957,8 +2000,10 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo fileinfo;
-	_pnacl_file_io->Query(file->fd, &fileinfo, PP_BlockUntilComplete());
-	file->size = (fileinfo.size > 0) ? (size_t)fileinfo.size : 0;
+	if (_pnacl_file_io->Query(file->fd, &fileinfo, PP_BlockUntilComplete()) == PP_OK)
+		file->size = (fileinfo.size > 0) ? (size_t)fileinfo.size : 0;
+	else
+		file->size = 0;
 #endif
 
 	if (dotrunc)
