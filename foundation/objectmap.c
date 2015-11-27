@@ -60,8 +60,8 @@ objectmap_initialize(objectmap_t* map, size_t size) {
 
 	slot = map->map;
 	for (ip = 0, next_indexshift = 3; ip < (size - 1); ++ip, next_indexshift += 2, ++slot)
-		* slot = (void*)next_indexshift;
-	*slot = (void*)((uintptr_t) - 1);
+		*slot = (void*)next_indexshift;
+	*slot = (void*)((uintptr_t)-1);
 }
 
 void
@@ -103,31 +103,33 @@ objectmap_raw_lookup(const objectmap_t* map, size_t idx) {
 
 object_t
 objectmap_reserve(objectmap_t* map) {
-	size_t idx, next, id;
+	uint64_t raw, idx;
+	uint64_t next, id;
 
-	//Reserve spot in array
+	//Reserve spot in array, using tag for ABA protection
+	uint64_t tag = (uint64_t)atomic_incr64(&map->id);
 	//TODO: Look into double-ended implementation with allocation from tail and free push to head
 	do {
-		idx = (size_t)atomic_load64(&map->free);
+		raw = (uint64_t)atomic_load64(&map->free);
+		idx = raw & map->mask_index;
 		if (idx >= map->size) {
 			log_error(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Map full, unable to reserve id"));
 			return 0;
 		}
-		next = ((uintptr_t)map->map[idx]) >> 1;
+		next = (uintptr_t)map->map[idx] >> 1;
+		next = (next & map->mask_index) | (tag << map->size_bits);
 	}
-	while (!atomic_cas64(&map->free, (int64_t)next, (int64_t)idx));
+	while (!atomic_cas64(&map->free, (int64_t)next, (int64_t)raw));
 
 	//Sanity check that slot isn't taken
-	FOUNDATION_ASSERT_MSG((intptr_t)(map->map[idx]) & 1,
+	FOUNDATION_ASSERT_MSG((uintptr_t)map->map[idx] & 1,
 	                      "Map failed sanity check, slot taken after reserve");
 	map->map[idx] = 0;
 
 	//Allocate ID
-	id = 0;
-	do {
-		id = (size_t)atomic_incr64(&map->id) & map->id_max;   //Wrap-around handled by masking
-	}
-	while (!id);
+	id = tag & map->id_max;
+	while (!id)
+		id = (uint64_t)atomic_incr64(&map->id) & map->id_max; //Wrap-around handled by masking
 
 	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
 	FOUNDATION_ASSERT(((id << map->size_bits) & map->mask_id) == (id << map->size_bits));
@@ -137,17 +139,20 @@ objectmap_reserve(objectmap_t* map) {
 
 void
 objectmap_free(objectmap_t* map, object_t id) {
-	size_t idx, last;
+	uint64_t idx;
+	uint64_t raw, next, free;
 
-	idx = (size_t)(id & map->mask_index);
+	idx = id & map->mask_index;
 	if ((uintptr_t)map->map[idx] & 1)
 		return; //Already free
 
+	free = idx | ((uint64_t)atomic_incr64(&map->id) << map->size_bits);
 	do {
-		last = (size_t)atomic_load64(&map->free);
-		map->map[idx] = (void*)((uintptr_t)(last << 1) | 1);
+		raw = (uint64_t)atomic_load64(&map->free);
+		next = (raw & map->mask_index) | ((raw & ~map->mask_index) + (map->mask_index + 1));
+		map->map[idx] = (void*)((uintptr_t)(next << 1) | 1);
 	}
-	while (!atomic_cas64(&map->free, (int64_t)idx, (int64_t)last));
+	while (!atomic_cas64(&map->free, (int64_t)free, (int64_t)raw));
 }
 
 void
