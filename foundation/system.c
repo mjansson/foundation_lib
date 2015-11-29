@@ -331,9 +331,10 @@ system_error_message(int code) {
 
 string_t
 system_hostname(char* buffer, size_t size) {
-	if (gethostname(buffer, size) < 0)
+	int ret = gethostname(buffer, size);
+	if ((ret < 0) || !size || !*buffer)
 		return string_copy(buffer, size, STRING_CONST("unknown"));
-	return (string_t) { buffer, string_length(buffer) };
+	return (string_t){buffer, string_length(buffer)};
 }
 
 string_t
@@ -344,25 +345,26 @@ system_username(char* buffer, size_t size) {
 #if FOUNDATION_PLATFORM_ANDROID && (__ANDROID_API__ <= 19)
 	result = 0;
 #else
-	getpwuid_r(getuid(), &passwd, buffer, size, &result);
+	if (getpwuid_r(getuid(), &passwd, buffer, size, &result) != 0)
+		result = 0;
 #endif
-	if (!result) {
+	if (!result || !result->pw_name || !*result->pw_name) {
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 		const char* login = getlogin();
-		if (!login)
+		if (!login || !*login)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
 		return string_copy(buffer, size, login, string_length(login));
 #elif FOUNDATION_PLATFORM_BSD
 		if (getlogin_r(buffer, (int)size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
-		return (string_t) { buffer, string_length(buffer) };
+		return (string_t){buffer, string_length(buffer)};
 #else
 		if (getlogin_r(buffer, size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
-		return (string_t) { buffer, string_length(buffer) };
+		return (string_t){buffer, string_length(buffer)};
 #endif
 	}
-	return (string_t) { result->pw_name, string_length(result->pw_name) };
+	return (string_t){result->pw_name, string_length(result->pw_name)};
 }
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD

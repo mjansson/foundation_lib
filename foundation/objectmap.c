@@ -104,10 +104,12 @@ objectmap_raw_lookup(const objectmap_t* map, size_t idx) {
 object_t
 objectmap_reserve(objectmap_t* map) {
 	uint64_t raw, idx;
-	uint64_t next, id;
+	uint64_t next;
 
 	//Reserve spot in array, using tag for ABA protection
-	uint64_t tag = (uint64_t)atomic_incr64(&map->id);
+	uint64_t tag = (uint64_t)atomic_incr64(&map->id) & map->id_max;
+	while (!tag)
+		tag = (uint64_t)atomic_incr64(&map->id) & map->id_max; //Wrap-around handled by masking
 	//TODO: Look into double-ended implementation with allocation from tail and free push to head
 	do {
 		raw = (uint64_t)atomic_load64(&map->free);
@@ -126,15 +128,10 @@ objectmap_reserve(objectmap_t* map) {
 	                      "Map failed sanity check, slot taken after reserve");
 	map->map[idx] = 0;
 
-	//Allocate ID
-	id = tag & map->id_max;
-	while (!id)
-		id = (uint64_t)atomic_incr64(&map->id) & map->id_max; //Wrap-around handled by masking
-
 	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
-	FOUNDATION_ASSERT(((id << map->size_bits) & map->mask_id) == (id << map->size_bits));
+	FOUNDATION_ASSERT(((tag << map->size_bits) & map->mask_id) == (tag << map->size_bits));
 
-	return (id << map->size_bits) | idx;
+	return (tag << map->size_bits) | idx;
 }
 
 bool
@@ -151,10 +148,11 @@ objectmap_free(objectmap_t* map, object_t id) {
 	if (!FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id)))
 		return false;
 
-	free = idx | ((uint64_t)atomic_incr64(&map->id) << map->size_bits);
+	free = idx | (((uint64_t)atomic_incr64(&map->id) << map->size_bits) & map->mask_id);
 	do {
 		raw = (uint64_t)atomic_load64(&map->free);
-		next = (raw & map->mask_index) | ((uint64_t)atomic_incr64(&map->id) << map->size_bits);
+		next = (raw & map->mask_index) |
+		       (((uint64_t)atomic_incr64(&map->id) << map->size_bits) & map->mask_id);
 		map->map[idx] = (void*)((uintptr_t)(next << 1) | 1);
 	}
 	while (!atomic_cas64(&map->free, (int64_t)free, (int64_t)raw));
