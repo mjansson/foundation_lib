@@ -187,8 +187,8 @@ objectmap_thread(void* arg) {
 	object_base_t* lookup;
 
 	map = arg;
-	objects = memory_allocate(0, sizeof(object_base_t) * 512, 0,
-	                          MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
+	objects = memory_allocate(0, sizeof(object_base_t) * 512, 16,
+	                          MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 	thread_sleep(10);
 
@@ -196,33 +196,36 @@ objectmap_thread(void* arg) {
 		thread_yield();
 
 		for (obj = 0; obj < 512; ++obj) {
+			atomic_store32(&objects[obj].ref, 1);
 			objects[obj].id = objectmap_reserve(map);
 			EXPECT_NE_MSGFORMAT(objects[obj].id, 0, "Unable to reserve slot for object num %d", obj);
 			EXPECT_EQ_MSGFORMAT(objectmap_lookup(map, objects[obj].id), 0,
-			                    "Object num %d (%" PRIx64 ") already stored in map", obj, objects[obj].id);
-			objectmap_set(map, objects[obj].id, objects + obj);
+			                    "Object %d (%" PRIx64 ") already stored in map in loop %d",
+			                    obj, objects[obj].id, loop);
+			EXPECT_TRUE(objectmap_set(map, objects[obj].id, objects + obj));
 			lookup = objectmap_lookup(map, objects[obj].id);
-			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup",
-			                    obj, objects[obj].id);
+			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup in loop %d",
+			                    obj, objects[obj].id, loop);
 			EXPECT_EQ_MSGFORMAT(lookup, objects + obj,
 			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
-			                    PRIfixPTR, obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup);
+			                    PRIfixPTR " in loop %d", obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
 		}
 
 		thread_yield();
 
 		for (obj = 0; obj < 512; ++obj) {
+			void* raw = map->map[ objects[obj].id & map->mask_index ];
 			lookup = objectmap_lookup(map, objects[obj].id);
-			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup",
-			                    obj, objects[obj].id);
+			EXPECT_NE_MSGFORMAT(lookup, 0, "Object 0x%" PRIfixPTR " num %d (%" PRIx64 ") not set in map, got null on lookup in loop %d (raw 0x%" PRIfixPTR ")",
+			                    (uintptr_t)(objects + obj), obj, objects[obj].id, loop, (uintptr_t)raw);
 			EXPECT_EQ_MSGFORMAT(lookup, objects + obj,
 			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
-			                    PRIfixPTR, obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup);
-			objectmap_free(map, objects[obj].id);
+			                    PRIfixPTR " in loop %d", obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
+			EXPECT_TRUE(objectmap_free(map, objects[obj].id));
 			lookup = objectmap_lookup(map, objects[obj].id);
 			EXPECT_EQ_MSGFORMAT(lookup, 0,
-			                    "Object num %d (%" PRIx64 ") still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj,
-			                    objects[obj].id, (uintptr_t)lookup);
+			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " still set in map, got non-null (0x%" PRIfixPTR ") on lookup in loop %d", obj,
+			                    objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
 		}
 	}
 
@@ -237,7 +240,7 @@ DECLARE_TEST(objectmap, thread) {
 	size_t ith;
 	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
 
-	map = objectmap_allocate(32000);
+	map = objectmap_allocate((num_threads + 1) * 512);
 
 	for (ith = 0; ith < num_threads; ++ith)
 		thread_initialize(&thread[ith], objectmap_thread, map, STRING_CONST("objectmap_thread"),

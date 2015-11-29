@@ -137,34 +137,44 @@ objectmap_reserve(objectmap_t* map) {
 	return (id << map->size_bits) | idx;
 }
 
-void
+bool
 objectmap_free(objectmap_t* map, object_t id) {
 	uint64_t idx;
 	uint64_t raw, next, free;
+	void* object;
 
 	idx = id & map->mask_index;
 	if ((uintptr_t)map->map[idx] & 1)
-		return; //Already free
+		return false; //Already free
+
+	object = map->map[idx];
+	if (!FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id)))
+		return false;
 
 	free = idx | ((uint64_t)atomic_incr64(&map->id) << map->size_bits);
 	do {
 		raw = (uint64_t)atomic_load64(&map->free);
-		next = (raw & map->mask_index) | ((raw & ~map->mask_index) + (map->mask_index + 1));
+		next = (raw & map->mask_index) | ((uint64_t)atomic_incr64(&map->id) << map->size_bits);
 		map->map[idx] = (void*)((uintptr_t)(next << 1) | 1);
 	}
 	while (!atomic_cas64(&map->free, (int64_t)free, (int64_t)raw));
+
+	return true;
 }
 
-void
+bool
 objectmap_set(objectmap_t* map, object_t id, void* object) {
 	size_t idx;
 
 	idx = (size_t)(id & map->mask_index);
+
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT(!(((uintptr_t)map->map[idx]) & 1));
-	FOUNDATION_ASSERT(!((uintptr_t)map->map[idx]));
-	if (!map->map[idx])
+	if (FOUNDATION_VALIDATE(!map->map[idx])) {
 		map->map[idx] = object;
+		return true;
+	}
+	return false;
 }
 
 void*
@@ -175,8 +185,7 @@ objectmap_lookup_ref(const objectmap_t* map, object_t id) {
 		ref = 0;
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
-		        //ID in object is offset by 8 bytes
-		        ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
+		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
 			ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref + 1, ref))
@@ -195,8 +204,7 @@ objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn
 		ref = 0;
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
-		        //ID in object is offset by 8 bytes
-		        ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
+		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
 			ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref - 1, ref)) {
