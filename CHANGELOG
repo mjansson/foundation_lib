@@ -9,6 +9,9 @@ Added beacon, a compound synchronization primitive unifying WaitForMultipleObjec
 and epoll in a platform abstraction interface. Extended event streams to be able to
 fire a beacon on event post.
 
+path_directory_name now preserves protocols, path_subdirectory_name changed into
+path_subpath which matches protocols and returns subpaths instead of subdirectories.
+
 
 1.4.0
 

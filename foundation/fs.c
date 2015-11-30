@@ -106,12 +106,15 @@ static void* _fs_monitor(void*);
 #endif
 
 static string_const_t
-_fs_path(const char* abspath, size_t length) {
-	bool has_protocol = (length > 7) && string_equal(abspath, 7, STRING_CONST("file://"));
-	bool has_drive_letter = (has_protocol && (length > 8)) ? (abspath[8] == ':') : false;
-	return has_protocol ?
-	       string_substr(abspath, length, (has_drive_letter ? 7 : 6), length - (has_drive_letter ? 7 : 6)) :
-	(string_const_t) {abspath, length};
+_fs_strip_protocol(const char* path, size_t length) {
+	string_const_t stripped = path_strip_protocol(path, length);
+	ptrdiff_t diff = pointer_diff(stripped.str, path);
+	if (!diff)
+		return stripped;
+	if (((diff == 6) || (diff == 7)) &&
+		string_equal(path, 6, STRING_CONST("file:/")))
+		return stripped;
+	return string_const(path, length);
 }
 
 #if FOUNDATION_PLATFORM_PNACL
@@ -249,7 +252,7 @@ bool
 fs_is_file(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	wchar_t* wpath = wstring_allocate_from_string(pathstr.str, pathstr.length);
 	unsigned int attribs = GetFileAttributesW(wpath);
 	wstring_deallocate(wpath);
@@ -260,7 +263,7 @@ fs_is_file(const char* path, size_t length) {
 
 	char buffer[BUILD_MAX_PATHLEN];
 	struct stat st;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
 	memset(&st, 0, sizeof(st));
 	stat(finalpath.str, &st);
@@ -271,7 +274,7 @@ fs_is_file(const char* path, size_t length) {
 
 	bool is_file = false;
 	string_const_t localpath;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return 0;
@@ -305,7 +308,7 @@ bool
 fs_is_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	wchar_t* wpath = wstring_allocate_from_string(pathstr.str, pathstr.length);
 	unsigned int attr = GetFileAttributesW(wpath);
 	wstring_deallocate(wpath);
@@ -316,7 +319,7 @@ fs_is_directory(const char* path, size_t length) {
 
 	char buffer[BUILD_MAX_PATHLEN];
 	struct stat st;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
 	memset(&st, 0, sizeof(st));
 	stat(finalpath.str, &st);
@@ -327,7 +330,7 @@ fs_is_directory(const char* path, size_t length) {
 
 	bool is_dir = false;
 	string_const_t localpath;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return 0;
@@ -428,7 +431,7 @@ fs_subdirs(const char* path, size_t length) {
 	memory_context_push(HASH_STREAM);
 
 	string_const_t localpath;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return arr;
@@ -535,7 +538,7 @@ fs_files(const char* path, size_t length) {
 	memory_context_push(HASH_STREAM);
 
 	string_const_t localpath;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = _fs_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return arr;
@@ -587,7 +590,7 @@ fs_remove_file(const char* path, size_t length) {
 	wchar_t* wpath;
 #endif
 
-	fspath = _fs_path(path, length);
+	fspath = _fs_strip_protocol(path, length);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -646,7 +649,7 @@ fs_remove_directory(const char* path, size_t length) {
 	localpath = string_copy(abspath_buffer, BUILD_MAX_PATHLEN, path, length);
 	abspath = string_to_const(localpath);
 
-	fspath = _fs_path(STRING_ARGS(abspath));
+	fspath = _fs_strip_protocol(STRING_ARGS(abspath));
 	if (!fs_is_directory(STRING_ARGS(fspath)))
 		goto end;
 
@@ -713,7 +716,7 @@ fs_make_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_PNACL
 
 	string_const_t fspath;
-	fspath = _fs_path(path, length);
+	fspath = _fs_strip_protocol(path, length);
 
 	string_const_t localpath;
 	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
@@ -745,7 +748,7 @@ fs_make_directory(const char* path, size_t length) {
 	string_const_t fspath;
 
 	localpath = string_copy(abspath_buffer, sizeof(abspath_buffer), path, length);
-	fspath = _fs_path(STRING_ARGS(localpath));
+	fspath = path_strip_protocol(STRING_ARGS(localpath));
 	localpath = (string_t) { localpath.str + pointer_diff(fspath.str, localpath.str), fspath.length };
 	offset = 1;
 
@@ -848,7 +851,7 @@ fs_last_modified(const char* path, size_t length) {
 	string_const_t cpath;
 	memset(&attrib, 0, sizeof(attrib));
 
-	cpath = _fs_path(path, length);
+	cpath = path_strip_protocol(path, length);
 	wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 	success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
 	wstring_deallocate(wpath);
@@ -874,7 +877,7 @@ fs_last_modified(const char* path, size_t length) {
 	tick_t tstamp = 0;
 	char buffer[BUILD_MAX_PATHLEN];
 	struct stat st;
-	string_const_t fspath = _fs_path(path, length);
+	string_const_t fspath = path_strip_protocol(path, length);
 	memset(&st, 0, sizeof(st));
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
 	if (stat(finalpath.str, &st) >= 0)
@@ -886,7 +889,7 @@ fs_last_modified(const char* path, size_t length) {
 
 	tick_t tstamp = 0;
 	string_const_t localpath;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = path_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
 		char buffer[BUILD_MAX_PATHLEN+1];
@@ -937,19 +940,19 @@ fs_md5(const char* path, size_t length) {
 void
 fs_touch(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_const_t cpath = _fs_path(path, length);
+	string_const_t cpath = path_strip_protocol(path, length);
 	wchar_t* wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 	_wutime(wpath, 0);
 	wstring_deallocate(wpath);
 #elif FOUNDATION_PLATFORM_POSIX
-	string_const_t fspath = _fs_path(path, length);
+	string_const_t fspath = path_strip_protocol(path, length);
 	char buffer[BUILD_MAX_PATHLEN];
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
 	utime(finalpath.str, 0);
 #elif FOUNDATION_PLATFORM_PNACL
 
 	string_const_t localpath;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = path_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
 		char buffer[BUILD_MAX_PATHLEN+1];
@@ -1466,7 +1469,7 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 		return 0;
 
 	string_const_t localpath;
-	string_const_t pathstr = _fs_path(path, length);
+	string_const_t pathstr = path_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (!fs)
 		return 0;
@@ -1711,10 +1714,10 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	fclose(file->fd);
 	file->fd = 0;
 
-	fspath = _fs_path(file->path.str, file->path.length);
+	fspath = path_strip_protocol(file->path.str, file->path.length);
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	cpath = _fs_path(STRING_ARGS(file->path));
+	cpath = path_strip_protocol(STRING_ARGS(file->path));
 	wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 	fd = CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0);
 	wstring_deallocate(wpath);
@@ -1980,7 +1983,7 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 
 	dotrunc = false;
 
-	fspath = _fs_path(STRING_ARGS(finalpath));
+	fspath = path_strip_protocol(STRING_ARGS(finalpath));
 	fd = _fs_file_fopen(STRING_ARGS(fspath), mode, &dotrunc);
 	if (!fd) {
 		string_deallocate(finalpath.str);

@@ -55,24 +55,25 @@ path_file_extension(const char* path, size_t length);
 FOUNDATION_API string_const_t
 path_file_name(const char* path, size_t length);
 
-/*! Get directory name from full path name. Any protocol in the path will be stripped.
+/*! Get directory name from full path name. Any protocol in the path is included in
+the returned path.
 \param path Full path
 \param length Length of path
 \return Path name */
 FOUNDATION_API string_const_t
 path_directory_name(const char* path, size_t length);
 
-/*! Get subdirectory name from full path name and root directory. If the full path is an
+/*! Get subpath (relative path) from full path name and root directory. If the full path is an
 absolute path, the root directory must also be an absolute path (and vice versa). Protocols
-will be stripped before matching paths (which will then be treated as absolute paths) and
-will not be included in the subpath returned.
+will be compared when matching paths, with the exception that if either path or root
+does not contain a protocol, it will implicitly match any protocol in the other argument.
 \param path Full path
 \param length Length of path
 \param root Root full path
 \param root_length Length of root path
-\return Subpath name within root directory, empty string if not in root directory */
+\return Subpath within root directory, empty string if not in root directory */
 FOUNDATION_API string_const_t
-path_subdirectory_name(const char* path, size_t length, const char* root, size_t root_length);
+path_subpath(const char* path, size_t length, const char* root, size_t root_length);
 
 /*! Get protocol from full URI (for example, "http://foo.com/some.file" will return "http")
 \param uri URI
@@ -80,6 +81,13 @@ path_subdirectory_name(const char* path, size_t length, const char* root, size_t
 \return Protocol */
 FOUNDATION_API string_const_t
 path_protocol(const char* uri, size_t length);
+
+/*! Get path without protocol (for example, "file://foo/some.file" will return "/foo/some.file")
+\param uri URI
+\param length Length of URI
+\return Path without protocol */
+FOUNDATION_API string_const_t
+path_strip_protocol(const char* uri, size_t length);
 
 /*! Allocate a new string which is the concatenation of the given paths. The first
 path part determines if path is absolute or relative. Note that an emtpy string
