@@ -1003,6 +1003,8 @@ struct event_block_t {
 	event_stream_t* stream;
 	/*! Memory buffer holding event data */
 	event_t* events;
+	/*! Fired state */
+	bool fired;
 };
 
 /*! Event stream from a single module. Event streams produce event blocks for processing */

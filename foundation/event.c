@@ -129,8 +129,10 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 	((event_t*)pointer_offset(block->events, block->used))->id = 0;
 
 	//Re-fire beacon
-	if ((last_write == 0) && stream->beacon)
+	if (!block->fired && stream->beacon) {
 		beacon_fire(stream->beacon);
+		block->fired = true;
+	}
 
 	//Now unlock the event block
 	restored_block = atomic_cas32(&stream->write, last_write, EVENT_BLOCK_POSTING);
@@ -269,6 +271,7 @@ event_stream_process(event_stream_t* stream) {
 
 	//Reset used on last read (safe, since read can only happen on one thread)
 	stream->block[ stream->read ].used = 0;
+	stream->block[ stream->read ].fired = false;
 
 	//Swap blocks
 	new_write = stream->read;
