@@ -41,6 +41,7 @@ static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProc
 
 #if FOUNDATION_PLATFORM_ANDROID
 #  include <foundation/android.h>
+#  include <sys/syscall.h>
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -451,9 +452,11 @@ thread_hardware(void) {
 #elif FOUNDATION_PLATFORM_LINUX
 	return (unsigned int)sched_getcpu();
 #elif FOUNDATION_PLATFORM_ANDROID
-	unsigned int cpu;
+	unsigned int cpu = 0;
+#  ifdef __NR_getcpu
 	if (syscall(__NR_getcpu, &cpu, nullptr, nullptr) < 0)
 		return 0;
+#  endif
 	return cpu;
 #else
 	//TODO: Implement for other platforms
