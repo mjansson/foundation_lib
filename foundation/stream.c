@@ -1098,6 +1098,7 @@ _stream_stdin_available_read(stream_t* stream) {
 
 	HANDLE in_handle;
 	DWORD size;
+	FOUNDATION_UNUSED(stream);
 
 	in_handle = GetStdHandle(STD_INPUT_HANDLE);
 	size = GetFileSize(in_handle, 0);
@@ -1109,6 +1110,7 @@ _stream_stdin_available_read(stream_t* stream) {
 	fd_set fds;
 	struct timeval timeout;
 	int res;
+	FOUNDATION_UNUSED(stream);
 
 	memset(&timeout, 0, sizeof(timeout));
 	FD_ZERO(&fds);
