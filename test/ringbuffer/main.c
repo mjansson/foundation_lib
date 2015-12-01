@@ -130,6 +130,10 @@ DECLARE_TEST(ringbuffer, allocate) {
 	EXPECT_EQ(ringbuffer_total_read(buffer), 512);
 	EXPECT_EQ(ringbuffer_total_written(buffer), 512);
 
+	ringbuffer_reset(buffer);
+	EXPECT_EQ(ringbuffer_total_read(buffer), 0);
+	EXPECT_EQ(ringbuffer_total_written(buffer), 0);
+
 	ringbuffer_deallocate(buffer);
 
 	return 0;
@@ -228,7 +232,8 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 
 	elapsed = 0;
 	for (loop = 0; loop < loops; ++loop) {
-		test.stream = ringbuffer_stream_allocate(23477, test.buffer_size);
+		size_t ringbuffer_size = 23477;
+		test.stream = ringbuffer_stream_allocate(ringbuffer_size, test.buffer_size);
 		EXPECT_NE(test.stream, 0);
 
 		thread_initialize(&test.read_thread, read_thread, &test, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
@@ -248,6 +253,32 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 
 		for (si = 0; si < test.buffer_size; ++si)
 			EXPECT_EQ(test.source_buffer[si], test.dest_buffer[si]);
+
+		EXPECT_TRUE(stream_eos(test.stream));
+		EXPECT_EQ(stream_size(test.stream), test.buffer_size);
+		stream_truncate(test.stream, stream_tell(test.stream) + 32);
+		EXPECT_FALSE(stream_eos(test.stream));
+		stream_truncate(test.stream, 0);
+		EXPECT_FALSE(stream_eos(test.stream));
+		stream_truncate(test.stream, 1);
+		EXPECT_TRUE(stream_eos(test.stream));
+		EXPECT_EQ(stream_size(test.stream), 1);
+		EXPECT_SIZEEQ(stream_available_read(test.stream), 0);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size);
+
+		stream_write(test.stream, test.source_buffer, ringbuffer_size - 1);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size);
+		stream_seek(test.stream, ringbuffer_size - 1, STREAM_SEEK_CURRENT);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size + ringbuffer_size - 1);
+		log_enable_stdout(false);
+		stream_seek(test.stream, -(ssize_t)ringbuffer_size, STREAM_SEEK_CURRENT);
+		stream_seek(test.stream, 0, STREAM_SEEK_BEGIN);
+		log_enable_stdout(true);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size + ringbuffer_size - 1);
+		{
+			tick_t curtime = time_system();
+			EXPECT_TICKGE(stream_last_modified(test.stream), curtime);
+		}
 
 		stream_deallocate(test.stream);
 

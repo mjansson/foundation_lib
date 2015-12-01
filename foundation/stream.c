@@ -196,9 +196,8 @@ stream_last_modified(const stream_t* stream) {
 
 void
 stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
-	if (stream->sequential || !stream->vtable->seek)
-		return;
-	stream->vtable->seek(stream, offset, direction);
+    if (stream->vtable->seek)
+	    stream->vtable->seek(stream, offset, direction);
 }
 
 size_t
@@ -1102,7 +1101,7 @@ _stream_stdin_available_read(stream_t* stream) {
 
 	in_handle = GetStdHandle(STD_INPUT_HANDLE);
 	size = GetFileSize(in_handle, 0);
-	if (size > 0)
+	if (size != (DWORD)-1)
 		return size;
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -1123,9 +1122,9 @@ _stream_stdin_available_read(stream_t* stream) {
 		return 1;
 	}
 
-#endif
-
+#else
 	FOUNDATION_UNUSED(stream);
+#endif
 	return 0;
 }
 

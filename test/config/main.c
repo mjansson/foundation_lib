@@ -436,6 +436,41 @@ DECLARE_TEST(config, getset) {
 	EXPECT_EQ(config_hash(test_section, invalid_key), HASH_EMPTY_STRING);
 	EXPECT_EQ(config_hash(invalid_section, test_key), HASH_EMPTY_STRING);
 
+	config_set_string_constant(test_section, test_key, STRING_CONST("some random string"));
+	EXPECT_TRUE(config_bool(test_section, test_key));
+	EXPECT_FALSE(config_bool(test_section, invalid_key));
+	EXPECT_FALSE(config_bool(invalid_section, test_key));
+	EXPECT_EQ(config_int(test_section, test_key), 0);
+	EXPECT_EQ(config_int(test_section, invalid_key), 0);
+	EXPECT_EQ(config_int(invalid_section, test_key), 0);
+	EXPECT_REALEQ(config_real(test_section, test_key), REAL_C(0.0));
+	EXPECT_REALEQ(config_real(test_section, invalid_key), REAL_C(0.0));
+	EXPECT_REALEQ(config_real(invalid_section, test_key), REAL_C(0.0));
+	EXPECT_CONSTSTRINGEQ(config_string(test_section, test_key),
+	                     string_const(STRING_CONST("some random string")));
+	EXPECT_CONSTSTRINGEQ(config_string(test_section, invalid_key), string_const(STRING_CONST("")));
+	EXPECT_CONSTSTRINGEQ(config_string(invalid_section, test_key), string_const(STRING_CONST("")));
+	EXPECT_EQ(config_hash(test_section, test_key), hash(STRING_CONST("some random string")));
+	EXPECT_EQ(config_hash(test_section, invalid_key), HASH_EMPTY_STRING);
+	EXPECT_EQ(config_hash(invalid_section, test_key), HASH_EMPTY_STRING);
+
+	config_set_string_constant(test_section, test_key, nullptr, 0);
+	EXPECT_FALSE(config_bool(test_section, test_key));
+	EXPECT_FALSE(config_bool(test_section, invalid_key));
+	EXPECT_FALSE(config_bool(invalid_section, test_key));
+	EXPECT_EQ(config_int(test_section, test_key), 0);
+	EXPECT_EQ(config_int(test_section, invalid_key), 0);
+	EXPECT_EQ(config_int(invalid_section, test_key), 0);
+	EXPECT_REALEQ(config_real(test_section, test_key), REAL_C(0.0));
+	EXPECT_REALEQ(config_real(test_section, invalid_key), REAL_C(0.0));
+	EXPECT_REALEQ(config_real(invalid_section, test_key), REAL_C(0.0));
+	EXPECT_CONSTSTRINGEQ(config_string(test_section, test_key), string_null());
+	EXPECT_CONSTSTRINGEQ(config_string(test_section, invalid_key), string_const(STRING_CONST("")));
+	EXPECT_CONSTSTRINGEQ(config_string(invalid_section, test_key), string_const(STRING_CONST("")));
+	EXPECT_EQ(config_hash(test_section, test_key), HASH_EMPTY_STRING);
+	EXPECT_EQ(config_hash(test_section, invalid_key), HASH_EMPTY_STRING);
+	EXPECT_EQ(config_hash(invalid_section, test_key), HASH_EMPTY_STRING);
+
 	return 0;
 }
 
@@ -1054,6 +1089,42 @@ DECLARE_TEST(config, readwrite) {
 	                     environment_initial_working_directory());
 	EXPECT_CONSTSTRINGEQ(config_string(write_section, write_key_7),
 	                     string_const(STRING_CONST("98765")));
+
+	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
+	stream_truncate(stream, 0);
+
+	stream_write_string(stream, STRING_CONST("\t comment = some value\n"));
+	stream_write_string(stream, STRING_CONST("\t; comment = commacomment\n"));
+	stream_write_string(stream, STRING_CONST("  # commment = hashcomment\n"));
+	stream_write_string(stream, STRING_CONST("  [invalidsection\n"));
+	stream_write_string(stream, STRING_CONST("  invalidvalue  \t\n"));
+	stream_write_string(stream, STRING_CONST("  \t = invalidvalue\n"));
+	stream_write_string(stream, STRING_CONST("  \temptyval = \t\n"));
+	stream_write_string(stream, STRING_CONST("  \tnonemptyval = true\t\n"));
+	stream_write_string(stream, STRING_CONST("  \t[section]\t\n"));
+	stream_write_string(stream, STRING_CONST("  \tnonemptyval = 1.0\t\n"));
+	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
+
+	log_enable_stdout(false);
+	config_parse(stream, 0, true);
+	log_enable_stdout(true);
+
+	EXPECT_CONSTSTRINGEQ(config_string(0, hash(STRING_CONST("comment"))),
+	                     string_const(STRING_CONST("some value")));
+	EXPECT_CONSTSTRINGEQ(config_string(0, hash(STRING_CONST("invalidvalue"))),
+	                     string_null());
+	EXPECT_CONSTSTRINGEQ(config_string(hash(STRING_CONST("invalidsection")), hash(STRING_CONST("invalidvalue"))),
+	                     string_null());
+	EXPECT_CONSTSTRINGEQ(config_string(0, hash(STRING_CONST("emptyval"))),
+	                     string_empty());
+	EXPECT_CONSTSTRINGEQ(config_string(hash(STRING_CONST("invalidsection")), hash(STRING_CONST("emptyval"))),
+	                     string_empty());
+	EXPECT_CONSTSTRINGEQ(config_string(0, hash(STRING_CONST("nonemptyval"))),
+	                     string_const(STRING_CONST("true")));
+	EXPECT_CONSTSTRINGEQ(config_string(hash(STRING_CONST("invalidsection")), hash(STRING_CONST("nonemptyval"))),
+	                     string_empty());
+	EXPECT_CONSTSTRINGEQ(config_string(hash(STRING_CONST("section")), hash(STRING_CONST("nonemptyval"))),
+	                     string_const(STRING_CONST("1")));
 
 	stream_deallocate(stream);
 

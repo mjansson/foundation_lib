@@ -98,7 +98,7 @@ ringbuffer_read(ringbuffer_t* buffer, void* dest, size_t num) {
 	buffer->total_read += do_read;
 
 	if ((do_read < num) && (offset_read == 0) && (offset_write > 0))
-		do_read += ringbuffer_read(buffer, pointer_offset(dest, do_read), num - do_read);
+		do_read += ringbuffer_read(buffer, dest ? pointer_offset(dest, do_read) : dest, num - do_read);
 
 	return do_read;
 }
@@ -219,7 +219,7 @@ _ringbuffer_stream_write(stream_t* stream, const void* source, size_t num) {
 static bool
 _ringbuffer_stream_eos(stream_t* stream) {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
-	return buffer->total_size ? (buffer->total_read == buffer->total_size) : false;
+	return buffer->total_size ? (buffer->total_read >= buffer->total_size) : false;
 }
 
 static void
@@ -258,7 +258,7 @@ _ringbuffer_stream_tell(stream_t* stream) {
 static tick_t
 _ringbuffer_stream_lastmod(const stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
-	return time_current();
+	return time_system();
 }
 
 static size_t

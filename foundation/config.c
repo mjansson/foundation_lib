@@ -255,23 +255,23 @@ static string_const_t platformsuffix =
 #if FOUNDATION_PLATFORM_WINDOWS
 { STRING_CONST("/windows") };
 #elif FOUNDATION_PLATFORM_MACOSX
-  { STRING_CONST("/macosx") };
+    { STRING_CONST("/macosx") };
 #elif FOUNDATION_PLATFORM_IOS
-  { STRING_CONST("/ios") };
+    { STRING_CONST("/ios") };
 #elif FOUNDATION_PLATFORM_ANDROID
-  { STRING_CONST("/android") };
+    { STRING_CONST("/android") };
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-  { STRING_CONST("/raspberrypi") };
+    { STRING_CONST("/raspberrypi") };
 #elif FOUNDATION_PLATFORM_LINUX
-  { STRING_CONST("/linux") };
+    { STRING_CONST("/linux") };
 #elif FOUNDATION_PLATFORM_PNACL
-  { STRING_CONST("/pnacl") };
+    { STRING_CONST("/pnacl") };
 #elif FOUNDATION_PLATFORM_BSD
-  { STRING_CONST("/bsd") };
+    { STRING_CONST("/bsd") };
 #elif FOUNDATION_PLATFORM_TIZEN
-  { STRING_CONST("/tizen") };
+    { STRING_CONST("/tizen") };
 #else
-  { STRING_CONST("/unknown") };
+    { STRING_CONST("/unknown") };
 #endif
 
 #if !FOUNDATION_PLATFORM_PNACL
@@ -591,8 +591,9 @@ config_string(hash_t section, hash_t key) {
 	/*lint --e{788} We use default for remaining enums */
 	switch (key_val->type) {
 	case CONFIGVALUE_BOOL:
-return key_val->bval ? (string_const_t) {STRING_CONST("true")} :
-		(string_const_t) {STRING_CONST("false")};
+		if (key_val->bval)
+			return (string_const_t) {STRING_CONST("true")};
+		return (string_const_t) {STRING_CONST("false")};
 
 	case CONFIGVALUE_INT:
 		if (!key_val->sval.str)
@@ -691,7 +692,6 @@ void
 config_set_string_constant(hash_t section, hash_t key, const char* value, size_t length) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
-	if (!FOUNDATION_VALIDATE(value)) return;
 	CLEAR_KEY_STRINGS(key_val);
 
 	//key_val->sval = (char*)value;
@@ -739,7 +739,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 		if (stripped.str[0] == '[') {
 			//Section declaration
 			size_t endpos = string_rfind(STRING_ARGS(stripped), ']', STRING_NPOS);
-			if (endpos < 1) {
+			if (endpos == STRING_NPOS) {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
 				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
 				          STRING_CONST("Invalid section declaration on line %u in config stream '%.*s'"), line,
@@ -835,8 +835,7 @@ config_parse_commandline(const string_const_t* cmdline, size_t num) {
 					config_set_bool(section, key, true);
 				else if ((string_find(STRING_ARGS(value), '.', 0) != STRING_NPOS) &&
 				         (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789."), 0) == STRING_NPOS) &&
-				         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.',
-				                                                           0) + 1) == STRING_NPOS))            //Exactly one "."
+				         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.', 0) + 1) == STRING_NPOS))
 					config_set_real(section, key, string_to_real(STRING_ARGS(value)));
 				else if (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789"), 0) == STRING_NPOS)
 					config_set_int(section, key, string_to_int64(STRING_ARGS(value)));

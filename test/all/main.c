@@ -136,6 +136,8 @@ main_initialize(void) {
 	config.fs_monitor_max = 1;
 	//For temporary allocator test, 128KiB
 	config.temporary_memory = 128 * 1024;
+	//For testing static hash store
+	config.hash_store_size = 32 * 1024;
 #endif
 
 	memset(&application, 0, sizeof(application));

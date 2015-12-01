@@ -110,6 +110,14 @@ DECLARE_TEST(environment, workingdir) {
 	environment_set_current_working_directory(STRING_ARGS(working_dir_copy));
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),
 	                     string_const(STRING_ARGS(working_dir_copy)));
+	{
+		log_enable_stdout(false);
+		bool ret = environment_set_current_working_directory(STRING_CONST("/invalid/path/which/does/not/exist"));
+		log_enable_stdout(true);
+		EXPECT_FALSE(ret);
+	}
+	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),
+	                     string_const(STRING_ARGS(working_dir_copy)));
 #endif
 
 	string_deallocate(new_working_dir_copy.str);

@@ -79,7 +79,7 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 				FOUNDATION_ASSERT_FAILFORMAT_LOG(0, "Event block size over limit of %" PRIsize " bytes",
 				                                 _foundation_config.event_block_limit);
 				error_report(ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY);
-				return;
+				goto unlock;
 			}
 			block->capacity += _foundation_config.event_block_chunk;
 			if (block->capacity > _foundation_config.event_block_limit)
@@ -134,6 +134,7 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 		block->fired = true;
 	}
 
+unlock:
 	//Now unlock the event block
 	restored_block = atomic_cas32(&stream->write, last_write, EVENT_BLOCK_POSTING);
 	FOUNDATION_ASSERT(restored_block);

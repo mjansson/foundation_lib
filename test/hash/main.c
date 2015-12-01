@@ -34,6 +34,7 @@ static foundation_config_t
 test_hash_config(void) {
 	foundation_config_t config;
 	memset(&config, 0, sizeof(config));
+	config.hash_store_size = 32 * 1024;
 	return config;
 }
 
@@ -53,6 +54,14 @@ DECLARE_TEST(hash, known) {
 	EXPECT_EQ(hash(STRING_CONST("cache_directory")), 0x3e7b4931a3841da8ULL);
 	EXPECT_EQ(hash(STRING_CONST("server_address")), 0x64fcf494cf8072f5ULL);
 	EXPECT_EQ(hash(STRING_CONST("server_port")), 0xdd32e17d082c2959ULL);
+	return 0;
+}
+
+DECLARE_TEST(hash, store) {
+#if BUILD_ENABLE_STATIC_HASH_DEBUG
+	string_const_t foundation = hash_to_string(HASH_FOUNDATION);
+	EXPECT_CONSTSTRINGEQ(foundation, string_const(STRING_CONST("foundation")));
+#endif
 	return 0;
 }
 
@@ -127,6 +136,7 @@ DECLARE_TEST(hash, stability) {
 static void
 test_hash_declare(void) {
 	ADD_TEST(hash, known);
+	ADD_TEST(hash, store);
 	ADD_TEST(hash, stability);
 }
 

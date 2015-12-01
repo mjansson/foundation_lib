@@ -46,6 +46,21 @@ static void
 test_event_finalize(void) {
 }
 
+static int
+assert_ignore_handler(hash_t context, const char* condition, size_t cond_length,
+                                  const char* file, size_t file_length, unsigned int line,
+                                  const char* msg, size_t msg_length) {
+	FOUNDATION_UNUSED(context);
+	FOUNDATION_UNUSED(condition);
+	FOUNDATION_UNUSED(cond_length);
+	FOUNDATION_UNUSED(file);
+	FOUNDATION_UNUSED(file_length);
+	FOUNDATION_UNUSED(line);
+	FOUNDATION_UNUSED(msg);
+	FOUNDATION_UNUSED(msg_length);
+	return 0;
+}
+
 DECLARE_TEST(event, empty) {
 	event_stream_t* stream;
 	event_block_t* block;
@@ -117,6 +132,8 @@ DECLARE_TEST(event, immediate) {
 	event_block_t* block;
 	event_t* event;
 	uint16_t last_serial = 0;
+	size_t iloop;
+	assert_handler_fn prev_assert_handler;
 	uint8_t buffer[128];
 
 	stream = event_stream_allocate(0);
@@ -169,6 +186,27 @@ DECLARE_TEST(event, immediate) {
 	EXPECT_EQ(event->flags, 0);
 	EXPECT_EQ(event_payload_size(event), 40);
 	last_serial = event->serial;
+
+	//Test out of memory handling
+	log_enable_stdout(false);
+	prev_assert_handler = assert_handler();
+	assert_set_handler(assert_ignore_handler);
+	for (iloop = 0; iloop < 512 * 1024; ++iloop)
+		event_post_varg(stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, (size_t)3, buffer + 3,
+		                (size_t)10, buffer + 13, (size_t)24, nullptr);
+	assert_set_handler(prev_assert_handler);
+	log_enable_stdout(true);
+	EXPECT_INTEQ(error(), ERROR_OUT_OF_MEMORY);
+
+	block = event_stream_process(stream);
+	event = event_next(block, 0);
+	EXPECT_NE(event, 0);
+	EXPECT_EQ(event->id, FOUNDATIONEVENT_TERMINATE + 1);
+	EXPECT_EQ(event->size, sizeof(event_t) + 40);
+	EXPECT_GT(event->serial, last_serial);
+	EXPECT_EQ(event->object, 0);
+	EXPECT_EQ(event->flags, 0);
+	EXPECT_EQ(event_payload_size(event), 40);
 
 	event_stream_deallocate(stream);
 
