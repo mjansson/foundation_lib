@@ -149,6 +149,24 @@ DECLARE_TEST(beacon, multiwait) {
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
 
+	beacon_remove(beacon[0], beacon_event_handle(beacon[1]));
+	beacon_fire(beacon[1]);
+
+	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
+	EXPECT_INTEQ(beacon_try_wait(beacon[1], 100), 0);
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	semaphore_post(&semaphore);
+#else
+	stream_write((stream_t*)&pipe, data, sizeof(data));
+#endif
+
+	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 1);
+	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
+	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
+
+	beacon_remove(beacon[0], beacon_event_handle(beacon[1]));
+
 	beacon_deallocate(beacon[0]);
 	beacon_deallocate(beacon[1]);
 #if FOUNDATION_PLATFORM_WINDOWS
