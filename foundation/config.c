@@ -278,6 +278,36 @@ static string_const_t platformsuffix =
 
 static string_t
 config_unsuffix_path(string_t path) {
+	string_const_t archsuffix =
+#if FOUNDATION_ARCH_ARM8_64
+	(string_const_t) { STRING_CONST("/arm64") };
+#elif FOUNDATION_ARCH_ARM_64
+	(string_const_t) { STRING_CONST("/arm64") };
+#elif FOUNDATION_ARCH_ARM5
+	(string_const_t) { STRING_CONST("/arm5") };
+#elif FOUNDATION_ARCH_ARM6
+	(string_const_t) { STRING_CONST("/arm6") };
+#elif FOUNDATION_ARCH_ARM7
+	(string_const_t) { STRING_CONST("/arm7") };
+#elif FOUNDATION_ARCH_ARM8
+	(string_const_t) { STRING_CONST("/arm8") };
+#elif FOUNDATION_ARCH_X86_64
+	(string_const_t) { STRING_CONST("/x86-64") };
+#elif FOUNDATION_ARCH_X86
+	(string_const_t) { STRING_CONST("/x86") };
+#elif FOUNDATION_ARCH_PPC_64
+	(string_const_t) { STRING_CONST("/ppc64") };
+#elif FOUNDATION_ARCH_PPC
+	(string_const_t) { STRING_CONST("/ppc") };
+#elif FOUNDATION_ARCH_IA64
+	(string_const_t) { STRING_CONST("/ia64") };
+#elif FOUNDATION_ARCH_MIPS_64
+	(string_const_t) { STRING_CONST("/mips64") };
+#elif FOUNDATION_ARCH_MIPS
+	(string_const_t) { STRING_CONST("/mips") };
+#else
+	(string_const_t) { STRING_CONST("/generic") };
+#endif
 	string_const_t buildsuffix =
 #if BUILD_DEBUG
 	(string_const_t) { STRING_CONST("/debug") };
@@ -291,6 +321,10 @@ config_unsuffix_path(string_t path) {
 	string_const_t binsuffix =
 	(string_const_t) { STRING_CONST("/bin") };
 
+	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(archsuffix))) {
+		path.length = path.length - archsuffix.length;
+		path.str[ path.length ] = 0;
+	}
 	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(buildsuffix))) {
 		path.length = path.length - buildsuffix.length;
 		path.str[ path.length ] = 0;
