@@ -205,7 +205,6 @@ beacon_fire(beacon_t* beacon) {
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	if (atomic_cas32(&beacon->fired, BEACON_FIRE_PENDING, BEACON_FIRE_NONE)) {
 		char data = 0;
-		log_info(HASH_TEST, STRING_CONST("beacon firing"));
 		write(beacon->writefd, &data, 1);
 		atomic_cas32(&beacon->fired, BEACON_FIRE_DONE, BEACON_FIRE_PENDING);
 	}

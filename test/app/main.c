@@ -170,7 +170,7 @@ sleep_thread(void* arg) {
 	EXPECT_INTEQ(beacon_try_wait(&thread_self()->beacon, 5000), 0);
 	end = time_current();
 	elapsed = time_diff(start, end);
-	EXPECT_REALLT(time_ticks_to_seconds(elapsed), REAL_C(5.0));
+	EXPECT_REALLT(time_ticks_to_seconds(elapsed), REAL_C(6.0));
 
 	return 0;
 }
