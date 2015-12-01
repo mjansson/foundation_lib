@@ -418,6 +418,9 @@ DECLARE_TEST(fs, util) {
 	EXPECT_EQ(fs_size(STRING_ARGS(testpath)), 0);
 	EXPECT_TRUE(uint128_equal(uint128_null(), fs_md5(STRING_ARGS(testpath))));
 
+	testpath = path_prepend(STRING_ARGS(testpath), sizeof(buf), STRING_CONST("http://"));
+	EXPECT_EQ(fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_CREATE), nullptr);
+
 	return 0;
 }
 
