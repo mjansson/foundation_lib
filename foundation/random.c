@@ -64,14 +64,15 @@ _random_allocate_buffer(void) {
 int
 _random_initialize(void) {
 	if (!_random_mutex) {
-		size_t prealloc;
+		size_t prealloc, capacity;
 		size_t i;
 		_random_mutex = mutex_allocate(STRING_CONST("random"));
 
 		//Allocate and seed a number of state buffers
 		prealloc = _foundation_config.random_state_prealloc;
-		array_reserve(_random_state, prealloc ? prealloc * 8 : 8);
-		array_reserve(_random_available_state, prealloc ? prealloc * 8 : 8);
+		capacity = prealloc > 8 ? prealloc : 8;
+		array_reserve(_random_state, capacity);
+		array_reserve(_random_available_state, capacity);
 		for (i = 0; i < prealloc; ++i) {
 			unsigned int* buffer = _random_allocate_buffer();
 			array_push(_random_available_state, buffer);
@@ -291,9 +292,7 @@ random_normalized(void) {
 	//Deal with floating point roundoff issues
 	if (result >= REAL_C(1.0))
 		return math_real_dec(REAL_C(1.0), 1);
-	else if (result < 0)
-		return 0;
-	return result;
+	return math_max(result, 0);
 }
 
 real
@@ -306,11 +305,9 @@ random_range(real low, real high) {
 	}
 	result = low + ((high - low) * random_normalized());
 	//Deal with floating point roundoff issues
-	if (result <= low)
-		return low;
-	else if (result >= high)
+	if (result >= high)
 		return math_real_dec(high, 1);
-	return result;
+	return math_max(result, low);
 }
 
 int32_t
@@ -335,11 +332,9 @@ random_gaussian_range(real low, real high) {
 	}
 	result = low + ((high - low) * REAL_C(0.33333333333333333333333333333) *
 	                (random_normalized() + random_normalized() + random_normalized()));
-	if (result <= low)
-		return low;
-	else if (result >= high)
+	if (result >= high)
 		return math_real_dec(high, 1);
-	return result;
+	return math_max(result, low);
 }
 
 int32_t
@@ -364,11 +359,9 @@ random_triangle_range(real low, real high) {
 		high = tmp;
 	}
 	result = low + (high - low) * REAL_C(0.5) * (random_normalized() + random_normalized());
-	if (result <= low)
-		return low;
-	else if (result >= high)
+	if (result >= high)
 		return math_real_dec(high, 1);
-	return result;
+	return math_max(result, low);
 }
 
 uint32_t

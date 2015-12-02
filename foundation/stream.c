@@ -214,7 +214,7 @@ stream_read(stream_t* stream, void* buffer, size_t num_bytes) {
 
 string_t
 stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimiter) {
-	size_t i, read, total, limit;
+	size_t i, read, total, limit, hardlimit;
 
 	if (!(stream->mode & STREAM_IN) || !dest || (count < 2)) {
 		if (dest && count)
@@ -223,18 +223,16 @@ stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimit
 	}
 
 	total = 0;
+	hardlimit = stream_is_sequential(stream) ? 1 : 128;
+	//Need to read one byte at a time since we can't scan back if overreading in sequential streams
 
 	--count;
 	while (!stream_eos(stream)) {
 		limit = count - total;
-		if (limit > 128)
-			limit = 128;
+		if (limit > hardlimit)
+			limit = hardlimit;
 		if (!limit)
 			break;
-
-		//Need to read one byte at a time since we can't scan back if overreading
-		if (stream_is_sequential(stream))
-			limit = 1;
 
 		//This will initialize range [total,total+read) in dest array, making
 		//access of potentially uninitialized dest array safe (see coverity markup below)

@@ -120,6 +120,7 @@ DECLARE_TEST(random, distribution32) {
 		EXPECT_GE(num, j * 32U);
 		EXPECT_LT(num, (j + 1) * 32U);
 		++_test_bits[ num % 32 ];
+		EXPECT_INTEQ(random32_range(i, i+1), (int)i);
 	}
 
 	//Verify distribution...
@@ -206,6 +207,7 @@ DECLARE_TEST(random, distribution64) {
 		EXPECT_GE(num, j * 64U);
 		EXPECT_LT(num, (j + 1) * 64U);
 		++_test_bits[ num % 64 ];
+		EXPECT_INTEQ(random64_range(i, i+1), (int64_t)i);
 	}
 
 	//Verify distribution...

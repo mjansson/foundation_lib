@@ -126,6 +126,7 @@ DECLARE_TEST(md5, streams) {
 	stream_t* unix_stream;
 	stream_t* windows_stream;
 	uint128_t digest, unix_digest, windows_digest;
+	size_t ichunks;
 
 	char unix_buffer[] =
 	  "tvqy0C9TO2MI7uyUqr\n\n"
@@ -191,13 +192,36 @@ DECLARE_TEST(md5, streams) {
 	unix_digest = stream_md5(unix_stream);
 	windows_digest = stream_md5(windows_stream);
 
+	stream_deallocate(unix_stream);
+	stream_deallocate(windows_stream);
+
 	EXPECT_TRUE(uint128_equal(unix_digest, uint128_make(0xcf32b789c7e77197ULL, 0x2bff28c36c601093ULL)));
 	EXPECT_TRUE(uint128_equal(windows_digest, uint128_make(0xf77d63bbe1df9334ULL,
 	                                                       0x24d5cb05cd503e44ULL)));
 	EXPECT_TRUE(!uint128_equal(unix_digest, windows_digest));
 
+	unix_stream = buffer_stream_allocate(nullptr, STREAM_IN | STREAM_OUT,
+	                                     128 * 1024, 128 * 1024, true, true);
+	windows_stream = buffer_stream_allocate(nullptr, STREAM_IN | STREAM_OUT,
+	                                        128 * 1024, 128 * 1024, true, true);
+
+	ichunks = 0;
+	while ((ichunks+1) * 3 < 128 * 1024) {
+		stream_write(unix_stream, STRING_CONST("a\n"));
+		stream_write(windows_stream, STRING_CONST("a\r\n"));
+		++ichunks;
+	}
+
+	stream_seek(unix_stream, 0, STREAM_SEEK_BEGIN);
+	stream_seek(windows_stream, 0, STREAM_SEEK_BEGIN);
+
+	unix_digest = stream_md5(unix_stream);
+	windows_digest = stream_md5(windows_stream);
+
 	stream_deallocate(unix_stream);
 	stream_deallocate(windows_stream);
+
+	EXPECT_TRUE(uint128_equal(unix_digest, windows_digest));
 
 	return 0;
 }

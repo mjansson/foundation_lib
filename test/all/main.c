@@ -138,6 +138,8 @@ main_initialize(void) {
 	config.temporary_memory = 128 * 1024;
 	//For testing static hash store
 	config.hash_store_size = 32 * 1024;
+	//Test preallocation of random state buffers
+	config.random_state_prealloc = 4;
 #endif
 
 	memset(&application, 0, sizeof(application));

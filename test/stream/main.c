@@ -392,6 +392,10 @@ DECLARE_TEST(stream, readwrite_binary) {
 	stream_seek(teststream, -34, STREAM_SEEK_END);   //There is a terminating zeros at end
 	stream_determine_binary_mode(teststream, 32);
 	EXPECT_EQ_MSG(stream_is_binary(teststream), false, "Text mode was not detected");
+	stream_seek(teststream, -32, STREAM_SEEK_END);
+	stream_set_binary(teststream, true);
+	stream_determine_binary_mode(teststream, 0);
+	EXPECT_EQ_MSG(stream_is_binary(teststream), false, "Text mode was not detected");
 
 	stream_deallocate(teststream);
 	fs_remove_file(STRING_ARGS(path));
@@ -869,6 +873,11 @@ DECLARE_TEST(stream, readwrite_text) {
 	line = stream_read_string(teststream);
 	string_deallocate(line.str);
 	EXPECT_SIZEEQ(line.length, sizeof(write_buffer)*8);
+	teststream->sequential = 0;
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	teststream->sequential = 1;
+	line = stream_read_line_buffer(teststream, read_buffer, 64, '\n');
+	EXPECT_SIZEEQ(line.length, 63);
 
 	stream_deallocate(teststream);
 	fs_remove_file(STRING_ARGS(path));

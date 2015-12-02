@@ -131,6 +131,18 @@ DECLARE_TEST(regex, any_block) {
 
 	regex_deallocate(regex);
 
+	//Too long group, parser will fail
+	regex = regex_compile(
+	            STRING_CONST(
+	                "^([aaaaaaaaaaaaaabbbbbbbbbbbbbbbbbcccccccccccccccccc"
+	                "ddddddddddddeeeeeeeeeeeeeefffffffffffffggggggggggggg"
+	                "hhhhhhhhhhhhiiiiiiiiiiiiiijjjjjjjjjjjjjkkkkkkkkkkkkk"
+	                "llllllllllllmmmmmmmmmmmmmmnnnnnnnnnnnnnooooooooooooo"
+	                "ppppppppppppqqqqqqqqqqqqqqrrrrrrrrrrrrrsssssssssssss"
+	                "ttttttttttttuuuuuuuuuuuuuuvvvvvvvvvvvvvwwwwwwwwwwwww"
+	                "xxxxxxxxxxxxyyyyyyyyyyyyyyzzzzzzzzzzzzz \\n\\r\\0])"));
+	EXPECT_EQ(regex, 0);
+
 	return 0;
 }
 
@@ -192,7 +204,8 @@ DECLARE_TEST(regex, quantifier) {
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("aabbbb0deeeeeee"), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbeeeeeee"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("abbb1d"), 0, 0));
-	EXPECT_FALSE(regex_match(regex, STRING_CONST("abb2de"), 0, 0)); //group before decimal must be at least 4 chars
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("abb2de"), 0,
+	                         0)); //group before decimal must be at least 4 chars
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabb2de0"), 0, 0));
 
 	regex_deallocate(regex);
