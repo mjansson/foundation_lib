@@ -162,7 +162,6 @@ DECLARE_TEST(beacon, multiwait) {
 #endif
 
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 1);
-	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
 
 	beacon_remove(beacon[0], beacon_event_handle(beacon[1]));
