@@ -204,10 +204,11 @@ DECLARE_TEST(random, distribution64) {
 	memset(_test_bits, 0, sizeof(unsigned int) * 64);
 	for (i = 0; i < num_passes; ++i) {
 		uint64_t num = random64_range((j + 1) * 64, j * 64);
+		uint64_t range = (uint64_t)i;
 		EXPECT_GE(num, j * 64U);
 		EXPECT_LT(num, (j + 1) * 64U);
 		++_test_bits[ num % 64 ];
-		EXPECT_INTEQ(random64_range(i, i+1), (int64_t)i);
+		EXPECT_TYPEEQ(random64_range(range, range+1), range, uint64_t, PRIu64);
 	}
 
 	//Verify distribution...

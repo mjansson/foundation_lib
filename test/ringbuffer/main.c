@@ -268,7 +268,7 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 
 		stream_write(test.stream, test.source_buffer, ringbuffer_size - 1);
 		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size);
-		stream_seek(test.stream, ringbuffer_size - 1, STREAM_SEEK_CURRENT);
+		stream_seek(test.stream, (ssize_t)ringbuffer_size - 1, STREAM_SEEK_CURRENT);
 		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size + ringbuffer_size - 1);
 		log_enable_stdout(false);
 		stream_seek(test.stream, -(ssize_t)ringbuffer_size, STREAM_SEEK_CURRENT);

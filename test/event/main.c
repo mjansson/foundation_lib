@@ -196,7 +196,7 @@ DECLARE_TEST(event, immediate) {
 		                (size_t)10, buffer + 13, (size_t)24, nullptr);
 	assert_set_handler(prev_assert_handler);
 	log_enable_stdout(true);
-	EXPECT_INTEQ(error(), ERROR_OUT_OF_MEMORY);
+	EXPECT_TYPEEQ(error(), ERROR_OUT_OF_MEMORY, error_t, "d");
 
 	block = event_stream_process(stream);
 	event = event_next(block, 0);
