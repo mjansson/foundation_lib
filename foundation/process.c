@@ -111,13 +111,13 @@ process_set_verb(process_t* proc, const char* verb, size_t length) {
 
 int
 process_spawn(process_t* proc) {
-	static string_const_t unescaped = { STRING_CONST("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:/\\") };
+	static const string_const_t unescaped = { STRING_CONST("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:/\\") };
 	size_t i, num_args;
 	size_t size;
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wcmdline;
 	wchar_t* wwd;
-	string_t cmdline = (string_t) {0, 0};
+	string_t cmdline;
 	size_t capacity;
 #endif
 
@@ -164,7 +164,7 @@ process_spawn(process_t* proc) {
 					if (arg.str[ pos - 1 ] != '\\') {
 						string_const_t right = string_substr(STRING_ARGS(arg), 0, pos);
 						string_const_t left = string_substr(STRING_ARGS(arg), pos, STRING_NPOS);
-						size_t capacity = arg.length + 2;
+						capacity = arg.length + 2;
 						escarg = string_allocate(0, capacity);
 						escarg = string_concat(escarg.str, capacity, STRING_ARGS(right), STRING_CONST("\\"));
 						escarg = string_append(STRING_ARGS(escarg), capacity, STRING_ARGS(left));
@@ -248,7 +248,7 @@ process_spawn(process_t* proc) {
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
-			string_const_t errstr = system_error_message(GetLastError());
+			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%.*s': %s"),
 			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
@@ -292,7 +292,7 @@ process_spawn(process_t* proc) {
 
 		if (!CreateProcessW(0, wcmdline, 0, 0, inherit_handles,
 		                    (proc->flags & PROCESS_CONSOLE) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi)) {
-			string_const_t errstr = system_error_message(GetLastError());
+			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 			          STRING_CONST("Unable to spawn process (CreateProcess) for executable '%.*s': %.*s"),
 			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
@@ -579,13 +579,13 @@ process_wait(process_t* proc) {
 		return proc->code;
 
 	while (GetExitCodeProcess(proc->hp, (LPDWORD)&proc->code)) {
-		if ((proc->code != STILL_ACTIVE) || (proc->flags & PROCESS_DETACHED))
+		if ((proc->code != (int)STILL_ACTIVE) || (proc->flags & PROCESS_DETACHED))
 			break;
 		thread_sleep(50);
 		proc->code = -1;
 	}
 
-	if ((proc->code == STILL_ACTIVE) && (proc->flags & PROCESS_DETACHED))
+	if ((proc->code == (int)STILL_ACTIVE) && (proc->flags & PROCESS_DETACHED))
 		return PROCESS_STILL_ACTIVE;
 
 	if (proc->ht)

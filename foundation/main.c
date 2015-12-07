@@ -43,6 +43,7 @@ _main_console_handler(DWORD control_type) {
 	}
 	log_infof(0, STRING_CONST("Caught console control: %s (%d)"), control_name, control_type);
 	if (post_terminate) {
+		/*lint -e{970} */
 		unsigned long level = 0, flags = 0;
 
 		system_post_event(FOUNDATIONEVENT_TERMINATE);
@@ -63,7 +64,12 @@ WinMain(HINSTANCE, HINSTANCE, LPSTR, int);
 
 int STDCALL
 WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
-	int ret = -1;
+	int ret;
+
+	FOUNDATION_UNUSED(instance);
+	FOUNDATION_UNUSED(previnst);
+	FOUNDATION_UNUSED(cline);
+	FOUNDATION_UNUSED(cmd_show);
 
 	if (main_initialize() < 0)
 		return -1;
@@ -149,7 +155,7 @@ int
 main(int argc, char** argv)
 #endif
 {
-	int ret = -1;
+	int ret;
 
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	_environment_main_args(argc, (const char* const*)argv);
@@ -157,7 +163,8 @@ main(int argc, char** argv)
 	FOUNDATION_UNUSED(instance);
 #endif
 
-	if ((ret = main_initialize()) < 0)
+	ret = main_initialize();
+	if (ret < 0)
 		return ret;
 
 #if FOUNDATION_PLATFORM_POSIX

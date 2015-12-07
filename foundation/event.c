@@ -30,7 +30,6 @@ _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
 	char* part;
 	void* ptr;
 	size_t psize;
-	/*lint -e438 */
 	va_list clist;
 
 	//Events must have non-zero id

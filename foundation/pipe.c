@@ -53,7 +53,7 @@ pipe_initialize(stream_pipe_t* pipestream) {
 		security_attribs.lpSecurityDescriptor = 0;
 
 		if (!CreatePipe(&pipestream->handle_read, &pipestream->handle_write, &security_attribs, 0)) {
-			string_const_t errmsg = system_error_message(GetLastError());
+			string_const_t errmsg = system_error_message(0);
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe: %.*s"),
 			           STRING_FORMAT(errmsg));
 		}
@@ -176,16 +176,16 @@ _pipe_stream_read(stream_t* stream, void* dest, size_t num) {
 	if (pipestream->handle_read && ((pipestream->mode & STREAM_IN) != 0)) {
 		size_t total_read = 0;
 		do {
-			long num_read = 0;
-			if (!ReadFile(pipestream->handle_read, pointer_offset(dest, total_read), (int)(num - total_read),
-			              &num_read, 0)) {
-				int err = GetLastError();
+			DWORD num_read = 0;
+			if (!ReadFile(pipestream->handle_read, pointer_offset(dest, total_read),
+			              (unsigned int)(num - total_read), &num_read, 0)) {
+				unsigned int err = GetLastError();
 				if (err == ERROR_BROKEN_PIPE) {
 					pipestream->eos = true;
 					break;
 				}
 				else {
-					string_const_t errmsg = system_error_message(err);
+					string_const_t errmsg = system_error_message((int)err);
 					log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to read from pipe: %.*s (%d)"),
 					           STRING_FORMAT(errmsg), err);
 				}
@@ -225,9 +225,9 @@ _pipe_stream_write(stream_t* stream, const void* source, size_t num) {
 	if (pipestream->handle_write && ((pipestream->mode & STREAM_OUT) != 0)) {
 		size_t total_written = 0;
 		do {
-			long num_written = 0;
+			DWORD num_written = 0;
 			if (!WriteFile(pipestream->handle_write, pointer_offset_const(source, total_written),
-			               (int)(num - total_written), &num_written, 0)) {
+			               (unsigned int)(num - total_written), &num_written, 0)) {
 				pipestream->eos = true;
 				break;
 			}

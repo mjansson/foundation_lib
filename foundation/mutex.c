@@ -97,14 +97,12 @@ mutex_deallocate(mutex_t* mutex) {
 
 string_const_t
 mutex_name(mutex_t* mutex) {
-	FOUNDATION_ASSERT(mutex);
 	return mutex->name;
 }
 
 bool
 mutex_try_lock(mutex_t* mutex) {
-	bool was_locked = false;
-	FOUNDATION_ASSERT(mutex);
+	bool was_locked;
 
 #if !BUILD_DEPLOY
 	profile_trylock(mutex->name.str, mutex->name.length);
@@ -116,6 +114,7 @@ mutex_try_lock(mutex_t* mutex) {
 	was_locked = (pthread_mutex_trylock(&mutex->mutex) == 0);
 #else
 #  error mutex_try_lock not implemented
+	was_locked = false;
 #endif
 #if !BUILD_DEPLOY
 	if (was_locked)
@@ -132,8 +131,6 @@ mutex_try_lock(mutex_t* mutex) {
 
 bool
 mutex_lock(mutex_t* mutex) {
-	FOUNDATION_ASSERT(mutex);
-
 #if !BUILD_DEPLOY
 	profile_trylock(mutex->name.str, mutex->name.length);
 #endif
@@ -165,8 +162,6 @@ mutex_lock(mutex_t* mutex) {
 
 bool
 mutex_unlock(mutex_t* mutex) {
-	FOUNDATION_ASSERT(mutex);
-
 	if (!mutex->lockcount) {
 		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to unlock unlocked mutex %.*s"),
 		          (int)mutex->name.length, mutex->name.str);
@@ -211,7 +206,6 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 	struct timeval now;
 	struct timespec then;
 #endif
-	FOUNDATION_ASSERT(mutex);
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #if !BUILD_DEPLOY
@@ -295,8 +289,6 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 
 void
 mutex_signal(mutex_t* mutex) {
-	FOUNDATION_ASSERT(mutex);
-
 #if !BUILD_DEPLOY
 	profile_signal(mutex->name.str, mutex->name.length);
 #endif
@@ -328,7 +320,6 @@ mutex_signal(mutex_t* mutex) {
 
 void*
 mutex_event_handle(mutex_t* mutex) {
-	FOUNDATION_ASSERT(mutex);
 	return mutex->event;
 }
 

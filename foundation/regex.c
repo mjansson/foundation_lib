@@ -14,6 +14,8 @@
 
 #include <stdarg.h>
 
+/*lint -e773 */
+
 #define REGEXERR_OK                   (size_t)0
 #define REGEXERR_TOO_LONG             (size_t)-1
 #define REGEXERR_MISMATCHED_CAPTURES  (size_t)-2
@@ -245,6 +247,7 @@ _regex_consume_longest(regex_t* regex, size_t op, const char* input, size_t inof
 
 	//TODO: Optimization would be to stack all offsets from execute single, then verify matching
 	//      of remaining regex starting with highest saved offset
+	/*lint -e{716} */
 	while (true) {
 		context = _regex_execute_single(regex, op, input, context.inoffset, inlength, 0, 0);
 		if (context.inoffset > inlength)
@@ -274,6 +277,7 @@ _regex_consume_shortest(regex_t* regex, size_t op, const char* input, size_t ino
 	regex_context_t best_context = { (size_t)REGEXRES_NOMATCH, inoffset };
 	regex_context_t next_context;
 
+	/*lint -e{716} */
 	while (true) {
 		context = _regex_execute_single(regex, op, input, context.inoffset, inlength, 0, 0);
 		if (context.inoffset > inlength)
@@ -318,6 +322,7 @@ _regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t 
 		if (pattern[offset] == ']') {
 			if ((ret = _regex_emit(target, allow_grow, 2, op, (int)buffer_len)))
 				break;
+			/*lint -e{603} Buffer is initialized with buffer_len bytes */
 			if (buffer_len && (ret = _regex_emit_buffer(target, allow_grow, buffer_len, buffer)))
 				break;
 			offset++;
@@ -325,10 +330,8 @@ _regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t 
 			break;
 		}
 
-		if (buffer_len >= buffer_maxlen) {
-			ret = REGEXERR_TOO_LONG;
-			break;
-		}
+		if (buffer_len >= buffer_maxlen)
+			return REGEXERR_TOO_LONG;
 
 		if (pattern[offset] == '\\') {
 			++offset;
@@ -341,7 +344,9 @@ _regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t 
 				code = _regex_encode_escape(pattern[offset]);
 				if (!code || (code > 0xFF)) {
 					buffer[buffer_len++] = 0;
-					buffer[buffer_len++] = (code >> 8) & 0xFF;
+					if (buffer_len >= buffer_maxlen)
+						return REGEXERR_TOO_LONG;
+					buffer[buffer_len++] = (code >> 8) & 0xFF; //lint !e702
 				}
 				else {
 					buffer[buffer_len++] = code & 0xFF;
@@ -403,8 +408,7 @@ _regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length
 
 		case ')':
 			if (branch_op != REGEXPARSE_NOBRANCH)
-				(*target)->code[branch_op + 1] = (uint8_t)((*target)->code_length - branch_op - 2);
-			branch_op = REGEXPARSE_NOBRANCH;
+				(*target)->code[branch_op + 1] = (uint8_t)((*target)->code_length - (branch_op + 2));
 
 			if (level == 0)
 				return REGEXERR_MISMATCHED_CAPTURES;

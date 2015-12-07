@@ -72,6 +72,7 @@ path_clean(char* path, size_t length, size_t capacity) {
 		firstsep = false;
 
 		//Reduce multiple slashes "//./" unless directly after protocol separator
+		/*lint -e{850} */
 		for (ahead = ofs; ahead < length; ++ahead) {
 			if (path[ahead] == '.') { //Catch "/./" path segments
 				if ((ahead + 1 < length) && ((path[ ahead + 1 ] == '/') || (path[ ahead + 1 ] == '\\'))) {
@@ -183,7 +184,7 @@ path_base_file_name(const char* path, size_t length) {
 		end = STRING_NPOS;
 	if (start != STRING_NPOS)
 		return string_substr(path, length, start + 1,
-		                     (end != STRING_NPOS) ? (end - start - 1) : STRING_NPOS);
+		                     (end != STRING_NPOS) ? (end - (start + 1)) : STRING_NPOS);
 	return string_substr(path, length, 0, end);
 }
 
@@ -223,15 +224,15 @@ path_directory_name(const char* path, size_t length) {
 	size_t end = string_find_last_of(path, length, STRING_CONST("/\\"), STRING_NPOS);
 	if (end == 0)
 		return string_const("/", 1);
-    if (end == STRING_NPOS) {
-        if ((length >= 2) && (path[1] == ':'))
-            return string_const(path, 2);
+	if (end == STRING_NPOS) {
+		if ((length >= 2) && (path[1] == ':'))
+			return string_const(path, 2);
 		return string_const(0, 0);
-    }
+	}
 	result = string_substr(path, length, 0, end);
 	protocol = path_protocol(result.str, result.length + 1);
-    if (protocol.length)
-        protocol.length += 3; //Include separator
+	if (protocol.length)
+		protocol.length += 3; //Include separator
 	//Check if only a protocol
 	if (result.length <= protocol.length)
 		return protocol;
@@ -359,14 +360,14 @@ path_concat_impl(char* dest, size_t capacity, bool reallocate, const char* first
 	if (reallocate) {
 		size_t totalsize = first_length + 1;
 		va_copy(clist, list);
-		while (true) {
+		do {
 			ptr = va_arg(clist, void*);
-			if (!ptr)
-				break;
-			psize = va_arg(clist, size_t);
-			if (psize)
-				totalsize += psize + 1;
-		}
+			if (ptr) {
+				psize = va_arg(clist, size_t);
+				if (psize)
+					totalsize += psize + 1;
+			}
+		} while (ptr);
 		va_end(clist);
 
 		if (totalsize >= capacity) {
@@ -382,15 +383,16 @@ path_concat_impl(char* dest, size_t capacity, bool reallocate, const char* first
 	if (first_length)
 		result = string_copy(result.str, capacity, first, first_length);
 
+	/*lint -e{838} */
 	va_copy(clist, list);
-	while (true) {
+	do {
 		ptr = va_arg(clist, void*);
-		if (!ptr)
-			break;
-		psize = va_arg(clist, size_t);
-		if (psize)
-			result = path_append_fragment(STRING_ARGS(result), capacity, ptr, psize);
-	}
+		if (ptr) {
+			psize = va_arg(clist, size_t);
+			if (psize)
+				result = path_append_fragment(STRING_ARGS(result), capacity, ptr, psize);
+		}
+	} while (ptr);
 	va_end(clist);
 	return result;
 }

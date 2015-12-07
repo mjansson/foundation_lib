@@ -134,6 +134,11 @@ the block is written to the output stream.
 FOUNDATION_API void
 profile_signal(const char* name, size_t length);
 
+/*! Get profile identifier
+\return Identifier given to profile_initialize */
+FOUNDATION_API string_const_t
+profile_identifier(void);
+
 #else
 
 #define profile_initialize(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
@@ -159,5 +164,6 @@ profile_signal(const char* name, size_t length);
 #define profile_wait(...) profile_wait_(__VA_ARGS__)
 #define profile_signal_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
 #define profile_signal(...) profile_signal_(__VA_ARGS__)
+#define profile_identifier() string_null()
 
 #endif

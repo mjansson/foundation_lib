@@ -39,6 +39,10 @@ static const bool _radixsort_data_signed[] = {
 	true   //RADIXSORT_FLOAT64
 };
 
+/*lint -e647 -e679 Not truncations since data sizes are 4 or 8 */
+/*lint -e744 We cover all cases */
+/*lint -e701 radix_index_t is NOT signed, lint gets confused */
+
 static bool
 radixsort_create_histograms(radixsort_t* sort, const void* input_raw, unsigned int num) {
 	const radixsort_data_t data_type = sort->type;
@@ -49,6 +53,7 @@ radixsort_create_histograms(radixsort_t* sort, const void* input_raw, unsigned i
 	radixsort_index_t*   indices  = sort->indices[0];
 	radixsort_index_t    curindex;
 
+	/*lint -e771 */
 	//Histograms for all passes
 	radixsort_index_t*   histogram[8];
 	unsigned int         ih;
@@ -342,7 +347,7 @@ radixsort_int(radixsort_t* sort, const void* input, radixsort_index_t num) {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 		unsigned int byteofs = ipass;
 #else
-		unsigned int byteofs = (data_size - ipass - 1);
+		unsigned int byteofs = (data_size - (ipass + 1));
 #endif
 		const unsigned char* input_bytes = pointer_offset_const(input, byteofs);
 
@@ -360,7 +365,7 @@ radixsort_int(radixsort_t* sort, const void* input, radixsort_index_t num) {
 			}
 			else {
 				//Signed data, both positive and negative values
-				radixsort_index_t next = 0, prev = 0;
+				radixsort_index_t next = 0, prev;
 				radixsort_index_t* offset = sort->offset;
 
 				//First positive data comes after the negative data
@@ -474,7 +479,7 @@ radixsort_float(radixsort_t* sort, const void* input, radixsort_index_t num) {
 
 			if (count[ unique_val ] != num) {
 				//Both positive and negative values
-				radixsort_index_t next = 0, prev = 0;
+				radixsort_index_t next = 0, prev;
 				radixsort_index_t* offset = sort->offset;
 				radixsort_index_t* count_base = count;
 
@@ -537,7 +542,7 @@ radixsort_float(radixsort_t* sort, const void* input, radixsort_index_t num) {
 				//Reverse order if all values are negative
 				if (unique_val >= 128) {
 					for (ival = 0; ival < num; ++ival)
-						sort->indices[1][ival] = sort->indices[0][ num - ival - 1 ];
+						sort->indices[1][ival] = sort->indices[0][ num - (ival + 1) ];
 
 					//After this swap, the valid indices (most recent) are in sort->indices[0]
 					{

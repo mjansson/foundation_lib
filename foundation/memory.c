@@ -29,14 +29,14 @@
 #  include <stdlib.h>
 #endif
 
+/*lint -e728 */
+static const memory_tracker_t _memory_no_tracker;
 static memory_system_t _memory_system;
-static memory_tracker_t _memory_no_tracker;
 
 typedef FOUNDATION_ALIGN(8) struct {
 	void*               storage;
 	void*               end;
 	atomicptr_t         head;
-	void*               tail;
 	size_t              size;
 	size_t              maxchunk;
 } atomic_linear_memory_t;
@@ -313,7 +313,7 @@ memory_context_thread_finalize(void) {
 
 #endif
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER != 4)
 
 typedef long (*NtAllocateVirtualMemoryFn)(HANDLE, void**, ULONG, size_t*, ULONG, ULONG);
 static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
@@ -578,6 +578,7 @@ _memory_deallocate_malloc(void* p) {
 static void*
 _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize) {
 #if ( FOUNDATION_SIZE_POINTER == 4 ) && FOUNDATION_PLATFORM_WINDOWS
+	FOUNDATION_UNUSED(oldsize);
 	align = _memory_get_align(align);
 #  if BUILD_ENABLE_MEMORY_GUARD
 	if (p) {
@@ -751,7 +752,6 @@ struct memory_tag_t {
 
 typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
 
-//static hashtable_t*  _memory_table;
 static memory_tag_t* _memory_tags;
 static atomic32_t    _memory_tag_next;
 
@@ -770,16 +770,11 @@ _memory_tracker_initialize(void) {
 #endif
 	}
 	
-	//if (!_memory_table)
-	//	_memory_table = hashtable_allocate(_foundation_config.memory_tracker_max);
-
 	return 0;
 }
 
 static void
 _memory_tracker_finalize(void) {
-	//if (_memory_table)
-	//	hashtable_deallocate(_memory_table);
 	if (_memory_tags) {
 		unsigned int it;
 		bool got_leaks = false;
@@ -813,6 +808,7 @@ _memory_tracker_finalize(void) {
 static void
 _memory_tracker_track(void* addr, size_t size) {
 	if (addr) {
+		size_t limit = 0;
 		do {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			while (tag >= (int32_t)_foundation_config.memory_tracker_max) {
@@ -829,7 +825,7 @@ _memory_tracker_track(void* addr, size_t size) {
 				break;
 			}
 		}
-		while (true);
+		while (limit++ < _foundation_config.memory_tracker_max);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		atomic_incr64(&_memory_stats.allocations_total);
@@ -842,17 +838,19 @@ _memory_tracker_track(void* addr, size_t size) {
 
 static void
 _memory_tracker_untrack(void* addr) {
-	int32_t tag = 0;//addr ? (int32_t)hashtable_get(_memory_table, (uintptr_t)addr) : 0;
-	if (addr && !tag) {
+	int32_t tag = 0;
+	if (addr) {
 		int32_t iend = atomic_load32(&_memory_tag_next);
 		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
-		for (; itag != iend; --itag) {
+		for (; itag != iend;) {
 			if (atomic_loadptr(&_memory_tags[itag].address) == addr) {
 				tag = itag + 1;
 				break;
 			}
-			if (itag == 0)
-				itag = (int32_t)_foundation_config.memory_tracker_max;
+			if (itag)
+				--itag;
+			else
+				itag = (int32_t)_foundation_config.memory_tracker_max - 1;
 		}
 	}
 	if (tag) {
@@ -862,7 +860,6 @@ _memory_tracker_untrack(void* addr) {
 		atomic_add64(&_memory_stats.allocated_current, -(int64_t)_memory_tags[tag].size);
 #endif
 		atomic_storeptr(&_memory_tags[tag].address, 0);
-		//hashtable_erase(_memory_table, (uintptr_t)addr);
 	}
 	//else if (addr)
 	//	log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);

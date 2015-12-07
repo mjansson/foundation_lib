@@ -98,7 +98,6 @@ assert_report_formatted(hash_t context, const char* condition, size_t cond_lengt
                         const char* file, size_t file_length, unsigned int line,
                         const char* msg, size_t msg_length, ...) {
 	if (msg) {
-		/*lint --e{438} Lint gets confused about assignment to ap */
 		string_t buffer = { _assert_buffer, sizeof(_assert_buffer) };
 		va_list ap;
 		va_start(ap, msg_length);
