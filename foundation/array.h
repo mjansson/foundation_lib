@@ -110,7 +110,7 @@ capacity.
 /*! Add element at end of array with assignment
 \param array   Array pointer
 \param element New element */
-#define array_push(array, element) ( \
+#define array_push(array, element) /*lint -e522*/ ( \
   _array_maybegrow(array, 1) ? \
     (array)[_array_rawsize(array)++] = (element), (array) : \
     (array))
@@ -118,7 +118,7 @@ capacity.
 /*! Add element at end of array copying data with memcpy
 \param array      Array pointer
 \param elementptr Pointer to new element */
-#define array_push_memcpy(array, elementptr) /*lint -e{506}*/ ( \
+#define array_push_memcpy(array, elementptr) /*lint -e{506,522}*/ ( \
   _array_maybegrow(array, 1) ? \
     memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array) : \
     (array))
@@ -255,7 +255,7 @@ in array. Position and number of elements are NOT ranged checked
 \param num        Number of elements to erase */
 #define array_erase_ordered_range(array, pos, num) ( \
   _array_verify(array) && \
-    ((num) > 0) ? \
+    (/*lint -e506 */(num) > 0) ? \
       memmove((array) + (pos), (array) + (pos) + (num), \
           (_array_rawsize(array) - (pos) - (num)) * _array_elementsize(array)), \
         (_array_rawsize(array) -= (num)) : \
@@ -282,7 +282,7 @@ in array. Position and number of elements ARE ranged checked
 #define _array_header_size           4UL
 
 #if BUILD_DEBUG
-#  define _array_verify(a)           (_array_verifyfn((const void* const*)&(a)))
+#  define _array_verify(a)           ((a) && _array_verifyfn((const void* const*)&(a)))
 #else
 #  define _array_verify(a)           (a)
 #endif
@@ -296,7 +296,7 @@ in array. Position and number of elements ARE ranged checked
 #define _array_rawcapacity_const(a)  _array_raw_const(a)[0]
 #define _array_rawsize_const(a)      _array_raw_const(a)[1]
 #define _array_elementsize(a)        ((size_t)(pointer_diff(&(a)[1], &(a)[0])))
-#define _array_needgrow(a,n)         (((n) > 0) && (_array_verify(a) == 0 || (_array_rawsize_const(a) + (n)) > _array_rawcapacity_const(a)))
+#define _array_needgrow(a,n)         /*lint -e506 */ (((n) > 0) && (!_array_verify(a) || (_array_rawsize_const(a) + (n)) > _array_rawcapacity_const(a)))
 #define _array_maybegrow(a,n)        (_array_needgrow(a, (n)) ? _array_grow(a, n, 2) : (a))
 #define _array_maybegrowfixed(a,n)   (_array_needgrow(a, (n)) ? _array_grow(a, n, 1) : (a))
 #define _array_grow(a,n,f)           (_array_growfn((void**)&(a), (n), (f), _array_elementsize(a)))
@@ -328,4 +328,3 @@ _array_resizefn(void** arr, size_t elements, size_t itemsize);
 \return         Array if valid, null if invalid */
 FOUNDATION_API const void*
 _array_verifyfn(const void* const* arr);
-

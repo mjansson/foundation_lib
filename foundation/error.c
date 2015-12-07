@@ -47,21 +47,14 @@ error_set_callback(error_callback_fn callback) {
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
-#include <stdio.h>
-
-#if FOUNDATION_PLATFORM_WINDOWS
-#  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
-#endif
-
 FOUNDATION_DECLARE_THREAD_LOCAL(error_context_t*, error_context, 0)
 
 void
 _error_context_push(const char* name, size_t name_length, const char* data, size_t data_length) {
 	error_context_t* context = get_thread_error_context();
 	if (!context) {
-		context = memory_allocate(0, sizeof(error_context_t) +
-		                          (sizeof(error_frame_t) *
-		                           _foundation_config.error_context_depth), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		size_t capacity = sizeof(error_context_t) + (sizeof(error_frame_t) * _foundation_config.error_context_depth);
+		context = memory_allocate(0, capacity, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_error_context(context);
 	}
 	context->frame[ context->depth ].name.str = name ? name : "<something>";

@@ -133,10 +133,11 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 	char local_buffer[385];
 	char* buffer = local_buffer;
 	FOUNDATION_UNUSED(format_length);
+	/*lint -e716 */
 	while (1) {
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if (_log_prefix)
-			need = snprintf(buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %.*s", timestamp.hours,
+			need = snprintf(buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%u> %.*s", timestamp.hours,
 			                timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length, prefix);
 		else
 			need = snprintf(buffer, (size_t)size, "%.*s", (int)prefix_length, prefix);

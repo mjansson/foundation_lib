@@ -806,7 +806,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #    define _CRT_SECURE_NO_WARNINGS 1
 #  endif
 
-#  define _Static_assert static_assert
+#  ifndef _LINT
+#    define _Static_assert static_assert
+#  endif
 
 #  ifndef __cplusplus
 typedef enum {

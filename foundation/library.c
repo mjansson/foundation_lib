@@ -26,6 +26,7 @@
 #if FOUNDATION_SUPPORT_LIBRARY_LOAD
 
 struct library_t {
+	/*lint -e754 */
 	FOUNDATION_DECLARE_OBJECT;
 
 	char    name[32];
@@ -135,8 +136,9 @@ library_load(const char* name, size_t length) {
 		}
 	}
 	if (!dll) {
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%.*s': %s"),
-		          name, length, system_error_message(0));
+		string_const_t errmsg = system_error_message(0);
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%.*s': %.*s"),
+		          (int)length, name, STRING_FORMAT(errmsg));
 		error_context_pop();
 		return 0;
 	}

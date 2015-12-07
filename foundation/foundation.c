@@ -87,6 +87,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	
 	foundation_initialize_config(config);
 
+	/*lint -e774 */
 	SUBSYSTEM_INIT(atomic);
 	SUBSYSTEM_INIT_ARGS(memory, memory);
 	SUBSYSTEM_INIT(static_hash);
@@ -121,6 +122,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	}
 
 	//Artificial references
+	/*lint -e506 */
 #if FOUNDATION_PLATFORM_ANDROID
 	android_main(0);
 #elif FOUNDATION_PLATFORM_PNACL

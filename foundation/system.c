@@ -166,7 +166,7 @@ _system_finalize(void) {
 
 int
 system_error(void) {
-	return GetLastError();
+	return (int)GetLastError();
 }
 
 void

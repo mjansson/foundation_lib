@@ -11,7 +11,6 @@
  */
 
 #include <foundation/foundation.h>
-#include <foundation/internal.h>
 
 static crash_dump_callback_fn  _crash_dump_callback;
 static string_const_t          _crash_dump_name;
@@ -211,7 +210,7 @@ int
 crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
             size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
-	int ret = FOUNDATION_CRASH_DUMP_GENERATED;
+	int ret;
 	string_t crash_dump_file = string_allocate(0, BUILD_MAX_PATHLEN);
 	crash_dump_file.length = BUILD_MAX_PATHLEN;
 #endif
@@ -224,9 +223,10 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
 	__try {
 		ret = fn(data);
-	}
+	} /*lint -e534*/
 	__except (_crash_create_mini_dump(GetExceptionInformation(), string_const(name, length), crash_dump_file),
 	          EXCEPTION_EXECUTE_HANDLER) {
+		ret = FOUNDATION_CRASH_DUMP_GENERATED;
 		if (callback)
 			callback(STRING_ARGS(crash_dump_file));
 

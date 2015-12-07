@@ -54,16 +54,24 @@ _environment_ns_temporary_directory(char*, size_t);
 
 static application_t _environment_app;
 static string_t* _environment_argv;
+
+#if FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_PNACL
 static int _environment_main_argc;
 static const char* const* _environment_main_argv;
+#endif
 
 static void
 _environment_clean_temporary_directory(bool recreate);
 
 void
 _environment_main_args(int argc, const char* const* argv) {
+#if FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_PNACL
 	_environment_main_argc = argc;
 	_environment_main_argv = argv;
+#else
+	FOUNDATION_UNUSED(argc);
+	FOUNDATION_UNUSED(argv);
+#endif
 }
 
 #if !FOUNDATION_PLATFORM_PNACL
@@ -105,7 +113,6 @@ _environment_initialize(const application_t application) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ia;
 	int num_args = 0;
-	DWORD ret = 0;
 	wchar_t module_filename[BUILD_MAX_PATHLEN];
 	LPWSTR* arg_list = CommandLineToArgvW(GetCommandLineW(), &num_args);
 	if (!arg_list)
@@ -119,7 +126,7 @@ _environment_initialize(const application_t application) {
 	LocalFree(arg_list);
 
 	if (GetModuleFileNameW(0, module_filename, BUILD_MAX_PATHLEN)) {
-		string_t exe_path = string_convert_utf16(buffer, sizeof(buffer), module_filename,
+		string_t exe_path = string_convert_utf16(buffer, sizeof(buffer), (uint16_t*)module_filename,
 		                                         wstring_length(module_filename));
 		exe_path = path_absolute(exe_path.str, exe_path.length, BUILD_MAX_PATHLEN);
 
@@ -554,7 +561,7 @@ environment_variable(const char* var, size_t length) {
 	wchar_t* key = wstring_allocate_from_string(STRING_ARGS(varstr));
 	wchar_t val[BUILD_MAX_PATHLEN]; val[0] = 0;
 	if ((required = GetEnvironmentVariableW(key, val, BUILD_MAX_PATHLEN)) > BUILD_MAX_PATHLEN) {
-		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * (required + 2), 0, MEMORY_TEMPORARY);
+		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * ((size_t)required + 2), 0, MEMORY_TEMPORARY);
 		val_local[0] = 0;
 		required = GetEnvironmentVariableW(key, val_local, required + 1);
 		if (_environment_var.str)

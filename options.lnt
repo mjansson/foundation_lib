@@ -1,5 +1,5 @@
 
--d_WIN64
+-d_WIN64 -d_LINT
 
 -A(C2011)
 
@@ -7,5 +7,8 @@
 
 -e717  // We use do { ... } while(0) construct
 -e747  // We do not care about promotion of int constants (like 1) to unsigned long and similar (avoid having to write 1U everywhere)
+-e801  // We use goto to avoid function cleanup code duplication
+-e820  // We use while ((foo = bar())) style condensing to avoid while (1) { if (!foo) break; ... } constructs
 -e826  // We use struct "inheritance" and cast between structs of incompatible sizes
+-e835  // We give 0 as left argument to | operator (for example, MEMORY_PERSISTENT flag which is only for orthogonality to MEMORY_TEMPORARY)
 -e917  // We don't care about (for example) integer constants being coerced to unsigned int (passing 0 instead of 0U to a function taking unsigned int arg)

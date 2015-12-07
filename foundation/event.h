@@ -48,7 +48,7 @@ can be completed if in contention with another thread.
 \param payload   Event payload
 \param size      Event payload size */
 FOUNDATION_API void
-event_post(event_stream_t* stream, uint16_t id, object_t object, tick_t delivery,
+event_post(event_stream_t* stream, int id, object_t object, tick_t delivery,
            const void* payload, size_t size);
 
 /*! Post event to stream with multiple payload fragments. Each fragment must be a
@@ -62,7 +62,7 @@ contention with another thread.
 \param payload   Event payload
 \param size      Event payload size */
 FOUNDATION_API void
-event_post_varg(event_stream_t* stream, uint16_t id, object_t object, tick_t delivery,
+event_post_varg(event_stream_t* stream, int id, object_t object, tick_t delivery,
                 const void* payload, size_t size, ...) FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Post event to stream with multiple payload fragments. Each fragment must be a
@@ -77,7 +77,7 @@ contention with another thread.
 \param size      Event payload size
 \param list      Payload fragment argument list */
 FOUNDATION_API void
-event_post_vlist(event_stream_t* stream, uint16_t id, object_t object, tick_t delivery,
+event_post_vlist(event_stream_t* stream, int id, object_t object, tick_t delivery,
                  const void* payload, size_t size, va_list list);
 
 /*! Get next event during procesing

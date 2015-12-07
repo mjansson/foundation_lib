@@ -42,7 +42,6 @@ struct config_section_t {
 	struct config_key_t* key[CONFIG_KEY_BUCKETS];
 };
 
-typedef enum config_type_t config_type_t;
 typedef FOUNDATION_ALIGN(8) struct config_key_t config_key_t;
 typedef FOUNDATION_ALIGN(8) struct config_section_t config_section_t;
 
@@ -157,7 +156,6 @@ _expand_string(hash_t section_current, string_t str) {
 		                         (var_end_pos != STRING_NPOS) ? (1 + var_end_pos - var_pos) : STRING_NPOS);
 
 		section = section_current;
-		key = 0;
 		separator = string_find(STRING_ARGS(variable), ':', 0);
 		if (separator != STRING_NPOS) {
 			if (separator != 2)
@@ -174,7 +172,7 @@ _expand_string(hash_t section_current, string_t str) {
 			value = config_string(section, key);
 		else
 			value = _expand_environment(key, string_substr(STRING_ARGS(variable), var_offset,
-			                                               variable.length - var_offset - 1));
+			                                               variable.length - (var_offset + 1)));
 
 		newlength += (value.length > variable.length) ? value.length - variable.length : 0;
 		if (newlength >= capacity) {
@@ -251,7 +249,7 @@ _config_finalize(void) {
 	}
 }
 
-static string_const_t platformsuffix =
+static const string_const_t platformsuffix =
 #if FOUNDATION_PLATFORM_WINDOWS
 { STRING_CONST("/windows") };
 #elif FOUNDATION_PLATFORM_MACOSX
@@ -445,6 +443,9 @@ config_make_path(int path, char* buffer, size_t capacity) {
 #else
 		break;
 #endif
+
+	default:
+		break;
 	}
 	return (string_t) { 0, 0 };
 }
@@ -768,7 +769,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			}
 
 			name = string_strip(stripped.str, separator, STRING_CONST(" \t"));
-			value = string_strip(stripped.str + separator + 1, stripped.length - separator - 1,
+			value = string_strip(stripped.str + separator + 1, stripped.length - (separator + 1),
 			                     STRING_CONST(" \t"));
 			if (!name.length) {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG

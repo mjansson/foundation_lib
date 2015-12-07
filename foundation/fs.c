@@ -69,12 +69,13 @@ typedef FILE* fs_file_descriptor;
 #endif
 
 struct fs_monitor_t {
-	bool       inuse;
 	string_t   path;
 	thread_t   thread;
+	bool       inuse;
 };
 
 struct stream_file_t {
+	/*lint -e830 -e754 It is used, through stream type */
 	FOUNDATION_DECLARE_STREAM;
 
 	fs_file_descriptor fd;
@@ -112,7 +113,7 @@ _fs_strip_protocol(const char* path, size_t length) {
 	if (!diff)
 		return stripped;
 	if (((diff == 6) || (diff == 7)) &&
-		string_equal(path, 6, STRING_CONST("file:/")))
+	        string_equal(path, 6, STRING_CONST("file:/")))
 		return stripped;
 	return string_empty();
 }
@@ -178,10 +179,10 @@ fs_monitor(const char* path, size_t length) {
 	string_t path_clone;
 
 	mutex_lock(_fs_monitor_lock);
-	
+
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
 		if (_fs_monitors[mi].inuse &&
-		      string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
+		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
 			mutex_unlock(_fs_monitor_lock);
 			return true;
 		}
@@ -214,7 +215,7 @@ fs_monitor(const char* path, size_t length) {
 
 	memory_context_pop();
 	mutex_unlock(_fs_monitor_lock);
-	
+
 #else
 	FOUNDATION_UNUSED(path);
 	FOUNDATION_UNUSED(length);
@@ -226,7 +227,7 @@ static void
 _fs_stop_monitor(fs_monitor_t* monitor) {
 	if (!monitor->inuse)
 		return;
-	
+
 	thread_signal(&monitor->thread);
 	thread_finalize(&monitor->thread);
 	string_deallocate(monitor->path.str);
@@ -236,12 +237,12 @@ _fs_stop_monitor(fs_monitor_t* monitor) {
 void
 fs_unmonitor(const char* path, size_t length) {
 	size_t mi;
-	
+
 	mutex_lock(_fs_monitor_lock);
-	
+
 	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
 		if (_fs_monitors[mi].inuse &&
-		      string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
+		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
 			_fs_stop_monitor(_fs_monitors + mi);
 	}
 
@@ -398,11 +399,13 @@ fs_subdirs(const char* path, size_t length) {
 	find = FindFirstFileW(wpattern, &data);
 	if (find != INVALID_HANDLE_VALUE) do {
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+				string_t filename;
 				if (data.cFileName[0] == L'.') {
 					if (!data.cFileName[1] || (data.cFileName[1] == L'.'))
 						continue; //Don't include . and .. directories
 				}
-				array_push(arr, string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName)));
+				filename = string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName));
+				array_push(arr, filename);
 			}
 		}
 		while (FindNextFileW(find, &data));
@@ -598,7 +601,7 @@ fs_files(const char* path, size_t length) {
 
 bool
 fs_remove_file(const char* path, size_t length) {
-	bool result = false;
+	bool result;
 	string_const_t fspath;
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wpath;
@@ -649,6 +652,7 @@ fs_remove_file(const char* path, size_t length) {
 
 bool
 fs_remove_directory(const char* path, size_t length) {
+	/*lint --e{438,613,838} Lint gets seriously confused about the arrays here */
 	bool result = false;
 	string_t* subpaths;
 	string_t* subfiles;
@@ -862,7 +866,8 @@ fs_last_modified(const char* path, size_t length) {
 	//This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan 1601" was
 	//a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date for unix time, 1 Jan 1970, is 116444736000000000
 	const int64_t ms_offset_time = 116444736000000000LL;
-	int64_t last_write_time;
+	tick_t last_write_time;
+	uint64_t high_time, low_time;
 	wchar_t* wpath;
 	WIN32_FILE_ATTRIBUTE_DATA attrib;
 	BOOL success = 0;
@@ -887,10 +892,11 @@ fs_last_modified(const char* path, size_t length) {
 	if (!success)
 		return 0;
 
-	last_write_time = ((int64_t)attrib.ftLastWriteTime.dwHighDateTime << 32ULL) +
-	                  (int64_t)attrib.ftLastWriteTime.dwLowDateTime;
+	high_time = (uint64_t)attrib.ftLastWriteTime.dwHighDateTime;
+	low_time = (uint64_t)attrib.ftLastWriteTime.dwLowDateTime;
+	last_write_time = (tick_t)((high_time << 32ULL) + low_time);
 
-	return (last_write_time > ms_offset_time) ? ((last_write_time - ms_offset_time) / 10000ULL) : 0;
+	return (last_write_time > ms_offset_time) ? ((last_write_time - ms_offset_time) / 10000LL) : 0;
 
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -1013,7 +1019,7 @@ fs_temporary_file(void) {
 string_t*
 fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool recurse) {
 	string_t* names = 0;
-	string_t* subdirs = 0;
+	string_t* subdirs;
 	string_t localpath;
 	size_t id, dsize, in, nsize, capacity;
 
@@ -1039,7 +1045,8 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 
 	if (find != INVALID_HANDLE_VALUE) do {
 			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				string_t filestr = string_convert_utf16(filename, BUILD_MAX_PATHLEN, data.cFileName,
+				string_t filestr = string_convert_utf16(filename, BUILD_MAX_PATHLEN,
+				                                        (const uint16_t*)data.cFileName,
 				                                        wstring_length(data.cFileName));
 				if (regex_match(pattern, STRING_ARGS(filestr), 0, 0)) {
 					filestr = string_clone(STRING_ARGS(filestr));
@@ -1084,6 +1091,7 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 	localpath = string_allocate(0, capacity);
 	localpath = string_copy(localpath.str, BUILD_MAX_PATHLEN, path, length);
 
+	/*lint --e{438,613,838} Lint gets seriously confused about the arrays here */
 	for (id = 0, dsize = array_size(subdirs); id < dsize; ++id) {
 		string_t* subnames;
 		localpath = path_append(localpath.str, length, capacity, STRING_ARGS(subdirs[id]));
@@ -1209,7 +1217,7 @@ _fs_event_stream_flush(void* stream);
 
 #if FOUNDATION_HAVE_FS_MONITOR
 
-void*
+static void*
 _fs_monitor(void* monitorptr) {
 	fs_monitor_t* monitor = monitorptr;
 	bool keep_running = true;
@@ -1222,8 +1230,8 @@ _fs_monitor(void* monitorptr) {
 	BOOL success = FALSE;
 	HANDLE dir = 0;
 	wchar_t* wfpath = 0;
-	void* buffer = 0;
-	HANDLE handle = INVALID_HANDLE_VALUE;
+	void* buffer;
+	HANDLE handle;
 	int event;
 	int wait_status;
 	beacon_t* beacon = &thread_self()->beacon;
@@ -1233,8 +1241,9 @@ _fs_monitor(void* monitorptr) {
 	buffer = memory_allocate(0, buffer_size, 8, MEMORY_PERSISTENT);
 	handle = CreateEvent(0, FALSE, FALSE, 0);
 	if (handle == INVALID_HANDLE_VALUE) {
-		string_const_t errstr = system_error_message(GetLastError());
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %.*s : %.*s"),
+		string_const_t errstr = system_error_message(0);
+		log_warnf(0, WARNING_SUSPICIOUS,
+		          STRING_CONST("Unable to create event to monitor path: %.*s : %.*s"),
 		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
@@ -1285,7 +1294,7 @@ _fs_monitor(void* monitorptr) {
 		wstring_deallocate(wfpath);
 	}
 	if (dir == INVALID_HANDLE_VALUE) {
-		string_const_t errstr = system_error_message(GetLastError());
+		string_const_t errstr = system_error_message(0);
 		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %.*s : %.*s"),
 		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
@@ -1308,7 +1317,7 @@ _fs_monitor(void* monitorptr) {
 		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size,
 		                                &overlap, 0);
 		if (!success) {
-			string_const_t errstr = system_error_message(GetLastError());
+			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
 			          STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
 			          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
@@ -1326,7 +1335,7 @@ _fs_monitor(void* monitorptr) {
 			transferred = 0;
 			success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
 			if (!success) {
-				string_const_t errstr = system_error_message(GetLastError());
+				string_const_t errstr = system_error_message(0);
 				log_warnf(0, WARNING_SUSPICIOUS,
 				          STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
 				          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
@@ -1334,11 +1343,11 @@ _fs_monitor(void* monitorptr) {
 			else {
 				PFILE_NOTIFY_INFORMATION info = buffer;
 				do {
-					int numchars = info->FileNameLength / sizeof(wchar_t);
+					size_t numchars = info->FileNameLength / sizeof(wchar_t);
 					wchar_t term = info->FileName[ numchars ];
 					string_t utfstr;
 					string_t fullpath;
-					foundation_event_id event = 0;
+					foundation_event_id fsevent = 0;
 
 					info->FileName[ numchars ] = 0;
 					utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
@@ -1350,20 +1359,21 @@ _fs_monitor(void* monitorptr) {
 					}
 					else {
 						switch (info->Action) {
-						case FILE_ACTION_ADDED:     event = FOUNDATIONEVENT_FILE_CREATED; break;
-						case FILE_ACTION_REMOVED:   event = FOUNDATIONEVENT_FILE_DELETED; break;
-						case FILE_ACTION_MODIFIED:  if (fs_is_file(STRING_ARGS(fullpath))) event =
-								    FOUNDATIONEVENT_FILE_MODIFIED; break;
+						case FILE_ACTION_ADDED:     fsevent = FOUNDATIONEVENT_FILE_CREATED; break;
+						case FILE_ACTION_REMOVED:   fsevent = FOUNDATIONEVENT_FILE_DELETED; break;
+						case FILE_ACTION_MODIFIED:
+							if (fs_is_file(STRING_ARGS(fullpath)))
+								fsevent = FOUNDATIONEVENT_FILE_MODIFIED; break;
 
 						//Treat rename as delete/add pair
-						case FILE_ACTION_RENAMED_OLD_NAME: event = FOUNDATIONEVENT_FILE_DELETED; break;
-						case FILE_ACTION_RENAMED_NEW_NAME: event = FOUNDATIONEVENT_FILE_CREATED; break;
+						case FILE_ACTION_RENAMED_OLD_NAME: fsevent = FOUNDATIONEVENT_FILE_DELETED; break;
+						case FILE_ACTION_RENAMED_NEW_NAME: fsevent = FOUNDATIONEVENT_FILE_CREATED; break;
 
 						default: break;
 						}
 
-						if (event)
-							fs_post_event(event, STRING_ARGS(fullpath));
+						if (fsevent)
+							fs_post_event(fsevent, STRING_ARGS(fullpath));
 					}
 					string_deallocate(utfstr.str);
 					string_deallocate(fullpath.str);
@@ -1429,7 +1439,7 @@ skipwatch:
 			}
 			memory_deallocate(buffer);
 		}
-		
+
 #elif FOUNDATION_PLATFORM_MACOSX
 
 		if (event_stream)
@@ -1625,17 +1635,17 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 
 static size_t
 _fs_file_tell(stream_t* stream) {
-	ssize_t pos;
 	if (GET_FILE(stream)->fd == 0)
 		return 0;
 #if FOUNDATION_PLATFORM_PNACL
-	pos = (ssize_t)GET_FILE(stream)->position;
+	return GET_FILE(stream)->position;
 #elif FOUNDATION_PLATFORM_WINDOWS
-	pos = (ssize_t)_ftelli64(GET_FILE(stream)->fd);
+	int64_t pos = _ftelli64(GET_FILE(stream)->fd);
+	return (size_t)(pos < 0 ? 0 : pos);
 #else
-	pos = (ssize_t)ftello(GET_FILE(stream)->fd);
+	off_t pos = ftello(GET_FILE(stream)->fd);
+	return (size_t)(pos < 0 ? 0 : pos);
 #endif
-	return pos > 0 ? (size_t)pos : 0;
 }
 
 static void
@@ -1663,6 +1673,7 @@ _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 		}
 	}
 #else
+	/*lint -esym(970,long) */
 	if (fseek(GET_FILE(stream)->fd, (long)offset,
 	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET :
 	          ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR)))
@@ -1751,7 +1762,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #  endif
 	{
 		if (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-			string_const_t errstr = system_error_message(GetLastError());
+			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
 			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
 			          STRING_ARGS(fspath), length, STRING_ARGS(errstr));
@@ -1761,7 +1772,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	else {
 		LONG high = (LONG)(length >> 32LL);
 		if (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-			string_const_t errstr = system_error_message(GetLastError());
+			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
 			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
 			          STRING_ARGS(fspath), length, STRING_ARGS(errstr));
@@ -2020,11 +2031,11 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 	stream = GET_STREAM(file);
 	stream_initialize(stream, BUILD_DEFAULT_STREAM_BYTEORDER);
 
-	file->fd       = fd;
-	stream->type   = STREAMTYPE_FILE;
-	stream->mode   = mode & (STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC);
-	stream->path   = finalpath;
-	stream->vtable = &_fs_file_vtable;
+	file->fd     = fd;
+	file->type   = STREAMTYPE_FILE;
+	file->mode   = mode & (STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC);
+	file->path   = finalpath;
+	file->vtable = &_fs_file_vtable;
 
 #if FOUNDATION_PLATFORM_PNACL
 	struct PP_FileInfo fileinfo;
@@ -2130,9 +2141,9 @@ void
 _fs_finalize(void) {
 	size_t mi;
 	if (_fs_monitors) for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi)
-		_fs_stop_monitor(_fs_monitors + mi);
+			_fs_stop_monitor(_fs_monitors + mi);
 	mutex_deallocate(_fs_monitor_lock);
-	
+
 	event_stream_deallocate(_fs_event_stream);
 	_fs_event_stream = 0;
 
