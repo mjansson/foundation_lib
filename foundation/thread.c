@@ -360,6 +360,7 @@ thread_join(thread_t* thread) {
 #else
 #  error Not implemented
 #endif
+	atomic_thread_fence_release();
 	return thread->result;
 }
 

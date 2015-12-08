@@ -211,8 +211,8 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
             size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	int ret;
-	string_t crash_dump_file = string_allocate(0, BUILD_MAX_PATHLEN);
-	crash_dump_file.length = BUILD_MAX_PATHLEN;
+	string_t crash_dump_file;
+	char buffer[MAX_PATH];
 #endif
 
 	//Make sure path is initialized
@@ -221,6 +221,8 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
+	crash_dump_file.str = buffer;
+	crash_dump_file.length = sizeof(buffer);
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
@@ -232,7 +234,6 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 
 		error_context_clear();
 	}
-	string_deallocate(crash_dump_file.str);
 	return ret;
 #  else
 	SetUnhandledExceptionFilter(_crash_exception_filter);

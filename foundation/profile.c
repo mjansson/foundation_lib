@@ -34,7 +34,7 @@ struct profile_block_data_t {
 	tick_t                end;
 	char                  name[ MAX_MESSAGE_LENGTH + 1 ];
 }; //sizeof( profile_block_data ) == 58
-//FOUNDATION_STATIC_ASSERT(sizeof(profile_block_data_t) == 58, "profile_block_data_t size");
+FOUNDATION_STATIC_ASSERT(sizeof(profile_block_data_t) == 58, "profile_block_data_t size");
 
 struct profile_block_t {
 	profile_block_data_t  data;
@@ -42,7 +42,7 @@ struct profile_block_t {
 	uint16_t              sibling;
 	uint16_t              child;
 }; //sizeof( profile_block ) == 64
-//FOUNDATION_STATIC_ASSERT(sizeof(profile_block_t) == 64, "profile_block_t size");
+FOUNDATION_STATIC_ASSERT(sizeof(profile_block_t) == 64, "profile_block_t size");
 
 #pragma pack(pop)
 

@@ -61,7 +61,7 @@ DECLARE_TEST(app, environment) {
 	return 0;
 }
 
-static void*
+static FOUNDATION_NOINLINE void*
 memory_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	int iloop, lsize;
@@ -76,12 +76,13 @@ memory_thread(void* arg) {
 #else
 		EXPECT_EQ((uintptr_t)mem & 0x0F, 0);
 #endif
-		thread_yield();
-		memory_deallocate(mem);
 		if (!min || (mem < min))
 			min = mem;
 		if (!max || (mem > max))
 			max = mem;
+		thread_yield();
+		memory_deallocate(mem);
+		thread_yield();
 	}
 
 	diff = (uintptr_t)pointer_diff(max, min);
@@ -92,9 +93,9 @@ memory_thread(void* arg) {
 }
 
 DECLARE_TEST(app, memory) {
-	thread_t thread[32];
+	thread_t thread[16];
 	size_t ith;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 2, 32);
+	size_t num_threads = math_clamp(system_hardware_threads() * 2, 2, 16);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
 	memory_statistics_t oldstats, newstats;

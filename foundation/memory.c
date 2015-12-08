@@ -821,11 +821,10 @@ _memory_tracker_track(void* addr, size_t size) {
 			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, 0)) {
 				_memory_tags[tag].size = size;
 				stacktrace_capture(_memory_tags[tag].trace, 14, 3);
-				//hashtable_set(_memory_table, (uintptr_t)addr, (uintptr_t)(tag + 1));
 				break;
 			}
 		}
-		while (limit++ < _foundation_config.memory_tracker_max);
+		while (limit++ < _foundation_config.memory_tracker_max*2);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		atomic_incr64(&_memory_stats.allocations_total);
