@@ -357,6 +357,7 @@ DECLARE_TEST(regex, invalid) {
 	regex = (regex_t*)buffer;
 	regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_TRUE(regex_parse(regex, STRING_CONST("te")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("tes")));
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te^")));
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te$")));
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te(capture)")));
@@ -371,6 +372,11 @@ DECLARE_TEST(regex, invalid) {
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te*")));
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t*?")));
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te?")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\64")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\s")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\0")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|st")));
 
 	return 0;
 }
