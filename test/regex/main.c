@@ -73,6 +73,13 @@ DECLARE_TEST(regex, exact) {
 
 	regex_deallocate(regex);
 
+	regex = regex_compile(STRING_CONST("^[\\s]*^TEST$"));
+	EXPECT_NE(regex, 0);
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("TEST"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("   TEST"), 0, 0));
+
+	regex_deallocate(regex);
+
 	EXPECT_TRUE(regex_match(0, STRING_CONST("TEST REGEX"), 0, 0));
 
 	return 0;
@@ -210,14 +217,16 @@ DECLARE_TEST(regex, quantifier) {
 
 	regex_deallocate(regex);
 
-	regex = regex_compile(STRING_CONST("^[abcd]+en?d*$"));
+	regex = regex_compile(STRING_CONST("^[abc\\64]+en?d*[fo]*$"));
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabendddd"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabeddddfoooo"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabeddddfooood"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("aen"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("den"), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbecdend"), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("end"), 0, 0));
-	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbcdd"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbcddfood"), 0, 0));
 
 	regex_deallocate(regex);
 
@@ -320,6 +329,7 @@ DECLARE_TEST(regex, captures) {
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("something at endofline"), captures, 16));
 	EXPECT_CONSTSTRINGEQ(captures[0], string_const(STRING_CONST("endofline")));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("whitespace at endofline \t"), captures, 16));
 
 	regex_deallocate(regex);
 
@@ -329,6 +339,7 @@ DECLARE_TEST(regex, captures) {
 DECLARE_TEST(regex, invalid) {
 	regex_t* regex;
 	regex_t predef;
+	char buffer[sizeof(regex_t) + 4];
 
 	regex = regex_compile(STRING_CONST("++??.+*?"));
 	EXPECT_EQ(regex, nullptr);
@@ -341,6 +352,25 @@ DECLARE_TEST(regex, invalid) {
 
 	memset(&predef, 0, sizeof(predef));
 	EXPECT_FALSE(regex_parse(&predef, STRING_CONST("test")));
+
+	memset(buffer, 0, sizeof(buffer));
+	regex = (regex_t*)buffer;
+	regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	EXPECT_TRUE(regex_parse(regex, STRING_CONST("te")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te^")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te$")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te(capture)")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("(longcapture)")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("(t)")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t)")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te[test]")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("[test]")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te.")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t*+")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t+*")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te*")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t*?")));
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te?")));
 
 	return 0;
 }

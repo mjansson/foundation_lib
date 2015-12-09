@@ -131,7 +131,7 @@ _regex_emit(regex_t** target, bool allow_grow, size_t ops, ...) {
 	size_t iop;
 	va_list arglist;
 
-	if ((*target)->code_length + ops >= (*target)->code_allocated) {
+	if ((*target)->code_length + ops > (*target)->code_allocated) {
 		size_t new_allocated;
 		if (!allow_grow)
 			return REGEXERR_TOO_LONG;
@@ -160,7 +160,7 @@ static size_t
 _regex_emit_buffer(regex_t** target, bool allow_grow, size_t ops, const uint8_t* buffer) {
 	size_t iop;
 
-	if ((*target)->code_length + ops >= (*target)->code_allocated) {
+	if ((*target)->code_length + ops > (*target)->code_allocated) {
 		size_t new_allocated;
 		if (!allow_grow)
 			return REGEXERR_TOO_LONG;
@@ -338,7 +338,7 @@ _regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t 
 
 			if ((offset + 1 < length) && _regex_is_hex(pattern + offset)) {
 				buffer[buffer_len++] = _regex_parse_hex(pattern + offset);
-				offset += 2;
+				++offset;
 			}
 			else if (offset < length) {
 				code = _regex_encode_escape(pattern[offset]);
@@ -667,7 +667,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 			if (maybe_context.inoffset <= inlength) {
 				op = maybe_context.op;
 				inoffset = maybe_context.inoffset;
-				break; // Match with one
+				break; // Matched with one
 			}
 		}
 
@@ -677,7 +677,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		if (context.inoffset <= inlength) {
 			op = context.op;
 			inoffset = context.inoffset;
-			break; // Match with one
+			break; // Matched with zero
 		}
 		return _regex_context_nomatch(next_op);
 
@@ -728,10 +728,10 @@ _regex_execute(regex_t* regex, size_t op, const char* input, size_t inoffset, si
 regex_t*
 regex_compile(const char* pattern, size_t pattern_length) {
 	regex_t* compiled;
-	compiled = memory_allocate(HASH_STRING, sizeof(regex_t) + pattern_length + 1, 0, MEMORY_PERSISTENT);
+	compiled = memory_allocate(HASH_STRING, sizeof(regex_t) + pattern_length + 16, 0, MEMORY_PERSISTENT);
 	compiled->num_captures = 0;
 	compiled->code_length = 0;
-	compiled->code_allocated = pattern_length + 1;
+	compiled->code_allocated = pattern_length + 16;
 
 	if (_regex_parse(&compiled, pattern, 0, pattern_length, true, 0) == pattern_length)
 		return compiled;
