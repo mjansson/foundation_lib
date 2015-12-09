@@ -272,13 +272,13 @@ stream_write(stream_t* stream, const void* buffer, size_t num_bytes);
 FOUNDATION_API void
 stream_write_bool(stream_t* stream, bool data);
 
-/*! Write char to stream.
+/*! Write byte to stream.
 \param stream Stream
 \param data Char to write */
 FOUNDATION_API void
 stream_write_int8(stream_t* stream, int8_t data);
 
-/*! Write byte to stream.
+/*! Write unsigned byte to stream.
 \param stream Stream
 \param data Byte to write */
 FOUNDATION_API void
