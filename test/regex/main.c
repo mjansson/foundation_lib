@@ -138,18 +138,6 @@ DECLARE_TEST(regex, any_block) {
 
 	regex_deallocate(regex);
 
-	//Too long group, parser will fail
-	regex = regex_compile(
-	            STRING_CONST(
-	                "^([aaaaaaaaaaaaaabbbbbbbbbbbbbbbbbcccccccccccccccccc"
-	                "ddddddddddddeeeeeeeeeeeeeefffffffffffffggggggggggggg"
-	                "hhhhhhhhhhhhiiiiiiiiiiiiiijjjjjjjjjjjjjkkkkkkkkkkkkk"
-	                "llllllllllllmmmmmmmmmmmmmmnnnnnnnnnnnnnooooooooooooo"
-	                "ppppppppppppqqqqqqqqqqqqqqrrrrrrrrrrrrrsssssssssssss"
-	                "ttttttttttttuuuuuuuuuuuuuuvvvvvvvvvvvvvwwwwwwwwwwwww"
-	                "xxxxxxxxxxxxyyyyyyyyyyyyyyzzzzzzzzzzzzz \\n\\r\\0])"));
-	EXPECT_EQ(regex, 0);
-
 	return 0;
 }
 
@@ -263,6 +251,24 @@ DECLARE_TEST(regex, branch) {
 
 	regex_deallocate(regex);
 
+	//Craft regex that will require reallocations
+	regex = regex_compile(STRING_CONST("^(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)$"));
+	EXPECT_NE(regex, 0);
+	regex_deallocate(regex);
+
+	regex = regex_compile(STRING_CONST("^(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"$"));
+	EXPECT_NE(regex, 0);
+	regex_deallocate(regex);
+
 	return 0;
 }
 
@@ -333,6 +339,14 @@ DECLARE_TEST(regex, captures) {
 
 	regex_deallocate(regex);
 
+	regex = regex_compile(STRING_CONST("^([^abc]*)$"));
+
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("qwerty"), captures, 16));
+	EXPECT_CONSTSTRINGEQ(captures[0], string_const(STRING_CONST("qwerty")));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("qwerbty"), captures, 16));
+
+	regex_deallocate(regex);
+
 	return 0;
 }
 
@@ -398,6 +412,34 @@ DECLARE_TEST(regex, invalid) {
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|")));
 	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|st")));
+	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("^?$?")));
+	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("|?")));
+
+	//Too long op, parser will fail
+	regex = regex_compile(
+		STRING_CONST(
+			"^aaaaaaaaaaaaaabbbbbbbbbbbbbbbbbcccccccccccccccccc"
+			"ddddddddddddeeeeeeeeeeeeeefffffffffffffggggggggggggg"
+			"hhhhhhhhhhhhiiiiiiiiiiiiiijjjjjjjjjjjjjkkkkkkkkkkkkk"
+			"llllllllllllmmmmmmmmmmmmmmnnnnnnnnnnnnnooooooooooooo"
+			"ppppppppppppqqqqqqqqqqqqqqrrrrrrrrrrrrrsssssssssssss"
+			"ttttttttttttuuuuuuuuuuuuuuvvvvvvvvvvvvvwwwwwwwwwwwww"
+			"xxxxxxxxxxxxyyyyyyyyyyyyyyzzzzzzzzzzzzz \\n\\r\\0"));
+	EXPECT_EQ(regex, 0);
+
+	//Too long group, parser will fail
+	regex = regex_compile(
+		STRING_CONST(
+			"^([aaaaaaaaaaaaaabbbbbbbbbbbbbbbbbcccccccccccccccccc"
+			"ddddddddddddeeeeeeeeeeeeeefffffffffffffggggggggggggg"
+			"hhhhhhhhhhhhiiiiiiiiiiiiiijjjjjjjjjjjjjkkkkkkkkkkkkk"
+			"llllllllllllmmmmmmmmmmmmmmnnnnnnnnnnnnnooooooooooooo"
+			"ppppppppppppqqqqqqqqqqqqqqrrrrrrrrrrrrrsssssssssssss"
+			"ttttttttttttuuuuuuuuuuuuuuvvvvvvvvvvvvvwwwwwwwwwwwww"
+			"xxxxxxxxxxxxyyyyyyyyyyyyyyzzzzzzzzzzzzz \\n\\r\\0])"));
+	EXPECT_EQ(regex, 0);
 
 	return 0;
 }
