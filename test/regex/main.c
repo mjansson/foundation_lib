@@ -352,7 +352,7 @@ DECLARE_TEST(regex, captures) {
 
 FOUNDATION_ALIGNED_STRUCT(regexbuffer_t, 8)
 {
-	char buffer[sizeof(regex_t) + 4];
+	char buffer[sizeof(regex_t) + 8];
 };
 
 DECLARE_TEST(regex, invalid) {
