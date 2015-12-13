@@ -9,7 +9,7 @@ Unify all string apis to be inherently length aware to increase security and min
 
 1.4.1
 Pass PC-Lint tests with minimal suppressions
-100% code coverage in test suite
+95% code coverage in test suite
 
 1.4.2
 Example application and documentation

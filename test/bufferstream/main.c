@@ -216,6 +216,32 @@ DECLARE_TEST(bufferstream, null_grow) {
 
 	stream_deallocate(stream);
 
+	//Test invalid parameter combo (size > capacity) (!adopt && grow)
+	log_enable_stdout(false);
+	stream = buffer_stream_allocate(0, STREAM_IN | STREAM_OUT, 256, 0, false, true);
+	log_enable_stdout(true);
+	EXPECT_NE(stream, 0);
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 0);
+	EXPECT_EQ(stream_tell(stream), 0);
+	EXPECT_FALSE(stream_is_binary(stream));
+	EXPECT_FALSE(stream_is_sequential(stream));
+	EXPECT_TRUE(stream_is_reliable(stream));
+	EXPECT_TRUE(stream_is_inorder(stream));
+	EXPECT_CONSTSTRINGEQ(string_const(stream_path(stream).str, 11), string_const(STRING_CONST("buffer://0x")));
+	EXPECT_GE(stream_last_modified(stream), curtime);
+	EXPECT_EQ(stream_available_read(stream), 0);
+	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));
+
+	writestr = string_copy(writebuffer, sizeof(writebuffer),
+	                       STRING_CONST("MD5 test string for which the value is precomputed"));
+	EXPECT_EQ(stream_write(stream, writestr.str, writestr.length), 0);
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 0);
+	EXPECT_EQ(stream_tell(stream), 0);
+
+	stream_deallocate(stream);
+
 	return 0;
 }
 
@@ -352,7 +378,7 @@ DECLARE_TEST(bufferstream, sized_grow) {
 	tick_t curtime = time_current();
 	char readbuffer[1024] = {0};
 	char writebuffer[1024] = {0};
-	uint8_t* backing_store = memory_allocate(0, 1024, 0, MEMORY_PERSISTENT);
+	uint8_t* backing_store;
 	uint128_t md5null;
 	string_t writestr;
 
@@ -363,6 +389,7 @@ DECLARE_TEST(bufferstream, sized_grow) {
 		md5_deallocate(md5);
 	}
 
+	backing_store = memory_allocate(0, 1024, 0, MEMORY_PERSISTENT);
 	stream = buffer_stream_allocate(backing_store, STREAM_IN | STREAM_OUT, 315, 1024, true, true);
 	EXPECT_NE(stream, 0);
 	EXPECT_FALSE(stream_eos(stream));
@@ -408,6 +435,52 @@ DECLARE_TEST(bufferstream, sized_grow) {
 
 	stream_deallocate(stream);
 
+	backing_store = memory_allocate(0, 1024, 0, MEMORY_PERSISTENT);
+	stream = buffer_stream_allocate(backing_store, STREAM_IN | STREAM_OUT | STREAM_TRUNCATE, 315, 1024, true, true);
+	EXPECT_NE(stream, 0);
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 0);
+	EXPECT_EQ(stream_tell(stream), 0);
+	EXPECT_FALSE(stream_is_binary(stream));
+	EXPECT_FALSE(stream_is_sequential(stream));
+	EXPECT_TRUE(stream_is_reliable(stream));
+	EXPECT_TRUE(stream_is_inorder(stream));
+	EXPECT_TRUE(string_equal(stream_path(stream).str, 11, "buffer://0x", 11));
+	EXPECT_GE(stream_last_modified(stream), curtime);
+	EXPECT_EQ(stream_available_read(stream), 0);
+	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));
+
+	writestr = string_copy(writebuffer, 1024,
+	                       STRING_CONST("MD5 test string for which the value is precomputed"));
+	EXPECT_EQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), writestr.length);
+	EXPECT_EQ(stream_tell(stream), writestr.length);
+	EXPECT_EQ(stream_available_read(stream), 0);
+
+	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
+	EXPECT_EQ(stream_read(stream, readbuffer, 1024), writestr.length);
+	EXPECT_TRUE(string_equal(readbuffer, writestr.length, STRING_ARGS(writestr)));
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), writestr.length);
+	EXPECT_EQ(stream_tell(stream), writestr.length);
+	EXPECT_EQ(stream_available_read(stream), 0);
+
+	stream_truncate(stream, 2048);
+	EXPECT_FALSE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 2048);
+	EXPECT_EQ(stream_tell(stream), writestr.length);
+	EXPECT_EQ(stream_available_read(stream), 2048 - writestr.length);
+
+	EXPECT_EQ(stream_read(stream, readbuffer, 1024), 1024);
+	EXPECT_EQ(stream_write(stream, writebuffer, 1024), 1024);
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 2048 + writestr.length);
+	EXPECT_EQ(stream_tell(stream), 2048 + writestr.length);
+	EXPECT_EQ(stream_available_read(stream), 0);
+
+	stream_deallocate(stream);
+
 	return 0;
 }
 
@@ -443,15 +516,38 @@ DECLARE_TEST(bufferstream, sized_nogrow) {
 
 	writestr = string_copy(writebuffer, 1024,
 	                       STRING_CONST("MD5 test string for which the value is precomputed"));
-	EXPECT_EQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
+	EXPECT_SIZEEQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
 	EXPECT_FALSE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), 315);
 	EXPECT_EQ(stream_tell(stream), writestr.length);
 	EXPECT_EQ(stream_available_read(stream), 315 - writestr.length);
 
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
-	EXPECT_EQ(stream_read(stream, readbuffer, 1024), 315);
+	EXPECT_SIZEEQ(stream_read(stream, readbuffer, 1024), 315);
 	EXPECT_TRUE(string_equal(readbuffer, writestr.length, STRING_ARGS(writestr)));
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 315);
+	EXPECT_EQ(stream_tell(stream), 315);
+	EXPECT_EQ(stream_available_read(stream), 0);
+
+	stream_seek(stream, -310, STREAM_SEEK_CURRENT);
+	EXPECT_SIZEEQ(stream_read(stream, readbuffer, 1024), 310);
+	EXPECT_TRUE(string_equal(readbuffer, writestr.length - 5, writestr.str + 5, writestr.length - 5));
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 315);
+	EXPECT_EQ(stream_tell(stream), 315);
+	EXPECT_EQ(stream_available_read(stream), 0);
+
+	stream_seek(stream, -310, STREAM_SEEK_END);
+	EXPECT_SIZEEQ(stream_read(stream, readbuffer, 1024), 310);
+	EXPECT_TRUE(string_equal(readbuffer, writestr.length - 5, writestr.str + 5, writestr.length - 5));
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 315);
+	EXPECT_EQ(stream_tell(stream), 315);
+	EXPECT_EQ(stream_available_read(stream), 0);
+
+	stream_seek(stream, 16, STREAM_SEEK_CURRENT);
+	EXPECT_SIZEEQ(stream_read(stream, readbuffer, 1024), 0);
 	EXPECT_TRUE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), 315);
 	EXPECT_EQ(stream_tell(stream), 315);
@@ -463,6 +559,7 @@ DECLARE_TEST(bufferstream, sized_nogrow) {
 	EXPECT_EQ(stream_tell(stream), 315);
 	EXPECT_EQ(stream_available_read(stream), 1024 - 315);
 
+	stream_flush(stream);
 	EXPECT_EQ(stream_read(stream, readbuffer, 1024), 1024 - 315);
 	EXPECT_EQ(stream_write(stream, writebuffer, 1024), 0);
 	EXPECT_TRUE(stream_eos(stream));
@@ -470,7 +567,22 @@ DECLARE_TEST(bufferstream, sized_nogrow) {
 	EXPECT_EQ(stream_tell(stream), 1024);
 	EXPECT_EQ(stream_available_read(stream), 0);
 
+	stream_truncate(stream, 8);
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 8);
+	EXPECT_EQ(stream_tell(stream), 8);
+	EXPECT_EQ(stream_available_read(stream), 0);
+
 	stream_deallocate(stream);
+
+	stream = buffer_stream_allocate(backing_store, STREAM_IN | STREAM_OUT | STREAM_ATEND, 315, 1024, false, false);
+	EXPECT_NE(stream, 0);
+	EXPECT_TRUE(stream_eos(stream));
+	EXPECT_EQ(stream_size(stream), 315);
+	EXPECT_EQ(stream_tell(stream), 315);
+
+	stream_deallocate(stream);
+
 	memory_deallocate(backing_store);
 
 	return 0;

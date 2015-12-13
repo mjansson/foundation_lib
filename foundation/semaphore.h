@@ -42,15 +42,15 @@ or it will be considered to be still in use (on OSX/iOS targets this will cause 
 FOUNDATION_API void
 semaphore_finalize(semaphore_t* semaphore);
 
-/*! Wait on semaphore.
+/*! Wait on semaphore indefinitely
 \param semaphore Semaphore
 \return true if successful, false if error or interrupted */
 FOUNDATION_API bool
 semaphore_wait(semaphore_t* semaphore);
 
-/*! Try waiting on semaphore.
+/*! Try waiting on semaphore for a given amount of time.
 \param semaphore Semaphore
-\param milliseconds Timeout in milliseconds
+\param milliseconds Timeout in milliseconds, 0 means no wait
 \return true if successful, false if timeout or error/interrupted */
 FOUNDATION_API bool
 semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds);
@@ -60,3 +60,12 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds);
 FOUNDATION_API void
 semaphore_post(semaphore_t* semaphore);
 
+#if FOUNDATION_PLATFORM_WINDOWS
+
+/*! Windows only, get OS handle for semaphore
+\param semaphore Semaphore
+\return Object handle */
+FOUNDATION_API void*
+semaphore_event_handle(semaphore_t* semaphore);
+
+#endif

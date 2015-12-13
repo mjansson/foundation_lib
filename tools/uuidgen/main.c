@@ -155,6 +155,7 @@ uuidgen_parse_command_line(const string_const_t* cmdline) {
 		}
 		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--random"))) {
 			uuid_instance_t instance;
+			memset(&instance, 0, sizeof(instance));
 			instance.method = METHOD_RANDOM;
 			instance.num = 1;
 			if ((arg < (asize - 1)) && (cmdline[arg + 1].str[0] != '-')) {
@@ -167,6 +168,7 @@ uuidgen_parse_command_line(const string_const_t* cmdline) {
 		}
 		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--time"))) {
 			uuid_instance_t instance;
+			memset(&instance, 0, sizeof(instance));
 			instance.method = METHOD_TIME;
 			instance.num = 1;
 			if ((arg < (asize - 1)) && (cmdline[arg + 1].str[0] != '-')) {
@@ -179,6 +181,7 @@ uuidgen_parse_command_line(const string_const_t* cmdline) {
 		}
 		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--md5"))) {
 			uuid_instance_t instance;
+			memset(&instance, 0, sizeof(instance));
 			instance.method = METHOD_NAMESPACE_MD5;
 			instance.num = 1;
 			if (arg < (asize - 1)) {
@@ -210,6 +213,7 @@ uuidgen_parse_command_line(const string_const_t* cmdline) {
 	if (!array_size(input.generate) && !input.display_help) {
 		//Default to one random-based UUID
 		uuid_instance_t instance;
+		memset(&instance, 0, sizeof(instance));
 		instance.method = METHOD_RANDOM;
 		instance.num = 1;
 		array_push_memcpy(input.generate, &instance);

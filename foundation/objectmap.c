@@ -22,37 +22,12 @@ _object_initialize(object_base_t* obj, object_t id) {
 	atomic_store32(&obj->ref, 1);
 }
 
-object_t
-_object_ref(object_base_t* obj) {
-	int32_t ref;
-	if (obj) do {
-			ref = atomic_load32(&obj->ref);
-			if ((ref > 0) && atomic_cas32(&obj->ref, ref + 1, ref))
-				return obj->id;
-		}
-		while (ref > 0);
-	return 0;
-}
-
-object_t
-_object_unref(object_base_t* obj) {
-	int32_t ref;
-	if (obj) do {
-			ref = atomic_load32(&obj->ref);
-			if ((ref > 0) && atomic_cas32(&obj->ref, ref - 1, ref))
-				return (ref == 1) ? 0 : obj->id;
-		}
-		while (ref > 0);
-	return 0;
-}
-
 objectmap_t*
 objectmap_allocate(size_t size) {
 	objectmap_t* map;
 
-	FOUNDATION_ASSERT_MSG(size > 2, "Invalid objectmap size");
-	if (size <= 2)
-		size = 2;
+	if (size < 3)
+		size = 3;
 
 	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(void*) * size), 16, MEMORY_PERSISTENT);
 
@@ -68,8 +43,8 @@ objectmap_initialize(objectmap_t* map, size_t size) {
 	uintptr_t next_indexshift;
 	void** slot;
 
-	FOUNDATION_ASSERT_MSG(size > 2, "Invalid objectmap size");
-	bits = (unsigned int)math_round(math_log2((real)size));     //Number of bits needed
+	//Number of bits needed to represent index
+	bits = (unsigned int)math_round(math_log2((real)size));
 	FOUNDATION_ASSERT_MSGFORMAT(bits < 50, "Invalid objectmap size %" PRIsize, size);
 
 	memset(map, 0, sizeof(objectmap_t) + (sizeof(void*) * size));
@@ -85,8 +60,8 @@ objectmap_initialize(objectmap_t* map, size_t size) {
 
 	slot = map->map;
 	for (ip = 0, next_indexshift = 3; ip < (size - 1); ++ip, next_indexshift += 2, ++slot)
-		* slot = (void*)next_indexshift;
-	*slot = (void*)((uintptr_t) - 1);
+		*slot = (void*)next_indexshift;
+	*slot = (void*)((uintptr_t)-1);
 }
 
 void
@@ -114,7 +89,6 @@ objectmap_finalize(objectmap_t* map) {
 
 size_t
 objectmap_size(const objectmap_t* map) {
-	FOUNDATION_ASSERT(map);
 	return (unsigned int)map->size;
 }
 
@@ -123,107 +97,114 @@ objectmap_raw_lookup(const objectmap_t* map, size_t idx) {
 	uintptr_t ptr;
 
 	/*lint --e{613} Performance path (no ptr checks)*/
-	FOUNDATION_ASSERT(map);
-	FOUNDATION_ASSERT(idx < map->size);
 	ptr = (uintptr_t)map->map[idx];
 	return (ptr & 1) ? 0 : (void*)ptr;
 }
 
 object_t
 objectmap_reserve(objectmap_t* map) {
-	size_t idx, next, id;
+	uint64_t raw, idx;
+	uint64_t next;
 
-	FOUNDATION_ASSERT(map);
-
-	//Reserve spot in array
+	//Reserve spot in array, using tag for ABA protection
+	uint64_t tag = (uint64_t)atomic_incr64(&map->id) & map->id_max;
+	while (!tag)
+		tag = (uint64_t)atomic_incr64(&map->id) & map->id_max; //Wrap-around handled by masking
 	//TODO: Look into double-ended implementation with allocation from tail and free push to head
 	do {
-		idx = (size_t)atomic_load64(&map->free);
+		raw = (uint64_t)atomic_load64(&map->free);
+		idx = raw & map->mask_index;
 		if (idx >= map->size) {
 			log_error(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Map full, unable to reserve id"));
 			return 0;
 		}
-		next = ((uintptr_t)map->map[idx]) >> 1;
+		next = (uintptr_t)map->map[idx] >> 1;
+		next = (next & map->mask_index) | (tag << map->size_bits);
 	}
-	while (!atomic_cas64(&map->free, (int64_t)next, (int64_t)idx));
+	while (!atomic_cas64(&map->free, (int64_t)next, (int64_t)raw));
 
 	//Sanity check that slot isn't taken
-	FOUNDATION_ASSERT_MSG((intptr_t)(map->map[idx]) & 1,
+	FOUNDATION_ASSERT_MSG((uintptr_t)map->map[idx] & 1,
 	                      "Map failed sanity check, slot taken after reserve");
 	map->map[idx] = 0;
 
-	//Allocate ID
-	id = 0;
-	do {
-		id = (size_t)atomic_incr64(&map->id) & map->id_max;   //Wrap-around handled by masking
-	}
-	while (!id);
-
 	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
-	FOUNDATION_ASSERT(((id << map->size_bits) & map->mask_id) == (id << map->size_bits));
+	FOUNDATION_ASSERT(((tag << map->size_bits) & map->mask_id) == (tag << map->size_bits));
 
-	return (id << map->size_bits) | idx;
+	return (tag << map->size_bits) | idx;
 }
 
-void
+bool
 objectmap_free(objectmap_t* map, object_t id) {
-	size_t idx, last;
+	uint64_t idx;
+	uint64_t raw, next, free;
+	void* object;
 
-	FOUNDATION_ASSERT(map);
-
-	idx = (size_t)(id & map->mask_index);
+	idx = id & map->mask_index;
 	if ((uintptr_t)map->map[idx] & 1)
-		return; //Already free
+		return false; //Already free
 
+	object = map->map[idx];
+	if (!FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id)))
+		return false;
+
+	free = idx | (((uint64_t)atomic_incr64(&map->id) << map->size_bits) & map->mask_id);
 	do {
-		last = (size_t)atomic_load64(&map->free);
-		map->map[idx] = (void*)((uintptr_t)(last << 1) | 1);
+		raw = (uint64_t)atomic_load64(&map->free);
+		next = (raw & map->mask_index) |
+		       (((uint64_t)atomic_incr64(&map->id) << map->size_bits) & map->mask_id);
+		map->map[idx] = (void*)((uintptr_t)(next << 1) | 1);
 	}
-	while (!atomic_cas64(&map->free, (int64_t)idx, (int64_t)last));
+	while (!atomic_cas64(&map->free, (int64_t)free, (int64_t)raw));
+
+	return true;
 }
 
-void
+bool
 objectmap_set(objectmap_t* map, object_t id, void* object) {
 	size_t idx;
 
-	FOUNDATION_ASSERT(map);
-
 	idx = (size_t)(id & map->mask_index);
+
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT(!(((uintptr_t)map->map[idx]) & 1));
-	FOUNDATION_ASSERT(!((uintptr_t)map->map[idx]));
-	if (!map->map[idx])
+	if (FOUNDATION_VALIDATE(!map->map[idx])) {
 		map->map[idx] = object;
+		return true;
+	}
+	return false;
 }
 
 void*
 objectmap_lookup_ref(const objectmap_t* map, object_t id) {
 	void* object;
+	int32_t ref;
 	do {
+		ref = 0;
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
-		    //ID in object is offset by 8 bytes
-		    ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
+		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
-			int32_t ref = atomic_load32(&base_obj->ref);
+			ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref + 1, ref))
 				return object;
 		}
 	}
-	while (object);
+	while (ref);
 	return 0;
 }
 
 bool
 objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn deallocate) {
 	void* object;
+	int32_t ref;
 	do {
+		ref = 0;
 		object = map->map[ id & map->mask_index ];
 		if (object && !((uintptr_t)object & 1) &&
-		    //ID in object is offset by 8 bytes
-		    ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id))) {
+		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
-			int32_t ref = atomic_load32(&base_obj->ref);
+			ref = atomic_load32(&base_obj->ref);
 			if (ref && atomic_cas32(&base_obj->ref, ref - 1, ref)) {
 				if (ref == 1) {
 					deallocate(id, object);
@@ -233,7 +214,7 @@ objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn
 			}
 		}
 	}
-	while (object);
+	while (ref);
 	return false;
 }
 

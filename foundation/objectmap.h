@@ -61,15 +61,17 @@ objectmap_reserve(objectmap_t* map);
 
 /*! Free a slot in the map
 \param map Object map
-\param id Object handle to free */
-FOUNDATION_API void
+\param id Object handle to free
+\return true if object freed, false if not */
+FOUNDATION_API bool
 objectmap_free(objectmap_t* map, object_t id);
 
 /*! Set object pointer for given slot
 \param map Object map
 \param id Object handle
-\param object Object pointer */
-FOUNDATION_API void
+\param object Object pointer
+\return true if object set, false if not */
+FOUNDATION_API bool
 objectmap_set(objectmap_t* map, object_t id, void* object);
 
 /*! Raw lookup of object pointer for map index
@@ -120,7 +122,6 @@ static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void*
 objectmap_lookup(const objectmap_t* map, object_t id) {
   void* object = map->map[ id & map->mask_index ];
   return (object && !((uintptr_t)object & 1) &&
-          //ID in object is offset by 8 bytes (uint64_t)
-          ((*((uint64_t*)object + 1) & map->mask_id) == (id & map->mask_id)) ?
+          ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id)) ?
           object : 0);
 }

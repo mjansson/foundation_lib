@@ -184,7 +184,7 @@ DECLARE_TEST(process, spawn) {
 
 DECLARE_TEST(process, kill) {
 	process_t* proc;
-	string_const_t args[] = { string_const(STRING_CONST("wait for kill")) };
+	string_const_t args[] = { string_const(STRING_CONST("wait for kill")), string_null() };
 	int ret;
 
 	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID) ||
@@ -208,7 +208,24 @@ DECLARE_TEST(process, kill) {
 	thread_sleep(500);
 
 	ret = process_wait(proc);
-	EXPECT_EQ_MSGFORMAT(ret, PROCESS_TERMINATED_SIGNAL, "ret: 0x%x", ret);
+	EXPECT_INTEQ(ret, PROCESS_TERMINATED_SIGNAL);
+
+	process_set_working_directory(proc, STRING_ARGS(environment_current_working_directory()));
+	process_set_executable_path(proc, STRING_CONST("bad path to executable"));
+	process_set_arguments(proc, args, sizeof(args) / sizeof(args[0]));
+	process_set_flags(proc, PROCESS_ATTACHED);
+
+	log_enable_stdout(false);
+	ret = process_spawn(proc);
+#if FOUNDATION_PLATFORM_WINDOWS
+	EXPECT_INTEQ(ret, PROCESS_INVALID_ARGS);
+#else	
+	EXPECT_INTEQ(ret, PROCESS_EXIT_FAILURE);
+#endif
+
+	log_enable_stdout(true);
+
+	EXPECT_FALSE(process_kill(proc));
 
 	process_deallocate(proc);
 

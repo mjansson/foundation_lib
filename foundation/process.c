@@ -68,8 +68,6 @@ process_finalize(process_t* proc) {
 
 void
 process_set_working_directory(process_t* proc, const char* path, size_t length) {
-	if (!proc)
-		return;
 	if (proc->wd.length <= length)
 		proc->wd = string_resize(proc->wd.str, proc->wd.length, proc->wd.length ? proc->wd.length + 1 : 0,
 		                         length + 1, 0);
@@ -78,8 +76,6 @@ process_set_working_directory(process_t* proc, const char* path, size_t length) 
 
 void
 process_set_executable_path(process_t* proc, const char* path, size_t length) {
-	if (!proc)
-		return;
 	if (proc->path.length <= length)
 		proc->path = string_resize(STRING_ARGS(proc->path),
 		                           proc->path.length ? proc->path.length + 1 : 0, length + 1, 0);
@@ -89,8 +85,6 @@ process_set_executable_path(process_t* proc, const char* path, size_t length) {
 void
 process_set_arguments(process_t* proc, const string_const_t* args, size_t num) {
 	size_t ia;
-	if (!proc)
-		return;
 	string_array_deallocate(proc->args);
 	for (ia = 0; ia < num; ++ia)
 		array_push(proc->args, string_clone(args[ia].str, args[ia].length));
@@ -98,21 +92,18 @@ process_set_arguments(process_t* proc, const string_const_t* args, size_t num) {
 
 void
 process_set_flags(process_t* proc, unsigned int flags) {
-	if (!proc)
-		return;
 	proc->flags = flags;
 }
 
 void
 process_set_verb(process_t* proc, const char* verb, size_t length) {
-	if (!proc)
-		return;
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (proc->verb.length <= length)
 		proc->verb = string_resize(proc->verb.str, proc->verb.length,
 		                           proc->verb.length ? proc->verb.length + 1 : 0, length + 1, 0);
 	proc->verb = string_copy(proc->verb.str, length + 1, verb, length);
 #else
+	FOUNDATION_UNUSED(proc);
 	FOUNDATION_UNUSED(verb);
 	FOUNDATION_UNUSED(length);
 #endif
@@ -120,21 +111,19 @@ process_set_verb(process_t* proc, const char* verb, size_t length) {
 
 int
 process_spawn(process_t* proc) {
-	static string_const_t unescaped = { STRING_CONST("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:/\\") };
+	static const string_const_t unescaped = { STRING_CONST("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:/\\") };
 	size_t i, num_args;
 	size_t size;
 #if FOUNDATION_PLATFORM_WINDOWS
 	wchar_t* wcmdline;
 	wchar_t* wwd;
-	string_t cmdline = (string_t){0, 0};
+	string_t cmdline;
+#endif
+#if !FOUNDATION_PLATFORM_POSIX
 	size_t capacity;
 #endif
 
-	if (!proc)
-		return PROCESS_INVALID_ARGS;
-
 	proc->code = PROCESS_INVALID_ARGS;
-
 	if (!proc->path.length)
 		return proc->code;
 
@@ -177,7 +166,7 @@ process_spawn(process_t* proc) {
 					if (arg.str[ pos - 1 ] != '\\') {
 						string_const_t right = string_substr(STRING_ARGS(arg), 0, pos);
 						string_const_t left = string_substr(STRING_ARGS(arg), pos, STRING_NPOS);
-						size_t capacity = arg.length + 2;
+						capacity = arg.length + 2;
 						escarg = string_allocate(0, capacity);
 						escarg = string_concat(escarg.str, capacity, STRING_ARGS(right), STRING_CONST("\\"));
 						escarg = string_append(STRING_ARGS(escarg), capacity, STRING_ARGS(left));
@@ -255,16 +244,16 @@ process_spawn(process_t* proc) {
 
 		if (proc->flags & PROCESS_STDSTREAMS)
 			log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to redirect standard in/out"
-			         " through pipes when using ShellExecute for process spawning"));
+			                                              " through pipes when using ShellExecute for process spawning"));
 
 		log_debugf(0, STRING_CONST("Spawn process (ShellExecute): %.*s %.*s"),
 		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
-			string_const_t errstr = system_error_message(GetLastError());
+			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%.*s': %s"),
-					  STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
+			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 		}
 		else {
 			proc->hp   = sei.hProcess;
@@ -305,7 +294,7 @@ process_spawn(process_t* proc) {
 
 		if (!CreateProcessW(0, wcmdline, 0, 0, inherit_handles,
 		                    (proc->flags & PROCESS_CONSOLE) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi)) {
-			string_const_t errstr = system_error_message(GetLastError());
+			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 			          STRING_CONST("Unable to spawn process (CreateProcess) for executable '%.*s': %.*s"),
 			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
@@ -364,7 +353,7 @@ process_spawn(process_t* proc) {
 
 		CFStringRef* args = 0;
 		for (i = 0, size = array_size(proc->args); i < size;
-		     ++i)    //App gets executable path automatically, don't include
+		        ++i)    //App gets executable path automatically, don't include
 			array_push(args, CFStringCreateWithCString(0, proc->args[i].str, kCFStringEncodingUTF8));
 
 		CFArrayRef argvref = CFArrayCreate(0, (const void**)args, (CFIndex)array_size(args), 0);
@@ -465,23 +454,22 @@ process_spawn(process_t* proc) {
 
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			pipe_close_read(proc->pipeout);
-			dup2(pipe_write_fd(proc->pipeout), STDOUT_FILENO);
+			dup2(pipe_write_handle(proc->pipeout), STDOUT_FILENO);
 
 			pipe_close_write(proc->pipein);
-			dup2(pipe_read_fd(proc->pipein), STDIN_FILENO);
+			dup2(pipe_read_handle(proc->pipein), STDIN_FILENO);
 		}
 
 		int code = execv(proc->path.str, (char* const*)argv);
-		if (code <
-		    0) { //Will always be true since this point will never be reached if execve() is successful
-			int err = errno;
-			string_const_t errmsg = system_error_message(err);
-			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Child process failed execve() '%.*s': %.*s (%d)"),
-			           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err);
-		}
 
 		//Error
-		process_exit(-1);
+		int err = errno;
+		string_const_t errmsg = system_error_message(err);
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
+		           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d) (%d)"),
+			       STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
+		process_exit(PROCESS_EXIT_FAILURE);
+		FOUNDATION_UNUSED(code);
 	}
 
 	memory_deallocate(argv);
@@ -515,11 +503,10 @@ process_spawn(process_t* proc) {
 	}
 	else {
 		//Error
-		proc->code = errno;
 		string_const_t errmsg;
 		errmsg = system_error_message(proc->code);
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%.*s': %.*s (%d)"),
-		          STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%.*s': %.*s (%d)"),
+		           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
 
 		if (proc->pipeout)
 			stream_deallocate(proc->pipeout);
@@ -528,6 +515,7 @@ process_spawn(process_t* proc) {
 
 		proc->pipeout = 0;
 		proc->pipein = 0;
+		proc->code = PROCESS_INVALID_ARGS;
 
 		return proc->code;
 	}
@@ -562,23 +550,17 @@ bool
 process_kill(process_t* proc) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	if (!proc->hp)
-		return false;
-
-	if (!TerminateProcess(proc->hp, PROCESS_TERMINATED_SIGNAL))
+	if (!proc->hp || !TerminateProcess(proc->hp, PROCESS_TERMINATED_SIGNAL))
 		return false;
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	if (!proc->pid)
-		return false;
-
-	if (kill(proc->pid, SIGKILL) < 0)
-		return false;
+	if (!proc->pid || (kill(proc->pid, SIGKILL) < 0))
+	        return false;
 
 #elif FOUNDATION_PLATFORM_PNACL
 	//Not supported
-    FOUNDATION_UNUSED(proc);
+	FOUNDATION_UNUSED(proc);
 #else
 #error Not implemented
 #endif
@@ -593,22 +575,19 @@ process_wait(process_t* proc) {
 	pid_t ret;
 #endif
 
-	if (!proc)
-		return PROCESS_INVALID_ARGS;
-
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	if (!proc->hp)
 		return proc->code;
 
 	while (GetExitCodeProcess(proc->hp, (LPDWORD)&proc->code)) {
-		if ((proc->code != STILL_ACTIVE) || (proc->flags & PROCESS_DETACHED))
+		if ((proc->code != (int)STILL_ACTIVE) || (proc->flags & PROCESS_DETACHED))
 			break;
 		thread_sleep(50);
 		proc->code = -1;
 	}
 
-	if ((proc->code == STILL_ACTIVE) && (proc->flags & PROCESS_DETACHED))
+	if ((proc->code == (int)STILL_ACTIVE) && (proc->flags & PROCESS_DETACHED))
 		return PROCESS_STILL_ACTIVE;
 
 	if (proc->ht)
@@ -663,6 +642,9 @@ process_wait(process_t* proc) {
 			//...
 #endif
 			//proc->signal = WTERMSIG( cstatus );
+		}
+		else {
+			proc->code = PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;
 	}

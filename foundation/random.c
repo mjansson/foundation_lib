@@ -17,6 +17,8 @@
 //linear output transformations" from http://www.sciencedirect.com/science/article/pii/S0378475408002358
 //Put state array in thread-local storage for thread safety
 
+/*lint -e679 -e834 */
+
 #define RANDOM_STATE_SIZE   1391
 
 #define RANDOM_BITS         32
@@ -31,11 +33,11 @@
 #define RANDOM_HIGH_LIMIT   481
 
 //Some helper macros to make code a bit more condensed
-#define RANDOM_XOR_AND_LEFTSHIFT( bits, val )  ( (val) ^ ( (val) << (bits) ) )
-#define RANDOM_XOR_AND_RIGHTSHIFT( bits, val ) ( (val) ^ ( (val) >> (bits) ) )
-#define RANDOM_TRANSFORM( bits, key, mask, test, val ) \
-	( ( (val) & (test) ) ? ( ( ( ( (val) << (bits) ) ^ ( (val) >> ( RANDOM_BITS - (bits) ) ) ) & (mask) ) ^ (key) ) : \
-	                         ( ( ( (val) << (bits) ) ^ ( (val) >> ( RANDOM_BITS - (bits) ) ) ) & (mask) ) )
+#define RANDOM_XOR_AND_LEFTSHIFT(bits, val)  ((val) ^ ((val) << (bits)))
+#define RANDOM_XOR_AND_RIGHTSHIFT(bits, val) ((val) ^ ((val) >> (bits)))
+#define RANDOM_TRANSFORM(bits, key, mask, test, val) \
+	(((val) & (test)) ? (((((val) << (bits)) ^ ((val) >> (RANDOM_BITS - (bits)))) & (mask)) ^ (key)) : \
+	                    (((((val) << (bits)) ^ ((val) >> (RANDOM_BITS - (bits)))) & (mask))))
 
 FOUNDATION_DECLARE_THREAD_LOCAL(unsigned int*, state, 0)
 
@@ -45,10 +47,11 @@ static unsigned int** _random_available_state;
 
 static void
 _random_seed_buffer(unsigned int* buffer) {
-	int i;
+	tick_t i;
 	tick_t base = time_system();
 	for (i = 0; i < RANDOM_STATE_SIZE; ++i)
-		buffer[i] ^= (base + time_current() + (i * RANDOM_HIGH_LIMIT * RANDOM_LOW_LIMIT)) & 0xFFFFFFFF;
+		buffer[i] = ((tick_t)((uintptr_t)(buffer + i)) ^
+		             (base + time_current() + (i * RANDOM_HIGH_LIMIT * RANDOM_LOW_LIMIT))) & 0xFFFFFFFF;
 }
 
 static unsigned int*
@@ -64,14 +67,15 @@ _random_allocate_buffer(void) {
 int
 _random_initialize(void) {
 	if (!_random_mutex) {
-		size_t prealloc;
+		size_t prealloc, capacity;
 		size_t i;
 		_random_mutex = mutex_allocate(STRING_CONST("random"));
 
 		//Allocate and seed a number of state buffers
 		prealloc = _foundation_config.random_state_prealloc;
-		array_reserve(_random_state, prealloc ? prealloc * 8 : 8);
-		array_reserve(_random_available_state, prealloc ? prealloc * 8 : 8);
+		capacity = prealloc > 8 ? prealloc : 8;
+		array_reserve(_random_state, capacity);
+		array_reserve(_random_available_state, capacity);
 		for (i = 0; i < prealloc; ++i) {
 			unsigned int* buffer = _random_allocate_buffer();
 			array_push(_random_available_state, buffer);
@@ -141,95 +145,95 @@ random_from_state(unsigned int* FOUNDATION_RESTRICT state) {
 	unsigned int state_index = state[ RANDOM_STATE_SIZE ];
 	unsigned int bits0, bits1, bits2;
 	if (state_index == 0) {
-		bits0 = (state[ state_index + RANDOM_STATE_SIZE - 1 ] & RANDOM_MASK_LOWER) |
-		        (state[ state_index + RANDOM_STATE_SIZE - 2 ] & RANDOM_MASK_UPPER);
-		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[ state_index ]) ^
-		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[ state_index + RANDOM_LOW_LIMIT ]);
-		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[ state_index + RANDOM_HIGH_LIMIT ]) ^
-		                                     (26U << state[ state_index + RANDOM_MID_LIMIT ]);
-		state[ state_index ] = bits1 ^ bits2;
-		state[ state_index - 1 + RANDOM_STATE_SIZE ] =
-			bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
-			RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^ state[ state_index ];
-		state[ RANDOM_STATE_SIZE ] = state_index = RANDOM_STATE_SIZE - 1;
-		return (state[ state_index ] ^
-		       (state[ state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE + 1 ] & RANDOM_BITMASK));
+		bits0 = (state[RANDOM_STATE_SIZE - 1] & RANDOM_MASK_LOWER) |
+		        (state[RANDOM_STATE_SIZE - 2] & RANDOM_MASK_UPPER);
+		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24U, state[0]) ^
+		        RANDOM_XOR_AND_RIGHTSHIFT(30U, state[RANDOM_LOW_LIMIT]);
+		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10U, state[RANDOM_HIGH_LIMIT]) ^
+		        (26U << state[RANDOM_MID_LIMIT]);
+		state[0] = bits1 ^ bits2;
+		state[RANDOM_STATE_SIZE - 1] =
+		    bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
+		    RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^ state[0];
+		state[RANDOM_STATE_SIZE] = state_index = RANDOM_STATE_SIZE - 1;
+		return (state[state_index] ^
+		        (state[(state_index + RANDOM_HIGH_LIMIT) - RANDOM_STATE_SIZE + 1] & RANDOM_BITMASK));
 	}
 	else if (state_index == 1) {
-		bits0 = (state[ state_index - 1 ] & RANDOM_MASK_LOWER) |
-		        (state[ state_index + RANDOM_STATE_SIZE - 2 ] & RANDOM_MASK_UPPER);
-		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[ state_index ]) ^
-		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[ state_index + RANDOM_LOW_LIMIT ]);
-		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[ state_index + RANDOM_HIGH_LIMIT ]) ^
-		        (26U << state[ state_index + RANDOM_MID_LIMIT ]);
-		state[ state_index ] = bits1 ^ bits2;
-		state[ state_index - 1 ] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
-		                           RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
-		                           state[ state_index ];
+		bits0 = (state[0] & RANDOM_MASK_LOWER) |
+		        (state[RANDOM_STATE_SIZE - 1] & RANDOM_MASK_UPPER);
+		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[1]) ^
+		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[1 + RANDOM_LOW_LIMIT]);
+		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[1 + RANDOM_HIGH_LIMIT]) ^
+		        (26U << state[1 + RANDOM_MID_LIMIT]);
+		state[1] = bits1 ^ bits2;
+		state[0] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
+		           RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
+		           state[1];
 		state[ RANDOM_STATE_SIZE ] = state_index = 0;
-		return (state[ state_index ] ^
-		       (state[ state_index + RANDOM_HIGH_LIMIT + 1 ] & RANDOM_BITMASK));
+		return (state[state_index] ^
+		        (state[state_index + RANDOM_HIGH_LIMIT + 1] & RANDOM_BITMASK));
 	}
 	else if (state_index + RANDOM_LOW_LIMIT >= RANDOM_STATE_SIZE) {
-		bits0 = (state[ state_index - 1 ] & RANDOM_MASK_LOWER) |
-		        (state[ state_index - 2 ] & RANDOM_MASK_UPPER);
-		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[ state_index ]) ^
-		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[ state_index + RANDOM_LOW_LIMIT - RANDOM_STATE_SIZE ]);
-		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[ state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE ]) ^
-		        (26U << state[ state_index + RANDOM_MID_LIMIT - RANDOM_STATE_SIZE ]);
-		state[ state_index ] = bits1 ^ bits2;
-		state[ state_index - 1 ] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
-		                           RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
-		                           state[ state_index ];
+		bits0 = (state[state_index - 1] & RANDOM_MASK_LOWER) |
+		        (state[state_index - 2] & RANDOM_MASK_UPPER);
+		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[state_index]) ^
+		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[state_index + RANDOM_LOW_LIMIT - RANDOM_STATE_SIZE]);
+		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE]) ^
+		        (26U << state[(state_index + RANDOM_MID_LIMIT) - RANDOM_STATE_SIZE]);
+		state[state_index] = bits1 ^ bits2;
+		state[state_index - 1] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
+		                         RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
+		                         state[state_index];
 		state[ RANDOM_STATE_SIZE ] = --state_index;
-		return (state[ state_index ] ^
-		       (state[ state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE + 1 ] & RANDOM_BITMASK));
+		return (state[state_index] ^
+		        (state[state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE + 1] & RANDOM_BITMASK));
 	}
 	else if (state_index + RANDOM_MID_LIMIT >= RANDOM_STATE_SIZE) {
-		bits0 = (state[ state_index - 1 ] & RANDOM_MASK_LOWER) |
-		        (state[ state_index - 2 ] & RANDOM_MASK_UPPER);
-		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[ state_index ]) ^
-		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[ state_index + RANDOM_LOW_LIMIT ]);
-		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[ state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE ]) ^
-		        (26U << state[ state_index + RANDOM_MID_LIMIT - RANDOM_STATE_SIZE ]);
-		state[ state_index ] = bits1 ^ bits2;
-		state[ state_index - 1 ] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
-		                           RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
-		                           state[ state_index ];
+		bits0 = (state[state_index - 1] & RANDOM_MASK_LOWER) |
+		        (state[state_index - 2] & RANDOM_MASK_UPPER);
+		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[state_index]) ^
+		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[state_index + RANDOM_LOW_LIMIT]);
+		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE]) ^
+		        (26U << state[state_index + RANDOM_MID_LIMIT - RANDOM_STATE_SIZE]);
+		state[state_index] = bits1 ^ bits2;
+		state[state_index - 1] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
+		                         RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
+		                         state[state_index];
 		state[ RANDOM_STATE_SIZE ] = --state_index;
-		return (state[ state_index ] ^
-		       (state[ state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE + 1 ] & RANDOM_BITMASK));
+		return (state[state_index] ^
+		        (state[(state_index + RANDOM_HIGH_LIMIT) - RANDOM_STATE_SIZE + 1] & RANDOM_BITMASK));
 	}
 	else if (state_index + RANDOM_HIGH_LIMIT >= RANDOM_STATE_SIZE) {
-		bits0 = (state[ state_index - 1 ] & RANDOM_MASK_LOWER) |
-		        (state[ state_index - 2 ] & RANDOM_MASK_UPPER);
-		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[ state_index ]) ^
-		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[ state_index + RANDOM_LOW_LIMIT ]);
-		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[ state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE ]) ^
-		        (26U << state[ state_index + RANDOM_MID_LIMIT ]);
-		state[ state_index ] = bits1 ^ bits2;
-		state[ state_index - 1 ] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
-		                           RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
-		                           state[ state_index ];
-		state[ RANDOM_STATE_SIZE ] = --state_index;
-		return (state[ state_index ] ^
-		       (state[ state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE + 1 ] & RANDOM_BITMASK));
+		bits0 = (state[state_index - 1] & RANDOM_MASK_LOWER) |
+		        (state[state_index - 2] & RANDOM_MASK_UPPER);
+		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[state_index]) ^
+		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[state_index + RANDOM_LOW_LIMIT]);
+		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[state_index + RANDOM_HIGH_LIMIT - RANDOM_STATE_SIZE]) ^
+		        (26U << state[state_index + RANDOM_MID_LIMIT]);
+		state[state_index] = bits1 ^ bits2;
+		state[state_index - 1] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
+		                         RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
+		                         state[state_index];
+		state[RANDOM_STATE_SIZE] = --state_index;
+		return (state[state_index] ^
+		        (state[(state_index + RANDOM_HIGH_LIMIT) - RANDOM_STATE_SIZE + 1] & RANDOM_BITMASK));
 	}
 	//else if( 2 <= state_index <= RANDOM_STATE_SIZE - RANDOM_HIGH_LIMIT - 1 )
 	{
-		bits0 = (state[ state_index - 1 ] & RANDOM_MASK_LOWER) |
-		        (state[ state_index - 2 ] & RANDOM_MASK_UPPER);
-		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[ state_index ]) ^
-		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[ state_index + RANDOM_LOW_LIMIT ]);
-		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[ state_index + RANDOM_HIGH_LIMIT ]) ^
-		        (26U << state[ state_index + RANDOM_MID_LIMIT ]);
-		state[ state_index ] = bits1 ^ bits2;
-		state[ state_index - 1 ] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
-		                           RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
-		                           state[ state_index ];
-		state[ RANDOM_STATE_SIZE ] = --state_index;
-		return (state[ state_index ] ^
-		       (state[ state_index + RANDOM_HIGH_LIMIT + 1 ] & RANDOM_BITMASK));
+		bits0 = (state[state_index - 1] & RANDOM_MASK_LOWER) |
+		        (state[state_index - 2] & RANDOM_MASK_UPPER);
+		bits1 = RANDOM_XOR_AND_LEFTSHIFT(24, state[state_index]) ^
+		        RANDOM_XOR_AND_RIGHTSHIFT(30, state[state_index + RANDOM_LOW_LIMIT]);
+		bits2 = RANDOM_XOR_AND_LEFTSHIFT(10, state[state_index + RANDOM_HIGH_LIMIT]) ^
+		        (26U << state[state_index + RANDOM_MID_LIMIT]);
+		state[state_index] = bits1 ^ bits2;
+		state[state_index - 1] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT(20, bits1) ^
+		                         RANDOM_TRANSFORM(9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2) ^
+		                         state[state_index];
+		state[RANDOM_STATE_SIZE] = --state_index;
+		return (state[state_index] ^
+		        (state[state_index + RANDOM_HIGH_LIMIT + 1] & RANDOM_BITMASK));
 	}
 }
 
@@ -291,9 +295,7 @@ random_normalized(void) {
 	//Deal with floating point roundoff issues
 	if (result >= REAL_C(1.0))
 		return math_real_dec(REAL_C(1.0), 1);
-	else if (result < 0)
-		return 0;
-	return result;
+	return math_max(result, 0);
 }
 
 real
@@ -306,11 +308,9 @@ random_range(real low, real high) {
 	}
 	result = low + ((high - low) * random_normalized());
 	//Deal with floating point roundoff issues
-	if (result <= low)
-		return low;
-	else if (result >= high)
+	if (result >= high)
 		return math_real_dec(high, 1);
-	return result;
+	return math_max(result, low);
 }
 
 int32_t
@@ -322,6 +322,7 @@ random32_gaussian_range(int32_t low, int32_t high) {
 		low = high;
 		high = tmp;
 	}
+	/*lint -e{571,776} */
 	return low + (int32_t)((cubic * (uint64_t)(high - low)) >> 32ULL);
 }
 
@@ -335,11 +336,9 @@ random_gaussian_range(real low, real high) {
 	}
 	result = low + ((high - low) * REAL_C(0.33333333333333333333333333333) *
 	                (random_normalized() + random_normalized() + random_normalized()));
-	if (result <= low)
-		return low;
-	else if (result >= high)
+	if (result >= high)
 		return math_real_dec(high, 1);
-	return result;
+	return math_max(result, low);
 }
 
 int32_t
@@ -352,6 +351,7 @@ random32_triangle_range(int32_t low, int32_t high) {
 		low = high;
 		high = tmp;
 	}
+	/*lint -e{571,776} */
 	return low + (int32_t)((tri * (uint64_t)(high - low)) >> 32ULL);
 }
 
@@ -364,11 +364,9 @@ random_triangle_range(real low, real high) {
 		high = tmp;
 	}
 	result = low + (high - low) * REAL_C(0.5) * (random_normalized() + random_normalized());
-	if (result <= low)
-		return low;
-	else if (result >= high)
+	if (result >= high)
 		return math_real_dec(high, 1);
-	return result;
+	return math_max(result, low);
 }
 
 uint32_t

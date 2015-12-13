@@ -55,6 +55,7 @@
 		45FD84791AC9531B004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84781AC9531B004357EA /* main.c */; };
 		45FD847B1AC95327004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD847A1AC95327004357EA /* main.c */; };
 		45FD84AC1ACAB455004357EA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45FD84AB1ACAB455004357EA /* main.c */; };
+		CD8391B21C0489C9003C9154 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD8391B11C0489C9003C9154 /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -132,6 +133,7 @@
 		45FD84781AC9531B004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/system/main.c; sourceTree = "<group>"; };
 		45FD847A1AC95327004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/time/main.c; sourceTree = "<group>"; };
 		45FD84AB1ACAB455004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/process/main.c; sourceTree = "<group>"; };
+		CD8391B11C0489C9003C9154 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/beacon/main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -194,6 +196,7 @@
 				45551A2C1938D50000CF089B /* array */,
 				45551A2F1938D55B00CF089B /* atomic */,
 				45551A311938D55B00CF089B /* base64 */,
+				CD8391B01C0489AB003C9154 /* beacon */,
 				45551A331938D55B00CF089B /* bitbuffer */,
 				45551A351938D55B00CF089B /* blowfish */,
 				45551A371938D55B00CF089B /* bufferstream */,
@@ -553,6 +556,14 @@
 			name = process;
 			sourceTree = "<group>";
 		};
+		CD8391B01C0489AB003C9154 /* beacon */ = {
+			isa = PBXGroup;
+			children = (
+				CD8391B11C0489C9003C9154 /* main.c */,
+			);
+			name = beacon;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -671,6 +682,7 @@
 				45551A241938D43700CF089B /* main.c in Sources */,
 				45551A711938D55B00CF089B /* main.c in Sources */,
 				45551A831938D55B00CF089B /* main.c in Sources */,
+				CD8391B21C0489C9003C9154 /* main.c in Sources */,
 				45551A811938D55B00CF089B /* main.c in Sources */,
 				45551A751938D55B00CF089B /* main.c in Sources */,
 				45551A821938D55B00CF089B /* main.c in Sources */,

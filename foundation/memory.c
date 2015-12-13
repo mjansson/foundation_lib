@@ -29,19 +29,30 @@
 #  include <stdlib.h>
 #endif
 
+/*lint -e728 */
+static const memory_tracker_t _memory_no_tracker;
 static memory_system_t _memory_system;
-static memory_tracker_t _memory_no_tracker;
 
 typedef FOUNDATION_ALIGN(8) struct {
 	void*               storage;
 	void*               end;
 	atomicptr_t         head;
-	void*               tail;
 	size_t              size;
 	size_t              maxchunk;
 } atomic_linear_memory_t;
 
+typedef FOUNDATION_ALIGN(8) struct {
+	atomic64_t allocations_total;
+	atomic64_t allocations_current;
+	atomic64_t allocated_total;
+	atomic64_t allocated_current;
+} memory_statistics_atomic_t;
+
+FOUNDATION_STATIC_ASSERT(sizeof(memory_statistics_t) == sizeof(memory_statistics_atomic_t),
+                         "statistics sizes differs");
+
 static atomic_linear_memory_t _memory_temporary;
+static memory_statistics_atomic_t _memory_stats;
 
 #if BUILD_ENABLE_MEMORY_GUARD
 #define MEMORY_GUARD_VALUE 0xDEADBEEF
@@ -75,6 +86,10 @@ static void
 _atomic_allocate_initialize(size_t storagesize) {
 	if (storagesize < 1024)
 		storagesize = _foundation_config.temporary_memory;
+	if (!storagesize) {
+		memset(&_memory_temporary, 0, sizeof(_memory_temporary));
+		return;
+	}
 	_memory_temporary.storage   = memory_allocate(0, storagesize, 16, MEMORY_PERSISTENT);
 	_memory_temporary.end       = pointer_offset(_memory_temporary.storage, storagesize);
 	_memory_temporary.size      = storagesize;
@@ -84,9 +99,10 @@ _atomic_allocate_initialize(size_t storagesize) {
 
 static void
 _atomic_allocate_finalize(void) {
-	if (_memory_temporary.storage)
-		memory_deallocate(_memory_temporary.storage);
+	void* storage = _memory_temporary.storage;
 	memset(&_memory_temporary, 0, sizeof(_memory_temporary));
+	if (storage)
+		memory_deallocate(storage);
 }
 
 static void*
@@ -157,6 +173,7 @@ _memory_align_pointer(void* p, unsigned int align) {
 int
 _memory_initialize(const memory_system_t memory) {
 	_memory_system = memory;
+	memset(&_memory_stats, 0, sizeof(_memory_stats));
 	return _memory_system.initialize();
 }
 
@@ -175,7 +192,6 @@ _memory_preallocate(void) {
 void
 _memory_finalize(void) {
 	memory_set_tracker(_memory_no_tracker);
-
 	_atomic_allocate_finalize();
 	_memory_system.finalize();
 }
@@ -217,10 +233,10 @@ _memory_guard_verify(void* memory) {
 void*
 memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hint) {
 	void* p = 0;
-	if (hint & MEMORY_TEMPORARY) {
-		align = _memory_get_align_forced(align);
-		if (_memory_temporary.storage && (size + align < _memory_temporary.maxchunk)) {
-			p = _memory_align_pointer(_atomic_allocate_linear(size + align), align);
+	if (_memory_temporary.storage && (hint & MEMORY_TEMPORARY)) {
+		unsigned int tmpalign = _memory_get_align_forced(align);
+		if (size + tmpalign < _memory_temporary.maxchunk) {
+			p = _memory_align_pointer(_atomic_allocate_linear(size + tmpalign), tmpalign);
 			FOUNDATION_ASSERT(!((uintptr_t)p & 1));
 			if (hint & MEMORY_ZERO_INITIALIZED)
 				memset(p, 0, (size_t)size);
@@ -249,6 +265,13 @@ memory_deallocate(void* p) {
 	_memory_untrack(p);
 }
 
+memory_statistics_t
+memory_statistics(void) {
+	memory_statistics_t stats;
+	memcpy(&stats, &_memory_stats, sizeof(memory_statistics_t));
+	return stats;
+}
+
 #if BUILD_ENABLE_MEMORY_CONTEXT
 
 FOUNDATION_DECLARE_THREAD_LOCAL(memory_context_t*, memory_context, 0)
@@ -257,8 +280,9 @@ void
 memory_context_push(hash_t context_id) {
 	memory_context_t* context = get_thread_memory_context();
 	if (!context) {
-		context = memory_allocate(0, sizeof(memory_context_t) + (sizeof(hash_t) *
-		                                                         _foundation_config.memory_context_depth), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		context = memory_allocate(0, sizeof(memory_context_t) +
+		                             (sizeof(hash_t) * _foundation_config.memory_context_depth),
+		                          0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_memory_context(context);
 	}
 	context->context[ context->depth ] = context_id;
@@ -289,7 +313,7 @@ memory_context_thread_finalize(void) {
 
 #endif
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER != 4)
 
 typedef long (*NtAllocateVirtualMemoryFn)(HANDLE, void**, ULONG, size_t*, ULONG, ULONG);
 static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
@@ -436,8 +460,11 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 			atomic_storeptr(&baseaddr, pointer_offset(raw_memory, allocate_size));
 			break;
 		}
-		if (raw_memory)
-			munmap(raw_memory, allocate_size);
+		if (raw_memory && (raw_memory != MAP_FAILED)) {
+			if (munmap(raw_memory, allocate_size) < 0)
+				log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+				         STRING_CONST("Failed to munmap pages outside 32-bit range"));
+		}
 		raw_memory = 0;
 		if (retried)
 			break;
@@ -448,11 +475,24 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #    else
 	raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
 	                  MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
+	if (raw_memory == MAP_FAILED) {
+		raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
+	                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
+		if (raw_memory == MAP_FAILED)
+			raw_memory = 0;
+		if ((uintptr_t)raw_memory > 0xFFFFFFFFULL) {
+			if (munmap(raw_memory, allocate_size) < 0)
+				log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+				         STRING_CONST("Failed to munmap pages outside 32-bit range"));
+			raw_memory = 0;
+		}
+	}
 #    endif
 	if (!raw_memory) {
+		string_const_t errmsg = system_error_message(0);
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory in low 32bit address space"),
-		           size);
+		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory in low 32bit address space: %.*s"),
+		           size, STRING_FORMAT(errmsg));
 		return 0;
 	}
 
@@ -510,11 +550,18 @@ _memory_deallocate_malloc(void* p) {
 #  endif
 	raw_ptr = *((uintptr_t*)p - 1);
 	if (raw_ptr & 1) {
+		raw_ptr &= ~(uintptr_t)1;
 #  if FOUNDATION_PLATFORM_WINDOWS
-		VirtualFree((void*)raw_ptr, 0, MEM_RELEASE);
+		if (VirtualFree((void*)raw_ptr, 0, MEM_RELEASE) == 0)
+			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+				STRING_CONST("Failed to VirtualFree 0x%" PRIfixPTR),
+				(uintptr_t)raw_ptr);
 #  else
 		uintptr_t raw_size = *((uintptr_t*)p - 2);
-		munmap((void*)raw_ptr, raw_size);
+		if (munmap((void*)raw_ptr, raw_size) < 0)
+			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+			          STRING_CONST("Failed to munmap 0x%" PRIfixPTR " size %" PRIsize),
+			          (uintptr_t)raw_ptr, raw_size);
 #  endif
 	}
 	else {
@@ -531,6 +578,7 @@ _memory_deallocate_malloc(void* p) {
 static void*
 _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize) {
 #if ( FOUNDATION_SIZE_POINTER == 4 ) && FOUNDATION_PLATFORM_WINDOWS
+	FOUNDATION_UNUSED(oldsize);
 	align = _memory_get_align(align);
 #  if BUILD_ENABLE_MEMORY_GUARD
 	if (p) {
@@ -557,8 +605,8 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	if (memory)
 		memory = _memory_guard_verify(memory);
 #  endif
-	raw_p = memory ? *((void**)memory - 1) : 0;
-	memory = 0;
+	raw_p = memory ? *((void**)memory - 1) : nullptr;
+	memory = nullptr;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (raw_p && !((uintptr_t)raw_p & 1)) {
@@ -572,10 +620,10 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 		if (raw_memory) {
 			memory = pointer_offset(raw_memory, padding);
 			*((void**)memory - 1) = raw_memory;
-		}
 #  if BUILD_ENABLE_MEMORY_GUARD
-		memory = _memory_guard_initialize(memory, size);
+			memory = _memory_guard_initialize(memory, size);
 #  endif
+		}
 	}
 	else {
 #  if FOUNDATION_SIZE_POINTER == 4
@@ -628,8 +676,8 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);
 		log_panicf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to reallocate memory: %.*s (%" PRIfixPTR ", raw %" PRIfixPTR ")"),
-		           STRING_FORMAT(errmsg), (uintptr_t)p, (uintptr_t)raw_p);
+		           STRING_CONST("Unable to reallocate memory (%" PRIsize " -> %" PRIsize " @ 0x%" PRIfixPTR ", raw 0x%" PRIfixPTR "): %.*s"),
+		           oldsize, size, (uintptr_t)p, (uintptr_t)raw_p, STRING_FORMAT(errmsg));
 	}
 
 	return memory;
@@ -704,25 +752,29 @@ struct memory_tag_t {
 
 typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
 
-static hashtable_t*  _memory_table;
 static memory_tag_t* _memory_tags;
 static atomic32_t    _memory_tag_next;
 
 static int
 _memory_tracker_initialize(void) {
 	log_debug(HASH_MEMORY, STRING_CONST("Initializing local memory tracker"));
-	if (!_memory_tags)
-		_memory_tags = memory_allocate(0, sizeof(memory_tag_t) * _foundation_config.memory_tracker_max, 16,
-		                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-	if (!_memory_table)
-		_memory_table = hashtable_allocate(_foundation_config.memory_tracker_max);
+	if (!_memory_tags) {
+		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
+		_memory_tags = memory_allocate(0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		atomic_incr64(&_memory_stats.allocations_total);
+		atomic_incr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_total, (int64_t)size);
+		atomic_add64(&_memory_stats.allocated_current, (int64_t)size);
+#endif
+	}
+	
 	return 0;
 }
 
 static void
 _memory_tracker_finalize(void) {
-	if (_memory_table)
-		hashtable_deallocate(_memory_table);
 	if (_memory_tags) {
 		unsigned int it;
 		bool got_leaks = false;
@@ -742,6 +794,12 @@ _memory_tracker_finalize(void) {
 		}
 		memory_deallocate(_memory_tags);
 
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
+		atomic_decr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
+#endif
+
 		if (!got_leaks)
 			log_debug(HASH_MEMORY, STRING_CONST("No memory leaks detected"));
 	}
@@ -749,33 +807,61 @@ _memory_tracker_finalize(void) {
 
 static void
 _memory_tracker_track(void* addr, size_t size) {
-	if (addr) do {
+	if (addr) {
+		size_t limit = 0;
+		do {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
-			if (tag >= (int32_t)_foundation_config.memory_tracker_max) {
+			while (tag >= (int32_t)_foundation_config.memory_tracker_max) {
 				int32_t newtag = tag % (int32_t)_foundation_config.memory_tracker_max;
-				atomic_cas32(&_memory_tag_next, newtag, tag + 1);
-				tag = newtag;
+				if (atomic_cas32(&_memory_tag_next, newtag + 1, tag + 1))
+					tag = newtag;
+				else
+					tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			}
-			if (!atomic_loadptr(&_memory_tags[ tag ].address) &&
-			    atomic_cas_ptr(&_memory_tags[ tag ].address, addr, 0)) {
-				_memory_tags[ tag ].size = size;
-				stacktrace_capture(_memory_tags[ tag ].trace, 14, 3);
-				hashtable_set(_memory_table, (uintptr_t)addr, (uintptr_t)(tag + 1));
-				return;
+			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, 0)) {
+				_memory_tags[tag].size = size;
+				stacktrace_capture(_memory_tags[tag].trace, 14, 3);
+				break;
 			}
 		}
-		while (true);
+		while (limit++ < _foundation_config.memory_tracker_max*2);
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		atomic_incr64(&_memory_stats.allocations_total);
+		atomic_incr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_total, (int64_t)size);
+		atomic_add64(&_memory_stats.allocated_current, (int64_t)size);
+#endif
+	}
 }
 
 static void
 _memory_tracker_untrack(void* addr) {
-	uintptr_t tag = addr ? hashtable_get(_memory_table, (uintptr_t)addr) : 0;
+	int32_t tag = 0;
+	if (addr) {
+		int32_t iend = atomic_load32(&_memory_tag_next);
+		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
+		for (; itag != iend;) {
+			if (atomic_loadptr(&_memory_tags[itag].address) == addr) {
+				tag = itag + 1;
+				break;
+			}
+			if (itag)
+				--itag;
+			else
+				itag = (int32_t)_foundation_config.memory_tracker_max - 1;
+		}
+	}
 	if (tag) {
 		--tag;
-		atomic_storeptr(&_memory_tags[ tag ].address, 0);
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		atomic_decr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_current, -(int64_t)_memory_tags[tag].size);
+#endif
+		atomic_storeptr(&_memory_tags[tag].address, 0);
 	}
 	//else if (addr)
-	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: " PRIfixPTR), addr);
+	//	log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
 }
 
 #endif

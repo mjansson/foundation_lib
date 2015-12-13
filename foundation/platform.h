@@ -678,6 +678,10 @@ thread local storage to ensure maximum portability across supported platforms */
 #    pragma clang diagnostic pop
 #  endif
 
+#  if __has_warning("-Wcovered-switch-default")
+#    pragma clang diagnostic ignored "-Wcovered-switch-default"
+#  endif
+
 #elif defined( __GNUC__ )
 
 #  undef  FOUNDATION_COMPILER_GCC
@@ -802,6 +806,10 @@ thread local storage to ensure maximum portability across supported platforms */
 #    define _CRT_SECURE_NO_WARNINGS 1
 #  endif
 
+#  ifndef _LINT
+#    define _Static_assert static_assert
+#  endif
+
 #  ifndef __cplusplus
 typedef enum {
   false = 0,
@@ -865,6 +873,7 @@ typedef enum {
 #include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <float.h>
 #include <limits.h>
 #if !FOUNDATION_PLATFORM_WINDOWS
@@ -950,10 +959,10 @@ typedef struct atomicptr_t atomicptr_t;
 #define STRING_FORMAT(s) (int)(s).length, (s).str
 
 // Misc
-#if FOUNDATION_COMPILER_GCC
+#if FOUNDATION_COMPILER_GCC || defined(__COVERITY__)
 #define FOUNDATION_UNUSED(x) ((void)sizeof((x)))
 #else
-#define FOUNDATION_UNUSED(x) ((void)sizeof((x), 0))
+#define FOUNDATION_UNUSED(x) (/*lint --e{505,550,818,866} */(void)sizeof((x), 0))
 #endif
 
 #define FOUNDATION_UNUSED_ARGS_0(...)
@@ -1125,10 +1134,13 @@ uint256_is_null(const uint256_t u0) {
 #  define PRIsize      "zu"
 #endif
 
+#define PRItick        PRIi64
+#define PRIhash        PRIx64
+
 #if FOUNDATION_SIZE_REAL == 8
-#  define PRIREAL      "lf"
+#  define PRIreal      "lf"
 #else
-#  define PRIREAL      "f"
+#  define PRIreal      "f"
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -1474,10 +1486,20 @@ type of pointer
 \param first   First pointer
 \param second  Second pointer
 
-\def PRIREAL
+\def PRIreal
 Printf-style format declaration for a real variable.
 Use like other standard PRI* format specifiers, like
-<code>string_format( "Value: %" PRIREAL, realval );</code>
+<code>string_format( "Value: %" PRIreal, realval );</code>
+
+\def PRItick
+Printf-style format declaration for a tick_t variable.
+Use like other standard PRI* format specifiers, like
+<code>string_format( "Value: %" PRItick, tickval );</code>
+
+\def PRIhash
+Printf-style format declaration for a hash_t variable.
+Use like other standard PRI* format specifiers, like
+<code>string_format( "Value: %" PRIhash, hashval );</code>
 
 \def PRIfixPTR
 Printf-style format declaration for a pointer variable producing a fixed-size string

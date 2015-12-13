@@ -65,8 +65,19 @@ DECLARE_TEST(objectmap, store) {
 	objectmap_t* map;
 	object_base_t first;
 	object_base_t second;
+	object_base_t third;
 
 	map = objectmap_allocate(129);
+	
+	memset(&first, 0, sizeof(first));
+	memset(&second, 0, sizeof(first));
+	memset(&third, 0, sizeof(first));
+	atomic_store32(&first.ref, 1);
+	atomic_store32(&second.ref, 1);
+	atomic_store32(&third.ref, 1);
+	first.id = 1;
+	second.id = 2;
+	third.id = 3;
 
 	EXPECT_EQ(objectmap_lookup(map, 0), 0);
 	EXPECT_EQ(objectmap_lookup(map, 1), 0);
@@ -113,21 +124,71 @@ DECLARE_TEST(objectmap, store) {
 
 	objectmap_deallocate(map);
 
+	//Size should be clamped to three
+	map = objectmap_allocate(1);
+
+	EXPECT_EQ(objectmap_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup(map, 1), 0);
+
+	first.id = objectmap_reserve(map);
+	EXPECT_TYPENE(first.id, 0, object_t, PRIx64);
+	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+
+	second.id = objectmap_reserve(map);
+	EXPECT_TYPENE(second.id, 0, object_t, PRIx64);
+	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup(map, second.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+
+	third.id = objectmap_reserve(map);
+	EXPECT_TYPENE(third.id, 0, object_t, PRIx64);
+	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup(map, second.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+	EXPECT_EQ(objectmap_lookup(map, third.id), 0);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+
+	objectmap_set(map, first.id, &first);
+	objectmap_set(map, second.id, &second);
+	objectmap_set(map, third.id, &third);
+
+	log_enable_stdout(false);
+	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx64);
+	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx64);
+	log_enable_stdout(true);
+
+	objectmap_free(map, first.id);
+	objectmap_free(map, second.id);
+	//Leak one object
+	//objectmap_free(map, third.id);
+	EXPECT_EQ(objectmap_lookup_ref(map, first.id), nullptr);
+	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
+	EXPECT_EQ(objectmap_lookup_ref(map, second.id), nullptr);
+	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
+	EXPECT_NE(objectmap_lookup_ref(map, third.id), nullptr);
+	EXPECT_NE(objectmap_raw_lookup(map, 2), 0);
+
+	log_enable_stdout(false);
+	objectmap_deallocate(map);
+	log_enable_stdout(true);
+
 	return 0;
 }
 
 static void*
-objectmap_thread(object_t thread, void* arg) {
+objectmap_thread(void* arg) {
 	objectmap_t* map;
 	object_base_t* objects;
 	int obj;
 	int loop;
 	object_base_t* lookup;
-	FOUNDATION_UNUSED(thread);
 
 	map = arg;
-	objects = memory_allocate(0, sizeof(object_base_t) * 512, 0,
-	                          MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
+	objects = memory_allocate(0, sizeof(object_base_t) * 512, 16,
+	                          MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 	thread_sleep(10);
 
@@ -135,33 +196,36 @@ objectmap_thread(object_t thread, void* arg) {
 		thread_yield();
 
 		for (obj = 0; obj < 512; ++obj) {
+			atomic_store32(&objects[obj].ref, 1);
 			objects[obj].id = objectmap_reserve(map);
 			EXPECT_NE_MSGFORMAT(objects[obj].id, 0, "Unable to reserve slot for object num %d", obj);
 			EXPECT_EQ_MSGFORMAT(objectmap_lookup(map, objects[obj].id), 0,
-			                    "Object num %d (%" PRIx64 ") already stored in map", obj, objects[obj].id);
-			objectmap_set(map, objects[obj].id, objects + obj);
+			                    "Object %d (%" PRIx64 ") already stored in map in loop %d",
+			                    obj, objects[obj].id, loop);
+			EXPECT_TRUE(objectmap_set(map, objects[obj].id, objects + obj));
 			lookup = objectmap_lookup(map, objects[obj].id);
-			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup",
-			                    obj, objects[obj].id);
+			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup in loop %d",
+			                    obj, objects[obj].id, loop);
 			EXPECT_EQ_MSGFORMAT(lookup, objects + obj,
 			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
-			                    PRIfixPTR, obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup);
+			                    PRIfixPTR " in loop %d", obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
 		}
 
 		thread_yield();
 
 		for (obj = 0; obj < 512; ++obj) {
+			void* raw = map->map[ objects[obj].id & map->mask_index ];
 			lookup = objectmap_lookup(map, objects[obj].id);
-			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup",
-			                    obj, objects[obj].id);
+			EXPECT_NE_MSGFORMAT(lookup, 0, "Object 0x%" PRIfixPTR " num %d (%" PRIx64 ") not set in map, got null on lookup in loop %d (raw 0x%" PRIfixPTR ")",
+			                    (uintptr_t)(objects + obj), obj, objects[obj].id, loop, (uintptr_t)raw);
 			EXPECT_EQ_MSGFORMAT(lookup, objects + obj,
 			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
-			                    PRIfixPTR, obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup);
-			objectmap_free(map, objects[obj].id);
+			                    PRIfixPTR " in loop %d", obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
+			EXPECT_TRUE(objectmap_free(map, objects[obj].id));
 			lookup = objectmap_lookup(map, objects[obj].id);
 			EXPECT_EQ_MSGFORMAT(lookup, 0,
-			                    "Object num %d (%" PRIx64 ") still set in map, got non-null (0x%" PRIfixPTR ") on lookup", obj,
-			                    objects[obj].id, (uintptr_t)lookup);
+			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " still set in map, got non-null (0x%" PRIfixPTR ") on lookup in loop %d", obj,
+			                    objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
 		}
 	}
 
@@ -172,43 +236,26 @@ objectmap_thread(object_t thread, void* arg) {
 
 DECLARE_TEST(objectmap, thread) {
 	objectmap_t* map;
-	object_t thread[32];
+	thread_t thread[32];
 	size_t ith;
 	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
-	bool running = true;
 
-	map = objectmap_allocate(32000);
-
-	for (ith = 0; ith < num_threads; ++ith) {
-		thread[ith] = thread_create(objectmap_thread, STRING_CONST("objectmap_thread"),
-		                            THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], map);
-	}
-
-	test_wait_for_threads_startup(thread, num_threads);
+	map = objectmap_allocate((num_threads + 1) * 512);
 
 	for (ith = 0; ith < num_threads; ++ith)
-		thread_terminate(thread[ith]);
+		thread_initialize(&thread[ith], objectmap_thread, map, STRING_CONST("objectmap_thread"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_start(&thread[ith]);
 
-	while (running) {
-		running = false;
-		for (ith = 0; ith < num_threads; ++ith) {
-			if (thread_is_running(thread[ith])) {
-				running = true;
-				thread_yield();
-			}
-		}
-	}
+	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
 
-	for (ith = 0; ith < num_threads; ++ith) {
-		EXPECT_EQ(thread_result(thread[ith]), 0);
-	}
+	for (ith = 0; ith < num_threads; ++ith)
+		EXPECT_EQ(thread[ith].result, 0);
 
-	for (ith = 0; ith < num_threads; ++ith) {
-		thread_destroy(thread[ith]);
-	}
-
-	test_wait_for_threads_exit(thread, num_threads);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_finalize(&thread[ith]);
 
 	objectmap_deallocate(map);
 

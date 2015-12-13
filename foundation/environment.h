@@ -56,9 +56,10 @@ FOUNDATION_API string_const_t
 environment_current_working_directory(void);
 
 /*! Change the current working directory.
-\param path   Path of new working directory
-\param length Length of new working directory path */
-FOUNDATION_API void
+\param path Path of new working directory
+\param length Length of new working directory path
+\return true if successful, false if error or not allowed by platform */
+FOUNDATION_API bool
 environment_set_current_working_directory(const char* path, size_t length);
 
 /*! Get user home directory. Returned string must not be modified or deallocated.

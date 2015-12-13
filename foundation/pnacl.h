@@ -40,7 +40,6 @@ Safe inclusion of PNaCl headers, and PNaCl specific entry points. */
 #include <string.h>
 
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/errno.h>
 #include <sys/time.h>
 

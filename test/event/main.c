@@ -46,6 +46,21 @@ static void
 test_event_finalize(void) {
 }
 
+static int
+assert_ignore_handler(hash_t context, const char* condition, size_t cond_length,
+                                  const char* file, size_t file_length, unsigned int line,
+                                  const char* msg, size_t msg_length) {
+	FOUNDATION_UNUSED(context);
+	FOUNDATION_UNUSED(condition);
+	FOUNDATION_UNUSED(cond_length);
+	FOUNDATION_UNUSED(file);
+	FOUNDATION_UNUSED(file_length);
+	FOUNDATION_UNUSED(line);
+	FOUNDATION_UNUSED(msg);
+	FOUNDATION_UNUSED(msg_length);
+	return 0;
+}
+
 DECLARE_TEST(event, empty) {
 	event_stream_t* stream;
 	event_block_t* block;
@@ -117,6 +132,8 @@ DECLARE_TEST(event, immediate) {
 	event_block_t* block;
 	event_t* event;
 	uint16_t last_serial = 0;
+	size_t iloop;
+	assert_handler_fn prev_assert_handler;
 	uint8_t buffer[128];
 
 	stream = event_stream_allocate(0);
@@ -170,6 +187,27 @@ DECLARE_TEST(event, immediate) {
 	EXPECT_EQ(event_payload_size(event), 40);
 	last_serial = event->serial;
 
+	//Test out of memory handling
+	log_enable_stdout(false);
+	prev_assert_handler = assert_handler();
+	assert_set_handler(assert_ignore_handler);
+	for (iloop = 0; iloop < 512 * 1024; ++iloop)
+		event_post_varg(stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, (size_t)3, buffer + 3,
+		                (size_t)10, buffer + 13, (size_t)24, nullptr);
+	assert_set_handler(prev_assert_handler);
+	log_enable_stdout(true);
+	EXPECT_TYPEEQ(error(), ERROR_OUT_OF_MEMORY, error_t, "d");
+
+	block = event_stream_process(stream);
+	event = event_next(block, 0);
+	EXPECT_NE(event, 0);
+	EXPECT_EQ(event->id, FOUNDATIONEVENT_TERMINATE + 1);
+	EXPECT_EQ(event->size, sizeof(event_t) + 40);
+	EXPECT_GT(event->serial, last_serial);
+	EXPECT_EQ(event->object, 0);
+	EXPECT_EQ(event->flags, 0);
+	EXPECT_EQ(event_payload_size(event), 40);
+
 	event_stream_deallocate(stream);
 
 	return 0;
@@ -184,7 +222,7 @@ typedef FOUNDATION_ALIGNED_STRUCT(_producer_thread_arg, 16) {
 } producer_thread_arg_t;
 
 static void*
-producer_thread(object_t thread, void* arg) {
+producer_thread(void* arg) {
 	uint64_t random_delay;
 	uint16_t random_id, random_size;
 	uint8_t buffer[256];
@@ -210,13 +248,13 @@ producer_thread(object_t thread, void* arg) {
 		                nullptr);
 		++produced;
 	}
-	while (!thread_should_terminate(thread) && (time_current() < args->end_time));
+	while (!thread_try_wait(0) && (time_current() < args->end_time));
 
 	return (void*)((uintptr_t)produced);
 }
 
 DECLARE_TEST(event, immediate_threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	producer_thread_arg_t args[32];
 	event_stream_t* stream;
 	event_block_t* block;
@@ -236,10 +274,11 @@ DECLARE_TEST(event, immediate_threaded) {
 		args[i].id = i;
 
 		read[i] = 0;
-		thread[i] = thread_create(producer_thread, STRING_CONST("event_producer"), THREAD_PRIORITY_NORMAL,
-		                          0);
-		thread_start(thread[i], args + i);
+		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"),
+		                  THREAD_PRIORITY_NORMAL, 0);
 	}
+	for (i = 0; i < num_threads; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, num_threads);
 
@@ -247,7 +286,7 @@ DECLARE_TEST(event, immediate_threaded) {
 		running = false;
 
 		for (i = 0; i < num_threads; ++i) {
-			if (thread_is_running(thread[i])) {
+			if (thread_is_running(&thread[i])) {
 				running = true;
 				break;
 			}
@@ -275,14 +314,11 @@ DECLARE_TEST(event, immediate_threaded) {
 	}
 
 	for (i = 0; i < num_threads; ++i) {
-		void* result = thread_result(thread[i]);
+		void* result = thread[i].result;
 		size_t should_have_read = (uintptr_t)result;
 		EXPECT_EQ(read[i], should_have_read);
-		thread_terminate(thread[i]);
-		thread_destroy(thread[i]);
+		thread_finalize(&thread[i]);
 	}
-
-	test_wait_for_threads_exit(thread, num_threads);
 
 	event_stream_deallocate(stream);
 
@@ -424,7 +460,7 @@ DECLARE_TEST(event, delay) {
 }
 
 DECLARE_TEST(event, delay_threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	producer_thread_arg_t args[32];
 	event_stream_t* stream;
 	event_block_t* block;
@@ -448,10 +484,11 @@ DECLARE_TEST(event, delay_threaded) {
 		args[i].id = i;
 
 		read[i] = 0;
-		thread[i] = thread_create(producer_thread, STRING_CONST("event_producer"), THREAD_PRIORITY_NORMAL,
-		                          0);
-		thread_start(thread[i], &args[i]);
+		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"),
+		                  THREAD_PRIORITY_NORMAL, 0);
 	}
+	for (i = 0; i < num_threads; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, num_threads);
 
@@ -459,7 +496,7 @@ DECLARE_TEST(event, delay_threaded) {
 		running = false;
 
 		for (i = 0; i < num_threads; ++i) {
-			if (thread_is_running(thread[i])) {
+			if (thread_is_running(&thread[i])) {
 				running = true;
 				break;
 			}
@@ -523,14 +560,11 @@ DECLARE_TEST(event, delay_threaded) {
 	while (time_current() < endtime);
 
 	for (i = 0; i < num_threads; ++i) {
-		void* result = thread_result(thread[i]);
+		void* result = thread[i].result;
 		size_t should_have_read = (size_t)((uintptr_t)result);
 		EXPECT_EQ(read[i], should_have_read);
-		thread_terminate(thread[i]);
-		thread_destroy(thread[i]);
+		thread_finalize(&thread[i]);
 	}
-
-	test_wait_for_threads_exit(thread, num_threads);
 
 	event_stream_deallocate(stream);
 

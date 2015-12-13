@@ -16,7 +16,10 @@
 \brief Stream for memory buffer
 
 Stream for memory buffer, both statically sized and dynamically reallocated buffers. Streams are
-not inherently thread safe, synchronization in a multithread use case must be done by caller. */
+not inherently thread safe, synchronization in a multithread use case must be done by caller.
+
+Seeking in a buffer stream will not resize the storage buffer or change the current stream size.
+To change stream size and allocate buffer space use #stream_truncate. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>

@@ -107,6 +107,8 @@
 		CD66042118F7E3CA001BDED3 /* delegate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD66041C18F7E3CA001BDED3 /* delegate.h */; };
 		CD66042218F7E3CA001BDED3 /* delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CD66041D18F7E3CA001BDED3 /* delegate.m */; };
 		CD66042318F7E3CA001BDED3 /* fs.m in Sources */ = {isa = PBXBuildFile; fileRef = CD66041E18F7E3CA001BDED3 /* fs.m */; };
+		CD8391B51C0489DE003C9154 /* beacon.c in Sources */ = {isa = PBXBuildFile; fileRef = CD8391B31C0489DE003C9154 /* beacon.c */; };
+		CD8391B61C0489DE003C9154 /* beacon.h in Headers */ = {isa = PBXBuildFile; fileRef = CD8391B41C0489DE003C9154 /* beacon.h */; };
 		CDF5F01F1905060D005EE9AF /* atomic.c in Sources */ = {isa = PBXBuildFile; fileRef = CDF5F01E1905060D005EE9AF /* atomic.c */; };
 /* End PBXBuildFile section */
 
@@ -212,6 +214,8 @@
 		CD66041C18F7E3CA001BDED3 /* delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = delegate.h; path = ../../../foundation/delegate.h; sourceTree = "<group>"; };
 		CD66041D18F7E3CA001BDED3 /* delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = delegate.m; path = ../../../foundation/delegate.m; sourceTree = "<group>"; };
 		CD66041E18F7E3CA001BDED3 /* fs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = fs.m; path = ../../../foundation/fs.m; sourceTree = "<group>"; };
+		CD8391B31C0489DE003C9154 /* beacon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = beacon.c; path = ../../../foundation/beacon.c; sourceTree = "<group>"; };
+		CD8391B41C0489DE003C9154 /* beacon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = beacon.h; path = ../../../foundation/beacon.h; sourceTree = "<group>"; };
 		CD8D680117ED7848009F11EB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		CD8D681817ED7992009F11EB /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		CD8D681B17ED7992009F11EB /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -263,6 +267,8 @@
 				CD5ED0F817D6708400C94373 /* atomic.h */,
 				CD5ED0F917D6708400C94373 /* base64.c */,
 				CD5ED0FA17D6708400C94373 /* base64.h */,
+				CD8391B31C0489DE003C9154 /* beacon.c */,
+				CD8391B41C0489DE003C9154 /* beacon.h */,
 				CD66041A18F7E3CA001BDED3 /* bitbuffer.c */,
 				CD66041B18F7E3CA001BDED3 /* bitbuffer.h */,
 				CD5ED0FB17D6708400C94373 /* bits.h */,
@@ -378,6 +384,7 @@
 				CD5ED15117D6708400C94373 /* assert.h in Headers */,
 				CD5ED15317D6708400C94373 /* assetstream.h in Headers */,
 				CD5ED15417D6708400C94373 /* atomic.h in Headers */,
+				CD8391B61C0489DE003C9154 /* beacon.h in Headers */,
 				CD66042118F7E3CA001BDED3 /* delegate.h in Headers */,
 				CD5ED15617D6708400C94373 /* base64.h in Headers */,
 				CD5ED15717D6708400C94373 /* bits.h in Headers */,
@@ -531,6 +538,7 @@
 				CD5ED18617D6708400C94373 /* pipe.c in Sources */,
 				CD5ED18A17D6708400C94373 /* process.c in Sources */,
 				CD5ED18C17D6708400C94373 /* profile.c in Sources */,
+				CD8391B51C0489DE003C9154 /* beacon.c in Sources */,
 				CD5ED18E17D6708400C94373 /* radixsort.c in Sources */,
 				CD5ED19017D6708400C94373 /* random.c in Sources */,
 				CD5ED19217D6708400C94373 /* ringbuffer.c in Sources */,

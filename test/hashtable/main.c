@@ -13,6 +13,14 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
+/* Internal API */
+FOUNDATION_API uint32_t
+hashtable32_raw(hashtable32_t* table, size_t slot);
+
+FOUNDATION_API uint64_t
+hashtable64_raw(hashtable64_t* table, size_t slot);
+/* End internal API */
+
 static application_t
 test_hashtable_application(void) {
 	application_t app;
@@ -59,57 +67,55 @@ typedef struct {
 } producer64_arg_t;
 
 static void*
-producer32_thread(object_t thread, void* arg) {
+producer32_thread(void* arg) {
 	producer32_arg_t* parg = arg;
 	hashtable32_t* table = parg->table;
 	uint32_t key_offset = parg->key_offset;
 	uint32_t key;
-	FOUNDATION_UNUSED(thread);
 
-	for (key = 1; key < parg->key_num; ++key)
-		hashtable32_set(table, key + key_offset, key + key_offset);
-
-	thread_yield();
-
-	for (key = 1; key < parg->key_num; ++key)
-		hashtable32_erase(table, key + key_offset);
+	for (key = 0; key < parg->key_num; ++key)
+		hashtable32_set(table, 1 + key + key_offset, 1);
 
 	thread_yield();
 
-	for (key = 1; key < parg->key_num; ++key)
-		hashtable32_set(table, key + key_offset, 1 + ((key + key_offset) % 17));
+	for (key = 0; key < parg->key_num / 2; ++key)
+		hashtable32_erase(table, 1 + key + key_offset);
+
+	thread_yield();
+
+	for (key = 0; key < parg->key_num; ++key)
+		hashtable32_set(table, 1 + key + key_offset, 1 + ((key + key_offset) % 17));
 
 	return 0;
 }
 
 static void*
-producer64_thread(object_t thread, void* arg) {
+producer64_thread(void* arg) {
 	producer64_arg_t* parg = arg;
 	hashtable64_t* table = parg->table;
 	uint64_t key_offset = parg->key_offset;
 	uint64_t key;
-	FOUNDATION_UNUSED(thread);
 
-	for (key = 1; key < parg->key_num; ++key)
-		hashtable64_set(table, key + key_offset, key + key_offset);
-
-	thread_yield();
-
-	for (key = 1; key < parg->key_num; ++key)
-		hashtable64_erase(table, key + key_offset);
+	for (key = 0; key < parg->key_num; ++key)
+		hashtable64_set(table, 1 + key + key_offset, 1);
 
 	thread_yield();
 
-	for (key = 1; key < parg->key_num; ++key)
-		hashtable64_set(table, key + key_offset, 1 + ((key + key_offset) % 17));
+	for (key = 0; key < parg->key_num / 2; ++key)
+		hashtable64_erase(table, 1 + key + key_offset);
+
+	thread_yield();
+
+	for (key = 0; key < parg->key_num; ++key)
+		hashtable64_set(table, 1 + key + key_offset, 1 + ((key + key_offset) % 17));
 
 	return 0;
 }
 
 DECLARE_TEST(hashtable, 32bit_basic) {
-	hashtable32_t* table = hashtable32_allocate(1024);
+	hashtable32_t* table = hashtable32_allocate(3);
 
-	EXPECT_EQ(hashtable32_size(table), 0);
+	EXPECT_SIZEEQ(hashtable32_size(table), 0);
 
 	hashtable32_set(table, 1, 1);
 	EXPECT_EQ(hashtable32_get(table, 1), 1);
@@ -126,12 +132,36 @@ DECLARE_TEST(hashtable, 32bit_basic) {
 	hashtable32_set(table, 2, 1);
 	EXPECT_EQ(hashtable32_get(table, 2), 1);
 
+	EXPECT_SIZEEQ(hashtable32_size(table), 2);
+
 	hashtable32_erase(table, 1);
 	EXPECT_EQ(hashtable32_get(table, 1), 0);
 	EXPECT_EQ(hashtable32_get(table, 2), 1);
 
+	EXPECT_SIZEEQ(hashtable32_size(table), 1);
+
 	hashtable32_erase(table, 2);
 	EXPECT_EQ(hashtable32_get(table, 2), 0);
+
+	EXPECT_EQ(hashtable32_size(table), 0);
+
+	EXPECT_TRUE(hashtable32_set(table, 1, 1));
+	EXPECT_TRUE(hashtable32_set(table, 2, 2));
+	EXPECT_TRUE(hashtable32_set(table, 3, 3));
+	EXPECT_FALSE(hashtable32_set(table, 4, 4));
+	EXPECT_EQ(hashtable32_size(table), 3);
+	hashtable32_erase(table, 4);
+	EXPECT_EQ(hashtable32_size(table), 3);
+	EXPECT_EQ(hashtable32_get(table, 4), 0);
+
+	//Hashing regression
+	EXPECT_TYPEEQ(hashtable32_raw(table, 0), 3, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable32_raw(table, 1), 1, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable32_raw(table, 2), 2, uint64_t, PRIu64);
+	hashtable32_erase(table, 3);
+	EXPECT_TYPEEQ(hashtable32_raw(table, 0), 0, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable32_raw(table, 1), 1, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable32_raw(table, 2), 2, uint64_t, PRIu64);
 
 	hashtable32_deallocate(table);
 
@@ -139,7 +169,7 @@ DECLARE_TEST(hashtable, 32bit_basic) {
 }
 
 DECLARE_TEST(hashtable, 32bit_threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	producer32_arg_t args[32];
 	unsigned int i, j;
 	size_t num_threads = 32;
@@ -148,30 +178,40 @@ DECLARE_TEST(hashtable, 32bit_threaded) {
 
 	EXPECT_EQ(hashtable32_size(table), 0);
 
-	num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 32U);
+	num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
 	for (i = 0; i < num_threads; ++i) {
 		args[i].table = table;
-		args[i].key_offset = 1 + (i * 16789);
+		args[i].key_offset = i * 16789;
 		args[i].key_num = 65535;
 
-		thread[i] = thread_create(producer32_thread, STRING_CONST("table_producer"), THREAD_PRIORITY_NORMAL,
-		                          0);
-		thread_start(thread[i], args + i);
+		thread_initialize(&thread[i], producer32_thread, args + i, STRING_CONST("table_producer"),
+		                  THREAD_PRIORITY_NORMAL, 0);
 	}
+	for (i = 0; i < num_threads; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
+
+	for (i = 0; i < num_threads; ++i)
+		thread_finalize(&thread[i]);
 
 	for (i = 0; i < num_threads; ++i) {
-		thread_terminate(thread[i]);
-		thread_destroy(thread[i]);
+		for (j = 1; j < 65535; ++j) {
+			uint32_t key = (i * 16789) + j;
+			EXPECT_EQ(hashtable32_get(table, 1 + key), 1 + (key % 17));
+		}
 	}
 
-	test_wait_for_threads_exit(thread, num_threads);
+	//Size is potentially greater due to threading, see comment in hashtable_set
+	EXPECT_SIZEGE(hashtable32_size(table), (num_threads - 1)*16789 + 65535);
+	hashtable32_clear(table);
+	EXPECT_SIZEEQ(hashtable32_size(table), 0);
 
 	for (i = 0; i < num_threads; ++i) {
 		for (j = 1; j < 65535; ++j) {
 			uint32_t key = (1 + (i * 16789)) + j;
-			EXPECT_EQ(hashtable32_get(table, key), 1 + (key % 17));
+			EXPECT_EQ(hashtable32_get(table, 1 + key), 0);
 		}
 	}
 
@@ -181,9 +221,9 @@ DECLARE_TEST(hashtable, 32bit_threaded) {
 }
 
 DECLARE_TEST(hashtable, 64bit_basic) {
-	hashtable64_t* table = hashtable64_allocate(1024);
+	hashtable64_t* table = hashtable64_allocate(3);
 
-	EXPECT_EQ(hashtable64_size(table), 0);
+	EXPECT_SIZEEQ(hashtable64_size(table), 0);
 
 	hashtable64_set(table, 1, 1);
 	EXPECT_EQ(hashtable64_get(table, 1), 1);
@@ -200,12 +240,37 @@ DECLARE_TEST(hashtable, 64bit_basic) {
 	hashtable64_set(table, 2, 1);
 	EXPECT_EQ(hashtable64_get(table, 2), 1);
 
+	EXPECT_SIZEEQ(hashtable64_size(table), 2);
+
 	hashtable64_erase(table, 1);
+	hashtable64_erase(table, 3);
 	EXPECT_EQ(hashtable64_get(table, 1), 0);
 	EXPECT_EQ(hashtable64_get(table, 2), 1);
 
+	EXPECT_SIZEEQ(hashtable64_size(table), 1);
+
 	hashtable64_erase(table, 2);
 	EXPECT_EQ(hashtable64_get(table, 2), 0);
+
+	EXPECT_SIZEEQ(hashtable64_size(table), 0);
+
+	EXPECT_TRUE(hashtable64_set(table, 1, 1));
+	EXPECT_TRUE(hashtable64_set(table, 2, 2));
+	EXPECT_TRUE(hashtable64_set(table, 3, 3));
+	EXPECT_FALSE(hashtable64_set(table, 4, 4));
+	EXPECT_EQ(hashtable64_size(table), 3);
+	hashtable64_erase(table, 4);
+	EXPECT_EQ(hashtable64_size(table), 3);
+	EXPECT_EQ(hashtable64_get(table, 4), 0);
+
+	//Hashing regression
+	EXPECT_TYPEEQ(hashtable64_raw(table, 0), 2, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable64_raw(table, 1), 3, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable64_raw(table, 2), 1, uint64_t, PRIu64);
+	hashtable64_erase(table, 3);
+	EXPECT_TYPEEQ(hashtable64_raw(table, 0), 2, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable64_raw(table, 1), 0, uint64_t, PRIu64);
+	EXPECT_TYPEEQ(hashtable64_raw(table, 2), 1, uint64_t, PRIu64);
 
 	hashtable64_deallocate(table);
 
@@ -213,7 +278,7 @@ DECLARE_TEST(hashtable, 64bit_basic) {
 }
 
 DECLARE_TEST(hashtable, 64bit_threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	producer64_arg_t args[32];
 	unsigned int i, j;
 	size_t num_threads = 0;
@@ -225,27 +290,37 @@ DECLARE_TEST(hashtable, 64bit_threaded) {
 	num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 32U);
 	for (i = 0; i < num_threads; ++i) {
 		args[i].table = table;
-		args[i].key_offset = 1 + (i * 16789);
+		args[i].key_offset = (i * 16789);
 		args[i].key_num = 65535;
 
-		thread[i] = thread_create(producer64_thread, STRING_CONST("table_producer"), THREAD_PRIORITY_NORMAL,
-		                          0);
-		thread_start(thread[i], args + i);
+		thread_initialize(&thread[i], producer64_thread, args + i, STRING_CONST("table_producer"),
+		                  THREAD_PRIORITY_NORMAL, 0);
 	}
+	for (i = 0; i < num_threads; ++i)
+		thread_start(&thread[i]);
 
 	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
+
+	for (i = 0; i < num_threads; ++i)
+		thread_finalize(&thread[i]);
 
 	for (i = 0; i < num_threads; ++i) {
-		thread_terminate(thread[i]);
-		thread_destroy(thread[i]);
+		for (j = 1; j < 65535; ++j) {
+			uint32_t key = (i * 16789) + j;
+			EXPECT_EQ(hashtable64_get(table, 1 + key), 1 + (key % 17));
+		}
 	}
 
-	test_wait_for_threads_exit(thread, num_threads);
+	//Size is potentially greater due to threading, see comment in hashtable_set
+	EXPECT_SIZEGE(hashtable64_size(table), (num_threads - 1)*16789 + 65535);
+	hashtable64_clear(table);
+	EXPECT_SIZEEQ(hashtable64_size(table), 0);
 
 	for (i = 0; i < num_threads; ++i) {
 		for (j = 1; j < 65535; ++j) {
 			uint32_t key = (1 + (i * 16789)) + j;
-			EXPECT_EQ(hashtable64_get(table, key), 1 + (key % 17));
+			EXPECT_EQ(hashtable64_get(table, key), 0);
 		}
 	}
 

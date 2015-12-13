@@ -13,20 +13,21 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-static volatile bool _test_should_start = false;
-static volatile bool _test_have_focus = false;
-static volatile bool _test_should_terminate = false;
+static volatile bool _test_should_start;
+static volatile bool _test_have_focus;
+static volatile bool _test_should_terminate;
 
 static void*
-event_thread(object_t thread, void* arg) {
+event_loop(void* arg) {
 	event_block_t* block;
 	event_t* event = 0;
 	FOUNDATION_UNUSED(arg);
 
-	while (!thread_should_terminate(thread)) {
+	event_stream_set_beacon(system_event_stream(), &thread_self()->beacon);
+
+	while (!_test_should_terminate) {
 		block = event_stream_process(system_event_stream());
 		event = 0;
-
 		while ((event = event_next(block, event))) {
 			switch (event->id) {
 			case FOUNDATIONEVENT_START:
@@ -58,8 +59,7 @@ event_thread(object_t thread, void* arg) {
 				break;
 			}
 		}
-
-		thread_sleep(10);
+		thread_wait();
 	}
 
 	log_debug(HASH_TEST, STRING_CONST("Application event thread exiting"));
@@ -128,11 +128,18 @@ int
 main_initialize(void) {
 	foundation_config_t config;
 	application_t application;
+	int ret;
 
 	memset(&config, 0, sizeof(config));
 #if BUILD_MONOLITHIC
 	//For fs monitor test
 	config.fs_monitor_max = 1;
+	//For temporary allocator test, 128KiB
+	config.temporary_memory = 128 * 1024;
+	//For testing static hash store
+	config.hash_store_size = 32 * 1024;
+	//Test preallocation of random state buffers
+	config.random_state_prealloc = 4;
 #endif
 
 	memset(&application, 0, sizeof(application));
@@ -155,7 +162,20 @@ main_initialize(void) {
 
 #endif
 
-	return foundation_initialize(memory_system_malloc(), application, config);
+	ret = foundation_initialize(memory_system_malloc(), application, config);
+
+#if BUILD_MONOLITHIC
+	//For monolithic process test
+	{
+		const string_const_t* cmdline = environment_command_line();
+		if (string_array_find(cmdline, array_size(cmdline), STRING_CONST("wait for kill")) >= 0)
+		{
+			while (true)
+				thread_sleep(100);
+		}
+	}
+#endif
+	return ret;
 }
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -167,6 +187,7 @@ extern int test_app_run(void);
 extern int test_array_run(void);
 extern int test_atomic_run(void);
 extern int test_base64_run(void);
+extern int test_beacon_run(void);
 extern int test_bitbuffer_run(void);
 extern int test_blowfish_run(void);
 extern int test_bufferstream_run(void);
@@ -202,8 +223,7 @@ extern int test_uuid_run(void);
 typedef int (*test_run_fn)(void);
 
 static void*
-test_runner(object_t obj, void* arg) {
-	FOUNDATION_UNUSED(obj);
+test_runner(void* arg) {
 	test_run_fn* tests = (test_run_fn*)arg;
 	int test_fn = 0;
 	int process_result = 0;
@@ -245,7 +265,7 @@ main_run(void* main_arg) {
 #endif
 	char* pathbuf;
 	int process_result = 0;
-	object_t thread = 0;
+	thread_t event_thread;
 	FOUNDATION_UNUSED(main_arg);
 	FOUNDATION_UNUSED(build_name);
 
@@ -255,12 +275,12 @@ main_run(void* main_arg) {
 	          string_from_version_static(foundation_version()).str, FOUNDATION_PLATFORM_DESCRIPTION,
 	          FOUNDATION_COMPILER_DESCRIPTION, build_name.str);
 
-	thread = thread_create(event_thread, STRING_CONST("event_thread"), THREAD_PRIORITY_NORMAL, 0);
-	thread_start(thread, 0);
+	thread_initialize(&event_thread, event_loop, 0, STRING_CONST("event_thread"), THREAD_PRIORITY_NORMAL, 0);
+	thread_start(&event_thread);
 
 	pathbuf = memory_allocate(HASH_STRING, BUILD_MAX_PATHLEN, 0, MEMORY_PERSISTENT);
 
-	while (!thread_is_running(thread))
+	while (!thread_is_running(&event_thread))
 		thread_sleep(10);
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
@@ -281,6 +301,7 @@ main_run(void* main_arg) {
 		test_array_run,
 		test_atomic_run,
 		test_base64_run,
+		test_beacon_run,
 		test_bitbuffer_run,
 		test_blowfish_run,
 		test_bufferstream_run,
@@ -318,34 +339,31 @@ main_run(void* main_arg) {
 
 #if FOUNDATION_PLATFORM_ANDROID
 
-	object_t test_thread = thread_create(test_runner, STRING_CONST("test_runner"),
-	                                     THREAD_PRIORITY_NORMAL, 0);
-	thread_start(test_thread, tests);
+	thread_t test_thread;
+	thread_initialize(&test_thread, test_runner, tests, STRING_CONST("test_runner"),
+	                  THREAD_PRIORITY_NORMAL, 0);
+	thread_start(&test_thread);
 
 	log_debug(HASH_TEST, STRING_CONST("Starting test runner thread"));
 
-	while (!thread_is_running(test_thread)) {
+	while (!thread_is_running(&test_thread)) {
 		system_process_events();
 		thread_sleep(10);
 	}
 
-	while (thread_is_running(test_thread)) {
+	while (thread_is_running(&test_thread)) {
 		system_process_events();
 		thread_sleep(10);
 	}
 
-	test_result = thread_result(test_thread);
+	test_result = thread_join(&test_thread);
 	process_result = (int)(intptr_t)test_result;
-	thread_destroy(test_thread);
-
-	while (thread_is_thread(test_thread)) {
-		system_process_events();
-		thread_sleep(10);
-	}
+	
+	thread_finalize(&test_thread);
 
 #else
 
-	test_result = test_runner(0, tests);
+	test_result = test_runner(tests);
 	process_result = (int)(intptr_t)test_result;
 
 #endif
@@ -447,16 +465,15 @@ exit:
 
 #endif
 
-	thread_terminate(thread);
-	thread_destroy(thread);
-	while (thread_is_running(thread))
-		thread_sleep(10);
-	while (thread_is_thread(thread))
-		thread_sleep(10);
+	_test_should_terminate = true;
+
+	thread_signal(&event_thread);
+	thread_finalize(&event_thread);
 
 	memory_deallocate(pathbuf);
 
-	log_infof(HASH_TEST, STRING_CONST("Tests exiting: %d"), process_result);
+	log_infof(HASH_TEST, STRING_CONST("Tests exiting: %s (%d)"),
+	          process_result ? "FAILED" : "PASSED", process_result);
 
 	return process_result;
 }

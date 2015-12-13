@@ -26,6 +26,7 @@
 #if FOUNDATION_SUPPORT_LIBRARY_LOAD
 
 struct library_t {
+	/*lint -e754 */
 	FOUNDATION_DECLARE_OBJECT;
 
 	char    name[32];
@@ -58,11 +59,10 @@ _library_finalize(void) {
 }
 
 static void
-_library_destroy(library_t* library) {
-	if (!library)
-		return;
+_library_destroy(object_t id, void* obj) {
+	library_t* library = obj;
 
-	objectmap_free(_library_map, library->id);
+	objectmap_free(_library_map, id);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	FreeLibrary(library->dll);
@@ -136,8 +136,9 @@ library_load(const char* name, size_t length) {
 		}
 	}
 	if (!dll) {
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%.*s': %s"),
-		          name, length, system_error_message(0));
+		string_const_t errmsg = system_error_message(0);
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%.*s': %.*s"),
+		          (int)length, name, STRING_FORMAT(errmsg));
 		error_context_pop();
 		return 0;
 	}
@@ -216,14 +217,12 @@ library_load(const char* name, size_t length) {
 
 object_t
 library_ref(object_t id) {
-	return _object_ref(objectmap_lookup(_library_map, id));
+	return objectmap_lookup_ref(_library_map, id) ? id : 0;
 }
 
 void
 library_unload(object_t id) {
-	void* library = objectmap_lookup(_library_map, id);
-	if (!_object_unref(library))
-		_library_destroy(library);
+	objectmap_lookup_unref(_library_map, id, _library_destroy);
 }
 
 void*

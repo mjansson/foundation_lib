@@ -48,16 +48,17 @@ extern int MPWaitOnSemaphore(MPSemaphoreID, int);
 void
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
-	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, 0);
+	*semaphore = CreateSemaphoreA(0, (long)value, 0xFFFF, 0); //lint !e970
 }
 
 void
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value) {
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
+                           unsigned int value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
-	char buffer[256];
-	string_t namestr =string_copy(buffer, sizeof(buffer), name, length);
-	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, namestr.str);
+	char buffer[128];
+	string_t namestr = string_copy(buffer, sizeof(buffer), name, length);
+	*semaphore = CreateSemaphoreA(0, (long)value, 0xFFFF, namestr.str); //lint !e970
 }
 
 void
@@ -67,19 +68,24 @@ semaphore_finalize(semaphore_t* semaphore) {
 
 bool
 semaphore_wait(semaphore_t* semaphore) {
-	DWORD res = WaitForSingleObject((HANDLE) * semaphore, INFINITE);
+	DWORD res = WaitForSingleObject((HANDLE)*semaphore, INFINITE);
 	return (res == WAIT_OBJECT_0);
 }
 
 bool
 semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
-	DWORD res = WaitForSingleObject((HANDLE) * semaphore, milliseconds > 0 ? milliseconds : 0);
+	DWORD res = WaitForSingleObject((HANDLE)*semaphore, milliseconds);
 	return (res == WAIT_OBJECT_0);
 }
 
 void
 semaphore_post(semaphore_t* semaphore) {
 	ReleaseSemaphore((HANDLE)*semaphore, 1, 0);
+}
+
+void*
+semaphore_event_handle(semaphore_t* semaphore) {
+	return *semaphore;
 }
 
 #elif FOUNDATION_PLATFORM_MACOSX
@@ -336,7 +342,7 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 		tick_t start = time_current();
 		tick_t ticks_per_sec = time_ticks_per_second();
 		while (sem_trywait((native_sem_t*)semaphore->sem) != 0) {
-			thread_yield();
+			thread_sleep(1);
 			tick_t elapsed = time_elapsed_ticks(start);
 			if (elapsed > (((tick_t)milliseconds * ticks_per_sec) / 1000LL))
 				return false;
@@ -348,7 +354,7 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 		gettimeofday(&now, 0);
 		then.tv_sec = now.tv_sec + (time_t)(milliseconds / 1000);
 		then.tv_nsec = (now.tv_usec * 1000) + (long)(milliseconds % 1000) * 1000000L;
-		while (then.tv_nsec > 999999999) {
+		while (then.tv_nsec >= 1000000000L) {
 			++then.tv_sec;
 			then.tv_nsec -= 1000000000L;
 		}

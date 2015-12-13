@@ -136,6 +136,7 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_EQ(system_hostname(buffer, 2).length, 1);
 	EXPECT_NE(system_username(buffer, 2).str, 0);
 	EXPECT_EQ(system_username(buffer, 2).length, 1);
+
 #if !FOUNDATION_PLATFORM_PNACL
 	EXPECT_NE(system_hostid(), 0);
 #endif

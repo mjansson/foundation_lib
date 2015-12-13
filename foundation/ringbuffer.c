@@ -48,13 +48,11 @@ ringbuffer_finalize(ringbuffer_t* buffer) {
 
 size_t
 ringbuffer_size(ringbuffer_t* buffer) {
-	FOUNDATION_ASSERT(buffer);
 	return buffer->buffer_size;
 }
 
 void
 ringbuffer_reset(ringbuffer_t* buffer) {
-	FOUNDATION_ASSERT(buffer);
 	buffer->total_read = 0;
 	buffer->total_write = 0;
 	buffer->offset_read = 0;
@@ -68,8 +66,6 @@ ringbuffer_read(ringbuffer_t* buffer, void* dest, size_t num) {
 	size_t buffer_size;
 	size_t offset_read;
 	size_t offset_write;
-
-	FOUNDATION_ASSERT(buffer);
 
 	buffer_size = buffer->buffer_size;
 	offset_read = buffer->offset_read;
@@ -98,7 +94,7 @@ ringbuffer_read(ringbuffer_t* buffer, void* dest, size_t num) {
 	buffer->total_read += do_read;
 
 	if ((do_read < num) && (offset_read == 0) && (offset_write > 0))
-		do_read += ringbuffer_read(buffer, pointer_offset(dest, do_read), num - do_read);
+		do_read += ringbuffer_read(buffer, dest ? pointer_offset(dest, do_read) : dest, num - do_read);
 
 	return do_read;
 }
@@ -110,8 +106,6 @@ ringbuffer_write(ringbuffer_t* buffer, const void* source, size_t num) {
 	size_t buffer_size;
 	size_t offset_read;
 	size_t offset_write;
-
-	FOUNDATION_ASSERT(buffer);
 
 	buffer_size = buffer->buffer_size;
 	offset_read = buffer->offset_read;
@@ -125,7 +119,7 @@ ringbuffer_write(ringbuffer_t* buffer, const void* source, size_t num) {
 	}
 	else {
 		//Don't read so write aligns to read, then the entire buffer is discarded
-		max_write = offset_read - offset_write - 1;
+		max_write = offset_read - (offset_write + 1);
 	}
 
 	do_write = num;
@@ -135,8 +129,7 @@ ringbuffer_write(ringbuffer_t* buffer, const void* source, size_t num) {
 	if (!do_write)
 		return 0;
 
-	if (source)
-		memcpy(buffer->buffer + offset_write, source, do_write);
+	memcpy(buffer->buffer + offset_write, source, do_write);
 
 	offset_write += do_write;
 	if (offset_write == buffer_size) {
@@ -155,13 +148,11 @@ ringbuffer_write(ringbuffer_t* buffer, const void* source, size_t num) {
 
 uint64_t
 ringbuffer_total_read(ringbuffer_t* buffer) {
-	FOUNDATION_ASSERT(buffer);
 	return buffer->total_read;
 }
 
 uint64_t
 ringbuffer_total_written(ringbuffer_t* buffer) {
-	FOUNDATION_ASSERT(buffer);
 	return buffer->total_write;
 }
 
@@ -219,7 +210,7 @@ _ringbuffer_stream_write(stream_t* stream, const void* source, size_t num) {
 static bool
 _ringbuffer_stream_eos(stream_t* stream) {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
-	return buffer->total_size ? (buffer->total_read == buffer->total_size) : false;
+	return buffer->total_size ? (buffer->total_read >= buffer->total_size) : false;
 }
 
 static void
@@ -246,6 +237,7 @@ _ringbuffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t dir
 		return;
 	}
 
+	/*lint -e{534,571} */
 	_ringbuffer_stream_read(stream, 0, (size_t)offset);
 }
 
@@ -258,7 +250,7 @@ _ringbuffer_stream_tell(stream_t* stream) {
 static tick_t
 _ringbuffer_stream_lastmod(const stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
-	return time_current();
+	return time_system();
 }
 
 static size_t

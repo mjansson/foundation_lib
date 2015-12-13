@@ -19,7 +19,7 @@
 static atomic32_t _event_serial = {1};
 
 static void
-_event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t object,
+_event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
                              tick_t timestamp, uint16_t flags, const void* payload, size_t size, va_list list) {
 	event_block_t* block;
 	event_t* event;
@@ -41,10 +41,7 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 	//Events must be aligned to an even 8 bytes
 	basesize = sizeof(event_t) + size;
 	va_copy(clist, list);
-	while (true) {
-		ptr = va_arg(clist, void*);
-		if (!ptr)
-			break;
+	while ((ptr = va_arg(clist, void*))) {
 		psize = va_arg(clist, size_t);
 		basesize += psize;
 	}
@@ -79,7 +76,7 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 				FOUNDATION_ASSERT_FAILFORMAT_LOG(0, "Event block size over limit of %" PRIsize " bytes",
 				                                 _foundation_config.event_block_limit);
 				error_report(ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY);
-				return;
+				goto unlock;
 			}
 			block->capacity += _foundation_config.event_block_chunk;
 			if (block->capacity > _foundation_config.event_block_limit)
@@ -95,7 +92,7 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 
 	event = pointer_offset(block->events, block->used);
 
-	event->id     = id;
+	event->id     = (uint16_t)id;
 	event->serial = (uint16_t)(atomic_exchange_and_add32(&_event_serial, 1) & 0xFFFF);
 	event->size   = (uint16_t)allocsize;
 	event->flags  = flags;
@@ -107,10 +104,7 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 		part += size;
 	}
 	va_copy(clist, list);
-	while (true) {
-		ptr = va_arg(clist, void*);
-		if (!ptr)
-			break;
+	while ((ptr = va_arg(clist, void*))) {
 		psize = va_arg(clist, size_t);
 		if (psize) {
 			memcpy(part, ptr, psize);
@@ -128,6 +122,13 @@ _event_post_delay_with_flags(event_stream_t* stream, uint16_t id, object_t objec
 	block->used += allocsize;
 	((event_t*)pointer_offset(block->events, block->used))->id = 0;
 
+	//Re-fire beacon
+	if (!block->fired && stream->beacon) {
+		beacon_fire(stream->beacon);
+		block->fired = true;
+	}
+
+unlock:
 	//Now unlock the event block
 	restored_block = atomic_cas32(&stream->write, last_write, EVENT_BLOCK_POSTING);
 	FOUNDATION_ASSERT(restored_block);
@@ -143,13 +144,13 @@ event_payload_size(const event_t* event) {
 }
 
 void
-event_post(event_stream_t* stream, uint16_t id, object_t object, tick_t delivery,
+event_post(event_stream_t* stream, int id, object_t object, tick_t delivery,
            const void* payload, size_t size) {
 	event_post_varg(stream, id, object, delivery, payload, size, nullptr);
 }
 
 void
-event_post_varg(event_stream_t* stream, uint16_t id, object_t object, tick_t delivery,
+event_post_varg(event_stream_t* stream, int id, object_t object, tick_t delivery,
                 const void* payload, size_t size, ...) {
 	va_list list;
 	va_start(list, size);
@@ -158,13 +159,13 @@ event_post_varg(event_stream_t* stream, uint16_t id, object_t object, tick_t del
 }
 
 void
-event_post_vlist(event_stream_t* stream, uint16_t id, object_t object, tick_t delivery,
+event_post_vlist(event_stream_t* stream, int id, object_t object, tick_t delivery,
                  const void* payload, size_t size, va_list list) {
 	_event_post_delay_with_flags(stream, id, object, delivery, 0, payload, size, list);
 }
 
 static void
-event_post_varg_flags(event_stream_t* stream, uint16_t id, object_t object,
+event_post_varg_flags(event_stream_t* stream, int id, object_t object,
                       tick_t delivery, uint16_t flags, const void* payload, size_t size, ...) {
 	va_list list;
 	va_start(list, size);
@@ -176,11 +177,11 @@ event_t* event_next(const event_block_t* block, event_t* event) {
 	tick_t curtime = 0;
 	tick_t eventtime;
 
-	do {
+	while (block) {
 		//Grab first event if no previous event, or grab next event
 		event = (event ? pointer_offset(event, event->size) : (block && block->used ? block->events : 0));
 		if (!event || !event->id)
-			return 0; // End of event list
+			break; // End of event list
 
 		if (!(event->flags & EVENTFLAG_DELAY))
 			return event;
@@ -196,7 +197,8 @@ event_t* event_next(const event_block_t* block, event_t* event) {
 		event_post_varg_flags(block->stream, event->id, event->object, eventtime, event->flags,
 		                      event->payload, event->size - (sizeof(event_t) + 8), nullptr);
 	}
-	while (true);
+	
+	return nullptr;
 }
 
 event_stream_t*
@@ -227,6 +229,8 @@ event_stream_initialize(event_stream_t* stream, size_t size) {
 
 	stream->block[0].stream = stream;
 	stream->block[1].stream = stream;
+
+    stream->beacon = nullptr;
 }
 
 void
@@ -243,9 +247,6 @@ event_stream_finalize(event_stream_t* stream) {
 		memory_deallocate(stream->block[0].events);
 	if (stream->block[1].events)
 		memory_deallocate(stream->block[1].events);
-
-	stream->block[0].events = 0;
-	stream->block[1].events = 0;
 }
 
 event_block_t*
@@ -266,6 +267,7 @@ event_stream_process(event_stream_t* stream) {
 
 	//Reset used on last read (safe, since read can only happen on one thread)
 	stream->block[ stream->read ].used = 0;
+	stream->block[ stream->read ].fired = false;
 
 	//Swap blocks
 	new_write = stream->read;
@@ -278,4 +280,11 @@ event_stream_process(event_stream_t* stream) {
 	FOUNDATION_ASSERT(restored_block);
 
 	return block;
+}
+
+void
+event_stream_set_beacon(event_stream_t* stream, beacon_t* beacon) {
+	stream->beacon = beacon;
+	if (beacon && (atomic_load32(&stream->write) > 0))
+		beacon_fire(beacon);
 }

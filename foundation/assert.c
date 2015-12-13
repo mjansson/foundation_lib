@@ -12,7 +12,6 @@
 
 #include <foundation/foundation.h>
 
-#include <stdio.h>
 #include <stdarg.h>
 
 #define ASSERT_BUFFER_SIZE 1024
@@ -46,7 +45,7 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
 	static const char assert_format[] =
-	  "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%.*s\n%.*s\n";
+	    "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%.*s\n%.*s\n";
 #if BUILD_ENABLE_ASSERT
 	string_t tracestr = { _assert_stacktrace_buffer, sizeof(_assert_stacktrace_buffer) };
 	string_t contextstr = { _assert_context_buffer, sizeof(_assert_context_buffer) };
@@ -99,7 +98,6 @@ assert_report_formatted(hash_t context, const char* condition, size_t cond_lengt
                         const char* file, size_t file_length, unsigned int line,
                         const char* msg, size_t msg_length, ...) {
 	if (msg) {
-		/*lint --e{438} Lint gets confused about assignment to ap */
 		string_t buffer = { _assert_buffer, sizeof(_assert_buffer) };
 		va_list ap;
 		va_start(ap, msg_length);

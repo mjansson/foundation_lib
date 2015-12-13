@@ -52,8 +52,7 @@ _array_growfn(void** arr, size_t increment, size_t factor, size_t itemsize) {
 	uint32_t* buffer = *arr ?
 		memory_reallocate(_array_raw(*arr), buffer_size, ARRAY_DEFAULT_ALIGN, prev_used_buffer_size) :
 		memory_allocate(0, buffer_size, ARRAY_DEFAULT_ALIGN, MEMORY_PERSISTENT);
-	FOUNDATION_ASSERT_MSG(buffer, "Failed to reallocate array storage");
-	if (buffer) {
+	if (FOUNDATION_VALIDATE_MSG(buffer, "Failed to reallocate array storage")) {
 		buffer[0] = (uint32_t)capacity;
 		if (!*arr) {
 			buffer[1] = 0;
@@ -61,6 +60,7 @@ _array_growfn(void** arr, size_t increment, size_t factor, size_t itemsize) {
 			buffer[3] = (uint32_t)itemsize;
 		}
 		*arr = buffer + _array_header_size;
+		return *arr;
 	}
-	return *arr;
+	return nullptr;
 }

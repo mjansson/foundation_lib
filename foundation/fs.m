@@ -277,7 +277,7 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 	}
 
 	//This is run in a dispatch thread by the OS, need to clean up
-	thread_finalize();
+	thread_exit();
 }
 
 void

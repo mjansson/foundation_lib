@@ -105,21 +105,20 @@ instant_crash(void* arg) {
 }
 
 static void*
-thread_crash(object_t thread, void* arg) {
-	FOUNDATION_UNUSED(thread);
+thread_crash(void* arg) {
 	return (void*)(uintptr_t)instant_crash(arg);
 }
 
 DECLARE_TEST(crash, assert_callback) {
-	log_info(HASH_TEST, STRING_CONST("This test will intentionally generate assert errors"));
-
 	EXPECT_EQ(assert_handler(), 0);
 
 	assert_set_handler(handle_assert);
 	EXPECT_EQ(assert_handler(), handle_assert);
 
+	log_enable_stdout(false);
 	EXPECT_EQ(assert_report(1, STRING_CONST("condition"), STRING_CONST("file"), 2, STRING_CONST("msg")),
 	          1234);
+	log_enable_stdout(true);
 	EXPECT_EQ(assert_handler(), handle_assert);
 	EXPECT_EQ(handled_context, 1);
 	EXPECT_STRINGEQ(string(handled_condition, string_length(handled_condition)), string_const(STRING_CONST("condition")));
@@ -134,8 +133,10 @@ DECLARE_TEST(crash, assert_callback) {
 	_global_log_callback = log_callback();
 	log_set_callback(handle_log);
 #endif
+	log_enable_stdout(false);
 	EXPECT_EQ(assert_report_formatted(1, STRING_CONST("assert_report_formatted"), STRING_CONST("file"),
 	                                  2, STRING_CONST("%.*s"), 3, "msg"), 1);
+	log_enable_stdout(true);
 	EXPECT_EQ(error(), ERROR_ASSERT);
 #if BUILD_ENABLE_LOG
 	EXPECT_TRUE(string_find_string(handled_log, string_length(handled_log),
@@ -226,7 +227,6 @@ DECLARE_TEST(crash, error) {
 		error_context_push(STRING_CONST("test context"), STRING_CONST(context_data));
 
 #if BUILD_ENABLE_ERROR_CONTEXT
-		log_info(HASH_TEST, STRING_CONST("Check context"));
 		EXPECT_NE(error_context(), 0);
 		EXPECT_EQ(error_context()->depth, 1);
 		EXPECT_CONSTSTRINGEQ(error_context()->frame[0].name, string_const(STRING_CONST("test context")));
@@ -234,10 +234,8 @@ DECLARE_TEST(crash, error) {
 		EXPECT_EQ(error_context()->frame[0].data.length, sizeof(context_data) - 1);
 #endif
 
-		log_info(HASH_TEST, STRING_CONST("Generate context buffer"));
 		contextstr = error_context_buffer(context_buffer, 512);
 #if BUILD_ENABLE_ERROR_CONTEXT
-		log_info(HASH_TEST, STRING_CONST("Check context buffer"));
 		EXPECT_NE_MSGFORMAT(string_find_string(STRING_ARGS(contextstr), STRING_CONST("test context"), 0),
 		                    STRING_NPOS, "context name 'test context' not found in buffer: %s", context_buffer);
 		EXPECT_NE_MSGFORMAT(string_find_string(STRING_ARGS(contextstr), STRING_CONST(context_data), 0),
@@ -246,7 +244,6 @@ DECLARE_TEST(crash, error) {
 		EXPECT_EQ(contextstr.length, 0);
 #endif
 
-		log_info(HASH_TEST, STRING_CONST("Generate empty context buffer"));
 		error_context_clear();
 		contextstr = error_context_buffer(context_buffer, 512);
 #if BUILD_ENABLE_ERROR_CONTEXT
@@ -263,10 +260,10 @@ DECLARE_TEST(crash, crash_guard) {
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
 		return 0; //Don't do crash tests with debugger attached
 
-	log_info(HASH_TEST, STRING_CONST("This test will intentionally generate a crash"));
-
 	_crash_callback_called = false;
+	log_enable_stdout(false);
 	crash_result = crash_guard(instant_crash, 0, test_crash_callback, STRING_CONST("instant_crash"));
+	log_enable_stdout(true);
 	EXPECT_EQ(crash_result, FOUNDATION_CRASH_DUMP_GENERATED);
 	EXPECT_TRUE(_crash_callback_called);
 
@@ -274,24 +271,21 @@ DECLARE_TEST(crash, crash_guard) {
 }
 
 DECLARE_TEST(crash, crash_thread) {
-	object_t thread = 0;
+	thread_t thread;
 
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
 		return 0; //Don't do crash tests with debugger attached
 
-	log_info(HASH_TEST, STRING_CONST("This test will intentionally generate a crash"));
-
 	_crash_callback_called = false;
 	crash_guard_set(test_crash_callback, STRING_CONST("thread_crash"));
 
-	thread = thread_create(thread_crash, STRING_CONST("crash"), THREAD_PRIORITY_NORMAL, 0);
-	thread_start(thread, 0);
-	thread_sleep(100);
-	thread_terminate(thread);
-	thread_destroy(thread);
-	while (thread_is_thread(thread))
-		thread_yield();
-	thread_sleep(100);
+	log_enable_stdout(false);
+	thread_initialize(&thread, thread_crash, 0, STRING_CONST("crash"), THREAD_PRIORITY_NORMAL, 0);
+	thread_start(&thread);
+	while (!thread_is_started(&thread))
+		thread_sleep(100);
+	thread_finalize(&thread);
+	log_enable_stdout(true);
 
 	EXPECT_TRUE(_crash_callback_called);
 

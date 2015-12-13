@@ -54,43 +54,44 @@ DECLARE_TEST(time, builtin) {
 	EXPECT_GT(tps, 0);
 
 	tick = time_current();
-	thread_sleep(20);
+	thread_sleep(30);
 	newtick = time_current();
 
-	EXPECT_NE(tick, 0);
-	EXPECT_GT(newtick, tick);
+	EXPECT_TICKNE(tick, 0);
+	EXPECT_TICKGT(newtick, tick);
 
-	EXPECT_GT(time_diff(tick, newtick), 0);
+	EXPECT_TICKGT(time_diff(tick, newtick), 0);
 	EXPECT_GT_MSGFORMAT(time_diff(tick, newtick), (tps / 100LL),
 	                    "time elapsed not more than 10ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
 	                    (tps / 100)); //more than 10 ms
-	EXPECT_LT_MSGFORMAT(time_diff(tick, newtick), (tps / 30LL),
-	                    "time elapsed not less than 30ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
+	EXPECT_LT_MSGFORMAT(time_diff(tick, newtick), (tps / 20LL),
+	                    "time elapsed not less than 50ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
 	                    (tps / 33)); //less than 30 ms
-	EXPECT_GT(time_elapsed(tick), 0);
-	EXPECT_GT(time_elapsed(tick), 0.01f);     //more than 10 ms
-	EXPECT_GT(time_elapsed_ticks(tick), 0);
-	EXPECT_GT(time_elapsed_ticks(tick), (tps / 100));       //more than 10 ms
+	EXPECT_REALGT(time_elapsed(tick), 0);
+	EXPECT_REALGT(time_elapsed(tick), 0.01f); //more than 10 ms
+	EXPECT_TICKGT(time_elapsed_ticks(tick), 0);
+	EXPECT_TICKGT(time_elapsed_ticks(tick), (tps / 100)); //more than 10 ms
+	EXPECT_TICKLT(time_elapsed_ticks(tick), (tps / 20));  //less than 50 ms
 
 	dt = time_ticks_to_seconds(newtick - tick);
-	EXPECT_GT(dt, 0);
+	EXPECT_REALGT(dt, 0);
 	EXPECT_GT_MSGFORMAT(dt, 0.01f, "time elapsed in seconds not more than 10ms: %.5f",
 	                    dt);   //more than 10 ms
-	EXPECT_LT_MSGFORMAT(dt, 0.03f, "time elapsed in seconds not less than 30ms: %.5f",
+	EXPECT_LT_MSGFORMAT(dt, 0.05f, "time elapsed in seconds not less than 30ms: %.5f",
 	                    dt);   //less than 30 ms
 
 	tick = time_startup();
-	EXPECT_GT(tick, 0);
-	EXPECT_LT(tick, newtick);
-	EXPECT_EQ(tick, time_startup());
+	EXPECT_TICKGT(tick, 0);
+	EXPECT_TICKLT(tick, newtick);
+	EXPECT_TICKEQ(tick, time_startup());
 
 	tick = time_system();
 	thread_sleep(100);
 	newtick = time_system();
 
-	EXPECT_GT(tick, 0);
-	EXPECT_GT(newtick, 0);
-	EXPECT_GT(newtick, tick);
+	EXPECT_TICKGT(tick, 0);
+	EXPECT_TICKGT(newtick, 0);
+	EXPECT_TICKGT(newtick, tick);
 	EXPECT_GT_MSGFORMAT(newtick - tick, 50,
 	                    "Elapsed system time less than 50ms, expected 100ms, got %" PRId64 "ms", newtick - tick);
 	EXPECT_LT_MSGFORMAT(newtick - tick, 200,

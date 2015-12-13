@@ -319,7 +319,7 @@ typedef enum {
 #define MEMORY_PERSISTENT       0
 /*! Memory hint, memory is temporary (extremely short lived and generally freed
 before function returns or scope ends) */
-#define MEMORY_TEMPORARY        (1U<<0)
+#define MEMORY_TEMPORARY        1U
 /*! Memory hint, memory allocation is local to the calling thread */
 #define MEMORY_THREAD           (1U<<1)
 /*! Memory flag, memory should be allocated in low 32-bit address space */
@@ -328,7 +328,7 @@ before function returns or scope ends) */
 #define MEMORY_ZERO_INITIALIZED (1U<<3)
 
 /*! Event flag, event is delayed and will be delivered at a later timestamp */
-#define EVENTFLAG_DELAY (1U<<0)
+#define EVENTFLAG_DELAY 1U
 
 /*! Application flag, application is a command line utility and should not have
 a normal windowing system interaction loop */
@@ -337,10 +337,10 @@ a normal windowing system interaction loop */
 #define APPLICATION_DAEMON  (1U<<1)
 
 /*! Stream mode/flag, stream is readable */
-#define STREAM_IN       (1U<<0)
+#define STREAM_IN       1U
 /*! Stream mode/flag, stream is writable */
 #define STREAM_OUT      (1U<<1)
-/*! Stream flag, stream is truncated on open */
+/*! Stream flag, stream is truncated on open if writable */
 #define STREAM_TRUNCATE (1U<<2)
 /*! Stream flag, stream target is created if it does not previously exist */
 #define STREAM_CREATE   (1U<<3)
@@ -376,14 +376,14 @@ an error occurs during spawning */
 #define PROCESS_WAIT_FAILED       0x7FFFFFF3
 /*! Process exit code, returned when detached process is still running */
 #define PROCESS_STILL_ACTIVE      0x7FFFFFFF
+/*! Process exit code, generic failure */
+#define PROCESS_EXIT_FAILURE      EXIT_FAILURE
+/*! Process exit code, generic success */
+#define PROCESS_EXIT_SUCCESS      EXIT_SUCCESS
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86
-#    if FOUNDATION_COMPILER_MSVC
-typedef _W64 int      ssize_t;
-#    else
 typedef int           ssize_t;
-#    endif
 #  else
 typedef int64_t       ssize_t;
 #  endif
@@ -454,6 +454,8 @@ typedef struct string_t               string_t;
 typedef struct string_const_t         string_const_t;
 /*! Application declaration and configuration */
 typedef struct application_t          application_t;
+/*! Beacon for waiting */
+typedef struct beacon_t               beacon_t;
 /*! Bit buffer instance */
 typedef struct bitbuffer_t            bitbuffer_t;
 /*! Blowfish cipher instance */
@@ -474,6 +476,8 @@ typedef struct fs_event_payload_t     fs_event_payload_t;
 typedef struct hashmap_node_t         hashmap_node_t;
 /*! Hash map mapping hash value keys to pointer values */
 typedef struct hashmap_t              hashmap_t;
+/*! Hash map of fixed size */
+typedef struct hashmap_fixed_t        hashmap_fixed_t;
 /*! Entry in a 32-bit hash table */
 typedef struct hashtable32_entry_t    hashtable32_entry_t;
 /*! Entry in a 64-bit hash table */
@@ -490,6 +494,8 @@ typedef struct memory_context_t       memory_context_t;
 typedef struct memory_system_t        memory_system_t;
 /*! Memory tracker declaration */
 typedef struct memory_tracker_t       memory_tracker_t;
+/*! Memory statistics */
+typedef struct memory_statistics_t    memory_statistics_t;
 /*! Platform specific mutex representation, opaque data type */
 typedef struct mutex_t                mutex_t;
 /*! Base object type all reference counted object types are based on */
@@ -515,6 +521,8 @@ typedef struct stream_ringbuffer_t    stream_ringbuffer_t;
 /*! Vtable for streams providing stream type specific implementations
 of stream operations */
 typedef struct stream_vtable_t        stream_vtable_t;
+/*! Thread */
+typedef struct thread_t               thread_t;
 /*! Version declaration */
 typedef union  version_t              version_t;
 /*! Library configuration block controlling limits, functionality and memory
@@ -615,6 +623,11 @@ provide an implementation with this prototype for untracking memory allocations
 \param p Pointer to deallocated memory block */
 typedef void (* memory_untrack_fn)(void* p);
 
+/*! Memory tracker statistics function prototype. Implementation of a memory tracker must
+provide an implementation with this prototype for memory statistics
+\return Memory statistics */
+typedef memory_statistics_t (* memory_statistics_fn)(void);
+
 /*! Callback function for writing profiling data to a stream
 \param data Pointer to data block
 \param size Size of data block */
@@ -626,10 +639,9 @@ typedef void (* profile_write_fn)(void* data, size_t size);
 typedef void (* profile_read_fn)(void* data, size_t size);
 
 /*! Thread entry point function prototype
-\param thread Thread object handle
 \param arg Argument passed by caller when starting the thread
 \return Implementation specific data which can be obtained through thread_result */
-typedef void* (* thread_fn)(object_t thread, void* arg);
+typedef void* (* thread_fn)(void* arg);
 
 /*! Any function to be used in conjunction with the crash guard functionality
 of the library should have this prototype to allow the crash guard to catch
@@ -823,10 +835,24 @@ struct memory_tracker_t {
 	memory_track_fn track;
 	/*! Untrack a memory allocation */
 	memory_untrack_fn untrack;
+	/*! Statistics */
+	memory_statistics_fn statistics;
 	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
 	/*! Shutdown memory tracker */
 	system_finalize_fn finalize;
+};
+
+/*! Memory statistics */
+struct memory_statistics_t {
+	/*! Number of allocations in total, running counter */
+	uint64_t allocations_total;
+	/*! Number fo allocations, current */
+	uint64_t allocations_current;
+	/*! Number of allocated bytes in total, running counter */
+	uint64_t allocated_total;
+	/*! Number of allocated bytes, current */
+	uint64_t allocated_current;
 };
 
 /*! Version identifier expressed as an 128-bit integer with major, minor,
@@ -973,6 +999,8 @@ struct event_block_t {
 	event_stream_t* stream;
 	/*! Memory buffer holding event data */
 	event_t* events;
+	/*! Fired state */
+	bool fired;
 };
 
 /*! Event stream from a single module. Event streams produce event blocks for processing */
@@ -983,6 +1011,8 @@ FOUNDATION_ALIGNED_STRUCT(event_stream_t, 16) {
 	int32_t read;
 	/*! Event blocks, double buffered for concurrent read/write access */
 	event_block_t block[2];
+	/*! Optional beacon */
+	beacon_t* beacon;
 };
 
 /*! Payload layout for a file system event */
@@ -1017,6 +1047,13 @@ struct hashmap_t {
 	size_t num_buckets; \
 	size_t num_nodes; \
 	hashmap_node_t* bucket[size]
+
+/*! Hashmap of default size. Initialize with a call to 
+<code>hashmap_fixed_t map;
+hashmap_initialize((hashmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
+struct hashmap_fixed_t {
+	FOUNDATION_DECLARE_HASHMAP(13);
+};
 
 /*! Node in 32-bit hash table holding key and value for a single node. */
 FOUNDATION_ALIGNED_STRUCT(hashtable32_entry_t, 8) {
@@ -1264,6 +1301,60 @@ struct semaphore_t {
 };
 
 #endif
+
+/*! Beacon */
+struct beacon_t {
+	size_t count;
+#if FOUNDATION_PLATFORM_WINDOWS
+	void* event;
+	void* all[8];
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	int fd;
+	int poll;
+	int all[8];
+	atomic32_t fired;
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+	int kq;
+	int writefd;
+	int all[8];
+	atomic32_t fired;
+#elif FOUNDATION_PLATFORM_PNACL
+	mutex_t* mutex;
+#endif
+};
+
+/*! Thread representation */
+struct thread_t {
+	/*! OS specific ID */
+	uint64_t osid;
+	/*! Buffer for name string */
+	char namebuffer[32];
+	/*! Name string */
+	string_const_t name;
+	/*! Thread priority */
+	thread_priority_t priority;
+	/*! Stack size */
+    unsigned int stacksize;
+	/*! Thread execution function */
+	thread_fn fn;
+	/*! Argument given to thread execution function */
+	void* arg;
+	/*! Result code from thread execution function */
+	void* result;
+	/*! Thread state */
+	atomic32_t state;
+	/*! Notification beacon */
+	beacon_t beacon;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	/*! OS handle */
+	uintptr_t handle;
+#endif
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+	/*! OS handle */
+	uintptr_t handle;
+#endif
+};
 
 /*! Declares the base stream data layout. Stream structures should be 8-byte align for
 platform compatibility. Use the macro as first declaration in a stream struct:

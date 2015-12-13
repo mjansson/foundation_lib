@@ -54,11 +54,16 @@ hashtable32_initialize(hashtable32_t* table, size_t buckets);
 FOUNDATION_API void
 hashtable32_finalize(hashtable32_t* table);
 
-/*! Set stored value for the given key
+/*! Set stored value for the given key. If multiple thread are concurrently setting
+values for the same key there could be multiple slots holding values for the key
+when the operations finish. This only affects "size" of the table and the rate at
+which the table fills, but not get/set operations (which will act on the first found
+slot for the key).
 \param table Hash table
 \param key Key
-\param value New value */
-FOUNDATION_API void
+\param value New value
+\return true if value set, false if table full */
+FOUNDATION_API bool
 hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value);
 
 /*! Erase the value for a key by setting the value to zero. Erasing is limited by
@@ -116,8 +121,9 @@ hashtable64_finalize(hashtable64_t* table);
 /*! Set stored value for the given key
 \param table Hash table
 \param key Key
-\param value New value */
-FOUNDATION_API void
+\param value New value
+\return true if value set, false if table full */
+FOUNDATION_API bool
 hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value);
 
 /*! Erase the value for a key by setting the value to zero. Erasing is limited by

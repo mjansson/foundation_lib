@@ -29,6 +29,7 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/thread.h>
 #include <foundation/mutex.h>
 #include <foundation/semaphore.h>
+#include <foundation/beacon.h>
 #include <foundation/library.h>
 #include <foundation/system.h>
 #include <foundation/process.h>

@@ -66,9 +66,17 @@ DECLARE_TEST(regex, exact) {
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("TEST_REGEX"), 0, 0));
 	EXPECT_TRUE(regex_match(0, "zero length string", 0, 0, 0));
 
-	log_info(HASH_TEST, STRING_CONST("This test will generate an internal failure"));
+	log_enable_stdout(false);
 	regex->code[0] = 128;
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("TEST_REGEX"), 0, 0));
+	log_enable_stdout(true);
+
+	regex_deallocate(regex);
+
+	regex = regex_compile(STRING_CONST("^[\\s]*^TEST$"));
+	EXPECT_NE(regex, 0);
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("TEST"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("   TEST"), 0, 0));
 
 	regex_deallocate(regex);
 
@@ -191,19 +199,22 @@ DECLARE_TEST(regex, quantifier) {
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("aabbbb0deeeeeee"), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbeeeeeee"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("abbb1d"), 0, 0));
-	EXPECT_FALSE(regex_match(regex, STRING_CONST("abb2de"), 0, 0)); //group before decimal must be at least 4 chars
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("abb2de"), 0,
+	                         0)); //group before decimal must be at least 4 chars
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabb2de0"), 0, 0));
 
 	regex_deallocate(regex);
 
-	regex = regex_compile(STRING_CONST("^[abcd]+en?d*$"));
+	regex = regex_compile(STRING_CONST("^[abc\\64]+en?d*[fo]*$"));
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabendddd"), 0, 0));
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabeddddfoooo"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("abcdaaabbbcdddcdabcdbabeddddfooood"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("aen"), 0, 0));
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("den"), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbecdend"), 0, 0));
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("end"), 0, 0));
-	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbcdd"), 0, 0));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("aabbbbcddfood"), 0, 0));
 
 	regex_deallocate(regex);
 
@@ -238,6 +249,24 @@ DECLARE_TEST(regex, branch) {
 	EXPECT_FALSE(regex_match(regex, STRING_CONST("no mixed string will match this regex"), captures,
 	                         16));
 
+	regex_deallocate(regex);
+
+	//Craft regex that will require reallocations
+	regex = regex_compile(STRING_CONST("^(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)$"));
+	EXPECT_NE(regex, 0);
+	regex_deallocate(regex);
+
+	regex = regex_compile(STRING_CONST("^(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"(abcdefghijklmnopqrstuvwxyz|abcdefghijklmnopqrstuvwxyz)"
+		"$"));
+	EXPECT_NE(regex, 0);
 	regex_deallocate(regex);
 
 	return 0;
@@ -306,15 +335,30 @@ DECLARE_TEST(regex, captures) {
 
 	EXPECT_TRUE(regex_match(regex, STRING_CONST("something at endofline"), captures, 16));
 	EXPECT_CONSTSTRINGEQ(captures[0], string_const(STRING_CONST("endofline")));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("whitespace at endofline \t"), captures, 16));
+
+	regex_deallocate(regex);
+
+	regex = regex_compile(STRING_CONST("^([^abc]*)$"));
+
+	EXPECT_TRUE(regex_match(regex, STRING_CONST("qwerty"), captures, 16));
+	EXPECT_CONSTSTRINGEQ(captures[0], string_const(STRING_CONST("qwerty")));
+	EXPECT_FALSE(regex_match(regex, STRING_CONST("qwerbty"), captures, 16));
 
 	regex_deallocate(regex);
 
 	return 0;
 }
 
+FOUNDATION_ALIGNED_STRUCT(regexbuffer_t, 8)
+{
+	char buffer[sizeof(regex_t) + 8];
+};
+
 DECLARE_TEST(regex, invalid) {
 	regex_t* regex;
 	regex_t predef;
+	struct regexbuffer_t buffer;
 
 	regex = regex_compile(STRING_CONST("++??.+*?"));
 	EXPECT_EQ(regex, nullptr);
@@ -327,6 +371,80 @@ DECLARE_TEST(regex, invalid) {
 
 	memset(&predef, 0, sizeof(predef));
 	EXPECT_FALSE(regex_parse(&predef, STRING_CONST("test")));
+
+	regex = (regex_t*)&buffer;
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_TRUE(regex_parse(regex, STRING_CONST("te")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("tes")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te^")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te$")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te(capture)")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("(longcapture)")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("(t)")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t)")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te[test]")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("[test]")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te.")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t*+")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t+*")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te*")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te*?")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te?")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\64")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\6jk")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\s")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\0")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|st")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("^?$?")));
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = 4;
+	EXPECT_FALSE(regex_parse(regex, STRING_CONST("|?")));
+
+	//Too long op, parser will fail
+	regex = regex_compile(
+		STRING_CONST(
+			"^aaaaaaaaaaaaaabbbbbbbbbbbbbbbbbcccccccccccccccccc"
+			"ddddddddddddeeeeeeeeeeeeeefffffffffffffggggggggggggg"
+			"hhhhhhhhhhhhiiiiiiiiiiiiiijjjjjjjjjjjjjkkkkkkkkkkkkk"
+			"llllllllllllmmmmmmmmmmmmmmnnnnnnnnnnnnnooooooooooooo"
+			"ppppppppppppqqqqqqqqqqqqqqrrrrrrrrrrrrrsssssssssssss"
+			"ttttttttttttuuuuuuuuuuuuuuvvvvvvvvvvvvvwwwwwwwwwwwww"
+			"xxxxxxxxxxxxyyyyyyyyyyyyyyzzzzzzzzzzzzz \\n\\r\\0"));
+	EXPECT_EQ(regex, 0);
+
+	//Too long group, parser will fail
+	regex = regex_compile(
+		STRING_CONST(
+			"^([aaaaaaaaaaaaaabbbbbbbbbbbbbbbbbcccccccccccccccccc"
+			"ddddddddddddeeeeeeeeeeeeeefffffffffffffggggggggggggg"
+			"hhhhhhhhhhhhiiiiiiiiiiiiiijjjjjjjjjjjjjkkkkkkkkkkkkk"
+			"llllllllllllmmmmmmmmmmmmmmnnnnnnnnnnnnnooooooooooooo"
+			"ppppppppppppqqqqqqqqqqqqqqrrrrrrrrrrrrrsssssssssssss"
+			"ttttttttttttuuuuuuuuuuuuuuvvvvvvvvvvvvvwwwwwwwwwwwww"
+			"xxxxxxxxxxxxyyyyyyyyyyyyyyzzzzzzzzzzzzz \\n\\r\\0])"));
+	EXPECT_EQ(regex, 0);
 
 	return 0;
 }

@@ -263,7 +263,8 @@ DECLARE_TEST(stream, std) {
 	stream_flush(out);
 	stream_flush(err);
 
-	//EXPECT_GE_MSG( stream_available_read( in ), 0, "stdin invalid value for available bytes to read" );
+	EXPECT_EQ(0, stream_write(out, STRING_CONST("")));
+
 	EXPECT_EQ_MSG(stream_available_read(out), 0, "stdout not empty as expected");
 	EXPECT_EQ_MSG(stream_available_read(err), 0, "stderr not empty as expected");
 
@@ -275,6 +276,8 @@ DECLARE_TEST(stream, std) {
 #endif
 	EXPECT_EQ_MSG(stream_read_int8(in), 0, "stdin read when closed did not return 0");
 	EXPECT_EQ_MSG(stream_eos(in), true, "stdin not at eos when closed");
+
+	EXPECT_EQ_MSG(stream_available_read(in), 0, "stdin invalid value for available bytes to read");
 
 	stream_deallocate(in);
 	stream_deallocate(out);
@@ -388,6 +391,10 @@ DECLARE_TEST(stream, readwrite_binary) {
 	EXPECT_EQ_MSG(stream_is_binary(teststream), true, "Binary mode was not detected");
 	stream_seek(teststream, -34, STREAM_SEEK_END);   //There is a terminating zeros at end
 	stream_determine_binary_mode(teststream, 32);
+	EXPECT_EQ_MSG(stream_is_binary(teststream), false, "Text mode was not detected");
+	stream_seek(teststream, -32, STREAM_SEEK_END);
+	stream_set_binary(teststream, true);
+	stream_determine_binary_mode(teststream, 0);
 	EXPECT_EQ_MSG(stream_is_binary(teststream), false, "Text mode was not detected");
 
 	stream_deallocate(teststream);
@@ -841,6 +848,36 @@ DECLARE_TEST(stream, readwrite_text) {
 	EXPECT_EQ_MSG(line.length, 0, "read string buffer did not fail as expected");
 	EXPECT_STRINGEQ_MSG(string(read_buffer, string_length(read_buffer)), string_empty(),
 	                 "read string buffer data failed");
+
+	stream_deallocate(teststream);
+
+	for (i = 0; i < 1024; ++i)
+		write_buffer[i] = 'a';
+	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT);
+	stream_truncate(teststream, 0);
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, write_buffer, sizeof(write_buffer));
+	stream_write_string(teststream, STRING_CONST(" \n\t"));
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	line = stream_read_string(teststream);
+	string_deallocate(line.str);
+	EXPECT_SIZEEQ(line.length, sizeof(write_buffer)*8);
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	teststream->sequential = 1;
+	line = stream_read_string(teststream);
+	string_deallocate(line.str);
+	EXPECT_SIZEEQ(line.length, sizeof(write_buffer)*8);
+	teststream->sequential = 0;
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	teststream->sequential = 1;
+	line = stream_read_line_buffer(teststream, read_buffer, 64, '\n');
+	EXPECT_SIZEEQ(line.length, 63);
 
 	stream_deallocate(teststream);
 	fs_remove_file(STRING_ARGS(path));

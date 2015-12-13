@@ -65,6 +65,7 @@ hashmap_finalize(hashmap_t* map) {
 
 void*
 hashmap_insert(hashmap_t* map, hash_t key, void* value) {
+	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
@@ -85,6 +86,7 @@ hashmap_insert(hashmap_t* map, hash_t key, void* value) {
 
 void*
 hashmap_erase(hashmap_t* map, hash_t key) {
+	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
@@ -101,6 +103,7 @@ hashmap_erase(hashmap_t* map, hash_t key) {
 
 void*
 hashmap_lookup(hashmap_t* map, hash_t key) {
+	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
@@ -113,6 +116,7 @@ hashmap_lookup(hashmap_t* map, hash_t key) {
 
 bool
 hashmap_has_key(hashmap_t* map, hash_t key) {
+	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
 	hashmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;

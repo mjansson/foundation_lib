@@ -29,12 +29,12 @@ enum config_type_t {
 
 struct config_key_t {
 	hash_t name;
-	enum config_type_t type;
-	bool bval;
 	int64_t ival;
 	string_t sval;
 	string_t expanded;
 	real rval;
+	enum config_type_t type;
+	bool bval;
 };
 
 struct config_section_t {
@@ -42,7 +42,6 @@ struct config_section_t {
 	struct config_key_t* key[CONFIG_KEY_BUCKETS];
 };
 
-typedef enum config_type_t config_type_t;
 typedef FOUNDATION_ALIGN(8) struct config_key_t config_key_t;
 typedef FOUNDATION_ALIGN(8) struct config_section_t config_section_t;
 
@@ -157,7 +156,6 @@ _expand_string(hash_t section_current, string_t str) {
 		                         (var_end_pos != STRING_NPOS) ? (1 + var_end_pos - var_pos) : STRING_NPOS);
 
 		section = section_current;
-		key = 0;
 		separator = string_find(STRING_ARGS(variable), ':', 0);
 		if (separator != STRING_NPOS) {
 			if (separator != 2)
@@ -174,7 +172,7 @@ _expand_string(hash_t section_current, string_t str) {
 			value = config_string(section, key);
 		else
 			value = _expand_environment(key, string_substr(STRING_ARGS(variable), var_offset,
-			                                               variable.length - var_offset - 1));
+			                                               variable.length - (var_offset + 1)));
 
 		newlength += (value.length > variable.length) ? value.length - variable.length : 0;
 		if (newlength >= capacity) {
@@ -251,33 +249,63 @@ _config_finalize(void) {
 	}
 }
 
-static string_const_t platformsuffix =
+static const string_const_t platformsuffix =
 #if FOUNDATION_PLATFORM_WINDOWS
 { STRING_CONST("/windows") };
 #elif FOUNDATION_PLATFORM_MACOSX
-  { STRING_CONST("/macosx") };
+    { STRING_CONST("/macosx") };
 #elif FOUNDATION_PLATFORM_IOS
-  { STRING_CONST("/ios") };
+    { STRING_CONST("/ios") };
 #elif FOUNDATION_PLATFORM_ANDROID
-  { STRING_CONST("/android") };
+    { STRING_CONST("/android") };
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-  { STRING_CONST("/raspberrypi") };
+    { STRING_CONST("/raspberrypi") };
 #elif FOUNDATION_PLATFORM_LINUX
-  { STRING_CONST("/linux") };
+    { STRING_CONST("/linux") };
 #elif FOUNDATION_PLATFORM_PNACL
-  { STRING_CONST("/pnacl") };
+    { STRING_CONST("/pnacl") };
 #elif FOUNDATION_PLATFORM_BSD
-  { STRING_CONST("/bsd") };
+    { STRING_CONST("/bsd") };
 #elif FOUNDATION_PLATFORM_TIZEN
-  { STRING_CONST("/tizen") };
+    { STRING_CONST("/tizen") };
 #else
-  { STRING_CONST("/unknown") };
+    { STRING_CONST("/unknown") };
 #endif
 
 #if !FOUNDATION_PLATFORM_PNACL
 
 static string_t
 config_unsuffix_path(string_t path) {
+	string_const_t archsuffix =
+#if FOUNDATION_ARCH_ARM8_64
+	(string_const_t) { STRING_CONST("/arm64") };
+#elif FOUNDATION_ARCH_ARM_64
+	(string_const_t) { STRING_CONST("/arm64") };
+#elif FOUNDATION_ARCH_ARM5
+	(string_const_t) { STRING_CONST("/arm5") };
+#elif FOUNDATION_ARCH_ARM6
+	(string_const_t) { STRING_CONST("/arm6") };
+#elif FOUNDATION_ARCH_ARM7
+	(string_const_t) { STRING_CONST("/arm7") };
+#elif FOUNDATION_ARCH_ARM8
+	(string_const_t) { STRING_CONST("/arm8") };
+#elif FOUNDATION_ARCH_X86_64
+	(string_const_t) { STRING_CONST("/x86-64") };
+#elif FOUNDATION_ARCH_X86
+	(string_const_t) { STRING_CONST("/x86") };
+#elif FOUNDATION_ARCH_PPC_64
+	(string_const_t) { STRING_CONST("/ppc64") };
+#elif FOUNDATION_ARCH_PPC
+	(string_const_t) { STRING_CONST("/ppc") };
+#elif FOUNDATION_ARCH_IA64
+	(string_const_t) { STRING_CONST("/ia64") };
+#elif FOUNDATION_ARCH_MIPS_64
+	(string_const_t) { STRING_CONST("/mips64") };
+#elif FOUNDATION_ARCH_MIPS
+	(string_const_t) { STRING_CONST("/mips") };
+#else
+	(string_const_t) { STRING_CONST("/generic") };
+#endif
 	string_const_t buildsuffix =
 #if BUILD_DEBUG
 	(string_const_t) { STRING_CONST("/debug") };
@@ -291,6 +319,10 @@ config_unsuffix_path(string_t path) {
 	string_const_t binsuffix =
 	(string_const_t) { STRING_CONST("/bin") };
 
+	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(archsuffix))) {
+		path.length = path.length - archsuffix.length;
+		path.str[ path.length ] = 0;
+	}
 	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(buildsuffix))) {
 		path.length = path.length - buildsuffix.length;
 		path.str[ path.length ] = 0;
@@ -411,6 +443,9 @@ config_make_path(int path, char* buffer, size_t capacity) {
 #else
 		break;
 #endif
+
+	default:
+		break;
 	}
 	return (string_t) { 0, 0 };
 }
@@ -469,9 +504,9 @@ config_section(hash_t section, bool create) {
 	config_section_t* bucket;
 	size_t ib, bsize;
 
+	/*lint --e{613} */
 	bucket = _config_section[ section % CONFIG_SECTION_BUCKETS ];
 	for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-		/*lint --e{613} array_size( bucket ) in loop condition does the null pointer guard */
 		if (bucket[ib].name == section)
 			return bucket + ib;
 	}
@@ -499,6 +534,7 @@ config_key(hash_t section, hash_t key, bool create) {
 	config_key_t* bucket;
 	size_t ib, bsize;
 
+	/*lint --e{613} */
 	csection = config_section(section, create);
 	if (!csection) {
 		FOUNDATION_ASSERT(!create);
@@ -506,7 +542,6 @@ config_key(hash_t section, hash_t key, bool create) {
 	}
 	bucket = csection->key[ key % CONFIG_KEY_BUCKETS ];
 	for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-		/*lint --e{613} array_size( bucket ) in loop condition does the null pointer guard */
 		if (bucket[ib].name == key)
 			return bucket + ib;
 	}
@@ -557,8 +592,9 @@ config_string(hash_t section, hash_t key) {
 	/*lint --e{788} We use default for remaining enums */
 	switch (key_val->type) {
 	case CONFIGVALUE_BOOL:
-return key_val->bval ? (string_const_t) {STRING_CONST("true")} :
-		(string_const_t) {STRING_CONST("false")};
+		if (key_val->bval)
+			return (string_const_t) {STRING_CONST("true")};
+		return (string_const_t) {STRING_CONST("false")};
 
 	case CONFIGVALUE_INT:
 		if (!key_val->sval.str)
@@ -657,7 +693,6 @@ void
 config_set_string_constant(hash_t section, hash_t key, const char* value, size_t length) {
 	config_key_t* key_val = config_key(section, key, true);
 	if (!FOUNDATION_VALIDATE(key_val)) return;
-	if (!FOUNDATION_VALIDATE(value)) return;
 	CLEAR_KEY_STRINGS(key_val);
 
 	//key_val->sval = (char*)value;
@@ -705,7 +740,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 		if (stripped.str[0] == '[') {
 			//Section declaration
 			size_t endpos = string_rfind(STRING_ARGS(stripped), ']', STRING_NPOS);
-			if (endpos < 1) {
+			if (endpos == STRING_NPOS) {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
 				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
 				          STRING_CONST("Invalid section declaration on line %u in config stream '%.*s'"), line,
@@ -734,7 +769,7 @@ config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
 			}
 
 			name = string_strip(stripped.str, separator, STRING_CONST(" \t"));
-			value = string_strip(stripped.str + separator + 1, stripped.length - separator - 1,
+			value = string_strip(stripped.str + separator + 1, stripped.length - (separator + 1),
 			                     STRING_CONST(" \t"));
 			if (!name.length) {
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
@@ -801,8 +836,7 @@ config_parse_commandline(const string_const_t* cmdline, size_t num) {
 					config_set_bool(section, key, true);
 				else if ((string_find(STRING_ARGS(value), '.', 0) != STRING_NPOS) &&
 				         (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789."), 0) == STRING_NPOS) &&
-				         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.',
-				                                                           0) + 1) == STRING_NPOS))            //Exactly one "."
+				         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.', 0) + 1) == STRING_NPOS))
 					config_set_real(section, key, string_to_real(STRING_ARGS(value)));
 				else if (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789"), 0) == STRING_NPOS)
 					config_set_int(section, key, string_to_int64(STRING_ARGS(value)));

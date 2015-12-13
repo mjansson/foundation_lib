@@ -53,7 +53,7 @@ foundation_initialize_config(const foundation_config_t config) {
 	_foundation_config.memory_tracker_max    = config.memory_tracker_max    ?
 	                                        config.memory_tracker_max    : (32 * 1024);
 	_foundation_config.temporary_memory      = config.temporary_memory      ?
-	                                        config.temporary_memory      : (512 * 1024);
+	                                        config.temporary_memory      : 0;
 	_foundation_config.fs_monitor_max        = config.fs_monitor_max        ?
 	                                        config.fs_monitor_max        : 16;
 	_foundation_config.error_context_depth   = config.error_context_depth   ?
@@ -72,8 +72,8 @@ foundation_initialize_config(const foundation_config_t config) {
 	_foundation_config.random_state_prealloc = config.random_state_prealloc;
 }
 
-#define SUBSYSTEM_INIT( system ) if( ret == 0 ) ret = _##system##_initialize()
-#define SUBSYSTEM_INIT_ARGS( system, ... ) if( ret == 0 ) ret = _##system##_initialize( __VA_ARGS__ )
+#define SUBSYSTEM_INIT(system) if (ret == 0) ret = _##system##_initialize()
+#define SUBSYSTEM_INIT_ARGS(system, ...) if (ret == 0) ret = _##system##_initialize( __VA_ARGS__ )
 
 int
 foundation_initialize(const memory_system_t memory, const application_t application,
@@ -83,8 +83,11 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	if (_foundation_initialized)
 		return 0;
 
+	process_set_exit_code(PROCESS_EXIT_SUCCESS);
+	
 	foundation_initialize_config(config);
 
+	/*lint -e774 */
 	SUBSYSTEM_INIT(atomic);
 	SUBSYSTEM_INIT_ARGS(memory, memory);
 	SUBSYSTEM_INIT(static_hash);
@@ -105,6 +108,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 
 	//Parse built-in command line options
 	{
+		/*lint --e{613} */
 		const string_const_t* cmdline = environment_command_line();
 		size_t iarg, argsize;
 		for (iarg = 0, argsize = array_size(cmdline); iarg < argsize; ++iarg) {
@@ -119,6 +123,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	}
 
 	//Artificial references
+	/*lint -e506 */
 #if FOUNDATION_PLATFORM_ANDROID
 	android_main(0);
 #elif FOUNDATION_PLATFORM_PNACL

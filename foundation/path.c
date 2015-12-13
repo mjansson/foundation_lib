@@ -72,6 +72,7 @@ path_clean(char* path, size_t length, size_t capacity) {
 		firstsep = false;
 
 		//Reduce multiple slashes "//./" unless directly after protocol separator
+		/*lint -e{850} */
 		for (ahead = ofs; ahead < length; ++ahead) {
 			if (path[ahead] == '.') { //Catch "/./" path segments
 				if ((ahead + 1 < length) && ((path[ ahead + 1 ] == '/') || (path[ ahead + 1 ] == '\\'))) {
@@ -114,7 +115,7 @@ path_clean(char* path, size_t length, size_t capacity) {
 				if (path[ back - 1 ] == '.') {
 					//Only nuke starting "./" or "../" if we have an absolute protocol path
 					if ((back == (reduce_limit + 1)) ||
-					    ((back == (reduce_limit + 2)) && (path[ back - 2 ] == '.'))) {
+					        ((back == (reduce_limit + 2)) && (path[ back - 2 ] == '.'))) {
 						if ((reduce_limit > 2) && (path[ reduce_limit - 1 ] == '/'))
 							back = reduce_limit;
 						break;
@@ -183,7 +184,7 @@ path_base_file_name(const char* path, size_t length) {
 		end = STRING_NPOS;
 	if (start != STRING_NPOS)
 		return string_substr(path, length, start + 1,
-		                     (end != STRING_NPOS) ? (end - start - 1) : STRING_NPOS);
+		                     (end != STRING_NPOS) ? (end - (start + 1)) : STRING_NPOS);
 	return string_substr(path, length, 0, end);
 }
 
@@ -219,51 +220,68 @@ path_file_name(const char* path, size_t length) {
 
 string_const_t
 path_directory_name(const char* path, size_t length) {
-	size_t pathprotocol;
-	size_t pathstart = 0;
+	string_const_t result, protocol;
 	size_t end = string_find_last_of(path, length, STRING_CONST("/\\"), STRING_NPOS);
 	if (end == 0)
 		return string_const("/", 1);
-	if (end == STRING_NPOS)
+	if (end == STRING_NPOS) {
+		if ((length >= 2) && (path[1] == ':'))
+			return string_const(path, 2);
 		return string_const(0, 0);
-	pathprotocol = string_find_string(path, length, STRING_CONST("://"), 0);
-	if (pathprotocol != STRING_NPOS)
-		pathstart = pathprotocol += 2; // add two to treat as absolute path
-	return string_substr(path, length, pathstart, end - pathstart);
+	}
+	result = string_substr(path, length, 0, end);
+	protocol = path_protocol(result.str, result.length + 1);
+	if (protocol.length)
+		protocol.length += 3; //Include separator
+	//Check if only a protocol
+	if (result.length <= protocol.length)
+		return protocol;
+	//Check if only a drive letter (plus optional protocol)
+	if (length >= protocol.length + 2) {
+		if (path[protocol.length + 1] == ':') {
+			if ((length >= protocol.length + 3) &&
+			        (result.length <= protocol.length + 3) &&
+			        ((path[protocol.length + 2] == '/') || (path[protocol.length + 2] == '\\')))
+				return string_const(path, protocol.length + 3);
+			if (result.length <= protocol.length + 2)
+				return string_const(path, protocol.length + 2);
+		}
+	}
+	return result;
 }
 
 string_const_t
-path_subdirectory_name(const char* path, size_t length, const char* root, size_t root_length) {
+path_subpath(const char* path, size_t length, const char* root, size_t root_length) {
 	string_const_t testroot, testpath;
-	size_t pathprotocol, rootprotocol;
+	string_const_t testrootstrip, testpathstrip;
 
-	testpath = path_directory_name(path, length);
-	pathprotocol = string_find_string(testpath.str, testpath.length, STRING_CONST("://"), 0);
-	if (pathprotocol != STRING_NPOS) {
-		testpath.str += pathprotocol + 2; // add two to treat as absolute path
-		testpath.length -= pathprotocol + 2;
-	}
+	if (!root_length)
+		return string_const(path, length);
+
+	testpath = string_const(path, length);
+	testpathstrip = path_strip_protocol(STRING_ARGS(testpath));
 
 	testroot = string_const(root, root_length);
-	rootprotocol = string_find_string(testroot.str, testroot.length, STRING_CONST("://"), 0);
-	if (rootprotocol != STRING_NPOS) {
-		testroot.str += rootprotocol + 2;
-		testroot.length -= rootprotocol + 2;
+	testrootstrip = path_strip_protocol(STRING_ARGS(testroot));
+
+	if ((testpath.str == testpathstrip.str) || (testroot.str == testrootstrip.str)) {
+		//Either argument has no protocol, ignore it (otherwise match)
+		testpath = testpathstrip;
+		testroot = testrootstrip;
 	}
 
 	if (testpath.length <= testroot.length)
-		return string_const(0, 0);
-
-	if ((pathprotocol != STRING_NPOS) || (rootprotocol != STRING_NPOS)) {
-		if ((pathprotocol != rootprotocol) || !string_equal(path, pathprotocol, root, rootprotocol))
-			return string_const(0, 0);
-	}
+		return string_empty();
 
 	if (!string_equal(testpath.str, testroot.length, testroot.str, testroot.length))
-		return string_const(0, 0);
+		return string_empty();
 
-	if (testroot.length && (testroot.str[ testroot.length - 1 ] != '/'))
+	if (testroot.length && (testroot.str[ testroot.length - 1 ] != '/') &&
+	        (testroot.str[ testroot.length - 1 ] != ':')) {
+		if (testpath.str[testroot.length] != '/')
+			return string_empty();
 		++testroot.length; //Make returned path relative (skip separator slash)
+	}
 
 	return string_substr(testpath.str, testpath.length, testroot.length, STRING_NPOS);
 }
@@ -274,6 +292,17 @@ path_protocol(const char* uri, size_t length) {
 	if (end == STRING_NPOS)
 		return string_const(0, 0);
 	return string_substr(uri, length, 0, end);
+}
+
+string_const_t
+path_strip_protocol(const char* uri, size_t length) {
+	size_t sepofs = string_find_string(uri, length, STRING_CONST("://"), 0);
+	if (sepofs != STRING_NPOS) {
+		bool has_drive_letter = (length > (sepofs + 4)) && (uri[sepofs+4] == ':');
+		sepofs += (has_drive_letter ? 3 : 2);
+		return string_substr(uri, length, sepofs, length - sepofs);
+	}
+	return (string_const_t) {uri, length};
 }
 
 static string_t
@@ -331,19 +360,19 @@ path_concat_impl(char* dest, size_t capacity, bool reallocate, const char* first
 	if (reallocate) {
 		size_t totalsize = first_length + 1;
 		va_copy(clist, list);
-		while (true) {
+		do {
 			ptr = va_arg(clist, void*);
-			if (!ptr)
-				break;
-			psize = va_arg(clist, size_t);
-			if (psize)
-				totalsize += psize + 1;
-		}
+			if (ptr) {
+				psize = va_arg(clist, size_t);
+				if (psize)
+					totalsize += psize + 1;
+			}
+		} while (ptr);
 		va_end(clist);
 
 		if (totalsize >= capacity) {
 			dest = dest ? memory_reallocate(dest, totalsize + 1, 0, capacity) :
-			              memory_allocate(HASH_STRING, totalsize + 1, 0, MEMORY_PERSISTENT);
+			       memory_allocate(HASH_STRING, totalsize + 1, 0, MEMORY_PERSISTENT);
 			capacity = totalsize + 1;
 		}
 	}
@@ -354,15 +383,16 @@ path_concat_impl(char* dest, size_t capacity, bool reallocate, const char* first
 	if (first_length)
 		result = string_copy(result.str, capacity, first, first_length);
 
+	/*lint -e{838} */
 	va_copy(clist, list);
-	while (true) {
+	do {
 		ptr = va_arg(clist, void*);
-		if (!ptr)
-			break;
-		psize = va_arg(clist, size_t);
-		if (psize)
-			result = path_append_fragment(STRING_ARGS(result), capacity, ptr, psize);
-	}
+		if (ptr) {
+			psize = va_arg(clist, size_t);
+			if (psize)
+				result = path_append_fragment(STRING_ARGS(result), capacity, ptr, psize);
+		}
+	} while (ptr);
 	va_end(clist);
 	return result;
 }
@@ -534,7 +564,7 @@ path_absolute(char* path, size_t length, size_t capacity) {
 	                         true);
 
 	if (abspath.length >= 3 && (abspath.str[length - 3] == '/') && (abspath.str[length - 2] == '.') &&
-	    (abspath.str[length - 1] == '.')) {
+	        (abspath.str[length - 1] == '.')) {
 		if (abspath.length == 3)
 			abspath.length = 1;
 		else

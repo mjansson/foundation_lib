@@ -1,4 +1,18 @@
 
+1.4.1
+
+Thread API change. Threads are now explicit structures instead of reference counted
+resources. Thread notification changed to a signal beacon. Finalizing a thread will
+join the thread and free resources.
+
+Added beacon, a compound synchronization primitive unifying WaitForMultipleObjects
+and epoll in a platform abstraction interface. Extended event streams to be able to
+fire a beacon on event post.
+
+path_directory_name now preserves protocols, path_subdirectory_name changed into
+path_subpath which matches protocols and returns subpaths instead of subdirectories.
+
+
 1.4.0
 
 Major API changes, 1.4.x is not in any way compatible with previous releases.

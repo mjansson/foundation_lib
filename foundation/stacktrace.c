@@ -15,18 +15,8 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#define IN
-#define OUT
-#define FAR
-#define NEAR
 #  include <dbghelp.h>
-#  include <TlHelp32.h>
 #  include <psapi.h>
-#undef IN
-#undef OUT
-#undef FAR
-#undef NEAR
-#  include <stdio.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  if !FOUNDATION_PLATFORM_ANDROID
@@ -74,8 +64,8 @@ typedef BOOL (WINAPI* SymGetLineFromAddr64Fn)(HANDLE hProcess, DWORD64 qwAddr,
                                               PDWORD pdwDisplacement, PIMAGEHLP_LINE64 Line64);
 typedef BOOL (WINAPI* SymGetSymFromAddr64Fn)(HANDLE hProcess, DWORD64 qwAddr,
                                              PDWORD64 pdwDisplacement, PIMAGEHLP_SYMBOL64 Symbol);
-typedef DWORD64 (WINAPI* SymGetModuleBase64Fn)(HANDLE hProcess, DWORD64 qwAddr);
-typedef PVOID (WINAPI* SymFunctionTableAccess64Fn)(HANDLE hProcess, DWORD64 AddrBase);
+typedef DWORD64(WINAPI* SymGetModuleBase64Fn)(HANDLE hProcess, DWORD64 qwAddr);
+typedef PVOID(WINAPI* SymFunctionTableAccess64Fn)(HANDLE hProcess, DWORD64 AddrBase);
 
 typedef BOOL (WINAPI* StackWalk64Fn)(DWORD MachineType, HANDLE hProcess, HANDLE hThread,
                                      LPSTACKFRAME64 StackFrame, PVOID ContextRecord, PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
@@ -122,7 +112,6 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
 	STACKFRAME64   stack_frame;
 	HANDLE         process_handle;
 	HANDLE         thread_handle;
-	unsigned long  last_error;
 	bool           succeeded = true;
 	unsigned int   current_depth = 0;
 	unsigned int   machine_type	= IMAGE_FILE_MACHINE_I386;
@@ -157,14 +146,14 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
 		while (succeeded && (current_depth < max_depth)) {
 			succeeded = CallStackWalk64(machine_type, process_handle, thread_handle, &stack_frame,
 			                            &context_copy, 0, CallSymFunctionTableAccess64, CallSymGetModuleBase64, 0);
-			if (!succeeded)
-				last_error = GetLastError();
-			else if (!stack_frame.AddrFrame.Offset || !stack_frame.AddrPC.Offset)
-				break;
-			else if (skip_frames)
-				--skip_frames;
-			else
-				trace[current_depth++] = (void*)((uintptr_t)stack_frame.AddrPC.Offset);
+			if (succeeded) {
+				if (!stack_frame.AddrFrame.Offset || !stack_frame.AddrPC.Offset)
+					break;
+				else if (skip_frames)
+					--skip_frames;
+				else
+					trace[current_depth++] = (void*)((uintptr_t)stack_frame.AddrPC.Offset);
+			}
 		}
 	}
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -186,21 +175,17 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
 
 static void
 _load_process_modules() {
-	int           error = 0;
-	bool          succeeded;
+	/*lint -e534 */
 	HMODULE       module_handles[MAX_MOD_HANDLES];
 	HMODULE*      module_handle = module_handles;
-	int           module_count = 0;
-	int           i;
+	DWORD         module_count;
+	DWORD         i;
 	DWORD         bytes = 0;
 	MODULEINFO    module_info;
 	HANDLE        process_handle = GetCurrentProcess();
 
-	succeeded = CallEnumProcessModules(process_handle, module_handles, sizeof(module_handles), &bytes);
-	if (!succeeded) {
-		error = GetLastError();
+	if (!CallEnumProcessModules(process_handle, module_handles, sizeof(module_handles), &bytes))
 		return;
-	}
 
 	if (bytes > sizeof(module_handles)) {
 		module_handle = memory_allocate(0, bytes, 0, MEMORY_TEMPORARY);
@@ -210,25 +195,21 @@ _load_process_modules() {
 	module_count = bytes / sizeof(HMODULE);
 
 	for (i = 0; i < module_count; ++i) {
-		char module_name[1024];
-		char image_name[1024];
-		char search_path[1024];
+		char module_name[BUILD_MAX_PATHLEN];
+		char image_name[BUILD_MAX_PATHLEN];
+		char search_path[BUILD_MAX_PATHLEN];
 		char* file_name = 0;
-		uint64_t base_address;
 
 		CallGetModuleInformation(process_handle, module_handle[i], &module_info, sizeof(module_info));
-		CallGetModuleFileNameEx(process_handle, module_handle[i], image_name, 1024);
-		CallGetModuleBaseName(process_handle, module_handle[i], module_name, 1024);
+		CallGetModuleFileNameEx(process_handle, module_handle[i], image_name, sizeof(image_name));
+		CallGetModuleBaseName(process_handle, module_handle[i], module_name, sizeof(module_name));
 
-		GetFullPathNameA(image_name, 1024, search_path, &file_name);
+		GetFullPathNameA(image_name, sizeof(search_path), search_path, &file_name);
 		*file_name = 0;
 		CallSymSetSearchPath(process_handle, search_path);
 
-		base_address = CallSymLoadModule64(process_handle, module_handle[i], image_name, module_name,
-		                                   (uint64_t)((uintptr_t)module_info.lpBaseOfDll), module_info.SizeOfImage);
-		if (!base_address) {
-			error = GetLastError();
-		}
+		CallSymLoadModule64(process_handle, module_handle[i], image_name, module_name,
+		                    (uint64_t)((uintptr_t)module_info.lpBaseOfDll), module_info.SizeOfImage);
 	}
 
 	// Free the module handle pointer allocated in case the static array was insufficient.
@@ -288,13 +269,13 @@ _load_process_modules(void) {
 		const char* module = line.str + modofs;
 
 		if (!module[0] ||
-		    (string_find_first_not_of(module, line.length - modofs, STRING_CONST("0123456789"),
-		                              0) == STRING_NPOS))
+		        (string_find_first_not_of(module, line.length - modofs, STRING_CONST("0123456789"),
+		                                  0) == STRING_NPOS))
 			continue;
 
 		if (_process_modules && (imod > 0) &&
-		    /*( start == _process_modules[imod].address_end ) && */
-		    string_equal(module, line.length - modofs, STRING_ARGS(_process_modules[imod - 1].name))) {
+		        /*( start == _process_modules[imod].address_end ) && */
+		        string_equal(module, line.length - modofs, STRING_ARGS(_process_modules[imod - 1].name))) {
 			_process_modules[imod - 1].address_end = end;
 			continue;
 		}
@@ -366,26 +347,36 @@ unwind_stack(struct _Unwind_Context* context, void* arg) {
 
 static bool _stackwalk_initialized = false;
 
+#if FOUNDATION_PLATFORM_WINDOWS
+static void* _stacktrace_dbghelp_dll;
+static void* _stacktrace_ntdll_dll;
+#endif
+
 static bool
-_initialize_stackwalker() {
+_initialize_stackwalker(void) {
 	if (_stackwalk_initialized)
 		return true;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		void* dll = LoadLibraryA("DBGHELP.DLL");
-		CallStackWalk64 = dll ? (StackWalk64Fn)GetProcAddress(dll, "StackWalk64") : 0;
+		if (!_stacktrace_dbghelp_dll)
+			_stacktrace_dbghelp_dll = LoadLibraryA("DBGHELP.DLL");
+		CallStackWalk64 = _stacktrace_dbghelp_dll ?
+		                  (StackWalk64Fn)GetProcAddress(_stacktrace_dbghelp_dll, "StackWalk64") :
+		                  0;
 		if (!CallStackWalk64) {
 			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
 			         STRING_CONST("Unable to load dbghelp DLL for StackWalk64"));
 			return false;
 		}
 
-		dll = LoadLibraryA("NTDLL.DLL");
-		CallRtlCaptureStackBackTrace = dll ? (RtlCaptureStackBackTraceFn)GetProcAddress(dll,
-		                               "RtlCaptureStackBackTrace") : 0;
+		if (!_stacktrace_ntdll_dll)
+			_stacktrace_ntdll_dll = LoadLibraryA("NTDLL.DLL");
+		CallRtlCaptureStackBackTrace = _stacktrace_ntdll_dll ?
+		                               (RtlCaptureStackBackTraceFn)GetProcAddress(_stacktrace_ntdll_dll, "RtlCaptureStackBackTrace") :
+		                               0;
 		if (!CallRtlCaptureStackBackTrace) {
-			log_warn(0, WARNING_SYSTEM_CALL_FAIL, 
+			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
 			         STRING_CONST("Unable to load ntdll DLL for RtlCaptureStackBackTrace"));
 			return false;
 		}
@@ -394,6 +385,19 @@ _initialize_stackwalker() {
 
 	_stackwalk_initialized = true;
 	return true;
+}
+
+static void
+_finalize_stackwalker(void) {
+#if FOUNDATION_PLATFORM_WINDOWS
+	if (_stacktrace_ntdll_dll)
+		FreeLibrary(_stacktrace_ntdll_dll);
+	if (_stacktrace_ntdll_dll)
+		FreeLibrary(_stacktrace_ntdll_dll);
+	_stacktrace_dbghelp_dll = 0;
+	_stacktrace_ntdll_dll = 0;
+#endif
+	_stackwalk_initialized = false;
 }
 
 size_t FOUNDATION_NOINLINE
@@ -430,14 +434,14 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	{
 #  if FOUNDATION_ARCH_X86_64
 		// Raise an exception so helper has access to context record.
-		__try
-		{
+		__try {
 			RaiseException(0,  // Application-defined exception code.
 			               0,  // Zero indicates continuable exception.
 			               0,  // Number of arguments in args array (ignored if args is null)
 			               0); // Array of arguments
 		}
-		__except (_capture_stack_trace_helper(trace, max_depth, skip_frames, (GetExceptionInformation())->ContextRecord)) {
+		__except (_capture_stack_trace_helper(trace, max_depth, skip_frames,
+		                                      (GetExceptionInformation())->ContextRecord)) {
 		}
 #  else
 		// Use a bit of inline assembly to capture the information relevant to stack walking which is
@@ -446,10 +450,10 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 		memset(&context, 0, sizeof(CONTEXT));
 		context.ContextFlags = CONTEXT_FULL;
 
-		log_warn(0, WARNING_DEPRECATED, STRING_CONST("********** REIMPLEMENT FALLBACK STACKTRACE **********"));
+		log_warn(0, WARNING_DEPRECATED,
+		         STRING_CONST("********** REIMPLEMENT FALLBACK STACKTRACE **********"));
 		/* Use a fake function call to pop the return address and retrieve EIP.*/
-		__asm
-		{
+		__asm {
 			call FakeStackTraceCall
 			FakeStackTraceCall:
 			pop eax
@@ -531,6 +535,9 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 }
 
 static bool _symbol_resolve_initialized = false;
+#if FOUNDATION_PLATFORM_WINDOWS
+static void* _stacktrace_psapi_dll;
+#endif
 
 static bool
 _initialize_symbol_resolve() {
@@ -540,10 +547,14 @@ _initialize_symbol_resolve() {
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		unsigned int options;
-		void* dll = LoadLibraryA("PSAPI.DLL");
-		if (!dll)
+		void* dll;
+
+		if (!_stacktrace_psapi_dll)
+			_stacktrace_psapi_dll = LoadLibraryA("PSAPI.DLL");
+		if (!_stacktrace_psapi_dll)
 			return _symbol_resolve_initialized;
 
+		dll = _stacktrace_psapi_dll;
 		CallEnumProcesses = (EnumProcessesFn)GetProcAddress(dll, "EnumProcesses");
 		CallEnumProcessModules = (EnumProcessModulesFn)GetProcAddress(dll, "EnumProcessModules");
 		CallGetModuleFileNameEx = (GetModuleFileNameExFn)GetProcAddress(dll, "GetModuleFileNameExA");
@@ -551,13 +562,15 @@ _initialize_symbol_resolve() {
 		CallGetModuleInformation = (GetModuleInformationFn)GetProcAddress(dll, "GetModuleInformation");
 
 		if (!CallEnumProcesses || !CallEnumProcessModules || !CallGetModuleFileNameEx ||
-		    !CallGetModuleBaseName || !CallGetModuleInformation)
+		        !CallGetModuleBaseName || !CallGetModuleInformation)
 			return _symbol_resolve_initialized;
 
-		dll = LoadLibraryA("DBGHELP.DLL");
-		if (!dll)
+		if (!_stacktrace_dbghelp_dll)
+			_stacktrace_dbghelp_dll = LoadLibraryA("DBGHELP.DLL");
+		if (!_stacktrace_dbghelp_dll)
 			return _symbol_resolve_initialized;
 
+		dll = _stacktrace_dbghelp_dll;
 		CallSymInitialize = (SymInitializeFn)GetProcAddress(dll, "SymInitialize");
 		CallSymSetOptions = (SymSetOptionsFn)GetProcAddress(dll, "SymSetOptions");
 		CallSymGetOptions = (SymGetOptionsFn)GetProcAddress(dll, "SymGetOptions");
@@ -571,8 +584,8 @@ _initialize_symbol_resolve() {
 		                               "SymFunctionTableAccess64");
 
 		if (!CallSymInitialize || !CallSymSetOptions || !CallSymGetOptions || !CallSymLoadModule64 ||
-		    !CallSymSetSearchPath || !CallSymGetModuleInfo64 || !CallSymGetLineFromAddr64 ||
-		    !CallSymGetSymFromAddr64  || !CallSymGetModuleBase64 || !CallSymFunctionTableAccess64)
+		        !CallSymSetSearchPath || !CallSymGetModuleInfo64 || !CallSymGetLineFromAddr64 ||
+		        !CallSymGetSymFromAddr64  || !CallSymGetModuleBase64 || !CallSymFunctionTableAccess64)
 			return _symbol_resolve_initialized;
 
 		options = CallSymGetOptions();
@@ -607,19 +620,33 @@ _initialize_symbol_resolve() {
 	return _symbol_resolve_initialized;
 }
 
+static void
+_finalize_symbol_resolve() {
+#if FOUNDATION_PLATFORM_ANDROID
+	memory_deallocate(_process_modules);
+	_process_modules = 0;
+#endif
+#if FOUNDATION_PLATFORM_WINDOWS
+	if (_stacktrace_psapi_dll)
+		FreeLibrary(_stacktrace_psapi_dll);
+	_stacktrace_psapi_dll = 0;
+#endif
+	_symbol_resolve_initialized = false;
+}
+
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
+#define UNKNOWN_SYMBOL "?""?"
+#endif
+
 static FOUNDATION_NOINLINE string_t
 _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_frames) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_t*           lines = 0;
 	char                symbol_buffer[ sizeof(IMAGEHLP_SYMBOL64) + 512 ];
 	PIMAGEHLP_SYMBOL64  symbol;
 	DWORD               displacement = 0;
 	uint64_t            displacement64 = 0;
-	unsigned int        iaddr = 0;
-	unsigned int        last_error;
-	bool                found = false;
+	size_t              iaddr;
 	HANDLE              process_handle = GetCurrentProcess();
-	int                 buffer_offset = 0;
 	bool                last_was_main = false;
 	IMAGEHLP_LINE64     line64;
 	IMAGEHLP_MODULE64   module64;
@@ -627,9 +654,9 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 
 	for (iaddr = 0; (iaddr < max_frames) && !last_was_main && (resolved.length < capacity-1); ++iaddr) {
 		string_t line;
-		const char* function_name = "??";
-		const char* file_name = "??";
-		const char* module_name = "??";
+		const char* function_name = UNKNOWN_SYMBOL;
+		const char* file_name = function_name;
+		const char* module_name = function_name;
 		unsigned int line_number = 0;
 
 		//Allow first frame to be null in case of a function call to a null pointer
@@ -644,23 +671,20 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 
 		// Get symbol from address.
 		if (CallSymGetSymFromAddr64 &&
-		    CallSymGetSymFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement64,
-		                            symbol)) {
-			int offset = 0;
-			while (symbol->Name[offset] < 32)
+		        CallSymGetSymFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement64,
+		                                symbol)) {
+			size_t offset = 0;
+			while ((offset < sizeof(symbol->Name)) && (symbol->Name[offset] < 32))
 				++offset;
-			function_name = symbol->Name + offset;
-		}
-		else {
-			// No symbol found for this address.
-			last_error = GetLastError();
+			if (offset < sizeof(symbol->Name))
+				function_name = symbol->Name + offset;
 		}
 
 		memset(&line64, 0, sizeof(line64));
 		line64.SizeOfStruct = sizeof(line64);
 		if (CallSymGetLineFromAddr64 &&
-		    CallSymGetLineFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement,
-		                             &line64)) {
+		        CallSymGetLineFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement,
+		                                 &line64)) {
 			file_name = line64.FileName;
 			line_number = line64.LineNumber;
 		}
@@ -668,7 +692,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		memset(&module64, 0, sizeof(module64));
 		module64.SizeOfStruct = sizeof(module64);
 		if (CallSymGetModuleInfo64 &&
-		    CallSymGetModuleInfo64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &module64)) {
+		        CallSymGetModuleInfo64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &module64)) {
 			size_t last_slash = STRING_NPOS;
 			module_name = module64.ImageName;
 			last_slash = string_rfind(module_name, string_length(module_name), '\\', STRING_NPOS);
@@ -679,9 +703,9 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		if (resolved.length)
 			resolved.str[resolved.length++] = '\n';
 		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
-		                         STRING_CONST("[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]"),
-		                         frames[iaddr], function_name, file_name, line_number,
-		                         displacement, module_name);
+		                     STRING_CONST("[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]"),
+		                     frames[iaddr], function_name, file_name, line_number,
+		                     displacement, module_name);
 		resolved.length += line.length;
 
 		if (string_equal(function_name, string_length(function_name), STRING_CONST("main")))
@@ -708,11 +732,11 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
 
 	string_const_t* args = 0;
-	process_t* proc = process_allocate();
+	process_t* proc;
 	unsigned int num_frames = 0;
 	unsigned int requested_frames = 0;
 	bool last_was_main = false;
-	string_t resolved = (string_t){buffer, 0};
+	string_t resolved = (string_t) {buffer, 0};
 	string_t line, filename, function;
 	stream_t* procout;
 
@@ -722,8 +746,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			if (iaddr && !frames[iaddr])
 				break;
 			line = string_format(resolved.str + resolved.length, capacity - resolved.length,
-								 STRING_CONST("[0x%" PRIfixPTR "]" STRING_NEWLINE),
-								 (uintptr_t)frames[iaddr]);
+			                     STRING_CONST("[0x%" PRIfixPTR "]" STRING_NEWLINE),
+			                     (uintptr_t)frames[iaddr]);
 			resolved.length += line.length;
 		}
 		return resolved;
@@ -739,13 +763,14 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			break;
 
 		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
-							 STRING_CONST("0x%" PRIfixPTR), (uintptr_t)frames[iaddr]);
+		                     STRING_CONST("0x%" PRIfixPTR), (uintptr_t)frames[iaddr]);
 		resolved.length += line.length;
-		
+
 		array_push(args, string_const(STRING_ARGS(line)));
 		++requested_frames;
 	}
 
+	proc = process_allocate();
 	process_set_working_directory(proc, STRING_ARGS(environment_initial_working_directory()));
 	process_set_executable_path(proc, STRING_CONST("/usr/bin/addr2line"));
 	process_set_arguments(proc, args, array_size(args));
@@ -757,23 +782,28 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 	resolved.length = 0;
 	while (!stream_eos(procout) && (num_frames < requested_frames) && !last_was_main) {
 		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
-							 STRING_CONST("[0x%" PRIfixPTR "] "), (uintptr_t)frames[num_frames]);
+		                     STRING_CONST("[0x%" PRIfixPTR "] "), (uintptr_t)frames[num_frames]);
 		resolved.length += line.length;
-		
-		function = stream_read_line_buffer(procout, resolved.str + resolved.length, capacity - resolved.length, '\n');
+
+		function = stream_read_line_buffer(procout, resolved.str + resolved.length,
+		                                   capacity - resolved.length, '\n');
 		if (!function.length)
-			function = string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST("??"));
+			function = string_copy(resolved.str + resolved.length, capacity - resolved.length,
+			                       STRING_CONST(UNKNOWN_SYMBOL));
 		resolved.length += function.length;
 
 		string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST(" ("));
 		resolved.length += 2;
-		
-		filename = stream_read_line_buffer(procout, resolved.str + resolved.length, capacity - resolved.length, '\n');
+
+		filename = stream_read_line_buffer(procout, resolved.str + resolved.length,
+		                                   capacity - resolved.length, '\n');
 		if (!filename.length)
-			filename = string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST("??"));
+			filename = string_copy(resolved.str + resolved.length, capacity - resolved.length,
+			                       STRING_CONST(UNKNOWN_SYMBOL));
 		resolved.length += filename.length;
 
-		string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST(")" STRING_NEWLINE));
+		string_copy(resolved.str + resolved.length, capacity - resolved.length,
+		            STRING_CONST(")" STRING_NEWLINE));
 		resolved.length += 2;
 
 		if (string_equal(STRING_ARGS(function), STRING_CONST("main")))
@@ -808,7 +838,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 
 		for (size_t imod = 0; imod < _process_modules_size; ++imod) {
 			if ((relativeframe >= _process_modules[imod].address_start) &&
-			    (relativeframe < _process_modules[imod].address_end)) {
+			        (relativeframe < _process_modules[imod].address_end)) {
 				relativeframe -= _process_modules[imod].address_start;
 				module = string_const(STRING_ARGS(_process_modules[imod].name));
 				break;
@@ -866,9 +896,7 @@ _stacktrace_initialize(void) {
 
 void
 _stacktrace_finalize(void) {
-#if FOUNDATION_PLATFORM_ANDROID
-	memory_deallocate(_process_modules);
-	_process_modules = 0;
-#endif
+	_finalize_symbol_resolve();
+	_finalize_stackwalker();
 }
 

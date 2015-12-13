@@ -15,15 +15,16 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
+#  include <process.h>
 
 typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 
-DWORD WINAPI
+static DWORD WINAPI
 GetCurrentProcessorNumberFallback(VOID) {
 	return 0;
 }
 
-GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
+static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
 
 #endif
 
@@ -40,6 +41,7 @@ GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNu
 
 #if FOUNDATION_PLATFORM_ANDROID
 #  include <foundation/android.h>
+#  include <sys/syscall.h>
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -79,38 +81,8 @@ _allocate_thread_local_block(size_t size) {
 
 #endif
 
-FOUNDATION_ALIGNED_STRUCT(thread_t, 16) {
-	FOUNDATION_DECLARE_OBJECT;
-
-	atomic32_t            started; //Aligned to 16 bytes for atomic
-	atomic32_t            running;
-	atomic32_t            terminate;
-	uint32_t              stacksize;
-	thread_fn             fn;
-	char                  name[32];
-	thread_priority_t     priority;
-	void*                 arg;
-	void*                 result;
-	uint64_t              osid;
-
-#if FOUNDATION_PLATFORM_WINDOWS
-	HANDLE                handle;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-	pthread_t             thread;
-#else
-#  error Not implemented
-#endif
-};
-
-typedef FOUNDATION_ALIGNED_STRUCT(thread_t, 16) thread_t;
-
-static uint64_t     _thread_main_id;
-static objectmap_t* _thread_map;
-
-#define GET_THREAD( obj ) objectmap_lookup( _thread_map, obj )
-
-FOUNDATION_DECLARE_THREAD_LOCAL(const char*, name, 0)
 FOUNDATION_DECLARE_THREAD_LOCAL(thread_t*, self, 0)
+static uint64_t _thread_main_id;
 
 int
 _thread_initialize(void) {
@@ -123,15 +95,13 @@ _thread_initialize(void) {
 		_fnGetCurrentProcessorNumber = getprocidfn;
 #endif
 
-	_thread_map = objectmap_allocate(_foundation_config.thread_max);
+	_thread_main_id = thread_id();
 
 	return 0;
 }
 
 void
 _thread_finalize(void) {
-	objectmap_deallocate(_thread_map);
-
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
 	for (int i = 0; i < 1024; ++i) {
 		if (atomic_loadptr(&_thread_local_blocks[i].block)) {
@@ -142,99 +112,14 @@ _thread_finalize(void) {
 		}
 	}
 #endif
-
-	thread_finalize();
-}
-
-static void
-_thread_destroy(object_t id, void* thread_raw) {
-	thread_t* thread = thread_raw;
-	FOUNDATION_UNUSED(id);
-	if (!thread)
-		return;
-	if (thread_is_running(thread->id)) {
-		unsigned int spin_count = 0;
-		FOUNDATION_ASSERT_FAIL("Destroying running thread");
-		thread_terminate(thread->id);
-		while (thread_is_running(thread->id) && (++spin_count < 50))
-			thread_yield();
-	}
-	objectmap_free(_thread_map, thread->id);
-	memory_deallocate(thread);
-}
-
-static FOUNDATION_FORCEINLINE void
-_thread_unref(thread_t* thread) {
-	if (thread)
-		objectmap_lookup_unref(_thread_map, thread->id, _thread_destroy);
+	thread_exit();
 }
 
 static int
 _thread_guard_wrapper(void* data) {
 	thread_t* thread = data;
-	FOUNDATION_ASSERT(atomic_load32(&thread->running) == 1);
-	thread->result = thread->fn(thread->id, thread->arg);
+	thread->result = thread->fn(thread->arg);
 	return 0;
-}
-
-object_t
-thread_create(thread_fn fn, const char* name, size_t length, thread_priority_t priority,
-              unsigned int stacksize) {
-	thread_t* thread;
-	uint64_t id = objectmap_reserve(_thread_map);
-	if (!id) {
-		log_error(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate new thread, map full"));
-		return 0;
-	}
-	thread = memory_allocate(0, sizeof(thread_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-	_object_initialize((object_base_t*)thread, id);
-	thread->fn = fn;
-	string_copy(thread->name, sizeof(thread->name), name, length);
-	thread->priority = priority;
-	thread->stacksize = stacksize;
-	objectmap_set(_thread_map, id, thread);
-	return thread->id;
-}
-
-object_t
-thread_ref(object_t id) {
-	return _object_ref(GET_THREAD(id));
-}
-
-void
-thread_destroy(object_t id) {
-	_thread_unref(GET_THREAD(id));
-}
-
-bool
-thread_is_started(object_t id) {
-	thread_t* thread = GET_THREAD(id);
-	return (thread && (atomic_load32(&thread->started) > 0));
-}
-
-bool
-thread_is_running(object_t id) {
-	thread_t* thread = GET_THREAD(id);
-	return (thread && (atomic_load32(&thread->running) > 0));
-}
-
-bool
-thread_is_thread(object_t id) {
-	thread_t* thread = GET_THREAD(id);
-	return (thread != 0);
-}
-
-void*
-thread_result(object_t id) {
-	thread_t* thread = GET_THREAD(id);
-	return (!thread || !atomic_load32(&thread->started) ||
-	        atomic_load32(&thread->running)) ? 0 : thread->result;
-}
-
-string_const_t
-thread_name(void) {
-	const char* name = get_thread_name();
-	return string_const(name, string_length(name));
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
@@ -243,6 +128,7 @@ const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO {
+	/*lint --e{958} */
 	DWORD dwType; // Must be 0x1000.
 	LPCSTR szName; // Pointer to name (in user addr space).
 	DWORD dwThreadID; // Thread ID (-1=caller thread).
@@ -264,7 +150,7 @@ _set_thread_name(const char* threadname) {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
 	info.szName = threadname;
-	info.dwThreadID = -1;
+	info.dwThreadID = (DWORD)-1;
 	info.dwFlags = 0;
 
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -280,7 +166,7 @@ _set_thread_name(const char* threadname) {
 	SetUnhandledExceptionFilter(prev_filter);
 #else
 	__except (
-	  EXCEPTION_CONTINUE_EXECUTION) { //Does EXCEPTION_EXECUTE_HANDLER require a debugger present?
+	    EXCEPTION_CONTINUE_EXECUTION) { //Does EXCEPTION_EXECUTE_HANDLER require a debugger present?
 		atomic_thread_fence_release();
 	}
 #endif
@@ -296,42 +182,26 @@ thread_set_name(const char* name, size_t length) {
 #  if FOUNDATION_PLATFORM_WINDOWS
 	_set_thread_name(name);
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	if (!thread_is_main())  //Don't set main thread (i.e process) name
-		prctl(PR_SET_NAME, name, 0, 0, 0);
+	prctl(PR_SET_NAME, name, 0, 0, 0);
 #  elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	if (!thread_is_main())  //Don't set main thread (i.e process) name
-		pthread_setname_np(name);
+	pthread_setname_np(name);
 #  elif FOUNDATION_PLATFORM_BSD
-	if (!thread_is_main())  //Don't set main thread (i.e process) name
-		pthread_set_name_np(pthread_self(), name);
+	pthread_set_name_np(pthread_self(), name);
 #  endif
 #endif
 
 	self = get_thread_self();
 	if (self) {
-#if !BUILD_DEPLOY
-		thread_t* check_self = GET_THREAD(self->id);
-		FOUNDATION_ASSERT(self == check_self);
-#endif
-		string_copy(self->name, sizeof(self->name), name, length);
-		set_thread_name(self->name);
+		string_t newname = string_copy(self->namebuffer, sizeof(self->namebuffer), name, length);
+		self->name = string_to_const(newname);
 	}
-	else {
-		set_thread_name(name);
-	}
-}
-
-object_t
-thread_self(void) {
-	thread_t* self = get_thread_self();
-	return self ? self->id : 0;
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-typedef DWORD thread_return_t;
+typedef unsigned thread_return_t;
 typedef void* thread_arg_t;
-#define FOUNDATION_THREADCALL WINAPI
+#define FOUNDATION_THREADCALL STDCALL
 #define GET_THREAD_PTR(x) ((thread_t*)(x))
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
@@ -347,45 +217,31 @@ typedef void* thread_arg_t;
 
 static thread_return_t FOUNDATION_THREADCALL
 _thread_entry(thread_arg_t data) {
-	uint64_t thr_osid;
-	uint64_t thr_id;
 	thread_t* thread = GET_THREAD_PTR(data);
-
-	if (!_object_ref((object_base_t*)thread)) {
-		log_warnf(0, WARNING_SUSPICIOUS,
-		          STRING_CONST("Unable to enter thread, invalid thread object %" PRIfixPTR), (uintptr_t)thread);
-		return 0;
-	}
-
-	atomic_cas32(&thread->started, 1, 0);
-	if (!atomic_cas32(&thread->running, 1, 0)) {
-		log_warnf(0, WARNING_SUSPICIOUS,
-		          STRING_CONST("Unable to enter thread %" PRIx64 ", already running"), thread->id);
-		_thread_unref(thread);
-		return 0;
-	}
 
 	thread->osid = thread_id();
 
 #if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
-	if (thread->name[0])
-		_set_thread_name(thread->name);
+	if (thread->name.length)
+		_set_thread_name(thread->name.str);
 #elif ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID ) && !BUILD_DEPLOY
-	prctl(PR_SET_NAME, thread->name, 0, 0, 0);
+	if (thread->name.length)
+		prctl(PR_SET_NAME, thread->name.str, 0, 0, 0);
 #elif FOUNDATION_PLATFORM_BSD && !BUILD_DEPLOY
-	pthread_set_name_np(pthread_self(), thread->name);
+	if (thread->name.length)
+		pthread_set_name_np(pthread_self(), thread->name.str);
 #endif
-	atomic_store32(&thread->terminate, 0);
+
+	log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
+	           STRING_FORMAT(thread->name), thread->osid,
+	           crash_guard_callback() ? " (guarded)" : "");
 
 	set_thread_self(thread);
-
-	FOUNDATION_ASSERT(atomic_load32(&thread->running) == 1);
-
-	log_debugf(0, STRING_CONST("Started thread '%s' (%" PRIx64 ") ID %" PRIx64 "%s"),
-	           thread->name, thread->osid, thread->id, crash_guard_callback() ? " (guarded)" : "");
+	atomic_store32(&thread->state, 1);
+	atomic_thread_fence_release();
 
 	if (system_debugger_attached()) {
-		thread->result = thread->fn(thread->id, thread->arg);
+		thread->result = thread->fn(thread->arg);
 	}
 	else {
 		string_const_t guard_name = crash_guard_name();
@@ -393,66 +249,74 @@ _thread_entry(thread_arg_t data) {
 		                               guard_name.str, guard_name.length);
 		if (crash_result == FOUNDATION_CRASH_DUMP_GENERATED) {
 			thread->result = (void*)((uintptr_t)FOUNDATION_CRASH_DUMP_GENERATED);
-			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Thread '%s' (%" PRIx64 ") ID %" PRIx64 " crashed"),
-			          thread->name, thread->osid, thread->id);
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Thread '%.*s' (%" PRIx64 ") crashed"),
+			          STRING_FORMAT(thread->name), thread->osid);
 		}
 	}
 
-	thr_osid = thread->osid;
-	thr_id = thread->id;
-	log_debugf(0, STRING_CONST("Terminated thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs"),
-	           thread->name, thr_osid, thr_id, atomic_load32(&thread->ref));
+	log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
+	           STRING_FORMAT(thread->name), thread->osid);
 
-	thread->osid  = 0;
+	if (thread_is_main())
+		_thread_main_id = (uint64_t)-1;
+
+	thread->osid = 0;
+	atomic_store32(&thread->state, 2);
+	atomic_thread_fence_release();
 
 	set_thread_self(0);
-	thread_finalize();
-
-	if (!atomic_cas32(&thread->running, 0, 1)) {
-		FOUNDATION_ASSERT_FAIL("Unable to reset running flag");
-		atomic_store32(&thread->running, 0);
-	}
-
-	log_debugf(0, STRING_CONST("Exiting thread '%s' (%" PRIx64 ") ID %" PRIx64 " with %d refs"),
-	           thread->name, thr_osid, thr_id, atomic_load32(&thread->ref));
-
-	_thread_unref(thread);
-
-	FOUNDATION_UNUSED(thr_osid);
-	FOUNDATION_UNUSED(thr_id);
+	thread_exit();
 
 	return 0;
 }
 
-bool
-thread_start(object_t id, void* data) {
-#if FOUNDATION_PLATFORM_WINDOWS
-	unsigned long osid = 0;
-#endif
-	thread_t* thread = GET_THREAD(id);
-	if (!thread) {
-		log_errorf(0, ERROR_INVALID_VALUE, STRING_CONST("Unable to start thread %" PRIx64 ", invalid id"),
-		           id);
-		return false; //Old/invalid id
-	}
+thread_t*
+thread_allocate(thread_fn fn, void* data, const char* name, size_t length,
+                thread_priority_t priority, unsigned int stacksize) {
+	thread_t* thread = memory_allocate(0, sizeof(thread_t), 0,
+	                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	thread_initialize(thread, fn, data, name, length, priority, stacksize);
+	return thread;
+}
 
-	if (atomic_load32(&thread->running) > 0) {
-		log_warnf(0, WARNING_SUSPICIOUS,
-		          STRING_CONST("Unable to start thread %" PRIx64 ", already running"), id);
-		return false; //Thread already running
-	}
+void
+thread_initialize(thread_t* thread, thread_fn fn, void* data, const char* name, size_t length,
+                  thread_priority_t priority, unsigned int stacksize) {
+	string_t newname;
+	if (!stacksize)
+		stacksize = (uint32_t)_foundation_config.thread_stack_size;
 
-	atomic_cas32(&thread->started, 0, 1);
-
+	memset(thread, 0, sizeof(thread_t));
+	newname = string_copy(thread->namebuffer, sizeof(thread->namebuffer), name, length);
 	thread->arg = data;
+	thread->name = string_to_const(newname);
+	thread->fn = fn;
+	thread->priority = priority;
+	thread->stacksize = stacksize;
+	beacon_initialize(&thread->beacon);
+}
 
-	if (!thread->stacksize)
-		thread->stacksize = (uint32_t)_foundation_config.thread_stack_size;
+void
+thread_deallocate(thread_t* thread) {
+	thread_finalize(thread);
+	memory_deallocate(thread);
+}
 
+void
+thread_finalize(thread_t* thread) {
+	thread_join(thread);
+	beacon_finalize(&thread->beacon);
+}
+
+bool
+thread_start(thread_t* thread) {
+	//Reset beacon
+	beacon_try_wait(&thread->beacon, 0);
 #if FOUNDATION_PLATFORM_WINDOWS
-	thread->handle = CreateThread(0, thread->stacksize, _thread_entry, thread, 0, &osid);
+	FOUNDATION_ASSERT(!thread->handle);
+	thread->handle = _beginthreadex(nullptr, thread->stacksize, _thread_entry, thread, 0, nullptr);
 	if (!thread->handle) {
-		int err = GetLastError();
+		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to create thread: CreateThread failed: %.*s (%d)"),
@@ -460,7 +324,9 @@ thread_start(object_t id, void* data) {
 		return false;
 	}
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-	int err = pthread_create(&thread->thread, 0, _thread_entry, thread);
+	FOUNDATION_ASSERT(!thread->handle);
+	pthread_t id = 0;
+	int err = pthread_create(&id, 0, _thread_entry, thread);
 	if (err) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
@@ -468,6 +334,7 @@ thread_start(object_t id, void* data) {
 		           STRING_FORMAT(errmsg), err);
 		return false;
 	}
+	thread->handle = (uintptr_t)id;
 #else
 #  error Not implemented
 #endif
@@ -475,19 +342,62 @@ thread_start(object_t id, void* data) {
 	return true;
 }
 
-void
-thread_terminate(object_t id) {
-	thread_t* thread = GET_THREAD(id);
-	if (thread)
-		atomic_store32(&thread->terminate, 1);
+void*
+thread_join(thread_t* thread) {
+#if FOUNDATION_PLATFORM_WINDOWS
+	if (thread->handle) {
+		WaitForSingleObject((HANDLE)thread->handle, INFINITE);
+		CloseHandle((HANDLE)thread->handle);
+		atomic_store32(&thread->state, 3);
+	}
+	thread->handle = 0;
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+	void* result = 0;
+	if (thread->handle) {
+		pthread_join((pthread_t)thread->handle, &result);
+		atomic_store32(&thread->state, 3);
+	}
+	thread->handle = 0;
+#else
+#  error Not implemented
+#endif
+	atomic_thread_fence_release();
+	return thread->result;
 }
 
 bool
-thread_should_terminate(object_t id) {
-	thread_t* thread = GET_THREAD(id);
-	if (thread)
-		return atomic_load32(&thread->terminate)  > 0;
-	return true;
+thread_is_started(const thread_t* thread) {
+	atomic_thread_fence_acquire();
+	return thread ? atomic_load32(&thread->state) >= 1 : false;
+}
+
+bool
+thread_is_running(const thread_t* thread) {
+	atomic_thread_fence_acquire();
+	return thread ? atomic_load32(&thread->state) == 1 : false;
+}
+
+void
+thread_signal(thread_t* thread) {
+	beacon_fire(&thread->beacon);
+}
+
+bool
+thread_wait(void) {
+	thread_t* thread = get_thread_self();
+	return thread ? (beacon_wait(&thread->beacon) >= 0) : false;
+}
+
+bool
+thread_try_wait(unsigned int milliseconds) {
+	thread_t* thread = get_thread_self();
+	return thread ? (beacon_try_wait(&thread->beacon, milliseconds) >= 0) : false;
+}
+
+string_const_t
+thread_name(void) {
+	thread_t* thread = get_thread_self();
+	return thread ? thread->name : string_null();
 }
 
 void
@@ -543,6 +453,13 @@ thread_hardware(void) {
 	return _fnGetCurrentProcessorNumber();
 #elif FOUNDATION_PLATFORM_LINUX
 	return (unsigned int)sched_getcpu();
+#elif FOUNDATION_PLATFORM_ANDROID
+	unsigned int cpu = 0;
+#  ifdef __NR_getcpu
+	if (syscall(__NR_getcpu, &cpu, nullptr, nullptr) < 0)
+		return 0;
+#  endif
+	return cpu;
 #else
 	//TODO: Implement for other platforms
 	return 0;
@@ -551,22 +468,45 @@ thread_hardware(void) {
 
 void
 thread_set_hardware(uint64_t mask) {
+#if FOUNDATION_PLATFORM_WINDOWS
+	DWORD_PTR procmask = 0;
+	DWORD_PTR sysmask = 0;
+	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
+	SetThreadAffinityMask(GetCurrentThread(), mask & procmask);
+#elif FOUNDATION_PLATFORM_LINUX
+	uint64_t ibit, bsize;
+	cpu_set_t set;
+	CPU_ZERO(&set);
+	for (ibit = 0, bsize = math_min(64, CPU_SETSIZE); ibit < bsize; ++ibit) {
+		if (mask & (1 << ibit))
+			CPU_SET(ibit, &set);
+	}
+	sched_setaffinity(0, sizeof(set), &set);
+#else
 	//TODO: Implement
 	FOUNDATION_UNUSED(mask);
+#endif
 }
 
 void
 thread_set_main(void) {
 	_thread_main_id = thread_id();
+	atomic_thread_fence_release();
 }
 
 bool
 thread_is_main(void) {
+	atomic_thread_fence_acquire();
 	return thread_id() == _thread_main_id;
 }
 
+thread_t*
+thread_self(void) {
+	return get_thread_self();
+}
+
 void
-thread_finalize(void) {
+thread_exit(void) {
 	_profile_thread_finalize();
 
 	system_thread_finalize();

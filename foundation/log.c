@@ -80,14 +80,14 @@ static char _log_error_name[LOG_ERROR_NAMES][18] = {
 	"script"
 };
 
-struct _log_timestamp {
+struct log_timestamp_t {
 	int hours;
 	int minutes;
 	int seconds;
 	int milliseconds;
 };
 
-typedef struct _log_timestamp log_timestamp_t;
+typedef struct log_timestamp_t log_timestamp_t;
 
 static log_timestamp_t
 _log_make_timestamp(void) {
@@ -133,28 +133,32 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 	char local_buffer[385];
 	char* buffer = local_buffer;
 	FOUNDATION_UNUSED(format_length);
+	/*lint -e716 */
 	while (1) {
 		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
 		if (_log_prefix)
-			need = snprintf(buffer, (size_t)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%d> %.*s", timestamp.hours,
-			                timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length, prefix);
+			need = snprintf(buffer, (unsigned int)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%u> %.*s",
+			                timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds,
+			                tid, pid, (int)prefix_length, prefix);
 		else
-			need = snprintf(buffer, (size_t)size, "%.*s", (int)prefix_length, prefix);
+			need = snprintf(buffer, (unsigned int)size, "%.*s", (int)prefix_length, prefix);
 
 		remain = size - need;
 		{
 			va_list clist;
 			va_copy(clist, list);
-			more = vsnprintf(buffer + need, (size_t)remain, format, clist);
+			more = vsnprintf(buffer + need, (unsigned int)remain, format, clist);
 			va_end(clist);
 		}
 
 		if ((more > -1) && (more < remain)) {
-			buffer[need + more] = '\n';
-			buffer[need + more + 1] = 0;
+			int endl = need + more;
+			buffer[endl++] = '\n';
+			buffer[endl] = 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-			OutputDebugStringA(buffer);
+			if (_log_stdout)
+				OutputDebugStringA(buffer);
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -169,14 +173,14 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 #elif FOUNDATION_PLATFORM_PNACL
 			FOUNDATION_UNUSED(std);
 			if (_log_stdout)
-				pnacl_post_log(context, severity, buffer, (size_t)(need + more + 1));
+				pnacl_post_log(context, severity, buffer, (unsigned int)endl);
 #else
 			if (_log_stdout && std)
 				fprintf(std, "%s", buffer);
 #endif
 
 			if (_log_callback)
-				_log_callback(context, severity, buffer, (size_t)(need + more));
+				_log_callback(context, severity, buffer, (unsigned int)(endl - 1));
 
 			break;
 		}
@@ -188,7 +192,7 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 
 		if (buffer != local_buffer)
 			memory_deallocate(buffer);
-		buffer = memory_allocate(0, (size_t)size + 2, 0, MEMORY_TEMPORARY);
+		buffer = memory_allocate(0, (unsigned int)(size + 2), 0, MEMORY_TEMPORARY);
 	}
 	if (buffer != local_buffer)
 		memory_deallocate(buffer);
@@ -357,7 +361,7 @@ log_set_suppress(hash_t context, error_level_t level) {
 	if (!context)
 		_log_suppress_default = level;
 	else if (_log_suppress)
-		hashtable64_set(_log_suppress, context, level + 1);
+		hashtable64_set(_log_suppress, context, (unsigned int)(level + 1));
 }
 
 error_level_t

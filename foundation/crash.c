@@ -11,7 +11,6 @@
  */
 
 #include <foundation/foundation.h>
-#include <foundation/internal.h>
 
 static crash_dump_callback_fn  _crash_dump_callback;
 static string_const_t          _crash_dump_name;
@@ -84,15 +83,30 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 				if (!success)
 					dump_file.length = 0;
 			}
+			else {
+				string_const_t errmsg = system_error_message(0);
+				log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable open get symbol from dbghelp library: %.*s"), STRING_FORMAT(errmsg));
+			}
 
 			FreeLibrary(lib);
 		}
-		if (success)
+		else {
+			string_const_t errmsg = system_error_message(0);
+			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable open dbghelp library: %.*s"), STRING_FORMAT(errmsg));
+		}
+		if (success) {
+			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"), STRING_FORMAT(dump_file));
 			FlushFileBuffers(file);
+		}
 		CloseHandle(file);
-
-		return dump_file;
+		if (success)
+			return dump_file;
 	}
+	else {
+		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable to write mini dump to: %.*s"), STRING_FORMAT(dump_file));
+	}
+
+	//TODO: At least print out the exception records in log	
 
 	return (string_t){0, 0};
 }
@@ -196,8 +210,9 @@ int
 crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
             size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
-	int ret = FOUNDATION_CRASH_DUMP_GENERATED;
-	string_t crash_dump_file = string_allocate(0, BUILD_MAX_PATHLEN);
+	int ret;
+	string_t crash_dump_file;
+	char buffer[MAX_PATH];
 #endif
 
 	//Make sure path is initialized
@@ -206,17 +221,19 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
+	crash_dump_file.str = buffer;
+	crash_dump_file.length = sizeof(buffer);
 	__try {
 		ret = fn(data);
-	}
+	} /*lint -e534*/
 	__except (_crash_create_mini_dump(GetExceptionInformation(), string_const(name, length), crash_dump_file),
 	          EXCEPTION_EXECUTE_HANDLER) {
+		ret = FOUNDATION_CRASH_DUMP_GENERATED;
 		if (callback)
 			callback(STRING_ARGS(crash_dump_file));
 
 		error_context_clear();
 	}
-	string_deallocate(crash_dump_file.str);
 	return ret;
 #  else
 	SetUnhandledExceptionFilter(_crash_exception_filter);

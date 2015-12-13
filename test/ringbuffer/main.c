@@ -130,6 +130,10 @@ DECLARE_TEST(ringbuffer, allocate) {
 	EXPECT_EQ(ringbuffer_total_read(buffer), 512);
 	EXPECT_EQ(ringbuffer_total_written(buffer), 512);
 
+	ringbuffer_reset(buffer);
+	EXPECT_EQ(ringbuffer_total_read(buffer), 0);
+	EXPECT_EQ(ringbuffer_total_written(buffer), 0);
+
 	ringbuffer_deallocate(buffer);
 
 	return 0;
@@ -169,8 +173,8 @@ DECLARE_TEST(ringbuffer, io) {
 typedef struct {
 	stream_t* stream;
 
-	object_t read_thread;
-	object_t write_thread;
+	thread_t read_thread;
+	thread_t write_thread;
 
 	char*    source_buffer;
 	char*    dest_buffer;
@@ -182,18 +186,16 @@ typedef struct {
 } ringbufferstream_test_t;
 
 static void*
-read_thread(object_t thread, void* arg) {
+read_thread(void* arg) {
 	ringbufferstream_test_t* test = arg;
-	FOUNDATION_UNUSED(thread);
 	stream_read(test->stream, test->dest_buffer, test->buffer_size);
 	test->end_time = time_current();
 	return 0;
 }
 
 static void*
-write_thread(object_t thread, void* arg) {
+write_thread(void* arg) {
 	ringbufferstream_test_t* test = arg;
-	FOUNDATION_UNUSED(thread);
 	test->start_time = time_current();
 	stream_write(test->stream, test->source_buffer, test->buffer_size);
 	return 0;
@@ -205,7 +207,8 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 	unsigned int si;
 	unsigned int loop, loops;
 	real elapsed;
-	real throughput;
+	real rb_throughput;
+	real mem_throughput;
 	unsigned int mbytes;
 
 #if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
@@ -229,32 +232,61 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 
 	elapsed = 0;
 	for (loop = 0; loop < loops; ++loop) {
-		test.stream = ringbuffer_stream_allocate(23477, test.buffer_size);
+		size_t ringbuffer_size = 23477;
+		test.stream = ringbuffer_stream_allocate(ringbuffer_size, test.buffer_size);
 		EXPECT_NE(test.stream, 0);
 
-		test.read_thread = thread_create(read_thread, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
-		test.write_thread = thread_create(write_thread, STRING_CONST("writer"), THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&test.read_thread, read_thread, &test, STRING_CONST("reader"), THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&test.write_thread, write_thread, &test, STRING_CONST("writer"), THREAD_PRIORITY_NORMAL, 0);
 
-		thread_start(test.read_thread, &test);
-		thread_start(test.write_thread, &test);
-		thread_sleep(100);
+		thread_start(&test.read_thread);
+		thread_start(&test.write_thread);
 
-		while (thread_is_running(test.read_thread) || thread_is_running(test.write_thread))
+		while (!thread_is_started(&test.read_thread) || !thread_is_started(&test.write_thread))
 			thread_sleep(10);
 
-		thread_destroy(test.read_thread);
-		thread_destroy(test.write_thread);
+		while (thread_is_running(&test.read_thread) || thread_is_running(&test.write_thread))
+			thread_sleep(10);
+
+		thread_finalize(&test.read_thread);
+		thread_finalize(&test.write_thread);
 
 		for (si = 0; si < test.buffer_size; ++si)
 			EXPECT_EQ(test.source_buffer[si], test.dest_buffer[si]);
+
+		EXPECT_TRUE(stream_eos(test.stream));
+		EXPECT_EQ(stream_size(test.stream), test.buffer_size);
+		stream_truncate(test.stream, stream_tell(test.stream) + 32);
+		EXPECT_FALSE(stream_eos(test.stream));
+		stream_truncate(test.stream, 0);
+		EXPECT_FALSE(stream_eos(test.stream));
+		stream_truncate(test.stream, 1);
+		EXPECT_TRUE(stream_eos(test.stream));
+		EXPECT_EQ(stream_size(test.stream), 1);
+		EXPECT_SIZEEQ(stream_available_read(test.stream), 0);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size);
+
+		stream_write(test.stream, test.source_buffer, ringbuffer_size - 1);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size);
+		stream_seek(test.stream, (ssize_t)ringbuffer_size - 1, STREAM_SEEK_CURRENT);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size + ringbuffer_size - 1);
+		log_enable_stdout(false);
+		stream_seek(test.stream, -(ssize_t)ringbuffer_size, STREAM_SEEK_CURRENT);
+		stream_seek(test.stream, 0, STREAM_SEEK_BEGIN);
+		log_enable_stdout(true);
+		EXPECT_SIZEEQ(stream_tell(test.stream), test.buffer_size + ringbuffer_size - 1);
+		{
+			tick_t curtime = time_system();
+			EXPECT_TICKGE(stream_last_modified(test.stream), curtime);
+		}
 
 		stream_deallocate(test.stream);
 
 		elapsed += time_ticks_to_seconds(time_diff(test.start_time, test.end_time));
 	}
-	throughput = (real)((float64_t)(mbytes * loops) / (float64_t)elapsed);
-	log_infof(HASH_TEST, STRING_CONST("Ringbuffer throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
-	          (loops * mbytes), (float32_t)elapsed, (float32_t)throughput);
+	rb_throughput = (real)((float64_t)(mbytes * loops) / (float64_t)elapsed);
+	//log_infof(HASH_TEST, STRING_CONST("Ringbuffer throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
+	//          (loops * mbytes), (float32_t)elapsed, (float32_t)throughput);
 
 	elapsed = 0;
 	for (loop = 0; loop < loops; ++loop) {
@@ -267,14 +299,13 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 
 		elapsed += time_ticks_to_seconds(time_diff(test.start_time, test.end_time));
 	}
-	throughput = (real)((float64_t)(mbytes * loops) / (float64_t)elapsed);
-	log_infof(HASH_TEST, STRING_CONST("Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
-	          (loops * mbytes), (float32_t)elapsed, (float32_t)throughput);
+	mem_throughput = (real)((float64_t)(mbytes * loops) / (float64_t)elapsed);
+	//log_infof(HASH_TEST, STRING_CONST("Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
+	//          (loops * mbytes), (float32_t)elapsed, (float32_t)throughput);
+	EXPECT_REALGT(mem_throughput, rb_throughput);
 
 	memory_deallocate(test.source_buffer);
 	memory_deallocate(test.dest_buffer);
-
-	FOUNDATION_UNUSED(throughput);
 
 	return 0;
 }

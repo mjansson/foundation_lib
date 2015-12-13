@@ -159,10 +159,9 @@ typedef struct {
 } semaphore_test_t;
 
 static void*
-semaphore_waiter(object_t thread, void* arg) {
+semaphore_waiter(void* arg) {
 	semaphore_test_t* sem = arg;
 	int loop;
-	FOUNDATION_UNUSED(thread);
 
 	for (loop = 0; loop < sem->loopcount; ++loop) {
 		thread_yield();
@@ -175,7 +174,7 @@ semaphore_waiter(object_t thread, void* arg) {
 }
 
 DECLARE_TEST(semaphore, threaded) {
-	object_t thread[32];
+	thread_t thread[32];
 	int ith;
 	int failed_waits;
 
@@ -185,11 +184,11 @@ DECLARE_TEST(semaphore, threaded) {
 	test.loopcount = 128;
 	atomic_store32(&test.counter, 0);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread[ith] = thread_create(semaphore_waiter, STRING_CONST("semaphore_waiter"),
-		                            THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], &test);
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_initialize(&thread[ith], semaphore_waiter, &test, STRING_CONST("semaphore_waiter"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < 32; ++ith)
+		thread_start(&thread[ith]);
 
 	test_wait_for_threads_startup(thread, 32);
 
@@ -203,13 +202,10 @@ DECLARE_TEST(semaphore, threaded) {
 		}
 	}
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread_terminate(thread[ith]);
-		thread_destroy(thread[ith]);
-		thread_yield();
-	}
+	test_wait_for_threads_finish(thread, 32);
 
-	test_wait_for_threads_exit(thread, 32);
+	for (ith = 0; ith < 32; ++ith)
+		thread_finalize(&thread[ith]);
 
 	EXPECT_EQ(atomic_load32(&test.counter), test.loopcount * 32);
 	EXPECT_EQ(failed_waits, 0);
@@ -223,11 +219,11 @@ DECLARE_TEST(semaphore, threaded) {
 	test.loopcount = 128;
 	atomic_store32(&test.counter, 0);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread[ith] = thread_create(semaphore_waiter, STRING_CONST("semaphore_waiter"),
-		                            THREAD_PRIORITY_NORMAL, 0);
-		thread_start(thread[ith], &test);
-	}
+	for (ith = 0; ith < 32; ++ith)
+		thread_initialize(&thread[ith], semaphore_waiter, &test, STRING_CONST("semaphore_waiter"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < 32; ++ith)
+		thread_start(&thread[ith]);
 
 	test_wait_for_threads_startup(thread, 32);
 
@@ -241,16 +237,13 @@ DECLARE_TEST(semaphore, threaded) {
 		}
 	}
 
+	test_wait_for_threads_finish(thread, 32);
+
 	EXPECT_EQ(atomic_load32(&test.counter), test.loopcount * 32);
 	EXPECT_EQ(failed_waits, 0);
 
-	for (ith = 0; ith < 32; ++ith) {
-		thread_terminate(thread[ith]);
-		thread_destroy(thread[ith]);
-		thread_yield();
-	}
-
-	test_wait_for_threads_exit(thread, 32);
+	for (ith = 0; ith < 32; ++ith)
+		thread_finalize(&thread[ith]);
 
 	semaphore_finalize(&test.read);
 	semaphore_finalize(&test.write);

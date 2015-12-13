@@ -52,13 +52,13 @@ mutex_deallocate(mutex_t* mutex);
 FOUNDATION_API string_const_t
 mutex_name(mutex_t* mutex);
 
-/*! Try to lock mutex but do not block if unavailable
+/*! Try to lock mutex but do not block for any amount of time.
 \param mutex Mutex
 \return true if mutex was locked, false if mutex already locked by another thread */
 FOUNDATION_API bool
 mutex_try_lock(mutex_t* mutex);
 
-/*! Lock mutex and block if unavailable
+/*! Lock mutex and block if unavailable for an indefinite amount of time.
 \param mutex Mutex
 \return true if mutex was locked, false if error */
 FOUNDATION_API bool
@@ -71,15 +71,24 @@ mutex_lock(mutex_t* mutex);
 FOUNDATION_API bool
 mutex_unlock(mutex_t* mutex);
 
+/*! Block and wait for signal for an indefinite amount of time. If a signal was
+received and this function returns true, the mutex will be locked and must be
+unlocked when not needed anymore. If the function returns false, an error occurred
+and the mutex will NOT be locked.
+\param mutex Mutex
+\return true if signal received, false if error */
+FOUNDATION_API bool
+mutex_wait(mutex_t* mutex);
+
 /*! Block and wait for signal. If a signal was received and this function returns
 true, the mutex will be locked and must be unlocked when not needed anymore.
 If the function returns false, a timeout or error occurred and the mutex will
 NOT be locked.
 \param mutex Mutex
-\param timeout Timeout in milliseconds, infinite wait if set to 0
+\param milliseconds Timeout in milliseconds, 0 means no wait
 \return true if signal received, false if timeout or error */
 FOUNDATION_API bool
-mutex_wait(mutex_t* mutex, unsigned int timeout);
+mutex_try_wait(mutex_t* mutex, unsigned int milliseconds);
 
 /*! Signal mutex and wake up threads waiting for a signal on the mutex.
 \param mutex Mutex */
@@ -92,6 +101,6 @@ mutex_signal(mutex_t* mutex);
 \param mutex Mutex
 \return Event object handle */
 FOUNDATION_API void*
-mutex_event_object(mutex_t* mutex);
+mutex_event_handle(mutex_t* mutex);
 
 #endif

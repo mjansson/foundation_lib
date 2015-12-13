@@ -432,6 +432,7 @@ blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length,
 	chain[1] = (uint32_t)(vec & 0xFFFFFFFFU);
 
 	switch (mode) {
+	default:
 	case BLOCKCIPHER_ECB:
 		for (; cur < end; cur += 2)
 			_blowfish_encrypt_words(blowfish, cur, cur + 1);
@@ -494,6 +495,7 @@ blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length,
 	chain[1] = (uint32_t)(vec & 0xFFFFFFFFU);
 
 	switch (mode) {
+	default:
 	case BLOCKCIPHER_ECB:
 		for (; cur < end; cur += 2)
 			_blowfish_decrypt_words(blowfish, cur, cur + 1);

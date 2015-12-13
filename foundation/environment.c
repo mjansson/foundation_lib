@@ -54,16 +54,24 @@ _environment_ns_temporary_directory(char*, size_t);
 
 static application_t _environment_app;
 static string_t* _environment_argv;
+
+#if FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_PNACL
 static int _environment_main_argc;
 static const char* const* _environment_main_argv;
+#endif
 
 static void
 _environment_clean_temporary_directory(bool recreate);
 
 void
 _environment_main_args(int argc, const char* const* argv) {
+#if FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_PNACL
 	_environment_main_argc = argc;
 	_environment_main_argv = argv;
+#else
+	FOUNDATION_UNUSED(argc);
+	FOUNDATION_UNUSED(argv);
+#endif
 }
 
 #if !FOUNDATION_PLATFORM_PNACL
@@ -105,7 +113,6 @@ _environment_initialize(const application_t application) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ia;
 	int num_args = 0;
-	DWORD ret = 0;
 	wchar_t module_filename[BUILD_MAX_PATHLEN];
 	LPWSTR* arg_list = CommandLineToArgvW(GetCommandLineW(), &num_args);
 	if (!arg_list)
@@ -119,7 +126,7 @@ _environment_initialize(const application_t application) {
 	LocalFree(arg_list);
 
 	if (GetModuleFileNameW(0, module_filename, BUILD_MAX_PATHLEN)) {
-		string_t exe_path = string_convert_utf16(buffer, sizeof(buffer), module_filename,
+		string_t exe_path = string_convert_utf16(buffer, sizeof(buffer), (uint16_t*)module_filename,
 		                                         wstring_length(module_filename));
 		exe_path = path_absolute(exe_path.str, exe_path.length, BUILD_MAX_PATHLEN);
 
@@ -240,7 +247,7 @@ _environment_initialize(const application_t application) {
 		                                           string_length(_environment_main_argv[ia])));
 
 	_environment_executable_dir = string_clone(STRING_CONST("/cache"));
-	_environment_current_working_dir = string_clone(STRING_CONST("/cache"));
+	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
 	_environment_home_dir = string_clone(STRING_CONST("/persistent"));
 	_environment_temp_dir = string_clone(STRING_CONST("/tmp"));
 	_environment_executable_path = string_clone(STRING_ARGS(application.short_name));
@@ -354,28 +361,31 @@ environment_current_working_directory(void) {
 		return string_const(0, 0);
 	}
 	localpath = path_clean(localpath.str, string_length(localpath.str), localpath.length);
-	if ((localpath.length > 1) && (localpath.str[ localpath.length - 1 ] == '/'))
-		localpath.str[ --localpath.length ] = 0;
+	if ((localpath.length > 1) && (localpath.str[localpath.length - 1] == '/'))
+		localpath.str[--localpath.length] = 0;
 	_environment_current_working_dir = string_clone(STRING_ARGS(localpath));
 #elif FOUNDATION_PLATFORM_PNACL
-	_environment_current_working_dir = string_clone(STRING_CONST("/persistent"));
+	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
 #else
 #  error Not implemented
 #endif
 	return string_to_const(_environment_current_working_dir);
 }
 
-void
+bool
 environment_set_current_working_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_POSIX
 	string_t buffer, pathstr;
 #endif
+	bool result = true;
 	log_debugf(0, STRING_CONST("Setting current working directory to: %.*s"), (int)length, path);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string(path, length);
-		if (!SetCurrentDirectoryW(wpath))
+		if (!SetCurrentDirectoryW(wpath)) {
 			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to set working directory: %ls"), wpath);
+			result = false;
+		}
 		wstring_deallocate(wpath);
 	}
 	string_deallocate(_environment_current_working_dir.str);
@@ -389,20 +399,17 @@ environment_set_current_working_directory(const char* path, size_t length) {
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
 		          STRING_CONST("Unable to set working directory to %.*s: %.*s (%d)"),
 		          (int)length, path, STRING_FORMAT(errmsg), err);
+		result = false;
 	}
 	string_deallocate(_environment_current_working_dir.str);
 	_environment_current_working_dir = (string_t) { 0, 0 };
 #elif FOUNDATION_PLATFORM_PNACL
-	//Allow anything
-	char buffer[BUILD_MAX_PATHLEN];
-	string_deallocate(_environment_current_working_dir.str);
-	_environment_current_working_dir = string_copy(buffer, sizeof(buffer), path, length);
-	_environment_current_working_dir = path_absolute(_environment_current_working_dir.str,
-	                                                 _environment_current_working_dir.length, sizeof(buffer));
-	_environment_current_working_dir = string_clone(STRING_ARGS(_environment_current_working_dir));
+	//Allow nothing, always set to /tmp
+	result = false;
 #else
 #  error Not implemented
 #endif
+	return result;
 }
 
 string_const_t
@@ -554,7 +561,7 @@ environment_variable(const char* var, size_t length) {
 	wchar_t* key = wstring_allocate_from_string(STRING_ARGS(varstr));
 	wchar_t val[BUILD_MAX_PATHLEN]; val[0] = 0;
 	if ((required = GetEnvironmentVariableW(key, val, BUILD_MAX_PATHLEN)) > BUILD_MAX_PATHLEN) {
-		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * (required + 2), 0, MEMORY_TEMPORARY);
+		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * ((size_t)required + 2), 0, MEMORY_TEMPORARY);
 		val_local[0] = 0;
 		required = GetEnvironmentVariableW(key, val_local, required + 1);
 		if (_environment_var.str)

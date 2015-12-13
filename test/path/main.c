@@ -301,74 +301,107 @@ DECLARE_TEST(path, extract) {
 	testpath = path_directory_name(STRING_CONST(path15));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("C:/abs/path/dir")));
 	testpath = path_directory_name(STRING_CONST(path16));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/abs/path")));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("vfs://abs/path")));
 	testpath = path_directory_name(STRING_CONST(path17));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/abs/path")));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("vfs://abs/path")));
 	testpath = path_directory_name(STRING_CONST(path18));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/abs/path/dir")));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("vfs://abs/path/dir")));
 	testpath = path_directory_name(STRING_CONST(path19));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
 	testpath = path_directory_name(STRING_CONST(path20));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/")));
 	testpath = path_directory_name(STRING_CONST(path21));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/.path")));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("asset://.path")));
 	testpath = path_directory_name(STRING_CONST(path22));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/.path")));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("asset://.path")));
 	testpath = path_directory_name(STRING_CONST(path23));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/.path/.dir")));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("asset://.path/.dir")));
+	testpath = path_directory_name(STRING_CONST("http://e:/some/dir/.with/.a.file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("http://e:/some/dir/.with")));
+	testpath = path_directory_name(STRING_CONST("file://e:/.a.file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file://e:/")));
+	testpath = path_directory_name(STRING_CONST("file://e:/"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file://e:/")));
+	testpath = path_directory_name(STRING_CONST("file://.a.file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file://")));
+	testpath = path_directory_name(STRING_CONST("file://.a.file/"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file://.a.file")));
+	testpath = path_directory_name(STRING_CONST("e:/.a.file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("e:/")));
+	testpath = path_directory_name(STRING_CONST("e:/"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("e:/")));
+	testpath = path_directory_name(STRING_CONST("e:foo/bar"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("e:foo")));
+	testpath = path_directory_name(STRING_CONST("e:foo"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("e:")));
+	testpath = path_directory_name(STRING_CONST("file://"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file://")));
 
-	testpath = path_subdirectory_name(nullptr, 0, nullptr, 0);
+	testpath = path_strip_protocol(STRING_CONST("http://e:/some/dir/.with/.a.file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("e:/some/dir/.with/.a.file")));
+	testpath = path_strip_protocol(STRING_CONST("http://some/dir/.with/.a.file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/some/dir/.with/.a.file")));
+	testpath = path_strip_protocol(STRING_CONST("some/dir/.with/.a.file"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("some/dir/.with/.a.file")));
+
+	testpath = path_subpath(nullptr, 0, nullptr, 0);
 	EXPECT_CONSTSTRINGEQ(testpath, string_null());
-	testpath = path_subdirectory_name(nullptr, 0, STRING_CONST(""));
+	testpath = path_subpath(nullptr, 0, STRING_CONST(""));
 	EXPECT_CONSTSTRINGEQ(testpath, string_null());
-	testpath = path_subdirectory_name(nullptr, 0, STRING_CONST("file"));
+	testpath = path_subpath(nullptr, 0, STRING_CONST("file"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_null());
-	testpath = path_subdirectory_name(STRING_CONST(path1), STRING_CONST("file"));
+	testpath = path_subpath(STRING_CONST(path1), STRING_CONST("file"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path2), STRING_CONST(""));
+	testpath = path_subpath(STRING_CONST(path2), STRING_CONST(""));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file")));
+	testpath = path_subpath(STRING_CONST(path3), STRING_CONST(""));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("dir/")));
+	testpath = path_subpath(STRING_CONST(path4), STRING_CONST("path"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file.ext")));
+	testpath = path_subpath(STRING_CONST(path5), STRING_CONST("file"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path3), STRING_CONST(""));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("dir")));
-	testpath = path_subdirectory_name(STRING_CONST(path4), STRING_CONST("path"));
+	testpath = path_subpath(STRING_CONST(path6), STRING_CONST("path/dir"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path5), STRING_CONST("file"));
+	testpath = path_subpath(STRING_CONST(path7), STRING_CONST("more"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("some/path/file.ext")));
+	testpath = path_subpath(STRING_CONST(path8), STRING_CONST("/more"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path6), STRING_CONST("path/dir"));
+	testpath = path_subpath(STRING_CONST(path9), STRING_CONST("more/some/path"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("dir/")));
+	testpath = path_subpath(STRING_CONST(path10), STRING_CONST("ab"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path7), STRING_CONST("more"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("some/path")));
-	testpath = path_subdirectory_name(STRING_CONST(path8), STRING_CONST("/more"));
+	testpath = path_subpath(STRING_CONST(path11), STRING_CONST("abs/path"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path9), STRING_CONST("more/some/path"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("dir")));
-	testpath = path_subdirectory_name(STRING_CONST(path10), STRING_CONST("ab"));
+	testpath = path_subpath(STRING_CONST(path12), STRING_CONST("/abs"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("path/dir/")));
+	testpath = path_subpath(STRING_CONST(path13), STRING_CONST("/ab"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path11), STRING_CONST("abs/path"));
+	testpath = path_subpath(STRING_CONST(path14), STRING_CONST("C:/abs/"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("path/file")));
+	testpath = path_subpath(STRING_CONST(path15), STRING_CONST("C:"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("/abs/path/dir/")));
+	testpath = path_subpath(STRING_CONST(path16), STRING_CONST("abs/path"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path12), STRING_CONST("/abs"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("path/dir")));
-	testpath = path_subdirectory_name(STRING_CONST(path13), STRING_CONST("/ab"));
+	testpath = path_subpath(STRING_CONST(path17), STRING_CONST("/abs"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("path/file")));
+	testpath = path_subpath(STRING_CONST(path18), STRING_CONST("/abs/path/"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("dir/")));
+	testpath = path_subpath(STRING_CONST(path19), STRING_CONST("/"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path14), STRING_CONST("C:/abs/"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("path")));
-	testpath = path_subdirectory_name(STRING_CONST(path15), STRING_CONST("C:"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("abs/path/dir")));
-	testpath = path_subdirectory_name(STRING_CONST(path16), STRING_CONST("abs/path"));
+	testpath = path_subpath(STRING_CONST(path20), STRING_CONST("/"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path17), STRING_CONST("/abs"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("path")));
-	testpath = path_subdirectory_name(STRING_CONST(path18), STRING_CONST("/abs/path/"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("dir")));
-	testpath = path_subdirectory_name(STRING_CONST(path19), STRING_CONST("/"));
+	testpath = path_subpath(STRING_CONST(path21), STRING_CONST("/.path"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("file.ext")));
+	testpath = path_subpath(STRING_CONST(path22), STRING_CONST(".path"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path20), STRING_CONST("/"));
+	testpath = path_subpath(STRING_CONST(path23), STRING_CONST("/"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST(".path/.dir/")));
+	testpath = path_subpath(STRING_CONST("http://e:/some/dir/.with/.a.file"), STRING_CONST("vfs://e:/some/dir"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path21), STRING_CONST("/.path"));
+	testpath = path_subpath(STRING_CONST("http://e:/some/dir/.with/.a.file"), STRING_CONST("http://f:/some/dir"));
 	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path22), STRING_CONST(".path"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST("")));
-	testpath = path_subdirectory_name(STRING_CONST(path23), STRING_CONST("/"));
-	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST(".path/.dir")));
+	testpath = path_subpath(STRING_CONST("http://e:/some/dir/.with/.a.file"), STRING_CONST("e:/some/dir"));
+	EXPECT_CONSTSTRINGEQ(testpath, string_const(STRING_CONST(".with/.a.file")));
 
 	testpath = path_protocol(nullptr, 0);
 	EXPECT_CONSTSTRINGEQ(testpath, string_null());
@@ -440,25 +473,25 @@ DECLARE_TEST(path, clean) {
 	string_t path15 = string_clone(STRING_CONST(".\\.//\\"));
 	string_t path16 = string_clone(STRING_CONST("\\.\\.\\\\\\"));
 	string_t path17 = string_clone(
-	                    STRING_CONST("\\/.\\.\\\\\\.\\\\////\\///\\\\.\\.\\\\\\\\\\.\\\\\\\\\\\\.\\\\."));
+	                      STRING_CONST("\\/.\\.\\\\\\.\\\\////\\///\\\\.\\.\\\\\\\\\\.\\\\\\\\\\\\.\\\\."));
 	string_t path18 = string_clone(
-	                    STRING_CONST("http://\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\."));
+	                      STRING_CONST("http://\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\."));
 	string_t path19 = string_clone(STRING_CONST("testing/.../path/ext"));
 	string_t path20 = string_clone(STRING_CONST("./..//../testing/.path//..extend/."));
 	string_t path21 = string_clone(STRING_CONST("testing/path://extend/dyn"));
 	string_t path22 = string_clone(
-	                    STRING_CONST("/../../../testing/./\\\\/\\/./path:///C:://././//./extend/\\\\"));
+	                      STRING_CONST("/../../../testing/./\\\\/\\/./path:///C:://././//./extend/\\\\"));
 	string_t path23 = string_clone(
-	                    STRING_CONST("http://///\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\.///some/file"));
+	                      STRING_CONST("http://///\\.\\.\\\\\\.\\\\\\\\//\\.\\.\\/\\/\\/\\//\\.\\\\\\\\\\\\.\\\\.///some/file"));
 	string_t path24 = string_clone(STRING_CONST("http://:test/../../././../../path"));
 	string_t path25 = string_clone(STRING_CONST("http:/C://.//test/../../path"));
 	string_t path26 = string_clone(STRING_CONST("http::.//test/../../..//.././//../path"));
 	string_t path27 = string_clone(
-	                    STRING_CONST("http://.//test/../../.././foo//../bar//zed/./.././//path"));
+	                      STRING_CONST("http://.//test/../../.././foo//../bar//zed/./.././//path"));
 	string_t path28 = string_clone(
-	                    STRING_CONST("C:\\//http://.//test/../../../../foo//../bar//zed/../../..///path"));
+	                      STRING_CONST("C:\\//http://.//test/../../../../foo//../bar//zed/../../..///path"));
 	string_t path29 = string_clone(
-	                    STRING_CONST("test/sub/../../../../foo//../bar//zed/../../..///path"));
+	                      STRING_CONST("test/sub/../../../../foo//../bar//zed/../../..///path"));
 	string_t path30 = string_clone(STRING_CONST("http:.//test/../../..//../a/.///../path"));
 	string_t path31 = string_clone(STRING_CONST("\\.."));
 	string_t path32 = string_clone(STRING_CONST(".."));
@@ -615,6 +648,9 @@ DECLARE_TEST(path, absolute) {
 	cwd_test_slash = path_allocate_concat(STRING_ARGS(cwd), STRING_CONST("test/"));
 	cwd_test_path = path_allocate_concat(STRING_ARGS(cwd), STRING_CONST("test/path"));
 	cwd_test_path_slash = path_allocate_concat(STRING_ARGS(cwd), STRING_CONST("test/path/"));
+
+	if (string_equal(STRING_ARGS(cwd_sub_slash), STRING_CONST("//")))
+		--cwd_sub_slash.length;
 
 	cpath = string_const(STRING_CONST("")); path1 = path_allocate_absolute(STRING_ARGS(cpath));
 	cpath = string_const(STRING_CONST("/")); path2 = path_allocate_absolute(STRING_ARGS(cpath));
@@ -776,7 +812,8 @@ DECLARE_TEST(path, operations) {
 	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("test/foo/bar/")));
 	string_deallocate(merge.str);
 
-	merge = path_allocate_concat_varg(STRING_CONST("/abs"), STRING_CONST("/test"), STRING_CONST("/foo/"),
+	merge = path_allocate_concat_varg(STRING_CONST("/abs"), STRING_CONST("/test"),
+	                                  STRING_CONST("/foo/"),
 	                                  STRING_CONST("bar/"), nullptr, 10, STRING_CONST("fail"), nullptr);
 	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("/abs/test/foo/bar/")));
 	string_deallocate(merge.str);
@@ -786,7 +823,8 @@ DECLARE_TEST(path, operations) {
 	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("test/foo/bar/")));
 	string_deallocate(merge.str);
 
-	merge = path_allocate_concat_varg("nicht", 0, nullptr, 10, STRING_CONST("test/"), STRING_CONST("/foo/"),
+	merge = path_allocate_concat_varg("nicht", 0, nullptr, 10, STRING_CONST("test/"),
+	                                  STRING_CONST("/foo/"),
 	                                  STRING_CONST("/bar/"), STRING_CONST(""), STRING_CONST("/"), nullptr);
 	EXPECT_STRINGEQ(merge, string_null());
 	string_deallocate(merge.str);
@@ -843,9 +881,25 @@ DECLARE_TEST(path, operations) {
 	merge15 = path_concat(buffer, sizeof(buffer), STRING_CONST("c:/"), STRING_CONST("/test"));
 	EXPECT_STRINGEQ(merge15, string_const(STRING_CONST("c:/test")));
 
-	//TODO:
-	//path_append
-	//path_prepend
+	merge = path_append_varg(buffer, 0, sizeof(buffer), STRING_CONST("C:/"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("C:/test/foo")));
+
+	merge = path_append_varg(buffer, 0, 6, STRING_CONST("C:/"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("C:/te")));
+
+	merge = path_prepend_varg(buffer, 0, sizeof(buffer), STRING_CONST("snarf"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("/foo/test/snarf")));
+
+	merge = path_prepend_varg(buffer, 0, 9, STRING_CONST("snarf"), STRING_CONST("test"),
+	                         STRING_CONST("/foo"), nullptr, (size_t)0, STRING_CONST("should"), STRING_CONST("not"),
+	                         STRING_CONST("be"), STRING_CONST("used"), nullptr);
+	EXPECT_STRINGEQ(merge, string_const(STRING_CONST("/foo/tes")));
 
 	temp1 = path_make_temporary(buffer, sizeof(buffer));
 	temp2 = path_make_temporary(secbuffer, sizeof(secbuffer));

@@ -14,6 +14,8 @@
 
 #include <stdarg.h>
 
+/*lint -e773 */
+
 #define REGEXERR_OK                   (size_t)0
 #define REGEXERR_TOO_LONG             (size_t)-1
 #define REGEXERR_MISMATCHED_CAPTURES  (size_t)-2
@@ -33,7 +35,7 @@
 
 #define REGEXPARSE_NOBRANCH           (size_t)-1
 
-typedef enum {
+enum {
 	REGEXOP_BEGIN_CAPTURE = 0,
 	REGEXOP_END_CAPTURE,
 	REGEXOP_BEGINNING_OF_LINE,
@@ -50,7 +52,7 @@ typedef enum {
 	REGEXOP_ZERO_OR_ONE,
 	REGEXOP_BRANCH,
 	REGEXOP_BRANCH_END
-} regex_op_t;
+};
 
 /*static const char* opname[] = {
 	"BEGIN_CAPTURE",
@@ -129,7 +131,7 @@ _regex_emit(regex_t** target, bool allow_grow, size_t ops, ...) {
 	size_t iop;
 	va_list arglist;
 
-	if ((*target)->code_length + ops >= (*target)->code_allocated) {
+	if ((*target)->code_length + ops > (*target)->code_allocated) {
 		size_t new_allocated;
 		if (!allow_grow)
 			return REGEXERR_TOO_LONG;
@@ -142,8 +144,12 @@ _regex_emit(regex_t** target, bool allow_grow, size_t ops, ...) {
 
 	va_start(arglist, ops);
 
-	for (iop = 0; iop < ops; ++iop)
-		(*target)->code[(*target)->code_length++ ] = (uint8_t)va_arg(arglist, int);
+	for (iop = 0; iop < ops; ++iop) {
+		int val = va_arg(arglist, int);
+		if (val > 256)
+			return REGEXERR_TOO_LONG;
+		(*target)->code[(*target)->code_length++ ] = (uint8_t)val;
+	}
 
 	va_end(arglist);
 
@@ -154,7 +160,7 @@ static size_t
 _regex_emit_buffer(regex_t** target, bool allow_grow, size_t ops, const uint8_t* buffer) {
 	size_t iop;
 
-	if ((*target)->code_length + ops >= (*target)->code_allocated) {
+	if ((*target)->code_length + ops > (*target)->code_allocated) {
 		size_t new_allocated;
 		if (!allow_grow)
 			return REGEXERR_TOO_LONG;
@@ -208,7 +214,7 @@ _regex_compile_quantifier(regex_t** target, bool allow_grow, size_t last_code_le
 	size_t ret;
 	size_t move_size;
 	if (((*target)->code[last_code_length] == REGEXOP_EXACT_MATCH) &&
-	    ((*target)->code[last_code_length + 1] > 1)) {
+	        ((*target)->code[last_code_length + 1] > 1)) {
 		uint8_t last_char = (*target)->code[(*target)->code_length - 1];
 		// The parser should break an REGEXOP_EXACT_MATCH block at a meta character
 		if (!FOUNDATION_VALIDATE((*target)->code[(*target)->code_length - 2] != 0))
@@ -216,7 +222,7 @@ _regex_compile_quantifier(regex_t** target, bool allow_grow, size_t last_code_le
 		--(*target)->code[last_code_length + 1];
 		--(*target)->code_length;
 		if ((ret = _regex_emit(target, allow_grow, 4, (int)quantifier, REGEXOP_EXACT_MATCH, 1,
-			                    (int)last_char)))
+		                       (int)last_char)))
 			return ret;
 		return REGEXERR_OK;
 	}
@@ -241,6 +247,7 @@ _regex_consume_longest(regex_t* regex, size_t op, const char* input, size_t inof
 
 	//TODO: Optimization would be to stack all offsets from execute single, then verify matching
 	//      of remaining regex starting with highest saved offset
+	/*lint -e{716} */
 	while (true) {
 		context = _regex_execute_single(regex, op, input, context.inoffset, inlength, 0, 0);
 		if (context.inoffset > inlength)
@@ -270,6 +277,7 @@ _regex_consume_shortest(regex_t* regex, size_t op, const char* input, size_t ino
 	regex_context_t best_context = { (size_t)REGEXRES_NOMATCH, inoffset };
 	regex_context_t next_context;
 
+	/*lint -e{716} */
 	while (true) {
 		context = _regex_execute_single(regex, op, input, context.inoffset, inlength, 0, 0);
 		if (context.inoffset > inlength)
@@ -294,11 +302,12 @@ _regex_consume_shortest(regex_t* regex, size_t op, const char* input, size_t ino
 }
 
 static size_t
-_regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t length, bool allow_grow) {
-	uint8_t local_buffer[64];
-	uint8_t* buffer = local_buffer;
+_regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t length,
+                   bool allow_grow) {
+	//A single group cannot be more than 256 characters (size is stored in a single byte)
+	uint8_t buffer[256];
 	size_t buffer_len = 0;
-	size_t buffer_maxlen = 64;
+	size_t buffer_maxlen = sizeof(buffer);
 	int16_t code;
 	bool closed = false;
 	int op = REGEXOP_ANY_OF;
@@ -310,53 +319,46 @@ _regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t 
 	}
 
 	while (!closed && !ret && (offset < length)) {
-		if (buffer_len >= (buffer_maxlen - 1)) {
-			uint8_t* new_buffer = memory_allocate(0, buffer_maxlen << 1, 0, MEMORY_TEMPORARY);
-			memcpy(new_buffer, buffer, buffer_len);
-			if (buffer != local_buffer)
-				memory_deallocate(buffer);
-			buffer = new_buffer;
-			buffer_maxlen <<= 1;
-		}
-
-		switch (pattern[offset]) {
-		case ']':
+		if (pattern[offset] == ']') {
 			if ((ret = _regex_emit(target, allow_grow, 2, op, (int)buffer_len)))
 				break;
+			/*lint -e{603} Buffer is initialized with buffer_len bytes */
 			if (buffer_len && (ret = _regex_emit_buffer(target, allow_grow, buffer_len, buffer)))
 				break;
-			buffer_len = 0;
+			offset++;
 			closed = true;
 			break;
+		}
 
-		case '\\':
+		if (buffer_len >= buffer_maxlen)
+			return REGEXERR_TOO_LONG;
+
+		if (pattern[offset] == '\\') {
 			++offset;
 
 			if ((offset + 1 < length) && _regex_is_hex(pattern + offset)) {
 				buffer[buffer_len++] = _regex_parse_hex(pattern + offset);
-				offset += 2;
+				++offset;
 			}
 			else if (offset < length) {
 				code = _regex_encode_escape(pattern[offset]);
 				if (!code || (code > 0xFF)) {
 					buffer[buffer_len++] = 0;
-					buffer[buffer_len++] = (code >> 8) & 0xFF;
+					if (buffer_len >= buffer_maxlen)
+						return REGEXERR_TOO_LONG;
+					buffer[buffer_len++] = (code >> 8) & 0xFF; //lint !e702
 				}
 				else {
 					buffer[buffer_len++] = code & 0xFF;
 				}
 			}
-			break;
-
-		default:
+		}
+		else {
 			buffer[buffer_len++] = (uint8_t)pattern[offset];
-			break;
 		}
 		++offset;
 	}
 
-	if (buffer != local_buffer)
-		memory_deallocate(buffer);
 	if (ret)
 		return ret;
 	if (!closed)
@@ -365,7 +367,8 @@ _regex_parse_group(regex_t** target, const char* pattern, size_t offset, size_t 
 }
 
 static size_t
-_regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length, bool allow_grow, size_t level) {
+_regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length, bool allow_grow,
+             size_t level) {
 	size_t ret = 0;
 	size_t last_code_length = (*target)->code_length;
 	size_t branch_begin = (*target)->code_length;
@@ -405,8 +408,7 @@ _regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length
 
 		case ')':
 			if (branch_op != REGEXPARSE_NOBRANCH)
-				(*target)->code[branch_op + 1] = (uint8_t)((*target)->code_length - branch_op - 2);
-			branch_op = REGEXPARSE_NOBRANCH;
+				(*target)->code[branch_op + 1] = (uint8_t)((*target)->code_length - (branch_op + 2));
 
 			if (level == 0)
 				return REGEXERR_MISMATCHED_CAPTURES;
@@ -432,7 +434,7 @@ _regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length
 			if (last_code_length >= (*target)->code_length)
 				return REGEXERR_INVALID_QUANTIFIER;
 			if (((*target)->code[last_code_length] < REGEXOP_EXACT_MATCH) ||
-			    ((*target)->code[last_code_length] > REGEXOP_ANY_BUT))
+			        ((*target)->code[last_code_length] > REGEXOP_ANY_BUT))
 				return REGEXERR_INVALID_QUANTIFIER;
 
 			if ((offset < length) && (pattern[offset] == '?')) {
@@ -449,7 +451,7 @@ _regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length
 			if (last_code_length >= (*target)->code_length)
 				return REGEXERR_INVALID_QUANTIFIER;
 			if (((*target)->code[last_code_length] < REGEXOP_EXACT_MATCH) ||
-			    ((*target)->code[last_code_length] > REGEXOP_ANY_BUT))
+			        ((*target)->code[last_code_length] > REGEXOP_ANY_BUT))
 				return REGEXERR_INVALID_QUANTIFIER;
 
 			if ((ret = _regex_compile_quantifier(target, allow_grow, last_code_length,
@@ -468,6 +470,7 @@ _regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length
 			else if (offset < length) {
 				code = _regex_encode_escape(pattern[offset++]);
 				if (!code || (code > 0xFF)) {
+					/*lint -e{702} */
 					if ((ret = _regex_emit(target, allow_grow, 3, REGEXOP_META_MATCH, 0, (int)((code >> 8) & 0xFF))))
 						return ret;
 				}
@@ -499,7 +502,7 @@ _regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length
 			--offset;
 			matchstart = pattern + offset;
 			while ((offset < length) &&
-			       (string_find(STRING_CONST(REGEX_META_CHARACTERS), pattern[offset], 0) == STRING_NPOS)) {
+			        (string_find(STRING_CONST(REGEX_META_CHARACTERS), pattern[offset], 0) == STRING_NPOS)) {
 				++size;
 				++offset;
 			}
@@ -559,6 +562,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		if (inoffset >= inlength)
 			return _regex_context_nomatch(op + buffer_len);
 
+		/*lint -e{850} */
 		for (ibuf = 0; ibuf < buffer_len; ++ibuf) {
 			cmatch = (char)regex->code[op + ibuf];
 			if (!cmatch) {
@@ -583,6 +587,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		if (inoffset >= inlength)
 			return _regex_context_nomatch(op + buffer_len);
 
+		/*lint -e{850} */
 		for (ibuf = 0; ibuf < buffer_len; ++ibuf) {
 			cmatch = (char)regex->code[op + ibuf];
 			if (!cmatch) {
@@ -607,7 +612,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 	case REGEXOP_EXACT_MATCH:
 		matchlen = regex->code[op++];
 		if ((matchlen > (inlength - inoffset)) ||
-		    !string_equal(input + inoffset, matchlen, (const char*)regex->code + op, matchlen))
+		        !string_equal(input + inoffset, matchlen, (const char*)regex->code + op, matchlen))
 			return _regex_context_nomatch(op + matchlen);
 		op += matchlen;
 		inoffset += matchlen;
@@ -660,12 +665,12 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		//Try matching with one, and if that succeeds verify complete match of remaining data
 		context = _regex_execute_single(regex, op, input, inoffset, inlength, captures, maxcaptures);
 		if (context.inoffset <= inlength) {
-			regex_context_t maybe_context = _regex_execute(regex, context.op, input, context.inoffset, 
+			regex_context_t maybe_context = _regex_execute(regex, context.op, input, context.inoffset,
 			                                               inlength, captures, maxcaptures);
 			if (maybe_context.inoffset <= inlength) {
 				op = maybe_context.op;
 				inoffset = maybe_context.inoffset;
-				break; // Match with one
+				break; // Matched with one
 			}
 		}
 
@@ -675,7 +680,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		if (context.inoffset <= inlength) {
 			op = context.op;
 			inoffset = context.inoffset;
-			break; // Match with one
+			break; // Matched with zero
 		}
 		return _regex_context_nomatch(next_op);
 
@@ -726,10 +731,10 @@ _regex_execute(regex_t* regex, size_t op, const char* input, size_t inoffset, si
 regex_t*
 regex_compile(const char* pattern, size_t pattern_length) {
 	regex_t* compiled;
-	compiled = memory_allocate(HASH_STRING, sizeof(regex_t) + pattern_length + 1, 0, MEMORY_PERSISTENT);
+	compiled = memory_allocate(HASH_STRING, sizeof(regex_t) + pattern_length + 16, 0, MEMORY_PERSISTENT);
 	compiled->num_captures = 0;
 	compiled->code_length = 0;
-	compiled->code_allocated = pattern_length + 1;
+	compiled->code_allocated = pattern_length + 16;
 
 	if (_regex_parse(&compiled, pattern, 0, pattern_length, true, 0) == pattern_length)
 		return compiled;
@@ -757,8 +762,7 @@ regex_match(regex_t* regex, const char* input, size_t inlength, string_const_t* 
 		if (context.inoffset <= inlength)
 			return true;
 	}
-	else
-	{
+	else {
 		for (iin = 0; iin < inlength; ++iin) {
 			regex_context_t context = _regex_execute(regex, 0, input, iin, inlength, captures, maxcaptures);
 			if (context.inoffset <= inlength)
