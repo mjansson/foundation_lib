@@ -634,9 +634,12 @@ _finalize_symbol_resolve() {
 	_symbol_resolve_initialized = false;
 }
 
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
+#define UNKNOWN_SYMBOL "?""?"
+#endif
+
 static FOUNDATION_NOINLINE string_t
 _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_frames) {
-#define UNKNOWN_SYMBOL "?""?"
 #if FOUNDATION_PLATFORM_WINDOWS
 	char                symbol_buffer[ sizeof(IMAGEHLP_SYMBOL64) + 512 ];
 	PIMAGEHLP_SYMBOL64  symbol;
