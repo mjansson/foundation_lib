@@ -22,19 +22,6 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#undef IN
-#undef OUT
-#undef far
-#undef near
-#undef FAR
-#undef NEAR
-
-#define IN
-#define OUT
-#define far
-#define near
-#define FAR
-#define NEAR
 #define STREAM_SEEK_END _STREAM_SEEK_END
 
 #define UUID_DEFINED 1
@@ -69,23 +56,17 @@ SHGetFolderPathW(__reserved HWND hwnd, __in int csidl, __in_opt HANDLE hToken, _
                  __out_ecount(MAX_PATH) LPWSTR pszPath);
 #  define CSIDL_LOCAL_APPDATA 0x001c  // <user name>\Local Settings\Application Data (non roaming)
 #else
-#  include <shlobj.h>
+#  include <shlobj.h>#define IN
+#define OUT
+#define FAR
+#define NEAR
+
 #endif
 
 #include <crtdbg.h>
 
-#undef ERROR
 #undef min
 #undef max
-#undef IN
-#undef OUT
-#undef far
-#undef near
-#undef FAR
-#undef NEAR
-#undef BINARY
-#undef LITTLEENDIAN
-#undef BIGENDIAN
 #undef STREAM_SEEK_END
 
 #if FOUNDATION_COMPILER_CLANG

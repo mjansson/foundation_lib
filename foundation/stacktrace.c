@@ -15,18 +15,8 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#define IN
-#define OUT
-#define FAR
-#define NEAR
 #  include <dbghelp.h>
-#  include <TlHelp32.h>
 #  include <psapi.h>
-#undef IN
-#undef OUT
-#undef FAR
-#undef NEAR
-#  include <stdio.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  if !FOUNDATION_PLATFORM_ANDROID
@@ -122,7 +112,6 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
 	STACKFRAME64   stack_frame;
 	HANDLE         process_handle;
 	HANDLE         thread_handle;
-	unsigned long  last_error;
 	bool           succeeded = true;
 	unsigned int   current_depth = 0;
 	unsigned int   machine_type	= IMAGE_FILE_MACHINE_I386;
@@ -157,14 +146,14 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
 		while (succeeded && (current_depth < max_depth)) {
 			succeeded = CallStackWalk64(machine_type, process_handle, thread_handle, &stack_frame,
 			                            &context_copy, 0, CallSymFunctionTableAccess64, CallSymGetModuleBase64, 0);
-			if (!succeeded)
-				last_error = GetLastError();
-			else if (!stack_frame.AddrFrame.Offset || !stack_frame.AddrPC.Offset)
-				break;
-			else if (skip_frames)
-				--skip_frames;
-			else
-				trace[current_depth++] = (void*)((uintptr_t)stack_frame.AddrPC.Offset);
+			if (succeeded) {
+				if (!stack_frame.AddrFrame.Offset || !stack_frame.AddrPC.Offset)
+					break;
+				else if (skip_frames)
+					--skip_frames;
+				else
+					trace[current_depth++] = (void*)((uintptr_t)stack_frame.AddrPC.Offset);
+			}
 		}
 	}
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -186,21 +175,17 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
 
 static void
 _load_process_modules() {
-	int           error = 0;
-	bool          succeeded;
+	/*lint -e534 */
 	HMODULE       module_handles[MAX_MOD_HANDLES];
 	HMODULE*      module_handle = module_handles;
-	int           module_count = 0;
-	int           i;
+	DWORD         module_count;
+	DWORD         i;
 	DWORD         bytes = 0;
 	MODULEINFO    module_info;
 	HANDLE        process_handle = GetCurrentProcess();
 
-	succeeded = CallEnumProcessModules(process_handle, module_handles, sizeof(module_handles), &bytes);
-	if (!succeeded) {
-		error = GetLastError();
+	if (!CallEnumProcessModules(process_handle, module_handles, sizeof(module_handles), &bytes))
 		return;
-	}
 
 	if (bytes > sizeof(module_handles)) {
 		module_handle = memory_allocate(0, bytes, 0, MEMORY_TEMPORARY);
@@ -210,25 +195,21 @@ _load_process_modules() {
 	module_count = bytes / sizeof(HMODULE);
 
 	for (i = 0; i < module_count; ++i) {
-		char module_name[1024];
-		char image_name[1024];
-		char search_path[1024];
+		char module_name[BUILD_MAX_PATHLEN];
+		char image_name[BUILD_MAX_PATHLEN];
+		char search_path[BUILD_MAX_PATHLEN];
 		char* file_name = 0;
-		uint64_t base_address;
 
 		CallGetModuleInformation(process_handle, module_handle[i], &module_info, sizeof(module_info));
-		CallGetModuleFileNameEx(process_handle, module_handle[i], image_name, 1024);
-		CallGetModuleBaseName(process_handle, module_handle[i], module_name, 1024);
+		CallGetModuleFileNameEx(process_handle, module_handle[i], image_name, sizeof(image_name));
+		CallGetModuleBaseName(process_handle, module_handle[i], module_name, sizeof(module_name));
 
-		GetFullPathNameA(image_name, 1024, search_path, &file_name);
+		GetFullPathNameA(image_name, sizeof(search_path), search_path, &file_name);
 		*file_name = 0;
 		CallSymSetSearchPath(process_handle, search_path);
 
-		base_address = CallSymLoadModule64(process_handle, module_handle[i], image_name, module_name,
-		                                   (uint64_t)((uintptr_t)module_info.lpBaseOfDll), module_info.SizeOfImage);
-		if (!base_address) {
-			error = GetLastError();
-		}
+		CallSymLoadModule64(process_handle, module_handle[i], image_name, module_name,
+		                    (uint64_t)((uintptr_t)module_info.lpBaseOfDll), module_info.SizeOfImage);
 	}
 
 	// Free the module handle pointer allocated in case the static array was insufficient.
@@ -656,26 +637,23 @@ _finalize_symbol_resolve() {
 static FOUNDATION_NOINLINE string_t
 _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_frames) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_t*           lines = 0;
 	char                symbol_buffer[ sizeof(IMAGEHLP_SYMBOL64) + 512 ];
 	PIMAGEHLP_SYMBOL64  symbol;
 	DWORD               displacement = 0;
 	uint64_t            displacement64 = 0;
-	unsigned int        iaddr = 0;
-	unsigned int        last_error;
-	bool                found = false;
+	size_t              iaddr;
 	HANDLE              process_handle = GetCurrentProcess();
-	int                 buffer_offset = 0;
 	bool                last_was_main = false;
 	IMAGEHLP_LINE64     line64;
 	IMAGEHLP_MODULE64   module64;
 	string_t            resolved = {buffer, 0};
+	#define UNKNOWN_SYMBOL "?""?"
 
 	for (iaddr = 0; (iaddr < max_frames) && !last_was_main && (resolved.length < capacity-1); ++iaddr) {
 		string_t line;
-		const char* function_name = "??";
-		const char* file_name = "??";
-		const char* module_name = "??";
+		const char* function_name = UNKNOWN_SYMBOL;
+		const char* file_name = function_name;
+		const char* module_name = function_name;
 		unsigned int line_number = 0;
 
 		//Allow first frame to be null in case of a function call to a null pointer
@@ -692,14 +670,11 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		if (CallSymGetSymFromAddr64 &&
 		        CallSymGetSymFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement64,
 		                                symbol)) {
-			int offset = 0;
-			while (symbol->Name[offset] < 32)
+			size_t offset = 0;
+			while ((offset < sizeof(symbol->Name)) && (symbol->Name[offset] < 32))
 				++offset;
-			function_name = symbol->Name + offset;
-		}
-		else {
-			// No symbol found for this address.
-			last_error = GetLastError();
+			if (offset < sizeof(symbol->Name))
+				function_name = symbol->Name + offset;
 		}
 
 		memset(&line64, 0, sizeof(line64));
@@ -811,7 +786,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		                                   capacity - resolved.length, '\n');
 		if (!function.length)
 			function = string_copy(resolved.str + resolved.length, capacity - resolved.length,
-			                       STRING_CONST("??"));
+			                       STRING_CONST(UNKNOWN_SYMBOL));
 		resolved.length += function.length;
 
 		string_copy(resolved.str + resolved.length, capacity - resolved.length, STRING_CONST(" ("));
@@ -821,7 +796,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		                                   capacity - resolved.length, '\n');
 		if (!filename.length)
 			filename = string_copy(resolved.str + resolved.length, capacity - resolved.length,
-			                       STRING_CONST("??"));
+			                       STRING_CONST(UNKNOWN_SYMBOL));
 		resolved.length += filename.length;
 
 		string_copy(resolved.str + resolved.length, capacity - resolved.length,

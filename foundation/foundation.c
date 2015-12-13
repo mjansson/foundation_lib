@@ -108,6 +108,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 
 	//Parse built-in command line options
 	{
+		/*lint --e{613} */
 		const string_const_t* cmdline = environment_command_line();
 		size_t iarg, argsize;
 		for (iarg = 0, argsize = array_size(cmdline); iarg < argsize; ++iarg) {

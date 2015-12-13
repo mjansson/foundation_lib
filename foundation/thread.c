@@ -19,7 +19,7 @@
 
 typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
 
-DWORD WINAPI
+static DWORD WINAPI
 GetCurrentProcessorNumberFallback(VOID) {
 	return 0;
 }
@@ -128,6 +128,7 @@ const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO {
+	/*lint --e{958} */
 	DWORD dwType; // Must be 0x1000.
 	LPCSTR szName; // Pointer to name (in user addr space).
 	DWORD dwThreadID; // Thread ID (-1=caller thread).
@@ -149,7 +150,7 @@ _set_thread_name(const char* threadname) {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
 	info.szName = threadname;
-	info.dwThreadID = -1;
+	info.dwThreadID = (DWORD)-1;
 	info.dwFlags = 0;
 
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -315,7 +316,7 @@ thread_start(thread_t* thread) {
 	FOUNDATION_ASSERT(!thread->handle);
 	thread->handle = _beginthreadex(nullptr, thread->stacksize, _thread_entry, thread, 0, nullptr);
 	if (!thread->handle) {
-		int err = GetLastError();
+		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to create thread: CreateThread failed: %.*s (%d)"),

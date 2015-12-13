@@ -58,7 +58,7 @@ int
 _stream_initialize(void) {
 	_stream_protocol_table = hashtable64_allocate(32);
 
-	stream_set_protocol_handler(STRING_CONST(""), fs_open_file);
+	stream_set_protocol_handler(0, 0, fs_open_file);
 #if FOUNDATION_PLATFORM_ANDROID
 	stream_set_protocol_handler(STRING_CONST("asset"), asset_stream_open);
 #endif
@@ -87,7 +87,7 @@ stream_protocol_handler(const char* protocol, size_t length) {
 
 void
 stream_initialize(stream_t* stream, byteorder_t order) {
-	stream->byteorder = order;
+	stream->byteorder = (unsigned int)order;
 	stream->sequential = 0;
 	stream->reliable = 1;
 	stream->inorder = 1;
@@ -99,7 +99,7 @@ stream_initialize(stream_t* stream, byteorder_t order) {
 stream_t*
 stream_open(const char* path, size_t length, unsigned int mode) {
 	size_t protocol_end;
-	stream_open_fn open_fn = 0;
+	stream_open_fn open_fn;
 
 	//Check if protocol was given
 	protocol_end = string_find_string(path, length, STRING_CONST("://"), 0);
@@ -137,7 +137,7 @@ stream_clone(stream_t* stream) {
 
 void
 stream_set_byteorder(stream_t* stream, byteorder_t byteorder) {
-	stream->byteorder = byteorder;
+	stream->byteorder = (unsigned int)byteorder;
 	stream->swap = (byteorder != system_byteorder()) ? 1 : 0;
 }
 
@@ -298,7 +298,7 @@ stream_read_line(stream_t* stream, char delimiter) {
 			outsize = nextsize - 1;
 		}
 		if (i) {
-			memcpy(outbuffer + cursize, buffer, i);
+			memcpy(outbuffer + cursize, buffer, i); //lint !e613
 			cursize += i;
 		}
 		if (i < read) {
@@ -589,7 +589,7 @@ stream_read_string(stream_t* stream) {
 				outbuffer[cursize++] = c;
 			}
 
-			outbuffer[cursize] = 0;
+			outbuffer[cursize] = 0; //lint !e661
 		}
 	}
 	else {
@@ -807,6 +807,7 @@ stream_md5(stream_t* stream) {
 			//Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line endings
 			//(for example, one line ending in a single CR and next is empty and ending in a single LF),
 			//it will not work!
+			/*lint -e{850} */
 			for (ic = lastc; ic < num && ic < limit; ++ic) {
 				bool was_cr = (buf[ic] == '\r');
 				bool was_lf = (buf[ic] == '\n');
@@ -814,7 +815,7 @@ stream_md5(stream_t* stream) {
 					if (was_cr && (ic == limit-1))
 						ignore_lf = true; //Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
-					md5_digest(&md5, buf + lastc, (size_t)(ic - lastc + 1));     //Include the LF
+					md5_digest(&md5, buf + lastc, (size_t)((ic - lastc) + 1)); //Include the LF
 					if (was_cr && (buf[ic + 1] == '\n'))  //Check for CR+LF
 						++ic;
 					lastc = ic + 1;
@@ -1035,6 +1036,7 @@ stream_flush(stream_t* stream) {
 
 #include <stdio.h>
 
+/*lint -e754 */
 struct stream_std_t {
 	FOUNDATION_DECLARE_STREAM;
 	void*              std;

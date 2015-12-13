@@ -121,7 +121,7 @@ time_elapsed(const tick_t t) {
 
 tick_t
 time_elapsed_ticks(const tick_t t) {
-	tick_t dt = 0;
+	tick_t dt;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -146,6 +146,7 @@ time_elapsed_ticks(const tick_t t) {
 
 #else
 #  error Not implemented
+	dt = 0;
 #endif
 
 	return dt;
@@ -157,23 +158,14 @@ time_ticks_to_seconds(const tick_t dt) {
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
-
-struct __timeb64 {
-	__time64_t time;
-	unsigned short millitm;
-	short timezone;
-	short dstflag;
-};
-
-_CRTIMP errno_t __cdecl
-_ftime64_s(_Out_ struct __timeb64* _Time);
-
+#include <sys/timeb.h>
 #endif
 
 tick_t
 time_system(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
+	/*lint --e{754,534} */
 	struct __timeb64 tb;
 	_ftime64_s(&tb);
 	return ((tick_t)tb.time * 1000LL) + (tick_t)tb.millitm;

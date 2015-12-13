@@ -37,7 +37,6 @@ typedef union {
 typedef union {
 	uuid_raw_t     raw;
 	uuid_time_t    time;
-	uuid_random_t  random;
 	uuid_t         uuid;
 } uuid_convert_t;
 
@@ -71,9 +70,8 @@ uuid_generate_time(void) {
 	tick_t current_time;
 	int32_t current_counter;
 	tick_t current_tick;
-	int in = 0;
-	uint32_t clock_seq = 0;
-	uint64_t host_id = 0;
+	uint32_t clock_seq;
+	uint64_t host_id, in;
 
 	//Allows creation of 10000 unique timestamps per millisecond
 	current_time = time_system();
@@ -84,7 +82,7 @@ uuid_generate_time(void) {
 
 	//We have no state so clock sequence is random
 	clock_seq = random32();
-
+	/*lint --e{704} */
 	time_uuid.time_low = (uint32_t)(current_tick & 0xFFFFFFFFLL);
 	time_uuid.time_mid = (uint16_t)((current_tick >> 32LL) & 0xFFFFLL);
 	time_uuid.time_hi_and_version = (uint16_t)((current_tick >> 48LL) & 0xFFFFLL);
@@ -94,8 +92,10 @@ uuid_generate_time(void) {
 	//If hardware node ID is null, use random and set identifier (multicast) bit
 	host_id = system_hostid();
 	if (host_id) {
-		for (in = 0; in < 6; ++in)
-			time_uuid.node[5 - in] = (uint8_t)((host_id >> (8LL * in)) & 0xFF);
+		for (in = 0; in < 6; ++in) {
+			uint64_t byteval = (host_id >> (8ULL * in)) & 0xFFULL;
+			time_uuid.node[5 - in] = (uint8_t)byteval;
+		}
 	}
 	else {
 		for (in = 0; in < 6; ++in)
@@ -168,12 +168,12 @@ string_from_uuid(char* buffer, size_t size, const uuid_t val) {
 	               convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1],
 	               convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5],
 	               convert.raw.data4[6], convert.raw.data4[7]);
-	if ((len < 0) || ((size_t)len > size)) {
+	if ((len < 0) || ((unsigned int)len > size)) {
 		if (size)
 			buffer[ size - 1 ] = 0;
-		return (string_t) { buffer, size ? size - 1 : 0 };
+		return (string_t) {buffer, size ? (size - 1) : 0};
 	}
-	return (string_t) { buffer, (size_t)len };
+	return (string_t) {buffer, (unsigned int)len};
 }
 
 uuid_t

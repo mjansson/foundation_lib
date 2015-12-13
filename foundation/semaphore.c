@@ -48,7 +48,7 @@ extern int MPWaitOnSemaphore(MPSemaphoreID, int);
 void
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
-	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, 0);
+	*semaphore = CreateSemaphoreA(0, (long)value, 0xFFFF, 0); //lint !e970
 }
 
 void
@@ -58,7 +58,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 	char buffer[128];
 	string_t namestr = string_copy(buffer, sizeof(buffer), name, length);
-	*semaphore = CreateSemaphoreA(0, value, 0xFFFF, namestr.str);
+	*semaphore = CreateSemaphoreA(0, (long)value, 0xFFFF, namestr.str); //lint !e970
 }
 
 void

@@ -35,7 +35,7 @@
 
 #define REGEXPARSE_NOBRANCH           (size_t)-1
 
-typedef enum {
+enum {
 	REGEXOP_BEGIN_CAPTURE = 0,
 	REGEXOP_END_CAPTURE,
 	REGEXOP_BEGINNING_OF_LINE,
@@ -52,7 +52,7 @@ typedef enum {
 	REGEXOP_ZERO_OR_ONE,
 	REGEXOP_BRANCH,
 	REGEXOP_BRANCH_END
-} regex_op_t;
+};
 
 /*static const char* opname[] = {
 	"BEGIN_CAPTURE",
@@ -470,6 +470,7 @@ _regex_parse(regex_t** target, const char* pattern, size_t offset, size_t length
 			else if (offset < length) {
 				code = _regex_encode_escape(pattern[offset++]);
 				if (!code || (code > 0xFF)) {
+					/*lint -e{702} */
 					if ((ret = _regex_emit(target, allow_grow, 3, REGEXOP_META_MATCH, 0, (int)((code >> 8) & 0xFF))))
 						return ret;
 				}
@@ -561,6 +562,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		if (inoffset >= inlength)
 			return _regex_context_nomatch(op + buffer_len);
 
+		/*lint -e{850} */
 		for (ibuf = 0; ibuf < buffer_len; ++ibuf) {
 			cmatch = (char)regex->code[op + ibuf];
 			if (!cmatch) {
@@ -585,6 +587,7 @@ _regex_execute_single(regex_t* regex, size_t op, const char* input, size_t inoff
 		if (inoffset >= inlength)
 			return _regex_context_nomatch(op + buffer_len);
 
+		/*lint -e{850} */
 		for (ibuf = 0; ibuf < buffer_len; ++ibuf) {
 			cmatch = (char)regex->code[op + ibuf];
 			if (!cmatch) {

@@ -383,11 +383,7 @@ an error occurs during spawning */
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86
-#    if FOUNDATION_COMPILER_MSVC
-typedef _W64 int      ssize_t;
-#    else
 typedef int           ssize_t;
-#    endif
 #  else
 typedef int64_t       ssize_t;
 #  endif

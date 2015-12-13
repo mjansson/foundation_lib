@@ -504,9 +504,9 @@ config_section(hash_t section, bool create) {
 	config_section_t* bucket;
 	size_t ib, bsize;
 
+	/*lint --e{613} */
 	bucket = _config_section[ section % CONFIG_SECTION_BUCKETS ];
 	for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-		/*lint --e{613} array_size( bucket ) in loop condition does the null pointer guard */
 		if (bucket[ib].name == section)
 			return bucket + ib;
 	}
@@ -534,6 +534,7 @@ config_key(hash_t section, hash_t key, bool create) {
 	config_key_t* bucket;
 	size_t ib, bsize;
 
+	/*lint --e{613} */
 	csection = config_section(section, create);
 	if (!csection) {
 		FOUNDATION_ASSERT(!create);
@@ -541,7 +542,6 @@ config_key(hash_t section, hash_t key, bool create) {
 	}
 	bucket = csection->key[ key % CONFIG_KEY_BUCKETS ];
 	for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-		/*lint --e{613} array_size( bucket ) in loop condition does the null pointer guard */
 		if (bucket[ib].name == key)
 			return bucket + ib;
 	}

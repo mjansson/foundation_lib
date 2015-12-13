@@ -58,7 +58,7 @@ struct platform_info_t {
 
 typedef struct platform_info_t platform_info_t;
 
-static platform_info_t _platform_info = {
+static const platform_info_t _platform_info = {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	PLATFORM_WINDOWS,
@@ -184,7 +184,7 @@ system_error_message(int code) {
 
 	errmsg = _system_buffer();
 	errmsg[0] = 0;
-	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF,
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, (unsigned int)code & 0xBFFFFFFF,
 	               0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, SYSTEM_BUFFER_SIZE,
 	               0);
 	return string_strip(errmsg, string_length(errmsg), STRING_CONST(STRING_WHITESPACE));
@@ -200,6 +200,7 @@ system_hostname(char* buffer, size_t capacity) {
 
 uint64_t
 system_hostid(void) {
+	/*lint --e{970} */
 	unsigned char hostid[8] = {0};
 	IP_ADAPTER_INFO adapter_info[16];
 	unsigned int status, i, j;
@@ -208,9 +209,11 @@ system_hostid(void) {
 
 	if (!_system_library_iphlpapi)
 		_system_library_iphlpapi = library_load(STRING_CONST("iphlpapi"));
-	if (_system_library_iphlpapi)
+	if (_system_library_iphlpapi) {
+		/*lint -e{611} */
 		fn_get_adapters_info = (DWORD (STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(
 		                       _system_library_iphlpapi, STRING_CONST("GetAdaptersInfo"));
+	}
 	if (!fn_get_adapters_info)
 		return 0;
 
@@ -271,13 +274,14 @@ _system_user_locale(void) {
 		wchar_t locale_sname[128] = {0};
 		char locale_buffer[8] = {0};
 		string_t locale_string;
-		get_locale_info(0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname, 32);
-		locale_string = string_convert_utf16(locale_buffer, 8, (uint16_t*)locale_sname, wstring_length(locale_sname));
-		if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("??" "-" "??"))) {
-			locale_buffer[2] = locale_buffer[3];
-			locale_buffer[3] = locale_buffer[4];
-			locale_buffer[4] = 0;
-			return *(uint32_t*)locale_string.str;
+		if (get_locale_info(0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname, 32) > 0) {
+			locale_string = string_convert_utf16(locale_buffer, 8, (uint16_t*)locale_sname, wstring_length(locale_sname));
+			if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("?" "?" "-" "?" "?"))) {
+				locale_buffer[2] = locale_buffer[3];
+				locale_buffer[3] = locale_buffer[4];
+				locale_buffer[4] = 0;
+				return *(uint32_t*)locale_string.str;
+			}
 		}
 	}
 
@@ -650,8 +654,8 @@ system_locale(void) {
 	if (locale.length != 4)
 		return _system_user_locale();
 
-#define LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x))
-#define LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x))
+#define LOCALE_CHAR_TO_LOWERCASE(x) ((((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x)))
+#define LOCALE_CHAR_TO_UPPERCASE(x) ((((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x)))
 	localestr[0] = LOCALE_CHAR_TO_LOWERCASE(locale.str[0]);
 	localestr[1] = LOCALE_CHAR_TO_LOWERCASE(locale.str[1]);
 	localestr[2] = LOCALE_CHAR_TO_UPPERCASE(locale.str[2]);
@@ -713,6 +717,8 @@ system_message_box(const char* title, size_t title_length, const char* message,
 		return true;
 
 #if FOUNDATION_PLATFORM_WINDOWS
+	FOUNDATION_UNUSED(message_length);
+	FOUNDATION_UNUSED(title_length);
 	return (MessageBoxA(0, message, title, cancel_button ? MB_OKCANCEL : MB_OK) == IDOK);
 #elif FOUNDATION_PLATFORM_APPLE
 	return _system_show_alert(title, title_length, message, message_length, cancel_button ? 1 : 0) > 0;
