@@ -636,6 +636,7 @@ _finalize_symbol_resolve() {
 
 static FOUNDATION_NOINLINE string_t
 _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_frames) {
+#define UNKNOWN_SYMBOL "?""?"
 #if FOUNDATION_PLATFORM_WINDOWS
 	char                symbol_buffer[ sizeof(IMAGEHLP_SYMBOL64) + 512 ];
 	PIMAGEHLP_SYMBOL64  symbol;
@@ -647,7 +648,6 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 	IMAGEHLP_LINE64     line64;
 	IMAGEHLP_MODULE64   module64;
 	string_t            resolved = {buffer, 0};
-	#define UNKNOWN_SYMBOL "?""?"
 
 	for (iaddr = 0; (iaddr < max_frames) && !last_was_main && (resolved.length < capacity-1); ++iaddr) {
 		string_t line;
