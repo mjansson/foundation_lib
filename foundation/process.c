@@ -118,6 +118,8 @@ process_spawn(process_t* proc) {
 	wchar_t* wcmdline;
 	wchar_t* wwd;
 	string_t cmdline;
+#endif
+#if !FOUNDATION_PLATFORM_POSIX
 	size_t capacity;
 #endif
 
