@@ -350,10 +350,15 @@ DECLARE_TEST(regex, captures) {
 	return 0;
 }
 
+FOUNDATION_ALIGNED_STRUCT(regexbuffer_t, 8)
+{
+	char buffer[sizeof(regex_t) + 4];
+};
+
 DECLARE_TEST(regex, invalid) {
 	regex_t* regex;
 	regex_t predef;
-	char buffer[sizeof(regex_t) + 4];
+	struct regexbuffer_t buffer;
 
 	regex = regex_compile(STRING_CONST("++??.+*?"));
 	EXPECT_EQ(regex, nullptr);
@@ -367,54 +372,54 @@ DECLARE_TEST(regex, invalid) {
 	memset(&predef, 0, sizeof(predef));
 	EXPECT_FALSE(regex_parse(&predef, STRING_CONST("test")));
 
-	regex = (regex_t*)buffer;
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	regex = (regex_t*)&buffer;
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_TRUE(regex_parse(regex, STRING_CONST("te")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("tes")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te^")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te$")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te(capture)")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("(longcapture)")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("(t)")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t)")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te[test]")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("[test]")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te.")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t*+")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("t+*")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te*")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te*?")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te?")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\64")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\6jk")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\s")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te\\0")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("te|st")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("^?$?")));
-	memset(buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
+	memset(&buffer, 0, sizeof(buffer)); regex->code_allocated = sizeof(buffer) - sizeof(regex_t);
 	EXPECT_FALSE(regex_parse(regex, STRING_CONST("|?")));
 
 	//Too long op, parser will fail
