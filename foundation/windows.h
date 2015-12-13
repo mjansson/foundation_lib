@@ -56,11 +56,7 @@ SHGetFolderPathW(__reserved HWND hwnd, __in int csidl, __in_opt HANDLE hToken, _
                  __out_ecount(MAX_PATH) LPWSTR pszPath);
 #  define CSIDL_LOCAL_APPDATA 0x001c  // <user name>\Local Settings\Application Data (non roaming)
 #else
-#  include <shlobj.h>#define IN
-#define OUT
-#define FAR
-#define NEAR
-
+#  include <shlobj.h>
 #endif
 
 #include <crtdbg.h>
