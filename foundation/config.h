@@ -156,8 +156,9 @@ config files in the following order in order to allow easy overloading of defaul
       This step is performed by identifying if the path contains
       <ul>
         <li>1) known directories (bin)
-        <li>2) a platform identifier (win32,win64,osx,ios,android,raspberrypi)
+        <li>2) a platform identifier (windows,macosx,ios,android,...)
         <li>3) a build identifier (debug,release,profile,deploy)
+        <li>4) an arch identifier (x86,x86-64,arm7,...)
       </ul>
       and if so cleaning away these subdirectories. This allows you to have binaries
       sorted on platform/build under a common "bin" directory, while placing configs
@@ -169,19 +170,19 @@ For desktop builds (Windows, MacOSX, ...), if build is debug/release (i.e not de
 For Android development
 <li>5) Application asset manager config dir (/config)
 
-For iOS & MacOSX development (non-bsdutil apps)
+For iOS & MacOSX app development (non-bsdutil apps)
 <li>5) Application bundle config dir (/path/to/exe.app/Contents/Resources/config)
 
 Other platforms:
 <li>5)
 
+If built_in flag is false, the following directories are also searched, with
+[config_dir] being the application config_dir path set when initializing the library
+
 For desktop platforms (Windows, MacOSX, ...)
 <li>6) Current working directory (C:/current/dir)
 <li>7) Current working directory "config" subdirectory (C:/current/dir/config)
 <li>8) Command line --configdir directive (not in deploy builds)
-
-If built_in flag is false, the following directories are also searched, with
-[config_dir] being the application config_dir path set when initializing the library
 
 For Windows development, the user app directory
 <li>9) C:/Users/[username]/AppData/Local/.[config_dir]

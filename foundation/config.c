@@ -215,10 +215,12 @@ _expand_string_val(hash_t section, config_key_t* key) {
 }
 
 int _config_initialize(void) {
-	config_load(STRING_CONST("foundation"), 0ULL, true, false);
-	config_load(STRING_CONST("application"), 0ULL, true, false);
+	config_load(STRING_CONST("foundation"), HASH_FOUNDATION, true, false);
+	config_load(STRING_CONST("application"), HASH_APPLICATION, true, false);
 
 	//Load per-user config
+	config_load(STRING_CONST("foundation"), HASH_FOUNDATION, false, false);
+	config_load(STRING_CONST("application"), HASH_APPLICATION, false, false);
 	config_load(STRING_CONST("user"), HASH_USER, false, true);
 
 	return 0;
@@ -450,19 +452,19 @@ config_make_path(int path, char* buffer, size_t capacity) {
 	return (string_t) { 0, 0 };
 }
 
-void
+FOUNDATION_NOINLINE void
 config_load(const char* name, size_t length, hash_t filter_section, bool built_in, bool overwrite) {
 	char buffer[BUILD_MAX_PATHLEN];
 	string_t pathname;
 	string_t filename;
 	stream_t* istream;
 	int start_path = 0;
-	int end_path = 8;
+	int end_path = 6;
 	int ipath;
 
 	if (!built_in) {
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
-		start_path = 8;
+		start_path = 6;
 		end_path = 9;
 #else
 		return;
