@@ -201,7 +201,8 @@ string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATI
 		if (length) {
 			if (length >= capacity)
 				length = capacity - 1;
-			memcpy(dst, src, length);
+			if (dst != src)
+				memcpy(dst, src, length);
 		}
 		dst[length] = 0;
 		return (string_t) {dst, length};
