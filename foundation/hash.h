@@ -66,7 +66,7 @@ see the hashstrings.txt and corresponding hashstrings.h header
 \param len    Length of key in bytes
 \param value  Hash value */
 #define static_hash_string( key, len, value ) \
-  static_hash( key, string_length( key ), (hash_t)value )
+  static_hash( key, len, (hash_t)value )
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 

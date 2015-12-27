@@ -1302,23 +1302,35 @@ struct semaphore_t {
 
 #endif
 
-/*! Beacon */
+/*! Beacon representation. Linked events are platform dependent. */
 struct beacon_t {
+	/*! Linked event count */
 	size_t count;
 #if FOUNDATION_PLATFORM_WINDOWS
+	/*! Beacon event */
 	void* event;
+	/*! Linked events */
 	void* all[8];
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+	/*! Beacon file descriptor */
 	int fd;
+	/*! Beacon poll descriptor */
 	int poll;
+	/*! Linked events (file descriptors) */
 	int all[8];
+	/*! Fired flag */
 	atomic32_t fired;
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+	/*! Beacon kqueue */
 	int kq;
+	/*! Beacon file descriptor */
 	int writefd;
+	/*! Linked events (file descriptors) */
 	int all[8];
+	/*! Fired flag */
 	atomic32_t fired;
 #elif FOUNDATION_PLATFORM_PNACL
+	/*! Beacon mutex and event */
 	mutex_t* mutex;
 #endif
 };
@@ -1327,10 +1339,6 @@ struct beacon_t {
 struct thread_t {
 	/*! OS specific ID */
 	uint64_t osid;
-	/*! Buffer for name string */
-	char namebuffer[32];
-	/*! Name string */
-	string_const_t name;
 	/*! Thread priority */
 	thread_priority_t priority;
 	/*! Stack size */
@@ -1354,6 +1362,10 @@ struct thread_t {
 	/*! OS handle */
 	uintptr_t handle;
 #endif
+	/*! Name string */
+	string_const_t name;
+	/*! Buffer for name string */
+	char namebuffer[32];
 };
 
 /*! Declares the base stream data layout. Stream structures should be 8-byte align for

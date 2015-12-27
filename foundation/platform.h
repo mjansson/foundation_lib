@@ -599,7 +599,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #define FOUNDATION_PREPROCESSOR_ELEM_16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, ...) _16
 
 //Architecture details
-#ifdef __SSE2__
+#if defined(__SSE2__) || FOUNDATION_ARCH_X86_64
 #  undef  FOUNDATION_ARCH_SSE2
 #  define FOUNDATION_ARCH_SSE2 1
 #endif

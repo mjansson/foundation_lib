@@ -201,7 +201,8 @@ string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATI
 		if (length) {
 			if (length >= capacity)
 				length = capacity - 1;
-			memcpy(dst, src, length);
+			if (dst != src)
+				memcpy(dst, src, length);
 		}
 		dst[length] = 0;
 		return (string_t) {dst, length};
@@ -236,8 +237,7 @@ string_replace(char* str, size_t length, size_t capacity, const char* key, size_
 	ssize_t lendiff;
 
 	FOUNDATION_ASSERT(length <= capacity);
-	if (!capacity || !length || !key_length ||
-	        string_equal(key, key_length, newkey, newkey_length))
+	if (!capacity || !length || !key_length)
 		return (string_t) {str, length};
 
 	oldlength = length;
