@@ -41,30 +41,34 @@ typedef BOOL (STDCALL* MiniDumpWriteDumpFn)(HANDLE, DWORD, HANDLE, MINIDUMP_TYPE
                                             CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION,
                                             CONST PMINIDUMP_CALLBACK_INFORMATION);
 
-static string_t
-_crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, string_t dump_file) {
+static void
+_crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen, char* dump_file, size_t* capacity) {
 	MINIDUMP_EXCEPTION_INFORMATION info;
 	HANDLE file;
 	SYSTEMTIME local_time;
 	string_const_t temp_dir;
 	string_const_t uuid;
+	string_t filename;
 
 	GetLocalTime(&local_time);
 
-	if (!name.length)
-		name = environment_application()->short_name;
+	if (!namelen) {
+		string_const_t short_name = environment_application()->short_name;
+		name = short_name.str;
+		namelen = short_name.length;
+	}
 	temp_dir = environment_temporary_directory();
 	uuid = string_from_uuid_static(environment_application()->instance);
-	dump_file = string_format(STRING_ARGS(dump_file),
+	filename = string_format(dump_file, *capacity,
 	                          STRING_CONST("%.*s/%s%s%.*s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp"),
-	                          STRING_FORMAT(temp_dir), name.length ? name.str : "", name.length ? "-" : "",
+	                          STRING_FORMAT(temp_dir), namelen ? name : "", namelen ? "-" : "",
 	                          STRING_FORMAT(uuid),
 	                          local_time.wYear, local_time.wMonth, local_time.wDay,
 	                          local_time.wHour, local_time.wMinute, local_time.wSecond,
 	                          GetCurrentProcessId(), GetCurrentThreadId());
 	if (!fs_is_directory(STRING_ARGS(temp_dir)))
 		fs_make_directory(STRING_ARGS(temp_dir));
-	file = CreateFileA(dump_file.str, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0,
+	file = CreateFileA(filename.str, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0,
 	                   CREATE_ALWAYS, 0, 0);
 
 	if (file && (file != INVALID_HANDLE_VALUE)) {
@@ -80,8 +84,6 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 
 				success = write(GetCurrentProcess(), GetCurrentProcessId(), file,
 				                MiniDumpWithDataSegs | MiniDumpWithProcessThreadData | MiniDumpWithThreadInfo, &info, 0, 0);
-				if (!success)
-					dump_file.length = 0;
 			}
 			else {
 				string_const_t errmsg = system_error_message(0);
@@ -95,20 +97,21 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, string_const_t name, strin
 			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable open dbghelp library: %.*s"), STRING_FORMAT(errmsg));
 		}
 		if (success) {
-			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"), STRING_FORMAT(dump_file));
+			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"), STRING_FORMAT(filename));
 			FlushFileBuffers(file);
 		}
 		CloseHandle(file);
-		if (success)
-			return dump_file;
+		if (success) {
+			*capacity = filename.length;
+			return;
+		}
 	}
 	else {
-		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable to write mini dump to: %.*s"), STRING_FORMAT(dump_file));
+		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable to write mini dump to: %.*s"), STRING_FORMAT(filename));
 	}
 
 	//TODO: At least print out the exception records in log	
-
-	return (string_t){0, 0};
+	*capacity = 0;
 }
 
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
@@ -125,12 +128,13 @@ crash_exception_closure_t _crash_exception_closure;
 
 LONG WINAPI
 _crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
-	string_t dump_file = { _crash_dump_file_buffer, sizeof(_crash_dump_file_buffer) };
-	_crash_create_mini_dump(pointers, _crash_exception_closure.name, dump_file);
+	char dump_file_buffer[MAX_PATH];
+	size_t dump_file_len = sizeof(dump_file_buffer);
+	_crash_create_mini_dump(pointers, STRING_ARGS(_crash_exception_closure.name), dump_file_buffer, &dump_file_len);
 	if (_crash_exception_closure.callback)
-		_crash_exception_closure.callback(_crash_dump_file);
+		_crash_exception_closure.callback(dump_file_buffer, dump_file_len);
 	else
-		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %ls"), _crash_dump_file);
+		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"), (int)dump_file_len, dump_file_buffer);
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -211,8 +215,8 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
             size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	int ret;
-	string_t crash_dump_file;
 	char buffer[MAX_PATH];
+	size_t capacity = sizeof(buffer);
 #endif
 
 	//Make sure path is initialized
@@ -221,16 +225,14 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
-	crash_dump_file.str = buffer;
-	crash_dump_file.length = sizeof(buffer);
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
-	__except (_crash_create_mini_dump(GetExceptionInformation(), string_const(name, length), crash_dump_file),
+	__except (_crash_create_mini_dump(GetExceptionInformation(), name, length, buffer, &capacity),
 	          EXCEPTION_EXECUTE_HANDLER) {
 		ret = FOUNDATION_CRASH_DUMP_GENERATED;
 		if (callback)
-			callback(STRING_ARGS(crash_dump_file));
+			callback(buffer, capacity);
 
 		error_context_clear();
 	}
