@@ -240,7 +240,7 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #  else
 	SetUnhandledExceptionFilter(_crash_exception_filter);
 	_crash_exception_closure.callback = callback;
-	_crash_exception_closure.name = name;
+	_crash_exception_closure.name = string_const(name, length);
 	return fn(data);
 #  endif
 

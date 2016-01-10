@@ -52,7 +52,7 @@ crash_guard_callback(void);
 
 /*! Generate a debug break that will be caught by any attached debugger */
 FOUNDATION_API void
-crash_debug_break(void) FOUNDATION_ATTRIBUTE(noreturn);
+crash_debug_break(void);
 
 /*! Cause a core dump (illegal instruction) that will hard crash the process */
 FOUNDATION_API void
