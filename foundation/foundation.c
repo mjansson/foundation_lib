@@ -34,7 +34,7 @@ PPP_GetInterface(const char* interface_name);
 FOUNDATION_EXTERN PP_EXPORT void
 PPP_ShutdownModule();
 
-#else
+#elif !BUILD_DYNAMIC_LINK
 
 extern int
 main(int, char**);
@@ -122,6 +122,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 		config_parse_commandline(cmdline, array_size(cmdline));
 	}
 
+#if !BUILD_DYNAMIC_LINK
 	//Artificial references
 	/*lint -e506 */
 #if FOUNDATION_PLATFORM_ANDROID
@@ -133,6 +134,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 #else
 	if ((uintptr_t)main < 1)
 		return -1;
+#endif
 #endif
 
 	_foundation_initialized = true;

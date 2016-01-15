@@ -13,6 +13,8 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+#if !BUILD_DYNAMIC_LINK
+
 #if FOUNDATION_PLATFORM_PNACL
 #  include <foundation/pnacl.h>
 #  include <ppapi/c/ppp_instance.h>
@@ -318,5 +320,7 @@ PP_EXPORT void
 PPP_ShutdownModule() {
 	pnacl_module_finalize();
 }
+
+#endif
 
 #endif

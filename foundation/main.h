@@ -26,13 +26,15 @@ event (initialize, run and finalize). */
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+#if !BUILD_DYNAMIC_LINK
+
 /*! Main initialization entry point. This must be implemented by the application.
 The expectation is that this function will call foundation_initialize
 to initialize the foundation library, and return an error code
 to indicate success or failure. If this method returns an error initialization
 will abort and the program will terminate.
 \return 0 for success, <0 for error */
-extern int
+FOUNDATION_EXTERN int
 main_initialize( void );
 
 /*! Main loop. This must be implementation by the application and should
@@ -41,11 +43,13 @@ will terminate. The return code is used as the process exit code
 for normal termination. Will be called after #main_initialize
 \param arg Unused, set to 0
 \return Process exit code */
-extern int
+FOUNDATION_EXTERN int
 main_run( void* arg );
 
 /*! Main exit point. This must be implemented by the application.
 The expectation is that this function will call foundation_finalize
 to terminate the foundation library. Will be called after #main_run */
-extern void
+FOUNDATION_EXTERN void
 main_finalize( void );
+
+#endif
