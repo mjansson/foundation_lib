@@ -259,6 +259,7 @@ class Toolchain(object):
       self.ccdeps = 'msvc'
       self.arcmd = '$toolchain$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
       self.linkcmd = '$toolchain$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
+      self.dynlibcmd = self.linkcmd + ' /DLL'
 
     elif self.toolchain.startswith('gcc') or self.toolchain.startswith('gnu'):
       self.toolchain = 'gcc' + self.exe_suffix
@@ -282,6 +283,7 @@ class Toolchain(object):
       self.ccdepfile = '$out.d'
 
       self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+      self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
       self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if host.is_raspberrypi():
@@ -311,6 +313,7 @@ class Toolchain(object):
         self.liblinkname = ''
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
@@ -388,6 +391,7 @@ class Toolchain(object):
 
         self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $mflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
+        self.dynlibcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
         self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --bundle $bundleidentifier --target $target --deploymenttarget $deploymenttarget --output $outpath $in'
@@ -414,6 +418,7 @@ class Toolchain(object):
 
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer',
@@ -434,6 +439,7 @@ class Toolchain(object):
 
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -D__TIZEN__=1 -D_GNU_SOURCE=1 -c $in -o $out'
         self.arcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
@@ -456,6 +462,7 @@ class Toolchain(object):
         self.nmf = os.path.join( self.pnacl_sdkpath, 'tools', 'create_nmf.py' )
 
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
         self.finalizecmd = '$finalize -o $out $in'
         self.nmfcmd = self.python + ' $nmf -o $out $in'
@@ -467,11 +474,13 @@ class Toolchain(object):
       elif target.is_windows():
 
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
         self.cflags += [ '-Wno-reserved-id-macro' ] #errors in Windows SDK headers
 
       else:
         self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if target.is_macosx():
@@ -508,6 +517,7 @@ class Toolchain(object):
         self.ccdepfile = None
         self.ccdeps = 'msvc'
         self.arcmd = '$ar crs $arflags $ararchflags $arconfigflags $out $in'
+        self.dynlibcmd = '$ar crs $arflags $ararchflags $arconfigflags $out $in'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs'
         self.objext = '.obj'
       else:
@@ -517,21 +527,25 @@ class Toolchain(object):
     if target.is_windows():
       self.libprefix = ''
       self.staticlibext = '.lib'
+      self.dynamiclibext = '.dll'
       self.binprefix = ''
       self.binext = '.exe'
     elif target.is_android():
       self.libprefix = 'lib'
       self.staticlibext = '.a'
+      self.dynamiclibext = '.so'
       self.binprefix = 'lib'
       self.binext = '.so'
     elif target.is_pnacl():
       self.libprefix = 'lib'
       self.staticlibext = '.a'
+      self.dynamiclibext = '.so'
       self.binprefix = ''
       self.binext = '.bc'
     else:
       self.libprefix = 'lib'
       self.staticlibext = '.a'
+      self.dynamiclibext = '.so'
       self.binprefix = ''
       self.binext = ''
 
@@ -1129,6 +1143,7 @@ class Toolchain(object):
   def write_rules( self, writer ):
     writer.rule( 'cc', command = self.cccmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in' )
     writer.rule( 'ar', command = self.arcmd, description = 'LIB $out')
+    writer.rule( 'dynlib', command = self.dynlibcmd, description = 'DYNLIB $out')
     writer.rule( 'link', command = self.linkcmd, description = 'LINK $out')
     writer.rule( 'copy', command = self.copycmd, description = 'COPY $in -> $outpath')
     if self.target.is_macosx() or self.target.is_ios():
@@ -1585,6 +1600,95 @@ class Toolchain(object):
         built[config] += writer.build( os.path.join( self.libpath, config, self.libprefix + module + self.staticlibext ), 'ar', archlibs, variables = [ ( 'arflags', '-static -no_warning_for_no_symbols' ) ] );
       else:
         built[config] += archlibs
+    writer.newline()
+    return built
+
+  def sharedlib( self, writer, module, sources, basepath = None, configs = None, includepaths = None ):
+    built = {}
+    if basepath is None:
+      basepath = ''
+    binname = module
+    decoratedmodule = module + self.make_pathhash( module ) + '-dyn'
+    if configs is None:
+      configs = list( self.configs )
+    libs = []
+    extralibs = []
+    extraframeworks = []
+    moreincludepaths = self.build_includepaths( includepaths )
+    do_universal = True if self.target.is_macosx() or self.target.is_ios() else False
+    for config in configs:
+      localcconfigflags = self.make_cconfigflags( config )
+      built[config] = []
+      builtbin = []
+      for arch in self.archs:
+        objs = []
+        buildpath = os.path.join( self.buildpath, config, arch )
+        if self.target.is_macosx() or self.target.is_ios() or self.target.is_pnacl():
+          libpath = os.path.join( self.libpath, config )
+          libarchpath = os.path.join( self.libpath )
+          binpath = os.path.join( self.binpath, config )
+        else:
+          libpath = os.path.join( self.libpath, config, arch )
+          libarchpath = os.path.join( self.libpath, arch )
+          binpath = os.path.join( self.binpath, config, arch )
+        localcarchflags = self.make_carchflags( arch )
+        locallinkarchflags = self.make_linkarchflags( arch )
+        locallinkconfigflags = self.make_linkconfigflags( arch, config )
+        locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libarchpath, libpath ], arch, config ) )
+        localarchlibs = self.make_linkarchlibs( arch )
+        localvariables = [ ( 'carchflags', localcarchflags + ' /D "BUILD_DYNAMIC_LINK=1"' ),
+                           ( 'cconfigflags', localcconfigflags ) ]
+        locallinkvariables = [ ( 'libs', self.make_libs( libs + self.dependlibs + extralibs + self.extralibs ) + self.make_frameworks( extraframeworks ) ),
+                               ( 'archlibs', self.make_libs( localarchlibs ) ),
+                               ( 'linkconfigflags', locallinkconfigflags ),
+                               ( 'linkarchflags', locallinkarchflags ),
+                               ( 'libpaths', locallibpaths ) ]
+        extraincludepaths = []
+        if self.target.is_windows():
+          localvariables += [ ( 'pdbpath', os.path.join( buildpath, basepath, decoratedmodule, 'ninja.pdb' ) ) ]
+          locallinkvariables += [ ( 'pdbpath', os.path.join( binpath, self.binprefix + binname + '.pdb' ) ) ]
+          if self.is_msvc():
+            localvariables += [ ( 'toolchain', self.make_msvc_toolchain_path( arch ) ) ]
+            locallinkvariables += [ ( 'toolchain', self.make_msvc_toolchain_path( arch ) ) ]
+        if self.target.is_android():
+          sysroot = self.make_android_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                              ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                                  ( 'sysroot', sysroot ),
+                                  ( 'liblinkname', self.libprefix + binname + self.dynamiclibext ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]
+        if self.target.is_tizen():
+          sysroot = self.make_tizen_sysroot_path( arch )
+          localvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ),
+                              ( 'sysroot', sysroot ) ]
+          locallinkvariables += [ ( 'toolchain', self.make_tizen_toolchain_path( arch ) ),
+                                  ( 'sysroot', sysroot ),
+                                  ( 'liblinkname', self.libprefix + binname + self.dynamiclibext ) ]
+          extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ), os.path.join( sysroot, 'usr', 'include', 'appfw' ) ]
+        if moreincludepaths != [] or extraincludepaths != []:
+          localvariables += [ ( 'moreincludepaths', self.make_includepaths( moreincludepaths + extraincludepaths ) ) ]
+        for name in sources:
+          if os.path.isabs( name ):
+            infile = name
+            outfile = os.path.join( buildpath, basepath, decoratedmodule, os.path.splitext( os.path.basename( name ) )[0] + self.make_pathhash( infile ) + self.objext )
+          else:
+            infile = os.path.join( basepath, module, name )
+            outfile = os.path.join( buildpath, basepath, decoratedmodule, os.path.splitext( name )[0] + self.make_pathhash( infile ) + self.objext )
+          if name.endswith( '.c' ):
+            objs += writer.build( outfile, 'cc', infile, variables = localvariables )
+          elif name.endswith( '.m' ) and ( self.target.is_macosx() or self.target.is_ios() ):
+            objs += writer.build( outfile, 'cm', infile, variables = localvariables )
+        archbin = writer.build( os.path.join( buildpath if do_universal else binpath, self.libprefix + binname + self.dynamiclibext ), 'dynlib', objs, variables = locallinkvariables )
+        builtbin += archbin
+        built[config] += archbin
+      if do_universal:
+        if self.target.is_macosx() or self.target.is_ios():
+          buildpath = os.path.join( self.buildpath, config )
+          binpath = os.path.join( self.binpath, config )
+          writer.newline()
+          writer.comment( "Make universal binary" )
+          built[config] = writer.build( os.path.join( buildpath if is_app else binpath, self.libprefix + binname + self.dynamiclibext ), 'lipo', builtbin )
     writer.newline()
     return built
 

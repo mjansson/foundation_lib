@@ -19,13 +19,16 @@ if target.is_android():
   extrasources += [ os.path.join( toolchain.android_ndkpath, 'sources', 'android', 'native_app_glue', 'android_native_app_glue.c' ),
                     os.path.join( toolchain.android_ndkpath, 'sources', 'android', 'cpufeatures', 'cpu-features.c' ) ]
 
-foundation_lib = generator.lib( module = 'foundation', sources = [
+foundation_sources = [
   'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'beacon.c', 'bitbuffer.c', 'blowfish.c',
   'bufferstream.c', 'config.c', 'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c',
   'hash.c', 'hashmap.c', 'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'pnacl.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
-  'tizen.c', 'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ] + extrasources )
+  'tizen.c', 'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
+
+foundation_lib = generator.lib( module = 'foundation', sources = foundation_sources + extrasources )
+#foundation_so = generator.sharedlib( module = 'foundation', sources = foundation_sources )
 
 if not target.is_ios() and not target.is_android() and not target.is_tizen():
   configs = [ config for config in toolchain.configs if config not in [ 'profile', 'deploy' ] ]

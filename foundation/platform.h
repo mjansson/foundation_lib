@@ -35,22 +35,8 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_COMPILE 0
 #endif
 
-#if FOUNDATION_COMPILE
-#  ifdef __cplusplus
-#  define FOUNDATION_EXTERN extern "C"
-#  define FOUNDATION_API extern "C"
-#  else
-#  define FOUNDATION_EXTERN extern
-#  define FOUNDATION_API extern
-#  endif
-#else
-#  ifdef __cplusplus
-#  define FOUNDATION_EXTERN extern "C"
-#  define FOUNDATION_API extern "C"
-#  else
-#  define FOUNDATION_EXTERN extern
-#  define FOUNDATION_API extern
-#  endif
+#if !defined( BUILD_DYNAMIC_LINK )
+#  define BUILD_DYNAMIC_LINK 0
 #endif
 
 //Platforms
@@ -566,6 +552,32 @@ thread local storage to ensure maximum portability across supported platforms */
 #  error Unknown platform
 #endif
 
+//Export/import attribute
+#if BUILD_DYNAMIC_LINK && FOUNDATION_PLATFORM_WINDOWS
+#  define FOUNDATION_EXPORT __declspec(dllexport)
+#  define FOUNDATION_IMPORT __declspec(dllimport)
+#else
+#  define FOUNDATION_EXPORT
+#  define FOUNDATION_IMPORT
+#endif
+#if FOUNDATION_COMPILE
+#  ifdef __cplusplus
+#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT
+#    define FOUNDATION_API extern "C" FOUNDATION_EXPORT
+#  else
+#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT
+#    define FOUNDATION_API extern FOUNDATION_EXPORT
+#  endif
+#else
+#  ifdef __cplusplus
+#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT
+#    define FOUNDATION_API extern "C" FOUNDATION_IMPORT
+#  else
+#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT
+#    define FOUNDATION_API extern FOUNDATION_IMPORT
+#  endif
+#endif
+
 //Utility macros
 #define FOUNDATION_PREPROCESSOR_TOSTRING(x)            FOUNDATION_PREPROCESSOR_TOSTRING_IMPL(x)
 #define FOUNDATION_PREPROCESSOR_TOSTRING_IMPL(x)       #x
@@ -671,9 +683,6 @@ thread local storage to ensure maximum portability across supported platforms */
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
-#    ifndef _MSC_VER
-#      define _MSC_VER 1300
-#    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
 #    pragma clang diagnostic pop
 #  endif
@@ -720,9 +729,6 @@ thread local storage to ensure maximum portability across supported platforms */
 #    endif
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
-#    endif
-#    ifndef _MSC_VER
-#      define _MSC_VER 1300
 #    endif
 #  endif
 
@@ -817,9 +823,9 @@ typedef enum {
 } bool;
 #  endif
 
-#if _MSC_VER < 1800
-#  define va_copy(d,s) ((d)=(s))
-#endif
+#  if _MSC_VER < 1800
+#    define va_copy(d,s) ((d)=(s))
+#  endif
 
 #  include <intrin.h>
 
