@@ -499,6 +499,21 @@ stream_read_uint64(stream_t* stream) {
 	return value;
 }
 
+uint128_t
+stream_read_uint128(stream_t* stream) {
+	uint128_t value;
+	if (stream_is_binary(stream)) {
+		value.word[0] = stream_read_uint64(stream);
+		value.word[1] = stream_read_uint64(stream);
+	}
+	else {
+		char buffer[34] = {0};
+		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+		value = string_to_uint128(str.str, str.length);
+	}
+	return value;
+}
+
 float32_t
 stream_read_float32(stream_t* stream) {
 	float32_t value = 0;
@@ -950,6 +965,18 @@ stream_write_uint64(stream_t* stream, uint64_t data) {
 	}
 	else {
 		string_const_t value = string_from_uint_static(data, false, 0, 0);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
+stream_write_uint128(stream_t* stream, uint128_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint64(stream, data.word[0]);
+		stream_write_uint64(stream, data.word[1]);
+	}
+	else {
+		string_const_t value = string_from_uint128_static(data);
 		stream_write_string(stream, value.str, value.length);
 	}
 }
