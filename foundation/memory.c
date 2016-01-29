@@ -374,7 +374,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	allocate_size = size + FOUNDATION_SIZE_POINTER + extra_padding + align;
 	raw_memory = 0;
 
-	vmres = NtAllocateVirtualMemory(INVALID_HANDLE_VALUE, &raw_memory, 1, &allocate_size,
+	vmres = NtAllocateVirtualMemory(INVALID_HANDLE_VALUE, (void**)&raw_memory, 1, &allocate_size,
 	                                MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	if (vmres != 0) {
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,

@@ -140,6 +140,7 @@ typedef struct tagTHREADNAME_INFO {
 
 LONG WINAPI
 _thread_set_name_exception_filter(LPEXCEPTION_POINTERS pointers) {
+	FOUNDATION_UNUSED(pointers);
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
 

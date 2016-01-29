@@ -201,7 +201,11 @@ system_hostname(char* buffer, size_t capacity) {
 uint64_t
 system_hostid(void) {
 	/*lint --e{970} */
-	unsigned char hostid[8] = {0};
+	union
+	{
+		unsigned char hostid[8];
+		uint64_t val;
+	} hostid;
 	IP_ADAPTER_INFO adapter_info[16];
 	unsigned int status, i, j;
 	unsigned long buffer_length;
@@ -217,17 +221,18 @@ system_hostid(void) {
 	if (!fn_get_adapters_info)
 		return 0;
 
+	hostid.val = 0;
 	buffer_length = sizeof(adapter_info);    // Save memory size of buffer
 	memset(adapter_info, 0, sizeof(adapter_info));
 	status = fn_get_adapters_info(adapter_info, &buffer_length);
 	if (status == ERROR_SUCCESS) for (i = 0; i < 16; ++i) {
 			if (adapter_info[i].Type == MIB_IF_TYPE_ETHERNET) {
 				for (j = 0; j < 6; ++j)
-					hostid[5 - j] = adapter_info[i].Address[j];
+					hostid.hostid[5 - j] = adapter_info[i].Address[j];
 				break;
 			}
 		}
-	return *(uint64_t*)hostid;
+	return hostid.val;
 }
 
 string_t
