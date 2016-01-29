@@ -644,7 +644,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_COMPILER_CLANG 1
 
 #  define FOUNDATION_COMPILER_NAME "clang"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __clang_major__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __clang_minor__ )
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING(__clang_major__) "." FOUNDATION_PREPROCESSOR_TOSTRING(__clang_minor__)
 
 #  define FOUNDATION_RESTRICT __restrict
 #  if FOUNDATION_PLATFORM_WINDOWS
@@ -658,22 +658,22 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 #  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
-#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
-#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
-#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
-#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
-#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
-#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
-#  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
-#  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
+#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE(deprecated)
+#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE(always_inline)
+#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE(noinline)
+#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE(pure)
+#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE(const)
+#  define FOUNDATION_PRINTFCALL(start, num) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
+#  define FOUNDATION_ALIGN(alignment) FOUNDATION_ATTRIBUTE2(aligned, alignment)
+#  define FOUNDATION_ALIGNOF(type) __alignof__(type)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    pragma clang diagnostic push
-#    if __has_warning( "-Wreserved-id-macro" )
+#    if __has_warning("-Wreserved-id-macro")
 #      pragma clang diagnostic ignored "-Wreserved-id-macro"
 #    endif
-#    define STDCALL
+#    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
 #    endif
@@ -685,6 +685,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
 #    pragma clang diagnostic pop
+#    if __has_warning("-Wunknown-pragmas")
+#      pragma clang diagnostic ignored "-Wunknown-pragmas"
+#    endif
 #  endif
 
 #  if __has_warning("-Wcovered-switch-default")
@@ -697,7 +700,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_COMPILER_GCC 1
 
 #  define FOUNDATION_COMPILER_NAME "gcc"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING(__GNUC__) "." FOUNDATION_PREPROCESSOR_TOSTRING(__GNUC_MINOR__)
 
 #  define FOUNDATIN_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
@@ -709,18 +712,18 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 #  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
-#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
-#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
-#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
-#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
-#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
-#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
-#  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
-#  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct FOUNDATION_ALIGN( alignment ) name
+#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE(deprecated)
+#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE(always_inline)
+#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE(noinline)
+#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE(pure)
+#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE(const)
+#  define FOUNDATION_PRINTFCALL(start, num) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
+#  define FOUNDATION_ALIGN(alignment) FOUNDATION_ATTRIBUTE2(aligned, alignment)
+#  define FOUNDATION_ALIGNOF(type) __alignof__(type)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct FOUNDATION_ALIGN(alignment) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    define STDCALL
+#    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
 #    endif
@@ -730,6 +733,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
+#    pragma GCC diagnostic ignored "-Wformat"
 #  endif
 
 // Intel
@@ -1149,7 +1153,7 @@ uint256_is_null(const uint256_t u0) {
 #  define PRIreal      "f"
 #endif
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_COMPILER_MSVC
 #  if FOUNDATION_SIZE_POINTER == 8
 #    define PRIfixPTR  "016I64X"
 #  else

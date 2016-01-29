@@ -13,9 +13,14 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+//-----------------------------------------------------------------------------
+// MurmurHash3 was written by Austin Appleby, and is placed in the public
+// domain. The author disclaims copyright to the original source code.
+
 #if FOUNDATION_COMPILER_MSVC
 #  include <stdlib.h>
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#  undef _rotl64
 #  define _rotl64(a, bits) (((a) << (uint64_t)(bits)) | ((a) >> (64ULL - (uint64_t)(bits))))
 #endif
 

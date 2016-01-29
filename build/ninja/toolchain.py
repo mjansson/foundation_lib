@@ -21,21 +21,23 @@ def supported_architectures():
 class Toolchain(object):
   def __init__( self, project, toolchain, host, target, archs, configs, includepaths, dependlibs, libpaths, variables, CC, AR, LINK, CFLAGS, ARFLAGS, LINKFLAGS ):
     self.project = project
-    self.toolchain = toolchain
     self.host = host
     self.target = target
     self.dependlibs = list( dependlibs )
     self.archs = list( archs )
     self.configs = list( configs )
-    if self.toolchain is None:
+    if toolchain is None:
       if target.is_android() or target.is_raspberrypi():
-        self.toolchain = 'gcc'
+        toolchain = 'gcc'
       elif host.is_windows():
-        self.toolchain = 'msvc'
+        toolchain = 'msvc'
       else:
-        self.toolchain = 'clang'
+        toolchain = 'clang'
+    self.toolchain = toolchain
+    #self.toolchain_obj = self.make_toolchain( toolchain )
 
     if self.archs is None or self.archs == []:
+
       if target.is_windows():
         self.archs = [ 'x86', 'x86-64' ]
       elif target.is_linux() or target.is_bsd():
@@ -249,7 +251,7 @@ class Toolchain(object):
       self.cc = 'cl'
       self.ar = 'lib'
       self.link = 'link'
-      self.cflags = [ '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-' ]
+      self.cflags = [ '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-' ]
       self.arflags = []
       self.linkflags = []
       self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
@@ -509,7 +511,7 @@ class Toolchain(object):
 
       if target.is_windows():
         self.cflags = [
-          '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/MT', '/GS-', '/Gy-', '/Qpar-', '/fp:fast=2', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-',
+          '/D', '"' + self.project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/GS-', '/Gy-', '/Qpar-', '/fp:fast=2', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-',
           '/Qrestrict', '/Qansi-alias', '/QxSSE3', '/Quse-intel-optimized-headers', '/Qstd=c99'
         ]
         self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
@@ -552,6 +554,18 @@ class Toolchain(object):
     self.buildpath = os.path.join( 'build', 'ninja', target.platform )
     self.libpath = os.path.join( 'lib', target.platform )
     self.binpath = os.path.join( 'bin', target.platform )
+
+  def make_toolchain( self, toolchain ):
+    if toolchain is None:
+      if target.is_android() or target.is_raspberrypi():
+        toolchain = 'gcc'
+      elif host.is_windows():
+        toolchain = 'msvc'
+      else:
+        toolchain = 'clang'
+
+    toolchainmodule = __import__(toolchain, globals(), locals(), [], -1)
+    return toolchainmodule.create( toolchain )
 
   def read_prefs( self, filename ):
     if not os.path.isfile( filename ):
@@ -888,7 +902,7 @@ class Toolchain(object):
         flags += ' /D "BUILD_MONOLITHIC=1"'
     return flags
 
-  def make_carchflags( self, arch ):
+  def make_carchflags( self, arch, targettype ):
     flags = ''
     if self.target.is_macosx() or self.target.is_ios():
       if arch == 'x86':
@@ -941,11 +955,19 @@ class Toolchain(object):
         flags += ' -target arm-tizen-linux-gnueabi -ccc-gcc-name arm-linux-gnueabi-g++ -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16 -mtune=cortex-a8'
         flags += ' -gcc-toolchain ' + os.path.join( self.tizen_sdkpath, 'tools', 'arm-linux-gnueabi-gcc-' + self.tizen_toolchainversion_gcc + '/' )
     elif self.target.is_windows() and self.toolchain == 'msvc':
+      if targettype == 'sharedlib':
+        flags += '/MD'
+      else:
+        flags += '/MT'
       if arch == 'x86':
         flags += ' /arch:SSE2'
       elif arch == 'x86-64':
         pass
     elif self.target.is_windows() and self.toolchain == 'intel':
+      if targettype == 'sharedlib':
+        flags += '/MD'
+      else:
+        flags += '/MT'
       if arch == 'x86':
         flags += '/Oy-'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
@@ -1555,7 +1577,7 @@ class Toolchain(object):
           libpath = os.path.join( self.libpath, config )
         else:
           libpath = os.path.join( self.libpath, config, arch )
-        localvariables = [ ( 'carchflags', self.make_carchflags( arch ) ),
+        localvariables = [ ( 'carchflags', self.make_carchflags( arch, 'lib' ) ),
                            ( 'cconfigflags', self.make_cconfigflags( config ) ) ]
         localarvariables = [ ( 'ararchflags', self.make_ararchflags( arch ) ),
                              ( 'arconfigflags', self.make_arconfigflags( arch, config ) ) ]
@@ -1631,7 +1653,7 @@ class Toolchain(object):
           libpath = os.path.join( self.libpath, config, arch )
           libarchpath = os.path.join( self.libpath, arch )
           binpath = os.path.join( self.binpath, config, arch )
-        localcarchflags = self.make_carchflags( arch )
+        localcarchflags = self.make_carchflags( arch, 'sharedlib' )
         locallinkarchflags = self.make_linkarchflags( arch )
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
         locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libarchpath, libpath ], arch, config ) )
@@ -1724,7 +1746,7 @@ class Toolchain(object):
           libpath = os.path.join( self.libpath, config, arch )
           libarchpath = os.path.join( self.libpath, arch )
           binpath = os.path.join( self.binpath, config, arch )
-        localcarchflags = self.make_carchflags( arch )
+        localcarchflags = self.make_carchflags( arch, 'bin' )
         locallinkarchflags = self.make_linkarchflags( arch )
         locallinkconfigflags = self.make_linkconfigflags( arch, config )
         locallibpaths = self.make_libpaths( self.build_libpaths( self.libpaths + [ libarchpath, libpath ], arch, config ) )

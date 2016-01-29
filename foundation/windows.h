@@ -34,16 +34,17 @@ __readgsqword(unsigned __LONG32 Offset);
 #endif
 
 #define WIN32_LEAN_AND_MEAN
+
+#if FOUNDATION_COMPILER_MSVC
 //Work around broken dbghlp.h header
-#pragma warning( disable : 4091 )
+#pragma warning(disable : 4091)
+#endif
 
 #include <windows.h>
 #include <winsock2.h>
 #include <iptypes.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
-//#include <mmsystem.h>
-//#include <mmreg.h>
 #include <share.h>
 #include <io.h>
 #include <shellapi.h>
