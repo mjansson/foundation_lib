@@ -281,7 +281,7 @@ memory_context_push(hash_t context_id) {
 	memory_context_t* context = get_thread_memory_context();
 	if (!context) {
 		context = memory_allocate(0, sizeof(memory_context_t) +
-		                             (sizeof(hash_t) * _foundation_config.memory_context_depth),
+		                          (sizeof(hash_t) * _foundation_config.memory_context_depth),
 		                          0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_memory_context(context);
 	}
@@ -363,7 +363,8 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #endif
 			return memory;
 		}
-		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
+		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
+		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
 		return 0;
 	}
 
@@ -456,7 +457,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 		raw_memory = mmap(atomic_loadptr(&baseaddr), allocate_size, PROT_READ | PROT_WRITE,
 		                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
 		if (((uintptr_t)raw_memory >= MMAP_REGION_START) &&
-		    (uintptr_t)(raw_memory + allocate_size) < MMAP_REGION_END) {
+		        (uintptr_t)(raw_memory + allocate_size) < MMAP_REGION_END) {
 			atomic_storeptr(&baseaddr, pointer_offset(raw_memory, allocate_size));
 			break;
 		}
@@ -477,7 +478,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	                  MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
 	if (raw_memory == MAP_FAILED) {
 		raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
-	                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
+		                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
 		if (raw_memory == MAP_FAILED)
 			raw_memory = 0;
 		if ((uintptr_t)raw_memory > 0xFFFFFFFFULL) {
@@ -554,8 +555,8 @@ _memory_deallocate_malloc(void* p) {
 #  if FOUNDATION_PLATFORM_WINDOWS
 		if (VirtualFree((void*)raw_ptr, 0, MEM_RELEASE) == 0)
 			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-				STRING_CONST("Failed to VirtualFree 0x%" PRIfixPTR),
-				(uintptr_t)raw_ptr);
+			          STRING_CONST("Failed to VirtualFree 0x%" PRIfixPTR),
+			          (uintptr_t)raw_ptr);
 #  else
 		uintptr_t raw_size = *((uintptr_t*)p - 2);
 		if (munmap((void*)raw_ptr, raw_size) < 0)
@@ -631,7 +632,7 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 #  else
 		memory = _memory_allocate_malloc_raw(size, align,
 		                                     (raw_p && ((uintptr_t)raw_p < 0xFFFFFFFFULL)) ?
-		                                       MEMORY_32BIT_ADDRESS : 0U);
+		                                     MEMORY_32BIT_ADDRESS : 0U);
 #  endif
 		if (p && memory && oldsize)
 			memcpy(memory, p, (size < oldsize) ? size : oldsize);
@@ -664,7 +665,7 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 #  else
 		memory = _memory_allocate_malloc_raw(size, align,
 		                                     (raw_p && ((uintptr_t)raw_p < 0xFFFFFFFFULL)) ?
-		                                       MEMORY_32BIT_ADDRESS : 0U);
+		                                     MEMORY_32BIT_ADDRESS : 0U);
 #  endif
 		if (p && memory && oldsize)
 			memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
@@ -676,7 +677,8 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);
 		log_panicf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to reallocate memory (%" PRIsize " -> %" PRIsize " @ 0x%" PRIfixPTR ", raw 0x%" PRIfixPTR "): %.*s"),
+		           STRING_CONST("Unable to reallocate memory (%" PRIsize " -> %" PRIsize " @ 0x%" PRIfixPTR ", raw 0x%"
+		                        PRIfixPTR "): %.*s"),
 		           oldsize, size, (uintptr_t)p, (uintptr_t)raw_p, STRING_FORMAT(errmsg));
 	}
 
@@ -769,7 +771,7 @@ _memory_tracker_initialize(void) {
 		atomic_add64(&_memory_stats.allocated_current, (int64_t)size);
 #endif
 	}
-	
+
 	return 0;
 }
 
@@ -784,7 +786,8 @@ _memory_tracker_finalize(void) {
 			memory_tag_t* tag = _memory_tags + it;
 			if (atomic_loadptr(&tag->address)) {
 				char tracebuf[512];
-				string_t trace = stacktrace_resolve(tracebuf, 512, tag->trace, 14, 0);
+				string_t trace = stacktrace_resolve(tracebuf, sizeof(tracebuf), tag->trace,
+				                                    sizeof(tag->trace)/sizeof(tag->trace[0]), 0);
 				void* addr = atomic_loadptr(&tag->address);
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
 				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s"),
@@ -820,7 +823,8 @@ _memory_tracker_track(void* addr, size_t size) {
 			}
 			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, 0)) {
 				_memory_tags[tag].size = size;
-				stacktrace_capture(_memory_tags[tag].trace, 14, 3);
+				stacktrace_capture(_memory_tags[tag].trace,
+				                   sizeof(_memory_tags[tag].trace)/sizeof(_memory_tags[tag].trace[0]), 3);
 				break;
 			}
 		}
