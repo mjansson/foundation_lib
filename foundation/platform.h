@@ -734,6 +734,8 @@ thread local storage to ensure maximum portability across supported platforms */
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
 #    pragma GCC diagnostic ignored "-Wformat"
+#    pragma GCC diagnostic ignored "-Wformat-extra-args"
+#    pragma GCC diagnostic ignored "-Wpedantic"
 #  endif
 
 // Intel

@@ -100,11 +100,14 @@ static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
 LONG WINAPI
 _stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
+	FOUNDATION_UNUSED(pointers);
 	log_error(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred in stack trace!"));
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
 #  endif
+
+# if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 
 static int
 _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
@@ -170,6 +173,8 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }
+
+#endif
 
 #define MAX_MOD_HANDLES   1024
 

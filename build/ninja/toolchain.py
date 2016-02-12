@@ -44,6 +44,8 @@ class Toolchain(object):
         localarch = subprocess.check_output( [ 'uname', '-m' ] ).strip()
         if localarch == 'x86_64' or localarch == 'amd64':
           self.archs = [ 'x86-64' ]
+        elif localarch == 'i686':
+          self.archs = [ 'x86' ]
         else:
           self.archs = [ localarch ]
       elif target.is_macosx():

@@ -28,7 +28,7 @@ foundation_sources = [
   'tizen.c', 'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
 
 foundation_lib = generator.lib( module = 'foundation', sources = foundation_sources + extrasources )
-foundation_so = generator.sharedlib( module = 'foundation', sources = foundation_sources )
+#foundation_so = generator.sharedlib( module = 'foundation', sources = foundation_sources )
 
 if not target.is_ios() and not target.is_android() and not target.is_tizen():
   configs = [ config for config in toolchain.configs if config not in [ 'profile', 'deploy' ] ]
