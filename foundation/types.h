@@ -831,6 +831,20 @@ struct sha256_t {
 	unsigned char buffer[64];
 };
 
+/*! SHA-512 state */
+struct sha512_t {
+	/*! Flag indicating the sha state has been initialized and ready for digestion of data */
+	bool init;
+	/*! Number of bytes currently buffered */
+	size_t current;
+	/*! Number of bits digested in total */
+	size_t length;
+	/*! Internal state during data digestion */
+	uint64_t state[8];
+	/*! Buffered data */
+	unsigned char buffer[128];
+};
+
 /*! Memory management system declaration with function pointers for all memory system
 entry points. */
 struct memory_system_t {

@@ -47,25 +47,42 @@ test_sha_finalize(void) {
 }
 
 DECLARE_TEST(sha, empty) {
-	sha256_t* sha;
-	char shastr[65];
+	sha256_t* sha256;
+	sha512_t* sha512;
+	char shastr[129];
 	string_t digest;
 
-	sha = sha256_allocate();
-	sha256_digest_finalize(sha);
-	digest = sha256_get_digest(sha, shastr, sizeof(shastr));
+	sha256 = sha256_allocate();
+	sha256_digest_finalize(sha256);
+	digest = sha256_get_digest(sha256, shastr, sizeof(shastr));
 
 	EXPECT_STRINGEQ(digest, string_const(
 	                    STRING_CONST("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")));
 
-	sha256_initialize(sha);
-	sha256_digest_finalize(sha);
-	digest = sha256_get_digest(sha, shastr, sizeof(shastr));
+	sha256_initialize(sha256);
+	sha256_digest_finalize(sha256);
+	digest = sha256_get_digest(sha256, shastr, sizeof(shastr));
 
 	EXPECT_STRINGEQ(digest, string_const(
 	                    STRING_CONST("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")));
 
-	sha256_deallocate(sha);
+	sha256_deallocate(sha256);
+
+	sha512 = sha512_allocate();
+	sha512_digest_finalize(sha512);
+	digest = sha512_get_digest(sha512, shastr, sizeof(shastr));
+
+	EXPECT_STRINGEQ(digest, string_const(
+		STRING_CONST("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")));
+
+	sha512_initialize(sha512);
+	sha512_digest_finalize(sha512);
+	digest = sha512_get_digest(sha512, shastr, sizeof(shastr));
+
+	EXPECT_STRINGEQ(digest, string_const(
+		STRING_CONST("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")));
+
+	sha512_deallocate(sha512);
 
 	return 0;
 }
