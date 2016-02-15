@@ -787,6 +787,26 @@ terminated.
 FOUNDATION_API string_t
 string_from_uint128(char* str, size_t capacity, const uint128_t val);
 
+/*! Convert an 256-bit unsigned integer to a string (represented in hex format). String buffer
+should be at least 65 bytes (64 characters + terminating zero). String will be zero
+terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Integer value
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_uint256(char* str, size_t capacity, const uint256_t val);
+
+/*! Convert an 512-bit unsigned integer to a string (represented in hex format). String buffer
+should be at least 129 bytes (128 characters + terminating zero). String will be zero
+terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Integer value
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_uint512(char* str, size_t capacity, const uint512_t val);
+
 /*! Convert a float to a string, with optional fixed notation, field width, precision and
 fill character. String will be zero terminated.
 \param str String buffer
@@ -859,6 +879,22 @@ call to one of these functions.
 \return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_uint128_static(const uint128_t val);
+
+/*! Convert an 256-bit unsigned integer into a thread-local conversion buffer. The
+buffer is shared between all string_from_*_static functions and only valid until next
+call to one of these functions.
+\param val Integer value
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_uint256_static(const uint256_t val);
+
+/*! Convert an 512-bit unsigned integer into a thread-local conversion buffer. The
+buffer is shared between all string_from_*_static functions and only valid until next
+call to one of these functions.
+\param val Integer value
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_uint512_static(const uint512_t val);
 
 /*! Convert a float into a thread-local conversion buffer, with optional fixed notation,
 field width, precision and fill character. The buffer is shared between all

@@ -824,8 +824,8 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #  ifndef __cplusplus
 typedef enum {
-  false = 0,
-  true  = 1
+	false = 0,
+	true  = 1
 } bool;
 #  endif
 
@@ -855,8 +855,8 @@ typedef enum {
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
 
 typedef enum {
-  false = 0,
-  true  = 1
+	false = 0,
+	true  = 1
 } bool;
 
 #endif
@@ -901,14 +901,19 @@ typedef float  float32_t;
 typedef double float64_t;
 
 struct uint128_t {
-  uint64_t word[2];
+	uint64_t word[2];
 };
 typedef struct uint128_t uint128_t;
 
 struct uint256_t {
-  uint64_t word[4];
+	uint64_t word[4];
 };
 typedef struct uint256_t uint256_t;
+
+struct uint512_t {
+	uint64_t word[8];
+};
+typedef struct uint512_t uint512_t;
 
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
@@ -943,17 +948,17 @@ typedef   float32_t    real;
 
 //Atomic types
 FOUNDATION_ALIGNED_STRUCT(atomic32_t, 4) {
-  int32_t nonatomic;
+	int32_t nonatomic;
 };
 typedef struct atomic32_t atomic32_t;
 
 FOUNDATION_ALIGNED_STRUCT(atomic64_t, 8) {
-  int64_t nonatomic;
+	int64_t nonatomic;
 };
 typedef struct atomic64_t atomic64_t;
 
 FOUNDATION_ALIGNED_STRUCT(atomicptr_t, FOUNDATION_SIZE_POINTER) {
-  void* nonatomic;
+	void* nonatomic;
 };
 typedef struct atomicptr_t atomicptr_t;
 
@@ -1082,48 +1087,87 @@ uint256_equal(const uint256_t u0, const uint256_t u1);
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint256_is_null(const uint256_t u0);
 
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3,
+             const uint64_t w4, const uint64_t w5, const uint64_t w6, const uint64_t w7);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_null(void);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_equal(const uint512_t u0, const uint512_t u1);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_is_null(const uint512_t u0);
+
 //Implementations
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
 uint128_make(const uint64_t low, const uint64_t high) {
-  uint128_t u = { { low, high } };
-  return u;
+	uint128_t u = { { low, high } };
+	return u;
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
 uint128_null(void) {
-  return uint128_make(0, 0);
+	return uint128_make(0, 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint128_equal(const uint128_t u0, const uint128_t u1) {
-  return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1];
+	return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1];
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint128_is_null(const uint128_t u0) {
-  return !u0.word[0] && !u0.word[1];
+	return !u0.word[0] && !u0.word[1];
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
 uint256_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3) {
-  uint256_t u = { { w0, w1, w2, w3 } };
-  return u;
+	uint256_t u = { { w0, w1, w2, w3 } };
+	return u;
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
 uint256_null(void) {
-  return uint256_make(0, 0, 0, 0);
+	return uint256_make(0, 0, 0, 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint256_equal(const uint256_t u0, const uint256_t u1) {
-  return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] &&
-         u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3];
+	return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] &&
+	       u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3];
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint256_is_null(const uint256_t u0) {
-  return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3];
+	return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3];
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3,
+             const uint64_t w4, const uint64_t w5, const uint64_t w6, const uint64_t w7) {
+	uint512_t u = { { w0, w1, w2, w3, w4, w5, w6, w7 } };
+	return u;
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_null(void) {
+	return uint512_make(0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_equal(const uint512_t u0, const uint512_t u1) {
+	return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] &&
+	       u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3] &&
+	       u0.word[4] == u1.word[4] && u0.word[5] == u1.word[5] &&
+	       u0.word[6] == u1.word[6] && u0.word[7] == u1.word[7];
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_is_null(const uint512_t u0) {
+	return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3] &&
+	       !u0.word[4] && !u0.word[5] && !u0.word[6] && !u0.word[7];
 }
 
 //Format specifiers for 64bit and pointers

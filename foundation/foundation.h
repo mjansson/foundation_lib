@@ -72,6 +72,7 @@ Wrapper for foundation library headers and main entry/exit points */
 
 #include <foundation/blowfish.h>
 #include <foundation/regex.h>
+#include <foundation/sha.h>
 
 #include <foundation/main.h>
 

@@ -510,6 +510,10 @@ typedef struct radixsort_t            radixsort_t;
 typedef struct regex_t                regex_t;
 /*! Memory ring buffer */
 typedef struct ringbuffer_t           ringbuffer_t;
+/*! SHA-256 control block */
+typedef struct sha256_t               sha256_t;
+/*! SHA-512 control block */
+typedef struct sha512_t               sha512_t;
 /*! Base stream type all stream types are based on */
 typedef struct stream_t               stream_t;
 /*! Memory buffer stream */
@@ -811,6 +815,20 @@ struct md5_t {
 	unsigned char buffer[64];
 	/*! Internal digest data buffer */
 	unsigned char digest[16];
+};
+
+/*! SHA-256 state */
+struct sha256_t {
+	/*! Flag indicating the sha state has been initialized and ready for digestion of data */
+	bool init;
+	/*! Number of bytes currently buffered */
+	size_t current;
+	/*! Number of bits digested in total */
+	size_t length;
+	/*! Internal state during data digestion */
+	uint32_t state[8];
+	/*! Buffered data */
+	unsigned char buffer[64];
 };
 
 /*! Memory management system declaration with function pointers for all memory system

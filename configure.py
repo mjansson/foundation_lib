@@ -24,7 +24,7 @@ foundation_sources = [
   'bufferstream.c', 'config.c', 'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c',
   'hash.c', 'hashmap.c', 'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'pnacl.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
-  'ringbuffer.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
+  'ringbuffer.c', 'sha.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
   'tizen.c', 'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
 
 foundation_lib = generator.lib( module = 'foundation', sources = foundation_sources + extrasources )
@@ -43,7 +43,7 @@ test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.
 test_cases = [
   'app', 'array', 'atomic', 'base64', 'beacon', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
   'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'library', 'math', 'md5', 'mutex', 'objectmap',
-  'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'stacktrace',
+  'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'sha', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'
 ]
 if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_tizen() or target.is_pnacl():

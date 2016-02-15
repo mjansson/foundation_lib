@@ -1381,7 +1381,11 @@ string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t len
 	return (string_t) {dst, curlen};
 }
 
+#if BUILD_MAX_PATHLEN > 128
 #define THREAD_BUFFER_SIZE BUILD_MAX_PATHLEN
+#else
+#define THREAD_BUFFER_SIZE 128
+#endif
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(char, convert_buffer, THREAD_BUFFER_SIZE)
 
 string_t
@@ -1455,6 +1459,46 @@ string_from_uint128(char* buffer, size_t capacity, const uint128_t val) {
 string_const_t
 string_from_uint128_static(const uint128_t val) {
 	return string_to_const(string_from_uint128(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val));
+}
+
+string_t
+string_from_uint256(char* buffer, size_t capacity, const uint256_t val) {
+	int len;
+	if (!capacity)
+		return (string_t) {buffer, 0};
+	len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64,
+	               val.word[0], val.word[1], val.word[2], val.word[3]);
+	if ((unsigned int)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t) {buffer, capacity - 1};
+	}
+	return (string_t) {buffer, (unsigned int)len};
+}
+
+string_const_t
+string_from_uint256_static(const uint256_t val) {
+	return string_to_const(string_from_uint256(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val));
+}
+
+string_t
+string_from_uint512(char* buffer, size_t capacity, const uint512_t val) {
+	int len;
+	if (!capacity)
+		return (string_t) {buffer, 0};
+	len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64
+	               "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64,
+	               val.word[0], val.word[1], val.word[2], val.word[3],
+	               val.word[4], val.word[5], val.word[6], val.word[7]);
+	if ((unsigned int)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t) {buffer, capacity - 1};
+	}
+	return (string_t) {buffer, (unsigned int)len};
+}
+
+string_const_t
+string_from_uint512_static(const uint512_t val) {
+	return string_to_const(string_from_uint512(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val));
 }
 
 string_t

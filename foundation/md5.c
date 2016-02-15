@@ -225,31 +225,26 @@ md5_digest_finalize(md5_t* digest) {
 
 uint128_t
 md5_get_digest_raw(const md5_t* digest) {
-	uint128_t val = {{0, 0}};
-	if (digest)
+	if (digest) {
+#if FOUNDATION_ARCH_ENDIAN_BIG
+		uint128_t val;
 		memcpy(&val, digest->digest, sizeof(uint128_t));
-	return val;
+#else
+		const uint64_t* raw = (const uint64_t*)digest->digest;
+		uint128_t val = {
+			byteorder_bigendian64(*raw),
+			byteorder_bigendian64(*(raw+1))
+		};
+		return val;
+#endif
+		return val;
+	}
+	return uint128_null();
 }
 
 string_t
 md5_get_digest(const md5_t* digest, char* str, size_t length) {
-	const char trn[17] = "0123456789ABCDEF";
-	size_t i, j, num;
-
-	if (!digest)
-		return (string_t) { 0, 0 };
-
-	num = length / 2;
-	if (num > 16)
-		num = 16;
-
-	for (i = 0, j = 0; i < num; ++i, j += 2) {
-		str[j]   = trn[ digest->digest[i] / 16 ];
-		str[j + 1] = trn[ digest->digest[i] % 16 ];
-	}
-	if (length > 32)
-		str[32] = 0;
-
-	return (string_t) {str, num * 2};
+	uint128_t raw = md5_get_digest_raw(digest);
+	return string_from_uint128(str, length, raw);
 }
 
