@@ -65,8 +65,8 @@ DECLARE_TEST(environment, builtin) {
 #endif
 	EXPECT_NE(environment_initial_working_directory().str, 0);
 	EXPECT_NE(environment_initial_working_directory().length, 0);
-	EXPECT_CONSTSTRINGEQ(environment_initial_working_directory(),
-	                     environment_current_working_directory());
+	EXPECT_NE(environment_current_working_directory().str, 0);
+	EXPECT_NE(environment_current_working_directory().length, 0);
 
 	EXPECT_NE(environment_home_directory().str, 0);
 	EXPECT_NE(environment_home_directory().length, 0);

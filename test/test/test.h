@@ -183,6 +183,9 @@ test_error_handler(error_level_t level, error_t err);
 TEST_API bool FOUNDATION_NOINLINE
 test_should_terminate(void);
 
+TEST_API void FOUNDATION_NOINLINE
+test_set_suitable_working_directory(void);
+
 typedef struct _test_suite {
   application_t (*application)(void);
   memory_system_t (*memory_system)(void);

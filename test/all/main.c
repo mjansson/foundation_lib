@@ -174,6 +174,8 @@ main_initialize(void) {
 				thread_sleep(100);
 		}
 	}
+
+	test_set_suitable_working_directory();
 #endif
 	return ret;
 }

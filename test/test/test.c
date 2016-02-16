@@ -185,6 +185,30 @@ test_run_all(void) {
 	return 0;
 }
 
+void
+test_set_suitable_working_directory(void) {
+	char buffer[BUILD_MAX_PATHLEN];
+	bool found = false;
+
+	string_const_t last_dir;
+	string_t config_dir;
+	string_const_t working_dir = environment_current_working_directory();
+	do {
+		last_dir = working_dir;
+		config_dir = path_concat(buffer, sizeof(buffer), STRING_ARGS(working_dir), STRING_CONST("config"));
+		if (fs_is_directory(STRING_ARGS(config_dir))) {
+			found = true;
+			break;
+		}
+
+		working_dir = path_directory_name(STRING_ARGS(working_dir));
+	}
+	while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
+
+	if (found)
+		environment_set_current_working_directory(STRING_ARGS(working_dir));
+}
+
 #if !BUILD_MONOLITHIC
 
 int
@@ -201,6 +225,8 @@ int
 main_run(void* main_arg) {
 	FOUNDATION_UNUSED(main_arg);
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
+
+	test_set_suitable_working_directory();
 
 	return test_run_all();
 }
