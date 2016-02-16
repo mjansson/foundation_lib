@@ -84,25 +84,58 @@ static void compress64(const uint64_t* wbox,
 }
 
 static uint32_t sha_load32(const unsigned char* buffer) {
+#if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
+#  if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return ((uint32_t)buffer[0] << 24) | ((uint32_t)buffer[1] << 16) |
 	       ((uint32_t)buffer[2] << 8) | ((uint32_t)buffer[3] << 0);
+#  else
+	return ((uint32_t)buffer[0] << 0) | ((uint32_t)buffer[1] << 8) |
+	       ((uint32_t)buffer[2] << 16) | ((uint32_t)buffer[3] << 24);
+#  endif
+#else
+	return byteorder_bigendian32(*(uint32_t*)buffer);
+#endif
 }
 
 static uint64_t sha_load64(const unsigned char* buffer) {
+#if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
 	uint64_t res = 0;
 	for (uint64_t i = 0; i != 8; ++i)
+#  if FOUNDATION_ARCH_ENDIAN_LITTLE
 		res |= (uint64_t)buffer[i] << ((7ULL - i) * 8ULL);
+#  else
+		res |= (uint64_t)buffer[i] << (i * 8ULL);
+#endif
 	return res;
+#else
+	return byteorder_bigendian64(*(uint64_t*)buffer);
+#endif	
 }
 
 static void sha_store32(unsigned char* buffer, uint32_t val) {
+#if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
 	for (uint32_t i = 0; i < 4; ++i)
+#  if FOUNDATION_ARCH_ENDIAN_LITTLE
 		buffer[i] = (val >> ((3UL-i) * 8UL)) & 0xFF;
+#  else
+		buffer[i] = (val >> (i * 8UL)) & 0xFF;
+#  endif
+#else
+	*(uint32_t*)buffer = byteorder_bigendian32(val);
+#endif
 }
 
 static void sha_store64(unsigned char* buffer, uint64_t val) {
+#if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
 	for (uint64_t i = 0; i < 8; ++i)
+#  if FOUNDATION_ARCH_ENDIAN_LITTLE
 		buffer[i] = (val >> ((7ULL-i) * 8ULL)) & 0xFF;
+#  else
+		buffer[i] = (val >> (i * 8ULL)) & 0xFF;
+#  endif
+#else
+	*(uint64_t*)buffer = byteorder_bigendian64(val);
+#endif
 }
 
 static void sha256_compress(sha256_t* digest, const unsigned char* buffer) {
@@ -119,7 +152,6 @@ static void sha256_compress(sha256_t* digest, const unsigned char* buffer) {
 	for (i = 16; i < 64; ++i)
 		wbox[i] = gamma1_32(wbox[i - 2]) + wbox[i - 7] + gamma0_32(wbox[i - 15]) + wbox[i - 16];
 
-	//Unrolled
 	for (i = 0; i < 64;) {
 		compress32(wbox, sbox[0], sbox[1], sbox[2], sbox + 3,
 		           sbox[4], sbox[5], sbox[6], sbox + 7, i++);
@@ -164,7 +196,6 @@ static void sha512_compress(sha512_t* digest, const unsigned char* buffer) {
 	for (i = 16; i < 80; ++i)
 		wbox[i] = gamma1_64(wbox[i - 2]) + wbox[i - 7] + gamma0_64(wbox[i - 15]) + wbox[i - 16];
 
-	//Unrolled
 	for (i = 0; i < 80;) {
 		compress64(wbox, sbox[0], sbox[1], sbox[2], sbox + 3,
 		           sbox[4], sbox[5], sbox[6], sbox + 7, i++);
@@ -278,8 +309,8 @@ sha256_digest_finalize(sha256_t* digest) {
 		digest->current = 0;
 	}
 
-	while (digest->current < 56)
-		digest->buffer[digest->current++] = 0;
+	if (digest->current < 56)
+		memset(digest->buffer + digest->current, 0, 56 - digest->current);
 
 	sha_store64(digest->buffer + 56, digest->length);
 	sha256_compress(digest, digest->buffer);
@@ -323,13 +354,13 @@ sha512_initialize(sha512_t* digest) {
 	digest->current = 0;
 	digest->length = 0;
 	digest->state[0] = 0x6a09e667f3bcc908ULL;
-    digest->state[1] = 0xbb67ae8584caa73bULL;
-    digest->state[2] = 0x3c6ef372fe94f82bULL;
-    digest->state[3] = 0xa54ff53a5f1d36f1ULL;
-    digest->state[4] = 0x510e527fade682d1ULL;
-    digest->state[5] = 0x9b05688c2b3e6c1fULL;
-    digest->state[6] = 0x1f83d9abfb41bd6bULL;
-    digest->state[7] = 0x5be0cd19137e2179ULL;
+	digest->state[1] = 0xbb67ae8584caa73bULL;
+	digest->state[2] = 0x3c6ef372fe94f82bULL;
+	digest->state[3] = 0xa54ff53a5f1d36f1ULL;
+	digest->state[4] = 0x510e527fade682d1ULL;
+	digest->state[5] = 0x9b05688c2b3e6c1fULL;
+	digest->state[6] = 0x1f83d9abfb41bd6bULL;
+	digest->state[7] = 0x5be0cd19137e2179ULL;
 }
 
 void
@@ -387,8 +418,8 @@ sha512_digest_finalize(sha512_t* digest) {
 		digest->current = 0;
 	}
 
-	while (digest->current < 120)
-		digest->buffer[digest->current++] = 0;
+	if (digest->current < 120)
+		memset(digest->buffer + digest->current, 0, 120 - digest->current);
 
 	sha_store64(digest->buffer + 120, digest->length);
 	sha512_compress(digest, digest->buffer);
