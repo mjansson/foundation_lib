@@ -237,6 +237,12 @@
 		CD8391AA1C045138003C9154 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
 		CD8391AB1C045138003C9154 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
 		CD8391AF1C048959003C9154 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD8391AE1C048959003C9154 /* libfoundation.a */; };
+		CD9DACD01C73D9260035E1D9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9DACCF1C73D9260035E1D9 /* main.c */; };
+		CD9DACD51C73DA260035E1D9 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455516951936208A00CF089B /* libtest.a */; };
+		CD9DACD61C73DA260035E1D9 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172F19363AF800CF089B /* Carbon.framework */; };
+		CD9DACD71C73DA260035E1D9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
+		CD9DACD81C73DA260035E1D9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
+		CD9DACDA1C73DA270035E1D9 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD9DACD91C73DA270035E1D9 /* libfoundation.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -758,6 +764,20 @@
 			remoteGlobalIDString = CD83919A1C044FA8003C9154;
 			remoteInfo = "test-beacon";
 		};
+		CD9DACD11C73D9E30035E1D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4555167719360C7500CF089B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CD9DACC41C73D8DC0035E1D9;
+			remoteInfo = "test-sha";
+		};
+		CD9DACD31C73DA160035E1D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4555167719360C7500CF089B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 455516941936208A00CF089B;
+			remoteInfo = test;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1103,6 +1123,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CD9DACC31C73D8DC0035E1D9 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -1190,6 +1219,9 @@
 		CD83919B1C044FA8003C9154 /* test-beacon */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-beacon"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD8391A41C0450FC003C9154 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../../test/beacon/main.c; sourceTree = "<group>"; };
 		CD8391AE1C048959003C9154 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
+		CD9DACC51C73D8DC0035E1D9 /* test-sha */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-sha"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD9DACCF1C73D9260035E1D9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/sha/main.c; sourceTree = "<group>"; };
+		CD9DACD91C73DA270035E1D9 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1656,6 +1688,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CD9DACC21C73D8DC0035E1D9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD9DACD51C73DA260035E1D9 /* libtest.a in Frameworks */,
+				CD9DACDA1C73DA270035E1D9 /* libfoundation.a in Frameworks */,
+				CD9DACD61C73DA260035E1D9 /* Carbon.framework in Frameworks */,
+				CD9DACD71C73DA260035E1D9 /* Cocoa.framework in Frameworks */,
+				CD9DACD81C73DA260035E1D9 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -1678,6 +1722,7 @@
 		4555167619360C7500CF089B = {
 			isa = PBXGroup;
 			children = (
+				CD9DACD91C73DA270035E1D9 /* libfoundation.a */,
 				455516E11936388B00CF089B /* all */,
 				455516E31936388B00CF089B /* app */,
 				455516E51936388B00CF089B /* array */,
@@ -1710,6 +1755,7 @@
 				451871A5194EC6CF000E42C9 /* regex */,
 				455517151936388B00CF089B /* ringbuffer */,
 				455517171936388B00CF089B /* semaphore */,
+				CD9DACCE1C73D9010035E1D9 /* sha */,
 				455517191936388B00CF089B /* stacktrace */,
 				457586171AC75A8F009E9325 /* stream */,
 				4555171B1936388B00CF089B /* string */,
@@ -1767,6 +1813,7 @@
 				45FD84BE1ACAB575004357EA /* test-process */,
 				450D74101B21D9B8007796DD /* test-bitbiffer */,
 				CD83919B1C044FA8003C9154 /* test-beacon */,
+				CD9DACC51C73D8DC0035E1D9 /* test-sha */,
 			);
 			name = lib;
 			sourceTree = "<group>";
@@ -2087,6 +2134,14 @@
 			path = "test-beacon";
 			sourceTree = "<group>";
 		};
+		CD9DACCE1C73D9010035E1D9 /* sha */ = {
+			isa = PBXGroup;
+			children = (
+				CD9DACCF1C73D9260035E1D9 /* main.c */,
+			);
+			name = sha;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -2165,6 +2220,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CD9DACD21C73D9E30035E1D9 /* PBXTargetDependency */,
 				CD8391AD1C048939003C9154 /* PBXTargetDependency */,
 				450D74161B21DA19007796DD /* PBXTargetDependency */,
 				455519761936647900CF089B /* PBXTargetDependency */,
@@ -2838,6 +2894,24 @@
 			productReference = CD83919B1C044FA8003C9154 /* test-beacon */;
 			productType = "com.apple.product-type.tool";
 		};
+		CD9DACC41C73D8DC0035E1D9 /* test-sha */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD9DACCD1C73D8DC0035E1D9 /* Build configuration list for PBXNativeTarget "test-sha" */;
+			buildPhases = (
+				CD9DACC11C73D8DC0035E1D9 /* Sources */,
+				CD9DACC21C73D8DC0035E1D9 /* Frameworks */,
+				CD9DACC31C73D8DC0035E1D9 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD9DACD41C73DA160035E1D9 /* PBXTargetDependency */,
+			);
+			name = "test-sha";
+			productName = "test-sha";
+			productReference = CD9DACC51C73D8DC0035E1D9 /* test-sha */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -2847,6 +2921,9 @@
 				LastUpgradeCheck = 0710;
 				TargetAttributes = {
 					CD83919A1C044FA8003C9154 = {
+						CreatedOnToolsVersion = 7.1;
+					};
+					CD9DACC41C73D8DC0035E1D9 = {
 						CreatedOnToolsVersion = 7.1;
 					};
 				};
@@ -2902,6 +2979,7 @@
 				45FD848E1AC953EC004357EA /* test-time */,
 				455519621936645600CF089B /* test-uuid */,
 				CD83919A1C044FA8003C9154 /* test-beacon */,
+				CD9DACC41C73D8DC0035E1D9 /* test-sha */,
 			);
 		};
 /* End PBXProject section */
@@ -3216,6 +3294,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD8391A51C0450FC003C9154 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CD9DACC11C73D8DC0035E1D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD9DACD01C73D9260035E1D9 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3591,6 +3677,16 @@
 			isa = PBXTargetDependency;
 			target = CD83919A1C044FA8003C9154 /* test-beacon */;
 			targetProxy = CD8391AC1C048939003C9154 /* PBXContainerItemProxy */;
+		};
+		CD9DACD21C73D9E30035E1D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CD9DACC41C73D8DC0035E1D9 /* test-sha */;
+			targetProxy = CD9DACD11C73D9E30035E1D9 /* PBXContainerItemProxy */;
+		};
+		CD9DACD41C73DA160035E1D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 455516941936208A00CF089B /* test */;
+			targetProxy = CD9DACD31C73DA160035E1D9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -5050,6 +5146,38 @@
 			};
 			name = Deploy;
 		};
+		CD9DACC91C73D8DC0035E1D9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CD9DACCA1C73D8DC0035E1D9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CD9DACCB1C73D8DC0035E1D9 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CD9DACCC1C73D8DC0035E1D9 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -5492,6 +5620,16 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
+		};
+		CD9DACCD1C73D8DC0035E1D9 /* Build configuration list for PBXNativeTarget "test-sha" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD9DACC91C73D8DC0035E1D9 /* Debug */,
+				CD9DACCA1C73D8DC0035E1D9 /* Release */,
+				CD9DACCB1C73D8DC0035E1D9 /* Profile */,
+				CD9DACCC1C73D8DC0035E1D9 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

@@ -554,27 +554,27 @@ thread local storage to ensure maximum portability across supported platforms */
 
 //Export/import attribute
 #if BUILD_DYNAMIC_LINK && FOUNDATION_PLATFORM_WINDOWS
-#  define FOUNDATION_EXPORT __declspec(dllexport)
-#  define FOUNDATION_IMPORT __declspec(dllimport)
+#  define FOUNDATION_EXPORT_LINK __declspec(dllexport)
+#  define FOUNDATION_IMPORT_LINK __declspec(dllimport)
 #else
-#  define FOUNDATION_EXPORT
-#  define FOUNDATION_IMPORT
+#  define FOUNDATION_EXPORT_LINK
+#  define FOUNDATION_IMPORT_LINK
 #endif
 #if FOUNDATION_COMPILE
 #  ifdef __cplusplus
-#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT
-#    define FOUNDATION_API extern "C" FOUNDATION_EXPORT
+#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern "C" FOUNDATION_EXPORT_LINK
 #  else
-#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT
-#    define FOUNDATION_API extern FOUNDATION_EXPORT
+#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern FOUNDATION_EXPORT_LINK
 #  endif
 #else
 #  ifdef __cplusplus
-#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT
-#    define FOUNDATION_API extern "C" FOUNDATION_IMPORT
+#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern "C" FOUNDATION_IMPORT_LINK
 #  else
-#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT
-#    define FOUNDATION_API extern FOUNDATION_IMPORT
+#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern FOUNDATION_IMPORT_LINK
 #  endif
 #endif
 

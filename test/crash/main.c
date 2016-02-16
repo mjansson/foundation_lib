@@ -99,7 +99,7 @@ static int
 instant_crash(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	crash_debug_break();
-#if !FOUNDATION_COMPILER_CLANG
+#if !FOUNDATION_COMPILER_CLANG || FOUNDATION_PLATFORM_APPLE
 	return 1;
 #endif
 }

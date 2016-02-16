@@ -109,6 +109,13 @@
 		CD66042318F7E3CA001BDED3 /* fs.m in Sources */ = {isa = PBXBuildFile; fileRef = CD66041E18F7E3CA001BDED3 /* fs.m */; };
 		CD8391B51C0489DE003C9154 /* beacon.c in Sources */ = {isa = PBXBuildFile; fileRef = CD8391B31C0489DE003C9154 /* beacon.c */; };
 		CD8391B61C0489DE003C9154 /* beacon.h in Headers */ = {isa = PBXBuildFile; fileRef = CD8391B41C0489DE003C9154 /* beacon.h */; };
+		CD9DACE21C73DA7E0035E1D9 /* pnacl.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9DACDB1C73DA7E0035E1D9 /* pnacl.c */; };
+		CD9DACE31C73DA7E0035E1D9 /* pnacl.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9DACDC1C73DA7E0035E1D9 /* pnacl.h */; };
+		CD9DACE41C73DA7E0035E1D9 /* sha.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9DACDD1C73DA7E0035E1D9 /* sha.c */; };
+		CD9DACE51C73DA7E0035E1D9 /* sha.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9DACDE1C73DA7E0035E1D9 /* sha.h */; };
+		CD9DACE61C73DA7E0035E1D9 /* tizen.c in Sources */ = {isa = PBXBuildFile; fileRef = CD9DACDF1C73DA7E0035E1D9 /* tizen.c */; };
+		CD9DACE71C73DA7E0035E1D9 /* tizen.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9DACE01C73DA7E0035E1D9 /* tizen.h */; };
+		CD9DACE81C73DA7E0035E1D9 /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = CD9DACE11C73DA7E0035E1D9 /* version.h */; };
 		CDF5F01F1905060D005EE9AF /* atomic.c in Sources */ = {isa = PBXBuildFile; fileRef = CDF5F01E1905060D005EE9AF /* atomic.c */; };
 /* End PBXBuildFile section */
 
@@ -219,6 +226,13 @@
 		CD8D680117ED7848009F11EB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		CD8D681817ED7992009F11EB /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		CD8D681B17ED7992009F11EB /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		CD9DACDB1C73DA7E0035E1D9 /* pnacl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pnacl.c; path = ../../../foundation/pnacl.c; sourceTree = "<group>"; };
+		CD9DACDC1C73DA7E0035E1D9 /* pnacl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pnacl.h; path = ../../../foundation/pnacl.h; sourceTree = "<group>"; };
+		CD9DACDD1C73DA7E0035E1D9 /* sha.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha.c; path = ../../../foundation/sha.c; sourceTree = "<group>"; };
+		CD9DACDE1C73DA7E0035E1D9 /* sha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha.h; path = ../../../foundation/sha.h; sourceTree = "<group>"; };
+		CD9DACDF1C73DA7E0035E1D9 /* tizen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tizen.c; path = ../../../foundation/tizen.c; sourceTree = "<group>"; };
+		CD9DACE01C73DA7E0035E1D9 /* tizen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tizen.h; path = ../../../foundation/tizen.h; sourceTree = "<group>"; };
+		CD9DACE11C73DA7E0035E1D9 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = ../../../foundation/version.h; sourceTree = "<group>"; };
 		CDF5F01E1905060D005EE9AF /* atomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = atomic.c; path = ../../../foundation/atomic.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -324,6 +338,8 @@
 				CD5ED12A17D6708400C94373 /* pipe.c */,
 				CD5ED12B17D6708400C94373 /* pipe.h */,
 				CD5ED12C17D6708400C94373 /* platform.h */,
+				CD9DACDB1C73DA7E0035E1D9 /* pnacl.c */,
+				CD9DACDC1C73DA7E0035E1D9 /* pnacl.h */,
 				CD5ED12D17D6708400C94373 /* posix.h */,
 				CD5ED12E17D6708400C94373 /* process.c */,
 				CD5ED12F17D6708400C94373 /* process.h */,
@@ -339,6 +355,8 @@
 				CD5ED13717D6708400C94373 /* ringbuffer.h */,
 				CD5ED13817D6708400C94373 /* semaphore.c */,
 				CD5ED13917D6708400C94373 /* semaphore.h */,
+				CD9DACDD1C73DA7E0035E1D9 /* sha.c */,
+				CD9DACDE1C73DA7E0035E1D9 /* sha.h */,
 				CD5ED13A17D6708400C94373 /* stacktrace.c */,
 				CD5ED13B17D6708400C94373 /* stacktrace.h */,
 				CD5ED13C17D6708400C94373 /* stream.c */,
@@ -352,10 +370,13 @@
 				CD5ED14417D6708400C94373 /* thread.h */,
 				CD5ED14517D6708400C94373 /* time.c */,
 				CD5ED14617D6708400C94373 /* time.h */,
+				CD9DACDF1C73DA7E0035E1D9 /* tizen.c */,
+				CD9DACE01C73DA7E0035E1D9 /* tizen.h */,
 				CD5ED14717D6708400C94373 /* types.h */,
 				CD5ED14817D6708400C94373 /* uuid.c */,
 				CD5ED14917D6708400C94373 /* uuid.h */,
 				451244CC1AADB527000A744A /* version.c */,
+				CD9DACE11C73DA7E0035E1D9 /* version.h */,
 				CD5ED14A17D6708400C94373 /* windows.h */,
 			);
 			name = foundation;
@@ -381,6 +402,7 @@
 				CD5ED14C17D6708400C94373 /* android.h in Headers */,
 				CD5ED14D17D6708400C94373 /* apple.h in Headers */,
 				CD5ED14F17D6708400C94373 /* array.h in Headers */,
+				CD9DACE31C73DA7E0035E1D9 /* pnacl.h in Headers */,
 				CD5ED15117D6708400C94373 /* assert.h in Headers */,
 				CD5ED15317D6708400C94373 /* assetstream.h in Headers */,
 				CD5ED15417D6708400C94373 /* atomic.h in Headers */,
@@ -395,10 +417,12 @@
 				CD5ED16017D6708400C94373 /* crash.h in Headers */,
 				CD5ED16317D6708400C94373 /* environment.h in Headers */,
 				CD5ED16517D6708400C94373 /* error.h in Headers */,
+				CD9DACE51C73DA7E0035E1D9 /* sha.h in Headers */,
 				CD5ED16717D6708400C94373 /* event.h in Headers */,
 				CD5ED16917D6708400C94373 /* foundation.h in Headers */,
 				CD5ED16B17D6708400C94373 /* fs.h in Headers */,
 				CD5ED16D17D6708400C94373 /* hash.h in Headers */,
+				CD9DACE81C73DA7E0035E1D9 /* version.h in Headers */,
 				CD5ED16F17D6708400C94373 /* hashmap.h in Headers */,
 				CD5ED17017D6708400C94373 /* hashstrings.h in Headers */,
 				CD5ED17217D6708400C94373 /* hashtable.h in Headers */,
@@ -427,6 +451,7 @@
 				CD5ED19917D6708400C94373 /* stream.h in Headers */,
 				CD5ED19B17D6708400C94373 /* string.h in Headers */,
 				CD5ED19E17D6708400C94373 /* system.h in Headers */,
+				CD9DACE71C73DA7E0035E1D9 /* tizen.h in Headers */,
 				456F75A01949DF6D00D1D43B /* regex.h in Headers */,
 				CD5ED1A017D6708400C94373 /* thread.h in Headers */,
 				CD5ED1A217D6708400C94373 /* time.h in Headers */,
@@ -507,9 +532,11 @@
 			files = (
 				CD66042318F7E3CA001BDED3 /* fs.m in Sources */,
 				CD5ED14B17D6708400C94373 /* android.c in Sources */,
+				CD9DACE21C73DA7E0035E1D9 /* pnacl.c in Sources */,
 				CD5ED14E17D6708400C94373 /* array.c in Sources */,
 				CD5ED15017D6708400C94373 /* assert.c in Sources */,
 				CD5ED15217D6708400C94373 /* assetstream.c in Sources */,
+				CD9DACE61C73DA7E0035E1D9 /* tizen.c in Sources */,
 				CD5ED15517D6708400C94373 /* base64.c in Sources */,
 				CD5ED15817D6708400C94373 /* blowfish.c in Sources */,
 				CD5ED15A17D6708400C94373 /* bufferstream.c in Sources */,
@@ -542,6 +569,7 @@
 				CD5ED18E17D6708400C94373 /* radixsort.c in Sources */,
 				CD5ED19017D6708400C94373 /* random.c in Sources */,
 				CD5ED19217D6708400C94373 /* ringbuffer.c in Sources */,
+				CD9DACE41C73DA7E0035E1D9 /* sha.c in Sources */,
 				CD5ED19417D6708400C94373 /* semaphore.c in Sources */,
 				CD5ED19617D6708400C94373 /* stacktrace.c in Sources */,
 				CD5ED19817D6708400C94373 /* stream.c in Sources */,
