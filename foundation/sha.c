@@ -112,7 +112,7 @@ static uint64_t sha_load64(const unsigned char* buffer) {
 #endif	
 }
 
-static void sha_store32(unsigned char* buffer, uint32_t val) {
+/*static void sha_store32(unsigned char* buffer, uint32_t val) {
 #if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
 	for (uint32_t i = 0; i < 4; ++i)
 #  if FOUNDATION_ARCH_ENDIAN_LITTLE
@@ -123,7 +123,7 @@ static void sha_store32(unsigned char* buffer, uint32_t val) {
 #else
 	*(uint32_t*)buffer = byteorder_bigendian32(val);
 #endif
-}
+}*/
 
 static void sha_store64(unsigned char* buffer, uint64_t val) {
 #if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
@@ -320,12 +320,12 @@ sha256_digest_finalize(sha256_t* digest) {
 
 uint256_t
 sha256_get_digest_raw(const sha256_t* digest) {
-	uint256_t val = {
+	uint256_t val = { {
 		((uint64_t)digest->state[0] << 32ULL) | (uint64_t)digest->state[1],
 		((uint64_t)digest->state[2] << 32ULL) | (uint64_t)digest->state[3],
 		((uint64_t)digest->state[4] << 32ULL) | (uint64_t)digest->state[5],
 		((uint64_t)digest->state[6] << 32ULL) | (uint64_t)digest->state[7]
-	};
+	} };
 	return val;
 }
 
@@ -429,7 +429,7 @@ sha512_digest_finalize(sha512_t* digest) {
 
 uint512_t
 sha512_get_digest_raw(const sha512_t* digest) {
-	uint512_t val = {
+	uint512_t val = { {
 		digest->state[0],
 		digest->state[1],
 		digest->state[2],
@@ -438,7 +438,7 @@ sha512_get_digest_raw(const sha512_t* digest) {
 		digest->state[5],
 		digest->state[6],
 		digest->state[7]
-	};
+	} };
 	return val;
 }
 
