@@ -42,7 +42,7 @@ Adapted and extended from stb_arr at http://nothings.org/stb.h */
 \param array Array pointer */
 #define array_deallocate(array) /*lint -e{522}*/ ( \
   _array_verify(array) ? \
-    memory_deallocate(_array_raw(array)), ((array) = 0) : \
+    (memory_deallocate(_array_raw(array)), ((array) = 0)) : \
     0)
 
 /*! Get capacity of array in number of elements. Capacity indicates the size of the allocated
@@ -112,7 +112,7 @@ capacity.
 \param element New element */
 #define array_push(array, element) /*lint -e522*/ ( \
   _array_maybegrow(array, 1) ? \
-    (array)[_array_rawsize(array)++] = (element), (array) : \
+    (((array)[_array_rawsize(array)++] = (element)), (array)) : \
     (array))
 
 /*! Add element at end of array copying data with memcpy
@@ -120,7 +120,7 @@ capacity.
 \param elementptr Pointer to new element */
 #define array_push_memcpy(array, elementptr) /*lint -e{506,522}*/ ( \
   _array_maybegrow(array, 1) ? \
-    memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array) : \
+    (memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array)) : \
     (array))
 
 /*! Add element at given position in array with assignment. Position is NOT range checked.
@@ -130,9 +130,9 @@ Existing elements are moved using memmove.
 \param element New element */
 #define array_insert(array, pos, element) ( \
   _array_maybegrow(array, 1) ? \
-    memmove((array) + (pos) + 1, (array) + (pos), \
+    (memmove((array) + (pos) + 1, (array) + (pos), \
       _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
-    (array)[(pos)] = (element), (array) : \
+    (array)[(pos)] = (element), (array)) : \
     (array))
 
 /*! Add element at given position in array, copy data using memcpy. Position is NOT range
@@ -142,9 +142,9 @@ checked. Existing elements are moved using memmove.
 \param elementptr Pointer to new element */
 #define array_insert_memcpy(array, pos, elementptr) ( \
   _array_maybegrow(array, 1) ? \
-    memmove((array) + (pos) + 1, (array) + (pos), \
+    (memmove((array) + (pos) + 1, (array) + (pos), \
       _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
-    memcpy((array) + (pos), (elementptr), sizeof(*(array))), (array) : \
+    memcpy((array) + (pos), (elementptr), sizeof(*(array))), (array)) : \
     (array))
 
 /*! Add element at given position in array with assignment. Position IS range checked and
@@ -234,9 +234,9 @@ Position is NOT ranged checked.
 \param pos   Position */
 #define array_erase_ordered(array, pos) ( \
   _array_verify(array) ? \
-    memmove((array) + (pos), (array) + (pos) + 1, \
+    (memmove((array) + (pos), (array) + (pos) + 1, \
         (_array_rawsize(array) - (pos) - 1U) * _array_elementsize(array)), \
-      --_array_rawsize( array ) : \
+      --_array_rawsize( array )) : \
     0)
 
 /*! Erase element at given position and preserve order by memmove remaining elements in array.
