@@ -244,12 +244,14 @@ atomic_store64(atomic64_t* dst, int64_t val) {
 #if FOUNDATION_ARCH_X86
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
 	__asm {
+		push ebx;
 		mov esi, dst;
 		mov ebx, dword ptr val;
 		mov ecx, dword ptr val[4];
 		retry:
 		cmpxchg8b [esi];
 		jne retry;
+		pop ebx;
 	}
 #  else
 	int64_t expected = dst->nonatomic;
