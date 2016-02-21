@@ -649,7 +649,7 @@ DECLARE_TEST(path, absolute) {
 	cwd_test_path = path_allocate_concat(STRING_ARGS(cwd), STRING_CONST("test/path"));
 	cwd_test_path_slash = path_allocate_concat(STRING_ARGS(cwd), STRING_CONST("test/path/"));
 
-	if (string_equal(STRING_ARGS(cwd_sub_slash), STRING_CONST("//")))
+	if (string_ends_with(STRING_ARGS(cwd_sub_slash), STRING_CONST("//")))
 		--cwd_sub_slash.length;
 
 	cpath = string_const(STRING_CONST("")); path1 = path_allocate_absolute(STRING_ARGS(cpath));
