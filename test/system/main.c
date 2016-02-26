@@ -176,13 +176,13 @@ DECLARE_TEST(system, builtin) {
 	return 0;
 }
 
-FOUNDATION_DECLARE_THREAD_LOCAL(int, tls_var, 0);
+FOUNDATION_DECLARE_THREAD_LOCAL(int, tls_var, 0)
 
 static void*
 tls_thread(void* arg) {
 	int counter = 0;
 	int i;
-
+	FOUNDATION_UNUSED(arg);
 	for (i = 0; i < 1024; ++i) {
 		EXPECT_EQ(get_thread_tls_var(), counter);
 		thread_sleep(5);

@@ -230,12 +230,12 @@ md5_get_digest_raw(const md5_t* digest) {
 		uint128_t val;
 		memcpy(&val, digest->digest, sizeof(uint128_t));
 #else
-		const uint64_t* raw = (const uint64_t*)digest->digest;
+		uint64_t raw[2];
+		memcpy(raw, digest->digest, sizeof(uint64_t) * 2);
 		uint128_t val = { {
-			byteorder_bigendian64(*raw),
-			byteorder_bigendian64(*(raw+1))
+			byteorder_bigendian64(raw[0]),
+			byteorder_bigendian64(raw[1])
 		} };
-		return val;
 #endif
 		return val;
 	}

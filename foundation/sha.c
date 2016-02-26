@@ -12,6 +12,11 @@
 
 #include <foundation/foundation.h>
 
+#if FOUNDATION_COMPILER_CLANG
+//We have separate unaligned loads on platforms which requires it
+#  pragma clang diagnostic ignored "-Wcast-align"
+#endif
+
 static const uint32_t K256[64] = {
 	0x428a2f98UL, 0x71374491UL, 0xb5c0fbcfUL, 0xe9b5dba5UL, 0x3956c25bUL,
 	0x59f111f1UL, 0x923f82a4UL, 0xab1c5ed5UL, 0xd807aa98UL, 0x12835b01UL,
@@ -93,7 +98,7 @@ static uint32_t sha_load32(const unsigned char* buffer) {
 	       ((uint32_t)buffer[2] << 16) | ((uint32_t)buffer[3] << 24);
 #  endif
 #else
-	return byteorder_bigendian32(*(uint32_t*)buffer);
+	return byteorder_bigendian32(*(const uint32_t*)buffer);
 #endif
 }
 
@@ -108,7 +113,7 @@ static uint64_t sha_load64(const unsigned char* buffer) {
 #endif
 	return res;
 #else
-	return byteorder_bigendian64(*(uint64_t*)buffer);
+	return byteorder_bigendian64(*(const uint64_t*)buffer);
 #endif	
 }
 
@@ -141,7 +146,7 @@ static void sha_store64(unsigned char* buffer, uint64_t val) {
 static void sha256_compress(sha256_t* digest, const unsigned char* buffer) {
 	uint32_t sbox[8];
 	uint32_t wbox[64];
-	int i;
+	uint32_t i;
 
 	for (i = 0; i < 8; i++)
 		sbox[i] = digest->state[i];
@@ -185,7 +190,7 @@ static void sha256_compress(sha256_t* digest, const unsigned char* buffer) {
 static void sha512_compress(sha512_t* digest, const unsigned char* buffer) {
 	uint64_t sbox[8];
 	uint64_t wbox[80];
-	int i;
+	uint32_t i;
 
 	for (i = 0; i < 8; i++)
 		sbox[i] = digest->state[i];
