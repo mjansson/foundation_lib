@@ -1,13 +1,18 @@
 
 1.4.2
 
-Initial support for building as a shared object (dynamic library).
+Support for building as a shared object (dynamic library).
+
+Support for Intel, clang and gcc compilers on Windows.
 
 Added implementation SHA-2 256 and 512 bit algorithms, including uint256_t and uint512_t
 representation data types with string conversions.
 
 Changed byte order representation of raw digest from md5_get_digest_raw to generate
 correct string representation using string_from_uint128.
+
+Android build now requires NDK r11 and uses clang thread local storage support instead
+of old pthread api wrappers.
 
 
 1.4.1
