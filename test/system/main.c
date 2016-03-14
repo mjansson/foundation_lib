@@ -176,10 +176,54 @@ DECLARE_TEST(system, builtin) {
 	return 0;
 }
 
+FOUNDATION_DECLARE_THREAD_LOCAL(int, tls_var, 0)
+
+static void*
+tls_thread(void* arg) {
+	int counter = 0;
+	int i;
+	FOUNDATION_UNUSED(arg);
+	for (i = 0; i < 1024; ++i) {
+		EXPECT_EQ(get_thread_tls_var(), counter);
+		thread_sleep(5);
+		set_thread_tls_var(++counter);
+		thread_sleep(5);
+	}
+
+	EXPECT_EQ(get_thread_tls_var(), counter);
+
+	return 0;
+}
+
+DECLARE_TEST(system, thread) {
+	thread_t thread[32];
+	size_t ith;
+	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
+
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_initialize(&thread[ith], tls_thread, nullptr,
+		                  STRING_CONST("tls_thread"), THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_start(&thread[ith]);
+
+	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
+
+	for (ith = 0; ith < num_threads; ++ith) {
+		EXPECT_EQ(thread_join(&thread[ith]), nullptr);
+	}
+
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_finalize(&thread[ith]);
+
+	return 0;
+}
+
 static void
 test_system_declare(void) {
 	ADD_TEST(system, align);
 	ADD_TEST(system, builtin);
+	ADD_TEST(system, thread);
 }
 
 static test_suite_t test_system_suite = {

@@ -647,11 +647,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING(__clang_major__) "." FOUNDATION_PREPROCESSOR_TOSTRING(__clang_minor__)
 
 #  define FOUNDATION_RESTRICT __restrict
-#  if FOUNDATION_PLATFORM_WINDOWS
-#    define FOUNDATION_THREADLOCAL
-#  else
-#    define FOUNDATION_THREADLOCAL __thread
-#  endif
+#  define FOUNDATION_THREADLOCAL _Thread_local
 
 #  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
 #  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
