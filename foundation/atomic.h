@@ -243,16 +243,25 @@ static FOUNDATION_FORCEINLINE void
 atomic_store64(atomic64_t* dst, int64_t val) {
 #if FOUNDATION_ARCH_X86
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+#    if FOUNDATION_COMPILER_MSVC
+#      pragma warning(disable : 4731)
 	__asm {
 		push ebx;
+	}
+#    endif
+	__asm {
 		mov esi, dst;
 		mov ebx, dword ptr val;
 		mov ecx, dword ptr val[4];
 		retry:
 		cmpxchg8b [esi];
 		jne retry;
+	}
+#    if FOUNDATION_COMPILER_MSVC
+	__asm {
 		pop ebx;
 	}
+#    endif
 #  else
 	int64_t expected = dst->nonatomic;
 #    if FOUNDATION_COMPILER_GCC

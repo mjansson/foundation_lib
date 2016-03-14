@@ -808,7 +808,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
 
-#  pragma warning( disable : 4200 )
+#  pragma warning(disable : 4200)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
