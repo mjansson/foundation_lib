@@ -15,10 +15,6 @@ writer = generator.writer
 toolchain = generator.toolchain
 extrasources = []
 
-if target.is_android():
-  extrasources += [ os.path.join( toolchain.android_ndkpath, 'sources', 'android', 'native_app_glue', 'android_native_app_glue.c' ),
-                    os.path.join( toolchain.android_ndkpath, 'sources', 'android', 'cpufeatures', 'cpu-features.c' ) ]
-
 foundation_sources = [
   'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'beacon.c', 'bitbuffer.c', 'blowfish.c',
   'bufferstream.c', 'config.c', 'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c',

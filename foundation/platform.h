@@ -665,10 +665,6 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    pragma clang diagnostic push
-#    if __has_warning("-Wreserved-id-macro")
-#      pragma clang diagnostic ignored "-Wreserved-id-macro"
-#    endif
 #    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
@@ -680,12 +676,14 @@ thread local storage to ensure maximum portability across supported platforms */
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
-#    pragma clang diagnostic pop
 #    if __has_warning("-Wunknown-pragmas")
 #      pragma clang diagnostic ignored "-Wunknown-pragmas"
 #    endif
 #  endif
 
+#  if __has_warning("-Wreserved-id-macro")
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
 #  if __has_warning("-Wcovered-switch-default")
 #    pragma clang diagnostic ignored "-Wcovered-switch-default"
 #  endif
@@ -858,22 +856,22 @@ typedef enum {
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
-
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  if __has_warning( "-Wreserved-id-macro" )
-#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
 #  endif
 #endif
 
-#ifndef _GNU_SOURCE
-#  define _GNU_SOURCE
-#endif
-
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
-#endif
-
+#  pragma clang diagnostic push
+#  if __has_warning("-Wundef")
+#    pragma clang diagnostic ignored "-Wundef"
+#  endif
+#  if __has_warning("-Wsign-conversion")
+#    pragma clang diagnostic ignored "-Wsign-conversion"
+#  endif
+#  if __has_warning("-Wunknown-attributes")
+#    pragma clang diagnostic ignored "-Wunknown-attributes"
+#  endif
 #endif
 
 //Base data types
@@ -892,6 +890,10 @@ typedef enum {
 #endif
 
 #define nullptr ((void*)0)
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 
 typedef float  float32_t;
 typedef double float64_t;

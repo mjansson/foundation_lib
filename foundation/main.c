@@ -145,7 +145,7 @@ sighandler(int sig) {
 
 #if FOUNDATION_PLATFORM_ANDROID
 /*! Aliased entry point */
-int
+static int
 real_main(void)
 #elif FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */

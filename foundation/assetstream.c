@@ -33,11 +33,14 @@ static size_t
 asset_stream_read(stream_t* stream, void* dest, size_t num) {
 	stream_asset_t* asset = (stream_asset_t*)stream;
 
-	int curread = AAsset_read(asset->asset, dest, num);
-	if (curread > 0)
-		asset->position += curread;
+	ssize_t curread = AAsset_read(asset->asset, dest, num);
+	if (curread > 0) {
+		size_t absread = (size_t)curread;
+		asset->position += absread;
+		return absread;
+	}
 
-	return curread;
+	return 0;
 }
 
 static size_t
@@ -70,7 +73,8 @@ asset_stream_truncate(stream_t* stream, size_t size) {
 static size_t
 asset_stream_size(stream_t* stream) {
 	stream_asset_t* asset = (stream_asset_t*)stream;
-	return (asset && asset->asset ? AAsset_getLength(asset->asset) : 0);
+	ssize_t length = (asset && asset->asset ? AAsset_getLength(asset->asset) : 0);
+	return (length > 0) ? (size_t)length : 0;
 }
 
 static void
@@ -96,7 +100,8 @@ asset_stream_lastmod(const stream_t* stream) {
 static size_t
 asset_stream_available_read(stream_t* stream) {
 	stream_asset_t* asset = (stream_asset_t*)stream;
-	return AAsset_getLength(asset->asset) - asset->position;
+	ssize_t length = (asset && asset->asset ? AAsset_getLength(asset->asset) : 0);
+	return (length > 0) ? (size_t)length - asset->position : 0;
 }
 
 static void

@@ -48,7 +48,7 @@ static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProc
 #  include <pthread_np.h>
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
+#if FOUNDATION_PLATFORM_APPLE
 
 struct thread_local_block_t {
 	uint64_t     thread;
@@ -102,7 +102,7 @@ _thread_initialize(void) {
 
 void
 _thread_finalize(void) {
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
+#if FOUNDATION_PLATFORM_APPLE
 	for (int i = 0; i < 1024; ++i) {
 		if (atomic_loadptr(&_thread_local_blocks[i].block)) {
 			void* block = atomic_loadptr(&_thread_local_blocks[i].block);
@@ -438,7 +438,7 @@ thread_id(void) {
 #  if FOUNDATION_SIZE_POINTER == 4
 	return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
 #  else
-	return pthread_self();
+	return (uint64_t)pthread_self();
 #  endif
 #elif FOUNDATION_PLATFORM_PNACL
 	void* self = pthread_self();

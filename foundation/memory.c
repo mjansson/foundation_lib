@@ -847,7 +847,8 @@ _memory_tracker_untrack(void* addr) {
 		int32_t iend = atomic_load32(&_memory_tag_next);
 		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
 		for (; itag != iend;) {
-			uintptr_t tagval = (uintptr_t)atomic_loadptr(&_memory_tags[itag].address);
+			void* tagaddr = atomic_loadptr(&_memory_tags[itag].address);
+			uintptr_t tagval = (uintptr_t)tagaddr;
 			if (tagval && (addrval >= tagval) && (addrval < (tagval + _memory_tags[itag].size))) {
 				tag = itag + 1;
 				break;

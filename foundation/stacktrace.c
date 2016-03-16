@@ -227,10 +227,10 @@ _load_process_modules() {
 #if FOUNDATION_PLATFORM_ANDROID
 
 struct android_trace_t {
-	void**        trace;
-	unsigned int  cur_depth;
-	unsigned int  max_depth;
-	unsigned int  skip_frames;
+	void**  trace;
+	size_t  cur_depth;
+	size_t  max_depth;
+	size_t  skip_frames;
 };
 
 struct android_module_t {
@@ -310,40 +310,21 @@ _load_process_modules(void) {
 	}
 }
 
-#if FOUNDATION_COMPILER_CLANG && FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
-
-extern int
-_Unwind_VRS_Get(struct _Unwind_Context* context, int regclass, uint32_t regno, int representation,
-                void* valuep);
-
-uintptr_t
-_Unwind_GetGR(struct _Unwind_Context* ctx, int index) {
-#define _UVRSC_CORE 0    // integer register
-#define _UVRSD_UINT32 0
-	uint32_t val;
-	_Unwind_VRS_Get(ctx, _UVRSC_CORE, index, _UVRSD_UINT32, &val);
-	return val;
-}
-
-uintptr_t
-_Unwind_GetIP(struct _Unwind_Context* ctx) {
-#define UNWIND_IP_REG 15
-	return _Unwind_GetGR(ctx, UNWIND_IP_REG) & ~1;   // thumb bit
-}
-
+#ifndef _URC_NORMAL_STOP
+#  define _URC_NORMAL_STOP 4
 #endif
 
 static _Unwind_Reason_Code
 unwind_stack(struct _Unwind_Context* context, void* arg) {
 	android_trace_t* trace = arg;
-	void* ip = (void*)_Unwind_GetIP(context);
+	void* ip = (void*)(uintptr_t)_Unwind_GetIP(context);
 	if (trace->skip_frames)
 		--trace->skip_frames;
 	else if (ip) {
 		if (trace->cur_depth < trace->max_depth)
 			trace->trace[trace->cur_depth++] = ip;
 		else
-			return 4;//_URC_NORMAL_STOP;
+			return _URC_NORMAL_STOP;
 	}
 	return _URC_NO_REASON;
 }

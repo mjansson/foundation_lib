@@ -33,6 +33,10 @@
 #  if FOUNDATION_GCC_VERSION > 40700
 #    pragma GCC diagnostic ignored "-Wpedantic"
 #  endif
+#elif FOUNDATION_COMPILER_CLANG
+#  if __has_warning("-Wpedantic")
+#    pragma clang diagnostic ignored "-Wpedantic"
+#  endif
 #endif
 #  include <sys/inotify.h>
 #if FOUNDATION_COMPILER_GCC
