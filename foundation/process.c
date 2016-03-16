@@ -14,6 +14,9 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
+#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+void _exit(int status) FOUNDATION_ATTRIBUTE(noreturn);
+#  endif
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  include <sys/types.h>
@@ -252,7 +255,7 @@ process_spawn(process_t* proc) {
 		if (!ShellExecuteExW(&sei)) {
 			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%.*s': %s"),
+			          STRING_CONST("Unable to spawn process (ShellExecute) for executable '%.*s': %.*s"),
 			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 		}
 		else {

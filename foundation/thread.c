@@ -48,7 +48,7 @@ static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProc
 #  include <pthread_np.h>
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
+#if FOUNDATION_PLATFORM_APPLE
 
 struct thread_local_block_t {
 	uint64_t     thread;
@@ -102,7 +102,7 @@ _thread_initialize(void) {
 
 void
 _thread_finalize(void) {
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
+#if FOUNDATION_PLATFORM_APPLE
 	for (int i = 0; i < 1024; ++i) {
 		if (atomic_loadptr(&_thread_local_blocks[i].block)) {
 			void* block = atomic_loadptr(&_thread_local_blocks[i].block);
@@ -122,7 +122,7 @@ _thread_guard_wrapper(void* data) {
 	return 0;
 }
 
-#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
+#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
@@ -135,16 +135,6 @@ typedef struct tagTHREADNAME_INFO {
 	DWORD dwFlags; // Reserved for future use, must be zero.
 } THREADNAME_INFO;
 #pragma pack(pop)
-
-#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-
-LONG WINAPI
-_thread_set_name_exception_filter(LPEXCEPTION_POINTERS pointers) {
-	FOUNDATION_UNUSED(pointers);
-	return EXCEPTION_CONTINUE_EXECUTION;
-}
-
-#endif
 
 static void FOUNDATION_NOINLINE
 _set_thread_name(const char* threadname) {
@@ -180,7 +170,7 @@ thread_set_name(const char* name, size_t length) {
 	thread_t* self;
 
 #if !BUILD_DEPLOY
-#  if FOUNDATION_PLATFORM_WINDOWS
+#  if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	_set_thread_name(name);
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	prctl(PR_SET_NAME, name, 0, 0, 0);
@@ -222,7 +212,7 @@ _thread_entry(thread_arg_t data) {
 
 	thread->osid = thread_id();
 
-#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
+#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	if (thread->name.length)
 		_set_thread_name(thread->name.str);
 #elif ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID ) && !BUILD_DEPLOY
@@ -438,7 +428,7 @@ thread_id(void) {
 #  if FOUNDATION_SIZE_POINTER == 4
 	return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
 #  else
-	return pthread_self();
+	return (uint64_t)pthread_self();
 #  endif
 #elif FOUNDATION_PLATFORM_PNACL
 	void* self = pthread_self();

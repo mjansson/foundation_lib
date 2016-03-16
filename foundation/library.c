@@ -231,7 +231,7 @@ library_symbol(object_t id, const char* name, size_t length) {
 	FOUNDATION_UNUSED(length);
 	if (library) {
 #if FOUNDATION_PLATFORM_WINDOWS
-		return GetProcAddress(library->dll, name);
+		return (void*)GetProcAddress(library->dll, name);
 #elif FOUNDATION_PLATFORM_POSIX
 		return dlsym(library->lib, name);
 #else

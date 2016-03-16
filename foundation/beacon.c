@@ -74,7 +74,7 @@ void
 beacon_finalize(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	CloseHandle(beacon->event);
-#elif FOUNDATION_PLATFORM_LINUX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	close(beacon->poll);
 	close(beacon->fd);
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD

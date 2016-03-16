@@ -18,9 +18,10 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
-#  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
-#  define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
-__declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+#    define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
+#    define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
+#  endif
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID

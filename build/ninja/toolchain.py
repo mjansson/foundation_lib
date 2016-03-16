@@ -27,9 +27,7 @@ class Toolchain(object):
     self.archs = list( archs )
     self.configs = list( configs )
     if toolchain is None:
-      if target.is_android() or target.is_raspberrypi():
-        toolchain = 'gcc'
-      elif host.is_windows():
+      if host.is_windows() and target.is_windows():
         toolchain = 'msvc'
       else:
         toolchain = 'clang'
@@ -55,7 +53,7 @@ class Toolchain(object):
       elif target.is_raspberrypi():
         self.archs = [ 'arm6' ]
       elif self.target.is_android():
-        self.archs = [ 'arm6', 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
+        self.archs = [ 'arm7', 'arm64', 'mips', 'mips64', 'x86', 'x86-64' ]
       elif self.target.is_tizen():
         self.archs = [ 'x86', 'arm7' ]
 
@@ -84,7 +82,7 @@ class Toolchain(object):
     self.android_keypass = 'android'
     self.android_platformversion = '21'
     self.android_toolchainversion_gcc = '4.9'
-    self.android_toolchainversion_clang = '3.6'
+    self.android_toolchainversion_clang = '3.8'
     self.android_tsa = ''
     self.android_tsacert = ''
 
@@ -213,7 +211,7 @@ class Toolchain(object):
     if target.is_tizen():
       self.build_tizen_toolchain()
 
-    if target.is_windows():
+    if target.is_windows() and self.toolchain.startswith('ms'):
       self.build_msvc_toolchain()
 
     # TODO: Add dependent lib search
@@ -223,19 +221,20 @@ class Toolchain(object):
     version.generate_version(self.project, self.project)
 
     if host.is_windows():
-      self.rmcmd = 'cmd /C del /F /Q'
+      self.rmcmd = lambda p: 'cmd /C (IF exist ' + p + ' (del /F /Q ' + p + '))'
       self.cdcmd = 'cmd /C cd'
-      self.mkdircmd = lambda p: 'cmd /C IF NOT exist ' + p + ' mkdir ' + p
+      self.mkdircmd = lambda p: 'cmd /C (IF NOT exist ' + p + ' (mkdir ' + p + '))'
     else:
-      self.rmcmd = 'rm -f'
+      self.rmcmd = lambda p: 'rm -f ' + p
       self.cdcmd = 'cd'
       self.mkdircmd = lambda p: 'mkdir -p ' + p
 
-    self.copycmd = '$copy $in $outpath'
     if host.is_windows():
       self.copy = 'cmd /C copy /Y'
+      self.copycmd = '$copy $in $outpath'
     else:
       self.copy = 'cp -f'
+      self.copycmd = '$copy $in $outpath'
 
     self.zip = 'zip'
 
@@ -281,13 +280,15 @@ class Toolchain(object):
 
       if not target.is_android() and not target.is_raspberrypi():
         self.cflags += [ '-Wpedantic' ]
+      if target.is_windows():
+        self.cflags += [ '-U__STRICT_ANSI__' ]
 
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
 
-      self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
-      self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+      self.arcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
+      self.dynlibcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
       self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if host.is_raspberrypi():
@@ -304,11 +305,6 @@ class Toolchain(object):
       if target.is_raspberrypi():
         self.cflags += [ '-std=c99', '-fno-omit-frame-pointer' ]
         self.extralibs += [ 'rt' ]
-      elif target.is_android():
-        self.cflags += [ '-std=gnu11' ] #c11 gives errors in NDK cpu-features on android
-        self.cflags += [ '-Wno-unused-function' ] #errors in NDK cpu-features on android
-        self.cflags += [ '-Wno-unused-variable' ] #errors in NDK cpu-features on android
-        self.cflags += [ '-Wno-unused-parameter' ] #errors in NDK native-app-glue on android
       else:
         self.cflags += [ '-std=c11' ]
 
@@ -316,8 +312,8 @@ class Toolchain(object):
         self.sysroot = ''
         self.liblinkname = ''
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
-        self.dynlibcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$link -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer', '-funswitch-loops',
@@ -348,6 +344,9 @@ class Toolchain(object):
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
+
+      if target.is_windows():
+        self.cflags += [ '-U__STRICT_ANSI__' ]
 
       if host.is_macosx() and (target.is_macosx() or target.is_ios()):
         self.ios_organisation = os.getenv( 'ORGANISATION', self.ios_organisation )
@@ -394,8 +393,8 @@ class Toolchain(object):
         self.cflags += [ '-x', 'c' ]
 
         self.cmcmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $mflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
-        self.dynlibcmd = self.rmcmd + ' $out && $ar $ararchflags $arflags $in -o $out'
+        self.arcmd = self.rmcmd('$out') + ' && $ar $ararchflags $arflags $in -o $out'
+        self.dynlibcmd = self.rmcmd('$out') + ' && $ar $ararchflags $arflags $in -o $out'
         self.lipocmd = '$lipo -create $in -output $out'
         self.linkcmd = '$link $libpaths $linkflags $linkarchflags $linkconfigflags $in $libs -o $out'
         self.plistcmd = 'build/ninja/plist.py --exename $exename --prodname $prodname --bundle $bundleidentifier --target $target --deploymenttarget $deploymenttarget --output $outpath $in'
@@ -419,11 +418,12 @@ class Toolchain(object):
       elif target.is_android():
         self.sysroot = ''
         self.liblinkname = ''
+        self.ar = 'ar'
 
-        self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
-        self.arcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
-        self.dynlibcmd = self.rmcmd + ' $out && $toolchain$ar crsD $ararchflags $arflags $out $in'
-        self.linkcmd = '$toolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
+        self.cccmd = '$clangtoolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+        self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
+        self.linkcmd = '$clangtoolchain$cc -shared -Wl,-soname,$liblinkname --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.cflags += [ '-fpic', '-ffunction-sections', '-funwind-tables', '-fstack-protector', '-fomit-frame-pointer',
                          '-no-canonical-prefixes', '-Wa,--noexecstack' ]
@@ -442,8 +442,8 @@ class Toolchain(object):
         self.cflags += [ '-fPIE' ]
 
         self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags --sysroot=$sysroot -D__TIZEN__=1 -D_GNU_SOURCE=1 -c $in -o $out'
-        self.arcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
-        self.dynlibcmd = self.rmcmd + ' $out && $ar crsD $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd('$out') + ' && $ar crsD $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd('$out') + ' && $ar crsD $ararchflags $arflags $out $in'
         self.linkcmd = '$toolchain$cc --sysroot=$sysroot $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
         self.includepaths += [ os.path.join( '$sdk', 'library' ) ]
@@ -465,8 +465,8 @@ class Toolchain(object):
         self.finalize = os.path.join( pnacl_toolchainpath, 'bin', 'pnacl-finalize' + shsuffix )
         self.nmf = os.path.join( self.pnacl_sdkpath, 'tools', 'create_nmf.py' )
 
-        self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
-        self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
         self.finalizecmd = '$finalize -o $out $in'
         self.nmfcmd = self.python + ' $nmf -o $out $in'
@@ -477,14 +477,14 @@ class Toolchain(object):
 
       elif target.is_windows():
 
-        self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
-        self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
         self.cflags += [ '-Wno-reserved-id-macro' ] #errors in Windows SDK headers
 
       else:
-        self.arcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
-        self.dynlibcmd = self.rmcmd + ' $out && $ar crs $ararchflags $arflags $out $in'
+        self.arcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
+        self.dynlibcmd = self.rmcmd('$out') + ' && $ar crs $ararchflags $arflags $out $in'
         self.linkcmd = '$cc $libpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs'
 
       if target.is_macosx():
@@ -1165,6 +1165,7 @@ class Toolchain(object):
     return [ path.replace( '\\', '/' ) for path in paths ]
 
   def write_rules( self, writer ):
+    writer.pool( 'serial_pool', 1 )
     writer.rule( 'cc', command = self.cccmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in' )
     writer.rule( 'ar', command = self.arcmd, description = 'LIB $out')
     writer.rule( 'dynlib', command = self.dynlibcmd, description = 'DYNLIB $out')
@@ -1224,6 +1225,7 @@ class Toolchain(object):
       writer.variable( 'keystorepass', self.android_keystorepass )
       writer.variable( 'keypass', self.android_keypass )
       writer.variable( 'toolchain', '' )
+      writer.variable( 'clangtoolchain', '' )
       writer.variable( 'toolchaintarget', '' )
       writer.variable( 'sysroot', '' )
       writer.variable( 'liblinkname', '' )
@@ -1309,12 +1311,14 @@ class Toolchain(object):
     return config_list
 
   def make_android_toolchain_path( self, arch ):
-    if self.toolchain == 'clang':
-      return os.path.join( self.make_android_clang_path( arch ), 'bin', '' )
     return os.path.join( self.make_android_gcc_path( arch ), 'bin', self.android_toolchainprefix[arch] )
 
+  def make_android_clang_toolchain_path( self, arch ):
+    return os.path.join( self.make_android_clang_path( arch ), 'bin', '' )
+
   def make_android_clang_path( self, arch ):
-    return os.path.join( self.android_ndkpath, 'toolchains', 'llvm-' + self.android_toolchainversion_clang, 'prebuilt', self.android_hostarchname )
+    #return os.path.join( self.android_ndkpath, 'toolchains', 'llvm-' + self.android_toolchainversion_clang, 'prebuilt', self.android_hostarchname )
+    return os.path.join( self.android_ndkpath, 'toolchains', 'llvm', 'prebuilt', self.android_hostarchname )
 
   def make_android_gcc_path( self, arch ):
     return os.path.join( self.android_ndkpath, 'toolchains', self.android_toolchainname[arch], 'prebuilt', self.android_hostarchname )
@@ -1592,6 +1596,7 @@ class Toolchain(object):
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                              ( 'clangtoolchain', self.make_android_clang_toolchain_path( arch ) ),
                               ( 'sysroot', sysroot ) ]
           localarvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
                                 ( 'sysroot', sysroot ) ]
@@ -1677,6 +1682,7 @@ class Toolchain(object):
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                              ( 'clangtoolchain', self.make_android_clang_toolchain_path( arch ) ),
                               ( 'sysroot', sysroot ) ]
           locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
                                   ( 'sysroot', sysroot ),
@@ -1770,8 +1776,10 @@ class Toolchain(object):
         if self.target.is_android():
           sysroot = self.make_android_sysroot_path( arch )
           localvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                              ( 'clangtoolchain', self.make_android_clang_toolchain_path( arch ) ),
                               ( 'sysroot', sysroot ) ]
           locallinkvariables += [ ( 'toolchain', self.make_android_toolchain_path( arch ) ),
+                                  ( 'clangtoolchain', self.make_android_clang_toolchain_path( arch ) ),
                                   ( 'sysroot', sysroot ),
                                   ( 'liblinkname', self.binprefix + binname + self.binext ) ]
           extraincludepaths += [ os.path.join( sysroot, 'usr', 'include' ) ]

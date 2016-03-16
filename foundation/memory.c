@@ -29,6 +29,10 @@
 #  include <stdlib.h>
 #endif
 
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG)
+#  include <malloc.h>
+#endif
+
 /*lint -e728 */
 static const memory_tracker_t _memory_no_tracker;
 static memory_system_t _memory_system;
@@ -843,10 +847,13 @@ static void
 _memory_tracker_untrack(void* addr) {
 	int32_t tag = 0;
 	if (addr) {
+		uintptr_t addrval = (uintptr_t)addr;
 		int32_t iend = atomic_load32(&_memory_tag_next);
 		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
 		for (; itag != iend;) {
-			if (atomic_loadptr(&_memory_tags[itag].address) == addr) {
+			void* tagaddr = atomic_loadptr(&_memory_tags[itag].address);
+			uintptr_t tagval = (uintptr_t)tagaddr;
+			if (tagval && (addrval >= tagval) && (addrval < (tagval + _memory_tags[itag].size))) {
 				tag = itag + 1;
 				break;
 			}
@@ -864,8 +871,9 @@ _memory_tracker_untrack(void* addr) {
 #endif
 		atomic_storeptr(&_memory_tags[tag].address, 0);
 	}
-	//else if (addr)
-	//	log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+	/*else if (addr) {
+		log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+	}*/
 }
 
 #endif

@@ -109,9 +109,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 
-#  ifdef __STRICT_ANSI__
+/*#  ifdef __STRICT_ANSI__
 #    undef __STRICT_ANSI__
-#  endif
+#  endif*/
 
 // Android
 #elif defined( __ANDROID__ )
@@ -665,10 +665,6 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    pragma clang diagnostic push
-#    if __has_warning("-Wreserved-id-macro")
-#      pragma clang diagnostic ignored "-Wreserved-id-macro"
-#    endif
 #    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
@@ -679,13 +675,21 @@ thread local storage to ensure maximum portability across supported platforms */
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
+#    ifndef __MSVCRT_VERSION__
+#      define __MSVCRT_VERSION__ 0x0800
+#    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
-#    pragma clang diagnostic pop
 #    if __has_warning("-Wunknown-pragmas")
 #      pragma clang diagnostic ignored "-Wunknown-pragmas"
 #    endif
+#    if __has_warning("-Wformat-non-iso")
+#      pragma clang diagnostic ignored "-Wformat-non-iso"
+#    endif
 #  endif
 
+#  if __has_warning("-Wreserved-id-macro")
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
 #  if __has_warning("-Wcovered-switch-default")
 #    pragma clang diagnostic ignored "-Wcovered-switch-default"
 #  endif
@@ -728,6 +732,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #    endif
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
+#    endif
+#    ifndef __MSVCRT_VERSION__
+#      define __MSVCRT_VERSION__ 0x0800
 #    endif
 #    pragma GCC diagnostic ignored "-Wformat"
 #    pragma GCC diagnostic ignored "-Wformat-extra-args"
@@ -804,7 +811,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
 
-#  pragma warning( disable : 4200 )
+#  pragma warning(disable : 4200)
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -858,22 +865,22 @@ typedef enum {
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
-
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  if __has_warning( "-Wreserved-id-macro" )
-#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
 #  endif
 #endif
 
-#ifndef _GNU_SOURCE
-#  define _GNU_SOURCE
-#endif
-
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
-#endif
-
+#  pragma clang diagnostic push
+#  if __has_warning("-Wundef")
+#    pragma clang diagnostic ignored "-Wundef"
+#  endif
+#  if __has_warning("-Wsign-conversion")
+#    pragma clang diagnostic ignored "-Wsign-conversion"
+#  endif
+#  if __has_warning("-Wunknown-attributes")
+#    pragma clang diagnostic ignored "-Wunknown-attributes"
+#  endif
 #endif
 
 //Base data types
@@ -892,6 +899,10 @@ typedef enum {
 #endif
 
 #define nullptr ((void*)0)
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 
 typedef float  float32_t;
 typedef double float64_t;
@@ -1001,7 +1012,7 @@ typedef struct atomicptr_t atomicptr_t;
 #define FOUNDATION_UNUSED_VARARGS_IMPL(n, ...) FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_UNUSED_ARGS_, n)(__VA_ARGS__,),)
 
 // Wrappers for platforms that not yet support thread-local storage declarations
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE
 
 // Forward declarations of various system APIs
 #if FOUNDATION_PLATFORM_APPLE
@@ -1015,18 +1026,18 @@ FOUNDATION_EXTERN void* pthread_getspecific(_pthread_key_t);
 
 FOUNDATION_API void* _allocate_thread_local_block(size_t size);
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
 static _pthread_key_t _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) { pthread_key_create( &_##name##_key, 0 ); pthread_setspecific( _##name##_key, (init) ); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { void* val = pthread_getspecific( get_##name##_key() ); return (type)((uintptr_t)val); } \
-static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
+static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) { pthread_key_create(&_##name##_key, 0); pthread_setspecific(_##name##_key, (init)); } return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name(void) { void* val = pthread_getspecific(get_##name##_key()); return (type)((uintptr_t)val); } \
+static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { pthread_setspecific(get_##name##_key(), (const void*)(uintptr_t)val); }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
 static _pthread_key_t _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, 0 ); return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); pthread_setspecific( key, arr ); } return arr; }
+static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) pthread_key_create(&_##name##_key, 0); return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific(key); if (!arr) { arr = _allocate_thread_local_block(sizeof(type) * arrsize); pthread_setspecific(key, arr); } return arr; }
 
-#elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
+/*#elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
 
 __declspec(dllimport) unsigned long STDCALL TlsAlloc();
 __declspec(dllimport) void* STDCALL TlsGetValue(unsigned long);
@@ -1034,27 +1045,27 @@ __declspec(dllimport) int STDCALL TlsSetValue(unsigned long, void*);
 
 FOUNDATION_API void* _allocate_thread_local_block(size_t size);
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
 static unsigned long _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) { _##name##_key = TlsAlloc(); TlsSetValue( _##name##_key, init ); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)TlsGetValue( get_##name##_key() )); } \
-static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { TlsSetValue( get_##name##_key(), (void*)((uintptr_t)val) ); }
+static FOUNDATION_FORCEINLINE unsigned long get_##name##_key(void) { if (!_##name##_key) { _##name##_key = TlsAlloc(); TlsSetValue(_##name##_key, init); } return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name(void) { return (type)((uintptr_t)TlsGetValue(get_##name##_key())); } \
+static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { TlsSetValue(get_##name##_key(), (void*)((uintptr_t)val)); }
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
 static unsigned long _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) _##name##_key = TlsAlloc(); return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { unsigned long key = get_##name##_key(); type* arr = (type*)TlsGetValue( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); TlsSetValue( key, arr ); } return arr; }
+static FOUNDATION_FORCEINLINE unsigned long get_##name##_key(void) { if( !_##name##_key ) _##name##_key = TlsAlloc(); return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { unsigned long key = get_##name##_key(); type* arr = (type*)TlsGetValue(key); if (!arr) { arr = _allocate_thread_local_block(sizeof(type) * arrsize); TlsSetValue(key, arr); } return arr; } */
 
 #else
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
 static FOUNDATION_THREADLOCAL type _thread_##name = init; \
-static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { _thread_##name = val; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return _thread_##name; }
+static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { _thread_##name = val; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name(void) { return _thread_##name; }
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
 static FOUNDATION_THREADLOCAL type _thread_##name [arrsize] = {0}; \
-static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
+static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { return _thread_##name; }
 
 #endif
 

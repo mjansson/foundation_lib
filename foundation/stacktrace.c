@@ -15,7 +15,6 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#  include <dbghelp.h>
 #  include <psapi.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
@@ -94,20 +93,20 @@ static SymFunctionTableAccess64Fn  CallSymFunctionTableAccess64;
 static StackWalk64Fn               CallStackWalk64;
 static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
-#  define USE_CAPTURESTACKBACKTRACE 1
+/*#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-
-LONG WINAPI
+static LONG WINAPI
 _stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
 	FOUNDATION_UNUSED(pointers);
 	log_error(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred in stack trace!"));
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-#  endif
+#  endif*/
 
 # if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+
+#  define USE_CAPTURESTACKBACKTRACE 1
 
 static int
 _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
@@ -227,10 +226,10 @@ _load_process_modules() {
 #if FOUNDATION_PLATFORM_ANDROID
 
 struct android_trace_t {
-	void**        trace;
-	unsigned int  cur_depth;
-	unsigned int  max_depth;
-	unsigned int  skip_frames;
+	void**  trace;
+	size_t  cur_depth;
+	size_t  max_depth;
+	size_t  skip_frames;
 };
 
 struct android_module_t {
@@ -310,40 +309,21 @@ _load_process_modules(void) {
 	}
 }
 
-#if FOUNDATION_COMPILER_CLANG && FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
-
-extern int
-_Unwind_VRS_Get(struct _Unwind_Context* context, int regclass, uint32_t regno, int representation,
-                void* valuep);
-
-uintptr_t
-_Unwind_GetGR(struct _Unwind_Context* ctx, int index) {
-#define _UVRSC_CORE 0    // integer register
-#define _UVRSD_UINT32 0
-	uint32_t val;
-	_Unwind_VRS_Get(ctx, _UVRSC_CORE, index, _UVRSD_UINT32, &val);
-	return val;
-}
-
-uintptr_t
-_Unwind_GetIP(struct _Unwind_Context* ctx) {
-#define UNWIND_IP_REG 15
-	return _Unwind_GetGR(ctx, UNWIND_IP_REG) & ~1;   // thumb bit
-}
-
+#ifndef _URC_NORMAL_STOP
+#  define _URC_NORMAL_STOP 4
 #endif
 
 static _Unwind_Reason_Code
 unwind_stack(struct _Unwind_Context* context, void* arg) {
 	android_trace_t* trace = arg;
-	void* ip = (void*)_Unwind_GetIP(context);
+	void* ip = (void*)(uintptr_t)_Unwind_GetIP(context);
 	if (trace->skip_frames)
 		--trace->skip_frames;
 	else if (ip) {
 		if (trace->cur_depth < trace->max_depth)
 			trace->trace[trace->cur_depth++] = ip;
 		else
-			return 4;//_URC_NORMAL_STOP;
+			return _URC_NORMAL_STOP;
 	}
 	return _URC_NO_REASON;
 }
@@ -669,8 +649,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			break;
 
 		// Initialize symbol.
-		symbol = (PIMAGEHLP_SYMBOL64)symbol_buffer;
-		memset(symbol, 0, sizeof(symbol_buffer));
+		memset(symbol_buffer, 0, sizeof(symbol_buffer));
+		symbol = (void*)symbol_buffer;
 		symbol->SizeOfStruct = sizeof(symbol_buffer);
 		symbol->MaxNameLength = 512;
 
@@ -709,8 +689,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			resolved.str[resolved.length++] = '\n';
 		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
 		                     STRING_CONST("[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]"),
-		                     frames[iaddr], function_name, file_name, line_number,
-		                     displacement, module_name);
+		                     (uintptr_t)frames[iaddr], function_name, file_name, line_number,
+		                     (int)displacement, module_name);
 		resolved.length += line.length;
 
 		if (string_equal(function_name, string_length(function_name), STRING_CONST("main")))
