@@ -280,6 +280,8 @@ class Toolchain(object):
 
       if not target.is_android() and not target.is_raspberrypi():
         self.cflags += [ '-Wpedantic' ]
+      if target.is_windows():
+        self.cflags += [ '-U__STRICT_ANSI__' ]
 
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
@@ -342,6 +344,9 @@ class Toolchain(object):
       self.cccmd = '$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
       self.ccdeps = 'gcc'
       self.ccdepfile = '$out.d'
+
+      if target.is_windows():
+        self.cflags += [ '-U__STRICT_ANSI__' ]
 
       if host.is_macosx() and (target.is_macosx() or target.is_ios()):
         self.ios_organisation = os.getenv( 'ORGANISATION', self.ios_organisation )

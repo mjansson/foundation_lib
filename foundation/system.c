@@ -26,7 +26,7 @@
 
 #if FOUNDATION_PLATFORM_PNACL
 #  include <foundation/pnacl.h>
-extern char *strerror_r (int __errnum, char *__buf, size_t __buflen);
+extern char* strerror_r(int __errnum, char* __buf, size_t __buflen);
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -147,7 +147,7 @@ system_byteorder() {
 
 #include <foundation/windows.h>
 
-object_t _system_library_iphlpapi;
+static object_t _system_library_iphlpapi;
 
 int
 _system_initialize(void) {
@@ -278,17 +278,20 @@ _system_user_locale(void) {
 	                                        GetModuleHandleA("kernel32.dll"), "GetLocaleInfoEx");
 	if (get_locale_info) {
 		wchar_t locale_sname[128] = {0};
-		char locale_buffer[8] = {0};
+		union {
+			char buffer[8];
+			uint32_t value;
+		} locale_data;
 		string_t locale_string;
 		if (get_locale_info(0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname,
 		                    32) > 0) {
-			locale_string = string_convert_utf16(locale_buffer, 8, (uint16_t*)locale_sname,
-			                                     wstring_length(locale_sname));
+			locale_string = string_convert_utf16(locale_data.buffer, sizeof(locale_data.buffer),
+			                                     (uint16_t*)locale_sname, wstring_length(locale_sname));
 			if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("?" "?" "-" "?" "?"))) {
-				locale_buffer[2] = locale_buffer[3];
-				locale_buffer[3] = locale_buffer[4];
-				locale_buffer[4] = 0;
-				return *(uint32_t*)locale_string.str;
+				locale_data.buffer[2] = locale_data.buffer[3];
+				locale_data.buffer[3] = locale_data.buffer[4];
+				locale_data.buffer[4] = 0;
+				return *(uint32_t*)locale_data.value;
 			}
 		}
 	}

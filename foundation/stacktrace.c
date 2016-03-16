@@ -93,20 +93,20 @@ static SymFunctionTableAccess64Fn  CallSymFunctionTableAccess64;
 static StackWalk64Fn               CallStackWalk64;
 static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
-#  define USE_CAPTURESTACKBACKTRACE 1
+/*#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-
-LONG WINAPI
+static LONG WINAPI
 _stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
 	FOUNDATION_UNUSED(pointers);
 	log_error(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred in stack trace!"));
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-#  endif
+#  endif*/
 
 # if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+
+#  define USE_CAPTURESTACKBACKTRACE 1
 
 static int
 _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames,
@@ -649,8 +649,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			break;
 
 		// Initialize symbol.
-		symbol = (PIMAGEHLP_SYMBOL64)symbol_buffer;
-		memset(symbol, 0, sizeof(symbol_buffer));
+		memset(symbol_buffer, 0, sizeof(symbol_buffer));
+		symbol = (void*)symbol_buffer;
 		symbol->SizeOfStruct = sizeof(symbol_buffer);
 		symbol->MaxNameLength = 512;
 
@@ -689,8 +689,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			resolved.str[resolved.length++] = '\n';
 		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
 		                     STRING_CONST("[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]"),
-		                     frames[iaddr], function_name, file_name, line_number,
-		                     displacement, module_name);
+		                     (uintptr_t)frames[iaddr], function_name, file_name, line_number,
+		                     (int)displacement, module_name);
 		resolved.length += line.length;
 
 		if (string_equal(function_name, string_length(function_name), STRING_CONST("main")))

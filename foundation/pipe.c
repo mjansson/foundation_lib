@@ -47,7 +47,8 @@ pipe_initialize(stream_pipe_t* pipestream) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		//Inheritable by default so process can use for stdstreams
-		SECURITY_ATTRIBUTES security_attribs = {0};
+		SECURITY_ATTRIBUTES security_attribs;
+		memset(&security_attribs, 0, sizeof(security_attribs));
 		security_attribs.nLength = sizeof(SECURITY_ATTRIBUTES);
 		security_attribs.bInheritHandle = TRUE;
 		security_attribs.lpSecurityDescriptor = 0;

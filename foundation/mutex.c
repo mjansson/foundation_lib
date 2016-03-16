@@ -24,7 +24,7 @@ struct FOUNDATION_ALIGN(16) mutex_t {
 	char             name_buffer[32];
 	string_const_t   name;
 #if FOUNDATION_PLATFORM_WINDOWS
-	unsigned char    csection[32];
+	CRITICAL_SECTION csection;
 	void*            event;
 	atomic32_t       waiting;
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
@@ -43,7 +43,7 @@ _mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
 	mutex->name = string_to_const(string_copy(mutex->name_buffer, 32, name, length));
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	InitializeCriticalSectionAndSpinCount((CRITICAL_SECTION*)mutex->csection, 4000);
+	InitializeCriticalSectionAndSpinCount(&mutex->csection, 4000);
 	mutex->event = CreateEvent(0, TRUE, FALSE, 0);
 	atomic_store32(&mutex->waiting, 0);
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
@@ -70,7 +70,7 @@ _mutex_finalize(mutex_t* mutex) {
 	FOUNDATION_ASSERT(!mutex->lockcount);
 #if FOUNDATION_PLATFORM_WINDOWS
 	CloseHandle(mutex->event);
-	DeleteCriticalSection((CRITICAL_SECTION*)mutex->csection);
+	DeleteCriticalSection(&mutex->csection);
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	pthread_mutex_destroy(&mutex->mutex);
 	pthread_cond_destroy(&mutex->cond);
@@ -109,7 +109,7 @@ mutex_try_lock(mutex_t* mutex) {
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	was_locked = TryEnterCriticalSection((CRITICAL_SECTION*)mutex->csection);
+	was_locked = TryEnterCriticalSection(&mutex->csection);
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	was_locked = (pthread_mutex_trylock(&mutex->mutex) == 0);
 #else
@@ -136,7 +136,7 @@ mutex_lock(mutex_t* mutex) {
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	EnterCriticalSection((CRITICAL_SECTION*)mutex->csection);
+	EnterCriticalSection(&mutex->csection);
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if (pthread_mutex_lock(&mutex->mutex) != 0) {
 		FOUNDATION_ASSERT_FAILFORMAT("unable to lock mutex %s", mutex->name.str);
@@ -176,7 +176,7 @@ mutex_unlock(mutex_t* mutex) {
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	LeaveCriticalSection((CRITICAL_SECTION*)mutex->csection);
+	LeaveCriticalSection(&mutex->csection);
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if (pthread_mutex_unlock(&mutex->mutex) != 0) {
 		FOUNDATION_ASSERT_FAILFORMAT("unable to unlock mutex %s", mutex->name.str);

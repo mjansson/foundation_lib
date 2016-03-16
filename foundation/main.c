@@ -43,7 +43,7 @@ _main_console_handler(DWORD control_type) {
 	case CTRL_SHUTDOWN_EVENT:  control_name = "CTRL_SHUTDOWN"; post_terminate = true; break;
 	default:                   handled = false; break;
 	}
-	log_infof(0, STRING_CONST("Caught console control: %s (%d)"), control_name, control_type);
+	log_infof(0, STRING_CONST("Caught console control: %s (%lu)"), control_name, control_type);
 	if (post_terminate) {
 		/*lint -e{970} */
 		unsigned long level = 0, flags = 0;
@@ -95,7 +95,8 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 		name = string_allocate_concat_varg(
 			aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
 			STRING_CONST("-"),
-			STRING_CONST(vstr));
+			STRING_ARGS(vstr),
+			nullptr);
 
 		if (app->dump_callback)
 			crash_guard_set(app->dump_callback, STRING_ARGS(name));

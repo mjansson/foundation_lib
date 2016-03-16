@@ -81,7 +81,8 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t n
 				info.ClientPointers    = TRUE;
 
 				success = write(GetCurrentProcess(), GetCurrentProcessId(), file,
-				                MiniDumpWithDataSegs | MiniDumpWithProcessThreadData | MiniDumpWithThreadInfo, &info, 0, 0);
+				                (MINIDUMP_TYPE)(MiniDumpWithDataSegs | MiniDumpWithProcessThreadData | MiniDumpWithThreadInfo),
+				                &info, 0, 0);
 			}
 			else {
 				string_const_t errmsg = system_error_message(0);
@@ -122,9 +123,9 @@ struct crash_exception_closure_t {
 typedef struct crash_exception_closure_t crash_exception_closure_t;
 
 //TODO: Set per-thread
-crash_exception_closure_t _crash_exception_closure;
+static crash_exception_closure_t _crash_exception_closure;
 
-LONG WINAPI
+static LONG WINAPI
 _crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
 	char dump_file_buffer[MAX_PATH];
 	size_t dump_file_len = sizeof(dump_file_buffer);
@@ -292,10 +293,6 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 
 #endif
 }
-
-#if FOUNDATION_PLATFORM_WINDOWS
-extern __declspec(dllimport) void STDCALL DebugBreak(void);
-#endif
 
 void
 crash_debug_break(void) {

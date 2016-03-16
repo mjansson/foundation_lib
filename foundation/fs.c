@@ -72,13 +72,6 @@ typedef PP_Resource fs_file_descriptor;
 typedef FILE* fs_file_descriptor;
 #endif
 
-#if FOUNDATION_PLATFORM_WINDOWS
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-_CRTIMP int __cdecl __MINGW_NOTHROW	_fileno(FILE*);
-_CRTIMP int __cdecl __MINGW_NOTHROW _commit(int);
-#  endif
-#endif
-
 struct fs_monitor_t {
 	string_t   path;
 	thread_t   thread;
@@ -1358,7 +1351,7 @@ _fs_monitor(void* monitorptr) {
 					wchar_t term = info->FileName[ numchars ];
 					string_t utfstr;
 					string_t fullpath;
-					foundation_event_id fsevent;
+					foundation_event_id fsevent = FOUNDATIONEVENT_FILE_MODIFIED;
 					bool post_event = false;
 
 					info->FileName[ numchars ] = 0;
@@ -1395,7 +1388,7 @@ _fs_monitor(void* monitorptr) {
 
 					info->FileName[ numchars ] = term;
 
-					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)((char*)info + info->NextEntryOffset) : 0;
+					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info, info->NextEntryOffset)) : 0;
 				}
 				while (info);
 			}
