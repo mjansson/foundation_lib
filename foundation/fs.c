@@ -72,6 +72,13 @@ typedef PP_Resource fs_file_descriptor;
 typedef FILE* fs_file_descriptor;
 #endif
 
+#if FOUNDATION_PLATFORM_WINDOWS
+#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+_CRTIMP int __cdecl __MINGW_NOTHROW	_fileno(FILE*);
+_CRTIMP int __cdecl __MINGW_NOTHROW _commit(int);
+#  endif
+#endif
+
 struct fs_monitor_t {
 	string_t   path;
 	thread_t   thread;
@@ -1351,7 +1358,8 @@ _fs_monitor(void* monitorptr) {
 					wchar_t term = info->FileName[ numchars ];
 					string_t utfstr;
 					string_t fullpath;
-					foundation_event_id fsevent = 0;
+					foundation_event_id fsevent;
+					bool post_event = false;
 
 					info->FileName[ numchars ] = 0;
 					utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
@@ -1366,8 +1374,11 @@ _fs_monitor(void* monitorptr) {
 						case FILE_ACTION_ADDED:     fsevent = FOUNDATIONEVENT_FILE_CREATED; break;
 						case FILE_ACTION_REMOVED:   fsevent = FOUNDATIONEVENT_FILE_DELETED; break;
 						case FILE_ACTION_MODIFIED:
-							if (fs_is_file(STRING_ARGS(fullpath)))
-								fsevent = FOUNDATIONEVENT_FILE_MODIFIED; break;
+							if (fs_is_file(STRING_ARGS(fullpath))) {
+								fsevent = FOUNDATIONEVENT_FILE_MODIFIED;
+								post_event = true;
+							}
+							break;
 
 						//Treat rename as delete/add pair
 						case FILE_ACTION_RENAMED_OLD_NAME: fsevent = FOUNDATIONEVENT_FILE_DELETED; break;
@@ -1376,7 +1387,7 @@ _fs_monitor(void* monitorptr) {
 						default: break;
 						}
 
-						if (fsevent)
+						if (post_event)
 							fs_post_event(fsevent, STRING_ARGS(fullpath));
 					}
 					string_deallocate(utfstr.str);
@@ -1643,8 +1654,13 @@ _fs_file_tell(stream_t* stream) {
 		return 0;
 #if FOUNDATION_PLATFORM_PNACL
 	return GET_FILE(stream)->position;
-#elif FOUNDATION_PLATFORM_WINDOWS
+#elif FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	int64_t pos = _ftelli64(GET_FILE(stream)->fd);
+	return (size_t)(pos < 0 ? 0 : pos);
+#elif FOUNDATION_PLATFORM_WINDOWS
+	fpos_t pos;
+	if (fgetpos(GET_FILE(stream)->fd, &pos))
+		return  0;
 	return (size_t)(pos < 0 ? 0 : pos);
 #else
 	off_t pos = ftello(GET_FILE(stream)->fd);
@@ -1769,7 +1785,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
 			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-			          STRING_ARGS(fspath), length, STRING_ARGS(errstr));
+			          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
 		}
 	}
 #  if FOUNDATION_ARCH_X86_64
@@ -1779,7 +1795,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
 			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-			          STRING_ARGS(fspath), length, STRING_ARGS(errstr));
+			          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
 		}
 	}
 #  endif

@@ -157,8 +157,11 @@ time_ticks_to_seconds(const tick_t dt) {
 	return (deltatime_t)((double)dt * _time_oofreq);
 }
 
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
-#include <sys/timeb.h>
+#if FOUNDATION_PLATFORM_WINDOWS
+#  include <sys/timeb.h>
+#  if  FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#    define _ftime64_s _ftime64
+#  endif
 #endif
 
 tick_t

@@ -13,7 +13,6 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-
 #define CONFIG_SECTION_BUCKETS 7
 #define CONFIG_KEY_BUCKETS     11
 

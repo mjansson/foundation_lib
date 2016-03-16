@@ -14,6 +14,9 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
+#  if FOUNDATION_COMPILER_GCC
+void _exit(int status) FOUNDATION_ATTRIBUTE(noreturn);
+#  endif
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  include <sys/types.h>

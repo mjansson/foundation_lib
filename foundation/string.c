@@ -21,6 +21,15 @@
 #    define snprintf(p, s, ...) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #    define vsnprintf(s, n, format, arg) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 #  endif
+#  define strncasecmp _strnicmp
+#  if FOUNDATION_COMPILER_GCC
+_CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp (const char*, const char*, size_t);
+#    include <pthread.h>
+#    include <sys/types.h>
+#  endif
+#elif FOUNDATION_PLATFORM_PNACL
+extern int strncasecmp (const char *__s1, const char *__s2, size_t __n)
+     __THROW __attribute_pure__;
 #endif
 
 #include <time.h>
@@ -783,9 +792,6 @@ string_equal(const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_len
 
 bool
 string_equal_nocase(const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_length) {
-#if FOUNDATION_PLATFORM_WINDOWS
-#  define strncasecmp _strnicmp
-#endif
 	if (rhs_length && lhs_length) {
 		return (rhs_length == lhs_length) && (strncasecmp(rhs, lhs, rhs_length) == 0);
 	}
@@ -1573,19 +1579,17 @@ string_from_time(char* buffer, size_t capacity, tick_t t, bool local) {
 		return (string_t) {buffer, 0};
 	}
 	FOUNDATION_ASSERT(buffer);
-#if FOUNDATION_PLATFORM_WINDOWS
-	struct tm tm;
 	time_t ts = (time_t)(t / 1000LL);
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
+	struct tm tm;
 	errno_t err = local ? localtime_s(&tm, &ts) : gmtime_s(&tm, &ts);
 	size_t len = !err ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", &tm) : 0;
-	return (string_t) {buffer, len};
 #else
 	struct tm tm;
-	time_t ts = (time_t)(t / 1000LL);
 	struct tm* gtm = local ? localtime_r(&ts, &tm) : gmtime_r(&ts, &tm);
 	size_t len = gtm ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", gtm) : 0;
-	return (string_t) {buffer, len};
 #endif
+	return (string_t) {buffer, len};
 }
 
 string_const_t

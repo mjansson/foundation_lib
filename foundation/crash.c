@@ -34,8 +34,6 @@ crash_guard_callback(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  include <foundation/windows.h>
-#  include <stdio.h>
-#  include <stdarg.h>
 
 typedef BOOL (STDCALL* MiniDumpWriteDumpFn)(HANDLE, DWORD, HANDLE, MINIDUMP_TYPE,
                                             CONST PMINIDUMP_EXCEPTION_INFORMATION, CONST PMINIDUMP_USER_STREAM_INFORMATION,
@@ -303,6 +301,7 @@ void
 crash_debug_break(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DebugBreak();
+	process_exit(-1);
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	__builtin_trap();
 #else

@@ -26,6 +26,7 @@
 
 #if FOUNDATION_PLATFORM_PNACL
 #  include <foundation/pnacl.h>
+extern char *strerror_r (int __errnum, char *__buf, size_t __buflen);
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -330,7 +331,7 @@ system_error_message(int code) {
 	if (!code)
 		return string_const(STRING_CONST("<no error>"));
 	char* buffer = _system_buffer();
-#if FOUNDATION_PLATFORM_LINUX && defined(_GNU_SOURCE)
+#if (FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL) && defined(_GNU_SOURCE)
 	if ((buffer = strerror_r(code, buffer, SYSTEM_BUFFER_SIZE)) != nullptr)
 		return string_const(buffer, string_length(buffer));
 #else

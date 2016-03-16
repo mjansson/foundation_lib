@@ -425,7 +425,7 @@ static FOUNDATION_FORCEINLINE void atomic_thread_fence_sequentially_consistent(v
 #endif
 
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC
 
 #include <intrin.h>
 

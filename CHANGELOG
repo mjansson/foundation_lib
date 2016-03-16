@@ -11,8 +11,8 @@ representation data types with string conversions.
 Changed byte order representation of raw digest from md5_get_digest_raw to generate
 correct string representation using string_from_uint128.
 
-Android build now requires NDK r11 and uses clang thread local storage support instead
-of old pthread api wrappers.
+Android build now requires NDK r11 and uses clang by default, with built in
+thread local storage support instead of old pthread api wrappers.
 
 
 1.4.1

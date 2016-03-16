@@ -38,6 +38,8 @@
 #include <ppapi/c/ppb_var.h>
 #include <ppapi/c/ppb_messaging.h>
 
+#include <string.h>
+
 static PP_Module _pnacl_module;
 static PPB_GetInterface _pnacl_browser_interface;
 static PP_Instance _pnacl_instance;
@@ -123,14 +125,22 @@ pnacl_instance_initialize(PP_Instance instance) {
 	return 0;
 }
 
+static char*
+pnacl_strdup(const char* str) {
+	size_t length = strlen(str);
+	char* buffer = malloc(length+1);
+	memcpy(buffer, str, length+1);
+	return buffer;
+}
+
 static PP_Bool
 pnacl_instance_create(PP_Instance instance, uint32_t argc, const char* argn[], const char* argv[]) {
 	//TODO: Cleanup this to avoid memory allocs
 	int iout = 0;
 	char** argarr = malloc(sizeof(char*) * argc * 2 + 1);
 	for (unsigned int iarg = 0; iarg < argc; ++iarg) {
-		argarr[iout++] = strdup(argn[iarg] ? argn[iarg] : "");
-		argarr[iout++] = strdup(argv[iarg] ? argv[iarg] : "");
+		argarr[iout++] = pnacl_strdup(argn[iarg] ? argn[iarg] : "");
+		argarr[iout++] = pnacl_strdup(argv[iarg] ? argv[iarg] : "");
 	}
 	argarr[iout] = 0;
 

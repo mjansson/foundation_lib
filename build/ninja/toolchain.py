@@ -211,7 +211,7 @@ class Toolchain(object):
     if target.is_tizen():
       self.build_tizen_toolchain()
 
-    if target.is_windows():
+    if target.is_windows() and self.toolchain.startswith('ms'):
       self.build_msvc_toolchain()
 
     # TODO: Add dependent lib search

@@ -109,9 +109,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 
-#  ifdef __STRICT_ANSI__
+/*#  ifdef __STRICT_ANSI__
 #    undef __STRICT_ANSI__
-#  endif
+#  endif*/
 
 // Android
 #elif defined( __ANDROID__ )
@@ -675,9 +675,15 @@ thread local storage to ensure maximum portability across supported platforms */
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
+#    ifndef __MSVCRT_VERSION__
+#      define __MSVCRT_VERSION__ 0x0800
+#    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
 #    if __has_warning("-Wunknown-pragmas")
 #      pragma clang diagnostic ignored "-Wunknown-pragmas"
+#    endif
+#    if __has_warning("-Wformat-non-iso")
+#      pragma clang diagnostic ignored "-Wformat-non-iso"
 #    endif
 #  endif
 
@@ -726,6 +732,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #    endif
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
+#    endif
+#    ifndef __MSVCRT_VERSION__
+#      define __MSVCRT_VERSION__ 0x0800
 #    endif
 #    pragma GCC diagnostic ignored "-Wformat"
 #    pragma GCC diagnostic ignored "-Wformat-extra-args"

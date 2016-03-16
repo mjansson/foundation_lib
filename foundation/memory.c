@@ -29,6 +29,10 @@
 #  include <stdlib.h>
 #endif
 
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG)
+#  include <malloc.h>
+#endif
+
 /*lint -e728 */
 static const memory_tracker_t _memory_no_tracker;
 static memory_system_t _memory_system;

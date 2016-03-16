@@ -67,7 +67,7 @@ __foundation_sync_bool_compare_and_swap_8(int64_t* val, int64_t oldval, int64_t 
 
 #endif
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC
 
 #include <foundation/windows.h>
 
