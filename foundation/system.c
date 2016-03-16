@@ -291,7 +291,7 @@ _system_user_locale(void) {
 				locale_data.buffer[2] = locale_data.buffer[3];
 				locale_data.buffer[3] = locale_data.buffer[4];
 				locale_data.buffer[4] = 0;
-				return *(uint32_t*)locale_data.value;
+				return locale_data.value;
 			}
 		}
 	}
