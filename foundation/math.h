@@ -680,7 +680,7 @@ static FOUNDATION_FORCEINLINE real     math_atan(real x) { return atan(x); }
 static FOUNDATION_FORCEINLINE real     math_atan2(real x, real y) { return atan2(x, y); }
 static FOUNDATION_FORCEINLINE real     math_sqrt(real x) { return sqrt(x); }
 #  if FOUNDATION_COMPILER_MSVC
-static FOUNDATION_FORCEINLINE real     math_rsqrt(real x) { return REAL_C(1.0) / sqrtf(x); }
+static FOUNDATION_FORCEINLINE real     math_rsqrt(real x) { return REAL_C(1.0) / sqrt(x); }
 #  else
 static FOUNDATION_FORCEINLINE real     math_rsqrt(real x) { return invsqrt(x); }
 #  endif
@@ -691,32 +691,7 @@ static FOUNDATION_FORCEINLINE real     math_pow(real x, real y) { return pow(x, 
 static FOUNDATION_FORCEINLINE real     math_logn(real x) { return log(x); }
 static FOUNDATION_FORCEINLINE int      math_floor(real x) { return (int)floor(x); }
 static FOUNDATION_FORCEINLINE int      math_ceil(real x) { return (int)ceil(x); }
-static FOUNDATION_FORCEINLINE int      math_round(real x) { return (int)(x + 0.5f); }
-static FOUNDATION_FORCEINLINE int      math_trunc(real x) { return (int)x; }
-static FOUNDATION_FORCEINLINE int64_t  math_floor64(real x) { return (int64_t)floor(x); }
-static FOUNDATION_FORCEINLINE int64_t  math_ceil64(real x) { return (int64_t)ceil(x); }
-
-#elif FOUNDATION_ARCH_X86
-
-_CRTIMP double  __cdecl ceil(_In_ double _X);
-
-static FOUNDATION_FORCEINLINE real     math_sin(real x) { return (real)sin(x); }
-static FOUNDATION_FORCEINLINE real     math_cos(real x) { return (real)cos(x); }
-static FOUNDATION_FORCEINLINE real     math_tan(real x) { return (real)tan(x); }
-static FOUNDATION_FORCEINLINE real     math_asin(real x) { return (real)asin(x); }
-static FOUNDATION_FORCEINLINE real     math_acos(real x) { return (real)acos(x); }
-static FOUNDATION_FORCEINLINE real     math_atan(real x) { return (real)atan(x); }
-static FOUNDATION_FORCEINLINE real     math_atan2(real x, real y) { return (real)atan2(x, y); }
-static FOUNDATION_FORCEINLINE real     math_sqrt(real x) { return (real)sqrt(x); }
-static FOUNDATION_FORCEINLINE real     math_rsqrt(real x) { return REAL_C(1.0) / (real)sqrt(x); }
-static FOUNDATION_FORCEINLINE real     math_abs(real x) { return (real)fabs(x); }
-static FOUNDATION_FORCEINLINE real     math_mod(real x, real y) { return (real)fmod(x, y); }
-static FOUNDATION_FORCEINLINE real     math_exp(real x) { return (real)exp(x); }
-static FOUNDATION_FORCEINLINE real     math_pow(real x, real y) { return (real)pow(x, y); }
-static FOUNDATION_FORCEINLINE real     math_logn(real x) { return (real)log(x); }
-static FOUNDATION_FORCEINLINE int      math_floor(real x) { return (int)floor(x); }
-static FOUNDATION_FORCEINLINE int      math_ceil(real x) { return (int)ceil(x); }
-static FOUNDATION_FORCEINLINE int      math_round(real x) { return (int)(x + 0.5f); }
+static FOUNDATION_FORCEINLINE int      math_round(real x) { return (int)(x + 0.5); }
 static FOUNDATION_FORCEINLINE int      math_trunc(real x) { return (int)x; }
 static FOUNDATION_FORCEINLINE int64_t  math_floor64(real x) { return (int64_t)floor(x); }
 static FOUNDATION_FORCEINLINE int64_t  math_ceil64(real x) { return (int64_t)ceil(x); }
