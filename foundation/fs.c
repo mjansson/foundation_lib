@@ -288,8 +288,8 @@ fs_is_file(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -354,8 +354,8 @@ fs_is_directory(const char* path, size_t length) {
 	if (!fs)
 		return false;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -457,8 +457,8 @@ fs_subdirs(const char* path, size_t length) {
 	if (!fs)
 		return arr;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -564,8 +564,8 @@ fs_files(const char* path, size_t length) {
 	if (!fs)
 		return arr;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -634,8 +634,8 @@ fs_remove_file(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -713,8 +713,8 @@ fs_remove_directory(const char* path, size_t length) {
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -747,8 +747,8 @@ fs_make_directory(const char* path, size_t length) {
 	if (!fs)
 		return false;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -923,8 +923,8 @@ fs_last_modified(const char* path, size_t length) {
 	string_const_t pathstr = _fs_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
-		char buffer[BUILD_MAX_PATHLEN+1];
-		string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+		char buffer[BUILD_MAX_PATHLEN + 1];
+		string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 		if (finalpath.str[0] != '/') {
 			*(--finalpath.str) = '/';
 			finalpath.length++;
@@ -990,8 +990,8 @@ fs_touch(const char* path, size_t length) {
 	string_const_t pathstr = _fs_strip_protocol(path, length);
 	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
 	if (fs) {
-		char buffer[BUILD_MAX_PATHLEN+1];
-		string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+		char buffer[BUILD_MAX_PATHLEN + 1];
+		string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 		if (finalpath.str[0] != '/') {
 			*(--finalpath.str) = '/';
 			finalpath.length++;
@@ -1351,8 +1351,6 @@ _fs_monitor(void* monitorptr) {
 					wchar_t term = info->FileName[ numchars ];
 					string_t utfstr;
 					string_t fullpath;
-					foundation_event_id fsevent = FOUNDATIONEVENT_FILE_MODIFIED;
-					bool post_event = false;
 
 					info->FileName[ numchars ] = 0;
 					utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
@@ -1363,14 +1361,13 @@ _fs_monitor(void* monitorptr) {
 						//Ignore directory changes
 					}
 					else {
+						foundation_event_id fsevent = FOUNDATIONEVENT_NOEVENT;
 						switch (info->Action) {
 						case FILE_ACTION_ADDED:     fsevent = FOUNDATIONEVENT_FILE_CREATED; break;
 						case FILE_ACTION_REMOVED:   fsevent = FOUNDATIONEVENT_FILE_DELETED; break;
 						case FILE_ACTION_MODIFIED:
-							if (fs_is_file(STRING_ARGS(fullpath))) {
+							if (fs_is_file(STRING_ARGS(fullpath)))
 								fsevent = FOUNDATIONEVENT_FILE_MODIFIED;
-								post_event = true;
-							}
 							break;
 
 						//Treat rename as delete/add pair
@@ -1380,7 +1377,7 @@ _fs_monitor(void* monitorptr) {
 						default: break;
 						}
 
-						if (post_event)
+						if (fsevent)
 							fs_post_event(fsevent, STRING_ARGS(fullpath));
 					}
 					string_deallocate(utfstr.str);
@@ -1388,7 +1385,8 @@ _fs_monitor(void* monitorptr) {
 
 					info->FileName[ numchars ] = term;
 
-					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info, info->NextEntryOffset)) : 0;
+					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info,
+					                                                          info->NextEntryOffset)) : 0;
 				}
 				while (info);
 			}
@@ -1517,8 +1515,8 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 	if (!fs)
 		return 0;
 
-	char buffer[BUILD_MAX_PATHLEN+1];
-	string_t finalpath = string_copy(buffer+1, sizeof(buffer)-1, STRING_ARGS(localpath));
+	char buffer[BUILD_MAX_PATHLEN + 1];
+	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
 	if (finalpath.str[0] != '/') {
 		*(--finalpath.str) = '/';
 		finalpath.length++;
@@ -1668,12 +1666,12 @@ _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	if (direction == STREAM_SEEK_BEGIN)
 		file->position = offset > 0 ? (size_t)offset : 0;
 	else if (direction == STREAM_SEEK_END)
-		file->position = file->size - (offset < 0 ? (size_t)-offset : 0);
+		file->position = file->size - (offset < 0 ? (size_t) - offset : 0);
 	else {
 		if (offset > 0)
 			file->position += (size_t)offset;
 		else
-			file->position -= (size_t)-offset;
+			file->position -= (size_t) - offset;
 	}
 	if (file->position > file->size) {
 		if (((stream->mode & STREAM_OUT) != 0) &&

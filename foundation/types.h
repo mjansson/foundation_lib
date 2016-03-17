@@ -242,8 +242,10 @@ valid in conjunction with foundation event streams. Other event streams will use
 their own event identifiers with the same value, and event streams should be treated
 as separate "namespaces" for event identifiers. */
 typedef enum {
+	/*! Not an event, used a sentinel to denote no event */
+	FOUNDATIONEVENT_NOEVENT = 0,
 	/*! Application has been asked to start */
-	FOUNDATIONEVENT_START = 1,
+	FOUNDATIONEVENT_START,
 	/*! Application has been asked to terminate */
 	FOUNDATIONEVENT_TERMINATE,
 	/*! Application has been asked to pause */
