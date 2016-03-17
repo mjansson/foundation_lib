@@ -65,7 +65,7 @@ beacon_initialize(beacon_t* beacon) {
 	EV_SET(&changes, beacon->all[0], EVFILT_READ, EV_ADD, 0, 0, nullptr);
 	kevent(beacon->kq, &changes, 1, 0, 0, 0);
 	beacon->count = 1;
-#elif FOUNDATION_PLATFORM_PNACL
+#else
 	beacon->mutex = mutex_allocate(STRING_CONST("beacon"));
 #endif
 }
@@ -81,7 +81,7 @@ beacon_finalize(beacon_t* beacon) {
 	close(beacon->kq);
 	close(beacon->all[0]);
 	close(beacon->writefd);
-#elif FOUNDATION_PLATFORM_PNACL
+#else
 	mutex_deallocate(beacon->mutex);
 #endif
 }
@@ -178,7 +178,7 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 		}
 		slot = -1;
 	}
-#elif FOUNDATION_PLATFORM_PNACL
+#else
 	bool got = false;
 	if (milliseconds != (unsigned int)-1)
 		got = mutex_try_wait(beacon->mutex, milliseconds);
@@ -208,7 +208,7 @@ beacon_fire(beacon_t* beacon) {
 		write(beacon->writefd, &data, 1);
 		atomic_cas32(&beacon->fired, BEACON_FIRE_DONE, BEACON_FIRE_PENDING);
 	}
-#elif FOUNDATION_PLATFORM_PNACL
+#else
 	mutex_signal(beacon->mutex);
 #endif
 }
