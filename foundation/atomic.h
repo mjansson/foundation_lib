@@ -187,7 +187,7 @@ atomic_thread_fence_sequentially_consistent(void);
 
 // Implementations
 
-#if FOUNDATION_ARCH_MIPS || (FOUNDATION_PLATFORM_LINUX_RASPBERRYPI && FOUNDATION_COMPILER_GCC && (FOUNDATIN_GCC_VERSION <= 40800))
+#if FOUNDATION_ARCH_MIPS || (FOUNDATION_PLATFORM_LINUX_RASPBERRYPI && FOUNDATION_COMPILER_GCC && (FOUNDATION_GCC_VERSION <= 40800))
 #  define FOUNDATION_MUTEX_64BIT_ATOMIC 1
 FOUNDATION_API int64_t __foundation_sync_fetch_and_add_8(int64_t* val, int64_t add);
 FOUNDATION_API int64_t __foundation_sync_add_and_fetch_8(int64_t* val, int64_t add);

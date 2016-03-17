@@ -260,6 +260,10 @@ DECLARE_TEST(crash, crash_guard) {
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
 		return 0; //Don't do crash tests with debugger attached
 
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_GCC
+	return 0; //We do not correctly return from guard on Windows with GCC
+#endif
+
 	_crash_callback_called = false;
 	log_enable_stdout(false);
 	crash_result = crash_guard(instant_crash, 0, test_crash_callback, STRING_CONST("instant_crash"));
@@ -275,6 +279,10 @@ DECLARE_TEST(crash, crash_thread) {
 
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
 		return 0; //Don't do crash tests with debugger attached
+
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_GCC
+	return 0; //We do not correctly return from guard on Windows with GCC
+#endif
 
 	_crash_callback_called = false;
 	crash_guard_set(test_crash_callback, STRING_CONST("thread_crash"));

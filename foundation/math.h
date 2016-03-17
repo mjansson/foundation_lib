@@ -798,28 +798,27 @@ static FOUNDATION_FORCEINLINE int64_t  math_ceil64(real x) { return (int64_t)cei
 
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
-static FOUNDATION_FORCEINLINE real     math_sin(real x) { return (real)__builtin_sin(x); }
-static FOUNDATION_FORCEINLINE real     math_cos(real x) { return (real)__builtin_cos(x); }
-static FOUNDATION_FORCEINLINE real     math_tan(real x) { return (real)__builtin_tan(x); }
-static FOUNDATION_FORCEINLINE real     math_asin(real x) { return (real)__builtin_asin(x); }
-static FOUNDATION_FORCEINLINE real     math_acos(real x) { return (real)__builtin_acos(x); }
-static FOUNDATION_FORCEINLINE real     math_atan(real x) { return (real)__builtin_atan(x); }
-static FOUNDATION_FORCEINLINE real     math_atan2(real x, real y) { return (real)__builtin_atan2(x, y); }
-static FOUNDATION_FORCEINLINE real     math_sqrt(real x) { return (real)__builtin_sqrt(x); }
-static FOUNDATION_FORCEINLINE real     math_rsqrt(real x) { return (real)(REAL_C(1.0) / __builtin_sqrt(x)); }
-static FOUNDATION_FORCEINLINE real     math_abs(real x) { return (real)__builtin_fabs(x); }
-static FOUNDATION_FORCEINLINE real     math_mod(real x, real y) { return (real)__builtin_fmod(x, y); }
-static FOUNDATION_FORCEINLINE real     math_exp(real x) { return (real)__builtin_exp(x); }
-static FOUNDATION_FORCEINLINE real     math_pow(real x, real y) { return (real)__builtin_pow(x, y); }
-static FOUNDATION_FORCEINLINE real     math_logn(real x) { return (real)__builtin_log(x); }
-
 #if FOUNDATION_SIZE_REAL == 8
 
+static FOUNDATION_FORCEINLINE real     math_sin(real x) { return __builtin_sin(x); }
+static FOUNDATION_FORCEINLINE real     math_cos(real x) { return __builtin_cos(x); }
+static FOUNDATION_FORCEINLINE real     math_tan(real x) { return __builtin_tan(x); }
+static FOUNDATION_FORCEINLINE real     math_asin(real x) { return __builtin_asin(x); }
+static FOUNDATION_FORCEINLINE real     math_acos(real x) { return __builtin_acos(x); }
+static FOUNDATION_FORCEINLINE real     math_atan(real x) { return __builtin_atan(x); }
+static FOUNDATION_FORCEINLINE real     math_atan2(real x, real y) { return __builtin_atan2(x, y); }
+static FOUNDATION_FORCEINLINE real     math_sqrt(real x) { return __builtin_sqrt(x); }
+static FOUNDATION_FORCEINLINE real     math_rsqrt(real x) { return (REAL_C(1.0) / __builtin_sqrt(x)); }
+static FOUNDATION_FORCEINLINE real     math_abs(real x) { return __builtin_fabs(x); }
+static FOUNDATION_FORCEINLINE real     math_mod(real x, real y) { return __builtin_fmod(x, y); }
+static FOUNDATION_FORCEINLINE real     math_exp(real x) { return __builtin_exp(x); }
+static FOUNDATION_FORCEINLINE real     math_pow(real x, real y) { return __builtin_pow(x, y); }
+static FOUNDATION_FORCEINLINE real     math_logn(real x) { return __builtin_log(x); }
 static FOUNDATION_FORCEINLINE int      math_floor(real x) { return (int)__builtin_floor(x); }
 static FOUNDATION_FORCEINLINE int      math_ceil(real x) { return (int)__builtin_ceil(x); }
 static FOUNDATION_FORCEINLINE int64_t  math_floor64(real x) { return (int64_t)__builtin_floor(x); }
 static FOUNDATION_FORCEINLINE int64_t  math_ceil64(real x) { return (int64_t)__builtin_ceil(x); }
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_APPLE
 static FOUNDATION_FORCEINLINE int      math_round(real x) { return (int)(x + 0.5); }
 static FOUNDATION_FORCEINLINE int      math_trunc(real x) { return (int)(x); }
 #else
@@ -829,11 +828,25 @@ static FOUNDATION_FORCEINLINE int      math_trunc(real x) { return (int)__builti
 
 #else
 
+static FOUNDATION_FORCEINLINE real     math_sin(real x) { return __builtin_sinf(x); }
+static FOUNDATION_FORCEINLINE real     math_cos(real x) { return __builtin_cosf(x); }
+static FOUNDATION_FORCEINLINE real     math_tan(real x) { return __builtin_tanf(x); }
+static FOUNDATION_FORCEINLINE real     math_asin(real x) { return __builtin_asinf(x); }
+static FOUNDATION_FORCEINLINE real     math_acos(real x) { return __builtin_acosf(x); }
+static FOUNDATION_FORCEINLINE real     math_atan(real x) { return __builtin_atanf(x); }
+static FOUNDATION_FORCEINLINE real     math_atan2(real x, real y) { return __builtin_atan2f(x, y); }
+static FOUNDATION_FORCEINLINE real     math_sqrt(real x) { return __builtin_sqrtf(x); }
+static FOUNDATION_FORCEINLINE real     math_rsqrt(real x) { return (REAL_C(1.0) / __builtin_sqrtf(x)); }
+static FOUNDATION_FORCEINLINE real     math_abs(real x) { return __builtin_fabsf(x); }
+static FOUNDATION_FORCEINLINE real     math_mod(real x, real y) { return __builtin_fmodf(x, y); }
+static FOUNDATION_FORCEINLINE real     math_exp(real x) { return __builtin_expf(x); }
+static FOUNDATION_FORCEINLINE real     math_pow(real x, real y) { return __builtin_powf(x, y); }
+static FOUNDATION_FORCEINLINE real     math_logn(real x) { return __builtin_logf(x); }
 static FOUNDATION_FORCEINLINE int      math_ceil(real x) { return (int)__builtin_ceilf(x); }
 static FOUNDATION_FORCEINLINE int      math_floor(real x) { return (int)__builtin_floorf(x); }
-static FOUNDATION_FORCEINLINE int64_t  math_ceil64(real x) { return (int64_t)__builtin_ceil(x); }
-static FOUNDATION_FORCEINLINE int64_t  math_floor64(real x) { return (int64_t)__builtin_floor(x); }
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_WINDOWS
+static FOUNDATION_FORCEINLINE int64_t  math_ceil64(real x) { return (int64_t)__builtin_ceilf(x); }
+static FOUNDATION_FORCEINLINE int64_t  math_floor64(real x) { return (int64_t)__builtin_floorf(x); }
+#if FOUNDATION_PLATFORM_APPLE
 static FOUNDATION_FORCEINLINE int      math_round(real x) { return (int)(x + 0.5f); }
 static FOUNDATION_FORCEINLINE int      math_trunc(real x) { return (int)(x); }
 #else

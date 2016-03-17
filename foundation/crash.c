@@ -113,27 +113,26 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t n
 	*capacity = 0;
 }
 
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#  if FOUNDATION_COMPILER_GCC
 
 struct crash_exception_closure_t {
-	crash_dump_callback_fn      callback;
-	string_const_t              name;
+	crash_dump_callback_fn callback;
+	string_const_t         name;
+	bool                   triggered;
 };
 
 typedef struct crash_exception_closure_t crash_exception_closure_t;
 
-//TODO: Set per-thread
-static crash_exception_closure_t _crash_exception_closure;
+static FOUNDATION_THREADLOCAL crash_exception_closure_t _crash_exception_closure;
 
 static LONG WINAPI
 _crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
 	char dump_file_buffer[MAX_PATH];
 	size_t dump_file_len = sizeof(dump_file_buffer);
+	_crash_exception_closure.triggered = true;
 	_crash_create_mini_dump(pointers, STRING_ARGS(_crash_exception_closure.name), dump_file_buffer, &dump_file_len);
 	if (_crash_exception_closure.callback)
 		_crash_exception_closure.callback(dump_file_buffer, dump_file_len);
-	else
-		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"), (int)dump_file_len, dump_file_buffer);
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -212,7 +211,7 @@ _crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
 int
 crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
             size_t length) {
-#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG)
 	int ret;
 	char buffer[MAX_PATH];
 	size_t capacity = sizeof(buffer);
@@ -223,7 +222,10 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL// || FOUNDATION_COMPILER_CLANG
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
+#    if FOUNDATION_COMPILER_CLANG
+#      pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#    endif
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
@@ -240,7 +242,13 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 	SetUnhandledExceptionFilter(_crash_exception_filter);
 	_crash_exception_closure.callback = callback;
 	_crash_exception_closure.name = string_const(name, length);
-	return fn(data);
+	_crash_exception_closure.triggered = false;
+	int ret = fn(data);
+	if (_crash_exception_closure.triggered) {
+		ret = FOUNDATION_CRASH_DUMP_GENERATED;
+		error_context_clear();
+	}
+	return ret;
 #  endif
 
 #elif FOUNDATION_PLATFORM_POSIX

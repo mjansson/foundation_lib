@@ -86,4 +86,4 @@ static_hash(const void* key, size_t len, hash_t value) {
 #endif
 
 /*! Hash of an empty/null string (length 0) */
-#define HASH_EMPTY_STRING 0xC2D00F032E25E509LL
+#define HASH_EMPTY_STRING 0xC2D00F032E25E509ULL

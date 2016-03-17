@@ -18,7 +18,7 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
 #    define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #    define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 #  endif

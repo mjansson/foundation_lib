@@ -645,6 +645,7 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #  define FOUNDATION_COMPILER_NAME "clang"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING(__clang_major__) "." FOUNDATION_PREPROCESSOR_TOSTRING(__clang_minor__)
+#  define FOUNDATION_CLANG_VERSION (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
 
 #  define FOUNDATION_RESTRICT __restrict
 #  define FOUNDATION_THREADLOCAL _Thread_local
@@ -702,7 +703,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_COMPILER_NAME "gcc"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING(__GNUC__) "." FOUNDATION_PREPROCESSOR_TOSTRING(__GNUC_MINOR__)
 
-#  define FOUNDATIN_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#  define FOUNDATION_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #  define FOUNDATION_RESTRICT __restrict
 #  define FOUNDATION_THREADLOCAL __thread
@@ -1201,6 +1202,7 @@ uint512_is_null(const uint512_t u0) {
 #define PRIhash        PRIx64
 
 #if FOUNDATION_SIZE_REAL == 8
+#error foo
 #  define PRIreal      "lf"
 #else
 #  define PRIreal      "f"
@@ -1214,9 +1216,9 @@ uint512_is_null(const uint512_t u0) {
 #  endif
 #else
 #  if FOUNDATION_SIZE_POINTER == 8
-#    define PRIfixPTR  "016" PRIXPTR
+#    define PRIfixPTR  "016" PRIX64
 #  else
-#    define PRIfixPTR  "08" PRIXPTR
+#    define PRIfixPTR  "08X"
 #  endif
 #endif
 

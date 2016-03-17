@@ -17,15 +17,14 @@
 #include <string.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
 #    define snprintf(p, s, ...) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #    define vsnprintf(s, n, format, arg) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
-#  endif
-#  define strncasecmp _strnicmp
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#  elif FOUNDATION_COMPILER_GCC
 _CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp (const char*, const char*, size_t);
 #    include <sys/types.h>
 #  endif
+#  define strncasecmp _strnicmp
 #elif FOUNDATION_PLATFORM_PNACL
 extern int strncasecmp (const char *__s1, const char *__s2, size_t __n)
      __THROW __attribute_pure__;
@@ -1522,9 +1521,9 @@ string_from_real(char* buffer, size_t capacity, real val, unsigned int precision
 		len = snprintf(buffer, capacity, "%.16lf", val);
 #else
 	if (precision)
-		len = snprintf(buffer, capacity, "%.*f", precision, val);
+		len = snprintf(buffer, capacity, "%.*f", precision, (double)val);
 	else
-		len = snprintf(buffer, capacity, "%.7f", val);
+		len = snprintf(buffer, capacity, "%.7f", (double)val);
 #endif
 
 	ulen = (unsigned int)len;
