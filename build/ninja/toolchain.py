@@ -211,7 +211,7 @@ class Toolchain(object):
     if target.is_tizen():
       self.build_tizen_toolchain()
 
-    if target.is_windows() and self.toolchain.startswith('ms'):
+    if target.is_windows() and not self.toolchain.startswith('gcc'):
       self.build_msvc_toolchain()
 
     # TODO: Add dependent lib search
@@ -347,6 +347,7 @@ class Toolchain(object):
 
       if target.is_windows():
         self.cflags += [ '-U__STRICT_ANSI__' ]
+        self.extralibs += [ 'kernel32', 'user32', 'shell32', 'advapi32' ]
 
       if host.is_macosx() and (target.is_macosx() or target.is_ios()):
         self.ios_organisation = os.getenv( 'ORGANISATION', self.ios_organisation )
@@ -1300,6 +1301,8 @@ class Toolchain(object):
   def make_libpaths( self, libpaths ):
     if self.is_msvc():
       return [ '/LIBPATH:' + self.path_escape(path) for path in libpaths ]
+    if self.is_clang() and self.target.is_windows():
+      return [ '-Xlinker /LIBPATH:' + self.path_escape(path) for path in libpaths ]
     return [ '-L' + self.path_escape(path) for path in libpaths ]
 
   def list_per_config( self, config_dicts, config ):

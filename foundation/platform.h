@@ -666,6 +666,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
+#    if (FOUNDATION_CLANG_VERSION < 30800)
+#      error CLang 3.8 or later is required
+#    endif
 #    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
