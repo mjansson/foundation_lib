@@ -189,7 +189,8 @@ pointers in both pointer arguments.
 \param length Length of source string
 \return Destination string in given buffer */
 FOUNDATION_API string_t
-string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src, size_t length);
+string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src,
+            size_t length);
 
 /*! Reallocate a string and fill with the given character. If the current buffer capacity
 is greater than the requested length the buffer is not reallocated. If the requested
@@ -558,7 +559,7 @@ string_equal_substr(const char* lhs, size_t lhs_length, size_t lhs_offset, const
 \return True if substrings are equal in [offset,length) range, false if not */
 FOUNDATION_API bool
 string_equal_substr_nocase(const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs,
-                    size_t rhs_length, size_t rhs_offset);
+                           size_t rhs_length, size_t rhs_offset);
 
 /*! Check if a string matches a given pattern using ? and * wildcards. For regular expression
 matching see the regex.h module.
@@ -1029,30 +1030,55 @@ string_thread_buffer(void);
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_null(void) {
-  return (string_const_t) { 0, 0 };
+#ifdef __cplusplus
+    const string_const_t s = {0, 0};
+    return s;
+#else	
+	return (string_const_t){0, 0};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_empty(void) {
-  return (string_const_t) { STRING_EMPTY, 0 };
+#ifdef __cplusplus
+    const string_const_t s = {STRING_EMPTY, 0};
+    return s;
+#else	
+	return (string_const_t){STRING_EMPTY, 0};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_t
 string(char* str, size_t length) {
-  return (string_t) { str, length };
+#ifdef __cplusplus
+    const string_t s = {str, length};
+    return s;
+#else	
+	return (string_t){str, length};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_const(const char* str, size_t length) {
-  return (string_const_t) { str, length };
+#ifdef __cplusplus
+    const string_const_t s = {str, length};
+    return s;
+#else	
+	return (string_const_t){str, length};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_to_const(string_t str) {
-  return (string_const_t) { str.str, str.length };
+#ifdef __cplusplus
+    const string_const_t s = {str.str, str.length};
+    return s;
+#else	
+	return (string_const_t){str.str, str.length};
+#endif
 }
 

@@ -1,17 +1,17 @@
 
 1.4.2
 
-Added a minimal in-place JSON parser.
-
-Support for building as a shared object (dynamic library).
-
-Support for Intel, clang and gcc compilers on Windows.
+Added a minimal in-place JSON parser. Also parses simplified JSON.
 
 Added implementation SHA-2 256 and 512 bit algorithms, including uint256_t and uint512_t
 representation data types with string conversions.
 
 Changed byte order representation of raw digest from md5_get_digest_raw to generate
 correct string representation using string_from_uint128.
+
+Support for building as a shared object (dynamic library).
+
+Support for Intel, clang and gcc compilers on Windows.
 
 Android build now requires NDK r11 and uses clang by default, with built in
 thread local storage support instead of old pthread api wrappers.

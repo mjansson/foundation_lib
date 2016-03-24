@@ -815,7 +815,18 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
 
+#  pragma warning(disable : 4054)
+#  pragma warning(disable : 4055)
+#  pragma warning(disable : 4127)
+#  pragma warning(disable : 4132)
 #  pragma warning(disable : 4200)
+#  pragma warning(disable : 4204)
+#  pragma warning(disable : 4706)
+#  ifdef __cplusplus
+#  pragma warning(disable : 4510)
+#  pragma warning(disable : 4512)
+#  pragma warning(disable : 4610)
+#  endif
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -1230,6 +1241,12 @@ uint512_is_null(const uint512_t u0) {
 #endif
 
 #include <foundation/build.h>
+
+#ifdef __cplusplus
+#  define FOUNDATION_FLEXIBLE_ARRAY 0
+#else
+#  define FOUNDATION_FLEXIBLE_ARRAY
+#endif
 
 /*!
 \def FOUNDATION_COMPILE

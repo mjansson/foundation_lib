@@ -155,8 +155,11 @@ uuid_generate_name(const uuid_t ns, const char* name, size_t length) {
 
 #include <stdio.h>
 
-#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG)
-#  define snprintf _snprintf
+#if FOUNDATION_PLATFORM_WINDOWS
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
+#    define snprintf(p, s, ...) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
+#    define sscanf sscanf_s
+#  endif
 #endif
 
 string_t

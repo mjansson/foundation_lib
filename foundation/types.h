@@ -995,7 +995,7 @@ struct error_context_t {
 	/*! Current depth of error context stack */
 	unsigned int depth;
 	/*! Error context stack */
-	error_frame_t frame[];
+	error_frame_t frame[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declares the base event data layout. Event structures should use the macro as first
@@ -1035,7 +1035,7 @@ struct event_t {
 	Object associated with event
 	*/
 	/*! Event data payload */
-	size_t payload[];
+	size_t payload[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Event block holding a number of events for processing. Block can be of a maximum
@@ -1070,7 +1070,7 @@ struct fs_event_payload_t {
 	/*! Length of path string */
 	size_t length;
 	/*! Path string */
-	const char str[];
+	const char str[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Single node in a hash map, mapping a single key to a single data value (pointer). */
@@ -1089,7 +1089,7 @@ struct hashmap_t {
 	size_t num_nodes;
 	/*! Bucket array, represented as an array of hashmap_node_t arrays, which will be
 	    dynamically allocated and reallocated to the required sizes. */
-	hashmap_node_t* bucket[];
+	hashmap_node_t* bucket[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declare an inlined hashmap of given size */
@@ -1128,7 +1128,7 @@ FOUNDATION_ALIGNED_STRUCT(hashtable32_t, 8) {
 	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
 	size_t capacity;
 	/*! Hash table storage as array of nodes where each node is a key-value pair. */
-	hashtable32_entry_t entries[];
+	hashtable32_entry_t entries[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Hash table, a lock free mapping of 64-bit values to 64-bit integer data. */
@@ -1136,7 +1136,7 @@ FOUNDATION_ALIGNED_STRUCT(hashtable64_t, 8) {
 	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
 	size_t capacity;
 	/*! Hash table storage as array of nodes where each node is a key-value pair. */
-	hashtable64_entry_t entries[];
+	hashtable64_entry_t entries[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Memory context stack */
@@ -1144,7 +1144,7 @@ struct memory_context_t {
 	/*! Current depth of memory context stack */
 	unsigned int depth;
 	/*! Memory context stack */
-	hash_t context[];
+	hash_t context[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declares the base object data layout. Object structures should be 8-byte align for
@@ -1198,7 +1198,7 @@ FOUNDATION_ALIGNED_STRUCT(objectmap_t, 8) {
 	/*! Bitmask for ID */
 	uint64_t mask_id;
 	/*! Slot array */
-	void* map[];
+	void* map[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! State for a child process */
@@ -1261,7 +1261,7 @@ struct regex_t {
 	/*! Capacity of the code array (number of bytes) */
 	size_t code_allocated;
 	/*! Compiled regex code */
-	uint8_t code[];
+	uint8_t code[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declares the base ring buffer data layout. Use the macro as first declaration in
@@ -1278,7 +1278,7 @@ a ring buffer struct:
 	size_t  offset_read; \
 	size_t offset_write; \
 	size_t buffer_size; \
-	char buffer[]
+	char buffer[FOUNDATION_FLEXIBLE_ARRAY]
 
 /*! Ring buffer, a shared memory area wrapped to a circular buffer with one read
 and one get pointer. */
