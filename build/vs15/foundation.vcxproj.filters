@@ -52,6 +52,7 @@
     <ClInclude Include="..\..\foundation\bitbuffer.h" />
     <ClInclude Include="..\..\foundation\beacon.h" />
     <ClInclude Include="..\..\foundation\sha.h" />
+    <ClInclude Include="..\..\foundation\json.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -97,6 +98,7 @@
     <ClCompile Include="..\..\foundation\bitbuffer.c" />
     <ClCompile Include="..\..\foundation\beacon.c" />
     <ClCompile Include="..\..\foundation\sha.c" />
+    <ClCompile Include="..\..\foundation\json.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt" />

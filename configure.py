@@ -18,7 +18,7 @@ extrasources = []
 foundation_sources = [
   'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'beacon.c', 'bitbuffer.c', 'blowfish.c',
   'bufferstream.c', 'config.c', 'crash.c', 'environment.c', 'error.c', 'event.c', 'foundation.c', 'fs.c',
-  'hash.c', 'hashmap.c', 'hashtable.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
+  'hash.c', 'hashmap.c', 'hashtable.c', 'json.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'pnacl.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'sha.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
   'tizen.c', 'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
@@ -38,7 +38,7 @@ test_lib = generator.lib( module = 'test', basepath = 'test', sources = [ 'test.
 
 test_cases = [
   'app', 'array', 'atomic', 'base64', 'beacon', 'bitbuffer', 'blowfish', 'bufferstream', 'config', 'crash', 'environment',
-  'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'library', 'math', 'md5', 'mutex', 'objectmap',
+  'error', 'event', 'fs', 'hash', 'hashmap', 'hashtable', 'json', 'library', 'math', 'md5', 'mutex', 'objectmap',
   'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'sha', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'
 ]

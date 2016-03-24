@@ -202,6 +202,7 @@ extern int test_fs_run(void);
 extern int test_hash_run(void);
 extern int test_hashmap_run(void);
 extern int test_hashtable_run(void);
+extern int test_json_run(void);
 extern int test_library_run(void);
 extern int test_math_run(void);
 extern int test_md5_run(void);
@@ -317,6 +318,7 @@ main_run(void* main_arg) {
 		test_hash_run,
 		test_hashmap_run,
 		test_hashtable_run,
+		test_json_run,
 		test_library_run,
 		test_math_run,
 		test_md5_run,

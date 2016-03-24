@@ -808,7 +808,7 @@ class Toolchain(object):
                   version_path = query[1].split('REG_SZ')[-1].strip()
                   if not version_path == '':
                     msvc_sdkpath = base_path
-                    self.msvc_sdkversionpath = version_path + '.0'
+                    self.msvc_sdkversionpath = version_path
                     include_path = os.path.join( include_path, self.msvc_sdkversionpath )
           except subprocess.CalledProcessError as e:
             continue

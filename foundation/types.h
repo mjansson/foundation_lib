@@ -317,6 +317,20 @@ typedef enum {
 	DEVICEORIENTATION_FACEDOWN
 } device_orientation_t;
 
+/*! JSON token type */
+typedef enum {
+	/*! Invalid type */
+	JSON_UNDEFINED = 0,
+	/*! Object */
+	JSON_OBJECT,
+	/*! Array */
+	JSON_ARRAY,
+	/*! String */
+	JSON_STRING,
+	/*! Primitive */
+	JSON_PRIMITIVE
+} json_type_t;
+
 /*! Memory hint, memory allocationis persistent (retained when function returns) */
 #define MEMORY_PERSISTENT       0
 /*! Memory hint, memory is temporary (extremely short lived and generally freed
@@ -529,6 +543,8 @@ of stream operations */
 typedef struct stream_vtable_t        stream_vtable_t;
 /*! Thread */
 typedef struct thread_t               thread_t;
+/*! JSON token */
+typedef struct json_token_t           json_token_t;
 /*! Version declaration */
 typedef union  version_t              version_t;
 /*! Library configuration block controlling limits, functionality and memory
@@ -1562,6 +1578,25 @@ struct stream_vtable_t {
 	stream_finalize_fn finalize;
 	/*! Function to clone the stream. */
 	stream_clone_fn clone;
+};
+
+/*! JSON token. The token points into the parsed data buffer using absolute offsets
+from start of buffer */
+struct json_token_t {
+	/*! Token type */
+    json_type_t type;
+    /*! Identifier string offset */
+    unsigned int id;
+    /*! Length of identifier string. 0 if no identifier string */
+    unsigned int id_length;
+    /*! Value string offset */
+    unsigned int value;
+    /*! Length of value string. 0 if no or empty value string */
+    unsigned int value_length;
+    /*! Child token index in token array. 0 if no child token */
+    unsigned int child;
+    /*! Sibling token index in token array. 0 if no sibling token */
+    unsigned int sibling;
 };
 
 #if FOUNDATION_COMPILER_CLANG

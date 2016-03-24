@@ -66,6 +66,7 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/bufferstream.h>
 #include <foundation/assetstream.h>
 #include <foundation/pipe.h>
+#include <foundation/json.h>
 
 #include <foundation/crash.h>
 #include <foundation/stacktrace.h>

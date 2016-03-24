@@ -1,6 +1,8 @@
 
 1.4.2
 
+Added a minimal in-place JSON parser.
+
 Support for building as a shared object (dynamic library).
 
 Support for Intel, clang and gcc compilers on Windows.
