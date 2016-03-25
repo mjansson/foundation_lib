@@ -975,7 +975,7 @@ class Toolchain(object):
         flags += '/Oy-'
     elif self.toolchain == 'gcc' or self.toolchain == 'clang':
       if arch == 'x86':
-        flags += ' -m32'
+        flags += ' -m32 -msse2 -mfpmath=sse'
       elif arch == 'x86-64':
         flags += ' -m64'
     return flags.strip()
