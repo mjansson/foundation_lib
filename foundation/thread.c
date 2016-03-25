@@ -469,10 +469,15 @@ thread_set_hardware(uint64_t mask) {
 	cpu_set_t set;
 	CPU_ZERO(&set);
 	for (ibit = 0, bsize = math_min(64, CPU_SETSIZE); ibit < bsize; ++ibit) {
-		if (mask & (1 << ibit))
+		if (mask & (1ULL << ibit))
 			CPU_SET(ibit, &set);
 	}
-	sched_setaffinity(0, sizeof(set), &set);
+	if (sched_setaffinity(0, sizeof(set), &set)) {
+		string_const_t errmsg = system_error_message(0);
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
+		          STRING_CONST("Unable to set thread affinity (%" PRIx64 "): %.*s"),
+		          mask, STRING_FORMAT(errmsg));
+	}
 #else
 	//TODO: Implement
 	FOUNDATION_UNUSED(mask);
