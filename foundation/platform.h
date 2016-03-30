@@ -842,10 +842,14 @@ thread local storage to ensure maximum portability across supported platforms */
 #  endif
 
 #  ifndef __cplusplus
+
 typedef enum {
 	false = 0,
 	true  = 1
 } bool;
+
+#define nullptr ((void*)0)
+
 #  endif
 
 #  if _MSC_VER < 1800
@@ -913,8 +917,6 @@ typedef enum {
 #if FOUNDATION_PLATFORM_PNACL || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
 #  include <sys/types.h>
 #endif
-
-#define nullptr ((void*)0)
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
