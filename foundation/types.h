@@ -1379,7 +1379,7 @@ struct beacon_t {
 	int all[8];
 	/*! Fired flag */
 	atomic32_t fired;
-#elif FOUNDATION_PLATFORM_PNACL
+#else
 	/*! Beacon mutex and event */
 	mutex_t* mutex;
 #endif
