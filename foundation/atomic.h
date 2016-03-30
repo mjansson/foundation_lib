@@ -52,7 +52,7 @@ atomic_load64(const atomic64_t* src);
 \param src   Value
 \return      Current value */
 static FOUNDATION_FORCEINLINE void*
-atomic_loadptr(atomicptr_t* src);
+atomic_load_ptr(atomicptr_t* src);
 
 /*! Atomically store 32 bit value
 \param dst   Target
@@ -70,7 +70,7 @@ atomic_store64(atomic64_t* dst, int64_t val);
 \param dst   Target
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
-atomic_storeptr(atomicptr_t* dst, void* val);
+atomic_store_ptr(atomicptr_t* dst, void* val);
 
 /*! Atomically add to the value of the 32 bit integer and returns its new value
 \param val   Value to change
@@ -230,7 +230,7 @@ atomic_load64(const atomic64_t* val) {
 }
 
 static FOUNDATION_FORCEINLINE void*
-atomic_loadptr(atomicptr_t* val) {
+atomic_load_ptr(atomicptr_t* val) {
 	return val->nonatomic;
 }
 
@@ -280,7 +280,7 @@ atomic_store64(atomic64_t* dst, int64_t val) {
 }
 
 static FOUNDATION_FORCEINLINE void
-atomic_storeptr(atomicptr_t* dst, void* val) {
+atomic_store_ptr(atomicptr_t* dst, void* val) {
 	dst->nonatomic = val;
 }
 
@@ -475,3 +475,7 @@ _atomic_thread_fence_sequentially_consistent(void);
 #  endif
 
 #endif
+
+//Old deprecated names
+#define atomic_loadptr atomic_load_ptr
+#define atomic_storeptr atomic_store_ptr
