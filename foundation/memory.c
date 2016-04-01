@@ -36,6 +36,7 @@
 /*lint -e728 */
 static const memory_tracker_t _memory_no_tracker;
 static memory_system_t _memory_system;
+static bool _memory_initialized;
 
 typedef FOUNDATION_ALIGN(8) struct {
 	void*               storage;
@@ -65,6 +66,7 @@ static memory_statistics_atomic_t _memory_stats;
 #if BUILD_ENABLE_MEMORY_TRACKER
 
 static memory_tracker_t _memory_tracker;
+static memory_tracker_t _memory_tracker_preinit;
 
 static void
 _memory_track(void* addr, size_t size);
@@ -87,9 +89,8 @@ _memory_untrack(void* addr);
 #endif
 
 static void
-_atomic_allocate_initialize(size_t storagesize) {
-	if (storagesize < 1024)
-		storagesize = _foundation_config.temporary_memory;
+_atomic_allocate_initialize() {
+	size_t storagesize = _foundation_config.temporary_memory;
 	if (!storagesize) {
 		memset(&_memory_temporary, 0, sizeof(_memory_temporary));
 		return;
@@ -98,7 +99,9 @@ _atomic_allocate_initialize(size_t storagesize) {
 	_memory_temporary.end       = pointer_offset(_memory_temporary.storage, storagesize);
 	_memory_temporary.size      = storagesize;
 	_memory_temporary.maxchunk  = (storagesize / 8);
-	atomic_storeptr(&_memory_temporary.head, _memory_temporary.storage);
+	//We must avoid using storage address or tracking will incorrectly match temporary allocation
+	//with the full temporary memory storage
+	atomic_storeptr(&_memory_temporary.head, pointer_offset(_memory_temporary.storage, 8));
 }
 
 static void
@@ -122,8 +125,9 @@ _atomic_allocate_linear(size_t chunksize) {
 		return_pointer = old_head;
 
 		if (new_head > _memory_temporary.end) {
-			new_head = pointer_offset(_memory_temporary.storage, chunksize);
-			return_pointer = _memory_temporary.storage;
+			//Avoid using raw storage pointer for tracking, see _atomic_allocate_initialize
+			return_pointer = pointer_offset(_memory_temporary.storage, 8);
+			new_head = pointer_offset(return_pointer, chunksize);
 		}
 	}
 	while (!atomic_cas_ptr(&_memory_temporary.head, new_head, old_head));
@@ -176,28 +180,30 @@ _memory_align_pointer(void* p, unsigned int align) {
 
 int
 _memory_initialize(const memory_system_t memory) {
+	int ret;
 	_memory_system = memory;
 	memset(&_memory_stats, 0, sizeof(_memory_stats));
-	return _memory_system.initialize();
+	ret = _memory_system.initialize();
+	if (ret == 0) {
+		_memory_initialized = true;
+		if (_memory_tracker_preinit.initialize)
+			memory_set_tracker(_memory_tracker_preinit);
+	}
+	return ret;
 }
 
 void
 _memory_preallocate(void) {
-	hash_t tracker;
-
-	if (!_memory_temporary.storage)
-		_atomic_allocate_initialize((size_t)config_int(HASH_FOUNDATION, HASH_TEMPORARY_MEMORY));
-
-	tracker = config_hash(HASH_FOUNDATION, HASH_MEMORY_TRACKER);
-	if (tracker == HASH_LOCAL)
-		memory_set_tracker(memory_tracker_local());
+	_atomic_allocate_initialize();
 }
 
 void
 _memory_finalize(void) {
-	memory_set_tracker(_memory_no_tracker);
+	_memory_tracker_preinit = _memory_tracker;
 	_atomic_allocate_finalize();
+	memory_set_tracker(_memory_no_tracker);
 	_memory_system.finalize();
+	_memory_initialized = false;
 }
 
 #if BUILD_ENABLE_MEMORY_GUARD
@@ -246,8 +252,12 @@ memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hi
 				memset(p, 0, (size_t)size);
 		}
 	}
-	if (!p)
-		p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
+	if (!p) {
+		if (size > 1024)
+			p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
+		else
+			p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
+	}
 	_memory_track(p, size);
 	return p;
 }
@@ -728,10 +738,15 @@ memory_set_tracker(memory_tracker_t tracker) {
 	if (old_tracker.finalize)
 		old_tracker.finalize();
 
-	if (tracker.initialize)
-		tracker.initialize();
+	if (_memory_initialized) {
+		if (tracker.initialize)
+			tracker.initialize();
 
-	_memory_tracker = tracker;
+		_memory_tracker = tracker;
+	}
+	else {
+		_memory_tracker_preinit = tracker;
+	}
 }
 
 #if BUILD_ENABLE_MEMORY_TRACKER
@@ -815,7 +830,8 @@ _memory_tracker_finalize(void) {
 static void
 _memory_tracker_track(void* addr, size_t size) {
 	if (addr) {
-		size_t limit = 0;
+		size_t limit = _foundation_config.memory_tracker_max * 2;
+		size_t loop = 0;
 		do {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			while (tag >= (int32_t)_foundation_config.memory_tracker_max) {
@@ -832,7 +848,10 @@ _memory_tracker_track(void* addr, size_t size) {
 				break;
 			}
 		}
-		while (limit++ < _foundation_config.memory_tracker_max*2);
+		while (++loop < limit);
+
+		//if (loop >= limit)
+		//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Unable to track allocation: 0x%" PRIfixPTR), (uintptr_t)addr);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		atomic_incr64(&_memory_stats.allocations_total);
@@ -846,34 +865,36 @@ _memory_tracker_track(void* addr, size_t size) {
 static void
 _memory_tracker_untrack(void* addr) {
 	int32_t tag = 0;
+	size_t size = 0;
 	if (addr) {
-		uintptr_t addrval = (uintptr_t)addr;
 		int32_t iend = atomic_load32(&_memory_tag_next);
 		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
-		for (; itag != iend;) {
+		while (true) {
 			void* tagaddr = atomic_loadptr(&_memory_tags[itag].address);
-			uintptr_t tagval = (uintptr_t)tagaddr;
-			if (tagval && (addrval >= tagval) && (addrval < (tagval + _memory_tags[itag].size))) {
+			if (addr == tagaddr) {
 				tag = itag + 1;
+				size = _memory_tags[itag].size;
 				break;
 			}
-			if (itag)
+			if (itag == iend)
+				break;
+			else if (itag)
 				--itag;
 			else
 				itag = (int32_t)_foundation_config.memory_tracker_max - 1;
 		}
 	}
-	if (tag) {
+	if (tag && size) {
 		--tag;
+		atomic_storeptr(&_memory_tags[tag].address, 0);
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		atomic_decr64(&_memory_stats.allocations_current);
-		atomic_add64(&_memory_stats.allocated_current, -(int64_t)_memory_tags[tag].size);
+		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
 #endif
-		atomic_storeptr(&_memory_tags[tag].address, 0);
 	}
-	/*else if (addr) {
-		log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
-	}*/
+	//else if (addr) {
+	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+	//}
 }
 
 #endif

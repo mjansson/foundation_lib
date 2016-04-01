@@ -106,12 +106,6 @@ _random_initialize(void);
 FOUNDATION_API void
 _random_finalize(void);
 
-FOUNDATION_API int
-_config_initialize(void);
-
-FOUNDATION_API void
-_config_finalize(void);
-
 FOUNDATION_API void
 _profile_thread_finalize(void);
 

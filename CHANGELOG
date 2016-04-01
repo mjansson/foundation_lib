@@ -6,6 +6,9 @@ Added a minimal in-place JSON parser. Also parses simplified JSON.
 Added implementation SHA-2 256 and 512 bit algorithms, including uint256_t and uint512_t
 representation data types with string conversions.
 
+Changed configuration module to use explicit given configuration storage. Changed config
+storage format to use simplified json.
+
 Changed byte order representation of raw digest from md5_get_digest_raw to generate
 correct string representation using string_from_uint128.
 

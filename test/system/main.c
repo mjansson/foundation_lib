@@ -19,7 +19,8 @@ test_system_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation system tests"));
 	app.short_name = string_const(STRING_CONST("test_system"));
-	app.config_dir = string_const(STRING_CONST("test_system"));
+	app.config_dir = string_const(STRING_CONST("test"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
 	return app;
@@ -156,15 +157,15 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_NE(system_locale_string(buffer, 2).str, 0);
 	EXPECT_EQ(system_locale_string(buffer, 2).length, 1);
 
-	config_set_string_constant(HASH_FOUNDATION, HASH_LOCALE, STRING_CONST("svSE"));
+	system_set_locale(LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_SWEDISH, COUNTRY_SWEDEN));
 	EXPECT_EQ_MSGFORMAT(system_language(), LANGUAGE_SWEDISH,
-	                    "config language change was not picked up: 0x%04x", system_language());
+	                    "language change was not picked up: 0x%04x", system_language());
 	EXPECT_EQ_MSGFORMAT(system_country(), COUNTRY_SWEDEN,
-	                    "config country change was not picked up: 0x%04x", system_country());
+	                    "country change was not picked up: 0x%04x", system_country());
 	EXPECT_EQ_MSGFORMAT(system_locale(), LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_SWEDISH, COUNTRY_SWEDEN),
-	                    "config locale change was not picked up: 0x%08x", system_locale());
+	                    "locale change was not picked up: 0x%08x", system_locale());
 	EXPECT_STRINGEQ_MSGFORMAT(system_locale_string(buffer, sizeof(buffer)),
-	                          string_const(STRING_CONST("svSE")), "config locale change was not picked up: %s", buffer);
+	                          string_const(STRING_CONST("svSE")), "locale change was not picked up: %s", buffer);
 
 	orientation = system_device_orientation();
 	system_set_device_orientation(DEVICEORIENTATION_PORTRAIT);

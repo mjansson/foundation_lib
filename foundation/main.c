@@ -35,13 +35,27 @@ _main_console_handler(DWORD control_type) {
 	bool handled = true;
 
 	switch (control_type) {
-	case CTRL_C_EVENT:         control_name = "CTRL_C"; post_terminate = true; break;
-	case CTRL_BREAK_EVENT:     control_name = "CTRL_BREAK"; break;
-	case CTRL_CLOSE_EVENT:     control_name = "CTRL_CLOSE"; post_terminate = true; break;
-	case CTRL_LOGOFF_EVENT:    control_name = "CTRL_LOGOFF";
-		post_terminate = !config_bool(HASH_APPLICATION, HASH_DAEMON); break;
-	case CTRL_SHUTDOWN_EVENT:  control_name = "CTRL_SHUTDOWN"; post_terminate = true; break;
-	default:                   handled = false; break;
+	case CTRL_C_EVENT:
+		control_name = "CTRL_C";
+		post_terminate = true;
+		break;
+	case CTRL_BREAK_EVENT:
+		control_name = "CTRL_BREAK";
+		break;
+	case CTRL_CLOSE_EVENT:
+		control_name = "CTRL_CLOSE";
+		post_terminate = true;
+		break;
+	case CTRL_LOGOFF_EVENT:
+		control_name = "CTRL_LOGOFF";
+		break;
+	case CTRL_SHUTDOWN_EVENT:
+		control_name = "CTRL_SHUTDOWN";
+		post_terminate = true;
+		break;
+	default:
+		handled = false;
+		break;
 	}
 	log_infof(0, STRING_CONST("Caught console control: %s (%lu)"), control_name, control_type);
 	if (post_terminate) {
@@ -93,10 +107,10 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 		string_const_t aname = app->short_name;
 		string_const_t vstr = string_from_version_static(app->version);
 		name = string_allocate_concat_varg(
-			aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
-			STRING_CONST("-"),
-			STRING_ARGS(vstr),
-			nullptr);
+		           aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
+		           STRING_CONST("-"),
+		           STRING_ARGS(vstr),
+		           nullptr);
 
 		if (app->dump_callback)
 			crash_guard_set(app->dump_callback, STRING_ARGS(name));

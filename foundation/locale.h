@@ -474,7 +474,7 @@ uppercase country characters, for example LOCALE_DEF('e','n','U','S')
 // Predefined standard locales
 
 /*! Predefined 'enUS' locale */
-#define LOCALE_EN_US     LOCALE_FROM_LANGUAGE_COUNTRY( LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES )
+#define LOCALE_EN_US     LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_ENGLISH, COUNTRY_UNITED_STATES)
 
 /*! Predefined default locale */
 #define LOCALE_DEFAULT   LOCALE_EN_US

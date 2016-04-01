@@ -79,12 +79,12 @@ skip_whitespace(const char* buffer, size_t length, size_t pos) {
 }
 
 static size_t
-parse_string(const char* buffer, size_t length, size_t pos, bool simple) {
+parse_string(const char* buffer, size_t length, size_t pos, bool key, bool simple) {
 	size_t start = pos;
 	size_t esc;
 	while (pos < length) {
 		char c = buffer[pos];
-		if (simple && (is_token_delimiter(c) || (c == '=') || (c == ':')))
+		if (simple && (is_token_delimiter(c) || (key && ((c == '=') || (c == ':')))))
 			return pos - start;
 		if (c == '"')
 			return pos - start;
@@ -166,6 +166,7 @@ parse_object(const char* buffer, size_t length, size_t pos,
              json_token_t* tokens, size_t capacity, unsigned int* current, bool simple) {
 	json_token_t* token;
 	size_t string;
+	bool simple_string;
 	unsigned int last = 0;
 
 	pos = skip_whitespace(buffer, length, pos);
@@ -194,10 +195,14 @@ parse_object(const char* buffer, size_t length, size_t pos,
 			if (c != '"') {
 				if (!simple)
 					return STRING_NPOS;
+				simple_string = true;
 				--pos;
 			}
+			else {
+				simple_string = false;
+			}
 
-			string = parse_string(buffer, length, pos, simple);
+			string = parse_string(buffer, length, pos, true, simple_string);
 			if (string == STRING_NPOS)
 				return STRING_NPOS;
 
@@ -214,7 +219,7 @@ parse_object(const char* buffer, size_t length, size_t pos,
 				return STRING_NPOS;
 			pos = parse_value(buffer, length, pos + 1, tokens, capacity, current, simple);
 			pos = skip_whitespace(buffer, length, pos);
-			if (simple && ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
+			if (simple_string && ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
 				if ((token = get_token(tokens, capacity, last)))
 					token->sibling = *current;
 				last = 0;
@@ -251,7 +256,7 @@ parse_array(const char* buffer, size_t length, size_t pos,
 			++pos;
 		else if (buffer[pos] == ']')
 			return ++pos;
-		else if (!simple)
+		else if (!simple || buffer[pos] == '}')
 			return STRING_NPOS;
 	}
 
@@ -262,6 +267,7 @@ static size_t
 parse_value(const char* buffer, size_t length, size_t pos,
             json_token_t* tokens, size_t capacity, unsigned int* current, bool simple) {
 	size_t string;
+	bool simple_string;
 
 	pos = skip_whitespace(buffer, length, pos);
 	while (pos < length) {
@@ -311,15 +317,19 @@ parse_value(const char* buffer, size_t length, size_t pos,
 			if (c != '"') {
 				if (!simple)
 					return STRING_NPOS;
+				simple_string = true;
 				--pos;
 			}
-			string = parse_string(buffer, length, pos, simple);
+			else {
+				simple_string = false;
+			}
+			string = parse_string(buffer, length, pos, false, simple_string);
 			if (string == STRING_NPOS)
 				return STRING_NPOS;
 			set_token_primitive(tokens, capacity, *current, JSON_STRING, pos, string);
 			++(*current);
 			//Skip terminating '"' (optional for simplified)
-			if (!simple || ((pos + string < length) && (buffer[pos + string] == '"')))
+			if (!simple_string || ((pos + string < length) && (buffer[pos + string] == '"')))
 				++string;
 			return pos + string;
 		}

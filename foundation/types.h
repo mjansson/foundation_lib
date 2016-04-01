@@ -331,6 +331,26 @@ typedef enum {
 	JSON_PRIMITIVE
 } json_type_t;
 
+/*! Configuration value type */
+typedef enum {
+	/*! Boolean */
+	CONFIGVALUE_BOOL = 0,
+	/*! Node */
+	CONFIGVALUE_NODE,
+	/*! 64-bit integer */
+	CONFIGVALUE_INT,
+	/*! Floating point value */
+	CONFIGVALUE_REAL,
+	/*! String */
+	CONFIGVALUE_STRING,
+	/*! Constant string */
+	CONFIGVALUE_STRING_CONST,
+	/*! String variable */
+	CONFIGVALUE_STRING_VAR,
+	/*! Constant string variable */
+	CONFIGVALUE_STRING_CONST_VAR
+} config_type_t;
+
 /*! Memory hint, memory allocationis persistent (retained when function returns) */
 #define MEMORY_PERSISTENT       0
 /*! Memory hint, memory is temporary (extremely short lived and generally freed
@@ -545,6 +565,8 @@ typedef struct stream_vtable_t        stream_vtable_t;
 typedef struct thread_t               thread_t;
 /*! JSON token */
 typedef struct json_token_t           json_token_t;
+/*! Configuration node */
+typedef struct config_node_t          config_node_t;
 /*! Version declaration */
 typedef union  version_t              version_t;
 /*! Library configuration block controlling limits, functionality and memory
@@ -783,7 +805,7 @@ struct foundation_config_t {
 	size_t memory_tracker_max;
 	/*! Maximum number of file system monitors. Zero for default (16) */
 	size_t fs_monitor_max;
-	/*! Size of temporary memory pool (short lived allocations). Zero for default (512KiB) */
+	/*! Size of temporary memory pool (short lived allocations). Zero for deafult (no temporary memory pool). */
 	size_t temporary_memory;
 	/*! Maximum depth of an error context. Zero for default (32) */
 	size_t error_context_depth;
@@ -927,7 +949,7 @@ union version_t {
 };
 
 /*! Application declaration. String pointers passed in this struct must be
-constant and valid for the entire life time and execution of the application. */
+constant and valid for the entire lifetime and execution of the application. */
 struct application_t {
 	/*! Long descriptive name */
 	string_const_t name;
@@ -935,6 +957,8 @@ struct application_t {
 	string_const_t short_name;
 	/*! Config directory name, must only contain characters valid in a file name */
 	string_const_t config_dir;
+	/*! Company  name, must only contain characters valid in a file name */
+	string_const_t company;
 	/*! Version declaration */
 	version_t version;
 	/*! Optional crash dump callback function */
@@ -1597,6 +1621,26 @@ struct json_token_t {
     unsigned int child;
     /*! Sibling token index in token array. 0 if no sibling token */
     unsigned int sibling;
+};
+
+/*! Configuration node */
+struct config_node_t {
+	/*! Node name */
+	hash_t name;
+	/*! Integer value representation */
+	int64_t ival;
+	/*! String value representation */
+	string_t sval;
+	/*! Expanded string value representation */
+	string_t expanded;
+	/*! Floating point value representation */
+	real rval;
+	/*! Subnodes */
+	config_node_t* nodes;
+	/*! Value type */
+	enum config_type_t type;
+	/*! Boolean value representation */
+	bool bval;
 };
 
 #if FOUNDATION_COMPILER_CLANG

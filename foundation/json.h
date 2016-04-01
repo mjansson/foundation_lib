@@ -18,12 +18,12 @@
 Small in-place JSON parser without any allocation. Entry points for both
 standard JSON and simplified JSON data parsing.
 
-Simplified JSON has the following differences from standard JSON:
+Simplified JSON as parsed by this library has the following differences
+from standard JSON:
 - The equal sign = is used to define key-value pairs instead of the colon :
 - Quotes around string keys in key-value pairs are optional, unless you need
-the key to contain either spaces or the equal sign = 
+the key to contain either spaces or the equal sign =
 - Commas are optional in object and array definitions
-- Comments are allowed, using the C and C++ commenting styles
 - Each SJSON file is always interpreted as a definition for a single object.
 You can think of this as an implicit set of curly quotes { ... } that surround
 the contents of the file */

@@ -213,6 +213,8 @@ test_set_suitable_working_directory(void) {
 
 int
 main_initialize(void) {
+	memory_set_tracker(memory_tracker_local());
+
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
 	test_suite = test_suite_define();

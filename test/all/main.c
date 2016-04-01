@@ -129,13 +129,15 @@ main_initialize(void) {
 	foundation_config_t config;
 	application_t application;
 	int ret;
+	
+	memory_set_tracker(memory_tracker_local());
 
 	memset(&config, 0, sizeof(config));
 #if BUILD_MONOLITHIC
 	//For fs monitor test
 	config.fs_monitor_max = 1;
-	//For temporary allocator test, 128KiB
-	config.temporary_memory = 128 * 1024;
+	//For temporary allocator test, 1024KiB
+	config.temporary_memory = 1024 * 1024;
 	//For testing static hash store
 	config.hash_store_size = 32 * 1024;
 	//Test preallocation of random state buffers
@@ -145,7 +147,8 @@ main_initialize(void) {
 	memset(&application, 0, sizeof(application));
 	application.name = string_const(STRING_CONST("Foundation library test suite"));
 	application.short_name = string_const(STRING_CONST("test_all"));
-	application.config_dir = string_const(STRING_CONST("test_all"));
+	application.config_dir = string_const(STRING_CONST("test"));
+	application.company = string_const(STRING_CONST("Rampant Pixels"));
 	application.version = foundation_version();
 	application.flags = APPLICATION_UTILITY;
 	application.dump_callback = test_crash_handler;

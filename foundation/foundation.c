@@ -47,28 +47,27 @@ static bool _foundation_initialized;
 static void
 foundation_initialize_config(const foundation_config_t config) {
 	_foundation_config.thread_max            = config.thread_max            ?
-	                                        config.thread_max            : 128;
+	                                           config.thread_max            : 128;
 	_foundation_config.library_max           = config.library_max           ?
-	                                        config.library_max           : 32;
+	                                           config.library_max           : 32;
 	_foundation_config.memory_tracker_max    = config.memory_tracker_max    ?
-	                                        config.memory_tracker_max    : (32 * 1024);
-	_foundation_config.temporary_memory      = config.temporary_memory      ?
-	                                        config.temporary_memory      : 0;
+	                                           config.memory_tracker_max    : (32 * 1024);
+	_foundation_config.temporary_memory      = config.temporary_memory;
 	_foundation_config.fs_monitor_max        = config.fs_monitor_max        ?
-	                                        config.fs_monitor_max        : 16;
+	                                           config.fs_monitor_max        : 16;
 	_foundation_config.error_context_depth   = config.error_context_depth   ?
-	                                        config.error_context_depth   : 32;
+	                                           config.error_context_depth   : 32;
 	_foundation_config.memory_context_depth  = config.memory_context_depth  ?
-	                                        config.memory_context_depth  : 32;
+	                                           config.memory_context_depth  : 32;
 	_foundation_config.stacktrace_depth      = config.stacktrace_depth      ?
-	                                        config.stacktrace_depth      : 32;
+	                                           config.stacktrace_depth      : 32;
 	_foundation_config.hash_store_size       = config.hash_store_size;
 	_foundation_config.event_block_chunk     = config.event_block_chunk     ?
-	                                        config.event_block_chunk     : (8 * 1024);
+	                                           config.event_block_chunk     : (8 * 1024);
 	_foundation_config.event_block_limit     = config.event_block_limit     ?
-	                                        config.event_block_limit     : (512 * 1024);
+	                                           config.event_block_limit     : (512 * 1024);
 	_foundation_config.thread_stack_size     = config.thread_stack_size     ?
-	                                        config.thread_stack_size     : 0x8000;
+	                                           config.thread_stack_size     : 0x8000;
 	_foundation_config.random_state_prealloc = config.random_state_prealloc;
 }
 
@@ -84,7 +83,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 		return 0;
 
 	process_set_exit_code(PROCESS_EXIT_SUCCESS);
-	
+
 	foundation_initialize_config(config);
 
 	/*lint -e774 */
@@ -101,7 +100,6 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	SUBSYSTEM_INIT_ARGS(environment, application);
 	SUBSYSTEM_INIT(library);
 	SUBSYSTEM_INIT(system);
-	SUBSYSTEM_INIT(config);
 
 	if (ret)
 		return ret;
@@ -117,9 +115,11 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 				log_set_suppress(0, ERRORLEVEL_NONE);
 			else if (string_equal(arg.str, arg.length, STRING_CONST("--log-info")))
 				log_set_suppress(0, ERRORLEVEL_DEBUG);
+			else if (string_equal(arg.str, arg.length, STRING_CONST("--log-warning")))
+				log_set_suppress(0, ERRORLEVEL_WARNING);
+			else if (string_equal(arg.str, arg.length, STRING_CONST("--log-error")))
+				log_set_suppress(0, ERRORLEVEL_ERROR);
 		}
-
-		config_parse_commandline(cmdline, array_size(cmdline));
 	}
 
 #if !BUILD_DYNAMIC_LINK
@@ -129,7 +129,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	android_main(0);
 #elif FOUNDATION_PLATFORM_PNACL
 	if (((uintptr_t)PPP_InitializeModule < 1) || ((uintptr_t)PPP_GetInterface < 1) ||
-	    ((uintptr_t)PPP_ShutdownModule < 1))
+	        ((uintptr_t)PPP_ShutdownModule < 1))
 		return -1;
 #else
 	if ((uintptr_t)main < 1)
@@ -153,7 +153,6 @@ foundation_finalize(void) {
 
 	profile_finalize();
 
-	_config_finalize();
 	_fs_finalize();
 	_stream_finalize();
 	_system_finalize();

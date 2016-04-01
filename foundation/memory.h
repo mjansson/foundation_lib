@@ -86,7 +86,9 @@ Called internally when a foundation thread is about to exit. */
 FOUNDATION_API void
 memory_context_thread_finalize(void);
 
-/*! Set the current memory tracker, see #memory_tracker_local for a default implementation
+/*! Set the current memory tracker, see #memory_tracker_local for a default implementation.
+This function can be called prior to library initialization, in which case the
+tracker will be set once the library is initialized.
 \param tracker New memory tracker declaration */
 FOUNDATION_API void
 memory_set_tracker(memory_tracker_t tracker);
