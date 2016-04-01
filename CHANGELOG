@@ -12,6 +12,9 @@ storage format to use simplified json.
 Changed byte order representation of raw digest from md5_get_digest_raw to generate
 correct string representation using string_from_uint128.
 
+Changed environment_home_directory to environment_application_directory and modify
+implementations to generate a application-specific path for persistent storage.
+
 Support for building as a shared object (dynamic library).
 
 Support for Intel, clang and gcc compilers on Windows.
