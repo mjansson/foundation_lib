@@ -426,9 +426,9 @@ environment_application_directory(void) {
 		if (_environment_app.company.length)
 			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
 			                      STRING_ARGS(_environment_app.company));
-		if (_environment_app.config_dir.length)
+		if (_environment_app.short_name.length)
 			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                      STRING_ARGS(_environment_app.config_dir));
+			                      STRING_ARGS(_environment_app.short_name));
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
 		memory_deallocate(pathbuf);
 	}
@@ -445,9 +445,9 @@ environment_application_directory(void) {
 		if (_environment_app.company.length)
 			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
 			                             STRING_CONST("/."), STRING_ARGS(_environment_app.company));
-		if (_environment_app.config_dir.length)
+		if (_environment_app.short_name.length)
 			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                             STRING_CONST("/."), STRING_ARGS(_environment_app.config_dir));
+			                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name));
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
 		memory_deallocate(pathbuf);
 	}
@@ -467,9 +467,9 @@ environment_application_directory(void) {
 			if (_environment_app.company.length)
 				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
 				                             STRING_CONST("/."), STRING_ARGS(_environment_app.company));
-			if (_environment_app.config_dir.length)
+			if (_environment_app.short_name.length)
 				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-				                             STRING_CONST("/."), STRING_ARGS(_environment_app.config_dir));
+				                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name));
 		}
 #  endif
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
@@ -543,15 +543,15 @@ environment_temporary_directory(void) {
 #endif
 
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
-	if (_environment_app.config_dir.length) {
+	if (_environment_app.short_name.length) {
 		size_t curlen = _environment_temp_dir.length;
-		size_t cfglen = _environment_app.config_dir.length;
+		size_t cfglen = _environment_app.short_name.length;
 		size_t totallen = curlen + cfglen + 40;
 		if (totallen < BUILD_MAX_PATHLEN) {
 			string_t modpath = string_allocate(0, totallen - 1);
 			string_const_t uuidstr = string_from_uuid_static(_environment_app.instance);
 			modpath = string_copy(modpath.str, totallen, STRING_ARGS(_environment_temp_dir));
-			modpath = path_append_varg(STRING_ARGS(modpath), totallen, STRING_ARGS(_environment_app.config_dir),
+			modpath = path_append_varg(STRING_ARGS(modpath), totallen, STRING_ARGS(_environment_app.short_name),
 			                           STRING_ARGS(uuidstr), nullptr);
 			string_deallocate(_environment_temp_dir.str);
 			_environment_temp_dir = modpath;

@@ -77,7 +77,6 @@ main_initialize(void) {
 	memset(&application, 0, sizeof(application));
 	application.name = string_const(STRING_CONST("hashify"));
 	application.short_name = string_const(STRING_CONST("hashify"));
-	application.config_dir = string_const(STRING_CONST("hashify"));
 	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix(false);

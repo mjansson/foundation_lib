@@ -19,7 +19,6 @@ test_system_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation system tests"));
 	app.short_name = string_const(STRING_CONST("test_system"));
-	app.config_dir = string_const(STRING_CONST("test"));
 	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;
@@ -155,7 +154,7 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_NE(system_locale_string(buffer, sizeof(buffer)).str, 0);
 	EXPECT_EQ(system_locale_string(buffer, sizeof(buffer)).length, 4);
 	EXPECT_NE(system_locale_string(buffer, 2).str, 0);
-	EXPECT_EQ(system_locale_string(buffer, 2).length, 1);
+	EXPECT_EQ(system_locale_string(buffer, 2).length, 2);
 
 	system_set_locale(LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_SWEDISH, COUNTRY_SWEDEN));
 	EXPECT_EQ_MSGFORMAT(system_language(), LANGUAGE_SWEDISH,

@@ -34,7 +34,6 @@ test_crash_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation crash tests"));
 	app.short_name = string_const(STRING_CONST("test_crash"));
-	app.config_dir = string_const(STRING_CONST("test"));
 	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
 	app.dump_callback = test_crash_handler;

@@ -175,64 +175,6 @@ should be key hash values denoting the key path, and should be terminated by a z
 FOUNDATION_API void
 config_set_string_constant(config_node_t* node, const char* value, size_t length, ...);
 
-/*! Load config values from a file/stream, optionally filtering by section. Look for
-config files in the following order in order to allow easy overloading of default values
-(for each directory, a platform subdirectory is also searched)
-<ul>
-<li>1) Executable directory (C:/path/bin/platform/build/exe)
-<li>2) Executable directory "config" subdirectory (C:/path/bin/platform/build/config)
-<li>3) Executable directory processed "config" subdirectory (C:/path/config)
-      This step is performed by identifying if the path contains
-      <ul>
-        <li>1) known directories (bin)
-        <li>2) a platform identifier (windows,macosx,ios,android,...)
-        <li>3) a build identifier (debug,release,profile,deploy)
-        <li>4) an arch identifier (x86,x86-64,arm7,...)
-      </ul>
-      and if so cleaning away these subdirectories. This allows you to have binaries
-      sorted on platform/build under a common "bin" directory, while placing configs
-      in a unified config directory outside the binary directory.
-
-For desktop builds (Windows, MacOSX, ...), if build is debug/release (i.e not deploy)
-<li>4) Initial working directory
-
-For Android development
-<li>5) Application asset manager config dir (/config)
-
-For iOS & MacOSX app development (non-bsdutil apps)
-<li>5) Application bundle config dir (/path/to/exe.app/Contents/Resources/config)
-
-Other platforms:
-<li>5)
-
-If built_in flag is false, the following directories are also searched, with
-[config_dir] being the application config_dir path set when initializing the library
-
-For desktop platforms (Windows, MacOSX, ...)
-<li>6) Current working directory (C:/current/dir)
-<li>7) Current working directory "config" subdirectory (C:/current/dir/config)
-<li>8) Command line --configdir directive (not in deploy builds)
-
-For Windows development, the user app directory
-<li>9) C:/Users/[username]/AppData/Local/.[config_dir]
-
-For Linux development, the user app directory
-<li>9) /home/[username]/.[config_dir]
-
-For MacOSX development, the user app directory
-<li>9) /Users/[username]/.[config_dir]
-</ul>
-\param node      Root node
-\param name      File/stream name (will be opened with stream_open)
-\param length    Length of stream name
-\param section   Optional filter, which will only load the section matching
-                 the given filter_section. Set to 0 to load all sections
-\param built_in  Flag indicating that only built-in config files should be loaded
-\param overwrite If false, only set new values. If true, allow setting values to
-                 existing section:key pairs */
-FOUNDATION_API void
-config_load(config_node_t* root, const char* name, size_t length, bool built_in, bool overwrite);
-
 /*! Parse config declarations from a stream
 \param node      Root node
 \param stream    Stream to read from (will read until EOS encountered)

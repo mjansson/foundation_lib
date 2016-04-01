@@ -252,257 +252,6 @@ _expand_string_val(config_node_t* root, config_node_t* parent, config_node_t* no
 	node->rval = is_true ? REAL_C(1.0) : _config_string_to_real(string_to_const(node->expanded));
 }
 
-static const string_const_t platformsuffix =
-#if FOUNDATION_PLATFORM_WINDOWS
-{ STRING_CONST("/windows") };
-#elif FOUNDATION_PLATFORM_MACOSX
-    { STRING_CONST("/macosx") };
-#elif FOUNDATION_PLATFORM_IOS
-    { STRING_CONST("/ios") };
-#elif FOUNDATION_PLATFORM_ANDROID
-    { STRING_CONST("/android") };
-#elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-    { STRING_CONST("/raspberrypi") };
-#elif FOUNDATION_PLATFORM_LINUX
-    { STRING_CONST("/linux") };
-#elif FOUNDATION_PLATFORM_PNACL
-    { STRING_CONST("/pnacl") };
-#elif FOUNDATION_PLATFORM_BSD
-    { STRING_CONST("/bsd") };
-#elif FOUNDATION_PLATFORM_TIZEN
-    { STRING_CONST("/tizen") };
-#else
-    { STRING_CONST("/unknown") };
-#endif
-
-#if !FOUNDATION_PLATFORM_PNACL
-
-static string_t
-config_unsuffix_path(string_t path) {
-	string_const_t archsuffix =
-#if FOUNDATION_ARCH_ARM8_64
-	(string_const_t) { STRING_CONST("/arm64") };
-#elif FOUNDATION_ARCH_ARM_64
-	(string_const_t) { STRING_CONST("/arm64") };
-#elif FOUNDATION_ARCH_ARM5
-	(string_const_t) { STRING_CONST("/arm5") };
-#elif FOUNDATION_ARCH_ARM6
-	(string_const_t) { STRING_CONST("/arm6") };
-#elif FOUNDATION_ARCH_ARM7
-	(string_const_t) { STRING_CONST("/arm7") };
-#elif FOUNDATION_ARCH_ARM8
-	(string_const_t) { STRING_CONST("/arm8") };
-#elif FOUNDATION_ARCH_X86_64
-	(string_const_t) { STRING_CONST("/x86-64") };
-#elif FOUNDATION_ARCH_X86
-	(string_const_t) { STRING_CONST("/x86") };
-#elif FOUNDATION_ARCH_PPC_64
-	(string_const_t) { STRING_CONST("/ppc64") };
-#elif FOUNDATION_ARCH_PPC
-	(string_const_t) { STRING_CONST("/ppc") };
-#elif FOUNDATION_ARCH_IA64
-	(string_const_t) { STRING_CONST("/ia64") };
-#elif FOUNDATION_ARCH_MIPS_64
-	(string_const_t) { STRING_CONST("/mips64") };
-#elif FOUNDATION_ARCH_MIPS
-	(string_const_t) { STRING_CONST("/mips") };
-#else
-	(string_const_t) { STRING_CONST("/generic") };
-#endif
-	string_const_t buildsuffix =
-#if BUILD_DEBUG
-	(string_const_t) { STRING_CONST("/debug") };
-#elif BUILD_RELEASE
-	(string_const_t) { STRING_CONST("/release") };
-#elif BUILD_PROFILE
-	(string_const_t) { STRING_CONST("/profile") };
-#else
-	(string_const_t) { STRING_CONST("/deploy") };
-#endif
-	string_const_t binsuffix =
-	(string_const_t) { STRING_CONST("/bin") };
-
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(archsuffix))) {
-		path.length = path.length - archsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(buildsuffix))) {
-		path.length = path.length - buildsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(platformsuffix))) {
-		path.length = path.length - platformsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(binsuffix))) {
-		path.length = path.length - binsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	return path;
-}
-
-#endif
-
-static string_t
-config_make_path(int path, char* buffer, size_t capacity) {
-#if !FOUNDATION_PLATFORM_PNACL
-	string_t result;
-#endif
-	string_const_t env_dir;
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
-	const string_const_t* cmd_line;
-	size_t icl, clsize;
-#endif
-	switch (path) {
-	case 0:
-		env_dir = environment_executable_directory();
-		return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-
-	case 1:
-#if !FOUNDATION_PLATFORM_PNACL
-		env_dir = environment_executable_directory();
-		return path_concat(buffer, capacity, STRING_ARGS(env_dir), STRING_CONST("config"));
-#else
-		break;
-#endif
-
-	case 2:
-#if !FOUNDATION_PLATFORM_PNACL
-		env_dir = environment_executable_directory();
-		result = string_copy(buffer, capacity, STRING_ARGS(env_dir));
-		result = config_unsuffix_path(result);
-		if (result.length == env_dir.length)
-			return (string_t) {0, 0};
-		return path_append(STRING_ARGS(result), capacity, STRING_CONST("config"));
-#else
-		break;
-#endif
-
-	case 3:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
-		env_dir = environment_initial_working_directory();
-		return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-#else
-		break;
-#endif
-
-	case 4:
-#if FOUNDATION_PLATFORM_MACOSX
-		env_dir = environment_executable_directory();
-		result = string_copy(buffer, capacity, STRING_ARGS(env_dir));
-		result = path_append(STRING_ARGS(result), capacity, STRING_CONST("../Resources/config"));
-		return path_clean(STRING_ARGS(result), capacity);
-#elif FOUNDATION_PLATFORM_ANDROID
-		return string_copy(buffer, capacity, STRING_CONST("asset://config"));
-#else
-		break;
-#endif
-
-	case 5:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-		env_dir = environment_current_working_directory();
-		return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-#else
-		break;
-#endif
-
-	case 6:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-		env_dir = environment_current_working_directory();
-		result = string_copy(buffer, capacity, STRING_ARGS(env_dir));
-		return path_append(STRING_ARGS(result), capacity, STRING_CONST("config"));
-#else
-		break;
-#endif
-
-	case 7:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
-		cmd_line = environment_command_line();
-		env_dir = string_null();
-		/*lint -e{850} We modify loop var to skip extra arg */
-		for (icl = 0, clsize = array_size(cmd_line); icl < clsize; ++icl) {
-			/*lint -e{613} array_size( cmd_line ) in loop condition does the null pointer guard */
-			if (string_equal(STRING_ARGS(cmd_line[icl]), STRING_CONST("--configdir"))) {
-				if (string_equal(STRING_ARGS(cmd_line[icl]), STRING_CONST("--configdir="))) {
-					env_dir = string_substr(STRING_ARGS(cmd_line[icl]), 12, STRING_NPOS);
-					break;
-				}
-				else if (icl < (clsize - 1)) {
-					env_dir = cmd_line[++icl];
-					break;
-				}
-			}
-		}
-		if (env_dir.length)
-			return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-#endif
-		break;
-
-	case 8:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-		env_dir = environment_application_directory();
-		return string_concat_varg(buffer, capacity, STRING_ARGS(env_dir),
-		                          STRING_CONST("/."), STRING_ARGS(environment_application()->config_dir), nullptr);
-#else
-		break;
-#endif
-
-	default:
-		break;
-	}
-	return (string_t) { 0, 0 };
-}
-
-FOUNDATION_NOINLINE void
-config_load(config_node_t* root, const char* name, size_t length,
-            bool built_in, bool overwrite) {
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t pathname;
-	string_t filename;
-	stream_t* istream;
-	int start_path = 0;
-	int end_path = 6;
-	int ipath;
-
-	if (!built_in) {
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
-		start_path = 6;
-		end_path = 9;
-#else
-		return;
-#endif
-	}
-
-	for (ipath = start_path; ipath < end_path; ++ipath) {
-		pathname = config_make_path(ipath, buffer, sizeof(buffer));
-		if (!pathname.length)
-			continue;
-
-		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
-		filename = string_format(pathname.str + pathname.length, sizeof(buffer) - pathname.length,
-		                         STRING_CONST("/%.*s.ini"), (int)length, name);
-		filename.str = pathname.str;
-		filename.length += pathname.length;
-		istream = stream_open(STRING_ARGS(filename), STREAM_IN);
-		if (istream) {
-			config_parse(root, istream, overwrite);
-			stream_deallocate(istream);
-		}
-
-		if (built_in) {
-			filename = string_format(pathname.str + pathname.length, sizeof(buffer) - pathname.length,
-			                         STRING_CONST("%.*s/%.*s.ini"), STRING_FORMAT(platformsuffix), (int)length, name);
-			filename.str = pathname.str;
-			filename.length += pathname.length;
-			istream = stream_open(STRING_ARGS(filename), STREAM_IN);
-			if (istream) {
-				config_parse(root, istream, overwrite);
-				stream_deallocate(istream);
-			}
-		}
-	}
-}
-
 static FOUNDATION_NOINLINE config_node_t*
 _config_resolve_node(config_node_t** root, va_list path, bool create) {
 	hash_t key;
@@ -695,7 +444,8 @@ config_set_string_constant(config_node_t* root, const char* value, size_t length
 }
 
 static void
-_config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int current, char* buffer, bool overwrite) {
+_config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int current, char* buffer,
+                    bool overwrite) {
 	do {
 		json_token_t* token = tokens + current;
 		config_node_t* subnode;
@@ -732,7 +482,8 @@ _config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int curr
 			break;
 		}
 		current = token->sibling;
-	} while (current);
+	}
+	while (current);
 }
 
 bool
@@ -859,8 +610,8 @@ config_write(config_node_t* root, stream_t* stream, string_const_t (*map)(hash_t
 		case CONFIGVALUE_STRING_CONST:
 		case CONFIGVALUE_STRING_VAR:
 		case CONFIGVALUE_STRING_CONST_VAR:
-			if (string_find_first_of(STRING_ARGS(node->sval), 
-				STRING_CONST(STRING_WHITESPACE "=:[]{}\""), 0) != STRING_NPOS) {
+			if (string_find_first_of(STRING_ARGS(node->sval),
+			                         STRING_CONST(STRING_WHITESPACE "=:[]{}\""), 0) != STRING_NPOS) {
 				if (string_find(STRING_ARGS(node->sval), '"', 0) != STRING_NPOS) {
 
 				}

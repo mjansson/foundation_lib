@@ -955,9 +955,7 @@ struct application_t {
 	string_const_t name;
 	/*! Short name, must only contain [a-z][A-Z][-_.] */
 	string_const_t short_name;
-	/*! Config directory name, must only contain characters valid in a file name */
-	string_const_t config_dir;
-	/*! Company  name, must only contain characters valid in a file name */
+	/*! Optional company name, must only contain characters valid in a file name */
 	string_const_t company;
 	/*! Version declaration */
 	version_t version;

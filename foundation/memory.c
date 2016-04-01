@@ -186,8 +186,10 @@ _memory_initialize(const memory_system_t memory) {
 	ret = _memory_system.initialize();
 	if (ret == 0) {
 		_memory_initialized = true;
+#if BUILD_ENABLE_MEMORY_TRACKER
 		if (_memory_tracker_preinit.initialize)
 			memory_set_tracker(_memory_tracker_preinit);
+#endif
 	}
 	return ret;
 }
@@ -199,7 +201,9 @@ _memory_preallocate(void) {
 
 void
 _memory_finalize(void) {
+#if BUILD_ENABLE_MEMORY_TRACKER
 	_memory_tracker_preinit = _memory_tracker;
+#endif
 	_atomic_allocate_finalize();
 	memory_set_tracker(_memory_no_tracker);
 	_memory_system.finalize();
@@ -749,8 +753,6 @@ memory_set_tracker(memory_tracker_t tracker) {
 	}
 }
 
-#if BUILD_ENABLE_MEMORY_TRACKER
-
 static void
 _memory_track(void* addr, size_t size) {
 	if (_memory_tracker.track)
@@ -762,8 +764,6 @@ _memory_untrack(void* addr) {
 	if (_memory_tracker.untrack)
 		_memory_tracker.untrack(addr);
 }
-
-#endif
 
 struct memory_tag_t {
 	atomicptr_t   address;

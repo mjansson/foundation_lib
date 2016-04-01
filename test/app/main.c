@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-#define TEMPORARY_MEMORY_SIZE 1024 * 1024
+#define TEMPORARY_MEMORY_SIZE 256 * 1024
 
 static application_t _global_app;
 
@@ -21,7 +21,6 @@ static application_t
 test_app_application(void) {
 	_global_app.name = string_const(STRING_CONST("Foundation application tests"));
 	_global_app.short_name = string_const(STRING_CONST("test_app"));
-	_global_app.config_dir = string_const(STRING_CONST("test"));
 	_global_app.company = string_const(STRING_CONST("Rampant Pixels"));
 	_global_app.version = foundation_version();
 	_global_app.flags = APPLICATION_UTILITY;
@@ -55,8 +54,8 @@ DECLARE_TEST(app, environment) {
 	EXPECT_CONSTSTRINGEQ(environment_application()->name, _global_app.name);
 #if !BUILD_MONOLITHIC
 	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, _global_app.short_name);
-	EXPECT_CONSTSTRINGEQ(environment_application()->config_dir, _global_app.config_dir);
 #endif
+	EXPECT_CONSTSTRINGEQ(environment_application()->company, _global_app.company);
 	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
 	                          _global_app.version.version));
 	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);
