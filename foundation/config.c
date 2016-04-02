@@ -481,6 +481,8 @@ _config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int curr
 			if (overwrite || !config_node(node, id, HASH_NULL))
 				config_set_string(node, STRING_ARGS(value), id, HASH_NULL);
 			break;
+		default:
+			break;
 		}
 		current = token->sibling;
 	}
