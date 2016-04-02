@@ -848,8 +848,6 @@ typedef enum {
 	true  = 1
 } bool;
 
-#define nullptr ((void*)0)
-
 #  endif
 
 #  if _MSC_VER < 1800
@@ -916,6 +914,10 @@ typedef enum {
 #endif
 #if FOUNDATION_PLATFORM_PNACL || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
 #  include <sys/types.h>
+#endif
+
+#ifndef __cplusplus
+#  define nullptr ((void*)0)
 #endif
 
 #if FOUNDATION_COMPILER_CLANG

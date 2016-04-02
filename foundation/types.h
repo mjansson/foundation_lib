@@ -1120,7 +1120,7 @@ struct hashmap_t {
 	size_t num_nodes; \
 	hashmap_node_t* bucket[size]
 
-/*! Hashmap of default size. Initialize with a call to 
+/*! Hashmap of default size. Initialize with a call to
 <code>hashmap_fixed_t map;
 hashmap_initialize((hashmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
 struct hashmap_fixed_t {
@@ -1414,7 +1414,7 @@ struct thread_t {
 	/*! Thread priority */
 	thread_priority_t priority;
 	/*! Stack size */
-    unsigned int stacksize;
+	unsigned int stacksize;
 	/*! Thread execution function */
 	thread_fn fn;
 	/*! Argument given to thread execution function */
@@ -1606,19 +1606,19 @@ struct stream_vtable_t {
 from start of buffer */
 struct json_token_t {
 	/*! Token type */
-    json_type_t type;
-    /*! Identifier string offset */
-    unsigned int id;
-    /*! Length of identifier string. 0 if no identifier string */
-    unsigned int id_length;
-    /*! Value string offset */
-    unsigned int value;
-    /*! Length of value string. 0 if no or empty value string */
-    unsigned int value_length;
-    /*! Child token index in token array. 0 if no child token */
-    unsigned int child;
-    /*! Sibling token index in token array. 0 if no sibling token */
-    unsigned int sibling;
+	json_type_t type;
+	/*! Identifier string offset */
+	unsigned int id;
+	/*! Length of identifier string. 0 if no identifier string */
+	unsigned int id_length;
+	/*! Value string offset */
+	unsigned int value;
+	/*! Length of value string. 0 if no or empty value string */
+	unsigned int value_length;
+	/*! Child token index in token array. 0 if no child token */
+	unsigned int child;
+	/*! Sibling token index in token array. 0 if no sibling token */
+	unsigned int sibling;
 };
 
 /*! Configuration node */
@@ -1636,7 +1636,7 @@ struct config_node_t {
 	/*! Subnodes */
 	config_node_t* nodes;
 	/*! Value type */
-	enum config_type_t type;
+	config_type_t type;
 	/*! Boolean value representation */
 	bool bval;
 };
