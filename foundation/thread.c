@@ -469,7 +469,7 @@ thread_set_hardware(uint64_t mask) {
 	cpu_set_t set;
 	CPU_ZERO(&set);
 	for (ibit = 0, bsize = math_min(64, CPU_SETSIZE); ibit < bsize; ++ibit) {
-		if (mask & (1 << ibit))
+		if (mask & (1ULL << ibit))
 			CPU_SET(ibit, &set);
 	}
 	sched_setaffinity(0, sizeof(set), &set);
