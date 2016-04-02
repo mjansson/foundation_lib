@@ -397,7 +397,7 @@ DECLARE_TEST(json, simplified) {
 
 DECLARE_TEST(json, random) {
 	char buffer[256];
-	int i, j, steps;
+	size_t i, j, steps;
 
 	for (i = 0, steps = 1024 * 1024; i < steps; ++i) {
 		for (j = 0; j < sizeof(buffer); ++j)
