@@ -70,98 +70,98 @@ FOUNDATION_API config_node_t*
 config_allocate(void);
 
 /*! Initialize configuraton node
-\param Configuration node */
+\param root Configuration node */
 FOUNDATION_API void
-config_initialize(config_node_t* node);
+config_initialize(config_node_t* root);
 
 /*! Finalize configuraton node
-\param Configuration node */
+\param root Configuration node */
 FOUNDATION_API void
-config_finalize(config_node_t* node);
+config_finalize(config_node_t* root);
 
 /*! Deallocate configuraton node
-\param Configuration node */
+\param root Configuration node */
 FOUNDATION_API void
-config_deallocate(config_node_t* node);
+config_deallocate(config_node_t* root);
 
 /*! Get config value as boolean. Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \return         Boolean value, default to false if section:key store not set */
 FOUNDATION_API bool
-config_bool(config_node_t* node, ...);
+config_bool(config_node_t* root, ...);
 
 /*! Get config value as integer. Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \return         Integer value, default to 0 if section:key store not set */
 FOUNDATION_API int64_t
-config_int(config_node_t* node, ...);
+config_int(config_node_t* root, ...);
 
 /*! Get config value as real. Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \return         Real value, default to 0 if section:key store not set */
 FOUNDATION_API real
-config_real(config_node_t* node, ...);
+config_real(config_node_t* root, ...);
 
 /*! Get config value as hash of the string value. Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \return         Hash of string value, default to hash of an empty string if
                 section:key store not set */
 FOUNDATION_API hash_t
-config_hash(config_node_t* node, ...);
+config_hash(config_node_t* root, ...);
 
 /*! Get config value as string. Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \return         String value, default to empty string ("") if section:key store not set */
 FOUNDATION_API string_const_t
-config_string(config_node_t* node, ...);
+config_string(config_node_t* root, ...);
 
 /*! Get config subnode. Argument list should be key hash values denoting the key path,
 and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \return         Subnode */
 FOUNDATION_API config_node_t*
-config_node(config_node_t* node, ...);
+config_node(config_node_t* root, ...);
 
 /*! Set boolean config value. Will auto-translate to integer value 0/1, real value 0/1 and
 string value "false"/"true". Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \param value    New boolean value */
 FOUNDATION_API void
-config_set_bool(config_node_t* node, bool value, ...);
+config_set_bool(config_node_t* root, bool value, ...);
 
 /*! Set integer config value. Will auto-translate to boolean value false/true (with 0 mapping
 to false and all other values mapping to true) and corresponding real and string values
 (using string_from_int). Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \param value    New integer value */
 FOUNDATION_API void
-config_set_int(config_node_t* node, int64_t value, ...);
+config_set_int(config_node_t* root, int64_t value, ...);
 
 /*! Set real config value. Will auto-translate to boolean value false/true (with 0 mapping
 to false and all other values mapping to true) and corresponding integer and string
 values (using string_from_real). Argument list should be key hash values denoting
 the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \param value    New real value */
 FOUNDATION_API void
-config_set_real(config_node_t* node, real value, ...);
+config_set_real(config_node_t* root, real value, ...);
 
 /*! Set string config value. Will auto-translate to boolean value false/true (with "false"
 and "0" mapping to false and all other values mapping to true) and corresponding integer
 and real values (using string_to_int and string_to_real). Argument list should be key hash
 values denoting the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \param value    New string value
 \param length   Length of new string value */
 FOUNDATION_API void
-config_set_string(config_node_t* node, const char* value, size_t length, ...);
+config_set_string(config_node_t* root, const char* value, size_t length, ...);
 
 /*! Set constand string config value. Will auto-translate to boolean value false/true
 (with "false" and "0" mapping to false and all other values mapping to true) and
@@ -169,14 +169,14 @@ corresponding integer and real values (using string_to_int and string_to_real).
 Does not allocate memory but will rather store the constant string pointer, and
 requires the pointer to be valid as long as the config value is stored. Argument list
 should be key hash values denoting the key path, and should be terminated by a zero value.
-\param node     Root node
+\param root     Root node
 \param value    New constant string value
 \param length   Length of new string value */
 FOUNDATION_API void
-config_set_string_constant(config_node_t* node, const char* value, size_t length, ...);
+config_set_string_constant(config_node_t* root, const char* value, size_t length, ...);
 
 /*! Parse config declarations from a stream
-\param node      Root node
+\param root      Root node
 \param stream    Stream to read from (will read until EOS encountered)
 \param overwrite If false, only set new values. If true, allow setting values to
                  existing section:key pairs
@@ -185,14 +185,14 @@ FOUNDATION_API bool
 config_parse(config_node_t* root, stream_t* stream, bool overwrite);
 
 /*! Write config declarations to a stream
-\param node      Root node
+\param root      Root node
 \param stream    Stream to write to
 \param map       Function mapping hash values to strings */
 FOUNDATION_API void
 config_write(config_node_t* root, stream_t* stream, string_const_t (*map)(hash_t));
 
 /*! Parse config declarations given on command line
-\param node      Root node
+\param root      Root node
 \param cmdline   Command line array
 \param num       Number of arguments on command line */
 FOUNDATION_API void
