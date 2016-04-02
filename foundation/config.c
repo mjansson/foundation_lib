@@ -163,6 +163,7 @@ _expand_string(config_node_t* root, config_node_t* parent, string_t str) {
 	size_t var_pos, var_end_pos, separator, var_offset, capacity, newlength;
 	string_t expanded;
 	hash_t node_key, key;
+	config_node_t* node;
 
 	capacity = 0;
 	newlength = str.length + 1;
@@ -176,7 +177,8 @@ _expand_string(config_node_t* root, config_node_t* parent, string_t str) {
 		                         (var_end_pos != STRING_NPOS) ? (1 + var_end_pos - var_pos) : STRING_NPOS);
 
 		separator = string_find(STRING_ARGS(variable), ':', 0);
-		config_node_t* node = root;
+		node = root;
+		node_key = 0;
 		if (separator != STRING_NPOS) {
 			size_t start = 2;
 			size_t subpath = 0;
@@ -201,7 +203,6 @@ _expand_string(config_node_t* root, config_node_t* parent, string_t str) {
 		else {
 			var_offset = 2;
 			node = parent;
-			node_key = 0;
 		}
 
 		string_const_t varstr = string_substr(STRING_ARGS(variable), var_offset,

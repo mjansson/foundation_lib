@@ -444,10 +444,12 @@ environment_application_directory(void) {
 		string_t pathstr = string_copy(pathbuf, BUILD_MAX_PATHLEN, STRING_ARGS(env_home));
 		if (_environment_app.company.length)
 			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                             STRING_CONST("/."), STRING_ARGS(_environment_app.company));
+			                             STRING_CONST("/."), STRING_ARGS(_environment_app.company),
+			                             nullptr);
 		if (_environment_app.short_name.length)
 			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name));
+			                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name),
+			                             nullptr);
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
 		memory_deallocate(pathbuf);
 	}
@@ -466,10 +468,12 @@ environment_application_directory(void) {
 		else {
 			if (_environment_app.company.length)
 				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-				                             STRING_CONST("/."), STRING_ARGS(_environment_app.company));
+				                             STRING_CONST("/."), STRING_ARGS(_environment_app.company),
+				                             nullptr);
 			if (_environment_app.short_name.length)
 				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-				                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name));
+				                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name),
+				                             nullptr);
 		}
 #  endif
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
