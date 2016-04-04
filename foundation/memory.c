@@ -735,6 +735,9 @@ memory_set_tracker(memory_tracker_t tracker) {
 
 	_memory_tracker = _memory_no_tracker;
 
+	if (old_tracker.abort)
+		old_tracker.abort();
+
 	if (old_tracker.finalize)
 		old_tracker.finalize();
 
@@ -791,6 +794,21 @@ _memory_tracker_initialize(void) {
 }
 
 static void
+_memory_tracker_cleanup(void) {
+	if (_memory_tags) {
+		memory_deallocate(_memory_tags);
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
+		atomic_decr64(&_memory_stats.allocations_current);
+		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
+#endif
+
+		_memory_tags = nullptr;
+	}
+}
+
+static void
 _memory_tracker_finalize(void) {
 	if (_memory_tags) {
 		unsigned int it;
@@ -810,17 +828,11 @@ _memory_tracker_finalize(void) {
 				got_leaks = true;
 			}
 		}
-		memory_deallocate(_memory_tags);
-
-#if BUILD_ENABLE_MEMORY_STATISTICS
-		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
-		atomic_decr64(&_memory_stats.allocations_current);
-		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
-#endif
 
 		if (!got_leaks)
 			log_debug(HASH_MEMORY, STRING_CONST("No memory leaks detected"));
 	}
+	_memory_tracker_cleanup();
 }
 
 static void
@@ -902,6 +914,7 @@ memory_tracker_local(void) {
 	tracker.track = _memory_tracker_track;
 	tracker.untrack = _memory_tracker_untrack;
 	tracker.initialize = _memory_tracker_initialize;
+	tracker.abort = _memory_tracker_cleanup;
 	tracker.finalize = _memory_tracker_finalize;
 #endif
 	return tracker;

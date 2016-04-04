@@ -911,7 +911,9 @@ struct memory_tracker_t {
 	memory_statistics_fn statistics;
 	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
-	/*! Shutdown memory tracker */
+	/*! Abort memory tracker */
+	system_finalize_fn abort;
+	/*! Finalize memory tracker */
 	system_finalize_fn finalize;
 };
 

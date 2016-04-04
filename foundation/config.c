@@ -648,9 +648,9 @@ config_write_node(config_node_t* current, stream_t* stream, string_const_t(*map)
 				localbuffer = memory_allocate(0, localcapacity, 0, MEMORY_TEMPORARY);
 			}
 			escaped = json_escape(localbuffer, localcapacity, STRING_ARGS(node->sval));
-			if ((string_find_first_of(STRING_ARGS(node->sval),
+			if ((string_find_first_of(STRING_ARGS(escaped),
 			                          STRING_CONST(STRING_WHITESPACE "=:[]{}\"\\"), 0) != STRING_NPOS) ||
-			        !node->sval.length) {
+			        !escaped.length) {
 				stream_write(stream, "\"", 1);
 				stream_write_string(stream, STRING_ARGS(escaped));
 				stream_write(stream, "\"", 1);
@@ -677,7 +677,7 @@ config_write_node(config_node_t* current, stream_t* stream, string_const_t(*map)
 void
 config_write(config_node_t* root, stream_t* stream, string_const_t(*map)(hash_t)) {
 	bool is_binary = stream_is_binary(stream);
-	char tmpbuffer[256];
+	char tmpbuffer[512];
 	if (is_binary)
 		stream_set_binary(stream, false);
 	config_write_node(root, stream, map, 0, tmpbuffer, sizeof(tmpbuffer));
