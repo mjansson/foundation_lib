@@ -463,7 +463,7 @@ thread_set_hardware(uint64_t mask) {
 	DWORD_PTR procmask = 0;
 	DWORD_PTR sysmask = 0;
 	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
-	SetThreadAffinityMask(GetCurrentThread(), mask & procmask);
+	SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)mask & procmask);
 #elif FOUNDATION_PLATFORM_LINUX
 	uint64_t ibit, bsize;
 	cpu_set_t set;

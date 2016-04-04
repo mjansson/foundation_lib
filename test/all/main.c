@@ -16,6 +16,7 @@
 static volatile bool _test_should_start;
 static volatile bool _test_have_focus;
 static volatile bool _test_should_terminate;
+static volatile bool _test_memory_tracker;
 
 static void*
 event_loop(void* arg) {
@@ -129,8 +130,17 @@ main_initialize(void) {
 	foundation_config_t config;
 	application_t application;
 	int ret;
+	size_t iarg, asize;
+	const string_const_t* cmdline = environment_command_line();
+
+	_test_memory_tracker = true;
+	for (iarg = 0, asize = array_size(cmdline); iarg < asize; ++iarg) {
+		if (string_equal(STRING_ARGS(cmdline[iarg]), STRING_CONST("--no-memory-tracker")))
+			_test_memory_tracker = false;
+	}
 	
-	memory_set_tracker(memory_tracker_local());
+	if (_test_memory_tracker)
+		memory_set_tracker(memory_tracker_local());
 
 	memset(&config, 0, sizeof(config));
 #if BUILD_MONOLITHIC
@@ -424,6 +434,7 @@ main_run(void* main_arg) {
 	regex_deallocate(app_regex);
 #endif
 	for (iexe = 0, exesize = array_size(exe_paths); iexe < exesize; ++iexe) {
+		string_const_t* process_args = 0;
 		string_const_t exe_file_name = path_base_file_name(STRING_ARGS(exe_paths[iexe]));
 		if (string_equal(STRING_ARGS(exe_file_name), STRING_ARGS(environment_executable_name())))
 			continue; //Don't run self
@@ -437,6 +448,10 @@ main_run(void* main_arg) {
 		process_set_working_directory(process, STRING_ARGS(environment_executable_directory()));
 		process_set_flags(process, PROCESS_ATTACHED | exe_flags[iexe]);
 
+		if (!_test_memory_tracker)
+			array_push(process_args, string_const(STRING_CONST("--no-memory-tracker")));
+		process_set_arguments(process, process_args, array_size(process_args));
+
 		log_infof(HASH_TEST, STRING_CONST("Running test executable: %.*s"),
 		          STRING_FORMAT(exe_paths[iexe]));
 
@@ -446,6 +461,7 @@ main_run(void* main_arg) {
 			process_result = process_wait(process);
 		}
 		process_deallocate(process);
+		array_deallocate(process_args);
 
 		if (process_result != 0) {
 			if (process_result >= PROCESS_INVALID_ARGS)

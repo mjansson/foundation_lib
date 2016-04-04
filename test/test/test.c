@@ -213,14 +213,28 @@ test_set_suitable_working_directory(void) {
 
 int
 main_initialize(void) {
-	memory_set_tracker(memory_tracker_local());
+	bool memory_tracker = true;
+	size_t iarg, asize;
+	int ret;
+	const string_const_t* cmdline;
 
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
 	test_suite = test_suite_define();
 
-	return foundation_initialize(test_suite.memory_system(), test_suite.application(),
-	                             test_suite.config());
+	ret = foundation_initialize(test_suite.memory_system(), test_suite.application(),
+	                            test_suite.config());
+	if (ret == 0) {
+		cmdline = environment_command_line();
+		for (iarg = 0, asize = array_size(cmdline); iarg < asize; ++iarg) {
+			if (string_equal(STRING_ARGS(cmdline[iarg]), STRING_CONST("--no-memory-tracker")))
+				memory_tracker = false;
+		}
+		if (memory_tracker)
+			memory_set_tracker(memory_tracker_local());
+	}
+
+	return ret;
 }
 
 int

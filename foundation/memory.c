@@ -256,12 +256,8 @@ memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hi
 				memset(p, 0, (size_t)size);
 		}
 	}
-	if (!p) {
-		if (size > 1024)
-			p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
-		else
-			p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
-	}
+	if (!p)
+		p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
 	_memory_track(p, size);
 	return p;
 }
