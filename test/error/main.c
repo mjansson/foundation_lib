@@ -47,6 +47,7 @@ test_error_finalize(void) {
 }
 
 DECLARE_TEST(error, error) {
+	error();
 	EXPECT_EQ(error(), ERROR_NONE);
 	EXPECT_EQ(error(), ERROR_NONE);
 

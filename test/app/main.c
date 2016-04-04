@@ -51,8 +51,8 @@ test_app_finalize(void) {
 }
 
 DECLARE_TEST(app, environment) {
-	EXPECT_CONSTSTRINGEQ(environment_application()->name, _global_app.name);
 #if !BUILD_MONOLITHIC
+	EXPECT_CONSTSTRINGEQ(environment_application()->name, _global_app.name);
 	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, _global_app.short_name);
 #endif
 	EXPECT_CONSTSTRINGEQ(environment_application()->company, _global_app.company);

@@ -499,6 +499,9 @@ exit:
 	log_infof(HASH_TEST, STRING_CONST("Tests exiting: %s (%d)"),
 	          process_result ? "FAILED" : "PASSED", process_result);
 
+	if (process_result)
+		memory_set_tracker(memory_tracker_none());
+
 	return process_result;
 }
 
