@@ -906,3 +906,8 @@ memory_tracker_local(void) {
 #endif
 	return tracker;
 }
+
+memory_tracker_t
+memory_tracker_none(void) {
+	return _memory_no_tracker;
+}

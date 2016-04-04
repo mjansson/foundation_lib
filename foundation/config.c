@@ -446,7 +446,7 @@ config_set_string_constant(config_node_t* root, const char* value, size_t length
 
 static void
 _config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int current, char* buffer,
-                    bool overwrite) {
+                    size_t capacity, bool overwrite) {
 	do {
 		json_token_t* token = tokens + current;
 		config_node_t* subnode;
@@ -461,7 +461,7 @@ _config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int curr
 				subnode = config_node(node, id, HASH_NULL);
 			}
 			if (subnode && token->child)
-				_config_parse_token(subnode, tokens, token->child, buffer, overwrite);
+				_config_parse_token(subnode, tokens, token->child, buffer, capacity, overwrite);
 			break;
 		case JSON_ARRAY:
 			break;
@@ -478,8 +478,10 @@ _config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int curr
 			}
 			break;
 		case JSON_STRING:
-			if (overwrite || !config_node(node, id, HASH_NULL))
-				config_set_string(node, STRING_ARGS(value), id, HASH_NULL);
+			if (overwrite || !config_node(node, id, HASH_NULL)) {
+				string_t unescaped = json_unescape(buffer, capacity, STRING_ARGS(value));
+				config_set_string(node, STRING_ARGS(unescaped), id, HASH_NULL);
+			}
 			break;
 		case JSON_UNDEFINED:
 		default:
@@ -505,7 +507,7 @@ config_parse(config_node_t* root, stream_t* stream, bool overwrite) {
 		num = sjson_parse(buffer, size, tokens, capacity);
 	}
 	if (num && (tokens[0].type == JSON_OBJECT))
-		_config_parse_token(root, tokens, 1, buffer, overwrite);
+		_config_parse_token(root, tokens, 1, buffer, size, overwrite);
 	if (store != tokens)
 		memory_deallocate(tokens);
 	memory_deallocate(buffer);
@@ -579,20 +581,47 @@ config_parse_commandline(config_node_t* root, const string_const_t* cmdline, siz
 	}
 }
 
-void
-config_write(config_node_t* root, stream_t* stream, string_const_t (*map)(hash_t)) {
+static void
+config_write_indent(stream_t* stream, size_t indent) {
+	size_t itab;
+	for (itab = 0; itab < indent; ++itab)
+		stream_write(stream, "\t", 1);
+}
+
+static void
+config_write_node(config_node_t* current, stream_t* stream, string_const_t(*map)(hash_t),
+                  size_t indent, char* tmpbuffer, size_t capacity) {
 	size_t inode, nsize;
-
-	if (!root || (root->type != CONFIGVALUE_NODE))
-		return;
-
-	stream_set_binary(stream, false);
-
-	for (inode = 0, nsize = array_size(root->nodes); inode < nsize; ++inode) {
-		config_node_t* node = root->nodes + inode;
+	string_t escaped;
+	char* localbuffer = tmpbuffer;
+	size_t localcapacity = capacity;
+	for (inode = 0, nsize = array_size(current->nodes); inode < nsize; ++inode) {
+		config_node_t* node = current->nodes + inode;
 		string_const_t name = map(node->name);
 
-		stream_write_format(stream, STRING_CONST("%.*s = "), STRING_FORMAT(name));
+		if (!name.length)
+			continue;
+
+		config_write_indent(stream, indent);
+		if (name.length * 4 > capacity) {
+			localcapacity = node->sval.length * 4;
+			localbuffer = memory_allocate(0, localcapacity, 0, MEMORY_TEMPORARY);
+		}
+		escaped = json_escape(localbuffer, localcapacity, STRING_ARGS(name));
+		if ((string_find_first_of(STRING_ARGS(name),
+		                          STRING_CONST(STRING_WHITESPACE "=:[]{}\""), 0) != STRING_NPOS) ||
+		        !name.length) {
+			stream_write(stream, "\"", 1);
+			stream_write_string(stream, STRING_ARGS(escaped));
+			stream_write(stream, "\"", 1);
+		}
+		else {
+			stream_write_string(stream, STRING_ARGS(escaped));
+		}
+		if (localbuffer != tmpbuffer)
+			memory_deallocate(localbuffer);
+
+		stream_write(stream, STRING_CONST(" = "));
 		switch (node->type) {
 		case CONFIGVALUE_BOOL:
 			stream_write_bool(stream, node->bval);
@@ -614,29 +643,45 @@ config_write(config_node_t* root, stream_t* stream, string_const_t (*map)(hash_t
 		case CONFIGVALUE_STRING_CONST:
 		case CONFIGVALUE_STRING_VAR:
 		case CONFIGVALUE_STRING_CONST_VAR:
-			if (string_find_first_of(STRING_ARGS(node->sval),
-			                         STRING_CONST(STRING_WHITESPACE "=:[]{}\""), 0) != STRING_NPOS) {
-				if (string_find(STRING_ARGS(node->sval), '"', 0) != STRING_NPOS) {
-
-				}
-				else {
-					stream_write(stream, "\"", 1);
-					stream_write_string(stream, STRING_ARGS(node->sval));
-					stream_write(stream, "\"", 1);
-				}
+			if (node->sval.length * 4 > capacity) {
+				localcapacity = node->sval.length * 4;
+				localbuffer = memory_allocate(0, localcapacity, 0, MEMORY_TEMPORARY);
+			}
+			escaped = json_escape(localbuffer, localcapacity, STRING_ARGS(node->sval));
+			if ((string_find_first_of(STRING_ARGS(node->sval),
+			                          STRING_CONST(STRING_WHITESPACE "=:[]{}\"\\"), 0) != STRING_NPOS) ||
+			        !node->sval.length) {
+				stream_write(stream, "\"", 1);
+				stream_write_string(stream, STRING_ARGS(escaped));
+				stream_write(stream, "\"", 1);
 			}
 			else {
-				stream_write_string(stream, STRING_ARGS(node->sval));
+				stream_write_string(stream, STRING_ARGS(escaped));
 			}
+			if (localbuffer != tmpbuffer)
+				memory_deallocate(localbuffer);
 			break;
 
 		case CONFIGVALUE_NODE:
 			stream_write_string(stream, STRING_CONST("{"));
 			stream_write_endl(stream);
-			config_write(node, stream, map);
+			config_write_node(node, stream, map, indent + 1, tmpbuffer, capacity);
+			config_write_indent(stream, indent);
 			stream_write_string(stream, STRING_CONST("}"));
 			break;
 		}
 		stream_write_endl(stream);
 	}
 }
+
+void
+config_write(config_node_t* root, stream_t* stream, string_const_t(*map)(hash_t)) {
+	bool is_binary = stream_is_binary(stream);
+	char tmpbuffer[256];
+	if (is_binary)
+		stream_set_binary(stream, false);
+	config_write_node(root, stream, map, 0, tmpbuffer, sizeof(tmpbuffer));
+	if (is_binary)
+		stream_set_binary(stream, true);
+}
+

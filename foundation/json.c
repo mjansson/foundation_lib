@@ -108,6 +108,7 @@ parse_string(const char* buffer, size_t length, size_t pos, bool key, bool simpl
 			default:
 				return STRING_NPOS;
 			}
+			++pos;
 		}
 	}
 	return simple ? pos - start : STRING_NPOS;
@@ -363,4 +364,99 @@ sjson_parse(const char* buffer, size_t size, json_token_t* tokens, size_t capaci
 	if (parse_value(buffer, size, pos, tokens, capacity, &current, true) == STRING_NPOS)
 		return 0;
 	return current;
+}
+
+string_t
+json_escape(char* buffer, size_t capacity, const char* string, size_t length) {
+	size_t i;
+	size_t outlength = 0;
+	for (i = 0; (i < length) && (outlength < capacity); ++i) {
+		char c = string[i];
+		if ((c == '\"') || (c == '\\')) {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = c;
+		}
+		else if (c == '\b') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'b';
+		}
+		else if (c == '\f') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'f';
+		}
+		else if (c == '\r') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'r';
+		}
+		else if (c == '\n') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'n';
+		}
+		else if (c == '\t') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 't';
+		}
+		else if ((c < 0x20) || (c > 0x7f)) {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'u';
+			if (outlength < capacity) buffer[outlength++] = '0';
+			if (outlength < capacity) buffer[outlength++] = '0';
+			if (outlength < capacity) buffer[outlength++] = 'u';
+			if (outlength < capacity) buffer[outlength++] = 'u';
+		}
+		else {
+			buffer[outlength++] = c;
+		}
+	}
+	return (string_t) {buffer, outlength};
+}
+
+string_t
+json_unescape(char* buffer, size_t capacity, const char* string, size_t length) {
+	size_t i;
+	size_t outlength = 0;
+	for (i = 0; (i < length) && (outlength < capacity); ++i) {
+		char c = string[i];
+		if ((c == '\\') && (i + 1 < length)) {
+			c = string[++i];
+			switch (c) {
+			case '\"':
+			case '/':
+			case '\\':
+				buffer[outlength++] = c;
+				break;
+
+			case 'b':
+				buffer[outlength++] = '\b';
+				break;
+			case 'f':
+				buffer[outlength++] = '\f';
+				break;
+			case 'r':
+				buffer[outlength++] = '\r';
+				break;
+			case 'n':
+				buffer[outlength++] = '\n';
+				break;
+			case 't':
+				buffer[outlength++] = '\t';
+				break;
+
+			case 'u':
+				if (i + 4 < length) {
+					uint16_t val = (uint16_t)string_to_uint(buffer + i + 1, 4, true);
+					string_t conv = string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
+					outlength += conv.length;
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+		else {
+			buffer[outlength++] = c;
+		}
+	}
+	return (string_t) {buffer, outlength};
 }

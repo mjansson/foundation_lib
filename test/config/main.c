@@ -24,16 +24,26 @@ static hash_t write_key_6;
 static hash_t write_key_7;
 
 static string_const_t
-string_mapper(hash_t hash) {
-	if (hash == write_section) return string_const(STRING_CONST("write_test"));
-	if (hash == write_key_0) return string_const(STRING_CONST("key_0"));
-	if (hash == write_key_1) return string_const(STRING_CONST("key_1"));
-	if (hash == write_key_2) return string_const(STRING_CONST("key_2"));
-	if (hash == write_key_3) return string_const(STRING_CONST("key_3"));
-	if (hash == write_key_4) return string_const(STRING_CONST("key_4"));
-	if (hash == write_key_5) return string_const(STRING_CONST("key_5"));
-	if (hash == write_key_6) return string_const(STRING_CONST("key_6"));
-	if (hash == write_key_7) return string_const(STRING_CONST("key_7"));
+string_mapper(hash_t hashval) {
+	if (hashval == write_section) return string_const(STRING_CONST("write_test"));
+	if (hashval == write_key_0) return string_const(STRING_CONST("key_0"));
+	if (hashval == write_key_1) return string_const(STRING_CONST("key_1"));
+	if (hashval == write_key_2) return string_const(STRING_CONST("key_2"));
+	if (hashval == write_key_3) return string_const(STRING_CONST("key_3"));
+	if (hashval == write_key_4) return string_const(STRING_CONST("key_4"));
+	if (hashval == write_key_5) return string_const(STRING_CONST("key_5"));
+	if (hashval == write_key_6) return string_const(STRING_CONST("key_6"));
+	if (hashval == write_key_7) return string_const(STRING_CONST("key_7"));
+	if (hashval == hash(STRING_CONST("base_key"))) return string_const(STRING_CONST("base_key"));
+	if (hashval == hash(STRING_CONST("key"))) return string_const(STRING_CONST("key"));
+	if (hashval == hash(STRING_CONST("first_section"))) return string_const(
+		        STRING_CONST("first_section"));
+	if (hashval == hash(STRING_CONST("notinvalidvalue"))) return string_const(
+		            STRING_CONST("notinvalidvalue"));
+	if (hashval == hash(STRING_CONST("emptyval"))) return string_const(STRING_CONST("emptyval"));
+	if (hashval == hash(STRING_CONST("nonemptyval"))) return string_const(STRING_CONST("nonemptyval"));
+	if (hashval == hash(STRING_CONST("section"))) return string_const(STRING_CONST("section"));
+	if (hashval == hash(STRING_CONST("escapedstr"))) return string_const(STRING_CONST("escapedstr"));
 	return string_null();
 }
 
@@ -1203,6 +1213,8 @@ DECLARE_TEST(config, readwrite) {
 	write_key_6 = hash("key_6", 5);
 	write_key_7 = hash("key_7", 5);
 
+	stream_set_binary(stream, false);
+
 	config_set_string(root, STRING_CONST("foobar"), write_section, write_key_0, HASH_NULL);
 	config_set_string_constant(root, STRING_CONST("another string"), write_section, write_key_1,
 	                           HASH_NULL);
@@ -1269,14 +1281,15 @@ DECLARE_TEST(config, readwrite) {
 	stream_truncate(stream, 0);
 
 	stream_write_string(stream, STRING_CONST(
-		"base_key = \"some value\"\n"
-		"first_section = { key = avalue }\n"
-		"notinvalidvalue = notinvalidvalue\n"
-		"emptyval = \"\"\n"
-		"nonemptyval = true\n"
-		"section = {\n"
-		"	nonemptyval = 1.0\n"
-		"}\n"));
+	                        "base_key = \"some value\"\n"
+	                        "first_section = { key = avalue }\n"
+	                        "notinvalidvalue = notinvalidvalue\n"
+	                        "emptyval = \"\"\n"
+	                        "nonemptyval = true\n"
+	                        "section = {\n"
+	                        "	nonemptyval = 1.0\n"
+	                        "   escapedstr = \"{foo[]\\\"bar\\\"}\"\n"
+	                        "}\n"));
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
 
 	log_enable_stdout(false);
@@ -1285,10 +1298,11 @@ DECLARE_TEST(config, readwrite) {
 
 	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("base_key")), HASH_NULL),
 	                     string_const(STRING_CONST("some value")));
-	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("first_section")), hash(STRING_CONST("key")), HASH_NULL),
-		string_const(STRING_CONST("avalue")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("first_section")),
+	                                   hash(STRING_CONST("key")), HASH_NULL),
+	                     string_const(STRING_CONST("avalue")));
 	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("key")), HASH_NULL),
-		string_null());
+	                     string_null());
 	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("notinvalidvalue")), HASH_NULL),
 	                     string_const(STRING_CONST("notinvalidvalue")));
 	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("invalidsection")),
@@ -1307,6 +1321,63 @@ DECLARE_TEST(config, readwrite) {
 	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("section")),
 	                                   hash(STRING_CONST("nonemptyval")), HASH_NULL),
 	                     string_const(STRING_CONST("1")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("section")),
+	                                   hash(STRING_CONST("escapedstr")), HASH_NULL),
+	                     string_const(STRING_CONST("{foo[]\"bar\"}")));
+
+	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
+	stream_truncate(stream, 0);
+
+	config_write(root, stream, string_mapper);
+	config_deallocate(root);
+
+	root = config_allocate();
+
+	log_enable_stdout(false);
+	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
+	config_parse(root, stream, true);
+	log_enable_stdout(true);
+
+	EXPECT_CONSTSTRINGEQ(config_string(root, write_section, write_key_0, HASH_NULL),
+	                     string_const(STRING_CONST("foobar")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, write_section, write_key_1, HASH_NULL),
+	                     string_const(STRING_CONST("another string")));
+	EXPECT_EQ(config_int(root, write_section, write_key_2, HASH_NULL), 1234);
+	EXPECT_REALEQ(config_real(root, write_section, write_key_3, HASH_NULL), REAL_C(12.34));
+	EXPECT_EQ(config_bool(root, write_section, write_key_4, HASH_NULL), true);
+	EXPECT_EQ(config_bool(root, write_section, write_key_5, HASH_NULL), false);
+	EXPECT_CONSTSTRINGEQ(config_string(root, write_section, write_key_6, HASH_NULL),
+	                     environment_initial_working_directory());
+	EXPECT_CONSTSTRINGEQ(config_string(root, write_section, write_key_7, HASH_NULL),
+	                     string_const(STRING_CONST("98765")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("base_key")), HASH_NULL),
+	                     string_const(STRING_CONST("some value")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("first_section")),
+	                                   hash(STRING_CONST("key")), HASH_NULL),
+	                     string_const(STRING_CONST("avalue")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("key")), HASH_NULL),
+	                     string_null());
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("notinvalidvalue")), HASH_NULL),
+	                     string_const(STRING_CONST("notinvalidvalue")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("invalidsection")),
+	                                   hash(STRING_CONST("invalidvalue")), HASH_NULL),
+	                     string_null());
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("emptyval")), HASH_NULL),
+	                     string_empty());
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("invalidsection")),
+	                                   hash(STRING_CONST("emptyval")), HASH_NULL),
+	                     string_empty());
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("nonemptyval")), HASH_NULL),
+	                     string_const(STRING_CONST("true")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("invalidsection")),
+	                                   hash(STRING_CONST("nonemptyval")), HASH_NULL),
+	                     string_empty());
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("section")),
+	                                   hash(STRING_CONST("nonemptyval")), HASH_NULL),
+	                     string_const(STRING_CONST("1")));
+	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("section")),
+	                                   hash(STRING_CONST("escapedstr")), HASH_NULL),
+	                     string_const(STRING_CONST("{foo[]\"bar\"}")));
 
 	stream_deallocate(stream);
 	config_deallocate(root);

@@ -166,6 +166,11 @@ test_free(void) {
 	}
 	array_deallocate(_test_groups);
 	_test_groups = 0;
+
+	if (_test_failed) {
+		log_set_suppress(HASH_MEMORY, ERRORLEVEL_ERROR);
+		memory_set_tracker(memory_tracker_none());
+	}
 }
 
 int

@@ -103,6 +103,11 @@ memory_system_malloc(void);
 FOUNDATION_API memory_tracker_t
 memory_tracker_local(void);
 
+/*! No memory tracker
+\return No memory tracker declaration */
+FOUNDATION_API memory_tracker_t
+memory_tracker_none(void);
+
 /*! Get the memory statistics since initialization
 \return Memory statistics */
 FOUNDATION_API memory_statistics_t
