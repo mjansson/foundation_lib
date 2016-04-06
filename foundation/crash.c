@@ -12,6 +12,12 @@
 
 #include <foundation/foundation.h>
 
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || (FOUNDATION_COMPILER_CLANG && FOUNDATION_CLANG_VERSION >= 30900))
+#  define FOUNDATION_USE_SEH 1
+#else
+#  define FOUNDATION_USE_SEH 0
+#endif
+
 static crash_dump_callback_fn  _crash_dump_callback;
 static string_const_t          _crash_dump_name;
 
@@ -58,12 +64,12 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t n
 	temp_dir = environment_temporary_directory();
 	uuid = string_from_uuid_static(environment_application()->instance);
 	filename = string_format(dump_file, *capacity,
-	                          STRING_CONST("%.*s/%s%s%.*s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp"),
-	                          STRING_FORMAT(temp_dir), namelen ? name : "", namelen ? "-" : "",
-	                          STRING_FORMAT(uuid),
-	                          local_time.wYear, local_time.wMonth, local_time.wDay,
-	                          local_time.wHour, local_time.wMinute, local_time.wSecond,
-	                          GetCurrentProcessId(), GetCurrentThreadId());
+	                         STRING_CONST("%.*s/%s%s%.*s-%04d%02d%02d-%02d%02d%02d-%ld-%ld.dmp"),
+	                         STRING_FORMAT(temp_dir), namelen ? name : "", namelen ? "-" : "",
+	                         STRING_FORMAT(uuid),
+	                         local_time.wYear, local_time.wMonth, local_time.wDay,
+	                         local_time.wHour, local_time.wMinute, local_time.wSecond,
+	                         GetCurrentProcessId(), GetCurrentThreadId());
 	if (!fs_is_directory(STRING_ARGS(temp_dir)))
 		fs_make_directory(STRING_ARGS(temp_dir));
 	file = CreateFileA(filename.str, GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0,
@@ -78,25 +84,29 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t n
 			if (write) {
 				info.ThreadId          = GetCurrentThreadId();
 				info.ExceptionPointers = pointers;
-				info.ClientPointers    = TRUE;
+				info.ClientPointers    = FALSE;
 
 				success = write(GetCurrentProcess(), GetCurrentProcessId(), file,
-				                (MINIDUMP_TYPE)(MiniDumpWithDataSegs | MiniDumpWithProcessThreadData | MiniDumpWithThreadInfo),
+				                MiniDumpWithThreadInfo, //(MINIDUMP_TYPE)(MiniDumpWithDataSegs | MiniDumpWithProcessThreadData | MiniDumpWithThreadInfo),
 				                &info, 0, 0);
 			}
 			else {
 				string_const_t errmsg = system_error_message(0);
-				log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable open get symbol from dbghelp library: %.*s"), STRING_FORMAT(errmsg));
+				log_errorf(0, ERROR_EXCEPTION,
+				           STRING_CONST("Exception occurred! Unable open get symbol from dbghelp library: %.*s"),
+				           STRING_FORMAT(errmsg));
 			}
 
 			FreeLibrary(lib);
 		}
 		else {
 			string_const_t errmsg = system_error_message(0);
-			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable open dbghelp library: %.*s"), STRING_FORMAT(errmsg));
+			log_errorf(0, ERROR_EXCEPTION,
+			           STRING_CONST("Exception occurred! Unable open dbghelp library: %.*s"), STRING_FORMAT(errmsg));
 		}
 		if (success) {
-			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"), STRING_FORMAT(filename));
+			log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Minidump written to: %.*s"),
+			           STRING_FORMAT(filename));
 			FlushFileBuffers(file);
 		}
 		CloseHandle(file);
@@ -106,19 +116,22 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t n
 		}
 	}
 	else {
-		log_errorf(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred! Unable to write mini dump to: %.*s"), STRING_FORMAT(filename));
+		log_errorf(0, ERROR_EXCEPTION,
+		           STRING_CONST("Exception occurred! Unable to write mini dump to: %.*s"), STRING_FORMAT(filename));
 	}
 
-	//TODO: At least print out the exception records in log	
+	//TODO: At least print out the exception records in log
 	*capacity = 0;
 }
 
-#  if FOUNDATION_COMPILER_GCC
+#  if !FOUNDATION_USE_SEH
 
 struct crash_exception_closure_t {
 	crash_dump_callback_fn callback;
 	string_const_t         name;
+	bool                   initialized;
 	bool                   triggered;
+	CONTEXT                context;
 };
 
 typedef struct crash_exception_closure_t crash_exception_closure_t;
@@ -127,12 +140,16 @@ static FOUNDATION_THREADLOCAL crash_exception_closure_t _crash_exception_closure
 
 static LONG WINAPI
 _crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
-	char dump_file_buffer[MAX_PATH];
-	size_t dump_file_len = sizeof(dump_file_buffer);
-	_crash_exception_closure.triggered = true;
-	_crash_create_mini_dump(pointers, STRING_ARGS(_crash_exception_closure.name), dump_file_buffer, &dump_file_len);
-	if (_crash_exception_closure.callback)
-		_crash_exception_closure.callback(dump_file_buffer, dump_file_len);
+	if (_crash_exception_closure.initialized) {
+		char dump_file_buffer[MAX_PATH];
+		size_t dump_file_len = sizeof(dump_file_buffer);
+		_crash_exception_closure.triggered = true;
+		_crash_create_mini_dump(pointers, STRING_ARGS(_crash_exception_closure.name), dump_file_buffer,
+		                        &dump_file_len);
+		if (_crash_exception_closure.callback)
+			_crash_exception_closure.callback(dump_file_buffer, dump_file_len);
+		RtlRestoreContext(&_crash_exception_closure.context, 0);
+	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -211,10 +228,12 @@ _crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
 int
 crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
             size_t length) {
-#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG)
+#if FOUNDATION_PLATFORM_WINDOWS
 	int ret;
+#  if FOUNDATION_USE_SEH
 	char buffer[MAX_PATH];
 	size_t capacity = sizeof(buffer);
+#  endif
 #endif
 
 	//Make sure path is initialized
@@ -222,10 +241,7 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
-#    if FOUNDATION_COMPILER_CLANG
-#      pragma clang diagnostic ignored "-Wlanguage-extension-token"
-#    endif
+#  if FOUNDATION_USE_SEH
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
@@ -243,10 +259,14 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 	_crash_exception_closure.callback = callback;
 	_crash_exception_closure.name = string_const(name, length);
 	_crash_exception_closure.triggered = false;
-	int ret = fn(data);
+	_crash_exception_closure.initialized = true;
+	RtlCaptureContext(&_crash_exception_closure.context);
 	if (_crash_exception_closure.triggered) {
 		ret = FOUNDATION_CRASH_DUMP_GENERATED;
 		error_context_clear();
+	}
+	else {
+		ret = fn(data);
 	}
 	return ret;
 #  endif
@@ -266,12 +286,12 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 	action.sa_sigaction = _crash_guard_sigaction;
 	action.sa_flags = SA_SIGINFO;
 	if ((sigaction(SIGTRAP, &action, 0) < 0) ||
-	    (sigaction(SIGABRT, &action, 0) < 0) ||
-	    (sigaction(SIGFPE,  &action, 0) < 0) ||
-	    (sigaction(SIGSEGV, &action, 0) < 0) ||
-	    (sigaction(SIGBUS,  &action, 0) < 0) ||
-	    (sigaction(SIGILL,  &action, 0) < 0) ||
-	    (sigaction(SIGSYS,  &action, 0) < 0)) {
+	        (sigaction(SIGABRT, &action, 0) < 0) ||
+	        (sigaction(SIGFPE,  &action, 0) < 0) ||
+	        (sigaction(SIGSEGV, &action, 0) < 0) ||
+	        (sigaction(SIGBUS,  &action, 0) < 0) ||
+	        (sigaction(SIGILL,  &action, 0) < 0) ||
+	        (sigaction(SIGSYS,  &action, 0) < 0)) {
 		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to set crash guard signal actions"));
 	}
 
