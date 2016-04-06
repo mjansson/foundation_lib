@@ -279,6 +279,11 @@ main_run(void* main_arg) {
 #elif BUILD_DEPLOY
 	const string_const_t build_name = string_const(STRING_CONST("deploy"));
 #endif
+#if BUILD_MONOLITHIC
+	const string_const_t build_type = string_const(STRING_CONST(" monolithic"));
+#else
+	const string_const_t build_type = string_empty();
+#endif
 	char* pathbuf;
 	int process_result = 0;
 	thread_t event_thread;
@@ -287,9 +292,9 @@ main_run(void* main_arg) {
 
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 
-	log_infof(HASH_TEST, STRING_CONST("Foundation library v%s built for %s using %s (%s)"),
+	log_infof(HASH_TEST, STRING_CONST("Foundation library v%s built for %s using %s (%.*s%.*s)"),
 	          string_from_version_static(foundation_version()).str, FOUNDATION_PLATFORM_DESCRIPTION,
-	          FOUNDATION_COMPILER_DESCRIPTION, build_name.str);
+	          FOUNDATION_COMPILER_DESCRIPTION, STRING_FORMAT(build_name), STRING_FORMAT(build_type));
 
 	thread_initialize(&event_thread, event_loop, 0, STRING_CONST("event_thread"), THREAD_PRIORITY_NORMAL, 0);
 	thread_start(&event_thread);
