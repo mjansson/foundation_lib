@@ -130,8 +130,8 @@ _create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen
 
 #include <setjmp.h>
 
-typedef VOID WINAPI(*RtlRestoreContextFn)(PCONTEXT, PEXCEPTION_RECORD);
-typedef VOID WINAPI(*RtlCaptureContextFn)(PCONTEXT);
+typedef VOID (WINAPI* RtlRestoreContextFn)(PCONTEXT, PEXCEPTION_RECORD);
+typedef VOID (WINAPI* RtlCaptureContextFn)(PCONTEXT);
 
 static RtlRestoreContextFn _RtlRestoreContext;
 static RtlCaptureContextFn _RtlCaptureContext;

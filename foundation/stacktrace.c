@@ -327,7 +327,7 @@ static bool _stackwalk_initialized = false;
 static void* _stacktrace_dbghelp_dll;
 static void* _stacktrace_kernel_dll;
 
-typedef VOID WINAPI(*RtlCaptureContextFn)(PCONTEXT);
+typedef VOID (WINAPI* RtlCaptureContextFn)(PCONTEXT);
 static RtlCaptureContextFn _RtlCaptureContext;
 #endif
 
