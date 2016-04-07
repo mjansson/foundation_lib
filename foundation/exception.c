@@ -333,11 +333,12 @@ exception_raise_debug_break(void) {
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	__builtin_trap();
 #else
-	exception_raise();
+	exception_raise_abort();
 #endif
 }
 
 void
 exception_raise_abort(void) {
 	*_illegal_ptr = 1;
+	process_exit(-1);
 }
