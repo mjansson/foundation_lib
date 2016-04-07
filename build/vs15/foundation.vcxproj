@@ -46,10 +46,10 @@
     <ClInclude Include="..\..\foundation\bufferstream.h" />
     <ClInclude Include="..\..\foundation\build.h" />
     <ClInclude Include="..\..\foundation\config.h" />
-    <ClInclude Include="..\..\foundation\crash.h" />
     <ClInclude Include="..\..\foundation\environment.h" />
     <ClInclude Include="..\..\foundation\error.h" />
     <ClInclude Include="..\..\foundation\event.h" />
+    <ClInclude Include="..\..\foundation\exception.h" />
     <ClInclude Include="..\..\foundation\foundation.h" />
     <ClInclude Include="..\..\foundation\fs.h" />
     <ClInclude Include="..\..\foundation\hash.h" />
@@ -98,10 +98,10 @@
     <ClCompile Include="..\..\foundation\blowfish.c" />
     <ClCompile Include="..\..\foundation\bufferstream.c" />
     <ClCompile Include="..\..\foundation\config.c" />
-    <ClCompile Include="..\..\foundation\crash.c" />
     <ClCompile Include="..\..\foundation\environment.c" />
     <ClCompile Include="..\..\foundation\error.c" />
     <ClCompile Include="..\..\foundation\event.c" />
+    <ClCompile Include="..\..\foundation\exception.c" />
     <ClCompile Include="..\..\foundation\foundation.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
