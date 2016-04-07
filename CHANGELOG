@@ -1,5 +1,5 @@
 
-1.4.2
+1.5.0
 
 Added a minimal in-place JSON parser. Also parses simplified JSON.
 
@@ -15,6 +15,12 @@ correct string representation using string_from_uint128.
 Changed environment_home_directory to environment_application_directory and modify
 implementations to generate a application-specific path for persistent storage. Removed
 application config_dir declaration.
+
+Changed crash_* functions to more aptly named exception_* and added support for
+non-Microsoft compilers on Windows.
+
+Changed name of error callback and log callback to "handler" to unify naming with
+exception handling.
 
 Support for building as a shared object (dynamic library).
 

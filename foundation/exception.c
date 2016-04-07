@@ -1,4 +1,4 @@
-/* crash.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* exception.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
@@ -18,23 +18,23 @@
 #  define FOUNDATION_USE_SEH 0
 #endif
 
-static crash_dump_callback_fn  _crash_dump_callback;
-static string_const_t          _crash_dump_name;
+static exception_handler_fn _exception_handler;
+static string_const_t       _dump_name;
 
 void
-crash_guard_set(crash_dump_callback_fn callback, const char* name, size_t length) {
-	_crash_dump_callback = callback;
-	_crash_dump_name     = (string_const_t) { name, length };
+exception_set_handler(exception_handler_fn handler, const char* name, size_t length) {
+	_exception_handler = handler;
+	_dump_name = (string_const_t) {name, length};
 }
 
 string_const_t
-crash_guard_name(void) {
-	return _crash_dump_name;
+exception_dump_name(void) {
+	return _dump_name;
 }
 
-crash_dump_callback_fn
-crash_guard_callback(void) {
-	return _crash_dump_callback;
+exception_handler_fn
+exception_handler(void) {
+	return _exception_handler;
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -46,7 +46,8 @@ typedef BOOL (STDCALL* MiniDumpWriteDumpFn)(HANDLE, DWORD, HANDLE, MINIDUMP_TYPE
                                             CONST PMINIDUMP_CALLBACK_INFORMATION);
 
 static void
-_crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen, char* dump_file, size_t* capacity) {
+_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen, char* dump_file,
+                  size_t* capacity) {
 	MINIDUMP_EXCEPTION_INFORMATION info;
 	HANDLE file;
 	SYSTEMTIME local_time;
@@ -126,29 +127,29 @@ _crash_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t n
 
 #  if !FOUNDATION_USE_SEH
 
-struct crash_exception_closure_t {
-	crash_dump_callback_fn callback;
-	string_const_t         name;
-	bool                   initialized;
-	bool                   triggered;
-	CONTEXT                context;
+struct exception_closure_t {
+	exception_handler_fn handler;
+	string_const_t       name;
+	bool                 initialized;
+	bool                 triggered;
+	CONTEXT              context;
 };
 
-typedef struct crash_exception_closure_t crash_exception_closure_t;
+typedef struct exception_closure_t exception_closure_t;
 
-static FOUNDATION_THREADLOCAL crash_exception_closure_t _crash_exception_closure;
+static FOUNDATION_THREADLOCAL exception_closure_t _exception_closure;
 
 static LONG WINAPI
-_crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
-	if (_crash_exception_closure.initialized) {
+_exception_filter(LPEXCEPTION_POINTERS pointers) {
+	if (_exception_closure.initialized) {
 		char dump_file_buffer[MAX_PATH];
 		size_t dump_file_len = sizeof(dump_file_buffer);
-		_crash_exception_closure.triggered = true;
-		_crash_create_mini_dump(pointers, STRING_ARGS(_crash_exception_closure.name), dump_file_buffer,
-		                        &dump_file_len);
-		if (_crash_exception_closure.callback)
-			_crash_exception_closure.callback(dump_file_buffer, dump_file_len);
-		RtlRestoreContext(&_crash_exception_closure.context, 0);
+		_exception_closure.triggered = true;
+		_create_mini_dump(pointers, STRING_ARGS(_exception_closure.name),
+		                  dump_file_buffer, &dump_file_len);
+		if (_exception_closure.handler)
+			_exception_closure.handler(dump_file_buffer, dump_file_len);
+		RtlRestoreContext(&_exception_closure.context, 0);
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -162,22 +163,22 @@ _crash_exception_filter(LPEXCEPTION_POINTERS pointers) {
 #include <foundation/posix.h>
 //#include <ucontext.h>
 
-FOUNDATION_DECLARE_THREAD_LOCAL(crash_dump_callback_fn, crash_callback, 0)
-FOUNDATION_DECLARE_THREAD_LOCAL(const char*, crash_callback_name, 0)
+FOUNDATION_DECLARE_THREAD_LOCAL(exception_handler_fn, exception_handler, 0)
+FOUNDATION_DECLARE_THREAD_LOCAL(const char*, dump_name, 0)
 
 #if FOUNDATION_PLATFORM_ANDROID
-#  define crash_env_t long int*
+#  define exception_env_t long int*
 #elif FOUNDATION_PLATFORM_APPLE
-#  define crash_env_t int*
+#  define exception_env_t int*
 #elif FOUNDATION_PLATFORM_BSD
-#  define crash_env_t struct _sigjmp_buf*
+#  define exception_env_t struct _sigjmp_buf*
 #else
-#  define crash_env_t struct __jmp_buf_tag*
+#  define exception_env_t struct __jmp_buf_tag*
 #endif
-FOUNDATION_DECLARE_THREAD_LOCAL(crash_env_t, crash_env, 0)
+FOUNDATION_DECLARE_THREAD_LOCAL(exception_env_t, exception_env, 0)
 
 static string_t
-_crash_guard_minidump(void* context, string_const_t name, string_t dump_file) {
+_create_mini_dump(void* context, string_const_t name, string_t dump_file) {
 	string_const_t tmp_dir;
 	string_const_t uuid_str;
 	if (!name.length)
@@ -198,27 +199,26 @@ _crash_guard_minidump(void* context, string_const_t name, string_t dump_file) {
 }
 
 static void
-_crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
+_exception_sigaction(int sig, siginfo_t* info, void* arg) {
 	FOUNDATION_UNUSED(sig);
 	FOUNDATION_UNUSED(info);
 	FOUNDATION_UNUSED(arg);
 
-	log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Caught crash guard signal: %d"), sig);
+	log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Caught signal: %d"), sig);
 
-	crash_dump_callback_fn callback = get_thread_crash_callback();
-	if (callback) {
-		char file_name_buffer[ BUILD_MAX_PATHLEN ];
-		const char* name = get_thread_crash_callback_name();
-		string_t dump_file = (string_t) {file_name_buffer, sizeof(file_name_buffer)};
-		dump_file = _crash_guard_minidump(arg, (string_const_t) {name, string_length(name)}, dump_file);
-		callback(dump_file.str, dump_file.length);
-	}
+	char file_name_buffer[ BUILD_MAX_PATHLEN ];
+	const char* name = get_thread_dump_name();
+	string_t dump_file = (string_t) {file_name_buffer, sizeof(file_name_buffer)};
+	dump_file = _create_mini_dump(arg, (string_const_t) {name, string_length(name)}, dump_file);
+	exception_handler_fn handler = get_thread_exception_handler();
+	if (handler)
+		handler(dump_file.str, dump_file.length);
 
 	error_context_clear();
 
-	crash_env_t guard_env = get_thread_crash_env();
-	if (guard_env)
-		siglongjmp(guard_env, FOUNDATION_CRASH_DUMP_GENERATED);
+	exception_env_t exception_env = get_thread_exception_env();
+	if (exception_env)
+		siglongjmp(exception_env, FOUNDATION_EXCEPTION_CAUGHT);
 	else
 		log_warn(0, WARNING_SUSPICIOUS, STRING_CONST("No sigjmp_buf for thread"));
 }
@@ -226,8 +226,8 @@ _crash_guard_sigaction(int sig, siginfo_t* info, void* arg) {
 #endif
 
 int
-crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, const char* name,
-            size_t length) {
+exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
+              const char* name, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ret;
 #  if FOUNDATION_USE_SEH
@@ -245,24 +245,25 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
-	__except (_crash_create_mini_dump(GetExceptionInformation(), name, length, buffer, &capacity),
+	__except (_create_mini_dump(GetExceptionInformation(), name, length, buffer, &capacity),
 	          EXCEPTION_EXECUTE_HANDLER) {
-		ret = FOUNDATION_CRASH_DUMP_GENERATED;
-		if (callback)
-			callback(buffer, capacity);
+		ret = FOUNDATION_EXCEPTION_CAUGHT;
+		if (handler)
+			handler(buffer, capacity);
 
 		error_context_clear();
 	}
 	return ret;
 #  else
-	SetUnhandledExceptionFilter(_crash_exception_filter);
-	_crash_exception_closure.callback = callback;
-	_crash_exception_closure.name = string_const(name, length);
-	_crash_exception_closure.triggered = false;
-	_crash_exception_closure.initialized = true;
-	RtlCaptureContext(&_crash_exception_closure.context);
-	if (_crash_exception_closure.triggered) {
-		ret = FOUNDATION_CRASH_DUMP_GENERATED;
+	SetUnhandledExceptionFilter(_exception_filter);
+	_exception_closure.handler = handler;
+	_exception_closure.name = string_const(name, length);
+	_exception_closure.triggered = false;
+	_exception_closure.initialized = true;
+	RtlCaptureContext(&_exception_closure.context);
+	atomic_thread_fence_release();
+	if (_exception_closure.triggered) {
+		ret = FOUNDATION_EXCEPTION_CAUGHT;
 		error_context_clear();
 	}
 	else {
@@ -272,7 +273,7 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #  endif
 
 #elif FOUNDATION_PLATFORM_POSIX
-	sigjmp_buf guard_env;
+	sigjmp_buf exception_env;
 
 	struct sigaction action;
 	memset(&action, 0, sizeof(action));
@@ -283,7 +284,7 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #endif
 
 	//Signals we process globally
-	action.sa_sigaction = _crash_guard_sigaction;
+	action.sa_sigaction = _exception_sigaction;
 	action.sa_flags = SA_SIGINFO;
 	if ((sigaction(SIGTRAP, &action, 0) < 0) ||
 	        (sigaction(SIGABRT, &action, 0) < 0) ||
@@ -292,20 +293,20 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 	        (sigaction(SIGBUS,  &action, 0) < 0) ||
 	        (sigaction(SIGILL,  &action, 0) < 0) ||
 	        (sigaction(SIGSYS,  &action, 0) < 0)) {
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to set crash guard signal actions"));
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to set signal actions"));
 	}
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
 #endif
 
-	set_thread_crash_callback(callback);
-	set_thread_crash_callback_name(length ? name : 0);
+	set_thread_exception_handler(handler);
+	set_thread_dump_name(length ? name : 0);
 
-	memset(&guard_env, 0, sizeof(guard_env));
-	int ret = sigsetjmp(guard_env, 1);
+	memset(&exception_env, 0, sizeof(exception_env));
+	int ret = sigsetjmp(exception_env, 1);
 	if (ret == 0) {
-		set_thread_crash_env(guard_env);
+		set_thread_exception_env(exception_env);
 		return fn(data);
 	}
 	return ret;
@@ -322,23 +323,21 @@ crash_guard(crash_guard_fn fn, void* data, crash_dump_callback_fn callback, cons
 #endif
 }
 
+static char* _illegal_ptr;
+
 void
-crash_debug_break(void) {
+exception_raise_debug_break(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DebugBreak();
 	process_exit(-1);
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	__builtin_trap();
 #else
-	(*(volatile int*)3 = 0);
+	exception_raise();
 #endif
 }
 
 void
-crash_dump(void) {
-#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-	__builtin_trap();
-#else
-	(*(volatile int*)3 = 0);
-#endif
+exception_raise_abort(void) {
+	*_illegal_ptr = 1;
 }

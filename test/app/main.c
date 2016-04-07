@@ -24,7 +24,7 @@ test_app_application(void) {
 	_global_app.company = string_const(STRING_CONST("Rampant Pixels"));
 	_global_app.version = foundation_version();
 	_global_app.flags = APPLICATION_UTILITY;
-	_global_app.dump_callback = test_crash_handler;
+	_global_app.exception_handler = test_exception_handler;
 	return _global_app;
 }
 
@@ -59,7 +59,7 @@ DECLARE_TEST(app, environment) {
 	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
 	                          _global_app.version.version));
 	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);
-	EXPECT_EQ(environment_application()->dump_callback, test_crash_handler);
+	EXPECT_EQ(environment_application()->exception_handler, test_exception_handler);
 	return 0;
 }
 

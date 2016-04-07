@@ -112,10 +112,12 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 		           STRING_ARGS(vstr),
 		           nullptr);
 
-		if (app->dump_callback)
-			crash_guard_set(app->dump_callback, STRING_ARGS(name));
-
-		ret = crash_guard(main_run, 0, app->dump_callback, STRING_ARGS(name));
+		if (app->exception_handler)
+			exception_set_handler(app->exception_handler, STRING_ARGS(name));
+		if (app->exception_handler && !system_debugger_attached())
+			ret = exception_try(main_run, 0, app->exception_handler, STRING_ARGS(name));
+		else
+			ret = main_run(0);
 
 		string_deallocate(name.str);
 	}
@@ -279,13 +281,12 @@ main(int argc, char** argv)
 			                              (int)vstr.length, vstr.str);
 		}
 
-		if (app->dump_callback)
-			crash_guard_set(app->dump_callback, name.str, name.length);
-
-		if (system_debugger_attached())
-			ret = main_run(0);
+		if (app->exception_handler)
+			exception_set_handler(app->exception_handler, STRING_ARGS(name));
+		if (app->exception_handler && !system_debugger_attached())
+			ret = exception_try(main_run, 0, app->exception_handler, STRING_ARGS(name));
 		else
-			ret = crash_guard(main_run, 0, app->dump_callback, name.str, name.length);
+			ret = main_run(0);
 
 		string_deallocate(name.str);
 	}

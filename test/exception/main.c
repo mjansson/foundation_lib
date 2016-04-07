@@ -1,4 +1,4 @@
-/* main.c  -  Foundation crash test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation exception test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-static bool _crash_callback_called = false;
+static bool _exception_handler_called = false;
 
 static hash_t handled_context;
 static char handled_condition[32];
@@ -22,53 +22,53 @@ static unsigned int handled_line;
 static char handled_msg[32];
 #if BUILD_ENABLE_LOG
 static char handled_log[512];
-static log_callback_fn _global_log_callback = 0;
+static log_handler_fn _global_log_handler = 0;
 #endif
 
 static error_level_t _error_level_test;
 static error_t _error_test;
 
 static application_t
-test_crash_application(void) {
+test_exception_application(void) {
 	application_t app;
 	memset(&app, 0, sizeof(app));
-	app.name = string_const(STRING_CONST("Foundation crash tests"));
-	app.short_name = string_const(STRING_CONST("test_crash"));
+	app.name = string_const(STRING_CONST("Foundation exception tests"));
+	app.short_name = string_const(STRING_CONST("test_exception"));
 	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
 static memory_system_t
-test_crash_memory_system(void) {
+test_exception_memory_system(void) {
 	return memory_system_malloc();
 }
 
 static foundation_config_t
-test_crash_config(void) {
+test_exception_config(void) {
 	foundation_config_t config;
 	memset(&config, 0, sizeof(config));
 	return config;
 }
 
 static int
-test_crash_initialize(void) {
+test_exception_initialize(void) {
 	return 0;
 }
 
 static void
-test_crash_finalize(void) {
+test_exception_finalize(void) {
 }
 
 static void
-test_crash_callback(const char* dump_path, size_t length) {
+test_local_exception_handler(const char* dump_path, size_t length) {
 	FOUNDATION_UNUSED(dump_path);
 #if !BUILD_ENABLE_LOG
 	FOUNDATION_UNUSED(length);
 #endif
-	log_infof(HASH_TEST, STRING_CONST("Crash callback called: %.*s"), (int)length, dump_path);
-	_crash_callback_called = true;
+	log_infof(HASH_TEST, STRING_CONST("Exception handler called: %.*s"), (int)length, dump_path);
+	_exception_handler_called = true;
 }
 
 static int
@@ -89,27 +89,27 @@ handle_log(hash_t context, error_level_t severity, const char* msg, size_t msg_l
 	FOUNDATION_UNUSED(context);
 	FOUNDATION_UNUSED(severity);
 	string_copy(handled_log, sizeof(handled_log), msg, msg_length);
-	if (_global_log_callback)
-		_global_log_callback(context, severity, msg, msg_length);
+	if (_global_log_handler)
+		_global_log_handler(context, severity, msg, msg_length);
 }
 
 #endif
 
 static int
-instant_crash(void* arg) {
+raise_abort(void* arg) {
 	FOUNDATION_UNUSED(arg);
-	crash_debug_break();
+	exception_raise_abort();
 #if !FOUNDATION_COMPILER_CLANG || FOUNDATION_PLATFORM_APPLE
 	return 1;
 #endif
 }
 
 static void*
-thread_crash(void* arg) {
-	return (void*)(uintptr_t)instant_crash(arg);
+thread_raise_abort(void* arg) {
+	return (void*)(uintptr_t)raise_abort(arg);
 }
 
-DECLARE_TEST(crash, assert_callback) {
+DECLARE_TEST(exception, assert_handler) {
 	EXPECT_EQ(assert_handler(), 0);
 
 	assert_set_handler(handle_assert);
@@ -130,8 +130,8 @@ DECLARE_TEST(crash, assert_callback) {
 	EXPECT_EQ(assert_handler(), 0);
 
 #if BUILD_ENABLE_LOG
-	_global_log_callback = log_callback();
-	log_set_callback(handle_log);
+	_global_log_handler = log_handler();
+	log_set_handler(handle_log);
 #endif
 	log_enable_stdout(false);
 	EXPECT_EQ(assert_report_formatted(1, STRING_CONST("assert_report_formatted"), STRING_CONST("file"),
@@ -151,8 +151,8 @@ DECLARE_TEST(crash, assert_callback) {
 #else
 	log_infof(HASH_TEST, STRING_CONST("%s"),
 #endif
-	           "To test log callback and memory handling this test will print "
-	           "a really long log line with complete nonsense. Log callbacks only occur for non-suppressed "
+	           "To test log handler and memory handling this test will print "
+	           "a really long log line with complete nonsense. Log handlers only occur for non-suppressed "
 	           "log levels, which is why this will be visible. However, it will not be printed to stdout. "
 	           "Lorem ipsum dolor sit amet, an quas vivendum sed, in est summo conclusionemque, an est nulla nonumy option. "
 	           "Malorum invidunt et mel, mei et hinc adolescens, eu velit deleniti urbanitas cum. Ei pericula omittantur duo, "
@@ -174,21 +174,21 @@ DECLARE_TEST(crash, assert_callback) {
 	EXPECT_TRUE(string_find_string(handled_log, string_length(handled_log), STRING_CONST("Lorem ipsum"),
 	                               0) != STRING_NPOS);
 
-	log_set_callback(_global_log_callback);
+	log_set_handler(_global_log_handler);
 #endif
 
 	return 0;
 }
 
 static int
-_error_callback_test(error_level_t level, error_t error) {
+_error_handler_test(error_level_t level, error_t error) {
 	_error_level_test = level;
 	_error_test = error;
 	return 2;
 }
 
-DECLARE_TEST(crash, error) {
-	error_callback_fn callback;
+DECLARE_TEST(exception, error) {
+	error_handler_fn handler;
 	int ret;
 
 	error();
@@ -200,17 +200,17 @@ DECLARE_TEST(crash, error) {
 	error_report(ERRORLEVEL_ERROR, ERROR_EXCEPTION);
 	EXPECT_EQ(error(), ERROR_EXCEPTION);
 
-	callback = error_callback();
-	error_set_callback(_error_callback_test);
+	handler = error_handler();
+	error_set_handler(_error_handler_test);
 
 	ret = error_report(ERRORLEVEL_WARNING, ERROR_INVALID_VALUE);
 	EXPECT_EQ(error(), ERROR_INVALID_VALUE);
 	EXPECT_EQ(ret, 2);
 	EXPECT_EQ(_error_level_test, ERRORLEVEL_WARNING);
 	EXPECT_EQ(_error_test, ERROR_INVALID_VALUE);
-	EXPECT_EQ(error_callback(), _error_callback_test);
+	EXPECT_EQ(error_handler(), _error_handler_test);
 
-	error_set_callback(callback);
+	error_set_handler(handler);
 
 	{
 #if BUILD_ENABLE_ERROR_CONTEXT
@@ -254,77 +254,77 @@ DECLARE_TEST(crash, error) {
 	return 0;
 }
 
-DECLARE_TEST(crash, crash_guard) {
-	int crash_result;
+DECLARE_TEST(exception, exception_handler) {
+	int result;
 
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
-		return 0; //Don't do crash tests with debugger attached
+		return 0; //Don't do exception tests with debugger attached
 
 #if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_GCC
 	return 0; //We do not correctly return from guard on Windows with GCC
 #endif
 
-	_crash_callback_called = false;
+	_exception_handler_called = false;
 	log_enable_stdout(false);
-	crash_result = crash_guard(instant_crash, 0, test_crash_callback, STRING_CONST("instant_crash"));
+	result = exception_try(raise_abort, 0, test_local_exception_handler, STRING_CONST("raise_abort"));
 	log_enable_stdout(true);
-	EXPECT_EQ(crash_result, FOUNDATION_CRASH_DUMP_GENERATED);
-	EXPECT_TRUE(_crash_callback_called);
+	EXPECT_EQ(result, FOUNDATION_EXCEPTION_CAUGHT);
+	EXPECT_TRUE(_exception_handler_called);
 
 	return 0;
 }
 
-DECLARE_TEST(crash, crash_thread) {
+DECLARE_TEST(exception, exception_thread) {
 	thread_t thread;
 
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
-		return 0; //Don't do crash tests with debugger attached
+		return 0; //Don't do exception tests with debugger attached
 
 #if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_GCC
 	return 0; //We do not correctly return from guard on Windows with GCC
 #endif
 
-	_crash_callback_called = false;
-	crash_guard_set(test_crash_callback, STRING_CONST("thread_crash"));
+	_exception_handler_called = false;
+	exception_set_handler(test_local_exception_handler, STRING_CONST("thread_raise_abort"));
 
 	log_enable_stdout(false);
-	thread_initialize(&thread, thread_crash, 0, STRING_CONST("crash"), THREAD_PRIORITY_NORMAL, 0);
+	thread_initialize(&thread, thread_raise_abort, 0, STRING_CONST("raise_abort"), THREAD_PRIORITY_NORMAL, 0);
 	thread_start(&thread);
 	while (!thread_is_started(&thread))
 		thread_sleep(100);
 	thread_finalize(&thread);
 	log_enable_stdout(true);
 
-	EXPECT_TRUE(_crash_callback_called);
+	EXPECT_TRUE(_exception_handler_called);
 
 	return 0;
 }
 
 static void
-test_crash_declare(void) {
-	ADD_TEST(crash, assert_callback);
-	ADD_TEST(crash, error);
-	ADD_TEST(crash, crash_guard);
-	ADD_TEST(crash, crash_thread);
+test_exception_declare(void) {
+	ADD_TEST(exception, assert_handler);
+	ADD_TEST(exception, error);
+	ADD_TEST(exception, exception_handler);
+	ADD_TEST(exception, exception_thread);
 }
 
-static test_suite_t test_crash_suite = {
-	test_crash_application,
-	test_crash_memory_system,
-	test_crash_config,
-	test_crash_declare,
-	test_crash_initialize,
-	test_crash_finalize
+static test_suite_t test_exception_suite = {
+	test_exception_application,
+	test_exception_memory_system,
+	test_exception_config,
+	test_exception_declare,
+	test_exception_initialize,
+	test_exception_finalize
 };
 
 #if BUILD_MONOLITHIC
 
 int
-test_crash_run(void);
+test_exception_run(void);
 
 int
-test_crash_run(void) {
-	test_suite = test_crash_suite;
+test_exception_run(void) {
+	test_suite = test_exception_suite;
 	return test_run_all();
 }
 
@@ -335,7 +335,7 @@ test_suite_define(void);
 
 test_suite_t
 test_suite_define(void) {
-	return test_crash_suite;
+	return test_exception_suite;
 }
 
 #endif

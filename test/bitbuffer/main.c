@@ -21,7 +21,7 @@ test_bitbuffer_application(void) {
 	app.short_name = string_const(STRING_CONST("test_bitbuffer"));
 	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 

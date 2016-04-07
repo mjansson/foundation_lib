@@ -116,7 +116,7 @@ test_run(void) {
 	while (!thread_is_started(&thread_event))
 		thread_yield();
 
-	error_set_callback(test_error_handler);
+	error_set_handler(test_error_handler);
 #endif
 
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
@@ -313,12 +313,12 @@ test_wait_for_threads_join(thread_t* threads, size_t num_threads) {
 }
 
 void
-test_crash_handler(const char* dump_file, size_t length) {
+test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 	log_enable_stdout(true);
-	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test crashed"));
+	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test raised exception"));
 	process_exit(-1);
 }
 

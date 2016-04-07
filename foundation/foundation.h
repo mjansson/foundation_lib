@@ -68,7 +68,7 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/pipe.h>
 #include <foundation/json.h>
 
-#include <foundation/crash.h>
+#include <foundation/exception.h>
 #include <foundation/stacktrace.h>
 
 #include <foundation/blowfish.h>

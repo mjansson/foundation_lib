@@ -111,10 +111,10 @@ test_log_callback(hash_t context, error_level_t severity, const char* msg, size_
 #if !BUILD_MONOLITHIC
 
 void
-test_crash_handler(const char* dump_file, size_t length) {
+test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
-	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test crashed"));
+	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test raised exception"));
 	process_exit(-1);
 }
 
@@ -160,7 +160,7 @@ main_initialize(void) {
 	application.company = string_const(STRING_CONST("Rampant Pixels"));
 	application.version = foundation_version();
 	application.flags = APPLICATION_UTILITY;
-	application.dump_callback = test_crash_handler;
+	application.exception_handler = test_exception_handler;
 
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
@@ -206,7 +206,7 @@ extern int test_bitbuffer_run(void);
 extern int test_blowfish_run(void);
 extern int test_bufferstream_run(void);
 extern int test_config_run(void);
-extern int test_crash_run(void);
+extern int test_exception_run(void);
 extern int test_environment_run(void);
 extern int test_error_run(void);
 extern int test_event_run(void);
@@ -327,7 +327,7 @@ main_run(void* main_arg) {
 		test_blowfish_run,
 		test_bufferstream_run,
 		test_config_run,
-		test_crash_run,
+		test_exception_run,
 		test_environment_run,
 		test_error_run,
 		test_event_run,

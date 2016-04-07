@@ -42,11 +42,11 @@
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
-static bool             _log_stdout           = true;
-static bool             _log_prefix           = true;
-static log_callback_fn  _log_callback;
-static hashtable64_t*   _log_suppress;
-static error_level_t    _log_suppress_default;
+static bool           _log_stdout = true;
+static bool           _log_prefix = true;
+static log_handler_fn _log_handler;
+static hashtable64_t* _log_suppress;
+static error_level_t  _log_suppress_default;
 
 #define LOG_WARNING_NAMES 9
 static char _log_warning_name[LOG_WARNING_NAMES][18] = {
@@ -180,8 +180,8 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 				fprintf(std, "%s", buffer);
 #endif
 
-			if (_log_callback)
-				_log_callback(context, severity, buffer, (unsigned int)(endl - 1));
+			if (_log_handler)
+				_log_handler(context, severity, buffer, (unsigned int)(endl - 1));
 
 			break;
 		}
@@ -342,14 +342,14 @@ log_enable_stdout(bool enable) {
 	_log_stdout = enable;
 }
 
-log_callback_fn
-log_callback(void) {
-	return _log_callback;
+log_handler_fn
+log_handler(void) {
+	return _log_handler;
 }
 
 void
-log_set_callback(log_callback_fn callback) {
-	_log_callback = callback;
+log_set_handler(log_handler_fn handler) {
+	_log_handler = handler;
 }
 
 void
