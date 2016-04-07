@@ -78,6 +78,13 @@ skip_whitespace(const char* buffer, size_t length, size_t pos) {
 	return pos;
 }
 
+static char
+hex_char(unsigned char val) {
+	if (val < 10)
+		return '0' + val;
+	return 'a' + (val - 10);
+}
+
 static size_t
 parse_string(const char* buffer, size_t length, size_t pos, bool key, bool simple) {
 	size_t start = pos;
@@ -396,13 +403,13 @@ json_escape(char* buffer, size_t capacity, const char* string, size_t length) {
 			buffer[outlength++] = '\\';
 			if (outlength < capacity) buffer[outlength++] = 't';
 		}
-		else if ((c < 0x20) || (c > 0x7f)) {
+		else if (c < 0x20) {
 			buffer[outlength++] = '\\';
 			if (outlength < capacity) buffer[outlength++] = 'u';
 			if (outlength < capacity) buffer[outlength++] = '0';
 			if (outlength < capacity) buffer[outlength++] = '0';
-			if (outlength < capacity) buffer[outlength++] = 'u';
-			if (outlength < capacity) buffer[outlength++] = 'u';
+			if (outlength < capacity) buffer[outlength++] = hex_char((unsigned char)(c >> 4) & 0xf);
+			if (outlength < capacity) buffer[outlength++] = hex_char((unsigned char)c & 0xf);
 		}
 		else {
 			buffer[outlength++] = c;

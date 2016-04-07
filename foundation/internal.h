@@ -121,6 +121,12 @@ _stacktrace_initialize(void);
 FOUNDATION_API void
 _stacktrace_finalize(void);
 
+FOUNDATION_API int
+_exception_initialize(void);
+
+FOUNDATION_API void
+_exception_finalize(void);
+
 FOUNDATION_API void
 foundation_startup(void);
 

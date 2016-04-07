@@ -127,6 +127,12 @@ _create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen
 
 #  if !FOUNDATION_USE_SEH
 
+typedef VOID WINAPI (*RtlRestoreContextFn)(PCONTEXT, PEXCEPTION_RECORD);
+typedef VOID WINAPI (*RtlCaptureContextFn)(PCONTEXT);
+
+static RtlRestoreContextFn _RtlRestoreContext;
+static RtlCaptureContextFn _RtlCaptureContext;
+
 struct exception_closure_t {
 	exception_handler_fn handler;
 	string_const_t       name;
@@ -149,7 +155,8 @@ _exception_filter(LPEXCEPTION_POINTERS pointers) {
 		                  dump_file_buffer, &dump_file_len);
 		if (_exception_closure.handler)
 			_exception_closure.handler(dump_file_buffer, dump_file_len);
-		RtlRestoreContext(&_exception_closure.context, 0);
+		if (_RtlRestoreContext)
+			_RtlRestoreContext(&_exception_closure.context, 0);
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -255,12 +262,12 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 	}
 	return ret;
 #  else
-	SetUnhandledExceptionFilter(_exception_filter);
 	_exception_closure.handler = handler;
 	_exception_closure.name = string_const(name, length);
 	_exception_closure.triggered = false;
 	_exception_closure.initialized = true;
-	RtlCaptureContext(&_exception_closure.context);
+	if (_RtlCaptureContext)
+		_RtlCaptureContext(&_exception_closure.context);
 	atomic_thread_fence_release();
 	if (_exception_closure.triggered) {
 		ret = FOUNDATION_EXCEPTION_CAUGHT;
@@ -275,26 +282,10 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 #elif FOUNDATION_PLATFORM_POSIX
 	sigjmp_buf exception_env;
 
-	struct sigaction action;
-	memset(&action, 0, sizeof(action));
-
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 #endif
-
-	//Signals we process globally
-	action.sa_sigaction = _exception_sigaction;
-	action.sa_flags = SA_SIGINFO;
-	if ((sigaction(SIGTRAP, &action, 0) < 0) ||
-	        (sigaction(SIGABRT, &action, 0) < 0) ||
-	        (sigaction(SIGFPE,  &action, 0) < 0) ||
-	        (sigaction(SIGSEGV, &action, 0) < 0) ||
-	        (sigaction(SIGBUS,  &action, 0) < 0) ||
-	        (sigaction(SIGILL,  &action, 0) < 0) ||
-	        (sigaction(SIGSYS,  &action, 0) < 0)) {
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to set signal actions"));
-	}
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
@@ -320,6 +311,54 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 	//No guard mechanism in place yet for this platform
 	return fn(data);
 
+#endif
+}
+
+#if FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_USE_SEH
+static HMODULE _kernel_lib;
+#endif
+
+int
+_exception_initialize(void) {
+#if FOUNDATION_PLATFORM_WINDOWS
+#  if !FOUNDATION_USE_SEH
+	SetUnhandledExceptionFilter(_exception_filter);
+
+	_kernel_lib = LoadLibraryA("kernel32.dll");
+	if (_kernel_lib) {
+		_RtlCaptureContext = (RtlCaptureContextFn)GetProcAddress(_kernel_lib, "RtlCaptureContext");
+		_RtlRestoreContext = (RtlRestoreContextFn)GetProcAddress(_kernel_lib, "RtlRestoreContext");
+	}
+#  endif
+#elif FOUNDATION_PLATFORM_POSIX
+	struct sigaction action;
+	memset(&action, 0, sizeof(action));
+
+	//Signals we process globally
+	action.sa_sigaction = _exception_sigaction;
+	action.sa_flags = SA_SIGINFO;
+	if ((sigaction(SIGTRAP, &action, 0) < 0) ||
+	        (sigaction(SIGABRT, &action, 0) < 0) ||
+	        (sigaction(SIGFPE,  &action, 0) < 0) ||
+	        (sigaction(SIGSEGV, &action, 0) < 0) ||
+	        (sigaction(SIGBUS,  &action, 0) < 0) ||
+	        (sigaction(SIGILL,  &action, 0) < 0) ||
+	        (sigaction(SIGSYS,  &action, 0) < 0)) {
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to set signal actions"));
+	}
+
+#endif
+
+	return 0;
+}
+
+void
+_exception_finalize(void) {
+#if FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_USE_SEH
+	_RtlCaptureContext = 0;
+	_RtlRestoreContext = 0;
+	if (_kernel_lib)
+		FreeLibrary(_kernel_lib);
 #endif
 }
 

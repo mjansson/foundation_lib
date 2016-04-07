@@ -724,6 +724,9 @@ system_post_event(foundation_event_id event) {
 bool
 system_message_box(const char* title, size_t title_length, const char* message,
                    size_t message_length, bool cancel_button) {
+	if (environment_application()->flags & APPLICATION_UTILITY)
+		return true;
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	FOUNDATION_UNUSED(message_length);
 	FOUNDATION_UNUSED(title_length);

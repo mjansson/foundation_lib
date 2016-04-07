@@ -97,6 +97,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	SUBSYSTEM_INIT(stream);
 	SUBSYSTEM_INIT(fs);
 	SUBSYSTEM_INIT(stacktrace);
+	SUBSYSTEM_INIT(exception);
 	SUBSYSTEM_INIT_ARGS(environment, application);
 	SUBSYSTEM_INIT(library);
 	SUBSYSTEM_INIT(system);
@@ -162,6 +163,7 @@ foundation_finalize(void) {
 	_thread_finalize();
 	_time_finalize();
 	_log_finalize();
+	_exception_finalize();
 	_stacktrace_finalize();
 	_static_hash_finalize();
 	_memory_finalize();
