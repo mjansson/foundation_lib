@@ -823,6 +823,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  pragma warning(disable : 4204)
 #  pragma warning(disable : 4706)
 #  ifdef __cplusplus
+#  pragma warning(disable : 4100)
 #  pragma warning(disable : 4510)
 #  pragma warning(disable : 4512)
 #  pragma warning(disable : 4610)
@@ -841,10 +842,12 @@ thread local storage to ensure maximum portability across supported platforms */
 #  endif
 
 #  ifndef __cplusplus
+
 typedef enum {
 	false = 0,
 	true  = 1
 } bool;
+
 #  endif
 
 #  if _MSC_VER < 1800
@@ -913,7 +916,9 @@ typedef enum {
 #  include <sys/types.h>
 #endif
 
-#define nullptr ((void*)0)
+#ifndef __cplusplus
+#  define nullptr ((void*)0)
+#endif
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop

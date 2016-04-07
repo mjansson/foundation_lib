@@ -19,9 +19,9 @@ test_json_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation JSON tests"));
 	app.short_name = string_const(STRING_CONST("test_json"));
-	app.config_dir = string_const(STRING_CONST("test_json"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -58,7 +58,7 @@ DECLARE_TEST(json, reference) {
 		\"string\",\
 		0.34523e-78,[\
 			true, \
-			\"subarr\", { \"key\": []}, [] \
+			\"subarr [] {} =:\", { \"key\": []}, [] \
 		],[false],\
 		{ \t\
 			\"final\" : true \
@@ -138,7 +138,7 @@ DECLARE_TEST(json, reference) {
 	EXPECT_UINTEQ(tokens[8].value_length, 4);
 	EXPECT_INTEQ(tokens[9].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[9].id_length, 0);
-	EXPECT_UINTEQ(tokens[9].value_length, 6);
+	EXPECT_UINTEQ(tokens[9].value_length, 15);
 	EXPECT_INTEQ(tokens[10].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[10].id_length, 0);
 	EXPECT_UINTEQ(tokens[10].value_length, 0);
@@ -180,7 +180,7 @@ DECLARE_TEST(json, simplified) {
 		string\
 		0.34523e-78 [\
 			true\
-			subarr { key: []} []\
+			\"subarr [] {} =:\" { key: []} []\
 		] [false] \
 		{ \t\
 			final = true\
@@ -197,7 +197,7 @@ DECLARE_TEST(json, simplified) {
 		\"string\",\
 		0.34523e-78,[\
 			true, \
-			\"subarr\", { \"key\": []}, [] \
+			\"subarr [] {} =:\", { \"key\": []}, [] \
 		],[false],\
 		{ \t\
 			\"final\" : true \
@@ -268,7 +268,7 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_UINTEQ(tokens[8].value_length, 4);
 	EXPECT_INTEQ(tokens[9].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[9].id_length, 0);
-	EXPECT_UINTEQ(tokens[9].value_length, 6);
+	EXPECT_UINTEQ(tokens[9].value_length, 15);
 	EXPECT_INTEQ(tokens[10].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[10].id_length, 0);
 	EXPECT_UINTEQ(tokens[10].value_length, 0);
@@ -363,7 +363,7 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_UINTEQ(tokens[8].value_length, 4);
 	EXPECT_INTEQ(tokens[9].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[9].id_length, 0);
-	EXPECT_UINTEQ(tokens[9].value_length, 6);
+	EXPECT_UINTEQ(tokens[9].value_length, 15);
 	EXPECT_INTEQ(tokens[10].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[10].id_length, 0);
 	EXPECT_UINTEQ(tokens[10].value_length, 0);
@@ -395,10 +395,25 @@ DECLARE_TEST(json, simplified) {
 	return 0;
 }
 
+DECLARE_TEST(json, random) {
+	char buffer[256];
+	size_t i, j, steps;
+
+	for (i = 0, steps = 1024 * 1024; i < steps; ++i) {
+		for (j = 0; j < sizeof(buffer); ++j)
+			buffer[j] = (char)random32_range(32, 127);
+		json_parse(buffer, sizeof(buffer), nullptr, 0);
+		sjson_parse(buffer, sizeof(buffer), nullptr, 0);
+	}
+
+	return 0;
+}
+
 static void
 test_json_declare(void) {
 	ADD_TEST(json, reference);
 	ADD_TEST(json, simplified);
+	ADD_TEST(json, random);
 }
 
 static test_suite_t test_json_suite = {

@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 FOUNDATION_DECLARE_THREAD_LOCAL(error_t, error, 0)   // 0 = ERROR_NONE
-FOUNDATION_DECLARE_THREAD_LOCAL(error_callback_fn, error_callback, 0)
+FOUNDATION_DECLARE_THREAD_LOCAL(error_handler_fn, error_handler, 0)
 
 error_t
 error(void) {
@@ -26,23 +26,23 @@ error(void) {
 int
 error_report(error_level_t level, error_t err) {
 	int result = 0;
-	error_callback_fn callback = get_thread_error_callback();
+	error_handler_fn handler = get_thread_error_handler();
 
 	set_thread_error(err);
-	if (callback)
-		result = callback(level, err);
+	if (handler)
+		result = handler(level, err);
 
 	return result;
 }
 
-error_callback_fn
-error_callback(void) {
-	return get_thread_error_callback();
+error_handler_fn
+error_handler(void) {
+	return get_thread_error_handler();
 }
 
 void
-error_set_callback(error_callback_fn callback) {
-	set_thread_error_callback(callback);
+error_set_handler(error_handler_fn handler) {
+	set_thread_error_handler(handler);
 }
 
 #if BUILD_ENABLE_ERROR_CONTEXT

@@ -166,6 +166,8 @@ string_t
 string_from_uuid(char* buffer, size_t size, const uuid_t val) {
 	int len;
 	uuid_convert_t convert;
+	if (!size)
+		return (string_t) {buffer, 0};
 	convert.uuid = val;
 	len = snprintf(buffer, size, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", convert.raw.data1,
 	               convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1],

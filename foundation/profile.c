@@ -397,7 +397,7 @@ profile_finalize(void) {
 			++num_blocks; //Include the wasted block 0
 
 		if (num_blocks != _profile_num_blocks) {
-			//If profile output function (user) crashed, this will probably trigger
+			//If profile output function (user) raised exception, this will probably trigger
 			//since at least one block will be lost in space
 			log_errorf(0, ERROR_INTERNAL_FAILURE,
 			           STRING_CONST("Profile module state inconsistent on finalize, lost blocks "

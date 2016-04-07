@@ -50,7 +50,7 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 #include <shellapi.h>
 #include <stdlib.h>
 #include <shlobj.h>
-#if FOUNDATION_COMPILER_MSVC
+#if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_CLANG
 #include <dbghelp.h>
 #include <crtdbg.h>
 #else

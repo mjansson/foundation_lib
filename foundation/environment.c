@@ -18,7 +18,7 @@ static string_t _environment_executable_dir;
 static string_t _environment_executable_path;
 static string_t _environment_initial_working_dir;
 static string_t _environment_current_working_dir;
-static string_t _environment_home_dir;
+static string_t _environment_app_dir;
 static string_t _environment_temp_dir;
 static bool _environment_temp_dir_local;
 
@@ -90,10 +90,10 @@ _environment_set_executable_paths(char* executable_path, size_t length) {
 	}
 #if FOUNDATION_PLATFORM_WINDOWS
 	if ((_environment_executable_name.length > 4) &&
-	    (string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
-	                      STRING_CONST(".exe")) ||
-	     string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
-	                      STRING_CONST(".EXE")))) {
+	        (string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
+	                          STRING_CONST(".exe")) ||
+	         string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
+	                          STRING_CONST(".EXE")))) {
 		_environment_executable_name.str[_environment_executable_name.length - 4] = 0;
 		_environment_executable_name.length -= 4;
 	}
@@ -248,7 +248,7 @@ _environment_initialize(const application_t application) {
 
 	_environment_executable_dir = string_clone(STRING_CONST("/cache"));
 	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
-	_environment_home_dir = string_clone(STRING_CONST("/persistent"));
+	_environment_app_dir = string_clone(STRING_CONST("/persistent"));
 	_environment_temp_dir = string_clone(STRING_CONST("/tmp"));
 	_environment_executable_path = string_clone(STRING_ARGS(application.short_name));
 
@@ -295,15 +295,15 @@ _environment_finalize(void) {
 	string_deallocate(_environment_executable_path.str);
 	string_deallocate(_environment_initial_working_dir.str);
 	string_deallocate(_environment_current_working_dir.str);
-	string_deallocate(_environment_home_dir.str);
+	string_deallocate(_environment_app_dir.str);
 	string_deallocate(_environment_temp_dir.str);
 
 	_environment_executable_name =
-	_environment_executable_dir =
-	_environment_executable_path =
-	_environment_initial_working_dir =
-	_environment_current_working_dir =
-	_environment_home_dir =
+	    _environment_executable_dir =
+	        _environment_executable_path =
+	            _environment_initial_working_dir =
+	                _environment_current_working_dir =
+	                    _environment_app_dir =
 	_environment_temp_dir = (string_t) {0, 0};
 }
 
@@ -413,46 +413,83 @@ environment_set_current_working_directory(const char* path, size_t length) {
 }
 
 string_const_t
-environment_home_directory(void) {
-	if (_environment_home_dir.str)
-		return string_to_const(_environment_home_dir);
+environment_application_directory(void) {
+	if (_environment_app_dir.str)
+		return string_to_const(_environment_app_dir);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t wpath[BUILD_MAX_PATHLEN];
 		SHGetFolderPathW(0, CSIDL_LOCAL_APPDATA, 0, 0, wpath);
-		_environment_home_dir = string_allocate_from_wstring(wpath, wstring_length(wpath));
-		_environment_home_dir = path_clean(STRING_ARGS_CAPACITY(_environment_home_dir));
+		char* pathbuf = memory_allocate(0, BUILD_MAX_PATHLEN, 0, MEMORY_TEMPORARY);
+		string_t pathstr = string_convert_utf16(pathbuf, BUILD_MAX_PATHLEN, wpath, wstring_length(wpath));
+		pathstr = path_clean(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN);
+		if (_environment_app.company.length)
+			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
+			                      STRING_ARGS(_environment_app.company));
+		if (_environment_app.short_name.length)
+			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
+			                      STRING_ARGS(_environment_app.short_name));
+		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
+		memory_deallocate(pathbuf);
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_TIZEN
-	string_const_t env_home = environment_variable(STRING_CONST("HOME"));
-	if (!env_home.length) {
-		struct passwd* pw = getpwuid(getuid());
-		env_home.str = pw->pw_dir;
-		env_home.length = string_length(env_home.str);
+	{
+		string_const_t env_home = environment_variable(STRING_CONST("HOME"));
+		if (!env_home.length) {
+			struct passwd* pw = getpwuid(getuid());
+			env_home.str = pw->pw_dir;
+			env_home.length = string_length(env_home.str);
+		}
+		char* pathbuf = memory_allocate(0, BUILD_MAX_PATHLEN, 0, MEMORY_TEMPORARY);
+		string_t pathstr = string_copy(pathbuf, BUILD_MAX_PATHLEN, STRING_ARGS(env_home));
+		if (_environment_app.company.length)
+			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
+			                             STRING_CONST("/."), STRING_ARGS(_environment_app.company),
+			                             nullptr);
+		if (_environment_app.short_name.length)
+			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
+			                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name),
+			                             nullptr);
+		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
+		memory_deallocate(pathbuf);
 	}
-	_environment_home_dir = string_clone(env_home.str, env_home.length);
 #elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
-	string_t pathstr = string_allocate(0, BUILD_MAX_PATHLEN);
-	pathstr = _environment_ns_home_directory(pathstr.str, BUILD_MAX_PATHLEN);
+	{
+		char* pathbuf = memory_allocate(0, BUILD_MAX_PATHLEN, 0, MEMORY_TEMPORARY);
+		string_t pathstr = _environment_ns_home_directory(pathbuf, BUILD_MAX_PATHLEN);
 #  if FOUNDATION_PLATFORM_MACOSX
-	if (!(environment_application()->flags & APPLICATION_UTILITY)) {
-		char bundle_identifier[256];
-		string_t bundle = environment_bundle_identifier(bundle_identifier, 256);
-		pathstr = path_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-		                           STRING_CONST("Library/Application Support"),
-		                           STRING_ARGS(bundle), nullptr);
-	}
+		if (!(environment_application()->flags & APPLICATION_UTILITY)) {
+			char bundle_identifier[256];
+			string_t bundle = environment_bundle_identifier(bundle_identifier, sizeof(bundle_identifier));
+			pathstr = path_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
+			                           STRING_CONST("Library/Application Support"),
+			                           STRING_ARGS(bundle), nullptr);
+		}
+		else {
+			if (_environment_app.company.length)
+				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
+				                             STRING_CONST("/."), STRING_ARGS(_environment_app.company),
+				                             nullptr);
+			if (_environment_app.short_name.length)
+				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
+				                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name),
+				                             nullptr);
+		}
 #  endif
-	_environment_home_dir = string_clone(pathstr.str, pathstr.length);
-	string_deallocate(pathstr.str);
+		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
+		memory_deallocate(pathbuf);
+	}
 #elif FOUNDATION_PLATFORM_ANDROID
-	_environment_home_dir = string_clone(android_app()->activity->internalDataPath,
-	                                     string_length(android_app()->activity->internalDataPath));
+	{
+		const char* data_path = android_app()->activity->internalDataPath;
+		_environment_app_dir = string_clone(data_path, string_length(data_path));
+	}
 #elif FOUNDATION_PLATFORM_PNACL
+	// _environment_app_dir is mapped to /persistent
 #else
 #  error Not implemented
 #endif
-	return string_to_const(_environment_home_dir);
+	return string_to_const(_environment_app_dir);
 }
 
 string_const_t
@@ -510,15 +547,15 @@ environment_temporary_directory(void) {
 #endif
 
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
-	if (_environment_app.config_dir.length) {
+	if (_environment_app.short_name.length) {
 		size_t curlen = _environment_temp_dir.length;
-		size_t cfglen = _environment_app.config_dir.length;
+		size_t cfglen = _environment_app.short_name.length;
 		size_t totallen = curlen + cfglen + 40;
 		if (totallen < BUILD_MAX_PATHLEN) {
 			string_t modpath = string_allocate(0, totallen - 1);
 			string_const_t uuidstr = string_from_uuid_static(_environment_app.instance);
 			modpath = string_copy(modpath.str, totallen, STRING_ARGS(_environment_temp_dir));
-			modpath = path_append_varg(STRING_ARGS(modpath), totallen, STRING_ARGS(_environment_app.config_dir),
+			modpath = path_append_varg(STRING_ARGS(modpath), totallen, STRING_ARGS(_environment_app.short_name),
 			                           STRING_ARGS(uuidstr), nullptr);
 			string_deallocate(_environment_temp_dir.str);
 			_environment_temp_dir = modpath;
@@ -532,7 +569,7 @@ environment_temporary_directory(void) {
 	string_deallocate(buffer);
 #endif
 	if ((_environment_temp_dir.length > 1) &&
-	    (_environment_temp_dir.str[ _environment_temp_dir.length - 1 ] == '/')) {
+	        (_environment_temp_dir.str[ _environment_temp_dir.length - 1 ] == '/')) {
 		--_environment_temp_dir.length;
 		_environment_temp_dir.str[ _environment_temp_dir.length ] = 0;
 	}
@@ -561,7 +598,8 @@ environment_variable(const char* var, size_t length) {
 	wchar_t* key = wstring_allocate_from_string(STRING_ARGS(varstr));
 	wchar_t val[BUILD_MAX_PATHLEN]; val[0] = 0;
 	if ((required = GetEnvironmentVariableW(key, val, BUILD_MAX_PATHLEN)) > BUILD_MAX_PATHLEN) {
-		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * ((size_t)required + 2), 0, MEMORY_TEMPORARY);
+		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * ((size_t)required + 2), 0,
+		                                     MEMORY_TEMPORARY);
 		val_local[0] = 0;
 		required = GetEnvironmentVariableW(key, val_local, required + 1);
 		if (_environment_var.str)

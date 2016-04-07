@@ -25,7 +25,7 @@ are enabled */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
-#include <foundation/crash.h>
+#include <foundation/exception.h>
 #include <foundation/string.h>
 
 /*! Get the currently set global assert handler
@@ -86,7 +86,7 @@ a null message and optionally (depending on callback) cause a breakpoint.
 #define FOUNDATION_ASSERT(cond) do { \
   if ((!(cond)) && assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
                                  __LINE__, 0, 0)) \
-    crash_debug_break(); \
+    exception_raise_debug_break(); \
   } while(0)
 
 /*! Assert the given condition. If assert fails, call the #assert_report function with the given
@@ -96,7 +96,7 @@ pre-formatted message and optionally (depending on callback) cause a breakpoint.
 #define FOUNDATION_ASSERT_MSG(cond, msg) do { \
   if ((!(cond)) && assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
                                  __LINE__, (msg), string_length((msg)))) \
-    crash_debug_break(); \
+    exception_raise_debug_break(); \
   } while(0)
 
 /*! Assert the given condition. If assert fails, call the #assert_report function with the given
@@ -106,7 +106,7 @@ formatted message and optionally (depending on callback) cause a breakpoint.
 #define FOUNDATION_ASSERT_MSGFORMAT(cond, msg, ...) do { \
   if ((!(cond)) && assert_report_formatted(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
                                            __LINE__, (msg), string_length((msg)), __VA_ARGS__)) \
-    crash_debug_break(); \
+    exception_raise_debug_break(); \
   } while(0)
 
 /*! Statically fail assert, call the #assert_report function with the given message and optionally
@@ -114,7 +114,7 @@ formatted message and optionally (depending on callback) cause a breakpoint.
 \param msg Assert message */
 #define FOUNDATION_ASSERT_FAIL(msg) do { \
   if (assert_report(0ULL, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, (msg), string_length((msg)))) \
-    crash_debug_break(); \
+    exception_raise_debug_break(); \
   } while(0)
 
 /*! Statically fail assert, call the #assert_report function with the given message and optionally
@@ -124,7 +124,7 @@ message will be logged as an error in the given log context.
 \param msg     Assert and log message */
 #define FOUNDATION_ASSERT_FAIL_LOG(context, msg) do { \
   if (assert_report(context, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, (msg), string_length((msg)))) \
-    crash_debug_break(); \
+    exception_raise_debug_break(); \
   } while(0)
 
 /*! Statically fail assert, call the #assert_report function with the given formatted message and
@@ -133,7 +133,7 @@ optionally (depending on callback) cause a breakpoint.
 #define FOUNDATION_ASSERT_FAILFORMAT(msg, ...) do { \
   if (assert_report_formatted(0ULL, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                               (msg), string_length((msg)), __VA_ARGS__)) \
-    crash_debug_break(); \
+    exception_raise_debug_break(); \
   } while(0)
 
 /*! Statically fail assert, call the #assert_report function with the given formatted message and
@@ -144,7 +144,7 @@ config the formatted message will be logged as an error in the given log context
 #define FOUNDATION_ASSERT_FAILFORMAT_LOG(context, msg, ...) do { \
   if (assert_report_formatted(context, 0, 0, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                               (msg), string_length((msg)), __VA_ARGS__)) \
-    crash_debug_break(); \
+    exception_raise_debug_break(); \
   } while(0)
 
 /*! Assert that the given memory address has the given alignment
@@ -181,7 +181,7 @@ properly evaluated even when asserts are statically disabled.
 #define FOUNDATION_VALIDATE(cond) ( \
   (!(cond)) ? \
     (assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, 0, 0) ? \
-      (crash_debug_break(), false) : \
+      (exception_raise_debug_break(), false) : \
       false) : \
     true)
 
@@ -198,7 +198,7 @@ remain safe and properly evaluated even when asserts are statically disabled.
   (!(cond)) ? \
     (assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                    (msg), string_length((msg))) ? \
-      (crash_debug_break(), false) : \
+      (exception_raise_debug_break(), false) : \
       false) : \
     true)
 
@@ -215,7 +215,7 @@ to remain safe and properly evaluated even when asserts are statically disabled.
   (!(cond)) ? \
     (assert_report_formatted(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                              (msg), string_length((msg)), __VA_ARGS__) ? \
-      (crash_debug_break(), false) : \
+      (exception_raise_debug_break(), false) : \
       false) : \
     true)
 

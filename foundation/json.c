@@ -78,13 +78,22 @@ skip_whitespace(const char* buffer, size_t length, size_t pos) {
 	return pos;
 }
 
+static char
+hex_char(unsigned char val) {
+	if (val < 10)
+		return '0' + (char)val;
+	else if (val < 16)
+		return 'a' + (char)(val - 10);
+	return '0';
+}
+
 static size_t
-parse_string(const char* buffer, size_t length, size_t pos, bool simple) {
+parse_string(const char* buffer, size_t length, size_t pos, bool key, bool simple) {
 	size_t start = pos;
 	size_t esc;
 	while (pos < length) {
 		char c = buffer[pos];
-		if (simple && (is_token_delimiter(c) || (c == '=') || (c == ':')))
+		if (simple && (is_token_delimiter(c) || (key && ((c == '=') || (c == ':')))))
 			return pos - start;
 		if (c == '"')
 			return pos - start;
@@ -108,6 +117,7 @@ parse_string(const char* buffer, size_t length, size_t pos, bool simple) {
 			default:
 				return STRING_NPOS;
 			}
+			++pos;
 		}
 	}
 	return simple ? pos - start : STRING_NPOS;
@@ -166,6 +176,7 @@ parse_object(const char* buffer, size_t length, size_t pos,
              json_token_t* tokens, size_t capacity, unsigned int* current, bool simple) {
 	json_token_t* token;
 	size_t string;
+	bool simple_string;
 	unsigned int last = 0;
 
 	pos = skip_whitespace(buffer, length, pos);
@@ -194,10 +205,14 @@ parse_object(const char* buffer, size_t length, size_t pos,
 			if (c != '"') {
 				if (!simple)
 					return STRING_NPOS;
+				simple_string = true;
 				--pos;
 			}
+			else {
+				simple_string = false;
+			}
 
-			string = parse_string(buffer, length, pos, simple);
+			string = parse_string(buffer, length, pos, true, simple_string);
 			if (string == STRING_NPOS)
 				return STRING_NPOS;
 
@@ -214,7 +229,7 @@ parse_object(const char* buffer, size_t length, size_t pos,
 				return STRING_NPOS;
 			pos = parse_value(buffer, length, pos + 1, tokens, capacity, current, simple);
 			pos = skip_whitespace(buffer, length, pos);
-			if (simple && ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
+			if (simple_string && ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
 				if ((token = get_token(tokens, capacity, last)))
 					token->sibling = *current;
 				last = 0;
@@ -251,7 +266,7 @@ parse_array(const char* buffer, size_t length, size_t pos,
 			++pos;
 		else if (buffer[pos] == ']')
 			return ++pos;
-		else if (!simple)
+		else if (!simple || buffer[pos] == '}')
 			return STRING_NPOS;
 	}
 
@@ -262,6 +277,7 @@ static size_t
 parse_value(const char* buffer, size_t length, size_t pos,
             json_token_t* tokens, size_t capacity, unsigned int* current, bool simple) {
 	size_t string;
+	bool simple_string;
 
 	pos = skip_whitespace(buffer, length, pos);
 	while (pos < length) {
@@ -311,15 +327,19 @@ parse_value(const char* buffer, size_t length, size_t pos,
 			if (c != '"') {
 				if (!simple)
 					return STRING_NPOS;
+				simple_string = true;
 				--pos;
 			}
-			string = parse_string(buffer, length, pos, simple);
+			else {
+				simple_string = false;
+			}
+			string = parse_string(buffer, length, pos, false, simple_string);
 			if (string == STRING_NPOS)
 				return STRING_NPOS;
 			set_token_primitive(tokens, capacity, *current, JSON_STRING, pos, string);
 			++(*current);
 			//Skip terminating '"' (optional for simplified)
-			if (!simple || ((pos + string < length) && (buffer[pos + string] == '"')))
+			if (!simple_string || ((pos + string < length) && (buffer[pos + string] == '"')))
 				++string;
 			return pos + string;
 		}
@@ -353,4 +373,99 @@ sjson_parse(const char* buffer, size_t size, json_token_t* tokens, size_t capaci
 	if (parse_value(buffer, size, pos, tokens, capacity, &current, true) == STRING_NPOS)
 		return 0;
 	return current;
+}
+
+string_t
+json_escape(char* buffer, size_t capacity, const char* string, size_t length) {
+	size_t i;
+	size_t outlength = 0;
+	for (i = 0; (i < length) && (outlength < capacity); ++i) {
+		char c = string[i];
+		if ((c == '\"') || (c == '\\')) {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = c;
+		}
+		else if (c == '\b') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'b';
+		}
+		else if (c == '\f') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'f';
+		}
+		else if (c == '\r') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'r';
+		}
+		else if (c == '\n') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'n';
+		}
+		else if (c == '\t') {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 't';
+		}
+		else if (c < 0x20) {
+			buffer[outlength++] = '\\';
+			if (outlength < capacity) buffer[outlength++] = 'u';
+			if (outlength < capacity) buffer[outlength++] = '0';
+			if (outlength < capacity) buffer[outlength++] = '0';
+			if (outlength < capacity) buffer[outlength++] = hex_char((unsigned char)(c >> 4) & 0xf);
+			if (outlength < capacity) buffer[outlength++] = hex_char((unsigned char)c & 0xf);
+		}
+		else {
+			buffer[outlength++] = c;
+		}
+	}
+	return (string_t) {buffer, outlength};
+}
+
+string_t
+json_unescape(char* buffer, size_t capacity, const char* string, size_t length) {
+	size_t i;
+	size_t outlength = 0;
+	for (i = 0; (i < length) && (outlength < capacity); ++i) {
+		char c = string[i];
+		if ((c == '\\') && (i + 1 < length)) {
+			c = string[++i];
+			switch (c) {
+			case '\"':
+			case '/':
+			case '\\':
+				buffer[outlength++] = c;
+				break;
+
+			case 'b':
+				buffer[outlength++] = '\b';
+				break;
+			case 'f':
+				buffer[outlength++] = '\f';
+				break;
+			case 'r':
+				buffer[outlength++] = '\r';
+				break;
+			case 'n':
+				buffer[outlength++] = '\n';
+				break;
+			case 't':
+				buffer[outlength++] = '\t';
+				break;
+
+			case 'u':
+				if (i + 4 < length) {
+					uint16_t val = (uint16_t)string_to_uint(buffer + i + 1, 4, true);
+					string_t conv = string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
+					outlength += conv.length;
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+		else {
+			buffer[outlength++] = c;
+		}
+	}
+	return (string_t) {buffer, outlength};
 }

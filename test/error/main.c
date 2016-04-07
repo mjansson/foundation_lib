@@ -19,9 +19,9 @@ test_error_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation error tests"));
 	app.short_name = string_const(STRING_CONST("test_error"));
-	app.config_dir = string_const(STRING_CONST("test_error"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -47,6 +47,7 @@ test_error_finalize(void) {
 }
 
 DECLARE_TEST(error, error) {
+	error();
 	EXPECT_EQ(error(), ERROR_NONE);
 	EXPECT_EQ(error(), ERROR_NONE);
 
@@ -247,7 +248,7 @@ static const char* _last_log_msg;
 static size_t _last_log_length;
 
 static void
-log_verify_callback(hash_t context, error_level_t severity, const char* msg, size_t length) {
+log_verify_handler(hash_t context, error_level_t severity, const char* msg, size_t length) {
 	_last_log_context = context;
 	_last_log_severity = severity;
 	_last_log_msg = msg;
@@ -258,13 +259,13 @@ log_verify_callback(hash_t context, error_level_t severity, const char* msg, siz
 
 DECLARE_TEST(error, output) {
 #if BUILD_ENABLE_LOG
-	error_callback_fn callback_error = error_callback();
-	log_callback_fn callback_log = log_callback();
+	error_handler_fn handler_error = error_handler();
+	log_handler_fn handler_log = log_handler();
 	string_const_t shortmsg = string_const(STRING_CONST("Short message with prefix"));
     string_const_t longmsg = string_const(STRING_CONST("Longer message which should be output without a prefix"));
 
-	error_set_callback(ignore_error_handler);
-	log_set_callback(log_verify_callback);
+	error_set_handler(ignore_error_handler);
+	log_set_handler(log_verify_handler);
 
     log_enable_stdout(false);
     log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_ARGS(shortmsg));
@@ -417,8 +418,8 @@ DECLARE_TEST(error, output) {
 	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When two: datatwo"), 0), STRING_NPOS);
 	EXPECT_SIZENE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When three: datathree"), 0), STRING_NPOS);
 
-	log_set_callback(callback_log);
-	error_set_callback(callback_error);
+	log_set_handler(handler_log);
+	error_set_handler(handler_error);
 #endif
 	return 0;
 }

@@ -19,9 +19,9 @@ test_base64_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation base64 tests"));
 	app.short_name = string_const(STRING_CONST("test_base64"));
-	app.config_dir = string_const(STRING_CONST("test_base64"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 

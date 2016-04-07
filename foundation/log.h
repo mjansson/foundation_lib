@@ -13,11 +13,10 @@
 #pragma once
 
 /*! \file log.h
-\brief Log output, filtering, context handling and callbacks
+\brief Log output, filtering and context handling
 
-Log output, filtering, context handling and callbacks. Logging is centered around two concepts,
-a context and a level. Log messages can be filtered on both, with a specific threshold available
-for each context.
+Log output, filtering and context. Logging is centered around two concepts, a context and a level.
+Log messages can be filtered on both, with a specific threshold available for each context.
 
 A context is identified by a hash value, normally a static string hash.
 
@@ -135,15 +134,15 @@ at the given severity level
 FOUNDATION_API void
 log_error_context(hash_t context, error_level_t error_level);
 
-/*! Get the currently set log callback
-\return Log callback */
-FOUNDATION_API log_callback_fn
-log_callback(void);
+/*! Get the currently set log handler
+\return Log handler */
+FOUNDATION_API log_handler_fn
+log_handler(void);
 
-/*! Set log callback
-\param callback New callback */
+/*! Set log handler
+\param handler New handler */
 FOUNDATION_API void
-log_set_callback(log_callback_fn callback);
+log_set_handler(log_handler_fn handler);
 
 /*! Control log output to stdout
 \param enable Flag to enable/disable output to stdout */
@@ -207,8 +206,8 @@ log_suppress_clear(void);
 #define log_panicf( ... ) log_panicf_(__VA_ARGS__)
 
 #define log_error_context(context, level) do { FOUNDATION_UNUSED(context); FOUNDATION_UNUSED(level); } while(0)
-#define log_callback() 0
-#define log_set_callback(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define log_handler() 0
+#define log_set_handler(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
 #define log_enable_stdout(enable) do { FOUNDATION_UNUSED(enable); } while(0)
 #define log_enable_prefix(enable) do { FOUNDATION_UNUSED(enable); } while(0)
 #define log_set_suppress(context, level) do { FOUNDATION_UNUSED(context); FOUNDATION_UNUSED(level); } while(0)

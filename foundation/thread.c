@@ -116,7 +116,7 @@ _thread_finalize(void) {
 }
 
 static int
-_thread_guard_wrapper(void* data) {
+_thread_try(void* data) {
 	thread_t* thread = data;
 	thread->result = thread->fn(thread->arg);
 	return 0;
@@ -209,6 +209,7 @@ typedef void* thread_arg_t;
 static thread_return_t FOUNDATION_THREADCALL
 _thread_entry(thread_arg_t data) {
 	thread_t* thread = GET_THREAD_PTR(data);
+	exception_handler_fn handler = exception_handler();
 
 	thread->osid = thread_id();
 
@@ -225,22 +226,23 @@ _thread_entry(thread_arg_t data) {
 
 	log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
 	           STRING_FORMAT(thread->name), thread->osid,
-	           crash_guard_callback() ? " (guarded)" : "");
+	           handler ? " (exceptions handled)" : "");
 
 	set_thread_self(thread);
 	atomic_store32(&thread->state, 1);
 	atomic_thread_fence_release();
 
-	if (system_debugger_attached()) {
+	if (system_debugger_attached() || !handler) {
 		thread->result = thread->fn(thread->arg);
 	}
 	else {
-		string_const_t guard_name = crash_guard_name();
-		int crash_result = crash_guard(_thread_guard_wrapper, thread, crash_guard_callback(),
-		                               guard_name.str, guard_name.length);
-		if (crash_result == FOUNDATION_CRASH_DUMP_GENERATED) {
-			thread->result = (void*)((uintptr_t)FOUNDATION_CRASH_DUMP_GENERATED);
-			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Thread '%.*s' (%" PRIx64 ") crashed"),
+		string_const_t dump_name = exception_dump_name();
+		int wrapped_result = exception_try(_thread_try, thread, handler,
+		                                   dump_name.str, dump_name.length);
+		if (wrapped_result == FOUNDATION_EXCEPTION_CAUGHT) {
+			thread->result = (void*)((uintptr_t)FOUNDATION_EXCEPTION_CAUGHT);
+			log_warnf(0, WARNING_SUSPICIOUS,
+			          STRING_CONST("Thread '%.*s' (%" PRIx64 ") terminated by exception"),
 			          STRING_FORMAT(thread->name), thread->osid);
 		}
 	}
@@ -463,7 +465,7 @@ thread_set_hardware(uint64_t mask) {
 	DWORD_PTR procmask = 0;
 	DWORD_PTR sysmask = 0;
 	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
-	SetThreadAffinityMask(GetCurrentThread(), mask & procmask);
+	SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)mask & procmask);
 #elif FOUNDATION_PLATFORM_LINUX
 	uint64_t ibit, bsize;
 	cpu_set_t set;

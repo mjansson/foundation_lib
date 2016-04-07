@@ -13,42 +13,63 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-#define CONFIG_SECTION_BUCKETS 7
-#define CONFIG_KEY_BUCKETS     11
+config_node_t*
+config_allocate(void) {
+	config_node_t* node = memory_allocate(0, sizeof(config_node_t), 0, MEMORY_PERSISTENT);
+	config_initialize(node);
+	return node;
+}
 
-enum config_type_t {
-	CONFIGVALUE_BOOL = 0,
-	CONFIGVALUE_INT,
-	CONFIGVALUE_REAL,
-	CONFIGVALUE_STRING,
-	CONFIGVALUE_STRING_CONST,
-	CONFIGVALUE_STRING_VAR,
-	CONFIGVALUE_STRING_CONST_VAR
-};
+void
+config_initialize(config_node_t* node) {
+	memset(node, 0, sizeof(config_node_t));
+}
 
-struct config_key_t {
-	hash_t name;
-	int64_t ival;
-	string_t sval;
-	string_t expanded;
-	real rval;
-	enum config_type_t type;
-	bool bval;
-};
+void
+config_finalize(config_node_t* node) {
+	if (node->expanded.str != node->sval.str)
+		string_deallocate(node->expanded.str);
+	if ((node->type != CONFIGVALUE_STRING_CONST) && (node->type != CONFIGVALUE_STRING_CONST_VAR))
+		string_deallocate(node->sval.str);
+	if (node && (node->type == CONFIGVALUE_NODE)) {
+		size_t inode, nsize;
+		for (inode = 0, nsize = array_size(node->nodes); inode < nsize; ++inode)
+			config_finalize(node->nodes + inode);
+		array_deallocate(node->nodes);
+	}
+	node->expanded = (string_t) {0, 0};
+	node->sval = (string_t) {0, 0};
+	node->nodes = nullptr;
+}
 
-struct config_section_t {
-	hash_t name;
-	struct config_key_t* key[CONFIG_KEY_BUCKETS];
-};
+void
+config_deallocate(config_node_t* node) {
+	config_finalize(node);
+	memory_deallocate(node);
+}
 
-typedef FOUNDATION_ALIGN(8) struct config_key_t config_key_t;
-typedef FOUNDATION_ALIGN(8) struct config_section_t config_section_t;
-
-FOUNDATION_STATIC_ASSERT(FOUNDATION_ALIGNOF(config_key_t) == 8, "config_key_t alignment");
-FOUNDATION_STATIC_ASSERT(FOUNDATION_ALIGNOF(config_section_t) == 8, "config_section_t alignment");
-
-//Global config store
-static config_section_t* _config_section[CONFIG_SECTION_BUCKETS];
+static config_node_t*
+_config_subnode(config_node_t* node, hash_t key, bool create) {
+	size_t inode, nsize;
+	if (node->type == CONFIGVALUE_NODE) {
+		for (inode = 0, nsize = array_size(node->nodes); inode < nsize; ++inode) {
+			if (node->nodes[inode].name == key)
+				return node->nodes + inode;
+		}
+	}
+	if (create) {
+		config_node_t newnode;
+		if (node->type != CONFIGVALUE_NODE) {
+			node->type = CONFIGVALUE_NODE;
+			node->nodes = nullptr;
+		}
+		memset(&newnode, 0, sizeof(newnode));
+		newnode.name = key;
+		array_push(node->nodes, newnode);
+		return node->nodes + (array_size(node->nodes) - 1);
+	}
+	return nullptr;
+}
 
 static int64_t
 _config_string_to_int(string_const_t str) {
@@ -124,8 +145,8 @@ _expand_environment(hash_t key, string_const_t var) {
 		return environment_initial_working_directory();
 	else if (key == HASH_CURRENT_WORKING_DIRECTORY)
 		return environment_current_working_directory();
-	else if (key == HASH_HOME_DIRECTORY)
-		return environment_home_directory();
+	else if (key == HASH_APPLICATION_DIRECTORY)
+		return environment_application_directory();
 	else if (key == HASH_TEMPORARY_DIRECTORY)
 		return environment_temporary_directory();
 	else if ((var.length > 9) && //variable[varname] - Environment variable named "varname"
@@ -137,11 +158,12 @@ _expand_environment(hash_t key, string_const_t var) {
 }
 
 static FOUNDATION_NOINLINE string_t
-_expand_string(hash_t section_current, string_t str) {
+_expand_string(config_node_t* root, config_node_t* parent, string_t str) {
 	string_const_t variable, value;
 	size_t var_pos, var_end_pos, separator, var_offset, capacity, newlength;
-	hash_t section, key;
 	string_t expanded;
+	hash_t node_key, key;
+	config_node_t* node;
 
 	capacity = 0;
 	newlength = str.length + 1;
@@ -154,24 +176,42 @@ _expand_string(hash_t section_current, string_t str) {
 		variable = string_substr(STRING_ARGS(expanded), var_pos,
 		                         (var_end_pos != STRING_NPOS) ? (1 + var_end_pos - var_pos) : STRING_NPOS);
 
-		section = section_current;
 		separator = string_find(STRING_ARGS(variable), ':', 0);
+		node = root;
+		node_key = 0;
 		if (separator != STRING_NPOS) {
-			if (separator != 2)
-				section = hash(variable.str + 2, separator - 2);
-			var_offset = separator + 1;
+			size_t start = 2;
+			size_t subpath = 0;
+			do {
+				string_const_t keystr = string_substr(STRING_ARGS(variable), start, separator - start);
+				start = separator + 1;
+				separator = string_find(STRING_ARGS(variable), ':', start);
+				if (!keystr.length)
+					continue;
+				node_key = hash(STRING_ARGS(keystr));
+				if (!subpath && (node_key == HASH_ENVIRONMENT))
+					break;
+
+				node = _config_subnode(node, node_key, false);
+				node_key = 0;
+				++subpath;
+			}
+			while (separator != STRING_NPOS);
+
+			var_offset = start;
 		}
 		else {
 			var_offset = 2;
+			node = parent;
 		}
-		key = hash(variable.str + var_offset,
-		           variable.length - (var_offset + (variable.str[ variable.length - 1 ] == ')' ? 1 : 0)));
 
-		if (section != HASH_ENVIRONMENT)
-			value = config_string(section, key);
+		string_const_t varstr = string_substr(STRING_ARGS(variable), var_offset,
+		                                      variable.length - (var_offset + (variable.str[variable.length - 1] == ')' ? 1 : 0)));
+		key = hash(STRING_ARGS(varstr));
+		if (node_key == HASH_ENVIRONMENT)
+			value = _expand_environment(key, varstr);
 		else
-			value = _expand_environment(key, string_substr(STRING_ARGS(variable), var_offset,
-			                                               variable.length - (var_offset + 1)));
+			value = config_string(node, key, HASH_NULL);
 
 		newlength += (value.length > variable.length) ? value.length - variable.length : 0;
 		if (newlength >= capacity) {
@@ -198,414 +238,93 @@ _expand_string(hash_t section_current, string_t str) {
 }
 
 static FOUNDATION_NOINLINE void
-_expand_string_val(hash_t section, config_key_t* key) {
+_expand_string_val(config_node_t* root, config_node_t* parent, config_node_t* node) {
 	bool is_true;
-	FOUNDATION_ASSERT(key->sval.str);
-	if (key->expanded.str != key->sval.str)
-		string_deallocate(key->expanded.str);
-	key->expanded = _expand_string(section, key->sval);
+	FOUNDATION_ASSERT(node->sval.str);
+	if (node->expanded.str != node->sval.str)
+		string_deallocate(node->expanded.str);
+	node->expanded = _expand_string(root, parent, node->sval);
 
-	is_true = string_equal(STRING_ARGS(key->expanded), STRING_CONST("true"));
-	key->bval = (string_equal(STRING_ARGS(key->expanded), STRING_CONST("false")) ||
-	             string_equal(STRING_ARGS(key->expanded), STRING_CONST("0")) ||
-	             !key->expanded.length) ? false : true;
-	key->ival = is_true ? 1 : _config_string_to_int(string_to_const(key->expanded));
-	key->rval = is_true ? REAL_C(1.0) : _config_string_to_real(string_to_const(key->expanded));
+	is_true = string_equal(STRING_ARGS(node->expanded), STRING_CONST("true"));
+	node->bval = (string_equal(STRING_ARGS(node->expanded), STRING_CONST("false")) ||
+	              string_equal(STRING_ARGS(node->expanded), STRING_CONST("0")) ||
+	              !node->expanded.length) ? false : true;
+	node->ival = is_true ? 1 : _config_string_to_int(string_to_const(node->expanded));
+	node->rval = is_true ? REAL_C(1.0) : _config_string_to_real(string_to_const(node->expanded));
 }
 
-int _config_initialize(void) {
-	config_load(STRING_CONST("foundation"), HASH_FOUNDATION, true, false);
-	config_load(STRING_CONST("application"), HASH_APPLICATION, true, false);
+static FOUNDATION_NOINLINE config_node_t*
+_config_resolve_node(config_node_t** root, va_list path, bool create) {
+	hash_t key;
+	config_node_t* node = *root;
+	va_list cpath;
+	/*lint -e{838} */
+	va_copy(cpath, path);
+	key = va_arg(cpath, hash_t);
+	while (node && key) {
+		*root = node;
+		node = _config_subnode(*root, key, create);
+		key = va_arg(cpath, hash_t);
+	}
+	va_end(cpath);
 
-	//Load per-user config
-	config_load(STRING_CONST("foundation"), HASH_FOUNDATION, false, false);
-	config_load(STRING_CONST("application"), HASH_APPLICATION, false, false);
-	config_load(STRING_CONST("user"), HASH_USER, false, true);
-
-	return 0;
+	return node;
 }
 
-void
-_config_finalize(void) {
-	size_t isb, is, ikb, ik, ssize, ksize;
-	config_section_t* section;
-	config_key_t* key;
-	for (isb = 0; isb < CONFIG_SECTION_BUCKETS; ++isb) {
-		section = _config_section[isb];
-		for (is = 0, ssize = array_size(section); is < ssize; ++is) {
-			for (ikb = 0; ikb < CONFIG_KEY_BUCKETS; ++ikb) {
-				/*lint -e{613} array_size( section ) in loop condition does the null pointer guard */
-				key = section[is].key[ikb];
-				for (ik = 0, ksize = array_size(key); ik < ksize; ++ik) {
-					/*lint --e{613} array_size( key ) in loop condition does the null pointer guard */
-					if (key[ik].expanded.str != key[ik].sval.str)
-						string_deallocate(key[ik].expanded.str);
-					if ((key[ik].type != CONFIGVALUE_STRING_CONST) && (key[ik].type != CONFIGVALUE_STRING_CONST_VAR))
-						string_deallocate(key[ik].sval.str);
-				}
-				array_deallocate(key);
-			}
-		}
-		array_deallocate(section);
-	}
-}
-
-static const string_const_t platformsuffix =
-#if FOUNDATION_PLATFORM_WINDOWS
-{ STRING_CONST("/windows") };
-#elif FOUNDATION_PLATFORM_MACOSX
-    { STRING_CONST("/macosx") };
-#elif FOUNDATION_PLATFORM_IOS
-    { STRING_CONST("/ios") };
-#elif FOUNDATION_PLATFORM_ANDROID
-    { STRING_CONST("/android") };
-#elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-    { STRING_CONST("/raspberrypi") };
-#elif FOUNDATION_PLATFORM_LINUX
-    { STRING_CONST("/linux") };
-#elif FOUNDATION_PLATFORM_PNACL
-    { STRING_CONST("/pnacl") };
-#elif FOUNDATION_PLATFORM_BSD
-    { STRING_CONST("/bsd") };
-#elif FOUNDATION_PLATFORM_TIZEN
-    { STRING_CONST("/tizen") };
-#else
-    { STRING_CONST("/unknown") };
-#endif
-
-#if !FOUNDATION_PLATFORM_PNACL
-
-static string_t
-config_unsuffix_path(string_t path) {
-	string_const_t archsuffix =
-#if FOUNDATION_ARCH_ARM8_64
-	(string_const_t) { STRING_CONST("/arm64") };
-#elif FOUNDATION_ARCH_ARM_64
-	(string_const_t) { STRING_CONST("/arm64") };
-#elif FOUNDATION_ARCH_ARM5
-	(string_const_t) { STRING_CONST("/arm5") };
-#elif FOUNDATION_ARCH_ARM6
-	(string_const_t) { STRING_CONST("/arm6") };
-#elif FOUNDATION_ARCH_ARM7
-	(string_const_t) { STRING_CONST("/arm7") };
-#elif FOUNDATION_ARCH_ARM8
-	(string_const_t) { STRING_CONST("/arm8") };
-#elif FOUNDATION_ARCH_X86_64
-	(string_const_t) { STRING_CONST("/x86-64") };
-#elif FOUNDATION_ARCH_X86
-	(string_const_t) { STRING_CONST("/x86") };
-#elif FOUNDATION_ARCH_PPC_64
-	(string_const_t) { STRING_CONST("/ppc64") };
-#elif FOUNDATION_ARCH_PPC
-	(string_const_t) { STRING_CONST("/ppc") };
-#elif FOUNDATION_ARCH_IA64
-	(string_const_t) { STRING_CONST("/ia64") };
-#elif FOUNDATION_ARCH_MIPS_64
-	(string_const_t) { STRING_CONST("/mips64") };
-#elif FOUNDATION_ARCH_MIPS
-	(string_const_t) { STRING_CONST("/mips") };
-#else
-	(string_const_t) { STRING_CONST("/generic") };
-#endif
-	string_const_t buildsuffix =
-#if BUILD_DEBUG
-	(string_const_t) { STRING_CONST("/debug") };
-#elif BUILD_RELEASE
-	(string_const_t) { STRING_CONST("/release") };
-#elif BUILD_PROFILE
-	(string_const_t) { STRING_CONST("/profile") };
-#else
-	(string_const_t) { STRING_CONST("/deploy") };
-#endif
-	string_const_t binsuffix =
-	(string_const_t) { STRING_CONST("/bin") };
-
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(archsuffix))) {
-		path.length = path.length - archsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(buildsuffix))) {
-		path.length = path.length - buildsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(platformsuffix))) {
-		path.length = path.length - platformsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	if (string_ends_with(STRING_ARGS(path), STRING_ARGS(binsuffix))) {
-		path.length = path.length - binsuffix.length;
-		path.str[ path.length ] = 0;
-	}
-	return path;
-}
-
-#endif
-
-static string_t
-config_make_path(int path, char* buffer, size_t capacity) {
-#if !FOUNDATION_PLATFORM_PNACL
-	string_t result;
-#endif
-	string_const_t env_dir;
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
-	const string_const_t* cmd_line;
-	size_t icl, clsize;
-#endif
-	switch (path) {
-	case 0:
-		env_dir = environment_executable_directory();
-		return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-
-	case 1:
-#if !FOUNDATION_PLATFORM_PNACL
-		env_dir = environment_executable_directory();
-		return path_concat(buffer, capacity, STRING_ARGS(env_dir), STRING_CONST("config"));
-#else
-		break;
-#endif
-
-	case 2:
-#if !FOUNDATION_PLATFORM_PNACL
-		env_dir = environment_executable_directory();
-		result = string_copy(buffer, capacity, STRING_ARGS(env_dir));
-		result = config_unsuffix_path(result);
-		if (result.length == env_dir.length)
-			return (string_t) {0, 0};
-		return path_append(STRING_ARGS(result), capacity, STRING_CONST("config"));
-#else
-		break;
-#endif
-
-	case 3:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
-		env_dir = environment_initial_working_directory();
-		return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-#else
-		break;
-#endif
-
-	case 4:
-#if FOUNDATION_PLATFORM_MACOSX
-		env_dir = environment_executable_directory();
-		result = string_copy(buffer, capacity, STRING_ARGS(env_dir));
-		result = path_append(STRING_ARGS(result), capacity, STRING_CONST("../Resources/config"));
-		return path_clean(STRING_ARGS(result), capacity);
-#elif FOUNDATION_PLATFORM_ANDROID
-		return string_copy(buffer, capacity, STRING_CONST("asset://config"));
-#else
-		break;
-#endif
-
-	case 5:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-		env_dir = environment_current_working_directory();
-		return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-#else
-		break;
-#endif
-
-	case 6:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-		env_dir = environment_current_working_directory();
-		result = string_copy(buffer, capacity, STRING_ARGS(env_dir));
-		return path_append(STRING_ARGS(result), capacity, STRING_CONST("config"));
-#else
-		break;
-#endif
-
-	case 7:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
-		cmd_line = environment_command_line();
-		env_dir = string_null();
-		/*lint -e{850} We modify loop var to skip extra arg */
-		for (icl = 0, clsize = array_size(cmd_line); icl < clsize; ++icl) {
-			/*lint -e{613} array_size( cmd_line ) in loop condition does the null pointer guard */
-			if (string_equal(STRING_ARGS(cmd_line[icl]), STRING_CONST("--configdir"))) {
-				if (string_equal(STRING_ARGS(cmd_line[icl]), STRING_CONST("--configdir="))) {
-					env_dir = string_substr(STRING_ARGS(cmd_line[icl]), 12, STRING_NPOS);
-					break;
-				}
-				else if (icl < (clsize - 1)) {
-					env_dir = cmd_line[++icl];
-					break;
-				}
-			}
-		}
-		if (env_dir.length)
-			return string_copy(buffer, capacity, STRING_ARGS(env_dir));
-#endif
-		break;
-
-	case 8:
-#if FOUNDATION_PLATFORM_FAMILY_DESKTOP
-		env_dir = environment_home_directory();
-		return string_concat_varg(buffer, capacity, STRING_ARGS(env_dir),
-		                          STRING_CONST("/."), STRING_ARGS(environment_application()->config_dir), nullptr);
-#else
-		break;
-#endif
-
-	default:
-		break;
-	}
-	return (string_t) { 0, 0 };
-}
-
-FOUNDATION_NOINLINE void
-config_load(const char* name, size_t length, hash_t filter_section, bool built_in, bool overwrite) {
-	char buffer[BUILD_MAX_PATHLEN];
-	string_t pathname;
-	string_t filename;
-	stream_t* istream;
-	int start_path = 0;
-	int end_path = 6;
-	int ipath;
-
-	if (!built_in) {
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
-		start_path = 6;
-		end_path = 9;
-#else
-		return;
-#endif
-	}
-
-	for (ipath = start_path; ipath < end_path; ++ipath) {
-		pathname = config_make_path(ipath, buffer, sizeof(buffer));
-		if (!pathname.length)
-			continue;
-
-		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
-		filename = string_format(pathname.str + pathname.length, sizeof(buffer) - pathname.length,
-		                         STRING_CONST("/%.*s.ini"), (int)length, name);
-		filename.str = pathname.str;
-		filename.length += pathname.length;
-		istream = stream_open(STRING_ARGS(filename), STREAM_IN);
-		if (istream) {
-			config_parse(istream, filter_section, overwrite);
-			stream_deallocate(istream);
-		}
-
-		if (built_in) {
-			filename = string_format(pathname.str + pathname.length, sizeof(buffer) - pathname.length,
-			                         STRING_CONST("%.*s/%.*s.ini"), STRING_FORMAT(platformsuffix), (int)length, name);
-			filename.str = pathname.str;
-			filename.length += pathname.length;
-			istream = stream_open(STRING_ARGS(filename), STREAM_IN);
-			if (istream) {
-				config_parse(istream, filter_section, overwrite);
-				stream_deallocate(istream);
-			}
-		}
-	}
-}
-
-static FOUNDATION_NOINLINE config_section_t*
-config_section(hash_t section, bool create) {
-	config_section_t* bucket;
-	size_t ib, bsize;
-
-	/*lint --e{613} */
-	bucket = _config_section[ section % CONFIG_SECTION_BUCKETS ];
-	for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-		if (bucket[ib].name == section)
-			return bucket + ib;
-	}
-
-	if (!create)
-		return 0;
-
-	//TODO: Thread safeness
-	{
-		config_section_t new_section;
-		memset(&new_section, 0, sizeof(new_section));
-		new_section.name = section;
-
-		array_push_memcpy(bucket, &new_section);
-		_config_section[ section % CONFIG_SECTION_BUCKETS ] = bucket;
-	}
-
-	return bucket + bsize;
-}
-
-static FOUNDATION_NOINLINE config_key_t*
-config_key(hash_t section, hash_t key, bool create) {
-	config_key_t new_key;
-	config_section_t* csection;
-	config_key_t* bucket;
-	size_t ib, bsize;
-
-	/*lint --e{613} */
-	csection = config_section(section, create);
-	if (!csection) {
-		FOUNDATION_ASSERT(!create);
-		return 0;
-	}
-	bucket = csection->key[ key % CONFIG_KEY_BUCKETS ];
-	for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-		if (bucket[ib].name == key)
-			return bucket + ib;
-	}
-
-	if (!create)
-		return 0;
-
-	memset(&new_key, 0, sizeof(new_key));
-	new_key.name = key;
-
-	//TODO: Thread safeness
-	array_push_memcpy(bucket, &new_key);
-	csection->key[ key % CONFIG_KEY_BUCKETS ] = bucket;
-
-	return bucket + bsize;
-}
+#define RESOLVE_NODE(arg, create) \
+	config_node_t* parent = root; \
+	config_node_t* node; \
+	va_list list; \
+	va_start(list, arg); \
+	node = _config_resolve_node(&parent, list, create); \
+	va_end(list)
 
 bool
-config_bool(hash_t section, hash_t key) {
-	config_key_t* key_val = config_key(section, key, false);
-	if (key_val && (key_val->type >= CONFIGVALUE_STRING_VAR))
-		_expand_string_val(section, key_val);
-	return key_val ? key_val->bval : false;
+config_bool(config_node_t* root, ...) {
+	RESOLVE_NODE(root, false);
+	if (node && (node->type >= CONFIGVALUE_STRING_VAR))
+		_expand_string_val(root, parent, node);
+	return node ? node->bval : false;
 }
 
 int64_t
-config_int(hash_t section, hash_t key) {
-	config_key_t* key_val = config_key(section, key, false);
-	if (key_val && (key_val->type >= CONFIGVALUE_STRING_VAR))
-		_expand_string_val(section, key_val);
-	return key_val ? key_val->ival : 0;
+config_int(config_node_t* root, ...) {
+	RESOLVE_NODE(root, false);
+	if (node && (node->type >= CONFIGVALUE_STRING_VAR))
+		_expand_string_val(root, parent, node);
+	return node ? node->ival : 0;
 }
 
 real
-config_real(hash_t section, hash_t key) {
-	config_key_t* key_val = config_key(section, key, false);
-	if (key_val && (key_val->type >= CONFIGVALUE_STRING_VAR))
-		_expand_string_val(section, key_val);
-	return key_val ? key_val->rval : 0;
+config_real(config_node_t* root, ...) {
+	RESOLVE_NODE(root, false);
+	if (node && (node->type >= CONFIGVALUE_STRING_VAR))
+		_expand_string_val(root, parent, node);
+	return node ? node->rval : 0;
 }
 
-string_const_t
-config_string(hash_t section, hash_t key) {
-	config_key_t* key_val = config_key(section, key, false);
-	if (!key_val)
-		return string_const("", 0);
+static string_const_t
+_config_string(config_node_t* root, config_node_t* parent, config_node_t* node) {
 	//Convert to string
 	/*lint --e{788} We use default for remaining enums */
-	switch (key_val->type) {
+	switch (node->type) {
+	case CONFIGVALUE_NODE:
+		return string_null();
+
 	case CONFIGVALUE_BOOL:
-		if (key_val->bval)
+		if (node->bval)
 			return (string_const_t) {STRING_CONST("true")};
 		return (string_const_t) {STRING_CONST("false")};
 
 	case CONFIGVALUE_INT:
-		if (!key_val->sval.str)
-			key_val->sval = string_clone_string(string_from_int_static(key_val->ival, 0, 0));
-		return string_to_const(key_val->sval);
+		if (!node->sval.str)
+			node->sval = string_clone_string(string_from_int_static(node->ival, 0, 0));
+		return string_to_const(node->sval);
 
 	case CONFIGVALUE_REAL:
-		if (!key_val->sval.str)
-			key_val->sval = string_clone_string(string_from_real_static(key_val->rval, 4, 0, '0'));
-		return string_to_const(key_val->sval);
+		if (!node->sval.str)
+			node->sval = string_clone_string(string_from_real_static(node->rval, 4, 0, '0'));
+		return string_to_const(node->sval);
 
 	case CONFIGVALUE_STRING:
 	case CONFIGVALUE_STRING_CONST:
@@ -614,299 +333,355 @@ config_string(hash_t section, hash_t key) {
 		break;
 	}
 	//String value of some form
-	if (!key_val->sval.str)
+	if (!node->sval.str)
 		return string_const("", 0);
-	if (key_val->type >= CONFIGVALUE_STRING_VAR) {
-		_expand_string_val(section, key_val);
-		return string_to_const(key_val->expanded);
+	if (node->type >= CONFIGVALUE_STRING_VAR) {
+		_expand_string_val(root, parent, node);
+		return string_to_const(node->expanded);
 	}
-	return string_to_const(key_val->sval);
+	return string_to_const(node->sval);
+}
+
+string_const_t
+config_string(config_node_t* root, ...) {
+	RESOLVE_NODE(root, false);
+	if (!node)
+		return string_const("", 0);
+	return _config_string(root, parent, node);
 }
 
 hash_t
-config_hash(hash_t section, hash_t key) {
-	string_const_t value = config_string(section, key);
+config_hash(config_node_t* root, ...) {
+	string_const_t value;
+	RESOLVE_NODE(root, false);
+	if (!node)
+		return HASH_EMPTY_STRING;
+	value = _config_string(root, parent, node);
 	return value.length ? hash(STRING_ARGS(value)) : HASH_EMPTY_STRING;
 }
 
-#define CLEAR_KEY_STRINGS( key_val ) \
-	if( key_val->expanded.str != key_val->sval.str ) \
-		string_deallocate( key_val->expanded.str ); \
-	if( ( key_val->type != CONFIGVALUE_STRING_CONST ) && ( key_val->type != CONFIGVALUE_STRING_CONST_VAR ) ) \
-		string_deallocate( key_val->sval.str ); \
-	key_val->expanded = key_val->sval = (string_t){ 0, 0 }
-
-void
-config_set_bool(hash_t section, hash_t key, bool value) {
-	config_key_t* key_val = config_key(section, key, true);
-	if (!FOUNDATION_VALIDATE(key_val)) return;
-	key_val->bval = value;
-	key_val->ival = (value ? 1 : 0);
-	key_val->rval = (value ? REAL_C(1.0) : REAL_C(0.0));
-	CLEAR_KEY_STRINGS(key_val);
-	key_val->type = CONFIGVALUE_BOOL;
+config_node_t*
+config_node(config_node_t* root, ...) {
+	RESOLVE_NODE(root, false);
+	return node;
 }
 
 void
-config_set_int(hash_t section, hash_t key, int64_t value) {
-	config_key_t* key_val = config_key(section, key, true);
-	if (!FOUNDATION_VALIDATE(key_val)) return;
-	key_val->bval = value ? true : false;
-	key_val->ival = value;
-	key_val->rval = (real)value;
-	CLEAR_KEY_STRINGS(key_val);
-	key_val->type = CONFIGVALUE_INT;
+config_set_bool(config_node_t* root, bool value, ...) {
+	RESOLVE_NODE(value, true);
+	if (!FOUNDATION_VALIDATE(node)) return;
+	config_finalize(node);
+	node->bval = value;
+	node->ival = (value ? 1 : 0);
+	node->rval = (value ? REAL_C(1.0) : REAL_C(0.0));
+	node->type = CONFIGVALUE_BOOL;
 }
 
 void
-config_set_real(hash_t section, hash_t key, real value) {
-	config_key_t* key_val = config_key(section, key, true);
-	if (!FOUNDATION_VALIDATE(key_val)) return;
-	key_val->bval = !math_real_is_zero(value);
-	key_val->ival = (int64_t)value;
-	key_val->rval = value;
-	CLEAR_KEY_STRINGS(key_val);
-	key_val->type = CONFIGVALUE_REAL;
+config_set_int(config_node_t* root, int64_t value, ...) {
+	RESOLVE_NODE(value, true);
+	if (!FOUNDATION_VALIDATE(node)) return;
+	config_finalize(node);
+	node->bval = value ? true : false;
+	node->ival = value;
+	node->rval = (real)value;
+	node->type = CONFIGVALUE_INT;
 }
 
 void
-config_set_string(hash_t section, hash_t key, const char* value, size_t length) {
-	config_key_t* key_val = config_key(section, key, true);
-	if (!FOUNDATION_VALIDATE(key_val)) return;
-	CLEAR_KEY_STRINGS(key_val);
+config_set_real(config_node_t* root, real value, ...) {
+	RESOLVE_NODE(value, true);
+	if (!FOUNDATION_VALIDATE(node)) return;
+	config_finalize(node);
+	node->bval = !math_real_is_zero(value);
+	node->ival = (int64_t)value;
+	node->rval = value;
+	node->type = CONFIGVALUE_REAL;
+}
 
-	key_val->sval = string_clone(value, length);
-	key_val->type = ((string_find_string(key_val->sval.str, key_val->sval.length,
-	                                     STRING_CONST("$("), 0) != STRING_NPOS) ?
-	                 CONFIGVALUE_STRING_VAR : CONFIGVALUE_STRING);
+void
+config_set_string(config_node_t* root, const char* value, size_t length, ...) {
+	RESOLVE_NODE(length, true);
+	if (!FOUNDATION_VALIDATE(node)) return;
+	config_finalize(node);
 
-	if (key_val->type == CONFIGVALUE_STRING) {
-		bool is_true = string_equal(STRING_ARGS(key_val->sval), STRING_CONST("true"));
-		key_val->bval = (string_equal(STRING_ARGS(key_val->sval), STRING_CONST("false")) ||
-		                 string_equal(STRING_ARGS(key_val->sval), STRING_CONST("0")) ||
-		                 !key_val->sval.length) ? false : true;
-		key_val->ival = is_true ? 1 : _config_string_to_int(string_to_const(key_val->sval));
-		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real(string_to_const(key_val->sval));
+	node->sval = string_clone(value, length);
+	node->type = ((string_find_string(node->sval.str, node->sval.length,
+	                                  STRING_CONST("$("), 0) != STRING_NPOS) ?
+	              CONFIGVALUE_STRING_VAR : CONFIGVALUE_STRING);
+
+	if (node->type == CONFIGVALUE_STRING) {
+		bool is_true = string_equal(STRING_ARGS(node->sval), STRING_CONST("true"));
+		node->bval = (string_equal(STRING_ARGS(node->sval), STRING_CONST("false")) ||
+		              string_equal(STRING_ARGS(node->sval), STRING_CONST("0")) ||
+		              !node->sval.length) ? false : true;
+		node->ival = is_true ? 1 : _config_string_to_int(string_to_const(node->sval));
+		node->rval = is_true ? REAL_C(1.0) : _config_string_to_real(string_to_const(node->sval));
 	}
 }
 
 void
-config_set_string_constant(hash_t section, hash_t key, const char* value, size_t length) {
-	config_key_t* key_val = config_key(section, key, true);
-	if (!FOUNDATION_VALIDATE(key_val)) return;
-	CLEAR_KEY_STRINGS(key_val);
+config_set_string_constant(config_node_t* root, const char* value, size_t length, ...) {
+	RESOLVE_NODE(length, true);
+	if (!FOUNDATION_VALIDATE(node)) return;
+	config_finalize(node);
 
-	//key_val->sval = (char*)value;
-	memcpy(&key_val->sval.str, &value,
-	       sizeof(char*));     //Yeah yeah, we're storing a const pointer in a non-const var
-	key_val->sval.length = length;
-	key_val->type = ((string_find_string(STRING_ARGS(key_val->sval),
-	                                     STRING_CONST("$("), 0) != STRING_NPOS) ?
-	                 CONFIGVALUE_STRING_CONST_VAR : CONFIGVALUE_STRING_CONST);
+	//node->sval = (char*)value;
+	//Yeah yeah, we're storing a const pointer in a non-const var
+	memcpy(&node->sval.str, &value, sizeof(char*));
+	node->sval.length = length;
+	node->type = ((string_find_string(STRING_ARGS(node->sval),
+	                                  STRING_CONST("$("), 0) != STRING_NPOS) ?
+	              CONFIGVALUE_STRING_CONST_VAR : CONFIGVALUE_STRING_CONST);
 
-	if (key_val->type == CONFIGVALUE_STRING_CONST) {
-		bool is_true = string_equal(STRING_ARGS(key_val->sval), STRING_CONST("true"));
-		key_val->bval = (string_equal(STRING_ARGS(key_val->sval), STRING_CONST("false")) ||
-		                 string_equal(STRING_ARGS(key_val->sval), STRING_CONST("0")) ||
-		                 !key_val->sval.length) ? false : true;
-		key_val->ival = is_true ? 1 : _config_string_to_int(string_to_const(key_val->sval));
-		key_val->rval = is_true ? REAL_C(1.0) : _config_string_to_real(string_to_const(key_val->sval));
+	if (node->type == CONFIGVALUE_STRING_CONST) {
+		bool is_true = string_equal(STRING_ARGS(node->sval), STRING_CONST("true"));
+		node->bval = (string_equal(STRING_ARGS(node->sval), STRING_CONST("false")) ||
+		              string_equal(STRING_ARGS(node->sval), STRING_CONST("0")) ||
+		              !node->sval.length) ? false : true;
+		node->ival = is_true ? 1 : _config_string_to_int(string_to_const(node->sval));
+		node->rval = is_true ? REAL_C(1.0) : _config_string_to_real(string_to_const(node->sval));
 	}
 }
 
-void
-config_parse(stream_t* stream, hash_t filter_section, bool overwrite) {
-	string_t buffer;
-	string_const_t stripped;
-	hash_t section = 0;
-	hash_t key = 0;
-	unsigned int line = 0;
-	size_t buffer_size;
-
-#if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
-	string_const_t path = stream_path(stream);
-#endif
-
-#if BUILD_ENABLE_CONFIG_DEBUG
-	log_debugf(HASH_CONFIG, STRING_CONST("Parsing config stream: %.*s"), STRING_FORMAT(path));
-#endif
-	buffer.length = buffer_size = 1024;
-	buffer.str = memory_allocate(0, buffer.length, 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
-	while (!stream_eos(stream)) {
-		++line;
-		buffer = stream_read_line_buffer(stream, buffer.str, buffer_size, '\n');
-		stripped = string_strip(STRING_ARGS(buffer), STRING_CONST(" \t\n\r"));
-		if (!stripped.length || (stripped.str[0] == ';') || (stripped.str[0] == '#'))
-			continue;
-		if (stripped.str[0] == '[') {
-			//Section declaration
-			size_t endpos = string_rfind(STRING_ARGS(stripped), ']', STRING_NPOS);
-			if (endpos == STRING_NPOS) {
-#if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
-				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
-				          STRING_CONST("Invalid section declaration on line %u in config stream '%.*s'"), line,
-				          STRING_FORMAT(path));
-#endif
-				continue;
+static void
+_config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int current, char* buffer,
+                    size_t capacity, bool overwrite) {
+	do {
+		json_token_t* token = tokens + current;
+		config_node_t* subnode;
+		string_const_t identifier = json_token_identifier(buffer, tokens + current);
+		string_const_t value = json_token_value(buffer, tokens + current);
+		hash_t id = hash(STRING_ARGS(identifier));
+		switch (token->type) {
+		case JSON_OBJECT:
+			subnode = config_node(node, id, HASH_NULL);
+			if (!subnode && overwrite) {
+				config_set_bool(node, false, id, HASH_NULL);
+				subnode = config_node(node, id, HASH_NULL);
 			}
-			section = hash(stripped.str + 1, endpos - 1);
-#if BUILD_ENABLE_CONFIG_DEBUG
-			log_debugf(HASH_CONFIG, STRING_CONST("  config: section set to '%.*s' (0x%" PRIx64 ")"),
-			           (int)endpos - 1, stripped.str + 1, section);
-#endif
-		}
-		else if (!filter_section || (filter_section == section)) {
-			//name=value declaration
-			string_const_t name;
-			string_const_t value;
-			size_t separator = string_find(STRING_ARGS(stripped), '=', 0);
-			if (separator == STRING_NPOS) {
-#if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
-				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
-				          STRING_CONST("Invalid value declaration on line %u in config stream '%.*s', missing assignment operator '=': %.*s"),
-				          line, STRING_FORMAT(path), STRING_FORMAT(stripped));
-#endif
-				continue;
-			}
-
-			name = string_strip(stripped.str, separator, STRING_CONST(" \t"));
-			value = string_strip(stripped.str + separator + 1, stripped.length - (separator + 1),
-			                     STRING_CONST(" \t"));
-			if (!name.length) {
-#if BUILD_ENABLE_LOG || BUILD_ENABLE_CONFIG_DEBUG
-				log_warnf(HASH_CONFIG, WARNING_INVALID_VALUE,
-				          STRING_CONST("Invalid value declaration on line %d in config stream '%.*s', empty name string: %.*s"),
-				          line, STRING_FORMAT(path), STRING_FORMAT(stripped));
-#endif
-				continue;
-			}
-
-			key = hash(STRING_ARGS(name));
-
-			if (overwrite || !config_key(section, key, false)) {
-#if BUILD_ENABLE_CONFIG_DEBUG
-				log_debugf(HASH_CONFIG, STRING_CONST("  config: %.*s (0x%" PRIx64 ") = %s"), name, key, value);
-#endif
-
-				if (!value.length)
-					config_set_string(section, key, "", 0);
-				else if (string_equal(STRING_ARGS(value), STRING_CONST("false")))
-					config_set_bool(section, key, false);
-				else if (string_equal(STRING_ARGS(value), STRING_CONST("true")))
-					config_set_bool(section, key, true);
-				else if ((string_find(STRING_ARGS(value), '.', 0) != STRING_NPOS) &&
-				         (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789."), 0) == STRING_NPOS) &&
-				         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.', 0) + 1) == STRING_NPOS))
-					config_set_real(section, key, string_to_real(STRING_ARGS(value))); //Exactly one "."
-				else if (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789"), 0) == STRING_NPOS)
-					config_set_int(section, key, string_to_int64(STRING_ARGS(value)));
+			if (subnode && token->child)
+				_config_parse_token(subnode, tokens, token->child, buffer, capacity, overwrite);
+			break;
+		case JSON_ARRAY:
+			break;
+		case JSON_PRIMITIVE:
+			if (overwrite || !config_node(node, id, HASH_NULL)) {
+				if (value.length && (value.str[0] == 't'))
+					config_set_bool(node, true, id, HASH_NULL);
+				else if (value.length && (value.str[0] == 'f'))
+					config_set_bool(node, false, id, HASH_NULL);
+				else if (string_find(STRING_ARGS(value), '.', 0) == STRING_NPOS)
+					config_set_int(node, string_to_int64(STRING_ARGS(value)), id, HASH_NULL);
 				else
-					config_set_string(section, key, STRING_ARGS(value));
+					config_set_real(node, string_to_real(STRING_ARGS(value)), id, HASH_NULL);
 			}
+			break;
+		case JSON_STRING:
+			if (overwrite || !config_node(node, id, HASH_NULL)) {
+				string_t unescaped = json_unescape(buffer, capacity, STRING_ARGS(value));
+				config_set_string(node, STRING_ARGS(unescaped), id, HASH_NULL);
+			}
+			break;
+		case JSON_UNDEFINED:
+		default:
+			break;
 		}
+		current = token->sibling;
 	}
-	memory_deallocate(buffer.str);
+	while (current);
 }
 
+bool
+config_parse(config_node_t* root, stream_t* stream, bool overwrite) {
+	size_t size = stream_size(stream);
+	char* buffer = memory_allocate(0, size, 0, MEMORY_PERSISTENT);
+	json_token_t store[64];
+	size_t capacity = sizeof(store) / sizeof(store[0]);
+	json_token_t* tokens = store;
+	size_t num;
+	stream_read(stream, buffer, size);
+	num = sjson_parse(buffer, size, tokens, capacity);
+	if (num > capacity) {
+		tokens = memory_allocate(0, sizeof(json_token_t) * num, 0, MEMORY_PERSISTENT);
+		num = sjson_parse(buffer, size, tokens, capacity);
+	}
+	if (num && (tokens[0].type == JSON_OBJECT))
+		_config_parse_token(root, tokens, 1, buffer, size, overwrite);
+	if (store != tokens)
+		memory_deallocate(tokens);
+	memory_deallocate(buffer);
+	return num > 0;
+}
 
 void
-config_parse_commandline(const string_const_t* cmdline, size_t num) {
-	size_t arg;
+config_parse_commandline(config_node_t* root, const string_const_t* cmdline, size_t num) {
+	size_t arg, var_offset;
+	hash_t key;
 	for (arg = 0; arg < num; ++arg) {
-		if (string_match_pattern(STRING_ARGS(cmdline[arg]), STRING_CONST("--*:*=*"))) {
-			size_t first_sep = string_find(STRING_ARGS(cmdline[arg]), ':', 0);
-			size_t second_sep = string_find(STRING_ARGS(cmdline[arg]), '=', 0);
-			if ((first_sep != STRING_NPOS) && (second_sep != STRING_NPOS) && (first_sep < second_sep)) {
-				size_t section_length = first_sep - 2;
-				size_t end_pos = first_sep + 1;
-				size_t key_length = second_sep - end_pos;
-
-				const char* section_str = cmdline[arg].str + 2;
-				const char* key_str = pointer_offset_const(cmdline[arg].str, end_pos);
-
-				hash_t section = hash(section_str, section_length);
-				hash_t key = hash(key_str, key_length);
-
-				string_const_t value = string_substr(STRING_ARGS(cmdline[arg]), second_sep + 1, STRING_NPOS);
-
-				if (!value.length)
-					config_set_string(section, key, "", 0);
-				else if (string_equal(STRING_ARGS(value), STRING_CONST("false")))
-					config_set_bool(section, key, false);
-				else if (string_equal(STRING_ARGS(value), STRING_CONST("true")))
-					config_set_bool(section, key, true);
-				else if ((string_find(STRING_ARGS(value), '.', 0) != STRING_NPOS) &&
-				         (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789."), 0) == STRING_NPOS) &&
-				         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.', 0) + 1) == STRING_NPOS))
-					config_set_real(section, key, string_to_real(STRING_ARGS(value)));
-				else if (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789"), 0) == STRING_NPOS)
-					config_set_int(section, key, string_to_int64(STRING_ARGS(value)));
-				else {
-					if ((value.length > 1) && (value.str[0] == '"') && (value.str[ value.length - 1 ] == '"')) {
-						value.str++;
-						value.length -= 2;
-						config_set_string(section, key, STRING_ARGS(value));
-					}
-					else {
-						config_set_string(section, key, STRING_ARGS(value));
-					}
+		if ((cmdline[arg].length > 4) && (cmdline[arg].str[0] == '-') && (cmdline[arg].str[1] == '-')) {
+			size_t eq_sep = string_find(STRING_ARGS(cmdline[arg]), '=', 0);
+			if (eq_sep == STRING_NPOS)
+				continue;
+			string_const_t variable = string_substr(STRING_ARGS(cmdline[arg]), 2, eq_sep - 2);
+			size_t separator = string_find(STRING_ARGS(variable), ':', 0);
+			config_node_t* node = root;
+			string_const_t varstr, value;
+			if (separator != STRING_NPOS) {
+				size_t start = 0;
+				do {
+					string_const_t keystr = string_substr(STRING_ARGS(variable), start, separator - start);
+					start = separator + 1;
+					separator = string_find(STRING_ARGS(variable), ':', start);
+					if (!keystr.length)
+						continue;
+					key = hash(STRING_ARGS(keystr));
+					node = _config_subnode(node, key, true);
 				}
+				while (separator != STRING_NPOS);
 
-				log_infof(HASH_CONFIG, STRING_CONST("Config value from command line: %.*s:%.*s = %.*s"),
-				          (int)section_length, section_str, (int)key_length, key_str, STRING_FORMAT(value));
+				var_offset = start;
 			}
+			else {
+				var_offset = 0;
+				node = root;
+			}
+
+			varstr = string_substr(STRING_ARGS(variable), var_offset, variable.length - var_offset);
+			key = hash(STRING_ARGS(varstr));
+
+			value = string_substr(STRING_ARGS(cmdline[arg]), eq_sep + 1, STRING_NPOS);
+
+			if (!value.length)
+				config_set_string(node, "", 0, key, HASH_NULL);
+			else if (string_equal(STRING_ARGS(value), STRING_CONST("false")))
+				config_set_bool(node, false, key, HASH_NULL);
+			else if (string_equal(STRING_ARGS(value), STRING_CONST("true")))
+				config_set_bool(node, true, key, HASH_NULL);
+			else if ((string_find(STRING_ARGS(value), '.', 0) != STRING_NPOS) &&
+			         (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789."), 0) == STRING_NPOS) &&
+			         (string_find(STRING_ARGS(value), '.', string_find(STRING_ARGS(value), '.', 0) + 1) == STRING_NPOS))
+				config_set_real(node, string_to_real(STRING_ARGS(value)), key, HASH_NULL);
+			else if (string_find_first_not_of(STRING_ARGS(value), STRING_CONST("0123456789"), 0) == STRING_NPOS)
+				config_set_int(node, string_to_int64(STRING_ARGS(value)), key, HASH_NULL);
+			else {
+				if ((value.length > 1) && (value.str[0] == '"') && (value.str[ value.length - 1 ] == '"')) {
+					value.str++;
+					value.length -= 2;
+					config_set_string(node, STRING_ARGS(value), key, HASH_NULL);
+				}
+				else {
+					config_set_string(node, STRING_ARGS(value), key, HASH_NULL);
+				}
+			}
+
+			log_infof(HASH_CONFIG, STRING_CONST("Config value from command line: %.*s = %.*s"),
+			          STRING_FORMAT(variable), STRING_FORMAT(value));
 		}
 	}
 }
 
+static void
+config_write_indent(stream_t* stream, size_t indent) {
+	size_t itab;
+	for (itab = 0; itab < indent; ++itab)
+		stream_write(stream, "\t", 1);
+}
 
-void
-config_write(stream_t* stream, hash_t filter_section, string_const_t (*map)(hash_t)) {
-	config_section_t* csection;
-	config_key_t* bucket;
-	size_t key, ib, bsize;
+static void
+config_write_node(config_node_t* current, stream_t* stream, string_const_t(*map)(hash_t),
+                  size_t indent, char* tmpbuffer, size_t capacity) {
+	size_t inode, nsize;
+	string_t escaped;
+	char* localbuffer = tmpbuffer;
+	size_t localcapacity = capacity;
+	for (inode = 0, nsize = array_size(current->nodes); inode < nsize; ++inode) {
+		config_node_t* node = current->nodes + inode;
+		string_const_t name = map(node->name);
 
-	stream_set_binary(stream, false);
+		if (!name.length)
+			continue;
 
-	//TODO: If random access stream, update section if available, else append at end of stream
-	//if( stream_is_sequential( stream ) )
-	{
-		string_const_t section = map(filter_section);
-		stream_write_format(stream, STRING_CONST("[%.*s]"), STRING_FORMAT(section));
-		stream_write_endl(stream);
+		config_write_indent(stream, indent);
+		if (name.length * 4 > capacity) {
+			localcapacity = node->sval.length * 4;
+			localbuffer = memory_allocate(0, localcapacity, 0, MEMORY_TEMPORARY);
+		}
+		escaped = json_escape(localbuffer, localcapacity, STRING_ARGS(name));
+		if ((string_find_first_of(STRING_ARGS(name),
+		                          STRING_CONST(STRING_WHITESPACE "=:[]{}\""), 0) != STRING_NPOS) ||
+		        !name.length) {
+			stream_write(stream, "\"", 1);
+			stream_write_string(stream, STRING_ARGS(escaped));
+			stream_write(stream, "\"", 1);
+		}
+		else {
+			stream_write_string(stream, STRING_ARGS(escaped));
+		}
+		if (localbuffer != tmpbuffer)
+			memory_deallocate(localbuffer);
 
-		csection = config_section(filter_section, false);
-		if (csection) for (key = 0; key < CONFIG_KEY_BUCKETS; ++key) {
-				bucket = csection->key[ key ];
-				if (bucket) for (ib = 0, bsize = array_size(bucket); ib < bsize; ++ib) {
-						string_const_t bucketstr = map(bucket[ib].name);
-						stream_write_format(stream, STRING_CONST("\t%.*s\t\t\t\t= "), STRING_FORMAT(bucketstr));
-						switch (bucket[ib].type) {
-						case CONFIGVALUE_BOOL:
-							stream_write_bool(stream, bucket[ib].bval);
-							break;
+		stream_write(stream, STRING_CONST(" = "));
+		switch (node->type) {
+		case CONFIGVALUE_BOOL:
+			stream_write_bool(stream, node->bval);
+			break;
 
-						case CONFIGVALUE_INT:
-							stream_write_int64(stream, bucket[ib].ival);
-							break;
+		case CONFIGVALUE_INT:
+			stream_write_int64(stream, node->ival);
+			break;
 
-						case CONFIGVALUE_REAL:
+		case CONFIGVALUE_REAL:
 #if FOUNDATION_SIZE_REAL == 8
-							stream_write_float64(stream, bucket[ib].rval);
+			stream_write_float64(stream, node->rval);
 #else
-							stream_write_float32(stream, bucket[ib].rval);
+			stream_write_float32(stream, node->rval);
 #endif
-							break;
+			break;
 
-						case CONFIGVALUE_STRING:
-						case CONFIGVALUE_STRING_CONST:
-						case CONFIGVALUE_STRING_VAR:
-						case CONFIGVALUE_STRING_CONST_VAR:
-							stream_write_string(stream, STRING_ARGS(bucket[ib].sval));
-							break;
-						}
-						stream_write_endl(stream);
-					}
+		case CONFIGVALUE_STRING:
+		case CONFIGVALUE_STRING_CONST:
+		case CONFIGVALUE_STRING_VAR:
+		case CONFIGVALUE_STRING_CONST_VAR:
+			if (node->sval.length * 4 > capacity) {
+				localcapacity = node->sval.length * 4;
+				localbuffer = memory_allocate(0, localcapacity, 0, MEMORY_TEMPORARY);
 			}
+			escaped = json_escape(localbuffer, localcapacity, STRING_ARGS(node->sval));
+			if ((string_find_first_of(STRING_ARGS(escaped),
+			                          STRING_CONST(STRING_WHITESPACE "=:[]{}\"\\"), 0) != STRING_NPOS) ||
+			        !escaped.length) {
+				stream_write(stream, "\"", 1);
+				stream_write_string(stream, STRING_ARGS(escaped));
+				stream_write(stream, "\"", 1);
+			}
+			else {
+				stream_write_string(stream, STRING_ARGS(escaped));
+			}
+			if (localbuffer != tmpbuffer)
+				memory_deallocate(localbuffer);
+			break;
+
+		case CONFIGVALUE_NODE:
+			stream_write_string(stream, STRING_CONST("{"));
+			stream_write_endl(stream);
+			config_write_node(node, stream, map, indent + 1, tmpbuffer, capacity);
+			config_write_indent(stream, indent);
+			stream_write_string(stream, STRING_CONST("}"));
+			break;
+		}
+		stream_write_endl(stream);
 	}
 }
+
+void
+config_write(config_node_t* root, stream_t* stream, string_const_t(*map)(hash_t)) {
+	bool is_binary = stream_is_binary(stream);
+	char tmpbuffer[512];
+	if (is_binary)
+		stream_set_binary(stream, false);
+	config_write_node(root, stream, map, 0, tmpbuffer, sizeof(tmpbuffer));
+	if (is_binary)
+		stream_set_binary(stream, true);
+}
+

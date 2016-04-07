@@ -22,8 +22,8 @@ on this foundation library. */
 #include <foundation/platform.h>
 #include <foundation/build.h>
 
-#if defined( FOUNDATION_PLATFORM_DOXYGEN )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
+#if defined(FOUNDATION_PLATFORM_DOXYGEN)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct name
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
@@ -331,6 +331,26 @@ typedef enum {
 	JSON_PRIMITIVE
 } json_type_t;
 
+/*! Configuration value type */
+typedef enum {
+	/*! Boolean */
+	CONFIGVALUE_BOOL = 0,
+	/*! Node */
+	CONFIGVALUE_NODE,
+	/*! 64-bit integer */
+	CONFIGVALUE_INT,
+	/*! Floating point value */
+	CONFIGVALUE_REAL,
+	/*! String */
+	CONFIGVALUE_STRING,
+	/*! Constant string */
+	CONFIGVALUE_STRING_CONST,
+	/*! String variable */
+	CONFIGVALUE_STRING_VAR,
+	/*! Constant string variable */
+	CONFIGVALUE_STRING_CONST_VAR
+} config_type_t;
+
 /*! Memory hint, memory allocationis persistent (retained when function returns) */
 #define MEMORY_PERSISTENT       0
 /*! Memory hint, memory is temporary (extremely short lived and generally freed
@@ -545,6 +565,8 @@ typedef struct stream_vtable_t        stream_vtable_t;
 typedef struct thread_t               thread_t;
 /*! JSON token */
 typedef struct json_token_t           json_token_t;
+/*! Configuration node */
+typedef struct config_node_t          config_node_t;
 /*! Version declaration */
 typedef union  version_t              version_t;
 /*! Library configuration block controlling limits, functionality and memory
@@ -568,14 +590,14 @@ typedef union semaphore_native_t      semaphore_native_t;
 typedef struct semaphore_t            semaphore_t;
 #endif
 
-/*! Error handler callback which is passed the error level and reported error. It should return
+/*! Error handler which is passed the error level and reported error. It should return
 an implementation specific code which is then returned from the call to error_report
 \param level Error level
 \param error Error code
 \return Implementation specific code which is passed back as return from error_report */
-typedef int (* error_callback_fn)(error_level_t level, error_t error);
+typedef int (* error_handler_fn)(error_level_t level, error_t error);
 
-/*! Assert handler callback which is passed assert data and should do impementation specific
+/*! Assert handler which is passed assert data and should do impementation specific
 processing and return a code indicating if execution can continue or need to be aborted.
 \param context Error context
 \param condition String expressing the condition that failed
@@ -591,14 +613,14 @@ typedef int (* assert_handler_fn)(hash_t context, const char* condition, size_t 
                                   const char* file, size_t file_length, unsigned int line,
                                   const char* msg, size_t msg_length);
 
-/*! Log output callback. Called after each log message processed and output by
+/*! Log output handler. Called after each log message processed and output by
 the log functions.
 \param context Log context
 \param severity Log severity
 \param msg Log message
 \param length Length of message */
-typedef void (* log_callback_fn)(hash_t context, error_level_t severity, const char* msg,
-                                 size_t length);
+typedef void (* log_handler_fn)(hash_t context, error_level_t severity, const char* msg,
+                                size_t length);
 
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
@@ -665,19 +687,18 @@ typedef void (* profile_read_fn)(void* data, size_t size);
 \return Implementation specific data which can be obtained through thread_result */
 typedef void* (* thread_fn)(void* arg);
 
-/*! Any function to be used in conjunction with the crash guard functionality
-of the library should have this prototype to allow the crash guard to catch
-and handle exceptions correctly
-\param arg Implementation specific argument passed to crash_guard
+/*! Any function to be used in conjunction with the exception handling
+in the library should have this prototype
+\param arg Implementation specific argument passed to exception_try
 \return Implementation specific return value which is forwarded as return value
-        from crash_guard (note that FOUNDATION_CRASH_DUMP_GENERATED is reserved) */
-typedef int (* crash_guard_fn)(void* arg);
+        from exception_try (note that FOUNDATION_EXCEPTION_CAUGHT is reserved) */
+typedef int (* exception_try_fn)(void* arg);
 
-/*! Crash callback function prototype, used to notify that an exception occurred
+/*! Exception handler function prototype, used to notify that an exception occurred
 and the process state was saved to a dump file
 \param file Dump file path
 \param length Length of file path */
-typedef void (* crash_dump_callback_fn)(const char* file, size_t length);
+typedef void (* exception_handler_fn)(const char* file, size_t length);
 
 /*! Object deallocation function prototype, used to deallocate an object of a specific type
 \param id Object handle
@@ -767,9 +788,9 @@ typedef void (* stream_finalize_fn)(stream_t* stream);
 \return Clone of stream, 0 if not supported or invalid source stream */
 typedef stream_t* (* stream_clone_fn)(stream_t* stream);
 
-/*! Identifier returned from threads and crash guards after a fatal exception (crash)
-has been caught */
-#define FOUNDATION_CRASH_DUMP_GENERATED 0x0badf00dL
+/*! Identifier returned from threads and exception_try after an exception
+has been caught (and optionally a dump generated) */
+#define FOUNDATION_EXCEPTION_CAUGHT 0x0badf00dL
 
 // COMPLEX TYPES
 
@@ -783,7 +804,7 @@ struct foundation_config_t {
 	size_t memory_tracker_max;
 	/*! Maximum number of file system monitors. Zero for default (16) */
 	size_t fs_monitor_max;
-	/*! Size of temporary memory pool (short lived allocations). Zero for default (512KiB) */
+	/*! Size of temporary memory pool (short lived allocations). Zero for deafult (no temporary memory pool). */
 	size_t temporary_memory;
 	/*! Maximum depth of an error context. Zero for default (32) */
 	size_t error_context_depth;
@@ -889,7 +910,9 @@ struct memory_tracker_t {
 	memory_statistics_fn statistics;
 	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
-	/*! Shutdown memory tracker */
+	/*! Abort memory tracker */
+	system_finalize_fn abort;
+	/*! Finalize memory tracker */
 	system_finalize_fn finalize;
 };
 
@@ -927,18 +950,18 @@ union version_t {
 };
 
 /*! Application declaration. String pointers passed in this struct must be
-constant and valid for the entire life time and execution of the application. */
+constant and valid for the entire lifetime and execution of the application. */
 struct application_t {
 	/*! Long descriptive name */
 	string_const_t name;
 	/*! Short name, must only contain [a-z][A-Z][-_.] */
 	string_const_t short_name;
-	/*! Config directory name, must only contain characters valid in a file name */
-	string_const_t config_dir;
+	/*! Optional company name, must only contain characters valid in a file name */
+	string_const_t company;
 	/*! Version declaration */
 	version_t version;
-	/*! Optional crash dump callback function */
-	crash_dump_callback_fn dump_callback;
+	/*! Optional exception handler */
+	exception_handler_fn exception_handler;
 	/*! Application flags, see APPLICATION_[*] definitions */
 	unsigned int flags;
 	/*! Instance UUID, generated by the foundation library on foundation initialization */
@@ -1098,7 +1121,7 @@ struct hashmap_t {
 	size_t num_nodes; \
 	hashmap_node_t* bucket[size]
 
-/*! Hashmap of default size. Initialize with a call to 
+/*! Hashmap of default size. Initialize with a call to
 <code>hashmap_fixed_t map;
 hashmap_initialize((hashmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
 struct hashmap_fixed_t {
@@ -1379,7 +1402,7 @@ struct beacon_t {
 	int all[8];
 	/*! Fired flag */
 	atomic32_t fired;
-#elif FOUNDATION_PLATFORM_PNACL
+#else
 	/*! Beacon mutex and event */
 	mutex_t* mutex;
 #endif
@@ -1392,7 +1415,7 @@ struct thread_t {
 	/*! Thread priority */
 	thread_priority_t priority;
 	/*! Stack size */
-    unsigned int stacksize;
+	unsigned int stacksize;
 	/*! Thread execution function */
 	thread_fn fn;
 	/*! Argument given to thread execution function */
@@ -1584,19 +1607,39 @@ struct stream_vtable_t {
 from start of buffer */
 struct json_token_t {
 	/*! Token type */
-    json_type_t type;
-    /*! Identifier string offset */
-    unsigned int id;
-    /*! Length of identifier string. 0 if no identifier string */
-    unsigned int id_length;
-    /*! Value string offset */
-    unsigned int value;
-    /*! Length of value string. 0 if no or empty value string */
-    unsigned int value_length;
-    /*! Child token index in token array. 0 if no child token */
-    unsigned int child;
-    /*! Sibling token index in token array. 0 if no sibling token */
-    unsigned int sibling;
+	json_type_t type;
+	/*! Identifier string offset */
+	unsigned int id;
+	/*! Length of identifier string. 0 if no identifier string */
+	unsigned int id_length;
+	/*! Value string offset */
+	unsigned int value;
+	/*! Length of value string. 0 if no or empty value string */
+	unsigned int value_length;
+	/*! Child token index in token array. 0 if no child token */
+	unsigned int child;
+	/*! Sibling token index in token array. 0 if no sibling token */
+	unsigned int sibling;
+};
+
+/*! Configuration node */
+struct config_node_t {
+	/*! Node name */
+	hash_t name;
+	/*! Integer value representation */
+	int64_t ival;
+	/*! String value representation */
+	string_t sval;
+	/*! Expanded string value representation */
+	string_t expanded;
+	/*! Floating point value representation */
+	real rval;
+	/*! Subnodes */
+	config_node_t* nodes;
+	/*! Value type */
+	config_type_t type;
+	/*! Boolean value representation */
+	bool bval;
 };
 
 #if FOUNDATION_COMPILER_CLANG

@@ -19,9 +19,9 @@ test_environment_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation environment tests"));
 	app.short_name = string_const(STRING_CONST("test_environment"));
-	app.config_dir = string_const(STRING_CONST("test_environment"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -68,8 +68,8 @@ DECLARE_TEST(environment, builtin) {
 	EXPECT_NE(environment_current_working_directory().str, 0);
 	EXPECT_NE(environment_current_working_directory().length, 0);
 
-	EXPECT_NE(environment_home_directory().str, 0);
-	EXPECT_NE(environment_home_directory().length, 0);
+	EXPECT_NE(environment_application_directory().str, 0);
+	EXPECT_NE(environment_application_directory().length, 0);
 
 	EXPECT_NE(environment_temporary_directory().str, 0);
 	EXPECT_NE(environment_temporary_directory().length, 0);

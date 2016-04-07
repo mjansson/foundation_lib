@@ -664,38 +664,26 @@ _system_user_locale(void) {
 
 #endif
 
+static uint32_t _system_locale;
+
 uint32_t
 system_locale(void) {
-	uint32_t localeval = 0;
-	char localestr[4];
-
-	string_const_t locale = config_string(HASH_USER, HASH_LOCALE);
-	if (locale.length != 4)
-		locale = config_string(HASH_APPLICATION, HASH_LOCALE);
-	if (locale.length != 4)
-		locale = config_string(HASH_FOUNDATION, HASH_LOCALE);
-	if (locale.length != 4)
-		return _system_user_locale();
-
-#define LOCALE_CHAR_TO_LOWERCASE(x) ((((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x)))
-#define LOCALE_CHAR_TO_UPPERCASE(x) ((((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x)))
-	localestr[0] = LOCALE_CHAR_TO_LOWERCASE(locale.str[0]);
-	localestr[1] = LOCALE_CHAR_TO_LOWERCASE(locale.str[1]);
-	localestr[2] = LOCALE_CHAR_TO_UPPERCASE(locale.str[2]);
-	localestr[3] = LOCALE_CHAR_TO_UPPERCASE(locale.str[3]);
-
-	memcpy(&localeval, localestr, 4);
-	return localeval;
+	return _system_locale ? _system_locale : _system_user_locale();
 }
 
 string_t
-system_locale_string(char* buffer, size_t length) {
+system_locale_string(char* buffer, size_t capacity) {
 	uint32_t locale = system_locale();
-	size_t maxlength = (length > 4) ? 4 : (length ? length - 1 : 0);
-	memcpy(buffer, &locale, maxlength);
-	if (maxlength)
-		buffer[ maxlength ] = 0;
-	return (string_t) { buffer, maxlength };
+	size_t length = (capacity > 4) ? 4 : capacity;
+	memcpy(buffer, &locale, length);
+	if (capacity > 4)
+		buffer[4] = 0;
+	return (string_t) {buffer, length};
+}
+
+void
+system_set_locale(uint32_t locale) {
+	_system_locale = locale;
 }
 
 uint16_t

@@ -16,7 +16,7 @@
 \brief Error context and reporting
 
 Error context and reporting. Most error handling is done per-thread, including
-current error and error callback. If error context is not enabled in the build
+current error and error handler. If error context is not enabled in the build
 all error context macros evaluate to no-ops.
 
 Error functions are thread safe. */
@@ -30,24 +30,24 @@ FOUNDATION_API error_t
 error(void);
 
 /*! Report error for the calling thread. Does not affect error state for any other thread.
-If a error callback is set for the calling thread it will be called and the return value
+If a error handler is set for the calling thread it will be called and the return value
 propagated.
 \param level Error level
 \param err   Error identifier
-\return      Return value from error callback if set, 0 if no callback set */
+\return      Return value from error handler if set, 0 if no handler set */
 FOUNDATION_API int
 error_report(error_level_t level, error_t err);
 
-/*! Get per-thread error handling callback
-\return Error callback */
-FOUNDATION_API error_callback_fn
-error_callback(void);
+/*! Get per-thread error handling handler
+\return Error handler */
+FOUNDATION_API error_handler_fn
+error_handler(void);
 
-/*! Set new per-thread error handling callback. The callback will be called each time
+/*! Set new per-thread error handling handler. The handler will be called each time
 the calling thread reports an error.
-\param callback Error callback */
+\param handler Error handler */
 FOUNDATION_API void
-error_set_callback(error_callback_fn callback);
+error_set_handler(error_handler_fn handler);
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
