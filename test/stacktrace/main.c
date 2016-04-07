@@ -81,7 +81,7 @@ DECLARE_TEST(stacktrace, resolve) {
 	//log_infof(HASH_TEST, STRING_CONST("Resolved stack trace:\n%.*s"), (int)resolved.length,
 	//          resolved.str);
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !(FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG))
 	EXPECT_NE(string_find_string(resolved.str, resolved.length, STRING_CONST("stacktraceresolve_fn"),
 	                             0), STRING_NPOS);
 #if !BUILD_DEPLOY && !BUILD_PROFILE

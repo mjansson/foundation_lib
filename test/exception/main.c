@@ -260,10 +260,6 @@ DECLARE_TEST(exception, exception_handler) {
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
 		return 0; //Don't do exception tests with debugger attached
 
-#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_GCC
-	return 0; //We do not correctly return from guard on Windows with GCC
-#endif
-
 	_exception_handler_called = false;
 	log_enable_stdout(false);
 	result = exception_try(raise_abort, 0, test_local_exception_handler, STRING_CONST("raise_abort"));
@@ -279,10 +275,6 @@ DECLARE_TEST(exception, exception_thread) {
 
 	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
 		return 0; //Don't do exception tests with debugger attached
-
-#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_GCC
-	return 0; //We do not correctly return from guard on Windows with GCC
-#endif
 
 	_exception_handler_called = false;
 	exception_set_handler(test_local_exception_handler, STRING_CONST("thread_raise_abort"));

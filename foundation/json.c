@@ -81,8 +81,10 @@ skip_whitespace(const char* buffer, size_t length, size_t pos) {
 static char
 hex_char(unsigned char val) {
 	if (val < 10)
-		return '0' + val;
-	return 'a' + (val - 10);
+		return '0' + (char)val;
+	else if (val < 16)
+		return 'a' + (char)(val - 10);
+	return '0';
 }
 
 static size_t

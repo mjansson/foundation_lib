@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || (FOUNDATION_COMPILER_CLANG && FOUNDATION_CLANG_VERSION >= 30900))
 #  define FOUNDATION_USE_SEH 1
@@ -127,8 +128,10 @@ _create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen
 
 #  if !FOUNDATION_USE_SEH
 
-typedef VOID WINAPI (*RtlRestoreContextFn)(PCONTEXT, PEXCEPTION_RECORD);
-typedef VOID WINAPI (*RtlCaptureContextFn)(PCONTEXT);
+#include <setjmp.h>
+
+typedef VOID WINAPI(*RtlRestoreContextFn)(PCONTEXT, PEXCEPTION_RECORD);
+typedef VOID WINAPI(*RtlCaptureContextFn)(PCONTEXT);
 
 static RtlRestoreContextFn _RtlRestoreContext;
 static RtlCaptureContextFn _RtlCaptureContext;
@@ -139,6 +142,7 @@ struct exception_closure_t {
 	bool                 initialized;
 	bool                 triggered;
 	CONTEXT              context;
+	jmp_buf              jmpbuf;
 };
 
 typedef struct exception_closure_t exception_closure_t;
@@ -157,6 +161,8 @@ _exception_filter(LPEXCEPTION_POINTERS pointers) {
 			_exception_closure.handler(dump_file_buffer, dump_file_len);
 		if (_RtlRestoreContext)
 			_RtlRestoreContext(&_exception_closure.context, 0);
+		else
+			longjmp(_exception_closure.jmpbuf, 0);
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -268,6 +274,8 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 	_exception_closure.initialized = true;
 	if (_RtlCaptureContext)
 		_RtlCaptureContext(&_exception_closure.context);
+	else
+		setjmp(_exception_closure.jmpbuf);
 	atomic_thread_fence_release();
 	if (_exception_closure.triggered) {
 		ret = FOUNDATION_EXCEPTION_CAUGHT;
@@ -321,13 +329,17 @@ static HMODULE _kernel_lib;
 int
 _exception_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
+	SetErrorMode(SEM_FAILCRITICALERRORS);
 #  if !FOUNDATION_USE_SEH
 	SetUnhandledExceptionFilter(_exception_filter);
-
 	_kernel_lib = LoadLibraryA("kernel32.dll");
 	if (_kernel_lib) {
 		_RtlCaptureContext = (RtlCaptureContextFn)GetProcAddress(_kernel_lib, "RtlCaptureContext");
 		_RtlRestoreContext = (RtlRestoreContextFn)GetProcAddress(_kernel_lib, "RtlRestoreContext");
+	}
+	if (!_RtlCaptureContext || !_RtlRestoreContext) {
+		_RtlCaptureContext = 0;
+		_RtlRestoreContext = 0;
 	}
 #  endif
 #elif FOUNDATION_PLATFORM_POSIX
