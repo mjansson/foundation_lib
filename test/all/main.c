@@ -79,7 +79,7 @@ event_loop(void* arg) {
 #include <test/test.h>
 
 static void
-test_log_callback(hash_t context, error_level_t severity, const char* msg, size_t length) {
+test_log_handler(hash_t context, error_level_t severity, const char* msg, size_t length) {
 	FOUNDATION_UNUSED(context);
 	FOUNDATION_UNUSED(severity);
 
@@ -165,7 +165,7 @@ main_initialize(void) {
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
 #if ( FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID ) && BUILD_ENABLE_LOG
-	log_set_callback(test_log_callback);
+	log_set_handler(test_log_handler);
 #endif
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
