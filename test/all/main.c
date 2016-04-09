@@ -178,13 +178,10 @@ main_initialize(void) {
 
 #if BUILD_MONOLITHIC
 	//For monolithic process test
+	if (string_array_find(cmdline, array_size(cmdline), STRING_CONST("wait for kill")) >= 0)
 	{
-		const string_const_t* cmdline = environment_command_line();
-		if (string_array_find(cmdline, array_size(cmdline), STRING_CONST("wait for kill")) >= 0)
-		{
-			while (true)
-				thread_sleep(100);
-		}
+		while (true)
+			thread_sleep(100);
 	}
 
 	test_set_suitable_working_directory();
