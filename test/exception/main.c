@@ -99,7 +99,7 @@ static int
 raise_abort(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	exception_raise_abort();
-#if !FOUNDATION_COMPILER_CLANG || FOUNDATION_PLATFORM_APPLE
+#if !FOUNDATION_COMPILER_CLANG
 	return 1;
 #endif
 }
