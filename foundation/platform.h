@@ -1235,9 +1235,9 @@ uint512_is_null(const uint512_t u0) {
 #  endif
 #else
 #  if FOUNDATION_SIZE_POINTER == 8
-#    define PRIfixPTR  "016" PRIX64
+#    define PRIfixPTR  "016" PRIXPTR
 #  else
-#    define PRIfixPTR  "08X"
+#    define PRIfixPTR  "08" PRIXPTR
 #  endif
 #endif
 

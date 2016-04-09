@@ -74,7 +74,6 @@
 		455517C8193661E200CF089B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172F19363AF800CF089B /* Carbon.framework */; };
 		455517C9193661E200CF089B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
 		455517CA193661E200CF089B /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
-		455517D2193661F500CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 455516F01936388B00CF089B /* main.c */; };
 		455517D9193661F900CF089B /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455516951936208A00CF089B /* libtest.a */; };
 		455517DA193661F900CF089B /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172E19363AF800CF089B /* libfoundation.a */; };
 		455517DB193661F900CF089B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172F19363AF800CF089B /* Carbon.framework */; };
@@ -243,6 +242,8 @@
 		CD9DACD71C73DA260035E1D9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
 		CD9DACD81C73DA260035E1D9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
 		CD9DACDA1C73DA270035E1D9 /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD9DACD91C73DA270035E1D9 /* libfoundation.a */; };
+		CDF785871CB857C600F83977 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CDF785861CB857C600F83977 /* main.c */; };
+		CDF7858F1CB991FC00F83977 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CDF7858E1CB991FC00F83977 /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -778,6 +779,13 @@
 			remoteGlobalIDString = 455516941936208A00CF089B;
 			remoteInfo = test;
 		};
+		CDF785951CB9930800F83977 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4555167719360C7500CF089B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDF7858B1CB991FB00F83977;
+			remoteInfo = "test-json";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1132,6 +1140,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CDF7858A1CB991FB00F83977 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -1150,7 +1167,6 @@
 		455516EA1936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/blowfish/main.c; sourceTree = "<group>"; };
 		455516EC1936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/bufferstream/main.c; sourceTree = "<group>"; };
 		455516EE1936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/config/main.c; sourceTree = "<group>"; };
-		455516F01936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/crash/main.c; sourceTree = "<group>"; };
 		455516F21936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/environment/main.c; sourceTree = "<group>"; };
 		455516F41936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/error/main.c; sourceTree = "<group>"; };
 		455516F61936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/event/main.c; sourceTree = "<group>"; };
@@ -1185,7 +1201,7 @@
 		4555179819365D5F00CF089B /* test-blowfish */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-blowfish"; sourceTree = BUILT_PRODUCTS_DIR; };
 		455517AB19365D7D00CF089B /* test-bufferstream */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-bufferstream"; sourceTree = BUILT_PRODUCTS_DIR; };
 		455517BE193661C300CF089B /* test-config */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-config"; sourceTree = BUILT_PRODUCTS_DIR; };
-		455517D1193661E200CF089B /* test-crash */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-crash"; sourceTree = BUILT_PRODUCTS_DIR; };
+		455517D1193661E200CF089B /* test-exception */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-exception"; sourceTree = BUILT_PRODUCTS_DIR; };
 		455517E4193661F900CF089B /* test-environment */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-environment"; sourceTree = BUILT_PRODUCTS_DIR; };
 		455517F71936621900CF089B /* test-error */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-error"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4555180A1936623700CF089B /* test-event */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-event"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1222,6 +1238,9 @@
 		CD9DACC51C73D8DC0035E1D9 /* test-sha */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-sha"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD9DACCF1C73D9260035E1D9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/sha/main.c; sourceTree = "<group>"; };
 		CD9DACD91C73DA270035E1D9 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
+		CDF785861CB857C600F83977 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/exception/main.c; sourceTree = "<group>"; };
+		CDF7858C1CB991FC00F83977 /* test-json */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-json"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDF7858E1CB991FC00F83977 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1700,6 +1719,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CDF785891CB991FB00F83977 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -1733,7 +1759,7 @@
 				455516EB1936388B00CF089B /* blowfish */,
 				455516ED1936388B00CF089B /* bufferstream */,
 				455516EF1936388B00CF089B /* config */,
-				455516F11936388B00CF089B /* crash */,
+				455516F11936388B00CF089B /* exception */,
 				455516F31936388B00CF089B /* environment */,
 				455516F51936388B00CF089B /* error */,
 				455516F71936388B00CF089B /* event */,
@@ -1766,6 +1792,7 @@
 				4555173819363B4900CF089B /* framework */,
 				455516961936208A00CF089B /* lib */,
 				4555173719363B2B00CF089B /* bin */,
+				CDF7858D1CB991FC00F83977 /* test-json */,
 			);
 			sourceTree = "<group>";
 			usesTabs = 1;
@@ -1783,7 +1810,7 @@
 				4555179819365D5F00CF089B /* test-blowfish */,
 				455517AB19365D7D00CF089B /* test-bufferstream */,
 				455517BE193661C300CF089B /* test-config */,
-				455517D1193661E200CF089B /* test-crash */,
+				455517D1193661E200CF089B /* test-exception */,
 				455517E4193661F900CF089B /* test-environment */,
 				455517F71936621900CF089B /* test-error */,
 				4555180A1936623700CF089B /* test-event */,
@@ -1814,6 +1841,7 @@
 				450D74101B21D9B8007796DD /* test-bitbiffer */,
 				CD83919B1C044FA8003C9154 /* test-beacon */,
 				CD9DACC51C73D8DC0035E1D9 /* test-sha */,
+				CDF7858C1CB991FC00F83977 /* test-json */,
 			);
 			name = lib;
 			sourceTree = "<group>";
@@ -1891,12 +1919,12 @@
 			name = config;
 			sourceTree = "<group>";
 		};
-		455516F11936388B00CF089B /* crash */ = {
+		455516F11936388B00CF089B /* exception */ = {
 			isa = PBXGroup;
 			children = (
-				455516F01936388B00CF089B /* main.c */,
+				CDF785861CB857C600F83977 /* main.c */,
 			);
-			name = crash;
+			name = exception;
 			sourceTree = "<group>";
 		};
 		455516F31936388B00CF089B /* environment */ = {
@@ -2142,6 +2170,14 @@
 			name = sha;
 			sourceTree = "<group>";
 		};
+		CDF7858D1CB991FC00F83977 /* test-json */ = {
+			isa = PBXGroup;
+			children = (
+				CDF7858E1CB991FC00F83977 /* main.c */,
+			);
+			path = "test-json";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -2220,6 +2256,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CDF785961CB9930800F83977 /* PBXTargetDependency */,
 				CD9DACD21C73D9E30035E1D9 /* PBXTargetDependency */,
 				CD8391AD1C048939003C9154 /* PBXTargetDependency */,
 				450D74161B21DA19007796DD /* PBXTargetDependency */,
@@ -2391,9 +2428,9 @@
 			productReference = 455517BE193661C300CF089B /* test-config */;
 			productType = "com.apple.product-type.tool";
 		};
-		455517C0193661E200CF089B /* test-crash */ = {
+		455517C0193661E200CF089B /* test-exception */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 455517CC193661E200CF089B /* Build configuration list for PBXNativeTarget "test-crash" */;
+			buildConfigurationList = 455517CC193661E200CF089B /* Build configuration list for PBXNativeTarget "test-exception" */;
 			buildPhases = (
 				455517C3193661E200CF089B /* Sources */,
 				455517C5193661E200CF089B /* Frameworks */,
@@ -2404,9 +2441,9 @@
 			dependencies = (
 				455517C1193661E200CF089B /* PBXTargetDependency */,
 			);
-			name = "test-crash";
+			name = "test-exception";
 			productName = "test-all";
-			productReference = 455517D1193661E200CF089B /* test-crash */;
+			productReference = 455517D1193661E200CF089B /* test-exception */;
 			productType = "com.apple.product-type.tool";
 		};
 		455517D3193661F900CF089B /* test-environment */ = {
@@ -2912,6 +2949,23 @@
 			productReference = CD9DACC51C73D8DC0035E1D9 /* test-sha */;
 			productType = "com.apple.product-type.tool";
 		};
+		CDF7858B1CB991FB00F83977 /* test-json */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CDF785901CB991FC00F83977 /* Build configuration list for PBXNativeTarget "test-json" */;
+			buildPhases = (
+				CDF785881CB991FB00F83977 /* Sources */,
+				CDF785891CB991FB00F83977 /* Frameworks */,
+				CDF7858A1CB991FB00F83977 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "test-json";
+			productName = "test-json";
+			productReference = CDF7858C1CB991FC00F83977 /* test-json */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -2924,6 +2978,9 @@
 						CreatedOnToolsVersion = 7.1;
 					};
 					CD9DACC41C73D8DC0035E1D9 = {
+						CreatedOnToolsVersion = 7.1;
+					};
+					CDF7858B1CB991FB00F83977 = {
 						CreatedOnToolsVersion = 7.1;
 					};
 				};
@@ -2950,10 +3007,10 @@
 				4555178719365D5F00CF089B /* test-blowfish */,
 				4555179A19365D7D00CF089B /* test-bufferstream */,
 				455517AD193661C300CF089B /* test-config */,
-				455517C0193661E200CF089B /* test-crash */,
 				455517D3193661F900CF089B /* test-environment */,
 				455517E61936621900CF089B /* test-error */,
 				455517F91936623700CF089B /* test-event */,
+				455517C0193661E200CF089B /* test-exception */,
 				4555180C1936625700CF089B /* test-fs */,
 				4555181F1936627100CF089B /* test-hash */,
 				455518321936628A00CF089B /* test-hashmap */,
@@ -2980,6 +3037,7 @@
 				455519621936645600CF089B /* test-uuid */,
 				CD83919A1C044FA8003C9154 /* test-beacon */,
 				CD9DACC41C73D8DC0035E1D9 /* test-sha */,
+				CDF7858B1CB991FB00F83977 /* test-json */,
 			);
 		};
 /* End PBXProject section */
@@ -3077,7 +3135,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				455517D2193661F500CF089B /* main.c in Sources */,
+				CDF785871CB857C600F83977 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3305,6 +3363,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CDF785881CB991FB00F83977 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDF7858F1CB991FC00F83977 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -3520,7 +3586,7 @@
 		};
 		455519841936647900CF089B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 455517C0193661E200CF089B /* test-crash */;
+			target = 455517C0193661E200CF089B /* test-exception */;
 			targetProxy = 455519831936647900CF089B /* PBXContainerItemProxy */;
 		};
 		455519861936647900CF089B /* PBXTargetDependency */ = {
@@ -3687,6 +3753,11 @@
 			isa = PBXTargetDependency;
 			target = 455516941936208A00CF089B /* test */;
 			targetProxy = CD9DACD31C73DA160035E1D9 /* PBXContainerItemProxy */;
+		};
+		CDF785961CB9930800F83977 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDF7858B1CB991FB00F83977 /* test-json */;
+			targetProxy = CDF785951CB9930800F83977 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -4257,7 +4328,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
-				PRODUCT_NAME = "test-crash";
+				PRODUCT_NAME = "test-exception";
 			};
 			name = Debug;
 		};
@@ -4265,7 +4336,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
-				PRODUCT_NAME = "test-crash";
+				PRODUCT_NAME = "test-exception";
 			};
 			name = Release;
 		};
@@ -4273,7 +4344,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
-				PRODUCT_NAME = "test-crash";
+				PRODUCT_NAME = "test-exception";
 			};
 			name = Profile;
 		};
@@ -4281,7 +4352,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
-				PRODUCT_NAME = "test-crash";
+				PRODUCT_NAME = "test-exception";
 			};
 			name = Deploy;
 		};
@@ -5178,6 +5249,38 @@
 			};
 			name = Deploy;
 		};
+		CDF785911CB991FC00F83977 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CDF785921CB991FC00F83977 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CDF785931CB991FC00F83977 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		CDF785941CB991FC00F83977 /* Deploy */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Deploy;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -5313,7 +5416,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deploy;
 		};
-		455517CC193661E200CF089B /* Build configuration list for PBXNativeTarget "test-crash" */ = {
+		455517CC193661E200CF089B /* Build configuration list for PBXNativeTarget "test-exception" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				455517CD193661E200CF089B /* Debug */,
@@ -5628,6 +5731,17 @@
 				CD9DACCA1C73D8DC0035E1D9 /* Release */,
 				CD9DACCB1C73D8DC0035E1D9 /* Profile */,
 				CD9DACCC1C73D8DC0035E1D9 /* Deploy */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deploy;
+		};
+		CDF785901CB991FC00F83977 /* Build configuration list for PBXNativeTarget "test-json" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDF785911CB991FC00F83977 /* Debug */,
+				CDF785921CB991FC00F83977 /* Release */,
+				CDF785931CB991FC00F83977 /* Profile */,
+				CDF785941CB991FC00F83977 /* Deploy */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
