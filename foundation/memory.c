@@ -203,6 +203,8 @@ void
 _memory_finalize(void) {
 #if BUILD_ENABLE_MEMORY_TRACKER
 	_memory_tracker_preinit = _memory_tracker;
+	if (_memory_tracker.finalize)
+		_memory_tracker.finalize();
 #endif
 	_atomic_allocate_finalize();
 	memory_set_tracker(_memory_no_tracker);
@@ -774,11 +776,12 @@ typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
 
 static memory_tag_t* _memory_tags;
 static atomic32_t    _memory_tag_next;
+static boolean       _memory_tracker_initialized;
 
 static int
 _memory_tracker_initialize(void) {
 	log_debug(HASH_MEMORY, STRING_CONST("Initializing local memory tracker"));
-	if (!_memory_tags) {
+	if (!_memory_tracker_initialized) {
 		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
 		_memory_tags = memory_allocate(0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
@@ -788,6 +791,7 @@ _memory_tracker_initialize(void) {
 		atomic_add64(&_memory_stats.allocated_total, (int64_t)size);
 		atomic_add64(&_memory_stats.allocated_current, (int64_t)size);
 #endif
+		_memory_tracker_initialized = true;
 	}
 
 	return 0;
@@ -795,6 +799,7 @@ _memory_tracker_initialize(void) {
 
 static void
 _memory_tracker_cleanup(void) {
+	_memory_tracker_initialized = false;
 	if (_memory_tags) {
 		memory_deallocate(_memory_tags);
 
@@ -810,6 +815,7 @@ _memory_tracker_cleanup(void) {
 
 static void
 _memory_tracker_finalize(void) {
+	_memory_tracker_initialized = false;
 	if (_memory_tags) {
 		unsigned int it;
 		bool got_leaks = false;
@@ -837,7 +843,7 @@ _memory_tracker_finalize(void) {
 
 static void
 _memory_tracker_track(void* addr, size_t size) {
-	if (addr) {
+	if (addr && _memory_tracker_initialized) {
 		size_t limit = _foundation_config.memory_tracker_max * 2;
 		size_t loop = 0;
 		do {
@@ -874,7 +880,7 @@ static void
 _memory_tracker_untrack(void* addr) {
 	int32_t tag = 0;
 	size_t size = 0;
-	if (addr) {
+	if (addr && _memory_tracker_initialized) {
 		int32_t iend = atomic_load32(&_memory_tag_next);
 		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
 		while (true) {
@@ -900,9 +906,9 @@ _memory_tracker_untrack(void* addr) {
 		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
 #endif
 	}
-	//else if (addr) {
-	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
-	//}
+	else if (addr && _memory_tracker_initialized) {
+		log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+	}
 }
 
 #endif

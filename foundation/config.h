@@ -182,7 +182,7 @@ config_set_string_constant(config_node_t* root, const char* value, size_t length
                  existing section:key pairs
 \return true if successful, false if not (invalid format) */
 FOUNDATION_API bool
-config_parse(config_node_t* root, stream_t* stream, bool overwrite);
+config_read(config_node_t* root, stream_t* stream, bool overwrite);
 
 /*! Write config declarations to a stream
 \param root      Root node

@@ -1246,7 +1246,7 @@ DECLARE_TEST(config, readwrite) {
 	config_set_string_constant(root, STRING_CONST("12345"), write_section, write_key_7, HASH_NULL);
 
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
-	config_parse(node, stream, false);
+	config_read(node, stream, false);
 
 	EXPECT_CONSTSTRINGEQ(config_string(root, write_section, write_key_0, HASH_NULL),
 	                     string_const(STRING_CONST("asdf")));
@@ -1262,7 +1262,7 @@ DECLARE_TEST(config, readwrite) {
 	                     string_const(STRING_CONST("12345")));
 
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
-	config_parse(node, stream, true);
+	config_read(node, stream, true);
 
 	EXPECT_CONSTSTRINGEQ(config_string(root, write_section, write_key_0, HASH_NULL),
 	                     string_const(STRING_CONST("foobar")));
@@ -1293,7 +1293,7 @@ DECLARE_TEST(config, readwrite) {
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
 
 	log_enable_stdout(false);
-	config_parse(root, stream, true);
+	config_read(root, stream, true);
 	log_enable_stdout(true);
 
 	EXPECT_CONSTSTRINGEQ(config_string(root, hash(STRING_CONST("base_key")), HASH_NULL),
@@ -1335,7 +1335,7 @@ DECLARE_TEST(config, readwrite) {
 
 	log_enable_stdout(false);
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
-	config_parse(root, stream, true);
+	config_read(root, stream, true);
 	log_enable_stdout(true);
 
 	EXPECT_CONSTSTRINGEQ(config_string(root, write_section, write_key_0, HASH_NULL),

@@ -493,7 +493,7 @@ _config_parse_token(config_node_t* node, json_token_t* tokens, unsigned int curr
 }
 
 bool
-config_parse(config_node_t* root, stream_t* stream, bool overwrite) {
+config_read(config_node_t* root, stream_t* stream, bool overwrite) {
 	size_t size = stream_size(stream);
 	char* buffer = memory_allocate(0, size, 0, MEMORY_PERSISTENT);
 	json_token_t store[64];
