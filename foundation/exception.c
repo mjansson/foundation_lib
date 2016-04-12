@@ -19,6 +19,12 @@
 #  define FOUNDATION_USE_SEH 0
 #endif
 
+#if FOUNDATION_COMPILER_CLANG
+#  if __has_warning("-Wdisabled-macro-expansion")
+#    pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+#  endif
+#endif
+
 static exception_handler_fn _exception_handler;
 static string_const_t       _dump_name;
 
