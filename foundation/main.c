@@ -94,8 +94,6 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 
 	thread_set_main();
 
-	foundation_startup();
-
 	system_post_event(FOUNDATIONEVENT_START);
 
 #if BUILD_DEBUG
@@ -234,8 +232,6 @@ main(int argc, char** argv)
 #endif
 
 	thread_set_main();
-
-	foundation_startup();
 
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
 	system_post_event(FOUNDATIONEVENT_START);

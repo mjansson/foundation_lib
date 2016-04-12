@@ -186,17 +186,13 @@ _memory_initialize(const memory_system_t memory) {
 	ret = _memory_system.initialize();
 	if (ret == 0) {
 		_memory_initialized = true;
+		_atomic_allocate_initialize();
 #if BUILD_ENABLE_MEMORY_TRACKER
 		if (_memory_tracker_preinit.initialize)
 			memory_set_tracker(_memory_tracker_preinit);
 #endif
 	}
 	return ret;
-}
-
-void
-_memory_preallocate(void) {
-	_atomic_allocate_initialize();
 }
 
 void
@@ -776,7 +772,7 @@ typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
 
 static memory_tag_t* _memory_tags;
 static atomic32_t    _memory_tag_next;
-static boolean       _memory_tracker_initialized;
+static bool          _memory_tracker_initialized;
 
 static int
 _memory_tracker_initialize(void) {
@@ -906,9 +902,9 @@ _memory_tracker_untrack(void* addr) {
 		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
 #endif
 	}
-	else if (addr && _memory_tracker_initialized) {
-		log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
-	}
+	//else if (addr && _memory_tracker_initialized) {
+	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+	//}
 }
 
 #endif

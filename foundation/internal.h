@@ -53,9 +53,6 @@ FOUNDATION_API int
 _memory_initialize(const memory_system_t memory);
 
 FOUNDATION_API void
-_memory_preallocate(void);
-
-FOUNDATION_API void
 _memory_finalize(void);
 
 FOUNDATION_API int
@@ -126,9 +123,6 @@ _exception_initialize(void);
 
 FOUNDATION_API void
 _exception_finalize(void);
-
-FOUNDATION_API void
-foundation_startup(void);
 
 // Internal functions
 

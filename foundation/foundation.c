@@ -144,11 +144,6 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 }
 
 void
-foundation_startup(void) {
-	_memory_preallocate();
-}
-
-void
 foundation_finalize(void) {
 	_foundation_initialized = false;
 
