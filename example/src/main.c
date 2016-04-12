@@ -33,7 +33,7 @@ event_loop(void* arg) {
 	// Run this loop until a FOUNDATIONEVENT_TERMINATE event is posted
 	while (!example_terminate) {
 		
-		// Process all pending events in the system event stream
+		// Process all pending events in the event stream
 		block = event_stream_process(stream);
 		event = 0;
 		while ((event = event_next(block, event))) {
