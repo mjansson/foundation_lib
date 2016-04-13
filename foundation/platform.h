@@ -783,11 +783,6 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #  include <intrin.h>
 
-#  define bool _Bool
-#  define true 1
-#  define false 0
-#  define __bool_true_false_are_defined 1
-
 // Microsoft
 #elif defined( _MSC_VER )
 
@@ -803,17 +798,17 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ATTRIBUTE4(x,y,z,w)
 
 #  define FOUNDATION_RESTRICT __restrict
-#  define FOUNDATION_THREADLOCAL __declspec( thread )
+#  define FOUNDATION_THREADLOCAL __declspec(thread)
 
-#  define FOUNDATION_DEPRECATED __declspec( deprecated )
+#  define FOUNDATION_DEPRECATED __declspec(deprecated)
 #  define FOUNDATION_FORCEINLINE __forceinline
-#  define FOUNDATION_NOINLINE __declspec( noinline )
+#  define FOUNDATION_NOINLINE __declspec(noinline)
 #  define FOUNDATION_PURECALL
 #  define FOUNDATION_CONSTCALL
-#  define FOUNDATION_PRINTFCALL( start, num )
-#  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
-#  define FOUNDATION_ALIGNOF( type ) __alignof( type )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
+#  define FOUNDATION_PRINTFCALL(start, num)
+#  define FOUNDATION_ALIGN(alignment) __declspec(align(alignment))
+#  define FOUNDATION_ALIGNOF(type) __alignof(type)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) FOUNDATION_ALIGN(alignment) struct name
 
 #  pragma warning(disable : 4054)
 #  pragma warning(disable : 4055)
@@ -833,21 +828,12 @@ thread local storage to ensure maximum portability across supported platforms */
 #    define STDCALL __stdcall
 #  endif
 
-#  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
+#  if defined(FOUNDATION_COMPILE) && FOUNDATION_COMPILE && !defined(_CRT_SECURE_NO_WARNINGS)
 #    define _CRT_SECURE_NO_WARNINGS 1
 #  endif
 
 #  ifndef _LINT
 #    define _Static_assert static_assert
-#  endif
-
-#  ifndef __cplusplus
-
-typedef enum {
-	false = 0,
-	true  = 1
-} bool;
-
 #  endif
 
 #  if _MSC_VER < 1800
@@ -873,12 +859,7 @@ typedef enum {
 #  define FOUNDATION_CONSTCALL
 #  define FOUNDATION_ALIGN
 #  define FOUNDATION_ALIGNOF
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
-
-typedef enum {
-	false = 0,
-	true  = 1
-} bool;
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct name
 
 #endif
 
@@ -918,6 +899,13 @@ typedef enum {
 
 #ifndef __cplusplus
 #  define nullptr ((void*)0)
+#endif
+
+#if !defined(__cplusplus) && !defined(__bool_true_false_are_defined)
+typedef enum {
+	false = 0,
+	true  = 1
+} bool;
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
@@ -990,9 +978,9 @@ FOUNDATION_ALIGNED_STRUCT(atomicptr_t, FOUNDATION_SIZE_POINTER) {
 typedef struct atomicptr_t atomicptr_t;
 
 // Pointer arithmetic
-#define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
-#define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
-#define pointer_diff( first, second ) (ptrdiff_t)((const char*)(first) - (const char*)(second))
+#define pointer_offset(ptr, ofs) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_offset_const(ptr, ofs) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_diff(first, second) (ptrdiff_t)((const char*)(first) - (const char*)(second))
 
 #include <string.h>
 
@@ -1056,25 +1044,6 @@ static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { pthread_setspec
 static _pthread_key_t _##name##_key = 0; \
 static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) pthread_key_create(&_##name##_key, 0); return _##name##_key; } \
 static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific(key); if (!arr) { arr = _allocate_thread_local_block(sizeof(type) * arrsize); pthread_setspecific(key, arr); } return arr; }
-
-/*#elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
-
-__declspec(dllimport) unsigned long STDCALL TlsAlloc();
-__declspec(dllimport) void* STDCALL TlsGetValue(unsigned long);
-__declspec(dllimport) int STDCALL TlsSetValue(unsigned long, void*);
-
-FOUNDATION_API void* _allocate_thread_local_block(size_t size);
-
-#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
-static unsigned long _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE unsigned long get_##name##_key(void) { if (!_##name##_key) { _##name##_key = TlsAlloc(); TlsSetValue(_##name##_key, init); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name(void) { return (type)((uintptr_t)TlsGetValue(get_##name##_key())); } \
-static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { TlsSetValue(get_##name##_key(), (void*)((uintptr_t)val)); }
-
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
-static unsigned long _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE unsigned long get_##name##_key(void) { if( !_##name##_key ) _##name##_key = TlsAlloc(); return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { unsigned long key = get_##name##_key(); type* arr = (type*)TlsGetValue(key); if (!arr) { arr = _allocate_thread_local_block(sizeof(type) * arrsize); TlsSetValue(key, arr); } return arr; } */
 
 #else
 
