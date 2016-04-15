@@ -242,12 +242,18 @@ main(int argc, char** argv)
 	if (!(environment_application()->flags & APPLICATION_UTILITY)) {
 		delegate_start_main_ns_thread();
 
+		random_thread_finalize();
+		memory_context_thread_finalize();
+
 		extern int NSApplicationMain(int argc, char* argv[]);
 		ret = NSApplicationMain(argc, argv);
 
 #  elif FOUNDATION_PLATFORM_IOS
 	{
 		delegate_start_main_ns_thread();
+
+		random_thread_finalize();
+		memory_context_thread_finalize();
 
 		extern int UIApplicationMain(int argc, char* argv[], void* principalClassName,
 		                             void* delegateClassName);

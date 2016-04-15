@@ -138,7 +138,7 @@ main_initialize(void) {
 		if (string_equal(STRING_ARGS(cmdline[iarg]), STRING_CONST("--no-memory-tracker")))
 			_test_memory_tracker = false;
 	}
-	
+
 	if (_test_memory_tracker)
 		memory_set_tracker(memory_tracker_local());
 
