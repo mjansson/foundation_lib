@@ -296,15 +296,6 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 #elif FOUNDATION_PLATFORM_POSIX
 	sigjmp_buf exception_env;
 
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
-#endif
-
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
-#endif
-
 	set_thread_exception_handler(handler);
 	set_thread_dump_name(length ? name : 0);
 
@@ -318,7 +309,7 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 
 #else
 
-	FOUNDATION_UNUSED(callback);
+	FOUNDATION_UNUSED(handler);
 	FOUNDATION_UNUSED(name);
 	FOUNDATION_UNUSED(length);
 
