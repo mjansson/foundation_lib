@@ -61,9 +61,7 @@ is in escaped form, use json_unescape to get translated string.
 \param token JSON token
 \return Identifier string */
 static FOUNDATION_FORCEINLINE string_const_t
-json_token_identifier(const char* buffer, json_token_t* token) {
-	return string_const(buffer + token->id, token->id_length);
-}
+json_token_identifier(const char* buffer, const json_token_t* token);
 
 /*! Convenience function to get value string. Note that value string is
 in escaped form, use json_unesapce to get translated string.
@@ -71,9 +69,7 @@ in escaped form, use json_unesapce to get translated string.
 \param token JSON token
 \return Value string */
 static FOUNDATION_FORCEINLINE string_const_t
-json_token_value(const char* buffer, json_token_t* token) {
-	return string_const(buffer + token->value, token->value_length);
-}
+json_token_value(const char* buffer, const json_token_t* token);
 
 /*! Function to unescape a JSON identifier or value string. Buffer can be
 pointing to same memory area as string (in-place unescaping).
@@ -93,3 +89,15 @@ json_unescape(char* buffer, size_t capacity, const char* string, size_t length);
 \return Escaped string in buffer */
 FOUNDATION_API string_t
 json_escape(char* buffer, size_t capacity, const char* string, size_t length);
+
+// Implementations
+
+static FOUNDATION_FORCEINLINE string_const_t
+json_token_identifier(const char* buffer, const json_token_t* token) {
+	return string_const(buffer + token->id, token->id_length);
+}
+
+static FOUNDATION_FORCEINLINE string_const_t
+json_token_value(const char* buffer, const json_token_t* token) {
+	return string_const(buffer + token->value, token->value_length);
+}

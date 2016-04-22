@@ -29,6 +29,9 @@ Support for Intel, clang and gcc compilers on Windows.
 Android build now requires NDK r11 and uses clang by default, with built in
 thread local storage support instead of old pthread api wrappers.
 
+Refactored the ninja build generator into modules to be easier to extend and maintain
+instead of a single monolithic file. Minor changes in generator interface.
+
 
 1.4.1
 
