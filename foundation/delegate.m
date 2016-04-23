@@ -245,13 +245,13 @@ delegate_uiwindow(void) {
 		CGRect flash_frame = [(__bridge UIWindow*)delegate_uiwindow() frame];
 		flash_frame.size.height = 60;
 
-		float duration = 1.0f;
+		double duration = 1.0;
 		UIView* flash = [[UIView alloc] initWithFrame:flash_frame];
 		flash.backgroundColor = [UIColor redColor];
 		[(__bridge UIWindow*)delegate_uiwindow() addSubview:flash];
 
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-		(int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)), dispatch_get_main_queue(), ^ {
+			(int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 			[flash removeFromSuperview];
 		});
 
