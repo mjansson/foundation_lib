@@ -368,10 +368,12 @@ class ClangToolchain(toolchain.Toolchain):
   def make_configlibpaths(self, config, arch):
     libpaths = [self.libpath, os.path.join(self.libpath, config)]
     if not self.target.is_macosx() and not self.target.is_ios():
-      libpaths += [os.path.join(self.libpath, config, arch)]
+      libpaths += [os.path.join(self.libpath, arch), os.path.join(self.libpath, config, arch)]
     libpaths += [os.path.join(libpath, self.libpath) for libpath in self.depend_libpaths]
     libpaths += [os.path.join(libpath, self.libpath, config) for libpath in self.depend_libpaths]
-    libpaths += [os.path.join(libpath, self.libpath, config, arch) for libpath in self.depend_libpaths]
+    if not self.target.is_macosx() and not self.target.is_ios():
+      libpaths += [os.path.join(libpath, self.libpath, arch) for libpath in self.depend_libpaths]
+      libpaths += [os.path.join(libpath, self.libpath, config, arch) for libpath in self.depend_libpaths]
     return self.make_libpaths(libpaths)
 
   def cc_variables(self, config, arch, targettype, variables):
