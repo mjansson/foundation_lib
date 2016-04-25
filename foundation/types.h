@@ -622,6 +622,14 @@ the log functions.
 typedef void (* log_handler_fn)(hash_t context, error_level_t severity, const char* msg,
                                 size_t length);
 
+/* JSON parsing handler
+\param buffer Data buffer
+\param size Size of data buffer
+\param tokens Tokens array
+\param numtokens Number of tokens */
+typedef void (* json_handler_fn)(const char* buffer, size_t size, json_token_t* tokens,
+                                 size_t numtokens);
+
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
 \return 0 on success, <0 if failure (errors should be reported through log_error

@@ -213,6 +213,11 @@ test_set_suitable_working_directory(void) {
 		environment_set_current_working_directory(STRING_ARGS(working_dir));
 }
 
+void
+test_load_config(json_handler_fn handler) {
+	sjson_parse_path(STRING_CONST("config"), handler);
+}
+
 #if !BUILD_MONOLITHIC
 
 int

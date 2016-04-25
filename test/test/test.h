@@ -192,6 +192,9 @@ test_should_terminate(void);
 TEST_API void FOUNDATION_NOINLINE
 test_set_suitable_working_directory(void);
 
+TEST_API void FOUNDATION_NOINLINE
+test_load_config(json_handler_fn handler);
+
 typedef struct _test_suite {
   application_t (*application)(void);
   memory_system_t (*memory_system)(void);
