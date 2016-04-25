@@ -90,6 +90,15 @@ json_unescape(char* buffer, size_t capacity, const char* string, size_t length);
 FOUNDATION_API string_t
 json_escape(char* buffer, size_t capacity, const char* string, size_t length);
 
+/*! Utility function to load a stream into a temporary buffer, parse
+the read data and call a handler with the found tokens.
+\param path Stream path
+\param length Length of stream path
+\param handler Handler function
+\return Number of tokens processed */
+FOUNDATION_API size_t
+sjson_parse_path(const char* path, size_t length, json_handler_fn handler);
+
 // Implementations
 
 static FOUNDATION_FORCEINLINE string_const_t

@@ -469,3 +469,58 @@ json_unescape(char* buffer, size_t capacity, const char* string, size_t length) 
 	}
 	return (string_t) {buffer, outlength};
 }
+
+static size_t
+sjson_parse_stream(const char* path, size_t length, json_handler_fn handler) {
+	json_token_t localtokens[64];
+	json_token_t* tokens = localtokens;
+	size_t capacity = sizeof(localtokens) / sizeof(localtokens[0]);
+	size_t num = 0;
+
+	stream_t* configfile = stream_open(path, length, STREAM_IN);
+	if (!configfile)
+		return 0;
+
+	size_t size = stream_size(configfile);
+	char* buffer = memory_allocate(0, size, 0, (size < 1024) ? MEMORY_TEMPORARY : MEMORY_PERSISTENT);
+
+	stream_read(configfile, buffer, size);
+	stream_deallocate(configfile);
+
+	num = sjson_parse(buffer, size, tokens, capacity);
+	if (num > capacity) {
+		tokens = memory_allocate(0, sizeof(json_token_t) * num, 0, MEMORY_PERSISTENT);
+		num = sjson_parse(buffer, size, tokens, capacity);
+	}
+	if (num && (tokens[0].type == JSON_OBJECT))
+		handler(buffer, size, tokens, num);
+
+	memory_deallocate(buffer);
+	if (tokens != localtokens)
+		memory_deallocate(tokens);
+
+	return num;
+}
+
+size_t
+sjson_parse_path(const char* path, size_t length, json_handler_fn handler) {
+	if (fs_is_directory(path, length)) {
+		size_t num = 0;
+		char pathbuf[BUILD_MAX_PATHLEN];
+		string_t* files = fs_files(path, length);
+		for (size_t ifile = 0, fsize = array_size(files); ifile < fsize; ++ifile) {
+			string_const_t ext = path_file_extension(STRING_ARGS(files[ifile]));
+			if (string_equal(STRING_ARGS(ext), STRING_CONST("json")) ||
+			        string_equal(STRING_ARGS(ext), STRING_CONST("sjson"))) {
+				string_t fullpath = path_concat(pathbuf, sizeof(pathbuf),
+				                                path, length,
+				                                STRING_ARGS(files[ifile]));
+				num += sjson_parse_stream(STRING_ARGS(fullpath), handler);
+			}
+		}
+		string_array_deallocate(files);
+		return num;
+	}
+
+	return sjson_parse_stream(path, length, handler);
+}
