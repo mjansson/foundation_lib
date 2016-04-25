@@ -12,6 +12,12 @@
 
 #include "viewcontroller.h"
 
+#if FOUNDATION_COMPILER_CLANG
+#  if __has_warning("-Wpartial-availability")
+#    pragma clang diagnostic ignored "-Wpartial-availability"
+#  endif
+#endif
+
 @interface ViewController()
 @end
 

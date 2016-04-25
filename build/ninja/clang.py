@@ -201,32 +201,31 @@ class ClangToolchain(toolchain.Toolchain):
     if self.target.is_macosx():
       sdk = 'macosx'
       deploytarget = 'MACOSX_DEPLOYMENT_TARGET=' + self.deploymenttarget
-      self.cflags += [ '-fasm-blocks', '-mmacosx-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot' ]
-      self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
-      self.linkflags += [ '-isysroot', '$sysroot' ]
+      self.cflags += ['-fasm-blocks', '-mmacosx-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot']
+      self.arflags += ['-static', '-no_warning_for_no_symbols']
+      self.linkflags += ['-isysroot', '$sysroot']
     elif self.target.is_ios():
       sdk = 'iphoneos'
       deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=' + self.deploymenttarget
-      self.cflags += [ '-fasm-blocks', '-miphoneos-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot' ]
-      self.arflags += [ '-static', '-no_warning_for_no_symbols' ]
-      self.linkflags += [ '-isysroot', '$sysroot' ]
+      self.cflags += ['-fasm-blocks', '-miphoneos-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot']
+      self.arflags += ['-static', '-no_warning_for_no_symbols']
+      self.linkflags += ['-isysroot', '$sysroot']
 
-    platformpath = subprocess.check_output( [ 'xcrun', '--sdk', sdk, '--show-sdk-platform-path' ] ).strip()
+    platformpath = subprocess.check_output(['xcrun', '--sdk', sdk, '--show-sdk-platform-path']).strip()
     localpath = platformpath + "/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
     if self.target.is_macosx():
-      self.sysroot = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
+      self.sysroot = subprocess.check_output(['xcrun', '--sdk', 'macosx', '--show-sdk-path']).strip()
     elif self.target.is_ios():
-      self.sysroot = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-path' ] ).strip()
+      self.sysroot = subprocess.check_output(['xcrun', '--sdk', 'iphoneos', '--show-sdk-path']).strip()
 
-    self.ccompiler = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'clang' ] ).strip()
-    self.archiver = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'libtool' ] ).strip()
+    self.ccompiler = "PATH=" + localpath + " " + subprocess.check_output(['xcrun', '--sdk', sdk, '-f', 'clang']).strip()
+    self.archiver = "PATH=" + localpath + " " + subprocess.check_output(['xcrun', '--sdk', sdk, '-f', 'libtool']).strip()
     self.linker = deploytarget + " " + self.ccompiler
-    self.lipo = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'lipo' ] ).strip()
-    self.dsymutil = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', sdk, '-f', 'dsymutil' ] ).strip()
+    self.lipo = "PATH=" + localpath + " " + subprocess.check_output(['xcrun', '--sdk', sdk, '-f', 'lipo']).strip()
 
-    self.mflags += self.cflags + [ '-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c' ]
-    self.cflags += [ '-x', 'c' ]
+    self.mflags += self.cflags + ['-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c']
+    self.cflags += ['-x', 'c']
 
     self.cmcmd = self.cccmd.replace('$cflags', '$mflags')
     self.arcmd = self.rmcmd('$out') + ' && $ar $ararchflags $arflags $in -o $out'
@@ -294,6 +293,15 @@ class ClangToolchain(toolchain.Toolchain):
       elif arch == 'mips64':
         flags += ['-target', 'mips64el-none-linux-android']
       flags += ['-gcc-toolchain', self.android.make_gcc_toolchain_path(arch)]
+    elif self.target.is_macosx() or self.target.is_ios():
+      if arch == 'x86':
+        flags += [' -arch x86']
+      elif arch == 'x86-64':
+        flags += [' -arch x86_64']
+      elif arch == 'arm7':
+        flags += [' -arch armv7']
+      elif arch == 'arm64':
+        flags += [' -arch arm64']
     else:
       if arch == 'x86':
         flags += ['-m32']
