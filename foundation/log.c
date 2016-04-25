@@ -48,7 +48,7 @@ static log_handler_fn _log_handler;
 static hashtable64_t* _log_suppress;
 static error_level_t  _log_suppress_default;
 
-#define LOG_WARNING_NAMES 9
+#define LOG_WARNING_NAMES 10
 static char _log_warning_name[LOG_WARNING_NAMES][18] = {
 	"performance",
 	"deprecated",
@@ -58,7 +58,8 @@ static char _log_warning_name[LOG_WARNING_NAMES][18] = {
 	"suspicious",
 	"system call fail",
 	"deadlock",
-	"script"
+	"script",
+	"resource"
 };
 
 #define LOG_ERROR_NAMES 16
