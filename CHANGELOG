@@ -6,8 +6,7 @@ Added a minimal in-place JSON parser. Also parses simplified JSON.
 Added implementation SHA-2 256 and 512 bit algorithms, including uint256_t and uint512_t
 representation data types with string conversions.
 
-Changed configuration module to use explicit given configuration storage. Changed config
-storage format to use simplified json. Removed config_load function.
+Removed configuration repository since it is mostly replaced by JSON parser.
 
 Changed byte order representation of raw digest from md5_get_digest_raw to generate
 correct string representation using string_from_uint128.
@@ -30,7 +29,8 @@ Android build now requires NDK r11 and uses clang by default, with built in
 thread local storage support instead of old pthread api wrappers.
 
 Refactored the ninja build generator into modules to be easier to extend and maintain
-instead of a single monolithic file. Minor changes in generator interface.
+instead of a single monolithic file. Minor changes in generator interface. Build only
+x86-64 target on Windows by default (x86 still supported).
 
 
 1.4.1

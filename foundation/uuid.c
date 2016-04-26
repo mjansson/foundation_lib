@@ -174,9 +174,8 @@ string_from_uuid(char* buffer, size_t size, const uuid_t val) {
 	               convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5],
 	               convert.raw.data4[6], convert.raw.data4[7]);
 	if ((len < 0) || ((unsigned int)len > size)) {
-		if (size)
-			buffer[ size - 1 ] = 0;
-		return (string_t) {buffer, size ? (size - 1) : 0};
+		buffer[ size - 1 ] = 0;
+		return (string_t) {buffer, size - 1};
 	}
 	return (string_t) {buffer, (unsigned int)len};
 }

@@ -378,7 +378,6 @@ environment_set_current_working_directory(const char* path, size_t length) {
 	string_t buffer, pathstr;
 #endif
 	bool result = true;
-	log_debugf(0, STRING_CONST("Setting current working directory to: %.*s"), (int)length, path);
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wchar_t* wpath = wstring_allocate_from_string(path, length);

@@ -1286,8 +1286,8 @@ _fs_monitor(void* monitorptr) {
 
 #endif
 
-	log_debugf(0, STRING_CONST("Monitoring file system: %.*s"),
-	           STRING_FORMAT(monitor->path));
+	//log_debugf(0, STRING_CONST("Monitoring file system: %.*s"),
+	//           STRING_FORMAT(monitor->path));
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
@@ -1459,15 +1459,15 @@ skipwatch:
 //        https://github.com/emcrisostomo/fswatch/blob/master/libfswatch/src/libfswatch/c%2B%2B/kqueue_monitor.cpp
 
 #else
-		log_debug(0, STRING_CONST("Filesystem watcher not implemented on this platform"));
+		//log_debug(0, STRING_CONST("Filesystem watcher not implemented on this platform"));
 		//Not implemented yet, just wait for signal to simulate thread
 		thread_wait();
 		keep_running = false;
 #endif
 	}
 
-	log_debugf(0, STRING_CONST("Stopped monitoring file system: %.*s"),
-	           STRING_FORMAT(monitor->path));
+	//log_debugf(0, STRING_CONST("Stopped monitoring file system: %.*s"),
+	//           STRING_FORMAT(monitor->path));
 
 #if FOUNDATION_PLATFORM_WINDOWS
 

@@ -60,7 +60,6 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/profile.h>
 
 #include <foundation/environment.h>
-#include <foundation/config.h>
 #include <foundation/stream.h>
 #include <foundation/fs.h>
 #include <foundation/bufferstream.h>

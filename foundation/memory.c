@@ -776,7 +776,6 @@ static bool          _memory_tracker_initialized;
 
 static int
 _memory_tracker_initialize(void) {
-	log_debug(HASH_MEMORY, STRING_CONST("Initializing local memory tracker"));
 	if (!_memory_tracker_initialized) {
 		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
 		_memory_tags = memory_allocate(0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -816,7 +815,6 @@ _memory_tracker_finalize(void) {
 		unsigned int it;
 		bool got_leaks = false;
 
-		log_debug(HASH_MEMORY, STRING_CONST("Checking for memory leaks"));
 		for (it = 0; it < _foundation_config.memory_tracker_max; ++it) {
 			memory_tag_t* tag = _memory_tags + it;
 			if (atomic_loadptr(&tag->address)) {
@@ -830,9 +828,6 @@ _memory_tracker_finalize(void) {
 				got_leaks = true;
 			}
 		}
-
-		if (!got_leaks)
-			log_debug(HASH_MEMORY, STRING_CONST("No memory leaks detected"));
 	}
 	_memory_tracker_cleanup();
 }

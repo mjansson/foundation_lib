@@ -224,9 +224,9 @@ _thread_entry(thread_arg_t data) {
 		pthread_set_name_np(pthread_self(), thread->name.str);
 #endif
 
-	log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
-	           STRING_FORMAT(thread->name), thread->osid,
-	           handler ? " (exceptions handled)" : "");
+	//log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
+	//           STRING_FORMAT(thread->name), thread->osid,
+	//           handler ? " (exceptions handled)" : "");
 
 	set_thread_self(thread);
 	atomic_store32(&thread->state, 1);
@@ -247,8 +247,8 @@ _thread_entry(thread_arg_t data) {
 		}
 	}
 
-	log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
-	           STRING_FORMAT(thread->name), thread->osid);
+	//log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
+	//           STRING_FORMAT(thread->name), thread->osid);
 
 	if (thread_is_main())
 		_thread_main_id = (uint64_t)-1;

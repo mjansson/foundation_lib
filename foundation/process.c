@@ -249,8 +249,8 @@ process_spawn(process_t* proc) {
 			log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to redirect standard in/out"
 			                                              " through pipes when using ShellExecute for process spawning"));
 
-		log_debugf(0, STRING_CONST("Spawn process (ShellExecute): %.*s %.*s"),
-		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
+		//log_debugf(0, STRING_CONST("Spawn process (ShellExecute): %.*s %.*s"),
+		//           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!ShellExecuteExW(&sei)) {
 			string_const_t errstr = system_error_message(0);
@@ -292,8 +292,8 @@ process_spawn(process_t* proc) {
 			inherit_handles = TRUE;
 		}
 
-		log_debugf(0, STRING_CONST("Spawn process (CreateProcess): %.*s %.*s"),
-		           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
+		//log_debugf(0, STRING_CONST("Spawn process (CreateProcess): %.*s %.*s"),
+		//           STRING_FORMAT(proc->path), STRING_FORMAT(cmdline));
 
 		if (!CreateProcessW(0, wcmdline, 0, 0, inherit_handles,
 		                    (proc->flags & PROCESS_CONSOLE) ? CREATE_NEW_CONSOLE : 0, 0, wwd, &si, &pi)) {
@@ -365,7 +365,7 @@ process_spawn(process_t* proc) {
 		params.application = fsref;
 		params.argv = argvref;
 
-		log_debugf(0, STRING_CONST("Spawn process (LSOpenApplication): %.*s"), STRING_FORMAT(localpath));
+		//log_debugf(0, STRING_CONST("Spawn process (LSOpenApplication): %.*s"), STRING_FORMAT(localpath));
 
 		status = LSOpenApplication(&params, &psn);
 		if (status != 0) {
@@ -448,12 +448,12 @@ process_spawn(process_t* proc) {
 	if (pid == 0) {
 		//Child
 		if (proc->wd.length) {
-			log_debugf(0, STRING_CONST("Spawned child process, setting working directory to %.*s"),
-			           STRING_FORMAT(proc->wd));
+			//log_debugf(0, STRING_CONST("Spawned child process, setting working directory to %.*s"),
+			//           STRING_FORMAT(proc->wd));
 			environment_set_current_working_directory(STRING_ARGS(proc->wd));
 		}
 
-		log_debugf(0, STRING_CONST("Child process executing: %.*s"), STRING_FORMAT(proc->path));
+		//log_debugf(0, STRING_CONST("Child process executing: %.*s"), STRING_FORMAT(proc->path));
 
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			pipe_close_read(proc->pipeout);
@@ -478,7 +478,7 @@ process_spawn(process_t* proc) {
 	memory_deallocate(argv);
 
 	if (pid > 0) {
-		log_debugf(0, STRING_CONST("Child process forked, pid %d"), pid);
+		//log_debugf(0, STRING_CONST("Child process forked, pid %d"), pid);
 
 		proc->pid = pid;
 
