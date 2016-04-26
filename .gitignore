@@ -39,8 +39,9 @@ build/xcode/foundation/build
 #Doxygen generated
 doc/html
 
-#Local config
-SConfig
+#Coverity scan
+cov-int/
+cov-int.*
 
 #################
 ## Visual Studio
