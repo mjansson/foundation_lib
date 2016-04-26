@@ -52,6 +52,8 @@ class ClangToolchain(toolchain.Toolchain):
       self.oslibs += ['m']
     if self.target.is_linux() or self.target.is_raspberrypi():
       self.oslibs += ['dl']
+    if self.target.is_bsd():
+      self.oslibs += ['execinfo']
 
     if self.is_monolithic():
       self.cflags += ['-DBUILD_MONOLITHIC=1']
