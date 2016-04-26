@@ -813,7 +813,6 @@ _memory_tracker_finalize(void) {
 	_memory_tracker_initialized = false;
 	if (_memory_tags) {
 		unsigned int it;
-		bool got_leaks = false;
 
 		for (it = 0; it < _foundation_config.memory_tracker_max; ++it) {
 			memory_tag_t* tag = _memory_tags + it;
@@ -825,7 +824,6 @@ _memory_tracker_finalize(void) {
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
 				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s"),
 				          tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str);
-				got_leaks = true;
 			}
 		}
 	}
