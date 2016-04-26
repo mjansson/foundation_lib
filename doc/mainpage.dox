@@ -580,6 +580,17 @@ Substring capturing is optional, and if performed it will capture start pointers
 \section project_setup Project setup
 
 \subsection project_scons Ninja
+Use the provided build generator in example/build/ninja and modify the configuration script in example/configure.py to suit your needs. The local variables module, sources, libs, includepaths and libpaths control the basic setup of the project.
+
+<ul>
+<li>project - Name of the project (and the executable). By default this is also the subdirectory name holding the sources.
+<li>sources - Source files inside the module subdirectory
+<li>libs - External libraries to link with
+<li>includepaths - External include paths
+<li>libpaths - External library paths
+</ul>
+
+For further documentation on how to setup a Ninja build check out the \ref ninja section.
 
 \subsection project_visual_studio Visual Studio
 
@@ -596,7 +607,9 @@ Substring capturing is optional, and if performed it will capture start pointers
 
 \subsection template_system System
 
-\subsection template_config Config
+\subsection template_platform Platform specifics
+Android - ...
 
+iOS - ...
 
 */
