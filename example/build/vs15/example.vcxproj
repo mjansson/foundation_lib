@@ -35,7 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\main.c" />
+    <ClCompile Include="..\..\example\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Win32Proj</Keyword>

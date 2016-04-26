@@ -27,12 +27,12 @@ event_loop(void* arg) {
 
 	// Set the system event stream to fire this thread beacon when an event
 	// is posted. The beacon will thus wake this thread from the blocking
-	// thread_wait() call 
+	// thread_wait() call
 	event_stream_set_beacon(stream, &thread_self()->beacon);
 
 	// Run this loop until a FOUNDATIONEVENT_TERMINATE event is posted
 	while (!example_terminate) {
-		
+
 		// Process all pending events in the event stream
 		block = event_stream_process(stream);
 		event = 0;
@@ -96,7 +96,8 @@ set_suitable_working_directory(void) {
 		}
 
 		working_dir = path_directory_name(STRING_ARGS(working_dir));
-	} while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
+	}
+	while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
 
 	// Set found working directory
 	if (found)
@@ -141,22 +142,40 @@ main_initialize(void) {
 	return ret;
 }
 
-/* Phony configuration function */
+/* Phony configuration parser */
+static void
+do_parse_config(const char* buffer, size_t size, json_token_t* tokens, size_t numtokens) {
+	FOUNDATION_UNUSED(size);
+
+	for (size_t tok = numtokens ? tokens[0].child : 0; tok &&
+	        tok < numtokens; tok = tokens[tok].sibling) {
+
+		string_const_t id = json_token_identifier(buffer, tokens + tok);
+		if ((tokens[tok].type == JSON_OBJECT) && string_equal(STRING_ARGS(id), STRING_CONST("example_object"))) {
+
+			for (size_t restok = tokens[tok].child; restok &&
+			        (restok < numtokens); restok = tokens[restok].sibling) {
+
+				string_const_t resid = json_token_identifier(buffer, tokens + restok);
+				if (tokens[restok].type == JSON_STRING) {
+					hash_t idhash = hash(STRING_ARGS(resid));
+					hash_t wantedhash = hash(STRING_CONST("sub_variable"));
+
+					if (idhash == wantedhash) {
+						//Do something with value here
+						//string_const_t value = json_token_value(buffer, tokens + restok);
+					}
+				}
+			}
+		}
+	}
+
+}
+
+/* Read configuration files in "config" subdirectory */
 static void
 do_read_config(void) {
-	config_node_t config_root;
-	stream_t* config_file;
-
-	// Read config to root node
-	config_initialize(&config_root);
-	config_file = stream_open(STRING_CONST("config/example.json"), STREAM_IN);
-	config_read(&config_root, config_file, true);
-	stream_deallocate(config_file);
-
-	// Process config...
-
-	// Finalize config node
-	config_finalize(&config_root);
+	sjson_parse_path(STRING_CONST("config"), do_parse_config);
 }
 
 /* Phony execution function */
@@ -181,12 +200,13 @@ do_compute_and_magic(void) {
 int
 main_run(void* main_arg) {
 	thread_t event_thread;
-	
+
 	// Initialize trigger beacon
 	beacon_initialize(&example_trigger);
 
 	// Start event thread
-	thread_initialize(&event_thread, event_loop, system_event_stream(), STRING_CONST("event_thread"), THREAD_PRIORITY_NORMAL, 0);
+	thread_initialize(&event_thread, event_loop, system_event_stream(), STRING_CONST("event_thread"),
+	                  THREAD_PRIORITY_NORMAL, 0);
 	thread_start(&event_thread);
 
 	// Do configuration
