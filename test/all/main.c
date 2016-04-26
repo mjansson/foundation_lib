@@ -202,7 +202,6 @@ extern int test_beacon_run(void);
 extern int test_bitbuffer_run(void);
 extern int test_blowfish_run(void);
 extern int test_bufferstream_run(void);
-extern int test_config_run(void);
 extern int test_exception_run(void);
 extern int test_environment_run(void);
 extern int test_error_run(void);
@@ -323,7 +322,6 @@ main_run(void* main_arg) {
 		test_bitbuffer_run,
 		test_blowfish_run,
 		test_bufferstream_run,
-		test_config_run,
 		test_exception_run,
 		test_environment_run,
 		test_error_run,
