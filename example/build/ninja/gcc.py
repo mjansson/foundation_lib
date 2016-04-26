@@ -181,7 +181,7 @@ class GCCToolchain(toolchain.Toolchain):
       return ['-l' + lib for lib in libs]
     return []
 
-  def make_configlibpaths(self, config, arch):
+  def make_configlibpaths(self, config, arch, extralibpaths):
     libpaths = [
       self.libpath,
       os.path.join(self.libpath, arch),
