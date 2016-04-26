@@ -46,8 +46,6 @@ static bool _foundation_initialized;
 
 static void
 foundation_initialize_config(const foundation_config_t config) {
-	_foundation_config.thread_max            = config.thread_max            ?
-	                                           config.thread_max            : 128;
 	_foundation_config.library_max           = config.library_max           ?
 	                                           config.library_max           : 32;
 	_foundation_config.memory_tracker_max    = config.memory_tracker_max    ?

@@ -61,8 +61,9 @@ error_set_handler(error_handler_fn handler);
 /*! Push a new error context and associated data on the error context stack.
 Both context and data must be valid for as long as it remains on the stack.
 \param name Context name
+\param name_length Context name length
 \param data Context data buffer
-\param length Context data buffer size */
+\param data_length Context data buffer size */
 #define error_context_push(...) do { \
   _error_context_push_proxy(__VA_ARGS__); \
   } while(0)
@@ -79,8 +80,8 @@ Both context and data must be valid for as long as it remains on the stack.
 
 /*! Generate a error context stack description string in the given buffer, limited
 to the given size.
-\param buffer  Destination buffer
-\param size    Maximum buffer size */
+\param buffer    Destination buffer
+\param capacity  Buffer capacity */
 #define error_context_buffer(...) \
   _error_context_buffer_proxy(__VA_ARGS__)
 
@@ -110,7 +111,7 @@ FOUNDATION_API void
 _error_context_clear(void);
 
 FOUNDATION_API string_t
-_error_context_buffer(char* str, size_t length);
+_error_context_buffer(char* buffer, size_t capacity);
 
 FOUNDATION_API error_context_t*
 _error_context(void);

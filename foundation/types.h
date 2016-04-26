@@ -804,8 +804,6 @@ has been caught (and optionally a dump generated) */
 
 /*! Library configuration with runtime controlled configuration parameters */
 struct foundation_config_t {
-	/*! Maximum number of concurrently allocated threads. Zero for default (128) */
-	size_t thread_max;
 	/*! Maximum number of concurrently allocated libraries. Zero for default (32) */
 	size_t library_max;
 	/*! Maximum number of concurrent allocations in memory tracker. Zero for default (32k) */
