@@ -404,6 +404,8 @@ environment_set_current_working_directory(const char* path, size_t length) {
 	_environment_current_working_dir = (string_t) { 0, 0 };
 #elif FOUNDATION_PLATFORM_PNACL
 	//Allow nothing, always set to /tmp
+	FOUNDATION_UNUSED(path);
+	FOUNDATION_UNUSED(length);
 	result = false;
 #else
 #  error Not implemented
