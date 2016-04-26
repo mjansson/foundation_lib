@@ -8,7 +8,7 @@ import urlparse
 import toolchain
 
 def make_target(toolchain, host, target):
-  return Android(toolchain, host)
+  return Android(toolchain, host, target)
 
 class Android(object):
   def __init__(self, toolchain, host, target):
