@@ -55,8 +55,6 @@
 		CDCEF49B16D2D2B100198086 /* bufferstream.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF44F16D2D2B000198086 /* bufferstream.c */; };
 		CDCEF49C16D2D2B100198086 /* bufferstream.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45016D2D2B000198086 /* bufferstream.h */; };
 		CDCEF49D16D2D2B100198086 /* build.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45116D2D2B000198086 /* build.h */; };
-		CDCEF49E16D2D2B100198086 /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45216D2D2B000198086 /* config.c */; };
-		CDCEF49F16D2D2B100198086 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45316D2D2B000198086 /* config.h */; };
 		CDCEF4A216D2D2B100198086 /* environment.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45616D2D2B000198086 /* environment.c */; };
 		CDCEF4A316D2D2B100198086 /* environment.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCEF45716D2D2B000198086 /* environment.h */; };
 		CDCEF4A416D2D2B100198086 /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = CDCEF45816D2D2B000198086 /* error.c */; };
@@ -171,8 +169,6 @@
 		CDCEF44F16D2D2B000198086 /* bufferstream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bufferstream.c; path = ../../../foundation/bufferstream.c; sourceTree = "<group>"; };
 		CDCEF45016D2D2B000198086 /* bufferstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bufferstream.h; path = ../../../foundation/bufferstream.h; sourceTree = "<group>"; };
 		CDCEF45116D2D2B000198086 /* build.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = build.h; path = ../../../foundation/build.h; sourceTree = "<group>"; };
-		CDCEF45216D2D2B000198086 /* config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = config.c; path = ../../../foundation/config.c; sourceTree = "<group>"; };
-		CDCEF45316D2D2B000198086 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = ../../../foundation/config.h; sourceTree = "<group>"; };
 		CDCEF45616D2D2B000198086 /* environment.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = environment.c; path = ../../../foundation/environment.c; sourceTree = "<group>"; };
 		CDCEF45716D2D2B000198086 /* environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = environment.h; path = ../../../foundation/environment.h; sourceTree = "<group>"; };
 		CDCEF45816D2D2B000198086 /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = error.c; path = ../../../foundation/error.c; sourceTree = "<group>"; };
@@ -291,8 +287,6 @@
 				CDCEF44F16D2D2B000198086 /* bufferstream.c */,
 				CDCEF45016D2D2B000198086 /* bufferstream.h */,
 				CDCEF45116D2D2B000198086 /* build.h */,
-				CDCEF45216D2D2B000198086 /* config.c */,
-				CDCEF45316D2D2B000198086 /* config.h */,
 				CDC5A39017FA00C700E0F8E4 /* delegate.m */,
 				CDC5A38D17F9FF2500E0F8E4 /* delegate.h */,
 				CD1C2FD716F2640B00D36B24 /* environment.m */,
@@ -402,7 +396,6 @@
 				CDF785831CB8569500F83977 /* exception.h in Headers */,
 				CDCEF49C16D2D2B100198086 /* bufferstream.h in Headers */,
 				CDCEF49D16D2D2B100198086 /* build.h in Headers */,
-				CDCEF49F16D2D2B100198086 /* config.h in Headers */,
 				CDCEF4A316D2D2B100198086 /* environment.h in Headers */,
 				CDCEF4A516D2D2B100198086 /* error.h in Headers */,
 				CDCEF4A716D2D2B100198086 /* event.h in Headers */,
@@ -532,7 +525,6 @@
 				CD9DACBE1C73D6640035E1D9 /* tizen.c in Sources */,
 				CD8391951C044D50003C9154 /* beacon.c in Sources */,
 				CDCEF49B16D2D2B100198086 /* bufferstream.c in Sources */,
-				CDCEF49E16D2D2B100198086 /* config.c in Sources */,
 				452A5FF31A9C638800A23D38 /* pnacl.c in Sources */,
 				CDCEF4A216D2D2B100198086 /* environment.c in Sources */,
 				CDCEF4A416D2D2B100198086 /* error.c in Sources */,
@@ -629,7 +621,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/profile;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
