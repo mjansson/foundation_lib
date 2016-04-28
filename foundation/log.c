@@ -343,6 +343,11 @@ log_enable_stdout(bool enable) {
 	_log_stdout = enable;
 }
 
+bool
+log_stdout(void) {
+	return _log_stdout;
+}
+
 log_handler_fn
 log_handler(void) {
 	return _log_handler;

@@ -149,6 +149,11 @@ log_set_handler(log_handler_fn handler);
 FOUNDATION_API void
 log_enable_stdout(bool enable);
 
+/*! Query log output to stdout
+\return true if output to stdout is enabled, false if disabled */
+FOUNDATION_API bool
+log_stdout(void);
+
 /*! Control output of prefix information
 \param enable Flag to enable/disable prefix output */
 FOUNDATION_API void
@@ -209,6 +214,7 @@ log_suppress_clear(void);
 #define log_handler() 0
 #define log_set_handler(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
 #define log_enable_stdout(enable) do { FOUNDATION_UNUSED(enable); } while(0)
+#define log_stdout() false
 #define log_enable_prefix(enable) do { FOUNDATION_UNUSED(enable); } while(0)
 #define log_set_suppress(context, level) do { FOUNDATION_UNUSED(context); FOUNDATION_UNUSED(level); } while(0)
 #define log_suppress(context) ERRORLEVEL_NONE
