@@ -68,7 +68,7 @@ event_loop(void* arg) {
 	return 0;
 }
 
-#if ( FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID ) && BUILD_ENABLE_LOG
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 
 #if FOUNDATION_PLATFORM_ANDROID
 #include <foundation/android.h>
@@ -79,13 +79,7 @@ event_loop(void* arg) {
 #include <test/test.h>
 
 static void
-test_log_handler(hash_t context, error_level_t severity, const char* msg, size_t length) {
-	FOUNDATION_UNUSED(context);
-	FOUNDATION_UNUSED(severity);
-
-	if (_test_should_terminate)
-		return;
-
+test_log_view_append(const char* msg, size_t length) {
 #if FOUNDATION_PLATFORM_IOS
 	test_text_view_append(delegate_uiwindow(), 1 , msg, length);
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -106,6 +100,21 @@ test_log_handler(hash_t context, error_level_t severity, const char* msg, size_t
 #endif
 }
 
+#  if BUILD_ENABLE_LOG
+
+static void
+test_log_handler(hash_t context, error_level_t severity, const char* msg, size_t length) {
+	FOUNDATION_UNUSED(context);
+	FOUNDATION_UNUSED(severity);
+	if (_test_should_terminate)
+		return;
+	if (!log_stdout())
+		return;
+	test_log_view_append(msg, length);
+}
+
+#  endif
+
 #endif
 
 #if !BUILD_MONOLITHIC
@@ -115,6 +124,10 @@ test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
 	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test raised exception"));
+#if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && !BUILD_ENABLE_LOG
+	test_log_view_append(STRING_CONST("Test raised exception"));
+	thread_sleep(5000);
+#endif
 	process_exit(-1);
 }
 
@@ -164,7 +177,7 @@ main_initialize(void) {
 
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
-#if ( FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID ) && BUILD_ENABLE_LOG
+#if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && BUILD_ENABLE_LOG
 	log_set_handler(test_log_handler);
 #endif
 
@@ -310,6 +323,10 @@ main_run(void* main_arg) {
 #endif
 
 	fs_remove_directory(STRING_ARGS(environment_temporary_directory()));
+
+#if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && !BUILD_ENABLE_LOG
+	test_log_view_append(STRING_CONST("Tests starting"));
+#endif
 
 #if BUILD_MONOLITHIC
 
@@ -498,6 +515,13 @@ exit:
 
 	log_infof(HASH_TEST, STRING_CONST("Tests exiting: %s (%d)"),
 	          process_result ? "FAILED" : "PASSED", process_result);
+
+#if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && !BUILD_ENABLE_LOG
+	if (process_result)
+		test_log_view_append(STRING_CONST("Tests FAILED"));
+	else
+		test_log_view_append(STRING_CONST("Tests PASSED"));
+#endif
 
 	if (process_result)
 		memory_set_tracker(memory_tracker_none());
