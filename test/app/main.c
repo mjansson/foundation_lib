@@ -51,15 +51,17 @@ test_app_finalize(void) {
 }
 
 DECLARE_TEST(app, environment) {
+	const application_t decl = test_app_application();
 #if !BUILD_MONOLITHIC
-	EXPECT_CONSTSTRINGEQ(environment_application()->name, _global_app.name);
-	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, _global_app.short_name);
+	EXPECT_CONSTSTRINGEQ(environment_application()->name, decl.name);
+	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, decl.short_name);
 #endif
-	EXPECT_CONSTSTRINGEQ(environment_application()->company, _global_app.company);
+	EXPECT_CONSTSTRINGEQ(environment_application()->company, decl.company);
 	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
-	                          _global_app.version.version));
+	                          decl.version.version));
 	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);
 	EXPECT_EQ(environment_application()->exception_handler, test_exception_handler);
+
 	return 0;
 }
 
