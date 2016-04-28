@@ -55,9 +55,6 @@ class ClangToolchain(toolchain.Toolchain):
     if self.target.is_bsd():
       self.oslibs += ['execinfo']
 
-    if self.is_monolithic():
-      self.cflags += ['-DBUILD_MONOLITHIC=1']
-
     self.initialize_archs(archs)
     self.initialize_configs(configs)
     self.initialize_project(project)
@@ -66,6 +63,12 @@ class ClangToolchain(toolchain.Toolchain):
 
     self.parse_default_variables(variables)
     self.read_build_prefs()
+
+    if self.is_monolithic():
+      self.cflags += ['-DBUILD_MONOLITHIC=1']
+    if self.use_coverage():
+      self.cflags += ['--coverage']
+      self.linkflags += ['--coverage']
 
     #Overrides
     self.objext = '.o'
