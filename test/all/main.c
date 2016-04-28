@@ -405,14 +405,14 @@ main_run(void* main_arg) {
 
 	log_debug(HASH_TEST, STRING_CONST("Starting test runner thread"));
 
-	while (!thread_is_running(&test_thread)) {
+	while (!thread_is_started(&test_thread)) {
 		system_process_events();
-		thread_sleep(10);
+		thread_sleep(100);
 	}
 
 	while (thread_is_running(&test_thread)) {
 		system_process_events();
-		thread_sleep(10);
+		thread_sleep(100);
 	}
 
 	test_result = thread_join(&test_thread);
@@ -430,6 +430,13 @@ main_run(void* main_arg) {
 	if (process_result != 0)
 		log_warnf(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Tests failed with exit code %d"),
 		          process_result);
+
+#if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && !BUILD_ENABLE_LOG
+	if (process_result)
+		test_log_view_append(STRING_CONST("Tests FAILED\n"));
+	else
+		test_log_view_append(STRING_CONST("Tests PASSED\n"));
+#endif
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 
@@ -548,19 +555,13 @@ exit:
 	_test_should_terminate = true;
 
 	thread_signal(&event_thread);
+	thread_join(&event_thread);
 	thread_finalize(&event_thread);
 
 	memory_deallocate(pathbuf);
 
 	log_infof(HASH_TEST, STRING_CONST("Tests exiting: %s (%d)"),
 	          process_result ? "FAILED" : "PASSED", process_result);
-
-#if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && !BUILD_ENABLE_LOG
-	if (process_result)
-		test_log_view_append(STRING_CONST("Tests FAILED\n"));
-	else
-		test_log_view_append(STRING_CONST("Tests PASSED\n"));
-#endif
 
 	if (process_result)
 		memory_set_tracker(memory_tracker_none());
