@@ -600,8 +600,30 @@ For further documentation on how to setup a Ninja build check out the \ref ninja
 \section template_app Template application
 
 \subsection template_initialize Initialization
+<code>int main_initialize(void)</code><br>
+The initialization entry point of the application. It is expected to call #foundation_initialize and perform any other initialization in this function. It should return 0 if successful, or a negative value to indicate error in which case the application will terminate without running and use the returned value as exit code.
+
+The example application uses default values for all foundation configuration controls by doing<br><code>foundation_config_t config;<br>memset(&config, 0, sizeof(config));</code><br>For more information about the configuration controls, read the #foundation_config_t documentation.
+
+It also defines the application data with<br><code>application_t application;<br>
+memset(&application, 0, sizeof(application));<br>
+application.name = string_const(STRING_CONST("Foundation example application"));<br>
+application.short_name = string_const(STRING_CONST("example"));<br>
+application.company = string_const(STRING_CONST("Rampant Pixels"));<br>
+application.version = foundation_version();<br>
+application.flags = APPLICATION_UTILITY;<br>
+application.exception_handler = example_exception_handler;</code><br>
+Note that the string data passed in this structure must be constants and valid for the lifetime of the application. More information available in the #application_t documentation.
+
+The example application also sets a default log suppression level and initializes the memory tracker. Finally it locates the base directory of the application and sets this as the current working directory.
 
 \subsection template_finalize Finalization
+<code>void main_finalize(void)</code><br>
+The finalization entry point of the application. It is expected to do any custom finalization and cleanup and finally call #foundation_finalize to terminate the library operations.
+
+\subsection template_execution Execution
+<code>int main_run(void*)</code><br>
+Execution entry point of the application. Called to execute the application once the initialization has completed successfully. The return value from main_run is used as the process exit code. This is where the application logic should be implemented.
 
 \subsection template_environment Environment
 
