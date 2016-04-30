@@ -84,10 +84,6 @@ DECLARE_TEST(stacktrace, resolve) {
 #if !FOUNDATION_PLATFORM_ANDROID && !(FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG))
 	EXPECT_NE(string_find_string(resolved.str, resolved.length, STRING_CONST("stacktraceresolve_fn"),
 	                             0), STRING_NPOS);
-#if !BUILD_DEPLOY && !BUILD_PROFILE
-	EXPECT_NE(string_find_string(resolved.str, resolved.length, STRING_CONST("main_run"), 0),
-	          STRING_NPOS);
-#endif
 	EXPECT_NE(string_find_string(resolved.str, resolved.length, STRING_CONST("main"), 0), STRING_NPOS);
 #endif
 
