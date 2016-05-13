@@ -1037,13 +1037,13 @@ FOUNDATION_EXTERN void* pthread_getspecific(_pthread_key_t);
 FOUNDATION_API void* _allocate_thread_local_block(size_t size);
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
-static _pthread_key_t _##name##_key = 0; \
+static _pthread_key_t _##name##_key; \
 static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) { pthread_key_create(&_##name##_key, 0); pthread_setspecific(_##name##_key, (init)); } return _##name##_key; } \
 static FOUNDATION_FORCEINLINE type get_thread_##name(void) { void* val = pthread_getspecific(get_##name##_key()); return (type)((uintptr_t)val); } \
 static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { pthread_setspecific(get_##name##_key(), (const void*)(uintptr_t)val); }
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
-static _pthread_key_t _##name##_key = 0; \
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
+static _pthread_key_t _##name##_key; \
 static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) pthread_key_create(&_##name##_key, 0); return _##name##_key; } \
 static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific(key); if (!arr) { arr = _allocate_thread_local_block(sizeof(type) * arrsize); pthread_setspecific(key, arr); } return arr; }
 

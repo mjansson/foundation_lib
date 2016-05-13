@@ -331,26 +331,6 @@ typedef enum {
 	JSON_PRIMITIVE
 } json_type_t;
 
-/*! Configuration value type */
-typedef enum {
-	/*! Boolean */
-	CONFIGVALUE_BOOL = 0,
-	/*! Node */
-	CONFIGVALUE_NODE,
-	/*! 64-bit integer */
-	CONFIGVALUE_INT,
-	/*! Floating point value */
-	CONFIGVALUE_REAL,
-	/*! String */
-	CONFIGVALUE_STRING,
-	/*! Constant string */
-	CONFIGVALUE_STRING_CONST,
-	/*! String variable */
-	CONFIGVALUE_STRING_VAR,
-	/*! Constant string variable */
-	CONFIGVALUE_STRING_CONST_VAR
-} config_type_t;
-
 /*! Memory hint, memory allocationis persistent (retained when function returns) */
 #define MEMORY_PERSISTENT       0
 /*! Memory hint, memory is temporary (extremely short lived and generally freed
@@ -565,8 +545,6 @@ typedef struct stream_vtable_t        stream_vtable_t;
 typedef struct thread_t               thread_t;
 /*! JSON token */
 typedef struct json_token_t           json_token_t;
-/*! Configuration node */
-typedef struct config_node_t          config_node_t;
 /*! Version declaration */
 typedef union  version_t              version_t;
 /*! Library configuration block controlling limits, functionality and memory
@@ -1626,26 +1604,6 @@ struct json_token_t {
 	unsigned int child;
 	/*! Sibling token index in token array. 0 if no sibling token */
 	unsigned int sibling;
-};
-
-/*! Configuration node */
-struct config_node_t {
-	/*! Node name */
-	hash_t name;
-	/*! Integer value representation */
-	int64_t ival;
-	/*! String value representation */
-	string_t sval;
-	/*! Expanded string value representation */
-	string_t expanded;
-	/*! Floating point value representation */
-	real rval;
-	/*! Subnodes */
-	config_node_t* nodes;
-	/*! Value type */
-	config_type_t type;
-	/*! Boolean value representation */
-	bool bval;
 };
 
 #if FOUNDATION_COMPILER_CLANG
