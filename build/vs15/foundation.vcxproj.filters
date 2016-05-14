@@ -17,7 +17,6 @@
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\thread.h" />
     <ClInclude Include="..\..\foundation\environment.h" />
-    <ClInclude Include="..\..\foundation\config.h" />
     <ClInclude Include="..\..\foundation\path.h" />
     <ClInclude Include="..\..\foundation\stream.h" />
     <ClInclude Include="..\..\foundation\hashstrings.h" />
@@ -66,7 +65,6 @@
     <ClCompile Include="..\..\foundation\log.c" />
     <ClCompile Include="..\..\foundation\thread.c" />
     <ClCompile Include="..\..\foundation\environment.c" />
-    <ClCompile Include="..\..\foundation\config.c" />
     <ClCompile Include="..\..\foundation\path.c" />
     <ClCompile Include="..\..\foundation\stream.c" />
     <ClCompile Include="..\..\foundation\system.c" />

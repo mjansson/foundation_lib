@@ -45,7 +45,6 @@
     <ClInclude Include="..\..\foundation\blowfish.h" />
     <ClInclude Include="..\..\foundation\bufferstream.h" />
     <ClInclude Include="..\..\foundation\build.h" />
-    <ClInclude Include="..\..\foundation\config.h" />
     <ClInclude Include="..\..\foundation\environment.h" />
     <ClInclude Include="..\..\foundation\error.h" />
     <ClInclude Include="..\..\foundation\event.h" />
@@ -97,7 +96,6 @@
     <ClCompile Include="..\..\foundation\bitbuffer.c" />
     <ClCompile Include="..\..\foundation\blowfish.c" />
     <ClCompile Include="..\..\foundation\bufferstream.c" />
-    <ClCompile Include="..\..\foundation\config.c" />
     <ClCompile Include="..\..\foundation\environment.c" />
     <ClCompile Include="..\..\foundation\error.c" />
     <ClCompile Include="..\..\foundation\event.c" />
