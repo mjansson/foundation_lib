@@ -119,7 +119,7 @@ class ClangToolchain(toolchain.Toolchain):
     if self.target.is_pnacl() and 'pnacl' in prefs:
       pnaclprefs = prefs['pnacl']
       if 'sdkpath' in pnaclprefs:
-        self.sdkpath = pnaclprefs['sdkpath']
+        self.sdkpath = os.path.expanduser(pnaclprefs['sdkpath'])
 
   def write_variables(self, writer):
     super(ClangToolchain, self).write_variables(writer)

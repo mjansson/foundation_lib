@@ -4,6 +4,7 @@
 
 import os
 import urlparse
+import subprocess
 
 import toolchain
 
@@ -96,7 +97,7 @@ class Android(object):
   def build_toolchain(self):
     buildtools_path = os.path.join(self.sdkpath, 'build-tools')
     buildtools_list = [item for item in os.listdir(buildtools_path) if os.path.isdir(os.path.join(buildtools_path, item))]
-    buildtools_list.sort(key = lambda s: map(int, s.split('.')))
+    buildtools_list.sort(key = lambda s: map(int, s.split('-')[0].split('.')))
 
     self.buildtools_path = os.path.join(self.sdkpath, 'build-tools', buildtools_list[-1])
     self.android_jar = os.path.join(self.sdkpath, 'platforms', 'android-' + self.platformversion, 'android.jar')
@@ -121,9 +122,9 @@ class Android(object):
     if 'android' in prefs:
       androidprefs = prefs['android']
       if 'ndkpath' in androidprefs:
-        self.ndkpath = androidprefs['ndkpath']
+        self.ndkpath = os.path.expanduser(androidprefs['ndkpath'])
       if 'sdkpath' in androidprefs:
-        self.sdkpath = androidprefs['sdkpath']
+        self.sdkpath = os.path.expanduser(androidprefs['sdkpath'])
       if 'platformversion' in androidprefs:
         self.platformversion = androidprefs['platformversion']
       if 'gccversion' in androidprefs:
