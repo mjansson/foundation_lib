@@ -269,7 +269,7 @@ test_runner(void* arg) {
 
 		if ((process_result = tests[itest]()) >= 0) {
 			log_infof(HASH_TEST, STRING_CONST("Test %" PRIsize "/%" PRIsize " passed (%d)"),
-			          itest, numtests, process_result);
+			          itest+1, numtests, process_result);
 #if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && !BUILD_ENABLE_LOG
 			test_log_view_append(STRING_CONST("PASSED\n"));
 #endif
