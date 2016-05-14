@@ -80,7 +80,7 @@ set_suitable_working_directory(void) {
 	bool found = false;
 
 	// Example executable/config directory layout is
-	//  [base_path]/bin/<arch>/<buildtype>
+	//  [base_path]/bin/<platform>/<buildtype>/<arch>
 	//  [base_path]/config
 	// We are looking for the base_path as current working directory.
 	// Simply walk the path of the executable until we find the config subdir.

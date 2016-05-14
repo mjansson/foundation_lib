@@ -20,13 +20,6 @@
 #  include <sys/event.h>
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_POSIX
-#define BEACON_FIRE_NONE    0
-#define BEACON_FIRE_PENDING 1
-#define BEACON_FIRE_DONE    2
-#define BEACON_FIRE_READING 3
-#endif
-
 beacon_t*
 beacon_allocate(void) {
 	beacon_t* beacon = memory_allocate(0, sizeof(beacon_t), 0, MEMORY_PERSISTENT);
@@ -42,11 +35,7 @@ beacon_initialize(beacon_t* beacon) {
 	beacon->all[0] = beacon->event;
 	beacon->count = 1;
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-#  if FOUNDATION_PLATFORM_LINUX
-	beacon->fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | EFD_SEMAPHORE);
-#  else
 	beacon->fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-#  endif
 	beacon->poll = epoll_create(sizeof(beacon->all)/sizeof(beacon->all[0]));
 	beacon->count = 1;
 	beacon->all[0] = beacon->fd;
@@ -119,40 +108,20 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 		return (int)wait_status;
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	if (atomic_cas32(&beacon->fired, BEACON_FIRE_READING, BEACON_FIRE_DONE)) {
-		eventfd_t value = 0;
-		eventfd_read(beacon->fd, &value);
-		atomic_cas32(&beacon->fired, BEACON_FIRE_NONE, BEACON_FIRE_READING);
-		if (value > 0)
-			return 0;
-	}
 	struct epoll_event event;
 	int ret = epoll_wait(beacon->poll, &event, 1, (int)milliseconds);
 	if (ret > 0)
 		slot = event.data.fd;
 	if (slot == 0) {
-		if (atomic_cas32(&beacon->fired, BEACON_FIRE_READING, BEACON_FIRE_DONE)) {
-			eventfd_t value = 0;
-			eventfd_read(beacon->fd, &value);
-			atomic_cas32(&beacon->fired, BEACON_FIRE_NONE, BEACON_FIRE_READING);
-			if (value > 0)
-				return 0;
-		}
-		slot = -1;
+		eventfd_t value = 0;
+		if (eventfd_read(beacon->fd, &value) < 0) 
+			slot = -1;
 	}
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 	int ret;
 	struct timespec tspec;
 	struct timespec* timeout = nullptr;
 	struct kevent event;
-	if (atomic_cas32(&beacon->fired, BEACON_FIRE_READING, BEACON_FIRE_DONE)) {
-		char data[8];
-		while (read(beacon->all[0], data, 8) <= 0)
-			thread_yield();
-		while (read(beacon->all[0], data, 8) > 0);
-		atomic_cas32(&beacon->fired, BEACON_FIRE_NONE, BEACON_FIRE_READING);
-		return 0;
-	}
 	if (milliseconds != (unsigned int)-1) {
 		tspec.tv_sec  = (time_t)(milliseconds / 1000);
 		tspec.tv_nsec = (long)(milliseconds % 1000) * 1000000L;
@@ -168,15 +137,12 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	else if ((ret < 0) && timeout)
 		thread_sleep(milliseconds);
 	if (slot == 0) {
-		if (atomic_cas32(&beacon->fired, BEACON_FIRE_READING, BEACON_FIRE_DONE)) {
-			char data[8];
-			while (read(beacon->all[0], data, 8) <= 0)
-				thread_yield();
-			while (read(beacon->all[0], data, 8) > 0);
-			atomic_cas32(&beacon->fired, BEACON_FIRE_NONE, BEACON_FIRE_READING);
-			return 0;
-		}
-		slot = -1;
+		char data[16];
+		bool got_data = false;
+		while (read(beacon->all[0], data, sizeof(data)) > 0)
+			got_data = true;
+		if (!got_data)
+			slot = -1;
 	}
 #else
 	bool got = false;
@@ -197,17 +163,11 @@ beacon_fire(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	SetEvent(beacon->event);
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	if (atomic_cas32(&beacon->fired, BEACON_FIRE_PENDING, BEACON_FIRE_NONE)) {
-		eventfd_t value = 1;
-		eventfd_write(beacon->fd, value);
-		atomic_cas32(&beacon->fired, BEACON_FIRE_DONE, BEACON_FIRE_PENDING);
-	}
+	eventfd_t value = 1;
+	eventfd_write(beacon->fd, value);
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
-	if (atomic_cas32(&beacon->fired, BEACON_FIRE_PENDING, BEACON_FIRE_NONE)) {
-		char data = 0;
-		write(beacon->writefd, &data, 1);
-		atomic_cas32(&beacon->fired, BEACON_FIRE_DONE, BEACON_FIRE_PENDING);
-	}
+	char data = 0;
+	write(beacon->writefd, &data, 1);
 #else
 	mutex_signal(beacon->mutex);
 #endif

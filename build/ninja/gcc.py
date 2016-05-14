@@ -41,9 +41,6 @@ class GCCToolchain(toolchain.Toolchain):
     if self.target.is_linux() or self.target.is_raspberrypi():
       self.oslibs += ['dl']
 
-    if self.is_monolithic():
-      self.cflags += ['-DBUILD_MONOLITHIC=1']
-
     self.initialize_archs(archs)
     self.initialize_configs(configs)
     self.initialize_project(project)
@@ -52,6 +49,9 @@ class GCCToolchain(toolchain.Toolchain):
 
     self.parse_default_variables(variables)
     self.read_build_prefs()
+
+    if self.is_monolithic():
+      self.cflags += ['-DBUILD_MONOLITHIC=1']
 
     #Overrides
     self.objext = '.o'
@@ -181,7 +181,7 @@ class GCCToolchain(toolchain.Toolchain):
       return ['-l' + lib for lib in libs]
     return []
 
-  def make_configlibpaths(self, config, arch):
+  def make_configlibpaths(self, config, arch, extralibpaths):
     libpaths = [
       self.libpath,
       os.path.join(self.libpath, arch),

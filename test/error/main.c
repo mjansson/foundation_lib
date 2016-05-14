@@ -268,8 +268,10 @@ DECLARE_TEST(error, output) {
 	log_set_handler(log_verify_handler);
 
     log_enable_stdout(false);
+    EXPECT_EQ(log_stdout(), false);
     log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_ARGS(shortmsg));
     log_enable_stdout(true);
+    EXPECT_EQ(log_stdout(), true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
 	EXPECT_GE(_last_log_length, shortmsg.length);
@@ -396,6 +398,8 @@ DECLARE_TEST(error, output) {
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);
 	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), STRING_NPOS);
 	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), 0);
+
+#  if BUILD_ENABLE_ERROR_CONTEXT
     
 	error_context_push(STRING_CONST("one"), STRING_CONST("dataone"));
 	error_context_push(STRING_CONST("two"), STRING_CONST("datatwo"));
@@ -417,6 +421,8 @@ DECLARE_TEST(error, output) {
 	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When one: dataone"), 0), STRING_NPOS);
 	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When two: datatwo"), 0), STRING_NPOS);
 	EXPECT_SIZENE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When three: datathree"), 0), STRING_NPOS);
+
+#  endif
 
 	log_set_handler(handler_log);
 	error_set_handler(handler_error);

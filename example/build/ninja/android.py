@@ -8,7 +8,7 @@ import urlparse
 import toolchain
 
 def make_target(toolchain, host, target):
-  return Android(toolchain, host)
+  return Android(toolchain, host, target)
 
 class Android(object):
   def __init__(self, toolchain, host, target):
@@ -23,7 +23,7 @@ class Android(object):
     self.dexcmd = '$dex --dex --output $out $in'
     self.aaptcmd = toolchain.cdcmd('$apkbuildpath') + ' && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
     self.aaptdeploycmd = toolchain.cdcmd('$apkbuildpath') + ' && $aapt c -S res -C bin/res && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
-    self.aaptaddcmd = toolchain.cdcmd('$apkbuildpath') + ' && $aapt a $apk $apkaddfiles'
+    self.aaptaddcmd = toolchain.cdcmd('$apkbuildpath') + ' && ' + toolchain.copycmd('$apksource', '$apk' ) + ' && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner $timestamp -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias $proxy'
     self.zipcmd = '$zip -r -9 $out $in $implicitin'
@@ -276,7 +276,7 @@ class Android(object):
       javasourcepath += os.path.join(buildpath, 'gen')
       classpath = os.path.join(buildpath, 'classes')
       javavars = [('outpath', classpath), ('sourcepath', javasourcepath)]
-      javaclasses = writer.build(classpath, 'javac', javasources, variables = javavars)
+      javaclasses = writer.build(classpath, 'javac', javasources, variables = javavars, implicit = baseapkfile)
       localjava += ['classes.dex']
       javafiles += writer.build(os.path.join(buildpath, 'classes.dex'), 'dex', classpath)
 

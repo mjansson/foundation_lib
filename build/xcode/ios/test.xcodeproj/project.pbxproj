@@ -23,7 +23,6 @@
 		45551A6A1938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A321938D55B00CF089B /* main.c */; };
 		45551A6B1938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A341938D55B00CF089B /* main.c */; };
 		45551A6C1938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A361938D55B00CF089B /* main.c */; };
-		45551A6D1938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A381938D55B00CF089B /* main.c */; };
 		45551A6F1938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A3C1938D55B00CF089B /* main.c */; };
 		45551A701938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A3E1938D55B00CF089B /* main.c */; };
 		45551A711938D55B00CF089B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 45551A401938D55B00CF089B /* main.c */; };
@@ -104,7 +103,6 @@
 		45551A321938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/bitbuffer/main.c; sourceTree = "<group>"; };
 		45551A341938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/blowfish/main.c; sourceTree = "<group>"; };
 		45551A361938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/bufferstream/main.c; sourceTree = "<group>"; };
-		45551A381938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/config/main.c; sourceTree = "<group>"; };
 		45551A3C1938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/environment/main.c; sourceTree = "<group>"; };
 		45551A3E1938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/error/main.c; sourceTree = "<group>"; };
 		45551A401938D55B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/event/main.c; sourceTree = "<group>"; };
@@ -204,7 +202,6 @@
 				45551A331938D55B00CF089B /* bitbuffer */,
 				45551A351938D55B00CF089B /* blowfish */,
 				45551A371938D55B00CF089B /* bufferstream */,
-				45551A391938D55B00CF089B /* config */,
 				45551A3D1938D55B00CF089B /* environment */,
 				45551A3F1938D55B00CF089B /* error */,
 				45551A411938D55B00CF089B /* event */,
@@ -320,14 +317,6 @@
 				45551A361938D55B00CF089B /* main.c */,
 			);
 			name = bufferstream;
-			sourceTree = "<group>";
-		};
-		45551A391938D55B00CF089B /* config */ = {
-			isa = PBXGroup;
-			children = (
-				45551A381938D55B00CF089B /* main.c */,
-			);
-			name = config;
 			sourceTree = "<group>";
 		};
 		45551A3B1938D55B00CF089B /* exception */ = {
@@ -697,7 +686,6 @@
 				45551A761938D55B00CF089B /* main.c in Sources */,
 				45551A841938D55B00CF089B /* main.c in Sources */,
 				45551A801938D55B00CF089B /* main.c in Sources */,
-				45551A6D1938D55B00CF089B /* main.c in Sources */,
 				CDF785721CB852BC00F83977 /* main.c in Sources */,
 				CDF7857D1CB8536800F83977 /* main.c in Sources */,
 				CD9DACEB1C73DAD20035E1D9 /* main.c in Sources */,

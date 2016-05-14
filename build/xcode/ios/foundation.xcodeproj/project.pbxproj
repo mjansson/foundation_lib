@@ -28,8 +28,6 @@
 		CD5ED15A17D6708400C94373 /* bufferstream.c in Sources */ = {isa = PBXBuildFile; fileRef = CD5ED0FE17D6708400C94373 /* bufferstream.c */; };
 		CD5ED15B17D6708400C94373 /* bufferstream.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED0FF17D6708400C94373 /* bufferstream.h */; };
 		CD5ED15C17D6708400C94373 /* build.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED10017D6708400C94373 /* build.h */; };
-		CD5ED15D17D6708400C94373 /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = CD5ED10117D6708400C94373 /* config.c */; };
-		CD5ED15E17D6708400C94373 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED10217D6708400C94373 /* config.h */; };
 		CD5ED16117D6708400C94373 /* environment.m in Sources */ = {isa = PBXBuildFile; fileRef = CD5ED10517D6708400C94373 /* environment.m */; };
 		CD5ED16217D6708400C94373 /* environment.c in Sources */ = {isa = PBXBuildFile; fileRef = CD5ED10617D6708400C94373 /* environment.c */; };
 		CD5ED16317D6708400C94373 /* environment.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5ED10717D6708400C94373 /* environment.h */; };
@@ -144,8 +142,6 @@
 		CD5ED0FE17D6708400C94373 /* bufferstream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bufferstream.c; path = ../../../foundation/bufferstream.c; sourceTree = "<group>"; };
 		CD5ED0FF17D6708400C94373 /* bufferstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bufferstream.h; path = ../../../foundation/bufferstream.h; sourceTree = "<group>"; };
 		CD5ED10017D6708400C94373 /* build.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = build.h; path = ../../../foundation/build.h; sourceTree = "<group>"; };
-		CD5ED10117D6708400C94373 /* config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = config.c; path = ../../../foundation/config.c; sourceTree = "<group>"; };
-		CD5ED10217D6708400C94373 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = ../../../foundation/config.h; sourceTree = "<group>"; };
 		CD5ED10517D6708400C94373 /* environment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = environment.m; path = ../../../foundation/environment.m; sourceTree = "<group>"; };
 		CD5ED10617D6708400C94373 /* environment.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = environment.c; path = ../../../foundation/environment.c; sourceTree = "<group>"; };
 		CD5ED10717D6708400C94373 /* environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = environment.h; path = ../../../foundation/environment.h; sourceTree = "<group>"; };
@@ -295,8 +291,6 @@
 				CD5ED0FE17D6708400C94373 /* bufferstream.c */,
 				CD5ED0FF17D6708400C94373 /* bufferstream.h */,
 				CD5ED10017D6708400C94373 /* build.h */,
-				CD5ED10117D6708400C94373 /* config.c */,
-				CD5ED10217D6708400C94373 /* config.h */,
 				CD66041C18F7E3CA001BDED3 /* delegate.h */,
 				CD66041D18F7E3CA001BDED3 /* delegate.m */,
 				CD5ED10517D6708400C94373 /* environment.m */,
@@ -420,7 +414,6 @@
 				CD5ED15917D6708400C94373 /* blowfish.h in Headers */,
 				CD5ED15B17D6708400C94373 /* bufferstream.h in Headers */,
 				CD5ED15C17D6708400C94373 /* build.h in Headers */,
-				CD5ED15E17D6708400C94373 /* config.h in Headers */,
 				CD5ED16317D6708400C94373 /* environment.h in Headers */,
 				CD5ED16517D6708400C94373 /* error.h in Headers */,
 				CD9DACE51C73DA7E0035E1D9 /* sha.h in Headers */,
@@ -547,7 +540,6 @@
 				CD5ED15517D6708400C94373 /* base64.c in Sources */,
 				CD5ED15817D6708400C94373 /* blowfish.c in Sources */,
 				CD5ED15A17D6708400C94373 /* bufferstream.c in Sources */,
-				CD5ED15D17D6708400C94373 /* config.c in Sources */,
 				CD5ED16117D6708400C94373 /* environment.m in Sources */,
 				CD5ED16217D6708400C94373 /* environment.c in Sources */,
 				CDF785791CB8531C00F83977 /* json.c in Sources */,

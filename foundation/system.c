@@ -570,7 +570,7 @@ system_process_events(void) {
 	struct android_poll_source* source = 0;
 	struct android_app* app = android_app();
 
-	while ((ident = ALooper_pollAll(0, 0, &events, (void**)&source)) >= 0) {
+	while ((ident = ALooper_pollOnce(0, 0, &events, (void**)&source)) >= 0) {
 		// Process this event.
 		if (source)
 			source->process(app, source);

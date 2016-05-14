@@ -225,6 +225,9 @@ class Toolchain(object):
   def is_monolithic(self):
     return self.build_monolithic
 
+  def use_coverage(self):
+    return self.build_coverage
+
   def write_variables(self, writer):
     writer.variable('buildpath', self.buildpath)
     writer.variable('target', self.target.platform)

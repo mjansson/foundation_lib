@@ -52,9 +52,8 @@ class ClangToolchain(toolchain.Toolchain):
       self.oslibs += ['m']
     if self.target.is_linux() or self.target.is_raspberrypi():
       self.oslibs += ['dl']
-
-    if self.is_monolithic():
-      self.cflags += ['-DBUILD_MONOLITHIC=1']
+    if self.target.is_bsd():
+      self.oslibs += ['execinfo']
 
     self.initialize_archs(archs)
     self.initialize_configs(configs)
@@ -64,6 +63,12 @@ class ClangToolchain(toolchain.Toolchain):
 
     self.parse_default_variables(variables)
     self.read_build_prefs()
+
+    if self.is_monolithic():
+      self.cflags += ['-DBUILD_MONOLITHIC=1']
+    if self.use_coverage():
+      self.cflags += ['--coverage']
+      self.linkflags += ['--coverage']
 
     #Overrides
     self.objext = '.o'
@@ -114,7 +119,7 @@ class ClangToolchain(toolchain.Toolchain):
     if self.target.is_pnacl() and 'pnacl' in prefs:
       pnaclprefs = prefs['pnacl']
       if 'sdkpath' in pnaclprefs:
-        self.sdkpath = pnaclprefs['sdkpath']
+        self.sdkpath = os.path.expanduser(pnaclprefs['sdkpath'])
 
   def write_variables(self, writer):
     super(ClangToolchain, self).write_variables(writer)

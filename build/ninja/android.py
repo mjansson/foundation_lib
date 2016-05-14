@@ -4,11 +4,12 @@
 
 import os
 import urlparse
+import subprocess
 
 import toolchain
 
 def make_target(toolchain, host, target):
-  return Android(toolchain, host)
+  return Android(toolchain, host, target)
 
 class Android(object):
   def __init__(self, toolchain, host, target):
@@ -23,7 +24,7 @@ class Android(object):
     self.dexcmd = '$dex --dex --output $out $in'
     self.aaptcmd = toolchain.cdcmd('$apkbuildpath') + ' && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S res --debug-mode --no-crunch -J gen $aaptflags'
     self.aaptdeploycmd = toolchain.cdcmd('$apkbuildpath') + ' && $aapt c -S res -C bin/res && $aapt p -f -m -M AndroidManifest.xml -F $apk -I $androidjar -S bin/res -S res -J gen $aaptflags'
-    self.aaptaddcmd = toolchain.cdcmd('$apkbuildpath') + ' && $aapt a $apk $apkaddfiles'
+    self.aaptaddcmd = toolchain.cdcmd('$apkbuildpath') + ' && ' + toolchain.copycmd('$apksource', '$apk' ) + ' && $aapt a $apk $apkaddfiles'
     self.zipaligncmd = '$zipalign -f 4 $in $out'
     self.jarsignercmd = '$jarsigner $timestamp -sigalg SHA1withRSA -digestalg SHA1 -keystore $keystore -storepass $keystorepass -keypass $keypass -signedjar $out $in $keyalias $proxy'
     self.zipcmd = '$zip -r -9 $out $in $implicitin'
@@ -96,7 +97,7 @@ class Android(object):
   def build_toolchain(self):
     buildtools_path = os.path.join(self.sdkpath, 'build-tools')
     buildtools_list = [item for item in os.listdir(buildtools_path) if os.path.isdir(os.path.join(buildtools_path, item))]
-    buildtools_list.sort(key = lambda s: map(int, s.split('.')))
+    buildtools_list.sort(key = lambda s: map(int, s.split('-')[0].split('.')))
 
     self.buildtools_path = os.path.join(self.sdkpath, 'build-tools', buildtools_list[-1])
     self.android_jar = os.path.join(self.sdkpath, 'platforms', 'android-' + self.platformversion, 'android.jar')
@@ -121,9 +122,9 @@ class Android(object):
     if 'android' in prefs:
       androidprefs = prefs['android']
       if 'ndkpath' in androidprefs:
-        self.ndkpath = androidprefs['ndkpath']
+        self.ndkpath = os.path.expanduser(androidprefs['ndkpath'])
       if 'sdkpath' in androidprefs:
-        self.sdkpath = androidprefs['sdkpath']
+        self.sdkpath = os.path.expanduser(androidprefs['sdkpath'])
       if 'platformversion' in androidprefs:
         self.platformversion = androidprefs['platformversion']
       if 'gccversion' in androidprefs:
@@ -276,7 +277,7 @@ class Android(object):
       javasourcepath += os.path.join(buildpath, 'gen')
       classpath = os.path.join(buildpath, 'classes')
       javavars = [('outpath', classpath), ('sourcepath', javasourcepath)]
-      javaclasses = writer.build(classpath, 'javac', javasources, variables = javavars)
+      javaclasses = writer.build(classpath, 'javac', javasources, variables = javavars, implicit = baseapkfile)
       localjava += ['classes.dex']
       javafiles += writer.build(os.path.join(buildpath, 'classes.dex'), 'dex', classpath)
 
