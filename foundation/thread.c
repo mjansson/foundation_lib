@@ -48,7 +48,7 @@ static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProc
 #  include <pthread_np.h>
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
+#if FOUNDATION_PLATFORM_APPLE
 
 struct thread_local_block_t {
 	uint64_t     thread;
@@ -102,7 +102,7 @@ _thread_initialize(void) {
 
 void
 _thread_finalize(void) {
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || ( FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG )
+#if FOUNDATION_PLATFORM_APPLE
 	for (int i = 0; i < 1024; ++i) {
 		if (atomic_loadptr(&_thread_local_blocks[i].block)) {
 			void* block = atomic_loadptr(&_thread_local_blocks[i].block);
@@ -116,13 +116,13 @@ _thread_finalize(void) {
 }
 
 static int
-_thread_guard_wrapper(void* data) {
+_thread_try(void* data) {
 	thread_t* thread = data;
 	thread->result = thread->fn(thread->arg);
 	return 0;
 }
 
-#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
+#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
@@ -135,15 +135,6 @@ typedef struct tagTHREADNAME_INFO {
 	DWORD dwFlags; // Reserved for future use, must be zero.
 } THREADNAME_INFO;
 #pragma pack(pop)
-
-#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-
-LONG WINAPI
-_thread_set_name_exception_filter(LPEXCEPTION_POINTERS pointers) {
-	return EXCEPTION_CONTINUE_EXECUTION;
-}
-
-#endif
 
 static void FOUNDATION_NOINLINE
 _set_thread_name(const char* threadname) {
@@ -179,7 +170,7 @@ thread_set_name(const char* name, size_t length) {
 	thread_t* self;
 
 #if !BUILD_DEPLOY
-#  if FOUNDATION_PLATFORM_WINDOWS
+#  if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	_set_thread_name(name);
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	prctl(PR_SET_NAME, name, 0, 0, 0);
@@ -218,10 +209,11 @@ typedef void* thread_arg_t;
 static thread_return_t FOUNDATION_THREADCALL
 _thread_entry(thread_arg_t data) {
 	thread_t* thread = GET_THREAD_PTR(data);
+	exception_handler_fn handler = exception_handler();
 
 	thread->osid = thread_id();
 
-#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
+#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	if (thread->name.length)
 		_set_thread_name(thread->name.str);
 #elif ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID ) && !BUILD_DEPLOY
@@ -232,30 +224,31 @@ _thread_entry(thread_arg_t data) {
 		pthread_set_name_np(pthread_self(), thread->name.str);
 #endif
 
-	log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
-	           STRING_FORMAT(thread->name), thread->osid,
-	           crash_guard_callback() ? " (guarded)" : "");
+	//log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
+	//           STRING_FORMAT(thread->name), thread->osid,
+	//           handler ? " (exceptions handled)" : "");
 
 	set_thread_self(thread);
 	atomic_store32(&thread->state, 1);
 	atomic_thread_fence_release();
 
-	if (system_debugger_attached()) {
+	if (system_debugger_attached() || !handler) {
 		thread->result = thread->fn(thread->arg);
 	}
 	else {
-		string_const_t guard_name = crash_guard_name();
-		int crash_result = crash_guard(_thread_guard_wrapper, thread, crash_guard_callback(),
-		                               guard_name.str, guard_name.length);
-		if (crash_result == FOUNDATION_CRASH_DUMP_GENERATED) {
-			thread->result = (void*)((uintptr_t)FOUNDATION_CRASH_DUMP_GENERATED);
-			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Thread '%.*s' (%" PRIx64 ") crashed"),
+		string_const_t dump_name = exception_dump_name();
+		int wrapped_result = exception_try(_thread_try, thread, handler,
+		                                   dump_name.str, dump_name.length);
+		if (wrapped_result == FOUNDATION_EXCEPTION_CAUGHT) {
+			thread->result = (void*)((uintptr_t)FOUNDATION_EXCEPTION_CAUGHT);
+			log_warnf(0, WARNING_SUSPICIOUS,
+			          STRING_CONST("Thread '%.*s' (%" PRIx64 ") terminated by exception"),
 			          STRING_FORMAT(thread->name), thread->osid);
 		}
 	}
 
-	log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
-	           STRING_FORMAT(thread->name), thread->osid);
+	//log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
+	//           STRING_FORMAT(thread->name), thread->osid);
 
 	if (thread_is_main())
 		_thread_main_id = (uint64_t)-1;
@@ -437,7 +430,7 @@ thread_id(void) {
 #  if FOUNDATION_SIZE_POINTER == 4
 	return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
 #  else
-	return pthread_self();
+	return (uint64_t)pthread_self();
 #  endif
 #elif FOUNDATION_PLATFORM_PNACL
 	void* self = pthread_self();
@@ -472,16 +465,21 @@ thread_set_hardware(uint64_t mask) {
 	DWORD_PTR procmask = 0;
 	DWORD_PTR sysmask = 0;
 	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
-	SetThreadAffinityMask(GetCurrentThread(), mask & procmask);
+	SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)mask & procmask);
 #elif FOUNDATION_PLATFORM_LINUX
 	uint64_t ibit, bsize;
 	cpu_set_t set;
 	CPU_ZERO(&set);
 	for (ibit = 0, bsize = math_min(64, CPU_SETSIZE); ibit < bsize; ++ibit) {
-		if (mask & (1 << ibit))
+		if (mask & (1ULL << ibit))
 			CPU_SET(ibit, &set);
 	}
-	sched_setaffinity(0, sizeof(set), &set);
+	if (sched_setaffinity(0, sizeof(set), &set)) {
+		string_const_t errmsg = system_error_message(0);
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
+		          STRING_CONST("Unable to set thread affinity (%" PRIx64 "): %.*s"),
+		          mask, STRING_FORMAT(errmsg));
+	}
 #else
 	//TODO: Implement
 	FOUNDATION_UNUSED(mask);

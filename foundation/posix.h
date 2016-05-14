@@ -32,6 +32,15 @@ Safe inclusion of posix headers */
 #  if __has_warning( "-Wreserved-id-macro" )
 #    pragma clang diagnostic ignored "-Wreserved-id-macro"
 #  endif
+#  if __has_warning( "-Wpedantic" )
+#    pragma clang diagnostic ignored "-Wpedantic"
+#  endif
+#  if __has_warning( "-Wundef" )
+#    pragma clang diagnostic ignored "-Wundef"
+#  endif
+#  if __has_warning( "-Wpacked" )
+#    pragma clang diagnostic ignored "-Wpacked"
+#  endif
 #endif
 
 #define radixsort __stdlib_radixsort

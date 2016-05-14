@@ -118,6 +118,7 @@ android_app(void) {
 
 void
 android_handle_cmd(struct android_app* app, int32_t cmd) {
+	FOUNDATION_UNUSED(app);
 	switch (cmd) {
 	case APP_CMD_INPUT_CHANGED:
 		log_info(0, STRING_CONST("System command: APP_CMD_INPUT_CHANGED"));
@@ -269,5 +270,45 @@ _android_disable_sensor(int sensor_type) {
 		}
 	}
 }
+
+#if FOUNDATION_COMPILER_GCC
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  if __has_warning("-Wformat-pedantic")
+#    pragma clang diagnostic ignored "-Wformat-pedantic"
+#  endif
+#  if __has_warning("-Wmissing-prototypes")
+#    pragma clang diagnostic ignored "-Wmissing-prototypes"
+#  endif
+#  if __has_warning("-Wundef")
+#    pragma clang diagnostic ignored "-Wundef"
+#  endif
+#  if __has_warning("-Wunused-parameter")
+#    pragma clang diagnostic ignored "-Wunused-parameter"
+#  endif
+#  if __has_warning("-Wsign-conversion")
+#    pragma clang diagnostic ignored "-Wsign-conversion"
+#  endif
+#  if __has_warning("-Wundef")
+#    pragma clang diagnostic ignored "-Wundef"
+#  endif
+#  if __has_warning("-Wpedantic")
+#    pragma clang diagnostic ignored "-Wpedantic"
+#  endif
+#  if __has_warning("-Wreserved-id-macro")
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
+#  if __has_warning("-Wshorten-64-to-32")
+#    pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#  endif
+#endif
+
+//Assimilate app glue library
+#include <android_native_app_glue.c>
+
+//Assimilate cpu features library
+#include <cpu-features.c>
 
 #endif

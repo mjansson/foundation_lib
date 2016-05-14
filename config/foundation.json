@@ -1,0 +1,6 @@
+{
+	"foundation" : {
+		"temporary_memory":  0,
+		"memory_tracker": "local"
+	}
+}

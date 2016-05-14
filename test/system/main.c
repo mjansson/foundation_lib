@@ -19,9 +19,9 @@ test_system_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation system tests"));
 	app.short_name = string_const(STRING_CONST("test_system"));
-	app.config_dir = string_const(STRING_CONST("test_system"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -137,7 +137,7 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_NE(system_username(buffer, 2).str, 0);
 	EXPECT_EQ(system_username(buffer, 2).length, 1);
 
-#if !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_PNACL && !FOUNDATION_PLATFORM_ANDROID
 	EXPECT_NE(system_hostid(), 0);
 #endif
 
@@ -154,17 +154,17 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_NE(system_locale_string(buffer, sizeof(buffer)).str, 0);
 	EXPECT_EQ(system_locale_string(buffer, sizeof(buffer)).length, 4);
 	EXPECT_NE(system_locale_string(buffer, 2).str, 0);
-	EXPECT_EQ(system_locale_string(buffer, 2).length, 1);
+	EXPECT_EQ(system_locale_string(buffer, 2).length, 2);
 
-	config_set_string_constant(HASH_FOUNDATION, HASH_LOCALE, STRING_CONST("svSE"));
+	system_set_locale(LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_SWEDISH, COUNTRY_SWEDEN));
 	EXPECT_EQ_MSGFORMAT(system_language(), LANGUAGE_SWEDISH,
-	                    "config language change was not picked up: 0x%04x", system_language());
+	                    "language change was not picked up: 0x%04x", system_language());
 	EXPECT_EQ_MSGFORMAT(system_country(), COUNTRY_SWEDEN,
-	                    "config country change was not picked up: 0x%04x", system_country());
+	                    "country change was not picked up: 0x%04x", system_country());
 	EXPECT_EQ_MSGFORMAT(system_locale(), LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_SWEDISH, COUNTRY_SWEDEN),
-	                    "config locale change was not picked up: 0x%08x", system_locale());
+	                    "locale change was not picked up: 0x%08x", system_locale());
 	EXPECT_STRINGEQ_MSGFORMAT(system_locale_string(buffer, sizeof(buffer)),
-	                          string_const(STRING_CONST("svSE")), "config locale change was not picked up: %s", buffer);
+	                          string_const(STRING_CONST("svSE")), "locale change was not picked up: %s", buffer);
 
 	orientation = system_device_orientation();
 	system_set_device_orientation(DEVICEORIENTATION_PORTRAIT);
@@ -176,10 +176,54 @@ DECLARE_TEST(system, builtin) {
 	return 0;
 }
 
+FOUNDATION_DECLARE_THREAD_LOCAL(int, tls_var, 0)
+
+static void*
+tls_thread(void* arg) {
+	int counter = 0;
+	int i;
+	FOUNDATION_UNUSED(arg);
+	for (i = 0; i < 1024; ++i) {
+		EXPECT_EQ(get_thread_tls_var(), counter);
+		thread_sleep(5);
+		set_thread_tls_var(++counter);
+		thread_sleep(5);
+	}
+
+	EXPECT_EQ(get_thread_tls_var(), counter);
+
+	return 0;
+}
+
+DECLARE_TEST(system, thread) {
+	thread_t thread[32];
+	size_t ith;
+	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
+
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_initialize(&thread[ith], tls_thread, nullptr,
+		                  STRING_CONST("tls_thread"), THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_start(&thread[ith]);
+
+	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_finish(thread, num_threads);
+
+	for (ith = 0; ith < num_threads; ++ith) {
+		EXPECT_EQ(thread_join(&thread[ith]), nullptr);
+	}
+
+	for (ith = 0; ith < num_threads; ++ith)
+		thread_finalize(&thread[ith]);
+
+	return 0;
+}
+
 static void
 test_system_declare(void) {
 	ADD_TEST(system, align);
 	ADD_TEST(system, builtin);
+	ADD_TEST(system, thread);
 }
 
 static test_suite_t test_system_suite = {

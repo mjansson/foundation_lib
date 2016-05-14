@@ -24,46 +24,40 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 
 #define STREAM_SEEK_END _STREAM_SEEK_END
 
-#define UUID_DEFINED 1
-#define UUID uuid_t
+#undef UUID_DEFINED
+#undef UUID
 
-#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-__MINGW_EXTENSION unsigned __int64
-__readgsqword(unsigned __LONG32 Offset);
-#define __INTRINSIC_DEFINED___readgsqword
-#endif
+#define UUID_DEFINED 1
+#define UUID uint128_t
 
 #define WIN32_LEAN_AND_MEAN
+
+#if FOUNDATION_COMPILER_MSVC
 //Work around broken dbghlp.h header
-#pragma warning( disable : 4091 )
+#pragma warning(disable : 4091)
+#endif
 
 #include <windows.h>
+
+#undef uuid_t
+
 #include <winsock2.h>
 #include <iptypes.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
-//#include <mmsystem.h>
-//#include <mmreg.h>
 #include <share.h>
 #include <io.h>
 #include <shellapi.h>
-#include <dbghelp.h>
 #include <stdlib.h>
-#if FOUNDATION_COMPILER_MSVC
-//From shlobj.h
-EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE
-SHGetFolderPathW(__reserved HWND hwnd, __in int csidl, __in_opt HANDLE hToken, __in DWORD dwFlags,
-                 __out_ecount(MAX_PATH) LPWSTR pszPath);
-#  define CSIDL_LOCAL_APPDATA 0x001c  // <user name>\Local Settings\Application Data (non roaming)
-#else
-#  include <shlobj.h>
-#endif
-
+#include <shlobj.h>
+#include <dbghelp.h>
 #include <crtdbg.h>
 
 #undef min
 #undef max
 #undef STREAM_SEEK_END
+#undef UUID
+#undef uuid_t
 
 #if FOUNDATION_COMPILER_CLANG
 #  undef WINAPI

@@ -19,9 +19,9 @@ test_stacktrace_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation stacktrace tests"));
 	app.short_name = string_const(STRING_CONST("test_stacktrace"));
-	app.config_dir = string_const(STRING_CONST("test_stacktrace"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -81,13 +81,9 @@ DECLARE_TEST(stacktrace, resolve) {
 	//log_infof(HASH_TEST, STRING_CONST("Resolved stack trace:\n%.*s"), (int)resolved.length,
 	//          resolved.str);
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !(FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG))
 	EXPECT_NE(string_find_string(resolved.str, resolved.length, STRING_CONST("stacktraceresolve_fn"),
 	                             0), STRING_NPOS);
-#if !BUILD_DEPLOY && !BUILD_PROFILE
-	EXPECT_NE(string_find_string(resolved.str, resolved.length, STRING_CONST("test_run"), 0),
-	          STRING_NPOS);
-#endif
 	EXPECT_NE(string_find_string(resolved.str, resolved.length, STRING_CONST("main"), 0), STRING_NPOS);
 #endif
 

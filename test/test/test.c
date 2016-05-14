@@ -116,7 +116,7 @@ test_run(void) {
 	while (!thread_is_started(&thread_event))
 		thread_yield();
 
-	error_set_callback(test_error_handler);
+	error_set_handler(test_error_handler);
 #endif
 
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
@@ -166,6 +166,10 @@ test_free(void) {
 	}
 	array_deallocate(_test_groups);
 	_test_groups = 0;
+
+	//Abort memory tracking if failed test(s)
+	if (_test_failed)
+		memory_set_tracker(memory_tracker_none());
 }
 
 int
@@ -185,22 +189,69 @@ test_run_all(void) {
 	return 0;
 }
 
+void
+test_set_suitable_working_directory(void) {
+	char buffer[BUILD_MAX_PATHLEN];
+	bool found = false;
+
+	string_const_t last_dir;
+	string_t config_dir;
+	string_const_t working_dir = environment_current_working_directory();
+	do {
+		last_dir = working_dir;
+		config_dir = path_concat(buffer, sizeof(buffer), STRING_ARGS(working_dir), STRING_CONST("config"));
+		if (fs_is_directory(STRING_ARGS(config_dir))) {
+			found = true;
+			break;
+		}
+
+		working_dir = path_directory_name(STRING_ARGS(working_dir));
+	}
+	while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
+
+	if (found)
+		environment_set_current_working_directory(STRING_ARGS(working_dir));
+}
+
+void
+test_load_config(json_handler_fn handler) {
+	sjson_parse_path(STRING_CONST("config"), handler);
+}
+
 #if !BUILD_MONOLITHIC
 
 int
 main_initialize(void) {
+	bool memory_tracker = true;
+	size_t iarg, asize;
+	int ret;
+	const string_const_t* cmdline;
+
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
 	test_suite = test_suite_define();
 
-	return foundation_initialize(test_suite.memory_system(), test_suite.application(),
-	                             test_suite.config());
+	ret = foundation_initialize(test_suite.memory_system(), test_suite.application(),
+	                            test_suite.config());
+	if (ret == 0) {
+		cmdline = environment_command_line();
+		for (iarg = 0, asize = array_size(cmdline); iarg < asize; ++iarg) {
+			if (string_equal(STRING_ARGS(cmdline[iarg]), STRING_CONST("--no-memory-tracker")))
+				memory_tracker = false;
+		}
+		if (memory_tracker)
+			memory_set_tracker(memory_tracker_local());
+	}
+
+	return ret;
 }
 
 int
 main_run(void* main_arg) {
 	FOUNDATION_UNUSED(main_arg);
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
+
+	test_set_suitable_working_directory();
 
 	return test_run_all();
 }
@@ -267,12 +318,12 @@ test_wait_for_threads_join(thread_t* threads, size_t num_threads) {
 }
 
 void
-test_crash_handler(const char* dump_file, size_t length) {
+test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 	log_enable_stdout(true);
-	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test crashed"));
+	log_error(HASH_TEST, ERROR_EXCEPTION, STRING_CONST("Test raised exception"));
 	process_exit(-1);
 }
 

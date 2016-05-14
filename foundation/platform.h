@@ -109,9 +109,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 
-#  ifdef __STRICT_ANSI__
+/*#  ifdef __STRICT_ANSI__
 #    undef __STRICT_ANSI__
-#  endif
+#  endif*/
 
 // Android
 #elif defined( __ANDROID__ )
@@ -554,27 +554,27 @@ thread local storage to ensure maximum portability across supported platforms */
 
 //Export/import attribute
 #if BUILD_DYNAMIC_LINK && FOUNDATION_PLATFORM_WINDOWS
-#  define FOUNDATION_EXPORT __declspec(dllexport)
-#  define FOUNDATION_IMPORT __declspec(dllimport)
+#  define FOUNDATION_EXPORT_LINK __declspec(dllexport)
+#  define FOUNDATION_IMPORT_LINK __declspec(dllimport)
 #else
-#  define FOUNDATION_EXPORT
-#  define FOUNDATION_IMPORT
+#  define FOUNDATION_EXPORT_LINK
+#  define FOUNDATION_IMPORT_LINK
 #endif
 #if FOUNDATION_COMPILE
 #  ifdef __cplusplus
-#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT
-#    define FOUNDATION_API extern "C" FOUNDATION_EXPORT
+#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern "C" FOUNDATION_EXPORT_LINK
 #  else
-#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT
-#    define FOUNDATION_API extern FOUNDATION_EXPORT
+#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern FOUNDATION_EXPORT_LINK
 #  endif
 #else
 #  ifdef __cplusplus
-#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT
-#    define FOUNDATION_API extern "C" FOUNDATION_IMPORT
+#    define FOUNDATION_EXTERN extern "C" FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern "C" FOUNDATION_IMPORT_LINK
 #  else
-#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT
-#    define FOUNDATION_API extern FOUNDATION_IMPORT
+#    define FOUNDATION_EXTERN extern FOUNDATION_IMPORT_LINK
+#    define FOUNDATION_API extern FOUNDATION_IMPORT_LINK
 #  endif
 #endif
 
@@ -644,36 +644,32 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_COMPILER_CLANG 1
 
 #  define FOUNDATION_COMPILER_NAME "clang"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __clang_major__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __clang_minor__ )
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING(__clang_major__) "." FOUNDATION_PREPROCESSOR_TOSTRING(__clang_minor__)
+#  define FOUNDATION_CLANG_VERSION (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
 
 #  define FOUNDATION_RESTRICT __restrict
-#  if FOUNDATION_PLATFORM_WINDOWS
-#    define FOUNDATION_THREADLOCAL
-#  else
-#    define FOUNDATION_THREADLOCAL __thread
-#  endif
+#  define FOUNDATION_THREADLOCAL _Thread_local
 
 #  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
 #  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 #  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
-#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
-#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
-#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
-#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
-#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
-#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
-#  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
-#  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
+#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE(deprecated)
+#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE(always_inline)
+#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE(noinline)
+#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE(pure)
+#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE(const)
+#  define FOUNDATION_PRINTFCALL(start, num) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
+#  define FOUNDATION_ALIGN(alignment) FOUNDATION_ATTRIBUTE2(aligned, alignment)
+#  define FOUNDATION_ALIGNOF(type) __alignof__(type)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    pragma clang diagnostic push
-#    if __has_warning( "-Wreserved-id-macro" )
-#      pragma clang diagnostic ignored "-Wreserved-id-macro"
+#    if (FOUNDATION_CLANG_VERSION < 30800)
+#      error CLang 3.8 or later is required
 #    endif
-#    define STDCALL
+#    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
 #    endif
@@ -683,10 +679,21 @@ thread local storage to ensure maximum portability across supported platforms */
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
+#    ifndef __MSVCRT_VERSION__
+#      define __MSVCRT_VERSION__ 0x0800
+#    endif
 #    define USE_NO_MINGW_SETJMP_TWO_ARGS 1
-#    pragma clang diagnostic pop
+#    if __has_warning("-Wunknown-pragmas")
+#      pragma clang diagnostic ignored "-Wunknown-pragmas"
+#    endif
+#    if __has_warning("-Wformat-non-iso")
+#      pragma clang diagnostic ignored "-Wformat-non-iso"
+#    endif
 #  endif
 
+#  if __has_warning("-Wreserved-id-macro")
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
 #  if __has_warning("-Wcovered-switch-default")
 #    pragma clang diagnostic ignored "-Wcovered-switch-default"
 #  endif
@@ -697,9 +704,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_COMPILER_GCC 1
 
 #  define FOUNDATION_COMPILER_NAME "gcc"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING(__GNUC__) "." FOUNDATION_PREPROCESSOR_TOSTRING(__GNUC_MINOR__)
 
-#  define FOUNDATIN_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#  define FOUNDATION_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #  define FOUNDATION_RESTRICT __restrict
 #  define FOUNDATION_THREADLOCAL __thread
@@ -709,18 +716,18 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 #  define FOUNDATION_ATTRIBUTE4(x,y,z,w) __attribute__((__##x##__(y,z,w)))
 
-#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
-#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
-#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
-#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
-#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
-#  define FOUNDATION_PRINTFCALL( start, num ) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
-#  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
-#  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct FOUNDATION_ALIGN( alignment ) name
+#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE(deprecated)
+#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE(always_inline)
+#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE(noinline)
+#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE(pure)
+#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE(const)
+#  define FOUNDATION_PRINTFCALL(start, num) FOUNDATION_ATTRIBUTE4(format, printf, start, num)
+#  define FOUNDATION_ALIGN(alignment) FOUNDATION_ATTRIBUTE2(aligned, alignment)
+#  define FOUNDATION_ALIGNOF(type) __alignof__(type)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct FOUNDATION_ALIGN(alignment) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    define STDCALL
+#    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
 #      define __USE_MINGW_ANSI_STDIO 1
 #    endif
@@ -730,6 +737,12 @@ thread local storage to ensure maximum portability across supported platforms */
 #    ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #      define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 0
 #    endif
+#    ifndef __MSVCRT_VERSION__
+#      define __MSVCRT_VERSION__ 0x0800
+#    endif
+#    pragma GCC diagnostic ignored "-Wformat"
+#    pragma GCC diagnostic ignored "-Wformat-extra-args"
+#    pragma GCC diagnostic ignored "-Wpedantic"
 #  endif
 
 // Intel
@@ -770,11 +783,6 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #  include <intrin.h>
 
-#  define bool _Bool
-#  define true 1
-#  define false 0
-#  define __bool_true_false_are_defined 1
-
 // Microsoft
 #elif defined( _MSC_VER )
 
@@ -790,37 +798,42 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ATTRIBUTE4(x,y,z,w)
 
 #  define FOUNDATION_RESTRICT __restrict
-#  define FOUNDATION_THREADLOCAL __declspec( thread )
+#  define FOUNDATION_THREADLOCAL __declspec(thread)
 
-#  define FOUNDATION_DEPRECATED __declspec( deprecated )
+#  define FOUNDATION_DEPRECATED __declspec(deprecated)
 #  define FOUNDATION_FORCEINLINE __forceinline
-#  define FOUNDATION_NOINLINE __declspec( noinline )
+#  define FOUNDATION_NOINLINE __declspec(noinline)
 #  define FOUNDATION_PURECALL
 #  define FOUNDATION_CONSTCALL
-#  define FOUNDATION_PRINTFCALL( start, num )
-#  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
-#  define FOUNDATION_ALIGNOF( type ) __alignof( type )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
+#  define FOUNDATION_PRINTFCALL(start, num)
+#  define FOUNDATION_ALIGN(alignment) __declspec(align(alignment))
+#  define FOUNDATION_ALIGNOF(type) __alignof(type)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) FOUNDATION_ALIGN(alignment) struct name
 
-#  pragma warning( disable : 4200 )
+#  pragma warning(disable : 4054)
+#  pragma warning(disable : 4055)
+#  pragma warning(disable : 4127)
+#  pragma warning(disable : 4132)
+#  pragma warning(disable : 4200)
+#  pragma warning(disable : 4204)
+#  pragma warning(disable : 4706)
+#  ifdef __cplusplus
+#  pragma warning(disable : 4100)
+#  pragma warning(disable : 4510)
+#  pragma warning(disable : 4512)
+#  pragma warning(disable : 4610)
+#  endif
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
 #  endif
 
-#  if defined( FOUNDATION_COMPILE ) && FOUNDATION_COMPILE && !defined( _CRT_SECURE_NO_WARNINGS )
+#  if defined(FOUNDATION_COMPILE) && FOUNDATION_COMPILE && !defined(_CRT_SECURE_NO_WARNINGS)
 #    define _CRT_SECURE_NO_WARNINGS 1
 #  endif
 
 #  ifndef _LINT
 #    define _Static_assert static_assert
-#  endif
-
-#  ifndef __cplusplus
-typedef enum {
-  false = 0,
-  true  = 1
-} bool;
 #  endif
 
 #  if _MSC_VER < 1800
@@ -846,32 +859,27 @@ typedef enum {
 #  define FOUNDATION_CONSTCALL
 #  define FOUNDATION_ALIGN
 #  define FOUNDATION_ALIGNOF
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
-
-typedef enum {
-  false = 0,
-  true  = 1
-} bool;
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct name
 
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
-
-#if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  if __has_warning( "-Wreserved-id-macro" )
-#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
 #  endif
 #endif
 
-#ifndef _GNU_SOURCE
-#  define _GNU_SOURCE
-#endif
-
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
-#endif
-
+#  pragma clang diagnostic push
+#  if __has_warning("-Wundef")
+#    pragma clang diagnostic ignored "-Wundef"
+#  endif
+#  if __has_warning("-Wsign-conversion")
+#    pragma clang diagnostic ignored "-Wsign-conversion"
+#  endif
+#  if __has_warning("-Wunknown-attributes")
+#    pragma clang diagnostic ignored "-Wunknown-attributes"
+#  endif
 #endif
 
 //Base data types
@@ -889,20 +897,38 @@ typedef enum {
 #  include <sys/types.h>
 #endif
 
-#define nullptr ((void*)0)
+#ifndef __cplusplus
+#  define nullptr ((void*)0)
+#endif
+
+#if !defined(__cplusplus) && !defined(__bool_true_false_are_defined)
+typedef enum {
+	false = 0,
+	true  = 1
+} bool;
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif
 
 typedef float  float32_t;
 typedef double float64_t;
 
 struct uint128_t {
-  uint64_t word[2];
+	uint64_t word[2];
 };
 typedef struct uint128_t uint128_t;
 
 struct uint256_t {
-  uint64_t word[4];
+	uint64_t word[4];
 };
 typedef struct uint256_t uint256_t;
+
+struct uint512_t {
+	uint64_t word[8];
+};
+typedef struct uint512_t uint512_t;
 
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
@@ -937,24 +963,24 @@ typedef   float32_t    real;
 
 //Atomic types
 FOUNDATION_ALIGNED_STRUCT(atomic32_t, 4) {
-  int32_t nonatomic;
+	int32_t nonatomic;
 };
 typedef struct atomic32_t atomic32_t;
 
 FOUNDATION_ALIGNED_STRUCT(atomic64_t, 8) {
-  int64_t nonatomic;
+	int64_t nonatomic;
 };
 typedef struct atomic64_t atomic64_t;
 
 FOUNDATION_ALIGNED_STRUCT(atomicptr_t, FOUNDATION_SIZE_POINTER) {
-  void* nonatomic;
+	void* nonatomic;
 };
 typedef struct atomicptr_t atomicptr_t;
 
 // Pointer arithmetic
-#define pointer_offset( ptr, ofs ) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
-#define pointer_offset_const( ptr, ofs ) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
-#define pointer_diff( first, second ) (ptrdiff_t)((const char*)(first) - (const char*)(second))
+#define pointer_offset(ptr, ofs) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_offset_const(ptr, ofs) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_diff(first, second) (ptrdiff_t)((const char*)(first) - (const char*)(second))
 
 #include <string.h>
 
@@ -965,7 +991,9 @@ typedef struct atomicptr_t atomicptr_t;
 #define STRING_FORMAT(s) (int)(s).length, (s).str
 
 // Misc
-#if FOUNDATION_COMPILER_GCC || defined(__COVERITY__)
+#if defined(__COVERITY__)
+#define FOUNDATION_UNUSED(x) ((void)(x))
+#elif FOUNDATION_COMPILER_GCC
 #define FOUNDATION_UNUSED(x) ((void)sizeof((x)))
 #else
 #define FOUNDATION_UNUSED(x) (/*lint --e{505,550,818,866} */(void)sizeof((x), 0))
@@ -994,7 +1022,7 @@ typedef struct atomicptr_t atomicptr_t;
 #define FOUNDATION_UNUSED_VARARGS_IMPL(n, ...) FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_UNUSED_ARGS_, n)(__VA_ARGS__,),)
 
 // Wrappers for platforms that not yet support thread-local storage declarations
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE
 
 // Forward declarations of various system APIs
 #if FOUNDATION_PLATFORM_APPLE
@@ -1008,46 +1036,27 @@ FOUNDATION_EXTERN void* pthread_getspecific(_pthread_key_t);
 
 FOUNDATION_API void* _allocate_thread_local_block(size_t size);
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
-static _pthread_key_t _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) { pthread_key_create( &_##name##_key, 0 ); pthread_setspecific( _##name##_key, (init) ); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { void* val = pthread_getspecific( get_##name##_key() ); return (type)((uintptr_t)val); } \
-static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
+#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
+static _pthread_key_t _##name##_key; \
+static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) { pthread_key_create(&_##name##_key, 0); pthread_setspecific(_##name##_key, (init)); } return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name(void) { void* val = pthread_getspecific(get_##name##_key()); return (type)((uintptr_t)val); } \
+static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { pthread_setspecific(get_##name##_key(), (const void*)(uintptr_t)val); }
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
-static _pthread_key_t _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, 0 ); return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); pthread_setspecific( key, arr ); } return arr; }
-
-#elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
-
-__declspec(dllimport) unsigned long STDCALL TlsAlloc();
-__declspec(dllimport) void* STDCALL TlsGetValue(unsigned long);
-__declspec(dllimport) int STDCALL TlsSetValue(unsigned long, void*);
-
-FOUNDATION_API void* _allocate_thread_local_block(size_t size);
-
-#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
-static unsigned long _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) { _##name##_key = TlsAlloc(); TlsSetValue( _##name##_key, init ); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)TlsGetValue( get_##name##_key() )); } \
-static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { TlsSetValue( get_##name##_key(), (void*)((uintptr_t)val) ); }
-
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
-static unsigned long _##name##_key = 0; \
-static FOUNDATION_FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) _##name##_key = TlsAlloc(); return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { unsigned long key = get_##name##_key(); type* arr = (type*)TlsGetValue( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); TlsSetValue( key, arr ); } return arr; }
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
+static _pthread_key_t _##name##_key; \
+static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) pthread_key_create(&_##name##_key, 0); return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific(key); if (!arr) { arr = _allocate_thread_local_block(sizeof(type) * arrsize); pthread_setspecific(key, arr); } return arr; }
 
 #else
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
 static FOUNDATION_THREADLOCAL type _thread_##name = init; \
-static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { _thread_##name = val; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return _thread_##name; }
+static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { _thread_##name = val; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name(void) { return _thread_##name; }
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
 static FOUNDATION_THREADLOCAL type _thread_##name [arrsize] = {0}; \
-static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
+static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { return _thread_##name; }
 
 #endif
 
@@ -1076,48 +1085,87 @@ uint256_equal(const uint256_t u0, const uint256_t u1);
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint256_is_null(const uint256_t u0);
 
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3,
+             const uint64_t w4, const uint64_t w5, const uint64_t w6, const uint64_t w7);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_null(void);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_equal(const uint512_t u0, const uint512_t u1);
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_is_null(const uint512_t u0);
+
 //Implementations
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
 uint128_make(const uint64_t low, const uint64_t high) {
-  uint128_t u = { { low, high } };
-  return u;
+	uint128_t u = { { low, high } };
+	return u;
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
 uint128_null(void) {
-  return uint128_make(0, 0);
+	return uint128_make(0, 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint128_equal(const uint128_t u0, const uint128_t u1) {
-  return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1];
+	return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1];
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint128_is_null(const uint128_t u0) {
-  return !u0.word[0] && !u0.word[1];
+	return !u0.word[0] && !u0.word[1];
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
 uint256_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3) {
-  uint256_t u = { { w0, w1, w2, w3 } };
-  return u;
+	uint256_t u = { { w0, w1, w2, w3 } };
+	return u;
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t
 uint256_null(void) {
-  return uint256_make(0, 0, 0, 0);
+	return uint256_make(0, 0, 0, 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint256_equal(const uint256_t u0, const uint256_t u1) {
-  return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] &&
-         u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3];
+	return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] &&
+	       u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3];
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uint256_is_null(const uint256_t u0) {
-  return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3];
+	return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3];
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3,
+             const uint64_t w4, const uint64_t w5, const uint64_t w6, const uint64_t w7) {
+	uint512_t u = { { w0, w1, w2, w3, w4, w5, w6, w7 } };
+	return u;
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint512_t
+uint512_null(void) {
+	return uint512_make(0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_equal(const uint512_t u0, const uint512_t u1) {
+	return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] &&
+	       u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3] &&
+	       u0.word[4] == u1.word[4] && u0.word[5] == u1.word[5] &&
+	       u0.word[6] == u1.word[6] && u0.word[7] == u1.word[7];
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
+uint512_is_null(const uint512_t u0) {
+	return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3] &&
+	       !u0.word[4] && !u0.word[5] && !u0.word[6] && !u0.word[7];
 }
 
 //Format specifiers for 64bit and pointers
@@ -1144,12 +1192,13 @@ uint256_is_null(const uint256_t u0) {
 #define PRIhash        PRIx64
 
 #if FOUNDATION_SIZE_REAL == 8
+#error foo
 #  define PRIreal      "lf"
 #else
 #  define PRIreal      "f"
 #endif
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_COMPILER_MSVC
 #  if FOUNDATION_SIZE_POINTER == 8
 #    define PRIfixPTR  "016I64X"
 #  else
@@ -1168,6 +1217,12 @@ uint256_is_null(const uint256_t u0) {
 #endif
 
 #include <foundation/build.h>
+
+#ifdef __cplusplus
+#  define FOUNDATION_FLEXIBLE_ARRAY 0
+#else
+#  define FOUNDATION_FLEXIBLE_ARRAY
+#endif
 
 /*!
 \def FOUNDATION_COMPILE

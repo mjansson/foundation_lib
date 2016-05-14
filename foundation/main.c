@@ -35,15 +35,29 @@ _main_console_handler(DWORD control_type) {
 	bool handled = true;
 
 	switch (control_type) {
-	case CTRL_C_EVENT:         control_name = "CTRL_C"; post_terminate = true; break;
-	case CTRL_BREAK_EVENT:     control_name = "CTRL_BREAK"; break;
-	case CTRL_CLOSE_EVENT:     control_name = "CTRL_CLOSE"; post_terminate = true; break;
-	case CTRL_LOGOFF_EVENT:    control_name = "CTRL_LOGOFF";
-		post_terminate = !config_bool(HASH_APPLICATION, HASH_DAEMON); break;
-	case CTRL_SHUTDOWN_EVENT:  control_name = "CTRL_SHUTDOWN"; post_terminate = true; break;
-	default:                   handled = false; break;
+	case CTRL_C_EVENT:
+		control_name = "CTRL_C";
+		post_terminate = true;
+		break;
+	case CTRL_BREAK_EVENT:
+		control_name = "CTRL_BREAK";
+		break;
+	case CTRL_CLOSE_EVENT:
+		control_name = "CTRL_CLOSE";
+		post_terminate = true;
+		break;
+	case CTRL_LOGOFF_EVENT:
+		control_name = "CTRL_LOGOFF";
+		break;
+	case CTRL_SHUTDOWN_EVENT:
+		control_name = "CTRL_SHUTDOWN";
+		post_terminate = true;
+		break;
+	default:
+		handled = false;
+		break;
 	}
-	log_infof(0, STRING_CONST("Caught console control: %s (%d)"), control_name, control_type);
+	log_infof(0, STRING_CONST("Caught console control: %s (%lu)"), control_name, control_type);
 	if (post_terminate) {
 		/*lint -e{970} */
 		unsigned long level = 0, flags = 0;
@@ -80,8 +94,6 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 
 	thread_set_main();
 
-	foundation_startup();
-
 	system_post_event(FOUNDATIONEVENT_START);
 
 #if BUILD_DEBUG
@@ -93,14 +105,17 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 		string_const_t aname = app->short_name;
 		string_const_t vstr = string_from_version_static(app->version);
 		name = string_allocate_concat_varg(
-			aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
-			STRING_CONST("-"),
-			STRING_CONST(vstr));
+		           aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
+		           STRING_CONST("-"),
+		           STRING_ARGS(vstr),
+		           nullptr);
 
-		if (app->dump_callback)
-			crash_guard_set(app->dump_callback, STRING_ARGS(name));
-
-		ret = crash_guard(main_run, 0, app->dump_callback, STRING_ARGS(name));
+		if (app->exception_handler)
+			exception_set_handler(app->exception_handler, STRING_ARGS(name));
+		if (app->exception_handler && !system_debugger_attached())
+			ret = exception_try(main_run, 0, app->exception_handler, STRING_ARGS(name));
+		else
+			ret = main_run(0);
 
 		string_deallocate(name.str);
 	}
@@ -145,7 +160,7 @@ sighandler(int sig) {
 
 #if FOUNDATION_PLATFORM_ANDROID
 /*! Aliased entry point */
-int
+static int
 real_main(void)
 #elif FOUNDATION_PLATFORM_PNACL
 /*! Aliased entry point */
@@ -218,8 +233,6 @@ main(int argc, char** argv)
 
 	thread_set_main();
 
-	foundation_startup();
-
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
 	system_post_event(FOUNDATIONEVENT_START);
 #endif
@@ -229,12 +242,16 @@ main(int argc, char** argv)
 	if (!(environment_application()->flags & APPLICATION_UTILITY)) {
 		delegate_start_main_ns_thread();
 
+		thread_exit();
+
 		extern int NSApplicationMain(int argc, char* argv[]);
 		ret = NSApplicationMain(argc, argv);
 
 #  elif FOUNDATION_PLATFORM_IOS
 	{
 		delegate_start_main_ns_thread();
+
+		thread_exit();
 
 		extern int UIApplicationMain(int argc, char* argv[], void* principalClassName,
 		                             void* delegateClassName);
@@ -264,13 +281,12 @@ main(int argc, char** argv)
 			                              (int)vstr.length, vstr.str);
 		}
 
-		if (app->dump_callback)
-			crash_guard_set(app->dump_callback, name.str, name.length);
-
-		if (system_debugger_attached())
-			ret = main_run(0);
+		if (app->exception_handler)
+			exception_set_handler(app->exception_handler, STRING_ARGS(name));
+		if (app->exception_handler && !system_debugger_attached())
+			ret = exception_try(main_run, 0, app->exception_handler, STRING_ARGS(name));
 		else
-			ret = crash_guard(main_run, 0, app->dump_callback, name.str, name.length);
+			ret = main_run(0);
 
 		string_deallocate(name.str);
 	}

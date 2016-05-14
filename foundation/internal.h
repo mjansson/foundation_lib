@@ -53,9 +53,6 @@ FOUNDATION_API int
 _memory_initialize(const memory_system_t memory);
 
 FOUNDATION_API void
-_memory_preallocate(void);
-
-FOUNDATION_API void
 _memory_finalize(void);
 
 FOUNDATION_API int
@@ -106,12 +103,6 @@ _random_initialize(void);
 FOUNDATION_API void
 _random_finalize(void);
 
-FOUNDATION_API int
-_config_initialize(void);
-
-FOUNDATION_API void
-_config_finalize(void);
-
 FOUNDATION_API void
 _profile_thread_finalize(void);
 
@@ -127,8 +118,11 @@ _stacktrace_initialize(void);
 FOUNDATION_API void
 _stacktrace_finalize(void);
 
+FOUNDATION_API int
+_exception_initialize(void);
+
 FOUNDATION_API void
-foundation_startup(void);
+_exception_finalize(void);
 
 // Internal functions
 

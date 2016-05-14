@@ -116,6 +116,8 @@ and arm7/arm64 targeting iOS 6.0 or later. The ninja will use the latest SDK and
 
 On Linux the default toolchain is clang. The supported architectures are x86, x86-64, arm6, arm7, arm64, mips and mips64.
 
+Building for Android requires NDK r11 or later. The default toolchain is clang.
+
 On Raspberry Pi the default toolchain is gcc. The only supported architecture is arm6 (with Raspberry Pi specific compiler switches).
 
 \subsection ninja_codesign Code signing
@@ -125,32 +127,31 @@ through the build options. On Android the default settings is to use the normal 
 \subsection options Build options
 Some build variables can be set externally from the ninja build files. These variables are
 <ul>
-<li>android_ndkpath - Path to the Android NDK (no default)</li>
-<li>android_sdkpath - Path to the Android SDK (no default)</li>
-<li>android_keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")</li>
-<li>android_keyalias = Key alias to use when signing API (default "androiddebugkey")</li>
-<li>android_keystorepass - Password for keystore used when signing APK (default "android")</li>
-<li>android_keypass - Password for key used when signing APK (default "android")</li>
-<li>android_platformversion - Android platform version to use when building (default "21")</li>
-<li>android_toolchainversion_gcc - GCC toolchain version to use when building (default "4.9")</li>
-<li>android_toolchainversion_clang - CLang toolchain version to use when building (default "3.5")</li>
-<li>android_tsa - Location of the Timestamping Authority</li>
-<li>android_tsacert - Public key certificate for Timestamping Authority</li>
-<li>ios_deploymenttarget - Minimum iOS target version (default "6.0")</li>
-<li>ios_organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
-<li>ios_bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
-<li>ios_signature - Certificate signature (no default)</li>
-<li>ios_provisioning - Mobile provisioning profile path (no default)</li>
-<li>macosx_deploymenttarget - Minimum MacOS X target version (default "10.7")</li>
-<li>macosx_organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
-<li>macosx_bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
-<li>pnacl_sdkpath - Path to the PNaCl SDK (no default)</li>
-<li>tizen_sdkpath - Path to the Tizen SDK (no default)</li>
-<li>tizen_platformversion - Version of the Tizen platform to use (default "2.3")</li>
-<li>tizen_gccversion - GCC toolchain version to use when building (default "4.8")</li>
-<li>tizen_clangversion - CLang toolchain version to use when building (default "3.4")</li>
-<li>msvc_toolchain - Path to Visual Studio toolchain to use (default value is autodetected)</li>
-<li>msvc_sdkpath - Path to Windows SDK to use (default value is autodetected)</li>
+<li>android: ndkpath - Path to the Android NDK (no default)</li>
+<li>android: sdkpath - Path to the Android SDK (no default)</li>
+<li>android: keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")</li>
+<li>android: keyalias = Key alias to use when signing API (default "androiddebugkey")</li>
+<li>android: keystorepass - Password for keystore used when signing APK (default "android")</li>
+<li>android: keypass - Password for key used when signing APK (default "android")</li>
+<li>android: platformversion - Android platform version to use when building (default "21")</li>
+<li>android: gccversion - GCC toolchain version to use when building (default "4.9")</li>
+<li>android: tsa - Location of the Timestamping Authority</li>
+<li>android: tsacert - Public key certificate for Timestamping Authority</li>
+<li>ios: deploymenttarget - Minimum iOS target version (default "6.0")</li>
+<li>ios: organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
+<li>ios: bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
+<li>ios: signature - Certificate signature (no default)</li>
+<li>ios: provisioning - Mobile provisioning profile path (no default)</li>
+<li>macosx: deploymenttarget - Minimum MacOS X target version (default "10.7")</li>
+<li>macosx: organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
+<li>macosx: bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
+<li>msvc: toolchain - Path to Visual Studio toolchain to use (default value is autodetected)</li>
+<li>msvc: sdkpath - Path to Windows SDK to use (default value is autodetected)</li>
+<li>pnacl: sdkpath - Path to the PNaCl SDK (no default)</li>
+<li>tizen: sdkpath - Path to the Tizen SDK (no default)</li>
+<li>tizen: platformversion - Version of the Tizen platform to use (default "2.3")</li>
+<li>tizen: gccversion - GCC toolchain version to use when building (default "4.8")</li>
+<li>tizen: clangversion - CLang toolchain version to use when building (default "3.4")</li>
 </ul>
 
 The bundle identifier variables can contain expansion variables which will be substituted during build. These include
@@ -162,11 +163,10 @@ The variables can be set in four different ways, in increasing order of priority
 <ul>
 <li>configure.py script variables passed to generator</li>
 <li>build.json file in root project directory, read during configure.py execution</li>
-<li>environment variables, read during configure.py execution</li>
 <li>codesign.json file in root project directory, read at build time</li>
 </ul>
 
-Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.$(binname)' ) ]</code>.
+Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.\$(binname)' ) ]</code>.
 Any variables that have a identical name with different platform prefix can be passed without any platform name as in the example. The value will be applied to all platform specific variables.
 
 The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. An example build.json file:
@@ -176,7 +176,6 @@ The build.json is a simple host-local file which can hold any variable values li
 		"sdkpath" : "~/android-sdk",
 		"platformversion" : "21",
 		"gccversion" : "4.9",
-		"clangversion" : "3.5"
 	},
 	"ios" : {
 		"deploymenttarget" : "6.0"
@@ -189,23 +188,21 @@ The build.json is a simple host-local file which can hold any variable values li
     }
 }</pre>
 
-You can override configure.py and build.json values using environment variables. The environment variable names should be the variable name in upper case. For example, to set the Minimum iOS target version set <code>IOS_DEPLOYMENTVERSION="6.0"</code> in the environment prior to invoking configure.py
-
 Finally, the codesign.json is read by the codesigning phase at build time and can hold the secrets related to code signing. This allows you to have the secret locally on the build machine without requiring recreation of the build scripts or storing secrets in version control. The format is the same as for build.json and the variables used are:
 <ul>
-<li>android_keystore</li>
-<li>android_keyalias</li>
-<li>android_keystorepass</li>
-<li>android_keypass</li>
-<li>android_tsa</li>
-<li>android_tsacert</li>
-<li>ios_organisation</li>
-<li>ios_bundleidentifier</li>
-<li>ios_signature</li>
-<li>ios_provisioning</li>
-<li>ios_organisation</li>
-<li>ios_bundleidentifier</li>
-<li>ios_signature</li>
+<li>android: keystore</li>
+<li>android: keyalias</li>
+<li>android: keystorepass</li>
+<li>android: keypass</li>
+<li>android: tsa</li>
+<li>android: tsacert</li>
+<li>ios: organisation</li>
+<li>ios: bundleidentifier</li>
+<li>ios: signature</li>
+<li>ios: provisioning</li>
+<li>macosx: organisation</li>
+<li>macosx: bundleidentifier</li>
+<li>macosx: signature</li>
 </ul>
 
 An example codesign.json file:
@@ -218,7 +215,7 @@ An example codesign.json file:
     },
     "ios" : {
         "organisation" : "TXXXYZ12AB",
-        "bundleidentifier" : "com.mycompany.$(binname)",
+        "bundleidentifier" : "com.mycompany.\$(binname)",
         "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
         "provisioning" : "01234567-89AB-CDEF-0123-456789ABCDEF.mobileprovision"
     },
@@ -230,8 +227,8 @@ An example codesign.json file:
 }</pre>
 
 \section visual_studio Visual Studio
-On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2013 Both 32-bit and 64-bit Windows are supported.
-To build with Visual Studio, open the foundation.sln solution file Visual Studio 2013 in <code>build/vs13</code>. To build all targets and configurations
+On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2015. Both 32-bit and 64-bit Windows are supported.
+To build with Visual Studio, open the foundation.sln solution file Visual Studio 2015 in <code>build/vs15</code>. To build all targets and configurations
 use batch build, select all targets and build.
 
 \section xcode XCode
@@ -258,7 +255,7 @@ All other build control directives are defined in the build.h header.
 
 \subsection flags_clang CLang flags
 - Include/build: <code>-I. -Itest -DFOUNDATION_COMPILE=1 -DBUILD_<DEBUG|RELEASE|PROFILE|DEPLOY>=1</code>
-- Warning: <code>-W -Wall -Werror</code>
+- Warning: <code>-W -Weverything -Werror</code>
 - All builds: <code>-funit-at-a-time -fstrict-aliasing -fno-math-errno -ffinite-math-only -funsafe-math-optimizations -fno-trapping-math -ffast-math -g</code>
 - Debug: <code>-O0</code>
 - Release: <code>-funroll-loops -O3</code>
@@ -395,9 +392,9 @@ Complex data types (objects) are handled in two ways. Either the caller have exp
 
 Explicit allocations are always handled by function calls of the format <i>\<module>_t* \<module>_allocate(...)</i> to allocate the object and <i>void \<module>_deallocate(\<module>_t* ptr)</i> to deallocate it, for example md5_allocate and md5_deallocate in md5.h. The corresponding calls for initializing/finalizing a struct places on the stack is <i>void \<module>_initialize(\<module>_t* ptr)</i> and <i>void \<module>_finalize(\<module>_t* ptr)</i>. All objects that are initialized must be finalized in order to free any allocated resources correctly. Objects that are allocated on the heap with allocate/deallocate should not be initialized/finalized as this is done implicitly by the allocation and deallocation.
 
-Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero), for example #thread_create, #thread_ref and #thread_destroy in thread.h. Implicitly allocated objects does not need to be initialized/finalized.
+Implicit allocators are always handled by function calls of the format <i>object_t \<module>_create(...)</i> to allocate a new object, <i>\<module>_ref(object_t id)</i> to explicitly add a new reference to an existing object and <i>void \<module>_destroy(object_t id)</i> to release a reference to an existing object (and implicitly deallocate it when reference count reaches zero). Implicitly allocated objects does not need to be initialized/finalized.
 
-Reference counted data types have a predefined maximum number of concurrently allocated objects defined in the #foundation_config_t object passed to #foundation_initialize, for example #foundation_config_t::thread_max for threads.
+Reference counted data types have a predefined maximum number of concurrently allocated objects defined in the #foundation_config_t object passed to #foundation_initialize, for example #foundation_config_t::library_max for dynamically loaded libraries.
 
 
 \page features_page Details on specific submodules and features provided by the library
@@ -426,9 +423,11 @@ Finally there is a memory overwrite/underwrite guard functionality built in and 
 
 \section threading Threading
 \subsection threads Threads
-The threading module provides functionality to create and manage new execution threads and handle thread synchronization with mutexes and semaphores. Threads are reference counted (see \ref object_lifetime) and lifetime controlled by #thread_create, #thread_destroy and #thread_ref. A thread object represents a single execution thread for a specific function and cannot be reused for multiple execution threads of the same function. To have multiple execution threads of the same function, you must create multiple thread objects.
+The threading module provides functionality to create and manage new execution threads and handle thread synchronization with mutexes and semaphores. A thread object represents a single execution thread for a specific function and cannot be reused for multiple execution threads of the same function. To have multiple execution threads of the same function, you must create multiple thread objects referring to the same function.
 
-Thread execution is controlled with #thread_start and #thread_terminate. Note that thread termination only sets the internal flag that the thread should terminate, the execution function must use #thread_should_terminate to check if termination is triggered. You can use #thread_is_started to query if a thread has been started, and #thread_is_running to query if the thread is currently executing. A thread has a single result value of type void* which is the return value of the execution function. You can get the result value from #thread_result once the thread has terminated.
+Thread execution is controlled with #thread_start and #thread_join. The #thread_join function will block until the execution thread has terminated and then free associated resources. You can use #thread_is_started to query if a thread has been started, and #thread_is_running to query if the thread is currently executing. A thread has a single result value of type void* which is the return value of the execution function. This value is returned by #thread_join when you join the thread.
+
+Threads have a beacon for simple trigger behaviour between controller and executor. The controlling thread can use #thread_signal to signal the beacon, while the executing thread can use #thread_wait or #thread_try_wait to poll the signal state of the beacon. The common use case is to use the beacon to signal thread termination.
 
 You can set thread affinity to specific CPU core(s) with the #thread_set_hardware function taking a bit mask of allowed cores, and use #thread_hardware to query which CPU core a thread is currently running on. To query how many CPU cores that are available use #system_hardware_threads.
 
@@ -463,12 +462,12 @@ Logging output is provided in log.h through five different severity levels (debu
 
 Log messages are by default prefixed with additional debug data "[0:00:06.024] <513:0>" where the fields are time since startup, thread id and processor core, respectively. You can disable this prefix with #log_enable_prefix. Log messages are by default printed on stdout, which can be controlled with #log_enable_stdout. On Windows log messages are always output to the debugger with OutputDebugString.
 
-To pipe log messages to other outputs use the log callback by implementing your own callback function and registering it using #log_set_callback. All final formatted log messages (after suppression and context filtering) will be passed to the callback.
+To pipe log messages to other outputs use the log handler by implementing your own handler function and registering it using #log_set_handler. All final formatted log messages (after suppression and context filtering) will be passed to the handler.
 
 Finally, the #BUILD_ENABLE_LOG controls if log functions are enabled. If the build control is disabled, all log function calls will be reduced to void. The debug functions #log_debug and #log_debugf have a separate build control #BUILD_ENABLE_DEBUG_LOG.
 
-\subsection debugging_crash_dumps Crash dumps
-The foundation library provides structured exception handling based guards on Windows and signal based guards on posix compatible platforms. The guard acts as a proxy function call which will call the guarded function and catch any exceptional state. If an exception is caught, the state is written to a crash dump file and a callback is called with the dump information. The guard function itself returns with a specific value indicating a dump was generated. For more information on the guard and callback check the crash.h documentation.
+\subsection debugging_exceptions Exception handling
+The foundation library provides structured exception handling based guards on Windows and signal based guards on posix compatible platforms. The guard acts as a proxy function call which will call the guarded function and catch any exceptional state. If an exception is caught, the state is written to a crash dump file and a handler is called with the dump information. The guard function itself returns with a specific value indicating a dump was generated. For more information on the exception handling check the exception.h documentation.
 
 \subsection debugging_profiling Profiling
 The profiling module provides an efficient function-level profiling system. It is not intended for fine grained instruction level optimization, but rather profiling the entire application on a function level scope. The module does not allocate any memory and is reentrant (thread safe). The basic use is to begin/end scope blocks around functions entry/exit with calls to #profile_begin_block and #profile_end_block. All string identifiers should be valid until the profile module flushes the data to the output function, and the easiest way to guarantee this is to use static C strings as identifiers (for example, <code>profile_begin_block("my block");</code>). If a block runs for a long time you should also call #profile_update_block to update information about which CPU core the thread is running on.
@@ -581,6 +580,17 @@ Substring capturing is optional, and if performed it will capture start pointers
 \section project_setup Project setup
 
 \subsection project_scons Ninja
+Use the provided build generator in example/build/ninja and modify the configuration script in example/configure.py to suit your needs. The local variables module, sources, libs, includepaths and libpaths control the basic setup of the project.
+
+<ul>
+<li>project - Name of the project (and the executable). By default this is also the subdirectory name holding the sources.
+<li>sources - Source files inside the module subdirectory
+<li>libs - External libraries to link with
+<li>includepaths - External include paths
+<li>libpaths - External library paths
+</ul>
+
+For further documentation on how to setup a Ninja build check out the \ref ninja section.
 
 \subsection project_visual_studio Visual Studio
 
@@ -590,14 +600,38 @@ Substring capturing is optional, and if performed it will capture start pointers
 \section template_app Template application
 
 \subsection template_initialize Initialization
+<code>int main_initialize(void)</code><br>
+The initialization entry point of the application. It is expected to call #foundation_initialize and perform any other initialization in this function. It should return 0 if successful, or a negative value to indicate error in which case the application will terminate without running and use the returned value as exit code.
+
+The example application uses default values for all foundation configuration controls by doing<br><code>foundation_config_t config;<br>memset(&config, 0, sizeof(config));</code><br>For more information about the configuration controls, read the #foundation_config_t documentation.
+
+It also defines the application data with<br><code>application_t application;<br>
+memset(&application, 0, sizeof(application));<br>
+application.name = string_const(STRING_CONST("Foundation example application"));<br>
+application.short_name = string_const(STRING_CONST("example"));<br>
+application.company = string_const(STRING_CONST("Rampant Pixels"));<br>
+application.version = foundation_version();<br>
+application.flags = APPLICATION_UTILITY;<br>
+application.exception_handler = example_exception_handler;</code><br>
+Note that the string data passed in this structure must be constants and valid for the lifetime of the application. More information available in the #application_t documentation.
+
+The example application also sets a default log suppression level and initializes the memory tracker. Finally it locates the base directory of the application and sets this as the current working directory.
 
 \subsection template_finalize Finalization
+<code>void main_finalize(void)</code><br>
+The finalization entry point of the application. It is expected to do any custom finalization and cleanup and finally call #foundation_finalize to terminate the library operations.
+
+\subsection template_execution Execution
+<code>int main_run(void*)</code><br>
+Execution entry point of the application. Called to execute the application once the initialization has completed successfully. The return value from main_run is used as the process exit code. This is where the application logic should be implemented.
 
 \subsection template_environment Environment
 
 \subsection template_system System
 
-\subsection template_config Config
+\subsection template_platform Platform specifics
+Android - ...
 
+iOS - ...
 
 */

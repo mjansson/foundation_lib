@@ -22,8 +22,8 @@ on this foundation library. */
 #include <foundation/platform.h>
 #include <foundation/build.h>
 
-#if defined( FOUNDATION_PLATFORM_DOXYGEN )
-#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
+#if defined(FOUNDATION_PLATFORM_DOXYGEN)
+#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct name
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
@@ -242,8 +242,10 @@ valid in conjunction with foundation event streams. Other event streams will use
 their own event identifiers with the same value, and event streams should be treated
 as separate "namespaces" for event identifiers. */
 typedef enum {
+	/*! Not an event, used a sentinel to denote no event */
+	FOUNDATIONEVENT_NOEVENT = 0,
 	/*! Application has been asked to start */
-	FOUNDATIONEVENT_START = 1,
+	FOUNDATIONEVENT_START,
 	/*! Application has been asked to terminate */
 	FOUNDATIONEVENT_TERMINATE,
 	/*! Application has been asked to pause */
@@ -314,6 +316,20 @@ typedef enum {
 	/*! Device oriented flat, face down */
 	DEVICEORIENTATION_FACEDOWN
 } device_orientation_t;
+
+/*! JSON token type */
+typedef enum {
+	/*! Invalid type */
+	JSON_UNDEFINED = 0,
+	/*! Object */
+	JSON_OBJECT,
+	/*! Array */
+	JSON_ARRAY,
+	/*! String */
+	JSON_STRING,
+	/*! Primitive */
+	JSON_PRIMITIVE
+} json_type_t;
 
 /*! Memory hint, memory allocationis persistent (retained when function returns) */
 #define MEMORY_PERSISTENT       0
@@ -510,6 +526,10 @@ typedef struct radixsort_t            radixsort_t;
 typedef struct regex_t                regex_t;
 /*! Memory ring buffer */
 typedef struct ringbuffer_t           ringbuffer_t;
+/*! SHA-256 control block */
+typedef struct sha256_t               sha256_t;
+/*! SHA-512 control block */
+typedef struct sha512_t               sha512_t;
 /*! Base stream type all stream types are based on */
 typedef struct stream_t               stream_t;
 /*! Memory buffer stream */
@@ -523,6 +543,8 @@ of stream operations */
 typedef struct stream_vtable_t        stream_vtable_t;
 /*! Thread */
 typedef struct thread_t               thread_t;
+/*! JSON token */
+typedef struct json_token_t           json_token_t;
 /*! Version declaration */
 typedef union  version_t              version_t;
 /*! Library configuration block controlling limits, functionality and memory
@@ -546,14 +568,14 @@ typedef union semaphore_native_t      semaphore_native_t;
 typedef struct semaphore_t            semaphore_t;
 #endif
 
-/*! Error handler callback which is passed the error level and reported error. It should return
+/*! Error handler which is passed the error level and reported error. It should return
 an implementation specific code which is then returned from the call to error_report
 \param level Error level
 \param error Error code
 \return Implementation specific code which is passed back as return from error_report */
-typedef int (* error_callback_fn)(error_level_t level, error_t error);
+typedef int (* error_handler_fn)(error_level_t level, error_t error);
 
-/*! Assert handler callback which is passed assert data and should do impementation specific
+/*! Assert handler which is passed assert data and should do impementation specific
 processing and return a code indicating if execution can continue or need to be aborted.
 \param context Error context
 \param condition String expressing the condition that failed
@@ -569,14 +591,22 @@ typedef int (* assert_handler_fn)(hash_t context, const char* condition, size_t 
                                   const char* file, size_t file_length, unsigned int line,
                                   const char* msg, size_t msg_length);
 
-/*! Log output callback. Called after each log message processed and output by
+/*! Log output handler. Called after each log message processed and output by
 the log functions.
 \param context Log context
 \param severity Log severity
 \param msg Log message
 \param length Length of message */
-typedef void (* log_callback_fn)(hash_t context, error_level_t severity, const char* msg,
-                                 size_t length);
+typedef void (* log_handler_fn)(hash_t context, error_level_t severity, const char* msg,
+                                size_t length);
+
+/* JSON parsing handler
+\param buffer Data buffer
+\param size Size of data buffer
+\param tokens Tokens array
+\param numtokens Number of tokens */
+typedef void (* json_handler_fn)(const char* buffer, size_t size, json_token_t* tokens,
+                                 size_t numtokens);
 
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
@@ -643,19 +673,18 @@ typedef void (* profile_read_fn)(void* data, size_t size);
 \return Implementation specific data which can be obtained through thread_result */
 typedef void* (* thread_fn)(void* arg);
 
-/*! Any function to be used in conjunction with the crash guard functionality
-of the library should have this prototype to allow the crash guard to catch
-and handle exceptions correctly
-\param arg Implementation specific argument passed to crash_guard
+/*! Any function to be used in conjunction with the exception handling
+in the library should have this prototype
+\param arg Implementation specific argument passed to exception_try
 \return Implementation specific return value which is forwarded as return value
-        from crash_guard (note that FOUNDATION_CRASH_DUMP_GENERATED is reserved) */
-typedef int (* crash_guard_fn)(void* arg);
+        from exception_try (note that FOUNDATION_EXCEPTION_CAUGHT is reserved) */
+typedef int (* exception_try_fn)(void* arg);
 
-/*! Crash callback function prototype, used to notify that an exception occurred
+/*! Exception handler function prototype, used to notify that an exception occurred
 and the process state was saved to a dump file
 \param file Dump file path
 \param length Length of file path */
-typedef void (* crash_dump_callback_fn)(const char* file, size_t length);
+typedef void (* exception_handler_fn)(const char* file, size_t length);
 
 /*! Object deallocation function prototype, used to deallocate an object of a specific type
 \param id Object handle
@@ -745,23 +774,21 @@ typedef void (* stream_finalize_fn)(stream_t* stream);
 \return Clone of stream, 0 if not supported or invalid source stream */
 typedef stream_t* (* stream_clone_fn)(stream_t* stream);
 
-/*! Identifier returned from threads and crash guards after a fatal exception (crash)
-has been caught */
-#define FOUNDATION_CRASH_DUMP_GENERATED 0x0badf00dL
+/*! Identifier returned from threads and exception_try after an exception
+has been caught (and optionally a dump generated) */
+#define FOUNDATION_EXCEPTION_CAUGHT 0x0badf00dL
 
 // COMPLEX TYPES
 
 /*! Library configuration with runtime controlled configuration parameters */
 struct foundation_config_t {
-	/*! Maximum number of concurrently allocated threads. Zero for default (128) */
-	size_t thread_max;
 	/*! Maximum number of concurrently allocated libraries. Zero for default (32) */
 	size_t library_max;
 	/*! Maximum number of concurrent allocations in memory tracker. Zero for default (32k) */
 	size_t memory_tracker_max;
 	/*! Maximum number of file system monitors. Zero for default (16) */
 	size_t fs_monitor_max;
-	/*! Size of temporary memory pool (short lived allocations). Zero for default (512KiB) */
+	/*! Size of temporary memory pool (short lived allocations). Zero for deafult (no temporary memory pool). */
 	size_t temporary_memory;
 	/*! Maximum depth of an error context. Zero for default (32) */
 	size_t error_context_depth;
@@ -813,6 +840,34 @@ struct md5_t {
 	unsigned char digest[16];
 };
 
+/*! SHA-256 state */
+struct sha256_t {
+	/*! Flag indicating the sha state has been initialized and ready for digestion of data */
+	bool init;
+	/*! Number of bytes currently buffered */
+	size_t current;
+	/*! Number of bits digested in total */
+	size_t length;
+	/*! Internal state during data digestion */
+	uint32_t state[8];
+	/*! Buffered data */
+	unsigned char buffer[64];
+};
+
+/*! SHA-512 state */
+struct sha512_t {
+	/*! Flag indicating the sha state has been initialized and ready for digestion of data */
+	bool init;
+	/*! Number of bytes currently buffered */
+	size_t current;
+	/*! Number of bits digested in total */
+	size_t length;
+	/*! Internal state during data digestion */
+	uint64_t state[8];
+	/*! Buffered data */
+	unsigned char buffer[128];
+};
+
 /*! Memory management system declaration with function pointers for all memory system
 entry points. */
 struct memory_system_t {
@@ -839,7 +894,9 @@ struct memory_tracker_t {
 	memory_statistics_fn statistics;
 	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
-	/*! Shutdown memory tracker */
+	/*! Abort memory tracker */
+	system_finalize_fn abort;
+	/*! Finalize memory tracker */
 	system_finalize_fn finalize;
 };
 
@@ -877,18 +934,18 @@ union version_t {
 };
 
 /*! Application declaration. String pointers passed in this struct must be
-constant and valid for the entire life time and execution of the application. */
+constant and valid for the entire lifetime and execution of the application. */
 struct application_t {
 	/*! Long descriptive name */
 	string_const_t name;
 	/*! Short name, must only contain [a-z][A-Z][-_.] */
 	string_const_t short_name;
-	/*! Config directory name, must only contain characters valid in a file name */
-	string_const_t config_dir;
+	/*! Optional company name, must only contain characters valid in a file name */
+	string_const_t company;
 	/*! Version declaration */
 	version_t version;
-	/*! Optional crash dump callback function */
-	crash_dump_callback_fn dump_callback;
+	/*! Optional exception handler */
+	exception_handler_fn exception_handler;
 	/*! Application flags, see APPLICATION_[*] definitions */
 	unsigned int flags;
 	/*! Instance UUID, generated by the foundation library on foundation initialization */
@@ -945,7 +1002,7 @@ struct error_context_t {
 	/*! Current depth of error context stack */
 	unsigned int depth;
 	/*! Error context stack */
-	error_frame_t frame[];
+	error_frame_t frame[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declares the base event data layout. Event structures should use the macro as first
@@ -985,7 +1042,7 @@ struct event_t {
 	Object associated with event
 	*/
 	/*! Event data payload */
-	size_t payload[];
+	size_t payload[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Event block holding a number of events for processing. Block can be of a maximum
@@ -1020,7 +1077,7 @@ struct fs_event_payload_t {
 	/*! Length of path string */
 	size_t length;
 	/*! Path string */
-	const char str[];
+	const char str[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Single node in a hash map, mapping a single key to a single data value (pointer). */
@@ -1039,7 +1096,7 @@ struct hashmap_t {
 	size_t num_nodes;
 	/*! Bucket array, represented as an array of hashmap_node_t arrays, which will be
 	    dynamically allocated and reallocated to the required sizes. */
-	hashmap_node_t* bucket[];
+	hashmap_node_t* bucket[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declare an inlined hashmap of given size */
@@ -1048,7 +1105,7 @@ struct hashmap_t {
 	size_t num_nodes; \
 	hashmap_node_t* bucket[size]
 
-/*! Hashmap of default size. Initialize with a call to 
+/*! Hashmap of default size. Initialize with a call to
 <code>hashmap_fixed_t map;
 hashmap_initialize((hashmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
 struct hashmap_fixed_t {
@@ -1078,7 +1135,7 @@ FOUNDATION_ALIGNED_STRUCT(hashtable32_t, 8) {
 	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
 	size_t capacity;
 	/*! Hash table storage as array of nodes where each node is a key-value pair. */
-	hashtable32_entry_t entries[];
+	hashtable32_entry_t entries[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Hash table, a lock free mapping of 64-bit values to 64-bit integer data. */
@@ -1086,7 +1143,7 @@ FOUNDATION_ALIGNED_STRUCT(hashtable64_t, 8) {
 	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
 	size_t capacity;
 	/*! Hash table storage as array of nodes where each node is a key-value pair. */
-	hashtable64_entry_t entries[];
+	hashtable64_entry_t entries[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Memory context stack */
@@ -1094,7 +1151,7 @@ struct memory_context_t {
 	/*! Current depth of memory context stack */
 	unsigned int depth;
 	/*! Memory context stack */
-	hash_t context[];
+	hash_t context[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declares the base object data layout. Object structures should be 8-byte align for
@@ -1148,7 +1205,7 @@ FOUNDATION_ALIGNED_STRUCT(objectmap_t, 8) {
 	/*! Bitmask for ID */
 	uint64_t mask_id;
 	/*! Slot array */
-	void* map[];
+	void* map[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! State for a child process */
@@ -1211,7 +1268,7 @@ struct regex_t {
 	/*! Capacity of the code array (number of bytes) */
 	size_t code_allocated;
 	/*! Compiled regex code */
-	uint8_t code[];
+	uint8_t code[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
 /*! Declares the base ring buffer data layout. Use the macro as first declaration in
@@ -1228,7 +1285,7 @@ a ring buffer struct:
 	size_t  offset_read; \
 	size_t offset_write; \
 	size_t buffer_size; \
-	char buffer[]
+	char buffer[FOUNDATION_FLEXIBLE_ARRAY]
 
 /*! Ring buffer, a shared memory area wrapped to a circular buffer with one read
 and one get pointer. */
@@ -1329,7 +1386,7 @@ struct beacon_t {
 	int all[8];
 	/*! Fired flag */
 	atomic32_t fired;
-#elif FOUNDATION_PLATFORM_PNACL
+#else
 	/*! Beacon mutex and event */
 	mutex_t* mutex;
 #endif
@@ -1342,7 +1399,7 @@ struct thread_t {
 	/*! Thread priority */
 	thread_priority_t priority;
 	/*! Stack size */
-    unsigned int stacksize;
+	unsigned int stacksize;
 	/*! Thread execution function */
 	thread_fn fn;
 	/*! Argument given to thread execution function */
@@ -1528,6 +1585,25 @@ struct stream_vtable_t {
 	stream_finalize_fn finalize;
 	/*! Function to clone the stream. */
 	stream_clone_fn clone;
+};
+
+/*! JSON token. The token points into the parsed data buffer using absolute offsets
+from start of buffer */
+struct json_token_t {
+	/*! Token type */
+	json_type_t type;
+	/*! Identifier string offset */
+	unsigned int id;
+	/*! Length of identifier string. 0 if no identifier string */
+	unsigned int id_length;
+	/*! Value string offset */
+	unsigned int value;
+	/*! Length of value string. 0 if no or empty value string */
+	unsigned int value_length;
+	/*! Child token index in token array. 0 if no child token */
+	unsigned int child;
+	/*! Sibling token index in token array. 0 if no sibling token */
+	unsigned int sibling;
 };
 
 #if FOUNDATION_COMPILER_CLANG

@@ -1,7 +1,6 @@
 
 HASH_FOUNDATION                         foundation
 HASH_DEFAULT                            default
-HASH_NULL                               null
 HASH_TRUE                               true
 HASH_FALSE                              false
 HASH_LOCALE                             locale
@@ -26,9 +25,10 @@ HASH_EXECUTABLE_DIRECTORY               executable_directory
 HASH_EXECUTABLE_PATH                    executable_path
 HASH_INITIAL_WORKING_DIRECTORY          initial_working_directory
 HASH_CURRENT_WORKING_DIRECTORY          current_working_directory
-HASH_HOME_DIRECTORY                     home_directory
+HASH_APPLICATION_DIRECTORY              application_directory
 HASH_TEMPORARY_DIRECTORY                temporary_directory
 HASH_SYSTEM                             system
 HASH_DEBUG                              debug
 HASH_PNACL                              pnacl
 HASH_FS                                 fs
+HASH_SOURCE                             source

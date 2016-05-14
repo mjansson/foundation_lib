@@ -73,8 +73,8 @@ _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
 		}
 		else {
 			if (prev_capacity >= _foundation_config.event_block_limit) {
-				FOUNDATION_ASSERT_FAILFORMAT_LOG(0, "Event block size over limit of %" PRIsize " bytes",
-				                                 _foundation_config.event_block_limit);
+				FOUNDATION_ASSERT_FAILFORMAT_LOG(0, "Event block size over limit of %u bytes",
+				                                 (unsigned int)_foundation_config.event_block_limit);
 				error_report(ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY);
 				goto unlock;
 			}

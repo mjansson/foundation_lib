@@ -189,7 +189,8 @@ pointers in both pointer arguments.
 \param length Length of source string
 \return Destination string in given buffer */
 FOUNDATION_API string_t
-string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src, size_t length);
+string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src,
+            size_t length);
 
 /*! Reallocate a string and fill with the given character. If the current buffer capacity
 is greater than the requested length the buffer is not reallocated. If the requested
@@ -558,7 +559,7 @@ string_equal_substr(const char* lhs, size_t lhs_length, size_t lhs_offset, const
 \return True if substrings are equal in [offset,length) range, false if not */
 FOUNDATION_API bool
 string_equal_substr_nocase(const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs,
-                    size_t rhs_length, size_t rhs_offset);
+                           size_t rhs_length, size_t rhs_offset);
 
 /*! Check if a string matches a given pattern using ? and * wildcards. For regular expression
 matching see the regex.h module.
@@ -787,6 +788,26 @@ terminated.
 FOUNDATION_API string_t
 string_from_uint128(char* str, size_t capacity, const uint128_t val);
 
+/*! Convert an 256-bit unsigned integer to a string (represented in hex format). String buffer
+should be at least 65 bytes (64 characters + terminating zero). String will be zero
+terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Integer value
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_uint256(char* str, size_t capacity, const uint256_t val);
+
+/*! Convert an 512-bit unsigned integer to a string (represented in hex format). String buffer
+should be at least 129 bytes (128 characters + terminating zero). String will be zero
+terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Integer value
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_uint512(char* str, size_t capacity, const uint512_t val);
+
 /*! Convert a float to a string, with optional fixed notation, field width, precision and
 fill character. String will be zero terminated.
 \param str String buffer
@@ -859,6 +880,22 @@ call to one of these functions.
 \return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_uint128_static(const uint128_t val);
+
+/*! Convert an 256-bit unsigned integer into a thread-local conversion buffer. The
+buffer is shared between all string_from_*_static functions and only valid until next
+call to one of these functions.
+\param val Integer value
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_uint256_static(const uint256_t val);
+
+/*! Convert an 512-bit unsigned integer into a thread-local conversion buffer. The
+buffer is shared between all string_from_*_static functions and only valid until next
+call to one of these functions.
+\param val Integer value
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_uint512_static(const uint512_t val);
 
 /*! Convert a float into a thread-local conversion buffer, with optional fixed notation,
 field width, precision and fill character. The buffer is shared between all
@@ -993,30 +1030,55 @@ string_thread_buffer(void);
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_null(void) {
-  return (string_const_t) { 0, 0 };
+#ifdef __cplusplus
+    const string_const_t s = {0, 0};
+    return s;
+#else	
+	return (string_const_t){0, 0};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_empty(void) {
-  return (string_const_t) { STRING_EMPTY, 0 };
+#ifdef __cplusplus
+    const string_const_t s = {STRING_EMPTY, 0};
+    return s;
+#else	
+	return (string_const_t){STRING_EMPTY, 0};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_t
 string(char* str, size_t length) {
-  return (string_t) { str, length };
+#ifdef __cplusplus
+    const string_t s = {str, length};
+    return s;
+#else	
+	return (string_t){str, length};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_const(const char* str, size_t length) {
-  return (string_const_t) { str, length };
+#ifdef __cplusplus
+    const string_const_t s = {str, length};
+    return s;
+#else	
+	return (string_const_t){str, length};
+#endif
 }
 
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t
 string_to_const(string_t str) {
-  return (string_const_t) { str.str, str.length };
+#ifdef __cplusplus
+    const string_const_t s = {str.str, str.length};
+    return s;
+#else	
+	return (string_const_t){str.str, str.length};
+#endif
 }
 

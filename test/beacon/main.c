@@ -19,9 +19,9 @@ test_beacon_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation beacon tests"));
 	app.short_name = string_const(STRING_CONST("test_beacon"));
-	app.config_dir = string_const(STRING_CONST("test_beacon"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -81,6 +81,8 @@ DECLARE_TEST(beacon, multiwait) {
 	stream_pipe_t pipe;
 	char data[8] = {0};
 #endif
+	bool got_signal[3] = {false, false, false};
+	int slot;
 
 	beacon[0] = beacon_allocate();
 	beacon[1] = beacon_allocate();
@@ -134,11 +136,27 @@ DECLARE_TEST(beacon, multiwait) {
 	beacon_fire(beacon[1]);
 	beacon_fire(beacon[0]);
 
-	EXPECT_INTEQ(beacon_try_wait(beacon[0], 0), 0);
-	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 1);
+	slot = beacon_try_wait(beacon[0], 0);
+	EXPECT_INTGE(slot, 0);
+	EXPECT_INTLE(slot, 2);
+	got_signal[slot] = true;
+
+	slot = beacon_try_wait(beacon[0], 100);
+	EXPECT_INTGE(slot, 0);
+	EXPECT_INTLE(slot, 2);
+	got_signal[slot] = true;
+
 	EXPECT_INTEQ(beacon_try_wait(beacon[1], 0), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
-	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 2);
+
+	slot = beacon_try_wait(beacon[0], 100);
+	EXPECT_INTGE(slot, 0);
+	EXPECT_INTLE(slot, 2);
+	got_signal[slot] = true;
+
+	EXPECT_TRUE(got_signal[0]);
+	EXPECT_TRUE(got_signal[1]);
+	EXPECT_TRUE(got_signal[2]);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	semaphore_try_wait(&semaphore, 0);

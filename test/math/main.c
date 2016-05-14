@@ -24,9 +24,9 @@ test_math_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation math tests"));
 	app.short_name = string_const(STRING_CONST("test_math"));
-	app.config_dir = string_const(STRING_CONST("test_math"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -333,7 +333,8 @@ DECLARE_TEST(math, utility) {
 
 	EXPECT_REALZERO(math_mod(REAL_ZERO, REAL_ONE));
 	EXPECT_REALZERO(math_mod(REAL_ONE, REAL_ONE));
-	EXPECT_REALZERO(math_mod(REAL_MAX, REAL_ONE));
+	EXPECT_REALZERO(math_mod(REAL_C(4.0), REAL_ONE));
+	EXPECT_REALZERO(math_mod(REAL_C(1023.0), REAL_ONE));
 	EXPECT_REALONE(math_mod(REAL_THREE, REAL_TWO));
 	EXPECT_REALONE(-math_mod(-REAL_THREE, -REAL_TWO));
 

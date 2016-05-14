@@ -13,16 +13,18 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
+#define TEMPORARY_MEMORY_SIZE 256 * 1024
+
 static application_t _global_app;
 
 static application_t
 test_app_application(void) {
-	_global_app.name = string_const(STRING_CONST("Foundation library test suite"));
+	_global_app.name = string_const(STRING_CONST("Foundation application tests"));
 	_global_app.short_name = string_const(STRING_CONST("test_app"));
-	_global_app.config_dir = string_const(STRING_CONST("test_app"));
+	_global_app.company = string_const(STRING_CONST("Rampant Pixels"));
 	_global_app.version = foundation_version();
 	_global_app.flags = APPLICATION_UTILITY;
-	_global_app.dump_callback = test_crash_handler;
+	_global_app.exception_handler = test_exception_handler;
 	return _global_app;
 }
 
@@ -35,7 +37,7 @@ static foundation_config_t
 test_app_config(void) {
 	foundation_config_t config;
 	memset(&config, 0, sizeof(config));
-	config.temporary_memory = 128 * 1024;
+	config.temporary_memory = TEMPORARY_MEMORY_SIZE;
 	return config;
 }
 
@@ -49,15 +51,17 @@ test_app_finalize(void) {
 }
 
 DECLARE_TEST(app, environment) {
-	EXPECT_CONSTSTRINGEQ(environment_application()->name, _global_app.name);
+	const application_t decl = test_app_application();
 #if !BUILD_MONOLITHIC
-	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, _global_app.short_name);
-	EXPECT_CONSTSTRINGEQ(environment_application()->config_dir, _global_app.config_dir);
+	EXPECT_CONSTSTRINGEQ(environment_application()->name, decl.name);
+	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, decl.short_name);
 #endif
+	EXPECT_CONSTSTRINGEQ(environment_application()->company, decl.company);
 	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
-	                          _global_app.version.version));
+	                          decl.version.version));
 	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);
-	EXPECT_EQ(environment_application()->dump_callback, test_crash_handler);
+	EXPECT_EQ(environment_application()->exception_handler, test_exception_handler);
+
 	return 0;
 }
 
@@ -86,8 +90,8 @@ memory_thread(void* arg) {
 	}
 
 	diff = (uintptr_t)pointer_diff(max, min);
-	EXPECT_SIZELT(diff, 128 * 1024);
-	EXPECT_SIZEGE(diff, 32);
+	EXPECT_SIZELT(diff, TEMPORARY_MEMORY_SIZE);
+	EXPECT_SIZEGE(diff, 64);
 
 	return 0;
 }
@@ -121,6 +125,7 @@ DECLARE_TEST(app, memory) {
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
 	newstats = memory_statistics();
+	EXPECT_SIZEEQ(oldstats.allocations_current, newstats.allocations_current);
 	EXPECT_SIZEEQ(oldstats.allocated_current, newstats.allocated_current);
 #endif
 

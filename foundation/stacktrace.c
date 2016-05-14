@@ -15,7 +15,6 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#  include <dbghelp.h>
 #  include <psapi.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
@@ -37,9 +36,6 @@ void __attribute__((optimize("O0"))) _gcc_barrier_function(uint32_t fp) { FOUNDA
 
 #  if FOUNDATION_COMPILER_MSVC
 #    pragma optimize( "", off )
-#  elif FOUNDATION_COMPILER_CLANG
-#    undef WINAPI
-#    define WINAPI STDCALL
 #  endif
 
 typedef BOOL (WINAPI* EnumProcessesFn)(DWORD* lpidProcess, DWORD cb, DWORD* cbNeeded);
@@ -94,12 +90,11 @@ static SymFunctionTableAccess64Fn  CallSymFunctionTableAccess64;
 static StackWalk64Fn               CallStackWalk64;
 static RtlCaptureStackBackTraceFn  CallRtlCaptureStackBackTrace;
 
-#  define USE_CAPTURESTACKBACKTRACE 1
-
 #  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
-LONG WINAPI
+static LONG WINAPI
 _stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
+	FOUNDATION_UNUSED(pointers);
 	log_error(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred in stack trace!"));
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -222,10 +217,10 @@ _load_process_modules() {
 #if FOUNDATION_PLATFORM_ANDROID
 
 struct android_trace_t {
-	void**        trace;
-	unsigned int  cur_depth;
-	unsigned int  max_depth;
-	unsigned int  skip_frames;
+	void**  trace;
+	size_t  cur_depth;
+	size_t  max_depth;
+	size_t  skip_frames;
 };
 
 struct android_module_t {
@@ -305,40 +300,21 @@ _load_process_modules(void) {
 	}
 }
 
-#if FOUNDATION_COMPILER_CLANG && FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64
-
-extern int
-_Unwind_VRS_Get(struct _Unwind_Context* context, int regclass, uint32_t regno, int representation,
-                void* valuep);
-
-uintptr_t
-_Unwind_GetGR(struct _Unwind_Context* ctx, int index) {
-#define _UVRSC_CORE 0    // integer register
-#define _UVRSD_UINT32 0
-	uint32_t val;
-	_Unwind_VRS_Get(ctx, _UVRSC_CORE, index, _UVRSD_UINT32, &val);
-	return val;
-}
-
-uintptr_t
-_Unwind_GetIP(struct _Unwind_Context* ctx) {
-#define UNWIND_IP_REG 15
-	return _Unwind_GetGR(ctx, UNWIND_IP_REG) & ~1;   // thumb bit
-}
-
+#ifndef _URC_NORMAL_STOP
+#  define _URC_NORMAL_STOP 4
 #endif
 
 static _Unwind_Reason_Code
 unwind_stack(struct _Unwind_Context* context, void* arg) {
 	android_trace_t* trace = arg;
-	void* ip = (void*)_Unwind_GetIP(context);
+	void* ip = (void*)(uintptr_t)_Unwind_GetIP(context);
 	if (trace->skip_frames)
 		--trace->skip_frames;
 	else if (ip) {
 		if (trace->cur_depth < trace->max_depth)
 			trace->trace[trace->cur_depth++] = ip;
 		else
-			return 4;//_URC_NORMAL_STOP;
+			return _URC_NORMAL_STOP;
 	}
 	return _URC_NO_REASON;
 }
@@ -349,7 +325,10 @@ static bool _stackwalk_initialized = false;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 static void* _stacktrace_dbghelp_dll;
-static void* _stacktrace_ntdll_dll;
+static void* _stacktrace_kernel_dll;
+
+typedef VOID (WINAPI* RtlCaptureContextFn)(PCONTEXT);
+static RtlCaptureContextFn _RtlCaptureContext;
 #endif
 
 static bool
@@ -360,26 +339,28 @@ _initialize_stackwalker(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		if (!_stacktrace_dbghelp_dll)
-			_stacktrace_dbghelp_dll = LoadLibraryA("DBGHELP.DLL");
-		CallStackWalk64 = _stacktrace_dbghelp_dll ?
-		                  (StackWalk64Fn)GetProcAddress(_stacktrace_dbghelp_dll, "StackWalk64") :
-		                  0;
+			_stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
+		CallStackWalk64 = (StackWalk64Fn)GetProcAddress(_stacktrace_dbghelp_dll, "StackWalk64");
 		if (!CallStackWalk64) {
 			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
-			         STRING_CONST("Unable to load dbghelp DLL for StackWalk64"));
+			         STRING_CONST("Unable to get StackWalk64 symbol"));
 			return false;
 		}
 
-		if (!_stacktrace_ntdll_dll)
-			_stacktrace_ntdll_dll = LoadLibraryA("NTDLL.DLL");
-		CallRtlCaptureStackBackTrace = _stacktrace_ntdll_dll ?
-		                               (RtlCaptureStackBackTraceFn)GetProcAddress(_stacktrace_ntdll_dll, "RtlCaptureStackBackTrace") :
-		                               0;
+		if (!_stacktrace_kernel_dll)
+			_stacktrace_kernel_dll = LoadLibraryA("kernel32.dll");
+		CallRtlCaptureStackBackTrace = (RtlCaptureStackBackTraceFn)GetProcAddress(_stacktrace_kernel_dll,
+		                               "RtlCaptureStackBackTrace");
+		if (!CallRtlCaptureStackBackTrace)
+			CallRtlCaptureStackBackTrace = (RtlCaptureStackBackTraceFn)GetProcAddress(_stacktrace_kernel_dll,
+			                               "CaptureStackBackTrace");
 		if (!CallRtlCaptureStackBackTrace) {
 			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
-			         STRING_CONST("Unable to load ntdll DLL for RtlCaptureStackBackTrace"));
+			         STRING_CONST("Unable to load get RtlCaptureStackBackTrace symbol"));
 			return false;
 		}
+		_RtlCaptureContext = (RtlCaptureContextFn)GetProcAddress(_stacktrace_kernel_dll,
+		                                                         "RtlCaptureContext");
 	}
 #endif
 
@@ -390,12 +371,12 @@ _initialize_stackwalker(void) {
 static void
 _finalize_stackwalker(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	if (_stacktrace_ntdll_dll)
-		FreeLibrary(_stacktrace_ntdll_dll);
-	if (_stacktrace_ntdll_dll)
-		FreeLibrary(_stacktrace_ntdll_dll);
+	if (_stacktrace_kernel_dll)
+		FreeLibrary(_stacktrace_kernel_dll);
+	if (_stacktrace_dbghelp_dll)
+		FreeLibrary(_stacktrace_dbghelp_dll);
 	_stacktrace_dbghelp_dll = 0;
-	_stacktrace_ntdll_dll = 0;
+	_stacktrace_kernel_dll = 0;
 #endif
 	_stackwalk_initialized = false;
 }
@@ -420,51 +401,18 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 		}
 	}
 
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL )
+#if FOUNDATION_PLATFORM_WINDOWS
 	// Add 1 skip frame for this function call
 	++skip_frames;
-#  if USE_CAPTURESTACKBACKTRACE
 	if (CallRtlCaptureStackBackTrace) {
 		num_frames = CallRtlCaptureStackBackTrace((DWORD)skip_frames, (DWORD)max_depth, trace, 0);
 		if (num_frames < max_depth)
 			memset(trace + num_frames, 0, sizeof(void*) * (max_depth - num_frames));
 	}
-	else
-#  endif
-	{
-#  if FOUNDATION_ARCH_X86_64
-		// Raise an exception so helper has access to context record.
-		__try {
-			RaiseException(0,  // Application-defined exception code.
-			               0,  // Zero indicates continuable exception.
-			               0,  // Number of arguments in args array (ignored if args is null)
-			               0); // Array of arguments
-		}
-		__except (_capture_stack_trace_helper(trace, max_depth, skip_frames,
-		                                      (GetExceptionInformation())->ContextRecord)) {
-		}
-#  else
-		// Use a bit of inline assembly to capture the information relevant to stack walking which is
-		// basically EIP and EBP.
+	else if (_RtlCaptureContext) {
 		CONTEXT context;
-		memset(&context, 0, sizeof(CONTEXT));
-		context.ContextFlags = CONTEXT_FULL;
-
-		log_warn(0, WARNING_DEPRECATED,
-		         STRING_CONST("********** REIMPLEMENT FALLBACK STACKTRACE **********"));
-		/* Use a fake function call to pop the return address and retrieve EIP.*/
-		__asm {
-			call FakeStackTraceCall
-			FakeStackTraceCall:
-			pop eax
-			mov context.Eip, eax
-			mov context.Ebp, ebp
-			mov context.Esp, esp
-		}
-
-		// Capture the back trace.
+		_RtlCaptureContext(&context);
 		_capture_stack_trace_helper(trace, max_depth, skip_frames, &context);
-#  endif
 	}
 
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -550,7 +498,7 @@ _initialize_symbol_resolve() {
 		void* dll;
 
 		if (!_stacktrace_psapi_dll)
-			_stacktrace_psapi_dll = LoadLibraryA("PSAPI.DLL");
+			_stacktrace_psapi_dll = LoadLibraryA("psapi.dll");
 		if (!_stacktrace_psapi_dll)
 			return _symbol_resolve_initialized;
 
@@ -566,7 +514,7 @@ _initialize_symbol_resolve() {
 			return _symbol_resolve_initialized;
 
 		if (!_stacktrace_dbghelp_dll)
-			_stacktrace_dbghelp_dll = LoadLibraryA("DBGHELP.DLL");
+			_stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
 		if (!_stacktrace_dbghelp_dll)
 			return _symbol_resolve_initialized;
 
@@ -664,15 +612,15 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			break;
 
 		// Initialize symbol.
-		symbol = (PIMAGEHLP_SYMBOL64)symbol_buffer;
-		memset(symbol, 0, sizeof(symbol_buffer));
+		memset(symbol_buffer, 0, sizeof(symbol_buffer));
+		symbol = (void*)symbol_buffer;
 		symbol->SizeOfStruct = sizeof(symbol_buffer);
 		symbol->MaxNameLength = 512;
 
 		// Get symbol from address.
 		if (CallSymGetSymFromAddr64 &&
-		        CallSymGetSymFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement64,
-		                                symbol)) {
+		        CallSymGetSymFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]),
+		                                &displacement64, symbol)) {
 			size_t offset = 0;
 			while ((offset < sizeof(symbol->Name)) && (symbol->Name[offset] < 32))
 				++offset;
@@ -683,8 +631,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 		memset(&line64, 0, sizeof(line64));
 		line64.SizeOfStruct = sizeof(line64);
 		if (CallSymGetLineFromAddr64 &&
-		        CallSymGetLineFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]), &displacement,
-		                                 &line64)) {
+		        CallSymGetLineFromAddr64(process_handle, (uint64_t)((uintptr_t)frames[iaddr]),
+		                                 &displacement, &line64)) {
 			file_name = line64.FileName;
 			line_number = line64.LineNumber;
 		}
@@ -704,8 +652,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 			resolved.str[resolved.length++] = '\n';
 		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
 		                     STRING_CONST("[0x%" PRIfixPTR "] %s (%s:%d +%d bytes) [in %s]"),
-		                     frames[iaddr], function_name, file_name, line_number,
-		                     displacement, module_name);
+		                     (uintptr_t)frames[iaddr], function_name, file_name, line_number,
+		                     (int)displacement, module_name);
 		resolved.length += line.length;
 
 		if (string_equal(function_name, string_length(function_name), STRING_CONST("main")))

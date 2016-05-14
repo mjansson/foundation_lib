@@ -52,7 +52,7 @@ atomic_load64(const atomic64_t* src);
 \param src   Value
 \return      Current value */
 static FOUNDATION_FORCEINLINE void*
-atomic_loadptr(atomicptr_t* src);
+atomic_load_ptr(atomicptr_t* src);
 
 /*! Atomically store 32 bit value
 \param dst   Target
@@ -70,7 +70,7 @@ atomic_store64(atomic64_t* dst, int64_t val);
 \param dst   Target
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
-atomic_storeptr(atomicptr_t* dst, void* val);
+atomic_store_ptr(atomicptr_t* dst, void* val);
 
 /*! Atomically add to the value of the 32 bit integer and returns its new value
 \param val   Value to change
@@ -187,7 +187,7 @@ atomic_thread_fence_sequentially_consistent(void);
 
 // Implementations
 
-#if FOUNDATION_ARCH_MIPS || (FOUNDATION_PLATFORM_LINUX_RASPBERRYPI && FOUNDATION_COMPILER_GCC && (FOUNDATIN_GCC_VERSION <= 40800))
+#if FOUNDATION_ARCH_MIPS || (FOUNDATION_PLATFORM_LINUX_RASPBERRYPI && FOUNDATION_COMPILER_GCC && (FOUNDATION_GCC_VERSION <= 40800))
 #  define FOUNDATION_MUTEX_64BIT_ATOMIC 1
 FOUNDATION_API int64_t __foundation_sync_fetch_and_add_8(int64_t* val, int64_t add);
 FOUNDATION_API int64_t __foundation_sync_add_and_fetch_8(int64_t* val, int64_t add);
@@ -230,7 +230,7 @@ atomic_load64(const atomic64_t* val) {
 }
 
 static FOUNDATION_FORCEINLINE void*
-atomic_loadptr(atomicptr_t* val) {
+atomic_load_ptr(atomicptr_t* val) {
 	return val->nonatomic;
 }
 
@@ -243,6 +243,12 @@ static FOUNDATION_FORCEINLINE void
 atomic_store64(atomic64_t* dst, int64_t val) {
 #if FOUNDATION_ARCH_X86
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+#    if FOUNDATION_COMPILER_MSVC
+#      pragma warning(disable : 4731)
+	__asm {
+		push ebx;
+	}
+#    endif
 	__asm {
 		mov esi, dst;
 		mov ebx, dword ptr val;
@@ -251,6 +257,11 @@ atomic_store64(atomic64_t* dst, int64_t val) {
 		cmpxchg8b [esi];
 		jne retry;
 	}
+#    if FOUNDATION_COMPILER_MSVC
+	__asm {
+		pop ebx;
+	}
+#    endif
 #  else
 	int64_t expected = dst->nonatomic;
 #    if FOUNDATION_COMPILER_GCC
@@ -269,7 +280,7 @@ atomic_store64(atomic64_t* dst, int64_t val) {
 }
 
 static FOUNDATION_FORCEINLINE void
-atomic_storeptr(atomicptr_t* dst, void* val) {
+atomic_store_ptr(atomicptr_t* dst, void* val) {
 	dst->nonatomic = val;
 }
 
@@ -414,7 +425,7 @@ static FOUNDATION_FORCEINLINE void atomic_thread_fence_sequentially_consistent(v
 #endif
 
 
-#if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_MSVC
 
 #include <intrin.h>
 
@@ -464,3 +475,7 @@ _atomic_thread_fence_sequentially_consistent(void);
 #  endif
 
 #endif
+
+//Old deprecated names
+#define atomic_loadptr atomic_load_ptr
+#define atomic_storeptr atomic_store_ptr

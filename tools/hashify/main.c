@@ -77,7 +77,6 @@ main_initialize(void) {
 	memset(&application, 0, sizeof(application));
 	application.name = string_const(STRING_CONST("hashify"));
 	application.short_name = string_const(STRING_CONST("hashify"));
-	application.config_dir = string_const(STRING_CONST("hashify"));
 	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix(false);
@@ -85,8 +84,6 @@ main_initialize(void) {
 
 	if ((ret = foundation_initialize(memory_system_malloc(), application, config)) < 0)
 		return ret;
-
-	config_set_int(HASH_FOUNDATION, HASH_TEMPORARY_MEMORY, 32 * 1024);
 
 	return 0;
 }

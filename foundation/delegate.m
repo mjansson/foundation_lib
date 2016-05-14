@@ -67,10 +67,12 @@ static volatile bool _delegate_received_terminate = false;
 	name = string_merge_varg(0, 0, 0, true, STRING_ARGS(aname), STRING_CONST("-"),
 	                         STRING_ARGS(vstr), nullptr);
 
-	if (app->dump_callback)
-		crash_guard_set(app->dump_callback, STRING_ARGS(name));
-
-	crash_guard(main_run, 0, app->dump_callback, STRING_ARGS(name));
+	if (app->exception_handler)
+		exception_set_handler(app->exception_handler, STRING_ARGS(name));
+	if (app->exception_handler && !system_debugger_attached())
+		exception_try(main_run, 0, app->exception_handler, STRING_ARGS(name));
+	else
+		main_run(0);
 
 	string_deallocate(name.str);
 
@@ -243,13 +245,13 @@ delegate_uiwindow(void) {
 		CGRect flash_frame = [(__bridge UIWindow*)delegate_uiwindow() frame];
 		flash_frame.size.height = 60;
 
-		float duration = 1.0f;
+		double duration = 1.0;
 		UIView* flash = [[UIView alloc] initWithFrame:flash_frame];
 		flash.backgroundColor = [UIColor redColor];
 		[(__bridge UIWindow*)delegate_uiwindow() addSubview:flash];
 
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-		(int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)), dispatch_get_main_queue(), ^ {
+			(int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 			[flash removeFromSuperview];
 		});
 

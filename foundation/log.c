@@ -18,9 +18,10 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
-#  define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
-#  define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
-__declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
+#  if BUILD_ENABLE_LOG && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG)
+#    define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
+#    define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
+#  endif
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -41,13 +42,13 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
-static bool             _log_stdout           = true;
-static bool             _log_prefix           = true;
-static log_callback_fn  _log_callback;
-static hashtable64_t*   _log_suppress;
-static error_level_t    _log_suppress_default;
+static bool           _log_stdout = true;
+static bool           _log_prefix = true;
+static log_handler_fn _log_handler;
+static hashtable64_t* _log_suppress;
+static error_level_t  _log_suppress_default;
 
-#define LOG_WARNING_NAMES 9
+#define LOG_WARNING_NAMES 10
 static char _log_warning_name[LOG_WARNING_NAMES][18] = {
 	"performance",
 	"deprecated",
@@ -57,7 +58,8 @@ static char _log_warning_name[LOG_WARNING_NAMES][18] = {
 	"suspicious",
 	"system call fail",
 	"deadlock",
-	"script"
+	"script",
+	"resource"
 };
 
 #define LOG_ERROR_NAMES 16
@@ -179,8 +181,8 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 				fprintf(std, "%s", buffer);
 #endif
 
-			if (_log_callback)
-				_log_callback(context, severity, buffer, (unsigned int)(endl - 1));
+			if (_log_handler)
+				_log_handler(context, severity, buffer, (unsigned int)(endl - 1));
 
 			break;
 		}
@@ -341,14 +343,19 @@ log_enable_stdout(bool enable) {
 	_log_stdout = enable;
 }
 
-log_callback_fn
-log_callback(void) {
-	return _log_callback;
+bool
+log_stdout(void) {
+	return _log_stdout;
+}
+
+log_handler_fn
+log_handler(void) {
+	return _log_handler;
 }
 
 void
-log_set_callback(log_callback_fn callback) {
-	_log_callback = callback;
+log_set_handler(log_handler_fn handler) {
+	_log_handler = handler;
 }
 
 void

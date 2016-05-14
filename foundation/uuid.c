@@ -155,23 +155,27 @@ uuid_generate_name(const uuid_t ns, const char* name, size_t length) {
 
 #include <stdio.h>
 
-#if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
-#  define snprintf _snprintf
+#if FOUNDATION_PLATFORM_WINDOWS
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
+#    define snprintf(p, s, ...) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
+#    define sscanf sscanf_s
+#  endif
 #endif
 
 string_t
 string_from_uuid(char* buffer, size_t size, const uuid_t val) {
 	int len;
 	uuid_convert_t convert;
+	if (!size)
+		return (string_t) {buffer, 0};
 	convert.uuid = val;
 	len = snprintf(buffer, size, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", convert.raw.data1,
 	               convert.raw.data2, convert.raw.data3, convert.raw.data4[0], convert.raw.data4[1],
 	               convert.raw.data4[2], convert.raw.data4[3], convert.raw.data4[4], convert.raw.data4[5],
 	               convert.raw.data4[6], convert.raw.data4[7]);
 	if ((len < 0) || ((unsigned int)len > size)) {
-		if (size)
-			buffer[ size - 1 ] = 0;
-		return (string_t) {buffer, size ? (size - 1) : 0};
+		buffer[ size - 1 ] = 0;
+		return (string_t) {buffer, size - 1};
 	}
 	return (string_t) {buffer, (unsigned int)len};
 }

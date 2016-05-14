@@ -19,9 +19,9 @@ test_array_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation array tests"));
 	app.short_name = string_const(STRING_CONST("test_array"));
-	app.config_dir = string_const(STRING_CONST("test_array"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -158,11 +158,11 @@ DECLARE_TEST(array, allocation) {
 	}
 	// Deallocate
 	{
-		array_deallocate(array_ptr);
-		array_deallocate(array_int);
-		array_deallocate(array_obj);
-		array_deallocate(array_basic);
-		array_deallocate(array_combine);
+		EXPECT_EQ(array_deallocate(array_ptr), nullptr);
+		EXPECT_EQ(array_deallocate(array_int), nullptr);
+		EXPECT_EQ(array_deallocate(array_obj), nullptr);
+		EXPECT_EQ(array_deallocate(array_basic), nullptr);
+		EXPECT_EQ(array_deallocate(array_combine), nullptr);
 
 		EXPECT_EQ(array_size(array_ptr), 0);
 		EXPECT_EQ(array_size(array_int), 0);
@@ -428,11 +428,11 @@ DECLARE_TEST(array, copy) {
 		array_push(array_combine, combine);
 	}
 
-	array_copy(copy_ptr, array_ptr);
-	array_copy(copy_int, array_int);
-	array_copy(copy_obj, array_obj);
-	array_copy(copy_basic, array_basic);
-	array_copy(copy_combine, array_combine);
+	EXPECT_EQ(array_copy(copy_ptr, array_ptr), array_size(array_ptr));
+	EXPECT_EQ(array_copy(copy_int, array_int), array_size(array_int));
+	EXPECT_EQ(array_copy(copy_obj, array_obj), array_size(array_obj));
+	EXPECT_EQ(array_copy(copy_basic, array_basic), array_size(array_basic));
+	EXPECT_EQ(array_copy(copy_combine, array_combine), array_size(array_combine));
 
 	EXPECT_EQ(array_size(copy_ptr), array_size(array_ptr));
 	EXPECT_EQ(array_size(copy_int), array_size(array_ptr));
@@ -448,11 +448,11 @@ DECLARE_TEST(array, copy) {
 		EXPECT_EQ(memcmp(copy_combine + i, array_combine + i, sizeof(*copy_combine)), 0);
 	}
 
-	array_copy(copy_ptr, array_ptr);
-	array_copy(copy_int, array_int);
-	array_copy(copy_obj, array_obj);
-	array_copy(copy_basic, array_basic);
-	array_copy(copy_combine, array_combine);
+	EXPECT_EQ(array_copy(copy_ptr, array_ptr), array_size(array_ptr));
+	EXPECT_EQ(array_copy(copy_int, array_int), array_size(array_int));
+	EXPECT_EQ(array_copy(copy_obj, array_obj), array_size(array_obj));
+	EXPECT_EQ(array_copy(copy_basic, array_basic), array_size(array_basic));
+	EXPECT_EQ(array_copy(copy_combine, array_combine), array_size(array_combine));
 
 	EXPECT_EQ(array_size(copy_ptr), array_size(array_ptr));
 	EXPECT_EQ(array_size(copy_int), array_size(array_ptr));
@@ -584,11 +584,11 @@ DECLARE_TEST(array, pushpop) {
 		combine.ptrval = 0;
 		combine.unionval.realval = REAL_C(1.0);
 
-		array_push(array_ptr, 0);
-		array_push(array_int, 0);
-		array_push(array_obj, 0);
-		array_push(array_basic, basic);
-		array_push(array_combine, combine);
+		EXPECT_NE(array_push(array_ptr, 0), nullptr);
+		EXPECT_NE(array_push(array_int, 0), nullptr);
+		EXPECT_NE(array_push(array_obj, 0), nullptr);
+		EXPECT_NE(array_push(array_basic, basic), nullptr);
+		EXPECT_NE(array_push(array_combine, combine), nullptr);
 
 		EXPECT_EQ(array_size(array_ptr), 1);
 		EXPECT_EQ(array_size(array_int), 1);

@@ -19,9 +19,9 @@ Safe inclusion of Android specific headers. Application glue entry and exit
 functions.
 
 The Android implementation of foundation library is built on the Android NDK
-and requires the android_native_app_glue and cpufeatures NDK libraries, which will be
-automatically compiled and linked by the provided ninja build system. If you use
-another build system these libraries must be included in the build. */
+and requires the android_native_app_glue and cpu-features NDK libraries, which will be
+automatically included into the foundation library sources. If you use
+another build system these libraries must NOT be included in the build. */
 
 #include <foundation/platform.h>
 
@@ -30,6 +30,22 @@ another build system these libraries must be included in the build. */
 #if FOUNDATION_COMPILER_GCC
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  if __has_warning("-Wsign-conversion")
+#    pragma clang diagnostic ignored "-Wsign-conversion"
+#  endif
+#  if __has_warning("-Wundef")
+#    pragma clang diagnostic ignored "-Wundef"
+#  endif
+#  if __has_warning("-Wpedantic")
+#    pragma clang diagnostic ignored "-Wpedantic"
+#  endif
+#  if __has_warning("-Wreserved-id-macro")
+#    pragma clang diagnostic ignored "-Wreserved-id-macro"
+#  endif
 #endif
 
 #include <stdarg.h>
@@ -41,6 +57,10 @@ another build system these libraries must be included in the build. */
 
 #if FOUNDATION_COMPILER_GCC
 #  pragma GCC diagnostic pop
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
 #endif
 
 /*! Entry point for android native applications. Called internally at process launch,

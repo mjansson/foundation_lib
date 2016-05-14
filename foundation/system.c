@@ -26,6 +26,7 @@
 
 #if FOUNDATION_PLATFORM_PNACL
 #  include <foundation/pnacl.h>
+extern char* strerror_r(int __errnum, char* __buf, size_t __buflen);
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -146,7 +147,7 @@ system_byteorder() {
 
 #include <foundation/windows.h>
 
-object_t _system_library_iphlpapi;
+static object_t _system_library_iphlpapi;
 
 int
 _system_initialize(void) {
@@ -184,7 +185,8 @@ system_error_message(int code) {
 
 	errmsg = _system_buffer();
 	errmsg[0] = 0;
-	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, (unsigned int)code & 0xBFFFFFFF,
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0,
+	               (unsigned int)code & 0xBFFFFFFF,
 	               0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, SYSTEM_BUFFER_SIZE,
 	               0);
 	return string_strip(errmsg, string_length(errmsg), STRING_CONST(STRING_WHITESPACE));
@@ -195,13 +197,16 @@ system_hostname(char* buffer, size_t capacity) {
 	DWORD size = (DWORD)capacity;
 	if (!GetComputerNameA(buffer, &size))
 		return string_copy(buffer, capacity, STRING_CONST("unknown"));
-	return (string_t){ buffer, size };
+	return (string_t) { buffer, size };
 }
 
 uint64_t
 system_hostid(void) {
 	/*lint --e{970} */
-	unsigned char hostid[8] = {0};
+	union {
+		unsigned char hostid[8];
+		uint64_t val;
+	} hostid;
 	IP_ADAPTER_INFO adapter_info[16];
 	unsigned int status, i, j;
 	unsigned long buffer_length;
@@ -212,22 +217,23 @@ system_hostid(void) {
 	if (_system_library_iphlpapi) {
 		/*lint -e{611} */
 		fn_get_adapters_info = (DWORD (STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(
-		                       _system_library_iphlpapi, STRING_CONST("GetAdaptersInfo"));
+		                           _system_library_iphlpapi, STRING_CONST("GetAdaptersInfo"));
 	}
 	if (!fn_get_adapters_info)
 		return 0;
 
+	hostid.val = 0;
 	buffer_length = sizeof(adapter_info);    // Save memory size of buffer
 	memset(adapter_info, 0, sizeof(adapter_info));
 	status = fn_get_adapters_info(adapter_info, &buffer_length);
 	if (status == ERROR_SUCCESS) for (i = 0; i < 16; ++i) {
 			if (adapter_info[i].Type == MIB_IF_TYPE_ETHERNET) {
 				for (j = 0; j < 6; ++j)
-					hostid[5 - j] = adapter_info[i].Address[j];
+					hostid.hostid[5 - j] = adapter_info[i].Address[j];
 				break;
 			}
 		}
-	return *(uint64_t*)hostid;
+	return hostid.val;
 }
 
 string_t
@@ -235,7 +241,7 @@ system_username(char* buffer, size_t capacity) {
 	DWORD size = (DWORD)capacity;
 	if (!GetUserNameA(buffer, &size))
 		return string_copy(buffer, capacity, STRING_CONST("unknown"));
-	return (string_t){ buffer, size };
+	return (string_t) { buffer, size };
 }
 
 size_t
@@ -269,18 +275,23 @@ typedef int (STDCALL* fnGetLocaleInfoEx)(LPCWSTR, LCTYPE, LPWSTR, int);
 static uint32_t
 _system_user_locale(void) {
 	fnGetLocaleInfoEx get_locale_info = (fnGetLocaleInfoEx)GetProcAddress(
-	                                      GetModuleHandleA("kernel32.dll"), "GetLocaleInfoEx");
+	                                        GetModuleHandleA("kernel32.dll"), "GetLocaleInfoEx");
 	if (get_locale_info) {
 		wchar_t locale_sname[128] = {0};
-		char locale_buffer[8] = {0};
+		union {
+			char buffer[8];
+			uint32_t value;
+		} locale_data;
 		string_t locale_string;
-		if (get_locale_info(0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname, 32) > 0) {
-			locale_string = string_convert_utf16(locale_buffer, 8, (uint16_t*)locale_sname, wstring_length(locale_sname));
+		if (get_locale_info(0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname,
+		                    32) > 0) {
+			locale_string = string_convert_utf16(locale_data.buffer, sizeof(locale_data.buffer),
+			                                     (uint16_t*)locale_sname, wstring_length(locale_sname));
 			if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("?" "?" "-" "?" "?"))) {
-				locale_buffer[2] = locale_buffer[3];
-				locale_buffer[3] = locale_buffer[4];
-				locale_buffer[4] = 0;
-				return *(uint32_t*)locale_string.str;
+				locale_data.buffer[2] = locale_data.buffer[3];
+				locale_data.buffer[3] = locale_data.buffer[4];
+				locale_data.buffer[4] = 0;
+				return locale_data.value;
 			}
 		}
 	}
@@ -323,7 +334,7 @@ system_error_message(int code) {
 	if (!code)
 		return string_const(STRING_CONST("<no error>"));
 	char* buffer = _system_buffer();
-#if FOUNDATION_PLATFORM_LINUX && defined(_GNU_SOURCE)
+#if (FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL) && defined(_GNU_SOURCE)
 	if ((buffer = strerror_r(code, buffer, SYSTEM_BUFFER_SIZE)) != nullptr)
 		return string_const(buffer, string_length(buffer));
 #else
@@ -338,7 +349,7 @@ system_hostname(char* buffer, size_t size) {
 	int ret = gethostname(buffer, size);
 	if ((ret < 0) || !size || !*buffer)
 		return string_copy(buffer, size, STRING_CONST("unknown"));
-	return (string_t){buffer, string_length(buffer)};
+	return (string_t) {buffer, string_length(buffer)};
 }
 
 string_t
@@ -361,14 +372,14 @@ system_username(char* buffer, size_t size) {
 #elif FOUNDATION_PLATFORM_BSD
 		if (getlogin_r(buffer, (int)size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
-		return (string_t){buffer, string_length(buffer)};
+		return (string_t) {buffer, string_length(buffer)};
 #else
 		if (getlogin_r(buffer, size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
-		return (string_t){buffer, string_length(buffer)};
+		return (string_t) {buffer, string_length(buffer)};
 #endif
 	}
-	return (string_t){result->pw_name, string_length(result->pw_name)};
+	return (string_t) {result->pw_name, string_length(result->pw_name)};
 }
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
@@ -407,8 +418,11 @@ _system_hostid_lookup(int sock, struct ifreq* ifr) {
 		uint8_t FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
-	if (ioctl(sock, SIOCGIFHWADDR, ifr) < 0)
+	if (ioctl(sock, SIOCGIFHWADDR, ifr) < 0) {
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
+		          STRING_CONST("Unable to get hw address for interface %s"), ifr->ifr_name);
 		return 0;
+	}
 
 	hostid.id = 0;
 	for (j = 0; j < 6; ++j)
@@ -432,25 +446,34 @@ system_hostid(void) {
 	struct ifconf ifc;
 	struct ifreq* ifrarr;
 	int sock = socket(PF_INET, SOCK_DGRAM, 0);
-	if (sock < 0)
+	if (sock < 0) {
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to lookup system hostid (no socket)"));
 		return 0;
+	}
 
 	memset(&ifc, 0, sizeof(ifc));
 	if (ioctl(sock, SIOCGIFCONF, &ifc) == 0) {
-		ifrarr = memory_allocate(0, ifc.ifc_len, 0, MEMORY_TEMPORARY);
+		ifrarr = memory_allocate(0, (unsigned int)ifc.ifc_len, 0, MEMORY_TEMPORARY);
 		ifc.ifc_ifcu.ifcu_req = ifrarr;
 		if (ioctl(sock, SIOCGIFCONF, &ifc) == 0) {
-			int numif = ifc.ifc_len / sizeof(struct ifreq);
+			int numif = ifc.ifc_len / (int)sizeof(struct ifreq);
 			int iif;
 			for (iif = 0; (iif < numif) && !hostid; ++iif) {
 				struct ifreq* ifr = &ifrarr[iif];
 				if (ifr->ifr_name && string_equal(ifr->ifr_name, 2, "lo", 2))
 					continue;
-
 				hostid = _system_hostid_lookup(sock, ifr);
 			}
 		}
+		else {
+			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
+			         STRING_CONST("Unable to lookup system hostid (query ioctl failed)"));
+		}
 		memory_deallocate(ifrarr);
+	}
+	else {
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL,
+		         STRING_CONST("Unable to lookup system hostid (ioctl failed)"));
 	}
 
 	close(sock);
@@ -510,7 +533,7 @@ system_hardware_threads(void) {
 #if FOUNDATION_PLATFORM_APPLE
 	return _system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
-	return android_getCpuCount();
+	return (size_t)android_getCpuCount();
 #elif FOUNDATION_PLATFORM_PNACL
 	return (size_t)sysconf(_SC_NPROCESSORS_ONLN);
 #elif FOUNDATION_PLATFORM_BSD
@@ -547,7 +570,7 @@ system_process_events(void) {
 	struct android_poll_source* source = 0;
 	struct android_app* app = android_app();
 
-	while ((ident = ALooper_pollAll(0, 0, &events, (void**)&source)) >= 0) {
+	while ((ident = ALooper_pollOnce(0, 0, &events, (void**)&source)) >= 0) {
 		// Process this event.
 		if (source)
 			source->process(app, source);
@@ -641,38 +664,26 @@ _system_user_locale(void) {
 
 #endif
 
+static uint32_t _system_locale;
+
 uint32_t
 system_locale(void) {
-	uint32_t localeval = 0;
-	char localestr[4];
-
-	string_const_t locale = config_string(HASH_USER, HASH_LOCALE);
-	if (locale.length != 4)
-		locale = config_string(HASH_APPLICATION, HASH_LOCALE);
-	if (locale.length != 4)
-		locale = config_string(HASH_FOUNDATION, HASH_LOCALE);
-	if (locale.length != 4)
-		return _system_user_locale();
-
-#define LOCALE_CHAR_TO_LOWERCASE(x) ((((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (char)(((unsigned char)(x)) | (32)) : ((char)(x)))
-#define LOCALE_CHAR_TO_UPPERCASE(x) ((((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (char)(((unsigned char)(x)) & (~32)) : ((char)(x)))
-	localestr[0] = LOCALE_CHAR_TO_LOWERCASE(locale.str[0]);
-	localestr[1] = LOCALE_CHAR_TO_LOWERCASE(locale.str[1]);
-	localestr[2] = LOCALE_CHAR_TO_UPPERCASE(locale.str[2]);
-	localestr[3] = LOCALE_CHAR_TO_UPPERCASE(locale.str[3]);
-
-	memcpy(&localeval, localestr, 4);
-	return localeval;
+	return _system_locale ? _system_locale : _system_user_locale();
 }
 
 string_t
-system_locale_string(char* buffer, size_t length) {
+system_locale_string(char* buffer, size_t capacity) {
 	uint32_t locale = system_locale();
-	size_t maxlength = (length > 4) ? 4 : (length ? length - 1 : 0);
-	memcpy(buffer, &locale, maxlength);
-	if (maxlength)
-		buffer[ maxlength ] = 0;
-	return (string_t) { buffer, maxlength };
+	size_t length = (capacity > 4) ? 4 : capacity;
+	memcpy(buffer, &locale, length);
+	if (capacity > 4)
+		buffer[4] = 0;
+	return (string_t) {buffer, length};
+}
+
+void
+system_set_locale(uint32_t locale) {
+	_system_locale = locale;
 }
 
 uint16_t

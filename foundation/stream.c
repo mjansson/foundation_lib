@@ -91,7 +91,7 @@ stream_initialize(stream_t* stream, byteorder_t order) {
 	stream->sequential = 0;
 	stream->reliable = 1;
 	stream->inorder = 1;
-	stream->swap = (stream->byteorder != system_byteorder()) ? 1 : 0;
+	stream->swap = ((byteorder_t)stream->byteorder != system_byteorder()) ? 1 : 0;
 	stream->mode = STREAM_BINARY;
 	stream->path = (string_t) { 0, 0 };
 }
@@ -495,6 +495,21 @@ stream_read_uint64(stream_t* stream) {
 		char buffer[22] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 22);
 		value = string_to_uint64(str.str, str.length, false);
+	}
+	return value;
+}
+
+uint128_t
+stream_read_uint128(stream_t* stream) {
+	uint128_t value;
+	if (stream_is_binary(stream)) {
+		value.word[0] = stream_read_uint64(stream);
+		value.word[1] = stream_read_uint64(stream);
+	}
+	else {
+		char buffer[34] = {0};
+		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+		value = string_to_uint128(str.str, str.length);
 	}
 	return value;
 }
@@ -950,6 +965,18 @@ stream_write_uint64(stream_t* stream, uint64_t data) {
 	}
 	else {
 		string_const_t value = string_from_uint_static(data, false, 0, 0);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
+stream_write_uint128(stream_t* stream, uint128_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint64(stream, data.word[0]);
+		stream_write_uint64(stream, data.word[1]);
+	}
+	else {
+		string_const_t value = string_from_uint128_static(data);
 		stream_write_string(stream, value.str, value.length);
 	}
 }

@@ -101,12 +101,22 @@ system_country(void);
 FOUNDATION_API uint32_t
 system_locale(void);
 
+/*! Get the currently set locale (country & language).
+\return Currently set locale identifier (country & language) */
+FOUNDATION_API uint32_t
+system_locale(void);
+
 /*! Get the currently set locale name in the given buffer
 \param buffer Buffer
 \param capacity Capacity of buffer
 \return Currently set locale as a string identifier */
 FOUNDATION_API string_t
 system_locale_string(char* buffer, size_t capacity);
+
+/*! Set the current locale (country & language).
+\param locale Locale identifier (country & language) */
+FOUNDATION_API void
+system_set_locale(uint32_t locale);
 
 /*! Set the current device orientation. Usually only called internally by system event listeners.
 \param orientation New device orientation */

@@ -35,7 +35,7 @@ to indicate success or failure. If this method returns an error initialization
 will abort and the program will terminate.
 \return 0 for success, <0 for error */
 FOUNDATION_EXTERN int
-main_initialize( void );
+main_initialize(void);
 
 /*! Main loop. This must be implementation by the application and should
 contain the main run loop. Once this function returns the application
@@ -44,12 +44,12 @@ for normal termination. Will be called after #main_initialize
 \param arg Unused, set to 0
 \return Process exit code */
 FOUNDATION_EXTERN int
-main_run( void* arg );
+main_run(void* arg);
 
 /*! Main exit point. This must be implemented by the application.
 The expectation is that this function will call foundation_finalize
 to terminate the foundation library. Will be called after #main_run */
 FOUNDATION_EXTERN void
-main_finalize( void );
+main_finalize(void);
 
 #endif

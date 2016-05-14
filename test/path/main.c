@@ -19,9 +19,9 @@ test_path_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation path tests"));
 	app.short_name = string_const(STRING_CONST("test_path"));
-	app.config_dir = string_const(STRING_CONST("test_path"));
+	app.company = string_const(STRING_CONST("Rampant Pixels"));
 	app.flags = APPLICATION_UTILITY;
-	app.dump_callback = test_crash_handler;
+	app.exception_handler = test_exception_handler;
 	return app;
 }
 
@@ -649,7 +649,7 @@ DECLARE_TEST(path, absolute) {
 	cwd_test_path = path_allocate_concat(STRING_ARGS(cwd), STRING_CONST("test/path"));
 	cwd_test_path_slash = path_allocate_concat(STRING_ARGS(cwd), STRING_CONST("test/path/"));
 
-	if (string_equal(STRING_ARGS(cwd_sub_slash), STRING_CONST("//")))
+	if (string_ends_with(STRING_ARGS(cwd_sub_slash), STRING_CONST("//")))
 		--cwd_sub_slash.length;
 
 	cpath = string_const(STRING_CONST("")); path1 = path_allocate_absolute(STRING_ARGS(cpath));

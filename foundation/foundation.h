@@ -60,18 +60,19 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/profile.h>
 
 #include <foundation/environment.h>
-#include <foundation/config.h>
 #include <foundation/stream.h>
 #include <foundation/fs.h>
 #include <foundation/bufferstream.h>
 #include <foundation/assetstream.h>
 #include <foundation/pipe.h>
+#include <foundation/json.h>
 
-#include <foundation/crash.h>
+#include <foundation/exception.h>
 #include <foundation/stacktrace.h>
 
 #include <foundation/blowfish.h>
 #include <foundation/regex.h>
+#include <foundation/sha.h>
 
 #include <foundation/main.h>
 

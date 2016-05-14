@@ -11,6 +11,10 @@ Unify all string apis to be inherently length aware to increase security and min
 Pass PC-Lint tests with minimal suppressions
 95% code coverage in test suite
 
-1.4.2
+1.5.0
 Example application and documentation
 Improve overview and setup documentation
+Support Intel, clang and gcc compilers on Windows
+Support building as shared object/dynamic library
+Add JSON parsing
+Add SHA256/SHA512 digest

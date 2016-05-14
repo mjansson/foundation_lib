@@ -75,3 +75,5 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 uuid_is_null(const uuid_t uuid) {
   return uint128_is_null(uuid);
 }
+
+#define uuid_make uint128_make

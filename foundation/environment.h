@@ -62,11 +62,11 @@ environment_current_working_directory(void);
 FOUNDATION_API bool
 environment_set_current_working_directory(const char* path, size_t length);
 
-/*! Get user home directory. Returned string must not be modified or deallocated.
-Home directory is platform specific and is a suitable path for preference and per-user storage.
+/*! Get application storage directory. Returned string must not be modified or deallocated.
+Application directory is platform specific and is a suitable path for preference and per-user storage.
 \return User home directory */
 FOUNDATION_API string_const_t
-environment_home_directory(void);
+environment_application_directory(void);
 
 /*! Get temporary directory. Returned string must not be modified or deallocated.
 Temporary directory is platform specific and only guaranteed to exist during the execution

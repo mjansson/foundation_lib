@@ -354,8 +354,6 @@ profile_initialize(const char* identifier, size_t length, void* buffer, size_t s
 	thread_initialize(&_profile_io_thread, _profile_io, 0, STRING_CONST("profile_io"),
 	                  THREAD_PRIORITY_BELOWNORMAL, 0);
 
-	log_debugf(0, STRING_CONST("Initialize profiling system with %u blocks (%" PRIsize "KiB)"),
-	           num_blocks, size / 1024);
 	_profile_initialized = true;
 }
 
@@ -397,7 +395,7 @@ profile_finalize(void) {
 			++num_blocks; //Include the wasted block 0
 
 		if (num_blocks != _profile_num_blocks) {
-			//If profile output function (user) crashed, this will probably trigger
+			//If profile output function (user) raised exception, this will probably trigger
 			//since at least one block will be lost in space
 			log_errorf(0, ERROR_INTERNAL_FAILURE,
 			           STRING_CONST("Profile module state inconsistent on finalize, lost blocks "

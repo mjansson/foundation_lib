@@ -35,12 +35,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\test\crash\main.c" />
+    <ClCompile Include="..\..\example\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{d5954a7b-6511-41a3-83c3-da13e32594c5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>crash</RootNamespace>
+    <RootNamespace>example</RootNamespace>
+    <ProjectGuid>{F78411DA-67A4-493E-89A1-920CFC088429}</ProjectGuid>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -143,50 +144,42 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\debug\x86\</OutDir>
+    <OutDir>..\..\bin\windows\debug\x86\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>test-$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\debug\x86-64\</OutDir>
-    <TargetName>test-$(ProjectName)</TargetName>
+    <OutDir>..\..\bin\windows\debug\x86-64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\release\x86\</OutDir>
+    <OutDir>..\..\bin\windows\release\x86\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>test-$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\deploy\x86\</OutDir>
+    <OutDir>..\..\bin\windows\deploy\x86\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>test-$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\profile\x86\</OutDir>
+    <OutDir>..\..\bin\windows\profile\x86\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>test-$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\release\x86-64\</OutDir>
-    <TargetName>test-$(ProjectName)</TargetName>
+    <OutDir>..\..\bin\windows\release\x86-64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Deploy|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\deploy\x86-64\</OutDir>
-    <TargetName>test-$(ProjectName)</TargetName>
+    <OutDir>..\..\bin\windows\deploy\x86-64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\bin\windows\profile\x86-64\</OutDir>
-    <TargetName>test-$(ProjectName)</TargetName>
+    <OutDir>..\..\bin\windows\profile\x86-64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -195,7 +188,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -224,7 +217,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\debug\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -234,7 +227,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -258,11 +251,12 @@
       <C99Support>true</C99Support>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\debug\x86-64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -274,7 +268,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -304,7 +298,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\release\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -316,7 +310,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -346,7 +340,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\deploy\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -358,7 +352,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -388,7 +382,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\profile\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -400,7 +394,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -430,7 +424,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\release\x86-64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -442,7 +436,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -472,7 +466,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\deploy\x86-64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -484,7 +478,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..;..\..\..\test</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -514,7 +508,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>test.lib;foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\profile\x86-64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

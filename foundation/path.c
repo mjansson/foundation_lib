@@ -130,9 +130,11 @@ path_clean(char* path, size_t length, size_t capacity) {
 				while ((back > reduce_limit) && (path[back] != '/'))
 					--back;
 			}
-			if ((back == reduce_limit) && ((!back && (path[back] == '/')) || (back &&
-			                               (path[ back - 1 ] == '/'))))
+			if ((back == reduce_limit) && 
+				    ((!back && (path[back] == '/')) ||
+				     (back && (path[ back - 1 ] == '/')))) {
 				reduce = num; //Path starts absolute, drop all "../"
+			}
 			if (reduce > 0) {
 				clearsep = false;
 				ofs = (path[back] == '/') ? back + 1 : back;
@@ -143,7 +145,7 @@ path_clean(char* path, size_t length, size_t capacity) {
 				memmove(path + ofs, path + ahead, length - ahead);
 				length -= ahead - ofs;
 				path[length] = 0;
-				if ((length > 1) && clearsep && (path[ length - 1 ] == '/'))
+				if ((length > 1) && clearsep && (length > reduce_limit) && (path[ length - 1 ] == '/'))
 					path[--length] = 0;
 				ofs = (ofs > (reduce_limit + 1)) ? ofs - 1 : (reduce_limit ? reduce_limit - 1 : 0);
 				if (path[ofs] == ':')

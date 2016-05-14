@@ -17,10 +17,11 @@ functions to write applications and games in a platform-independent fashion. It 
 * String handling in UTF-8 and UTF-16
 * Murmur hasing and statically hashed strings
 * Math support for 32 and 64 bit floats
-* Configuration repository with config file I/O
+* JSON/SJSON parser
+* SHA256/SHA512 digest
 * Application, environment and system queries and control
 * Regular expressions
-* Crash utilities (SEH, signals)
+* Exception utilities (SEH, signals)
 
 It is written with the following API design principles in mind:
 

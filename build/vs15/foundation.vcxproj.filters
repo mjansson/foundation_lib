@@ -17,7 +17,6 @@
     <ClInclude Include="..\..\foundation\log.h" />
     <ClInclude Include="..\..\foundation\thread.h" />
     <ClInclude Include="..\..\foundation\environment.h" />
-    <ClInclude Include="..\..\foundation\config.h" />
     <ClInclude Include="..\..\foundation\path.h" />
     <ClInclude Include="..\..\foundation\stream.h" />
     <ClInclude Include="..\..\foundation\hashstrings.h" />
@@ -34,7 +33,6 @@
     <ClInclude Include="..\..\foundation\semaphore.h" />
     <ClInclude Include="..\..\foundation\system.h" />
     <ClInclude Include="..\..\foundation\time.h" />
-    <ClInclude Include="..\..\foundation\crash.h" />
     <ClInclude Include="..\..\foundation\main.h" />
     <ClInclude Include="..\..\foundation\bufferstream.h" />
     <ClInclude Include="..\..\foundation\blowfish.h" />
@@ -51,6 +49,9 @@
     <ClInclude Include="..\..\foundation\regex.h" />
     <ClInclude Include="..\..\foundation\bitbuffer.h" />
     <ClInclude Include="..\..\foundation\beacon.h" />
+    <ClInclude Include="..\..\foundation\sha.h" />
+    <ClInclude Include="..\..\foundation\json.h" />
+    <ClInclude Include="..\..\foundation\exception.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foundation\foundation.c" />
@@ -64,7 +65,6 @@
     <ClCompile Include="..\..\foundation\log.c" />
     <ClCompile Include="..\..\foundation\thread.c" />
     <ClCompile Include="..\..\foundation\environment.c" />
-    <ClCompile Include="..\..\foundation\config.c" />
     <ClCompile Include="..\..\foundation\path.c" />
     <ClCompile Include="..\..\foundation\stream.c" />
     <ClCompile Include="..\..\foundation\system.c" />
@@ -79,7 +79,6 @@
     <ClCompile Include="..\..\foundation\ringbuffer.c" />
     <ClCompile Include="..\..\foundation\semaphore.c" />
     <ClCompile Include="..\..\foundation\time.c" />
-    <ClCompile Include="..\..\foundation\crash.c" />
     <ClCompile Include="..\..\foundation\main.c" />
     <ClCompile Include="..\..\foundation\bufferstream.c" />
     <ClCompile Include="..\..\foundation\blowfish.c" />
@@ -95,6 +94,9 @@
     <ClCompile Include="..\..\foundation\version.c" />
     <ClCompile Include="..\..\foundation\bitbuffer.c" />
     <ClCompile Include="..\..\foundation\beacon.c" />
+    <ClCompile Include="..\..\foundation\sha.c" />
+    <ClCompile Include="..\..\foundation\json.c" />
+    <ClCompile Include="..\..\foundation\exception.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\foundation\hashstrings.txt" />

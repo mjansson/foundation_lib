@@ -35,6 +35,12 @@
 #  endif
 #endif
 
+#if FOUNDATION_COMPILER_CLANG
+#  if __has_warning("-Wdouble-promotion")
+#    pragma clang diagnostic ignored "-Wdouble-promotion"
+#  endif
+#endif
+
 #define FAILED_TEST ((void*)(uintptr_t)-1)
 
 typedef void* (* test_fn)(void);
@@ -153,12 +159,12 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 #define EXPECT_CONSTSTRINGNE_MSG( var, expect, msg ) do { string_const_t lhs = (var); string_const_t rhs = (expect); if( string_equal( STRING_ARGS( lhs ), STRING_ARGS( rhs ) ) ) { test_prefail(); log_errorf( HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST( "Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : %s" ), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT( lhs ), lhs.length, STRING_FORMAT( rhs ), rhs.length, __FILE__, __LINE__, msg ); RETURN_FAILED_TEST; } } while(0)
 #define EXPECT_CONSTSTRINGNE_MSGFORMAT( var, expect, format, ... ) do { string_const_t lhs = (var); string_const_t rhs = (expect); if( string_equal( STRING_ARGS( (lhs) ), STRING_ARGS( (rhs) ) ) ) { test_prefail(); log_errorf( HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST( "Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : " format ), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT( lhs ), lhs.length, STRING_FORMAT( rhs ), rhs.length, __FILE__, __LINE__, __VA_ARGS__ ); RETURN_FAILED_TEST; } } while(0)
 
-#define EXPECT_REALZERO(var) do { real rval_ = (real)var; if (!math_real_is_zero(rval_)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is not zero real (at %s:%u): %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(rval_), __FILE__, __LINE__, (real)((var))); RETURN_FAILED_TEST; } } while(0)
-#define EXPECT_REALEPSILONZERO(var) do { real rval_ = (real)var; if (!math_real_is_epsilon_zero(rval_)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is not zero real (at %s:%u): %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, rval_); RETURN_FAILED_TEST; } } while(0)
-#define EXPECT_REALONE(var) do { real rval_ = (real)var; if (!math_real_is_one(rval_)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is not one real (at %s:%u): %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, rval_); RETURN_FAILED_TEST; } } while(0)
-#define EXPECT_REALNE(var, expect) do { real rval_ = (real)var; real eval_ = (real)expect; if (math_real_eq(rval_, eval_, 10)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s real (at %s:%u): %.6" PRIreal " : %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, rval_, eval_); RETURN_FAILED_TEST; } } while(0)
-#define EXPECT_REALEQ(var, expect) do { real rval_ = (real)var; real eval_ = (real)expect; if (!math_real_eq(rval_, eval_, 10)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s real (at %s:%u): %.6" PRIreal " : %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, rval_, eval_); RETURN_FAILED_TEST; } } while(0)
-#define EXPECT_REALEQULPS(var, expect, ulps) do { real rval_ = (real)var; real eval_ = (real)expect; if (!math_real_eq(rval_, eval_, (ulps))) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s real (at %s:%u): %.6" PRIreal " : %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, rval_, eval_); RETURN_FAILED_TEST; } } while(0)
+#define EXPECT_REALZERO(var) do { real rval_ = (real)var; if (!math_real_is_zero(rval_)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is not zero real (at %s:%u): %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(rval_), __FILE__, __LINE__, (double)((var))); RETURN_FAILED_TEST; } } while(0)
+#define EXPECT_REALEPSILONZERO(var) do { real rval_ = (real)var; if (!math_real_is_epsilon_zero(rval_)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is not zero real (at %s:%u): %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (double)rval_); RETURN_FAILED_TEST; } } while(0)
+#define EXPECT_REALONE(var) do { real rval_ = (real)var; if (!math_real_is_one(rval_)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is not one real (at %s:%u): %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (double)rval_); RETURN_FAILED_TEST; } } while(0)
+#define EXPECT_REALNE(var, expect) do { real rval_ = (real)var; real eval_ = (real)expect; if (math_real_eq(rval_, eval_, 10)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s real (at %s:%u): %.6" PRIreal " : %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (double)rval_, (double)eval_); RETURN_FAILED_TEST; } } while(0)
+#define EXPECT_REALEQ(var, expect) do { real rval_ = (real)var; real eval_ = (real)expect; if (!math_real_eq(rval_, eval_, 10)) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s real (at %s:%u): %.6" PRIreal " : %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (double)rval_, (double)eval_); RETURN_FAILED_TEST; } } while(0)
+#define EXPECT_REALEQULPS(var, expect, ulps) do { real rval_ = (real)var; real eval_ = (real)expect; if (!math_real_eq(rval_, eval_, (ulps))) { test_prefail(); log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s real (at %s:%u): %.6" PRIreal " : %.6" PRIreal), FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, __LINE__, (double)rval_, (double)eval_); RETURN_FAILED_TEST; } } while(0)
 #define EXPECT_REALGE(var, expect) EXPECT_TYPEGE(var, expect, real, ".6" PRIreal)
 #define EXPECT_REALGT(var, expect) EXPECT_TYPEGT(var, expect, real, ".6" PRIreal)
 #define EXPECT_REALLE(var, expect) EXPECT_TYPELE(var, expect, real, ".6" PRIreal)
@@ -175,13 +181,19 @@ TEST_API void FOUNDATION_NOINLINE
 test_wait_for_threads_join(thread_t* threads, size_t num_threads);
 
 TEST_API void FOUNDATION_NOINLINE
-test_crash_handler(const char*, size_t length) FOUNDATION_ATTRIBUTE(noreturn);
+test_exception_handler(const char*, size_t length) FOUNDATION_ATTRIBUTE(noreturn);
 
 TEST_API int FOUNDATION_NOINLINE
 test_error_handler(error_level_t level, error_t err);
 
 TEST_API bool FOUNDATION_NOINLINE
 test_should_terminate(void);
+
+TEST_API void FOUNDATION_NOINLINE
+test_set_suitable_working_directory(void);
+
+TEST_API void FOUNDATION_NOINLINE
+test_load_config(json_handler_fn handler);
 
 typedef struct _test_suite {
   application_t (*application)(void);

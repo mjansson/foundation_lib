@@ -17,10 +17,18 @@
 #include <string.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
+#  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG
 #    define snprintf(p, s, ...) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
 #    define vsnprintf(s, n, format, arg) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
+#    define sscanf sscanf_s
+#  elif FOUNDATION_COMPILER_GCC
+_CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp (const char*, const char*, size_t);
+#    include <sys/types.h>
 #  endif
+#  define strncasecmp _strnicmp
+#elif FOUNDATION_PLATFORM_PNACL
+extern int strncasecmp (const char *__s1, const char *__s2, size_t __n)
+     __THROW __attribute_pure__;
 #endif
 
 #include <time.h>
@@ -783,9 +791,6 @@ string_equal(const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_len
 
 bool
 string_equal_nocase(const char* rhs, size_t rhs_length, const char* lhs, size_t lhs_length) {
-#if FOUNDATION_PLATFORM_WINDOWS
-#  define strncasecmp _strnicmp
-#endif
 	if (rhs_length && lhs_length) {
 		return (rhs_length == lhs_length) && (strncasecmp(rhs, lhs, rhs_length) == 0);
 	}
@@ -1143,7 +1148,7 @@ wstring_allocate_from_string(const char* cstr, size_t length) {
 	cur = cstr;
 	for (i = 0; (i < length) && (cur < end);) {
 		if (!(*cur & 0x80))
-			*dest++ = *cur++;
+			*dest++ = (unsigned char)*cur++;
 		else {
 			//Convert through UTF-32
 			ext = (unsigned char)*cur;
@@ -1193,7 +1198,7 @@ wstring_from_string(wchar_t* dest, size_t capacity, const char* source, size_t l
 	/*lint -e{850} */
 	for (i = 0; (i < length) && (cur < end) && (dest < last); ++i) {
 		if (!(*cur & 0x80))
-			*dest++ = *cur++;
+			*dest++ = (unsigned char)*cur++;
 		else {
 			//Convert through UTF-32
 			ext = (unsigned char)(*cur);
@@ -1381,7 +1386,11 @@ string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t len
 	return (string_t) {dst, curlen};
 }
 
+#if BUILD_MAX_PATHLEN > 128
 #define THREAD_BUFFER_SIZE BUILD_MAX_PATHLEN
+#else
+#define THREAD_BUFFER_SIZE 128
+#endif
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(char, convert_buffer, THREAD_BUFFER_SIZE)
 
 string_t
@@ -1458,6 +1467,46 @@ string_from_uint128_static(const uint128_t val) {
 }
 
 string_t
+string_from_uint256(char* buffer, size_t capacity, const uint256_t val) {
+	int len;
+	if (!capacity)
+		return (string_t) {buffer, 0};
+	len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64,
+	               val.word[0], val.word[1], val.word[2], val.word[3]);
+	if ((unsigned int)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t) {buffer, capacity - 1};
+	}
+	return (string_t) {buffer, (unsigned int)len};
+}
+
+string_const_t
+string_from_uint256_static(const uint256_t val) {
+	return string_to_const(string_from_uint256(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val));
+}
+
+string_t
+string_from_uint512(char* buffer, size_t capacity, const uint512_t val) {
+	int len;
+	if (!capacity)
+		return (string_t) {buffer, 0};
+	len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64
+	               "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64,
+	               val.word[0], val.word[1], val.word[2], val.word[3],
+	               val.word[4], val.word[5], val.word[6], val.word[7]);
+	if ((unsigned int)len >= capacity) {
+		buffer[ capacity - 1 ] = 0;
+		return (string_t) {buffer, capacity - 1};
+	}
+	return (string_t) {buffer, (unsigned int)len};
+}
+
+string_const_t
+string_from_uint512_static(const uint512_t val) {
+	return string_to_const(string_from_uint512(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val));
+}
+
+string_t
 string_from_real(char* buffer, size_t capacity, real val, unsigned int precision,
                  unsigned int width,
                  char fill) {
@@ -1473,9 +1522,9 @@ string_from_real(char* buffer, size_t capacity, real val, unsigned int precision
 		len = snprintf(buffer, capacity, "%.16lf", val);
 #else
 	if (precision)
-		len = snprintf(buffer, capacity, "%.*f", precision, val);
+		len = snprintf(buffer, capacity, "%.*f", precision, (double)val);
 	else
-		len = snprintf(buffer, capacity, "%.7f", val);
+		len = snprintf(buffer, capacity, "%.7f", (double)val);
 #endif
 
 	ulen = (unsigned int)len;
@@ -1529,19 +1578,20 @@ string_from_time(char* buffer, size_t capacity, tick_t t, bool local) {
 		return (string_t) {buffer, 0};
 	}
 	FOUNDATION_ASSERT(buffer);
-#if FOUNDATION_PLATFORM_WINDOWS
-	struct tm tm;
 	time_t ts = (time_t)(t / 1000LL);
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
+	struct tm tm;
 	errno_t err = local ? localtime_s(&tm, &ts) : gmtime_s(&tm, &ts);
 	size_t len = !err ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", &tm) : 0;
-	return (string_t) {buffer, len};
+#elif FOUNDATION_PLATFORM_WINDOWS
+	struct tm* gtm = local ? localtime(&ts) : gmtime(&ts);
+	size_t len = gtm ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", gtm) : 0;
 #else
 	struct tm tm;
-	time_t ts = (time_t)(t / 1000LL);
 	struct tm* gtm = local ? localtime_r(&ts, &tm) : gmtime_r(&ts, &tm);
 	size_t len = gtm ? strftime(buffer, capacity, "%a %b %d %H:%M:%S %Y", gtm) : 0;
-	return (string_t) {buffer, len};
 #endif
+	return (string_t) {buffer, len};
 }
 
 string_const_t

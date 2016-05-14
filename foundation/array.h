@@ -38,11 +38,12 @@ Adapted and extended from stb_arr at http://nothings.org/stb.h */
 #include <foundation/types.h>
 #include <foundation/math.h>
 
-/*! Deallocate array memory and reset array pointer to zero.
+/*! Deallocate array memory and reset array pointer to zero. Value of expression
+is a null pointer.
 \param array Array pointer */
 #define array_deallocate(array) /*lint -e{522}*/ ( \
   _array_verify(array) ? \
-    memory_deallocate(_array_raw(array)), ((array) = 0) : \
+    (memory_deallocate(_array_raw(array)), ((array) = 0)) : \
     0)
 
 /*! Get capacity of array in number of elements. Capacity indicates the size of the allocated
@@ -91,7 +92,7 @@ new storage if new size is larger than array capacity.
 
 /*! Copy content of one array to another, setting new destination array size to source array
 size and allocating more storage if new destination size is larger than destination array
-capacity.
+capacity. Value of the expression is the size of the destination array after copy.
 \param dst Destination array
 \param src Source array */
 #define array_copy(dst, src) ( \
@@ -107,44 +108,45 @@ capacity.
   ) : \
     array_clear(dst))
 
-/*! Add element at end of array with assignment
+/*! Add element at end of array with assignment. Value of expression is new array pointer.
 \param array   Array pointer
 \param element New element */
 #define array_push(array, element) /*lint -e522*/ ( \
   _array_maybegrow(array, 1) ? \
-    (array)[_array_rawsize(array)++] = (element), (array) : \
+    (((array)[_array_rawsize(array)++] = (element)), (array)) : \
     (array))
 
-/*! Add element at end of array copying data with memcpy
+/*! Add element at end of array copying data with memcpy. Value of expression
+is new array pointer.
 \param array      Array pointer
 \param elementptr Pointer to new element */
 #define array_push_memcpy(array, elementptr) /*lint -e{506,522}*/ ( \
   _array_maybegrow(array, 1) ? \
-    memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array) : \
+    (memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array)) : \
     (array))
 
 /*! Add element at given position in array with assignment. Position is NOT range checked.
-Existing elements are moved using memmove.
+Existing elements are moved using memmove. Value of expression is new array pointer.
 \param array   Array pointer
 \param pos     Position
 \param element New element */
 #define array_insert(array, pos, element) ( \
   _array_maybegrow(array, 1) ? \
-    memmove((array) + (pos) + 1, (array) + (pos), \
+    (memmove((array) + (pos) + 1, (array) + (pos), \
       _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
-    (array)[(pos)] = (element), (array) : \
+    (array)[(pos)] = (element), (array)) : \
     (array))
 
 /*! Add element at given position in array, copy data using memcpy. Position is NOT range
-checked. Existing elements are moved using memmove.
+checked. Existing elements are moved using memmove. Value of expression is new array pointer.
 \param array      Array pointer
 \param pos        Position
 \param elementptr Pointer to new element */
 #define array_insert_memcpy(array, pos, elementptr) ( \
   _array_maybegrow(array, 1) ? \
-    memmove((array) + (pos) + 1, (array) + (pos), \
+    (memmove((array) + (pos) + 1, (array) + (pos), \
       _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
-    memcpy((array) + (pos), (elementptr), sizeof(*(array))), (array) : \
+    memcpy((array) + (pos), (elementptr), sizeof(*(array))), (array)) : \
     (array))
 
 /*! Add element at given position in array with assignment. Position IS range checked and
@@ -234,9 +236,9 @@ Position is NOT ranged checked.
 \param pos   Position */
 #define array_erase_ordered(array, pos) ( \
   _array_verify(array) ? \
-    memmove((array) + (pos), (array) + (pos) + 1, \
+    (memmove((array) + (pos), (array) + (pos) + 1, \
         (_array_rawsize(array) - (pos) - 1U) * _array_elementsize(array)), \
-      --_array_rawsize( array ) : \
+      --_array_rawsize( array )) : \
     0)
 
 /*! Erase element at given position and preserve order by memmove remaining elements in array.

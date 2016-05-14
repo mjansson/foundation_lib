@@ -231,6 +231,12 @@ stream_read_int64(stream_t* stream);
 FOUNDATION_API uint64_t
 stream_read_uint64(stream_t* stream);
 
+/*! Read unsigned integer from stream.
+\param stream Stream
+\return Value read, 0 if error */
+FOUNDATION_API uint128_t
+stream_read_uint128(stream_t* stream);
+
 /*! Read 32-bit float from stream
 \param stream Stream
 \return Value read, 0 if error */
@@ -319,6 +325,12 @@ stream_write_int64(stream_t* stream, int64_t data);
 \param data Unsigned integer to write */
 FOUNDATION_API void
 stream_write_uint64(stream_t* stream, uint64_t data);
+
+/*! Write unsigned integer to stream.
+\param stream Stream
+\param data Unsigned integer to write */
+FOUNDATION_API void
+stream_write_uint128(stream_t* stream, uint128_t data);
 
 /*! Write 32-bit float to stream.
 \param stream Stream

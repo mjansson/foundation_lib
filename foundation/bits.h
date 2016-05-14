@@ -104,7 +104,7 @@ byteorder_littleendian(void* buffer, const size_t size);
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t
 byteorder_swap16(uint16_t arg) {
-#if (FOUNDATION_COMPILER_GCC && (FOUNDATIN_GCC_VERSION >= 40800)) || FOUNDATION_COMPILER_CLANG
+#if (FOUNDATION_COMPILER_GCC && (FOUNDATION_GCC_VERSION >= 40800)) || FOUNDATION_COMPILER_CLANG
 	return __builtin_bswap16(arg);
 #elif FOUNDATION_COMPILER_MSVC
 #if _MSC_VER >= 1310

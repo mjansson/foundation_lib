@@ -266,6 +266,7 @@
       <C99Support>true</C99Support>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

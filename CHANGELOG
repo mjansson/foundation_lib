@@ -1,4 +1,38 @@
 
+1.5.0
+
+Added a minimal in-place JSON parser. Also parses simplified JSON.
+
+Added implementation SHA-2 256 and 512 bit algorithms, including uint256_t and uint512_t
+representation data types with string conversions.
+
+Removed configuration repository since it is mostly replaced by JSON parser.
+
+Changed byte order representation of raw digest from md5_get_digest_raw to generate
+correct string representation using string_from_uint128.
+
+Changed environment_home_directory to environment_application_directory and modify
+implementations to generate a application-specific path for persistent storage. Removed
+application config_dir declaration.
+
+Changed crash_* functions to more aptly named exception_* and added support for
+non-Microsoft compilers on Windows.
+
+Changed name of error callback and log callback to "handler" to unify naming with
+exception handling.
+
+Support for building as a shared object (dynamic library).
+
+Support for Intel, clang and gcc compilers on Windows.
+
+Android build now requires NDK r11 and uses clang by default, with built in
+thread local storage support instead of old pthread api wrappers.
+
+Refactored the ninja build generator into modules to be easier to extend and maintain
+instead of a single monolithic file. Minor changes in generator interface. Build only
+x86-64 target on Windows by default (x86 still supported).
+
+
 1.4.1
 
 Thread API change. Threads are now explicit structures instead of reference counted
