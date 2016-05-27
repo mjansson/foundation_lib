@@ -22,13 +22,12 @@
 #    define vsnprintf(s, n, format, arg) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 #    define sscanf sscanf_s
 #  elif FOUNDATION_COMPILER_GCC
-_CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp (const char*, const char*, size_t);
+_CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp(const char*, const char*, size_t);
 #    include <sys/types.h>
 #  endif
 #  define strncasecmp _strnicmp
 #elif FOUNDATION_PLATFORM_PNACL
-extern int strncasecmp (const char *__s1, const char *__s2, size_t __n)
-     __THROW __attribute_pure__;
+extern int strncasecmp(const char* __s1, const char* __s2, size_t __n) __THROW __attribute_pure__;
 #endif
 
 #include <time.h>
@@ -1678,11 +1677,42 @@ string_to_uint64(const char* val, size_t length, bool hex) {
 
 uint128_t
 string_to_uint128(const char* val, size_t length) {
+	unsigned int iword;
 	uint128_t ret = uint128_null();
-	char buf[64];
-	if (length) {
-		string_copy(buf, sizeof(buf), val, length);
-		sscanf(buf, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1]);
+	char buf[33];
+	string_copy(buf, sizeof(buf), val, length);
+	for (iword = 0; iword < 2; ++iword) {
+		unsigned int ofs = iword * 16;
+		if (length > ofs)
+			sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword]);
+	}
+	return ret;
+}
+
+uint256_t
+string_to_uint256(const char* val, size_t length) {
+	unsigned int iword;
+	uint256_t ret = uint256_null();
+	char buf[65];
+	string_copy(buf, sizeof(buf), val, length);
+	for (iword = 0; iword < 4; ++iword) {
+		unsigned int ofs = iword * 16;
+		if (length > ofs)
+			sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword]);
+	}
+	return ret;
+}
+
+uint512_t
+string_to_uint512(const char* val, size_t length) {
+	unsigned int iword;
+	uint512_t ret = uint512_null();
+	char buf[129];
+	string_copy(buf, sizeof(buf), val, length);
+	for (iword = 0; iword < 8; ++iword) {
+		unsigned int ofs = iword * 16;
+		if (length > ofs)
+			sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword]);
 	}
 	return ret;
 }

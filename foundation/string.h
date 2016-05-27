@@ -964,12 +964,26 @@ string_to_int64(const char* str, size_t length);
 FOUNDATION_API uint64_t
 string_to_uint64(const char* str, size_t length, bool hex);
 
-/*! Convert a string to an unsigned 128-bit integer in hex format
+/*! Convert a string in hex format to an unsigned 128-bit integer
 \param str String
 \param length Length of string
 \return 128-bit integer value, 0 if conversion failed */
 FOUNDATION_API uint128_t
 string_to_uint128(const char* str, size_t length);
+
+/*! Convert a string in hex format to an unsigned 256-bit integer
+\param str String
+\param length Length of string
+\return 256-bit integer value, 0 if conversion failed */
+FOUNDATION_API uint256_t
+string_to_uint256(const char* str, size_t length);
+
+/*! Convert a string in hex format to an unsigned 512-bit integer
+\param str String
+\param length Length of string
+\return 512-bit integer value, 0 if conversion failed */
+FOUNDATION_API uint512_t
+string_to_uint512(const char* str, size_t length);
 
 /*! Convert a string to a 32-bit float
 \param str String
