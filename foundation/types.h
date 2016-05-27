@@ -754,6 +754,18 @@ not modify the current stream position.
 \return Digest of stream content, 0 if invalid stream or unknown */
 typedef uint128_t (* stream_md5_fn)(stream_t* stream);
 
+/*! Get stream digest. Only available if stream size is known and stream is seekable. Does
+not modify the current stream position.
+\param stream Stream
+\return Digest of stream content, 0 if invalid stream or unknown */
+typedef uint256_t (* stream_sha256_fn)(stream_t* stream);
+
+/*! Get stream digest. Only available if stream size is known and stream is seekable. Does
+not modify the current stream position.
+\param stream Stream
+\return Digest of stream content, 0 if invalid stream or unknown */
+typedef uint512_t (* stream_sha512_fn)(stream_t* stream);
+
 /*! If the stream has available data to be read from an external source (like a socket for
 network streams), read and buffer the available data without blocking.
 \param stream Stream */
@@ -1576,6 +1588,10 @@ struct stream_vtable_t {
 	stream_lastmod_fn lastmod;
 	/*! Function to query the MD5 of the stream content */
 	stream_md5_fn md5;
+	/*! Function to query the SHA-256 of the stream content */
+	stream_sha256_fn sha256;
+	/*! Function to query the SHA-512 of the stream content */
+	stream_sha512_fn sha512;
 	/*! Function to buffer any incoming data for the stream. */
 	stream_buffer_read_fn buffer_read;
 	/*! Function to query the amount of data that can be read without blocking. */

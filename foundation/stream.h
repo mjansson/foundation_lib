@@ -383,6 +383,18 @@ stream_available_read(stream_t* stream);
 FOUNDATION_API uint128_t
 stream_md5(stream_t* stream);
 
+/*! Read stream SHA-256 digest
+\param stream Stream
+\return SHA-256 digest, 0 if not available for stream type or invalid stream */
+FOUNDATION_API uint256_t
+stream_sha256(stream_t* stream);
+
+/*! Read stream SHA-512 digest
+\param stream Stream
+\return SHA-512 digest, 0 if not available for stream type or invalid stream */
+FOUNDATION_API uint512_t
+stream_sha512(stream_t* stream);
+
 /*! Truncate stream to given size if it is larger, do nothing if smaller or equal in size.
 \param stream Stream
 \param length New length of stream */
