@@ -1427,7 +1427,7 @@ string_from_uint(char* buffer, size_t capacity, uint64_t val, bool hex, unsigned
 		return (string_t) {buffer, 0};
 	len = snprintf(buffer, capacity, hex ? "%" PRIx64 : "%" PRIu64, val);
 	if ((unsigned int)len >= capacity) {
-		buffer[ capacity - 1 ] = 0;
+		buffer[capacity - 1] = 0;
 		return (string_t) {buffer, capacity - 1};
 	}
 	if (width >= capacity)
@@ -1454,7 +1454,7 @@ string_from_uint128(char* buffer, size_t capacity, const uint128_t val) {
 		return (string_t) {buffer, 0};
 	len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1]);
 	if ((unsigned int)len >= capacity) {
-		buffer[ capacity - 1 ] = 0;
+		buffer[capacity - 1] = 0;
 		return (string_t) {buffer, capacity - 1};
 	}
 	return (string_t) {buffer, (unsigned int)len};
@@ -1677,43 +1677,70 @@ string_to_uint64(const char* val, size_t length, bool hex) {
 
 uint128_t
 string_to_uint128(const char* val, size_t length) {
-	unsigned int iword;
+	int iword = 1;
 	uint128_t ret = uint128_null();
 	char buf[33];
-	string_copy(buf, sizeof(buf), val, length);
-	for (iword = 0; iword < 2; ++iword) {
-		unsigned int ofs = iword * 16;
-		if (length > ofs)
-			sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword]);
+	size_t ofs;
+	size_t buflen = string_copy(buf, sizeof(buf), val, length).length;
+	ofs = string_find_first_not_of(buf, buflen, STRING_CONST(STRING_HEX), 0);
+	if (ofs == STRING_NPOS)
+		ofs = buflen;
+	do {
+		if (ofs <= 16) {
+			buf[ofs] = 0;
+			ofs = 0;
+		}
+		else
+			ofs -= 16;
+		sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword--]);
 	}
+	while ((ofs > 0) && (iword >= 0));
 	return ret;
 }
 
 uint256_t
 string_to_uint256(const char* val, size_t length) {
-	unsigned int iword;
+	int iword = 3;
 	uint256_t ret = uint256_null();
 	char buf[65];
-	string_copy(buf, sizeof(buf), val, length);
-	for (iword = 0; iword < 4; ++iword) {
-		unsigned int ofs = iword * 16;
-		if (length > ofs)
-			sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword]);
+	size_t ofs;
+	size_t buflen = string_copy(buf, sizeof(buf), val, length).length;
+	ofs = string_find_first_not_of(buf, buflen, STRING_CONST(STRING_HEX), 0);
+	if (ofs == STRING_NPOS)
+		ofs = buflen;
+	do {
+		if (ofs <= 16) {
+			buf[ofs] = 0;
+			ofs = 0;
+		}
+		else
+			ofs -= 16;
+		sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword--]);
 	}
+	while ((ofs > 0) && (iword >= 0));
 	return ret;
 }
 
 uint512_t
 string_to_uint512(const char* val, size_t length) {
-	unsigned int iword;
+	int iword = 7;
 	uint512_t ret = uint512_null();
 	char buf[129];
-	string_copy(buf, sizeof(buf), val, length);
-	for (iword = 0; iword < 8; ++iword) {
-		unsigned int ofs = iword * 16;
-		if (length > ofs)
-			sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword]);
+	size_t ofs;
+	size_t buflen = string_copy(buf, sizeof(buf), val, length).length;
+	ofs = string_find_first_not_of(buf, buflen, STRING_CONST(STRING_HEX), 0);
+	if (ofs == STRING_NPOS)
+		ofs = buflen;
+	do {
+		if (ofs <= 16) {
+			buf[ofs] = 0;
+			ofs = 0;
+		}
+		else
+			ofs -= 16;
+		sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword--]);
 	}
+	while ((ofs > 0) && (iword >= 0));
 	return ret;
 }
 

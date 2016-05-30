@@ -1,4 +1,18 @@
 
+1.5.1
+
+Added string utility functions for converting from/to 256 and 512 bit unsigned int.
+Fixed function for converting string to 128-bit unsigned int to correctly parse
+strings shorter than 32 characters.
+
+Added stream utility functions for reading/writing 256 and 512 bit unsigned int.
+
+Added stream utility functions for calculating 256 and 512 bit SHA-2 digests (line ending
+agnostic as stream_md5 function).
+
+Clarified byte order of 256/512 bit integer representation, and fixed documentation.
+
+
 1.5.0
 
 Added a minimal in-place JSON parser. Also parses simplified JSON.

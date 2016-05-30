@@ -514,6 +514,44 @@ stream_read_uint128(stream_t* stream) {
 	return value;
 }
 
+uint256_t
+stream_read_uint256(stream_t* stream) {
+	uint256_t value;
+	if (stream_is_binary(stream)) {
+		value.word[0] = stream_read_uint64(stream);
+		value.word[1] = stream_read_uint64(stream);
+		value.word[2] = stream_read_uint64(stream);
+		value.word[3] = stream_read_uint64(stream);
+	}
+	else {
+		char buffer[66] = {0};
+		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+		value = string_to_uint256(str.str, str.length);
+	}
+	return value;
+}
+
+uint512_t
+stream_read_uint512(stream_t* stream) {
+	uint512_t value;
+	if (stream_is_binary(stream)) {
+		value.word[0] = stream_read_uint64(stream);
+		value.word[1] = stream_read_uint64(stream);
+		value.word[2] = stream_read_uint64(stream);
+		value.word[3] = stream_read_uint64(stream);
+		value.word[4] = stream_read_uint64(stream);
+		value.word[5] = stream_read_uint64(stream);
+		value.word[6] = stream_read_uint64(stream);
+		value.word[7] = stream_read_uint64(stream);
+	}
+	else {
+		char buffer[30] = {0};
+		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+		value = string_to_uint512(str.str, str.length);
+	}
+	return value;
+}
+
 float32_t
 stream_read_float32(stream_t* stream) {
 	float32_t value = 0;
@@ -1020,6 +1058,38 @@ stream_write_uint128(stream_t* stream, uint128_t data) {
 	}
 	else {
 		string_const_t value = string_from_uint128_static(data);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
+stream_write_uint256(stream_t* stream, uint256_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint64(stream, data.word[0]);
+		stream_write_uint64(stream, data.word[1]);
+		stream_write_uint64(stream, data.word[2]);
+		stream_write_uint64(stream, data.word[3]);
+	}
+	else {
+		string_const_t value = string_from_uint256_static(data);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
+stream_write_uint512(stream_t* stream, uint512_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint64(stream, data.word[0]);
+		stream_write_uint64(stream, data.word[1]);
+		stream_write_uint64(stream, data.word[2]);
+		stream_write_uint64(stream, data.word[3]);
+		stream_write_uint64(stream, data.word[4]);
+		stream_write_uint64(stream, data.word[5]);
+		stream_write_uint64(stream, data.word[6]);
+		stream_write_uint64(stream, data.word[7]);
+	}
+	else {
+		string_const_t value = string_from_uint512_static(data);
 		stream_write_string(stream, value.str, value.length);
 	}
 }

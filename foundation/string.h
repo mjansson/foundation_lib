@@ -1040,6 +1040,12 @@ string_thread_buffer(void);
 /*! Default whitespace wide characters */
 #define WSTRING_WHITESPACE L" \n\r\t\v\f"
 
+/*! Hexadecimal characters */
+#define STRING_HEX "0123456789abcdefABCDEF"
+
+/*! Hexadecimal characters */
+#define WSTRING_HEX L"0123456789abcdefABCDEF"
+
 // Implementation
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL string_const_t

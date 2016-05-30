@@ -231,11 +231,23 @@ stream_read_int64(stream_t* stream);
 FOUNDATION_API uint64_t
 stream_read_uint64(stream_t* stream);
 
-/*! Read unsigned integer from stream.
+/*! Read 128-bit unsigned integer from stream.
 \param stream Stream
 \return Value read, 0 if error */
 FOUNDATION_API uint128_t
 stream_read_uint128(stream_t* stream);
+
+/*! Read 256-bit unsigned integer from stream.
+\param stream Stream
+\return Value read, 0 if error */
+FOUNDATION_API uint256_t
+stream_read_uint256(stream_t* stream);
+
+/*! Read 512-bit unsigned integer from stream.
+\param stream Stream
+\return Value read, 0 if error */
+FOUNDATION_API uint512_t
+stream_read_uint512(stream_t* stream);
 
 /*! Read 32-bit float from stream
 \param stream Stream
@@ -326,11 +338,23 @@ stream_write_int64(stream_t* stream, int64_t data);
 FOUNDATION_API void
 stream_write_uint64(stream_t* stream, uint64_t data);
 
-/*! Write unsigned integer to stream.
+/*! Write 128-bit unsigned integer to stream.
 \param stream Stream
 \param data Unsigned integer to write */
 FOUNDATION_API void
 stream_write_uint128(stream_t* stream, uint128_t data);
+
+/*! Write 256-bit unsigned integer to stream.
+\param stream Stream
+\param data Unsigned integer to write */
+FOUNDATION_API void
+stream_write_uint256(stream_t* stream, uint256_t data);
+
+/*! Write 512-bit unsigned integer to stream.
+\param stream Stream
+\param data Unsigned integer to write */
+FOUNDATION_API void
+stream_write_uint512(stream_t* stream, uint512_t data);
 
 /*! Write 32-bit float to stream.
 \param stream Stream
