@@ -138,7 +138,8 @@ static test_suite_t test_environment_suite = {
 	test_environment_config,
 	test_environment_declare,
 	test_environment_initialize,
-	test_environment_finalize
+	test_environment_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

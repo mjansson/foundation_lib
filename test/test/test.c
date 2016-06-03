@@ -56,12 +56,19 @@ test_event_thread(void* arg) {
 			default:
 				break;
 			}
+			test_event(event);
 		}
 		event = 0;
 		thread_wait();
 	}
 
 	return 0;
+}
+
+void
+test_event(event_t* event) {
+	if (test_suite.event)
+		test_suite.event(event);
 }
 
 #endif

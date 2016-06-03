@@ -900,7 +900,8 @@ static test_suite_t test_fs_suite = {
 	test_fs_config,
 	test_fs_declare,
 	test_fs_initialize,
-	test_fs_finalize
+	test_fs_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

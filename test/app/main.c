@@ -247,7 +247,8 @@ static test_suite_t test_app_suite = {
 	test_app_config,
 	test_app_declare,
 	test_app_initialize,
-	test_app_finalize
+	test_app_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

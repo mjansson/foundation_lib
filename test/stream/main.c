@@ -1391,7 +1391,8 @@ static test_suite_t test_stream_suite = {
 	test_stream_config,
 	test_stream_declare,
 	test_stream_initialize,
-	test_stream_finalize
+	test_stream_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

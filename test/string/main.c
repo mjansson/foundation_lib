@@ -2491,7 +2491,8 @@ static test_suite_t test_string_suite = {
 	test_string_config,
 	test_string_declare,
 	test_string_initialize,
-	test_string_finalize
+	test_string_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

@@ -176,7 +176,8 @@ static test_suite_t test_hashmap_suite = {
 	test_hashmap_config,
 	test_hashmap_declare,
 	test_hashmap_initialize,
-	test_hashmap_finalize
+	test_hashmap_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

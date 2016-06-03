@@ -193,7 +193,8 @@ static test_suite_t test_pipe_suite = {
 	test_pipe_config,
 	test_pipe_declare,
 	test_pipe_initialize,
-	test_pipe_finalize
+	test_pipe_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

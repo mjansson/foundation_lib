@@ -2018,7 +2018,8 @@ static test_suite_t test_array_suite = {
 	test_array_config,
 	test_array_declare,
 	test_array_initialize,
-	test_array_finalize
+	test_array_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

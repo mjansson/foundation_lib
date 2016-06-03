@@ -529,7 +529,8 @@ static test_suite_t test_math_suite = {
 	test_math_config,
 	test_math_declare,
 	test_math_initialize,
-	test_math_finalize
+	test_math_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

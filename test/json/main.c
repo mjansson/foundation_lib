@@ -422,7 +422,8 @@ static test_suite_t test_json_suite = {
 	test_json_config,
 	test_json_declare,
 	test_json_initialize,
-	test_json_finalize
+	test_json_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

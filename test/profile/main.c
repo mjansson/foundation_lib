@@ -367,7 +367,8 @@ static test_suite_t test_profile_suite = {
 	test_profile_config,
 	test_profile_declare,
 	test_profile_initialize,
-	test_profile_finalize
+	test_profile_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

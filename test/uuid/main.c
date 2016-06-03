@@ -286,7 +286,8 @@ static test_suite_t test_uuid_suite = {
 	test_uuid_config,
 	test_uuid_declare,
 	test_uuid_initialize,
-	test_uuid_finalize
+	test_uuid_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

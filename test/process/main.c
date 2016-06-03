@@ -244,7 +244,8 @@ static test_suite_t test_process_suite = {
 	test_process_config,
 	test_process_declare,
 	test_process_initialize,
-	test_process_finalize
+	test_process_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

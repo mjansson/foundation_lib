@@ -467,7 +467,8 @@ static test_suite_t test_regex_suite = {
 	test_regex_config,
 	test_regex_declare,
 	test_regex_initialize,
-	test_regex_finalize
+	test_regex_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

@@ -306,7 +306,8 @@ static test_suite_t test_exception_suite = {
 	test_exception_config,
 	test_exception_declare,
 	test_exception_initialize,
-	test_exception_finalize
+	test_exception_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

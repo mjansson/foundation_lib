@@ -114,7 +114,8 @@ static test_suite_t test_library_suite = {
 	test_library_config,
 	test_library_declare,
 	test_library_initialize,
-	test_library_finalize
+	test_library_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

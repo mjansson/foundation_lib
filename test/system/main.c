@@ -232,7 +232,8 @@ static test_suite_t test_system_suite = {
 	test_system_config,
 	test_system_declare,
 	test_system_initialize,
-	test_system_finalize
+	test_system_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

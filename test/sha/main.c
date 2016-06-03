@@ -240,7 +240,8 @@ static test_suite_t test_sha_suite = {
 	test_sha_config,
 	test_sha_declare,
 	test_sha_initialize,
-	test_sha_finalize
+	test_sha_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC
