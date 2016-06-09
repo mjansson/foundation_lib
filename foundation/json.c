@@ -493,7 +493,7 @@ sjson_parse_stream(const char* path, size_t length, json_handler_fn handler) {
 		num = sjson_parse(buffer, size, tokens, capacity);
 	}
 	if (num && (tokens[0].type == JSON_OBJECT))
-		handler(buffer, size, tokens, num);
+		handler(path, length, buffer, size, tokens, num);
 
 	memory_deallocate(buffer);
 	if (tokens != localtokens)

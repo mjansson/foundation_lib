@@ -601,12 +601,15 @@ typedef void (* log_handler_fn)(hash_t context, error_level_t severity, const ch
                                 size_t length);
 
 /* JSON parsing handler
+\param path Path of data being parsed
+\param path_size Length of path string
 \param buffer Data buffer
 \param size Size of data buffer
 \param tokens Tokens array
 \param numtokens Number of tokens */
-typedef void (* json_handler_fn)(const char* buffer, size_t size, json_token_t* tokens,
-                                 size_t numtokens);
+typedef void (* json_handler_fn)(const char* path, size_t path_size,
+                                 const char* buffer, size_t size,
+                                 json_token_t* tokens, size_t numtokens);
 
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization

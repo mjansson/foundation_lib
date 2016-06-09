@@ -12,7 +12,10 @@ agnostic as stream_md5 function).
 
 Clarified byte order of 256/512 bit integer representation, and fixed documentation.
 
-Added event handler to test suite declaration
+Changed json_handler_fn to take source path arguments to let handler deal with
+relative paths in json data.
+
+Added event handler to test suite declaration.
 
 
 1.5.0
