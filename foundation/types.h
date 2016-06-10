@@ -265,7 +265,9 @@ typedef enum {
 	/*! Low memory warning */
 	FOUNDATIONEVENT_LOW_MEMORY_WARNING,
 	/*! Device orientation changed */
-	FOUNDATIONEVENT_DEVICE_ORIENTATION
+	FOUNDATIONEVENT_DEVICE_ORIENTATION,
+	/*! Last reserved event id */
+	FOUNDATIONEVENT_LAST_RESERVED = 32
 } foundation_event_id;
 
 /*! Block cipher mode of operation, see

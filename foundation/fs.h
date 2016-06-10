@@ -173,7 +173,13 @@ fs_temporary_file(void);
 \param path   Path
 \param length Length of path */
 FOUNDATION_API void
-fs_post_event(foundation_event_id id, const char* path, size_t length);
+fs_event_post(foundation_event_id id, const char* path, size_t length);
+
+/*! Get path from a file event
+\param event Event
+\return Path */
+FOUNDATION_API string_const_t
+fs_event_path(const event_t* event);
 
 /*! Get file system event stream
 \return File system event stream */

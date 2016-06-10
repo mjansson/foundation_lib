@@ -1125,8 +1125,13 @@ fs_matching_files(const char* path, size_t length, const char* pattern,
 }
 
 void
-fs_post_event(foundation_event_id id, const char* path, size_t pathlen) {
+fs_event_post(foundation_event_id id, const char* path, size_t pathlen) {
 	event_post_varg(fs_event_stream(), id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen, nullptr);
+}
+
+string_const_t
+fs_event_path(const event_t* event) {
+	return string_const(pointer_offset(event->payload, sizeof(size_t)), event->payload[0]);
 }
 
 event_stream_t* fs_event_stream(void) {
@@ -1149,7 +1154,7 @@ _fs_send_creations(char* path, size_t length, size_t capacity) {
 	string_t* files = fs_files(path, length);
 	for (ifile = 0, fsize = array_size(files); ifile < fsize; ++ifile) {
 		string_t filepath = path_append(path, length, capacity, STRING_ARGS(files[ifile]));
-		fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(filepath));
+		fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(filepath));
 	}
 	string_array_deallocate(files);
 
@@ -1378,7 +1383,7 @@ _fs_monitor(void* monitorptr) {
 						}
 
 						if (fsevent)
-							fs_post_event(fsevent, STRING_ARGS(fullpath));
+							fs_event_post(fsevent, STRING_ARGS(fullpath));
 					}
 					string_deallocate(utfstr.str);
 					string_deallocate(fullpath.str);
@@ -1425,15 +1430,15 @@ _fs_monitor(void* monitorptr) {
 					if (is_dir)
 						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer), &watch, &paths, true);
 					else
-						fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
+						fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
 				}
 				if ((event->mask & IN_DELETE) || (event->mask & IN_MOVED_FROM)) {
 					if (!is_dir)
-						fs_post_event(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(curpath));
+						fs_event_post(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(curpath));
 				}
 				if (event->mask & IN_MODIFY) {
 					if (!is_dir)
-						fs_post_event(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(curpath));
+						fs_event_post(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(curpath));
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
 				if (event->mask & IN_MOVED_FROM)
