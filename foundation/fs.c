@@ -1308,9 +1308,6 @@ _fs_monitor(void* monitorptr) {
 		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
-
-	memset(&overlap, 0, sizeof(overlap));
-	overlap.hEvent = handle;
 #endif
 
 	while (keep_running) {
@@ -1321,10 +1318,9 @@ _fs_monitor(void* monitorptr) {
 		overlap.hEvent = handle;
 
 		out_size = 0;
-
 		success = ReadDirectoryChangesW(dir, buffer, buffer_size, TRUE,
-		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size,
-		                                &overlap, 0);
+		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE,
+		                                &out_size, &overlap, 0);
 		if (!success) {
 			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
@@ -1390,8 +1386,9 @@ _fs_monitor(void* monitorptr) {
 
 					info->FileName[ numchars ] = term;
 
-					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info,
-					                                                          info->NextEntryOffset)) : 0;
+					info = info->NextEntryOffset
+					       ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info,info->NextEntryOffset))
+					       : nullptr;
 				}
 				while (info);
 			}
