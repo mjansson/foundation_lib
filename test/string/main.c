@@ -2091,7 +2091,7 @@ DECLARE_TEST(string, format) {
 }
 
 DECLARE_TEST(string, convert) {
-	char buffer[128];
+	char buffer[256];
 	string_t str;
 	string_const_t conststr;
 	tick_t systime;
@@ -2167,6 +2167,39 @@ DECLARE_TEST(string, convert) {
 
 	conststr = string_from_uint128_static(uint128_make(0xa234567890234567ULL, 0xb345678902345678ULL));
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("a234567890234567b345678902345678")));
+
+	str = string_from_uint256(buffer, 1, uint256_make(1, 2, 3, 4));
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_uint256(buffer, 3, uint256_make(0x1234567890234567ULL, 0x2345678902345678ULL, 0x3456789023456789ULL, 0x4567890234567890ULL));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("12")));
+
+	str = string_from_uint256(buffer, sizeof(buffer), uint256_make(0xa234567890234567ULL,
+	                          0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb78")));
+
+	conststr = string_from_uint256_static(uint256_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL));
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb78")));
+
+	str = string_from_uint512(buffer, 1, uint512_make(1, 2, 3, 4, 5, 6, 7, 8));
+	EXPECT_EQ(str.str, buffer);
+	EXPECT_EQ(str.str[0], 0);
+	EXPECT_EQ(str.length, 0);
+
+	str = string_from_uint512(buffer, 3, uint512_make(0x1234567890234567ULL, 0x2345678902345678ULL, 0x3456789023456789ULL, 0x4567890234567890ULL,
+		0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("12")));
+
+	str = string_from_uint512(buffer, sizeof(buffer), uint512_make(0xa234567890234567ULL,
+	                          0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL,
+	                          0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb7898f08afab5bfeb9d96913cecaf618430c5557794f244d66b2f3ae1c5b212218a")));
+
+	conststr = string_from_uint512_static(uint512_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL,
+		0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb7898f08afab5bfeb9d96913cecaf618430c5557794f244d66b2f3ae1c5b212218a")));
 
 	str = string_from_real(buffer, 0, 1, 0, 0, '=');
 	EXPECT_EQ(str.str, buffer);

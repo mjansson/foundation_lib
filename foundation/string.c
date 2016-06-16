@@ -1385,10 +1385,10 @@ string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t len
 	return (string_t) {dst, curlen};
 }
 
-#if BUILD_MAX_PATHLEN > 128
+#if BUILD_MAX_PATHLEN > 132
 #define THREAD_BUFFER_SIZE BUILD_MAX_PATHLEN
 #else
-#define THREAD_BUFFER_SIZE 128
+#define THREAD_BUFFER_SIZE 132
 #endif
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(char, convert_buffer, THREAD_BUFFER_SIZE)
 
