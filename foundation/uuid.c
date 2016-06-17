@@ -184,21 +184,22 @@ uuid_t
 string_to_uuid(const char* str, size_t length) {
 	uuid_convert_t convert;
 	unsigned int data[10];
-	FOUNDATION_UNUSED(length);
 	memset(data, 0, sizeof(data));
 	convert.raw.data1 = 0;
-	if (length)
-		sscanf(str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &data[0],
-		       &data[1], &data[2], &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9]);
-	convert.raw.data2 = (uint16_t)data[0];
-	convert.raw.data3 = (uint16_t)data[1];
-	convert.raw.data4[0] = (uint8_t)data[2];
-	convert.raw.data4[1] = (uint8_t)data[3];
-	convert.raw.data4[2] = (uint8_t)data[4];
-	convert.raw.data4[3] = (uint8_t)data[5];
-	convert.raw.data4[4] = (uint8_t)data[6];
-	convert.raw.data4[5] = (uint8_t)data[7];
-	convert.raw.data4[6] = (uint8_t)data[8];
-	convert.raw.data4[7] = (uint8_t)data[9];
-	return convert.uuid;
+	if (length && (sscanf(str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+	                      &convert.raw.data1, &data[0], &data[1], &data[2],
+	                      &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9]) == 11)) {
+		convert.raw.data2 = (uint16_t)data[0];
+		convert.raw.data3 = (uint16_t)data[1];
+		convert.raw.data4[0] = (uint8_t)data[2];
+		convert.raw.data4[1] = (uint8_t)data[3];
+		convert.raw.data4[2] = (uint8_t)data[4];
+		convert.raw.data4[3] = (uint8_t)data[5];
+		convert.raw.data4[4] = (uint8_t)data[6];
+		convert.raw.data4[5] = (uint8_t)data[7];
+		convert.raw.data4[6] = (uint8_t)data[8];
+		convert.raw.data4[7] = (uint8_t)data[9];
+		return convert.uuid;
+	}
+	return uuid_null();
 }
