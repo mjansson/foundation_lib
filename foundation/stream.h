@@ -34,6 +34,14 @@ stream_open(const char* path, size_t length, unsigned int mode);
 FOUNDATION_API stream_t*
 stream_clone(stream_t* stream);
 
+/*! Copy a stream, if supported by stream type. Copy is binary (no conversion
+of data is done).
+\param source Source stream
+\param destination Destination stream
+\return true if success, false if error or unsupported */
+FOUNDATION_API bool
+stream_copy(stream_t* source, stream_t* destination);
+
 /*! Deallocate stream previously allocated by any stream specific allocation function
 or from a call to #stream_open.
 \param stream Stream */
@@ -249,6 +257,12 @@ stream_read_uint256(stream_t* stream);
 FOUNDATION_API uint512_t
 stream_read_uint512(stream_t* stream);
 
+/*! Read UUID from stream.
+\param stream Stream
+\return Value read, 0 if error */
+FOUNDATION_API uuid_t
+stream_read_uuid(stream_t* stream);
+
 /*! Read 32-bit float from stream
 \param stream Stream
 \return Value read, 0 if error */
@@ -275,6 +289,13 @@ stream_read_string(stream_t* stream);
 \return String, null string if error */
 FOUNDATION_API string_t
 stream_read_string_buffer(stream_t* stream, char* buffer, size_t capacity);
+
+/*! If stream is in text mode, skip whitespace characters.
+If stream is in binary mode, ignore.
+\param stream Stream
+\return Number of bytes skipped */
+FOUNDATION_API size_t
+stream_skip_whitespace(stream_t* stream);
 
 /*! Write raw data to stream.
 \param stream Stream
@@ -356,6 +377,12 @@ stream_write_uint256(stream_t* stream, uint256_t data);
 FOUNDATION_API void
 stream_write_uint512(stream_t* stream, uint512_t data);
 
+/*! Write UUID to stream.
+\param stream Stream
+\param data UUID to write */
+FOUNDATION_API void
+stream_write_uuid(stream_t* stream, uuid_t data);
+
 /*! Write 32-bit float to stream.
 \param stream Stream
 \param data Float to write */
@@ -374,6 +401,12 @@ stream_write_float64(stream_t* stream, float64_t data);
 \param length Length of string (NOT including optional zero terminator) */
 FOUNDATION_API void
 stream_write_string(stream_t* stream, const char* data, size_t length);
+
+/*! If the stream is in text mode, write a separator character (whitespace) to stream
+If the stream is in binary mode, ignore.
+\param stream Stream */
+FOUNDATION_API void
+stream_write_separator(stream_t* stream);
 
 /*! If the stream is in text mode, write an endline character to the stream and flush.
 If the stream is in binary mode, only flush.

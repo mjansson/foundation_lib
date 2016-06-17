@@ -135,6 +135,23 @@ stream_clone(stream_t* stream) {
 	return 0;
 }
 
+bool
+stream_copy(stream_t* source, stream_t* destination) {
+	bool success = true;
+	char* buffer = memory_allocate(0, 4096, 0, MEMORY_PERSISTENT);
+	while (!stream_eos(source)) {
+		size_t read = stream_read(source, buffer, sizeof(buffer));
+		if (read) {
+			if (stream_write(destination, buffer, read) != read) {
+				success = false;
+				break;
+			}
+		}
+	}
+	memory_deallocate(buffer);
+	return success;
+}
+
 void
 stream_set_byteorder(stream_t* stream, byteorder_t byteorder) {
 	stream->byteorder = (unsigned int)byteorder;
@@ -315,6 +332,30 @@ stream_read_line(stream_t* stream, char delimiter) {
 		outbuffer[cursize] = 0;
 
 	return (string_t) { outbuffer, cursize };
+}
+
+size_t
+stream_skip_whitespace(stream_t* stream) {
+	char token;
+	size_t read;
+	size_t total = 0;
+
+	if (!(stream->mode & STREAM_IN) || (stream->mode & STREAM_BINARY) ||
+		stream_is_sequential(stream))
+		return 0;
+
+	do {
+		read = stream->vtable->read(stream, &token, 1);
+		total += read;
+	}
+	while ((read > 0) && (string_find(STRING_CONST(STRING_WHITESPACE), token, 0) != STRING_NPOS));
+
+	if (read) {
+		stream_seek(stream, -1, STREAM_SEEK_CURRENT);
+		--total;
+	}
+
+	return total;
 }
 
 size_t
@@ -550,6 +591,16 @@ stream_read_uint512(stream_t* stream) {
 		value = string_to_uint512(str.str, str.length);
 	}
 	return value;
+}
+
+uuid_t
+stream_read_uuid(stream_t* stream) {
+	if (stream_is_binary(stream))
+		return stream_read_uint128(stream);
+
+	char buffer[37] = {0};
+	string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+	return string_to_uuid(str.str, str.length);
 }
 
 float32_t
@@ -1095,6 +1146,17 @@ stream_write_uint512(stream_t* stream, uint512_t data) {
 }
 
 void
+stream_write_uuid(stream_t* stream, uuid_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint128(stream, data);
+	}
+	else {
+		string_const_t value = string_from_uuid_static(data);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
 stream_write_float32(stream_t* stream, float32_t data) {
 	if (stream_is_binary(stream)) {
 		if (stream->swap) {
@@ -1140,6 +1202,12 @@ stream_write_string(stream_t* stream, const char* str, size_t length) {
 		char nullstr = 0;
 		stream_write(stream, &nullstr, 1);
 	}
+}
+
+void
+stream_write_separator(stream_t* stream) {
+	if (!stream_is_binary(stream))
+		stream_write(stream, " ", 1);
 }
 
 void

@@ -20,6 +20,15 @@ function to get file path from a file event.
 
 Added event handler to test suite declaration.
 
+Changed string_to_uuid to only convert fully convertible strings (no partial conversion)
+
+Added stream_copy to copy content of one stream to another.
+
+Added stream_read_uuid and stream_write_uuid to read/write UUID values from/to stream
+
+Added stream_write_separator and stream_skip_whitespace to conditionally write a
+separator and skip whitespace based on text/binary mode.
+
 
 1.5.0
 
