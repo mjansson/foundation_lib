@@ -78,10 +78,6 @@ Control if debug logging is enabled. Similar to BUILD_ENABLE_LOG, but explicitly
 debug level logging. Default value is enabled in debug builds, and disabled in all other
 builds. Depends on #BUILD_ENABLE_LOG
 
-\def BUILD_ENABLE_CONFIG_DEBUG
-Control if extra debug logging is enabled in the config module. Default is disabled in
-all builds.
-
 \def BUILD_ENABLE_PROFILE
 Control if profiling is enabled. Default value is enabled in debug, release and profile
 builds, and disabled in deploy builds. If profiling is disabled, all calls to profile
@@ -184,8 +180,6 @@ and disabled in all other configurations.
 #define BUILD_ENABLE_DEBUG_LOG                0
 #endif
 #endif
-
-#define BUILD_ENABLE_CONFIG_DEBUG             0
 
 #ifndef BUILD_ENABLE_PROFILE
 #if BUILD_DEBUG || BUILD_RELEASE || BUILD_PROFILE
