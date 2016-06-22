@@ -1729,6 +1729,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
 	wchar_t* wpath;
+	bool success = false;
 #endif
 
 	if (!(stream->mode & STREAM_OUT) ||
@@ -1770,30 +1771,29 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	wpath = wstring_allocate_from_string(STRING_ARGS(fspath));
 	fd = CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0);
 	wstring_deallocate(wpath);
+	if (fd != INVALID_HANDLE_VALUE) {
 #  if FOUNDATION_ARCH_X86_64
-	if (length < 0xFFFFFFFF)
+		if (length < 0xFFFFFFFF)
 #  endif
-	{
-		if (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-			string_const_t errstr = system_error_message(0);
-			log_warnf(0, WARNING_SUSPICIOUS,
-			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-			          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+		{
+			success = (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 		}
-	}
 #  if FOUNDATION_ARCH_X86_64
-	else {
-		LONG high = (LONG)(length >> 32LL);
-		if (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-			string_const_t errstr = system_error_message(0);
-			log_warnf(0, WARNING_SUSPICIOUS,
-			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-			          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+		else {
+			LONG high = (LONG)(length >> 32LL);
+			success = (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 		}
-	}
 #  endif
-	SetEndOfFile(fd);
-	CloseHandle(fd);
+		if (success)
+			success = (SetEndOfFile(fd) != 0);
+		CloseHandle(fd);
+	}
+	if (!success) {
+		string_const_t errstr = system_error_message(0);
+		log_warnf(0, WARNING_SUSPICIOUS,
+		          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
+		          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+	}
 #elif FOUNDATION_PLATFORM_POSIX
 	int fd = open(fspath.str, O_RDWR);
 	if (ftruncate(fd, (ssize_t)length) < 0) {
