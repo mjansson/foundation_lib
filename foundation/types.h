@@ -1105,22 +1105,27 @@ struct hashmap_node_t {
 	void* value;
 };
 
-/*! Hash map container, mapping hash values to data pointers */
-struct hashmap_t {
-	/*! Number of buckets in the hash map */
-	size_t num_buckets;
-	/*! Total number of nodes in the hash map across all buckets */
-	size_t num_nodes;
-	/*! Bucket array, represented as an array of hashmap_node_t arrays, which will be
-	    dynamically allocated and reallocated to the required sizes. */
-	hashmap_node_t* bucket[FOUNDATION_FLEXIBLE_ARRAY];
-};
-
 /*! Declare an inlined hashmap of given size */
 #define FOUNDATION_DECLARE_HASHMAP(size) \
 	size_t num_buckets; \
 	size_t num_nodes; \
 	hashmap_node_t* bucket[size]
+
+/*! Hash map container, mapping hash values to data pointers */
+struct hashmap_t {
+	/*!
+	\var num_buckets
+	Number of buckets in the hash map
+
+	\var num_nodes
+	Total number of nodes in the hash map across all buckets
+
+	\var bucket
+	Bucket array, represented as an array of hashmap_node_t arrays, which will be
+	dynamically allocated and reallocated to the required sizes.
+	*/
+	FOUNDATION_DECLARE_HASHMAP(FOUNDATION_FLEXIBLE_ARRAY);
+};
 
 /*! Hashmap of default size. Initialize with a call to
 <code>hashmap_fixed_t map;
@@ -1147,20 +1152,38 @@ FOUNDATION_ALIGNED_STRUCT(hashtable64_entry_t, 8) {
 	uint64_t value;
 };
 
+/*! Declare an inlined 32-bit hashtable of given size */
+#define FOUNDATION_DECLARE_HASHTABLE32(size) \
+	size_t capacity; \
+	hashtable32_entry_t entries[size]
+
+/*! Declare an inlined 64-bit hashtable of given size */
+#define FOUNDATION_DECLARE_HASHTABLE64(size) \
+	size_t capacity; \
+	hashtable64_entry_t entries[size]
+
 /*! Hash table, a lock free mapping of 32-but values to 32 bit integer data. */
 FOUNDATION_ALIGNED_STRUCT(hashtable32_t, 8) {
-	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
-	size_t capacity;
-	/*! Hash table storage as array of nodes where each node is a key-value pair. */
-	hashtable32_entry_t entries[FOUNDATION_FLEXIBLE_ARRAY];
+	/*!
+	\var capacity
+	Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
+
+	\var entries
+	Hash table storage as array of nodes where each node is a key-value pair.
+	*/
+	FOUNDATION_DECLARE_HASHTABLE32(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! Hash table, a lock free mapping of 64-bit values to 64-bit integer data. */
 FOUNDATION_ALIGNED_STRUCT(hashtable64_t, 8) {
-	/*! Number of nodes in the table, i.e maximum number of key-value pairs that can be stored. */
-	size_t capacity;
-	/*! Hash table storage as array of nodes where each node is a key-value pair. */
-	hashtable64_entry_t entries[FOUNDATION_FLEXIBLE_ARRAY];
+	/*!
+	\var capacity
+	Number of nodes in the table, i.e maximum number of key-value pairs that can be stored.
+
+	\var entries
+	Hash table storage as array of nodes where each node is a key-value pair.
+	*/
+	FOUNDATION_DECLARE_HASHTABLE64(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! Memory context stack */
@@ -1203,26 +1226,46 @@ FOUNDATION_ALIGNED_STRUCT(object_base_t, 8) {
 	FOUNDATION_DECLARE_OBJECT;
 };
 
+#define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
+	atomic64_t free; \
+	atomic64_t id; \
+	size_t size; \
+	unsigned int size_bits; \
+	uint64_t id_max; \
+	uint64_t mask_index; \
+	uint64_t mask_id; \
+	void* map[mapsize]
+
 /*! Object map which maps object handles to object pointers. As object lifetime is managed
 by reference counting, objects that are deallocated will invalidate the handle in the
 corresponding object map. */
 FOUNDATION_ALIGNED_STRUCT(objectmap_t, 8) {
-	/*! Current first free slot */
-	atomic64_t free;
-	/*! Counter for next available ID */
-	atomic64_t id;
-	/*! Number of slots in map */
-	size_t size;
-	/*! Number of bits needed for slot index */
-	unsigned int size_bits;
-	/*! Maximum ID depending on how many bits are used by size */
-	uint64_t id_max;
-	/*! Bitmask for slot index */
-	uint64_t mask_index;
-	/*! Bitmask for ID */
-	uint64_t mask_id;
-	/*! Slot array */
-	void* map[FOUNDATION_FLEXIBLE_ARRAY];
+	/*!
+	\var free
+	Current first free slot
+	
+	\var id
+	Counter for next available ID
+
+	\var size
+	Number of slots in map
+
+	\var size_bits
+	Number of bits needed for slot index
+
+	\var id_max
+	Maximum ID depending on how many bits are used by size
+
+	\var mask_index
+	Bitmask for slot index
+
+	\var mask_id
+	Bitmask for ID
+
+	\var map
+	Slot array
+	*/
+	FOUNDATION_DECLARE_OBJECTMAP(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! State for a child process */
@@ -1296,13 +1339,13 @@ a ring buffer struct:
   int       some_other_data;
   //[...]
 } my_ringbuffer_t;</code> */
-#define FOUNDATION_DECLARE_RINGBUFFER \
+#define FOUNDATION_DECLARE_RINGBUFFER(buffersize) \
 	uint64_t total_read; \
 	uint64_t total_write; \
 	size_t  offset_read; \
 	size_t offset_write; \
 	size_t buffer_size; \
-	char buffer[FOUNDATION_FLEXIBLE_ARRAY]
+	char buffer[buffersize]
 
 /*! Ring buffer, a shared memory area wrapped to a circular buffer with one read
 and one get pointer. */
@@ -1326,7 +1369,7 @@ struct ringbuffer_t {
 	\var ringbuffer_t::buffer
 	Memory buffer
 	*/
-	FOUNDATION_DECLARE_RINGBUFFER;
+	FOUNDATION_DECLARE_RINGBUFFER(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -1566,7 +1609,8 @@ FOUNDATION_ALIGNED_STRUCT(stream_ringbuffer_t, 8) {
 	volatile int pending_write;
 	/*! Number of bytes written (total size of stream) */
 	size_t total_size;
-	FOUNDATION_DECLARE_RINGBUFFER;
+
+	FOUNDATION_DECLARE_RINGBUFFER(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! Virtual function table for stream implementations. Each stream type must provide
