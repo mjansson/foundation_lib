@@ -1131,7 +1131,7 @@ fs_event_post(foundation_event_id id, const char* path, size_t pathlen) {
 
 string_const_t
 fs_event_path(const event_t* event) {
-	return string_const(pointer_offset(event->payload, sizeof(size_t)), event->payload[0]);
+	return string_const(pointer_offset_const(event->payload, sizeof(size_t)), event->payload[0]);
 }
 
 event_stream_t* fs_event_stream(void) {
