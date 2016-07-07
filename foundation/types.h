@@ -611,7 +611,7 @@ typedef void (* log_handler_fn)(hash_t context, error_level_t severity, const ch
 \param numtokens Number of tokens */
 typedef void (* json_handler_fn)(const char* path, size_t path_size,
                                  const char* buffer, size_t size,
-                                 json_token_t* tokens, size_t numtokens);
+                                 const json_token_t* tokens, size_t numtokens);
 
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
