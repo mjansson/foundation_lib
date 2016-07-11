@@ -480,7 +480,7 @@ main_run(void* main_arg) {
 	string_t* subdirs = fs_subdirs(STRING_ARGS(environment_executable_directory()));
 	for (size_t idir = 0, dirsize = array_size(subdirs); idir < dirsize; ++idir) {
 		if (regex_match(app_regex, subdirs[idir].str, subdirs[idir].length, 0, 0)) {
-			string_t exe_path = { subdirs[idir].str, subdirs[idir].length - 4 };
+			string_t exe_path = string_clone(subdirs[idir].str, subdirs[idir].length - 4);
 			array_push(exe_paths, exe_path);
 			array_push(exe_flags, PROCESS_MACOSX_USE_OPENAPPLICATION);
 		}
