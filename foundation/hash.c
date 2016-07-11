@@ -230,6 +230,8 @@ hash_to_string(hash_t value) {
 
 #else
 
+#undef hash_to_string
+
 int
 _static_hash_initialize(void) {
 	return 0;
@@ -237,6 +239,12 @@ _static_hash_initialize(void) {
 
 void
 _static_hash_finalize(void) {
+}
+
+string_const_t
+hash_to_string(hash_t value) {
+	FOUNDATION_UNUSED(value);
+	return string_empty();
 }
 
 #endif

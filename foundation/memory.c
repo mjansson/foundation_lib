@@ -323,6 +323,31 @@ memory_context_thread_finalize(void) {
 	set_thread_memory_context(0);
 }
 
+#else 
+
+#undef memory_context_push
+#undef memory_context_pop
+#undef memory_context
+#undef memory_context_thread_finalize
+
+void
+memory_context_push(hash_t context_id) {
+	FOUNDATION_UNUSED(context_id);
+}
+
+void
+memory_context_pop(void) {
+}
+
+hash_t
+memory_context(void) {
+	return 0;
+}
+
+void
+memory_context_thread_finalize(void) {
+}
+
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER != 4)
