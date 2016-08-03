@@ -409,11 +409,28 @@ DECLARE_TEST(json, random) {
 	return 0;
 }
 
+DECLARE_TEST(json, util) {
+	char escaped[512];
+	char unescaped[512];
+	string_t str;
+
+	str = json_escape(escaped, sizeof(escaped), STRING_CONST("Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20"));
+	EXPECT_CONSTSTRINGEQ(string_to_const(str), string_const(STRING_CONST("Test escape \\\"\\\\\\b\\f\\r\\n\\t\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019 ")));
+	str = json_unescape(unescaped, sizeof(unescaped), STRING_ARGS(str));
+	EXPECT_CONSTSTRINGEQ(string_to_const(str), string_const(STRING_CONST("Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20")));
+
+	//sjson_parse_path file
+	//sjson_parse_path directory
+
+	return 0;
+}
+
 static void
 test_json_declare(void) {
 	ADD_TEST(json, reference);
 	ADD_TEST(json, simplified);
 	ADD_TEST(json, random);
+	ADD_TEST(json, util);
 }
 
 static test_suite_t test_json_suite = {

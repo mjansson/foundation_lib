@@ -453,9 +453,10 @@ json_unescape(char* buffer, size_t capacity, const char* string, size_t length) 
 
 			case 'u':
 				if (i + 4 < length) {
-					uint16_t val = (uint16_t)string_to_uint(buffer + i + 1, 4, true);
+					uint16_t val = (uint16_t)string_to_uint(string + i + 1, 4, true);
 					string_t conv = string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
 					outlength += conv.length;
+					i += 4;
 				}
 				break;
 
