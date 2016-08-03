@@ -393,7 +393,7 @@ main_run(void* main_arg) {
 		test_regex_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
-		test_md5_run,
+		test_sha_run,
 		test_stacktrace_run,
 		test_stream_run, //stream test closes stdin
 		test_string_run,
