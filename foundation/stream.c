@@ -586,7 +586,7 @@ stream_read_uint512(stream_t* stream) {
 		value.word[7] = stream_read_uint64(stream);
 	}
 	else {
-		char buffer[30] = {0};
+		char buffer[129] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
 		value = string_to_uint512(str.str, str.length);
 	}
