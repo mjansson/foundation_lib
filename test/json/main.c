@@ -46,9 +46,8 @@ static void
 test_json_finalize(void) {
 }
 
-static json_token_t tokens[128];
-
 DECLARE_TEST(json, reference) {
+	json_token_t tokens[128];
 	size_t capacity = sizeof(tokens) / sizeof(tokens[0]);
 
 	string_const_t compound = string_const(STRING_CONST("\
@@ -171,6 +170,7 @@ DECLARE_TEST(json, reference) {
 }
 
 DECLARE_TEST(json, simplified) {
+	json_token_t tokens[128];
 	size_t capacity = sizeof(tokens) / sizeof(tokens[0]);
 
 	string_const_t simplified = string_const(STRING_CONST("\
@@ -419,6 +419,9 @@ static void
 test_json_handler(const char* path, size_t path_size,
                   const char* buffer, size_t size,
                   const json_token_t* tokens, size_t numtokens) {
+	FOUNDATION_UNUSED(path);
+	FOUNDATION_UNUSED(path_size);
+	FOUNDATION_UNUSED(size);
 	if (numtokens == 4) {
 		test_parse_failed = false;
 		if (tokens[0].child != 1)
