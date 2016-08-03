@@ -67,6 +67,8 @@ DECLARE_TEST(json, reference) {
 	]\
 	}"));
 
+	memset(tokens, 0, sizeof(tokens));
+
 	EXPECT_SIZEEQ(json_parse(0, 0, tokens, capacity), 0);
 	EXPECT_EQ(tokens[0].type, JSON_UNDEFINED);
 	EXPECT_SIZEEQ(json_parse(STRING_CONST("\"test\""), tokens, capacity), 1);
@@ -206,6 +208,8 @@ DECLARE_TEST(json, simplified) {
 		 1234.43E+123 \
 	]\
 	}"));
+
+	memset(tokens, 0, sizeof(tokens));
 
 	EXPECT_SIZEEQ(sjson_parse(STRING_CONST("{\"test\" : true}"), tokens, capacity), 2);
 	EXPECT_SIZEEQ(sjson_parse(STRING_CONST("{\"test\" : true }"), tokens, 1), 2);
