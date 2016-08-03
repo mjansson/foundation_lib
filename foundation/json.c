@@ -490,7 +490,8 @@ sjson_parse_stream(const char* path, size_t length, json_handler_fn handler) {
 
 	num = sjson_parse(buffer, size, tokens, capacity);
 	if (num > capacity) {
-		tokens = memory_allocate(0, sizeof(json_token_t) * num, 0, MEMORY_PERSISTENT);
+		capacity = num;
+		tokens = memory_allocate(0, sizeof(json_token_t) * capacity, 0, MEMORY_PERSISTENT);
 		num = sjson_parse(buffer, size, tokens, capacity);
 	}
 	if (num && (tokens[0].type == JSON_OBJECT))
