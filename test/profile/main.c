@@ -270,6 +270,17 @@ _profile_stream_thread(void* arg) {
 			}
 			profile_end_block();
 
+			profile_begin_block(STRING_CONST("Thread second subblock"));
+			{
+				profile_update_block();
+
+				profile_begin_block(STRING_CONST("Thread subblock"));
+				{
+				}
+				profile_end_block();
+			}
+			profile_end_block();
+
 			profile_trylock(STRING_CONST("Trylock"));
 			thread_sleep(1);
 
@@ -280,7 +291,7 @@ _profile_stream_thread(void* arg) {
 		}
 		profile_end_block();
 
-		atomic_add64(&_profile_generated_blocks, 12);
+		atomic_add64(&_profile_generated_blocks, 14);
 	}
 
 	return 0;
