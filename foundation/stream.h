@@ -434,19 +434,22 @@ stream_buffer_read(stream_t* stream);
 FOUNDATION_API size_t
 stream_available_read(stream_t* stream);
 
-/*! Read stream md5 digest
+/*! Read stream md5 digest. Line ending will be unified and digested as a
+UNIX style LF if the stream is in ascii mode.
 \param stream Stream
 \return md5 digest, 0 if not available for stream type or invalid stream */
 FOUNDATION_API uint128_t
 stream_md5(stream_t* stream);
 
-/*! Read stream SHA-256 digest
+/*! Read stream SHA-256 digest. Line ending will be unified and digested as a
+UNIX style LF if the stream is in ascii mode.
 \param stream Stream
 \return SHA-256 digest, 0 if not available for stream type or invalid stream */
 FOUNDATION_API uint256_t
 stream_sha256(stream_t* stream);
 
-/*! Read stream SHA-512 digest
+/*! Read stream SHA-512 digest. Line ending will be unified and digested as a
+UNIX style LF if the stream is in ascii mode.
 \param stream Stream
 \return SHA-512 digest, 0 if not available for stream type or invalid stream */
 FOUNDATION_API uint512_t
