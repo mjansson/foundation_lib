@@ -138,9 +138,10 @@ stream_clone(stream_t* stream) {
 bool
 stream_copy(stream_t* source, stream_t* destination) {
 	bool success = true;
-	char* buffer = memory_allocate(0, 4096, 0, MEMORY_PERSISTENT);
+	const size_t buffersize = 4096;
+	char* buffer = memory_allocate(0, buffersize, 0, MEMORY_PERSISTENT);
 	while (!stream_eos(source)) {
-		size_t read = stream_read(source, buffer, sizeof(buffer));
+		size_t read = stream_read(source, buffer, buffersize);
 		if (read) {
 			if (stream_write(destination, buffer, read) != read) {
 				success = false;
