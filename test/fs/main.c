@@ -73,6 +73,9 @@ DECLARE_TEST(fs, directory) {
 	if (!fs_is_directory(STRING_ARGS(testpath)))
 		fs_make_directory(STRING_ARGS(testpath));
 
+	EXPECT_FALSE(fs_is_file(STRING_CONST("")));
+	EXPECT_FALSE(fs_is_directory(STRING_CONST("")));
+
 	EXPECT_TRUE(fs_is_directory(STRING_ARGS(testpath)));
 
 	EXPECT_TRUE(fs_remove_directory(STRING_ARGS(testpath)));
@@ -257,6 +260,8 @@ DECLARE_TEST(fs, file) {
 	EXPECT_SIZEEQ(stream_tell(teststream), 1);
 	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)+1);
 	EXPECT_SIZEEQ(stream_tell(teststream), 1);
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	EXPECT_SIZEEQ(stream_available_read(teststream), sizeof(data)+1);
 	stream_deallocate(teststream);
 
 	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
@@ -337,6 +342,7 @@ DECLARE_TEST(fs, util) {
 	tick_t lastmod = 0;
 	md5_t nullmd5;
 	stream_t* teststream;
+	stream_t* cloned;
 	string_const_t fname = string_from_uint_static(random64(), true, 0, 0);
 	string_t testpath = path_concat(buf, BUILD_MAX_PATHLEN,
 	                                STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
@@ -402,7 +408,7 @@ DECLARE_TEST(fs, util) {
 	EXPECT_TRUE(uint128_equal(md5_get_digest_raw(&nullmd5), fs_md5(STRING_ARGS(testpath))));
 	md5_finalize(&nullmd5);
 
-	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT);
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_SYNC);
 
 	stream_truncate(teststream, 100);
 	EXPECT_EQ(stream_size(teststream), 13);
@@ -410,7 +416,17 @@ DECLARE_TEST(fs, util) {
 	thread_sleep(1500);
 	stream_truncate(teststream, 4);
 	EXPECT_EQ(stream_size(teststream), 4);
+
 	stream_deallocate(teststream);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN);
+	cloned = stream_clone(teststream);
+	EXPECT_NE(cloned, nullptr);
+	EXPECT_EQ(stream_size(cloned), 4);
+	EXPECT_CONSTSTRINGEQ(stream_path(teststream), stream_path(cloned));
+
+	stream_deallocate(teststream);
+	stream_deallocate(cloned);
 
 	EXPECT_GT(fs_last_modified(STRING_ARGS(testpath)), lastmod);
 

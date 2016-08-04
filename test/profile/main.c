@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 //Must be >30000 since we assume that in forced fail test
-#define TEST_PROFILE_BUFFER_SIZE  512000
+#define TEST_PROFILE_BUFFER_SIZE  1024*1024
 
 static char*       _test_profile_buffer;
 static size_t      _test_profile_offset;
@@ -346,9 +346,12 @@ DECLARE_TEST(profile, stream) {
 		thread_finalize(&thread[ith]);
 
 	profile_end_frame(frame++);
-	profile_set_output_wait(100);
+	profile_set_output_wait(10000);
 
 	thread_sleep(1000);
+
+	profile_begin_block(STRING_CONST("Should be cleaned up"));
+	profile_end_block();
 
 	profile_enable(false);
 	profile_finalize();
