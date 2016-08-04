@@ -184,7 +184,7 @@ fs_monitor(const char* path, size_t length) {
 
 	mutex_lock(_fs_monitor_lock);
 
-	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
+	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
 		if (_fs_monitors[mi].inuse &&
 		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
 			mutex_unlock(_fs_monitor_lock);
@@ -199,7 +199,7 @@ fs_monitor(const char* path, size_t length) {
 	path_clone = path_absolute(STRING_ARGS(path_clone), BUILD_MAX_PATHLEN);
 	path_clone = string_clone(STRING_ARGS(path_clone));
 
-	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
+	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
 		if (!_fs_monitors[mi].inuse) {
 			_fs_monitors[mi].inuse = true;
 			_fs_monitors[mi].path = path_clone;
@@ -211,7 +211,7 @@ fs_monitor(const char* path, size_t length) {
 		}
 	}
 
-	if (mi == _foundation_config.fs_monitor_max) {
+	if (mi == foundation_config().fs_monitor_max) {
 		string_deallocate(path_clone.str);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to monitor file system, no free monitor slots: %.*s"), (int)length, path);
@@ -244,7 +244,7 @@ fs_unmonitor(const char* path, size_t length) {
 
 	mutex_lock(_fs_monitor_lock);
 
-	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
+	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
 		if (_fs_monitors[mi].inuse &&
 		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
 			_fs_stop_monitor(_fs_monitors + mi);
@@ -2070,11 +2070,11 @@ int
 _fs_initialize(void) {
 #if FOUNDATION_HAVE_FS_MONITOR
 	_fs_monitors = memory_allocate(HASH_STREAM,
-	                               sizeof(fs_monitor_t) * _foundation_config.fs_monitor_max,
+	                               sizeof(fs_monitor_t) * foundation_config().fs_monitor_max,
 	                               0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	_fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
 #else
-	_foundation_config.fs_monitor_max = 0;
+	foundation_config().fs_monitor_max = 0;
 	_fs_monitors = 0;
 	_fs_monitor_lock = 0;
 #endif
@@ -2153,7 +2153,7 @@ _fs_initialize(void) {
 void
 _fs_finalize(void) {
 	size_t mi;
-	if (_fs_monitors) for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi)
+	if (_fs_monitors) for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi)
 			_fs_stop_monitor(_fs_monitors + mi);
 	mutex_deallocate(_fs_monitor_lock);
 

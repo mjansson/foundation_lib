@@ -277,7 +277,7 @@ thread_initialize(thread_t* thread, thread_fn fn, void* data, const char* name, 
                   thread_priority_t priority, unsigned int stacksize) {
 	string_t newname;
 	if (!stacksize)
-		stacksize = (uint32_t)_foundation_config.thread_stack_size;
+		stacksize = (uint32_t)foundation_config().thread_stack_size;
 
 	memset(thread, 0, sizeof(thread_t));
 	newname = string_copy(thread->namebuffer, sizeof(thread->namebuffer), name, length);

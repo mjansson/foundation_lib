@@ -72,7 +72,7 @@ _random_initialize(void) {
 		_random_mutex = mutex_allocate(STRING_CONST("random"));
 
 		//Allocate and seed a number of state buffers
-		prealloc = _foundation_config.random_state_prealloc;
+		prealloc = foundation_config().random_state_prealloc;
 		capacity = prealloc > 8 ? prealloc : 8;
 		array_reserve(_random_state, capacity);
 		array_reserve(_random_available_state, capacity);
