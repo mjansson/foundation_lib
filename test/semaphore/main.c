@@ -265,7 +265,8 @@ static test_suite_t test_semaphore_suite = {
 	test_semaphore_config,
 	test_semaphore_declare,
 	test_semaphore_initialize,
-	test_semaphore_finalize
+	test_semaphore_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

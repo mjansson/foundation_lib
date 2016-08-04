@@ -947,7 +947,8 @@ static test_suite_t test_path_suite = {
 	test_path_config,
 	test_path_declare,
 	test_path_initialize,
-	test_path_finalize
+	test_path_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

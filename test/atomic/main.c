@@ -226,7 +226,8 @@ static test_suite_t test_atomic_suite = {
 	test_atomic_config,
 	test_atomic_declare,
 	test_atomic_initialize,
-	test_atomic_finalize
+	test_atomic_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

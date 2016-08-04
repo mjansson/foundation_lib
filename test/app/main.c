@@ -52,6 +52,11 @@ test_app_finalize(void) {
 
 DECLARE_TEST(app, environment) {
 	const application_t decl = test_app_application();
+
+	//Test double init
+	EXPECT_TRUE(foundation_is_initialized());
+	EXPECT_EQ(foundation_initialize(test_app_memory_system(), test_app_application(), test_app_config()), 0);
+
 #if !BUILD_MONOLITHIC
 	EXPECT_CONSTSTRINGEQ(environment_application()->name, decl.name);
 	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, decl.short_name);
@@ -247,7 +252,8 @@ static test_suite_t test_app_suite = {
 	test_app_config,
 	test_app_declare,
 	test_app_initialize,
-	test_app_finalize
+	test_app_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

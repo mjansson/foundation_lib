@@ -605,7 +605,8 @@ static test_suite_t test_bufferstream_suite = {
 	test_bufferstream_config,
 	test_bufferstream_declare,
 	test_bufferstream_initialize,
-	test_bufferstream_finalize
+	test_bufferstream_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

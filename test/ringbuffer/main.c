@@ -324,7 +324,8 @@ static test_suite_t test_ringbuffer_suite = {
 	test_ringbuffer_config,
 	test_ringbuffer_declare,
 	test_ringbuffer_initialize,
-	test_ringbuffer_finalize
+	test_ringbuffer_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

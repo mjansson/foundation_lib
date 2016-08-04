@@ -444,7 +444,8 @@ static test_suite_t test_random_suite = {
 	test_random_config,
 	test_random_declare,
 	test_random_initialize,
-	test_random_finalize
+	test_random_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

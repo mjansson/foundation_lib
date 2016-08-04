@@ -303,7 +303,8 @@ static test_suite_t test_blowfish_suite = {
   test_blowfish_config,
   test_blowfish_declare,
   test_blowfish_initialize,
-  test_blowfish_finalize
+  test_blowfish_finalize,
+  0
 };
 
 #if BUILD_MONOLITHIC

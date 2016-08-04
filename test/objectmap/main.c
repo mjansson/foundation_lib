@@ -275,7 +275,8 @@ static test_suite_t test_objectmap_suite = {
 	test_objectmap_config,
 	test_objectmap_declare,
 	test_objectmap_initialize,
-	test_objectmap_finalize
+	test_objectmap_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

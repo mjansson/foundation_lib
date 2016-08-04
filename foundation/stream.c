@@ -135,6 +135,24 @@ stream_clone(stream_t* stream) {
 	return 0;
 }
 
+bool
+stream_copy(stream_t* source, stream_t* destination) {
+	bool success = true;
+	const size_t buffersize = 4096;
+	char* buffer = memory_allocate(0, buffersize, 0, MEMORY_PERSISTENT);
+	while (!stream_eos(source)) {
+		size_t read = stream_read(source, buffer, buffersize);
+		if (read) {
+			if (stream_write(destination, buffer, read) != read) {
+				success = false;
+				break;
+			}
+		}
+	}
+	memory_deallocate(buffer);
+	return success;
+}
+
 void
 stream_set_byteorder(stream_t* stream, byteorder_t byteorder) {
 	stream->byteorder = (unsigned int)byteorder;
@@ -196,8 +214,8 @@ stream_last_modified(const stream_t* stream) {
 
 void
 stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
-    if (stream->vtable->seek)
-	    stream->vtable->seek(stream, offset, direction);
+	if (stream->vtable->seek)
+		stream->vtable->seek(stream, offset, direction);
 }
 
 size_t
@@ -315,6 +333,30 @@ stream_read_line(stream_t* stream, char delimiter) {
 		outbuffer[cursize] = 0;
 
 	return (string_t) { outbuffer, cursize };
+}
+
+size_t
+stream_skip_whitespace(stream_t* stream) {
+	char token;
+	size_t read;
+	size_t total = 0;
+
+	if (!(stream->mode & STREAM_IN) || (stream->mode & STREAM_BINARY) ||
+		stream_is_sequential(stream))
+		return 0;
+
+	do {
+		read = stream->vtable->read(stream, &token, 1);
+		total += read;
+	}
+	while ((read > 0) && (string_find(STRING_CONST(STRING_WHITESPACE), token, 0) != STRING_NPOS));
+
+	if (read) {
+		stream_seek(stream, -1, STREAM_SEEK_CURRENT);
+		--total;
+	}
+
+	return total;
 }
 
 size_t
@@ -512,6 +554,54 @@ stream_read_uint128(stream_t* stream) {
 		value = string_to_uint128(str.str, str.length);
 	}
 	return value;
+}
+
+uint256_t
+stream_read_uint256(stream_t* stream) {
+	uint256_t value;
+	if (stream_is_binary(stream)) {
+		value.word[0] = stream_read_uint64(stream);
+		value.word[1] = stream_read_uint64(stream);
+		value.word[2] = stream_read_uint64(stream);
+		value.word[3] = stream_read_uint64(stream);
+	}
+	else {
+		char buffer[66] = {0};
+		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+		value = string_to_uint256(str.str, str.length);
+	}
+	return value;
+}
+
+uint512_t
+stream_read_uint512(stream_t* stream) {
+	uint512_t value;
+	if (stream_is_binary(stream)) {
+		value.word[0] = stream_read_uint64(stream);
+		value.word[1] = stream_read_uint64(stream);
+		value.word[2] = stream_read_uint64(stream);
+		value.word[3] = stream_read_uint64(stream);
+		value.word[4] = stream_read_uint64(stream);
+		value.word[5] = stream_read_uint64(stream);
+		value.word[6] = stream_read_uint64(stream);
+		value.word[7] = stream_read_uint64(stream);
+	}
+	else {
+		char buffer[129] = {0};
+		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+		value = string_to_uint512(str.str, str.length);
+	}
+	return value;
+}
+
+uuid_t
+stream_read_uuid(stream_t* stream) {
+	if (stream_is_binary(stream))
+		return stream_read_uint128(stream);
+
+	char buffer[37] = {0};
+	string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
+	return string_to_uuid(str.str, str.length);
 }
 
 float32_t
@@ -784,24 +874,18 @@ stream_available_read(stream_t* stream) {
 	return (unsigned int)(stream_size(stream) - stream_tell(stream));
 }
 
-uint128_t
-stream_md5(stream_t* stream) {
+static bool
+stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t), void* data) {
 	size_t cur, ic, lastc, num, limit;
-	md5_t md5;
-	uint128_t ret = uint128_null();
 	unsigned char buf[1025];
 	bool ignore_lf = false;
 
-	if (stream->vtable->md5)
-		return stream->vtable->md5(stream);
-
 	if (stream_is_sequential(stream) || !(stream->mode & STREAM_IN))
-		return ret;
+		return false;
 
 	cur = stream_tell(stream);
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
 
-	md5_initialize(&md5);
 	limit = sizeof(buf)-1;
 	buf[limit] = 0;
 
@@ -810,7 +894,7 @@ stream_md5(stream_t* stream) {
 		if (!num)
 			continue;
 		if (stream->mode & STREAM_BINARY)
-			md5_digest(&md5, buf, (size_t)num);
+			digester(data, buf, (size_t)num);
 		else {
 			//If last buffer ended with CR, ignore a leading LF
 			lastc = 0;
@@ -830,22 +914,71 @@ stream_md5(stream_t* stream) {
 					if (was_cr && (ic == limit-1))
 						ignore_lf = true; //Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
-					md5_digest(&md5, buf + lastc, (size_t)((ic - lastc) + 1)); //Include the LF
+					digester(data, buf + lastc, (size_t)((ic - lastc) + 1)); //Include the LF
 					if (was_cr && (buf[ic + 1] == '\n'))  //Check for CR+LF
 						++ic;
 					lastc = ic + 1;
 				}
 			}
 			if (lastc < num)
-				md5_digest(&md5, buf + lastc, (size_t)(num - lastc));
+				digester(data, buf + lastc, (size_t)(num - lastc));
 		}
 	}
 
 	stream_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
+	return true;
+}
 
-	md5_digest_finalize(&md5);
-	ret = md5_get_digest_raw(&md5);
+uint128_t
+stream_md5(stream_t* stream) {
+	md5_t md5;
+	uint128_t ret = uint128_null();
+
+	if (stream->vtable->md5)
+		return stream->vtable->md5(stream);
+
+	md5_initialize(&md5);
+	if (stream_digester(stream, (void* (*)(void*, const void*, size_t))md5_digest, &md5)) {
+		md5_digest_finalize(&md5);
+		ret = md5_get_digest_raw(&md5);
+	}
 	md5_finalize(&md5);
+
+	return ret;
+}
+
+uint256_t
+stream_sha256(stream_t* stream) {
+	sha256_t sha;
+	uint256_t ret = uint256_null();
+
+	if (stream->vtable->sha256)
+		return stream->vtable->sha256(stream);
+
+	sha256_initialize(&sha);
+	if (stream_digester(stream, (void* (*)(void*, const void*, size_t))sha256_digest, &sha)) {
+		sha256_digest_finalize(&sha);
+		ret = sha256_get_digest_raw(&sha);
+	}
+	sha256_finalize(&sha);
+
+	return ret;
+}
+
+uint512_t
+stream_sha512(stream_t* stream) {
+	sha512_t sha;
+	uint512_t ret = uint512_null();
+
+	if (stream->vtable->sha512)
+		return stream->vtable->sha512(stream);
+
+	sha512_initialize(&sha);
+	if (stream_digester(stream, (void* (*)(void*, const void*, size_t))sha512_digest, &sha)) {
+		sha512_digest_finalize(&sha);
+		ret = sha512_get_digest_raw(&sha);
+	}
+	sha512_finalize(&sha);
 
 	return ret;
 }
@@ -982,6 +1115,49 @@ stream_write_uint128(stream_t* stream, uint128_t data) {
 }
 
 void
+stream_write_uint256(stream_t* stream, uint256_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint64(stream, data.word[0]);
+		stream_write_uint64(stream, data.word[1]);
+		stream_write_uint64(stream, data.word[2]);
+		stream_write_uint64(stream, data.word[3]);
+	}
+	else {
+		string_const_t value = string_from_uint256_static(data);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
+stream_write_uint512(stream_t* stream, uint512_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint64(stream, data.word[0]);
+		stream_write_uint64(stream, data.word[1]);
+		stream_write_uint64(stream, data.word[2]);
+		stream_write_uint64(stream, data.word[3]);
+		stream_write_uint64(stream, data.word[4]);
+		stream_write_uint64(stream, data.word[5]);
+		stream_write_uint64(stream, data.word[6]);
+		stream_write_uint64(stream, data.word[7]);
+	}
+	else {
+		string_const_t value = string_from_uint512_static(data);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
+stream_write_uuid(stream_t* stream, uuid_t data) {
+	if (stream_is_binary(stream)) {
+		stream_write_uint128(stream, data);
+	}
+	else {
+		string_const_t value = string_from_uuid_static(data);
+		stream_write_string(stream, value.str, value.length);
+	}
+}
+
+void
 stream_write_float32(stream_t* stream, float32_t data) {
 	if (stream_is_binary(stream)) {
 		if (stream->swap) {
@@ -1027,6 +1203,12 @@ stream_write_string(stream_t* stream, const char* str, size_t length) {
 		char nullstr = 0;
 		stream_write(stream, &nullstr, 1);
 	}
+}
+
+void
+stream_write_separator(stream_t* stream) {
+	if (!stream_is_binary(stream))
+		stream_write(stream, " ", 1);
 }
 
 void
@@ -1177,6 +1359,8 @@ static stream_vtable_t _stream_stdout_vtable = {
 	0,
 	0,
 	0,
+	0,
+	0,
 	_stream_std_clone
 };
 
@@ -1191,6 +1375,8 @@ static stream_vtable_t _stream_stdin_vtable = {
 	0,
 	0,
 	_stream_std_last_modified,
+	0,
+	0,
 	0,
 	0,
 	_stream_stdin_available_read,

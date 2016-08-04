@@ -110,7 +110,7 @@ _fs_node_send_deletions(file_node_t* node, const char* path, size_t pathlen) {
 	for (size_t ifile = 0, fsize = array_size(node->files); ifile < fsize; ++ifile) {
 		string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), path, pathlen,
 		                               STRING_ARGS(node->files[ifile]));
-		fs_post_event(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(pathstr));
+		fs_event_post(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(pathstr));
 	}
 
 	for (size_t isub = 0, subsize = array_size(node->subdirs); isub < subsize; ++isub) {
@@ -127,7 +127,7 @@ _fs_node_send_creations(file_node_t* node, const char* path, size_t pathlen) {
 	for (size_t ifile = 0, fsize = array_size(node->files); ifile < fsize; ++ifile) {
 		string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), path, pathlen,
 		                               STRING_ARGS(node->files[ifile]));
-		fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(pathstr));
+		fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(pathstr));
 	}
 
 	for (size_t isub = 0, subsize = array_size(node->subdirs); isub < subsize; ++isub) {
@@ -195,13 +195,13 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 						array_erase_memcpy(node->files, isub);
 						array_erase_memcpy(node->last_modified, isub);
 						--subsize;
-						fs_post_event(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(pathstr));
+						fs_event_post(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(pathstr));
 					}
 					else {
 						tick_t last_modified = fs_last_modified(STRING_ARGS(pathstr));
 						if (last_modified > node->last_modified[isub]) {
 							node->last_modified[isub] = last_modified;
-							fs_post_event(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(pathstr));
+							fs_event_post(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(pathstr));
 						}
 						++isub;
 					}
@@ -215,7 +215,7 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 						array_push(node->last_modified, last_mod);
 						array_push(node->files, files[isub]);
 						files[isub] = (string_t) { 0, 0 };
-						fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(pathstr));
+						fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(pathstr));
 					}
 				}
 

@@ -138,6 +138,3 @@ _object_initialize(object_base_t* obj, object_t id);
 FOUNDATION_API void
 _environment_main_args(int argc, const char* const* argv);
 
-// Global data
-
-FOUNDATION_API foundation_config_t _foundation_config;

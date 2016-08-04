@@ -343,7 +343,7 @@ process_spawn(process_t* proc) {
 
 		string_const_t pathstripped = string_strip(proc->path.str, proc->path.length, STRING_CONST("\""));
 		size_t localcap = pathstripped.length + 5;
-		string_t localpath = string_allocate(0, localcap - 1);
+		string_t localpath = string_allocate(0, localcap);
 		localpath = string_copy(localpath.str, localcap,
 		                        STRING_ARGS(pathstripped));     //Need it zero terminated
 

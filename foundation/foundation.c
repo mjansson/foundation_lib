@@ -41,32 +41,24 @@ main(int, char**);
 
 #endif
 
-foundation_config_t _foundation_config;
-static bool _foundation_initialized;
+static foundation_config_t _config;
+static bool _initialized;
 
 static void
 foundation_initialize_config(const foundation_config_t config) {
-	_foundation_config.library_max           = config.library_max           ?
-	                                           config.library_max           : 32;
-	_foundation_config.memory_tracker_max    = config.memory_tracker_max    ?
-	                                           config.memory_tracker_max    : (32 * 1024);
-	_foundation_config.temporary_memory      = config.temporary_memory;
-	_foundation_config.fs_monitor_max        = config.fs_monitor_max        ?
-	                                           config.fs_monitor_max        : 16;
-	_foundation_config.error_context_depth   = config.error_context_depth   ?
-	                                           config.error_context_depth   : 32;
-	_foundation_config.memory_context_depth  = config.memory_context_depth  ?
-	                                           config.memory_context_depth  : 32;
-	_foundation_config.stacktrace_depth      = config.stacktrace_depth      ?
-	                                           config.stacktrace_depth      : 32;
-	_foundation_config.hash_store_size       = config.hash_store_size;
-	_foundation_config.event_block_chunk     = config.event_block_chunk     ?
-	                                           config.event_block_chunk     : (8 * 1024);
-	_foundation_config.event_block_limit     = config.event_block_limit     ?
-	                                           config.event_block_limit     : (512 * 1024);
-	_foundation_config.thread_stack_size     = config.thread_stack_size     ?
-	                                           config.thread_stack_size     : 0x8000;
-	_foundation_config.random_state_prealloc = config.random_state_prealloc;
+	_config.library_max           = (config.library_max ? config.library_max : 32);
+	_config.memory_tracker_max    = (config.memory_tracker_max ? config.memory_tracker_max : (32 * 1024));
+	_config.fs_monitor_max        = (config.fs_monitor_max ? config.fs_monitor_max : 16);
+	_config.error_context_depth   = (config.error_context_depth ? config.error_context_depth : 32);
+	_config.memory_context_depth  = (config.memory_context_depth ? config.memory_context_depth : 32);
+	_config.stacktrace_depth      = (config.stacktrace_depth ? config.stacktrace_depth : 32);
+	_config.event_block_chunk     = (config.event_block_chunk ? config.event_block_chunk : (8 * 1024));
+	_config.event_block_limit     = (config.event_block_limit ? config.event_block_limit : (512 * 1024));
+	_config.thread_stack_size     = (config.thread_stack_size ? config.thread_stack_size : 0x8000);
+	
+	_config.temporary_memory      = config.temporary_memory;
+	_config.hash_store_size       = config.hash_store_size;
+	_config.random_state_prealloc = config.random_state_prealloc;
 }
 
 #define SUBSYSTEM_INIT(system) if (ret == 0) ret = _##system##_initialize()
@@ -77,7 +69,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
                       const foundation_config_t config) {
 	int ret = 0;
 
-	if (_foundation_initialized)
+	if (_initialized)
 		return 0;
 
 	process_set_exit_code(PROCESS_EXIT_SUCCESS);
@@ -136,14 +128,16 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 #endif
 #endif
 
-	_foundation_initialized = true;
+	_initialized = true;
 
 	return 0;
 }
 
 void
 foundation_finalize(void) {
-	_foundation_initialized = false;
+	if (!_initialized)
+		return;
+	_initialized = false;
 
 	profile_finalize();
 
@@ -165,10 +159,10 @@ foundation_finalize(void) {
 
 bool
 foundation_is_initialized(void) {
-	return _foundation_initialized;
+	return _initialized;
 }
 
 foundation_config_t
 foundation_config(void) {
-	return _foundation_config;
+	return _config;
 }

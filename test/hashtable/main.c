@@ -343,7 +343,8 @@ static test_suite_t test_hashtable_suite = {
 	test_hashtable_config,
 	test_hashtable_declare,
 	test_hashtable_initialize,
-	test_hashtable_finalize
+	test_hashtable_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

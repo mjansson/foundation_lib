@@ -73,6 +73,9 @@ DECLARE_TEST(fs, directory) {
 	if (!fs_is_directory(STRING_ARGS(testpath)))
 		fs_make_directory(STRING_ARGS(testpath));
 
+	EXPECT_FALSE(fs_is_file(STRING_CONST("")));
+	EXPECT_FALSE(fs_is_directory(STRING_CONST("")));
+
 	EXPECT_TRUE(fs_is_directory(STRING_ARGS(testpath)));
 
 	EXPECT_TRUE(fs_remove_directory(STRING_ARGS(testpath)));
@@ -118,7 +121,7 @@ DECLARE_TEST(fs, directory) {
 DECLARE_TEST(fs, file) {
 	char buf[BUILD_MAX_PATHLEN];
 	char copybuf[BUILD_MAX_PATHLEN];
-    char data[1024];
+	char data[1024];
 	string_const_t fname;
 	string_t testpath;
 	string_t copypath;
@@ -195,7 +198,7 @@ DECLARE_TEST(fs, file) {
 	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
 	stream_deallocate(teststream);
 
-    //Vefify truncate is ignored for read-only files
+	//Vefify truncate is ignored for read-only files
 	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN | STREAM_TRUNCATE | STREAM_ATEND);
 	EXPECT_NE(teststream, 0);
 	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
@@ -252,11 +255,13 @@ DECLARE_TEST(fs, file) {
 	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)+1);
 	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)+1);
 	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)+1);
-    stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
 	stream_write(teststream, data, 1);
 	EXPECT_SIZEEQ(stream_tell(teststream), 1);
 	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)+1);
 	EXPECT_SIZEEQ(stream_tell(teststream), 1);
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	EXPECT_SIZEEQ(stream_available_read(teststream), sizeof(data)+1);
 	stream_deallocate(teststream);
 
 	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
@@ -317,8 +322,10 @@ DECLARE_TEST(fs, file) {
 
 	//This will fail on POSIX if you have write access to filesystem root
 	log_enable_stdout(false);
-	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
-	EXPECT_FALSE(fs_copy_file(STRING_CONST("/does/not/exist/at/all"), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
+	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath),
+	                          STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
+	EXPECT_FALSE(fs_copy_file(STRING_CONST("/does/not/exist/at/all"),
+	                          STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
 	log_enable_stdout(true);
 
 	fs_remove_file(STRING_ARGS(testpath));
@@ -335,6 +342,7 @@ DECLARE_TEST(fs, util) {
 	tick_t lastmod = 0;
 	md5_t nullmd5;
 	stream_t* teststream;
+	stream_t* cloned;
 	string_const_t fname = string_from_uint_static(random64(), true, 0, 0);
 	string_t testpath = path_concat(buf, BUILD_MAX_PATHLEN,
 	                                STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
@@ -400,7 +408,7 @@ DECLARE_TEST(fs, util) {
 	EXPECT_TRUE(uint128_equal(md5_get_digest_raw(&nullmd5), fs_md5(STRING_ARGS(testpath))));
 	md5_finalize(&nullmd5);
 
-	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT);
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_SYNC);
 
 	stream_truncate(teststream, 100);
 	EXPECT_EQ(stream_size(teststream), 13);
@@ -408,7 +416,17 @@ DECLARE_TEST(fs, util) {
 	thread_sleep(1500);
 	stream_truncate(teststream, 4);
 	EXPECT_EQ(stream_size(teststream), 4);
+
 	stream_deallocate(teststream);
+
+	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN);
+	cloned = stream_clone(teststream);
+	EXPECT_NE(cloned, nullptr);
+	EXPECT_EQ(stream_size(cloned), 4);
+	EXPECT_CONSTSTRINGEQ(stream_path(teststream), stream_path(cloned));
+
+	stream_deallocate(teststream);
+	stream_deallocate(cloned);
 
 	EXPECT_GT(fs_last_modified(STRING_ARGS(testpath)), lastmod);
 
@@ -541,24 +559,22 @@ DECLARE_TEST(fs, event) {
 	event_stream_t* stream;
 	event_block_t* block;
 	event_t* event;
-	size_t length;
-	char* payload;
+	string_const_t payload;
 
 	char pathstr[] = "/some/path/to/some/file/being/tested";
 
 	stream = fs_event_stream();
 	EXPECT_NE(stream, 0);
 
-	fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_CONST(pathstr));
+	fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_CONST(pathstr));
 
 	block = event_stream_process(stream);
 	event = event_next(block, 0);
-	length = *(size_t*)event->payload;
-	payload = pointer_offset(event->payload, sizeof(size_t));
+	payload = fs_event_path(event);
 	EXPECT_NE(event, 0);
 
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
-	EXPECT_STRINGEQ(string(payload, length), string_const(pathstr, sizeof(pathstr) - 1));
+	EXPECT_CONSTSTRINGEQ(payload, string_const(pathstr, sizeof(pathstr) - 1));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -586,7 +602,6 @@ DECLARE_TEST(fs, monitor) {
 	bool multifilesubtestfound[MULTICOUNT][MULTICOUNT];
 	int isub, ifilesub;
 	unsigned int processed;
-	size_t evtsize;
 
 	stream_t* test_stream;
 
@@ -656,8 +671,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_NE(event, 0);
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
 
-	evtsize = event->payload[0];
-	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filetestpath));
+	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filetestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -672,12 +686,11 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_NE(event, 0);
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_MODIFIED);
 
-	evtsize = event->payload[0];
-	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filetestpath));
+	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filetestpath));
 
 	event = event_next(block, event);
-	EXPECT_EQ_MSGFORMAT(event, 0, "event not null (%d : %s)", event->id,
-	                    (char*)pointer_offset(event->payload, sizeof(size_t)));
+	EXPECT_EQ_MSGFORMAT(event, 0, "event not null (%d : %" PRIsize ")",
+	                    event->id, event->payload[0]);
 
 	fs_remove_file(STRING_ARGS(filetestpath));
 	thread_sleep(3000);
@@ -687,8 +700,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_NE(event, 0);
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_DELETED);
 
-	evtsize = event->payload[0];
-	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filetestpath));
+	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filetestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -710,8 +722,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_NE(event, 0);
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
 
-	evtsize = event->payload[0];
-	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filesubtestpath));
+	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filesubtestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -726,8 +737,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_NE(event, 0);
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_MODIFIED);
 
-	evtsize = event->payload[0];
-	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filesubtestpath));
+	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filesubtestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -740,8 +750,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_NE(event, 0);
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_DELETED);
 
-	evtsize = event->payload[0];
-	EXPECT_STRINGEQ(string((char*)pointer_offset(event->payload, sizeof(size_t)), evtsize), string_to_const(filesubtestpath));
+	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filesubtestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -765,18 +774,17 @@ DECLARE_TEST(fs, monitor) {
 		while ((event = event_next(block, event))) {
 			bool found = false;
 			char eventstr[256];
-			char* evtpath;
+			string_const_t evtpath;
 
-			evtsize = event->payload[0];
-			evtpath = pointer_offset(event->payload, sizeof(size_t));
+			evtpath = fs_event_path(event);
 
 			string_format(eventstr, 256, STRING_CONST("event %d:%d:%d:%d:%.*s"), event->id, event->flags,
-			              event->serial, event->size, (int)evtsize, evtpath);
+			              event->serial, event->size, STRING_FORMAT(evtpath));
 			EXPECT_EQ_MSG(event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr);
 
 			for (isub = 0; isub < MULTICOUNT; ++isub) {
 				for (ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub) {
-					if (string_equal(STRING_ARGS(multifilesubtestpath[isub][ifilesub]), evtpath, evtsize)) {
+					if (string_equal(STRING_ARGS(multifilesubtestpath[isub][ifilesub]), STRING_ARGS(evtpath))) {
 						multifilesubtestfound[isub][ifilesub] = true;
 						found = true;
 						break;
@@ -812,18 +820,17 @@ DECLARE_TEST(fs, monitor) {
 		while ((event = event_next(block, event))) {
 			bool found = false;
 			char eventstr[256];
-			char* evtpath;
+			string_const_t evtpath;
 
-			evtsize = event->payload[0];
-			evtpath = pointer_offset(event->payload, sizeof(size_t));
+			evtpath = fs_event_path(event);
 			string_format(eventstr, 256, STRING_CONST("event %d:%d:%d:%d:%.*s"), event->id, event->flags,
-			              event->serial, event->size, (int)evtsize, evtpath);
+			              event->serial, event->size, STRING_FORMAT(evtpath));
 
 			EXPECT_EQ_MSG(event->id, FOUNDATIONEVENT_FILE_DELETED, eventstr);
 
 			for (isub = 0; isub < MULTICOUNT; ++isub) {
 				for (ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub) {
-					if (string_equal(STRING_ARGS(multifilesubtestpath[isub][ifilesub]), evtpath, evtsize)) {
+					if (string_equal(STRING_ARGS(multifilesubtestpath[isub][ifilesub]), STRING_ARGS(evtpath))) {
 						multifilesubtestfound[isub][ifilesub] = true;
 						found = true;
 						break;
@@ -900,7 +907,8 @@ static test_suite_t test_fs_suite = {
 	test_fs_config,
 	test_fs_declare,
 	test_fs_initialize,
-	test_fs_finalize
+	test_fs_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

@@ -90,7 +90,7 @@ _memory_untrack(void* addr);
 
 static void
 _atomic_allocate_initialize() {
-	size_t storagesize = _foundation_config.temporary_memory;
+	size_t storagesize = foundation_config().temporary_memory;
 	if (!storagesize) {
 		memset(&_memory_temporary, 0, sizeof(_memory_temporary));
 		return;
@@ -293,12 +293,12 @@ memory_context_push(hash_t context_id) {
 	memory_context_t* context = get_thread_memory_context();
 	if (!context) {
 		context = memory_allocate(0, sizeof(memory_context_t) +
-		                          (sizeof(hash_t) * _foundation_config.memory_context_depth),
+		                          (sizeof(hash_t) * foundation_config().memory_context_depth),
 		                          0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_memory_context(context);
 	}
 	context->context[ context->depth ] = context_id;
-	if (context->depth < (_foundation_config.memory_context_depth - 1))
+	if (context->depth < (foundation_config().memory_context_depth - 1))
 		++context->depth;
 }
 
@@ -321,6 +321,31 @@ memory_context_thread_finalize(void) {
 	if (context)
 		memory_deallocate(context);
 	set_thread_memory_context(0);
+}
+
+#else 
+
+#undef memory_context_push
+#undef memory_context_pop
+#undef memory_context
+#undef memory_context_thread_finalize
+
+void
+memory_context_push(hash_t context_id) {
+	FOUNDATION_UNUSED(context_id);
+}
+
+void
+memory_context_pop(void) {
+}
+
+hash_t
+memory_context(void) {
+	return 0;
+}
+
+void
+memory_context_thread_finalize(void) {
 }
 
 #endif
@@ -777,7 +802,7 @@ static bool          _memory_tracker_initialized;
 static int
 _memory_tracker_initialize(void) {
 	if (!_memory_tracker_initialized) {
-		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
+		size_t size = sizeof(memory_tag_t) * foundation_config().memory_tracker_max;
 		_memory_tags = memory_allocate(0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
@@ -799,7 +824,7 @@ _memory_tracker_cleanup(void) {
 		memory_deallocate(_memory_tags);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
-		size_t size = sizeof(memory_tag_t) * _foundation_config.memory_tracker_max;
+		size_t size = sizeof(memory_tag_t) * foundation_config().memory_tracker_max;
 		atomic_decr64(&_memory_stats.allocations_current);
 		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
 #endif
@@ -814,7 +839,7 @@ _memory_tracker_finalize(void) {
 	if (_memory_tags) {
 		unsigned int it;
 
-		for (it = 0; it < _foundation_config.memory_tracker_max; ++it) {
+		for (it = 0; it < foundation_config().memory_tracker_max; ++it) {
 			memory_tag_t* tag = _memory_tags + it;
 			if (atomic_loadptr(&tag->address)) {
 				char tracebuf[512];
@@ -833,12 +858,12 @@ _memory_tracker_finalize(void) {
 static void
 _memory_tracker_track(void* addr, size_t size) {
 	if (addr && _memory_tracker_initialized) {
-		size_t limit = _foundation_config.memory_tracker_max * 2;
+		size_t limit = foundation_config().memory_tracker_max * 2;
 		size_t loop = 0;
 		do {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
-			while (tag >= (int32_t)_foundation_config.memory_tracker_max) {
-				int32_t newtag = tag % (int32_t)_foundation_config.memory_tracker_max;
+			while (tag >= (int32_t)foundation_config().memory_tracker_max) {
+				int32_t newtag = tag % (int32_t)foundation_config().memory_tracker_max;
 				if (atomic_cas32(&_memory_tag_next, newtag + 1, tag + 1))
 					tag = newtag;
 				else
@@ -871,7 +896,7 @@ _memory_tracker_untrack(void* addr) {
 	size_t size = 0;
 	if (addr && _memory_tracker_initialized) {
 		int32_t iend = atomic_load32(&_memory_tag_next);
-		int32_t itag = iend ? iend - 1 : (int32_t)_foundation_config.memory_tracker_max - 1;
+		int32_t itag = iend ? iend - 1 : (int32_t)foundation_config().memory_tracker_max - 1;
 		while (true) {
 			void* tagaddr = atomic_loadptr(&_memory_tags[itag].address);
 			if (addr == tagaddr) {
@@ -884,7 +909,7 @@ _memory_tracker_untrack(void* addr) {
 			else if (itag)
 				--itag;
 			else
-				itag = (int32_t)_foundation_config.memory_tracker_max - 1;
+				itag = (int32_t)foundation_config().memory_tracker_max - 1;
 		}
 	}
 	if (tag && size) {

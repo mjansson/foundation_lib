@@ -207,7 +207,8 @@ static test_suite_t test_beacon_suite = {
 	test_beacon_config,
 	test_beacon_declare,
 	test_beacon_initialize,
-	test_beacon_finalize
+	test_beacon_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

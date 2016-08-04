@@ -59,6 +59,8 @@ event_loop(void* arg) {
 			default:
 				break;
 			}
+
+			test_event(event);
 		}
 		thread_wait();
 	}
@@ -66,6 +68,11 @@ event_loop(void* arg) {
 	log_debug(HASH_TEST, STRING_CONST("Application event thread exiting"));
 
 	return 0;
+}
+
+void
+test_event(event_t* event) {
+	FOUNDATION_UNUSED(event);
 }
 
 #if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
@@ -386,7 +393,7 @@ main_run(void* main_arg) {
 		test_regex_run,
 		test_ringbuffer_run,
 		test_semaphore_run,
-		test_md5_run,
+		test_sha_run,
 		test_stacktrace_run,
 		test_stream_run, //stream test closes stdin
 		test_string_run,
@@ -473,7 +480,7 @@ main_run(void* main_arg) {
 	string_t* subdirs = fs_subdirs(STRING_ARGS(environment_executable_directory()));
 	for (size_t idir = 0, dirsize = array_size(subdirs); idir < dirsize; ++idir) {
 		if (regex_match(app_regex, subdirs[idir].str, subdirs[idir].length, 0, 0)) {
-			string_t exe_path = { subdirs[idir].str, subdirs[idir].length - 4 };
+			string_t exe_path = string_clone(subdirs[idir].str, subdirs[idir].length - 4);
 			array_push(exe_paths, exe_path);
 			array_push(exe_flags, PROCESS_MACOSX_USE_OPENAPPLICATION);
 		}

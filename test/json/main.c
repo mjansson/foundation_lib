@@ -46,9 +46,8 @@ static void
 test_json_finalize(void) {
 }
 
-static json_token_t tokens[128];
-
 DECLARE_TEST(json, reference) {
+	json_token_t tokens[128];
 	size_t capacity = sizeof(tokens) / sizeof(tokens[0]);
 
 	string_const_t compound = string_const(STRING_CONST("\
@@ -67,6 +66,8 @@ DECLARE_TEST(json, reference) {
 		, 1234.43E+123 \
 	]\
 	}"));
+
+	memset(tokens, 0, sizeof(tokens));
 
 	EXPECT_SIZEEQ(json_parse(0, 0, tokens, capacity), 0);
 	EXPECT_EQ(tokens[0].type, JSON_UNDEFINED);
@@ -171,6 +172,7 @@ DECLARE_TEST(json, reference) {
 }
 
 DECLARE_TEST(json, simplified) {
+	json_token_t tokens[128];
 	size_t capacity = sizeof(tokens) / sizeof(tokens[0]);
 
 	string_const_t simplified = string_const(STRING_CONST("\
@@ -206,6 +208,8 @@ DECLARE_TEST(json, simplified) {
 		 1234.43E+123 \
 	]\
 	}"));
+
+	memset(tokens, 0, sizeof(tokens));
 
 	EXPECT_SIZEEQ(sjson_parse(STRING_CONST("{\"test\" : true}"), tokens, capacity), 2);
 	EXPECT_SIZEEQ(sjson_parse(STRING_CONST("{\"test\" : true }"), tokens, 1), 2);
@@ -409,11 +413,133 @@ DECLARE_TEST(json, random) {
 	return 0;
 }
 
+static bool
+test_parse_failed = true;
+
+static bool
+test_parse_realloc_failed = true;
+
+static void
+test_json_handler(const char* path, size_t path_size,
+                  const char* buffer, size_t size,
+                  const json_token_t* tokens, size_t numtokens) {
+	FOUNDATION_UNUSED(path);
+	FOUNDATION_UNUSED(path_size);
+	FOUNDATION_UNUSED(size);
+	if (numtokens == 4) {
+		test_parse_failed = false;
+		if (tokens[0].child != 1)
+			test_parse_failed = true;
+		if (!string_equal(buffer + tokens[1].id, tokens[1].id_length, STRING_CONST("test")))
+			test_parse_failed = true;
+		if (!string_equal(buffer + tokens[1].value, tokens[1].value_length, STRING_CONST("foo")))
+			test_parse_failed = true;
+		if (tokens[1].sibling != 2)
+			test_parse_failed = true;
+		if (!string_equal(buffer + tokens[2].id, tokens[2].id_length, STRING_CONST("bar")))
+			test_parse_failed = true;
+		if (tokens[2].type != JSON_OBJECT)
+			test_parse_failed = true;
+		if (tokens[2].child != 3)
+			test_parse_failed = true;
+		if (!string_equal(buffer + tokens[3].id, tokens[3].id_length, STRING_CONST("val")))
+			test_parse_failed = true;
+		if (!string_equal(buffer + tokens[3].value, tokens[3].value_length,
+		                  STRING_CONST("\\u0000\\u0001\\u0002\\t")))
+			test_parse_failed = true;
+	}
+	else if (numtokens == 145) {
+		size_t itok;
+		test_parse_realloc_failed = false;
+		for (itok = 1; itok < 145; ++itok) {
+			if (!string_equal(buffer + tokens[itok].id, tokens[itok].id_length, buffer + tokens[itok].value,
+			                  tokens[itok].value_length))
+				test_parse_realloc_failed = true;
+		}
+	}
+}
+
+DECLARE_TEST(json, util) {
+	char escaped[512];
+	char unescaped[512];
+	string_t str;
+
+	str = json_escape(escaped, sizeof(escaped),
+	                  STRING_CONST("Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20"));
+	EXPECT_CONSTSTRINGEQ(string_to_const(str),
+	                     string_const(
+	                         STRING_CONST("Test escape \\\"\\\\\\b\\f\\r\\n\\t\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019 ")));
+	str = json_unescape(unescaped, sizeof(unescaped), STRING_ARGS(str));
+	EXPECT_CONSTSTRINGEQ(string_to_const(str),
+	                     string_const(
+	                         STRING_CONST("Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20")));
+
+	stream_t* teststream;
+	string_t path;
+	string_const_t directory;
+
+	path = path_make_temporary(escaped, sizeof(escaped));
+	path = string_append(STRING_ARGS(path), sizeof(escaped), STRING_CONST(".sjson"));
+	directory = path_directory_name(STRING_ARGS(path));
+	fs_make_directory(STRING_ARGS(directory));
+
+	teststream = stream_open(STRING_ARGS(path),
+	                         STREAM_IN | STREAM_OUT | STREAM_CREATE | STREAM_TRUNCATE);
+	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
+
+	stream_write_string(teststream, STRING_CONST(
+	                        "test = foo\nbar = {\nval = \"\\u0000\\u0001\\u0002\\t\" }"
+	                    ));
+
+	stream_deallocate(teststream);
+
+	sjson_parse_path(STRING_ARGS(path), test_json_handler);
+	EXPECT_FALSE(test_parse_failed);
+
+	path = path_make_temporary(escaped, sizeof(escaped));
+	path = string_append(STRING_ARGS(path), sizeof(escaped), STRING_CONST(".sjson"));
+
+	teststream = stream_open(STRING_ARGS(path),
+	                         STREAM_IN | STREAM_OUT | STREAM_CREATE | STREAM_TRUNCATE);
+	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
+
+	stream_write_string(teststream, STRING_CONST(
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                    ));
+
+	stream_deallocate(teststream);
+
+	test_parse_failed = true;
+	test_parse_realloc_failed = true;
+
+	sjson_parse_path(STRING_ARGS(directory), test_json_handler);
+	EXPECT_FALSE(test_parse_failed);
+	EXPECT_FALSE(test_parse_realloc_failed);
+
+	return 0;
+}
+
 static void
 test_json_declare(void) {
 	ADD_TEST(json, reference);
 	ADD_TEST(json, simplified);
 	ADD_TEST(json, random);
+	ADD_TEST(json, util);
 }
 
 static test_suite_t test_json_suite = {
@@ -422,7 +548,8 @@ static test_suite_t test_json_suite = {
 	test_json_config,
 	test_json_declare,
 	test_json_initialize,
-	test_json_finalize
+	test_json_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

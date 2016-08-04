@@ -1,4 +1,35 @@
 
+1.5.1
+
+Added string utility functions for converting from/to 256 and 512 bit unsigned int.
+Fixed function for converting string to 128-bit unsigned int to correctly parse
+strings shorter than 32 characters.
+
+Added stream utility functions for reading/writing 256 and 512 bit unsigned int.
+
+Added stream utility functions for calculating 256 and 512 bit SHA-2 digests (line ending
+agnostic as stream_md5 function).
+
+Clarified byte order of 256/512 bit integer representation, and fixed documentation.
+
+Changed json_handler_fn to take source path arguments to let handler deal with
+relative paths in json data.
+
+Rename fs_post_event to fs_event_post for naming consistency, added fs_event_path
+function to get file path from a file event.
+
+Added event handler to test suite declaration.
+
+Changed string_to_uuid to only convert fully convertible strings (no partial conversion)
+
+Added stream_copy to copy content of one stream to another.
+
+Added stream_read_uuid and stream_write_uuid to read/write UUID values from/to stream
+
+Added stream_write_separator and stream_skip_whitespace to conditionally write a
+separator and skip whitespace based on text/binary mode.
+
+
 1.5.0
 
 Added a minimal in-place JSON parser. Also parses simplified JSON.
