@@ -244,10 +244,12 @@ fs_unmonitor(const char* path, size_t length) {
 
 	mutex_lock(_fs_monitor_lock);
 
-	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
-		if (_fs_monitors[mi].inuse &&
-		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
-			_fs_stop_monitor(_fs_monitors + mi);
+	if (_fs_monitors) {
+		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
+			if (_fs_monitors[mi].inuse &&
+			        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
+				_fs_stop_monitor(_fs_monitors + mi);
+		}
 	}
 
 	mutex_unlock(_fs_monitor_lock);
@@ -2074,7 +2076,6 @@ _fs_initialize(void) {
 	                               0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	_fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
 #else
-	foundation_config().fs_monitor_max = 0;
 	_fs_monitors = 0;
 	_fs_monitor_lock = 0;
 #endif
@@ -2153,8 +2154,10 @@ _fs_initialize(void) {
 void
 _fs_finalize(void) {
 	size_t mi;
-	if (_fs_monitors) for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi)
+	if (_fs_monitors) {
+		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi)
 			_fs_stop_monitor(_fs_monitors + mi);
+	}
 	mutex_deallocate(_fs_monitor_lock);
 
 	event_stream_deallocate(_fs_event_stream);
