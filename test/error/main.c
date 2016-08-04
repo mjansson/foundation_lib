@@ -444,7 +444,8 @@ static test_suite_t test_error_suite = {
 	test_error_config,
 	test_error_declare,
 	test_error_initialize,
-	test_error_finalize
+	test_error_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

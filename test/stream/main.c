@@ -255,6 +255,14 @@ DECLARE_TEST(stream, std) {
 	EXPECT_EQ_MSG(uint128_is_null(stream_md5(out)), true, "stdout md5 not null");
 	EXPECT_EQ_MSG(uint128_is_null(stream_md5(err)), true, "stderr md5 not null");
 
+	EXPECT_EQ_MSG(uint256_is_null(stream_sha256(in)), true, "stdin sha256 not null");
+	EXPECT_EQ_MSG(uint256_is_null(stream_sha256(out)), true, "stdout sha256 not null");
+	EXPECT_EQ_MSG(uint256_is_null(stream_sha256(err)), true, "stderr sha256 not null");
+
+	EXPECT_EQ_MSG(uint512_is_null(stream_sha512(in)), true, "stdin sha512 not null");
+	EXPECT_EQ_MSG(uint512_is_null(stream_sha512(out)), true, "stdout sha512 not null");
+	EXPECT_EQ_MSG(uint512_is_null(stream_sha512(err)), true, "stderr sha512 not null");
+
 	stream_truncate(in, 256);
 	stream_truncate(out, 256);
 	stream_truncate(err, 256);
@@ -294,11 +302,14 @@ DECLARE_TEST(stream, readwrite_binary) {
 	string_const_t directory;
 	string_t line;
 	int i;
+	uuid_t uuid_write;
 
 	path = path_make_temporary(write_buffer, 1024);
 	path = string_clone(STRING_ARGS(path));
 	directory = path_directory_name(STRING_ARGS(path));
 	fs_make_directory(STRING_ARGS(directory));
+
+	uuid_write = uuid_generate_random();
 
 	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE);
 	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
@@ -320,6 +331,10 @@ DECLARE_TEST(stream, readwrite_binary) {
 	stream_write_int64(teststream, 123456789012LL);
 	stream_write_uint64(teststream, 8712634987126ULL);
 	stream_write_uint128(teststream, uint128_make(913487605673245342ULL, 746598172346587ULL));
+	stream_write_uint256(teststream, uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL));
+	stream_write_uint512(teststream, uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                              798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL));
+	stream_write_uuid(teststream, uuid_write);
 	stream_write_float32(teststream, 1.0f);
 	stream_write_float64(teststream, -1.0);
 	stream_write_string(teststream, STRING_CONST("test string\nwith some newlines\nin the string"));
@@ -329,7 +344,7 @@ DECLARE_TEST(stream, readwrite_binary) {
 	stream_write_string(teststream, 0, 0);
 
 	EXPECT_EQ_MSGFORMAT(stream_tell(teststream),
-	                    1025ULL + 43ULL + 16ULL + 45ULL + 40ULL + FOUNDATION_SIZE_POINTER * 2 + 1,
+	                    1025ULL + 43ULL + 112ULL + 16ULL + 45ULL + 40ULL + FOUNDATION_SIZE_POINTER * 2 + 1,
 	                    "stream position not expected after writes (%" PRIsize ")", stream_tell(teststream));
 	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
 	EXPECT_EQ_MSG(stream_tell(teststream), 0, "stream position not null after seek");
@@ -354,6 +369,10 @@ DECLARE_TEST(stream, readwrite_binary) {
 	EXPECT_EQ_MSG(stream_read_int64(teststream), 123456789012LL, "read int64 failed");
 	EXPECT_EQ_MSG(stream_read_uint64(teststream), 8712634987126ULL, "read uint64 failed");
 	EXPECT_TRUE(uint128_equal(stream_read_uint128(teststream), uint128_make(913487605673245342ULL, 746598172346587ULL)));
+	EXPECT_TRUE(uint256_equal(stream_read_uint256(teststream), uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL)));
+	EXPECT_TRUE(uint512_equal(stream_read_uint512(teststream), uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                                                        798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL)));
+	EXPECT_TRUE(uuid_equal(stream_read_uuid(teststream), uuid_write));
 	EXPECT_EQ_MSG(stream_read_float32(teststream), 1.0f, "read float32 failed");
 	EXPECT_EQ_MSG(stream_read_float64(teststream), -1.0, "read float64 failed");
 
@@ -424,6 +443,10 @@ DECLARE_TEST(stream, readwrite_binary) {
 	stream_write_int64(teststream, 123456789012LL);
 	stream_write_uint64(teststream, 8712634987126ULL);
 	stream_write_uint128(teststream, uint128_make(913487605673245342ULL, 746598172346587ULL));
+	stream_write_uint256(teststream, uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL));
+	stream_write_uint512(teststream, uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                              798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL));
+	stream_write_uuid(teststream, uuid_write);
 	stream_write_float32(teststream, 1.0f);
 	stream_write_float64(teststream, -1.0);
 	stream_write_string(teststream, STRING_CONST("test string\nwith some newlines\nin the string"));
@@ -461,6 +484,9 @@ DECLARE_TEST(stream, readwrite_binary) {
 	EXPECT_EQ_MSG(stream_read_int64(teststream), 0, "read int64 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_uint64(teststream), 0, "read uint64 did not fail as expected");
 	EXPECT_TRUE(uint128_equal(stream_read_uint128(teststream), uint128_null()));
+	EXPECT_TRUE(uint256_equal(stream_read_uint256(teststream), uint256_null()));
+	EXPECT_TRUE(uint512_equal(stream_read_uint512(teststream), uint512_null()));
+	EXPECT_TRUE(uuid_equal(stream_read_uuid(teststream), uuid_null()));
 	EXPECT_EQ_MSG(stream_read_float32(teststream), 0, "read float32 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_float64(teststream), 0, "read float64 did not fail as expected");
 
@@ -503,6 +529,10 @@ DECLARE_TEST(stream, readwrite_binary) {
 	stream_write_int64(teststream, 123456789012LL);
 	stream_write_uint64(teststream, 8712634987126ULL);
 	stream_write_uint128(teststream, uint128_make(913487605673245342ULL, 746598172346587ULL));
+	stream_write_uint256(teststream, uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL));
+	stream_write_uint512(teststream, uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                              798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL));
+	stream_write_uuid(teststream, uuid_write);
 	stream_write_float32(teststream, 1.0f);
 	stream_write_float64(teststream, -1.0);
 	stream_write_string(teststream, STRING_CONST("test string\nwith some newlines\nin the string"));
@@ -510,7 +540,7 @@ DECLARE_TEST(stream, readwrite_binary) {
 	stream_write_format(teststream, STRING_CONST("formatted output with a null pointer 0x%" PRIfixPTR),
 	                    (uintptr_t)nullptr);
 
-	EXPECT_EQ_MSGFORMAT(stream_tell(teststream), 1025 + 43 + 16 + 45 + 40 + FOUNDATION_SIZE_POINTER * 2,
+	EXPECT_EQ_MSGFORMAT(stream_tell(teststream), 1025 + 43 + 16 + 112 + 45 + 40 + FOUNDATION_SIZE_POINTER * 2,
 	                    "stream position not expected after writes (%" PRIsize ")", stream_tell(teststream));
 	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
 	EXPECT_EQ_MSG(stream_tell(teststream), 0, "stream position not null after seek");
@@ -539,6 +569,9 @@ DECLARE_TEST(stream, readwrite_binary) {
 	EXPECT_EQ_MSG(stream_read_int64(teststream), 0, "read int64 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_uint64(teststream), 0, "read uint64 did not fail as expected");
 	EXPECT_TRUE(uint128_equal(stream_read_uint128(teststream), uint128_null()));
+	EXPECT_TRUE(uint256_equal(stream_read_uint256(teststream), uint256_null()));
+	EXPECT_TRUE(uint512_equal(stream_read_uint512(teststream), uint512_null()));
+	EXPECT_TRUE(uuid_equal(stream_read_uuid(teststream), uuid_null()));
 	EXPECT_EQ_MSG(stream_read_float32(teststream), 0, "read float32 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_float64(teststream), 0, "read float64 did not fail as expected");
 
@@ -574,11 +607,14 @@ DECLARE_TEST(stream, readwrite_text) {
 	string_const_t directory;
 	string_t line;
 	int i;
+	uuid_t uuid_write;
 
 	path = path_make_temporary(write_buffer, sizeof(write_buffer));
 	path = string_clone(STRING_ARGS(path));
 	directory = path_directory_name(STRING_ARGS(path));
 	fs_make_directory(STRING_ARGS(directory));
+
+	uuid_write = uuid_generate_random();
 
 	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
@@ -595,25 +631,30 @@ DECLARE_TEST(stream, readwrite_text) {
 	EXPECT_EQ_MSG(stream_write(teststream, write_buffer, 1024), 1024, "write 1024 bytes failed");
 
 	stream_write_bool(teststream, true); stream_write_endl(teststream);
-	stream_write_int8(teststream, 127); stream_write_endl(teststream);
+	stream_write_int8(teststream, 127); stream_write_separator(teststream);
 	stream_write_uint8(teststream, 178); stream_write_endl(teststream);
-	stream_write_int16(teststream, -1234); stream_write_endl(teststream);
+	stream_write_int16(teststream, -1234); stream_write_separator(teststream);
 	stream_write_uint16(teststream, 45678); stream_write_endl(teststream);
-	stream_write_int32(teststream, -1324567); stream_write_endl(teststream);
+	stream_write_int32(teststream, -1324567); stream_write_separator(teststream);
 	stream_write_uint32(teststream, 3245678U); stream_write_endl(teststream);
-	stream_write_int64(teststream, 123456789012LL); stream_write_endl(teststream);
+	stream_write_int64(teststream, 123456789012LL); stream_write_separator(teststream);
 	stream_write_uint64(teststream, 8712634987126ULL); stream_write_endl(teststream);
-	stream_write_uint128(teststream, uint128_make(913487605673245342ULL, 746598172346587ULL)); stream_write_endl(teststream);
-	stream_write_float32(teststream, 1.0f); stream_write_endl(teststream);
+	stream_write_uint128(teststream, uint128_make(913487605673245342ULL, 746598172346587ULL)); stream_write_separator(teststream);
+	stream_write_uint256(teststream, uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL)); stream_write_endl(teststream);
+	stream_write_uint512(teststream, uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                              798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL)); stream_write_separator(teststream);
+	stream_write_uuid(teststream, uuid_write); stream_write_endl(teststream);
+	stream_write_float32(teststream, 1.0f); stream_write_separator(teststream);
 	stream_write_float64(teststream, -1.0); stream_write_endl(teststream);
 	stream_write_string(teststream, STRING_CONST("test string\nwith some newlines\nin the string"));
 	stream_write_endl(teststream);
 	stream_write_format(teststream, STRING_CONST("formatted output with a null pointer 0x%" PRIfixPTR),
 	                    (uintptr_t)nullptr); stream_write_endl(teststream);
 
-	EXPECT_EQ_MSGFORMAT(stream_tell(teststream),
-	                    1025ULL + 74ULL + 45ULL + 33ULL + 40ULL + FOUNDATION_SIZE_POINTER * 2,
-	                    "stream position not expected after writes (%" PRIsize ") : %.*s", stream_tell(teststream),
+	size_t expected = 1025ULL + 74ULL + 45ULL + 194ULL + 37ULL + 33ULL + 40ULL + FOUNDATION_SIZE_POINTER * 2;
+	EXPECT_EQ_MSGFORMAT(stream_tell(teststream), expected,
+	                    "stream position %" PRIsize " after writes, expected %" PRIsize ": %.*s",
+	                    stream_tell(teststream), expected,
 	                    STRING_FORMAT(stream_path(teststream)));
 	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
 	EXPECT_EQ_MSG(stream_tell(teststream), 0, "stream position not null after seek");
@@ -638,6 +679,10 @@ DECLARE_TEST(stream, readwrite_text) {
 	EXPECT_EQ_MSG(stream_read_int64(teststream), 123456789012LL, "read int64 failed");
 	EXPECT_EQ_MSG(stream_read_uint64(teststream), 8712634987126ULL, "read uint64 failed");
 	EXPECT_TRUE(uint128_equal(stream_read_uint128(teststream), uint128_make(913487605673245342ULL, 746598172346587ULL)));
+	EXPECT_TRUE(uint256_equal(stream_read_uint256(teststream), uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL)));
+	EXPECT_TRUE(uint512_equal(stream_read_uint512(teststream), uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                                                        798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL)));
+	EXPECT_TRUE(uuid_equal(stream_read_uuid(teststream), uuid_write));
 	EXPECT_EQ_MSG(stream_read_float32(teststream), 1.0f, "read float32 failed");
 	EXPECT_EQ_MSG(stream_read_float64(teststream), -1.0, "read float64 failed");
 
@@ -723,6 +768,10 @@ DECLARE_TEST(stream, readwrite_text) {
 	stream_write_int64(teststream, 123456789012LL);
 	stream_write_uint64(teststream, 8712634987126ULL);
 	stream_write_uint128(teststream, uint128_make(913487605673245342ULL, 746598172346587ULL));
+	stream_write_uint256(teststream, uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL));
+	stream_write_uint512(teststream, uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                              798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL));
+	stream_write_uuid(teststream, uuid_write);
 	stream_write_float32(teststream, 1.0f);
 	stream_write_float64(teststream, -1.0);
 	stream_write_string(teststream, STRING_CONST("test string\nwith some newlines\nin the string"));
@@ -760,6 +809,9 @@ DECLARE_TEST(stream, readwrite_text) {
 	EXPECT_EQ_MSG(stream_read_int64(teststream), 0, "read int64 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_uint64(teststream), 0, "read uint64 did not fail as expected");
 	EXPECT_TRUE(uint128_equal(stream_read_uint128(teststream), uint128_null()));
+	EXPECT_TRUE(uint256_equal(stream_read_uint256(teststream), uint256_null()));
+	EXPECT_TRUE(uint512_equal(stream_read_uint512(teststream), uint512_null()));
+	EXPECT_TRUE(uuid_equal(stream_read_uuid(teststream), uuid_null()));
 	EXPECT_EQ_MSG(stream_read_float32(teststream), 0, "read float32 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_float64(teststream), 0, "read float64 did not fail as expected");
 
@@ -804,6 +856,10 @@ DECLARE_TEST(stream, readwrite_text) {
 	stream_write_int64(teststream, 123456789012LL);
 	stream_write_uint64(teststream, 8712634987126ULL);
 	stream_write_uint128(teststream, uint128_make(913487605673245342ULL, 746598172346587ULL));
+	stream_write_uint256(teststream, uint256_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL));
+	stream_write_uint512(teststream, uint512_make(913487605673245342ULL, 746598172346587ULL, 1984127364405918734ULL, 4943105789384587234ULL,
+	                                              798721098479438726ULL, 37843629857419827ULL, 78109235623487745ULL, 59813745190283445ULL));
+	stream_write_uuid(teststream, uuid_write);
 	stream_write_float32(teststream, 1.0f);
 	stream_write_float64(teststream, -1.0);
 	stream_write_string(teststream, STRING_CONST("test string\nwith some newlines\nin the string"));
@@ -811,8 +867,10 @@ DECLARE_TEST(stream, readwrite_text) {
 	stream_write_format(teststream, STRING_CONST("formatted output with a null pointer 0x%" PRIfixPTR),
 	                    (uintptr_t)nullptr);
 
-	EXPECT_EQ_MSGFORMAT(stream_tell(teststream), 1025 + 43 + 16 + 45 + 40 + FOUNDATION_SIZE_POINTER * 2,
-	                    "stream position not expected after writes (%" PRIsize ")", stream_tell(teststream));
+	expected = 1025 + 43 + 16 + 112 + 45 + 40 + FOUNDATION_SIZE_POINTER * 2;
+	EXPECT_EQ_MSGFORMAT(stream_tell(teststream), expected,
+	                    "stream position %" PRIsize " after writes, expected %" PRIsize,
+	                    stream_tell(teststream), expected);
 	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
 	EXPECT_EQ_MSG(stream_tell(teststream), 0, "stream position not null after seek");
 
@@ -840,6 +898,9 @@ DECLARE_TEST(stream, readwrite_text) {
 	EXPECT_EQ_MSG(stream_read_int64(teststream), 0, "read int64 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_uint64(teststream), 0, "read uint64 did not fail as expected");
 	EXPECT_TRUE(uint128_equal(stream_read_uint128(teststream), uint128_null()));
+	EXPECT_TRUE(uint256_equal(stream_read_uint256(teststream), uint256_null()));
+	EXPECT_TRUE(uint512_equal(stream_read_uint512(teststream), uint512_null()));
+	EXPECT_TRUE(uuid_equal(stream_read_uuid(teststream), uuid_null()));
 	EXPECT_EQ_MSG(stream_read_float32(teststream), 0, "read float32 did not fail as expected");
 	EXPECT_EQ_MSG(stream_read_float64(teststream), 0, "read float64 did not fail as expected");
 
@@ -893,6 +954,53 @@ DECLARE_TEST(stream, readwrite_text) {
 
 	stream_deallocate(teststream);
 	fs_remove_file(STRING_ARGS(path));
+
+	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_CREATE);
+	stream_truncate(teststream, 0);
+	stream_write_string(teststream, STRING_CONST("     word  \t\n\r  \t\t\r\n\t  whitespace\n\n"));
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	stream_skip_whitespace(teststream);
+	EXPECT_NE(stream_tell(teststream), 0);
+	stream_skip_whitespace(teststream);
+	line = stream_read_string(teststream);
+	EXPECT_CONSTSTRINGEQ(string_to_const(line), string_const(STRING_CONST("word")));
+	string_deallocate(line.str);
+	expected = stream_tell(teststream);
+	stream_skip_whitespace(teststream);
+	EXPECT_NE(stream_tell(teststream), expected);
+	stream_skip_whitespace(teststream);
+	stream_skip_whitespace(teststream);
+	line = stream_read_string(teststream);
+	EXPECT_CONSTSTRINGEQ(string_to_const(line), string_const(STRING_CONST("whitespace")));
+	string_deallocate(line.str);
+	stream_skip_whitespace(teststream);
+	EXPECT_TRUE(stream_eos(teststream));
+	stream_skip_whitespace(teststream);
+	EXPECT_TRUE(stream_eos(teststream));
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	teststream->sequential = 1;
+	stream_skip_whitespace(teststream);
+	EXPECT_EQ(stream_tell(teststream), 0);
+	stream_skip_whitespace(teststream);
+	line = stream_read_string(teststream);
+	EXPECT_CONSTSTRINGEQ(string_to_const(line), string_const(STRING_CONST("word")));
+	string_deallocate(line.str);
+	expected = stream_tell(teststream);
+	stream_skip_whitespace(teststream);
+	EXPECT_EQ(stream_tell(teststream), expected);
+	stream_skip_whitespace(teststream);
+	stream_skip_whitespace(teststream);
+	line = stream_read_string(teststream);
+	EXPECT_CONSTSTRINGEQ(string_to_const(line), string_const(STRING_CONST("whitespace")));
+	string_deallocate(line.str);
+	stream_skip_whitespace(teststream);
+	EXPECT_FALSE(stream_eos(teststream));
+	stream_skip_whitespace(teststream);
+	EXPECT_FALSE(stream_eos(teststream));
+
+	stream_deallocate(teststream);
+	fs_remove_file(STRING_ARGS(path));
+
 	string_deallocate(path.str);
 
 	return 0;
@@ -1376,6 +1484,125 @@ DECLARE_TEST(stream, readwrite_swap) {
 	return 0;
 }
 
+DECLARE_TEST(stream, util) {
+	stream_t* teststream;
+	stream_t* dststream;
+	string_t path;
+	string_const_t directory;
+	char buf[BUILD_MAX_PATHLEN];
+	uint32_t data[256];
+	size_t idata;
+	stream_clone_fn clonefn;
+	md5_t md5;
+	sha256_t sha256;
+	sha512_t sha512;
+
+	for (idata = 0; idata < sizeof(data)/sizeof(data[0]); ++idata)
+		data[idata] = random32();
+
+	path = path_make_temporary(buf, sizeof(buf));
+	directory = path_directory_name(STRING_ARGS(path));
+	fs_make_directory(STRING_ARGS(directory));
+
+	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE);
+	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
+
+	for (idata = 0; idata < sizeof(data) / sizeof(data[0]); ++idata)
+		stream_write_uint32(teststream, data[idata]);
+
+	path = path_make_temporary(buf, sizeof(buf));
+	directory = path_directory_name(STRING_ARGS(path));
+	fs_make_directory(STRING_ARGS(directory));
+
+	dststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE);
+	EXPECT_NE_MSGFORMAT(teststream, 0, "dest stream '%.*s' not created", STRING_FORMAT(path));
+
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	stream_copy(teststream, dststream);
+	EXPECT_EQ(stream_tell(teststream), stream_tell(dststream));
+	EXPECT_EQ(stream_size(teststream), stream_size(dststream));
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	stream_seek(dststream, 0, STREAM_SEEK_BEGIN);
+
+	for (idata = 0; idata < sizeof(data)/sizeof(data[0]); ++idata) {
+		EXPECT_EQ(stream_read_uint32(dststream), data[idata]);
+	}
+
+	stream_deallocate(dststream);
+	fs_remove_file(STRING_ARGS(path));
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+
+	dststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
+	EXPECT_NE_MSGFORMAT(teststream, 0, "dest stream '%.*s' not created", STRING_FORMAT(path));
+
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	stream_copy(teststream, dststream);
+	EXPECT_EQ(0, stream_tell(dststream));
+	EXPECT_EQ(0, stream_size(dststream));
+	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
+	stream_seek(dststream, 0, STREAM_SEEK_BEGIN);
+
+	for (idata = 0; idata < sizeof(data)/sizeof(data[0]); ++idata) {
+		EXPECT_EQ(stream_read_uint32(dststream), 0);
+	}
+
+	stream_deallocate(dststream);
+
+	clonefn = teststream->vtable->clone;
+	teststream->vtable->clone = 0;
+
+	dststream = stream_clone(teststream);
+	EXPECT_EQ(dststream, nullptr);
+
+	teststream->vtable->clone = clonefn;
+
+	md5_initialize(&md5);
+	md5_digest(&md5, data, sizeof(data));
+	md5_digest_finalize(&md5);
+	EXPECT_TRUE(uint128_equal(md5_get_digest_raw(&md5), stream_md5(teststream)));
+	md5_finalize(&md5);
+
+	sha256_initialize(&sha256);
+	sha256_digest(&sha256, data, sizeof(data));
+	sha256_digest_finalize(&sha256);
+	EXPECT_TRUE(uint256_equal(sha256_get_digest_raw(&sha256), stream_sha256(teststream)));
+	sha256_finalize(&sha256);
+
+	sha512_initialize(&sha512);
+	sha512_digest(&sha512, data, sizeof(data));
+	sha512_digest_finalize(&sha512);
+	EXPECT_TRUE(uint512_equal(sha512_get_digest_raw(&sha512), stream_sha512(teststream)));
+	sha512_finalize(&sha512);
+
+	stream_deallocate(teststream);
+	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_TRUNCATE);
+	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
+
+	stream_write_string(teststream, STRING_CONST("Line endings test\nshould be digested\rto same digest\t\r\nregardless of style\n\r"));
+
+	md5_initialize(&md5);
+	md5_digest(&md5, STRING_CONST("Line endings test\nshould be digested\nto same digest\t\nregardless of style\n\n"));
+	md5_digest_finalize(&md5);
+	EXPECT_TRUE(uint128_equal(md5_get_digest_raw(&md5), stream_md5(teststream)));
+	md5_finalize(&md5);
+
+	sha256_initialize(&sha256);
+	sha256_digest(&sha256, STRING_CONST("Line endings test\nshould be digested\nto same digest\t\nregardless of style\n\n"));
+	sha256_digest_finalize(&sha256);
+	EXPECT_TRUE(uint256_equal(sha256_get_digest_raw(&sha256), stream_sha256(teststream)));
+	sha256_finalize(&sha256);
+
+	sha512_initialize(&sha512);
+	sha512_digest(&sha512, STRING_CONST("Line endings test\nshould be digested\nto same digest\t\nregardless of style\n\n"));
+	sha512_digest_finalize(&sha512);
+	EXPECT_TRUE(uint512_equal(sha512_get_digest_raw(&sha512), stream_sha512(teststream)));
+	sha512_finalize(&sha512);
+
+	stream_deallocate(teststream);
+
+	return 0;
+}
+
 static void
 test_stream_declare(void) {
 	ADD_TEST(stream, std);
@@ -1383,6 +1610,7 @@ test_stream_declare(void) {
 	ADD_TEST(stream, readwrite_text);
 	ADD_TEST(stream, readwrite_sequential);
 	ADD_TEST(stream, readwrite_swap);
+	ADD_TEST(stream, util);
 }
 
 static test_suite_t test_stream_suite = {
@@ -1391,7 +1619,8 @@ static test_suite_t test_stream_suite = {
 	test_stream_config,
 	test_stream_declare,
 	test_stream_initialize,
-	test_stream_finalize
+	test_stream_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

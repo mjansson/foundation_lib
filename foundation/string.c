@@ -22,13 +22,12 @@
 #    define vsnprintf(s, n, format, arg) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
 #    define sscanf sscanf_s
 #  elif FOUNDATION_COMPILER_GCC
-_CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp (const char*, const char*, size_t);
+_CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp(const char*, const char*, size_t);
 #    include <sys/types.h>
 #  endif
 #  define strncasecmp _strnicmp
 #elif FOUNDATION_PLATFORM_PNACL
-extern int strncasecmp (const char *__s1, const char *__s2, size_t __n)
-     __THROW __attribute_pure__;
+extern int strncasecmp(const char* __s1, const char* __s2, size_t __n) __THROW __attribute_pure__;
 #endif
 
 #include <time.h>
@@ -1386,10 +1385,10 @@ string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t len
 	return (string_t) {dst, curlen};
 }
 
-#if BUILD_MAX_PATHLEN > 128
+#if BUILD_MAX_PATHLEN > 132
 #define THREAD_BUFFER_SIZE BUILD_MAX_PATHLEN
 #else
-#define THREAD_BUFFER_SIZE 128
+#define THREAD_BUFFER_SIZE 132
 #endif
 FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(char, convert_buffer, THREAD_BUFFER_SIZE)
 
@@ -1428,7 +1427,7 @@ string_from_uint(char* buffer, size_t capacity, uint64_t val, bool hex, unsigned
 		return (string_t) {buffer, 0};
 	len = snprintf(buffer, capacity, hex ? "%" PRIx64 : "%" PRIu64, val);
 	if ((unsigned int)len >= capacity) {
-		buffer[ capacity - 1 ] = 0;
+		buffer[capacity - 1] = 0;
 		return (string_t) {buffer, capacity - 1};
 	}
 	if (width >= capacity)
@@ -1455,7 +1454,7 @@ string_from_uint128(char* buffer, size_t capacity, const uint128_t val) {
 		return (string_t) {buffer, 0};
 	len = snprintf(buffer, capacity, "%016" PRIx64 "%016" PRIx64, val.word[0], val.word[1]);
 	if ((unsigned int)len >= capacity) {
-		buffer[ capacity - 1 ] = 0;
+		buffer[capacity - 1] = 0;
 		return (string_t) {buffer, capacity - 1};
 	}
 	return (string_t) {buffer, (unsigned int)len};
@@ -1678,12 +1677,70 @@ string_to_uint64(const char* val, size_t length, bool hex) {
 
 uint128_t
 string_to_uint128(const char* val, size_t length) {
+	int iword = 1;
 	uint128_t ret = uint128_null();
-	char buf[64];
-	if (length) {
-		string_copy(buf, sizeof(buf), val, length);
-		sscanf(buf, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1]);
+	char buf[33];
+	size_t ofs;
+	size_t buflen = string_copy(buf, sizeof(buf), val, length).length;
+	ofs = string_find_first_not_of(buf, buflen, STRING_CONST(STRING_HEX), 0);
+	if (ofs == STRING_NPOS)
+		ofs = buflen;
+	do {
+		if (ofs <= 16) {
+			buf[ofs] = 0;
+			ofs = 0;
+		}
+		else
+			ofs -= 16;
+		sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword--]);
 	}
+	while ((ofs > 0) && (iword >= 0));
+	return ret;
+}
+
+uint256_t
+string_to_uint256(const char* val, size_t length) {
+	int iword = 3;
+	uint256_t ret = uint256_null();
+	char buf[65];
+	size_t ofs;
+	size_t buflen = string_copy(buf, sizeof(buf), val, length).length;
+	ofs = string_find_first_not_of(buf, buflen, STRING_CONST(STRING_HEX), 0);
+	if (ofs == STRING_NPOS)
+		ofs = buflen;
+	do {
+		if (ofs <= 16) {
+			buf[ofs] = 0;
+			ofs = 0;
+		}
+		else
+			ofs -= 16;
+		sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword--]);
+	}
+	while ((ofs > 0) && (iword >= 0));
+	return ret;
+}
+
+uint512_t
+string_to_uint512(const char* val, size_t length) {
+	int iword = 7;
+	uint512_t ret = uint512_null();
+	char buf[129];
+	size_t ofs;
+	size_t buflen = string_copy(buf, sizeof(buf), val, length).length;
+	ofs = string_find_first_not_of(buf, buflen, STRING_CONST(STRING_HEX), 0);
+	if (ofs == STRING_NPOS)
+		ofs = buflen;
+	do {
+		if (ofs <= 16) {
+			buf[ofs] = 0;
+			ofs = 0;
+		}
+		else
+			ofs -= 16;
+		sscanf(buf + ofs, "%016" PRIx64, &ret.word[iword--]);
+	}
+	while ((ofs > 0) && (iword >= 0));
 	return ret;
 }
 

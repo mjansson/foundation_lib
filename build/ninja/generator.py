@@ -110,17 +110,17 @@ class Generator(object):
   def writer(self):
     return self.writer
 
-  def lib(self, module, sources, basepath = None, configs = None, includepaths = None):
-    return self.toolchain.lib(self.writer, module, sources, basepath, configs, includepaths)
+  def lib(self, module, sources, basepath = None, configs = None, includepaths = None, variables = None):
+    return self.toolchain.lib(self.writer, module, sources, basepath, configs, includepaths, variables)
 
-  def sharedlib(self, module, sources, basepath = None, configs = None, includepaths = None, libpaths = None, implicit_deps = None, libs = None, frameworks = None):
-    return self.toolchain.sharedlib(self.writer, module, sources, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks)
+  def sharedlib(self, module, sources, basepath = None, configs = None, includepaths = None, libpaths = None, implicit_deps = None, libs = None, frameworks = None, variables = None):
+    return self.toolchain.sharedlib(self.writer, module, sources, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables)
 
-  def bin(self, module, sources, binname, basepath = None, configs = None, includepaths = None, libpaths = None, implicit_deps = None, libs = None, frameworks = None):
-    return self.toolchain.bin(self.writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks)
+  def bin(self, module, sources, binname, basepath = None, configs = None, includepaths = None, libpaths = None, implicit_deps = None, libs = None, frameworks = None, variables = None):
+    return self.toolchain.bin(self.writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables)
 
-  def app(self, module, sources, binname, basepath = None, configs = None, includepaths = None, libpaths = None, implicit_deps = None, libs = None, frameworks = None, resources = None):
-    return self.toolchain.app(self.writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, resources)
+  def app(self, module, sources, binname, basepath = None, configs = None, includepaths = None, libpaths = None, implicit_deps = None, libs = None, frameworks = None, variables = None, resources = None):
+    return self.toolchain.app(self.writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables, resources)
 
   def test_includepaths(self):
     if self.project == "foundation":

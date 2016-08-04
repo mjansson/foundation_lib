@@ -111,7 +111,8 @@ static test_suite_t test_time_suite = {
 	test_time_config,
 	test_time_declare,
 	test_time_initialize,
-	test_time_finalize
+	test_time_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

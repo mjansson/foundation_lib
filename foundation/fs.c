@@ -184,7 +184,7 @@ fs_monitor(const char* path, size_t length) {
 
 	mutex_lock(_fs_monitor_lock);
 
-	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
+	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
 		if (_fs_monitors[mi].inuse &&
 		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
 			mutex_unlock(_fs_monitor_lock);
@@ -199,7 +199,7 @@ fs_monitor(const char* path, size_t length) {
 	path_clone = path_absolute(STRING_ARGS(path_clone), BUILD_MAX_PATHLEN);
 	path_clone = string_clone(STRING_ARGS(path_clone));
 
-	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
+	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
 		if (!_fs_monitors[mi].inuse) {
 			_fs_monitors[mi].inuse = true;
 			_fs_monitors[mi].path = path_clone;
@@ -211,7 +211,7 @@ fs_monitor(const char* path, size_t length) {
 		}
 	}
 
-	if (mi == _foundation_config.fs_monitor_max) {
+	if (mi == foundation_config().fs_monitor_max) {
 		string_deallocate(path_clone.str);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to monitor file system, no free monitor slots: %.*s"), (int)length, path);
@@ -244,10 +244,12 @@ fs_unmonitor(const char* path, size_t length) {
 
 	mutex_lock(_fs_monitor_lock);
 
-	for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi) {
-		if (_fs_monitors[mi].inuse &&
-		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
-			_fs_stop_monitor(_fs_monitors + mi);
+	if (_fs_monitors) {
+		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
+			if (_fs_monitors[mi].inuse &&
+			        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
+				_fs_stop_monitor(_fs_monitors + mi);
+		}
 	}
 
 	mutex_unlock(_fs_monitor_lock);
@@ -1125,8 +1127,13 @@ fs_matching_files(const char* path, size_t length, const char* pattern,
 }
 
 void
-fs_post_event(foundation_event_id id, const char* path, size_t pathlen) {
+fs_event_post(foundation_event_id id, const char* path, size_t pathlen) {
 	event_post_varg(fs_event_stream(), id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen, nullptr);
+}
+
+string_const_t
+fs_event_path(const event_t* event) {
+	return string_const(pointer_offset_const(event->payload, sizeof(size_t)), event->payload[0]);
 }
 
 event_stream_t* fs_event_stream(void) {
@@ -1149,7 +1156,7 @@ _fs_send_creations(char* path, size_t length, size_t capacity) {
 	string_t* files = fs_files(path, length);
 	for (ifile = 0, fsize = array_size(files); ifile < fsize; ++ifile) {
 		string_t filepath = path_append(path, length, capacity, STRING_ARGS(files[ifile]));
-		fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(filepath));
+		fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(filepath));
 	}
 	string_array_deallocate(files);
 
@@ -1303,9 +1310,6 @@ _fs_monitor(void* monitorptr) {
 		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
-
-	memset(&overlap, 0, sizeof(overlap));
-	overlap.hEvent = handle;
 #endif
 
 	while (keep_running) {
@@ -1316,10 +1320,9 @@ _fs_monitor(void* monitorptr) {
 		overlap.hEvent = handle;
 
 		out_size = 0;
-
 		success = ReadDirectoryChangesW(dir, buffer, buffer_size, TRUE,
-		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size,
-		                                &overlap, 0);
+		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE,
+		                                &out_size, &overlap, 0);
 		if (!success) {
 			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
@@ -1378,15 +1381,16 @@ _fs_monitor(void* monitorptr) {
 						}
 
 						if (fsevent)
-							fs_post_event(fsevent, STRING_ARGS(fullpath));
+							fs_event_post(fsevent, STRING_ARGS(fullpath));
 					}
 					string_deallocate(utfstr.str);
 					string_deallocate(fullpath.str);
 
 					info->FileName[ numchars ] = term;
 
-					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info,
-					                                                          info->NextEntryOffset)) : 0;
+					info = info->NextEntryOffset
+					       ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info,info->NextEntryOffset))
+					       : nullptr;
 				}
 				while (info);
 			}
@@ -1425,15 +1429,15 @@ _fs_monitor(void* monitorptr) {
 					if (is_dir)
 						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer), &watch, &paths, true);
 					else
-						fs_post_event(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
+						fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
 				}
 				if ((event->mask & IN_DELETE) || (event->mask & IN_MOVED_FROM)) {
 					if (!is_dir)
-						fs_post_event(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(curpath));
+						fs_event_post(FOUNDATIONEVENT_FILE_DELETED, STRING_ARGS(curpath));
 				}
 				if (event->mask & IN_MODIFY) {
 					if (!is_dir)
-						fs_post_event(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(curpath));
+						fs_event_post(FOUNDATIONEVENT_FILE_MODIFIED, STRING_ARGS(curpath));
 				}
 				/* Moved events are also notified as CREATE/DELETE with cookies, so ignore for now
 				if (event->mask & IN_MOVED_FROM)
@@ -1727,6 +1731,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE fd;
 	wchar_t* wpath;
+	bool success = false;
 #endif
 
 	if (!(stream->mode & STREAM_OUT) ||
@@ -1768,30 +1773,29 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	wpath = wstring_allocate_from_string(STRING_ARGS(fspath));
 	fd = CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0);
 	wstring_deallocate(wpath);
+	if (fd != INVALID_HANDLE_VALUE) {
 #  if FOUNDATION_ARCH_X86_64
-	if (length < 0xFFFFFFFF)
+		if (length < 0xFFFFFFFF)
 #  endif
-	{
-		if (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-			string_const_t errstr = system_error_message(0);
-			log_warnf(0, WARNING_SUSPICIOUS,
-			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-			          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+		{
+			success = (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 		}
-	}
 #  if FOUNDATION_ARCH_X86_64
-	else {
-		LONG high = (LONG)(length >> 32LL);
-		if (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-			string_const_t errstr = system_error_message(0);
-			log_warnf(0, WARNING_SUSPICIOUS,
-			          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-			          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+		else {
+			LONG high = (LONG)(length >> 32LL);
+			success = (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 		}
-	}
 #  endif
-	SetEndOfFile(fd);
-	CloseHandle(fd);
+		if (success)
+			success = (SetEndOfFile(fd) != 0);
+		CloseHandle(fd);
+	}
+	if (!success) {
+		string_const_t errstr = system_error_message(0);
+		log_warnf(0, WARNING_SUSPICIOUS,
+		          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
+		          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+	}
 #elif FOUNDATION_PLATFORM_POSIX
 	int fd = open(fspath.str, O_RDWR);
 	if (ftruncate(fd, (ssize_t)length) < 0) {
@@ -2068,11 +2072,10 @@ int
 _fs_initialize(void) {
 #if FOUNDATION_HAVE_FS_MONITOR
 	_fs_monitors = memory_allocate(HASH_STREAM,
-	                               sizeof(fs_monitor_t) * _foundation_config.fs_monitor_max,
+	                               sizeof(fs_monitor_t) * foundation_config().fs_monitor_max,
 	                               0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	_fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
 #else
-	_foundation_config.fs_monitor_max = 0;
 	_fs_monitors = 0;
 	_fs_monitor_lock = 0;
 #endif
@@ -2151,8 +2154,10 @@ _fs_initialize(void) {
 void
 _fs_finalize(void) {
 	size_t mi;
-	if (_fs_monitors) for (mi = 0; mi < _foundation_config.fs_monitor_max; ++mi)
+	if (_fs_monitors) {
+		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi)
 			_fs_stop_monitor(_fs_monitors + mi);
+	}
 	mutex_deallocate(_fs_monitor_lock);
 
 	event_stream_deallocate(_fs_event_stream);

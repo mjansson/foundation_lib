@@ -1062,7 +1062,7 @@ static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { return _thread_##n
 
 //Utility functions for large integer types
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
-uint128_make(const uint64_t low, const uint64_t high);
+uint128_make(const uint64_t w0, const uint64_t w1);
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
 uint128_null(void);
@@ -1100,8 +1100,8 @@ uint512_is_null(const uint512_t u0);
 
 //Implementations
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t
-uint128_make(const uint64_t low, const uint64_t high) {
-	uint128_t u = { { low, high } };
+uint128_make(const uint64_t w0, const uint64_t w1) {
+	uint128_t u = { { w0, w1 } };
 	return u;
 }
 
@@ -1487,47 +1487,74 @@ for example REAL_C(1.0)
 Atomic pointer, use atomic_* functions to load/store values atomically
 (see atomic.h documentation)
 
-\fn uint128_t uint128_make( const uint64_t low, const uint64_t high )
-Declare a 128-bit unsigned int value from low and high 64-bit components
-\param low     Low 64 bits
+\fn uint128_t uint128_make(const uint64_t high, const uint64_t low)
+Declare a 128-bit unsigned int value from high and high 64-bit components
 \param high    High 64 bits
+\param low     Low 64 bits
 \return        128-bit integer value
 
-\fn bool uint128_equal( const uint128_t u0, const uint128_t u1 )
+\fn bool uint128_equal(const uint128_t u0, const uint128_t u1)
 Query if two 128-bit unsigned int values are equal
 \param u0      First value
 \param u1      Second value
 \return        true if values are equal, false if not
 
-\fn uint128_t uint128_null( void )
+\fn uint128_t uint128_null(void)
 Declare a zero (null) 128-bit unsigned int value
 \return        Zero 128-bit value
 
-\fn bool uint128_is_null( const uint128_t u0 )
+\fn bool uint128_is_null(const uint128_t u0)
 Query if a 128-bit unsigned int value is zero (null)
 \param u0      value
 \return        true if value is zero (null), false if not
 
-\fn uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 )
-Declare a 256-bit unsigned int value from four 64-bit components
-\param w0      First (lowest) 64 bits
-\param w1      Second 64 bits
-\param w2      Third 64 bits
-\param w3      Fourth (highest) 64 bits
+\fn uint256_t uint256_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3)
+Declare a 256-bit unsigned int value from four 64-bit components (high order word first, low order word last)
+\param w0      High 64 bits word
+\param w1      64 bit word
+\param w2      64 bit word
+\param w3      Low 64 bit word
 \return        256-bit integer value
 
-\fn bool uint256_equal( const uint256_t u0, const uint256_t u1 )
+\fn bool uint256_equal(const uint256_t u0, const uint256_t u1)
 Query if two 256-bit unsigned int values are equal
 \param u0      First value
 \param u1      Second value
 \return        true if values are equal, false if not
 
-\fn uint256_t uint256_null( void )
+\fn uint256_t uint256_null(void)
 Declare a zero (null) 256-bit unsigned int value
 \return        Zero 256-bit value
 
-\fn bool uint256_is_null( const uint256_t u0 )
+\fn bool uint256_is_null(const uint256_t u0)
 Query if a 256-bit unsigned int value is zero (null)
+\param u0      Value
+\return        true if value is zero (null), false if not
+
+\fn uint256_t uint512_make(const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3, const uint64_t w4, const uint64_t w5, const uint64_t w6, const uint64_t w7)
+Declare a 512-bit unsigned int value from eight 64-bit components (high order word first, low order word last)
+\param w0      High 64 bits word
+\param w1      64 bit word
+\param w2      64 bit word
+\param w3      64 bit word
+\param w4      64 bit word
+\param w5      64 bit word
+\param w6      64 bit word
+\param w7      Low 64 bit word
+\return        512-bit integer value
+
+\fn bool uint512_equal(const uint512_t u0, const uint512_t u1)
+Query if two 512-bit unsigned int values are equal
+\param u0      First value
+\param u1      Second value
+\return        true if values are equal, false if not
+
+\fn uint512_t uint512_null(void)
+Declare a zero (null) 512-bit unsigned int value
+\return        Zero 512-bit value
+
+\fn bool uint512_is_null(const uint512_t u0)
+Query if a 512-bit unsigned int value is zero (null)
 \param u0      Value
 \return        true if value is zero (null), false if not
 

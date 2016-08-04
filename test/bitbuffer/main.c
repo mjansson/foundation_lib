@@ -664,7 +664,8 @@ static test_suite_t test_bitbuffer_suite = {
 	test_bitbuffer_config,
 	test_bitbuffer_declare,
 	test_bitbuffer_initialize,
-	test_bitbuffer_finalize
+	test_bitbuffer_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

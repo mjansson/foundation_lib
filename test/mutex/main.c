@@ -215,7 +215,8 @@ static test_suite_t test_mutex_suite = {
 	test_mutex_config,
 	test_mutex_declare,
 	test_mutex_initialize,
-	test_mutex_finalize
+	test_mutex_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

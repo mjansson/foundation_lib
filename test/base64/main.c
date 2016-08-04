@@ -326,7 +326,8 @@ static test_suite_t test_base64_suite = {
 	test_base64_config,
 	test_base64_declare,
 	test_base64_initialize,
-	test_base64_finalize
+	test_base64_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

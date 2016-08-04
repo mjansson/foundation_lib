@@ -453,9 +453,10 @@ json_unescape(char* buffer, size_t capacity, const char* string, size_t length) 
 
 			case 'u':
 				if (i + 4 < length) {
-					uint16_t val = (uint16_t)string_to_uint(buffer + i + 1, 4, true);
+					uint16_t val = (uint16_t)string_to_uint(string + i + 1, 4, true);
 					string_t conv = string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
 					outlength += conv.length;
+					i += 4;
 				}
 				break;
 
@@ -489,11 +490,12 @@ sjson_parse_stream(const char* path, size_t length, json_handler_fn handler) {
 
 	num = sjson_parse(buffer, size, tokens, capacity);
 	if (num > capacity) {
-		tokens = memory_allocate(0, sizeof(json_token_t) * num, 0, MEMORY_PERSISTENT);
+		capacity = num;
+		tokens = memory_allocate(0, sizeof(json_token_t) * capacity, 0, MEMORY_PERSISTENT);
 		num = sjson_parse(buffer, size, tokens, capacity);
 	}
 	if (num && (tokens[0].type == JSON_OBJECT))
-		handler(buffer, size, tokens, num);
+		handler(path, length, buffer, size, tokens, num);
 
 	memory_deallocate(buffer);
 	if (tokens != localtokens)

@@ -398,7 +398,8 @@ static test_suite_t test_radixsort_suite = {
 	test_radixsort_config,
 	test_radixsort_declare,
 	test_radixsort_initialize,
-	test_radixsort_finalize
+	test_radixsort_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

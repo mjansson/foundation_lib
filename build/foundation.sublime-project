@@ -24,6 +24,7 @@
 			"name": "Ninja",
 			"shell_cmd": "ninja",
 			"working_dir": "${project_path:${folder:${file_path}}}/..",
+			"file_regex": "^(.+):([0-9]+):([0-9]+):(.+)$"
 		}
 	],
 	"use_tab_stops": true,

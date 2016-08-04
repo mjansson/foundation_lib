@@ -104,7 +104,8 @@ static test_suite_t test_stacktrace_suite = {
 	test_stacktrace_config,
 	test_stacktrace_declare,
 	test_stacktrace_initialize,
-	test_stacktrace_finalize
+	test_stacktrace_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

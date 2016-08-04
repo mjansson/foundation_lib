@@ -14,7 +14,7 @@
 #include <test/test.h>
 
 //Must be >30000 since we assume that in forced fail test
-#define TEST_PROFILE_BUFFER_SIZE  512000
+#define TEST_PROFILE_BUFFER_SIZE  1024*1024
 
 static char*       _test_profile_buffer;
 static size_t      _test_profile_offset;
@@ -270,6 +270,17 @@ _profile_stream_thread(void* arg) {
 			}
 			profile_end_block();
 
+			profile_begin_block(STRING_CONST("Thread second subblock"));
+			{
+				profile_update_block();
+
+				profile_begin_block(STRING_CONST("Thread subblock"));
+				{
+				}
+				profile_end_block();
+			}
+			profile_end_block();
+
 			profile_trylock(STRING_CONST("Trylock"));
 			thread_sleep(1);
 
@@ -280,7 +291,7 @@ _profile_stream_thread(void* arg) {
 		}
 		profile_end_block();
 
-		atomic_add64(&_profile_generated_blocks, 12);
+		atomic_add64(&_profile_generated_blocks, 14);
 	}
 
 	return 0;
@@ -335,9 +346,12 @@ DECLARE_TEST(profile, stream) {
 		thread_finalize(&thread[ith]);
 
 	profile_end_frame(frame++);
-	profile_set_output_wait(100);
+	profile_set_output_wait(10000);
 
 	thread_sleep(1000);
+
+	profile_begin_block(STRING_CONST("Should be cleaned up"));
+	profile_end_block();
 
 	profile_enable(false);
 	profile_finalize();
@@ -367,7 +381,8 @@ static test_suite_t test_profile_suite = {
 	test_profile_config,
 	test_profile_declare,
 	test_profile_initialize,
-	test_profile_finalize
+	test_profile_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

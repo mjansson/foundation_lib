@@ -34,6 +34,14 @@ stream_open(const char* path, size_t length, unsigned int mode);
 FOUNDATION_API stream_t*
 stream_clone(stream_t* stream);
 
+/*! Copy a stream, if supported by stream type. Copy is binary (no conversion
+of data is done).
+\param source Source stream
+\param destination Destination stream
+\return true if success, false if error or unsupported */
+FOUNDATION_API bool
+stream_copy(stream_t* source, stream_t* destination);
+
 /*! Deallocate stream previously allocated by any stream specific allocation function
 or from a call to #stream_open.
 \param stream Stream */
@@ -231,11 +239,29 @@ stream_read_int64(stream_t* stream);
 FOUNDATION_API uint64_t
 stream_read_uint64(stream_t* stream);
 
-/*! Read unsigned integer from stream.
+/*! Read 128-bit unsigned integer from stream.
 \param stream Stream
 \return Value read, 0 if error */
 FOUNDATION_API uint128_t
 stream_read_uint128(stream_t* stream);
+
+/*! Read 256-bit unsigned integer from stream.
+\param stream Stream
+\return Value read, 0 if error */
+FOUNDATION_API uint256_t
+stream_read_uint256(stream_t* stream);
+
+/*! Read 512-bit unsigned integer from stream.
+\param stream Stream
+\return Value read, 0 if error */
+FOUNDATION_API uint512_t
+stream_read_uint512(stream_t* stream);
+
+/*! Read UUID from stream.
+\param stream Stream
+\return Value read, 0 if error */
+FOUNDATION_API uuid_t
+stream_read_uuid(stream_t* stream);
 
 /*! Read 32-bit float from stream
 \param stream Stream
@@ -263,6 +289,13 @@ stream_read_string(stream_t* stream);
 \return String, null string if error */
 FOUNDATION_API string_t
 stream_read_string_buffer(stream_t* stream, char* buffer, size_t capacity);
+
+/*! If stream is in text mode, skip whitespace characters.
+If stream is in binary mode, ignore.
+\param stream Stream
+\return Number of bytes skipped */
+FOUNDATION_API size_t
+stream_skip_whitespace(stream_t* stream);
 
 /*! Write raw data to stream.
 \param stream Stream
@@ -326,11 +359,29 @@ stream_write_int64(stream_t* stream, int64_t data);
 FOUNDATION_API void
 stream_write_uint64(stream_t* stream, uint64_t data);
 
-/*! Write unsigned integer to stream.
+/*! Write 128-bit unsigned integer to stream.
 \param stream Stream
 \param data Unsigned integer to write */
 FOUNDATION_API void
 stream_write_uint128(stream_t* stream, uint128_t data);
+
+/*! Write 256-bit unsigned integer to stream.
+\param stream Stream
+\param data Unsigned integer to write */
+FOUNDATION_API void
+stream_write_uint256(stream_t* stream, uint256_t data);
+
+/*! Write 512-bit unsigned integer to stream.
+\param stream Stream
+\param data Unsigned integer to write */
+FOUNDATION_API void
+stream_write_uint512(stream_t* stream, uint512_t data);
+
+/*! Write UUID to stream.
+\param stream Stream
+\param data UUID to write */
+FOUNDATION_API void
+stream_write_uuid(stream_t* stream, uuid_t data);
 
 /*! Write 32-bit float to stream.
 \param stream Stream
@@ -350,6 +401,12 @@ stream_write_float64(stream_t* stream, float64_t data);
 \param length Length of string (NOT including optional zero terminator) */
 FOUNDATION_API void
 stream_write_string(stream_t* stream, const char* data, size_t length);
+
+/*! If the stream is in text mode, write a separator character (whitespace) to stream
+If the stream is in binary mode, ignore.
+\param stream Stream */
+FOUNDATION_API void
+stream_write_separator(stream_t* stream);
 
 /*! If the stream is in text mode, write an endline character to the stream and flush.
 If the stream is in binary mode, only flush.
@@ -377,11 +434,26 @@ stream_buffer_read(stream_t* stream);
 FOUNDATION_API size_t
 stream_available_read(stream_t* stream);
 
-/*! Read stream md5 digest
+/*! Read stream md5 digest. Line ending will be unified and digested as a
+UNIX style LF if the stream is in ascii mode.
 \param stream Stream
 \return md5 digest, 0 if not available for stream type or invalid stream */
 FOUNDATION_API uint128_t
 stream_md5(stream_t* stream);
+
+/*! Read stream SHA-256 digest. Line ending will be unified and digested as a
+UNIX style LF if the stream is in ascii mode.
+\param stream Stream
+\return SHA-256 digest, 0 if not available for stream type or invalid stream */
+FOUNDATION_API uint256_t
+stream_sha256(stream_t* stream);
+
+/*! Read stream SHA-512 digest. Line ending will be unified and digested as a
+UNIX style LF if the stream is in ascii mode.
+\param stream Stream
+\return SHA-512 digest, 0 if not available for stream type or invalid stream */
+FOUNDATION_API uint512_t
+stream_sha512(stream_t* stream);
 
 /*! Truncate stream to given size if it is larger, do nothing if smaller or equal in size.
 \param stream Stream

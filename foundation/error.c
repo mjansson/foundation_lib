@@ -53,7 +53,7 @@ void
 _error_context_push(const char* name, size_t name_length, const char* data, size_t data_length) {
 	error_context_t* context = get_thread_error_context();
 	if (!context) {
-		size_t capacity = sizeof(error_context_t) + (sizeof(error_frame_t) * _foundation_config.error_context_depth);
+		size_t capacity = sizeof(error_context_t) + (sizeof(error_frame_t) * foundation_config().error_context_depth);
 		context = memory_allocate(0, capacity, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_error_context(context);
 	}
@@ -61,7 +61,7 @@ _error_context_push(const char* name, size_t name_length, const char* data, size
 	context->frame[ context->depth ].name.length = name ? name_length : 11;
 	context->frame[ context->depth ].data.str = data ? data : "<nothing>";
 	context->frame[ context->depth ].data.length = data ? data_length : 9;
-	if (context->depth < _foundation_config.error_context_depth - 1)
+	if (context->depth < foundation_config().error_context_depth - 1)
 		++context->depth;
 }
 

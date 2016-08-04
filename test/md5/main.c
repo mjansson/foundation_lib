@@ -242,7 +242,8 @@ static test_suite_t test_md5_suite = {
 	test_md5_config,
 	test_md5_declare,
 	test_md5_initialize,
-	test_md5_finalize
+	test_md5_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

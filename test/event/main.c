@@ -586,7 +586,8 @@ static test_suite_t test_event_suite = {
 	test_event_config,
 	test_event_declare,
 	test_event_initialize,
-	test_event_finalize
+	test_event_finalize,
+	0
 };
 
 #if BUILD_MONOLITHIC

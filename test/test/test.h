@@ -58,6 +58,9 @@ test_failed(void);
 TEST_API FOUNDATION_NOINLINE void
 test_prefail(void);
 
+TEST_API FOUNDATION_NOINLINE void
+test_event(event_t* event);
+
 #if FOUNDATION_PLATFORM_IOS
 
 TEST_API void
@@ -202,6 +205,7 @@ typedef struct _test_suite {
   void (*declare)(void);
   int (*initialize)(void);
   void (*finalize)(void);
+  void (*event)(event_t*);
 } test_suite_t;
 
 TEST_API test_suite_t test_suite;
