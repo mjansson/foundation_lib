@@ -101,7 +101,9 @@ for key, pair in infiles.iteritems():
     if sys.platform == "darwin":
       subprocess.check_output( [ "gcov", "-gcda=" + os.path.join( options.objectdir, key + ".gcda" ), "-gcno=" + os.path.join( options.objectdir, key + ".gcno" ), "source" ] )
     else:
-      subprocess.check_output( [ "gcov", "-o", options.objectdir, "-s", options.sourcedir, key + ".o" ] )
+      sourcefile = os.path.basename(key).rsplit('-', 1)[0]
+      subprocess.check_output(["llvm-cov", "gcov", "-o", os.path.join(options.objectdir, key + ".o"), os.path.join(options.sourcedir, sourcefile + ".c")])
+      #subprocess.check_output( [ "gcov", "-o", options.objectdir, "-s", options.sourcedir, key + ".o" ] )
     for file in os.listdir('.'):
       if file.endswith(".gcov"):
         sourcefile = os.path.splitext(file)[0]
