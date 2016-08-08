@@ -1,4 +1,15 @@
 
+1.5.2
+
+Unified adding remote sources as input to a beacon. The add/remove functions of a beacon
+are now named beacon_add_<type> and beacon_remove_<type>. All platforms can add/remove
+a remote beacon source. Windows and Posix targets can add/remove file descriptors. Windows
+can also add/remove a OS handle.
+
+Changed pipe to always provide a file descriptor, and renamed function to
+pipe_read_fd/pipe_write_fd to match new beacon function naming. Windows platform still
+has pipe_read_handle/pipe_write_handle to access the OS handles.
+
 1.5.1
 
 Added string utility functions for converting from/to 256 and 512 bit unsigned int.

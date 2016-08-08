@@ -59,6 +59,19 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds);
 FOUNDATION_API void
 beacon_fire(beacon_t* beacon);
 
+/*! Add another beacon as event source to the beacon
+\param beacon Beacon
+\param remote Remote beacon to add as source
+\return index of remote beacon in beacon, negative if error */
+FOUNDATION_API int
+beacon_add_beacon(beacon_t* beacon, beacon_t* remote);
+
+/*! Remove another beacon as event source from the beacon.
+\param beacon Beacon
+\param remote Remote beacon to remove as source */
+FOUNDATION_API void
+beacon_remove_beacon(beacon_t* beacon, beacon_t* remote);
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 /*! Add another event source to the beacon, for example a semaphore,
@@ -68,24 +81,19 @@ WaitForMultipleEvents can be added to the beacon.
 \param handle Handle to add
 \return index of handle in beacon, negative if error */
 FOUNDATION_API int
-beacon_add(beacon_t* beacon, void* handle);
+beacon_add_handle(beacon_t* beacon, void* handle);
 
 /*! Remove another event source from the beacon.
 \param beacon Beacon
 \param handle Handle to remove */
 FOUNDATION_API void
-beacon_remove(beacon_t* beacon, void* handle);
-
-/*! Get OS handle for beacon base event
-\param beacon Beacon
-\return Object handle */
-FOUNDATION_API void*
-beacon_event_handle(beacon_t* beacon);
+beacon_remove_handle(beacon_t* beacon, void* handle);
 
 #endif
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || \
-    FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+    FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD || \
+    FOUNDATION_PLATFORM_WINDOWS
 
 /*! Add another event source to the beacon, for example a socket,
 a pipe or another beacon. Any file descriptor handle that can be used
@@ -94,18 +102,12 @@ in a select/kevent call can be added to the beacon.
 \param fd File descriptor to add
 \return index of file descriptor in beacon, negative if error */
 FOUNDATION_API int
-beacon_add(beacon_t* beacon, int fd);
+beacon_add_fd(beacon_t* beacon, int fd);
 
 /*! Remove another event source from the beacon.
 \param beacon Beacon
 \param fd File descriptor to remove */
 FOUNDATION_API void
-beacon_remove(beacon_t* beacon, int fd);
-
-/*! Get OS file descriptor for beacon base event
-\param beacon Beacon
-\return File descriptor */
-FOUNDATION_API int
-beacon_event_handle(beacon_t* beacon);
+beacon_remove_fd(beacon_t* beacon, int fd);
 
 #endif

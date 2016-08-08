@@ -103,7 +103,7 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	if (wait_status < count) {
 		//Same behaviour as linux/bsd implementations, where auxiliary beacons added
 		//will remain fired after a beacon has seen it
-		if (wait_status > 0)
+		if ((wait_status > 0) && (beacon->flags[wait_status] & 1))
 			SetEvent(beacon->all[wait_status]);
 		return (int)wait_status;
 	}
@@ -176,17 +176,74 @@ beacon_fire(beacon_t* beacon) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 int
-beacon_add(beacon_t* beacon, void* handle) {
+beacon_add_beacon(beacon_t* beacon, beacon_t* remote) {
+	int slot = beacon_add_handle(beacon, remote->event);
+	if (slot > 0)
+		beacon->flags[slot] = 1;
+	return slot;
+}
+
+void
+beacon_remove_beacon(beacon_t* beacon, beacon_t* remote) {
+	beacon_remove_handle(beacon, remote->event);
+}
+
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+
+int
+beacon_add_beacon(beacon_t* beacon, beacon_t* remote) {
+	return beacon_add_fd(beacon, remote->fd);
+}
+
+void
+beacon_remove_beacon(beacon_t* beacon, beacon_t* remote) {
+	beacon_remove_fd(beacon, remote->fd);
+}
+
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+
+int
+beacon_add_beacon(beacon_t* beacon, beacon_t* remote) {
+	return beacon_add_fd(beacon, remote->all[0]);
+}
+
+void
+beacon_remove_beacon(beacon_t* beacon, beacon_t* remote) {
+	beacon_remove_fd(beacon, remote->all[0]);
+}
+
+#else
+
+int
+beacon_add_beacon(beacon_t* beacon, beacon_t* remote) {
+	FOUNDATION_UNUSED(beacon);
+	FOUNDATION_UNUSED(remote);
+	return -1;
+}
+
+void
+beacon_remove_beacon(beacon_t* beacon, beacon_t* remote) {
+	FOUNDATION_UNUSED(beacon);
+	FOUNDATION_UNUSED(remote);
+}
+
+#endif
+
+#if FOUNDATION_PLATFORM_WINDOWS
+
+int
+beacon_add_handle(beacon_t* beacon, void* handle) {
 	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
 	if (beacon->count < numslots) {
 		beacon->all[beacon->count] = handle;
+		beacon->flags[beacon->count] = 0;
 		return (int)beacon->count++;
 	}
 	return -1;
 }
 
 void
-beacon_remove(beacon_t* beacon, void* handle) {
+beacon_remove_handle(beacon_t* beacon, void* handle) {
 	size_t islot;
 	for (islot = 1; islot < beacon->count; ++islot) {
 		if (beacon->all[islot] == handle)
@@ -194,17 +251,24 @@ beacon_remove(beacon_t* beacon, void* handle) {
 	}
 }
 
-void*
-beacon_event_handle(beacon_t* beacon) {
-	return beacon->event;
-}
-
 #endif
 
-#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_WINDOWS
 
 int
-beacon_add(beacon_t* beacon, int fd) {
+beacon_add_fd(beacon_t* beacon, int fd) {
+	return beacon_add_handle(beacon, (void*)_get_osfhandle(fd));
+}
+
+void
+beacon_remove_fd(beacon_t* beacon, int fd) {
+	beacon_remove_handle(beacon, (void*)_get_osfhandle(fd));
+}
+
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+
+int
+beacon_add_fd(beacon_t* beacon, int fd) {
 	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
 	if (beacon->count < numslots) {
 		beacon->all[beacon->count] = fd;
@@ -218,7 +282,7 @@ beacon_add(beacon_t* beacon, int fd) {
 }
 
 void
-beacon_remove(beacon_t* beacon, int fd) {
+beacon_remove_fd(beacon_t* beacon, int fd) {
 	size_t islot;
 	for (islot = 1; islot < beacon->count; ++islot) {
 		if (beacon->all[islot] == fd) {
@@ -235,17 +299,10 @@ beacon_remove(beacon_t* beacon, int fd) {
 	}
 }
 
-int
-beacon_event_handle(beacon_t* beacon) {
-	return beacon->fd;
-}
-
-#endif
-
-#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
+#elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 
 int
-beacon_add(beacon_t* beacon, int fd) {
+beacon_add_fd(beacon_t* beacon, int fd) {
 	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
 	if (beacon->count < numslots) {
 		beacon->all[beacon->count] = fd;
@@ -258,7 +315,7 @@ beacon_add(beacon_t* beacon, int fd) {
 }
 
 void
-beacon_remove(beacon_t* beacon, int fd) {
+beacon_remove_fd(beacon_t* beacon, int fd) {
 	size_t islot;
 	for (islot = 1; islot < beacon->count; ++islot) {
 		if (beacon->all[islot] == fd) {
@@ -274,11 +331,6 @@ beacon_remove(beacon_t* beacon, int fd) {
 			}
 		}
 	}
-}
-
-int
-beacon_event_handle(beacon_t* beacon) {
-	return beacon->all[0];
 }
 
 #endif

@@ -57,18 +57,14 @@ pipe_write_handle(stream_t* pipe);
 
 #endif
 
-#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-
-/*! Posix only, get OS file descriptor for read end of pipe
+/*! Get OS file descriptor for read end of pipe
 \param pipe Pipe stream
 \return Read file descriptor */
 FOUNDATION_API int
-pipe_read_handle(stream_t* pipe);
+pipe_read_fd(stream_t* pipe);
 
-/*! Posix only, get OS file descriptor for write end of pipe
+/*! Get OS file descriptor for write end of pipe
 \param pipe Pipe stream
 \return Write file descriptor */
 FOUNDATION_API int
-pipe_write_handle(stream_t* pipe);
-
-#endif
+pipe_write_fd(stream_t* pipe);

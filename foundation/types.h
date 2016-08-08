@@ -1428,6 +1428,8 @@ struct beacon_t {
 	void* event;
 	/*! Linked events */
 	void* all[8];
+	/*! Linked events flags */
+	unsigned int flags[8];
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	/*! Beacon file descriptor */
 	int fd;
@@ -1578,18 +1580,10 @@ FOUNDATION_ALIGNED_STRUCT(stream_pipe_t, 8) {
 	/*! End of stream flag indicating the pipe has reached end of stream and
 	is considered closed. */
 	bool eos;
-#if FOUNDATION_PLATFORM_WINDOWS
-	/*! Windows only, file handle for read end of the pipe. */
-	void* handle_read;
-	/*! Windows only, file handle for write end of the pipe. */
-	void* handle_write;
-#endif
-#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-	/*! Posix/PNaCl only, file descriptor for read end of the pipe. */
+	/*! File descriptor for read end of the pipe. */
 	int fd_read;
-	/*! Posix/PNaCl only, file descriptor for write end of the pipe. */
+	/*! File descriptor for write end of the pipe. */
 	int fd_write;
-#endif
 };
 
 /*! Stream interface for read/write to a ring buffer. This struct is also a stream_t
