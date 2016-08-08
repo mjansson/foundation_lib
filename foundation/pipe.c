@@ -17,6 +17,9 @@
 #include <foundation/windows.h>
 #include <io.h>
 #include <fcntl.h>
+#define close _close
+#define read _read
+#define write _write
 typedef unsigned int pipe_size_t;
 #elif FOUNDATION_PLATFORM_POSIX
 #include <foundation/posix.h>
@@ -72,11 +75,11 @@ pipe_initialize(stream_pipe_t* pipestream) {
 				log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe file descriptors: %.*s"),
 				           STRING_FORMAT(errmsg));
 				if (pipestream->fd_read)
-					_close(pipestream->fd_read);
+					close(pipestream->fd_read);
 				else
 					CloseHandle(hread);
 				if (pipestream->fd_write)
-					_close(pipestream->fd_write);
+					close(pipestream->fd_write);
 				else
 					CloseHandle(hwrite);
 				pipestream->fd_read = pipestream->fd_write = 0;
@@ -113,11 +116,11 @@ _pipe_finalize(stream_t* stream) {
 		return;
 
 	if (pipe->fd_read)
-		_close(pipe->fd_read);
+		close(pipe->fd_read);
 	pipe->fd_read = 0;
 
 	if (pipe->fd_write)
-		_close(pipe->fd_write);
+		close(pipe->fd_write);
 	pipe->fd_write = 0;
 }
 
@@ -127,7 +130,7 @@ pipe_close_read(stream_t* stream) {
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 
 	if (pipestream->fd_read) {
-		_close(pipestream->fd_read);
+		close(pipestream->fd_read);
 		pipestream->fd_read = 0;
 	}
 
@@ -140,7 +143,7 @@ pipe_close_write(stream_t* stream) {
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 
 	if (pipestream->fd_write) {
-		_close(pipestream->fd_write);
+		close(pipestream->fd_write);
 		pipestream->fd_write = 0;
 	}
 
@@ -179,37 +182,11 @@ static size_t
 _pipe_stream_read(stream_t* stream, void* dest, size_t num) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
-/*#if FOUNDATION_PLATFORM_WINDOWS
-	if (pipestream->handle_read && ((pipestream->mode & STREAM_IN) != 0)) {
-		size_t total_read = 0;
-		do {
-			DWORD num_read = 0;
-			if (!ReadFile(pipestream->handle_read, pointer_offset(dest, total_read),
-			              (unsigned int)(num - total_read), &num_read, 0)) {
-				unsigned int err = GetLastError();
-				if (err == ERROR_BROKEN_PIPE) {
-					pipestream->eos = true;
-					break;
-				}
-				else {
-					string_const_t errmsg = system_error_message((int)err);
-					log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to read from pipe: %.*s (%d)"),
-					           STRING_FORMAT(errmsg), err);
-				}
-			}
-			else {
-				total_read += num_read;
-			}
-		}
-		while (total_read < num);
-		return total_read;
-	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL*/
 	if (pipestream->fd_read && ((pipestream->mode & STREAM_IN) != 0)) {
 		size_t total_read = 0;
 		do {
-			ssize_t num_read = _read(pipestream->fd_read, pointer_offset(dest, total_read),
-			                         (pipe_size_t)(num - total_read));
+			ssize_t num_read = read(pipestream->fd_read, pointer_offset(dest, total_read),
+			                        (pipe_size_t)(num - total_read));
 			if (num_read <= 0) {
 				pipestream->eos = true;
 				break;
@@ -227,26 +204,10 @@ static size_t
 _pipe_stream_write(stream_t* stream, const void* source, size_t num) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
-/*#if FOUNDATION_PLATFORM_WINDOWS
-	if (pipestream->handle_write && ((pipestream->mode & STREAM_OUT) != 0)) {
-		size_t total_written = 0;
-		do {
-			DWORD num_written = 0;
-			if (!WriteFile(pipestream->handle_write, pointer_offset_const(source, total_written),
-			               (unsigned int)(num - total_written), &num_written, 0)) {
-				pipestream->eos = true;
-				break;
-			}
-			total_written += num_written;
-		}
-		while (total_written < num);
-		return total_written;
-	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL*/
 	if (pipestream->fd_write && ((pipestream->mode & STREAM_OUT) != 0)) {
 		size_t total_written = 0;
 		do {
-			ssize_t num_written = _write(pipestream->fd_write, pointer_offset_const(source, total_written),
+			ssize_t num_written = write(pipestream->fd_write, pointer_offset_const(source, total_written),
 			                             (pipe_size_t)(num - total_written));
 			if (num_written <= 0) {
 				pipestream->eos = true;

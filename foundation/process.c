@@ -457,10 +457,10 @@ process_spawn(process_t* proc) {
 
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			pipe_close_read(proc->pipeout);
-			dup2(pipe_write_handle(proc->pipeout), STDOUT_FILENO);
+			dup2(pipe_write_fd(proc->pipeout), STDOUT_FILENO);
 
 			pipe_close_write(proc->pipein);
-			dup2(pipe_read_handle(proc->pipein), STDIN_FILENO);
+			dup2(pipe_read_fd(proc->pipein), STDIN_FILENO);
 		}
 
 		int code = execv(proc->path.str, (char* const*)argv);
