@@ -257,12 +257,14 @@ beacon_remove_handle(beacon_t* beacon, void* handle) {
 
 int
 beacon_add_fd(beacon_t* beacon, int fd) {
-	return beacon_add_handle(beacon, (void*)_get_osfhandle(fd));
+	intptr_t handle = _get_osfhandle(fd);
+	return beacon_add_handle(beacon, (void*)handle);
 }
 
 void
 beacon_remove_fd(beacon_t* beacon, int fd) {
-	beacon_remove_handle(beacon, (void*)_get_osfhandle(fd));
+	intptr_t handle = _get_osfhandle(fd);
+	beacon_remove_handle(beacon, (void*)handle);
 }
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID

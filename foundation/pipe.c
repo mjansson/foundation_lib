@@ -85,7 +85,7 @@ pipe_initialize(stream_pipe_t* pipestream) {
 				pipestream->fd_read = pipestream->fd_write = 0;
 			}
 			else {
-				unsigned int mode = PIPE_READMODE_BYTE | PIPE_WAIT;
+				unsigned long mode = PIPE_READMODE_BYTE | PIPE_WAIT;
 				if (!SetNamedPipeHandleState(hread, &mode, 0, 0)) {
 					string_const_t errmsg = system_error_message(0);
 					log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe handle state: %.*s"),
@@ -155,13 +155,15 @@ pipe_close_write(stream_t* stream) {
 void*
 pipe_read_handle(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	return stream && (stream->type == STREAMTYPE_PIPE) ? (HANDLE)_get_osfhandle(pipestream->fd_read) : 0;
+	intptr_t handle = stream && (stream->type == STREAMTYPE_PIPE) ? _get_osfhandle(pipestream->fd_read) : 0;
+	return (void*)handle;
 }
 
 void*
 pipe_write_handle(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	return stream && (stream->type == STREAMTYPE_PIPE) ? (HANDLE)_get_osfhandle(pipestream->fd_write) : 0;
+	intptr_t handle = stream && (stream->type == STREAMTYPE_PIPE) ? _get_osfhandle(pipestream->fd_write) : 0;
+	return (void*)handle;
 }
 
 #endif
@@ -269,6 +271,11 @@ _pipe_stream_available_read(stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return 0;
 }
+
+#if FOUNDATION_PLATFORM_WINDOWS
+#undef read
+#undef write
+#endif
 
 void
 _pipe_stream_initialize(void) {
