@@ -10,6 +10,11 @@ Changed pipe to always provide a file descriptor, and renamed function to
 pipe_read_fd/pipe_write_fd to match new beacon function naming. Windows platform still
 has pipe_read_handle/pipe_write_handle to access the OS handles.
 
+Fix an uninitialized variable in event streams causing beacon to not be fired before first
+process to event_steam_process on the event stream
+
+Change path_clean to always uppercase Windows drive letters
+
 1.5.1
 
 Added string utility functions for converting from/to 256 and 512 bit unsigned int.

@@ -41,6 +41,10 @@ path_clean(char* path, size_t length, size_t capacity) {
 					if ((ofs < length) && ((path[ofs] == '/') || (path[ofs] == '\\'))) {
 						path[ofs] = '/';
 						//If protocol length is 1 it's a drive letter
+						if (protocol == 1) {
+							if ((path[0] >= 'a') && (path[0] <= 'z'))
+								path[0] = path[0] + ('A' - 'a');
+						}
 						if ((protocol > 1) && ((ofs + 1) < length) && ((path[ofs + 1] == '/') || (path[ofs + 1] == '\\'))) {
 							++ofs;
 							path[ofs] = '/';
