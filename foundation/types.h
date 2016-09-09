@@ -207,6 +207,8 @@ typedef enum {
 	STREAMTYPE_PIPE,
 	/*! Standard stream (stdin, stderr, stdout) */
 	STREAMTYPE_STDSTREAM,
+	/*! Custom unknown stream type */
+	STREAMTYPE_CUSTOM,
 	/*! Last reserved built-in stream type, not a valid type */
 	STREAMTYPE_LAST_RESERVED = 0x0FFF
 } stream_type_t;
