@@ -229,7 +229,7 @@
 		CD526E5D1CD14FD5002C339C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173019363AF800CF089B /* Cocoa.framework */; };
 		CD526E5E1CD14FD5002C339C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555173119363AF800CF089B /* CoreFoundation.framework */; };
 		CD526E601CD14FD5002C339C /* libfoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD526E5F1CD14FD5002C339C /* libfoundation.a */; };
-		CD526E631CD15012002C339C /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD526E611CD14FFB002C339C /* main.c */; };
+		CD5BC2A31D840F3C00899D05 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD5BC2A21D840F3C00899D05 /* main.c */; };
 		CD8391A51C0450FC003C9154 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CD8391A41C0450FC003C9154 /* main.c */; };
 		CD8391A61C045124003C9154 /* libtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 455516951936208A00CF089B /* libtest.a */; };
 		CD8391A91C045138003C9154 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4555172F19363AF800CF089B /* Carbon.framework */; };
@@ -1214,7 +1214,7 @@
 		45FD84BE1ACAB575004357EA /* test-process */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-process"; sourceTree = BUILT_PRODUCTS_DIR; };
 		45FD84C01ACAB5CC004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/process/main.c; sourceTree = "<group>"; };
 		CD526E5F1CD14FD5002C339C /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/deploy/libfoundation.a; sourceTree = "<group>"; };
-		CD526E611CD14FFB002C339C /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../../test/json/main.c; sourceTree = "<group>"; };
+		CD5BC2A21D840F3C00899D05 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../../test/json/main.c; sourceTree = "<group>"; };
 		CD83919B1C044FA8003C9154 /* test-beacon */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-beacon"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD8391A41C0450FC003C9154 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../../test/beacon/main.c; sourceTree = "<group>"; };
 		CD8391AE1C048959003C9154 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
@@ -2139,7 +2139,7 @@
 		CDF7858D1CB991FC00F83977 /* json */ = {
 			isa = PBXGroup;
 			children = (
-				CD526E611CD14FFB002C339C /* main.c */,
+				CD5BC2A21D840F3C00899D05 /* main.c */,
 			);
 			name = json;
 			path = "test-json";
@@ -3307,7 +3307,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CD526E631CD15012002C339C /* main.c in Sources */,
+				CD5BC2A31D840F3C00899D05 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3700,7 +3700,6 @@
 		450D740C1B21D9B8007796DD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-bitbiffer";
 			};
 			name = Debug;
@@ -3708,7 +3707,6 @@
 		450D740D1B21D9B8007796DD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-bitbiffer";
 			};
 			name = Release;
@@ -3716,7 +3714,6 @@
 		450D740E1B21D9B8007796DD /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-bitbiffer";
 			};
 			name = Profile;
@@ -3724,7 +3721,6 @@
 		450D740F1B21D9B8007796DD /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-bitbiffer";
 			};
 			name = Deploy;
@@ -3732,7 +3728,6 @@
 		451871B3194EC6DF000E42C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-regex";
 			};
 			name = Debug;
@@ -3740,7 +3735,6 @@
 		451871B4194EC6DF000E42C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-regex";
 			};
 			name = Release;
@@ -3748,7 +3742,6 @@
 		451871B5194EC6DF000E42C9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-regex";
 			};
 			name = Profile;
@@ -3756,7 +3749,6 @@
 		451871B6194EC6DF000E42C9 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-regex";
 			};
 			name = Deploy;
@@ -3767,21 +3759,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
+				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = YES;
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_CPP_EXCEPTIONS = NO;
-				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
 				GCC_FAST_MATH = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -3791,12 +3774,8 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_THREADSAFE_STATICS = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,
@@ -3815,21 +3794,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
+				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_CPP_EXCEPTIONS = NO;
-				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
 				GCC_FAST_MATH = YES;
 				GCC_OPTIMIZATION_LEVEL = fast;
@@ -3839,13 +3809,9 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_THREADSAFE_STATICS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_UNROLL_LOOPS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,
@@ -3887,21 +3853,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/profile;
+				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_CPP_EXCEPTIONS = NO;
-				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
 				GCC_FAST_MATH = YES;
 				GCC_OPTIMIZATION_LEVEL = fast;
@@ -3911,13 +3868,9 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_THREADSAFE_STATICS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_UNROLL_LOOPS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,
@@ -3948,21 +3901,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
+				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_CPP_EXCEPTIONS = NO;
-				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
 				GCC_FAST_MATH = YES;
 				GCC_OPTIMIZATION_LEVEL = fast;
@@ -3972,13 +3916,9 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_THREADSAFE_STATICS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_UNROLL_LOOPS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../test,
@@ -4006,7 +3946,6 @@
 		45551729193638C400CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4014,7 +3953,6 @@
 		4555172A193638C400CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4022,7 +3960,6 @@
 		4555172B193638C400CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Profile;
@@ -4030,7 +3967,6 @@
 		4555172C193638C400CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Deploy;
@@ -4038,7 +3974,6 @@
 		4555174819363BA500CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-app";
 			};
 			name = Debug;
@@ -4046,7 +3981,6 @@
 		4555174919363BA500CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-app";
 			};
 			name = Release;
@@ -4054,7 +3988,6 @@
 		4555174A19363BA500CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-app";
 			};
 			name = Profile;
@@ -4062,7 +3995,6 @@
 		4555174B19363BA500CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-app";
 			};
 			name = Deploy;
@@ -4070,7 +4002,6 @@
 		4555175B19365CCD00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-array";
 			};
 			name = Debug;
@@ -4078,7 +4009,6 @@
 		4555175C19365CCD00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-array";
 			};
 			name = Release;
@@ -4086,7 +4016,6 @@
 		4555175D19365CCD00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-array";
 			};
 			name = Profile;
@@ -4094,7 +4023,6 @@
 		4555175E19365CCD00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-array";
 			};
 			name = Deploy;
@@ -4102,7 +4030,6 @@
 		4555176E19365D1C00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-atomic";
 			};
 			name = Debug;
@@ -4110,7 +4037,6 @@
 		4555176F19365D1C00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-atomic";
 			};
 			name = Release;
@@ -4118,7 +4044,6 @@
 		4555177019365D1C00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-atomic";
 			};
 			name = Profile;
@@ -4126,7 +4051,6 @@
 		4555177119365D1C00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-atomic";
 			};
 			name = Deploy;
@@ -4134,7 +4058,6 @@
 		4555178119365D3800CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-base64";
 			};
 			name = Debug;
@@ -4142,7 +4065,6 @@
 		4555178219365D3800CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-base64";
 			};
 			name = Release;
@@ -4150,7 +4072,6 @@
 		4555178319365D3800CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-base64";
 			};
 			name = Profile;
@@ -4158,7 +4079,6 @@
 		4555178419365D3800CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-base64";
 			};
 			name = Deploy;
@@ -4166,7 +4086,6 @@
 		4555179419365D5F00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-blowfish";
 			};
 			name = Debug;
@@ -4174,7 +4093,6 @@
 		4555179519365D5F00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-blowfish";
 			};
 			name = Release;
@@ -4182,7 +4100,6 @@
 		4555179619365D5F00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-blowfish";
 			};
 			name = Profile;
@@ -4190,7 +4107,6 @@
 		4555179719365D5F00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-blowfish";
 			};
 			name = Deploy;
@@ -4198,7 +4114,6 @@
 		455517A719365D7D00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-bufferstream";
 			};
 			name = Debug;
@@ -4206,7 +4121,6 @@
 		455517A819365D7D00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-bufferstream";
 			};
 			name = Release;
@@ -4214,7 +4128,6 @@
 		455517A919365D7D00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-bufferstream";
 			};
 			name = Profile;
@@ -4222,7 +4135,6 @@
 		455517AA19365D7D00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-bufferstream";
 			};
 			name = Deploy;
@@ -4230,7 +4142,6 @@
 		455517CD193661E200CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-exception";
 			};
 			name = Debug;
@@ -4238,7 +4149,6 @@
 		455517CE193661E200CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-exception";
 			};
 			name = Release;
@@ -4246,7 +4156,6 @@
 		455517CF193661E200CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-exception";
 			};
 			name = Profile;
@@ -4254,7 +4163,6 @@
 		455517D0193661E200CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-exception";
 			};
 			name = Deploy;
@@ -4262,7 +4170,6 @@
 		455517E0193661F900CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-environment";
 			};
 			name = Debug;
@@ -4270,7 +4177,6 @@
 		455517E1193661F900CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-environment";
 			};
 			name = Release;
@@ -4278,7 +4184,6 @@
 		455517E2193661F900CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-environment";
 			};
 			name = Profile;
@@ -4286,7 +4191,6 @@
 		455517E3193661F900CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-environment";
 			};
 			name = Deploy;
@@ -4294,7 +4198,6 @@
 		455517F31936621900CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-error";
 			};
 			name = Debug;
@@ -4302,7 +4205,6 @@
 		455517F41936621900CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-error";
 			};
 			name = Release;
@@ -4310,7 +4212,6 @@
 		455517F51936621900CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-error";
 			};
 			name = Profile;
@@ -4318,7 +4219,6 @@
 		455517F61936621900CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-error";
 			};
 			name = Deploy;
@@ -4326,7 +4226,6 @@
 		455518061936623700CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-event";
 			};
 			name = Debug;
@@ -4334,7 +4233,6 @@
 		455518071936623700CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-event";
 			};
 			name = Release;
@@ -4342,7 +4240,6 @@
 		455518081936623700CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-event";
 			};
 			name = Profile;
@@ -4350,7 +4247,6 @@
 		455518091936623700CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-event";
 			};
 			name = Deploy;
@@ -4358,7 +4254,6 @@
 		455518191936625700CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-fs";
 			};
 			name = Debug;
@@ -4366,7 +4261,6 @@
 		4555181A1936625700CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-fs";
 			};
 			name = Release;
@@ -4374,7 +4268,6 @@
 		4555181B1936625700CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-fs";
 			};
 			name = Profile;
@@ -4382,7 +4275,6 @@
 		4555181C1936625700CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-fs";
 			};
 			name = Deploy;
@@ -4390,7 +4282,6 @@
 		4555182C1936627100CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-hash";
 			};
 			name = Debug;
@@ -4398,7 +4289,6 @@
 		4555182D1936627100CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hash";
 			};
 			name = Release;
@@ -4406,7 +4296,6 @@
 		4555182E1936627100CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hash";
 			};
 			name = Profile;
@@ -4414,7 +4303,6 @@
 		4555182F1936627100CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hash";
 			};
 			name = Deploy;
@@ -4422,7 +4310,6 @@
 		4555183F1936628A00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-hashmap";
 			};
 			name = Debug;
@@ -4430,7 +4317,6 @@
 		455518401936628A00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hashmap";
 			};
 			name = Release;
@@ -4438,7 +4324,6 @@
 		455518411936628A00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hashmap";
 			};
 			name = Profile;
@@ -4446,7 +4331,6 @@
 		455518421936628A00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hashmap";
 			};
 			name = Deploy;
@@ -4454,7 +4338,6 @@
 		45551852193662A800CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-hashtable";
 			};
 			name = Debug;
@@ -4462,7 +4345,6 @@
 		45551853193662A800CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hashtable";
 			};
 			name = Release;
@@ -4470,7 +4352,6 @@
 		45551854193662A800CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hashtable";
 			};
 			name = Profile;
@@ -4478,7 +4359,6 @@
 		45551855193662A800CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-hashtable";
 			};
 			name = Deploy;
@@ -4486,7 +4366,6 @@
 		45551865193662D100CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-library";
 			};
 			name = Debug;
@@ -4494,7 +4373,6 @@
 		45551866193662D100CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-library";
 			};
 			name = Release;
@@ -4502,7 +4380,6 @@
 		45551867193662D100CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-library";
 			};
 			name = Profile;
@@ -4510,7 +4387,6 @@
 		45551868193662D100CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-library";
 			};
 			name = Deploy;
@@ -4518,7 +4394,6 @@
 		45551878193662F200CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-math";
 			};
 			name = Debug;
@@ -4526,7 +4401,6 @@
 		45551879193662F200CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-math";
 			};
 			name = Release;
@@ -4534,7 +4408,6 @@
 		4555187A193662F200CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-math";
 			};
 			name = Profile;
@@ -4542,7 +4415,6 @@
 		4555187B193662F200CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-math";
 			};
 			name = Deploy;
@@ -4550,7 +4422,6 @@
 		4555188B1936630C00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-md5";
 			};
 			name = Debug;
@@ -4558,7 +4429,6 @@
 		4555188C1936630C00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-md5";
 			};
 			name = Release;
@@ -4566,7 +4436,6 @@
 		4555188D1936630C00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-md5";
 			};
 			name = Profile;
@@ -4574,7 +4443,6 @@
 		4555188E1936630C00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-md5";
 			};
 			name = Deploy;
@@ -4582,7 +4450,6 @@
 		4555189E1936632800CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-mutex";
 			};
 			name = Debug;
@@ -4590,7 +4457,6 @@
 		4555189F1936632800CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-mutex";
 			};
 			name = Release;
@@ -4598,7 +4464,6 @@
 		455518A01936632800CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-mutex";
 			};
 			name = Profile;
@@ -4606,7 +4471,6 @@
 		455518A11936632800CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-mutex";
 			};
 			name = Deploy;
@@ -4614,7 +4478,6 @@
 		455518B11936634300CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-objectmap";
 			};
 			name = Debug;
@@ -4622,7 +4485,6 @@
 		455518B21936634300CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-objectmap";
 			};
 			name = Release;
@@ -4630,7 +4492,6 @@
 		455518B31936634300CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-objectmap";
 			};
 			name = Profile;
@@ -4638,7 +4499,6 @@
 		455518B41936634300CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-objectmap";
 			};
 			name = Deploy;
@@ -4646,7 +4506,6 @@
 		455518C41936636000CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-path";
 			};
 			name = Debug;
@@ -4654,7 +4513,6 @@
 		455518C51936636000CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-path";
 			};
 			name = Release;
@@ -4662,7 +4520,6 @@
 		455518C61936636000CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-path";
 			};
 			name = Profile;
@@ -4670,7 +4527,6 @@
 		455518C71936636000CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-path";
 			};
 			name = Deploy;
@@ -4678,7 +4534,6 @@
 		455518D71936637900CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-pipe";
 			};
 			name = Debug;
@@ -4686,7 +4541,6 @@
 		455518D81936637900CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-pipe";
 			};
 			name = Release;
@@ -4694,7 +4548,6 @@
 		455518D91936637900CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-pipe";
 			};
 			name = Profile;
@@ -4702,7 +4555,6 @@
 		455518DA1936637900CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-pipe";
 			};
 			name = Deploy;
@@ -4710,7 +4562,6 @@
 		455518EA1936639500CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-profile";
 			};
 			name = Debug;
@@ -4718,7 +4569,6 @@
 		455518EB1936639500CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-profile";
 			};
 			name = Release;
@@ -4726,7 +4576,6 @@
 		455518EC1936639500CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-profile";
 			};
 			name = Profile;
@@ -4734,7 +4583,6 @@
 		455518ED1936639500CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-profile";
 			};
 			name = Deploy;
@@ -4742,7 +4590,6 @@
 		455518FD193663AE00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-radixsort";
 			};
 			name = Debug;
@@ -4750,7 +4597,6 @@
 		455518FE193663AE00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-radixsort";
 			};
 			name = Release;
@@ -4758,7 +4604,6 @@
 		455518FF193663AE00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-radixsort";
 			};
 			name = Profile;
@@ -4766,7 +4611,6 @@
 		45551900193663AE00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-radixsort";
 			};
 			name = Deploy;
@@ -4774,7 +4618,6 @@
 		45551910193663CF00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-random";
 			};
 			name = Debug;
@@ -4782,7 +4625,6 @@
 		45551911193663CF00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-random";
 			};
 			name = Release;
@@ -4790,7 +4632,6 @@
 		45551912193663CF00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-random";
 			};
 			name = Profile;
@@ -4798,7 +4639,6 @@
 		45551913193663CF00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-random";
 			};
 			name = Deploy;
@@ -4806,7 +4646,6 @@
 		45551923193663EA00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-ringbuffer";
 			};
 			name = Debug;
@@ -4814,7 +4653,6 @@
 		45551924193663EA00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-ringbuffer";
 			};
 			name = Release;
@@ -4822,7 +4660,6 @@
 		45551925193663EA00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-ringbuffer";
 			};
 			name = Profile;
@@ -4830,7 +4667,6 @@
 		45551926193663EA00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-ringbuffer";
 			};
 			name = Deploy;
@@ -4838,7 +4674,6 @@
 		455519361936640600CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-semaphore";
 			};
 			name = Debug;
@@ -4846,7 +4681,6 @@
 		455519371936640600CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-semaphore";
 			};
 			name = Release;
@@ -4854,7 +4688,6 @@
 		455519381936640600CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-semaphore";
 			};
 			name = Profile;
@@ -4862,7 +4695,6 @@
 		455519391936640600CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-semaphore";
 			};
 			name = Deploy;
@@ -4870,7 +4702,6 @@
 		455519491936642100CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-stacktrace";
 			};
 			name = Debug;
@@ -4878,7 +4709,6 @@
 		4555194A1936642100CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-stacktrace";
 			};
 			name = Release;
@@ -4886,7 +4716,6 @@
 		4555194B1936642100CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-stacktrace";
 			};
 			name = Profile;
@@ -4894,7 +4723,6 @@
 		4555194C1936642100CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-stacktrace";
 			};
 			name = Deploy;
@@ -4902,7 +4730,6 @@
 		4555195C1936643C00CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-string";
 			};
 			name = Debug;
@@ -4910,7 +4737,6 @@
 		4555195D1936643C00CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-string";
 			};
 			name = Release;
@@ -4918,7 +4744,6 @@
 		4555195E1936643C00CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-string";
 			};
 			name = Profile;
@@ -4926,7 +4751,6 @@
 		4555195F1936643C00CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-string";
 			};
 			name = Deploy;
@@ -4934,7 +4758,6 @@
 		4555196F1936645600CF089B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-uuid";
 			};
 			name = Debug;
@@ -4942,7 +4765,6 @@
 		455519701936645600CF089B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-uuid";
 			};
 			name = Release;
@@ -4950,7 +4772,6 @@
 		455519711936645600CF089B /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-uuid";
 			};
 			name = Profile;
@@ -4958,7 +4779,6 @@
 		455519721936645600CF089B /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-uuid";
 			};
 			name = Deploy;
@@ -4966,7 +4786,6 @@
 		457586121AC75A64009E9325 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-stream";
 			};
 			name = Debug;
@@ -4974,7 +4793,6 @@
 		457586131AC75A64009E9325 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-stream";
 			};
 			name = Release;
@@ -4982,7 +4800,6 @@
 		457586141AC75A64009E9325 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-stream";
 			};
 			name = Profile;
@@ -4990,7 +4807,6 @@
 		457586151AC75A64009E9325 /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-stream";
 			};
 			name = Deploy;
@@ -4998,7 +4814,6 @@
 		45FD84891AC953CB004357EA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-system";
 			};
 			name = Debug;
@@ -5006,7 +4821,6 @@
 		45FD848A1AC953CB004357EA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-system";
 			};
 			name = Release;
@@ -5014,7 +4828,6 @@
 		45FD848B1AC953CB004357EA /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-system";
 			};
 			name = Profile;
@@ -5022,7 +4835,6 @@
 		45FD848C1AC953CB004357EA /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-system";
 			};
 			name = Deploy;
@@ -5030,7 +4842,6 @@
 		45FD849B1AC953EC004357EA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-time";
 			};
 			name = Debug;
@@ -5038,7 +4849,6 @@
 		45FD849C1AC953EC004357EA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-time";
 			};
 			name = Release;
@@ -5046,7 +4856,6 @@
 		45FD849D1AC953EC004357EA /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-time";
 			};
 			name = Profile;
@@ -5054,7 +4863,6 @@
 		45FD849E1AC953EC004357EA /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-time";
 			};
 			name = Deploy;
@@ -5062,7 +4870,6 @@
 		45FD84BA1ACAB575004357EA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "test-process";
 			};
 			name = Debug;
@@ -5070,7 +4877,6 @@
 		45FD84BB1ACAB575004357EA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-process";
 			};
 			name = Release;
@@ -5078,7 +4884,6 @@
 		45FD84BC1ACAB575004357EA /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-process";
 			};
 			name = Profile;
@@ -5086,7 +4891,6 @@
 		45FD84BD1ACAB575004357EA /* Deploy */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				PRODUCT_NAME = "test-process";
 			};
 			name = Deploy;
@@ -5094,7 +4898,6 @@
 		CD83919F1C044FA8003C9154 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
