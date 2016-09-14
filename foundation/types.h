@@ -1284,6 +1284,8 @@ struct process_t {
 	int code;
 	/*! Pipe stream for stdout */
 	stream_t* pipeout;
+	/*! Pipe stream for stderr */
+	stream_t* pipeerr;
 	/*! Pipe stream for stdin */
 	stream_t* pipein;
 #if FOUNDATION_PLATFORM_WINDOWS

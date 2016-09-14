@@ -60,6 +60,7 @@ process_finalize(process_t* proc) {
 		process_wait(proc);
 
 	stream_deallocate(proc->pipeout);
+	stream_deallocate(proc->pipeerr);
 	stream_deallocate(proc->pipein);
 	string_deallocate(proc->wd.str);
 	string_deallocate(proc->path.str);
@@ -278,15 +279,17 @@ process_spawn(process_t* proc) {
 
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			proc->pipeout = pipe_allocate();
+			proc->pipeerr = pipe_allocate();
 			proc->pipein = pipe_allocate();
 
 			si.dwFlags |= STARTF_USESTDHANDLES;
 			si.hStdOutput = pipe_write_handle(proc->pipeout);
 			si.hStdInput = pipe_read_handle(proc->pipein);
-			si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+			si.hStdError = pipe_write_handle(proc->pipeerr);
 
 			//Don't inherit wrong ends of pipes
 			SetHandleInformation(pipe_read_handle(proc->pipeout), HANDLE_FLAG_INHERIT, 0);
+			SetHandleInformation(pipe_read_handle(proc->pipeerr), HANDLE_FLAG_INHERIT, 0);
 			SetHandleInformation(pipe_write_handle(proc->pipein), HANDLE_FLAG_INHERIT, 0);
 
 			inherit_handles = TRUE;
@@ -303,9 +306,11 @@ process_spawn(process_t* proc) {
 			          STRING_FORMAT(proc->path), STRING_FORMAT(errstr));
 
 			stream_deallocate(proc->pipeout);
+			stream_deallocate(proc->pipeerr);
 			stream_deallocate(proc->pipein);
 
 			proc->pipeout = 0;
+			proc->pipeerr = 0;
 			proc->pipein = 0;
 		}
 		else {
@@ -316,6 +321,8 @@ process_spawn(process_t* proc) {
 
 		if (proc->pipeout)
 			pipe_close_write(proc->pipeout);
+		if (proc->pipeerr)
+			pipe_close_write(proc->pipeerr);
 		if (proc->pipein)
 			pipe_close_read(proc->pipein);
 	}
@@ -439,6 +446,7 @@ process_spawn(process_t* proc) {
 
 	if (proc->flags & PROCESS_STDSTREAMS) {
 		proc->pipeout = pipe_allocate();
+		proc->pipeerr = pipe_allocate();
 		proc->pipein = pipe_allocate();
 	}
 
@@ -458,6 +466,9 @@ process_spawn(process_t* proc) {
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			pipe_close_read(proc->pipeout);
 			dup2(pipe_write_fd(proc->pipeout), STDOUT_FILENO);
+
+			pipe_close_read(proc->pipeerr);
+			dup2(pipe_write_fd(proc->pipeerr), STDERR_FILENO);
 
 			pipe_close_write(proc->pipein);
 			dup2(pipe_read_fd(proc->pipein), STDIN_FILENO);
@@ -484,6 +495,8 @@ process_spawn(process_t* proc) {
 
 		if (proc->pipeout)
 			pipe_close_write(proc->pipeout);
+		if (proc->pipeerr)
+			pipe_close_write(proc->pipeerr);
 		if (proc->pipein)
 			pipe_close_read(proc->pipein);
 
@@ -513,10 +526,13 @@ process_spawn(process_t* proc) {
 
 		if (proc->pipeout)
 			stream_deallocate(proc->pipeout);
+		if (proc->pipeerr)
+			stream_deallocate(proc->pipeerr);
 		if (proc->pipein)
 			stream_deallocate(proc->pipein);
 
 		proc->pipeout = 0;
+		proc->pipeerr = 0;
 		proc->pipein = 0;
 		proc->code = PROCESS_INVALID_ARGS;
 
@@ -542,6 +558,11 @@ exit:
 stream_t*
 process_stdout(process_t* proc) {
 	return proc ? proc->pipeout : 0;
+}
+
+stream_t*
+process_stderr(process_t* proc) {
+	return proc ? proc->pipeerr : 0;
 }
 
 stream_t*

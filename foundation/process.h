@@ -99,6 +99,13 @@ process_spawn(process_t* proc);
 FOUNDATION_API stream_t*
 process_stdout(process_t* proc);
 
+/*! Get pipe to read stderr from process (read-only stream). Only available if the
+#PROCESS_STDSTREAMS flag was set prior to spawning the process.
+\param proc Process object
+\return Stdout pipe */
+FOUNDATION_API stream_t*
+process_stderr(process_t* proc);
+
 /*! Get pipe to write stdin to process (write-only stream). Only available
 if the #PROCESS_STDSTREAMS flag was set prior to spawning the process.
 \param proc Process object

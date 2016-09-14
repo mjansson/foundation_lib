@@ -11,9 +11,12 @@ pipe_read_fd/pipe_write_fd to match new beacon function naming. Windows platform
 has pipe_read_handle/pipe_write_handle to access the OS handles.
 
 Fix an uninitialized variable in event streams causing beacon to not be fired before first
-process to event_steam_process on the event stream
+process to event_steam_process on the event stream.
 
-Change path_clean to always uppercase Windows drive letters
+Change path_clean to always uppercase Windows drive letters.
+
+Add stderr to process standard streams interface.
+
 
 1.5.1
 
