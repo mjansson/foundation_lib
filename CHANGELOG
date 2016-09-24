@@ -17,6 +17,8 @@ Change path_clean to always uppercase Windows drive letters.
 
 Add stderr to process standard streams interface.
 
+Fix time_system on Apple platforms to return time since Epoch like other platforms.
+
 
 1.5.1
 
