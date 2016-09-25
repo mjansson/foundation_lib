@@ -178,7 +178,7 @@ time_system(void) {
 
 #elif FOUNDATION_PLATFORM_APPLE
 	
-	struct timeval now = {0};
+	struct timeval now = {0, 0};
 	gettimeofday(&now, 0);
 	return ((int64_t)now.tv_sec * 1000LL) + (now.tv_usec / 1000LL);
 	
