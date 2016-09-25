@@ -24,7 +24,7 @@ class XCode(object):
     if self.target.is_macosx():
       self.deploymenttarget = '10.7'
     elif self.target.is_ios():
-      self.deploymenttarget = '6.0'
+      self.deploymenttarget = '8.0'
 
   def build_toolchain(self):
     if self.target.is_macosx():
