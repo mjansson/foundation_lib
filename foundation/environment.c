@@ -147,6 +147,11 @@ _environment_initialize(const application_t application) {
 	exe_path = path_absolute(exe_path.str, exe_path.length, sizeof(buffer));
 	_environment_set_executable_paths(exe_path.str, exe_path.length);
 
+#  if FOUNDATION_PLATFORM_IOS
+	string_const_t exe_dir = path_directory_name(STRING_ARGS(exe_path));
+	environment_set_current_working_directory(STRING_ARGS(exe_dir));
+#  endif
+
 #elif FOUNDATION_PLATFORM_ANDROID
 
 	string_const_t dir_name;
