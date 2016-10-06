@@ -155,17 +155,17 @@ class XCode(object):
       for resource in resources:
         if resource.endswith('.xcassets'):
           if self.target.is_macosx():
-            assetsvars = [('outpath', os.path.join(apppath, 'Contents', 'Resources'))]
+            assetsvars = [('outpath', os.path.join(os.getcwd(), apppath, 'Contents', 'Resources'))]
           else:
             assetsvars = [('outpath', apppath)]
-          outplist = os.path.join(builddir, os.path.splitext(os.path.basename(resource))[0] + '-xcassets.plist')
+          outplist = os.path.join(os.getcwd(), builddir, os.path.splitext(os.path.basename(resource))[0] + '-xcassets.plist')
           assetsvars += [('outplist', outplist)]
           outfiles = [outplist]
           if self.target.is_macosx():
-            outfiles += [os.path.join(apppath, 'Contents', 'Resources', 'AppIcon.icns')]
+            outfiles += [os.path.join(os.getcwd(), apppath, 'Contents', 'Resources', 'AppIcon.icns')]
           elif self.target.is_ios():
             pass #TODO: Need to list all icon and launch image files here
-          assetsplists += writer.build(outfiles, 'xcassets', os.path.join(basepath, module, resource), variables = assetsvars)
+          assetsplists += writer.build(outfiles, 'xcassets', os.path.join(os.getcwd(), basepath, module, resource), variables = assetsvars)
           has_resources = True
         elif resource.endswith('.xib'):
           xibmodule = binname.replace('-', '_').replace('.', '_')
