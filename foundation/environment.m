@@ -26,6 +26,8 @@
 extern void _environment_ns_command_line(string_t** argv);
 extern string_t _environment_ns_home_directory(char*, size_t);
 extern string_t _environment_ns_temporary_directory(char*, size_t);
+extern string_t _environment_ns_current_working_directory(char* buffer, size_t capacity);
+extern bool _environment_ns_set_current_working_directory(const char* buffer, size_t length);
 
 string_t
 environment_bundle_identifier(char* target, size_t maxlength) {
@@ -33,6 +35,15 @@ environment_bundle_identifier(char* target, size_t maxlength) {
 		NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
 		const char* bundlestr = [bundle_identifier UTF8String];
 		return string_copy(target, maxlength, bundlestr, string_length(bundlestr));
+	}
+}
+
+string_t
+environment_bundle_path(char* buffer, size_t capacity) {
+	@autoreleasepool {
+		NSString* bundle_path = [[NSBundle mainBundle] bundlePath];
+		const char* bundlestr = [bundle_path UTF8String];
+		return string_copy(buffer, capacity, bundlestr, string_length(bundlestr));
 	}
 }
 
@@ -99,4 +110,3 @@ _environment_ns_set_current_working_directory(const char* buffer, size_t length)
 	return false;
 
 }
-

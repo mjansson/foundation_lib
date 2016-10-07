@@ -45,6 +45,9 @@ _environment_ns_home_directory(char*, size_t);
 extern string_t
 _environment_ns_temporary_directory(char*, size_t);
 
+string_t
+_environment_ns_bundle_directory(char* buffer, size_t capacity);
+
 extern string_t
 _environment_ns_current_working_directory(char* buffer, size_t capacity);
 
@@ -143,7 +146,7 @@ _environment_initialize(const application_t application) {
 		return -1;
 	}
 
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 
 	_environment_ns_command_line(&_environment_argv);
 
@@ -154,8 +157,10 @@ _environment_initialize(const application_t application) {
 	_environment_set_executable_paths(exe_path.str, exe_path.length);
 
 #  if FOUNDATION_PLATFORM_IOS
-	string_const_t exe_dir = path_directory_name(STRING_ARGS(exe_path));
-	environment_set_current_working_directory(STRING_ARGS(exe_dir));
+	string_t localpath = string_thread_buffer();
+	string_t bundle_dir = environment_bundle_path(STRING_ARGS(localpath));
+	string_const_t work_dir = path_directory_name(STRING_ARGS(bundle_dir));
+	environment_set_current_working_directory(STRING_ARGS(work_dir));
 #  endif
 
 #elif FOUNDATION_PLATFORM_ANDROID
