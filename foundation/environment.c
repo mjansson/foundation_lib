@@ -159,8 +159,7 @@ _environment_initialize(const application_t application) {
 #  if FOUNDATION_PLATFORM_IOS
 	string_t localpath = string_thread_buffer();
 	string_t bundle_dir = environment_bundle_path(STRING_ARGS(localpath));
-	string_const_t work_dir = path_directory_name(STRING_ARGS(bundle_dir));
-	environment_set_current_working_directory(STRING_ARGS(work_dir));
+	environment_set_current_working_directory(STRING_ARGS(bundle_dir));
 #  endif
 
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -369,8 +368,9 @@ environment_current_working_directory(void) {
 	}
 #elif FOUNDATION_PLATFORM_APPLE
 	string_t localpath = string_thread_buffer();
-	localpath = _environment_ns_home_directory(localpath.str, localpath.length);
-	localpath = path_clean(localpath.str, string_length(localpath.str), localpath.length);
+	size_t local_capacity = localpath.length;
+	localpath = _environment_ns_current_working_directory(localpath.str, local_capacity);
+	localpath = path_clean(localpath.str, localpath.length, local_capacity);
 	if ((localpath.length > 1) && (localpath.str[localpath.length - 1] == '/'))
 		localpath.str[--localpath.length] = 0;
 	_environment_current_working_dir = string_clone(STRING_ARGS(localpath));

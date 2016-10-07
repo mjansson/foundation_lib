@@ -94,8 +94,12 @@ DECLARE_TEST(environment, workingdir) {
 		new_working_dir = path_directory_name(STRING_ARGS(tmpwork));
 	}
 
+#if FOUNDATION_PLATFORM_IOS
+	new_working_dir_copy = path_allocate_concat(STRING_ARGS(working_dir), STRING_CONST("config"));
+#else
 	new_working_dir_copy = string_clone(STRING_ARGS(new_working_dir));
-	new_working_dir = string_to_const(new_working_dir_copy);
+#endif
+																						   new_working_dir = string_to_const(new_working_dir_copy);
 
 	EXPECT_CONSTSTRINGNE(working_dir, string_empty());
 	EXPECT_CONSTSTRINGNE(working_dir, new_working_dir);
@@ -106,11 +110,7 @@ DECLARE_TEST(environment, workingdir) {
 	                     string_const(STRING_ARGS(working_dir_copy)));
 #else
 	EXPECT_TRUE(environment_set_current_working_directory(STRING_ARGS(new_working_dir)));
-#if FOUNDATION_PLATFORM_IOS
-	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(), working_dir);
-#else
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(), new_working_dir);
-#endif
 
 	environment_set_current_working_directory(STRING_ARGS(working_dir_copy));
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),

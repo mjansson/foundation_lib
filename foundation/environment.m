@@ -14,6 +14,8 @@
 #include <foundation/string.h>
 #include <foundation/array.h>
 #include <foundation/environment.h>
+#include <foundation/posix.h>
+#include <foundation/apple.h>
 
 #import <CoreFoundation/CFString.h>
 
@@ -65,7 +67,7 @@ _environment_ns_home_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
 		NSString* homestr = NSHomeDirectory();
 		CFStringRef home = (__bridge CFStringRef)homestr;
-		if (CFStringGetCString(home, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
+		if (home && CFStringGetCString(home, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
 			return (string_t){buffer, string_length(buffer)};
 	}
 	return (string_t){buffer, 0};
@@ -76,7 +78,7 @@ _environment_ns_temporary_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
 		NSString* tmpstr = NSTemporaryDirectory();
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
-		if (CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
+		if (tmp && CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
 			return (string_t){buffer, string_length(buffer)};
 	}
 	return (string_t){buffer, 0};
@@ -85,13 +87,10 @@ _environment_ns_temporary_directory(char* buffer, size_t capacity) {
 string_t
 _environment_ns_current_working_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
-		NSFileManager* filemgr;
-		NSString* tmpstr;
-
-		filemgr = [[NSFileManager alloc] init];
-		tmpstr = [filemgr currentDirectoryPath];
+		NSFileManager* filemgr = [[NSFileManager alloc] init];
+		NSString* tmpstr = [filemgr currentDirectoryPath];
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
-		if (CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
+		if (tmp && CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
 			return (string_t) {buffer, string_length(buffer)};
 	}
 	return (string_t){buffer, 0};
