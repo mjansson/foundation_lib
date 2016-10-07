@@ -105,7 +105,11 @@ DECLARE_TEST(environment, workingdir) {
 	                     string_const(STRING_ARGS(working_dir_copy)));
 #else
 	EXPECT_TRUE(environment_set_current_working_directory(STRING_ARGS(new_working_dir)));
+#if FOUNDATION_PLATFORM_IOS
+	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(), working_dir);
+#else
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(), new_working_dir);
+#endif
 
 	environment_set_current_working_directory(STRING_ARGS(working_dir_copy));
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),

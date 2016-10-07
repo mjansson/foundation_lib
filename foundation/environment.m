@@ -55,9 +55,9 @@ _environment_ns_home_directory(char* buffer, size_t capacity) {
 		NSString* homestr = NSHomeDirectory();
 		CFStringRef home = (__bridge CFStringRef)homestr;
 		if (CFStringGetCString(home, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
-			return (string_t) { buffer, string_length(buffer) };
+			return (string_t){buffer, string_length(buffer)};
 	}
-	return (string_t) { buffer, 0 };
+	return (string_t){buffer, 0};
 }
 
 string_t
@@ -66,7 +66,37 @@ _environment_ns_temporary_directory(char* buffer, size_t capacity) {
 		NSString* tmpstr = NSTemporaryDirectory();
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
 		if (CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
-			return (string_t) { buffer, string_length(buffer) };
+			return (string_t){buffer, string_length(buffer)};
 	}
-	return (string_t) { buffer, 0 };
+	return (string_t){buffer, 0};
 }
+
+string_t
+_environment_ns_current_working_directory(char* buffer, size_t capacity) {
+	@autoreleasepool {
+		NSFileManager* filemgr;
+		NSString* tmpstr;
+
+		filemgr = [[NSFileManager alloc] init];
+		tmpstr = [filemgr currentDirectoryPath];
+		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
+		if (CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
+			return (string_t) {buffer, string_length(buffer)};
+	}
+	return (string_t){buffer, 0};
+}
+
+bool
+_environment_ns_set_current_working_directory(const char* buffer, size_t length) {
+	if (!buffer || !length)
+		return false;
+	@autoreleasepool {
+		NSFileManager* filemgr = [[NSFileManager alloc] init];
+		NSString* path = [[NSString alloc] initWithBytes:buffer length:length encoding:NSUTF8StringEncoding];
+		if ([filemgr changeCurrentDirectoryPath:path])
+			return true;
+	}
+	return false;
+
+}
+

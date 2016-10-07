@@ -272,11 +272,13 @@ DECLARE_TEST(fs, file) {
 
 	testlocalpath = string_clone(STRING_CONST("test.local.file.path"));
 	unterminate(STRING_ARGS(testlocalpath));
+#if !FOUNDATION_PLATFORM_IOS
 	teststream = fs_open_file(STRING_ARGS(testlocalpath), STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE(teststream, 0);
 	EXPECT_TRUE(fs_is_file(STRING_ARGS(testlocalpath)));
 	stream_deallocate(teststream);
 	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testlocalpath)));
+#endif
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(testlocalpath)));
 
 	EXPECT_FALSE(fs_remove_file(STRING_ARGS(testlocalpath)));
