@@ -169,7 +169,7 @@ and disabled in all other configurations.
 #if BUILD_DEBUG || BUILD_RELEASE
 #define BUILD_ENABLE_LOG                      1
 #else
-#define BUILD_ENABLE_LOG                      1
+#define BUILD_ENABLE_LOG                      0
 #endif
 #endif
 
@@ -177,7 +177,7 @@ and disabled in all other configurations.
 #if BUILD_DEBUG
 #define BUILD_ENABLE_DEBUG_LOG                1
 #else
-#define BUILD_ENABLE_DEBUG_LOG                1
+#define BUILD_ENABLE_DEBUG_LOG                0
 #endif
 #endif
 
