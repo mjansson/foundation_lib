@@ -99,7 +99,7 @@ DECLARE_TEST(environment, workingdir) {
 #else
 	new_working_dir_copy = string_clone(STRING_ARGS(new_working_dir));
 #endif
-																						   new_working_dir = string_to_const(new_working_dir_copy);
+	new_working_dir = string_to_const(new_working_dir_copy);
 
 	EXPECT_CONSTSTRINGNE(working_dir, string_empty());
 	EXPECT_CONSTSTRINGNE(working_dir, new_working_dir);
