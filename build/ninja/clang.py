@@ -24,7 +24,7 @@ class ClangToolchain(toolchain.Toolchain):
     #Default variables
     self.sysroot = ''
     if self.target.is_ios():
-      self.deploymenttarget = '6.0'
+      self.deploymenttarget = '8.0'
     if self.target.is_macosx():
       self.deploymenttarget = '10.7'
 
@@ -215,6 +215,7 @@ class ClangToolchain(toolchain.Toolchain):
       self.cflags += ['-fasm-blocks', '-miphoneos-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot']
       self.arflags += ['-static', '-no_warning_for_no_symbols']
       self.linkflags += ['-isysroot', '$sysroot']
+    self.cflags += ['-fembed-bitcode-marker']
 
     platformpath = subprocess.check_output(['xcrun', '--sdk', sdk, '--show-sdk-platform-path']).strip()
     localpath = platformpath + "/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"

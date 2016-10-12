@@ -45,6 +45,15 @@ _environment_ns_home_directory(char*, size_t);
 extern string_t
 _environment_ns_temporary_directory(char*, size_t);
 
+string_t
+_environment_ns_bundle_directory(char* buffer, size_t capacity);
+
+extern string_t
+_environment_ns_current_working_directory(char* buffer, size_t capacity);
+
+extern bool
+_environment_ns_set_current_working_directory(const char* buffer, size_t length);
+
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
@@ -137,7 +146,7 @@ _environment_initialize(const application_t application) {
 		return -1;
 	}
 
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 
 	_environment_ns_command_line(&_environment_argv);
 
@@ -146,6 +155,12 @@ _environment_initialize(const application_t application) {
 	                                _environment_argv[0].length);
 	exe_path = path_absolute(exe_path.str, exe_path.length, sizeof(buffer));
 	_environment_set_executable_paths(exe_path.str, exe_path.length);
+
+#  if FOUNDATION_PLATFORM_IOS
+	string_t localpath = string_thread_buffer();
+	string_t bundle_dir = environment_bundle_path(STRING_ARGS(localpath));
+	environment_set_current_working_directory(STRING_ARGS(bundle_dir));
+#  endif
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
@@ -351,6 +366,14 @@ environment_current_working_directory(void) {
 			memory_deallocate(wd);
 		_environment_current_working_dir = path_clean(STRING_ARGS_CAPACITY(localpath));
 	}
+#elif FOUNDATION_PLATFORM_APPLE
+	string_t localpath = string_thread_buffer();
+	size_t local_capacity = localpath.length;
+	localpath = _environment_ns_current_working_directory(localpath.str, local_capacity);
+	localpath = path_clean(localpath.str, localpath.length, local_capacity);
+	if ((localpath.length > 1) && (localpath.str[localpath.length - 1] == '/'))
+		localpath.str[--localpath.length] = 0;
+	_environment_current_working_dir = string_clone(STRING_ARGS(localpath));
 #elif FOUNDATION_PLATFORM_POSIX
 	string_t localpath = string_thread_buffer();
 	if (!getcwd(localpath.str, localpath.length)) {
@@ -374,9 +397,6 @@ environment_current_working_directory(void) {
 
 bool
 environment_set_current_working_directory(const char* path, size_t length) {
-#if FOUNDATION_PLATFORM_POSIX
-	string_t buffer, pathstr;
-#endif
 	bool result = true;
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
@@ -387,11 +407,11 @@ environment_set_current_working_directory(const char* path, size_t length) {
 		}
 		wstring_deallocate(wpath);
 	}
-	string_deallocate(_environment_current_working_dir.str);
-	_environment_current_working_dir = (string_t) { 0, 0 };
+#elif FOUNDATION_PLATFORM_APPLE
+	result = _environment_ns_set_current_working_directory(path, length);
 #elif FOUNDATION_PLATFORM_POSIX
-	buffer = string_thread_buffer();
-	pathstr = string_copy(STRING_ARGS(buffer), path, length);
+	string_t buffer = string_thread_buffer();
+	string_t pathstr = string_copy(STRING_ARGS(buffer), path, length);
 	if (chdir(pathstr.str) < 0) {
 		int err = errno;
 		string_const_t errmsg = system_error_message(err);
@@ -400,8 +420,6 @@ environment_set_current_working_directory(const char* path, size_t length) {
 		          (int)length, path, STRING_FORMAT(errmsg), err);
 		result = false;
 	}
-	string_deallocate(_environment_current_working_dir.str);
-	_environment_current_working_dir = (string_t) { 0, 0 };
 #elif FOUNDATION_PLATFORM_PNACL
 	//Allow nothing, always set to /tmp
 	FOUNDATION_UNUSED(path);
@@ -410,6 +428,8 @@ environment_set_current_working_directory(const char* path, size_t length) {
 #else
 #  error Not implemented
 #endif
+	string_deallocate(_environment_current_working_dir.str);
+	_environment_current_working_dir = (string_t) { 0, 0 };
 	return result;
 }
 

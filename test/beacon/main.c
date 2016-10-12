@@ -92,11 +92,11 @@ DECLARE_TEST(beacon, multiwait) {
 	pipe_initialize(&pipe);
 #endif
 
-	EXPECT_INTEQ(beacon_add(beacon[0], beacon_event_handle(beacon[1])), 1);
+	EXPECT_INTEQ(beacon_add_beacon(beacon[0], beacon[1]), 1);
 #if FOUNDATION_PLATFORM_WINDOWS
-	EXPECT_INTEQ(beacon_add(beacon[0], semaphore_event_handle(&semaphore)), 2);
+	EXPECT_INTEQ(beacon_add_handle(beacon[0], semaphore_event_handle(&semaphore)), 2);
 #else
-	EXPECT_INTEQ(beacon_add(beacon[0], pipe_read_handle((stream_t*)&pipe)), 2);
+	EXPECT_INTEQ(beacon_add_fd(beacon[0], pipe_read_fd((stream_t*)&pipe)), 2);
 #endif
 
 	EXPECT_INTLT(beacon_try_wait(beacon[0], 0), 0);
@@ -167,7 +167,7 @@ DECLARE_TEST(beacon, multiwait) {
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
 	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
 
-	beacon_remove(beacon[0], beacon_event_handle(beacon[1]));
+	beacon_remove_beacon(beacon[0], beacon[1]);
 	beacon_fire(beacon[1]);
 
 	EXPECT_INTLT(beacon_try_wait(beacon[0], 100), 0);
@@ -182,7 +182,7 @@ DECLARE_TEST(beacon, multiwait) {
 	EXPECT_INTEQ(beacon_try_wait(beacon[0], 100), 1);
 	EXPECT_INTLT(beacon_try_wait(beacon[1], 100), 0);
 
-	beacon_remove(beacon[0], beacon_event_handle(beacon[1]));
+	beacon_remove_beacon(beacon[0], beacon[1]);
 
 	beacon_deallocate(beacon[0]);
 	beacon_deallocate(beacon[1]);

@@ -223,6 +223,24 @@ test_set_suitable_working_directory(void) {
 void
 test_load_config(json_handler_fn handler) {
 	sjson_parse_path(STRING_CONST("config"), handler);
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	sjson_parse_path(STRING_CONST("config/windows"), handler);
+#elif FOUNDATION_PLATFORM_MACOSX
+	sjson_parse_path(STRING_CONST("config/macosx"), handler);
+#elif FOUNDATION_PLATFORM_LINUX
+	sjson_parse_path(STRING_CONST("config/linux"), handler);
+#elif FOUNDATION_PLATFORM_BSD
+	sjson_parse_path(STRING_CONST("config/bsd"), handler);
+#elif FOUNDATION_PLATFORM_ANDROID
+	sjson_parse_path(STRING_CONST("config/android"), handler);
+#elif FOUNDATION_PLATFORM_IOS
+	sjson_parse_path(STRING_CONST("config/ios"), handler);
+#elif FOUNDATION_PLATFORM_PNACL
+	sjson_parse_path(STRING_CONST("config/pnacl"), handler);
+#elif FOUNDATION_PLATFORM_TIZEN
+	sjson_parse_path(STRING_CONST("config/tizen"), handler);
+#endif
 }
 
 #if !BUILD_MONOLITHIC

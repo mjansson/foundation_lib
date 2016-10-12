@@ -214,6 +214,7 @@ void
 event_stream_initialize(event_stream_t* stream, size_t size) {
 	atomic_store32(&stream->write, 0);
 	stream->read = 1;
+    stream->beacon = nullptr;
 
 	if (size < 256)
 		size = 256;
@@ -230,7 +231,8 @@ event_stream_initialize(event_stream_t* stream, size_t size) {
 	stream->block[0].stream = stream;
 	stream->block[1].stream = stream;
 
-    stream->beacon = nullptr;
+	stream->block[0].fired = false;
+	stream->block[1].fired = false;
 }
 
 void

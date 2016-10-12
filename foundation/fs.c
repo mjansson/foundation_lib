@@ -1259,7 +1259,7 @@ _fs_monitor(void* monitorptr) {
 		goto exit_thread;
 	}
 
-	event = beacon_add(beacon, handle);
+	event = beacon_add_handle(beacon, handle);
 
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
@@ -1279,7 +1279,7 @@ _fs_monitor(void* monitorptr) {
 	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths,
 	                      false);
 
-	beacon_add(beacon, notify_fd);
+	beacon_add_fd(beacon, notify_fd);
 
 #elif FOUNDATION_PLATFORM_MACOSX
 

@@ -21,7 +21,7 @@
 
 void
 test_text_view_append(void* window, int tag, const char* msg, size_t length) {
-	if (!window)
+	if (!window || !msg || !length)
 		return;
 
 	__strong UITextView* textview = (UITextView*)[(__bridge UIWindow*)window viewWithTag:tag];
@@ -29,14 +29,12 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length) {
 		return;
 
 	@autoreleasepool {
-		NSString* nsmsg = [NSString stringWithUTF8String:msg];
-		dispatch_async(dispatch_get_main_queue(), ^ { @autoreleasepool {
+			NSString* nsmsg = [NSString stringWithUTF8String:msg];
+			dispatch_async(dispatch_get_main_queue(), ^ { @autoreleasepool {
 				textview.text = [textview.text stringByAppendingString:nsmsg];
 			}
 		});
 	}
-
-	FOUNDATION_UNUSED(length);
 }
 
 #endif

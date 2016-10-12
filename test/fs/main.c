@@ -272,11 +272,13 @@ DECLARE_TEST(fs, file) {
 
 	testlocalpath = string_clone(STRING_CONST("test.local.file.path"));
 	unterminate(STRING_ARGS(testlocalpath));
+#if !FOUNDATION_PLATFORM_IOS
 	teststream = fs_open_file(STRING_ARGS(testlocalpath), STREAM_OUT | STREAM_CREATE);
 	EXPECT_NE(teststream, 0);
 	EXPECT_TRUE(fs_is_file(STRING_ARGS(testlocalpath)));
 	stream_deallocate(teststream);
 	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testlocalpath)));
+#endif
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(testlocalpath)));
 
 	EXPECT_FALSE(fs_remove_file(STRING_ARGS(testlocalpath)));
@@ -342,7 +344,9 @@ DECLARE_TEST(fs, util) {
 	tick_t lastmod = 0;
 	md5_t nullmd5;
 	stream_t* teststream;
+#if !FOUNDATION_PLATFORM_PNACL
 	stream_t* cloned;
+#endif
 	string_const_t fname = string_from_uint_static(random64(), true, 0, 0);
 	string_t testpath = path_concat(buf, BUILD_MAX_PATHLEN,
 	                                STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
@@ -419,15 +423,16 @@ DECLARE_TEST(fs, util) {
 
 	stream_deallocate(teststream);
 
+#if !FOUNDATION_PLATFORM_PNACL
 	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN);
 	cloned = stream_clone(teststream);
 	EXPECT_NE(cloned, nullptr);
-	EXPECT_EQ(stream_size(cloned), 4);
+	EXPECT_SIZEEQ(stream_size(cloned), 4U);
 	EXPECT_CONSTSTRINGEQ(stream_path(teststream), stream_path(cloned));
 
 	stream_deallocate(teststream);
 	stream_deallocate(cloned);
-
+#endif
 	EXPECT_GT(fs_last_modified(STRING_ARGS(testpath)), lastmod);
 
 	fs_remove_file(STRING_ARGS(testpath));

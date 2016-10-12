@@ -15,10 +15,18 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
+#include <io.h>
+#include <fcntl.h>
+#define close _close
+#define read _read
+#define write _write
+typedef unsigned int pipe_size_t;
 #elif FOUNDATION_PLATFORM_POSIX
 #include <foundation/posix.h>
+typedef size_t pipe_size_t;
 #elif FOUNDATION_PLATFORM_PNACL
 #include <foundation/pnacl.h>
+typedef size_t pipe_size_t;
 #endif
 
 static stream_vtable_t _pipe_stream_vtable;
@@ -47,19 +55,46 @@ pipe_initialize(stream_pipe_t* pipestream) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		//Inheritable by default so process can use for stdstreams
+		HANDLE hread, hwrite;
 		SECURITY_ATTRIBUTES security_attribs;
 		memset(&security_attribs, 0, sizeof(security_attribs));
 		security_attribs.nLength = sizeof(SECURITY_ATTRIBUTES);
 		security_attribs.bInheritHandle = TRUE;
 		security_attribs.lpSecurityDescriptor = 0;
 
-		if (!CreatePipe(&pipestream->handle_read, &pipestream->handle_write, &security_attribs, 0)) {
+		if (!CreatePipe(&hread, &hwrite, &security_attribs, 0)) {
 			string_const_t errmsg = system_error_message(0);
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe: %.*s"),
 			           STRING_FORMAT(errmsg));
 		}
+		else {
+			pipestream->fd_read = _open_osfhandle((intptr_t)hread, _O_RDONLY | _O_BINARY);
+			pipestream->fd_write = _open_osfhandle((intptr_t)hwrite, _O_WRONLY | _O_BINARY);
+			if (!pipestream->fd_read || !pipestream->fd_write) {
+				string_const_t errmsg = system_error_message(0);
+				log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe file descriptors: %.*s"),
+				           STRING_FORMAT(errmsg));
+				if (pipestream->fd_read)
+					close(pipestream->fd_read);
+				else
+					CloseHandle(hread);
+				if (pipestream->fd_write)
+					close(pipestream->fd_write);
+				else
+					CloseHandle(hwrite);
+				pipestream->fd_read = pipestream->fd_write = 0;
+			}
+			else {
+				unsigned long mode = PIPE_READMODE_BYTE | PIPE_WAIT;
+				if (!SetNamedPipeHandleState(hread, &mode, 0, 0)) {
+					string_const_t errmsg = system_error_message(0);
+					log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe handle state: %.*s"),
+						STRING_FORMAT(errmsg));
+				}
+			}
+		}
 	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#else
 	int fds[2] = { 0, 0 };
 	if (pipe(fds) < 0) {
 		string_const_t errmsg = system_error_message(0);
@@ -80,15 +115,6 @@ _pipe_finalize(stream_t* stream) {
 	if (!pipe || (stream->type != STREAMTYPE_PIPE))
 		return;
 
-#if FOUNDATION_PLATFORM_WINDOWS
-	if (pipe->handle_read)
-		CloseHandle(pipe->handle_read);
-	pipe->handle_read = 0;
-
-	if (pipe->handle_write)
-		CloseHandle(pipe->handle_write);
-	pipe->handle_write = 0;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if (pipe->fd_read)
 		close(pipe->fd_read);
 	pipe->fd_read = 0;
@@ -96,7 +122,6 @@ _pipe_finalize(stream_t* stream) {
 	if (pipe->fd_write)
 		close(pipe->fd_write);
 	pipe->fd_write = 0;
-#endif
 }
 
 void
@@ -104,17 +129,10 @@ pipe_close_read(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 
-#if FOUNDATION_PLATFORM_WINDOWS
-	if (pipestream->handle_read) {
-		CloseHandle(pipestream->handle_read);
-		pipestream->handle_read = 0;
-	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if (pipestream->fd_read) {
 		close(pipestream->fd_read);
 		pipestream->fd_read = 0;
 	}
-#endif
 
 	pipestream->mode &= ~STREAM_IN;
 }
@@ -124,17 +142,10 @@ pipe_close_write(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 
-#if FOUNDATION_PLATFORM_WINDOWS
-	if (pipestream->handle_write) {
-		CloseHandle(pipestream->handle_write);
-		pipestream->handle_write = 0;
-	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if (pipestream->fd_write) {
 		close(pipestream->fd_write);
 		pipestream->fd_write = 0;
 	}
-#endif
 
 	pipestream->mode &= ~STREAM_OUT;
 }
@@ -144,66 +155,40 @@ pipe_close_write(stream_t* stream) {
 void*
 pipe_read_handle(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	return stream && (stream->type == STREAMTYPE_PIPE) ? pipestream->handle_read : 0;
+	intptr_t handle = stream && (stream->type == STREAMTYPE_PIPE) ? _get_osfhandle(pipestream->fd_read) : 0;
+	return (void*)handle;
 }
 
 void*
 pipe_write_handle(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	return stream && (stream->type == STREAMTYPE_PIPE) ? pipestream->handle_write : 0;
+	intptr_t handle = stream && (stream->type == STREAMTYPE_PIPE) ? _get_osfhandle(pipestream->fd_write) : 0;
+	return (void*)handle;
 }
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#endif
 
 int
-pipe_read_handle(stream_t* stream) {
+pipe_read_fd(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	return stream && (stream->type == STREAMTYPE_PIPE) ? pipestream->fd_read : 0;
 }
 
 int
-pipe_write_handle(stream_t* stream) {
+pipe_write_fd(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	return stream && (stream->type == STREAMTYPE_PIPE) ? pipestream->fd_write : 0;
 }
-
-#endif
 
 static size_t
 _pipe_stream_read(stream_t* stream, void* dest, size_t num) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
-#if FOUNDATION_PLATFORM_WINDOWS
-	if (pipestream->handle_read && ((pipestream->mode & STREAM_IN) != 0)) {
-		size_t total_read = 0;
-		do {
-			DWORD num_read = 0;
-			if (!ReadFile(pipestream->handle_read, pointer_offset(dest, total_read),
-			              (unsigned int)(num - total_read), &num_read, 0)) {
-				unsigned int err = GetLastError();
-				if (err == ERROR_BROKEN_PIPE) {
-					pipestream->eos = true;
-					break;
-				}
-				else {
-					string_const_t errmsg = system_error_message((int)err);
-					log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to read from pipe: %.*s (%d)"),
-					           STRING_FORMAT(errmsg), err);
-				}
-			}
-			else {
-				total_read += num_read;
-			}
-		}
-		while (total_read < num);
-		return total_read;
-	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if (pipestream->fd_read && ((pipestream->mode & STREAM_IN) != 0)) {
 		size_t total_read = 0;
 		do {
 			ssize_t num_read = read(pipestream->fd_read, pointer_offset(dest, total_read),
-			                        (size_t)(num - total_read));
+			                        (pipe_size_t)(num - total_read));
 			if (num_read <= 0) {
 				pipestream->eos = true;
 				break;
@@ -213,7 +198,6 @@ _pipe_stream_read(stream_t* stream, void* dest, size_t num) {
 		while (total_read < num);
 		return total_read;
 	}
-#endif
 
 	return 0;
 }
@@ -222,27 +206,11 @@ static size_t
 _pipe_stream_write(stream_t* stream, const void* source, size_t num) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
-#if FOUNDATION_PLATFORM_WINDOWS
-	if (pipestream->handle_write && ((pipestream->mode & STREAM_OUT) != 0)) {
-		size_t total_written = 0;
-		do {
-			DWORD num_written = 0;
-			if (!WriteFile(pipestream->handle_write, pointer_offset_const(source, total_written),
-			               (unsigned int)(num - total_written), &num_written, 0)) {
-				pipestream->eos = true;
-				break;
-			}
-			total_written += num_written;
-		}
-		while (total_written < num);
-		return total_written;
-	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if (pipestream->fd_write && ((pipestream->mode & STREAM_OUT) != 0)) {
 		size_t total_written = 0;
 		do {
 			ssize_t num_written = write(pipestream->fd_write, pointer_offset_const(source, total_written),
-			                            (size_t)(num - total_written));
+			                             (pipe_size_t)(num - total_written));
 			if (num_written <= 0) {
 				pipestream->eos = true;
 				break;
@@ -252,7 +220,6 @@ _pipe_stream_write(stream_t* stream, const void* source, size_t num) {
 		while (total_written < num);
 		return total_written;
 	}
-#endif
 
 	return 0;
 }
@@ -260,13 +227,7 @@ _pipe_stream_write(stream_t* stream, const void* source, size_t num) {
 static bool
 _pipe_stream_eos(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-#if FOUNDATION_PLATFORM_WINDOWS
-	return !stream || (!pipestream->handle_read && !pipestream->handle_write) || pipestream->eos;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	return !stream || (!pipestream->fd_read && !pipestream->fd_write) || pipestream->eos;
-#else
-	return !stream || pipestream->eos;
-#endif
 }
 
 static void
@@ -310,6 +271,11 @@ _pipe_stream_available_read(stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return 0;
 }
+
+#if FOUNDATION_PLATFORM_WINDOWS
+#undef read
+#undef write
+#endif
 
 void
 _pipe_stream_initialize(void) {

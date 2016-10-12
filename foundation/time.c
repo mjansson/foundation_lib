@@ -163,6 +163,9 @@ time_ticks_to_seconds(const tick_t dt) {
 #    define _ftime64_s _ftime64
 #  endif
 #endif
+#if FOUNDATION_PLATFORM_APPLE
+#  include <sys/time.h>
+#endif
 
 tick_t
 time_system(void) {
@@ -174,11 +177,11 @@ time_system(void) {
 	return ((tick_t)tb.time * 1000LL) + (tick_t)tb.millitm;
 
 #elif FOUNDATION_PLATFORM_APPLE
-
-	tick_t curclock = 0;
-	absolutetime_to_nanoseconds(mach_absolute_time(), &curclock);
-	return (curclock / 1000000LL);
-
+	
+	struct timeval now = {0, 0};
+	gettimeofday(&now, 0);
+	return ((int64_t)now.tv_sec * 1000LL) + (now.tv_usec / 1000LL);
+	
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };

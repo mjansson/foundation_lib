@@ -96,4 +96,11 @@ environment_application(void);
 FOUNDATION_API string_t
 environment_bundle_identifier(char* buffer, size_t length);
 
+/*! MacOS X and iOS only. Get the application bundle directory.
+ \param buffer Buffer receiving string
+ \param length Size of buffer in bytes
+ \return       Bundle directory (stored in buffer) */
+FOUNDATION_API string_t
+environment_bundle_path(char* buffer, size_t length);
+
 #endif
