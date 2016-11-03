@@ -350,6 +350,12 @@ memory_context_thread_finalize(void) {
 
 #endif
 
+void
+memory_thread_finalize(void) {
+	if (_memory_system.thread_finalize)
+		_memory_system.thread_finalize();
+}
+
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER != 4)
 
 typedef long (*NtAllocateVirtualMemoryFn)(HANDLE, void**, ULONG, size_t*, ULONG, ULONG);
@@ -744,6 +750,7 @@ memory_system_malloc(void) {
 	memsystem.deallocate = _memory_deallocate_malloc;
 	memsystem.initialize = _memory_initialize_malloc;
 	memsystem.finalize = _memory_finalize_malloc;
+	memsystem.thread_finalize = 0;
 	return memsystem;
 }
 

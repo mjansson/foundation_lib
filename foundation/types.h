@@ -649,6 +649,10 @@ provide an implementation with this prototype for deallocating memory
 \param p Pointer to memory block */
 typedef void (* memory_deallocate_fn)(void* p);
 
+/*! Memory thread finalization function prototype. Implementation of a memory system can
+optionally provide an implementation with this prototype for finalization at thread exit */
+typedef void (* memory_thread_finalize_fn)(void);
+
 /*! Memory tracker tracking function prototype. Implementation of a memory tracker must
 provide an implementation with this prototype for tracking memory allocations
 \param p Pointer to allocated memory block
@@ -896,6 +900,8 @@ struct memory_system_t {
 	memory_reallocate_fn reallocate;
 	/*! Memory deallocation */
 	memory_deallocate_fn deallocate;
+	/*! Thread finalization */
+	memory_thread_finalize_fn thread_finalize;
 	/*! System initialization */
 	system_initialize_fn initialize;
 	/*! System finalization */

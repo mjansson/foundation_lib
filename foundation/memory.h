@@ -86,6 +86,11 @@ Called internally when a foundation thread is about to exit. */
 FOUNDATION_API void
 memory_context_thread_finalize(void);
 
+/*! Cleanup and deallocate any per-thread memory used by memory system.
+Called internally when a foundation thread is about to exit. */
+FOUNDATION_API void
+memory_thread_finalize(void);
+
 /*! Set the current memory tracker, see #memory_tracker_local for a default implementation.
 This function can be called prior to library initialization, in which case the
 tracker will be set once the library is initialized.

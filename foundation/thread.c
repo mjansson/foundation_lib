@@ -517,7 +517,7 @@ thread_exit(void) {
 	error_context_thread_finalize();
 	memory_context_thread_finalize();
 
-#if FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_APPLE
 	uint64_t curid = thread_id();
 	for (int i = 0; i < 1024; ++i) {
 		if ((_thread_local_blocks[i].thread == curid) && atomic_loadptr(&_thread_local_blocks[i].block)) {
@@ -528,6 +528,8 @@ thread_exit(void) {
 		}
 	}
 #endif
+
+	memory_thread_finalize();
 }
 
 #if FOUNDATION_PLATFORM_ANDROID
