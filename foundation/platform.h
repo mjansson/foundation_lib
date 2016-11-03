@@ -1192,7 +1192,6 @@ uint512_is_null(const uint512_t u0) {
 #define PRIhash        PRIx64
 
 #if FOUNDATION_SIZE_REAL == 8
-#error foo
 #  define PRIreal      "lf"
 #else
 #  define PRIreal      "f"
