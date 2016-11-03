@@ -217,7 +217,7 @@ _create_mini_dump(void* context, string_const_t name, string_t dump_file) {
 	return dump_file;
 }
 
-static void
+static void FOUNDATION_ATTRIBUTE(noreturn)
 _exception_sigaction(int sig, siginfo_t* info, void* arg) {
 	FOUNDATION_UNUSED(sig);
 	FOUNDATION_UNUSED(info);
@@ -238,8 +238,12 @@ _exception_sigaction(int sig, siginfo_t* info, void* arg) {
 	exception_env_t exception_env = get_thread_exception_env();
 	if (exception_env)
 		siglongjmp(exception_env, FOUNDATION_EXCEPTION_CAUGHT);
-	else
-		log_warn(0, WARNING_SUSPICIOUS, STRING_CONST("No sigjmp_buf for thread"));
+	else {
+		//sigaction(sig, 0, 0);
+		signal(sig, SIG_DFL);
+		raise(sig);
+		process_exit(-1);
+	}
 }
 
 #endif
