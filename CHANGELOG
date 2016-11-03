@@ -1,4 +1,9 @@
 
+1.5.3
+
+Added thread finalizer to memory system to clean up resources on thread exit
+
+
 1.5.2
 
 Unified adding remote sources as input to a beacon. The add/remove functions of a beacon
