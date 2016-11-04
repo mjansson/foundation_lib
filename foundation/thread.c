@@ -69,7 +69,17 @@ _thread_initialize(void) {
 
 void
 _thread_finalize(void) {
-	thread_exit();
+	_profile_thread_finalize();
+
+	system_thread_finalize();
+	random_thread_finalize();
+
+#if FOUNDATION_PLATFORM_ANDROID
+	thread_detach_jvm();
+#endif
+
+	error_context_thread_finalize();
+	memory_context_thread_finalize();
 }
 
 static int
@@ -462,18 +472,7 @@ thread_self(void) {
 
 void
 thread_exit(void) {
-	_profile_thread_finalize();
-
-	system_thread_finalize();
-	random_thread_finalize();
-
-#if FOUNDATION_PLATFORM_ANDROID
-	thread_detach_jvm();
-#endif
-
-	error_context_thread_finalize();
-	memory_context_thread_finalize();
-	
+	_thread_finalize();
 	memory_thread_finalize();
 }
 

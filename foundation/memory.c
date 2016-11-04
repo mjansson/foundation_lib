@@ -203,6 +203,8 @@ _memory_finalize(void) {
 		_memory_tracker.finalize();
 #endif
 	_atomic_allocate_finalize();
+	if (_memory_system.thread_finalize)
+		_memory_system.thread_finalize();
 	memory_set_tracker(_memory_no_tracker);
 	_memory_system.finalize();
 	_memory_initialized = false;
