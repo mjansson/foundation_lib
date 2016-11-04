@@ -1049,8 +1049,8 @@ encode_utf8(char* str, uint32_t val) {
 	//Get number of _extra_ bytes
 	num = get_num_bytes_as_utf8(val) - 1;
 
-	*str++ = (char)((0x80U | (get_bit_mask(num) << (7 - num))) | ((val >> (6 * num)) & get_bit_mask(
-	                    6U - num)));
+	*str++ = (char)((0x80U | (get_bit_mask(num) << (7 - num))) |
+	                ((val >> (6 * num)) & get_bit_mask(6U - num)));
 	for (j = 1; j <= num; ++j)
 		*str++ = (char)(0x80U | ((val >> (6 * (num - j))) & 0x3F));
 
@@ -1343,6 +1343,8 @@ string_convert_utf16(char* dst, size_t capacity, const uint16_t* src, size_t len
 			glyph = byteorder_swap16((uint16_t)glyph);
 		if ((glyph >= 0xD800) && (glyph <= 0xDFFF)) {
 			++i;
+			if (i >= length)
+				continue;
 			lval = src[i];
 			if (swap)
 				lval = byteorder_swap16((uint16_t)lval);
