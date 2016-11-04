@@ -1021,34 +1021,6 @@ typedef struct atomicptr_t atomicptr_t;
 #define FOUNDATION_UNUSED_VARARGS_WRAP(n, ...) FOUNDATION_UNUSED_VARARGS_IMPL(n, __VA_ARGS__)
 #define FOUNDATION_UNUSED_VARARGS_IMPL(n, ...) FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_UNUSED_ARGS_, n)(__VA_ARGS__,),)
 
-// Wrappers for platforms that not yet support thread-local storage declarations
-#if FOUNDATION_PLATFORM_APPLE
-
-// Forward declarations of various system APIs
-#if FOUNDATION_PLATFORM_APPLE
-typedef __darwin_pthread_key_t _pthread_key_t;
-#else
-typedef int _pthread_key_t;
-#  endif
-FOUNDATION_EXTERN int pthread_key_create(_pthread_key_t*, void (*)(void*));
-FOUNDATION_EXTERN int pthread_setspecific(_pthread_key_t, const void*);
-FOUNDATION_EXTERN void* pthread_getspecific(_pthread_key_t);
-
-FOUNDATION_API void* _allocate_thread_local_block(size_t size);
-
-#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
-static _pthread_key_t _##name##_key; \
-static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) { pthread_key_create(&_##name##_key, 0); pthread_setspecific(_##name##_key, (init)); } return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type get_thread_##name(void) { void* val = pthread_getspecific(get_##name##_key()); return (type)((uintptr_t)val); } \
-static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { pthread_setspecific(get_##name##_key(), (const void*)(uintptr_t)val); }
-
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
-static _pthread_key_t _##name##_key; \
-static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key(void) { if (!_##name##_key) pthread_key_create(&_##name##_key, 0); return _##name##_key; } \
-static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific(key); if (!arr) { arr = _allocate_thread_local_block(sizeof(type) * arrsize); pthread_setspecific(key, arr); } return arr; }
-
-#else
-
 #define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init) \
 static FOUNDATION_THREADLOCAL type _thread_##name = init; \
 static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { _thread_##name = val; } \
@@ -1057,8 +1029,6 @@ static FOUNDATION_FORCEINLINE type get_thread_##name(void) { return _thread_##na
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize) \
 static FOUNDATION_THREADLOCAL type _thread_##name [arrsize] = {0}; \
 static FOUNDATION_FORCEINLINE type* get_thread_##name(void) { return _thread_##name; }
-
-#endif
 
 //Utility functions for large integer types
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t

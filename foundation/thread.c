@@ -48,39 +48,6 @@ static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProc
 #  include <pthread_np.h>
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE
-
-struct thread_local_block_t {
-	uint64_t     thread;
-	atomicptr_t  block;
-};
-
-typedef struct thread_local_block_t thread_local_block_t;
-
-//TODO: Ugly hack, improve this shit
-static thread_local_block_t _thread_local_blocks[1024];
-
-void*
-_allocate_thread_local_block(size_t size) {
-	void* block = memory_allocate(0, size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-
-	for (int i = 0; i < 1024; ++i) {
-		if (!atomic_loadptr(&_thread_local_blocks[i].block)) {
-			if (atomic_cas_ptr(&_thread_local_blocks[i].block, block, 0)) {
-				_thread_local_blocks[i].thread = thread_id();
-				return block;
-			}
-		}
-	}
-
-	log_warnf(0, WARNING_MEMORY,
-	          STRING_CONST("Unable to locate thread local memory block slot, will leak %" PRIsize " bytes"),
-	          size);
-	return block;
-}
-
-#endif
-
 FOUNDATION_DECLARE_THREAD_LOCAL(thread_t*, self, 0)
 static uint64_t _thread_main_id;
 
@@ -102,16 +69,6 @@ _thread_initialize(void) {
 
 void
 _thread_finalize(void) {
-#if FOUNDATION_PLATFORM_APPLE
-	for (int i = 0; i < 1024; ++i) {
-		if (atomic_loadptr(&_thread_local_blocks[i].block)) {
-			void* block = atomic_loadptr(&_thread_local_blocks[i].block);
-			_thread_local_blocks[i].thread = 0;
-			atomic_storeptr(&_thread_local_blocks[i].block, 0);
-			memory_deallocate(block);
-		}
-	}
-#endif
 	thread_exit();
 }
 
@@ -516,19 +473,7 @@ thread_exit(void) {
 
 	error_context_thread_finalize();
 	memory_context_thread_finalize();
-
-#if FOUNDATION_PLATFORM_APPLE
-	uint64_t curid = thread_id();
-	for (int i = 0; i < 1024; ++i) {
-		if ((_thread_local_blocks[i].thread == curid) && atomic_loadptr(&_thread_local_blocks[i].block)) {
-			void* block = atomic_loadptr(&_thread_local_blocks[i].block);
-			_thread_local_blocks[i].thread = 0;
-			atomic_storeptr(&_thread_local_blocks[i].block, 0);
-			memory_deallocate(block);
-		}
-	}
-#endif
-
+	
 	memory_thread_finalize();
 }
 
