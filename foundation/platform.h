@@ -665,6 +665,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNOF(type) __alignof__(type)
 #  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct __attribute__((__aligned__(alignment))) name
 
+#  define FOUNDATION_LIKELY(x) __builtin_expect(!!(x), 1)
+#  define FOUNDATION_UNLIKELY(x) __builtin_expect(!!(x), 0)
+
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    if (FOUNDATION_CLANG_VERSION < 30800)
 #      error CLang 3.8 or later is required
@@ -726,6 +729,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNOF(type) __alignof__(type)
 #  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct FOUNDATION_ALIGN(alignment) name
 
+#  define FOUNDATION_LIKELY(x) __builtin_expect(!!(x), 1)
+#  define FOUNDATION_UNLIKELY(x) __builtin_expect(!!(x), 0)
+
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL FOUNDATION_ATTRIBUTE(stdcall)
 #    ifndef __USE_MINGW_ANSI_STDIO
@@ -776,6 +782,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
 
+#  define FOUNDATION_LIKELY(x) __builtin_expect(!!(x), 1)
+#  define FOUNDATION_UNLIKELY(x) __builtin_expect(!!(x), 0)
+
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
 #    define va_copy(d,s) ((d)=(s))
@@ -809,6 +818,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGN(alignment) __declspec(align(alignment))
 #  define FOUNDATION_ALIGNOF(type) __alignof(type)
 #  define FOUNDATION_ALIGNED_STRUCT(name, alignment) FOUNDATION_ALIGN(alignment) struct name
+
+#  define FOUNDATION_LIKELY(x) (x)
+#  define FOUNDATION_UNLIKELY(x) (x)
 
 #  pragma warning(disable : 4054)
 #  pragma warning(disable : 4055)
@@ -860,6 +872,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_ALIGN
 #  define FOUNDATION_ALIGNOF
 #  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct name
+
+#  define FOUNDATION_LIKELY(x) (x)
+#  define FOUNDATION_UNLIKELY(x) (x)
 
 #endif
 

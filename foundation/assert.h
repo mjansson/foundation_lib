@@ -84,8 +84,9 @@ assert_report_formatted(hash_t context, const char* condition,
 a null message and optionally (depending on callback) cause a breakpoint.
 \param cond Assert condition */
 #define FOUNDATION_ASSERT(cond) do { \
-  if ((!(cond)) && assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
-                                 __LINE__, 0, 0)) \
+  if (FOUNDATION_UNLIKELY((!(cond)) && \
+                          assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
+                                        __LINE__, 0, 0))) \
     exception_raise_debug_break(); \
   } while(0)
 
@@ -94,8 +95,9 @@ pre-formatted message and optionally (depending on callback) cause a breakpoint.
 \param cond Assert condition
 \param msg  Assert message */
 #define FOUNDATION_ASSERT_MSG(cond, msg) do { \
-  if ((!(cond)) && assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
-                                 __LINE__, (msg), string_length((msg)))) \
+  if (FOUNDATION_UNLIKELY((!(cond)) && \
+                          assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
+                                       __LINE__, (msg), string_length((msg))))) \
     exception_raise_debug_break(); \
   } while(0)
 
@@ -104,8 +106,9 @@ formatted message and optionally (depending on callback) cause a breakpoint.
 \param cond Assert condition
 \param msg  Assert message format specifier */
 #define FOUNDATION_ASSERT_MSGFORMAT(cond, msg, ...) do { \
-  if ((!(cond)) && assert_report_formatted(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
-                                           __LINE__, (msg), string_length((msg)), __VA_ARGS__)) \
+  if (FOUNDATION_UNLIKELY((!(cond)) && \
+                          assert_report_formatted(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, \
+                                                  __LINE__, (msg), string_length((msg)), __VA_ARGS__))) \
     exception_raise_debug_break(); \
   } while(0)
 
@@ -179,7 +182,7 @@ such as <code>if( !FOUNDATION_VALIDATE( condition ) ) return;</code> to remain s
 properly evaluated even when asserts are statically disabled.
 \param cond Assert condition */
 #define FOUNDATION_VALIDATE(cond) ( \
-  (!(cond)) ? \
+  (FOUNDATION_UNLIKELY(!(cond))) ? \
     (assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, 0, 0) ? \
       (exception_raise_debug_break(), false) : \
       false) : \
@@ -195,7 +198,7 @@ remain safe and properly evaluated even when asserts are statically disabled.
 \param cond Assert condition
 \param msg  Assert message */
 #define FOUNDATION_VALIDATE_MSG(cond, msg) ( \
-  (!(cond)) ? \
+  (FOUNDATION_UNLIKELY(!(cond))) ? \
     (assert_report(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                    (msg), string_length((msg))) ? \
       (exception_raise_debug_break(), false) : \
@@ -212,7 +215,7 @@ to remain safe and properly evaluated even when asserts are statically disabled.
 \param cond Assert condition
 \param msg  Assert message format specifier */
 #define FOUNDATION_VALIDATE_MSGFORMAT(cond, msg, ...) ( \
-  (!(cond)) ? \
+  (FOUNDATION_UNLIKELY(!(cond))) ? \
     (assert_report_formatted(0ULL, #cond, sizeof(#cond) - 1, __FILE__, sizeof(__FILE__) - 1, __LINE__, \
                              (msg), string_length((msg)), __VA_ARGS__) ? \
       (exception_raise_debug_break(), false) : \
