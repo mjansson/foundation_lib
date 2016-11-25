@@ -44,25 +44,24 @@ Platforms and architectures currently supported:
 
 
 The latest source code maintained by Rampant Pixels is always available at
-https://github.com/rampantpixels/foundation_lib
+<https://github.com/rampantpixels/foundation_lib>
 
 Pre-generated documentation in HTML format for the latest release can be found at
-http://rampantpixels.github.io/foundation_lib/doc
+<http://rampantpixels.github.io/foundation_lib/doc>
 
 Master branch is used for stable releases. Development is done in feature branches from the develop branch
-https://github.com/rampantpixels/foundation_lib/tree/develop
+<https://github.com/rampantpixels/foundation_lib/tree/develop>
 
 Cross-platform build system uses Ninja
-http://martine.github.io/ninja
+<http://martine.github.io/ninja>
 
 The PNaCl build of the latest release can be tested at
-http://www.rampantpixels.com/foundation_lib/pnacl/
+<http://www.rampantpixels.com/foundation_lib/pnacl/>
 
 Test suite coverage and scan reports:
-
 [![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)
 [![coverity.com](https://scan.coverity.com/projects/6944/badge.svg)](https://scan.coverity.com/projects/rampantpixels-foundation_lib)
 
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
-Created by Mattias Jansson / Rampant Pixels - http://www.rampantpixels.com
+Created by Mattias Jansson / Rampant Pixels - <http://www.rampantpixels.com>
