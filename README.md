@@ -43,22 +43,22 @@ Platforms and architectures currently supported:
 * PNaCl
 
 
-The latest source code maintained by Rampant Pixels is always available at
+The latest source code maintained by Rampant Pixels is always available at  
 <https://github.com/rampantpixels/foundation_lib>
 
-Pre-generated documentation in HTML format for the latest release can be found at
+Pre-generated documentation in HTML format for the latest release can be found at  
 <http://rampantpixels.github.io/foundation_lib/doc>
 
-Master branch is used for stable releases. Development is done in feature branches from the develop branch
+Master branch is used for stable releases. Development is done in feature branches from the develop branch  
 <https://github.com/rampantpixels/foundation_lib/tree/develop>
 
-Cross-platform build system uses Ninja
+Cross-platform build system uses Ninja  
 <http://martine.github.io/ninja>
 
-The PNaCl build of the latest release can be tested at
+The PNaCl build of the latest release can be tested at  
 <http://www.rampantpixels.com/foundation_lib/pnacl/>
 
-Test suite coverage and scan reports:
+Test suite coverage and scan reports:  
 [![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)
 [![coverity.com](https://scan.coverity.com/projects/6944/badge.svg)](https://scan.coverity.com/projects/rampantpixels-foundation_lib)
 
