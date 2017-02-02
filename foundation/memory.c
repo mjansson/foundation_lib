@@ -904,8 +904,9 @@ _memory_tracker_untrack(void* addr) {
 	int32_t tag = 0;
 	size_t size = 0;
 	if (addr && _memory_tracker_initialized) {
-		int32_t iend = atomic_load32(&_memory_tag_next);
-		int32_t itag = iend ? iend - 1 : (int32_t)foundation_config().memory_tracker_max - 1;
+		int32_t maxtag = (int32_t)foundation_config().memory_tracker_max;
+		int32_t iend = atomic_load32(&_memory_tag_next) % maxtag;
+		int32_t itag = iend ? iend - 1 : maxtag - 1;
 		while (true) {
 			void* tagaddr = atomic_loadptr(&_memory_tags[itag].address);
 			if (addr == tagaddr) {
