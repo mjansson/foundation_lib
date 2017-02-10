@@ -5,6 +5,8 @@ Added thread finalizer to memory system to clean up resources on thread exit.
 
 Use built in thread local storage introduced in XCode 8 on Apple platforms.
 
+Fixed race condition in default memory tracker implementation deallocation tracking.
+
 
 1.5.2
 
