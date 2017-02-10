@@ -126,7 +126,8 @@ def codesign_macosx():
   if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):
     os.remove( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) )
 
-  os.system( 'export CODESIGN_ALLOCATE=' + codesign_allocate + '; /usr/bin/codesign --force --sign ' + macosxprefs['signature'] + ' ' + options.file )
+  if 'signature' in macosxprefs:
+    os.system( 'export CODESIGN_ALLOCATE=' + codesign_allocate + '; /usr/bin/codesign --force --sign ' + macosxprefs['signature'] + ' ' + options.file )
 
   if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):
     os.utime( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ), None )
