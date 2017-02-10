@@ -74,6 +74,7 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/regex.h>
 #include <foundation/sha.h>
 
+#include <foundation/delegate.h>
 #include <foundation/main.h>
 
 /*! Main entry point. Call this in your #main_initialize function to bootstrap the foundation
