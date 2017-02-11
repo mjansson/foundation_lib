@@ -91,7 +91,7 @@ semaphore_event_handle(semaphore_t* semaphore) {
 #elif FOUNDATION_PLATFORM_MACOSX
 
 //OSX:
-//unnamed - MPCreateSemaphore (for wait until), should be ported to dispatch_semaphore_t if 10.6+
+//unnamed - dispatch_semaphore_create
 //named - sem_open
 
 void
@@ -99,9 +99,9 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 
 	semaphore->name = (string_t) { 0, 0 };
+	semaphore->sem.unnamed = dispatch_semaphore_create((long)value);
 
-	int ret = MPCreateSemaphore(0xFFFF, value, &semaphore->sem.unnamed);
-	if (ret < 0) {
+	if (!semaphore->sem.unnamed) {
 		string_const_t errmsg = system_error_message(0);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize unnamed semaphore: %.*s"),
 		           STRING_FORMAT(errmsg));
@@ -136,7 +136,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 void
 semaphore_finalize(semaphore_t* semaphore) {
 	if (!semaphore->name.length) {
-		MPDeleteSemaphore(semaphore->sem.unnamed);
+		dispatch_release(semaphore->sem.unnamed);
 	}
 	else {
 		sem_unlink(semaphore->name.str);
@@ -148,9 +148,8 @@ semaphore_finalize(semaphore_t* semaphore) {
 bool
 semaphore_wait(semaphore_t* semaphore) {
 	if (!semaphore->name.length) {
-		int ret = MPWaitOnSemaphore(semaphore->sem.unnamed, 0x7FFFFFFF/*kDurationForever*/);
-		if (ret < 0)
-			return false;
+		long result = dispatch_semaphore_wait(semaphore->sem.unnamed, DISPATCH_TIME_FOREVER);
+		return (result == 0);
 	}
 	else {
 		int ret = sem_wait(semaphore->sem.named);
@@ -175,13 +174,10 @@ semaphore_wait(semaphore_t* semaphore) {
 bool
 semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 	if (!semaphore->name.length) {
-		unsigned int duration = 0/*kDurationImmediate*/;
-		if (milliseconds > 0)
-			duration = 1/*kDurationMillisecond*/ * milliseconds;
-		int ret = MPWaitOnSemaphore(semaphore->sem.unnamed, (int)duration);
-		if (ret < 0)
-			return false;
-		return true;
+		long result = dispatch_semaphore_wait(semaphore->sem.unnamed, (milliseconds > 0) ?
+											  dispatch_time(DISPATCH_TIME_NOW, 1000000LL * (int64_t)milliseconds) :
+											  DISPATCH_TIME_NOW);
+		return (result == 0);
 	}
 	else {
 		//TODO: Proper implementation (sem_timedwait not supported)
@@ -202,7 +198,7 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 void
 semaphore_post(semaphore_t* semaphore) {
 	if (!semaphore->name.length) {
-		MPSignalSemaphore(semaphore->sem.unnamed);
+		dispatch_semaphore_signal(semaphore->sem.unnamed);
 	}
 	else {
 		sem_post(semaphore->sem.named);

@@ -10,7 +10,7 @@
  * any restrictions.
  */
 
-#include <foundation/platform.h>
+#include <foundation/foundation.h>
 #include <foundation/apple.h>
 
 unsigned int

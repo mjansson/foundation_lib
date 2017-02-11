@@ -10,20 +10,9 @@
  * any restrictions.
  */
 
-#include <foundation/platform.h>
-#include <foundation/string.h>
-#include <foundation/array.h>
-#include <foundation/environment.h>
+#include <foundation/foundation.h>
 #include <foundation/posix.h>
 #include <foundation/apple.h>
-
-#import <CoreFoundation/CFString.h>
-
-#import <Foundation/NSString.h>
-#import <Foundation/NSBundle.h>
-#import <Foundation/NSFileManager.h>
-#import <Foundation/NSURL.h>
-#import <Foundation/NSProcessInfo.h>
 
 extern void _environment_ns_command_line(string_t** argv);
 extern string_t _environment_ns_home_directory(char*, size_t);

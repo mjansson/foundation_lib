@@ -559,7 +559,6 @@ typedef struct foundation_config_t    foundation_config_t;
 /*! Platform specific representation of a semaphore */
 typedef void*                         semaphore_t;
 #elif FOUNDATION_PLATFORM_MACOSX
-typedef struct OpaqueMPSemaphoreID*   MPSemaphoreID;
 typedef struct semaphore_t            semaphore_t;
 #elif FOUNDATION_PLATFORM_IOS
 typedef struct dispatch_semaphore_s*  semaphore_t;
@@ -1389,7 +1388,7 @@ on platform, the semaphore_t type should be treated as an opaque data struct. */
 struct semaphore_t {
 	string_t name;
 	union {
-		MPSemaphoreID unnamed;
+		struct dispatch_semaphore_s* unnamed;
 		int* named;
 	} sem;
 };

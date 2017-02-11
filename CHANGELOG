@@ -5,8 +5,12 @@ Added thread finalizer to memory system to clean up resources on thread exit.
 
 Use built in thread local storage introduced in XCode 8 on Apple platforms.
 
-Fixed race condition in default memory tracker implementation deallocation tracking.
+Fixed race condition in default memory tracker implementation of deallocation tracking.
 
+Fixed error_context_buffer to always return string without trailing whitespace.
+
+Change macOS implementation of unnamed semaphore to use GCD dispatch_semaphore instead
+of deprecated MPCreateSemaphore
 
 1.5.2
 

@@ -61,8 +61,8 @@ to our foundation/foundation.h \endinternal */
 #undef thread_terminate
 
 #ifdef __OBJC__
-#  import <CoreFoundation/CoreFoundation.h>
 #  include_next <Foundation/Foundation.h>
+#  import <CoreFoundation/CoreFoundation.h>
 #  if FOUNDATION_PLATFORM_MACOSX
 #    import <AppKit/AppKit.h>
 #  elif FOUNDATION_PLATFORM_IOS
