@@ -225,3 +225,5 @@ coveralls.json
 coverallsreport.json
 codecov.json
 codecovreport.json
+*.db-shm
+*.db-wal
