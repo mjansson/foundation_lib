@@ -185,7 +185,7 @@ def codesign_android():
   proxy = ''
   if 'proxy' in androidprefs and androidprefs['proxy'] != '' and androidprefs['proxy'] != 'None':
     proxy = androidprefs['proxy']
-    if proxy != '':
+    if proxy != '' and proxy != 'None':
       defstr = "-J-Dhttp.proxy"
       url = urlparse.urlparse(proxy)
       if url.scheme == 'https':
@@ -206,8 +206,6 @@ def codesign_android():
         proxy += " " + defstr + "User=" + username
       if password != '':
         proxy += " " + defstr + "Password=" + password
-    if proxy == '':
-      proxy = 'None'
 
   signcmd = androidprefs['jarsigner'] + ' ' + timestamp + ' -sigalg SHA1withRSA -digestalg SHA1 -keystore ' + androidprefs['keystore'] + ' -storepass ' + androidprefs['keystorepass'] + ' -keypass ' + androidprefs['keypass'] + ' -signedjar ' + options.file + ' ' + options.zipfile + ' ' + androidprefs['keyalias'] + ' ' + proxy
   os.system(signcmd)
