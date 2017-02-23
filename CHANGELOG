@@ -12,9 +12,12 @@ Fixed error_context_buffer to always return string without trailing whitespace.
 Change macOS implementation of unnamed semaphore to use GCD dispatch_semaphore instead
 of deprecated MPCreateSemaphore
 
-Bumped iOS default target to 9.0 and changed system_show_alert to use UIAlertController
+Bumped iOS default target to 9.0 and changed system_message_box to use UIAlertController
 
 Bump Visual Studio projects to 2017
+
+Moved Android jar signing in ninja builds to separate codesign script to unify with
+iOS/macOS and to allow secrets to be stored in separate private codesign JSON
 
 Please consider our Patreon - https://www.patreon.com/rampantpixels
 

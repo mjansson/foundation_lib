@@ -331,9 +331,10 @@ main_run(void* main_arg) {
 
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 
-	log_infof(HASH_TEST, STRING_CONST("Foundation library v%s built for %s using %s (%.*s%.*s)"),
+	log_infof(HASH_TEST, STRING_CONST("Foundation library v%s built for %s using %s (%.*s%.*s) [%" PRIsize " cores]"),
 	          string_from_version_static(foundation_version()).str, FOUNDATION_PLATFORM_DESCRIPTION,
-	          FOUNDATION_COMPILER_DESCRIPTION, STRING_FORMAT(build_name), STRING_FORMAT(build_type));
+	          FOUNDATION_COMPILER_DESCRIPTION, STRING_FORMAT(build_name), STRING_FORMAT(build_type),
+	          system_hardware_threads());
 
 	thread_initialize(&event_thread, event_loop, 0, STRING_CONST("event_thread"),
 	                  THREAD_PRIORITY_NORMAL, 0);
