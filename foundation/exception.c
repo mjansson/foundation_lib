@@ -238,12 +238,11 @@ _exception_sigaction(int sig, siginfo_t* info, void* arg) {
 	exception_env_t exception_env = get_thread_exception_env();
 	if (exception_env)
 		siglongjmp(exception_env, FOUNDATION_EXCEPTION_CAUGHT);
-	else {
-		//sigaction(sig, 0, 0);
-		signal(sig, SIG_DFL);
-		raise(sig);
-		process_exit(-1);
-	}
+
+	//sigaction(sig, 0, 0);
+	signal(sig, SIG_DFL);
+	raise(sig);
+	process_exit(-1);
 }
 
 #endif

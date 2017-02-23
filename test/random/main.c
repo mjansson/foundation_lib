@@ -97,7 +97,7 @@ DECLARE_TEST(random, distribution32) {
 
 	//log_debugf( "Bits: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
-	max_num = 0, min_num = 0xFFFFFFFF;
+	max_num = 0; min_num = 0xFFFFFFFF;
 	for (j = 0; j < 32; ++j) {
 		if (_test_hist[j] < min_num)
 			min_num = _test_hist[j];
@@ -124,7 +124,7 @@ DECLARE_TEST(random, distribution32) {
 	}
 
 	//Verify distribution...
-	max_num = 0, min_num = 0xFFFFFFFF;
+	max_num = 0; min_num = 0xFFFFFFFF;
 	for (i = 0; i < 32; ++i) {
 		if (_test_bits[i] < min_num)
 			min_num = _test_bits[i];
@@ -184,7 +184,7 @@ DECLARE_TEST(random, distribution64) {
 
 	//log_debugf( "Bits: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
-	max_num = 0, min_num = 0xFFFFFFFF;
+	max_num = 0; min_num = 0xFFFFFFFF;
 	for (j = 0; j < 64; ++j) {
 		if (_test_hist[j] < min_num)
 			min_num = _test_hist[j];
@@ -212,7 +212,7 @@ DECLARE_TEST(random, distribution64) {
 	}
 
 	//Verify distribution...
-	max_num = 0, min_num = 0xFFFFFFFF;
+	max_num = 0; min_num = 0xFFFFFFFF;
 	for (i = 0; i < 64; ++i) {
 		if (_test_bits[i] < min_num)
 			min_num = _test_bits[i];
@@ -330,7 +330,7 @@ DECLARE_TEST(random, threads) {
 
 	//log_debugf( "Bits: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
-	max_num = 0, min_num = 0x7FFFFFFF;
+	max_num = 0; min_num = 0x7FFFFFFF;
 	for (j = 0; j < num_threads; ++j) {
 		if (atomic_load32(&_test_thread_hist[j]) < min_num)
 			min_num = atomic_load32(&_test_thread_hist[j]);

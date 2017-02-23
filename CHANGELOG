@@ -12,6 +12,9 @@ Fixed error_context_buffer to always return string without trailing whitespace.
 Change macOS implementation of unnamed semaphore to use GCD dispatch_semaphore instead
 of deprecated MPCreateSemaphore
 
+Bumped iOS default target to 9.0 and changed system_show_alert to use UIAlertController
+
+
 1.5.2
 
 Unified adding remote sources as input to a beacon. The add/remove functions of a beacon
