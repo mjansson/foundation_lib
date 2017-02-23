@@ -43,6 +43,9 @@ Platforms and architectures currently supported:
 * PNaCl
 
 
+Please consider our Patreon - <https://www.patreon.com/rampantpixels>
+
+
 The latest source code maintained by Rampant Pixels is always available at  
 <https://github.com/rampantpixels/foundation_lib>
 
@@ -63,5 +66,6 @@ Test suite coverage and scan reports:
 [![coverity.com](https://scan.coverity.com/projects/6944/badge.svg)](https://scan.coverity.com/projects/rampantpixels-foundation_lib)
 
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
+
 
 Created by Mattias Jansson / Rampant Pixels - <http://www.rampantpixels.com>

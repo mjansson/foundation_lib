@@ -24,7 +24,7 @@ class ClangToolchain(toolchain.Toolchain):
     #Default variables
     self.sysroot = ''
     if self.target.is_ios():
-      self.deploymenttarget = '8.0'
+      self.deploymenttarget = '9.0'
     if self.target.is_macosx():
       self.deploymenttarget = '10.7'
 

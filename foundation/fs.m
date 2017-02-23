@@ -312,7 +312,7 @@ _fs_event_stream_create(const char* path, size_t length) {
 
 		_fs_node_populate(node, STRING_ARGS(node->name));
 
-		NSString* nspath = [[NSString alloc] initWithUTF8String:path];
+		NSString* nspath = [[NSString alloc] initWithUTF8String:node->name];
 		NSArray* patharr = [NSArray arrayWithObject:nspath];
 		FSEventStreamContext context = { 0, node, _fs_event_stream_retain, _fs_event_stream_release, 0 };
 		NSTimeInterval latency = 1.0;

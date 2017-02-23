@@ -519,11 +519,14 @@ main_run(void* main_arg) {
 		array_deallocate(process_args);
 
 		if (process_result != 0) {
-#if (FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID) && !BUILD_ENABLE_LOG
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 			char buffer[64];
 			string_const_t msg = string_format(buffer, sizeof(buffer), "Test %.*s failed\n",
 			                                   STRING_FORMAT(exe_paths[iexe]));
+#if !BUILD_ENABLE_LOG
 			test_log_view_append(STRING_ARGS(msg));
+#endif
+			system_show_alert(STRING_ARGS(msg));
 #endif
 			if (process_result >= PROCESS_INVALID_ARGS)
 				log_warnf(HASH_TEST, WARNING_SUSPICIOUS,
@@ -550,6 +553,10 @@ main_run(void* main_arg) {
 	}
 
 	log_info(HASH_TEST, STRING_CONST("All tests passed"));
+
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
+	system_show_alert(STRING_CONST("All tests passed"));
+#endif
 
 exit:
 

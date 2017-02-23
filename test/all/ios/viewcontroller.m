@@ -24,20 +24,20 @@
 @implementation ViewController
 
 - (void)viewDidLoad {
-  [super viewDidLoad];
+	[super viewDidLoad];
 
-  if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)])
-    [self setNeedsStatusBarAppearanceUpdate];
-  else
-    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+	if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)])
+		[self setNeedsStatusBarAppearanceUpdate];
+	//iOS pre-9.0 - else
+	//  [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 }
 
 - (void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
+	[super didReceiveMemoryWarning];
 }
 
 - (BOOL)prefersStatusBarHidden {
-  return TRUE;
+	return TRUE;
 }
 
 @end
