@@ -127,7 +127,7 @@ def codesign_ios():
   if os.path.isfile( os.path.join( options.file, '_CodeSignature', 'CodeResources' ) ):
     os.remove( os.path.join( options.file, '_CodeSignature', 'CodeResources' ) )
 
-  os.system( '/usr/bin/codesign --force --sign ' + iosprefs['signature'] + ' --entitlements ' + plistpath + ' ' + options.file )
+  os.system( '/usr/bin/codesign --force --sign "' + iosprefs['signature'] + '" --entitlements ' + plistpath + ' ' + options.file )
 
   if os.path.isfile( os.path.join( options.file, '_CodeSignature', 'CodeResources' ) ):
     os.utime( os.path.join( options.file, '_CodeSignature', 'CodeResources' ), None )
