@@ -312,7 +312,8 @@ _fs_event_stream_create(const char* path, size_t length) {
 
 		_fs_node_populate(node, STRING_ARGS(node->name));
 
-		NSString* nspath = [[NSString alloc] initWithUTF8String:node->name];
+		NSString* nspath = [[NSString alloc] initWithBytes:path length:length
+		                    encoding:NSUTF8StringEncoding];
 		NSArray* patharr = [NSArray arrayWithObject:nspath];
 		FSEventStreamContext context = { 0, node, _fs_event_stream_retain, _fs_event_stream_release, 0 };
 		NSTimeInterval latency = 1.0;
@@ -322,8 +323,8 @@ _fs_event_stream_create(const char* path, size_t length) {
 		                                   (__bridge CFArrayRef)patharr, kFSEventStreamEventIdSinceNow, (CFAbsoluteTime)latency,
 		                                   kFSEventStreamCreateFlagNone);
 		if (stream) {
-			FSEventStreamSetDispatchQueue(stream, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,
-			                              0));
+			FSEventStreamSetDispatchQueue(stream,
+			                              dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
 			if (NO == FSEventStreamStart(stream)) {
 				log_error(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to start FS event stream"));
 			}
