@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 48;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -2922,6 +2922,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0800;
+				ORGANIZATIONNAME = "Rampant Pixels AB";
 				TargetAttributes = {
 					CD83919A1C044FA8003C9154 = {
 						CreatedOnToolsVersion = 7.1;
@@ -2935,7 +2936,7 @@
 				};
 			};
 			buildConfigurationList = 4555167A19360C7500CF089B /* Build configuration list for PBXProject "test" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
