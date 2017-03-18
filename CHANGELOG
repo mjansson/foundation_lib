@@ -1,4 +1,10 @@
 
+1.5.4
+
+Use pthread_exit to terminate threads on POSIX for compatibility with libs overriding
+pthread_exit or using pthread_cleanup_push
+
+
 1.5.3
 
 Added thread finalizer to memory system to clean up resources on thread exit.
