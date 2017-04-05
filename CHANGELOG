@@ -4,6 +4,8 @@
 Use pthread_exit to terminate threads on POSIX for compatibility with libs overriding
 pthread_exit or using pthread_cleanup_push
 
+Fix parsing of negative numbers in JSON/SJSON parser
+
 
 1.5.3
 
