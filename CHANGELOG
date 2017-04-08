@@ -4,6 +4,9 @@
 Use pthread_exit to terminate threads on POSIX for compatibility with libs overriding
 pthread_exit or using pthread_cleanup_push
 
+Add thread_enter and memory_thread_initialize to provide optional entry points for
+memory system per-thread initialization
+
 
 1.5.3
 

@@ -648,6 +648,10 @@ provide an implementation with this prototype for deallocating memory
 \param p Pointer to memory block */
 typedef void (* memory_deallocate_fn)(void* p);
 
+/*! Memory thread initialization function prototype. Implementation of a memory system can
+optionally provide an implementation with this prototype for initialization at thread start */
+typedef void (* memory_thread_initialize_fn)(void);
+
 /*! Memory thread finalization function prototype. Implementation of a memory system can
 optionally provide an implementation with this prototype for finalization at thread exit */
 typedef void (* memory_thread_finalize_fn)(void);
@@ -899,6 +903,8 @@ struct memory_system_t {
 	memory_reallocate_fn reallocate;
 	/*! Memory deallocation */
 	memory_deallocate_fn deallocate;
+	/*! Thread initialization */
+	memory_thread_initialize_fn thread_initialize;
 	/*! Thread finalization */
 	memory_thread_finalize_fn thread_finalize;
 	/*! System initialization */

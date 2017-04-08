@@ -180,6 +180,8 @@ _thread_entry(thread_arg_t data) {
 
 	thread->osid = thread_id();
 
+	thread_enter();
+
 #if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	if (thread->name.length)
 		_set_thread_name(thread->name.str);
@@ -472,6 +474,11 @@ thread_is_main(void) {
 thread_t*
 thread_self(void) {
 	return get_thread_self();
+}
+
+void
+thread_enter(void) {
+	memory_thread_initialize();
 }
 
 void

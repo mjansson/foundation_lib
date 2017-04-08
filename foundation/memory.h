@@ -86,7 +86,12 @@ Called internally when a foundation thread is about to exit. */
 FOUNDATION_API void
 memory_context_thread_finalize(void);
 
-/*! Cleanup and deallocate any per-thread memory used by memory system.
+/*! Initialize per-thread resources used by memory system.
+Called internally when a foundation thread is about to start. */
+FOUNDATION_API void
+memory_thread_initialize(void);
+
+/*! Cleanup and deallocate any per-thread resources used by memory system.
 Called internally when a foundation thread is about to exit. */
 FOUNDATION_API void
 memory_thread_finalize(void);

@@ -353,6 +353,12 @@ memory_context_thread_finalize(void) {
 #endif
 
 void
+memory_thread_initialize(void) {
+	if (_memory_system.thread_initialize)
+		_memory_system.thread_initialize();	
+}
+
+void
 memory_thread_finalize(void) {
 	if (_memory_system.thread_finalize)
 		_memory_system.thread_finalize();
