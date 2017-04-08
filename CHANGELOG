@@ -7,6 +7,8 @@ pthread_exit or using pthread_cleanup_push
 Add thread_enter and memory_thread_initialize to provide optional entry points for
 memory system per-thread initialization
 
+Fix parsing of negative numbers in JSON/SJSON parser
+
 
 1.5.3
 
