@@ -138,7 +138,7 @@ _regex_emit(regex_t** target, bool allow_grow, size_t ops, ...) {
 
 		new_allocated = ((*target)->code_allocated << 1) + ops;
 		*target = memory_reallocate(*target, sizeof(regex_t) + new_allocated, 0,
-		                            sizeof(regex_t) + (*target)->code_allocated);
+		                            sizeof(regex_t) + (*target)->code_allocated, 0);
 		(*target)->code_allocated = new_allocated;
 	}
 
@@ -167,7 +167,7 @@ _regex_emit_buffer(regex_t** target, bool allow_grow, size_t ops, const uint8_t*
 
 		new_allocated = ((*target)->code_allocated << 1) + ops;
 		*target = memory_reallocate(*target, sizeof(regex_t) + new_allocated, 0,
-		                            sizeof(regex_t) + (*target)->code_allocated);
+		                            sizeof(regex_t) + (*target)->code_allocated, 0);
 		(*target)->code_allocated = new_allocated;
 	}
 

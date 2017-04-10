@@ -311,7 +311,7 @@ stream_read_line(stream_t* stream, char delimiter) {
 			else {
 				nextsize = (outsize < 511 ? 512 : outsize + 513);   //Always aligns to 512 multiples
 				FOUNDATION_ASSERT(!(nextsize % 512));
-				outbuffer = memory_reallocate(outbuffer, nextsize, 0, outsize + 1);
+				outbuffer = memory_reallocate(outbuffer, nextsize, 0, outsize + 1, 0);
 			}
 			outsize = nextsize - 1;
 		}
@@ -684,7 +684,7 @@ stream_read_string(stream_t* stream) {
 				if (cursize + 1 >= outsize) {
 					outsize += 512;
 					if (outbuffer != buffer) {
-						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize);
+						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize, 0);
 					}
 					else {
 						outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
@@ -734,7 +734,7 @@ stream_read_string(stream_t* stream) {
 				if (cursize + i >= outsize) {
 					outsize += 512;
 					if (outbuffer != buffer) {
-						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize);
+						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize, 0);
 					}
 					else {
 						FOUNDATION_ASSERT(cursize == 0);   //Or internal assumptions about code flow is incorrect

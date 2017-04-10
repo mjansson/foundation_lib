@@ -263,11 +263,11 @@ memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hi
 }
 
 void*
-memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize) {
+memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint) {
 	FOUNDATION_ASSERT_MSG((p < _memory_temporary.storage) ||
 	                      (p >= _memory_temporary.end), "Trying to reallocate temporary memory");
 	_memory_untrack(p);
-	p = _memory_system.reallocate(p, size, align, oldsize);
+	p = _memory_system.reallocate(p, size, align, oldsize, hint);
 	_memory_track(p, size);
 	return p;
 }
@@ -628,7 +628,8 @@ _memory_deallocate_malloc(void* p) {
 }
 
 static void*
-_memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize) {
+_memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize,
+                          unsigned int hint) {
 #if ( FOUNDATION_SIZE_POINTER == 4 ) && FOUNDATION_PLATFORM_WINDOWS
 	FOUNDATION_UNUSED(oldsize);
 	align = _memory_get_align(align);
@@ -685,7 +686,7 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 		                                     (raw_p && ((uintptr_t)raw_p < 0xFFFFFFFFULL)) ?
 		                                     MEMORY_32BIT_ADDRESS : 0U);
 #  endif
-		if (p && memory && oldsize)
+		if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
 			memcpy(memory, p, (size < oldsize) ? size : oldsize);
 		_memory_deallocate_malloc(p);
 	}
@@ -718,7 +719,7 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 		                                     (raw_p && ((uintptr_t)raw_p < 0xFFFFFFFFULL)) ?
 		                                     MEMORY_32BIT_ADDRESS : 0U);
 #  endif
-		if (p && memory && oldsize)
+		if (p && memory && oldsize & !(hint & MEMORY_NO_PRESERVE))
 			memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
 		_memory_deallocate_malloc(p);
 	}

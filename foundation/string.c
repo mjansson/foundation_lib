@@ -93,7 +93,7 @@ string_allocate_format(const char* format, size_t length, ...) {
 		else
 			capacity *= 2;
 
-		buffer = memory_reallocate(buffer, capacity, 0, lastcapacity);
+		buffer = memory_reallocate(buffer, capacity, 0, lastcapacity, MEMORY_NO_PRESERVE);
 	}
 
 	return (string_t) {buffer, (unsigned int)n};
@@ -150,7 +150,7 @@ string_allocate_vformat(const char* format, size_t length, va_list list) {
 		else
 			capacity *= 2;
 
-		buffer = memory_reallocate(buffer, capacity, 0, lastcapacity);
+		buffer = memory_reallocate(buffer, capacity, 0, lastcapacity, MEMORY_NO_PRESERVE);
 	}
 
 	return (string_t) {buffer, (unsigned int)n};
@@ -192,7 +192,7 @@ string_t
 string_resize(char* str, size_t length, size_t capacity, size_t new_length, char c) {
 	FOUNDATION_ASSERT(length <= capacity);
 	if (new_length >= capacity) {
-		str = capacity ? memory_reallocate(str, new_length + 1, 0, capacity) :
+		str = capacity ? memory_reallocate(str, new_length + 1, 0, capacity, 0) :
 		      memory_allocate(HASH_STRING, new_length + 1, 0, MEMORY_PERSISTENT);
 	}
 	if (length < new_length)

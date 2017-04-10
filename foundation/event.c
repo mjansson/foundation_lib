@@ -86,7 +86,7 @@ _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
 			block->capacity += 16 - (basesize % 16);
 		block->capacity -= 16;
 		block->events = block->events ? memory_reallocate(block->events, block->capacity + 16, 16,
-		                                                  prev_capacity) :
+		                                                  prev_capacity, 0) :
 		                memory_allocate(0, block->capacity + 16, 16, MEMORY_PERSISTENT);
 	}
 

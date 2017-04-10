@@ -51,10 +51,11 @@ as the current memory block pointer.
 \param size    New requested size
 \param align   New requested alignment
 \param oldsize Previous size
+\param hint    Hint flags
 \return        Memory address to a (potentially new) memory block of the requested size
                and alignment, 0 if out of memory */
 FOUNDATION_API void*
-memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize);
+memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint);
 
 /*! Deallocate a memory block. Safe to pass a null pointer.
 \param p Memory block pointer */

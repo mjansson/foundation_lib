@@ -346,6 +346,8 @@ before function returns or scope ends) */
 #define MEMORY_32BIT_ADDRESS    (1U<<2)
 /*! Memory flag, memory should be initialized to zero during allocation */
 #define MEMORY_ZERO_INITIALIZED (1U<<3)
+/*! Memory flag, memory content does not have to be preserved during reallocation */
+#define MEMORY_NO_PRESERVE      (1U<<4)
 
 /*! Event flag, event is delayed and will be delivered at a later timestamp */
 #define EVENTFLAG_DELAY 1U
@@ -629,7 +631,7 @@ provide an implementation with this prototype for allocating memory
 \param context Memory context
 \param size Requested size
 \param align Aligmnent requirement
-\param hint Memory hitn (see memory_hint_t)
+\param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
 typedef void* (* memory_allocate_fn)(hash_t context, size_t size, unsigned int align,
                                      unsigned int hint);
@@ -640,8 +642,10 @@ provide an implementation with this prototype for reallocating memory
 \param size Requested size
 \param align Aligmnent requirement
 \param oldsize Size of previous memory block
+\param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
-typedef void* (* memory_reallocate_fn)(void* p, size_t size, unsigned int align, size_t oldsize);
+typedef void* (* memory_reallocate_fn)(void* p, size_t size, unsigned int align,
+                                       size_t oldsize, unsigned int hint);
 
 /*! Memory system deallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for deallocating memory
