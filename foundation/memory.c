@@ -719,7 +719,7 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 		                                     (raw_p && ((uintptr_t)raw_p < 0xFFFFFFFFULL)) ?
 		                                     MEMORY_32BIT_ADDRESS : 0U);
 #  endif
-		if (p && memory && oldsize & !(hint & MEMORY_NO_PRESERVE))
+		if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
 			memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
 		_memory_deallocate_malloc(p);
 	}
