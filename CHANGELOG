@@ -7,6 +7,8 @@ pthread_exit or using pthread_cleanup_push
 Add thread_enter and memory_thread_initialize to provide optional entry points for
 memory system per-thread initialization
 
+Add hint flags to memory reallocation to optionally avoid copying to preserve old content
+
 Fix parsing of negative numbers in JSON/SJSON parser
 
 
