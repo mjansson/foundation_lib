@@ -753,12 +753,12 @@ _memory_finalize_malloc(void) {
 memory_system_t
 memory_system_malloc(void) {
 	memory_system_t memsystem;
+	memset(&memsystem, 0, sizeof(memsystem));
 	memsystem.allocate = _memory_allocate_malloc;
 	memsystem.reallocate = _memory_reallocate_malloc;
 	memsystem.deallocate = _memory_deallocate_malloc;
 	memsystem.initialize = _memory_initialize_malloc;
 	memsystem.finalize = _memory_finalize_malloc;
-	memsystem.thread_finalize = 0;
 	return memsystem;
 }
 
