@@ -630,7 +630,7 @@ _memory_deallocate_malloc(void* p) {
 static void*
 _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize,
                           unsigned int hint) {
-#if ( FOUNDATION_SIZE_POINTER == 4 ) && FOUNDATION_PLATFORM_WINDOWS
+#if (FOUNDATION_SIZE_POINTER == 4) && FOUNDATION_PLATFORM_WINDOWS
 	FOUNDATION_UNUSED(oldsize);
 	align = _memory_get_align(align);
 #  if BUILD_ENABLE_MEMORY_GUARD
@@ -661,45 +661,39 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	raw_p = memory ? *((void**)memory - 1) : nullptr;
 	memory = nullptr;
 
-#if FOUNDATION_PLATFORM_WINDOWS
-	if (raw_p && !((uintptr_t)raw_p & 1)) {
+#  if FOUNDATION_PLATFORM_WINDOWS
+	if (raw_p && !((uintptr_t)raw_p & 1) && !(hint & MEMORY_32BIT_ADDRESS)) {
 		size_t padding = (align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER);
-#  if BUILD_ENABLE_MEMORY_GUARD
+#    if BUILD_ENABLE_MEMORY_GUARD
 		size_t extra_padding = FOUNDATION_MAX_ALIGN * 3;
-#  else
+#    else
 		size_t extra_padding = 0;
-#  endif
+#    endif
 		void* raw_memory = _aligned_realloc(raw_p, size + padding + extra_padding, align ? align : 8);
 		if (raw_memory) {
 			memory = pointer_offset(raw_memory, padding);
 			*((void**)memory - 1) = raw_memory;
-#  if BUILD_ENABLE_MEMORY_GUARD
+#    if BUILD_ENABLE_MEMORY_GUARD
 			memory = _memory_guard_initialize(memory, size);
-#  endif
+#    endif
 		}
 	}
 	else {
-#  if FOUNDATION_SIZE_POINTER == 4
-		memory = _memory_allocate_malloc_raw(size, align, 0U);
-#  else
-		memory = _memory_allocate_malloc_raw(size, align,
-		                                     (raw_p && ((uintptr_t)raw_p < 0xFFFFFFFFULL)) ?
-		                                     MEMORY_32BIT_ADDRESS : 0U);
-#  endif
+		memory = _memory_allocate_malloc_raw(size, align, hint);
 		if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
 			memcpy(memory, p, (size < oldsize) ? size : oldsize);
 		_memory_deallocate_malloc(p);
 	}
 
-#else //!FOUNDATION_PLATFORM_WINDOWS
+#  else //!FOUNDATION_PLATFORM_WINDOWS below
 
 //If we're on ARM the realloc can return a 16-bit aligned address, causing raw pointer store to SIGILL
 //Realigning does not work since the realloc memory copy preserve cannot be done properly. Revert to normal alloc-and-copy
 //Same with alignment, since we cannot guarantee that the returned memory block offset from start of actual memory block
 //is the same in the reallocated block as the original block, we need to alloc-and-copy to get alignment
 //Memory guard introduces implicit alignments as well so alloc-and-copy for that
-#if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64 && !BUILD_ENABLE_MEMORY_GUARD
-	if (!align && raw_p && !((uintptr_t)raw_p & 1)) {
+#    if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64 && !BUILD_ENABLE_MEMORY_GUARD
+	if (!align && raw_p && !((uintptr_t)raw_p & 1) && !(hint & MEMORY_32BIT_ADDRESS)) {
 		void* raw_memory = realloc(raw_p, (size_t)size + FOUNDATION_SIZE_POINTER);
 		if (raw_memory) {
 			*(void**)raw_memory = raw_memory;
@@ -707,24 +701,18 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 		}
 	}
 	else
-#endif
+#    endif
 	{
-#  if FOUNDATION_SIZE_POINTER == 4
 #    if !BUILD_ENABLE_LOG
 		FOUNDATION_UNUSED(raw_p);
 #    endif
-		memory = _memory_allocate_malloc_raw(size, align, 0U);
-#  else
-		memory = _memory_allocate_malloc_raw(size, align,
-		                                     (raw_p && ((uintptr_t)raw_p < 0xFFFFFFFFULL)) ?
-		                                     MEMORY_32BIT_ADDRESS : 0U);
-#  endif
+		memory = _memory_allocate_malloc_raw(size, align, hint);
 		if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
 			memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
 		_memory_deallocate_malloc(p);
 	}
 
-#endif
+#  endif
 
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);

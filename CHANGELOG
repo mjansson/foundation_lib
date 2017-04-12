@@ -9,6 +9,8 @@ memory system per-thread initialization
 
 Add hint flags to memory reallocation to optionally avoid copying to preserve old content
 
+Make memory reallocation respect 32bit flag and fall back to alloc and copy
+
 Fix parsing of negative numbers in JSON/SJSON parser
 
 
