@@ -13,6 +13,8 @@ Make memory reallocation respect 32bit flag and fall back to alloc and copy
 
 Fix parsing of negative numbers in JSON/SJSON parser
 
+Unify macOS/iOS delegate window function to delegate_window
+
 
 1.5.3
 

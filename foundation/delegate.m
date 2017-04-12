@@ -115,6 +115,11 @@ static __weak FoundationAppDelegate* _delegate;
 
 void*
 delegate_nswindow(void) {
+	return delegate_window();
+}
+
+void*
+delegate_window(void) {
 	__strong FoundationAppDelegate* delegate = _delegate;
 	return (__bridge void*)(delegate ? [delegate window] : 0);
 }
@@ -176,6 +181,11 @@ static __weak FoundationAppDelegate* _delegate;
 
 void*
 delegate_uiwindow(void) {
+	return delegate_window();
+}
+
+void*
+delegate_window(void) {
 	__strong FoundationAppDelegate* delegate = _delegate;
 	return (__bridge void*)(delegate ? [delegate window] : 0);
 }
