@@ -23,3 +23,7 @@
 *.PDF	 diff=astextplain
 *.rtf	 diff=astextplain
 *.RTF	 diff=astextplain
+
+# Ignore build scripts in language stats
+build/* linguist-vendored
+configure.py linguist-vendored=true
