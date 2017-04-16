@@ -143,8 +143,8 @@ def codesign_macos():
   if not 'provisioning' in macosprefs:
     macosprefs['provisioning'] = options.provisioning
 
-  codesign_allocate = subprocess.check_output( [ 'xcrun', '--sdk', 'macos', '-f', 'codesign_allocate' ] ).strip()
-  sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macos', '--show-sdk-path' ] ).strip()
+  codesign_allocate = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '-f', 'codesign_allocate' ] ).strip()
+  sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip()
   entitlements = os.path.join( sdkdir, 'Entitlements.plist' )
 
   if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):
