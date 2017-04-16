@@ -24,7 +24,6 @@ multiple or missing definitions.
 to our foundation/foundation.h \endinternal */
 
 #include <foundation/platform.h>
-
 #include <foundation/types.h>
 #include <foundation/uuid.h>
 #include <foundation/radixsort.h>

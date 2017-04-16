@@ -48,7 +48,7 @@ delegate_nswindow(void);
 FOUNDATION_API void*
 delegate_window(void);
 
-#ifdef __OBJC__
+#if defined(__OBJC__) && !defined(FOUNDATION_NO_INTERFACE)
 
 /*! Application delegate for foundation library projects. Assign the main application window
 object to the window outlet for automatic integration between foundation library and
@@ -75,7 +75,7 @@ delegate_uiwindow(void);
 FOUNDATION_API void*
 delegate_window(void);
 
-#ifdef __OBJC__
+#if defined(__OBJC__) && !defined(FOUNDATION_NO_INTERFACE)
 
 @interface FoundationAppDelegate :
   NSObject <UIApplicationDelegate>

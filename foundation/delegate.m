@@ -10,7 +10,6 @@
  * any restrictions.
  */
 
-#include <foundation/foundation.h>
 #include <foundation/delegate.h>
 #include <foundation/main.h>
 
