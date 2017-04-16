@@ -78,7 +78,7 @@ static volatile bool _delegate_received_terminate = false;
 	main_finalize();
 
 	@autoreleasepool {
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 		log_debug(0, STRING_CONST("Calling application terminate"));
 		[NSApp terminate:nil];
 #endif
@@ -107,7 +107,7 @@ delegate_start_main_ns_thread(void) {
 	@autoreleasepool { [NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil]; }
 }
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 
 static __weak NSApplication* _delegate_app;
 static __weak FoundationAppDelegate* _delegate;

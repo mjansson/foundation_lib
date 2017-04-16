@@ -226,8 +226,8 @@ test_load_config(json_handler_fn handler) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	sjson_parse_path(STRING_CONST("config/windows"), handler);
-#elif FOUNDATION_PLATFORM_MACOSX
-	sjson_parse_path(STRING_CONST("config/macosx"), handler);
+#elif FOUNDATION_PLATFORM_MACOS
+	sjson_parse_path(STRING_CONST("config/macos"), handler);
 #elif FOUNDATION_PLATFORM_LINUX
 	sjson_parse_path(STRING_CONST("config/linux"), handler);
 #elif FOUNDATION_PLATFORM_BSD

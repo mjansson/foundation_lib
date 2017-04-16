@@ -474,11 +474,11 @@ environment_application_directory(void) {
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
 		memory_deallocate(pathbuf);
 	}
-#elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_MACOS
 	{
 		char* pathbuf = memory_allocate(0, BUILD_MAX_PATHLEN, 0, MEMORY_TEMPORARY);
 		string_t pathstr = _environment_ns_home_directory(pathbuf, BUILD_MAX_PATHLEN);
-#  if FOUNDATION_PLATFORM_MACOSX
+#  if FOUNDATION_PLATFORM_MACOS
 		if (!(environment_application()->flags & APPLICATION_UTILITY)) {
 			char bundle_identifier[256];
 			string_t bundle = environment_bundle_identifier(bundle_identifier, sizeof(bundle_identifier));

@@ -153,7 +153,7 @@ DECLARE_TEST(process, spawn) {
 
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 
 	process_finalize(proc);
 	process_initialize(proc);
@@ -162,7 +162,7 @@ DECLARE_TEST(process, spawn) {
 
 	process_set_working_directory(proc, STRING_CONST("/"));
 	process_set_executable_path(proc, STRING_CONST("/System/Library/CoreServices/Finder.app"));
-	process_set_flags(proc, PROCESS_DETACHED | PROCESS_MACOSX_USE_OPENAPPLICATION);
+	process_set_flags(proc, PROCESS_DETACHED | PROCESS_MACOS_USE_OPENAPPLICATION);
 	process_set_arguments(proc, args, 1);
 
 	ret = process_spawn(proc);

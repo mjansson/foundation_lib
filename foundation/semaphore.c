@@ -14,7 +14,7 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 #  include <sys/fcntl.h>
 #  include <sys/semaphore.h>
 #  include <errno.h>
@@ -88,7 +88,7 @@ semaphore_event_handle(semaphore_t* semaphore) {
 	return *semaphore;
 }
 
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 
 //OSX:
 //unnamed - dispatch_semaphore_create

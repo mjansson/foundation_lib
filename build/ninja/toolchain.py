@@ -103,7 +103,7 @@ class Toolchain(object):
     #Target functionality
     if target.is_android():
       self.android = android.make_target(self, host, target)
-    if target.is_macosx() or target.is_ios():
+    if target.is_macos() or target.is_ios():
       self.xcode = xcode.make_target(self, host, target)
 
     #Builders
@@ -132,7 +132,7 @@ class Toolchain(object):
         self.archs = ['x86']
       else:
         self.archs = [localarch]
-    elif self.target.is_macosx():
+    elif self.target.is_macos():
       self.archs = ['x86-64']
     elif self.target.is_ios():
       self.archs = ['arm7', 'arm64']
@@ -401,7 +401,7 @@ class Toolchain(object):
   def app(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables, resources):
     builtbin = []
     # Filter out platforms that do not have app concept
-    if not (self.target.is_macosx() or self.target.is_ios() or self.target.is_android() or self.target.is_tizen()):
+    if not (self.target.is_macos() or self.target.is_ios() or self.target.is_android() or self.target.is_tizen()):
       return builtbin
     if basepath is None:
       basepath = ''
@@ -411,7 +411,7 @@ class Toolchain(object):
       configs = list(self.configs)
     for config in configs:
       archbins = self.bin(writer, module, sources, binname, basepath, [config], includepaths, libpaths, implicit_deps, libs, frameworks, variables, '$buildpath')
-      if self.target.is_macosx() or self.target.is_ios():
+      if self.target.is_macos() or self.target.is_ios():
         binpath = os.path.join(self.binpath, config, binname + '.app')
         builtbin += self.xcode.app(self, writer, module, archbins, self.binpath, binname, basepath, config, None, resources, True)
       if self.target.is_android():

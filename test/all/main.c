@@ -463,7 +463,7 @@ main_run(void* main_arg) {
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = string_const(STRING_CONST("^test-.*\\.exe$"));
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 	pattern = string_const(STRING_CONST("^test-.*$"));
 #elif FOUNDATION_PLATFORM_POSIX
 	pattern = string_const(STRING_CONST("^test-.*$"));
@@ -474,7 +474,7 @@ main_run(void* main_arg) {
 	                              STRING_ARGS(pattern), false);
 	array_resize(exe_flags, array_size(exe_paths));
 	memset(exe_flags, 0, sizeof(unsigned int) * array_size(exe_flags));
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 	//Also search for test applications
 	string_const_t app_pattern = string_const(STRING_CONST("^test-.*\\.app$"));
 	regex_t* app_regex = regex_compile(app_pattern.str, app_pattern.length);
@@ -483,7 +483,7 @@ main_run(void* main_arg) {
 		if (regex_match(app_regex, subdirs[idir].str, subdirs[idir].length, 0, 0)) {
 			string_t exe_path = string_clone(subdirs[idir].str, subdirs[idir].length - 4);
 			array_push(exe_paths, exe_path);
-			array_push(exe_flags, PROCESS_MACOSX_USE_OPENAPPLICATION);
+			array_push(exe_flags, PROCESS_MACOS_USE_OPENAPPLICATION);
 		}
 	}
 	string_array_deallocate(subdirs);

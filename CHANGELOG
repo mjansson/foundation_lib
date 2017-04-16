@@ -17,6 +17,8 @@ Unify macOS/iOS delegate window function to delegate_window
 
 Support using SetThreadDescription (if present) to set thread name on Windows
 
+Change MacOSX names and identifiers to macOS
+
 
 1.5.3
 

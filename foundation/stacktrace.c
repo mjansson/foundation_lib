@@ -662,7 +662,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 
 	return resolved;
 
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_MACOS || FOUNDATION_PLATFORM_IOS
 
 	//TODO: Use dladdr instead to avoid memory allocation with malloc in backtrace_symbols
 	string_t symbols = (string_t) { buffer, 0 };

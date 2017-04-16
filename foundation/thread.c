@@ -155,7 +155,7 @@ thread_set_name(const char* name, size_t length) {
 	}
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	prctl(PR_SET_NAME, name, 0, 0, 0);
-#  elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#  elif FOUNDATION_PLATFORM_MACOS || FOUNDATION_PLATFORM_IOS
 	pthread_setname_np(name);
 #  elif FOUNDATION_PLATFORM_BSD
 	pthread_set_name_np(pthread_self(), name);

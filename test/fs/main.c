@@ -655,7 +655,7 @@ DECLARE_TEST(fs, monitor) {
 
 	for (imon = 0, monmax = foundation_config().fs_monitor_max; imon <= monmax + 1; ++imon) {
 		bool did_monitor = fs_monitor(STRING_ARGS(testpath));
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOS
 		EXPECT_TRUE(did_monitor);
 #else
 		FOUNDATION_UNUSED(did_monitor);

@@ -497,7 +497,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #endif
 
 #    ifndef MAP_32BIT
-	//On MacOSX app needs to be linked with -pagezero_size 10000 -image_base 100000000 to
+	//On macOS app needs to be linked with -pagezero_size 10000 -image_base 100000000 to
 	// 1) Free up low 4Gb address range by reducing page zero size
 	// 2) Move executable base address above 4Gb to free up more memory address space
 #define MMAP_REGION_START ((uintptr_t)0x10000)

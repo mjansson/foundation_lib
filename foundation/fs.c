@@ -103,7 +103,7 @@ static mutex_t* _fs_monitor_lock;
 static fs_monitor_t* _fs_monitors;
 static event_stream_t* _fs_event_stream;
 
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOS
 #  define FOUNDATION_HAVE_FS_MONITOR 1
 static void* _fs_monitor(void*);
 #else
@@ -1213,7 +1213,7 @@ _fs_lookup_watch(fs_watch_t* watch_arr, int fd) {
 	return 0;
 }
 
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 
 extern void*
 _fs_event_stream_create(const char* path, size_t length);
@@ -1281,7 +1281,7 @@ _fs_monitor(void* monitorptr) {
 
 	beacon_add_fd(beacon, notify_fd);
 
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 
 	memory_context_push(HASH_STREAM);
 
@@ -1450,7 +1450,7 @@ skipwatch:
 			memory_deallocate(buffer);
 		}
 
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 
 		if (event_stream)
 			_fs_event_stream_flush(event_stream);
@@ -1490,7 +1490,7 @@ exit_thread:
 	string_array_deallocate(paths);
 	array_deallocate(watch);
 
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 
 	_fs_event_stream_destroy(event_stream);
 
@@ -1981,7 +1981,7 @@ _fs_file_finalize(stream_t* stream) {
 		if (file->fd) {
 #if FOUNDATION_PLATFORM_WINDOWS
 			_commit(_fileno(file->fd));
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 			fcntl(fileno(file->fd), F_FULLFSYNC, 0);
 #elif FOUNDATION_PLATFORM_POSIX
 			fsync(fileno(file->fd));

@@ -46,6 +46,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #define FOUNDATION_PLATFORM_IOS_SIMULATOR 0
 #define FOUNDATION_PLATFORM_LINUX 0
 #define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
+#define FOUNDATION_PLATFORM_MACOS 0
 #define FOUNDATION_PLATFORM_MACOSX 0
 #define FOUNDATION_PLATFORM_WINDOWS 0
 #define FOUNDATION_PLATFORM_PNACL 0
@@ -258,7 +259,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
 #  define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
 
-// MacOS X and iOS
+// macOS and iOS
 #elif ( defined( __APPLE__ ) && __APPLE__ )
 
 #  undef  FOUNDATION_PLATFORM_APPLE
@@ -332,36 +333,39 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #  elif defined( __MACH__ )
 
+#    undef  FOUNDATION_PLATFORM_MACOS
+#    define FOUNDATION_PLATFORM_MACOS 1
+//Old deprecated name
 #    undef  FOUNDATION_PLATFORM_MACOSX
 #    define FOUNDATION_PLATFORM_MACOSX 1
 
-#    define FOUNDATION_PLATFORM_NAME "MacOSX"
+#    define FOUNDATION_PLATFORM_NAME "macOS"
 
 #    if defined( __x86_64__ ) ||  defined( __x86_64 ) || defined( __amd64 )
 #      undef  FOUNDATION_ARCH_X86_64
 #      define FOUNDATION_ARCH_X86_64 1
 #      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
-#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX x86-64"
+#      define FOUNDATION_PLATFORM_DESCRIPTION "macOS x86-64"
 #    elif defined( __i386__ ) || defined( __intel__ )
 #      undef  FOUNDATION_ARCH_X86
 #      define FOUNDATION_ARCH_X86 1
 #      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
 #      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
-#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX x86"
+#      define FOUNDATION_PLATFORM_DESCRIPTION "macOS x86"
 
 #    elif defined( __powerpc64__ ) || defined( __POWERPC64__ )
 #      undef  FOUNDATION_ARCH_PPC_64
 #      define FOUNDATION_ARCH_PPC_64 1
 #      undef  FOUNDATION_ARCH_ENDIAN_BIG
 #      define FOUNDATION_ARCH_ENDIAN_BIG 1
-#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX PPC64"
+#      define FOUNDATION_PLATFORM_DESCRIPTION "macOS PPC64"
 #    elif defined( __powerpc__ ) || defined( __POWERPC__ )
 #      undef  FOUNDATION_ARCH_PPC
 #      define FOUNDATION_ARCH_PPC 1
 #      undef  FOUNDATION_ARCH_ENDIAN_BIG
 #      define FOUNDATION_ARCH_ENDIAN_BIG 1
-#      define FOUNDATION_PLATFORM_DESCRIPTION "MacOSX PPC"
+#      define FOUNDATION_PLATFORM_DESCRIPTION "macOS PPC"
 
 #    else
 #      error Unknown architecture
@@ -1227,8 +1231,8 @@ Defined to 1 if compiling for iOS platforms (iPhone/iPad and simulators), 0 othe
 \def FOUNDATION_PLATFORM_IOS_SIMULATOR
 Defined to 1 if compiling for iOS simulator (also has FOUNDATION_PLATFORM_IOS defined to 1), 0 otherwise
 
-\def FOUNDATION_PLATFORM_MACOSX
-Defined to 1 if compiling for MacOS X, 0 otherwise
+\def FOUNDATION_PLATFORM_MACOS
+Defined to 1 if compiling for macOS, 0 otherwise
 
 \def FOUNDATION_PLATFORM_LINUX
 Defined to 1 if compiling for Linux, 0 otherwise
@@ -1249,16 +1253,16 @@ Defined to 1 if compiling for PNaCl, 0 otherwise
 Defined to 1 if compiling for Tizen, 0 otherwise
 
 \def FOUNDATION_PLATFORM_APPLE
-Defined to 1 if compiling for Apple platforms (MacOS X, iOS, iOS simulator), 0 otherwise
+Defined to 1 if compiling for Apple platforms (macOS, iOS, iOS simulator), 0 otherwise
 
 \def FOUNDATION_PLATFORM_POSIX
-Defined to 1 if compiling for POSIX platforms (Linux, BSD, MacOS X, iOS, iOS simulator, Android), 0 otherwise
+Defined to 1 if compiling for POSIX platforms (Linux, BSD, macOS, iOS, iOS simulator, Android), 0 otherwise
 
 \def FOUNDATION_PLATFORM_FAMILY_MOBILE
 Defined to 1 if compiling for mobile platforms (iOS, iOS simulator, Android), 0 otherwise
 
 \def FOUNDATION_PLATFORM_FAMILY_DESKTOP
-Defined to 1 if compiling for desktop platforms (Windows, MacOS X, Linux, Raspberry Pi, BSD), 0 otherwise
+Defined to 1 if compiling for desktop platforms (Windows, macOS, Linux, Raspberry Pi, BSD), 0 otherwise
 
 \def FOUNDATION_PLATFORM_FAMILY_CONSOLE
 Defined to 1 if compiling for console platforms (iOS, iOS simulator, Android, Tizen), 0 otherwise

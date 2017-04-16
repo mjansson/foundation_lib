@@ -26,7 +26,7 @@ void _exit(int status) FOUNDATION_ATTRIBUTE(noreturn);
 #  include <unistd.h>
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 #  include <foundation/apple.h>
 #  include <sys/event.h>
 #endif
@@ -336,9 +336,9 @@ process_spawn(process_t* proc) {
 
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 
-	if (proc->flags & PROCESS_MACOSX_USE_OPENAPPLICATION) {
+	if (proc->flags & PROCESS_MACOS_USE_OPENAPPLICATION) {
 		proc->pid = 0;
 
 		LSApplicationParameters params;
@@ -545,7 +545,7 @@ process_spawn(process_t* proc) {
 	FOUNDATION_ASSERT_FAIL("Process spawning not supported on platform");
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 exit:
 #endif
 
@@ -627,8 +627,8 @@ process_wait(process_t* proc) {
 	if (!proc->pid)
 		return proc->code;
 
-#  if FOUNDATION_PLATFORM_MACOSX
-	if (proc->flags & PROCESS_MACOSX_USE_OPENAPPLICATION) {
+#  if FOUNDATION_PLATFORM_MACOS
+	if (proc->flags & PROCESS_MACOS_USE_OPENAPPLICATION) {
 		if (proc->kq) {
 			struct kevent event;
 			ret = kevent(proc->kq, 0, 0, &event, 1, 0);
@@ -645,7 +645,7 @@ process_wait(process_t* proc) {
 		}
 		else {
 			log_warn(0, WARNING_INVALID_VALUE,
-			         STRING_CONST("Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue"));
+			         STRING_CONST("Unable to wait on a process started with PROCESS_MACOS_USE_OPENAPPLICATION and no kqueue"));
 			return PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;

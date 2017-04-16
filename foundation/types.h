@@ -131,9 +131,9 @@ typedef enum {
 	PLATFORM_WINDOWS = 0,
 	/*! Linux */
 	PLATFORM_LINUX,
-	/*! MacOS X */
-	PLATFORM_MACOSX,
-	/*! iOS (iPhone, iPad) */
+	/*! macOS */
+	PLATFORM_MACOS,
+	/*! iOS */
 	PLATFORM_IOS,
 	/*! Android */
 	PLATFORM_ANDROID,
@@ -385,8 +385,8 @@ an error occurs during spawning */
 #define PROCESS_STDSTREAMS                 (1U<<2)
 /*! Process flag, use ShellExecute instead of CreateProcess (Windows platform only) */
 #define PROCESS_WINDOWS_USE_SHELLEXECUTE   (1U<<3)
-/*! Process flag, use LSOpenApplication instead of fork/execve (MacOSX platform only) */
-#define PROCESS_MACOSX_USE_OPENAPPLICATION (1U<<4)
+/*! Process flag, use LSOpenApplication instead of fork/execve (macOS platform only) */
+#define PROCESS_MACOS_USE_OPENAPPLICATION (1U<<4)
 
 /*! Process exit code, returned when given invalid arguments */
 #define PROCESS_INVALID_ARGS      0x7FFFFFF0
@@ -560,7 +560,7 @@ typedef struct foundation_config_t    foundation_config_t;
 #if FOUNDATION_PLATFORM_WINDOWS
 /*! Platform specific representation of a semaphore */
 typedef void*                         semaphore_t;
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 typedef struct semaphore_t            semaphore_t;
 #elif FOUNDATION_PLATFORM_IOS
 typedef struct dispatch_semaphore_s*  semaphore_t;
@@ -1315,7 +1315,7 @@ struct process_t {
 	/*! Posix only, process identifier */
 	int pid;
 #endif
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 	/*! MaxOS X only, kqueue for watching for process termination when launching
 	    process with LSOpenApplication */
 	int kq;
@@ -1391,7 +1391,7 @@ struct ringbuffer_t {
 	FOUNDATION_DECLARE_RINGBUFFER(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 
 /*! Semaphore for thread synchronization and communication. Actual type specifics depend
 on platform, the semaphore_t type should be treated as an opaque data struct. */
