@@ -34,35 +34,35 @@ __asm__(
 
 #include <foundation/posix.h>
 
-static  pthread_mutex_t _atomic_mutex;
+static pthread_mutex_t _atomic_mutex;
 
 int64_t
 __foundation_sync_fetch_and_add_8(int64_t* val, int64_t add) {
-  pthread_mutex_lock(&_atomic_mutex);
-  int64_t prev = *val;
-  *val += add;
-  pthread_mutex_unlock(&_atomic_mutex);
-  return prev;
+	pthread_mutex_lock(&_atomic_mutex);
+	int64_t prev = *val;
+	*val += add;
+	pthread_mutex_unlock(&_atomic_mutex);
+	return prev;
 }
 
 int64_t
 __foundation_sync_add_and_fetch_8(int64_t* val, int64_t add) {
-  pthread_mutex_lock(&_atomic_mutex);
-  int64_t ret = (*val += add);
-  pthread_mutex_unlock(&_atomic_mutex);
-  return ret;
+	pthread_mutex_lock(&_atomic_mutex);
+	int64_t ret = (*val += add);
+	pthread_mutex_unlock(&_atomic_mutex);
+	return ret;
 }
 
 bool
 __foundation_sync_bool_compare_and_swap_8(int64_t* val, int64_t oldval, int64_t newval) {
-  bool res = false;
-  pthread_mutex_lock(&_atomic_mutex);
-  if (*val == oldval) {
-    *val = newval;
-    res = true;
-  }
-  pthread_mutex_unlock(&_atomic_mutex);
-  return res;
+	bool res = false;
+	pthread_mutex_lock(&_atomic_mutex);
+	if (*val == oldval) {
+		*val = newval;
+		res = true;
+	}
+	pthread_mutex_unlock(&_atomic_mutex);
+	return res;
 }
 
 #endif
@@ -73,7 +73,7 @@ __foundation_sync_bool_compare_and_swap_8(int64_t* val, int64_t oldval, int64_t 
 
 void
 _atomic_thread_fence_sequentially_consistent() {
-  MemoryBarrier();
+	MemoryBarrier();
 }
 
 #endif
@@ -81,18 +81,17 @@ _atomic_thread_fence_sequentially_consistent() {
 int
 _atomic_initialize(void) {
 #if FOUNDATION_MUTEX_64BIT_ATOMIC
-  pthread_mutexattr_t attr;
-  pthread_mutexattr_init(&attr);
-  pthread_mutex_init(&_atomic_mutex, &attr);
-  pthread_mutexattr_destroy(&attr);
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutex_init(&_atomic_mutex, &attr);
+	pthread_mutexattr_destroy(&attr);
 #endif
-  return 0;
+	return 0;
 }
 
 void
 _atomic_finalize(void) {
 #if FOUNDATION_MUTEX_64BIT_ATOMIC
-  pthread_mutex_destroy(&_atomic_mutex);
+	pthread_mutex_destroy(&_atomic_mutex);
 #endif
 }
-
