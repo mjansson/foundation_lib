@@ -113,11 +113,6 @@ static __weak NSApplication* _delegate_app;
 static __weak FoundationAppDelegate* _delegate;
 
 void*
-delegate_nswindow(void) {
-	return delegate_window();
-}
-
-void*
 delegate_window(void) {
 	__strong FoundationAppDelegate* delegate = _delegate;
 	return (__bridge void*)(delegate ? [delegate window] : 0);
@@ -177,11 +172,6 @@ delegate_window(void) {
 
 static __weak UIApplication* _delegate_app;
 static __weak FoundationAppDelegate* _delegate;
-
-void*
-delegate_uiwindow(void) {
-	return delegate_window();
-}
 
 void*
 delegate_window(void) {
@@ -251,13 +241,13 @@ delegate_window(void) {
 
 #if BUILD_DEBUG || BUILD_RELEASE
 	@autoreleasepool {
-		CGRect flash_frame = [(__bridge UIWindow*)delegate_uiwindow() frame];
+		CGRect flash_frame = [(__bridge UIWindow*)delegate_window() frame];
 		flash_frame.size.height = 60;
 
 		double duration = 1.0;
 		UIView* flash = [[UIView alloc] initWithFrame:flash_frame];
 		flash.backgroundColor = [UIColor redColor];
-		[(__bridge UIWindow*)delegate_uiwindow() addSubview:flash];
+		[(__bridge UIWindow*)delegate_window() addSubview:flash];
 
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
 			(int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

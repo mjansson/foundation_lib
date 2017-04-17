@@ -619,7 +619,7 @@
 		455519B21938BBDF00CF089B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = "Rampant Pixels AB";
 				TargetAttributes = {
 					455519F21938D40000CF089B = {

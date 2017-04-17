@@ -53,7 +53,7 @@ _system_show_alert(const char* title, size_t title_length, const char* message,
 		                            message:[[NSString alloc] initWithBytes:message length:message_length encoding:NSUTF8StringEncoding]
 		                            preferredStyle:UIAlertControllerStyleAlert];
 
-		[[(__bridge UIWindow*)delegate_uiwindow() rootViewController] presentViewController:alert animated:YES completion:nil];
+		[[(__bridge UIWindow*)delegate_window() rootViewController] presentViewController:alert animated:YES completion:nil];
 		return 1;
 
 #endif

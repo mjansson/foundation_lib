@@ -47,7 +47,6 @@ thread local storage to ensure maximum portability across supported platforms */
 #define FOUNDATION_PLATFORM_LINUX 0
 #define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
 #define FOUNDATION_PLATFORM_MACOS 0
-#define FOUNDATION_PLATFORM_MACOSX 0
 #define FOUNDATION_PLATFORM_WINDOWS 0
 #define FOUNDATION_PLATFORM_PNACL 0
 #define FOUNDATION_PLATFORM_TIZEN 0
@@ -335,9 +334,6 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #    undef  FOUNDATION_PLATFORM_MACOS
 #    define FOUNDATION_PLATFORM_MACOS 1
-//Old deprecated name
-#    undef  FOUNDATION_PLATFORM_MACOSX
-#    define FOUNDATION_PLATFORM_MACOSX 1
 
 #    define FOUNDATION_PLATFORM_NAME "macOS"
 

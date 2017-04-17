@@ -38,11 +38,6 @@ delegate_reference_classes(void);
 
 #if FOUNDATION_PLATFORM_MACOS
 
-/*! Deprecated. Use delegate_window instead
-\return Window object */
-FOUNDATION_API void*
-delegate_nswindow(void);
-
 /*! macOS only. Get the currently assigned window from the delegate object window outlet.
 \return Window object */
 FOUNDATION_API void*
@@ -64,11 +59,6 @@ windowing services */
 #endif
 
 #if FOUNDATION_PLATFORM_IOS
-
-/*! Deprecated. Use delegate_window instead
-\return Windows object */
-FOUNDATION_API void*
-delegate_uiwindow(void);
 
 /*! iOS only. Get the main UI application window.
 \return Windows object */

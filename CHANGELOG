@@ -1,5 +1,5 @@
 
-1.5.4
+1.6.0
 
 Use pthread_exit to terminate threads on POSIX for compatibility with libs overriding
 pthread_exit or using pthread_cleanup_push
@@ -13,11 +13,13 @@ Make memory reallocation respect 32bit flag and fall back to alloc and copy
 
 Fix parsing of negative numbers in JSON/SJSON parser
 
-Unify macOS/iOS delegate window function to delegate_window
+Unify macOS/iOS delegate_nswindow and delegate_uiwindow functions to delegate_window
 
 Support using SetThreadDescription (if present) to set thread name on Windows
 
-Change MacOSX names and identifiers to macOS
+Change MacOSX platform names and identifiers to macOS (FOUNDATION_PLATFORM_MACOS)
+
+Fix race condition in ring buffer streams read/write
 
 
 1.5.3

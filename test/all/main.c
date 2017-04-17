@@ -88,7 +88,10 @@ test_event(event_t* event) {
 static void
 test_log_view_append(const char* msg, size_t length) {
 #if FOUNDATION_PLATFORM_IOS
-	test_text_view_append(delegate_uiwindow(), 1 , msg, length);
+	test_text_view_append(delegate_window(), 1 , msg, length);
+#if !BUILD_ENABLE_LOG
+	printf("%.*s", (int)length, msg);
+#endif
 #elif FOUNDATION_PLATFORM_ANDROID
 	jclass _test_log_class = 0;
 	jmethodID _test_log_append = 0;
