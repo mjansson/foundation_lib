@@ -21,6 +21,8 @@ Change MacOSX platform names and identifiers to macOS (FOUNDATION_PLATFORM_MACOS
 
 Fix race condition in ring buffer streams read/write
 
+Use C11 atomics for all compilers (except Microsoft) instead of builtin or own implementations
+
 
 1.5.3
 
