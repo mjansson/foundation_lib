@@ -55,7 +55,7 @@ DECLARE_TEST(json, reference) {
 		\"val\" :1.2345e45 \
 	} ,\"arr\" :[ \
 		\"string\",\
-		0.34523e-78,[\
+		-.34523e-78,[\
 			true, \
 			\"subarr [] {} =:\", { \"key\": []}, [] \
 		],[false],\
@@ -180,7 +180,7 @@ DECLARE_TEST(json, simplified) {
 		val =1.2345e45 \
 	} arr =[\
 		string\
-		0.34523e-78 [\
+		-.34523e-78 [\
 			true\
 			\"subarr [] {} =:\" { key: []} []\
 		] [false] \
@@ -197,7 +197,7 @@ DECLARE_TEST(json, simplified) {
 		\"val\" :1.2345e45 \
 	} ,\"arr\" :[ \
 		\"string\",\
-		0.34523e-78,[\
+		-.34523e-78,[\
 			true, \
 			\"subarr [] {} =:\", { \"key\": []}, [] \
 		],[false],\
