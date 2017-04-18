@@ -101,7 +101,7 @@ _atomic_allocate_initialize() {
 	_memory_temporary.maxchunk  = (storagesize / 8);
 	//We must avoid using storage address or tracking will incorrectly match temporary allocation
 	//with the full temporary memory storage
-	atomic_storeptr(&_memory_temporary.head, pointer_offset(_memory_temporary.storage, 8));
+	atomic_store_ptr(&_memory_temporary.head, pointer_offset(_memory_temporary.storage, 8));
 }
 
 static void
@@ -119,7 +119,7 @@ _atomic_allocate_linear(size_t chunksize) {
 	void* return_pointer = 0;
 
 	do {
-		old_head = atomic_loadptr(&_memory_temporary.head);
+		old_head = atomic_load_ptr(&_memory_temporary.head);
 		new_head = pointer_offset(old_head, chunksize);
 
 		return_pointer = old_head;
@@ -365,10 +365,12 @@ memory_thread_finalize(void) {
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER != 4)
-
 typedef long (*NtAllocateVirtualMemoryFn)(HANDLE, void**, ULONG, size_t*, ULONG, ULONG);
 static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
+#endif
 
+#if !FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER > 4)
+static atomicptr_t _memory_baseaddr;
 #endif
 
 static void*
@@ -502,14 +504,13 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	// 2) Move executable base address above 4Gb to free up more memory address space
 #define MMAP_REGION_START ((uintptr_t)0x10000)
 #define MMAP_REGION_END   ((uintptr_t)0x80000000)
-	static atomicptr_t baseaddr = { (void*)MMAP_REGION_START };
 	bool retried = false;
 	do {
-		raw_memory = mmap(atomic_loadptr(&baseaddr), allocate_size, PROT_READ | PROT_WRITE,
+		raw_memory = mmap(atomic_load_ptr(&_memory_baseaddr), allocate_size, PROT_READ | PROT_WRITE,
 		                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
 		if (((uintptr_t)raw_memory >= MMAP_REGION_START) &&
 		        (uintptr_t)(raw_memory + allocate_size) < MMAP_REGION_END) {
-			atomic_storeptr(&baseaddr, pointer_offset(raw_memory, allocate_size));
+			atomic_store_ptr(&_memory_baseaddr, pointer_offset(raw_memory, allocate_size));
 			break;
 		}
 		if (raw_memory && (raw_memory != MAP_FAILED)) {
@@ -521,7 +522,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 		if (retried)
 			break;
 		retried = true;
-		atomic_storeptr(&baseaddr, (void*)MMAP_REGION_START);
+		atomic_store_ptr(&_memory_baseaddr, (void*)MMAP_REGION_START);
 	}
 	while (true);
 #    else
@@ -732,6 +733,10 @@ _memory_initialize_malloc(void) {
 	NtAllocateVirtualMemory = (NtAllocateVirtualMemoryFn)GetProcAddress(GetModuleHandleA("ntdll.dll"),
 	                          "NtAllocateVirtualMemory");
 #endif
+#if !FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_SIZE_POINTER > 4 )
+	if (!atomic_load_ptr(&_memory_baseaddr))
+		atomic_store_ptr(&_memory_baseaddr, (void*)MMAP_REGION_START);
+#endif
 	return 0;
 }
 
@@ -845,11 +850,11 @@ _memory_tracker_finalize(void) {
 
 		for (it = 0; it < foundation_config().memory_tracker_max; ++it) {
 			memory_tag_t* tag = _memory_tags + it;
-			if (atomic_loadptr(&tag->address)) {
+			if (atomic_load_ptr(&tag->address)) {
 				char tracebuf[512];
 				string_t trace = stacktrace_resolve(tracebuf, sizeof(tracebuf), tag->trace,
 				                                    sizeof(tag->trace)/sizeof(tag->trace[0]), 0);
-				void* addr = atomic_loadptr(&tag->address);
+				void* addr = atomic_load_ptr(&tag->address);
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
 				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s"),
 				          tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str);
@@ -903,7 +908,7 @@ _memory_tracker_untrack(void* addr) {
 		int32_t iend = atomic_load32(&_memory_tag_next) % maxtag;
 		int32_t itag = iend ? iend - 1 : maxtag - 1;
 		while (true) {
-			void* tagaddr = atomic_loadptr(&_memory_tags[itag].address);
+			void* tagaddr = atomic_load_ptr(&_memory_tags[itag].address);
 			if (addr == tagaddr) {
 				tag = itag + 1;
 				size = _memory_tags[itag].size;
@@ -919,7 +924,7 @@ _memory_tracker_untrack(void* addr) {
 	}
 	if (tag && size) {
 		--tag;
-		atomic_storeptr(&_memory_tags[tag].address, 0);
+		atomic_store_ptr(&_memory_tags[tag].address, 0);
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		atomic_decr64(&_memory_stats.allocations_current);
 		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);

@@ -976,21 +976,31 @@ typedef   float32_t    real;
 #  endif
 #endif
 
+#if FOUNDATION_COMPILER_MSVC || defined(__STDC_NO_ATOMICS__)
+
 //Atomic types
 FOUNDATION_ALIGNED_STRUCT(atomic32_t, 4) {
-	int32_t nonatomic;
+	volatile int32_t nonatomic;
 };
 typedef struct atomic32_t atomic32_t;
 
 FOUNDATION_ALIGNED_STRUCT(atomic64_t, 8) {
-	int64_t nonatomic;
+	volatile int64_t nonatomic;
 };
 typedef struct atomic64_t atomic64_t;
 
 FOUNDATION_ALIGNED_STRUCT(atomicptr_t, FOUNDATION_SIZE_POINTER) {
-	void* nonatomic;
+	volatile void* nonatomic;
 };
 typedef struct atomicptr_t atomicptr_t;
+
+#else
+
+typedef volatile _Atomic(int32_t) atomic32_t;
+typedef volatile _Atomic(int64_t) atomic64_t;
+typedef volatile _Atomic(void*) atomicptr_t;
+
+#endif
 
 // Pointer arithmetic
 #define pointer_offset(ptr, ofs) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))

@@ -208,7 +208,7 @@ DECLARE_TEST(atomic, cas) {
 
 	EXPECT_EQ(atomic_load32(&val_32), 0);
 	EXPECT_EQ(atomic_load64(&val_64), 0);
-	EXPECT_EQ(atomic_loadptr(&val_ptr), 0);
+	EXPECT_EQ(atomic_load_ptr(&val_ptr), 0);
 
 	return 0;
 }

@@ -294,8 +294,10 @@ DECLARE_TEST(random, threads) {
 	int max_num = 0, min_num = 0x7FFFFFFF;
 	size_t i, j;
 	real diff;
-	memset(_test_thread_bits, 0, sizeof(atomic32_t) * 32);
-	memset(_test_thread_hist, 0, sizeof(atomic32_t) * 32);
+	for (i = 0; i < 32; ++i) {
+		atomic_store32(&_test_thread_bits[i], 0);
+		atomic_store32(&_test_thread_hist[i], 0);
+	}
 
 	for (i = 0; i < num_threads; ++i)
 		thread_initialize(&thread[i], random_thread, 0, STRING_CONST("random"), THREAD_PRIORITY_NORMAL, 0);

@@ -77,6 +77,7 @@ static uint64_t         _profile_num_blocks;
 static unsigned int     _profile_wait = 100;
 static thread_t         _profile_io_thread;
 static bool             _profile_initialized;
+static atomic32_t       _profile_has_warned;
 
 FOUNDATION_DECLARE_THREAD_LOCAL(int32_t, profile_block, 0)
 
@@ -97,8 +98,7 @@ _profile_allocate_block(void) {
 	while (free_block && !atomic_cas32(&_profile_free, next_block_tag, free_block_tag));
 
 	if (!free_block) {
-		static atomic32_t has_warned = {0};
-		if (atomic_cas32(&has_warned, 1, 0)) {
+		if (atomic_cas32(&_profile_has_warned, 1, 0)) {
 			if (_profile_num_blocks < 65535)
 				log_error(0, ERROR_OUT_OF_MEMORY,
 				          STRING_CONST("Profile blocks exhausted, increase profile memory block size"));
