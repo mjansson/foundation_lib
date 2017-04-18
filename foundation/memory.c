@@ -369,7 +369,7 @@ typedef long (*NtAllocateVirtualMemoryFn)(HANDLE, void**, ULONG, size_t*, ULONG,
 static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
 #endif
 
-#if !FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER > 4)
+#if !FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER > 4) && !defined(MAP_32BIT)
 static atomicptr_t _memory_baseaddr;
 #endif
 
@@ -733,7 +733,7 @@ _memory_initialize_malloc(void) {
 	NtAllocateVirtualMemory = (NtAllocateVirtualMemoryFn)GetProcAddress(GetModuleHandleA("ntdll.dll"),
 	                          "NtAllocateVirtualMemory");
 #endif
-#if !FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_SIZE_POINTER > 4 )
+#if !FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER > 4) && !defined(MAP_32BIT)
 	if (!atomic_load_ptr(&_memory_baseaddr))
 		atomic_store_ptr(&_memory_baseaddr, (void*)MMAP_REGION_START);
 #endif
