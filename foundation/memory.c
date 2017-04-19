@@ -489,6 +489,8 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #    endif
 
 	allocate_size = size + align + FOUNDATION_SIZE_POINTER * 2 + extra_padding;
+	if (allocate_size % 4096)
+		allocate_size += 4096 - (allocate_size % 4096);
 
 #ifndef MAP_UNINITIALIZED
 #define MAP_UNINITIALIZED 0
@@ -506,14 +508,27 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #define MMAP_REGION_END   ((uintptr_t)0x80000000)
 	bool retried = false;
 	do {
-		raw_memory = mmap(atomic_load_ptr(&_memory_baseaddr), allocate_size, PROT_READ | PROT_WRITE,
+		void* base_addr = atomic_load_ptr(&_memory_baseaddr);
+		raw_memory = mmap(base_addr, allocate_size, PROT_READ | PROT_WRITE,
 		                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
-		if (((uintptr_t)raw_memory >= MMAP_REGION_START) &&
-		        (uintptr_t)(raw_memory + allocate_size) < MMAP_REGION_END) {
+		if (raw_memory == MAP_FAILED) {
+			string_const_t errmsg = system_error_message(0);
+			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space (%" PRIfixPTR "): %.*s"),
+			           allocate_size, (uintptr_t)base_addr, STRING_FORMAT(errmsg));
+		}
+		else if (((uintptr_t)raw_memory >= MMAP_REGION_START) &&
+		            (uintptr_t)(raw_memory + allocate_size) < MMAP_REGION_END) {
 			atomic_store_ptr(&_memory_baseaddr, pointer_offset(raw_memory, allocate_size));
 			break;
 		}
-		if (raw_memory && (raw_memory != MAP_FAILED)) {
+		else {
+			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space (%" PRIfixPTR "): Got address out of range (%" PRIfixPTR ")"),
+			           allocate_size, (uintptr_t)base_addr, (uintptr_t)raw_memory);
+#if FOUNDATION_PLATFORM_MACOS
+			log_info(HASH_MEMORY, STRING_CONST("Make sure application is be linked with \"-pagezero_size 10000 -image_base 100000000\""));
+#endif
 			if (munmap(raw_memory, allocate_size) < 0)
 				log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
 				         STRING_CONST("Failed to munmap pages outside 32-bit range"));
@@ -542,10 +557,9 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	}
 #    endif
 	if (!raw_memory) {
-		string_const_t errmsg = system_error_message(0);
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory in low 32bit address space: %.*s"),
-		           size, STRING_FORMAT(errmsg));
+		           STRING_CONST("Unable to allocate %" PRIsize " bytes (%" PRIsize " requested) of memory in low 32bit address space"),
+		           size, allocate_size);
 		return 0;
 	}
 

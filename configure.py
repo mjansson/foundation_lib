@@ -77,4 +77,7 @@ else:
   #Build one binary per test case
   generator.bin(module = 'all', sources = sources, binname = 'test-all', basepath = 'test', implicit_deps = [foundation_lib], libs = ['foundation'], includepaths = includepaths)
   for test in test_cases:
-    generator.bin(module = test, sources = sources, binname = 'test-' + test, basepath = 'test', implicit_deps = [foundation_lib, test_lib], libs = ['test', 'foundation'], includepaths = includepaths)
+    variables = None
+    if test == 'app' and target.is_macos():
+      variables = {"support_lua" : True}
+    generator.bin(module = test, sources = sources, binname = 'test-' + test, basepath = 'test', implicit_deps = [foundation_lib, test_lib], libs = ['test', 'foundation'], includepaths = includepaths, variables = variables)
