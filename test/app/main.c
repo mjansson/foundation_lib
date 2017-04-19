@@ -134,6 +134,14 @@ DECLARE_TEST(app, memory) {
 	EXPECT_SIZEEQ(oldstats.allocated_current, newstats.allocated_current);
 #endif
 
+	void* lowptr = memory_allocate(0, 32 * 1024 + 32, 16,
+	                               MEMORY_ZERO_INITIALIZED | MEMORY_PERSISTENT | MEMORY_32BIT_ADDRESS);
+	EXPECT_NE(lowptr, nullptr);
+	EXPECT_EQ((uintptr_t)lowptr & 0xF, 0);
+	EXPECT_LT((uint64_t)(uintptr_t)lowptr, 0x100000000ULL);
+	EXPECT_EQ(*(unsigned int*)lowptr, 0);
+	memory_deallocate(lowptr);
+
 	return 0;
 }
 
