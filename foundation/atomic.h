@@ -366,7 +366,7 @@ atomic_load64(const atomic64_t* val) {
 
 static FOUNDATION_FORCEINLINE void*
 atomic_load_ptr(const atomicptr_t* val) {
-	return val->nonatomic;
+	return (void*)val->nonatomic;
 }
 
 static FOUNDATION_FORCEINLINE void
