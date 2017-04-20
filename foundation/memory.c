@@ -514,7 +514,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 		if (raw_memory == MAP_FAILED) {
 			string_const_t errmsg = system_error_message(0);
 			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space (%" PRIfixPTR "): %.*s"),
+			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space @ 0x%" PRIfixPTR ": %.*s"),
 			           allocate_size, (uintptr_t)base_addr, STRING_FORMAT(errmsg));
 		}
 		else if (((uintptr_t)raw_memory >= MMAP_REGION_START) &&
@@ -524,7 +524,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 		}
 		else {
 			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space (%" PRIfixPTR "): Got address out of range (%" PRIfixPTR ")"),
+			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space @ 0x%" PRIfixPTR ": Got address out of range 0x%" PRIfixPTR ""),
 			           allocate_size, (uintptr_t)base_addr, (uintptr_t)raw_memory);
 #if FOUNDATION_PLATFORM_MACOS
 			log_info(HASH_MEMORY, STRING_CONST("Make sure application is be linked with \"-pagezero_size 10000 -image_base 100000000\""));

@@ -35,6 +35,7 @@ if not target.is_ios() and not target.is_android() and not target.is_tizen():
 
 includepaths = ['test']
 test_lib = generator.lib(module = 'test', basepath = 'test', sources = ['test.c', 'test.m'], includepaths = includepaths)
+mock_lib = generator.lib(module = 'mock', basepath = 'test', sources = ['mock.c'], includepaths = includepaths)
 
 test_cases = [
   'app', 'array', 'atomic', 'base64', 'beacon', 'bitbuffer', 'blowfish', 'bufferstream', 'environment', 'error',
@@ -80,4 +81,4 @@ else:
     variables = None
     if test == 'app' and target.is_macos():
       variables = {"support_lua" : True}
-    generator.bin(module = test, sources = sources, binname = 'test-' + test, basepath = 'test', implicit_deps = [foundation_lib, test_lib], libs = ['test', 'foundation'], includepaths = includepaths, variables = variables)
+    generator.bin(module = test, sources = sources, binname = 'test-' + test, basepath = 'test', implicit_deps = [foundation_lib, test_lib, mock_lib], libs = ['test', 'foundation', 'mock'], includepaths = includepaths, variables = variables)
