@@ -18,71 +18,167 @@
 
 #include <sys/mman.h>
 #include <dlfcn.h>
+#include <errno.h>
+#include <unistd.h>
 
-static bool  mmap_is_mocked;
-static void* mmap_return_value;
-static int   mmap_errno;
-
-static bool  munmap_is_mocked;
-static int   munmap_return_value;
-static int   munmap_errno;
-
-void*
-mmap(void* addr, size_t len, int prot, int flags, int fd, off_t offset) {
-	if (mmap_is_mocked) {
-		errno = mmap_errno;
-		return mmap_return_value;
-	}
-#if defined(__linux__) || defined(__APPLE__)
-	char fname[] = "mmap";
-#else
-	char fname[] = "_mmap";
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic ignored "-Winvalid-noreturn"
 #endif
-	static void* real_mmap = 0;
-	if (!real_mmap)
-		real_mmap = dlsym(RTLD_NEXT, fname);
-	return (*(void* (*)(void*, size_t, int, int, int, off_t))real_mmap)(addr, len, prot, flags, fd, offset);
+
+#define ADD_MOCK_BASE(fn, ret) \
+static bool fn##_is_mocked; \
+static ret  fn##_return_value; \
+static int  fn##_errno
+
+#define ADD_MOCK_NORET_BASE(fn) \
+static bool fn##_is_mocked; \
+static int  fn##_errno
+
+#define ADD_MOCK_LOOKUP(fn) \
+	static void* real_##fn = 0; \
+	if (!real_##fn) \
+		real_##fn = dlsym(RTLD_NEXT, #fn)
+
+#define ADD_MOCK_IMPL(fn) \
+	if (fn##_is_mocked) { \
+		errno = fn##_errno; \
+		return fn##_return_value; \
+	} \
+	ADD_MOCK_LOOKUP(fn)
+
+#define ADD_MOCK_NORET_IMPL(fn) \
+	if (fn##_is_mocked) { \
+		errno = fn##_errno; \
+		return; \
+	} \
+	ADD_MOCK_LOOKUP(fn)
+
+#define ADD_MOCK_TOGGLES(fn, ret) \
+void \
+fn##_mock(ret return_value, int err) { \
+	fn##_is_mocked = true; \
+	fn##_return_value = return_value; \
+	fn##_errno = err; \
+} \
+void \
+fn##_unmock(void) { \
+	fn##_is_mocked = false; \
 }
 
+#define ADD_MOCK_NORET_TOGGLES(fn) \
+void \
+fn##_mock(int err) { \
+	fn##_is_mocked = true; \
+	fn##_errno = err; \
+} \
+void \
+fn##_unmock(void) { \
+	fn##_is_mocked = false; \
+}
+
+#define ADD_MOCK_0(fn, ret) \
+ADD_MOCK_BASE(fn, ret); \
+ret \
+fn(void) { \
+	ADD_MOCK_IMPL(fn); \
+	return (*(ret (*)())real_##fn)(); \
+} \
+ADD_MOCK_TOGGLES(fn, ret)
+/*
+#define ADD_MOCK_1(fn, ret, type0) \
+ADD_MOCK_BASE(fn, ret); \
+ret \
+fn(type0 arg0) { \
+	ADD_MOCK_IMPL(fn); \
+	return (*(ret (*)(type0))real_##fn)(arg0); \
+} \
+ADD_MOCK_TOGGLES(fn, ret)
+*/
+#define ADD_MOCK_NORET_1(fn, type0) \
+ADD_MOCK_NORET_BASE(fn); \
+void \
+fn(type0 arg0) { \
+	ADD_MOCK_NORET_IMPL(fn); \
+	(*(void (*)(type0))real_##fn)(arg0); \
+} \
+ADD_MOCK_NORET_TOGGLES(fn)
+
+#define ADD_MOCK_2(fn, ret, type0, type1) \
+ADD_MOCK_BASE(fn, ret); \
+ret \
+fn(type0 arg0, type1 arg1) { \
+	ADD_MOCK_IMPL(fn); \
+	return (*(ret (*)(type0, type1))real_##fn)(arg0, arg1); \
+} \
+ADD_MOCK_TOGGLES(fn, ret)
+
+#define ADD_MOCK_3(fn, ret, type0, type1, type2) \
+ADD_MOCK_BASE(fn, ret); \
+ret \
+fn(type0 arg0, type1 arg1, type2 arg2) { \
+	ADD_MOCK_IMPL(fn); \
+	return (*(ret (*)(type0, type1, type2))real_##fn)(arg0, arg1, arg2); \
+} \
+ADD_MOCK_TOGGLES(fn, ret)
+/*
+#define ADD_MOCK_4(fn, ret, type0, type1, type2, type3) \
+ADD_MOCK_BASE(fn, ret); \
+ret \
+fn(type0 arg0, type1 arg1, type2 arg2, type3 arg3) { \
+	ADD_MOCK_IMPL(fn); \
+	return (*(ret (*)(type0, type1, type2, type3))real_##fn)(arg0, arg1, arg2, arg3); \
+} \
+ADD_MOCK_TOGGLES(fn, ret)
+
+#define ADD_MOCK_5(fn, ret, type0, type1, type2, type3, type4) \
+ADD_MOCK_BASE(fn, ret); \
+ret \
+fn(type0 arg0, type1 arg1, type2 arg2, type3 arg3, type4 arg4) { \
+	ADD_MOCK_IMPL(fn); \
+	return (*(ret (*)(type0, type1, type2, type3, type4))real_##fn)(arg0, arg1, arg2, arg3, arg4); \
+} \
+ADD_MOCK_TOGGLES(fn, ret)
+*/
+#define ADD_MOCK_6(fn, ret, type0, type1, type2, type3, type4, type5) \
+ADD_MOCK_BASE(fn, ret); \
+ret \
+fn(type0 arg0, type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5) { \
+	ADD_MOCK_IMPL(fn); \
+	return (*(ret (*)(type0, type1, type2, type3, type4, type5))real_##fn)(arg0, arg1, arg2, arg3, arg4, arg5); \
+} \
+ADD_MOCK_TOGGLES(fn, ret)
+
+ADD_MOCK_6(mmap, void*, void*, size_t, int, int, int, off_t)
+ADD_MOCK_2(munmap, int, void*, size_t)
+
+ADD_MOCK_0(fork, pid_t)
+ADD_MOCK_2(execv, int, const char*, char* const*)
+void tmpexit(int);
+void tmpexit_mock(int);
+void tmpexit_unmock(void);
+ADD_MOCK_NORET_1(tmpexit, int)
+ADD_MOCK_3(waitpid, pid_t, pid_t, int*, int)
+
+static bool exit_is_mocked;
+static jmp_buf exit_jmp;
 void
-mmap_mock(void* return_value, int err) {
-	mmap_is_mocked = true;
-	mmap_return_value = return_value;
-	mmap_errno = err;
-}
-
-void
-mmap_unmock(void) {
-	mmap_is_mocked = false;
-}
-
-int
-munmap(void* addr, size_t size) {
-	if (munmap_is_mocked) {
-		errno = munmap_errno;
-		return munmap_return_value;
+exit(int arg0) {
+	if (exit_is_mocked) {
+		longjmp(exit_jmp, arg0);
 	}
-#if defined(__linux__) || defined(__APPLE__)
-	char fname[] = "munmap";
-#else
-	char fname[] = "_munmap";
-#endif
-	static void* real_munmap = 0;
-	if (!real_munmap)
-		real_munmap = dlsym(RTLD_NEXT, fname);
-	return (*(int (*)(void*, size_t))real_munmap)(addr, size);
+	ADD_MOCK_LOOKUP(exit);
+	(*(void (*)(int))real_exit)(arg0);
 }
 
 void
-munmap_mock(int return_value, int err) {
-	munmap_is_mocked = true;
-	munmap_return_value = return_value;
-	munmap_errno = err;
+exit_mock(jmp_buf target) {
+	exit_is_mocked = true;
+	memcpy(exit_jmp, target, sizeof(jmp_buf));
 }
 
 void
-munmap_unmock(void) {
-	munmap_is_mocked = false;
+exit_unmock(void) {
+	exit_is_mocked = false;
 }
 
 #elif FOUNDATION_PLATFORM_WINDOWS

@@ -242,7 +242,7 @@ _exception_sigaction(int sig, siginfo_t* info, void* arg) {
 	//sigaction(sig, 0, 0);
 	signal(sig, SIG_DFL);
 	raise(sig);
-	process_exit(-1);
+	_exit(-1);
 }
 
 #endif
@@ -374,7 +374,6 @@ _exception_finalize(void) {
 #endif
 }
 
-static char* _illegal_ptr;
 
 void
 exception_raise_debug_break(void) {
@@ -390,6 +389,11 @@ exception_raise_debug_break(void) {
 
 void
 exception_raise_abort(void) {
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+	__builtin_trap();
+#else
+	static char* _illegal_ptr;
 	*_illegal_ptr = 1;
 	process_exit(-1);
+#endif
 }

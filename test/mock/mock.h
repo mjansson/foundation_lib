@@ -15,6 +15,8 @@
 #if FOUNDATION_PLATFORM_POSIX
 
 #include <sys/mman.h>
+#include <unistd.h>
+#include <setjmp.h>
 
 void
 mmap_mock(void* return_value, int err);
@@ -27,6 +29,30 @@ munmap_mock(int return_value, int err);
 
 void
 munmap_unmock(void);
+
+void
+fork_mock(pid_t return_value, int err);
+
+void
+fork_unmock(void);
+
+void
+waitpid_mock(pid_t return_value, int err);
+
+void
+waitpid_unmock(void);
+
+void
+execv_mock(int return_value, int err);
+
+void
+execv_unmock(void);
+
+void
+exit_mock(jmp_buf target);
+
+void
+exit_unmock(void);
 
 #elif FOUNDATION_PLATFORM_WINDOWS
 

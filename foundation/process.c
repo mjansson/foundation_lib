@@ -439,7 +439,10 @@ process_spawn(process_t* proc) {
 	proc->args[0] = string_clone(STRING_ARGS(proc->path));
 	proc->args[argc] = (string_t) { 0, 0 };
 
-	char** argv = memory_allocate(0, sizeof(char*) * (argc + 1), 0, MEMORY_PERSISTENT);
+	char* argv_stack[16];
+	char** argv = argv_stack;
+	if (argc >= (sizeof(argv_stack) / sizeof(argv_stack[0])))
+		argv = memory_allocate(0, sizeof(char*) * (argc + 1), 0, MEMORY_PERSISTENT);
 	for (arg = 0; arg < argc; ++arg)
 		argv[arg] = proc->args[arg].str;
 	argv[argc] = 0;
@@ -483,10 +486,10 @@ process_spawn(process_t* proc) {
 		           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d) (%d)"),
 			       STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
 		process_exit(PROCESS_EXIT_FAILURE);
-		FOUNDATION_UNUSED(code);
 	}
 
-	memory_deallocate(argv);
+	if (argv != argv_stack)
+		memory_deallocate(argv);
 
 	if (pid > 0) {
 		//log_debugf(0, STRING_CONST("Child process forked, pid %d"), pid);
@@ -534,7 +537,7 @@ process_spawn(process_t* proc) {
 		proc->pipeout = 0;
 		proc->pipeerr = 0;
 		proc->pipein = 0;
-		proc->code = PROCESS_INVALID_ARGS;
+		proc->code = PROCESS_SYSTEM_CALL_FAILED;
 
 		return proc->code;
 	}
@@ -703,8 +706,8 @@ process_set_exit_code(int code) {
 	_process_exit_code = code;
 }
 
-void FOUNDATION_ATTRIBUTE(noreturn)
+void
 process_exit(int code) {
-	_exit(code);
+	exit(code);
 }
 

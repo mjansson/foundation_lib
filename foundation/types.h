@@ -389,19 +389,21 @@ an error occurs during spawning */
 #define PROCESS_MACOS_USE_OPENAPPLICATION (1U<<4)
 
 /*! Process exit code, returned when given invalid arguments */
-#define PROCESS_INVALID_ARGS      0x7FFFFFF0
+#define PROCESS_INVALID_ARGS       0x7FFFFFF0
 /*! Process exit code, returned when process was terminated by signal */
-#define PROCESS_TERMINATED_SIGNAL 0x7FFFFFF1
+#define PROCESS_TERMINATED_SIGNAL  0x7FFFFFF1
 /*! Process exit code, returned when process wait was interrupted */
-#define PROCESS_WAIT_INTERRUPTED  0x7FFFFFF2
+#define PROCESS_WAIT_INTERRUPTED   0x7FFFFFF2
 /*! Process exit code, returned when process wait failed for unknown reasons */
-#define PROCESS_WAIT_FAILED       0x7FFFFFF3
+#define PROCESS_WAIT_FAILED        0x7FFFFFF3
+/*! Process exit code, returned when spawn system calls failed */
+#define PROCESS_SYSTEM_CALL_FAILED 0x7FFFFFF4
 /*! Process exit code, returned when detached process is still running */
-#define PROCESS_STILL_ACTIVE      0x7FFFFFFF
+#define PROCESS_STILL_ACTIVE       0x7FFFFFFF
 /*! Process exit code, generic failure */
-#define PROCESS_EXIT_FAILURE      EXIT_FAILURE
+#define PROCESS_EXIT_FAILURE       EXIT_FAILURE
 /*! Process exit code, generic success */
-#define PROCESS_EXIT_SUCCESS      EXIT_SUCCESS
+#define PROCESS_EXIT_SUCCESS       EXIT_SUCCESS
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86

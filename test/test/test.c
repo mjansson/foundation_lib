@@ -342,7 +342,7 @@ test_wait_for_threads_join(thread_t* threads, size_t num_threads) {
 		thread_join(threads + i);
 }
 
-void
+void FOUNDATION_ATTRIBUTE(noreturn)
 test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);

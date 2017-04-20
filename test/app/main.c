@@ -146,11 +146,11 @@ DECLARE_TEST(app, memory) {
 	return 0;
 }
 
-DECLARE_TEST(app, error_handling) {
+DECLARE_TEST(app, failure) {
 #if FOUNDATION_SIZE_POINTER > 4
-#if FOUNDATION_PLATFORM_POSIX
 	error_level_t last_log_suppress = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_ERROR);
+#if FOUNDATION_PLATFORM_POSIX
 	//Try outright failure
 	mmap_mock(MAP_FAILED, EINVAL);
 	void* lowptr_fail = memory_allocate(0, 32 * 1024 + 32, 16,
@@ -165,12 +165,12 @@ DECLARE_TEST(app, error_handling) {
 	                               MEMORY_ZERO_INITIALIZED | MEMORY_PERSISTENT | MEMORY_32BIT_ADDRESS);
 	munmap_unmock();
 	mmap_unmock();
-	log_set_suppress(0, last_log_suppress);
 
 	EXPECT_EQ(lowptr_fail, nullptr);
 	EXPECT_EQ(lowptr_outofrange, nullptr);
 	EXPECT_EQ(lowptr_allfail, nullptr);
 #endif
+	log_set_suppress(0, last_log_suppress);
 #endif
 	return 0;
 }
@@ -281,7 +281,7 @@ static void
 test_app_declare(void) {
 	ADD_TEST(app, environment);
 	ADD_TEST(app, memory);
-	ADD_TEST(app, error_handling);
+	ADD_TEST(app, failure);
 	ADD_TEST(app, thread);
 }
 

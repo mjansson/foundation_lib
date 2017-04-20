@@ -12,6 +12,7 @@
 
 #include <foundation/foundation.h>
 #include <test/test.h>
+#include <mock/mock.h>
 
 static application_t
 test_process_application(void) {
@@ -196,10 +197,15 @@ DECLARE_TEST(process, kill) {
 	process_set_working_directory(proc, STRING_ARGS(environment_current_working_directory()));
 	process_set_executable_path(proc, STRING_ARGS(environment_executable_path()));
 	process_set_arguments(proc, args, sizeof(args) / sizeof(args[0]));
-	process_set_flags(proc, PROCESS_DETACHED);
+	process_set_flags(proc, PROCESS_DETACHED | PROCESS_STDSTREAMS);
 
 	ret = process_spawn(proc);
 	EXPECT_INTEQ(ret, PROCESS_STILL_ACTIVE);
+	EXPECT_INTEQ(process_wait(proc), PROCESS_STILL_ACTIVE);
+
+	EXPECT_NE(process_stdin(proc), nullptr);
+	EXPECT_NE(process_stdout(proc), nullptr);
+	EXPECT_NE(process_stderr(proc), nullptr);
 
 	thread_sleep(500);
 
@@ -232,10 +238,74 @@ DECLARE_TEST(process, kill) {
 	return 0;
 }
 
+DECLARE_TEST(process, failure) {
+	process_t proc;
+
+	process_initialize(&proc);
+	EXPECT_EQ(process_spawn(&proc), PROCESS_INVALID_ARGS);
+	process_finalize(&proc);
+
+	process_deallocate(0);
+
+	string_const_t args[] = { string_const(STRING_CONST("wait for kill")), string_null() };
+	int ret;
+
+	process_initialize(&proc);
+	process_set_working_directory(&proc, STRING_ARGS(environment_current_working_directory()));
+	process_set_executable_path(&proc, STRING_ARGS(environment_executable_path()));
+	process_set_arguments(&proc, args, sizeof(args) / sizeof(args[0]));
+	process_set_flags(&proc, PROCESS_DETACHED);
+
+	error_level_t last_log_suppress = log_suppress(0);
+	log_set_suppress(0, ERRORLEVEL_ERROR);
+#if FOUNDATION_PLATFORM_POSIX
+
+	fork_mock(-1, ENOMEM);
+	ret = process_spawn(&proc);
+	fork_unmock();
+	EXPECT_INTEQ(ret, PROCESS_SYSTEM_CALL_FAILED);
+
+	fork_mock(0, 0);
+	execv_mock(0, EINVAL);
+	jmp_buf exit_target;
+	ret = setjmp(exit_target);
+	if (ret == 0) {
+		exit_mock(exit_target);
+		process_spawn(&proc);
+	}
+	exit_unmock();
+	execv_unmock();
+	fork_unmock();
+	EXPECT_INTEQ(ret, PROCESS_EXIT_FAILURE);
+
+	ret = process_spawn(&proc);
+	thread_sleep(500);
+	waitpid_mock(-1, EINTR);
+	EXPECT_INTEQ(process_wait(&proc), PROCESS_WAIT_INTERRUPTED);
+	waitpid_mock(-1, ECHILD);
+	EXPECT_INTEQ(process_wait(&proc), PROCESS_WAIT_FAILED);
+	waitpid_unmock();
+
+	EXPECT_TRUE(process_kill(&proc));
+
+	thread_sleep(500);
+
+	ret = process_wait(&proc);
+	EXPECT_INTEQ(ret, PROCESS_TERMINATED_SIGNAL);
+
+#endif
+	log_set_suppress(0, last_log_suppress);
+
+	process_finalize(&proc);
+
+	return 0;
+}
+
 static void
 test_process_declare(void) {
 	ADD_TEST(process, spawn);
 	ADD_TEST(process, kill);
+	ADD_TEST(process, failure);
 }
 
 static test_suite_t test_process_suite = {

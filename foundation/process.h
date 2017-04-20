@@ -133,5 +133,4 @@ process_exit_code(void);
 /*! Terminate current process with given code.
 \param code Exit code */
 FOUNDATION_API void
-process_exit(int code)
-FOUNDATION_ATTRIBUTE(noreturn);
+process_exit(int code) FOUNDATION_ATTRIBUTE(noreturn);

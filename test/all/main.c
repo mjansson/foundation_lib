@@ -129,7 +129,7 @@ test_log_handler(hash_t context, error_level_t severity, const char* msg, size_t
 
 #if !BUILD_MONOLITHIC
 
-void
+void FOUNDATION_ATTRIBUTE(noreturn)
 test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
