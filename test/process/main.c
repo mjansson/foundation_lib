@@ -189,7 +189,15 @@ DECLARE_TEST(process, spawn) {
 
 DECLARE_TEST(process, kill) {
 	process_t* proc;
-	string_const_t args[] = { string_const(STRING_CONST("wait for kill")), string_null() };
+	string_const_t args[] = {
+		string_const(STRING_CONST("wait for kill")), string_const(STRING_CONST("another arg")),
+		string_const(STRING_CONST("1234")), string_const(STRING_CONST("--")), string_const(STRING_CONST("----")),
+		string_const(STRING_CONST("foo")), string_const(STRING_CONST("bar")), string_const(STRING_CONST("--foo--")),
+		string_const(STRING_CONST("- -- - -- -")), string_const(STRING_CONST("qwerty")), string_const(STRING_CONST("_!\"\"'")),
+		string_const(STRING_CONST("   ")), string_const(STRING_CONST("+-")), string_const(STRING_CONST(" --")),
+		string_const(STRING_CONST("^	")), string_const(STRING_CONST("\\")), string_const(STRING_CONST("#$|")), 
+		string_const(STRING_CONST("<< >>")), string_const(STRING_CONST(">/dev/null")), string_const(STRING_CONST("lastarg")),
+		string_null() };
 	int ret;
 
 	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID) ||

@@ -14,9 +14,12 @@
 
 #if FOUNDATION_PLATFORM_POSIX
 
+#include <foundation/posix.h>
+
 #include <sys/mman.h>
 #include <unistd.h>
 #include <setjmp.h>
+#include <semaphore.h>
 
 void
 mmap_mock(void* return_value, int err);
@@ -53,6 +56,22 @@ dup2_mock(int return_value, int err);
 
 void
 dup2_unmock(void);
+
+#if !FOUNDATION_PLATFORM_APPLE
+
+void
+sem_init_mock(int return_value, int err);
+
+void
+sem_init_unmock(void);
+
+void
+sem_open_mock(sem_t* return_value, int err);
+
+void
+sem_open_unmock(void);
+
+#endif
 
 void
 exit_mock(jmp_buf target);

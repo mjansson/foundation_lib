@@ -23,16 +23,18 @@ https://en.wikipedia.org/wiki/Semaphore_(programming) */
 
 /*! Initialize unnamed semaphore with the given value.
 \param semaphore Semaphore
-\param value Initial value */
-FOUNDATION_API void
+\param value Initial value
+\return true if successful, false if error */
+FOUNDATION_API bool
 semaphore_initialize(semaphore_t* semaphore, unsigned int value);
 
 /*! Initialize a named semaphore with the given value.
 \param semaphore Semaphore
 \param name Global name
 \param length Length of name
-\param value Initial value */
-FOUNDATION_API void
+\param value Initial value
+\return true if successful, false if error */
+FOUNDATION_API bool
 semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
                            unsigned int value);
 

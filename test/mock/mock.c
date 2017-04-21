@@ -22,6 +22,10 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 
+#if !FOUNDATION_PLATFORM_APPLE
+#include <semaphore.h>
+#endif
+
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic ignored "-Winvalid-noreturn"
 #endif
@@ -82,7 +86,7 @@ ADD_MOCK_BASE(fn, ret); \
 ret \
 fn(void) { \
 	ADD_MOCK_IMPL(fn); \
-	return (*(ret (*)())real_##fn)(); \
+	return (*(ret (*)(void))real_##fn)(); \
 } \
 ADD_MOCK_TOGGLES(fn, ret)
 /*
@@ -157,6 +161,30 @@ ADD_MOCK_2(execv, int, const char*, char* const*)
 ADD_MOCK_3(waitpid, pid_t, pid_t, int*, int)
 
 ADD_MOCK_2(dup2, int, int, int)
+
+#if !FOUNDATION_PLATFORM_APPLE
+ADD_MOCK_3(sem_init, int, sem_t*, int, unsigned int)
+
+ADD_MOCK_BASE(sem_open, sem_t*);
+sem_t*
+sem_open(const char* arg0, int arg1, ...) {
+	if (sem_open_is_mocked) {
+		errno = sem_open_errno;
+		return sem_open_return_value;
+	}
+	static void* real_sem_open = 0;
+	if (!real_sem_open)
+		real_sem_open = dlsym(RTLD_NEXT, "sem_open");
+	va_list arglist;
+	va_start(arglist, arg1);
+	mode_t arg2 = va_arg(arglist, mode_t);
+	unsigned int arg3 = va_arg(arglist, unsigned int);
+	sem_t* retval = (*(sem_t* (*)(const char*, int, ...))real_sem_open)(arg0, arg1, arg2, arg3);
+	va_end(arglist);
+	return retval;
+}
+ADD_MOCK_TOGGLES(sem_open, sem_t*)
+#endif
 
 static bool exit_is_mocked;
 static jmp_buf exit_jmp;

@@ -45,13 +45,14 @@ extern int MPWaitOnSemaphore(MPSemaphoreID, int);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-void
+bool
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 	*semaphore = CreateSemaphoreA(0, (long)value, 0xFFFF, 0); //lint !e970
+	return (*semaphore) != 0 ? true : false;
 }
 
-void
+bool
 semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
                            unsigned int value) {
 	FOUNDATION_ASSERT(name);
@@ -59,6 +60,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 	char buffer[128];
 	string_t namestr = string_copy(buffer, sizeof(buffer), name, length);
 	*semaphore = CreateSemaphoreA(0, (long)value, 0xFFFF, namestr.str); //lint !e970
+	return (*semaphore) != 0 ? true : false;
 }
 
 void
@@ -94,7 +96,7 @@ semaphore_event_handle(semaphore_t* semaphore) {
 //unnamed - dispatch_semaphore_create
 //named - sem_open
 
-void
+bool
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 
@@ -106,11 +108,12 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize unnamed semaphore: %.*s"),
 		           STRING_FORMAT(errmsg));
 		FOUNDATION_ASSERT_FAIL("Unable to initialize unnamed semaphore");
-		return;
+		return false;
 	}
+	return true;
 }
 
-void
+bool
 semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
                            unsigned int value) {
 	FOUNDATION_ASSERT(name);
@@ -127,10 +130,11 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 		           STRING_CONST("Unable to initialize named semaphore (sem_open '%.*s'): %.*s"),
 		           STRING_FORMAT(semaphore->name), STRING_FORMAT(errmsg));
+		return false;
 	}
-	else {
-		semaphore->sem.named = sem;
-	}
+
+	semaphore->sem.named = sem;
+	return true;
 }
 
 void
@@ -212,7 +216,7 @@ semaphore_post(semaphore_t* semaphore) {
 //unnamed - dispatch_semaphore_t
 //named - UNSUPPORTED
 
-void
+bool
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 	*semaphore = dispatch_semaphore_create((long)value);
@@ -221,10 +225,12 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize semaphore: %.*s"),
 		           STRING_FORMAT(errmsg));
+		return false;
 	}
+	return true;
 }
 
-void
+bool
 semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
                            unsigned int value) {
 	FOUNDATION_ASSERT_FAIL("Named semaphores not supported on this platform");
@@ -232,6 +238,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 	FOUNDATION_UNUSED(name);
 	FOUNDATION_UNUSED(length);
 	FOUNDATION_UNUSED(value);
+	return false;
 }
 
 void
@@ -261,7 +268,7 @@ semaphore_post(semaphore_t* semaphore) {
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-void
+bool
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 
@@ -272,43 +279,43 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize semaphore: %.*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
-		return;
+		return false;
 	}
 
 	semaphore->sem = &semaphore->unnamed;
+	return true;
 }
 
-void
+bool
 semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
                            unsigned int value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 
-#if FOUNDATION_PLATFORM_BSD
 	if (name && (length > 0) && (name[0] != '/'))
-		semaphore->name = string_allocate_format(STRING_CONST("/%s"), name);
+		semaphore->name = string_allocate_format(STRING_CONST("/%.*s"), (int)length, name);
 	else
-#endif
 		semaphore->name = string_clone(name, length);
 
 	native_sem_t* sem = SEM_FAILED;
 
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_ASSERT_FAIL("Named semaphores not supported on this platform");
+	return false;
 #else
 	sem = sem_open(semaphore->name.str, O_CREAT, (mode_t)0666, value);
-
 	if (sem == SEM_FAILED) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 		           STRING_CONST("Unable to initialize named semaphore (sem_open '%.*s'): %.*s (%d)"),
 		           STRING_FORMAT(semaphore->name), STRING_FORMAT(errmsg), err);
-		return;
+		return false;
 	}
-#endif
 
 	semaphore->sem = (semaphore_native_t*)sem;
+	return true;
+#endif
 }
 
 void
