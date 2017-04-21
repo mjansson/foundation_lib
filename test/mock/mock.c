@@ -30,11 +30,11 @@
 static bool fn##_is_mocked; \
 static ret  fn##_return_value; \
 static int  fn##_errno
-
+/*
 #define ADD_MOCK_NORET_BASE(fn) \
 static bool fn##_is_mocked; \
 static int  fn##_errno
-
+*/
 #define ADD_MOCK_LOOKUP(fn) \
 	static void* real_##fn = 0; \
 	if (!real_##fn) \
@@ -46,14 +46,14 @@ static int  fn##_errno
 		return fn##_return_value; \
 	} \
 	ADD_MOCK_LOOKUP(fn)
-
+/*
 #define ADD_MOCK_NORET_IMPL(fn) \
 	if (fn##_is_mocked) { \
 		errno = fn##_errno; \
 		return; \
 	} \
 	ADD_MOCK_LOOKUP(fn)
-
+*/
 #define ADD_MOCK_TOGGLES(fn, ret) \
 void \
 fn##_mock(ret return_value, int err) { \
@@ -65,7 +65,7 @@ void \
 fn##_unmock(void) { \
 	fn##_is_mocked = false; \
 }
-
+/*
 #define ADD_MOCK_NORET_TOGGLES(fn) \
 void \
 fn##_mock(int err) { \
@@ -76,7 +76,7 @@ void \
 fn##_unmock(void) { \
 	fn##_is_mocked = false; \
 }
-
+*/
 #define ADD_MOCK_0(fn, ret) \
 ADD_MOCK_BASE(fn, ret); \
 ret \
@@ -94,7 +94,7 @@ fn(type0 arg0) { \
 	return (*(ret (*)(type0))real_##fn)(arg0); \
 } \
 ADD_MOCK_TOGGLES(fn, ret)
-*/
+
 #define ADD_MOCK_NORET_1(fn, type0) \
 ADD_MOCK_NORET_BASE(fn); \
 void \
@@ -103,7 +103,7 @@ fn(type0 arg0) { \
 	(*(void (*)(type0))real_##fn)(arg0); \
 } \
 ADD_MOCK_NORET_TOGGLES(fn)
-
+*/
 #define ADD_MOCK_2(fn, ret, type0, type1) \
 ADD_MOCK_BASE(fn, ret); \
 ret \
@@ -154,11 +154,9 @@ ADD_MOCK_2(munmap, int, void*, size_t)
 
 ADD_MOCK_0(fork, pid_t)
 ADD_MOCK_2(execv, int, const char*, char* const*)
-void tmpexit(int);
-void tmpexit_mock(int);
-void tmpexit_unmock(void);
-ADD_MOCK_NORET_1(tmpexit, int)
 ADD_MOCK_3(waitpid, pid_t, pid_t, int*, int)
+
+ADD_MOCK_2(dup2, int, int, int)
 
 static bool exit_is_mocked;
 static jmp_buf exit_jmp;

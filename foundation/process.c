@@ -14,9 +14,6 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-void _exit(int status) FOUNDATION_ATTRIBUTE(noreturn);
-#  endif
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  include <sys/types.h>
@@ -485,6 +482,11 @@ process_spawn(process_t* proc) {
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 		           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d) (%d)"),
 			       STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
+		if (proc->flags & PROCESS_STDSTREAMS) {
+			stream_deallocate(proc->pipeout);
+			stream_deallocate(proc->pipeerr);
+			stream_deallocate(proc->pipein);
+		}
 		process_exit(PROCESS_EXIT_FAILURE);
 	}
 
@@ -496,12 +498,11 @@ process_spawn(process_t* proc) {
 
 		proc->pid = pid;
 
-		if (proc->pipeout)
+		if (proc->flags & PROCESS_STDSTREAMS) {
 			pipe_close_write(proc->pipeout);
-		if (proc->pipeerr)
 			pipe_close_write(proc->pipeerr);
-		if (proc->pipein)
 			pipe_close_read(proc->pipein);
+		}
 
 		/*if (proc->flags & PROCESS_DETACHED) {
 			int cstatus = 0;
@@ -527,13 +528,11 @@ process_spawn(process_t* proc) {
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%.*s': %.*s (%d)"),
 		           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
 
-		if (proc->pipeout)
+		if (proc->flags & PROCESS_STDSTREAMS) {
 			stream_deallocate(proc->pipeout);
-		if (proc->pipeerr)
 			stream_deallocate(proc->pipeerr);
-		if (proc->pipein)
 			stream_deallocate(proc->pipein);
-
+		}
 		proc->pipeout = 0;
 		proc->pipeerr = 0;
 		proc->pipein = 0;

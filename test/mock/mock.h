@@ -49,6 +49,12 @@ void
 execv_unmock(void);
 
 void
+dup2_mock(int return_value, int err);
+
+void
+dup2_unmock(void);
+
+void
 exit_mock(jmp_buf target);
 
 void

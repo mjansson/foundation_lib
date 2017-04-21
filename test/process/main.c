@@ -229,7 +229,7 @@ DECLARE_TEST(process, kill) {
 	ret = process_spawn(proc);
 #if FOUNDATION_PLATFORM_WINDOWS
 	EXPECT_INTEQ(ret, PROCESS_INVALID_ARGS);
-#else	
+#else
 	EXPECT_INTEQ(ret, PROCESS_EXIT_FAILURE);
 #endif
 
@@ -258,7 +258,7 @@ DECLARE_TEST(process, failure) {
 	process_set_working_directory(&proc, STRING_ARGS(environment_current_working_directory()));
 	process_set_executable_path(&proc, STRING_ARGS(environment_executable_path()));
 	process_set_arguments(&proc, args, sizeof(args) / sizeof(args[0]));
-	process_set_flags(&proc, PROCESS_DETACHED);
+	process_set_flags(&proc, PROCESS_DETACHED | PROCESS_STDSTREAMS);
 
 	error_level_t last_log_suppress = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_ERROR);
@@ -271,6 +271,7 @@ DECLARE_TEST(process, failure) {
 
 	fork_mock(0, 0);
 	execv_mock(0, EINVAL);
+	dup2_mock(0, 0);
 	jmp_buf exit_target;
 	ret = setjmp(exit_target);
 	if (ret == 0) {
@@ -278,6 +279,7 @@ DECLARE_TEST(process, failure) {
 		process_spawn(&proc);
 	}
 	exit_unmock();
+	dup2_unmock();
 	execv_unmock();
 	fork_unmock();
 	EXPECT_INTEQ(ret, PROCESS_EXIT_FAILURE);
