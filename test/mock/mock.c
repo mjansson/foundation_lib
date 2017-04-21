@@ -16,10 +16,11 @@
 
 #if FOUNDATION_PLATFORM_POSIX
 
-#include <sys/mman.h>
+#include <foundation/posix.h>
+
 #include <dlfcn.h>
-#include <errno.h>
-#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic ignored "-Winvalid-noreturn"

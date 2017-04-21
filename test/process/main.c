@@ -14,6 +14,10 @@
 #include <test/test.h>
 #include <mock/mock.h>
 
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#endif
+
 static application_t
 test_process_application(void) {
 	application_t app;

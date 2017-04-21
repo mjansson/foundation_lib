@@ -69,10 +69,13 @@ if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target
       'tizen-manifest.xml', os.path.join('res', 'tizenapp.png')
     ]]
   sources = [os.path.join(module, 'main.c') for module in test_cases] + test_extrasources
+  variables = None
+  if target.is_macos():
+    variables = {"support_lua" : True}
   if target.is_ios() or target.is_android() or target.is_tizen():
-    generator.app(module = '', sources = sources, binname = 'test-all', basepath = 'test', implicit_deps = [foundation_lib, test_lib], libs = ['test', 'foundation'], resources = test_resources, includepaths = includepaths)
+    generator.app(module = '', sources = sources, binname = 'test-all', basepath = 'test', implicit_deps = [foundation_lib, test_lib, mock_lib], libs = ['test', 'foundation', 'mock'], resources = test_resources, includepaths = includepaths, variables = variables)
   else:
-    generator.bin(module = '', sources = sources, binname = 'test-all', basepath = 'test', implicit_deps = [foundation_lib, test_lib], libs = ['test', 'foundation'], includepaths = includepaths)
+    generator.bin(module = '', sources = sources, binname = 'test-all', basepath = 'test', implicit_deps = [foundation_lib, test_lib, mock_lib], libs = ['test', 'foundation', 'mock'], includepaths = includepaths, variables = variables)
 else:
   sources = ['main.c']
   #Build one binary per test case

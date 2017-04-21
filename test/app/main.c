@@ -14,6 +14,10 @@
 #include <test/test.h>
 #include <mock/mock.h>
 
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#endif
+
 #define TEMPORARY_MEMORY_SIZE 256 * 1024
 
 static application_t _global_app;
