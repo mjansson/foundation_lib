@@ -548,12 +548,15 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 		                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
 		if (raw_memory == MAP_FAILED)
 			raw_memory = 0;
-		if ((uintptr_t)raw_memory > 0xFFFFFFFFULL) {
-			if (munmap(raw_memory, allocate_size) < 0)
-				log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-				         STRING_CONST("Failed to munmap pages outside 32-bit range"));
-			raw_memory = 0;
-		}
+	}
+	if ((uintptr_t)raw_memory > 0xFFFFFFFFULL) {
+		log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+		           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space: Got address out of range 0x%" PRIfixPTR ""),
+		           allocate_size, (uintptr_t)raw_memory);
+		if (munmap(raw_memory, allocate_size) < 0)
+			log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
+			         STRING_CONST("Failed to munmap pages outside 32-bit range"));
+		raw_memory = 0;
 	}
 #    endif
 	if (!raw_memory) {
