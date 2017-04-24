@@ -260,7 +260,6 @@ DECLARE_TEST(process, failure) {
 	process_deallocate(0);
 
 	string_const_t args[] = { string_const(STRING_CONST("wait for kill")), string_null() };
-	int ret;
 
 	process_initialize(&proc);
 	process_set_working_directory(&proc, STRING_ARGS(environment_current_working_directory()));
@@ -270,7 +269,9 @@ DECLARE_TEST(process, failure) {
 
 	error_level_t last_log_suppress = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_ERROR);
+
 #if FOUNDATION_PLATFORM_POSIX
+	int ret;
 
 	fork_mock(-1, ENOMEM);
 	ret = process_spawn(&proc);
@@ -308,6 +309,7 @@ DECLARE_TEST(process, failure) {
 	EXPECT_INTEQ(ret, PROCESS_TERMINATED_SIGNAL);
 
 #endif
+
 	log_set_suppress(0, last_log_suppress);
 
 	process_finalize(&proc);
