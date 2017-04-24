@@ -34,10 +34,6 @@
 #  define native_sem_t sem_t
 #endif
 
-#if FOUNDATION_PLATFORM_PNACL && !defined( SEM_FAILED )
-#  define SEM_FAILED ((sem_t*)0)
-#endif
-
 #if FOUNDATION_PLATFORM_WINDOWS
 
 bool
@@ -252,13 +248,11 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 	else
 		semaphore->name = string_clone(name, length);
 
-	native_sem_t* sem = SEM_FAILED;
-
 #if FOUNDATION_PLATFORM_PNACL
 	FOUNDATION_ASSERT_FAIL("Named semaphores not supported on this platform");
 	return false;
 #else
-	sem = sem_open(semaphore->name.str, O_CREAT, (mode_t)0666, value);
+	native_sem_t* sem = sem_open(semaphore->name.str, O_CREAT, (mode_t)0666, value);
 	if (sem == SEM_FAILED) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
