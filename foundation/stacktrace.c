@@ -15,7 +15,7 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#  include <psapi.h>
+#  include <Psapi.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  if !FOUNDATION_PLATFORM_ANDROID

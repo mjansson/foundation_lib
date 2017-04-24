@@ -264,6 +264,10 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_USE_SEH
+#    if FOUNDATION_COMPILER_CLANG
+#      pragma clang diagnostic push
+#      pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#    endif
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
@@ -275,6 +279,9 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 
 		error_context_clear();
 	}
+#    if FOUNDATION_COMPILER_CLANG
+#      pragma clang diagnostic pop
+#    endif
 	return ret;
 #  else
 	_exception_closure.handler = handler;
