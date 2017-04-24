@@ -208,6 +208,7 @@ exit(int arg0) {
 	}
 	ADD_MOCK_LOOKUP(exit);
 	(*(void (*)(int))real_exit)(arg0);
+	_exit(arg0);
 }
 
 void
