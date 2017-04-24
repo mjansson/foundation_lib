@@ -26,6 +26,11 @@
 #include <semaphore.h>
 #endif
 
+#if FOUNDATION_PLATFORM_APPLE
+#include <foundation/apple.h>
+#include <dispatch/dispatch.h>
+#endif
+
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic ignored "-Winvalid-noreturn"
 #endif
@@ -89,7 +94,7 @@ fn(void) { \
 	return (*(ret (*)(void))real_##fn)(); \
 } \
 ADD_MOCK_TOGGLES(fn, ret)
-/*
+
 #define ADD_MOCK_1(fn, ret, type0) \
 ADD_MOCK_BASE(fn, ret); \
 ret \
@@ -98,7 +103,7 @@ fn(type0 arg0) { \
 	return (*(ret (*)(type0))real_##fn)(arg0); \
 } \
 ADD_MOCK_TOGGLES(fn, ret)
-
+/*
 #define ADD_MOCK_NORET_1(fn, type0) \
 ADD_MOCK_NORET_BASE(fn); \
 void \
@@ -164,7 +169,9 @@ ADD_MOCK_2(dup2, int, int, int)
 
 #if !FOUNDATION_PLATFORM_APPLE
 ADD_MOCK_3(sem_init, int, sem_t*, int, unsigned int)
+#endif
 
+#if !FOUNDATION_PLATFORM_IOS
 ADD_MOCK_BASE(sem_open, sem_t*);
 sem_t*
 sem_open(const char* arg0, int arg1, ...) {
@@ -177,13 +184,17 @@ sem_open(const char* arg0, int arg1, ...) {
 		real_sem_open = dlsym(RTLD_NEXT, "sem_open");
 	va_list arglist;
 	va_start(arglist, arg1);
-	mode_t arg2 = va_arg(arglist, mode_t);
+	int arg2 = va_arg(arglist, int);
 	unsigned int arg3 = va_arg(arglist, unsigned int);
 	sem_t* retval = (*(sem_t* (*)(const char*, int, ...))real_sem_open)(arg0, arg1, arg2, arg3);
 	va_end(arglist);
 	return retval;
 }
 ADD_MOCK_TOGGLES(sem_open, sem_t*)
+#endif
+
+#if FOUNDATION_PLATFORM_APPLE
+ADD_MOCK_1(dispatch_semaphore_create, dispatch_semaphore_t, long)
 #endif
 
 static bool exit_is_mocked;

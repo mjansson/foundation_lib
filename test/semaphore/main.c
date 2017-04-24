@@ -261,18 +261,36 @@ DECLARE_TEST(semaphore, failure) {
 	error_level_t last_log_suppress = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_ERROR);
 
-#if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+
 	sem_init_mock(-1, EINVAL);
 	EXPECT_FALSE(semaphore_initialize(&sem, 0));
 	EXPECT_EQ(error(), ERROR_SYSTEM_CALL_FAIL);
 	semaphore_finalize(&sem);
 	sem_init_unmock();
 
-	sem_open_mock(0, EINVAL);
+	sem_open_mock(SEM_FAILED, EINVAL);
 	EXPECT_FALSE(semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 0));
 	EXPECT_EQ(error(), ERROR_SYSTEM_CALL_FAIL);
 	semaphore_finalize(&sem);
 	sem_open_unmock();
+
+#elif FOUNDATION_PLATFORM_APPLE
+
+	dispatch_semaphore_create_mock(0, EINVAL);
+	EXPECT_FALSE(semaphore_initialize(&sem, 0));
+	EXPECT_EQ(error(), ERROR_SYSTEM_CALL_FAIL);
+	semaphore_finalize(&sem);
+	dispatch_semaphore_create_unmock();
+
+#  if FOUNDATION_PLATFORM_MACOS
+	sem_open_mock(SEM_FAILED, EINVAL);
+	EXPECT_FALSE(semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 0));
+	EXPECT_EQ(error(), ERROR_SYSTEM_CALL_FAIL);
+	semaphore_finalize(&sem);
+	sem_open_unmock();
+#  endif
+
 #endif
 
 	log_set_suppress(0, last_log_suppress);

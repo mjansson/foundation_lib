@@ -14,16 +14,11 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#elif FOUNDATION_PLATFORM_MACOS
-#  include <sys/fcntl.h>
-#  include <sys/semaphore.h>
-#  include <errno.h>
-extern int MPCreateSemaphore(unsigned long, unsigned long, MPSemaphoreID*);
-extern int MPDeleteSemaphore(MPSemaphoreID);
-extern int MPSignalSemaphore(MPSemaphoreID);
-extern int MPWaitOnSemaphore(MPSemaphoreID, int);
-#elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
+#  if FOUNDATION_PLATFORM_MACOS
+#  include <sys/semaphore.h>
+#  endif
 #  include <dispatch/dispatch.h>
 #  include <errno.h>
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -90,11 +85,15 @@ semaphore_event_handle(semaphore_t* semaphore) {
 	return *semaphore;
 }
 
-#elif FOUNDATION_PLATFORM_MACOS
+#elif FOUNDATION_PLATFORM_APPLE
 
-//OSX:
+//macOS:
 //unnamed - dispatch_semaphore_create
 //named - sem_open
+
+//iOS:
+//unnamed - dispatch_semaphore_create
+//named - UNSUPPORTED
 
 bool
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
@@ -107,7 +106,6 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 		string_const_t errmsg = system_error_message(0);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize unnamed semaphore: %.*s"),
 		           STRING_FORMAT(errmsg));
-		FOUNDATION_ASSERT_FAIL("Unable to initialize unnamed semaphore");
 		return false;
 	}
 	return true;
@@ -118,13 +116,12 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
                            unsigned int value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
-
+#if FOUNDATION_PLATFORM_MACOS
 	semaphore->name = string_clone(name, length);
 
 	sem_t* sem = SEM_FAILED;
 
 	sem = sem_open(semaphore->name.str, O_CREAT, 0666, value);
-
 	if (sem == SEM_FAILED) {
 		string_const_t errmsg = system_error_message(0);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
@@ -135,18 +132,26 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 
 	semaphore->sem.named = sem;
 	return true;
+#else
+	FOUNDATION_ASSERT_FAIL("Named semaphores not supported on iOS");
+	FOUNDATION_UNUSED(semaphore);
+	FOUNDATION_UNUSED(length);
+#endif
 }
 
 void
 semaphore_finalize(semaphore_t* semaphore) {
 	if (!semaphore->name.length) {
-		dispatch_release(semaphore->sem.unnamed);
+		if (semaphore->sem.unnamed)
+			dispatch_release(semaphore->sem.unnamed);
 	}
+#if FOUNDATION_PLATFORM_MACOS
 	else {
 		sem_unlink(semaphore->name.str);
 		sem_close(semaphore->sem.named);
 		string_deallocate(semaphore->name.str);
 	}
+#endif
 }
 
 bool
@@ -155,24 +160,26 @@ semaphore_wait(semaphore_t* semaphore) {
 		long result = dispatch_semaphore_wait(semaphore->sem.unnamed, DISPATCH_TIME_FOREVER);
 		return (result == 0);
 	}
-	else {
-		int ret = sem_wait(semaphore->sem.named);
-		if (ret != 0) {
-			//Don't report error if interrupted
-			if (errno != EINTR) {
-				int err = errno;
-				string_const_t errmsg = system_error_message(err);
-				log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-				           STRING_CONST("Unable to wait for named semaphore '%.*s': %.*s (%d)"),
-				           STRING_FORMAT(semaphore->name), STRING_FORMAT(errmsg), err);
-			}
-			else {
-				log_info(0, STRING_CONST("Semaphore wait interrupted by signal"));
-			}
-			return false;
+#if FOUNDATION_PLATFORM_MACOS
+	int ret = sem_wait(semaphore->sem.named);
+	if (ret != 0) {
+		//Don't report error if interrupted
+		if (errno != EINTR) {
+			int err = errno;
+			string_const_t errmsg = system_error_message(err);
+			log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
+			           STRING_CONST("Unable to wait for named semaphore '%.*s': %.*s (%d)"),
+			           STRING_FORMAT(semaphore->name), STRING_FORMAT(errmsg), err);
 		}
+		else {
+			log_info(0, STRING_CONST("Semaphore wait interrupted by signal"));
+		}
+		return false;
 	}
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool
@@ -183,20 +190,22 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 											  DISPATCH_TIME_NOW);
 		return (result == 0);
 	}
-	else {
-		//TODO: Proper implementation (sem_timedwait not supported)
-		if (milliseconds > 0) {
-			tick_t wakeup = time_current() + (((tick_t)milliseconds * time_ticks_per_second()) / 1000LL);
-			do {
-				if (sem_trywait(semaphore->sem.named) == 0)
-					return true;
-				thread_yield();
-			}
-			while (time_current() < wakeup);
-			return false;
+#if FOUNDATION_PLATFORM_MACOS	
+	//TODO: Proper implementation (sem_timedwait not supported)
+	if (milliseconds > 0) {
+		tick_t wakeup = time_current() + (((tick_t)milliseconds * time_ticks_per_second()) / 1000LL);
+		do {
+			if (sem_trywait(semaphore->sem.named) == 0)
+				return true;
+			thread_yield();
 		}
-		return sem_trywait(semaphore->sem.named) == 0;
+		while (time_current() < wakeup);
+		return false;
 	}
+	return sem_trywait(semaphore->sem.named) == 0;
+#else
+	return false;
+#endif
 }
 
 void
@@ -204,66 +213,11 @@ semaphore_post(semaphore_t* semaphore) {
 	if (!semaphore->name.length) {
 		dispatch_semaphore_signal(semaphore->sem.unnamed);
 	}
+#if FOUNDATION_PLATFORM_MACOS	
 	else {
 		sem_post(semaphore->sem.named);
 	}
-}
-
-
-#elif FOUNDATION_PLATFORM_IOS
-
-//IOS:
-//unnamed - dispatch_semaphore_t
-//named - UNSUPPORTED
-
-bool
-semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
-	FOUNDATION_ASSERT(value <= 0xFFFF);
-	*semaphore = dispatch_semaphore_create((long)value);
-	if (!*semaphore) {
-		int err = system_error();
-		string_const_t errmsg = system_error_message(err);
-		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to initialize semaphore: %.*s"),
-		           STRING_FORMAT(errmsg));
-		return false;
-	}
-	return true;
-}
-
-bool
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
-                           unsigned int value) {
-	FOUNDATION_ASSERT_FAIL("Named semaphores not supported on this platform");
-	FOUNDATION_UNUSED(semaphore);
-	FOUNDATION_UNUSED(name);
-	FOUNDATION_UNUSED(length);
-	FOUNDATION_UNUSED(value);
-	return false;
-}
-
-void
-semaphore_finalize(semaphore_t* semaphore) {
-	if (*semaphore)
-		dispatch_release(*semaphore);
-}
-
-bool
-semaphore_wait(semaphore_t* semaphore) {
-	long result = dispatch_semaphore_wait(*semaphore, DISPATCH_TIME_FOREVER);
-	return (result == 0);
-}
-
-bool
-semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
-	long result = dispatch_semaphore_wait(*semaphore, (milliseconds > 0) ?
-	                                      dispatch_time(DISPATCH_TIME_NOW, 1000000LL * (int64_t)milliseconds) :
-	                                      DISPATCH_TIME_NOW);
-	return (result == 0);
-}
-
-void
-semaphore_post(semaphore_t* semaphore) {
-	dispatch_semaphore_signal(*semaphore);
+#endif
 }
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL

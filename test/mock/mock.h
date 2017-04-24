@@ -65,11 +65,25 @@ sem_init_mock(int return_value, int err);
 void
 sem_init_unmock(void);
 
+#endif
+
+#if !FOUNDATION_PLATFORM_IOS
+
 void
 sem_open_mock(sem_t* return_value, int err);
 
 void
 sem_open_unmock(void);
+
+#endif
+
+#if FOUNDATION_PLATFORM_APPLE
+
+void
+dispatch_semaphore_create_mock(dispatch_semaphore_t return_value, int err);
+
+void
+dispatch_semaphore_create_unmock(void);
 
 #endif
 
