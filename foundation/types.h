@@ -562,10 +562,8 @@ typedef struct foundation_config_t    foundation_config_t;
 #if FOUNDATION_PLATFORM_WINDOWS
 /*! Platform specific representation of a semaphore */
 typedef void*                         semaphore_t;
-#elif FOUNDATION_PLATFORM_MACOS
+#elif FOUNDATION_PLATFORM_APPLE
 typedef struct semaphore_t            semaphore_t;
-#elif FOUNDATION_PLATFORM_IOS
-typedef struct dispatch_semaphore_s*  semaphore_t;
 #elif FOUNDATION_PLATFORM_BSD
 #  include <semaphore.h>
 typedef sem_t                         semaphore_native_t;
@@ -1393,7 +1391,7 @@ struct ringbuffer_t {
 	FOUNDATION_DECLARE_RINGBUFFER(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
-#if FOUNDATION_PLATFORM_MACOS
+#if FOUNDATION_PLATFORM_APPLE
 
 /*! Semaphore for thread synchronization and communication. Actual type specifics depend
 on platform, the semaphore_t type should be treated as an opaque data struct. */
@@ -1405,7 +1403,6 @@ struct semaphore_t {
 	} sem;
 };
 
-#elif FOUNDATION_PLATFORM_IOS
 #elif FOUNDATION_PLATFORM_BSD
 
 struct semaphore_t {

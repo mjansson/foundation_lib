@@ -136,6 +136,7 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 	FOUNDATION_ASSERT_FAIL("Named semaphores not supported on iOS");
 	FOUNDATION_UNUSED(semaphore);
 	FOUNDATION_UNUSED(length);
+	return false;
 #endif
 }
 
