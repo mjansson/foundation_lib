@@ -563,13 +563,10 @@ typedef struct foundation_config_t    foundation_config_t;
 /*! Platform specific representation of a semaphore */
 typedef void*                         semaphore_t;
 #elif FOUNDATION_PLATFORM_APPLE
+#  include <sys/semaphore.h>
 typedef struct semaphore_t            semaphore_t;
-#elif FOUNDATION_PLATFORM_BSD
+#elif FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #  include <semaphore.h>
-typedef sem_t                         semaphore_native_t;
-typedef struct semaphore_t            semaphore_t;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-typedef union semaphore_native_t      semaphore_native_t;
 typedef struct semaphore_t            semaphore_t;
 #endif
 
@@ -1399,40 +1396,16 @@ struct semaphore_t {
 	string_t name;
 	union {
 		struct dispatch_semaphore_s* unnamed;
-		int* named;
+		sem_t* named;
 	} sem;
-};
-
-#elif FOUNDATION_PLATFORM_BSD
-
-struct semaphore_t {
-	string_t name;
-	semaphore_native_t* sem;
-	semaphore_native_t unnamed;
 };
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-union semaphore_native_t {
-#  if FOUNDATION_PLATFORM_ANDROID
-	volatile unsigned int count;
-#  elif FOUNDATION_PLATFORM_PNACL
-	volatile int count;
-	volatile int nwaiters;
-#else
-#  if FOUNDATION_ARCH_X86_64
-	char __size[64];
-#  else
-	char __size[32];
-#  endif
-	long int __align;
-#endif
-};
-
 struct semaphore_t {
 	string_t name;
-	semaphore_native_t* sem;
-	semaphore_native_t unnamed;
+	sem_t* sem;
+	sem_t unnamed;
 };
 
 #endif
