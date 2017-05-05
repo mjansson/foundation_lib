@@ -95,6 +95,7 @@ fn(void) { \
 } \
 ADD_MOCK_TOGGLES(fn, ret)
 
+#if FOUNDATION_PLATFORM_APPLE
 #define ADD_MOCK_1(fn, ret, type0) \
 ADD_MOCK_BASE(fn, ret); \
 ret \
@@ -103,6 +104,7 @@ fn(type0 arg0) { \
 	return (*(ret (*)(type0))real_##fn)(arg0); \
 } \
 ADD_MOCK_TOGGLES(fn, ret)
+#endif
 /*
 #define ADD_MOCK_NORET_1(fn, type0) \
 ADD_MOCK_NORET_BASE(fn); \
@@ -206,6 +208,7 @@ exit(int arg0) {
 	}
 	ADD_MOCK_LOOKUP(exit);
 	(*(void (*)(int))real_exit)(arg0);
+	_exit(arg0);
 }
 
 void

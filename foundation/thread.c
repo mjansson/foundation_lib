@@ -179,7 +179,11 @@ typedef void* thread_arg_t;
 
 typedef void* thread_return_t;
 typedef void* thread_arg_t;
-#define FOUNDATION_THREADCALL __attribute((noreturn))
+#if FOUNDATION_PLATFORM_PNACL
+#define FOUNDATION_THREADCALL
+#else
+#define FOUNDATION_THREADCALL FOUNDATION_ATTRIBUTE(noreturn)
+#endif
 #define GET_THREAD_PTR(x) ((thread_t*)(x))
 
 #else
@@ -236,7 +240,8 @@ _thread_entry(thread_arg_t data) {
 
 #if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	pthread_exit(0);
-#else
+#endif
+#if !FOUNDATION_PLATFORM_POSIX
 	return 0;
 #endif
 }
