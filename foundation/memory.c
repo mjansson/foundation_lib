@@ -141,15 +141,11 @@ _memory_get_align(unsigned int align) {
 	//being multiples of lower alignments (powers of two).
 	//4, 8, 16, ...
 #if FOUNDATION_PLATFORM_ANDROID
-	return align > 0 ? FOUNDATION_MAX_ALIGN : 0;
-#elif FOUNDATION_PLATFORM_WINDOWS
-	if (align < FOUNDATION_SIZE_POINTER)
-		return FOUNDATION_SIZE_POINTER;
-	align = math_align_poweroftwo(align);
-	return (align < FOUNDATION_MAX_ALIGN) ? align : FOUNDATION_MAX_ALIGN;
+	FOUNDATION_UNUSED(align);
+	return FOUNDATION_MAX_ALIGN;
 #else
-	if (align < FOUNDATION_SIZE_POINTER)
-		return align ? FOUNDATION_SIZE_POINTER : 0;
+	if (align <= FOUNDATION_SIZE_POINTER)
+		return FOUNDATION_SIZE_POINTER;
 	align = math_align_poweroftwo(align);
 	return (align < FOUNDATION_MAX_ALIGN) ? align : FOUNDATION_MAX_ALIGN;
 #endif
@@ -251,7 +247,6 @@ memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hi
 		unsigned int tmpalign = _memory_get_align_forced(align);
 		if (size + tmpalign < _memory_temporary.maxchunk) {
 			p = _memory_align_pointer(_atomic_allocate_linear(size + tmpalign), tmpalign);
-			FOUNDATION_ASSERT(!((uintptr_t)p & 1));
 			if (hint & MEMORY_ZERO_INITIALIZED)
 				memset(p, 0, (size_t)size);
 		}
@@ -364,15 +359,6 @@ memory_thread_finalize(void) {
 		_memory_system.thread_finalize();
 }
 
-#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER != 4)
-typedef long (*NtAllocateVirtualMemoryFn)(HANDLE, void**, ULONG, size_t*, ULONG, ULONG);
-static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
-#endif
-
-#if !FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER > 4) && !defined(MAP_32BIT)
-static atomicptr_t _memory_baseaddr;
-#endif
-
 static void*
 _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 	FOUNDATION_UNUSED(hint);
@@ -380,207 +366,40 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	//If we align manually, we must be able to retrieve the original pointer for passing to free()
 	//Thus all allocations need to go through that path
 
-#if FOUNDATION_PLATFORM_WINDOWS
-
-#  if FOUNDATION_SIZE_POINTER == 4
-#    if BUILD_ENABLE_MEMORY_GUARD
-	char* memory = _aligned_malloc((size_t)size + FOUNDATION_MAX_ALIGN * 3, align);
-	if (memory)
-		memory = _memory_guard_initialize(memory, (size_t)size);
-	return memory;
-#    else
-	return _aligned_malloc((size_t)size, align);
-#    endif
-#  else
 	unsigned int padding, extra_padding = 0;
-	size_t allocate_size;
 	char* raw_memory;
 	void* memory;
-	long vmres;
 
-	if (!(hint & MEMORY_32BIT_ADDRESS)) {
-		padding = (align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER);
+	padding = (align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER);
 #if BUILD_ENABLE_MEMORY_GUARD
-		extra_padding = FOUNDATION_MAX_ALIGN * 3;
-#endif
-		raw_memory = _aligned_malloc((size_t)size + padding + extra_padding, align);
-		if (raw_memory) {
-			memory = raw_memory +
-			         padding; //Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
-			*((void**)memory - 1) = raw_memory;
-			FOUNDATION_ASSERT(!((uintptr_t)raw_memory & 1));
-			FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#if BUILD_ENABLE_MEMORY_GUARD
-			memory = _memory_guard_initialize(memory, size);
-			FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#endif
-			return memory;
-		}
-		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
-		return 0;
-	}
-
-#    if BUILD_ENABLE_MEMORY_GUARD
 	extra_padding = FOUNDATION_MAX_ALIGN * 3;
-#    endif
-
-	allocate_size = size + FOUNDATION_SIZE_POINTER + extra_padding + align;
-	raw_memory = 0;
-
-	vmres = NtAllocateVirtualMemory(INVALID_HANDLE_VALUE, (void**)&raw_memory, 1, &allocate_size,
-	                                MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-	if (vmres != 0) {
-		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory in low 32bit address space"), size);
-		return 0;
-	}
-
-	memory = _memory_align_pointer(raw_memory + FOUNDATION_SIZE_POINTER, align);
-	*((void**)memory - 1) = (void*)((uintptr_t)raw_memory | 1);
-#    if BUILD_ENABLE_MEMORY_GUARD
-	memory = _memory_guard_initialize(memory, size);
-#    endif
-	FOUNDATION_ASSERT(!((uintptr_t)raw_memory & 1));
-	FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-	return memory;
-#  endif
-
+#endif
+#if FOUNDATION_PLATFORM_WINDOWS
+	raw_memory = _aligned_malloc((size_t)size + padding + extra_padding, align);
 #else
-
-#  if FOUNDATION_SIZE_POINTER > 4
-	if (!(hint & MEMORY_32BIT_ADDRESS))
+	size_t total_size = size + padding + extra_padding;
+	if (total_size % align)
+		total_size += align - (total_size % align);
+#  if FOUNDATION_PLATFORM_ANDROID
+#    define aligned_alloc memalign
 #  endif
-	{
+	raw_memory = aligned_alloc(align, total_size);
+#endif
+	if (raw_memory) {
+		//Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
+		memory = raw_memory + padding;
+		*((void**)memory - 1) = raw_memory;
+		FOUNDATION_ASSERT(!((uintptr_t)raw_memory & 1));
+		FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
 #if BUILD_ENABLE_MEMORY_GUARD
-		size_t extra_padding = FOUNDATION_MAX_ALIGN * 3;
-#else
-		size_t extra_padding = 0;
+		memory = _memory_guard_initialize(memory, size);
+		FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
 #endif
-		size_t allocate_size = size + align + FOUNDATION_SIZE_POINTER + extra_padding;
-		char* raw_memory = malloc(allocate_size);
-		if (raw_memory) {
-			void* memory = _memory_align_pointer(raw_memory + FOUNDATION_SIZE_POINTER, align);
-			*((void**)memory - 1) = raw_memory;
-			FOUNDATION_ASSERT(!((uintptr_t)raw_memory & 1));
-			FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#if BUILD_ENABLE_MEMORY_GUARD
-			memory = _memory_guard_initialize(memory, size);
-			FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#endif
-			return memory;
-		}
-		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory (%" PRIsize " requested)"), size,
-		           allocate_size);
-		return 0;
+		return memory;
 	}
-
-#  if FOUNDATION_SIZE_POINTER > 4
-
-	size_t allocate_size;
-	char* raw_memory;
-	void* memory;
-
-#    if BUILD_ENABLE_MEMORY_GUARD
-	unsigned int extra_padding = FOUNDATION_MAX_ALIGN * 3;
-#else
-	unsigned int extra_padding = 0;
-#    endif
-
-	allocate_size = size + align + FOUNDATION_SIZE_POINTER * 2 + extra_padding;
-	if (allocate_size % 4096)
-		allocate_size += 4096 - (allocate_size % 4096);
-
-#ifndef MAP_UNINITIALIZED
-#define MAP_UNINITIALIZED 0
-#endif
-
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON
-#endif
-
-#    ifndef MAP_32BIT
-	//On macOS app needs to be linked with -pagezero_size 10000 -image_base 100000000 to
-	// 1) Free up low 4Gb address range by reducing page zero size
-	// 2) Move executable base address above 4Gb to free up more memory address space
-#define MMAP_REGION_START ((uintptr_t)0x10000)
-#define MMAP_REGION_END   ((uintptr_t)0x80000000)
-	bool retried = false;
-	do {
-		void* base_addr = atomic_load_ptr(&_memory_baseaddr);
-		raw_memory = mmap(base_addr, allocate_size, PROT_READ | PROT_WRITE,
-		                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
-		if (raw_memory == MAP_FAILED) {
-			string_const_t errmsg = system_error_message(0);
-			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space @ 0x%" PRIfixPTR ": %.*s"),
-			           allocate_size, (uintptr_t)base_addr, STRING_FORMAT(errmsg));
-		}
-		else if (((uintptr_t)raw_memory >= MMAP_REGION_START) &&
-		            (uintptr_t)(raw_memory + allocate_size) < MMAP_REGION_END) {
-			atomic_store_ptr(&_memory_baseaddr, pointer_offset(raw_memory, allocate_size));
-			break;
-		}
-		else {
-			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-			           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space @ 0x%" PRIfixPTR ": Got address out of range 0x%" PRIfixPTR ""),
-			           allocate_size, (uintptr_t)base_addr, (uintptr_t)raw_memory);
-#if FOUNDATION_PLATFORM_MACOS
-			log_info(HASH_MEMORY, STRING_CONST("Make sure application is be linked with \"-pagezero_size 10000 -image_base 100000000\""));
-#endif
-			if (munmap(raw_memory, allocate_size) < 0)
-				log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-				         STRING_CONST("Failed to munmap pages outside 32-bit range"));
-		}
-		raw_memory = 0;
-		if (retried)
-			break;
-		retried = true;
-		atomic_store_ptr(&_memory_baseaddr, (void*)MMAP_REGION_START);
-	}
-	while (true);
-#    else
-	raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
-	                  MAP_32BIT | MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
-	if (raw_memory == MAP_FAILED) {
-		raw_memory = mmap(0, allocate_size, PROT_READ | PROT_WRITE,
-		                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
-		if (raw_memory == MAP_FAILED)
-			raw_memory = 0;
-	}
-	if ((uintptr_t)raw_memory > 0xFFFFFFFFULL) {
-		log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-		           STRING_CONST("Unable to map %" PRIsize " bytes of memory in low 32bit address space: Got address out of range 0x%" PRIfixPTR ""),
-		           allocate_size, (uintptr_t)raw_memory);
-		if (munmap(raw_memory, allocate_size) < 0)
-			log_warn(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-			         STRING_CONST("Failed to munmap pages outside 32-bit range"));
-		raw_memory = 0;
-	}
-#    endif
-	if (!raw_memory) {
-		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes (%" PRIsize " requested) of memory in low 32bit address space"),
-		           size, allocate_size);
-		return 0;
-	}
-
-	memory = _memory_align_pointer(raw_memory + FOUNDATION_SIZE_POINTER * 2, align);
-	*((uintptr_t*)memory - 1) = ((uintptr_t)raw_memory | 1);
-	*((uintptr_t*)memory - 2) = (uintptr_t)allocate_size;
-	FOUNDATION_ASSERT(!((uintptr_t)raw_memory & 1));
-	FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#    if BUILD_ENABLE_MEMORY_GUARD
-	memory = _memory_guard_initialize(memory, size);
-	FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#    endif
-
-	return memory;
-
-#  endif
-
-#endif
+	log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
+	           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
+	return 0;
 }
 
 static void*
@@ -596,122 +415,69 @@ _memory_allocate_malloc(hash_t context, size_t size, unsigned  int align, unsign
 
 static void
 _memory_deallocate_malloc(void* p) {
-#if FOUNDATION_SIZE_POINTER == 4
-	if (!p)
-		return;
-#  if BUILD_ENABLE_MEMORY_GUARD
-	p = _memory_guard_verify(p);
-#  endif
-#  if FOUNDATION_PLATFORM_WINDOWS
-	_aligned_free(p);
-#  else
-	free(*((void**)p - 1));
-#  endif
-
-#else
-
 	uintptr_t raw_ptr;
 
 	if (!p)
 		return;
 
-#  if BUILD_ENABLE_MEMORY_GUARD
+#if BUILD_ENABLE_MEMORY_GUARD
 	p = _memory_guard_verify(p);
-#  endif
+#endif
 	raw_ptr = *((uintptr_t*)p - 1);
-	if (raw_ptr & 1) {
-		raw_ptr &= ~(uintptr_t)1;
-#  if FOUNDATION_PLATFORM_WINDOWS
-		if (VirtualFree((void*)raw_ptr, 0, MEM_RELEASE) == 0)
-			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Failed to VirtualFree 0x%" PRIfixPTR),
-			          (uintptr_t)raw_ptr);
-#  else
-		uintptr_t raw_size = *((uintptr_t*)p - 2);
-		if (munmap((void*)raw_ptr, raw_size) < 0)
-			log_warnf(HASH_MEMORY, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Failed to munmap 0x%" PRIfixPTR " size %" PRIsize),
-			          (uintptr_t)raw_ptr, raw_size);
-#  endif
-	}
-	else {
-#  if FOUNDATION_PLATFORM_WINDOWS
-		_aligned_free((void*)raw_ptr);
-#  else
-		free((void*)raw_ptr);
-#  endif
-	}
-
+#if FOUNDATION_PLATFORM_WINDOWS
+	_aligned_free((void*)raw_ptr);
+#else
+	free((void*)raw_ptr);
 #endif
 }
 
 static void*
 _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize,
                           unsigned int hint) {
-#if (FOUNDATION_SIZE_POINTER == 4) && FOUNDATION_PLATFORM_WINDOWS
-	FOUNDATION_UNUSED(oldsize);
-	align = _memory_get_align(align);
-#  if BUILD_ENABLE_MEMORY_GUARD
-	if (p) {
-		p = _memory_guard_verify(p);
-		p = _aligned_realloc(p, (size_t)size + FOUNDATION_MAX_ALIGN * 3, align);
-	}
-	else {
-		p = _aligned_malloc((size_t)size + FOUNDATION_MAX_ALIGN * 3, align);
-	}
-	if (p)
-		p = _memory_guard_initialize(p, (size_t)size);
-	return p;
-#  else
-	return _aligned_realloc(p, (size_t)size, align);
-#  endif
-#else
 	void* memory;
 	void* raw_p;
 
 	align = _memory_get_align(align);
 
 	memory = p;
-#  if BUILD_ENABLE_MEMORY_GUARD
+#if BUILD_ENABLE_MEMORY_GUARD
 	if (memory)
 		memory = _memory_guard_verify(memory);
-#  endif
+#endif
 	raw_p = memory ? *((void**)memory - 1) : nullptr;
 	memory = nullptr;
 
-#  if FOUNDATION_PLATFORM_WINDOWS
-	if (raw_p && !((uintptr_t)raw_p & 1) && !(hint & MEMORY_32BIT_ADDRESS)) {
+#if FOUNDATION_PLATFORM_WINDOWS
+	if (raw_p && !(hint & MEMORY_NO_PRESERVE)) {
 		size_t padding = (align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER);
-#    if BUILD_ENABLE_MEMORY_GUARD
+#  if BUILD_ENABLE_MEMORY_GUARD
 		size_t extra_padding = FOUNDATION_MAX_ALIGN * 3;
-#    else
+#  else
 		size_t extra_padding = 0;
-#    endif
+#  endif
 		void* raw_memory = _aligned_realloc(raw_p, size + padding + extra_padding, align ? align : 8);
 		if (raw_memory) {
 			memory = pointer_offset(raw_memory, padding);
 			*((void**)memory - 1) = raw_memory;
-#    if BUILD_ENABLE_MEMORY_GUARD
+#  if BUILD_ENABLE_MEMORY_GUARD
 			memory = _memory_guard_initialize(memory, size);
-#    endif
+#  endif
 		}
 	}
 	else {
-		memory = _memory_allocate_malloc_raw(size, align, hint);
-		if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
-			memcpy(memory, p, (size < oldsize) ? size : oldsize);
 		_memory_deallocate_malloc(p);
+		memory = _memory_allocate_malloc_raw(size, align, hint);
 	}
 
-#  else //!FOUNDATION_PLATFORM_WINDOWS below
+#else //!FOUNDATION_PLATFORM_WINDOWS below
 
 //If we're on ARM the realloc can return a 16-bit aligned address, causing raw pointer store to SIGILL
 //Realigning does not work since the realloc memory copy preserve cannot be done properly. Revert to normal alloc-and-copy
 //Same with alignment, since we cannot guarantee that the returned memory block offset from start of actual memory block
 //is the same in the reallocated block as the original block, we need to alloc-and-copy to get alignment
 //Memory guard introduces implicit alignments as well so alloc-and-copy for that
-#    if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64 && !BUILD_ENABLE_MEMORY_GUARD
-	if (!align && raw_p && !((uintptr_t)raw_p & 1) && !(hint & MEMORY_32BIT_ADDRESS)) {
+#  if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64 && !BUILD_ENABLE_MEMORY_GUARD
+	if (!align && raw_p && !(hint & MEMORY_NO_PRESERVE)) {
 		void* raw_memory = realloc(raw_p, (size_t)size + FOUNDATION_SIZE_POINTER);
 		if (raw_memory) {
 			*(void**)raw_memory = raw_memory;
@@ -719,18 +485,18 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 		}
 	}
 	else
-#    endif
+#  endif
 	{
-#    if !BUILD_ENABLE_LOG
+#  if !BUILD_ENABLE_LOG
 		FOUNDATION_UNUSED(raw_p);
-#    endif
+#  endif
 		memory = _memory_allocate_malloc_raw(size, align, hint);
 		if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
 			memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
 		_memory_deallocate_malloc(p);
 	}
 
-#  endif
+#endif
 
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);
@@ -741,19 +507,10 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t olds
 	}
 
 	return memory;
-#endif
 }
 
 static int
 _memory_initialize_malloc(void) {
-#if FOUNDATION_PLATFORM_WINDOWS && ( FOUNDATION_SIZE_POINTER > 4 )
-	NtAllocateVirtualMemory = (NtAllocateVirtualMemoryFn)GetProcAddress(GetModuleHandleA("ntdll.dll"),
-	                          "NtAllocateVirtualMemory");
-#endif
-#if !FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_SIZE_POINTER > 4) && !defined(MAP_32BIT)
-	if (!atomic_load_ptr(&_memory_baseaddr))
-		atomic_store_ptr(&_memory_baseaddr, (void*)MMAP_REGION_START);
-#endif
 	return 0;
 }
 

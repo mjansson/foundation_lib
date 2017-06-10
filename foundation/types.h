@@ -342,8 +342,6 @@ before function returns or scope ends) */
 #define MEMORY_TEMPORARY        1U
 /*! Memory hint, memory allocation is local to the calling thread */
 #define MEMORY_THREAD           (1U<<1)
-/*! Memory flag, memory should be allocated in low 32-bit address space */
-#define MEMORY_32BIT_ADDRESS    (1U<<2)
 /*! Memory flag, memory should be initialized to zero during allocation */
 #define MEMORY_ZERO_INITIALIZED (1U<<3)
 /*! Memory flag, memory content does not have to be preserved during reallocation */

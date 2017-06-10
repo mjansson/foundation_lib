@@ -139,18 +139,6 @@ DECLARE_TEST(app, memory) {
 	EXPECT_SIZEEQ(oldstats.allocated_current, newstats.allocated_current);
 #endif
 
-	void* lowptr = memory_allocate(0, 32 * 1024 + 32, 16,
-	                               MEMORY_ZERO_INITIALIZED | MEMORY_PERSISTENT | MEMORY_32BIT_ADDRESS);
-	EXPECT_NE(lowptr, nullptr);
-#if FOUNDATION_PLATFORM_ANDROID
-	EXPECT_EQ((uintptr_t)lowptr & 0x7, 0);
-#else
-	EXPECT_EQ((uintptr_t)lowptr & 0xF, 0);
-#endif
-	EXPECT_LT((uint64_t)(uintptr_t)lowptr, 0x100000000ULL);
-	EXPECT_EQ(*(unsigned int*)lowptr, 0);
-	memory_deallocate(lowptr);
-
 	return 0;
 }
 
@@ -158,26 +146,7 @@ DECLARE_TEST(app, failure) {
 #if FOUNDATION_SIZE_POINTER > 4
 	error_level_t last_log_suppress = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_ERROR);
-#if FOUNDATION_PLATFORM_POSIX
-	//Try outright failure
-	mmap_mock(MAP_FAILED, EINVAL);
-	void* lowptr_fail = memory_allocate(0, 32 * 1024 + 32, 16,
-	                               MEMORY_ZERO_INITIALIZED | MEMORY_PERSISTENT | MEMORY_32BIT_ADDRESS);
-	//Try invalid address
-	mmap_mock((void*)0x1000000000ULL, 0);
-	void* lowptr_outofrange = memory_allocate(0, 32 * 1024 + 32, 16,
-	                               MEMORY_ZERO_INITIALIZED | MEMORY_PERSISTENT | MEMORY_32BIT_ADDRESS);
-	//Also fail munmap
-	munmap_mock(-1, EINVAL);
-	void* lowptr_allfail = memory_allocate(0, 32 * 1024 + 32, 16,
-	                               MEMORY_ZERO_INITIALIZED | MEMORY_PERSISTENT | MEMORY_32BIT_ADDRESS);
-	munmap_unmock();
-	mmap_unmock();
-
-	EXPECT_EQ(lowptr_fail, nullptr);
-	EXPECT_EQ(lowptr_outofrange, nullptr);
-	EXPECT_EQ(lowptr_allfail, nullptr);
-#endif
+	//...
 	log_set_suppress(0, last_log_suppress);
 #endif
 	return 0;

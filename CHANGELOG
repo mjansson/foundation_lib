@@ -30,6 +30,8 @@ object map index to 32 bit, and object_t type to 32 bit.
 
 Add a mock system to tests to simulate failing system calls
 
+Remove flag to memory allocation to allocate in low 32-bit address range on 64-bit systems.
+
 
 1.5.3
 

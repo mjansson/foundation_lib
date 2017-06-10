@@ -366,6 +366,7 @@ main_run(void* main_arg) {
 #if BUILD_MONOLITHIC
 
 	test_run_fn tests[] = {
+		test_profile_run,
 		test_app_run,
 		test_array_run,
 		test_atomic_run,
