@@ -142,7 +142,11 @@ DECLARE_TEST(app, memory) {
 	void* lowptr = memory_allocate(0, 32 * 1024 + 32, 16,
 	                               MEMORY_ZERO_INITIALIZED | MEMORY_PERSISTENT | MEMORY_32BIT_ADDRESS);
 	EXPECT_NE(lowptr, nullptr);
+#if FOUNDATION_PLATFORM_ANDROID
+	EXPECT_EQ((uintptr_t)lowptr & 0x7, 0);
+#else
 	EXPECT_EQ((uintptr_t)lowptr & 0xF, 0);
+#endif
 	EXPECT_LT((uint64_t)(uintptr_t)lowptr, 0x100000000ULL);
 	EXPECT_EQ(*(unsigned int*)lowptr, 0);
 	memory_deallocate(lowptr);
@@ -284,9 +288,9 @@ DECLARE_TEST(app, thread) {
 static void
 test_app_declare(void) {
 	ADD_TEST(app, environment);
-	ADD_TEST(app, memory);
 	ADD_TEST(app, failure);
 	ADD_TEST(app, thread);
+	ADD_TEST(app, memory);
 }
 
 static test_suite_t test_app_suite = {

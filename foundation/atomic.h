@@ -194,7 +194,7 @@ atomic_thread_fence_sequentially_consistent(void);
 
 // C11
 #if FOUNDATION_COMPILER_CLANG
-// Really, atomic operations should be const-able
+// Really, atomic load operations should be const-able
 // C atomic_load_explicit(const volatile A* object, memory_order order);
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wcast-qual"

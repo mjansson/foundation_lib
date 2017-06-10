@@ -418,12 +418,12 @@ main_run(void* main_arg) {
 
 	while (!thread_is_started(&test_thread)) {
 		system_process_events();
-		thread_sleep(100);
+		thread_sleep(10);
 	}
 
 	while (thread_is_running(&test_thread)) {
 		system_process_events();
-		thread_sleep(100);
+		thread_sleep(10);
 	}
 
 	test_result = thread_join(&test_thread);

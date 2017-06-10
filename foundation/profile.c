@@ -73,7 +73,7 @@ static profile_block_t* _profile_blocks;
 static tick_t           _profile_ground_time;
 static int              _profile_enable;
 static profile_write_fn _profile_write;
-static uint64_t         _profile_num_blocks;
+static uint32_t         _profile_num_blocks;
 static unsigned int     _profile_wait = 100;
 static thread_t         _profile_io_thread;
 static bool             _profile_initialized;
@@ -374,7 +374,7 @@ profile_finalize(void) {
 
 	//Sanity checks
 	{
-		uint64_t num_blocks = 0;
+		uint32_t num_blocks = 0;
 		uint32_t free_block = atomic_load32(&_profile_free) & 0xffff;
 
 		if (atomic_load32(&_profile_root))
@@ -399,7 +399,7 @@ profile_finalize(void) {
 			//since at least one block will be lost in space
 			log_errorf(0, ERROR_INTERNAL_FAILURE,
 			           STRING_CONST("Profile module state inconsistent on finalize, lost blocks "
-			                        "(found %" PRIu64 " of %" PRIu64 ")"),
+			                        "(found %u of %u)"),
 			           num_blocks, _profile_num_blocks);
 		}
 	}

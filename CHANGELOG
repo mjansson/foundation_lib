@@ -25,6 +25,9 @@ Use C11 atomics for all compilers (except Microsoft) instead of builtin or own i
 
 semaphore_initialize and semaphore_initialize_named now return boolean success/fail indicator
 
+Change object map to use semaphore for write operation instead of atomics. Also change
+object map index to 32 bit, and object_t type to 32 bit.
+
 Add a mock system to tests to simulate failing system calls
 
 

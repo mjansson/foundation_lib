@@ -420,7 +420,7 @@ typedef int64_t       tick_t;
 /*! Deltatime type used for floating point time differences */
 typedef real          deltatime_t;
 /*! Object handle used for identifying reference counted objects */
-typedef uint64_t      object_t;
+typedef uint32_t      object_t;
 /*! Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array */
 typedef uint16_t      radixsort_index_t;
 /*! UUID, 128-bit unique identifier */
@@ -1208,14 +1208,13 @@ struct memory_context_t {
 	hash_t context[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
-/*! Declares the base object data layout. Object structures should be 8-byte align for
-platform compatibility. Use the macro as first declaration in an object struct:
-<code>typedef struct ALIGN(8)
+/*! Declares the base object data layout. Use the macro as first declaration in an object struct:
+<code>struct my_object_t
 {
   FOUNDATION_DECLARE_OBJECT;
   int       some_other_data;
   //[...]
-} my_object_t;</code>
+};</code>
 \internal If changing base object layout, change #objectmap_lookup and
 #objectmap_lookup_ref \endinternal */
 #define FOUNDATION_DECLARE_OBJECT \
@@ -1226,7 +1225,7 @@ platform compatibility. Use the macro as first declaration in an object struct:
 /*! Object base structure. All object-based designs must have this layout at the start of
 the structure. See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in
 a structure. */
-FOUNDATION_ALIGNED_STRUCT(object_base_t, 8) {
+struct object_base_t {
 	/*!
 	\var object_base_t::ref
 	Object reference count
@@ -1238,48 +1237,6 @@ FOUNDATION_ALIGNED_STRUCT(object_base_t, 8) {
 	Object ID and handle (self)
 	*/
 	FOUNDATION_DECLARE_OBJECT;
-};
-
-#define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
-	atomic64_t free; \
-	atomic64_t id; \
-	size_t size; \
-	unsigned int size_bits; \
-	uint64_t id_max; \
-	uint64_t mask_index; \
-	uint64_t mask_id; \
-	void* map[mapsize]
-
-/*! Object map which maps object handles to object pointers. As object lifetime is managed
-by reference counting, objects that are deallocated will invalidate the handle in the
-corresponding object map. */
-FOUNDATION_ALIGNED_STRUCT(objectmap_t, 8) {
-	/*!
-	\var free
-	Current first free slot
-	
-	\var id
-	Counter for next available ID
-
-	\var size
-	Number of slots in map
-
-	\var size_bits
-	Number of bits needed for slot index
-
-	\var id_max
-	Maximum ID depending on how many bits are used by size
-
-	\var mask_index
-	Bitmask for slot index
-
-	\var mask_id
-	Bitmask for ID
-
-	\var map
-	Slot array
-	*/
-	FOUNDATION_DECLARE_OBJECTMAP(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! State for a child process */
@@ -1402,10 +1359,10 @@ struct semaphore_t {
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-struct semaphore_t {
-	string_t name;
-	sem_t* sem;
+FOUNDATION_ALIGNED_STRUCT(semaphore_t, 8) {
 	sem_t unnamed;
+	sem_t* sem;
+	string_t name;
 };
 
 #endif
@@ -1476,6 +1433,53 @@ struct thread_t {
 	string_const_t name;
 	/*! Buffer for name string */
 	char namebuffer[32];
+};
+
+#define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
+	uint32_t free; \
+	uint32_t id; \
+	uint32_t size; \
+	uint32_t index_bits; \
+	uint32_t id_max; \
+	uint32_t mask_index; \
+	uint32_t mask_id; \
+	uint32_t autolink; \
+	semaphore_t write; \
+	void* map[mapsize]
+
+/*! Object map which maps object handles to object pointers. As object lifetime is managed
+by reference counting, objects that are deallocated will invalidate the handle in the
+corresponding object map. */
+struct objectmap_t {
+	/*!
+	\var free
+	Current first free slot
+	
+	\var id
+	Counter for next available ID
+
+	\var size
+	Number of slots in map
+
+	\var index_bits
+	Number of bits needed for slot index
+
+	\var id_max
+	Maximum ID depending on how many bits are used by size
+
+	\var mask_index
+	Bitmask for slot index
+
+	\var mask_id
+	Bitmask for ID
+
+	\var write
+	Write access semaphore
+
+	\var map
+	Slot array
+	*/
+	FOUNDATION_DECLARE_OBJECTMAP(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! Declares the base stream data layout. Stream structures should be 8-byte align for

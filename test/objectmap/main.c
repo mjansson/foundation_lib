@@ -131,19 +131,19 @@ DECLARE_TEST(objectmap, store) {
 	EXPECT_EQ(objectmap_lookup(map, 1), 0);
 
 	first.id = objectmap_reserve(map);
-	EXPECT_TYPENE(first.id, 0, object_t, PRIx64);
+	EXPECT_TYPENE(first.id, 0, object_t, PRIx32);
 	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
 	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
 
 	second.id = objectmap_reserve(map);
-	EXPECT_TYPENE(second.id, 0, object_t, PRIx64);
+	EXPECT_TYPENE(second.id, 0, object_t, PRIx32);
 	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
 	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
 	EXPECT_EQ(objectmap_lookup(map, second.id), 0);
 	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
 
 	third.id = objectmap_reserve(map);
-	EXPECT_TYPENE(third.id, 0, object_t, PRIx64);
+	EXPECT_TYPENE(third.id, 0, object_t, PRIx32);
 	EXPECT_EQ(objectmap_lookup(map, first.id), 0);
 	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
 	EXPECT_EQ(objectmap_lookup(map, second.id), 0);
@@ -156,8 +156,8 @@ DECLARE_TEST(objectmap, store) {
 	objectmap_set(map, third.id, &third);
 
 	log_enable_stdout(false);
-	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx64);
-	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx64);
+	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx32);
+	EXPECT_TYPEEQ(objectmap_reserve(map), 0, object_t, PRIx32);
 	log_enable_stdout(true);
 
 	objectmap_free(map, first.id);
@@ -200,14 +200,14 @@ objectmap_thread(void* arg) {
 			objects[obj].id = objectmap_reserve(map);
 			EXPECT_NE_MSGFORMAT(objects[obj].id, 0, "Unable to reserve slot for object num %d", obj);
 			EXPECT_EQ_MSGFORMAT(objectmap_lookup(map, objects[obj].id), 0,
-			                    "Object %d (%" PRIx64 ") already stored in map in loop %d",
+			                    "Object %d (%" PRIx32 ") already stored in map in loop %d",
 			                    obj, objects[obj].id, loop);
 			EXPECT_TRUE(objectmap_set(map, objects[obj].id, objects + obj));
 			lookup = objectmap_lookup(map, objects[obj].id);
-			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx64 ") not set in map, got null on lookup in loop %d",
+			EXPECT_NE_MSGFORMAT(lookup, 0, "Object num %d (%" PRIx32 ") not set in map, got null on lookup in loop %d",
 			                    obj, objects[obj].id, loop);
 			EXPECT_EQ_MSGFORMAT(lookup, objects + obj,
-			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
+			                    "Object %d (%" PRIx32 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
 			                    PRIfixPTR " in loop %d", obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
 		}
 
@@ -216,15 +216,15 @@ objectmap_thread(void* arg) {
 		for (obj = 0; obj < 512; ++obj) {
 			void* raw = map->map[ objects[obj].id & map->mask_index ];
 			lookup = objectmap_lookup(map, objects[obj].id);
-			EXPECT_NE_MSGFORMAT(lookup, 0, "Object 0x%" PRIfixPTR " num %d (%" PRIx64 ") not set in map, got null on lookup in loop %d (raw 0x%" PRIfixPTR ")",
+			EXPECT_NE_MSGFORMAT(lookup, 0, "Object 0x%" PRIfixPTR " num %d (%" PRIx32 ") not set in map, got null on lookup in loop %d (raw 0x%" PRIfixPTR ")",
 			                    (uintptr_t)(objects + obj), obj, objects[obj].id, loop, (uintptr_t)raw);
 			EXPECT_EQ_MSGFORMAT(lookup, objects + obj,
-			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
+			                    "Object %d (%" PRIx32 ") 0x%" PRIfixPTR " was not set at reserved slot in map, got object 0x%"
 			                    PRIfixPTR " in loop %d", obj, objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
 			EXPECT_TRUE(objectmap_free(map, objects[obj].id));
 			lookup = objectmap_lookup(map, objects[obj].id);
 			EXPECT_EQ_MSGFORMAT(lookup, 0,
-			                    "Object %d (%" PRIx64 ") 0x%" PRIfixPTR " still set in map, got non-null (0x%" PRIfixPTR ") on lookup in loop %d", obj,
+			                    "Object %d (%" PRIx32 ") 0x%" PRIfixPTR " still set in map, got non-null (0x%" PRIfixPTR ") on lookup in loop %d", obj,
 			                    objects[obj].id, (uintptr_t)(objects + obj), (uintptr_t)lookup, loop);
 		}
 	}

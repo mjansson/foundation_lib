@@ -261,7 +261,7 @@ DECLARE_TEST(semaphore, failure) {
 	error_level_t last_log_suppress = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_ERROR);
 
-#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_ANDROID
 
 	sem_init_mock(-1, EINVAL);
 	EXPECT_FALSE(semaphore_initialize(&sem, 0));

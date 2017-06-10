@@ -94,14 +94,14 @@ _error_context_buffer(char* buffer, size_t size) {
 			}
 
 			line = string_format(buffer, size, STRING_CONST("When %.*s:"),
-			                     (int)frame->name.length, frame->name.str);
+			                     STRING_FORMAT(frame->name));
 
 			buffer += line.length;
 			size -= line.length;
 
 			if (frame->data.length) {
 				line = string_format(buffer, size, STRING_CONST(" %.*s"),
-				                     (int)frame->data.length, frame->data.str);
+				                     STRING_FORMAT(frame->data));
 
 				buffer += line.length;
 				size -= line.length;

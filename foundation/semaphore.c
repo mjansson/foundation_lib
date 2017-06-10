@@ -219,6 +219,12 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 	semaphore->name = (string_t) { 0, 0 };
 	semaphore->sem = 0;
 
+#if FOUNDATION_PLATFORM_ANDROID
+#   pragma clang diagnostic ignored "-Wcast-qual"
+	//atomic_init((atomic_uint*)&semaphore->unnamed.count, value << 1);
+	semaphore->unnamed.count = (value << 1);
+	atomic_thread_fence_release();
+#else
 	if (sem_init(&semaphore->unnamed, 0, value)) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
@@ -226,8 +232,9 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 		           STRING_FORMAT(errmsg), err);
 		return false;
 	}
-
+#endif
 	semaphore->sem = &semaphore->unnamed;
+
 	return true;
 }
 

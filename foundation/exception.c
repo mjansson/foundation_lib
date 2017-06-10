@@ -306,6 +306,9 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 #elif FOUNDATION_PLATFORM_POSIX
 	sigjmp_buf exception_env;
 
+	if (!handler)
+		return fn(data);
+
 	set_thread_exception_handler(handler);
 	set_thread_dump_name(length ? name : 0);
 

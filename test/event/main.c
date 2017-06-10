@@ -13,6 +13,9 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
+//Events are not sizeof(event_t), but aligned to 8 byte boundaries
+#define EXPECTED_EVENT_SIZE 16
+
 static application_t
 test_event_application(void) {
 	application_t app;
@@ -144,11 +147,11 @@ DECLARE_TEST(event, immediate) {
 	event = event_next(block, 0);
 	EXPECT_NE(event, 0);
 	EXPECT_INTEQ(event->id, FOUNDATIONEVENT_TERMINATE);
-	EXPECT_SIZEEQ(event->size, sizeof(event_t));
+	EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE);
 	//EXPECT_UINTGT(event->serial, 0);
 	EXPECT_EQ(event->object, 0);
 	EXPECT_EQ(event->flags, 0);
-	EXPECT_SIZEEQ(event_payload_size(event), 0);
+	EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
 	last_serial = event->serial;
 
 	event = event_next(block, event);
@@ -170,21 +173,21 @@ DECLARE_TEST(event, immediate) {
 	event = event_next(block, 0);
 	EXPECT_NE(event, 0);
 	EXPECT_INTEQ(event->id, FOUNDATIONEVENT_TERMINATE);
-	EXPECT_SIZEEQ(event->size, sizeof(event_t) + 16);
+	EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 16);
 	EXPECT_UINTGT(event->serial, last_serial);
 	EXPECT_EQ(event->object, 0);
 	EXPECT_EQ(event->flags, 0);
-	EXPECT_SIZEEQ(event_payload_size(event), 16);
+	EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE + 16 - sizeof(event_t));
 	last_serial = event->serial;
 
 	event = event_next(block, event);
 	EXPECT_NE(event, 0);
 	EXPECT_INTEQ(event->id, FOUNDATIONEVENT_TERMINATE + 1);
-	EXPECT_SIZEEQ(event->size, sizeof(event_t) + 40);
+	EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 40);
 	EXPECT_UINTGT(event->serial, last_serial);
 	EXPECT_EQ(event->object, 0);
 	EXPECT_EQ(event->flags, 0);
-	EXPECT_SIZEEQ(event_payload_size(event), 40);
+	EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE + 40 - sizeof(event_t));
 	last_serial = event->serial;
 
 	//Test out of memory handling
@@ -202,11 +205,11 @@ DECLARE_TEST(event, immediate) {
 	event = event_next(block, 0);
 	EXPECT_NE(event, 0);
 	EXPECT_INTEQ(event->id, FOUNDATIONEVENT_TERMINATE + 1);
-	EXPECT_SIZEEQ(event->size, sizeof(event_t) + 40);
+	EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 40);
 	EXPECT_UINTGT(event->serial, last_serial);
 	EXPECT_EQ(event->object, 0);
 	EXPECT_EQ(event->flags, 0);
-	EXPECT_SIZEEQ(event_payload_size(event), 40);
+	EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE + 40 - sizeof(event_t));
 
 	event_stream_deallocate(stream);
 
@@ -263,6 +266,7 @@ DECLARE_TEST(event, immediate_threaded) {
 	unsigned int i;
 	bool running = true;
 	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
+	size_t max_payload = 256 + EXPECTED_EVENT_SIZE - sizeof(event_t);
 
 	stream = event_stream_allocate(0);
 
@@ -300,7 +304,7 @@ DECLARE_TEST(event, immediate_threaded) {
 			++read[ event->object ];
 			running = true;
 
-			EXPECT_LE(event_payload_size(event), 256);
+			EXPECT_SIZELE(event_payload_size(event), max_payload);
 			event = event_next(block, event);
 		}
 	}
@@ -308,7 +312,7 @@ DECLARE_TEST(event, immediate_threaded) {
 	block = event_stream_process(stream);
 	event = event_next(block, 0);
 	while (event) {
-		EXPECT_LE(event_payload_size(event), 256);
+		EXPECT_SIZELE(event_payload_size(event), max_payload);
 		++read[ event->object ];
 		event = event_next(block, event);
 	}
@@ -353,10 +357,10 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE) && event) {
 			EXPECT_EQ(event->id, expect_event);
-			EXPECT_EQ(event->size, sizeof(event_t) + 8);     //8 bytes for additional timestamp payload
+			EXPECT_EQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
-			EXPECT_EQ(event_payload_size(event), 0);
+			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
 
 			EXPECT_GE(current, delivery);
 
@@ -368,10 +372,10 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE + 1) && event) {
 			EXPECT_EQ(event->id, expect_event);
-			EXPECT_EQ(event->size, sizeof(event_t) + 8);     //8 bytes for additional timestamp payload
+			EXPECT_EQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
-			EXPECT_EQ(event_payload_size(event), 0);
+			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
 
 			EXPECT_GE(current, delivery + smalltick);
 
@@ -411,10 +415,10 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE + 1) && event) {
 			EXPECT_INTEQ(event->id, expect_event);
-			EXPECT_SIZEEQ(event->size, sizeof(event_t) + 8);     //8 bytes for additional timestamp payload
+			EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
-			EXPECT_SIZEEQ(event_payload_size(event), 0);
+			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
 
 			EXPECT_GE(current, delivery);
 
@@ -426,10 +430,10 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE) && event) {
 			EXPECT_INTEQ(event->id, expect_event);
-			EXPECT_SIZEEQ(event->size, sizeof(event_t) + 8);     //8 bytes for additional timestamp payload
+			EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
-			EXPECT_SIZEEQ(event_payload_size(event), 0);
+			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
 
 			EXPECT_GE(current, delivery + smalltick);
 
@@ -522,8 +526,8 @@ DECLARE_TEST(event, delay_threaded) {
 			              payloadtime, prevtime, (int)(time_ticks_to_seconds(time_diff(prevtime,
 			                                           payloadtime)) * REAL_C(1000.0)));
 
-			EXPECT_GE(event_payload_size(event), 8);
-			EXPECT_LE(event_payload_size(event), 256);
+			EXPECT_SIZEGE(event_payload_size(event), EXPECTED_EVENT_SIZE + 8 - sizeof(event_t));
+			EXPECT_SIZELE(event_payload_size(event), EXPECTED_EVENT_SIZE + 256 - sizeof(event_t));
 			EXPECT_GE_MSG(payloadtime, prevtime, msgbuf);
 			EXPECT_GE(curtime, payloadtime);
 
@@ -543,8 +547,8 @@ DECLARE_TEST(event, delay_threaded) {
 			++read[ event->object ];
 			memcpy(&payloadtime, event->payload, sizeof(tick_t));
 
-			EXPECT_GE(event_payload_size(event), 8);
-			EXPECT_LE(event_payload_size(event), 256);
+			EXPECT_SIZEGE(event_payload_size(event), EXPECTED_EVENT_SIZE + 8 - sizeof(event_t));
+			EXPECT_SIZELE(event_payload_size(event), EXPECTED_EVENT_SIZE + 256 - sizeof(event_t));
 			EXPECT_GE(payloadtime, prevtime);
 			EXPECT_GE(curtime, payloadtime);
 

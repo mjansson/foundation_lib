@@ -13,9 +13,6 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-FOUNDATION_STATIC_ASSERT(FOUNDATION_ALIGNOF(object_base_t) >= 8, "object_base_t alignment");
-FOUNDATION_STATIC_ASSERT(FOUNDATION_ALIGNOF(objectmap_t) >= 8, "objectmap_t alignment");
-
 void
 _object_initialize(object_base_t* obj, object_t id) {
 	obj->id = id;
@@ -29,7 +26,7 @@ objectmap_allocate(size_t size) {
 	if (size < 3)
 		size = 3;
 
-	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(void*) * size), 16, MEMORY_PERSISTENT);
+	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(void*) * size), 0, MEMORY_PERSISTENT);
 
 	objectmap_initialize(map, size);
 
@@ -38,30 +35,23 @@ objectmap_allocate(size_t size) {
 
 void
 objectmap_initialize(objectmap_t* map, size_t size) {
-	unsigned int bits;
-	unsigned int ip;
-	uintptr_t next_indexshift;
-	void** slot;
-
 	//Number of bits needed to represent index
-	bits = (unsigned int)math_round(math_log2((real)size));
-	FOUNDATION_ASSERT_MSGFORMAT(bits < 50, "Invalid objectmap size %" PRIsize, size);
+	unsigned int bits = (unsigned int)math_round(math_log2((real)size));
+	FOUNDATION_ASSERT_MSGFORMAT(bits <= 26, "Invalid objectmap size %" PRIsize, size);
 
+	//Needed for object check in objectmap_lookup of unused index
 	memset(map, 0, sizeof(objectmap_t) + (sizeof(void*) * size));
 
-	//Top two bits unused for Lua compatibility
-	map->size_bits   = bits;
-	map->id_max      = ((1ULL << (62ULL - bits)) - 1);
-	map->size        = size;
-	map->mask_index  = ((1ULL << bits) - 1ULL);
-	map->mask_id     = (0x3FFFFFFFFFFFFFFFULL & ~map->mask_index);
-	atomic_store64(&map->free, 0);
-	atomic_store64(&map->id, 1);
-
-	slot = map->map;
-	for (ip = 0, next_indexshift = 3; ip < (size - 1); ++ip, next_indexshift += 2, ++slot)
-		*slot = (void*)next_indexshift;
-	*slot = (void*)((uintptr_t)-1);
+	map->free        = 0;
+	map->id          = 0;
+	map->index_bits  = bits;
+	map->id_max      = ((1U << (32U - bits)) - 1);
+	map->size        = (uint32_t)size;
+	map->mask_index  = ((1U << bits) - 1U);
+	map->mask_id     = (0xFFFFFFFFU & ~map->mask_index);
+	map->autolink    = 0;
+	semaphore_initialize(&map->write, 1);
+	log_info(0, STRING_CONST("Initialized objectmap"));
 }
 
 void
@@ -72,12 +62,13 @@ objectmap_deallocate(objectmap_t* map) {
 
 void
 objectmap_finalize(objectmap_t* map) {
-	size_t i;
+	uint32_t i;
 
 	if (!map)
 		return;
 
-	for (i = 0; i < map->size; ++i) {
+#if BUILD_DEBUG || BUILD_RELEASE
+	for (i = 0; (i < map->size) && (i < map->autolink); ++i) {
 		bool is_object = !((uintptr_t)map->map[i] & 1);
 		if (is_object) {
 			log_error(0, ERROR_MEMORY_LEAK,
@@ -85,11 +76,14 @@ objectmap_finalize(objectmap_t* map) {
 			break;
 		}
 	}
+#endif
+
+	semaphore_finalize(&map->write);
 }
 
 size_t
 objectmap_size(const objectmap_t* map) {
-	return (unsigned int)map->size;
+	return map->size;
 }
 
 void*
@@ -103,68 +97,77 @@ objectmap_raw_lookup(const objectmap_t* map, size_t idx) {
 
 object_t
 objectmap_reserve(objectmap_t* map) {
-	uint64_t raw, idx;
-	uint64_t next;
+	uint32_t raw, idx, tag, next;
 
-	//Reserve spot in array, using tag for ABA protection
-	uint64_t tag = (uint64_t)atomic_incr64(&map->id) & map->id_max;
-	while (!tag)
-		tag = (uint64_t)atomic_incr64(&map->id) & map->id_max; //Wrap-around handled by masking
-	//TODO: Look into double-ended implementation with allocation from tail and free push to head
-	do {
-		raw = (uint64_t)atomic_load64(&map->free);
+	semaphore_wait(&map->write);
+	{
+		//Reserve spot in array, using tag for ABA protection
+		tag = ++map->id & map->id_max;
+		if (!tag)
+			tag = ++map->id & map->id_max; //Wrap-around handled by masking
+
+		raw = map->free;
 		idx = raw & map->mask_index;
 		if (idx >= map->size) {
+			semaphore_post(&map->write);
 			log_error(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Map full, unable to reserve id"));
 			return 0;
 		}
-		next = (uintptr_t)map->map[idx] >> 1;
-		next = (next & map->mask_index) | (tag << map->size_bits);
+		if (idx >= map->autolink) {
+			next = ++map->autolink;
+		}
+		else {
+			next = (uint32_t)((uintptr_t)map->map[idx] >> 1) & map->mask_index;
+			//Sanity check that slot isn't taken
+			FOUNDATION_ASSERT_MSG((uintptr_t)map->map[idx] & 1,
+			                      "Map failed sanity check, slot taken after reserve");
+		}
+		map->free = next | (tag << map->index_bits);
+		map->map[idx] = 0;
 	}
-	while (!atomic_cas64(&map->free, (int64_t)next, (int64_t)raw));
-
-	//Sanity check that slot isn't taken
-	FOUNDATION_ASSERT_MSG((uintptr_t)map->map[idx] & 1,
-	                      "Map failed sanity check, slot taken after reserve");
-	map->map[idx] = 0;
+	semaphore_post(&map->write);
 
 	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
-	FOUNDATION_ASSERT(((tag << map->size_bits) & map->mask_id) == (tag << map->size_bits));
+	FOUNDATION_ASSERT(((tag << map->index_bits) & map->mask_id) == (tag << map->index_bits));
 
-	return (tag << map->size_bits) | idx;
+	return (tag << map->index_bits) | idx;
 }
 
 bool
 objectmap_free(objectmap_t* map, object_t id) {
-	uint64_t idx;
-	uint64_t raw, next, free;
+	uint32_t idx, raw, next, free;
 	void* object;
 
-	idx = id & map->mask_index;
-	if ((uintptr_t)map->map[idx] & 1)
-		return false; //Already free
+	semaphore_wait(&map->write);
+	{
+		idx = id & map->mask_index;
+		object = map->map[idx];
+		if (((uintptr_t)map->map[idx] & 1) ||
+		    !FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
+			semaphore_post(&map->write);
+			return false;
+		}
 
-	object = map->map[idx];
-	if (!FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id)))
-		return false;
+		uint32_t tag = ++map->id & map->id_max;
+		if (!tag)
+			tag = ++map->id & map->id_max; //Wrap-around handled by masking
 
-	free = idx | (((uint64_t)atomic_incr64(&map->id) << map->size_bits) & map->mask_id);
-	do {
-		raw = (uint64_t)atomic_load64(&map->free);
-		next = (raw & map->mask_index) |
-		       (((uint64_t)atomic_incr64(&map->id) << map->size_bits) & map->mask_id);
+		free = idx | (tag << map->index_bits);
+		raw = map->free;
+		next = (raw & map->mask_index) | (tag << map->index_bits);
 		map->map[idx] = (void*)((uintptr_t)(next << 1) | 1);
+		map->free = free;
 	}
-	while (!atomic_cas64(&map->free, (int64_t)free, (int64_t)raw));
+	semaphore_post(&map->write);
 
 	return true;
 }
 
 bool
 objectmap_set(objectmap_t* map, object_t id, void* object) {
-	size_t idx;
+	uint32_t idx;
 
-	idx = (size_t)(id & map->mask_index);
+	idx = (id & map->mask_index);
 
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT(!(((uintptr_t)map->map[idx]) & 1));
