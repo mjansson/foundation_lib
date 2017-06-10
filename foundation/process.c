@@ -407,7 +407,7 @@ process_spawn(process_t* proc) {
 			}
 			else {
 				struct kevent changes;
-				EV_SET(&changes, (pid_t)pid, EVFILT_PROC, EV_ADD | EV_RECEIPT, NOTE_EXIT, 0, 0);
+				EV_SET(&changes, (pid_t)pid, EVFILT_PROC, EV_ADD | EV_RECEIPT, NOTE_EXIT | NOTE_EXITSTATUS, 0, 0);
 				int ret = kevent(proc->kq, &changes, 1, &changes, 1, 0);
 				if (ret != 1) {
 					int err = errno;
@@ -644,14 +644,15 @@ process_wait(process_t* proc) {
 
 			close(proc->kq);
 			proc->kq = 0;
+			proc->code = (int)event.data;
 		}
 		else {
+			proc->code = 0;
 			log_warn(0, WARNING_INVALID_VALUE,
 			         STRING_CONST("Unable to wait on a process started with PROCESS_MACOS_USE_OPENAPPLICATION and no kqueue"));
 			return PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;
-		proc->code = 0;
 		return proc->code;
 	}
 #  endif
