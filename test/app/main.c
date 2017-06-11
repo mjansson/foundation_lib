@@ -18,8 +18,6 @@
 #  include <foundation/posix.h>
 #endif
 
-#define TEMPORARY_MEMORY_SIZE 256 * 1024
-
 static application_t _global_app;
 
 static application_t
@@ -42,7 +40,6 @@ static foundation_config_t
 test_app_config(void) {
 	foundation_config_t config;
 	memset(&config, 0, sizeof(config));
-	config.temporary_memory = TEMPORARY_MEMORY_SIZE;
 	return config;
 }
 
@@ -79,29 +76,14 @@ static FOUNDATION_NOINLINE void*
 memory_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	int iloop, lsize;
-	void* min = 0;
-	void* max = 0;
-	size_t diff;
 
 	for (iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
-		void* mem = memory_allocate(0, 17, 16, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
-#if FOUNDATION_PLATFORM_ANDROID
-		EXPECT_EQ((uintptr_t)mem & 0x07, 0);
-#else
+		void* mem = memory_allocate(0, 17 + (iloop % 997), 16, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
 		EXPECT_EQ((uintptr_t)mem & 0x0F, 0);
-#endif
-		if (!min || (mem < min))
-			min = mem;
-		if (!max || (mem > max))
-			max = mem;
 		thread_yield();
 		memory_deallocate(mem);
 		thread_yield();
 	}
-
-	diff = (uintptr_t)pointer_diff(max, min);
-	EXPECT_SIZELT(diff, TEMPORARY_MEMORY_SIZE);
-	EXPECT_SIZEGE(diff, 64);
 
 	return 0;
 }

@@ -33,6 +33,14 @@
 #  include <malloc.h>
 #endif
 
+#if FOUNDATION_PLATFORM_APPLE
+#define FOUNDATION_MIN_ALIGN 16
+#elif FOUNDATION_ARCH_ARM_64 || FOUNDATION_ARCH_X86_64 || FOUNDATION_ARCH_PPC_64
+#define FOUNDATION_MIN_ALIGN 16
+#else
+#define FOUNDATION_MIN_ALIGN 8
+#endif
+
 /*lint -e728 */
 static const memory_tracker_t _memory_no_tracker;
 static memory_system_t _memory_system;
@@ -56,7 +64,6 @@ typedef FOUNDATION_ALIGN(8) struct {
 FOUNDATION_STATIC_ASSERT(sizeof(memory_statistics_t) == sizeof(memory_statistics_atomic_t),
                          "statistics sizes differs");
 
-static atomic_linear_memory_t _memory_temporary;
 static memory_statistics_atomic_t _memory_stats;
 
 #if BUILD_ENABLE_MEMORY_GUARD
@@ -81,99 +88,6 @@ _memory_untrack(void* addr);
 
 #endif
 
-// Max align must at least be sizeof( size_t )
-#if FOUNDATION_PLATFORM_ANDROID
-#  define FOUNDATION_MAX_ALIGN  8
-#else
-#  define FOUNDATION_MAX_ALIGN  16
-#endif
-
-static void
-_atomic_allocate_initialize() {
-	size_t storagesize = foundation_config().temporary_memory;
-	if (!storagesize) {
-		memset(&_memory_temporary, 0, sizeof(_memory_temporary));
-		return;
-	}
-	_memory_temporary.storage   = memory_allocate(0, storagesize, 16, MEMORY_PERSISTENT);
-	_memory_temporary.end       = pointer_offset(_memory_temporary.storage, storagesize);
-	_memory_temporary.size      = storagesize;
-	_memory_temporary.maxchunk  = (storagesize / 8);
-	//We must avoid using storage address or tracking will incorrectly match temporary allocation
-	//with the full temporary memory storage
-	atomic_store_ptr(&_memory_temporary.head, pointer_offset(_memory_temporary.storage, 8));
-}
-
-static void
-_atomic_allocate_finalize(void) {
-	void* storage = _memory_temporary.storage;
-	memset(&_memory_temporary, 0, sizeof(_memory_temporary));
-	if (storage)
-		memory_deallocate(storage);
-}
-
-static void*
-_atomic_allocate_linear(size_t chunksize) {
-	void* old_head;
-	void* new_head;
-	void* return_pointer = 0;
-
-	do {
-		old_head = atomic_load_ptr(&_memory_temporary.head);
-		new_head = pointer_offset(old_head, chunksize);
-
-		return_pointer = old_head;
-
-		if (new_head > _memory_temporary.end) {
-			//Avoid using raw storage pointer for tracking, see _atomic_allocate_initialize
-			return_pointer = pointer_offset(_memory_temporary.storage, 8);
-			new_head = pointer_offset(return_pointer, chunksize);
-		}
-	}
-	while (!atomic_cas_ptr(&_memory_temporary.head, new_head, old_head));
-
-	return return_pointer;
-}
-
-static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int unsigned
-_memory_get_align(unsigned int align) {
-	//All alignment in memory code is built around higher alignments
-	//being multiples of lower alignments (powers of two).
-	//4, 8, 16, ...
-#if FOUNDATION_PLATFORM_ANDROID
-	FOUNDATION_UNUSED(align);
-	return FOUNDATION_MAX_ALIGN;
-#else
-	if (align <= FOUNDATION_SIZE_POINTER)
-		return FOUNDATION_SIZE_POINTER;
-	align = math_align_poweroftwo(align);
-	return (align < FOUNDATION_MAX_ALIGN) ? align : FOUNDATION_MAX_ALIGN;
-#endif
-}
-
-static FOUNDATION_CONSTCALL FOUNDATION_FORCEINLINE int unsigned
-_memory_get_align_forced(unsigned int align) {
-	align = _memory_get_align(align);
-	return align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER;
-}
-
-static FOUNDATION_CONSTCALL void*
-_memory_align_pointer(void* p, unsigned int align) {
-	uintptr_t address;
-	uintptr_t mask;
-	if (!p || !align)
-		return p;
-
-	address = (uintptr_t)p;
-	mask = (uintptr_t)align - 1; //Align is always power-of-two
-	if (address & mask) {
-		address = (address & ~mask) + align;
-		p = (void*)address;
-	}
-
-	return p;
-}
-
 int
 _memory_initialize(const memory_system_t memory) {
 	int ret;
@@ -182,7 +96,6 @@ _memory_initialize(const memory_system_t memory) {
 	ret = _memory_system.initialize();
 	if (ret == 0) {
 		_memory_initialized = true;
-		_atomic_allocate_initialize();
 #if BUILD_ENABLE_MEMORY_TRACKER
 		if (_memory_tracker_preinit.initialize)
 			memory_set_tracker(_memory_tracker_preinit);
@@ -198,7 +111,6 @@ _memory_finalize(void) {
 	if (_memory_tracker.finalize)
 		_memory_tracker.finalize();
 #endif
-	_atomic_allocate_finalize();
 	if (_memory_system.thread_finalize)
 		_memory_system.thread_finalize();
 	memory_set_tracker(_memory_no_tracker);
@@ -209,58 +121,47 @@ _memory_finalize(void) {
 #if BUILD_ENABLE_MEMORY_GUARD
 
 static void*
-_memory_guard_initialize(void* memory, size_t size) {
-	int guard_loop;
-	uint32_t* guard_header = pointer_offset(memory, FOUNDATION_MAX_ALIGN);
-	uint32_t* guard_footer = pointer_offset(memory, size + FOUNDATION_MAX_ALIGN * 2);
-	*(size_t*)memory = size;
-	for (guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop) {
-		*guard_header++ = MEMORY_GUARD_VALUE;
-		*guard_footer++ = MEMORY_GUARD_VALUE;
+_memory_guard_initialize(void* memory, size_t size, size_t align) {
+	if (align < (FOUNDATION_MIN_ALIGN * 2))
+		align = FOUNDATION_MIN_ALIGN * 2;
+	void* start = pointer_offset(memory, align);
+	uint32_t* guard_header = pointer_offset(start, -FOUNDATION_MIN_ALIGN * 2);
+	uint32_t* guard_footer = pointer_offset(start, size - (align * 2));
+	for (int guard_loop = 0; guard_loop < (FOUNDATION_MIN_ALIGN * 2) / 4; ++guard_loop) {
+		*(guard_header + guard_loop) = MEMORY_GUARD_VALUE;
+		*(guard_footer + guard_loop) = MEMORY_GUARD_VALUE;
 	}
-	return pointer_offset(memory, FOUNDATION_MAX_ALIGN * 2);
+	*guard_header = (uint32_t)align;
+	*(guard_header + 1) = (uint32_t)size;
+	return start;
 }
 
 static void*
 _memory_guard_verify(void* memory) {
-	int guard_loop;
-	size_t    size = *(size_t*)pointer_offset(memory, -FOUNDATION_MAX_ALIGN * 2);
-	uint32_t* guard_header = pointer_offset(memory, -FOUNDATION_MAX_ALIGN);
-	uint32_t* guard_footer = pointer_offset(memory, size);
-	for (guard_loop = 0; guard_loop < FOUNDATION_MAX_ALIGN / 4; ++guard_loop) {
-		if (*guard_header != MEMORY_GUARD_VALUE)
+	uint32_t* guard_header = pointer_offset(memory, -FOUNDATION_MIN_ALIGN * 2);
+	uint32_t align = *guard_header;
+	uint32_t size = *(guard_header + 1);
+	uint32_t* guard_footer = pointer_offset(memory, size - (align * 2));
+	for (int guard_loop = 0; guard_loop < (FOUNDATION_MIN_ALIGN * 2) / 4; ++guard_loop) {
+		if ((guard_loop > 1) && (*(guard_header + guard_loop) != MEMORY_GUARD_VALUE))
 			FOUNDATION_ASSERT_MSG(*guard_header == MEMORY_GUARD_VALUE, "Memory underwrite");
-		if (*guard_footer != MEMORY_GUARD_VALUE)
+		if (*(guard_footer + guard_loop) != MEMORY_GUARD_VALUE)
 			FOUNDATION_ASSERT_MSG(*guard_footer == MEMORY_GUARD_VALUE, "Memory overwrite");
-		guard_header++;
-		guard_footer++;
 	}
-	return pointer_offset(memory, -FOUNDATION_MAX_ALIGN * 2);
+	return pointer_offset(memory, -(int32_t)align);
 }
 
 #endif
 
 void*
 memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hint) {
-	void* p = 0;
-	if (_memory_temporary.storage && (hint & MEMORY_TEMPORARY)) {
-		unsigned int tmpalign = _memory_get_align_forced(align);
-		if (size + tmpalign < _memory_temporary.maxchunk) {
-			p = _memory_align_pointer(_atomic_allocate_linear(size + tmpalign), tmpalign);
-			if (hint & MEMORY_ZERO_INITIALIZED)
-				memset(p, 0, (size_t)size);
-		}
-	}
-	if (!p)
-		p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
+	void* p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
 	_memory_track(p, size);
 	return p;
 }
 
 void*
 memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint) {
-	FOUNDATION_ASSERT_MSG((p < _memory_temporary.storage) ||
-	                      (p >= _memory_temporary.end), "Trying to reallocate temporary memory");
 	_memory_untrack(p);
 	p = _memory_system.reallocate(p, size, align, oldsize, hint);
 	_memory_track(p, size);
@@ -269,8 +170,7 @@ memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsi
 
 void
 memory_deallocate(void* p) {
-	if ((p < _memory_temporary.storage) || (p >= _memory_temporary.end))
-		_memory_system.deallocate(p);
+	_memory_system.deallocate(p);
 	_memory_untrack(p);
 }
 
@@ -362,51 +262,47 @@ memory_thread_finalize(void) {
 static void*
 _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 	FOUNDATION_UNUSED(hint);
-
-	//If we align manually, we must be able to retrieve the original pointer for passing to free()
-	//Thus all allocations need to go through that path
-
-	unsigned int padding, extra_padding = 0;
-	char* raw_memory;
 	void* memory;
 
-	padding = (align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER);
+#if BUILD_ENABLE_MEMORY_GUARD || FOUNDATION_PLATFORM_WINDOWS
+	if (align < FOUNDATION_MIN_ALIGN)
+		align = FOUNDATION_MIN_ALIGN;
+#endif
 #if BUILD_ENABLE_MEMORY_GUARD
-	extra_padding = FOUNDATION_MAX_ALIGN * 3;
+	if (align < (FOUNDATION_MIN_ALIGN * 2))
+		size += FOUNDATION_MIN_ALIGN * 4;
+	else
+		size += align * 2;
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
-	raw_memory = _aligned_malloc((size_t)size + padding + extra_padding, align);
+	memory = _aligned_malloc(size, align);
 #else
-	size_t total_size = size + padding + extra_padding;
-	if (total_size % align)
-		total_size += align - (total_size % align);
-#  if FOUNDATION_PLATFORM_ANDROID
-#    define aligned_alloc memalign
+	if (align > FOUNDATION_MIN_ALIGN) {
+#  if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
+		if (posix_memalign(&memory, align, size))
+			memory = 0;
+#  else
+		memory = aligned_alloc(align, size);
 #  endif
-	raw_memory = aligned_alloc(align, total_size);
-#endif
-	if (raw_memory) {
-		//Will be aligned since padding is multiple of alignment (minimum align/pad is pointer size)
-		memory = raw_memory + padding;
-		*((void**)memory - 1) = raw_memory;
-		FOUNDATION_ASSERT(!((uintptr_t)raw_memory & 1));
-		FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#if BUILD_ENABLE_MEMORY_GUARD
-		memory = _memory_guard_initialize(memory, size);
-		FOUNDATION_ASSERT(!((uintptr_t)memory & 1));
-#endif
-		return memory;
 	}
-	log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-	           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
-	return 0;
+	else {
+		memory = malloc(size);
+	}
+#endif
+#if BUILD_ENABLE_MEMORY_GUARD
+	memory = _memory_guard_initialize(memory, size, align);
+#endif
+	if (!memory) {
+		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
+		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
+	}
+	return memory;
 }
 
 static void*
 _memory_allocate_malloc(hash_t context, size_t size, unsigned  int align, unsigned int hint) {
 	void* block;
 	FOUNDATION_UNUSED(context);
-	align = _memory_get_align(align);
 	block = _memory_allocate_malloc_raw(size, align, hint);
 	if (block && (hint & MEMORY_ZERO_INITIALIZED))
 		memset(block, 0, (size_t)size);
@@ -415,95 +311,43 @@ _memory_allocate_malloc(hash_t context, size_t size, unsigned  int align, unsign
 
 static void
 _memory_deallocate_malloc(void* p) {
-	uintptr_t raw_ptr;
-
 	if (!p)
 		return;
 
 #if BUILD_ENABLE_MEMORY_GUARD
 	p = _memory_guard_verify(p);
 #endif
-	raw_ptr = *((uintptr_t*)p - 1);
 #if FOUNDATION_PLATFORM_WINDOWS
-	_aligned_free((void*)raw_ptr);
+	_aligned_free(p);
 #else
-	free((void*)raw_ptr);
+	free(p);
 #endif
 }
 
 static void*
 _memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize,
                           unsigned int hint) {
-	void* memory;
-	void* raw_p;
-
-	align = _memory_get_align(align);
-
-	memory = p;
 #if BUILD_ENABLE_MEMORY_GUARD
-	if (memory)
-		memory = _memory_guard_verify(memory);
-#endif
-	raw_p = memory ? *((void**)memory - 1) : nullptr;
-	memory = nullptr;
-
-#if FOUNDATION_PLATFORM_WINDOWS
-	if (raw_p && !(hint & MEMORY_NO_PRESERVE)) {
-		size_t padding = (align > FOUNDATION_SIZE_POINTER ? align : FOUNDATION_SIZE_POINTER);
-#  if BUILD_ENABLE_MEMORY_GUARD
-		size_t extra_padding = FOUNDATION_MAX_ALIGN * 3;
+	if (align < FOUNDATION_MIN_ALIGN)
+		align = FOUNDATION_MIN_ALIGN;
+#else
+#  if FOUNDATION_PLATFORM_WINDOWS
+	return _aligned_realloc(p, size, align > FOUNDATION_MIN_ALIGN ? align : FOUNDATION_MIN_ALIGN);
 #  else
-		size_t extra_padding = 0;
+	if (align <= FOUNDATION_MIN_ALIGN)
+		return realloc(p, size);
 #  endif
-		void* raw_memory = _aligned_realloc(raw_p, size + padding + extra_padding, align ? align : 8);
-		if (raw_memory) {
-			memory = pointer_offset(raw_memory, padding);
-			*((void**)memory - 1) = raw_memory;
-#  if BUILD_ENABLE_MEMORY_GUARD
-			memory = _memory_guard_initialize(memory, size);
-#  endif
-		}
-	}
-	else {
-		_memory_deallocate_malloc(p);
-		memory = _memory_allocate_malloc_raw(size, align, hint);
-	}
-
-#else //!FOUNDATION_PLATFORM_WINDOWS below
-
-//If we're on ARM the realloc can return a 16-bit aligned address, causing raw pointer store to SIGILL
-//Realigning does not work since the realloc memory copy preserve cannot be done properly. Revert to normal alloc-and-copy
-//Same with alignment, since we cannot guarantee that the returned memory block offset from start of actual memory block
-//is the same in the reallocated block as the original block, we need to alloc-and-copy to get alignment
-//Memory guard introduces implicit alignments as well so alloc-and-copy for that
-#  if !FOUNDATION_ARCH_ARM && !FOUNDATION_ARCH_ARM_64 && !BUILD_ENABLE_MEMORY_GUARD
-	if (!align && raw_p && !(hint & MEMORY_NO_PRESERVE)) {
-		void* raw_memory = realloc(raw_p, (size_t)size + FOUNDATION_SIZE_POINTER);
-		if (raw_memory) {
-			*(void**)raw_memory = raw_memory;
-			memory = pointer_offset(raw_memory, FOUNDATION_SIZE_POINTER);
-		}
-	}
-	else
-#  endif
-	{
-#  if !BUILD_ENABLE_LOG
-		FOUNDATION_UNUSED(raw_p);
-#  endif
-		memory = _memory_allocate_malloc_raw(size, align, hint);
-		if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
-			memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
-		_memory_deallocate_malloc(p);
-	}
-
 #endif
+	void* memory = _memory_allocate_malloc_raw(size, align, hint);
+	if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
+		memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
+	_memory_deallocate_malloc(p);
 
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);
 		log_panicf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to reallocate memory (%" PRIsize " -> %" PRIsize " @ 0x%" PRIfixPTR ", raw 0x%"
-		                        PRIfixPTR "): %.*s"),
-		           oldsize, size, (uintptr_t)p, (uintptr_t)raw_p, STRING_FORMAT(errmsg));
+		           STRING_CONST("Unable to reallocate memory (%" PRIsize " -> %" PRIsize " @ 0x%" PRIfixPTR "): %.*s"),
+		           oldsize, size, (uintptr_t)p, STRING_FORMAT(errmsg));
 	}
 
 	return memory;
@@ -644,6 +488,7 @@ _memory_tracker_track(void* addr, size_t size) {
 		size_t limit = foundation_config().memory_tracker_max * 2;
 		size_t loop = 0;
 		do {
+			atomic_thread_fence_acquire();
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1);
 			while (tag >= (int32_t)foundation_config().memory_tracker_max) {
 				int32_t newtag = tag % (int32_t)foundation_config().memory_tracker_max;
@@ -654,6 +499,7 @@ _memory_tracker_track(void* addr, size_t size) {
 			}
 			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, 0)) {
 				_memory_tags[tag].size = size;
+				atomic_thread_fence_release();
 				stacktrace_capture(_memory_tags[tag].trace,
 				                   sizeof(_memory_tags[tag].trace)/sizeof(_memory_tags[tag].trace[0]), 3);
 				break;
@@ -670,6 +516,7 @@ _memory_tracker_track(void* addr, size_t size) {
 		atomic_add64(&_memory_stats.allocated_total, (int64_t)size);
 		atomic_add64(&_memory_stats.allocated_current, (int64_t)size);
 #endif
+		atomic_thread_fence_release();
 	}
 }
 
@@ -678,10 +525,12 @@ _memory_tracker_untrack(void* addr) {
 	int32_t tag = 0;
 	size_t size = 0;
 	if (addr && _memory_tracker_initialized) {
+		atomic_thread_fence_acquire();
 		int32_t maxtag = (int32_t)foundation_config().memory_tracker_max;
 		int32_t iend = atomic_load32(&_memory_tag_next) % maxtag;
 		int32_t itag = iend ? iend - 1 : maxtag - 1;
 		while (true) {
+			atomic_thread_fence_acquire();
 			void* tagaddr = atomic_load_ptr(&_memory_tags[itag].address);
 			if (addr == tagaddr) {
 				tag = itag + 1;
@@ -703,6 +552,7 @@ _memory_tracker_untrack(void* addr) {
 		atomic_decr64(&_memory_stats.allocations_current);
 		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size);
 #endif
+		atomic_thread_fence_release();
 	}
 	//else if (addr && _memory_tracker_initialized) {
 	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);

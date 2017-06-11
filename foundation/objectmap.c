@@ -62,13 +62,11 @@ objectmap_deallocate(objectmap_t* map) {
 
 void
 objectmap_finalize(objectmap_t* map) {
-	uint32_t i;
-
 	if (!map)
 		return;
 
 #if BUILD_DEBUG || BUILD_RELEASE
-	for (i = 0; (i < map->size) && (i < map->autolink); ++i) {
+	for (uint32_t i = 0; (i < map->size) && (i < map->autolink); ++i) {
 		bool is_object = !((uintptr_t)map->map[i] & 1);
 		if (is_object) {
 			log_error(0, ERROR_MEMORY_LEAK,

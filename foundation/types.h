@@ -813,8 +813,6 @@ struct foundation_config_t {
 	size_t memory_tracker_max;
 	/*! Maximum number of file system monitors. Zero for default (16) */
 	size_t fs_monitor_max;
-	/*! Size of temporary memory pool (short lived allocations). Zero for deafult (no temporary memory pool). */
-	size_t temporary_memory;
 	/*! Maximum depth of an error context. Zero for default (32) */
 	size_t error_context_depth;
 	/*! Maximum depth of a memory context. Zero for default (32) */
