@@ -169,8 +169,6 @@ main_initialize(void) {
 #if BUILD_MONOLITHIC
 	//For fs monitor test
 	config.fs_monitor_max = 1;
-	//For temporary allocator test, 256KiB
-	config.temporary_memory = 256 * 1024;
 	//For testing static hash store
 	config.hash_store_size = 32 * 1024;
 	//Test preallocation of random state buffers
@@ -366,7 +364,6 @@ main_run(void* main_arg) {
 #if BUILD_MONOLITHIC
 
 	test_run_fn tests[] = {
-		test_profile_run,
 		test_app_run,
 		test_array_run,
 		test_atomic_run,
