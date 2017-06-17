@@ -22,11 +22,7 @@ and/or
 http://en.cppreference.com/w/cpp/atomic/memory_order
 
 Atomic operations provide a means to atomically load, store and perform basic operations to
-a 32/64 bit data location. On Windows all atomic store/modify functions also provide a full
-memory fence (both acquire and release).
-
-All atomic load/store operations use relaxed memory order. To enforce acquire or release
-semantics use the explicit fence functions provided.
+a 32 & 64 bit data location.
 
 Signal fences guarantee memory order between threads on same core or between interrupt
 and signal. Thread fences guarantee memory order between multiple threads on a multicore
@@ -41,121 +37,147 @@ system */
 
 /*! Atomically load 32 bit value
 \param src   Value
+\param order The memory synchronization order for this operation. The order parameter cannot be memory_order_release or memory_order_acq_rel
 \return      Current value */
 static FOUNDATION_FORCEINLINE int32_t
-atomic_load32(const atomic32_t* src);
+atomic_load32(const atomic32_t* src, memory_order order);
 
 /*! Atomically load 64 bit value
 \param src   Value
+\param order The memory synchronization order for this operation. The order parameter cannot be memory_order_release or memory_order_acq_rel
 \return      Current value */
 static FOUNDATION_FORCEINLINE int64_t
-atomic_load64(const atomic64_t* src);
+atomic_load64(const atomic64_t* src, memory_order order);
 
 /*! Atomically load pointer value
 \param src   Value
+\param order The memory synchronization order for this operation. The order parameter cannot be memory_order_release or memory_order_acq_rel
 \return      Current value */
 static FOUNDATION_FORCEINLINE void*
-atomic_load_ptr(const atomicptr_t* src);
+atomic_load_ptr(const atomicptr_t* src, memory_order order);
 
 /*! Atomically store 32 bit value
 \param dst   Target
+\param order The memory synchronization order for this operation. The order argument cannot be memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
-atomic_store32(atomic32_t* dst, int32_t val);
+atomic_store32(atomic32_t* dst, int32_t val, memory_order order);
 
 /*! Atomically store 64 bit value
 \param dst   Target
+\param order The memory synchronization order for this operation. The order argument cannot be memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
-atomic_store64(atomic64_t* dst, int64_t val);
+atomic_store64(atomic64_t* dst, int64_t val, memory_order order);
 
 /*! Atomically store pointer value
 \param dst   Target
+\param order The memory synchronization order for this operation. The order argument cannot be memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
-atomic_store_ptr(atomicptr_t* dst, void* val);
+atomic_store_ptr(atomicptr_t* dst, void* val, memory_order order);
 
 /*! Atomically add to the value of the 32 bit integer and returns its new value
 \param val   Value to change
 \param add   Value to add
+\param order The memory synchronization order for this operation
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
-atomic_add32(atomic32_t* val, int32_t add);
+atomic_add32(atomic32_t* val, int32_t add, memory_order order);
 
 /*! Atomically add to the value of the 64 bit integer and returns its new value
 \param val   Value to change
 \param add   Value to add
+\param order The memory synchronization order for this operation
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
-atomic_add64(atomic64_t* val, int64_t add);
+atomic_add64(atomic64_t* val, int64_t add, memory_order order);
 
 /*! Atomically increases the value of the 32 bit integer and returns its new value
 \param val   Value to change
+\param order The memory synchronization order for this operation
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
-atomic_incr32(atomic32_t* val);
+atomic_incr32(atomic32_t* val, memory_order order);
 
 /*! Atomically increases the value of the 64 bit integer and returns its new value
 \param val   Value to change
+\param order The memory synchronization order for this operation
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
-atomic_incr64(atomic64_t* val);
+atomic_incr64(atomic64_t* val, memory_order order);
 
 /*! Atomically decreases the value of the 32 bit integer and returns its new value
 \param val   Value to change
+\param order The memory synchronization order for this operation
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int32_t
-atomic_decr32(atomic32_t* val);
+atomic_decr32(atomic32_t* val, memory_order order);
 
 /*! Atomically decreases the value of the 64 bit integer and returns its new value
 \param val   Value to change
+\param order The memory synchronization order for this operation
 \return      New value after addition */
 static FOUNDATION_FORCEINLINE int64_t
-atomic_decr64(atomic64_t* val);
+atomic_decr64(atomic64_t* val, memory_order order);
 
 /*! Atomically add to the value of the 32 bit integer and returns its old value
 \param val   Value to change
 \param add   Value to add
+\param order The memory synchronization order for this operation
 \return      Old value before addition */
 static FOUNDATION_FORCEINLINE int32_t
-atomic_exchange_and_add32(atomic32_t* val, int32_t add);
+atomic_exchange_and_add32(atomic32_t* val, int32_t add, memory_order order);
 
 /*! Atomically add to the value of the 64 bit integer and returns its old value
 \param val   Value to change
 \param add   Value to add
+\param order The memory synchronization order for this operation
 \return      Old value before addition */
 static FOUNDATION_FORCEINLINE int64_t
-atomic_exchange_and_add64(atomic64_t* val, int64_t add);
+atomic_exchange_and_add64(atomic64_t* val, int64_t add, memory_order order);
 
 /*! Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
+A weak compare-and-exchange operation might fail spuriously. That is, even when the contents
+of memory referred to by expected and object are equal, it might return false.
 \param dst   Value to change
 \param val   Value to set
 \param ref   Reference value
+\param success The memory synchronization order for for the read-modify-write operation if the comparison succeeds
+\param failure The memory synchronization order for the load operation if the comparison fails. This parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a memory synchronization order stronger than success
 \return      true if operation was successful and new value stored,
              false if comparison failed and value was unchanged */
 static FOUNDATION_FORCEINLINE bool
-atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref);
+atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref, memory_order success, memory_order failure);
 
 /*! Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
+A weak compare-and-exchange operation might fail spuriously. That is, even when the contents
+of memory referred to by expected and object are equal, it might return false.
 \param dst   Value to change
 \param val   Value to set
 \param ref   Reference value
+\param success The memory synchronization order for for the read-modify-write operation if the comparison succeeds
+\param failure The memory synchronization order for the load operation if the comparison fails. This parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a memory synchronization order stronger than success
 \return      true if operation was successful and new value stored,
              false if comparison failed and value was unchanged */
 static FOUNDATION_FORCEINLINE bool
-atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref);
+atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref, memory_order success, memory_order failure);
 
 /*! Atomically compare and swap (CAS). The value in the destination location is compared to
 the reference value, and if equal the new value is stored in the destination location.
+A weak compare-and-exchange operation might fail spuriously. That is, even when the contents
+of memory referred to by expected and object are equal, it might return false.
 \param dst   Value to change
 \param val   Value to set
 \param ref   Reference value
-\return      true if operation was successful and new value stored,
+\param success The memory synchronization order for for the read-modify-write operation if the comparison succeeds
+\param failure The memory synchronization order for the load operation if the comparison fails. This parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a memory synchronization order stronger than success
+ jhn        llkl,..,,,,,,,,,,yhmgvgvvok,,b     																		\return      true if operation was successful and new value stored,
              false if comparison failed and value was unchanged */
 static FOUNDATION_FORCEINLINE bool
-atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref);
+atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref, memory_order success, memory_order failure);
 
 /*! Signal fence making prior writes made to other memory locations done by a thread on
 the same core doing a release fence visible to the calling thread. Implemented as a compile
@@ -200,111 +222,108 @@ atomic_thread_fence_sequentially_consistent(void);
 #  pragma clang diagnostic ignored "-Wcast-qual"
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_load32(const atomic32_t* src) {
-	return atomic_load_explicit((atomic32_t*)src, memory_order_relaxed);
+atomic_load32(const atomic32_t* src, memory_order order) {
+	return atomic_load_explicit((atomic32_t*)src, order);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_load64(const atomic64_t* src) {
-	return atomic_load_explicit((atomic64_t*)src, memory_order_relaxed);
+atomic_load64(const atomic64_t* src, memory_order order) {
+	return atomic_load_explicit((atomic64_t*)src, order);
 }
 
 static FOUNDATION_FORCEINLINE void*
-atomic_load_ptr(const atomicptr_t* src) {
-	return atomic_load_explicit((atomicptr_t*)src, memory_order_relaxed);
+atomic_load_ptr(const atomicptr_t* src, memory_order order) {
+	return atomic_load_explicit((atomicptr_t*)src, order);
 }
 
 #  pragma clang diagnostic pop
 #else
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_load32(const atomic32_t* src) {
-	return atomic_load_explicit(src, memory_order_relaxed);
+atomic_load32(const atomic32_t* src, memory_order order) {
+	return atomic_load_explicit(src, order);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_load64(const atomic64_t* src) {
-	return atomic_load_explicit(src, memory_order_relaxed);
+atomic_load64(const atomic64_t* src, memory_order order) {
+	return atomic_load_explicit(src, order);
 }
 
 static FOUNDATION_FORCEINLINE void*
-atomic_load_ptr(const atomicptr_t* src) {
-	return atomic_load_explicit(src, memory_order_relaxed);
+atomic_load_ptr(const atomicptr_t* src, memory_order order) {
+	return atomic_load_explicit(src, order);
 }
 
 #endif
 
 static FOUNDATION_FORCEINLINE void
-atomic_store32(atomic32_t* dst, int32_t val) {
-	atomic_store_explicit(dst, val, memory_order_relaxed);
+atomic_store32(atomic32_t* dst, int32_t val, memory_order order) {
+	atomic_store_explicit(dst, val, order);
 }
 
 static FOUNDATION_FORCEINLINE void
-atomic_store64(atomic64_t* dst, int64_t val) {
-	atomic_store_explicit(dst, val, memory_order_relaxed);
+atomic_store64(atomic64_t* dst, int64_t val, memory_order order) {
+	atomic_store_explicit(dst, val, order);
 }
 
 static FOUNDATION_FORCEINLINE void
-atomic_store_ptr(atomicptr_t* dst, void* val) {
-	atomic_store_explicit(dst, val, memory_order_relaxed);
+atomic_store_ptr(atomicptr_t* dst, void* val, memory_order order) {
+	atomic_store_explicit(dst, val, order);
 }
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_add32(atomic32_t* val, int32_t add) {
-	return atomic_fetch_add_explicit(val, add, memory_order_relaxed) + add;
+atomic_add32(atomic32_t* val, int32_t add, memory_order order) {
+	return atomic_fetch_add_explicit(val, add, order) + add;
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_add64(atomic64_t* val, int64_t add) {
-	return atomic_fetch_add_explicit(val, add, memory_order_relaxed) + add;
+atomic_add64(atomic64_t* val, int64_t add, memory_order order) {
+	return atomic_fetch_add_explicit(val, add, order) + add;
 }
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_incr32(atomic32_t* val) {
-	return atomic_fetch_add_explicit(val, 1, memory_order_relaxed) + 1;
+atomic_incr32(atomic32_t* val, memory_order order) {
+	return atomic_fetch_add_explicit(val, 1, order) + 1;
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_incr64(atomic64_t* val) {
-	return atomic_fetch_add_explicit(val, 1, memory_order_relaxed) + 1;
+atomic_incr64(atomic64_t* val, memory_order order) {
+	return atomic_fetch_add_explicit(val, 1, order) + 1;
 }
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_decr32(atomic32_t* val) {
-	return atomic_fetch_add_explicit(val, -1, memory_order_relaxed) - 1;
+atomic_decr32(atomic32_t* val, memory_order order) {
+	return atomic_fetch_add_explicit(val, -1, order) - 1;
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_decr64(atomic64_t* val) {
-	return atomic_fetch_add_explicit(val, -1, memory_order_relaxed) - 1;
+atomic_decr64(atomic64_t* val, memory_order order) {
+	return atomic_fetch_add_explicit(val, -1, order) - 1;
 }
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_exchange_and_add32(atomic32_t* val, int32_t add) {
-	return atomic_fetch_add_explicit(val, add, memory_order_relaxed);
+atomic_exchange_and_add32(atomic32_t* val, int32_t add, memory_order order) {
+	return atomic_fetch_add_explicit(val, add, order);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_exchange_and_add64(atomic64_t* val, int64_t add) {
-	return atomic_fetch_add_explicit(val, add, memory_order_relaxed);
+atomic_exchange_and_add64(atomic64_t* val, int64_t add, memory_order order) {
+	return atomic_fetch_add_explicit(val, add, order);
 }
 
 static FOUNDATION_FORCEINLINE bool
-atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref) {
-	return atomic_compare_exchange_weak_explicit(dst, &ref, val,
-	                                             memory_order_relaxed, memory_order_relaxed);
+atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref, memory_order success, memory_order failure) {
+	return atomic_compare_exchange_weak_explicit(dst, &ref, val, success, failure);
 }
 
 static FOUNDATION_FORCEINLINE bool
-atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref) {
-	return atomic_compare_exchange_weak_explicit(dst, &ref, val,
-	                                             memory_order_relaxed, memory_order_relaxed);
+atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref, memory_order success, memory_order failure) {
+	return atomic_compare_exchange_weak_explicit(dst, &ref, val, success, failure);
 }
 
 static FOUNDATION_FORCEINLINE bool
-atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref) {
-	return atomic_compare_exchange_weak_explicit(dst, &ref, val,
-	                                             memory_order_relaxed, memory_order_relaxed);
+atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref, memory_order success, memory_order failure) {
+	return atomic_compare_exchange_weak_explicit(dst, &ref, val, success, failure);
 }
 
 static FOUNDATION_FORCEINLINE void
@@ -342,12 +361,12 @@ atomic_thread_fence_sequentially_consistent(void) {
 // Microsoft
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_load32(const atomic32_t* val) {
+atomic_load32(const atomic32_t* val, memory_order order) {
 	return val->nonatomic;
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_load64(const atomic64_t* val) {
+atomic_load64(const atomic64_t* val, memory_order order) {
 #if FOUNDATION_ARCH_X86
 	int64_t result;
 	__asm {
@@ -365,17 +384,17 @@ atomic_load64(const atomic64_t* val) {
 }
 
 static FOUNDATION_FORCEINLINE void*
-atomic_load_ptr(const atomicptr_t* val) {
+atomic_load_ptr(const atomicptr_t* val, memory_order order) {
 	return (void*)val->nonatomic;
 }
 
 static FOUNDATION_FORCEINLINE void
-atomic_store32(atomic32_t* dst, int32_t val) {
+atomic_store32(atomic32_t* dst, int32_t val, memory_order order) {
 	dst->nonatomic = val;
 }
 
 static FOUNDATION_FORCEINLINE void
-atomic_store64(atomic64_t* dst, int64_t val) {
+atomic_store64(atomic64_t* dst, int64_t val, memory_order order) {
 #if FOUNDATION_ARCH_X86
 #  pragma warning(disable : 4731)
 	__asm {
@@ -394,33 +413,33 @@ atomic_store64(atomic64_t* dst, int64_t val) {
 }
 
 static FOUNDATION_FORCEINLINE void
-atomic_store_ptr(atomicptr_t* dst, void* val) {
+atomic_store_ptr(atomicptr_t* dst, void* val, memory_order order) {
 	dst->nonatomic = val;
 }
 
 static FOUNDATION_FORCEINLINE int32_t
-atomic_exchange_and_add32(atomic32_t* val, int32_t add) {
+atomic_exchange_and_add32(atomic32_t* val, int32_t add, memory_order order) {
 	return _InterlockedExchangeAdd((volatile long*)&val->nonatomic, add);
 }
 
 static FOUNDATION_FORCEINLINE int
-atomic_add32(atomic32_t* val, int32_t add) {
+atomic_add32(atomic32_t* val, int32_t add, memory_order order) {
 	int32_t old = (int32_t)_InterlockedExchangeAdd((volatile long*)&val->nonatomic, add);
 	return (old + add);
 }
 
 static FOUNDATION_FORCEINLINE int
-atomic_incr32(atomic32_t* val) {
+atomic_incr32(atomic32_t* val, memory_order order) {
 	return atomic_add32(val, 1);
 }
 
 static FOUNDATION_FORCEINLINE int
-atomic_decr32(atomic32_t* val) {
+atomic_decr32(atomic32_t* val, memory_order order) {
 	return atomic_add32(val, -1);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_exchange_and_add64(atomic64_t* val, int64_t add) {
+atomic_exchange_and_add64(atomic64_t* val, int64_t add, memory_order order) {
 #if FOUNDATION_ARCH_X86
 	long long ref;
 	do { ref = val->nonatomic; }
@@ -432,7 +451,7 @@ atomic_exchange_and_add64(atomic64_t* val, int64_t add) {
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_add64(atomic64_t* val, int64_t add) {
+atomic_add64(atomic64_t* val, int64_t add, memory_order order) {
 #if FOUNDATION_ARCH_X86
 	return atomic_exchange_and_add64(val, add) + add;
 #else
@@ -441,23 +460,23 @@ atomic_add64(atomic64_t* val, int64_t add) {
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_incr64(atomic64_t* val) {
+atomic_incr64(atomic64_t* val, memory_order order) {
 	return atomic_add64(val, 1LL);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
-atomic_decr64(atomic64_t* val) {
+atomic_decr64(atomic64_t* val, memory_order order) {
 	return atomic_add64(val, -1LL);
 }
 
 static FOUNDATION_FORCEINLINE bool
-atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref) {
+atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref, memory_order success, memory_order failure) {
 	return (_InterlockedCompareExchange((volatile long*)&dst->nonatomic, val,
 	                                    ref) == ref) ? true : false;
 }
 
 static FOUNDATION_FORCEINLINE bool
-atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref) {
+atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref, memory_order success, memory_order failure) {
 	return (_InterlockedCompareExchange64((volatile long long*)&dst->nonatomic, val,
 	                                      ref) == ref) ? true : false;
 }

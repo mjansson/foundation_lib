@@ -72,9 +72,9 @@ DECLARE_TEST(objectmap, store) {
 	memset(&first, 0, sizeof(first));
 	memset(&second, 0, sizeof(first));
 	memset(&third, 0, sizeof(first));
-	atomic_store32(&first.ref, 1);
-	atomic_store32(&second.ref, 1);
-	atomic_store32(&third.ref, 1);
+	atomic_store32(&first.ref, 1, memory_order_release);
+	atomic_store32(&second.ref, 1, memory_order_release);
+	atomic_store32(&third.ref, 1, memory_order_release);
 	first.id = 1;
 	second.id = 2;
 	third.id = 3;
@@ -196,7 +196,7 @@ objectmap_thread(void* arg) {
 		thread_yield();
 
 		for (obj = 0; obj < 512; ++obj) {
-			atomic_store32(&objects[obj].ref, 1);
+			atomic_store32(&objects[obj].ref, 1, memory_order_release);
 			objects[obj].id = objectmap_reserve(map);
 			EXPECT_NE_MSGFORMAT(objects[obj].id, 0, "Unable to reserve slot for object num %d", obj);
 			EXPECT_EQ_MSGFORMAT(objectmap_lookup(map, objects[obj].id), 0,

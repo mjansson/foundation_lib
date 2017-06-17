@@ -207,8 +207,7 @@ _thread_entry(thread_arg_t data) {
 	if (thread->name.length)
 		thread_set_name(STRING_ARGS(thread->name));
 
-	atomic_store32(&thread->state, 1);
-	atomic_thread_fence_release();
+	atomic_store32(&thread->state, 1, memory_order_release);
 
 	if (system_debugger_attached() || !handler) {
 		thread->result = thread->fn(thread->arg);
@@ -232,8 +231,7 @@ _thread_entry(thread_arg_t data) {
 		_thread_main_id = (uint64_t)-1;
 
 	thread->osid = 0;
-	atomic_store32(&thread->state, 2);
-	atomic_thread_fence_release();
+	atomic_store32(&thread->state, 2, memory_order_release);
 
 	set_thread_self(0);
 	thread_exit();
@@ -324,33 +322,31 @@ thread_join(thread_t* thread) {
 	if (thread->handle) {
 		WaitForSingleObject((HANDLE)thread->handle, INFINITE);
 		CloseHandle((HANDLE)thread->handle);
-		atomic_store32(&thread->state, 3);
+		atomic_store32(&thread->state, 3, memory_order_release);
 	}
 	thread->handle = 0;
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	void* result = 0;
 	if (thread->handle) {
 		pthread_join((pthread_t)thread->handle, &result);
-		atomic_store32(&thread->state, 3);
+		atomic_store32(&thread->state, 3, memory_order_release);
 	}
 	thread->handle = 0;
 #else
 #  error Not implemented
 #endif
-	atomic_thread_fence_release();
 	return thread->result;
 }
 
 bool
 thread_is_started(const thread_t* thread) {
-	atomic_thread_fence_acquire();
-	return thread ? atomic_load32(&thread->state) >= 1 : false;
+	return thread ? atomic_load32(&thread->state, memory_order_acquire) >= 1 : false;
 }
 
 bool
 thread_is_running(const thread_t* thread) {
 	atomic_thread_fence_acquire();
-	return thread ? atomic_load32(&thread->state) == 1 : false;
+	return thread ? atomic_load32(&thread->state, memory_order_acquire) == 1 : false;
 }
 
 void

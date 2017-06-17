@@ -16,7 +16,7 @@
 void
 _object_initialize(object_base_t* obj, object_t id) {
 	obj->id = id;
-	atomic_store32(&obj->ref, 1);
+	atomic_store32(&obj->ref, 1, memory_order_relaxed);
 }
 
 objectmap_t*
@@ -141,7 +141,7 @@ objectmap_free(objectmap_t* map, object_t id) {
 		idx = id & map->mask_index;
 		object = map->map[idx];
 		if (((uintptr_t)map->map[idx] & 1) ||
-		    !FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
+		        !FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
 			semaphore_post(&map->write);
 			return false;
 		}
@@ -186,8 +186,8 @@ objectmap_lookup_ref(const objectmap_t* map, object_t id) {
 		if (object && !((uintptr_t)object & 1) &&
 		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
-			ref = atomic_load32(&base_obj->ref);
-			if (ref && atomic_cas32(&base_obj->ref, ref + 1, ref))
+			ref = atomic_load32(&base_obj->ref, memory_order_acquire);
+			if (ref && atomic_cas32(&base_obj->ref, ref + 1, ref, memory_order_release, memory_order_acquire))
 				return object;
 		}
 	}
@@ -205,8 +205,8 @@ objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn
 		if (object && !((uintptr_t)object & 1) &&
 		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
 			object_base_t* base_obj = object;
-			ref = atomic_load32(&base_obj->ref);
-			if (ref && atomic_cas32(&base_obj->ref, ref - 1, ref)) {
+			ref = atomic_load32(&base_obj->ref, memory_order_acquire);
+			if (ref && atomic_cas32(&base_obj->ref, ref - 1, ref, memory_order_release, memory_order_acquire)) {
 				if (ref == 1) {
 					deallocate(id, object);
 					return false;

@@ -169,7 +169,7 @@ semaphore_waiter(void* arg) {
 	for (loop = 0; loop < sem->loopcount; ++loop) {
 		thread_yield();
 		semaphore_wait(&sem->read);
-		atomic_incr32(&sem->counter);
+		atomic_incr32(&sem->counter, memory_order_relaxed);
 		semaphore_post(&sem->write);
 	}
 
@@ -185,7 +185,7 @@ DECLARE_TEST(semaphore, threaded) {
 	semaphore_initialize(&test.read, 0);
 	semaphore_initialize(&test.write, 0);
 	test.loopcount = 128;
-	atomic_store32(&test.counter, 0);
+	atomic_store32(&test.counter, 0, memory_order_relaxed);
 
 	for (ith = 0; ith < 32; ++ith)
 		thread_initialize(&thread[ith], semaphore_waiter, &test, STRING_CONST("semaphore_waiter"),
@@ -210,7 +210,7 @@ DECLARE_TEST(semaphore, threaded) {
 	for (ith = 0; ith < 32; ++ith)
 		thread_finalize(&thread[ith]);
 
-	EXPECT_EQ(atomic_load32(&test.counter), test.loopcount * 32);
+	EXPECT_EQ(atomic_load32(&test.counter, memory_order_acquire), test.loopcount * 32);
 	EXPECT_EQ(failed_waits, 0);
 
 	semaphore_finalize(&test.read);
@@ -220,7 +220,7 @@ DECLARE_TEST(semaphore, threaded) {
 	semaphore_initialize_named(&test.read, STRING_CONST("foundation_test_read"), 0);
 	semaphore_initialize_named(&test.write, STRING_CONST("foundation_test_write"), 0);
 	test.loopcount = 128;
-	atomic_store32(&test.counter, 0);
+	atomic_store32(&test.counter, 0, memory_order_relaxed);
 
 	for (ith = 0; ith < 32; ++ith)
 		thread_initialize(&thread[ith], semaphore_waiter, &test, STRING_CONST("semaphore_waiter"),
@@ -242,7 +242,7 @@ DECLARE_TEST(semaphore, threaded) {
 
 	test_wait_for_threads_finish(thread, 32);
 
-	EXPECT_EQ(atomic_load32(&test.counter), test.loopcount * 32);
+	EXPECT_EQ(atomic_load32(&test.counter, memory_order_acquire), test.loopcount * 32);
 	EXPECT_EQ(failed_waits, 0);
 
 	for (ith = 0; ith < 32; ++ith)

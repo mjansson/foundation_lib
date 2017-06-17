@@ -75,7 +75,7 @@ uuid_generate_time(void) {
 
 	//Allows creation of 10000 unique timestamps per millisecond
 	current_time = time_system();
-	current_counter = atomic_incr32(&_uuid_last_counter) % 10000;
+	current_counter = atomic_incr32(&_uuid_last_counter, memory_order_relaxed) % 10000;
 
 	current_tick = (current_time * 10000LL) + current_counter +
 	               0x01B21DD213814000LL;   //Convert to 100ns since UUID UTC base time, October 15 1582, and add counter

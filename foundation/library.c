@@ -117,7 +117,7 @@ library_load(const char* name, size_t length) {
 		library = objectmap_raw_lookup(_library_map, i);
 		if (library && (library->name_hash == name_hash)) {
 			FOUNDATION_ASSERT(string_equal(library->name, library->name_length, basename, base_length));
-			atomic_incr32(&library->ref);
+			atomic_incr32(&library->ref, memory_order_relaxed);
 			return library->id;
 		}
 	}

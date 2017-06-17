@@ -57,8 +57,8 @@ inc_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	while (!thread_try_wait(0) && (loop < 65535)) {
 		for (icount = 0; icount < 256; ++icount) {
-			atomic_incr32(&val_32);
-			atomic_incr64(&val_64);
+			atomic_incr32(&val_32, memory_order_relaxed);
+			atomic_incr64(&val_64, memory_order_relaxed);
 		}
 
 		++loop;
@@ -74,8 +74,8 @@ dec_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	while (!thread_try_wait(0) && (loop < 65535)) {
 		for (icount = 0; icount < 256; ++icount) {
-			atomic_decr32(&val_32);
-			atomic_decr64(&val_64);
+			atomic_decr32(&val_32, memory_order_relaxed);
+			atomic_decr64(&val_64, memory_order_relaxed);
 		}
 
 		++loop;
@@ -91,12 +91,12 @@ add_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	while (!thread_try_wait(0) && (loop < 65535)) {
 		for (icount = 0; icount < 128; ++icount) {
-			atomic_add32(&val_32, icount % 2 ? -icount : icount);
-			atomic_exchange_and_add64(&val_64, icount % 2 ? -icount : icount);
+			atomic_add32(&val_32, icount % 2 ? -icount : icount, memory_order_relaxed);
+			atomic_exchange_and_add64(&val_64, icount % 2 ? -icount : icount, memory_order_relaxed);
 		}
 		for (icount = 0; icount < 128; ++icount) {
-			atomic_exchange_and_add32(&val_32, icount % 2 ? icount : -icount);
-			atomic_add64(&val_64, icount % 2 ? icount : -icount);
+			atomic_exchange_and_add32(&val_32, icount % 2 ? icount : -icount, memory_order_relaxed);
+			atomic_add64(&val_64, icount % 2 ? icount : -icount, memory_order_relaxed);
 		}
 
 		++loop;
@@ -123,31 +123,18 @@ cas_thread(void* arg) {
 	thread_sleep(10);
 
 	while (!thread_try_wait(0) && (loop < 10000)) {
-		while (!atomic_cas32(&val_32, val.val_32, REFVAL32)) {
+		while (!atomic_cas32(&val_32, val.val_32, REFVAL32, memory_order_release, memory_order_acquire))
 			thread_yield();
-			atomic_thread_fence_acquire();
-		}
-		while (!atomic_cas32(&val_32, REFVAL32, val.val_32)) {
+		while (!atomic_cas32(&val_32, REFVAL32, val.val_32, memory_order_release, memory_order_acquire))
 			thread_yield();
-			atomic_thread_fence_acquire();
-		}
-		while (!atomic_cas64(&val_64, val.val_64, REFVAL64)) {
+		while (!atomic_cas64(&val_64, val.val_64, REFVAL64, memory_order_release, memory_order_acquire))
 			thread_yield();
-			atomic_thread_fence_acquire();
-		}
-		while (!atomic_cas64(&val_64, REFVAL64, val.val_64)) {
+		while (!atomic_cas64(&val_64, REFVAL64, val.val_64, memory_order_release, memory_order_acquire))
 			thread_yield();
-			atomic_thread_fence_acquire();
-		}
-		while (!atomic_cas_ptr(&val_ptr, val.val_ptr, REFVALPTR)) {
+		while (!atomic_cas_ptr(&val_ptr, val.val_ptr, REFVALPTR, memory_order_release, memory_order_acquire))
 			thread_yield();
-			atomic_thread_fence_acquire();
-		}
-		while (!atomic_cas_ptr(&val_ptr, REFVALPTR, val.val_ptr)) {
+		while (!atomic_cas_ptr(&val_ptr, REFVALPTR, val.val_ptr, memory_order_release, memory_order_acquire))
 			thread_yield();
-			atomic_thread_fence_acquire();
-		}
-		atomic_thread_fence_release();
 
 		++loop;
 		if (!(loop % 100))
@@ -163,8 +150,8 @@ DECLARE_TEST(atomic, incdec) {
 	size_t ithread;
 	thread_t threads[32];
 
-	atomic_init(&val_32, 0);
-	atomic_init(&val_64, 0);
+	atomic_store32(&val_32, 0, memory_order_release);
+	atomic_store64(&val_64, 0, memory_order_release);
 
 	for (ithread = 0; ithread < num_threads; ++ithread)
 		thread_initialize(&threads[ithread], ithread % 2 ? dec_thread : inc_thread, 0,
@@ -178,8 +165,8 @@ DECLARE_TEST(atomic, incdec) {
 	for (ithread = 0; ithread < num_threads; ++ithread)
 		thread_finalize(&threads[ithread]);
 
-	EXPECT_INTEQ(atomic_load32(&val_32), 0);
-	EXPECT_TYPEEQ(atomic_load64(&val_64), 0, int64_t, PRIi64);
+	EXPECT_INTEQ(atomic_load32(&val_32, memory_order_acquire), 0);
+	EXPECT_TYPEEQ(atomic_load64(&val_64, memory_order_acquire), 0, int64_t, PRIi64);
 
 	return 0;
 }
@@ -189,8 +176,8 @@ DECLARE_TEST(atomic, add) {
 	size_t ithread;
 	thread_t threads[32];
 
-	atomic_init(&val_32, 0);
-	atomic_init(&val_64, 0);
+	atomic_store32(&val_32, 0, memory_order_release);
+	atomic_store64(&val_64, 0, memory_order_release);
 
 	for (ithread = 0; ithread < num_threads; ++ithread)
 		thread_initialize(&threads[ithread], add_thread, 0,
@@ -204,8 +191,8 @@ DECLARE_TEST(atomic, add) {
 	for (ithread = 0; ithread < num_threads; ++ithread)
 		thread_finalize(&threads[ithread]);
 
-	EXPECT_INTEQ(atomic_load32(&val_32), 0);
-	EXPECT_TYPEEQ(atomic_load64(&val_64), 0, int64_t, PRIi64);
+	EXPECT_INTEQ(atomic_load32(&val_32, memory_order_acquire), 0);
+	EXPECT_TYPEEQ(atomic_load64(&val_64, memory_order_acquire), 0, int64_t, PRIi64);
 
 	return 0;
 }
@@ -216,9 +203,9 @@ DECLARE_TEST(atomic, cas) {
 	thread_t threads[32];
 	cas_value_t cas_values[32];
 
-	atomic_init(&val_32, REFVAL32);
-	atomic_init(&val_64, REFVAL64);
-	atomic_init(&val_ptr, REFVALPTR);
+	atomic_store32(&val_32, REFVAL32, memory_order_release);
+	atomic_store64(&val_64, REFVAL64, memory_order_release);
+	atomic_store_ptr(&val_ptr, REFVALPTR, memory_order_release);
 
 	for (ithread = 0; ithread < num_threads; ++ithread) {
 		cas_values[ithread].val_32 = (int32_t)ithread + 1;
@@ -236,9 +223,9 @@ DECLARE_TEST(atomic, cas) {
 	for (ithread = 0; ithread < num_threads; ++ithread)
 		thread_finalize(&threads[ithread]);
 
-	EXPECT_INTEQ(atomic_load32(&val_32), REFVAL32);
-	EXPECT_TYPEEQ(atomic_load64(&val_64), REFVAL64, int64_t, PRIx64);
-	EXPECT_EQ(atomic_load_ptr(&val_ptr), REFVALPTR);
+	EXPECT_INTEQ(atomic_load32(&val_32, memory_order_acquire), REFVAL32);
+	EXPECT_TYPEEQ(atomic_load64(&val_64, memory_order_acquire), REFVAL64, int64_t, PRIx64);
+	EXPECT_EQ(atomic_load_ptr(&val_ptr, memory_order_acquire), REFVALPTR);
 
 	return 0;
 }

@@ -86,21 +86,21 @@ _profile_allocate_block(void) {
 	/*lint --e{701} */
 	//Grab block from free list, avoiding ABA issues by
 	//using high 16 bit as a loop counter
-	atomic_thread_fence_acquire();
 	profile_block_t* block;
 	int32_t free_block_tag, free_block, next_block_tag;
 	do {
-		free_block_tag = atomic_load32(&_profile_free);
+		free_block_tag = atomic_load32(&_profile_free, memory_order_acquire);
 		free_block = free_block_tag & 0xffff;
 
 		next_block_tag = GET_BLOCK(free_block)->child;
-		next_block_tag |= (atomic_incr32(&_profile_loopid) & 0xffff) << 16;
+		next_block_tag |= (atomic_incr32(&_profile_loopid, memory_order_relaxed) & 0xffff) << 16;
 	}
-	while (free_block && !atomic_cas32(&_profile_free, next_block_tag, free_block_tag));
-	atomic_thread_fence_release();
+	while (free_block &&
+	        !atomic_cas32(&_profile_free, next_block_tag, free_block_tag, memory_order_release,
+	                      memory_order_acquire));
 
 	if (!free_block) {
-		if (atomic_cas32(&_profile_has_warned, 1, 0)) {
+		if (atomic_cas32(&_profile_has_warned, 1, 0, memory_order_release, memory_order_acquire)) {
 			if (_profile_num_blocks < 65535)
 				log_error(0, ERROR_OUT_OF_MEMORY,
 				          STRING_CONST("Profile blocks exhausted, increase profile memory block size"));
@@ -120,14 +120,13 @@ static void
 _profile_free_block(int32_t block, int32_t leaf) {
 	/*lint --e{701} */
 	int32_t last_tag, block_tag;
-	atomic_thread_fence_acquire();
 	do {
-		block_tag = block | ((atomic_incr32(&_profile_loopid) & 0xffff) << 16);
-		last_tag = atomic_load32(&_profile_free);
+		block_tag = block | ((atomic_incr32(&_profile_loopid, memory_order_relaxed) & 0xffff) << 16);
+		last_tag = atomic_load32(&_profile_free, memory_order_acquire);
 		GET_BLOCK(leaf)->child = last_tag & 0xffff;
 	}
-	while (!atomic_cas32(&_profile_free, block_tag, last_tag));
-	atomic_thread_fence_release();
+	while (!atomic_cas32(&_profile_free, block_tag, last_tag, memory_order_release,
+	                     memory_order_acquire));
 }
 
 static void
@@ -138,13 +137,12 @@ _profile_put_root_block(int32_t block) {
 #if PROFILE_ENABLE_SANITY_CHECKS
 	FOUNDATION_ASSERT(self->sibling == 0);
 #endif
-	atomic_thread_fence_acquire();
-	while (!atomic_cas32(&_profile_root, block, 0)) {
+	while (!atomic_cas32(&_profile_root, block, 0, memory_order_release, memory_order_acquire)) {
 		do {
-			sibling = (uint16_t)atomic_load32(&_profile_root);
+			sibling = (uint16_t)atomic_load32(&_profile_root, memory_order_acquire);
 		}
-		while (sibling && !atomic_cas32(&_profile_root, 0, (int32_t)sibling));
-		atomic_thread_fence_release();
+		while (sibling &&
+		        !atomic_cas32(&_profile_root, 0, (int32_t)sibling, memory_order_release, memory_order_acquire));
 
 		if (sibling) {
 			if (self->sibling) {
@@ -158,7 +156,6 @@ _profile_put_root_block(int32_t block) {
 				self->sibling = sibling;
 			}
 		}
-		atomic_thread_fence_acquire();
 	}
 }
 
@@ -193,7 +190,7 @@ _profile_put_message_block(int32_t id, const char* message, size_t length) {
 	block->data.processor = thread_hardware();
 	block->data.thread = (uint32_t)thread_id();
 	block->data.start  = time_current() - _profile_ground_time;
-	block->data.end = atomic_add32(&_profile_counter, 1);
+	block->data.end = atomic_add32(&_profile_counter, 1, memory_order_relaxed);
 	string_copy(block->data.name, sizeof(block->data.name), message, length);
 
 	length = (length > MAX_MESSAGE_LENGTH ? length - MAX_MESSAGE_LENGTH : 0);
@@ -212,7 +209,7 @@ _profile_put_message_block(int32_t id, const char* message, size_t length) {
 		cblock->data.processor = block->data.processor;
 		cblock->data.thread = block->data.thread;
 		cblock->data.start  = block->data.start;
-		cblock->data.end    = atomic_add32(&_profile_counter, 1);
+		cblock->data.end    = atomic_add32(&_profile_counter, 1, memory_order_relaxed);
 		string_copy(cblock->data.name, sizeof(cblock->data.name), message, length);
 
 		cblock->sibling = subblock->child;
@@ -261,12 +258,11 @@ static void
 _profile_process_root_block(void) {
 	int32_t block;
 
-	atomic_thread_fence_acquire();
 	do {
-		block = atomic_load32(&_profile_root);
+		block = atomic_load32(&_profile_root, memory_order_acquire);
 	}
-	while (block && !atomic_cas32(&_profile_root, 0, block));
-	atomic_thread_fence_release();
+	while (block &&
+	        !atomic_cas32(&_profile_root, 0, block, memory_order_release, memory_order_acquire));
 
 	while (block) {
 		profile_block_t* leaf;
@@ -293,14 +289,12 @@ _profile_io(void* arg) {
 
 	while (!thread_try_wait(_profile_wait)) {
 
-		atomic_thread_fence_acquire();
-		if (!atomic_load32(&_profile_root))
+		if (!atomic_load32(&_profile_root, memory_order_acquire))
 			continue;
 
 		profile_begin_block(STRING_CONST("profile_io"));
 
-		atomic_thread_fence_acquire();
-		if (atomic_load32(&_profile_root)) {
+		if (atomic_load32(&_profile_root, memory_order_acquire)) {
 			profile_begin_block(STRING_CONST("process"));
 
 			//This is thread safe in the sense that only completely closed and ended
@@ -320,8 +314,7 @@ _profile_io(void* arg) {
 		profile_end_block();
 	}
 
-	atomic_thread_fence_acquire();
-	if (atomic_load32(&_profile_root))
+	if (atomic_load32(&_profile_root, memory_order_acquire))
 		_profile_process_root_block();
 
 	if (_profile_write) {
@@ -352,14 +345,14 @@ profile_initialize(const char* identifier, size_t length, void* buffer, size_t s
 	block->sibling = 0;
 	root->child = 0;
 
-	atomic_store32(&_profile_root, 0);
+	atomic_store32(&_profile_root, 0, memory_order_relaxed);
 
 	_profile_num_blocks = num_blocks;
 	_profile_identifier = string_const(identifier, length);
 	_profile_blocks = root;
 	//TODO: Currently 0 is a no-block identifier, so we waste the first block
-	atomic_store32(&_profile_free, 1);
-	atomic_store32(&_profile_counter, 128);
+	atomic_store32(&_profile_free, 1, memory_order_relaxed);
+	atomic_store32(&_profile_counter, 128, memory_order_relaxed);
 	_profile_ground_time = time_current();
 	set_thread_profile_block(0);
 	atomic_thread_fence_release();
@@ -374,24 +367,23 @@ void
 profile_finalize(void) {
 	if (!_profile_initialized)
 		return;
-	
+
 	profile_enable(0);
 
 	thread_signal(&_profile_io_thread);
 	thread_finalize(&_profile_io_thread);
 
 	//Discard and free up blocks remaining in queue
-	atomic_thread_fence_acquire();
 	_profile_thread_finalize();
-	if (atomic_load32(&_profile_root))
+	if (atomic_load32(&_profile_root, memory_order_acquire))
 		_profile_process_root_block();
 
 	//Sanity checks
 	{
 		uint32_t num_blocks = 0;
-		uint32_t free_block = atomic_load32(&_profile_free) & 0xffff;
+		uint32_t free_block = atomic_load32(&_profile_free, memory_order_acquire) & 0xffff;
 
-		if (atomic_load32(&_profile_root))
+		if (atomic_load32(&_profile_root, memory_order_acquire))
 			log_error(0, ERROR_INTERNAL_FAILURE,
 			          STRING_CONST("Profile module state inconsistent on finalize, "
 			                       "at least one root block still allocated/active"));
@@ -418,9 +410,8 @@ profile_finalize(void) {
 		}
 	}
 
-	atomic_store32(&_profile_root, 0);
-	atomic_store32(&_profile_free, 0);
-	atomic_thread_fence_release();
+	atomic_store32(&_profile_root, 0, memory_order_relaxed);
+	atomic_store32(&_profile_free, 0, memory_order_relaxed);
 
 	_profile_num_blocks = 0;
 	_profile_identifier = string_null();
@@ -444,7 +435,7 @@ profile_enable(bool enable) {
 
 	if (!_profile_initialized)
 		return;
-	
+
 	if (is_enabled && !was_enabled) {
 		//Start output thread
 		_profile_enable = 1;
@@ -483,7 +474,6 @@ profile_begin_block(const char* message, size_t length) {
 	if (!_profile_enable)
 		return;
 
-	atomic_thread_fence_acquire();
 	parent = get_thread_profile_block();
 	if (!parent) {
 		//Allocate new master block
@@ -492,7 +482,7 @@ profile_begin_block(const char* message, size_t length) {
 		if (!block)
 			return;
 		blockindex = BLOCK_INDEX(block);
-		block->data.id = atomic_add32(&_profile_counter, 1);
+		block->data.id = atomic_add32(&_profile_counter, 1, memory_order_relaxed);
 		string_copy(block->data.name, sizeof(block->data.name), message, length);
 		block->data.processor = thread_hardware();
 		block->data.thread = (uint32_t)thread_id();
@@ -508,7 +498,7 @@ profile_begin_block(const char* message, size_t length) {
 			return;
 		subindex = BLOCK_INDEX(subblock);
 		parentblock = GET_BLOCK(parent);
-		subblock->data.id = atomic_add32(&_profile_counter, 1);
+		subblock->data.id = atomic_add32(&_profile_counter, 1, memory_order_relaxed);
 		subblock->data.parentid = parentblock->data.id;
 		string_copy(subblock->data.name, sizeof(subblock->data.name), message, length);
 		subblock->data.processor = thread_hardware();
@@ -521,7 +511,6 @@ profile_begin_block(const char* message, size_t length) {
 		parentblock->child = subindex;
 		set_thread_profile_block(subindex);
 	}
-	atomic_thread_fence_release();
 }
 
 void
