@@ -212,14 +212,14 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 	profile_wait(STRING_ARGS(mutex->name));
 #endif
 
-	atomic_incr32(&mutex->waiting, atomic_order_acq_rel);
+	atomic_incr32(&mutex->waiting, memory_order_acq_rel);
 
 	ret = WaitForSingleObject(mutex->event, milliseconds);
 
 	if (ret == WAIT_OBJECT_0)
 		mutex_lock(mutex);
 
-	if (atomic_decr32(&mutex->waiting, atomic_order_acq_rel) == 0)
+	if (atomic_decr32(&mutex->waiting, memory_order_acq_rel) == 0)
 		ResetEvent(mutex->event);
 
 	return ret == WAIT_OBJECT_0;

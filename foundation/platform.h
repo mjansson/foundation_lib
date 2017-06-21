@@ -923,6 +923,17 @@ typedef enum {
 } bool;
 #endif
 
+#if FOUNDATION_COMPILER_MSVC
+typedef enum memory_order {
+	memory_order_relaxed,
+	memory_order_consume,
+	memory_order_acquire,
+	memory_order_release,
+	memory_order_acq_rel,
+	memory_order_seq_cst
+} memory_order;
+#endif
+
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
 #endif
@@ -1165,14 +1176,20 @@ uint512_is_null(const uint512_t u0) {
 
 //Format specifiers for 64bit and pointers
 #if FOUNDATION_COMPILER_MSVC
+#  define PRId32       "Id"
+#  define PRIi32       "Ii"
+#  define PRIo32       "Io"
+#  define PRIu32       "Iu"
+#  define PRIx32       "Ix"
+#  define PRIX32       "IX"
 #  define PRId64       "I64d"
 #  define PRIi64       "I64i"
-#  define PRIdPTR      "Id"
-#  define PRIiPTR      "Ii"
 #  define PRIo64       "I64o"
 #  define PRIu64       "I64u"
 #  define PRIx64       "I64x"
 #  define PRIX64       "I64X"
+#  define PRIdPTR      "Id"
+#  define PRIiPTR      "Ii"
 #  define PRIoPTR      "Io"
 #  define PRIuPTR      "Iu"
 #  define PRIxPTR      "Ix"

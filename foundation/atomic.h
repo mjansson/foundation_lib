@@ -362,11 +362,15 @@ atomic_thread_fence_sequentially_consistent(void) {
 
 static FOUNDATION_FORCEINLINE int32_t
 atomic_load32(const atomic32_t* val, memory_order order) {
+	if (order != memory_order_relaxed)
+		_ReadWriteBarrier();
 	return val->nonatomic;
 }
 
 static FOUNDATION_FORCEINLINE int64_t
 atomic_load64(const atomic64_t* val, memory_order order) {
+	if (order != memory_order_relaxed)
+		_ReadWriteBarrier();
 #if FOUNDATION_ARCH_X86
 	int64_t result;
 	__asm {
@@ -385,12 +389,16 @@ atomic_load64(const atomic64_t* val, memory_order order) {
 
 static FOUNDATION_FORCEINLINE void*
 atomic_load_ptr(const atomicptr_t* val, memory_order order) {
+	if (order != memory_order_relaxed)
+		_ReadWriteBarrier();
 	return (void*)val->nonatomic;
 }
 
 static FOUNDATION_FORCEINLINE void
 atomic_store32(atomic32_t* dst, int32_t val, memory_order order) {
 	dst->nonatomic = val;
+	if (order >= memory_order_release)
+		_ReadWriteBarrier();
 }
 
 static FOUNDATION_FORCEINLINE void
@@ -410,11 +418,15 @@ atomic_store64(atomic64_t* dst, int64_t val, memory_order order) {
 #else
 	dst->nonatomic = val;
 #endif
+	if (order >= memory_order_release)
+		_ReadWriteBarrier();
 }
 
 static FOUNDATION_FORCEINLINE void
 atomic_store_ptr(atomicptr_t* dst, void* val, memory_order order) {
 	dst->nonatomic = val;
+	if (order >= memory_order_release)
+		_ReadWriteBarrier();
 }
 
 static FOUNDATION_FORCEINLINE int32_t
@@ -430,12 +442,12 @@ atomic_add32(atomic32_t* val, int32_t add, memory_order order) {
 
 static FOUNDATION_FORCEINLINE int
 atomic_incr32(atomic32_t* val, memory_order order) {
-	return atomic_add32(val, 1);
+	return atomic_add32(val, 1, order);
 }
 
 static FOUNDATION_FORCEINLINE int
 atomic_decr32(atomic32_t* val, memory_order order) {
-	return atomic_add32(val, -1);
+	return atomic_add32(val, -1, order);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
@@ -461,12 +473,12 @@ atomic_add64(atomic64_t* val, int64_t add, memory_order order) {
 
 static FOUNDATION_FORCEINLINE int64_t
 atomic_incr64(atomic64_t* val, memory_order order) {
-	return atomic_add64(val, 1LL);
+	return atomic_add64(val, 1LL, order);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
 atomic_decr64(atomic64_t* val, memory_order order) {
-	return atomic_add64(val, -1LL);
+	return atomic_add64(val, -1LL, order);
 }
 
 static FOUNDATION_FORCEINLINE bool
@@ -482,11 +494,11 @@ atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref, memory_order success, me
 }
 
 static FOUNDATION_FORCEINLINE bool
-atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref) {
+atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref, memory_order success, memory_order failure) {
 #if FOUNDATION_SIZE_POINTER == 8
-	return atomic_cas64((atomic64_t*)dst, (int64_t)(uintptr_t)val, (int64_t)(uintptr_t)ref);
+	return atomic_cas64((atomic64_t*)dst, (int64_t)(uintptr_t)val, (int64_t)(uintptr_t)ref, success, failure);
 #else
-	return atomic_cas32((atomic32_t*)dst, (int32_t)(uintptr_t)val, (int32_t)(uintptr_t)ref);
+	return atomic_cas32((atomic32_t*)dst, (int32_t)(uintptr_t)val, (int32_t)(uintptr_t)ref, success, failure);
 #endif
 }
 
