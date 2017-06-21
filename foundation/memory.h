@@ -104,6 +104,11 @@ tracker will be set once the library is initialized.
 FOUNDATION_API void
 memory_set_tracker(memory_tracker_t tracker);
 
+/*! Dump all tracked allocations
+\param handler Function receiving allocation data */
+FOUNDATION_API void
+memory_tracker_dump(memory_tracker_handler_fn handler);
+
 /*! Get the default malloc based memory system declaration for passing to #foundation_initialize
 \return Default malloc based memory system declation */
 FOUNDATION_API memory_system_t

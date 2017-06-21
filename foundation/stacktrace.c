@@ -587,7 +587,7 @@ _finalize_symbol_resolve() {
 #endif
 
 static FOUNDATION_NOINLINE string_t
-_resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_frames) {
+_resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t max_frames) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	char                symbol_buffer[ sizeof(IMAGEHLP_SYMBOL64) + 512 ];
 	PIMAGEHLP_SYMBOL64  symbol;
@@ -823,7 +823,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void** frames, size_t max_f
 }
 
 string_t
-stacktrace_resolve(char* str, size_t length, void** trace, size_t max_depth, size_t skip_frames) {
+stacktrace_resolve(char* str, size_t length, void* const* trace, size_t max_depth, size_t skip_frames) {
 	_initialize_symbol_resolve();
 
 	if (!max_depth)

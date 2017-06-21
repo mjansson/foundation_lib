@@ -611,6 +611,15 @@ typedef void (* json_handler_fn)(const char* path, size_t path_size,
                                  const char* buffer, size_t size,
                                  const json_token_t* tokens, size_t numtokens);
 
+/*! Memory tracker dump handler
+\param addr Address of allocated region
+\param size Size of allocation
+\param trace Stack trace of allocation (if any, otherwise null)
+\param depth Depth of stack trace
+\return 0 to continue dumping allocations, non-zero to stop dump */
+typedef int (* memory_tracker_handler_fn)(const void* addr, size_t size,
+                                          void * const* trace, size_t depth);
+
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
 \return 0 on success, <0 if failure (errors should be reported through log_error
@@ -670,6 +679,11 @@ typedef void (* memory_untrack_fn)(void* p);
 provide an implementation with this prototype for memory statistics
 \return Memory statistics */
 typedef memory_statistics_t (* memory_statistics_fn)(void);
+
+/*! Memory tracker dump function prototype. Implementation of a memory tracker can
+provide an implementation of this prototype.
+\param handler Dump handler function */
+typedef void (* memory_tracker_dump_fn)(memory_tracker_handler_fn handler);
 
 /*! Callback function for writing profiling data to a stream
 \param data Pointer to data block
@@ -919,6 +933,8 @@ struct memory_tracker_t {
 	memory_untrack_fn untrack;
 	/*! Statistics */
 	memory_statistics_fn statistics;
+	/*! Dump */
+	memory_tracker_dump_fn dump;
 	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
 	/*! Abort memory tracker */
@@ -930,13 +946,13 @@ struct memory_tracker_t {
 /*! Memory statistics */
 struct memory_statistics_t {
 	/*! Number of allocations in total, running counter */
-	uint64_t allocations_total;
+	uint32_t allocations_total;
 	/*! Number fo allocations, current */
-	uint64_t allocations_current;
+	uint32_t allocations_current;
 	/*! Number of allocated bytes in total, running counter */
-	uint64_t allocated_total;
+	uint32_t allocated_total;
 	/*! Number of allocated bytes, current */
-	uint64_t allocated_current;
+	uint32_t allocated_current;
 };
 
 /*! Version identifier expressed as an 128-bit integer with major, minor,

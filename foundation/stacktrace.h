@@ -36,4 +36,4 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames);
 \param skip_frames Number of initial frames to skip before starting resolve
 \return Resolved stack trace string, empty string if unable to resolve */
 FOUNDATION_API string_t
-stacktrace_resolve(char* str, size_t capacity, void** trace, size_t max_depth, size_t skip_frames);
+stacktrace_resolve(char* str, size_t capacity, void* const* trace, size_t max_depth, size_t skip_frames);

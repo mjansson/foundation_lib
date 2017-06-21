@@ -47,10 +47,10 @@ static memory_system_t _memory_system;
 static bool _memory_initialized;
 
 typedef FOUNDATION_ALIGN(8) struct {
-	atomic64_t allocations_total;
-	atomic64_t allocations_current;
-	atomic64_t allocated_total;
-	atomic64_t allocated_current;
+	atomic32_t allocations_total;
+	atomic32_t allocations_current;
+	atomic32_t allocated_total;
+	atomic32_t allocated_current;
 } memory_statistics_atomic_t;
 
 FOUNDATION_STATIC_ASSERT(sizeof(memory_statistics_t) == sizeof(memory_statistics_atomic_t),
@@ -93,6 +93,7 @@ _memory_initialize(const memory_system_t memory) {
 			memory_set_tracker(_memory_tracker_preinit);
 #endif
 	}
+	atomic_thread_fence_release();
 	return ret;
 }
 
@@ -162,13 +163,14 @@ memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsi
 
 void
 memory_deallocate(void* p) {
-	_memory_system.deallocate(p);
 	_memory_untrack(p);
+	_memory_system.deallocate(p);
 }
 
 memory_statistics_t
 memory_statistics(void) {
 	memory_statistics_t stats;
+	atomic_thread_fence_acquire();
 	memcpy(&stats, &_memory_stats, sizeof(memory_statistics_t));
 	return stats;
 }
@@ -406,13 +408,19 @@ _memory_untrack(void* addr) {
 		_memory_tracker.untrack(addr);
 }
 
-struct memory_tag_t {
+void
+memory_tracker_dump(memory_tracker_handler_fn handler) {
+	if (_memory_tracker.dump)
+		_memory_tracker.dump(handler);
+}
+
+FOUNDATION_ALIGNED_STRUCT(memory_tag_t, 8) {
 	atomicptr_t   address;
 	size_t        size;
 	void*         trace[14];
 };
 
-typedef FOUNDATION_ALIGN(8) struct memory_tag_t memory_tag_t;
+typedef struct memory_tag_t memory_tag_t;
 
 static memory_tag_t* _memory_tags;
 static atomic32_t    _memory_tag_next;
@@ -422,13 +430,14 @@ static int
 _memory_tracker_initialize(void) {
 	if (!_memory_tracker_initialized) {
 		size_t size = sizeof(memory_tag_t) * foundation_config().memory_tracker_max;
-		_memory_tags = memory_allocate(0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		_memory_tags = memory_allocate(0, size, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
-		atomic_incr64(&_memory_stats.allocations_total, memory_order_relaxed);
-		atomic_incr64(&_memory_stats.allocations_current, memory_order_relaxed);
-		atomic_add64(&_memory_stats.allocated_total, (int64_t)size, memory_order_relaxed);
-		atomic_add64(&_memory_stats.allocated_current, (int64_t)size, memory_order_relaxed);
+		atomic_incr32(&_memory_stats.allocations_total, memory_order_relaxed);
+		atomic_incr32(&_memory_stats.allocations_current, memory_order_relaxed);
+		atomic_add32(&_memory_stats.allocated_total, (int32_t)size, memory_order_relaxed);
+		atomic_add32(&_memory_stats.allocated_current, (int32_t)size, memory_order_relaxed);
+		atomic_thread_fence_release();
 #endif
 		_memory_tracker_initialized = true;
 	}
@@ -444,8 +453,9 @@ _memory_tracker_cleanup(void) {
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		size_t size = sizeof(memory_tag_t) * foundation_config().memory_tracker_max;
-		atomic_decr64(&_memory_stats.allocations_current, memory_order_relaxed);
-		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size, memory_order_relaxed);
+		atomic_decr32(&_memory_stats.allocations_current, memory_order_relaxed);
+		atomic_add32(&_memory_stats.allocated_current, -(int32_t)size, memory_order_relaxed);
+		atomic_thread_fence_release();
 #endif
 
 		_memory_tags = nullptr;
@@ -467,11 +477,27 @@ _memory_tracker_finalize(void) {
 				                                    sizeof(tag->trace)/sizeof(tag->trace[0]), 0);
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
 				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s"),
-				          tag->size, (uintptr_t)addr, it, (int)trace.length, trace.str);
+				          tag->size, (uintptr_t)addr, it, STRING_FORMAT(trace));
 			}
 		}
 	}
 	_memory_tracker_cleanup();
+}
+
+static void
+_memory_tracker_dump(memory_tracker_handler_fn handler) {
+	if (_memory_tracker_initialized && _memory_tags) {
+		unsigned int it;
+
+		for (it = 0; it < foundation_config().memory_tracker_max; ++it) {
+			memory_tag_t* tag = _memory_tags + it;
+			void* addr = atomic_load_ptr(&tag->address, memory_order_acquire);
+			if (addr) {
+				if (handler(addr, tag->size, tag->trace, sizeof(tag->trace)/sizeof(tag->trace[0])))
+					break;
+			}
+		}
+	}
 }
 
 static void
@@ -489,8 +515,8 @@ _memory_tracker_track(void* addr, size_t size) {
 				else
 					tag = atomic_exchange_and_add32(&_memory_tag_next, 1, memory_order_acq_rel);
 			}
-			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, 0, memory_order_release,
-			                   memory_order_acquire)) {
+			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, nullptr,
+			                   memory_order_release, memory_order_acquire)) {
 				_memory_tags[tag].size = size;
 				stacktrace_capture(_memory_tags[tag].trace,
 				                   sizeof(_memory_tags[tag].trace)/sizeof(_memory_tags[tag].trace[0]), 3);
@@ -500,15 +526,23 @@ _memory_tracker_track(void* addr, size_t size) {
 		while (++loop < limit);
 
 		//if (loop >= limit)
-		//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Unable to track allocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+		//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS,
+		//	          STRING_CONST("Unable to track allocation: 0x%" PRIfixPTR " %" PRIsize " bytes"),
+		//	          (uintptr_t)addr, size);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
-		atomic_incr64(&_memory_stats.allocations_total, memory_order_relaxed);
-		atomic_incr64(&_memory_stats.allocations_current, memory_order_relaxed);
-		atomic_add64(&_memory_stats.allocated_total, (int64_t)size, memory_order_relaxed);
-		atomic_add64(&_memory_stats.allocated_current, (int64_t)size, memory_order_relaxed);
+		atomic_incr32(&_memory_stats.allocations_total, memory_order_relaxed);
+		atomic_incr32(&_memory_stats.allocations_current, memory_order_relaxed);
+		atomic_add32(&_memory_stats.allocated_total, (int32_t)size, memory_order_relaxed);
+		atomic_add32(&_memory_stats.allocated_current, (int32_t)size, memory_order_relaxed);
+		atomic_thread_fence_release();
 #endif
 	}
+	//else if (addr) {
+	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS,
+	//	          STRING_CONST("Pre-init untracked allocation: 0x%" PRIfixPTR " %" PRIsize " bytes"),
+	//	          (uintptr_t)addr, size);
+	//}
 }
 
 static void
@@ -522,7 +556,7 @@ _memory_tracker_untrack(void* addr) {
 		while (true) {
 			void* tagaddr = atomic_load_ptr(&_memory_tags[itag].address, memory_order_acquire);
 			if (addr == tagaddr) {
-				tag = itag + 1;
+				tag = itag;
 				size = _memory_tags[itag].size;
 				break;
 			}
@@ -531,19 +565,19 @@ _memory_tracker_untrack(void* addr) {
 			else if (itag)
 				--itag;
 			else
-				itag = (int32_t)foundation_config().memory_tracker_max - 1;
+				itag = maxtag - 1;
 		}
 	}
-	if (tag && size) {
-		--tag;
-		atomic_store_ptr(&_memory_tags[tag].address, 0, memory_order_release);
+	if (size) {
+		atomic_store_ptr(&_memory_tags[tag].address, nullptr, memory_order_release);
 #if BUILD_ENABLE_MEMORY_STATISTICS
-		atomic_decr64(&_memory_stats.allocations_current, memory_order_relaxed);
-		atomic_add64(&_memory_stats.allocated_current, -(int64_t)size, memory_order_relaxed);
+		atomic_decr32(&_memory_stats.allocations_current, memory_order_relaxed);
+		atomic_add32(&_memory_stats.allocated_current, -(int32_t)size, memory_order_relaxed);
+		atomic_thread_fence_release();
 #endif
 	}
-	//else if (addr && _memory_tracker_initialized) {
-	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+	//else if (addr) {
+	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Pre-init untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
 	//}
 }
 
@@ -555,6 +589,7 @@ memory_tracker_local(void) {
 #if BUILD_ENABLE_MEMORY_TRACKER
 	tracker.track = _memory_tracker_track;
 	tracker.untrack = _memory_tracker_untrack;
+	tracker.dump = _memory_tracker_dump;
 	tracker.initialize = _memory_tracker_initialize;
 	tracker.abort = _memory_tracker_cleanup;
 	tracker.finalize = _memory_tracker_finalize;
