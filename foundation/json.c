@@ -133,8 +133,10 @@ parse_number(const char* buffer, size_t length, size_t pos) {
 		char c = buffer[pos];
 		if (is_token_delimiter(c))
 			break;
-		else if ((c == '-') && !(start == pos))
-			return STRING_NPOS;
+		if (c == '-') {
+			if (start != pos)
+				return STRING_NPOS;
+		}
 		else if (c == '.') {
 			if (has_dot || has_exp)
 				return STRING_NPOS;
@@ -156,7 +158,7 @@ parse_number(const char* buffer, size_t length, size_t pos) {
 			has_digit = true;
 		++pos;
 	}
-	return pos - start;
+	return has_digit ? (pos - start) : STRING_NPOS;
 }
 
 static size_t

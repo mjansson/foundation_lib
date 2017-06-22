@@ -226,8 +226,8 @@ test_load_config(json_handler_fn handler) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	sjson_parse_path(STRING_CONST("config/windows"), handler);
-#elif FOUNDATION_PLATFORM_MACOSX
-	sjson_parse_path(STRING_CONST("config/macosx"), handler);
+#elif FOUNDATION_PLATFORM_MACOS
+	sjson_parse_path(STRING_CONST("config/macos"), handler);
 #elif FOUNDATION_PLATFORM_LINUX
 	sjson_parse_path(STRING_CONST("config/linux"), handler);
 #elif FOUNDATION_PLATFORM_BSD
@@ -342,7 +342,7 @@ test_wait_for_threads_join(thread_t* threads, size_t num_threads) {
 		thread_join(threads + i);
 }
 
-void
+void FOUNDATION_ATTRIBUTE(noreturn)
 test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);

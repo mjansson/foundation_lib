@@ -18,6 +18,7 @@
 #  include <process.h>
 
 typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
+typedef HRESULT (WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
 
 static DWORD WINAPI
 GetCurrentProcessorNumberFallback(VOID) {
@@ -25,6 +26,7 @@ GetCurrentProcessorNumberFallback(VOID) {
 }
 
 static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
+static SetThreadDescriptionFn _fnSetThreadDescriptionFn;
 
 #endif
 
@@ -56,10 +58,15 @@ _thread_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	//TODO: look into GetCurrentProcessorNumberEx for 64+ core support
 	GetCurrentProcessorNumberFn getprocidfn;
-	getprocidfn = (GetCurrentProcessorNumberFn)GetProcAddress(GetModuleHandleA("kernel32"),
-	                                                          "GetCurrentProcessorNumber");
+	SetThreadDescriptionFn setthreaddescfn;
+	HMODULE kernel32 = GetModuleHandleA("kernel32");
+	getprocidfn = (GetCurrentProcessorNumberFn)GetProcAddress(kernel32, "GetCurrentProcessorNumber");
 	if (getprocidfn)
 		_fnGetCurrentProcessorNumber = getprocidfn;
+
+	setthreaddescfn = (SetThreadDescriptionFn)GetProcAddress(kernel32, "SetThreadDescription");
+	if (setthreaddescfn)
+		_fnSetThreadDescriptionFn = setthreaddescfn;
 #endif
 
 	_thread_main_id = thread_id();
@@ -104,7 +111,7 @@ typedef struct tagTHREADNAME_INFO {
 #pragma pack(pop)
 
 static void FOUNDATION_NOINLINE
-_set_thread_name(const char* threadname) {
+_set_debugger_thread_name(const char* threadname) {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
 	info.szName = threadname;
@@ -134,21 +141,27 @@ _set_thread_name(const char* threadname) {
 
 void
 thread_set_name(const char* name, size_t length) {
-	thread_t* self;
+	thread_t* self = get_thread_self();
 
 #if !BUILD_DEPLOY
-#  if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
-	_set_thread_name(name);
+#  if FOUNDATION_PLATFORM_WINDOWS
+#    if (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
+	_set_debugger_thread_name(name);
+#    endif
+	if (_fnSetThreadDescriptionFn) {
+		wchar_t wname[64];
+		wstring_from_string(wname, sizeof(wname) / sizeof(wname[0]), name, length);
+		_fnSetThreadDescriptionFn(GetCurrentThread(), wname);
+	}
 #  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	prctl(PR_SET_NAME, name, 0, 0, 0);
-#  elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
+#  elif FOUNDATION_PLATFORM_MACOS || FOUNDATION_PLATFORM_IOS
 	pthread_setname_np(name);
 #  elif FOUNDATION_PLATFORM_BSD
 	pthread_set_name_np(pthread_self(), name);
 #  endif
 #endif
 
-	self = get_thread_self();
 	if (self) {
 		string_t newname = string_copy(self->namebuffer, sizeof(self->namebuffer), name, length);
 		self->name = string_to_const(newname);
@@ -166,7 +179,11 @@ typedef void* thread_arg_t;
 
 typedef void* thread_return_t;
 typedef void* thread_arg_t;
+#if FOUNDATION_PLATFORM_PNACL
 #define FOUNDATION_THREADCALL
+#else
+#define FOUNDATION_THREADCALL FOUNDATION_ATTRIBUTE(noreturn)
+#endif
 #define GET_THREAD_PTR(x) ((thread_t*)(x))
 
 #else
@@ -180,24 +197,17 @@ _thread_entry(thread_arg_t data) {
 
 	thread->osid = thread_id();
 
-#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
-	if (thread->name.length)
-		_set_thread_name(thread->name.str);
-#elif ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID ) && !BUILD_DEPLOY
-	if (thread->name.length)
-		prctl(PR_SET_NAME, thread->name.str, 0, 0, 0);
-#elif FOUNDATION_PLATFORM_BSD && !BUILD_DEPLOY
-	if (thread->name.length)
-		pthread_set_name_np(pthread_self(), thread->name.str);
-#endif
+	thread_enter();
 
 	//log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
 	//           STRING_FORMAT(thread->name), thread->osid,
 	//           handler ? " (exceptions handled)" : "");
 
 	set_thread_self(thread);
-	atomic_store32(&thread->state, 1);
-	atomic_thread_fence_release();
+	if (thread->name.length)
+		thread_set_name(STRING_ARGS(thread->name));
+
+	atomic_store32(&thread->state, 1, memory_order_release);
 
 	if (system_debugger_attached() || !handler) {
 		thread->result = thread->fn(thread->arg);
@@ -221,13 +231,17 @@ _thread_entry(thread_arg_t data) {
 		_thread_main_id = (uint64_t)-1;
 
 	thread->osid = 0;
-	atomic_store32(&thread->state, 2);
-	atomic_thread_fence_release();
+	atomic_store32(&thread->state, 2, memory_order_release);
 
 	set_thread_self(0);
 	thread_exit();
 
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+	pthread_exit(0);
+#endif
+#if !FOUNDATION_PLATFORM_POSIX
 	return 0;
+#endif
 }
 
 thread_t*
@@ -308,33 +322,31 @@ thread_join(thread_t* thread) {
 	if (thread->handle) {
 		WaitForSingleObject((HANDLE)thread->handle, INFINITE);
 		CloseHandle((HANDLE)thread->handle);
-		atomic_store32(&thread->state, 3);
+		atomic_store32(&thread->state, 3, memory_order_release);
 	}
 	thread->handle = 0;
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	void* result = 0;
 	if (thread->handle) {
 		pthread_join((pthread_t)thread->handle, &result);
-		atomic_store32(&thread->state, 3);
+		atomic_store32(&thread->state, 3, memory_order_release);
 	}
 	thread->handle = 0;
 #else
 #  error Not implemented
 #endif
-	atomic_thread_fence_release();
 	return thread->result;
 }
 
 bool
 thread_is_started(const thread_t* thread) {
-	atomic_thread_fence_acquire();
-	return thread ? atomic_load32(&thread->state) >= 1 : false;
+	return thread ? atomic_load32(&thread->state, memory_order_acquire) >= 1 : false;
 }
 
 bool
 thread_is_running(const thread_t* thread) {
 	atomic_thread_fence_acquire();
-	return thread ? atomic_load32(&thread->state) == 1 : false;
+	return thread ? atomic_load32(&thread->state, memory_order_acquire) == 1 : false;
 }
 
 void
@@ -468,6 +480,11 @@ thread_is_main(void) {
 thread_t*
 thread_self(void) {
 	return get_thread_self();
+}
+
+void
+thread_enter(void) {
+	memory_thread_initialize();
 }
 
 void

@@ -69,9 +69,11 @@ hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value) {
 
 	ie = eend = _hashtable32_hash(key) % table->capacity;
 	do {
-		uint32_t current_key = (uint32_t)atomic_load32(&table->entries[ie].key);
+		uint32_t current_key = (uint32_t)atomic_load32(&table->entries[ie].key, memory_order_consume);
 
-		if ((current_key == key) || (!current_key && atomic_cas32(&table->entries[ie].key, (int32_t)key, 0))) {
+		if ((current_key == key) || (!current_key &&
+		                             atomic_cas32(&table->entries[ie].key, (int32_t)key, 0, memory_order_release,
+		                                          memory_order_acquire))) {
 			table->entries[ie].value = value;
 			return true;
 		}
@@ -93,7 +95,7 @@ hashtable32_erase(hashtable32_t* table, uint32_t key) {
 
 	ie = eend = _hashtable32_hash(key) % table->capacity;
 	do {
-		current_key = (uint32_t)atomic_load32(&table->entries[ie].key);
+		current_key = (uint32_t)atomic_load32(&table->entries[ie].key, memory_order_consume);
 
 		if (current_key == key) {
 			table->entries[ie].value = 0;
@@ -115,7 +117,7 @@ hashtable32_get(hashtable32_t* table, uint32_t key) {
 
 	ie = eend = _hashtable32_hash(key) % table->capacity;
 	do {
-		current_key = (uint32_t)atomic_load32(&table->entries[ie].key);
+		current_key = (uint32_t)atomic_load32(&table->entries[ie].key, memory_order_consume);
 
 		if (current_key == key)
 			return table->entries[ie].value;
@@ -129,7 +131,7 @@ hashtable32_get(hashtable32_t* table, uint32_t key) {
 
 uint32_t
 hashtable32_raw(hashtable32_t* table, size_t slot) {
-	if (!atomic_load32(&table->entries[slot].key))
+	if (!atomic_load32(&table->entries[slot].key, memory_order_acquire))
 		return 0;
 	return table->entries[slot].value;
 }
@@ -139,7 +141,7 @@ hashtable32_size(hashtable32_t* table) {
 	size_t count = 0;
 	size_t ie;
 	for (ie = 0; ie < table->capacity; ++ie) {
-		if (atomic_load32(&table->entries[ie].key) && table->entries[ie].value)
+		if (atomic_load32(&table->entries[ie].key, memory_order_consume) && table->entries[ie].value)
 			++count;
 	}
 	return count;
@@ -185,9 +187,11 @@ hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value) {
 
 	ie = eend = _hashtable64_hash(key) % table->capacity;
 	do {
-		uint64_t current_key = (uint64_t)atomic_load64(&table->entries[ie].key);
+		uint64_t current_key = (uint64_t)atomic_load64(&table->entries[ie].key, memory_order_consume);
 
-		if ((current_key == key) || (!current_key && atomic_cas64(&table->entries[ie].key, (int64_t)key, 0))) {
+		if ((current_key == key) || (!current_key &&
+		                             atomic_cas64(&table->entries[ie].key, (int64_t)key, 0,
+		                                          memory_order_release, memory_order_acquire))) {
 			table->entries[ie].value = value;
 			return true;
 		}
@@ -208,7 +212,7 @@ hashtable64_erase(hashtable64_t* table, uint64_t key) {
 
 	ie = eend = _hashtable64_hash(key) % table->capacity;
 	do {
-		current_key = (uint64_t)atomic_load64(&table->entries[ie].key);
+		current_key = (uint64_t)atomic_load64(&table->entries[ie].key, memory_order_consume);
 
 		if (current_key == key) {
 			table->entries[ie].value = 0;
@@ -229,7 +233,7 @@ hashtable64_get(hashtable64_t* table, uint64_t key) {
 
 	ie = eend = _hashtable64_hash(key) % table->capacity;
 	do {
-		current_key = (uint64_t)atomic_load64(&table->entries[ie].key);
+		current_key = (uint64_t)atomic_load64(&table->entries[ie].key, memory_order_consume);
 
 		if (current_key == key)
 			return table->entries[ie].value;
@@ -243,7 +247,7 @@ hashtable64_get(hashtable64_t* table, uint64_t key) {
 
 uint64_t
 hashtable64_raw(hashtable64_t* table, size_t slot) {
-	if (!atomic_load64(&table->entries[slot].key))
+	if (!atomic_load64(&table->entries[slot].key, memory_order_acquire))
 		return 0;
 	return table->entries[slot].value;
 }
@@ -253,7 +257,7 @@ hashtable64_size(hashtable64_t* table) {
 	size_t count = 0;
 	size_t ie;
 	for (ie = 0; ie < table->capacity; ++ie) {
-		if (atomic_load64(&table->entries[ie].key) && table->entries[ie].value)
+		if (atomic_load64(&table->entries[ie].key, memory_order_consume) && table->entries[ie].value)
 			++count;
 	}
 	return count;

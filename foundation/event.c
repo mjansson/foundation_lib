@@ -16,14 +16,13 @@
 #define EVENT_BLOCK_POSTING  -1
 #define EVENT_BLOCK_SWAPPING -2
 
-static atomic32_t _event_serial = {1};
+static atomic32_t _event_serial;
 
 static void
 _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
                              tick_t timestamp, uint16_t flags, const void* payload, size_t size, va_list list) {
 	event_block_t* block;
 	event_t* event;
-	bool restored_block;
 	size_t basesize;
 	size_t allocsize;
 	int32_t last_write;
@@ -57,10 +56,12 @@ _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
 		allocsize += 8;
 
 	//Lock the event block by atomic swapping the write block index
-	last_write = atomic_load32(&stream->write);
-	while ((last_write < 0) || !atomic_cas32(&stream->write, EVENT_BLOCK_POSTING, last_write)) {
+	last_write = atomic_load32(&stream->write, memory_order_acquire);
+	while ((last_write < 0) ||
+	        !atomic_cas32(&stream->write, EVENT_BLOCK_POSTING, last_write, memory_order_release,
+	                      memory_order_acquire)) {
 		thread_yield();
-		last_write = atomic_load32(&stream->write);
+		last_write = atomic_load32(&stream->write, memory_order_acquire);
 	}
 
 	//We now have exclusive access to the event block
@@ -86,14 +87,14 @@ _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
 			block->capacity += 16 - (basesize % 16);
 		block->capacity -= 16;
 		block->events = block->events ? memory_reallocate(block->events, block->capacity + 16, 16,
-		                                                  prev_capacity) :
+		                                                  prev_capacity, 0) :
 		                memory_allocate(0, block->capacity + 16, 16, MEMORY_PERSISTENT);
 	}
 
 	event = pointer_offset(block->events, block->used);
 
 	event->id     = (uint16_t)id;
-	event->serial = (uint16_t)(atomic_exchange_and_add32(&_event_serial, 1) & 0xFFFF);
+	event->serial = (uint16_t)(atomic_exchange_and_add32(&_event_serial, 1, memory_order_relaxed) & 0xFFFF);
 	event->size   = (uint16_t)allocsize;
 	event->flags  = flags;
 	event->object = object;
@@ -130,8 +131,7 @@ _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object,
 
 unlock:
 	//Now unlock the event block
-	restored_block = atomic_cas32(&stream->write, last_write, EVENT_BLOCK_POSTING);
-	FOUNDATION_ASSERT(restored_block);
+	atomic_store32(&stream->write, last_write, memory_order_release);
 }
 
 size_t
@@ -197,7 +197,7 @@ event_t* event_next(const event_block_t* block, event_t* event) {
 		event_post_varg_flags(block->stream, event->id, event->object, eventtime, event->flags,
 		                      event->payload, event->size - (sizeof(event_t) + 8), nullptr);
 	}
-	
+
 	return nullptr;
 }
 
@@ -212,9 +212,9 @@ event_stream_allocate(size_t size) {
 
 void
 event_stream_initialize(event_stream_t* stream, size_t size) {
-	atomic_store32(&stream->write, 0);
+	atomic_store32(&stream->write, 0, memory_order_release);
 	stream->read = 1;
-    stream->beacon = nullptr;
+	stream->beacon = nullptr;
 
 	if (size < 256)
 		size = 256;
@@ -254,17 +254,18 @@ event_stream_finalize(event_stream_t* stream) {
 event_block_t*
 event_stream_process(event_stream_t* stream) {
 	event_block_t* block;
-	bool restored_block;
 	int32_t last_write, new_write;
 
 	if (!stream)
 		return 0;
 
 	//Lock the write event block by atomic swapping the write block index
-	last_write = atomic_load32(&stream->write);
-	while ((last_write < 0) || !atomic_cas32(&stream->write, EVENT_BLOCK_SWAPPING, last_write)) {
+	last_write = atomic_load32(&stream->write, memory_order_acquire);
+	while ((last_write < 0) ||
+	        !atomic_cas32(&stream->write, EVENT_BLOCK_SWAPPING, last_write, memory_order_release,
+	                      memory_order_acquire)) {
 		thread_yield();
-		last_write = atomic_load32(&stream->write);
+		last_write = atomic_load32(&stream->write, memory_order_acquire);
 	}
 
 	//Reset used on last read (safe, since read can only happen on one thread)
@@ -278,8 +279,7 @@ event_stream_process(event_stream_t* stream) {
 	block = stream->block + last_write;
 
 	//Unlock write event block
-	restored_block = atomic_cas32(&stream->write, new_write, EVENT_BLOCK_SWAPPING);
-	FOUNDATION_ASSERT(restored_block);
+	atomic_store32(&stream->write, new_write, memory_order_release);
 
 	return block;
 }
@@ -287,6 +287,7 @@ event_stream_process(event_stream_t* stream) {
 void
 event_stream_set_beacon(event_stream_t* stream, beacon_t* beacon) {
 	stream->beacon = beacon;
-	if (beacon && (atomic_load32(&stream->write) > 0))
+	int32_t current = atomic_load32(&stream->write, memory_order_acquire);
+	if (beacon && (stream->block[current].used > 0))
 		beacon_fire(beacon);
 }

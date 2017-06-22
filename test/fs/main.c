@@ -82,6 +82,9 @@ DECLARE_TEST(fs, directory) {
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(testpath)));
 
 	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testpath)));
+	
+	EXPECT_FALSE(fs_make_directory(STRING_CONST("")));
+	EXPECT_FALSE(fs_remove_file(STRING_CONST("")));
 
 	testlocalpath = string_clone(STRING_CONST("local.path"));
 	unterminate(STRING_ARGS(testlocalpath));
@@ -599,6 +602,8 @@ DECLARE_TEST(fs, monitor) {
 	string_t filetestpath;
 	string_t subtestpath;
 	string_t filesubtestpath;
+	string_t presubtestpath;
+	string_t prefilesubtestpath;
 	size_t imon, monmax;
 
 #define MULTICOUNT 16
@@ -630,6 +635,14 @@ DECLARE_TEST(fs, monitor) {
 	filesubtestpath = path_allocate_concat(STRING_ARGS(subtestpath), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(filesubtestpath));
 
+	fname = string_from_uint_static(random64(), false, 0, 0);
+	presubtestpath = path_allocate_concat(STRING_ARGS(testpath), STRING_ARGS(fname));
+	unterminate(STRING_ARGS(presubtestpath));
+
+	fname = string_from_uint_static(random64(), false, 0, 0);
+	prefilesubtestpath = path_allocate_concat(STRING_ARGS(presubtestpath), STRING_ARGS(fname));
+	unterminate(STRING_ARGS(prefilesubtestpath));
+
 	for (isub = 0; isub < MULTICOUNT; ++isub) {
 		fname = string_from_uint_static(random64(), false, 0, 0);
 		multisubtestpath[isub] = path_allocate_concat(STRING_ARGS(testpath), STRING_ARGS(fname));
@@ -644,7 +657,8 @@ DECLARE_TEST(fs, monitor) {
 	stream = fs_event_stream();
 
 	fs_remove_directory(STRING_ARGS(testpath));
-	fs_make_directory(STRING_ARGS(testpath));
+	EXPECT_TRUE(fs_make_directory(STRING_ARGS(testpath)));
+	EXPECT_TRUE(fs_make_directory(STRING_ARGS(presubtestpath)));
 
 	stream_deallocate(fs_open_file(STRING_ARGS(filetestpath), STREAM_OUT | STREAM_CREATE));
 	fs_remove_file(STRING_ARGS(filetestpath));
@@ -655,7 +669,7 @@ DECLARE_TEST(fs, monitor) {
 
 	for (imon = 0, monmax = foundation_config().fs_monitor_max; imon <= monmax + 1; ++imon) {
 		bool did_monitor = fs_monitor(STRING_ARGS(testpath));
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOS
 		EXPECT_TRUE(did_monitor);
 #else
 		FOUNDATION_UNUSED(did_monitor);
@@ -677,6 +691,21 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
 
 	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filetestpath));
+
+	event = event_next(block, event);
+	EXPECT_EQ(event, 0);
+
+	test_stream = fs_open_file(STRING_ARGS(prefilesubtestpath), STREAM_OUT | STREAM_CREATE);
+	stream_deallocate(test_stream);
+	EXPECT_NE(test_stream, 0);
+	thread_sleep(3000);
+
+	block = event_stream_process(stream);
+	event = event_next(block, 0);
+	EXPECT_NE(event, 0);
+	EXPECT_EQ(event->id, FOUNDATIONEVENT_FILE_CREATED);
+
+	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(prefilesubtestpath));
 
 	event = event_next(block, event);
 	EXPECT_EQ(event, 0);
@@ -884,6 +913,8 @@ DECLARE_TEST(fs, monitor) {
 			string_deallocate(multifilesubtestpath[isub][ifilesub].str);
 	}
 
+	string_deallocate(presubtestpath.str);
+	string_deallocate(prefilesubtestpath.str);
 	string_deallocate(subtestpath.str);
 	string_deallocate(filesubtestpath.str);
 	string_deallocate(testpath.str);

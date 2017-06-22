@@ -151,10 +151,10 @@ static void*
 thread_waiter(void* arg) {
 	mutex_t* mutex = arg;
 
-	atomic_incr32(&thread_waiting);
+	atomic_incr32(&thread_waiting, memory_order_release);
 
 	if (mutex_try_wait(mutex, 30000)) {
-		atomic_incr32(&thread_waited);
+		atomic_incr32(&thread_waited, memory_order_release);
 		mutex_unlock(mutex);
 	}
 	else {
@@ -182,7 +182,7 @@ DECLARE_TEST(mutex, signal) {
 
 	test_wait_for_threads_startup(thread, 32);
 
-	while (atomic_load32(&thread_waiting) < 32)
+	while (atomic_load32(&thread_waiting, memory_order_acquire) < 32)
 		thread_yield();
 	thread_sleep(1000);   //Hack wait to give threads time to progress from atomic_incr to mutex_wait
 
@@ -193,7 +193,7 @@ DECLARE_TEST(mutex, signal) {
 	for (ith = 0; ith < 32; ++ith)
 		thread_finalize(&thread[ith]);
 
-	EXPECT_EQ(atomic_load32(&thread_waited), 32);
+	EXPECT_EQ(atomic_load32(&thread_waited, memory_order_acquire), 32);
 
 	EXPECT_FALSE(mutex_try_wait(mutex, 500));
 

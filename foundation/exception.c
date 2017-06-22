@@ -242,7 +242,7 @@ _exception_sigaction(int sig, siginfo_t* info, void* arg) {
 	//sigaction(sig, 0, 0);
 	signal(sig, SIG_DFL);
 	raise(sig);
-	process_exit(-1);
+	_exit(-1);
 }
 
 #endif
@@ -264,6 +264,10 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #  if FOUNDATION_USE_SEH
+#    if FOUNDATION_COMPILER_CLANG
+#      pragma clang diagnostic push
+#      pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#    endif
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
@@ -275,6 +279,9 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 
 		error_context_clear();
 	}
+#    if FOUNDATION_COMPILER_CLANG
+#      pragma clang diagnostic pop
+#    endif
 	return ret;
 #  else
 	_exception_closure.handler = handler;
@@ -298,6 +305,9 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
 
 #elif FOUNDATION_PLATFORM_POSIX
 	sigjmp_buf exception_env;
+
+	if (!handler)
+		return fn(data);
 
 	set_thread_exception_handler(handler);
 	set_thread_dump_name(length ? name : 0);
@@ -374,7 +384,6 @@ _exception_finalize(void) {
 #endif
 }
 
-static char* _illegal_ptr;
 
 void
 exception_raise_debug_break(void) {
@@ -390,6 +399,11 @@ exception_raise_debug_break(void) {
 
 void
 exception_raise_abort(void) {
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+	__builtin_trap();
+#else
+	static char* _illegal_ptr;
 	*_illegal_ptr = 1;
 	process_exit(-1);
+#endif
 }

@@ -46,7 +46,7 @@ Libraries will be placed in lib/[platform]/[configuration]/[architecture] with p
 <ul>
 <li>windows</li>
 <li>linux</li>
-<li>macosx</li>
+<li>macos</li>
 <li>ios</li>
 <li>android</li>
 <li>bsd</li>
@@ -71,9 +71,9 @@ Architecture names are
 <li>mips64</li>
 </ul>
 
-For MacOSX, iOS and PNaCl builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
+For macOS, iOS and PNaCl builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
 
-Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for MacOSX and iOS since the binaries are universal).
+Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for macOS and iOS since the binaries are universal).
 
 \section ninja Ninja
 Building with Ninja is almost identical across all supported platforms. Use the build configuration python script in the root directory to set the architectures and build configurations you want, along with any configuration options.
@@ -87,16 +87,16 @@ supported will be built. Specify which architectures to build with the -a switch
 <code>-a arm6 -a arm7 -a arm64 -a mips -a mips64 -a x86 -a x86-64</code>
 
 \subsection ninja_toolchain Toolchains
-There is currently support for four different toolchains depending on your host platform. These are GCC, CLang, Intel and Microsoft. Not all toolchains are supported on all host platforms. Specify which toolchain to use with the <code>--toolchain</code> switch. For example, to use gcc when building for Android use <code>--toolchain gcc</code>. The toolchain names are
+There is currently support for four different toolchains depending on your host platform. These are CLang, Microsoft, GCC and Intel. Not all toolchains are supported on all host platforms. Specify which toolchain to use with the <code>--toolchain</code> switch. For example, to use gcc when building for Android use <code>--toolchain gcc</code>. The toolchain names are
 <ul>
-<li>gcc</li>
 <li>clang</li>
-<li>intel</li>
 <li>msvc</li>
+<li>gcc</li>
+<li>intel</li>
 </ul>
 
 \subsection ninja_target Targets
-By using the target switch (-t) you can cross-compile to a secondary target platform. Currently you can cross compile for iOS on MacOS X, and for Android on Windows, Linux and MacOS X.
+By using the target switch (-t) you can cross-compile to a secondary target platform. Currently you can cross compile for iOS on macOS, and for Android on Windows, Linux and macOS.
 
 Use the <code>-t ios</code> target switch to specify iOS builds. By default arm7 and arm64 architectures will be built (universal).
 
@@ -111,8 +111,8 @@ On Windows the default toolchain is the Microsoft compiler suite. You should run
 environment setup batch script for the architecture you choose prior to starting builds
 (or use the preconfigured command prompts from Visual Studio installs).
 
-On MacOS X (and when cross compiling for iOS) the default toolchain is clang. The only supported architecture is x86-64 targetting MacOS X 10.7 or later,
-and arm7/arm64 targeting iOS 6.0 or later. The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.
+On macOS (and when cross compiling for iOS) the default toolchain is clang. The only supported architecture is x86-64 targetting macOS 10.7 or later,
+and arm7/arm64 targeting iOS 8.0 or later. The ninja will use the latest SDK and clang toolchain available by using the xcrun tool to locate SDK and binary paths.
 
 On Linux the default toolchain is clang. The supported architectures are x86, x86-64, arm6, arm7, arm64, mips and mips64.
 
@@ -129,22 +129,10 @@ Some build variables can be set externally from the ninja build files. These var
 <ul>
 <li>android: ndkpath - Path to the Android NDK (no default)</li>
 <li>android: sdkpath - Path to the Android SDK (no default)</li>
-<li>android: keystore - Keystore to use when signing APK (default "~/.android/debug.keystore")</li>
-<li>android: keyalias = Key alias to use when signing API (default "androiddebugkey")</li>
-<li>android: keystorepass - Password for keystore used when signing APK (default "android")</li>
-<li>android: keypass - Password for key used when signing APK (default "android")</li>
 <li>android: platformversion - Android platform version to use when building (default "21")</li>
 <li>android: gccversion - GCC toolchain version to use when building (default "4.9")</li>
-<li>android: tsa - Location of the Timestamping Authority</li>
-<li>android: tsacert - Public key certificate for Timestamping Authority</li>
-<li>ios: deploymenttarget - Minimum iOS target version (default "6.0")</li>
-<li>ios: organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
-<li>ios: bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
-<li>ios: signature - Certificate signature (no default)</li>
-<li>ios: provisioning - Mobile provisioning profile path (no default)</li>
-<li>macosx: deploymenttarget - Minimum MacOS X target version (default "10.7")</li>
-<li>macosx: organisation - Organisation identifier on format "TXYZAB01CD" (no default)</li>
-<li>macosx: bundleidentifier - Bundle identifier on format "com.company.id" (no default)</li>
+<li>ios: deploymenttarget - Minimum iOS target version (default "8.0")</li>
+<li>macos: deploymenttarget - Minimum MacOS X target version (default "10.7")</li>
 <li>msvc: toolchain - Path to Visual Studio toolchain to use (default value is autodetected)</li>
 <li>msvc: sdkpath - Path to Windows SDK to use (default value is autodetected)</li>
 <li>pnacl: sdkpath - Path to the PNaCl SDK (no default)</li>
@@ -178,9 +166,9 @@ The build.json is a simple host-local file which can hold any variable values li
 		"gccversion" : "4.9",
 	},
 	"ios" : {
-		"deploymenttarget" : "6.0"
+		"deploymenttarget" : "8.0"
 	},
-	"macosx" : {
+	"macos" : {
 		"deploymenttarget" : "10.7"
 	}
     "msvc" : {
@@ -200,9 +188,9 @@ Finally, the codesign.json is read by the codesigning phase at build time and ca
 <li>ios: bundleidentifier</li>
 <li>ios: signature</li>
 <li>ios: provisioning</li>
-<li>macosx: organisation</li>
-<li>macosx: bundleidentifier</li>
-<li>macosx: signature</li>
+<li>macos: organisation</li>
+<li>macos: bundleidentifier</li>
+<li>macos: signature</li>
 </ul>
 
 An example codesign.json file:
@@ -219,7 +207,7 @@ An example codesign.json file:
         "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
         "provisioning" : "01234567-89AB-CDEF-0123-456789ABCDEF.mobileprovision"
     },
-    "macosx" : {
+    "macos" : {
         "organisation" : "TXXXYZ12AB",
         "bundleidentifier" : "com.mycompany.$(binname)",
         "signature" : "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
@@ -227,15 +215,15 @@ An example codesign.json file:
 }</pre>
 
 \section visual_studio Visual Studio
-On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2015. Both 32-bit and 64-bit Windows are supported.
-To build with Visual Studio, open the foundation.sln solution file Visual Studio 2015 in <code>build/vs15</code>. To build all targets and configurations
+On Windows we currently support building with Microsoft and Intel compilers with Visual Studio 2017. Both 32-bit and 64-bit Windows are supported.
+To build with Visual Studio, open the foundation.sln solution file Visual Studio 2017 in <code>build/vs17</code>. To build all targets and configurations
 use batch build, select all targets and build.
 
 \section xcode XCode
-To build with XCode, open the XCode workspace in <code>build/xcode/foundation-osx.xcworkspace</code> for MacOS X and
+To build with XCode, open the XCode workspace in <code>build/xcode/foundation-osx.xcworkspace</code> for macOS and
 <code>build/xcode/foundation-ios.xcworkspace</code> for iOS and build the appropriate targets.
-The workspace contains projects for both foundation library and test cases. The only supported architecture is x86-64 targetting MacOS X 10.7 or later,
-or for iOS arm7/arm64 targeting iOS 6.0 or later.
+The workspace contains projects for both foundation library and test cases. The only supported architecture is x86-64 targetting macOS 10.7 or later,
+or for iOS arm7/arm64 targeting iOS 8.0 or later.
 
 \section external External
 For integration with other build systems, here is a list of the compiler/linker flags used during compilation and linking of the foundation library, test apps and tools.

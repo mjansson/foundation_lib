@@ -113,7 +113,7 @@ _buffer_stream_write(stream_t* stream, const void* source, size_t num) {
 			buffer_stream->capacity = (buffer_stream->size < 1024) ? 1024 : buffer_stream->size + 1024;
 			//tail segment from current to size will be overwritten
 			buffer_stream->buffer = memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0,
-			                                          prev_capacity);
+			                                          prev_capacity, 0);
 		}
 		else {
 			available = buffer_stream->capacity - buffer_stream->current;
@@ -154,7 +154,7 @@ _buffer_stream_truncate(stream_t* stream, size_t size) {
 	else if (buffer_stream->grow) {
 		buffer_stream->capacity = size;
 		buffer_stream->buffer = memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0,
-		                                          buffer_stream->current);
+		                                          buffer_stream->current, 0);
 		buffer_stream->size = buffer_stream->capacity;
 	}
 	else {

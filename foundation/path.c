@@ -377,7 +377,7 @@ path_concat_impl(char* dest, size_t capacity, bool reallocate, const char* first
 		va_end(clist);
 
 		if (totalsize >= capacity) {
-			dest = dest ? memory_reallocate(dest, totalsize + 1, 0, capacity) :
+			dest = dest ? memory_reallocate(dest, totalsize + 1, 0, capacity, MEMORY_NO_PRESERVE) :
 			       memory_allocate(HASH_STRING, totalsize + 1, 0, MEMORY_PERSISTENT);
 			capacity = totalsize + 1;
 		}

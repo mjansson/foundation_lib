@@ -165,16 +165,20 @@ _ringbuffer_stream_read(stream_t* stream, void* dest, size_t num) {
 
 	while (num_read < num) {
 		rbstream->pending_read = 1;
+		atomic_thread_fence_release();
 
+		atomic_thread_fence_acquire();
 		if (rbstream->pending_write)
 			semaphore_post(&rbstream->signal_read);
-
 		semaphore_wait(&rbstream->signal_write);
+
 		rbstream->pending_read = 0;
+		atomic_thread_fence_release();
 
 		num_read += ringbuffer_read(buffer, dest ? pointer_offset(dest, num_read) : 0, num - num_read);
 	}
 
+	atomic_thread_fence_acquire();
 	if (rbstream->pending_write)
 		semaphore_post(&rbstream->signal_read);
 
@@ -190,17 +194,21 @@ _ringbuffer_stream_write(stream_t* stream, const void* source, size_t num) {
 
 	while (num_write < num) {
 		rbstream->pending_write = 1;
+		atomic_thread_fence_release();
 
+		atomic_thread_fence_acquire();
 		if (rbstream->pending_read)
 			semaphore_post(&rbstream->signal_write);
-
 		semaphore_wait(&rbstream->signal_read);
+
 		rbstream->pending_write = 0;
+		atomic_thread_fence_release();
 
 		num_write += ringbuffer_write(buffer, source ? pointer_offset_const(source, num_write) : 0,
 		                              num - num_write);
 	}
 
+	atomic_thread_fence_acquire();
 	if (rbstream->pending_read)
 		semaphore_post(&rbstream->signal_write);
 

@@ -12,8 +12,11 @@
 
 #include <foundation/foundation.h>
 #include <test/test.h>
+#include <mock/mock.h>
 
-#define TEMPORARY_MEMORY_SIZE 256 * 1024
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#endif
 
 static application_t _global_app;
 
@@ -37,7 +40,6 @@ static foundation_config_t
 test_app_config(void) {
 	foundation_config_t config;
 	memset(&config, 0, sizeof(config));
-	config.temporary_memory = TEMPORARY_MEMORY_SIZE;
 	return config;
 }
 
@@ -74,42 +76,54 @@ static FOUNDATION_NOINLINE void*
 memory_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	int iloop, lsize;
-	void* min = 0;
-	void* max = 0;
-	size_t diff;
 
 	for (iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
-		void* mem = memory_allocate(0, 17, 16, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
-#if FOUNDATION_PLATFORM_ANDROID
-		EXPECT_EQ((uintptr_t)mem & 0x07, 0);
-#else
+		void* mem = memory_allocate(0, 17 + (iloop % 997), 16, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
 		EXPECT_EQ((uintptr_t)mem & 0x0F, 0);
-#endif
-		if (!min || (mem < min))
-			min = mem;
-		if (!max || (mem > max))
-			max = mem;
 		thread_yield();
 		memory_deallocate(mem);
 		thread_yield();
 	}
 
-	diff = (uintptr_t)pointer_diff(max, min);
-	EXPECT_SIZELT(diff, TEMPORARY_MEMORY_SIZE);
-	EXPECT_SIZEGE(diff, 64);
-
 	return 0;
 }
+
+#if BUILD_ENABLE_MEMORY_STATISTICS
+static size_t _memory_dumps;
+static size_t _memory_dump_size;
+
+static int
+memory_dump(const void* addr, size_t size, void * const* trace, size_t depth) {
+	FOUNDATION_UNUSED(addr);
+	FOUNDATION_UNUSED(trace);
+	FOUNDATION_UNUSED(depth);
+	/*log_infof(HASH_TEST,
+	          STRING_CONST("Memory alloc: %" PRIsize " bytes @ 0x%" PRIfixPTR),
+	          size, (uintptr_t)addr);*/
+	++_memory_dumps;
+	_memory_dump_size += size;
+	return 0;
+}
+#endif
 
 DECLARE_TEST(app, memory) {
 	thread_t thread[16];
 	size_t ith;
 	size_t num_threads = math_clamp(system_hardware_threads() * 2, 2, 16);
 
-#if BUILD_ENABLE_MEMORY_STATISTICS
-	memory_statistics_t oldstats, newstats;
+	log_set_suppress(HASH_MEMORY, ERRORLEVEL_NONE);
 
-	oldstats = memory_statistics();
+#if BUILD_ENABLE_MEMORY_STATISTICS
+	memory_statistics_t prestats = memory_statistics();
+	EXPECT_SIZEGT(prestats.allocations_current, 1);
+	EXPECT_SIZEGT(prestats.allocated_current, 1);
+	EXPECT_SIZEGE(prestats.allocations_total, prestats.allocations_current);
+	EXPECT_SIZEGE(prestats.allocated_total, prestats.allocated_current);
+	_memory_dumps = 0;
+	_memory_dump_size = 0;
+	memory_tracker_dump(memory_dump);
+	EXPECT_SIZEGT(_memory_dumps, 1);
+	EXPECT_SIZEGT(_memory_dump_size, 1);
 #endif
 
 	for (ith = 0; ith < num_threads; ++ith)
@@ -129,11 +143,32 @@ DECLARE_TEST(app, memory) {
 		thread_finalize(&thread[ith]);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
-	newstats = memory_statistics();
-	EXPECT_SIZEEQ(oldstats.allocations_current, newstats.allocations_current);
-	EXPECT_SIZEEQ(oldstats.allocated_current, newstats.allocated_current);
+	memory_statistics_t poststats = memory_statistics();
+	EXPECT_SIZEEQ(poststats.allocations_current, prestats.allocations_current);
+	EXPECT_SIZEEQ(poststats.allocated_current, prestats.allocated_current);
+	EXPECT_SIZEGT(poststats.allocations_total, prestats.allocations_total);
+	EXPECT_SIZEGT(poststats.allocated_total, prestats.allocated_total);
+	size_t last_dumps = _memory_dumps;
+	size_t last_dump_size = _memory_dump_size;
+	_memory_dumps = 0;
+	_memory_dump_size = 0;
+	memory_tracker_dump(memory_dump);
+	EXPECT_SIZEGT(_memory_dumps, 1);
+	EXPECT_SIZEGT(_memory_dump_size, 1);
+	EXPECT_SIZEEQ(_memory_dumps, last_dumps);
+	EXPECT_SIZEEQ(_memory_dump_size, last_dump_size);
 #endif
 
+	return 0;
+}
+
+DECLARE_TEST(app, failure) {
+#if FOUNDATION_SIZE_POINTER > 4
+	error_level_t last_log_suppress = log_suppress(0);
+	log_set_suppress(0, ERRORLEVEL_ERROR);
+	//...
+	log_set_suppress(0, last_log_suppress);
+#endif
 	return 0;
 }
 
@@ -241,8 +276,9 @@ DECLARE_TEST(app, thread) {
 
 static void
 test_app_declare(void) {
-	ADD_TEST(app, environment);
 	ADD_TEST(app, memory);
+	ADD_TEST(app, environment);
+	ADD_TEST(app, failure);
 	ADD_TEST(app, thread);
 }
 

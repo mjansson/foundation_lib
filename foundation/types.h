@@ -131,9 +131,9 @@ typedef enum {
 	PLATFORM_WINDOWS = 0,
 	/*! Linux */
 	PLATFORM_LINUX,
-	/*! MacOS X */
-	PLATFORM_MACOSX,
-	/*! iOS (iPhone, iPad) */
+	/*! macOS */
+	PLATFORM_MACOS,
+	/*! iOS */
 	PLATFORM_IOS,
 	/*! Android */
 	PLATFORM_ANDROID,
@@ -342,10 +342,10 @@ before function returns or scope ends) */
 #define MEMORY_TEMPORARY        1U
 /*! Memory hint, memory allocation is local to the calling thread */
 #define MEMORY_THREAD           (1U<<1)
-/*! Memory flag, memory should be allocated in low 32-bit address space */
-#define MEMORY_32BIT_ADDRESS    (1U<<2)
 /*! Memory flag, memory should be initialized to zero during allocation */
 #define MEMORY_ZERO_INITIALIZED (1U<<3)
+/*! Memory flag, memory content does not have to be preserved during reallocation */
+#define MEMORY_NO_PRESERVE      (1U<<4)
 
 /*! Event flag, event is delayed and will be delivered at a later timestamp */
 #define EVENTFLAG_DELAY 1U
@@ -383,23 +383,25 @@ an error occurs during spawning */
 #define PROCESS_STDSTREAMS                 (1U<<2)
 /*! Process flag, use ShellExecute instead of CreateProcess (Windows platform only) */
 #define PROCESS_WINDOWS_USE_SHELLEXECUTE   (1U<<3)
-/*! Process flag, use LSOpenApplication instead of fork/execve (MacOSX platform only) */
-#define PROCESS_MACOSX_USE_OPENAPPLICATION (1U<<4)
+/*! Process flag, use LSOpenApplication instead of fork/execve (macOS platform only) */
+#define PROCESS_MACOS_USE_OPENAPPLICATION (1U<<4)
 
 /*! Process exit code, returned when given invalid arguments */
-#define PROCESS_INVALID_ARGS      0x7FFFFFF0
+#define PROCESS_INVALID_ARGS       0x7FFFFFF0
 /*! Process exit code, returned when process was terminated by signal */
-#define PROCESS_TERMINATED_SIGNAL 0x7FFFFFF1
+#define PROCESS_TERMINATED_SIGNAL  0x7FFFFFF1
 /*! Process exit code, returned when process wait was interrupted */
-#define PROCESS_WAIT_INTERRUPTED  0x7FFFFFF2
+#define PROCESS_WAIT_INTERRUPTED   0x7FFFFFF2
 /*! Process exit code, returned when process wait failed for unknown reasons */
-#define PROCESS_WAIT_FAILED       0x7FFFFFF3
+#define PROCESS_WAIT_FAILED        0x7FFFFFF3
+/*! Process exit code, returned when spawn system calls failed */
+#define PROCESS_SYSTEM_CALL_FAILED 0x7FFFFFF4
 /*! Process exit code, returned when detached process is still running */
-#define PROCESS_STILL_ACTIVE      0x7FFFFFFF
+#define PROCESS_STILL_ACTIVE       0x7FFFFFFF
 /*! Process exit code, generic failure */
-#define PROCESS_EXIT_FAILURE      EXIT_FAILURE
+#define PROCESS_EXIT_FAILURE       EXIT_FAILURE
 /*! Process exit code, generic success */
-#define PROCESS_EXIT_SUCCESS      EXIT_SUCCESS
+#define PROCESS_EXIT_SUCCESS       EXIT_SUCCESS
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  if FOUNDATION_ARCH_X86
@@ -416,7 +418,7 @@ typedef int64_t       tick_t;
 /*! Deltatime type used for floating point time differences */
 typedef real          deltatime_t;
 /*! Object handle used for identifying reference counted objects */
-typedef uint64_t      object_t;
+typedef uint32_t      object_t;
 /*! Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array */
 typedef uint16_t      radixsort_index_t;
 /*! UUID, 128-bit unique identifier */
@@ -558,16 +560,11 @@ typedef struct foundation_config_t    foundation_config_t;
 #if FOUNDATION_PLATFORM_WINDOWS
 /*! Platform specific representation of a semaphore */
 typedef void*                         semaphore_t;
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_APPLE
+#  include <sys/semaphore.h>
 typedef struct semaphore_t            semaphore_t;
-#elif FOUNDATION_PLATFORM_IOS
-typedef struct dispatch_semaphore_s*  semaphore_t;
-#elif FOUNDATION_PLATFORM_BSD
+#elif FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #  include <semaphore.h>
-typedef sem_t                         semaphore_native_t;
-typedef struct semaphore_t            semaphore_t;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-typedef union semaphore_native_t      semaphore_native_t;
 typedef struct semaphore_t            semaphore_t;
 #endif
 
@@ -614,6 +611,15 @@ typedef void (* json_handler_fn)(const char* path, size_t path_size,
                                  const char* buffer, size_t size,
                                  const json_token_t* tokens, size_t numtokens);
 
+/*! Memory tracker dump handler
+\param addr Address of allocated region
+\param size Size of allocation
+\param trace Stack trace of allocation (if any, otherwise null)
+\param depth Depth of stack trace
+\return 0 to continue dumping allocations, non-zero to stop dump */
+typedef int (* memory_tracker_handler_fn)(const void* addr, size_t size,
+                                          void * const* trace, size_t depth);
+
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
 \return 0 on success, <0 if failure (errors should be reported through log_error
@@ -629,7 +635,7 @@ provide an implementation with this prototype for allocating memory
 \param context Memory context
 \param size Requested size
 \param align Aligmnent requirement
-\param hint Memory hitn (see memory_hint_t)
+\param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
 typedef void* (* memory_allocate_fn)(hash_t context, size_t size, unsigned int align,
                                      unsigned int hint);
@@ -640,13 +646,19 @@ provide an implementation with this prototype for reallocating memory
 \param size Requested size
 \param align Aligmnent requirement
 \param oldsize Size of previous memory block
+\param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
-typedef void* (* memory_reallocate_fn)(void* p, size_t size, unsigned int align, size_t oldsize);
+typedef void* (* memory_reallocate_fn)(void* p, size_t size, unsigned int align,
+                                       size_t oldsize, unsigned int hint);
 
 /*! Memory system deallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for deallocating memory
 \param p Pointer to memory block */
 typedef void (* memory_deallocate_fn)(void* p);
+
+/*! Memory thread initialization function prototype. Implementation of a memory system can
+optionally provide an implementation with this prototype for initialization at thread start */
+typedef void (* memory_thread_initialize_fn)(void);
 
 /*! Memory thread finalization function prototype. Implementation of a memory system can
 optionally provide an implementation with this prototype for finalization at thread exit */
@@ -667,6 +679,11 @@ typedef void (* memory_untrack_fn)(void* p);
 provide an implementation with this prototype for memory statistics
 \return Memory statistics */
 typedef memory_statistics_t (* memory_statistics_fn)(void);
+
+/*! Memory tracker dump function prototype. Implementation of a memory tracker can
+provide an implementation of this prototype.
+\param handler Dump handler function */
+typedef void (* memory_tracker_dump_fn)(memory_tracker_handler_fn handler);
 
 /*! Callback function for writing profiling data to a stream
 \param data Pointer to data block
@@ -810,8 +827,6 @@ struct foundation_config_t {
 	size_t memory_tracker_max;
 	/*! Maximum number of file system monitors. Zero for default (16) */
 	size_t fs_monitor_max;
-	/*! Size of temporary memory pool (short lived allocations). Zero for deafult (no temporary memory pool). */
-	size_t temporary_memory;
 	/*! Maximum depth of an error context. Zero for default (32) */
 	size_t error_context_depth;
 	/*! Maximum depth of a memory context. Zero for default (32) */
@@ -899,6 +914,8 @@ struct memory_system_t {
 	memory_reallocate_fn reallocate;
 	/*! Memory deallocation */
 	memory_deallocate_fn deallocate;
+	/*! Thread initialization */
+	memory_thread_initialize_fn thread_initialize;
 	/*! Thread finalization */
 	memory_thread_finalize_fn thread_finalize;
 	/*! System initialization */
@@ -916,6 +933,8 @@ struct memory_tracker_t {
 	memory_untrack_fn untrack;
 	/*! Statistics */
 	memory_statistics_fn statistics;
+	/*! Dump */
+	memory_tracker_dump_fn dump;
 	/*! Initialize memory tracker */
 	system_initialize_fn initialize;
 	/*! Abort memory tracker */
@@ -927,13 +946,13 @@ struct memory_tracker_t {
 /*! Memory statistics */
 struct memory_statistics_t {
 	/*! Number of allocations in total, running counter */
-	uint64_t allocations_total;
+	uint32_t allocations_total;
 	/*! Number fo allocations, current */
-	uint64_t allocations_current;
+	uint32_t allocations_current;
 	/*! Number of allocated bytes in total, running counter */
-	uint64_t allocated_total;
+	uint32_t allocated_total;
 	/*! Number of allocated bytes, current */
-	uint64_t allocated_current;
+	uint32_t allocated_current;
 };
 
 /*! Version identifier expressed as an 128-bit integer with major, minor,
@@ -1201,14 +1220,13 @@ struct memory_context_t {
 	hash_t context[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
-/*! Declares the base object data layout. Object structures should be 8-byte align for
-platform compatibility. Use the macro as first declaration in an object struct:
-<code>typedef struct ALIGN(8)
+/*! Declares the base object data layout. Use the macro as first declaration in an object struct:
+<code>struct my_object_t
 {
   FOUNDATION_DECLARE_OBJECT;
   int       some_other_data;
   //[...]
-} my_object_t;</code>
+};</code>
 \internal If changing base object layout, change #objectmap_lookup and
 #objectmap_lookup_ref \endinternal */
 #define FOUNDATION_DECLARE_OBJECT \
@@ -1219,7 +1237,7 @@ platform compatibility. Use the macro as first declaration in an object struct:
 /*! Object base structure. All object-based designs must have this layout at the start of
 the structure. See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in
 a structure. */
-FOUNDATION_ALIGNED_STRUCT(object_base_t, 8) {
+struct object_base_t {
 	/*!
 	\var object_base_t::ref
 	Object reference count
@@ -1231,48 +1249,6 @@ FOUNDATION_ALIGNED_STRUCT(object_base_t, 8) {
 	Object ID and handle (self)
 	*/
 	FOUNDATION_DECLARE_OBJECT;
-};
-
-#define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
-	atomic64_t free; \
-	atomic64_t id; \
-	size_t size; \
-	unsigned int size_bits; \
-	uint64_t id_max; \
-	uint64_t mask_index; \
-	uint64_t mask_id; \
-	void* map[mapsize]
-
-/*! Object map which maps object handles to object pointers. As object lifetime is managed
-by reference counting, objects that are deallocated will invalidate the handle in the
-corresponding object map. */
-FOUNDATION_ALIGNED_STRUCT(objectmap_t, 8) {
-	/*!
-	\var free
-	Current first free slot
-	
-	\var id
-	Counter for next available ID
-
-	\var size
-	Number of slots in map
-
-	\var size_bits
-	Number of bits needed for slot index
-
-	\var id_max
-	Maximum ID depending on how many bits are used by size
-
-	\var mask_index
-	Bitmask for slot index
-
-	\var mask_id
-	Bitmask for ID
-
-	\var map
-	Slot array
-	*/
-	FOUNDATION_DECLARE_OBJECTMAP(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! State for a child process */
@@ -1305,7 +1281,7 @@ struct process_t {
 	/*! Posix only, process identifier */
 	int pid;
 #endif
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 	/*! MaxOS X only, kqueue for watching for process termination when launching
 	    process with LSOpenApplication */
 	int kq;
@@ -1381,7 +1357,7 @@ struct ringbuffer_t {
 	FOUNDATION_DECLARE_RINGBUFFER(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_APPLE
 
 /*! Semaphore for thread synchronization and communication. Actual type specifics depend
 on platform, the semaphore_t type should be treated as an opaque data struct. */
@@ -1389,41 +1365,16 @@ struct semaphore_t {
 	string_t name;
 	union {
 		struct dispatch_semaphore_s* unnamed;
-		int* named;
+		sem_t* named;
 	} sem;
-};
-
-#elif FOUNDATION_PLATFORM_IOS
-#elif FOUNDATION_PLATFORM_BSD
-
-struct semaphore_t {
-	string_t name;
-	semaphore_native_t* sem;
-	semaphore_native_t unnamed;
 };
 
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-union semaphore_native_t {
-#  if FOUNDATION_PLATFORM_ANDROID
-	volatile unsigned int count;
-#  elif FOUNDATION_PLATFORM_PNACL
-	volatile int count;
-	volatile int nwaiters;
-#else
-#  if FOUNDATION_ARCH_X86_64
-	char __size[64];
-#  else
-	char __size[32];
-#  endif
-	long int __align;
-#endif
-};
-
-struct semaphore_t {
+FOUNDATION_ALIGNED_STRUCT(semaphore_t, 8) {
+	sem_t unnamed;
+	sem_t* sem;
 	string_t name;
-	semaphore_native_t* sem;
-	semaphore_native_t unnamed;
 };
 
 #endif
@@ -1494,6 +1445,53 @@ struct thread_t {
 	string_const_t name;
 	/*! Buffer for name string */
 	char namebuffer[32];
+};
+
+#define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
+	uint32_t free; \
+	uint32_t id; \
+	uint32_t size; \
+	uint32_t index_bits; \
+	uint32_t id_max; \
+	uint32_t mask_index; \
+	uint32_t mask_id; \
+	uint32_t autolink; \
+	semaphore_t write; \
+	void* map[mapsize]
+
+/*! Object map which maps object handles to object pointers. As object lifetime is managed
+by reference counting, objects that are deallocated will invalidate the handle in the
+corresponding object map. */
+struct objectmap_t {
+	/*!
+	\var free
+	Current first free slot
+	
+	\var id
+	Counter for next available ID
+
+	\var size
+	Number of slots in map
+
+	\var index_bits
+	Number of bits needed for slot index
+
+	\var id_max
+	Maximum ID depending on how many bits are used by size
+
+	\var mask_index
+	Bitmask for slot index
+
+	\var mask_id
+	Bitmask for ID
+
+	\var write
+	Write access semaphore
+
+	\var map
+	Slot array
+	*/
+	FOUNDATION_DECLARE_OBJECTMAP(FOUNDATION_FLEXIBLE_ARRAY);
 };
 
 /*! Declares the base stream data layout. Stream structures should be 8-byte align for

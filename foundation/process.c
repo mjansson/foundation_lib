@@ -14,9 +14,6 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #  include <foundation/windows.h>
-#  if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-void _exit(int status) FOUNDATION_ATTRIBUTE(noreturn);
-#  endif
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #  include <sys/types.h>
@@ -26,7 +23,7 @@ void _exit(int status) FOUNDATION_ATTRIBUTE(noreturn);
 #  include <unistd.h>
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 #  include <foundation/apple.h>
 #  include <sys/event.h>
 #endif
@@ -336,9 +333,9 @@ process_spawn(process_t* proc) {
 
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 
-	if (proc->flags & PROCESS_MACOSX_USE_OPENAPPLICATION) {
+	if (proc->flags & PROCESS_MACOS_USE_OPENAPPLICATION) {
 		proc->pid = 0;
 
 		LSApplicationParameters params;
@@ -410,7 +407,7 @@ process_spawn(process_t* proc) {
 			}
 			else {
 				struct kevent changes;
-				EV_SET(&changes, (pid_t)pid, EVFILT_PROC, EV_ADD | EV_RECEIPT, NOTE_EXIT, 0, 0);
+				EV_SET(&changes, (pid_t)pid, EVFILT_PROC, EV_ADD | EV_RECEIPT, NOTE_EXIT | NOTE_EXITSTATUS, 0, 0);
 				int ret = kevent(proc->kq, &changes, 1, &changes, 1, 0);
 				if (ret != 1) {
 					int err = errno;
@@ -439,7 +436,10 @@ process_spawn(process_t* proc) {
 	proc->args[0] = string_clone(STRING_ARGS(proc->path));
 	proc->args[argc] = (string_t) { 0, 0 };
 
-	char** argv = memory_allocate(0, sizeof(char*) * (argc + 1), 0, MEMORY_PERSISTENT);
+	char* argv_stack[16];
+	char** argv = argv_stack;
+	if (argc >= (sizeof(argv_stack) / sizeof(argv_stack[0])))
+		argv = memory_allocate(0, sizeof(char*) * (argc + 1), 0, MEMORY_PERSISTENT);
 	for (arg = 0; arg < argc; ++arg)
 		argv[arg] = proc->args[arg].str;
 	argv[argc] = 0;
@@ -482,23 +482,27 @@ process_spawn(process_t* proc) {
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 		           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d) (%d)"),
 			       STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
+		if (proc->flags & PROCESS_STDSTREAMS) {
+			stream_deallocate(proc->pipeout);
+			stream_deallocate(proc->pipeerr);
+			stream_deallocate(proc->pipein);
+		}
 		process_exit(PROCESS_EXIT_FAILURE);
-		FOUNDATION_UNUSED(code);
 	}
 
-	memory_deallocate(argv);
+	if (argv != argv_stack)
+		memory_deallocate(argv);
 
 	if (pid > 0) {
 		//log_debugf(0, STRING_CONST("Child process forked, pid %d"), pid);
 
 		proc->pid = pid;
 
-		if (proc->pipeout)
+		if (proc->flags & PROCESS_STDSTREAMS) {
 			pipe_close_write(proc->pipeout);
-		if (proc->pipeerr)
 			pipe_close_write(proc->pipeerr);
-		if (proc->pipein)
 			pipe_close_read(proc->pipein);
+		}
 
 		/*if (proc->flags & PROCESS_DETACHED) {
 			int cstatus = 0;
@@ -524,17 +528,15 @@ process_spawn(process_t* proc) {
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to spawn process '%.*s': %.*s (%d)"),
 		           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), proc->code);
 
-		if (proc->pipeout)
+		if (proc->flags & PROCESS_STDSTREAMS) {
 			stream_deallocate(proc->pipeout);
-		if (proc->pipeerr)
 			stream_deallocate(proc->pipeerr);
-		if (proc->pipein)
 			stream_deallocate(proc->pipein);
-
+		}
 		proc->pipeout = 0;
 		proc->pipeerr = 0;
 		proc->pipein = 0;
-		proc->code = PROCESS_INVALID_ARGS;
+		proc->code = PROCESS_SYSTEM_CALL_FAILED;
 
 		return proc->code;
 	}
@@ -545,7 +547,7 @@ process_spawn(process_t* proc) {
 	FOUNDATION_ASSERT_FAIL("Process spawning not supported on platform");
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 exit:
 #endif
 
@@ -627,8 +629,8 @@ process_wait(process_t* proc) {
 	if (!proc->pid)
 		return proc->code;
 
-#  if FOUNDATION_PLATFORM_MACOSX
-	if (proc->flags & PROCESS_MACOSX_USE_OPENAPPLICATION) {
+#  if FOUNDATION_PLATFORM_MACOS
+	if (proc->flags & PROCESS_MACOS_USE_OPENAPPLICATION) {
 		if (proc->kq) {
 			struct kevent event;
 			ret = kevent(proc->kq, 0, 0, &event, 1, 0);
@@ -642,14 +644,15 @@ process_wait(process_t* proc) {
 
 			close(proc->kq);
 			proc->kq = 0;
+			proc->code = (int)event.data;
 		}
 		else {
+			proc->code = 0;
 			log_warn(0, WARNING_INVALID_VALUE,
-			         STRING_CONST("Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue"));
+			         STRING_CONST("Unable to wait on a process started with PROCESS_MACOS_USE_OPENAPPLICATION and no kqueue"));
 			return PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;
-		proc->code = 0;
 		return proc->code;
 	}
 #  endif
@@ -703,8 +706,8 @@ process_set_exit_code(int code) {
 	_process_exit_code = code;
 }
 
-void FOUNDATION_ATTRIBUTE(noreturn)
+void
 process_exit(int code) {
-	_exit(code);
+	exit(code);
 }
 

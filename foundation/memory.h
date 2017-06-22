@@ -51,10 +51,11 @@ as the current memory block pointer.
 \param size    New requested size
 \param align   New requested alignment
 \param oldsize Previous size
+\param hint    Hint flags
 \return        Memory address to a (potentially new) memory block of the requested size
                and alignment, 0 if out of memory */
 FOUNDATION_API void*
-memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize);
+memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint);
 
 /*! Deallocate a memory block. Safe to pass a null pointer.
 \param p Memory block pointer */
@@ -86,7 +87,12 @@ Called internally when a foundation thread is about to exit. */
 FOUNDATION_API void
 memory_context_thread_finalize(void);
 
-/*! Cleanup and deallocate any per-thread memory used by memory system.
+/*! Initialize per-thread resources used by memory system.
+Called internally when a foundation thread is about to start. */
+FOUNDATION_API void
+memory_thread_initialize(void);
+
+/*! Cleanup and deallocate any per-thread resources used by memory system.
 Called internally when a foundation thread is about to exit. */
 FOUNDATION_API void
 memory_thread_finalize(void);
@@ -97,6 +103,11 @@ tracker will be set once the library is initialized.
 \param tracker New memory tracker declaration */
 FOUNDATION_API void
 memory_set_tracker(memory_tracker_t tracker);
+
+/*! Dump all tracked allocations
+\param handler Function receiving allocation data */
+FOUNDATION_API void
+memory_tracker_dump(memory_tracker_handler_fn handler);
 
 /*! Get the default malloc based memory system declaration for passing to #foundation_initialize
 \return Default malloc based memory system declation */

@@ -34,23 +34,26 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 
 #if FOUNDATION_COMPILER_MSVC
 //Work around broken dbghlp.h header
-#pragma warning(disable : 4091)
+#  pragma warning(disable : 4091)
+#elif FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
 #endif
 
-#include <windows.h>
+#include <Windows.h>
 
 #undef uuid_t
 
-#include <winsock2.h>
-#include <iptypes.h>
-#include <ws2tcpip.h>
+#include <WinSock2.h>
+#include <IPTypes.h>
+#include <WS2tcpip.h>
 #include <iphlpapi.h>
 #include <share.h>
 #include <io.h>
 #include <shellapi.h>
 #include <stdlib.h>
-#include <shlobj.h>
-#include <dbghelp.h>
+#include <ShlObj.h>
+#include <DbgHelp.h>
 #include <crtdbg.h>
 
 #undef min
@@ -62,6 +65,7 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 #if FOUNDATION_COMPILER_CLANG
 #  undef WINAPI
 #  define WINAPI STDCALL
+#  pragma clang diagnostic pop
 #endif
 
 #endif

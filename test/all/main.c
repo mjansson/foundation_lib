@@ -88,7 +88,10 @@ test_event(event_t* event) {
 static void
 test_log_view_append(const char* msg, size_t length) {
 #if FOUNDATION_PLATFORM_IOS
-	test_text_view_append(delegate_uiwindow(), 1 , msg, length);
+	test_text_view_append(delegate_window(), 1 , msg, length);
+#if !BUILD_ENABLE_LOG
+	printf("%.*s", (int)length, msg);
+#endif
 #elif FOUNDATION_PLATFORM_ANDROID
 	jclass _test_log_class = 0;
 	jmethodID _test_log_append = 0;
@@ -126,7 +129,7 @@ test_log_handler(hash_t context, error_level_t severity, const char* msg, size_t
 
 #if !BUILD_MONOLITHIC
 
-void
+void FOUNDATION_ATTRIBUTE(noreturn)
 test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
@@ -166,8 +169,6 @@ main_initialize(void) {
 #if BUILD_MONOLITHIC
 	//For fs monitor test
 	config.fs_monitor_max = 1;
-	//For temporary allocator test, 256KiB
-	config.temporary_memory = 256 * 1024;
 	//For testing static hash store
 	config.hash_store_size = 32 * 1024;
 	//Test preallocation of random state buffers
@@ -415,12 +416,12 @@ main_run(void* main_arg) {
 
 	while (!thread_is_started(&test_thread)) {
 		system_process_events();
-		thread_sleep(100);
+		thread_sleep(10);
 	}
 
 	while (thread_is_running(&test_thread)) {
 		system_process_events();
-		thread_sleep(100);
+		thread_sleep(10);
 	}
 
 	test_result = thread_join(&test_thread);
@@ -463,7 +464,7 @@ main_run(void* main_arg) {
 	//Find all test executables in the current executable directory
 #if FOUNDATION_PLATFORM_WINDOWS
 	pattern = string_const(STRING_CONST("^test-.*\\.exe$"));
-#elif FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_MACOS
 	pattern = string_const(STRING_CONST("^test-.*$"));
 #elif FOUNDATION_PLATFORM_POSIX
 	pattern = string_const(STRING_CONST("^test-.*$"));
@@ -474,7 +475,7 @@ main_run(void* main_arg) {
 	                              STRING_ARGS(pattern), false);
 	array_resize(exe_flags, array_size(exe_paths));
 	memset(exe_flags, 0, sizeof(unsigned int) * array_size(exe_flags));
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 	//Also search for test applications
 	string_const_t app_pattern = string_const(STRING_CONST("^test-.*\\.app$"));
 	regex_t* app_regex = regex_compile(app_pattern.str, app_pattern.length);
@@ -483,7 +484,7 @@ main_run(void* main_arg) {
 		if (regex_match(app_regex, subdirs[idir].str, subdirs[idir].length, 0, 0)) {
 			string_t exe_path = string_clone(subdirs[idir].str, subdirs[idir].length - 4);
 			array_push(exe_paths, exe_path);
-			array_push(exe_flags, PROCESS_MACOSX_USE_OPENAPPLICATION);
+			array_push(exe_flags, PROCESS_MACOS_USE_OPENAPPLICATION);
 		}
 	}
 	string_array_deallocate(subdirs);

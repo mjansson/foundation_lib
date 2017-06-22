@@ -338,7 +338,7 @@ hashify_generate_preamble(stream_t* output_file, string_t output_filename) {
 
 		if (preamble.length + stripped_line.length + 1 >= capacity) {
 			size_t newcapacity = capacity + 1024 + stripped_line.length;
-			preamble.str = memory_reallocate(preamble.str, newcapacity, 0, capacity);
+			preamble.str = memory_reallocate(preamble.str, newcapacity, 0, capacity, 0);
 			capacity = newcapacity;
 		}
 

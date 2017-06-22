@@ -45,7 +45,7 @@ _mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	InitializeCriticalSectionAndSpinCount(&mutex->csection, 4000);
 	mutex->event = CreateEvent(0, TRUE, FALSE, 0);
-	atomic_store32(&mutex->waiting, 0);
+	atomic_store32(&mutex->waiting, 0, memory_order_release);
 #elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	mutex->pending = false;
 
@@ -212,14 +212,14 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 	profile_wait(STRING_ARGS(mutex->name));
 #endif
 
-	atomic_incr32(&mutex->waiting);
+	atomic_incr32(&mutex->waiting, memory_order_acq_rel);
 
 	ret = WaitForSingleObject(mutex->event, milliseconds);
 
 	if (ret == WAIT_OBJECT_0)
 		mutex_lock(mutex);
 
-	if (atomic_decr32(&mutex->waiting) == 0)
+	if (atomic_decr32(&mutex->waiting, memory_order_acq_rel) == 0)
 		ResetEvent(mutex->event);
 
 	return ret == WAIT_OBJECT_0;

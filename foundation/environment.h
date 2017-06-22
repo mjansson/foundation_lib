@@ -89,14 +89,14 @@ environment_application(void);
 
 #if FOUNDATION_PLATFORM_APPLE
 
-/*! MacOS X and iOS only. Get the application bundle identifier.
+/*! macOS and iOS only. Get the application bundle identifier.
 \param buffer Buffer receiving string
 \param length Size of buffer in bytes
 \return       Bundle identifier (stored in buffer) */
 FOUNDATION_API string_t
 environment_bundle_identifier(char* buffer, size_t length);
 
-/*! MacOS X and iOS only. Get the application bundle directory.
+/*! macOS and iOS only. Get the application bundle directory.
  \param buffer Buffer receiving string
  \param length Size of buffer in bytes
  \return       Bundle directory (stored in buffer) */

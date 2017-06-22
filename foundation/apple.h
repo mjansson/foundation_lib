@@ -24,7 +24,6 @@ multiple or missing definitions.
 to our foundation/foundation.h \endinternal */
 
 #include <foundation/platform.h>
-
 #include <foundation/types.h>
 #include <foundation/uuid.h>
 #include <foundation/radixsort.h>
@@ -63,7 +62,7 @@ to our foundation/foundation.h \endinternal */
 #ifdef __OBJC__
 #  include_next <Foundation/Foundation.h>
 #  import <CoreFoundation/CoreFoundation.h>
-#  if FOUNDATION_PLATFORM_MACOSX
+#  if FOUNDATION_PLATFORM_MACOS
 #    import <AppKit/AppKit.h>
 #  elif FOUNDATION_PLATFORM_IOS
 #    import <UIKit/UIKit.h>
@@ -71,7 +70,7 @@ to our foundation/foundation.h \endinternal */
 #  endif
 #else
 #  include <CoreFoundation/CoreFoundation.h>
-#  if FOUNDATION_PLATFORM_MACOSX
+#  if FOUNDATION_PLATFORM_MACOS
 #    include <Carbon/Carbon.h>
 #    include <ApplicationServices/ApplicationServices.h>
 #  endif

@@ -279,9 +279,9 @@ random_thread(void* arg) {
 		num = random32();
 		for (j = 0; j < 32; ++j) {
 			if (num & (1 << j))
-				atomic_incr32(&_test_thread_bits[j]);
+				atomic_incr32(&_test_thread_bits[j], memory_order_relaxed);
 			if ((num >= (_test_slice32 * j)) && ((j == 31) || (num < (_test_slice32 * (j + 1)))))
-				atomic_incr32(&_test_thread_hist[j]);
+				atomic_incr32(&_test_thread_hist[j], memory_order_relaxed);
 		}
 	}
 	return 0;
@@ -294,8 +294,10 @@ DECLARE_TEST(random, threads) {
 	int max_num = 0, min_num = 0x7FFFFFFF;
 	size_t i, j;
 	real diff;
-	memset(_test_thread_bits, 0, sizeof(atomic32_t) * 32);
-	memset(_test_thread_hist, 0, sizeof(atomic32_t) * 32);
+	for (i = 0; i < 32; ++i) {
+		atomic_store32(&_test_thread_bits[i], 0, memory_order_relaxed);
+		atomic_store32(&_test_thread_hist[i], 0, memory_order_relaxed);
+	}
 
 	for (i = 0; i < num_threads; ++i)
 		thread_initialize(&thread[i], random_thread, 0, STRING_CONST("random"), THREAD_PRIORITY_NORMAL, 0);
@@ -316,15 +318,15 @@ DECLARE_TEST(random, threads) {
 		log_debugf( "%08x-%08x: %u", ( _test_slice32 * j ), ( _test_slice32 * ( j + 1 ) ) - 1, atomic_load32( &_test_threaD_hist[j] ) );*/
 
 	for (j = 0; j < num_threads; ++j) {
-		if (atomic_load32(&_test_thread_bits[j]) < min_num)
-			min_num = atomic_load32(&_test_thread_bits[j]);
-		if (atomic_load32(&_test_thread_bits[j]) > max_num)
-			max_num = atomic_load32(&_test_thread_bits[j]);
+		if (atomic_load32(&_test_thread_bits[j], memory_order_acquire) < min_num)
+			min_num = atomic_load32(&_test_thread_bits[j], memory_order_acquire);
+		if (atomic_load32(&_test_thread_bits[j], memory_order_acquire) > max_num)
+			max_num = atomic_load32(&_test_thread_bits[j], memory_order_acquire);
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < num_threads; ++j)
-		EXPECT_GT(atomic_load32(&_test_thread_bits[j]), 0);
+		EXPECT_GT(atomic_load32(&_test_thread_bits[j], memory_order_acquire), 0);
 	EXPECT_LT(diff,
 	          0.004);  // << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
 
@@ -332,15 +334,15 @@ DECLARE_TEST(random, threads) {
 
 	max_num = 0; min_num = 0x7FFFFFFF;
 	for (j = 0; j < num_threads; ++j) {
-		if (atomic_load32(&_test_thread_hist[j]) < min_num)
-			min_num = atomic_load32(&_test_thread_hist[j]);
-		if (atomic_load32(&_test_thread_hist[j]) > max_num)
-			max_num = atomic_load32(&_test_thread_hist[j]);
+		if (atomic_load32(&_test_thread_hist[j], memory_order_acquire) < min_num)
+			min_num = atomic_load32(&_test_thread_hist[j], memory_order_acquire);
+		if (atomic_load32(&_test_thread_hist[j], memory_order_acquire) > max_num)
+			max_num = atomic_load32(&_test_thread_hist[j], memory_order_acquire);
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < num_threads; ++j)
-		EXPECT_GT(atomic_load32(&_test_thread_hist[j]), 0);
+		EXPECT_GT(atomic_load32(&_test_thread_hist[j], memory_order_acquire), 0);
 	EXPECT_LT(diff,
 	          0.02);  // << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 

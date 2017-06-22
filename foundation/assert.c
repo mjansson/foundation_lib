@@ -61,7 +61,7 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 		                          msg_length);
 
 #if BUILD_ENABLE_ASSERT
-	contextstr = error_context_buffer(STRING_ARGS(contextstr));
+	contextstr = error_context_buffer(contextstr.str, contextstr.length);
 
 	if (foundation_is_initialized()) {
 		size_t num_frames = stacktrace_capture(_assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH,

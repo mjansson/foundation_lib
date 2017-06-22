@@ -56,7 +56,6 @@ foundation_initialize_config(const foundation_config_t config) {
 	_config.event_block_limit     = (config.event_block_limit ? config.event_block_limit : (512 * 1024));
 	_config.thread_stack_size     = (config.thread_stack_size ? config.thread_stack_size : 0x8000);
 	
-	_config.temporary_memory      = config.temporary_memory;
 	_config.hash_store_size       = config.hash_store_size;
 	_config.random_state_prealloc = config.random_state_prealloc;
 }

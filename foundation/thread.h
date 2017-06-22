@@ -157,6 +157,10 @@ thread_yield(void);
 FOUNDATION_API thread_t*
 thread_self(void);
 
+/*! Initialize on thread exit and aqcuire thread local resources. */
+FOUNDATION_API void
+thread_enter(void);
+
 /*! Finalize on thread exit and free thread local resources. */
 FOUNDATION_API void
 thread_exit(void);

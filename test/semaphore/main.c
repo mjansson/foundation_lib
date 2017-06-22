@@ -12,6 +12,9 @@
 
 #include <foundation/foundation.h>
 #include <test/test.h>
+#include <mock/mock.h>
+
+#include <foundation/posix.h>
 
 static application_t
 test_semaphore_application(void) {
@@ -54,7 +57,7 @@ DECLARE_TEST(semaphore, initialize) {
 	semaphore_finalize(&sem);
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named(&sem, STRING_CONST("foundation_test"), 0);
+	semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 0);
 	EXPECT_FALSE(semaphore_try_wait(&sem, 100));
 	semaphore_finalize(&sem);
 #endif
@@ -65,7 +68,7 @@ DECLARE_TEST(semaphore, initialize) {
 	semaphore_finalize(&sem);
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named(&sem, STRING_CONST("foundation_test"), 1);
+	semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 1);
 	EXPECT_TRUE(semaphore_try_wait(&sem, 100));
 	semaphore_post(&sem);   //Restored value
 	semaphore_finalize(&sem);
@@ -80,7 +83,7 @@ DECLARE_TEST(semaphore, initialize) {
 	semaphore_finalize(&sem);
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named(&sem, STRING_CONST("foundation_test"), 2);
+	semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 2);
 	EXPECT_TRUE(semaphore_wait(&sem));
 	EXPECT_TRUE(semaphore_try_wait(&sem, 100));
 	EXPECT_FALSE(semaphore_try_wait(&sem, 100));
@@ -122,7 +125,7 @@ DECLARE_TEST(semaphore, postwait) {
 	semaphore_finalize(&sem);
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
-	semaphore_initialize_named(&sem, STRING_CONST("foundation_test"), 0);
+	semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 0);
 	EXPECT_FALSE(semaphore_try_wait(&sem, 100));
 
 	semaphore_post(&sem);
@@ -166,7 +169,7 @@ semaphore_waiter(void* arg) {
 	for (loop = 0; loop < sem->loopcount; ++loop) {
 		thread_yield();
 		semaphore_wait(&sem->read);
-		atomic_incr32(&sem->counter);
+		atomic_incr32(&sem->counter, memory_order_relaxed);
 		semaphore_post(&sem->write);
 	}
 
@@ -182,7 +185,7 @@ DECLARE_TEST(semaphore, threaded) {
 	semaphore_initialize(&test.read, 0);
 	semaphore_initialize(&test.write, 0);
 	test.loopcount = 128;
-	atomic_store32(&test.counter, 0);
+	atomic_store32(&test.counter, 0, memory_order_relaxed);
 
 	for (ith = 0; ith < 32; ++ith)
 		thread_initialize(&thread[ith], semaphore_waiter, &test, STRING_CONST("semaphore_waiter"),
@@ -207,7 +210,7 @@ DECLARE_TEST(semaphore, threaded) {
 	for (ith = 0; ith < 32; ++ith)
 		thread_finalize(&thread[ith]);
 
-	EXPECT_EQ(atomic_load32(&test.counter), test.loopcount * 32);
+	EXPECT_EQ(atomic_load32(&test.counter, memory_order_acquire), test.loopcount * 32);
 	EXPECT_EQ(failed_waits, 0);
 
 	semaphore_finalize(&test.read);
@@ -217,7 +220,7 @@ DECLARE_TEST(semaphore, threaded) {
 	semaphore_initialize_named(&test.read, STRING_CONST("foundation_test_read"), 0);
 	semaphore_initialize_named(&test.write, STRING_CONST("foundation_test_write"), 0);
 	test.loopcount = 128;
-	atomic_store32(&test.counter, 0);
+	atomic_store32(&test.counter, 0, memory_order_relaxed);
 
 	for (ith = 0; ith < 32; ++ith)
 		thread_initialize(&thread[ith], semaphore_waiter, &test, STRING_CONST("semaphore_waiter"),
@@ -239,7 +242,7 @@ DECLARE_TEST(semaphore, threaded) {
 
 	test_wait_for_threads_finish(thread, 32);
 
-	EXPECT_EQ(atomic_load32(&test.counter), test.loopcount * 32);
+	EXPECT_EQ(atomic_load32(&test.counter, memory_order_acquire), test.loopcount * 32);
 	EXPECT_EQ(failed_waits, 0);
 
 	for (ith = 0; ith < 32; ++ith)
@@ -252,11 +255,55 @@ DECLARE_TEST(semaphore, threaded) {
 	return 0;
 }
 
+DECLARE_TEST(semaphore, failure) {
+	semaphore_t sem;
+
+	error_level_t last_log_suppress = log_suppress(0);
+	log_set_suppress(0, ERRORLEVEL_ERROR);
+
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_ANDROID
+
+	sem_init_mock(-1, EINVAL);
+	EXPECT_FALSE(semaphore_initialize(&sem, 0));
+	EXPECT_EQ(error(), ERROR_SYSTEM_CALL_FAIL);
+	semaphore_finalize(&sem);
+	sem_init_unmock();
+
+#elif FOUNDATION_PLATFORM_APPLE
+
+	dispatch_semaphore_create_mock(0, EINVAL);
+	EXPECT_FALSE(semaphore_initialize(&sem, 0));
+	EXPECT_EQ(error(), ERROR_SYSTEM_CALL_FAIL);
+	semaphore_finalize(&sem);
+	dispatch_semaphore_create_unmock();
+
+#endif
+
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_IOS
+
+	sem_open_mock(SEM_FAILED, EINVAL);
+	EXPECT_FALSE(semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 0));
+	EXPECT_EQ(error(), ERROR_SYSTEM_CALL_FAIL);
+	semaphore_finalize(&sem);
+	sem_open_unmock();
+
+#endif
+
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_PNACL
+	FOUNDATION_UNUSED(sem);
+#endif
+
+	log_set_suppress(0, last_log_suppress);
+
+	return 0;
+}
+
 static void
 test_semaphore_declare(void) {
 	ADD_TEST(semaphore, initialize);
 	ADD_TEST(semaphore, postwait);
 	ADD_TEST(semaphore, threaded);
+	ADD_TEST(semaphore, failure);
 }
 
 static test_suite_t test_semaphore_suite = {

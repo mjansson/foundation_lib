@@ -12,6 +12,11 @@
 
 #include <foundation/foundation.h>
 #include <test/test.h>
+#include <mock/mock.h>
+
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#endif
 
 static application_t
 test_process_application(void) {
@@ -153,7 +158,7 @@ DECLARE_TEST(process, spawn) {
 
 #endif
 
-#if FOUNDATION_PLATFORM_MACOSX
+#if FOUNDATION_PLATFORM_MACOS
 
 	process_finalize(proc);
 	process_initialize(proc);
@@ -162,7 +167,7 @@ DECLARE_TEST(process, spawn) {
 
 	process_set_working_directory(proc, STRING_CONST("/"));
 	process_set_executable_path(proc, STRING_CONST("/System/Library/CoreServices/Finder.app"));
-	process_set_flags(proc, PROCESS_DETACHED | PROCESS_MACOSX_USE_OPENAPPLICATION);
+	process_set_flags(proc, PROCESS_DETACHED | PROCESS_MACOS_USE_OPENAPPLICATION);
 	process_set_arguments(proc, args, 1);
 
 	ret = process_spawn(proc);
@@ -184,7 +189,15 @@ DECLARE_TEST(process, spawn) {
 
 DECLARE_TEST(process, kill) {
 	process_t* proc;
-	string_const_t args[] = { string_const(STRING_CONST("wait for kill")), string_null() };
+	string_const_t args[] = {
+		string_const(STRING_CONST("wait for kill")), string_const(STRING_CONST("another arg")),
+		string_const(STRING_CONST("1234")), string_const(STRING_CONST("--")), string_const(STRING_CONST("----")),
+		string_const(STRING_CONST("foo")), string_const(STRING_CONST("bar")), string_const(STRING_CONST("--foo--")),
+		string_const(STRING_CONST("- -- - -- -")), string_const(STRING_CONST("qwerty")), string_const(STRING_CONST("_!\"\"'")),
+		string_const(STRING_CONST("   ")), string_const(STRING_CONST("+-")), string_const(STRING_CONST(" --")),
+		string_const(STRING_CONST("^	")), string_const(STRING_CONST("\\")), string_const(STRING_CONST("#$|")), 
+		string_const(STRING_CONST("<< >>")), string_const(STRING_CONST(">/dev/null")), string_const(STRING_CONST("lastarg")),
+		string_null() };
 	int ret;
 
 	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID) ||
@@ -196,10 +209,15 @@ DECLARE_TEST(process, kill) {
 	process_set_working_directory(proc, STRING_ARGS(environment_current_working_directory()));
 	process_set_executable_path(proc, STRING_ARGS(environment_executable_path()));
 	process_set_arguments(proc, args, sizeof(args) / sizeof(args[0]));
-	process_set_flags(proc, PROCESS_DETACHED);
+	process_set_flags(proc, PROCESS_DETACHED | PROCESS_STDSTREAMS);
 
 	ret = process_spawn(proc);
 	EXPECT_INTEQ(ret, PROCESS_STILL_ACTIVE);
+	EXPECT_INTEQ(process_wait(proc), PROCESS_STILL_ACTIVE);
+
+	EXPECT_NE(process_stdin(proc), nullptr);
+	EXPECT_NE(process_stdout(proc), nullptr);
+	EXPECT_NE(process_stderr(proc), nullptr);
 
 	thread_sleep(500);
 
@@ -219,7 +237,7 @@ DECLARE_TEST(process, kill) {
 	ret = process_spawn(proc);
 #if FOUNDATION_PLATFORM_WINDOWS
 	EXPECT_INTEQ(ret, PROCESS_INVALID_ARGS);
-#else	
+#else
 	EXPECT_INTEQ(ret, PROCESS_EXIT_FAILURE);
 #endif
 
@@ -232,10 +250,78 @@ DECLARE_TEST(process, kill) {
 	return 0;
 }
 
+DECLARE_TEST(process, failure) {
+	process_t proc;
+
+	process_initialize(&proc);
+	EXPECT_EQ(process_spawn(&proc), PROCESS_INVALID_ARGS);
+	process_finalize(&proc);
+
+	process_deallocate(0);
+
+	string_const_t args[] = { string_const(STRING_CONST("wait for kill")), string_null() };
+
+	process_initialize(&proc);
+	process_set_working_directory(&proc, STRING_ARGS(environment_current_working_directory()));
+	process_set_executable_path(&proc, STRING_ARGS(environment_executable_path()));
+	process_set_arguments(&proc, args, sizeof(args) / sizeof(args[0]));
+	process_set_flags(&proc, PROCESS_DETACHED | PROCESS_STDSTREAMS);
+
+	error_level_t last_log_suppress = log_suppress(0);
+	log_set_suppress(0, ERRORLEVEL_ERROR);
+
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
+	int ret;
+
+	fork_mock(-1, ENOMEM);
+	ret = process_spawn(&proc);
+	fork_unmock();
+	EXPECT_INTEQ(ret, PROCESS_SYSTEM_CALL_FAILED);
+
+	fork_mock(0, 0);
+	execv_mock(0, EINVAL);
+	dup2_mock(0, 0);
+	jmp_buf exit_target;
+	ret = setjmp(exit_target);
+	if (ret == 0) {
+		exit_mock(exit_target);
+		process_spawn(&proc);
+	}
+	exit_unmock();
+	dup2_unmock();
+	execv_unmock();
+	fork_unmock();
+	EXPECT_INTEQ(ret, PROCESS_EXIT_FAILURE);
+
+	ret = process_spawn(&proc);
+	thread_sleep(500);
+	waitpid_mock(-1, EINTR);
+	EXPECT_INTEQ(process_wait(&proc), PROCESS_WAIT_INTERRUPTED);
+	waitpid_mock(-1, ECHILD);
+	EXPECT_INTEQ(process_wait(&proc), PROCESS_WAIT_FAILED);
+	waitpid_unmock();
+
+	EXPECT_TRUE(process_kill(&proc));
+
+	thread_sleep(500);
+
+	ret = process_wait(&proc);
+	EXPECT_INTEQ(ret, PROCESS_TERMINATED_SIGNAL);
+
+#endif
+
+	log_set_suppress(0, last_log_suppress);
+
+	process_finalize(&proc);
+
+	return 0;
+}
+
 static void
 test_process_declare(void) {
 	ADD_TEST(process, spawn);
 	ADD_TEST(process, kill);
+	ADD_TEST(process, failure);
 }
 
 static test_suite_t test_process_suite = {
