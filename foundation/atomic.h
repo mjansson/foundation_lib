@@ -465,7 +465,7 @@ atomic_exchange_and_add64(atomic64_t* val, int64_t add, memory_order order) {
 static FOUNDATION_FORCEINLINE int64_t
 atomic_add64(atomic64_t* val, int64_t add, memory_order order) {
 #if FOUNDATION_ARCH_X86
-	return atomic_exchange_and_add64(val, add) + add;
+	return atomic_exchange_and_add64(val, add, order) + add;
 #else
 	return _InterlockedExchangeAdd64(&val->nonatomic, add) + add;
 #endif
