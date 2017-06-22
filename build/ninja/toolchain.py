@@ -330,7 +330,8 @@ class Toolchain(object):
       includepaths = []
     if libpaths is None:
       libpaths = []
-    sourcevariables = {'includepaths': self.depend_includepaths + list(includepaths)}
+    sourcevariables = (variables or {}).copy()
+    sourcevariables.update({'includepaths': self.depend_includepaths + list(includepaths)})
     nodevariables = (variables or {}).copy()
     nodevariables.update({
                      'libs': libs,
