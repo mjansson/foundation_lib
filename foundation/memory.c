@@ -21,7 +21,7 @@
 #  include <sys/mman.h>
 #endif
 
-#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 #  include <malloc.h>
 #endif
 
@@ -275,6 +275,8 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #  if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 		if (posix_memalign(&memory, align, size))
 			memory = 0;
+#  elif FOUNDATION_PLATFORM_PNACL
+		memory = memalign(align, size);
 #  else
 		memory = aligned_alloc(align, size);
 #  endif
