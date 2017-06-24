@@ -18,7 +18,7 @@ class GCCToolchain(toolchain.Toolchain):
     self.linker = 'gcc'
 
     #Command definitions
-    self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d -I. $includepaths $moreincludepaths $cflags $carchflags $cconfigflags -c $in -o $out'
+    self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d -I. $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags -c $in -o $out'
     self.ccdeps = 'gcc'
     self.ccdepfile = '$out.d'
     self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
@@ -30,6 +30,7 @@ class GCCToolchain(toolchain.Toolchain):
                    '-funit-at-a-time', '-fstrict-aliasing',
                    '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
                    '-fno-trapping-math', '-ffast-math']
+    self.cmoreflags = []
     self.mflags = []
     self.arflags = []
     self.linkflags = []
@@ -91,6 +92,7 @@ class GCCToolchain(toolchain.Toolchain):
     writer.variable('cflags', self.cflags)
     writer.variable('carchflags', '')
     writer.variable('cconfigflags', '')
+    writer.variable('cmoreflags', self.cmoreflags)
     writer.variable('arflags', self.arflags)
     writer.variable('ararchflags', '')
     writer.variable('arconfigflags', '')
@@ -207,6 +209,8 @@ class GCCToolchain(toolchain.Toolchain):
     cconfigflags = self.make_cconfigflags(config, targettype)
     if cconfigflags != []:
       localvariables += [('cconfigflags', cconfigflags)]
+    if 'defines' in variables:
+      localvariables += [('cmoreflags', ['-D' + define for define in variables['defines']])]
     return localvariables
 
   def ar_variables(self, config, arch, targettype, variables):

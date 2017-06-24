@@ -21,7 +21,7 @@ class MSVCToolchain(toolchain.Toolchain):
     self.dller = 'dll'
 
     #Command definitions
-    self.cccmd = '$toolchain$cc /showIncludes /I. $includepaths $moreincludepaths $cflags $carchflags $cconfigflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
+    self.cccmd = '$toolchain$cc /showIncludes /I. $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags /c $in /Fo$out /Fd$pdbpath /FS /nologo'
     self.ccdepfile = None
     self.ccdeps = 'msvc'
     self.arcmd = '$toolchain$ar $arflags $ararchflags $arconfigflags /NOLOGO /OUT:$out $in'
@@ -30,6 +30,7 @@ class MSVCToolchain(toolchain.Toolchain):
 
     #Base flags
     self.cflags = ['/D', '"' + project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-']
+    self.cmoreflags = []
     self.arflags = ['/ignore:4221'] #Ignore empty object file warning]
     self.linkflags = ['/DEBUG']
     self.oslibs = ['kernel32', 'user32', 'shell32', 'advapi32']
@@ -86,6 +87,7 @@ class MSVCToolchain(toolchain.Toolchain):
     writer.variable('cflags', self.cflags)
     writer.variable('carchflags', '')
     writer.variable('cconfigflags', '')
+    writer.variable('cmoreflags', self.cmoreflags)
     writer.variable('arflags', self.arflags)
     writer.variable('ararchflags', '')
     writer.variable('arconfigflags', '')
@@ -323,6 +325,8 @@ class MSVCToolchain(toolchain.Toolchain):
     cconfigflags = self.make_cconfigflags(config, targettype)
     if cconfigflags != []:
       localvariables += [('cconfigflags', cconfigflags)]
+    if 'defines' in variables:
+      localvariables += [('cmoreflags', ['/D' + define for define in variables['defines']])]
     return localvariables
 
   def ar_variables(self, config, arch, targettype, variables):

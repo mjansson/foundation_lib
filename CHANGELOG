@@ -2,24 +2,24 @@
 1.6.0
 
 Use pthread_exit to terminate threads on POSIX for compatibility with libs overriding
-pthread_exit or using pthread_cleanup_push
+pthread_exit or using pthread_cleanup_push.
 
 Add thread_enter and memory_thread_initialize to provide optional entry points for
-memory system per-thread initialization
+memory system per-thread initialization.
 
-Add hint flags to memory reallocation to optionally avoid copying to preserve old content
+Add hint flags to memory reallocation to optionally avoid copying to preserve old content.
 
-Make memory reallocation respect 32bit flag and fall back to alloc and copy
+Make memory reallocation respect 32bit flag and fall back to alloc and copy.
 
-Fix parsing of negative numbers in JSON/SJSON parser
+Fix parsing of negative numbers in JSON/SJSON parser.
 
-Unify macOS/iOS delegate_nswindow and delegate_uiwindow functions to delegate_window
+Unify macOS/iOS delegate_nswindow and delegate_uiwindow functions to delegate_window.
 
-Support using SetThreadDescription (if present) to set thread name on Windows
+Support using SetThreadDescription (if present) to set thread name on Windows.
 
-Change MacOSX platform names and identifiers to macOS (FOUNDATION_PLATFORM_MACOS)
+Change MacOSX platform names and identifiers to macOS (FOUNDATION_PLATFORM_MACOS).
 
-Fix race condition in ring buffer streams read/write
+Fix race condition in ring buffer streams read/write.
 
 Use C11 atomics for all compilers (except Microsoft) instead of builtin or own implementations.
 Add memory ordering to all atomic entry points.
@@ -29,7 +29,7 @@ semaphore_initialize and semaphore_initialize_named now return boolean success/f
 Change object map to use semaphore for write operation instead of atomics. Also change
 object map index to 32 bit, and object_t type to 32 bit.
 
-Add a mock system to tests to simulate failing system calls
+Add a mock system to tests to simulate failing system calls.
 
 Remove flag to memory allocation to allocate in low 32-bit address range on 64-bit systems.
 
