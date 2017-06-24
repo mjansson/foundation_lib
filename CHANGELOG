@@ -21,7 +21,8 @@ Change MacOSX platform names and identifiers to macOS (FOUNDATION_PLATFORM_MACOS
 
 Fix race condition in ring buffer streams read/write
 
-Use C11 atomics for all compilers (except Microsoft) instead of builtin or own implementations
+Use C11 atomics for all compilers (except Microsoft) instead of builtin or own implementations.
+Add memory ordering to all atomic entry points.
 
 semaphore_initialize and semaphore_initialize_named now return boolean success/fail indicator
 

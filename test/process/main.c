@@ -270,7 +270,7 @@ DECLARE_TEST(process, failure) {
 	error_level_t last_log_suppress = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_ERROR);
 
-#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
 	int ret;
 
 	fork_mock(-1, ENOMEM);
