@@ -40,11 +40,15 @@ class Generator(object):
     parser.add_argument('--coverage', action='store_true',
                         help = 'Build with code coverage',
                         default = False)
+    parser.add_argument('--subninja', action='store_true',
+                        help = 'Build as subproject (exclude rules and pools)',
+                        default = False)
     options = parser.parse_args()
 
     self.project = project
     self.target = platform.Platform(options.target)
     self.host = platform.Platform(options.host)
+    self.subninja = options.subninja
     archs = options.arch
     configs = options.config
     if includepaths is None:
@@ -89,6 +93,8 @@ class Generator(object):
 
     self.toolchain = toolchain.make_toolchain(self.host, self.target, options.toolchain)
     self.toolchain.initialize(project, archs, configs, includepaths, dependlibs, libpaths, variables)
+    if self.subninja:
+      self.toolchain.initialize_subninja()
 
     self.writer.variable('configure_toolchain', self.toolchain.name())
     self.writer.variable('configure_archs', archs)
@@ -96,7 +102,8 @@ class Generator(object):
     self.writer.newline()
 
     self.toolchain.write_variables(self.writer)
-    self.toolchain.write_rules(self.writer)
+    if not self.subninja:
+      self.toolchain.write_rules(self.writer)
 
   def target(self):
     return self.target
@@ -123,6 +130,7 @@ class Generator(object):
     return self.toolchain.app(self.writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables, resources)
 
   def test_includepaths(self):
+    #TODO: This is ugly
     if self.project == "foundation":
       return ['test']
     return ['test', os.path.join('..', 'foundation_lib', 'test')]

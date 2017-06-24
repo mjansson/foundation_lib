@@ -43,6 +43,7 @@ class Toolchain(object):
     self.host = host
     self.target = target
     self.toolchain = toolchain
+    self.subninja = False
 
     #Set default values
     self.build_monolithic = False
@@ -111,6 +112,9 @@ class Toolchain(object):
 
     #Paths created
     self.paths_created = {}
+
+  def initialize_subninja(self):
+    self.subninja = True
 
   def initialize_project(self, project):
     self.project = project
@@ -255,6 +259,8 @@ class Toolchain(object):
   def mkdir(self, writer, path, implicit = None, order_only = None):
     if path in self.paths_created:
       return self.paths_created[path]
+    if self.subninja:
+      return
     cmd = writer.build(path, 'mkdir', None, implicit = implicit, order_only = order_only)
     self.paths_created[path] = cmd
     return cmd
