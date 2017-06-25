@@ -13,7 +13,7 @@ class ClangToolchain(toolchain.Toolchain):
     #Local variable defaults
     self.toolchain = ''
     self.sdkpath = ''
-    self.includepaths = includepaths
+    self.includepaths = includepaths + ['.']
     self.libpaths = libpaths
     self.ccompiler = 'clang'
     self.archiver = 'ar'
@@ -29,7 +29,7 @@ class ClangToolchain(toolchain.Toolchain):
       self.deploymenttarget = '10.7'
 
     #Command definitions
-    self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d -I. $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags -c $in -o $out'
+    self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags -c $in -o $out'
     self.ccdeps = 'gcc'
     self.ccdepfile = '$out.d'
     self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
@@ -266,16 +266,26 @@ class ClangToolchain(toolchain.Toolchain):
 
     self.oslibs += ['ppapi', 'm']
 
+  def make_includepath(self, path):
+    if os.path.isabs(path) or self.subninja == '':
+      return self.path_escape(path)
+    if path == '.':
+      return self.path_escape(self.subninja)
+    return self.path_escape(os.path.join(self.subninja, path))
+
   def make_includepaths(self, includepaths):
     if not includepaths is None:
-      return ['-I' + self.path_escape(path) for path in list(includepaths)]
+      return ['-I' + self.make_includepath(path) for path in list(includepaths)]
     return []
+
+  def make_libpath(self, path):
+    return self.path_escape(path)
 
   def make_libpaths(self, libpaths):
     if not libpaths is None:
       if self.target.is_windows():
         return ['-Xlinker /LIBPATH:' + self.path_escape(path) for path in libpaths]
-      return ['-L' + self.path_escape(path) for path in libpaths]
+      return ['-L' + self.make_libpath(path) for path in libpaths]
     return []
 
   def make_targetarchflags(self, arch, targettype):

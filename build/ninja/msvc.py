@@ -195,14 +195,24 @@ class MSVCToolchain(toolchain.Toolchain):
     if self.toolchain != '' and not self.toolchain.endswith('/') and not self.toolchain.endswith('\\'):
       self.toolchain += os.sep
 
+  def make_includepath(self, path):
+    if os.path.isabs(path) or self.subninja == '':
+      return self.path_escape(path)
+    if path == '.':
+      return self.path_escape(self.subninja)
+    return self.path_escape(os.path.join(self.subninja, path))
+
   def make_includepaths(self, includepaths):
     if not includepaths is None:
-      return ['/I' + self.path_escape(path) for path in list(includepaths)]
+      return ['/I' + self.make_includepath(path) for path in list(includepaths)]
     return []
+
+  def make_libpath(self, path):
+    return self.path_escape(path)
 
   def make_libpaths(self, libpaths):
     if not libpaths is None:
-      return ['/LIBPATH:' + self.path_escape(path) for path in list(libpaths)]
+      return ['/LIBPATH:' + self.make_libpath(path) for path in libpaths]
     return []
 
   def make_arch_toolchain_path(self, arch):

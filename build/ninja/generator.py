@@ -40,9 +40,9 @@ class Generator(object):
     parser.add_argument('--coverage', action='store_true',
                         help = 'Build with code coverage',
                         default = False)
-    parser.add_argument('--subninja', action='store_true',
-                        help = 'Build as subproject (exclude rules and pools)',
-                        default = False)
+    parser.add_argument('--subninja', action='store',
+                        help = 'Build as subproject (exclude rules and pools) with the given subpath',
+                        default = '')
     options = parser.parse_args()
 
     self.project = project
@@ -93,8 +93,8 @@ class Generator(object):
 
     self.toolchain = toolchain.make_toolchain(self.host, self.target, options.toolchain)
     self.toolchain.initialize(project, archs, configs, includepaths, dependlibs, libpaths, variables)
-    if self.subninja:
-      self.toolchain.initialize_subninja()
+    if self.subninja != '':
+      self.toolchain.initialize_subninja(self.subninja)
 
     self.writer.variable('configure_toolchain', self.toolchain.name())
     self.writer.variable('configure_archs', archs)
@@ -102,7 +102,7 @@ class Generator(object):
     self.writer.newline()
 
     self.toolchain.write_variables(self.writer)
-    if not self.subninja:
+    if self.subninja == '':
       self.toolchain.write_rules(self.writer)
 
   def target(self):
@@ -116,6 +116,9 @@ class Generator(object):
 
   def writer(self):
     return self.writer
+
+  def is_subninja(self):
+    return self.subninja != ''
 
   def lib(self, module, sources, basepath = None, configs = None, includepaths = None, variables = None):
     return self.toolchain.lib(self.writer, module, sources, basepath, configs, includepaths, variables)

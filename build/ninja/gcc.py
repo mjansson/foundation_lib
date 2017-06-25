@@ -124,14 +124,24 @@ class GCCToolchain(toolchain.Toolchain):
     self.cflags += ['-U__STRICT_ANSI__', '-std=c11']
     self.oslibs = ['kernel32', 'user32', 'shell32', 'advapi32']
 
+  def make_includepath(self, path):
+    if os.path.isabs(path) or self.subninja == '':
+      return self.path_escape(path)
+    if path == '.':
+      return self.path_escape(self.subninja)
+    return self.path_escape(os.path.join(self.subninja, path))
+
   def make_includepaths(self, includepaths):
     if not includepaths is None:
-      return ['-I' + self.path_escape(path) for path in list(includepaths)]
+      return ['-I' + self.make_includepath(path) for path in list(includepaths)]
     return []
+
+  def make_libpath(self, path):
+    return self.path_escape(path)
 
   def make_libpaths(self, libpaths):
     if not libpaths is None:
-      return ['-L' + self.path_escape(path) for path in libpaths]
+      return ['-L' + self.make_libpath(path) for path in libpaths]
     return []
 
   def make_targetarchflags(self, arch, targettype):

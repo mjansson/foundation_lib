@@ -43,7 +43,7 @@ class Toolchain(object):
     self.host = host
     self.target = target
     self.toolchain = toolchain
-    self.subninja = False
+    self.subninja = ''
 
     #Set default values
     self.build_monolithic = False
@@ -113,8 +113,8 @@ class Toolchain(object):
     #Paths created
     self.paths_created = {}
 
-  def initialize_subninja(self):
-    self.subninja = True
+  def initialize_subninja(self, path):
+    self.subninja = path
 
   def initialize_project(self, project):
     self.project = project
@@ -164,9 +164,24 @@ class Toolchain(object):
       self.xcode.initialize_toolchain()
 
   def initialize_depends(self, dependlibs):
-    #TODO: Improve localization of dependend libs
-    self.depend_includepaths = [os.path.join('..', lib + '_lib') for lib in dependlibs]
-    self.depend_libpaths = [os.path.join('..', lib + '_lib') for lib in dependlibs]
+    for lib in dependlibs:
+      includepath = ''
+      libpath = ''
+      testpaths = [
+        os.path.join(self.subninja, '..', lib),
+        os.path.join(self.subninja, '..', lib + '_lib')
+      ]
+      for testpath in testpaths:
+        if os.path.isfile(os.path.join(testpath, lib, lib + '.h')):
+          includepath = testpath
+          libpath = testpath
+          break
+      if includepath == '':
+        print("Unable to locate dependent lib: " + lib)
+        sys.exit(-1)
+      else:
+        self.depend_includepaths += [includepath]
+        self.depend_libpaths += [libpath]
 
   def build_toolchain(self):
     if self.android != None:
@@ -259,7 +274,7 @@ class Toolchain(object):
   def mkdir(self, writer, path, implicit = None, order_only = None):
     if path in self.paths_created:
       return self.paths_created[path]
-    if self.subninja:
+    if self.subninja != '':
       return
     cmd = writer.build(path, 'mkdir', None, implicit = implicit, order_only = order_only)
     self.paths_created[path] = cmd
@@ -328,9 +343,9 @@ class Toolchain(object):
 
   def build_sources(self, writer, nodetype, multitype, module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, libs, implicit_deps, variables, frameworks):
     if module != '':
-      decoratedmodule = module + make_pathhash(module, nodetype)
+      decoratedmodule = module + make_pathhash(self.subninja + module, nodetype)
     else:
-      decoratedmodule = basepath + make_pathhash(basepath, nodetype)
+      decoratedmodule = basepath + make_pathhash(self.subninja + basepath, nodetype)
     built = {}
     if includepaths is None:
       includepaths = []
@@ -363,6 +378,8 @@ class Toolchain(object):
           else:
             infile = os.path.join(basepath, module, name)
             outfile = os.path.join(modulepath, os.path.splitext(name)[0] + make_pathhash(infile, nodetype) + self.objext)
+            if self.subninja != '':
+              infile = os.path.join(self.subninja, infile)
           objs += self.compile_file(writer, config, arch, nodetype, infile, outfile, sourcevariables)
         #Build arch node (per-config-and-arch binary)
         archoutpath = os.path.join(modulepath, binfile)
