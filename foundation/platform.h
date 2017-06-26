@@ -700,6 +700,9 @@ thread local storage to ensure maximum portability across supported platforms */
 #  if __has_warning("-Wcovered-switch-default")
 #    pragma clang diagnostic ignored "-Wcovered-switch-default"
 #  endif
+#  if __has_warning("-Wmissing-field-initializers")
+#    pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#  endif
 
 #elif defined( __GNUC__ )
 
@@ -750,6 +753,8 @@ thread local storage to ensure maximum portability across supported platforms */
 #    pragma GCC diagnostic ignored "-Wformat-extra-args"
 #    pragma GCC diagnostic ignored "-Wpedantic"
 #  endif
+
+#  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 // Intel
 #elif defined( __ICL ) || defined( __ICC ) || defined( __INTEL_COMPILER )
