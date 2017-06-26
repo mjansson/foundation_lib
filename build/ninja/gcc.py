@@ -8,10 +8,10 @@ import toolchain
 
 class GCCToolchain(toolchain.Toolchain):
 
-  def initialize(self, project, archs, configs, includepaths, dependlibs, libpaths, variables):
+  def initialize(self, project, archs, configs, includepaths, dependlibs, libpaths, variables, subninja):
     #Local variable defaults
     self.toolchain = ''
-    self.includepaths = includepaths
+    self.includepaths = []
     self.libpaths = libpaths
     self.ccompiler = 'gcc'
     self.archiver = 'ar'
@@ -36,12 +36,7 @@ class GCCToolchain(toolchain.Toolchain):
     self.linkflags = []
     self.oslibs = []
 
-    if self.target.is_linux() or self.target.is_bsd() or self.target.is_raspberrypi():
-      self.linkflags += ['-pthread']
-      self.oslibs += ['m']
-    if self.target.is_linux() or self.target.is_raspberrypi():
-      self.oslibs += ['dl']
-
+    self.initialize_subninja(subninja)
     self.initialize_archs(archs)
     self.initialize_configs(configs)
     self.initialize_project(project)
@@ -51,8 +46,21 @@ class GCCToolchain(toolchain.Toolchain):
     self.parse_default_variables(variables)
     self.read_build_prefs()
 
+    if self.target.is_linux() or self.target.is_bsd() or self.target.is_raspberrypi():
+      self.linkflags += ['-pthread']
+      self.oslibs += ['m']
+    if self.target.is_linux() or self.target.is_raspberrypi():
+      self.oslibs += ['dl']
+    if self.target.is_bsd():
+      self.oslibs += ['execinfo']
+
+    self.includepaths = self.prefix_includepaths((includepaths or []) + ['.'])
+
     if self.is_monolithic():
       self.cflags += ['-DBUILD_MONOLITHIC=1']
+    if self.use_coverage():
+      self.cflags += ['--coverage']
+      self.linkflags += ['--coverage']
 
     #Overrides
     self.objext = '.o'

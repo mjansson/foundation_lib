@@ -168,11 +168,15 @@ class Toolchain(object):
       includepath = ''
       libpath = ''
       testpaths = [
-        os.path.join(self.subninja, '..', lib),
-        os.path.join(self.subninja, '..', lib + '_lib')
+        os.path.join('..', lib),
+        os.path.join('..', lib + '_lib')
       ]
       for testpath in testpaths:
         if os.path.isfile(os.path.join(testpath, lib, lib + '.h')):
+          if self.subninja != '':
+            basepath, _ = os.path.split(self.subninja)
+            _, libpath = os.path.split(testpath)
+            testpath = os.path.join(basepath, libpath)
           includepath = testpath
           libpath = testpath
           break
@@ -181,7 +185,8 @@ class Toolchain(object):
         sys.exit(-1)
       else:
         self.depend_includepaths += [includepath]
-        self.depend_libpaths += [libpath]
+        if self.subninja == '':
+          self.depend_libpaths += [libpath]
 
   def build_toolchain(self):
     if self.android != None:
@@ -315,6 +320,16 @@ class Toolchain(object):
   def paths_forward_slash(self, paths):
     return [path.replace('\\', '/') for path in paths]
 
+  def prefix_includepath(self, path):
+    if os.path.isabs(path) or self.subninja == '':
+      return self.path_escape(path)
+    if path == '.':
+      return self.path_escape(self.subninja)
+    return self.path_escape(os.path.join(self.subninja, path))
+
+  def prefix_includepaths(self, includepaths):
+    return [self.prefix_includepath(path) for path in includepaths]
+
   def list_per_config(self, config_dicts, config):
     if config_dicts is None:
       return []
@@ -330,6 +345,17 @@ class Toolchain(object):
       return self.list_per_config(variables['implicit_deps'], config)
     return None
 
+  def make_implicit_deps(self, outpath, arch, config, dependlibs):
+    deps = {}
+    deps[config] = []
+    for lib in dependlibs:
+      if self.target.is_macos() or self.target.is_ios():
+        finalpath = os.path.join(self.libpath, config, self.libprefix + lib + self.staticlibext)
+      else:
+        finalpath = os.path.join(self.libpath, config, arch, self.libprefix + lib + self.staticlibext)
+      deps[config] += [finalpath]
+    return [deps]
+
   def compile_file(self, writer, config, arch, targettype, infile, outfile, variables):
     extension = os.path.splitext(infile)[1][1:]
     if extension in self.builders:
@@ -341,7 +367,7 @@ class Toolchain(object):
       return self.builders[nodetype](writer, config, arch, nodetype, infiles, outfile, variables)
     return []
 
-  def build_sources(self, writer, nodetype, multitype, module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, libs, implicit_deps, variables, frameworks):
+  def build_sources(self, writer, nodetype, multitype, module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks):
     if module != '':
       decoratedmodule = module + make_pathhash(self.subninja + module, nodetype)
     else:
@@ -352,7 +378,12 @@ class Toolchain(object):
     if libpaths is None:
       libpaths = []
     sourcevariables = (variables or {}).copy()
-    sourcevariables.update({'includepaths': self.depend_includepaths + list(includepaths)})
+    sourcevariables.update({
+                     'includepaths': self.depend_includepaths + self.prefix_includepaths(list(includepaths))})
+    if not libs and dependlibs != None:
+      libs = []
+    if dependlibs != None:
+      libs += (dependlibs or [])
     nodevariables = (variables or {}).copy()
     nodevariables.update({
                      'libs': libs,
@@ -370,6 +401,13 @@ class Toolchain(object):
         modulepath = os.path.join(buildpath, basepath, decoratedmodule)
         sourcevariables['modulepath'] = modulepath
         nodevariables['modulepath'] = modulepath
+        #Make per-arch-and-config list of final implicit deps, including dependent libs
+        if self.subninja != '' and dependlibs != None:
+          dep_implicit_deps = []
+          if implicit_deps:
+            dep_implicit_deps += implicit_deps
+          dep_implicit_deps += self.make_implicit_deps(outpath, arch, config, dependlibs)
+          nodevariables['implicit_deps'] = dep_implicit_deps
         #Compile all sources
         for name in sources:
           if os.path.isabs(name):
@@ -398,9 +436,9 @@ class Toolchain(object):
     libfile = self.libprefix + module + self.staticlibext
     if outpath is None:
       outpath = self.libpath
-    return self.build_sources(writer, 'lib', 'multilib', module, sources, libfile, basepath, outpath, configs, includepaths, None, None, None, variables, None)
+    return self.build_sources(writer, 'lib', 'multilib', module, sources, libfile, basepath, outpath, configs, includepaths, None, None, None, None, variables, None)
 
-  def sharedlib(self, writer, module, sources, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables, outpath = None):
+  def sharedlib(self, writer, module, sources, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, outpath = None):
     built = {}
     if basepath == None:
       basepath = ''
@@ -409,9 +447,9 @@ class Toolchain(object):
     libfile = self.libprefix + module + self.dynamiclibext
     if outpath is None:
       outpath = self.binpath
-    return self.build_sources(writer, 'sharedlib', 'multisharedlib', module, sources, libfile, basepath, outpath, configs, includepaths, libpaths, libs, implicit_deps, variables, frameworks)
+    return self.build_sources(writer, 'sharedlib', 'multisharedlib', module, sources, libfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks)
 
-  def bin(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables, outpath = None):
+  def bin(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, outpath = None):
     built = {}
     if basepath == None:
       basepath = ''
@@ -420,9 +458,9 @@ class Toolchain(object):
     binfile = self.binprefix + binname + self.binext
     if outpath is None:
       outpath = self.binpath
-    return self.build_sources(writer, 'bin', 'multibin', module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, libs, implicit_deps, variables, frameworks)
+    return self.build_sources(writer, 'bin', 'multibin', module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks)
 
-  def app(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, variables, resources):
+  def app(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, resources):
     builtbin = []
     # Filter out platforms that do not have app concept
     if not (self.target.is_macos() or self.target.is_ios() or self.target.is_android() or self.target.is_tizen()):
@@ -434,7 +472,7 @@ class Toolchain(object):
     if configs is None:
       configs = list(self.configs)
     for config in configs:
-      archbins = self.bin(writer, module, sources, binname, basepath, [config], includepaths, libpaths, implicit_deps, libs, frameworks, variables, '$buildpath')
+      archbins = self.bin(writer, module, sources, binname, basepath, [config], includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, '$buildpath')
       if self.target.is_macos() or self.target.is_ios():
         binpath = os.path.join(self.binpath, config, binname + '.app')
         builtbin += self.xcode.app(self, writer, module, archbins, self.binpath, binname, basepath, config, None, resources, True)

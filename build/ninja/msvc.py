@@ -9,11 +9,11 @@ import toolchain
 
 class MSVCToolchain(toolchain.Toolchain):
 
-  def initialize(self, project, archs, configs, includepaths, dependlibs, libpaths, variables):
+  def initialize(self, project, archs, configs, includepaths, dependlibs, libpaths, variables, subninja):
     #Local variable defaults
     self.sdkpath = ''
     self.toolchain = ''
-    self.includepaths = includepaths
+    self.includepaths = []
     self.libpaths = libpaths
     self.ccompiler = 'cl'
     self.archiver = 'lib'
@@ -28,13 +28,13 @@ class MSVCToolchain(toolchain.Toolchain):
     self.linkcmd = '$toolchain$link $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags /DEBUG /NOLOGO /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT /MANIFEST /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'false\'\" /TLBID:1 /PDB:$pdbpath /OUT:$out $in $libs $archlibs $oslibs'
     self.dllcmd = self.linkcmd + ' /DLL'
 
-    #Base flags
     self.cflags = ['/D', '"' + project.upper() + '_COMPILE=1"', '/Zi', '/W3', '/WX', '/Oi', '/Oy-', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-']
     self.cmoreflags = []
     self.arflags = ['/ignore:4221'] #Ignore empty object file warning]
     self.linkflags = ['/DEBUG']
     self.oslibs = ['kernel32', 'user32', 'shell32', 'advapi32']
 
+    self.initialize_subninja(subninja)
     self.initialize_archs(archs)
     self.initialize_configs(configs)
     self.initialize_project(project)
@@ -43,6 +43,8 @@ class MSVCToolchain(toolchain.Toolchain):
 
     self.parse_default_variables(variables)
     self.read_build_prefs()
+
+    self.includepaths = self.prefix_includepaths((includepaths or []) + ['.'])
 
     if self.is_monolithic():
       self.cflags += ['/D', '"BUILD_MONOLITHIC=1"']

@@ -9,11 +9,11 @@ import toolchain
 
 class ClangToolchain(toolchain.Toolchain):
 
-  def initialize(self, project, archs, configs, includepaths, dependlibs, libpaths, variables):
+  def initialize(self, project, archs, configs, includepaths, dependlibs, libpaths, variables, subninja):
     #Local variable defaults
     self.toolchain = ''
     self.sdkpath = ''
-    self.includepaths = includepaths + ['.']
+    self.includepaths = []
     self.libpaths = libpaths
     self.ccompiler = 'clang'
     self.archiver = 'ar'
@@ -49,14 +49,7 @@ class ClangToolchain(toolchain.Toolchain):
     self.oslibs = []
     self.frameworks = []
 
-    if self.target.is_linux() or self.target.is_bsd() or self.target.is_raspberrypi():
-      self.linkflags += ['-pthread']
-      self.oslibs += ['m']
-    if self.target.is_linux() or self.target.is_raspberrypi():
-      self.oslibs += ['dl']
-    if self.target.is_bsd():
-      self.oslibs += ['execinfo']
-
+    self.initialize_subninja(subninja)
     self.initialize_archs(archs)
     self.initialize_configs(configs)
     self.initialize_project(project)
@@ -65,6 +58,16 @@ class ClangToolchain(toolchain.Toolchain):
 
     self.parse_default_variables(variables)
     self.read_build_prefs()
+
+    if self.target.is_linux() or self.target.is_bsd() or self.target.is_raspberrypi():
+      self.linkflags += ['-pthread']
+      self.oslibs += ['m']
+    if self.target.is_linux() or self.target.is_raspberrypi():
+      self.oslibs += ['dl']
+    if self.target.is_bsd():
+      self.oslibs += ['execinfo']
+
+    self.includepaths = self.prefix_includepaths((includepaths or []) + ['.'])
 
     if self.is_monolithic():
       self.cflags += ['-DBUILD_MONOLITHIC=1']
@@ -266,16 +269,9 @@ class ClangToolchain(toolchain.Toolchain):
 
     self.oslibs += ['ppapi', 'm']
 
-  def make_includepath(self, path):
-    if os.path.isabs(path) or self.subninja == '':
-      return self.path_escape(path)
-    if path == '.':
-      return self.path_escape(self.subninja)
-    return self.path_escape(os.path.join(self.subninja, path))
-
   def make_includepaths(self, includepaths):
     if not includepaths is None:
-      return ['-I' + self.make_includepath(path) for path in list(includepaths)]
+      return ['-I' + path for path in list(includepaths)]
     return []
 
   def make_libpath(self, path):
