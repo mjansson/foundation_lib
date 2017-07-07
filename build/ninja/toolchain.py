@@ -322,10 +322,10 @@ class Toolchain(object):
 
   def prefix_includepath(self, path):
     if os.path.isabs(path) or self.subninja == '':
-      return self.path_escape(path)
+      return path
     if path == '.':
-      return self.path_escape(self.subninja)
-    return self.path_escape(os.path.join(self.subninja, path))
+      return self.subninja
+    return os.path.join(self.subninja, path)
 
   def prefix_includepaths(self, includepaths):
     return [self.prefix_includepath(path) for path in includepaths]
