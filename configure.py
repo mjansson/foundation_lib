@@ -33,13 +33,13 @@ if not target.is_ios() and not target.is_android() and not target.is_tizen():
     generator.bin('hashify', ['main.c'], 'hashify', basepath = 'tools', implicit_deps = [foundation_lib], libs = ['foundation'], configs = configs)
     generator.bin('uuidgen', ['main.c'], 'uuidgen', basepath = 'tools', implicit_deps = [foundation_lib], libs = ['foundation'], configs = configs)
 
-#No test cases if we're a submodule
-if generator.is_subninja():
-  sys.exit()
-
 includepaths = ['test']
 test_lib = generator.lib(module = 'test', basepath = 'test', sources = ['test.c', 'test.m'], includepaths = includepaths)
 mock_lib = generator.lib(module = 'mock', basepath = 'test', sources = ['mock.c'], includepaths = includepaths)
+
+#No test cases if we're a submodule
+if generator.is_subninja():
+  sys.exit()
 
 test_cases = [
   'app', 'array', 'atomic', 'base64', 'beacon', 'bitbuffer', 'blowfish', 'bufferstream', 'environment', 'error',
