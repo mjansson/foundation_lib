@@ -16,8 +16,10 @@ class ClangToolchain(toolchain.Toolchain):
     self.includepaths = []
     self.libpaths = libpaths
     self.ccompiler = 'clang'
+    self.cxxcompiler = 'clang++'
     self.archiver = 'ar'
     self.linker = 'clang'
+    self.cxxlinker = 'clang++'
     if self.target.is_windows():
       self.archiver = 'llvm-ar'
 
@@ -30,18 +32,19 @@ class ClangToolchain(toolchain.Toolchain):
 
     #Command definitions
     self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags -c $in -o $out'
+    self.cxxcmd = '$toolchain$cxx -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cxxflags $carchflags $cconfigflags $cmoreflags -c $in -o $out'
     self.ccdeps = 'gcc'
     self.ccdepfile = '$out.d'
     self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
     self.linkcmd = '$toolchain$cc $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs $oslibs $frameworks'
 
     #Base flags
-    self.cflags = [ '-std=c11', '-D' + project.upper() + '_COMPILE=1',
-                    '-W', '-Werror', '-pedantic', '-Wall', '-Weverything',
-                    '-Wno-padded', '-Wno-documentation-unknown-command',
-                    '-funit-at-a-time', '-fstrict-aliasing',
-                    '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
-                    '-fno-trapping-math', '-ffast-math' ]
+    self.cflags = ['-D' + project.upper() + '_COMPILE=1',
+                   '-funit-at-a-time', '-fstrict-aliasing',
+                   '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
+                   '-fno-trapping-math', '-ffast-math']
+    self.cwarnflags = ['-W', '-Werror', '-pedantic', '-Wall', '-Weverything',
+                       '-Wno-padded', '-Wno-documentation-unknown-command']
     self.cmoreflags = []
     self.mflags = []
     self.arflags = []
@@ -60,6 +63,7 @@ class ClangToolchain(toolchain.Toolchain):
     self.read_build_prefs()
 
     if self.target.is_linux() or self.target.is_bsd() or self.target.is_raspberrypi():
+      self.cflags += ['-D_GNU_SOURCE=1']
       self.linkflags += ['-pthread']
       self.oslibs += ['m']
     if self.target.is_linux() or self.target.is_raspberrypi():
@@ -75,11 +79,23 @@ class ClangToolchain(toolchain.Toolchain):
       self.cflags += ['--coverage']
       self.linkflags += ['--coverage']
 
+    if not 'nowarning' in variables or not variables['nowarning']:
+      self.cflags += self.cwarnflags
+    self.cxxflags = list(self.cflags)
+
+    self.cflags += ['-std=c11']
+    if self.target.is_macos() or self.target.is_ios():
+      self.cxxflags += ['-std=c++14', '-stdlib=libc++']
+    else:
+      self.cxxflags += ['-std=gnu++14']
+
     #Overrides
     self.objext = '.o'
 
     #Builders
     self.builders['c'] = self.builder_cc
+    self.builders['cc'] = self.builder_cxx
+    self.builders['cpp'] = self.builder_cxx
     self.builders['lib'] = self.builder_lib
     self.builders['sharedlib'] = self.builder_sharedlib
     self.builders['bin'] = self.builder_bin
@@ -132,6 +148,7 @@ class ClangToolchain(toolchain.Toolchain):
     writer.variable('sdkpath', self.sdkpath)
     writer.variable('sysroot', self.sysroot)
     writer.variable('cc', self.ccompiler)
+    writer.variable('cxx', self.cxxcompiler)
     writer.variable('ar', self.archiver)
     writer.variable('link', self.linker)
     if self.target.is_macos() or self.target.is_ios():
@@ -142,6 +159,7 @@ class ClangToolchain(toolchain.Toolchain):
     writer.variable('includepaths', self.make_includepaths(self.includepaths))
     writer.variable('moreincludepaths', '')
     writer.variable('cflags', self.cflags)
+    writer.variable('cxxflags', self.cxxflags)
     if self.target.is_macos() or self.target.is_ios():
       writer.variable('mflags', self.mflags)
     writer.variable('carchflags', '')
@@ -164,6 +182,7 @@ class ClangToolchain(toolchain.Toolchain):
   def write_rules(self, writer):
     super(ClangToolchain, self).write_rules(writer)
     writer.rule('cc', command = self.cccmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CC $in')
+    writer.rule('cxx', command = self.cxxcmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CXX $in')
     if self.target.is_macos() or self.target.is_ios():
       writer.rule('cm', command = self.cmcmd, depfile = self.ccdepfile, deps = self.ccdeps, description = 'CM $in')
       writer.rule( 'lipo', command = self.lipocmd, description = 'LIPO $out' )
@@ -214,12 +233,14 @@ class ClangToolchain(toolchain.Toolchain):
       sdk = 'macosx'
       deploytarget = 'MACOSX_DEPLOYMENT_TARGET=' + self.deploymenttarget
       self.cflags += ['-fasm-blocks', '-mmacosx-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot']
+      self.cxxflags += ['-fasm-blocks', '-mmacosx-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot']
       self.arflags += ['-static', '-no_warning_for_no_symbols']
       self.linkflags += ['-isysroot', '$sysroot']
     elif self.target.is_ios():
       sdk = 'iphoneos'
       deploytarget = 'IPHONEOS_DEPLOYMENT_TARGET=' + self.deploymenttarget
       self.cflags += ['-fasm-blocks', '-miphoneos-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot']
+      self.cxxflags += ['-fasm-blocks', '-miphoneos-version-min=' + self.deploymenttarget, '-isysroot', '$sysroot']
       self.arflags += ['-static', '-no_warning_for_no_symbols']
       self.linkflags += ['-isysroot', '$sysroot']
     self.cflags += ['-fembed-bitcode-marker']
@@ -234,8 +255,9 @@ class ClangToolchain(toolchain.Toolchain):
     self.linker = deploytarget + " " + self.ccompiler
     self.lipo = "PATH=" + localpath + " " + subprocess.check_output(['xcrun', '--sdk', sdk, '-f', 'lipo']).strip()
 
-    self.mflags += self.cflags + ['-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c']
+    self.mflags += list(self.cflags) + ['-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c']
     self.cflags += ['-x', 'c']
+    self.cxxflags += ['-x', 'c++']
 
     self.cmcmd = self.cccmd.replace('$cflags', '$mflags')
     self.arcmd = self.rmcmd('$out') + ' && $ar $ararchflags $arflags $in -o $out'
@@ -464,10 +486,17 @@ class ClangToolchain(toolchain.Toolchain):
     archlibs = self.make_linkarchlibs(arch, targettype)
     if archlibs != []:
       localvariables += [('archlibs', self.make_libs(archlibs))]
+
+    if 'runtime' in variables and variables['runtime'] == 'c++':
+      localvariables += [('link', self.cxxlinker)]
+
     return localvariables
 
   def builder_cc(self, writer, config, arch, targettype, infile, outfile, variables):
     return writer.build(outfile, 'cc', infile, implicit = self.implicit_deps(config, variables), variables = self.cc_variables(config, arch, targettype, variables))
+
+  def builder_cxx(self, writer, config, arch, targettype, infile, outfile, variables):
+    return writer.build(outfile, 'cxx', infile, implicit = self.implicit_deps(config, variables), variables = self.cc_variables(config, arch, targettype, variables))
 
   def builder_cm(self, writer, config, arch, targettype, infile, outfile, variables):
     return writer.build(outfile, 'cm', infile, implicit = self.implicit_deps(config, variables), variables = self.cc_variables(config, arch, targettype, variables))
