@@ -13,7 +13,6 @@
 #include <foundation/foundation.h>
 
 #define UUIDMAP_MINBUCKETS     13
-#define UUIDMAP_MINBUCKETSIZE  8
 
 #define GET_BUCKET(map, key) ((key.word[0] ^ key.word[1]) % (uint64_t)map->num_buckets)
 
@@ -23,8 +22,6 @@ uuidmap_allocate(size_t buckets, size_t bucketsize) {
 
 	if (buckets < UUIDMAP_MINBUCKETS)
 		buckets = UUIDMAP_MINBUCKETS;
-	if (bucketsize < UUIDMAP_MINBUCKETSIZE)
-		bucketsize = UUIDMAP_MINBUCKETSIZE;
 
 	map = memory_allocate(0, sizeof(uuidmap_t) + sizeof(uuidmap_node_t*) * buckets, 0,
 	                      MEMORY_PERSISTENT);
@@ -38,15 +35,13 @@ void
 uuidmap_initialize(uuidmap_t* map, size_t buckets, size_t bucketsize) {
 	size_t ibucket;
 
-	if (bucketsize < UUIDMAP_MINBUCKETSIZE)
-		bucketsize = UUIDMAP_MINBUCKETSIZE;
-
 	map->num_buckets = buckets;
 	map->num_nodes   = 0;
 
 	for (ibucket = 0; ibucket < buckets; ++ibucket) {
 		map->bucket[ibucket] = 0;
-		array_reserve(map->bucket[ibucket], bucketsize);
+		if (bucketsize)
+			array_reserve(map->bucket[ibucket], bucketsize);
 	}
 }
 

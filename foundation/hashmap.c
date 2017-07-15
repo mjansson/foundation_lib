@@ -13,7 +13,6 @@
 #include <foundation/foundation.h>
 
 #define HASHMAP_MINBUCKETS     13
-#define HASHMAP_MINBUCKETSIZE  8
 
 #define GET_BUCKET( map, key ) ( key % map->num_buckets )
 
@@ -23,8 +22,6 @@ hashmap_allocate(size_t buckets, size_t bucketsize) {
 
 	if (buckets < HASHMAP_MINBUCKETS)
 		buckets = HASHMAP_MINBUCKETS;
-	if (bucketsize < HASHMAP_MINBUCKETSIZE)
-		bucketsize = HASHMAP_MINBUCKETSIZE;
 
 	map = memory_allocate(0, sizeof(hashmap_t) + sizeof(hashmap_node_t*) * buckets, 0,
 	                      MEMORY_PERSISTENT);
@@ -38,15 +35,13 @@ void
 hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize) {
 	size_t ibucket;
 
-	if (bucketsize < HASHMAP_MINBUCKETSIZE)
-		bucketsize = HASHMAP_MINBUCKETSIZE;
-
 	map->num_buckets = buckets;
 	map->num_nodes   = 0;
 
 	for (ibucket = 0; ibucket < buckets; ++ibucket) {
 		map->bucket[ibucket] = 0;
-		array_reserve(map->bucket[ibucket], bucketsize);
+		if (bucketsize)
+			array_reserve(map->bucket[ibucket], bucketsize);
 	}
 }
 
