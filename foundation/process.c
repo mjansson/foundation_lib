@@ -425,6 +425,15 @@ process_spawn(process_t* proc) {
 
 		goto exit;
 	}
+	else if (string_ends_with(STRING_ARGS(proc->path), STRING_CONST(".app"))) {
+		string_const_t exe_name = path_base_file_name(STRING_ARGS(proc->path));
+		string_t modpath = path_allocate_concat_varg(STRING_ARGS(proc->path),
+		                                             STRING_CONST("Contents"),
+		                                             STRING_CONST("MacOS"),
+		                                             STRING_ARGS(exe_name), NULL);
+		string_deallocate(proc->path.str);
+		proc->path = modpath;
+	}
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX

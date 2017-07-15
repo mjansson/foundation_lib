@@ -207,7 +207,9 @@ test_set_suitable_working_directory(void) {
 	do {
 		last_dir = working_dir;
 		config_dir = path_concat(buffer, sizeof(buffer), STRING_ARGS(working_dir), STRING_CONST("config"));
+		log_debugf(HASH_TEST, STRING_CONST("Check config dir: %.*s"), STRING_FORMAT(config_dir));
 		if (fs_is_directory(STRING_ARGS(config_dir))) {
+			log_debugf(HASH_TEST, STRING_CONST("Found config dir: %.*s"), STRING_FORMAT(config_dir));
 			found = true;
 			break;
 		}
@@ -216,8 +218,10 @@ test_set_suitable_working_directory(void) {
 	}
 	while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
 
-	if (found)
+	if (found) {
+		log_debugf(HASH_TEST, STRING_CONST("Set test working dir: %.*s"), STRING_FORMAT(working_dir));
 		environment_set_current_working_directory(STRING_ARGS(working_dir));
+	}
 }
 
 void

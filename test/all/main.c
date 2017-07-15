@@ -478,17 +478,13 @@ main_run(void* main_arg) {
 #if FOUNDATION_PLATFORM_MACOS
 	//Also search for test applications
 	string_const_t app_pattern = string_const(STRING_CONST("^test-.*\\.app$"));
-	regex_t* app_regex = regex_compile(app_pattern.str, app_pattern.length);
-	string_t* subdirs = fs_subdirs(STRING_ARGS(environment_executable_directory()));
-	for (size_t idir = 0, dirsize = array_size(subdirs); idir < dirsize; ++idir) {
-		if (regex_match(app_regex, subdirs[idir].str, subdirs[idir].length, 0, 0)) {
-			string_t exe_path = string_clone(subdirs[idir].str, subdirs[idir].length - 4);
-			array_push(exe_paths, exe_path);
-			array_push(exe_flags, PROCESS_MACOS_USE_OPENAPPLICATION);
-		}
+	string_t* app_paths = fs_matching_subdirs(STRING_ARGS(environment_executable_directory()),
+	                                          STRING_ARGS(app_pattern), false);
+	for (size_t iapp = 0, appsize = array_size(app_paths); iapp < appsize; ++iapp) {
+		array_push(exe_paths, app_paths[iapp]);
+		array_push(exe_flags, 0);
 	}
-	string_array_deallocate(subdirs);
-	regex_deallocate(app_regex);
+	array_deallocate(app_paths);
 #endif
 	for (iexe = 0, exesize = array_size(exe_paths); iexe < exesize; ++iexe) {
 		string_const_t* process_args = 0;
