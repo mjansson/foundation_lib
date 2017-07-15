@@ -361,8 +361,9 @@ process_spawn(process_t* proc) {
 		CFStringRef* args = 0;
 		//App gets executable path automatically, don't include
 		for (i = 0, size = array_size(proc->args); i < size; ++i)
-			array_push(args, CFStringCreateWithBytes(0, proc->args[i].str, proc->args[i].length,
-			                                         kCFStringEncodingUTF8));
+			array_push(args, CFStringCreateWithBytes(0, (const uint8_t*)proc->args[i].str,
+			                                         (CFIndex)proc->args[i].length,
+			                                         kCFStringEncodingUTF8, false));
 
 		CFArrayRef argvref = CFArrayCreate(0, (const void**)args, (CFIndex)array_size(args), 0);
 
