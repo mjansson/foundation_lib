@@ -348,8 +348,8 @@ process_spawn(process_t* proc) {
 		string_const_t pathstripped = string_strip(proc->path.str, proc->path.length, STRING_CONST("\""));
 		size_t localcap = pathstripped.length + 5;
 		string_t localpath = string_allocate(0, localcap);
-		localpath = string_copy(localpath.str, localcap,
-		                        STRING_ARGS(pathstripped));     //Need it zero terminated
+		//Need it zero terminated for FSPathRef
+		localpath = string_copy(localpath.str, localcap, STRING_ARGS(pathstripped));
 
 		OSStatus status = 0;
 		status = FSPathMakeRef((uint8_t*)localpath.str, fsref, 0);
@@ -359,9 +359,10 @@ process_spawn(process_t* proc) {
 		}
 
 		CFStringRef* args = 0;
-		for (i = 0, size = array_size(proc->args); i < size;
-		        ++i)    //App gets executable path automatically, don't include
-			array_push(args, CFStringCreateWithCString(0, proc->args[i].str, kCFStringEncodingUTF8));
+		//App gets executable path automatically, don't include
+		for (i = 0, size = array_size(proc->args); i < size; ++i)
+			array_push(args, CFStringCreateWithBytes(0, proc->args[i].str, proc->args[i].length,
+			                                         kCFStringEncodingUTF8));
 
 		CFArrayRef argvref = CFArrayCreate(0, (const void**)args, (CFIndex)array_size(args), 0);
 
@@ -481,7 +482,7 @@ process_spawn(process_t* proc) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 		           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d) (%d)"),
-			       STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
+		           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			stream_deallocate(proc->pipeout);
 			stream_deallocate(proc->pipeerr);
@@ -582,7 +583,7 @@ process_kill(process_t* proc) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	if (!proc->pid || (kill(proc->pid, SIGKILL) < 0))
-	        return false;
+		return false;
 
 #elif FOUNDATION_PLATFORM_PNACL
 	//Not supported
