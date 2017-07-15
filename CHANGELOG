@@ -2,6 +2,8 @@
 
 Add uuidmap for mapping UUIDs to pointer values
 
+Added fs_matching_subdirs and fs_matching_subdirs_regex for finding matching subdirectories
+
 
 1.6.0
 

@@ -113,7 +113,7 @@ fs_md5(const char* path, size_t length);
 expression supported by the regex parser in the library (see regex.h documentation).
 For example, to find all files with a given extension ".ext", use the regex "^.*\\.ext$"
 Free the returned array with #string_array_deallocate
-\param path       File path
+\param path       Search path
 \param length     Length of path
 \param pattern    File name pattern
 \param patternlen Length of pattern
@@ -124,7 +124,7 @@ fs_matching_files(const char* path, size_t length, const char* pattern, size_t p
                   bool recurse);
 
 /*! Get files matching the given regex. Free the returned array with #string_array_deallocate
-\param path       File path
+\param path       Search path
 \param length     Length of path
 \param regex      Regex
 \param recurse    Recursion flag
@@ -138,6 +138,28 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* regex, bool re
 \return       Array of file names */
 FOUNDATION_API string_t*
 fs_files(const char* path, size_t length);
+
+/*! Get subdirs matching the given pattern. The pattern should be a regular
+expression supported by the regex parser in the library (see regex.h documentation).
+Free the returned array with #string_array_deallocate
+\param path       Search path
+\param length     Length of path
+\param pattern    Subdir name pattern
+\param patternlen Length of pattern
+\param recurse    Recursion flag
+\return           Array of matching file names */
+FOUNDATION_API string_t*
+fs_matching_subdirs(const char* path, size_t length, const char* pattern, size_t patternlen,
+                    bool recurse);
+
+/*! Get subdirs matching the given regex. Free the returned array with #string_array_deallocate
+\param path       Search path
+\param length     Length of path
+\param regex      Regex
+\param recurse    Recursion flag
+\return           Array of matching file names */
+FOUNDATION_API string_t*
+fs_matching_subdirs_regex(const char* path, size_t length, regex_t* regex, bool recurse);
 
 /*! Get subdirectories in the given directory path. Free the returned array with
 #string_array_deallocate

@@ -1022,8 +1022,8 @@ fs_temporary_file(void) {
 	                    STREAM_IN | STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
 }
 
-string_t*
-fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool recurse) {
+static string_t*
+fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool recurse, bool isfile) {
 	string_t* names = 0;
 	string_t* subdirs;
 	string_t localpath;
@@ -1050,7 +1050,8 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 	HANDLE find = FindFirstFileW(wpattern, &data);
 
 	if (find != INVALID_HANDLE_VALUE) do {
-			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+			bool fileattr = ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0);
+			if (isfile == fileattr) {
 				string_t filestr = string_convert_utf16(filename, BUILD_MAX_PATHLEN,
 				                                        (const uint16_t*)data.cFileName,
 				                                        wstring_length(data.cFileName));
@@ -1069,7 +1070,7 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 
 #else
 
-	string_t* fnames = fs_files(path, length);
+	string_t* fnames = isfile ? fs_files(path, length) : fs_subdirs(path, length);
 
 	memory_context_push(HASH_STREAM);
 
@@ -1118,10 +1119,29 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 }
 
 string_t*
+fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool recurse) {
+	return fs_matching_name_regex(path, length, pattern, recurse, true);
+}
+
+string_t*
 fs_matching_files(const char* path, size_t length, const char* pattern,
                   size_t pattern_length, bool recurse) {
 	regex_t* regex = regex_compile(pattern, pattern_length);
 	string_t* names = fs_matching_files_regex(path, length, regex, recurse);
+	regex_deallocate(regex);
+	return names;
+}
+
+string_t*
+fs_matching_subdirs_regex(const char* path, size_t length, regex_t* pattern, bool recurse) {
+	return fs_matching_name_regex(path, length, pattern, recurse, false);
+}
+
+string_t*
+fs_matching_subdirs(const char* path, size_t length, const char* pattern,
+                    size_t pattern_length, bool recurse) {
+	regex_t* regex = regex_compile(pattern, pattern_length);
+	string_t* names = fs_matching_subdirs_regex(path, length, regex, recurse);
 	regex_deallocate(regex);
 	return names;
 }
