@@ -500,6 +500,12 @@ typedef struct hashmap_node_t         hashmap_node_t;
 typedef struct hashmap_t              hashmap_t;
 /*! Hash map of fixed size */
 typedef struct hashmap_fixed_t        hashmap_fixed_t;
+/*! Node in a uuid hash map */
+typedef struct uuidmap_node_t         uuidmap_node_t;
+/*! Hash map mapping uuid value keys to pointer values */
+typedef struct uuidmap_t              uuidmap_t;
+/*! Hash map of fixed size for uuids */
+typedef struct uuidmap_fixed_t        uuidmap_fixed_t;
 /*! Entry in a 32-bit hash table */
 typedef struct hashtable32_entry_t    hashtable32_entry_t;
 /*! Entry in a 64-bit hash table */
@@ -1158,6 +1164,43 @@ struct hashmap_t {
 hashmap_initialize((hashmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
 struct hashmap_fixed_t {
 	FOUNDATION_DECLARE_HASHMAP(13);
+};
+
+/*! Single node in a uuid hash map, mapping a single key to a single data value (pointer). */
+struct uuidmap_node_t {
+	/*! Key for the uuid map node */
+	uuid_t key;
+	/*! Value for the hash map node */
+	void* value;
+};
+
+/*! Declare an inlined uuidmap of given size */
+#define FOUNDATION_DECLARE_UUIDMAP(size) \
+	size_t num_buckets; \
+	size_t num_nodes; \
+	uuidmap_node_t* bucket[size]
+
+/*! UUID hash map container, mapping uuid values to data pointers */
+struct uuidmap_t {
+	/*!
+	\var num_buckets
+	Number of buckets in the uuid hash map
+
+	\var num_nodes
+	Total number of nodes in the uuid hash map across all buckets
+
+	\var bucket
+	Bucket array, represented as an array of uuidmap_node_t arrays, which will be
+	dynamically allocated and reallocated to the required sizes.
+	*/
+	FOUNDATION_DECLARE_UUIDMAP(FOUNDATION_FLEXIBLE_ARRAY);
+};
+
+/*! UUID hash map of default size. Initialize with a call to
+<code>uuidhmap_fixed_t map;
+uuidmap_initialize((uuidmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
+struct uuidmap_fixed_t {
+	FOUNDATION_DECLARE_UUIDMAP(13);
 };
 
 /*! Node in 32-bit hash table holding key and value for a single node. */

@@ -44,6 +44,7 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/array.h>
 #include <foundation/bitbuffer.h>
 #include <foundation/hashmap.h>
+#include <foundation/uuidmap.h>
 #include <foundation/hashtable.h>
 #include <foundation/ringbuffer.h>
 #include <foundation/string.h>
