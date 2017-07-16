@@ -203,7 +203,7 @@ test_set_suitable_working_directory(void) {
 
 	string_const_t last_dir;
 	string_t config_dir;
-	string_const_t working_dir = environment_current_working_directory();
+	string_const_t working_dir = environment_executable_directory();
 	do {
 		last_dir = working_dir;
 		config_dir = path_concat(buffer, sizeof(buffer), STRING_ARGS(working_dir), STRING_CONST("config"));

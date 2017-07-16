@@ -482,7 +482,7 @@ main_run(void* main_arg) {
 	                                          STRING_ARGS(app_pattern), false);
 	for (size_t iapp = 0, appsize = array_size(app_paths); iapp < appsize; ++iapp) {
 		array_push(exe_paths, app_paths[iapp]);
-		array_push(exe_flags, 0);
+		array_push(exe_flags, PROCESS_MACOS_USE_OPENAPPLICATION);
 	}
 	array_deallocate(app_paths);
 #endif
