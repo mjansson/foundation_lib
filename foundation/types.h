@@ -526,10 +526,10 @@ typedef struct memory_tracker_t       memory_tracker_t;
 typedef struct memory_statistics_t    memory_statistics_t;
 /*! Platform specific mutex representation, opaque data type */
 typedef struct mutex_t                mutex_t;
-/*! Base object type all reference counted object types are based on */
-typedef struct object_base_t          object_base_t;
 /*! Object map mapping object handles to object instance pointers */
 typedef struct objectmap_t            objectmap_t;
+/*! Object map entry mapping object handles to object instance pointers */
+typedef struct objectmap_entry_t      objectmap_entry_t;
 /*! Child process control block */
 typedef struct process_t              process_t;
 /*! Radix sorter control block */
@@ -720,9 +720,8 @@ and the process state was saved to a dump file
 typedef void (* exception_handler_fn)(const char* file, size_t length);
 
 /*! Object deallocation function prototype, used to deallocate an object of a specific type
-\param id Object handle
 \param object Object pointer */
-typedef void (* object_deallocate_fn)(object_t id, void* object);
+typedef void (* object_deallocate_fn)(void* object);
 
 /*! Generic function to open a stream with the given path and mode
 \param path Path, optionally including protocol
@@ -1263,37 +1262,6 @@ struct memory_context_t {
 	hash_t context[FOUNDATION_FLEXIBLE_ARRAY];
 };
 
-/*! Declares the base object data layout. Use the macro as first declaration in an object struct:
-<code>struct my_object_t
-{
-  FOUNDATION_DECLARE_OBJECT;
-  int       some_other_data;
-  //[...]
-};</code>
-\internal If changing base object layout, change #objectmap_lookup and
-#objectmap_lookup_ref \endinternal */
-#define FOUNDATION_DECLARE_OBJECT \
-	atomic32_t ref; \
-	uint32_t flags; \
-	object_t id
-
-/*! Object base structure. All object-based designs must have this layout at the start of
-the structure. See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in
-a structure. */
-struct object_base_t {
-	/*!
-	\var object_base_t::ref
-	Object reference count
-
-	\var object_base_t::flags
-	Object flags
-
-	\var object_base_t::id
-	Object ID and handle (self)
-	*/
-	FOUNDATION_DECLARE_OBJECT;
-};
-
 /*! State for a child process */
 struct process_t {
 	/*! Working directory */
@@ -1490,17 +1458,23 @@ struct thread_t {
 	char namebuffer[32];
 };
 
+/*! Entry in objec map */
+struct objectmap_entry_t {
+	//! Object pointer
+	void*  ptr;
+	//! Reference count
+	atomic32_t ref;
+};
+
 #define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
 	uint32_t free; \
 	uint32_t id; \
 	uint32_t size; \
-	uint32_t index_bits; \
 	uint32_t id_max; \
 	uint32_t mask_index; \
-	uint32_t mask_id; \
 	uint32_t autolink; \
 	semaphore_t write; \
-	void* map[mapsize]
+	objectmap_entry_t map[mapsize]
 
 /*! Object map which maps object handles to object pointers. As object lifetime is managed
 by reference counting, objects that are deallocated will invalidate the handle in the

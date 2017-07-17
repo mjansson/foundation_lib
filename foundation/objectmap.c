@@ -13,12 +13,6 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-void
-_object_initialize(object_base_t* obj, object_t id) {
-	obj->id = id;
-	atomic_store32(&obj->ref, 1, memory_order_relaxed);
-}
-
 objectmap_t*
 objectmap_allocate(size_t size) {
 	objectmap_t* map;
@@ -26,7 +20,8 @@ objectmap_allocate(size_t size) {
 	if (size < 3)
 		size = 3;
 
-	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(void*) * size), 0, MEMORY_PERSISTENT);
+	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(objectmap_entry_t) * size), 0,
+	                      MEMORY_PERSISTENT);
 
 	objectmap_initialize(map, size);
 
@@ -36,22 +31,21 @@ objectmap_allocate(size_t size) {
 void
 objectmap_initialize(objectmap_t* map, size_t size) {
 	//Number of bits needed to represent index
-	unsigned int bits = (unsigned int)math_round(math_log2((real)size));
-	FOUNDATION_ASSERT_MSGFORMAT(bits <= 26, "Invalid objectmap size %" PRIsize, size);
+	uint32_t bits = (uint32_t)math_round(math_log2((real)size));
+	FOUNDATION_ASSERT_MSGFORMAT(bits <= OBJECTMAP_INDEXBITS, "Invalid objectmap size %" PRIsize, size);
+	if (bits > OBJECTMAP_INDEXBITS)
+		bits = OBJECTMAP_INDEXBITS;
 
 	//Needed for object check in objectmap_lookup of unused index
-	memset(map, 0, sizeof(objectmap_t) + (sizeof(void*) * size));
+	memset(map, 0, sizeof(objectmap_t) + (sizeof(objectmap_entry_t) * size));
 
 	map->free        = 0;
 	map->id          = 0;
-	map->index_bits  = bits;
-	map->id_max      = ((1U << (32U - bits)) - 1);
+	map->id_max      = ((1U << OBJECTMAP_IDBITS) - 1);
 	map->size        = (uint32_t)size;
 	map->mask_index  = ((1U << bits) - 1U);
-	map->mask_id     = (0xFFFFFFFFU & ~map->mask_index);
 	map->autolink    = 0;
 	semaphore_initialize(&map->write, 1);
-	log_info(0, STRING_CONST("Initialized objectmap"));
 }
 
 void
@@ -66,11 +60,11 @@ objectmap_finalize(objectmap_t* map) {
 		return;
 
 #if BUILD_DEBUG || BUILD_RELEASE
+	atomic_thread_fence_acquire();
 	for (uint32_t i = 0; (i < map->size) && (i < map->autolink); ++i) {
-		bool is_object = !((uintptr_t)map->map[i] & 1);
-		if (is_object) {
+		if (atomic_load32(&map->map[i].ref, memory_order_relaxed)) {
 			log_error(0, ERROR_MEMORY_LEAK,
-			          STRING_CONST("Object still stored in objectmap when map deallocated"));
+			          STRING_CONST("Object still stored or slot reserved in objectmap when map deallocated"));
 			break;
 		}
 	}
@@ -86,11 +80,14 @@ objectmap_size(const objectmap_t* map) {
 
 void*
 objectmap_raw_lookup(const objectmap_t* map, size_t idx) {
-	uintptr_t ptr;
+	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
+	return ref ? map->map[idx].ptr : nullptr;
+}
 
-	/*lint --e{613} Performance path (no ptr checks)*/
-	ptr = (uintptr_t)map->map[idx];
-	return (ptr & 1) ? 0 : (void*)ptr;
+object_t
+objectmap_raw_id(const objectmap_t* map, size_t idx) {
+	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
+	return ref ? (ref & ~map->mask_index) | (uint32_t)idx : 0;
 }
 
 object_t
@@ -115,46 +112,43 @@ objectmap_reserve(objectmap_t* map) {
 			next = ++map->autolink;
 		}
 		else {
-			next = (uint32_t)((uintptr_t)map->map[idx] >> 1) & map->mask_index;
+			next = (uint32_t)((uintptr_t)map->map[idx].ptr) & map->mask_index;
 			//Sanity check that slot isn't taken
-			FOUNDATION_ASSERT_MSG((uintptr_t)map->map[idx] & 1,
+			FOUNDATION_ASSERT_MSG(map->map[idx].ref == 0,
 			                      "Map failed sanity check, slot taken after reserve");
 		}
-		map->free = next | (tag << map->index_bits);
-		map->map[idx] = 0;
+		map->free = next | (tag << OBJECTMAP_INDEXBITS);
+		map->map[idx].ptr = nullptr;
+		atomic_store32(&map->map[idx].ref, (int32_t)(tag << OBJECTMAP_INDEXBITS), memory_order_release);
 	}
 	semaphore_post(&map->write);
 
-	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
-	FOUNDATION_ASSERT(((tag << map->index_bits) & map->mask_id) == (tag << map->index_bits));
-
-	return (tag << map->index_bits) | idx;
+	return (tag << OBJECTMAP_INDEXBITS) | idx;
 }
 
 bool
 objectmap_free(objectmap_t* map, object_t id) {
-	uint32_t idx, raw, next, free;
-	void* object;
+	uint32_t idx, next, free, tag, reftag;
 
 	semaphore_wait(&map->write);
 	{
 		idx = id & map->mask_index;
-		object = map->map[idx];
-		if (((uintptr_t)map->map[idx] & 1) ||
-		        !FOUNDATION_VALIDATE((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
+		tag = id >> OBJECTMAP_INDEXBITS;
+		reftag = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire) >> OBJECTMAP_INDEXBITS;
+		if (tag != reftag) {
 			semaphore_post(&map->write);
 			return false;
 		}
 
-		uint32_t tag = ++map->id & map->id_max;
+		tag = ++map->id & map->id_max;
 		if (!tag)
 			tag = ++map->id & map->id_max; //Wrap-around handled by masking
 
-		free = idx | (tag << map->index_bits);
-		raw = map->free;
-		next = (raw & map->mask_index) | (tag << map->index_bits);
-		map->map[idx] = (void*)((uintptr_t)(next << 1) | 1);
+		free = idx | (tag << OBJECTMAP_INDEXBITS);
+		next = (map->free & map->mask_index) | (tag << OBJECTMAP_INDEXBITS);
 		map->free = free;
+		map->map[idx].ptr = (void*)((uintptr_t)next);
+		atomic_store32(&map->map[idx].ref, 0, memory_order_release);
 	}
 	semaphore_post(&map->write);
 
@@ -163,59 +157,62 @@ objectmap_free(objectmap_t* map, object_t id) {
 
 bool
 objectmap_set(objectmap_t* map, object_t id, void* object) {
-	uint32_t idx;
+	uint32_t idx, tag, reftag;
 
-	idx = (id & map->mask_index);
+	idx = id & map->mask_index;
+	tag = id & ~map->mask_index;
+	reftag = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
 
-	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
-	FOUNDATION_ASSERT(!(((uintptr_t)map->map[idx]) & 1));
-	if (FOUNDATION_VALIDATE(!map->map[idx])) {
-		map->map[idx] = object;
+	//Sanity check, can't set free slot, and non-free slot should be initialized to
+	//matching tag and zero ref count in reserve function
+	if (!map->map[idx].ptr && (tag == reftag)) {
+		map->map[idx].ptr = object;
+		map->map[idx].ref = reftag | 1;
 		return true;
 	}
 	return false;
 }
 
 void*
-objectmap_lookup_ref(const objectmap_t* map, object_t id) {
-	void* object;
-	int32_t ref;
-	do {
-		ref = 0;
-		object = map->map[ id & map->mask_index ];
-		if (object && !((uintptr_t)object & 1) &&
-		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
-			object_base_t* base_obj = object;
-			ref = atomic_load32(&base_obj->ref, memory_order_acquire);
-			if (ref && atomic_cas32(&base_obj->ref, ref + 1, ref, memory_order_release, memory_order_acquire))
-				return object;
-		}
+objectmap_lookup_ref(objectmap_t* map, object_t id) {
+	uint32_t idx = id & map->mask_index;
+	uint32_t tag = id >> OBJECTMAP_INDEXBITS;
+	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
+	uint32_t refcount = ref & map->mask_index;
+	uint32_t reftag = ref >> OBJECTMAP_INDEXBITS;
+	while ((tag == reftag) && refcount) {
+		uint32_t newref = (reftag << OBJECTMAP_INDEXBITS) | (refcount + 1);
+		if (atomic_cas32(&map->map[idx].ref, (int32_t)newref, (int32_t)ref,
+		                 memory_order_release, memory_order_acquire))
+			return map->map[idx].ptr;
+		ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
+		refcount = ref & map->mask_index;
+		reftag = ref >> OBJECTMAP_INDEXBITS;
 	}
-	while (ref);
 	return 0;
 }
 
 bool
-objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn deallocate) {
-	void* object;
-	int32_t ref;
-	do {
-		ref = 0;
-		object = map->map[ id & map->mask_index ];
-		if (object && !((uintptr_t)object & 1) &&
-		        ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id))) {
-			object_base_t* base_obj = object;
-			ref = atomic_load32(&base_obj->ref, memory_order_acquire);
-			if (ref && atomic_cas32(&base_obj->ref, ref - 1, ref, memory_order_release, memory_order_acquire)) {
-				if (ref == 1) {
-					deallocate(id, object);
-					return false;
-				}
-				return true;
+objectmap_lookup_unref(objectmap_t* map, object_t id, object_deallocate_fn deallocate) {
+	uint32_t idx = id & map->mask_index;
+	uint32_t tag = id >> OBJECTMAP_INDEXBITS;
+	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
+	uint32_t refcount = ref & map->mask_index;
+	uint32_t reftag = ref >> OBJECTMAP_INDEXBITS;
+	while ((tag == reftag) && refcount) {
+		uint32_t newref = (reftag << OBJECTMAP_INDEXBITS) | (refcount - 1);
+		if (atomic_cas32(&map->map[idx].ref, (int32_t)newref, (int32_t)ref,
+		                 memory_order_release, memory_order_acquire)) {
+			if (refcount == 1) {
+				deallocate(map->map[idx].ptr);
+				objectmap_free(map, id);
 			}
+			return true;
 		}
+		ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
+		refcount = ref & map->mask_index;
+		reftag = ref >> OBJECTMAP_INDEXBITS;
 	}
-	while (ref);
 	return false;
 }
 

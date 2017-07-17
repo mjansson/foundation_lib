@@ -27,8 +27,6 @@
 
 struct library_t {
 	/*lint -e754 */
-	FOUNDATION_DECLARE_OBJECT;
-
 	char    name[32];
 	hash_t  name_hash;
 	size_t  name_length;
@@ -59,10 +57,8 @@ _library_finalize(void) {
 }
 
 static void
-_library_destroy(object_t id, void* obj) {
+_library_destroy(void* obj) {
 	library_t* library = obj;
-
-	objectmap_free(_library_map, id);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	FreeLibrary(library->dll);
@@ -110,15 +106,17 @@ library_load(const char* name, size_t length) {
 		base_length = length - last_slash;
 	}
 
-	//Locate already loaded library
+	//Locate already loaded library, brute force iteration
 	library = 0;
 	name_hash = string_hash(basename, base_length);
 	for (i = 0, size = objectmap_size(_library_map); i < size; ++i) {
 		library = objectmap_raw_lookup(_library_map, i);
 		if (library && (library->name_hash == name_hash)) {
-			FOUNDATION_ASSERT(string_equal(library->name, library->name_length, basename, base_length));
-			atomic_incr32(&library->ref, memory_order_relaxed);
-			return library->id;
+			if (string_equal(library->name, library->name_length, basename, base_length)) {
+				id = objectmap_raw_id(_library_map, i);
+				if (objectmap_lookup_ref(_library_map, id) == library)
+					return id;
+			}
 		}
 	}
 
@@ -199,7 +197,6 @@ library_load(const char* name, size_t length) {
 		return 0;
 	}
 	library = memory_allocate(0, sizeof(library_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-	_object_initialize((object_base_t*)library, id);
 	library->name_hash = name_hash;
 	library->name_length = string_copy(library->name, sizeof(library->name), basename,
 	                                   base_length).length;
@@ -212,7 +209,7 @@ library_load(const char* name, size_t length) {
 
 	error_context_pop();
 
-	return library->id;
+	return id;
 }
 
 object_t

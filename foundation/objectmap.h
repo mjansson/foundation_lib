@@ -20,6 +20,10 @@ reference counted data in the library. Capacity of a map is fixed at allocation.
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
+#include <foundation/atomic.h>
+
+#define OBJECTMAP_IDBITS 10
+#define OBJECTMAP_INDEXBITS (32 - OBJECTMAP_IDBITS)
 
 /*! Allocate storage for new map with the given number of object slots. The object map
 should be deallocated with a call to #objectmap_deallocate.
@@ -81,6 +85,13 @@ objectmap_set(objectmap_t* map, object_t id, void* object);
 FOUNDATION_API void*
 objectmap_raw_lookup(const objectmap_t* map, size_t index);
 
+/*! Raw lookup of object ID for map index
+\param map Object map
+\param index Map index
+\return Object ID */
+FOUNDATION_API object_t
+objectmap_raw_id(const objectmap_t* map, size_t index);
+
 /*! Map object handle to object pointer. This function is unsafe in the sense that it
 might return an object pointer which points to an invalid (deallocated) object if
 the object reference count was decreased in another thread while this function is
@@ -103,7 +114,7 @@ function is known.
 \param id Object handle
 \return Object pointer, 0 if invalid/outdated handle */
 FOUNDATION_API void*
-objectmap_lookup_ref(const objectmap_t* map, object_t id);
+objectmap_lookup_ref(objectmap_t* map, object_t id);
 
 /*! Map object handle to object pointer and decrease ref count. If the object reference count
 reaches zero the object is deallocated by a call to the deallocation function. This function
@@ -114,14 +125,18 @@ is safe in the sense that it will work correctly across threads also using the
 \param deallocate Deallocation function
 \return true if object is still valid, false if it was deallocated */
 FOUNDATION_API bool
-objectmap_lookup_unref(const objectmap_t* map, object_t id, object_deallocate_fn deallocate);
+objectmap_lookup_unref(objectmap_t* map, object_t id, object_deallocate_fn deallocate);
 
 // Implementation
 
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void*
 objectmap_lookup(const objectmap_t* map, object_t id) {
-  void* object = map->map[ id & map->mask_index ];
-  return (object && !((uintptr_t)object & 1) &&
-          ((((object_base_t*)object)->id & map->mask_id) == (id & map->mask_id)) ?
-          object : 0);
+	uint32_t idx = id & map->mask_index;
+	uint32_t tag = id >> OBJECTMAP_INDEXBITS;
+	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
+	uint32_t refcount = ref & map->mask_index;
+	uint32_t reftag = ref >> OBJECTMAP_INDEXBITS;
+	if ((tag == reftag) && refcount)
+		return map->map[idx].ptr;
+	return nullptr;
 }
