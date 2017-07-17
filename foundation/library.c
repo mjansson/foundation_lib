@@ -114,7 +114,7 @@ library_load(const char* name, size_t length) {
 		if (library && (library->name_hash == name_hash)) {
 			if (string_equal(library->name, library->name_length, basename, base_length)) {
 				id = objectmap_raw_id(_library_map, i);
-				if (objectmap_lookup_ref(_library_map, id) == library)
+				if (objectmap_acquire(_library_map, id) == library)
 					return id;
 			}
 		}
@@ -214,12 +214,12 @@ library_load(const char* name, size_t length) {
 
 object_t
 library_ref(object_t id) {
-	return objectmap_lookup_ref(_library_map, id) ? id : 0;
+	return objectmap_acquire(_library_map, id) ? id : 0;
 }
 
 void
-library_unload(object_t id) {
-	objectmap_lookup_unref(_library_map, id, _library_destroy);
+library_release(object_t id) {
+	objectmap_release(_library_map, id, _library_destroy);
 }
 
 void*

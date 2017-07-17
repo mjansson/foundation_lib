@@ -47,12 +47,12 @@ Use #library_unload to release a reference to a library object.
 FOUNDATION_API object_t
 library_ref(object_t library);
 
-/*! Unload library, release a reference to the library object. Once the library object
+/*! Release a reference to the library object. Once the library object
 has no more references, the underlying structure will be deallocated and the system resources
 associated will be released.
 \param library Library object */
 FOUNDATION_API void
-library_unload(object_t library);
+library_release(object_t library);
 
 /*! Lookup a symbol by name in the library.
 \param library Library object

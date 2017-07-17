@@ -174,7 +174,7 @@ objectmap_set(objectmap_t* map, object_t id, void* object) {
 }
 
 void*
-objectmap_lookup_ref(objectmap_t* map, object_t id) {
+objectmap_acquire(objectmap_t* map, object_t id) {
 	uint32_t idx = id & map->mask_index;
 	uint32_t tag = id >> OBJECTMAP_INDEXBITS;
 	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
@@ -193,7 +193,7 @@ objectmap_lookup_ref(objectmap_t* map, object_t id) {
 }
 
 bool
-objectmap_lookup_unref(objectmap_t* map, object_t id, object_deallocate_fn deallocate) {
+objectmap_release(objectmap_t* map, object_t id, object_deallocate_fn deallocate) {
 	uint32_t idx = id & map->mask_index;
 	uint32_t tag = id >> OBJECTMAP_INDEXBITS;
 	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);

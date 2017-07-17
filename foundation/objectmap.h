@@ -108,24 +108,24 @@ the sense that it will only return an object pointer if the ref count was succes
 increased and object is still valid. Once the caller has finished using the object
 returned, the handle should be released and reference count decreased by a call to the
 appropriate destroy function (for eaxmple, a thread this would be thread_destroy).
-Alternatively the #objectmap_lookup_unref function can be used if the object deallocation
+Alternatively the #objectmap_release function can be used if the object deallocation
 function is known.
 \param map Object map
 \param id Object handle
 \return Object pointer, 0 if invalid/outdated handle */
 FOUNDATION_API void*
-objectmap_lookup_ref(objectmap_t* map, object_t id);
+objectmap_acquire(objectmap_t* map, object_t id);
 
 /*! Map object handle to object pointer and decrease ref count. If the object reference count
 reaches zero the object is deallocated by a call to the deallocation function. This function
 is safe in the sense that it will work correctly across threads also using the
-#objectmap_lookup_ref and #objectmap_lookup_unref functions.
+#objectmap_acquire and #objectmap_release functions.
 \param map Object map
 \param id Object handle
 \param deallocate Deallocation function
 \return true if object is still valid, false if it was deallocated */
 FOUNDATION_API bool
-objectmap_lookup_unref(objectmap_t* map, object_t id, object_deallocate_fn deallocate);
+objectmap_release(objectmap_t* map, object_t id, object_deallocate_fn deallocate);
 
 // Implementation
 

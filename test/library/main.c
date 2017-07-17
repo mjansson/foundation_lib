@@ -79,8 +79,8 @@ DECLARE_TEST(library, lookup) {
 	otherlib = library_load(STRING_ARGS(libraryname));
 	EXPECT_EQ(lib, otherlib);
 
-	library_unload(otherlib);
-	library_unload(0);
+	library_release(otherlib);
+	library_release(0);
 	otherlib = 0;
 
 	log_set_suppress(0, ERRORLEVEL_WARNING);
@@ -95,7 +95,7 @@ DECLARE_TEST(library, lookup) {
 
 	EXPECT_EQ(library_symbol(0, STRING_ARGS(symbolname)), 0);
 
-	library_unload(lib);
+	library_release(lib);
 	EXPECT_EQ(library_symbol(lib, STRING_ARGS(symbolname)), 0);
 
 	EXPECT_FALSE(library_valid(lib));

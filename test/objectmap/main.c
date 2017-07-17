@@ -155,11 +155,11 @@ DECLARE_TEST(objectmap, store) {
 	objectmap_free(map, second_id);
 	//Leak one object
 	//objectmap_free(map, third_id);
-	EXPECT_EQ(objectmap_lookup_ref(map, first_id), nullptr);
+	EXPECT_EQ(objectmap_acquire(map, first_id), nullptr);
 	EXPECT_EQ(objectmap_raw_lookup(map, 0), 0);
-	EXPECT_EQ(objectmap_lookup_ref(map, second_id), nullptr);
+	EXPECT_EQ(objectmap_acquire(map, second_id), nullptr);
 	EXPECT_EQ(objectmap_raw_lookup(map, 1), 0);
-	EXPECT_NE(objectmap_lookup_ref(map, third_id), nullptr);
+	EXPECT_NE(objectmap_acquire(map, third_id), nullptr);
 	EXPECT_NE(objectmap_raw_lookup(map, 2), 0);
 
 	log_enable_stdout(false);
