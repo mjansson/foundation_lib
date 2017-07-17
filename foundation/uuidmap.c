@@ -14,7 +14,7 @@
 
 #define UUIDMAP_MINBUCKETS     13
 
-#define GET_BUCKET(map, key) ((key.word[0] ^ key.word[1]) % (uint64_t)map->num_buckets)
+#define GET_BUCKET(map, key) ((size_t)((key.word[0] ^ key.word[1]) % (uint64_t)map->num_buckets))
 
 uuidmap_t*
 uuidmap_allocate(size_t buckets, size_t bucketsize) {
