@@ -76,20 +76,17 @@ class Generator(object):
       config_str = ' '.join([key + '=' + pipes.quote(configure_env[key]) for key in configure_env])
       writer.variable('configure_env', config_str + '$ ')
 
+    if variables is None:
+      variables = {}
+    if not isinstance(variables, dict):
+      variables = dict(variables)
+
     if options.monolithic:
-      if variables is None:
-        variables = {}
-      if isinstance(variables, dict):
-        variables['monolithic'] = True
-      else:
-        variables += [('monolithic', True)]
+      variables['monolithic'] = True
     if options.coverage:
-      if variables is None:
-        variables = {}
-      if isinstance(variables, dict):
-        variables['coverage'] = True
-      else:
-        variables += [('coverage', True)]
+      variables['coverage'] = True
+    if self.subninja != '':
+      variables['internal_deps'] = True
 
     self.toolchain = toolchain.make_toolchain(self.host, self.target, options.toolchain)
     self.toolchain.initialize(project, archs, configs, includepaths, dependlibs, libpaths, variables, self.subninja)

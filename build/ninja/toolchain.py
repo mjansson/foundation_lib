@@ -49,6 +49,7 @@ class Toolchain(object):
     self.build_monolithic = False
     self.build_coverage = False
     self.support_lua = False
+    self.internal_deps = False
     self.python = 'python'
     self.objext = '.o'
     if target.is_windows():
@@ -208,6 +209,8 @@ class Toolchain(object):
         self.build_coverage = get_boolean_flag(val)
       elif key == 'support_lua':
         self.support_lua = get_boolean_flag(val)
+      elif key == 'internal_deps':
+        self.internal_deps = get_boolean_flag(val)
     if self.xcode != None:
       self.xcode.parse_default_variables(variables)
 
@@ -402,7 +405,7 @@ class Toolchain(object):
         sourcevariables['modulepath'] = modulepath
         nodevariables['modulepath'] = modulepath
         #Make per-arch-and-config list of final implicit deps, including dependent libs
-        if dependlibs != None:
+        if self.internal_deps and dependlibs != None:
           dep_implicit_deps = []
           if implicit_deps:
             dep_implicit_deps += implicit_deps
