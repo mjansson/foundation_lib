@@ -114,7 +114,7 @@ objectmap_reserve(objectmap_t* map) {
 		else {
 			next = (uint32_t)((uintptr_t)map->map[idx].ptr) & map->mask_index;
 			//Sanity check that slot isn't taken
-			FOUNDATION_ASSERT_MSG(map->map[idx].ref == 0,
+			FOUNDATION_ASSERT_MSG(atomic_load32(&map->map[idx].ref, memory_order_acquire) == 0,
 			                      "Map failed sanity check, slot taken after reserve");
 		}
 		map->free = next | (tag << OBJECTMAP_INDEXBITS);
@@ -167,7 +167,7 @@ objectmap_set(objectmap_t* map, object_t id, void* object) {
 	//matching tag and zero ref count in reserve function
 	if (!map->map[idx].ptr && (tag == reftag)) {
 		map->map[idx].ptr = object;
-		map->map[idx].ref = reftag | 1;
+		atomic_store32(&map->map[idx].ref, reftag | 1, memory_order_release);
 		return true;
 	}
 	return false;
