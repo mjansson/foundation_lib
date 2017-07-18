@@ -158,7 +158,7 @@ _system_initialize(void) {
 void
 _system_finalize(void) {
 	if (_system_library_iphlpapi)
-		library_unload(_system_library_iphlpapi);
+		library_release(_system_library_iphlpapi);
 	_system_library_iphlpapi = 0;
 
 	event_stream_deallocate(_system_event_stream);
