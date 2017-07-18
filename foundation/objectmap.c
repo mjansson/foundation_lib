@@ -167,7 +167,7 @@ objectmap_set(objectmap_t* map, object_t id, void* object) {
 	//matching tag and zero ref count in reserve function
 	if (!map->map[idx].ptr && (tag == reftag)) {
 		map->map[idx].ptr = object;
-		atomic_store32(&map->map[idx].ref, reftag | 1, memory_order_release);
+		atomic_store32(&map->map[idx].ref, (int32_t)(reftag | 1), memory_order_release);
 		return true;
 	}
 	return false;
