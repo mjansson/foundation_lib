@@ -402,7 +402,7 @@ class Toolchain(object):
         sourcevariables['modulepath'] = modulepath
         nodevariables['modulepath'] = modulepath
         #Make per-arch-and-config list of final implicit deps, including dependent libs
-        if self.subninja != '' and dependlibs != None:
+        if dependlibs != None:
           dep_implicit_deps = []
           if implicit_deps:
             dep_implicit_deps += implicit_deps
