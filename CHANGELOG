@@ -10,6 +10,9 @@ to better named objectmap_acquire and objectmap_release
 
 Rename library_unload to library_release to match object map function naming
 
+Bugfix on MacOS/iOS where main thread did not properly initialize memory subsystem if
+other than the default system was used
+
 
 1.6.0
 

@@ -40,6 +40,8 @@ static volatile bool _delegate_received_terminate = false;
 	if (_delegate_main_thread_running)
 		return;
 
+	thread_enter();
+
 	_delegate_main_thread_running = true;
 	log_debug(0, STRING_CONST("Started main thread"));
 
