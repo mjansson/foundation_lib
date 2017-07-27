@@ -165,6 +165,11 @@ thread_enter(void);
 FOUNDATION_API void
 thread_exit(void);
 
+/*! Query if thread has been entered (thread_enter called)
+\return true if thread_enter has been called, false if not */
+FOUNDATION_API bool
+thread_is_entered(void);
+
 #if FOUNDATION_PLATFORM_ANDROID
 
 /*! Android only. Attach the thread to the JVM to be able to do JVM calls through JNI.

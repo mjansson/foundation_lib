@@ -10,8 +10,13 @@ to better named objectmap_acquire and objectmap_release
 
 Rename library_unload to library_release to match object map function naming
 
-Bugfix on MacOS/iOS where main thread did not properly initialize memory subsystem if
+Bugfix on macOS/iOS where main thread did not properly initialize memory subsystem if
 other than the default system was used
+
+Add thread_is_entered to query if thread_enter has been called on the calling thread
+
+Bugfix in macOS file system watcher, correctly bootstrapping thread memory handling for cleanup
+if needed
 
 
 1.6.0

@@ -296,8 +296,14 @@ _fs_event_stream_release(const void* info) {
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wcast-qual"
 #endif
-	if (info)
+	if (info) {
+		bool bootstrap_thread = !thread_is_entered();
+		if (bootstrap_thread)
+			thread_enter();
 		_fs_node_deallocate((file_node_t*)info);
+		if (bootstrap_thread)
+			thread_exit();
+	}
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
 #endif

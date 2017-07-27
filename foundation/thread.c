@@ -51,6 +51,7 @@ static SetThreadDescriptionFn _fnSetThreadDescriptionFn;
 #endif
 
 FOUNDATION_DECLARE_THREAD_LOCAL(thread_t*, self, 0)
+FOUNDATION_DECLARE_THREAD_LOCAL(int, entered, 0)
 static uint64_t _thread_main_id;
 
 int
@@ -484,6 +485,7 @@ thread_self(void) {
 
 void
 thread_enter(void) {
+	set_thread_entered(1);
 	memory_thread_initialize();
 }
 
@@ -491,6 +493,12 @@ void
 thread_exit(void) {
 	_thread_finalize();
 	memory_thread_finalize();
+	set_thread_entered(0);
+}
+
+bool
+thread_is_entered(void) {
+	return get_thread_entered() != 0;
 }
 
 #if FOUNDATION_PLATFORM_ANDROID
