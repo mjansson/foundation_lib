@@ -37,9 +37,9 @@ Platforms and architectures currently supported:
 * MacOS X (x86-64), 10.7+
 * Linux (x86, x86-64, PPC, ARM)
 * FreeBSD (x86, x86-64, PPC, ARM)
-* iOS (ARM7, ARM7s, ARM64), 6.0+
-* Android (ARM6, ARM7, ARM8-AARCH64, x86, x86-64, MIPS, MIPS64)
-* Raspberry Pi (ARM6)
+* iOS (ARMv7, ARMv7s, ARMv8/AArch64), 6.0+
+* Android (ARMv6, ARMv7, ARMv8/AArch64, x86, x86-64, MIPS, MIPS64)
+* Raspberry Pi (ARMv6)
 * PNaCl
 
 
