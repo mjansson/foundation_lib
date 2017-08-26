@@ -137,9 +137,3 @@ memory_statistics(void);
 #define memory_context_thread_finalize() do { /* */ } while(0)
 
 #endif
-
-#if !BUILD_ENABLE_MEMORY_TRACKER
-
-#define memory_set_tracker( tracker ) /*lint -save -e506 -e751 */ do { (void)sizeof( tracker ); } while(0) /*lint -restore -e506 -e751 */
-
-#endif

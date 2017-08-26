@@ -370,7 +370,19 @@ memory_system_malloc(void) {
 	return memsystem;
 }
 
-#if BUILD_ENABLE_MEMORY_TRACKER
+#if !BUILD_ENABLE_MEMORY_TRACKER
+
+void
+memory_set_tracker(memory_tracker_t tracker) {
+	FOUNDATION_UNUSED(tracker);
+}
+
+void
+memory_tracker_dump(memory_tracker_handler_fn handler) {
+	FOUNDATION_UNUSED(handler);
+}
+
+#else
 
 void
 memory_set_tracker(memory_tracker_t tracker) {
