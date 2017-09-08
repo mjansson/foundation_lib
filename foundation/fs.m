@@ -146,6 +146,10 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 	char pathbuf[BUILD_MAX_PATHLEN];
 	FOUNDATION_UNUSED(stream_ref);
 
+	bool bootstrap_thread = !thread_is_entered();
+	if (bootstrap_thread)
+		thread_enter();
+
 	@autoreleasepool {
 		for (size_t i = 0; i < num_events; ++i) {
 			const char* rawpath = event_paths[i];
@@ -277,7 +281,8 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 	}
 
 	//This is run in a dispatch thread by the OS, need to clean up
-	thread_exit();
+	if (bootstrap_thread)
+		thread_exit();
 }
 
 void
