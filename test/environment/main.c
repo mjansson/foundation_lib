@@ -94,7 +94,7 @@ DECLARE_TEST(environment, workingdir) {
 		new_working_dir = path_directory_name(STRING_ARGS(tmpwork));
 	}
 
-#if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	new_working_dir_copy = path_allocate_concat(STRING_ARGS(working_dir), STRING_CONST("config"));
 #else
 	new_working_dir_copy = string_clone(STRING_ARGS(new_working_dir));

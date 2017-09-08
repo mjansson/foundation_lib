@@ -22,8 +22,10 @@ reference counted data in the library. Capacity of a map is fixed at allocation.
 #include <foundation/types.h>
 #include <foundation/atomic.h>
 
-#define OBJECTMAP_IDBITS 10
-#define OBJECTMAP_INDEXBITS (32 - OBJECTMAP_IDBITS)
+#define OBJECTMAP_TAGBITS 10U
+#define OBJECTMAP_TAGMASK ((1U << OBJECTMAP_TAGBITS) - 1U)
+#define OBJECTMAP_INDEXBITS (32U - OBJECTMAP_TAGBITS)
+#define OBJECTMAP_INDEXMASK ((1U << OBJECTMAP_INDEXBITS) - 1U)
 
 /*! Allocate storage for new map with the given number of object slots. The object map
 should be deallocated with a call to #objectmap_deallocate.
@@ -131,10 +133,12 @@ objectmap_release(objectmap_t* map, object_t id, object_deallocate_fn deallocate
 
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void*
 objectmap_lookup(const objectmap_t* map, object_t id) {
-	uint32_t idx = id & map->mask_index;
+	uint32_t idx = id & OBJECTMAP_INDEXMASK;
 	uint32_t tag = id >> OBJECTMAP_INDEXBITS;
+	if (idx >= map->size)
+		return nullptr;
 	uint32_t ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
-	uint32_t refcount = ref & map->mask_index;
+	uint32_t refcount = ref & OBJECTMAP_INDEXMASK;
 	uint32_t reftag = ref >> OBJECTMAP_INDEXBITS;
 	if ((tag == reftag) && refcount)
 		return map->map[idx].ptr;

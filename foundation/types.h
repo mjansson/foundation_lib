@@ -1468,10 +1468,8 @@ struct objectmap_entry_t {
 
 #define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
 	uint32_t free; \
-	uint32_t id; \
+	uint32_t tag; \
 	uint32_t size; \
-	uint32_t id_max; \
-	uint32_t mask_index; \
 	uint32_t autolink; \
 	semaphore_t write; \
 	objectmap_entry_t map[mapsize]
