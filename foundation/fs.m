@@ -25,9 +25,6 @@ _fs_event_stream_create(const char* path, size_t length);
 void
 _fs_event_stream_destroy(void* stream);
 
-void
-_fs_event_stream_flush(void* stream);
-
 //This implementation is not optimal in any way, but will do for now
 //Memory allocation mania should really be cleaned up
 
@@ -285,11 +282,6 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data,
 		thread_exit();
 }
 
-void
-_fs_event_stream_flush(void* stream) {
-	FSEventStreamFlushAsync(stream);
-}
-
 static const void*
 _fs_event_stream_retain(const void* info) {
 	return info;
@@ -301,14 +293,14 @@ _fs_event_stream_release(const void* info) {
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wcast-qual"
 #endif
-	if (info) {
-		bool bootstrap_thread = !thread_is_entered();
-		if (bootstrap_thread)
-			thread_enter();
-		_fs_node_deallocate((file_node_t*)info);
-		if (bootstrap_thread)
-			thread_exit();
-	}
+	if (!info)
+		return;
+	bool bootstrap_thread = !thread_is_entered();
+	if (bootstrap_thread)
+		thread_enter();
+	_fs_node_deallocate((file_node_t*)info);
+	if (bootstrap_thread)
+		thread_exit();
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop
 #endif
@@ -326,8 +318,12 @@ _fs_event_stream_create(const char* path, size_t length) {
 		NSString* nspath = [[NSString alloc] initWithBytes:path length:length
 		                    encoding:NSUTF8StringEncoding];
 		NSArray* patharr = [NSArray arrayWithObject:nspath];
-		FSEventStreamContext context = { 0, node, _fs_event_stream_retain, _fs_event_stream_release, 0 };
 		NSTimeInterval latency = 1.0;
+		FSEventStreamContext context;
+		memset(&context, 0, sizeof(context));
+		context.info = node;
+		context.retain = _fs_event_stream_retain;
+		context.release = _fs_event_stream_release;
 
 		//TODO: Implement allocator based on foundation memory allocation subsystem
 		void* stream = FSEventStreamCreate(0, (FSEventStreamCallback)&_fs_event_stream_callback, &context,
@@ -360,6 +356,8 @@ _fs_event_stream_destroy(void* stream) {
 		FSEventStreamInvalidate(stream);
 		FSEventStreamRelease(stream);
 	}
+
+	thread_yield();
 }
 
 #endif

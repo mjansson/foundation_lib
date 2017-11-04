@@ -74,8 +74,12 @@ typedef FILE* fs_file_descriptor;
 
 struct fs_monitor_t {
 	string_t   path;
-	thread_t   thread;
 	bool       inuse;
+#if FOUNDATION_PLATFORM_MACOS
+	void*      stream;
+#else
+	thread_t   thread;
+#endif
 };
 
 struct stream_file_t {
@@ -108,6 +112,16 @@ static event_stream_t* _fs_event_stream;
 static void* _fs_monitor(void*);
 #else
 #  define FOUNDATION_HAVE_FS_MONITOR 0
+#endif
+
+#if FOUNDATION_PLATFORM_MACOS
+
+extern void*
+_fs_event_stream_create(const char* path, size_t length);
+
+extern void
+_fs_event_stream_destroy(void* stream);
+
 #endif
 
 static string_const_t
@@ -203,9 +217,14 @@ fs_monitor(const char* path, size_t length) {
 		if (!_fs_monitors[mi].inuse) {
 			_fs_monitors[mi].inuse = true;
 			_fs_monitors[mi].path = path_clone;
+#if FOUNDATION_PLATFORM_MACOS
+			//On macOS file system monitors are run in system dispatch
+			_fs_monitor(_fs_monitors + mi);
+#else
 			thread_initialize(&_fs_monitors[mi].thread, _fs_monitor, _fs_monitors + mi,
 			                  STRING_CONST("fs_monitor"), THREAD_PRIORITY_BELOWNORMAL, 0);
 			thread_start(&_fs_monitors[mi].thread);
+#endif
 			ret = true;
 			break;
 		}
@@ -232,8 +251,13 @@ _fs_stop_monitor(fs_monitor_t* monitor) {
 	if (!monitor->inuse)
 		return;
 
+#if FOUNDATION_PLATFORM_MACOS
+	if (monitor->stream)
+		_fs_event_stream_destroy(monitor->stream);
+#else
 	thread_signal(&monitor->thread);
 	thread_finalize(&monitor->thread);
+#endif
 	string_deallocate(monitor->path.str);
 	monitor->inuse = false;
 }
@@ -1233,17 +1257,6 @@ _fs_lookup_watch(fs_watch_t* watch_arr, int fd) {
 	return 0;
 }
 
-#elif FOUNDATION_PLATFORM_MACOS
-
-extern void*
-_fs_event_stream_create(const char* path, size_t length);
-
-extern void
-_fs_event_stream_destroy(void* stream);
-
-extern void
-_fs_event_stream_flush(void* stream);
-
 #endif
 
 #if FOUNDATION_HAVE_FS_MONITOR
@@ -1305,7 +1318,7 @@ _fs_monitor(void* monitorptr) {
 
 	memory_context_push(HASH_STREAM);
 
-	void* event_stream = _fs_event_stream_create(STRING_ARGS(monitor->path));
+	monitor->stream = _fs_event_stream_create(STRING_ARGS(monitor->path));
 
 #else
 
@@ -1472,11 +1485,7 @@ skipwatch:
 
 #elif FOUNDATION_PLATFORM_MACOS
 
-		if (event_stream)
-			_fs_event_stream_flush(event_stream);
-
-		if (thread_try_wait(100))
-			keep_running = false;
+		keep_running = false;
 
 //#elif FOUNDATION_PLATFORM_BSD
 //  TODO: Implement using kqueue and directory watching using open with O_EVTONLY
@@ -1509,10 +1518,6 @@ exit_thread:
 	close(notify_fd);
 	string_array_deallocate(paths);
 	array_deallocate(watch);
-
-#elif FOUNDATION_PLATFORM_MACOS
-
-	_fs_event_stream_destroy(event_stream);
 
 #endif
 
