@@ -73,7 +73,10 @@ class Toolchain(object):
     else:
       self.libprefix = 'lib'
       self.staticlibext = '.a'
-      self.dynamiclibext = '.so'
+      if target.is_macos() or target.is_ios():
+        self.dynamiclibext = '.dylib'
+      else:
+        self.dynamiclibext = '.so'
       self.binprefix = ''
       self.binext = ''
 
@@ -372,9 +375,9 @@ class Toolchain(object):
 
   def build_sources(self, writer, nodetype, multitype, module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks):
     if module != '':
-      decoratedmodule = module + make_pathhash(self.subninja + module, nodetype)
+      decoratedmodule = module + make_pathhash(self.subninja + module + binfile, nodetype)
     else:
-      decoratedmodule = basepath + make_pathhash(self.subninja + basepath, nodetype)
+      decoratedmodule = basepath + make_pathhash(self.subninja + basepath + binfile, nodetype)
     built = {}
     if includepaths is None:
       includepaths = []
@@ -430,24 +433,28 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def lib(self, writer, module, sources, basepath, configs, includepaths, variables, outpath = None):
+  def lib(self, writer, module, sources, libname, basepath, configs, includepaths, variables, outpath = None):
     built = {}
     if basepath == None:
       basepath = ''
     if configs is None:
       configs = list(self.configs)
-    libfile = self.libprefix + module + self.staticlibext
+    if libname is None:
+      libname = module
+    libfile = self.libprefix + libname + self.staticlibext
     if outpath is None:
       outpath = self.libpath
     return self.build_sources(writer, 'lib', 'multilib', module, sources, libfile, basepath, outpath, configs, includepaths, None, None, None, None, variables, None)
 
-  def sharedlib(self, writer, module, sources, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, outpath = None):
+  def sharedlib(self, writer, module, sources, libname, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, outpath = None):
     built = {}
     if basepath == None:
       basepath = ''
     if configs is None:
       configs = list(self.configs)
-    libfile = self.libprefix + module + self.dynamiclibext
+    if libname is None:
+      libname = module
+    libfile = self.libprefix + libname + self.dynamiclibext
     if outpath is None:
       outpath = self.binpath
     return self.build_sources(writer, 'sharedlib', 'multisharedlib', module, sources, libfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks)
