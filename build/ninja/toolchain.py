@@ -139,7 +139,7 @@ class Toolchain(object):
       elif localarch == 'i686':
         self.archs = ['x86']
       else:
-        self.archs = [localarch]
+        self.archs = [str(localarch)]
     elif self.target.is_macos():
       self.archs = ['x86-64']
     elif self.target.is_ios():
