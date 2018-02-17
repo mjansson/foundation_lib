@@ -81,6 +81,8 @@ class ClangToolchain(toolchain.Toolchain):
 
     if not 'nowarning' in variables or not variables['nowarning']:
       self.cflags += self.cwarnflags
+    else:
+      self.cflags += ['-w']
     self.cxxflags = list(self.cflags)
 
     self.cflags += ['-std=c11']
