@@ -131,7 +131,10 @@ class Generator(object):
     #TODO: This is ugly
     if self.project == "foundation":
       return ['test']
-    return ['test', os.path.join('..', 'foundation_lib', 'test')]
+    foundation_path = os.path.join('..', 'foundation_lib')
+    if not os.path.isfile(os.path.join(foundation_path, 'foundation', 'foundation.h')):
+      foundation_path = os.path.join('..', 'foundation')
+    return ['test', os.path.join(foundation_path, 'test')]
 
   def test_monolithic(self):
     return self.toolchain.is_monolithic()
