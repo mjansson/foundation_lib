@@ -31,7 +31,7 @@ class MSVCToolchain(toolchain.Toolchain):
     self.dllcmd = self.linkcmd + ' /DLL'
 
     self.cflags = ['/D', '"' + project.upper() + '_COMPILE=1"', '/D', '"_UNICODE"',  '/D', '"UNICODE"', '/Zi', '/Oi', '/Oy-', '/GS-', '/Gy-', '/Qpar-', '/fp:fast', '/fp:except-', '/Zc:forScope', '/Zc:wchar_t', '/GR-', '/openmp-']
-    self.cwarnflags = ['/W3', '/WX']
+    self.cwarnflags = ['/W4', '/WX']
     self.cmoreflags = []
     self.arflags = ['/ignore:4221'] #Ignore empty object file warning]
     self.linkflags = ['/DEBUG']
