@@ -413,7 +413,7 @@ hashify_write_file(stream_t* generated_file, string_t output_filename) {
 	output_file = stream_open(STRING_ARGS(output_filename), STREAM_OUT | STREAM_IN);
 	if (!output_file) {
 		need_update = true;
-		output_file = stream_open(STRING_ARGS(output_filename), STREAM_OUT);
+		output_file = stream_open(STRING_ARGS(output_filename), STREAM_OUT | STREAM_CREATE);
 		if (!output_file) {
 			log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("Unable to open output file: %.*s"),
 			          STRING_FORMAT(output_filename));
