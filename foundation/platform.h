@@ -817,7 +817,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_DEPRECATED __declspec(deprecated)
 #  define FOUNDATION_FORCEINLINE __forceinline
 #  define FOUNDATION_NOINLINE __declspec(noinline)
-#  define FOUNDATION_PURECALL
+#  define FOUNDATION_PURECALL __declspec(noalias)
 #  define FOUNDATION_CONSTCALL
 #  define FOUNDATION_PRINTFCALL(start, num)
 #  define FOUNDATION_ALIGN(alignment) __declspec(align(alignment))
