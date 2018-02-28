@@ -56,7 +56,7 @@ Master branch is used for stable releases. Development is done in feature branch
 <https://github.com/rampantpixels/foundation_lib/tree/develop>
 
 Cross-platform build system uses Ninja  
-<http://martine.github.io/ninja>
+<https://ninja-build.org/>
 
 The PNaCl build of the latest release can be tested at  
 <http://www.rampantpixels.com/foundation_lib/pnacl/>
