@@ -15,11 +15,6 @@
 
 #if !BUILD_DYNAMIC_LINK
 
-#if FOUNDATION_PLATFORM_PNACL
-#  include <foundation/pnacl.h>
-#  include <ppapi/c/ppp_instance.h>
-#endif
-
 #if FOUNDATION_PLATFORM_TIZEN
 #  include <foundation/tizen.h>
 #endif
@@ -162,10 +157,6 @@ sighandler(int sig) {
 /*! Aliased entry point */
 static int
 real_main(void)
-#elif FOUNDATION_PLATFORM_PNACL
-/*! Aliased entry point */
-int
-pnacl_main(PP_Instance instance)
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
 int
@@ -174,10 +165,8 @@ main(int argc, char** argv)
 {
 	int ret;
 
-#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+#if !FOUNDATION_PLATFORM_ANDROID
 	_environment_main_args(argc, (const char* const*)argv);
-#elif FOUNDATION_PLATFORM_PNACL
-	FOUNDATION_UNUSED(instance);
 #endif
 
 	ret = main_initialize();
@@ -233,7 +222,7 @@ main(int argc, char** argv)
 
 	thread_set_main();
 
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
 	system_post_event(FOUNDATIONEVENT_START);
 #endif
 
@@ -315,26 +304,6 @@ android_main(struct android_app * app) {
 		return;
 	android_entry(app);
 	real_main();
-}
-
-#endif
-
-#if FOUNDATION_PLATFORM_PNACL
-
-/*! PNaCl glue entry points */
-PP_EXPORT int32_t
-PPP_InitializeModule(PP_Module module_id, PPB_GetInterface get_browser) {
-	return pnacl_module_initialize(module_id, get_browser);
-}
-
-PP_EXPORT const void*
-PPP_GetInterface(const char* interface_name) {
-	return pnacl_module_interface(interface_name, string_length(interface_name));
-}
-
-PP_EXPORT void
-PPP_ShutdownModule() {
-	pnacl_module_finalize();
 }
 
 #endif

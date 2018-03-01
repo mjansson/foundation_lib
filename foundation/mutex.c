@@ -16,8 +16,6 @@
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#elif FOUNDATION_PLATFORM_PNACL
-#  include <foundation/pnacl.h>
 #endif
 
 struct FOUNDATION_ALIGN(16) mutex_t {
@@ -27,7 +25,7 @@ struct FOUNDATION_ALIGN(16) mutex_t {
 	CRITICAL_SECTION csection;
 	void*            event;
 	atomic32_t       waiting;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	pthread_mutex_t  mutex;
 	pthread_cond_t   cond;
 	volatile bool    pending;
@@ -46,7 +44,7 @@ _mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
 	InitializeCriticalSectionAndSpinCount(&mutex->csection, 4000);
 	mutex->event = CreateEvent(0, TRUE, FALSE, 0);
 	atomic_store32(&mutex->waiting, 0, memory_order_release);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	mutex->pending = false;
 
 	pthread_mutexattr_t attr;
@@ -71,7 +69,7 @@ _mutex_finalize(mutex_t* mutex) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	CloseHandle(mutex->event);
 	DeleteCriticalSection(&mutex->csection);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	pthread_mutex_destroy(&mutex->mutex);
 	pthread_cond_destroy(&mutex->cond);
 #else
@@ -110,7 +108,7 @@ mutex_try_lock(mutex_t* mutex) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	was_locked = TryEnterCriticalSection(&mutex->csection);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	was_locked = (pthread_mutex_trylock(&mutex->mutex) == 0);
 #else
 #  error mutex_try_lock not implemented
@@ -137,7 +135,7 @@ mutex_lock(mutex_t* mutex) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	EnterCriticalSection(&mutex->csection);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	if (pthread_mutex_lock(&mutex->mutex) != 0) {
 		FOUNDATION_ASSERT_FAILFORMAT("unable to lock mutex %s", mutex->name.str);
 		return false;
@@ -177,7 +175,7 @@ mutex_unlock(mutex_t* mutex) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	LeaveCriticalSection(&mutex->csection);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	if (pthread_mutex_unlock(&mutex->mutex) != 0) {
 		FOUNDATION_ASSERT_FAILFORMAT("unable to unlock mutex %s", mutex->name.str);
 		return false;
@@ -202,7 +200,7 @@ bool
 mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DWORD ret;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	struct timeval now;
 	struct timespec then;
 #endif
@@ -224,7 +222,7 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 
 	return ret == WAIT_OBJECT_0;
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 	mutex_lock(mutex);
 
@@ -297,7 +295,7 @@ mutex_signal(mutex_t* mutex) {
 
 	SetEvent(mutex->event);
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 	mutex_lock(mutex);
 	mutex->pending = true;

@@ -19,7 +19,7 @@ foundation_sources = [
   'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'beacon.c', 'bitbuffer.c', 'blowfish.c',
   'bufferstream.c', 'environment.c', 'error.c', 'event.c', 'exception.c', 'foundation.c', 'fs.c',
   'hash.c', 'hashmap.c', 'hashtable.c', 'json.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
-  'objectmap.c', 'path.c', 'pipe.c', 'pnacl.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
+  'objectmap.c', 'path.c', 'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'sha.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
   'tizen.c', 'uuid.c', 'uuidmap.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
 
@@ -47,7 +47,7 @@ test_cases = [
   'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'sha', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'
 ]
-if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_tizen() or target.is_pnacl():
+if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_tizen():
   #Build one fat binary with all test cases
   test_resources = []
   test_extrasources = []

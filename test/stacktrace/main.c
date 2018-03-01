@@ -51,9 +51,6 @@ DECLARE_TEST(stacktrace, capture) {
 	void* trace[TEST_DEPTH];
 	size_t num_frames;
 
-	if (system_platform() == PLATFORM_PNACL)
-		return 0;
-
 	num_frames = stacktrace_capture(trace, TEST_DEPTH, 0);
 	EXPECT_GT(num_frames, 3);
 
@@ -66,9 +63,6 @@ DECLARE_TEST(stacktrace, resolve) {
 	size_t num_frames;
 	char* buffer;
 	string_t resolved;
-
-	if (system_platform() == PLATFORM_PNACL)
-		return 0;
 
 	num_frames = stacktrace_capture(trace, TEST_DEPTH, 0);
 	EXPECT_GT(num_frames, 3);

@@ -129,9 +129,6 @@ DECLARE_TEST(pipe, readwrite) {
 	thread_t reader;
 	thread_t writer;
 
-	if (system_platform() == PLATFORM_PNACL)
-		return 0;
-
 	pipe = pipe_allocate();
 
 #if FOUNDATION_PLATFORM_WINDOWS
