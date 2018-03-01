@@ -190,8 +190,6 @@ class ClangToolchain(toolchain.Toolchain):
       self.build_android_toolchain()
     elif self.target.is_macos() or self.target.is_ios():
       self.build_xcode_toolchain()
-    elif self.target.is_pnacl():
-      self.build_pnacl_toolchain()
     if self.toolchain != '' and not self.toolchain.endswith('/') and not self.toolchain.endswith('\\'):
       self.toolchain += os.sep
 
@@ -497,13 +495,6 @@ class ClangToolchain(toolchain.Toolchain):
 
   def builder_apple_multibin(self, writer, config, arch, targettype, infiles, outfile, variables):
     return writer.build(os.path.join(outfile, self.buildtarget), 'lipo', infiles, variables = variables)
-
-  #PNaCl finalizer
-  def builder_pnacl_multibin(self, writer, config, arch, targettype, infiles, outfile, variables):
-    binfile = os.path.splitext(self.buildtarget)[0]
-    pexe = writer.build(os.path.join(outfile, binfile + '.pexe'), 'finalize', infiles)
-    nmf = writer.build(os.path.join(outfile, binfile + '.nmf'), 'nmf', pexe + infiles)
-    return [pexe, nmf]
 
 def create(host, target, toolchain):
   return ClangToolchain(host, target, toolchain)
