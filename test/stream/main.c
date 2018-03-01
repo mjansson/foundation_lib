@@ -25,6 +25,7 @@
 // Yes, we want to compare floats
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wfloat-equal"
+#  pragma clang diagnostic ignored "-Wsign-conversion"
 #endif
 
 static const char longline[] =
