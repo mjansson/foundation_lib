@@ -84,7 +84,7 @@ fmix64(uint64_t k) {
 	return k;
 }
 
-hash_t
+FOUNDATION_PURECALL hash_t
 hash(const void* key, size_t len) {
 	const size_t nblocks = len / 16;
 	const uint64_t* blocks;

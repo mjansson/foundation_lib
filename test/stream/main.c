@@ -1351,11 +1351,11 @@ DECLARE_TEST(stream, readwrite_swap) {
 	EXPECT_EQ_MSG(stream_is_swapped(teststream), true, "swap was not set correctly");
 
 	stream_write_bool(teststream, true);
-	stream_write_int8(teststream, (int8_t)0x8f);
-	stream_write_uint8(teststream, (uint8_t)0xab);
-	stream_write_int16(teststream, (int16_t)0xfeef);
-	stream_write_uint16(teststream, (uint16_t)0xbaad);
-	stream_write_int32(teststream, (int32_t)0x12345678);
+	stream_write_int8(teststream, 0x8f);
+	stream_write_uint8(teststream, 0xab);
+	stream_write_int16(teststream, 0xfeef);
+	stream_write_uint16(teststream, 0xbaad);
+	stream_write_int32(teststream, 0x12345678);
 	stream_write_uint32(teststream, 0x98765432UL);
 	stream_write_int64(teststream, 0x1234567890abcdefLL);
 	stream_write_uint64(teststream, 0x1234567890abcdefULL);
@@ -1380,15 +1380,15 @@ DECLARE_TEST(stream, readwrite_swap) {
 	read_uint128 = stream_read_uint128(teststream);
 
 	EXPECT_EQ_MSG(read_bool, true, "read boolean did not swap as expected");
-	EXPECT_EQ_MSGFORMAT(read_int8, (int8_t)0x0000008f, "read int8 did not swap as expected (%02x)",
+	EXPECT_EQ_MSGFORMAT(read_int8, 0x8f, "read int8 did not swap as expected (%02x)",
 	                    (int)read_int8);
-	EXPECT_EQ_MSGFORMAT(read_uint8, (uint8_t)0x000000ab, "read uint8 did not swap as expected (%02x)",
+	EXPECT_EQ_MSGFORMAT(read_uint8, 0xab, "read uint8 did not swap as expected (%02x)",
 	                    (int)read_uint8);
-	EXPECT_EQ_MSGFORMAT(read_int16, (int16_t)0x0000effe, "read int16 did not swap as expected (%04x)",
+	EXPECT_EQ_MSGFORMAT(read_int16, 0xeffe, "read int16 did not swap as expected (%04x)",
 	                    (int)read_int16);
-	EXPECT_EQ_MSGFORMAT(read_uint16, (uint16_t)0x0000adba,
+	EXPECT_EQ_MSGFORMAT(read_uint16, 0xadba,
 	                    "read uint16 did not swap as expected (%04x)", (int)read_uint16);
-	EXPECT_EQ_MSGFORMAT(read_int32, (int32_t)0x78563412, "read int32 did not swap as expected (%08x)",
+	EXPECT_EQ_MSGFORMAT(read_int32, 0x78563412, "read int32 did not swap as expected (%08x)",
 	                    read_int32);
 	EXPECT_EQ_MSGFORMAT(read_uint32, 0x32547698UL, "read uint32 did not swap as expected (%048x)",
 	                    read_uint32);
@@ -1418,11 +1418,11 @@ DECLARE_TEST(stream, readwrite_swap) {
 	EXPECT_EQ_MSG(stream_is_swapped(teststream), false, "swap was not set correctly");
 
 	stream_write_bool(teststream, true);
-	stream_write_int8(teststream, (int8_t)0x8f);
-	stream_write_uint8(teststream, (uint8_t)0xab);
-	stream_write_int16(teststream, (int16_t)0xfeef);
-	stream_write_uint16(teststream, (uint16_t)0xbaad);
-	stream_write_int32(teststream, (int32_t)0x12345678);
+	stream_write_int8(teststream, 0x8f);
+	stream_write_uint8(teststream, 0xab);
+	stream_write_int16(teststream, 0xfeef);
+	stream_write_uint16(teststream, 0xbaad);
+	stream_write_int32(teststream, 0x12345678);
 	stream_write_uint32(teststream, 0x98765432UL);
 	stream_write_int64(teststream, 0x1234567890abcdefLL);
 	stream_write_uint64(teststream, 0x1234567890abcdefULL);
@@ -1448,15 +1448,15 @@ DECLARE_TEST(stream, readwrite_swap) {
 	read_uint128 = stream_read_uint128(teststream);
 
 	EXPECT_EQ_MSG(read_bool, true, "read boolean did not swap as expected");
-	EXPECT_EQ_MSGFORMAT(read_int8, (int8_t)0x0000008f, "read int8 did not swap as expected (%02x)",
+	EXPECT_EQ_MSGFORMAT(read_int8, 0x8f, "read int8 did not swap as expected (%02x)",
 	                    (int)read_int8);
-	EXPECT_EQ_MSGFORMAT(read_uint8, (uint8_t)0x000000ab, "read uint8 did not swap as expected (%02x)",
+	EXPECT_EQ_MSGFORMAT(read_uint8, 0xab, "read uint8 did not swap as expected (%02x)",
 	                    (int)read_uint8);
-	EXPECT_EQ_MSGFORMAT(read_int16, (int16_t)0x0000effe, "read int16 did not swap as expected (%04x)",
+	EXPECT_EQ_MSGFORMAT(read_int16, 0xeffe, "read int16 did not swap as expected (%04x)",
 	                    (int)read_int16);
-	EXPECT_EQ_MSGFORMAT(read_uint16, (uint16_t)0x0000adba,
+	EXPECT_EQ_MSGFORMAT(read_uint16, 0xadba,
 	                    "read uint16 did not swap as expected (%04x)", (int)read_uint16);
-	EXPECT_EQ_MSGFORMAT(read_int32, (int32_t)0x78563412, "read int32 did not swap as expected (%08x)",
+	EXPECT_EQ_MSGFORMAT(read_int32, 0x78563412, "read int32 did not swap as expected (%08x)",
 	                    read_int32);
 	EXPECT_EQ_MSGFORMAT(read_uint32, 0x32547698UL, "read uint32 did not swap as expected (%048x)",
 	                    read_uint32);
