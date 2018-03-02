@@ -32,22 +32,24 @@ def make_toolchain(host, target, toolchain):
     else:
       toolchain = 'clang'
 
-  toolchainmodule = __import__(toolchain, globals(), locals(), [], -1)
+  toolchainmodule = __import__(toolchain, globals(), locals())
   return toolchainmodule.create(host, target, toolchain)
 
 def make_pathhash(path, targettype):
-  return '-' + hex(zlib.adler32(path + targettype) & 0xffffffff)[2:-1]
+  return '-' + hex(zlib.adler32((path + targettype).encode()) & 0xffffffff)[2:-1]
 
 class Toolchain(object):
   def __init__(self, host, target, toolchain):
     self.host = host
     self.target = target
     self.toolchain = toolchain
+    self.subninja = ''
 
     #Set default values
     self.build_monolithic = False
     self.build_coverage = False
     self.support_lua = False
+    self.internal_deps = False
     self.python = 'python'
     self.objext = '.o'
     if target.is_windows():
@@ -62,16 +64,13 @@ class Toolchain(object):
       self.dynamiclibext = '.so'
       self.binprefix = 'lib'
       self.binext = '.so'
-    elif target.is_pnacl():
-      self.libprefix = 'lib'
-      self.staticlibext = '.a'
-      self.dynamiclibext = '.so'
-      self.binprefix = ''
-      self.binext = '.bc'
     else:
       self.libprefix = 'lib'
       self.staticlibext = '.a'
-      self.dynamiclibext = '.so'
+      if target.is_macos() or target.is_ios():
+        self.dynamiclibext = '.dylib'
+      else:
+        self.dynamiclibext = '.so'
       self.binprefix = ''
       self.binext = ''
 
@@ -103,7 +102,7 @@ class Toolchain(object):
     #Target functionality
     if target.is_android():
       self.android = android.make_target(self, host, target)
-    if target.is_macosx() or target.is_ios():
+    if target.is_macos() or target.is_ios():
       self.xcode = xcode.make_target(self, host, target)
 
     #Builders
@@ -111,6 +110,9 @@ class Toolchain(object):
 
     #Paths created
     self.paths_created = {}
+
+  def initialize_subninja(self, path):
+    self.subninja = path
 
   def initialize_project(self, project):
     self.project = project
@@ -125,14 +127,14 @@ class Toolchain(object):
     if self.target.is_windows():
       self.archs = ['x86-64']
     elif self.target.is_linux() or self.target.is_bsd():
-      localarch = subprocess.check_output(['uname', '-m']).strip()
+      localarch = subprocess.check_output(['uname', '-m']).decode().strip()
       if localarch == 'x86_64' or localarch == 'amd64':
         self.archs = ['x86-64']
       elif localarch == 'i686':
         self.archs = ['x86']
       else:
         self.archs = [localarch]
-    elif self.target.is_macosx():
+    elif self.target.is_macos():
       self.archs = ['x86-64']
     elif self.target.is_ios():
       self.archs = ['arm7', 'arm64']
@@ -142,8 +144,6 @@ class Toolchain(object):
       self.archs = ['arm7', 'arm64', 'x86', 'x86-64'] #'mips', 'mips64'
     elif self.target.is_tizen():
       self.archs = ['x86', 'arm7']
-    elif self.target.is_pnacl():
-      self.archs = ['generic']
 
   def initialize_configs(self, configs):
     self.configs = list(configs)
@@ -160,9 +160,29 @@ class Toolchain(object):
       self.xcode.initialize_toolchain()
 
   def initialize_depends(self, dependlibs):
-    #TODO: Improve localization of dependend libs
-    self.depend_includepaths = [os.path.join('..', lib + '_lib') for lib in dependlibs]
-    self.depend_libpaths = [os.path.join('..', lib + '_lib') for lib in dependlibs]
+    for lib in dependlibs:
+      includepath = ''
+      libpath = ''
+      testpaths = [
+        os.path.join('..', lib),
+        os.path.join('..', lib + '_lib')
+      ]
+      for testpath in testpaths:
+        if os.path.isfile(os.path.join(testpath, lib, lib + '.h')):
+          if self.subninja != '':
+            basepath, _ = os.path.split(self.subninja)
+            _, libpath = os.path.split(testpath)
+            testpath = os.path.join(basepath, libpath)
+          includepath = testpath
+          libpath = testpath
+          break
+      if includepath == '':
+        print("Unable to locate dependent lib: " + lib)
+        sys.exit(-1)
+      else:
+        self.depend_includepaths += [includepath]
+        if self.subninja == '':
+          self.depend_libpaths += [libpath]
 
   def build_toolchain(self):
     if self.android != None:
@@ -184,6 +204,8 @@ class Toolchain(object):
         self.build_coverage = get_boolean_flag(val)
       elif key == 'support_lua':
         self.support_lua = get_boolean_flag(val)
+      elif key == 'internal_deps':
+        self.internal_deps = get_boolean_flag(val)
     if self.xcode != None:
       self.xcode.parse_default_variables(variables)
 
@@ -225,6 +247,9 @@ class Toolchain(object):
   def is_monolithic(self):
     return self.build_monolithic
 
+  def use_coverage(self):
+    return self.build_coverage
+
   def write_variables(self, writer):
     writer.variable('buildpath', self.buildpath)
     writer.variable('target', self.target.platform)
@@ -252,6 +277,8 @@ class Toolchain(object):
   def mkdir(self, writer, path, implicit = None, order_only = None):
     if path in self.paths_created:
       return self.paths_created[path]
+    if self.subninja != '':
+      return
     cmd = writer.build(path, 'mkdir', None, implicit = implicit, order_only = order_only)
     self.paths_created[path] = cmd
     return cmd
@@ -266,17 +293,16 @@ class Toolchain(object):
       path, targetfile = os.path.split(file)
       archpath = outpath
       #Find which arch we are copying from and append to target path
-      #unless on generic arch targets (only one generic arch)
-      if not self.target.is_pnacl():
-        for arch in archs:
-          remainpath, subdir = os.path.split(path)
-          while remainpath != '':
-            if subdir == arch:
-              archpath = os.path.join(outpath, arch)
-              break
-            remainpath, subdir = os.path.split(remainpath)
-          if remainpath != '':
+      #unless on generic arch targets, then re-add if not self.target.is_generic():
+      for arch in archs:
+        remainpath, subdir = os.path.split(path)
+        while remainpath != '':
+          if subdir == arch:
+            archpath = os.path.join(outpath, arch)
             break
+          remainpath, subdir = os.path.split(remainpath)
+        if remainpath != '':
+          break
       targetpath = os.path.join(archpath, targetfile)
       if os.path.normpath(file) != os.path.normpath(targetpath):
         archdir = self.mkdir(writer, archpath, implicit = rootdir)
@@ -290,6 +316,16 @@ class Toolchain(object):
 
   def paths_forward_slash(self, paths):
     return [path.replace('\\', '/') for path in paths]
+
+  def prefix_includepath(self, path):
+    if os.path.isabs(path) or self.subninja == '':
+      return path
+    if path == '.':
+      return self.subninja
+    return os.path.join(self.subninja, path)
+
+  def prefix_includepaths(self, includepaths):
+    return [self.prefix_includepath(path) for path in includepaths]
 
   def list_per_config(self, config_dicts, config):
     if config_dicts is None:
@@ -306,6 +342,17 @@ class Toolchain(object):
       return self.list_per_config(variables['implicit_deps'], config)
     return None
 
+  def make_implicit_deps(self, outpath, arch, config, dependlibs):
+    deps = {}
+    deps[config] = []
+    for lib in dependlibs:
+      if self.target.is_macos() or self.target.is_ios():
+        finalpath = os.path.join(self.libpath, config, self.libprefix + lib + self.staticlibext)
+      else:
+        finalpath = os.path.join(self.libpath, config, arch, self.libprefix + lib + self.staticlibext)
+      deps[config] += [finalpath]
+    return [deps]
+
   def compile_file(self, writer, config, arch, targettype, infile, outfile, variables):
     extension = os.path.splitext(infile)[1][1:]
     if extension in self.builders:
@@ -317,20 +364,29 @@ class Toolchain(object):
       return self.builders[nodetype](writer, config, arch, nodetype, infiles, outfile, variables)
     return []
 
-  def build_sources(self, writer, nodetype, multitype, module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, libs, implicit_deps):
+  def build_sources(self, writer, nodetype, multitype, module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks):
     if module != '':
-      decoratedmodule = module + make_pathhash(module, nodetype)
+      decoratedmodule = module + make_pathhash(self.subninja + module + binfile, nodetype)
     else:
-      decoratedmodule = basepath + make_pathhash(basepath, nodetype)
+      decoratedmodule = basepath + make_pathhash(self.subninja + basepath + binfile, nodetype)
     built = {}
     if includepaths is None:
       includepaths = []
     if libpaths is None:
       libpaths = []
-    sourcevariables = {'includepaths': self.depend_includepaths + list(includepaths)}
-    nodevariables = {'libs': libs,
+    sourcevariables = (variables or {}).copy()
+    sourcevariables.update({
+                     'includepaths': self.depend_includepaths + self.prefix_includepaths(list(includepaths))})
+    if not libs and dependlibs != None:
+      libs = []
+    if dependlibs != None:
+      libs = (dependlibs or []) + libs
+    nodevariables = (variables or {}).copy()
+    nodevariables.update({
+                     'libs': libs,
                      'implicit_deps': implicit_deps,
-                     'libpaths': self.depend_libpaths + list(libpaths)}
+                     'libpaths': self.depend_libpaths + list(libpaths),
+                     'frameworks': frameworks})
     self.module = module
     self.buildtarget = binfile
     for config in configs:
@@ -342,6 +398,13 @@ class Toolchain(object):
         modulepath = os.path.join(buildpath, basepath, decoratedmodule)
         sourcevariables['modulepath'] = modulepath
         nodevariables['modulepath'] = modulepath
+        #Make per-arch-and-config list of final implicit deps, including dependent libs
+        if self.internal_deps and dependlibs != None:
+          dep_implicit_deps = []
+          if implicit_deps:
+            dep_implicit_deps += implicit_deps
+          dep_implicit_deps += self.make_implicit_deps(outpath, arch, config, dependlibs)
+          nodevariables['implicit_deps'] = dep_implicit_deps
         #Compile all sources
         for name in sources:
           if os.path.isabs(name):
@@ -350,6 +413,8 @@ class Toolchain(object):
           else:
             infile = os.path.join(basepath, module, name)
             outfile = os.path.join(modulepath, os.path.splitext(name)[0] + make_pathhash(infile, nodetype) + self.objext)
+            if self.subninja != '':
+              infile = os.path.join(self.subninja, infile)
           objs += self.compile_file(writer, config, arch, nodetype, infile, outfile, sourcevariables)
         #Build arch node (per-config-and-arch binary)
         archoutpath = os.path.join(modulepath, binfile)
@@ -359,29 +424,33 @@ class Toolchain(object):
     writer.newline()
     return built
 
-  def lib(self, writer, module, sources, basepath, configs, includepaths, outpath = None):
+  def lib(self, writer, module, sources, libname, basepath, configs, includepaths, variables, outpath = None):
     built = {}
     if basepath == None:
       basepath = ''
     if configs is None:
       configs = list(self.configs)
-    libfile = self.libprefix + module + self.staticlibext
+    if libname is None:
+      libname = module
+    libfile = self.libprefix + libname + self.staticlibext
     if outpath is None:
       outpath = self.libpath
-    return self.build_sources(writer, 'lib', 'multilib', module, sources, libfile, basepath, outpath, configs, includepaths, None, None, None)
+    return self.build_sources(writer, 'lib', 'multilib', module, sources, libfile, basepath, outpath, configs, includepaths, None, None, None, None, variables, None)
 
-  def sharedlib(self, writer, module, sources, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, outpath = None):
+  def sharedlib(self, writer, module, sources, libname, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, outpath = None):
     built = {}
     if basepath == None:
       basepath = ''
     if configs is None:
       configs = list(self.configs)
-    libfile = self.libprefix + module + self.dynamiclibext
+    if libname is None:
+      libname = module
+    libfile = self.libprefix + libname + self.dynamiclibext
     if outpath is None:
       outpath = self.binpath
-    return self.build_sources(writer, 'sharedlib', 'multisharedlib', module, sources, libfile, basepath, outpath, configs, includepaths, libpaths, libs, implicit_deps)
+    return self.build_sources(writer, 'sharedlib', 'multisharedlib', module, sources, libfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks)
 
-  def bin(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, outpath = None):
+  def bin(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, outpath = None):
     built = {}
     if basepath == None:
       basepath = ''
@@ -390,12 +459,12 @@ class Toolchain(object):
     binfile = self.binprefix + binname + self.binext
     if outpath is None:
       outpath = self.binpath
-    return self.build_sources(writer, 'bin', 'multibin', module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, libs, implicit_deps)
+    return self.build_sources(writer, 'bin', 'multibin', module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks)
 
-  def app(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, libs, frameworks, resources):
+  def app(self, writer, module, sources, binname, basepath, configs, includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, resources):
     builtbin = []
     # Filter out platforms that do not have app concept
-    if not (self.target.is_macosx() or self.target.is_ios() or self.target.is_android() or self.target.is_tizen()):
+    if not (self.target.is_macos() or self.target.is_ios() or self.target.is_android() or self.target.is_tizen()):
       return builtbin
     if basepath is None:
       basepath = ''
@@ -404,8 +473,8 @@ class Toolchain(object):
     if configs is None:
       configs = list(self.configs)
     for config in configs:
-      archbins = self.bin(writer, module, sources, binname, basepath, [config], includepaths, libpaths, implicit_deps, libs, frameworks, '$buildpath')
-      if self.target.is_macosx() or self.target.is_ios():
+      archbins = self.bin(writer, module, sources, binname, basepath, [config], includepaths, libpaths, implicit_deps, dependlibs, libs, frameworks, variables, '$buildpath')
+      if self.target.is_macos() or self.target.is_ios():
         binpath = os.path.join(self.binpath, config, binname + '.app')
         builtbin += self.xcode.app(self, writer, module, archbins, self.binpath, binname, basepath, config, None, resources, True)
       if self.target.is_android():

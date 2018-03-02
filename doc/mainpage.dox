@@ -51,7 +51,6 @@ Libraries will be placed in lib/[platform]/[configuration]/[architecture] with p
 <li>android</li>
 <li>bsd</li>
 <li>raspberrypi</li>
-<li>pnacl</li>
 </ul>
 Configuration names are
 <ul>
@@ -135,7 +134,6 @@ Some build variables can be set externally from the ninja build files. These var
 <li>macos: deploymenttarget - Minimum MacOS X target version (default "10.7")</li>
 <li>msvc: toolchain - Path to Visual Studio toolchain to use (default value is autodetected)</li>
 <li>msvc: sdkpath - Path to Windows SDK to use (default value is autodetected)</li>
-<li>pnacl: sdkpath - Path to the PNaCl SDK (no default)</li>
 <li>tizen: sdkpath - Path to the Tizen SDK (no default)</li>
 <li>tizen: platformversion - Version of the Tizen platform to use (default "2.3")</li>
 <li>tizen: gccversion - GCC toolchain version to use when building (default "4.8")</li>

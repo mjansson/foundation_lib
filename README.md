@@ -58,9 +58,6 @@ Master branch is used for stable releases. Development is done in feature branch
 Cross-platform build system uses Ninja  
 <https://ninja-build.org/>
 
-The PNaCl build of the latest release can be tested at  
-<http://www.rampantpixels.com/foundation_lib/pnacl/>
-
 Test suite coverage and scan reports:  
 [![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)
 [![coverity.com](https://scan.coverity.com/projects/6944/badge.svg)](https://scan.coverity.com/projects/rampantpixels-foundation_lib)
