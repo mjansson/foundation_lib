@@ -58,7 +58,7 @@
 		455516A71936355D00CF089B /* hashify */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hashify; sourceTree = BUILT_PRODUCTS_DIR; };
 		455516B11936358400CF089B /* errorcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = errorcodes.h; path = ../../../tools/hashify/errorcodes.h; sourceTree = SOURCE_ROOT; };
 		455516B21936358400CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../tools/hashify/main.c; sourceTree = SOURCE_ROOT; };
-		455516B4193636A300CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
+		455516B4193636A300CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macos/debug/libfoundation.a; sourceTree = "<group>"; };
 		455516B6193636C500CF089B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		455516B7193636C500CF089B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		455516B8193636C500CF089B /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -291,7 +291,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/debug;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -310,7 +310,7 @@
 					../../..,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/debug;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/debug;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = macosx;
@@ -323,7 +323,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/release;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -343,7 +343,7 @@
 					../../..,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/release;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/release;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;

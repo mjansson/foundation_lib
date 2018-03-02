@@ -40,7 +40,6 @@ Platforms and architectures currently supported:
 * iOS (ARMv7, ARMv7s, ARMv8/AArch64), 6.0+
 * Android (ARMv6, ARMv7, ARMv8/AArch64, x86, x86-64, MIPS, MIPS64)
 * Raspberry Pi (ARMv6)
-* PNaCl
 
 
 Please consider our Patreon - <https://www.patreon.com/rampantpixels>

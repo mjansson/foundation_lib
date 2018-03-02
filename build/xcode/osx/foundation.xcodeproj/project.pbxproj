@@ -578,7 +578,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/profile;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/profile;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = c11;
@@ -596,7 +596,7 @@
 				GCC_VERSION = "";
 				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = ../../..;
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/profile;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/profile;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -609,7 +609,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/profile;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/profile;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -624,7 +624,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/debug;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = c11;
@@ -643,7 +643,7 @@
 				GCC_VERSION = "";
 				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = ../../..;
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/debug;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/debug;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -657,7 +657,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/release;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = c11;
@@ -675,7 +675,7 @@
 				GCC_VERSION = "";
 				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = ../../..;
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/release;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/release;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -688,7 +688,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/debug;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/debug;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -702,7 +702,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/release;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/release;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -717,7 +717,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/deploy;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = c11;
@@ -735,7 +735,7 @@
 				GCC_VERSION = "";
 				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = ../../..;
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/deploy;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/deploy;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -748,7 +748,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/deploy;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",

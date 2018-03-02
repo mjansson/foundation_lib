@@ -814,6 +814,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  pragma warning(disable : 4132)
 #  pragma warning(disable : 4200)
 #  pragma warning(disable : 4204)
+#  pragma warning(disable : 4702)
 #  pragma warning(disable : 4706)
 #  ifdef __cplusplus
 #  pragma warning(disable : 4100)

@@ -70,7 +70,7 @@ Architecture names are
 <li>mips64</li>
 </ul>
 
-For macOS, iOS and PNaCl builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
+For macOS and iOS builds the libraries and binaries/apps will be universal and placed directly in the corresponding configuration directory and not in separate directories per architecture. For Android apps will be universal (containing the native variants used) and placed directly in the corresponding configuration directory.
 
 Test cases are built as separate binaries with a launcher binary, placed in bin/[platform]/[configuration]/[architecture] (or directly in the configuration directory for macOS and iOS since the binaries are universal).
 
