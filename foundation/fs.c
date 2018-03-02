@@ -44,33 +44,9 @@
 #endif
 #endif
 
-#if FOUNDATION_PLATFORM_PNACL
-#  include <foundation/pnacl.h>
-#  include <ppapi/c/pp_file_info.h>
-#  include <ppapi/c/pp_directory_entry.h>
-#  include <ppapi/c/pp_completion_callback.h>
-#  include <ppapi/c/ppp_instance.h>
-#  include <ppapi/c/ppb_file_io.h>
-#  include <ppapi/c/ppb_file_system.h>
-#  include <ppapi/c/ppb_file_ref.h>
-#  include <ppapi/c/ppb_var.h>
-#  include <ppapi/c/ppb_core.h>
-static PP_Resource _pnacl_fs_temporary;
-static PP_Resource _pnacl_fs_persistent;
-static const PPB_FileSystem* _pnacl_file_system;
-static const PPB_FileIO* _pnacl_file_io;
-static const PPB_FileRef* _pnacl_file_ref;
-static const PPB_Var* _pnacl_var;
-static const PPB_Core* _pnacl_core;
-#endif
-
 #include <stdio.h>
 
-#if FOUNDATION_PLATFORM_PNACL
-typedef PP_Resource fs_file_descriptor;
-#else
 typedef FILE* fs_file_descriptor;
-#endif
 
 struct fs_monitor_t {
 	string_t   path;
@@ -85,13 +61,7 @@ struct fs_monitor_t {
 struct stream_file_t {
 	/*lint -e830 -e754 It is used, through stream type */
 	FOUNDATION_DECLARE_STREAM;
-
 	fs_file_descriptor fd;
-
-#if FOUNDATION_PLATFORM_PNACL
-	size_t position;
-	size_t size;
-#endif
 };
 
 typedef FOUNDATION_ALIGN(16) struct fs_monitor_t fs_monitor_t;
@@ -135,58 +105,6 @@ _fs_strip_protocol(const char* path, size_t length) {
 		return stripped;
 	return string_empty();
 }
-
-#if FOUNDATION_PLATFORM_PNACL
-
-static PP_Resource
-_fs_resolve_path(const char* path, size_t length, string_const_t* localpath) {
-	static string_const_t rootpath = (string_const_t) {STRING_CONST("/")};
-	if ((length > 3) && string_equal(path, 4, STRING_CONST("/tmp"))) {
-		if (length == 4) {
-			*localpath = rootpath;
-			return _pnacl_fs_temporary;
-		}
-		else if (path[4] == '/') {
-			*localpath = string_substr(path, length, 4, length - 4);
-			return _pnacl_fs_temporary;
-		}
-	}
-	else if ((length > 10) && string_equal(path, 11, STRING_CONST("/persistent"))) {
-		if (length == 11) {
-			*localpath = rootpath;
-			return _pnacl_fs_temporary;
-		}
-		else if (path[11] == '/') {
-			*localpath = string_substr(path, length, 11, length - 11);
-			return _pnacl_fs_persistent;
-		}
-	}
-	else if ((length > 5) && string_equal(path, 6, STRING_CONST("/cache"))) {
-		/* TODO: PNaCl implement
-		if( path[6] == 0 )
-		{
-			*localpath = rootpath;
-			return _pnacl_fs_cache;
-		}
-		else if( path[6] == '/' )
-		{
-			localpath = path + 6;
-			return _pnacl_fs_cache;
-		}*/
-		return 0;
-	}
-	else if (length && (path[0] != '/')) {
-		//Current working dir is always /tmp on PNaCl
-		*localpath = string_const(path, length);
-		return _pnacl_fs_temporary;
-	}
-
-	//log_warnf(HASH_PNACL, WARNING_INVALID_VALUE, STRING_CONST("Invalid file path: %.*s"),
-	//          (int)length, path);
-	return 0;
-}
-
-#endif
 
 bool
 fs_monitor(const char* path, size_t length) {
@@ -305,33 +223,6 @@ fs_is_file(const char* path, size_t length) {
 			return true;
 	}
 
-#elif FOUNDATION_PLATFORM_PNACL
-
-	bool is_file = false;
-	string_const_t localpath;
-	string_const_t pathstr = _fs_strip_protocol(path, length);
-	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
-	if (!fs)
-		return 0;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return 0;
-
-	struct PP_FileInfo info;
-	if (_pnacl_file_ref->Query(ref, &info, PP_BlockUntilComplete()) == PP_OK)
-		is_file = (info.type == PP_FILETYPE_REGULAR);
-
-	_pnacl_core->ReleaseResource(ref);
-
-	return is_file;
-
 #else
 #  error Not implemented
 #endif
@@ -370,33 +261,6 @@ fs_is_directory(const char* path, size_t length) {
 	else {
 		return false;
 	}
-
-#elif FOUNDATION_PLATFORM_PNACL
-
-	bool is_dir = false;
-	string_const_t localpath;
-	string_const_t pathstr = _fs_strip_protocol(path, length);
-	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
-	if (!fs)
-		return false;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return false;
-
-	struct PP_FileInfo info;
-	if (_pnacl_file_ref->Query(ref, &info, PP_BlockUntilComplete()) == PP_OK)
-		is_dir = (info.type == PP_FILETYPE_DIRECTORY);
-
-	_pnacl_core->ReleaseResource(ref);
-
-	return is_dir;
 
 #else
 #  error Not implemented
@@ -473,48 +337,6 @@ fs_subdirs(const char* path, size_t length) {
 		memory_context_pop();
 	}
 
-#elif FOUNDATION_PLATFORM_PNACL
-
-	memory_context_push(HASH_STREAM);
-
-	string_const_t localpath;
-	string_const_t pathstr = _fs_strip_protocol(path, length);
-	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
-	if (!fs)
-		return arr;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return arr;
-
-	pnacl_array_t entries = { 0, 0 };
-	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if (_pnacl_file_ref->ReadDirectoryEntries(ref, output, PP_BlockUntilComplete()) == PP_OK) {
-		struct PP_DirectoryEntry* entry = entries.data;
-		for (unsigned int ient = 0; ient < entries.count; ++ient, ++entry) {
-			if (entry->file_type == PP_FILETYPE_DIRECTORY) {
-				uint32_t varlen = 0;
-				const struct PP_Var namevar = _pnacl_file_ref->GetName(entry->file_ref);
-				const char* utfname = _pnacl_var->VarToUtf8(namevar, &varlen);
-				string_t copyname = string_clone(utfname, varlen);
-				array_push(arr, copyname);
-			}
-		}
-	}
-
-	_pnacl_core->ReleaseResource(ref);
-
-	if (entries.data)
-		memory_deallocate(entries.data);
-
-	memory_context_pop();
-
 #else
 #  error Not implemented
 #endif
@@ -580,48 +402,6 @@ fs_files(const char* path, size_t length) {
 		memory_context_pop();
 	}
 
-#elif FOUNDATION_PLATFORM_PNACL
-
-	memory_context_push(HASH_STREAM);
-
-	string_const_t localpath;
-	string_const_t pathstr = _fs_strip_protocol(path, length);
-	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
-	if (!fs)
-		return arr;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return arr;
-
-	pnacl_array_t entries = { 0, 0 };
-	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if (_pnacl_file_ref->ReadDirectoryEntries(ref, output, PP_BlockUntilComplete()) == PP_OK) {
-		struct PP_DirectoryEntry* entry = entries.data;
-		for (unsigned int ient = 0; ient < entries.count; ++ient, ++entry) {
-			if (entry->file_type == PP_FILETYPE_REGULAR) {
-				uint32_t varlen = 0;
-				const struct PP_Var namevar = _pnacl_file_ref->GetName(entry->file_ref);
-				const char* utfname = _pnacl_var->VarToUtf8(namevar, &varlen);
-				string_t copyname = string_clone(utfname, varlen);
-				array_push(arr, copyname);
-			}
-		}
-	}
-
-	if (entries.data)
-		memory_deallocate(entries.data);
-
-	_pnacl_core->ReleaseResource(ref);
-
-	memory_context_pop();
-
 #else
 #  error Not implemented
 #endif
@@ -652,26 +432,6 @@ fs_remove_file(const char* path, size_t length) {
 	char buffer[BUILD_MAX_PATHLEN];
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
 	result = (unlink(finalpath.str) == 0);
-
-#elif FOUNDATION_PLATFORM_PNACL
-
-	string_const_t localpath;
-	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
-	if (!fs)
-		return 0;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return 0;
-
-	result = (_pnacl_file_ref->Delete(ref, PP_BlockUntilComplete()) == PP_OK);
-	_pnacl_core->ReleaseResource(ref);
 
 #else
 #  error Not implemented
@@ -733,25 +493,6 @@ fs_remove_directory(const char* path, size_t length) {
 	abspath_buffer[fspathofs + fspath.length] = 0;
 	result = (rmdir(abspath_buffer) == 0);
 
-#elif FOUNDATION_PLATFORM_PNACL
-
-	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
-	if (!fs)
-		return 0;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return 0;
-
-	result = (_pnacl_file_ref->Delete(ref, PP_BlockUntilComplete()) == PP_OK);
-	_pnacl_core->ReleaseResource(ref);
-
 #else
 #  error Not implemented
 #endif
@@ -763,34 +504,6 @@ end:
 
 bool
 fs_make_directory(const char* path, size_t length) {
-#if FOUNDATION_PLATFORM_PNACL
-
-	string_const_t fspath;
-	fspath = _fs_strip_protocol(path, length);
-
-	string_const_t localpath;
-	PP_Resource fs = _fs_resolve_path(fspath.str, fspath.length, (string_const_t*)&localpath);
-	if (!fs)
-		return false;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return false;
-
-	bool result = (_pnacl_file_ref->MakeDirectory(ref, PP_MAKEDIRECTORYFLAG_WITH_ANCESTORS,
-	                                              PP_BlockUntilComplete()) == PP_OK);
-	_pnacl_core->ReleaseResource(ref);
-
-	return result;
-
-#else
-
 	bool result = false;
 	char abspath_buffer[BUILD_MAX_PATHLEN];
 	size_t offset;
@@ -849,8 +562,6 @@ fs_make_directory(const char* path, size_t length) {
 end:
 
 	return result;
-
-#endif
 }
 
 bool
@@ -942,31 +653,6 @@ fs_last_modified(const char* path, size_t length) {
 	}
 	return tstamp;
 
-#elif FOUNDATION_PLATFORM_PNACL
-
-	tick_t tstamp = 0;
-	string_const_t localpath;
-	string_const_t pathstr = _fs_strip_protocol(path, length);
-	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
-	if (fs) {
-		char buffer[BUILD_MAX_PATHLEN + 1];
-		string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-		if (finalpath.str[0] != '/') {
-			*(--finalpath.str) = '/';
-			finalpath.length++;
-		}
-		PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-		if (ref) {
-			struct PP_FileInfo info;
-			if (_pnacl_file_ref->Query(ref, &info, PP_BlockUntilComplete()) == PP_OK)
-				tstamp = (tick_t)info.last_modified_time * 1000LL;
-
-			_pnacl_core->ReleaseResource(ref);
-		}
-	}
-
-	return tstamp;
-
 #else
 #  error Not implemented
 #endif
@@ -1010,26 +696,6 @@ fs_touch(const char* path, size_t length) {
 		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
 		utime(finalpath.str, 0);
 	}
-#elif FOUNDATION_PLATFORM_PNACL
-
-	string_const_t localpath;
-	string_const_t pathstr = _fs_strip_protocol(path, length);
-	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
-	if (fs) {
-		char buffer[BUILD_MAX_PATHLEN + 1];
-		string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-		if (finalpath.str[0] != '/') {
-			*(--finalpath.str) = '/';
-			finalpath.length++;
-		}
-		PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-		if (ref) {
-			PP_Time tstamp = (PP_Time)(time_system() / 1000LL);
-			_pnacl_file_ref->Touch(ref, tstamp, tstamp, PP_BlockUntilComplete());
-			_pnacl_core->ReleaseResource(ref);
-		}
-	}
-
 #else
 #  error Not implemented
 #endif
@@ -1532,54 +1198,6 @@ static fs_file_descriptor
 _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc) {
 	fs_file_descriptor fd = 0;
 
-#if FOUNDATION_PLATFORM_PNACL
-	FOUNDATION_UNUSED(dotrunc);
-
-	if (!(mode & (STREAM_IN | STREAM_OUT)))
-		return 0;
-
-	string_const_t localpath;
-	string_const_t pathstr = _fs_strip_protocol(path, length);
-	PP_Resource fs = _fs_resolve_path(pathstr.str, pathstr.length, &localpath);
-	if (!fs)
-		return 0;
-
-	char buffer[BUILD_MAX_PATHLEN + 1];
-	string_t finalpath = string_copy(buffer + 1, sizeof(buffer) - 1, STRING_ARGS(localpath));
-	if (finalpath.str[0] != '/') {
-		*(--finalpath.str) = '/';
-		finalpath.length++;
-	}
-	PP_Resource ref = _pnacl_file_ref->Create(fs, finalpath.str);
-	if (!ref)
-		return 0;
-
-	fd = _pnacl_file_io->Create(pnacl_instance());
-	if (fd) {
-		int flags = 0;
-
-		if (mode & STREAM_IN)
-			flags |= PP_FILEOPENFLAG_READ;
-		if (mode & STREAM_OUT) {
-			flags |= PP_FILEOPENFLAG_WRITE;
-			if (mode & STREAM_TRUNCATE)
-				flags |= PP_FILEOPENFLAG_TRUNCATE;
-		}
-		if (mode & STREAM_CREATE)
-			flags |= PP_FILEOPENFLAG_CREATE;
-
-		int res = _pnacl_file_io->Open(fd, ref, flags, PP_BlockUntilComplete());
-		if (res != PP_OK) {
-			_pnacl_file_io->Close(fd);
-			_pnacl_core->ReleaseResource(fd);
-			fd = 0;
-		}
-	}
-
-	_pnacl_core->ReleaseResource(ref);
-
-#else
-
 #if FOUNDATION_PLATFORM_WINDOWS
 #  define MODESTRING(x) L##x
 	const wchar_t* modestr;
@@ -1663,8 +1281,6 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 			          (int)length, path);
 	}
 
-#endif
-
 	return fd;
 }
 
@@ -1672,9 +1288,7 @@ static size_t
 _fs_file_tell(stream_t* stream) {
 	if (GET_FILE(stream)->fd == 0)
 		return 0;
-#if FOUNDATION_PLATFORM_PNACL
-	return GET_FILE(stream)->position;
-#elif FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
+#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	int64_t pos = _ftelli64(GET_FILE(stream)->fd);
 	return (size_t)(pos < 0 ? 0 : pos);
 #elif FOUNDATION_PLATFORM_WINDOWS
@@ -1690,53 +1304,22 @@ _fs_file_tell(stream_t* stream) {
 
 static void
 _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
-#if FOUNDATION_PLATFORM_PNACL
-	stream_file_t* file = GET_FILE(stream);
-	if (direction == STREAM_SEEK_BEGIN)
-		file->position = offset > 0 ? (size_t)offset : 0;
-	else if (direction == STREAM_SEEK_END)
-		file->position = file->size - (offset < 0 ? (size_t) - offset : 0);
-	else {
-		if (offset > 0)
-			file->position += (size_t)offset;
-		else
-			file->position -= (size_t) - offset;
-	}
-	if (file->position > file->size) {
-		if (((stream->mode & STREAM_OUT) != 0) &&
-		        (_pnacl_file_io->SetLength(file->fd, file->position, PP_BlockUntilComplete()) == PP_OK)) {
-			file->size = file->position;
-			_pnacl_file_io->Flush(file->fd, PP_BlockUntilComplete());
-		}
-		else {
-			file->position = file->size;
-		}
-	}
-#else
 	/*lint -esym(970,long) */
 	if (fseek(GET_FILE(stream)->fd, (long)offset,
 	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET :
-	          ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR)))
+	          ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"),
 		          (int)offset, (int)direction, STRING_FORMAT(stream->path));
-#endif
+	}
 }
 
 static bool
 _fs_file_eos(stream_t* stream) {
-#if FOUNDATION_PLATFORM_PNACL
-	stream_file_t* file = GET_FILE(stream);
-	return (file->position >= file->size);
-#else
 	return (GET_FILE(stream)->fd == 0) || (feof(GET_FILE(stream)->fd) != 0);
-#endif
 }
 
 static size_t
 _fs_file_size(stream_t* stream) {
-#if FOUNDATION_PLATFORM_PNACL
-	return GET_FILE(stream)->size;
-#else
 	size_t cur, size;
 
 	cur = _fs_file_tell(stream);
@@ -1745,7 +1328,6 @@ _fs_file_size(stream_t* stream) {
 	_fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
 
 	return size;
-#endif
 }
 
 static void
@@ -1769,22 +1351,6 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	cur = _fs_file_tell(stream);
 	if (cur > length)
 		cur = length;
-
-#if FOUNDATION_PLATFORM_PNACL
-	FOUNDATION_UNUSED(length);
-	FOUNDATION_UNUSED(fspath);
-	file = GET_FILE(stream);
-
-	if (_pnacl_file_io->SetLength(file->fd, 0, PP_BlockUntilComplete()) == PP_OK) {
-		file->size = 0;
-		file->position = 0;
-		_pnacl_file_io->Flush(file->fd, PP_BlockUntilComplete());
-	}
-
-	file->size = length;
-	file->position = cur;
-
-#else
 
 	file = GET_FILE(stream);
 	fspath = _fs_strip_protocol(STRING_ARGS(file->path));
@@ -1837,61 +1403,26 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 
 	file->fd = _fs_file_fopen(fspath.str, fspath.length, stream->mode, 0);
 	_fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
-
-	//FOUNDATION_ASSERT( file_size( file ) == length );
-#endif
 }
 
 static void
 _fs_file_flush(stream_t* stream) {
 	if (GET_FILE(stream)->fd == 0)
 		return;
-
-#if FOUNDATION_PLATFORM_PNACL
-	_pnacl_file_io->Flush(GET_FILE(stream)->fd, PP_BlockUntilComplete());
-#else
 	fflush(GET_FILE(stream)->fd);
-#endif
 }
 
 static size_t
 _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 	stream_file_t* file;
 	size_t was_read;
-#if !FOUNDATION_PLATFORM_PNACL
 	size_t beforepos;
-#endif
 
 	if (!(stream->mode & STREAM_IN) ||
 	        (GET_FILE(stream)->fd == 0))
 		return 0;
 
 	file = GET_FILE(stream);
-
-#if FOUNDATION_PLATFORM_PNACL
-
-	size_t available = file->size - file->position;
-	if (!available || !num_bytes)
-		return 0;
-	if (available > 0x7FFFFFFFULL)
-		available = 0x7FFFFFFFULL;
-
-	int32_t read = _pnacl_file_io->Read(file->fd, file->position, buffer,
-	                                    (available < num_bytes) ? (int32_t)available : (int32_t)num_bytes, PP_BlockUntilComplete());
-	if (read == 0) {
-		was_read = (file->size - file->position);
-		file->position = file->size;
-	}
-	else if (read > 0) {
-		was_read = (size_t)read;
-		file->position += was_read;
-	}
-	else
-		was_read = 0;
-
-	return was_read;
-
-#else
 
 	beforepos = _fs_file_tell(stream);
 	was_read = fread(buffer, 1, num_bytes, file->fd);
@@ -1905,50 +1436,19 @@ _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 	}
 
 	return 0;
-
-#endif
 }
 
 static size_t
 _fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
 	stream_file_t* file;
 	size_t was_written;
-#if !FOUNDATION_PLATFORM_PNACL
 	size_t beforepos;
-#endif
 
 	if (!(stream->mode & STREAM_OUT) ||
 	        (GET_FILE(stream)->fd == 0))
 		return 0;
 
 	file = GET_FILE(stream);
-
-#if FOUNDATION_PLATFORM_PNACL
-
-	if (num_bytes > 0x7FFFFFFFULL)
-		num_bytes = 0x7FFFFFFFULL;
-
-	if (file->position + num_bytes > file->size) {
-		if (_pnacl_file_io->SetLength(file->fd, file->size, PP_BlockUntilComplete()) == PP_OK)
-			file->size = file->position + num_bytes;
-	}
-
-	int32_t written = _pnacl_file_io->Write(file->fd, file->position, buffer, (int32_t)num_bytes,
-	                                        PP_BlockUntilComplete());
-	if (written == 0) {
-		was_written = (file->size - file->position);
-		file->position = file->size;
-	}
-	else if (written > 0) {
-		was_written = (size_t)written;
-		file->position += was_written;
-	}
-	else
-		was_written = 0;
-
-	return was_written;
-
-#else
 
 	beforepos = _fs_file_tell(stream);
 	was_written = fwrite(buffer, 1, num_bytes, file->fd);
@@ -1962,21 +1462,12 @@ _fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
 	}
 
 	return 0;
-
-#endif
 }
 
 static tick_t
 _fs_file_last_modified(const stream_t* stream) {
 	const stream_file_t* fstream = GET_FILE_CONST(stream);
-#if FOUNDATION_PLATFORM_PNACL
-	struct PP_FileInfo info;
-	if (_pnacl_file_io->Query(fstream->fd, &info, PP_BlockUntilComplete()) == PP_OK)
-		return (tick_t)info.last_modified_time * 1000LL;
-	return 0;
-#else
 	return fs_last_modified(fstream->path.str, fstream->path.length);
-#endif
 }
 
 static size_t
@@ -2010,22 +1501,14 @@ _fs_file_finalize(stream_t* stream) {
 			fcntl(fileno(file->fd), F_FULLFSYNC, 0);
 #elif FOUNDATION_PLATFORM_POSIX
 			fsync(fileno(file->fd));
-#elif FOUNDATION_PLATFORM_PNACL
-			_pnacl_file_io->Flush(file->fd, PP_BlockUntilComplete());
 #else
 #  error Not implemented
 #endif
 		}
 	}
 
-	if (file->fd) {
-#if FOUNDATION_PLATFORM_PNACL
-		_pnacl_file_io->Close(file->fd);
-		_pnacl_core->ReleaseResource(file->fd);
-#else
+	if (file->fd)
 		fclose(file->fd);
-#endif
-	}
 	file->fd = 0;
 }
 
@@ -2077,14 +1560,6 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 	file->path   = finalpath;
 	file->vtable = &_fs_file_vtable;
 
-#if FOUNDATION_PLATFORM_PNACL
-	struct PP_FileInfo fileinfo;
-	if (_pnacl_file_io->Query(file->fd, &fileinfo, PP_BlockUntilComplete()) == PP_OK)
-		file->size = (fileinfo.size > 0) ? (size_t)fileinfo.size : 0;
-	else
-		file->size = 0;
-#endif
-
 	if (dotrunc)
 		_fs_file_truncate(stream, 0);
 	else if (mode & STREAM_ATEND)
@@ -2128,51 +1603,6 @@ _fs_initialize(void) {
 #endif
 	_pipe_stream_initialize();
 
-#if FOUNDATION_PLATFORM_PNACL
-
-	int ret;
-	PP_Instance instance = pnacl_instance();
-
-	_pnacl_file_system = pnacl_interface(STRING_CONST(PPB_FILESYSTEM_INTERFACE));
-	_pnacl_file_io = pnacl_interface(STRING_CONST(PPB_FILEIO_INTERFACE));
-	_pnacl_file_ref = pnacl_interface(STRING_CONST(PPB_FILEREF_INTERFACE));
-	_pnacl_var = pnacl_interface(STRING_CONST(PPB_VAR_INTERFACE));
-	_pnacl_core = pnacl_interface(STRING_CONST(PPB_CORE_INTERFACE));
-
-	if (!_pnacl_file_system)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get file system interface"));
-	if (!_pnacl_file_io)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get file I/O interface"));
-	if (!_pnacl_file_ref)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get file ref interface"));
-	if (!_pnacl_var)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get var interface"));
-	if (!_pnacl_core)
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get core interface"));
-
-	if (_pnacl_file_system && _pnacl_file_io && _pnacl_file_ref && _pnacl_var && _pnacl_core) {
-		_pnacl_fs_temporary = _pnacl_file_system->Create(instance, PP_FILESYSTEMTYPE_LOCALTEMPORARY);
-		_pnacl_fs_persistent = _pnacl_file_system->Create(instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT);
-
-		if ((ret = _pnacl_file_system->Open(_pnacl_fs_temporary, 100000,
-		                                    PP_BlockUntilComplete())) != PP_OK) {
-			string_const_t errmsg = pnacl_error_message(ret);
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Unable to open temporary file system: %.*s (%d)"),
-			          STRING_FORMAT(errmsg), ret);
-		}
-
-		if ((ret = _pnacl_file_system->Open(_pnacl_fs_persistent, 100000,
-		                                    PP_BlockUntilComplete()) != PP_OK)) {
-			string_const_t errmsg = pnacl_error_message(ret);
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Unable to open persistent file system: %.*s (%d)"),
-			          STRING_FORMAT(errmsg), ret);
-		}
-	}
-
-#endif
-
 	return 0;
 }
 
@@ -2187,19 +1617,6 @@ _fs_finalize(void) {
 
 	event_stream_deallocate(_fs_event_stream);
 	_fs_event_stream = 0;
-
-#if FOUNDATION_PLATFORM_PNACL
-	_pnacl_core->ReleaseResource(_pnacl_fs_persistent);
-	_pnacl_core->ReleaseResource(_pnacl_fs_temporary);
-
-	_pnacl_fs_temporary = 0;
-	_pnacl_fs_persistent = 0;
-	_pnacl_file_system = 0;
-	_pnacl_file_io = 0;
-	_pnacl_file_ref = 0;
-	_pnacl_var = 0;
-	_pnacl_core = 0;
-#endif
 
 	memory_deallocate(_fs_monitors);
 	_fs_monitors = 0;

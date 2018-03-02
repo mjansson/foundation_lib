@@ -20,10 +20,6 @@
 #  include <mach/mach_time.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#elif FOUNDATION_PLATFORM_PNACL
-#  include <unistd.h>
-#  include <time.h>
-#  include <string.h>
 #else
 #  error Not implemented on this platform!
 #endif
@@ -54,7 +50,7 @@ _time_initialize(void) {
 	if (mach_timebase_info(&_time_info))
 		return -1;
 	_time_freq = 1000000000LL;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	if (clock_gettime(CLOCK_MONOTONIC, &ts))
 		return -1;
@@ -87,7 +83,7 @@ time_current(void) {
 	absolutetime_to_nanoseconds(mach_absolute_time(), &curclock);
 	return curclock;
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -135,7 +131,7 @@ time_elapsed_ticks(const tick_t t) {
 	absolutetime_to_nanoseconds(mach_absolute_time(), &curclock);
 	dt = curclock - t;
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 	tick_t curclock;
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
@@ -182,7 +178,7 @@ time_system(void) {
 	gettimeofday(&now, 0);
 	return ((int64_t)now.tv_sec * 1000LL) + (now.tv_usec / 1000LL);
 	
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime(CLOCK_REALTIME, &ts);

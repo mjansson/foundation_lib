@@ -139,8 +139,6 @@ typedef enum {
 	PLATFORM_ANDROID,
 	/*! Raspberry Pi (linux flavour) */
 	PLATFORM_RASPBERRYPI,
-	/*! PNaCl (unknown host platform) */
-	PLATFORM_PNACL,
 	/*! BSD */
 	PLATFORM_BSD,
 	/*! Tizen */
@@ -175,7 +173,7 @@ typedef enum {
 	ARCHITECTURE_MIPS,
 	/*! MIPS 64-bit */
 	ARCHITECTURE_MIPS_64,
-	/*! Generic/unknown (for PNaCl) */
+	/*! Generic/unknown */
 	ARCHITECTURE_GENERIC
 } architecture_t;
 
@@ -569,7 +567,7 @@ typedef void*                         semaphore_t;
 #elif FOUNDATION_PLATFORM_APPLE
 #  include <sys/semaphore.h>
 typedef struct semaphore_t            semaphore_t;
-#elif FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_POSIX
 #  include <semaphore.h>
 typedef struct semaphore_t            semaphore_t;
 #endif
@@ -1380,7 +1378,7 @@ struct semaphore_t {
 	} sem;
 };
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 FOUNDATION_ALIGNED_STRUCT(semaphore_t, 8) {
 	sem_t unnamed;
@@ -1448,7 +1446,7 @@ struct thread_t {
 	/*! OS handle */
 	uintptr_t handle;
 #endif
-#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_POSIX
 	/*! OS handle */
 	uintptr_t handle;
 #endif

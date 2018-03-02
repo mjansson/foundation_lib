@@ -106,10 +106,6 @@ class ClangToolchain(toolchain.Toolchain):
       self.builders['multilib'] = self.builder_apple_multilib
       self.builders['multisharedlib'] = self.builder_apple_multisharedlib
       self.builders['multibin'] = self.builder_apple_multibin
-    elif self.target.is_pnacl():
-      self.builders['multilib'] = self.builder_multicopy
-      self.builders['multisharedlib'] = self.builder_multicopy
-      self.builders['multibin'] = self.builder_pnacl_multibin
     else:
       self.builders['multilib'] = self.builder_multicopy
       self.builders['multisharedlib'] = self.builder_multicopy
@@ -139,10 +135,6 @@ class ClangToolchain(toolchain.Toolchain):
       macosprefs = prefs['macos']
       if 'deploymenttarget' in macosprefs:
         self.deploymenttarget = macosprefs['deploymenttarget']
-    if self.target.is_pnacl() and 'pnacl' in prefs:
-      pnaclprefs = prefs['pnacl']
-      if 'sdkpath' in pnaclprefs:
-        self.sdkpath = os.path.expanduser(pnaclprefs['sdkpath'])
 
   def write_variables(self, writer):
     super(ClangToolchain, self).write_variables(writer)
@@ -155,9 +147,6 @@ class ClangToolchain(toolchain.Toolchain):
     writer.variable('link', self.linker)
     if self.target.is_macos() or self.target.is_ios():
       writer.variable('lipo', self.lipo)
-    if self.target.is_pnacl():
-      writer.variable('finalize', self.finalizer)
-      writer.variable('nmf', self.nmfer)
     writer.variable('includepaths', self.make_includepaths(self.includepaths))
     writer.variable('moreincludepaths', '')
     writer.variable('cflags', self.cflags)
@@ -191,9 +180,6 @@ class ClangToolchain(toolchain.Toolchain):
     writer.rule('ar', command = self.arcmd, description = 'LIB $out')
     writer.rule('link', command = self.linkcmd, description = 'LINK $out')
     writer.rule('so', command = self.linkcmd, description = 'SO $out')
-    if self.target.is_pnacl():
-      writer.rule('finalize', command = self.finalizecmd, description = 'FINALIZE $out')
-      writer.rule('nmf', command = self.nmfcmd, description = 'NMF $out')
     writer.newline()
 
   def build_toolchain(self):
@@ -204,8 +190,6 @@ class ClangToolchain(toolchain.Toolchain):
       self.build_android_toolchain()
     elif self.target.is_macos() or self.target.is_ios():
       self.build_xcode_toolchain()
-    elif self.target.is_pnacl():
-      self.build_pnacl_toolchain()
     if self.toolchain != '' and not self.toolchain.endswith('/') and not self.toolchain.endswith('\\'):
       self.toolchain += os.sep
 
@@ -269,29 +253,6 @@ class ClangToolchain(toolchain.Toolchain):
       self.frameworks = ['Cocoa', 'CoreFoundation']
     if self.target.is_ios():
       self.frameworks = ['CoreGraphics', 'UIKit', 'Foundation']
-
-  def build_pnacl_toolchain(self):
-    if self.sdkpath == '':
-      self.sdkpath = os.path.expanduser(os.getenv('NACL_SDK_ROOT'))
-
-    osname = subprocess.check_output([self.python, os.path.join(self.sdkpath, 'tools', 'getos.py')]).strip()
-    self.toolchain = os.path.join(self.sdkpath, 'toolchain', osname + '_pnacl')
-
-    shsuffix = ''
-    if self.host.is_windows():
-      shsuffix = '.bat'
-    self.ccompiler = os.path.join('bin', 'pnacl-clang' + shsuffix)
-    self.archiver = os.path.join('bin', 'pnacl-ar' + shsuffix)
-    self.linker = self.ccompiler
-    self.finalizer = os.path.join('bin', 'pnacl-finalize' + shsuffix)
-    self.nmfer = os.path.join('tools', 'create_nmf.py')
-
-    self.finalizecmd = '$toolchain$finalize -o $out $in'
-    self.nmfcmd = self.python + ' ' + os.path.join('$sdkpath', '$nmf') + ' -o $out $in'
-
-    self.includepaths += [os.path.join(self.sdkpath, 'include')]
-
-    self.oslibs += ['ppapi', 'm']
 
   def make_includepaths(self, includepaths):
     if not includepaths is None:
@@ -534,13 +495,6 @@ class ClangToolchain(toolchain.Toolchain):
 
   def builder_apple_multibin(self, writer, config, arch, targettype, infiles, outfile, variables):
     return writer.build(os.path.join(outfile, self.buildtarget), 'lipo', infiles, variables = variables)
-
-  #PNaCl finalizer
-  def builder_pnacl_multibin(self, writer, config, arch, targettype, infiles, outfile, variables):
-    binfile = os.path.splitext(self.buildtarget)[0]
-    pexe = writer.build(os.path.join(outfile, binfile + '.pexe'), 'finalize', infiles)
-    nmf = writer.build(os.path.join(outfile, binfile + '.nmf'), 'nmf', pexe + infiles)
-    return [pexe, nmf]
 
 def create(host, target, toolchain):
   return ClangToolchain(host, target, toolchain)

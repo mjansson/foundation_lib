@@ -21,7 +21,7 @@
 #elif FOUNDATION_PLATFORM_ANDROID
 #  include <time.h>
 #  include <asm/fcntl.h>
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 #  include <time.h>
 #  include <sys/fcntl.h>
 #  include <sys/time.h>
@@ -210,7 +210,7 @@ semaphore_post(semaphore_t* semaphore) {
 #endif
 }
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 bool
 semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
@@ -250,10 +250,6 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 		semaphore->name = string_clone(name, length);
 	semaphore->sem = 0;
 
-#if FOUNDATION_PLATFORM_PNACL
-	FOUNDATION_ASSERT_FAIL("Named semaphores not supported on this platform");
-	return false;
-#else
 	sem_t* sem = sem_open(semaphore->name.str, O_CREAT, (mode_t)0666, value);
 	if (sem == SEM_FAILED) {
 		int err = system_error();
@@ -266,7 +262,6 @@ semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t leng
 
 	semaphore->sem = sem;
 	return true;
-#endif
 }
 
 void
@@ -276,11 +271,9 @@ semaphore_finalize(semaphore_t* semaphore) {
 			sem_destroy(semaphore->sem);
 	}
 	else {
-#if !FOUNDATION_PLATFORM_PNACL
 		sem_unlink(semaphore->name.str);
 		if (semaphore->sem)
 			sem_close(semaphore->sem);
-#endif
 		string_deallocate(semaphore->name.str);
 	}
 }
@@ -293,18 +286,6 @@ semaphore_wait(semaphore_t* semaphore) {
 bool
 semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 	if (milliseconds > 0) {
-#if FOUNDATION_PLATFORM_PNACL
-		//PNaCl busy wait/yield simulation of sem_timedwait
-		tick_t start = time_current();
-		tick_t ticks_per_sec = time_ticks_per_second();
-		while (sem_trywait(semaphore->sem) != 0) {
-			thread_sleep(1);
-			tick_t elapsed = time_elapsed_ticks(start);
-			if (elapsed > (((tick_t)milliseconds * ticks_per_sec) / 1000LL))
-				return false;
-		}
-		return true;
-#else
 		struct timeval now;
 		struct timespec then;
 		gettimeofday(&now, 0);
@@ -315,7 +296,6 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 			then.tv_nsec -= 1000000000L;
 		}
 		return sem_timedwait(semaphore->sem, &then) == 0;
-#endif
 	}
 	return sem_trywait(semaphore->sem) == 0;
 }

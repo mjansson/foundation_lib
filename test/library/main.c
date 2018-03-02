@@ -53,9 +53,6 @@ DECLARE_TEST(library, lookup) {
 	string_const_t libraryname;
 	string_const_t symbolname;
 
-	if (system_platform() == PLATFORM_PNACL)
-		return 0;
-
 #if FOUNDATION_PLATFORM_WINDOWS
 	libraryname = string_const(STRING_CONST("kernel32"));
 	symbolname = string_const(STRING_CONST("ExitProcess"));

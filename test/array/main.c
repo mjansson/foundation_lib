@@ -50,10 +50,12 @@ typedef FOUNDATION_ALIGNED_STRUCT(_basic_type, 8) {
 	int        intval;
 	float32_t  floatval;
 	object_t   objval;
+	int        _padding;
 } basic_t;
 
 typedef FOUNDATION_ALIGNED_STRUCT(_combined_type, 8) {
 	int        intval;
+	int        _ipadding;
 	union {
 		int      intval;
 		real     realval;
@@ -62,6 +64,7 @@ typedef FOUNDATION_ALIGNED_STRUCT(_combined_type, 8) {
 		object_t objval;
 	}          unionval;
 	char       charval;
+	char       _cpadding[7];
 	basic_t    basicval;
 	void*      ptrval;
 } combine_t;

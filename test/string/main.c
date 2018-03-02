@@ -163,10 +163,10 @@ DECLARE_TEST(string, allocate) {
 		EXPECT_EQ(nullptr, string_const(nullptr, sizeof(conststr)).str);
 		EXPECT_EQ(0, string_const(conststr, 0).length);
 
-		EXPECT_EQ(conststr, string_to_const((string_t) {conststr, sizeof(conststr)}).str);
-		EXPECT_EQ(sizeof(conststr), string_to_const((string_t) {conststr, sizeof(conststr)}).length);
-		EXPECT_EQ(nullptr, string_to_const((string_t) {nullptr, sizeof(conststr)}).str);
-		EXPECT_EQ(0, string_to_const((string_t) {conststr, 0}).length);
+		EXPECT_EQ(conststr, string_to_const(string(conststr, sizeof(conststr))).str);
+		EXPECT_EQ(sizeof(conststr), string_to_const(string(conststr, sizeof(conststr))).length);
+		EXPECT_EQ(nullptr, string_to_const(string(nullptr, sizeof(conststr))).str);
+		EXPECT_EQ(0, string_to_const(string(conststr, 0)).length);
 	}
 	{
 		wchar_t teststr1[] = L"test";
@@ -2327,22 +2327,22 @@ DECLARE_TEST(string, convert) {
 	EXPECT_INTEQ(string_to_uint(STRING_CONST("abc"), false), 0);
 	EXPECT_INTEQ(string_to_uint(STRING_CONST("abc"), true), 0xabc);
 
-	EXPECT_INTEQ(string_to_int64(nullptr, 0), 0);
-	EXPECT_INTEQ(string_to_int64("1", 0), 0);
-	EXPECT_INTEQ(string_to_int64(STRING_CONST("1")), 1);
-	EXPECT_INTEQ(string_to_int64(STRING_CONST("-1234567890123456789abvs")), -1234567890123456789);
-	EXPECT_INTEQ(string_to_int64("-1234567890123456789abvs", 4), -123);
-	EXPECT_INTEQ(string_to_int64(STRING_CONST("a-12345abvs")), 0);
+	EXPECT_INT64EQ(string_to_int64(nullptr, 0), 0);
+	EXPECT_INT64EQ(string_to_int64("1", 0), 0);
+	EXPECT_INT64EQ(string_to_int64(STRING_CONST("1")), 1);
+	EXPECT_INT64EQ(string_to_int64(STRING_CONST("-1234567890123456789abvs")), -1234567890123456789LL);
+	EXPECT_INT64EQ(string_to_int64("-1234567890123456789abvs", 4), -123);
+	EXPECT_INT64EQ(string_to_int64(STRING_CONST("a-12345abvs")), 0);
 
-	EXPECT_INTEQ(string_to_uint64(nullptr, 0, false), 0);
-	EXPECT_INTEQ(string_to_uint64("1", 0, false), 0);
-	EXPECT_INTEQ(string_to_uint64(STRING_CONST("1"), false), 1);
-	EXPECT_INTEQ(string_to_uint64(STRING_CONST("1234567890123456789asv"), false), 1234567890123456789);
-	EXPECT_INTEQ(string_to_uint64(STRING_CONST("-1234567890123456789asv"), false),
+	EXPECT_UINT64EQ(string_to_uint64(nullptr, 0, false), 0);
+	EXPECT_UINT64EQ(string_to_uint64("1", 0, false), 0);
+	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("1"), false), 1);
+	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("1234567890123456789asv"), false), 1234567890123456789LL);
+	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("-1234567890123456789asv"), false),
 	             (uint64_t)-1234567890123456789);
-	EXPECT_INTEQ(string_to_uint64(STRING_CONST("abcdef123456"), false), 0);
-	EXPECT_INTEQ(string_to_uint64(STRING_CONST("abcdef123456"), true), 0xabcdef123456ULL);
-	EXPECT_INTEQ(string_to_uint64("abcdef123456", 5, true), 0xabcdeULL);
+	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("abcdef123456"), false), 0);
+	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("abcdef123456"), true), 0xabcdef123456ULL);
+	EXPECT_UINT64EQ(string_to_uint64("abcdef123456", 5, true), 0xabcdeULL);
 
 	EXPECT_TRUE(uint128_equal(string_to_uint128(nullptr, 0), uint128_make(0, 0)));
 	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 0), uint128_make(0,

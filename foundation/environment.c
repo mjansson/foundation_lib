@@ -64,7 +64,7 @@ _environment_ns_set_current_working_directory(const char* buffer, size_t length)
 static application_t _environment_app;
 static string_t* _environment_argv;
 
-#if FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_BSD
 static int _environment_main_argc;
 static const char* const* _environment_main_argv;
 #endif
@@ -74,7 +74,7 @@ _environment_clean_temporary_directory(bool recreate);
 
 void
 _environment_main_args(int argc, const char* const* argv) {
-#if FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_BSD
 	_environment_main_argc = argc;
 	_environment_main_argv = argv;
 #else
@@ -82,8 +82,6 @@ _environment_main_args(int argc, const char* const* argv) {
 	FOUNDATION_UNUSED(argv);
 #endif
 }
-
-#if !FOUNDATION_PLATFORM_PNACL
 
 static void
 _environment_set_executable_paths(char* executable_path, size_t length) {
@@ -110,14 +108,10 @@ _environment_set_executable_paths(char* executable_path, size_t length) {
 	_environment_executable_path = string_clone(executable_path, length);
 }
 
-#endif
-
 int
 _environment_initialize(const application_t application) {
 	string_const_t working_dir;
-#if !FOUNDATION_PLATFORM_PNACL
 	char buffer[BUILD_MAX_PATHLEN];
-#endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ia;
@@ -255,18 +249,6 @@ _environment_initialize(const application_t application) {
 
 	_environment_set_executable_paths(exe_path.str, exe_path.length);
 
-#elif FOUNDATION_PLATFORM_PNACL
-
-	for (int ia = 0; ia < _environment_main_argc; ++ia)
-		array_push(_environment_argv, string_clone(_environment_main_argv[ia],
-		                                           string_length(_environment_main_argv[ia])));
-
-	_environment_executable_dir = string_clone(STRING_CONST("/cache"));
-	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
-	_environment_app_dir = string_clone(STRING_CONST("/persistent"));
-	_environment_temp_dir = string_clone(STRING_CONST("/tmp"));
-	_environment_executable_path = string_clone(STRING_ARGS(application.short_name));
-
 #else
 #  error Not implemented
 	/*if( array_size( _environment_argv ) > 0 )
@@ -387,8 +369,6 @@ environment_current_working_directory(void) {
 	if ((localpath.length > 1) && (localpath.str[localpath.length - 1] == '/'))
 		localpath.str[--localpath.length] = 0;
 	_environment_current_working_dir = string_clone(STRING_ARGS(localpath));
-#elif FOUNDATION_PLATFORM_PNACL
-	_environment_current_working_dir = string_clone(STRING_CONST("/tmp"));
 #else
 #  error Not implemented
 #endif
@@ -420,11 +400,6 @@ environment_set_current_working_directory(const char* path, size_t length) {
 		          (int)length, path, STRING_FORMAT(errmsg), err);
 		result = false;
 	}
-#elif FOUNDATION_PLATFORM_PNACL
-	//Allow nothing, always set to /tmp
-	FOUNDATION_UNUSED(path);
-	FOUNDATION_UNUSED(length);
-	result = false;
 #else
 #  error Not implemented
 #endif
@@ -505,8 +480,6 @@ environment_application_directory(void) {
 		const char* data_path = android_app()->activity->internalDataPath;
 		_environment_app_dir = string_clone(data_path, string_length(data_path));
 	}
-#elif FOUNDATION_PLATFORM_PNACL
-	// _environment_app_dir is mapped to /persistent
 #else
 #  error Not implemented
 #endif
@@ -610,10 +583,8 @@ _environment_clean_temporary_directory(bool recreate) {
 
 string_const_t
 environment_variable(const char* var, size_t length) {
-#if !FOUNDATION_PLATFORM_PNACL
 	string_t buffer = string_thread_buffer();
 	string_t varstr = string_copy(STRING_ARGS(buffer), var, length);
-#endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	unsigned int required;
 	wchar_t* key = wstring_allocate_from_string(STRING_ARGS(varstr));
@@ -638,10 +609,6 @@ environment_variable(const char* var, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 	const char* value = getenv(varstr.str);
 	return string_const(value, value ? string_length(value) : 0);
-#elif FOUNDATION_PLATFORM_PNACL
-	FOUNDATION_UNUSED(var);
-	FOUNDATION_UNUSED(length);
-	return string_const(0, 0);   //No env vars on PNaCl
 #else
 #  error Not implemented
 #endif

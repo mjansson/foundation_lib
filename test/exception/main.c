@@ -257,7 +257,7 @@ DECLARE_TEST(exception, error) {
 DECLARE_TEST(exception, exception_handler) {
 	int result;
 
-	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
+	if (system_debugger_attached())
 		return 0; //Don't do exception tests with debugger attached
 
 	_exception_handler_called = false;
@@ -273,7 +273,7 @@ DECLARE_TEST(exception, exception_handler) {
 DECLARE_TEST(exception, exception_thread) {
 	thread_t thread;
 
-	if (system_debugger_attached() || (system_platform() == PLATFORM_PNACL))
+	if (system_debugger_attached())
 		return 0; //Don't do exception tests with debugger attached
 
 	_exception_handler_called = false;

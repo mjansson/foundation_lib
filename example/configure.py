@@ -20,7 +20,7 @@ libpaths = ['..'] # For foundation library
 
 generator = generator.Generator(project = project, variables = [('bundleidentifier', 'com.rampantpixels.foundation.$(binname)')])
 
-if generator.target.is_macosx() or generator.target.is_ios() or generator.target.is_android() or generator.target.is_tizen() or generator.target.is_pnacl():
+if generator.target.is_macosx() or generator.target.is_ios() or generator.target.is_android() or generator.target.is_tizen():
   resources = []
   extrasources = []
   if generator.target.is_ios():

@@ -26,8 +26,6 @@ _CRTIMP int __cdecl __MINGW_NOTHROW	_strnicmp(const char*, const char*, size_t);
 #    include <sys/types.h>
 #  endif
 #  define strncasecmp _strnicmp
-#elif FOUNDATION_PLATFORM_PNACL
-extern int strncasecmp(const char* __s1, const char* __s2, size_t __n) __THROW __attribute_pure__;
 #endif
 
 #include <time.h>

@@ -24,9 +24,6 @@ typedef unsigned int pipe_size_t;
 #elif FOUNDATION_PLATFORM_POSIX
 #include <foundation/posix.h>
 typedef size_t pipe_size_t;
-#elif FOUNDATION_PLATFORM_PNACL
-#include <foundation/pnacl.h>
-typedef size_t pipe_size_t;
 #endif
 
 static stream_vtable_t _pipe_stream_vtable;

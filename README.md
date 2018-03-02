@@ -40,7 +40,6 @@ Platforms and architectures currently supported:
 * iOS (ARMv7, ARMv7s, ARMv8/AArch64), 6.0+
 * Android (ARMv6, ARMv7, ARMv8/AArch64, x86, x86-64, MIPS, MIPS64)
 * Raspberry Pi (ARMv6)
-* PNaCl
 
 
 Please consider our Patreon - <https://www.patreon.com/rampantpixels>
@@ -56,10 +55,7 @@ Master branch is used for stable releases. Development is done in feature branch
 <https://github.com/rampantpixels/foundation_lib/tree/develop>
 
 Cross-platform build system uses Ninja  
-<http://martine.github.io/ninja>
-
-The PNaCl build of the latest release can be tested at  
-<http://www.rampantpixels.com/foundation_lib/pnacl/>
+<https://ninja-build.org/>
 
 Test suite coverage and scan reports:  
 [![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)

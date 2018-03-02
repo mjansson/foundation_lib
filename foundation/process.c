@@ -19,8 +19,6 @@
 #  include <sys/types.h>
 #  include <sys/wait.h>
 #  include <sys/time.h>
-#elif FOUNDATION_PLATFORM_PNACL
-#  include <unistd.h>
 #endif
 
 #if FOUNDATION_PLATFORM_MACOS
@@ -586,18 +584,11 @@ process_stdin(process_t* proc) {
 bool
 process_kill(process_t* proc) {
 #if FOUNDATION_PLATFORM_WINDOWS
-
 	if (!proc->hp || !TerminateProcess(proc->hp, PROCESS_TERMINATED_SIGNAL))
 		return false;
-
 #elif FOUNDATION_PLATFORM_POSIX
-
 	if (!proc->pid || (kill(proc->pid, SIGKILL) < 0))
 		return false;
-
-#elif FOUNDATION_PLATFORM_PNACL
-	//Not supported
-	FOUNDATION_UNUSED(proc);
 #else
 #error Not implemented
 #endif
@@ -698,8 +689,6 @@ process_wait(process_t* proc) {
 		return PROCESS_WAIT_FAILED;
 	}
 
-#elif FOUNDATION_PLATFORM_PNACL
-	//Not supported
 #else
 #error Not implemented
 #endif

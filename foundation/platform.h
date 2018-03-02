@@ -48,7 +48,6 @@ thread local storage to ensure maximum portability across supported platforms */
 #define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
 #define FOUNDATION_PLATFORM_MACOS 0
 #define FOUNDATION_PLATFORM_WINDOWS 0
-#define FOUNDATION_PLATFORM_PNACL 0
 #define FOUNDATION_PLATFORM_TIZEN 0
 
 //Platform traits and groups
@@ -95,26 +94,8 @@ thread local storage to ensure maximum portability across supported platforms */
 
 //First, platforms and architectures
 
-#if defined( __pnacl__ )
-
-#  undef  FOUNDATION_PLATFORM_PNACL
-#  define FOUNDATION_PLATFORM_PNACL 1
-
-#  define FOUNDATION_PLATFORM_NAME "PNaCl"
-#  define FOUNDATION_PLATFORM_DESCRIPTION "PNaCl"
-
-#  undef  FOUNDATION_ARCH_GENERIC
-#  define FOUNDATION_ARCH_GENERIC 1
-
-#  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
-#  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
-
-/*#  ifdef __STRICT_ANSI__
-#    undef __STRICT_ANSI__
-#  endif*/
-
 // Android
-#elif defined( __ANDROID__ )
+#if defined( __ANDROID__ )
 
 #  undef  FOUNDATION_PLATFORM_ANDROID
 #  define FOUNDATION_PLATFORM_ANDROID 1
@@ -817,7 +798,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  define FOUNDATION_DEPRECATED __declspec(deprecated)
 #  define FOUNDATION_FORCEINLINE __forceinline
 #  define FOUNDATION_NOINLINE __declspec(noinline)
-#  define FOUNDATION_PURECALL
+#  define FOUNDATION_PURECALL __declspec(noalias)
 #  define FOUNDATION_CONSTCALL
 #  define FOUNDATION_PRINTFCALL(start, num)
 #  define FOUNDATION_ALIGN(alignment) __declspec(align(alignment))
@@ -833,6 +814,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #  pragma warning(disable : 4132)
 #  pragma warning(disable : 4200)
 #  pragma warning(disable : 4204)
+#  pragma warning(disable : 4702)
 #  pragma warning(disable : 4706)
 #  ifdef __cplusplus
 #  pragma warning(disable : 4100)
@@ -913,7 +895,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #if !FOUNDATION_PLATFORM_WINDOWS
 #  include <wchar.h>
 #endif
-#if FOUNDATION_PLATFORM_PNACL || ( FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE )
+#if (FOUNDATION_PLATFORM_POSIX && !FOUNDATION_PLATFORM_APPLE)
 #  include <sys/types.h>
 #endif
 
@@ -1273,9 +1255,6 @@ Defined to 1 if compiling for BSD, 0 otherwise
 
 \def FOUNDATION_PLATFORM_WINDOWS
 Defined to 1 if compiling for Windows, 0 otherwise
-
-\def FOUNDATION_PLATFORM_PNACL
-Defined to 1 if compiling for PNaCl, 0 otherwise
 
 \def FOUNDATION_PLATFORM_TIZEN
 Defined to 1 if compiling for Tizen, 0 otherwise

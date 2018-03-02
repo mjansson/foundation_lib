@@ -14,7 +14,6 @@
 #include <foundation/windows.h>
 #include <foundation/posix.h>
 #include <foundation/apple.h>
-#include <foundation/pnacl.h>
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 #  include <sys/event.h>

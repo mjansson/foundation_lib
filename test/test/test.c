@@ -240,8 +240,6 @@ test_load_config(json_handler_fn handler) {
 	sjson_parse_path(STRING_CONST("config/android"), handler);
 #elif FOUNDATION_PLATFORM_IOS
 	sjson_parse_path(STRING_CONST("config/ios"), handler);
-#elif FOUNDATION_PLATFORM_PNACL
-	sjson_parse_path(STRING_CONST("config/pnacl"), handler);
 #elif FOUNDATION_PLATFORM_TIZEN
 	sjson_parse_path(STRING_CONST("config/tizen"), handler);
 #endif

@@ -80,8 +80,7 @@ DECLARE_TEST(process, spawn) {
 	string_const_t fname;
 	string_const_t file_name = string_const(STRING_CONST("test-file"));
 
-	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID) ||
-	    (system_platform() == PLATFORM_PNACL))
+	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID))
 		return 0;
 
 	fname = string_from_uint_static((uint32_t)random32(), false, 0, '0');
@@ -200,8 +199,7 @@ DECLARE_TEST(process, kill) {
 		string_null() };
 	int ret;
 
-	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID) ||
-	    (system_platform() == PLATFORM_PNACL))
+	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID))
 		return 0;
 
 	proc = process_allocate();
