@@ -2030,13 +2030,12 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = FOUNDATION_PLATFORM_DOXYGEN:=1 \
                          FOUNDATION_PLATFORM_ANDROID:=1 \
-                         FOUNDATION_PLATFORM_MACOSX:=1 \
+                         FOUNDATION_PLATFORM_MACOS:=1 \
                          FOUNDATION_PLATFORM_IOS:=1 \
                          FOUNDATION_PLATFORM_WINDOWS:=1 \
                          FOUNDATION_PLATFORM_APPLE:=1 \
                          FOUNDATION_PLATFORM_BSD:=1 \
                          FOUNDATION_PLATFORM_POSIX:=1 \
-                         FOUNDATION_PLATFORM_PNACL:=1 \
                          BUILD_ENABLE_LOG:=1 \
                          BUILD_ENABLE_ASSERT:=1 \
                          BUILD_ENABLE_ERROR_CONTEXT:=1 \
