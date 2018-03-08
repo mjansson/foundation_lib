@@ -212,14 +212,12 @@ fs_is_file(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	char buffer[BUILD_MAX_PATHLEN];
-	struct stat st;
 	string_const_t pathstr = _fs_strip_protocol(path, length);
 	if (pathstr.length) {
+		char buffer[BUILD_MAX_PATHLEN];
+		struct stat st;
 		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
-		memset(&st, 0, sizeof(st));
-		stat(finalpath.str, &st);
-		if (st.st_mode & S_IFREG)
+		if (!stat(finalpath.str, &st) && S_ISREG(st.st_mode))
 			return true;
 	}
 
@@ -239,11 +237,8 @@ fs_is_directory(const char* path, size_t length) {
 		wchar_t* wpath = wstring_allocate_from_string(pathstr.str, pathstr.length);
 		unsigned int attr = GetFileAttributesW(wpath);
 		wstring_deallocate(wpath);
-		if ((attr == 0xFFFFFFFF) || !(attr & FILE_ATTRIBUTE_DIRECTORY))
-			return false;
-	}
-	else {
-		return false;
+		if ((attr != 0xFFFFFFFF) && (attr & FILE_ATTRIBUTE_DIRECTORY))
+			return true;
 	}
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -253,20 +248,15 @@ fs_is_directory(const char* path, size_t length) {
 		char buffer[BUILD_MAX_PATHLEN];
 		struct stat st;
 		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
-		memset(&st, 0, sizeof(st));
-		stat(finalpath.str, &st);
-		if (!(st.st_mode & S_IFDIR))
-			return false;
-	}
-	else {
-		return false;
+		if (!stat(finalpath.str, &st) && S_ISDIR(st.st_mode))
+			return true;
 	}
 
 #else
 #  error Not implemented
 #endif
 
-	return true;
+	return false;
 }
 
 string_t*
@@ -642,13 +632,12 @@ fs_last_modified(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	tick_t tstamp = 0;
-	char buffer[BUILD_MAX_PATHLEN];
-	struct stat st;
 	string_const_t fspath = _fs_strip_protocol(path, length);
 	if (fspath.length) {
-		memset(&st, 0, sizeof(st));
+		char buffer[BUILD_MAX_PATHLEN];
+		struct stat st;
 		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
-		if (stat(finalpath.str, &st) >= 0)
+		if (!stat(finalpath.str, &st))
 			tstamp = (tick_t)st.st_mtime * 1000LL;
 	}
 	return tstamp;
