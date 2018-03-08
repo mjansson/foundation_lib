@@ -57,9 +57,8 @@ Master branch is used for stable releases. Development is done in feature branch
 Cross-platform build system uses Ninja  
 <https://ninja-build.org/>
 
-Test suite coverage and scan reports:  
+Test suite coverage:
 [![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)
-[![coverity.com](https://scan.coverity.com/projects/6944/badge.svg)](https://scan.coverity.com/projects/rampantpixels-foundation_lib)
 
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
