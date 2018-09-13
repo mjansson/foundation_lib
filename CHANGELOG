@@ -18,6 +18,8 @@ Add thread_is_entered to query if thread_enter has been called on the calling th
 Bugfix in macOS file system watcher, correctly bootstrapping thread memory handling for cleanup
 if needed
 
+Fix path_base_file_name to return name up to last dot in filename, not first dot. A file "path/to/foo.bar.ext" will thus return "foo.bar" instead of "foo"
+
 
 1.6.0
 
