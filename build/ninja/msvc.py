@@ -84,6 +84,8 @@ class MSVCToolchain(toolchain.Toolchain):
         self.sdkpath = msvcprefs['sdkpath']
       if 'toolchain' in msvcprefs:
         self.toolchain = msvcprefs['toolchain']
+      if 'toolchain_version' in msvcprefs:
+        self.toolchain_version = msvcprefs['toolchain_version']
 
   def write_variables(self, writer):
     super(MSVCToolchain, self).write_variables(writer)
@@ -125,7 +127,7 @@ class MSVCToolchain(toolchain.Toolchain):
 
   def build_toolchain(self):
     if self.toolchain == '':
-      versions = ['15.0', '14.0', '13.0', '12.0', '11.0', '10.0']
+      versions = ['16.0', '15.0', '14.0', '13.0', '12.0', '11.0', '10.0']
       keys = [
         'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
         'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
@@ -147,7 +149,7 @@ class MSVCToolchain(toolchain.Toolchain):
             continue
           if not toolchain == '':
             #Thanks MS for making it _really_ hard to find the compiler
-            if version == '15.0':
+            if version == '15.0' or version == '16.0':
               tools_basepath = os.path.join(toolchain, 'VC', 'Tools', 'MSVC')
               tools_list = [item for item in os.listdir(tools_basepath) if os.path.isdir(os.path.join(tools_basepath, item))]
               from distutils.version import StrictVersion
@@ -223,7 +225,7 @@ class MSVCToolchain(toolchain.Toolchain):
     return []
 
   def make_arch_toolchain_path(self, arch):
-    if self.toolchain_version == '15.0':
+    if self.toolchain_version == '15.0' or self.toolchain_version == '16.0':
       if arch == 'x86-64':
         return os.path.join(self.toolchain, 'bin', 'HostX64', 'x64\\')
       elif arch == 'x86':
@@ -307,7 +309,7 @@ class MSVCToolchain(toolchain.Toolchain):
       libpaths += [os.path.join(libpath, self.libpath, config, arch) for libpath in extralibpaths]
     if self.sdkpath != '':
       if arch == 'x86':
-        if self.toolchain_version == '15.0':
+        if self.toolchain_version == '15.0' or self.toolchain_version == '16.0':
           libpaths += [os.path.join(self.toolchain, 'lib', 'x86')]
         else:
           libpaths += [os.path.join(self.toolchain, 'lib')]
@@ -317,7 +319,7 @@ class MSVCToolchain(toolchain.Toolchain):
           libpaths += [os.path.join(self.sdkpath, 'lib', self.sdkversionpath, 'um', 'x86')]
           libpaths += [os.path.join(self.sdkpath, 'lib', self.sdkversionpath, 'ucrt', 'x86')]
       else:
-        if self.toolchain_version == '15.0':
+        if self.toolchain_version == '15.0' or self.toolchain_version == '16.0':
           libpaths += [os.path.join( self.toolchain, 'lib', 'x64')]
         else:
           libpaths += [os.path.join( self.toolchain, 'lib', 'amd64')]

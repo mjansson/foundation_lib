@@ -44,6 +44,7 @@ class Toolchain(object):
     self.target = target
     self.toolchain = toolchain
     self.subninja = ''
+    self.buildprefs = ''
 
     #Set default values
     self.build_monolithic = False
@@ -212,6 +213,8 @@ class Toolchain(object):
   def read_build_prefs(self):
     self.read_prefs('build.json')
     self.read_prefs(os.path.join('build', 'ninja', 'build.json'))
+    if self.buildprefs != '':
+      self.read_prefs(self.buildprefs)
 
   def read_prefs(self, filename):
     if not os.path.isfile( filename ):
