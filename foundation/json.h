@@ -13,21 +13,29 @@
 #pragma once
 
 /*! \file json.h
-\brief JSON parser
+\brief JSON/SJSON parser
 
 Small in-place JSON parser without any allocation. Entry points for both
 standard JSON and simplified JSON data parsing. All character data must be
 in UTF-8 format.
 
+Strings are not automatically unescaped. Use json_unescape/json_escape to
+perform unescaping and espacing of strings. Unescaping can be done in-place
+to avoid memory allocations.
+
 Simplified JSON as parsed by this library has the following differences
 from standard JSON:
 - The equal sign = is used to define key-value pairs instead of the colon :
 - Quotes around string keys in key-value pairs are optional, unless you need
-the key to contain either spaces or the equal sign =
+the key to contain either whitespace or the equal sign =
 - Commas are optional in object and array definitions
 - Each SJSON file is always interpreted as a definition for a single object.
 You can think of this as an implicit set of curly quotes { ... } that surround
-the contents of the file */
+the contents of the file
+
+Kudos to Niklas Gray for SJSON syntax,
+http://bitsquid.blogspot.se/2009/10/simplified-json-notation.html
+*/
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
