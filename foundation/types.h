@@ -1677,7 +1677,7 @@ struct json_token_t {
 	unsigned int id_length;
 	/*! Value string offset */
 	unsigned int value;
-	/*! Length of value string. 0 if no or empty value string */
+	/*! Length of value string for objects and primitive values, 0 if no or empty value string. For array values the number of elements in the array. */
 	unsigned int value_length;
 	/*! Child token index in token array. 0 if no child token */
 	unsigned int child;

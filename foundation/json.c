@@ -38,13 +38,13 @@ set_token_primitive(json_token_t* tokens, size_t capacity, unsigned int current,
 
 static struct json_token_t*
 set_token_complex(json_token_t* tokens, size_t capacity, unsigned int current, json_type_t type,
-                  unsigned int pos) {
+                  size_t pos) {
 	json_token_t* token = get_token(tokens, capacity, current);
 	if (token) {
 		token->type = type;
 		token->child = current + 1;
 		token->sibling = 0;
-		token->value = pos;
+		token->value = (unsigned int)pos;
 		token->value_length = 0;
 	}
 	return token;
@@ -302,7 +302,7 @@ parse_value(const char* buffer, size_t length, size_t pos,
 		char c = buffer[pos++];
 		switch (c) {
 		case '{':
-			subtoken = set_token_complex(tokens, capacity, *current, JSON_OBJECT, (unsigned int)pos - 1);
+			subtoken = set_token_complex(tokens, capacity, *current, JSON_OBJECT, pos - 1);
 			++(*current);
 			pos = parse_object(buffer, length, pos, tokens, capacity, current, simple);
 			if (subtoken && (pos != STRING_NPOS))
@@ -327,6 +327,7 @@ parse_value(const char* buffer, size_t length, size_t pos,
 
 		case 't':
 		case 'f':
+		case 'n':
 			if ((c == 't') && (length - pos >= 4) && string_equal(buffer + pos, 3, STRING_CONST("rue")) &&
 			        is_token_delimiter(buffer[pos+3])) {
 				set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
@@ -339,7 +340,7 @@ parse_value(const char* buffer, size_t length, size_t pos,
 				++(*current);
 				return pos + 4;
 			}
-			if (!simple && (c == 'n') && (length - pos >= 4) &&
+			if ((c == 'n') && (length - pos >= 4) &&
 			        string_equal(buffer + pos, 3, STRING_CONST("ull")) &&
 			        is_token_delimiter(buffer[pos + 3])) {
 				set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
@@ -392,10 +393,12 @@ sjson_parse(const char* buffer, size_t size, json_token_t* tokens, size_t capaci
 	size_t pos = skip_whitespace(buffer, size, 0);
 	if ((pos < size) && (buffer[pos] != '{')) {
 		set_token_id(tokens, capacity, current, 0, 0);
-		set_token_complex(tokens, capacity, current, JSON_OBJECT, 0);
+		set_token_complex(tokens, capacity, current, JSON_OBJECT, pos);
 		++current;
 		if (parse_object(buffer, size, pos, tokens, capacity, &current, true) == STRING_NPOS)
-			return 0;
+			current = 0;
+		if (capacity)
+			tokens[0].value_length = (unsigned int)(size - tokens[0].value);
 		return current;
 	}
 	if (parse_value(buffer, size, pos, tokens, capacity, &current, true) == STRING_NPOS)
