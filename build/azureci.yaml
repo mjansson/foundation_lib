@@ -15,7 +15,7 @@ steps:
 - task: NuGetToolInstaller@0
 
 - script: |
-    nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v3/index.json" -Username "mjansson" -Password "$accessToken"
+    nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v3/index.json" -Username mjansson -Password $(accessToken)
   displayName: 'nuget setup'
 
 - script: |
