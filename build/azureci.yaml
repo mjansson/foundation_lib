@@ -19,7 +19,7 @@ steps:
   displayName: 'nuget setup'
 
 - script: |
-    nuget.exe install ninja -Source "Tools" -ExcludeVersion -Username mjansson -Password $(System.AccessToken)
+    nuget.exe install ninja -Source "Tools" -ExcludeVersion
   displayName: 'install ninja'
 
 - script: |
