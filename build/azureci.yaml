@@ -29,3 +29,15 @@ steps:
 - script: |
     ninja\ninja.exe
   displayName: 'build'
+
+#- script: |
+#    bin\windows\debug\x86-64\test-all.exe
+#  displayName: 'run tests (debug)'
+
+- script: |
+    bin\windows\release\x86-64\test-all.exe
+  displayName: 'run tests (release)'
+
+#- script: |
+#    bin\windows\deply\x86-64\test-all.exe
+#  displayName: 'run tests (deploy)'
