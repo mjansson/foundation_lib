@@ -1,5 +1,5 @@
 variables:
-- name: accessToken
+  accessToken: none
 
 trigger:
 - master
