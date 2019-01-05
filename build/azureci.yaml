@@ -36,5 +36,5 @@ steps:
   displayName: 'run tests (release)'
 
 - script: |
-    bin\windows\deply\x86-64\test-all.exe
+    bin\windows\deploy\x86-64\test-all.exe
   displayName: 'run tests (deploy)'
