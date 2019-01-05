@@ -1,6 +1,3 @@
-variables:
-  accessToken: none
-
 trigger:
 - master
 
@@ -38,6 +35,6 @@ steps:
     bin\windows\release\x86-64\test-all.exe
   displayName: 'run tests (release)'
 
-#- script: |
-#    bin\windows\deply\x86-64\test-all.exe
-#  displayName: 'run tests (deploy)'
+- script: |
+    bin\windows\deply\x86-64\test-all.exe
+  displayName: 'run tests (deploy)'
