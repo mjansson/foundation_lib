@@ -41,6 +41,7 @@
     <ProjectGuid>{03d2cdf6-72bf-4be1-9e6d-70b45199394c}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>objectmap</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

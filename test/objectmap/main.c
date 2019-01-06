@@ -166,7 +166,9 @@ DECLARE_TEST(objectmap, store) {
 	objectmap_deallocate(map);
 	log_enable_stdout(true);
 
+#if BUILD_DEBUG || BUILD_RELEASE
 	EXPECT_EQ(error(), ERROR_MEMORY_LEAK);
+#endif
 
 	return 0;
 }

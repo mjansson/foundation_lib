@@ -22,6 +22,7 @@
     <ProjectGuid>{21943c01-ed35-41eb-b3d3-d13ea37b43da}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>bin2hex</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -170,7 +171,6 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\debug\x86-64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -257,7 +257,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\release\x86-64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>foundation.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -265,6 +264,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\tools\bin2hex\errorcodes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\foundation.vcxproj">
+      <Project>{6abde628-e9d5-4a7f-9847-a47f56210273}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

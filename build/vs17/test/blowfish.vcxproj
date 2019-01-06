@@ -41,6 +41,7 @@
     <ProjectGuid>{e079ed2b-5a44-4ba8-a920-f9238ae2a5d9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>blowfish</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
