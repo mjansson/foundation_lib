@@ -18,11 +18,11 @@ jobs:
     displayName: 'nuget check'
 
   - script: |
-      nuget sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+      nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
     displayName: 'nuget setup'
 
   - script: |
-      nuget install ninja -Source "Tools" -ExcludeVersion
+      nuget.exe install ninja -Source "Tools" -ExcludeVersion
     displayName: 'install ninja'
 
   - script: |
