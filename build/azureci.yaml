@@ -56,6 +56,9 @@ jobs:
     vmImage: 'macOS-10.13'
 
   steps:
+  - task: DotNetCoreInstaller@0
+    displayName: '.NET core install'
+
   - task: NuGetToolInstaller@0
     condition: succeeded()
 
