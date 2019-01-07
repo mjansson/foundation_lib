@@ -14,8 +14,12 @@ jobs:
   - task: NuGetToolInstaller@0
 
   - script: |
-      ls -la /opt/hostedtoolcache/NuGet/4.3.0/x64
+      ls -la /opt/hostedtoolcache/NuGet/4.3.0/x64 ; whoami
     displayName: 'nuget check'
+
+  - script: |
+      chmod 755 /opt/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe
+    displayName: 'nuget fix'
 
   - script: |
       nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
