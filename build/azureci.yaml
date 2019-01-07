@@ -18,7 +18,7 @@ jobs:
     displayName: 'configure'
 
   - script: |
-      ninja
+      ninja/linux/ninja
     displayName: 'build'
 
   #- script: |
@@ -53,7 +53,7 @@ jobs:
     displayName: 'configure'
 
   - script: |
-      ninja\ninja.exe
+      ninja\windows\ninja.exe
     displayName: 'build'
 
   #- script: |
