@@ -40,15 +40,15 @@ jobs:
     condition: succeeded()
 
   #- script: |
-  #    bin\linux\debug\x86-64\test-all
+  #    bin/linux/debug/x86-64/test-all
   #  displayName: 'run tests (debug)'
 
   - script: |
-      bin\linux\release\x86-64\test-all
+      bin/linux/release/x86-64/test-all
     displayName: 'run tests (release)'
 
   - script: |
-      bin\linux\deploy\x86-64\test-all
+      bin/linux/deploy/x86-64/test-all
     displayName: 'run tests (deploy)'
 
 - job: MacOS
@@ -63,17 +63,17 @@ jobs:
     condition: succeeded()
 
   - script: |
-      chmod 755 /Users/vsts/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe
+      chmod 755 /Users/vsts/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe ; alias nuget='mono /Users/vsts/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe'
     displayName: 'nuget fix'
     condition: succeeded()
 
   - script: |
-      nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+      nuget sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
     displayName: 'nuget setup'
     condition: succeeded()
 
   - script: |
-      nuget.exe install ninja -Source "Tools" -ExcludeVersion
+      nuget install ninja -Source "Tools" -ExcludeVersion
     displayName: 'install ninja'
     condition: succeeded()
 
@@ -88,15 +88,15 @@ jobs:
     condition: succeeded()
 
   #- script: |
-  #    bin\linux\debug\x86-64\test-all
+  #    bin/macos/debug/x86-64/test-all
   #  displayName: 'run tests (debug)'
 
   - script: |
-      bin\macos\release\x86-64\test-all
+      bin/macos/release/x86-64/test-all
     displayName: 'run tests (release)'
 
   - script: |
-      bin\macos\deploy\x86-64\test-all
+      bin/macos/deploy/x86-64/test-all
     displayName: 'run tests (deploy)'
 
 - job: Windows
