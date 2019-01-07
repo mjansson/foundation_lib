@@ -5,36 +5,63 @@ pr:
 - master
 - develop
 
-pool:
-  vmImage: 'VS2017-Win2016'
+jobs:
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
 
-steps:
-- task: NuGetToolInstaller@0
+  steps:
+  - script: |
+      python configure.py
+    displayName: 'configure'
 
-- script: |
-    nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
-  displayName: 'nuget setup'
+  - script: |
+      ninja
+    displayName: 'build'
 
-- script: |
-    nuget.exe install ninja -Source "Tools" -ExcludeVersion
-  displayName: 'install ninja'
+  #- script: |
+  #    bin\linux\debug\x86-64\test-all
+  #  displayName: 'run tests (debug)'
 
-- script: |
-    python configure.py
-  displayName: 'configure'
+  - script: |
+      bin\linux\release\x86-64\test-all
+    displayName: 'run tests (release)'
 
-- script: |
-    ninja\ninja.exe
-  displayName: 'build'
+  - script: |
+      bin\linux\deploy\x86-64\test-all
+    displayName: 'run tests (deploy)'
 
-#- script: |
-#    bin\windows\debug\x86-64\test-all.exe
-#  displayName: 'run tests (debug)'
+- job: Windows
+  pool:
+    vmImage: 'VS2017-Win2016'
 
-- script: |
-    bin\windows\release\x86-64\test-all.exe
-  displayName: 'run tests (release)'
+  steps:
+  - task: NuGetToolInstaller@0
 
-- script: |
-    bin\windows\deploy\x86-64\test-all.exe
-  displayName: 'run tests (deploy)'
+  - script: |
+      nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+    displayName: 'nuget setup'
+
+  - script: |
+      nuget.exe install ninja -Source "Tools" -ExcludeVersion
+    displayName: 'install ninja'
+
+  - script: |
+      python configure.py
+    displayName: 'configure'
+
+  - script: |
+      ninja\ninja.exe
+    displayName: 'build'
+
+  #- script: |
+  #    bin\windows\debug\x86-64\test-all.exe
+  #  displayName: 'run tests (debug)'
+
+  - script: |
+      bin\windows\release\x86-64\test-all.exe
+    displayName: 'run tests (release)'
+
+  - script: |
+      bin\windows\deploy\x86-64\test-all.exe
+    displayName: 'run tests (deploy)'
