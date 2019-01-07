@@ -11,6 +11,8 @@ jobs:
     vmImage: 'ubuntu-16.04'
 
   steps:
+  - task: NuGetToolInstaller@0
+
   - script: |
       python configure.py
     displayName: 'configure'
