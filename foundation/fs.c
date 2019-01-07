@@ -827,7 +827,7 @@ fs_matching_subdirs(const char* path, size_t length, const char* pattern,
 
 void
 fs_event_post(foundation_event_id id, const char* path, size_t pathlen) {
-	event_post_varg(fs_event_stream(), id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen, nullptr);
+	event_post_varg(fs_event_stream(), (int)id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen, nullptr);
 }
 
 string_const_t
