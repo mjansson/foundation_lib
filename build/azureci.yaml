@@ -14,6 +14,14 @@ jobs:
   - task: NuGetToolInstaller@0
 
   - script: |
+      nuget sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+    displayName: 'nuget setup'
+
+  - script: |
+      nuget install ninja -Source "Tools" -ExcludeVersion
+    displayName: 'install ninja'
+
+  - script: |
       python configure.py
     displayName: 'configure'
 
@@ -41,11 +49,11 @@ jobs:
   - task: NuGetToolInstaller@0
 
   - script: |
-      nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+      nuget sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
     displayName: 'nuget setup'
 
   - script: |
-      nuget.exe install ninja -Source "Tools" -ExcludeVersion
+      nuget install ninja -Source "Tools" -ExcludeVersion
     displayName: 'install ninja'
 
   - script: |
@@ -53,7 +61,7 @@ jobs:
     displayName: 'configure'
 
   - script: |
-      ninja\windows\ninja.exe
+      ninja\windows\ninja
     displayName: 'build'
 
   #- script: |
