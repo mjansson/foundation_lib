@@ -14,7 +14,7 @@ jobs:
   - task: NuGetToolInstaller@0
 
   - script: |
-      ls /opt/hostedtoolcache/NuGet/4.3.0/x64
+      ls -la /opt/hostedtoolcache/NuGet/4.3.0/x64
     displayName: 'nuget check'
 
   - script: |
