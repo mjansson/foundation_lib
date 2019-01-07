@@ -30,7 +30,7 @@ jobs:
     condition: succeeded()
 
   - script: |
-      nuget.exe install ninja -Source "Tools" -ExcludeVersion ; ls -la
+      nuget.exe install ninja -Source "Tools" -ExcludeVersion ; ls -laR ninja
     displayName: 'install ninja'
     condition: succeeded()
 
