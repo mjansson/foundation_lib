@@ -88,15 +88,15 @@ jobs:
     condition: succeeded()
 
   #- script: |
-  #    bin/macos/debug/x86-64/test-all
+  #    bin/macos/debug/test-all
   #  displayName: 'run tests (debug)'
 
   - script: |
-      bin/macos/release/x86-64/test-all
+      bin/macos/release/test-all
     displayName: 'run tests (release)'
 
   - script: |
-      bin/macos/deploy/x86-64/test-all
+      bin/macos/deploy/test-all
     displayName: 'run tests (deploy)'
 
 - job: Windows
