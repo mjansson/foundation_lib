@@ -15,11 +15,6 @@ jobs:
     condition: succeeded()
 
   - script: |
-      ls -la /opt/hostedtoolcache/NuGet/4.3.0/x64
-    displayName: 'nuget check'
-    condition: succeeded()
-
-  - script: |
       chmod 755 /opt/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe
     displayName: 'nuget fix'
     condition: succeeded()
@@ -65,12 +60,7 @@ jobs:
     condition: succeeded()
 
   - script: |
-      ls -la /opt/hostedtoolcache/NuGet/4.3.0/x64 ; whoami
-    displayName: 'nuget check'
-    condition: succeeded()
-
-  - script: |
-      chmod 755 /opt/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe
+      chmod 755 /Users/vsts/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe
     displayName: 'nuget fix'
     condition: succeeded()
 
@@ -80,7 +70,7 @@ jobs:
     condition: succeeded()
 
   - script: |
-      nuget.exe install ninja -Source "Tools" -ExcludeVersion ; ls -laR ninja
+      nuget.exe install ninja -Source "Tools" -ExcludeVersion
     displayName: 'install ninja'
     condition: succeeded()
 
