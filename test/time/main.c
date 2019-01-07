@@ -64,20 +64,20 @@ DECLARE_TEST(time, builtin) {
 	EXPECT_GT_MSGFORMAT(time_diff(tick, newtick), (tps / 100LL),
 	                    "time elapsed not more than 10ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
 	                    (tps / 100)); //more than 10 ms
-	EXPECT_LT_MSGFORMAT(time_diff(tick, newtick), (tps / 20LL),
-	                    "time elapsed not less than 50ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
-	                    (tps / 33)); //less than 30 ms
+	EXPECT_LT_MSGFORMAT(time_diff(tick, newtick), (tps / 10LL),
+	                    "time elapsed not less than 100ms: %" PRId64 " (%" PRId64 ")", time_diff(tick, newtick),
+	                    (tps / 33)); //less than 100 ms
 	EXPECT_REALGT(time_elapsed(tick), 0);
 	EXPECT_REALGT(time_elapsed(tick), 0.01f); //more than 10 ms
 	EXPECT_TICKGT(time_elapsed_ticks(tick), 0);
 	EXPECT_TICKGT(time_elapsed_ticks(tick), (tps / 100)); //more than 10 ms
-	EXPECT_TICKLT(time_elapsed_ticks(tick), (tps / 20));  //less than 50 ms
+	EXPECT_TICKLT(time_elapsed_ticks(tick), (tps / 10));  //less than 100 ms
 
 	dt = time_ticks_to_seconds(newtick - tick);
 	EXPECT_REALGT(dt, 0);
 	EXPECT_GT_MSGFORMAT(dt, 0.01f, "time elapsed in seconds not more than 10ms: %.5f",
 	                    dt);   //more than 10 ms
-	EXPECT_LT_MSGFORMAT(dt, 0.05f, "time elapsed in seconds not less than 30ms: %.5f",
+	EXPECT_LT_MSGFORMAT(dt, 0.1f, "time elapsed in seconds not less than 100ms: %.5f",
 	                    dt);   //less than 30 ms
 
 	tick = time_startup();
