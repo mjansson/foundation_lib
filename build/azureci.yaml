@@ -1,0 +1,135 @@
+trigger:
+- master
+
+pr:
+- master
+- develop
+
+jobs:
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+
+  steps:
+  - task: NuGetToolInstaller@0
+    condition: succeeded()
+
+  - script: |
+      chmod 755 /opt/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe
+    displayName: 'nuget fix'
+    condition: succeeded()
+
+  - script: |
+      nuget.exe sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+    displayName: 'nuget setup'
+    condition: succeeded()
+
+  - script: |
+      nuget.exe install ninja -Source "Tools" -ExcludeVersion
+    displayName: 'install ninja'
+    condition: succeeded()
+
+  - script: |
+      python configure.py
+    displayName: 'configure'
+    condition: succeeded()
+
+  - script: |
+      ninja/linux/ninja
+    displayName: 'build'
+    condition: succeeded()
+
+  #- script: |
+  #    bin/linux/debug/x86-64/test-all
+  #  displayName: 'run tests (debug)'
+
+  - script: |
+      bin/linux/release/x86-64/test-all
+    displayName: 'run tests (release)'
+
+  - script: |
+      bin/linux/deploy/x86-64/test-all
+    displayName: 'run tests (deploy)'
+
+- job: MacOS
+  pool:
+    vmImage: 'macOS-10.13'
+
+  steps:
+  - task: DotNetCoreInstaller@0
+    displayName: '.NET core install'
+
+  - task: NuGetToolInstaller@0
+    condition: succeeded()
+
+  - script: |
+      chmod 755 /Users/vsts/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe ; alias nuget='mono /Users/vsts/hostedtoolcache/NuGet/4.3.0/x64/nuget.exe'
+    displayName: 'nuget fix'
+    condition: succeeded()
+
+  - script: |
+      nuget sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+    displayName: 'nuget setup'
+    condition: succeeded()
+
+  - script: |
+      nuget install ninja -Source "Tools" -ExcludeVersion
+    displayName: 'install ninja'
+    condition: succeeded()
+
+  - script: |
+      python configure.py
+    displayName: 'configure'
+    condition: succeeded()
+
+  - script: |
+      ninja/macos/ninja
+    displayName: 'build'
+    condition: succeeded()
+
+  #- script: |
+  #    bin/macos/debug/test-all
+  #  displayName: 'run tests (debug)'
+
+  - script: |
+      bin/macos/release/test-all
+    displayName: 'run tests (release)'
+
+  - script: |
+      bin/macos/deploy/test-all
+    displayName: 'run tests (deploy)'
+
+- job: Windows
+  pool:
+    vmImage: 'VS2017-Win2016'
+
+  steps:
+  - task: NuGetToolInstaller@0
+
+  - script: |
+      nuget sources Add -Name "Tools" -Source "https://mjansson.pkgs.visualstudio.com/_packaging/Tools/nuget/v2" -Username mjansson -Password $(System.AccessToken)
+    displayName: 'nuget setup'
+
+  - script: |
+      nuget install ninja -Source "Tools" -ExcludeVersion
+    displayName: 'install ninja'
+
+  - script: |
+      python configure.py
+    displayName: 'configure'
+
+  - script: |
+      ninja\windows\ninja
+    displayName: 'build'
+
+  #- script: |
+  #    bin\windows\debug\x86-64\test-all.exe
+  #  displayName: 'run tests (debug)'
+
+  - script: |
+      bin\windows\release\x86-64\test-all.exe
+    displayName: 'run tests (release)'
+
+  - script: |
+      bin\windows\deploy\x86-64\test-all.exe
+    displayName: 'run tests (deploy)'

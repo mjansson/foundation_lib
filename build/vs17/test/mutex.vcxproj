@@ -41,6 +41,7 @@
     <ProjectGuid>{c96f1166-6361-4734-b947-8e5906aa1831}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>mutex</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

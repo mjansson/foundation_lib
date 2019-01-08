@@ -703,7 +703,7 @@ system_event_stream(void) {
 void
 system_post_event(foundation_event_id event) {
 	if (_system_event_stream)
-		event_post(_system_event_stream, event, 0, 0, 0, 0);
+		event_post(_system_event_stream, (int)event, 0, 0, 0, 0);
 }
 
 bool
