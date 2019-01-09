@@ -1172,7 +1172,7 @@
 		4555171A1936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/string/main.c; sourceTree = "<group>"; };
 		4555171C1936388B00CF089B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/uuid/main.c; sourceTree = "<group>"; };
 		45551722193638C400CF089B /* test-all */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-all"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4555172E19363AF800CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
+		4555172E19363AF800CF089B /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macos/debug/libfoundation.a; sourceTree = "<group>"; };
 		4555172F19363AF800CF089B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		4555173019363AF800CF089B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4555173119363AF800CF089B /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -1213,14 +1213,14 @@
 		45FD84A31AC9545F004357EA /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/time/main.c; sourceTree = "<group>"; };
 		45FD84BE1ACAB575004357EA /* test-process */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-process"; sourceTree = BUILT_PRODUCTS_DIR; };
 		45FD84C01ACAB5CC004357EA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/process/main.c; sourceTree = "<group>"; };
-		CD526E5F1CD14FD5002C339C /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/deploy/libfoundation.a; sourceTree = "<group>"; };
+		CD526E5F1CD14FD5002C339C /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macos/deploy/libfoundation.a; sourceTree = "<group>"; };
 		CD5BC2A21D840F3C00899D05 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../../test/json/main.c; sourceTree = "<group>"; };
 		CD83919B1C044FA8003C9154 /* test-beacon */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-beacon"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD8391A41C0450FC003C9154 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../../test/beacon/main.c; sourceTree = "<group>"; };
-		CD8391AE1C048959003C9154 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
+		CD8391AE1C048959003C9154 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macos/debug/libfoundation.a; sourceTree = "<group>"; };
 		CD9DACC51C73D8DC0035E1D9 /* test-sha */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-sha"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD9DACCF1C73D9260035E1D9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/sha/main.c; sourceTree = "<group>"; };
-		CD9DACD91C73DA270035E1D9 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macosx/debug/libfoundation.a; sourceTree = "<group>"; };
+		CD9DACD91C73DA270035E1D9 /* libfoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfoundation.a; path = ../../../lib/macos/debug/libfoundation.a; sourceTree = "<group>"; };
 		CDF785861CB857C600F83977 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../../test/exception/main.c; sourceTree = "<group>"; };
 		CDF7858C1CB991FC00F83977 /* test-json */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-json"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -3760,7 +3760,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/debug;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/debug;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = YES;
@@ -3783,7 +3783,7 @@
 					../../../test,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/debug;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/debug;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = macosx;
@@ -3796,7 +3796,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/release;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/release;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3820,7 +3820,7 @@
 					../../../test,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/release;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/release;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -3832,7 +3832,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/debug;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/debug;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3843,7 +3843,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/release;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/release;
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3856,7 +3856,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/profile;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/profile;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3880,7 +3880,7 @@
 					../../../test,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/profile;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/profile;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -3892,7 +3892,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/profile;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/profile;
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3905,7 +3905,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
-				CONFIGURATION_BUILD_DIR = ../../../bin/macosx/deploy;
+				CONFIGURATION_BUILD_DIR = ../../../bin/macos/deploy;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3929,7 +3929,7 @@
 					../../../test,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = ../../../lib/macosx/deploy;
+				LIBRARY_SEARCH_PATHS = ../../../lib/macos/deploy;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -3941,7 +3941,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = ../../../lib/macosx/deploy;
+				CONFIGURATION_BUILD_DIR = ../../../lib/macos/deploy;
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";

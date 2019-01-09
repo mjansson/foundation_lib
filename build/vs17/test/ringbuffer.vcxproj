@@ -41,6 +41,7 @@
     <ProjectGuid>{08d9aa1a-5ae9-4d58-9c89-b9094b431253}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ringbuffer</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

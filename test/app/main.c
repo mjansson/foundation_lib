@@ -77,7 +77,11 @@ memory_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	int iloop, lsize;
 
+#if !BUILD_ENABLE_MEMORY_TRACKER
 	for (iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
+#else
+	for (iloop = 0, lsize = 8 * 1024; iloop < lsize; ++iloop) {
+#endif
 		void* mem = memory_allocate(0, 17 + (iloop % 997), 16, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
 		EXPECT_EQ((uintptr_t)mem & 0x0F, 0);
 		thread_yield();
@@ -88,7 +92,7 @@ memory_thread(void* arg) {
 	return 0;
 }
 
-#if BUILD_ENABLE_MEMORY_STATISTICS
+#if BUILD_ENABLE_MEMORY_STATISTICS && BUILD_ENABLE_MEMORY_TRACKER
 static size_t _memory_dumps;
 static size_t _memory_dump_size;
 
@@ -109,11 +113,11 @@ memory_dump(const void* addr, size_t size, void * const* trace, size_t depth) {
 DECLARE_TEST(app, memory) {
 	thread_t thread[16];
 	size_t ith;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 2, 16);
+	size_t num_threads = math_clamp(system_hardware_threads() + 1, 2, 16);
 
 	log_set_suppress(HASH_MEMORY, ERRORLEVEL_NONE);
 
-#if BUILD_ENABLE_MEMORY_STATISTICS
+#if BUILD_ENABLE_MEMORY_STATISTICS && BUILD_ENABLE_MEMORY_TRACKER
 	memory_statistics_t prestats = memory_statistics();
 	EXPECT_SIZEGT(prestats.allocations_current, 1);
 	EXPECT_SIZEGT(prestats.allocated_current, 1);
@@ -142,7 +146,7 @@ DECLARE_TEST(app, memory) {
 	for (ith = 0; ith < num_threads; ++ith)
 		thread_finalize(&thread[ith]);
 
-#if BUILD_ENABLE_MEMORY_STATISTICS
+#if BUILD_ENABLE_MEMORY_STATISTICS && BUILD_ENABLE_MEMORY_TRACKER
 	memory_statistics_t poststats = memory_statistics();
 	EXPECT_SIZEEQ(poststats.allocations_current, prestats.allocations_current);
 	EXPECT_SIZEEQ(poststats.allocated_current, prestats.allocated_current);

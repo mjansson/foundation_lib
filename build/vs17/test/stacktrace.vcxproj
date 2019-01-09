@@ -41,6 +41,7 @@
     <ProjectGuid>{5cdea389-bc8b-4379-81ee-85cff7351195}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>stacktrace</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

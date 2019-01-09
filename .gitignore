@@ -1,6 +1,7 @@
 *.pydevproject
 .project
 .metadata
+.gitconfig
 bin/
 tmp/
 *.tmp

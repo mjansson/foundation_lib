@@ -184,9 +184,9 @@ path_base_file_name(const char* path, size_t length) {
 	if (!path || ! length)
 		return string_const(0, 0);
 	start = string_find_last_of(path, length, STRING_CONST("/\\"), STRING_NPOS);
-	end = string_find(path, length, '.', (start != STRING_NPOS) ? start : 0);
+	end = string_rfind(path, length, '.', STRING_NPOS);
 	//For "dot" files, i.e files with names like "/path/to/.file", return the dot name ".file"
-	if (!end || (end == (start + 1)))
+	if (!end || (end == (start + 1)) || ((start != STRING_NPOS) && (end < start)))
 		end = STRING_NPOS;
 	if (start != STRING_NPOS)
 		return string_substr(path, length, start + 1,

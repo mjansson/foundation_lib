@@ -80,8 +80,6 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_EQ(system_platform(), PLATFORM_MACOS);
 #elif FOUNDATION_PLATFORM_IOS
 	EXPECT_EQ(system_platform(), PLATFORM_IOS);
-#elif FOUNDATION_PLATFORM_PNACL
-	EXPECT_EQ(system_platform(), PLATFORM_PNACL);
 #elif FOUNDATION_PLATFORM_BSD
 	EXPECT_EQ(system_platform(), PLATFORM_BSD);
 #elif FOUNDATION_PLATFORM_TIZEN
@@ -135,7 +133,7 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_NE(system_username(buffer, 2).str, 0);
 	EXPECT_EQ(system_username(buffer, 2).length, 1);
 
-#if !FOUNDATION_PLATFORM_PNACL && !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID
 	EXPECT_NE(system_hostid(), 0);
 #endif
 

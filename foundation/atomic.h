@@ -431,27 +431,32 @@ atomic_store_ptr(atomicptr_t* dst, void* val, memory_order order) {
 
 static FOUNDATION_FORCEINLINE int32_t
 atomic_exchange_and_add32(atomic32_t* val, int32_t add, memory_order order) {
+	FOUNDATION_UNUSED(order);
 	return _InterlockedExchangeAdd((volatile long*)&val->nonatomic, add);
 }
 
 static FOUNDATION_FORCEINLINE int
 atomic_add32(atomic32_t* val, int32_t add, memory_order order) {
+	FOUNDATION_UNUSED(order);
 	int32_t old = (int32_t)_InterlockedExchangeAdd((volatile long*)&val->nonatomic, add);
 	return (old + add);
 }
 
 static FOUNDATION_FORCEINLINE int
 atomic_incr32(atomic32_t* val, memory_order order) {
+	FOUNDATION_UNUSED(order);
 	return atomic_add32(val, 1, order);
 }
 
 static FOUNDATION_FORCEINLINE int
 atomic_decr32(atomic32_t* val, memory_order order) {
+	FOUNDATION_UNUSED(order);
 	return atomic_add32(val, -1, order);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
 atomic_exchange_and_add64(atomic64_t* val, int64_t add, memory_order order) {
+	FOUNDATION_UNUSED(order);
 #if FOUNDATION_ARCH_X86
 	long long ref;
 	do { ref = val->nonatomic; }
@@ -464,6 +469,7 @@ atomic_exchange_and_add64(atomic64_t* val, int64_t add, memory_order order) {
 
 static FOUNDATION_FORCEINLINE int64_t
 atomic_add64(atomic64_t* val, int64_t add, memory_order order) {
+	FOUNDATION_UNUSED(order);
 #if FOUNDATION_ARCH_X86
 	return atomic_exchange_and_add64(val, add, order) + add;
 #else
@@ -473,28 +479,36 @@ atomic_add64(atomic64_t* val, int64_t add, memory_order order) {
 
 static FOUNDATION_FORCEINLINE int64_t
 atomic_incr64(atomic64_t* val, memory_order order) {
+	FOUNDATION_UNUSED(order);
 	return atomic_add64(val, 1LL, order);
 }
 
 static FOUNDATION_FORCEINLINE int64_t
 atomic_decr64(atomic64_t* val, memory_order order) {
+	FOUNDATION_UNUSED(order);
 	return atomic_add64(val, -1LL, order);
 }
 
 static FOUNDATION_FORCEINLINE bool
 atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref, memory_order success, memory_order failure) {
+	FOUNDATION_UNUSED(success);
+	FOUNDATION_UNUSED(failure);
 	return (_InterlockedCompareExchange((volatile long*)&dst->nonatomic, val,
 	                                    ref) == ref) ? true : false;
 }
 
 static FOUNDATION_FORCEINLINE bool
 atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref, memory_order success, memory_order failure) {
+	FOUNDATION_UNUSED(success);
+	FOUNDATION_UNUSED(failure);
 	return (_InterlockedCompareExchange64((volatile long long*)&dst->nonatomic, val,
 	                                      ref) == ref) ? true : false;
 }
 
 static FOUNDATION_FORCEINLINE bool
 atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref, memory_order success, memory_order failure) {
+	FOUNDATION_UNUSED(success);
+	FOUNDATION_UNUSED(failure);
 #if FOUNDATION_SIZE_POINTER == 8
 	return atomic_cas64((atomic64_t*)dst, (int64_t)(uintptr_t)val, (int64_t)(uintptr_t)ref, success, failure);
 #else

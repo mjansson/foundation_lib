@@ -157,13 +157,18 @@ thread_yield(void);
 FOUNDATION_API thread_t*
 thread_self(void);
 
-/*! Initialize on thread exit and aqcuire thread local resources. */
+/*! Initialize on thread start and aqcuire thread local resources. */
 FOUNDATION_API void
 thread_enter(void);
 
 /*! Finalize on thread exit and free thread local resources. */
 FOUNDATION_API void
 thread_exit(void);
+
+/*! Query if thread has been entered (thread_enter called)
+\return true if thread_enter has been called, false if not */
+FOUNDATION_API bool
+thread_is_entered(void);
 
 #if FOUNDATION_PLATFORM_ANDROID
 

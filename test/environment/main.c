@@ -58,7 +58,7 @@ DECLARE_TEST(environment, builtin) {
 	EXPECT_NE_MSGFORMAT(string_find_string(STRING_ARGS(cmdline[0]),
 	                                       STRING_CONST("com.rampantpixels.foundation.test"), 0), STRING_NPOS, "Commandline: %.*s",
 	                    (int)cmdline[0].length, cmdline[0].str);
-#elif !FOUNDATION_PLATFORM_PNACL
+#else
 	EXPECT_NE_MSGFORMAT(string_find_string(STRING_ARGS(cmdline[0]), STRING_CONST("test-all"), 0),
 	                    STRING_NPOS, "Commandline: %.*s", (int)cmdline[0].length, cmdline[0].str);
 	EXPECT_CONSTSTRINGEQ(environment_executable_name(), string_const(STRING_CONST("test-all")));
@@ -74,10 +74,8 @@ DECLARE_TEST(environment, builtin) {
 	EXPECT_NE(environment_temporary_directory().str, 0);
 	EXPECT_NE(environment_temporary_directory().length, 0);
 
-#if !FOUNDATION_PLATFORM_PNACL
 	EXPECT_NE(environment_variable(STRING_CONST("PATH")).str, 0);
 	EXPECT_NE(environment_variable(STRING_CONST("PATH")).length, 0);
-#endif
 
 	return 0;
 }
@@ -94,7 +92,7 @@ DECLARE_TEST(environment, workingdir) {
 		new_working_dir = path_directory_name(STRING_ARGS(tmpwork));
 	}
 
-#if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS || FOUNDATION_PLATFORM_ANDROID
 	new_working_dir_copy = path_allocate_concat(STRING_ARGS(working_dir), STRING_CONST("config"));
 #else
 	new_working_dir_copy = string_clone(STRING_ARGS(new_working_dir));
@@ -104,11 +102,6 @@ DECLARE_TEST(environment, workingdir) {
 	EXPECT_CONSTSTRINGNE(working_dir, string_empty());
 	EXPECT_CONSTSTRINGNE(working_dir, new_working_dir);
 
-#if FOUNDATION_PLATFORM_PNACL
-	EXPECT_FALSE(environment_set_current_working_directory(STRING_ARGS(new_working_dir)));
-	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),
-	                     string_const(STRING_ARGS(working_dir_copy)));
-#else
 	EXPECT_TRUE(environment_set_current_working_directory(STRING_ARGS(new_working_dir)));
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(), new_working_dir);
 
@@ -123,7 +116,6 @@ DECLARE_TEST(environment, workingdir) {
 	}
 	EXPECT_CONSTSTRINGEQ(environment_current_working_directory(),
 	                     string_const(STRING_ARGS(working_dir_copy)));
-#endif
 
 	string_deallocate(new_working_dir_copy.str);
 	string_deallocate(working_dir_copy.str);

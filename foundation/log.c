@@ -36,10 +36,6 @@
 #  include <foundation/posix.h>
 #endif
 
-#if FOUNDATION_PLATFORM_PNACL
-#  include <foundation/pnacl.h>
-#endif
-
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
 static bool           _log_stdout = true;
@@ -172,10 +168,6 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 			FOUNDATION_UNUSED(std);
 			if (_log_stdout)
 				dlog_print(DLOG_DEBUG + severity - 1, environment_application()->short_name.str, "%s", buffer);
-#elif FOUNDATION_PLATFORM_PNACL
-			FOUNDATION_UNUSED(std);
-			if (_log_stdout)
-				pnacl_post_log(context, severity, buffer, (unsigned int)endl);
 #else
 			if (_log_stdout && std)
 				fprintf(std, "%s", buffer);

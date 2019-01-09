@@ -21,12 +21,8 @@
 #  include <sys/mman.h>
 #endif
 
-#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 #  include <malloc.h>
-#endif
-
-#if FOUNDATION_PLATFORM_PNACL
-#  include <stdlib.h>
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG)
@@ -275,8 +271,6 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 #  if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 		if (posix_memalign(&memory, align, size))
 			memory = 0;
-#  elif FOUNDATION_PLATFORM_PNACL
-		memory = memalign(align, size);
 #  else
 		memory = aligned_alloc(align, size);
 #  endif
@@ -370,7 +364,19 @@ memory_system_malloc(void) {
 	return memsystem;
 }
 
-#if BUILD_ENABLE_MEMORY_TRACKER
+#if !BUILD_ENABLE_MEMORY_TRACKER
+
+void
+memory_set_tracker(memory_tracker_t tracker) {
+	FOUNDATION_UNUSED(tracker);
+}
+
+void
+memory_tracker_dump(memory_tracker_handler_fn handler) {
+	FOUNDATION_UNUSED(handler);
+}
+
+#else
 
 void
 memory_set_tracker(memory_tracker_t tracker) {
@@ -400,13 +406,13 @@ memory_set_tracker(memory_tracker_t tracker) {
 
 static void
 _memory_track(void* addr, size_t size) {
-	if (_memory_tracker.track)
+	if (addr && _memory_tracker.track)
 		_memory_tracker.track(addr, size);
 }
 
 static void
 _memory_untrack(void* addr) {
-	if (_memory_tracker.untrack)
+	if (addr && _memory_tracker.untrack)
 		_memory_tracker.untrack(addr);
 }
 
@@ -466,6 +472,12 @@ _memory_tracker_cleanup(void) {
 
 static void
 _memory_tracker_finalize(void) {
+#if FOUNDATION_PLATFORM_APPLE
+	//Hack to allow system dispatch threads time to finalize
+	//and free memory during shutdown
+	thread_sleep(100);
+#endif
+
 	_memory_tracker_initialized = false;
 	if (_memory_tags) {
 		unsigned int it;
@@ -551,18 +563,19 @@ static void
 _memory_tracker_untrack(void* addr) {
 	int32_t tag = 0;
 	size_t size = 0;
+	bool found = false;
 	if (addr && _memory_tracker_initialized) {
 		int32_t maxtag = (int32_t)foundation_config().memory_tracker_max;
 		int32_t iend = atomic_load32(&_memory_tag_next, memory_order_acquire) % maxtag;
 		int32_t itag = iend ? iend - 1 : maxtag - 1;
-		while (true) {
+		while (!found) {
 			void* tagaddr = atomic_load_ptr(&_memory_tags[itag].address, memory_order_acquire);
 			if (addr == tagaddr) {
 				tag = itag;
 				size = _memory_tags[itag].size;
-				break;
+				found = true;
 			}
-			if (itag == iend)
+			else if (itag == iend)
 				break;
 			else if (itag)
 				--itag;
@@ -570,7 +583,7 @@ _memory_tracker_untrack(void* addr) {
 				itag = maxtag - 1;
 		}
 	}
-	if (size) {
+	if (found) {
 		atomic_store_ptr(&_memory_tags[tag].address, nullptr, memory_order_release);
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		atomic_decr32(&_memory_stats.allocations_current, memory_order_relaxed);

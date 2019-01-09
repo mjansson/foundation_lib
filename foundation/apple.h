@@ -23,11 +23,10 @@ multiple or missing definitions.
 <code>#include <Foundation/Foundation.h></code> in system headers will actually map
 to our foundation/foundation.h \endinternal */
 
-#include <foundation/platform.h>
-#include <foundation/types.h>
-#include <foundation/uuid.h>
-#include <foundation/radixsort.h>
-#include <foundation/semaphore.h>
+//We need to pull in all foundation headers here to make sure everything is included
+//before overriding types, in case the system framework includes maps back to
+//our headers.
+#include <foundation/foundation.h>
 
 #if FOUNDATION_PLATFORM_APPLE
 
@@ -50,6 +49,7 @@ to our foundation/foundation.h \endinternal */
 #define thread_terminate __system_thread_terminate
 #define task_t __system_task_t
 #define thread_t __system_thread_t
+#define uuid_t __darwin_uuid_t
 
 #include <mach/mach_types.h>
 #include <mach/mach_interface.h>
@@ -88,6 +88,7 @@ to our foundation/foundation.h \endinternal */
 #undef uuid_is_null
 #undef task_t
 #undef thread_t
+#undef uuid_t
 
 #if FOUNDATION_COMPILER_CLANG
 #  pragma clang diagnostic pop

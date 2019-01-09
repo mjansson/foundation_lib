@@ -1,3 +1,25 @@
+1.6.1
+
+Add uuidmap for mapping UUIDs to pointer values
+
+Added fs_matching_subdirs and fs_matching_subdirs_regex for finding matching subdirectories
+
+Change object map to use external ID and ref count representation for object, allowing
+pointers to any type to be stored in map. Rename the objectmap_lookup_ref and objectmap_lookup_unref
+to better named objectmap_acquire and objectmap_release
+
+Rename library_unload to library_release to match object map function naming
+
+Bugfix on macOS/iOS where main thread did not properly initialize memory subsystem if
+other than the default system was used
+
+Add thread_is_entered to query if thread_enter has been called on the calling thread
+
+Bugfix in macOS file system watcher, correctly bootstrapping thread memory handling for cleanup
+if needed
+
+Fix path_base_file_name to return name up to last dot in filename, not first dot. A file "path/to/foo.bar.ext" will thus return "foo.bar" instead of "foo"
+
 
 1.6.0
 
@@ -22,7 +44,7 @@ Change MacOSX platform names and identifiers to macOS (FOUNDATION_PLATFORM_MACOS
 Fix race condition in ring buffer streams read/write.
 
 Use C11 atomics for all compilers (except Microsoft) instead of builtin or own implementations.
-Add memory order control to all atomic operations.
+Add memory ordering to all atomic entry points.
 
 semaphore_initialize and semaphore_initialize_named now return boolean success/fail indicator
 

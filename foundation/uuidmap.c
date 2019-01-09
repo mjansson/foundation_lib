@@ -1,4 +1,4 @@
-/* hashmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* uuidmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
@@ -12,27 +12,27 @@
 
 #include <foundation/foundation.h>
 
-#define HASHMAP_MINBUCKETS     13
+#define UUIDMAP_MINBUCKETS     13
 
-#define GET_BUCKET( map, key ) ( key % map->num_buckets )
+#define GET_BUCKET(map, key) ((size_t)((key.word[0] ^ key.word[1]) % (uint64_t)map->num_buckets))
 
-hashmap_t*
-hashmap_allocate(size_t buckets, size_t bucketsize) {
-	hashmap_t* map;
+uuidmap_t*
+uuidmap_allocate(size_t buckets, size_t bucketsize) {
+	uuidmap_t* map;
 
-	if (buckets < HASHMAP_MINBUCKETS)
-		buckets = HASHMAP_MINBUCKETS;
+	if (buckets < UUIDMAP_MINBUCKETS)
+		buckets = UUIDMAP_MINBUCKETS;
 
-	map = memory_allocate(0, sizeof(hashmap_t) + sizeof(hashmap_node_t*) * buckets, 0,
+	map = memory_allocate(0, sizeof(uuidmap_t) + sizeof(uuidmap_node_t*) * buckets, 0,
 	                      MEMORY_PERSISTENT);
 
-	hashmap_initialize(map, buckets, bucketsize);
+	uuidmap_initialize(map, buckets, bucketsize);
 
 	return map;
 }
 
 void
-hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize) {
+uuidmap_initialize(uuidmap_t* map, size_t buckets, size_t bucketsize) {
 	size_t ibucket;
 
 	map->num_buckets = buckets;
@@ -46,33 +46,33 @@ hashmap_initialize(hashmap_t* map, size_t buckets, size_t bucketsize) {
 }
 
 void
-hashmap_deallocate(hashmap_t* map) {
-	hashmap_finalize(map);
+uuidmap_deallocate(uuidmap_t* map) {
+	uuidmap_finalize(map);
 	memory_deallocate(map);
 }
 
 void
-hashmap_finalize(hashmap_t* map) {
+uuidmap_finalize(uuidmap_t* map) {
 	size_t ibucket;
 	for (ibucket = 0; ibucket < map->num_buckets; ++ibucket)
 		array_deallocate(map->bucket[ibucket]);
 }
 
 void*
-hashmap_insert(hashmap_t* map, hash_t key, void* value) {
+uuidmap_insert(uuidmap_t* map, uuid_t key, void* value) {
 	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
-	hashmap_node_t* bucket = map->bucket[ibucket];
+	uuidmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
 	for (inode = 0, nsize = array_size(bucket); inode < nsize; ++inode) {
-		if (bucket[inode].key == key) {
+		if (uuid_equal(bucket[inode].key, key)) {
 			void* prev = bucket[inode].value;
 			bucket[inode].value = value;
 			return prev;
 		}
 	}
 	{
-		hashmap_node_t node = { key, value };
+		uuidmap_node_t node = { key, value };
 		array_push(map->bucket[ibucket], node);
 		++map->num_nodes;
 	}
@@ -80,13 +80,13 @@ hashmap_insert(hashmap_t* map, hash_t key, void* value) {
 }
 
 void*
-hashmap_erase(hashmap_t* map, hash_t key) {
+uuidmap_erase(uuidmap_t* map, uuid_t key) {
 	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
-	hashmap_node_t* bucket = map->bucket[ibucket];
+	uuidmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
 	for (inode = 0, nsize = array_size(bucket); inode < nsize; ++inode) {
-		if (bucket[inode].key == key) {
+		if (uuid_equal(bucket[inode].key, key)) {
 			void* prev = bucket[inode].value;
 			array_erase(map->bucket[ibucket], inode);
 			--map->num_nodes;
@@ -97,38 +97,38 @@ hashmap_erase(hashmap_t* map, hash_t key) {
 }
 
 void*
-hashmap_lookup(hashmap_t* map, hash_t key) {
+uuidmap_lookup(uuidmap_t* map, uuid_t key) {
 	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
-	hashmap_node_t* bucket = map->bucket[ibucket];
+	uuidmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
 	for (inode = 0, nsize = array_size(bucket); inode < nsize; ++inode) {
-		if (bucket[inode].key == key)
+		if (uuid_equal(bucket[inode].key, key))
 			return bucket[inode].value;
 	}
 	return 0;
 }
 
 bool
-hashmap_has_key(hashmap_t* map, hash_t key) {
+uuidmap_has_key(uuidmap_t* map, uuid_t key) {
 	/*lint --e{613} */
 	size_t ibucket = GET_BUCKET(map, key);
-	hashmap_node_t* bucket = map->bucket[ibucket];
+	uuidmap_node_t* bucket = map->bucket[ibucket];
 	size_t inode, nsize;
 	for (inode = 0, nsize = array_size(bucket); inode < nsize; ++inode) {
-		if (bucket[inode].key == key)
+		if (uuid_equal(bucket[inode].key, key))
 			return true;
 	}
 	return false;
 }
 
 size_t
-hashmap_size(hashmap_t* map) {
+uuidmap_size(uuidmap_t* map) {
 	return map->num_nodes;
 }
 
 void
-hashmap_clear(hashmap_t* map) {
+uuidmap_clear(uuidmap_t* map) {
 	size_t ibucket;
 	for (ibucket = 0; ibucket < map->num_buckets; ++ibucket)
 		array_clear(map->bucket[ibucket]);

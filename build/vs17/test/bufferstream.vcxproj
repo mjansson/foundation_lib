@@ -41,6 +41,7 @@
     <ProjectGuid>{aa0a39f9-f3b4-45c5-b06f-13b3a0b65e6b}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>bufferstream</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

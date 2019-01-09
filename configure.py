@@ -19,9 +19,9 @@ foundation_sources = [
   'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'beacon.c', 'bitbuffer.c', 'blowfish.c',
   'bufferstream.c', 'environment.c', 'error.c', 'event.c', 'exception.c', 'foundation.c', 'fs.c',
   'hash.c', 'hashmap.c', 'hashtable.c', 'json.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
-  'objectmap.c', 'path.c', 'pipe.c', 'pnacl.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
+  'objectmap.c', 'path.c', 'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'sha.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
-  'tizen.c', 'uuid.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
+  'tizen.c', 'uuid.c', 'uuidmap.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
 
 foundation_lib = generator.lib(module = 'foundation', sources = foundation_sources + extrasources)
 #foundation_so = generator.sharedlib( module = 'foundation', sources = foundation_sources + extrasources )
@@ -37,13 +37,17 @@ includepaths = ['test']
 test_lib = generator.lib(module = 'test', basepath = 'test', sources = ['test.c', 'test.m'], includepaths = includepaths)
 mock_lib = generator.lib(module = 'mock', basepath = 'test', sources = ['mock.c'], includepaths = includepaths)
 
+#No test cases if we're a submodule
+if generator.is_subninja():
+  sys.exit()
+
 test_cases = [
   'app', 'array', 'atomic', 'base64', 'beacon', 'bitbuffer', 'blowfish', 'bufferstream', 'environment', 'error',
   'event', 'exception', 'fs', 'hash', 'hashmap', 'hashtable', 'json', 'library', 'math', 'md5', 'mutex', 'objectmap',
   'path', 'pipe', 'process', 'profile', 'radixsort', 'random', 'regex', 'ringbuffer', 'semaphore', 'sha', 'stacktrace',
   'stream', 'string', 'system', 'time', 'uuid'
 ]
-if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_tizen() or target.is_pnacl():
+if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target.is_tizen():
   #Build one fat binary with all test cases
   test_resources = []
   test_extrasources = []
@@ -70,8 +74,6 @@ if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target
     ]]
   sources = [os.path.join(module, 'main.c') for module in test_cases] + test_extrasources
   variables = None
-  if target.is_macos():
-    variables = {"support_lua" : True}
   if target.is_ios() or target.is_android() or target.is_tizen():
     generator.app(module = '', sources = sources, binname = 'test-all', basepath = 'test', implicit_deps = [foundation_lib, test_lib, mock_lib], libs = ['test', 'foundation', 'mock'], resources = test_resources, includepaths = includepaths, variables = variables)
   else:
@@ -82,6 +84,4 @@ else:
   generator.bin(module = 'all', sources = sources, binname = 'test-all', basepath = 'test', implicit_deps = [foundation_lib], libs = ['foundation'], includepaths = includepaths)
   for test in test_cases:
     variables = None
-    if test == 'app' and target.is_macos():
-      variables = {"support_lua" : True}
     generator.bin(module = test, sources = sources, binname = 'test-' + test, basepath = 'test', implicit_deps = [foundation_lib, test_lib, mock_lib], libs = ['test', 'foundation', 'mock'], includepaths = includepaths, variables = variables)

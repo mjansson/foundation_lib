@@ -50,8 +50,8 @@ DECLARE_TEST(json, reference) {
 	json_token_t tokens[128];
 	size_t capacity = sizeof(tokens) / sizeof(tokens[0]);
 
-	string_const_t compound = string_const(STRING_CONST("\
-	{\"foo\" :{\"subobj\": false ,\
+	string_const_t compound = string_const(STRING_CONST(""
+	"\t{\"foo\" :{\"subobj\": false ,\
 		\"val\" :1.2345e45 \
 	} ,\"arr\" :[ \
 		\"string\",\
@@ -60,12 +60,11 @@ DECLARE_TEST(json, reference) {
 			\"subarr [] {} =:\", { \"key\": []}, [] \
 		],[false],\
 		{ \t\
-			\"final\" : true \
+			\"final\" : null \
 		}\
 		,{ }  \
 		, 1234.43E+123 \
-	]\
-	}"));
+	]}"));
 
 	memset(tokens, 0, sizeof(tokens));
 
@@ -87,11 +86,12 @@ DECLARE_TEST(json, reference) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 0);
-	EXPECT_UINTEQ(tokens[0].value_length, 0);
+	EXPECT_UINTEQ(tokens[0].value, 1); // String starts with a tab character
+	EXPECT_UINTEQ(tokens[0].value_length, compound.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[1].id_length, 3);
-	EXPECT_UINTEQ(tokens[1].value_length, 0);
+	EXPECT_UINTEQ(tokens[1].value, 9);
+	EXPECT_UINTEQ(tokens[1].value_length, 39);
 	EXPECT_INTEQ(tokens[2].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[2].id_length, 6);
 	EXPECT_UINTEQ(tokens[2].value_length, 5);
@@ -100,7 +100,7 @@ DECLARE_TEST(json, reference) {
 	EXPECT_UINTEQ(tokens[3].value_length, 9);
 	EXPECT_INTEQ(tokens[4].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[4].id_length, 3);
-	EXPECT_UINTEQ(tokens[4].value_length, 0);
+	EXPECT_UINTEQ(tokens[4].value_length, 7);
 	EXPECT_INTEQ(tokens[5].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[5].id_length, 0);
 	EXPECT_UINTEQ(tokens[5].value_length, 6);
@@ -111,62 +111,81 @@ DECLARE_TEST(json, reference) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 0);
-	EXPECT_UINTEQ(tokens[0].value_length, 0);
+	EXPECT_UINTEQ(tokens[0].value, 1);
+	EXPECT_UINTEQ(tokens[0].value_length, compound.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
-	EXPECT_UINTEQ(tokens[1].id_length, 3);
-	EXPECT_UINTEQ(tokens[1].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[1].id, tokens[1].id_length),
+	                     string_const(STRING_CONST("foo")));
+	EXPECT_UINTEQ(tokens[1].value, 9);
+	EXPECT_UINTEQ(tokens[1].value_length, 39);
 	EXPECT_INTEQ(tokens[2].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[2].id_length, 6);
-	EXPECT_UINTEQ(tokens[2].value_length, 5);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[2].id, tokens[2].id_length),
+	                     string_const(STRING_CONST("subobj")));
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[2].value, tokens[2].value_length),
+	                     string_const(STRING_CONST("false")));
 	EXPECT_INTEQ(tokens[3].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[3].id_length, 3);
-	EXPECT_UINTEQ(tokens[3].value_length, 9);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[3].id, tokens[3].id_length),
+	                     string_const(STRING_CONST("val")));
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[3].value, tokens[3].value_length),
+	                     string_const(STRING_CONST("1.2345e45")));
 	EXPECT_INTEQ(tokens[4].type, JSON_ARRAY);
-	EXPECT_UINTEQ(tokens[4].id_length, 3);
-	EXPECT_UINTEQ(tokens[4].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[4].id, tokens[4].id_length),
+	                     string_const(STRING_CONST("arr")));
+	EXPECT_UINTEQ(tokens[4].value_length, 7);
 	EXPECT_INTEQ(tokens[5].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[5].id_length, 0);
-	EXPECT_UINTEQ(tokens[5].value_length, 6);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[5].value, tokens[5].value_length),
+	                     string_const(STRING_CONST("string")));
 	EXPECT_INTEQ(tokens[6].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[6].id_length, 0);
-	EXPECT_UINTEQ(tokens[6].value_length, 11);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[6].value, tokens[6].value_length),
+	                     string_const(STRING_CONST("-.34523e-78")));
 	EXPECT_INTEQ(tokens[7].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[7].id_length, 0);
-	EXPECT_UINTEQ(tokens[7].value_length, 0);
+	EXPECT_UINTEQ(tokens[7].value_length, 4);
 	EXPECT_INTEQ(tokens[8].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[8].id_length, 0);
-	EXPECT_UINTEQ(tokens[8].value_length, 4);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[8].value, tokens[8].value_length),
+	                     string_const(STRING_CONST("true")));
 	EXPECT_INTEQ(tokens[9].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[9].id_length, 0);
-	EXPECT_UINTEQ(tokens[9].value_length, 15);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[9].value, tokens[9].value_length),
+	                     string_const(STRING_CONST("subarr [] {} =:")));
 	EXPECT_INTEQ(tokens[10].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[10].id_length, 0);
-	EXPECT_UINTEQ(tokens[10].value_length, 0);
+	EXPECT_UINTEQ(tokens[10].value, 116);
+	EXPECT_UINTEQ(tokens[10].value_length, 12);
 	EXPECT_INTEQ(tokens[11].type, JSON_ARRAY);
-	EXPECT_UINTEQ(tokens[11].id_length, 3);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[11].id, tokens[11].id_length),
+	                     string_const(STRING_CONST("key")));
 	EXPECT_UINTEQ(tokens[11].value_length, 0);
 	EXPECT_INTEQ(tokens[12].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[12].id_length, 0);
 	EXPECT_UINTEQ(tokens[12].value_length, 0);
 	EXPECT_INTEQ(tokens[13].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[13].id_length, 0);
-	EXPECT_UINTEQ(tokens[13].value_length, 0);
+	EXPECT_UINTEQ(tokens[13].value_length, 1);
 	EXPECT_INTEQ(tokens[14].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[14].id_length, 0);
-	EXPECT_UINTEQ(tokens[14].value_length, 5);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[14].value, tokens[14].value_length),
+	                     string_const(STRING_CONST("false")));
 	EXPECT_INTEQ(tokens[15].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[15].id_length, 0);
-	EXPECT_UINTEQ(tokens[15].value_length, 0);
+	EXPECT_UINTEQ(tokens[15].value, 147);
+	EXPECT_UINTEQ(tokens[15].value_length, 24);
 	EXPECT_INTEQ(tokens[16].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[16].id_length, 5);
-	EXPECT_UINTEQ(tokens[16].value_length, 4);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[16].id, tokens[16].id_length),
+	                     string_const(STRING_CONST("final")));
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[16].value, tokens[16].value_length),
+	                     string_const(STRING_CONST("null")));
 	EXPECT_INTEQ(tokens[17].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[17].id_length, 0);
-	EXPECT_UINTEQ(tokens[17].value_length, 0);
+	EXPECT_UINTEQ(tokens[17].value, 174);
+	EXPECT_UINTEQ(tokens[17].value_length, 3);
 	EXPECT_INTEQ(tokens[18].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[18].id_length, 0);
-	EXPECT_UINTEQ(tokens[18].value_length, 12);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[18].value, tokens[18].value_length),
+	                     string_const(STRING_CONST("1234.43E+123")));
 
 	return 0;
 }
@@ -185,7 +204,7 @@ DECLARE_TEST(json, simplified) {
 			\"subarr [] {} =:\" { key: []} []\
 		] [false] \
 		{ \t\
-			final = true\
+			final = null\
 		}\
 		{ }  \
 		1234.43E+123 \
@@ -202,7 +221,7 @@ DECLARE_TEST(json, simplified) {
 			\"subarr [] {} =:\", { \"key\": []}, [] \
 		],[false],\
 		{ \t\
-			\"final\" : true \
+			\"final\" : null \
 		}\
 		,{ } , \
 		 1234.43E+123 \
@@ -220,11 +239,12 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 0);
-	EXPECT_UINTEQ(tokens[0].value_length, 0);
+	EXPECT_UINTEQ(tokens[0].value, 1); // String starts with a tab character
+	EXPECT_UINTEQ(tokens[0].value_length, compound.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[1].id_length, 3);
-	EXPECT_UINTEQ(tokens[1].value_length, 0);
+	EXPECT_UINTEQ(tokens[1].value, 9);
+	EXPECT_UINTEQ(tokens[1].value_length, 39);
 	EXPECT_INTEQ(tokens[2].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[2].id_length, 6);
 	EXPECT_UINTEQ(tokens[2].value_length, 5);
@@ -233,7 +253,7 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_UINTEQ(tokens[3].value_length, 9);
 	EXPECT_INTEQ(tokens[4].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[4].id_length, 3);
-	EXPECT_UINTEQ(tokens[4].value_length, 0);
+	EXPECT_UINTEQ(tokens[4].value_length, 7);
 	EXPECT_INTEQ(tokens[5].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[5].id_length, 0);
 	EXPECT_UINTEQ(tokens[5].value_length, 6);
@@ -244,62 +264,81 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 0);
-	EXPECT_UINTEQ(tokens[0].value_length, 0);
+	EXPECT_UINTEQ(tokens[0].value, 1);
+	EXPECT_UINTEQ(tokens[0].value_length, compound.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
-	EXPECT_UINTEQ(tokens[1].id_length, 3);
-	EXPECT_UINTEQ(tokens[1].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[1].id, tokens[1].id_length),
+	                     string_const(STRING_CONST("foo")));
+	EXPECT_UINTEQ(tokens[1].value, 9);
+	EXPECT_UINTEQ(tokens[1].value_length, 39);
 	EXPECT_INTEQ(tokens[2].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[2].id_length, 6);
-	EXPECT_UINTEQ(tokens[2].value_length, 5);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[2].id, tokens[2].id_length),
+	                     string_const(STRING_CONST("subobj")));
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[2].value, tokens[2].value_length),
+	                     string_const(STRING_CONST("false")));
 	EXPECT_INTEQ(tokens[3].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[3].id_length, 3);
-	EXPECT_UINTEQ(tokens[3].value_length, 9);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[3].id, tokens[3].id_length),
+	                     string_const(STRING_CONST("val")));
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[3].value, tokens[3].value_length),
+	                     string_const(STRING_CONST("1.2345e45")));
 	EXPECT_INTEQ(tokens[4].type, JSON_ARRAY);
-	EXPECT_UINTEQ(tokens[4].id_length, 3);
-	EXPECT_UINTEQ(tokens[4].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[4].id, tokens[4].id_length),
+	                     string_const(STRING_CONST("arr")));
+	EXPECT_UINTEQ(tokens[4].value_length, 7);
 	EXPECT_INTEQ(tokens[5].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[5].id_length, 0);
-	EXPECT_UINTEQ(tokens[5].value_length, 6);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[5].value, tokens[5].value_length),
+	                     string_const(STRING_CONST("string")));
 	EXPECT_INTEQ(tokens[6].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[6].id_length, 0);
-	EXPECT_UINTEQ(tokens[6].value_length, 11);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[6].value, tokens[6].value_length),
+	                     string_const(STRING_CONST("-.34523e-78")));
 	EXPECT_INTEQ(tokens[7].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[7].id_length, 0);
-	EXPECT_UINTEQ(tokens[7].value_length, 0);
+	EXPECT_UINTEQ(tokens[7].value_length, 4);
 	EXPECT_INTEQ(tokens[8].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[8].id_length, 0);
-	EXPECT_UINTEQ(tokens[8].value_length, 4);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[8].value, tokens[8].value_length),
+	                     string_const(STRING_CONST("true")));
 	EXPECT_INTEQ(tokens[9].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[9].id_length, 0);
-	EXPECT_UINTEQ(tokens[9].value_length, 15);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[9].value, tokens[9].value_length),
+	                     string_const(STRING_CONST("subarr [] {} =:")));
 	EXPECT_INTEQ(tokens[10].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[10].id_length, 0);
-	EXPECT_UINTEQ(tokens[10].value_length, 0);
+	EXPECT_UINTEQ(tokens[10].value, 116);
+	EXPECT_UINTEQ(tokens[10].value_length, 12);
 	EXPECT_INTEQ(tokens[11].type, JSON_ARRAY);
-	EXPECT_UINTEQ(tokens[11].id_length, 3);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[11].id, tokens[11].id_length),
+	                     string_const(STRING_CONST("key")));
 	EXPECT_UINTEQ(tokens[11].value_length, 0);
 	EXPECT_INTEQ(tokens[12].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[12].id_length, 0);
 	EXPECT_UINTEQ(tokens[12].value_length, 0);
 	EXPECT_INTEQ(tokens[13].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[13].id_length, 0);
-	EXPECT_UINTEQ(tokens[13].value_length, 0);
+	EXPECT_UINTEQ(tokens[13].value_length, 1);
 	EXPECT_INTEQ(tokens[14].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[14].id_length, 0);
-	EXPECT_UINTEQ(tokens[14].value_length, 5);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[14].value, tokens[14].value_length),
+	                     string_const(STRING_CONST("false")));
 	EXPECT_INTEQ(tokens[15].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[15].id_length, 0);
-	EXPECT_UINTEQ(tokens[15].value_length, 0);
+	EXPECT_UINTEQ(tokens[15].value, 147);
+	EXPECT_UINTEQ(tokens[15].value_length, 24);
 	EXPECT_INTEQ(tokens[16].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[16].id_length, 5);
-	EXPECT_UINTEQ(tokens[16].value_length, 4);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[16].id, tokens[16].id_length),
+	                     string_const(STRING_CONST("final")));
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[16].value, tokens[16].value_length),
+	                     string_const(STRING_CONST("null")));
 	EXPECT_INTEQ(tokens[17].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[17].id_length, 0);
-	EXPECT_UINTEQ(tokens[17].value_length, 0);
+	EXPECT_UINTEQ(tokens[17].value, 174);
+	EXPECT_UINTEQ(tokens[17].value_length, 3);
 	EXPECT_INTEQ(tokens[18].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[18].id_length, 0);
-	EXPECT_UINTEQ(tokens[18].value_length, 12);
+	EXPECT_CONSTSTRINGEQ(string_const(compound.str + tokens[18].value, tokens[18].value_length),
+	                     string_const(STRING_CONST("1234.43E+123")));
 
 	EXPECT_SIZEEQ(sjson_parse(0, 0, tokens, capacity), 0);
 	EXPECT_EQ(tokens[0].type, JSON_OBJECT);
@@ -315,86 +354,114 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 0);
-	EXPECT_UINTEQ(tokens[0].value_length, 0);
+	EXPECT_UINTEQ(tokens[0].value, 1); // Simplified first object also skip leading whitespace
+	EXPECT_UINTEQ(tokens[0].value_length, simplified.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
-	EXPECT_UINTEQ(tokens[1].id_length, 3);
-	EXPECT_UINTEQ(tokens[1].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[1].id, tokens[1].id_length),
+	                     string_const(STRING_CONST("foo")));
+	EXPECT_UINTEQ(tokens[1].value, 6);
+	EXPECT_UINTEQ(tokens[1].value_length, 34);
 	EXPECT_INTEQ(tokens[2].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[2].id_length, 6);
-	EXPECT_UINTEQ(tokens[2].value_length, 5);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[2].id, tokens[2].id_length),
+	                     string_const(STRING_CONST("subobj")));
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[2].value, tokens[2].value_length),
+	                     string_const(STRING_CONST("false")));
 	EXPECT_INTEQ(tokens[3].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[3].id_length, 3);
-	EXPECT_UINTEQ(tokens[3].value_length, 9);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[3].id, tokens[3].id_length),
+	                     string_const(STRING_CONST("val")));
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[3].value, tokens[3].value_length),
+	                     string_const(STRING_CONST("1.2345e45")));
 	EXPECT_INTEQ(tokens[4].type, JSON_ARRAY);
-	EXPECT_UINTEQ(tokens[4].id_length, 3);
-	EXPECT_UINTEQ(tokens[4].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[4].id, tokens[4].id_length),
+	                     string_const(STRING_CONST("arr")));
+	EXPECT_UINTEQ(tokens[4].value_length, 7);
 	EXPECT_INTEQ(tokens[5].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[5].id_length, 0);
-	EXPECT_UINTEQ(tokens[5].value_length, 6);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[5].value, tokens[5].value_length),
+	                     string_const(STRING_CONST("string")));
 	EXPECT_INTEQ(tokens[6].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[6].id_length, 0);
-	EXPECT_UINTEQ(tokens[6].value_length, 11);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[6].value, tokens[6].value_length),
+	                     string_const(STRING_CONST("-.34523e-78")));
 	EXPECT_SIZEEQ(sjson_parse(STRING_ARGS(simplified), tokens, capacity), 19);
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 0);
-	EXPECT_UINTEQ(tokens[0].value_length, 0);
+	EXPECT_UINTEQ(tokens[0].value, 1);
+	EXPECT_UINTEQ(tokens[0].value_length, simplified.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
-	EXPECT_UINTEQ(tokens[1].id_length, 3);
-	EXPECT_UINTEQ(tokens[1].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[1].id, tokens[1].id_length),
+	                     string_const(STRING_CONST("foo")));
+	EXPECT_UINTEQ(tokens[1].value, 6);
+	EXPECT_UINTEQ(tokens[1].value_length, 34);
 	EXPECT_INTEQ(tokens[2].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[2].id_length, 6);
-	EXPECT_UINTEQ(tokens[2].value_length, 5);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[2].id, tokens[2].id_length),
+	                     string_const(STRING_CONST("subobj")));
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[2].value, tokens[2].value_length),
+	                     string_const(STRING_CONST("false")));
 	EXPECT_INTEQ(tokens[3].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[3].id_length, 3);
-	EXPECT_UINTEQ(tokens[3].value_length, 9);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[3].id, tokens[3].id_length),
+	                     string_const(STRING_CONST("val")));
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[3].value, tokens[3].value_length),
+	                     string_const(STRING_CONST("1.2345e45")));
 	EXPECT_INTEQ(tokens[4].type, JSON_ARRAY);
-	EXPECT_UINTEQ(tokens[4].id_length, 3);
-	EXPECT_UINTEQ(tokens[4].value_length, 0);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[4].id, tokens[4].id_length),
+	                     string_const(STRING_CONST("arr")));
+	EXPECT_UINTEQ(tokens[4].value_length, 7);
 	EXPECT_INTEQ(tokens[5].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[5].id_length, 0);
-	EXPECT_UINTEQ(tokens[5].value_length, 6);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[5].value, tokens[5].value_length),
+	                     string_const(STRING_CONST("string")));
 	EXPECT_INTEQ(tokens[6].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[6].id_length, 0);
-	EXPECT_UINTEQ(tokens[6].value_length, 11);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[6].value, tokens[6].value_length),
+	                     string_const(STRING_CONST("-.34523e-78")));
 	EXPECT_INTEQ(tokens[7].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[7].id_length, 0);
-	EXPECT_UINTEQ(tokens[7].value_length, 0);
+	EXPECT_UINTEQ(tokens[7].value_length, 4);
 	EXPECT_INTEQ(tokens[8].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[8].id_length, 0);
-	EXPECT_UINTEQ(tokens[8].value_length, 4);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[8].value, tokens[8].value_length),
+	                     string_const(STRING_CONST("true")));
 	EXPECT_INTEQ(tokens[9].type, JSON_STRING);
 	EXPECT_UINTEQ(tokens[9].id_length, 0);
-	EXPECT_UINTEQ(tokens[9].value_length, 15);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[9].value, tokens[9].value_length),
+	                     string_const(STRING_CONST("subarr [] {} =:")));
 	EXPECT_INTEQ(tokens[10].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[10].id_length, 0);
-	EXPECT_UINTEQ(tokens[10].value_length, 0);
+	EXPECT_UINTEQ(tokens[10].value, 98);
+	EXPECT_UINTEQ(tokens[10].value_length, 10);
 	EXPECT_INTEQ(tokens[11].type, JSON_ARRAY);
-	EXPECT_UINTEQ(tokens[11].id_length, 3);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[11].id, tokens[11].id_length),
+	                     string_const(STRING_CONST("key")));
 	EXPECT_UINTEQ(tokens[11].value_length, 0);
 	EXPECT_INTEQ(tokens[12].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[12].id_length, 0);
 	EXPECT_UINTEQ(tokens[12].value_length, 0);
 	EXPECT_INTEQ(tokens[13].type, JSON_ARRAY);
 	EXPECT_UINTEQ(tokens[13].id_length, 0);
-	EXPECT_UINTEQ(tokens[13].value_length, 0);
+	EXPECT_UINTEQ(tokens[13].value_length, 1);
 	EXPECT_INTEQ(tokens[14].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[14].id_length, 0);
-	EXPECT_UINTEQ(tokens[14].value_length, 5);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[14].value, tokens[14].value_length),
+	                     string_const(STRING_CONST("false")));
 	EXPECT_INTEQ(tokens[15].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[15].id_length, 0);
-	EXPECT_UINTEQ(tokens[15].value_length, 0);
+	EXPECT_UINTEQ(tokens[15].value, 125);
+	EXPECT_UINTEQ(tokens[15].value_length, 21);
 	EXPECT_INTEQ(tokens[16].type, JSON_PRIMITIVE);
-	EXPECT_UINTEQ(tokens[16].id_length, 5);
-	EXPECT_UINTEQ(tokens[16].value_length, 4);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[16].id, tokens[16].id_length),
+	                     string_const(STRING_CONST("final")));
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[16].value, tokens[16].value_length),
+	                     string_const(STRING_CONST("null")));
 	EXPECT_INTEQ(tokens[17].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[17].id_length, 0);
-	EXPECT_UINTEQ(tokens[17].value_length, 0);
+	EXPECT_UINTEQ(tokens[17].value, 148);
+	EXPECT_UINTEQ(tokens[17].value_length, 3);
 	EXPECT_INTEQ(tokens[18].type, JSON_PRIMITIVE);
 	EXPECT_UINTEQ(tokens[18].id_length, 0);
-	EXPECT_UINTEQ(tokens[18].value_length, 12);
+	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[18].value, tokens[18].value_length),
+	                     string_const(STRING_CONST("1234.43E+123")));
 
 	return 0;
 }
@@ -403,11 +470,13 @@ DECLARE_TEST(json, random) {
 	char buffer[256];
 	size_t i, j, steps;
 
+	json_token_t tokens[256];
+
 	for (i = 0, steps = 1024 * 1024; i < steps; ++i) {
 		for (j = 0; j < sizeof(buffer); ++j)
 			buffer[j] = (char)random32_range(32, 127);
-		json_parse(buffer, sizeof(buffer), nullptr, 0);
-		sjson_parse(buffer, sizeof(buffer), nullptr, 0);
+		json_parse(buffer, sizeof(buffer), tokens, sizeof(tokens) / sizeof(tokens[0]));
+		sjson_parse(buffer, sizeof(buffer), tokens, sizeof(tokens) / sizeof(tokens[0]));
 	}
 
 	return 0;

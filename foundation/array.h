@@ -37,6 +37,7 @@ Adapted and extended from stb_arr at http://nothings.org/stb.h */
 #include <foundation/platform.h>
 #include <foundation/types.h>
 #include <foundation/math.h>
+#include <foundation/memory.h>
 
 /*! Deallocate array memory and reset array pointer to zero. Value of expression
 is a null pointer.

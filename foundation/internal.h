@@ -133,8 +133,5 @@ FOUNDATION_API uint64_t
 hashtable64_raw(hashtable64_t* table, size_t slot);
 
 FOUNDATION_API void
-_object_initialize(object_base_t* obj, object_t id);
-
-FOUNDATION_API void
 _environment_main_args(int argc, const char* const* argv);
 

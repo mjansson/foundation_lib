@@ -37,10 +37,6 @@ static SetThreadDescriptionFn _fnSetThreadDescriptionFn;
 #  include <foundation/posix.h>
 #endif
 
-#if FOUNDATION_PLATFORM_PNACL
-#  include <foundation/pnacl.h>
-#endif
-
 #if FOUNDATION_PLATFORM_ANDROID
 #  include <foundation/android.h>
 #  include <sys/syscall.h>
@@ -51,6 +47,7 @@ static SetThreadDescriptionFn _fnSetThreadDescriptionFn;
 #endif
 
 FOUNDATION_DECLARE_THREAD_LOCAL(thread_t*, self, 0)
+FOUNDATION_DECLARE_THREAD_LOCAL(int, entered, 0)
 static uint64_t _thread_main_id;
 
 int
@@ -175,15 +172,11 @@ typedef void* thread_arg_t;
 #define FOUNDATION_THREADCALL STDCALL
 #define GET_THREAD_PTR(x) ((thread_t*)(x))
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 typedef void* thread_return_t;
 typedef void* thread_arg_t;
-#if FOUNDATION_PLATFORM_PNACL
-#define FOUNDATION_THREADCALL
-#else
 #define FOUNDATION_THREADCALL FOUNDATION_ATTRIBUTE(noreturn)
-#endif
 #define GET_THREAD_PTR(x) ((thread_t*)(x))
 
 #else
@@ -236,10 +229,9 @@ _thread_entry(thread_arg_t data) {
 	set_thread_self(0);
 	thread_exit();
 
-#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_POSIX
 	pthread_exit(0);
-#endif
-#if !FOUNDATION_PLATFORM_POSIX
+#else
 	return 0;
 #endif
 }
@@ -297,7 +289,7 @@ thread_start(thread_t* thread) {
 		           STRING_FORMAT(errmsg), err);
 		return false;
 	}
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	FOUNDATION_ASSERT(!thread->handle);
 	pthread_t id = 0;
 	int err = pthread_create(&id, 0, _thread_entry, thread);
@@ -325,7 +317,7 @@ thread_join(thread_t* thread) {
 		atomic_store32(&thread->state, 3, memory_order_release);
 	}
 	thread->handle = 0;
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	void* result = 0;
 	if (thread->handle) {
 		pthread_join((pthread_t)thread->handle, &result);
@@ -376,7 +368,7 @@ void
 thread_sleep(unsigned int milliseconds) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	SleepEx(milliseconds, 1);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	struct timespec ts;
 	ts.tv_sec  = milliseconds / 1000;
 	ts.tv_nsec = (long)(milliseconds % 1000) * 1000000L;
@@ -390,7 +382,7 @@ void
 thread_yield(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	Sleep(0);
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 	sched_yield();
 #else
 #  error Not implemented
@@ -411,9 +403,6 @@ thread_id(void) {
 #  else
 	return (uint64_t)pthread_self();
 #  endif
-#elif FOUNDATION_PLATFORM_PNACL
-	void* self = pthread_self();
-	return (uintptr_t)self;
 #else
 #  error Not implemented
 #endif
@@ -484,6 +473,7 @@ thread_self(void) {
 
 void
 thread_enter(void) {
+	set_thread_entered(1);
 	memory_thread_initialize();
 }
 
@@ -491,6 +481,12 @@ void
 thread_exit(void) {
 	_thread_finalize();
 	memory_thread_finalize();
+	set_thread_entered(0);
+}
+
+bool
+thread_is_entered(void) {
+	return get_thread_entered() != 0;
 }
 
 #if FOUNDATION_PLATFORM_ANDROID

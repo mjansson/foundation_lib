@@ -37,10 +37,9 @@ Platforms and architectures currently supported:
 * MacOS X (x86-64), 10.7+
 * Linux (x86, x86-64, PPC, ARM)
 * FreeBSD (x86, x86-64, PPC, ARM)
-* iOS (ARM7, ARM7s, ARM64), 6.0+
-* Android (ARM6, ARM7, ARM8-AARCH64, x86, x86-64, MIPS, MIPS64)
-* Raspberry Pi (ARM6)
-* PNaCl
+* iOS (ARMv7, ARMv7s, ARMv8/AArch64), 6.0+
+* Android (ARMv6, ARMv7, ARMv8/AArch64, x86, x86-64, MIPS, MIPS64)
+* Raspberry Pi (ARMv6)
 
 
 Please consider our Patreon - <https://www.patreon.com/rampantpixels>
@@ -56,14 +55,10 @@ Master branch is used for stable releases. Development is done in feature branch
 <https://github.com/rampantpixels/foundation_lib/tree/develop>
 
 Cross-platform build system uses Ninja  
-<http://martine.github.io/ninja>
+<https://ninja-build.org/>
 
-The PNaCl build of the latest release can be tested at  
-<http://www.rampantpixels.com/foundation_lib/pnacl/>
-
-Test suite coverage and scan reports:  
+Test suite coverage:
 [![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)
-[![coverity.com](https://scan.coverity.com/projects/6944/badge.svg)](https://scan.coverity.com/projects/rampantpixels-foundation_lib)
 
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 

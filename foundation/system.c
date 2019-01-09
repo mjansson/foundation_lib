@@ -24,11 +24,6 @@
 #  include <cpu-features.h>
 #endif
 
-#if FOUNDATION_PLATFORM_PNACL
-#  include <foundation/pnacl.h>
-extern char* strerror_r(int __errnum, char* __buf, size_t __buflen);
-#endif
-
 #if FOUNDATION_PLATFORM_BSD
 #  include <sys/types.h>
 #  include <sys/sysctl.h>
@@ -73,8 +68,6 @@ static const platform_info_t _platform_info = {
 	PLATFORM_MACOS,
 #elif FOUNDATION_PLATFORM_IOS
 	PLATFORM_IOS,
-#elif FOUNDATION_PLATFORM_PNACL
-	PLATFORM_PNACL,
 #elif FOUNDATION_PLATFORM_BSD
 	PLATFORM_BSD,
 #elif FOUNDATION_PLATFORM_TIZEN
@@ -158,7 +151,7 @@ _system_initialize(void) {
 void
 _system_finalize(void) {
 	if (_system_library_iphlpapi)
-		library_unload(_system_library_iphlpapi);
+		library_release(_system_library_iphlpapi);
 	_system_library_iphlpapi = 0;
 
 	event_stream_deallocate(_system_event_stream);
@@ -299,9 +292,8 @@ _system_user_locale(void) {
 	return _system_default_locale();
 }
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
-
-#  if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
+#  if !FOUNDATION_PLATFORM_ANDROID
 #    include <ifaddrs.h>
 #  endif
 
@@ -334,7 +326,7 @@ system_error_message(int code) {
 	if (!code)
 		return string_const(STRING_CONST("<no error>"));
 	char* buffer = _system_buffer();
-#if (FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL) && defined(_GNU_SOURCE)
+#if FOUNDATION_PLATFORM_LINUX && defined(_GNU_SOURCE)
 	if ((buffer = strerror_r(code, buffer, SYSTEM_BUFFER_SIZE)) != nullptr)
 		return string_const(buffer, string_length(buffer));
 #else
@@ -364,7 +356,7 @@ system_username(char* buffer, size_t size) {
 		result = 0;
 #endif
 	if (!result || !result->pw_name || !*result->pw_name) {
-#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_ANDROID
 		const char* login = getlogin();
 		if (!login || !*login)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
@@ -435,10 +427,6 @@ _system_hostid_lookup(int sock, struct ifreq* ifr) {
 
 uint64_t
 system_hostid(void) {
-#if FOUNDATION_PLATFORM_PNACL
-	//Not implemented yet
-	return 0;
-#else
 	uint64_t hostid = 0;
 
 #if FOUNDATION_PLATFORM_ANDROID
@@ -525,7 +513,6 @@ system_hostid(void) {
 #endif
 
 	return hostid;
-#endif
 }
 
 size_t
@@ -534,8 +521,6 @@ system_hardware_threads(void) {
 	return _system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
 	return (size_t)android_getCpuCount();
-#elif FOUNDATION_PLATFORM_PNACL
-	return (size_t)sysconf(_SC_NPROCESSORS_ONLN);
 #elif FOUNDATION_PLATFORM_BSD
 	int ctlarg[2], ncpu;
 	size_t len;
@@ -718,7 +703,7 @@ system_event_stream(void) {
 void
 system_post_event(foundation_event_id event) {
 	if (_system_event_stream)
-		event_post(_system_event_stream, event, 0, 0, 0, 0);
+		event_post(_system_event_stream, (int)event, 0, 0, 0, 0);
 }
 
 bool

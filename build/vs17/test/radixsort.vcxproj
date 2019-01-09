@@ -41,6 +41,7 @@
     <ProjectGuid>{cd2255bc-eae1-4e4e-b1d1-e16f3b9e1c00}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>radixsort</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

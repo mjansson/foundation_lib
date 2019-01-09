@@ -19,8 +19,6 @@
 #  include <sys/types.h>
 #  include <sys/wait.h>
 #  include <sys/time.h>
-#elif FOUNDATION_PLATFORM_PNACL
-#  include <unistd.h>
 #endif
 
 #if FOUNDATION_PLATFORM_MACOS
@@ -348,8 +346,8 @@ process_spawn(process_t* proc) {
 		string_const_t pathstripped = string_strip(proc->path.str, proc->path.length, STRING_CONST("\""));
 		size_t localcap = pathstripped.length + 5;
 		string_t localpath = string_allocate(0, localcap);
-		localpath = string_copy(localpath.str, localcap,
-		                        STRING_ARGS(pathstripped));     //Need it zero terminated
+		//Need it zero terminated for FSPathRef
+		localpath = string_copy(localpath.str, localcap, STRING_ARGS(pathstripped));
 
 		OSStatus status = 0;
 		status = FSPathMakeRef((uint8_t*)localpath.str, fsref, 0);
@@ -359,9 +357,11 @@ process_spawn(process_t* proc) {
 		}
 
 		CFStringRef* args = 0;
-		for (i = 0, size = array_size(proc->args); i < size;
-		        ++i)    //App gets executable path automatically, don't include
-			array_push(args, CFStringCreateWithCString(0, proc->args[i].str, kCFStringEncodingUTF8));
+		//App gets executable path automatically, don't include
+		for (i = 0, size = array_size(proc->args); i < size; ++i)
+			array_push(args, CFStringCreateWithBytes(0, (const uint8_t*)proc->args[i].str,
+			                                         (CFIndex)proc->args[i].length,
+			                                         kCFStringEncodingUTF8, false));
 
 		CFArrayRef argvref = CFArrayCreate(0, (const void**)args, (CFIndex)array_size(args), 0);
 
@@ -423,6 +423,15 @@ process_spawn(process_t* proc) {
 
 		goto exit;
 	}
+	else if (string_ends_with(STRING_ARGS(proc->path), STRING_CONST(".app"))) {
+		string_const_t exe_name = path_base_file_name(STRING_ARGS(proc->path));
+		string_t modpath = path_allocate_concat_varg(STRING_ARGS(proc->path),
+		                                             STRING_CONST("Contents"),
+		                                             STRING_CONST("MacOS"),
+		                                             STRING_ARGS(exe_name), NULL);
+		string_deallocate(proc->path.str);
+		proc->path = modpath;
+	}
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
@@ -481,7 +490,7 @@ process_spawn(process_t* proc) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
 		           STRING_CONST("Child process failed execve() '%.*s': %.*s (%d) (%d)"),
-			       STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
+		           STRING_FORMAT(proc->path), STRING_FORMAT(errmsg), err, code);
 		if (proc->flags & PROCESS_STDSTREAMS) {
 			stream_deallocate(proc->pipeout);
 			stream_deallocate(proc->pipeerr);
@@ -575,18 +584,11 @@ process_stdin(process_t* proc) {
 bool
 process_kill(process_t* proc) {
 #if FOUNDATION_PLATFORM_WINDOWS
-
 	if (!proc->hp || !TerminateProcess(proc->hp, PROCESS_TERMINATED_SIGNAL))
 		return false;
-
 #elif FOUNDATION_PLATFORM_POSIX
-
 	if (!proc->pid || (kill(proc->pid, SIGKILL) < 0))
-	        return false;
-
-#elif FOUNDATION_PLATFORM_PNACL
-	//Not supported
-	FOUNDATION_UNUSED(proc);
+		return false;
 #else
 #error Not implemented
 #endif
@@ -687,8 +689,6 @@ process_wait(process_t* proc) {
 		return PROCESS_WAIT_FAILED;
 	}
 
-#elif FOUNDATION_PLATFORM_PNACL
-	//Not supported
 #else
 #error Not implemented
 #endif

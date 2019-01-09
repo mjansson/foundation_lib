@@ -139,8 +139,6 @@ typedef enum {
 	PLATFORM_ANDROID,
 	/*! Raspberry Pi (linux flavour) */
 	PLATFORM_RASPBERRYPI,
-	/*! PNaCl (unknown host platform) */
-	PLATFORM_PNACL,
 	/*! BSD */
 	PLATFORM_BSD,
 	/*! Tizen */
@@ -175,7 +173,7 @@ typedef enum {
 	ARCHITECTURE_MIPS,
 	/*! MIPS 64-bit */
 	ARCHITECTURE_MIPS_64,
-	/*! Generic/unknown (for PNaCl) */
+	/*! Generic/unknown */
 	ARCHITECTURE_GENERIC
 } architecture_t;
 
@@ -500,6 +498,12 @@ typedef struct hashmap_node_t         hashmap_node_t;
 typedef struct hashmap_t              hashmap_t;
 /*! Hash map of fixed size */
 typedef struct hashmap_fixed_t        hashmap_fixed_t;
+/*! Node in a uuid hash map */
+typedef struct uuidmap_node_t         uuidmap_node_t;
+/*! Hash map mapping uuid value keys to pointer values */
+typedef struct uuidmap_t              uuidmap_t;
+/*! Hash map of fixed size for uuids */
+typedef struct uuidmap_fixed_t        uuidmap_fixed_t;
 /*! Entry in a 32-bit hash table */
 typedef struct hashtable32_entry_t    hashtable32_entry_t;
 /*! Entry in a 64-bit hash table */
@@ -520,10 +524,10 @@ typedef struct memory_tracker_t       memory_tracker_t;
 typedef struct memory_statistics_t    memory_statistics_t;
 /*! Platform specific mutex representation, opaque data type */
 typedef struct mutex_t                mutex_t;
-/*! Base object type all reference counted object types are based on */
-typedef struct object_base_t          object_base_t;
 /*! Object map mapping object handles to object instance pointers */
 typedef struct objectmap_t            objectmap_t;
+/*! Object map entry mapping object handles to object instance pointers */
+typedef struct objectmap_entry_t      objectmap_entry_t;
 /*! Child process control block */
 typedef struct process_t              process_t;
 /*! Radix sorter control block */
@@ -563,7 +567,7 @@ typedef void*                         semaphore_t;
 #elif FOUNDATION_PLATFORM_APPLE
 #  include <sys/semaphore.h>
 typedef struct semaphore_t            semaphore_t;
-#elif FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_POSIX
 #  include <semaphore.h>
 typedef struct semaphore_t            semaphore_t;
 #endif
@@ -714,9 +718,8 @@ and the process state was saved to a dump file
 typedef void (* exception_handler_fn)(const char* file, size_t length);
 
 /*! Object deallocation function prototype, used to deallocate an object of a specific type
-\param id Object handle
 \param object Object pointer */
-typedef void (* object_deallocate_fn)(object_t id, void* object);
+typedef void (* object_deallocate_fn)(void* object);
 
 /*! Generic function to open a stream with the given path and mode
 \param path Path, optionally including protocol
@@ -1160,6 +1163,43 @@ struct hashmap_fixed_t {
 	FOUNDATION_DECLARE_HASHMAP(13);
 };
 
+/*! Single node in a uuid hash map, mapping a single key to a single data value (pointer). */
+struct uuidmap_node_t {
+	/*! Key for the uuid map node */
+	uuid_t key;
+	/*! Value for the hash map node */
+	void* value;
+};
+
+/*! Declare an inlined uuidmap of given size */
+#define FOUNDATION_DECLARE_UUIDMAP(size) \
+	size_t num_buckets; \
+	size_t num_nodes; \
+	uuidmap_node_t* bucket[size]
+
+/*! UUID hash map container, mapping uuid values to data pointers */
+struct uuidmap_t {
+	/*!
+	\var num_buckets
+	Number of buckets in the uuid hash map
+
+	\var num_nodes
+	Total number of nodes in the uuid hash map across all buckets
+
+	\var bucket
+	Bucket array, represented as an array of uuidmap_node_t arrays, which will be
+	dynamically allocated and reallocated to the required sizes.
+	*/
+	FOUNDATION_DECLARE_UUIDMAP(FOUNDATION_FLEXIBLE_ARRAY);
+};
+
+/*! UUID hash map of default size. Initialize with a call to
+<code>uuidhmap_fixed_t map;
+uuidmap_initialize((uuidmap_t*)&map, sizeof(map.bucket)/sizeof(map.bucket[0]), bucketsize)</code> */
+struct uuidmap_fixed_t {
+	FOUNDATION_DECLARE_UUIDMAP(13);
+};
+
 /*! Node in 32-bit hash table holding key and value for a single node. */
 FOUNDATION_ALIGNED_STRUCT(hashtable32_entry_t, 8) {
 	/*! Hash key for node in hash table */
@@ -1218,37 +1258,6 @@ struct memory_context_t {
 	unsigned int depth;
 	/*! Memory context stack */
 	hash_t context[FOUNDATION_FLEXIBLE_ARRAY];
-};
-
-/*! Declares the base object data layout. Use the macro as first declaration in an object struct:
-<code>struct my_object_t
-{
-  FOUNDATION_DECLARE_OBJECT;
-  int       some_other_data;
-  //[...]
-};</code>
-\internal If changing base object layout, change #objectmap_lookup and
-#objectmap_lookup_ref \endinternal */
-#define FOUNDATION_DECLARE_OBJECT \
-	atomic32_t ref; \
-	uint32_t flags; \
-	object_t id
-
-/*! Object base structure. All object-based designs must have this layout at the start of
-the structure. See #FOUNDATION_DECLARE_OBJECT for a macro to declare the base layout in
-a structure. */
-struct object_base_t {
-	/*!
-	\var object_base_t::ref
-	Object reference count
-
-	\var object_base_t::flags
-	Object flags
-
-	\var object_base_t::id
-	Object ID and handle (self)
-	*/
-	FOUNDATION_DECLARE_OBJECT;
 };
 
 /*! State for a child process */
@@ -1369,7 +1378,7 @@ struct semaphore_t {
 	} sem;
 };
 
-#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#elif FOUNDATION_PLATFORM_POSIX
 
 FOUNDATION_ALIGNED_STRUCT(semaphore_t, 8) {
 	sem_t unnamed;
@@ -1437,7 +1446,7 @@ struct thread_t {
 	/*! OS handle */
 	uintptr_t handle;
 #endif
-#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+#if FOUNDATION_PLATFORM_POSIX
 	/*! OS handle */
 	uintptr_t handle;
 #endif
@@ -1447,17 +1456,21 @@ struct thread_t {
 	char namebuffer[32];
 };
 
+/*! Entry in objec map */
+struct objectmap_entry_t {
+	//! Object pointer
+	void*  ptr;
+	//! Reference count
+	atomic32_t ref;
+};
+
 #define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
 	uint32_t free; \
-	uint32_t id; \
+	uint32_t tag; \
 	uint32_t size; \
-	uint32_t index_bits; \
-	uint32_t id_max; \
-	uint32_t mask_index; \
-	uint32_t mask_id; \
 	uint32_t autolink; \
 	semaphore_t write; \
-	void* map[mapsize]
+	objectmap_entry_t map[mapsize]
 
 /*! Object map which maps object handles to object pointers. As object lifetime is managed
 by reference counting, objects that are deallocated will invalidate the handle in the
@@ -1664,7 +1677,7 @@ struct json_token_t {
 	unsigned int id_length;
 	/*! Value string offset */
 	unsigned int value;
-	/*! Length of value string. 0 if no or empty value string */
+	/*! Length of value string for objects and primitive values, 0 if no or empty value string. For array values the number of elements in the array. */
 	unsigned int value_length;
 	/*! Child token index in token array. 0 if no child token */
 	unsigned int child;
