@@ -155,12 +155,12 @@ class MSVCToolchain(toolchain.Toolchain):
               from distutils.version import StrictVersion
               tools_list.sort(key=StrictVersion)
               toolchain = os.path.join(tools_basepath, tools_list[-1])
-            self.includepaths += [os.path.join(toolchain, 'include')]
             self.toolchain = toolchain
             self.toolchain_version = version
             break
         if not toolchain == '':
           break
+    self.includepaths += [os.path.join(self.toolchain, 'include')]
     if self.sdkpath == '':
       versions = ['v10.0', 'v8.1']
       keys = [
