@@ -275,7 +275,7 @@ DECLARE_TEST(radixsort, sort_real) {
 
 		//Mixed neg/pos
 		for (ival = 0; ival < num; ++ival) {
-			arr_32[ival] = random_range(low_range, high_range);
+			arr_32[ival] = (float32_t)random_range(low_range, high_range);
 			arr_64[ival] = random_range(low_range, high_range);
 		}
 
@@ -297,7 +297,7 @@ DECLARE_TEST(radixsort, sort_real) {
 
 		//Only neg
 		for (ival = 0; ival < num; ++ival) {
-			arr_32[ival] = random_range(low_range, -1.0f);
+			arr_32[ival] = (float32_t)random_range(low_range, -1.0f);
 			arr_64[ival] = random_range(low_range, -1.0f);
 		}
 
@@ -332,7 +332,7 @@ DECLARE_TEST(radixsort, sort_real) {
 
 		//Mixed neg/pos
 		for (ival = 0; ival < num; ++ival) {
-			arr_32[ival] = random_range(low_range, high_range);
+			arr_32[ival] = (float32_t)random_range(low_range, high_range);
 			arr_64[ival] = random_range(low_range, high_range);
 		}
 
@@ -354,7 +354,7 @@ DECLARE_TEST(radixsort, sort_real) {
 
 		//Only neg
 		for (ival = 0; ival < num; ++ival) {
-			arr_32[ival] = random_range(low_range, -1.0f);
+			arr_32[ival] = (float32_t)random_range(low_range, -1.0f);
 			arr_64[ival] = random_range(low_range, -1.0f);
 		}
 

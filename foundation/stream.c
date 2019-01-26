@@ -1171,7 +1171,7 @@ stream_write_float32(stream_t* stream, float32_t data) {
 		}
 	}
 	else {
-		string_const_t value = string_from_real_static(data, 0, 0, 0);
+		string_const_t value = string_from_real_static((real)data, 0, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
 }
