@@ -900,11 +900,11 @@ math_real_eq(real a, real b, int32_t ulps) {
 
 	ai = ca.ival;
 	if (ai < 0)
-		ai = 0x8000000000000000LL - ai;
+		ai = (int64_t)0x8000000000000000LL - ai;
 
 	bi = cb.ival;
 	if (bi < 0)
-		bi = 0x8000000000000000LL - bi;
+		bi = (int64_t)0x8000000000000000LL - bi;
 
 	diff = (ai - bi);
 	if ((diff <= ulps) && (diff >= -ulps))
@@ -951,7 +951,7 @@ math_real_dec(real val, int units) {
 	ca.rval = val;
 	cb.ival = ca.ival - (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
-		cb.ival = 0x8000000000000000LL - cb.ival;
+		cb.ival = (int64_t)0x8000000000000000LL - cb.ival;
 
 	return cb.rval;
 }
@@ -963,7 +963,7 @@ math_real_inc(real val, int units) {
 	ca.rval = val;
 	cb.ival = ca.ival + (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
-		cb.ival = 0x8000000000000000LL - cb.ival;
+		cb.ival = (int64_t)0x8000000000000000LL - cb.ival;
 
 	return cb.rval;
 }

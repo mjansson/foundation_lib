@@ -31,7 +31,7 @@ objectmap_allocate(size_t size) {
 void
 objectmap_initialize(objectmap_t* map, size_t size) {
 	//Number of bits needed to represent index
-	uint32_t bits = (uint32_t)math_round(math_log2((real)size) + 0.5f);
+	uint32_t bits = (uint32_t)math_round(math_log2((real)size) + REAL_C(0.5));
 	FOUNDATION_ASSERT_MSGFORMAT(bits <= OBJECTMAP_INDEXBITS, "Invalid objectmap size %" PRIsize, size);
 	if (bits > OBJECTMAP_INDEXBITS) {
 		bits = OBJECTMAP_INDEXBITS;

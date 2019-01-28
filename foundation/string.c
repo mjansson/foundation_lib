@@ -1768,7 +1768,7 @@ string_to_float64(const char* val, size_t length) {
 
 real
 string_to_real(const char* val, size_t length) {
-	real ret = 0.0f;
+	real ret = REAL_C(0.0);
 	char buf[64];
 	if (length) {
 		string_copy(buf, sizeof(buf), val, length);

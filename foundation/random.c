@@ -287,7 +287,7 @@ real
 random_normalized(void) {
 #if FOUNDATION_SIZE_REAL == 8
 	const uint64_t rng = random64();
-	const real result = (real)rng * (REAL_C(1.0) / REAL_C(18446744073709551616.0L));
+	const real result = (real)rng * (REAL_C(1.0) / REAL_C(18446744073709551616.0));
 #else
 	const uint64_t rng = random32();
 	const real result = (real)rng * (REAL_C(1.0) / REAL_C(4294967296.0));
