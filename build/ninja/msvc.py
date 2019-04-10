@@ -6,6 +6,7 @@ import os
 import subprocess
 
 import toolchain
+import vslocate
 
 class MSVCToolchain(toolchain.Toolchain):
 
@@ -127,39 +128,50 @@ class MSVCToolchain(toolchain.Toolchain):
 
   def build_toolchain(self):
     if self.toolchain == '':
-      versions = ['16.0', '15.0', '14.0', '13.0', '12.0', '11.0', '10.0']
-      keys = [
-        'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
-        'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
-        'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VS7',
-        'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VS7',
-        'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7',
-        'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7',
-        'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VS7',
-        'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VS7'
-      ]
-      toolchain = ''
-      for version in versions:
-        for key in keys:
-          try:
-            query = subprocess.check_output(['reg', 'query', key, '/v', version ], stderr = subprocess.STDOUT).strip().splitlines()
-            if len(query) == 2:
-              toolchain = str(query[1]).split('REG_SZ')[-1].strip(" '\"\n\r\t")
-          except:
-            continue
-          if not toolchain == '':
-            #Thanks MS for making it _really_ hard to find the compiler
-            if version == '15.0' or version == '16.0':
-              tools_basepath = os.path.join(toolchain, 'VC', 'Tools', 'MSVC')
-              tools_list = [item for item in os.listdir(tools_basepath) if os.path.isdir(os.path.join(tools_basepath, item))]
-              from distutils.version import StrictVersion
-              tools_list.sort(key=StrictVersion)
-              toolchain = os.path.join(tools_basepath, tools_list[-1])
-            self.toolchain = toolchain
-            self.toolchain_version = version
+      installed_versions = vslocate.get_vs_installations()
+      for versionstr, installpath in installed_versions:
+        major_version = versionstr.split('.')[0]
+        if int(major_version) >= 15:
+          tools_basepath = os.path.join(installpath, 'VC', 'Tools', 'MSVC')
+          tools_list = [item for item in os.listdir(tools_basepath) if os.path.isdir(os.path.join(tools_basepath, item))]
+          from distutils.version import StrictVersion
+          tools_list.sort(key=StrictVersion)
+          self.toolchain = os.path.join(tools_basepath, tools_list[-1])
+          self.toolchain_version = major_version + ".0"
+
+      if self.toolchain == '':
+        toolchain = ''
+        versions = ['16.0', '15.0', '14.0', '13.0', '12.0', '11.0', '10.0']
+        keys = [
+          'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
+          'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7',
+          'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VS7',
+          'HKCU\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VS7',
+          'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7',
+          'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7',
+          'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VS7',
+          'HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VS7'
+        ]
+        for version in versions:
+          for key in keys:
+            try:
+              query = subprocess.check_output(['reg', 'query', key, '/v', version ], stderr = subprocess.STDOUT).strip().splitlines()
+              if len(query) == 2:
+                toolchain = str(query[1]).split('REG_SZ')[-1].strip(" '\"\n\r\t")
+            except:
+              continue
+            if not toolchain == '':
+              if version == '15.0' or version == '16.0':
+                tools_basepath = os.path.join(toolchain, 'VC', 'Tools', 'MSVC')
+                tools_list = [item for item in os.listdir(tools_basepath) if os.path.isdir(os.path.join(tools_basepath, item))]
+                from distutils.version import StrictVersion
+                tools_list.sort(key=StrictVersion)
+                toolchain = os.path.join(tools_basepath, tools_list[-1])
+              self.toolchain = toolchain
+              self.toolchain_version = version
+              break
+          if not self.toolchain == '':
             break
-        if not toolchain == '':
-          break
     self.includepaths += [os.path.join(self.toolchain, 'include')]
     if self.sdkpath == '':
       versions = ['v10.0', 'v8.1']
