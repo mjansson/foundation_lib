@@ -14,19 +14,19 @@
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
-#  include <sys/socket.h>
-#  include <net/if.h>
+#include <foundation/posix.h>
+#include <sys/socket.h>
+#include <net/if.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
-#  include <foundation/android.h>
-#  include <cpu-features.h>
+#include <foundation/android.h>
+#include <cpu-features.h>
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
-#  include <sys/types.h>
-#  include <sys/sysctl.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
@@ -47,9 +47,9 @@ static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNO
 static event_stream_t* _system_event_stream;
 
 struct platform_info_t {
-	platform_t      platform;
-	architecture_t  architecture;
-	byteorder_t     byteorder;
+	platform_t platform;
+	architecture_t architecture;
+	byteorder_t byteorder;
 };
 
 typedef struct platform_info_t platform_info_t;
@@ -57,57 +57,57 @@ typedef struct platform_info_t platform_info_t;
 static const platform_info_t _platform_info = {
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	PLATFORM_WINDOWS,
+    PLATFORM_WINDOWS,
 #elif FOUNDATION_PLATFORM_ANDROID
-	PLATFORM_ANDROID,
+    PLATFORM_ANDROID,
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-	PLATFORM_RASPBERRYPI,
+    PLATFORM_RASPBERRYPI,
 #elif FOUNDATION_PLATFORM_LINUX
-	PLATFORM_LINUX,
+    PLATFORM_LINUX,
 #elif FOUNDATION_PLATFORM_MACOS
-	PLATFORM_MACOS,
+    PLATFORM_MACOS,
 #elif FOUNDATION_PLATFORM_IOS
-	PLATFORM_IOS,
+    PLATFORM_IOS,
 #elif FOUNDATION_PLATFORM_BSD
-	PLATFORM_BSD,
+    PLATFORM_BSD,
 #elif FOUNDATION_PLATFORM_TIZEN
-	PLATFORM_TIZEN,
+    PLATFORM_TIZEN,
 #else
-#  error Unknown platform
+#error Unknown platform
 #endif
 
 #if FOUNDATION_ARCH_X86_64
-	ARCHITECTURE_X86_64,
+    ARCHITECTURE_X86_64,
 #elif FOUNDATION_ARCH_X86
-	ARCHITECTURE_X86,
+    ARCHITECTURE_X86,
 #elif FOUNDATION_ARCH_PPC_64
-	ARCHITECTURE_PPC_64,
+    ARCHITECTURE_PPC_64,
 #elif FOUNDATION_ARCH_PPC
-	ARCHITECTURE_PPC,
+    ARCHITECTURE_PPC,
 #elif FOUNDATION_ARCH_ARM8_64
-	ARCHITECTURE_ARM8_64,
+    ARCHITECTURE_ARM8_64,
 #elif FOUNDATION_ARCH_ARM8
-	ARCHITECTURE_ARM8,
+    ARCHITECTURE_ARM8,
 #elif FOUNDATION_ARCH_ARM7
-	ARCHITECTURE_ARM7,
+    ARCHITECTURE_ARM7,
 #elif FOUNDATION_ARCH_ARM6
-	ARCHITECTURE_ARM6,
+    ARCHITECTURE_ARM6,
 #elif FOUNDATION_ARCH_ARM5
-	ARCHITECTURE_ARM5,
+    ARCHITECTURE_ARM5,
 #elif FOUNDATION_ARCH_MIPS_64
-	ARCHITECTURE_MIPS_64,
+    ARCHITECTURE_MIPS_64,
 #elif FOUNDATION_ARCH_MIPS
-	ARCHITECTURE_MIPS,
+    ARCHITECTURE_MIPS,
 #elif FOUNDATION_ARCH_GENERIC
-	ARCHITECTURE_GENERIC,
+    ARCHITECTURE_GENERIC,
 #else
-#  error Unknown architecture
+#error Unknown architecture
 #endif
 
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
-	BYTEORDER_LITTLEENDIAN
+    BYTEORDER_LITTLEENDIAN
 #else
-	BYTEORDER_BIGENDIAN
+    BYTEORDER_BIGENDIAN
 #endif
 };
 
@@ -115,7 +115,8 @@ static char*
 _system_buffer() {
 	char* buffer = get_thread_system_buffer();
 	if (!buffer) {
-		buffer = memory_allocate(0, SYSTEM_BUFFER_SIZE + 1, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		buffer = memory_allocate(0, SYSTEM_BUFFER_SIZE + 1, 0,
+		                         MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_system_buffer(buffer);
 	}
 	return buffer;
@@ -180,8 +181,8 @@ system_error_message(int code) {
 	errmsg[0] = 0;
 	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0,
 	               (unsigned int)code & 0xBFFFFFFF,
-	               0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, SYSTEM_BUFFER_SIZE,
-	               0);
+	               0 /*LANG_SYSTEM_DEFAULT*/ /*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/,
+	               errmsg, SYSTEM_BUFFER_SIZE, 0);
 	return string_strip(errmsg, string_length(errmsg), STRING_CONST(STRING_WHITESPACE));
 }
 
@@ -190,7 +191,7 @@ system_hostname(char* buffer, size_t capacity) {
 	DWORD size = (DWORD)capacity;
 	if (!GetComputerNameA(buffer, &size))
 		return string_copy(buffer, capacity, STRING_CONST("unknown"));
-	return (string_t) { buffer, size };
+	return (string_t){buffer, size};
 }
 
 uint64_t
@@ -203,23 +204,24 @@ system_hostid(void) {
 	IP_ADAPTER_INFO adapter_info[16];
 	unsigned int status, i, j;
 	unsigned long buffer_length;
-	DWORD (STDCALL * fn_get_adapters_info)(PIP_ADAPTER_INFO, PULONG) = 0;
+	DWORD(STDCALL * get_adapters_info)(PIP_ADAPTER_INFO, PULONG) = 0;
 
 	if (!_system_library_iphlpapi)
 		_system_library_iphlpapi = library_load(STRING_CONST("iphlpapi"));
 	if (_system_library_iphlpapi) {
 		/*lint -e{611} */
-		fn_get_adapters_info = (DWORD (STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(
-		                           _system_library_iphlpapi, STRING_CONST("GetAdaptersInfo"));
+		get_adapters_info = (DWORD(STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(
+		    _system_library_iphlpapi, STRING_CONST("GetAdaptersInfo"));
 	}
-	if (!fn_get_adapters_info)
+	if (!get_adapters_info)
 		return 0;
 
 	hostid.val = 0;
-	buffer_length = sizeof(adapter_info);    // Save memory size of buffer
+	buffer_length = sizeof(adapter_info);  // Save memory size of buffer
 	memset(adapter_info, 0, sizeof(adapter_info));
-	status = fn_get_adapters_info(adapter_info, &buffer_length);
-	if (status == ERROR_SUCCESS) for (i = 0; i < 16; ++i) {
+	status = get_adapters_info(adapter_info, &buffer_length);
+	if (status == ERROR_SUCCESS)
+		for (i = 0; i < 16; ++i) {
 			if (adapter_info[i].Type == MIB_IF_TYPE_ETHERNET) {
 				for (j = 0; j < 6; ++j)
 					hostid.hostid[5 - j] = adapter_info[i].Address[j];
@@ -234,14 +236,35 @@ system_username(char* buffer, size_t capacity) {
 	DWORD size = (DWORD)capacity;
 	if (!GetUserNameA(buffer, &size))
 		return string_copy(buffer, capacity, STRING_CONST("unknown"));
-	return (string_t) { buffer, size };
+	return (string_t){buffer, size};
 }
 
 size_t
 system_hardware_threads(void) {
-	SYSTEM_INFO system_info;
-	GetSystemInfo(&system_info);
-	return system_info.dwNumberOfProcessors;
+	size_t hardware_threads = 0;
+
+	object_t kernel_lib = library_load(STRING_CONST("kernel32"));
+	if (kernel_lib) {
+		WORD(STDCALL * get_active_processor_group_count)
+		() = (WORD(STDCALL*)())library_symbol(kernel_lib,
+		                                      STRING_CONST("GetActiveProcessorGroupCount"));
+		DWORD(STDCALL * get_active_processor_count)
+		() = (DWORD(STDCALL*)(WORD))library_symbol(kernel_lib,
+		                                           STRING_CONST("GetActiveProcessorCount"));
+
+		if (get_active_processor_group_count && get_active_processor_count) {
+			unsigned int group_count = get_active_processor_group_count();
+			for (unsigned int igroup = 0; igroup < group_count; ++igroup)
+				hardware_threads += get_active_processor_count(igroup);
+		}
+		library_release(kernel_lib);
+	}
+	if (!hardware_threads) {
+		SYSTEM_INFO system_info;
+		GetSystemInfo(&system_info);
+		hardware_threads = system_info.dwNumberOfProcessors;
+	}
+	return hardware_threads ? hardware_threads : 2;
 }
 
 void
@@ -263,12 +286,12 @@ _system_default_locale(void) {
 	return LOCALE_DEFAULT;
 }
 
-typedef int (STDCALL* fnGetLocaleInfoEx)(LPCWSTR, LCTYPE, LPWSTR, int);
+typedef int(STDCALL* fnGetLocaleInfoEx)(LPCWSTR, LCTYPE, LPWSTR, int);
 
 static uint32_t
 _system_user_locale(void) {
-	fnGetLocaleInfoEx get_locale_info = (fnGetLocaleInfoEx)GetProcAddress(
-	                                        GetModuleHandleA("kernel32.dll"), "GetLocaleInfoEx");
+	fnGetLocaleInfoEx get_locale_info =
+	    (fnGetLocaleInfoEx)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetLocaleInfoEx");
 	if (get_locale_info) {
 		wchar_t locale_sname[128] = {0};
 		union {
@@ -276,11 +299,16 @@ _system_user_locale(void) {
 			uint32_t value;
 		} locale_data;
 		string_t locale_string;
-		if (get_locale_info(0/*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c/*LOCALE_SNAME*/, locale_sname,
-		                    32) > 0) {
-			locale_string = string_convert_utf16(locale_data.buffer, sizeof(locale_data.buffer),
-			                                     (uint16_t*)locale_sname, wstring_length(locale_sname));
-			if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("?" "?" "-" "?" "?"))) {
+		if (get_locale_info(0 /*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c /*LOCALE_SNAME*/,
+		                    locale_sname, 32) > 0) {
+			locale_string =
+			    string_convert_utf16(locale_data.buffer, sizeof(locale_data.buffer),
+			                         (uint16_t*)locale_sname, wstring_length(locale_sname));
+			if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("?"
+			                                                                  "?"
+			                                                                  "-"
+			                                                                  "?"
+			                                                                  "?"))) {
 				locale_data.buffer[2] = locale_data.buffer[3];
 				locale_data.buffer[3] = locale_data.buffer[4];
 				locale_data.buffer[4] = 0;
@@ -293,9 +321,9 @@ _system_user_locale(void) {
 }
 
 #elif FOUNDATION_PLATFORM_POSIX
-#  if !FOUNDATION_PLATFORM_ANDROID
-#    include <ifaddrs.h>
-#  endif
+#if !FOUNDATION_PLATFORM_ANDROID
+#include <ifaddrs.h>
+#endif
 
 int
 _system_initialize(void) {
@@ -341,7 +369,7 @@ system_hostname(char* buffer, size_t size) {
 	int ret = gethostname(buffer, size);
 	if ((ret < 0) || !size || !*buffer)
 		return string_copy(buffer, size, STRING_CONST("unknown"));
-	return (string_t) {buffer, string_length(buffer)};
+	return (string_t){buffer, string_length(buffer)};
 }
 
 string_t
@@ -364,14 +392,14 @@ system_username(char* buffer, size_t size) {
 #elif FOUNDATION_PLATFORM_BSD
 		if (getlogin_r(buffer, (int)size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
-		return (string_t) {buffer, string_length(buffer)};
+		return (string_t){buffer, string_length(buffer)};
 #else
 		if (getlogin_r(buffer, size) != 0)
 			return string_copy(buffer, size, STRING_CONST("unknown"));
-		return (string_t) {buffer, string_length(buffer)};
+		return (string_t){buffer, string_length(buffer)};
 #endif
 	}
-	return (string_t) {result->pw_name, string_length(result->pw_name)};
+	return (string_t){result->pw_name, string_length(result->pw_name)};
 }
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
@@ -382,7 +410,7 @@ static uint64_t
 _system_hostid_lookup(struct ifaddrs* ifaddr) {
 	unsigned int j;
 	union {
-		uint64_t                    id;
+		uint64_t id;
 		uint8_t FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
@@ -406,7 +434,7 @@ static uint64_t
 _system_hostid_lookup(int sock, struct ifreq* ifr) {
 	unsigned int j;
 	union {
-		uint64_t                    id;
+		uint64_t id;
 		uint8_t FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
@@ -435,7 +463,8 @@ system_hostid(void) {
 	struct ifreq* ifrarr;
 	int sock = socket(PF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to lookup system hostid (no socket)"));
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL,
+		         STRING_CONST("Unable to lookup system hostid (no socket)"));
 		return 0;
 	}
 
@@ -452,14 +481,12 @@ system_hostid(void) {
 					continue;
 				hostid = _system_hostid_lookup(sock, ifr);
 			}
-		}
-		else {
+		} else {
 			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
 			         STRING_CONST("Unable to lookup system hostid (query ioctl failed)"));
 		}
 		memory_deallocate(ifrarr);
-	}
-	else {
+	} else {
 		log_warn(0, WARNING_SYSTEM_CALL_FAIL,
 		         STRING_CONST("Unable to lookup system hostid (ioctl failed)"));
 	}
@@ -500,8 +527,7 @@ system_hostid(void) {
 			hostid = _system_hostid_lookup(sock, &ifr);
 		}
 		freeifaddrs(ifaddr);
-	}
-	else {
+	} else {
 		memset(&ifr, 0, sizeof(ifr));
 		string_copy(ifr.ifr_name, sizeof(ifr.ifr_name), "eth0", 4);
 
@@ -535,10 +561,10 @@ system_hardware_threads(void) {
 	cpu_set_t prevmask, testmask;
 	CPU_ZERO(&prevmask);
 	CPU_ZERO(&testmask);
-	sched_getaffinity(0, sizeof(prevmask), &prevmask);     //Get current mask
-	sched_setaffinity(0, sizeof(testmask), &testmask);     //Set zero mask
-	sched_getaffinity(0, sizeof(testmask), &testmask);     //Get mask for all CPUs
-	sched_setaffinity(0, sizeof(prevmask), &prevmask);     //Reset current mask
+	sched_getaffinity(0, sizeof(prevmask), &prevmask);  // Get current mask
+	sched_setaffinity(0, sizeof(testmask), &testmask);  // Set zero mask
+	sched_getaffinity(0, sizeof(testmask), &testmask);  // Get mask for all CPUs
+	sched_setaffinity(0, sizeof(prevmask), &prevmask);  // Reset current mask
 	int num = CPU_COUNT(&testmask);
 	return (size_t)(num > 1 ? num : 1);
 #endif
@@ -608,8 +634,7 @@ system_debugger_attached(void) {
 						return true;
 					if ((buffer[ib] != ' ') && (buffer[ib] != '\t'))
 						return false;
-				}
-				else {
+				} else {
 					for (ofs = 0; (ib + ofs < nread) && tracer_pid[partial]; ++partial, ++ofs) {
 						if (buffer[ib + ofs] != tracer_pid[partial])
 							break;
@@ -617,14 +642,12 @@ system_debugger_attached(void) {
 					if (!tracer_pid[partial]) {
 						ib += ofs;
 						read_pid = true;
-					}
-					else if (ib + partial < nread)
+					} else if (ib + partial < nread)
 						partial = 0;
 				}
 			}
 		}
-	}
-	while (nread > 0);
+	} while (nread > 0);
 
 	return false;
 
@@ -663,7 +686,7 @@ system_locale_string(char* buffer, size_t capacity) {
 	memcpy(buffer, &locale, length);
 	if (capacity > 4)
 		buffer[4] = 0;
-	return (string_t) {buffer, length};
+	return (string_t){buffer, length};
 }
 
 void
@@ -717,35 +740,37 @@ system_message_box(const char* title, size_t title_length, const char* message,
 	FOUNDATION_UNUSED(title_length);
 	return (MessageBoxA(0, message, title, cancel_button ? MB_OKCANCEL : MB_OK) == IDOK);
 #elif FOUNDATION_PLATFORM_APPLE
-	return _system_show_alert(title, title_length, message, message_length, cancel_button ? 1 : 0) > 0;
-#elif 0//FOUNDATION_PLATFORM_LINUX
+	return _system_show_alert(title, title_length, message, message_length, cancel_button ? 1 : 0) >
+	       0;
+#elif 0  // FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format("%s\n\n%s\n", title, message);
 	pid_t pid = fork();
 
 	switch (pid) {
-	case -1:
-		//error
-		string_deallocate(buf);
-		break;
+		case -1:
+			// error
+			string_deallocate(buf);
+			break;
 
-	case 0:
-		execlp("xmessage", "xmessage", "-buttons", cancel_button ? "OK:101,Cancel:102" : "OK:101",
-		       "-default", "OK", "-center", buf, (char*)0);
-		_exit(-1);
-		break;
+		case 0:
+			execlp("xmessage", "xmessage", "-buttons",
+			       cancel_button ? "OK:101,Cancel:102" : "OK:101", "-default", "OK", "-center", buf,
+			       (char*)0);
+			_exit(-1);
+			break;
 
-	default:
-		string_deallocate(buf);
-		int status;
-		waitpid(pid, &status, 0);
-		if ((!WIFEXITED(status)) || (WEXITSTATUS(status) != 101))
-			return false;
-		return true;
+		default:
+			string_deallocate(buf);
+			int status;
+			waitpid(pid, &status, 0);
+			if ((!WIFEXITED(status)) || (WEXITSTATUS(status) != 101))
+				return false;
+			return true;
 	}
 
 	return false;
 #else
-	//Not implemented
+	// Not implemented
 	FOUNDATION_UNUSED(message);
 	FOUNDATION_UNUSED(message_length);
 	FOUNDATION_UNUSED(title);
