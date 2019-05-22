@@ -23,12 +23,12 @@ on this foundation library. */
 #include <foundation/build.h>
 
 #if defined(FOUNDATION_PLATFORM_DOXYGEN)
-#  define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct name
+#define FOUNDATION_ALIGNED_STRUCT(name, alignment) struct name
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wpadded"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
 #endif
 
 // PRIMITIVE TYPES
@@ -334,93 +334,93 @@ typedef enum {
 } json_type_t;
 
 /*! Memory hint, memory allocationis persistent (retained when function returns) */
-#define MEMORY_PERSISTENT       0
+#define MEMORY_PERSISTENT 0
 /*! Memory hint, memory is temporary (extremely short lived and generally freed
 before function returns or scope ends) */
-#define MEMORY_TEMPORARY        1U
+#define MEMORY_TEMPORARY 1U
 /*! Memory hint, memory allocation is local to the calling thread */
-#define MEMORY_THREAD           (1U<<1)
+#define MEMORY_THREAD (1U << 1)
 /*! Memory flag, memory should be initialized to zero during allocation */
-#define MEMORY_ZERO_INITIALIZED (1U<<3)
+#define MEMORY_ZERO_INITIALIZED (1U << 3)
 /*! Memory flag, memory content does not have to be preserved during reallocation */
-#define MEMORY_NO_PRESERVE      (1U<<4)
+#define MEMORY_NO_PRESERVE (1U << 4)
 
 /*! Event flag, event is delayed and will be delivered at a later timestamp */
 #define EVENTFLAG_DELAY 1U
 
 /*! Application flag, application is a command line utility and should not have
 a normal windowing system interaction loop */
-#define APPLICATION_UTILITY (1U<<0)
+#define APPLICATION_UTILITY (1U << 0)
 /*! Application flag, application is a daemon/service */
-#define APPLICATION_DAEMON  (1U<<1)
+#define APPLICATION_DAEMON (1U << 1)
 
 /*! Stream mode/flag, stream is readable */
-#define STREAM_IN       1U
+#define STREAM_IN 1U
 /*! Stream mode/flag, stream is writable */
-#define STREAM_OUT      (1U<<1)
+#define STREAM_OUT (1U << 1)
 /*! Stream flag, stream is truncated on open if writable */
-#define STREAM_TRUNCATE (1U<<2)
+#define STREAM_TRUNCATE (1U << 2)
 /*! Stream flag, stream target is created if it does not previously exist */
-#define STREAM_CREATE   (1U<<3)
+#define STREAM_CREATE (1U << 3)
 /*! Stream flag, stream position is set to end on open */
-#define STREAM_ATEND    (1U<<4)
+#define STREAM_ATEND (1U << 4)
 /*! Stream flag/mode, stream I/O is binary (I/O is in ascii if flag not set) */
-#define STREAM_BINARY   (1U<<5)
+#define STREAM_BINARY (1U << 5)
 /*! Stream flag, stream is synchronized on each write */
-#define STREAM_SYNC     (1U<<6)
+#define STREAM_SYNC (1U << 6)
 
 /*! Process flag, spawn method will block until process ends and then return
 process exit code */
-#define PROCESS_ATTACHED                   0
+#define PROCESS_ATTACHED 0
 /*! Process flag, spawn method will immediately return with code 0 unless
 an error occurs during spawning */
-#define PROCESS_DETACHED                   (1U<<0)
+#define PROCESS_DETACHED (1U << 0)
 /*! Process flag, create a console window for process */
-#define PROCESS_CONSOLE                    (1U<<1)
+#define PROCESS_CONSOLE (1U << 1)
 /*! Process flag, create stdout/stdin pipes to process */
-#define PROCESS_STDSTREAMS                 (1U<<2)
+#define PROCESS_STDSTREAMS (1U << 2)
 /*! Process flag, use ShellExecute instead of CreateProcess (Windows platform only) */
-#define PROCESS_WINDOWS_USE_SHELLEXECUTE   (1U<<3)
+#define PROCESS_WINDOWS_USE_SHELLEXECUTE (1U << 3)
 /*! Process flag, use LSOpenApplication instead of fork/execve (macOS platform only) */
-#define PROCESS_MACOS_USE_OPENAPPLICATION (1U<<4)
+#define PROCESS_MACOS_USE_OPENAPPLICATION (1U << 4)
 
 /*! Process exit code, returned when given invalid arguments */
-#define PROCESS_INVALID_ARGS       0x7FFFFFF0
+#define PROCESS_INVALID_ARGS 0x7FFFFFF0
 /*! Process exit code, returned when process was terminated by signal */
-#define PROCESS_TERMINATED_SIGNAL  0x7FFFFFF1
+#define PROCESS_TERMINATED_SIGNAL 0x7FFFFFF1
 /*! Process exit code, returned when process wait was interrupted */
-#define PROCESS_WAIT_INTERRUPTED   0x7FFFFFF2
+#define PROCESS_WAIT_INTERRUPTED 0x7FFFFFF2
 /*! Process exit code, returned when process wait failed for unknown reasons */
-#define PROCESS_WAIT_FAILED        0x7FFFFFF3
+#define PROCESS_WAIT_FAILED 0x7FFFFFF3
 /*! Process exit code, returned when spawn system calls failed */
 #define PROCESS_SYSTEM_CALL_FAILED 0x7FFFFFF4
 /*! Process exit code, returned when detached process is still running */
-#define PROCESS_STILL_ACTIVE       0x7FFFFFFF
+#define PROCESS_STILL_ACTIVE 0x7FFFFFFF
 /*! Process exit code, generic failure */
-#define PROCESS_EXIT_FAILURE       EXIT_FAILURE
+#define PROCESS_EXIT_FAILURE EXIT_FAILURE
 /*! Process exit code, generic success */
-#define PROCESS_EXIT_SUCCESS       EXIT_SUCCESS
+#define PROCESS_EXIT_SUCCESS EXIT_SUCCESS
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  if FOUNDATION_ARCH_X86
-typedef int           ssize_t;
-#  else
-typedef int64_t       ssize_t;
-#  endif
+#if FOUNDATION_ARCH_X86
+typedef int ssize_t;
+#else
+typedef int64_t ssize_t;
+#endif
 #endif
 
 /*! Hash value */
-typedef uint64_t      hash_t;
+typedef uint64_t hash_t;
 /*! Tick type used for absolute time measurements or timestamps */
-typedef int64_t       tick_t;
+typedef int64_t tick_t;
 /*! Deltatime type used for floating point time differences */
-typedef real          deltatime_t;
+typedef real deltatime_t;
 /*! Object handle used for identifying reference counted objects */
-typedef uint32_t      object_t;
+typedef uint32_t object_t;
 /*! Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array */
-typedef uint16_t      radixsort_index_t;
+typedef uint16_t radixsort_index_t;
 /*! UUID, 128-bit unique identifier */
-typedef uint128_t     uuid_t;
+typedef uint128_t uuid_t;
 
 /*! Used to bit manipulate 32-bit floating point values in a alias safe way */
 typedef union {
@@ -469,107 +469,107 @@ typedef union {
 #endif
 
 /*! String */
-typedef struct string_t               string_t;
+typedef struct string_t string_t;
 /*! Constant immutable string */
-typedef struct string_const_t         string_const_t;
+typedef struct string_const_t string_const_t;
 /*! Application declaration and configuration */
-typedef struct application_t          application_t;
+typedef struct application_t application_t;
 /*! Beacon for waiting */
-typedef struct beacon_t               beacon_t;
+typedef struct beacon_t beacon_t;
 /*! Bit buffer instance */
-typedef struct bitbuffer_t            bitbuffer_t;
+typedef struct bitbuffer_t bitbuffer_t;
 /*! Blowfish cipher instance */
-typedef struct blowfish_t             blowfish_t;
+typedef struct blowfish_t blowfish_t;
 /*! Error frame holding debug data for an entry in the frame stack in the error context */
-typedef struct error_frame_t          error_frame_t;
+typedef struct error_frame_t error_frame_t;
 /*! Error context holding error frame stack for a thread */
-typedef struct error_context_t        error_context_t;
+typedef struct error_context_t error_context_t;
 /*! Event base structure */
-typedef struct event_t                event_t;
+typedef struct event_t event_t;
 /*! Event block holding a chunk of events from a single stream */
-typedef struct event_block_t          event_block_t;
+typedef struct event_block_t event_block_t;
 /*! Event stream instance producing event blocks of events */
-typedef struct event_stream_t         event_stream_t;
+typedef struct event_stream_t event_stream_t;
 /*! Payload for a file system event */
-typedef struct fs_event_payload_t     fs_event_payload_t;
+typedef struct fs_event_payload_t fs_event_payload_t;
 /*! Node in a hash map */
-typedef struct hashmap_node_t         hashmap_node_t;
+typedef struct hashmap_node_t hashmap_node_t;
 /*! Hash map mapping hash value keys to pointer values */
-typedef struct hashmap_t              hashmap_t;
+typedef struct hashmap_t hashmap_t;
 /*! Hash map of fixed size */
-typedef struct hashmap_fixed_t        hashmap_fixed_t;
+typedef struct hashmap_fixed_t hashmap_fixed_t;
 /*! Node in a uuid hash map */
-typedef struct uuidmap_node_t         uuidmap_node_t;
+typedef struct uuidmap_node_t uuidmap_node_t;
 /*! Hash map mapping uuid value keys to pointer values */
-typedef struct uuidmap_t              uuidmap_t;
+typedef struct uuidmap_t uuidmap_t;
 /*! Hash map of fixed size for uuids */
-typedef struct uuidmap_fixed_t        uuidmap_fixed_t;
+typedef struct uuidmap_fixed_t uuidmap_fixed_t;
 /*! Entry in a 32-bit hash table */
-typedef struct hashtable32_entry_t    hashtable32_entry_t;
+typedef struct hashtable32_entry_t hashtable32_entry_t;
 /*! Entry in a 64-bit hash table */
-typedef struct hashtable64_entry_t    hashtable64_entry_t;
+typedef struct hashtable64_entry_t hashtable64_entry_t;
 /*! Hash table mapping 32-bit keys to 32-bit values */
-typedef struct hashtable32_t          hashtable32_t;
+typedef struct hashtable32_t hashtable32_t;
 /*! Hash table mapping 64-bit keys to 64-bit values */
-typedef struct hashtable64_t          hashtable64_t;
+typedef struct hashtable64_t hashtable64_t;
 /*! MD5 control block */
-typedef struct md5_t                  md5_t;
+typedef struct md5_t md5_t;
 /*! Memory context holding the allocation context stack */
-typedef struct memory_context_t       memory_context_t;
+typedef struct memory_context_t memory_context_t;
 /*! Memory system declaration */
-typedef struct memory_system_t        memory_system_t;
+typedef struct memory_system_t memory_system_t;
 /*! Memory tracker declaration */
-typedef struct memory_tracker_t       memory_tracker_t;
+typedef struct memory_tracker_t memory_tracker_t;
 /*! Memory statistics */
-typedef struct memory_statistics_t    memory_statistics_t;
+typedef struct memory_statistics_t memory_statistics_t;
 /*! Platform specific mutex representation, opaque data type */
-typedef struct mutex_t                mutex_t;
+typedef struct mutex_t mutex_t;
 /*! Object map mapping object handles to object instance pointers */
-typedef struct objectmap_t            objectmap_t;
+typedef struct objectmap_t objectmap_t;
 /*! Object map entry mapping object handles to object instance pointers */
-typedef struct objectmap_entry_t      objectmap_entry_t;
+typedef struct objectmap_entry_t objectmap_entry_t;
 /*! Child process control block */
-typedef struct process_t              process_t;
+typedef struct process_t process_t;
 /*! Radix sorter control block */
-typedef struct radixsort_t            radixsort_t;
+typedef struct radixsort_t radixsort_t;
 /*! Compiled regex */
-typedef struct regex_t                regex_t;
+typedef struct regex_t regex_t;
 /*! Memory ring buffer */
-typedef struct ringbuffer_t           ringbuffer_t;
+typedef struct ringbuffer_t ringbuffer_t;
 /*! SHA-256 control block */
-typedef struct sha256_t               sha256_t;
+typedef struct sha256_t sha256_t;
 /*! SHA-512 control block */
-typedef struct sha512_t               sha512_t;
+typedef struct sha512_t sha512_t;
 /*! Base stream type all stream types are based on */
-typedef struct stream_t               stream_t;
+typedef struct stream_t stream_t;
 /*! Memory buffer stream */
-typedef struct stream_buffer_t        stream_buffer_t;
+typedef struct stream_buffer_t stream_buffer_t;
 /*! Pipe stream */
-typedef struct stream_pipe_t          stream_pipe_t;
+typedef struct stream_pipe_t stream_pipe_t;
 /*! Ring buffer stream */
-typedef struct stream_ringbuffer_t    stream_ringbuffer_t;
+typedef struct stream_ringbuffer_t stream_ringbuffer_t;
 /*! Vtable for streams providing stream type specific implementations
 of stream operations */
-typedef struct stream_vtable_t        stream_vtable_t;
+typedef struct stream_vtable_t stream_vtable_t;
 /*! Thread */
-typedef struct thread_t               thread_t;
+typedef struct thread_t thread_t;
 /*! JSON token */
-typedef struct json_token_t           json_token_t;
+typedef struct json_token_t json_token_t;
 /*! Version declaration */
-typedef union  version_t              version_t;
+typedef union version_t version_t;
 /*! Library configuration block controlling limits, functionality and memory
 usage of the library */
-typedef struct foundation_config_t    foundation_config_t;
+typedef struct foundation_config_t foundation_config_t;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 /*! Platform specific representation of a semaphore */
-typedef void*                         semaphore_t;
+typedef void* semaphore_t;
 #elif FOUNDATION_PLATFORM_APPLE
-#  include <sys/semaphore.h>
-typedef struct semaphore_t            semaphore_t;
+#include <sys/semaphore.h>
+typedef struct semaphore_t semaphore_t;
 #elif FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_POSIX
-#  include <semaphore.h>
-typedef struct semaphore_t            semaphore_t;
+#include <semaphore.h>
+typedef struct semaphore_t semaphore_t;
 #endif
 
 /*! Error handler which is passed the error level and reported error. It should return
@@ -577,7 +577,7 @@ an implementation specific code which is then returned from the call to error_re
 \param level Error level
 \param error Error code
 \return Implementation specific code which is passed back as return from error_report */
-typedef int (* error_handler_fn)(error_level_t level, error_t error);
+typedef int (*error_handler_fn)(error_level_t level, error_t error);
 
 /*! Assert handler which is passed assert data and should do impementation specific
 processing and return a code indicating if execution can continue or need to be aborted.
@@ -591,9 +591,9 @@ processing and return a code indicating if execution can continue or need to be 
 \param msg_length Length of assert message
 \return 1 if assert was not handled and execution should break, 0 if assert handled and
         execution can continue */
-typedef int (* assert_handler_fn)(hash_t context, const char* condition, size_t cond_length,
-                                  const char* file, size_t file_length, unsigned int line,
-                                  const char* msg, size_t msg_length);
+typedef int (*assert_handler_fn)(hash_t context, const char* condition, size_t cond_length,
+                                 const char* file, size_t file_length, unsigned int line,
+                                 const char* msg, size_t msg_length);
 
 /*! Log output handler. Called after each log message processed and output by
 the log functions.
@@ -601,8 +601,8 @@ the log functions.
 \param severity Log severity
 \param msg Log message
 \param length Length of message */
-typedef void (* log_handler_fn)(hash_t context, error_level_t severity, const char* msg,
-                                size_t length);
+typedef void (*log_handler_fn)(hash_t context, error_level_t severity, const char* msg,
+                               size_t length);
 
 /* JSON parsing handler
 \param path Path of data being parsed
@@ -611,9 +611,8 @@ typedef void (* log_handler_fn)(hash_t context, error_level_t severity, const ch
 \param size Size of data buffer
 \param tokens Tokens array
 \param numtokens Number of tokens */
-typedef void (* json_handler_fn)(const char* path, size_t path_size,
-                                 const char* buffer, size_t size,
-                                 const json_token_t* tokens, size_t numtokens);
+typedef void (*json_handler_fn)(const char* path, size_t path_size, const char* buffer, size_t size,
+                                const json_token_t* tokens, size_t numtokens);
 
 /*! Memory tracker dump handler
 \param addr Address of allocated region
@@ -621,18 +620,18 @@ typedef void (* json_handler_fn)(const char* path, size_t path_size,
 \param trace Stack trace of allocation (if any, otherwise null)
 \param depth Depth of stack trace
 \return 0 to continue dumping allocations, non-zero to stop dump */
-typedef int (* memory_tracker_handler_fn)(const void* addr, size_t size,
-                                          void * const* trace, size_t depth);
+typedef int (*memory_tracker_handler_fn)(const void* addr, size_t size, void* const* trace,
+                                         size_t depth);
 
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
 \return 0 on success, <0 if failure (errors should be reported through log_error
         or error_report) */
-typedef int (* system_initialize_fn)(void);
+typedef int (*system_initialize_fn)(void);
 
 /*! Subsystem finalization function prototype. Will be called for each successfully
 initialized subsystem on global finalization */
-typedef void (* system_finalize_fn)(void);
+typedef void (*system_finalize_fn)(void);
 
 /*! Memory system allocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for allocating memory
@@ -641,8 +640,8 @@ provide an implementation with this prototype for allocating memory
 \param align Aligmnent requirement
 \param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
-typedef void* (* memory_allocate_fn)(hash_t context, size_t size, unsigned int align,
-                                     unsigned int hint);
+typedef void* (*memory_allocate_fn)(hash_t context, size_t size, unsigned int align,
+                                    unsigned int hint);
 
 /*! Memory system reallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for reallocating memory
@@ -652,169 +651,169 @@ provide an implementation with this prototype for reallocating memory
 \param oldsize Size of previous memory block
 \param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
-typedef void* (* memory_reallocate_fn)(void* p, size_t size, unsigned int align,
-                                       size_t oldsize, unsigned int hint);
+typedef void* (*memory_reallocate_fn)(void* p, size_t size, unsigned int align, size_t oldsize,
+                                      unsigned int hint);
 
 /*! Memory system deallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for deallocating memory
 \param p Pointer to memory block */
-typedef void (* memory_deallocate_fn)(void* p);
+typedef void (*memory_deallocate_fn)(void* p);
 
 /*! Memory thread initialization function prototype. Implementation of a memory system can
 optionally provide an implementation with this prototype for initialization at thread start */
-typedef void (* memory_thread_initialize_fn)(void);
+typedef void (*memory_thread_initialize_fn)(void);
 
 /*! Memory thread finalization function prototype. Implementation of a memory system can
 optionally provide an implementation with this prototype for finalization at thread exit */
-typedef void (* memory_thread_finalize_fn)(void);
+typedef void (*memory_thread_finalize_fn)(void);
 
 /*! Memory tracker tracking function prototype. Implementation of a memory tracker must
 provide an implementation with this prototype for tracking memory allocations
 \param p Pointer to allocated memory block
 \param size Size of memory block */
-typedef void (* memory_track_fn)(void* p, size_t size);
+typedef void (*memory_track_fn)(void* p, size_t size);
 
 /*! Memory tracker untracking function prototype. Implementation of a memory tracker must
 provide an implementation with this prototype for untracking memory allocations
 \param p Pointer to deallocated memory block */
-typedef void (* memory_untrack_fn)(void* p);
+typedef void (*memory_untrack_fn)(void* p);
 
 /*! Memory tracker statistics function prototype. Implementation of a memory tracker must
 provide an implementation with this prototype for memory statistics
 \return Memory statistics */
-typedef memory_statistics_t (* memory_statistics_fn)(void);
+typedef memory_statistics_t (*memory_statistics_fn)(void);
 
 /*! Memory tracker dump function prototype. Implementation of a memory tracker can
 provide an implementation of this prototype.
 \param handler Dump handler function */
-typedef void (* memory_tracker_dump_fn)(memory_tracker_handler_fn handler);
+typedef void (*memory_tracker_dump_fn)(memory_tracker_handler_fn handler);
 
 /*! Callback function for writing profiling data to a stream
 \param data Pointer to data block
 \param size Size of data block */
-typedef void (* profile_write_fn)(void* data, size_t size);
+typedef void (*profile_write_fn)(void* data, size_t size);
 
 /*! Callback function for reading profiling data from a stream
 \param data Pointer to data block
 \param size Size of data block */
-typedef void (* profile_read_fn)(void* data, size_t size);
+typedef void (*profile_read_fn)(void* data, size_t size);
 
 /*! Thread entry point function prototype
 \param arg Argument passed by caller when starting the thread
 \return Implementation specific data which can be obtained through thread_result */
-typedef void* (* thread_fn)(void* arg);
+typedef void* (*thread_fn)(void* arg);
 
 /*! Any function to be used in conjunction with the exception handling
 in the library should have this prototype
 \param arg Implementation specific argument passed to exception_try
 \return Implementation specific return value which is forwarded as return value
         from exception_try (note that FOUNDATION_EXCEPTION_CAUGHT is reserved) */
-typedef int (* exception_try_fn)(void* arg);
+typedef int (*exception_try_fn)(void* arg);
 
 /*! Exception handler function prototype, used to notify that an exception occurred
 and the process state was saved to a dump file
 \param file Dump file path
 \param length Length of file path */
-typedef void (* exception_handler_fn)(const char* file, size_t length);
+typedef void (*exception_handler_fn)(const char* file, size_t length);
 
 /*! Object deallocation function prototype, used to deallocate an object of a specific type
 \param object Object pointer */
-typedef void (* object_deallocate_fn)(void* object);
+typedef void (*object_deallocate_fn)(void* object);
 
 /*! Generic function to open a stream with the given path and mode
 \param path Path, optionally including protocol
 \param length Length of path
 \param mode Open mode
 \return Newly allocated stream, null if it could not be opened */
-typedef stream_t* (* stream_open_fn)(const char* path, size_t length, unsigned int mode);
+typedef stream_t* (*stream_open_fn)(const char* path, size_t length, unsigned int mode);
 
 /*! Generic function to read data from a stream
 \param stream Stream to read from
 \param dst Destination buffer
 \param size Number of bytes to read
 \return Number of bytes actually read */
-typedef size_t (* stream_read_fn)(stream_t* stream, void* dst, size_t size);
+typedef size_t (*stream_read_fn)(stream_t* stream, void* dst, size_t size);
 
 /*! Generic function to write data to a stream
 \param stream Stream to write to
 \param src Source buffer
 \param size Number of bytes to write
 \return Number of bytes actually written */
-typedef size_t (* stream_write_fn)(stream_t* stream, const void* src, size_t size);
+typedef size_t (*stream_write_fn)(stream_t* stream, const void* src, size_t size);
 
 /*! Query if end of stream
 \param stream Stream
 \return true if stream at end, false if not */
-typedef bool (* stream_eos_fn)(stream_t* stream);
+typedef bool (*stream_eos_fn)(stream_t* stream);
 
 /*! Flush stream output buffers
 \param stream Stream */
-typedef void (* stream_flush_fn)(stream_t* stream);
+typedef void (*stream_flush_fn)(stream_t* stream);
 
 /*! Truncate stream size to the given size
 \param stream Stream
 \param size Size to truncate stream to */
-typedef void (* stream_truncate_fn)(stream_t* stream, size_t size);
+typedef void (*stream_truncate_fn)(stream_t* stream, size_t size);
 
 /*! Get stream size
 \param stream Stream
 \return Stream size, 0 if invalid stream or unknown (like a network stream) */
-typedef size_t (* stream_size_fn)(stream_t* stream);
+typedef size_t (*stream_size_fn)(stream_t* stream);
 
 /*! Seek in the stream. Only available if stream is seekable and not a sequential stream like
 a network stream.
 \param stream Stream
 \param offset Seek offset
 \param mode Seek mode (see #stream_seek_mode_t) */
-typedef void (* stream_seek_fn)(stream_t* stream, ssize_t offset, stream_seek_mode_t mode);
+typedef void (*stream_seek_fn)(stream_t* stream, ssize_t offset, stream_seek_mode_t mode);
 
 /*! Get current stream position
 \param stream Stream
 \return Current stream position, 0 if invalid stream or unknown */
-typedef size_t (* stream_tell_fn)(stream_t* stream);
+typedef size_t (*stream_tell_fn)(stream_t* stream);
 
 /*! Get timestamp when stream was last modified (written to or attributes/size changed)
 \param stream Stream
 \return Last modification timestamp, 0 if invalid stream or unknown */
-typedef tick_t (* stream_lastmod_fn)(const stream_t* stream);
+typedef tick_t (*stream_lastmod_fn)(const stream_t* stream);
 
 /*! Get stream digest. Only available if stream size is known and stream is seekable. Does
 not modify the current stream position.
 \param stream Stream
 \return Digest of stream content, 0 if invalid stream or unknown */
-typedef uint128_t (* stream_md5_fn)(stream_t* stream);
+typedef uint128_t (*stream_md5_fn)(stream_t* stream);
 
 /*! Get stream digest. Only available if stream size is known and stream is seekable. Does
 not modify the current stream position.
 \param stream Stream
 \return Digest of stream content, 0 if invalid stream or unknown */
-typedef uint256_t (* stream_sha256_fn)(stream_t* stream);
+typedef uint256_t (*stream_sha256_fn)(stream_t* stream);
 
 /*! Get stream digest. Only available if stream size is known and stream is seekable. Does
 not modify the current stream position.
 \param stream Stream
 \return Digest of stream content, 0 if invalid stream or unknown */
-typedef uint512_t (* stream_sha512_fn)(stream_t* stream);
+typedef uint512_t (*stream_sha512_fn)(stream_t* stream);
 
 /*! If the stream has available data to be read from an external source (like a socket for
 network streams), read and buffer the available data without blocking.
 \param stream Stream */
-typedef void (* stream_buffer_read_fn)(stream_t* stream);
+typedef void (*stream_buffer_read_fn)(stream_t* stream);
 
 /*! Query how much data can be read from the stream without blocking
 \param stream Stream
 \return Number of bytes that can be read without blocking */
-typedef size_t (* stream_available_read_fn)(stream_t* stream);
+typedef size_t (*stream_available_read_fn)(stream_t* stream);
 
 /*! Finalize a stream object that was previously initialized with a call to a specific
 stream initialization function and free any associated resources.
 \param stream Stream */
-typedef void (* stream_finalize_fn)(stream_t* stream);
+typedef void (*stream_finalize_fn)(stream_t* stream);
 
 /*! Clone stream, allocating a duplicate copy of the stream if the stream type supports it.
 \param stream Stream
 \return Clone of stream, 0 if not supported or invalid source stream */
-typedef stream_t* (* stream_clone_fn)(stream_t* stream);
+typedef stream_t* (*stream_clone_fn)(stream_t* stream);
 
 /*! Identifier returned from threads and exception_try after an exception
 has been caught (and optionally a dump generated) */
@@ -998,10 +997,10 @@ struct application_t {
 	uuid_t instance;
 };
 
-#define BLOWFISH_SUBKEYS            18U
-#define BLOWFISH_SBOXES             4U
-#define BLOWFISH_SBOXENTRIES        256U
-#define BLOWFISH_MAXKEY             56U
+#define BLOWFISH_SUBKEYS 18U
+#define BLOWFISH_SBOXES 4U
+#define BLOWFISH_SBOXENTRIES 256U
+#define BLOWFISH_MAXKEY 56U
 
 /*! State for a blowfish encryption block */
 struct blowfish_t {
@@ -1060,10 +1059,10 @@ declaration in an event struct to place the base data in the correct place:
   //[...]
 } my_event_t;</code> */
 #define FOUNDATION_DECLARE_EVENT \
-	uint16_t id; \
-	uint16_t flags; \
-	uint16_t serial; \
-	uint16_t size; \
+	uint16_t id;                 \
+	uint16_t flags;              \
+	uint16_t serial;             \
+	uint16_t size;               \
 	object_t object
 
 /*! Event base structure. All event structures must have this layout at the start of
@@ -1136,8 +1135,8 @@ struct hashmap_node_t {
 
 /*! Declare an inlined hashmap of given size */
 #define FOUNDATION_DECLARE_HASHMAP(size) \
-	size_t num_buckets; \
-	size_t num_nodes; \
+	size_t num_buckets;                  \
+	size_t num_nodes;                    \
 	hashmap_node_t* bucket[size]
 
 /*! Hash map container, mapping hash values to data pointers */
@@ -1173,8 +1172,8 @@ struct uuidmap_node_t {
 
 /*! Declare an inlined uuidmap of given size */
 #define FOUNDATION_DECLARE_UUIDMAP(size) \
-	size_t num_buckets; \
-	size_t num_nodes; \
+	size_t num_buckets;                  \
+	size_t num_nodes;                    \
 	uuidmap_node_t* bucket[size]
 
 /*! UUID hash map container, mapping uuid values to data pointers */
@@ -1220,12 +1219,12 @@ FOUNDATION_ALIGNED_STRUCT(hashtable64_entry_t, 8) {
 
 /*! Declare an inlined 32-bit hashtable of given size */
 #define FOUNDATION_DECLARE_HASHTABLE32(size) \
-	size_t capacity; \
+	size_t capacity;                         \
 	hashtable32_entry_t entries[size]
 
 /*! Declare an inlined 64-bit hashtable of given size */
 #define FOUNDATION_DECLARE_HASHTABLE64(size) \
-	size_t capacity; \
+	size_t capacity;                         \
 	hashtable64_entry_t entries[size]
 
 /*! Hash table, a lock free mapping of 32-but values to 32 bit integer data. */
@@ -1334,11 +1333,11 @@ a ring buffer struct:
   //[...]
 } my_ringbuffer_t;</code> */
 #define FOUNDATION_DECLARE_RINGBUFFER(buffersize) \
-	uint64_t total_read; \
-	uint64_t total_write; \
-	size_t  offset_read; \
-	size_t offset_write; \
-	size_t buffer_size; \
+	uint64_t total_read;                          \
+	uint64_t total_write;                         \
+	size_t offset_read;                           \
+	size_t offset_write;                          \
+	size_t buffer_size;                           \
 	char buffer[buffersize]
 
 /*! Ring buffer, a shared memory area wrapped to a circular buffer with one read
@@ -1459,17 +1458,17 @@ struct thread_t {
 /*! Entry in objec map */
 struct objectmap_entry_t {
 	//! Object pointer
-	void*  ptr;
+	void* ptr;
 	//! Reference count
 	atomic32_t ref;
 };
 
 #define FOUNDATION_DECLARE_OBJECTMAP(mapsize) \
-	uint32_t free; \
-	uint32_t tag; \
-	uint32_t size; \
-	uint32_t autolink; \
-	semaphore_t write; \
+	uint32_t free;                            \
+	uint32_t tag;                             \
+	uint32_t size;                            \
+	uint32_t autolink;                        \
+	semaphore_t write;                        \
 	objectmap_entry_t map[mapsize]
 
 /*! Object map which maps object handles to object pointers. As object lifetime is managed
@@ -1479,7 +1478,7 @@ struct objectmap_t {
 	/*!
 	\var free
 	Current first free slot
-	
+
 	\var id
 	Counter for next available ID
 
@@ -1515,16 +1514,17 @@ platform compatibility. Use the macro as first declaration in a stream struct:
   int       some_other_data;
   //[...]
 };</code> */
-#define FOUNDATION_DECLARE_STREAM \
-	unsigned int type:16; \
-	unsigned int sequential:1; \
-	unsigned int reliable:1; \
-	unsigned int inorder:1; \
-	unsigned int swap:1; \
-	unsigned int byteorder:1; \
-	unsigned int unused_streamflags:11; \
-	unsigned int mode; \
-	string_t path; \
+#define FOUNDATION_DECLARE_STREAM         \
+	unsigned int type : 16;               \
+	unsigned int sequential : 1;          \
+	unsigned int reliable : 1;            \
+	unsigned int inorder : 1;             \
+	unsigned int swap : 1;                \
+	unsigned int byteorder : 1;           \
+	unsigned int unused_streamflags : 11; \
+	unsigned int mode;                    \
+	string_t path;                        \
+	string_const_t mime_type;             \
 	stream_vtable_t* vtable
 
 /*! Base stream type from which all streams are derived. All stream-based designs
@@ -1677,7 +1677,8 @@ struct json_token_t {
 	unsigned int id_length;
 	/*! Value string offset */
 	unsigned int value;
-	/*! Length of value string for objects and primitive values, 0 if no or empty value string. For array values the number of elements in the array. */
+	/*! Length of value string for objects and primitive values, 0 if no or empty value string. For
+	 * array values the number of elements in the array. */
 	unsigned int value_length;
 	/*! Child token index in token array. 0 if no child token */
 	unsigned int child;
@@ -1686,5 +1687,5 @@ struct json_token_t {
 };
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif
