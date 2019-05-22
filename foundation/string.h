@@ -140,12 +140,17 @@ FOUNDATION_API string_t
 string_allocate_vformat(const char* format, size_t length, va_list list) FOUNDATION_PRINTFCALL(1, 0);
 
 /*! \fn string_t string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list
-list) In-memory string formatting from a format specifier and variable data given as a va_list, printf style.
+list)
+In-memory string formatting from a format specifier and variable data given as a va_list, printf style.
 The format specifier must be a string literal of specified length, zero terminated. Will print at most
 (capacity-1) characters into the buffer and always zero terminate the string. If buffer or capacity is null
 the returned string is null, otherwise the string is always returned with buffer pointer and length [0,
-capacity-1]. \param buffer Destination buffer \param capacity Capacity of destination buffer \param format
-Format specifier \param length Length of format specifier \param list Variable argument list
+capacity-1]
+\param buffer Destination buffer
+\param capacity Capacity of destination buffer
+\param format Format specifier
+\param length Length of format specifier
+\param list Variable argument list
 \return Formatted string in given buffer, zero terminated */
 FOUNDATION_API string_t
 string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list list)
