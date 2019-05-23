@@ -1521,7 +1521,8 @@ platform compatibility. Use the macro as first declaration in a stream struct:
 	unsigned int inorder : 1;             \
 	unsigned int swap : 1;                \
 	unsigned int byteorder : 1;           \
-	unsigned int unused_streamflags : 11; \
+	unsigned int persistent : 1;          \
+	unsigned int unused_streamflags : 10; \
 	unsigned int mode;                    \
 	string_t path;                        \
 	string_const_t mime_type;             \
@@ -1553,6 +1554,10 @@ FOUNDATION_ALIGNED_STRUCT(stream_t, 8) {
 
 	\var stream_t::byteorder
 	Stream byte order indicator (0 = little endian, 1 = big endian)
+
+	\var stream_t::persistent
+	Flag indicating the stream is located on persistent storage, meaning the stream
+	can most likely be re-opened and/or cloned.
 
 	\var stream_t::mode
 	Stream open mode (see STREAM_* modes/flags)

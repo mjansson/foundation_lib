@@ -92,6 +92,7 @@ stream_initialize(stream_t* stream, byteorder_t order) {
 	stream->sequential = 0;
 	stream->reliable = 1;
 	stream->inorder = 1;
+	stream->persistent = 0;
 	stream->swap = ((byteorder_t)stream->byteorder != system_byteorder()) ? 1 : 0;
 	stream->mode = STREAM_BINARY;
 	stream->path = (string_t){0, 0};
@@ -889,8 +890,9 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 
 			// Digest one line at a time
 			// Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line
-			// endings (for example, one line ending in a single CR and next is empty and ending in a
-			//single LF), it will not work!
+			// endings (for example, one line ending in a single CR and next is empty and ending in
+			// a
+			// single LF), it will not work!
 			/*lint -e{850} */
 			for (ic = lastc; ic < num && ic < limit; ++ic) {
 				bool was_cr = (buf[ic] == '\r');

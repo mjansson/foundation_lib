@@ -1,14 +1,15 @@
 /* assetstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
-*
-* This library provides a cross-platform foundation library in C11 providing basic support data types and
-* functions to write applications and games in a platform-independent fashion. The latest source code is
-* always available at
-*
-* https://github.com/rampantpixels/foundation_lib
-*
-* This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
-*
-*/
+ *
+ * This library provides a cross-platform foundation library in C11 providing basic support data
+ * types and functions to write applications and games in a platform-independent fashion. The latest
+ * source code is always available at
+ *
+ * https://github.com/rampantpixels/foundation_lib
+ *
+ * This library is put in the public domain; you can redistribute it and/or modify it without any
+ * restrictions.
+ *
+ */
 
 #include <foundation/foundation.h>
 
@@ -136,17 +137,16 @@ asset_stream_open(const char* path, size_t length, unsigned int mode) {
 		pathptr = finalpath.str + 6;
 		if (*pathptr == '/')
 			++path;
-	}
-	else {
-		finalpath = string_concat(buffer, sizeof(buffer),
-		                          "asset://", path[0] == '/' ? 7 : 8, path, length);
+	} else {
+		finalpath =
+		    string_concat(buffer, sizeof(buffer), "asset://", path[0] == '/' ? 7 : 8, path, length);
 		pathptr = finalpath.str + 8;
 	}
 	if (*pathptr == '/')
 		++path;
 
-	AAsset* assetobj = AAssetManager_open(android_app()->activity->assetManager, pathptr,
-	                                      AASSET_MODE_RANDOM);
+	AAsset* assetobj =
+	    AAssetManager_open(android_app()->activity->assetManager, pathptr, AASSET_MODE_RANDOM);
 	if (!assetobj)
 		return 0;
 
@@ -161,6 +161,7 @@ asset_stream_open(const char* path, size_t length, unsigned int mode) {
 	stream->reliable = 1;
 	stream->inorder = 1;
 	stream->swap = 0;
+	stream->persistent = 1;
 	stream->path = string_clone(STRING_ARGS(finalpath));
 	stream->mode = (mode & STREAM_BINARY) | STREAM_IN;
 	stream->vtable = &_asset_stream_vtable;
