@@ -14,14 +14,14 @@
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/windows.h>
+#include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_APPLE
-#  include <foundation/apple.h>
-#  include <mach/mach_time.h>
+#include <foundation/apple.h>
+#include <mach/mach_time.h>
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
+#include <foundation/posix.h>
 #else
-#  error Not implemented on this platform!
+#error Not implemented on this platform!
 #endif
 
 static tick_t _time_freq;
@@ -51,15 +51,15 @@ _time_initialize(void) {
 		return -1;
 	_time_freq = 1000000000LL;
 #elif FOUNDATION_PLATFORM_POSIX
-	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+	struct timespec ts = {.tv_sec = 0, .tv_nsec = 0};
 	if (clock_gettime(CLOCK_MONOTONIC, &ts))
 		return -1;
 	_time_freq = 1000000000LL;
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
-	_time_oofreq  = 1.0 / (double)_time_freq;
+	_time_oofreq = 1.0 / (double)_time_freq;
 	_time_startup = time_current();
 
 	return 0;
@@ -85,12 +85,12 @@ time_current(void) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+	struct timespec ts = {.tv_sec = 0, .tv_nsec = 0};
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	return ((tick_t)ts.tv_sec * 1000000000LL) + (tick_t)ts.tv_nsec;
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 }
 
@@ -134,14 +134,14 @@ time_elapsed_ticks(const tick_t t) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	tick_t curclock;
-	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+	struct timespec ts = {.tv_sec = 0, .tv_nsec = 0};
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 
 	curclock = ((tick_t)ts.tv_sec * 1000000000LL) + ts.tv_nsec;
 	dt = curclock - t;
 
 #else
-#  error Not implemented
+#error Not implemented
 	dt = 0;
 #endif
 
@@ -153,14 +153,19 @@ time_ticks_to_seconds(const tick_t dt) {
 	return (deltatime_t)((double)dt * _time_oofreq);
 }
 
+deltatime_t
+time_ticks_to_milliseconds(const tick_t dt) {
+	return (deltatime_t)(((double)dt * 1000.0) * _time_oofreq);
+}
+
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <sys/timeb.h>
-#  if  FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-#    define _ftime64_s _ftime64
-#  endif
+#include <sys/timeb.h>
+#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#define _ftime64_s _ftime64
+#endif
 #endif
 #if FOUNDATION_PLATFORM_APPLE
-#  include <sys/time.h>
+#include <sys/time.h>
 #endif
 
 tick_t
@@ -173,18 +178,18 @@ time_system(void) {
 	return ((tick_t)tb.time * 1000LL) + (tick_t)tb.millitm;
 
 #elif FOUNDATION_PLATFORM_APPLE
-	
+
 	struct timeval now = {0, 0};
 	gettimeofday(&now, 0);
 	return ((int64_t)now.tv_sec * 1000LL) + (now.tv_usec / 1000LL);
-	
+
 #elif FOUNDATION_PLATFORM_POSIX
 
-	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+	struct timespec ts = {.tv_sec = 0, .tv_nsec = 0};
 	clock_gettime(CLOCK_REALTIME, &ts);
 	return ((int64_t)ts.tv_sec * 1000LL) + (ts.tv_nsec / 1000000LL);
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 }
