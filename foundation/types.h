@@ -299,6 +299,14 @@ typedef enum {
 	RADIXSORT_FLOAT64
 } radixsort_data_t;
 
+/*! Radix sort index types */
+typedef enum {
+	/*! 16-bit indices */
+	RADIXSORT_INDEX16 = 2,
+	/*! 32-bit indices */
+	RADIXSORT_INDEX32 = 4
+} radixsort_indextype_t;
+
 /*! Device orientation */
 typedef enum {
 	/*! Orientation not known or not supported */
@@ -417,8 +425,6 @@ typedef int64_t tick_t;
 typedef real deltatime_t;
 /*! Object handle used for identifying reference counted objects */
 typedef uint32_t object_t;
-/*! Default is 16 bit, typedef to 32 bit if need to sort more than 2^16 items in one array */
-typedef uint16_t radixsort_index_t;
 /*! UUID, 128-bit unique identifier */
 typedef uint128_t uuid_t;
 
@@ -1300,16 +1306,18 @@ struct process_t {
 struct radixsort_t {
 	/*! Data type being sorted */
 	radixsort_data_t type;
+	/*! Index size */
+	radixsort_indextype_t indextype;
 	/*! Maximum number of elements that can be sorted */
-	radixsort_index_t size;
+	size_t size;
 	/*! Number of elements in last call to #radixsort_sort */
-	radixsort_index_t lastused;
+	size_t lastused;
 	/*! Index buffers holding sorted result */
-	radixsort_index_t* indices[2];
+	void* indices[2];
 	/*! Buffer for histogram data */
-	radixsort_index_t* histogram;
+	void* histogram;
 	/*! Offset table */
-	radixsort_index_t* offset;
+	void* offset;
 };
 
 /*! Compiled regular expression */
