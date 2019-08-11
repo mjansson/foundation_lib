@@ -429,7 +429,7 @@ typedef uint32_t object_t;
 typedef uint128_t uuid_t;
 
 /*! Used to bit manipulate 32-bit floating point values in a alias safe way */
-typedef union {
+typedef union float32_cast_t {
 	/*! Signed integer representation */
 	int32_t ival;
 	/*! Unsigned integer representation */
@@ -439,7 +439,7 @@ typedef union {
 } float32_cast_t;
 
 /*! Used to bit manipulate 64-bit floating point values in a alias safe way */
-typedef union {
+typedef union float64_cast_t {
 	/*! Signed integer representation */
 	int64_t ival;
 	/*! Unsigned integer representation */
@@ -449,29 +449,9 @@ typedef union {
 } float64_cast_t;
 
 #if FOUNDATION_SIZE_REAL == 8
-
-/*! Used to bit manipulate real values in a alias safe way */
-typedef union {
-	/*! Signed integer representation */
-	int64_t ival;
-	/*! Unsigned integer representation */
-	uint64_t uival;
-	/*! Floating point representation */
-	real rval;
-} real_cast_t;
-
+typedef union float64_cast_t real_cast_t;
 #else
-
-/*! Used to bit manipulate real values in a alias safe way */
-typedef union {
-	/*! Signed integer representation */
-	int32_t ival;
-	/*! Unsigned integer representation */
-	uint32_t uival;
-	/*! Floating point representation */
-	real rval;
-} real_cast_t;
-
+typedef union float32_cast_t real_cast_t;
 #endif
 
 /*! String */
