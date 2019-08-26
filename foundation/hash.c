@@ -69,7 +69,7 @@ getblock_nonaligned(const char* FOUNDATION_RESTRICT p, size_t i) {
 	h1 = h1*3+0x52dce729; \
 	h2 = h2*3+0x38495ab5; \
 	c1 = c1*5+0x7b7d159c; \
-	c2 = c2*5+0x6bce6396;
+	c2 = c2*5+0x6bce6396
 
 //----------
 // Finalization mix - avalanches all bits to within 0.05% bias
@@ -148,7 +148,7 @@ hash(const void* key, size_t len) {
 	case  2: k1 ^= ((uint64_t)tail[ 1]) << 8;
 	case  1: k1 ^= ((uint64_t)tail[ 0]);
 		bmix64(h1, h2, k1, k2, c1, c2);
-	}; /*lint -restore */
+	} /*lint -restore */
 
 	//----------
 	// finalization
