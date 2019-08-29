@@ -176,22 +176,22 @@ stream_is_binary(const stream_t* stream) {
 
 bool
 stream_is_sequential(const stream_t* stream) {
-	return stream->sequential;
+	return stream->sequential != 0;
 }
 
 bool
 stream_is_swapped(const stream_t* stream) {
-	return stream->swap;
+	return stream->swap != 0;
 }
 
 bool
 stream_is_reliable(const stream_t* stream) {
-	return stream->reliable;
+	return stream->reliable != 0;
 }
 
 bool
 stream_is_inorder(const stream_t* stream) {
-	return stream->inorder;
+	return stream->inorder != 0;
 }
 
 bool
