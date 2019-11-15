@@ -211,7 +211,7 @@ stream_path(const stream_t* stream) {
 
 tick_t
 stream_last_modified(const stream_t* stream) {
-	return (stream->vtable->lastmod ? stream->vtable->lastmod(stream) : 0);
+	return (stream->vtable->lastmod ? stream->vtable->lastmod(stream) : time_system());
 }
 
 void
