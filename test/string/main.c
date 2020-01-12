@@ -2222,7 +2222,7 @@ DECLARE_TEST(string, convert) {
 	str = string_from_real(buffer, sizeof(buffer), REAL_C(0.1), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
 
-	str = string_from_real(buffer, sizeof(buffer), -REAL_ZERO, 8, 16, '=');
+	str = string_from_real(buffer, sizeof(buffer), -REAL_C(0.0), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
 
 	conststr = string_from_real_static(REAL_C(1.1), 0, 0, '=');
@@ -2231,7 +2231,7 @@ DECLARE_TEST(string, convert) {
 	conststr = string_from_real_static(REAL_C(0.1), 8, 16, '=');
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
 
-	conststr = string_from_real_static(-REAL_ZERO, 8, 16, '=');
+	conststr = string_from_real_static(-REAL_C(0.0), 8, 16, '=');
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
 
 	str = string_from_time(buffer, 0, time_system(), false);

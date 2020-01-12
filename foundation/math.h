@@ -84,6 +84,30 @@ for comparisons or thresholds. Roughly equals 100 floating point units at 1.0 */
 #define DBL_LOGN10 2.3025850929940456840179914546844
 
 /*! Constant pi (3.141592...) */
+#define FLT_PI ((float)(DBL_PI))
+
+/*! Constant half pi (1.570796...) */
+#define FLT_HALFPI ((float)(DBL_HALFPI))
+
+/*! Constant two pi (6.283185...) */
+#define FLT_TWOPI ((float)(DBL_TWOPI))
+
+/*! Constant square root of two (1.414213...) */
+#define FLT_SQRT2 ((float)(DBL_SQRT2))
+
+/*! Constant square root of three (1.732050...) */
+#define FLT_SQRT3 ((float)(DBL_SQRT3))
+
+/*! Constant number e (2.718281...) */
+#define FLT_E ((float)(DBL_E))
+
+/*! Constant natural logarithm of two (0.693147...) */
+#define LFT_LOGN2 ((float)(DBL_LOGN2))
+
+/*! Constant natural logarithm of ten (2.302585...) */
+#define FLT_LOGN10 ((float)(DBL_LOGN10))
+
+/*! Constant pi (3.141592...) */
 #define REAL_PI REAL_C(DBL_PI)
 
 /*! Constant half pi (1.570796...) */
@@ -1502,7 +1526,7 @@ math_float_inc(float val, int units) {
 #define math_real_is_zero(x) math_double_is_zero(x)
 #define math_real_is_one(x) math_double_is_one(x)
 #define math_real_dec(x, units) math_double_dec(x, units)
-#define math_real_inc(x, units) math_double_inc(x, unitss)
+#define math_real_inc(x, units) math_double_inc(x, units)
 #else
 #define math_real_is_nan(x) math_float_is_nan(x)
 #define math_real_is_inf(x) math_float_is_inf(x)
@@ -1515,7 +1539,7 @@ math_float_inc(float val, int units) {
 #define math_real_is_zero(x) math_float_is_zero(x)
 #define math_real_is_one(x) math_float_is_one(x)
 #define math_real_dec(x, units) math_float_dec(x, units)
-#define math_real_inc(x, units) math_float_inc(x, unitss)
+#define math_real_inc(x, units) math_float_inc(x, units)
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
