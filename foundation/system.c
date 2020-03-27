@@ -245,17 +245,17 @@ system_hardware_threads(void) {
 
 	object_t kernel_lib = library_load(STRING_CONST("kernel32"));
 	if (kernel_lib) {
-		WORD(STDCALL * get_active_processor_group_count)
-		() = (WORD(STDCALL*)())library_symbol(kernel_lib,
-		                                      STRING_CONST("GetActiveProcessorGroupCount"));
-		DWORD(STDCALL * get_active_processor_count)
-		() = (DWORD(STDCALL*)(WORD))library_symbol(kernel_lib,
-		                                           STRING_CONST("GetActiveProcessorCount"));
+		WORD(STDCALL * get_group_count)
+		(void) = (WORD(STDCALL*)(void))library_symbol(kernel_lib,
+		                                              STRING_CONST("GetActiveProcessorGroupCount"));
+		DWORD(STDCALL * get_processor_count)
+		(WORD) = (DWORD(STDCALL*)(WORD))library_symbol(kernel_lib,
+		                                               STRING_CONST("GetActiveProcessorCount"));
 
-		if (get_active_processor_group_count && get_active_processor_count) {
-			unsigned int group_count = get_active_processor_group_count();
-			for (unsigned int igroup = 0; igroup < group_count; ++igroup)
-				hardware_threads += get_active_processor_count(igroup);
+		if (get_group_count && get_processor_count) {
+			int group_count = get_group_count();
+			for (int igroup = 0; igroup < group_count; ++igroup)
+				hardware_threads += get_processor_count((WORD)igroup);
 		}
 		library_release(kernel_lib);
 	}

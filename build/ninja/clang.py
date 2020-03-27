@@ -22,6 +22,7 @@ class ClangToolchain(toolchain.Toolchain):
     self.cxxlinker = 'clang++'
     if self.target.is_windows():
       self.archiver = 'llvm-ar'
+      self.linker = 'lld-link'
 
     #Default variables
     self.sysroot = ''
@@ -37,6 +38,9 @@ class ClangToolchain(toolchain.Toolchain):
     self.ccdepfile = '$out.d'
     self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
     self.linkcmd = '$toolchain$link $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs $oslibs $frameworks'
+    if self.target.is_windows():
+      self.linkcmd = '$toolchain$link $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags /debug /nologo /subsystem:console /dynamicbase /nxcompat /manifest /manifestuac:\"level=\'asInvoker\' uiAccess=\'false\'\" /tlbid:1 /pdb:$pdbpath /out:$out $in $libs $archlibs $oslibs $frameworks'
+      self.dllcmd = self.linkcmd + ' /dll'
 
     #Base flags
     self.cflags = ['-D' + project.upper() + '_COMPILE=1',
@@ -44,7 +48,8 @@ class ClangToolchain(toolchain.Toolchain):
                    '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
                    '-fno-trapping-math', '-ffast-math']
     self.cwarnflags = ['-W', '-Werror', '-pedantic', '-Wall', '-Weverything',
-                       '-Wno-padded', '-Wno-documentation-unknown-command']
+                       '-Wno-padded', '-Wno-documentation-unknown-command',
+                       '-Wno-implicit-fallthrough']
     self.cmoreflags = []
     self.mflags = []
     self.arflags = []
@@ -168,6 +173,8 @@ class ClangToolchain(toolchain.Toolchain):
     writer.variable('archlibs', '')
     writer.variable('oslibs', self.make_libs(self.oslibs))
     writer.variable('frameworks', '')
+    if self.target.is_windows():
+      writer.variable('pdbpath', 'ninja.pdb')
     writer.newline()
 
   def write_rules(self, writer):
@@ -179,7 +186,10 @@ class ClangToolchain(toolchain.Toolchain):
       writer.rule( 'lipo', command = self.lipocmd, description = 'LIPO $out' )
     writer.rule('ar', command = self.arcmd, description = 'LIB $out')
     writer.rule('link', command = self.linkcmd, description = 'LINK $out')
-    writer.rule('so', command = self.linkcmd, description = 'SO $out')
+    if self.target.is_windows():
+      writer.rule('dll', command = self.dllcmd, description = 'DLL $out')
+    else:
+      writer.rule('so', command = self.linkcmd, description = 'SO $out')
     writer.newline()
 
   def build_toolchain(self):
@@ -265,7 +275,7 @@ class ClangToolchain(toolchain.Toolchain):
   def make_libpaths(self, libpaths):
     if not libpaths is None:
       if self.target.is_windows():
-        return ['-Xlinker /LIBPATH:' + self.path_escape(path) for path in libpaths]
+        return ['/libpath:' + self.path_escape(path) for path in libpaths]
       return ['-L' + self.make_libpath(path) for path in libpaths]
     return []
 
@@ -293,13 +303,18 @@ class ClangToolchain(toolchain.Toolchain):
       flags += ['-gcc-toolchain', self.android.make_gcc_toolchain_path(arch)]
     elif self.target.is_macos() or self.target.is_ios():
       if arch == 'x86':
-        flags += [' -arch x86']
+        flags += ['-arch', 'x86']
       elif arch == 'x86-64':
-        flags += [' -arch x86_64']
+        flags += ['-arch', 'x86_64']
       elif arch == 'arm7':
-        flags += [' -arch armv7']
+        flags += ['-arch', 'armv7']
       elif arch == 'arm64':
-        flags += [' -arch arm64']
+        flags += ['-arch', 'arm64']
+    elif self.target.is_windows():
+      if arch == 'x86':
+        flags += ['-target', 'x86-pc-windows-msvc']
+      elif arch == 'x64':
+        flags += ['-target', 'x86_64-pc-windows-msvc']
     else:
       if arch == 'x86':
         flags += ['-m32']
@@ -321,11 +336,11 @@ class ClangToolchain(toolchain.Toolchain):
     if config == 'debug':
       flags += ['-DBUILD_DEBUG=1', '-g']
     elif config == 'release':
-      flags += ['-DBUILD_RELEASE=1', '-O3', '-g', '-funroll-loops']
+      flags += ['-DBUILD_RELEASE=1', '-O3', '-g', '-funroll-loops', '-flto']
     elif config == 'profile':
-      flags += ['-DBUILD_PROFILE=1', '-O3', '-g', '-funroll-loops']
+      flags += ['-DBUILD_PROFILE=1', '-O3', '-g', '-funroll-loops', '-flto']
     elif config == 'deploy':
-      flags += ['-DBUILD_DEPLOY=1', '-O3', '-g', '-funroll-loops']
+      flags += ['-DBUILD_DEPLOY=1', '-O3', '-g', '-funroll-loops', '-flto']
     return flags
 
   def make_ararchflags(self, arch, targettype):
@@ -343,10 +358,12 @@ class ClangToolchain(toolchain.Toolchain):
       if arch == 'arm7':
         flags += ['-Wl,--no-warn-mismatch', '-Wl,--fix-cortex-a8']
     if self.target.is_windows():
+      # Ignore target arch flags from above, add link style arch instead
+      flags = []
       if arch == 'x86':
-        flags += ['-Xlinker', '/MACHINE:X86']
+        flags += ['/machine:x86']
       elif arch == 'x86-64':
-        flags += ['-Xlinker', '/MACHINE:X64']
+        flags += ['/machine:x64']
     if self.target.is_macos() and variables != None and 'support_lua' in variables and variables['support_lua']:
       flags += ['-pagezero_size', '10000', '-image_base', '100000000']
     return flags
@@ -354,10 +371,10 @@ class ClangToolchain(toolchain.Toolchain):
   def make_linkconfigflags(self, config, targettype, variables):
     flags = []
     if self.target.is_windows():
-      if targettype == 'sharedlib':
-        flags += ['-Xlinker', '/DLL']
-      elif targettype == 'bin':
-        flags += ['-Xlinker', '/SUBSYSTEM:CONSOLE']
+      if config == 'debug':
+        flags += ['/incremental', '/defaultlib:libcmtd']
+      else:
+        flags += ['/incremental:no', '/opt:ref', '/opt:icf', '/defaultlib:libcmt']
     elif self.target.is_macos() or self.target.is_ios():
       if targettype == 'sharedlib' or targettype == 'multisharedlib':
         flags += ['-dynamiclib']
@@ -378,6 +395,8 @@ class ClangToolchain(toolchain.Toolchain):
 
   def make_libs(self, libs):
     if libs != None:
+      if self.target.is_windows():
+        return [lib + ".lib" for lib in libs]
       return ['-l' + lib for lib in libs]
     return []
 

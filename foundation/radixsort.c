@@ -573,7 +573,7 @@ radixsort_int_index16(radixsort_t* sort, const void* input, size_t num) {
 	const unsigned int data_size = _radixsort_data_size[data_type];
 	const bool data_signed = _radixsort_data_signed[data_type];
 	const unsigned int data_shift = _radixsort_data_shift[data_type];
-	const radixsort_indextype_t indextype = sort->indextype;
+	const size_t indexsize = (size_t)sort->indextype;
 	uint16_t negatives = 0;
 	unsigned int ipass, ival;
 
@@ -586,7 +586,7 @@ radixsort_int_index16(radixsort_t* sort, const void* input, size_t num) {
 		// Number of negatives is the last 128 values in the MSB histogram
 		//(last, since we deal with sytstem byte ordering in
 		// radixsort_create_histograms)
-		uint16_t* histogram = pointer_offset(sort->histogram, indextype * ((data_size - 1) << 8));
+		uint16_t* histogram = pointer_offset(sort->histogram, indexsize * ((data_size - 1) << 8));
 		for (ival = 128; ival < 256; ++ival)
 			negatives += histogram[ival];
 	}
@@ -594,7 +594,7 @@ radixsort_int_index16(radixsort_t* sort, const void* input, size_t num) {
 	// Radix sort, j is the pass number (LSB is first histogram since
 	// radixsort_create_histograms takes system byte order into account)
 	for (ipass = 0; ipass < data_size; ++ipass) {
-		uint16_t* count = pointer_offset(sort->histogram, indextype * (ipass << 8));
+		uint16_t* count = pointer_offset(sort->histogram, indexsize * (ipass << 8));
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 		unsigned int byteofs = ipass;
 #else
@@ -670,7 +670,7 @@ radixsort_int_index32(radixsort_t* sort, const void* input, size_t num) {
 	const unsigned int data_size = _radixsort_data_size[data_type];
 	const bool data_signed = _radixsort_data_signed[data_type];
 	const unsigned int data_shift = _radixsort_data_shift[data_type];
-	const radixsort_indextype_t indextype = sort->indextype;
+	const size_t indexsize = (size_t)sort->indextype;
 	uint32_t negatives = 0;
 	unsigned int ipass, ival;
 
@@ -683,7 +683,7 @@ radixsort_int_index32(radixsort_t* sort, const void* input, size_t num) {
 		// Number of negatives is the last 128 values in the MSB histogram
 		//(last, since we deal with sytstem byte ordering in
 		// radixsort_create_histograms)
-		uint32_t* histogram = pointer_offset(sort->histogram, indextype * ((data_size - 1) << 8));
+		uint32_t* histogram = pointer_offset(sort->histogram, indexsize * ((data_size - 1) << 8));
 		for (ival = 128; ival < 256; ++ival)
 			negatives += histogram[ival];
 	}
@@ -691,7 +691,7 @@ radixsort_int_index32(radixsort_t* sort, const void* input, size_t num) {
 	// Radix sort, j is the pass number (LSB is first histogram since
 	// radixsort_create_histograms takes system byte order into account)
 	for (ipass = 0; ipass < data_size; ++ipass) {
-		uint32_t* count = pointer_offset(sort->histogram, indextype * (ipass << 8));
+		uint32_t* count = pointer_offset(sort->histogram, indexsize * (ipass << 8));
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 		unsigned int byteofs = ipass;
 #else
@@ -765,7 +765,7 @@ radixsort_float_index16(radixsort_t* sort, const void* input, size_t num) {
 	const radixsort_data_t data_type = sort->type;
 	const unsigned int data_size = _radixsort_data_size[data_type];
 	const unsigned int data_shift = _radixsort_data_shift[data_type];
-	const radixsort_indextype_t indextype = sort->indextype;
+	const size_t indexsize = (size_t)sort->indextype;
 
 	if (!num || radixsort_create_histograms(sort, input, num))
 		return sort->indices[0];  // Already sorted
@@ -774,7 +774,7 @@ radixsort_float_index16(radixsort_t* sort, const void* input, size_t num) {
 
 	// Number of negatives is the last 128 values in the MSB histogram
 	//(last, since we deal with system byte ordering in radixsort_create_histograms)
-	uint16_t* histogram = pointer_offset(sort->histogram, indextype * ((data_size - 1) << 8));
+	uint16_t* histogram = pointer_offset(sort->histogram, indexsize * ((data_size - 1) << 8));
 	for (unsigned int ihist = 128; ihist < 256; ++ihist)
 		negatives += histogram[ihist];
 
@@ -787,7 +787,7 @@ radixsort_float_index16(radixsort_t* sort, const void* input, size_t num) {
 #endif
 		const unsigned char* input_bytes = pointer_offset_const(input, byteofs);
 
-		uint16_t* count = pointer_offset(sort->histogram, indextype * (ipass << 8));
+		uint16_t* count = pointer_offset(sort->histogram, indexsize * (ipass << 8));
 		if (ipass != (data_size - 1)) {
 			if (count[*input_bytes] != num) {
 				// Only positive values
@@ -916,7 +916,7 @@ radixsort_float_index32(radixsort_t* sort, const void* input, size_t num) {
 	const radixsort_data_t data_type = sort->type;
 	const unsigned int data_size = _radixsort_data_size[data_type];
 	const unsigned int data_shift = _radixsort_data_shift[data_type];
-	const radixsort_indextype_t indextype = sort->indextype;
+	const size_t indexsize = (size_t)sort->indextype;
 
 	if (!num || radixsort_create_histograms(sort, input, num))
 		return sort->indices[0];  // Already sorted
@@ -925,7 +925,7 @@ radixsort_float_index32(radixsort_t* sort, const void* input, size_t num) {
 
 	// Number of negatives is the last 128 values in the MSB histogram
 	//(last, since we deal with system byte ordering in radixsort_create_histograms)
-	uint32_t* histogram = pointer_offset(sort->histogram, indextype * ((data_size - 1) << 8));
+	uint32_t* histogram = pointer_offset(sort->histogram, indexsize * ((data_size - 1) << 8));
 	for (unsigned int ihist = 128; ihist < 256; ++ihist)
 		negatives += histogram[ihist];
 
@@ -938,7 +938,7 @@ radixsort_float_index32(radixsort_t* sort, const void* input, size_t num) {
 #endif
 		const unsigned char* input_bytes = pointer_offset_const(input, byteofs);
 
-		uint32_t* count = pointer_offset(sort->histogram, indextype * (ipass << 8));
+		uint32_t* count = pointer_offset(sort->histogram, indexsize * (ipass << 8));
 		if (ipass != (data_size - 1)) {
 			if (count[*input_bytes] != num) {
 				// Only positive values
@@ -1095,7 +1095,7 @@ radixsort_allocate(radixsort_data_t type, size_t num) {
 	if (num > 0xFFFF)
 		indextype = RADIXSORT_INDEX32;
 
-	size_t indexsize = indextype;
+	size_t indexsize = (size_t)indextype;
 	sort = memory_allocate(0,
 	                       sizeof(radixsort_t) +
 	                           /* 2 index tables */ (2 * indexsize * num) +
