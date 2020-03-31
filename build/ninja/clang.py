@@ -15,14 +15,16 @@ class ClangToolchain(toolchain.Toolchain):
     self.sdkpath = ''
     self.includepaths = []
     self.libpaths = libpaths
-    self.ccompiler = 'clang'
-    self.cxxcompiler = 'clang++'
-    self.archiver = 'ar'
-    self.linker = 'clang'
-    self.cxxlinker = 'clang++'
+    self.ccompiler = os.environ.get('CC') or 'clang'
+    self.cxxcompiler = os.environ.get('CXX') or 'clang++'
     if self.target.is_windows():
-      self.archiver = 'llvm-ar'
-      self.linker = 'lld-link'
+      self.archiver = os.environ.get('AR') or 'llvm-ar'
+      self.linker = os.environ.get('CC') or 'lld-link'
+      self.cxxlinker = os.environ.get('CXX') or 'lld-link'
+    else:
+      self.archiver = os.environ.get('AR') or 'ar'
+      self.linker = os.environ.get('CC') or 'clang'
+      self.cxxlinker = os.environ.get('CXX') or 'clang++'
 
     #Default variables
     self.sysroot = ''
@@ -32,24 +34,25 @@ class ClangToolchain(toolchain.Toolchain):
       self.deploymenttarget = '10.7'
 
     #Command definitions
-    self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags -c $in -o $out'
-    self.cxxcmd = '$toolchain$cxx -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cxxflags $carchflags $cconfigflags $cmoreflags -c $in -o $out'
+    self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags $cenvflags -c $in -o $out'
+    self.cxxcmd = '$toolchain$cxx -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cxxflags $carchflags $cconfigflags $cmoreflags $cxxenvflags -c $in -o $out'
     self.ccdeps = 'gcc'
     self.ccdepfile = '$out.d'
-    self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $out $in'
-    self.linkcmd = '$toolchain$link $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags -o $out $in $libs $archlibs $oslibs $frameworks'
+    self.arcmd = self.rmcmd('$out') + ' && $toolchain$ar crsD $ararchflags $arflags $arenvflags $out $in'
     if self.target.is_windows():
-      self.linkcmd = '$toolchain$link $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags /debug /nologo /subsystem:console /dynamicbase /nxcompat /manifest /manifestuac:\"level=\'asInvoker\' uiAccess=\'false\'\" /tlbid:1 /pdb:$pdbpath /out:$out $in $libs $archlibs $oslibs $frameworks'
+      self.linkcmd = '$toolchain$link $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags $linkenvflags /debug /nologo /subsystem:console /dynamicbase /nxcompat /manifest /manifestuac:\"level=\'asInvoker\' uiAccess=\'false\'\" /tlbid:1 /pdb:$pdbpath /out:$out $in $libs $archlibs $oslibs $frameworks'
       self.dllcmd = self.linkcmd + ' /dll'
+    else:
+      self.linkcmd = '$toolchain$link $libpaths $configlibpaths $linkflags $linkarchflags $linkconfigflags $linkenvflags -o $out $in $libs $archlibs $oslibs $frameworks'
 
     #Base flags
     self.cflags = ['-D' + project.upper() + '_COMPILE=1',
-                   '-funit-at-a-time', '-fstrict-aliasing',
+                   '-funit-at-a-time', '-fstrict-aliasing', '-fvisibility=hidden', '-fno-stack-protector',
                    '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
                    '-fno-trapping-math', '-ffast-math']
     self.cwarnflags = ['-W', '-Werror', '-pedantic', '-Wall', '-Weverything',
                        '-Wno-padded', '-Wno-documentation-unknown-command',
-                       '-Wno-implicit-fallthrough']
+                       '-Wno-implicit-fallthrough', '-Wno-static-in-inline', '-Wno-reserved-id-macro']
     self.cmoreflags = []
     self.mflags = []
     self.arflags = []
@@ -75,6 +78,8 @@ class ClangToolchain(toolchain.Toolchain):
       self.oslibs += ['dl']
     if self.target.is_bsd():
       self.oslibs += ['execinfo']
+    if not self.target.is_windows():
+      self.linkflags += ['-fomit-frame-pointer']
 
     self.includepaths = self.prefix_includepaths((includepaths or []) + ['.'])
 
@@ -161,12 +166,16 @@ class ClangToolchain(toolchain.Toolchain):
     writer.variable('carchflags', '')
     writer.variable('cconfigflags', '')
     writer.variable('cmoreflags', self.cmoreflags)
+    writer.variable('cenvflags', (os.environ.get('CFLAGS') or '').split())
+    writer.variable('cxxenvflags', (os.environ.get('CXXFLAGS') or '').split())
     writer.variable('arflags', self.arflags)
     writer.variable('ararchflags', '')
     writer.variable('arconfigflags', '')
+    writer.variable('arenvflags', (os.environ.get('ARFLAGS') or '').split())
     writer.variable('linkflags', self.linkflags)
     writer.variable('linkarchflags', '')
     writer.variable('linkconfigflags', '')
+    writer.variable('linkenvflags', (os.environ.get('LDFLAGS') or '').split())
     writer.variable('libs', '')
     writer.variable('libpaths', self.make_libpaths(self.libpaths))
     writer.variable('configlibpaths', '')
@@ -326,21 +335,23 @@ class ClangToolchain(toolchain.Toolchain):
     flags = []
     if targettype == 'sharedlib':
       flags += ['-DBUILD_DYNAMIC_LINK=1']
-      if self.target.is_linux():
+      if self.target.is_linux() or self.target.is_bsd():
        flags += ['-fPIC']
     flags += self.make_targetarchflags(arch, targettype)
     return flags
 
   def make_cconfigflags(self, config, targettype):
-    flags = []
+    flags = ['-g']
     if config == 'debug':
-      flags += ['-DBUILD_DEBUG=1', '-g']
+      flags += ['-DBUILD_DEBUG=1']
     elif config == 'release':
-      flags += ['-DBUILD_RELEASE=1', '-O3', '-g', '-funroll-loops', '-flto']
+      flags += ['-DBUILD_RELEASE=1']
     elif config == 'profile':
-      flags += ['-DBUILD_PROFILE=1', '-O3', '-g', '-funroll-loops', '-flto']
+      flags += ['-DBUILD_PROFILE=1']
     elif config == 'deploy':
-      flags += ['-DBUILD_DEPLOY=1', '-O3', '-g', '-funroll-loops', '-flto']
+      flags += ['-DBUILD_DEPLOY=1']
+    if config != 'debug':
+      flags += ['-O3', '-fomit-frame-pointer', '-funroll-loops', '-flto']
     return flags
 
   def make_ararchflags(self, arch, targettype):
@@ -380,7 +391,7 @@ class ClangToolchain(toolchain.Toolchain):
         flags += ['-dynamiclib']
     else:
       if targettype == 'sharedlib':
-        flags += ['-shared']
+        flags += ['-shared', '-fPIC']
     return flags
 
   def make_linkarchlibs(self, arch, targettype):
@@ -497,6 +508,8 @@ class ClangToolchain(toolchain.Toolchain):
     return writer.build(outfile, 'ar', infiles, implicit = self.implicit_deps(config, variables), variables = self.ar_variables(config, arch, targettype, variables))
 
   def builder_sharedlib(self, writer, config, arch, targettype, infiles, outfile, variables):
+    if self.target.is_windows():
+      return writer.build(outfile, 'dll', infiles, implicit = self.implicit_deps(config, variables), variables = self.link_variables(config, arch, targettype, variables))
     return writer.build(outfile, 'so', infiles, implicit = self.implicit_deps(config, variables), variables = self.link_variables(config, arch, targettype, variables))
 
   def builder_bin(self, writer, config, arch, targettype, infiles, outfile, variables):
