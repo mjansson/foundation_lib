@@ -57,6 +57,11 @@ time_ticks_per_second(void);
 FOUNDATION_API deltatime_t
 time_ticks_to_seconds(const tick_t dt);
 
+/*! Get ticks as milliseconds (effectively calculating <code>1000.0 * (ticks /
+time_ticks_per_second())</code>). \param dt Deltatime in ticks \return Deltatime in milliseconds */
+FOUNDATION_API deltatime_t
+time_ticks_to_milliseconds(const tick_t dt);
+
 /*! Get startup timestamp.
 \return Startup timestamp */
 FOUNDATION_API tick_t
@@ -66,4 +71,3 @@ time_startup(void);
 \return Current timestamp, in milliseconds */
 FOUNDATION_API tick_t
 time_system(void);
-

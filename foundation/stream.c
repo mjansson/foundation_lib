@@ -16,13 +16,13 @@
 #include <stdarg.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/windows.h>
+#include <foundation/windows.h>
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
-#  include <sys/select.h>
-#  include <sys/stat.h>
+#include <foundation/posix.h>
+#include <sys/select.h>
+#include <sys/stat.h>
 #endif
 
 static hashtable64_t* _stream_protocol_table;
@@ -82,7 +82,8 @@ stream_set_protocol_handler(const char* protocol, size_t length, stream_open_fn 
 
 stream_open_fn
 stream_protocol_handler(const char* protocol, size_t length) {
-	return (stream_open_fn)(uintptr_t)hashtable64_get(_stream_protocol_table, hash(protocol, length));
+	return (stream_open_fn)(uintptr_t)hashtable64_get(_stream_protocol_table,
+	                                                  hash(protocol, length));
 }
 
 void
@@ -91,9 +92,10 @@ stream_initialize(stream_t* stream, byteorder_t order) {
 	stream->sequential = 0;
 	stream->reliable = 1;
 	stream->inorder = 1;
+	stream->persistent = 0;
 	stream->swap = ((byteorder_t)stream->byteorder != system_byteorder()) ? 1 : 0;
 	stream->mode = STREAM_BINARY;
-	stream->path = (string_t) { 0, 0 };
+	stream->path = (string_t){0, 0};
 }
 
 stream_t*
@@ -101,7 +103,7 @@ stream_open(const char* path, size_t length, unsigned int mode) {
 	size_t protocol_end;
 	stream_open_fn open_fn;
 
-	//Check if protocol was given
+	// Check if protocol was given
 	protocol_end = string_find_string(path, length, STRING_CONST("://"), 0);
 	open_fn = stream_protocol_handler((protocol_end != STRING_NPOS) ? path : "",
 	                                  (protocol_end != STRING_NPOS) ? protocol_end : 0);
@@ -124,7 +126,7 @@ stream_finalize(stream_t* stream) {
 
 	string_deallocate(stream->path.str);
 
-	stream->path = (string_t) { 0, 0 };
+	stream->path = (string_t){0, 0};
 	stream->type = STREAMTYPE_INVALID;
 }
 
@@ -174,22 +176,22 @@ stream_is_binary(const stream_t* stream) {
 
 bool
 stream_is_sequential(const stream_t* stream) {
-	return stream->sequential;
+	return stream->sequential != 0;
 }
 
 bool
 stream_is_swapped(const stream_t* stream) {
-	return stream->swap;
+	return stream->swap != 0;
 }
 
 bool
 stream_is_reliable(const stream_t* stream) {
-	return stream->reliable;
+	return stream->reliable != 0;
 }
 
 bool
 stream_is_inorder(const stream_t* stream) {
-	return stream->inorder;
+	return stream->inorder != 0;
 }
 
 bool
@@ -209,7 +211,7 @@ stream_path(const stream_t* stream) {
 
 tick_t
 stream_last_modified(const stream_t* stream) {
-	return (stream->vtable->lastmod ? stream->vtable->lastmod(stream) : 0);
+	return (stream->vtable->lastmod ? stream->vtable->lastmod(stream) : time_system());
 }
 
 void
@@ -237,12 +239,12 @@ stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimit
 	if (!(stream->mode & STREAM_IN) || !dest || (count < 2)) {
 		if (dest && count)
 			dest[0] = 0;
-		return (string_t) { dest, 0 };
+		return (string_t){dest, 0};
 	}
 
 	total = 0;
 	hardlimit = stream_is_sequential(stream) ? 1 : 128;
-	//Need to read one byte at a time since we can't scan back if overreading in sequential streams
+	// Need to read one byte at a time since we can't scan back if overreading in sequential streams
 
 	--count;
 	while (!stream_eos(stream)) {
@@ -252,8 +254,8 @@ stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimit
 		if (!limit)
 			break;
 
-		//This will initialize range [total,total+read) in dest array, making
-		//access of potentially uninitialized dest array safe (see coverity markup below)
+		// This will initialize range [total,total+read) in dest array, making
+		// access of potentially uninitialized dest array safe (see coverity markup below)
 		read = stream->vtable->read(stream, dest + total, limit);
 		if (!read)
 			break;
@@ -265,7 +267,7 @@ stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimit
 		total += i;
 		if (i < read) {
 			if ((i + 1) < read) {
-				//Sequential should never end up here reading one byte at a time
+				// Sequential should never end up here reading one byte at a time
 				FOUNDATION_ASSERT(!stream_is_sequential(stream));
 				stream_seek(stream, (ssize_t)(1 + i) - (ssize_t)read, STREAM_SEEK_CURRENT);
 			}
@@ -275,7 +277,7 @@ stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimit
 
 	dest[total] = 0;
 
-	return (string_t) { dest, total };
+	return (string_t){dest, total};
 }
 
 string_t
@@ -288,9 +290,9 @@ stream_read_line(stream_t* stream, char delimiter) {
 	size_t want_read = 128;
 
 	if (!(stream->mode & STREAM_IN))
-		return (string_t) { 0, 0 };
+		return (string_t){0, 0};
 
-	//Need to read one byte at a time since we can't scan back if overreading
+	// Need to read one byte at a time since we can't scan back if overreading
 	if (stream_is_sequential(stream))
 		want_read = 1;
 
@@ -307,21 +309,20 @@ stream_read_line(stream_t* stream, char delimiter) {
 			if (!outbuffer) {
 				nextsize = (i >= 32 ? i + 1 : (i > 1 ? i + 1 : 32));
 				outbuffer = memory_allocate(0, nextsize, 0, MEMORY_PERSISTENT);
-			}
-			else {
-				nextsize = (outsize < 511 ? 512 : outsize + 513);   //Always aligns to 512 multiples
+			} else {
+				nextsize = (outsize < 511 ? 512 : outsize + 513);  // Always aligns to 512 multiples
 				FOUNDATION_ASSERT(!(nextsize % 512));
 				outbuffer = memory_reallocate(outbuffer, nextsize, 0, outsize + 1, 0);
 			}
 			outsize = nextsize - 1;
 		}
 		if (i) {
-			memcpy(outbuffer + cursize, buffer, i); //lint !e613
+			memcpy(outbuffer + cursize, buffer, i);  // lint !e613
 			cursize += i;
 		}
 		if (i < read) {
 			if ((i + 1) < read) {
-				//Sequential should never end up here reading one byte at a time
+				// Sequential should never end up here reading one byte at a time
 				FOUNDATION_ASSERT(!stream_is_sequential(stream));
 				stream_seek(stream, (ssize_t)(1 + i) - (ssize_t)read, STREAM_SEEK_CURRENT);
 			}
@@ -332,7 +333,7 @@ stream_read_line(stream_t* stream, char delimiter) {
 	if (outbuffer)
 		outbuffer[cursize] = 0;
 
-	return (string_t) { outbuffer, cursize };
+	return (string_t){outbuffer, cursize};
 }
 
 size_t
@@ -342,14 +343,13 @@ stream_skip_whitespace(stream_t* stream) {
 	size_t total = 0;
 
 	if (!(stream->mode & STREAM_IN) || (stream->mode & STREAM_BINARY) ||
-		stream_is_sequential(stream))
+	    stream_is_sequential(stream))
 		return 0;
 
 	do {
 		read = stream->vtable->read(stream, &token, 1);
 		total += read;
-	}
-	while ((read > 0) && (string_find(STRING_CONST(STRING_WHITESPACE), token, 0) != STRING_NPOS));
+	} while ((read > 0) && (string_find(STRING_CONST(STRING_WHITESPACE), token, 0) != STRING_NPOS));
 
 	if (read) {
 		stream_seek(stream, -1, STREAM_SEEK_CURRENT);
@@ -377,8 +377,8 @@ stream_determine_binary_mode(stream_t* stream, size_t num) {
 	if (!num)
 		num = 8;
 
-	buf = (num <= sizeof(fixed_buffer)) ?
-	      fixed_buffer : memory_allocate(0, num, 0, MEMORY_TEMPORARY);
+	buf =
+	    (num <= sizeof(fixed_buffer)) ? fixed_buffer : memory_allocate(0, num, 0, MEMORY_TEMPORARY);
 	memset(buf, 32, num);
 
 	cur = stream_tell(stream);
@@ -388,9 +388,9 @@ stream_determine_binary_mode(stream_t* stream, size_t num) {
 	stream->mode &= ~STREAM_BINARY;
 
 	for (i = 0; i < actual_read; ++i) {
-		//TODO: What about UTF-8?
+		// TODO: What about UTF-8?
 		if (((buf[i] < 0x20) && (buf[i] != 0x09) && (buf[i] != 0x0a) && (buf[i] != 0x0d)) ||
-		        (buf[i] > 0x7e)) {
+		    (buf[i] > 0x7e)) {
 			stream->mode |= STREAM_BINARY;
 			break;
 		}
@@ -408,8 +408,7 @@ stream_read_bool(stream_t* stream) {
 		char c = 0;
 		stream_read(stream, &c, 1);
 		value = (c ? true : false);
-	}
-	else {
+	} else {
 		char buffer[6] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 6);
 		value = !(!str.length || string_equal(str.str, str.length, STRING_CONST("false")) ||
@@ -452,8 +451,7 @@ stream_read_int16(stream_t* stream) {
 		stream_read(stream, &value, 2);
 		if (stream->swap)
 			value = (int16_t)byteorder_swap16((uint16_t)value);
-	}
-	else {
+	} else {
 		char buffer[8] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 8);
 		value = (int16_t)string_to_int(str.str, str.length);
@@ -468,8 +466,7 @@ stream_read_uint16(stream_t* stream) {
 		stream_read(stream, &value, 2);
 		if (stream->swap)
 			value = byteorder_swap16(value);
-	}
-	else {
+	} else {
 		char buffer[8] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 8);
 		value = (uint16_t)string_to_uint(str.str, str.length, false);
@@ -484,8 +481,7 @@ stream_read_int32(stream_t* stream) {
 		stream_read(stream, &value, 4);
 		if (stream->swap)
 			value = (int32_t)byteorder_swap32((uint32_t)value);
-	}
-	else {
+	} else {
 		char buffer[12] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 12);
 		value = (int32_t)string_to_int(str.str, str.length);
@@ -500,8 +496,7 @@ stream_read_uint32(stream_t* stream) {
 		stream_read(stream, &value, 4);
 		if (stream->swap)
 			value = byteorder_swap32(value);
-	}
-	else {
+	} else {
 		char buffer[12] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 12);
 		value = (uint32_t)string_to_uint(str.str, str.length, false);
@@ -516,8 +511,7 @@ stream_read_int64(stream_t* stream) {
 		stream_read(stream, &value, 8);
 		if (stream->swap)
 			value = (int64_t)byteorder_swap64((uint64_t)value);
-	}
-	else {
+	} else {
 		char buffer[22] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 22);
 		value = string_to_int64(str.str, str.length);
@@ -532,8 +526,7 @@ stream_read_uint64(stream_t* stream) {
 		stream_read(stream, &value, 8);
 		if (stream->swap)
 			value = byteorder_swap64(value);
-	}
-	else {
+	} else {
 		char buffer[22] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 22);
 		value = string_to_uint64(str.str, str.length, false);
@@ -547,8 +540,7 @@ stream_read_uint128(stream_t* stream) {
 	if (stream_is_binary(stream)) {
 		value.word[0] = stream_read_uint64(stream);
 		value.word[1] = stream_read_uint64(stream);
-	}
-	else {
+	} else {
 		char buffer[34] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
 		value = string_to_uint128(str.str, str.length);
@@ -564,8 +556,7 @@ stream_read_uint256(stream_t* stream) {
 		value.word[1] = stream_read_uint64(stream);
 		value.word[2] = stream_read_uint64(stream);
 		value.word[3] = stream_read_uint64(stream);
-	}
-	else {
+	} else {
 		char buffer[66] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
 		value = string_to_uint256(str.str, str.length);
@@ -585,8 +576,7 @@ stream_read_uint512(stream_t* stream) {
 		value.word[5] = stream_read_uint64(stream);
 		value.word[6] = stream_read_uint64(stream);
 		value.word[7] = stream_read_uint64(stream);
-	}
-	else {
+	} else {
 		char buffer[129] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, sizeof(buffer));
 		value = string_to_uint512(str.str, str.length);
@@ -615,8 +605,7 @@ stream_read_float32(stream_t* stream) {
 			cast.uival = byteorder_swap32(cast.uival);
 			value = cast.fval;
 		}
-	}
-	else {
+	} else {
 		char buffer[32] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 32);
 		value = string_to_float32(str.str, str.length);
@@ -635,8 +624,7 @@ stream_read_float64(stream_t* stream) {
 			cast.uival = byteorder_swap64(cast.uival);
 			value = cast.fval;
 		}
-	}
-	else {
+	} else {
 		char buffer[64] = {0};
 		string_t str = stream_read_string_buffer(stream, buffer, 64);
 		value = string_to_float64(str.str, str.length);
@@ -654,13 +642,14 @@ stream_read_string(stream_t* stream) {
 	bool binary = stream_is_binary(stream);
 
 	if (!(stream->mode & STREAM_IN))
-		return (string_t) { 0, 0 };
+		return (string_t){0, 0};
 
 	if (stream_is_sequential(stream)) {
-		//Single byte reading since we can't seek backwards (and don't want to block on network sockets)
+		// Single byte reading since we can't seek backwards (and don't want to block on network
+		// sockets)
 		char c;
 		if (!binary) {
-			//Consume whitespace
+			// Consume whitespace
 			while (!stream_eos(stream)) {
 				read = stream->vtable->read(stream, &c, 1);
 				if (!read)
@@ -685,8 +674,7 @@ stream_read_string(stream_t* stream) {
 					outsize += 512;
 					if (outbuffer != buffer) {
 						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize, 0);
-					}
-					else {
+					} else {
 						outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
 						memcpy(outbuffer, buffer, sizeof(buffer));
 					}
@@ -694,12 +682,11 @@ stream_read_string(stream_t* stream) {
 				outbuffer[cursize++] = c;
 			}
 
-			outbuffer[cursize] = 0; //lint !e661
+			outbuffer[cursize] = 0;  // lint !e661
 		}
-	}
-	else {
+	} else {
 		if (!binary) {
-			//Consume whitespace
+			// Consume whitespace
 			while (!stream_eos(stream)) {
 				read = stream->vtable->read(stream, buffer, 16);
 				if (!read)
@@ -735,14 +722,13 @@ stream_read_string(stream_t* stream) {
 					outsize += 512;
 					if (outbuffer != buffer) {
 						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize, 0);
-					}
-					else {
-						FOUNDATION_ASSERT(cursize == 0);   //Or internal assumptions about code flow is incorrect
+					} else {
+						FOUNDATION_ASSERT(
+						    cursize == 0);  // Or internal assumptions about code flow is incorrect
 						outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
 						memcpy(outbuffer, buffer, i);
 					}
-				}
-				else if (outbuffer != buffer)
+				} else if (outbuffer != buffer)
 					memcpy(outbuffer + cursize, buffer, i);
 				cursize += i;
 			}
@@ -758,13 +744,13 @@ stream_read_string(stream_t* stream) {
 
 	if (outbuffer == buffer) {
 		if (cursize == 0)
-			return (string_t) { 0, 0 };
+			return (string_t){0, 0};
 		outbuffer = memory_allocate(0, cursize + 1, 0, MEMORY_PERSISTENT);
 		memcpy(outbuffer, buffer, cursize);
 		outbuffer[cursize] = 0;
 	}
 
-	return (string_t) { outbuffer, cursize };
+	return (string_t){outbuffer, cursize};
 }
 
 string_t
@@ -777,16 +763,17 @@ stream_read_string_buffer(stream_t* stream, char* outbuffer, size_t size) {
 	if (!(stream->mode & STREAM_IN) || !outbuffer || !size) {
 		if (outbuffer && size)
 			outbuffer[0] = 0;
-		return (string_t) { outbuffer, 0 };
+		return (string_t){outbuffer, 0};
 	}
 
 	--size;
 
 	if (stream_is_sequential(stream)) {
-		//Single byte reading since we can't seek backwards (and don't want to block on network sockets)
+		// Single byte reading since we can't seek backwards (and don't want to block on network
+		// sockets)
 		char c;
 		if (!binary) {
-			//Consume whitespace
+			// Consume whitespace
 			while (!stream_eos(stream)) {
 				read = stream->vtable->read(stream, &c, 1);
 				if (!read)
@@ -810,10 +797,9 @@ stream_read_string_buffer(stream_t* stream, char* outbuffer, size_t size) {
 				outbuffer[cursize++] = c;
 			}
 		}
-	}
-	else {
+	} else {
 		if (!binary) {
-			//Consume whitespace
+			// Consume whitespace
 			while (!stream_eos(stream)) {
 				read = stream->vtable->read(stream, buffer, 16);
 				if (!read)
@@ -858,7 +844,7 @@ stream_read_string_buffer(stream_t* stream, char* outbuffer, size_t size) {
 	if (cursize < size)
 		outbuffer[cursize] = 0;
 
-	return (string_t) {outbuffer, cursize};
+	return (string_t){outbuffer, cursize};
 }
 
 void
@@ -886,7 +872,7 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 	cur = stream_tell(stream);
 	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
 
-	limit = sizeof(buf)-1;
+	limit = sizeof(buf) - 1;
 	buf[limit] = 0;
 
 	while (!stream_eos(stream)) {
@@ -896,26 +882,28 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 		if (stream->mode & STREAM_BINARY)
 			digester(data, buf, (size_t)num);
 		else {
-			//If last buffer ended with CR, ignore a leading LF
+			// If last buffer ended with CR, ignore a leading LF
 			lastc = 0;
 			if (ignore_lf && (buf[0] == '\n'))
 				lastc = 1;
 			ignore_lf = false;
 
-			//Digest one line at a time
-			//Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line endings
-			//(for example, one line ending in a single CR and next is empty and ending in a single LF),
-			//it will not work!
+			// Digest one line at a time
+			// Treat all line endings (LF, CR, CR+LF) as Unix style LF. If file has mixed line
+			// endings (for example, one line ending in a single CR and next is empty and ending in
+			// a
+			// single LF), it will not work!
 			/*lint -e{850} */
 			for (ic = lastc; ic < num && ic < limit; ++ic) {
 				bool was_cr = (buf[ic] == '\r');
 				bool was_lf = (buf[ic] == '\n');
 				if (was_cr || was_lf) {
-					if (was_cr && (ic == limit-1))
-						ignore_lf = true; //Make next buffer ignore leading LF as it is part of CR+LF
+					if (was_cr && (ic == limit - 1))
+						ignore_lf =
+						    true;  // Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
-					digester(data, buf + lastc, (size_t)((ic - lastc) + 1)); //Include the LF
-					if (was_cr && (buf[ic + 1] == '\n'))  //Check for CR+LF
+					digester(data, buf + lastc, (size_t)((ic - lastc) + 1));  // Include the LF
+					if (was_cr && (buf[ic + 1] == '\n'))                      // Check for CR+LF
 						++ic;
 					lastc = ic + 1;
 				}
@@ -995,8 +983,7 @@ stream_write_bool(stream_t* stream, bool data) {
 	if (stream_is_binary(stream)) {
 		char c = (data ? 1 : 0);
 		stream_write(stream, &c, 1);
-	}
-	else {
+	} else {
 		if (data)
 			stream_write(stream, "true", 4);
 		else
@@ -1030,8 +1017,7 @@ stream_write_int16(stream_t* stream, int16_t data) {
 		if (stream->swap)
 			data = (int16_t)byteorder_swap16((uint16_t)data);
 		stream_write(stream, &data, 2);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_int_static(data, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1043,8 +1029,7 @@ stream_write_uint16(stream_t* stream, uint16_t data) {
 		if (stream->swap)
 			data = byteorder_swap16(data);
 		stream_write(stream, &data, 2);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_uint_static(data, false, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1056,8 +1041,7 @@ stream_write_int32(stream_t* stream, int32_t data) {
 		if (stream->swap)
 			data = (int32_t)byteorder_swap32((uint32_t)data);
 		stream_write(stream, &data, 4);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_int_static(data, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1069,8 +1053,7 @@ stream_write_uint32(stream_t* stream, uint32_t data) {
 		if (stream->swap)
 			data = byteorder_swap32(data);
 		stream_write(stream, &data, 4);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_uint_static(data, false, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1082,8 +1065,7 @@ stream_write_int64(stream_t* stream, int64_t data) {
 		if (stream->swap)
 			data = (int64_t)byteorder_swap64((uint64_t)data);
 		stream_write(stream, &data, 8);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_int_static(data, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1095,8 +1077,7 @@ stream_write_uint64(stream_t* stream, uint64_t data) {
 		if (stream->swap)
 			data = byteorder_swap64(data);
 		stream_write(stream, &data, 8);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_uint_static(data, false, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1107,8 +1088,7 @@ stream_write_uint128(stream_t* stream, uint128_t data) {
 	if (stream_is_binary(stream)) {
 		stream_write_uint64(stream, data.word[0]);
 		stream_write_uint64(stream, data.word[1]);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_uint128_static(data);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1121,8 +1101,7 @@ stream_write_uint256(stream_t* stream, uint256_t data) {
 		stream_write_uint64(stream, data.word[1]);
 		stream_write_uint64(stream, data.word[2]);
 		stream_write_uint64(stream, data.word[3]);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_uint256_static(data);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1139,8 +1118,7 @@ stream_write_uint512(stream_t* stream, uint512_t data) {
 		stream_write_uint64(stream, data.word[5]);
 		stream_write_uint64(stream, data.word[6]);
 		stream_write_uint64(stream, data.word[7]);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_uint512_static(data);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1150,8 +1128,7 @@ void
 stream_write_uuid(stream_t* stream, uuid_t data) {
 	if (stream_is_binary(stream)) {
 		stream_write_uint128(stream, data);
-	}
-	else {
+	} else {
 		string_const_t value = string_from_uuid_static(data);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1165,13 +1142,11 @@ stream_write_float32(stream_t* stream, float32_t data) {
 			cast.fval = data;
 			cast.uival = byteorder_swap32(cast.uival);
 			stream_write(stream, &cast.ival, 4);
-		}
-		else {
+		} else {
 			stream_write(stream, &data, 4);
 		}
-	}
-	else {
-		string_const_t value = string_from_real_static(data, 0, 0, 0);
+	} else {
+		string_const_t value = string_from_real_static((real)data, 0, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
 }
@@ -1184,12 +1159,10 @@ stream_write_float64(stream_t* stream, float64_t data) {
 			cast.fval = data;
 			cast.uival = byteorder_swap64(cast.uival);
 			stream_write(stream, &cast.ival, 8);
-		}
-		else {
+		} else {
 			stream_write(stream, &data, 8);
 		}
-	}
-	else {
+	} else {
 		string_const_t value = string_from_real_static((real)data, 0, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
@@ -1248,8 +1221,8 @@ stream_flush(stream_t* stream) {
 /*lint -e754 */
 struct stream_std_t {
 	FOUNDATION_DECLARE_STREAM;
-	void*              std;
-	bool               eos;
+	void* std;
+	bool eos;
 };
 
 typedef FOUNDATION_ALIGN(8) struct stream_std_t stream_std_t;
@@ -1345,44 +1318,39 @@ _stream_std_last_modified(const stream_t* stream) {
 	return time_system();
 }
 
-static stream_vtable_t _stream_stdout_vtable = {
-	0,
-	_stream_stdout_write,
-	0,
-	_stream_stdout_flush,
-	0,
-	0,
-	0,
-	0,
-	_stream_std_last_modified,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	_stream_std_clone
-};
+static stream_vtable_t _stream_stdout_vtable = {0,
+                                                _stream_stdout_write,
+                                                0,
+                                                _stream_stdout_flush,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                _stream_std_last_modified,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                _stream_std_clone};
 
-
-static stream_vtable_t _stream_stdin_vtable = {
-	_stream_stdin_read,
-	0,
-	_stream_stdin_eos,
-	0,
-	0,
-	0,
-	0,
-	0,
-	_stream_std_last_modified,
-	0,
-	0,
-	0,
-	0,
-	_stream_stdin_available_read,
-	0,
-	_stream_std_clone
-};
+static stream_vtable_t _stream_stdin_vtable = {_stream_stdin_read,
+                                               0,
+                                               _stream_stdin_eos,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               _stream_std_last_modified,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               _stream_stdin_available_read,
+                                               0,
+                                               _stream_std_clone};
 
 stream_t*
 stream_open_stdout(void) {

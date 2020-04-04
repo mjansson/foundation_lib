@@ -28,82 +28,108 @@ http://cellperformance.beyond3d.com/articles/2006/07/increment-and-decrement-wra
 #include <foundation/assert.h>
 
 #if FOUNDATION_COMPILER_INTEL
-#  include <mathimf.h>
-#  undef I
+#include <mathimf.h>
+#undef I
 #else
-#  include <math.h>
+#include <math.h>
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wbad-function-cast"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wbad-function-cast"
 #endif
 
 #if FOUNDATION_SIZE_REAL == 4
 
 /*! Epsilon value. This represents a small number close to zero that can be used
 for comparisons or thresholds. Roughly equals 100 floating point units at 1.0 */
-#define REAL_EPSILON  0.00001f
+#define REAL_EPSILON FLT_EPSILON
 
 /*! Maximum finite number representable in the current real number format */
-#define REAL_MAX      FLT_MAX
+#define REAL_MAX FLT_MAX
 
 /*! Minimum finite number representable in the current real number format */
-#define REAL_MIN      FLT_MIN
+#define REAL_MIN FLT_MIN
 
 #else
 
-#define REAL_EPSILON  0.00000000000002
-
-#define REAL_MAX      DBL_MAX
-#define REAL_MIN      DBL_MIN
+#define REAL_EPSILON DBL_EPSILON
+#define REAL_MAX DBL_MAX
+#define REAL_MIN DBL_MIN
 
 #endif
 
-/*! Constant zero (0.0) */
-#define REAL_ZERO     REAL_C( 0.0 )
-
-/*! Constant one (1.0) */
-#define REAL_ONE      REAL_C( 1.0 )
-
-/*! Constant two (2.0) */
-#define REAL_TWO      REAL_C( 2.0 )
-
-/*! Constant three (3.0) */
-#define REAL_THREE    REAL_C( 3.0 )
-
-/*! Constant four (4.0) */
-#define REAL_FOUR     REAL_C( 4.0 )
-
-/*! Constant half (0.5) */
-#define REAL_HALF     REAL_C( 0.5 )
-
-/*! Constant quarter (0.25) */
-#define REAL_QUARTER  REAL_C( 0.25 )
-
 /*! Constant pi (3.141592...) */
-#define REAL_PI       REAL_C( 3.1415926535897932384626433832795 )
+#define DBL_PI 3.1415926535897932384626433832795
 
 /*! Constant half pi (1.570796...) */
-#define REAL_HALFPI   REAL_C( 1.5707963267948966192313216916398 )
+#define DBL_HALFPI 1.5707963267948966192313216916398
 
 /*! Constant two pi (6.283185...) */
-#define REAL_TWOPI    REAL_C( 6.2831853071795864769252867665590 )
+#define DBL_TWOPI 6.2831853071795864769252867665590
 
 /*! Constant square root of two (1.414213...) */
-#define REAL_SQRT2    REAL_C( 1.4142135623730950488016887242097 )
+#define DBL_SQRT2 1.4142135623730950488016887242097
 
 /*! Constant square root of three (1.732050...) */
-#define REAL_SQRT3    REAL_C( 1.7320508075688772935274463415059 )
+#define DBL_SQRT3 1.7320508075688772935274463415059
 
 /*! Constant number e (2.718281...) */
-#define REAL_E        REAL_C( 2.7182818284590452353602874713527 )
+#define DBL_E 2.7182818284590452353602874713527
 
 /*! Constant natural logarithm of two (0.693147...) */
-#define REAL_LOGN2    REAL_C( 0.6931471805599453094172321214582 )
+#define DBL_LOGN2 0.6931471805599453094172321214582
 
 /*! Constant natural logarithm of ten (2.302585...) */
-#define REAL_LOGN10   REAL_C( 2.3025850929940456840179914546844 )
+#define DBL_LOGN10 2.3025850929940456840179914546844
+
+/*! Constant pi (3.141592...) */
+#define FLT_PI ((float)(DBL_PI))
+
+/*! Constant half pi (1.570796...) */
+#define FLT_HALFPI ((float)(DBL_HALFPI))
+
+/*! Constant two pi (6.283185...) */
+#define FLT_TWOPI ((float)(DBL_TWOPI))
+
+/*! Constant square root of two (1.414213...) */
+#define FLT_SQRT2 ((float)(DBL_SQRT2))
+
+/*! Constant square root of three (1.732050...) */
+#define FLT_SQRT3 ((float)(DBL_SQRT3))
+
+/*! Constant number e (2.718281...) */
+#define FLT_E ((float)(DBL_E))
+
+/*! Constant natural logarithm of two (0.693147...) */
+#define LFT_LOGN2 ((float)(DBL_LOGN2))
+
+/*! Constant natural logarithm of ten (2.302585...) */
+#define FLT_LOGN10 ((float)(DBL_LOGN10))
+
+/*! Constant pi (3.141592...) */
+#define REAL_PI REAL_C(DBL_PI)
+
+/*! Constant half pi (1.570796...) */
+#define REAL_HALFPI REAL_C(DBL_HALFPI)
+
+/*! Constant two pi (6.283185...) */
+#define REAL_TWOPI REAL_C(DBL_TWOPI)
+
+/*! Constant square root of two (1.414213...) */
+#define REAL_SQRT2 REAL_C(DBL_SQRT2)
+
+/*! Constant square root of three (1.732050...) */
+#define REAL_SQRT3 REAL_C(DBL_SQRT3)
+
+/*! Constant number e (2.718281...) */
+#define REAL_E REAL_C(DBL_E)
+
+/*! Constant natural logarithm of two (0.693147...) */
+#define REAL_LOGN2 REAL_C(DBL_LOGN2)
+
+/*! Constant natural logarithm of ten (2.302585...) */
+#define REAL_LOGN10 REAL_C(DBL_LOGN10)
 
 /*! Sine function
 \param x Argument
@@ -299,20 +325,21 @@ math_linear_remap(real x, real xmin, real xmax, real ymin, real ymax);
 \param x First value
 \param y Second value
 \return Maximum of x and y */
-#define math_max( x, y ) ( (x) < (y) ? (y) : (x) )
+#define math_max(x, y) ((x) < (y) ? (y) : (x))
 
 /*! Get minimum of two values. Note that as a macro it can evaluate arguments multiple times.
 \param x First value
 \param y Second value
 \return Minimum of x and y */
-#define math_min( x, y ) ( (x) < (y) ? (x) : (y) )
+#define math_min(x, y) ((x) < (y) ? (x) : (y))
 
 /*! Clamp value to interval. Note that as a macro it can evaluate arguments multiple times.
 \param x Value to clamp
 \param minval Start of interval
 \param maxval End of interval
 \return Value x clamped to [minval,maxval] interval */
-#define math_clamp( x, minval, maxval ) ( (x) < (minval) ? (minval) : ( (x) > (maxval) ? (maxval) : (x) ) )
+#define math_clamp(x, minval, maxval) \
+	((x) < (minval) ? (minval) : ((x) > (maxval) ? (maxval) : (x)))
 
 /*! Compare two floats with epsilon tolerance expressed as number of adjacent float values.
 \param rval First float
@@ -414,13 +441,13 @@ math_real_undenormalize(real val);
 /*! Assert that a value is finite. Like all assert macros it will evaluate to a void
 expression if asserts are disabled.
 \param value Value */
-#  define FOUNDATION_ASSERT_FINITE( value ) \
-	/*lint -save -e717 */ do { \
+#define FOUNDATION_ASSERT_FINITE(value)                                             \
+	/*lint -save -e717 */ do {                                                      \
 	FOUNDATION_ASSERT_MSG( math_real_isfinite( (value), "Non-finite float value" ); \
-	} while(0) /*lint -restore */
+	} while (0) /*lint -restore */
 #else
-#  define FOUNDATION_ASSERT_FINITE( value ) \
-	/*lint -save -e717 */ do { (void)sizeof( value ); } while(0) /*lint -restore */
+#define FOUNDATION_ASSERT_FINITE(value) \
+	/*lint -save -e717 */ do { (void)sizeof(value); } while (0) /*lint -restore */
 #endif
 
 /*!
@@ -553,44 +580,52 @@ expression if asserts are disabled.
 \return Decremented and wrapped value inside range
 */
 
-#define FOUNDATION_DECLARE_INCREMENT_AND_WRAP( suffix, type, signed_type, bit_mask ) \
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix( const type val, const type min, const type max ); \
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix( const type val, const type min, const type max ) { \
-	const type increased    = val + 1; \
-	const type max_diff     = max - val; \
-	const type max_diff_nz  = (type)( ( (signed_type)max_diff | -(signed_type)max_diff ) >> bit_mask ); \
-	const type max_diff_eqz = ~max_diff_nz; \
-	const type result       = ( increased & max_diff_nz ) | ( min & max_diff_eqz ); \
-	return result; }
+#define FOUNDATION_DECLARE_INCREMENT_AND_WRAP(suffix, type, signed_type, bit_mask)  \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix( \
+	    const type val, const type min, const type max);                            \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix( \
+	    const type val, const type min, const type max) {                           \
+		const type increased = val + 1;                                             \
+		const type max_diff = max - val;                                            \
+		const type max_diff_nz =                                                    \
+		    (type)(((signed_type)max_diff | -(signed_type)max_diff) >> bit_mask);   \
+		const type max_diff_eqz = ~max_diff_nz;                                     \
+		const type result = (increased & max_diff_nz) | (min & max_diff_eqz);       \
+		return result;                                                              \
+	}
 
-FOUNDATION_DECLARE_INCREMENT_AND_WRAP(uint8,  uint8_t,  int8_t,  7)
+FOUNDATION_DECLARE_INCREMENT_AND_WRAP(uint8, uint8_t, int8_t, 7)
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP(uint16, uint16_t, int16_t, 15)
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP(uint32, uint32_t, int32_t, 31)
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP(uint64, uint64_t, int64_t, 63ULL)
-FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int8,   int8_t,   int8_t,  7)
-FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int16,  int16_t,  int16_t, 15)
-FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int32,  int32_t,  int32_t, 31)
-FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int64,  int64_t,  int64_t, 63ULL)
+FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int8, int8_t, int8_t, 7)
+FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int16, int16_t, int16_t, 15)
+FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int32, int32_t, int32_t, 31)
+FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int64, int64_t, int64_t, 63ULL)
 #undef FOUNDATION_DECLARE_INCREMENT_AND_WRAP
 
-#define FOUNDATION_DECLARE_DECREMENT_AND_WRAP( suffix, type, signed_type, bit_mask ) \
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix( const type val, const type min, const type max ); \
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix( const type val, const type min, const type max ) { \
-	const type decreased    = val - 1; \
-	const type min_diff     = min - val; \
-	const type min_diff_nz  = (type)( ( (signed_type)min_diff | -(signed_type)min_diff ) >> bit_mask ); \
-	const type min_diff_eqz = ~min_diff_nz; \
-	const type result       = ( decreased & min_diff_nz ) | ( max & min_diff_eqz ); \
-	return result; }
+#define FOUNDATION_DECLARE_DECREMENT_AND_WRAP(suffix, type, signed_type, bit_mask)  \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix( \
+	    const type val, const type min, const type max);                            \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix( \
+	    const type val, const type min, const type max) {                           \
+		const type decreased = val - 1;                                             \
+		const type min_diff = min - val;                                            \
+		const type min_diff_nz =                                                    \
+		    (type)(((signed_type)min_diff | -(signed_type)min_diff) >> bit_mask);   \
+		const type min_diff_eqz = ~min_diff_nz;                                     \
+		const type result = (decreased & min_diff_nz) | (max & min_diff_eqz);       \
+		return result;                                                              \
+	}
 
-FOUNDATION_DECLARE_DECREMENT_AND_WRAP(uint8,  uint8_t,  int8_t,  7)
+FOUNDATION_DECLARE_DECREMENT_AND_WRAP(uint8, uint8_t, int8_t, 7)
 FOUNDATION_DECLARE_DECREMENT_AND_WRAP(uint16, uint16_t, int16_t, 15)
 FOUNDATION_DECLARE_DECREMENT_AND_WRAP(uint32, uint32_t, int32_t, 31)
 FOUNDATION_DECLARE_DECREMENT_AND_WRAP(uint64, uint64_t, int64_t, 63ULL)
-FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int8,  int8_t,   int8_t,  7)
-FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int16, int16_t,  int16_t, 15)
-FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int32, int32_t,  int32_t, 31)
-FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int64, int64_t,  int64_t, 63ULL)
+FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int8, int8_t, int8_t, 7)
+FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int16, int16_t, int16_t, 15)
+FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int32, int32_t, int32_t, 31)
+FOUNDATION_DECLARE_DECREMENT_AND_WRAP(int64, int64_t, int64_t, 63ULL)
 #undef FOUNDATION_DECLARE_DECREMENT_AND_WRAP
 
 // Implementation
@@ -601,11 +636,9 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL unsigned int
 math_align_poweroftwo(unsigned int x) {
 	FOUNDATION_ASSERT(x > 1);
 
-#if FOUNDATION_COMPILER_INTEL && ( FOUNDATION_ARCH_X86 || FOUNDATION_ARCH_X86_64 )
+#if FOUNDATION_COMPILER_INTEL && (FOUNDATION_ARCH_X86 || FOUNDATION_ARCH_X86_64)
 	--x;
-	__asm__("bsrl %1,%0"
-	        :"=r"(x)
-	        :"rm"(x));
+	__asm__("bsrl %1,%0" : "=r"(x) : "rm"(x));
 	return (1 << (x + 1));
 #else
 	--x;
@@ -671,53 +704,176 @@ math_real_is_epsilon_zero(real val) {
 
 #if FOUNDATION_SIZE_REAL == 8
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sin(real x) { return sin(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_cos(real x) { return cos(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_tan(real x) { return tan(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_asin(real x) { return asin(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_acos(real x) { return acos(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan(real x) { return atan(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan2(real x, real y) { return atan2(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sqrt(real x) { return sqrt(x); }
-#  if FOUNDATION_COMPILER_MSVC
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_rsqrt(real x) { return REAL_C(1.0) / sqrt(x); }
-#  else
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_rsqrt(real x) { return invsqrt(x); }
-#  endif
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_abs(real x) { return fabs(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_mod(real x, real y) { return fmod(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_exp(real x) { return exp(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_pow(real x, real y) { return pow(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_logn(real x) { return log(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_floor(real x) { return (int)floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_ceil(real x) { return (int)ceil(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)(x + 0.5); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)x; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_floor64(real x) { return (int64_t)floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) { return (int64_t)ceil(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sin(real x) {
+	return sin(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_cos(real x) {
+	return cos(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_tan(real x) {
+	return tan(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_asin(real x) {
+	return asin(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_acos(real x) {
+	return acos(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan(real x) {
+	return atan(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan2(real x, real y) {
+	return atan2(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sqrt(real x) {
+	return sqrt(x);
+}
+#if FOUNDATION_COMPILER_MSVC
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt(real x) {
+	return REAL_C(1.0) / sqrt(x);
+}
+#else
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt(real x) {
+	return invsqrt(x);
+}
+#endif
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_abs(real x) {
+	return fabs(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_mod(real x, real y) {
+	return fmod(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_exp(real x) {
+	return exp(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_pow(real x, real y) {
+	return pow(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_logn(real x) {
+	return log(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_floor(real x) {
+	return (int)floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_ceil(real x) {
+	return (int)ceil(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)(x + 0.5);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)x;
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_floor64(real x) {
+	return (int64_t)floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_ceil64(real x) {
+	return (int64_t)ceil(x);
+}
 
 #else
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sin(real x) { return sinf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_cos(real x) { return cosf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_tan(real x) { return tanf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_asin(real x) { return asinf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_acos(real x) { return acosf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan(real x) { return atanf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan2(real x, real y) { return atan2f(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sqrt(real x) { return sqrtf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_rsqrt(real x) { return REAL_C(1.0) / sqrtf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_abs(real x) { return (real)fabs(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_mod(real x, real y) { return fmodf(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_exp(real x) { return expf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_pow(real x, real y) { return powf(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_logn(real x) { return logf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_floor(real x) { return (int)floorf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_ceil(real x) { return (int)ceilf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)(x + 0.5f); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)x; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_floor64(real x) { return (int64_t)floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) { return (int64_t)ceil(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sin(real x) {
+	return sinf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_cos(real x) {
+	return cosf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_tan(real x) {
+	return tanf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_asin(real x) {
+	return asinf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_acos(real x) {
+	return acosf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan(real x) {
+	return atanf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan2(real x, real y) {
+	return atan2f(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sqrt(real x) {
+	return sqrtf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt(real x) {
+	return REAL_C(1.0) / sqrtf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_abs(real x) {
+	return (real)fabs(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_mod(real x, real y) {
+	return fmodf(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_exp(real x) {
+	return expf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_pow(real x, real y) {
+	return powf(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_logn(real x) {
+	return logf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_floor(real x) {
+	return (int)floorf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_ceil(real x) {
+	return (int)ceilf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)(x + 0.5f);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)x;
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_floor64(real x) {
+	return (int64_t)floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_ceil64(real x) {
+	return (int64_t)ceil(x);
+}
 
 #endif
 
@@ -725,49 +881,169 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) 
 
 #if FOUNDATION_SIZE_REAL == 8
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sin(real x) { return sin(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_cos(real x) { return cos(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_tan(real x) { return tan(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_asin(real x) { return asin(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_acos(real x) { return acos(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan(real x) { return atan(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan2(real x, real y) { return atan2(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sqrt(real x) { return sqrt(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_rsqrt(real x) { return invsqrt(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_abs(real x) { return fabs(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_mod(real x, real y) { return fmod(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_exp(real x) { return exp(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_pow(real x, real y) { return pow(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_logn(real x) { return log(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_floor(real x) { return (int)floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_ceil(real x) { return (int)ceil(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)(x + 0.5f); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)x; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_floor64(real x) { return (int64_t)floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) { return (int64_t)ceil(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sin(real x) {
+	return sin(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_cos(real x) {
+	return cos(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_tan(real x) {
+	return tan(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_asin(real x) {
+	return asin(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_acos(real x) {
+	return acos(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan(real x) {
+	return atan(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan2(real x, real y) {
+	return atan2(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sqrt(real x) {
+	return sqrt(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt(real x) {
+	return invsqrt(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_abs(real x) {
+	return fabs(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_mod(real x, real y) {
+	return fmod(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_exp(real x) {
+	return exp(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_pow(real x, real y) {
+	return pow(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_logn(real x) {
+	return log(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_floor(real x) {
+	return (int)floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_ceil(real x) {
+	return (int)ceil(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)(x + 0.5f);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)x;
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_floor64(real x) {
+	return (int64_t)floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_ceil64(real x) {
+	return (int64_t)ceil(x);
+}
 
 #else
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sin(real x) { return sinf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_cos(real x) { return cosf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_tan(real x) { return tanf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_asin(real x) { return asinf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_acos(real x) { return acosf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan(real x) { return atanf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan2(real x, real y) { return atan2f(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sqrt(real x) { return sqrtf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_rsqrt(real x) { return invsqrtf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_abs(real x) { return fabsf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_mod(real x, real y) { return fmodf(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_exp(real x) { return expf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_pow(real x, real y) { return powf(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_logn(real x) { return logf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_floor(real x) { return (int)floorf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_ceil(real x) { return (int)ceilf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)(x + 0.5f); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)x; }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_floor64(real x) { return (int64_t)floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) { return (int64_t)ceil(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sin(real x) {
+	return sinf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_cos(real x) {
+	return cosf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_tan(real x) {
+	return tanf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_asin(real x) {
+	return asinf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_acos(real x) {
+	return acosf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan(real x) {
+	return atanf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan2(real x, real y) {
+	return atan2f(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sqrt(real x) {
+	return sqrtf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt(real x) {
+	return invsqrtf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_abs(real x) {
+	return fabsf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_mod(real x, real y) {
+	return fmodf(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_exp(real x) {
+	return expf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_pow(real x, real y) {
+	return powf(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_logn(real x) {
+	return logf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_floor(real x) {
+	return (int)floorf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_ceil(real x) {
+	return (int)ceilf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)(x + 0.5f);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)x;
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_floor64(real x) {
+	return (int64_t)floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_ceil64(real x) {
+	return (int64_t)ceil(x);
+}
 
 #endif
 
@@ -775,136 +1051,271 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) 
 
 #if FOUNDATION_SIZE_REAL == 8
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sin(real x) { return __builtin_sin(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_cos(real x) { return __builtin_cos(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_tan(real x) { return __builtin_tan(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_asin(real x) { return __builtin_asin(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_acos(real x) { return __builtin_acos(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan(real x) { return __builtin_atan(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan2(real x, real y) { return __builtin_atan2(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sqrt(real x) { return __builtin_sqrt(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_rsqrt(real x) { return (REAL_C(1.0) / __builtin_sqrt(x)); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_abs(real x) { return __builtin_fabs(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_mod(real x, real y) { return __builtin_fmod(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_exp(real x) { return __builtin_exp(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_pow(real x, real y) { return __builtin_pow(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_logn(real x) { return __builtin_log(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_floor(real x) { return (int)__builtin_floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_ceil(real x) { return (int)__builtin_ceil(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_floor64(real x) { return (int64_t)__builtin_floor(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) { return (int64_t)__builtin_ceil(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sin(real x) {
+	return __builtin_sin(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_cos(real x) {
+	return __builtin_cos(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_tan(real x) {
+	return __builtin_tan(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_asin(real x) {
+	return __builtin_asin(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_acos(real x) {
+	return __builtin_acos(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan(real x) {
+	return __builtin_atan(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan2(real x, real y) {
+	return __builtin_atan2(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sqrt(real x) {
+	return __builtin_sqrt(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt(real x) {
+	return (REAL_C(1.0) / __builtin_sqrt(x));
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_abs(real x) {
+	return __builtin_fabs(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_mod(real x, real y) {
+	return __builtin_fmod(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_exp(real x) {
+	return __builtin_exp(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_pow(real x, real y) {
+	return __builtin_pow(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_logn(real x) {
+	return __builtin_log(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_floor(real x) {
+	return (int)__builtin_floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_ceil(real x) {
+	return (int)__builtin_ceil(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_floor64(real x) {
+	return (int64_t)__builtin_floor(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_ceil64(real x) {
+	return (int64_t)__builtin_ceil(x);
+}
 #if FOUNDATION_PLATFORM_APPLE
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)(x + 0.5); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)(x + 0.5);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)(x);
+}
 #else
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)__builtin_round(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)__builtin_trunc(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)__builtin_round(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)__builtin_trunc(x);
+}
 #endif
 
 #else
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sin(real x) { return __builtin_sinf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_cos(real x) { return __builtin_cosf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_tan(real x) { return __builtin_tanf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_asin(real x) { return __builtin_asinf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_acos(real x) { return __builtin_acosf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan(real x) { return __builtin_atanf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_atan2(real x, real y) { return __builtin_atan2f(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_sqrt(real x) { return __builtin_sqrtf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_rsqrt(real x) { return (REAL_C(1.0) / __builtin_sqrtf(x)); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_abs(real x) { return __builtin_fabsf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_mod(real x, real y) { return __builtin_fmodf(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_exp(real x) { return __builtin_expf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_pow(real x, real y) { return __builtin_powf(x, y); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real     math_logn(real x) { return __builtin_logf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_ceil(real x) { return (int)__builtin_ceilf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_floor(real x) { return (int)__builtin_floorf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_ceil64(real x) { return (int64_t)__builtin_ceilf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t  math_floor64(real x) { return (int64_t)__builtin_floorf(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sin(real x) {
+	return __builtin_sinf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_cos(real x) {
+	return __builtin_cosf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_tan(real x) {
+	return __builtin_tanf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_asin(real x) {
+	return __builtin_asinf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_acos(real x) {
+	return __builtin_acosf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan(real x) {
+	return __builtin_atanf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_atan2(real x, real y) {
+	return __builtin_atan2f(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_sqrt(real x) {
+	return __builtin_sqrtf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_rsqrt(real x) {
+	return (REAL_C(1.0) / __builtin_sqrtf(x));
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_abs(real x) {
+	return __builtin_fabsf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_mod(real x, real y) {
+	return __builtin_fmodf(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_exp(real x) {
+	return __builtin_expf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_pow(real x, real y) {
+	return __builtin_powf(x, y);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
+math_logn(real x) {
+	return __builtin_logf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_ceil(real x) {
+	return (int)__builtin_ceilf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_floor(real x) {
+	return (int)__builtin_floorf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_ceil64(real x) {
+	return (int64_t)__builtin_ceilf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int64_t
+math_floor64(real x) {
+	return (int64_t)__builtin_floorf(x);
+}
 #if FOUNDATION_PLATFORM_APPLE
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)(x + 0.5f); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)(x + 0.5f);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)(x);
+}
 #else
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_round(real x) { return (int)__builtin_roundf(x); }
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int      math_trunc(real x) { return (int)__builtin_truncf(x); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_round(real x) {
+	return (int)__builtin_roundf(x);
+}
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL int
+math_trunc(real x) {
+	return (int)__builtin_truncf(x);
+}
 #endif
 
 #endif
 
 #else
-#  error Unknown compiler
+#error Unknown compiler
 #endif
-
-#if FOUNDATION_SIZE_REAL == 8
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_nan(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_double_is_nan(double val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float64_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float64_cast_t conv;
+	conv.fval = val;
 #endif
-	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) & ((
-	         conv.uival & 0xFFFFFFFFFFFFFULL) != 0);
+	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) &
+	       ((conv.uival & 0xFFFFFFFFFFFFFULL) != 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_inf(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_double_is_inf(double val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float64_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float64_cast_t conv;
+	conv.fval = val;
 #endif
-	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) & ((
-	         conv.uival & 0xFFFFFFFFFFFFFULL) == 0);
+	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) &
+	       ((conv.uival & 0xFFFFFFFFFFFFFULL) == 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_uninitialized(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_double_is_uninitialized(double val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float64_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float64_cast_t conv;
+	conv.fval = val;
 #endif
 	return (conv.uival == 0xCDCDCDCDCDCDCDCDULL) | (conv.uival == 0xFEEEFEEEFEEEFEEEULL);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_finite(real val) {
-	return !(math_real_is_nan(val) || math_real_is_inf(val) || math_real_is_uninitialized(val));
+math_double_is_finite(double val) {
+	return !(math_double_is_nan(val) || math_double_is_inf(val) ||
+	         math_double_is_uninitialized(val));
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_denormalized(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_double_is_denormalized(double val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float64_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float64_cast_t conv;
+	conv.fval = val;
 #endif
 	return conv.uival && (conv.uival != 0x8000000000000000ULL) &&
 	       ((conv.uival & 0x7F80000000000000ULL) == 0);
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
-math_real_undenormalize(real val) {
-	return math_real_is_denormalized(val) ? REAL_ZERO : val;
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
+math_double_undenormalize(double val) {
+	return math_double_is_denormalized(val) ? 0 : val;
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_eq(real a, real b, int32_t ulps) {
-	real_cast_t ca;
-	real_cast_t cb;
+math_double_eq(double a, double b, int64_t ulps) {
+	float64_cast_t ca;
+	float64_cast_t cb;
 	int64_t ai, bi, diff;
-	ca.rval = a;
-	cb.rval = b;
+	ca.fval = a;
+	cb.fval = b;
 
 	ai = ca.ival;
 	if (ai < 0)
-		ai = 0x8000000000000000LL - ai;
+		ai = (int64_t)0x8000000000000000LL - ai;
 
 	bi = cb.ival;
 	if (bi < 0)
-		bi = 0x8000000000000000LL - bi;
+		bi = (int64_t)0x8000000000000000LL - bi;
 
 	diff = (ai - bi);
 	if ((diff <= ulps) && (diff >= -ulps))
@@ -914,13 +1325,13 @@ math_real_eq(real a, real b, int32_t ulps) {
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_eqns(real a, real b, int32_t ulps) {
-	real_cast_t ca;
-	real_cast_t cb;
+math_double_eqns(double a, double b, int64_t ulps) {
+	float64_cast_t ca;
+	float64_cast_t cb;
 	int64_t diff;
 
-	ca.rval = a;
-	cb.rval = b;
+	ca.fval = a;
+	cb.fval = b;
 
 	diff = (ca.ival - cb.ival);
 	if ((diff <= ulps) && (diff >= -ulps))
@@ -929,105 +1340,108 @@ math_real_eqns(real a, real b, int32_t ulps) {
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_zero(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_double_is_zero(double val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float64_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float64_cast_t conv;
+	conv.fval = val;
 #endif
 	return !conv.uival || (conv.uival == 0x8000000000000000ULL) ||
 	       ((conv.uival & 0x7FF0000000000000ULL) == 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_one(real val) {
-	return math_real_eq(val, REAL_ONE, 100);
+math_double_is_one(double val) {
+	return math_double_eq(val, 1.0, 100);
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
-math_real_dec(real val, int units) {
-	real_cast_t ca, cb;
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
+math_double_dec(double val, int units) {
+	float64_cast_t ca, cb;
 
-	ca.rval = val;
+	ca.fval = val;
 	cb.ival = ca.ival - (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
-		cb.ival = 0x8000000000000000LL - cb.ival;
+		cb.ival = (int64_t)0x8000000000000000LL - cb.ival;
 
-	return cb.rval;
+	return cb.fval;
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
-math_real_inc(real val, int units) {
-	real_cast_t ca, cb;
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
+math_double_inc(double val, int units) {
+	float64_cast_t ca, cb;
 
-	ca.rval = val;
+	ca.fval = val;
 	cb.ival = ca.ival + (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
-		cb.ival = 0x8000000000000000LL - cb.ival;
+		cb.ival = (int64_t)0x8000000000000000LL - cb.ival;
 
-	return cb.rval;
+	return cb.fval;
 }
 
-#else
-
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_nan(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_float_is_nan(float val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float32_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float32_cast_t conv;
+	conv.fval = val;
 #endif
 	return (((conv.uival & 0x7F800000) >> 23) == 0xFF) & ((conv.uival & 0x7FFFFF) != 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_inf(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_float_is_inf(float val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float32_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float32_cast_t conv;
+	conv.fval = val;
 #endif
 	return (((conv.uival & 0x7F800000) >> 23) == 0xFF) & ((conv.uival & 0x7FFFFF) == 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_uninitialized(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_float_is_uninitialized(float val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float32_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float32_cast_t conv;
+	conv.fval = val;
 #endif
-	//Some common debugger uninitialized filler values
+	// Some common debugger uninitialized filler values
 	return (conv.uival == 0xFEEEFEEEU) || (conv.uival == 0xCDCDCDCDU);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_finite(real val) {
-	return !(math_real_is_nan(val) || math_real_is_inf(val) || math_real_is_uninitialized(val));
+math_float_is_finite(float val) {
+	return !(math_float_is_nan(val) || math_float_is_inf(val) || math_float_is_uninitialized(val));
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_denormalized(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_float_is_denormalized(float val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float32_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float32_cast_t conv;
+	conv.fval = val;
 #endif
 	return conv.uival && (conv.uival != 0x80000000) && ((conv.uival & 0x7F800000ULL) == 0);
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
-math_real_undenormalize(real val) {
-	return math_real_is_denormalized(val) ? 0 : val;
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL float
+math_float_undenormalize(float val) {
+	return math_float_is_denormalized(val) ? 0 : val;
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_eq(real a, real b, int ulps) {
-	real_cast_t ca;
-	real_cast_t cb;
+math_float_eq(float a, float b, int ulps) {
+	float32_cast_t ca;
+	float32_cast_t cb;
 	int32_t ai, bi, diff;
-	ca.rval = a;
-	cb.rval = b;
+	ca.fval = a;
+	cb.fval = b;
 
 	ai = ca.ival;
 	if (ai < 0)
@@ -1045,12 +1459,12 @@ math_real_eq(real a, real b, int ulps) {
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_eqns(real a, real b, int ulps) {
-	real_cast_t ca;
-	real_cast_t cb;
+math_float_eqns(float a, float b, int ulps) {
+	float32_cast_t ca;
+	float32_cast_t cb;
 	int32_t diff;
-	ca.rval = a;
-	cb.rval = b;
+	ca.fval = a;
+	cb.fval = b;
 
 	diff = (ca.ival - cb.ival);
 	if ((diff <= ulps) && (diff >= -ulps))
@@ -1059,48 +1473,75 @@ math_real_eqns(real a, real b, int ulps) {
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_zero(real val) {
-#if !defined( __cplusplus ) && !FOUNDATION_COMPILER_MSVC
-	const real_cast_t conv = { .rval = val };
+math_float_is_zero(float val) {
+#if !defined(__cplusplus) && !FOUNDATION_COMPILER_MSVC
+	const float32_cast_t conv = {.fval = val};
 #else
-	real_cast_t conv; conv.rval = val;
+	float32_cast_t conv;
+	conv.fval = val;
 #endif
 	return !conv.uival || (conv.uival == 0x80000000) || ((conv.uival & 0x7F800000ULL) == 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
-math_real_is_one(real val) {
-	return math_real_eq(val, REAL_ONE, 100);
+math_float_is_one(float val) {
+	return math_float_eq(val, 1.0f, 100);
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
-math_real_dec(real val, int units) {
-	real_cast_t ca, cb;
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL float
+math_float_dec(float val, int units) {
+	float32_cast_t ca, cb;
 
-	ca.rval = val;
+	ca.fval = val;
 	cb.ival = ca.ival - (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
 		cb.ival = (int32_t)0x80000000 - cb.ival;
 
-	return cb.rval;
+	return cb.fval;
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
-math_real_inc(real val, int units) {
-	real_cast_t ca, cb;
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL float
+math_float_inc(float val, int units) {
+	float32_cast_t ca, cb;
 
-	ca.rval = val;
+	ca.fval = val;
 	cb.ival = ca.ival + (ca.ival < 0 ? -units : units);
 	if ((cb.ival < 0 && ca.ival >= 0) || (cb.ival > 0 && ca.ival < 0))
 		cb.ival = (int32_t)0x80000000 - cb.ival;
 
-	return cb.rval;
+	return cb.fval;
 }
 
 #endif
 
+#if FOUNDATION_SIZE_REAL == 8
+#define math_real_is_nan(x) math_double_is_nan(x)
+#define math_real_is_inf(x) math_double_is_inf(x)
+#define math_real_is_uninitialized(x) math_double_is_uninitialized(x)
+#define math_real_is_finite(x) math_double_is_finite(x)
+#define math_real_is_denormalized(x) math_double_is_denormalized(x)
+#define math_real_undenormalize(x) math_double_undenormalize(x)
+#define math_real_eq(x, y, ulps) math_double_eq(x, y, ulps)
+#define math_real_eqns(x, y, ulps) math_double_eqns(x, y, ulps)
+#define math_real_is_zero(x) math_double_is_zero(x)
+#define math_real_is_one(x) math_double_is_one(x)
+#define math_real_dec(x, units) math_double_dec(x, units)
+#define math_real_inc(x, units) math_double_inc(x, units)
+#else
+#define math_real_is_nan(x) math_float_is_nan(x)
+#define math_real_is_inf(x) math_float_is_inf(x)
+#define math_real_is_uninitialized(x) math_float_is_uninitialized(x)
+#define math_real_is_finite(x) math_float_is_finite(x)
+#define math_real_is_denormalized(x) math_float_is_denormalized(x)
+#define math_real_undenormalize(x) math_float_undenormalize(x)
+#define math_real_eq(x, y, ulps) math_float_eq(x, y, ulps)
+#define math_real_eqns(x, y, ulps) math_float_eqns(x, y, ulps)
+#define math_real_is_zero(x) math_float_is_zero(x)
+#define math_real_is_one(x) math_float_is_one(x)
+#define math_real_dec(x, units) math_float_dec(x, units)
+#define math_real_inc(x, units) math_float_inc(x, units)
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif

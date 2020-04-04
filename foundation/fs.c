@@ -14,33 +14,33 @@
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/windows.h>
-#  include <sys/utime.h>
+#include <foundation/windows.h>
+#include <sys/utime.h>
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
-#  include <time.h>
-#  include <sys/types.h>
-#  include <sys/stat.h>
-#  include <sys/ioctl.h>
-#  include <utime.h>
-#  include <fcntl.h>
-#  include <dirent.h>
+#include <foundation/posix.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <utime.h>
+#include <fcntl.h>
+#include <dirent.h>
 #endif
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 #if FOUNDATION_COMPILER_GCC
-#  pragma GCC diagnostic push
-#  if FOUNDATION_GCC_VERSION > 40700
-#    pragma GCC diagnostic ignored "-Wpedantic"
-#  endif
-#elif FOUNDATION_COMPILER_CLANG
-#  if __has_warning("-Wpedantic")
-#    pragma clang diagnostic ignored "-Wpedantic"
-#  endif
+#pragma GCC diagnostic push
+#if FOUNDATION_GCC_VERSION > 40700
+#pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-#  include <sys/inotify.h>
+#elif FOUNDATION_COMPILER_CLANG
+#if __has_warning("-Wpedantic")
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+#endif
+#include <sys/inotify.h>
 #if FOUNDATION_COMPILER_GCC
-#  pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #endif
 #endif
 
@@ -49,12 +49,12 @@
 typedef FILE* fs_file_descriptor;
 
 struct fs_monitor_t {
-	string_t   path;
-	bool       inuse;
+	string_t path;
+	bool inuse;
 #if FOUNDATION_PLATFORM_MACOS
-	void*      stream;
+	void* stream;
 #else
-	thread_t   thread;
+	thread_t thread;
 #endif
 };
 
@@ -67,9 +67,9 @@ struct stream_file_t {
 typedef FOUNDATION_ALIGN(16) struct fs_monitor_t fs_monitor_t;
 typedef FOUNDATION_ALIGN(8) struct stream_file_t stream_file_t;
 
-#define GET_FILE( s ) ((stream_file_t*)(s))
-#define GET_FILE_CONST( s ) ((const stream_file_t*)(s))
-#define GET_STREAM( f ) ((stream_t*)(f))
+#define GET_FILE(s) ((stream_file_t*)(s))
+#define GET_FILE_CONST(s) ((const stream_file_t*)(s))
+#define GET_STREAM(f) ((stream_t*)(f))
 
 static stream_vtable_t _fs_file_vtable;
 
@@ -77,11 +77,13 @@ static mutex_t* _fs_monitor_lock;
 static fs_monitor_t* _fs_monitors;
 static event_stream_t* _fs_event_stream;
 
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOS
-#  define FOUNDATION_HAVE_FS_MONITOR 1
-static void* _fs_monitor(void*);
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || \
+    FOUNDATION_PLATFORM_MACOS
+#define FOUNDATION_HAVE_FS_MONITOR 1
+static void*
+_fs_monitor(void*);
 #else
-#  define FOUNDATION_HAVE_FS_MONITOR 0
+#define FOUNDATION_HAVE_FS_MONITOR 0
 #endif
 
 #if FOUNDATION_PLATFORM_MACOS
@@ -100,8 +102,7 @@ _fs_strip_protocol(const char* path, size_t length) {
 	ptrdiff_t diff = pointer_diff(stripped.str, path);
 	if (!diff)
 		return stripped;
-	if (((diff == 6) || (diff == 7)) &&
-	        string_equal(path, 6, STRING_CONST("file:/")))
+	if (((diff == 6) || (diff == 7)) && string_equal(path, 6, STRING_CONST("file:/")))
 		return stripped;
 	return string_empty();
 }
@@ -118,7 +119,7 @@ fs_monitor(const char* path, size_t length) {
 
 	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
 		if (_fs_monitors[mi].inuse &&
-		        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
+		    string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
 			mutex_unlock(_fs_monitor_lock);
 			return true;
 		}
@@ -136,7 +137,7 @@ fs_monitor(const char* path, size_t length) {
 			_fs_monitors[mi].inuse = true;
 			_fs_monitors[mi].path = path_clone;
 #if FOUNDATION_PLATFORM_MACOS
-			//On macOS file system monitors are run in system dispatch
+			// On macOS file system monitors are run in system dispatch
 			_fs_monitor(_fs_monitors + mi);
 #else
 			thread_initialize(&_fs_monitors[mi].thread, _fs_monitor, _fs_monitors + mi,
@@ -151,7 +152,8 @@ fs_monitor(const char* path, size_t length) {
 	if (mi == foundation_config().fs_monitor_max) {
 		string_deallocate(path_clone.str);
 		log_errorf(0, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to monitor file system, no free monitor slots: %.*s"), (int)length, path);
+		           STRING_CONST("Unable to monitor file system, no free monitor slots: %.*s"),
+		           (int)length, path);
 	}
 
 	memory_context_pop();
@@ -189,7 +191,7 @@ fs_unmonitor(const char* path, size_t length) {
 	if (_fs_monitors) {
 		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
 			if (_fs_monitors[mi].inuse &&
-			        string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
+			    string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
 				_fs_stop_monitor(_fs_monitors + mi);
 		}
 	}
@@ -222,7 +224,7 @@ fs_is_file(const char* path, size_t length) {
 	}
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 	return false;
@@ -253,7 +255,7 @@ fs_is_directory(const char* path, size_t length) {
 	}
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 	return false;
@@ -264,7 +266,7 @@ fs_subdirs(const char* path, size_t length) {
 	string_t* arr = 0;
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	//Windows specific implementation of directory listing
+	// Windows specific implementation of directory listing
 	HANDLE find;
 	WIN32_FIND_DATAW data;
 	wchar_t* wpattern;
@@ -281,18 +283,19 @@ fs_subdirs(const char* path, size_t length) {
 	wpattern[wsize] = 0;
 
 	find = FindFirstFileW(wpattern, &data);
-	if (find != INVALID_HANDLE_VALUE) do {
+	if (find != INVALID_HANDLE_VALUE)
+		do {
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				string_t filename;
 				if (data.cFileName[0] == L'.') {
 					if (!data.cFileName[1] || (data.cFileName[1] == L'.'))
-						continue; //Don't include . and .. directories
+						continue;  // Don't include . and .. directories
 				}
-				filename = string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName));
+				filename =
+				    string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName));
 				array_push(arr, filename);
 			}
-		}
-		while (FindNextFileW(find, &data));
+		} while (FindNextFileW(find, &data));
 	FindClose(find);
 
 	memory_deallocate(wpattern);
@@ -300,7 +303,7 @@ fs_subdirs(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	//POSIX specific implementation of directory listing
+	// POSIX specific implementation of directory listing
 	char foundpath_buffer[BUILD_MAX_PATHLEN];
 	string_t cleanpath = string_copy(foundpath_buffer, sizeof(foundpath_buffer), path, length);
 	DIR* dir = opendir(cleanpath.str);
@@ -313,11 +316,11 @@ fs_subdirs(const char* path, size_t length) {
 		while ((entry = readdir(dir)) != 0) {
 			if (entry->d_name[0] == '.') {
 				if (!entry->d_name[1] || (entry->d_name[1] == '.'))
-					continue; //Don't include . and .. directories
+					continue;  // Don't include . and .. directories
 			}
 			size_t entrylen = string_length(entry->d_name);
-			string_t thispath = path_append(foundpath_buffer, length, sizeof(foundpath_buffer), entry->d_name,
-			                                entrylen);
+			string_t thispath = path_append(foundpath_buffer, length, sizeof(foundpath_buffer),
+			                                entry->d_name, entrylen);
 			if (!stat(thispath.str, &st) && S_ISDIR(st.st_mode))
 				array_push(arr, string_clone(entry->d_name, entrylen));
 		}
@@ -328,7 +331,7 @@ fs_subdirs(const char* path, size_t length) {
 	}
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 	return arr;
@@ -339,7 +342,7 @@ fs_files(const char* path, size_t length) {
 	string_t* arr = 0;
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	//Windows specific implementation of directory listing
+	// Windows specific implementation of directory listing
 	HANDLE find;
 	WIN32_FIND_DATAW data;
 	wchar_t* wpattern;
@@ -356,11 +359,12 @@ fs_files(const char* path, size_t length) {
 	wpattern[wsize] = 0;
 
 	find = FindFirstFileW(wpattern, &data);
-	if (find != INVALID_HANDLE_VALUE) do {
+	if (find != INVALID_HANDLE_VALUE)
+		do {
 			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-				array_push(arr, string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName)));
-		}
-		while (FindNextFileW(find, &data));
+				array_push(arr, string_allocate_from_wstring(data.cFileName,
+				                                             wstring_length(data.cFileName)));
+		} while (FindNextFileW(find, &data));
 	FindClose(find);
 
 	memory_deallocate(wpattern);
@@ -368,12 +372,12 @@ fs_files(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	//POSIX specific implementation of directory listing
+	// POSIX specific implementation of directory listing
 	char localpath[BUILD_MAX_PATHLEN];
 	string_copy(localpath, sizeof(localpath), path, length);
 	DIR* dir = opendir(localpath);
 	if (dir) {
-		//We have a directory, parse and create virtual file system
+		// We have a directory, parse and create virtual file system
 		struct dirent* entry = 0;
 		struct stat st;
 
@@ -381,8 +385,8 @@ fs_files(const char* path, size_t length) {
 
 		while ((entry = readdir(dir)) != 0) {
 			size_t entrylen = string_length(entry->d_name);
-			string_t thispath = path_append(localpath, length, sizeof(localpath), entry->d_name,
-			                                entrylen);
+			string_t thispath =
+			    path_append(localpath, length, sizeof(localpath), entry->d_name, entrylen);
 			if (!stat(thispath.str, &st) && S_ISREG(st.st_mode))
 				array_push(arr, string_clone(entry->d_name, entrylen));
 		}
@@ -393,7 +397,7 @@ fs_files(const char* path, size_t length) {
 	}
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 	return arr;
@@ -424,7 +428,7 @@ fs_remove_file(const char* path, size_t length) {
 	result = (unlink(finalpath.str) == 0);
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 	return result;
@@ -437,7 +441,7 @@ fs_remove_directory(const char* path, size_t length) {
 	string_t* subpaths;
 	string_t* subfiles;
 	string_const_t abspath, fspath;
-	string_t localpath = { 0, 0 };
+	string_t localpath = {0, 0};
 	char abspath_buffer[BUILD_MAX_PATHLEN];
 	size_t fspathofs;
 	size_t remain;
@@ -479,12 +483,12 @@ fs_remove_directory(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	//Re-terminate string at base path
+	// Re-terminate string at base path
 	abspath_buffer[fspathofs + fspath.length] = 0;
 	result = (rmdir(abspath_buffer) == 0);
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 end:
@@ -504,12 +508,12 @@ fs_make_directory(const char* path, size_t length) {
 	fspath = _fs_strip_protocol(STRING_ARGS(localpath));
 	if (!fspath.length)
 		return false;
-	localpath = (string_t) { localpath.str + pointer_diff(fspath.str, localpath.str), fspath.length };
+	localpath = (string_t){localpath.str + pointer_diff(fspath.str, localpath.str), fspath.length};
 	offset = 1;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	if ((localpath.length > 2) && (localpath.str[1] == ':'))
-		offset += 2; //Drive letter
+		offset += 2;  // Drive letter
 #endif
 
 	do {
@@ -524,20 +528,21 @@ fs_make_directory(const char* path, size_t length) {
 			result = CreateDirectoryW(wpath, 0);
 			wstring_deallocate(wpath);
 #elif FOUNDATION_PLATFORM_POSIX
-			mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH;
+			mode_t mode =
+			    S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH;
 			result = (mkdir(localpath.str, mode) == 0);
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 			if (!result) {
 				int err = system_error();
 				string_const_t errmsg = system_error_message(err);
-				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
+				log_warnf(0, WARNING_SUSPICIOUS,
+				          STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
 				          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
 				goto end;
 			}
-		}
-		else {
+		} else {
 			result = true;
 		}
 
@@ -546,8 +551,7 @@ fs_make_directory(const char* path, size_t length) {
 			localpath.length = fspath.length;
 			++offset;
 		}
-	}
-	while (offset < localpath.length);
+	} while (offset < localpath.length);
 
 end:
 
@@ -569,7 +573,8 @@ fs_copy_file(const char* source, size_t srclen, const char* dest, size_t destlen
 	if (destpath.length)
 		fs_make_directory(STRING_ARGS(destpath));
 
-	outfile = fs_open_file(dest, destlen, STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
+	outfile =
+	    fs_open_file(dest, destlen, STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
 	if (!outfile) {
 		stream_deallocate(infile);
 		return false;
@@ -594,8 +599,9 @@ tick_t
 fs_last_modified(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	//This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan 1601" was
-	//a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date for unix time, 1 Jan 1970, is 116444736000000000
+	// This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan
+	// 1601" was a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date
+	// for unix time, 1 Jan 1970, is 116444736000000000
 	const int64_t ms_offset_time = 116444736000000000LL;
 	tick_t last_write_time;
 	uint64_t high_time, low_time;
@@ -643,7 +649,7 @@ fs_last_modified(const char* path, size_t length) {
 	return tstamp;
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 }
 
@@ -686,7 +692,7 @@ fs_touch(const char* path, size_t length) {
 		utime(finalpath.str, 0);
 	}
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 }
 
@@ -702,7 +708,8 @@ fs_temporary_file(void) {
 }
 
 static string_t*
-fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool recurse, bool isfile) {
+fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool recurse,
+                       bool isfile) {
 	string_t* names = 0;
 	string_t* subdirs;
 	string_t localpath;
@@ -710,7 +717,7 @@ fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool r
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	//Windows specific implementation of directory listing
+	// Windows specific implementation of directory listing
 	WIN32_FIND_DATAW data;
 	char filename[BUILD_MAX_PATHLEN];
 	wchar_t* wpattern;
@@ -728,7 +735,8 @@ fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool r
 
 	HANDLE find = FindFirstFileW(wpattern, &data);
 
-	if (find != INVALID_HANDLE_VALUE) do {
+	if (find != INVALID_HANDLE_VALUE)
+		do {
 			bool fileattr = ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0);
 			if (isfile == fileattr) {
 				string_t filestr = string_convert_utf16(filename, BUILD_MAX_PATHLEN,
@@ -739,8 +747,7 @@ fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool r
 					array_push(names, path_clean(STRING_ARGS(filestr), false));
 				}
 			}
-		}
-		while (FindNextFileW(find, &data));
+		} while (FindNextFileW(find, &data));
 
 	memory_deallocate(wpattern);
 	memory_context_pop();
@@ -756,7 +763,7 @@ fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool r
 	for (in = 0, nsize = array_size(fnames); in < nsize; ++in) {
 		if (regex_match(pattern, STRING_ARGS(fnames[in]), 0, 0)) {
 			array_push(names, fnames[in]);
-			fnames[in] = (string_t) { 0, 0 };
+			fnames[in] = (string_t){0, 0};
 		}
 	}
 
@@ -784,7 +791,8 @@ fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool r
 		subnames = fs_matching_files_regex(STRING_ARGS(localpath), pattern, true);
 
 		for (in = 0, nsize = array_size(subnames); in < nsize; ++in)
-			array_push(names, path_allocate_concat(STRING_ARGS(subdirs[id]), STRING_ARGS(subnames[in])));
+			array_push(names,
+			           path_allocate_concat(STRING_ARGS(subdirs[id]), STRING_ARGS(subnames[in])));
 
 		string_array_deallocate(subnames);
 	}
@@ -803,8 +811,8 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 }
 
 string_t*
-fs_matching_files(const char* path, size_t length, const char* pattern,
-                  size_t pattern_length, bool recurse) {
+fs_matching_files(const char* path, size_t length, const char* pattern, size_t pattern_length,
+                  bool recurse) {
 	regex_t* regex = regex_compile(pattern, pattern_length);
 	string_t* names = fs_matching_files_regex(path, length, regex, recurse);
 	regex_deallocate(regex);
@@ -817,8 +825,8 @@ fs_matching_subdirs_regex(const char* path, size_t length, regex_t* pattern, boo
 }
 
 string_t*
-fs_matching_subdirs(const char* path, size_t length, const char* pattern,
-                    size_t pattern_length, bool recurse) {
+fs_matching_subdirs(const char* path, size_t length, const char* pattern, size_t pattern_length,
+                    bool recurse) {
 	regex_t* regex = regex_compile(pattern, pattern_length);
 	string_t* names = fs_matching_subdirs_regex(path, length, regex, recurse);
 	regex_deallocate(regex);
@@ -827,7 +835,8 @@ fs_matching_subdirs(const char* path, size_t length, const char* pattern,
 
 void
 fs_event_post(foundation_event_id id, const char* path, size_t pathlen) {
-	event_post_varg(fs_event_stream(), (int)id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen, nullptr);
+	event_post_varg(fs_event_stream(), (int)id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen,
+	                nullptr);
 }
 
 string_const_t
@@ -835,14 +844,15 @@ fs_event_path(const event_t* event) {
 	return string_const(pointer_offset_const(event->payload, sizeof(size_t)), event->payload[0]);
 }
 
-event_stream_t* fs_event_stream(void) {
+event_stream_t*
+fs_event_stream(void) {
 	return _fs_event_stream;
 }
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 
 struct fs_watch_t {
-	int      fd;
+	int fd;
 	string_t path;
 };
 
@@ -883,7 +893,7 @@ _fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
 	if (send_create)
 		_fs_send_creations(path, length, capacity);
 
-	//Include terminating / in paths stored in path_arr/watch_arr
+	// Include terminating / in paths stored in path_arr/watch_arr
 	local_path = string_append(path, length, capacity, STRING_CONST("/"));
 	stored_path = string_clone(STRING_ARGS(local_path));
 	array_push((*path_arr), stored_path);
@@ -893,18 +903,20 @@ _fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
 	watch.path = stored_path;
 	array_push((*watch_arr), watch);
 
-	//Recurse
+	// Recurse
 	subdirs = fs_subdirs(STRING_ARGS(local_path));
 	for (size_t i = 0, size = array_size(subdirs); i < size; ++i) {
-		string_t subpath = string_append(STRING_ARGS(local_path), capacity, STRING_ARGS(subdirs[i]));
-		_fs_add_notify_subdir(notify_fd, STRING_ARGS(subpath), capacity, watch_arr, path_arr, send_create);
+		string_t subpath =
+		    string_append(STRING_ARGS(local_path), capacity, STRING_ARGS(subdirs[i]));
+		_fs_add_notify_subdir(notify_fd, STRING_ARGS(subpath), capacity, watch_arr, path_arr,
+		                      send_create);
 	}
 	string_array_deallocate(subdirs);
 }
 
 static fs_watch_t*
 _fs_lookup_watch(fs_watch_t* watch_arr, int fd) {
-	//TODO: If array is kept sorted on fd, this could be made faster
+	// TODO: If array is kept sorted on fd, this could be made faster
 	for (size_t i = 0, size = array_size(watch_arr); i < size; ++i) {
 		if (watch_arr[i].fd == fd)
 			return watch_arr + i;
@@ -962,7 +974,7 @@ _fs_monitor(void* monitorptr) {
 
 	array_reserve(watch, 1024);
 
-	//Recurse and add all subdirs
+	// Recurse and add all subdirs
 	local_path = string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(monitor->path));
 	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths,
 	                      false);
@@ -981,7 +993,7 @@ _fs_monitor(void* monitorptr) {
 
 #endif
 
-	//log_debugf(0, STRING_CONST("Monitoring file system: %.*s"),
+	// log_debugf(0, STRING_CONST("Monitoring file system: %.*s"),
 	//           STRING_FORMAT(monitor->path));
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -994,7 +1006,8 @@ _fs_monitor(void* monitorptr) {
 	}
 	if (dir == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(0);
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %.*s : %.*s"),
+		log_warnf(0, WARNING_SUSPICIOUS,
+		          STRING_CONST("Unable to open handle for path: %.*s : %.*s"),
 		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
@@ -1008,9 +1021,10 @@ _fs_monitor(void* monitorptr) {
 		overlap.hEvent = handle;
 
 		out_size = 0;
-		success = ReadDirectoryChangesW(dir, buffer, buffer_size, TRUE,
-		                                FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE,
-		                                &out_size, &overlap, 0);
+		success = ReadDirectoryChangesW(
+		    dir, buffer, buffer_size, TRUE,
+		    FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE,
+		    &out_size, &overlap, 0);
 		if (!success) {
 			string_const_t errstr = system_error_message(0);
 			log_warnf(0, WARNING_SUSPICIOUS,
@@ -1022,11 +1036,10 @@ _fs_monitor(void* monitorptr) {
 		wait_status = beacon_wait(beacon);
 
 		if (wait_status <= 0) {
-			//Thread signalled or error
+			// Thread signalled or error
 			keep_running = false;
-		}
-		else if (wait_status == event) {
-			//File system change
+		} else if (wait_status == event) {
+			// File system change
 			transferred = 0;
 			success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
 			if (!success) {
@@ -1034,38 +1047,47 @@ _fs_monitor(void* monitorptr) {
 				log_warnf(0, WARNING_SUSPICIOUS,
 				          STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
 				          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
-			}
-			else {
+			} else {
 				PFILE_NOTIFY_INFORMATION info = buffer;
 				do {
 					size_t numchars = info->FileNameLength / sizeof(wchar_t);
-					wchar_t term = info->FileName[ numchars ];
+					wchar_t term = info->FileName[numchars];
 					string_t utfstr;
 					string_t fullpath;
 
-					info->FileName[ numchars ] = 0;
-					utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
+					info->FileName[numchars] = 0;
+					utfstr = string_allocate_from_wstring(info->FileName,
+					                                      wstring_length(info->FileName));
 					utfstr = path_clean(STRING_ARGS_CAPACITY(utfstr));
-					fullpath = path_allocate_concat(STRING_ARGS(monitor->path), STRING_ARGS(utfstr));
+					fullpath =
+					    path_allocate_concat(STRING_ARGS(monitor->path), STRING_ARGS(utfstr));
 
 					if (fs_is_directory(STRING_ARGS(fullpath))) {
-						//Ignore directory changes
-					}
-					else {
+						// Ignore directory changes
+					} else {
 						foundation_event_id fsevent = FOUNDATIONEVENT_NOEVENT;
 						switch (info->Action) {
-						case FILE_ACTION_ADDED:     fsevent = FOUNDATIONEVENT_FILE_CREATED; break;
-						case FILE_ACTION_REMOVED:   fsevent = FOUNDATIONEVENT_FILE_DELETED; break;
-						case FILE_ACTION_MODIFIED:
-							if (fs_is_file(STRING_ARGS(fullpath)))
-								fsevent = FOUNDATIONEVENT_FILE_MODIFIED;
-							break;
+							case FILE_ACTION_ADDED:
+								fsevent = FOUNDATIONEVENT_FILE_CREATED;
+								break;
+							case FILE_ACTION_REMOVED:
+								fsevent = FOUNDATIONEVENT_FILE_DELETED;
+								break;
+							case FILE_ACTION_MODIFIED:
+								if (fs_is_file(STRING_ARGS(fullpath)))
+									fsevent = FOUNDATIONEVENT_FILE_MODIFIED;
+								break;
 
-						//Treat rename as delete/add pair
-						case FILE_ACTION_RENAMED_OLD_NAME: fsevent = FOUNDATIONEVENT_FILE_DELETED; break;
-						case FILE_ACTION_RENAMED_NEW_NAME: fsevent = FOUNDATIONEVENT_FILE_CREATED; break;
+							// Treat rename as delete/add pair
+							case FILE_ACTION_RENAMED_OLD_NAME:
+								fsevent = FOUNDATIONEVENT_FILE_DELETED;
+								break;
+							case FILE_ACTION_RENAMED_NEW_NAME:
+								fsevent = FOUNDATIONEVENT_FILE_CREATED;
+								break;
 
-						default: break;
+							default:
+								break;
 						}
 
 						if (fsevent)
@@ -1074,13 +1096,12 @@ _fs_monitor(void* monitorptr) {
 					string_deallocate(utfstr.str);
 					string_deallocate(fullpath.str);
 
-					info->FileName[ numchars ] = term;
+					info->FileName[numchars] = term;
 
-					info = info->NextEntryOffset
-					       ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(info,info->NextEntryOffset))
-					       : nullptr;
-				}
-				while (info);
+					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(
+					                                   info, info->NextEntryOffset)) :
+					                               nullptr;
+				} while (info);
 			}
 		}
 
@@ -1100,22 +1121,25 @@ _fs_monitor(void* monitorptr) {
 			while (offset < avail_read) {
 				fs_watch_t* curwatch = _fs_lookup_watch(watch, event->wd);
 				if (!curwatch) {
-					log_warnf(0, WARNING_SUSPICIOUS,
-					          STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %.*s"),
-					          event->wd, event->mask, event->cookie, (size_t)event->len,
-					          (int)event->len, (const char*)event->name);
+					log_warnf(
+					    0, WARNING_SUSPICIOUS,
+					    STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %.*s"),
+					    event->wd, event->mask, event->cookie, (size_t)event->len, (int)event->len,
+					    (const char*)event->name);
 					goto skipwatch;
 				}
 
-				string_t curpath = string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(curwatch->path));
-				curpath = string_append(STRING_ARGS(curpath), sizeof(pathbuffer),
-				                        event->name, string_length(event->name));
+				string_t curpath =
+				    string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(curwatch->path));
+				curpath = string_append(STRING_ARGS(curpath), sizeof(pathbuffer), event->name,
+				                        string_length(event->name));
 
 				bool is_dir = ((event->mask & IN_ISDIR) != 0);
 
 				if ((event->mask & IN_CREATE) || (event->mask & IN_MOVED_TO)) {
 					if (is_dir)
-						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer), &watch, &paths, true);
+						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer),
+						                      &watch, &paths, true);
 					else
 						fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
 				}
@@ -1131,7 +1155,7 @@ _fs_monitor(void* monitorptr) {
 				if (event->mask & IN_MOVED_FROM)
 				if (event->mask & IN_MOVED_TO)*/
 
-skipwatch:
+			skipwatch:
 				offset += event->len + sizeof(struct inotify_event);
 				event = (struct inotify_event*)pointer_offset(buffer, offset);
 			}
@@ -1142,19 +1166,19 @@ skipwatch:
 
 		keep_running = false;
 
-//#elif FOUNDATION_PLATFORM_BSD
-//  TODO: Implement using kqueue and directory watching using open with O_EVTONLY
-//        https://github.com/emcrisostomo/fswatch/blob/master/libfswatch/src/libfswatch/c%2B%2B/kqueue_monitor.cpp
+		//#elif FOUNDATION_PLATFORM_BSD
+		//  TODO: Implement using kqueue and directory watching using open with O_EVTONLY
+		//        https://github.com/emcrisostomo/fswatch/blob/master/libfswatch/src/libfswatch/c%2B%2B/kqueue_monitor.cpp
 
 #else
-		//log_debug(0, STRING_CONST("Filesystem watcher not implemented on this platform"));
-		//Not implemented yet, just wait for signal to simulate thread
+		// log_debug(0, STRING_CONST("Filesystem watcher not implemented on this platform"));
+		// Not implemented yet, just wait for signal to simulate thread
 		thread_wait();
 		keep_running = false;
 #endif
 	}
 
-	//log_debugf(0, STRING_CONST("Stopped monitoring file system: %.*s"),
+	// log_debugf(0, STRING_CONST("Stopped monitoring file system: %.*s"),
 	//           STRING_FORMAT(monitor->path));
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -1188,14 +1212,14 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 	fs_file_descriptor fd = 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  define MODESTRING(x) L##x
+#define MODESTRING(x) L##x
 	const wchar_t* modestr;
 	wchar_t* wpath;
 #elif FOUNDATION_PLATFORM_LINUX
-#  define MODESTRING(x) x "e"
+#define MODESTRING(x) x "e"
 	const char* modestr;
 #else
-#  define MODESTRING(x) x
+#define MODESTRING(x) x
 	const char* modestr;
 #endif
 	int retry = 0;
@@ -1209,24 +1233,20 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 					modestr = MODESTRING("r+b");
 					retry = 1;
 				}
-			}
-			else {
+			} else {
 				modestr = MODESTRING("r+b");
 				if ((mode & STREAM_TRUNCATE) && dotrunc)
 					*dotrunc = true;
 			}
-		}
-		else {
-			//truncate is ignored for read-only files
+		} else {
+			// truncate is ignored for read-only files
 			if (mode & STREAM_CREATE) {
 				modestr = MODESTRING("r+b");
 				retry = 1;
-			}
-			else
+			} else
 				modestr = MODESTRING("rb");
 		}
-	}
-	else if (mode & STREAM_OUT) {
+	} else if (mode & STREAM_OUT) {
 		if (mode & STREAM_TRUNCATE) {
 			if (mode & STREAM_CREATE)
 				modestr = MODESTRING("w+b");
@@ -1235,14 +1255,12 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 				if (dotrunc)
 					*dotrunc = true;
 			}
-		}
-		else {
+		} else {
 			modestr = MODESTRING("r+b");
 			if (mode & STREAM_CREATE)
 				retry = 1;
 		}
-	}
-	else
+	} else
 		return 0;
 
 	do {
@@ -1254,20 +1272,19 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 		FOUNDATION_UNUSED(length);
 		fd = fopen(path, modestr);
 #else
-#  error Not implemented
+#error Not implemented
 #endif
-		//In case retry is set, it's because we want to create a file if it does not exist,
-		//but not truncate existing file, while still not using append mode since that fixes
-		//writing to end of file. Try first with r+b to avoid truncation, then if it fails
-		//i.e file does not exist, create it with w+b
+		// In case retry is set, it's because we want to create a file if it does not exist,
+		// but not truncate existing file, while still not using append mode since that fixes
+		// writing to end of file. Try first with r+b to avoid truncation, then if it fails
+		// i.e file does not exist, create it with w+b
 		modestr = MODESTRING("w+b");
-	}
-	while (!fd && (retry-- > 0));
+	} while (!fd && (retry-- > 0));
 
 	if (fd && (mode & STREAM_ATEND)) {
 		if (fseek(fd, 0, SEEK_END))
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to end of stream '%.*s'"),
-			          (int)length, path);
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
+			          STRING_CONST("Unable to seek to end of stream '%.*s'"), (int)length, path);
 	}
 
 	return fd;
@@ -1283,7 +1300,7 @@ _fs_file_tell(stream_t* stream) {
 #elif FOUNDATION_PLATFORM_WINDOWS
 	fpos_t pos;
 	if (fgetpos(GET_FILE(stream)->fd, &pos))
-		return  0;
+		return 0;
 	return (size_t)(pos < 0 ? 0 : pos);
 #else
 	off_t pos = ftello(GET_FILE(stream)->fd);
@@ -1295,10 +1312,12 @@ static void
 _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	/*lint -esym(970,long) */
 	if (fseek(GET_FILE(stream)->fd, (long)offset,
-	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET :
-	          ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"),
-		          (int)offset, (int)direction, STRING_FORMAT(stream->path));
+	          (direction == STREAM_SEEK_BEGIN) ?
+	              SEEK_SET :
+	              ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
+		          STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
+		          (int)direction, STRING_FORMAT(stream->path));
 	}
 }
 
@@ -1330,8 +1349,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	bool success = false;
 #endif
 
-	if (!(stream->mode & STREAM_OUT) ||
-	        (GET_FILE(stream)->fd == 0))
+	if (!(stream->mode & STREAM_OUT) || (GET_FILE(stream)->fd == 0))
 		return;
 
 	if (length >= _fs_file_size(stream))
@@ -1354,18 +1372,19 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	fd = CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0);
 	wstring_deallocate(wpath);
 	if (fd != INVALID_HANDLE_VALUE) {
-#  if FOUNDATION_ARCH_X86_64
+#if FOUNDATION_ARCH_X86_64
 		if (length < 0xFFFFFFFF)
-#  endif
+#endif
 		{
 			success = (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 		}
-#  if FOUNDATION_ARCH_X86_64
+#if FOUNDATION_ARCH_X86_64
 		else {
 			LONG high = (LONG)(length >> 32LL);
-			success = (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
+			success =
+			    (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 		}
-#  endif
+#endif
 		if (success)
 			success = (SetEndOfFile(fd) != 0);
 		CloseHandle(fd);
@@ -1387,7 +1406,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	}
 	close(fd);
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 	file->fd = _fs_file_fopen(fspath.str, fspath.length, stream->mode, 0);
@@ -1407,8 +1426,7 @@ _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 	size_t was_read;
 	size_t beforepos;
 
-	if (!(stream->mode & STREAM_IN) ||
-	        (GET_FILE(stream)->fd == 0))
+	if (!(stream->mode & STREAM_IN) || (GET_FILE(stream)->fd == 0))
 		return 0;
 
 	file = GET_FILE(stream);
@@ -1433,8 +1451,7 @@ _fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
 	size_t was_written;
 	size_t beforepos;
 
-	if (!(stream->mode & STREAM_OUT) ||
-	        (GET_FILE(stream)->fd == 0))
+	if (!(stream->mode & STREAM_OUT) || (GET_FILE(stream)->fd == 0))
 		return 0;
 
 	file = GET_FILE(stream);
@@ -1470,7 +1487,8 @@ _fs_file_available_read(stream_t* stream) {
 	return 0;
 }
 
-static stream_t* _fs_file_clone(stream_t* stream) {
+static stream_t*
+_fs_file_clone(stream_t* stream) {
 	stream_file_t* file = GET_FILE(stream);
 	return fs_open_file(file->path.str, file->path.length, file->mode);
 }
@@ -1491,7 +1509,7 @@ _fs_file_finalize(stream_t* stream) {
 #elif FOUNDATION_PLATFORM_POSIX
 			fsync(fileno(file->fd));
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 		}
 	}
@@ -1543,10 +1561,11 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 	stream = GET_STREAM(file);
 	stream_initialize(stream, BUILD_DEFAULT_STREAM_BYTEORDER);
 
-	file->fd     = fd;
-	file->type   = STREAMTYPE_FILE;
-	file->mode   = mode & (STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC);
-	file->path   = finalpath;
+	file->fd = fd;
+	file->type = STREAMTYPE_FILE;
+	file->persistent = 1;
+	file->mode = mode & (STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC);
+	file->path = finalpath;
 	file->vtable = &_fs_file_vtable;
 
 	if (dotrunc)
@@ -1560,9 +1579,9 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 int
 _fs_initialize(void) {
 #if FOUNDATION_HAVE_FS_MONITOR
-	_fs_monitors = memory_allocate(HASH_STREAM,
-	                               sizeof(fs_monitor_t) * foundation_config().fs_monitor_max,
-	                               0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	_fs_monitors =
+	    memory_allocate(HASH_STREAM, sizeof(fs_monitor_t) * foundation_config().fs_monitor_max, 0,
+	                    MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	_fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
 #else
 	_fs_monitors = 0;

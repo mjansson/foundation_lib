@@ -51,8 +51,8 @@ set_token_complex(json_token_t* tokens, size_t capacity, unsigned int current, j
 }
 
 static void
-set_token_id(json_token_t* tokens, size_t capacity, unsigned int current,
-             size_t id, size_t id_length) {
+set_token_id(json_token_t* tokens, size_t capacity, unsigned int current, size_t id,
+             size_t id_length) {
 	json_token_t* token = get_token(tokens, capacity, current);
 	if (token) {
 		token->id = (unsigned int)id;
@@ -62,12 +62,12 @@ set_token_id(json_token_t* tokens, size_t capacity, unsigned int current,
 
 static bool
 is_whitespace(char c) {
-	return (c == ' ')  || (c == '\t') || (c == '\n') || (c == '\r');
+	return (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r');
 }
 
 static bool
 is_token_delimiter(char c) {
-	return is_whitespace(c) || (c == ']')  || (c == '}') || (c == ',');
+	return is_whitespace(c) || (c == ']') || (c == '}') || (c == ',');
 }
 
 static size_t
@@ -102,22 +102,28 @@ parse_string(const char* buffer, size_t length, size_t pos, bool key, bool simpl
 		++pos;
 		if (c == '\\' && (pos < length)) {
 			switch (buffer[pos]) {
-			// Escaped symbols \X
-			case '\"': case '/': case '\\': case 'b':
-			case 'f' : case 'r': case 'n' : case 't':
-				break;
-			// Escaped symbol \uXXXX
-			case 'u':
-				for (esc = 0; esc < 4 && pos < length; ++esc) {
-					++pos;
-					if (!((buffer[pos] >= 48 && buffer[pos] <= 57) || // 0-9
-					        (buffer[pos] >= 65 && buffer[pos] <= 70) || // A-F
-					        (buffer[pos] >= 97 && buffer[pos] <= 102))) // a-f
-						return STRING_NPOS;
-				}
-				break;
-			default:
-				return STRING_NPOS;
+				// Escaped symbols \X
+				case '\"':
+				case '/':
+				case '\\':
+				case 'b':
+				case 'f':
+				case 'r':
+				case 'n':
+				case 't':
+					break;
+				// Escaped symbol \uXXXX
+				case 'u':
+					for (esc = 0; esc < 4 && pos < length; ++esc) {
+						++pos;
+						if (!((buffer[pos] >= 48 && buffer[pos] <= 57) ||  // 0-9
+						      (buffer[pos] >= 65 && buffer[pos] <= 70) ||  // A-F
+						      (buffer[pos] >= 97 && buffer[pos] <= 102)))  // a-f
+							return STRING_NPOS;
+					}
+					break;
+				default:
+					return STRING_NPOS;
 			}
 			++pos;
 		}
@@ -138,23 +144,19 @@ parse_number(const char* buffer, size_t length, size_t pos) {
 		if (c == '-') {
 			if (start != pos)
 				return STRING_NPOS;
-		}
-		else if (c == '.') {
+		} else if (c == '.') {
 			if (has_dot || has_exp)
 				return STRING_NPOS;
 			has_dot = true;
-		}
-		else if ((c == 'e') || (c == 'E')) {
+		} else if ((c == 'e') || (c == 'E')) {
 			if (!has_digit || has_exp)
 				return STRING_NPOS;
 			has_exp = true;
 			if ((pos + 1) < length) {
-				if ((buffer[pos+1] == '+') ||
-				        (buffer[pos+1] == '-'))
+				if ((buffer[pos + 1] == '+') || (buffer[pos + 1] == '-'))
 					++pos;
 			}
-		}
-		else if ((c < '0') || (c > '9'))
+		} else if ((c < '0') || (c > '9'))
 			return STRING_NPOS;
 		else
 			has_digit = true;
@@ -164,21 +166,20 @@ parse_number(const char* buffer, size_t length, size_t pos) {
 }
 
 static size_t
-parse_object(const char* buffer, size_t length, size_t pos,
-             json_token_t* tokens, size_t capacity, unsigned int* current, bool simple);
+parse_object(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
+             unsigned int* current, bool simple);
 
 static size_t
-parse_value(const char* buffer, size_t length, size_t pos,
-            json_token_t* tokens, size_t capacity, unsigned int* current, bool simple);
+parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
+            unsigned int* current, bool simple);
 
 static size_t
-parse_array(const char* buffer, size_t length, size_t pos,
-            json_token_t* tokens, size_t capacity, unsigned int owner, unsigned int* current,
-            bool simple);
+parse_array(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
+            unsigned int owner, unsigned int* current, bool simple);
 
 static size_t
-parse_object(const char* buffer, size_t length, size_t pos,
-             json_token_t* tokens, size_t capacity, unsigned int* current, bool simple) {
+parse_object(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
+             unsigned int* current, bool simple) {
 	json_token_t* token;
 	size_t string;
 	bool simple_string;
@@ -189,58 +190,57 @@ parse_object(const char* buffer, size_t length, size_t pos,
 		char c = buffer[pos++];
 
 		switch (c) {
-		case '}':
-			if (last && !is_valid_token(tokens, capacity, last))
-				return STRING_NPOS;
-			return pos;
-
-		case ',':
-			if (!last || !is_valid_token(tokens, capacity, last))
-				return STRING_NPOS;
-			if ((token = get_token(tokens, capacity, last)))
-				token->sibling = *current;
-			last = 0;
-			pos = skip_whitespace(buffer, length, pos);
-			break;
-
-		case '"':
-		default:
-			if (last)
-				return STRING_NPOS;
-			if (c != '"') {
-				if (!simple)
+			case '}':
+				if (last && !is_valid_token(tokens, capacity, last))
 					return STRING_NPOS;
-				simple_string = true;
-				--pos;
-			}
-			else {
-				simple_string = false;
-			}
+				return pos;
 
-			string = parse_string(buffer, length, pos, true, simple_string);
-			if (string == STRING_NPOS)
-				return STRING_NPOS;
-
-			last = *current;
-			set_token_id(tokens, capacity, *current, pos, string);
-			//Skip terminating '"' (optional for simplified)
-			if (!simple || ((pos + string < length) && (buffer[pos + string] == '"')))
-				++string;
-			pos += string;
-
-			pos = skip_whitespace(buffer, length, pos);
-			if ((buffer[pos] != ':') &&
-			        (!simple || (buffer[pos] != '=')))
-				return STRING_NPOS;
-			pos = parse_value(buffer, length, pos + 1, tokens, capacity, current, simple);
-			pos = skip_whitespace(buffer, length, pos);
-			if (simple_string && ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
-				token = get_token(tokens, capacity, last);
-				if (token)
+			case ',':
+				if (!last || !is_valid_token(tokens, capacity, last))
+					return STRING_NPOS;
+				if ((token = get_token(tokens, capacity, last)))
 					token->sibling = *current;
 				last = 0;
-			}
-			break;
+				pos = skip_whitespace(buffer, length, pos);
+				break;
+
+			case '"':
+			default:
+				if (last)
+					return STRING_NPOS;
+				if (c != '"') {
+					if (!simple)
+						return STRING_NPOS;
+					simple_string = true;
+					--pos;
+				} else {
+					simple_string = false;
+				}
+
+				string = parse_string(buffer, length, pos, true, simple_string);
+				if (string == STRING_NPOS)
+					return STRING_NPOS;
+
+				last = *current;
+				set_token_id(tokens, capacity, *current, pos, string);
+				// Skip terminating '"' (optional for simplified)
+				if (!simple || ((pos + string < length) && (buffer[pos + string] == '"')))
+					++string;
+				pos += string;
+
+				pos = skip_whitespace(buffer, length, pos);
+				if ((buffer[pos] != ':') && (!simple || (buffer[pos] != '=')))
+					return STRING_NPOS;
+				pos = parse_value(buffer, length, pos + 1, tokens, capacity, current, simple);
+				pos = skip_whitespace(buffer, length, pos);
+				if (simple_string &&
+				    ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
+					token = get_token(tokens, capacity, last);
+					if (token)
+						token->sibling = *current;
+					last = 0;
+				}
+				break;
 		}
 	}
 
@@ -248,9 +248,8 @@ parse_object(const char* buffer, size_t length, size_t pos,
 }
 
 static size_t
-parse_array(const char* buffer, size_t length, size_t pos,
-            json_token_t* tokens, size_t capacity, unsigned int owner, unsigned int* current,
-            bool simple) {
+parse_array(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
+            unsigned int owner, unsigned int* current, bool simple) {
 	json_token_t* parent = get_token(tokens, capacity, owner);
 	json_token_t* token;
 	unsigned int now;
@@ -290,8 +289,8 @@ parse_array(const char* buffer, size_t length, size_t pos,
 }
 
 static size_t
-parse_value(const char* buffer, size_t length, size_t pos,
-            json_token_t* tokens, size_t capacity, unsigned int* current, bool simple) {
+parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
+            unsigned int* current, bool simple) {
 	json_token_t* subtoken;
 	unsigned int owner;
 	size_t string;
@@ -301,76 +300,91 @@ parse_value(const char* buffer, size_t length, size_t pos,
 	while (pos < length) {
 		char c = buffer[pos++];
 		switch (c) {
-		case '{':
-			subtoken = set_token_complex(tokens, capacity, *current, JSON_OBJECT, pos - 1);
-			++(*current);
-			pos = parse_object(buffer, length, pos, tokens, capacity, current, simple);
-			if (subtoken && (pos != STRING_NPOS))
-				subtoken->value_length = (unsigned int)(pos - subtoken->value);
-			return pos;
-
-		case '[':
-			owner = *current;
-			set_token_complex(tokens, capacity, *current, JSON_ARRAY, 0);
-			++(*current);
-			pos = parse_array(buffer, length, pos, tokens, capacity, owner, current, simple);
-			return pos;
-
-		case '-': case '0': case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9': case '.':
-			string = parse_number(buffer, length, pos - 1);
-			if (string == STRING_NPOS)
-				return STRING_NPOS;
-			set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, string);
-			++(*current);
-			return pos + string - 1;
-
-		case 't':
-		case 'f':
-		case 'n':
-			if ((c == 't') && (length - pos >= 4) && string_equal(buffer + pos, 3, STRING_CONST("rue")) &&
-			        is_token_delimiter(buffer[pos+3])) {
-				set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
+			case '{':
+				subtoken = set_token_complex(tokens, capacity, *current, JSON_OBJECT, pos - 1);
 				++(*current);
-				return pos + 3;
-			}
-			if ((c == 'f') && (length - pos >= 5) && string_equal(buffer + pos, 4, STRING_CONST("alse")) &&
-			        is_token_delimiter(buffer[pos+4])) {
-				set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 5);
-				++(*current);
-				return pos + 4;
-			}
-			if ((c == 'n') && (length - pos >= 4) &&
-			        string_equal(buffer + pos, 3, STRING_CONST("ull")) &&
-			        is_token_delimiter(buffer[pos + 3])) {
-				set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
-				++(*current);
-				return pos + 3;
-			}
-			if (!simple)
-				return STRING_NPOS;
-		//Fall through to string handling
+				pos = parse_object(buffer, length, pos, tokens, capacity, current, simple);
+				if (subtoken) {
+					if (pos != STRING_NPOS)
+						subtoken->value_length = (unsigned int)(pos - subtoken->value);
+					if (subtoken->child == *current)
+						subtoken->child = 0;
+				}
+				return pos;
 
-		case '"':
-		default:
-			if (c != '"') {
+			case '[':
+				owner = *current;
+				set_token_complex(tokens, capacity, *current, JSON_ARRAY, 0);
+				++(*current);
+				pos = parse_array(buffer, length, pos, tokens, capacity, owner, current, simple);
+				return pos;
+
+			case '-':
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			case '.':
+				string = parse_number(buffer, length, pos - 1);
+				if (string == STRING_NPOS)
+					return STRING_NPOS;
+				set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, string);
+				++(*current);
+				return pos + string - 1;
+
+			case 't':
+			case 'f':
+			case 'n':
+				if ((c == 't') && (length - pos >= 4) &&
+				    string_equal(buffer + pos, 3, STRING_CONST("rue")) &&
+				    is_token_delimiter(buffer[pos + 3])) {
+					set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
+					++(*current);
+					return pos + 3;
+				}
+				if ((c == 'f') && (length - pos >= 5) &&
+				    string_equal(buffer + pos, 4, STRING_CONST("alse")) &&
+				    is_token_delimiter(buffer[pos + 4])) {
+					set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 5);
+					++(*current);
+					return pos + 4;
+				}
+				if ((c == 'n') && (length - pos >= 4) &&
+				    string_equal(buffer + pos, 3, STRING_CONST("ull")) &&
+				    is_token_delimiter(buffer[pos + 3])) {
+					set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
+					++(*current);
+					return pos + 3;
+				}
 				if (!simple)
 					return STRING_NPOS;
-				simple_string = true;
-				--pos;
-			}
-			else {
-				simple_string = false;
-			}
-			string = parse_string(buffer, length, pos, false, simple_string);
-			if (string == STRING_NPOS)
-				return STRING_NPOS;
-			set_token_primitive(tokens, capacity, *current, JSON_STRING, pos, string);
-			++(*current);
-			//Skip terminating '"' (optional for simplified)
-			if (!simple_string || ((pos + string < length) && (buffer[pos + string] == '"')))
-				++string;
-			return pos + string;
+				// Fall through to string handling
+
+			case '"':
+			default:
+				if (c != '"') {
+					if (!simple)
+						return STRING_NPOS;
+					simple_string = true;
+					--pos;
+				} else {
+					simple_string = false;
+				}
+				string = parse_string(buffer, length, pos, false, simple_string);
+				if (string == STRING_NPOS)
+					return STRING_NPOS;
+				set_token_primitive(tokens, capacity, *current, JSON_STRING, pos, string);
+				++(*current);
+				// Skip terminating '"' (optional for simplified)
+				if (!simple_string || ((pos + string < length) && (buffer[pos + string] == '"')))
+					++string;
+				return pos + string;
 		}
 	}
 
@@ -414,41 +428,45 @@ json_escape(char* buffer, size_t capacity, const char* string, size_t length) {
 		char c = string[i];
 		if ((c == '\"') || (c == '\\')) {
 			buffer[outlength++] = '\\';
-			if (outlength < capacity) buffer[outlength++] = c;
-		}
-		else if (c == '\b') {
+			if (outlength < capacity)
+				buffer[outlength++] = c;
+		} else if (c == '\b') {
 			buffer[outlength++] = '\\';
-			if (outlength < capacity) buffer[outlength++] = 'b';
-		}
-		else if (c == '\f') {
+			if (outlength < capacity)
+				buffer[outlength++] = 'b';
+		} else if (c == '\f') {
 			buffer[outlength++] = '\\';
-			if (outlength < capacity) buffer[outlength++] = 'f';
-		}
-		else if (c == '\r') {
+			if (outlength < capacity)
+				buffer[outlength++] = 'f';
+		} else if (c == '\r') {
 			buffer[outlength++] = '\\';
-			if (outlength < capacity) buffer[outlength++] = 'r';
-		}
-		else if (c == '\n') {
+			if (outlength < capacity)
+				buffer[outlength++] = 'r';
+		} else if (c == '\n') {
 			buffer[outlength++] = '\\';
-			if (outlength < capacity) buffer[outlength++] = 'n';
-		}
-		else if (c == '\t') {
+			if (outlength < capacity)
+				buffer[outlength++] = 'n';
+		} else if (c == '\t') {
 			buffer[outlength++] = '\\';
-			if (outlength < capacity) buffer[outlength++] = 't';
-		}
-		else if (c < 0x20) {
+			if (outlength < capacity)
+				buffer[outlength++] = 't';
+		} else if (c < 0x20) {
 			buffer[outlength++] = '\\';
-			if (outlength < capacity) buffer[outlength++] = 'u';
-			if (outlength < capacity) buffer[outlength++] = '0';
-			if (outlength < capacity) buffer[outlength++] = '0';
-			if (outlength < capacity) buffer[outlength++] = hex_char((unsigned char)(c >> 4) & 0xf);
-			if (outlength < capacity) buffer[outlength++] = hex_char((unsigned char)c & 0xf);
-		}
-		else {
+			if (outlength < capacity)
+				buffer[outlength++] = 'u';
+			if (outlength < capacity)
+				buffer[outlength++] = '0';
+			if (outlength < capacity)
+				buffer[outlength++] = '0';
+			if (outlength < capacity)
+				buffer[outlength++] = hex_char((unsigned char)(c >> 4) & 0xf);
+			if (outlength < capacity)
+				buffer[outlength++] = hex_char((unsigned char)c & 0xf);
+		} else {
 			buffer[outlength++] = c;
 		}
 	}
-	return (string_t) {buffer, outlength};
+	return (string_t){buffer, outlength};
 }
 
 string_t
@@ -460,46 +478,46 @@ json_unescape(char* buffer, size_t capacity, const char* string, size_t length) 
 		if ((c == '\\') && (i + 1 < length)) {
 			c = string[++i];
 			switch (c) {
-			case '\"':
-			case '/':
-			case '\\':
-				buffer[outlength++] = c;
-				break;
+				case '\"':
+				case '/':
+				case '\\':
+					buffer[outlength++] = c;
+					break;
 
-			case 'b':
-				buffer[outlength++] = '\b';
-				break;
-			case 'f':
-				buffer[outlength++] = '\f';
-				break;
-			case 'r':
-				buffer[outlength++] = '\r';
-				break;
-			case 'n':
-				buffer[outlength++] = '\n';
-				break;
-			case 't':
-				buffer[outlength++] = '\t';
-				break;
+				case 'b':
+					buffer[outlength++] = '\b';
+					break;
+				case 'f':
+					buffer[outlength++] = '\f';
+					break;
+				case 'r':
+					buffer[outlength++] = '\r';
+					break;
+				case 'n':
+					buffer[outlength++] = '\n';
+					break;
+				case 't':
+					buffer[outlength++] = '\t';
+					break;
 
-			case 'u':
-				if (i + 4 < length) {
-					uint16_t val = (uint16_t)string_to_uint(string + i + 1, 4, true);
-					string_t conv = string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
-					outlength += conv.length;
-					i += 4;
-				}
-				break;
+				case 'u':
+					if (i + 4 < length) {
+						uint16_t val = (uint16_t)string_to_uint(string + i + 1, 4, true);
+						string_t conv =
+						    string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
+						outlength += conv.length;
+						i += 4;
+					}
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
-		}
-		else {
+		} else {
 			buffer[outlength++] = c;
 		}
 	}
-	return (string_t) {buffer, outlength};
+	return (string_t){buffer, outlength};
 }
 
 static size_t
@@ -514,7 +532,8 @@ sjson_parse_stream(const char* path, size_t length, json_handler_fn handler) {
 		return 0;
 
 	size_t size = stream_size(configfile);
-	char* buffer = memory_allocate(0, size, 0, (size < 1024) ? MEMORY_TEMPORARY : MEMORY_PERSISTENT);
+	char* buffer =
+	    memory_allocate(0, size, 0, (size < 1024) ? MEMORY_TEMPORARY : MEMORY_PERSISTENT);
 
 	stream_read(configfile, buffer, size);
 	stream_deallocate(configfile);
@@ -544,10 +563,9 @@ sjson_parse_path(const char* path, size_t length, json_handler_fn handler) {
 		for (size_t ifile = 0, fsize = array_size(files); ifile < fsize; ++ifile) {
 			string_const_t ext = path_file_extension(STRING_ARGS(files[ifile]));
 			if (string_equal(STRING_ARGS(ext), STRING_CONST("json")) ||
-			        string_equal(STRING_ARGS(ext), STRING_CONST("sjson"))) {
-				string_t fullpath = path_concat(pathbuf, sizeof(pathbuf),
-				                                path, length,
-				                                STRING_ARGS(files[ifile]));
+			    string_equal(STRING_ARGS(ext), STRING_CONST("sjson"))) {
+				string_t fullpath =
+				    path_concat(pathbuf, sizeof(pathbuf), path, length, STRING_ARGS(files[ifile]));
 				num += sjson_parse_stream(STRING_ARGS(fullpath), handler);
 			}
 		}

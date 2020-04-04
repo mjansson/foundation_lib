@@ -27,7 +27,7 @@ including sort buckets and resulting index arrays. Deallocate the sort object wi
 \param num Number of elements to sort
 \return New radix sort object */
 FOUNDATION_API radixsort_t*
-radixsort_allocate(radixsort_data_t type, radixsort_index_t num);
+radixsort_allocate(radixsort_data_t type, size_t num);
 
 /*! Deallocate a radix sort object previously allocated with a call to #radixsort_allocate.
 \param sort Radix sort object to deallocate */
@@ -40,7 +40,7 @@ the sort object with a call to #radixsort_finalize.
 \param type Data type
 \param num Number of elements to sort */
 FOUNDATION_API void
-radixsort_initialize(radixsort_t* sort, radixsort_data_t type, radixsort_index_t num);
+radixsort_initialize(radixsort_t* sort, radixsort_data_t type, size_t num);
 
 /*! Finalize a radix sort object previously initialized with a call to #radixsort_initialize.
 \param sort Radix sort object to finalize */
@@ -54,7 +54,7 @@ partially sorted and/or used in a previous sort call on this radix sort object.
              initialized with
 \param num Number of elements to sort, must be less or equal to maximum
            number radix sort object was initialized with
-\return Sorted index array holding num indices into the input array */
-FOUNDATION_API const radixsort_index_t*
-radixsort_sort(radixsort_t* sort, const void* input, radixsort_index_t num);
-
+\return Sorted index array holding num indices into the input array, data type depending
+        on sort index type (16-bit or 32-bit) */
+FOUNDATION_API const void*
+radixsort_sort(radixsort_t* sort, const void* input, size_t num);

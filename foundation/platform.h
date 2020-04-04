@@ -946,7 +946,9 @@ typedef struct uint512_t uint512_t;
 #define FLOAT32_C(x)   (x##f)
 #define FLOAT64_C(x)   (x)
 
+#ifndef FOUNDATION_SIZE_REAL
 #define FOUNDATION_SIZE_REAL 4
+#endif
 
 #if FOUNDATION_SIZE_REAL == 8
 typedef   float64_t    real;

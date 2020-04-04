@@ -33,16 +33,17 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 #define WIN32_LEAN_AND_MEAN
 
 #if FOUNDATION_COMPILER_MSVC
-//Work around broken dbghlp.h header
-#  pragma warning(disable : 4091)
+// Work around broken dbghlp.h header
+#pragma warning(disable : 4091)
 #elif FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonportable-system-include-path"
 #endif
 
 #include <Windows.h>
 
 #undef uuid_t
+#define clock_t clock_windows_t
 
 #include <WinSock2.h>
 #include <IPTypes.h>
@@ -61,11 +62,12 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 #undef STREAM_SEEK_END
 #undef UUID
 #undef uuid_t
+#undef clock_t
 
 #if FOUNDATION_COMPILER_CLANG
-#  undef WINAPI
-#  define WINAPI STDCALL
-#  pragma clang diagnostic pop
+#undef WINAPI
+#define WINAPI STDCALL
+#pragma clang diagnostic pop
 #endif
 
 #endif

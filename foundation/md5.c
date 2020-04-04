@@ -18,7 +18,7 @@
 #define MD5_F3(x, y, z) ((x) ^ (y) ^ (z))
 #define MD5_F4(x, y, z) ((y) ^ ((x) | ~(z)))
 
-#define MD5_STEP(f, a, b, c, d, t, s) (a) += f((b), (c), (d)) + (t); (a) = (((a) << (s)) | ((a) >> (32 - (s)))); (a) += (b);
+#define MD5_STEP(f, a, b, c, d, t, s) (a) += f((b), (c), (d)) + (t); (a) = (((a) << (s)) | ((a) >> (32 - (s)))); (a) += (b)
 
 static void
 md5_encode(unsigned char* dest, const uint32_t* src, size_t length) {

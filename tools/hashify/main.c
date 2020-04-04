@@ -16,7 +16,6 @@
 
 //Use fixed-size buffers since the data format is very restricted
 #define HASHIFY_LINEBUFFER_LENGTH           512
-#define HASHIFY_STRING_LENGTH               128
 
 typedef struct {
 	bool         check_only;
@@ -25,10 +24,11 @@ typedef struct {
 } hashify_input_t;
 
 typedef struct {
-	char         buffer[HASHIFY_STRING_LENGTH];
 	string_t     string;
 	hash_t       hash;
 } hashify_string_t;
+
+static hashify_string_t* all_hashes;
 
 static hashify_input_t
 hashify_parse_command_line(const string_const_t* cmdline);
@@ -80,7 +80,7 @@ main_initialize(void) {
 	application.flags = APPLICATION_UTILITY;
 
 	log_enable_prefix(false);
-	log_set_suppress(0, ERRORLEVEL_ERROR);
+	log_set_suppress(0, ERRORLEVEL_WARNING);
 
 	if ((ret = foundation_initialize(memory_system_malloc(), application, config)) < 0)
 		return ret;
@@ -103,6 +103,10 @@ main_run(void* main_arg) {
 		goto exit;
 
 exit:
+
+	for (unsigned int ihash = 0, hsize = array_size(all_hashes); ihash < hsize; ++ihash)
+		string_deallocate(all_hashes[ihash].string.str);
+	array_deallocate(all_hashes);
 
 	string_array_deallocate(input.strings);
 	string_array_deallocate(input.files);
@@ -296,11 +300,11 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, string_t outpu
 				result = hashify_check_collisions(value_string, hash_value, *history);
 
 				//Add to history
-				hash_string.string = string_copy(hash_string.buffer, HASHIFY_STRING_LENGTH,
-				                                 STRING_ARGS(value_string));
+				hash_string.string = string_clone(STRING_ARGS(value_string));
 				hash_string.hash = hash_value;
 				array_push_memcpy(*history, &hash_string);
 				array_push_memcpy(local_generated, &hash_string);
+				array_push_memcpy(all_hashes, &hash_string);
 			}
 		}
 	}
@@ -384,7 +388,7 @@ hashify_read_hashes(stream_t* file, hashify_string_t** hashes) {
 				hashify_string_t hash_string;
 				string_const_t stripped = string_strip(STRING_ARGS(tokens[3]), STRING_CONST(","));
 				stripped = string_strip(STRING_ARGS(stripped), STRING_CONST("\""));
-				hash_string.string = string_copy(hash_string.buffer, HASHIFY_STRING_LENGTH, STRING_ARGS(stripped));
+				hash_string.string = string_clone(STRING_ARGS(stripped));
 				hash_string.hash = string_to_uint64(STRING_ARGS(tokens[4]), true);
 
 				if (hash(STRING_ARGS(hash_string.string)) != hash_string.hash) {
@@ -396,6 +400,7 @@ hashify_read_hashes(stream_t* file, hashify_string_t** hashes) {
 				}
 
 				array_push_memcpy(*hashes, &hash_string);
+				array_push_memcpy(all_hashes, &hash_string);
 			}
 		}
 	}

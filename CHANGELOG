@@ -1,3 +1,12 @@
+1.6.2
+
+Make radixsort have a dynamic index type based on max size during initialization. Returned
+data type from radixsort_sort should be cast to the correct type (uint16_t or uint32_t) based
+on sort context indextype (RADIXSORT_INDEX16 or RADIXSORT_INDEX32 respectively)
+
+Use clang format for automatic source formatting (many whitespace changes)
+
+
 1.6.1
 
 Add uuidmap for mapping UUIDs to pointer values
@@ -18,7 +27,8 @@ Add thread_is_entered to query if thread_enter has been called on the calling th
 Bugfix in macOS file system watcher, correctly bootstrapping thread memory handling for cleanup
 if needed
 
-Fix path_base_file_name to return name up to last dot in filename, not first dot. A file "path/to/foo.bar.ext" will thus return "foo.bar" instead of "foo"
+Fix path_base_file_name to return name up to last dot in filename, not first dot. A file
+"path/to/foo.bar.ext" will thus return "foo.bar" instead of "foo"
 
 
 1.6.0

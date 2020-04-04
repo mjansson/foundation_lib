@@ -32,3 +32,4 @@ HASH_DEBUG                              debug
 HASH_FS                                 fs
 HASH_SOURCE                             source
 HASH_EVENT                              event
+HASH_VERSION                            version
