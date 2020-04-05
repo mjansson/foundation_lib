@@ -1,10 +1,10 @@
-/* delegate.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* delegate.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -48,9 +48,8 @@ delegate_window(void);
 /*! Application delegate for foundation library projects. Assign the main application window
 object to the window outlet for automatic integration between foundation library and
 windowing services */
-@interface FoundationAppDelegate :
-  NSObject <NSApplicationDelegate>
-  @property(nonatomic, retain) IBOutlet NSWindow* window;
+@interface FoundationAppDelegate : NSObject <NSApplicationDelegate>
+@property (nonatomic, retain) IBOutlet NSWindow* window;
 + (void)referenceClass;
 @end
 
@@ -67,18 +66,15 @@ delegate_window(void);
 
 #if defined(__OBJC__) && !defined(FOUNDATION_NO_INTERFACE)
 
-@interface FoundationAppDelegate :
-  NSObject <UIApplicationDelegate>
-  @property(nonatomic, retain) IBOutlet UIWindow* window;
+@interface FoundationAppDelegate : NSObject <UIApplicationDelegate>
+@property (nonatomic, retain) IBOutlet UIWindow* window;
 + (void)referenceClass;
 @end
 
 /*! UI alert view delegate used by system debug message alert views */
-@interface FoundationAlertViewDelegate :
-  NSObject <UIAlertViewDelegate>
+@interface FoundationAlertViewDelegate : NSObject <UIAlertViewDelegate>
 @end
 
 #endif
 
 #endif
-

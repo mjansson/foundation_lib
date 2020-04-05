@@ -1,10 +1,10 @@
-/* android.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* android.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -28,24 +28,24 @@ another build system these libraries must NOT be included in the build. */
 #if FOUNDATION_PLATFORM_ANDROID
 
 #if FOUNDATION_COMPILER_GCC
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  if __has_warning("-Wsign-conversion")
-#    pragma clang diagnostic ignored "-Wsign-conversion"
-#  endif
-#  if __has_warning("-Wundef")
-#    pragma clang diagnostic ignored "-Wundef"
-#  endif
-#  if __has_warning("-Wpedantic")
-#    pragma clang diagnostic ignored "-Wpedantic"
-#  endif
-#  if __has_warning("-Wreserved-id-macro")
-#    pragma clang diagnostic ignored "-Wreserved-id-macro"
-#  endif
+#pragma clang diagnostic push
+#if __has_warning("-Wsign-conversion")
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#endif
+#if __has_warning("-Wundef")
+#pragma clang diagnostic ignored "-Wundef"
+#endif
+#if __has_warning("-Wpedantic")
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+#if __has_warning("-Wreserved-id-macro")
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
+#endif
 #endif
 
 #include <stdarg.h>
@@ -56,11 +56,11 @@ another build system these libraries must NOT be included in the build. */
 #include <android_native_app_glue.h>
 
 #if FOUNDATION_COMPILER_GCC
-#  pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif
 
 /*! Entry point for android native applications. Called internally at process launch,

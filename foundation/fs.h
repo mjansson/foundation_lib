@@ -1,10 +1,10 @@
-/* fs.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* fs.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -37,13 +37,13 @@ FOUNDATION_API stream_t*
 fs_open_file(const char* path, size_t length, unsigned int mode);
 
 /*! Copy source file to destination path in the file system, creating directories if needed
-\param source  Source file path
-\param srclen  Length of source file path
-\param dest    Destination file path
-\param destlen Length of destination file path
-\return        true if successful, false if failure */
+\param source        Source file path
+\param source_length Length of source file path
+\param dest          Destination file path
+\param dest_length   Length of destination file path
+\return              true if successful, false if failure */
 FOUNDATION_API bool
-fs_copy_file(const char* source, size_t srclen, const char* dest, size_t destlen);
+fs_copy_file(const char* source, size_t source_length, const char* dest, size_t dest_length);
 
 /*! Remove a file from the file system
 \param path   Path
@@ -113,15 +113,14 @@ fs_md5(const char* path, size_t length);
 expression supported by the regex parser in the library (see regex.h documentation).
 For example, to find all files with a given extension ".ext", use the regex "^.*\\.ext$"
 Free the returned array with #string_array_deallocate
-\param path       Search path
-\param length     Length of path
-\param pattern    File name pattern
-\param patternlen Length of pattern
-\param recurse    Recursion flag
-\return           Array of matching file names */
+\param path           Search path
+\param path_length    Length of path
+\param pattern        File name pattern
+\param pattern_length Length of pattern
+\param recurse        Recursion flag
+\return               Array of matching file names */
 FOUNDATION_API string_t*
-fs_matching_files(const char* path, size_t length, const char* pattern, size_t patternlen,
-                  bool recurse);
+fs_matching_files(const char* path, size_t path_length, const char* pattern, size_t pattern_length, bool recurse);
 
 /*! Get files matching the given regex. Free the returned array with #string_array_deallocate
 \param path       Search path
@@ -149,8 +148,7 @@ Free the returned array with #string_array_deallocate
 \param recurse    Recursion flag
 \return           Array of matching file names */
 FOUNDATION_API string_t*
-fs_matching_subdirs(const char* path, size_t length, const char* pattern, size_t patternlen,
-                    bool recurse);
+fs_matching_subdirs(const char* path, size_t length, const char* pattern, size_t patternlen, bool recurse);
 
 /*! Get subdirs matching the given regex. Free the returned array with #string_array_deallocate
 \param path       Search path
@@ -207,4 +205,3 @@ fs_event_path(const event_t* event);
 \return File system event stream */
 FOUNDATION_API event_stream_t*
 fs_event_stream(void);
-

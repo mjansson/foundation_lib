@@ -1,10 +1,10 @@
-/* main.c  -  Foundation filesystem test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation filesystem test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_fs_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation filesystem tests"));
 	app.short_name = string_const(STRING_CONST("test_filesystem"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -64,8 +64,7 @@ DECLARE_TEST(fs, directory) {
 	string_t testlocalpath;
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
-	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
-	                       STRING_ARGS(fname));
+	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(testpath));
 
 	if (fs_is_file(STRING_ARGS(testpath)))
@@ -82,7 +81,7 @@ DECLARE_TEST(fs, directory) {
 	EXPECT_FALSE(fs_is_directory(STRING_ARGS(testpath)));
 
 	EXPECT_FALSE(fs_remove_directory(STRING_ARGS(testpath)));
-	
+
 	EXPECT_FALSE(fs_make_directory(STRING_CONST("")));
 	EXPECT_FALSE(fs_remove_file(STRING_CONST("")));
 
@@ -132,13 +131,12 @@ DECLARE_TEST(fs, file) {
 	stream_t* teststream;
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
-	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
-	                       STRING_ARGS(fname));
+	testpath = path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(testpath));
 
 	fname = string_from_uint_static(random64(), true, 0, 0);
-	copypath = path_concat(copybuf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()),
-	                       STRING_ARGS(fname));
+	copypath =
+	    path_concat(copybuf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(copypath));
 
 	if (!fs_is_directory(STRING_ARGS(environment_temporary_directory())))
@@ -151,7 +149,6 @@ DECLARE_TEST(fs, file) {
 	if (fs_is_directory(STRING_ARGS(copypath)))
 		fs_remove_directory(STRING_ARGS(copypath));
 	fs_remove_file(STRING_ARGS(copypath));
-
 
 	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN);
 	EXPECT_EQ(teststream, 0);
@@ -196,17 +193,17 @@ DECLARE_TEST(fs, file) {
 	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
 	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data));
 	stream_write(teststream, data, sizeof(data));
-	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
-	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)*2);
-	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data) * 2);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data) * 2);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data) * 2);
 	stream_deallocate(teststream);
 
-	//Vefify truncate is ignored for read-only files
+	// Vefify truncate is ignored for read-only files
 	teststream = fs_open_file(STRING_ARGS(testpath), STREAM_IN | STREAM_TRUNCATE | STREAM_ATEND);
 	EXPECT_NE(teststream, 0);
-	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
-	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)*2);
-	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)*2);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data) * 2);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data) * 2);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data) * 2);
 	stream_deallocate(teststream);
 
 	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
@@ -255,16 +252,16 @@ DECLARE_TEST(fs, file) {
 	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data));
 	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data));
 	stream_write(teststream, data, 1);
-	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)+1);
-	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)+1);
-	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data)+1);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data) + 1);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data) + 1);
+	EXPECT_SIZEEQ(stream_tell(teststream), sizeof(data) + 1);
 	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
 	stream_write(teststream, data, 1);
 	EXPECT_SIZEEQ(stream_tell(teststream), 1);
-	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data)+1);
+	EXPECT_SIZEEQ(stream_size(teststream), sizeof(data) + 1);
 	EXPECT_SIZEEQ(stream_tell(teststream), 1);
 	stream_seek(teststream, 0, STREAM_SEEK_BEGIN);
-	EXPECT_SIZEEQ(stream_available_read(teststream), sizeof(data)+1);
+	EXPECT_SIZEEQ(stream_available_read(teststream), sizeof(data) + 1);
 	stream_deallocate(teststream);
 
 	EXPECT_TRUE(fs_remove_file(STRING_ARGS(testpath)));
@@ -325,12 +322,11 @@ DECLARE_TEST(fs, file) {
 	fs_remove_file(STRING_ARGS(copypath));
 	EXPECT_FALSE(fs_is_file(STRING_ARGS(copypath)));
 
-	//This will fail on POSIX if you have write access to filesystem root
+	// This will fail on POSIX if you have write access to filesystem root
 	log_enable_stdout(false);
-	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath),
-	                          STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
-	EXPECT_FALSE(fs_copy_file(STRING_CONST("/does/not/exist/at/all"),
-	                          STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
+	EXPECT_FALSE(fs_copy_file(STRING_ARGS(testpath), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
+	EXPECT_FALSE(
+	    fs_copy_file(STRING_CONST("/does/not/exist/at/all"), STRING_CONST("/../@;:*this/:is/;not=?a-valid<*>name")));
 	log_enable_stdout(true);
 
 	fs_remove_file(STRING_ARGS(testpath));
@@ -349,8 +345,8 @@ DECLARE_TEST(fs, util) {
 	stream_t* teststream;
 	stream_t* cloned;
 	string_const_t fname = string_from_uint_static(random64(), true, 0, 0);
-	string_t testpath = path_concat(buf, BUILD_MAX_PATHLEN,
-	                                STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
+	string_t testpath =
+	    path_concat(buf, BUILD_MAX_PATHLEN, STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(testpath));
 
 	if (!fs_is_directory(STRING_ARGS(environment_temporary_directory())))
@@ -362,7 +358,7 @@ DECLARE_TEST(fs, util) {
 
 	EXPECT_EQ(fs_last_modified(STRING_ARGS(testpath)), 0);
 
-	thread_sleep(2000);   //For fs time granularity, make sure at least one second passed since systime
+	thread_sleep(2000);  // For fs time granularity, make sure at least one second passed since systime
 
 	stream_deallocate(fs_open_file(STRING_ARGS(testpath), STREAM_OUT | STREAM_CREATE));
 	EXPECT_TRUE(fs_is_file(STRING_ARGS(testpath)));
@@ -483,8 +479,8 @@ DECLARE_TEST(fs, query) {
 		++filename.length;
 
 		fname = string_from_uint_static(random64(), true, 0, 0);
-		filepath[ifp] = string_allocate_concat_varg(STRING_ARGS(testpath), STRING_CONST("/"),
-		                                            STRING_ARGS(fname), STRING_ARGS(filename), nullptr);
+		filepath[ifp] = string_allocate_concat_varg(STRING_ARGS(testpath), STRING_CONST("/"), STRING_ARGS(fname),
+		                                            STRING_ARGS(filename), nullptr);
 		unterminate(STRING_ARGS(filepath[ifp]));
 		stream_deallocate(fs_open_file(STRING_ARGS(filepath[ifp]), STREAM_OUT | STREAM_CREATE));
 	}
@@ -541,7 +537,7 @@ DECLARE_TEST(fs, query) {
 		fname = string_from_uint_static(subpathid, true, 0, 0);
 		filename = string_from_uint(buf, 32, subfileid, true, 0, 0);
 		filename = string_append(STRING_ARGS(filename), 32, STRING_CONST(".0"));
-		verifypath = path_allocate_concat(STRING_ARGS(fname),  STRING_ARGS(filename));
+		verifypath = path_allocate_concat(STRING_ARGS(fname), STRING_ARGS(filename));
 		unterminate(STRING_ARGS(verifypath));
 		EXPECT_STRINGEQ(files[8], string_const(STRING_ARGS(verifypath)));
 		string_deallocate(verifypath.str);
@@ -645,8 +641,8 @@ DECLARE_TEST(fs, monitor) {
 		multisubtestpath[isub] = path_allocate_concat(STRING_ARGS(testpath), STRING_ARGS(fname));
 		for (ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub) {
 			fname = string_from_uint_static(random64(), false, 0, 0);
-			multifilesubtestpath[isub][ifilesub] = path_allocate_concat(STRING_ARGS(multisubtestpath[isub]),
-			                                                            STRING_ARGS(fname));
+			multifilesubtestpath[isub][ifilesub] =
+			    path_allocate_concat(STRING_ARGS(multisubtestpath[isub]), STRING_ARGS(fname));
 			unterminate(STRING_ARGS(multifilesubtestpath[isub][ifilesub]));
 		}
 	}
@@ -720,8 +716,7 @@ DECLARE_TEST(fs, monitor) {
 	EXPECT_CONSTSTRINGEQ(fs_event_path(event), string_to_const(filetestpath));
 
 	event = event_next(block, event);
-	EXPECT_EQ_MSGFORMAT(event, 0, "event not null (%d : %" PRIsize ")",
-	                    event->id, event->payload[0]);
+	EXPECT_EQ_MSGFORMAT(event, 0, "event not null (%d : %" PRIsize ")", event->id, event->payload[0]);
 
 	fs_remove_file(STRING_ARGS(filetestpath));
 	thread_sleep(3000);
@@ -789,8 +784,8 @@ DECLARE_TEST(fs, monitor) {
 	for (isub = 0; isub < MULTICOUNT; ++isub) {
 		fs_make_directory(STRING_ARGS(multisubtestpath[isub]));
 		for (ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub) {
-			test_stream = fs_open_file(STRING_ARGS(multifilesubtestpath[isub][ifilesub]),
-			                           STREAM_IN | STREAM_OUT | STREAM_CREATE);
+			test_stream =
+			    fs_open_file(STRING_ARGS(multifilesubtestpath[isub][ifilesub]), STREAM_IN | STREAM_OUT | STREAM_CREATE);
 			stream_deallocate(test_stream);
 			multifilesubtestfound[isub][ifilesub] = false;
 		}
@@ -809,8 +804,8 @@ DECLARE_TEST(fs, monitor) {
 
 			evtpath = fs_event_path(event);
 
-			string_format(eventstr, 256, STRING_CONST("event %d:%d:%d:%d:%.*s"), event->id, event->flags,
-			              event->serial, event->size, STRING_FORMAT(evtpath));
+			string_format(eventstr, 256, STRING_CONST("event %d:%d:%d:%d:%.*s"), event->id, event->flags, event->serial,
+			              event->size, STRING_FORMAT(evtpath));
 			EXPECT_EQ_MSG(event->id, FOUNDATIONEVENT_FILE_CREATED, eventstr);
 
 			for (isub = 0; isub < MULTICOUNT; ++isub) {
@@ -826,8 +821,7 @@ DECLARE_TEST(fs, monitor) {
 			EXPECT_TRUE(found);
 			++processed;
 		}
-	}
-	while (processed > 0);
+	} while (processed > 0);
 
 	for (isub = 0; isub < MULTICOUNT; ++isub) {
 		for (ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub) {
@@ -854,8 +848,8 @@ DECLARE_TEST(fs, monitor) {
 			string_const_t evtpath;
 
 			evtpath = fs_event_path(event);
-			string_format(eventstr, 256, STRING_CONST("event %d:%d:%d:%d:%.*s"), event->id, event->flags,
-			              event->serial, event->size, STRING_FORMAT(evtpath));
+			string_format(eventstr, 256, STRING_CONST("event %d:%d:%d:%d:%.*s"), event->id, event->flags, event->serial,
+			              event->size, STRING_FORMAT(evtpath));
 
 			EXPECT_EQ_MSG(event->id, FOUNDATIONEVENT_FILE_DELETED, eventstr);
 
@@ -872,8 +866,7 @@ DECLARE_TEST(fs, monitor) {
 			EXPECT_TRUE(found);
 			++processed;
 		}
-	}
-	while (processed > 0);
+	} while (processed > 0);
 
 	for (isub = 0; isub < MULTICOUNT; ++isub) {
 		for (ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub) {
@@ -934,15 +927,13 @@ test_fs_declare(void) {
 #endif
 }
 
-static test_suite_t test_fs_suite = {
-	test_fs_application,
-	test_fs_memory_system,
-	test_fs_config,
-	test_fs_declare,
-	test_fs_initialize,
-	test_fs_finalize,
-	0
-};
+static test_suite_t test_fs_suite = {test_fs_application,
+                                     test_fs_memory_system,
+                                     test_fs_config,
+                                     test_fs_declare,
+                                     test_fs_initialize,
+                                     test_fs_finalize,
+                                     0};
 
 #if BUILD_MONOLITHIC
 

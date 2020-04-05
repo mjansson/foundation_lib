@@ -1,10 +1,10 @@
-/* math.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* math.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -338,8 +338,7 @@ math_linear_remap(real x, real xmin, real xmax, real ymin, real ymax);
 \param minval Start of interval
 \param maxval End of interval
 \return Value x clamped to [minval,maxval] interval */
-#define math_clamp(x, minval, maxval) \
-	((x) < (minval) ? (minval) : ((x) > (maxval) ? (maxval) : (x)))
+#define math_clamp(x, minval, maxval) ((x) < (minval) ? (minval) : ((x) > (maxval) ? (maxval) : (x)))
 
 /*! Compare two floats with epsilon tolerance expressed as number of adjacent float values.
 \param rval First float
@@ -580,18 +579,17 @@ expression if asserts are disabled.
 \return Decremented and wrapped value inside range
 */
 
-#define FOUNDATION_DECLARE_INCREMENT_AND_WRAP(suffix, type, signed_type, bit_mask)  \
-	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix( \
-	    const type val, const type min, const type max);                            \
-	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix( \
-	    const type val, const type min, const type max) {                           \
-		const type increased = val + 1;                                             \
-		const type max_diff = max - val;                                            \
-		const type max_diff_nz =                                                    \
-		    (type)(((signed_type)max_diff | -(signed_type)max_diff) >> bit_mask);   \
-		const type max_diff_eqz = ~max_diff_nz;                                     \
-		const type result = (increased & max_diff_nz) | (min & max_diff_eqz);       \
-		return result;                                                              \
+#define FOUNDATION_DECLARE_INCREMENT_AND_WRAP(suffix, type, signed_type, bit_mask)                                 \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix(const type val, const type min, \
+	                                                                               const type max);                \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_inc_wrap_##suffix(const type val, const type min, \
+	                                                                               const type max) {               \
+		const type increased = val + 1;                                                                            \
+		const type max_diff = max - val;                                                                           \
+		const type max_diff_nz = (type)(((signed_type)max_diff | -(signed_type)max_diff) >> bit_mask);             \
+		const type max_diff_eqz = ~max_diff_nz;                                                                    \
+		const type result = (increased & max_diff_nz) | (min & max_diff_eqz);                                      \
+		return result;                                                                                             \
 	}
 
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP(uint8, uint8_t, int8_t, 7)
@@ -604,18 +602,17 @@ FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int32, int32_t, int32_t, 31)
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP(int64, int64_t, int64_t, 63ULL)
 #undef FOUNDATION_DECLARE_INCREMENT_AND_WRAP
 
-#define FOUNDATION_DECLARE_DECREMENT_AND_WRAP(suffix, type, signed_type, bit_mask)  \
-	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix( \
-	    const type val, const type min, const type max);                            \
-	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix( \
-	    const type val, const type min, const type max) {                           \
-		const type decreased = val - 1;                                             \
-		const type min_diff = min - val;                                            \
-		const type min_diff_nz =                                                    \
-		    (type)(((signed_type)min_diff | -(signed_type)min_diff) >> bit_mask);   \
-		const type min_diff_eqz = ~min_diff_nz;                                     \
-		const type result = (decreased & min_diff_nz) | (max & min_diff_eqz);       \
-		return result;                                                              \
+#define FOUNDATION_DECLARE_DECREMENT_AND_WRAP(suffix, type, signed_type, bit_mask)                                 \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix(const type val, const type min, \
+	                                                                               const type max);                \
+	static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL type math_dec_wrap_##suffix(const type val, const type min, \
+	                                                                               const type max) {               \
+		const type decreased = val - 1;                                                                            \
+		const type min_diff = min - val;                                                                           \
+		const type min_diff_nz = (type)(((signed_type)min_diff | -(signed_type)min_diff) >> bit_mask);             \
+		const type min_diff_eqz = ~min_diff_nz;                                                                    \
+		const type result = (decreased & min_diff_nz) | (max & min_diff_eqz);                                      \
+		return result;                                                                                             \
 	}
 
 FOUNDATION_DECLARE_DECREMENT_AND_WRAP(uint8, uint8_t, int8_t, 7)
@@ -1251,8 +1248,7 @@ math_double_is_nan(double val) {
 	float64_cast_t conv;
 	conv.fval = val;
 #endif
-	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) &
-	       ((conv.uival & 0xFFFFFFFFFFFFFULL) != 0);
+	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) & ((conv.uival & 0xFFFFFFFFFFFFFULL) != 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
@@ -1263,8 +1259,7 @@ math_double_is_inf(double val) {
 	float64_cast_t conv;
 	conv.fval = val;
 #endif
-	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) &
-	       ((conv.uival & 0xFFFFFFFFFFFFFULL) == 0);
+	return (((conv.uival & 0x7FF0000000000000ULL) >> 52ULL) == 0x7ff) & ((conv.uival & 0xFFFFFFFFFFFFFULL) == 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
@@ -1280,8 +1275,7 @@ math_double_is_uninitialized(double val) {
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
 math_double_is_finite(double val) {
-	return !(math_double_is_nan(val) || math_double_is_inf(val) ||
-	         math_double_is_uninitialized(val));
+	return !(math_double_is_nan(val) || math_double_is_inf(val) || math_double_is_uninitialized(val));
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool
@@ -1292,8 +1286,7 @@ math_double_is_denormalized(double val) {
 	float64_cast_t conv;
 	conv.fval = val;
 #endif
-	return conv.uival && (conv.uival != 0x8000000000000000ULL) &&
-	       ((conv.uival & 0x7F80000000000000ULL) == 0);
+	return conv.uival && (conv.uival != 0x8000000000000000ULL) && ((conv.uival & 0x7F80000000000000ULL) == 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
@@ -1347,8 +1340,7 @@ math_double_is_zero(double val) {
 	float64_cast_t conv;
 	conv.fval = val;
 #endif
-	return !conv.uival || (conv.uival == 0x8000000000000000ULL) ||
-	       ((conv.uival & 0x7FF0000000000000ULL) == 0);
+	return !conv.uival || (conv.uival == 0x8000000000000000ULL) || ((conv.uival & 0x7FF0000000000000ULL) == 0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool

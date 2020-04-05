@@ -1,10 +1,10 @@
-/* main.c  -  Foundation math test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation math test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -14,8 +14,8 @@
 #include <test/test.h>
 
 #if FOUNDATION_COMPILER_MSVC
-//Test will do division by zero
-#  pragma warning( disable : 4723 )
+// Test will do division by zero
+#pragma warning(disable : 4723)
 #endif
 
 static application_t
@@ -24,7 +24,7 @@ test_math_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation math tests"));
 	app.short_name = string_const(STRING_CONST("test_math"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -70,8 +70,8 @@ DECLARE_TEST(math, comparison) {
 
 #if FOUNDATION_COMPILER_CLANG
 // Yes, we want to compare floats
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wfloat-equal"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
 #endif
 
 	EXPECT_EQ(testreal, refreal);
@@ -148,7 +148,7 @@ DECLARE_TEST(math, comparison) {
 	EXPECT_TRUE(math_real_is_finite(testreal));
 
 	testreal = math_real_inc(0, 10);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_TRUE(math_real_eq(testreal, 0, 10));
@@ -162,7 +162,7 @@ DECLARE_TEST(math, comparison) {
 	EXPECT_TRUE(math_real_is_denormalized(testreal));
 
 	testreal = math_real_inc(0, 100);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eq(testreal, 0, 10));
@@ -176,11 +176,11 @@ DECLARE_TEST(math, comparison) {
 	EXPECT_TRUE(math_real_is_denormalized(testreal));
 
 	testreal = math_real_dec(0, 10);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_TRUE(math_real_eq(testreal, 0, 10));
-	//EXPECT_TRUE( math_real_eqns( testreal, 0, 10 ) );
+	// EXPECT_TRUE( math_real_eqns( testreal, 0, 10 ) );
 	EXPECT_TRUE(math_real_is_zero(testreal));
 	EXPECT_FALSE(math_real_is_one(testreal));
 	EXPECT_FALSE(math_real_is_nan(testreal));
@@ -190,7 +190,7 @@ DECLARE_TEST(math, comparison) {
 	EXPECT_TRUE(math_real_is_denormalized(testreal));
 
 	testreal = math_real_dec(0, 100);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eq(testreal, 0, 10));
@@ -205,11 +205,11 @@ DECLARE_TEST(math, comparison) {
 
 	testreal = math_real_inc(0, 5);
 	testreal = math_real_dec(testreal, 10);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_TRUE(math_real_eq(testreal, 0, 10));
-	//EXPECT_TRUE( math_real_eqns( testreal, 0, 10 ) );
+	// EXPECT_TRUE( math_real_eqns( testreal, 0, 10 ) );
 	EXPECT_TRUE(math_real_is_zero(testreal));
 	EXPECT_FALSE(math_real_is_one(testreal));
 	EXPECT_FALSE(math_real_is_nan(testreal));
@@ -219,7 +219,7 @@ DECLARE_TEST(math, comparison) {
 
 	testreal = math_real_dec(0, 5);
 	testreal = math_real_inc(testreal, 10);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_TRUE(math_real_eq(testreal, 0, 10));
@@ -233,7 +233,7 @@ DECLARE_TEST(math, comparison) {
 
 	testreal = math_real_inc(0, -5);
 	testreal = math_real_dec(testreal, -10);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_TRUE(math_real_eq(testreal, 0, 10));
@@ -247,11 +247,11 @@ DECLARE_TEST(math, comparison) {
 
 	testreal = math_real_dec(0, -5);
 	testreal = math_real_inc(testreal, -10);
-	//EXPECT_NE(testreal, 0);
+	// EXPECT_NE(testreal, 0);
 	EXPECT_FALSE(math_real_eq(testreal, 0, 0));
 	EXPECT_FALSE(math_real_eqns(testreal, 0, 0));
 	EXPECT_TRUE(math_real_eq(testreal, 0, 10));
-	//EXPECT_TRUE( math_real_eqns( testreal, 0, 10 ) );
+	// EXPECT_TRUE( math_real_eqns( testreal, 0, 10 ) );
 	EXPECT_TRUE(math_real_is_zero(testreal));
 	EXPECT_FALSE(math_real_is_one(testreal));
 	EXPECT_FALSE(math_real_is_nan(testreal));
@@ -272,7 +272,7 @@ DECLARE_TEST(math, comparison) {
 	EXPECT_REALONE(math_real_undenormalize(1));
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif
 
 	return 0;
@@ -281,7 +281,7 @@ DECLARE_TEST(math, comparison) {
 DECLARE_TEST(math, trigonometry) {
 	EXPECT_REALZERO(math_sin(0));
 	EXPECT_REALEPSILONZERO(math_sin(REAL_PI));
-	//EXPECT_REALEPSILONZERO(math_sin(REAL_TWOPI));
+	// EXPECT_REALEPSILONZERO(math_sin(REAL_TWOPI));
 	EXPECT_REALONE(math_sin(REAL_HALFPI));
 
 	EXPECT_REALONE(math_cos(0));
@@ -466,8 +466,7 @@ DECLARE_TEST(math, wrap) {
 	EXPECT_EQ(math_inc_wrap_uint32(42, 40, 42), 40);
 	EXPECT_EQ(math_inc_wrap_uint32(42, 40, 43), 43);
 
-	EXPECT_EQ(math_inc_wrap_uint64(0xFFFFFFFFFFFFFFFEULL, 0, 0xFFFFFFFFFFFFFFFFULL),
-	          0xFFFFFFFFFFFFFFFFULL);
+	EXPECT_EQ(math_inc_wrap_uint64(0xFFFFFFFFFFFFFFFEULL, 0, 0xFFFFFFFFFFFFFFFFULL), 0xFFFFFFFFFFFFFFFFULL);
 	EXPECT_EQ(math_inc_wrap_uint64(0xFFFFFFFFFFFFFFFFULL, 0, 0xFFFFFFFFFFFFFFFFULL), 0);
 	EXPECT_EQ(math_inc_wrap_uint64(1, 0, 1), 0);
 	EXPECT_EQ(math_inc_wrap_uint64(42, 40, 42), 40);
@@ -489,8 +488,8 @@ DECLARE_TEST(math, wrap) {
 	EXPECT_EQ(math_inc_wrap_int16(42, 40, 42), 40);
 	EXPECT_EQ(math_inc_wrap_int16(42, 40, 43), 43);
 
-	min32 = (int32_t)0x80000000L;//-2147483648
-	max32 = (int32_t)0x7FFFFFFFL;// 2147483647
+	min32 = (int32_t)0x80000000L;  //-2147483648
+	max32 = (int32_t)0x7FFFFFFFL;  // 2147483647
 	EXPECT_EQ(math_inc_wrap_int32(max32 - 1, min32, max32), max32);
 	EXPECT_EQ(math_inc_wrap_int32(max32, min32, max32), min32);
 	EXPECT_EQ(math_inc_wrap_int32(1, 0, 1), 0);
@@ -499,8 +498,8 @@ DECLARE_TEST(math, wrap) {
 	EXPECT_EQ(math_inc_wrap_int32(42, 40, 42), 40);
 	EXPECT_EQ(math_inc_wrap_int32(42, 40, 43), 43);
 
-	min64 = (int64_t)0x8000000000000000LL;//-9223372036854775808
-	max64 = (int64_t)0x7FFFFFFFFFFFFFFFLL;// 9223372036854775807
+	min64 = (int64_t)0x8000000000000000LL;  //-9223372036854775808
+	max64 = (int64_t)0x7FFFFFFFFFFFFFFFLL;  // 9223372036854775807
 	EXPECT_EQ(math_inc_wrap_int64(max64 - 1LL, min64, max64), max64);
 	EXPECT_EQ(math_inc_wrap_int64(max64, min64, max64), min64);
 	EXPECT_EQ(math_inc_wrap_int64(1, 0, 1), 0);
@@ -523,15 +522,13 @@ test_math_declare(void) {
 	ADD_TEST(math, wrap);
 }
 
-static test_suite_t test_math_suite = {
-	test_math_application,
-	test_math_memory_system,
-	test_math_config,
-	test_math_declare,
-	test_math_initialize,
-	test_math_finalize,
-	0
-};
+static test_suite_t test_math_suite = {test_math_application,
+                                       test_math_memory_system,
+                                       test_math_config,
+                                       test_math_declare,
+                                       test_math_initialize,
+                                       test_math_finalize,
+                                       0};
 
 #if BUILD_MONOLITHIC
 

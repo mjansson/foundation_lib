@@ -1,10 +1,10 @@
-/* main.c  -  Foundation hash test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation hash test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_hash_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation hash tests"));
 	app.short_name = string_const(STRING_CONST("test_hash"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -66,7 +66,7 @@ DECLARE_TEST(hash, store) {
 }
 
 DECLARE_TEST(hash, stability) {
-	//TODO: Implement a proper test instead of this crap
+	// TODO: Implement a proper test instead of this crap
 	size_t i, j, k, len;
 	hash_t lhash, rhash, rhashref;
 
@@ -106,8 +106,14 @@ DECLARE_TEST(hash, stability) {
 		char lhs[130], rhs[130];
 		len = i + 1;
 
-		lhs[0] = 'f'; lhs[1] = 'n'; lhs[2] = 'd'; lhs[3] = '_';
-		rhs[0] = 'f'; rhs[1] = 'n'; rhs[2] = 'd'; rhs[3] = '_';
+		lhs[0] = 'f';
+		lhs[1] = 'n';
+		lhs[2] = 'd';
+		lhs[3] = '_';
+		rhs[0] = 'f';
+		rhs[1] = 'n';
+		rhs[2] = 'd';
+		rhs[3] = '_';
 
 		for (k = 4; k < len; ++k)
 			lhs[k] = (char)random32_range(32, 128);
@@ -140,15 +146,13 @@ test_hash_declare(void) {
 	ADD_TEST(hash, stability);
 }
 
-static test_suite_t test_hash_suite = {
-	test_hash_application,
-	test_hash_memory_system,
-	test_hash_config,
-	test_hash_declare,
-	test_hash_initialize,
-	test_hash_finalize,
-	0
-};
+static test_suite_t test_hash_suite = {test_hash_application,
+                                       test_hash_memory_system,
+                                       test_hash_config,
+                                       test_hash_declare,
+                                       test_hash_initialize,
+                                       test_hash_finalize,
+                                       0};
 
 #if BUILD_MONOLITHIC
 

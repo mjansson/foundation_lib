@@ -1,10 +1,10 @@
-/* event.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* event.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -48,8 +48,7 @@ can be completed if in contention with another thread.
 \param payload   Event payload
 \param size      Event payload size */
 FOUNDATION_API void
-event_post(event_stream_t* stream, int id, object_t object, tick_t delivery,
-           const void* payload, size_t size);
+event_post(event_stream_t* stream, int id, object_t object, tick_t delivery, const void* payload, size_t size);
 
 /*! Post event to stream with multiple payload fragments. Each fragment must be a
 pointer and size pair of arguments, and terminated with a null pointer sentinel argument.
@@ -62,8 +61,8 @@ contention with another thread.
 \param payload   Event payload
 \param size      Event payload size */
 FOUNDATION_API void
-event_post_varg(event_stream_t* stream, int id, object_t object, tick_t delivery,
-                const void* payload, size_t size, ...) FOUNDATION_ATTRIBUTE(sentinel);
+event_post_varg(event_stream_t* stream, int id, object_t object, tick_t delivery, const void* payload, size_t size, ...)
+    FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Post event to stream with multiple payload fragments. Each fragment must be a
 pointer and size pair of arguments, and terminated with a null pointer sentinel argument.
@@ -77,8 +76,8 @@ contention with another thread.
 \param size      Event payload size
 \param list      Payload fragment argument list */
 FOUNDATION_API void
-event_post_vlist(event_stream_t* stream, int id, object_t object, tick_t delivery,
-                 const void* payload, size_t size, va_list list);
+event_post_vlist(event_stream_t* stream, int id, object_t object, tick_t delivery, const void* payload, size_t size,
+                 va_list list);
 
 /*! Get next event during procesing
 \param block Event block

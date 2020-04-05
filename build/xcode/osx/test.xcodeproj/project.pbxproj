@@ -2922,7 +2922,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0800;
-				ORGANIZATIONNAME = "Rampant Pixels AB";
+				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					CD83919A1C044FA8003C9154 = {
 						CreatedOnToolsVersion = 7.1;

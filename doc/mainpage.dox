@@ -152,7 +152,7 @@ The variables can be set in four different ways, in increasing order of priority
 <li>codesign.json file in root project directory, read at build time</li>
 </ul>
 
-Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.rampantpixels.foundation.\$(binname)' ) ]</code>.
+Passing variables to the generator in configure.py is a simple list of key-value pairs. For example <code>variables = [ ( 'bundleidentifier', 'com.maniccoder.foundation.\$(binname)' ) ]</code>.
 Any variables that have a identical name with different platform prefix can be passed without any platform name as in the example. The value will be applied to all platform specific variables.
 
 The build.json is a simple host-local file which can hold any variable values listed. The value should be put in enclosing groups for each platforms (see example). The values will be set after parsing the configure.py variables. An example build.json file:
@@ -341,7 +341,7 @@ suitable for including as a data block in a C source file (format "0x23, 0x20, 0
 
 \section plans Future plans
 Currently there are no plans for extra tools, but if you have a suggestion or request feel free to leave us a comment on
-our repository pages at https://github.com/rampantpixels/foundation_lib
+our repository pages at https://github.com/mjansson/foundation_lib
 
 
 \page overview_page Overview of the design principles and general api patterns
@@ -595,7 +595,7 @@ It also defines the application data with<br><code>application_t application;<br
 memset(&application, 0, sizeof(application));<br>
 application.name = string_const(STRING_CONST("Foundation example application"));<br>
 application.short_name = string_const(STRING_CONST("example"));<br>
-application.company = string_const(STRING_CONST("Rampant Pixels"));<br>
+application.company = string_const(STRING_CONST("My Company"));<br>
 application.version = foundation_version();<br>
 application.flags = APPLICATION_UTILITY;<br>
 application.exception_handler = example_exception_handler;</code><br>

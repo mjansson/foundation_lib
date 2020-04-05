@@ -1,10 +1,10 @@
-/* test.c  -  Foundation test library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* test.c  -  Foundation test library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,23 +19,23 @@ FOUNDATION_EXTERN test_suite_t
 test_suite_define(void);
 #endif
 
-test_suite_t          test_suite;
+test_suite_t test_suite;
 
 typedef struct {
-	string_const_t    name;
-	test_fn           fn;
+	string_const_t name;
+	test_fn fn;
 } test_case_t;
 
 typedef struct {
-	string_const_t    name;
-	test_case_t**     cases;
+	string_const_t name;
+	test_case_t** cases;
 } test_group_t;
 
 static test_group_t** _test_groups;
-static bool           _test_failed;
+static bool _test_failed;
 
 #if !BUILD_MONOLITHIC
-static bool           _test_exiting;
+static bool _test_exiting;
 
 static void*
 test_event_thread(void* arg) {
@@ -49,12 +49,12 @@ test_event_thread(void* arg) {
 		block = event_stream_process(system_event_stream());
 		while ((event = event_next(block, event))) {
 			switch (event->id) {
-			case FOUNDATIONEVENT_TERMINATE:
-				log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Terminating test due to event"));
-				process_exit(-2);
+				case FOUNDATIONEVENT_TERMINATE:
+					log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("Terminating test due to event"));
+					process_exit(-2);
 
-			default:
-				break;
+				default:
+					break;
 			}
 			test_event(event);
 		}
@@ -74,22 +74,19 @@ test_event(event_t* event) {
 #endif
 
 void
-test_add_test(test_fn fn, const char* group_name, size_t group_length, const char* test_name,
-              size_t test_length) {
+test_add_test(test_fn fn, const char* group_name, size_t group_length, const char* test_name, size_t test_length) {
 	unsigned int ig, gsize;
 	test_group_t* test_group = 0;
 	test_case_t* test_case = 0;
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
-		if (string_equal(_test_groups[ig]->name.str, _test_groups[ig]->name.length, group_name,
-		                 group_length)) {
+		if (string_equal(_test_groups[ig]->name.str, _test_groups[ig]->name.length, group_name, group_length)) {
 			test_group = _test_groups[ig];
 			break;
 		}
 	}
 
 	if (!test_group) {
-		test_group = memory_allocate(0, sizeof(test_group_t), 0,
-		                             MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		test_group = memory_allocate(0, sizeof(test_group_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		test_group->name = string_const(group_name, group_length);
 		array_push(_test_groups, test_group);
 	}
@@ -109,15 +106,14 @@ test_run(void) {
 	thread_t thread_event;
 #endif
 
-	log_infof(HASH_TEST, STRING_CONST("Running test suite: %.*s"),
-	          (int)test_suite.application().short_name.length, test_suite.application().short_name.str);
+	log_infof(HASH_TEST, STRING_CONST("Running test suite: %.*s"), (int)test_suite.application().short_name.length,
+	          test_suite.application().short_name.str);
 
 	_test_failed = false;
 	thread_set_main();
 
 #if !BUILD_MONOLITHIC
-	thread_initialize(&thread_event, test_event_thread, 0, STRING_CONST("event_thread"),
-	                  THREAD_PRIORITY_NORMAL, 0);
+	thread_initialize(&thread_event, test_event_thread, 0, STRING_CONST("event_thread"), THREAD_PRIORITY_NORMAL, 0);
 	thread_start(&thread_event);
 
 	while (!thread_is_started(&thread_event))
@@ -127,8 +123,7 @@ test_run(void) {
 #endif
 
 	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
-		log_infof(HASH_TEST, STRING_CONST("Running tests from group %.*s"),
-		          STRING_FORMAT(_test_groups[ig]->name));
+		log_infof(HASH_TEST, STRING_CONST("Running tests from group %.*s"), STRING_FORMAT(_test_groups[ig]->name));
 		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic) {
 			log_infof(HASH_TEST, STRING_CONST("  Running %.*s tests"),
 			          STRING_FORMAT(_test_groups[ig]->cases[ic]->name));
@@ -136,8 +131,7 @@ test_run(void) {
 			if (result != 0) {
 				log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("    FAILED"));
 				_test_failed = true;
-			}
-			else {
+			} else {
 				log_info(HASH_TEST, STRING_CONST("    PASSED"));
 			}
 #if BUILD_MONOLITHIC
@@ -158,8 +152,7 @@ exit:
 #endif
 
 	log_infof(HASH_TEST, STRING_CONST("Finished test suite: %.*s%.*s"),
-	          STRING_FORMAT(test_suite.application().short_name),
-	          !_test_failed ? 0 : 9, " (FAILED)");
+	          STRING_FORMAT(test_suite.application().short_name), !_test_failed ? 0 : 9, " (FAILED)");
 }
 
 static void
@@ -174,7 +167,7 @@ test_free(void) {
 	array_deallocate(_test_groups);
 	_test_groups = 0;
 
-	//Abort memory tracking if failed test(s)
+	// Abort memory tracking if failed test(s)
 	if (_test_failed)
 		memory_set_tracker(memory_tracker_none());
 }
@@ -215,8 +208,7 @@ test_set_suitable_working_directory(void) {
 		}
 
 		working_dir = path_directory_name(STRING_ARGS(working_dir));
-	}
-	while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
+	} while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
 
 	if (found) {
 		log_debugf(HASH_TEST, STRING_CONST("Set test working dir: %.*s"), STRING_FORMAT(working_dir));
@@ -258,8 +250,7 @@ main_initialize(void) {
 
 	test_suite = test_suite_define();
 
-	ret = foundation_initialize(test_suite.memory_system(), test_suite.application(),
-	                            test_suite.config());
+	ret = foundation_initialize(test_suite.memory_system(), test_suite.application(), test_suite.config());
 	if (ret == 0) {
 		cmdline = environment_command_line();
 		for (iarg = 0, asize = array_size(cmdline); iarg < asize; ++iarg) {
@@ -344,8 +335,8 @@ test_wait_for_threads_join(thread_t* threads, size_t num_threads) {
 		thread_join(threads + i);
 }
 
-void FOUNDATION_ATTRIBUTE(noreturn)
-test_exception_handler(const char* dump_file, size_t length) {
+void
+FOUNDATION_ATTRIBUTE(noreturn) test_exception_handler(const char* dump_file, size_t length) {
 	FOUNDATION_UNUSED(dump_file);
 	FOUNDATION_UNUSED(length);
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);

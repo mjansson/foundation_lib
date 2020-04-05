@@ -1,10 +1,10 @@
-/* environment.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* environment.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -63,8 +63,8 @@ FOUNDATION_API bool
 environment_set_current_working_directory(const char* path, size_t length);
 
 /*! Get application storage directory. Returned string must not be modified or deallocated.
-Application directory is platform specific and is a suitable path for preference and per-user storage.
-\return User home directory */
+Application directory is platform specific and is a suitable path for preference and per-user
+storage. \return User home directory */
 FOUNDATION_API string_const_t
 environment_application_directory(void);
 
@@ -90,17 +90,17 @@ environment_application(void);
 #if FOUNDATION_PLATFORM_APPLE
 
 /*! macOS and iOS only. Get the application bundle identifier.
-\param buffer Buffer receiving string
-\param length Size of buffer in bytes
-\return       Bundle identifier (stored in buffer) */
+\param buffer   Buffer receiving string
+\param capacity Size of buffer in bytes
+\return         Bundle identifier (stored in buffer) */
 FOUNDATION_API string_t
-environment_bundle_identifier(char* buffer, size_t length);
+environment_bundle_identifier(char* buffer, size_t capacity);
 
 /*! macOS and iOS only. Get the application bundle directory.
- \param buffer Buffer receiving string
- \param length Size of buffer in bytes
- \return       Bundle directory (stored in buffer) */
+ \param buffer   Buffer receiving string
+ \param capacity Size of buffer in bytes
+ \return         Bundle directory (stored in buffer) */
 FOUNDATION_API string_t
-environment_bundle_path(char* buffer, size_t length);
+environment_bundle_path(char* buffer, size_t capacity);
 
 #endif

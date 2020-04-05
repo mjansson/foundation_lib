@@ -1,10 +1,10 @@
-/* library.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* library.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -14,27 +14,27 @@
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/windows.h>
-#  define FOUNDATION_SUPPORT_LIBRARY_LOAD 1
+#include <foundation/windows.h>
+#define FOUNDATION_SUPPORT_LIBRARY_LOAD 1
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <dlfcn.h>
-#  define FOUNDATION_SUPPORT_LIBRARY_LOAD 1
+#include <dlfcn.h>
+#define FOUNDATION_SUPPORT_LIBRARY_LOAD 1
 #else
-#  define FOUNDATION_SUPPORT_LIBRARY_LOAD 0
+#define FOUNDATION_SUPPORT_LIBRARY_LOAD 0
 #endif
 
 #if FOUNDATION_SUPPORT_LIBRARY_LOAD
 
 struct library_t {
 	/*lint -e754 */
-	char    name[32];
-	hash_t  name_hash;
-	size_t  name_length;
+	char name[32];
+	hash_t name_hash;
+	size_t name_length;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	HANDLE  dll;
+	HANDLE dll;
 #elif FOUNDATION_PLATFORM_POSIX
-	void*   lib;
+	void* lib;
 #endif
 };
 
@@ -85,13 +85,13 @@ library_load(const char* name, size_t length) {
 	char buf[BUILD_MAX_PATHLEN];
 
 #if FOUNDATION_PLATFORM_APPLE
-#  define FOUNDATION_LIB_PRE "lib"
-#  define FOUNDATION_LIB_EXT ".dylib"
+#define FOUNDATION_LIB_PRE "lib"
+#define FOUNDATION_LIB_EXT ".dylib"
 #elif FOUNDATION_PLATFORM_WINDOWS
-#  define FOUNDATION_LIB_EXT ".dll"
+#define FOUNDATION_LIB_EXT ".dll"
 #else
-#  define FOUNDATION_LIB_PRE "lib"
-#  define FOUNDATION_LIB_EXT ".so"
+#define FOUNDATION_LIB_PRE "lib"
+#define FOUNDATION_LIB_EXT ".so"
 #endif
 
 	basename = name;
@@ -106,7 +106,7 @@ library_load(const char* name, size_t length) {
 		base_length = length - last_slash;
 	}
 
-	//Locate already loaded library, brute force iteration
+	// Locate already loaded library, brute force iteration
 	library = 0;
 	name_hash = string_hash(basename, base_length);
 	for (i = 0, size = objectmap_size(_library_map); i < size; ++i) {
@@ -122,7 +122,7 @@ library_load(const char* name, size_t length) {
 
 	error_context_push(STRING_CONST("loading library"), name, length);
 
-	//Try loading library
+	// Try loading library
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	dll = LoadLibraryA(name);
@@ -135,8 +135,8 @@ library_load(const char* name, size_t length) {
 	}
 	if (!dll) {
 		string_const_t errmsg = system_error_message(0);
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%.*s': %.*s"),
-		          (int)length, name, STRING_FORMAT(errmsg));
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%.*s': %.*s"), (int)length, name,
+		          STRING_FORMAT(errmsg));
 		error_context_pop();
 		return 0;
 	}
@@ -148,13 +148,12 @@ library_load(const char* name, size_t length) {
 		if (last_slash == STRING_NPOS) {
 			libname = string_format(buf, sizeof(buf), STRING_CONST(FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT),
 			                        (int)length, name);
-		}
-		else {
+		} else {
 			string_const_t path = path_directory_name(name, length);
 			string_const_t file = path_file_name(name, length);
-			libname = string_format(buf, sizeof(buf),
-			                        STRING_CONST("%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT),
-			                        (int)path.length, path.str, (int)file.length, file.str);
+			libname =
+			    string_format(buf, sizeof(buf), STRING_CONST("%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT),
+			                  (int)path.length, path.str, (int)file.length, file.str);
 		}
 		lib = dlopen(libname.str, RTLD_LAZY);
 	}
@@ -163,21 +162,20 @@ library_load(const char* name, size_t length) {
 		string_t libname;
 		string_const_t exe_dir = environment_executable_directory();
 		if (!string_ends_with(name, length, STRING_CONST(FOUNDATION_LIB_EXT))) {
-			libname = string_format(buf, sizeof(buf),
-			                        STRING_CONST("%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT),
-			                        STRING_FORMAT(exe_dir), (int)length, name);
-		}
-		else {
+			libname =
+			    string_format(buf, sizeof(buf), STRING_CONST("%.*s/" FOUNDATION_LIB_PRE "%.*s" FOUNDATION_LIB_EXT),
+			                  STRING_FORMAT(exe_dir), (int)length, name);
+		} else {
 			libname = string_format(buf, sizeof(buf), STRING_CONST("%.*s/" FOUNDATION_LIB_PRE "%.*s"),
 			                        STRING_FORMAT(exe_dir), (int)length, name);
 		}
 		lib = dlopen(libname.str, RTLD_LAZY);
 	}
-#  endif
+#endif
 
 	if (!lib) {
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load dynamic library '%.*s': %s"),
-		          (int)length, name, dlerror());
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load dynamic library '%.*s': %s"), (int)length, name,
+		          dlerror());
 		error_context_pop();
 		return 0;
 	}
@@ -191,15 +189,14 @@ library_load(const char* name, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 		dlclose(lib);
 #endif
-		log_errorf(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate new library '%.*s', map full"),
-		           (int)length, name);
+		log_errorf(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate new library '%.*s', map full"), (int)length,
+		           name);
 		error_context_pop();
 		return 0;
 	}
 	library = memory_allocate(0, sizeof(library_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	library->name_hash = name_hash;
-	library->name_length = string_copy(library->name, sizeof(library->name), basename,
-	                                   base_length).length;
+	library->name_length = string_copy(library->name, sizeof(library->name), basename, base_length).length;
 #if FOUNDATION_PLATFORM_WINDOWS
 	library->dll = dll;
 #elif FOUNDATION_PLATFORM_POSIX
@@ -268,8 +265,7 @@ object_t
 library_load(const char* name, size_t length) {
 	FOUNDATION_UNUSED(name);
 	FOUNDATION_UNUSED(length);
-	log_error(0, ERROR_NOT_IMPLEMENTED,
-	          STRING_CONST("Dynamic library loading not implemented for this platform"));
+	log_error(0, ERROR_NOT_IMPLEMENTED, STRING_CONST("Dynamic library loading not implemented for this platform"));
 	return 0;
 }
 

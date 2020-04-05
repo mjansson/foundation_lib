@@ -42,25 +42,16 @@ Platforms and architectures currently supported:
 * Raspberry Pi (ARMv6)
 
 
-Please consider our Patreon - <https://www.patreon.com/rampantpixels>
-
-
-The latest source code maintained by Rampant Pixels is always available at  
-<https://github.com/rampantpixels/foundation_lib>
-
-Pre-generated documentation in HTML format for the latest release can be found at  
-<http://rampantpixels.github.io/foundation_lib/doc>
+The latest source code maintained by Mattias Jansson is always available at  
+<https://github.com/mjansson/foundation_lib>
 
 Master branch is used for stable releases. Development is done in feature branches from the develop branch  
-<https://github.com/rampantpixels/foundation_lib/tree/develop>
+<https://github.com/mjansson/foundation_lib/tree/develop>
 
 Cross-platform build system uses Ninja  
 <https://ninja-build.org/>
 
-Test suite coverage:
-[![codecov.io](http://codecov.io/github/rampantpixels/foundation_lib/coverage.svg?branch=develop)](http://codecov.io/github/rampantpixels/foundation_lib?branch=develop)
-
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
 
-Created by Mattias Jansson / Rampant Pixels - <http://www.rampantpixels.com>
+Created by Mattias Jansson ([@maniccoder](https://twitter.com/maniccoder))  -  Support development through my [GitHub Sponsors page](https://github.com/sponsors/mjansson)

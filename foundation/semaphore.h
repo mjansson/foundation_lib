@@ -1,10 +1,10 @@
-/* semaphore.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* semaphore.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -35,8 +35,7 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value);
 \param value Initial value
 \return true if successful, false if error */
 FOUNDATION_API bool
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length,
-                           unsigned int value);
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value);
 
 /*! Finalize semaphore. The semaphore value must be >= than the value it was created with,
 or it will be considered to be still in use (on OSX/iOS targets this will cause a debug abort).

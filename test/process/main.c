@@ -1,10 +1,10 @@
-/* main.c  -  Foundation time test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation time test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -15,7 +15,7 @@
 #include <mock/mock.h>
 
 #if FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
+#include <foundation/posix.h>
 #endif
 
 static application_t
@@ -24,7 +24,7 @@ test_process_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation process tests"));
 	app.short_name = string_const(STRING_CONST("test_process"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -66,13 +66,13 @@ DECLARE_TEST(process, spawn) {
 	char line_buffer[512];
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_const_t prog = environment_variable(STRING_CONST("comspec"));
-	string_const_t args[] = { string_const(STRING_CONST("/C")), string_const(STRING_CONST("dir")), string_null() };
+	string_const_t args[] = {string_const(STRING_CONST("/C")), string_const(STRING_CONST("dir")), string_null()};
 #elif FOUNDATION_PLATFORM_POSIX
 	string_const_t prog = string_const(STRING_CONST("/bin/ls"));
-	string_const_t args[] = { string_const(STRING_CONST("-1")), string_const(STRING_CONST("-la")), string_null() };
+	string_const_t args[] = {string_const(STRING_CONST("-1")), string_const(STRING_CONST("-la")), string_null()};
 #else
 	string_const_t prog = string_const(STRING_CONST("notimplemented"));
-	string_const_t args[] = { string_const(STRING_CONST("")), string_const(STRING_CONST("")), string_null() };
+	string_const_t args[] = {string_const(STRING_CONST("")), string_const(STRING_CONST("")), string_null()};
 #endif
 	string_t tmp_path;
 	string_t full_path;
@@ -85,8 +85,7 @@ DECLARE_TEST(process, spawn) {
 
 	fname = string_from_uint_static((uint32_t)random32(), false, 0, '0');
 	tmp_path = path_allocate_concat_varg(STRING_ARGS(environment_temporary_directory()),
-	                                     STRING_CONST("path with space"),
-	                                     STRING_ARGS(fname), nullptr);
+	                                     STRING_CONST("path with space"), STRING_ARGS(fname), nullptr);
 
 	EXPECT_TRUE(fs_make_directory(STRING_ARGS(tmp_path)));
 
@@ -137,8 +136,7 @@ DECLARE_TEST(process, spawn) {
 				found_file = true;
 			log_debugf(HASH_TEST, STRING_CONST("%.*s"), STRING_FORMAT(fline));
 		}
-	}
-	while (!stream_eos(out));
+	} while (!stream_eos(out));
 
 	EXPECT_INTGE(num_lines, 4);
 	EXPECT_TRUE(found_expected);
@@ -146,8 +144,7 @@ DECLARE_TEST(process, spawn) {
 
 	do {
 		exit_code = process_wait(proc);
-	}
-	while (exit_code == PROCESS_STILL_ACTIVE);
+	} while (exit_code == PROCESS_STILL_ACTIVE);
 
 	EXPECT_EQ(exit_code, 0);
 
@@ -188,15 +185,27 @@ DECLARE_TEST(process, spawn) {
 
 DECLARE_TEST(process, kill) {
 	process_t* proc;
-	string_const_t args[] = {
-		string_const(STRING_CONST("wait for kill")), string_const(STRING_CONST("another arg")),
-		string_const(STRING_CONST("1234")), string_const(STRING_CONST("--")), string_const(STRING_CONST("----")),
-		string_const(STRING_CONST("foo")), string_const(STRING_CONST("bar")), string_const(STRING_CONST("--foo--")),
-		string_const(STRING_CONST("- -- - -- -")), string_const(STRING_CONST("qwerty")), string_const(STRING_CONST("_!\"\"'")),
-		string_const(STRING_CONST("   ")), string_const(STRING_CONST("+-")), string_const(STRING_CONST(" --")),
-		string_const(STRING_CONST("^	")), string_const(STRING_CONST("\\")), string_const(STRING_CONST("#$|")), 
-		string_const(STRING_CONST("<< >>")), string_const(STRING_CONST(">/dev/null")), string_const(STRING_CONST("lastarg")),
-		string_null() };
+	string_const_t args[] = {string_const(STRING_CONST("wait for kill")),
+	                         string_const(STRING_CONST("another arg")),
+	                         string_const(STRING_CONST("1234")),
+	                         string_const(STRING_CONST("--")),
+	                         string_const(STRING_CONST("----")),
+	                         string_const(STRING_CONST("foo")),
+	                         string_const(STRING_CONST("bar")),
+	                         string_const(STRING_CONST("--foo--")),
+	                         string_const(STRING_CONST("- -- - -- -")),
+	                         string_const(STRING_CONST("qwerty")),
+	                         string_const(STRING_CONST("_!\"\"'")),
+	                         string_const(STRING_CONST("   ")),
+	                         string_const(STRING_CONST("+-")),
+	                         string_const(STRING_CONST(" --")),
+	                         string_const(STRING_CONST("^	")),
+	                         string_const(STRING_CONST("\\")),
+	                         string_const(STRING_CONST("#$|")),
+	                         string_const(STRING_CONST("<< >>")),
+	                         string_const(STRING_CONST(">/dev/null")),
+	                         string_const(STRING_CONST("lastarg")),
+	                         string_null()};
 	int ret;
 
 	if ((system_platform() == PLATFORM_IOS) || (system_platform() == PLATFORM_ANDROID))
@@ -257,7 +266,7 @@ DECLARE_TEST(process, failure) {
 
 	process_deallocate(0);
 
-	string_const_t args[] = { string_const(STRING_CONST("wait for kill")), string_null() };
+	string_const_t args[] = {string_const(STRING_CONST("wait for kill")), string_null()};
 
 	process_initialize(&proc);
 	process_set_working_directory(&proc, STRING_ARGS(environment_current_working_directory()));
@@ -322,15 +331,13 @@ test_process_declare(void) {
 	ADD_TEST(process, failure);
 }
 
-static test_suite_t test_process_suite = {
-	test_process_application,
-	test_process_memory_system,
-	test_process_config,
-	test_process_declare,
-	test_process_initialize,
-	test_process_finalize,
-	0
-};
+static test_suite_t test_process_suite = {test_process_application,
+                                          test_process_memory_system,
+                                          test_process_config,
+                                          test_process_declare,
+                                          test_process_initialize,
+                                          test_process_finalize,
+                                          0};
 
 #if BUILD_MONOLITHIC
 

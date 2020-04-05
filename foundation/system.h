@@ -1,10 +1,10 @@
-/* system.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* system.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -140,8 +140,8 @@ system_process_events(void);
 \param cancel_button Flag to trigger a cancel button as well as the default ok button
 \return true if ok button pressed, false if cancel button pressed */
 FOUNDATION_API bool
-system_message_box(const char* title, size_t title_length, const char* message,
-                   size_t message_length, bool cancel_button);
+system_message_box(const char* title, size_t title_length, const char* message, size_t message_length,
+                   bool cancel_button);
 
 /*! Get system event stream.
 \return System event stream */

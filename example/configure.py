@@ -18,7 +18,7 @@ libs = ['foundation']
 includepaths = ['..'] # For foundation library
 libpaths = ['..'] # For foundation library
 
-generator = generator.Generator(project = project, variables = [('bundleidentifier', 'com.rampantpixels.foundation.$(binname)')])
+generator = generator.Generator(project = project, variables = [('bundleidentifier', 'com.maniccoder.foundation.$(binname)')])
 
 if generator.target.is_macosx() or generator.target.is_ios() or generator.target.is_android() or generator.target.is_tizen():
   resources = []
@@ -36,7 +36,7 @@ if generator.target.is_macosx() or generator.target.is_ios() or generator.target
       os.path.join('drawable-ldpi', 'icon.png'), os.path.join('drawable-mdpi', 'icon.png'), os.path.join('drawable-hdpi', 'icon.png'),
       os.path.join('drawable-xhdpi', 'icon.png'), os.path.join('drawable-xxhdpi', 'icon.png'), os.path.join('drawable-xxxhdpi', 'icon.png')
     ]]
-    extrasources = [os.path.join('android', 'java', 'com', 'rampantpixels', 'foundation', 'example', item) for item in [
+    extrasources = [os.path.join('android', 'java', 'com', 'maniccoder', 'foundation', 'example', item) for item in [
       'ExampleActivity.java'
     ]]
   elif generator.target.is_tizen():

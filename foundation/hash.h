@@ -1,10 +1,10 @@
-/* hash.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* hash.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -49,12 +49,9 @@ static_hash(const void* key, size_t len, hash_t value);
 
 #else
 
-#  define static_hash( key, len, value ) \
-  ( (void)sizeof( key ), (void)sizeof( len ), \
-    (hash_t)(value) )
+#define static_hash(key, len, value) ((void)sizeof(key), (void)sizeof(len), (hash_t)(value))
 
-#  define hash_to_string( value ) \
-  ( (void)sizeof( value ), (const char*)0 )
+#define hash_to_string(value) ((void)sizeof(value), (const char*)0)
 
 #endif
 
@@ -65,8 +62,7 @@ see the hashstrings.txt and corresponding hashstrings.h header
 \param key    Key string
 \param len    Length of key in bytes
 \param value  Hash value */
-#define static_hash_string( key, len, value ) \
-  static_hash( key, len, (hash_t)value )
+#define static_hash_string(key, len, value) static_hash(key, len, (hash_t)value)
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
@@ -75,12 +71,11 @@ _static_hash_store(const void* key, size_t len, hash_t value);
 
 static FOUNDATION_FORCEINLINE hash_t
 static_hash(const void* key, size_t len, hash_t value) {
-  hash_t ref = hash(key, len);
-  FOUNDATION_ASSERT_MSGFORMAT(!value || (ref == value),
-                              "Static hash fail: %s -> 0x%" PRIx64 ", expected 0x%" PRIx64,
-                              (const char*)key, ref, value);
-  _static_hash_store(key, len, ref);
-  return ref;
+	hash_t ref = hash(key, len);
+	FOUNDATION_ASSERT_MSGFORMAT(!value || (ref == value), "Static hash fail: %s -> 0x%" PRIx64 ", expected 0x%" PRIx64,
+	                            (const char*)key, ref, value);
+	_static_hash_store(key, len, ref);
+	return ref;
 }
 
 #endif

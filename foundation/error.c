@@ -1,10 +1,10 @@
-/* error.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* error.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-FOUNDATION_DECLARE_THREAD_LOCAL(error_t, error, 0)   // 0 = ERROR_NONE
+FOUNDATION_DECLARE_THREAD_LOCAL(error_t, error, 0)  // 0 = ERROR_NONE
 FOUNDATION_DECLARE_THREAD_LOCAL(error_handler_fn, error_handler, 0)
 
 error_t
@@ -57,10 +57,10 @@ _error_context_push(const char* name, size_t name_length, const char* data, size
 		context = memory_allocate(0, capacity, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_error_context(context);
 	}
-	context->frame[ context->depth ].name.str = name ? name : "<something>";
-	context->frame[ context->depth ].name.length = name ? name_length : 11;
-	context->frame[ context->depth ].data.str = data ? data : "<nothing>";
-	context->frame[ context->depth ].data.length = data ? data_length : 9;
+	context->frame[context->depth].name.str = name ? name : "<something>";
+	context->frame[context->depth].name.length = name ? name_length : 11;
+	context->frame[context->depth].data.str = data ? data : "<nothing>";
+	context->frame[context->depth].data.length = data ? data_length : 9;
 	if (context->depth < foundation_config().error_context_depth - 1)
 		++context->depth;
 }
@@ -82,7 +82,7 @@ _error_context_clear(void) {
 string_t
 _error_context_buffer(char* buffer, size_t size) {
 	error_context_t* context = get_thread_error_context();
-	string_t result = { buffer, size };
+	string_t result = {buffer, size};
 	if (context) {
 		size_t i;
 		string_t line;
@@ -93,16 +93,12 @@ _error_context_buffer(char* buffer, size_t size) {
 				--size;
 			}
 
-			line = string_format(buffer, size, STRING_CONST("When %.*s:"),
-			                     STRING_FORMAT(frame->name));
-
+			line = string_format(buffer, size, STRING_CONST("When %.*s:"), STRING_FORMAT(frame->name));
 			buffer += line.length;
 			size -= line.length;
 
 			if (frame->data.length) {
-				line = string_format(buffer, size, STRING_CONST(" %.*s"),
-				                     STRING_FORMAT(frame->data));
-
+				line = string_format(buffer, size, STRING_CONST(" %.*s"), STRING_FORMAT(frame->data));
 				buffer += line.length;
 				size -= line.length;
 			}

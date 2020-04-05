@@ -1,10 +1,10 @@
-/* main.c  -  Foundation system test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation system test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_system_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation system tests"));
 	app.short_name = string_const(STRING_CONST("test_system"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -85,7 +85,7 @@ DECLARE_TEST(system, builtin) {
 #elif FOUNDATION_PLATFORM_TIZEN
 	EXPECT_EQ(system_platform(), PLATFORM_TIZEN);
 #else
-#  error Unknown platform
+#error Unknown platform
 #endif
 
 #if FOUNDATION_ARCH_X86_64
@@ -113,7 +113,7 @@ DECLARE_TEST(system, builtin) {
 #elif FOUNDATION_ARCH_GENERIC
 	EXPECT_EQ(system_architecture(), ARCHITECTURE_GENERIC);
 #else
-#  error Unknown architecture
+#error Unknown architecture
 #endif
 
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
@@ -153,14 +153,13 @@ DECLARE_TEST(system, builtin) {
 	EXPECT_EQ(system_locale_string(buffer, 2).length, 2);
 
 	system_set_locale(LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_SWEDISH, COUNTRY_SWEDEN));
-	EXPECT_EQ_MSGFORMAT(system_language(), LANGUAGE_SWEDISH,
-	                    "language change was not picked up: 0x%04x", system_language());
-	EXPECT_EQ_MSGFORMAT(system_country(), COUNTRY_SWEDEN,
-	                    "country change was not picked up: 0x%04x", system_country());
+	EXPECT_EQ_MSGFORMAT(system_language(), LANGUAGE_SWEDISH, "language change was not picked up: 0x%04x",
+	                    system_language());
+	EXPECT_EQ_MSGFORMAT(system_country(), COUNTRY_SWEDEN, "country change was not picked up: 0x%04x", system_country());
 	EXPECT_EQ_MSGFORMAT(system_locale(), LOCALE_FROM_LANGUAGE_COUNTRY(LANGUAGE_SWEDISH, COUNTRY_SWEDEN),
 	                    "locale change was not picked up: 0x%08x", system_locale());
-	EXPECT_STRINGEQ_MSGFORMAT(system_locale_string(buffer, sizeof(buffer)),
-	                          string_const(STRING_CONST("svSE")), "locale change was not picked up: %s", buffer);
+	EXPECT_STRINGEQ_MSGFORMAT(system_locale_string(buffer, sizeof(buffer)), string_const(STRING_CONST("svSE")),
+	                          "locale change was not picked up: %s", buffer);
 
 	orientation = system_device_orientation();
 	system_set_device_orientation(DEVICEORIENTATION_PORTRAIT);
@@ -197,8 +196,7 @@ DECLARE_TEST(system, thread) {
 	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
 
 	for (ith = 0; ith < num_threads; ++ith)
-		thread_initialize(&thread[ith], tls_thread, nullptr,
-		                  STRING_CONST("tls_thread"), THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&thread[ith], tls_thread, nullptr, STRING_CONST("tls_thread"), THREAD_PRIORITY_NORMAL, 0);
 	for (ith = 0; ith < num_threads; ++ith)
 		thread_start(&thread[ith]);
 
@@ -222,15 +220,13 @@ test_system_declare(void) {
 	ADD_TEST(system, thread);
 }
 
-static test_suite_t test_system_suite = {
-	test_system_application,
-	test_system_memory_system,
-	test_system_config,
-	test_system_declare,
-	test_system_initialize,
-	test_system_finalize,
-	0
-};
+static test_suite_t test_system_suite = {test_system_application,
+                                         test_system_memory_system,
+                                         test_system_config,
+                                         test_system_declare,
+                                         test_system_initialize,
+                                         test_system_finalize,
+                                         0};
 
 #if BUILD_MONOLITHIC
 

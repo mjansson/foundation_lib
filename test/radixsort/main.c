@@ -1,10 +1,10 @@
-/* main.c  -  Foundation radixsort test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation radixsort test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_radixsort_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation radixsort tests"));
 	app.short_name = string_const(STRING_CONST("test_radixsort"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -97,10 +97,8 @@ DECLARE_TEST(radixsort, sort_int32_index16) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -145,10 +143,8 @@ DECLARE_TEST(radixsort, sort_int32_index16) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -214,10 +210,8 @@ DECLARE_TEST(radixsort, sort_int32_index32) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -262,10 +256,8 @@ DECLARE_TEST(radixsort, sort_int32_index32) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -331,10 +323,8 @@ DECLARE_TEST(radixsort, sort_int64_index16) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -379,10 +369,8 @@ DECLARE_TEST(radixsort, sort_int64_index16) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -448,10 +436,8 @@ DECLARE_TEST(radixsort, sort_int64_index32) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -496,10 +482,8 @@ DECLARE_TEST(radixsort, sort_int64_index32) {
 		sindex_int = radixsort_sort(sort_int, arr_int, num);
 		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_int[0]];
 		++uint_index_count[sindex_uint[0]];
@@ -568,10 +552,8 @@ DECLARE_TEST(radixsort, sort_real_index16) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];
@@ -604,10 +586,8 @@ DECLARE_TEST(radixsort, sort_real_index16) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];
@@ -653,10 +633,8 @@ DECLARE_TEST(radixsort, sort_real_index16) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];
@@ -689,10 +667,8 @@ DECLARE_TEST(radixsort, sort_real_index16) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];
@@ -761,10 +737,8 @@ DECLARE_TEST(radixsort, sort_real_index32) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];
@@ -797,10 +771,8 @@ DECLARE_TEST(radixsort, sort_real_index32) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];
@@ -846,10 +818,8 @@ DECLARE_TEST(radixsort, sort_real_index32) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];
@@ -882,10 +852,8 @@ DECLARE_TEST(radixsort, sort_real_index32) {
 		sindex_32 = radixsort_sort(sort_32, arr_32, num);
 		sindex_64 = radixsort_sort(sort_64, arr_64, num);
 
-		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                  MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0,
-		                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		int_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 		++int_index_count[sindex_32[0]];
 		++uint_index_count[sindex_64[0]];

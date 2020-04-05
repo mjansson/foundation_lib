@@ -1,10 +1,10 @@
-/* hash.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* hash.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -18,10 +18,10 @@
 // domain. The author disclaims copyright to the original source code.
 
 #if FOUNDATION_COMPILER_MSVC
-#  include <stdlib.h>
+#include <stdlib.h>
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-#  undef _rotl64
-#  define _rotl64(a, bits) (((a) << (uint64_t)(bits)) | ((a) >> (64ULL - (uint64_t)(bits))))
+#undef _rotl64
+#define _rotl64(a, bits) (((a) << (uint64_t)(bits)) | ((a) >> (64ULL - (uint64_t)(bits))))
 #endif
 
 #define HASH_SEED 0xbaadf00d
@@ -54,22 +54,22 @@ getblock_nonaligned(const char* FOUNDATION_RESTRICT p, size_t i) {
 
 //----------
 // Block mix - combine the key bits with the hash bits and scramble everything
-#define bmix64( h1, h2, k1, k2, c1, c2 ) \
-	k1 *= c1; \
-	k1  = _rotl64(k1,23); \
-	k1 *= c2; \
-	h1 ^= k1; \
-	h1 += h2; \
-	h2 = _rotl64(h2,41); \
-	k2 *= c2; \
-	k2  = _rotl64(k2,23); \
-	k2 *= c1; \
-	h2 ^= k2; \
-	h2 += h1; \
-	h1 = h1*3+0x52dce729; \
-	h2 = h2*3+0x38495ab5; \
-	c1 = c1*5+0x7b7d159c; \
-	c2 = c2*5+0x6bce6396
+#define bmix64(h1, h2, k1, k2, c1, c2) \
+	k1 *= c1;                          \
+	k1 = _rotl64(k1, 23);              \
+	k1 *= c2;                          \
+	h1 ^= k1;                          \
+	h1 += h2;                          \
+	h2 = _rotl64(h2, 41);              \
+	k2 *= c2;                          \
+	k2 = _rotl64(k2, 23);              \
+	k2 *= c1;                          \
+	h2 ^= k2;                          \
+	h2 += h1;                          \
+	h1 = h1 * 3 + 0x52dce729;          \
+	h2 = h2 * 3 + 0x38495ab5;          \
+	c1 = c1 * 5 + 0x7b7d159c;          \
+	c2 = c2 * 5 + 0x6bce6396
 
 //----------
 // Finalization mix - avalanches all bits to within 0.05% bias
@@ -131,23 +131,38 @@ hash(const void* key, size_t len) {
 	k2 = 0;
 
 	switch (len & 15) { /*lint -save -e616 -e825 -e744 */
-	case 15: k2 ^= ((uint64_t)tail[14]) << 48;
-	case 14: k2 ^= ((uint64_t)tail[13]) << 40;
-	case 13: k2 ^= ((uint64_t)tail[12]) << 32;
-	case 12: k2 ^= ((uint64_t)tail[11]) << 24;
-	case 11: k2 ^= ((uint64_t)tail[10]) << 16;
-	case 10: k2 ^= ((uint64_t)tail[ 9]) << 8;
-	case  9: k2 ^= ((uint64_t)tail[ 8]);
+		case 15:
+			k2 ^= ((uint64_t)tail[14]) << 48;
+		case 14:
+			k2 ^= ((uint64_t)tail[13]) << 40;
+		case 13:
+			k2 ^= ((uint64_t)tail[12]) << 32;
+		case 12:
+			k2 ^= ((uint64_t)tail[11]) << 24;
+		case 11:
+			k2 ^= ((uint64_t)tail[10]) << 16;
+		case 10:
+			k2 ^= ((uint64_t)tail[9]) << 8;
+		case 9:
+			k2 ^= ((uint64_t)tail[8]);
 
-	case  8: k1 ^= ((uint64_t)tail[ 7]) << 56;
-	case  7: k1 ^= ((uint64_t)tail[ 6]) << 48;
-	case  6: k1 ^= ((uint64_t)tail[ 5]) << 40;
-	case  5: k1 ^= ((uint64_t)tail[ 4]) << 32;
-	case  4: k1 ^= ((uint64_t)tail[ 3]) << 24;
-	case  3: k1 ^= ((uint64_t)tail[ 2]) << 16;
-	case  2: k1 ^= ((uint64_t)tail[ 1]) << 8;
-	case  1: k1 ^= ((uint64_t)tail[ 0]);
-		bmix64(h1, h2, k1, k2, c1, c2);
+		case 8:
+			k1 ^= ((uint64_t)tail[7]) << 56;
+		case 7:
+			k1 ^= ((uint64_t)tail[6]) << 48;
+		case 6:
+			k1 ^= ((uint64_t)tail[5]) << 40;
+		case 5:
+			k1 ^= ((uint64_t)tail[4]) << 32;
+		case 4:
+			k1 ^= ((uint64_t)tail[3]) << 24;
+		case 3:
+			k1 ^= ((uint64_t)tail[2]) << 16;
+		case 2:
+			k1 ^= ((uint64_t)tail[1]) << 8;
+		case 1:
+			k1 ^= ((uint64_t)tail[0]);
+			bmix64(h1, h2, k1, k2, c1, c2);
 	} /*lint -restore */
 
 	//----------
@@ -170,7 +185,6 @@ hash(const void* key, size_t len) {
 	return h1;
 }
 
-
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
 static hashtable64_t* _hash_lookup;
@@ -185,7 +199,8 @@ _static_hash_initialize(void) {
 void
 _static_hash_finalize(void) {
 	size_t slot;
-	if (_hash_lookup) for (slot = 0; slot < foundation_config().hash_store_size + 1; ++slot) {
+	if (_hash_lookup)
+		for (slot = 0; slot < foundation_config().hash_store_size + 1; ++slot) {
 			char* str = (char*)((uintptr_t)hashtable64_raw(_hash_lookup, slot));
 			if (str)
 				string_deallocate(str);
@@ -204,8 +219,7 @@ _static_hash_store(const void* key, size_t len, hash_t value) {
 
 	stored = (char*)((uintptr_t)hashtable64_get(_hash_lookup, value));
 	if (stored) {
-		FOUNDATION_ASSERT_MSG(string_equal(stored, string_length(stored), key, len),
-		                      "Static hash collision");
+		FOUNDATION_ASSERT_MSG(string_equal(stored, string_length(stored), key, len), "Static hash collision");
 		FOUNDATION_ASSERT_MSG(string_length(stored) == len, "Static hash collision");
 		return;
 	}

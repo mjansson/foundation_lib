@@ -1,10 +1,10 @@
-/* memory.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* memory.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -23,8 +23,8 @@ Memory allocation/deallocation can be tracked with memory_set_tracker if the bui
 at compile time.
 
 Memory can be tracked by context, set as a hash value (usually a static string hash) if the build
-configuration #BUILD_ENABLE_MEMORY_CONTEXT is set to 1. If not, all memory context calls are statically
-removed and context 0 is used everywhere. Memory contexts are stored per thread. */
+configuration #BUILD_ENABLE_MEMORY_CONTEXT is set to 1. If not, all memory context calls are
+statically removed and context 0 is used everywhere. Memory contexts are stored per thread. */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
@@ -131,9 +131,16 @@ memory_statistics(void);
 
 #if !BUILD_ENABLE_MEMORY_CONTEXT
 
-#define memory_context_push(context) /*lint -save -e506 -e751 */ do { (void)sizeof( context ); } while(0) /*lint -restore -e506 -e751 */
-#define memory_context_pop() do { /* */ } while(0)
+#define memory_context_push(context) /*lint -save -e506 -e751 */ \
+	do {                                                         \
+		(void)sizeof(context);                                   \
+	} while (0) /*lint -restore -e506 -e751 */
+#define memory_context_pop() \
+	do { /* */               \
+	} while (0)
 #define memory_context() 0
-#define memory_context_thread_finalize() do { /* */ } while(0)
+#define memory_context_thread_finalize() \
+	do { /* */                           \
+	} while (0)
 
 #endif

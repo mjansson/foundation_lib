@@ -1,10 +1,10 @@
-/* atomic.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* atomic.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -32,47 +32,53 @@ system */
 #include <foundation/types.h>
 
 #if !FOUNDATION_COMPILER_MSVC
-#  include <stdatomic.h>
+#include <stdatomic.h>
 #endif
 
 /*! Atomically load 32 bit value
 \param src   Value
-\param order The memory synchronization order for this operation. The order parameter cannot be memory_order_release or memory_order_acq_rel
+\param order The memory synchronization order for this operation. The order parameter cannot be
+memory_order_release or memory_order_acq_rel
 \return      Current value */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_load32(const atomic32_t* src, memory_order order);
 
 /*! Atomically load 64 bit value
 \param src   Value
-\param order The memory synchronization order for this operation. The order parameter cannot be memory_order_release or memory_order_acq_rel
+\param order The memory synchronization order for this operation. The order parameter cannot be
+memory_order_release or memory_order_acq_rel
 \return      Current value */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_load64(const atomic64_t* src, memory_order order);
 
 /*! Atomically load pointer value
 \param src   Value
-\param order The memory synchronization order for this operation. The order parameter cannot be memory_order_release or memory_order_acq_rel
+\param order The memory synchronization order for this operation. The order parameter cannot be
+memory_order_release or memory_order_acq_rel
 \return      Current value */
 static FOUNDATION_FORCEINLINE void*
 atomic_load_ptr(const atomicptr_t* src, memory_order order);
 
 /*! Atomically store 32 bit value
 \param dst   Target
-\param order The memory synchronization order for this operation. The order argument cannot be memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
+\param order The memory synchronization order for this operation. The order argument cannot be
+memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_store32(atomic32_t* dst, int32_t val, memory_order order);
 
 /*! Atomically store 64 bit value
 \param dst   Target
-\param order The memory synchronization order for this operation. The order argument cannot be memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
+\param order The memory synchronization order for this operation. The order argument cannot be
+memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_store64(atomic64_t* dst, int64_t val, memory_order order);
 
 /*! Atomically store pointer value
 \param dst   Target
-\param order The memory synchronization order for this operation. The order argument cannot be memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
+\param order The memory synchronization order for this operation. The order argument cannot be
+memory_order_acquire, memory_order_consume, or memory_order_acq_rel.
 \param val   Value to store */
 static FOUNDATION_FORCEINLINE void
 atomic_store_ptr(atomicptr_t* dst, void* val, memory_order order);
@@ -144,10 +150,13 @@ of memory referred to by expected and object are equal, it might return false.
 \param dst   Value to change
 \param val   Value to set
 \param ref   Reference value
-\param success The memory synchronization order for for the read-modify-write operation if the comparison succeeds
-\param failure The memory synchronization order for the load operation if the comparison fails. This parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a memory synchronization order stronger than success
-\return      true if operation was successful and new value stored,
-             false if comparison failed and value was unchanged */
+\param success The memory synchronization order for for the read-modify-write operation if the
+comparison succeeds
+\param failure The memory synchronization order for the load operation if the comparison fails. This
+parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a
+memory synchronization order stronger than success
+\return      true if operation was successful and new value stored, false if comparison failed and
+value was unchanged */
 static FOUNDATION_FORCEINLINE bool
 atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref, memory_order success, memory_order failure);
 
@@ -158,10 +167,13 @@ of memory referred to by expected and object are equal, it might return false.
 \param dst   Value to change
 \param val   Value to set
 \param ref   Reference value
-\param success The memory synchronization order for for the read-modify-write operation if the comparison succeeds
-\param failure The memory synchronization order for the load operation if the comparison fails. This parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a memory synchronization order stronger than success
-\return      true if operation was successful and new value stored,
-             false if comparison failed and value was unchanged */
+\param success The memory synchronization order for for the read-modify-write operation if the
+comparison succeeds
+\param failure The memory synchronization order for the load operation if the comparison fails. This
+parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a
+memory synchronization order stronger than success
+\return      true if operation was successful and new value stored, false if comparison failed and
+value was unchanged */
 static FOUNDATION_FORCEINLINE bool
 atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref, memory_order success, memory_order failure);
 
@@ -172,10 +184,13 @@ of memory referred to by expected and object are equal, it might return false.
 \param dst   Value to change
 \param val   Value to set
 \param ref   Reference value
-\param success The memory synchronization order for for the read-modify-write operation if the comparison succeeds
-\param failure The memory synchronization order for the load operation if the comparison fails. This parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a memory synchronization order stronger than success
- jhn        llkl,..,,,,,,,,,,yhmgvgvvok,,b     																		\return      true if operation was successful and new value stored,
-             false if comparison failed and value was unchanged */
+\param success The memory synchronization order for for the read-modify-write operation if the
+comparison succeeds
+\param failure The memory synchronization order for the load operation if the comparison fails. This
+parameter cannot be memory_order_release or memory_order_acq_rel. You cannot specify it with a
+memory synchronization order stronger than success
+\return      true if operation was successful and new value stored, false if comparison failed and
+value was unchanged */
 static FOUNDATION_FORCEINLINE bool
 atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref, memory_order success, memory_order failure);
 
@@ -218,8 +233,8 @@ atomic_thread_fence_sequentially_consistent(void);
 #if FOUNDATION_COMPILER_CLANG
 // Really, atomic load operations should be const-able
 // C atomic_load_explicit(const volatile A* object, memory_order order);
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wcast-qual"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-qual"
 
 static FOUNDATION_FORCEINLINE int32_t
 atomic_load32(const atomic32_t* src, memory_order order) {
@@ -236,7 +251,7 @@ atomic_load_ptr(const atomicptr_t* src, memory_order order) {
 	return atomic_load_explicit((atomicptr_t*)src, order);
 }
 
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #else
 
 static FOUNDATION_FORCEINLINE int32_t
@@ -404,7 +419,7 @@ atomic_store32(atomic32_t* dst, int32_t val, memory_order order) {
 static FOUNDATION_FORCEINLINE void
 atomic_store64(atomic64_t* dst, int64_t val, memory_order order) {
 #if FOUNDATION_ARCH_X86
-#  pragma warning(disable : 4731)
+#pragma warning(disable : 4731)
 	__asm {
 		push ebx;
 		mov esi, dst;
@@ -418,8 +433,7 @@ atomic_store64(atomic64_t* dst, int64_t val, memory_order order) {
 #else
 	dst->nonatomic = val;
 #endif
-	if (order >= memory_order_release)
-		_ReadWriteBarrier();
+	if (order >= memory_order_release) _ReadWriteBarrier();
 }
 
 static FOUNDATION_FORCEINLINE void
@@ -459,10 +473,11 @@ atomic_exchange_and_add64(atomic64_t* val, int64_t add, memory_order order) {
 	FOUNDATION_UNUSED(order);
 #if FOUNDATION_ARCH_X86
 	long long ref;
-	do { ref = val->nonatomic; }
-	while (_InterlockedCompareExchange64((volatile long long*)&val->nonatomic, ref + add, ref) != ref);
+	do {
+		ref = val->nonatomic;
+	} while (_InterlockedCompareExchange64((volatile long long*)&val->nonatomic, ref + add, ref) != ref);
 	return ref;
-#else //X86_64
+#else  // X86_64
 	return _InterlockedExchangeAdd64(&val->nonatomic, add);
 #endif
 }
@@ -493,16 +508,14 @@ static FOUNDATION_FORCEINLINE bool
 atomic_cas32(atomic32_t* dst, int32_t val, int32_t ref, memory_order success, memory_order failure) {
 	FOUNDATION_UNUSED(success);
 	FOUNDATION_UNUSED(failure);
-	return (_InterlockedCompareExchange((volatile long*)&dst->nonatomic, val,
-	                                    ref) == ref) ? true : false;
+	return (_InterlockedCompareExchange((volatile long*)&dst->nonatomic, val, ref) == ref) ? true : false;
 }
 
 static FOUNDATION_FORCEINLINE bool
 atomic_cas64(atomic64_t* dst, int64_t val, int64_t ref, memory_order success, memory_order failure) {
 	FOUNDATION_UNUSED(success);
 	FOUNDATION_UNUSED(failure);
-	return (_InterlockedCompareExchange64((volatile long long*)&dst->nonatomic, val,
-	                                      ref) == ref) ? true : false;
+	return (_InterlockedCompareExchange64((volatile long long*)&dst->nonatomic, val, ref) == ref) ? true : false;
 }
 
 static FOUNDATION_FORCEINLINE bool
@@ -516,9 +529,17 @@ atomic_cas_ptr(atomicptr_t* dst, void* val, void* ref, memory_order success, mem
 #endif
 }
 
-static FOUNDATION_FORCEINLINE void atomic_signal_fence_acquire(void) {}
-static FOUNDATION_FORCEINLINE void atomic_signal_fence_release(void) {}
-static FOUNDATION_FORCEINLINE void atomic_signal_fence_sequentially_consistent(void) {}
+static FOUNDATION_FORCEINLINE void
+atomic_signal_fence_acquire(void) {
+}
+
+static FOUNDATION_FORCEINLINE void
+atomic_signal_fence_release(void) {
+}
+
+static FOUNDATION_FORCEINLINE void
+atomic_signal_fence_sequentially_consistent(void) {
+}
 
 #include <intrin.h>
 
@@ -532,6 +553,6 @@ _atomic_thread_fence_sequentially_consistent(void);
 #define atomic_thread_fence_release() _ReadWriteBarrier()
 #define atomic_thread_fence_sequentially_consistent() _atomic_thread_fence_sequentially_consistent()
 
-#else // __STDC_NO_ATOMICS__
-#  error Atomic operations not implemented
+#else  // __STDC_NO_ATOMICS__
+#error Atomic operations not implemented
 #endif

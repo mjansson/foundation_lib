@@ -1,10 +1,10 @@
-/* main.c  -  Foundation hashtable test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation hashtable test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -27,7 +27,7 @@ test_hashtable_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation hashtable tests"));
 	app.short_name = string_const(STRING_CONST("test_hashtable"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -55,15 +55,15 @@ test_hashtable_finalize(void) {
 }
 
 typedef struct {
-	hashtable32_t*       table;
-	uint32_t             key_offset;
-	uint32_t             key_num;
+	hashtable32_t* table;
+	uint32_t key_offset;
+	uint32_t key_num;
 } producer32_arg_t;
 
 typedef struct {
-	hashtable64_t*       table;
-	uint64_t             key_offset;
-	uint64_t             key_num;
+	hashtable64_t* table;
+	uint64_t key_offset;
+	uint64_t key_num;
 } producer64_arg_t;
 
 static void*
@@ -154,7 +154,7 @@ DECLARE_TEST(hashtable, 32bit_basic) {
 	EXPECT_EQ(hashtable32_size(table), 3);
 	EXPECT_EQ(hashtable32_get(table, 4), 0);
 
-	//Hashing regression
+	// Hashing regression
 	EXPECT_TYPEEQ(hashtable32_raw(table, 0), 3, uint64_t, PRIu64);
 	EXPECT_TYPEEQ(hashtable32_raw(table, 1), 1, uint64_t, PRIu64);
 	EXPECT_TYPEEQ(hashtable32_raw(table, 2), 2, uint64_t, PRIu64);
@@ -203,8 +203,8 @@ DECLARE_TEST(hashtable, 32bit_threaded) {
 		}
 	}
 
-	//Size is potentially greater due to threading, see comment in hashtable_set
-	EXPECT_SIZEGE(hashtable32_size(table), (num_threads - 1)*16789 + 65535);
+	// Size is potentially greater due to threading, see comment in hashtable_set
+	EXPECT_SIZEGE(hashtable32_size(table), (num_threads - 1) * 16789 + 65535);
 	hashtable32_clear(table);
 	EXPECT_SIZEEQ(hashtable32_size(table), 0);
 
@@ -263,7 +263,7 @@ DECLARE_TEST(hashtable, 64bit_basic) {
 	EXPECT_EQ(hashtable64_size(table), 3);
 	EXPECT_EQ(hashtable64_get(table, 4), 0);
 
-	//Hashing regression
+	// Hashing regression
 	EXPECT_TYPEEQ(hashtable64_raw(table, 0), 2, uint64_t, PRIu64);
 	EXPECT_TYPEEQ(hashtable64_raw(table, 1), 3, uint64_t, PRIu64);
 	EXPECT_TYPEEQ(hashtable64_raw(table, 2), 1, uint64_t, PRIu64);
@@ -312,8 +312,8 @@ DECLARE_TEST(hashtable, 64bit_threaded) {
 		}
 	}
 
-	//Size is potentially greater due to threading, see comment in hashtable_set
-	EXPECT_SIZEGE(hashtable64_size(table), (num_threads - 1)*16789 + 65535);
+	// Size is potentially greater due to threading, see comment in hashtable_set
+	EXPECT_SIZEGE(hashtable64_size(table), (num_threads - 1) * 16789 + 65535);
 	hashtable64_clear(table);
 	EXPECT_SIZEEQ(hashtable64_size(table), 0);
 
@@ -337,15 +337,13 @@ test_hashtable_declare(void) {
 	ADD_TEST(hashtable, 64bit_threaded);
 }
 
-static test_suite_t test_hashtable_suite = {
-	test_hashtable_application,
-	test_hashtable_memory_system,
-	test_hashtable_config,
-	test_hashtable_declare,
-	test_hashtable_initialize,
-	test_hashtable_finalize,
-	0
-};
+static test_suite_t test_hashtable_suite = {test_hashtable_application,
+                                            test_hashtable_memory_system,
+                                            test_hashtable_config,
+                                            test_hashtable_declare,
+                                            test_hashtable_initialize,
+                                            test_hashtable_finalize,
+                                            0};
 
 #if BUILD_MONOLITHIC
 

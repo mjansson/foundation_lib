@@ -1,10 +1,10 @@
-/* profile.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* profile.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -36,9 +36,9 @@ the passed in work buffer. Recommended size is at least 256KiB. Maximum usable s
 \param identifier Application identifier
 \param length Length of identifier
 \param buffer Work temporary buffer
-\param size Size of work buffer */
+\param capacity Size of work buffer in number of bytes */
 FOUNDATION_API void
-profile_initialize(const char* identifier, size_t length, void* buffer, size_t size);
+profile_initialize(const char* identifier, size_t length, void* buffer, size_t capacity);
 
 /*! Finalize profiling module and free resources. Will call the writer callback with a null
 pointer and zero size to indicate end of transmission. */
@@ -141,28 +141,71 @@ profile_identifier(void);
 
 #else
 
-#define profile_initialize(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
-#define profile_finalize() do {} while(0)
-#define profile_enable(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
-#define profile_set_output(fn) do { profile_write_fn tmpfn = fn; FOUNDATION_UNUSED(tmpfn); } while(0)
-#define profile_set_output_wait(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
-#define profile_end_frame(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
-#define profile_begin_block_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define profile_initialize(...)                 \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
+#define profile_finalize() \
+	do {                   \
+	} while (0)
+#define profile_enable(...)                     \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
+#define profile_set_output(fn)       \
+	do {                             \
+		profile_write_fn tmpfn = fn; \
+		FOUNDATION_UNUSED(tmpfn);    \
+	} while (0)
+#define profile_set_output_wait(...)            \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
+#define profile_end_frame(...)                  \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
+#define profile_begin_block_(...)               \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
 #define profile_begin_block(...) profile_begin_block_(__VA_ARGS__)
-#define profile_update_block(...) do {} while(0)
-#define profile_end_block(...) do {} while(0)
+#define profile_update_block(...) \
+	do {                          \
+	} while (0)
+#define profile_end_block(...) \
+	do {                       \
+	} while (0)
 
-#define profile_log_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define profile_log_(...)                       \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
 #define profile_log(...) profile_log_(__VA_ARGS__)
-#define profile_trylock_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define profile_trylock_(...)                   \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
 #define profile_trylock(...) profile_trylock_(__VA_ARGS__)
-#define profile_lock_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define profile_lock_(...)                      \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
 #define profile_lock(...) profile_lock_(__VA_ARGS__)
-#define profile_unlock_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define profile_unlock_(...)                    \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
 #define profile_unlock(...) profile_unlock_(__VA_ARGS__)
-#define profile_wait_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define profile_wait_(...)                      \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
 #define profile_wait(...) profile_wait_(__VA_ARGS__)
-#define profile_signal_(...) do { FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); } while(0)
+#define profile_signal_(...)                    \
+	do {                                        \
+		FOUNDATION_UNUSED_VARARGS(__VA_ARGS__); \
+	} while (0)
 #define profile_signal(...) profile_signal_(__VA_ARGS__)
 #define profile_identifier() string_null()
 

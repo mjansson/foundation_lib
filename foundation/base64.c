@@ -1,10 +1,10 @@
-/* base64.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* base64.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -14,9 +14,9 @@
 
 /*lint -e{840}  We use null character in string literal deliberately here*/
 static const char _base64_decode[] =
-  "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFGHIJKLMNOPQRSTUVW\0\0\0\0\0\0XYZ[\\]^_`abcdefghijklmnopq";
-static const char _base64_encode[] =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFGHIJKLMNOPQRSTUVW\0\0\0\0\0\0XYZ[\\]^_`"
+    "abcdefghijklmnopq";
+static const char _base64_encode[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 size_t
 base64_encode(const void* source, size_t size, char* destination, size_t capacity) {
@@ -28,8 +28,7 @@ base64_encode(const void* source, size_t size, char* destination, size_t capacit
 		size_t maxsize = ((capacity - 1) / 4) * 3;
 		if (maxsize < size)
 			size = maxsize;
-	}
-	else {
+	} else {
 		return 0;
 	}
 
@@ -55,8 +54,7 @@ base64_encode(const void* source, size_t size, char* destination, size_t capacit
 		bits = (unsigned char)((*(carr + 1) & 0xF) << 2);
 		*ptr++ = _base64_encode[bits];
 		*ptr++ = '=';
-	}
-	else if (size == 1) {
+	} else if (size == 1) {
 		bits = (*carr >> 2) & 0x3F;
 		*ptr++ = _base64_encode[bits];
 		bits = (unsigned char)((*carr & 0x3) << 4);
@@ -76,13 +74,13 @@ base64_decode(const char* source, size_t size, void* destination, size_t capacit
 	char* cdst = (char*)destination;
 	char* cdstend = cdst + capacity;
 	while (size && (cdst < cdstend)) {
-		unsigned char in[4] = { 0, 0, 0, 0 }; //Always build blocks of 4 bytes to decode, pad with 0
+		unsigned char in[4] = {0, 0, 0, 0};  // Always build blocks of 4 bytes to decode, pad with 0
 		blocksize = 0;
 		for (i = 0; size && (i < 4); i++) {
 			char v = 0;
-			while (size && !v) { //Consume one valid byte from input, discarding invalid data
+			while (size && !v) {  // Consume one valid byte from input, discarding invalid data
 				v = *source++;
-				v = ((v < 43 || v > 122) ? 0 : _base64_decode[ v - 43 ]);
+				v = ((v < 43 || v > 122) ? 0 : _base64_decode[v - 43]);
 				if (v) {
 					in[i] = (unsigned char)(v - 62);
 					blocksize++;

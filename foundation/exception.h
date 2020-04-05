@@ -1,10 +1,10 @@
-/* exception.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* exception.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -29,8 +29,7 @@ such as a termination signal or structured exception.
 \param length   Length of dump name prefix
 \return         Function return value, FOUNDATION_EXCEPTION_DUMP_GENERATED if dump was generated */
 FOUNDATION_API int
-exception_try(exception_try_fn fn, void* data, exception_handler_fn handler,
-              const char* name, size_t length);
+exception_try(exception_try_fn fn, void* data, exception_handler_fn handler, const char* name, size_t length);
 
 /*! Set the global exception handler and dump name prefix. This will be used or all new
 threads created.

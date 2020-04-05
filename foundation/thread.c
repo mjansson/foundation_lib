@@ -1,10 +1,10 @@
-/* thread.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* thread.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -14,11 +14,11 @@
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/windows.h>
-#  include <process.h>
+#include <foundation/windows.h>
+#include <process.h>
 
-typedef DWORD (WINAPI* GetCurrentProcessorNumberFn)(VOID);
-typedef HRESULT (WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
+typedef DWORD(WINAPI* GetCurrentProcessorNumberFn)(VOID);
+typedef HRESULT(WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
 
 static DWORD WINAPI
 GetCurrentProcessorNumberFallback(VOID) {
@@ -31,19 +31,19 @@ static SetThreadDescriptionFn _fnSetThreadDescriptionFn;
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
-#  if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
-#    include <sys/prctl.h>
-#  endif
-#  include <foundation/posix.h>
+#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
+#include <sys/prctl.h>
+#endif
+#include <foundation/posix.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
-#  include <foundation/android.h>
-#  include <sys/syscall.h>
+#include <foundation/android.h>
+#include <sys/syscall.h>
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
-#  include <pthread_np.h>
+#include <pthread_np.h>
 #endif
 
 FOUNDATION_DECLARE_THREAD_LOCAL(thread_t*, self, 0)
@@ -53,7 +53,7 @@ static uint64_t _thread_main_id;
 int
 _thread_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	//TODO: look into GetCurrentProcessorNumberEx for 64+ core support
+	// TODO: look into GetCurrentProcessorNumberEx for 64+ core support
 	GetCurrentProcessorNumberFn getprocidfn;
 	SetThreadDescriptionFn setthreaddescfn;
 	HMODULE kernel32 = GetModuleHandleA("kernel32");
@@ -97,13 +97,13 @@ _thread_try(void* data) {
 
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
-#pragma pack(push,8)
+#pragma pack(push, 8)
 typedef struct tagTHREADNAME_INFO {
 	/*lint --e{958} */
-	DWORD dwType; // Must be 0x1000.
-	LPCSTR szName; // Pointer to name (in user addr space).
-	DWORD dwThreadID; // Thread ID (-1=caller thread).
-	DWORD dwFlags; // Reserved for future use, must be zero.
+	DWORD dwType;      // Must be 0x1000.
+	LPCSTR szName;     // Pointer to name (in user addr space).
+	DWORD dwThreadID;  // Thread ID (-1=caller thread).
+	DWORD dwFlags;     // Reserved for future use, must be zero.
 } THREADNAME_INFO;
 #pragma pack(pop)
 
@@ -121,14 +121,12 @@ _set_debugger_thread_name(const char* threadname) {
 #else
 	__try
 #endif
-	{
-		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
-	}
+	{ RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info); }
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	SetUnhandledExceptionFilter(prev_filter);
 #else
-	__except (
-	    EXCEPTION_CONTINUE_EXECUTION) { //Does EXCEPTION_EXECUTE_HANDLER require a debugger present?
+	__except (EXCEPTION_CONTINUE_EXECUTION) {  // Does EXCEPTION_EXECUTE_HANDLER require a debugger
+		                                       // present?
 		atomic_thread_fence_release();
 	}
 #endif
@@ -141,22 +139,22 @@ thread_set_name(const char* name, size_t length) {
 	thread_t* self = get_thread_self();
 
 #if !BUILD_DEPLOY
-#  if FOUNDATION_PLATFORM_WINDOWS
-#    if (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
+#if FOUNDATION_PLATFORM_WINDOWS
+#if (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	_set_debugger_thread_name(name);
-#    endif
+#endif
 	if (_fnSetThreadDescriptionFn) {
 		wchar_t wname[64];
 		wstring_from_string(wname, sizeof(wname) / sizeof(wname[0]), name, length);
 		_fnSetThreadDescriptionFn(GetCurrentThread(), wname);
 	}
-#  elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	prctl(PR_SET_NAME, name, 0, 0, 0);
-#  elif FOUNDATION_PLATFORM_MACOS || FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_MACOS || FOUNDATION_PLATFORM_IOS
 	pthread_setname_np(name);
-#  elif FOUNDATION_PLATFORM_BSD
+#elif FOUNDATION_PLATFORM_BSD
 	pthread_set_name_np(pthread_self(), name);
-#  endif
+#endif
 #endif
 
 	if (self) {
@@ -180,7 +178,7 @@ typedef void* thread_arg_t;
 #define GET_THREAD_PTR(x) ((thread_t*)(x))
 
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 static thread_return_t FOUNDATION_THREADCALL
@@ -192,7 +190,7 @@ _thread_entry(thread_arg_t data) {
 
 	thread_enter();
 
-	//log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
+	// log_debugf(0, STRING_CONST("Starting thread '%.*s' (%" PRIx64 ") %s"),
 	//           STRING_FORMAT(thread->name), thread->osid,
 	//           handler ? " (exceptions handled)" : "");
 
@@ -204,20 +202,17 @@ _thread_entry(thread_arg_t data) {
 
 	if (system_debugger_attached() || !handler) {
 		thread->result = thread->fn(thread->arg);
-	}
-	else {
+	} else {
 		string_const_t dump_name = exception_dump_name();
-		int wrapped_result = exception_try(_thread_try, thread, handler,
-		                                   dump_name.str, dump_name.length);
+		int wrapped_result = exception_try(_thread_try, thread, handler, dump_name.str, dump_name.length);
 		if (wrapped_result == FOUNDATION_EXCEPTION_CAUGHT) {
 			thread->result = (void*)((uintptr_t)FOUNDATION_EXCEPTION_CAUGHT);
-			log_warnf(0, WARNING_SUSPICIOUS,
-			          STRING_CONST("Thread '%.*s' (%" PRIx64 ") terminated by exception"),
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Thread '%.*s' (%" PRIx64 ") terminated by exception"),
 			          STRING_FORMAT(thread->name), thread->osid);
 		}
 	}
 
-	//log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
+	// log_debugf(0, STRING_CONST("Exiting thread '%.*s' (%" PRIx64 ")"),
 	//           STRING_FORMAT(thread->name), thread->osid);
 
 	if (thread_is_main())
@@ -237,10 +232,9 @@ _thread_entry(thread_arg_t data) {
 }
 
 thread_t*
-thread_allocate(thread_fn fn, void* data, const char* name, size_t length,
-                thread_priority_t priority, unsigned int stacksize) {
-	thread_t* thread = memory_allocate(0, sizeof(thread_t), 0,
-	                                   MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+thread_allocate(thread_fn fn, void* data, const char* name, size_t length, thread_priority_t priority,
+                unsigned int stacksize) {
+	thread_t* thread = memory_allocate(0, sizeof(thread_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	thread_initialize(thread, fn, data, name, length, priority, stacksize);
 	return thread;
 }
@@ -276,7 +270,7 @@ thread_finalize(thread_t* thread) {
 
 bool
 thread_start(thread_t* thread) {
-	//Reset beacon
+	// Reset beacon
 	beacon_try_wait(&thread->beacon, 0);
 #if FOUNDATION_PLATFORM_WINDOWS
 	FOUNDATION_ASSERT(!thread->handle);
@@ -284,8 +278,7 @@ thread_start(thread_t* thread) {
 	if (!thread->handle) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
-		log_errorf(0, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to create thread: CreateThread failed: %.*s (%d)"),
+		log_errorf(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to create thread: CreateThread failed: %.*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
 		return false;
 	}
@@ -295,14 +288,13 @@ thread_start(thread_t* thread) {
 	int err = pthread_create(&id, 0, _thread_entry, thread);
 	if (err) {
 		string_const_t errmsg = system_error_message(err);
-		log_errorf(0, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to create thread: pthread_create failed: %.*s (%d)"),
+		log_errorf(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to create thread: pthread_create failed: %.*s (%d)"),
 		           STRING_FORMAT(errmsg), err);
 		return false;
 	}
 	thread->handle = (uintptr_t)id;
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 
 	return true;
@@ -325,7 +317,7 @@ thread_join(thread_t* thread) {
 	}
 	thread->handle = 0;
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 	return thread->result;
 }
@@ -370,11 +362,11 @@ thread_sleep(unsigned int milliseconds) {
 	SleepEx(milliseconds, 1);
 #elif FOUNDATION_PLATFORM_POSIX
 	struct timespec ts;
-	ts.tv_sec  = milliseconds / 1000;
+	ts.tv_sec = milliseconds / 1000;
 	ts.tv_nsec = (long)(milliseconds % 1000) * 1000000L;
 	nanosleep(&ts, 0);
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 }
 
@@ -385,7 +377,7 @@ thread_yield(void) {
 #elif FOUNDATION_PLATFORM_POSIX
 	sched_yield();
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 }
 
@@ -398,13 +390,13 @@ thread_id(void) {
 #elif FOUNDATION_PLATFORM_BSD
 	return (uint64_t)pthread_getthreadid_np() & 0x00000000FFFFFFFFULL;
 #elif FOUNDATION_PLATFORM_POSIX
-#  if FOUNDATION_SIZE_POINTER == 4
+#if FOUNDATION_SIZE_POINTER == 4
 	return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
-#  else
-	return (uint64_t)pthread_self();
-#  endif
 #else
-#  error Not implemented
+	return (uint64_t)pthread_self();
+#endif
+#else
+#error Not implemented
 #endif
 }
 
@@ -416,13 +408,13 @@ thread_hardware(void) {
 	return (unsigned int)sched_getcpu();
 #elif FOUNDATION_PLATFORM_ANDROID
 	unsigned int cpu = 0;
-#  ifdef __NR_getcpu
+#ifdef __NR_getcpu
 	if (syscall(__NR_getcpu, &cpu, nullptr, nullptr) < 0)
 		return 0;
-#  endif
+#endif
 	return cpu;
 #else
-	//TODO: Implement for other platforms
+	// TODO: Implement for other platforms
 	return 0;
 #endif
 }
@@ -444,12 +436,11 @@ thread_set_hardware(uint64_t mask) {
 	}
 	if (sched_setaffinity(0, sizeof(set), &set)) {
 		string_const_t errmsg = system_error_message(0);
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-		          STRING_CONST("Unable to set thread affinity (%" PRIx64 "): %.*s"),
-		          mask, STRING_FORMAT(errmsg));
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to set thread affinity (%" PRIx64 "): %.*s"), mask,
+		          STRING_FORMAT(errmsg));
 	}
 #else
-	//TODO: Implement
+	// TODO: Implement
 	FOUNDATION_UNUSED(mask);
 #endif
 }
@@ -508,12 +499,12 @@ thread_attach_jvm(void) {
 	attach_args.group = 0;
 
 	// Attaches the current thread to the JVM
-	// TODO: According to the native activity, the java env can only be used in the main thread (calling ANativeActivityCallbacks)
-	jint result = (*app->activity->vm)->AttachCurrentThread(app->activity->vm,
-	                                                        (const struct JNINativeInterface***)&env, &attach_args);
+	// TODO: According to the native activity, the java env can only be used in the main thread
+	// (calling ANativeActivityCallbacks)
+	jint result = (*app->activity->vm)
+	                  ->AttachCurrentThread(app->activity->vm, (const struct JNINativeInterface***)&env, &attach_args);
 	if (result < 0)
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to attach thread to Java VM (%d)"),
-		          result);
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to attach thread to Java VM (%d)"), result);
 
 	return env;
 }

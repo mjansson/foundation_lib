@@ -1,10 +1,10 @@
-/* main.c  -  Foundation error test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation error test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_error_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation error tests"));
 	app.short_name = string_const(STRING_CONST("test_error"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -213,7 +213,7 @@ error_thread(void* arg) {
 }
 
 DECLARE_TEST(error, thread) {
-	//Launch 32 threads
+	// Launch 32 threads
 	thread_t thread[32];
 	int i;
 
@@ -262,31 +262,32 @@ DECLARE_TEST(error, output) {
 	error_handler_fn handler_error = error_handler();
 	log_handler_fn handler_log = log_handler();
 	string_const_t shortmsg = string_const(STRING_CONST("Short message with prefix"));
-    string_const_t longmsg = string_const(STRING_CONST("Longer message which should be output without a prefix"));
+	string_const_t longmsg = string_const(STRING_CONST("Longer message which should be output without a prefix"));
 
 	error_set_handler(ignore_error_handler);
 	log_set_handler(log_verify_handler);
 
-    log_enable_stdout(false);
-    EXPECT_EQ(log_stdout(), false);
-    log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_ARGS(shortmsg));
-    log_enable_stdout(true);
-    EXPECT_EQ(log_stdout(), true);
+	log_enable_stdout(false);
+	EXPECT_EQ(log_stdout(), false);
+	log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_ARGS(shortmsg));
+	log_enable_stdout(true);
+	EXPECT_EQ(log_stdout(), true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
 	EXPECT_GE(_last_log_length, shortmsg.length);
 	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), STRING_NPOS);
 	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(shortmsg), 0), 0);
-	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("WARNING [suspicious]"), 0), STRING_NPOS);
+	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("WARNING [suspicious]"), 0),
+	          STRING_NPOS);
 
 	_last_log_context = 0;
 	_last_log_severity = ERRORLEVEL_NONE;
 	_last_log_msg = nullptr;
 	_last_log_length = 0;
 
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_warn(HASH_TEST, (warning_t)0x1000, STRING_ARGS(shortmsg));
-    log_enable_stdout(true);
+	log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
 	EXPECT_GE(_last_log_length, shortmsg.length);
@@ -299,11 +300,11 @@ DECLARE_TEST(error, output) {
 	_last_log_msg = nullptr;
 	_last_log_length = 0;
 
-    log_enable_prefix(false);
-    log_enable_stdout(false);
+	log_enable_prefix(false);
+	log_enable_stdout(false);
 	log_warn(HASH_TEST, WARNING_SYSTEM_CALL_FAIL, STRING_ARGS(longmsg));
-    log_enable_stdout(true);
-    log_enable_prefix(true);
+	log_enable_stdout(true);
+	log_enable_prefix(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_WARNING);
 	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), STRING_NPOS);
@@ -314,9 +315,9 @@ DECLARE_TEST(error, output) {
 	_last_log_msg = nullptr;
 	_last_log_length = 0;
 
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_error(HASH_TEST, ERROR_DEPRECATED, STRING_ARGS(shortmsg));
-    log_enable_stdout(true);
+	log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_ERROR);
 	EXPECT_GE(_last_log_length, shortmsg.length);
@@ -329,9 +330,9 @@ DECLARE_TEST(error, output) {
 	_last_log_msg = nullptr;
 	_last_log_length = 0;
 
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_error(HASH_TEST, (error_t)0x1000, STRING_ARGS(shortmsg));
-    log_enable_stdout(true);
+	log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_ERROR);
 	EXPECT_GE(_last_log_length, shortmsg.length);
@@ -345,10 +346,10 @@ DECLARE_TEST(error, output) {
 	_last_log_length = 0;
 
 	log_enable_prefix(false);
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_error(HASH_TEST, ERROR_INVALID_VALUE, STRING_ARGS(longmsg));
-    log_enable_stdout(true);
-    log_enable_prefix(true);
+	log_enable_stdout(true);
+	log_enable_prefix(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_ERROR);
 	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), STRING_NPOS);
@@ -359,9 +360,9 @@ DECLARE_TEST(error, output) {
 	_last_log_msg = nullptr;
 	_last_log_length = 0;
 
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_panic(HASH_TEST, ERROR_DEPRECATED, STRING_ARGS(shortmsg));
-    log_enable_stdout(true);
+	log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);
 	EXPECT_GE(_last_log_length, shortmsg.length);
@@ -374,9 +375,9 @@ DECLARE_TEST(error, output) {
 	_last_log_msg = nullptr;
 	_last_log_length = 0;
 
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_panic(HASH_TEST, (error_t)0x1000, STRING_ARGS(shortmsg));
-    log_enable_stdout(true);
+	log_enable_stdout(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);
 	EXPECT_GE(_last_log_length, shortmsg.length);
@@ -390,17 +391,17 @@ DECLARE_TEST(error, output) {
 	_last_log_length = 0;
 
 	log_enable_prefix(false);
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_panic(HASH_TEST, ERROR_INVALID_VALUE, STRING_ARGS(longmsg));
-    log_enable_stdout(true);
-    log_enable_prefix(true);
+	log_enable_stdout(true);
+	log_enable_prefix(true);
 	EXPECT_EQ(_last_log_context, HASH_TEST);
 	EXPECT_EQ(_last_log_severity, ERRORLEVEL_PANIC);
 	EXPECT_NE(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), STRING_NPOS);
 	EXPECT_GT(string_find_string(_last_log_msg, _last_log_length, STRING_ARGS(longmsg), 0), 0);
 
-#  if BUILD_ENABLE_ERROR_CONTEXT
-    
+#if BUILD_ENABLE_ERROR_CONTEXT
+
 	error_context_push(STRING_CONST("one"), STRING_CONST("dataone"));
 	error_context_push(STRING_CONST("two"), STRING_CONST("datatwo"));
 	error_context_push(STRING_CONST("three"), STRING_CONST("datathree"));
@@ -410,19 +411,22 @@ DECLARE_TEST(error, output) {
 	_last_log_msg = nullptr;
 	_last_log_length = 0;
 
-    log_enable_stdout(false);
+	log_enable_stdout(false);
 	log_error_context(HASH_TEST, ERRORLEVEL_INFO);
-    log_enable_stdout(true);
+	log_enable_stdout(true);
 
-    error_context_pop();
-    error_context_pop();
-    error_context_pop();
+	error_context_pop();
+	error_context_pop();
+	error_context_pop();
 
-	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When one: dataone"), 0), STRING_NPOS);
-	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When two: datatwo"), 0), STRING_NPOS);
-	EXPECT_SIZENE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When three: datathree"), 0), STRING_NPOS);
+	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When one: dataone"), 0),
+	              STRING_NPOS);
+	EXPECT_SIZEEQ(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When two: datatwo"), 0),
+	              STRING_NPOS);
+	EXPECT_SIZENE(string_find_string(_last_log_msg, _last_log_length, STRING_CONST("When three: datathree"), 0),
+	              STRING_NPOS);
 
-#  endif
+#endif
 
 	log_set_handler(handler_log);
 	error_set_handler(handler_error);
@@ -438,15 +442,13 @@ test_error_declare(void) {
 	ADD_TEST(error, output);
 }
 
-static test_suite_t test_error_suite = {
-	test_error_application,
-	test_error_memory_system,
-	test_error_config,
-	test_error_declare,
-	test_error_initialize,
-	test_error_finalize,
-	0
-};
+static test_suite_t test_error_suite = {test_error_application,
+                                        test_error_memory_system,
+                                        test_error_config,
+                                        test_error_declare,
+                                        test_error_initialize,
+                                        test_error_finalize,
+                                        0};
 
 #if BUILD_MONOLITHIC
 

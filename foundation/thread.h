@@ -1,10 +1,10 @@
-/* thread.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* thread.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -38,8 +38,8 @@ thread_deallocate(thread);</code> */
 \param stacksize Thread stack size
 \return New thread  */
 FOUNDATION_API thread_t*
-thread_allocate(thread_fn fn, void* data, const char* name, size_t length,
-                thread_priority_t priority, unsigned int stacksize);
+thread_allocate(thread_fn fn, void* data, const char* name, size_t length, thread_priority_t priority,
+                unsigned int stacksize);
 
 /*! Initialize a new thread.
 \param thread Thread

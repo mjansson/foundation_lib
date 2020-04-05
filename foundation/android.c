@@ -1,10 +1,10 @@
-/* android.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* android.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -34,12 +34,12 @@ android_entry(struct android_app* app) {
 	if (!app || !app->activity)
 		return;
 
-	//Avoid glue code getting stripped
+	// Avoid glue code getting stripped
 	app_dummy();
 
 	_android_app = app;
 	_android_app->onAppCmd = android_handle_cmd;
-	_android_app->onInputEvent = 0;//android_handle_input;
+	_android_app->onInputEvent = 0;  // android_handle_input;
 	_android_app->userData = 0;
 }
 
@@ -62,16 +62,14 @@ android_initialize(void) {
 	}
 
 	log_debug(0, STRING_CONST("Application window set, continuing"));
-	log_debugf(0, STRING_CONST("Internal data path: %s"),
-	           _android_app->activity->internalDataPath);
-	log_debugf(0, STRING_CONST("External data path: %s"),
-	           _android_app->activity->externalDataPath);
+	log_debugf(0, STRING_CONST("Internal data path: %s"), _android_app->activity->internalDataPath);
+	log_debugf(0, STRING_CONST("External data path: %s"), _android_app->activity->externalDataPath);
 
 	ASensorManager* sensor_manager = ASensorManager_getInstance();
-	_android_sensor_queue = ASensorManager_createEventQueue(sensor_manager, _android_app->looper, 0,
-	                        android_sensor_callback, 0);
+	_android_sensor_queue =
+	    ASensorManager_createEventQueue(sensor_manager, _android_app->looper, 0, android_sensor_callback, 0);
 
-	//Enable accelerometer sensor
+	// Enable accelerometer sensor
 	//_android_enable_sensor(ASENSOR_TYPE_ACCELEROMETER);
 
 	return 0;
@@ -120,98 +118,96 @@ void
 android_handle_cmd(struct android_app* app, int32_t cmd) {
 	FOUNDATION_UNUSED(app);
 	switch (cmd) {
-	case APP_CMD_INPUT_CHANGED:
-		log_info(0, STRING_CONST("System command: APP_CMD_INPUT_CHANGED"));
-		break;
+		case APP_CMD_INPUT_CHANGED:
+			log_info(0, STRING_CONST("System command: APP_CMD_INPUT_CHANGED"));
+			break;
 
-	case APP_CMD_INIT_WINDOW:
+		case APP_CMD_INIT_WINDOW:
 #if BUILD_ENABLE_LOG
-		if (app->window) {
-			int w = 0, h = 0;
-			w = ANativeWindow_getWidth(app->window);
-			h = ANativeWindow_getHeight(app->window);
-			log_infof(0, STRING_CONST("System command: APP_CMD_INIT_WINDOW %dx%d"),
-			          w, h);
-		}
+			if (app->window) {
+				int w = 0, h = 0;
+				w = ANativeWindow_getWidth(app->window);
+				h = ANativeWindow_getHeight(app->window);
+				log_infof(0, STRING_CONST("System command: APP_CMD_INIT_WINDOW %dx%d"), w, h);
+			}
 #endif
-		break;
+			break;
 
-	case APP_CMD_TERM_WINDOW:
-		log_info(0, STRING_CONST("System command: APP_CMD_TERM_WINDOW"));
-		break;
+		case APP_CMD_TERM_WINDOW:
+			log_info(0, STRING_CONST("System command: APP_CMD_TERM_WINDOW"));
+			break;
 
-	case APP_CMD_WINDOW_RESIZED:
+		case APP_CMD_WINDOW_RESIZED:
 #if BUILD_ENABLE_LOG
-		if (app->window) {
-			int w = 0, h = 0;
-			w = ANativeWindow_getWidth(app->window);
-			h = ANativeWindow_getHeight(app->window);
-			log_infof(0, STRING_CONST("System command: APP_CMD_WINDOW_RESIZED %dx%d"),
-			          w, h);
-		}
+			if (app->window) {
+				int w = 0, h = 0;
+				w = ANativeWindow_getWidth(app->window);
+				h = ANativeWindow_getHeight(app->window);
+				log_infof(0, STRING_CONST("System command: APP_CMD_WINDOW_RESIZED %dx%d"), w, h);
+			}
 #endif
-		break;
+			break;
 
-	case APP_CMD_WINDOW_REDRAW_NEEDED:
-		log_info(0, STRING_CONST("System command: APP_CMD_WINDOW_REDRAW_NEEDED"));
-		break;
+		case APP_CMD_WINDOW_REDRAW_NEEDED:
+			log_info(0, STRING_CONST("System command: APP_CMD_WINDOW_REDRAW_NEEDED"));
+			break;
 
-	case APP_CMD_CONTENT_RECT_CHANGED:
-		log_info(0, STRING_CONST("System command: APP_CMD_CONTENT_RECT_CHANGED"));
-		break;
+		case APP_CMD_CONTENT_RECT_CHANGED:
+			log_info(0, STRING_CONST("System command: APP_CMD_CONTENT_RECT_CHANGED"));
+			break;
 
-	case APP_CMD_GAINED_FOCUS:
-		log_info(0, STRING_CONST("System command: APP_CMD_GAINED_FOCUS"));
-		system_post_event(FOUNDATIONEVENT_FOCUS_GAIN);
-		_android_enable_sensor(ASENSOR_TYPE_ACCELEROMETER);
-		break;
+		case APP_CMD_GAINED_FOCUS:
+			log_info(0, STRING_CONST("System command: APP_CMD_GAINED_FOCUS"));
+			system_post_event(FOUNDATIONEVENT_FOCUS_GAIN);
+			_android_enable_sensor(ASENSOR_TYPE_ACCELEROMETER);
+			break;
 
-	case APP_CMD_LOST_FOCUS:
-		log_info(0, STRING_CONST("System command: APP_CMD_LOST_FOCUS"));
-		_android_disable_sensor(ASENSOR_TYPE_ACCELEROMETER);
-		system_post_event(FOUNDATIONEVENT_FOCUS_LOST);
-		break;
+		case APP_CMD_LOST_FOCUS:
+			log_info(0, STRING_CONST("System command: APP_CMD_LOST_FOCUS"));
+			_android_disable_sensor(ASENSOR_TYPE_ACCELEROMETER);
+			system_post_event(FOUNDATIONEVENT_FOCUS_LOST);
+			break;
 
-	case APP_CMD_CONFIG_CHANGED:
-		log_info(0, STRING_CONST("System command: APP_CMD_CONFIG_CHANGED"));
-		break;
+		case APP_CMD_CONFIG_CHANGED:
+			log_info(0, STRING_CONST("System command: APP_CMD_CONFIG_CHANGED"));
+			break;
 
-	case APP_CMD_LOW_MEMORY:
-		log_info(0, STRING_CONST("System command: APP_CMD_LOW_MEMORY"));
-		break;
+		case APP_CMD_LOW_MEMORY:
+			log_info(0, STRING_CONST("System command: APP_CMD_LOW_MEMORY"));
+			break;
 
-	case APP_CMD_START:
-		log_info(0, STRING_CONST("System command: APP_CMD_START"));
-		system_post_event(FOUNDATIONEVENT_START);
-		break;
+		case APP_CMD_START:
+			log_info(0, STRING_CONST("System command: APP_CMD_START"));
+			system_post_event(FOUNDATIONEVENT_START);
+			break;
 
-	case APP_CMD_RESUME:
-		log_info(0, STRING_CONST("System command: APP_CMD_RESUME"));
-		system_post_event(FOUNDATIONEVENT_RESUME);
-		break;
+		case APP_CMD_RESUME:
+			log_info(0, STRING_CONST("System command: APP_CMD_RESUME"));
+			system_post_event(FOUNDATIONEVENT_RESUME);
+			break;
 
-	case APP_CMD_SAVE_STATE:
-		log_info(0, STRING_CONST("System command: APP_CMD_SAVE_STATE"));
-		break;
+		case APP_CMD_SAVE_STATE:
+			log_info(0, STRING_CONST("System command: APP_CMD_SAVE_STATE"));
+			break;
 
-	case APP_CMD_PAUSE:
-		log_info(0, STRING_CONST("System command: APP_CMD_PAUSE"));
-		system_post_event(FOUNDATIONEVENT_PAUSE);
-		break;
+		case APP_CMD_PAUSE:
+			log_info(0, STRING_CONST("System command: APP_CMD_PAUSE"));
+			system_post_event(FOUNDATIONEVENT_PAUSE);
+			break;
 
-	case APP_CMD_STOP:
-		log_info(0, STRING_CONST("System command: APP_CMD_STOP"));
-		system_post_event(FOUNDATIONEVENT_TERMINATE);
-		break;
+		case APP_CMD_STOP:
+			log_info(0, STRING_CONST("System command: APP_CMD_STOP"));
+			system_post_event(FOUNDATIONEVENT_TERMINATE);
+			break;
 
-	case APP_CMD_DESTROY:
-		log_info(0, STRING_CONST("System command: APP_CMD_DESTROY"));
-		system_post_event(FOUNDATIONEVENT_TERMINATE);
-		_android_destroyed = true;
-		break;
+		case APP_CMD_DESTROY:
+			log_info(0, STRING_CONST("System command: APP_CMD_DESTROY"));
+			system_post_event(FOUNDATIONEVENT_TERMINATE);
+			_android_destroyed = true;
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
@@ -229,28 +225,22 @@ _android_enable_sensor(int type) {
 	if (_android_sensor_enabled[type])
 		return;
 
-	ASensorManager* manager = _android_sensor_queue ?
-	                          ASensorManager_getInstance() : 0;
-	const ASensor* sensor = manager ?
-	                        ASensorManager_getDefaultSensor(manager, type) : 0;
+	ASensorManager* manager = _android_sensor_queue ? ASensorManager_getInstance() : 0;
+	const ASensor* sensor = manager ? ASensorManager_getDefaultSensor(manager, type) : 0;
 	if (sensor) {
 		log_debugf(0, STRING_CONST("Initializing sensor of type %d"), type);
 		if (ASensorEventQueue_enableSensor(_android_sensor_queue, sensor) < 0) {
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Unable to enable sensor of type %d"), type);
-		}
-		else {
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to enable sensor of type %d"), type);
+		} else {
 			int min_delay = ASensor_getMinDelay(sensor);
 			if (min_delay < 60000)
 				min_delay = 60000;
 			if (ASensorEventQueue_setEventRate(_android_sensor_queue, sensor, min_delay) < 0)
 				log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-				          STRING_CONST("Unable to set event rate %d for sensor of type %d"),
-				          min_delay, type);
+				          STRING_CONST("Unable to set event rate %d for sensor of type %d"), min_delay, type);
 			_android_sensor_enabled[type] = true;
 		}
-	}
-	else {
+	} else {
 		log_warn(0, WARNING_UNSUPPORTED, STRING_CONST("Unable to initialize sensors"));
 	}
 }
@@ -272,43 +262,43 @@ _android_disable_sensor(int sensor_type) {
 }
 
 #if FOUNDATION_COMPILER_GCC
-#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #if FOUNDATION_COMPILER_CLANG
-#  if __has_warning("-Wformat-pedantic")
-#    pragma clang diagnostic ignored "-Wformat-pedantic"
-#  endif
-#  if __has_warning("-Wmissing-prototypes")
-#    pragma clang diagnostic ignored "-Wmissing-prototypes"
-#  endif
-#  if __has_warning("-Wundef")
-#    pragma clang diagnostic ignored "-Wundef"
-#  endif
-#  if __has_warning("-Wunused-parameter")
-#    pragma clang diagnostic ignored "-Wunused-parameter"
-#  endif
-#  if __has_warning("-Wsign-conversion")
-#    pragma clang diagnostic ignored "-Wsign-conversion"
-#  endif
-#  if __has_warning("-Wundef")
-#    pragma clang diagnostic ignored "-Wundef"
-#  endif
-#  if __has_warning("-Wpedantic")
-#    pragma clang diagnostic ignored "-Wpedantic"
-#  endif
-#  if __has_warning("-Wreserved-id-macro")
-#    pragma clang diagnostic ignored "-Wreserved-id-macro"
-#  endif
-#  if __has_warning("-Wshorten-64-to-32")
-#    pragma clang diagnostic ignored "-Wshorten-64-to-32"
-#  endif
+#if __has_warning("-Wformat-pedantic")
+#pragma clang diagnostic ignored "-Wformat-pedantic"
+#endif
+#if __has_warning("-Wmissing-prototypes")
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
+#if __has_warning("-Wundef")
+#pragma clang diagnostic ignored "-Wundef"
+#endif
+#if __has_warning("-Wunused-parameter")
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
+#if __has_warning("-Wsign-conversion")
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#endif
+#if __has_warning("-Wundef")
+#pragma clang diagnostic ignored "-Wundef"
+#endif
+#if __has_warning("-Wpedantic")
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+#if __has_warning("-Wreserved-id-macro")
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
+#endif
+#if __has_warning("-Wshorten-64-to-32")
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #endif
 
-//Assimilate app glue library
+// Assimilate app glue library
 #include <android_native_app_glue.c>
 
-//Assimilate cpu features library
+// Assimilate cpu features library
 #include <cpu-features.c>
 
 #endif

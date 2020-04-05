@@ -1,10 +1,10 @@
-/* hashtable.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* hashtable.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -34,19 +34,19 @@ _hashtable64_hash(uint64_t key) {
 }
 
 hashtable32_t*
-hashtable32_allocate(size_t buckets) {
-	size_t size = sizeof(hashtable32_t) + sizeof(hashtable32_entry_t) * buckets;
+hashtable32_allocate(size_t bucket_count) {
+	size_t size = sizeof(hashtable32_t) + sizeof(hashtable32_entry_t) * bucket_count;
 	hashtable32_t* table = memory_allocate(0, size, 8, MEMORY_PERSISTENT);
 
-	hashtable32_initialize(table, buckets);
+	hashtable32_initialize(table, bucket_count);
 
 	return table;
 }
 
 void
-hashtable32_initialize(hashtable32_t* table, size_t buckets) {
-	memset(table, 0, sizeof(hashtable32_t) + sizeof(hashtable32_entry_t) * buckets);
-	table->capacity = buckets;
+hashtable32_initialize(hashtable32_t* table, size_t bucket_count) {
+	memset(table, 0, sizeof(hashtable32_t) + sizeof(hashtable32_entry_t) * bucket_count);
+	table->capacity = bucket_count;
 }
 
 void
@@ -71,16 +71,14 @@ hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value) {
 	do {
 		uint32_t current_key = (uint32_t)atomic_load32(&table->entries[ie].key, memory_order_consume);
 
-		if ((current_key == key) || (!current_key &&
-		                             atomic_cas32(&table->entries[ie].key, (int32_t)key, 0, memory_order_release,
-		                                          memory_order_acquire))) {
+		if ((current_key == key) || (!current_key && atomic_cas32(&table->entries[ie].key, (int32_t)key, 0,
+		                                                          memory_order_release, memory_order_acquire))) {
 			table->entries[ie].value = value;
 			return true;
 		}
 
 		ie = (ie + 1) % table->capacity;
-	}
-	while (ie != eend);
+	} while (ie != eend);
 
 	return false;
 }
@@ -103,8 +101,7 @@ hashtable32_erase(hashtable32_t* table, uint32_t key) {
 		}
 
 		ie = (ie + 1) % table->capacity;
-	}
-	while (current_key && (ie != eend));
+	} while (current_key && (ie != eend));
 }
 
 uint32_t
@@ -123,8 +120,7 @@ hashtable32_get(hashtable32_t* table, uint32_t key) {
 			return table->entries[ie].value;
 
 		ie = (ie + 1) % table->capacity;
-	}
-	while (current_key && (ie != eend));
+	} while (current_key && (ie != eend));
 
 	return 0;
 }
@@ -153,19 +149,19 @@ hashtable32_clear(hashtable32_t* table) {
 }
 
 hashtable64_t*
-hashtable64_allocate(size_t buckets) {
-	size_t size = sizeof(hashtable64_t) + sizeof(hashtable64_entry_t) * buckets;
+hashtable64_allocate(size_t bucket_count) {
+	size_t size = sizeof(hashtable64_t) + sizeof(hashtable64_entry_t) * bucket_count;
 	hashtable64_t* table = memory_allocate(0, size, 8, MEMORY_PERSISTENT);
 
-	hashtable64_initialize(table, buckets);
+	hashtable64_initialize(table, bucket_count);
 
 	return table;
 }
 
 void
-hashtable64_initialize(hashtable64_t* table, size_t buckets) {
-	memset(table, 0, sizeof(hashtable64_t) + sizeof(hashtable64_entry_t) * buckets);
-	table->capacity = buckets;
+hashtable64_initialize(hashtable64_t* table, size_t bucket_count) {
+	memset(table, 0, sizeof(hashtable64_t) + sizeof(hashtable64_entry_t) * bucket_count);
+	table->capacity = bucket_count;
 }
 
 void
@@ -189,16 +185,14 @@ hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value) {
 	do {
 		uint64_t current_key = (uint64_t)atomic_load64(&table->entries[ie].key, memory_order_consume);
 
-		if ((current_key == key) || (!current_key &&
-		                             atomic_cas64(&table->entries[ie].key, (int64_t)key, 0,
-		                                          memory_order_release, memory_order_acquire))) {
+		if ((current_key == key) || (!current_key && atomic_cas64(&table->entries[ie].key, (int64_t)key, 0,
+		                                                          memory_order_release, memory_order_acquire))) {
 			table->entries[ie].value = value;
 			return true;
 		}
 
 		ie = (ie + 1) % table->capacity;
-	}
-	while (ie != eend);
+	} while (ie != eend);
 
 	return false;
 }
@@ -220,8 +214,7 @@ hashtable64_erase(hashtable64_t* table, uint64_t key) {
 		}
 
 		ie = (ie + 1) % table->capacity;
-	}
-	while (current_key && (ie != eend));
+	} while (current_key && (ie != eend));
 }
 
 uint64_t
@@ -239,8 +232,7 @@ hashtable64_get(hashtable64_t* table, uint64_t key) {
 			return table->entries[ie].value;
 
 		ie = (ie + 1) % table->capacity;
-	}
-	while (current_key && (ie != eend));
+	} while (current_key && (ie != eend));
 
 	return 0;
 }

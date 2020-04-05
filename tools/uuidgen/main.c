@@ -1,10 +1,10 @@
-/* main.c  -  Foundation library tools  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation library tools  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
@@ -92,7 +92,6 @@ main_run(void* main_arg) {
 	uuid_t* output = 0;
 	uuidgen_input_t input = uuidgen_parse_command_line(environment_command_line());
 	FOUNDATION_UNUSED(main_arg);
-	//--md5 dns com.rampantpixels.foundation.uuidgen -> BD63FB1E-2EEA-35EB-940F-1042E6008A95
 
 	for (iinst = 0, num_instance = array_size(input.generate); iinst < num_instance; ++iinst) {
 		result = uuidgen_generate(&output, input.generate[iinst]);

@@ -1,10 +1,10 @@
-/* process.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* process.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -60,9 +60,9 @@ process_set_executable_path(process_t* proc, const char* path, size_t length);
 the standard first argument of the executable path, it will be automatically added.
 \param proc Process object
 \param args Arguments array
-\param num Number of arguments */
+\param count Argument count */
 FOUNDATION_API void
-process_set_arguments(process_t* proc, const string_const_t* args, size_t num);
+process_set_arguments(process_t* proc, const string_const_t* args, size_t count);
 
 /*! Set execution flags, see PROCESS_[*] flag definitions for a list of available flags.
 \param proc Process object

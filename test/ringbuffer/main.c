@@ -1,10 +1,10 @@
-/* main.c  -  Foundation ringbuffer test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation ringbuffer test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_ringbuffer_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation ringbuffer tests"));
 	app.short_name = string_const(STRING_CONST("test_ringbuffer"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -176,13 +176,13 @@ typedef struct {
 	thread_t read_thread;
 	thread_t write_thread;
 
-	char*    source_buffer;
-	char*    dest_buffer;
+	char* source_buffer;
+	char* dest_buffer;
 
 	unsigned int buffer_size;
 
-	tick_t   start_time;
-	tick_t   end_time;
+	tick_t start_time;
+	tick_t end_time;
 } ringbufferstream_test_t;
 
 static void*
@@ -224,8 +224,7 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 	srcbuffer = memory_allocate(0, test.buffer_size, 0, MEMORY_PERSISTENT);
 
 	test.source_buffer = (void*)srcbuffer;
-	test.dest_buffer   = memory_allocate(0, test.buffer_size, 0,
-	                                     MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	test.dest_buffer = memory_allocate(0, test.buffer_size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 	for (si = 0; si < (test.buffer_size / 4); ++si)
 		srcbuffer[si] = random32();
@@ -285,7 +284,7 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 		elapsed += time_ticks_to_seconds(time_diff(test.start_time, test.end_time));
 	}
 	rb_throughput = (real)((float64_t)(mbytes * loops) / (float64_t)elapsed);
-	//log_infof(HASH_TEST, STRING_CONST("Ringbuffer throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
+	// log_infof(HASH_TEST, STRING_CONST("Ringbuffer throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
 	//          (loops * mbytes), (float32_t)elapsed, (float32_t)throughput);
 
 	elapsed = 0;
@@ -300,7 +299,7 @@ DECLARE_TEST(ringbufferstream, threadedio) {
 		elapsed += time_ticks_to_seconds(time_diff(test.start_time, test.end_time));
 	}
 	mem_throughput = (real)((float64_t)(mbytes * loops) / (float64_t)elapsed);
-	//log_infof(HASH_TEST, STRING_CONST("Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
+	// log_infof(HASH_TEST, STRING_CONST("Memcpy     throughput: %d MiB in %.2f sec -> %.2f MiB/sec"),
 	//          (loops * mbytes), (float32_t)elapsed, (float32_t)throughput);
 	EXPECT_REALGT(mem_throughput, rb_throughput);
 
@@ -318,15 +317,13 @@ test_ringbuffer_declare(void) {
 	ADD_TEST(ringbufferstream, threadedio);
 }
 
-static test_suite_t test_ringbuffer_suite = {
-	test_ringbuffer_application,
-	test_ringbuffer_memory_system,
-	test_ringbuffer_config,
-	test_ringbuffer_declare,
-	test_ringbuffer_initialize,
-	test_ringbuffer_finalize,
-	0
-};
+static test_suite_t test_ringbuffer_suite = {test_ringbuffer_application,
+                                             test_ringbuffer_memory_system,
+                                             test_ringbuffer_config,
+                                             test_ringbuffer_declare,
+                                             test_ringbuffer_initialize,
+                                             test_ringbuffer_finalize,
+                                             0};
 
 #if BUILD_MONOLITHIC
 

@@ -1,10 +1,10 @@
-/* beacon.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* beacon.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -16,7 +16,7 @@
 #include <foundation/apple.h>
 
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
-#  include <sys/event.h>
+#include <sys/event.h>
 #endif
 
 beacon_t*
@@ -35,7 +35,7 @@ beacon_initialize(beacon_t* beacon) {
 	beacon->count = 1;
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	beacon->fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-	beacon->poll = epoll_create(sizeof(beacon->all)/sizeof(beacon->all[0]));
+	beacon->poll = epoll_create(sizeof(beacon->all) / sizeof(beacon->all[0]));
 	beacon->count = 1;
 	beacon->all[0] = beacon->fd;
 	struct epoll_event event;
@@ -96,12 +96,11 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	int slot = -1;
 #if FOUNDATION_PLATFORM_WINDOWS
 	unsigned int count = (unsigned int)beacon->count;
-	unsigned int wait_status = WaitForMultipleObjects(count, (HANDLE*)beacon->all,
-	                                                  FALSE, milliseconds);
-	//WAIT_OBJECT_0 value is 0, so this checks range [WAIT_OBJECT_0, WAIT_OBJECT_0+count)
+	unsigned int wait_status = WaitForMultipleObjects(count, (HANDLE*)beacon->all, FALSE, milliseconds);
+	// WAIT_OBJECT_0 value is 0, so this checks range [WAIT_OBJECT_0, WAIT_OBJECT_0+count)
 	if (wait_status < count) {
-		//Same behaviour as linux/bsd implementations, where auxiliary beacons added
-		//will remain fired after a beacon has seen it
+		// Same behaviour as linux/bsd implementations, where auxiliary beacons added
+		// will remain fired after a beacon has seen it
 		if ((wait_status > 0) && (beacon->flags[wait_status] & 1))
 			SetEvent(beacon->all[wait_status]);
 		return (int)wait_status;
@@ -113,7 +112,7 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 		slot = event.data.fd;
 	if (slot == 0) {
 		eventfd_t value = 0;
-		if (eventfd_read(beacon->fd, &value) < 0) 
+		if (eventfd_read(beacon->fd, &value) < 0)
 			slot = -1;
 	}
 #elif FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
@@ -122,7 +121,7 @@ beacon_try_wait(beacon_t* beacon, unsigned int milliseconds) {
 	struct timespec* timeout = nullptr;
 	struct kevent event;
 	if (milliseconds != (unsigned int)-1) {
-		tspec.tv_sec  = (time_t)(milliseconds / 1000);
+		tspec.tv_sec = (time_t)(milliseconds / 1000);
 		tspec.tv_nsec = (long)(milliseconds % 1000) * 1000000L;
 		while (tspec.tv_nsec >= 1000000000L) {
 			++tspec.tv_sec;
@@ -232,7 +231,7 @@ beacon_remove_beacon(beacon_t* beacon, beacon_t* remote) {
 
 int
 beacon_add_handle(beacon_t* beacon, void* handle) {
-	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
+	size_t numslots = sizeof(beacon->all) / sizeof(beacon->all[0]);
 	if (beacon->count < numslots) {
 		beacon->all[beacon->count] = handle;
 		beacon->flags[beacon->count] = 0;
@@ -270,7 +269,7 @@ beacon_remove_fd(beacon_t* beacon, int fd) {
 
 int
 beacon_add_fd(beacon_t* beacon, int fd) {
-	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
+	size_t numslots = sizeof(beacon->all) / sizeof(beacon->all[0]);
 	if (beacon->count < numslots) {
 		beacon->all[beacon->count] = fd;
 		struct epoll_event event;
@@ -304,7 +303,7 @@ beacon_remove_fd(beacon_t* beacon, int fd) {
 
 int
 beacon_add_fd(beacon_t* beacon, int fd) {
-	size_t numslots = sizeof(beacon->all)/sizeof(beacon->all[0]);
+	size_t numslots = sizeof(beacon->all) / sizeof(beacon->all[0]);
 	if (beacon->count < numslots) {
 		beacon->all[beacon->count] = fd;
 		struct kevent changes;
@@ -326,7 +325,7 @@ beacon_remove_fd(beacon_t* beacon, int fd) {
 			--beacon->count;
 			if (islot < beacon->count) {
 				beacon->all[islot] = beacon->all[beacon->count];
-				//Re-add acts as mosify
+				// Re-add acts as mosify
 				EV_SET(&changes, beacon->all[islot], EVFILT_READ, EV_ADD, 0, 0, (void*)(uintptr_t)islot);
 				kevent(beacon->kq, &changes, 1, 0, 0, 0);
 			}

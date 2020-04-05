@@ -1,10 +1,10 @@
-/* blowfish.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* blowfish.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -58,8 +58,7 @@ bytes (any extra unaligned data will be ignored).
 \param mode     Mode of operation (see #blockcipher_mode_t)
 \param vec      Initialization vector */
 FOUNDATION_API void
-blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length,
-                 blockcipher_mode_t mode, uint64_t vec);
+blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length, blockcipher_mode_t mode, uint64_t vec);
 
 /*! Decrypt data using the given blowfish state object. Decryption is done in-place,
 no memory allocation is done internally. Length is expected to be a multiple of 8
@@ -70,5 +69,4 @@ bytes (any extra unaligned data will be ignored).
 \param mode     Mode of operation (see #blockcipher_mode_t)
 \param vec      Initialization vector */
 FOUNDATION_API void
-blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length,
-                 blockcipher_mode_t mode, uint64_t vec);
+blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length, blockcipher_mode_t mode, uint64_t vec);

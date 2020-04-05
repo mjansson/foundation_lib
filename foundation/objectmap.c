@@ -1,10 +1,10 @@
-/* objectmap.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* objectmap.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -14,36 +14,35 @@
 #include <foundation/internal.h>
 
 objectmap_t*
-objectmap_allocate(size_t size) {
+objectmap_allocate(size_t count) {
 	objectmap_t* map;
 
-	if (size < 3)
-		size = 3;
+	if (count < 3)
+		count = 3;
 
-	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(objectmap_entry_t) * size), 0,
-	                      MEMORY_PERSISTENT);
+	map = memory_allocate(0, sizeof(objectmap_t) + (sizeof(objectmap_entry_t) * count), 0, MEMORY_PERSISTENT);
 
-	objectmap_initialize(map, size);
+	objectmap_initialize(map, count);
 
 	return map;
 }
 
 void
-objectmap_initialize(objectmap_t* map, size_t size) {
-	//Number of bits needed to represent index
-	uint32_t bits = (uint32_t)math_round(math_log2((real)size) + REAL_C(0.5));
-	FOUNDATION_ASSERT_MSGFORMAT(bits <= OBJECTMAP_INDEXBITS, "Invalid objectmap size %" PRIsize, size);
+objectmap_initialize(objectmap_t* map, size_t count) {
+	// Number of bits needed to represent index
+	uint32_t bits = (uint32_t)math_round(math_log2((real)count) + REAL_C(0.5));
+	FOUNDATION_ASSERT_MSGFORMAT(bits <= OBJECTMAP_INDEXBITS, "Invalid objectmap size %" PRIsize, count);
 	if (bits > OBJECTMAP_INDEXBITS) {
 		bits = OBJECTMAP_INDEXBITS;
-		//If bits == OBJECTMAP_INDEXBITS we need size to be one less than maximum size
-		//in order to detect map overflow when index >= size
-		size = ((1U << bits) - 1U) - 1U;
+		// If bits == OBJECTMAP_INDEXBITS we need size to be one less than maximum size
+		// in order to detect map overflow when index >= size
+		count = ((1U << bits) - 1U) - 1U;
 	}
 
-	//Needed for object check in objectmap_lookup of unused index
-	memset(map, 0, sizeof(objectmap_t) + (sizeof(objectmap_entry_t) * size));
+	// Needed for object check in objectmap_lookup of unused index
+	memset(map, 0, sizeof(objectmap_t) + (sizeof(objectmap_entry_t) * count));
 
-	map->size = (uint32_t)size;
+	map->size = (uint32_t)count;
 	semaphore_initialize(&map->write, 1);
 }
 
@@ -111,14 +110,13 @@ objectmap_reserve(objectmap_t* map) {
 			return 0;
 		}
 
-		//Sanity check that slot isn't taken
+		// Sanity check that slot isn't taken
 		FOUNDATION_ASSERT_MSG(atomic_load32(&map->map[idx].ref, memory_order_acquire) == 0,
 		                      "Map failed sanity check, slot taken after reserve");
 
 		if (idx >= map->autolink) {
 			next = ++map->autolink;
-		}
-		else {
+		} else {
 			next = ((uint32_t)((uintptr_t)map->map[idx].ptr)) & OBJECTMAP_INDEXMASK;
 		}
 		map->free = next;
@@ -173,8 +171,8 @@ objectmap_set(objectmap_t* map, object_t id, void* object) {
 		return false;
 	reftag = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
 
-	//Sanity check, can't set free slot, and non-free slot should be initialized to
-	//matching tag and zero ref count in reserve function
+	// Sanity check, can't set free slot, and non-free slot should be initialized to
+	// matching tag and zero ref count in reserve function
 	if (!map->map[idx].ptr && (tag == reftag)) {
 		map->map[idx].ptr = object;
 		atomic_store32(&map->map[idx].ref, (int32_t)(reftag | 1), memory_order_release);
@@ -194,8 +192,7 @@ objectmap_acquire(objectmap_t* map, object_t id) {
 	uint32_t reftag = ref >> OBJECTMAP_INDEXBITS;
 	while ((tag == reftag) && refcount) {
 		uint32_t newref = (reftag << OBJECTMAP_INDEXBITS) | (refcount + 1);
-		if (atomic_cas32(&map->map[idx].ref, (int32_t)newref, (int32_t)ref,
-		                 memory_order_release, memory_order_acquire))
+		if (atomic_cas32(&map->map[idx].ref, (int32_t)newref, (int32_t)ref, memory_order_release, memory_order_acquire))
 			return map->map[idx].ptr;
 		ref = (uint32_t)atomic_load32(&map->map[idx].ref, memory_order_acquire);
 		refcount = ref & OBJECTMAP_INDEXMASK;
@@ -215,8 +212,8 @@ objectmap_release(objectmap_t* map, object_t id, object_deallocate_fn deallocate
 	uint32_t reftag = ref >> OBJECTMAP_INDEXBITS;
 	while ((tag == reftag) && refcount) {
 		uint32_t newref = (reftag << OBJECTMAP_INDEXBITS) | (refcount - 1);
-		if (atomic_cas32(&map->map[idx].ref, (int32_t)newref, (int32_t)ref,
-		                 memory_order_release, memory_order_acquire)) {
+		if (atomic_cas32(&map->map[idx].ref, (int32_t)newref, (int32_t)ref, memory_order_release,
+		                 memory_order_acquire)) {
 			if (refcount == 1) {
 				deallocate(map->map[idx].ptr);
 				objectmap_free(map, id);
@@ -229,4 +226,3 @@ objectmap_release(objectmap_t* map, object_t id, object_deallocate_fn deallocate
 	}
 	return false;
 }
-

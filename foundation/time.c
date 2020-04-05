@@ -1,10 +1,10 @@
-/* time.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* time.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -43,8 +43,7 @@ int
 _time_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	tick_t unused;
-	if (!QueryPerformanceFrequency((LARGE_INTEGER*)&_time_freq) ||
-	    !QueryPerformanceCounter((LARGE_INTEGER*)&unused))
+	if (!QueryPerformanceFrequency((LARGE_INTEGER*)&_time_freq) || !QueryPerformanceCounter((LARGE_INTEGER*)&unused))
 		return -1;
 #elif FOUNDATION_PLATFORM_APPLE
 	if (mach_timebase_info(&_time_info))

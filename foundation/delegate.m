@@ -1,10 +1,10 @@
-/* delegate.m  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* delegate.m  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -13,7 +13,8 @@
 #include <foundation/delegate.h>
 #include <foundation/main.h>
 
-extern int app_main(void* arg);
+extern int
+app_main(void* arg);
 
 extern volatile int _delegate_dummy;
 volatile int _delegate_dummy;
@@ -24,8 +25,7 @@ delegate_reference_classes(void) {
 	[FoundationAppDelegate referenceClass];
 }
 
-@interface FoundationMainThread :
-	NSObject
+@interface FoundationMainThread : NSObject
 + (void)startMainThread:(void*)arg;
 @end
 
@@ -55,15 +55,15 @@ static volatile bool _delegate_received_terminate = false;
 	@autoreleasepool {
 		log_debug(0, STRING_CONST("Application init done, launching main"));
 		if (![NSThread isMultiThreaded])
-			log_warn(0, WARNING_SUSPICIOUS, STRING_CONST("Application is STILL not multithreaded!"));
+			log_warn(0, WARNING_SUSPICIOUS,
+			         STRING_CONST("Application is STILL not multithreaded!"));
 	}
 
 	string_t name = {0, 0};
 	const application_t* app = environment_application();
 
-	string_const_t aname = app->short_name.length ?
-	                       app->short_name :
-	                       string_const(STRING_CONST("unknown"));
+	string_const_t aname =
+	    app->short_name.length ? app->short_name : string_const(STRING_CONST("unknown"));
 	string_const_t vstr = string_from_version_static(app->version);
 	name = string_merge_varg(0, 0, 0, true, STRING_ARGS(aname), STRING_CONST("-"),
 	                         STRING_ARGS(vstr), nullptr);
@@ -92,7 +92,8 @@ static volatile bool _delegate_received_terminate = false;
 		if (!_delegate_received_terminate) {
 			if ((environment_application()->flags & APPLICATION_UTILITY) == 0)
 				log_warn(0, WARNING_SUSPICIOUS,
-				         STRING_CONST("Main loop terminated without applicationWillTerminate - force exit process"));
+				         STRING_CONST("Main loop terminated without applicationWillTerminate - "
+				                      "force exit process"));
 			exit(-1);
 		}
 #endif
@@ -106,7 +107,11 @@ delegate_start_main_ns_thread(void) {
 	delegate_reference_classes();
 
 	log_debug(0, STRING_CONST("Starting main thread"));
-	@autoreleasepool { [NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil]; }
+	@autoreleasepool {
+		[NSThread detachNewThreadSelector:@selector(startMainThread:)
+		                         toTarget:[FoundationMainThread class]
+		                       withObject:nil];
+	}
 }
 
 #if FOUNDATION_PLATFORM_MACOS
@@ -159,7 +164,7 @@ delegate_window(void) {
 	}
 }
 
-- (void) dealloc {
+- (void)dealloc {
 	log_debug(0, STRING_CONST("Application dealloc"));
 
 	_delegate_app = 0;
@@ -198,8 +203,10 @@ delegate_window(void) {
 	system_post_event(FOUNDATIONEVENT_START);
 
 	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(
-	   deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+	                                         selector:@selector(deviceOrientationDidChange:)
+	                                             name:UIDeviceOrientationDidChangeNotification
+	                                           object:nil];
 }
 
 - (void)applicationWillResignActive:(UIApplication*)application {
@@ -252,9 +259,10 @@ delegate_window(void) {
 		[(__bridge UIWindow*)delegate_window() addSubview:flash];
 
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-			(int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-			[flash removeFromSuperview];
-		});
+		                             (int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)),
+		               dispatch_get_main_queue(), ^{
+			             [flash removeFromSuperview];
+		               });
 
 		[UIView beginAnimations:@"FoundationMemoryWarningFlash" context:0];
 		[UIView setAnimationDuration:duration];
@@ -262,7 +270,6 @@ delegate_window(void) {
 		[UIView commitAnimations];
 	}
 #endif
-
 }
 
 - (void)deviceOrientationDidChange:(NSNotification*)notification {
@@ -273,7 +280,7 @@ delegate_window(void) {
 	system_set_device_orientation((device_orientation_t)orientation);
 }
 
-- (void) dealloc {
+- (void)dealloc {
 	log_debug(0, STRING_CONST("Application dealloc"));
 
 	_delegate_app = 0;

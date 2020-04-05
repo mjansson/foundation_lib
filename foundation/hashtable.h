@@ -1,10 +1,10 @@
-/* hashtable.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* hashtable.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -24,17 +24,18 @@ Limitation are:
 <li>Only operations are get/set
 <li>No true erase operation, only set to zero
 </ul>
-\todo Look into a lock-free implementation of hopscotch hashing (http://en.wikipedia.org/wiki/Hopscotch_hashing) */
+\todo Look into a lock-free implementation of hopscotch hashing
+(http://en.wikipedia.org/wiki/Hopscotch_hashing) */
 
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
 /*! Allocate storage for a 32-bit hash table of given size. The returned hash table should
 be deallocated with a call to #hashtable32_deallocate.
-\param buckets Number of buckets
+\param bucket_count Bucket count
 \return New hash table */
 FOUNDATION_API hashtable32_t*
-hashtable32_allocate(size_t buckets);
+hashtable32_allocate(size_t bucket_count);
 
 /*! Deallocate hash table previously allocated by a call to #hashtable32_allocate and free
 resources and storage used by hash table
@@ -45,9 +46,9 @@ hashtable32_deallocate(hashtable32_t* table);
 /*! Initialize a 32-bit hash table of given size. The returned hash table should be finalized
 with a call to #hashtable32_finalize.
 \param table Hash table
-\param buckets Number of buckets */
+\param bucket_count Bucket count */
 FOUNDATION_API void
-hashtable32_initialize(hashtable32_t* table, size_t buckets);
+hashtable32_initialize(hashtable32_t* table, size_t bucket_count);
 
 /*! Finalize hash table previously initialized by a call to #hashtable32_initialize
 \param table Hash table object to finalize */
@@ -95,10 +96,10 @@ hashtable32_clear(hashtable32_t* table);
 
 /*! Allocate storage for a 64-bit hash table of given size. The returned hash table should
 be deallocated with a call to #hashtable64_deallocate.
-\param buckets Number of buckets
+\param bucket_count Bucket count
 \return New hash table */
 FOUNDATION_API hashtable64_t*
-hashtable64_allocate(size_t buckets);
+hashtable64_allocate(size_t bucket_count);
 
 /*! Deallocate hash table previously allocated by a call to #hashtable64_allocate and free
 resources and storage used by hash table
@@ -109,9 +110,9 @@ hashtable64_deallocate(hashtable64_t* table);
 /*! Initialize a 64-bit hash table of given size. The returned hash table should
 be finalized with a call to #hashtable64_finalize.
 \param table Hash table
-\param buckets Number of buckets */
+\param bucket_count Bucket count */
 FOUNDATION_API void
-hashtable64_initialize(hashtable64_t* table, size_t buckets);
+hashtable64_initialize(hashtable64_t* table, size_t bucket_count);
 
 /*! Finalize hash table previously initialized by a call to #hashtable64_initialize
 \param table Hash table object to finalize */
@@ -189,28 +190,28 @@ initialization.
 
 #if FOUNDATION_SIZE_POINTER == 4
 
-#define hashtable_t             hashtable32_t
-#define hashtable_allocate      hashtable32_allocate
-#define hashtable_initialize    hashtable32_initialize
-#define hashtable_finalize      hashtable32_finalize
-#define hashtable_deallocate    hashtable32_deallocate
-#define hashtable_set           hashtable32_set
-#define hashtable_erase         hashtable32_erase
-#define hashtable_get           hashtable32_get
-#define hashtable_size          hashtable32_size
-#define hashtable_clear         hashtable32_clear
+#define hashtable_t hashtable32_t
+#define hashtable_allocate hashtable32_allocate
+#define hashtable_initialize hashtable32_initialize
+#define hashtable_finalize hashtable32_finalize
+#define hashtable_deallocate hashtable32_deallocate
+#define hashtable_set hashtable32_set
+#define hashtable_erase hashtable32_erase
+#define hashtable_get hashtable32_get
+#define hashtable_size hashtable32_size
+#define hashtable_clear hashtable32_clear
 
 #else
 
-#define hashtable_t             hashtable64_t
-#define hashtable_allocate      hashtable64_allocate
-#define hashtable_initialize    hashtable64_initialize
-#define hashtable_finalize      hashtable64_finalize
-#define hashtable_deallocate    hashtable64_deallocate
-#define hashtable_set           hashtable64_set
-#define hashtable_erase         hashtable64_erase
-#define hashtable_get           hashtable64_get
-#define hashtable_size          hashtable64_size
-#define hashtable_clear         hashtable64_clear
+#define hashtable_t hashtable64_t
+#define hashtable_allocate hashtable64_allocate
+#define hashtable_initialize hashtable64_initialize
+#define hashtable_finalize hashtable64_finalize
+#define hashtable_deallocate hashtable64_deallocate
+#define hashtable_set hashtable64_set
+#define hashtable_erase hashtable64_erase
+#define hashtable_get hashtable64_get
+#define hashtable_size hashtable64_size
+#define hashtable_clear hashtable64_clear
 
 #endif

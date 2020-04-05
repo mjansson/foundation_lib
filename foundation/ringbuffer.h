@@ -1,10 +1,10 @@
-/* ringbuffer.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* ringbuffer.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -62,18 +62,18 @@ ringbuffer_reset(ringbuffer_t* buffer);
 /*! Read from ring buffer.
 \param buffer Ring buffer
 \param dest Destination pointer
-\param num Number of bytes requested to be read
+\param size Number of bytes requested to be read
 \return Number of bytes actually read */
 FOUNDATION_API size_t
-ringbuffer_read(ringbuffer_t* buffer, void* dest, size_t num);
+ringbuffer_read(ringbuffer_t* buffer, void* dest, size_t size);
 
 /*! Write to ring buffer.
 \param buffer Ring buffer
 \param source Source pointer
-\param num Number of bytes requested to be written
+\param size Number of bytes requested to be written
 \return Number of bytes actually written */
 FOUNDATION_API size_t
-ringbuffer_write(ringbuffer_t* buffer, const void* source, size_t num);
+ringbuffer_write(ringbuffer_t* buffer, const void* source, size_t size);
 
 /*! Get total number of bytes read. Will be reset to zero in #ringbuffer_reset
 \param buffer Ring buffer

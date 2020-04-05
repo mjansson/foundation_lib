@@ -1,10 +1,10 @@
-/* environment.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* environment.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -24,17 +24,17 @@ static bool _environment_temp_dir_local;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 static string_t _environment_var;
-#  include <foundation/windows.h>
+#include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
+#include <foundation/posix.h>
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
-#  include <foundation/android.h>
+#include <foundation/android.h>
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
-#  include <foundation/apple.h>
+#include <foundation/apple.h>
 
 extern void
 _environment_ns_command_line(string_t** argv);
@@ -57,8 +57,8 @@ _environment_ns_set_current_working_directory(const char* buffer, size_t length)
 #endif
 
 #if FOUNDATION_PLATFORM_BSD
-#  include <sys/types.h>
-#  include <sys/sysctl.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #endif
 
 static application_t _environment_app;
@@ -88,19 +88,17 @@ _environment_set_executable_paths(char* executable_path, size_t length) {
 	size_t last_path = string_rfind(executable_path, length, '/', STRING_NPOS);
 	if (last_path != STRING_NPOS) {
 		_environment_executable_dir = string_clone(executable_path, last_path);
-		_environment_executable_name = string_clone(executable_path + last_path + 1,
-		                                            length - (last_path + 1));
-	}
-	else {
-		_environment_executable_dir = (string_t) {0, 0};
+		_environment_executable_name = string_clone(executable_path + last_path + 1, length - (last_path + 1));
+	} else {
+		_environment_executable_dir = (string_t){0, 0};
 		_environment_executable_name = string_clone(executable_path, length);
 	}
 #if FOUNDATION_PLATFORM_WINDOWS
 	if ((_environment_executable_name.length > 4) &&
-	        (string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
-	                          STRING_CONST(".exe")) ||
-	         string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
-	                          STRING_CONST(".EXE")))) {
+	    (string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
+	                      STRING_CONST(".exe")) ||
+	     string_ends_with(_environment_executable_name.str, _environment_executable_name.length,
+	                      STRING_CONST(".EXE")))) {
 		_environment_executable_name.str[_environment_executable_name.length - 4] = 0;
 		_environment_executable_name.length -= 4;
 	}
@@ -122,20 +120,18 @@ _environment_initialize(const application_t application) {
 		return -1;
 
 	for (ia = 0; ia < num_args; ++ia) {
-		array_push(_environment_argv,
-		           string_allocate_from_wstring(arg_list[ia], wstring_length(arg_list[ia])));
+		array_push(_environment_argv, string_allocate_from_wstring(arg_list[ia], wstring_length(arg_list[ia])));
 	}
 
 	LocalFree(arg_list);
 
 	if (GetModuleFileNameW(0, module_filename, BUILD_MAX_PATHLEN)) {
-		string_t exe_path = string_convert_utf16(buffer, sizeof(buffer), (uint16_t*)module_filename,
-		                                         wstring_length(module_filename));
+		string_t exe_path =
+		    string_convert_utf16(buffer, sizeof(buffer), (uint16_t*)module_filename, wstring_length(module_filename));
 		exe_path = path_absolute(exe_path.str, exe_path.length, BUILD_MAX_PATHLEN);
 
 		_environment_set_executable_paths(exe_path.str, exe_path.length);
-	}
-	else {
+	} else {
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get module filename"));
 		return -1;
 	}
@@ -144,17 +140,16 @@ _environment_initialize(const application_t application) {
 
 	_environment_ns_command_line(&_environment_argv);
 
-	//TODO: Read executable name from system, not command line (might be set to anything)
-	string_t exe_path = string_copy(buffer, sizeof(buffer), _environment_argv[0].str,
-	                                _environment_argv[0].length);
+	// TODO: Read executable name from system, not command line (might be set to anything)
+	string_t exe_path = string_copy(buffer, sizeof(buffer), _environment_argv[0].str, _environment_argv[0].length);
 	exe_path = path_absolute(exe_path.str, exe_path.length, sizeof(buffer));
 	_environment_set_executable_paths(exe_path.str, exe_path.length);
 
-#  if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS
 	string_t localpath = string_thread_buffer();
 	string_t bundle_dir = environment_bundle_path(STRING_ARGS(localpath));
 	environment_set_current_working_directory(STRING_ARGS(bundle_dir));
-#  endif
+#endif
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
@@ -193,16 +188,15 @@ _environment_initialize(const application_t application) {
 	}
 
 	exe_name = path_file_name(exelink, (size_t)exelength);
-	exe_path = path_append(exe_path.str, exe_path.length, sizeof(exelink), exe_name.str,
-	                       exe_name.length);
+	exe_path = path_append(exe_path.str, exe_path.length, sizeof(exelink), exe_name.str, exe_name.length);
 
 	_environment_set_executable_paths(exe_path.str, exe_path.length);
 
 #elif FOUNDATION_PLATFORM_BSD
 
 	for (int ia = 0; ia < _environment_main_argc; ++ia)
-		array_push(_environment_argv, string_clone(_environment_main_argv[ia],
-		                                           string_length(_environment_main_argv[ia])));
+		array_push(_environment_argv,
+		           string_clone(_environment_main_argv[ia], string_length(_environment_main_argv[ia])));
 
 	int callarg[4];
 	size_t size = sizeof(buffer);
@@ -250,19 +244,20 @@ _environment_initialize(const application_t application) {
 	_environment_set_executable_paths(exe_path.str, exe_path.length);
 
 #else
-#  error Not implemented
+#error Not implemented
 	/*if( array_size( _environment_argv ) > 0 )
 	{
-		char* exe_path = path_clean( string_clone( _environment_argv[0] ), path_is_absolute( _environment_argv[0] ) );
-		char* dir_path = path_make_absolute( exe_path );
+	    char* exe_path = path_clean( string_clone( _environment_argv[0] ), path_is_absolute(
+	_environment_argv[0] ) ); char* dir_path = path_make_absolute( exe_path );
 
-		_environment_set_executable_paths( dir_path );
+	    _environment_set_executable_paths( dir_path );
 
-		string_deallocate( dir_path );
-		string_deallocate( exe_path );
+	    string_deallocate( dir_path );
+	    string_deallocate( exe_path );
 	}
 	else if( !string_length( _environment_executable_dir ) )
-	   	string_copy( _environment_executable_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN ); */
+	    string_copy( _environment_executable_dir, environment_current_working_directory(),
+	FOUNDATION_MAX_PATHLEN ); */
 #endif
 
 	_environment_app = application;
@@ -295,13 +290,9 @@ _environment_finalize(void) {
 	string_deallocate(_environment_app_dir.str);
 	string_deallocate(_environment_temp_dir.str);
 
-	_environment_executable_name =
-	    _environment_executable_dir =
-	        _environment_executable_path =
-	            _environment_initial_working_dir =
-	                _environment_current_working_dir =
-	                    _environment_app_dir =
-	_environment_temp_dir = (string_t) {0, 0};
+	_environment_executable_name = _environment_executable_dir = _environment_executable_path =
+	    _environment_initial_working_dir = _environment_current_working_dir = _environment_app_dir =
+	        _environment_temp_dir = (string_t){0, 0};
 }
 
 const string_const_t*
@@ -361,8 +352,7 @@ environment_current_working_directory(void) {
 	if (!getcwd(localpath.str, localpath.length)) {
 		int err = errno;
 		string_const_t errmsg = system_error_message(err);
-		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get cwd: %.*s (%d)"),
-		           STRING_FORMAT(errmsg), err);
+		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get cwd: %.*s (%d)"), STRING_FORMAT(errmsg), err);
 		return string_const(0, 0);
 	}
 	localpath = path_clean(localpath.str, string_length(localpath.str), localpath.length);
@@ -370,7 +360,7 @@ environment_current_working_directory(void) {
 		localpath.str[--localpath.length] = 0;
 	_environment_current_working_dir = string_clone(STRING_ARGS(localpath));
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 	return string_to_const(_environment_current_working_dir);
 }
@@ -395,16 +385,15 @@ environment_set_current_working_directory(const char* path, size_t length) {
 	if (chdir(pathstr.str) < 0) {
 		int err = errno;
 		string_const_t errmsg = system_error_message(err);
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-		          STRING_CONST("Unable to set working directory to %.*s: %.*s (%d)"),
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to set working directory to %.*s: %.*s (%d)"),
 		          (int)length, path, STRING_FORMAT(errmsg), err);
 		result = false;
 	}
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 	string_deallocate(_environment_current_working_dir.str);
-	_environment_current_working_dir = (string_t) { 0, 0 };
+	_environment_current_working_dir = (string_t){0, 0};
 	return result;
 }
 
@@ -420,11 +409,9 @@ environment_application_directory(void) {
 		string_t pathstr = string_convert_utf16(pathbuf, BUILD_MAX_PATHLEN, wpath, wstring_length(wpath));
 		pathstr = path_clean(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN);
 		if (_environment_app.company.length)
-			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                      STRING_ARGS(_environment_app.company));
+			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN, STRING_ARGS(_environment_app.company));
 		if (_environment_app.short_name.length)
-			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                      STRING_ARGS(_environment_app.short_name));
+			pathstr = path_append(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN, STRING_ARGS(_environment_app.short_name));
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
 		memory_deallocate(pathbuf);
 	}
@@ -439,13 +426,11 @@ environment_application_directory(void) {
 		char* pathbuf = memory_allocate(0, BUILD_MAX_PATHLEN, 0, MEMORY_TEMPORARY);
 		string_t pathstr = string_copy(pathbuf, BUILD_MAX_PATHLEN, STRING_ARGS(env_home));
 		if (_environment_app.company.length)
-			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                             STRING_CONST("/."), STRING_ARGS(_environment_app.company),
-			                             nullptr);
+			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN, STRING_CONST("/."),
+			                             STRING_ARGS(_environment_app.company), nullptr);
 		if (_environment_app.short_name.length)
-			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name),
-			                             nullptr);
+			pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN, STRING_CONST("/."),
+			                             STRING_ARGS(_environment_app.short_name), nullptr);
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
 		memory_deallocate(pathbuf);
 	}
@@ -453,25 +438,21 @@ environment_application_directory(void) {
 	{
 		char* pathbuf = memory_allocate(0, BUILD_MAX_PATHLEN, 0, MEMORY_TEMPORARY);
 		string_t pathstr = _environment_ns_home_directory(pathbuf, BUILD_MAX_PATHLEN);
-#  if FOUNDATION_PLATFORM_MACOS
+#if FOUNDATION_PLATFORM_MACOS
 		if (!(environment_application()->flags & APPLICATION_UTILITY)) {
 			char bundle_identifier[256];
 			string_t bundle = environment_bundle_identifier(bundle_identifier, sizeof(bundle_identifier));
 			pathstr = path_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-			                           STRING_CONST("Library/Application Support"),
-			                           STRING_ARGS(bundle), nullptr);
-		}
-		else {
+			                           STRING_CONST("Library/Application Support"), STRING_ARGS(bundle), nullptr);
+		} else {
 			if (_environment_app.company.length)
-				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-				                             STRING_CONST("/."), STRING_ARGS(_environment_app.company),
-				                             nullptr);
+				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN, STRING_CONST("/."),
+				                             STRING_ARGS(_environment_app.company), nullptr);
 			if (_environment_app.short_name.length)
-				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN,
-				                             STRING_CONST("/."), STRING_ARGS(_environment_app.short_name),
-				                             nullptr);
+				pathstr = string_append_varg(STRING_ARGS(pathstr), BUILD_MAX_PATHLEN, STRING_CONST("/."),
+				                             STRING_ARGS(_environment_app.short_name), nullptr);
 		}
-#  endif
+#endif
 		_environment_app_dir = string_clone(STRING_ARGS(pathstr));
 		memory_deallocate(pathbuf);
 	}
@@ -481,7 +462,7 @@ environment_application_directory(void) {
 		_environment_app_dir = string_clone(data_path, string_length(data_path));
 	}
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 	return string_to_const(_environment_app_dir);
 }
@@ -499,14 +480,14 @@ environment_temporary_directory(void) {
 		_environment_temp_dir = path_absolute(STRING_ARGS_CAPACITY(_environment_temp_dir));
 	}
 #elif FOUNDATION_PLATFORM_ANDROID
-	//Use application internal data path, or if that fails, external data path
+	// Use application internal data path, or if that fails, external data path
 	struct android_app* app = android_app();
-	const char* test_path[] = { app&& app->activity ? app->activity->internalDataPath : 0, app&& app->activity ? app->activity->externalDataPath : 0 };
+	const char* test_path[] = {app && app->activity ? app->activity->internalDataPath : 0,
+	                           app && app->activity ? app->activity->externalDataPath : 0};
 	char path[BUILD_MAX_PATHLEN];
 	for (int itest = 0; !_environment_temp_dir.str && (itest < 2); ++itest) {
 		if (test_path[itest] && test_path[itest][0]) {
-			string_t pathstr = string_copy(path, sizeof(path), test_path[itest],
-			                               string_length(test_path[itest]));
+			string_t pathstr = string_copy(path, sizeof(path), test_path[itest], string_length(test_path[itest]));
 			pathstr = path_clean(STRING_ARGS(pathstr), sizeof(path));
 
 			fs_make_directory(STRING_ARGS(pathstr));
@@ -515,8 +496,7 @@ environment_temporary_directory(void) {
 			string_const_t uuidstr = string_from_uuid_static(uuid_generate_random());
 			temp_path = string_append(STRING_ARGS(temp_path), sizeof(path), STRING_ARGS(uuidstr));
 
-			stream_t* temp_stream = fs_open_file(STRING_ARGS(temp_path),
-			                                     STREAM_CREATE | STREAM_OUT | STREAM_BINARY);
+			stream_t* temp_stream = fs_open_file(STRING_ARGS(temp_path), STREAM_CREATE | STREAM_OUT | STREAM_BINARY);
 			if (temp_stream) {
 				stream_deallocate(temp_stream);
 
@@ -528,16 +508,16 @@ environment_temporary_directory(void) {
 		}
 	}
 #else
-#  if FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_APPLE
 	char* buffer = memory_allocate(HASH_STRING, BUILD_MAX_PATHLEN, 0, MEMORY_PERSISTENT);
 	_environment_temp_dir = _environment_ns_temporary_directory(buffer, BUILD_MAX_PATHLEN);
 	_environment_temp_dir = string_clone(STRING_ARGS(_environment_temp_dir));
-#    if FOUNDATION_PLATFORM_IOS
+#if FOUNDATION_PLATFORM_IOS
 	_environment_temp_dir_local = true;
-#    endif
-#  elif FOUNDATION_PLATFORM_POSIX
+#endif
+#elif FOUNDATION_PLATFORM_POSIX
 	_environment_temp_dir = string_clone(P_tmpdir, string_length(P_tmpdir));
-#  endif
+#endif
 #endif
 
 #if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_IOS
@@ -557,15 +537,14 @@ environment_temporary_directory(void) {
 		}
 	}
 #endif
-#  if FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_APPLE
 	if (_environment_temp_dir.str == buffer)
 		_environment_temp_dir = string_clone(STRING_ARGS(_environment_temp_dir));
 	string_deallocate(buffer);
 #endif
-	if ((_environment_temp_dir.length > 1) &&
-	        (_environment_temp_dir.str[ _environment_temp_dir.length - 1 ] == '/')) {
+	if ((_environment_temp_dir.length > 1) && (_environment_temp_dir.str[_environment_temp_dir.length - 1] == '/')) {
 		--_environment_temp_dir.length;
-		_environment_temp_dir.str[ _environment_temp_dir.length ] = 0;
+		_environment_temp_dir.str[_environment_temp_dir.length] = 0;
 	}
 	return string_to_const(_environment_temp_dir);
 }
@@ -588,18 +567,17 @@ environment_variable(const char* var, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	unsigned int required;
 	wchar_t* key = wstring_allocate_from_string(STRING_ARGS(varstr));
-	wchar_t val[BUILD_MAX_PATHLEN]; val[0] = 0;
+	wchar_t val[BUILD_MAX_PATHLEN];
+	val[0] = 0;
 	if ((required = GetEnvironmentVariableW(key, val, BUILD_MAX_PATHLEN)) > BUILD_MAX_PATHLEN) {
-		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * ((size_t)required + 2), 0,
-		                                     MEMORY_TEMPORARY);
+		wchar_t* val_local = memory_allocate(0, sizeof(wchar_t) * ((size_t)required + 2), 0, MEMORY_TEMPORARY);
 		val_local[0] = 0;
 		required = GetEnvironmentVariableW(key, val_local, required + 1);
 		if (_environment_var.str)
 			string_deallocate(_environment_var.str);
 		_environment_var = string_allocate_from_wstring(val_local, required);
 		memory_deallocate(val_local);
-	}
-	else {
+	} else {
 		if (_environment_var.str)
 			string_deallocate(_environment_var.str);
 		_environment_var = string_allocate_from_wstring(val, required);
@@ -610,7 +588,7 @@ environment_variable(const char* var, size_t length) {
 	const char* value = getenv(varstr.str);
 	return string_const(value, value ? string_length(value) : 0);
 #else
-#  error Not implemented
+#error Not implemented
 #endif
 }
 

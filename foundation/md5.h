@@ -1,10 +1,10 @@
-/* md5.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* md5.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -74,11 +74,11 @@ md5_digest_finalize(md5_t* digest);
 /*! Get digest as string. Before getting the digest string the MD5 block must be
 finalized with a call to #md5_digest_finalize.
 \param digest MD5 block
-\param str String buffer
-\param length Length of string buffer
+\param buffer String buffer
+\param capacity Capacity of string buffer
 \return Message digest string */
 FOUNDATION_API string_t
-md5_get_digest(const md5_t* digest, char* str, size_t length);
+md5_get_digest(const md5_t* digest, char* buffer, size_t capacity);
 
 /*! Get digest as raw 128-bit value. Before getting the raw digest the MD5 block must be
 finalized with a call to #md5_digest_finalize.

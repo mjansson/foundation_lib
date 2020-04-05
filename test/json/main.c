@@ -1,10 +1,10 @@
-/* main.c  -  Foundation JSON test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation JSON test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_json_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation JSON tests"));
 	app.short_name = string_const(STRING_CONST("test_json"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -50,8 +50,9 @@ DECLARE_TEST(json, reference) {
 	json_token_t tokens[128];
 	size_t capacity = sizeof(tokens) / sizeof(tokens[0]);
 
-	string_const_t compound = string_const(STRING_CONST(""
-	"\t{\"foo\" :{\"subobj\": false ,\
+	string_const_t compound =
+	    string_const(STRING_CONST(""
+	                              "\t{\"foo\" :{\"subobj\": false ,\
 		\"val\" :1.2345e45 \
 	} ,\"arr\" :[ \
 		\"string\",\
@@ -86,7 +87,7 @@ DECLARE_TEST(json, reference) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 1); // String starts with a tab character
+	EXPECT_UINTEQ(tokens[0].value, 1);  // String starts with a tab character
 	EXPECT_UINTEQ(tokens[0].value_length, compound.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[1].id_length, 3);
@@ -194,7 +195,8 @@ DECLARE_TEST(json, simplified) {
 	json_token_t tokens[128];
 	size_t capacity = sizeof(tokens) / sizeof(tokens[0]);
 
-	string_const_t simplified = string_const(STRING_CONST("\
+	string_const_t simplified =
+	    string_const(STRING_CONST("\
 	foo ={subobj= false \
 		val =1.2345e45 \
 	} arr =[\
@@ -211,7 +213,8 @@ DECLARE_TEST(json, simplified) {
 	]\
 	"));
 
-	string_const_t compound = string_const(STRING_CONST("\
+	string_const_t compound =
+	    string_const(STRING_CONST("\
 	{\"foo\" :{\"subobj\": false ,\
 		\"val\" :1.2345e45 \
 	} ,\"arr\" :[ \
@@ -239,7 +242,7 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 1); // String starts with a tab character
+	EXPECT_UINTEQ(tokens[0].value, 1);  // String starts with a tab character
 	EXPECT_UINTEQ(tokens[0].value_length, compound.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[1].id_length, 3);
@@ -354,7 +357,7 @@ DECLARE_TEST(json, simplified) {
 	EXPECT_INTEQ(tokens[0].type, JSON_OBJECT);
 	EXPECT_UINTEQ(tokens[0].id, 0);
 	EXPECT_UINTEQ(tokens[0].id_length, 0);
-	EXPECT_UINTEQ(tokens[0].value, 1); // Simplified first object also skip leading whitespace
+	EXPECT_UINTEQ(tokens[0].value, 1);  // Simplified first object also skip leading whitespace
 	EXPECT_UINTEQ(tokens[0].value_length, simplified.length - 1);
 	EXPECT_INTEQ(tokens[1].type, JSON_OBJECT);
 	EXPECT_CONSTSTRINGEQ(string_const(simplified.str + tokens[1].id, tokens[1].id_length),
@@ -482,16 +485,13 @@ DECLARE_TEST(json, random) {
 	return 0;
 }
 
-static bool
-test_parse_failed = true;
+static bool test_parse_failed = true;
 
-static bool
-test_parse_realloc_failed = true;
+static bool test_parse_realloc_failed = true;
 
 static void
-test_json_handler(const char* path, size_t path_size,
-                  const char* buffer, size_t size,
-                  const json_token_t* tokens, size_t numtokens) {
+test_json_handler(const char* path, size_t path_size, const char* buffer, size_t size, const json_token_t* tokens,
+                  size_t numtokens) {
 	FOUNDATION_UNUSED(path);
 	FOUNDATION_UNUSED(path_size);
 	FOUNDATION_UNUSED(size);
@@ -513,11 +513,9 @@ test_json_handler(const char* path, size_t path_size,
 			test_parse_failed = true;
 		if (!string_equal(buffer + tokens[3].id, tokens[3].id_length, STRING_CONST("val")))
 			test_parse_failed = true;
-		if (!string_equal(buffer + tokens[3].value, tokens[3].value_length,
-		                  STRING_CONST("\\u0000\\u0001\\u0002\\t")))
+		if (!string_equal(buffer + tokens[3].value, tokens[3].value_length, STRING_CONST("\\u0000\\u0001\\u0002\\t")))
 			test_parse_failed = true;
-	}
-	else if (numtokens == 145) {
+	} else if (numtokens == 145) {
 		size_t itok;
 		test_parse_realloc_failed = false;
 		for (itok = 1; itok < 145; ++itok) {
@@ -533,15 +531,20 @@ DECLARE_TEST(json, util) {
 	char unescaped[512];
 	string_t str;
 
-	str = json_escape(escaped, sizeof(escaped),
-	                  STRING_CONST("Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20"));
-	EXPECT_CONSTSTRINGEQ(string_to_const(str),
-	                     string_const(
-	                         STRING_CONST("Test escape \\\"\\\\\\b\\f\\r\\n\\t\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019 ")));
+	str = json_escape(
+	    escaped, sizeof(escaped),
+	    STRING_CONST(
+	        "Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20"));
+	EXPECT_CONSTSTRINGEQ(
+	    string_to_const(str),
+	    string_const(STRING_CONST("Test escape "
+	                              "\\\"\\\\\\b\\f\\r\\n\\t\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\"
+	                              "t\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019 ")));
 	str = json_unescape(unescaped, sizeof(unescaped), STRING_ARGS(str));
-	EXPECT_CONSTSTRINGEQ(string_to_const(str),
-	                     string_const(
-	                         STRING_CONST("Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20")));
+	EXPECT_CONSTSTRINGEQ(
+	    string_to_const(str),
+	    string_const(STRING_CONST(
+	        "Test escape \"\\\b\f\r\n\t\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20")));
 
 	stream_t* teststream;
 	string_t path;
@@ -552,13 +555,10 @@ DECLARE_TEST(json, util) {
 	directory = path_directory_name(STRING_ARGS(path));
 	fs_make_directory(STRING_ARGS(directory));
 
-	teststream = stream_open(STRING_ARGS(path),
-	                         STREAM_IN | STREAM_OUT | STREAM_CREATE | STREAM_TRUNCATE);
+	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_CREATE | STREAM_TRUNCATE);
 	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
 
-	stream_write_string(teststream, STRING_CONST(
-	                        "test = foo\nbar = {\nval = \"\\u0000\\u0001\\u0002\\t\" }"
-	                    ));
+	stream_write_string(teststream, STRING_CONST("test = foo\nbar = {\nval = \"\\u0000\\u0001\\u0002\\t\" }"));
 
 	stream_deallocate(teststream);
 
@@ -568,28 +568,25 @@ DECLARE_TEST(json, util) {
 	path = path_make_temporary(escaped, sizeof(escaped));
 	path = string_append(STRING_ARGS(path), sizeof(escaped), STRING_CONST(".sjson"));
 
-	teststream = stream_open(STRING_ARGS(path),
-	                         STREAM_IN | STREAM_OUT | STREAM_CREATE | STREAM_TRUNCATE);
+	teststream = stream_open(STRING_ARGS(path), STREAM_IN | STREAM_OUT | STREAM_CREATE | STREAM_TRUNCATE);
 	EXPECT_NE_MSGFORMAT(teststream, 0, "test stream '%.*s' not created", STRING_FORMAT(path));
 
-	stream_write_string(teststream, STRING_CONST(
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                        "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
-	                    ));
+	stream_write_string(teststream, STRING_CONST("0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"
+	                                             "0 = 0\n1 = 1\n2 = 2\n3 = 3\n4 = 4\n5 = 5\n6 = 6\n7 = 7\n8 = 8\n"));
 
 	stream_deallocate(teststream);
 
@@ -611,15 +608,13 @@ test_json_declare(void) {
 	ADD_TEST(json, util);
 }
 
-static test_suite_t test_json_suite = {
-	test_json_application,
-	test_json_memory_system,
-	test_json_config,
-	test_json_declare,
-	test_json_initialize,
-	test_json_finalize,
-	0
-};
+static test_suite_t test_json_suite = {test_json_application,
+                                       test_json_memory_system,
+                                       test_json_config,
+                                       test_json_declare,
+                                       test_json_initialize,
+                                       test_json_finalize,
+                                       0};
 
 #if BUILD_MONOLITHIC
 

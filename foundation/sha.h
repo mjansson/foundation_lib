@@ -1,10 +1,10 @@
-/* sha.h  -  Foundation library  -  Public Domain  -  2016 Mattias Jansson / Rampant Pixels
+/* sha.h  -  Foundation library  -  Public Domain  -  2016 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -127,11 +127,11 @@ sha512_digest_finalize(sha512_t* digest);
 /*! Get digest as string. Before getting the digest string the SHA-512 block must be
 finalized with a call to #sha512_digest_finalize.
 \param digest SHA-512 block
-\param str String buffer
-\param length Length of string buffer
+\param buffer String buffer
+\param capacity Capacity of string buffer
 \return Message digest string */
 FOUNDATION_API string_t
-sha512_get_digest(const sha512_t* digest, char* str, size_t length);
+sha512_get_digest(const sha512_t* digest, char* buffer, size_t capacity);
 
 /*! Get digest as raw 512-bit value. Before getting the raw digest the SHA-512 block must be
 finalized with a call to #sha512_digest_finalize.

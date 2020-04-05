@@ -1,10 +1,10 @@
-/* environment.m  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* environment.m  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -14,11 +14,16 @@
 #include <foundation/posix.h>
 #include <foundation/apple.h>
 
-extern void _environment_ns_command_line(string_t** argv);
-extern string_t _environment_ns_home_directory(char*, size_t);
-extern string_t _environment_ns_temporary_directory(char*, size_t);
-extern string_t _environment_ns_current_working_directory(char* buffer, size_t capacity);
-extern bool _environment_ns_set_current_working_directory(const char* buffer, size_t length);
+extern void
+_environment_ns_command_line(string_t** argv);
+extern string_t
+_environment_ns_home_directory(char*, size_t);
+extern string_t
+_environment_ns_temporary_directory(char*, size_t);
+extern string_t
+_environment_ns_current_working_directory(char* buffer, size_t capacity);
+extern bool
+_environment_ns_set_current_working_directory(const char* buffer, size_t length);
 
 string_t
 environment_bundle_identifier(char* target, size_t maxlength) {
@@ -80,7 +85,7 @@ _environment_ns_current_working_directory(char* buffer, size_t capacity) {
 		NSString* tmpstr = [filemgr currentDirectoryPath];
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
 		if (tmp && CFStringGetCString(tmp, buffer, (CFIndex)capacity, kCFStringEncodingUTF8))
-			return (string_t) {buffer, string_length(buffer)};
+			return (string_t){buffer, string_length(buffer)};
 	}
 	return (string_t){buffer, 0};
 }
@@ -91,10 +96,11 @@ _environment_ns_set_current_working_directory(const char* buffer, size_t length)
 		return false;
 	@autoreleasepool {
 		NSFileManager* filemgr = [[NSFileManager alloc] init];
-		NSString* path = [[NSString alloc] initWithBytes:buffer length:length encoding:NSUTF8StringEncoding];
+		NSString* path = [[NSString alloc] initWithBytes:buffer
+		                                          length:length
+		                                        encoding:NSUTF8StringEncoding];
 		if ([filemgr changeCurrentDirectoryPath:path])
 			return true;
 	}
 	return false;
-
 }
